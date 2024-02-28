@@ -10,13 +10,7 @@ import {
   getEnrichmentMax,
   showEnrichmentSuccessMessage,
   showEnrichmentLoadingMessage,
-  checkEnrichmentPlan,
 } from '@/modules/member/member-enrichment';
-import {
-  getExportMax,
-  showExportLimitDialog,
-  showExportDialog,
-} from '@/modules/member/member-export-limit';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
 import { MemberModel } from '../member-model';
@@ -82,7 +76,9 @@ export default {
 
   async doBulkUpdateMembersTags(
     { commit },
-    { members, tagsInCommon, tagsToSave },
+    {
+      members, tagsInCommon, tagsToSave, segments,
+    },
   ) {
     const { fields } = MemberModel;
     const formSchema = new FormSchema([
@@ -109,7 +105,7 @@ export default {
         );
         return acc;
       }, []);
-      const updatedMembers = await MemberService.updateBulk(payload);
+      const updatedMembers = await MemberService.updateBulk(payload, segments);
       Message.success('Tags updated successfully');
       commit('BULK_UPDATE_MEMBERS_TAGS_SUCCESS', updatedMembers);
     } catch (error) {

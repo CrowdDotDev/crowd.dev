@@ -481,7 +481,69 @@ class Permissions {
           plans.scale,
         ],
       },
-
+      tagRead: {
+        id: 'tagRead',
+        allowedRoles: [roles.admin, roles.projectAdmin, roles.readonly],
+        allowedPlans: [
+          plans.essential,
+          plans.eagleEye,
+          plans.growth,
+          plans.enterprise,
+          plans.scale,
+        ],
+      },
+      tagImport: {
+        id: 'tagImport',
+        allowedRoles: [roles.admin, roles.projectAdmin],
+        allowedPlans: [
+          plans.essential,
+          plans.eagleEye,
+          plans.growth,
+          plans.enterprise,
+          plans.scale,
+        ],
+      },
+      tagAutocomplete: {
+        id: 'tagAutocomplete',
+        allowedRoles: [roles.admin, roles.projectAdmin],
+        allowedPlans: [
+          plans.essential,
+          plans.eagleEye,
+          plans.growth,
+          plans.enterprise,
+          plans.scale,
+        ],
+      },
+      tagCreate: {
+        id: 'tagCreate',
+        allowedRoles: [roles.admin, roles.projectAdmin],
+        allowedPlans: [
+          plans.essential,
+          plans.growth,
+          plans.enterprise,
+          plans.scale,
+        ],
+      },
+      tagEdit: {
+        id: 'tagEdit',
+        allowedRoles: [roles.admin, roles.projectAdmin],
+        allowedPlans: [
+          plans.essential,
+          plans.growth,
+          plans.enterprise,
+          plans.scale,
+        ],
+      },
+      tagDestroy: {
+        id: 'tagDestroy',
+        allowedRoles: [roles.admin, roles.projectAdmin],
+        allowedPlans: [
+          plans.essential,
+          plans.growth,
+          plans.enterprise,
+          plans.scale,
+        ],
+      },
       organizationImport: {
         id: 'organizationImport',
         allowedRoles: [

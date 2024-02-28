@@ -697,6 +697,7 @@
         <app-member-dropdown-content
           v-if="selectedActionMember"
           :member="selectedActionMember"
+          :hide-unmerge="true"
           @find-github="isFindGithubDrawerOpen = selectedActionMember"
           @merge="isMergeDialogOpen = selectedActionMember"
           @close-dropdown="closeDropdown"
@@ -1031,6 +1032,7 @@ const doExport = () => MemberService.export({
   orderBy: savedFilterBody.value.orderBy,
   limit: 0,
   offset: null,
+  segments: [selectedProjectGroup.value?.id],
 });
 
 onMounted(async () => {

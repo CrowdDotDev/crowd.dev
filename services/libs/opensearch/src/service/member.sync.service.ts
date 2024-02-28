@@ -312,18 +312,20 @@ export class MemberSyncService {
     )
   }
 
-  public async syncMembers(memberIds: string[]): Promise<IMemberSyncResult> {
+  public async syncMembers(memberIds: string[], segmentIds?: string[]): Promise<IMemberSyncResult> {
     const CONCURRENT_DATABASE_QUERIES = 25
     const BULK_INDEX_DOCUMENT_BATCH_SIZE = 2500
 
     // get all memberId-segmentId couples
     const memberSegmentCouples: IMemberSegmentMatrix =
-      await this.memberRepo.getMemberSegmentCouples(memberIds)
+      await this.memberRepo.getMemberSegmentCouples(memberIds, segmentIds)
     let databaseStream = []
     let syncStream = []
     let documentsIndexed = 0
     const allMemberIds = Object.keys(memberSegmentCouples)
     const totalMemberIds = allMemberIds.length
+
+    const successfullySyncedMembers = []
 
     const processSegmentsStream = async (databaseStream): Promise<void> => {
       const results = await Promise.all(databaseStream.map((s) => s.promise))
@@ -440,10 +442,13 @@ export class MemberSyncService {
             documentsIndexed += syncStream.length
           }
         }
+        successfullySyncedMembers.push(memberId)
       }
     }
 
-    await this.memberRepo.markSynced(memberIds)
+    if (successfullySyncedMembers.length > 0) {
+      await this.memberRepo.markSynced(successfullySyncedMembers)
+    }
 
     return {
       membersSynced: memberIds.length,
@@ -598,9 +603,9 @@ export class MemberSyncService {
     member.tasks = []
 
     for (const m of members) {
-      member.activeOn.push(...m.activeOn)
+      member.activeOn.push(...(m.activeOn || []))
       member.activityCount += m.activityCount
-      member.activityTypes.push(...m.activityTypes)
+      member.activityTypes.push(...(m.activityTypes || []))
       member.activeDaysCount += m.activeDaysCount
       if (!member.lastActive) {
         member.lastActive = m.lastActive
@@ -618,11 +623,11 @@ export class MemberSyncService {
         member.averageSentiment += m.averageSentiment
       }
       member.tags.push(...m.tags)
-      member.organizations.push(...m.organizations)
-      member.contributions.push(...m.contributions)
-      member.affiliations.push(...m.affiliations)
-      member.notes.push(...m.notes)
-      member.tasks.push(...m.tasks)
+      member.organizations.push(...(m.organizations || []))
+      member.contributions.push(...(m.contributions || []))
+      member.affiliations.push(...(m.affiliations || []))
+      member.notes.push(...(m.notes || []))
+      member.tasks.push(...(m.tasks || []))
     }
 
     // average sentiment with the total number of members that have sentiment set

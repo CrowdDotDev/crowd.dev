@@ -274,7 +274,7 @@ export default {
           [b.url]: integration.segmentId,
         }), {});
 
-        await IntegrationService.githubMapRepos(integration.id, data);
+        await IntegrationService.githubMapRepos(integration.id, data, [integration.segmentId]);
 
         dispatch('doFetch');
 

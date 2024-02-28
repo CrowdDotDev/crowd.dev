@@ -44,7 +44,6 @@ authAxios.interceptors.request.use(
     // Add segments to requests
     if (includeSegmentsInRequest) {
       let segments;
-
       if (hasSegmentsBody) {
         segments = options.data.segments;
       } else if (hasSegmentsQueryParams) {
@@ -60,6 +59,12 @@ authAxios.interceptors.request.use(
           ...setOptions.params || {},
           segments,
         };
+      } else if (options.method === 'patch') {
+        setOptions.params = {
+          ...setOptions.params || {},
+          segments,
+        };
+        setOptions.data = setOptions.data || {};
       } else {
         setOptions.data = {
           ...setOptions.data || {},

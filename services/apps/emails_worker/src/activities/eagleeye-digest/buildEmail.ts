@@ -8,6 +8,8 @@ import { Content } from '../../types/email'
 import { UserTenant } from '../../types/user'
 import { switchDate } from '../../utils/date'
 
+import * as eagleeye from '@crowd/data-access-layer/src/old/apps/emails_worker/eagleeye'
+
 /*
 eagleeyeFetchFromEagleEye is a Temporal activity that fetches the content to push
 inside an email coming from EagleEye API.
@@ -58,13 +60,7 @@ export async function eagleeyeFetchFromDatabase(user: UserTenant): Promise<Eagle
 
   let posts: EagleEyeRawPost[]
   try {
-    posts = await svc.postgres.reader.connection().query(
-      `SELECT url, post thumbnail, platform
-        FROM "eagleEyeContents"
-        WHERE "tenantId" = $1
-        AND "postedAt" > $2;`,
-      [user.tenantId, actualdate],
-    )
+    posts = await eagleeye.fetchFromDatabase(svc.postgres.reader, user.tenantId, actualdate)
   } catch (err) {
     throw new Error(err)
   }

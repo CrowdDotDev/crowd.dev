@@ -1,6 +1,7 @@
 import { svc } from '../../main'
 import { UserTenantWithEmailSent } from '../../types/user'
 import { nextEmailAt } from '../../utils/date'
+import * as eagleeye from '@crowd/data-access-layer/src/old/apps/emails_worker/eagleeye'
 
 /*
 eagleeyeUpdateNextEmailAt is a Temporal activity that updates when the next daily
@@ -8,11 +9,11 @@ or weekly EagleEye digest email should be send at, depending on the user's setti
 */
 export async function eagleeyeUpdateNextEmailAt(emailSent: UserTenantWithEmailSent): Promise<void> {
   try {
-    await svc.postgres.writer.connection().query(
-      `UPDATE "tenantUsers"
-      SET settings = jsonb_set(settings, '{eagleEye,emailDigest,nextEmailAt}', to_jsonb($1::TEXT), TRUE)
-      WHERE "tenantId" = $2 AND "userId" = $3;`,
-      [nextEmailAt(emailSent.settings.eagleEye.emailDigest), emailSent.tenantId, emailSent.userId],
+    await eagleeye.updateNextEmailAt(
+      svc.postgres.writer,
+      emailSent.tenantId,
+      emailSent.userId,
+      nextEmailAt(emailSent.settings.eagleEye.emailDigest),
     )
   } catch (err) {
     throw new Error(err)

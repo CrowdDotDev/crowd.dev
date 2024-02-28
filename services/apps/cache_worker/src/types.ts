@@ -1,21 +1,5 @@
 import { CubeDimension, CubeGranularity, CubeMeasure, ICubeOrder } from '@crowd/cubejs'
 
-export interface ITenant {
-  tenantId: string
-  plan: string
-}
-
-export interface ISegment {
-  segmentId: string
-  slug: string
-  parentSlug: string
-  grandparentSlug: string
-}
-
-export interface IDashboardCacheLastRefreshedAt {
-  dashboardCacheLastRefreshedAt: string
-}
-
 export interface IActiveMembersTimeseriesResult {
   [CubeDimension.ACTIVITY_DATE_DAY]: string
   [CubeDimension.ACTIVITY_DATE]: string
@@ -103,8 +87,4 @@ export interface ICubeQueryParams {
   rawResult?: boolean
   dimensions?: CubeDimension[] | string[]
   order?: ICubeOrder
-}
-
-export interface IPlatforms {
-  platforms: string[]
 }

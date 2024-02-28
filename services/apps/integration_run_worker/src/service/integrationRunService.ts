@@ -1,5 +1,5 @@
 import { singleOrDefault } from '@crowd/common'
-import { DbStore } from '@crowd/database'
+import { DbStore } from '@crowd/data-access-layer/src/database'
 import {
   IGenerateStreamsContext,
   IIntegrationStartRemoteSyncContext,
@@ -8,11 +8,11 @@ import {
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { ApiPubSubEmitter, RedisCache, RedisClient } from '@crowd/redis'
 import { IntegrationRunState, IntegrationStreamState } from '@crowd/types'
-import { NANGO_CONFIG, PLATFORM_CONFIG } from '../conf'
-import IntegrationRunRepository from '../repo/integrationRun.repo'
-import MemberAttributeSettingsRepository from '../repo/memberAttributeSettings.repo'
-import SampleDataRepository from '../repo/sampleData.repo'
-import { AutomationRepository } from '../repo/automation.repo'
+import { NANGO_CONFIG, PLATFORM_CONFIG, WORKER_CONFIG } from '../conf'
+import IntegrationRunRepository from '@crowd/data-access-layer/src/old/apps/integration_run_worker/integrationRun.repo'
+import MemberAttributeSettingsRepository from '@crowd/data-access-layer/src/old/apps/integration_run_worker/memberAttributeSettings.repo'
+import SampleDataRepository from '@crowd/data-access-layer/src/old/apps/integration_run_worker/sampleData.repo'
+import { AutomationRepository } from '@crowd/data-access-layer/src/old/apps/integration_run_worker/automation.repo'
 import {
   IntegrationRunWorkerEmitter,
   IntegrationStreamWorkerEmitter,
@@ -71,7 +71,10 @@ export default class IntegrationRunService extends LoggerBase {
       if (error) {
         this.log.warn('Some streams have resulted in error!')
 
-        const pendingRetry = await this.repo.getErrorStreamsPendingRetry(runId)
+        const pendingRetry = await this.repo.getErrorStreamsPendingRetry(
+          runId,
+          WORKER_CONFIG().maxRetries,
+        )
         if (pendingRetry === 0) {
           this.log.error('No streams pending retry and all are in final state - run failed!')
           await this.repo.markRunError(runId, {

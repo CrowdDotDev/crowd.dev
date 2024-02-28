@@ -19,7 +19,7 @@
             <article
               v-for="(handle, ii) of model[key]"
               :key="ii"
-              class="flex flex-grow gap-2 pb-3 last:pb-0"
+              class="flex flex-grow items-center gap-2 pb-3 last:pb-0"
             >
               <el-input
                 v-model="model[key][ii]"
@@ -33,13 +33,33 @@
                     'private-',
                   ) ? 'password' : 'text'"
               >
-                <template #prepend>
+                <template v-if="value.urlPrefix?.length" #prepend>
                   <span class="font-medium text-gray-500">{{ value.urlPrefix }}</span>
                 </template>
               </el-input>
+              <el-tooltip
+                v-if="props.showUnmerge && Object.entries(identitiesForm).length > 1 && staticIdentities.length > 1"
+                :disabled="staticModel?.[key]?.[ii] === model[key][ii]"
+                content="Not possible to unmerge an unsaved identity"
+                placement="top"
+              >
+                <div>
+                  <el-button
+                    class="btn btn--md btn--transparent block w-8 !h-8 p-0"
+                    :disabled="!staticModel?.[key]?.[ii] || staticModel?.[key]?.[ii] !== model[key][ii]"
+                    @click="emit('unmerge', {
+                      platform: key,
+                      username: staticModel?.[key]?.[ii],
+                    })"
+                  >
+                    <i class="ri-link-unlink-m text-lg" />
+                  </el-button>
+                </div>
+              </el-tooltip>
+
               <el-button
                 :disabled="model[key].length <= 1 || editingDisabled(key)"
-                class="btn btn--md btn--transparent w-10 h-10"
+                class="btn btn--md btn--transparent w-8 !h-8"
                 @click="removeUsername(key, ii)"
               >
                 <i class="ri-delete-bin-line text-lg" />
@@ -57,11 +77,11 @@ import {
   defineEmits,
   defineProps,
   watch,
-  ref,
+  ref, onMounted, computed,
 } from 'vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits(['update:modelValue', 'unmerge']);
 
 const props = defineProps({
   modelValue: {
@@ -71,6 +91,10 @@ const props = defineProps({
   record: {
     type: Object,
     default: () => {},
+  },
+  showUnmerge: {
+    type: Boolean,
+    default: false,
   },
 });
 
@@ -114,6 +138,7 @@ const defaultValue = Object.keys(identitiesForm).reduce((identities, key) => ({
 }), {});
 
 const model = ref({ ...defaultValue });
+const staticModel = ref({});
 
 watch(
   props.modelValue,
@@ -140,10 +165,6 @@ watch(
       };
     }, {});
 
-    // Get platforms from usernames
-    const platforms = Object.keys(username || {});
-    const platform = platforms.length ? platforms[0] : null;
-
     // Get url object from usernames
     const url = Object.keys(username).reduce((urls, p) => {
       if (username[p]?.length) {
@@ -166,6 +187,10 @@ watch(
         delete identities[platform];
       }
     });
+
+    // Get platforms from usernames
+    const platforms = Object.keys(identities || {});
+    const platform = platforms.length ? platforms[0] : null;
 
     // Emit updated member
     emit('update:modelValue', {
@@ -191,11 +216,19 @@ function editingDisabled(platform) {
     return false;
   }
   return props.record
-    ? props.record.activeOn.includes(platform)
+    ? props.record.activeOn?.includes(platform)
     : false;
 }
 
 const removeUsername = (platform, index) => {
   model.value[platform].splice(index, 1);
 };
+
+const staticIdentities = computed(() => Object.values(staticModel.value).flat());
+
+onMounted(() => {
+  staticModel.value = {
+    ...props.record.username,
+  };
+});
 </script>

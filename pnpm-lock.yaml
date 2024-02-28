@@ -1,5 +1,9 @@
 lockfileVersion: '6.0'
 
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
 importers:
 
   .github/actions/node:
@@ -43,7 +47,7 @@ importers:
         version: 3.1.0
       ts-node:
         specifier: ^10.9.1
-        version: 10.9.1(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
+        version: 10.9.1(@types/node@20.10.7)(typescript@5.3.2)
       typescript:
         specifier: ^5.2.2
         version: 5.3.2
@@ -393,6 +397,9 @@ importers:
       cross-env:
         specifier: 7.0.2
         version: 7.0.2
+      deep-object-diff:
+        specifier: ^1.1.9
+        version: 1.1.9
       eslint:
         specifier: ^8.12.0
         version: 8.54.0
@@ -413,7 +420,7 @@ importers:
         version: 0.0.4
       jest:
         specifier: ^29.5.0
-        version: 29.7.0(@types/node@18.0.6)(ts-node@10.6.0)
+        version: 29.7.0(@types/node@18.0.6)
       node-mocks-http:
         specifier: 1.9.0
         version: 1.9.0
@@ -432,45 +439,63 @@ importers:
       ts-jest:
         specifier: ^29.1.0
         version: 29.1.1(@babel/core@7.23.5)(jest@29.7.0)(typescript@5.3.2)
-      ts-node:
-        specifier: 10.6.0
-        version: 10.6.0(@types/node@18.0.6)(typescript@5.3.2)
+      tsx:
+        specifier: ^4.7.1
+        version: 4.7.1
       typescript:
         specifier: ^5.2.2
         version: 5.3.2
 
+  services:
+    devDependencies:
+      '@typescript-eslint/eslint-plugin':
+        specifier: ^5.59.2
+        version: 5.62.0(@typescript-eslint/parser@5.62.0)(eslint@8.54.0)(typescript@5.3.2)
+      '@typescript-eslint/parser':
+        specifier: ^5.59.2
+        version: 5.62.0(eslint@8.54.0)(typescript@5.3.2)
+      eslint:
+        specifier: ^8.39.0
+        version: 8.54.0
+      eslint-config-prettier:
+        specifier: ^8.8.0
+        version: 8.10.0(eslint@8.54.0)
+      eslint-plugin-prettier:
+        specifier: ^4.2.1
+        version: 4.2.1(eslint-config-prettier@8.10.0)(eslint@8.54.0)(prettier@2.8.8)
+      prettier:
+        specifier: ^2.8.8
+        version: 2.8.8
+
   services/apps/automations_worker:
     dependencies:
       '@crowd/archetype-standard':
-        specifier: file:../../archetypes/standard
-        version: file:services/archetypes/standard(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
+        specifier: workspace:*
+        version: link:../../archetypes/standard
       '@crowd/archetype-worker':
-        specifier: file:../../archetypes/worker
-        version: file:services/archetypes/worker(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
+        specifier: workspace:*
+        version: link:../../archetypes/worker
       '@crowd/common':
-        specifier: file:../../libs/common
-        version: file:services/libs/common
+        specifier: workspace:*
+        version: link:../../libs/common
+      '@crowd/data-access-layer':
+        specifier: workspace:*
+        version: link:../../libs/data-access-layer
+      '@crowd/integrations':
+        specifier: workspace:*
+        version: link:../../libs/integrations
+      '@crowd/logging':
+        specifier: workspace:*
+        version: link:../../libs/logging
+      '@crowd/redis':
+        specifier: workspace:*
+        version: link:../../libs/redis
       '@crowd/types':
-        specifier: file:../../libs/types
-        version: file:services/libs/types
+        specifier: workspace:*
+        version: link:../../libs/types
       '@temporalio/workflow':
         specifier: ~1.8.6
         version: 1.8.6
-      '@types/config':
-        specifier: ^3.3.1
-        version: 3.3.3
-      '@types/node':
-        specifier: ^20.8.2
-        version: 20.10.1
-      '@types/superagent':
-        specifier: ^4.1.20
-        version: 4.1.24
-      axios:
-        specifier: ^1.5.1
-        version: 1.6.2
-      config:
-        specifier: ^3.3.9
-        version: 3.3.9
       html-to-mrkdwn-ts:
         specifier: ^1.1.0
         version: 1.1.0
@@ -483,161 +508,116 @@ importers:
       superagent:
         specifier: ^8.1.2
         version: 8.1.2
-      ts-node:
-        specifier: ^10.9.1
-        version: 10.9.1(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
-      tsconfig-paths:
-        specifier: ^4.2.0
-        version: 4.2.0
+      tsx:
+        specifier: ^4.7.1
+        version: 4.7.1
       typescript:
         specifier: ^5.2.2
         version: 5.3.2
-    devDependencies:
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^6.7.4
-        version: 6.13.1(@typescript-eslint/parser@6.13.1)(eslint@8.54.0)(typescript@5.3.2)
-      '@typescript-eslint/parser':
-        specifier: ^6.7.4
-        version: 6.13.1(eslint@8.54.0)(typescript@5.3.2)
-      eslint:
-        specifier: ^8.50.0
-        version: 8.54.0
-      eslint-config-prettier:
-        specifier: ^9.0.0
-        version: 9.0.0(eslint@8.54.0)
-      eslint-plugin-prettier:
-        specifier: ^5.0.0
-        version: 5.0.1(eslint-config-prettier@9.0.0)(eslint@8.54.0)(prettier@3.1.0)
-      nodemon:
-        specifier: ^3.0.1
-        version: 3.0.1
-      prettier:
-        specifier: ^3.0.3
-        version: 3.1.0
-
-  services/apps/cache_worker:
-    dependencies:
-      '@crowd/archetype-standard':
-        specifier: file:../../archetypes/standard
-        version: file:services/archetypes/standard(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
-      '@crowd/archetype-worker':
-        specifier: file:../../archetypes/worker
-        version: file:services/archetypes/worker(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
-      '@crowd/common':
-        specifier: file:../../libs/common
-        version: file:services/libs/common
-      '@crowd/cubejs':
-        specifier: file:../../libs/cubejs
-        version: file:services/libs/cubejs
-      '@crowd/feature-flags':
-        specifier: file:../../libs/feature-flags
-        version: file:services/libs/feature-flags
-      '@crowd/types':
-        specifier: file:../../libs/types
-        version: file:services/libs/types
-      '@temporalio/activity':
-        specifier: ~1.8.6
-        version: 1.8.6
-      '@temporalio/client':
-        specifier: ~1.8.6
-        version: 1.8.6
-      '@temporalio/workflow':
-        specifier: ~1.8.6
-        version: 1.8.6
-      axios:
-        specifier: ~1.5.1
-        version: 1.5.1
-      moment:
-        specifier: ~2.29.4
-        version: 2.29.4
-      ts-node:
-        specifier: ^10.9.1
-        version: 10.9.1(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
-      tsconfig-paths:
-        specifier: ^4.2.0
-        version: 4.2.0
-      typescript:
-        specifier: ^5.2.2
-        version: 5.3.2
-      uuid:
-        specifier: ~9.0.1
-        version: 9.0.1
     devDependencies:
       '@types/node':
         specifier: ^20.8.2
         version: 20.10.1
-      '@types/uuid':
-        specifier: ~9.0.6
-        version: 9.0.7
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^6.7.4
-        version: 6.13.1(@typescript-eslint/parser@6.13.1)(eslint@8.54.0)(typescript@5.3.2)
-      '@typescript-eslint/parser':
-        specifier: ^6.7.4
-        version: 6.13.1(eslint@8.54.0)(typescript@5.3.2)
-      eslint:
-        specifier: ^8.50.0
-        version: 8.54.0
-      eslint-config-prettier:
-        specifier: ^9.0.0
-        version: 9.0.0(eslint@8.54.0)
-      eslint-plugin-prettier:
-        specifier: ^5.0.0
-        version: 5.0.1(eslint-config-prettier@9.0.0)(eslint@8.54.0)(prettier@3.1.0)
+      '@types/superagent':
+        specifier: ^4.1.20
+        version: 4.1.24
       nodemon:
         specifier: ^3.0.1
         version: 3.0.1
-      prettier:
-        specifier: ^3.0.3
-        version: 3.1.0
+
+  services/apps/cache_worker:
+    dependencies:
+      '@crowd/archetype-standard':
+        specifier: workspace:*
+        version: link:../../archetypes/standard
+      '@crowd/archetype-worker':
+        specifier: workspace:*
+        version: link:../../archetypes/worker
+      '@crowd/cubejs':
+        specifier: workspace:*
+        version: link:../../libs/cubejs
+      '@crowd/data-access-layer':
+        specifier: workspace:*
+        version: link:../../libs/data-access-layer
+      '@crowd/feature-flags':
+        specifier: workspace:*
+        version: link:../../libs/feature-flags
+      '@crowd/logging':
+        specifier: workspace:*
+        version: link:../../libs/logging
+      '@crowd/redis':
+        specifier: workspace:*
+        version: link:../../libs/redis
+      '@crowd/types':
+        specifier: workspace:*
+        version: link:../../libs/types
+      '@temporalio/workflow':
+        specifier: ~1.8.6
+        version: 1.8.6
+      moment:
+        specifier: ~2.29.4
+        version: 2.29.4
+      tsx:
+        specifier: ^4.7.1
+        version: 4.7.1
+      typescript:
+        specifier: ^5.2.2
+        version: 5.3.2
+    devDependencies:
+      '@types/node':
+        specifier: ^20.8.2
+        version: 20.10.1
+      nodemon:
+        specifier: ^3.0.1
+        version: 3.0.1
 
   services/apps/data_sink_worker:
     dependencies:
-      '@crowd/alerting':
-        specifier: file:../../libs/alerting
-        version: file:services/libs/alerting
       '@crowd/common':
-        specifier: file:../../libs/common
-        version: file:services/libs/common
+        specifier: workspace:*
+        version: link:../../libs/common
       '@crowd/common_services':
-        specifier: file:../../libs/common_services
-        version: file:services/libs/common_services
+        specifier: workspace:*
+        version: link:../../libs/common_services
       '@crowd/conversations':
-        specifier: file:../../libs/conversations
-        version: file:services/libs/conversations
-      '@crowd/database':
-        specifier: file:../../libs/database
-        version: file:services/libs/database
+        specifier: workspace:*
+        version: link:../../libs/conversations
+      '@crowd/data-access-layer':
+        specifier: workspace:*
+        version: link:../../libs/data-access-layer
       '@crowd/feature-flags':
-        specifier: file:../../libs/feature-flags
-        version: file:services/libs/feature-flags
+        specifier: workspace:*
+        version: link:../../libs/feature-flags
       '@crowd/integrations':
-        specifier: file:../../libs/integrations
-        version: file:services/libs/integrations
+        specifier: workspace:*
+        version: link:../../libs/integrations
       '@crowd/logging':
-        specifier: file:../../libs/logging
-        version: file:services/libs/logging
+        specifier: workspace:*
+        version: link:../../libs/logging
+      '@crowd/opensearch':
+        specifier: workspace:*
+        version: link:../../libs/opensearch
       '@crowd/redis':
-        specifier: file:../../libs/redis
-        version: file:services/libs/redis
+        specifier: workspace:*
+        version: link:../../libs/redis
       '@crowd/sentiment':
-        specifier: file:../../libs/sentiment
-        version: file:services/libs/sentiment
+        specifier: workspace:*
+        version: link:../../libs/sentiment
       '@crowd/sqs':
-        specifier: file:../../libs/sqs
-        version: file:services/libs/sqs
+        specifier: workspace:*
+        version: link:../../libs/sqs
       '@crowd/telemetry':
-        specifier: file:../../libs/telemetry
-        version: file:services/libs/telemetry
+        specifier: workspace:*
+        version: link:../../libs/telemetry
       '@crowd/temporal':
-        specifier: file:../../libs/temporal
-        version: file:services/libs/temporal
+        specifier: workspace:*
+        version: link:../../libs/temporal
       '@crowd/tracing':
-        specifier: file:../../libs/tracing
-        version: file:services/libs/tracing
+        specifier: workspace:*
+        version: link:../../libs/tracing
       '@crowd/types':
-        specifier: file:../../libs/types
-        version: file:services/libs/types
+        specifier: workspace:*
+        version: link:../../libs/types
       '@types/config':
         specifier: ^3.3.0
         version: 3.3.3
@@ -647,9 +627,6 @@ importers:
       config:
         specifier: ^3.3.9
         version: 3.3.9
-      lodash.clonedeep:
-        specifier: ^4.5.0
-        version: 4.5.0
       lodash.isequal:
         specifier: ^4.5.0
         version: 4.5.0
@@ -659,67 +636,46 @@ importers:
       lodash.uniqby:
         specifier: ^4.7.0
         version: 4.7.0
-      moment:
-        specifier: 2.29.4
-        version: 2.29.4
       moment-timezone:
         specifier: ^0.5.34
         version: 0.5.43
-      ts-node:
-        specifier: ^10.9.1
-        version: 10.9.1(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
-      tsconfig-paths:
-        specifier: ^4.2.0
-        version: 4.2.0
+      tsx:
+        specifier: ^4.7.1
+        version: 4.7.1
       typescript:
         specifier: ^5.0.4
         version: 5.3.2
     devDependencies:
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^5.59.2
-        version: 5.62.0(@typescript-eslint/parser@5.62.0)(eslint@8.54.0)(typescript@5.3.2)
-      '@typescript-eslint/parser':
-        specifier: ^5.59.2
-        version: 5.62.0(eslint@8.54.0)(typescript@5.3.2)
-      eslint:
-        specifier: ^8.39.0
-        version: 8.54.0
-      eslint-config-prettier:
-        specifier: ^8.8.0
-        version: 8.10.0(eslint@8.54.0)
-      eslint-plugin-prettier:
-        specifier: ^4.2.1
-        version: 4.2.1(eslint-config-prettier@8.10.0)(eslint@8.54.0)(prettier@2.8.8)
       nodemon:
         specifier: ^2.0.22
         version: 2.0.22
-      prettier:
-        specifier: ^2.8.8
-        version: 2.8.8
 
   services/apps/emails_worker:
     dependencies:
       '@crowd/archetype-standard':
-        specifier: file:../../archetypes/standard
-        version: file:services/archetypes/standard(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
+        specifier: workspace:*
+        version: link:../../archetypes/standard
       '@crowd/archetype-worker':
-        specifier: file:../../archetypes/worker
-        version: file:services/archetypes/worker(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
+        specifier: workspace:*
+        version: link:../../archetypes/worker
       '@crowd/common':
-        specifier: file:../../libs/common
-        version: file:services/libs/common
+        specifier: workspace:*
+        version: link:../../libs/common
       '@crowd/cubejs':
-        specifier: file:../../libs/cubejs
-        version: file:services/libs/cubejs
+        specifier: workspace:*
+        version: link:../../libs/cubejs
+      '@crowd/data-access-layer':
+        specifier: workspace:*
+        version: link:../../libs/data-access-layer
+      '@crowd/integrations':
+        specifier: workspace:*
+        version: link:../../libs/integrations
       '@crowd/types':
-        specifier: file:../../libs/types
-        version: file:services/libs/types
+        specifier: workspace:*
+        version: link:../../libs/types
       '@sendgrid/mail':
         specifier: ~7.7.0
         version: 7.7.0
-      '@temporalio/activity':
-        specifier: ~1.8.6
-        version: 1.8.6
       '@temporalio/client':
         specifier: ~1.8.6
         version: 1.8.6
@@ -738,12 +694,9 @@ importers:
       moment:
         specifier: ~2.29.4
         version: 2.29.4
-      ts-node:
-        specifier: ^10.9.1
-        version: 10.9.1(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
-      tsconfig-paths:
-        specifier: ^4.2.0
-        version: 4.2.0
+      tsx:
+        specifier: ^4.7.1
+        version: 4.7.1
       typescript:
         specifier: ^5.2.2
         version: 5.3.2
@@ -757,534 +710,400 @@ importers:
       '@types/uuid':
         specifier: ~9.0.6
         version: 9.0.7
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^6.7.4
-        version: 6.13.1(@typescript-eslint/parser@6.13.1)(eslint@8.54.0)(typescript@5.3.2)
-      '@typescript-eslint/parser':
-        specifier: ^6.7.4
-        version: 6.13.1(eslint@8.54.0)(typescript@5.3.2)
-      eslint:
-        specifier: ^8.50.0
-        version: 8.54.0
-      eslint-config-prettier:
-        specifier: ^9.0.0
-        version: 9.0.0(eslint@8.54.0)
-      eslint-plugin-prettier:
-        specifier: ^5.0.0
-        version: 5.0.1(eslint-config-prettier@9.0.0)(eslint@8.54.0)(prettier@3.1.0)
       nodemon:
         specifier: ^3.0.1
         version: 3.0.1
-      prettier:
-        specifier: ^3.0.3
-        version: 3.1.0
 
   services/apps/entity_merging_worker:
     dependencies:
       '@crowd/archetype-standard':
-        specifier: file:../../archetypes/standard
-        version: file:services/archetypes/standard(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
+        specifier: workspace:*
+        version: link:../../archetypes/standard
       '@crowd/archetype-worker':
-        specifier: file:../../archetypes/worker
-        version: file:services/archetypes/worker(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
-      '@crowd/common':
-        specifier: file:../../libs/common
-        version: file:services/libs/common
-      '@crowd/feature-flags':
-        specifier: file:../../libs/feature-flags
-        version: file:services/libs/feature-flags
+        specifier: workspace:*
+        version: link:../../archetypes/worker
+      '@crowd/data-access-layer':
+        specifier: workspace:*
+        version: link:../../libs/data-access-layer
+      '@crowd/opensearch':
+        specifier: workspace:*
+        version: link:../../libs/opensearch
       '@crowd/redis':
-        specifier: file:../../libs/redis
-        version: file:services/libs/redis
+        specifier: workspace:*
+        version: link:../../libs/redis
       '@crowd/types':
-        specifier: file:../../libs/types
-        version: file:services/libs/types
-      '@sendgrid/mail':
-        specifier: ~7.7.0
-        version: 7.7.0
-      '@temporalio/activity':
-        specifier: ~1.8.6
-        version: 1.8.6
-      '@temporalio/client':
-        specifier: ~1.8.6
-        version: 1.8.6
+        specifier: workspace:*
+        version: link:../../libs/types
       '@temporalio/workflow':
         specifier: ~1.8.6
         version: 1.8.6
-      axios:
-        specifier: ~1.5.1
-        version: 1.5.1
-      html-to-text:
-        specifier: ~9.0.5
-        version: 9.0.5
-      lodash:
-        specifier: ~4.17.21
-        version: 4.17.21
-      moment:
-        specifier: ~2.29.4
-        version: 2.29.4
-      moment-timezone:
-        specifier: ^0.5.34
-        version: 0.5.43
-      ts-node:
-        specifier: ^10.9.1
-        version: 10.9.1(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
-      tsconfig-paths:
-        specifier: ^4.2.0
-        version: 4.2.0
+      tsx:
+        specifier: ^4.7.1
+        version: 4.7.1
       typescript:
         specifier: ^5.2.2
         version: 5.3.2
-      uuid:
-        specifier: ~9.0.1
-        version: 9.0.1
     devDependencies:
       '@types/node':
         specifier: ^20.8.2
         version: 20.10.1
-      '@types/uuid':
-        specifier: ~9.0.6
-        version: 9.0.7
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^6.7.4
-        version: 6.13.1(@typescript-eslint/parser@6.13.1)(eslint@8.54.0)(typescript@5.3.2)
-      '@typescript-eslint/parser':
-        specifier: ^6.7.4
-        version: 6.13.1(eslint@8.54.0)(typescript@5.3.2)
-      eslint:
-        specifier: ^8.50.0
-        version: 8.54.0
-      eslint-config-prettier:
-        specifier: ^9.0.0
-        version: 9.0.0(eslint@8.54.0)
-      eslint-plugin-prettier:
-        specifier: ^5.0.0
-        version: 5.0.1(eslint-config-prettier@9.0.0)(eslint@8.54.0)(prettier@3.1.0)
       nodemon:
         specifier: ^3.0.1
         version: 3.0.1
-      prettier:
-        specifier: ^3.0.3
-        version: 3.1.0
+
+  services/apps/exports_worker:
+    dependencies:
+      '@aws-sdk/hash-node':
+        specifier: ^3.226.0
+        version: 3.374.0
+      '@aws-sdk/protocol-http':
+        specifier: ^3.226.0
+        version: 3.374.0
+      '@aws-sdk/s3-request-presigner':
+        specifier: ^3.229.0
+        version: 3.462.0
+      '@aws-sdk/url-parser':
+        specifier: ^3.226.0
+        version: 3.374.0
+      '@aws-sdk/util-format-url':
+        specifier: ^3.226.0
+        version: 3.460.0
+      '@crowd/archetype-standard':
+        specifier: workspace:*
+        version: link:../../archetypes/standard
+      '@crowd/archetype-worker':
+        specifier: workspace:*
+        version: link:../../archetypes/worker
+      '@crowd/common':
+        specifier: workspace:*
+        version: link:../../libs/common
+      '@crowd/data-access-layer':
+        specifier: workspace:*
+        version: link:../../libs/data-access-layer
+      '@crowd/opensearch':
+        specifier: workspace:*
+        version: link:../../libs/opensearch
+      '@crowd/redis':
+        specifier: workspace:*
+        version: link:../../libs/redis
+      '@crowd/types':
+        specifier: workspace:*
+        version: link:../../libs/types
+      '@sendgrid/mail':
+        specifier: ~8.1.0
+        version: 8.1.1
+      '@temporalio/workflow':
+        specifier: ~1.8.6
+        version: 1.8.6
+      aws-sdk:
+        specifier: 2.814.0
+        version: 2.814.0
+      json2csv:
+        specifier: ^5.0.7
+        version: 5.0.7
+      lodash.pick:
+        specifier: ~4.4.0
+        version: 4.4.0
+      moment:
+        specifier: ~2.30.1
+        version: 2.30.1
+      tsx:
+        specifier: ^4.7.1
+        version: 4.7.1
+      typescript:
+        specifier: ^5.2.2
+        version: 5.3.2
+    devDependencies:
+      '@types/node':
+        specifier: ^20.8.2
+        version: 20.10.7
+      '@types/uuid':
+        specifier: ~9.0.6
+        version: 9.0.7
+      nodemon:
+        specifier: ^3.0.1
+        version: 3.0.1
 
   services/apps/integration_data_worker:
     dependencies:
-      '@crowd/alerting':
-        specifier: file:../../libs/alerting
-        version: file:services/libs/alerting
       '@crowd/common':
-        specifier: file:../../libs/common
-        version: file:services/libs/common
+        specifier: workspace:*
+        version: link:../../libs/common
       '@crowd/common_services':
-        specifier: file:../../libs/common_services
-        version: file:services/libs/common_services
-      '@crowd/database':
-        specifier: file:../../libs/database
-        version: file:services/libs/database
+        specifier: workspace:*
+        version: link:../../libs/common_services
+      '@crowd/data-access-layer':
+        specifier: workspace:*
+        version: link:../../libs/data-access-layer
       '@crowd/feature-flags':
-        specifier: file:../../libs/feature-flags
-        version: file:services/libs/feature-flags
+        specifier: workspace:*
+        version: link:../../libs/feature-flags
       '@crowd/integrations':
-        specifier: file:../../libs/integrations
-        version: file:services/libs/integrations
+        specifier: workspace:*
+        version: link:../../libs/integrations
       '@crowd/logging':
-        specifier: file:../../libs/logging
-        version: file:services/libs/logging
+        specifier: workspace:*
+        version: link:../../libs/logging
       '@crowd/redis':
-        specifier: file:../../libs/redis
-        version: file:services/libs/redis
+        specifier: workspace:*
+        version: link:../../libs/redis
       '@crowd/sqs':
-        specifier: file:../../libs/sqs
-        version: file:services/libs/sqs
+        specifier: workspace:*
+        version: link:../../libs/sqs
       '@crowd/telemetry':
-        specifier: file:../../libs/telemetry
-        version: file:services/libs/telemetry
+        specifier: workspace:*
+        version: link:../../libs/telemetry
       '@crowd/tracing':
-        specifier: file:../../libs/tracing
-        version: file:services/libs/tracing
+        specifier: workspace:*
+        version: link:../../libs/tracing
       '@crowd/types':
-        specifier: file:../../libs/types
-        version: file:services/libs/types
+        specifier: workspace:*
+        version: link:../../libs/types
+      config:
+        specifier: ^3.3.9
+        version: 3.3.9
+      tsx:
+        specifier: ^4.7.1
+        version: 4.7.1
+      typescript:
+        specifier: ^5.0.4
+        version: 5.3.2
+    devDependencies:
       '@types/config':
         specifier: ^3.3.0
         version: 3.3.3
       '@types/node':
         specifier: ^18.16.3
         version: 18.18.14
-      config:
-        specifier: ^3.3.9
-        version: 3.3.9
-      ts-node:
-        specifier: ^10.9.1
-        version: 10.9.1(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
-      tsconfig-paths:
-        specifier: ^4.2.0
-        version: 4.2.0
-      typescript:
-        specifier: ^5.0.4
-        version: 5.3.2
-    devDependencies:
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^5.59.2
-        version: 5.62.0(@typescript-eslint/parser@5.62.0)(eslint@8.54.0)(typescript@5.3.2)
-      '@typescript-eslint/parser':
-        specifier: ^5.59.2
-        version: 5.62.0(eslint@8.54.0)(typescript@5.3.2)
-      eslint:
-        specifier: ^8.39.0
-        version: 8.54.0
-      eslint-config-prettier:
-        specifier: ^8.8.0
-        version: 8.10.0(eslint@8.54.0)
-      eslint-plugin-prettier:
-        specifier: ^4.2.1
-        version: 4.2.1(eslint-config-prettier@8.10.0)(eslint@8.54.0)(prettier@2.8.8)
       nodemon:
         specifier: ^2.0.22
         version: 2.0.22
-      prettier:
-        specifier: ^2.8.8
-        version: 2.8.8
 
   services/apps/integration_run_worker:
     dependencies:
-      '@crowd/alerting':
-        specifier: file:../../libs/alerting
-        version: file:services/libs/alerting
       '@crowd/common':
-        specifier: file:../../libs/common
-        version: file:services/libs/common
+        specifier: workspace:*
+        version: link:../../libs/common
       '@crowd/common_services':
-        specifier: file:../../libs/common_services
-        version: file:services/libs/common_services
-      '@crowd/database':
-        specifier: file:../../libs/database
-        version: file:services/libs/database
+        specifier: workspace:*
+        version: link:../../libs/common_services
+      '@crowd/data-access-layer':
+        specifier: workspace:*
+        version: link:../../libs/data-access-layer
       '@crowd/feature-flags':
-        specifier: file:../../libs/feature-flags
-        version: file:services/libs/feature-flags
+        specifier: workspace:*
+        version: link:../../libs/feature-flags
       '@crowd/integrations':
-        specifier: file:../../libs/integrations
-        version: file:services/libs/integrations
+        specifier: workspace:*
+        version: link:../../libs/integrations
       '@crowd/logging':
-        specifier: file:../../libs/logging
-        version: file:services/libs/logging
+        specifier: workspace:*
+        version: link:../../libs/logging
+      '@crowd/opensearch':
+        specifier: workspace:*
+        version: link:../../libs/opensearch
       '@crowd/redis':
-        specifier: file:../../libs/redis
-        version: file:services/libs/redis
+        specifier: workspace:*
+        version: link:../../libs/redis
       '@crowd/sqs':
-        specifier: file:../../libs/sqs
-        version: file:services/libs/sqs
+        specifier: workspace:*
+        version: link:../../libs/sqs
       '@crowd/tracing':
-        specifier: file:../../libs/tracing
-        version: file:services/libs/tracing
+        specifier: workspace:*
+        version: link:../../libs/tracing
       '@crowd/types':
-        specifier: file:../../libs/types
-        version: file:services/libs/types
+        specifier: workspace:*
+        version: link:../../libs/types
+      config:
+        specifier: ^3.3.9
+        version: 3.3.9
+      tsx:
+        specifier: ^4.7.1
+        version: 4.7.1
+      typescript:
+        specifier: ^5.0.4
+        version: 5.3.2
+    devDependencies:
       '@types/config':
         specifier: ^3.3.0
         version: 3.3.3
       '@types/node':
         specifier: ^18.16.3
         version: 18.18.14
-      config:
-        specifier: ^3.3.9
-        version: 3.3.9
-      ts-node:
-        specifier: ^10.9.1
-        version: 10.9.1(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
-      tsconfig-paths:
-        specifier: ^4.2.0
-        version: 4.2.0
-      typescript:
-        specifier: ^5.0.4
-        version: 5.3.2
-      uuid:
-        specifier: ^9.0.0
-        version: 9.0.1
-    devDependencies:
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^5.59.2
-        version: 5.62.0(@typescript-eslint/parser@5.62.0)(eslint@8.54.0)(typescript@5.3.2)
-      '@typescript-eslint/parser':
-        specifier: ^5.59.2
-        version: 5.62.0(eslint@8.54.0)(typescript@5.3.2)
-      concurrently:
-        specifier: ^8.0.1
-        version: 8.2.2
-      eslint:
-        specifier: ^8.39.0
-        version: 8.54.0
-      eslint-config-prettier:
-        specifier: ^8.8.0
-        version: 8.10.0(eslint@8.54.0)
-      eslint-plugin-prettier:
-        specifier: ^4.2.1
-        version: 4.2.1(eslint-config-prettier@8.10.0)(eslint@8.54.0)(prettier@2.8.8)
       nodemon:
         specifier: ^2.0.22
         version: 2.0.22
-      prettier:
-        specifier: ^2.8.8
-        version: 2.8.8
 
   services/apps/integration_stream_worker:
     dependencies:
       '@crowd/common':
-        specifier: file:../../libs/common
-        version: file:services/libs/common
+        specifier: workspace:*
+        version: link:../../libs/common
       '@crowd/common_services':
-        specifier: file:../../libs/common_services
-        version: file:services/libs/common_services
-      '@crowd/database':
-        specifier: file:../../libs/database
-        version: file:services/libs/database
+        specifier: workspace:*
+        version: link:../../libs/common_services
+      '@crowd/data-access-layer':
+        specifier: workspace:*
+        version: link:../../libs/data-access-layer
       '@crowd/feature-flags':
-        specifier: file:../../libs/feature-flags
-        version: file:services/libs/feature-flags
+        specifier: workspace:*
+        version: link:../../libs/feature-flags
       '@crowd/integrations':
-        specifier: file:../../libs/integrations
-        version: file:services/libs/integrations
+        specifier: workspace:*
+        version: link:../../libs/integrations
       '@crowd/logging':
-        specifier: file:../../libs/logging
-        version: file:services/libs/logging
+        specifier: workspace:*
+        version: link:../../libs/logging
       '@crowd/redis':
-        specifier: file:../../libs/redis
-        version: file:services/libs/redis
+        specifier: workspace:*
+        version: link:../../libs/redis
       '@crowd/sqs':
-        specifier: file:../../libs/sqs
-        version: file:services/libs/sqs
+        specifier: workspace:*
+        version: link:../../libs/sqs
       '@crowd/tracing':
-        specifier: file:../../libs/tracing
-        version: file:services/libs/tracing
+        specifier: workspace:*
+        version: link:../../libs/tracing
       '@crowd/types':
-        specifier: file:../../libs/types
-        version: file:services/libs/types
+        specifier: workspace:*
+        version: link:../../libs/types
+      config:
+        specifier: ^3.3.9
+        version: 3.3.9
+      tsx:
+        specifier: ^4.7.1
+        version: 4.7.1
+      typescript:
+        specifier: ^5.0.4
+        version: 5.3.2
+    devDependencies:
       '@types/config':
         specifier: ^3.3.0
         version: 3.3.3
       '@types/node':
         specifier: ^18.16.3
         version: 18.18.14
-      config:
-        specifier: ^3.3.9
-        version: 3.3.9
-      ts-node:
-        specifier: ^10.9.1
-        version: 10.9.1(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
-      tsconfig-paths:
-        specifier: ^4.2.0
-        version: 4.2.0
-      typescript:
-        specifier: ^5.0.4
-        version: 5.3.2
-      uuid:
-        specifier: ^9.0.0
-        version: 9.0.1
-    devDependencies:
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^5.59.2
-        version: 5.62.0(@typescript-eslint/parser@5.62.0)(eslint@8.54.0)(typescript@5.3.2)
-      '@typescript-eslint/parser':
-        specifier: ^5.59.2
-        version: 5.62.0(eslint@8.54.0)(typescript@5.3.2)
-      eslint:
-        specifier: ^8.39.0
-        version: 8.54.0
-      eslint-config-prettier:
-        specifier: ^8.8.0
-        version: 8.10.0(eslint@8.54.0)
-      eslint-plugin-prettier:
-        specifier: ^4.2.1
-        version: 4.2.1(eslint-config-prettier@8.10.0)(eslint@8.54.0)(prettier@2.8.8)
       nodemon:
         specifier: ^2.0.22
         version: 2.0.22
-      prettier:
-        specifier: ^2.8.8
-        version: 2.8.8
 
   services/apps/integration_sync_worker:
     dependencies:
       '@crowd/common':
-        specifier: file:../../libs/common
-        version: file:services/libs/common
-      '@crowd/database':
-        specifier: file:../../libs/database
-        version: file:services/libs/database
+        specifier: workspace:*
+        version: link:../../libs/common
+      '@crowd/data-access-layer':
+        specifier: workspace:*
+        version: link:../../libs/data-access-layer
       '@crowd/integrations':
-        specifier: file:../../libs/integrations
-        version: file:services/libs/integrations
+        specifier: workspace:*
+        version: link:../../libs/integrations
       '@crowd/logging':
-        specifier: file:../../libs/logging
-        version: file:services/libs/logging
+        specifier: workspace:*
+        version: link:../../libs/logging
       '@crowd/opensearch':
-        specifier: file:../../libs/opensearch
-        version: file:services/libs/opensearch
+        specifier: workspace:*
+        version: link:../../libs/opensearch
       '@crowd/sqs':
-        specifier: file:../../libs/sqs
-        version: file:services/libs/sqs
+        specifier: workspace:*
+        version: link:../../libs/sqs
       '@crowd/tracing':
-        specifier: file:../../libs/tracing
-        version: file:services/libs/tracing
+        specifier: workspace:*
+        version: link:../../libs/tracing
       '@crowd/types':
-        specifier: file:../../libs/types
-        version: file:services/libs/types
+        specifier: workspace:*
+        version: link:../../libs/types
       '@opensearch-project/opensearch':
         specifier: ^1.2.0
         version: 1.2.0
+      config:
+        specifier: ^3.3.9
+        version: 3.3.9
+      tsx:
+        specifier: ^4.7.1
+        version: 4.7.1
+      typescript:
+        specifier: ^5.0.4
+        version: 5.3.2
+    devDependencies:
       '@types/config':
         specifier: ^3.3.0
         version: 3.3.3
       '@types/node':
         specifier: ^18.16.3
         version: 18.18.14
-      config:
-        specifier: ^3.3.9
-        version: 3.3.9
-      ts-node:
-        specifier: ^10.9.1
-        version: 10.9.1(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
-      tsconfig-paths:
-        specifier: ^4.2.0
-        version: 4.2.0
-      typescript:
-        specifier: ^5.0.4
-        version: 5.3.2
-    devDependencies:
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^5.59.2
-        version: 5.62.0(@typescript-eslint/parser@5.62.0)(eslint@8.54.0)(typescript@5.3.2)
-      '@typescript-eslint/parser':
-        specifier: ^5.59.2
-        version: 5.62.0(eslint@8.54.0)(typescript@5.3.2)
-      eslint:
-        specifier: ^8.39.0
-        version: 8.54.0
-      eslint-config-prettier:
-        specifier: ^8.8.0
-        version: 8.10.0(eslint@8.54.0)
-      eslint-plugin-prettier:
-        specifier: ^4.2.1
-        version: 4.2.1(eslint-config-prettier@8.10.0)(eslint@8.54.0)(prettier@2.8.8)
       nodemon:
         specifier: ^2.0.22
         version: 2.0.22
-      prettier:
-        specifier: ^2.8.8
-        version: 2.8.8
 
   services/apps/merge_suggestions_worker:
     dependencies:
       '@crowd/archetype-standard':
-        specifier: file:../../archetypes/standard
-        version: file:services/archetypes/standard(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
+        specifier: workspace:*
+        version: link:../../archetypes/standard
       '@crowd/archetype-worker':
-        specifier: file:../../archetypes/worker
-        version: file:services/archetypes/worker(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
+        specifier: workspace:*
+        version: link:../../archetypes/worker
       '@crowd/common':
-        specifier: file:../../libs/common
-        version: file:services/libs/common
-      '@crowd/cubejs':
-        specifier: file:../../libs/cubejs
-        version: file:services/libs/cubejs
+        specifier: workspace:*
+        version: link:../../libs/common
+      '@crowd/data-access-layer':
+        specifier: workspace:*
+        version: link:../../libs/data-access-layer
       '@crowd/feature-flags':
-        specifier: file:../../libs/feature-flags
-        version: file:services/libs/feature-flags
+        specifier: workspace:*
+        version: link:../../libs/feature-flags
+      '@crowd/logging':
+        specifier: workspace:*
+        version: link:../../libs/logging
       '@crowd/types':
-        specifier: file:../../libs/types
-        version: file:services/libs/types
-      '@sendgrid/mail':
-        specifier: ~7.7.0
-        version: 7.7.0
-      '@temporalio/activity':
-        specifier: ~1.8.6
-        version: 1.8.6
+        specifier: workspace:*
+        version: link:../../libs/types
       '@temporalio/client':
         specifier: ~1.8.6
         version: 1.8.6
       '@temporalio/workflow':
         specifier: ~1.8.6
         version: 1.8.6
-      axios:
-        specifier: ~1.5.1
-        version: 1.5.1
       fast-levenshtein:
         specifier: ^3.0.0
         version: 3.0.0
-      html-to-text:
-        specifier: ~9.0.5
-        version: 9.0.5
-      lodash:
-        specifier: ~4.17.21
-        version: 4.17.21
-      moment:
-        specifier: ~2.29.4
-        version: 2.29.4
-      ts-node:
-        specifier: ^10.9.1
-        version: 10.9.1(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
-      tsconfig-paths:
-        specifier: ^4.2.0
-        version: 4.2.0
+      tsx:
+        specifier: ^4.7.1
+        version: 4.7.1
       typescript:
         specifier: ^5.2.2
         version: 5.3.2
-      uuid:
-        specifier: ~9.0.1
-        version: 9.0.1
     devDependencies:
       '@types/node':
         specifier: ^20.8.2
         version: 20.10.1
-      '@types/uuid':
-        specifier: ~9.0.6
-        version: 9.0.7
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^6.7.4
-        version: 6.13.1(@typescript-eslint/parser@6.13.1)(eslint@8.54.0)(typescript@5.3.2)
-      '@typescript-eslint/parser':
-        specifier: ^6.7.4
-        version: 6.13.1(eslint@8.54.0)(typescript@5.3.2)
-      eslint:
-        specifier: ^8.50.0
-        version: 8.54.0
-      eslint-config-prettier:
-        specifier: ^9.0.0
-        version: 9.0.0(eslint@8.54.0)
-      eslint-plugin-prettier:
-        specifier: ^5.0.0
-        version: 5.0.1(eslint-config-prettier@9.0.0)(eslint@8.54.0)(prettier@3.1.0)
       nodemon:
         specifier: ^3.0.1
         version: 3.0.1
-      prettier:
-        specifier: ^3.0.3
-        version: 3.1.0
 
   services/apps/premium/members_enrichment_worker:
     dependencies:
       '@crowd/archetype-standard':
-        specifier: file:../../../archetypes/standard
-        version: file:services/archetypes/standard(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
+        specifier: workspace:*
+        version: link:../../../archetypes/standard
       '@crowd/archetype-worker':
-        specifier: file:../../../archetypes/worker
-        version: file:services/archetypes/worker(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
+        specifier: workspace:*
+        version: link:../../../archetypes/worker
       '@crowd/common':
-        specifier: file:../../../libs/common
-        version: file:services/libs/common
+        specifier: workspace:*
+        version: link:../../../libs/common
+      '@crowd/data-access-layer':
+        specifier: workspace:*
+        version: link:../../../libs/data-access-layer
       '@crowd/feature-flags':
-        specifier: file:../../../libs/feature-flags
-        version: file:services/libs/feature-flags
+        specifier: workspace:*
+        version: link:../../../libs/feature-flags
       '@crowd/opensearch':
-        specifier: file:../../../libs/opensearch
-        version: file:services/libs/opensearch
+        specifier: workspace:*
+        version: link:../../../libs/opensearch
       '@crowd/types':
-        specifier: file:../../../libs/types
-        version: file:services/libs/types
-      '@temporalio/activity':
-        specifier: ~1.8.6
-        version: 1.8.6
+        specifier: workspace:*
+        version: link:../../../libs/types
       '@temporalio/client':
         specifier: ~1.8.6
         version: 1.8.6
@@ -1300,12 +1119,9 @@ importers:
       moment:
         specifier: ~2.29.4
         version: 2.29.4
-      ts-node:
-        specifier: ^10.9.1
-        version: 10.9.1(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
-      tsconfig-paths:
-        specifier: ^4.2.0
-        version: 4.2.0
+      tsx:
+        specifier: ^4.7.1
+        version: 4.7.1
       typescript:
         specifier: ^5.2.2
         version: 5.3.2
@@ -1316,57 +1132,39 @@ importers:
       '@types/uuid':
         specifier: ~9.0.6
         version: 9.0.7
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^6.7.4
-        version: 6.13.1(@typescript-eslint/parser@6.13.1)(eslint@8.54.0)(typescript@5.3.2)
-      '@typescript-eslint/parser':
-        specifier: ^6.7.4
-        version: 6.13.1(eslint@8.54.0)(typescript@5.3.2)
-      eslint:
-        specifier: ^8.50.0
-        version: 8.54.0
-      eslint-config-prettier:
-        specifier: ^9.0.0
-        version: 9.0.0(eslint@8.54.0)
-      eslint-plugin-prettier:
-        specifier: ^5.0.0
-        version: 5.0.1(eslint-config-prettier@9.0.0)(eslint@8.54.0)(prettier@3.1.0)
       nodemon:
         specifier: ^3.0.1
         version: 3.0.1
-      prettier:
-        specifier: ^3.0.3
-        version: 3.1.0
 
   services/apps/premium/organizations_enrichment_worker:
     dependencies:
       '@crowd/archetype-standard':
-        specifier: file:../../../archetypes/standard
-        version: file:services/archetypes/standard(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
+        specifier: workspace:*
+        version: link:../../../archetypes/standard
       '@crowd/archetype-worker':
-        specifier: file:../../../archetypes/worker
-        version: file:services/archetypes/worker(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
+        specifier: workspace:*
+        version: link:../../../archetypes/worker
       '@crowd/common':
-        specifier: file:../../../libs/common
-        version: file:services/libs/common
+        specifier: workspace:*
+        version: link:../../../libs/common
       '@crowd/common_services':
-        specifier: file:../../../libs/common_services
-        version: file:services/libs/common_services
-      '@crowd/database':
-        specifier: file:../../../libs/database
-        version: file:services/libs/database
+        specifier: workspace:*
+        version: link:../../../libs/common_services
+      '@crowd/data-access-layer':
+        specifier: workspace:*
+        version: link:../../../libs/data-access-layer
       '@crowd/feature-flags':
-        specifier: file:../../../libs/feature-flags
-        version: file:services/libs/feature-flags
+        specifier: workspace:*
+        version: link:../../../libs/feature-flags
       '@crowd/logging':
-        specifier: file:../../../libs/logging
-        version: file:services/libs/logging
+        specifier: workspace:*
+        version: link:../../../libs/logging
       '@crowd/redis':
-        specifier: file:../../../libs/redis
-        version: file:services/libs/redis
+        specifier: workspace:*
+        version: link:../../../libs/redis
       '@crowd/types':
-        specifier: file:../../../libs/types
-        version: file:services/libs/types
+        specifier: workspace:*
+        version: link:../../../libs/types
       '@temporalio/client':
         specifier: ~1.8.6
         version: 1.8.6
@@ -1376,12 +1174,9 @@ importers:
       peopledatalabs:
         specifier: ~6.1.5
         version: 6.1.5
-      ts-node:
-        specifier: ^10.9.1
-        version: 10.9.1(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
-      tsconfig-paths:
-        specifier: ^4.2.0
-        version: 4.2.0
+      tsx:
+        specifier: ^4.7.1
+        version: 4.7.1
       typescript:
         specifier: ^5.2.2
         version: 5.3.2
@@ -1392,63 +1187,61 @@ importers:
       '@types/uuid':
         specifier: ~9.0.6
         version: 9.0.7
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^6.7.4
-        version: 6.13.1(@typescript-eslint/parser@6.13.1)(eslint@8.54.0)(typescript@5.3.2)
-      '@typescript-eslint/parser':
-        specifier: ^6.7.4
-        version: 6.13.1(eslint@8.54.0)(typescript@5.3.2)
-      eslint:
-        specifier: ^8.50.0
-        version: 8.54.0
-      eslint-config-prettier:
-        specifier: ^9.0.0
-        version: 9.0.0(eslint@8.54.0)
-      eslint-plugin-prettier:
-        specifier: ^5.0.0
-        version: 5.0.1(eslint-config-prettier@9.0.0)(eslint@8.54.0)(prettier@3.1.0)
       nodemon:
         specifier: ^3.0.1
         version: 3.0.1
-      prettier:
-        specifier: ^3.0.3
-        version: 3.1.0
+
+  services/apps/profiles_worker:
+    dependencies:
+      '@crowd/archetype-standard':
+        specifier: workspace:*
+        version: link:../../archetypes/standard
+      '@crowd/archetype-worker':
+        specifier: workspace:*
+        version: link:../../archetypes/worker
+      '@crowd/data-access-layer':
+        specifier: workspace:*
+        version: link:../../libs/data-access-layer
+      '@temporalio/workflow':
+        specifier: ~1.8.6
+        version: 1.8.6
+      tsx:
+        specifier: ^4.7.1
+        version: 4.7.1
+      typescript:
+        specifier: ^5.2.2
+        version: 5.3.2
+    devDependencies:
+      '@types/node':
+        specifier: ^20.8.2
+        version: 20.10.1
+      '@types/uuid':
+        specifier: ~9.0.6
+        version: 9.0.7
+      nodemon:
+        specifier: ^3.0.1
+        version: 3.0.1
 
   services/apps/search_sync_api:
     dependencies:
       '@crowd/common':
-        specifier: file:../../libs/common
-        version: file:services/libs/common
-      '@crowd/database':
-        specifier: file:../../libs/database
-        version: file:services/libs/database
+        specifier: workspace:*
+        version: link:../../libs/common
+      '@crowd/data-access-layer':
+        specifier: workspace:*
+        version: link:../../libs/data-access-layer
       '@crowd/logging':
-        specifier: file:../../libs/logging
-        version: file:services/libs/logging
+        specifier: workspace:*
+        version: link:../../libs/logging
       '@crowd/opensearch':
-        specifier: file:../../libs/opensearch
-        version: file:services/libs/opensearch
+        specifier: workspace:*
+        version: link:../../libs/opensearch
       '@crowd/redis':
-        specifier: file:../../libs/redis
-        version: file:services/libs/redis
+        specifier: workspace:*
+        version: link:../../libs/redis
       '@crowd/telemetry':
-        specifier: file:../../libs/telemetry
-        version: file:services/libs/telemetry
-      '@crowd/types':
-        specifier: file:../../libs/types
-        version: file:services/libs/types
-      '@opensearch-project/opensearch':
-        specifier: ^1.2.0
-        version: 1.2.0
-      '@types/config':
-        specifier: ^3.3.0
-        version: 3.3.3
-      '@types/express':
-        specifier: ^4.17.17
-        version: 4.17.21
-      '@types/node':
-        specifier: ^18.16.3
-        version: 18.18.14
+        specifier: workspace:*
+        version: link:../../libs/telemetry
       bunyan-middleware:
         specifier: ^1.0.2
         version: 1.0.2
@@ -1461,205 +1254,127 @@ importers:
       express:
         specifier: ^4.18.2
         version: 4.18.2
-      ts-node:
-        specifier: ^10.9.1
-        version: 10.9.1(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
-      tsconfig-paths:
-        specifier: ^4.2.0
-        version: 4.2.0
+      tsx:
+        specifier: ^4.7.1
+        version: 4.7.1
       typescript:
         specifier: ^5.0.4
         version: 5.3.2
     devDependencies:
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^5.59.2
-        version: 5.62.0(@typescript-eslint/parser@5.62.0)(eslint@8.54.0)(typescript@5.3.2)
-      '@typescript-eslint/parser':
-        specifier: ^5.59.2
-        version: 5.62.0(eslint@8.54.0)(typescript@5.3.2)
-      eslint:
-        specifier: ^8.39.0
-        version: 8.54.0
-      eslint-config-prettier:
-        specifier: ^8.8.0
-        version: 8.10.0(eslint@8.54.0)
-      eslint-plugin-prettier:
-        specifier: ^4.2.1
-        version: 4.2.1(eslint-config-prettier@8.10.0)(eslint@8.54.0)(prettier@2.8.8)
+      '@types/config':
+        specifier: ^3.3.0
+        version: 3.3.3
+      '@types/express':
+        specifier: ^4.17.17
+        version: 4.17.21
+      '@types/node':
+        specifier: ^18.16.3
+        version: 18.18.14
       nodemon:
         specifier: ^2.0.22
         version: 2.0.22
-      prettier:
-        specifier: ^2.8.8
-        version: 2.8.8
 
   services/apps/search_sync_worker:
     dependencies:
       '@crowd/common':
-        specifier: file:../../libs/common
-        version: file:services/libs/common
-      '@crowd/database':
-        specifier: file:../../libs/database
-        version: file:services/libs/database
+        specifier: workspace:*
+        version: link:../../libs/common
+      '@crowd/data-access-layer':
+        specifier: workspace:*
+        version: link:../../libs/data-access-layer
       '@crowd/logging':
-        specifier: file:../../libs/logging
-        version: file:services/libs/logging
+        specifier: workspace:*
+        version: link:../../libs/logging
       '@crowd/opensearch':
-        specifier: file:../../libs/opensearch
-        version: file:services/libs/opensearch
+        specifier: workspace:*
+        version: link:../../libs/opensearch
       '@crowd/redis':
-        specifier: file:../../libs/redis
-        version: file:services/libs/redis
+        specifier: workspace:*
+        version: link:../../libs/redis
       '@crowd/sqs':
-        specifier: file:../../libs/sqs
-        version: file:services/libs/sqs
+        specifier: workspace:*
+        version: link:../../libs/sqs
       '@crowd/tracing':
-        specifier: file:../../libs/tracing
-        version: file:services/libs/tracing
+        specifier: workspace:*
+        version: link:../../libs/tracing
       '@crowd/types':
-        specifier: file:../../libs/types
-        version: file:services/libs/types
-      '@opensearch-project/opensearch':
-        specifier: ^1.2.0
-        version: 1.2.0
+        specifier: workspace:*
+        version: link:../../libs/types
+      config:
+        specifier: ^3.3.9
+        version: 3.3.9
+      tsx:
+        specifier: ^4.7.1
+        version: 4.7.1
+      typescript:
+        specifier: ^5.0.4
+        version: 5.3.2
+    devDependencies:
       '@types/config':
         specifier: ^3.3.0
         version: 3.3.3
       '@types/node':
         specifier: ^18.16.3
         version: 18.18.14
-      config:
-        specifier: ^3.3.9
-        version: 3.3.9
-      ts-node:
-        specifier: ^10.9.1
-        version: 10.9.1(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
-      tsconfig-paths:
-        specifier: ^4.2.0
-        version: 4.2.0
-      typescript:
-        specifier: ^5.0.4
-        version: 5.3.2
-    devDependencies:
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^5.59.2
-        version: 5.62.0(@typescript-eslint/parser@5.62.0)(eslint@8.54.0)(typescript@5.3.2)
-      '@typescript-eslint/parser':
-        specifier: ^5.59.2
-        version: 5.62.0(eslint@8.54.0)(typescript@5.3.2)
-      eslint:
-        specifier: ^8.39.0
-        version: 8.54.0
-      eslint-config-prettier:
-        specifier: ^8.8.0
-        version: 8.10.0(eslint@8.54.0)
-      eslint-plugin-prettier:
-        specifier: ^4.2.1
-        version: 4.2.1(eslint-config-prettier@8.10.0)(eslint@8.54.0)(prettier@2.8.8)
       nodemon:
         specifier: ^2.0.22
         version: 2.0.22
-      prettier:
-        specifier: ^2.8.8
-        version: 2.8.8
 
   services/apps/template_consumer:
     dependencies:
       '@crowd/archetype-consumer':
-        specifier: file:../../archetypes/consumer
-        version: file:services/archetypes/consumer(@types/node@20.10.1)(typescript@5.3.2)
+        specifier: workspace:*
+        version: link:../../archetypes/consumer
       '@crowd/archetype-standard':
-        specifier: file:../../archetypes/standard
-        version: file:services/archetypes/standard(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
-      '@types/node':
-        specifier: ^20.8.2
-        version: 20.10.1
-      ts-node:
-        specifier: ^10.9.1
-        version: 10.9.1(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
-      tsconfig-paths:
-        specifier: ^4.2.0
-        version: 4.2.0
+        specifier: workspace:*
+        version: link:../../archetypes/standard
+      tsx:
+        specifier: ^4.7.1
+        version: 4.7.1
       typescript:
         specifier: ^5.2.2
         version: 5.3.2
     devDependencies:
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^6.7.4
-        version: 6.13.1(@typescript-eslint/parser@6.13.1)(eslint@8.54.0)(typescript@5.3.2)
-      '@typescript-eslint/parser':
-        specifier: ^6.7.4
-        version: 6.13.1(eslint@8.54.0)(typescript@5.3.2)
-      eslint:
-        specifier: ^8.50.0
-        version: 8.54.0
-      eslint-config-prettier:
-        specifier: ^9.0.0
-        version: 9.0.0(eslint@8.54.0)
-      eslint-plugin-prettier:
-        specifier: ^5.0.0
-        version: 5.0.1(eslint-config-prettier@9.0.0)(eslint@8.54.0)(prettier@3.1.0)
+      '@types/node':
+        specifier: ^20.8.2
+        version: 20.10.1
       nodemon:
         specifier: ^3.0.1
         version: 3.0.1
-      prettier:
-        specifier: ^3.0.3
-        version: 3.1.0
 
   services/apps/template_worker:
     dependencies:
       '@crowd/archetype-standard':
-        specifier: file:../../archetypes/standard
-        version: file:services/archetypes/standard(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
+        specifier: workspace:*
+        version: link:../../archetypes/standard
       '@crowd/archetype-worker':
-        specifier: file:../../archetypes/worker
-        version: file:services/archetypes/worker(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
+        specifier: workspace:*
+        version: link:../../archetypes/worker
       '@temporalio/workflow':
         specifier: ~1.8.6
         version: 1.8.6
-      '@types/node':
-        specifier: ^20.8.2
-        version: 20.10.1
-      ts-node:
-        specifier: ^10.9.1
-        version: 10.9.1(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
-      tsconfig-paths:
-        specifier: ^4.2.0
-        version: 4.2.0
+      tsx:
+        specifier: ^4.7.1
+        version: 4.7.1
       typescript:
         specifier: ^5.2.2
         version: 5.3.2
     devDependencies:
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^6.7.4
-        version: 6.13.1(@typescript-eslint/parser@6.13.1)(eslint@8.54.0)(typescript@5.3.2)
-      '@typescript-eslint/parser':
-        specifier: ^6.7.4
-        version: 6.13.1(eslint@8.54.0)(typescript@5.3.2)
-      eslint:
-        specifier: ^8.50.0
-        version: 8.54.0
-      eslint-config-prettier:
-        specifier: ^9.0.0
-        version: 9.0.0(eslint@8.54.0)
-      eslint-plugin-prettier:
-        specifier: ^5.0.0
-        version: 5.0.1(eslint-config-prettier@9.0.0)(eslint@8.54.0)(prettier@3.1.0)
+      '@types/node':
+        specifier: ^20.8.2
+        version: 20.10.1
       nodemon:
         specifier: ^3.0.1
         version: 3.0.1
-      prettier:
-        specifier: ^3.0.3
-        version: 3.1.0
 
   services/apps/temporal_codec_server:
     dependencies:
       '@crowd/archetype-standard':
-        specifier: file:../../archetypes/standard
-        version: file:services/archetypes/standard(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
+        specifier: workspace:*
+        version: link:../../archetypes/standard
       '@crowd/temporal':
-        specifier: file:../../libs/temporal
-        version: file:services/libs/temporal
+        specifier: workspace:*
+        version: link:../../libs/temporal
       '@temporalio/proto':
         specifier: ~1.8.6
         version: 1.8.6
@@ -1669,79 +1384,52 @@ importers:
       express:
         specifier: ~4.18.2
         version: 4.18.2
-      ts-node:
-        specifier: ^10.9.1
-        version: 10.9.1(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
-      tsconfig-paths:
-        specifier: ^4.2.0
-        version: 4.2.0
+      tsx:
+        specifier: ^4.7.1
+        version: 4.7.1
       typescript:
         specifier: ^5.2.2
         version: 5.3.2
-      uuid:
-        specifier: ~9.0.1
-        version: 9.0.1
     devDependencies:
       '@types/node':
         specifier: ^20.8.2
         version: 20.10.1
-      '@types/uuid':
-        specifier: ~9.0.6
-        version: 9.0.7
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^6.7.4
-        version: 6.13.1(@typescript-eslint/parser@6.13.1)(eslint@8.54.0)(typescript@5.3.2)
-      '@typescript-eslint/parser':
-        specifier: ^6.7.4
-        version: 6.13.1(eslint@8.54.0)(typescript@5.3.2)
-      eslint:
-        specifier: ^8.50.0
-        version: 8.54.0
-      eslint-config-prettier:
-        specifier: ^9.0.0
-        version: 9.0.0(eslint@8.54.0)
-      eslint-plugin-prettier:
-        specifier: ^5.0.0
-        version: 5.0.1(eslint-config-prettier@9.0.0)(eslint@8.54.0)(prettier@3.1.0)
       nodemon:
         specifier: ^3.0.1
         version: 3.0.1
-      prettier:
-        specifier: ^3.0.3
-        version: 3.1.0
 
   services/apps/webhook_api:
     dependencies:
       '@crowd/common':
-        specifier: file:../../libs/common
-        version: file:services/libs/common
+        specifier: workspace:*
+        version: link:../../libs/common
       '@crowd/common_services':
-        specifier: file:../../libs/common_services
-        version: file:services/libs/common_services
-      '@crowd/database':
-        specifier: file:../../libs/database
-        version: file:services/libs/database
+        specifier: workspace:*
+        version: link:../../libs/common_services
+      '@crowd/data-access-layer':
+        specifier: workspace:*
+        version: link:../../libs/data-access-layer
       '@crowd/feature-flags':
-        specifier: file:../../libs/feature-flags
-        version: file:services/libs/feature-flags
+        specifier: workspace:*
+        version: link:../../libs/feature-flags
       '@crowd/logging':
-        specifier: file:../../libs/logging
-        version: file:services/libs/logging
+        specifier: workspace:*
+        version: link:../../libs/logging
       '@crowd/redis':
-        specifier: file:../../libs/redis
-        version: file:services/libs/redis
+        specifier: workspace:*
+        version: link:../../libs/redis
       '@crowd/sqs':
-        specifier: file:../../libs/sqs
-        version: file:services/libs/sqs
+        specifier: workspace:*
+        version: link:../../libs/sqs
       '@crowd/telemetry':
-        specifier: file:../../libs/telemetry
-        version: file:services/libs/telemetry
+        specifier: workspace:*
+        version: link:../../libs/telemetry
       '@crowd/tracing':
-        specifier: file:../../libs/tracing
-        version: file:services/libs/tracing
+        specifier: workspace:*
+        version: link:../../libs/tracing
       '@crowd/types':
-        specifier: file:../../libs/types
-        version: file:services/libs/types
+        specifier: workspace:*
+        version: link:../../libs/types
       '@types/config':
         specifier: ^3.3.0
         version: 3.3.3
@@ -1763,58 +1451,25 @@ importers:
       express:
         specifier: ^4.18.2
         version: 4.18.2
-      ts-node:
-        specifier: ^10.9.1
-        version: 10.9.1(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
-      tsconfig-paths:
-        specifier: ^4.2.0
-        version: 4.2.0
+      tsx:
+        specifier: ^4.7.1
+        version: 4.7.1
       typescript:
         specifier: ^5.0.4
         version: 5.3.2
     devDependencies:
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^5.59.2
-        version: 5.62.0(@typescript-eslint/parser@5.62.0)(eslint@8.54.0)(typescript@5.3.2)
-      '@typescript-eslint/parser':
-        specifier: ^5.59.2
-        version: 5.62.0(eslint@8.54.0)(typescript@5.3.2)
-      eslint:
-        specifier: ^8.39.0
-        version: 8.54.0
-      eslint-config-prettier:
-        specifier: ^8.8.0
-        version: 8.10.0(eslint@8.54.0)
-      eslint-plugin-prettier:
-        specifier: ^4.2.1
-        version: 4.2.1(eslint-config-prettier@8.10.0)(eslint@8.54.0)(prettier@2.8.8)
       nodemon:
         specifier: ^2.0.22
         version: 2.0.22
-      prettier:
-        specifier: ^2.8.8
-        version: 2.8.8
 
   services/archetypes/consumer:
     dependencies:
       '@crowd/archetype-standard':
-        specifier: file:../../archetypes/standard
-        version: file:services/archetypes/standard(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
-      '@temporalio/client':
-        specifier: ~1.8.6
-        version: 1.8.6
-      config:
-        specifier: ^3.3.9
-        version: 3.3.9
+        specifier: workspace:*
+        version: link:../standard
       kafkajs:
         specifier: ~2.2.4
         version: 2.2.4
-      ts-node:
-        specifier: ^10.9.1
-        version: 10.9.1(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
-      tsconfig-paths:
-        specifier: ^4.2.0
-        version: 4.2.0
     devDependencies:
       '@types/config':
         specifier: ^3.3.1
@@ -1822,66 +1477,30 @@ importers:
       '@types/node':
         specifier: ^20.8.2
         version: 20.10.1
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^6.7.4
-        version: 6.13.1(@typescript-eslint/parser@6.13.1)(eslint@8.54.0)(typescript@5.3.2)
-      '@typescript-eslint/parser':
-        specifier: ^6.7.4
-        version: 6.13.1(eslint@8.54.0)(typescript@5.3.2)
-      eslint:
-        specifier: ^8.50.0
-        version: 8.54.0
-      eslint-config-prettier:
-        specifier: ^9.0.0
-        version: 9.0.0(eslint@8.54.0)
-      eslint-plugin-prettier:
-        specifier: ^5.0.0
-        version: 5.0.1(eslint-config-prettier@9.0.0)(eslint@8.54.0)(prettier@3.1.0)
-      prettier:
-        specifier: ^3.0.3
-        version: 3.1.0
-      typescript:
-        specifier: ^5.2.2
-        version: 5.3.2
 
   services/archetypes/standard:
     dependencies:
       '@crowd/feature-flags':
-        specifier: file:../../libs/feature-flags
-        version: file:services/libs/feature-flags
+        specifier: workspace:*
+        version: link:../../libs/feature-flags
       '@crowd/integrations':
-        specifier: file:../../libs/integrations
-        version: file:services/libs/integrations
+        specifier: workspace:*
+        version: link:../../libs/integrations
       '@crowd/logging':
-        specifier: file:../../libs/logging
-        version: file:services/libs/logging
+        specifier: workspace:*
+        version: link:../../libs/logging
       '@crowd/redis':
-        specifier: file:../../libs/redis
-        version: file:services/libs/redis
+        specifier: workspace:*
+        version: link:../../libs/redis
       '@crowd/temporal':
-        specifier: file:../../libs/temporal
-        version: file:services/libs/temporal
+        specifier: workspace:*
+        version: link:../../libs/temporal
       '@crowd/tracing':
-        specifier: file:../../libs/tracing
-        version: file:services/libs/tracing
-      '@crowd/types':
-        specifier: file:../../libs/types
-        version: file:services/libs/types
-      '@temporalio/client':
-        specifier: ~1.8.6
-        version: 1.8.6
-      config:
-        specifier: ^3.3.9
-        version: 3.3.9
+        specifier: workspace:*
+        version: link:../../libs/tracing
       kafkajs:
         specifier: ~2.2.4
         version: 2.2.4
-      ts-node:
-        specifier: ^10.9.1
-        version: 10.9.1(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
-      tsconfig-paths:
-        specifier: ^4.2.0
-        version: 4.2.0
     devDependencies:
       '@types/config':
         specifier: ^3.3.1
@@ -1889,24 +1508,6 @@ importers:
       '@types/node':
         specifier: ^20.8.2
         version: 20.10.1
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^6.7.4
-        version: 6.13.1(@typescript-eslint/parser@6.13.1)(eslint@8.54.0)(typescript@5.3.2)
-      '@typescript-eslint/parser':
-        specifier: ^6.7.4
-        version: 6.13.1(eslint@8.54.0)(typescript@5.3.2)
-      eslint:
-        specifier: ^8.50.0
-        version: 8.54.0
-      eslint-config-prettier:
-        specifier: ^9.0.0
-        version: 9.0.0(eslint@8.54.0)
-      eslint-plugin-prettier:
-        specifier: ^5.0.0
-        version: 5.0.1(eslint-config-prettier@9.0.0)(eslint@8.54.0)(prettier@3.1.0)
-      prettier:
-        specifier: ^3.0.3
-        version: 3.1.0
       typescript:
         specifier: ^5.2.2
         version: 5.3.2
@@ -1914,41 +1515,26 @@ importers:
   services/archetypes/worker:
     dependencies:
       '@crowd/archetype-standard':
-        specifier: file:../../archetypes/standard
-        version: file:services/archetypes/standard(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
+        specifier: workspace:*
+        version: link:../standard
       '@crowd/common':
-        specifier: file:../../libs/common
-        version: file:services/libs/common
+        specifier: workspace:*
+        version: link:../../libs/common
       '@crowd/database':
-        specifier: file:../../libs/database
-        version: file:services/libs/database
+        specifier: workspace:*
+        version: link:../../libs/database
+      '@crowd/opensearch':
+        specifier: workspace:*
+        version: link:../../libs/opensearch
       '@crowd/sqs':
-        specifier: file:../../libs/sqs
-        version: file:services/libs/sqs
+        specifier: workspace:*
+        version: link:../../libs/sqs
       '@crowd/temporal':
-        specifier: file:../../libs/temporal
-        version: file:services/libs/temporal
-      '@opensearch-project/opensearch':
-        specifier: ^1.2.0
-        version: 1.2.0
-      '@temporalio/client':
-        specifier: ~1.8.6
-        version: 1.8.6
+        specifier: workspace:*
+        version: link:../../libs/temporal
       '@temporalio/worker':
         specifier: ~1.8.6
         version: 1.8.6
-      '@temporalio/workflow':
-        specifier: ~1.8.6
-        version: 1.8.6
-      config:
-        specifier: ^3.3.9
-        version: 3.3.9
-      ts-node:
-        specifier: ^10.9.1
-        version: 10.9.1(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
-      tsconfig-paths:
-        specifier: ^4.2.0
-        version: 4.2.0
     devDependencies:
       '@types/config':
         specifier: ^3.3.1
@@ -1956,66 +1542,31 @@ importers:
       '@types/node':
         specifier: ^20.8.2
         version: 20.10.1
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^6.7.4
-        version: 6.13.1(@typescript-eslint/parser@6.13.1)(eslint@8.54.0)(typescript@5.3.2)
-      '@typescript-eslint/parser':
-        specifier: ^6.7.4
-        version: 6.13.1(eslint@8.54.0)(typescript@5.3.2)
-      eslint:
-        specifier: ^8.50.0
-        version: 8.54.0
-      eslint-config-prettier:
-        specifier: ^9.0.0
-        version: 9.0.0(eslint@8.54.0)
-      eslint-plugin-prettier:
-        specifier: ^5.0.0
-        version: 5.0.1(eslint-config-prettier@9.0.0)(eslint@8.54.0)(prettier@3.1.0)
-      prettier:
-        specifier: ^3.0.3
-        version: 3.1.0
       typescript:
         specifier: ^5.2.2
         version: 5.3.2
 
   services/libs/alerting:
     dependencies:
-      '@types/node':
-        specifier: ^20.3.1
-        version: 20.10.1
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^5.59.11
-        version: 5.62.0(@typescript-eslint/parser@5.62.0)(eslint@8.54.0)(typescript@5.3.2)
-      '@typescript-eslint/parser':
-        specifier: ^5.59.11
-        version: 5.62.0(eslint@8.54.0)(typescript@5.3.2)
+      '@crowd/logging':
+        specifier: workspace:*
+        version: link:../logging
       axios:
         specifier: ^1.4.0
         version: 1.6.2
-      eslint:
-        specifier: ^8.42.0
-        version: 8.54.0
-      eslint-config-prettier:
-        specifier: ^8.8.0
-        version: 8.10.0(eslint@8.54.0)
-      eslint-plugin-prettier:
-        specifier: ^4.2.1
-        version: 4.2.1(eslint-config-prettier@8.10.0)(eslint@8.54.0)(prettier@2.8.8)
-      prettier:
-        specifier: ^2.8.8
-        version: 2.8.8
+    devDependencies:
+      '@types/node':
+        specifier: ^20.3.1
+        version: 20.10.1
       typescript:
         specifier: ^5.1.3
         version: 5.3.2
 
   services/libs/common:
     dependencies:
-      '@crowd/logging':
-        specifier: file:../logging
-        version: file:services/libs/logging
       '@crowd/types':
-        specifier: file:../types
-        version: file:services/libs/types
+        specifier: workspace:*
+        version: link:../types
       lodash.get:
         specifier: ~4.4.2
         version: 4.4.2
@@ -2029,24 +1580,6 @@ importers:
       '@types/node':
         specifier: ^18.16.3
         version: 18.18.14
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^5.59.2
-        version: 5.62.0(@typescript-eslint/parser@5.62.0)(eslint@8.54.0)(typescript@5.3.2)
-      '@typescript-eslint/parser':
-        specifier: ^5.59.2
-        version: 5.62.0(eslint@8.54.0)(typescript@5.3.2)
-      eslint:
-        specifier: ^8.39.0
-        version: 8.54.0
-      eslint-config-prettier:
-        specifier: ^8.8.0
-        version: 8.10.0(eslint@8.54.0)
-      eslint-plugin-prettier:
-        specifier: ^4.2.1
-        version: 4.2.1(eslint-config-prettier@8.10.0)(eslint@8.54.0)(prettier@2.8.8)
-      prettier:
-        specifier: ^2.8.8
-        version: 2.8.8
       typescript:
         specifier: ^5.0.4
         version: 5.3.2
@@ -2054,51 +1587,33 @@ importers:
   services/libs/common_services:
     dependencies:
       '@crowd/common':
-        specifier: file:../common
-        version: file:services/libs/common
+        specifier: workspace:*
+        version: link:../common
       '@crowd/database':
-        specifier: file:../database
-        version: file:services/libs/database
+        specifier: workspace:*
+        version: link:../database
       '@crowd/feature-flags':
-        specifier: file:../feature-flags
-        version: file:services/libs/feature-flags
+        specifier: workspace:*
+        version: link:../feature-flags
       '@crowd/logging':
-        specifier: file:../logging
-        version: file:services/libs/logging
+        specifier: workspace:*
+        version: link:../logging
       '@crowd/redis':
-        specifier: file:../redis
-        version: file:services/libs/redis
+        specifier: workspace:*
+        version: link:../redis
       '@crowd/sqs':
-        specifier: file:../sqs
-        version: file:services/libs/sqs
+        specifier: workspace:*
+        version: link:../sqs
       '@crowd/tracing':
-        specifier: file:../tracing
-        version: file:services/libs/tracing
+        specifier: workspace:*
+        version: link:../tracing
       '@crowd/types':
-        specifier: file:../types
-        version: file:services/libs/types
+        specifier: workspace:*
+        version: link:../types
     devDependencies:
       '@types/node':
         specifier: ^18.16.3
         version: 18.18.14
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^5.59.2
-        version: 5.62.0(@typescript-eslint/parser@5.62.0)(eslint@8.54.0)(typescript@5.3.2)
-      '@typescript-eslint/parser':
-        specifier: ^5.59.2
-        version: 5.62.0(eslint@8.54.0)(typescript@5.3.2)
-      eslint:
-        specifier: ^8.39.0
-        version: 8.54.0
-      eslint-config-prettier:
-        specifier: ^8.8.0
-        version: 8.10.0(eslint@8.54.0)
-      eslint-plugin-prettier:
-        specifier: ^4.2.1
-        version: 4.2.1(eslint-config-prettier@8.10.0)(eslint@8.54.0)(prettier@2.8.8)
-      prettier:
-        specifier: ^2.8.8
-        version: 2.8.8
       typescript:
         specifier: ^5.0.4
         version: 5.3.2
@@ -2106,17 +1621,17 @@ importers:
   services/libs/conversations:
     dependencies:
       '@crowd/common':
-        specifier: file:../common
-        version: file:services/libs/common
+        specifier: workspace:*
+        version: link:../common
       '@crowd/database':
-        specifier: file:../database
-        version: file:services/libs/database
+        specifier: workspace:*
+        version: link:../database
       '@crowd/logging':
-        specifier: file:../logging
-        version: file:services/libs/logging
+        specifier: workspace:*
+        version: link:../logging
       '@crowd/types':
-        specifier: file:../types
-        version: file:services/libs/types
+        specifier: workspace:*
+        version: link:../types
       html-to-text:
         specifier: ^9.0.5
         version: 9.0.5
@@ -2127,24 +1642,6 @@ importers:
       '@types/node':
         specifier: ^18.16.3
         version: 18.18.14
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^5.59.2
-        version: 5.62.0(@typescript-eslint/parser@5.62.0)(eslint@8.54.0)(typescript@5.3.2)
-      '@typescript-eslint/parser':
-        specifier: ^5.59.2
-        version: 5.62.0(eslint@8.54.0)(typescript@5.3.2)
-      eslint:
-        specifier: ^8.39.0
-        version: 8.54.0
-      eslint-config-prettier:
-        specifier: ^8.8.0
-        version: 8.10.0(eslint@8.54.0)
-      eslint-plugin-prettier:
-        specifier: ^4.2.1
-        version: 4.2.1(eslint-config-prettier@8.10.0)(eslint@8.54.0)(prettier@2.8.8)
-      prettier:
-        specifier: ^2.8.8
-        version: 2.8.8
       typescript:
         specifier: ^5.0.4
         version: 5.3.2
@@ -2152,11 +1649,11 @@ importers:
   services/libs/cubejs:
     dependencies:
       '@crowd/common':
-        specifier: file:../common
-        version: file:services/libs/common
+        specifier: workspace:*
+        version: link:../common
       '@crowd/logging':
-        specifier: file:../logging
-        version: file:services/libs/logging
+        specifier: workspace:*
+        version: link:../logging
       '@cubejs-client/core':
         specifier: ~0.34.9
         version: 0.34.27
@@ -2170,36 +1667,51 @@ importers:
       '@types/node':
         specifier: ^18.16.3
         version: 18.18.14
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^5.59.2
-        version: 5.62.0(@typescript-eslint/parser@5.62.0)(eslint@8.54.0)(typescript@5.3.2)
-      '@typescript-eslint/parser':
-        specifier: ^5.59.2
-        version: 5.62.0(eslint@8.54.0)(typescript@5.3.2)
-      eslint:
-        specifier: ^8.39.0
-        version: 8.54.0
-      eslint-config-prettier:
-        specifier: ^8.8.0
-        version: 8.10.0(eslint@8.54.0)
-      eslint-plugin-prettier:
-        specifier: ^4.2.1
-        version: 4.2.1(eslint-config-prettier@8.10.0)(eslint@8.54.0)(prettier@2.8.8)
-      prettier:
-        specifier: ^2.8.8
-        version: 2.8.8
       typescript:
         specifier: ^5.0.4
         version: 5.3.2
 
+  services/libs/data-access-layer:
+    dependencies:
+      '@crowd/common':
+        specifier: workspace:*
+        version: link:../common
+      '@crowd/database':
+        specifier: workspace:*
+        version: link:../database
+      '@crowd/integrations':
+        specifier: workspace:*
+        version: link:../integrations
+      '@crowd/logging':
+        specifier: workspace:*
+        version: link:../logging
+      '@crowd/redis':
+        specifier: workspace:*
+        version: link:../redis
+      '@crowd/sentiment':
+        specifier: workspace:*
+        version: link:../sentiment
+      '@crowd/types':
+        specifier: workspace:*
+        version: link:../types
+      lodash.clonedeep:
+        specifier: ^4.5.0
+        version: 4.5.0
+      lodash.merge:
+        specifier: ^4.6.2
+        version: 4.6.2
+      uuid:
+        specifier: ^9.0.1
+        version: 9.0.1
+
   services/libs/database:
     dependencies:
       '@crowd/common':
-        specifier: file:../common
-        version: file:services/libs/common
+        specifier: workspace:*
+        version: link:../common
       '@crowd/logging':
-        specifier: file:../logging
-        version: file:services/libs/logging
+        specifier: workspace:*
+        version: link:../logging
       pg-promise:
         specifier: ^11.4.3
         version: 11.5.4
@@ -2207,24 +1719,6 @@ importers:
       '@types/node':
         specifier: ^18.16.3
         version: 18.18.14
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^5.59.2
-        version: 5.62.0(@typescript-eslint/parser@5.62.0)(eslint@8.54.0)(typescript@5.3.2)
-      '@typescript-eslint/parser':
-        specifier: ^5.59.2
-        version: 5.62.0(eslint@8.54.0)(typescript@5.3.2)
-      eslint:
-        specifier: ^8.39.0
-        version: 8.54.0
-      eslint-config-prettier:
-        specifier: ^8.8.0
-        version: 8.10.0(eslint@8.54.0)
-      eslint-plugin-prettier:
-        specifier: ^4.2.1
-        version: 4.2.1(eslint-config-prettier@8.10.0)(eslint@8.54.0)(prettier@2.8.8)
-      prettier:
-        specifier: ^2.8.8
-        version: 2.8.8
       typescript:
         specifier: ^5.0.4
         version: 5.3.2
@@ -2232,17 +1726,17 @@ importers:
   services/libs/feature-flags:
     dependencies:
       '@crowd/common':
-        specifier: file:../common
-        version: file:services/libs/common
+        specifier: workspace:*
+        version: link:../common
       '@crowd/logging':
-        specifier: file:../logging
-        version: file:services/libs/logging
+        specifier: workspace:*
+        version: link:../logging
       '@crowd/redis':
-        specifier: file:../redis
-        version: file:services/libs/redis
+        specifier: workspace:*
+        version: link:../redis
       '@crowd/types':
-        specifier: file:../types
-        version: file:services/libs/types
+        specifier: workspace:*
+        version: link:../types
       unleash-client:
         specifier: ^3.18.1
         version: 3.21.0
@@ -2250,24 +1744,6 @@ importers:
       '@types/node':
         specifier: ^18.16.3
         version: 18.18.14
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^5.59.2
-        version: 5.62.0(@typescript-eslint/parser@5.62.0)(eslint@8.54.0)(typescript@5.3.2)
-      '@typescript-eslint/parser':
-        specifier: ^5.59.2
-        version: 5.62.0(eslint@8.54.0)(typescript@5.3.2)
-      eslint:
-        specifier: ^8.39.0
-        version: 8.54.0
-      eslint-config-prettier:
-        specifier: ^8.8.0
-        version: 8.10.0(eslint@8.54.0)
-      eslint-plugin-prettier:
-        specifier: ^4.2.1
-        version: 4.2.1(eslint-config-prettier@8.10.0)(eslint@8.54.0)(prettier@2.8.8)
-      prettier:
-        specifier: ^2.8.8
-        version: 2.8.8
       typescript:
         specifier: ^5.0.4
         version: 5.3.2
@@ -2275,17 +1751,20 @@ importers:
   services/libs/integrations:
     dependencies:
       '@crowd/common':
-        specifier: file:../common
-        version: file:services/libs/common
+        specifier: workspace:*
+        version: link:../common
+      '@crowd/data-access-layer':
+        specifier: workspace:*
+        version: link:../data-access-layer
       '@crowd/logging':
-        specifier: file:../logging
-        version: file:services/libs/logging
+        specifier: workspace:*
+        version: link:../logging
       '@crowd/telemetry':
-        specifier: file:../telemetry
-        version: file:services/libs/telemetry
+        specifier: workspace:*
+        version: link:../telemetry
       '@crowd/types':
-        specifier: file:../types
-        version: file:services/libs/types
+        specifier: workspace:*
+        version: link:../types
       '@octokit/auth-app':
         specifier: ^4.0.13
         version: 4.0.13
@@ -2320,24 +1799,6 @@ importers:
       '@types/sanitize-html':
         specifier: ^2.9.0
         version: 2.9.5
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^5.59.2
-        version: 5.62.0(@typescript-eslint/parser@5.62.0)(eslint@8.54.0)(typescript@5.3.2)
-      '@typescript-eslint/parser':
-        specifier: ^5.59.2
-        version: 5.62.0(eslint@8.54.0)(typescript@5.3.2)
-      eslint:
-        specifier: ^8.39.0
-        version: 8.54.0
-      eslint-config-prettier:
-        specifier: ^8.8.0
-        version: 8.10.0(eslint@8.54.0)
-      eslint-plugin-prettier:
-        specifier: ^4.2.1
-        version: 4.2.1(eslint-config-prettier@8.10.0)(eslint@8.54.0)(prettier@2.8.8)
-      prettier:
-        specifier: ^2.8.8
-        version: 2.8.8
       typescript:
         specifier: ^5.0.4
         version: 5.3.2
@@ -2345,11 +1806,11 @@ importers:
   services/libs/logging:
     dependencies:
       '@crowd/common':
-        specifier: file:../common
-        version: file:services/libs/common
+        specifier: workspace:*
+        version: link:../common
       '@crowd/tracing':
-        specifier: file:../tracing
-        version: file:services/libs/tracing
+        specifier: workspace:*
+        version: link:../tracing
       bunyan:
         specifier: ^1.8.15
         version: 1.8.15
@@ -2366,70 +1827,46 @@ importers:
       '@types/node':
         specifier: ^18.16.3
         version: 18.18.14
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^5.59.2
-        version: 5.62.0(@typescript-eslint/parser@5.62.0)(eslint@8.54.0)(typescript@5.3.2)
-      '@typescript-eslint/parser':
-        specifier: ^5.59.2
-        version: 5.62.0(eslint@8.54.0)(typescript@5.3.2)
-      eslint:
-        specifier: ^8.39.0
-        version: 8.54.0
-      eslint-config-prettier:
-        specifier: ^8.8.0
-        version: 8.10.0(eslint@8.54.0)
-      eslint-plugin-prettier:
-        specifier: ^4.2.1
-        version: 4.2.1(eslint-config-prettier@8.10.0)(eslint@8.54.0)(prettier@2.8.8)
-      prettier:
-        specifier: ^2.8.8
-        version: 2.8.8
       typescript:
         specifier: ^5.0.4
         version: 5.3.2
 
   services/libs/opensearch:
     dependencies:
+      '@crowd/common':
+        specifier: workspace:*
+        version: link:../common
       '@crowd/database':
-        specifier: file:../database
-        version: file:services/libs/database
+        specifier: workspace:*
+        version: link:../database
+      '@crowd/feature-flags':
+        specifier: workspace:*
+        version: link:../feature-flags
+      '@crowd/integrations':
+        specifier: workspace:*
+        version: link:../integrations
       '@crowd/logging':
-        specifier: file:../logging
-        version: file:services/libs/logging
+        specifier: workspace:*
+        version: link:../logging
       '@crowd/redis':
-        specifier: file:../redis
-        version: file:services/libs/redis
+        specifier: workspace:*
+        version: link:../redis
       '@crowd/types':
-        specifier: file:../types
-        version: file:services/libs/types
+        specifier: workspace:*
+        version: link:../types
       '@opensearch-project/opensearch':
         specifier: ^1.2.0
         version: 1.2.0
       axios:
         specifier: ^1.6.0
         version: 1.6.2
+      lodash.merge:
+        specifier: ^4.6.2
+        version: 4.6.2
     devDependencies:
       '@types/node':
         specifier: ^18.16.3
         version: 18.18.14
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^5.59.2
-        version: 5.62.0(@typescript-eslint/parser@5.62.0)(eslint@8.54.0)(typescript@5.3.2)
-      '@typescript-eslint/parser':
-        specifier: ^5.59.2
-        version: 5.62.0(eslint@8.54.0)(typescript@5.3.2)
-      eslint:
-        specifier: ^8.39.0
-        version: 8.54.0
-      eslint-config-prettier:
-        specifier: ^8.8.0
-        version: 8.10.0(eslint@8.54.0)
-      eslint-plugin-prettier:
-        specifier: ^4.2.1
-        version: 4.2.1(eslint-config-prettier@8.10.0)(eslint@8.54.0)(prettier@2.8.8)
-      prettier:
-        specifier: ^2.8.8
-        version: 2.8.8
       typescript:
         specifier: ^5.0.4
         version: 5.3.2
@@ -2437,14 +1874,14 @@ importers:
   services/libs/redis:
     dependencies:
       '@crowd/common':
-        specifier: file:../common
-        version: file:services/libs/common
+        specifier: workspace:*
+        version: link:../common
       '@crowd/logging':
-        specifier: file:../logging
-        version: file:services/libs/logging
+        specifier: workspace:*
+        version: link:../logging
       '@crowd/types':
-        specifier: file:../types
-        version: file:services/libs/types
+        specifier: workspace:*
+        version: link:../types
       redis:
         specifier: ^4.6.6
         version: 4.6.11
@@ -2452,24 +1889,6 @@ importers:
       '@types/node':
         specifier: ^18.16.3
         version: 18.18.14
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^5.59.2
-        version: 5.62.0(@typescript-eslint/parser@5.62.0)(eslint@8.54.0)(typescript@5.3.2)
-      '@typescript-eslint/parser':
-        specifier: ^5.59.2
-        version: 5.62.0(eslint@8.54.0)(typescript@5.3.2)
-      eslint:
-        specifier: ^8.39.0
-        version: 8.54.0
-      eslint-config-prettier:
-        specifier: ^8.8.0
-        version: 8.10.0(eslint@8.54.0)
-      eslint-plugin-prettier:
-        specifier: ^4.2.1
-        version: 4.2.1(eslint-config-prettier@8.10.0)(eslint@8.54.0)(prettier@2.8.8)
-      prettier:
-        specifier: ^2.8.8
-        version: 2.8.8
       typescript:
         specifier: ^5.0.4
         version: 5.3.2
@@ -2480,11 +1899,11 @@ importers:
         specifier: ^3.335.0
         version: 3.462.0
       '@crowd/common':
-        specifier: file:../common
-        version: file:services/libs/common
+        specifier: workspace:*
+        version: link:../common
       '@crowd/logging':
-        specifier: file:../logging
-        version: file:services/libs/logging
+        specifier: workspace:*
+        version: link:../logging
       crowd-sentiment:
         specifier: ^1.1.7
         version: 1.1.7
@@ -2492,24 +1911,6 @@ importers:
       '@types/node':
         specifier: ^18.16.3
         version: 18.18.14
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^5.59.2
-        version: 5.62.0(@typescript-eslint/parser@5.62.0)(eslint@8.54.0)(typescript@5.3.2)
-      '@typescript-eslint/parser':
-        specifier: ^5.59.2
-        version: 5.62.0(eslint@8.54.0)(typescript@5.3.2)
-      eslint:
-        specifier: ^8.39.0
-        version: 8.54.0
-      eslint-config-prettier:
-        specifier: ^8.8.0
-        version: 8.10.0(eslint@8.54.0)
-      eslint-plugin-prettier:
-        specifier: ^4.2.1
-        version: 4.2.1(eslint-config-prettier@8.10.0)(eslint@8.54.0)(prettier@2.8.8)
-      prettier:
-        specifier: ^2.8.8
-        version: 2.8.8
       typescript:
         specifier: ^5.0.4
         version: 5.3.2
@@ -2519,46 +1920,28 @@ importers:
       '@aws-sdk/client-sqs':
         specifier: ^3.332.0
         version: 3.462.0
-      '@aws-sdk/types':
-        specifier: ^3.329.0
-        version: 3.460.0
       '@crowd/common':
-        specifier: file:../common
-        version: file:services/libs/common
+        specifier: workspace:*
+        version: link:../common
       '@crowd/logging':
-        specifier: file:../logging
-        version: file:services/libs/logging
+        specifier: workspace:*
+        version: link:../logging
       '@crowd/tracing':
-        specifier: file:../tracing
-        version: file:services/libs/tracing
+        specifier: workspace:*
+        version: link:../tracing
       '@crowd/types':
-        specifier: file:../types
-        version: file:services/libs/types
+        specifier: workspace:*
+        version: link:../types
       '@smithy/util-retry':
         specifier: ^2.0.1
         version: 2.0.7
     devDependencies:
+      '@aws-sdk/types':
+        specifier: ^3.329.0
+        version: 3.460.0
       '@types/node':
         specifier: ^18.16.3
         version: 18.18.14
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^5.59.2
-        version: 5.62.0(@typescript-eslint/parser@5.62.0)(eslint@8.54.0)(typescript@5.3.2)
-      '@typescript-eslint/parser':
-        specifier: ^5.59.2
-        version: 5.62.0(eslint@8.54.0)(typescript@5.3.2)
-      eslint:
-        specifier: ^8.39.0
-        version: 8.54.0
-      eslint-config-prettier:
-        specifier: ^8.8.0
-        version: 8.10.0(eslint@8.54.0)
-      eslint-plugin-prettier:
-        specifier: ^4.2.1
-        version: 4.2.1(eslint-config-prettier@8.10.0)(eslint@8.54.0)(prettier@2.8.8)
-      prettier:
-        specifier: ^2.8.8
-        version: 2.8.8
       typescript:
         specifier: ^5.0.4
         version: 5.3.2
@@ -2566,8 +1949,8 @@ importers:
   services/libs/telemetry:
     dependencies:
       '@crowd/logging':
-        specifier: file:../logging
-        version: file:services/libs/logging
+        specifier: workspace:*
+        version: link:../logging
       dd-trace:
         specifier: ^4.20.0
         version: 4.20.0
@@ -2575,24 +1958,6 @@ importers:
       '@types/node':
         specifier: ^18.16.3
         version: 18.18.14
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^5.59.2
-        version: 5.62.0(@typescript-eslint/parser@5.62.0)(eslint@8.54.0)(typescript@5.3.2)
-      '@typescript-eslint/parser':
-        specifier: ^5.59.2
-        version: 5.62.0(eslint@8.54.0)(typescript@5.3.2)
-      eslint:
-        specifier: ^8.39.0
-        version: 8.54.0
-      eslint-config-prettier:
-        specifier: ^8.8.0
-        version: 8.10.0(eslint@8.54.0)
-      eslint-plugin-prettier:
-        specifier: ^4.2.1
-        version: 4.2.1(eslint-config-prettier@8.10.0)(eslint@8.54.0)(prettier@2.8.8)
-      prettier:
-        specifier: ^2.8.8
-        version: 2.8.8
       typescript:
         specifier: ^5.0.4
         version: 5.3.2
@@ -2600,8 +1965,8 @@ importers:
   services/libs/temporal:
     dependencies:
       '@crowd/logging':
-        specifier: file:../logging
-        version: file:services/libs/logging
+        specifier: workspace:*
+        version: link:../logging
       '@temporalio/client':
         specifier: ~1.8.6
         version: 1.8.6
@@ -2615,33 +1980,12 @@ importers:
       '@types/node':
         specifier: ^18.16.3
         version: 18.18.14
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^5.59.2
-        version: 5.62.0(@typescript-eslint/parser@5.62.0)(eslint@8.54.0)(typescript@5.3.2)
-      '@typescript-eslint/parser':
-        specifier: ^5.59.2
-        version: 5.62.0(eslint@8.54.0)(typescript@5.3.2)
-      eslint:
-        specifier: ^8.39.0
-        version: 8.54.0
-      eslint-config-prettier:
-        specifier: ^8.8.0
-        version: 8.10.0(eslint@8.54.0)
-      eslint-plugin-prettier:
-        specifier: ^4.2.1
-        version: 4.2.1(eslint-config-prettier@8.10.0)(eslint@8.54.0)(prettier@2.8.8)
-      prettier:
-        specifier: ^2.8.8
-        version: 2.8.8
       typescript:
         specifier: ^5.0.4
         version: 5.3.2
 
   services/libs/tracing:
     dependencies:
-      '@crowd/common':
-        specifier: file:../common
-        version: file:services/libs/common
       '@opentelemetry/api':
         specifier: ~1.6.0
         version: 1.6.0
@@ -2688,55 +2032,15 @@ importers:
       '@types/node':
         specifier: ^18.16.3
         version: 18.18.14
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^5.59.2
-        version: 5.62.0(@typescript-eslint/parser@5.62.0)(eslint@8.54.0)(typescript@5.3.2)
-      '@typescript-eslint/parser':
-        specifier: ^5.59.2
-        version: 5.62.0(eslint@8.54.0)(typescript@5.3.2)
-      eslint:
-        specifier: ^8.39.0
-        version: 8.54.0
-      eslint-config-prettier:
-        specifier: ^8.8.0
-        version: 8.10.0(eslint@8.54.0)
-      eslint-plugin-prettier:
-        specifier: ^4.2.1
-        version: 4.2.1(eslint-config-prettier@8.10.0)(eslint@8.54.0)(prettier@2.8.8)
-      prettier:
-        specifier: ^2.8.8
-        version: 2.8.8
       typescript:
         specifier: ^5.0.4
         version: 5.3.2
 
   services/libs/types:
-    dependencies:
-      peopledatalabs:
-        specifier: ~6.1.5
-        version: 6.1.5
     devDependencies:
       '@types/node':
         specifier: ^18.16.3
         version: 18.18.14
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^5.59.2
-        version: 5.62.0(@typescript-eslint/parser@5.62.0)(eslint@8.54.0)(typescript@5.3.2)
-      '@typescript-eslint/parser':
-        specifier: ^5.59.2
-        version: 5.62.0(eslint@8.54.0)(typescript@5.3.2)
-      eslint:
-        specifier: ^8.39.0
-        version: 8.54.0
-      eslint-config-prettier:
-        specifier: ^8.8.0
-        version: 8.10.0(eslint@8.54.0)
-      eslint-plugin-prettier:
-        specifier: ^4.2.1
-        version: 4.2.1(eslint-config-prettier@8.10.0)(eslint@8.54.0)(prettier@2.8.8)
-      prettier:
-        specifier: ^2.8.8
-        version: 2.8.8
       typescript:
         specifier: ^5.0.4
         version: 5.3.2
@@ -3310,7 +2614,6 @@ packages:
     dependencies:
       '@smithy/types': 2.6.0
       tslib: 2.6.2
-    dev: false
 
   /@aws-sdk/url-parser@3.374.0:
     resolution: {integrity: sha512-RC3yEj4iqw5vbCmR4IQ3rhmFQilwHtWO1mZ9kRTUxfJCge3TVlrZzj9PRW3hxlYKdu3xZjSvCgX3ip8SFKXtbw==}
@@ -4607,23 +3910,12 @@ packages:
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
     dev: true
 
-  /@cspotcode/source-map-consumer@0.8.0:
-    resolution: {integrity: sha512-41qniHzTU8yAGbCp04ohlmSrZf8bkf/iJsl3V0dRGsQN/5GFfx+LbCSsCpp2gqrqjTVg/K6O8ycoV35JIwAzAg==}
-    engines: {node: '>= 12'}
-    dev: true
-
-  /@cspotcode/source-map-support@0.7.0:
-    resolution: {integrity: sha512-X4xqRHqN8ACt2aHVe51OxeA2HjbcL4MqFqXkrmQszJ1NOUuUu5u6Vqx/0lZSVNku7velL5FC/s5uEAj1lsBMhA==}
-    engines: {node: '>=12'}
-    dependencies:
-      '@cspotcode/source-map-consumer': 0.8.0
-    dev: true
-
   /@cspotcode/source-map-support@0.8.1:
     resolution: {integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==}
     engines: {node: '>=12'}
     dependencies:
       '@jridgewell/trace-mapping': 0.3.9
+    dev: true
 
   /@cubejs-client/core@0.30.74:
     resolution: {integrity: sha512-InZa/nKw1ldzvRui0nuZvLGrtYZOmGmIa1gCrCU4i9wAR7pQjlTL2nK+kZ6XLZ5MsuZGWgi3LZNNRkz1wNeiwA==}
@@ -4767,6 +4059,190 @@ packages:
       - bufferutil
       - utf-8-validate
     dev: false
+
+  /@esbuild/aix-ppc64@0.19.12:
+    resolution: {integrity: sha512-bmoCYyWdEL3wDQIVbcyzRyeKLgk2WtWLTWz1ZIAZF/EGbNOwSA6ew3PftJ1PqMiOOGu0OyFMzG53L0zqIpPeNA==}
+    engines: {node: '>=12'}
+    cpu: [ppc64]
+    os: [aix]
+    requiresBuild: true
+    optional: true
+
+  /@esbuild/android-arm64@0.19.12:
+    resolution: {integrity: sha512-P0UVNGIienjZv3f5zq0DP3Nt2IE/3plFzuaS96vihvD0Hd6H/q4WXUGpCxD/E8YrSXfNyRPbpTq+T8ZQioSuPA==}
+    engines: {node: '>=12'}
+    cpu: [arm64]
+    os: [android]
+    requiresBuild: true
+    optional: true
+
+  /@esbuild/android-arm@0.19.12:
+    resolution: {integrity: sha512-qg/Lj1mu3CdQlDEEiWrlC4eaPZ1KztwGJ9B6J+/6G+/4ewxJg7gqj8eVYWvao1bXrqGiW2rsBZFSX3q2lcW05w==}
+    engines: {node: '>=12'}
+    cpu: [arm]
+    os: [android]
+    requiresBuild: true
+    optional: true
+
+  /@esbuild/android-x64@0.19.12:
+    resolution: {integrity: sha512-3k7ZoUW6Q6YqhdhIaq/WZ7HwBpnFBlW905Fa4s4qWJyiNOgT1dOqDiVAQFwBH7gBRZr17gLrlFCRzF6jFh7Kew==}
+    engines: {node: '>=12'}
+    cpu: [x64]
+    os: [android]
+    requiresBuild: true
+    optional: true
+
+  /@esbuild/darwin-arm64@0.19.12:
+    resolution: {integrity: sha512-B6IeSgZgtEzGC42jsI+YYu9Z3HKRxp8ZT3cqhvliEHovq8HSX2YX8lNocDn79gCKJXOSaEot9MVYky7AKjCs8g==}
+    engines: {node: '>=12'}
+    cpu: [arm64]
+    os: [darwin]
+    requiresBuild: true
+    optional: true
+
+  /@esbuild/darwin-x64@0.19.12:
+    resolution: {integrity: sha512-hKoVkKzFiToTgn+41qGhsUJXFlIjxI/jSYeZf3ugemDYZldIXIxhvwN6erJGlX4t5h417iFuheZ7l+YVn05N3A==}
+    engines: {node: '>=12'}
+    cpu: [x64]
+    os: [darwin]
+    requiresBuild: true
+    optional: true
+
+  /@esbuild/freebsd-arm64@0.19.12:
+    resolution: {integrity: sha512-4aRvFIXmwAcDBw9AueDQ2YnGmz5L6obe5kmPT8Vd+/+x/JMVKCgdcRwH6APrbpNXsPz+K653Qg8HB/oXvXVukA==}
+    engines: {node: '>=12'}
+    cpu: [arm64]
+    os: [freebsd]
+    requiresBuild: true
+    optional: true
+
+  /@esbuild/freebsd-x64@0.19.12:
+    resolution: {integrity: sha512-EYoXZ4d8xtBoVN7CEwWY2IN4ho76xjYXqSXMNccFSx2lgqOG/1TBPW0yPx1bJZk94qu3tX0fycJeeQsKovA8gg==}
+    engines: {node: '>=12'}
+    cpu: [x64]
+    os: [freebsd]
+    requiresBuild: true
+    optional: true
+
+  /@esbuild/linux-arm64@0.19.12:
+    resolution: {integrity: sha512-EoTjyYyLuVPfdPLsGVVVC8a0p1BFFvtpQDB/YLEhaXyf/5bczaGeN15QkR+O4S5LeJ92Tqotve7i1jn35qwvdA==}
+    engines: {node: '>=12'}
+    cpu: [arm64]
+    os: [linux]
+    requiresBuild: true
+    optional: true
+
+  /@esbuild/linux-arm@0.19.12:
+    resolution: {integrity: sha512-J5jPms//KhSNv+LO1S1TX1UWp1ucM6N6XuL6ITdKWElCu8wXP72l9MM0zDTzzeikVyqFE6U8YAV9/tFyj0ti+w==}
+    engines: {node: '>=12'}
+    cpu: [arm]
+    os: [linux]
+    requiresBuild: true
+    optional: true
+
+  /@esbuild/linux-ia32@0.19.12:
+    resolution: {integrity: sha512-Thsa42rrP1+UIGaWz47uydHSBOgTUnwBwNq59khgIwktK6x60Hivfbux9iNR0eHCHzOLjLMLfUMLCypBkZXMHA==}
+    engines: {node: '>=12'}
+    cpu: [ia32]
+    os: [linux]
+    requiresBuild: true
+    optional: true
+
+  /@esbuild/linux-loong64@0.19.12:
+    resolution: {integrity: sha512-LiXdXA0s3IqRRjm6rV6XaWATScKAXjI4R4LoDlvO7+yQqFdlr1Bax62sRwkVvRIrwXxvtYEHHI4dm50jAXkuAA==}
+    engines: {node: '>=12'}
+    cpu: [loong64]
+    os: [linux]
+    requiresBuild: true
+    optional: true
+
+  /@esbuild/linux-mips64el@0.19.12:
+    resolution: {integrity: sha512-fEnAuj5VGTanfJ07ff0gOA6IPsvrVHLVb6Lyd1g2/ed67oU1eFzL0r9WL7ZzscD+/N6i3dWumGE1Un4f7Amf+w==}
+    engines: {node: '>=12'}
+    cpu: [mips64el]
+    os: [linux]
+    requiresBuild: true
+    optional: true
+
+  /@esbuild/linux-ppc64@0.19.12:
+    resolution: {integrity: sha512-nYJA2/QPimDQOh1rKWedNOe3Gfc8PabU7HT3iXWtNUbRzXS9+vgB0Fjaqr//XNbd82mCxHzik2qotuI89cfixg==}
+    engines: {node: '>=12'}
+    cpu: [ppc64]
+    os: [linux]
+    requiresBuild: true
+    optional: true
+
+  /@esbuild/linux-riscv64@0.19.12:
+    resolution: {integrity: sha512-2MueBrlPQCw5dVJJpQdUYgeqIzDQgw3QtiAHUC4RBz9FXPrskyyU3VI1hw7C0BSKB9OduwSJ79FTCqtGMWqJHg==}
+    engines: {node: '>=12'}
+    cpu: [riscv64]
+    os: [linux]
+    requiresBuild: true
+    optional: true
+
+  /@esbuild/linux-s390x@0.19.12:
+    resolution: {integrity: sha512-+Pil1Nv3Umes4m3AZKqA2anfhJiVmNCYkPchwFJNEJN5QxmTs1uzyy4TvmDrCRNT2ApwSari7ZIgrPeUx4UZDg==}
+    engines: {node: '>=12'}
+    cpu: [s390x]
+    os: [linux]
+    requiresBuild: true
+    optional: true
+
+  /@esbuild/linux-x64@0.19.12:
+    resolution: {integrity: sha512-B71g1QpxfwBvNrfyJdVDexenDIt1CiDN1TIXLbhOw0KhJzE78KIFGX6OJ9MrtC0oOqMWf+0xop4qEU8JrJTwCg==}
+    engines: {node: '>=12'}
+    cpu: [x64]
+    os: [linux]
+    requiresBuild: true
+    optional: true
+
+  /@esbuild/netbsd-x64@0.19.12:
+    resolution: {integrity: sha512-3ltjQ7n1owJgFbuC61Oj++XhtzmymoCihNFgT84UAmJnxJfm4sYCiSLTXZtE00VWYpPMYc+ZQmB6xbSdVh0JWA==}
+    engines: {node: '>=12'}
+    cpu: [x64]
+    os: [netbsd]
+    requiresBuild: true
+    optional: true
+
+  /@esbuild/openbsd-x64@0.19.12:
+    resolution: {integrity: sha512-RbrfTB9SWsr0kWmb9srfF+L933uMDdu9BIzdA7os2t0TXhCRjrQyCeOt6wVxr79CKD4c+p+YhCj31HBkYcXebw==}
+    engines: {node: '>=12'}
+    cpu: [x64]
+    os: [openbsd]
+    requiresBuild: true
+    optional: true
+
+  /@esbuild/sunos-x64@0.19.12:
+    resolution: {integrity: sha512-HKjJwRrW8uWtCQnQOz9qcU3mUZhTUQvi56Q8DPTLLB+DawoiQdjsYq+j+D3s9I8VFtDr+F9CjgXKKC4ss89IeA==}
+    engines: {node: '>=12'}
+    cpu: [x64]
+    os: [sunos]
+    requiresBuild: true
+    optional: true
+
+  /@esbuild/win32-arm64@0.19.12:
+    resolution: {integrity: sha512-URgtR1dJnmGvX864pn1B2YUYNzjmXkuJOIqG2HdU62MVS4EHpU2946OZoTMnRUHklGtJdJZ33QfzdjGACXhn1A==}
+    engines: {node: '>=12'}
+    cpu: [arm64]
+    os: [win32]
+    requiresBuild: true
+    optional: true
+
+  /@esbuild/win32-ia32@0.19.12:
+    resolution: {integrity: sha512-+ZOE6pUkMOJfmxmBZElNOx72NKpIa/HFOMGzu8fqzQJ5kgf6aTGrcJaFsNiVMH4JKpMipyK+7k0n2UXN7a8YKQ==}
+    engines: {node: '>=12'}
+    cpu: [ia32]
+    os: [win32]
+    requiresBuild: true
+    optional: true
+
+  /@esbuild/win32-x64@0.19.12:
+    resolution: {integrity: sha512-T1QyPSDCyMXaO3pzBkF96E8xMkiRYbUEZADd29SyPGabqxMViNoii+NcK7eWJAEoU6RZyEm5lVSIjTmcdoB9HA==}
+    engines: {node: '>=12'}
+    cpu: [x64]
+    os: [win32]
+    requiresBuild: true
+    optional: true
 
   /@eslint-community/eslint-utils@4.4.0(eslint@8.54.0):
     resolution: {integrity: sha512-1/sA4dwrzBAyeUoQ6oxahHKmrZvsnLCg4RfxW3ZFGGmQkSNQPFNLV9CUEFQP1x9EYXHTo5p6xdhZM1Ne9p/AfA==}
@@ -4967,7 +4443,7 @@ packages:
       slash: 3.0.0
     dev: true
 
-  /@jest/core@29.7.0(ts-node@10.6.0):
+  /@jest/core@29.7.0:
     resolution: {integrity: sha512-n7aeXWKMnGtDA48y8TLWJPJmLmmZ642Ceo78cYWEpiD7FzDgmNDV/GCVRorPABdXLJZ/9wzzgZAlHjXjxDHGsg==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
     peerDependencies:
@@ -4988,7 +4464,7 @@ packages:
       exit: 0.1.2
       graceful-fs: 4.2.11
       jest-changed-files: 29.7.0
-      jest-config: 29.7.0(@types/node@20.10.7)(ts-node@10.6.0)
+      jest-config: 29.7.0(@types/node@20.10.7)
       jest-haste-map: 29.7.0
       jest-message-util: 29.7.0
       jest-regex-util: 29.6.3
@@ -5206,6 +4682,7 @@ packages:
     dependencies:
       '@jridgewell/resolve-uri': 3.1.1
       '@jridgewell/sourcemap-codec': 1.4.15
+    dev: true
 
   /@jsdevtools/ono@7.1.3:
     resolution: {integrity: sha512-4JQNk+3mVzK3xh2rqd6RB4J46qUR19azEHBneZyTZM+c456qOrbbM/5xcR8huNCCcbVt7+UmizG6GuUvPvKUYg==}
@@ -6302,6 +5779,16 @@ packages:
       - debug
     dev: false
 
+  /@sendgrid/client@8.1.1:
+    resolution: {integrity: sha512-pg0gYhAdyQil3Aga7/xHVcZFpvDAjAQMNBgMy5njTSkjACoWHmpSi1nWBZM7nIH/ptcRNMpnBbm9B5EvQ8fX2w==}
+    engines: {node: '>=12.*'}
+    dependencies:
+      '@sendgrid/helpers': 8.0.0
+      axios: 1.6.7
+    transitivePeerDependencies:
+      - debug
+    dev: false
+
   /@sendgrid/eventwebhook@7.7.0:
     resolution: {integrity: sha512-L2C6nzZgG6YZ/jfXCEqn5l8K8+6oxvhaQ9v/cIM6aXxRHwmTAia9s20snafgTLa27w//vcs+W+MDEm8x4sN+xg==}
     engines: {node: 6.* || 8.* || >=10.*}
@@ -6312,6 +5799,13 @@ packages:
   /@sendgrid/helpers@7.7.0:
     resolution: {integrity: sha512-3AsAxfN3GDBcXoZ/y1mzAAbKzTtUZ5+ZrHOmWQ279AuaFXUNCh9bPnRpN504bgveTqoW+11IzPg3I0WVgDINpw==}
     engines: {node: '>= 6.0.0'}
+    dependencies:
+      deepmerge: 4.3.1
+    dev: false
+
+  /@sendgrid/helpers@8.0.0:
+    resolution: {integrity: sha512-Ze7WuW2Xzy5GT5WRx+yEv89fsg/pgy3T1E3FS0QEx0/VvRmigMZ5qyVGhJz4SxomegDkzXv/i0aFPpHKN8qdAA==}
+    engines: {node: '>= 12.0.0'}
     dependencies:
       deepmerge: 4.3.1
     dev: false
@@ -6332,6 +5826,16 @@ packages:
     dependencies:
       '@sendgrid/client': 7.7.0
       '@sendgrid/helpers': 7.7.0
+    transitivePeerDependencies:
+      - debug
+    dev: false
+
+  /@sendgrid/mail@8.1.1:
+    resolution: {integrity: sha512-tNtmgWLtBA7ZxKtPuEGOaIdEZP1vZSXsj5zg9iuoDBPVj/fNz+7LWzndvTcKumHk5eaDrS0UPXJqBm61m3+H1A==}
+    engines: {node: '>=12.*'}
+    dependencies:
+      '@sendgrid/client': 8.1.1
+      '@sendgrid/helpers': 8.0.0
     transitivePeerDependencies:
       - debug
     dev: false
@@ -6659,7 +6163,6 @@ packages:
     engines: {node: '>=14.0.0'}
     dependencies:
       tslib: 2.6.2
-    dev: false
 
   /@smithy/url-parser@1.1.0:
     resolution: {integrity: sha512-tpvi761kzboiLNGEWczuybMPCJh6WHB3cz9gWAG95mSyaKXmmX8ZcMxoV+irZfxDqLwZVJ22XTumu32S7Ow8aQ==}
@@ -6867,6 +6370,7 @@ packages:
     cpu: [arm64]
     os: [darwin]
     requiresBuild: true
+    dev: false
     optional: true
 
   /@swc/core-darwin-x64@1.3.100:
@@ -6875,6 +6379,7 @@ packages:
     cpu: [x64]
     os: [darwin]
     requiresBuild: true
+    dev: false
     optional: true
 
   /@swc/core-linux-arm64-gnu@1.3.100:
@@ -6883,6 +6388,7 @@ packages:
     cpu: [arm64]
     os: [linux]
     requiresBuild: true
+    dev: false
     optional: true
 
   /@swc/core-linux-arm64-musl@1.3.100:
@@ -6891,6 +6397,7 @@ packages:
     cpu: [arm64]
     os: [linux]
     requiresBuild: true
+    dev: false
     optional: true
 
   /@swc/core-linux-x64-gnu@1.3.100:
@@ -6899,6 +6406,7 @@ packages:
     cpu: [x64]
     os: [linux]
     requiresBuild: true
+    dev: false
     optional: true
 
   /@swc/core-linux-x64-musl@1.3.100:
@@ -6907,6 +6415,7 @@ packages:
     cpu: [x64]
     os: [linux]
     requiresBuild: true
+    dev: false
     optional: true
 
   /@swc/core-win32-arm64-msvc@1.3.100:
@@ -6915,6 +6424,7 @@ packages:
     cpu: [arm64]
     os: [win32]
     requiresBuild: true
+    dev: false
     optional: true
 
   /@swc/core-win32-ia32-msvc@1.3.100:
@@ -6923,6 +6433,7 @@ packages:
     cpu: [ia32]
     os: [win32]
     requiresBuild: true
+    dev: false
     optional: true
 
   /@swc/core-win32-x64-msvc@1.3.100:
@@ -6931,6 +6442,7 @@ packages:
     cpu: [x64]
     os: [win32]
     requiresBuild: true
+    dev: false
     optional: true
 
   /@swc/core@1.3.100:
@@ -6955,12 +6467,15 @@ packages:
       '@swc/core-win32-arm64-msvc': 1.3.100
       '@swc/core-win32-ia32-msvc': 1.3.100
       '@swc/core-win32-x64-msvc': 1.3.100
+    dev: false
 
   /@swc/counter@0.1.2:
     resolution: {integrity: sha512-9F4ys4C74eSTEUNndnER3VJ15oru2NumfQxS8geE+f3eB5xvfxpWyqE5XlVnxb/R14uoXi6SLbBwwiDSkv+XEw==}
+    dev: false
 
   /@swc/types@0.1.5:
     resolution: {integrity: sha512-myfUej5naTBWnqOCc/MdVOLVjXUXtIA+NpDrDBKJtLLg2shUjBu3cZmB/85RyitKc55+lUUyl7oRfLOvkr2hsw==}
+    dev: false
 
   /@szmarczak/http-timer@1.1.2:
     resolution: {integrity: sha512-XIB2XbzHTN6ieIjfIMV9hlVcfPU26s2vafYWQcZHWXHOxiaRZYEDKEwdl129Zyg50+foYV2jCgtrqSA6qNuNSA==}
@@ -7063,15 +6578,19 @@ packages:
 
   /@tsconfig/node10@1.0.9:
     resolution: {integrity: sha512-jNsYVVxU8v5g43Erja32laIDHXeoNvFEpX33OK4d6hljo3jDhCBDhx5dhCCTMWUojscpAagGiRkBKxpdl9fxqA==}
+    dev: true
 
   /@tsconfig/node12@1.0.11:
     resolution: {integrity: sha512-cqefuRsh12pWyGsIoBKJA9luFu3mRxCA+ORZvA4ktLSzIuCUtWVxGIuXigEwO5/ywWFMZ2QEGKWvkZG1zDMTag==}
+    dev: true
 
   /@tsconfig/node14@1.0.3:
     resolution: {integrity: sha512-ysT8mhdixWK6Hw3i1V2AeRqZ5WfXg1G43mqoYlM2nc6388Fq5jcXyr5mRsqViLx/GJYdoL0bfXD8nmF+Zn/Iow==}
+    dev: true
 
   /@tsconfig/node16@1.0.4:
     resolution: {integrity: sha512-vxhUy4J8lyeyinH7Azl1pdd43GJhZH/tP2weN8TntQblOY+A0XbT8DJk1/oCPuOOyg/Ja757rG0CgHcWC8OfMA==}
+    dev: true
 
   /@types/babel__core@7.20.5:
     resolution: {integrity: sha512-qoQprZvz5wQFJwMDqeseRXWv3rqMvhgpbXFfVyWhbx9X47POIA6i/+dXefEmZKoAgOaTdaIgNSMqMIU61yRyzA==}
@@ -7107,7 +6626,6 @@ packages:
     dependencies:
       '@types/connect': 3.4.38
       '@types/node': 20.10.7
-    dev: false
 
   /@types/btoa-lite@1.0.2:
     resolution: {integrity: sha512-ZYbcE2x7yrvNFJiU7xJGrpF/ihpkM7zKgw8bha3LNJSesvTtUNxbpzaT7WXBIryf6jovisrxTBvymxMeLLj1Mg==}
@@ -7137,7 +6655,6 @@ packages:
     resolution: {integrity: sha512-K6uROf1LD88uDQqJCktA4yzL1YYAK6NgfsI0v/mTgyPKWsX1CnJ0XPSDhViejru1GcRkLWb8RlzFYJRqGUbaug==}
     dependencies:
       '@types/node': 20.10.7
-    dev: false
 
   /@types/cookie@0.4.1:
     resolution: {integrity: sha512-XW/Aa8APYr6jSVVA1y/DEIZX0/GMKLEVekNG727R8cs56ahETkRAy/3DR7+fJyh7oUgGwNQaRfXCun0+KbWY7Q==}
@@ -7145,6 +6662,7 @@ packages:
 
   /@types/cookiejar@2.1.5:
     resolution: {integrity: sha512-he+DHOWReW0nghN24E1WUqM0efK4kI9oTqDm6XmK8ZPe2djZ90BSNdGnIyCLzCPw7/pogPlGbzI2wHGGmi4O/Q==}
+    dev: true
 
   /@types/cors@2.8.17:
     resolution: {integrity: sha512-8CGDvrBj1zgo2qE+oS3pOCyYNqCPryMWY2bGfwA0dcfopWGgxs+78df0Rs3rc9THP4JkOhLsAa+15VdpAqkcUA==}
@@ -7190,7 +6708,6 @@ packages:
       '@types/qs': 6.9.10
       '@types/range-parser': 1.2.7
       '@types/send': 0.17.4
-    dev: false
 
   /@types/express@4.17.18:
     resolution: {integrity: sha512-Sxv8BSLLgsBYmcnGdGjjEjqET2U+AKAdCRODmMiq02FgjwuV75Ut85DRpvFjyw/Mk0vgUOliGRU0UUmuuZHByQ==}
@@ -7208,7 +6725,6 @@ packages:
       '@types/express-serve-static-core': 4.17.41
       '@types/qs': 6.9.10
       '@types/serve-static': 1.15.5
-    dev: false
 
   /@types/graceful-fs@4.1.9:
     resolution: {integrity: sha512-olP3sd1qOEe5dXTSaFvQG+02VdRXcdytWLAZsAq1PecU8uqQAhkrnbli7DagjtXKW/Bl7YJbUsa8MPcuc8LHEQ==}
@@ -7230,7 +6746,6 @@ packages:
 
   /@types/http-errors@2.0.4:
     resolution: {integrity: sha512-D0CFMMtydbJAegzOyHjtiKPLlvnm3iTZyZRSZoLq2mRhDdmLfIWOCYPfQJ4cu2erKghU++QvjcUjp/5h7hESpA==}
-    dev: false
 
   /@types/is-stream@1.1.0:
     resolution: {integrity: sha512-jkZatu4QVbR60mpIzjINmtS1ZF4a/FqdTUTBeQDVOQ2PYyidtwFKr0B5G6ERukKwliq+7mIXvxyppwzG5EgRYg==}
@@ -7289,11 +6804,9 @@ packages:
 
   /@types/mime@1.3.5:
     resolution: {integrity: sha512-/pyBZWSLD2n0dcHE3hq8s8ZvcETHtEuF+3E7XVt0Ig2nvsVQXdghHVcEkIWjy9A0wKfTn97a/PSDYohKIlnP/w==}
-    dev: false
 
   /@types/mime@3.0.4:
     resolution: {integrity: sha512-iJt33IQnVRkqeqC7PzBHPTC6fDlRNRW8vjrgqtScAhrmMwe8c4Eo7+fUGTa+XdWrpEgpyKWMYmi2dIwMAYRzPw==}
-    dev: false
 
   /@types/ms@0.7.34:
     resolution: {integrity: sha512-nG96G3Wp6acyAgJqGasjODb+acrI7KltPiRxzHPXnP3NgI28bpQDRv53olbqGXbfcgF5aiiHmO3xpwEpS5Ld9g==}
@@ -7312,6 +6825,7 @@ packages:
     resolution: {integrity: sha512-T2qwhjWwGH81vUEx4EXmBKsTJRXFXNZTL4v0gi01+zyBmCwzE6TyHszqX01m+QHTEq+EZNo13NeJIdEqf+Myrg==}
     dependencies:
       undici-types: 5.26.5
+    dev: true
 
   /@types/node@20.10.7:
     resolution: {integrity: sha512-fRbIKb8C/Y2lXxB5eVMj4IU7xpdox0Lh8bUPEdtLysaylsml1hOOx1+STloRs/B9nf7C6kPRmmg/V7aQW7usNg==}
@@ -7360,11 +6874,9 @@ packages:
 
   /@types/qs@6.9.10:
     resolution: {integrity: sha512-3Gnx08Ns1sEoCrWssEgTSJs/rsT2vhGP+Ja9cnnk9k4ALxinORlQneLXFeFKOTJMOeZUFD1s7w+w2AphTpvzZw==}
-    dev: false
 
   /@types/range-parser@1.2.7:
     resolution: {integrity: sha512-hKormJbkJqzQGhziax5PItDUTMAM9uE2XXQmM37dyd4hVM+5aVl7oVxMVUiVQn2oCQFN/LKCZdvSM0pFRqbSmQ==}
-    dev: false
 
   /@types/responselike@1.0.3:
     resolution: {integrity: sha512-H/+L+UkTV33uf49PH5pCAUBVPNj2nDBXTN+qS1dOwyyg24l3CcicicCA7ca+HMvJBZcFgl5r8e+RR6elsb4Lyw==}
@@ -7390,7 +6902,6 @@ packages:
     dependencies:
       '@types/mime': 1.3.5
       '@types/node': 20.10.7
-    dev: false
 
   /@types/serve-static@1.15.5:
     resolution: {integrity: sha512-PDRk21MnK70hja/YF8AHfC7yIsiQHn1rcXx7ijCFBX/k+XQJhQT/gw3xekXKJvx+5SXaMMS8oqQy09Mzvz2TuQ==}
@@ -7398,7 +6909,6 @@ packages:
       '@types/http-errors': 2.0.4
       '@types/mime': 3.0.4
       '@types/node': 20.10.7
-    dev: false
 
   /@types/shimmer@1.0.5:
     resolution: {integrity: sha512-9Hp0ObzwwO57DpLFF0InUjUm/II8GmKAvzbefxQTihCb7KI6yc9yzf0nLc4mVdby5N4DRCgQM2wCup9KTieeww==}
@@ -7413,6 +6923,7 @@ packages:
     dependencies:
       '@types/cookiejar': 2.1.5
       '@types/node': 20.10.7
+    dev: true
 
   /@types/uuid@9.0.7:
     resolution: {integrity: sha512-WUtIVRUZ9i5dYXefDEAI7sh9/O7jGvHg7Df/5O/gtH3Yabe5odI3UWopVR1qbPXQtvOxWu3mM4XxlYeZtMWF4g==}
@@ -8068,6 +7579,7 @@ packages:
 
   /arg@4.1.3:
     resolution: {integrity: sha512-58S9QDqG0Xx27YwPSt9fJxivjYl432YCwfDMfZ+71RAqUrZef7LrKQZ3LHLOwCS4FLNBplP533Zx895SeOCHvA==}
+    dev: true
 
   /arg@5.0.2:
     resolution: {integrity: sha512-PYjyFOLKQ9y57JvQ6QLo8dAgNqswh8M1RMJYdQduT6xbWSgK36P/Z/v+p888pM69jMMfS8Xd8F6I1kQ/I9HUGg==}
@@ -8275,6 +7787,16 @@ packages:
     resolution: {integrity: sha512-7i24Ri4pmDRfJTR7LDBhsOTtcm+9kjX5WiY1X3wIisx6G9So3pfMkEiU7emUBe46oceVImccTEM3k6C5dbVW8A==}
     dependencies:
       follow-redirects: 1.15.3(debug@4.3.4)
+      form-data: 4.0.0
+      proxy-from-env: 1.1.0
+    transitivePeerDependencies:
+      - debug
+    dev: false
+
+  /axios@1.6.7:
+    resolution: {integrity: sha512-/hDJGff6/c7u0hDkvkGxR/oy6CbCs8ziCsC7SqmhjfozqiJGc8Z11wrv9z9lYfY4K8l+H9TpjcMDX0xOZmx+RA==}
+    dependencies:
+      follow-redirects: 1.15.5
       form-data: 4.0.0
       proxy-from-env: 1.1.0
     transitivePeerDependencies:
@@ -8627,7 +8149,7 @@ packages:
     resolution: {integrity: sha512-xq+q3SRMOxGivLhBNaUdC64hDTQwejJ+H0T/NB1XMtTVEwNTrfFF3gAxiyW0Bu/xWEGhjVKgUcMhCrUy2+uCWg==}
     dependencies:
       base64-js: 1.5.1
-      ieee754: 1.1.13
+      ieee754: 1.2.1
       isarray: 1.0.0
     dev: false
 
@@ -9083,22 +8605,6 @@ packages:
       typedarray: 0.0.6
     dev: false
 
-  /concurrently@8.2.2:
-    resolution: {integrity: sha512-1dP4gpXFhei8IOtlXRE/T/4H88ElHgTiUzh71YUmtjTEHMSRS2Z/fgOxHSxxusGHogsRfxNq1vyAwxSC+EVyDg==}
-    engines: {node: ^14.13.0 || >=16.0.0}
-    hasBin: true
-    dependencies:
-      chalk: 4.1.2
-      date-fns: 2.30.0
-      lodash: 4.17.21
-      rxjs: 7.8.1
-      shell-quote: 1.8.1
-      spawn-command: 0.0.2
-      supports-color: 8.1.1
-      tree-kill: 1.2.2
-      yargs: 17.7.2
-    dev: true
-
   /config-chain@1.1.13:
     resolution: {integrity: sha512-qj+f8APARXHrM0hraqXYb2/bOVSV4PvJQlNZ/DVj0QrmNM2q2euizkeuVckQ57J+W0mRH6Hvi+k50M4Jul2VRQ==}
     dependencies:
@@ -9229,7 +8735,7 @@ packages:
     resolution: {integrity: sha512-n/Q4aSCtYuuDneEW5Q+nd0IIZwbwmX/oF6wKcDUhXGJNwhmp2WHEoWKz7X+/H7rBtjimInW7f0ceouxU0SmuzQ==}
     dev: false
 
-  /create-jest@29.7.0(@types/node@18.0.6)(ts-node@10.6.0):
+  /create-jest@29.7.0(@types/node@18.0.6):
     resolution: {integrity: sha512-Adz2bdH0Vq3F53KEMJOoftQFutWCukm6J24wbPWRO4k1kMY7gS7ds/uoJkNuV8wDCtWWnuwGcJwpWcih+zEW1Q==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
     hasBin: true
@@ -9238,7 +8744,7 @@ packages:
       chalk: 4.1.2
       exit: 0.1.2
       graceful-fs: 4.2.11
-      jest-config: 29.7.0(@types/node@18.0.6)(ts-node@10.6.0)
+      jest-config: 29.7.0(@types/node@18.0.6)
       jest-util: 29.7.0
       prompts: 2.4.2
     transitivePeerDependencies:
@@ -9250,6 +8756,7 @@ packages:
 
   /create-require@1.1.1:
     resolution: {integrity: sha512-dcKFX3jn0MpIaXjisoRvexIJVEKzaq7z2rZKxf+MSr9TkdmHmsU4m2lcLojrj/FHl8mk5VxMmYA+ftRkP/3oKQ==}
+    dev: true
 
   /cron-time-generator@1.3.2:
     resolution: {integrity: sha512-GpbDPMAakb1jaHAS1HeH/9lC1wvNavpAQ2pyndA27/G5FO5iA0y29rKR4Bnmzra5Kc2cX79jY2M7wckDzkhINA==}
@@ -9351,13 +8858,6 @@ packages:
   /date-and-time@0.14.2:
     resolution: {integrity: sha512-EFTCh9zRSEpGPmJaexg7HTuzZHh6cnJj1ui7IGCFNXzd2QdpsNh05Db5TF3xzJm30YN+A8/6xHSuRcQqoc3kFA==}
     dev: false
-
-  /date-fns@2.30.0:
-    resolution: {integrity: sha512-fnULvOpxnC5/Vg3NCiWelDsLiUc9bRwAPs/+LfTLNvetFCtCTN+yQz15C/fs4AwX1R9K5GLtLfn8QW+dWisaAw==}
-    engines: {node: '>=0.11'}
-    dependencies:
-      '@babel/runtime': 7.23.5
-    dev: true
 
   /dayjs@1.11.10:
     resolution: {integrity: sha512-vjAczensTgRcqDERK0SR2XMwsF/tSvnvlv6VcF2GIhg6Sx4yOIt/irsr1RDJsKiIyBzJDpCoXiWWq28MqH2cnQ==}
@@ -9472,6 +8972,10 @@ packages:
 
   /deep-is@0.1.4:
     resolution: {integrity: sha512-oIPzksmTg4/MriiaYGO+okXDT7ztn/w3Eptv/+gSIdMdKsJo0u4CfYNFJPy+4SKMuCqGw2wxnA+URMg3t8a/bQ==}
+
+  /deep-object-diff@1.1.9:
+    resolution: {integrity: sha512-Rn+RuwkmkDwCi2/oXOFS9Gsr5lJZu/yTGpK7wAaAIE75CC+LCGEZHpY6VQJa/RoJcrmaA/docWJZvYohlNkWPA==}
+    dev: true
 
   /deepmerge@4.3.1:
     resolution: {integrity: sha512-3sUqbMEc77XqpdNO7FRyRog+eW3ph+GYCbj+rK+uYyRMuwsVy0rMiVtPn+QJlKFvWP/1PYpapqYn0Me2knFn+A==}
@@ -9600,6 +9104,7 @@ packages:
   /diff@4.0.2:
     resolution: {integrity: sha512-58lmxKSA4BNyLz+HHMUzlOEpg09FV+ev6ZMe3vJihgdxzgcwZ8VoEEPmALCZG9LmqfVoNMMKpttIYTVG6uDY7A==}
     engines: {node: '>=0.3.1'}
+    dev: true
 
   /dir-glob@3.0.1:
     resolution: {integrity: sha512-WkrWp9GR4KXfKGYzOLmTuGVi1UWFfws377n9cc55/tb6DuqyF6pcQ5AbiHEshaDpY9v6oaSr2XCDidGmMwdzIA==}
@@ -10051,6 +9556,36 @@ packages:
       es6-iterator: 2.0.3
       es6-symbol: 3.1.3
     dev: false
+
+  /esbuild@0.19.12:
+    resolution: {integrity: sha512-aARqgq8roFBj054KvQr5f1sFu0D65G+miZRCuJyJ0G13Zwx7vRar5Zhn2tkQNzIXcBrNVsv/8stehpj+GAjgbg==}
+    engines: {node: '>=12'}
+    hasBin: true
+    requiresBuild: true
+    optionalDependencies:
+      '@esbuild/aix-ppc64': 0.19.12
+      '@esbuild/android-arm': 0.19.12
+      '@esbuild/android-arm64': 0.19.12
+      '@esbuild/android-x64': 0.19.12
+      '@esbuild/darwin-arm64': 0.19.12
+      '@esbuild/darwin-x64': 0.19.12
+      '@esbuild/freebsd-arm64': 0.19.12
+      '@esbuild/freebsd-x64': 0.19.12
+      '@esbuild/linux-arm': 0.19.12
+      '@esbuild/linux-arm64': 0.19.12
+      '@esbuild/linux-ia32': 0.19.12
+      '@esbuild/linux-loong64': 0.19.12
+      '@esbuild/linux-mips64el': 0.19.12
+      '@esbuild/linux-ppc64': 0.19.12
+      '@esbuild/linux-riscv64': 0.19.12
+      '@esbuild/linux-s390x': 0.19.12
+      '@esbuild/linux-x64': 0.19.12
+      '@esbuild/netbsd-x64': 0.19.12
+      '@esbuild/openbsd-x64': 0.19.12
+      '@esbuild/sunos-x64': 0.19.12
+      '@esbuild/win32-arm64': 0.19.12
+      '@esbuild/win32-ia32': 0.19.12
+      '@esbuild/win32-x64': 0.19.12
 
   /escalade@3.1.1:
     resolution: {integrity: sha512-k0er2gUkLf8O0zKJiAhmkTnJlTvINGv7ygDNPbeIsX/TJjGJZHuh9B2UxbsaEkmlEo9MfhrSzmhIlhRlI2GXnw==}
@@ -10730,6 +10265,16 @@ packages:
       debug: 4.3.4
     dev: false
 
+  /follow-redirects@1.15.5:
+    resolution: {integrity: sha512-vSFWUON1B+yAw1VN4xMfxgn5fTUiaOzAJCKBwIIgT/+7CuGy9+r+5gITvP62j3RmaD5Ph65UaERdOSRGUzZtgw==}
+    engines: {node: '>=4.0'}
+    peerDependencies:
+      debug: '*'
+    peerDependenciesMeta:
+      debug:
+        optional: true
+    dev: false
+
   /for-each@0.3.3:
     resolution: {integrity: sha512-jqYfLp7mo9vIyQf8ykW2v7A+2N4QjeCeI5+Dz9XraiO1ign81wjiH7Fb9vSOWvQfNtmSa4H2RoQTrrXivdUZmw==}
     dependencies:
@@ -10983,6 +10528,11 @@ packages:
       call-bind: 1.0.5
       get-intrinsic: 1.2.2
     dev: true
+
+  /get-tsconfig@4.7.2:
+    resolution: {integrity: sha512-wuMsz4leaj5hbGgg4IvDU0bqJagpftG5l5cXIAvo8uZrqn0NJqwtfupTN00VnkQJPcIRrxYrm1Ue24btpCha2A==}
+    dependencies:
+      resolve-pkg-maps: 1.0.0
 
   /get-uri@6.0.2:
     resolution: {integrity: sha512-5KLucCJobh8vBY1K07EFV4+cPZH3mrV9YeAruUseCQKHB58SGjjT2l9/eA9LD082IiuMjSlFJEcdJ27TXvbZNw==}
@@ -12005,7 +11555,7 @@ packages:
       - supports-color
     dev: true
 
-  /jest-cli@29.7.0(@types/node@18.0.6)(ts-node@10.6.0):
+  /jest-cli@29.7.0(@types/node@18.0.6):
     resolution: {integrity: sha512-OVVobw2IubN/GSYsxETi+gOe7Ka59EFMR/twOU3Jb2GnKKeMGJB5SGUUrEz3SFVmJASUdZUzy83sLNNQ2gZslg==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
     hasBin: true
@@ -12015,14 +11565,14 @@ packages:
       node-notifier:
         optional: true
     dependencies:
-      '@jest/core': 29.7.0(ts-node@10.6.0)
+      '@jest/core': 29.7.0
       '@jest/test-result': 29.7.0
       '@jest/types': 29.6.3
       chalk: 4.1.2
-      create-jest: 29.7.0(@types/node@18.0.6)(ts-node@10.6.0)
+      create-jest: 29.7.0(@types/node@18.0.6)
       exit: 0.1.2
       import-local: 3.1.0
-      jest-config: 29.7.0(@types/node@18.0.6)(ts-node@10.6.0)
+      jest-config: 29.7.0(@types/node@18.0.6)
       jest-util: 29.7.0
       jest-validate: 29.7.0
       yargs: 17.7.2
@@ -12033,7 +11583,7 @@ packages:
       - ts-node
     dev: true
 
-  /jest-config@29.7.0(@types/node@18.0.6)(ts-node@10.6.0):
+  /jest-config@29.7.0(@types/node@18.0.6):
     resolution: {integrity: sha512-uXbpfeQ7R6TZBqI3/TxCU4q4ttk3u0PJeC+E0zbfSoSjq6bJ7buBPxzQPL0ifrkY4DNu4JUdk0ImlBUYi840eQ==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
     peerDependencies:
@@ -12068,13 +11618,12 @@ packages:
       pretty-format: 29.7.0
       slash: 3.0.0
       strip-json-comments: 3.1.1
-      ts-node: 10.6.0(@types/node@18.0.6)(typescript@5.3.2)
     transitivePeerDependencies:
       - babel-plugin-macros
       - supports-color
     dev: true
 
-  /jest-config@29.7.0(@types/node@20.10.7)(ts-node@10.6.0):
+  /jest-config@29.7.0(@types/node@20.10.7):
     resolution: {integrity: sha512-uXbpfeQ7R6TZBqI3/TxCU4q4ttk3u0PJeC+E0zbfSoSjq6bJ7buBPxzQPL0ifrkY4DNu4JUdk0ImlBUYi840eQ==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
     peerDependencies:
@@ -12109,7 +11658,6 @@ packages:
       pretty-format: 29.7.0
       slash: 3.0.0
       strip-json-comments: 3.1.1
-      ts-node: 10.6.0(@types/node@18.0.6)(typescript@5.3.2)
     transitivePeerDependencies:
       - babel-plugin-macros
       - supports-color
@@ -12406,7 +11954,7 @@ packages:
       supports-color: 8.1.1
     dev: true
 
-  /jest@29.7.0(@types/node@18.0.6)(ts-node@10.6.0):
+  /jest@29.7.0(@types/node@18.0.6):
     resolution: {integrity: sha512-NIy3oAFp9shda19hy4HK0HRTWKtPJmGdnvywu01nOqNC2vZg+Z+fvJDxpMQA88eb2I9EcafcdjYgsDthnYTvGw==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
     hasBin: true
@@ -12416,10 +11964,10 @@ packages:
       node-notifier:
         optional: true
     dependencies:
-      '@jest/core': 29.7.0(ts-node@10.6.0)
+      '@jest/core': 29.7.0
       '@jest/types': 29.6.3
       import-local: 3.1.0
-      jest-cli: 29.7.0(@types/node@18.0.6)(ts-node@10.6.0)
+      jest-cli: 29.7.0(@types/node@18.0.6)
     transitivePeerDependencies:
       - '@types/node'
       - babel-plugin-macros
@@ -12840,6 +12388,7 @@ packages:
 
   /lodash@4.17.21:
     resolution: {integrity: sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==}
+    dev: false
 
   /log-driver@1.2.7:
     resolution: {integrity: sha512-U7KCmLdqsGHBLeWqYlFA0V0Sl6P08EE1ZrmA9cxjUE0WVqT9qnyVDPz1kzpFEP0jdJuFnasWIfSd7fsaNXkpbg==}
@@ -12950,6 +12499,7 @@ packages:
 
   /make-error@1.3.6:
     resolution: {integrity: sha512-s8UhlNe7vPKomQhC1qFelMokr/Sc3AgNbso3n74mVPA5LTZwkB9NlXf4XPamLxJE8h0gh73rM94xvwRT2CVInw==}
+    dev: true
 
   /make-fetch-happen@10.2.1:
     resolution: {integrity: sha512-NgOPbRiaQM10DYXvN3/hhGVI2M5MtITFryzBGxHM5p4wnFxsVCbxkrBrDsk+EZ5OB4jEOT7AjDxtdF+KVEFT7w==}
@@ -13222,6 +12772,10 @@ packages:
 
   /moment@2.29.4:
     resolution: {integrity: sha512-5LC9SOxjSc2HF6vO2CyuTDNivEdoz2IvyJJGj6X8DJ0eFyfszE0QiEd+iXmBvUP3WHxSjFH/vIsA0EN00cgr8w==}
+    dev: false
+
+  /moment@2.30.1:
+    resolution: {integrity: sha512-uEmtNhbDOrWPFS+hdjFCBfy9f2YoyzRpwcl+DqpC6taX21FzsTLQVbMV/W7PzNSX6x/bhC1zA3c2UQ5NzH6how==}
     dev: false
 
   /moo@0.5.2:
@@ -15008,6 +14562,9 @@ packages:
     engines: {node: '>=8'}
     dev: true
 
+  /resolve-pkg-maps@1.0.0:
+    resolution: {integrity: sha512-seS2Tj26TBVOC2NIc2rOe2y2ZO7efxITtLZcGSOnHHNOQ7CkiUBfw0Iw2ck6xkIhPwLhKNLS8BO+hEpngQlqzw==}
+
   /resolve.exports@2.0.2:
     resolution: {integrity: sha512-X2UW6Nw3n/aMgDVy+0rSqgHlv39WZAlZrXCdnbyEiKm17DSqHX4MmQMaST3FbeWR5FTuRcUwYAziZajji0Y7mg==}
     engines: {node: '>=10'}
@@ -15108,6 +14665,7 @@ packages:
     resolution: {integrity: sha512-AA3TVj+0A2iuIoQkWEK/tqFjBq2j+6PO6Y0zJcvzLAFhEFIO3HL0vls9hWLncZbAAbK0mar7oZ4V079I/qPMxg==}
     dependencies:
       tslib: 2.6.2
+    dev: false
 
   /safe-array-concat@1.0.1:
     resolution: {integrity: sha512-6XbUAseYE2KtOuGueyeobCySj9L4+66Tn6KQMOPQJrAJEowYKW/YR/MGJZl7FdydUdaFu4LYyDZjxf4/Nmo23Q==}
@@ -15417,10 +14975,6 @@ packages:
     resolution: {integrity: sha512-7++dFhtcx3353uBaq8DDR4NuxBetBzC7ZQOhmTQInHEd6bSrXdiEyzCvG07Z44UYdLShWUyXt5M/yhz8ekcb1A==}
     engines: {node: '>=8'}
 
-  /shell-quote@1.8.1:
-    resolution: {integrity: sha512-6j1W9l1iAs/4xYBI1SYOVZyFcCis9b4KCLQ8fgAGG07QvzaRLVVRQvAy85yNmmZSjYjg4MWh4gNvlPujU/5LpA==}
-    dev: true
-
   /shimmer@1.2.1:
     resolution: {integrity: sha512-sQTKC1Re/rM6XyFM6fIAGHRPVGvyXfgzIDvzoq608vM+jeyVD0Tu1E6Np0Kc2zAIFWIj963V2800iF/9LPieQw==}
     dev: false
@@ -15618,10 +15172,6 @@ packages:
     resolution: {integrity: sha512-l3BikUxvPOcn5E74dZiq5BGsTb5yEwhaTSzccU6t4sDOH8NWJCstKO5QT2CvtFoK6F0saL7p9xHAqHOlCPJygA==}
     engines: {node: '>= 8'}
     dev: false
-
-  /spawn-command@0.0.2:
-    resolution: {integrity: sha512-zC8zGoGkmc8J9ndvml8Xksr1Amk9qBujgbF0JAIWO7kXr43w0h/0GJNM/Vustixu+YE8N/MTrQ7N31FvHUACxQ==}
-    dev: true
 
   /spdx-correct@3.2.0:
     resolution: {integrity: sha512-kN9dJbvnySHULIluDHy32WHRUu3Og7B9sbY7tsFLctQkIqnMh3hErYgdMjTYuqmcXX+lK5T1lnUt3G7zNswmZA==}
@@ -16172,11 +15722,6 @@ packages:
   /tr46@0.0.3:
     resolution: {integrity: sha512-N3WMsuqV66lT30CrXNbEjx4GEwlow3v6rr4mCcv6prnfwhS01rkgyFdjPNBYd9br7LpXV1+Emh01fHnq2Gdgrw==}
 
-  /tree-kill@1.2.2:
-    resolution: {integrity: sha512-L0Orpi8qGpRG//Nd+H90vFB+3iHnue1zSSGmNOOCh1GLJ7rUKVwV2HvijphGQS2UmhUZewS9VgvxYIdgr+fG1A==}
-    hasBin: true
-    dev: true
-
   /ts-api-utils@1.0.3(typescript@5.3.2):
     resolution: {integrity: sha512-wNMeqtMz5NtwpT/UZGY5alT+VoKdSsOOP/kqHFcUW1P/VRhH2wJ48+DN2WwUliNbQ976ETwDL0Ifd2VVvgonvg==}
     engines: {node: '>=16.13.0'}
@@ -16210,7 +15755,7 @@ packages:
       '@babel/core': 7.23.5
       bs-logger: 0.2.6
       fast-json-stable-stringify: 2.1.0
-      jest: 29.7.0(@types/node@18.0.6)(ts-node@10.6.0)
+      jest: 29.7.0(@types/node@18.0.6)
       jest-util: 29.7.0
       json5: 2.2.3
       lodash.memoize: 4.1.2
@@ -16224,38 +15769,7 @@ packages:
     resolution: {integrity: sha512-k43M7uCG1AkTyxgnmI5MPwKoUvS/bRvLvUb7+Pgpdlmok8AoqmUaZxUUw8zKM5B1lqZrt41GjYgnvAi0fppqgQ==}
     dev: false
 
-  /ts-node@10.6.0(@types/node@18.0.6)(typescript@5.3.2):
-    resolution: {integrity: sha512-CJen6+dfOXolxudBQXnVjRVvYTmTWbyz7cn+xq2XTsvnaXbHqr4gXSCNbS2Jj8yTZMuGwUoBESLaOkLascVVvg==}
-    hasBin: true
-    peerDependencies:
-      '@swc/core': '>=1.2.50'
-      '@swc/wasm': '>=1.2.50'
-      '@types/node': '*'
-      typescript: '>=2.7'
-    peerDependenciesMeta:
-      '@swc/core':
-        optional: true
-      '@swc/wasm':
-        optional: true
-    dependencies:
-      '@cspotcode/source-map-support': 0.7.0
-      '@tsconfig/node10': 1.0.9
-      '@tsconfig/node12': 1.0.11
-      '@tsconfig/node14': 1.0.3
-      '@tsconfig/node16': 1.0.4
-      '@types/node': 18.0.6
-      acorn: 8.11.2
-      acorn-walk: 8.3.0
-      arg: 4.1.3
-      create-require: 1.1.1
-      diff: 4.0.2
-      make-error: 1.3.6
-      typescript: 5.3.2
-      v8-compile-cache-lib: 3.0.1
-      yn: 3.1.1
-    dev: true
-
-  /ts-node@10.9.1(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2):
+  /ts-node@10.9.1(@types/node@20.10.7)(typescript@5.3.2):
     resolution: {integrity: sha512-NtVysVPkxxrwFGUUxGYhfux8k78pQB3JqYBXlLRZgdGUqTO5wU/UyHop5p70iEbGhB7q5KmiZiU0Y3KlJrScEw==}
     hasBin: true
     peerDependencies:
@@ -16270,12 +15784,11 @@ packages:
         optional: true
     dependencies:
       '@cspotcode/source-map-support': 0.8.1
-      '@swc/core': 1.3.100
       '@tsconfig/node10': 1.0.9
       '@tsconfig/node12': 1.0.11
       '@tsconfig/node14': 1.0.3
       '@tsconfig/node16': 1.0.4
-      '@types/node': 20.10.1
+      '@types/node': 20.10.7
       acorn: 8.11.2
       acorn-walk: 8.3.0
       arg: 4.1.3
@@ -16285,6 +15798,7 @@ packages:
       typescript: 5.3.2
       v8-compile-cache-lib: 3.0.1
       yn: 3.1.1
+    dev: true
 
   /tsconfig-paths@3.14.2:
     resolution: {integrity: sha512-o/9iXgCYc5L/JxCHPe3Hvh8Q/2xm5Z+p18PESBU6Ff33695QnCHBEjcytY2q19ua7Mbl/DavtBOLq+oG0RCL+g==}
@@ -16322,6 +15836,16 @@ packages:
     dependencies:
       tslib: 1.14.1
       typescript: 5.3.2
+
+  /tsx@4.7.1:
+    resolution: {integrity: sha512-8d6VuibXHtlN5E3zFkgY8u4DX7Y3Z27zvvPKVmLon/D4AjuKzarkUBTLDBgj9iTQ0hg5xM7c/mYiRVM+HETf0g==}
+    engines: {node: '>=18.0.0'}
+    hasBin: true
+    dependencies:
+      esbuild: 0.19.12
+      get-tsconfig: 4.7.2
+    optionalDependencies:
+      fsevents: 2.3.3
 
   /tunnel@0.0.6:
     resolution: {integrity: sha512-1h/Lnq9yajKY2PEbBadPXj3VxsDDu844OnaAo52UVmIzIvwwtBPIuNvkjuzBlTWpfJyUbG3ez0KSBibQkj4ojg==}
@@ -16685,6 +16209,7 @@ packages:
 
   /v8-compile-cache-lib@3.0.1:
     resolution: {integrity: sha512-wa7YjyUGfNZngI/vtK0UHAN+lgDCxBPCylVXGp0zu59Fz5aiGtNXaq3DhIov063MorB+VfufLh3JlF2KdTK3xg==}
+    dev: true
 
   /v8-to-istanbul@9.2.0:
     resolution: {integrity: sha512-/EH/sDgxU2eGxajKdwLCDmQ4FWq+kpi3uCmBGpw1xJtnAxEjlD8j8PEiGWpCIMIs3ciNAgH0d3TTJiUkYzyZjA==}
@@ -16999,7 +16524,7 @@ packages:
   /xml2js@0.4.19:
     resolution: {integrity: sha512-esZnJZJOiJR9wWKMyuvSE1y6Dq5LCuJanqhxslH2bxM6duahNZ+HMpCLhBQGZkbX6xRf8x1Y2eJlgt2q3qo49Q==}
     dependencies:
-      sax: 1.2.1
+      sax: 1.3.0
       xmlbuilder: 9.0.7
     dev: false
 
@@ -17144,6 +16669,7 @@ packages:
   /yn@3.1.1:
     resolution: {integrity: sha512-Ux4ygGWsu2c7isFWe8Yu1YluJmqVhxqK2cLXNQA5AcC3QfbGNpM7fu0Y8b/z16pXLnFxZYvWhd3fhBY9DLmC6Q==}
     engines: {node: '>=6'}
+    dev: true
 
   /yocto-queue@0.1.0:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
@@ -17156,98 +16682,11 @@ packages:
       nan: 2.18.0
     dev: false
 
-  file:services/archetypes/consumer(@types/node@20.10.1)(typescript@5.3.2):
-    resolution: {directory: services/archetypes/consumer, type: directory}
-    id: file:services/archetypes/consumer
-    name: '@crowd/archetype-consumer'
-    version: 1.0.0
-    dependencies:
-      '@crowd/archetype-standard': file:services/archetypes/standard(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
-      '@temporalio/client': 1.8.6
-      config: 3.3.9
-      kafkajs: 2.2.4
-      ts-node: 10.9.1(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
-      tsconfig-paths: 4.2.0
-    transitivePeerDependencies:
-      - '@swc/core'
-      - '@swc/wasm'
-      - '@types/node'
-      - bluebird
-      - debug
-      - encoding
-      - supports-color
-      - typescript
-    dev: false
-
-  file:services/archetypes/standard(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2):
-    resolution: {directory: services/archetypes/standard, type: directory}
-    id: file:services/archetypes/standard
-    name: '@crowd/archetype-standard'
-    version: 1.0.0
-    dependencies:
-      '@crowd/feature-flags': file:services/libs/feature-flags
-      '@crowd/integrations': file:services/libs/integrations
-      '@crowd/logging': file:services/libs/logging
-      '@crowd/redis': file:services/libs/redis
-      '@crowd/temporal': file:services/libs/temporal
-      '@crowd/tracing': file:services/libs/tracing
-      '@crowd/types': file:services/libs/types
-      '@temporalio/client': 1.8.6
-      config: 3.3.9
-      kafkajs: 2.2.4
-      ts-node: 10.9.1(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
-      tsconfig-paths: 4.2.0
-    transitivePeerDependencies:
-      - '@swc/core'
-      - '@swc/wasm'
-      - '@types/node'
-      - bluebird
-      - debug
-      - encoding
-      - supports-color
-      - typescript
-    dev: false
-
-  file:services/archetypes/worker(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2):
-    resolution: {directory: services/archetypes/worker, type: directory}
-    id: file:services/archetypes/worker
-    name: '@crowd/archetype-worker'
-    version: 1.0.0
-    dependencies:
-      '@crowd/archetype-standard': file:services/archetypes/standard(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
-      '@crowd/common': file:services/libs/common
-      '@crowd/database': file:services/libs/database
-      '@crowd/sqs': file:services/libs/sqs
-      '@crowd/temporal': file:services/libs/temporal
-      '@opensearch-project/opensearch': 1.2.0
-      '@temporalio/client': 1.8.6
-      '@temporalio/worker': 1.8.6
-      '@temporalio/workflow': 1.8.6
-      config: 3.3.9
-      ts-node: 10.9.1(@swc/core@1.3.100)(@types/node@20.10.1)(typescript@5.3.2)
-      tsconfig-paths: 4.2.0
-    transitivePeerDependencies:
-      - '@swc/core'
-      - '@swc/helpers'
-      - '@swc/wasm'
-      - '@types/node'
-      - aws-crt
-      - bluebird
-      - debug
-      - encoding
-      - esbuild
-      - pg-native
-      - supports-color
-      - typescript
-      - uglify-js
-      - webpack-cli
-    dev: false
-
   file:services/libs/alerting:
     resolution: {directory: services/libs/alerting, type: directory}
     name: '@crowd/alerting'
-    version: 1.0.0
     dependencies:
+      '@crowd/logging': link:services/libs/logging
       '@types/node': 20.10.7
       '@typescript-eslint/eslint-plugin': 5.62.0(@typescript-eslint/parser@5.62.0)(eslint@8.54.0)(typescript@5.3.2)
       '@typescript-eslint/parser': 5.62.0(eslint@8.54.0)(typescript@5.3.2)
@@ -17259,116 +16698,69 @@ packages:
       typescript: 5.3.2
     transitivePeerDependencies:
       - debug
-      - supports-color
     dev: false
 
   file:services/libs/common:
     resolution: {directory: services/libs/common, type: directory}
     name: '@crowd/common'
-    version: 1.0.0
     dependencies:
       '@crowd/logging': file:services/libs/logging
-      '@crowd/types': file:services/libs/types
+      '@crowd/types': link:services/libs/types
       lodash.get: 4.4.2
       psl: 1.9.0
       uuid: 9.0.1
-    transitivePeerDependencies:
-      - debug
-      - supports-color
     dev: false
 
   file:services/libs/common_services:
     resolution: {directory: services/libs/common_services, type: directory}
     name: '@crowd/common_services'
-    version: 1.0.0
     dependencies:
-      '@crowd/common': file:services/libs/common
-      '@crowd/database': file:services/libs/database
-      '@crowd/feature-flags': file:services/libs/feature-flags
-      '@crowd/logging': file:services/libs/logging
-      '@crowd/redis': file:services/libs/redis
-      '@crowd/sqs': file:services/libs/sqs
-      '@crowd/tracing': file:services/libs/tracing
-      '@crowd/types': file:services/libs/types
-    transitivePeerDependencies:
-      - aws-crt
-      - bluebird
-      - debug
-      - pg-native
-      - supports-color
-    dev: false
-
-  file:services/libs/conversations:
-    resolution: {directory: services/libs/conversations, type: directory}
-    name: '@crowd/conversations'
-    version: 1.0.0
-    dependencies:
-      '@crowd/common': file:services/libs/common
-      '@crowd/database': file:services/libs/database
-      '@crowd/logging': file:services/libs/logging
-      '@crowd/types': file:services/libs/types
-      html-to-text: 9.0.5
-    transitivePeerDependencies:
-      - debug
-      - pg-native
-      - supports-color
+      '@crowd/common': link:services/libs/common
+      '@crowd/database': link:services/libs/database
+      '@crowd/feature-flags': link:services/libs/feature-flags
+      '@crowd/logging': link:services/libs/logging
+      '@crowd/redis': link:services/libs/redis
+      '@crowd/sqs': link:services/libs/sqs
+      '@crowd/tracing': link:services/libs/tracing
+      '@crowd/types': link:services/libs/types
     dev: false
 
   file:services/libs/cubejs:
     resolution: {directory: services/libs/cubejs, type: directory}
     name: '@crowd/cubejs'
-    version: 1.0.0
     dependencies:
-      '@crowd/common': file:services/libs/common
-      '@crowd/logging': file:services/libs/logging
+      '@crowd/common': link:services/libs/common
+      '@crowd/logging': link:services/libs/logging
       '@cubejs-client/core': 0.34.27
       jsonwebtoken: 9.0.2
       moment: 2.29.4
     transitivePeerDependencies:
-      - debug
       - encoding
-      - supports-color
-    dev: false
-
-  file:services/libs/database:
-    resolution: {directory: services/libs/database, type: directory}
-    name: '@crowd/database'
-    version: 1.0.0
-    dependencies:
-      '@crowd/common': file:services/libs/common
-      '@crowd/logging': file:services/libs/logging
-      pg-promise: 11.5.4
-    transitivePeerDependencies:
-      - debug
-      - pg-native
-      - supports-color
     dev: false
 
   file:services/libs/feature-flags:
     resolution: {directory: services/libs/feature-flags, type: directory}
     name: '@crowd/feature-flags'
-    version: 1.0.0
     dependencies:
-      '@crowd/common': file:services/libs/common
-      '@crowd/logging': file:services/libs/logging
-      '@crowd/redis': file:services/libs/redis
-      '@crowd/types': file:services/libs/types
+      '@crowd/common': link:services/libs/common
+      '@crowd/logging': link:services/libs/logging
+      '@crowd/redis': link:services/libs/redis
+      '@crowd/types': link:services/libs/types
       unleash-client: 3.21.0
     transitivePeerDependencies:
       - bluebird
-      - debug
       - supports-color
     dev: false
 
   file:services/libs/integrations:
     resolution: {directory: services/libs/integrations, type: directory}
     name: '@crowd/integrations'
-    version: 1.0.0
     dependencies:
-      '@crowd/common': file:services/libs/common
-      '@crowd/logging': file:services/libs/logging
-      '@crowd/telemetry': file:services/libs/telemetry
-      '@crowd/types': file:services/libs/types
+      '@crowd/common': link:services/libs/common
+      '@crowd/data-access-layer': link:services/libs/data-access-layer
+      '@crowd/logging': link:services/libs/logging
+      '@crowd/telemetry': link:services/libs/telemetry
+      '@crowd/types': link:services/libs/types
       '@octokit/auth-app': 4.0.13
       '@octokit/graphql': 5.0.6
       axios: 1.6.2
@@ -17380,117 +16772,83 @@ packages:
     transitivePeerDependencies:
       - debug
       - encoding
-      - supports-color
     dev: false
 
   file:services/libs/logging:
     resolution: {directory: services/libs/logging, type: directory}
     name: '@crowd/logging'
-    version: 1.0.0
     dependencies:
-      '@crowd/common': file:services/libs/common
-      '@crowd/tracing': file:services/libs/tracing
+      '@crowd/common': link:services/libs/common
+      '@crowd/tracing': link:services/libs/tracing
       bunyan: 1.8.15
       bunyan-format: 0.2.1
-    transitivePeerDependencies:
-      - debug
-      - supports-color
     dev: false
 
   file:services/libs/opensearch:
     resolution: {directory: services/libs/opensearch, type: directory}
     name: '@crowd/opensearch'
-    version: 1.0.0
     dependencies:
-      '@crowd/database': file:services/libs/database
-      '@crowd/logging': file:services/libs/logging
-      '@crowd/redis': file:services/libs/redis
-      '@crowd/types': file:services/libs/types
+      '@crowd/common': link:services/libs/common
+      '@crowd/database': link:services/libs/database
+      '@crowd/feature-flags': link:services/libs/feature-flags
+      '@crowd/integrations': link:services/libs/integrations
+      '@crowd/logging': link:services/libs/logging
+      '@crowd/redis': link:services/libs/redis
+      '@crowd/types': link:services/libs/types
       '@opensearch-project/opensearch': 1.2.0
       axios: 1.6.2
+      lodash.merge: 4.6.2
     transitivePeerDependencies:
       - debug
-      - pg-native
       - supports-color
     dev: false
 
   file:services/libs/redis:
     resolution: {directory: services/libs/redis, type: directory}
     name: '@crowd/redis'
-    version: 1.0.0
     dependencies:
-      '@crowd/common': file:services/libs/common
-      '@crowd/logging': file:services/libs/logging
-      '@crowd/types': file:services/libs/types
+      '@crowd/common': link:services/libs/common
+      '@crowd/logging': link:services/libs/logging
+      '@crowd/types': link:services/libs/types
       redis: 4.6.11
-    transitivePeerDependencies:
-      - debug
-      - supports-color
-    dev: false
-
-  file:services/libs/sentiment:
-    resolution: {directory: services/libs/sentiment, type: directory}
-    name: '@crowd/sentiment'
-    version: 1.0.0
-    dependencies:
-      '@aws-sdk/client-comprehend': 3.462.0
-      '@crowd/common': file:services/libs/common
-      '@crowd/logging': file:services/libs/logging
-      crowd-sentiment: 1.1.7
-    transitivePeerDependencies:
-      - aws-crt
-      - debug
-      - supports-color
     dev: false
 
   file:services/libs/sqs:
     resolution: {directory: services/libs/sqs, type: directory}
     name: '@crowd/sqs'
-    version: 1.0.0
     dependencies:
       '@aws-sdk/client-sqs': 3.462.0
       '@aws-sdk/types': 3.460.0
-      '@crowd/common': file:services/libs/common
-      '@crowd/logging': file:services/libs/logging
-      '@crowd/tracing': file:services/libs/tracing
-      '@crowd/types': file:services/libs/types
+      '@crowd/common': link:services/libs/common
+      '@crowd/logging': link:services/libs/logging
+      '@crowd/tracing': link:services/libs/tracing
+      '@crowd/types': link:services/libs/types
       '@smithy/util-retry': 2.0.7
     transitivePeerDependencies:
       - aws-crt
-      - debug
-      - supports-color
     dev: false
 
   file:services/libs/telemetry:
     resolution: {directory: services/libs/telemetry, type: directory}
     name: '@crowd/telemetry'
-    version: 1.0.0
     dependencies:
-      '@crowd/logging': file:services/libs/logging
+      '@crowd/logging': link:services/libs/logging
       dd-trace: 4.20.0
-    transitivePeerDependencies:
-      - debug
-      - supports-color
     dev: false
 
   file:services/libs/temporal:
     resolution: {directory: services/libs/temporal, type: directory}
     name: '@crowd/temporal'
-    version: 1.0.0
     dependencies:
-      '@crowd/logging': file:services/libs/logging
+      '@crowd/logging': link:services/libs/logging
       '@temporalio/client': 1.8.6
       '@temporalio/common': 1.8.6
       '@temporalio/proto': 1.8.6
-    transitivePeerDependencies:
-      - debug
-      - supports-color
     dev: false
 
   file:services/libs/tracing:
     resolution: {directory: services/libs/tracing, type: directory}
     name: '@crowd/tracing'
-    version: 1.0.0
     dependencies:
       '@crowd/common': file:services/libs/common
       '@opentelemetry/api': 1.6.0
@@ -17508,18 +16866,14 @@ packages:
       opentelemetry-instrumentation-kafkajs: 0.39.1(@opentelemetry/api@1.6.0)
       opentelemetry-instrumentation-sequelize: 0.39.1(@opentelemetry/api@1.6.0)
     transitivePeerDependencies:
-      - debug
       - supports-color
     dev: false
 
   file:services/libs/types:
     resolution: {directory: services/libs/types, type: directory}
     name: '@crowd/types'
-    version: 1.0.0
     dependencies:
       peopledatalabs: 6.1.5
-    transitivePeerDependencies:
-      - debug
     dev: false
 
   github.com/clearbit/needle/84d28b5f2c3916db1e7eb84aeaa9d976cc40054b:
@@ -17531,7 +16885,3 @@ packages:
     dependencies:
       iconv-lite: 0.4.24
     dev: false
-
-settings:
-  autoInstallPeers: true
-  excludeLinksFromLockfile: false

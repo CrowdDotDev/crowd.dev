@@ -23,6 +23,7 @@
         @find-github="emit('findGithub')"
         @close-dropdown="onDropdownClose"
         @merge="emit('merge')"
+        @unmerge="emit('unmerge')"
       />
     </template>
   </el-dropdown>
@@ -35,7 +36,7 @@ import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
 import AppMemberDropdownContent from './member-dropdown-content.vue';
 
-const emit = defineEmits(['merge', 'closeDropdown', 'findGithub']);
+const emit = defineEmits(['merge', 'unmerge', 'closeDropdown', 'findGithub']);
 defineProps({
   member: {
     type: Object,

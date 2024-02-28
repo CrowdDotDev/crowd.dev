@@ -16,14 +16,14 @@ export class MemberService {
     return response.data;
   }
 
-  static async updateBulk(data) {
+  static async updateBulk(data, segments) {
     const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.patch(
       `/tenant/${tenantId}/member`,
       {
+        segments,
         data,
-        excludeSegments: true,
         addDataAsArray: true,
       },
     );
@@ -213,6 +213,31 @@ export class MemberService {
       {
         memberToMerge: memberToMerge.id,
         segments,
+      },
+    );
+
+    return response.data;
+  }
+
+  static async unmerge(memberId, preview) {
+    const tenantId = AuthService.getTenantId();
+
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/member/${memberId}/unmerge`,
+      preview,
+    );
+
+    return response.data;
+  }
+
+  static async unmergePreview(memberId, platform, username) {
+    const tenantId = AuthService.getTenantId();
+
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/member/${memberId}/unmerge/preview`,
+      {
+        platform,
+        username,
       },
     );
 

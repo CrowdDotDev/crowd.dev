@@ -1,7 +1,7 @@
-import { ISegment, ITenant } from 'types'
+import { ISegment, ITenant } from '@crowd/data-access-layer/src/old/apps/cache_worker/types'
 import { svc } from '../main'
-import TenantRepository from 'repo/tenant.repo'
-import SegmentRepository from 'repo/segment.repo'
+import TenantRepository from '@crowd/data-access-layer/src/old/apps/cache_worker/tenant.repo'
+import SegmentRepository from '@crowd/data-access-layer/src/old/apps/cache_worker/segment.repo'
 import { isFeatureEnabled } from '@crowd/feature-flags'
 import { FeatureFlag } from '@crowd/types'
 

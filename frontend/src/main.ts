@@ -22,6 +22,7 @@ import App from '@/app.vue';
 import { vueSanitizeOptions } from '@/plugins/sanitize';
 import marked from '@/plugins/marked';
 import { useLogRocket } from '@/utils/logRocket';
+import { initRUM } from '@/utils/datadog/rum';
 
 i18nInit();
 /**
@@ -104,5 +105,9 @@ i18nInit();
       'https://static.hotjar.com/c/hotjar-',
       '.js?sv=',
     ));
+  }
+
+  if (config.env === 'production' && config.datadog.rum) {
+    initRUM();
   }
 }());

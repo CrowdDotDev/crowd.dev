@@ -10,12 +10,12 @@ export default (app) => {
     safeWrap(require('./tenantInvitationDecline').default),
   )
   app.post(`/tenant`, safeWrap(require('./tenantCreate').default))
-  app.put(`/tenant/:id`, safeWrap(require('./tenantUpdate').default))
+  app.put(`/tenant/:tenantId`, safeWrap(require('./tenantUpdate').default))
   app.delete(`/tenant`, safeWrap(require('./tenantDestroy').default))
   app.get(`/tenant`, safeWrap(require('./tenantList').default))
   app.get(`/tenant/url`, safeWrap(require('./tenantFind').default))
-  app.get(`/tenant/:id`, safeWrap(require('./tenantFind').default))
-  app.get(`/tenant/:id/name`, safeWrap(require('./tenantFindName').default))
+  app.get(`/tenant/:tenantId`, safeWrap(require('./tenantFind').default))
+  app.get(`/tenant/:tenantId/name`, safeWrap(require('./tenantFindName').default))
   app.get(`/tenant/:tenantId/membersToMerge`, safeWrap(require('./tenantMembersToMerge').default))
   app.get(
     `/tenant/:tenantId/organizationsToMerge`,

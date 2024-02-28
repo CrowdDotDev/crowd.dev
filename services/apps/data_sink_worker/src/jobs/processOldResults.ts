@@ -1,10 +1,10 @@
 import { timeout } from '@crowd/common'
-import { DbConnection, DbStore } from '@crowd/database'
+import { DbConnection, DbStore } from '@crowd/data-access-layer/src/database'
 import { Unleash } from '@crowd/feature-flags'
 import { Logger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
 import { Client as TemporalClient } from '@crowd/temporal'
-import DataSinkRepository from '../repo/dataSink.repo'
+import DataSinkRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/dataSink.repo'
 import DataSinkService from '../service/dataSink.service'
 import {
   DataSinkWorkerEmitter,

@@ -8,46 +8,45 @@ DOCKER_NETWORK_GATEWAY="${CROWD_NETWORK_GATEWAY:-10.90.0.1}"
 DOCKET_TEST_NETWORK_SUBNET="${CROWD_TEST_NETWORK_SUBNET:-10.91.0.0/24}"
 DOCKER_TEST_NETWORK_GATEWAY="${CROWD_TEST_NETWORK_GATEWAY:-10.91.0.1}"
 
-CLI_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+CLI_HOME="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 source $CLI_HOME/utils
 
-CONTAINERS=`ls -p $CLI_HOME/services | grep -v / | sed 's/\.[^.]*$//'`
-BUILDERS=`ls -p $CLI_HOME/builders | grep -v / | sed 's/\.[^.]*$//'`
+CONTAINERS=$(ls -p $CLI_HOME/services | grep -v / | sed 's/\.[^.]*$//')
+BUILDERS=$(ls -p $CLI_HOME/builders | grep -v / | sed 's/\.[^.]*$//')
 
 _DC="docker compose"
 
 arch=$(uname -m)
 
-if [ "$arch" == 'arm64' ];
-then
-  DOCKER_PLATFORM_FLAGS="--platform=linux/arm64/v8"
+if [ "$arch" == 'arm64' ]; then
+    DOCKER_PLATFORM_FLAGS="--platform=linux/arm64/v8"
 else
-  DOCKER_PLATFORM_FLAGS="--platform=linux/amd64"
+    DOCKER_PLATFORM_FLAGS="--platform=linux/amd64"
 fi
 
 function prepare_dev_env() {
     if [[ ! -f "$CLI_HOME/../backend/.env.override.local" ]]; then
-        echo "# Here you can put environment variables that you would like to override when using local environment" > "$CLI_HOME/../backend/.env.override.local"
+        echo "# Here you can put environment variables that you would like to override when using local environment" >"$CLI_HOME/../backend/.env.override.local"
     fi
     if [[ ! -f "$CLI_HOME/../backend/.env.override.composed" ]]; then
-        echo "# Here you can put environment variables that you would like to override when using local environment" > "$CLI_HOME/../backend/.env.override.composed"
+        echo "# Here you can put environment variables that you would like to override when using local environment" >"$CLI_HOME/../backend/.env.override.composed"
     fi
 
     if [[ ! -f "$CLI_HOME/../frontend/.env.override.local" ]]; then
-        echo "# Here you can put environment variables that you would like to override when using local environment" > "$CLI_HOME/../frontend/.env.override.local"
+        echo "# Here you can put environment variables that you would like to override when using local environment" >"$CLI_HOME/../frontend/.env.override.local"
     fi
 
     if [[ ! -f "$CLI_HOME/../frontend/.env.override.composed" ]]; then
-        echo "# Here you can put environment variables that you would like to override when using local environment" > "$CLI_HOME/../frontend/.env.override.composed"
+        echo "# Here you can put environment variables that you would like to override when using local environment" >"$CLI_HOME/../frontend/.env.override.composed"
     fi
 
     set +eo pipefail
 
-    $_DC >> /dev/null 2>&1
+    $_DC >>/dev/null 2>&1
 
     if [[ ! $? -eq 0 ]]; then
         _DC="docker-compose"
-        $_DC >> /dev/null 2>&1
+        $_DC >>/dev/null 2>&1
 
         if [[ ! $? -eq 0 ]]; then
             error "Docker compose not detected!"
@@ -61,8 +60,14 @@ function prepare_dev_env() {
 prepare_dev_env
 
 function prepare_service_string() {
-    if [ $1 == "HELP" ]; then delimiter1=" | "; delimiter2=" => | "; fi
-    if [ $1 == "LIST" ]; then delimiter1="\|"; delimiter2="\|"; fi
+    if [ $1 == "HELP" ]; then
+        delimiter1=" | "
+        delimiter2=" => | "
+    fi
+    if [ $1 == "LIST" ]; then
+        delimiter1="\|"
+        delimiter2="\|"
+    fi
 
     for cmd in $SERVICE_CMD; do string+="$cmd$delimiter1"; done
     for container in $2; do string+="$container$delimiter2"; done
@@ -78,11 +83,11 @@ function build() {
     HELP="${RESET}\nUsage:\n ./cli build [ $HELP_BUILD_STRING ]\n"
     [[ -z "$1" ]] && say "$HELP" && exit 1
 
-    if [[ $BUILDERS =~ (^|[[:space:]])"$1"($|[[:space:]]) ]] ; then
+    if [[ $BUILDERS =~ (^|[[:space:]])"$1"($|[[:space:]]) ]]; then
         build_and_publish "$@"
     else
         error "Invalid command '$1'" && say "$HELP"
-        exit 1;
+        exit 1
     fi
 }
 
@@ -93,14 +98,14 @@ function create_migration() {
     DOWN_MIG_FILE="${CLI_HOME}/../backend/src/database/migrations/U${MIG_VERSION}__${MIG_NAME}.sql"
     touch $UP_MIG_FILE
     touch $DOWN_MIG_FILE
-    yell "Created ${MIG_FILE}";
+    yell "Created ${MIG_FILE}"
 }
 
 function build_and_publish() {
     VERSION="$2"
 
     if [[ -z "${VERSION}" ]]; then
-        COMMIT_HASH=`git rev-parse --short HEAD`
+        COMMIT_HASH=$(git rev-parse --short HEAD)
         TS_VERSION=$(date +%s)
         VERSION="$TS_VERSION.$COMMIT_HASH"
     fi
@@ -155,34 +160,40 @@ function scaffold() {
 
     [[ -z "$1" ]] && say "$HELP" && exit 1
 
-    while test $# -gt 0
-    do
+    while test $# -gt 0; do
         case "$1" in
-            up) up_scaffold
-                post_up_scaffold
-                exit;
+        up)
+            up_scaffold
+            post_up_scaffold
+            exit
             ;;
-            down) down_scaffold
-                exit;
+        down)
+            down_scaffold
+            exit
             ;;
-            destroy) scaffold_destroy
-                exit;
+        destroy)
+            scaffold_destroy
+            exit
             ;;
-            reset) scaffold_reset
-                exit;
+        reset)
+            scaffold_reset
+            exit
             ;;
-            create-migration) create_migration $2
-                exit;
+        create-migration)
+            create_migration $2
+            exit
             ;;
-            migrate-up) migrate_local
-                exit;
+        migrate-up)
+            migrate_local
+            exit
             ;;
-            up-test)
-                up_test_scaffold
-                exit;
+        up-test)
+            up_test_scaffold
+            exit
             ;;
-            *) error "Invalid command '$1'" && say "$HELP"
-                exit 1;
+        *)
+            error "Invalid command '$1'" && say "$HELP"
+            exit 1
             ;;
         esac
         shift
@@ -193,23 +204,24 @@ function service() {
     HELP="${RESET}\nUsage:\n ./cli service [ $HELP_STRING ]\n"
     [[ -z "$1" ]] && say "$HELP" && exit 1
 
-    while test $# -gt 0
-    do
-    case "$1" in
-            list)
-                docker container ls | grep $LIST_STRING
-                exit;
+    while test $# -gt 0; do
+        case "$1" in
+        list)
+            docker container ls | grep $LIST_STRING
+            exit
             ;;
-            up-all) start_all_containers
-                exit;
+        up-all)
+            start_all_containers
+            exit
             ;;
-            *) if [[ $CONTAINERS =~ (^|[[:space:]])"$1"($|[[:space:]]) ]] ; then
-                    service_manipulator $1 $2 $3
-                    exit;
-                else
-                    error "Invalid command '$1'" && say "$HELP"
-                    exit 1;
-                fi
+        *)
+            if [[ $CONTAINERS =~ (^|[[:space:]])"$1"($|[[:space:]]) ]]; then
+                service_manipulator $1 $2 $3
+                exit
+            else
+                error "Invalid command '$1'" && say "$HELP"
+                exit 1
+            fi
             ;;
         esac
         shift
@@ -221,29 +233,35 @@ function service_manipulator() {
 
     [[ -z "$2" ]] && say "$HELP" && exit 1
 
-    while test $# -gt 0
-    do
+    while test $# -gt 0; do
         case "$2" in
-            up) start_service "$1"
-                exit;
+        up)
+            start_service "$1"
+            exit
             ;;
-            down) kill_containers "$1"
-                exit;
+        down)
+            kill_containers "$1"
+            exit
             ;;
-            restart) kill_containers "$1" && start_service "$1"
-                exit;
+        restart)
+            kill_containers "$1" && start_service "$1"
+            exit
             ;;
-            status) print_container_status "$1"
-                exit;
+        status)
+            print_container_status "$1"
+            exit
             ;;
-            logs) get_logs "$1"
-                exit;
+        logs)
+            get_logs "$1"
+            exit
             ;;
-            id) get_container_id "$1"
-                exit;
+        id)
+            get_container_id "$1"
+            exit
             ;;
-            *) error "Invalid command '$2'" && say "$HELP"
-                exit 1;
+        *)
+            error "Invalid command '$2'" && say "$HELP"
+            exit 1
             ;;
         esac
         shift
@@ -280,7 +298,7 @@ function print_container_status() {
         check_container_status "$1"
     else
         error "Down."
-        exit 1;
+        exit 1
     fi
 }
 
@@ -307,6 +325,24 @@ function scaffold_set_up_network() {
     else
         docker network create -d bridge --subnet "$NETWORK_SUBNET" --gateway "$NETWORK_GATEWAY" "$NETWORK_NAME"
     fi
+}
+
+function migrate_env() {
+    if [[ -z "$CROWD_DB_WRITE_HOST" ]]; then
+        error "No CROWD_DB_WRITE_HOST env variable set!"
+        exit 1
+    fi
+
+    say "Building flyway migration image..."
+    docker build $DOCKER_PLATFORM_FLAGS -t crowd_flyway -f $CLI_HOME/../backend/src/database/Dockerfile.flyway $CLI_HOME/../backend/src/database --load
+    say "Applying database migrations to $CROWD_DB_WRITE_HOST!"
+    docker run --rm \
+        -e PGHOST=$CROWD_DB_WRITE_HOST \
+        -e PGPORT=$CROWD_DB_PORT \
+        -e PGUSER=$CROWD_DB_USERNAME \
+        -e PGPASSWORD=$CROWD_DB_PASSWORD \
+        -e PGDATABASE=$CROWD_DB_DATABASE \
+        crowd_flyway
 }
 
 function migrate_local() {
@@ -386,8 +422,14 @@ function scaffold_destroy() {
     say "\nWill delete all local crowd state data (docker volumes) if you have any. Are you sure?"
     select reset_system_condition in "Yes" "No"; do
         case $reset_system_condition in
-            'Yes' ) scaffold_destroy_confirmed; break;;
-            'No' ) yell "Canceled!"; break;;
+        'Yes')
+            scaffold_destroy_confirmed
+            break
+            ;;
+        'No')
+            yell "Canceled!"
+            break
+            ;;
         esac
     done
 }
@@ -399,8 +441,7 @@ function scaffold_reset() {
 }
 
 function kill_all_containers() {
-    for i in $CONTAINERS
-    do
+    for i in $CONTAINERS; do
         say "Killing service $i."
 
         if [[ $(check_container_status ${i}) ]]; then
@@ -431,10 +472,9 @@ function scaffold_destroy_confirmed() {
         NAMES=$VOLUMES
         IFS=$_IFS
 
-        for name in $NAMES
-        do
-        say "Destroying volume $name!"
-        docker volume rm -f $name
+        for name in $NAMES; do
+            say "Destroying volume $name!"
+            docker volume rm -f $name
         done
     fi
 }
@@ -444,7 +484,7 @@ function wait_for_db() {
     sleep 3
 
     while [[ ! $(docker container ls | grep $PROJECT_NAME | grep db | grep Up) ]]; do
-      sleep 1
+        sleep 1
     done
 
     say "Scaffold is up and running!"
@@ -458,11 +498,9 @@ function start() {
         scaffold_reset
     fi
 
-    for SERVICE in $CONTAINERS
-    do
+    for SERVICE in $CONTAINERS; do
         if [[ ${#INGORED_SERVICES[@]} -ne 0 ]]; then
-            for IGNORED_SERVICE in "${INGORED_SERVICES[@]}"
-            do
+            for IGNORED_SERVICE in "${INGORED_SERVICES[@]}"; do
                 if [[ "$SERVICE" == "${IGNORED_SERVICE}" ]]; then
                     SKIP=1
                     break
@@ -482,144 +520,166 @@ function start() {
 SCRIPT_USAGE="${YELLOW}${PROJECT_NAME} CLI ${RESET}\n\nExample usage: ./cli [ start, start-dev, clean-start, clean-start-dev, start-backend, start-backend-dev, clean-start-backend, clean-start-backend-dev, start-premium, start-premium-dev, clean-start-premium, clean-start-premium-dev, scaffold =>, service =>, build =>, build-and-push ]"
 
 [[ -z "$1" ]] && say "$SCRIPT_USAGE" && exit 1
-while test $# -gt 0
-do
+while test $# -gt 0; do
     case "$1" in
-        scaffold) scaffold $2 $3 $4 $5
-            exit;
+    scaffold)
+        scaffold $2 $3 $4 $5
+        exit
         ;;
-        service)
-            service $2 $3 $4 $5
-            exit;
+    service)
+        service $2 $3 $4 $5
+        exit
         ;;
-        services)
-            service $2 $3 $4 $5
-            exit;
+    services)
+        service $2 $3 $4 $5
+        exit
         ;;
-        start)
-            start
-            exit;
+    start)
+        start
+        exit
         ;;
-        start-e2e)
-            declare -a INGORED_SERVICES=("python-worker" "job-generator" "discord-ws" "data-sink-worker" "integration-data-worker" "integration-run-worker" "integration-stream-worker")
-            start
-            exit;
+    start-e2e)
+        declare -a INGORED_SERVICES=("python-worker" "job-generator" "discord-ws" "data-sink-worker" "integration-data-worker" "integration-run-worker" "integration-stream-worker")
+        start
+        exit
         ;;
-        start-be)
-            declare -a INGORED_SERVICES=("python-worker" "frontend" "discord-ws")
-            start
-            exit;
+    start-be)
+        declare -a INGORED_SERVICES=("python-worker" "frontend" "discord-ws")
+        start
+        exit
         ;;
-        start-dev)
-            DEV=1
-            start
-            exit;
+    start-dev)
+        DEV=1
+        start
+        exit
         ;;
-        clean-start)
-            CLEAN_START=1
-            start
-            exit;
+    clean-start)
+        CLEAN_START=1
+        start
+        exit
         ;;
-        clean-start-dev)
-            CLEAN_START=1
-            DEV=1
-            start
-            exit;
+    clean-start-dev)
+        CLEAN_START=1
+        DEV=1
+        start
+        exit
         ;;
-        clean-start-backend)
-            declare -a INGORED_SERVICES=("frontend")
-            CLEAN_START=1
-            DEV=1
-            start
-            exit;
+    clean-start-backend)
+        declare -a INGORED_SERVICES=("frontend")
+        CLEAN_START=1
+        DEV=1
+        start
+        exit
         ;;
-        start-backend)
-            declare -a INGORED_SERVICES=("frontend")
-            start
-            exit;
+    start-backend)
+        declare -a INGORED_SERVICES=("frontend")
+        start
+        exit
         ;;
-        start-backend-dev)
-            declare -a INGORED_SERVICES=("frontend")
-            DEV=1
-            start
-            exit;
+    start-backend-dev)
+        declare -a INGORED_SERVICES=("frontend")
+        DEV=1
+        start
+        exit
         ;;
-        clean-start-backend)
-            declare -a INGORED_SERVICES=("frontend")
-            CLEAN_START=1
-            start
-            exit;
+    clean-start-backend)
+        declare -a INGORED_SERVICES=("frontend")
+        CLEAN_START=1
+        start
+        exit
         ;;
-        clean-start-backend-dev)
-            declare -a INGORED_SERVICES=("frontend")
-            CLEAN_START=1
-            DEV=1
-            start
-            exit;
+    clean-start-backend-dev)
+        declare -a INGORED_SERVICES=("frontend")
+        CLEAN_START=1
+        DEV=1
+        start
+        exit
         ;;
-        start-premium)
-            start
-            exit;
+    start-premium)
+        start
+        exit
         ;;
-        start-premium-dev)
-            DEV=1
-            start
-            exit;
+    start-premium-dev)
+        DEV=1
+        start
+        exit
         ;;
-        clean-start-premium)
-            CLEAN_START=1
-            start
-            exit;
+    clean-start-premium)
+        CLEAN_START=1
+        start
+        exit
         ;;
-        clean-start-premium-dev)
-            CLEAN_START=1
-            DEV=1
-            start
-            exit;
+    clean-start-premium-dev)
+        CLEAN_START=1
+        DEV=1
+        start
+        exit
         ;;
-        start-premium)
-            start
-            exit;
+    start-premium)
+        start
+        exit
         ;;
-        start-premium-dev)
-            DEV=1
-            exit;
+    start-premium-dev)
+        DEV=1
+        exit
         ;;
-        clean-start-premium)
-            CLEAN_START=1
-            exit;
+    clean-start-premium)
+        CLEAN_START=1
+        exit
         ;;
-        clean-start-premium-dev)
-            CLEAN_START=1
-            DEV=1
-            exit;
+    clean-start-premium-dev)
+        CLEAN_START=1
+        DEV=1
+        exit
         ;;
-        build)
-            BUILD=1
-            build $2 $3
-            exit;
+    build)
+        BUILD=1
+        build $2 $3
+        exit
         ;;
-        build-and-push)
-            BUILD=1
-            PUSH=1
-            build $2 $3
-            exit;
+    build-and-push)
+        BUILD=1
+        PUSH=1
+        build $2 $3
+        exit
         ;;
-        push)
-            PUSH=1
-            build $2 $3
-            exit;
+    build-and-push-multiple)
+        BUILD=1
+        PUSH=1
+
+        COMMIT_HASH=$(git rev-parse --short HEAD)
+        TS_VERSION=$(date +%s)
+        VERSION="$TS_VERSION.$COMMIT_HASH"
+
+        say "Building images with version tag $VERSION"
+
+        shift
+        for IMAGE in "$@"; do
+            build $IMAGE $VERSION
+        done
+
+        exit
         ;;
-        db-backup)
-            db_backup $2
-            exit;
+    push)
+        PUSH=1
+        build $2 $3
+        exit
         ;;
-        db-restore)
-            restore_db_backup $2
-            exit;
+    migrate-env)
+        migrate_env
+        exit
         ;;
-        *) error "Invalid command '$1'" && say "$SCRIPT_USAGE"
-            exit 1;
+    db-backup)
+        db_backup $2
+        exit
+        ;;
+    db-restore)
+        restore_db_backup $2
+        exit
+        ;;
+    *)
+        error "Invalid command '$1'" && say "$SCRIPT_USAGE"
+        exit 1
         ;;
     esac
     shift

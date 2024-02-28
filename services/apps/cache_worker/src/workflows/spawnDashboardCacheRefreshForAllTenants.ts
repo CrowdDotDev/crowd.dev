@@ -9,7 +9,7 @@ import {
 
 import * as activities from '../activities/getTenantSegmentInfo'
 import { refreshDashboardCache } from './refreshDashboardCache'
-import { ISegment } from 'types'
+import { ISegment } from '@crowd/data-access-layer/src/old/apps/cache_worker/types'
 
 const activity = proxyActivities<typeof activities>({ startToCloseTimeout: '1 minute' })
 
