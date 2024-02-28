@@ -1561,9 +1561,9 @@ importers:
       lodash.get:
         specifier: ~4.4.2
         version: 4.4.2
-      psl:
-        specifier: ^1.9.0
-        version: 1.9.0
+      tldts:
+        specifier: ^6.1.11
+        version: 6.1.11
       uuid:
         specifier: ^9.0.0
         version: 9.0.1
@@ -15149,6 +15149,17 @@ packages:
     dependencies:
       es5-ext: 0.10.62
       next-tick: 1.1.0
+    dev: false
+
+  /tldts-core@6.1.11:
+    resolution: {integrity: sha512-ZFcT+/fdEc5VRndQIJtArNBHsaq4udRoeE4E6cwLzGaH0dq7Ng2L7cAoea6riM2uhNFD09EDa1bN8lrfrOBCLg==}
+    dev: false
+
+  /tldts@6.1.11:
+    resolution: {integrity: sha512-AAgE/IWvbsg4Lr4KGFNR7bL/MhQfBlgGV9UBg2uy5mCwSGi5f12eZ7ZydAqv4ACys6pUYjNoV2qfZdcCn4RS+Q==}
+    hasBin: true
+    dependencies:
+      tldts-core: 6.1.11
     dev: false
 
   /tlhunter-sorted-set@0.1.0:
