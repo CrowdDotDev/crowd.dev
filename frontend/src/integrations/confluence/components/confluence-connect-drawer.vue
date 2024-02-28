@@ -120,8 +120,6 @@ const isVisible = computed({
 const logoUrl = computed(() => CrowdIntegrations.getConfig('confluence').image);
 
 onMounted(() => {
-  console.log('xyyxxx')
-  console.log(props.integration.settings)
   if (props.integration.settings) {
     form.url = props.integration.settings.url;
     form.space = props.integration.settings.space;
