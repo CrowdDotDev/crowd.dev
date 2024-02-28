@@ -6,29 +6,49 @@ import Errors from '@/shared/error/errors';
 import { disconnectSocket, connectSocket } from '@/modules/auth/auth.socket';
 import identify from '@/shared/monitoring/identify';
 import { watch } from 'vue';
+import config from '@/config';
 
 export default {
   init() {
     Auth0Service.isAuthenticated()
       .then((isAuthenticated: boolean) => {
         if (!isAuthenticated) {
-          Auth0Service.getTokenSilently()
-            .then(() => Auth0Service.authData())
-            .then((token) => this.authCallback(token))
-            .catch((error) => {
-              if (['login_required', 'consent_required', 'missing_refresh_token'].includes(error.error)) {
-                const appState: any = {};
-                if (window.location.hash) {
-                  // Store the current virtual path or other data into appState to
-                  // retrieve when handling a redirect callback.
-                  appState.returnTo = window.location.hash;
-                }
-                return this.signin();
-              }
-              return Promise.reject();
+          this.handleLocalAuth()
+            .catch(() => {
+              // If local authentication fails
+              Auth0Service.getTokenSilently()
+                .then(() => Auth0Service.authData())
+                .then((token) => this.authCallback(token))
+                .catch((error) => {
+                  if (['login_required', 'consent_required', 'missing_refresh_token'].includes(error.error)) {
+                    const appState: any = {};
+                    if (window.location.hash) {
+                      // Store the current virtual path or other data into appState to
+                      // retrieve when handling a redirect callback.
+                      appState.returnTo = window.location.hash;
+                    }
+                    return this.signin();
+                  }
+                  return Promise.reject();
+                });
             });
         }
       });
+  },
+  handleLocalAuth() {
+    if (config.env === 'production') {
+      return Promise.reject();
+    }
+    const storedToken = AuthService.getToken();
+    const params = new URLSearchParams(window.location.search);
+    const myJwt = params.get('my-jwt');
+
+    const localToken = storedToken || myJwt;
+    if (localToken) {
+      return this.getUser(localToken);
+    }
+
+    return Promise.reject();
   },
   ensureLoaded(): Promise<void> {
     if (!this.user || !this.tenant) {

@@ -26,26 +26,6 @@ function isGoingToIntegrationsPage(to) {
  * @returns {Promise<*>}
  */
 
-// async function handleAuth(store) {
-//   const storedToken = AuthToken.get();
-//   if (storedToken) {
-//     await store.dispatch('auth/doInit', storedToken);
-//     await store.dispatch('auth/doAuthenticate');
-//     return;
-//   }
-//
-//   const params = new URLSearchParams(window.location.search);
-//   const myJwt = params.get('my-jwt');
-//   if (myJwt) {
-//     AuthToken.set(myJwt, true);
-//     await store.dispatch('auth/doInit', myJwt);
-//     await store.dispatch('auth/doAuthenticate');
-//     return;
-//   }
-//
-//   await Auth0Service.init();
-// }
-
 export default async function ({
   to, router,
 }) {
@@ -56,18 +36,6 @@ export default async function ({
   const { ensureLoaded } = authStore;
   const { user, tenant } = storeToRefs(authStore);
   await ensureLoaded();
-
-  // if (!store.getters['auth/isAuthenticated']) {
-  //   if (config.env === 'production') {
-  //     await Auth0Service.init();
-  //   } else {
-  //     await handleAuth(store);
-  //   }
-  // }
-  //
-  // await store.dispatch('auth/doWaitUntilInit');
-  //
-  // const currentUser = store.getters['auth/currentUser'];
 
   const permissionChecker = new PermissionChecker(
     tenant.value,
