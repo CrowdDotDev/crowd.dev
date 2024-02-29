@@ -262,11 +262,11 @@ export class ActivitySyncService {
         'syncActivities.bulkIndex',
       )
 
-      await logExecutionTimeV2(
-        async () => this.activityRepo.markSynced(activities.map((m) => m.id)),
-        this.log,
-        'syncActivities.markSynced',
-      )
+      // await logExecutionTimeV2(
+      //   async () => this.activityRepo.markSynced(activities.map((m) => m.id)),
+      //   this.log,
+      //   'syncActivities.markSynced',
+      // )
     }
 
     return activities.length

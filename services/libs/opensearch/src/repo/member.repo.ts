@@ -555,14 +555,14 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
     return results
   }
 
-  public async markSynced(memberIds: string[]): Promise<void> {
-    await this.db().none(
-      `update members set "searchSyncedAt" = now() where id in ($(memberIds:csv))`,
-      {
-        memberIds,
-      },
-    )
-  }
+  // public async markSynced(memberIds: string[]): Promise<void> {
+  //   await this.db().none(
+  //     `update members set "searchSyncedAt" = now() where id in ($(memberIds:csv))`,
+  //     {
+  //       memberIds,
+  //     },
+  //   )
+  // }
 
   public async checkMembersExists(tenantId: string, memberIds: string[]): Promise<string[]> {
     const results = await this.db().any(

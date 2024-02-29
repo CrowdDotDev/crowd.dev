@@ -416,11 +416,11 @@ export class OrganizationSyncService {
       }
     }
 
-    await logExecutionTimeV2(
-      async () => this.orgRepo.markSynced(organizationIds),
-      this.log,
-      'syncOrganizations.markSynced',
-    )
+    // await logExecutionTimeV2(
+    //   async () => this.orgRepo.markSynced(organizationIds),
+    //   this.log,
+    //   'syncOrganizations.markSynced',
+    // )
 
     return {
       organizationsSynced: organizationIds.length,

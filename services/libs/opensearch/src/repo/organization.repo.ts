@@ -294,14 +294,14 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     return results.map((r) => r.id)
   }
 
-  public async markSynced(orgIds: string[]): Promise<void> {
-    await this.db().none(
-      `update organizations set "searchSyncedAt" = now() where id in ($(orgIds:csv))`,
-      {
-        orgIds,
-      },
-    )
-  }
+  // public async markSynced(orgIds: string[]): Promise<void> {
+  //   await this.db().none(
+  //     `update organizations set "searchSyncedAt" = now() where id in ($(orgIds:csv))`,
+  //     {
+  //       orgIds,
+  //     },
+  //   )
+  // }
 
   public async getTenantOrganizationsForSync(
     tenantId: string,

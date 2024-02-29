@@ -479,13 +479,13 @@ export class MemberSyncService {
       }
     }
 
-    if (successfullySyncedMembers.length > 0) {
-      await logExecutionTimeV2(
-        async () => this.memberRepo.markSynced(successfullySyncedMembers),
-        this.log,
-        'syncMembers.markSynced',
-      )
-    }
+    // if (successfullySyncedMembers.length > 0) {
+    //   await logExecutionTimeV2(
+    //     async () => this.memberRepo.markSynced(successfullySyncedMembers),
+    //     this.log,
+    //     'syncMembers.markSynced',
+    //   )
+    // }
 
     return {
       membersSynced: memberIds.length,
