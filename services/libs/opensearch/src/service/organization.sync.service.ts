@@ -261,7 +261,7 @@ export class OrganizationSyncService {
     organizationIds: string[],
     segmentIds?: string[],
   ): Promise<IOrganizationSyncResult> {
-    const CONCURRENT_DATABASE_QUERIES = 25
+    const CONCURRENT_DATABASE_QUERIES = 5
     const BULK_INDEX_DOCUMENT_BATCH_SIZE = 2500
 
     // get all orgId-segmentId couples
