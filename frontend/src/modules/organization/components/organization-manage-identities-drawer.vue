@@ -11,7 +11,9 @@
           v-model="organizationModel"
           :record="organization"
           :show-header="false"
+          :show-unmerge="true"
           @update:model-value="hasFormChanged = true"
+          @unmerge="emit('unmerge', $event)"
         />
       </div>
     </template>
@@ -58,7 +60,7 @@ const props = defineProps({
     default: () => {},
   },
 });
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits(['update:modelValue', 'unmerge']);
 
 const organizationStore = useOrganizationStore();
 const { fetchOrganization } = organizationStore;

@@ -3,6 +3,7 @@
     <div>
       <app-organization-aside-identities
         :organization="organization"
+        @unmerge="emit('unmerge', $event)"
       />
 
       <div v-if="shouldShowAttributes">
@@ -37,6 +38,8 @@ const props = defineProps({
     default: () => {},
   },
 });
+
+const emit = defineEmits(['unmerge']);
 
 const { currentTenant } = mapGetters('auth');
 
