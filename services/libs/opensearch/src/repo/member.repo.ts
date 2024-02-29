@@ -490,10 +490,10 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
         m.reach,
         coalesce(jsonb_array_length(m.contributions), 0)   as "numberOfOpenSourceContributions",
 
-        ad."activeOn",
-        ad."activityCount"::integer,
-        ad."activityTypes",
-        ad."activeDaysCount"::integer,
+        coalesce(ad."activeOn", array []::text[]) as "activeOn",
+        coalesce(ad."activityCount", 0)::integer as "activityCount",
+        coalesce(ad."activityTypes", array []::text[]) as "activityTypes,
+        coalesce(ad."activeDaysCount", 0)::integer as "activeDaysCount", 
         ad."lastActive",
         ad."averageSentiment",
 
