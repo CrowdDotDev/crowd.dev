@@ -137,11 +137,16 @@ export const connectSocket = (token) => {
       {},
       ' unmerged from ',
     );
+    const after = h(
+      'span',
+      {},
+      '. Syncing organization activities might take some time to complete.',
+    );
     Message.closeAll();
     Message.success(h(
       'div',
       {},
-      [secondaryOrganization, between, primaryOrganization],
+      [secondaryOrganization, between, primaryOrganization, after],
     ), {
       title: 'Organizations unmerged successfully',
     });
