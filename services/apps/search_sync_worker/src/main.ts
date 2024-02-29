@@ -8,7 +8,7 @@ import { WorkerQueueReceiver } from './queue'
 
 const log = getServiceLogger()
 
-const MAX_CONCURRENT_PROCESSING = 2
+const MAX_CONCURRENT_PROCESSING = 3
 
 setImmediate(async () => {
   log.info('Starting search sync worker...')
@@ -19,7 +19,7 @@ setImmediate(async () => {
 
   const sqsClient = getSqsClient(SQS_CONFIG())
 
-  const dbConnection = await getDbConnection(DB_CONFIG(), MAX_CONCURRENT_PROCESSING)
+  const dbConnection = await getDbConnection(DB_CONFIG(), 5)
 
   const worker = new WorkerQueueReceiver(
     SERVICE_CONFIG().queuePriorityLevel,

@@ -373,7 +373,9 @@ export class MemberSyncService {
             const segmentInfos = await logExecutionTimeV2(
               async () => this.segmentRepo.getParentSegmentIds(childSegmentIds),
               this.log,
-              'syncMembers.getParentSegmentIds',
+              `syncMembers.getParentSegmentIds(${childSegmentIds
+                .map((id) => `'${id}'`)
+                .join(',')})`,
             )
 
             const parentIds: string[] = distinct(segmentInfos.map((s) => s.parentId))
