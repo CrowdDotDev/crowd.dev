@@ -1,3 +1,5 @@
+import { MergeActionType } from '.'
+
 export interface PageData<T> {
   rows: T[]
   count: number

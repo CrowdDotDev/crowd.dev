@@ -10,9 +10,11 @@ const {
   moveActivitiesBetweenOrgs,
   notifyFrontend,
   moveActivitiesWithIdentityToAnotherMember,
-  recalculateActivityAffiliations,
+  recalculateActivityAffiliationsOfMemberAsync,
+  recalculateActivityAffiliationsOfOrganizationSynchronous,
   setMergeActionState,
   syncMember,
+  syncOrganization,
   notifyFrontendMemberUnmergeSuccessful,
 } = proxyActivities<typeof activities>({
   startToCloseTimeout: '10 seconds',
@@ -24,7 +26,7 @@ export async function finishMemberMerging(
   tenantId: string,
 ): Promise<void> {
   await moveActivitiesBetweenMembers(primaryId, secondaryId, tenantId)
-  await recalculateActivityAffiliations(primaryId, tenantId)
+  await recalculateActivityAffiliationsOfMemberAsync(primaryId, tenantId)
   await deleteMember(secondaryId)
   await setMergeActionState(primaryId, secondaryId, tenantId, 'merged' as MergeActionState)
 }
@@ -41,8 +43,8 @@ export async function finishMemberUnmerging(
   await moveActivitiesWithIdentityToAnotherMember(primaryId, secondaryId, identities, tenantId)
   await syncMember(primaryId, secondaryId)
   await syncMember(secondaryId, primaryId)
-  await recalculateActivityAffiliations(primaryId, tenantId)
-  await recalculateActivityAffiliations(secondaryId, tenantId)
+  await recalculateActivityAffiliationsOfMemberAsync(primaryId, tenantId)
+  await recalculateActivityAffiliationsOfMemberAsync(secondaryId, tenantId)
   await setMergeActionState(primaryId, secondaryId, tenantId, 'unmerged' as MergeActionState)
   await notifyFrontendMemberUnmergeSuccessful(
     primaryId,
@@ -70,4 +72,27 @@ export async function finishOrganizationMerging(
   await deleteOrganization(secondaryId)
   await setMergeActionState(primaryId, secondaryId, tenantId, 'merged' as MergeActionState)
   await notifyFrontend(primaryId, secondaryId, original, toMerge, tenantId, userId)
+}
+
+export async function finishOrganizationUnmerging(
+  primaryId: string,
+  secondaryId: string,
+  primaryDisplayName: string,
+  secondaryDisplayName: string,
+  tenantId: string,
+  userId: string,
+): Promise<void> {
+  await recalculateActivityAffiliationsOfOrganizationSynchronous(primaryId, tenantId)
+  await recalculateActivityAffiliationsOfOrganizationSynchronous(secondaryId, tenantId)
+  await syncOrganization(primaryId, secondaryId)
+  await syncOrganization(secondaryId, primaryId)
+  await setMergeActionState(primaryId, secondaryId, tenantId, 'unmerged' as MergeActionState)
+  await notifyFrontendMemberUnmergeSuccessful(
+    primaryId,
+    secondaryId,
+    primaryDisplayName,
+    secondaryDisplayName,
+    tenantId,
+    userId,
+  )
 }
