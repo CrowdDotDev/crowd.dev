@@ -306,17 +306,33 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     return results.map((r) => r.tenantId)
   }
 
-  public async getOrganizationSegmentCouples(ids): Promise<IOrganizationSegmentMatrix> {
-    const results = await this.db().any(
-      `
-      select distinct a."organizationId", a."segmentId"
-      from activities a
-      where a."organizationId" in ($(ids:csv));
-      `,
-      {
-        ids,
-      },
-    )
+  public async getOrganizationSegmentCouples(
+    organizationIds: string[],
+    segmentIds?: string[],
+  ): Promise<IOrganizationSegmentMatrix> {
+    let results = []
+
+    if (segmentIds && segmentIds.length > 0) {
+      for (const organizationId of organizationIds) {
+        for (const segmentId of segmentIds) {
+          results.push({
+            organizationId,
+            segmentId,
+          })
+        }
+      }
+    } else {
+      results = await this.db().any(
+        `
+        select distinct a."organizationId", a."segmentId"
+        from activities a
+        where a."organizationId" in ($(ids:csv));
+        `,
+        {
+          organizationIds,
+        },
+      )
+    }
 
     const matrix = {}
 

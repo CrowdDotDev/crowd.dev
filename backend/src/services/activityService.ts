@@ -185,7 +185,11 @@ export default class ActivityService extends LoggerBase {
       await SequelizeRepository.commitTransaction(transaction)
 
       if (fireSync) {
-        await searchSyncService.triggerMemberSync(this.options.currentTenant.id, record.memberId)
+        await searchSyncService.triggerMemberSync(
+          this.options.currentTenant.id,
+          record.memberId,
+          record.segmentId || undefined,
+        )
         await searchSyncService.triggerActivitySync(this.options.currentTenant.id, record.id)
       }
 
@@ -635,11 +639,19 @@ export default class ActivityService extends LoggerBase {
 
       await SequelizeRepository.commitTransaction(transaction)
 
-      await searchSyncService.triggerMemberSync(this.options.currentTenant.id, record.memberId)
+      await searchSyncService.triggerMemberSync(
+        this.options.currentTenant.id,
+        record.memberId,
+        record.segmentId || undefined,
+      )
       await searchSyncService.triggerActivitySync(this.options.currentTenant.id, record.id)
 
       if (data.objectMember) {
-        await searchSyncService.triggerMemberSync(this.options.currentTenant.id, data.objectMember)
+        await searchSyncService.triggerMemberSync(
+          this.options.currentTenant.id,
+          data.objectMember,
+          record.segmentId || undefined,
+        )
       }
 
       return record
@@ -694,7 +706,11 @@ export default class ActivityService extends LoggerBase {
       await SequelizeRepository.commitTransaction(transaction)
 
       await searchSyncService.triggerActivitySync(this.options.currentTenant.id, record.id)
-      await searchSyncService.triggerMemberSync(this.options.currentTenant.id, record.memberId)
+      await searchSyncService.triggerMemberSync(
+        this.options.currentTenant.id,
+        record.memberId,
+        record.segmentId || undefined,
+      )
       return record
     } catch (error) {
       if (error.name && error.name.includes('Sequelize')) {

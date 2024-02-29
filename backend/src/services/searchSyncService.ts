@@ -46,13 +46,13 @@ export default class SearchSyncService extends LoggerBase {
     throw new Error(`Unknown mode ${this.mode} !`)
   }
 
-  async triggerMemberSync(tenantId: string, memberId: string) {
+  async triggerMemberSync(tenantId: string, memberId: string, segmentId?: string) {
     const client = await this.getSearchSyncClient()
 
     if (client instanceof SearchSyncApiClient) {
-      await client.triggerMemberSync(memberId)
+      await client.triggerMemberSync(memberId, segmentId ? [segmentId] : undefined)
     } else if (client instanceof SearchSyncWorkerEmitter) {
-      await client.triggerMemberSync(tenantId, memberId, false)
+      await client.triggerMemberSync(tenantId, memberId, false, segmentId)
     } else {
       throw new Error('Unexpected search client type!')
     }
@@ -154,13 +154,13 @@ export default class SearchSyncService extends LoggerBase {
     }
   }
 
-  async triggerOrganizationSync(tenantId: string, organizationId: string) {
+  async triggerOrganizationSync(tenantId: string, organizationId: string, segmentId?: string) {
     const client = await this.getSearchSyncClient()
 
     if (client instanceof SearchSyncApiClient) {
       await client.triggerOrganizationSync(organizationId)
     } else if (client instanceof SearchSyncWorkerEmitter) {
-      await client.triggerOrganizationSync(tenantId, organizationId, false)
+      await client.triggerOrganizationSync(tenantId, organizationId, false, segmentId)
     } else {
       throw new Error('Unexpected search client type!')
     }
