@@ -582,7 +582,7 @@ export class MemberSyncService {
       memberCount += memberIds.length
     }
 
-    await this.memberRepo.markSynced(memberIds)
+    // await this.memberRepo.markSynced(memberIds)
 
     return {
       membersSynced: memberCount,
