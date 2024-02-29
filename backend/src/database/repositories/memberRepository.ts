@@ -85,7 +85,6 @@ class MemberRepository {
 
     const transaction = SequelizeRepository.getTransaction(options)
 
-    const segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
     const record = await options.database.member.create(
       {
         ...lodash.pick(data, [
@@ -105,7 +104,6 @@ class MemberRepository {
         tenantId: tenant.id,
         createdById: currentUser.id,
         updatedById: currentUser.id,
-        segmentId: segment.id,
       },
       {
         transaction,
@@ -1176,8 +1174,8 @@ class MemberRepository {
 
     let query = `
     SELECT count(*) as count
-        FROM "activities"
-        WHERE "memberId" = :memberId AND`
+        FROM "mv_activities_cube"
+        WHERE "memberId" = :memberId AND (`
 
     const replacements = {
       memberId,
@@ -1186,25 +1184,27 @@ class MemberRepository {
     const replacementKey = (key: string, index: number) => `${key}${index}`
 
     for (let i = 0; i < identities.length; i++) {
-      query += `  (platform = :${replacementKey('platform', i)} and username = :${replacementKey(
+      query += `(platform = :${replacementKey('platform', i)} and username = :${replacementKey(
         'username',
         i,
       )}) `
       if (i !== identities.length - 1) {
         query += ' OR '
+      } else {
+        query += ')'
       }
 
       replacements[replacementKey('platform', i)] = identities[i].platform
       replacements[replacementKey('username', i)] = identities[i].username
     }
 
-    const activityCount = await seq.query(query, {
+    const result = await seq.query(query, {
       replacements,
       type: QueryTypes.SELECT,
       transaction,
     })
 
-    return (activityCount[0] as any).count as number
+    return (result[0] as any).count as number
   }
 
   static async findById(

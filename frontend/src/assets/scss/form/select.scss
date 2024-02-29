@@ -12,6 +12,10 @@
   @apply cursor-pointer;
 }
 
+.el-select .el-select__wrapper{
+  min-height: 40px;
+}
+
 // Select input
 .el-select {
   --el-select-border-color-hover: unset;

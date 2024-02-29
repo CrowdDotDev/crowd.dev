@@ -14,7 +14,7 @@
   "dependencies": {
     "@crowd/types": "workspace:*",
     "lodash.get": "~4.4.2",
-    "psl": "^1.9.0",
+    "tldts": "^6.1.11",
     "uuid": "^9.0.0"
   }
 }

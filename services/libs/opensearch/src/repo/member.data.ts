@@ -101,3 +101,8 @@ export interface IMemberSegmentMatrixItem {
 export interface IMemberSegmentMatrix {
   [key: string]: IMemberSegmentMatrixItem[]
 }
+
+export interface IMemberSegment {
+  memberId: string
+  segmentId: string
+}
