@@ -492,7 +492,7 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
 
         coalesce(ad."activeOn", array []::text[]) as "activeOn",
         coalesce(ad."activityCount", 0)::integer as "activityCount",
-        coalesce(ad."activityTypes", array []::text[]) as "activityTypes,
+        coalesce(ad."activityTypes", array []::text[]) as "activityTypes",
         coalesce(ad."activeDaysCount", 0)::integer as "activeDaysCount", 
         ad."lastActive",
         ad."averageSentiment",
