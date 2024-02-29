@@ -309,10 +309,9 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
   public async getOrganizationSegmentCouples(ids): Promise<IOrganizationSegmentMatrix> {
     const results = await this.db().any(
       `
-      select distinct mo."organizationId", a."segmentId"
-      from "memberOrganizations" mo
-      inner join activities a on mo."memberId" = a."memberId"
-      where mo."organizationId" in ($(ids:csv));
+      select distinct a."organizationId", a."segmentId"
+      from activities a
+      where a."organizationId" in ($(ids:csv));
       `,
       {
         ids,
