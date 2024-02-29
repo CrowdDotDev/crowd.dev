@@ -643,7 +643,13 @@ export class MemberSyncService {
     member.activeOn = distinct(member.activeOn)
     member.activityTypes = distinct(member.activityTypes)
     member.tags = distinctBy(member.tags, (t) => t.id)
-    member.organizations = distinctBy(member.organizations, (o) => o.id)
+    // sometimes same organization appears multiple times with different roles or periods
+    // so we distinctBy by taking organization id, title, dateStart, dateEnd
+    member.organizations = distinctBy(
+      member.organizations,
+      (o) =>
+        `${o.id}-${o.memberOrganizations?.title}-${o.memberOrganizations?.dateStart}-${o.memberOrganizations?.dateEnd}`,
+    )
     member.contributions = distinctBy(member.contributions, (c) => c.id)
     member.affiliations = distinctBy(member.affiliations, (a) => a.id)
     member.notes = distinctBy(member.notes, (n) => n.id)
