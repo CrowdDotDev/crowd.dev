@@ -18,9 +18,9 @@ import { SERVICE_CONFIG } from '../conf'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
-  private readonly memberBatchProcessor: BatchProcessor<string>
+  // private readonly memberBatchProcessor: BatchProcessor<string>
   private readonly activityBatchProcessor: BatchProcessor<string>
-  private readonly organizationBatchProcessor: BatchProcessor<string>
+  // private readonly organizationBatchProcessor: BatchProcessor<string>
 
   constructor(
     level: QueuePriorityLevel,
@@ -42,26 +42,26 @@ export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
       10,
     )
 
-    this.memberBatchProcessor = new BatchProcessor(
-      100,
-      30,
-      async (memberIds) => {
-        const distinct = Array.from(new Set(memberIds))
-        if (distinct.length > 0) {
-          this.log.info({ batchSize: distinct.length }, 'Processing batch of members!')
-          await logExecutionTimeV2(
-            async () => {
-              await this.initMemberService().syncMembers(distinct)
-            },
-            this.log,
-            'memberBatchProcessing',
-          )
-        }
-      },
-      async (memberIds, err) => {
-        this.log.error(err, { memberIds }, 'Error while processing batch of members!')
-      },
-    )
+    // this.memberBatchProcessor = new BatchProcessor(
+    //   100,
+    //   30,
+    //   async (memberIds) => {
+    //     const distinct = Array.from(new Set(memberIds))
+    //     if (distinct.length > 0) {
+    //       this.log.info({ batchSize: distinct.length }, 'Processing batch of members!')
+    //       await logExecutionTimeV2(
+    //         async () => {
+    //           await this.initMemberService().syncMembers(distinct)
+    //         },
+    //         this.log,
+    //         'memberBatchProcessing',
+    //       )
+    //     }
+    //   },
+    //   async (memberIds, err) => {
+    //     this.log.error(err, { memberIds }, 'Error while processing batch of members!')
+    //   },
+    // )
 
     this.activityBatchProcessor = new BatchProcessor(
       200,
@@ -84,26 +84,26 @@ export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
       },
     )
 
-    this.organizationBatchProcessor = new BatchProcessor(
-      20,
-      30,
-      async (organizationIds) => {
-        const distinct = Array.from(new Set(organizationIds))
-        if (distinct.length > 0) {
-          this.log.info({ batchSize: distinct.length }, 'Processing batch of organizations!')
-          await logExecutionTimeV2(
-            async () => {
-              await this.initOrganizationService().syncOrganizations(distinct)
-            },
-            this.log,
-            'organizationBatchProcessing',
-          )
-        }
-      },
-      async (organizationIds, err) => {
-        this.log.error(err, { organizationIds }, 'Error while processing batch of organizations!')
-      },
-    )
+    // this.organizationBatchProcessor = new BatchProcessor(
+    //   20,
+    //   30,
+    //   async (organizationIds) => {
+    //     const distinct = Array.from(new Set(organizationIds))
+    //     if (distinct.length > 0) {
+    //       this.log.info({ batchSize: distinct.length }, 'Processing batch of organizations!')
+    //       await logExecutionTimeV2(
+    //         async () => {
+    //           await this.initOrganizationService().syncOrganizations(distinct)
+    //         },
+    //         this.log,
+    //         'organizationBatchProcessing',
+    //       )
+    //     }
+    //   },
+    //   async (organizationIds, err) => {
+    //     this.log.error(err, { organizationIds }, 'Error while processing batch of organizations!')
+    //   },
+    // )
   }
 
   private initMemberService(): MemberSyncService {
@@ -136,9 +136,9 @@ export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
   public async stopAll(): Promise<void> {
     this.stop()
 
-    await this.memberBatchProcessor.processBatch()
+    // await this.memberBatchProcessor.processBatch()
     await this.activityBatchProcessor.processBatch()
-    await this.organizationBatchProcessor.processBatch()
+    // await this.organizationBatchProcessor.processBatch()
   }
 
   public override async processMessage<T extends IQueueMessage>(message: T): Promise<void> {
@@ -152,7 +152,8 @@ export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
         // members
         case SearchSyncWorkerQueueMessageType.SYNC_MEMBER:
           if (data.memberId) {
-            await this.memberBatchProcessor.addToBatch(data.memberId)
+            // await this.memberBatchProcessor.addToBatch(data.memberId)
+            await this.initMemberService().syncMembers([data.memberId])
           }
 
           break
@@ -224,7 +225,8 @@ export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
         // organizations
         case SearchSyncWorkerQueueMessageType.SYNC_ORGANIZATION:
           if (data.organizationId) {
-            await this.organizationBatchProcessor.addToBatch(data.organizationId)
+            // await this.organizationBatchProcessor.addToBatch(data.organizationId)
+            await this.initOrganizationService().syncOrganizations([data.organizationId])
           }
           break
         case SearchSyncWorkerQueueMessageType.SYNC_TENANT_ORGANIZATIONS:
