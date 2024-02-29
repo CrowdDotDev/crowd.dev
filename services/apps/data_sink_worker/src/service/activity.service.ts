@@ -135,6 +135,7 @@ export default class ActivityService extends LoggerBase {
           tenantId,
           activity.memberId,
           onboarding,
+          segmentId,
         )
         await this.searchSyncWorkerEmitter.triggerActivitySync(tenantId, id, onboarding)
       }
@@ -220,6 +221,7 @@ export default class ActivityService extends LoggerBase {
             tenantId,
             activity.memberId,
             onboarding,
+            segmentId,
           )
           await this.searchSyncWorkerEmitter.triggerActivitySync(tenantId, id, onboarding)
         }
@@ -427,9 +429,9 @@ export default class ActivityService extends LoggerBase {
       let memberId: string
       let objectMemberId: string | undefined
       let activityId: string
+      let segmentId: string
 
       await this.store.transactionally(async (txStore) => {
-        let segmentId: string
         try {
           const txRepo = new ActivityRepository(txStore, this.log)
           const txMemberRepo = new MemberRepository(txStore, this.log)
@@ -926,10 +928,20 @@ export default class ActivityService extends LoggerBase {
       })
 
       if (memberId) {
-        await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, memberId, onboarding)
+        await this.searchSyncWorkerEmitter.triggerMemberSync(
+          tenantId,
+          memberId,
+          onboarding,
+          segmentId,
+        )
       }
       if (objectMemberId) {
-        await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, objectMemberId, onboarding)
+        await this.searchSyncWorkerEmitter.triggerMemberSync(
+          tenantId,
+          objectMemberId,
+          onboarding,
+          segmentId,
+        )
       }
       if (activityId) {
         await this.searchSyncWorkerEmitter.triggerActivitySync(tenantId, activityId, onboarding)

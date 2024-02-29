@@ -10,7 +10,7 @@ import { WorkerQueueReceiver } from './queue'
 const tracer = getServiceTracer()
 const log = getServiceLogger()
 
-const MAX_CONCURRENT_PROCESSING = 2
+const MAX_CONCURRENT_PROCESSING = 5
 
 setImmediate(async () => {
   log.info('Starting search sync worker...')
