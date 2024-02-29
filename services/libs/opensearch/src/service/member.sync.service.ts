@@ -11,6 +11,8 @@ import { Edition, IMemberAttribute, IServiceConfig, MemberAttributeType } from '
 import { IMemberSyncResult } from './member.sync.data'
 import { IIndexRequest, IPagedSearchResponse, ISearchHit } from './opensearch.data'
 import { OpenSearchService } from './opensearch.service'
+import { IndexingRepository } from '../repo/indexing.repo'
+import { IndexedEntityType } from '../repo/indexing.data'
 
 export class MemberSyncService {
   private static MAX_BYTE_LENGTH = 25000
@@ -18,6 +20,7 @@ export class MemberSyncService {
   private readonly memberRepo: MemberRepository
   private readonly segmentRepo: SegmentRepository
   private readonly serviceConfig: IServiceConfig
+  private readonly indexingRepo: IndexingRepository
 
   constructor(
     redisClient: RedisClient,
@@ -31,6 +34,7 @@ export class MemberSyncService {
 
     this.memberRepo = new MemberRepository(redisClient, store, this.log)
     this.segmentRepo = new SegmentRepository(store, this.log)
+    this.indexingRepo = new IndexingRepository(store, this.log)
   }
 
   public async getAllIndexedTenantIds(
@@ -203,7 +207,6 @@ export class MemberSyncService {
     let memberCount = 0
 
     const now = new Date()
-    const cutoffDate = now.toISOString()
 
     await logExecutionTime(
       async () => {
@@ -222,40 +225,17 @@ export class MemberSyncService {
               memberCount / diffInSeconds,
             )} members/second!`,
           )
-          memberIds = await this.memberRepo.getTenantMembersForSync(
-            tenantId,
-            batchSize,
-            memberIds[memberIds.length - 1],
+
+          await this.indexingRepo.markEntitiesIndexed(
+            IndexedEntityType.MEMBER,
+            memberIds.map((id) => {
+              return {
+                id,
+                tenantId,
+              }
+            }),
           )
-        }
-
-        memberIds = await this.memberRepo.getRemainingTenantMembersForSync(
-          tenantId,
-          1,
-          batchSize,
-          cutoffDate,
-        )
-
-        while (memberIds.length > 0) {
-          const { membersSynced, documentsIndexed } = await this.syncMembers(memberIds)
-
-          memberCount += membersSynced
-          docCount += documentsIndexed
-
-          const diffInSeconds = (new Date().getTime() - now.getTime()) / 1000
-          this.log.info(
-            { tenantId },
-            `Synced ${memberCount} members! Speed: ${Math.round(
-              memberCount / diffInSeconds,
-            )} members/second!`,
-          )
-
-          memberIds = await this.memberRepo.getRemainingTenantMembersForSync(
-            tenantId,
-            1,
-            batchSize,
-            cutoffDate,
-          )
+          memberIds = await this.memberRepo.getTenantMembersForSync(tenantId, batchSize)
         }
       },
       this.log,
