@@ -12,7 +12,6 @@
     "@crowd/temporal": "workspace:*",
     "@crowd/feature-flags": "workspace:*",
     "@crowd/logging": "workspace:*",
-    "@crowd/tracing": "workspace:*",
     "@crowd/redis": "workspace:*",
     "kafkajs": "~2.2.4"
   },

@@ -1,13 +1,11 @@
 import { OpenSearchService, InitService } from '@crowd/opensearch'
 import { getDbConnection } from '@crowd/data-access-layer/src/database'
-import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
 import { getRedisClient } from '@crowd/redis'
 import { getSqsClient } from '@crowd/sqs'
 import { DB_CONFIG, OPENSEARCH_CONFIG, REDIS_CONFIG, SERVICE_CONFIG, SQS_CONFIG } from './conf'
 import { WorkerQueueReceiver } from './queue'
 
-const tracer = getServiceTracer()
 const log = getServiceLogger()
 
 const MAX_CONCURRENT_PROCESSING = 2
@@ -29,10 +27,14 @@ setImmediate(async () => {
     sqsClient,
     dbConnection,
     openSearchService,
-    tracer,
     log,
     MAX_CONCURRENT_PROCESSING,
   )
+
+  process.on('SIGTERM', async () => {
+    log.warn('Detected SIGTERM signal, started exiting!')
+    await worker.stopAll()
+  })
 
   const initService = new InitService(openSearchService, log)
 

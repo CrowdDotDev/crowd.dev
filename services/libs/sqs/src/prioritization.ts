@@ -1,6 +1,5 @@
 import { groupBy } from '@crowd/common'
 import { Logger, getChildLogger } from '@crowd/logging'
-import { Tracer } from '@crowd/tracing'
 import { IQueueMessage, ISqsQueueReceiver, QueuePriorityLevel } from '@crowd/types'
 import { SqsQueueEmitter, SqsQueueReceiver } from './queue'
 import { ISqsQueueConfig, SqsClient } from './types'
@@ -15,7 +14,6 @@ export abstract class SqsPrioritizedQueueReciever {
     sqsClient: SqsClient,
     queueConf: ISqsQueueConfig,
     maxConcurrentMessageProcessing: number,
-    protected readonly tracer: Tracer,
     parentLog: Logger,
     deleteMessageImmediately = false,
     visibilityTimeoutSeconds?: number,
@@ -34,7 +32,6 @@ export abstract class SqsPrioritizedQueueReciever {
           sqsClient,
           queueConf,
           maxConcurrentMessageProcessing,
-          tracer,
           parentLog,
           deleteMessageImmediately,
           visibilityTimeoutSeconds,
@@ -54,7 +51,6 @@ export abstract class SqsPrioritizedQueueReciever {
           sqsClient,
           config,
           maxConcurrentMessageProcessing,
-          tracer,
           parentLog,
           deleteMessageImmediately,
           visibilityTimeoutSeconds,
@@ -84,16 +80,11 @@ export class SqsPrioritizedQueueEmitter {
   private readonly emittersMap: Map<QueuePriorityLevel, SqsQueueEmitter> = new Map()
   private readonly defaultEmitter: SqsQueueEmitter
 
-  public constructor(
-    sqsClient: SqsClient,
-    queueConf: ISqsQueueConfig,
-    tracer: Tracer,
-    parentLog: Logger,
-  ) {
-    this.defaultEmitter = new SqsQueueEmitter(sqsClient, queueConf, tracer, parentLog)
+  public constructor(sqsClient: SqsClient, queueConf: ISqsQueueConfig, parentLog: Logger) {
+    this.defaultEmitter = new SqsQueueEmitter(sqsClient, queueConf, parentLog)
     for (const level of Object.values(QueuePriorityLevel)) {
       const config = { ...queueConf, name: `${queueConf.name}-${level}` }
-      this.emittersMap.set(level, new SqsQueueEmitter(sqsClient, config, tracer, parentLog))
+      this.emittersMap.set(level, new SqsQueueEmitter(sqsClient, config, parentLog))
     }
   }
 

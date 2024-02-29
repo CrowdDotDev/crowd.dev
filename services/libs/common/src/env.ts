@@ -24,3 +24,5 @@ export function getEnv() {
   if (IS_STAGING_ENV) return 'staging'
   return 'local'
 }
+
+export const LOG_EXECUTION_TIME = process.env.LOG_EXECUTION_TIME === '1'

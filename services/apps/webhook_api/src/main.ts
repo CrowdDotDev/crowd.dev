@@ -19,10 +19,8 @@ import {
   PriorityLevelContextRepository,
   QueuePriorityContextLoader,
 } from '@crowd/common_services'
-import { getServiceTracer } from '@crowd/tracing'
 import { emittersMiddleware } from './middleware/emitters'
 
-const tracer = getServiceTracer()
 const log = getServiceLogger()
 const config = WEBHOOK_API_CONFIG()
 
@@ -44,7 +42,6 @@ setImmediate(async () => {
   const integrationStreamWorkerEmitter = new IntegrationStreamWorkerEmitter(
     sqsClient,
     redisClient,
-    tracer,
     unleash,
     loader,
     log,

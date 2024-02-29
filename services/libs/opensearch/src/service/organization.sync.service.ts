@@ -4,7 +4,7 @@ import { IDbSegmentInfo } from '../repo/segment.data'
 import { SegmentRepository } from '../repo/segment.repo'
 import { distinct } from '@crowd/common'
 import { DbStore } from '@crowd/database'
-import { Logger, getChildLogger, logExecutionTime } from '@crowd/logging'
+import { Logger, getChildLogger, logExecutionTime, logExecutionTimeV2 } from '@crowd/logging'
 import { Edition, OpenSearchIndex } from '@crowd/types'
 import { IPagedSearchResponse, ISearchHit } from './opensearch.data'
 import { OpenSearchService } from './opensearch.service'
@@ -262,8 +262,12 @@ export class OrganizationSyncService {
     const BULK_INDEX_DOCUMENT_BATCH_SIZE = 2500
 
     // get all orgId-segmentId couples
-    const orgSegmentCouples: IOrganizationSegmentMatrix =
-      await this.orgRepo.getOrganizationSegmentCouples(organizationIds)
+    const orgSegmentCouples: IOrganizationSegmentMatrix = await logExecutionTimeV2(
+      async () => this.orgRepo.getOrganizationSegmentCouples(organizationIds),
+      this.log,
+      'syncOrganizations.getOrganizationSegmentCouples',
+    )
+
     let databaseStream = []
     let syncStream = []
     let documentsIndexed = 0
@@ -303,7 +307,11 @@ export class OrganizationSyncService {
           if (isMultiSegment) {
             // also calculate and push for parent and grandparent segments
             const childSegmentIds: string[] = distinct(orgSegments.map((m) => m.segmentId))
-            const segmentInfos = await this.segmentRepo.getParentSegmentIds(childSegmentIds)
+            const segmentInfos = await logExecutionTimeV2(
+              async () => this.segmentRepo.getParentSegmentIds(childSegmentIds),
+              this.log,
+              'syncOrganizations.getParentSegmentIds',
+            )
 
             const parentIds: string[] = distinct(segmentInfos.map((s) => s.parentId))
             for (const parentId of parentIds) {
@@ -352,19 +360,32 @@ export class OrganizationSyncService {
         databaseStream.push({
           orgId: orgId,
           segmentId: segment.segmentId,
-          promise: this.orgRepo.getOrganizationDataInOneSegment(orgId, segment.segmentId),
+          promise: logExecutionTimeV2(
+            async () => this.orgRepo.getOrganizationDataInOneSegment(orgId, segment.segmentId),
+            this.log,
+            'syncOrganizations.getOrganizationDataInOneSegment',
+          ),
         })
 
         // databaseStreams will create syncStreams items in processSegmentsStream, which'll later be used to sync to opensearch in bulk
         if (databaseStream.length >= CONCURRENT_DATABASE_QUERIES) {
-          await processSegmentsStream(databaseStream)
+          await logExecutionTimeV2(
+            async () => processSegmentsStream(databaseStream),
+            this.log,
+            'syncOrganizations.processSegmentsStream',
+          )
           databaseStream = []
         }
 
         while (syncStream.length >= BULK_INDEX_DOCUMENT_BATCH_SIZE) {
-          await this.openSearchService.bulkIndex(
-            OpenSearchIndex.ORGANIZATIONS,
-            syncStream.slice(0, BULK_INDEX_DOCUMENT_BATCH_SIZE),
+          await logExecutionTimeV2(
+            async () =>
+              this.openSearchService.bulkIndex(
+                OpenSearchIndex.ORGANIZATIONS,
+                syncStream.slice(0, BULK_INDEX_DOCUMENT_BATCH_SIZE),
+              ),
+            this.log,
+            'syncOrganizations.bulkIndex',
           )
           documentsIndexed += syncStream.slice(0, BULK_INDEX_DOCUMENT_BATCH_SIZE).length
           syncStream = syncStream.slice(BULK_INDEX_DOCUMENT_BATCH_SIZE)
@@ -374,19 +395,32 @@ export class OrganizationSyncService {
         if (i === totalOrgIds - 1 && j === totalSegments - 1) {
           // check if there are remaining databaseStreams to process
           if (databaseStream.length > 0) {
-            await processSegmentsStream(databaseStream)
+            await logExecutionTimeV2(
+              async () => processSegmentsStream(databaseStream),
+              this.log,
+              'syncOrganizations.processSegmentsStream',
+            )
           }
 
           // check if there are remaining syncStreams to process
           if (syncStream.length > 0) {
-            await this.openSearchService.bulkIndex(OpenSearchIndex.ORGANIZATIONS, syncStream)
+            await logExecutionTimeV2(
+              async () =>
+                this.openSearchService.bulkIndex(OpenSearchIndex.ORGANIZATIONS, syncStream),
+              this.log,
+              'syncOrganizations.bulkIndex',
+            )
             documentsIndexed += syncStream.length
           }
         }
       }
     }
 
-    await this.orgRepo.markSynced(organizationIds)
+    await logExecutionTimeV2(
+      async () => this.orgRepo.markSynced(organizationIds),
+      this.log,
+      'syncOrganizations.markSynced',
+    )
 
     return {
       organizationsSynced: organizationIds.length,

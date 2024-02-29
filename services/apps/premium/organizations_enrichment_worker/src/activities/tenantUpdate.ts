@@ -42,7 +42,6 @@ async function getSearchSyncWorkerEmitter(): Promise<SearchSyncWorkerEmitter> {
   searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(
     svc.sqs,
     svc.redis,
-    svc.tracer,
     svc.unleash,
     loader,
     svc.log,

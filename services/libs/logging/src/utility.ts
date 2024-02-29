@@ -1,15 +1,22 @@
+import { LOG_EXECUTION_TIME } from '@crowd/common'
 import { Logger } from './types'
 import { performance } from 'perf_hooks'
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 export const logExecutionTime = async <T>(
-  process: () => Promise<T>,
+  toExecute: () => Promise<T>,
   log: Logger,
   name: string,
 ): Promise<T> => {
+  if (!LOG_EXECUTION_TIME) {
+    return toExecute()
+  }
+
   const start = performance.now()
   try {
     log.info(`Starting timing process ${name}...`)
-    return await process()
+    return await toExecute()
   } finally {
     const end = performance.now()
     const duration = end - start
@@ -19,10 +26,13 @@ export const logExecutionTime = async <T>(
 }
 
 export const logExecutionTimeV2 = async <T>(
-  process: () => Promise<T>,
+  toExecute: () => Promise<T>,
   log: Logger,
   name: string,
 ): Promise<T> => {
+  if (!LOG_EXECUTION_TIME) {
+    return toExecute()
+  }
   const start = performance.now()
 
   const end = () => {
@@ -32,7 +42,7 @@ export const logExecutionTimeV2 = async <T>(
     return durationInSeconds.toFixed(2)
   }
   try {
-    const result = await process()
+    const result = await toExecute()
     log.info(`Process ${name} took ${end()} seconds!`)
     return result
   } catch (e) {

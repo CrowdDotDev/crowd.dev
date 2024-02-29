@@ -30,7 +30,6 @@
     "@crowd/redis": "workspace:*",
     "@crowd/sentiment": "workspace:*",
     "@crowd/sqs": "workspace:*",
-    "@crowd/tracing": "workspace:*",
     "@crowd/types": "workspace:*",
     "@crowd/feature-flags": "workspace:*",
     "@crowd/temporal": "workspace:*",

@@ -2,7 +2,6 @@ import { UnleashClient } from '@crowd/feature-flags'
 import { Logger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
 import { CrowdQueue, SEARCH_SYNC_WORKER_QUEUE_SETTINGS, SqsClient } from '@crowd/sqs'
-import { Tracer } from '@crowd/tracing'
 import { QueuePriorityContextLoader, QueuePriorityService } from '../priority.service'
 import { SearchSyncWorkerQueueMessageType } from '@crowd/types'
 
@@ -10,7 +9,6 @@ export class SearchSyncWorkerEmitter extends QueuePriorityService {
   public constructor(
     sqsClient: SqsClient,
     redis: RedisClient,
-    tracer: Tracer,
     unleash: UnleashClient | undefined,
     priorityLevelCalculationContextLoader: QueuePriorityContextLoader,
     parentLog: Logger,
@@ -20,7 +18,6 @@ export class SearchSyncWorkerEmitter extends QueuePriorityService {
       SEARCH_SYNC_WORKER_QUEUE_SETTINGS,
       sqsClient,
       redis,
-      tracer,
       unleash,
       priorityLevelCalculationContextLoader,
       parentLog,

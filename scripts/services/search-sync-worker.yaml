@@ -6,6 +6,7 @@ x-env-args: &env-args
   SERVICE: search-sync-worker
   SHELL: /bin/sh
   QUEUE_PRIORITY_LEVEL: normal
+  LOG_EXECUTION_TIME: 1
 
 services:
   search-sync-worker:

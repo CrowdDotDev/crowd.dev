@@ -3,7 +3,6 @@ import { UnleashClient, isFeatureEnabled } from '@crowd/feature-flags'
 import { Logger, getChildLogger } from '@crowd/logging'
 import { RedisCache, RedisClient } from '@crowd/redis'
 import { CrowdQueue, ISqsQueueConfig, SqsClient, SqsPrioritizedQueueEmitter } from '@crowd/sqs'
-import { Tracer } from '@crowd/tracing'
 import {
   FeatureFlag,
   IQueuePriorityCalculationContext,
@@ -28,19 +27,13 @@ export class QueuePriorityService {
     private readonly queueConfig: ISqsQueueConfig,
     private readonly sqsClient: SqsClient,
     private readonly redis: RedisClient,
-    private readonly tracer: Tracer,
     private readonly unleash: UnleashClient | undefined,
     private readonly priorityLevelCalculationContextLoader: QueuePriorityContextLoader,
     parentLog: Logger,
   ) {
     this.log = getChildLogger(this.constructor.name, parentLog)
     this.cache = new RedisCache('queue-priority', redis, this.log)
-    this.emitter = new SqsPrioritizedQueueEmitter(
-      this.sqsClient,
-      this.queueConfig,
-      this.tracer,
-      this.log,
-    )
+    this.emitter = new SqsPrioritizedQueueEmitter(this.sqsClient, this.queueConfig, this.log)
   }
 
   public isInitialized(): boolean {

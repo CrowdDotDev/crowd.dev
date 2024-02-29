@@ -23,7 +23,6 @@
     "@crowd/logging": "workspace:*",
     "@crowd/redis": "workspace:*",
     "@crowd/sqs": "workspace:*",
-    "@crowd/tracing": "workspace:*",
     "@crowd/types": "workspace:*",
     "@crowd/common_services": "workspace:*",
     "@crowd/feature-flags": "workspace:*",

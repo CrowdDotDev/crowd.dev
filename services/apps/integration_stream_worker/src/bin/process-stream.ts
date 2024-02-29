@@ -2,7 +2,6 @@ import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG, UNLEASH_CONFIG } from '../conf'
 import IntegrationStreamRepository from '@crowd/data-access-layer/src/old/apps/integration_stream_worker/integrationStream.repo'
 import IntegrationStreamService from '../service/integrationStreamService'
 import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
-import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
 import { getRedisClient } from '@crowd/redis'
 import { getSqsClient } from '@crowd/sqs'
@@ -16,7 +15,6 @@ import {
 } from '@crowd/common_services'
 import { getUnleashClient } from '@crowd/feature-flags'
 
-const tracer = getServiceTracer()
 const log = getServiceLogger()
 
 const processArguments = process.argv.slice(2)
@@ -41,7 +39,6 @@ setImmediate(async () => {
   const runWorkerEmiiter = new IntegrationRunWorkerEmitter(
     sqsClient,
     redisClient,
-    tracer,
     unleash,
     loader,
     log,
@@ -49,7 +46,6 @@ setImmediate(async () => {
   const dataWorkerEmitter = new IntegrationDataWorkerEmitter(
     sqsClient,
     redisClient,
-    tracer,
     unleash,
     loader,
     log,
@@ -57,7 +53,6 @@ setImmediate(async () => {
   const streamWorkerEmitter = new IntegrationStreamWorkerEmitter(
     sqsClient,
     redisClient,
-    tracer,
     unleash,
     loader,
     log,

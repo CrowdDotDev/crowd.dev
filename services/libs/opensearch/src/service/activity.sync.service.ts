@@ -3,7 +3,7 @@ import { ActivityRepository } from '../repo/activity.repo'
 import { OpenSearchIndex } from '../types'
 import { trimUtf8ToMaxByteLength } from '@crowd/common'
 import { DbStore } from '@crowd/database'
-import { Logger, getChildLogger, logExecutionTime } from '@crowd/logging'
+import { Logger, getChildLogger, logExecutionTime, logExecutionTimeV2 } from '@crowd/logging'
 import { IPagedSearchResponse, ISearchHit } from './opensearch.data'
 import { OpenSearchService } from './opensearch.service'
 
@@ -238,22 +238,35 @@ export class ActivitySyncService {
   }
 
   public async syncActivities(activityIds: string[]): Promise<number> {
-    this.log.debug({ activityIds }, 'Syncing activities!')
+    this.log.debug({ count: activityIds.length }, 'Syncing activities!')
 
-    const activities = await this.activityRepo.getActivityData(activityIds)
+    const activities = await logExecutionTimeV2(
+      async () => this.activityRepo.getActivityData(activityIds),
+      this.log,
+      'syncActivities.getActivityData',
+    )
 
     if (activities.length > 0) {
-      await this.openSearchService.bulkIndex(
-        OpenSearchIndex.ACTIVITIES,
-        activities.map((m) => {
-          return {
-            id: m.id,
-            body: ActivitySyncService.prefixData(m),
-          }
-        }),
+      await logExecutionTimeV2(
+        async () =>
+          this.openSearchService.bulkIndex(
+            OpenSearchIndex.ACTIVITIES,
+            activities.map((m) => {
+              return {
+                id: m.id,
+                body: ActivitySyncService.prefixData(m),
+              }
+            }),
+          ),
+        this.log,
+        'syncActivities.bulkIndex',
       )
 
-      await this.activityRepo.markSynced(activities.map((m) => m.id))
+      await logExecutionTimeV2(
+        async () => this.activityRepo.markSynced(activities.map((m) => m.id)),
+        this.log,
+        'syncActivities.markSynced',
+      )
     }
 
     return activities.length

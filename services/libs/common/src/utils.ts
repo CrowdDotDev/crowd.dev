@@ -48,7 +48,7 @@ export class BatchProcessor<T> {
     }, this.timeoutSeconds * 1000)
   }
 
-  private async processBatch(): Promise<void> {
+  public async processBatch(): Promise<void> {
     if (this.batch.length === 0) return
 
     const clone = [...this.batch]

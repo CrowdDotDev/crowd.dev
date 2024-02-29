@@ -6,7 +6,6 @@ import {
   SqsClient,
   SqsPrioritizedQueueReciever,
 } from '@crowd/sqs'
-import { Span, SpanStatusCode, Tracer } from '@crowd/tracing'
 import {
   IQueueMessage,
   IntegrationDataWorkerQueueMessageType,
@@ -24,55 +23,34 @@ export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
     private readonly dbConn: DbConnection,
     private readonly streamWorkerEmitter: IntegrationStreamWorkerEmitter,
     private readonly dataSinkWorkerEmitter: DataSinkWorkerEmitter,
-    tracer: Tracer,
     parentLog: Logger,
     maxConcurrentProcessing: number,
   ) {
-    super(
-      level,
-      client,
-      INTEGRATION_DATA_WORKER_QUEUE_SETTINGS,
-      maxConcurrentProcessing,
-      tracer,
-      parentLog,
-    )
+    super(level, client, INTEGRATION_DATA_WORKER_QUEUE_SETTINGS, maxConcurrentProcessing, parentLog)
   }
 
   override async processMessage(message: IQueueMessage): Promise<void> {
-    await this.tracer.startActiveSpan('ProcessMessage', async (span: Span) => {
-      try {
-        this.log.trace({ messageType: message.type }, 'Processing message!')
+    try {
+      this.log.trace({ messageType: message.type }, 'Processing message!')
 
-        const service = new IntegrationStreamService(
-          this.redisClient,
-          this.streamWorkerEmitter,
-          this.dataSinkWorkerEmitter,
-          new DbStore(this.log, this.dbConn),
-          this.log,
-        )
+      const service = new IntegrationStreamService(
+        this.redisClient,
+        this.streamWorkerEmitter,
+        this.dataSinkWorkerEmitter,
+        new DbStore(this.log, this.dbConn),
+        this.log,
+      )
 
-        switch (message.type) {
-          case IntegrationDataWorkerQueueMessageType.PROCESS_STREAM_DATA:
-            await service.processData((message as ProcessStreamDataQueueMessage).dataId)
-            break
-          default:
-            throw new Error(`Unknown message type: ${message.type}`)
-        }
-
-        span.setStatus({
-          code: SpanStatusCode.OK,
-        })
-      } catch (err) {
-        span.setStatus({
-          code: SpanStatusCode.ERROR,
-          message: err,
-        })
-
-        this.log.error(err, 'Error while processing message!')
-        throw err
-      } finally {
-        span.end()
+      switch (message.type) {
+        case IntegrationDataWorkerQueueMessageType.PROCESS_STREAM_DATA:
+          await service.processData((message as ProcessStreamDataQueueMessage).dataId)
+          break
+        default:
+          throw new Error(`Unknown message type: ${message.type}`)
       }
-    })
+    } catch (err) {
+      this.log.error(err, 'Error while processing message!')
+      throw err
+    }
   }
 }

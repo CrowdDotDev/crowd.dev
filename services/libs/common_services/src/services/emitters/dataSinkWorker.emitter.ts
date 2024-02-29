@@ -1,9 +1,8 @@
-import { CrowdQueue, DATA_SINK_WORKER_QUEUE_SETTINGS, SqsClient } from '@crowd/sqs'
-import { QueuePriorityContextLoader, QueuePriorityService } from '../priority.service'
-import { RedisClient } from '@crowd/redis'
+import { generateUUIDv1 } from '@crowd/common'
 import { UnleashClient } from '@crowd/feature-flags'
 import { Logger } from '@crowd/logging'
-import { Tracer } from '@crowd/tracing'
+import { RedisClient } from '@crowd/redis'
+import { CrowdQueue, DATA_SINK_WORKER_QUEUE_SETTINGS, SqsClient } from '@crowd/sqs'
 import {
   CheckResultsQueueMessage,
   CreateAndProcessActivityResultQueueMessage,
@@ -12,13 +11,12 @@ import {
   ProcessIntegrationResultQueueMessage,
   QueuePriorityLevel,
 } from '@crowd/types'
-import { generateUUIDv1 } from '@crowd/common'
+import { QueuePriorityContextLoader, QueuePriorityService } from '../priority.service'
 
 export class DataSinkWorkerEmitter extends QueuePriorityService {
   public constructor(
     sqsClient: SqsClient,
     redis: RedisClient,
-    tracer: Tracer,
     unleash: UnleashClient | undefined,
     priorityLevelCalculationContextLoader: QueuePriorityContextLoader,
     parentLog: Logger,
@@ -28,7 +26,6 @@ export class DataSinkWorkerEmitter extends QueuePriorityService {
       DATA_SINK_WORKER_QUEUE_SETTINGS,
       sqsClient,
       redis,
-      tracer,
       unleash,
       priorityLevelCalculationContextLoader,
       parentLog,

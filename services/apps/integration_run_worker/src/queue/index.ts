@@ -12,7 +12,6 @@ import {
   SqsClient,
   SqsPrioritizedQueueReciever,
 } from '@crowd/sqs'
-import { Span, SpanStatusCode, Tracer } from '@crowd/tracing'
 import {
   GenerateRunStreamsQueueMessage,
   IQueueMessage,
@@ -36,74 +35,53 @@ export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
     private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
     private readonly integrationSyncWorkerEmitter: IntegrationSyncWorkerEmitter,
     private readonly apiPubSubEmitter: ApiPubSubEmitter,
-    tracer: Tracer,
     parentLog: Logger,
     maxConcurrentProcessing: number,
   ) {
-    super(
-      level,
-      client,
-      INTEGRATION_RUN_WORKER_QUEUE_SETTINGS,
-      maxConcurrentProcessing,
-      tracer,
-      parentLog,
-    )
+    super(level, client, INTEGRATION_RUN_WORKER_QUEUE_SETTINGS, maxConcurrentProcessing, parentLog)
   }
 
   override async processMessage(message: IQueueMessage): Promise<void> {
-    await this.tracer.startActiveSpan('ProcessMessage', async (span: Span) => {
-      try {
-        this.log.trace({ messageType: message.type }, 'Processing message!')
+    try {
+      this.log.trace({ messageType: message.type }, 'Processing message!')
 
-        const service = new IntegrationRunService(
-          this.redisClient,
-          this.streamWorkerEmitter,
-          this.runWorkerEmitter,
-          this.searchSyncWorkerEmitter,
-          this.integrationSyncWorkerEmitter,
-          this.apiPubSubEmitter,
-          new DbStore(this.log, this.dbConn),
-          this.log,
-        )
+      const service = new IntegrationRunService(
+        this.redisClient,
+        this.streamWorkerEmitter,
+        this.runWorkerEmitter,
+        this.searchSyncWorkerEmitter,
+        this.integrationSyncWorkerEmitter,
+        this.apiPubSubEmitter,
+        new DbStore(this.log, this.dbConn),
+        this.log,
+      )
 
-        switch (message.type) {
-          case IntegrationRunWorkerQueueMessageType.CHECK_RUNS:
-            await service.checkRuns()
-            break
-          case IntegrationRunWorkerQueueMessageType.START_INTEGRATION_RUN:
-            const msg = message as StartIntegrationRunQueueMessage
-            await service.startIntegrationRun(
-              msg.integrationId,
-              msg.onboarding,
-              msg.isManualRun,
-              msg.manualSettings,
-            )
-            break
-          case IntegrationRunWorkerQueueMessageType.GENERATE_RUN_STREAMS:
-            const msg2 = message as GenerateRunStreamsQueueMessage
-            await service.generateStreams(msg2.runId, msg2.isManualRun, msg2.manualSettings)
-            break
-          case IntegrationRunWorkerQueueMessageType.STREAM_PROCESSED:
-            await service.handleStreamProcessed((message as StreamProcessedQueueMessage).runId)
-            break
-          default:
-            throw new Error(`Unknown message type: ${message.type}`)
-        }
-
-        span.setStatus({
-          code: SpanStatusCode.OK,
-        })
-      } catch (err) {
-        span.setStatus({
-          code: SpanStatusCode.ERROR,
-          message: err,
-        })
-
-        this.log.error(err, 'Error while processing message!')
-        throw err
-      } finally {
-        span.end()
+      switch (message.type) {
+        case IntegrationRunWorkerQueueMessageType.CHECK_RUNS:
+          await service.checkRuns()
+          break
+        case IntegrationRunWorkerQueueMessageType.START_INTEGRATION_RUN:
+          const msg = message as StartIntegrationRunQueueMessage
+          await service.startIntegrationRun(
+            msg.integrationId,
+            msg.onboarding,
+            msg.isManualRun,
+            msg.manualSettings,
+          )
+          break
+        case IntegrationRunWorkerQueueMessageType.GENERATE_RUN_STREAMS:
+          const msg2 = message as GenerateRunStreamsQueueMessage
+          await service.generateStreams(msg2.runId, msg2.isManualRun, msg2.manualSettings)
+          break
+        case IntegrationRunWorkerQueueMessageType.STREAM_PROCESSED:
+          await service.handleStreamProcessed((message as StreamProcessedQueueMessage).runId)
+          break
+        default:
+          throw new Error(`Unknown message type: ${message.type}`)
       }
-    })
+    } catch (err) {
+      this.log.error(err, 'Error while processing message!')
+      throw err
+    }
   }
 }

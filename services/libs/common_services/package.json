@@ -18,7 +18,6 @@
     "@crowd/database": "workspace:*",
     "@crowd/feature-flags": "workspace:*",
     "@crowd/redis": "workspace:*",
-    "@crowd/tracing": "workspace:*",
     "@crowd/sqs": "workspace:*"
   }
 }

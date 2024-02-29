@@ -6,7 +6,6 @@ import {
   NodejsWorkerEmitter,
 } from '@crowd/common_services'
 import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
-import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
 import { getSqsClient } from '@crowd/sqs'
 import {
@@ -23,7 +22,6 @@ import { processOldResultsJob } from './jobs/processOldResults'
 import { getUnleashClient } from '@crowd/feature-flags'
 import { Client as TemporalClient, getTemporalClient } from '@crowd/temporal'
 
-const tracer = getServiceTracer()
 const log = getServiceLogger()
 
 const MAX_CONCURRENT_PROCESSING = 5
@@ -50,32 +48,17 @@ setImmediate(async () => {
   const loader: QueuePriorityContextLoader = (tenantId: string) =>
     priorityLevelRepo.loadPriorityLevelContext(tenantId)
 
-  const nodejsWorkerEmitter = new NodejsWorkerEmitter(
-    sqsClient,
-    redisClient,
-    tracer,
-    unleash,
-    loader,
-    log,
-  )
+  const nodejsWorkerEmitter = new NodejsWorkerEmitter(sqsClient, redisClient, unleash, loader, log)
 
   const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(
     sqsClient,
     redisClient,
-    tracer,
     unleash,
     loader,
     log,
   )
 
-  const dataWorkerEmitter = new DataSinkWorkerEmitter(
-    sqsClient,
-    redisClient,
-    tracer,
-    unleash,
-    loader,
-    log,
-  )
+  const dataWorkerEmitter = new DataSinkWorkerEmitter(sqsClient, redisClient, unleash, loader, log)
 
   const queue = new WorkerQueueReceiver(
     WORKER_SETTINGS().queuePriorityLevel,
@@ -87,7 +70,6 @@ setImmediate(async () => {
     redisClient,
     unleash,
     temporal,
-    tracer,
     log,
     MAX_CONCURRENT_PROCESSING,
   )

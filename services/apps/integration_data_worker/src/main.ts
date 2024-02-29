@@ -1,4 +1,3 @@
-import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
 import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG, UNLEASH_CONFIG, WORKER_SETTINGS } from './conf'
 import { getRedisClient } from '@crowd/redis'
@@ -14,7 +13,6 @@ import {
 } from '@crowd/common_services'
 import { getUnleashClient } from '@crowd/feature-flags'
 
-const tracer = getServiceTracer()
 const log = getServiceLogger()
 
 const MAX_CONCURRENT_PROCESSING = 3
@@ -37,7 +35,6 @@ setImmediate(async () => {
   const streamWorkerEmitter = new IntegrationStreamWorkerEmitter(
     sqsClient,
     redisClient,
-    tracer,
     unleash,
     loader,
     log,
@@ -45,7 +42,6 @@ setImmediate(async () => {
   const dataSinkWorkerEmitter = new DataSinkWorkerEmitter(
     sqsClient,
     redisClient,
-    tracer,
     unleash,
     loader,
     log,
@@ -58,7 +54,6 @@ setImmediate(async () => {
     dbConnection,
     streamWorkerEmitter,
     dataSinkWorkerEmitter,
-    tracer,
     log,
     MAX_CONCURRENT_PROCESSING,
   )
