@@ -23,6 +23,7 @@
         @find-github="emit('findGithub')"
         @close-dropdown="onDropdownClose"
         @merge="emit('merge')"
+        @unmerge="emit('unmerge')"
       />
     </template>
   </el-dropdown>
@@ -34,7 +35,7 @@ import { MemberPermissions } from '@/modules/member/member-permissions';
 import { computed, ref } from 'vue';
 import AppMemberDropdownContent from './member-dropdown-content.vue';
 
-const emit = defineEmits(['merge', 'closeDropdown', 'findGithub']);
+const emit = defineEmits(['merge', 'unmerge', 'closeDropdown', 'findGithub']);
 defineProps({
   member: {
     type: Object,

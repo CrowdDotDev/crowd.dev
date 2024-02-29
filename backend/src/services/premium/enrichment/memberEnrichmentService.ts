@@ -24,7 +24,7 @@ import {
   EnrichmentAPIResponse,
   EnrichmentAPISkills,
   EnrichmentAPIWorkExperience,
-} from '@crowd/types/premium'
+} from '@crowd/types/src/premium'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
 import { ENRICHMENT_CONFIG, REDIS_CONFIG } from '../../../conf'
 import { AttributeData } from '../../../database/attributes/attribute'

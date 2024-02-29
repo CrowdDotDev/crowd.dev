@@ -4,21 +4,19 @@ import { WorkflowIdReusePolicy } from '@temporalio/workflow'
 import { SearchSyncApiClient } from '@crowd/opensearch'
 import { RedisPubSubEmitter } from '@crowd/redis'
 
+import {
+  deleteMemberSegments,
+  cleanupMember,
+  findMemberById,
+  moveActivitiesToNewMember,
+  moveIdentityActivitiesToNewMember,
+  findMemberSegments,
+  markMemberAsManuallyCreated,
+} from '@crowd/data-access-layer/src/old/apps/entity_merging_worker'
+
 export async function deleteMember(memberId: string): Promise<void> {
-  await svc.postgres.writer.connection().query(
-    `
-      DELETE FROM "memberSegments"
-      WHERE "memberId" = $1
-    `,
-    [memberId],
-  )
-  await svc.postgres.writer.connection().query(
-    `
-      DELETE FROM members
-      WHERE id = $1
-    `,
-    [memberId],
-  )
+  await deleteMemberSegments(svc.postgres.writer, memberId)
+  await cleanupMember(svc.postgres.writer, memberId)
 }
 
 export async function moveActivitiesBetweenMembers(
@@ -26,29 +24,12 @@ export async function moveActivitiesBetweenMembers(
   secondaryId: string,
   tenantId: string,
 ): Promise<void> {
-  const memberExists = await svc.postgres.writer.connection().oneOrNone(
-    `
-      SELECT id
-      FROM members
-      WHERE id = $1
-        AND "tenantId" = $2
-    `,
-    [primaryId, tenantId],
-  )
+  const memberExists = await findMemberById(svc.postgres.writer, primaryId, tenantId)
 
   if (!memberExists) {
     return
   }
-
-  await svc.postgres.writer.connection().query(
-    `
-      UPDATE activities
-      SET "memberId" = $1
-      WHERE "memberId" = $2
-        AND "tenantId" = $3;
-    `,
-    [primaryId, secondaryId, tenantId],
-  )
+  await moveActivitiesToNewMember(svc.postgres.writer, primaryId, secondaryId, tenantId)
 }
 
 export async function moveActivitiesWithIdentityToAnotherMember(
@@ -57,31 +38,20 @@ export async function moveActivitiesWithIdentityToAnotherMember(
   identities: IMemberIdentity[],
   tenantId: string,
 ): Promise<void> {
-  const memberExists = await svc.postgres.writer.connection().oneOrNone(
-    `
-      SELECT id
-      FROM members
-      WHERE id = $1
-        AND "tenantId" = $2
-    `,
-    [toId, tenantId],
-  )
+  const memberExists = await findMemberById(svc.postgres.writer, toId, tenantId)
 
   if (!memberExists) {
     return
   }
 
   for (const identity of identities) {
-    await svc.postgres.writer.connection().query(
-      `
-        UPDATE activities
-        SET "memberId" = $1
-        WHERE "memberId" = $2
-          AND "tenantId" = $3
-          AND username = $4
-          AND platform = $5;
-      `,
-      [toId, fromId, tenantId, identity.username, identity.platform],
+    await moveIdentityActivitiesToNewMember(
+      svc.postgres.writer,
+      tenantId,
+      fromId,
+      toId,
+      identity.username,
+      identity.platform,
     )
   }
 }
@@ -110,12 +80,29 @@ export async function recalculateActivityAffiliations(
   })
 }
 
-export async function syncMember(memberId: string): Promise<void> {
+export async function syncMember(memberId: string, secondaryMemberId: string): Promise<void> {
   const syncApi = new SearchSyncApiClient({
     baseUrl: process.env['CROWD_SEARCH_SYNC_API_URL'],
   })
 
-  await syncApi.triggerMemberSync(memberId)
+  // check if member has any activities
+  const result = await findMemberSegments(svc.postgres.writer, memberId)
+
+  if (result.segmentIds) {
+    // segment information can be deduced from activities, no need to send segmentIds explicitly on merging
+    await syncApi.triggerMemberSync(memberId)
+    return
+  }
+
+  // check if secondary member has any activities
+  const secondaryResult = await findMemberSegments(svc.postgres.writer, secondaryMemberId)
+
+  if (secondaryResult.segmentIds) {
+    // mark member as manually created
+    await markMemberAsManuallyCreated(svc.postgres.writer, memberId)
+    // member doesn't have any activity to deduce segmentIds for syncing, use the secondary member's activity segments
+    await syncApi.triggerMemberSync(memberId, secondaryResult.segmentIds)
+  }
 }
 
 export async function notifyFrontendMemberUnmergeSuccessful(

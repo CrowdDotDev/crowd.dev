@@ -252,8 +252,6 @@ export class ActivitySyncService {
           }
         }),
       )
-
-      await this.activityRepo.markSynced(activities.map((m) => m.id))
     }
 
     return activities.length

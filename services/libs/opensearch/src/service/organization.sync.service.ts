@@ -257,13 +257,16 @@ export class OrganizationSyncService {
    * @param organizationIds organizationIds to be synced to opensearch
    * @returns
    */
-  public async syncOrganizations(organizationIds: string[]): Promise<IOrganizationSyncResult> {
-    const CONCURRENT_DATABASE_QUERIES = 25
+  public async syncOrganizations(
+    organizationIds: string[],
+    segmentIds?: string[],
+  ): Promise<IOrganizationSyncResult> {
+    const CONCURRENT_DATABASE_QUERIES = 5
     const BULK_INDEX_DOCUMENT_BATCH_SIZE = 2500
 
     // get all orgId-segmentId couples
     const orgSegmentCouples: IOrganizationSegmentMatrix =
-      await this.orgRepo.getOrganizationSegmentCouples(organizationIds)
+      await this.orgRepo.getOrganizationSegmentCouples(organizationIds, segmentIds)
     let databaseStream = []
     let syncStream = []
     let documentsIndexed = 0
@@ -385,8 +388,6 @@ export class OrganizationSyncService {
         }
       }
     }
-
-    await this.orgRepo.markSynced(organizationIds)
 
     return {
       organizationsSynced: organizationIds.length,

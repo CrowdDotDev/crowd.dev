@@ -1,9 +1,12 @@
 import mergeWith from 'lodash.mergewith'
 import isEqual from 'lodash.isequal'
-import IntegrationRepository from '../repo/integration.repo'
-import { IDbCacheOrganization, IDbInsertOrganizationCacheData } from '../repo/organization.data'
-import { OrganizationRepository } from '../repo/organization.repo'
-import { DbStore } from '@crowd/database'
+import IntegrationRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/integration.repo'
+import {
+  IDbCacheOrganization,
+  IDbInsertOrganizationCacheData,
+} from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/organization.data'
+import { OrganizationRepository } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/organization.repo'
+import { DbStore } from '@crowd/data-access-layer/src/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { IOrganization, IOrganizationSocial, PlatformType } from '@crowd/types'
 import { websiteNormalizer } from '@crowd/common'
@@ -49,7 +52,7 @@ export class OrganizationService extends LoggerBase {
 
         // Normalize the website URL if it exists
         if (data.website) {
-          data.website = websiteNormalizer(data.website)
+          data.website = websiteNormalizer(data.website, false)
         }
 
         this.log.trace(`Checking organization exists in cache..`)
@@ -153,10 +156,13 @@ export class OrganizationService extends LoggerBase {
 
           // also check domain in identities
           if (!existing) {
-            existing = await txRepo.findByIdentity(tenantId, {
-              name: websiteNormalizer(cached.website),
-              platform: 'email',
-            })
+            const normalizedWebsite = websiteNormalizer(cached.website, false)
+            if (normalizedWebsite !== undefined) {
+              existing = await txRepo.findByIdentity(tenantId, {
+                name: normalizedWebsite,
+                platform: 'email',
+              })
+            }
           }
         }
 
@@ -253,11 +259,14 @@ export class OrganizationService extends LoggerBase {
 
         // create identities with incoming website
         if (data.website) {
-          data.identities.push({
-            name: websiteNormalizer(data.website),
-            platform: 'email',
-            integrationId,
-          })
+          const normalizedWebsite = websiteNormalizer(data.website, false)
+          if (normalizedWebsite !== undefined) {
+            data.identities.push({
+              name: normalizedWebsite,
+              platform: 'email',
+              integrationId,
+            })
+          }
         }
 
         for (const identity of data.identities) {

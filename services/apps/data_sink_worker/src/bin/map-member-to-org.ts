@@ -1,11 +1,11 @@
 import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG, TEMPORAL_CONFIG, UNLEASH_CONFIG } from '../conf'
-import { DbStore, getDbConnection } from '@crowd/database'
+import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
 import { getSqsClient } from '@crowd/sqs'
-import MemberRepository from '../repo/member.repo'
+import MemberRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.repo'
 import MemberService from '../service/member.service'
-import DataSinkRepository from '../repo/dataSink.repo'
+import DataSinkRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/dataSink.repo'
 import { OrganizationService } from '../service/organization.service'
 import { getUnleashClient } from '@crowd/feature-flags'
 import { Client as TemporalClient, getTemporalClient } from '@crowd/temporal'
@@ -113,10 +113,15 @@ setImmediate(async () => {
         orgService.addToMember(member.tenantId, segmentId, member.id, orgs)
 
         for (const org of orgs) {
-          await searchSyncWorkerEmitter.triggerOrganizationSync(member.tenantId, org.id, true)
+          await searchSyncWorkerEmitter.triggerOrganizationSync(
+            member.tenantId,
+            org.id,
+            true,
+            segmentId,
+          )
         }
 
-        await searchSyncWorkerEmitter.triggerMemberSync(member.tenantId, member.id, true)
+        await searchSyncWorkerEmitter.triggerMemberSync(member.tenantId, member.id, true, segmentId)
         log.info('Done mapping member to organizations!')
       } else {
         log.info('No organizations found with matching email domains!')

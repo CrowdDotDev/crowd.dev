@@ -1,5 +1,5 @@
 import { SERVICE } from '@crowd/common'
-import { IDatabaseConfig } from '@crowd/database'
+import { IDatabaseConfig } from '@crowd/data-access-layer/src/database'
 import { IUnleashConfig } from '@crowd/feature-flags'
 import { IRedisConfiguration } from '@crowd/redis'
 import { ISqsClientConfig } from '@crowd/sqs'

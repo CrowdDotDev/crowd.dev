@@ -42,6 +42,7 @@
     v-if="identitiesDrawer"
     v-model="identitiesDrawer"
     :member="member"
+    @unmerge="emit('unmerge', $event)"
   />
   <app-member-manage-emails-drawer
     v-if="emailDrawer"
@@ -67,8 +68,11 @@ defineProps({
   },
 });
 
+const emit = defineEmits(['unmerge']);
+
 const identitiesDrawer = ref(false);
 const emailDrawer = ref(false);
+
 </script>
 
 <script>

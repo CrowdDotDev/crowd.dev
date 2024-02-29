@@ -66,27 +66,16 @@ export default class IntegrationDataRepository extends RepositoryBase<Integratio
     try {
       const results = await this.db().any(
         `
-        select id
-        from integration."apiData"
-        where (
-                (state = $(errorState) and retries <= $(maxRetries))
-                or
-                (state = $(pendingState))
-                or
-                (state = $(delayedState) and "delayedUntil" < now())
-            )
-          and "updatedAt" < now() - interval '1 hour'
-        order by case when "webhookId" is not null then 0 else 1 end,
-                "webhookId" asc,
-                "updatedAt" desc
-        limit ${limit}
-        for update skip locked;
+          select id
+          from integration."apiData"
+          where (state in ($(errorState), $(pendingState)))
+            or (state = $(delayedState) and "delayedUntil" < now())
+          limit ${limit};
         `,
         {
           errorState: IntegrationStreamDataState.ERROR,
           pendingState: IntegrationStreamDataState.PENDING,
           delayedState: IntegrationStreamDataState.DELAYED,
-          maxRetries: 5,
         },
       )
 

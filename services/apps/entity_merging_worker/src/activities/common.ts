@@ -1,5 +1,6 @@
 import { MergeActionState } from '@crowd/types'
 import { svc } from '../main'
+import { updateMergeActionState } from '@crowd/data-access-layer/src/old/apps/entity_merging_worker'
 
 export async function setMergeActionState(
   primaryId: string,
@@ -7,15 +8,5 @@ export async function setMergeActionState(
   tenantId: string,
   state: MergeActionState,
 ): Promise<void> {
-  await svc.postgres.writer.connection().query(
-    `
-        UPDATE "mergeActions"
-        SET state = $4
-        WHERE "tenantId" = $3
-          AND "primaryId" = $1
-          AND "secondaryId" = $2
-          AND state != $4
-      `,
-    [primaryId, secondaryId, tenantId, state],
-  )
+  await updateMergeActionState(svc.postgres.writer, primaryId, secondaryId, tenantId, state)
 }

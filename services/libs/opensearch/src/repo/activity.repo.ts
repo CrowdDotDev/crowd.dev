@@ -57,15 +57,6 @@ export class ActivityRepository extends RepositoryBase<ActivityRepository> {
     return results.map((r) => r.id)
   }
 
-  public async markSynced(activityIds: string[]): Promise<void> {
-    await this.db().none(
-      `update activities set "searchSyncedAt" = now() where id in ($(activityIds:csv))`,
-      {
-        activityIds,
-      },
-    )
-  }
-
   public async getTenantActivitiesForSync(
     tenantId: string,
     perPage: number,

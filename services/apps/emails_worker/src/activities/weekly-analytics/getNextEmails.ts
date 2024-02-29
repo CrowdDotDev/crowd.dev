@@ -2,7 +2,9 @@ import moment from 'moment'
 
 import { svc } from '../../main'
 
-import { InputAnalytics, AnalyticsWithTimes } from '../../types/analytics'
+import { AnalyticsWithTimes, InputAnalytics } from '../../types/analytics'
+
+import { dbWeeklyGetNextEmails } from '@crowd/data-access-layer/src/old/apps/emails_worker/tenants'
 
 /*
 calculateTimes is a Temporal activity that calculates the time of the current
@@ -33,13 +35,7 @@ weeklyGetNextEmails is a Temporal activity that fetches all users for a tenant.
 export async function weeklyGetNextEmails(): Promise<InputAnalytics[]> {
   let rows: InputAnalytics[] = []
   try {
-    rows = await svc.postgres.reader.connection().query(`
-      SELECT id as "tenantId", name as "tenantName"
-        FROM tenants
-        WHERE "deletedAt" IS NULL
-        AND plan IN ('Scale', 'Growth', 'Essential')
-        AND ("trialEndsAt" > NOW() OR "trialEndsAt" IS NULL);
-    `)
+    rows = await dbWeeklyGetNextEmails(svc.postgres.reader)
   } catch (err) {
     throw new Error(err)
   }

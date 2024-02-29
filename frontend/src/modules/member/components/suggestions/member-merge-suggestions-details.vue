@@ -24,31 +24,34 @@
       :class="{ 'bg-gray-50': props.isPrimary }"
     >
       <!-- primary member -->
-      <div class="h-13 flex justify-between items-start">
-        <div
-          v-if="props.isPreview"
-          class="bg-brand-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
-        >
-          Preview
+      <slot name="header">
+        <div class="h-13 flex justify-between items-start">
+          <div
+            v-if="props.isPreview"
+            class="bg-brand-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
+          >
+            Preview
+          </div>
+          <div
+            v-else-if="props.isPrimary"
+            class="bg-brand-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
+          >
+            Primary contact
+          </div>
+          <button
+            v-else
+            :disabled="isEditLockedForSampleData"
+            type="button"
+            class="btn btn--bordered btn--sm leading-5 !px-4 !py-1"
+            @click="emit('makePrimary')"
+          >
+            <span class="ri-arrow-left-right-fill text-base text-gray-600 mr-2" />
+            <span>Make primary</span>
+          </button>
+          <slot name="action" />
         </div>
-        <div
-          v-else-if="props.isPrimary"
-          class="bg-brand-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
-        >
-          Primary contact
-        </div>
-        <button
-          v-else
-          :disabled="isEditLockedForSampleData"
-          type="button"
-          class="btn btn--bordered btn--sm leading-5 !px-4 !py-1"
-          @click="emit('makePrimary')"
-        >
-          <span class="ri-arrow-left-right-fill text-base text-gray-600 mr-2" />
-          <span>Make primary</span>
-        </button>
-        <slot name="action" />
-      </div>
+      </slot>
+
       <router-link
         v-if="!isPreview"
         :to="{
@@ -112,7 +115,10 @@
           <p class="text-2xs font-medium text-gray-500 pb-1">
             Engagement level
           </p>
-          <app-community-engagement-level :member="member" />
+          <slot name="engagementLevel">
+            <app-community-engagement-level v-if="member.reach?.total >= 0 && member.score" :member="member" />
+            <span v-else class="text-2xs">-</span>
+          </slot>
         </article>
         <article
           v-if="
@@ -130,7 +136,7 @@
         </article>
         <article
           v-if="
-            member.organizations.length || compareMember?.organizations.length
+            member.organizations?.length || compareMember?.organizations?.length
           "
           class="pb-4"
         >
@@ -181,9 +187,10 @@
           />
           <span v-else>-</span>
         </article>
+        <slot name="property" />
       </div>
       <div class="pt-4">
-        <h6 class="text-sm font-semibold pb-3">
+        <h6 class="text-sm font-semibold text-black pb-3">
           Identities
         </h6>
         <app-identities-vertical-list-members
@@ -192,6 +199,7 @@
           :include-emails="true"
         />
       </div>
+      <slot name="below" />
     </div>
   </section>
 </template>

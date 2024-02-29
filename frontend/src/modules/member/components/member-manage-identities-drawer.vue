@@ -11,7 +11,9 @@
           v-model="memberModel"
           :record="member"
           :show-header="false"
+          :show-unmerge="true"
           @update:model-value="hasFormChanged = true"
+          @unmerge="emit('unmerge', $event)"
         />
       </div>
     </template>
@@ -61,7 +63,7 @@ const props = defineProps({
     default: () => {},
   },
 });
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits(['update:modelValue', 'unmerge']);
 
 const drawerModel = computed({
   get() {

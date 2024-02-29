@@ -21,6 +21,7 @@ const SocketEvents = {
   tenantPlanUpgraded: 'tenant-plan-upgraded',
   bulkEnrichment: 'bulk-enrichment',
   orgMerge: 'org-merge',
+  memberUnmerge: 'member-unmerge',
 };
 
 export const connectSocket = (token) => {
@@ -61,6 +62,52 @@ export const connectSocket = (token) => {
       'integration/doFind',
       JSON.parse(data).integrationId,
     );
+  });
+
+  socketIoClient.on(SocketEvents.memberUnmerge, (data) => {
+    console.info('Member unmerge done', data);
+    const parsedData = JSON.parse(data);
+    if (!parsedData.success) {
+      return;
+    }
+    const {
+      primaryDisplayName, secondaryDisplayName, primaryId, secondaryId,
+    } = parsedData;
+
+    const primaryMember = h(
+      'a',
+      {
+        href: `${window.location.origin}/members/${primaryId}`,
+        class: 'underline text-gray-600',
+      },
+      primaryDisplayName,
+    );
+    const secondaryMember = h(
+      'a',
+      {
+        href: `${window.location.origin}/members/${secondaryId}`,
+        class: 'underline text-gray-600',
+      },
+      secondaryDisplayName,
+    );
+    const between = h(
+      'span',
+      {},
+      ' unmerged from ',
+    );
+    const after = h(
+      'span',
+      {},
+      '. Syncing contact activities might take some time to complete.',
+    );
+    Message.closeAll();
+    Message.success(h(
+      'div',
+      {},
+      [secondaryMember, between, primaryMember, after],
+    ), {
+      title: 'Contributors merged successfully',
+    });
   });
 
   socketIoClient.on(

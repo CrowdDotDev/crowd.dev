@@ -26,6 +26,7 @@
         :member="props.member"
         :hide-merge="true"
         :hide-edit="true"
+        @unmerge="emit('unmerge')"
         @find-github="isFindGithubDrawerOpen = member"
       >
         <template #trigger>
@@ -72,6 +73,9 @@ const props = defineProps({
     default: () => {},
   },
 });
+
+const emit = defineEmits(['unmerge']);
+
 const router = useRouter();
 
 const { currentUser, currentTenant } = mapGetters('auth');

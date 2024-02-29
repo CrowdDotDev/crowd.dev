@@ -2,7 +2,7 @@ import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { RedisCache, RedisClient } from '@crowd/redis'
 import { IMemberAttribute } from '@crowd/types'
-import { IDbMemberSyncData, IMemberSegmentMatrix } from './member.data'
+import { IDbMemberSyncData, IMemberSegment, IMemberSegmentMatrix } from './member.data'
 
 export class MemberRepository extends RepositoryBase<MemberRepository> {
   private readonly cache: RedisCache
@@ -555,15 +555,6 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
     return results
   }
 
-  public async markSynced(memberIds: string[]): Promise<void> {
-    await this.db().none(
-      `update members set "searchSyncedAt" = now() where id in ($(memberIds:csv))`,
-      {
-        memberIds,
-      },
-    )
-  }
-
   public async checkMembersExists(tenantId: string, memberIds: string[]): Promise<string[]> {
     const results = await this.db().any(
       `
@@ -586,40 +577,58 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
     return results.map((r) => r.id)
   }
 
-  public async getMemberSegmentCouples(ids): Promise<IMemberSegmentMatrix> {
-    let results = await this.db().any(
-      `
-      select distinct a."segmentId", a."memberId"
-      from activities a
-      where a."memberId" in ($(ids:csv));
-      `,
-      {
-        ids,
-      },
-    )
+  public async getMemberSegmentCouples(
+    memberIds: string[],
+    segmentIds?: string[],
+  ): Promise<IMemberSegmentMatrix> {
+    let memberSegments: IMemberSegment[] = []
 
-    // Manually created members don't have any activities,
-    // filter out those memberIds that are not in the results
-    const manuallyCreatedIds = ids.filter((id) => !results.some((r) => r.memberId === id))
-
-    // memberSegments aren't maintained well, so use as a fallback for manuallyCreated members
-    if (manuallyCreatedIds.length > 0) {
-      const missingResults = await this.db().any(
+    if (segmentIds && segmentIds.length > 0) {
+      for (const memberId of memberIds) {
+        for (const segmentId of segmentIds) {
+          memberSegments.push({
+            memberId,
+            segmentId,
+          })
+        }
+      }
+    } else {
+      memberSegments = await this.db().any(
         `
-        select distinct ms."segmentId", ms."memberId"
-        from "memberSegments" ms
-        where ms."memberId" in ($(manuallyCreatedIds:csv));
+        select distinct a."segmentId", a."memberId"
+        from activities a
+        where a."memberId" in ($(ids:csv));
         `,
         {
-          manuallyCreatedIds,
+          ids: memberIds,
         },
       )
-      results = [...results, ...missingResults]
+
+      // Manually created members don't have any activities,
+      // filter out those memberIds that are not in the results
+      const manuallyCreatedIds = memberIds.filter(
+        (id) => !memberSegments.some((r) => r.memberId === id),
+      )
+
+      // memberSegments aren't maintained well, so use as a fallback for manuallyCreated members
+      if (manuallyCreatedIds.length > 0) {
+        const missingResults = await this.db().any(
+          `
+          select distinct ms."segmentId", ms."memberId"
+          from "memberSegments" ms
+          where ms."memberId" in ($(manuallyCreatedIds:csv));
+          `,
+          {
+            manuallyCreatedIds,
+          },
+        )
+        memberSegments = [...memberSegments, ...missingResults]
+      }
     }
 
     const matrix = {}
 
-    for (const memberSegment of results) {
+    for (const memberSegment of memberSegments) {
       if (!matrix[memberSegment.memberId]) {
         matrix[memberSegment.memberId] = [
           {
