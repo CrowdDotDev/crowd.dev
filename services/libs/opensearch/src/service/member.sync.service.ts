@@ -313,7 +313,7 @@ export class MemberSyncService {
   }
 
   public async syncMembers(memberIds: string[], segmentIds?: string[]): Promise<IMemberSyncResult> {
-    const CONCURRENT_DATABASE_QUERIES = 25
+    const CONCURRENT_DATABASE_QUERIES = 5
     const BULK_INDEX_DOCUMENT_BATCH_SIZE = 2500
 
     // get all memberId-segmentId couples
@@ -446,10 +446,6 @@ export class MemberSyncService {
       }
     }
 
-    if (successfullySyncedMembers.length > 0) {
-      await this.memberRepo.markSynced(successfullySyncedMembers)
-    }
-
     return {
       membersSynced: memberIds.length,
       documentsIndexed,
@@ -544,8 +540,6 @@ export class MemberSyncService {
       docCount += forSync.length
       memberCount += memberIds.length
     }
-
-    await this.memberRepo.markSynced(memberIds)
 
     return {
       membersSynced: memberCount,
@@ -643,7 +637,13 @@ export class MemberSyncService {
     member.activeOn = distinct(member.activeOn)
     member.activityTypes = distinct(member.activityTypes)
     member.tags = distinctBy(member.tags, (t) => t.id)
-    member.organizations = distinctBy(member.organizations, (o) => o.id)
+    // sometimes same organization appears multiple times with different roles or periods
+    // so we distinctBy by taking organization id, title, dateStart, dateEnd
+    member.organizations = distinctBy(
+      member.organizations,
+      (o) =>
+        `${o.id}-${o.memberOrganizations?.title}-${o.memberOrganizations?.dateStart}-${o.memberOrganizations?.dateEnd}`,
+    )
     member.contributions = distinctBy(member.contributions, (c) => c.id)
     member.affiliations = distinctBy(member.affiliations, (a) => a.id)
     member.notes = distinctBy(member.notes, (n) => n.id)
