@@ -1,6 +1,7 @@
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { IDbOrganizationSyncData, IOrganizationSegmentMatrix } from './organization.data'
+import { IndexedEntityType } from './indexing.data'
 
 export class OrganizationRepository extends RepositoryBase<OrganizationRepository> {
   constructor(dbStore: DbStore, parentLog: Logger) {
@@ -270,13 +271,14 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
       `
       select o.id
       from organizations o
-      left join indexed_entities ie on o.id = ie.entity_id
+      left join indexed_entities ie on o.id = ie.entity_id and ie.type = $(type)
       where o."tenantId" = $(tenantId) and 
             o."deletedAt" is null and
             ie.entity_id is null
       limit ${perPage}`,
       {
         tenantId,
+        type: IndexedEntityType.ORGANIZATION,
       },
     )
 
