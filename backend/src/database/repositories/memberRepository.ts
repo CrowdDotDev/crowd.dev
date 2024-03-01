@@ -13,6 +13,7 @@ import {
   SegmentProjectNestedData,
   IMemberOrganization,
   IMemberUsername,
+  MemberIdentityType,
 } from '@crowd/types'
 import lodash, { chunk } from 'lodash'
 import moment from 'moment'
@@ -116,8 +117,8 @@ class MemberRepository {
 
     const seq = SequelizeRepository.getSequelize(options)
     const query = `
-      insert into "memberIdentities"("memberId", platform, username, "sourceId", "tenantId", "integrationId")
-      values(:memberId, :platform, :username, :sourceId, :tenantId, :integrationId);
+      insert into "memberIdentities"("memberId", platform, value, type, "sourceId", "tenantId", "integrationId")
+      values(:memberId, :platform, :value, :type, :sourceId, :tenantId, :integrationId);
     `
 
     for (const platform of Object.keys(username) as PlatformType[]) {
@@ -127,7 +128,8 @@ class MemberRepository {
           replacements: {
             memberId: record.id,
             platform,
-            username: identity.username,
+            value: identity.username,
+            type: MemberIdentityType.USERNAME,
             sourceId: identity.sourceId || null,
             integrationId: identity.integrationId || null,
             tenantId: tenant.id,

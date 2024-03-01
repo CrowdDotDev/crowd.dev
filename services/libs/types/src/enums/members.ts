@@ -185,3 +185,8 @@ export enum MergeActionState {
   FINISHING = 'finishing',
   ERROR = 'error',
 }
+
+export enum MemberIdentityType {
+  USERNAME = 'username',
+  EMAIL = 'email',
+}
