@@ -330,6 +330,11 @@ export class MemberSyncService {
       while (results.length > 0) {
         const result = results.shift()
 
+        if (!result) {
+          index += 1
+          continue
+        }
+
         const { memberId, segmentId } = databaseStream[index]
         const memberSegments = memberSegmentCouples[memberId]
 

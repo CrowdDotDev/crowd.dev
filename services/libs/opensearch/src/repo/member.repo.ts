@@ -47,13 +47,7 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
         from members m
         left join indexed_entities ie on m.id = ie.entity_id and ie.type = $(type)
         where m."tenantId" = $(tenantId) and 
-              m."deletedAt" is null and
-              ie.entity_id is null and
-              (
-                exists (select 1 from activities where "memberId" = m.id) or
-                m."manuallyCreated"
-              ) and
-              exists (select 1 from "memberIdentities" where "memberId" = m.id)
+              ie.entity_id is null
         limit ${perPage};`,
       {
         tenantId,
