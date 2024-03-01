@@ -336,13 +336,11 @@ export class OpenSearchService extends LoggerBase {
           })
 
         this.log.error({ errorItems }, 'Failed to bulk index documents!')
-        // TODO uros remove - temp
-        // throw new Error(`Failed to bulk index documents in index ${index}!`)
+        throw new Error(`Failed to bulk index documents in index ${index}!`)
       }
     } catch (err) {
       this.log.error(err, { index }, 'Failed to bulk index documents!')
-      // TODO uros remove - temp
-      // throw new Error(`Failed to bulk index documents in index ${index}!`)
+      throw new Error(`Failed to bulk index documents in index ${index}!`)
     }
   }
 

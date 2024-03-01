@@ -7,6 +7,17 @@ export class IndexingRepository extends RepositoryBase<IndexingRepository> {
     super(dbStore, parentLog)
   }
 
+  public async deleteIndexedEntities(type: IndexedEntityType): Promise<void> {
+    await this.db().none(
+      `
+      delete from indexed_entities where type = $(type)
+      `,
+      {
+        type,
+      },
+    )
+  }
+
   public async markEntitiesIndexed(type: IndexedEntityType, data: IEntityData[]): Promise<void> {
     if (data.length > 0) {
       const values = data.map((d) => `('${type}', '${d.id}', '${d.tenantId}')`)
