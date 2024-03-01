@@ -3,6 +3,7 @@ import { Logger, logExecutionTimeV2 } from '@crowd/logging'
 import { RedisCache, RedisClient } from '@crowd/redis'
 import { IMemberAttribute } from '@crowd/types'
 import { IDbMemberSyncData, IMemberSegment, IMemberSegmentMatrix } from './member.data'
+import { IndexedEntityType } from './indexing.data'
 
 export class MemberRepository extends RepositoryBase<MemberRepository> {
   private readonly cache: RedisCache
@@ -44,18 +45,13 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
       `
         select m.id
         from members m
-        left join indexed_entities ie on m.id = ie.entity_id
-        where m."tenantId" = $(tenantId) and 
-              m."deletedAt" is null and
-              ie.entity_id is null and
-              (
-                exists (select 1 from activities where "memberId" = m.id) or
-                m."manuallyCreated"
-              ) and
-              exists (select 1 from "memberIdentities" where "memberId" = m.id)
+        left join indexed_entities ie on m.id = ie.entity_id and ie.type = $(type)
+        where m."tenantId" = $(tenantId) and               
+              ie.entity_id is null
         limit ${perPage};`,
       {
         tenantId,
+        type: IndexedEntityType.MEMBER,
       },
     )
 
