@@ -5,7 +5,7 @@ import { SegmentRepository } from '../repo/segment.repo'
 import { OpenSearchIndex } from '../types'
 import { distinct, distinctBy, groupBy, trimUtf8ToMaxByteLength } from '@crowd/common'
 import { DbStore } from '@crowd/database'
-import { Logger, getChildLogger, logExecutionTime, logExecutionTimeV2 } from '@crowd/logging'
+import { Logger, getChildLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
 import { Edition, IMemberAttribute, IServiceConfig, MemberAttributeType } from '@crowd/types'
 import { IMemberSyncResult } from './member.sync.data'
@@ -208,18 +208,10 @@ export class MemberSyncService {
 
     const now = new Date()
 
-    let memberIds = await logExecutionTimeV2(
-      async () => this.memberRepo.getTenantMembersForSync(tenantId, batchSize),
-      this.log,
-      'getTenantMembersForSync',
-    )
+    let memberIds = await this.memberRepo.getTenantMembersForSync(tenantId, batchSize)
 
     while (memberIds.length > 0) {
-      const { membersSynced, documentsIndexed } = await logExecutionTimeV2(
-        async () => this.syncMembers(memberIds),
-        this.log,
-        'syncMembers',
-      )
+      const { membersSynced, documentsIndexed } = await this.syncMembers(memberIds)
 
       docCount += documentsIndexed
       memberCount += membersSynced
@@ -232,26 +224,17 @@ export class MemberSyncService {
         )} members/second!`,
       )
 
-      await logExecutionTimeV2(
-        async () =>
-          this.indexingRepo.markEntitiesIndexed(
-            IndexedEntityType.MEMBER,
-            memberIds.map((id) => {
-              return {
-                id,
-                tenantId,
-              }
-            }),
-          ),
-        this.log,
-        'markEntitiesIndexed',
+      await this.indexingRepo.markEntitiesIndexed(
+        IndexedEntityType.MEMBER,
+        memberIds.map((id) => {
+          return {
+            id,
+            tenantId,
+          }
+        }),
       )
 
-      memberIds = await logExecutionTimeV2(
-        async () => this.memberRepo.getTenantMembersForSync(tenantId, batchSize),
-        this.log,
-        'getTenantMembersForSync',
-      )
+      memberIds = await this.memberRepo.getTenantMembersForSync(tenantId, batchSize)
     }
 
     this.log.info(
@@ -267,36 +250,27 @@ export class MemberSyncService {
 
     const now = new Date()
 
-    await logExecutionTime(
-      async () => {
-        let memberIds = await this.memberRepo.getOrganizationMembersForSync(
-          organizationId,
-          batchSize,
-        )
+    let memberIds = await this.memberRepo.getOrganizationMembersForSync(organizationId, batchSize)
 
-        while (memberIds.length > 0) {
-          const { membersSynced, documentsIndexed } = await this.syncMembers(memberIds)
+    while (memberIds.length > 0) {
+      const { membersSynced, documentsIndexed } = await this.syncMembers(memberIds)
 
-          docCount += documentsIndexed
-          memberCount += membersSynced
+      docCount += documentsIndexed
+      memberCount += membersSynced
 
-          const diffInSeconds = (new Date().getTime() - now.getTime()) / 1000
-          this.log.info(
-            { organizationId },
-            `Synced ${memberCount} members! Speed: ${Math.round(
-              memberCount / diffInSeconds,
-            )} members/second!`,
-          )
-          memberIds = await this.memberRepo.getOrganizationMembersForSync(
-            organizationId,
-            batchSize,
-            memberIds[memberIds.length - 1],
-          )
-        }
-      },
-      this.log,
-      'sync-organization-members',
-    )
+      const diffInSeconds = (new Date().getTime() - now.getTime()) / 1000
+      this.log.info(
+        { organizationId },
+        `Synced ${memberCount} members! Speed: ${Math.round(
+          memberCount / diffInSeconds,
+        )} members/second!`,
+      )
+      memberIds = await this.memberRepo.getOrganizationMembersForSync(
+        organizationId,
+        batchSize,
+        memberIds[memberIds.length - 1],
+      )
+    }
 
     this.log.info(
       { organizationId },
@@ -309,11 +283,8 @@ export class MemberSyncService {
     const BULK_INDEX_DOCUMENT_BATCH_SIZE = 2500
 
     // get all memberId-segmentId couples
-    const memberSegmentCouples: IMemberSegmentMatrix = await logExecutionTimeV2(
-      async () => this.memberRepo.getMemberSegmentCouples(memberIds, segmentIds),
-      this.log,
-      'getMemberSegmentCouples',
-    )
+    const memberSegmentCouples: IMemberSegmentMatrix =
+      await this.memberRepo.getMemberSegmentCouples(memberIds, segmentIds)
     let databaseStream = []
     let syncStream = []
     let documentsIndexed = 0
@@ -417,23 +388,14 @@ export class MemberSyncService {
 
         // databaseStreams will create syncStreams items in processSegmentsStream, which'll later be used to sync to opensearch in bulk
         if (databaseStream.length >= CONCURRENT_DATABASE_QUERIES) {
-          await logExecutionTimeV2(
-            async () => processSegmentsStream(databaseStream),
-            this.log,
-            'processSegmentsStream',
-          )
+          await processSegmentsStream(databaseStream)
           databaseStream = []
         }
 
         while (syncStream.length >= BULK_INDEX_DOCUMENT_BATCH_SIZE) {
-          await logExecutionTimeV2(
-            async () =>
-              this.openSearchService.bulkIndex(
-                OpenSearchIndex.MEMBERS,
-                syncStream.slice(0, BULK_INDEX_DOCUMENT_BATCH_SIZE),
-              ),
-            this.log,
-            'bulkIndex',
+          await this.openSearchService.bulkIndex(
+            OpenSearchIndex.MEMBERS,
+            syncStream.slice(0, BULK_INDEX_DOCUMENT_BATCH_SIZE),
           )
           documentsIndexed += syncStream.slice(0, BULK_INDEX_DOCUMENT_BATCH_SIZE).length
           syncStream = syncStream.slice(BULK_INDEX_DOCUMENT_BATCH_SIZE)
@@ -443,20 +405,12 @@ export class MemberSyncService {
         if (i === totalMemberIds - 1 && j === totalSegments - 1) {
           // check if there are remaining databaseStreams to process
           if (databaseStream.length > 0) {
-            await logExecutionTimeV2(
-              async () => processSegmentsStream(databaseStream),
-              this.log,
-              'processSegmentsStream',
-            )
+            await processSegmentsStream(databaseStream)
           }
 
           // check if there are remaining syncStreams to process
           if (syncStream.length > 0) {
-            await logExecutionTimeV2(
-              async () => this.openSearchService.bulkIndex(OpenSearchIndex.MEMBERS, syncStream),
-              this.log,
-              'bulkIndex',
-            )
+            await this.openSearchService.bulkIndex(OpenSearchIndex.MEMBERS, syncStream)
             documentsIndexed += syncStream.length
           }
         }
