@@ -10,7 +10,8 @@ export {
 export {
   deleteOrganization,
   moveActivitiesBetweenOrgs,
-  notifyFrontend,
+  notifyFrontendOrganizationMergeSuccessful,
+  notifyFrontendOrganizationUnmergeSuccessful,
   syncOrganization,
   recalculateActivityAffiliationsOfOrganizationSynchronous,
 } from './activities/organizations'

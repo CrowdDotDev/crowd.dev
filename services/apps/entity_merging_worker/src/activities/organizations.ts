@@ -90,7 +90,43 @@ export async function syncOrganization(
   await syncApi.triggerOrganizationMembersSync(null, organizationId)
 }
 
-export async function notifyFrontend(
+export async function notifyFrontendOrganizationUnmergeSuccessful(
+  primaryId: string,
+  secondaryId: string,
+  primaryDisplayName: string,
+  secondaryDisplayName: string,
+  tenantId: string,
+  userId: string,
+): Promise<void> {
+  const emitter = new RedisPubSubEmitter(
+    'api-pubsub',
+    svc.redis,
+    (err) => {
+      svc.log.error({ err }, 'Error in api-ws emitter!')
+    },
+    svc.log,
+  )
+
+  emitter.emit(
+    'user',
+    new ApiWebsocketMessage(
+      'organization-unmerge',
+      JSON.stringify({
+        success: true,
+        tenantId,
+        userId,
+        primaryId,
+        secondaryId,
+        primaryDisplayName,
+        secondaryDisplayName,
+      }),
+      undefined,
+      tenantId,
+    ),
+  )
+}
+
+export async function notifyFrontendOrganizationMergeSuccessful(
   primaryOrgId: string,
   secondaryOrgId: string,
   original: string,

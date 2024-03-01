@@ -8,7 +8,8 @@ const {
   moveActivitiesBetweenMembers,
   deleteOrganization,
   moveActivitiesBetweenOrgs,
-  notifyFrontend,
+  notifyFrontendOrganizationMergeSuccessful,
+  notifyFrontendOrganizationUnmergeSuccessful,
   moveActivitiesWithIdentityToAnotherMember,
   recalculateActivityAffiliationsOfMemberAsync,
   recalculateActivityAffiliationsOfOrganizationSynchronous,
@@ -71,7 +72,14 @@ export async function finishOrganizationMerging(
 
   await deleteOrganization(secondaryId)
   await setMergeActionState(primaryId, secondaryId, tenantId, 'merged' as MergeActionState)
-  await notifyFrontend(primaryId, secondaryId, original, toMerge, tenantId, userId)
+  await notifyFrontendOrganizationMergeSuccessful(
+    primaryId,
+    secondaryId,
+    original,
+    toMerge,
+    tenantId,
+    userId,
+  )
 }
 
 export async function finishOrganizationUnmerging(
@@ -87,7 +95,7 @@ export async function finishOrganizationUnmerging(
   await syncOrganization(primaryId, secondaryId)
   await syncOrganization(secondaryId, primaryId)
   await setMergeActionState(primaryId, secondaryId, tenantId, 'unmerged' as MergeActionState)
-  await notifyFrontendMemberUnmergeSuccessful(
+  await notifyFrontendOrganizationUnmergeSuccessful(
     primaryId,
     secondaryId,
     primaryDisplayName,
