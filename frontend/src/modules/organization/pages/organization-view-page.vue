@@ -71,6 +71,7 @@
     v-if="isUnmergeDialogOpen"
     v-model="isUnmergeDialogOpen"
     :selected-identity="selectedIdentity"
+    @update:model-value="selectedIdentity = null"
   />
 </template>
 

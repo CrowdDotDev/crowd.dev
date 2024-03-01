@@ -63,11 +63,11 @@
           target="_blank"
         >
           <app-avatar
-              :entity="{
+            :entity="{
               avatar: props.organization.logo,
               displayName: (props.organization.displayName || props.organization.name)?.replace('@', ''),
             }"
-              class="mr-4 mb-4"
+            class="mr-4 mb-4"
           />
         </router-link>
         <app-avatar
