@@ -54,14 +54,14 @@ export class OrganizationService {
     return response.data;
   }
 
-  static async unmergePreview(orgId, platform, username) {
+  static async unmergePreview(orgId, platform, name) {
     const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/organization/${orgId}/unmerge/preview`,
       {
         platform,
-        username,
+        name,
       },
     );
 

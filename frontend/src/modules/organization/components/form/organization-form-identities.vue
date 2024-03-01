@@ -40,7 +40,7 @@
                     :disabled="!staticModel[ii]?.username || staticModel[ii]?.username !== model[ii].username"
                     @click="emit('unmerge', {
                       platform: key,
-                      username: staticModel[ii]?.username,
+                      username: staticModel[ii]?.name,
                     })"
                   >
                     <i class="ri-link-unlink-m text-lg" />

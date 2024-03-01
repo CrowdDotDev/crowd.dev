@@ -51,6 +51,7 @@
               :organization="preview.primary"
               :compare-organization="preview.secondary"
               :is-primary="true"
+              :is-preview="true"
             >
               <template #header>
                 <div class="h-13 flex justify-between items-start">
@@ -73,6 +74,7 @@
               <app-organization-merge-suggestions-details
                 :organization="preview.secondary"
                 :compare-organization="preview.primary"
+                :is-preview="true"
               >
                 <template #header>
                   <div class="h-13">
@@ -216,8 +218,8 @@ const fetchPreview = (identity) => {
   selectedIdentity.value = identity;
   fetchingPreview.value = true;
 
-  const [platform, username] = identity.split(':');
-  OrganizationService.unmergePreview(props.modelValue?.id, platform, username)
+  const [platform, name] = identity.split(':');
+  OrganizationService.unmergePreview(props.modelValue?.id, platform, name)
     .then((res) => {
       preview.value = res;
     })
