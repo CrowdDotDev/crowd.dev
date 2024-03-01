@@ -1,5 +1,5 @@
 import { DbStore, RepositoryBase } from '@crowd/database'
-import { Logger, logExecutionTimeV2 } from '@crowd/logging'
+import { Logger } from '@crowd/logging'
 import { RedisCache, RedisClient } from '@crowd/redis'
 import { IMemberAttribute } from '@crowd/types'
 import { IDbMemberSyncData, IMemberSegment, IMemberSegmentMatrix } from './member.data'
