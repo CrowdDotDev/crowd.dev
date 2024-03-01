@@ -305,7 +305,7 @@ export class MemberSyncService {
   }
 
   public async syncMembers(memberIds: string[], segmentIds?: string[]): Promise<IMemberSyncResult> {
-    const CONCURRENT_DATABASE_QUERIES = 5
+    const CONCURRENT_DATABASE_QUERIES = 10
     const BULK_INDEX_DOCUMENT_BATCH_SIZE = 2500
 
     // get all memberId-segmentId couples
@@ -322,23 +322,13 @@ export class MemberSyncService {
 
     const successfullySyncedMembers = []
 
-    const log = this.log
-
     const processSegmentsStream = async (databaseStream): Promise<void> => {
-      const results = await logExecutionTimeV2(
-        async () => Promise.all(databaseStream.map((s) => s.promise)),
-        log,
-        'loadAllDatabasePromises',
-      )
+      const results = await Promise.all(databaseStream.map((s) => s.promise))
 
       let index = 0
 
       while (results.length > 0) {
         const result = results.shift()
-        if (!result) {
-          index += 1
-          continue
-        }
 
         const { memberId, segmentId } = databaseStream[index]
         const memberSegments = memberSegmentCouples[memberId]
@@ -351,11 +341,7 @@ export class MemberSyncService {
         // Check if all segments for the member have been processed
         const allSegmentsOfMemberIsProcessed = memberSegments.every((s) => s.processed)
         if (allSegmentsOfMemberIsProcessed) {
-          const attributes = await logExecutionTimeV2(
-            async () => this.memberRepo.getTenantMemberAttributes(result.tenantId),
-            log,
-            'getTenantMemberAttributes',
-          )
+          const attributes = await this.memberRepo.getTenantMemberAttributes(result.tenantId)
 
           // All segments processed, push the segment related docs into syncStream
           syncStream.push(
@@ -372,11 +358,7 @@ export class MemberSyncService {
           if (isMultiSegment) {
             // also calculate and push for parent and grandparent segments
             const childSegmentIds: string[] = distinct(memberSegments.map((m) => m.segmentId))
-            const segmentInfos = await logExecutionTimeV2(
-              async () => this.segmentRepo.getParentSegmentIds(childSegmentIds),
-              log,
-              'getParentSegmentIds',
-            )
+            const segmentInfos = await this.segmentRepo.getParentSegmentIds(childSegmentIds)
 
             const parentIds: string[] = distinct(segmentInfos.map((s) => s.parentId))
             for (const parentId of parentIds) {
