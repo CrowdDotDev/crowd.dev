@@ -5,7 +5,7 @@ import { SegmentRepository } from '../repo/segment.repo'
 import { OpenSearchIndex } from '../types'
 import { distinct, distinctBy, groupBy, trimUtf8ToMaxByteLength } from '@crowd/common'
 import { DbStore } from '@crowd/database'
-import { Logger, getChildLogger, logExecutionTime } from '@crowd/logging'
+import { Logger, getChildLogger, logExecutionTime, logExecutionTimeV2 } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
 import { Edition, IMemberAttribute, IServiceConfig, MemberAttributeType } from '@crowd/types'
 import { IMemberSyncResult } from './member.sync.data'
@@ -208,25 +208,33 @@ export class MemberSyncService {
 
     const now = new Date()
 
-    await logExecutionTime(
-      async () => {
-        let memberIds = await this.memberRepo.getTenantMembersForSync(tenantId, batchSize)
+    let memberIds = await logExecutionTimeV2(
+      async () => this.memberRepo.getTenantMembersForSync(tenantId, batchSize),
+      this.log,
+      'getTenantMembersForSync',
+    )
 
-        while (memberIds.length > 0) {
-          const { membersSynced, documentsIndexed } = await this.syncMembers(memberIds)
+    while (memberIds.length > 0) {
+      const { membersSynced, documentsIndexed } = await logExecutionTimeV2(
+        async () => this.syncMembers(memberIds),
+        this.log,
+        'syncMembers',
+      )
 
-          docCount += documentsIndexed
-          memberCount += membersSynced
+      docCount += documentsIndexed
+      memberCount += membersSynced
 
-          const diffInSeconds = (new Date().getTime() - now.getTime()) / 1000
-          this.log.info(
-            { tenantId },
-            `Synced ${memberCount} members! Speed: ${Math.round(
-              memberCount / diffInSeconds,
-            )} members/second!`,
-          )
+      const diffInSeconds = (new Date().getTime() - now.getTime()) / 1000
+      this.log.info(
+        { tenantId },
+        `Synced ${memberCount} members! Speed: ${Math.round(
+          memberCount / diffInSeconds,
+        )} members/second!`,
+      )
 
-          await this.indexingRepo.markEntitiesIndexed(
+      await logExecutionTimeV2(
+        async () =>
+          this.indexingRepo.markEntitiesIndexed(
             IndexedEntityType.MEMBER,
             memberIds.map((id) => {
               return {
@@ -234,13 +242,17 @@ export class MemberSyncService {
                 tenantId,
               }
             }),
-          )
-          memberIds = await this.memberRepo.getTenantMembersForSync(tenantId, batchSize)
-        }
-      },
-      this.log,
-      'sync-tenant-members',
-    )
+          ),
+        this.log,
+        'markEntitiesIndexed',
+      )
+
+      memberIds = await logExecutionTimeV2(
+        async () => this.memberRepo.getTenantMembersForSync(tenantId, batchSize),
+        this.log,
+        'getTenantMembersForSync',
+      )
+    }
 
     this.log.info(
       { tenantId },
@@ -297,8 +309,11 @@ export class MemberSyncService {
     const BULK_INDEX_DOCUMENT_BATCH_SIZE = 2500
 
     // get all memberId-segmentId couples
-    const memberSegmentCouples: IMemberSegmentMatrix =
-      await this.memberRepo.getMemberSegmentCouples(memberIds, segmentIds)
+    const memberSegmentCouples: IMemberSegmentMatrix = await logExecutionTimeV2(
+      async () => this.memberRepo.getMemberSegmentCouples(memberIds, segmentIds),
+      this.log,
+      'getMemberSegmentCouples',
+    )
     let databaseStream = []
     let syncStream = []
     let documentsIndexed = 0
@@ -307,8 +322,14 @@ export class MemberSyncService {
 
     const successfullySyncedMembers = []
 
+    const log = this.log
+
     const processSegmentsStream = async (databaseStream): Promise<void> => {
-      const results = await Promise.all(databaseStream.map((s) => s.promise))
+      const results = await logExecutionTimeV2(
+        async () => Promise.all(databaseStream.map((s) => s.promise)),
+        log,
+        'loadAllDatabasePromises',
+      )
 
       let index = 0
 
@@ -325,7 +346,11 @@ export class MemberSyncService {
         // Check if all segments for the member have been processed
         const allSegmentsOfMemberIsProcessed = memberSegments.every((s) => s.processed)
         if (allSegmentsOfMemberIsProcessed) {
-          const attributes = await this.memberRepo.getTenantMemberAttributes(result.tenantId)
+          const attributes = await logExecutionTimeV2(
+            async () => this.memberRepo.getTenantMemberAttributes(result.tenantId),
+            log,
+            'getTenantMemberAttributes',
+          )
 
           // All segments processed, push the segment related docs into syncStream
           syncStream.push(
@@ -342,7 +367,11 @@ export class MemberSyncService {
           if (isMultiSegment) {
             // also calculate and push for parent and grandparent segments
             const childSegmentIds: string[] = distinct(memberSegments.map((m) => m.segmentId))
-            const segmentInfos = await this.segmentRepo.getParentSegmentIds(childSegmentIds)
+            const segmentInfos = await logExecutionTimeV2(
+              async () => this.segmentRepo.getParentSegmentIds(childSegmentIds),
+              log,
+              'getParentSegmentIds',
+            )
 
             const parentIds: string[] = distinct(segmentInfos.map((s) => s.parentId))
             for (const parentId of parentIds) {
@@ -396,14 +425,23 @@ export class MemberSyncService {
 
         // databaseStreams will create syncStreams items in processSegmentsStream, which'll later be used to sync to opensearch in bulk
         if (databaseStream.length >= CONCURRENT_DATABASE_QUERIES) {
-          await processSegmentsStream(databaseStream)
+          await logExecutionTimeV2(
+            async () => processSegmentsStream(databaseStream),
+            this.log,
+            'processSegmentsStream',
+          )
           databaseStream = []
         }
 
         while (syncStream.length >= BULK_INDEX_DOCUMENT_BATCH_SIZE) {
-          await this.openSearchService.bulkIndex(
-            OpenSearchIndex.MEMBERS,
-            syncStream.slice(0, BULK_INDEX_DOCUMENT_BATCH_SIZE),
+          await logExecutionTimeV2(
+            async () =>
+              this.openSearchService.bulkIndex(
+                OpenSearchIndex.MEMBERS,
+                syncStream.slice(0, BULK_INDEX_DOCUMENT_BATCH_SIZE),
+              ),
+            this.log,
+            'bulkIndex',
           )
           documentsIndexed += syncStream.slice(0, BULK_INDEX_DOCUMENT_BATCH_SIZE).length
           syncStream = syncStream.slice(BULK_INDEX_DOCUMENT_BATCH_SIZE)
@@ -413,12 +451,20 @@ export class MemberSyncService {
         if (i === totalMemberIds - 1 && j === totalSegments - 1) {
           // check if there are remaining databaseStreams to process
           if (databaseStream.length > 0) {
-            await processSegmentsStream(databaseStream)
+            await logExecutionTimeV2(
+              async () => processSegmentsStream(databaseStream),
+              this.log,
+              'processSegmentsStream',
+            )
           }
 
           // check if there are remaining syncStreams to process
           if (syncStream.length > 0) {
-            await this.openSearchService.bulkIndex(OpenSearchIndex.MEMBERS, syncStream)
+            await logExecutionTimeV2(
+              async () => this.openSearchService.bulkIndex(OpenSearchIndex.MEMBERS, syncStream),
+              this.log,
+              'bulkIndex',
+            )
             documentsIndexed += syncStream.length
           }
         }

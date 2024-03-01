@@ -1,5 +1,5 @@
 import { DbStore, RepositoryBase } from '@crowd/database'
-import { Logger } from '@crowd/logging'
+import { Logger, logExecutionTimeV2 } from '@crowd/logging'
 import { RedisCache, RedisClient } from '@crowd/redis'
 import { IMemberAttribute } from '@crowd/types'
 import { IDbMemberSyncData, IMemberSegment, IMemberSegmentMatrix } from './member.data'
@@ -336,8 +336,10 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
     memberId: string,
     segmentId: string,
   ): Promise<IDbMemberSyncData[]> {
-    const results = await this.db().oneOrNone(
-      ` 
+    return logExecutionTimeV2(
+      async () =>
+        await this.db().oneOrNone(
+          ` 
       with to_merge_data as (
             select mtm."memberId",
             array_agg(distinct mtm."toMergeId"::text) as to_merge_ids
@@ -519,13 +521,14 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
       where m.id = $(memberId)
       and m."deletedAt" is null
       and (ad."memberId" is not null or m."manuallyCreated");`,
-      {
-        memberId,
-        segmentId,
-      },
+          {
+            memberId,
+            segmentId,
+          },
+        ),
+      this.log,
+      'getMemberDataInOneSegment',
     )
-
-    return results
   }
 
   public async checkMembersExists(tenantId: string, memberIds: string[]): Promise<string[]> {
