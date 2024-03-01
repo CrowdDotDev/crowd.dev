@@ -343,7 +343,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     organizationIds: string[],
     segmentIds?: string[],
   ): Promise<IOrganizationSegmentMatrix> {
-    let organizationSegments: IOrganizationSegment[]
+    let organizationSegments: IOrganizationSegment[] = []
 
     if (segmentIds && segmentIds.length > 0) {
       for (const organizationId of organizationIds) {

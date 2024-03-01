@@ -6,7 +6,7 @@ export async function findMemberIdsInOrganization(
 ): Promise<string[]> {
   let result: { memberId: string }[]
   try {
-    result = await db.connection().many(
+    result = await db.connection().any(
       `
       select distinct "memberId" from "memberOrganizations"
       where "organizationId" = $(organizationId);      
