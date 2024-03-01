@@ -167,6 +167,7 @@ const config = defaultConfig.backendUrl
   : composedConfig;
 
 config.isCommunityVersion = config.edition === 'community';
+config.isEagleEyeEnabled = !config.isCommunityVersion;
 config.hasPremiumModules = !config.isCommunityVersion
   || config.communityPremium === 'true';
 config.isGitIntegrationEnabled = config.isGitEnabled === 'true';

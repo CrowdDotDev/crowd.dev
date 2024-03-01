@@ -1,12 +1,13 @@
 import Layout from '@/modules/layout/components/layout.vue';
 import Permissions from '@/security/permissions';
 import { store } from '@/store';
+import config from '@/config';
 
 const EagleEyePage = () => import(
   '@/premium/eagle-eye/pages/eagle-eye-page-wrapper.vue'
 );
 
-export default [
+export default config.isEagleEyeEnabled ? [
   {
     path: '',
     component: Layout,
@@ -41,4 +42,4 @@ export default [
       },
     ],
   },
-];
+] : [];
