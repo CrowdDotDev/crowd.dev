@@ -1409,7 +1409,6 @@ export default class MemberService extends LoggerBase {
    */
   async addToNoMerge(memberOneId, memberTwoId) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
-    const searchSyncService = new SearchSyncService(this.options)
 
     try {
       await MemberRepository.addNoMerge(memberOneId, memberTwoId, {
@@ -1430,9 +1429,6 @@ export default class MemberService extends LoggerBase {
       })
 
       await SequelizeRepository.commitTransaction(transaction)
-
-      await searchSyncService.triggerMemberSync(this.options.currentTenant.id, memberOneId)
-      await searchSyncService.triggerMemberSync(this.options.currentTenant.id, memberTwoId)
 
       return { status: 200 }
     } catch (error) {
