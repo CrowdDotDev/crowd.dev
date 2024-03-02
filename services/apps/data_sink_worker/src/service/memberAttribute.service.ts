@@ -71,8 +71,18 @@ export default class MemberAttributeService extends LoggerBase {
         continue
       }
       if (typeof attributes[attributeName] !== 'object') {
-        attributes[attributeName] = {
-          custom: attributes[attributeName],
+        try {
+          attributes[attributeName] = JSON.parse(attributes[attributeName] as string)
+        } catch (error) {
+          this.log.error('Failed to parse attribute value', {
+            attributeName,
+            attributeValue: attributes[attributeName],
+          })
+
+          // if we can't parse the value, probably it is a custom attribute
+          attributes[attributeName] = {
+            custom: attributes[attributeName],
+          }
         }
       }
 
