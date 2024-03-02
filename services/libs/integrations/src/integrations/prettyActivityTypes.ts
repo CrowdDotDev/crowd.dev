@@ -54,6 +54,9 @@ export const prettyActivityTypes = {
   [PlatformType.DEVTO]: {
     comment: 'comment',
   },
+  [PlatformType.YOUTUBE]: {
+    comment: 'comment',
+  },
   [PlatformType.HACKERNEWS]: {
     [HackerNewsActivityType.POST]: 'posted',
     [HackerNewsActivityType.COMMENT]: 'commented ',

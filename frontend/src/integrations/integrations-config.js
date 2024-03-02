@@ -16,6 +16,7 @@ import git from './git';
 import facebook from './facebook';
 import n8n from './n8n';
 import groupsio from './groupsio';
+import youtube from './youtube';
 import salesforce from './salesforce';
 import segment from './segment';
 import census from './census';
@@ -43,6 +44,7 @@ class IntegrationsConfig {
       groupsio,
       // make,
       facebook,
+      youtube,
       salesforce,
       segment,
       census,

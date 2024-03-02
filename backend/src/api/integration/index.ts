@@ -263,4 +263,9 @@ export default (app) => {
       safeWrap(require('./helpers/slackAuthenticateCallback').default),
     )
   }
+  
+  app.post(
+    '/tenant/:tenantId/youtube-connect',
+    safeWrap(require('./helpers/youtubeConnect').default),
+  )
 }

@@ -418,4 +418,14 @@ export class IntegrationService {
 
     return response.data;
   }
+
+  static async youtubeConnect(reqBody) {
+    const tenantId = AuthCurrentTenant.get();
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/youtube-connect`,
+      reqBody,
+    );
+
+    return response.data;
+  }
 }

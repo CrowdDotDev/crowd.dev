@@ -1632,4 +1632,81 @@ export default class IntegrationService {
       throw new Error400(this.options.language, 'errors.groupsio.invalidGroup')
     }
   }
+
+  async connectYoutube(integrationData) {
+    this.options.log.info('Creating youtube integration!!')
+    let channelId = ''
+    let keywords = []
+    let shouldVerifyChannelId = true
+
+    const isValidKeyword = integrationData.keywords && Array.isArray(integrationData.keywords)
+    if (isValidKeyword && integrationData.keywords.length > 0) {
+      if (integrationData.keywords.length > 5) {
+        throw new Error400('The maximum number of keywords is 5')
+      }
+
+      keywords = integrationData.keywords
+      shouldVerifyChannelId = false
+    }
+
+    if (shouldVerifyChannelId) {
+      try {
+        const channelDetailsConfig: AxiosRequestConfig = {
+          method: 'get',
+          url: `https://www.googleapis.com/youtube/v3/channels`,
+          params: {
+            key: integrationData.apiKey,
+            id: integrationData.channelId,
+            part: 'contentDetails',
+          },
+        }
+
+        const response = (await axios(channelDetailsConfig)).data
+        const channelDetails = response.items[0]
+        channelId = channelDetails.id
+      } catch (err) {
+        throw new Error400(
+          `The channel: ${integrationData.channelId} with the api key: ${integrationData.apiKey} is not valid`,
+        )
+      }
+    }
+
+    let integration
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+
+    try {
+      integration = await this.createOrUpdate(
+        {
+          platform: PlatformType.YOUTUBE,
+          settings: {
+            apiKey: integrationData.apiKey,
+            channelId,
+            keywords,
+            page: 1,
+          },
+          status: 'in-progress',
+        },
+        transaction,
+      )
+
+      await SequelizeRepository.commitTransaction(transaction)
+    } catch (err) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw err
+    }
+
+    this.options.log.info(
+      { tenantId: integration.tenantId },
+      'Sending Youtube message to int-run-worker!',
+    )
+    const emitter = await getIntegrationRunWorkerEmitter()
+    await emitter.triggerIntegrationRun(
+      integration.tenantId,
+      integration.platform,
+      integration.id,
+      true,
+    )
+
+    return integration
+  }
 }
