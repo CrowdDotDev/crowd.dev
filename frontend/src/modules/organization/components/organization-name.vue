@@ -2,7 +2,7 @@
   <div class="flex items-center gap-3">
     <div>
       <div
-        class="min-h-8 min-w-8 w-8 h-8 border border-gray-200 rounded flex items-center justify-center overflow-hidden"
+        class="min-h-8 min-w-8 w-8 h-8 border border-gray-200 rounded-md flex items-center justify-center relative overflow-hidden"
         :class="{
           'bg-white': organization.logo,
           'bg-gray-50': !organization.logo,
@@ -16,7 +16,7 @@
         </app-avatar-image>
       </div>
     </div>
-    <div class="overflow-hidden mr-6">
+    <div class="inline-flex flex-wrap overflow-wrap items-center">
       <el-tooltip
         :content="organization.displayName || organization.name"
         effect="dark"
@@ -25,7 +25,7 @@
       >
         <div
           ref="nameRef"
-          class="font-semibold text-sm text-gray-900 overflow-hidden whitespace-nowrap text-ellipsis truncate"
+          class="font-medium text-sm text-gray-900 line-clamp-2 w-auto mr-2"
           @mouseover="handleOnMouseOver"
           @mouseleave="handleOnMouseLeave"
         >
