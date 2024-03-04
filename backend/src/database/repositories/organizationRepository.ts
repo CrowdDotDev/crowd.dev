@@ -657,7 +657,7 @@ class OrganizationRepository {
           ) {
             // column was null before now it's not anymore
             changed = true
-          } else if (this.isEqual[column](record[column], data[column]) === false) {
+          } else if (this.isEqual[column] && this.isEqual[column](record[column], data[column]) === false) {
             // column value has changed
             changed = true
           }
