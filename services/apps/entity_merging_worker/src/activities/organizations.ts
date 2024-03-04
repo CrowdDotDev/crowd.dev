@@ -5,12 +5,14 @@ import {
   deleteOrganizationById,
   deleteOrganizationCacheLinks,
   deleteOrganizationSegments,
+  findOrganizationCacheIdFromIdentities,
+  findOrganizationIdentities,
   moveActivitiesToNewOrg,
+  linkOrganizationToCacheId,
 } from '@crowd/data-access-layer/src/old/apps/entity_merging_worker/orgs'
 import { SearchSyncApiClient } from '@crowd/opensearch'
 import {
   findOrganizationSegments,
-  markMemberAsManuallyCreated,
   markOrganizationAsManuallyCreated,
 } from '@crowd/data-access-layer/src/old/apps/entity_merging_worker'
 import { WorkflowIdReusePolicy } from '@temporalio/workflow'
@@ -160,4 +162,12 @@ export async function notifyFrontendOrganizationMergeSuccessful(
       tenantId,
     ),
   )
+}
+
+export async function linkOrganizationToCache(organizationId: string): Promise<void> {
+  const identities = await findOrganizationIdentities(svc.postgres.writer, organizationId)
+
+  const cacheId = await findOrganizationCacheIdFromIdentities(svc.postgres.writer, identities)
+
+  await linkOrganizationToCacheId(svc.postgres.writer, organizationId, cacheId)
 }

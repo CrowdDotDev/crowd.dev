@@ -49,6 +49,8 @@ export default class OrganizationService extends LoggerBase {
     'phoneNumbers',
     'logo',
     'tags',
+    'type',
+    'joinedAt',
     'twitter',
     'linkedin',
     'crunchbase',
