@@ -66,11 +66,12 @@ export default class IntegrationDataRepository extends RepositoryBase<Integratio
     try {
       const results = await this.db().any(
         `
-        select id
-        from integration."apiData"
-        where (state in ($(errorState), $(pendingState)))
-          or (state = $(delayedState) and "delayedUntil" < now())
-        limit ${limit} for update skip locked;        `,
+          select id
+          from integration."apiData"
+          where (state in ($(errorState), $(pendingState)))
+            or (state = $(delayedState) and "delayedUntil" < now())
+          limit ${limit};
+        `,
         {
           errorState: IntegrationStreamDataState.ERROR,
           pendingState: IntegrationStreamDataState.PENDING,

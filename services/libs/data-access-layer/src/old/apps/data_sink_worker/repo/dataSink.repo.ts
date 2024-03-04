@@ -70,8 +70,7 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
         from integration.results r
         where r.state = $(pendingState)
           and r."updatedAt" < now() - interval '1 hour'
-        limit ${limit}
-        for update skip locked;
+        limit ${limit};
         `,
         {
           pendingState: IntegrationResultState.PENDING,

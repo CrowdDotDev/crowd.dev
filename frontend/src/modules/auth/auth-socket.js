@@ -96,11 +96,16 @@ export const connectSocket = (token) => {
       {},
       ' unmerged from ',
     );
+    const after = h(
+      'span',
+      {},
+      '. Syncing contact activities might take some time to complete.',
+    );
     Message.closeAll();
     Message.success(h(
       'div',
       {},
-      [secondaryMember, between, primaryMember],
+      [secondaryMember, between, primaryMember, after],
     ), {
       title: 'Contributors unmerged successfully',
     });
