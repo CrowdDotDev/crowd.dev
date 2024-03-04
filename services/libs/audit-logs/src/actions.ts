@@ -111,3 +111,10 @@ export function organizationUpdateAction<T>(
 ): BuildActionFn<T> {
   return modifyEntityAction(ActionType.ORGANIZATIONS_EDIT_PROFILE, entityId, captureFn)
 }
+
+export function integrationConnectAction<T>(
+  entityId: string,
+  captureFn: CaptureOneFn<T>,
+): BuildActionFn<T> {
+  return createEntityAction(ActionType.INTEGRATIONS_CONNECT, entityId, captureFn)
+}
