@@ -807,6 +807,7 @@ class MemberRepository {
 
         return record
       }),
+      !manualChange, // no need to track for audit if it's not a manual change
     )
 
     if (data.activities) {

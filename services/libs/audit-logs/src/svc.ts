@@ -33,12 +33,15 @@ async function captureChange(
 export async function captureApiChange<T>(
   options: any, // eslint-disable-line @typescript-eslint/no-explicit-any
   buildActionFn: BuildActionFn<T>,
+  skipAuditLog = false,
 ): Promise<T> {
   const auditOptions = convertRepositoryOptions(options)
 
   const buildActionResult = await buildActionFn()
   try {
-    await captureChange(auditOptions, buildActionResult.auditLog)
+    if (!skipAuditLog) {
+      await captureChange(auditOptions, buildActionResult.auditLog)
+    }
   } catch (error) {
     throw new Error(`Error capturing change: ${error.message}`)
   }
