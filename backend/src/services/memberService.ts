@@ -52,6 +52,7 @@ import MemberOrganizationService from './memberOrganizationService'
 import { MergeActionsRepository } from '@/database/repositories/mergeActionsRepository'
 import MemberOrganizationRepository from '@/database/repositories/memberOrganizationRepository'
 import OrganizationRepository from '@/database/repositories/organizationRepository'
+import { captureApiChange, memberMergeAction } from '@crowd/audit-logs'
 
 export default class MemberService extends LoggerBase {
   options: IServiceOptions
@@ -1111,119 +1112,133 @@ export default class MemberService extends LoggerBase {
     let tx
 
     try {
-      const original = await MemberRepository.findById(originalId, this.options)
-      const toMerge = await MemberRepository.findById(toMergeId, this.options)
+      await captureApiChange(
+        this.options,
+        memberMergeAction(originalId, async (captureOldState, captureNewState) => {
+          const original = await MemberRepository.findById(originalId, this.options)
+          const toMerge = await MemberRepository.findById(toMergeId, this.options)
 
-      const backup = {
-        primary: {
-          ...lodash.pick(original, MemberService.MEMBER_MERGE_FIELDS),
-          identities: await MemberRepository.getRawMemberIdentities(originalId, this.options),
-          memberOrganizations: await MemberOrganizationRepository.findMemberRoles(
+          captureOldState({
+            primary: original,
+            secondary: toMerge,
+          })
+
+          const backup = {
+            primary: {
+              ...lodash.pick(original, MemberService.MEMBER_MERGE_FIELDS),
+              identities: await MemberRepository.getRawMemberIdentities(originalId, this.options),
+              memberOrganizations: await MemberOrganizationRepository.findMemberRoles(
+                originalId,
+                this.options,
+              ),
+            },
+            secondary: {
+              ...lodash.pick(toMerge, MemberService.MEMBER_MERGE_FIELDS),
+              identities: await MemberRepository.getRawMemberIdentities(toMergeId, this.options),
+              memberOrganizations: await MemberOrganizationRepository.findMemberRoles(
+                toMergeId,
+                this.options,
+              ),
+            },
+          }
+
+          await MergeActionsRepository.add(
+            MergeActionType.MEMBER,
             originalId,
-            this.options,
-          ),
-        },
-        secondary: {
-          ...lodash.pick(toMerge, MemberService.MEMBER_MERGE_FIELDS),
-          identities: await MemberRepository.getRawMemberIdentities(toMergeId, this.options),
-          memberOrganizations: await MemberOrganizationRepository.findMemberRoles(
             toMergeId,
             this.options,
-          ),
-        },
-      }
-
-      await MergeActionsRepository.add(
-        MergeActionType.MEMBER,
-        originalId,
-        toMergeId,
-        this.options,
-        MergeActionState.IN_PROGRESS,
-        backup,
-      )
-
-      if (original.id === toMerge.id) {
-        return {
-          status: 203,
-          mergedId: originalId,
-        }
-      }
-
-      const repoOptions: IRepositoryOptions =
-        await SequelizeRepository.createTransactionalRepositoryOptions(this.options)
-      tx = repoOptions.transaction
-
-      const allIdentities = await MemberRepository.getIdentities(
-        [originalId, toMergeId],
-        repoOptions,
-      )
-
-      const originalIdentities = allIdentities.get(originalId)
-      const toMergeIdentities = allIdentities.get(toMergeId)
-      const identitiesToMove = []
-      for (const identity of toMergeIdentities) {
-        if (
-          !originalIdentities.find(
-            (i) => i.platform === identity.platform && i.username === identity.username,
+            MergeActionState.IN_PROGRESS,
+            backup,
           )
-        ) {
-          identitiesToMove.push(identity)
-        }
-      }
 
-      await MemberRepository.moveIdentitiesBetweenMembers(
-        toMergeId,
-        originalId,
-        identitiesToMove,
-        repoOptions,
+          if (original.id === toMerge.id) {
+            return {
+              status: 203,
+              mergedId: originalId,
+            }
+          }
+
+          const repoOptions: IRepositoryOptions =
+            await SequelizeRepository.createTransactionalRepositoryOptions(this.options)
+          tx = repoOptions.transaction
+
+          const allIdentities = await MemberRepository.getIdentities(
+            [originalId, toMergeId],
+            repoOptions,
+          )
+
+          const originalIdentities = allIdentities.get(originalId)
+          const toMergeIdentities = allIdentities.get(toMergeId)
+          const identitiesToMove = []
+          for (const identity of toMergeIdentities) {
+            if (
+              !originalIdentities.find(
+                (i) => i.platform === identity.platform && i.username === identity.username,
+              )
+            ) {
+              identitiesToMove.push(identity)
+            }
+          }
+
+          await MemberRepository.moveIdentitiesBetweenMembers(
+            toMergeId,
+            originalId,
+            identitiesToMove,
+            repoOptions,
+          )
+
+          // Update notes to belong to the originalId member
+          await MemberRepository.moveNotesBetweenMembers(toMergeId, originalId, repoOptions)
+
+          // Update tasks to belong to the originalId member
+          await MemberRepository.moveTasksBetweenMembers(toMergeId, originalId, repoOptions)
+
+          // Update member affiliations
+          await MemberRepository.moveAffiliationsBetweenMembers(toMergeId, originalId, repoOptions)
+
+          // Get tags as array of ids (findById returns them as models)
+          original.tags = original.tags.map((i) => i.get({ plain: true }).id)
+          toMerge.tags = toMerge.tags.map((i) => i.get({ plain: true }).id)
+
+          // leave member activities alone - we will update them with a single query later
+          delete original.activities
+          delete toMerge.activities
+
+          // Performs a merge and returns the fields that were changed so we can update
+          const toUpdate: any = await MemberService.membersMerge(original, toMerge)
+
+          // we will handle activities later manually
+          delete toUpdate.activities
+          // we already handled identities
+          delete toUpdate.username
+          // we merge them manually
+          delete toUpdate.organizations
+
+          // Update original member
+          const txService = new MemberService(repoOptions as IServiceOptions)
+          await txService.update(originalId, captureNewState({ primary: toUpdate }), false)
+
+          // update members that belong to source organization to destination org
+          const memberOrganizationService = new MemberOrganizationService(repoOptions)
+          await memberOrganizationService.moveOrgsBetweenMembers(originalId, toMergeId)
+
+          // Remove toMerge from original member
+          await MemberRepository.removeToMerge(originalId, toMergeId, repoOptions)
+
+          const secondMemberSegments = await MemberRepository.getMemberSegments(
+            toMergeId,
+            repoOptions,
+          )
+
+          await MemberRepository.includeMemberToSegments(toMergeId, {
+            ...repoOptions,
+            currentSegments: secondMemberSegments,
+          })
+
+          await SequelizeRepository.commitTransaction(tx)
+          return null
+        }),
       )
-
-      // Update notes to belong to the originalId member
-      await MemberRepository.moveNotesBetweenMembers(toMergeId, originalId, repoOptions)
-
-      // Update tasks to belong to the originalId member
-      await MemberRepository.moveTasksBetweenMembers(toMergeId, originalId, repoOptions)
-
-      // Update member affiliations
-      await MemberRepository.moveAffiliationsBetweenMembers(toMergeId, originalId, repoOptions)
-
-      // Get tags as array of ids (findById returns them as models)
-      original.tags = original.tags.map((i) => i.get({ plain: true }).id)
-      toMerge.tags = toMerge.tags.map((i) => i.get({ plain: true }).id)
-
-      // leave member activities alone - we will update them with a single query later
-      delete original.activities
-      delete toMerge.activities
-
-      // Performs a merge and returns the fields that were changed so we can update
-      const toUpdate: any = await MemberService.membersMerge(original, toMerge)
-
-      // we will handle activities later manually
-      delete toUpdate.activities
-      // we already handled identities
-      delete toUpdate.username
-      // we merge them manually
-      delete toUpdate.organizations
-
-      // Update original member
-      const txService = new MemberService(repoOptions as IServiceOptions)
-      await txService.update(originalId, toUpdate, false)
-
-      // update members that belong to source organization to destination org
-      const memberOrganizationService = new MemberOrganizationService(repoOptions)
-      await memberOrganizationService.moveOrgsBetweenMembers(originalId, toMergeId)
-
-      // Remove toMerge from original member
-      await MemberRepository.removeToMerge(originalId, toMergeId, repoOptions)
-
-      const secondMemberSegments = await MemberRepository.getMemberSegments(toMergeId, repoOptions)
-
-      await MemberRepository.includeMemberToSegments(toMergeId, {
-        ...repoOptions,
-        currentSegments: secondMemberSegments,
-      })
-
-      await SequelizeRepository.commitTransaction(tx)
 
       await this.options.temporal.workflow.start('finishMemberMerging', {
         taskQueue: 'entity-merging',

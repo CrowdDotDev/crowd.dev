@@ -17,7 +17,7 @@ export interface AuditLogAction {
 }
 
 export enum ActionType {
-  MEMBER_MERGE = 'member-merge',
+  MEMBERS_MERGE = 'members-merge',
   MEMBERS_EDIT_IDENTITIES = 'members-edit-identities',
   MEMBERS_EDIT_ORGANIZATIONS = 'members-edit-organizations',
   MEMBERS_EDIT_MANUAL_AFFILIATION = 'members-edit-manual-affiliation',

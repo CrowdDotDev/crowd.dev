@@ -48,3 +48,7 @@ export function memberEditProfileAction<T>(
 ): BuildActionFn<T> {
   return modifyEntityAction(ActionType.MEMBERS_EDIT_PROFILE, entityId, captureFn)
 }
+
+export function memberMergeAction<T>(entityId: string, captureFn: CaptureFn<T>): BuildActionFn<T> {
+  return modifyEntityAction(ActionType.MEMBERS_MERGE, entityId, captureFn)
+}
