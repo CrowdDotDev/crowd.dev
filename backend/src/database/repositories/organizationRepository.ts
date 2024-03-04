@@ -20,6 +20,7 @@ import {
   SyncStatus,
 } from '@crowd/types'
 import Sequelize, { QueryTypes } from 'sequelize'
+import { captureApiChange, organizationCreateAction } from '@crowd/audit-logs'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
@@ -244,64 +245,69 @@ class OrganizationRepository {
     if (!data.displayName) {
       data.displayName = data.identities[0].name
     }
+    const toInsert = {
+      ...lodash.pick(data, [
+        'displayName',
+        'description',
+        'emails',
+        'phoneNumbers',
+        'logo',
+        'tags',
+        'website',
+        'location',
+        'github',
+        'twitter',
+        'linkedin',
+        'crunchbase',
+        'employees',
+        'revenueRange',
+        'importHash',
+        'isTeamOrganization',
+        'employeeCountByCountry',
+        'type',
+        'ticker',
+        'headline',
+        'profiles',
+        'naics',
+        'industry',
+        'founded',
+        'size',
+        'lastEnrichedAt',
+        'manuallyCreated',
+        'affiliatedProfiles',
+        'allSubsidiaries',
+        'alternativeDomains',
+        'alternativeNames',
+        'averageEmployeeTenure',
+        'averageTenureByLevel',
+        'averageTenureByRole',
+        'directSubsidiaries',
+        'employeeChurnRate',
+        'employeeCountByMonth',
+        'employeeGrowthRate',
+        'employeeCountByMonthByLevel',
+        'employeeCountByMonthByRole',
+        'gicsSector',
+        'grossAdditionsByMonth',
+        'grossDeparturesByMonth',
+        'ultimateParent',
+        'immediateParent',
+      ]),
 
-    const record = await options.database.organization.create(
-      {
-        ...lodash.pick(data, [
-          'displayName',
-          'description',
-          'emails',
-          'phoneNumbers',
-          'logo',
-          'tags',
-          'website',
-          'location',
-          'github',
-          'twitter',
-          'linkedin',
-          'crunchbase',
-          'employees',
-          'revenueRange',
-          'importHash',
-          'isTeamOrganization',
-          'employeeCountByCountry',
-          'type',
-          'ticker',
-          'headline',
-          'profiles',
-          'naics',
-          'industry',
-          'founded',
-          'size',
-          'lastEnrichedAt',
-          'manuallyCreated',
-          'affiliatedProfiles',
-          'allSubsidiaries',
-          'alternativeDomains',
-          'alternativeNames',
-          'averageEmployeeTenure',
-          'averageTenureByLevel',
-          'averageTenureByRole',
-          'directSubsidiaries',
-          'employeeChurnRate',
-          'employeeCountByMonth',
-          'employeeGrowthRate',
-          'employeeCountByMonthByLevel',
-          'employeeCountByMonthByRole',
-          'gicsSector',
-          'grossAdditionsByMonth',
-          'grossDeparturesByMonth',
-          'ultimateParent',
-          'immediateParent',
-        ]),
+      tenantId: tenant.id,
+      createdById: currentUser.id,
+      updatedById: currentUser.id,
+    }
 
-        tenantId: tenant.id,
-        createdById: currentUser.id,
-        updatedById: currentUser.id,
-      },
-      {
-        transaction,
-      },
+    const record = await options.database.organization.create(toInsert, {
+      transaction,
+    })
+
+    await captureApiChange(
+      options,
+      organizationCreateAction(record.id, async (captureState) => {
+        captureState(toInsert)
+      }),
     )
 
     await record.setMembers(data.members || [], {
@@ -854,9 +860,9 @@ class OrganizationRepository {
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
     const query = `
-          insert into 
+          insert into
               "organizationIdentities"("organizationId", "platform", "name", "url", "sourceId", "tenantId", "integrationId", "createdAt")
-          values 
+          values
               (:organizationId, :platform, :name, :url, :sourceId, :tenantId, :integrationId, now())
           on conflict do nothing;
     `
@@ -887,7 +893,7 @@ class OrganizationRepository {
     const results = await sequelize.query(
       `
       select "sourceId", "platform", "name", "integrationId", "organizationId" from "organizationIdentities"
-      where "tenantId" = :tenantId and "organizationId" in (:organizationIds) 
+      where "tenantId" = :tenantId and "organizationId" in (:organizationIds)
     `,
       {
         replacements: {
@@ -915,13 +921,13 @@ class OrganizationRepository {
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
     const query = `
-      update "organizationIdentities" 
-      set 
+      update "organizationIdentities"
+      set
         "organizationId" = :newOrganizationId
-      where 
-        "tenantId" = :tenantId and 
-        "organizationId" = :oldOrganizationId and 
-        platform = :platform and 
+      where
+        "tenantId" = :tenantId and
+        "organizationId" = :oldOrganizationId and
+        platform = :platform and
         name = :name;
     `
 
@@ -955,7 +961,7 @@ class OrganizationRepository {
 
     const query = `
     insert into "organizationNoMerge" ("organizationId", "noMergeId", "createdAt", "updatedAt")
-    values 
+    values
     (:organizationId, :noMergeId, now(), now()),
     (:noMergeId, :organizationId, now(), now())
     on conflict do nothing;
@@ -1508,12 +1514,12 @@ class OrganizationRepository {
           AND (ma.id IS NULL OR ma.state = :mergeActionStatus)
           ${organizationFilter}
       ),
-      
+
       count_cte AS (
         SELECT COUNT(DISTINCT hash) AS total_count
         FROM cte
       ),
-      
+
       final_select AS (
         SELECT DISTINCT ON (hash)
           id,
@@ -1523,7 +1529,7 @@ class OrganizationRepository {
         FROM cte
         ORDER BY hash, id
       )
-      
+
       SELECT
         "organizationsToMerge".id,
         "organizationsToMerge"."toMergeId",
@@ -1623,7 +1629,7 @@ class OrganizationRepository {
           "organizationsWithIdentity" as (
               select oi."organizationId"
               from "organizationIdentities" oi
-              where ${identityConditions} 
+              where ${identityConditions}
           ),
           "organizationsWithCounts" as (
             select o.id, count(oi."organizationId") as total_counts
@@ -1696,7 +1702,7 @@ class OrganizationRepository {
           "organizationsWithIdentity" as (
               select oi."organizationId"
               from "organizationIdentities" oi
-              where 
+              where
                     oi.platform = :platform
                     and oi.name = :name
           )
@@ -1772,7 +1778,7 @@ class OrganizationRepository {
     FROM
       organizations o
     WHERE
-      o."tenantId" = :tenantId AND 
+      o."tenantId" = :tenantId AND
       o.website = :domain
       `,
       {
