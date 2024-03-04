@@ -586,27 +586,6 @@ class IntegrationRepository {
     }))
   }
 
-  static async checkGitIntegrationExistsInTheSegment(
-    segmentId: string,
-    options: IRepositoryOptions,
-  ) {
-    const tenant = SequelizeRepository.getCurrentTenant(options)
-
-    const record = await options.database.integration.findOne({
-      where: {
-        segmentId,
-        platform: 'git',
-        tenantId: tenant.id,
-      },
-    })
-
-    if (!record) {
-      throw new Error404()
-    }
-
-    return record
-  }
-
   static async _createAuditLog(action, record, data, options: IRepositoryOptions) {
     if (log) {
       let values = {}
