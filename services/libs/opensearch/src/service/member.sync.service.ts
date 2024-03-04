@@ -5,12 +5,14 @@ import { SegmentRepository } from '../repo/segment.repo'
 import { OpenSearchIndex } from '../types'
 import { distinct, distinctBy, groupBy, trimUtf8ToMaxByteLength } from '@crowd/common'
 import { DbStore } from '@crowd/database'
-import { Logger, getChildLogger, logExecutionTime } from '@crowd/logging'
+import { Logger, getChildLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
 import { Edition, IMemberAttribute, IServiceConfig, MemberAttributeType } from '@crowd/types'
 import { IMemberSyncResult } from './member.sync.data'
 import { IIndexRequest, IPagedSearchResponse, ISearchHit } from './opensearch.data'
 import { OpenSearchService } from './opensearch.service'
+import { IndexingRepository } from '../repo/indexing.repo'
+import { IndexedEntityType } from '../repo/indexing.data'
 
 export class MemberSyncService {
   private static MAX_BYTE_LENGTH = 25000
@@ -18,6 +20,7 @@ export class MemberSyncService {
   private readonly memberRepo: MemberRepository
   private readonly segmentRepo: SegmentRepository
   private readonly serviceConfig: IServiceConfig
+  private readonly indexingRepo: IndexingRepository
 
   constructor(
     redisClient: RedisClient,
@@ -31,6 +34,7 @@ export class MemberSyncService {
 
     this.memberRepo = new MemberRepository(redisClient, store, this.log)
     this.segmentRepo = new SegmentRepository(store, this.log)
+    this.indexingRepo = new IndexingRepository(store, this.log)
   }
 
   public async getAllIndexedTenantIds(
@@ -203,64 +207,35 @@ export class MemberSyncService {
     let memberCount = 0
 
     const now = new Date()
-    const cutoffDate = now.toISOString()
 
-    await logExecutionTime(
-      async () => {
-        let memberIds = await this.memberRepo.getTenantMembersForSync(tenantId, batchSize)
+    let memberIds = await this.memberRepo.getTenantMembersForSync(tenantId, batchSize)
 
-        while (memberIds.length > 0) {
-          const { membersSynced, documentsIndexed } = await this.syncMembers(memberIds)
+    while (memberIds.length > 0) {
+      const { membersSynced, documentsIndexed } = await this.syncMembers(memberIds)
 
-          docCount += documentsIndexed
-          memberCount += membersSynced
+      docCount += documentsIndexed
+      memberCount += membersSynced
 
-          const diffInSeconds = (new Date().getTime() - now.getTime()) / 1000
-          this.log.info(
-            { tenantId },
-            `Synced ${memberCount} members! Speed: ${Math.round(
-              memberCount / diffInSeconds,
-            )} members/second!`,
-          )
-          memberIds = await this.memberRepo.getTenantMembersForSync(
+      const diffInSeconds = (new Date().getTime() - now.getTime()) / 1000
+      this.log.info(
+        { tenantId },
+        `Synced ${memberCount} members! Speed: ${Math.round(
+          memberCount / diffInSeconds,
+        )} members/second!`,
+      )
+
+      await this.indexingRepo.markEntitiesIndexed(
+        IndexedEntityType.MEMBER,
+        memberIds.map((id) => {
+          return {
+            id,
             tenantId,
-            batchSize,
-            memberIds[memberIds.length - 1],
-          )
-        }
+          }
+        }),
+      )
 
-        memberIds = await this.memberRepo.getRemainingTenantMembersForSync(
-          tenantId,
-          1,
-          batchSize,
-          cutoffDate,
-        )
-
-        while (memberIds.length > 0) {
-          const { membersSynced, documentsIndexed } = await this.syncMembers(memberIds)
-
-          memberCount += membersSynced
-          docCount += documentsIndexed
-
-          const diffInSeconds = (new Date().getTime() - now.getTime()) / 1000
-          this.log.info(
-            { tenantId },
-            `Synced ${memberCount} members! Speed: ${Math.round(
-              memberCount / diffInSeconds,
-            )} members/second!`,
-          )
-
-          memberIds = await this.memberRepo.getRemainingTenantMembersForSync(
-            tenantId,
-            1,
-            batchSize,
-            cutoffDate,
-          )
-        }
-      },
-      this.log,
-      'sync-tenant-members',
-    )
+      memberIds = await this.memberRepo.getTenantMembersForSync(tenantId, batchSize)
+    }
 
     this.log.info(
       { tenantId },
@@ -275,36 +250,27 @@ export class MemberSyncService {
 
     const now = new Date()
 
-    await logExecutionTime(
-      async () => {
-        let memberIds = await this.memberRepo.getOrganizationMembersForSync(
-          organizationId,
-          batchSize,
-        )
+    let memberIds = await this.memberRepo.getOrganizationMembersForSync(organizationId, batchSize)
 
-        while (memberIds.length > 0) {
-          const { membersSynced, documentsIndexed } = await this.syncMembers(memberIds)
+    while (memberIds.length > 0) {
+      const { membersSynced, documentsIndexed } = await this.syncMembers(memberIds)
 
-          docCount += documentsIndexed
-          memberCount += membersSynced
+      docCount += documentsIndexed
+      memberCount += membersSynced
 
-          const diffInSeconds = (new Date().getTime() - now.getTime()) / 1000
-          this.log.info(
-            { organizationId },
-            `Synced ${memberCount} members! Speed: ${Math.round(
-              memberCount / diffInSeconds,
-            )} members/second!`,
-          )
-          memberIds = await this.memberRepo.getOrganizationMembersForSync(
-            organizationId,
-            batchSize,
-            memberIds[memberIds.length - 1],
-          )
-        }
-      },
-      this.log,
-      'sync-organization-members',
-    )
+      const diffInSeconds = (new Date().getTime() - now.getTime()) / 1000
+      this.log.info(
+        { organizationId },
+        `Synced ${memberCount} members! Speed: ${Math.round(
+          memberCount / diffInSeconds,
+        )} members/second!`,
+      )
+      memberIds = await this.memberRepo.getOrganizationMembersForSync(
+        organizationId,
+        batchSize,
+        memberIds[memberIds.length - 1],
+      )
+    }
 
     this.log.info(
       { organizationId },
@@ -313,7 +279,7 @@ export class MemberSyncService {
   }
 
   public async syncMembers(memberIds: string[], segmentIds?: string[]): Promise<IMemberSyncResult> {
-    const CONCURRENT_DATABASE_QUERIES = 25
+    const CONCURRENT_DATABASE_QUERIES = 10
     const BULK_INDEX_DOCUMENT_BATCH_SIZE = 2500
 
     // get all memberId-segmentId couples
@@ -334,6 +300,12 @@ export class MemberSyncService {
 
       while (results.length > 0) {
         const result = results.shift()
+
+        if (!result) {
+          index += 1
+          continue
+        }
+
         const { memberId, segmentId } = databaseStream[index]
         const memberSegments = memberSegmentCouples[memberId]
 
@@ -446,10 +418,6 @@ export class MemberSyncService {
       }
     }
 
-    if (successfullySyncedMembers.length > 0) {
-      await this.memberRepo.markSynced(successfullySyncedMembers)
-    }
-
     return {
       membersSynced: memberIds.length,
       documentsIndexed,
@@ -544,8 +512,6 @@ export class MemberSyncService {
       docCount += forSync.length
       memberCount += memberIds.length
     }
-
-    await this.memberRepo.markSynced(memberIds)
 
     return {
       membersSynced: memberCount,

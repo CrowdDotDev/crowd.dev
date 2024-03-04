@@ -27,7 +27,12 @@ export class SearchSyncWorkerEmitter extends QueuePriorityService {
     )
   }
 
-  public async triggerMemberSync(tenantId: string, memberId: string, onboarding: boolean) {
+  public async triggerMemberSync(
+    tenantId: string,
+    memberId: string,
+    onboarding: boolean,
+    segmentId?: string,
+  ) {
     if (!tenantId) {
       throw new Error('tenantId is required!')
     }
@@ -41,8 +46,9 @@ export class SearchSyncWorkerEmitter extends QueuePriorityService {
       {
         type: SearchSyncWorkerQueueMessageType.SYNC_MEMBER,
         memberId,
+        segmentId,
       },
-      memberId,
+      `${memberId}:${segmentId}`,
       {
         onboarding,
       },
@@ -211,6 +217,7 @@ export class SearchSyncWorkerEmitter extends QueuePriorityService {
     tenantId: string,
     organizationId: string,
     onboarding: boolean,
+    segmentId?: string,
   ) {
     if (!tenantId) {
       throw new Error('tenantId is required!')
@@ -225,8 +232,9 @@ export class SearchSyncWorkerEmitter extends QueuePriorityService {
       {
         type: SearchSyncWorkerQueueMessageType.SYNC_ORGANIZATION,
         organizationId,
+        segmentId,
       },
-      undefined,
+      `${organizationId}:${segmentId}`,
       {
         onboarding,
       },
