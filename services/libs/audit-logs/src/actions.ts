@@ -3,7 +3,8 @@ import { diff } from 'deep-object-diff'
 import { ActionType } from '@crowd/data-access-layer/src/audit_logs/repo'
 import { type CaptureFn, type BuildActionFn, createCaptureFn } from './baseActions'
 
-export function memberEditProfileAction<T>(
+function modifyEntityAction<T>(
+  actionType: ActionType,
   entityId: string,
   captureFn: CaptureFn<T>,
 ): BuildActionFn<T> {
@@ -12,7 +13,7 @@ export function memberEditProfileAction<T>(
     const newState = createCaptureFn()
 
     const createAuditLog = () => ({
-      actionType: ActionType.MEMBERS_EDIT_PROFILE,
+      actionType,
       entityId,
       oldState: oldState.value,
       newState: newState.value,
@@ -39,4 +40,11 @@ export function memberEditProfileAction<T>(
       }
     }
   }
+}
+
+export function memberEditProfileAction<T>(
+  entityId: string,
+  captureFn: CaptureFn<T>,
+): BuildActionFn<T> {
+  return modifyEntityAction(ActionType.MEMBERS_EDIT_PROFILE, entityId, captureFn)
 }
