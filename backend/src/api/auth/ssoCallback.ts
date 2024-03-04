@@ -22,15 +22,18 @@ export default async (req, res) => {
   const { idToken, invitationToken, tenantId } = req.body
 
   try {
+    console.log(AUTH0_CONFIG)
     const verifyToken = new Promise((resolve, reject) => {
       jwt.verify(idToken, getKey, { algorithms: ['RS256'] }, (err, decoded) => {
         if (err) {
+          console.log('error', err);
           reject(new Error401())
         }
 
         const { aud } = decoded as any
 
         if (aud !== AUTH0_CONFIG.clientId) {
+          console.log('aud', aud)
           reject(new Error401())
         }
 
@@ -38,6 +41,7 @@ export default async (req, res) => {
       })
     })
     const data: any = await verifyToken
+    console.log(data);
 
     // Signin with data
     const token: string = await AuthService.signinFromSSO(
@@ -55,6 +59,7 @@ export default async (req, res) => {
     )
     return res.send(token)
   } catch (err) {
+    console.log(err)
     return res.status(401).send({ error: err })
   }
 }
