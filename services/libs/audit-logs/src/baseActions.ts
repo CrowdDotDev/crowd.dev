@@ -7,6 +7,8 @@ export type CaptureFn<T> = (
   captureNewState: CaptureValueFn,
 ) => Promise<T>
 
+export type CaptureOneFn<T> = (captureState: CaptureValueFn) => Promise<T>
+
 export type BuildActionFn<T> = () => Promise<{
   result: T
   auditLog: AuditLogAction

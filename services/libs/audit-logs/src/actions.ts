@@ -1,7 +1,7 @@
 import { diff } from 'deep-object-diff'
 
 import { ActionType } from '@crowd/data-access-layer/src/audit_logs/repo'
-import { type CaptureFn, type BuildActionFn, createCaptureFn } from './baseActions'
+import { type CaptureFn, type BuildActionFn, createCaptureFn, CaptureOneFn } from './baseActions'
 
 function modifyEntityAction<T>(
   actionType: ActionType,
@@ -42,6 +42,44 @@ function modifyEntityAction<T>(
   }
 }
 
+function createEntityAction<T>(
+  actionType: ActionType,
+  entityId: string,
+  captureFn: CaptureOneFn<T>,
+): BuildActionFn<T> {
+  return async () => {
+    const newState = createCaptureFn()
+
+    const createAuditLog = () => ({
+      actionType,
+      entityId,
+      oldState: {},
+      newState: newState.value,
+      diff: newState.value,
+    })
+
+    try {
+      const result = await captureFn(newState.fn)
+      return {
+        result,
+        auditLog: {
+          ...createAuditLog(),
+          success: true,
+        },
+      }
+    } catch (error) {
+      return {
+        result: null,
+        error,
+        auditLog: {
+          ...createAuditLog(),
+          success: false,
+        },
+      }
+    }
+  }
+}
+
 export function memberEditProfileAction<T>(
   entityId: string,
   captureFn: CaptureFn<T>,
@@ -51,4 +89,11 @@ export function memberEditProfileAction<T>(
 
 export function memberMergeAction<T>(entityId: string, captureFn: CaptureFn<T>): BuildActionFn<T> {
   return modifyEntityAction(ActionType.MEMBERS_MERGE, entityId, captureFn)
+}
+
+export function memberCreateAction<T>(
+  entityId: string,
+  captureFn: CaptureOneFn<T>,
+): BuildActionFn<T> {
+  return createEntityAction(ActionType.MEMBERS_CREATE, entityId, captureFn)
 }

@@ -21,7 +21,7 @@ import Sequelize, { QueryTypes } from 'sequelize'
 import { Error400, Error404, dateEqualityChecker } from '@crowd/common'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import { ActivityDisplayService } from '@crowd/integrations'
-import { captureApiChange, memberEditProfileAction } from '@crowd/audit-logs'
+import { captureApiChange, memberCreateAction, memberEditProfileAction } from '@crowd/audit-logs'
 import { KUBE_MODE, SERVICE } from '@/conf'
 import { ServiceType } from '../../conf/configTypes'
 import isFeatureEnabled from '../../feature-flags/isFeatureEnabled'
@@ -86,29 +86,34 @@ class MemberRepository {
 
     const transaction = SequelizeRepository.getTransaction(options)
 
-    const record = await options.database.member.create(
-      {
-        ...lodash.pick(data, [
-          'id',
-          'displayName',
-          'attributes',
-          'emails',
-          'lastEnriched',
-          'enrichedBy',
-          'contributions',
-          'score',
-          'reach',
-          'joinedAt',
-          'manuallyCreated',
-          'importHash',
-        ]),
-        tenantId: tenant.id,
-        createdById: currentUser.id,
-        updatedById: currentUser.id,
-      },
-      {
-        transaction,
-      },
+    const toInsert = {
+      ...lodash.pick(data, [
+        'id',
+        'displayName',
+        'attributes',
+        'emails',
+        'lastEnriched',
+        'enrichedBy',
+        'contributions',
+        'score',
+        'reach',
+        'joinedAt',
+        'manuallyCreated',
+        'importHash',
+      ]),
+      tenantId: tenant.id,
+      createdById: currentUser.id,
+      updatedById: currentUser.id,
+    }
+    const record = await options.database.member.create(toInsert, {
+      transaction,
+    })
+
+    await captureApiChange(
+      options,
+      memberCreateAction(record.id, async (captureNewState) => {
+        captureNewState(toInsert)
+      }),
     )
 
     const username: PlatformIdentities = data.username
@@ -792,9 +797,8 @@ class MemberRepository {
           updatedById: currentUser.id,
           manuallyChangedFields: data.manuallyChangedFields,
         }
-        captureNewState(updatedMember)
 
-        await options.database.member.update(updatedMember, {
+        await options.database.member.update(captureNewState(updatedMember), {
           where: {
             id: record.id,
           },
