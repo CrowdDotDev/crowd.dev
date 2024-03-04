@@ -20,7 +20,11 @@ import {
   SyncStatus,
 } from '@crowd/types'
 import Sequelize, { QueryTypes } from 'sequelize'
-import { captureApiChange, organizationCreateAction } from '@crowd/audit-logs'
+import {
+  captureApiChange,
+  organizationCreateAction,
+  organizationUpdateAction,
+} from '@crowd/audit-logs'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
@@ -608,103 +612,112 @@ class OrganizationRepository {
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
-    const record = await options.database.organization.findOne({
-      where: {
-        id,
-        tenantId: currentTenant.id,
-      },
-      transaction,
-    })
+    const record = await captureApiChange(
+      options,
+      organizationUpdateAction(id, async (captureOldState, captureNewState) => {
+        const record = await options.database.organization.findOne({
+          where: {
+            id,
+            tenantId: currentTenant.id,
+          },
+          transaction,
+        })
 
-    if (!record) {
-      throw new Error404()
-    }
+        if (!record) {
+          throw new Error404()
+        }
 
-    // check if website already exists in another organization in the same tenant
-    if (data.website) {
-      const existingOrg = await options.database.organization.findOne({
-        where: {
-          website: data.website,
-          tenantId: currentTenant.id,
-        },
-        transaction,
-      })
+        captureOldState(record.get({ plain: true }))
 
-      // ensure that it's not the same organization
-      if (existingOrg && existingOrg.id !== record.id) {
-        throw new Error409(
-          options.language,
-          'organization.errors.websiteAlreadyExists',
-          existingOrg.id,
-        )
-      }
-    }
+        // check if website already exists in another organization in the same tenant
+        if (data.website) {
+          const existingOrg = await options.database.organization.findOne({
+            where: {
+              website: data.website,
+              tenantId: currentTenant.id,
+            },
+            transaction,
+          })
 
-    // exclude syncRemote attributes, since these are populated from organizationSyncRemote table
-    if (data.attributes?.syncRemote) {
-      delete data.attributes.syncRemote
-    }
-
-    if (manualChange) {
-      const manuallyChangedFields: string[] = record.manuallyChangedFields || []
-
-      for (const column of this.ORGANIZATION_UPDATE_COLUMNS) {
-        let changed = false
-
-        // only check fields that are in the data object that will be updated
-        if (column in data) {
-          if (
-            record[column] !== null &&
-            column in data &&
-            (data[column] === null || data[column] === undefined)
-          ) {
-            // column was removed in the update -> will be set to null by sequelize
-            changed = true
-          } else if (
-            record[column] === null &&
-            data[column] !== null &&
-            data[column] !== undefined
-          ) {
-            // column was null before now it's not anymore
-            changed = true
-          } else if (
-            this.isEqual[column] &&
-            this.isEqual[column](record[column], data[column]) === false
-          ) {
-            // column value has changed
-            changed = true
+          // ensure that it's not the same organization
+          if (existingOrg && existingOrg.id !== record.id) {
+            throw new Error409(
+              options.language,
+              'organization.errors.websiteAlreadyExists',
+              existingOrg.id,
+            )
           }
         }
 
-        if (changed && !manuallyChangedFields.includes(column)) {
-          manuallyChangedFields.push(column)
+        // exclude syncRemote attributes, since these are populated from organizationSyncRemote table
+        if (data.attributes?.syncRemote) {
+          delete data.attributes.syncRemote
         }
-      }
 
-      data.manuallyChangedFields = manuallyChangedFields
-    } else {
-      // ignore columns that were manually changed
-      // by rewriting them with db data
-      const manuallyChangedFields: string[] = record.manuallyChangedFields || []
-      for (const manuallyChangedColumn of manuallyChangedFields) {
-        data[manuallyChangedColumn] = record[manuallyChangedColumn]
-      }
+        if (manualChange) {
+          const manuallyChangedFields: string[] = record.manuallyChangedFields || []
 
-      data.manuallyChangedFields = manuallyChangedFields
-    }
+          for (const column of this.ORGANIZATION_UPDATE_COLUMNS) {
+            let changed = false
 
-    await options.database.organization.update(
-      {
-        ...lodash.pick(data, this.ORGANIZATION_UPDATE_COLUMNS),
-        updatedById: currentUser.id,
-        manuallyChangedFields: data.manuallyChangedFields,
-      },
-      {
-        where: {
-          id: record.id,
-        },
-        transaction,
-      },
+            // only check fields that are in the data object that will be updated
+            if (column in data) {
+              if (
+                record[column] !== null &&
+                column in data &&
+                (data[column] === null || data[column] === undefined)
+              ) {
+                // column was removed in the update -> will be set to null by sequelize
+                changed = true
+              } else if (
+                record[column] === null &&
+                data[column] !== null &&
+                data[column] !== undefined
+              ) {
+                // column was null before now it's not anymore
+                changed = true
+              } else if (
+                this.isEqual[column] &&
+                this.isEqual[column](record[column], data[column]) === false
+              ) {
+                // column value has changed
+                changed = true
+              }
+            }
+
+            if (changed && !manuallyChangedFields.includes(column)) {
+              manuallyChangedFields.push(column)
+            }
+          }
+
+          data.manuallyChangedFields = manuallyChangedFields
+        } else {
+          // ignore columns that were manually changed
+          // by rewriting them with db data
+          const manuallyChangedFields: string[] = record.manuallyChangedFields || []
+          for (const manuallyChangedColumn of manuallyChangedFields) {
+            data[manuallyChangedColumn] = record[manuallyChangedColumn]
+          }
+
+          data.manuallyChangedFields = manuallyChangedFields
+        }
+
+        const updatedData = {
+          ...lodash.pick(data, this.ORGANIZATION_UPDATE_COLUMNS),
+          updatedById: currentUser.id,
+          manuallyChangedFields: data.manuallyChangedFields,
+        }
+        captureNewState(updatedData)
+        await options.database.organization.update(updatedData, {
+          where: {
+            id: record.id,
+          },
+          transaction,
+        })
+
+        return record
+      }),
+      !manualChange, // skip audit log if not a manual change
     )
     if (data.members) {
       await record.setMembers(data.members || [], {

@@ -104,3 +104,10 @@ export function organizationCreateAction<T>(
 ): BuildActionFn<T> {
   return createEntityAction(ActionType.ORGANIZATIONS_CREATE, entityId, captureFn)
 }
+
+export function organizationUpdateAction<T>(
+  entityId: string,
+  captureFn: CaptureFn<T>,
+): BuildActionFn<T> {
+  return modifyEntityAction(ActionType.ORGANIZATIONS_EDIT_PROFILE, entityId, captureFn)
+}
