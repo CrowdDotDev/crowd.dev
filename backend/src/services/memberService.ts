@@ -12,6 +12,7 @@ import {
   ISearchSyncOptions,
   IUnmergePreviewResult,
   MemberAttributeType,
+  MemberIdentityType,
   MergeActionState,
   MergeActionType,
   SyncMode,
@@ -791,7 +792,10 @@ export default class MemberService extends LoggerBase {
 
       if (
         !memberIdentities.some(
-          (i) => i.platform === identity.platform && i.username === identity.username,
+          (i) =>
+            i.platform === identity.platform &&
+            i.type === identity.type &&
+            i.value === identity.value,
         )
       ) {
         throw new Error(`Member doesn't have the identity sent to be unmerged!`)
@@ -942,7 +946,7 @@ export default class MemberService extends LoggerBase {
         member.identities = member.identities.filter(
           (i) =>
             !secondaryBackup.identities.some(
-              (s) => s.platform === i.platform && s.username === i.username,
+              (s) => s.platform === i.platform && s.value === i.value && s.type === i.type,
             ),
         )
 
@@ -1005,7 +1009,9 @@ export default class MemberService extends LoggerBase {
       const secondaryIdentities = [identity]
       const primaryIdentities = member.identities.filter(
         (i) =>
-          !secondaryIdentities.some((s) => s.platform === i.platform && s.username === i.username),
+          !secondaryIdentities.some(
+            (s) => s.platform === i.platform && s.value === i.value && s.type === i.type,
+          ),
       )
 
       if (primaryIdentities.length === 0) {
@@ -1044,7 +1050,7 @@ export default class MemberService extends LoggerBase {
           id: randomUUID(),
           reach: { total: -1 },
           username: MemberRepository.getUsernameFromIdentities(secondaryIdentities),
-          displayName: identity.username,
+          displayName: identity.value,
           identities: secondaryIdentities,
           memberOrganizations: [],
           organizations: [],
@@ -1161,7 +1167,10 @@ export default class MemberService extends LoggerBase {
       for (const identity of toMergeIdentities) {
         if (
           !originalIdentities.find(
-            (i) => i.platform === identity.platform && i.username === identity.username,
+            (i) =>
+              i.platform === identity.platform &&
+              i.type === identity.type &&
+              i.value === identity.value,
           )
         ) {
           identitiesToMove.push(identity)
@@ -1515,12 +1524,14 @@ export default class MemberService extends LoggerBase {
 
         data.username = mapUsernameToIdentities(data.username, data.platform)
 
-        for (const identity of existingIdentities) {
+        for (const identity of existingIdentities.filter(
+          (i) => i.type === MemberIdentityType.USERNAME,
+        )) {
           if (identity.platform in data.username) {
             // new username has this platform - we need to check if it also has the username
             let found = false
             for (const newIdentity of data.username[identity.platform]) {
-              if (newIdentity.username === identity.username) {
+              if (newIdentity.username === identity.value) {
                 found = true
                 break
               }
@@ -1529,7 +1540,7 @@ export default class MemberService extends LoggerBase {
             if (found) {
               // remove from data.username
               data.username[identity.platform] = data.username[identity.platform].filter(
-                (i) => i.username !== identity.username,
+                (i) => i.username !== identity.value,
               )
             } else {
               data.username[identity.platform].push({ ...identity, delete: true })

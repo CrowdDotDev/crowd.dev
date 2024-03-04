@@ -7,7 +7,13 @@ import { distinct, distinctBy, groupBy, trimUtf8ToMaxByteLength } from '@crowd/c
 import { DbStore } from '@crowd/database'
 import { Logger, getChildLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
-import { Edition, IMemberAttribute, IServiceConfig, MemberAttributeType } from '@crowd/types'
+import {
+  Edition,
+  IMemberAttribute,
+  IServiceConfig,
+  MemberAttributeType,
+  MemberIdentityType,
+} from '@crowd/types'
 import { IMemberSyncResult } from './member.sync.data'
 import { IIndexRequest, IPagedSearchResponse, ISearchHit } from './opensearch.data'
 import { OpenSearchService } from './opensearch.service'
@@ -677,21 +683,23 @@ export class MemberSyncService {
     p.float_averageSentiment = data.averageSentiment
 
     const p_identities = []
-    for (const identity of data.identities) {
+    for (const identity of data.identities.filter((i) => i.type === MemberIdentityType.USERNAME)) {
       p_identities.push({
         string_platform: identity.platform,
-        string_username: identity.username,
-        keyword_username: identity.username,
+        string_username: identity.value,
+        keyword_username: identity.value,
       })
     }
     p.nested_identities = p_identities
 
     const p_weakIdentities = []
-    for (const identity of data.weakIdentities) {
+    for (const identity of data.weakIdentities.filter(
+      (i) => i.type === MemberIdentityType.USERNAME,
+    )) {
       p_weakIdentities.push({
         string_platform: identity.platform,
-        string_username: identity.username,
-        keyword_username: identity.username,
+        string_username: identity.value,
+        keyword_username: identity.value,
       })
     }
     p.nested_weakIdentities = p_weakIdentities

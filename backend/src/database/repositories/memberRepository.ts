@@ -1,5 +1,4 @@
 import {
-  ALL_PLATFORM_TYPES,
   ActivityDisplayVariant,
   MemberAttributeType,
   OpenSearchIndex,
@@ -35,8 +34,7 @@ import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import AuditLogRepository from './auditLogRepository'
 import QueryParser from './filters/queryParser'
-import { JsonColumnInfo, QueryOutput } from './filters/queryTypes'
-import RawQueryParser from './filters/rawQueryParser'
+import { QueryOutput } from './filters/queryTypes'
 import MemberSegmentAffiliationRepository from './memberSegmentAffiliationRepository'
 import SegmentRepository from './segmentRepository'
 import SequelizeRepository from './sequelizeRepository'
@@ -128,8 +126,8 @@ class MemberRepository {
           replacements: {
             memberId: record.id,
             platform,
-            value: identity.username,
-            type: MemberIdentityType.USERNAME,
+            value: identity.value ? identity.value : identity.username,
+            type: identity.type ? identity.type : MemberIdentityType.USERNAME,
             sourceId: identity.sourceId || null,
             integrationId: identity.integrationId || null,
             tenantId: tenant.id,
@@ -351,7 +349,8 @@ class MemberRepository {
         "tenantId" = :tenantId and 
         "memberId" = :oldMemberId and 
         platform = :platform and 
-        username = :username;
+        value = :value and
+        type = :type;
     `
 
     for (const identity of identitiesToMove) {
@@ -362,7 +361,8 @@ class MemberRepository {
           oldMemberId: fromMemberId,
           newMemberId: toMemberId,
           platform: identity.platform,
-          username: identity.username,
+          value: identity.value ? identity.value : identity.username,
+          type: identity.type ? identity.type : MemberIdentityType.USERNAME,
         },
         type: QueryTypes.UPDATE,
         transaction,
@@ -512,7 +512,8 @@ class MemberRepository {
     from "memberIdentities" mi
     where mi."tenantId" = :tenantId and
           mi.platform = :platform and
-          mi.username in (:usernames) and
+          mi.type = '${MemberIdentityType.USERNAME}' and
+          mi.value in (:usernames) and
           exists (select 1 from "memberSegments" ms where ms."memberId" = mi."memberId")
   `,
       {
@@ -553,11 +554,11 @@ class MemberRepository {
                                   array_agg(username) as usernames
                             from (select "memberId",
                                         platform,
-                                        username,
+                                        value as username,
                                         "createdAt",
                                         row_number() over (partition by "memberId", platform order by "createdAt" desc) =
                                         1 as is_latest
-                                  from "memberIdentities" where "memberId" = :memberId) sub
+                                  from "memberIdentities" where "memberId" = :memberId and type = '${MemberIdentityType.USERNAME}') sub
                             group by "memberId", platform) mi
                       group by mi."memberId"),
         member_organizations as (
@@ -826,25 +827,28 @@ class MemberRepository {
       const platforms = Object.keys(data.username) as PlatformType[]
       if (platforms.length > 0) {
         const query = `
-          insert into "memberIdentities"("memberId", platform, username, "sourceId", "tenantId", "integrationId")
-          values (:memberId, :platform, :username, :sourceId, :tenantId, :integrationId);
+          insert into "memberIdentities"("memberId", platform, value, type, "sourceId", "tenantId", "integrationId")
+          values (:memberId, :platform, :value, :type, :sourceId, :tenantId, :integrationId);
           `
         const deleteQuery = `
           delete from "memberIdentities"
-          where ("memberId", "tenantId", "platform", "username") in
-                (select mi."memberId", mi."tenantId", mi."platform", mi."username"
+          where ("memberId", "tenantId", platform, value, type) in
+                (select mi."memberId", mi."tenantId", mi.platform, mi.value, mi.type
                 from "memberIdentities" mi
                           join (select :memberId::uuid            as memberid,
                                       :tenantId::uuid            as tenantid,
                                       unnest(:platforms::text[]) as platform,
-                                      unnest(:usernames::text[]) as username) as combinations
+                                      unnest(:values::text[]) as value,
+                                      unnest(:types::text[]) as type) as combinations
                               on mi."memberId" = combinations.memberid
                                   and mi."tenantId" = combinations.tenantid
-                                  and mi."platform" = combinations.platform
-                                  and mi."username" = combinations.username);`
+                                  and mi.platform = combinations.platform
+                                  and mi.value = combinations.value
+                                  and mi.type = combinations.type);`
 
         const platformsToDelete: string[] = []
-        const usernamesToDelete: string[] = []
+        const valuesToDelete: string[] = []
+        const typesToDelete: string[] = []
 
         for (const platform of platforms) {
           const identities = data.username[platform]
@@ -852,13 +856,20 @@ class MemberRepository {
           for (const identity of identities) {
             if (identity.delete) {
               platformsToDelete.push(identity.platform)
-              usernamesToDelete.push(identity.username)
+              if (identity.value) {
+                valuesToDelete.push(identity.value)
+                typesToDelete.push(identity.type)
+              } else {
+                valuesToDelete.push(identity.username)
+                typesToDelete.push(MemberIdentityType.USERNAME)
+              }
             } else if (identity.username && identity.username !== '') {
               await seq.query(query, {
                 replacements: {
                   memberId: record.id,
                   platform,
-                  username: identity.username,
+                  value: identity.value ? identity.value : identity.username,
+                  type: identity.type ? identity.type : MemberIdentityType.USERNAME,
                   sourceId: identity.sourceId || null,
                   integrationId: identity.integrationId || null,
                   tenantId: currentTenant.id,
@@ -876,7 +887,8 @@ class MemberRepository {
               tenantId: currentTenant.id,
               memberId: record.id,
               platforms: `{${platformsToDelete.join(',')}}`,
-              usernames: `{${usernamesToDelete.join(',')}}`,
+              values: `{${valuesToDelete.join(',')}}`,
+              types: `{${typesToDelete.join(',')}}`,
             },
             type: QueryTypes.DELETE,
             transaction,
@@ -1116,7 +1128,7 @@ class MemberRepository {
     const seq = SequelizeRepository.getSequelize(options)
 
     const query = `
-      select "memberId", platform, username, "sourceId", "integrationId", "createdAt" from "memberIdentities" where "memberId" in (:memberIds)
+      select "memberId", platform, value, type, "sourceId", "integrationId", "createdAt" from "memberIdentities" where "memberId" in (:memberIds)
       order by "createdAt" asc;
     `
 
@@ -1133,12 +1145,13 @@ class MemberRepository {
     }
 
     for (const res of data as any[]) {
-      const { memberId, platform, username, sourceId, integrationId, createdAt } = res
+      const { memberId, platform, value, type, sourceId, integrationId, createdAt } = res
       const identities = results.get(memberId)
 
       identities.push({
         platform,
-        username,
+        value,
+        type,
         sourceId,
         integrationId,
         createdAt,
@@ -1193,7 +1206,11 @@ class MemberRepository {
 
     const replacementKey = (key: string, index: number) => `${key}${index}`
 
-    for (let i = 0; i < identities.length; i++) {
+    for (
+      let i = 0;
+      i < identities.filter((i) => i.type === MemberIdentityType.USERNAME).length;
+      i++
+    ) {
       query += `(platform = :${replacementKey('platform', i)} and username = :${replacementKey(
         'username',
         i,
@@ -1205,7 +1222,7 @@ class MemberRepository {
       }
 
       replacements[replacementKey('platform', i)] = identities[i].platform
-      replacements[replacementKey('username', i)] = identities[i].username
+      replacements[replacementKey('username', i)] = identities[i].value
     }
 
     const result = await seq.query(query, {
@@ -1286,11 +1303,11 @@ class MemberRepository {
 
   static getUsernameFromIdentities(identities: IMemberIdentity[]): IMemberUsername {
     const username = {}
-    for (const identity of identities) {
+    for (const identity of identities.filter((i) => i.type === MemberIdentityType.USERNAME)) {
       if (username[identity.platform]) {
-        username[identity.platform].push(identity.username)
+        username[identity.platform].push(identity.value)
       } else {
-        username[identity.platform] = [identity.username]
+        username[identity.platform] = [identity.value]
       }
     }
 
@@ -1726,186 +1743,6 @@ class MemberRepository {
     }
   }
 
-  static async findAndCountActive(
-    filter: IActiveMemberFilter,
-    limit: number,
-    offset: number,
-    orderBy: string,
-    options: IRepositoryOptions,
-  ): Promise<PageData<IActiveMemberData>> {
-    const tenant = SequelizeRepository.getCurrentTenant(options)
-    const segmentIds = SequelizeRepository.getSegmentIds(options)
-
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    const seq = SequelizeRepository.getSequelize(options)
-
-    const conditions = ['m."tenantId" = :tenantId', 'ms."segmentId" in (:segmentIds)']
-    const parameters: any = {
-      tenantId: tenant.id,
-      segmentIds,
-      periodStart: filter.activityTimestampFrom,
-      periodEnd: filter.activityTimestampTo,
-    }
-
-    if (filter.isTeamMember === true) {
-      conditions.push("COALESCE((m.attributes->'isTeamMember'->'default')::boolean, false) = true")
-    } else if (filter.isTeamMember === false) {
-      conditions.push("COALESCE((m.attributes->'isTeamMember'->'default')::boolean, false) = false")
-    }
-
-    if (filter.isBot === true) {
-      conditions.push("COALESCE((m.attributes->'isBot'->'default')::boolean, false) = true")
-    } else if (filter.isBot === false) {
-      conditions.push("COALESCE((m.attributes->'isBot'->'default')::boolean, false) = false")
-    }
-
-    if (filter.isOrganization === true) {
-      conditions.push(
-        "COALESCE((m.attributes->'isOrganization'->'default')::boolean, false) = true",
-      )
-    } else if (filter.isOrganization === false) {
-      conditions.push(
-        "COALESCE((m.attributes->'isOrganization'->'default')::boolean, false) = false",
-      )
-    }
-
-    const activityConditions = ['1=1']
-
-    if (filter.platforms && filter.platforms.length > 0) {
-      activityConditions.push('platform in (:platforms)')
-      parameters.platforms = filter.platforms
-    }
-
-    if (filter.activityIsContribution) {
-      activityConditions.push('"isContribution" = (:isContribution)')
-      parameters.isContribution = filter.activityIsContribution
-    }
-
-    const conditionsString = conditions.join(' and ')
-    const activityConditionsString = activityConditions.join(' and ')
-
-    const direction = orderBy.split('_')[1].toLowerCase() === 'desc' ? 'desc' : 'asc'
-    let orderString: string
-    if (orderBy.startsWith('activityCount')) {
-      orderString = `ad."activityCount" ${direction}`
-    } else if (orderBy.startsWith('activeDaysCount')) {
-      orderString = `ad."activeDaysCount" ${direction}`
-    } else {
-      throw new Error(`Invalid order by: ${orderBy}`)
-    }
-
-    const limitCondition = `limit ${limit} offset ${offset}`
-    const query = `
-        WITH
-            orgs AS (
-                SELECT mo."memberId", JSON_AGG(ROW_TO_JSON(o.*)) AS organizations
-                FROM "memberOrganizations" mo
-                INNER JOIN organizations o ON mo."organizationId" = o.id
-                WHERE mo."deletedAt" IS NULL
-                GROUP BY mo."memberId"
-            ),
-            activity_data AS (
-                SELECT
-                    "memberId",
-                    COUNT(id) AS "activityCount",
-                    COUNT(DISTINCT timestamp::DATE) AS "activeDaysCount"
-                FROM activities
-                WHERE ${activityConditionsString}
-                  AND timestamp >= :periodStart
-                  AND timestamp < :periodEnd
-                GROUP BY "memberId"
-            ),
-            identities AS (
-                SELECT
-                    mi."memberId",
-                    ARRAY_AGG(DISTINCT mi.platform) AS identities,
-                    JSONB_OBJECT_AGG(mi.platform, mi.usernames) AS username
-                FROM (
-                    SELECT
-                        "memberId",
-                        platform,
-                        ARRAY_AGG(username) AS usernames
-                    FROM (
-                        SELECT
-                            "memberId",
-                            platform,
-                            username,
-                            "createdAt",
-                            ROW_NUMBER() OVER (PARTITION BY "memberId", platform ORDER BY "createdAt" DESC) =
-                            1 AS is_latest
-                        FROM "memberIdentities"
-                        WHERE "tenantId" = :tenantId
-                    ) sub
-                    WHERE is_latest
-                    GROUP BY "memberId", platform
-                ) mi
-                GROUP BY mi."memberId"
-            )
-        SELECT
-            m.id,
-            m."displayName",
-            i.username,
-            i.identities,
-            m.attributes,
-            ad."activityCount",
-            ad."activeDaysCount",
-            m."joinedAt",
-            COALESCE(o.organizations, JSON_BUILD_ARRAY()) AS organizations,
-            COUNT(*) OVER () AS "totalCount"
-        FROM members m
-        INNER JOIN activity_data ad ON ad."memberId" = m.id
-        INNER JOIN identities i ON i."memberId" = m.id
-        LEFT JOIN orgs o ON o."memberId" = m.id
-        JOIN "memberSegments" ms ON ms."memberId" = m.id
-        WHERE ${conditionsString}
-        ORDER BY ${orderString}
-                     ${limitCondition};
-    `
-
-    options.log.debug(
-      { query, filter, orderBy, limit, offset, test: orderBy.split('_')[1].toLowerCase() },
-      'Active members query!',
-    )
-
-    const results = await seq.query(query, {
-      replacements: parameters,
-      type: QueryTypes.SELECT,
-      transaction,
-    })
-
-    if (results.length === 0) {
-      return {
-        rows: [],
-        count: 0,
-        offset,
-        limit,
-      }
-    }
-
-    const count = parseInt((results[0] as any).totalCount, 10)
-    const rows: IActiveMemberData[] = results.map((r) => {
-      const row = r as any
-      return {
-        id: row.id,
-        displayName: row.displayName,
-        username: row.username,
-        attributes: row.attributes,
-        organizations: row.organizations,
-        activityCount: parseInt(row.activityCount, 10),
-        activeDaysCount: parseInt(row.activeDaysCount, 10),
-        joinedAt: row.joinedAt,
-      }
-    })
-
-    return {
-      rows,
-      count,
-      offset,
-      limit,
-    }
-  }
-
   public static MEMBER_QUERY_FILTER_COLUMN_MAP: Map<string, string> = new Map([
     ['isOrganization', "coalesce((m.attributes -> 'isOrganization' -> 'default')::boolean, false)"],
     ['isTeamMember', "coalesce((m.attributes -> 'isTeamMember' -> 'default')::boolean, false)"],
@@ -2006,306 +1843,6 @@ class MemberRepository {
       },
       type: QueryTypes.SELECT,
     })
-  }
-
-  static async findAndCountAllv2(
-    {
-      filter = {} as any,
-      limit = 20,
-      offset = 0,
-      orderBy = 'joinedAt_DESC',
-      countOnly = false,
-      attributesSettings = [] as AttributeData[],
-    },
-    options: IRepositoryOptions,
-  ): Promise<PageData<any>> {
-    const tenant = SequelizeRepository.getCurrentTenant(options)
-    const segmentIds = SequelizeRepository.getSegmentIds(options)
-    const seq = SequelizeRepository.getSequelize(options)
-
-    const params: any = {
-      tenantId: tenant.id,
-      segmentIds,
-      limit,
-      offset,
-    }
-
-    let orderByString = ''
-    const orderByParts = orderBy.split('_')
-    const direction = orderByParts[1].toLowerCase()
-    switch (orderByParts[0]) {
-      case 'joinedAt':
-        orderByString = 'm."joinedAt"'
-        break
-      case 'displayName':
-        orderByString = 'm."displayName"'
-        break
-      case 'reach':
-        orderByString = "(m.reach ->> 'total')::int"
-        break
-      case 'score':
-        orderByString = 'm.score'
-        break
-      case 'lastActive':
-        orderByString = 'aggs."lastActive"'
-        break
-      case 'averageSentiment':
-        orderByString = 'aggs."averageSentiment"'
-        break
-      case 'activeDaysCount':
-        orderByString = 'aggs."activeDaysCount"'
-        break
-      case 'activityCount':
-        orderByString = 'aggs."activityCount"'
-        break
-      case 'numberOfOpenSourceContributions':
-        orderByString = '"numberOfOpenSourceContributions"'
-        break
-
-      default:
-        throw new Error(`Invalid order by: ${orderBy}!`)
-    }
-    orderByString = `${orderByString} ${direction}`
-
-    const jsonColumnInfos: JsonColumnInfo[] = [
-      {
-        property: 'attributes',
-        column: 'm.attributes',
-        attributeInfos: attributesSettings,
-      },
-      {
-        property: 'username',
-        column: 'aggs.username',
-        attributeInfos: ALL_PLATFORM_TYPES.map((p) => ({
-          name: p,
-          type: MemberAttributeType.STRING,
-        })),
-      },
-      {
-        property: 'tags',
-        column: 'mt.all_ids',
-        attributeInfos: [],
-      },
-      {
-        property: 'organizations',
-        column: 'mo.all_ids',
-        attributeInfos: [],
-      },
-    ]
-
-    let filterString = RawQueryParser.parseFilters(
-      filter,
-      MemberRepository.MEMBER_QUERY_FILTER_COLUMN_MAP,
-      jsonColumnInfos,
-      params,
-    )
-    if (filterString.trim().length === 0) {
-      filterString = '1=1'
-    }
-
-    const query = `
-        WITH
-            to_merge_data AS (
-                SELECT mtm."memberId", STRING_AGG(DISTINCT mtm."toMergeId"::TEXT, ',') AS to_merge_ids
-                FROM "memberToMerge" mtm
-                INNER JOIN members m ON mtm."memberId" = m.id
-                INNER JOIN members m2 ON mtm."toMergeId" = m2.id
-                JOIN "memberSegments" ms ON m.id = ms."memberId"
-                JOIN "memberSegments" ms2 ON m2.id = ms2."memberId"
-                WHERE m."tenantId" = :tenantId
-                  AND m2."deletedAt" IS NULL
-                  AND ms."segmentId" IN (:segmentIds)
-                  AND ms2."segmentId" IN (:segmentIds)
-                GROUP BY mtm."memberId"
-            ),
-            no_merge_data AS (
-                SELECT mnm."memberId", STRING_AGG(DISTINCT mnm."noMergeId"::TEXT, ',') AS no_merge_ids
-                FROM "memberNoMerge" mnm
-                INNER JOIN members m ON mnm."memberId" = m.id
-                INNER JOIN members m2 ON mnm."noMergeId" = m2.id
-                JOIN "memberSegments" ms ON m.id = ms."memberId"
-                JOIN "memberSegments" ms2 ON m2.id = ms2."memberId"
-                WHERE m."tenantId" = :tenantId
-                  AND m2."deletedAt" IS NULL
-                  AND ms."segmentId" IN (:segmentIds)
-                  AND ms2."segmentId" IN (:segmentIds)
-                GROUP BY mnm."memberId"
-            ),
-            member_tags AS (
-                SELECT
-                    mt."memberId",
-                    JSON_AGG(
-                            DISTINCT JSONB_BUILD_OBJECT(
-                                    'id', t.id,
-                                    'name', t.name
-                                )
-                        ) AS all_tags,
-                    JSONB_AGG(t.id) AS all_ids
-                FROM "memberTags" mt
-                INNER JOIN members m ON mt."memberId" = m.id
-                JOIN "memberSegments" ms ON ms."memberId" = m.id
-                INNER JOIN tags t ON mt."tagId" = t.id
-                WHERE m."tenantId" = :tenantId
-                  AND m."deletedAt" IS NULL
-                  AND ms."segmentId" IN (:segmentIds)
-                  AND t."tenantId" = :tenantId
-                  AND t."deletedAt" IS NULL
-                GROUP BY mt."memberId"
-            ),
-            member_organizations AS (
-                SELECT
-                    mo."memberId",
-                    JSON_AGG(
-                            ROW_TO_JSON(o.*)
-                        ) AS all_organizations,
-                    JSONB_AGG(o.id) AS all_ids
-                FROM "memberOrganizations" mo
-                INNER JOIN members m ON mo."memberId" = m.id
-                INNER JOIN organizations o ON mo."organizationId" = o.id
-                JOIN "memberSegments" ms ON ms."memberId" = m.id
-                JOIN "organizationSegments" os ON o.id = os."organizationId"
-                WHERE m."tenantId" = :tenantId
-                  AND m."deletedAt" IS NULL
-                  AND ms."segmentId" IN (:segmentIds)
-                  AND o."tenantId" = :tenantId
-                  AND o."deletedAt" IS NULL
-                  AND os."segmentId" IN (:segmentIds)
-                  AND ms."segmentId" = os."segmentId"
-                  AND mo."deletedAt" IS NULL
-                GROUP BY mo."memberId"
-            ),
-            aggs AS (
-                SELECT
-                    id,
-                    MAX("lastActive") AS "lastActive",
-                    ARRAY(SELECT DISTINCT UNNEST(ARRAY_AGG(identities))) AS identities,
-                    jsonb_merge_agg(username) AS username,
-                    SUM("activityCount") AS "activityCount",
-                    ARRAY(SELECT DISTINCT UNNEST(array_accum("activityTypes"))) AS "activityTypes",
-                    ARRAY(SELECT DISTINCT UNNEST(array_accum("activeOn"))) AS "activeOn",
-                    SUM("activeDaysCount") AS "activeDaysCount",
-                    ROUND(SUM("averageSentiment" * "activityCount") / SUM("activityCount"), 2) AS "averageSentiment",
-                    ARRAY_AGG(DISTINCT "segmentId") AS "segmentIds"
-                FROM "memberActivityAggregatesMVs"
-                WHERE "segmentId" IN (:segmentIds)
-                GROUP BY id
-            )
-        SELECT
-            m.id,
-            m."displayName",
-            m.attributes,
-            m.emails,
-            m."tenantId",
-            m.score,
-            m."lastEnriched",
-            m.contributions,
-            m."joinedAt",
-            m."importHash",
-            m."createdAt",
-            m."updatedAt",
-            m.reach,
-            tmd.to_merge_ids AS "toMergeIds",
-            nmd.no_merge_ids AS "noMergeIds",
-            aggs.username,
-            aggs.identities,
-            aggs."activeOn",
-            aggs."activityCount",
-            aggs."activityTypes",
-            aggs."activeDaysCount",
-            aggs."lastActive",
-            aggs."averageSentiment",
-            aggs."segmentIds",
-            COALESCE(mt.all_tags, JSON_BUILD_ARRAY()) AS tags,
-            COALESCE(mo.all_organizations, JSON_BUILD_ARRAY()) AS organizations,
-            COALESCE(JSONB_ARRAY_LENGTH(m.contributions), 0) AS "numberOfOpenSourceContributions"
-        FROM members m
-        INNER JOIN aggs ON aggs.id = m.id
-        LEFT JOIN to_merge_data tmd ON m.id = tmd."memberId"
-        LEFT JOIN no_merge_data nmd ON m.id = nmd."memberId"
-        LEFT JOIN member_tags mt ON m.id = mt."memberId"
-        LEFT JOIN member_organizations mo ON m.id = mo."memberId"
-        WHERE m."deletedAt" IS NULL
-          AND m."tenantId" = :tenantId
-          AND ${filterString}
-        ORDER BY ${orderByString}
-        LIMIT :limit OFFSET :offset;
-    `
-
-    const sumMemberCount = (countResults) =>
-      countResults.map((row) => parseInt(row.totalCount, 10)).reduce((a, b) => a + b, 0)
-
-    if (countOnly) {
-      const countResults = await MemberRepository.countMembers(
-        options,
-        segmentIds,
-        filterString,
-        params,
-      )
-      const count = sumMemberCount(countResults)
-
-      return {
-        rows: [],
-        count,
-        limit,
-        offset,
-      }
-    }
-
-    const [results, countResults] = await Promise.all([
-      seq.query(query, {
-        replacements: params,
-        type: QueryTypes.SELECT,
-      }),
-      MemberRepository.countMembers(options, segmentIds, filterString, params),
-    ])
-
-    const memberIds = results.map((r) => (r as any).id)
-    if (memberIds.length > 0) {
-      const lastActivities = await seq.query(
-        `
-            WITH
-                raw_data AS (
-                    SELECT *, ROW_NUMBER() OVER (PARTITION BY "memberId" ORDER BY timestamp DESC) AS rn
-                    FROM activities
-                    WHERE "tenantId" = :tenantId
-                      AND "memberId" IN (:memberIds)
-                      AND "segmentId" IN (:segmentIds)
-                )
-            SELECT *
-            FROM raw_data
-            WHERE rn = 1;
-        `,
-        {
-          replacements: {
-            tenantId: tenant.id,
-            segmentIds,
-            memberIds,
-          },
-          type: QueryTypes.SELECT,
-        },
-      )
-
-      for (const row of results) {
-        const r = row as any
-        r.lastActivity = lastActivities.find((a) => (a as any).memberId === r.id)
-        if (r.lastActivity) {
-          r.lastActivity.display = ActivityDisplayService.getDisplayOptions(
-            r.lastActivity,
-            SegmentRepository.getActivityTypes(options),
-            [ActivityDisplayVariant.SHORT, ActivityDisplayVariant.CHANNEL],
-          )
-        }
-      }
-    }
-
-    const count = sumMemberCount(countResults)
-
-    return {
-      rows: results,
-      count,
-      limit,
-      offset,
-    }
   }
 
   static async findAndCountAllOpensearch(
@@ -2442,10 +1979,13 @@ class MemberRepository {
 
       for (const identity of row.identities) {
         identities.push(identity.platform)
-        if (identity.platform in username) {
-          username[identity.platform].push(identity.username)
-        } else {
-          username[identity.platform] = [identity.username]
+
+        if (identity.type === MemberIdentityType.USERNAME) {
+          if (identity.platform in username) {
+            username[identity.platform].push(identity.username)
+          } else {
+            username[identity.platform] = [identity.username]
+          }
         }
       }
 
@@ -3153,12 +2693,12 @@ class MemberRepository {
         m2.id AS m2_id,
         i1.platform AS i1_platform,
         i2.platform AS i2_platform,
-        i1.username AS i1_username,
-        i2.username AS i2_username
+        i1.value AS i1_username,
+        i2.value AS i2_username
       FROM new_members m1
       -- Join memberIdentities and members to get related records
-      JOIN "memberIdentities" i1 ON m1.id = i1."memberId"
-      JOIN "memberIdentities" i2 ON i1.username = i2.username AND i1.platform <> i2.platform
+      JOIN "memberIdentities" i1 ON m1.id = i1."memberId" and i1.type = '${MemberIdentityType.USERNAME}'
+      JOIN "memberIdentities" i2 ON i1.value = i2.value and i2.type = '${MemberIdentityType.USERNAME}' and i1.platform <> i2.platform
       JOIN members m2 ON m2.id = i2."memberId"
       -- Filter out records where tenantId is different and memberIds are the same
       WHERE m1."tenantId" = m2."tenantId"
@@ -3317,17 +2857,17 @@ class MemberRepository {
       SELECT DISTINCT ON(m1_id, m2_id)
         m1.id AS m1_id,
         m2.id AS m2_id,
-        similarity(i1.username, i2.username) AS similarity
+        similarity(i1.value, i2.value) AS similarity
       FROM new_members m1
       -- Join memberIdentities and members to get related records
-      JOIN "memberIdentities" i1 ON m1.id = i1."memberId"
-      JOIN "memberIdentities" i2 ON i1.platform <> i2.platform
+      JOIN "memberIdentities" i1 ON m1.id = i1."memberId" and i1.type = '${MemberIdentityType.USERNAME}'
+      JOIN "memberIdentities" i2 ON i1.platform <> i2.platform and i2.type = '${MemberIdentityType.USERNAME}'
       JOIN members m2 ON m2.id = i2."memberId"
       -- Filter out records where tenantId is different and memberIds are the same
       WHERE m1."tenantId" = m2."tenantId"
       AND m1.id <> m2.id
       -- Consider only records with similarity > 0.5 (adjust this threshold as needed)
-      AND similarity(i1.username, i2.username) > 0.5
+      AND similarity(i1.value, i2.value) > 0.5
       -- Order by similarity descending to get the most similar records first
       ORDER BY m1_id, m2_id, similarity DESC
     ),
@@ -3610,11 +3150,11 @@ class MemberRepository {
 
     output.username = {}
 
-    for (const identity of memberIdentities) {
+    for (const identity of memberIdentities.filter((i) => i.type === MemberIdentityType.USERNAME)) {
       if (output.username[identity.platform]) {
-        output.username[identity.platform].push(identity.username)
+        output.username[identity.platform].push(identity.value)
       } else {
-        output.username[identity.platform] = [identity.username]
+        output.username[identity.platform] = [identity.value]
       }
     }
 
@@ -4341,14 +3881,15 @@ class MemberRepository {
     const seq = SequelizeRepository.getSequelize(options)
 
     const query = `
-      delete from "memberIdentities" where "memberId" = :memberId and platform = :platform and username = :username;
+      delete from "memberIdentities" where "memberId" = :memberId and platform = :platform and value = :value and type = :type;
     `
 
     for (const identity of identities) {
       await seq.query(query, {
         replacements: {
           memberId,
-          username: identity.username,
+          value: identity.value,
+          type: identity.type,
           platform: identity.platform,
         },
         type: QueryTypes.DELETE,

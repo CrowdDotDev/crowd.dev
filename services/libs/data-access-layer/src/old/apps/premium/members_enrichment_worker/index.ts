@@ -1,6 +1,7 @@
 import { DbStore, DbTransaction } from '@crowd/database'
 import { IAttributes, OrganizationSource } from '@crowd/types'
 
+// TODO uros - fix usage
 export async function fetchMembersForEnrichment(db: DbStore) {
   return db.connection().query(
     `SELECT
@@ -57,7 +58,7 @@ export async function findExistingMember(
        FROM "memberIdentities" mi
        WHERE mi."tenantId" = $1
          AND mi.platform = $2
-         AND mi.username in ($3)
+         AND mi.value in ($3)
          AND EXISTS (SELECT 1 FROM "memberSegments" ms WHERE ms."memberId" = mi."memberId")`,
     [tenantId, platform, usernames],
   )

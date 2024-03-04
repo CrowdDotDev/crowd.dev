@@ -106,7 +106,7 @@ export function getInsertMemberIdentityColumnSet(instance: DbInstance): DbColumn
   if (insertMemberIdentityColumnSet) return insertMemberIdentityColumnSet
 
   insertMemberIdentityColumnSet = new instance.helpers.ColumnSet(
-    ['memberId', 'platform', 'username', 'sourceId', 'tenantId', 'integrationId'],
+    ['memberId', 'platform', 'value', 'type', 'sourceId', 'tenantId', 'integrationId'],
     {
       table: {
         table: 'memberIdentities',

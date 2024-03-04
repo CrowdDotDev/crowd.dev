@@ -1,18 +1,26 @@
 import { DbConnection, DbTransaction } from '@crowd/database'
-import { PlatformType } from '@crowd/types'
+import { MemberIdentityType, PlatformType } from '@crowd/types'
 
+export interface IMemberIdentityData {
+  id: string
+  value: string
+  type: MemberIdentityType
+}
+
+// TODO uros - fix usages
 export async function fetchIntegrationMembersPaginated(
   db: DbConnection | DbTransaction,
   integrationId: string,
   platform: PlatformType,
   page: number,
   perPage: number,
-) {
+): Promise<IMemberIdentityData[]> {
   const result = await db.any(
     `
           SELECT
             m."memberId" as id,
-            m.username as username
+            m.value,
+            m.type
           FROM
             "memberIdentities" m
           WHERE

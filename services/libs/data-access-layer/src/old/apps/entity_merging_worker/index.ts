@@ -1,5 +1,5 @@
 import { DbStore } from '@crowd/database'
-import { MergeActionState } from '@crowd/types'
+import { MemberIdentityType, MergeActionState } from '@crowd/types'
 import { ISegmentIds } from './types'
 
 export async function deleteMemberSegments(db: DbStore, memberId: string) {
@@ -76,7 +76,8 @@ export async function moveIdentityActivitiesToNewMember(
   tenantId: string,
   fromId: string,
   toId: string,
-  username: string,
+  value: string,
+  type: MemberIdentityType,
   platform: string,
 ) {
   return db.connection().query(
@@ -85,10 +86,11 @@ export async function moveIdentityActivitiesToNewMember(
         SET "memberId" = $1
         WHERE "memberId" = $2
           AND "tenantId" = $3
-          AND username = $4
-          AND platform = $5;
+          AND value = $4
+          and type = $5
+          AND platform = $6;
       `,
-    [toId, fromId, tenantId, username, platform],
+    [toId, fromId, tenantId, value, type, platform],
   )
 }
 

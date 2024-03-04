@@ -88,6 +88,7 @@ class MergeActionsRepository {
   ): Promise<IMergeAction> {
     const transaction = SequelizeRepository.getTransaction(options)
 
+    // TODO uros - migration for mergeActions and change inserts/updates
     const records = await options.database.sequelize.query(
       `
       select *
@@ -96,14 +97,16 @@ class MergeActionsRepository {
         and exists(
               select 1
               from jsonb_array_elements(ma."unmergeBackup" -> 'secondary' -> 'identities') as identities
-              where identities ->> 'username' = :secondaryMemberIdentityUsername
+              where identities ->> 'value' = :secondaryMemberIdentityValue
+                and identities ->> 'type' = :secondaryMemberIdentityType
                 and identities ->> 'platform' = :secondaryMemberIdentityPlatform
           );
       `,
       {
         replacements: {
           primaryMemberId,
-          secondaryMemberIdentityUsername: identity.username,
+          secondaryMemberIdentityValue: identity.value,
+          secondaryMemberIdentityType: identity.type,
           secondaryMemberIdentityPlatform: identity.platform,
         },
         type: QueryTypes.SELECT,

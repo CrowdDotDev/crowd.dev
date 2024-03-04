@@ -7,7 +7,7 @@ import { isObjectEmpty, singleOrDefault, escapeNullByte } from '@crowd/common'
 import { DbStore, arePrimitivesDbEqual } from '@crowd/data-access-layer/src/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { ISentimentAnalysisResult, getSentiment } from '@crowd/sentiment'
-import { IActivityData, PlatformType, TemporalWorkflowId } from '@crowd/types'
+import { IActivityData, MemberIdentityType, PlatformType, TemporalWorkflowId } from '@crowd/types'
 import ActivityRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/activity.repo'
 import { IActivityCreateData, IActivityUpdateData } from './activity.data'
 import MemberService from './member.service'
@@ -381,7 +381,10 @@ export default class ActivityService extends LoggerBase {
 
       let username = activity.username
       if (!username) {
-        const identity = singleOrDefault(activity.member.identities, (i) => i.platform === platform)
+        const identity = singleOrDefault(
+          activity.member.identities,
+          (i) => i.platform === platform && i.type === MemberIdentityType.USERNAME,
+        )
         if (!identity) {
           this.log.error("Activity's member does not have an identity for the platform.")
           throw new Error(
@@ -389,7 +392,7 @@ export default class ActivityService extends LoggerBase {
           )
         }
 
-        username = identity.username
+        username = identity.value
       }
 
       let member = activity.member
@@ -398,7 +401,8 @@ export default class ActivityService extends LoggerBase {
           identities: [
             {
               platform,
-              username,
+              value: username,
+              type: MemberIdentityType.USERNAME,
             },
           ],
         }
@@ -408,7 +412,10 @@ export default class ActivityService extends LoggerBase {
       let objectMember = activity.objectMember
 
       if (objectMember && !objectMemberUsername) {
-        const identity = singleOrDefault(objectMember.identities, (i) => i.platform === platform)
+        const identity = singleOrDefault(
+          objectMember.identities,
+          (i) => i.platform === platform && i.type === MemberIdentityType.USERNAME,
+        )
         if (!identity) {
           this.log.error("Activity's object member does not have an identity for the platform.")
           throw new Error(
@@ -416,13 +423,14 @@ export default class ActivityService extends LoggerBase {
           )
         }
 
-        objectMemberUsername = identity.username
+        objectMemberUsername = identity.value
       } else if (objectMemberUsername && !objectMember) {
         objectMember = {
           identities: [
             {
               platform,
-              username: objectMemberUsername,
+              value: objectMemberUsername,
+              type: MemberIdentityType.USERNAME,
             },
           ],
         }

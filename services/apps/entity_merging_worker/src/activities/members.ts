@@ -50,7 +50,8 @@ export async function moveActivitiesWithIdentityToAnotherMember(
       tenantId,
       fromId,
       toId,
-      identity.username,
+      identity.value,
+      identity.type,
       identity.platform,
     )
   }

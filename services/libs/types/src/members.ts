@@ -1,5 +1,10 @@
 import { IAttributes } from './attributes'
-import { MemberAttributeType, MergeActionState, MergeActionType } from './enums/members'
+import {
+  MemberAttributeType,
+  MemberIdentityType,
+  MergeActionState,
+  MergeActionType,
+} from './enums/members'
 import {
   IMemberOrganization,
   IOrganization,
@@ -29,7 +34,8 @@ export interface IMemberAttributeData extends IMemberAttribute {
 export interface IMemberIdentity {
   sourceId?: string
   platform: string
-  username: string
+  value: string
+  type: MemberIdentityType
   tenantId?: string
   integrationId?: string
   memberId?: string

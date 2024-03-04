@@ -7,6 +7,7 @@ import { ActivitySyncService } from './activity.sync.service'
 import { MemberSyncService } from './member.sync.service'
 import { OpenSearchService } from './opensearch.service'
 import { OrganizationSyncService } from './organization.sync.service'
+import { MemberIdentityType } from '@crowd/types'
 
 export class InitService {
   public static FAKE_TENANT_ID = 'b0e82a13-566f-40e0-b0d0-11fcb6596b0f'
@@ -208,13 +209,15 @@ export class InitService {
       identities: [
         {
           platform: 'devto',
-          username: 'Test Member',
+          value: 'Test Member',
+          type: MemberIdentityType.USERNAME,
         },
       ],
       weakIdentities: [
         {
           platform: 'github',
-          username: 'fakeWeakIdentity',
+          value: 'fakeWeakIdentity',
+          type: MemberIdentityType.USERNAME,
         },
       ],
       organizations: [

@@ -20,6 +20,7 @@ import {
   OrganizationSource,
   IOrganizationIdSource,
   TemporalWorkflowId,
+  MemberIdentityType,
 } from '@crowd/types'
 import mergeWith from 'lodash.mergewith'
 import isEqual from 'lodash.isequal'
@@ -410,9 +411,13 @@ export default class MemberService extends LoggerBase {
         // first try finding the member using the identity
         const identity = singleOrDefault(
           member.identities,
-          (i) => i.platform === platform && i.sourceId !== undefined && i.sourceId !== null,
+          (i) =>
+            i.platform === platform &&
+            i.sourceId !== undefined &&
+            i.sourceId !== null &&
+            i.type === MemberIdentityType.USERNAME,
         )
-        let dbMember = await txRepo.findMember(tenantId, segmentId, platform, identity.username)
+        let dbMember = await txRepo.findMember(tenantId, segmentId, platform, identity.value)
 
         if (!dbMember && member.emails && member.emails.length > 0) {
           const email = member.emails[0]
@@ -499,8 +504,11 @@ export default class MemberService extends LoggerBase {
         const segmentId = dbIntegration.segmentId
 
         // first try finding the member using the identity
-        const identity = singleOrDefault(member.identities, (i) => i.platform === platform)
-        const dbMember = await txRepo.findMember(tenantId, segmentId, platform, identity.username)
+        const identity = singleOrDefault(
+          member.identities,
+          (i) => i.platform === platform && i.type === MemberIdentityType.USERNAME,
+        )
+        const dbMember = await txRepo.findMember(tenantId, segmentId, platform, identity.value)
 
         if (dbMember) {
           this.log.trace({ memberId: dbMember.id }, 'Found existing member.')
@@ -546,7 +554,7 @@ export default class MemberService extends LoggerBase {
       const strongIdentities = []
 
       for (const weakIdentity of data.weakIdentities) {
-        if (!results.has(`${weakIdentity.platform}:${weakIdentity.username}`)) {
+        if (!results.has(`${weakIdentity.platform}:${weakIdentity.type}:${weakIdentity.value}`)) {
           strongIdentities.push(weakIdentity)
         }
       }
@@ -554,14 +562,18 @@ export default class MemberService extends LoggerBase {
       if (strongIdentities.length > 0) {
         data.weakIdentities = data.weakIdentities.filter(
           (i) =>
-            strongIdentities.find((s) => s.platform === i.platform && s.username === i.username) ===
-            undefined,
+            strongIdentities.find(
+              (s) => s.platform === i.platform && s.value === i.value && s.type === i.type,
+            ) === undefined,
         )
 
         for (const identity of strongIdentities) {
           if (
             data.identities.find(
-              (i) => i.platform === identity.platform && i.username === identity.username,
+              (i) =>
+                i.platform === identity.platform &&
+                i.value === identity.value &&
+                i.type === identity.type,
             ) === undefined
           ) {
             data.identities.push(identity)
@@ -624,7 +636,10 @@ export default class MemberService extends LoggerBase {
       for (const identity of member.weakIdentities) {
         if (
           !dbMember.weakIdentities.find(
-            (t) => t.platform === identity.platform && t.username === identity.username,
+            (t) =>
+              t.platform === identity.platform &&
+              t.value === identity.value &&
+              t.type === identity.type,
           )
         ) {
           newWeakIdentities.push(identity)
@@ -642,7 +657,10 @@ export default class MemberService extends LoggerBase {
       for (const identity of member.identities) {
         if (
           !dbIdentities.find(
-            (t) => t.platform === identity.platform && t.username === identity.username,
+            (t) =>
+              t.platform === identity.platform &&
+              t.value === identity.value &&
+              t.type === identity.type,
           )
         ) {
           newIdentities.push(identity)

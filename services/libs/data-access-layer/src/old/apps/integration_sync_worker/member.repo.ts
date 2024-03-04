@@ -274,7 +274,8 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
                                   json_agg(
                                           json_build_object(
                                                   'platform', mi.platform,
-                                                  'username', mi.username
+                                                  'value', mi.value,
+                                                  'type', mi.type
                                               )
                                       ) as identities
                             from "memberIdentities" mi

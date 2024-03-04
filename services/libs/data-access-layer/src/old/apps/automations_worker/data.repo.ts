@@ -7,6 +7,7 @@ import { IActivityData, IMemberData } from './types'
 import cloneDeep from 'lodash.clonedeep'
 import merge from 'lodash.merge'
 import { ActivityDisplayService, DEFAULT_ACTIVITY_TYPE_SETTINGS } from '@crowd/integrations'
+import { IMemberIdentity, MemberIdentityType } from '@crowd/types'
 
 export class DataRepository extends RepositoryBase<DataRepository> {
   constructor(dbStore: DbStore, parentLog: Logger) {
@@ -239,9 +240,11 @@ export class DataRepository extends RepositoryBase<DataRepository> {
             member.username = {}
             for (const platform of member.identities) {
               member.username[platform] = identities
-                .filter((i) => i.platform === platform)
-                .map((i) => i.username)
+                .filter((i) => i.platform === platform && i.type === MemberIdentityType.USERNAME)
+                .map((i) => i.value)
             }
+
+            member.rawIdentities = identities
           }
         }),
       )
@@ -465,7 +468,7 @@ export class DataRepository extends RepositoryBase<DataRepository> {
     return results
   }
 
-  async getMemberIdentities(memberIds: string[]): Promise<any[]> {
+  async getMemberIdentities(memberIds: string[]): Promise<IMemberIdentity[]> {
     const results = await this.db().any(
       `
       select * from "memberIdentities"

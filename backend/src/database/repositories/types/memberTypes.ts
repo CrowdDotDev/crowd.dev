@@ -1,3 +1,5 @@
+import { MemberIdentityType } from '@crowd/types'
+
 export interface IActiveMemberData {
   id: string
   displayName: string
@@ -21,7 +23,8 @@ export interface IActiveMemberFilter {
 
 export interface IMemberIdentity {
   platform: string
-  username: string
+  value: string
+  type: MemberIdentityType
   integrationId?: string
   sourceId?: string
   createdAt?: string

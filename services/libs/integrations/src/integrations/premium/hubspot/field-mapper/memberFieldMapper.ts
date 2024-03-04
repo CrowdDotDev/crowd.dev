@@ -8,6 +8,7 @@ import {
   PlatformType,
   ITagOpensearch,
   OrganizationSource,
+  MemberIdentityType,
 } from '@crowd/types'
 import { HubspotPropertyType, IFieldProperty, IHubspotContact } from '../types'
 import { HubspotFieldMapper } from './hubspotFieldMapper'
@@ -168,7 +169,8 @@ export class HubspotMemberFieldMapper extends HubspotFieldMapper {
       identities: [
         {
           platform: PlatformType.HUBSPOT,
-          username: contactProperties.email,
+          value: contactProperties.email,
+          type: MemberIdentityType.EMAIL,
           sourceId: hubspotContact.id,
         },
       ],
@@ -205,7 +207,8 @@ export class HubspotMemberFieldMapper extends HubspotFieldMapper {
 
             if (identityPlatform) {
               member.weakIdentities.push({
-                username: contactProperties[hubspotPropertyName],
+                value: contactProperties[hubspotPropertyName],
+                type: MemberIdentityType.USERNAME,
                 platform: identityPlatform,
               })
             }

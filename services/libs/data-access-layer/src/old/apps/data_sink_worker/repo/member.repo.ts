@@ -10,7 +10,7 @@ import {
   IDbMemberCreateData,
   IDbMemberUpdateData,
 } from './member.data'
-import { IMemberIdentity, SyncStatus } from '@crowd/types'
+import { IMemberIdentity, MemberIdentityType, SyncStatus } from '@crowd/types'
 import { generateUUIDv1 } from '@crowd/common'
 
 export default class MemberRepository extends RepositoryBase<MemberRepository> {
@@ -63,17 +63,20 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
                     from "memberIdentities" mi
                     where mi."tenantId" = $(tenantId)
                       and mi.platform = $(platform)
-                      and mi.username = $(username));
+                      and mi.value = $(username)
+                      and mi.type = $(type));
     `,
       {
         tenantId,
         segmentId,
         platform,
         username,
+        type: MemberIdentityType.USERNAME,
       },
     )
   }
 
+  // TODO uros - fix usage
   public async findIdentities(
     tenantId: string,
     identities: IMemberIdentity[],
@@ -91,26 +94,25 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
     }
 
     const identityParams = identities
-      .map((identity) => `('${identity.platform}', '${identity.username}')`)
+      .map((identity) => `('${identity.platform}', '${identity.value}', '${identity.type}')`)
       .join(', ')
 
     const result = await this.db().any(
       `
-      with input_identities (platform, username) as (
+      with input_identities (platform, value, type) as (
         values ${identityParams}
       )
-      select "memberId", i.platform, i.username
+      select "memberId", i.platform, i.value, i.type
       from "memberIdentities" mi
-        inner join input_identities i on mi.platform = i.platform and mi.username = i.username
+        inner join input_identities i on mi.platform = i.platform and mi.value = i.value and mi.type = i.type
       where mi."tenantId" = $(tenantId) ${condition}
     `,
       params,
     )
 
-    // Map the result to a Map<IMemberIdentity, string>
     const resultMap = new Map<string, string>()
     result.forEach((row) => {
-      resultMap.set(`${row.platform}:${row.username}`, row.memberId)
+      resultMap.set(`${row.platform}:${row.type}:${row.value}`, row.memberId)
     })
 
     return resultMap
@@ -175,10 +177,11 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
     await this.db().result(`${query} ${condition}`)
   }
 
+  // TODO uros fix usage
   public async getIdentities(memberId: string, tenantId: string): Promise<IMemberIdentity[]> {
     return await this.db().any(
       `
-      select "sourceId", "platform", "username" from "memberIdentities"
+      select "sourceId", platform, value, type from "memberIdentities"
       where "memberId" = $(memberId) and "tenantId" = $(tenantId)
     `,
       {
@@ -194,13 +197,13 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
     identities: IMemberIdentity[],
   ): Promise<void> {
     const formattedIdentities = identities
-      .map((i) => `('${i.platform}', '${i.username}')`)
+      .map((i) => `('${i.platform}', '${i.value}', '${i.type}')`)
       .join(', ')
 
     const query = `delete from "memberIdentities"
       where "memberId" = $(memberId) and
       "tenantId" = $(tenantId) and
-      ("platform", "username") in (${formattedIdentities});
+      (platform, value, type) in (${formattedIdentities});
     `
 
     const result = await this.db().result(query, {
@@ -225,7 +228,8 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
         integrationId,
         platform: i.platform,
         sourceId: i.sourceId,
-        username: i.username,
+        value: i.value,
+        type: i.type,
       }
     })
 

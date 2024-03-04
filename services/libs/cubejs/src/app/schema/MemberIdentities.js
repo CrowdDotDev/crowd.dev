@@ -17,8 +17,12 @@ cube('MemberIdentities', {
       sql: `${CUBE}.platform`,
       type: 'string',
     },
-    username: {
-      sql: `${CUBE}.username`,
+    value: {
+      sql: `${CUBE}.value`,
+      type: 'string',
+    },
+    type: {
+      sql: `${CUBE}.type`,
       type: 'string',
     },
   },

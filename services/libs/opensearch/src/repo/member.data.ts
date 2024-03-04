@@ -1,6 +1,9 @@
+import { MemberIdentityType } from '@crowd/types'
+
 export interface IDbMemberIdentityData {
   platform: string
-  username: string
+  value: string
+  type: MemberIdentityType
 }
 
 export interface IDbMemberTagData {
