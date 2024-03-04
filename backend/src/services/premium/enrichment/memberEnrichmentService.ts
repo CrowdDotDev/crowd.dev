@@ -233,7 +233,7 @@ export default class MemberEnrichmentService extends LoggerBase {
     if (!ENRICHMENT_CONFIG.apiKey || !ENRICHMENT_CONFIG.url) {
       throw new Error('Contact enrichment API env variables not set!')
     }
-    
+
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {

@@ -51,6 +51,7 @@ const en = {
     passwordChange: {
       invalidPassword: 'Wrong old password',
     },
+    invalidSignUpDomain: 'Please sign up using your work email.',
   },
 
   cubejs: {

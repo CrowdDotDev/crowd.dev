@@ -89,7 +89,6 @@ export default class OrganizationEnrichmentService extends LoggerBase {
     includeOrgsActiveLastYear: boolean = false,
     verbose: boolean = false,
   ): Promise<IOrganization[]> {
-
     // Check for organization enrichment API key
     if (!this.apiKey) {
       throw new Error('Organization enrichment API key is not set!')
