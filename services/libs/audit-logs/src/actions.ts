@@ -1,35 +1,7 @@
-import {
-  ActionType,
-  AuditLogAction,
-  EntityType,
-} from '@crowd/data-access-layer/src/audit_logs/repo'
 import { diff } from 'deep-object-diff'
 
-export type CaptureValueFn = (value: object) => void
-
-export type CaptureFn<T> = (
-  captureOldState: CaptureValueFn,
-  captureNewState: CaptureValueFn,
-) => Promise<T>
-
-export type BuildActionFn<T> = () => Promise<{
-  result: T
-  auditLog: AuditLogAction
-  error?: Error
-}>
-
-function createCaptureFn(): { value: object; fn: CaptureValueFn } {
-  const result = {
-    value: {},
-    fn: null,
-  }
-
-  result.fn = (newValue: object) => {
-    result.value = newValue
-  }
-
-  return result
-}
+import { ActionType } from '@crowd/data-access-layer/src/audit_logs/repo'
+import { type CaptureFn, type BuildActionFn, createCaptureFn } from './baseActions'
 
 export function memberEditProfileAction<T>(
   entityId: string,

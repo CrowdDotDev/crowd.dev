@@ -3,7 +3,7 @@ import {
   AuditLogAction,
   AuditLogRequestOptions,
 } from '@crowd/data-access-layer/src/audit_logs/repo'
-import { BuildActionFn } from './actions'
+import { BuildActionFn } from './baseActions'
 import { getDbConnection } from '@crowd/data-access-layer/src/database'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
