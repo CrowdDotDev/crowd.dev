@@ -110,7 +110,7 @@ export interface IOrganizationCache {
   size?: string
   headline?: string
   industry?: string
-  founded?: string
+  founded?: number
   attributes?: IAttributes
   immediateParent?: string
   ultimateParent?: string
