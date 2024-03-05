@@ -113,7 +113,7 @@ const alignFilterList = (value: Filter) => {
   filterList.value = Object.keys(filterValues);
 };
 
-const removeFilter = (key) => {
+const removeFilter = (key: string) => {
   open.value = '';
   filterList.value = filterList.value.filter((el) => el !== key);
   delete filters.value[key];

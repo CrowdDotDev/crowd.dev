@@ -102,4 +102,26 @@ export class LfService {
 
     return response.data;
   }
+
+  // Users
+
+  static async fetchUsers(filter, orderBy, limit, offset) {
+    const params = {
+      filter,
+      orderBy,
+      limit,
+      offset,
+    };
+
+    const tenantId = AuthCurrentTenant.get();
+
+    const response = await authAxios.get(
+      `/tenant/${tenantId}/user`,
+      {
+        params,
+      },
+    );
+
+    return response.data;
+  }
 }

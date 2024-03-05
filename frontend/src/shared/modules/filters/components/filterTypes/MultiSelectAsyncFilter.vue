@@ -24,6 +24,7 @@
           :key="option.value"
           :label="option.label"
           :value="option"
+          class="!h-auto !min-h-10 !py-2.5"
         >
           <div
             class="h-4 el-checkbox filter-checkbox"
@@ -33,13 +34,25 @@
               <span class="el-checkbox__inner" />
             </span>
           </div>
-          <template v-if="config.id === 'organizations'">
-            <span class="flex items-center justify-center w-6 h-6 p-1 mr-3 border rounded-md ">
-              <img v-if="option.logo" :src="option.logo" class="w-4 h-4 min-w-[16px]" :alt="option.label" />
-              <i v-else class="flex items-center justify-center w-4 h-4 text-gray-300 ri-community-line" />
-            </span>
-          </template>
-          {{ option.label }}
+          <!-- TODO: Make this more config specific -->
+
+          <!--          <template v-if="config.id === 'organizations'">-->
+          <!--            <span class="flex items-center justify-center w-6 h-6 p-1 mr-3 border rounded-md ">-->
+          <!--              <img v-if="option.logo" :src="option.logo" class="w-4 h-4 min-w-[16px]" :alt="option.label" />-->
+          <!--              <i v-else class="flex items-center justify-center w-4 h-4 text-gray-300 ri-community-line" />-->
+          <!--            </span>-->
+          <!--          </template>-->
+          <div>
+            <p class="mb-0 leading-5">
+              {{ option.label }}
+            </p>
+            <p
+              v-if="option.description"
+              class="text-2xs text-gray-500 leading-5"
+            >
+              {{ option.description }}
+            </p>
+          </div>
         </el-option>
       </el-select>
     </div>
