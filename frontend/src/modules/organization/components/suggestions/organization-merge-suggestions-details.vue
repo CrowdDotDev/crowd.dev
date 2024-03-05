@@ -24,34 +24,36 @@
       :class="{ 'bg-gray-50': props.isPrimary }"
     >
       <!-- primary member -->
-      <div class="h-13 flex justify-between items-start">
-        <div
-          v-if="props.isPreview"
-          class="bg-brand-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
-        >
-          Preview
+      <slot name="header">
+        <div class="h-13 flex justify-between items-start">
+          <div
+            v-if="props.isPreview"
+            class="bg-brand-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
+          >
+            Preview
+          </div>
+          <div
+            v-else-if="props.isPrimary"
+            class="bg-brand-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
+          >
+            Primary organization
+          </div>
+          <button
+            v-else
+            :disabled="isEditLockedForSampleData"
+            type="button"
+            class="btn btn--bordered btn--sm leading-5 !px-4 !py-1"
+            @click="emit('makePrimary')"
+          >
+            <span class="ri-arrow-left-right-fill text-base text-gray-600 mr-2" />
+            <span>Make primary</span>
+          </button>
+          <slot name="action" />
         </div>
-        <div
-          v-else-if="props.isPrimary"
-          class="bg-brand-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
-        >
-          Primary organization
-        </div>
-        <button
-          v-else
-          :disabled="isEditLockedForSampleData"
-          type="button"
-          class="btn btn--bordered btn--sm leading-5 !px-4 !py-1"
-          @click="emit('makePrimary')"
-        >
-          <span class="ri-arrow-left-right-fill text-base text-gray-600 mr-2" />
-          <span>Make primary</span>
-        </button>
-        <slot name="action" />
-      </div>
+      </slot>
       <div class="pb-6">
         <router-link
-          v-if="!isPreview"
+          v-if="!isPreview && props.organization.id"
           :to="{
             name: 'organizationView',
             params: {
@@ -78,7 +80,7 @@
         />
         <div>
           <router-link
-            v-if="!isPreview"
+            v-if="!isPreview && props.organization.id"
             :to="{
               name: 'organizationView',
               params: {
@@ -162,7 +164,7 @@
           class="pb-4"
         >
           <p class="text-2xs font-medium text-gray-500 pb-1">
-            Number of employees
+            # of employees
           </p>
           <p class="text-xs text-gray-900 whitespace-normal">
             {{ props.organization.employees || '-' }}

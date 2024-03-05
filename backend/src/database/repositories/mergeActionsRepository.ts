@@ -3,6 +3,8 @@ import {
   IMemberIdentity,
   IMemberUnmergeBackup,
   IMergeAction,
+  IOrganizationIdentity,
+  IOrganizationUnmergeBackup,
   IUnmergeBackup,
   MergeActionState,
   MergeActionType,
@@ -17,7 +19,7 @@ class MergeActionsRepository {
     secondaryId: string,
     options: IRepositoryOptions,
     state: MergeActionState = MergeActionState.PENDING,
-    backup: IUnmergeBackup<IMemberUnmergeBackup> = undefined,
+    backup: IUnmergeBackup<IMemberUnmergeBackup | IOrganizationUnmergeBackup> = undefined,
   ) {
     const transaction = SequelizeRepository.getTransaction(options)
     const tenantId = options.currentTenant.id
@@ -81,38 +83,86 @@ class MergeActionsRepository {
     return rowCount > 0
   }
 
-  static async findMergeBackup(
-    primaryMemberId: string,
-    identity: IMemberIdentity,
-    options: IRepositoryOptions,
-  ): Promise<IMergeAction> {
+  // TODO uros - fix usages
+  static async findById(id: string, options: IRepositoryOptions): Promise<IMergeAction> {
     const transaction = SequelizeRepository.getTransaction(options)
 
-    // TODO uros - migration for mergeActions and change inserts/updates
-    const records = await options.database.sequelize.query(
+    const record = await options.database.sequelize.query(
       `
-      select *
-      from "mergeActions" ma
-      where ma."primaryId" = :primaryMemberId
-        and exists(
-              select 1
-              from jsonb_array_elements(ma."unmergeBackup" -> 'secondary' -> 'identities') as identities
-              where identities ->> 'value' = :secondaryMemberIdentityValue
-                and identities ->> 'type' = :secondaryMemberIdentityType
-                and identities ->> 'platform' = :secondaryMemberIdentityPlatform
-          );
+      SELECT *
+      FROM "mergeActions"
+      WHERE id = :id;
       `,
       {
-        replacements: {
-          primaryMemberId,
-          secondaryMemberIdentityValue: identity.value,
-          secondaryMemberIdentityType: identity.type,
-          secondaryMemberIdentityPlatform: identity.platform,
-        },
+        replacements: { id },
         type: QueryTypes.SELECT,
         transaction,
       },
     )
+
+    return record[0] || null
+  }
+
+  // TODO uros - fix
+  static async findMergeBackup(
+    primaryMemberId: string,
+    type: MergeActionType,
+    identity: IMemberIdentity | IOrganizationIdentity,
+    options: IRepositoryOptions,
+  ): Promise<IMergeAction> {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    let records
+
+    if (type === MergeActionType.MEMBER) {
+      const memberIdentity = identity as IMemberIdentity
+      records = await options.database.sequelize.query(
+        `
+        select *
+        from "mergeActions" ma
+        where ma."primaryId" = :primaryMemberId
+          and exists(
+                select 1
+                from jsonb_array_elements(ma."unmergeBackup" -> 'secondary' -> 'identities') as identities
+                where identities ->> 'username' = :secondaryMemberIdentityUsername
+                  and identities ->> 'platform' = :secondaryMemberIdentityPlatform
+            );
+        `,
+        {
+          replacements: {
+            primaryMemberId,
+            secondaryMemberIdentityUsername: memberIdentity.username,
+            secondaryMemberIdentityPlatform: memberIdentity.platform,
+          },
+          type: QueryTypes.SELECT,
+          transaction,
+        },
+      )
+    } else if (type === MergeActionType.ORG) {
+      const organizationIdentity = identity as IOrganizationIdentity
+      records = await options.database.sequelize.query(
+        `
+        select *
+        from "mergeActions" ma
+        where ma."primaryId" = :primaryMemberId
+          and exists(
+                select 1
+                from jsonb_array_elements(ma."unmergeBackup" -> 'secondary' -> 'identities') as identities
+                where identities ->> 'name' = :secondaryMemberIdentityName
+                  and identities ->> 'platform' = :secondaryMemberIdentityPlatform
+            );
+        `,
+        {
+          replacements: {
+            primaryMemberId,
+            secondaryMemberIdentityName: organizationIdentity.name,
+            secondaryMemberIdentityPlatform: identity.platform,
+          },
+          type: QueryTypes.SELECT,
+          transaction,
+        },
+      )
+    }
 
     if (records.length === 0) {
       return null

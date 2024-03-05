@@ -46,6 +46,7 @@ import {
   GroupsioVerifyGroup,
 } from '@/serverless/integrations/usecases/groupsio/types'
 import SearchSyncService from './searchSyncService'
+import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 
 const discordToken = DISCORD_CONFIG.token || DISCORD_CONFIG.token2
 
@@ -164,22 +165,43 @@ export default class IntegrationService {
           // remove github remotes from git integration
           if (integration.platform === PlatformType.GITHUB) {
             let shouldUpdateGit: boolean
-            try {
-              await this.findByPlatform(PlatformType.GIT)
-              shouldUpdateGit = true
-            } catch (err) {
-              shouldUpdateGit = false
-            }
+            const mapping = await this.getGithubRepos(id)
+            const repos: Record<string, string[]> = mapping.reduce((acc, { url, segment }) => {
+              if (!acc[segment.id]) {
+                acc[segment.id] = []
+              }
+              acc[segment.id].push(url)
+              return acc
+            }, {})
 
-            if (shouldUpdateGit) {
-              const gitInfo = await this.gitGetRemotes()
-              const segment = SequelizeRepository.getStrictlySingleActiveSegment(this.options)
-              const gitRemotes = gitInfo[segment.id].remotes
-              await this.gitConnectOrUpdate({
-                remotes: gitRemotes.filter(
-                  (remote) => !integration.settings.repos.map((r) => r.url).includes(remote),
-                ),
-              })
+            for (const [segmentId, urls] of Object.entries(repos)) {
+              const segmentOptions: IRepositoryOptions = {
+                ...this.options,
+                currentSegments: [
+                  {
+                    ...this.options.currentSegments[0],
+                    id: segmentId as string,
+                  },
+                ],
+              }
+
+              try {
+                await IntegrationRepository.findByPlatform(PlatformType.GIT, segmentOptions)
+                shouldUpdateGit = true
+              } catch (err) {
+                shouldUpdateGit = false
+              }
+
+              if (shouldUpdateGit) {
+                const gitInfo = await this.gitGetRemotes(segmentOptions)
+                const gitRemotes = gitInfo[segmentId].remotes
+                await this.gitConnectOrUpdate(
+                  {
+                    remotes: gitRemotes.filter((remote) => !urls.includes(remote)),
+                  },
+                  segmentOptions,
+                )
+              }
             }
           }
 
@@ -357,28 +379,6 @@ export default class IntegrationService {
       const repos = await getInstalledRepositories(installToken)
       const githubOwner = IntegrationService.extractOwner(repos, this.options)
 
-      // add the repos to the git integration
-      if (EDITION === Edition.LFX) {
-        let isGitintegrationConfigured
-        try {
-          await this.findByPlatform(PlatformType.GIT)
-          isGitintegrationConfigured = true
-        } catch (err) {
-          isGitintegrationConfigured = false
-        }
-        if (isGitintegrationConfigured) {
-          const gitInfo = await this.gitGetRemotes()
-          const segment = SequelizeRepository.getStrictlySingleActiveSegment(this.options)
-          const gitRemotes = gitInfo[segment.id].remotes
-          await this.gitConnectOrUpdate({
-            remotes: [...gitRemotes, ...repos.map((repo) => repo.cloneUrl)],
-          })
-        } else {
-          await this.gitConnectOrUpdate({
-            remotes: repos.map((repo) => repo.cloneUrl),
-          })
-        }
-      }
       let orgAvatar
       try {
         const response = await request('GET /users/{user}', {
@@ -433,6 +433,57 @@ export default class IntegrationService {
     try {
       await GithubReposRepository.updateMapping(integrationId, mapping, txOptions)
 
+      // add the repos to the git integration
+      if (EDITION === Edition.LFX) {
+        const repos: Record<string, string[]> = Object.entries(mapping).reduce(
+          (acc, [url, segmentId]) => {
+            if (!acc[segmentId as string]) {
+              acc[segmentId as string] = []
+            }
+            acc[segmentId as string].push(url)
+            return acc
+          },
+          {},
+        )
+
+        for (const [segmentId, urls] of Object.entries(repos)) {
+          let isGitintegrationConfigured
+          const segmentOptions: IRepositoryOptions = {
+            ...this.options,
+            currentSegments: [
+              {
+                ...this.options.currentSegments[0],
+                id: segmentId as string,
+              },
+            ],
+          }
+          try {
+            await IntegrationRepository.findByPlatform(PlatformType.GIT, segmentOptions)
+            isGitintegrationConfigured = true
+          } catch (err) {
+            isGitintegrationConfigured = false
+          }
+
+          if (isGitintegrationConfigured) {
+            const gitInfo = await this.gitGetRemotes(segmentOptions)
+            const gitRemotes = gitInfo[segmentId as string].remotes
+            await this.gitConnectOrUpdate(
+              {
+                remotes: Array.from(new Set([...gitRemotes, ...urls])),
+              },
+              segmentOptions,
+            )
+          } else {
+            await this.gitConnectOrUpdate(
+              {
+                remotes: urls,
+              },
+              segmentOptions,
+            )
+          }
+        }
+      }
+
       const integration = await IntegrationRepository.update(
         integrationId,
         { status: 'in-progress' },
@@ -458,7 +509,7 @@ export default class IntegrationService {
     }
   }
 
-  async getGithubRepos(integrationId) {
+  async getGithubRepos(integrationId): Promise<any[]> {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     const txOptions = {
@@ -1241,8 +1292,8 @@ export default class IntegrationService {
    * @param integrationData  to create the integration object
    * @returns integration object
    */
-  async gitConnectOrUpdate(integrationData) {
-    const transaction = await SequelizeRepository.createTransaction(this.options)
+  async gitConnectOrUpdate(integrationData, options?: IRepositoryOptions) {
+    const transaction = await SequelizeRepository.createTransaction(options || this.options)
     let integration
     const stripGit = (url: string) => {
       if (url.endsWith('.git')) {
@@ -1274,11 +1325,14 @@ export default class IntegrationService {
    * Get all remotes for the Git integration, by segment
    * @returns Remotes for the Git integration
    */
-  async gitGetRemotes(): Promise<{
+  async gitGetRemotes(options?: IRepositoryOptions): Promise<{
     [segmentId: string]: { remotes: string[]; integrationId: string }
   }> {
     try {
-      const integrations = await this.findAllByPlatform(PlatformType.GIT)
+      const integrations = await IntegrationRepository.findAllByPlatform(
+        PlatformType.GIT,
+        options || this.options,
+      )
       return integrations.reduce((acc, integration) => {
         const {
           id,

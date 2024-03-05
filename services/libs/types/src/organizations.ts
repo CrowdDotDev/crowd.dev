@@ -2,29 +2,46 @@ import { IAttributes } from './attributes'
 import { OrganizationSource } from './enums/organizations'
 
 export interface IOrganization {
+  // db fields
   id?: string
-  displayName?: string
-  url?: string
   description?: string
   emails?: string[]
+  phoneNumbers?: number[]
   logo?: string
-  avatarUrl?: string
   tags?: string[]
-  github?: IOrganizationSocial
+  url?: string
+  avatarUrl?: string
   twitter?: IOrganizationSocial
   linkedin?: IOrganizationSocial
   crunchbase?: IOrganizationSocial
   employees?: number
+  revenueRange?: IOrganizationRevenueRange
+  importHash?: string
+  createdAt?: string | Date
+  updatedAt?: string | Date
+  deletedAt?: string | Date
+  tenantId?: string
+  createdById?: string
+  updatedById?: string
   location?: string
+  github?: IOrganizationSocial
   website?: string
+  isTeamOrganization?: boolean
+  lastEnrichedAt?: string | Date
+  employeeCountByCountry?: Record<string, number>
   type?: string
+  geoLocation?: string
   size?: string
+  ticker?: string
   headline?: string
+  profiles?: string[]
+  address?: IOrganizationAddress
   industry?: string
-  founded?: string
+  founded?: number
+  displayName?: string
   attributes?: IAttributes
-  immediateParent?: string
-  ultimateParent?: string
+  searchSyncedAt?: string | Date
+  manuallyCreated?: boolean
   affiliatedProfiles?: string[]
   allSubsidiaries?: string[]
   alternativeDomains?: string[]
@@ -32,26 +49,31 @@ export interface IOrganization {
   averageEmployeeTenure?: number
   averageTenureByLevel?: Record<string, number>
   averageTenureByRole?: Record<string, number>
+  directSubsidiaries?: string[]
   employeeChurnRate?: Record<string, number>
-  employeeChurnRate12Month?: number
   employeeCountByMonth?: Record<string, number>
   employeeGrowthRate?: Record<string, number>
-  employeeGrowthRate12Month?: number
   employeeCountByMonthByLevel?: Record<string, number>
   employeeCountByMonthByRole?: Record<string, number>
-  directSubsidiaries?: string[]
   gicsSector?: string
   grossAdditionsByMonth?: Record<string, number>
   grossDeparturesByMonth?: Record<string, number>
-  identities: IOrganizationIdentity[]
+  ultimateParent?: string
+  immediateParent?: string
   weakIdentities?: IOrganizationIdentity[]
-  members?: string[]
-  source?: OrganizationSource
-  revenueRange?: Record<string, number>
+  manuallyChangedFields?: string[]
+  naics?: IOrganizationNaics[]
+
+  // calculated fields
   revenueRangeMin?: number
   revenueRangeMax?: number
-  lastEnrichedAt?: string | Date
-  tenantId?: string
+  source?: OrganizationSource
+  employeeChurnRate12Month?: number
+  employeeGrowthRate12Month?: number
+
+  // relations
+  identities: IOrganizationIdentity[]
+  members?: string[]
 }
 
 export interface IMemberOrganization {
@@ -90,7 +112,7 @@ export interface IOrganizationCache {
   size?: string
   headline?: string
   industry?: string
-  founded?: string
+  founded?: number
   attributes?: IAttributes
   immediateParent?: string
   ultimateParent?: string
@@ -172,4 +194,30 @@ export interface IOrganizationMergeSuggestion {
 export interface IOrganizationIdSource {
   id: string
   source: string
+}
+
+export interface IOrganizationRevenueRange {
+  min: number
+  max: number
+}
+
+export interface IOrganizationNaics {
+  sector: string
+  naics_code: string
+  sub_sector: string
+  industry_group: string
+  naics_industry: string
+  national_industry: string
+}
+
+export interface IOrganizationAddress {
+  name: string
+  metro: string
+  region: string
+  country: string
+  locality: string
+  continent: string
+  postal_code: string
+  address_line_2: string
+  street_address: string
 }

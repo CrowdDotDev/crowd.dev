@@ -7,6 +7,7 @@ import {
   ExportableEntity,
   FeatureFlag,
   IMemberIdentity,
+  IMemberUnmergeBackup,
   IMemberUnmergePreviewResult,
   IOrganization,
   ISearchSyncOptions,
@@ -17,6 +18,7 @@ import {
   MergeActionType,
   SyncMode,
   TemporalWorkflowId,
+  MemberRoleUnmergeStrategy,
 } from '@crowd/types'
 import { randomUUID } from 'crypto'
 import lodash from 'lodash'
@@ -805,6 +807,7 @@ export default class MemberService extends LoggerBase {
 
       const mergeAction = await MergeActionsRepository.findMergeBackup(
         memberId,
+        MergeActionType.MEMBER,
         identity,
         this.options,
       )
@@ -812,8 +815,8 @@ export default class MemberService extends LoggerBase {
       if (mergeAction) {
         // mergeAction is found, unmerge preview will be generated
 
-        const primaryBackup = mergeAction.unmergeBackup.primary
-        const secondaryBackup = mergeAction.unmergeBackup.secondary
+        const primaryBackup = mergeAction.unmergeBackup.primary as IMemberUnmergeBackup
+        const secondaryBackup = mergeAction.unmergeBackup.secondary as IMemberUnmergeBackup
 
         // construct primary member with best effort
         for (const key of MemberService.MEMBER_MERGE_FIELDS) {
@@ -967,6 +970,7 @@ export default class MemberService extends LoggerBase {
           member.memberOrganizations,
           primaryBackup.memberOrganizations,
           secondaryBackup.memberOrganizations,
+          MemberRoleUnmergeStrategy.SAME_MEMBER,
         )
         member.memberOrganizations = unmergedRoles
 
