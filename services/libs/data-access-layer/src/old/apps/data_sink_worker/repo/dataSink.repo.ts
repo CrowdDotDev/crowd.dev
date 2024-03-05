@@ -61,8 +61,6 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
   }
 
   public async getOldResultsToProcess(limit: number): Promise<string[]> {
-    this.ensureTransactional()
-
     try {
       const results = await this.db().any(
         `
