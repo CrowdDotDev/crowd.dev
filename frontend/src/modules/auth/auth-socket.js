@@ -12,6 +12,8 @@ import { useMemberStore } from '@/modules/member/store/pinia';
 import { router } from '@/router';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import useOrganizationMergeMessage from '@/shared/modules/merge/config/useOrganizationMergeMessage';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import { storeToRefs } from 'pinia';
 
 let socketIoClient;
 
@@ -71,19 +73,19 @@ export const connectSocket = (token) => {
     if (!parsedData.success) {
       return;
     }
+    const lsSegmentsStore = useLfSegmentsStore();
+    const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
     const {
       primaryDisplayName,
       secondaryDisplayName,
       primaryId,
       secondaryId,
-      primaryProjectGroup,
-      secondaryProjectGroup,
     } = parsedData;
 
     const primaryMember = h(
       'a',
       {
-        href: `${window.location.origin}/members/${primaryId}?projectGroup=${primaryProjectGroup}`,
+        href: `${window.location.origin}/members/${primaryId}?projectGroup=${selectedProjectGroup.value.id}`,
         class: 'underline text-gray-600',
       },
       primaryDisplayName,
@@ -91,7 +93,7 @@ export const connectSocket = (token) => {
     const secondaryMember = h(
       'a',
       {
-        href: `${window.location.origin}/members/${secondaryId}?projectGroup=${secondaryProjectGroup}`,
+        href: `${window.location.origin}/members/${secondaryId}?projectGroup=${selectedProjectGroup.value.id}`,
         class: 'underline text-gray-600',
       },
       secondaryDisplayName,
@@ -101,11 +103,16 @@ export const connectSocket = (token) => {
       {},
       ' unmerged from ',
     );
+    const after = h(
+      'span',
+      {},
+      '. Syncing contributor activities might take some time to complete.',
+    );
     Message.closeAll();
     Message.success(h(
       'div',
       {},
-      [secondaryMember, between, primaryMember],
+      [secondaryMember, between, primaryMember, after],
     ), {
       title: 'Contributors merged successfully',
     });

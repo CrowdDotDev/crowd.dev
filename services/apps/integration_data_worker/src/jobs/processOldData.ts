@@ -23,11 +23,9 @@ export const processOldDataJob = async (
   )
 
   const loadNextBatch = async (): Promise<string[]> => {
-    return await repo.transactionally(async (txRepo) => {
-      const dataIds = await txRepo.getOldDataToProcess(5)
-      await txRepo.touchUpdatedAt(dataIds)
-      return dataIds
-    })
+    const dataIds = await repo.getOldDataToProcess(5)
+    await repo.touchUpdatedAt(dataIds)
+    return dataIds
   }
 
   // load 5 oldest apiData and try process them

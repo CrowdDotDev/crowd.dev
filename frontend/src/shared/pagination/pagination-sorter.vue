@@ -15,17 +15,16 @@
      </span>
       {{ computedLabel }}</span>
     <div class="flex items-center">
-      <!-- TODO: Enable when backend fixed -->
-<!--      <button-->
-<!--        v-if="['member', 'organization'].includes(module)"-->
-<!--        type="button"-->
-<!--        class="btn btn-link btn-link&#45;&#45;md btn-link&#45;&#45;primary mr-3"-->
-<!--        @click="doExport"-->
-<!--      >-->
-<!--        <i-->
-<!--          class="ri-file-download-line ri-lg mr-1 flex items-center"-->
-<!--        />Export to CSV-->
-<!--      </button>-->
+      <button
+        v-if="['member', 'organization'].includes(module)"
+        type="button"
+        class="btn btn-link btn-link--md btn-link--primary mr-3"
+        @click="doExport"
+      >
+        <i
+          class="ri-file-download-line ri-lg mr-1 flex items-center"
+        />Export to CSV
+      </button>
       <app-inline-select-input
         v-if="sorter"
         v-model="model"
@@ -40,7 +39,7 @@
 </template>
 
 <script setup>
-import { computed, defineProps, defineEmits } from 'vue';
+import { computed } from 'vue';
 import pluralize from 'pluralize';
 import { getExportMax, showExportDialog, showExportLimitDialog } from '@/modules/member/member-export-limit';
 import Message from '@/shared/message/message';

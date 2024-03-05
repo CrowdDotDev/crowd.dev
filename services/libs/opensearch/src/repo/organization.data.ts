@@ -68,8 +68,6 @@ export interface IDbOrganizationSyncData {
   activityCount: number
   memberCount: number
   identities: IOrganizationIdentity[]
-  toMergeIds: string[]
-  noMergeIds: string[]
   memberIds?: string[]
 }
 

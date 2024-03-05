@@ -12,33 +12,42 @@
     </template>
     <template #content>
       <div class="text-gray-900 text-sm font-medium">
-        Remote URL(s)
+        Remote URL
       </div>
       <div class="text-2xs text-gray-500">
-        Connect remotes for each Confluence repository.
+        Connect remote Confluence space.
       </div>
 
       <el-form class="mt-2" @submit.prevent>
-        <app-array-input
-          v-for="(_, ii) of form.remotes"
-          :key="ii"
-          v-model="form.remotes[ii]"
-          placeholder="https://wiki.hyperledger.org"
-        >
-          <template #after>
-            <el-button
-              class="btn btn-link btn-link--md btn-link--primary w-10 h-10"
-              @click="removeRemote(ii)"
-            >
-              <i class="ri-delete-bin-line text-lg" />
-            </el-button>
-          </template>
-        </app-array-input>
+        <el-input
+          id="url"
+          v-model="form.url"
+          class="text-green-500"
+          spellcheck="false"
+          placeholder="Enter Organization URL"
+        />
+        <el-input
+          id="spaceId"
+          v-model="form.space.id"
+          class="text-green-500 mt-2"
+          spellcheck="false"
+          placeholder="Enter Space ID"
+        />
+        <el-input
+          id="spaceKey"
+          v-model="form.space.key"
+          class="text-green-500 mt-2"
+          spellcheck="false"
+          placeholder="Enter Space Key"
+        />
+        <el-input
+          id="spaceName"
+          v-model="form.space.name"
+          class="text-green-500 mt-2"
+          spellcheck="false"
+          placeholder="Enter Space Name"
+        />
       </el-form>
-
-      <el-button class="btn btn-link btn-link--primary" @click="addRemote()">
-        + Add remote URL
-      </el-button>
     </template>
 
     <template #footer>
@@ -57,7 +66,7 @@
           :loading="loading"
           @click="connect"
         >
-          {{ integration.settings?.remotes?.length ? 'Update' : 'Connect' }}
+          {{ integration.settings ? 'Update' : 'Connect' }}
         </el-button>
       </div>
     </template>
@@ -70,7 +79,6 @@ import {
   computed, onMounted, reactive, ref,
 } from 'vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
-import AppArrayInput from '@/shared/form/array-input.vue';
 import formChangeDetector from '@/shared/form/form-change';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
 
@@ -88,7 +96,12 @@ const props = defineProps({
 
 const loading = ref(false);
 const form = reactive({
-  remotes: [''],
+  url: '',
+  space: {
+    id: '',
+    key: '',
+    name: '',
+  },
 });
 
 const { hasFormChanged, formSnapshot } = formChangeDetector(form);
@@ -106,19 +119,12 @@ const isVisible = computed({
 const logoUrl = computed(() => CrowdIntegrations.getConfig('confluence').image);
 
 onMounted(() => {
-  if (props.integration?.settings?.remotes?.length) {
-    form.remotes = props.integration.settings.remotes;
+  if (props.integration.settings) {
+    form.url = props.integration.settings.url;
+    form.space = props.integration.settings.space;
   }
   formSnapshot();
 });
-
-const addRemote = () => {
-  form.remotes.push('');
-};
-
-const removeRemote = (index) => {
-  form.remotes.splice(index, 1);
-};
 
 const cancel = () => {
   isVisible.value = false;
@@ -128,8 +134,11 @@ const connect = async () => {
   loading.value = true;
 
   doConfluenceConnect({
-    remotes: form.remotes,
-    isUpdate: props.integration?.settings?.remotes?.length,
+    settings: {
+      url: form.url,
+      space: form.space,
+    },
+    isUpdate: props.integration?.settings,
   })
     .then(() => {
       isVisible.value = false;

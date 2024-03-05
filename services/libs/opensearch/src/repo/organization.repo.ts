@@ -1,6 +1,7 @@
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { IDbOrganizationSyncData, IOrganizationSegmentMatrix } from './organization.data'
+import { IndexedEntityType } from './indexing.data'
 
 export class OrganizationRepository extends RepositoryBase<OrganizationRepository> {
   constructor(dbStore: DbStore, parentLog: Logger) {
@@ -127,26 +128,6 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
           $(segmentId)::uuid AS "segmentId",
           $(organizationId)::uuid AS "organizationId"
     ),
-    to_merge_data AS (
-        SELECT
-            otm."organizationId",
-            array_agg(DISTINCT otm."toMergeId"::text) AS to_merge_ids
-        FROM "organizationToMerge" otm
-        INNER JOIN organizations o2 ON otm."toMergeId" = o2.id
-        WHERE otm."organizationId" = $(organizationId)
-          AND o2."deletedAt" IS NULL
-        GROUP BY otm."organizationId"
-    ),
-    no_merge_data AS (
-        SELECT
-            onm."organizationId",
-            array_agg(DISTINCT onm."noMergeId"::text) AS no_merge_ids
-        FROM "organizationNoMerge" onm
-        INNER JOIN organizations o2 ON onm."noMergeId" = o2.id
-        WHERE onm."organizationId" = $(organizationId)
-          AND o2."deletedAt" IS NULL
-        GROUP BY onm."organizationId"
-    ),
     activities_1 AS (
         SELECT
             a.id,
@@ -156,11 +137,6 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
             a.timestamp,
             a.platform::TEXT
         FROM activities a
-        JOIN members m ON a."memberId" = m.id
-            AND m."deletedAt" IS NULL
-        JOIN "memberOrganizations" mo ON m.id = mo."memberId"
-            AND a."organizationId" = mo."organizationId"
-            AND mo."deletedAt" IS NULL
         WHERE a."organizationId" = $(organizationId)
     ),
     member_data AS (
@@ -254,14 +230,10 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
         md."activityCount"::integer,
         md."memberCount"::integer,
         md."memberIds",
-        coalesce(i.identities, '[]'::jsonb)            as "identities",
-        coalesce(tmd.to_merge_ids, array []::text[])       as "toMergeIds",
-        coalesce(nmd.no_merge_ids, array []::text[])       as "noMergeIds"
+        coalesce(i.identities, '[]'::jsonb)            as "identities"
     FROM organizations o
     LEFT JOIN member_data md ON o.id = md."organizationId"
     LEFT JOIN identities i ON o.id = i."organizationId"
-    LEFT JOIN to_merge_data tmd on o.id = tmd."organizationId"
-    LEFT JOIN no_merge_data nmd on o.id = nmd."organizationId"
     WHERE o.id = $(organizationId)
       AND o."deletedAt" IS NULL;
       `,
@@ -294,35 +266,19 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     return results.map((r) => r.id)
   }
 
-  public async markSynced(orgIds: string[]): Promise<void> {
-    await this.db().none(
-      `update organizations set "searchSyncedAt" = now() where id in ($(orgIds:csv))`,
-      {
-        orgIds,
-      },
-    )
-  }
-
-  public async getTenantOrganizationsForSync(
-    tenantId: string,
-    page: number,
-    perPage: number,
-    cutoffDate: string,
-  ): Promise<string[]> {
+  public async getTenantOrganizationsForSync(tenantId: string, perPage: number): Promise<string[]> {
     const results = await this.db().any(
       `
-        select o.id
-        from organizations o
-        where o."tenantId" = $(tenantId) and 
-              o."deletedAt" is null and
-              (
-                  o."searchSyncedAt" is null or 
-                  o."searchSyncedAt" < $(cutoffDate)
-              ) 
-        limit ${perPage} offset ${(page - 1) * perPage};`,
+      select o.id
+      from organizations o
+      left join indexed_entities ie on o.id = ie.entity_id and ie.type = $(type)
+      where o."tenantId" = $(tenantId) and 
+            o."deletedAt" is null and
+            ie.entity_id is null
+      limit ${perPage}`,
       {
         tenantId,
-        cutoffDate,
+        type: IndexedEntityType.ORGANIZATION,
       },
     )
 
@@ -335,18 +291,31 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     return results.map((r) => r.tenantId)
   }
 
-  public async getOrganizationSegmentCouples(ids): Promise<IOrganizationSegmentMatrix> {
-    const results = await this.db().any(
-      `
-      select distinct mo."organizationId", a."segmentId"
-      from "memberOrganizations" mo
-      inner join activities a on mo."memberId" = a."memberId"
-      where mo."organizationId" in ($(ids:csv));
-      `,
-      {
-        ids,
-      },
-    )
+  public async getOrganizationSegmentCouples(
+    organizationIds: string[],
+    segmentIds?: string[],
+  ): Promise<IOrganizationSegmentMatrix> {
+    let results = []
+    if (segmentIds && segmentIds.length > 0) {
+      for (const organizationId of organizationIds) {
+        for (const segmentId of segmentIds) {
+          results.push({
+            organizationId,
+            segmentId,
+          })
+        }
+      }
+    } else {
+      results = await this.db().any(
+        `
+        select distinct a."organizationId", a."segmentId"
+        from activities a
+        where a."organizationId" in ($(organizationIds:csv));        `,
+        {
+          organizationIds,
+        },
+      )
+    }
 
     const matrix = {}
 

@@ -1,6 +1,7 @@
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { IDbActivitySyncData } from './activity.data'
+import { IndexedEntityType } from './indexing.data'
 
 export class ActivityRepository extends RepositoryBase<ActivityRepository> {
   constructor(dbStore: DbStore, parentLog: Logger) {
@@ -57,49 +58,20 @@ export class ActivityRepository extends RepositoryBase<ActivityRepository> {
     return results.map((r) => r.id)
   }
 
-  public async markSynced(activityIds: string[]): Promise<void> {
-    await this.db().none(
-      `update activities set "searchSyncedAt" = now() where id in ($(activityIds:csv))`,
+  public async getTenantActivitiesForSync(tenantId: string, perPage: number): Promise<string[]> {
+    const results = await this.db().any(
+      `
+      select id from activities a
+      left join indexed_entities ie on 
+        a.id = ie.entity_id and ie.type = $(type)
+      where a."tenantId" = $(tenantId) and a."deletedAt" is null and ie.entity_id is null
+      limit ${perPage}
+      `,
       {
-        activityIds,
+        tenantId,
+        type: IndexedEntityType.ACTIVITY,
       },
     )
-  }
-
-  public async getTenantActivitiesForSync(
-    tenantId: string,
-    perPage: number,
-    lastId?: string,
-  ): Promise<string[]> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let results: any[]
-
-    if (lastId) {
-      results = await this.db().any(
-        `
-      select id from activities 
-      where "tenantId" = $(tenantId) and "deletedAt" is null and id > $(lastId)
-      order by id
-      limit ${perPage};
-      `,
-        {
-          tenantId,
-          lastId,
-        },
-      )
-    } else {
-      results = await this.db().any(
-        `
-      select id from activities 
-      where "tenantId" = $(tenantId) and "deletedAt" is null
-      order by id
-      limit ${perPage};
-      `,
-        {
-          tenantId,
-        },
-      )
-    }
 
     return results.map((r) => r.id)
   }

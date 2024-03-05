@@ -6,11 +6,14 @@ import { DbStore } from '@crowd/database'
 import { Logger, getChildLogger, logExecutionTime } from '@crowd/logging'
 import { IPagedSearchResponse, ISearchHit } from './opensearch.data'
 import { OpenSearchService } from './opensearch.service'
+import { IndexingRepository } from '../repo/indexing.repo'
+import { IndexedEntityType } from '../repo/indexing.data'
 
 export class ActivitySyncService {
   private static MAX_BYTE_LENGTH = 25000
   private log: Logger
   private readonly activityRepo: ActivityRepository
+  private readonly indexingRepo: IndexingRepository
 
   constructor(
     store: DbStore,
@@ -20,6 +23,7 @@ export class ActivitySyncService {
     this.log = getChildLogger('activity-sync-service', parentLog)
 
     this.activityRepo = new ActivityRepository(store, this.log)
+    this.indexingRepo = new IndexingRepository(store, this.log)
   }
 
   public async getAllIndexedTenantIds(
@@ -138,7 +142,6 @@ export class ActivitySyncService {
     this.log.debug({ tenantId }, 'Syncing all tenant activities!')
     let count = 0
     const now = new Date()
-    const cutoffDate = now.toISOString()
 
     await logExecutionTime(
       async () => {
@@ -155,37 +158,17 @@ export class ActivitySyncService {
             )} activities/second!`,
           )
 
-          activityIds = await this.activityRepo.getTenantActivitiesForSync(
-            tenantId,
-            batchSize,
-            activityIds[activityIds.length - 1],
-          )
-        }
-
-        activityIds = await this.activityRepo.getRemainingTenantActivitiesForSync(
-          tenantId,
-          1,
-          batchSize,
-          cutoffDate,
-        )
-
-        while (activityIds.length > 0) {
-          count += await this.syncActivities(activityIds)
-
-          const diffInSeconds = (new Date().getTime() - now.getTime()) / 1000
-          this.log.info(
-            { tenantId },
-            `Synced ${count} activities! Speed: ${Math.round(
-              count / diffInSeconds,
-            )} activities/second!`,
+          await this.indexingRepo.markEntitiesIndexed(
+            IndexedEntityType.ACTIVITY,
+            activityIds.map((id) => {
+              return {
+                id,
+                tenantId,
+              }
+            }),
           )
 
-          activityIds = await this.activityRepo.getRemainingTenantActivitiesForSync(
-            tenantId,
-            1,
-            batchSize,
-            cutoffDate,
-          )
+          activityIds = await this.activityRepo.getTenantActivitiesForSync(tenantId, batchSize)
         }
       },
       this.log,
@@ -252,8 +235,6 @@ export class ActivitySyncService {
           }
         }),
       )
-
-      await this.activityRepo.markSynced(activities.map((m) => m.id))
     }
 
     return activities.length
