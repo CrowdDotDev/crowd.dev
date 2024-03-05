@@ -9,6 +9,7 @@ export interface IOrganization {
   phoneNumbers?: number[]
   logo?: string
   tags?: string[]
+  url?: string
   twitter?: IOrganizationSocial
   linkedin?: IOrganizationSocial
   crunchbase?: IOrganizationSocial
