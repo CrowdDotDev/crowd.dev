@@ -10,6 +10,7 @@ export interface IOrganization {
   logo?: string
   tags?: string[]
   url?: string
+  avatarUrl?: string
   twitter?: IOrganizationSocial
   linkedin?: IOrganizationSocial
   crunchbase?: IOrganizationSocial
