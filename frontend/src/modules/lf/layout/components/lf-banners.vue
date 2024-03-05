@@ -188,7 +188,9 @@ const integrationsWithErrors = computed(() => integrations.value.reduce((acc, in
     if (!hasSubProject) {
       const subproject = subProjects.value.find((sp) => sp.id === integration.segmentId);
 
-      acc.push(subproject);
+      if (subproject) {
+        acc.push(subproject);
+      }
     }
   }
 
@@ -202,7 +204,9 @@ const integrationsWithNoData = computed(() => integrations.value.reduce((acc, in
     if (!hasSubProject) {
       const subproject = subProjects.value.find((sp) => sp.id === integration.segmentId);
 
-      acc.push(subproject);
+      if (subproject) {
+        acc.push(subproject);
+      }
     }
   }
 
@@ -218,7 +222,9 @@ const integrationsInProgress = computed(() => integrations.value.reduce((acc, in
     if (!hasSubProject) {
       const subproject = subProjects.value.find((sp) => sp.id === integration.segmentId);
 
-      acc.subProjects.push(subproject);
+      if (subproject) {
+        acc.subProjects.push(subproject);
+      }
     }
   }
 
