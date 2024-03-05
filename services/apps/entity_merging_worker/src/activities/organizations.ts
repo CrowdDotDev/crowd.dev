@@ -169,5 +169,7 @@ export async function linkOrganizationToCache(organizationId: string): Promise<v
 
   const cacheId = await findOrganizationCacheIdFromIdentities(svc.postgres.writer, identities)
 
-  await linkOrganizationToCacheId(svc.postgres.writer, organizationId, cacheId)
+  if (cacheId) {
+    await linkOrganizationToCacheId(svc.postgres.writer, organizationId, cacheId)
+  }
 }
