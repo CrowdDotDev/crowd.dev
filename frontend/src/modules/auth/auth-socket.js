@@ -125,6 +125,8 @@ export const connectSocket = (token) => {
     if (!parsedData.success) {
       return;
     }
+    const lsSegmentsStore = useLfSegmentsStore();
+    const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
     const {
       primaryDisplayName, secondaryDisplayName, primaryId, secondaryId,
     } = parsedData;
@@ -132,7 +134,7 @@ export const connectSocket = (token) => {
     const primaryOrganization = h(
       'a',
       {
-        href: `${window.location.origin}/organizations/${primaryId}`,
+        href: `${window.location.origin}/organizations/${primaryId}?projectGroup=${selectedProjectGroup.value.id}`,
         class: 'underline text-gray-600',
       },
       primaryDisplayName,
@@ -140,7 +142,7 @@ export const connectSocket = (token) => {
     const secondaryOrganization = h(
       'a',
       {
-        href: `${window.location.origin}/organizations/${secondaryId}`,
+        href: `${window.location.origin}/organizations/${secondaryId}?projectGroup=${selectedProjectGroup.value.id}`,
         class: 'underline text-gray-600',
       },
       secondaryDisplayName,
