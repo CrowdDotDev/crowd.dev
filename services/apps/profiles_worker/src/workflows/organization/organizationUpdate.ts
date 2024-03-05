@@ -5,7 +5,7 @@ import { IOrganizationAffiliationUpdateInput } from '../../types/organization'
 
 // Configure timeouts and retry policies to update a member in the database.
 const { updateOrganizationAffiliations } = proxyActivities<typeof activities>({
-  startToCloseTimeout: '60 seconds',
+  startToCloseTimeout: '5 minutes',
 })
 
 /*
