@@ -13,6 +13,7 @@
 
       <app-organization-aside-enriched
         :organization="organization"
+        @unmerge="emit('unmerge', $event)"
       />
     </div>
   </div>
@@ -33,6 +34,8 @@ const props = defineProps({
     default: () => {},
   },
 });
+
+const emit = defineEmits(['unmerge']);
 
 const { currentTenant } = mapGetters('auth');
 

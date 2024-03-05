@@ -819,6 +819,7 @@
         <app-organization-dropdown-content
           v-if="selectedActionOrganization"
           :organization="selectedActionOrganization"
+          :hide-unmerge="true"
           @merge="isMergeDialogOpen = selectedActionOrganization"
           @close-dropdown="closeDropdown"
         />

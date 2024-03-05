@@ -33,6 +33,16 @@ export default (app) => {
   )
 
   app.post(
+    `/tenant/:tenantId/organization/:organizationId/unmerge/preview`,
+    safeWrap(require('./organizationUnmergePreview').default),
+  )
+
+  app.post(
+    `/tenant/:tenantId/organization/:organizationId/unmerge`,
+    safeWrap(require('./organizationUnmerge').default),
+  )
+
+  app.post(
     `/tenant/:tenantId/organization/export`,
     featureFlagMiddleware(FeatureFlag.CSV_EXPORT, 'errors.csvExport.planLimitExceeded'),
     safeWrap(require('./organizationExport').default),

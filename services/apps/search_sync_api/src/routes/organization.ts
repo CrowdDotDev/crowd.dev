@@ -16,10 +16,10 @@ router.post(
       req.log,
       serviceConfig,
     )
-    const { organizationIds } = req.body
+    const { organizationIds, segmentIds } = req.body
     try {
       req.log.trace(`Calling organizationSyncService.syncOrganizations for ${organizationIds}`)
-      await organizationSyncService.syncOrganizations(organizationIds)
+      await organizationSyncService.syncOrganizations(organizationIds, segmentIds)
       res.sendStatus(200)
     } catch (error) {
       res.status(500).send(error.message)

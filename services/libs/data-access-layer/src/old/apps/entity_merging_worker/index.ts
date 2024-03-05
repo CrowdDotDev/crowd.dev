@@ -104,6 +104,21 @@ export async function findMemberSegments(db: DbStore, memberId: string): Promise
   return result as ISegmentIds
 }
 
+export async function findOrganizationSegments(
+  db: DbStore,
+  organizationId: string,
+): Promise<ISegmentIds> {
+  const result = await db.connection().one(
+    `
+      SELECT array_agg(distinct "segmentId") as "segmentIds"
+      FROM activities
+      WHERE "organizationId" = $1
+    `,
+    [organizationId],
+  )
+  return result as ISegmentIds
+}
+
 export async function markMemberAsManuallyCreated(db: DbStore, memberId: string): Promise<void> {
   return db.connection().query(
     `
@@ -111,5 +126,18 @@ export async function markMemberAsManuallyCreated(db: DbStore, memberId: string)
       WHERE "id" = $1
     `,
     [memberId],
+  )
+}
+
+export async function markOrganizationAsManuallyCreated(
+  db: DbStore,
+  organizationId: string,
+): Promise<void> {
+  return db.connection().query(
+    `
+      UPDATE organizations set "manuallyCreated" = true
+      WHERE "id" = $1
+    `,
+    [organizationId],
   )
 }
