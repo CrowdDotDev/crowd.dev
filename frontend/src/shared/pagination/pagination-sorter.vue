@@ -15,17 +15,16 @@
      </span>
       {{ computedLabel }}</span>
     <div class="flex items-center">
-      <!-- TODO: Enable when backend fixed -->
-      <!--      <button-->
-      <!--        v-if="['member', 'organization'].includes(module)"-->
-      <!--        type="button"-->
-      <!--        class="btn btn-link btn-link&#45;&#45;md btn-link&#45;&#45;primary mr-3"-->
-      <!--        @click="doExport"-->
-      <!--      >-->
-      <!--        <i-->
-      <!--          class="ri-file-download-line ri-lg mr-1 flex items-center"-->
-      <!--        />Export to CSV-->
-      <!--      </button>-->
+      <button
+        v-if="['member', 'organization'].includes(module)"
+        type="button"
+        class="btn btn-link btn-link--md btn-link--primary mr-3"
+        @click="doExport"
+      >
+        <i
+          class="ri-file-download-line ri-lg mr-1 flex items-center"
+        />Export to CSV
+      </button>
       <app-inline-select-input
         v-if="sorter"
         v-model="model"
@@ -40,11 +39,11 @@
 </template>
 
 <script setup>
-import { computed, defineProps, defineEmits } from 'vue';
+import { computed } from 'vue';
 import pluralize from 'pluralize';
-// import { getExportMax, showExportDialog, showExportLimitDialog } from '@/modules/member/member-export-limit';
-// import Message from '@/shared/message/message';
-// import { mapActions, mapGetters } from '@/shared/vuex/vuex.helpers';
+import { getExportMax, showExportDialog, showExportLimitDialog } from '@/modules/member/member-export-limit';
+import Message from '@/shared/message/message';
+import { mapActions, mapGetters } from '@/shared/vuex/vuex.helpers';
 
 const emit = defineEmits([
   'changeSorter',
@@ -91,8 +90,8 @@ const props = defineProps({
   },
 });
 
-// const { currentTenant } = mapGetters('auth');
-// const { doRefreshCurrentUser } = mapActions('auth');
+const { currentTenant } = mapGetters('auth');
+const { doRefreshCurrentUser } = mapActions('auth');
 
 const model = computed({
   get() {
@@ -178,42 +177,42 @@ const onChange = (value) => {
   emit('changeSorter', value);
 };
 
-// const doExport = async () => {
-//   try {
-//     const tenantCsvExportCount = currentTenant.value.csvExportCount;
-//     const planExportCountMax = getExportMax(
-//       currentTenant.value.plan,
-//     );
-//     await showExportDialog({
-//       tenantCsvExportCount,
-//       planExportCountMax,
-//       badgeContent: pluralize(props.module === 'member' ? 'contributor' : props.module, props.total, true),
-//     });
+const doExport = async () => {
+  try {
+    const tenantCsvExportCount = currentTenant.value.csvExportCount;
+    const planExportCountMax = getExportMax(
+      currentTenant.value.plan,
+    );
+    await showExportDialog({
+      tenantCsvExportCount,
+      planExportCountMax,
+      badgeContent: pluralize(props.module === 'member' ? 'contributor' : props.module, props.total, true),
+    });
 
-//     await props.export();
+    await props.export();
 
-//     await doRefreshCurrentUser(null);
+    await doRefreshCurrentUser(null);
 
-//     Message.success(
-//       'CSV download link will be sent to your e-mail',
-//     );
-//   } catch (error) {
-//     if (error.response?.status === 403) {
-//       const planExportCountMax = getExportMax(
-//         currentTenant.value.plan,
-//       );
+    Message.success(
+      'CSV download link will be sent to your e-mail',
+    );
+  } catch (error) {
+    if (error.response?.status === 403) {
+      const planExportCountMax = getExportMax(
+        currentTenant.value.plan,
+      );
 
-//       showExportLimitDialog({ planExportCountMax });
-//     } else if (error !== 'cancel') {
-//       Message.error(
-//         'An error has occured while trying to export the CSV file. Please try again',
-//         {
-//           title: 'CSV Export failed',
-//         },
-//       );
-//     }
-//   }
-// };
+      showExportLimitDialog({ planExportCountMax });
+    } else if (error !== 'cancel') {
+      Message.error(
+        'An error has occured while trying to export the CSV file. Please try again',
+        {
+          title: 'CSV Export failed',
+        },
+      );
+    }
+  }
+};
 </script>
 
 <script>
