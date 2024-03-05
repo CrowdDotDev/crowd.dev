@@ -177,23 +177,9 @@ const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 const integrations = ref([]);
 const fetchIntegrationTimer = ref(null);
 const loading = ref(true);
+const subProjects = ref([]);
 
 const route = useRoute();
-
-const subProjects = computed(() => {
-  if (!selectedProjectGroup.value) {
-    return [];
-  }
-
-  return selectedProjectGroup.value.projects
-    .reduce((acc, project) => {
-      project.subprojects.forEach((subproject) => {
-        acc.push(subproject);
-      });
-
-      return acc;
-    }, []);
-});
 
 const integrationsWithErrors = computed(() => integrations.value.reduce((acc, integration) => {
   if (integration.status === 'error' && isCurrentDateAfterGivenWorkingDays(integration.updatedAt, ERROR_BANNER_WORKING_DAYS_DISPLAY)) {
@@ -289,6 +275,21 @@ watch(selectedProjectGroup, (updatedProjectGroup, previousProjectGroup) => {
   if (previousProjectGroup?.id !== updatedProjectGroup?.id) {
     loading.value = true;
     fetchIntegrations(updatedProjectGroup);
+  }
+
+  if (!updatedProjectGroup) {
+    subProjects.value = [];
+  } else {
+    subProjects.value = updatedProjectGroup.projects
+      .reduce((acc, project) => {
+        project.subprojects.forEach((subproject) => {
+          if (subproject) {
+            acc.push(subproject);
+          }
+        });
+
+        return acc;
+      }, []);
   }
 }, {
   deep: true,
