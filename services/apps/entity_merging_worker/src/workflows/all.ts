@@ -19,7 +19,7 @@ const {
   notifyFrontendMemberUnmergeSuccessful,
   linkOrganizationToCache,
 } = proxyActivities<typeof activities>({
-  startToCloseTimeout: '10 seconds',
+  startToCloseTimeout: '5 minutes',
 })
 
 export async function finishMemberMerging(
