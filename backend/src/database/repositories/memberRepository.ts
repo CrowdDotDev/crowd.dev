@@ -18,7 +18,7 @@ import lodash, { chunk } from 'lodash'
 import moment from 'moment'
 import Sequelize, { QueryTypes } from 'sequelize'
 
-import { Error400, Error404 } from '@crowd/common'
+import { Error400, Error404, dateEqualityChecker } from '@crowd/common'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import { ActivityDisplayService } from '@crowd/integrations'
 import { KUBE_MODE, SERVICE } from '@/conf'
@@ -627,34 +627,62 @@ class MemberRepository {
     'displayName',
     'attributes',
     'emails',
-    'lastEnriched',
     'contributions',
     'score',
     'reach',
     'joinedAt',
     'importHash',
+    'tags',
+    'website',
+    'location',
+    'github',
+    'twitter',
+    'linkedin',
+    'crunchbase',
+    'employees',
+    'revenueRange',
+    'isTeamOrganization',
+    'employeeCountByCountry',
+    'type',
+    'ticker',
+    'headline',
+    'profiles',
+    'naics',
+    'industry',
+    'founded',
+    'size',
+    'lastEnrichedAt',
+    'affiliatedProfiles',
+    'allSubsidiaries',
+    'alternativeDomains',
+    'alternativeNames',
+    'averageEmployeeTenure',
+    'averageTenureByLevel',
+    'averageTenureByRole',
+    'directSubsidiaries',
+    'employeeChurnRate',
+    'employeeCountByMonth',
+    'employeeGrowthRate',
+    'employeeCountByMonthByLevel',
+    'employeeCountByMonthByRole',
+    'gicsSector',
+    'grossAdditionsByMonth',
+    'grossDeparturesByMonth',
+    'ultimateParent',
+    'immediateParent',
+    'attributes',
+    'weakIdentities',
   ]
-
-  static dateEqualityChecker = (a, b) => {
-    if (a instanceof Date) {
-      a = a.toISOString()
-    }
-    if (b instanceof Date) {
-      b = b.toISOString()
-    }
-
-    return a === b
-  }
 
   static isEqual = {
     displayName: (a, b) => a === b,
     attributes: (a, b) => lodash.isEqual(a, b),
     emails: (a, b) => lodash.isEqual(a, b),
-    lastEnriched: (a, b) => this.dateEqualityChecker(a, b),
+    lastEnriched: (a, b) => dateEqualityChecker(a, b),
     contributions: (a, b) => lodash.isEqual(a, b),
     score: (a, b) => a === b,
     reach: (a, b) => lodash.isEqual(a, b),
-    joinedAt: (a, b) => this.dateEqualityChecker(a, b),
+    joinedAt: (a, b) => dateEqualityChecker(a, b),
     importHash: (a, b) => a === b,
   }
 
@@ -710,7 +738,10 @@ class MemberRepository {
           ) {
             // column was null before now it's not anymore
             changed = true
-          } else if (this.isEqual[column](record[column], data[column]) === false) {
+          } else if (
+            this.isEqual[column] &&
+            this.isEqual[column](record[column], data[column]) === false
+          ) {
             // column value has changed
             changed = true
           }

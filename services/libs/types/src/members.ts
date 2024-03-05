@@ -1,15 +1,8 @@
 import { IAttributes } from './attributes'
-import { MemberAttributeType, MergeActionState, MergeActionType } from './enums/members'
-import {
-  IMemberOrganization,
-  IOrganization,
-  IOrganizationOpensearch,
-  IMemberRoleWithOrganization,
-} from './organizations'
-import { ITag, ITagOpensearch } from './tags'
+import { MemberAttributeType } from './enums/members'
+import { IMemberOrganization, IOrganization, IOrganizationOpensearch } from './organizations'
+import { ITagOpensearch } from './tags'
 import { PlatformType } from './enums/platforms'
-import { ITask } from './tasks'
-import { INote } from './notes'
 
 export interface IMemberAttribute {
   type: MemberAttributeType
@@ -139,74 +132,9 @@ export interface IMemberContribution {
   firstCommitDate: string
 }
 
-export interface IMemberUnmergeBackup {
-  id: string
-  tags: ITag[]
-  reach: IMemberReach
-  tasks: ITask[]
-  notes: INote[]
-  emails: string[]
-  joinedAt: string
-  tenantId: string
-  username: IMemberUsername
-  attributes: IAttributes
-  identities: IMemberIdentity[]
-  displayName: string
-  affiliations: IMemberAffiliation[]
-  manuallyCreated: boolean
-  manuallyChangedFields: string[]
-  memberOrganizations: IMemberRoleWithOrganization[]
-  contributions: IMemberContribution[]
-}
-
-export interface IMemberUnmergePreviewResult {
-  id: string
-  tags: ITag[]
-  notes: INote[]
-  reach: IMemberReach
-  tasks: ITask[]
-  emails: string[]
-  joinedAt: string
-  tenantId: string
-  username: IMemberUsername
-  attributes: IAttributes
-  displayName: string
-  affiliations: IMemberAffiliation[]
-  contributions: IMemberContribution[]
-  manuallyCreated: boolean
-  manuallyChangedFields: string[]
-  identities: IMemberIdentity[]
-  memberOrganizations: IMemberRoleWithOrganization[]
-  organizations: IMemberRenderFriendlyRole[]
-  activityCount: number
-  numberOfOpenSourceContributions: number
-}
-
 export interface IMemberRenderFriendlyRole {
   id: string
   logo: string
   displayName: string
   memberOrganizations: IMemberOrganization
-}
-
-export interface IUnmergeBackup<T> {
-  primary: T
-  secondary: T
-}
-
-export interface IUnmergePreviewResult<T> {
-  primary: T
-  secondary: T
-}
-
-export interface IMergeAction {
-  id: string
-  tenantId: string
-  type: MergeActionType
-  primaryId: string
-  secondaryId: string
-  createdAt: string
-  updatedAt: string
-  state: MergeActionState
-  unmergeBackup: IUnmergeBackup<IMemberUnmergeBackup>
 }
