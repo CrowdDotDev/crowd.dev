@@ -9,7 +9,8 @@ export async function findMemberIdsInOrganization(
     result = await db.connection().any(
       `
       select distinct "memberId" from "memberOrganizations"
-      where "organizationId" = $(organizationId);      
+      where "organizationId" = $(organizationId)
+      and "deletedAt" is null;      
       `,
       {
         organizationId,
