@@ -98,6 +98,7 @@ export interface PlansConfiguration {
 }
 
 export interface DevtoConfiguration {
+  apiKey: string
   globalLimit?: number
 }
 
