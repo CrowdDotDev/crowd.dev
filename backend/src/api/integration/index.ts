@@ -7,7 +7,6 @@ import {
   GITHUB_CONFIG,
   NANGO_CONFIG,
   SLACK_CONFIG,
-  STACKEXCHANGE_CONFIG,
   TWITTER_CONFIG,
 } from '../../conf'
 import SegmentRepository from '../../database/repositories/segmentRepository'
