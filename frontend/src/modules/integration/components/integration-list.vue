@@ -39,19 +39,13 @@
 <script setup>
 import { useStore } from 'vuex';
 import {
-  defineProps, computed, onMounted, ref,
+  computed, onMounted, ref,
 } from 'vue';
 
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppIntegrationListItem from '@/modules/integration/components/integration-list-item.vue';
 
 const store = useStore();
-const props = defineProps({
-  onboard: {
-    type: Boolean,
-    default: false,
-  },
-});
 
 const customIntegration = ref({
   platform: 'custom',
@@ -64,9 +58,7 @@ const customIntegration = ref({
 const loading = computed(
   () => store.getters['integration/loadingFetch'],
 );
-const integrationsArray = computed(() => (props.onboard
-  ? CrowdIntegrations.mappedEnabledConfigs(store)
-  : CrowdIntegrations.mappedConfigs(store)));
+const integrationsArray = computed(() => CrowdIntegrations.mappedEnabledConfigs(store));
 
 const showGithubDialog = ref(false);
 
