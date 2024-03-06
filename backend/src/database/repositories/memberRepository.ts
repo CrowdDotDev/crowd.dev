@@ -512,7 +512,7 @@ class MemberRepository {
     from "memberIdentities" mi
     where mi."tenantId" = :tenantId and
           mi.platform = :platform and
-          mi.type = :type' and
+          mi.type = :type and
           mi.value in (:usernames) and
           exists (select 1 from "memberSegments" ms where ms."memberId" = mi."memberId")
   `,
