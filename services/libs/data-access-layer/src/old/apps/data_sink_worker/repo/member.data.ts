@@ -85,22 +85,6 @@ export interface IDbMemberUpdateData {
   reach: Partial<Record<PlatformType, number>>
 }
 
-let updateMemberColumnSet: DbColumnSet
-export function getUpdateMemberColumnSet(instance: DbInstance): DbColumnSet {
-  if (updateMemberColumnSet) return updateMemberColumnSet
-
-  updateMemberColumnSet = new instance.helpers.ColumnSet(
-    ['attributes', 'emails', 'joinedAt', 'weakIdentities', 'updatedAt', 'displayName'],
-    {
-      table: {
-        table: 'members',
-      },
-    },
-  )
-
-  return updateMemberColumnSet
-}
-
 let insertMemberIdentityColumnSet: DbColumnSet
 export function getInsertMemberIdentityColumnSet(instance: DbInstance): DbColumnSet {
   if (insertMemberIdentityColumnSet) return insertMemberIdentityColumnSet

@@ -30,10 +30,13 @@ export interface IMemberIdentity {
   createdAt?: string
 }
 
-export const mapSingleUsernameToIdentity = (usernameOrIdentity: any): any => {
+export type BasicMemberIdentity = { value: string; type: MemberIdentityType }
+
+export const mapSingleUsernameToIdentity = (usernameOrIdentity: any): BasicMemberIdentity => {
   if (typeof usernameOrIdentity === 'string') {
     return {
-      username: usernameOrIdentity,
+      value: usernameOrIdentity,
+      type: MemberIdentityType.USERNAME,
     }
   }
 
@@ -44,7 +47,9 @@ export const mapSingleUsernameToIdentity = (usernameOrIdentity: any): any => {
   throw new Error(`Unknown username type: ${typeof usernameOrIdentity}: ${usernameOrIdentity}`)
 }
 
-export const mapUsernameToIdentities = (username: any, platform?: string): any => {
+export type UsernameIdentities = { [key: string]: BasicMemberIdentity[] }
+
+export const mapUsernameToIdentities = (username: any, platform?: string): UsernameIdentities => {
   const mapped = {}
 
   if (typeof username === 'string') {
@@ -58,7 +63,7 @@ export const mapUsernameToIdentities = (username: any, platform?: string): any =
       const data = username[platform]
 
       if (Array.isArray(data)) {
-        const identities = []
+        const identities: BasicMemberIdentity[] = []
         for (const entry of data) {
           identities.push(mapSingleUsernameToIdentity(entry))
         }

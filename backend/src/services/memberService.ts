@@ -1333,7 +1333,10 @@ export default class MemberService extends LoggerBase {
             for (const newIdentity of identities as any[]) {
               let keep = true
               for (const oldIdentity of oldIdentities) {
-                if (oldIdentity.username === newIdentity.username) {
+                if (
+                  oldIdentity.value === newIdentity.value &&
+                  oldIdentity.type === newIdentity.type
+                ) {
                   keep = false
                   break
                 }

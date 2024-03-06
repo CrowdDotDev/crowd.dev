@@ -5,7 +5,6 @@ import {
   getInsertMemberIdentityColumnSet,
   getInsertMemberSegmentColumnSet,
   getSelectMemberColumnSet,
-  getUpdateMemberColumnSet,
   IDbMember,
   IDbMemberCreateData,
   IDbMemberUpdateData,
@@ -15,7 +14,6 @@ import { generateUUIDv1 } from '@crowd/common'
 
 export default class MemberRepository extends RepositoryBase<MemberRepository> {
   private readonly insertMemberColumnSet: DbColumnSet
-  private readonly updateMemberColumnSet: DbColumnSet
   private readonly selectMemberColumnSet: DbColumnSet
   private readonly selectMemberQuery: string
 
@@ -26,7 +24,6 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
     super(dbStore, parentLog)
 
     this.insertMemberColumnSet = getInsertMemberColumnSet(this.dbInstance)
-    this.updateMemberColumnSet = getUpdateMemberColumnSet(this.dbInstance)
     this.selectMemberColumnSet = getSelectMemberColumnSet(this.dbInstance)
 
     this.selectMemberQuery = `
@@ -76,7 +73,6 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
     )
   }
 
-  // TODO uros - fix usage
   public async findIdentities(
     tenantId: string,
     identities: IMemberIdentity[],
@@ -177,7 +173,6 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
     await this.db().result(`${query} ${condition}`)
   }
 
-  // TODO uros fix usage
   public async getIdentities(memberId: string, tenantId: string): Promise<IMemberIdentity[]> {
     return await this.db().any(
       `

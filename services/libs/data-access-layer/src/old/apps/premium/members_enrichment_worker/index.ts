@@ -1,7 +1,6 @@
 import { DbStore, DbTransaction } from '@crowd/database'
-import { IAttributes, OrganizationSource } from '@crowd/types'
+import { IAttributes, MemberIdentityType, OrganizationSource } from '@crowd/types'
 
-// TODO uros - fix usage
 export async function fetchMembersForEnrichment(db: DbStore) {
   return db.connection().query(
     `SELECT
@@ -13,11 +12,11 @@ export async function fetchMembersForEnrichment(db: DbStore) {
         members."score",
         members."reach",
         members."tenantId",
-        jsonb_object_agg(mi.platform, mi.username) as username,
+        jsonb_object_agg(mi.platform, mi.value) as username,
         COUNT(activities."memberId") AS activity_count
       FROM members
       INNER JOIN tenants ON tenants.id = members."tenantId"
-      INNER JOIN "memberIdentities" mi ON mi."memberId" = members.id
+      INNER JOIN "memberIdentities" mi ON mi."memberId" = members.id and mi.type = '${MemberIdentityType.USERNAME}'
       INNER JOIN activities ON activities."memberId" = members.id
       WHERE tenants.plan IN ('Growth', 'Scale', 'Enterprise')
       AND (

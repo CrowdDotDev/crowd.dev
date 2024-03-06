@@ -6,7 +6,6 @@ export interface IMemberIdentityData {
   username: string
 }
 
-// TODO uros - fix usages
 export async function fetchIntegrationMembersPaginated(
   db: DbConnection | DbTransaction,
   integrationId: string,
