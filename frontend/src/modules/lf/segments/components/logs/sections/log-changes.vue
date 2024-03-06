@@ -1,0 +1,71 @@
+<template>
+  <section v-if="hasChanges" class="py-6 border-t border-gray-200">
+    <h4 class="text-base font-semibold pb-4">
+      Changes
+    </h4>
+    <article
+      v-for="(remove, ri) of (changes?.removals || [])"
+      :key="ri"
+      class="pb-2 flex items-center text-sm"
+    >
+      <i class="ri-subtract-line text-base text-red-500 mr-2" />
+      <p class="c-changes" v-html="$sanitize(remove)" />
+    </article>
+    <article
+      v-for="(add, ai) of (changes?.additions || [])"
+      :key="ai"
+      class="pb-2 flex items-center text-sm"
+    >
+      <i class="ri-add-line text-base text-green-500 mr-2" />
+      <p class="c-changes" v-html="$sanitize(add)" />
+    </article>
+    <article
+      v-for="(change, ci) of (changes?.changes || [])"
+      :key="ci"
+      class="pb-2 flex items-center text-sm"
+    >
+      <i class="ri-loop-left-line text-base text-blue-500 mr-2" />
+      <p class="c-changes" v-html="$sanitize(change)" />
+    </article>
+  </section>
+</template>
+
+<script setup lang="ts">
+import { AuditLog } from '@/modules/lf/segments/types/AuditLog';
+import { computed } from 'vue';
+import { logRenderingConfig } from '@/modules/lf/config/audit-logs/log-rendering';
+
+const props = defineProps<{
+  log: AuditLog
+}>();
+
+const changes = computed(() => {
+  if (logRenderingConfig[props.log.actionType]?.changes) {
+    return logRenderingConfig[props.log.actionType]?.changes(props.log);
+  }
+  return {
+    removals: [],
+    additions: [],
+    changes: [],
+  };
+});
+
+const hasChanges = computed(() => {
+  const c = changes.value;
+  return [...c.removals, ...c.additions, ...c.changes].length > 0;
+});
+</script>
+
+<script lang="ts">
+export default {
+  name: 'AppLfAuditLogsChanges',
+};
+</script>
+
+<style lang="scss">
+.c-changes {
+  span{
+    @apply text-gray-700;
+  }
+}
+</style>

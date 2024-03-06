@@ -41,8 +41,8 @@
               {{ option.label }}
             </p>
             <p
-                v-if="option.description"
-                class="text-2xs text-gray-500 leading-5"
+              v-if="option.description"
+              class="text-2xs text-gray-500 leading-5"
             >
               {{ option.description }}
             </p>

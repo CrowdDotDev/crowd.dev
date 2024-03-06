@@ -16,12 +16,13 @@ const user: MultiSelectAsyncFilterConfig = {
       or: [
         { fullName: { textContains: query } },
         { email: { textContains: query } },
+        { id: { eq: query } },
       ],
     }, null, 10)
 
       .then(({ rows }: any) => rows.map((user: any) => ({
         label: user.fullName,
-        description: `${user.email} ・ ID: ${user.id}`,
+        description: `${user.email}`,
         value: user.id,
       }))),
     remotePopulateItems: (ids: string[]) => LfService.fetchUsers(
