@@ -3,7 +3,7 @@ version: '3.1'
 services:
   unleash-db:
     image: postgres:13.6-alpine
-    restart: always
+    restart: unless-stopped
     environment:
       - POSTGRES_PASSWORD=example
       - POSTGRES_DB=crowd-unleash
@@ -23,7 +23,7 @@ services:
   # default user credentials: admin:unleash4all
   unleash:
     image: unleashorg/unleash-server:latest
-    restart: always
+    restart: unless-stopped
     depends_on:
       unleash-db:
         condition: service_healthy
