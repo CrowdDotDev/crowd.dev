@@ -1,14 +1,13 @@
+import { isFeatureEnabled } from '@crowd/feature-flags'
 import { DbStore } from '@crowd/database'
 import { Logger, getChildLogger } from '@crowd/logging'
-import { OpenSearchIndex } from '@crowd/types'
+import { FeatureFlag, OpenSearchIndex } from '@crowd/types'
 import { OpenSearchService } from './opensearch.service'
-import { OrganizationRepository } from '../repo/organization.repo'
 import { FieldTranslatorFactory } from '../fieldTranslatorFactory'
 import { OpensearchQueryParser } from '../opensearchQueryParser'
 
 export class OrganizationSearchService {
   private log: Logger
-  private readonly orgRepo: OrganizationRepository
 
   constructor(
     store: DbStore,
@@ -16,13 +15,19 @@ export class OrganizationSearchService {
     parentLog: Logger,
   ) {
     this.log = getChildLogger('organization-search-service', parentLog)
-    this.orgRepo = new OrganizationRepository(store, this.log)
   }
 
   public async findAndCountAll(
     tenantId: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    { filter = {} as any, limit = 20, offset = 0, orderBy = 'joinedAt_DESC', countOnly = false },
+    {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      filter = {} as any,
+      limit = 20,
+      offset = 0,
+      orderBy = 'joinedAt_DESC',
+      countOnly = false,
+      segments = [] as string[],
+    },
   ) {
     const translator = FieldTranslatorFactory.getTranslator(OpenSearchIndex.ORGANIZATIONS)
     const parsed = OpensearchQueryParser.parse(
@@ -47,6 +52,20 @@ export class OrganizationSearchService {
         'obj_attributes.obj_isDeleted.bool_default': true,
       },
     })
+
+    const segmentsEnabled = await isFeatureEnabled(FeatureFlag.SEGMENTS, async () => {
+      return {
+        tenantId,
+      }
+    })
+    if (segmentsEnabled && segments) {
+      // add segment filter
+      parsed.query.bool.must.push({
+        terms: {
+          uuid_segmentId: segments,
+        },
+      })
+    }
 
     const countResponse = await this.openSearchService.client.count({
       index: OpenSearchIndex.ORGANIZATIONS,

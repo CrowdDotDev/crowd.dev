@@ -4,7 +4,7 @@ services:
   cubejs:
     build:
       context: ../services/libs/cubejs/src/app
-    restart: always
+    restart: unless-stopped
     ports:
       - '4000:4000'
       - '3001:3000'
@@ -24,7 +24,7 @@ services:
 
   db:
     image: postgres:13.6-alpine
-    restart: always
+    restart: unless-stopped
     environment:
       - POSTGRES_PASSWORD=example
       - POSTGRES_DB=crowd-web
@@ -38,7 +38,7 @@ services:
 
   open-search:
     image: opensearchproject/opensearch:2.7.0
-    restart: always
+    restart: unless-stopped
     environment:
       - discovery.type=single-node
       - bootstrap.memory_lock=true
@@ -63,7 +63,7 @@ services:
   # uncomment to enable dashboard
   # open-search-dashboard:
   #   image: opensearchproject/opensearch-dashboards:2.7.0
-  #   restart: always
+  #   restart: unless-stopped
   #   environment:
   #     - 'OPENSEARCH_HOSTS=["http://open-search:9200"]'
   #     - 'DISABLE_SECURITY_DASHBOARDS_PLUGIN=true'
@@ -74,6 +74,7 @@ services:
 
   s3:
     image: scireum/s3-ninja:8.0.0
+    restart: unless-stopped
     ports:
       - 9000:9000
     volumes:
@@ -84,7 +85,7 @@ services:
   sqs:
     build:
       context: scaffold/sqs
-    restart: always
+    restart: unless-stopped
     ports:
       - 9324:9324
       - 9325:9325
@@ -93,7 +94,7 @@ services:
 
   nginx:
     image: nginx:1.24-alpine
-    restart: always
+    restart: unless-stopped
     volumes:
       - ./scaffold/nginx/templates:/etc/nginx/templates
       - ./scaffold/nginx/ssl:/etc/nginx/ssl
@@ -109,7 +110,7 @@ services:
     build:
       context: scaffold/redis
     command: 'redis-server /redis.conf --requirepass crowdtest'
-    restart: always
+    restart: unless-stopped
     volumes:
       - redis-dev:/data
     ports:
@@ -119,7 +120,7 @@ services:
 
   nango:
     image: nangohq/nango-server:0.9.0
-    restart: always
+    restart: unless-stopped
     environment:
       - NANGO_DB_HOST=db
       - NANGO_DB_PORT=5432
@@ -137,7 +138,7 @@ services:
 
   # kafka:
   #  image: bitnami/kafka:latest
-  #  restart: always
+  #  restart: unless-stopped
   #  environment:
   #    - KAFKA_CFG_NODE_ID=0
   #    - KAFKA_CFG_PROCESS_ROLES=controller,broker
@@ -153,7 +154,7 @@ services:
   temporal:
     build:
       context: scaffold/temporal
-    restart: always
+    restart: unless-stopped
     ports:
       - '7233:7233'
       - '8233:8233'
