@@ -18,7 +18,10 @@ export class InitService {
 
   private log: Logger
 
-  constructor(private readonly openSearchService: OpenSearchService, parentLog: Logger) {
+  constructor(
+    private readonly openSearchService: OpenSearchService,
+    parentLog: Logger,
+  ) {
     this.log = getChildLogger('init-service', parentLog)
   }
 
