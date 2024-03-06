@@ -7,7 +7,7 @@ class TeamsQuery extends BaseQuery {
                 node(id: "${teamNodeId}") {
                     ... on Team {
                             members {
-                                nodes ${BaseQuery.USER_SELECT}
+                                nodes ${BaseQuery.USER_SELECT_WITH_TYPENAME}
                             }
                         }
                     }
