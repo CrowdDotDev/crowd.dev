@@ -61,8 +61,6 @@ export default class IntegrationDataRepository extends RepositoryBase<Integratio
   }
 
   public async getOldDataToProcess(limit: number): Promise<string[]> {
-    this.ensureTransactional()
-
     try {
       const results = await this.db().any(
         `
