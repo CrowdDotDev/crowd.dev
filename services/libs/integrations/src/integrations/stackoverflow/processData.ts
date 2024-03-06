@@ -1,4 +1,4 @@
-import { IMemberData, MemberAttributeName, PlatformType } from '@crowd/types'
+import { IMemberData, MemberAttributeName, MemberIdentityType, PlatformType } from '@crowd/types'
 import sanitizeHtml from 'sanitize-html'
 import { IProcessDataContext, ProcessDataHandler } from '../../types'
 import { STACKOVERFLOW_GRID } from './grid'
@@ -9,7 +9,8 @@ function parseMember(user: StackOverflowUser): IMemberData {
     identities: [
       {
         platform: PlatformType.STACKOVERFLOW,
-        username: user.display_name,
+        value: user.display_name,
+        type: MemberIdentityType.USERNAME,
         sourceId: user.user_id.toString(),
       },
     ],
@@ -62,7 +63,8 @@ async function parseQuestion(ctx: IProcessDataContext) {
       identities: [
         {
           platform: PlatformType.STACKOVERFLOW,
-          username: question.owner.display_name,
+          value: question.owner.display_name,
+          type: MemberIdentityType.USERNAME,
         },
       ],
     }
@@ -106,7 +108,8 @@ async function parseAnswer(ctx: IProcessDataContext) {
       identities: [
         {
           platform: PlatformType.STACKOVERFLOW,
-          username: answer.owner.display_name,
+          value: answer.owner.display_name,
+          type: MemberIdentityType.USERNAME,
         },
       ],
     }

@@ -1,7 +1,13 @@
 import { IProcessDataContext, ProcessDataHandler } from '../../types'
 import { IDevToArticle } from './api/articles'
 import { IDevToComment } from './api/comments'
-import { IActivityData, IMemberData, MemberAttributeName, PlatformType } from '@crowd/types'
+import {
+  IActivityData,
+  IMemberData,
+  MemberAttributeName,
+  MemberIdentityType,
+  PlatformType,
+} from '@crowd/types'
 import sanitizeHtml from 'sanitize-html'
 import { DevToActivityType, IDevToArticleData } from './types'
 import { DEVTO_GRID } from './grid'
@@ -11,7 +17,8 @@ const getMember = (comment: IDevToComment): IMemberData => {
     identities: [
       {
         platform: PlatformType.DEVTO,
-        username: comment.user.username,
+        value: comment.user.username,
+        type: MemberIdentityType.USERNAME,
       },
     ],
     attributes: {
@@ -31,7 +38,8 @@ const getMember = (comment: IDevToComment): IMemberData => {
     }
     member.weakIdentities.push({
       platform: PlatformType.TWITTER,
-      username: comment.user.twitter_username,
+      value: comment.user.twitter_username,
+      type: MemberIdentityType.USERNAME,
     })
   }
 
@@ -48,7 +56,8 @@ const getMember = (comment: IDevToComment): IMemberData => {
     }
     member.weakIdentities.push({
       platform: PlatformType.GITHUB,
-      username: comment.user.github_username,
+      value: comment.user.github_username,
+      type: MemberIdentityType.USERNAME,
     })
   }
 

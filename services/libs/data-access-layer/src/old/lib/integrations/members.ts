@@ -3,8 +3,7 @@ import { MemberIdentityType, PlatformType } from '@crowd/types'
 
 export interface IMemberIdentityData {
   id: string
-  value: string
-  type: MemberIdentityType
+  username: string
 }
 
 // TODO uros - fix usages
@@ -19,13 +18,12 @@ export async function fetchIntegrationMembersPaginated(
     `
           SELECT
             m."memberId" as id,
-            m.value,
-            m.type
+            m.value as username
           FROM
             "memberIdentities" m
           WHERE
             m."tenantId"= (select "tenantId" from integrations where id = $(integrationId) )
-            and m.platform = $(platform)
+            and m.platform = $(platform) and m.type = $(type)
           ORDER BY
             m."memberId"
           LIMIT $(perPage)
@@ -35,6 +33,7 @@ export async function fetchIntegrationMembersPaginated(
       integrationId,
       platform,
       perPage,
+      type: MemberIdentityType.USERNAME,
       offset: (page - 1) * perPage,
     },
   )

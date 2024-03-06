@@ -27,7 +27,7 @@ export interface IMemberIdentity {
   tenantId?: string
   integrationId?: string
   memberId?: string
-  cretedAt?: string
+  createdAt?: string
   updatedAt?: string
 }
 

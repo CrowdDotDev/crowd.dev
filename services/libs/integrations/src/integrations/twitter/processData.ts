@@ -6,6 +6,7 @@ import {
   PlatformType,
   MemberAttributeName,
   IntegrationResultType,
+  MemberIdentityType,
 } from '@crowd/types'
 import { TWITTER_GRID } from './grid'
 
@@ -16,7 +17,8 @@ const processTweetsWithMentions: ProcessDataHandler = async (ctx) => {
   const member: IMemberData = {
     identities: [
       {
-        username: data.member.username,
+        value: data.member.username,
+        type: MemberIdentityType.USERNAME,
         platform: PlatformType.TWITTER,
         sourceId: data.member.id,
       },
@@ -74,7 +76,8 @@ const processTweetsWithHashtags: ProcessDataHandler = async (ctx) => {
   const member: IMemberData = {
     identities: [
       {
-        username: data.member.username,
+        value: data.member.username,
+        type: MemberIdentityType.USERNAME,
         platform: PlatformType.TWITTER,
         sourceId: data.member.id,
       },
@@ -132,7 +135,8 @@ const processMemberReachUpdate: ProcessDataHandler = async (ctx) => {
   const member: IMemberData = {
     identities: [
       {
-        username: data.member.username,
+        value: data.member.username,
+        type: MemberIdentityType.USERNAME,
         platform: PlatformType.TWITTER,
         sourceId: data.member.id,
       },

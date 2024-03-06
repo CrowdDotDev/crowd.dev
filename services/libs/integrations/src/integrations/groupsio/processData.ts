@@ -10,7 +10,7 @@ import {
   GroupsioMemberLeftData,
   GroupsioActivityType,
 } from './types'
-import { IActivityData, IMemberData, PlatformType } from '@crowd/types'
+import { IActivityData, IMemberData, MemberIdentityType, PlatformType } from '@crowd/types'
 import sanitizeHtml from 'sanitize-html'
 
 const processMemberJoin: ProcessDataHandler = async (ctx) => {
@@ -25,7 +25,8 @@ const processMemberJoin: ProcessDataHandler = async (ctx) => {
       {
         sourceId: memberData.user_id.toString(),
         platform: PlatformType.GROUPSIO,
-        username: memberData.email,
+        value: memberData.email,
+        type: MemberIdentityType.USERNAME,
       },
     ],
   }
@@ -55,7 +56,8 @@ const processMessage: ProcessDataHandler = async (ctx) => {
       {
         sourceId: memberData.user_id.toString(),
         platform: PlatformType.GROUPSIO,
-        username: memberData.email,
+        value: memberData.email,
+        type: MemberIdentityType.USERNAME,
       },
     ],
   }
@@ -90,7 +92,8 @@ const processMemberLeft: ProcessDataHandler = async (ctx) => {
       {
         sourceId: memberData.user_id.toString(),
         platform: PlatformType.GROUPSIO,
-        username: memberData.email,
+        value: memberData.email,
+        type: MemberIdentityType.USERNAME,
       },
     ],
   }

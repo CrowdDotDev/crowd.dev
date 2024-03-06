@@ -1,4 +1,4 @@
-import { IMemberData, MemberAttributeName, PlatformType } from '@crowd/types'
+import { IMemberData, MemberAttributeName, MemberIdentityType, PlatformType } from '@crowd/types'
 import sanitizeHtml from 'sanitize-html'
 import { IProcessDataContext, ProcessDataHandler } from '../../../types'
 import {
@@ -87,7 +87,8 @@ const getMember = async (
     identities: [
       {
         platform: PlatformType.LINKEDIN,
-        username,
+        value: username,
+        type: MemberIdentityType.USERNAME,
         sourceId,
       },
     ],

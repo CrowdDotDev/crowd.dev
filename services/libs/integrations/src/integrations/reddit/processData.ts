@@ -4,7 +4,13 @@ import { RedditPost, RedditActivityType, RedditComment, IRedditPublishData } fro
 import he from 'he'
 import { IProcessDataContext, ProcessDataHandler } from '../../types'
 import { randomUUID } from 'crypto'
-import { IMemberData, MemberAttributeName, PlatformType, IActivityData } from '@crowd/types'
+import {
+  IMemberData,
+  MemberAttributeName,
+  PlatformType,
+  IActivityData,
+  MemberIdentityType,
+} from '@crowd/types'
 
 interface IParsePostInput {
   channel: string
@@ -119,7 +125,8 @@ function parseMember(activity: RedditPost | RedditComment): IMemberData {
       identities: [
         {
           platform: PlatformType.REDDIT,
-          username: uniqueId,
+          value: uniqueId,
+          type: MemberIdentityType.USERNAME,
           sourceId: uniqueId,
         },
       ],
@@ -135,7 +142,8 @@ function parseMember(activity: RedditPost | RedditComment): IMemberData {
     identities: [
       {
         platform: PlatformType.REDDIT,
-        username: activity.author,
+        value: activity.author,
+        type: MemberIdentityType.USERNAME,
         sourceId: activity.author_fullname,
       },
     ],

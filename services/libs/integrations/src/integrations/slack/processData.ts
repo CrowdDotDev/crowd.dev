@@ -1,7 +1,13 @@
 import { ProcessDataHandler, IProcessDataContext } from '../../types'
 import { ISlackAPIData, SlackActivityType, SlackMember, SlackMessage } from './types'
 import { SLACK_GRID } from './grid'
-import { IActivityData, IMemberData, MemberAttributeName, PlatformType } from '@crowd/types'
+import {
+  IActivityData,
+  IMemberData,
+  MemberAttributeName,
+  MemberIdentityType,
+  PlatformType,
+} from '@crowd/types'
 import sanitizeHtml from 'sanitize-html'
 
 /**
@@ -21,7 +27,8 @@ function parseMember(record: SlackMember): IMemberData {
     identities: [
       {
         platform: PlatformType.SLACK,
-        username: record.name,
+        value: record.name,
+        type: MemberIdentityType.USERNAME,
         sourceId: record.id,
       },
     ],

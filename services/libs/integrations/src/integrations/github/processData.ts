@@ -24,6 +24,7 @@ import {
   IActivityScoringGrid,
   OrganizationSource,
   IOrganization,
+  MemberIdentityType,
 } from '@crowd/types'
 import { GITHUB_GRID } from './grid'
 import { generateSourceIdHash } from '../../helpers'
@@ -35,7 +36,8 @@ const parseBotMember = (memberData: GithubPrepareMemberOutput): IMemberData => {
     identities: [
       {
         platform: PlatformType.GITHUB,
-        username: memberData.memberFromApi.login,
+        value: memberData.memberFromApi.login,
+        type: MemberIdentityType.USERNAME,
       },
     ],
     displayName: memberData.memberFromApi.login,
@@ -69,14 +71,16 @@ const parseMember = (memberData: GithubPrepareMemberOutput): IMemberData => {
     identities: [
       {
         platform: PlatformType.GITHUB,
-        username: memberFromApi.login,
+        value: memberFromApi.login,
+        type: MemberIdentityType.USERNAME,
       },
     ],
     ...(memberFromApi?.twitterUsername && {
       weakIdentities: [
         {
           platform: PlatformType.TWITTER,
-          username: memberFromApi.twitterUsername,
+          value: memberFromApi.twitterUsername,
+          type: MemberIdentityType.USERNAME,
         },
       ],
     }),
@@ -177,14 +181,16 @@ const parseOrgMember = (memberData: GithubPrepareOrgMemberOutput): IMemberData =
     identities: [
       {
         platform: PlatformType.GITHUB,
-        username: orgFromApi.login,
+        value: orgFromApi.login,
+        type: MemberIdentityType.USERNAME,
       },
     ],
     ...(orgFromApi?.twitterUsername && {
       weakIdentities: [
         {
           platform: PlatformType.TWITTER,
-          username: orgFromApi.twitterUsername,
+          value: orgFromApi.twitterUsername,
+          type: MemberIdentityType.USERNAME,
         },
       ],
     }),

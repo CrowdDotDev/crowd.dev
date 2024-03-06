@@ -1192,7 +1192,10 @@ class MemberRepository {
     return results
   }
 
-  static async getRawMemberIdentities(memberId: string, options: IRepositoryOptions) {
+  static async getRawMemberIdentities(
+    memberId: string,
+    options: IRepositoryOptions,
+  ): Promise<IMemberIdentity[]> {
     const seq = SequelizeRepository.getSequelize(options)
     const transaction = SequelizeRepository.getTransaction(options)
 
