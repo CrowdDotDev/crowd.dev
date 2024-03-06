@@ -17,7 +17,7 @@
         <el-button class="btn btn--bordered btn--md mr-3" @click="handleCancel">
           Cancel
         </el-button>
-        <el-button class="btn btn--primary btn--md" @click="handleSubmit">
+        <el-button class="btn btn--primary btn--md" @click="handleSubmit" :disabled="!hasSelectedRole">
           Submit
         </el-button>
       </div>
@@ -78,6 +78,9 @@ export default {
     },
     membersToUpdate() {
       return this.member ? [this.member] : selectedMembers.value;
+    },
+    hasSelectedRole() {
+      return this.editTagsModel.length > 0;
     },
   },
 
