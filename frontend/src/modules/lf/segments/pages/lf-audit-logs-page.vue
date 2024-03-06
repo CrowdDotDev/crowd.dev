@@ -20,6 +20,7 @@
     <el-table-column
       label="Action"
       prop="action"
+      class-name="!p-0"
     >
       <template #default="log">
         <div class="flex py-4">
@@ -42,6 +43,7 @@
     <el-table-column
       label="User"
       prop="user"
+      class-name="!p-0"
     >
       <template #default="log">
         <div class="py-4">
@@ -59,6 +61,7 @@
       label="Timestamp"
       prop="timestamp"
       width="200"
+      class-name="!p-0"
     >
       <template #default="log">
         <div class="text-sm py-4 flex items-center h-full">
@@ -70,6 +73,7 @@
     <el-table-column
       prop="details"
       width="140"
+      class-name="!p-0"
     >
       <template #default="log">
         <div class="py-4 flex items-center h-full">
@@ -81,9 +85,9 @@
     </el-table-column>
   </el-table>
 
-  <div class="pt-6 pb-6">
-    <cr-button type="secondary">
-      Load more
+  <div class="pt-6 pb-6 flex justify-center">
+    <cr-button type="tertiary">
+      <i class="ri-arrow-down-line" />Load more
     </cr-button>
   </div>
 
