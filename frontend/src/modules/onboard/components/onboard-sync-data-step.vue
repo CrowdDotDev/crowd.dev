@@ -72,7 +72,7 @@ const loading = computed(
 );
 const integrationsArray = computed(() => CrowdIntegrations.mappedEnabledConfigs(store)
   .filter((i) => !i.onboard?.highlight && !!i.onboard));
-const highlightedIntegrationsArray = computed(() => CrowdIntegrations.mappedConfigs(store)
+const highlightedIntegrationsArray = computed(() => CrowdIntegrations.mappedEnabledConfigs(store)
   .filter((i) => i.onboard?.highlight && !!i.onboard));
 const showGithubDialog = ref(false);
 
