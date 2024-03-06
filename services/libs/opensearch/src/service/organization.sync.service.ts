@@ -211,8 +211,7 @@ export class OrganizationSyncService {
         let organizationIds = await this.orgRepo.getTenantOrganizationsForSync(tenantId, batchSize)
 
         while (organizationIds.length > 0) {
-          const { organizationsSynced, documentsIndexed } =
-            await this.syncOrganizations(organizationIds)
+          const { organizationsSynced, documentsIndexed } = await this.syncOrganizations(organizationIds)
 
           organizationCount += organizationsSynced
           docCount += documentsIndexed
