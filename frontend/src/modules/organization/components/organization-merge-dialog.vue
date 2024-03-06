@@ -19,7 +19,7 @@
           </div>
           <div class="w-1/2 px-3">
             <app-organization-selection-dropdown
-              v-if="organizationToMerge === null"
+              v-if="!organizationToMerge"
               :id="props.modelValue?.id"
               v-model="organizationToMerge"
               style="margin-right: 5px"
@@ -94,7 +94,7 @@ const organizationStore = useOrganizationStore();
 const originalOrganizationPrimary = ref(true);
 const sendingMerge = ref(false);
 
-const organizationToMerge = ref();
+const organizationToMerge = ref(null);
 
 const isModalOpen = computed({
   get() {

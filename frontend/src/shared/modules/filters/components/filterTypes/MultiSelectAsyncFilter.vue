@@ -6,7 +6,7 @@
     />
     <div class="px-4 pt-3">
       <el-select
-        v-model="data.selected"
+        :model-value="data.selected || []"
         multiple
         remote
         filterable
@@ -18,6 +18,7 @@
         popper-class="filter-multiselect-popper"
         :loading="loading"
         no-data-text=""
+        @update:model-value="updateSelected($event)"
       >
         <el-option
           v-for="option of filteredOptions"
@@ -34,21 +35,14 @@
               <span class="el-checkbox__inner" />
             </span>
           </div>
-          <!-- TODO: Make this more config specific -->
-
-          <!--          <template v-if="config.id === 'organizations'">-->
-          <!--            <span class="flex items-center justify-center w-6 h-6 p-1 mr-3 border rounded-md ">-->
-          <!--              <img v-if="option.logo" :src="option.logo" class="w-4 h-4 min-w-[16px]" :alt="option.label" />-->
-          <!--              <i v-else class="flex items-center justify-center w-4 h-4 text-gray-300 ri-community-line" />-->
-          <!--            </span>-->
-          <!--          </template>-->
+          <div v-if="option.prefix" v-html="$sanitize(option.prefix)" />
           <div>
             <p class="mb-0 leading-5">
               {{ option.label }}
             </p>
             <p
-              v-if="option.description"
-              class="text-2xs text-gray-500 leading-5"
+                v-if="option.description"
+                class="text-2xs text-gray-500 leading-5"
             >
               {{ option.description }}
             </p>
@@ -126,13 +120,6 @@ watch(() => props.modelValue.value, (value?: string[]) => {
   }
 }, { immediate: true });
 
-watch(() => data.value.selected, (value) => {
-  emit('update:modelValue', {
-    ...props.modelValue,
-    value: value.map((v) => v.value),
-  });
-});
-
 const loading = ref<boolean>(false);
 const filteredOptions = ref<MultiSelectAsyncFilterOption[]>([]);
 
@@ -145,6 +132,14 @@ const searchOptions = (query: string) => {
     .finally(() => {
       loading.value = false;
     });
+};
+
+const updateSelected = (value: any[]) => {
+  data.value.selected = value;
+  emit('update:modelValue', {
+    ...props.modelValue,
+    value: value.map((v) => v.value),
+  });
 };
 
 onMounted(() => {
