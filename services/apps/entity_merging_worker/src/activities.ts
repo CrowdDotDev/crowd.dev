@@ -2,7 +2,7 @@ export {
   deleteMember,
   moveActivitiesBetweenMembers,
   moveActivitiesWithIdentityToAnotherMember,
-  recalculateActivityAffiliations,
+  recalculateActivityAffiliationsOfMemberAsync,
   syncMember,
   notifyFrontendMemberUnmergeSuccessful,
 } from './activities/members'
@@ -10,7 +10,11 @@ export {
 export {
   deleteOrganization,
   moveActivitiesBetweenOrgs,
-  notifyFrontend,
+  notifyFrontendOrganizationMergeSuccessful,
+  notifyFrontendOrganizationUnmergeSuccessful,
+  syncOrganization,
+  recalculateActivityAffiliationsOfOrganizationSynchronous,
+  linkOrganizationToCache,
 } from './activities/organizations'
 
 export { setMergeActionState } from './activities/common'

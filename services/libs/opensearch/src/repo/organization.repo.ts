@@ -1,6 +1,10 @@
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
-import { IDbOrganizationSyncData, IOrganizationSegmentMatrix } from './organization.data'
+import {
+  IDbOrganizationSyncData,
+  IOrganizationSegment,
+  IOrganizationSegmentMatrix,
+} from './organization.data'
 import { IndexedEntityType } from './indexing.data'
 
 export class OrganizationRepository extends RepositoryBase<OrganizationRepository> {
@@ -295,31 +299,51 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     organizationIds: string[],
     segmentIds?: string[],
   ): Promise<IOrganizationSegmentMatrix> {
-    let results = []
+    let organizationSegments: IOrganizationSegment[] = []
     if (segmentIds && segmentIds.length > 0) {
       for (const organizationId of organizationIds) {
         for (const segmentId of segmentIds) {
-          results.push({
+          organizationSegments.push({
             organizationId,
             segmentId,
           })
         }
       }
     } else {
-      results = await this.db().any(
+      organizationSegments = await this.db().any(
         `
-        select distinct a."organizationId", a."segmentId"
-        from activities a
-        where a."organizationId" in ($(organizationIds:csv));        `,
+        select distinct mo."organizationId", a."segmentId"
+        from "memberOrganizations" mo
+        inner join activities a on mo."memberId" = a."memberId"
+        where mo."organizationId" in ($(ids:csv));
+        `,
         {
-          organizationIds,
+          ids: organizationIds,
         },
       )
+      // Manually created organizations don't have any activities,
+      // filter out those organizationIds that are not in the results
+      const manuallyCreatedIds = organizationIds.filter(
+        (id) => !organizationSegments.some((r) => r.organizationId === id),
+      )
+      if (manuallyCreatedIds.length > 0) {
+        const missingResults = await this.db().any(
+          `
+          select distinct os."segmentId", os."organizationId"
+          from "organizationSegments" os
+          where os."organizationId" in ($(manuallyCreatedIds:csv));
+          `,
+          {
+            manuallyCreatedIds,
+          },
+        )
+        organizationSegments = [...organizationSegments, ...missingResults]
+      }
     }
 
     const matrix = {}
 
-    for (const orgSegment of results) {
+    for (const orgSegment of organizationSegments) {
       if (!matrix[orgSegment.organizationId]) {
         matrix[orgSegment.organizationId] = [
           {
