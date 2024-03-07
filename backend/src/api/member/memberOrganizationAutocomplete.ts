@@ -5,7 +5,7 @@ import PermissionChecker from '../../services/user/permissionChecker'
 export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.memberAutocomplete)
 
-  const payload = await new MemberService(req).findAllAutocomplete(req.query.query, req.query.limit)
+  const payload = await new MemberService(req).findAllAutocomplete(req.body)
 
   await req.responseHandler.success(req, res, payload)
 }
