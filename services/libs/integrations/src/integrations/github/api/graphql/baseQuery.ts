@@ -35,6 +35,26 @@ class BaseQuery {
         }
     }`
 
+  static USER_SELECT_WITH_TYPENAME = `{
+        __typename
+        login
+        name
+        avatarUrl
+        id
+        isHireable
+        twitterUsername
+        url
+        websiteUrl
+        email
+        bio
+        company
+        companyHTML
+        location
+        followers {
+          totalCount
+        }
+    }`
+
   static ORGANIZATION_SELECT = `{
     login
     email
