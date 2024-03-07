@@ -22,6 +22,12 @@ import { Error400, Error404, dateEqualityChecker } from '@crowd/common'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import { ActivityDisplayService } from '@crowd/integrations'
 import { captureApiChange, memberCreateAction, memberEditProfileAction } from '@crowd/audit-logs'
+import {
+  createMemberIdentity,
+  deleteMemberIdentities,
+  deleteMemberIdentitiesByCombinations,
+  moveToNewMember,
+} from '@crowd/data-access-layer/src/member_identities'
 import { KUBE_MODE, SERVICE } from '@/conf'
 import { ServiceType } from '../../conf/configTypes'
 import isFeatureEnabled from '../../feature-flags/isFeatureEnabled'
@@ -118,26 +124,18 @@ class MemberRepository {
 
     const username: PlatformIdentities = data.username
 
-    const seq = SequelizeRepository.getSequelize(options)
-    const query = `
-      insert into "memberIdentities"("memberId", platform, username, "sourceId", "tenantId", "integrationId")
-      values(:memberId, :platform, :username, :sourceId, :tenantId, :integrationId);
-    `
+    const qx = SequelizeRepository.getQueryExecutor(options, transaction)
 
     for (const platform of Object.keys(username) as PlatformType[]) {
       const identities: any[] = username[platform]
       for (const identity of identities) {
-        await seq.query(query, {
-          replacements: {
-            memberId: record.id,
-            platform,
-            username: identity.username,
-            sourceId: identity.sourceId || null,
-            integrationId: identity.integrationId || null,
-            tenantId: tenant.id,
-          },
-          type: QueryTypes.INSERT,
-          transaction,
+        await createMemberIdentity(qx, {
+          memberId: record.id,
+          platform,
+          username: identity.username,
+          sourceId: identity.sourceId || null,
+          integrationId: identity.integrationId || null,
+          tenantId: tenant.id,
         })
       }
     }
@@ -341,34 +339,18 @@ class MemberRepository {
     options: IRepositoryOptions,
   ): Promise<void> {
     const transaction = SequelizeRepository.getTransaction(options)
-
-    const seq = SequelizeRepository.getSequelize(options)
+    const qx = SequelizeRepository.getQueryExecutor(options, transaction)
 
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
-    const query = `
-      update "memberIdentities"
-      set
-        "memberId" = :newMemberId
-      where
-        "tenantId" = :tenantId and
-        "memberId" = :oldMemberId and
-        platform = :platform and
-        username = :username;
-    `
-
     for (const identity of identitiesToMove) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const [_, count] = await seq.query(query, {
-        replacements: {
-          tenantId: tenant.id,
-          oldMemberId: fromMemberId,
-          newMemberId: toMemberId,
-          platform: identity.platform,
-          username: identity.username,
-        },
-        type: QueryTypes.UPDATE,
-        transaction,
+      const [_, count] = await moveToNewMember(qx, {
+        tenantId: tenant.id,
+        oldMemberId: fromMemberId,
+        newMemberId: toMemberId,
+        platform: identity.platform,
+        username: identity.username,
       })
 
       if (count !== 1) {
@@ -861,31 +843,13 @@ class MemberRepository {
       await MemberRepository.includeMemberToSegments(record.id, options)
     }
 
-    const seq = SequelizeRepository.getSequelize(options)
+    const qx = SequelizeRepository.getQueryExecutor(options, transaction)
 
     if (data.username) {
       data.username = mapUsernameToIdentities(data.username)
 
       const platforms = Object.keys(data.username) as PlatformType[]
       if (platforms.length > 0) {
-        const query = `
-          insert into "memberIdentities"("memberId", platform, username, "sourceId", "tenantId", "integrationId")
-          values (:memberId, :platform, :username, :sourceId, :tenantId, :integrationId);
-          `
-        const deleteQuery = `
-          delete from "memberIdentities"
-          where ("memberId", "tenantId", "platform", "username") in
-                (select mi."memberId", mi."tenantId", mi."platform", mi."username"
-                from "memberIdentities" mi
-                          join (select :memberId::uuid            as memberid,
-                                      :tenantId::uuid            as tenantid,
-                                      unnest(:platforms::text[]) as platform,
-                                      unnest(:usernames::text[]) as username) as combinations
-                              on mi."memberId" = combinations.memberid
-                                  and mi."tenantId" = combinations.tenantid
-                                  and mi."platform" = combinations.platform
-                                  and mi."username" = combinations.username);`
-
         const platformsToDelete: string[] = []
         const usernamesToDelete: string[] = []
 
@@ -897,32 +861,24 @@ class MemberRepository {
               platformsToDelete.push(identity.platform)
               usernamesToDelete.push(identity.username)
             } else if (identity.username && identity.username !== '') {
-              await seq.query(query, {
-                replacements: {
-                  memberId: record.id,
-                  platform,
-                  username: identity.username,
-                  sourceId: identity.sourceId || null,
-                  integrationId: identity.integrationId || null,
-                  tenantId: currentTenant.id,
-                },
-                type: QueryTypes.INSERT,
-                transaction,
+              await createMemberIdentity(qx, {
+                memberId: record.id,
+                platform,
+                username: identity.username,
+                sourceId: identity.sourceId || null,
+                integrationId: identity.integrationId || null,
+                tenantId: currentTenant.id,
               })
             }
           }
         }
 
         if (platformsToDelete.length > 0) {
-          await seq.query(deleteQuery, {
-            replacements: {
-              tenantId: currentTenant.id,
-              memberId: record.id,
-              platforms: `{${platformsToDelete.join(',')}}`,
-              usernames: `{${usernamesToDelete.join(',')}}`,
-            },
-            type: QueryTypes.DELETE,
-            transaction,
+          await deleteMemberIdentitiesByCombinations(qx, {
+            tenantId: currentTenant.id,
+            memberId: record.id,
+            platforms: `{${platformsToDelete.join(',')}}`,
+            usernames: `{${usernamesToDelete.join(',')}}`,
           })
         }
       }
@@ -4360,21 +4316,13 @@ class MemberRepository {
   ): Promise<void> {
     const transaction = SequelizeRepository.getTransaction(options)
 
-    const seq = SequelizeRepository.getSequelize(options)
-
-    const query = `
-      delete from "memberIdentities" where "memberId" = :memberId and platform = :platform and username = :username;
-    `
+    const qx = SequelizeRepository.getQueryExecutor(options, transaction)
 
     for (const identity of identities) {
-      await seq.query(query, {
-        replacements: {
-          memberId,
-          username: identity.username,
-          platform: identity.platform,
-        },
-        type: QueryTypes.DELETE,
-        transaction,
+      await deleteMemberIdentities(qx, {
+        memberId,
+        username: identity.username,
+        platform: identity.platform,
       })
     }
   }

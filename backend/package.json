@@ -62,6 +62,7 @@
     "@crowd/common_services": "workspace:*",
     "@crowd/cubejs": "workspace:*",
     "@crowd/feature-flags": "workspace:*",
+    "@crowd/data-access-layer": "workspace:*",
     "@crowd/audit-logs": "workspace:*",
     "@crowd/integrations": "workspace:*",
     "@crowd/logging": "workspace:*",
