@@ -4,8 +4,9 @@ import {
   MultiSelectAsyncFilterConfig,
   MultiSelectAsyncFilterOptions, MultiSelectAsyncFilterValue,
 } from '@/shared/modules/filters/types/filterTypes/MultiSelectAsyncFilterConfig';
-import { OrganizationService } from '@/modules/organization/organization-service';
 import { DEFAULT_ORGANIZATION_FILTERS } from '@/modules/organization/store/constants';
+import { OrganizationService } from '@/modules/organization/organization-service';
+import { trimAndReduceSpaces } from '@/utils/string';
 
 const organizations: MultiSelectAsyncFilterConfig = {
   id: 'organizations',
@@ -13,13 +14,26 @@ const organizations: MultiSelectAsyncFilterConfig = {
   iconClass: 'ri-community-line',
   type: FilterConfigType.MULTISELECT_ASYNC,
   options: {
-    remoteMethod: (query) => OrganizationService.listAutocomplete(query, 10)
-      .then((data: any[]) => data.map((organization) => ({
-        label: organization.label,
+    remoteMethod: (query) => OrganizationService.query({
+      filter: {
+        or: [
+          { displayName: { textContains: trimAndReduceSpaces(query) } },
+        ],
+      },
+      limit: 10,
+      segments: [],
+    })
+      .then(({ rows }: any) => rows.map((organization) => ({
+        label: organization.displayName || organization.name,
         value: organization.id,
-        logo: organization.logo,
+        prefix: `
+            <span class="flex items-center justify-center w-6 h-6 p-1 mr-3 border rounded-md ">
+            ${organization.logo
+          ? `<img src="${organization.logo}" class="w-4 h-4 min-w-[16px]" alt="${organization.label}" />`
+          : '<i v-else class="flex items-center justify-center w-4 h-4 text-gray-300 ri-community-line" />'}
+            </span>`,
       }))),
-    remotePopulateItems: (ids: string[]) => OrganizationService.listAutocomplete({
+    remotePopulateItems: (ids: string[]) => OrganizationService.query({
       filter: {
         and: [
           ...DEFAULT_ORGANIZATION_FILTERS,
@@ -28,9 +42,8 @@ const organizations: MultiSelectAsyncFilterConfig = {
           },
         ],
       },
-      orderBy: null,
-      limit: ids.length,
-      offset: 0,
+      limit: ids?.length,
+      segments: [],
     })
       .then(({ rows }: any) => rows.map((organization: any) => ({
         label: organization.displayName,

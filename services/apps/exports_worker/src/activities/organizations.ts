@@ -30,6 +30,7 @@ export async function buildAndUploadOrganizationsCSV(
     offset: input.criteria ? input.criteria.offset : 0,
     orderBy: input.criteria ? input.criteria.orderBy : 'joinedAt_DESC',
     countOnly: false,
+    segments: input.segmentIds,
   }
 
   const data = await search.findAndCountAll(input.tenantId, transformed)

@@ -52,6 +52,15 @@ export default class IntegrationDataRepository extends RepositoryBase<Integratio
      d."tenantId" = $(tenantId)
   `
 
+  private readonly getDataForIntegrationQuery = `
+    select
+      d.id
+    from 
+     integration."apiData" d
+    where 
+     d."integrationId" = $(integrationId)
+  `
+
   public async getDataInfo(dataId: string): Promise<IApiDataInfo | null> {
     const results = await this.db().oneOrNone(this.getDataInfoQuery, {
       dataId,
@@ -61,8 +70,6 @@ export default class IntegrationDataRepository extends RepositoryBase<Integratio
   }
 
   public async getOldDataToProcess(limit: number): Promise<string[]> {
-    this.ensureTransactional()
-
     try {
       const results = await this.db().any(
         `
@@ -344,6 +351,14 @@ export default class IntegrationDataRepository extends RepositoryBase<Integratio
   public async getDataForTenant(tenantId: string): Promise<string[]> {
     const results = await this.db().manyOrNone(this.getDataForTenantQuery, {
       tenantId,
+    })
+
+    return results.map((r) => r.id)
+  }
+
+  public async getDataForIntegration(integrationId: string): Promise<string[]> {
+    const results = await this.db().manyOrNone(this.getDataForIntegrationQuery, {
+      integrationId,
     })
 
     return results.map((r) => r.id)

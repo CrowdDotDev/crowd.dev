@@ -61,6 +61,7 @@
   <app-member-form-organizations-create
     v-if="isOrganizationFormModalOpen"
     v-model="isOrganizationFormModalOpen"
+    :member="member"
     :organization="editOrganization !== null ? organizations[editOrganization] : null"
     @add="add($event)"
     @edit="update($event)"
