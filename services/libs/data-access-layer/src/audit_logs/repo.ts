@@ -17,6 +17,12 @@ export interface AuditLogAction {
   diff: object
 }
 
+export enum EntityType {
+  MEMBER = 'member',
+  ORGANIZATION = 'organization',
+  INTEGRATION = 'integration',
+}
+
 export enum ActionType {
   MEMBERS_MERGE = 'members-merge',
   MEMBERS_EDIT_IDENTITIES = 'members-edit-identities',
@@ -30,6 +36,21 @@ export enum ActionType {
   ORGANIZATIONS_CREATE = 'organizations-create',
   INTEGRATIONS_CONNECT = 'integrations-connect',
   INTEGRATIONS_RECONNECT = 'integrations-reconnect',
+}
+
+const ACTION_TYPES_ENTITY_TYPES = {
+  [ActionType.MEMBERS_MERGE]: EntityType.MEMBER,
+  [ActionType.MEMBERS_EDIT_IDENTITIES]: EntityType.MEMBER,
+  [ActionType.MEMBERS_EDIT_ORGANIZATIONS]: EntityType.MEMBER,
+  [ActionType.MEMBERS_EDIT_MANUAL_AFFILIATION]: EntityType.MEMBER,
+  [ActionType.MEMBERS_EDIT_PROFILE]: EntityType.MEMBER,
+  [ActionType.MEMBERS_CREATE]: EntityType.MEMBER,
+  [ActionType.ORGANIZATIONS_MERGE]: EntityType.ORGANIZATION,
+  [ActionType.ORGANIZATIONS_EDIT_IDENTITIES]: EntityType.ORGANIZATION,
+  [ActionType.ORGANIZATIONS_EDIT_PROFILE]: EntityType.ORGANIZATION,
+  [ActionType.ORGANIZATIONS_CREATE]: EntityType.ORGANIZATION,
+  [ActionType.INTEGRATIONS_CONNECT]: EntityType.INTEGRATION,
+  [ActionType.INTEGRATIONS_RECONNECT]: EntityType.INTEGRATION,
 }
 
 export async function addAuditAction(
@@ -115,5 +136,8 @@ export async function queryAuditLogs(qx: QueryExecutor, { limit, offset, filter 
     },
   )
 
-  return result
+  return result.map((row) => {
+    row.entityType = ACTION_TYPES_ENTITY_TYPES[row.actionType]
+    return row
+  })
 }
