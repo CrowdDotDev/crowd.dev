@@ -158,6 +158,7 @@
                       changes-copy="line"
                       :insertions="activity.attributes.insertions"
                       :deletions="activity.attributes.deletions"
+                      :type="activity.type"
                     />
                   </div>
                 </template>

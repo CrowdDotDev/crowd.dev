@@ -42,6 +42,7 @@
           :insertions="footerContent().insertions"
           :deletions="footerContent().deletions"
           :source-id="platformConfig?.activityDisplay?.showSourceId && sourceId"
+          :type="conversation.conversationStarter?.type"
         />
 
         <div v-if="platformConfig?.conversationDisplay?.showLabels && attributes.labels?.length">

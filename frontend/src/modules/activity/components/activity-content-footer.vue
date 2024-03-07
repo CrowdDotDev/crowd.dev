@@ -27,7 +27,7 @@
         </div>
       </div>
     </div>
-    <el-tooltip v-if="sourceId" placement="top" :content="sourceId">
+    <el-tooltip v-if="sourceId && displaySourceId" placement="top" :content="sourceId">
       <div class="text-gray-500 text-xs max-w-sm whitespace-nowrap overflow-hidden text-ellipsis">
         <span class="font-semibold">SHA:</span> {{ sourceId }}
       </div>
@@ -37,8 +37,9 @@
 
 <script setup>
 import pluralize from 'pluralize';
+import { computed } from 'vue';
 
-defineProps({
+const props = defineProps({
   changes: {
     type: Number,
     default: null,
@@ -59,7 +60,13 @@ defineProps({
     type: String,
     default: null,
   },
+  type: {
+    type: String,
+    default: null,
+  },
 });
+
+const displaySourceId = computed(() => props.type === 'authored-commit');
 </script>
 
 <script>
