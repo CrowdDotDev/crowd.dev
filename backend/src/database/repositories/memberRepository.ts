@@ -21,6 +21,7 @@ import Sequelize, { QueryTypes } from 'sequelize'
 import { Error400, Error404, dateEqualityChecker } from '@crowd/common'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import { ActivityDisplayService } from '@crowd/integrations'
+import { captureApiChange, memberEditProfileAction } from '@crowd/audit-logs'
 import { KUBE_MODE, SERVICE } from '@/conf'
 import { ServiceType } from '../../conf/configTypes'
 import isFeatureEnabled from '../../feature-flags/isFeatureEnabled'
@@ -698,101 +699,110 @@ class MemberRepository {
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
-    const record = await options.database.member.findOne({
-      where: {
-        id,
-        tenantId: currentTenant.id,
-      },
-      transaction,
-    })
+    const record = await captureApiChange(
+      options,
+      memberEditProfileAction(id, async (captureOldState, captureNewState) => {
+        const record = await options.database.member.findOne({
+          where: {
+            id,
+            tenantId: currentTenant.id,
+          },
+          transaction,
+        })
 
-    if (!record) {
-      throw new Error404()
-    }
+        captureOldState(record.get({ plain: true }))
 
-    // exclude syncRemote attributes, since these are populated from memberSyncRemote table
-    if (data.attributes?.syncRemote) {
-      delete data.attributes.syncRemote
-    }
-
-    if (manualChange) {
-      const manuallyChangedFields: string[] = record.manuallyChangedFields || []
-
-      for (const column of this.MEMBER_UPDATE_COLUMNS) {
-        let changed = false
-
-        // only check fields that are in the data object that will be updated
-        if (column in data) {
-          if (
-            record[column] !== null &&
-            column in data &&
-            (data[column] === null || data[column] === undefined)
-          ) {
-            // column was removed in the update -> will be set to null by sequelize
-            changed = true
-          } else if (
-            record[column] === null &&
-            data[column] !== null &&
-            data[column] !== undefined
-          ) {
-            // column was null before now it's not anymore
-            changed = true
-          } else if (
-            this.isEqual[column] &&
-            this.isEqual[column](record[column], data[column]) === false
-          ) {
-            // column value has changed
-            changed = true
-          }
+        if (!record) {
+          throw new Error404()
         }
 
-        if (changed && !manuallyChangedFields.includes(column)) {
-          // handle attributes, keep each changed attribute separately
-          if (column === 'attributes') {
-            for (const key of Object.keys(data.attributes)) {
-              if (!record.attributes[key]) {
-                manuallyChangedFields.push(`attributes.${key}`)
-              } else if (
-                !lodash.isEqual(record.attributes[key].default, data.attributes[key].default)
+        // exclude syncRemote attributes, since these are populated from memberSyncRemote table
+        if (data.attributes?.syncRemote) {
+          delete data.attributes.syncRemote
+        }
+
+        if (manualChange) {
+          const manuallyChangedFields: string[] = record.manuallyChangedFields || []
+
+          for (const column of this.MEMBER_UPDATE_COLUMNS) {
+            let changed = false
+
+            // only check fields that are in the data object that will be updated
+            if (column in data) {
+              if (
+                record[column] !== null &&
+                column in data &&
+                (data[column] === null || data[column] === undefined)
               ) {
-                manuallyChangedFields.push(`attributes.${key}`)
+                // column was removed in the update -> will be set to null by sequelize
+                changed = true
+              } else if (
+                record[column] === null &&
+                data[column] !== null &&
+                data[column] !== undefined
+              ) {
+                // column was null before now it's not anymore
+                changed = true
+              } else if (
+                this.isEqual[column] &&
+                this.isEqual[column](record[column], data[column]) === false
+              ) {
+                // column value has changed
+                changed = true
               }
             }
-          } else {
-            manuallyChangedFields.push(column)
+
+            if (changed && !manuallyChangedFields.includes(column)) {
+              // handle attributes, keep each changed attribute separately
+              if (column === 'attributes') {
+                for (const key of Object.keys(data.attributes)) {
+                  if (!record.attributes[key]) {
+                    manuallyChangedFields.push(`attributes.${key}`)
+                  } else if (
+                    !lodash.isEqual(record.attributes[key].default, data.attributes[key].default)
+                  ) {
+                    manuallyChangedFields.push(`attributes.${key}`)
+                  }
+                }
+              } else {
+                manuallyChangedFields.push(column)
+              }
+            }
           }
-        }
-      }
 
-      data.manuallyChangedFields = manuallyChangedFields
-    } else {
-      // ignore columns that were manually changed
-      // by rewriting them with db data
-      const manuallyChangedFields: string[] = record.manuallyChangedFields || []
-      for (const manuallyChangedColumn of manuallyChangedFields) {
-        if (data.attributes && manuallyChangedColumn.startsWith('attributes')) {
-          const attributeKey = manuallyChangedColumn.split('.')[1]
-          data.attributes[attributeKey] = record.attributes[attributeKey]
+          data.manuallyChangedFields = manuallyChangedFields
         } else {
-          data[manuallyChangedColumn] = record[manuallyChangedColumn]
+          // ignore columns that were manually changed
+          // by rewriting them with db data
+          const manuallyChangedFields: string[] = record.manuallyChangedFields || []
+          for (const manuallyChangedColumn of manuallyChangedFields) {
+            if (data.attributes && manuallyChangedColumn.startsWith('attributes')) {
+              const attributeKey = manuallyChangedColumn.split('.')[1]
+              data.attributes[attributeKey] = record.attributes[attributeKey]
+            } else {
+              data[manuallyChangedColumn] = record[manuallyChangedColumn]
+            }
+          }
+
+          data.manuallyChangedFields = manuallyChangedFields
         }
-      }
 
-      data.manuallyChangedFields = manuallyChangedFields
-    }
+        const updatedMember = {
+          ...lodash.pick(data, this.MEMBER_UPDATE_COLUMNS),
+          updatedById: currentUser.id,
+          manuallyChangedFields: data.manuallyChangedFields,
+        }
+        captureNewState(updatedMember)
 
-    await options.database.member.update(
-      {
-        ...lodash.pick(data, this.MEMBER_UPDATE_COLUMNS),
-        updatedById: currentUser.id,
-        manuallyChangedFields: data.manuallyChangedFields,
-      },
-      {
-        where: {
-          id: record.id,
-        },
-        transaction,
-      },
+        await options.database.member.update(updatedMember, {
+          where: {
+            id: record.id,
+          },
+          transaction,
+        })
+
+        return record
+      }),
     )
 
     if (data.activities) {
