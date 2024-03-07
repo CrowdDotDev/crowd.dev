@@ -106,6 +106,7 @@ import AppLfAuditLogsDrawer from '@/modules/lf/segments/components/logs/log.draw
 import { AuditLog } from '@/modules/lf/segments/types/AuditLog';
 import CrButton from '@/ui-kit/button/Button.vue';
 import moment from 'moment';
+import { LfService } from '@/modules/lf/segments/lf-segments-service';
 import { logRenderingConfig } from '../../config/audit-logs/log-rendering';
 
 const loading = ref<boolean>(false);
@@ -131,7 +132,14 @@ const fetch = ({
 }: FilterQuery) => {
   loading.value = true;
   pagination.value.page = 1;
-  // fetchAuditLogs({
+  LfService.fetchAuditLogs({
+    limit: 10,
+    offset: 0,
+  })
+    .then((res) => {
+      console.log(res);
+    });
+  // Lf({
   //   body: {
   //     ...body,
   //     filter,

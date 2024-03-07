@@ -124,4 +124,19 @@ export class LfService {
 
     return response.data;
   }
+
+  // AuditLogs
+
+  static async fetchAuditLogs(params) {
+    const tenantId = AuthCurrentTenant.get();
+
+    const response = await authAxios.get(
+      `/tenant/${tenantId}/audit-logs/query`,
+      {
+        params,
+      },
+    );
+
+    return response.data;
+  }
 }
