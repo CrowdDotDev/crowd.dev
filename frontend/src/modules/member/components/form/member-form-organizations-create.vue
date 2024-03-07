@@ -135,12 +135,7 @@ import AppAutocompleteOneInput from '@/shared/form/autocomplete-one-input.vue';
 import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 import moment from 'moment';
-import { getSegmentsFromProjectGroup } from '@/utils/segments';
-import { storeToRefs } from 'pinia';
-import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { Member } from '../../types/Member';
-
-type SelectOrganization = Organization & { label: string };
 
 interface MemberOrganizationForm {
   organization: Organization | '',
@@ -156,9 +151,6 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: boolean), (e: 'add', value: Organization), (e: 'edit', value: Organization),}>();
-
-const lsSegmentsStore = useLfSegmentsStore();
-const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const isOpened = computed<boolean>({
   get() {

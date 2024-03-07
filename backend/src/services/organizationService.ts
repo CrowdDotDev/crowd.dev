@@ -803,13 +803,13 @@ export default class OrganizationService extends LoggerBase {
 
   async findAllAutocomplete(data) {
     return OrganizationRepository.findAndCountAllOpensearch(
-      { 
+      {
         filter: data.filter,
         offset: data.offset,
         orderBy: data.orderBy,
         limit: data.limit,
         segments: data.segments,
-     },
+      },
       this.options,
     )
   }
