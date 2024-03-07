@@ -1,4 +1,5 @@
 import { DbConnection } from '@crowd/database'
+import { QueryExecutor } from '../queryExecutor'
 
 export interface AuditLogRequestOptions {
   userId: string
@@ -76,4 +77,43 @@ export async function addAuditAction(
       diff: JSON.stringify(action.diff),
     },
   )
+}
+
+export async function queryAuditLogs(qx: QueryExecutor, { limit, offset, filter }) {
+  let where = ''
+
+  if (filter?.entityId) {
+    where += ` AND a."entityId" = $(entityId)`
+  }
+
+  if (filter?.userId) {
+    where += ` AND a."userId" = $(userId)`
+  }
+
+  const result = await qx.select(
+    `
+      SELECT
+        a.*,
+        JSON_BUILD_OBJECT(
+          'id', u.id,
+          'email', u.email,
+          'fullName', u."fullName"
+        ) AS "user"
+      FROM "auditLogAction" a
+      JOIN users u ON a."userId" = u.id
+      WHERE 1 = 1
+        ${where}
+      ORDER BY a.timestamp DESC
+      LIMIT $(limit)
+      OFFSET $(offset)
+    `,
+    {
+      limit,
+      offset,
+      userId: filter?.userId,
+      entityId: filter?.entityId,
+    },
+  )
+
+  return result
 }
