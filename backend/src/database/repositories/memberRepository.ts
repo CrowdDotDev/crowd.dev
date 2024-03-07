@@ -341,13 +341,13 @@ class MemberRepository {
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
     const query = `
-      update "memberIdentities" 
-      set 
+      update "memberIdentities"
+      set
         "memberId" = :newMemberId
-      where 
-        "tenantId" = :tenantId and 
-        "memberId" = :oldMemberId and 
-        platform = :platform and 
+      where
+        "tenantId" = :tenantId and
+        "memberId" = :oldMemberId and
+        platform = :platform and
         username = :username;
     `
 
@@ -1100,18 +1100,18 @@ class MemberRepository {
     const seq = SequelizeRepository.getSequelize(options)
 
     const query = `
-      select 
+      select
         msa.id,
-        s.id as "segmentId", 
+        s.id as "segmentId",
         s.slug as "segmentSlug",
         s.name as "segmentName",
-        s."parentName" as "segmentParentName", 
-        o.id as "organizationId", 
+        s."parentName" as "segmentParentName",
+        o.id as "organizationId",
         o."displayName" as "organizationName",
         o.logo as "organizationLogo",
         msa."dateStart" as "dateStart",
         msa."dateEnd" as "dateEnd"
-      from "memberSegmentAffiliations" msa 
+      from "memberSegmentAffiliations" msa
       left join organizations o on o.id = msa."organizationId"
       join segments s on s.id = msa."segmentId"
       where msa."memberId" = :memberId
@@ -4044,10 +4044,10 @@ class MemberRepository {
     const members = await seq.query(
       `SELECT m.id FROM members m
       JOIN "memberSegments" ms ON ms."memberId" = m.id
-      WHERE m."tenantId" = :tenantId and ms."segmentId" in (:segmentIds) 
+      WHERE m."tenantId" = :tenantId and ms."segmentId" in (:segmentIds)
       AND (m."lastEnriched" IS NULL OR date_part('month', age(now(), m."lastEnriched")) >= 6)
       AND m."deletedAt" is NULL
-      ORDER BY ${orderByString} 
+      ORDER BY ${orderByString}
       LIMIT :limit OFFSET :offset`,
       {
         replacements: params,
@@ -4077,7 +4077,7 @@ class MemberRepository {
 
     const deleteQuery = `
       delete from "memberNotes" using "memberNotes" as mn2
-      where "memberNotes"."memberId" = :fromMemberId 
+      where "memberNotes"."memberId" = :fromMemberId
       and "memberNotes"."noteId" = mn2."noteId"
       and mn2."memberId" = :toMemberId;
     `
@@ -4115,7 +4115,7 @@ class MemberRepository {
 
     const deleteQuery = `
       delete from "memberTasks" using "memberTasks" as mt2
-      where "memberTasks"."memberId" = :fromMemberId 
+      where "memberTasks"."memberId" = :fromMemberId
       and "memberTasks"."taskId" = mt2."taskId"
       and mt2."memberId" = :toMemberId;
     `
