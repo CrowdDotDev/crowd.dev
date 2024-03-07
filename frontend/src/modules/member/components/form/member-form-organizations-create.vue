@@ -214,22 +214,28 @@ const submit = () => {
 const fetchOrganizationsFn = async ({ query, limit } : {
   query: number,
   limit: number,
-}) => {
-  const subProjects = getSegmentsFromProjectGroup(selectedProjectGroup.value) ?? [];
-  const segments = subProjects.concat((props.member?.segments ?? []).filter((s) => !subProjects.includes(s.id)).map((s) => s.id));
-
-  return OrganizationService.listAutocomplete({
-    query,
-    limit,
-    segments,
-  })
-    .then((options: SelectOrganization[]) => options.filter((m) => m.id !== props.modelValue.id).map((o) => ({
-      ...o,
-      displayName: o.label,
-      name: o.label,
-    })))
-    .catch(() => []);
-};
+}) => OrganizationService.listAutocomplete({
+  filter: {
+    and: [
+      {
+        displayName: {
+          textContains: query,
+        },
+      },
+    ],
+  },
+  orderBy: 'displayName_ASC',
+  offset: 0,
+  limit,
+  segments: [],
+  excludeSegments: true,
+})
+  .then((options: Organization[]) => options.filter((m) => m.id !== props.modelValue.id).map((o) => ({
+    ...o,
+    displayName: o.displayName,
+    name: o.displayName,
+  })))
+  .catch(() => []);
 
 const createOrganizationFn = (value: string) => OrganizationService.create({
   name: value,

@@ -127,24 +127,12 @@ export class OrganizationService {
     return response.data;
   }
 
-  static async listAutocomplete({
-    query,
-    limit,
-    segments,
-  }) {
-    const params = {
-      query,
-      limit,
-      segments,
-    };
-
+  static async listAutocomplete(body) {
     const tenantId = AuthCurrentTenant.get();
 
-    const response = await authAxios.get(
+    const response = await authAxios.post(
       `/tenant/${tenantId}/organization/autocomplete`,
-      {
-        params,
-      },
+      body,
     );
 
     return response.data;
