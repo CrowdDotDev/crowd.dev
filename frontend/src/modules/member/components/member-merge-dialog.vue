@@ -19,7 +19,7 @@
           </div>
           <div class="w-1/2 px-3">
             <app-member-selection-dropdown
-              v-if="memberToMerge === null"
+              v-if="!memberToMerge"
               :id="props.modelValue?.id"
               v-model="memberToMerge"
               style="margin-right: 5px"

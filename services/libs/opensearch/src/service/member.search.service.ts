@@ -46,8 +46,6 @@ export class MemberSearchService {
     },
   ): // eslint-disable-next-line @typescript-eslint/no-explicit-any
   Promise<PageData<any>> {
-    const segment = segments[0]
-
     const availablePlatforms = await this.memberRepo.db().any(
       `
         select distinct platform from "memberIdentities" where "tenantId" = $(tenantId);
@@ -91,11 +89,11 @@ export class MemberSearchService {
         tenantId,
       }
     })
-    if (segmentsEnabled) {
+    if (segmentsEnabled && segments) {
       // add segment filter
       parsed.query.bool.must.push({
-        term: {
-          uuid_segmentId: segment,
+        terms: {
+          uuid_segmentId: segments,
         },
       })
     }

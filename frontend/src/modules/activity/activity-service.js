@@ -51,10 +51,6 @@ export class ActivityService {
 
   static async query(body, countOnly = false) {
     const tenantId = AuthService.getTenantId();
-    const authStore = useAuthStore();
-    const { tenant } = storeToRefs(authStore);
-
-    const isTenantNew = moment(tenant.value.createdAt).add(1, 'months').isAfter(moment());
 
     // If tenant is less than a month old, use old query
     // Else use new query
@@ -63,7 +59,7 @@ export class ActivityService {
       { ...body, countOnly },
       {
         headers: {
-          ...(isTenantNew ? {} : { 'x-crowd-api-version': '1' }),
+          'x-crowd-api-version': '1',
         },
       },
     );

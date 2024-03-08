@@ -2,6 +2,7 @@
   <div class="member-view-aside panel !px-0">
     <app-organization-aside-identities
       :organization="organization"
+      @unmerge="emit('unmerge', $event)"
     />
   </div>
 
@@ -34,6 +35,8 @@ const props = defineProps({
     default: () => {},
   },
 });
+
+const emit = defineEmits(['unmerge']);
 
 const authStore = useAuthStore();
 const { tenant } = storeToRefs(authStore);

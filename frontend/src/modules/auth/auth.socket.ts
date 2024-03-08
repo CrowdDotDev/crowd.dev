@@ -11,9 +11,12 @@ import { useMemberStore } from '@/modules/member/store/pinia';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import useOrganizationMergeMessage from '@/shared/modules/merge/config/useOrganizationMergeMessage';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';
+import { useStore } from 'vuex';
+import { h } from 'vue';
 
-let socketIoClient;
+let socketIoClient: any;
 
 const SocketEvents = {
   connect: 'connect',
@@ -23,11 +26,13 @@ const SocketEvents = {
   bulkEnrichment: 'bulk-enrichment',
   orgMerge: 'org-merge',
   memberUnmerge: 'member-unmerge',
+  organizationUnmerge: 'organization-unmerge',
 };
 
 export const isSocketConnected = () => socketIoClient && socketIoClient.connected;
 
 export const connectSocket = (token) => {
+  const store = useStore();
   const authStore = useAuthStore();
   const { user, tenant } = storeToRefs(authStore);
   const { getUser } = authStore;
@@ -70,19 +75,19 @@ export const connectSocket = (token) => {
     if (!parsedData.success) {
       return;
     }
+    const lsSegmentsStore = useLfSegmentsStore();
+    const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
     const {
       primaryDisplayName,
       secondaryDisplayName,
       primaryId,
       secondaryId,
-      primaryProjectGroup,
-      secondaryProjectGroup,
     } = parsedData;
 
     const primaryMember = h(
       'a',
       {
-        href: `${window.location.origin}/members/${primaryId}?projectGroup=${primaryProjectGroup}`,
+        href: `${window.location.origin}/members/${primaryId}?projectGroup=${selectedProjectGroup.value?.id}`,
         class: 'underline text-gray-600',
       },
       primaryDisplayName,
@@ -90,7 +95,7 @@ export const connectSocket = (token) => {
     const secondaryMember = h(
       'a',
       {
-        href: `${window.location.origin}/members/${secondaryId}?projectGroup=${secondaryProjectGroup}`,
+        href: `${window.location.origin}/members/${secondaryId}?projectGroup=${selectedProjectGroup.value?.id}`,
         class: 'underline text-gray-600',
       },
       secondaryDisplayName,
@@ -100,13 +105,66 @@ export const connectSocket = (token) => {
       {},
       ' unmerged from ',
     );
+    const after = h(
+      'span',
+      {},
+      '. Syncing contributor activities might take some time to complete.',
+    );
     Message.closeAll();
     Message.success(h(
       'div',
       {},
-      [secondaryMember, between, primaryMember],
+      [secondaryMember, between, primaryMember, after],
     ), {
-      title: 'Contributors merged successfully',
+      title: 'Contributors unmerged successfully',
+    });
+  });
+
+  socketIoClient.on(SocketEvents.organizationUnmerge, (data) => {
+    console.info('Organization unmerge done', data);
+    const parsedData = JSON.parse(data);
+    if (!parsedData.success) {
+      return;
+    }
+    const lsSegmentsStore = useLfSegmentsStore();
+    const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
+    const {
+      primaryDisplayName, secondaryDisplayName, primaryId, secondaryId,
+    } = parsedData;
+
+    const primaryOrganization = h(
+      'a',
+      {
+        href: `${window.location.origin}/organizations/${primaryId}?projectGroup=${selectedProjectGroup.value?.id}`,
+        class: 'underline text-gray-600',
+      },
+      primaryDisplayName,
+    );
+    const secondaryOrganization = h(
+      'a',
+      {
+        href: `${window.location.origin}/organizations/${secondaryId}?projectGroup=${selectedProjectGroup.value?.id}`,
+        class: 'underline text-gray-600',
+      },
+      secondaryDisplayName,
+    );
+    const between = h(
+      'span',
+      {},
+      ' unmerged from ',
+    );
+    const after = h(
+      'span',
+      {},
+      '. Syncing organization activities might take some time to complete.',
+    );
+    Message.closeAll();
+    Message.success(h(
+      'div',
+      {},
+      [secondaryOrganization, between, primaryOrganization, after],
+    ), {
+      title: 'Organizations unmerged successfully',
     });
   });
 

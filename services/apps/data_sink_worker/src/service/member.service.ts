@@ -172,11 +172,16 @@ export default class MemberService extends LoggerBase {
       }
 
       if (fireSync) {
-        await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, id, onboarding)
+        await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, id, onboarding, segmentId)
       }
 
       for (const org of organizations) {
-        await this.searchSyncWorkerEmitter.triggerOrganizationSync(tenantId, org.id, onboarding)
+        await this.searchSyncWorkerEmitter.triggerOrganizationSync(
+          tenantId,
+          org.id,
+          onboarding,
+          segmentId,
+        )
       }
 
       return id
@@ -301,11 +306,16 @@ export default class MemberService extends LoggerBase {
       })
 
       if (updated && fireSync) {
-        await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, id, onboarding)
+        await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, id, onboarding, segmentId)
       }
 
       for (const org of organizations) {
-        await this.searchSyncWorkerEmitter.triggerOrganizationSync(tenantId, org.id, onboarding)
+        await this.searchSyncWorkerEmitter.triggerOrganizationSync(
+          tenantId,
+          org.id,
+          onboarding,
+          segmentId,
+        )
       }
     } catch (err) {
       this.log.error(err, { memberId: id }, 'Error while updating a member!')

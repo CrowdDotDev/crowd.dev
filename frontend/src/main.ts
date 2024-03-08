@@ -5,7 +5,6 @@ import VueGridLayout from 'vue-grid-layout';
 // @ts-ignore
 import Vue3Sanitize from 'vue-3-sanitize';
 import LogRocketClient from 'logrocket';
-import VNetworkGraph from 'v-network-graph';
 import VueLazyLoad from 'vue3-lazyload';
 import { createPinia } from 'pinia';
 import { createRouter } from '@/router';
@@ -66,7 +65,6 @@ i18nInit();
     });
 
   Object.values(plugins).map((plugin) => app.use(plugin));
-  app.use(VNetworkGraph);
 
   app.use(store).use(router).mount('#app');
 

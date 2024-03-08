@@ -21,6 +21,7 @@
         :hide-merge="hideMerge"
         @merge="emit('merge')"
         @close-dropdown="onDropdownClose"
+        @unmerge="emit('unmerge')"
       />
     </template>
   </el-dropdown>
@@ -50,6 +51,7 @@ defineProps({
 
 const emit = defineEmits([
   'merge',
+  'unmerge',
   'closeDropdown',
 ]);
 

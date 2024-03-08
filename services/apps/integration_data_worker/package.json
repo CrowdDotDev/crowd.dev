@@ -11,7 +11,8 @@
     "format-check": "npx prettier --check .",
     "tsc-check": "tsc --noEmit",
     "script:process-data": "SERVICE=script tsx src/bin/process-data.ts",
-    "script:process-data-for-tenant": "SERVICE=script tsx src/bin/process-data-for-tenant.ts"
+    "script:process-data-for-tenant": "SERVICE=script tsx src/bin/process-data-for-tenant.ts",
+    "script:process-data-for-integration": "SERVICE=script tsx src/bin/process-data-for-integration.ts"
   },
   "dependencies": {
     "@crowd/common": "workspace:*",

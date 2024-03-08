@@ -19,7 +19,7 @@
           </div>
           <div class="w-1/2 px-3">
             <app-organization-selection-dropdown
-              v-if="organizationToMerge === null"
+              v-if="!organizationToMerge"
               :id="props.modelValue?.id"
               v-model="organizationToMerge"
               style="margin-right: 5px"

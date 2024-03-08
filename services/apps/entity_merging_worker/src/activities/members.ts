@@ -56,7 +56,7 @@ export async function moveActivitiesWithIdentityToAnotherMember(
   }
 }
 
-export async function recalculateActivityAffiliations(
+export async function recalculateActivityAffiliationsOfMemberAsync(
   memberId: string,
   tenantId: string,
 ): Promise<void> {

@@ -39,7 +39,7 @@
               </el-input>
               <el-tooltip
                 v-if="props.showUnmerge && Object.entries(identitiesForm).length > 1 && staticIdentities.length > 1"
-                :disabled="staticModel?.[key]?.[ii] === model[key][ii]"
+                :disabled="!staticModel?.[key]?.[ii] || staticModel?.[key]?.[ii] === model[key][ii]"
                 content="Not possible to unmerge an unsaved identity"
                 placement="top"
               >

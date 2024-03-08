@@ -68,8 +68,6 @@ export interface IDbOrganizationSyncData {
   activityCount: number
   memberCount: number
   identities: IOrganizationIdentity[]
-  toMergeIds: string[]
-  noMergeIds: string[]
   memberIds?: string[]
 }
 
@@ -81,4 +79,9 @@ export interface IOrganizationSegmentMatrixItem {
 
 export interface IOrganizationSegmentMatrix {
   [key: string]: IOrganizationSegmentMatrixItem[]
+}
+
+export interface IOrganizationSegment {
+  organizationId: string
+  segmentId: string
 }
