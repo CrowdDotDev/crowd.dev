@@ -80,3 +80,8 @@ export interface IOrganizationSegmentMatrixItem {
 export interface IOrganizationSegmentMatrix {
   [key: string]: IOrganizationSegmentMatrixItem[]
 }
+
+export interface IOrganizationSegment {
+  organizationId: string
+  segmentId: string
+}

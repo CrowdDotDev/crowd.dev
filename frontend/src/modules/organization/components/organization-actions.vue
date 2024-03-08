@@ -42,6 +42,7 @@
         :organization="props.organization"
         :hide-merge="true"
         :hide-edit="true"
+        @unmerge="emit('unmerge')"
       >
         <template #trigger>
           <el-button class="btn btn--bordered btn--sm !p-2 !h-8 !border-l-2 !border-l-gray-200">
@@ -82,6 +83,8 @@ const props = defineProps({
     default: () => {},
   },
 });
+
+const emit = defineEmits(['unmerge']);
 
 const route = useRoute();
 const router = useRouter();
