@@ -25,6 +25,8 @@ const SocketEvents = {
   memberUnmerge: 'member-unmerge',
 };
 
+export const isSocketConnected = () => socketIoClient && socketIoClient.connected;
+
 export const connectSocket = (token) => {
   const authStore = useAuthStore();
   const { user, tenant } = storeToRefs(authStore);

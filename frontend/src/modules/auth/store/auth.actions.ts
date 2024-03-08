@@ -3,50 +3,66 @@ import { AuthApiService } from '@/modules/auth/services/auth.api.service';
 import { AuthService } from '@/modules/auth/services/auth.service';
 import { User } from '@/modules/auth/types/User.type';
 import Errors from '@/shared/error/errors';
-import { disconnectSocket, connectSocket } from '@/modules/auth/auth.socket';
+import { disconnectSocket, connectSocket, isSocketConnected } from '@/modules/auth/auth.socket';
 import identify from '@/shared/monitoring/identify';
 import { watch } from 'vue';
 import config from '@/config';
 
 export default {
   init() {
+    if (window.location.pathname === '/auth/callback') {
+      return;
+    }
     Auth0Service.isAuthenticated()
       .then((isAuthenticated: boolean) => {
         if (!isAuthenticated) {
           this.handleLocalAuth()
-            .catch(() => {
-              // If local authentication fails
-              Auth0Service.getTokenSilently()
-                .then(() => Auth0Service.authData())
-                .then((token) => this.authCallback(token))
-                .catch((error) => {
-                  if (['login_required', 'consent_required', 'missing_refresh_token'].includes(error.error)) {
-                    const appState: any = {};
-                    if (window.location.hash) {
-                      // Store the current virtual path or other data into appState to
-                      // retrieve when handling a redirect callback.
-                      appState.returnTo = window.location.hash;
-                    }
-                    return this.signin();
-                  }
-                  return Promise.reject();
-                });
-            });
+            .catch(() => this.silentLogin());
+        } else {
+          this.silentLogin();
         }
       });
   },
+  setLfxHeader() {
+    const lfxHeader = document.getElementById('lfx-header');
+    if (!lfxHeader || lfxHeader.authuser) {
+      return;
+    }
+    Auth0Service.getUser()
+      .then((user) => {
+        console.log(user);
+        lfxHeader.authuser = user;
+        console.log(lfxHeader.authuser)
+      });
+  },
+  silentLogin() {
+    Auth0Service.getTokenSilently()
+      .then(() => Auth0Service.authData())
+      .then((token) => this.authCallback(token))
+      .catch((error) => {
+        if (['login_required', 'consent_required', 'missing_refresh_token'].includes(error.error)) {
+          const appState: any = {};
+          if (window.location.hash) {
+            console.log(window.location.hash);
+            appState.returnTo = window.location.hash;
+          }
+          return this.signin({ appState });
+        }
+        return Promise.reject();
+      });
+  },
   handleLocalAuth() {
-    if (config.env === 'production') {
+    if (config.env !== 'production') {
       return Promise.reject();
     }
-    const storedToken = AuthService.getToken();
-    const params = new URLSearchParams(window.location.search);
-    const myJwt = params.get('my-jwt');
-
-    const localToken = storedToken || myJwt;
-    if (localToken) {
-      return this.getUser(localToken);
-    }
+    // const storedToken = AuthService.getToken();
+    // const params = new URLSearchParams(window.location.search);
+    // const myJwt = params.get('my-jwt');
+    //
+    // const localToken = storedToken || myJwt;
+    // if (localToken) {
+    //   return this.getUser(localToken);
+    // }
 
     return Promise.reject();
   },
@@ -75,7 +91,10 @@ export default {
     if (!t) {
       return Promise.reject();
     }
-    connectSocket(t);
+    if (!isSocketConnected()) {
+      connectSocket(t);
+    }
+    this.setLfxHeader();
     AuthService.setToken(t);
     return AuthApiService.fetchMe()
       .then((user) => {
@@ -89,7 +108,6 @@ export default {
         return Promise.resolve(user);
       })
       .catch((error) => {
-        disconnectSocket();
         AuthService.logout();
         Auth0Service.logout();
         Errors.handle(error);
@@ -104,10 +122,11 @@ export default {
       .then((token) => this.getUser(token))
       .catch(() => this.logout());
   },
-  signin() {
-    return Auth0Service.loginWithRedirect();
+  signin(params?: any) {
+    return Auth0Service.loginWithRedirect(params);
   },
   logout() {
+    disconnectSocket();
     this.user = null;
     this.tenant = null;
     return Auth0Service.logout();

@@ -20,8 +20,8 @@ class Auth0ServiceClass {
     });
   }
 
-  loginWithRedirect() {
-    return this.webAuth.loginWithRedirect();
+  loginWithRedirect(params?: any) {
+    return this.webAuth.loginWithRedirect(params);
   }
 
   handleAuth() {
