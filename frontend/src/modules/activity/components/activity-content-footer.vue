@@ -37,9 +37,8 @@
 
 <script setup>
 import pluralize from 'pluralize';
-import { computed } from 'vue';
 
-const props = defineProps({
+defineProps({
   changes: {
     type: Number,
     default: null,
@@ -60,13 +59,11 @@ const props = defineProps({
     type: String,
     default: null,
   },
-  type: {
-    type: String,
-    default: null,
+  displaySourceId: {
+    type: Boolean,
+    default: false,
   },
 });
-
-const displaySourceId = computed(() => props.type === 'authored-commit');
 </script>
 
 <script>

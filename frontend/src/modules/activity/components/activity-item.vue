@@ -104,7 +104,7 @@
                     changes-copy="line"
                     :insertions="activity.attributes.insertions"
                     :deletions="activity.attributes.deletions"
-                    :type="activity.type"
+                    :display-source-id="activity.type === 'authored-commit'"
                   />
                 </div>
               </template>

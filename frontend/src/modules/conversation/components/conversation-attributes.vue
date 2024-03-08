@@ -64,9 +64,9 @@ const props = defineProps({
     type: String,
     default: 'item',
   },
-  type: {
-    type: String,
-    default: null,
+  displaySourceId: {
+    type: Boolean,
+    default: false,
   },
 });
 
@@ -87,8 +87,6 @@ const classes = computed(() => {
     sourceId: 'text-gray-500 text-xs overflow-hidden ml-3 text-ellipsis',
   };
 });
-
-const displaySourceId = computed(() => props.type === 'authored-commit');
 </script>
 
 <script>

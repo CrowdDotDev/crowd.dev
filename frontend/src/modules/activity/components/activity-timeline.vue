@@ -158,7 +158,7 @@
                       changes-copy="line"
                       :insertions="activity.attributes.insertions"
                       :deletions="activity.attributes.deletions"
-                      :type="activity.type"
+                      :display-source-id="isMemberEntity ? activity.parent?.type === 'authored-commit' : activity.type === 'authored-commit'"
                     />
                   </div>
                 </template>
