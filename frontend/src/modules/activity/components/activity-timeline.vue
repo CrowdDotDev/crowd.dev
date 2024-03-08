@@ -153,12 +153,13 @@
                 <template v-if="platformDetails(activity.platform)?.activityDisplay?.showContentDetails" #details>
                   <div v-if="activity.attributes">
                     <app-activity-content-footer
-                      :source-id="isMemberEntity ? activity.parent?.sourceId : activity.sourceId"
+                      :source-id="isMemberEntity && activity.parent ? activity.parent?.sourceId : activity.sourceId"
                       :changes="activity.attributes.lines"
                       changes-copy="line"
                       :insertions="activity.attributes.insertions"
                       :deletions="activity.attributes.deletions"
-                      :display-source-id="isMemberEntity ? activity.parent?.type === 'authored-commit' : activity.type === 'authored-commit'"
+                      :display-source-id="isMemberEntity && activity.parent
+                        ? activity.parent?.type === 'authored-commit' : activity.type === 'authored-commit'"
                     />
                   </div>
                 </template>
