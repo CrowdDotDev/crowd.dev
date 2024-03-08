@@ -63,7 +63,7 @@ const processRootStream: ProcessStreamHandler = async (ctx) => {
 
       while (contacts.length > 0) {
         const contact = contacts.shift()
-        await ctx.publishData<IHubspotData>({
+        await ctx.processData<IHubspotData>({
           type: HubspotStream.MEMBERS,
           element: contact as IHubspotContact,
         })
@@ -95,7 +95,7 @@ const processRootStream: ProcessStreamHandler = async (ctx) => {
 
       while (companies.length > 0) {
         const company = companies.shift()
-        await ctx.publishData<IHubspotData>({
+        await ctx.processData<IHubspotData>({
           type: HubspotStream.ORGANIZATIONS,
           element: company as IHubspotObject,
         })

@@ -8,7 +8,6 @@ import { getRedisClient } from '@crowd/redis'
 import { getSqsClient } from '@crowd/sqs'
 import { WebhookType } from '@crowd/types'
 import {
-  IntegrationDataWorkerEmitter,
   IntegrationRunWorkerEmitter,
   IntegrationStreamWorkerEmitter,
   PriorityLevelContextRepository,
@@ -51,14 +50,6 @@ setImmediate(async () => {
     loader,
     log,
   )
-  const dataWorkerEmitter = new IntegrationDataWorkerEmitter(
-    sqsClient,
-    redisClient,
-    tracer,
-    unleash,
-    loader,
-    log,
-  )
   const streamWorkerEmitter = new IntegrationStreamWorkerEmitter(
     sqsClient,
     redisClient,
@@ -69,13 +60,11 @@ setImmediate(async () => {
   )
 
   await runWorkerEmiiter.init()
-  await dataWorkerEmitter.init()
   await streamWorkerEmitter.init()
 
   const service = new IntegrationStreamService(
     redisClient,
     runWorkerEmiiter,
-    dataWorkerEmitter,
     streamWorkerEmitter,
     store,
     log,

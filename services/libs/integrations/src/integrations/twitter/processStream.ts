@@ -40,7 +40,7 @@ const processMentionsStream: ProcessStreamHandler = async (ctx) => {
 
   if (records && records.length && records.length > 0) {
     for (const rec of records) {
-      await ctx.publishData<TwitterPublishData>({
+      await ctx.processData<TwitterPublishData>({
         type: TwitterStreamType.MENTIONS,
         data: rec,
       })
@@ -78,7 +78,7 @@ const processHashtagStream: ProcessStreamHandler = async (ctx) => {
 
   if (records && records.length && records.length > 0) {
     for (const rec of records) {
-      await ctx.publishData<TwitterPublishData>({
+      await ctx.processData<TwitterPublishData>({
         type: TwitterStreamType.HASHTAG,
         data: rec,
         hashtag: data.hashtag,
@@ -143,7 +143,7 @@ const processReachStream: ProcessStreamHandler = async (ctx) => {
 
     if (records && records.length && records.length > 0) {
       for (const rec of records) {
-        await ctx.publishData<TwitterPublishData>({
+        await ctx.processData<TwitterPublishData>({
           type: TwitterStreamType.REACH,
           member: rec,
         })
