@@ -360,7 +360,7 @@ const processStargazersStream: ProcessStreamHandler = async (ctx) => {
     const member = await prepareMember(record.node, ctx)
 
     // publish data
-    await ctx.publishData<GithubApiData>({
+    await ctx.processData<GithubApiData>({
       type: GithubActivityType.STAR,
       data: record,
       member,
@@ -389,7 +389,7 @@ const processForksStream: ProcessStreamHandler = async (ctx) => {
       const member = await prepareMember(record.owner, ctx)
 
       // publish data
-      await ctx.publishData<GithubApiData>({
+      await ctx.processData<GithubApiData>({
         type: GithubActivityType.FORK,
         data: record,
         member,
@@ -399,7 +399,7 @@ const processForksStream: ProcessStreamHandler = async (ctx) => {
       const orgMember = prepareMemberFromOrg(record.owner)
 
       // publish data
-      await ctx.publishData<GithubApiData>({
+      await ctx.processData<GithubApiData>({
         type: GithubActivityType.FORK,
         data: record,
         orgMember,
@@ -415,7 +415,7 @@ const processForksStream: ProcessStreamHandler = async (ctx) => {
         const member = await prepareMember(indirectFork.owner, ctx)
 
         // publish data
-        await ctx.publishData<GithubApiData>({
+        await ctx.processData<GithubApiData>({
           type: GithubActivityType.FORK,
           subType: INDIRECT_FORK,
           data: indirectFork,
@@ -427,7 +427,7 @@ const processForksStream: ProcessStreamHandler = async (ctx) => {
         const orgMember = prepareMemberFromOrg(indirectFork.owner)
 
         // publish data
-        await ctx.publishData<GithubApiData>({
+        await ctx.processData<GithubApiData>({
           type: GithubActivityType.FORK,
           subType: INDIRECT_FORK,
           data: indirectFork,
@@ -469,7 +469,7 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
     }
 
     // publish data
-    await ctx.publishData<GithubApiData>({
+    await ctx.processData<GithubApiData>({
       type: GithubActivityType.PULL_REQUEST_OPENED,
       data: pull,
       member,
@@ -505,7 +505,7 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
             continue
           }
 
-          await ctx.publishData<GithubApiData>({
+          await ctx.processData<GithubApiData>({
             type: GithubActivityType.PULL_REQUEST_ASSIGNED,
             data: pullEvent,
             relatedData: pull,
@@ -543,7 +543,7 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
               )
               continue
             }
-            await ctx.publishData<GithubApiData>({
+            await ctx.processData<GithubApiData>({
               type: GithubActivityType.PULL_REQUEST_REVIEW_REQUESTED,
               data: pullEvent,
               subType: GithubActivitySubType.PULL_REQUEST_REVIEW_REQUESTED_SINGLE,
@@ -568,7 +568,7 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
 
             for (const teamMember of pullEvent.requestedReviewer.members.nodes) {
               const objectMember = await prepareMember(teamMember, ctx)
-              await ctx.publishData<GithubApiData>({
+              await ctx.processData<GithubApiData>({
                 type: GithubActivityType.PULL_REQUEST_REVIEW_REQUESTED,
                 data: pullEvent,
                 subType: GithubActivitySubType.PULL_REQUEST_REVIEW_REQUESTED_MULTIPLE,
@@ -596,7 +596,7 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
               continue
             }
 
-            await ctx.publishData<GithubApiData>({
+            await ctx.processData<GithubApiData>({
               type: GithubActivityType.PULL_REQUEST_REVIEWED,
               data: pullEvent,
               relatedData: pull,
@@ -619,7 +619,7 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
             continue
           }
 
-          await ctx.publishData<GithubApiData>({
+          await ctx.processData<GithubApiData>({
             type: GithubActivityType.PULL_REQUEST_MERGED,
             data: pullEvent,
             relatedData: pull,
@@ -642,7 +642,7 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
             continue
           }
 
-          await ctx.publishData<GithubApiData>({
+          await ctx.processData<GithubApiData>({
             type: GithubActivityType.PULL_REQUEST_MERGED,
             data: pullEvent,
             relatedData: pull,
@@ -740,7 +740,7 @@ const processPullCommentsStream: ProcessStreamHandler = async (ctx) => {
     }
 
     // publish data
-    await ctx.publishData<GithubApiData>({
+    await ctx.processData<GithubApiData>({
       type: GithubActivityType.PULL_REQUEST_COMMENT,
       data: record,
       member,
@@ -820,7 +820,7 @@ const processPullReviewThreadCommentsStream: ProcessStreamHandler = async (ctx) 
     }
 
     // publish data
-    await ctx.publishData<GithubApiData>({
+    await ctx.processData<GithubApiData>({
       type: GithubActivityType.PULL_REQUEST_REVIEW_THREAD_COMMENT,
       data: record,
       member,
@@ -889,7 +889,7 @@ export const processPullCommitsStream: ProcessStreamHandler = async (ctx) => {
         const member = await prepareMember(author.user, ctx)
 
         // publish data
-        await ctx.publishData<GithubApiData>({
+        await ctx.processData<GithubApiData>({
           type: GithubActivityType.AUTHORED_COMMIT,
           data: record,
           sourceParentId: response.repository.pullRequest.id,
@@ -927,7 +927,7 @@ const processIssuesStream: ProcessStreamHandler = async (ctx) => {
       continue
     }
 
-    await ctx.publishData<GithubApiData>({
+    await ctx.processData<GithubApiData>({
       type: GithubActivityType.ISSUE_OPENED,
       data: issue,
       member,
@@ -947,7 +947,7 @@ const processIssuesStream: ProcessStreamHandler = async (ctx) => {
             ctx.log.warn('Issue event author is not found. This issue event will not be parsed.')
             continue
           }
-          await ctx.publishData<GithubApiData>({
+          await ctx.processData<GithubApiData>({
             type: GithubActivityType.ISSUE_CLOSED,
             data: issueEvent,
             relatedData: issue,
@@ -1010,7 +1010,7 @@ const processIssueCommentsStream: ProcessStreamHandler = async (ctx) => {
     }
 
     // publish data
-    await ctx.publishData<GithubApiData>({
+    await ctx.processData<GithubApiData>({
       type: GithubActivityType.ISSUE_COMMENT,
       data: record,
       member,
@@ -1046,7 +1046,7 @@ const processDiscussionsStream: ProcessStreamHandler = async (ctx) => {
     }
 
     // publish data
-    await ctx.publishData<GithubApiData>({
+    await ctx.processData<GithubApiData>({
       type: GithubActivityType.DISCUSSION_STARTED,
       data: discussion,
       member,
@@ -1100,7 +1100,7 @@ const processDiscussionCommentsStream: ProcessStreamHandler = async (ctx) => {
     const commentId = record.id
 
     // publish data
-    await ctx.publishData<GithubApiData>({
+    await ctx.processData<GithubApiData>({
       type: GithubActivityType.DISCUSSION_COMMENT,
       subType: GithubActivitySubType.DISCUSSION_COMMENT_START,
       data: record,
@@ -1123,7 +1123,7 @@ const processDiscussionCommentsStream: ProcessStreamHandler = async (ctx) => {
       }
 
       // publish data
-      await ctx.publishData<GithubApiData>({
+      await ctx.processData<GithubApiData>({
         type: GithubActivityType.DISCUSSION_COMMENT,
         subType: GithubActivitySubType.DISCUSSION_COMMENT_REPLY,
         data: reply,

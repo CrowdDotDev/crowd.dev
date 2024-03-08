@@ -226,7 +226,7 @@ const processMembersStream: ProcessStreamHandler = async (ctx) => {
   const sleep = members.limit <= 1 ? members.timeUntilReset : undefined
 
   if (members.records.length > 0) {
-    await ctx.publishData<IDiscordAPIData>({
+    await ctx.processData<IDiscordAPIData>({
       type: DiscordAPIDataType.MEMBER,
       data: members.records,
     })
@@ -330,7 +330,7 @@ const processChannelStream: ProcessStreamHandler = async (ctx) => {
       parent = record.message_reference.message_id
     }
 
-    await ctx.publishData<IDiscordAPIData>({
+    await ctx.processData<IDiscordAPIData>({
       type: DiscordAPIDataType.CHANNEL,
       data: {
         ...record,

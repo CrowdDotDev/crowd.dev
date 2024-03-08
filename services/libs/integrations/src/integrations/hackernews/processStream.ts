@@ -53,7 +53,7 @@ const processMainStream: ProcessStreamHandler = async (ctx) => {
   }
 
   if (post.text || post.url) {
-    await ctx.publishData<HackerNewsPublishData>({
+    await ctx.processData<HackerNewsPublishData>({
       post,
       channel: metadata.channel,
       parentId: metadata.parentId,
