@@ -1,15 +1,20 @@
 import { Error400, websiteNormalizer } from '@crowd/common'
 import { LoggerBase } from '@crowd/logging'
+import { randomUUID } from 'crypto'
 import {
   IOrganization,
   IOrganizationIdentity,
   ISearchSyncOptions,
+  IUnmergePreviewResult,
   MergeActionState,
   MergeActionType,
   OrganizationMergeSuggestionType,
   SyncMode,
+  IOrganizationUnmergePreviewResult,
+  IOrganizationUnmergeBackup,
+  MemberRoleUnmergeStrategy,
 } from '@crowd/types'
-import { isEqual } from 'lodash'
+import lodash from 'lodash'
 import getObjectWithoutKey from '@/utils/getObjectWithoutKey'
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import MemberRepository from '../database/repositories/memberRepository'
@@ -28,6 +33,7 @@ import {
 import MemberOrganizationService from './memberOrganizationService'
 import SearchSyncService from './searchSyncService'
 import { IActiveOrganizationFilter } from '@/database/repositories/types/organizationTypes'
+import MemberOrganizationRepository from '@/database/repositories/memberOrganizationRepository'
 
 export default class OrganizationService extends LoggerBase {
   options: IServiceOptions
@@ -35,6 +41,352 @@ export default class OrganizationService extends LoggerBase {
   constructor(options: IServiceOptions) {
     super(options.log)
     this.options = options
+  }
+
+  static ORGANIZATION_MERGE_FIELDS = [
+    'description',
+    'emails',
+    'phoneNumbers',
+    'logo',
+    'tags',
+    'type',
+    'joinedAt',
+    'twitter',
+    'linkedin',
+    'crunchbase',
+    'employees',
+    'revenueRange',
+    'location',
+    'github',
+    'website',
+    'isTeamOrganization',
+    'employeeCountByCountry',
+    'geoLocation',
+    'size',
+    'ticker',
+    'headline',
+    'profiles',
+    'naics',
+    'address',
+    'industry',
+    'founded',
+    'displayName',
+    'attributes',
+    'affiliatedProfiles',
+    'allSubsidiaries',
+    'alternativeDomains',
+    'alternativeNames',
+    'averageEmployeeTenure',
+    'averageTenureByLevel',
+    'averageTenureByRole',
+    'directSubsidiaries',
+    'employeeChurnRate',
+    'employeeCountByMonth',
+    'employeeGrowthRate',
+    'employeeCountByMonthByLevel',
+    'employeeCountByMonthByRole',
+    'gicsSector',
+    'grossAdditionsByMonth',
+    'grossDeparturesByMonth',
+    'ultimateParent',
+    'immediateParent',
+    'manuallyCreated',
+    'manuallyChangedFields',
+    'activityCount',
+    'memberCount',
+  ]
+
+  async unmergePreview(
+    organizationId: string,
+    identity: IOrganizationIdentity,
+  ): Promise<IUnmergePreviewResult<IOrganizationUnmergePreviewResult>> {
+    try {
+      const organization = await OrganizationRepository.findById(organizationId, this.options)
+
+      const identities = await OrganizationRepository.getIdentities([organizationId], this.options)
+
+      if (!identities.some((i) => i.platform === identity.platform && i.name === identity.name)) {
+        throw new Error(`Organization doesn't have the identity sent to be unmerged!`)
+      }
+
+      organization.identities = identities
+
+      const mergeAction = await MergeActionsRepository.findMergeBackup(
+        organizationId,
+        MergeActionType.ORG,
+        identity,
+        this.options,
+      )
+
+      if (mergeAction) {
+        const primaryBackup = mergeAction.unmergeBackup.primary as IOrganizationUnmergeBackup
+        const secondaryBackup = mergeAction.unmergeBackup.secondary as IOrganizationUnmergeBackup
+
+        for (const key of OrganizationService.ORGANIZATION_MERGE_FIELDS) {
+          if (!organization.manuallyChangedFields.includes(key)) {
+            // handle string arrays
+            if (
+              key in
+              [
+                'emails',
+                'phoneNumbers',
+                'tags',
+                'profiles',
+                'affiliatedProfiles',
+                'allSubsidiaries',
+                'alternativeDomains',
+                'alternativeNames',
+                'directSubsidiaries',
+              ]
+            ) {
+              organization[key] = organization[key].filter(
+                (k) => !secondaryBackup[key].some((f) => f === k),
+              )
+            } else if (
+              primaryBackup[key] !== organization[key] &&
+              secondaryBackup[key] === organization[key]
+            ) {
+              organization[key] = null
+            }
+          }
+        }
+
+        // identities
+        organization.identities = organization.identities.filter(
+          (i) =>
+            !secondaryBackup.identities.some((s) => s.platform === i.platform && s.name === i.name),
+        )
+
+        return {
+          mergeActionId: mergeAction.id,
+          primary: {
+            ...lodash.pick(organization, OrganizationService.ORGANIZATION_MERGE_FIELDS),
+            identities: organization.identities,
+            activityCount: primaryBackup.activityCount,
+            memberCount: primaryBackup.memberCount,
+          },
+          secondary: secondaryBackup,
+        }
+      }
+
+      // merge action not found, preview an identity extraction instead
+      const secondaryIdentities = [identity]
+      const primaryIdentities = organization.identities.filter(
+        (i) => !secondaryIdentities.some((s) => s.platform === i.platform && s.name === i.name),
+      )
+
+      if (primaryIdentities.length === 0) {
+        throw new Error(`Original organization only has one identity, cannot extract it!`)
+      }
+
+      let secondaryMemberCount: number
+      let secondaryActivityCount: number
+
+      // we can deduce the activity count and member count if primary member doesn't have an identity with same platform as extracted identity
+      if (primaryIdentities.some((i) => i.platform === identity.platform)) {
+        secondaryActivityCount = 0
+        secondaryMemberCount = 0
+      } else {
+        // find activity count & member count by using activity platform
+        secondaryActivityCount = await OrganizationRepository.getActivityCountInPlatform(
+          organizationId,
+          identity.platform,
+          this.options,
+        )
+        secondaryMemberCount = await OrganizationRepository.getMemberCountInPlatform(
+          organizationId,
+          identity.platform,
+          this.options,
+        )
+      }
+
+      return {
+        primary: {
+          ...lodash.pick(organization, OrganizationService.ORGANIZATION_MERGE_FIELDS),
+          identities: primaryIdentities,
+          memberCount: organization.memberCount - secondaryMemberCount,
+          activityCount: organization.activityCount - secondaryActivityCount,
+        },
+        secondary: {
+          id: randomUUID(),
+          identities: secondaryIdentities,
+          displayName: identity.name,
+          description: null,
+          activityCount: secondaryActivityCount,
+          memberCount: secondaryMemberCount,
+          emails: [],
+          phoneNumbers: [],
+          logo: null,
+          tags: [],
+          twitter: null,
+          linkedin: null,
+          crunchbase: null,
+          employees: null,
+          location: null,
+          website: null,
+          isTeamOrganization: false,
+          employeeCountByCountry: null,
+          geoLocation: null,
+          size: null,
+          ticker: null,
+          headline: null,
+          profiles: [],
+          naics: null,
+          address: null,
+          industry: null,
+          founded: null,
+          attributes: {},
+          searchSyncedAt: null,
+          affiliatedProfiles: [],
+          allSubsidiaries: [],
+          alternativeDomains: [],
+          alternativeNames: [],
+          averageEmployeeTenure: null,
+          averageTenureByLevel: null,
+          averageTenureByRole: null,
+          directSubsidiaries: [],
+          employeeChurnRate: null,
+          employeeCountByMonth: {},
+          employeeGrowthRate: null,
+          employeeCountByMonthByLevel: {},
+          employeeCountByMonthByRole: {},
+          gicsSector: null,
+          grossAdditionsByMonth: {},
+        },
+      }
+    } catch (err) {
+      this.options.log.error(err, 'Error while generating unmerge/identity extraction preview!')
+      throw err
+    }
+  }
+
+  async unmerge(
+    organizationId: string,
+    payload: IUnmergePreviewResult<IOrganizationUnmergePreviewResult>,
+  ): Promise<void> {
+    let tx
+
+    try {
+      const organization = await OrganizationRepository.findById(organizationId, this.options)
+
+      const repoOptions: IRepositoryOptions =
+        await SequelizeRepository.createTransactionalRepositoryOptions(this.options)
+      tx = repoOptions.transaction
+
+      // remove identities in secondary organization from primary
+      await OrganizationRepository.removeIdentitiesFromOrganization(
+        organizationId,
+        payload.secondary.identities,
+        repoOptions,
+      )
+
+      // check website before creating the secondary org
+      if (
+        payload.secondary.website &&
+        payload.secondary.website === organization.website &&
+        !payload.primary.website
+      ) {
+        // set primary website to null before creating the secondary org
+        await OrganizationRepository.update(
+          organizationId,
+          { website: null },
+          repoOptions,
+          false,
+          false,
+        )
+      }
+
+      // create the secondary org
+      const secondaryOrganization = await OrganizationRepository.create(
+        payload.secondary,
+        repoOptions,
+      )
+
+      if (payload.mergeActionId) {
+        const mergeAction = await MergeActionsRepository.findById(
+          payload.mergeActionId,
+          this.options,
+        )
+
+        if (mergeAction.unmergeBackup.secondary.memberOrganizations.length > 0) {
+          for (const role of mergeAction.unmergeBackup.secondary.memberOrganizations) {
+            await MemberOrganizationRepository.addMemberRole(
+              { ...role, organizationId: secondaryOrganization.id },
+              repoOptions,
+            )
+          }
+
+          const memberOrganizations = await MemberOrganizationRepository.findRolesInOrganization(
+            organization.id,
+            repoOptions,
+          )
+
+          const primaryUnmergedRoles = await MemberOrganizationService.unmergeRoles(
+            memberOrganizations,
+            mergeAction.unmergeBackup.primary.memberOrganizations,
+            mergeAction.unmergeBackup.secondary.memberOrganizations,
+            MemberRoleUnmergeStrategy.SAME_ORGANIZATION,
+          )
+
+          // check if anything to delete in primary
+          const rolesToDelete = memberOrganizations.filter(
+            (r) =>
+              r.source !== 'ui' &&
+              !primaryUnmergedRoles.some(
+                (pr) =>
+                  pr.memberId === r.memberId &&
+                  pr.title === r.title &&
+                  pr.dateStart === r.dateStart &&
+                  pr.dateEnd === r.dateEnd,
+              ),
+          )
+
+          for (const role of rolesToDelete) {
+            await MemberOrganizationRepository.removeMemberRole(role, repoOptions)
+          }
+        }
+      }
+
+      // delete identity related stuff, we already moved these
+      delete payload.primary.identities
+
+      // update rest of the primary org fields
+      await OrganizationRepository.update(
+        organizationId,
+        payload.primary,
+        repoOptions,
+        false,
+        false,
+      )
+
+      // trigger entity-merging-worker to move activities in the background
+      await SequelizeRepository.commitTransaction(tx)
+
+      // responsible for moving organization's activities, syncing to opensearch afterwards, recalculating activity.organizationIds and notifying frontend via websockets
+      await this.options.temporal.workflow.start('finishOrganizationUnmerging', {
+        taskQueue: 'entity-merging',
+        workflowId: `finishOrganizationUnmerging/${organization.id}/${secondaryOrganization.id}`,
+        retry: {
+          maximumAttempts: 10,
+        },
+        args: [
+          organization.id,
+          secondaryOrganization.id,
+          organization.displayName,
+          secondaryOrganization.displayName,
+          this.options.currentTenant.id,
+          this.options.currentUser.id,
+        ],
+        searchAttributes: {
+          TenantId: [this.options.currentTenant.id],
+        },
+      })
+    } catch (err) {
+      if (tx) {
+        await SequelizeRepository.rollbackTransaction(tx)
+      }
+      throw err
+    }
   }
 
   async mergeSync(originalId, toMergeId) {
@@ -56,6 +408,28 @@ export default class OrganizationService extends LoggerBase {
       let original = await OrganizationRepository.findById(originalId, this.options)
       let toMerge = await OrganizationRepository.findById(toMergeId, this.options)
 
+      const backup = {
+        primary: {
+          ...lodash.pick(
+            await OrganizationRepository.findByIdOpensearch(originalId, this.options),
+            OrganizationService.ORGANIZATION_MERGE_FIELDS,
+          ),
+          identities: await OrganizationRepository.getIdentities([originalId], this.options),
+          memberOrganizations: await MemberOrganizationRepository.findRolesInOrganization(
+            originalId,
+            this.options,
+          ),
+        },
+        secondary: {
+          ...lodash.pick(toMerge, OrganizationService.ORGANIZATION_MERGE_FIELDS),
+          identities: await OrganizationRepository.getIdentities([toMergeId], this.options),
+          memberOrganizations: await MemberOrganizationRepository.findRolesInOrganization(
+            toMergeId,
+            this.options,
+          ),
+        },
+      }
+
       if (original.id === toMerge.id) {
         return {
           status: 203,
@@ -70,6 +444,8 @@ export default class OrganizationService extends LoggerBase {
         // not using transaction here on purpose,
         // so this change is visible until we finish
         this.options,
+        MergeActionState.IN_PROGRESS,
+        backup,
       )
 
       const repoOptions: IRepositoryOptions =
@@ -247,7 +623,7 @@ export default class OrganizationService extends LoggerBase {
       website: keepPrimaryIfExists,
       isTeamOrganization: keepPrimaryIfExists,
       lastEnrichedAt: keepPrimary,
-      employeeCounByCountry: keepPrimaryIfExists,
+      employeeCountByCountry: keepPrimaryIfExists,
       type: keepPrimaryIfExists,
       geoLocation: keepPrimaryIfExists,
       size: keepPrimaryIfExists,
@@ -454,7 +830,7 @@ export default class OrganizationService extends LoggerBase {
           'founded',
         ]
         fields.forEach((field) => {
-          if (data[field] && !isEqual(data[field], cache[field])) {
+          if (data[field] && !lodash.isEqual(data[field], cache[field])) {
             updateData[field] = data[field]
           }
         })

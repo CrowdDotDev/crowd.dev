@@ -16131,6 +16131,7 @@ packages:
       '@crowd/types': link:services/libs/types
       lodash.get: 4.4.2
       psl: 1.9.0
+      tldts: 6.1.11
       uuid: 9.0.1
     dev: false
 

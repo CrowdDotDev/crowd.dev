@@ -576,6 +576,19 @@ class OrganizationRepository {
     'weakIdentities',
   ]
 
+  static isEqual = {
+    displayName: (a, b) => a === b,
+    description: (a, b) => a === b,
+    emails: (a, b) => lodash.isEqual((a || []).sort(), (b || []).sort()),
+    phoneNumbers: (a, b) => lodash.isEqual((a || []).sort(), (b || []).sort()),
+    logo: (a, b) => a === b,
+    website: (a, b) => a === b,
+    location: (a, b) => a === b,
+    isTeamOrganization: (a, b) => a === b,
+    attributes: (a, b) => lodash.isEqual(a, b),
+    weakIdentities: (a, b) => lodash.isEqual(a, b),
+  }
+
   static async update(
     id,
     data,
@@ -589,7 +602,7 @@ class OrganizationRepository {
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
-    let record = await options.database.organization.findOne({
+    const record = await options.database.organization.findOne({
       where: {
         id,
         tenantId: currentTenant.id,
@@ -644,7 +657,10 @@ class OrganizationRepository {
           ) {
             // column was null before now it's not anymore
             changed = true
-          } else if (record[column] !== data[column]) {
+          } else if (
+            this.isEqual[column] &&
+            this.isEqual[column](record[column], data[column]) === false
+          ) {
             // column value has changed
             changed = true
           }
@@ -667,13 +683,16 @@ class OrganizationRepository {
       data.manuallyChangedFields = manuallyChangedFields
     }
 
-    record = await record.update(
+    await options.database.organization.update(
       {
         ...lodash.pick(data, this.ORGANIZATION_UPDATE_COLUMNS),
         updatedById: currentUser.id,
         manuallyChangedFields: data.manuallyChangedFields,
       },
       {
+        where: {
+          id: record.id,
+        },
         transaction,
       },
     )
@@ -3018,6 +3037,81 @@ class OrganizationRepository {
     }
 
     return organizations
+  }
+
+  static async getActivityCountInPlatform(
+    organizationId: string,
+    platform: string,
+    options: IRepositoryOptions,
+  ): Promise<number> {
+    const seq = SequelizeRepository.getSequelize(options)
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const query = `
+    SELECT count(*) as count
+        FROM "mv_activities_cube"
+        WHERE "organizationId" = :organizationId AND platform = :platform`
+
+    const result = await seq.query(query, {
+      replacements: {
+        organizationId,
+        platform,
+      },
+      type: QueryTypes.SELECT,
+      transaction,
+    })
+
+    return (result[0] as any).count as number
+  }
+
+  static async getMemberCountInPlatform(
+    organizationId: string,
+    platform: string,
+    options: IRepositoryOptions,
+  ): Promise<number> {
+    const seq = SequelizeRepository.getSequelize(options)
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const query = `
+    select count(distinct  "memberId") from mv_activities_cube
+    where "organizationId" = :organizationId AND platform = :platform`
+
+    const result = await seq.query(query, {
+      replacements: {
+        organizationId,
+        platform,
+      },
+      type: QueryTypes.SELECT,
+      transaction,
+    })
+
+    return (result[0] as any).count as number
+  }
+
+  static async removeIdentitiesFromOrganization(
+    organizationId: string,
+    identities: IOrganizationIdentity[],
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const query = `
+      delete from "organizationIdentities" where "organizationId" = :organizationId and platform = :platform and name = :name;
+    `
+
+    for (const identity of identities) {
+      await seq.query(query, {
+        replacements: {
+          organizationId,
+          name: identity.name,
+          platform: identity.platform,
+        },
+        type: QueryTypes.DELETE,
+        transaction,
+      })
+    }
   }
 }
 

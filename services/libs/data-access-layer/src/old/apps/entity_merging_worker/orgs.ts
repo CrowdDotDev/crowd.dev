@@ -1,4 +1,5 @@
 import { DbStore } from '@crowd/database'
+import { IOrganizationIdentity } from '@crowd/types'
 
 export async function deleteOrganizationCacheLinks(db: DbStore, organizationId: string) {
   await db.connection().query(
@@ -69,5 +70,58 @@ export async function markOrgMergeActionsDone(
           AND state != $4
     `,
     [primaryId, secondaryId, tenantId, 'done', 'org'],
+  )
+}
+
+export async function findOrganizationIdentities(
+  db: DbStore,
+  organizationId: string,
+): Promise<IOrganizationIdentity[]> {
+  const result = await db.connection().any(
+    `
+      SELECT * from "organizationIdentities"
+      WHERE "organizationId" = $1
+    `,
+    [organizationId],
+  )
+  return result as IOrganizationIdentity[]
+}
+
+export async function findOrganizationCacheIdFromIdentities(
+  db: DbStore,
+  identities: IOrganizationIdentity[],
+): Promise<string> {
+  if (identities.length === 0) {
+    throw new Error('No identities were sent to findOrganizationCacheIdsFromIdentities!')
+  }
+
+  let query = `SELECT id from "organizationCacheIdentities" WHERE (`
+  const replacements = {}
+
+  for (let i = 0; i < identities.length; i++) {
+    query += ` "name" = $(name${i}) `
+    replacements[`name${i}`] = identities[i].name
+    if (i < identities.length - 1) {
+      query += ' OR '
+    } else {
+      query += ') limit 1'
+    }
+  }
+
+  const result: { id: string }[] = await db.connection().any(query, replacements)
+  return result[0]?.id ?? null
+}
+
+export async function linkOrganizationToCacheId(
+  db: DbStore,
+  organizationId: string,
+  cacheId: string,
+) {
+  await db.connection().query(
+    `
+      INSERT INTO "organizationCacheLinks" ("organizationId", "organizationCacheId")
+      VALUES ($1, $2)
+    `,
+    [organizationId, cacheId],
   )
 }

@@ -19,6 +19,8 @@ export * from './organizations'
 
 export * from './caching'
 
+export * from './merging'
+
 export * from './errors'
 
 export * from './pubsub'

@@ -43,6 +43,31 @@ export class OrganizationService {
     return response.data;
   }
 
+  static async unmerge(orgId, preview) {
+    const tenantId = AuthCurrentTenant.get();
+
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/organization/${orgId}/unmerge`,
+      preview,
+    );
+
+    return response.data;
+  }
+
+  static async unmergePreview(orgId, platform, name) {
+    const tenantId = AuthCurrentTenant.get();
+
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/organization/${orgId}/unmerge/preview`,
+      {
+        platform,
+        name,
+      },
+    );
+
+    return response.data;
+  }
+
   static async addToNoMerge(organizationA, organizationB) {
     const tenantId = AuthCurrentTenant.get();
 

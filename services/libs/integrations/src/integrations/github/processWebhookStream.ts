@@ -34,6 +34,13 @@ const handleWebhookSender = async (
   sender: any,
   ctx: IProcessWebhookStreamContext,
 ): Promise<GithubPrepareMemberOutput> => {
+  if (!sender) {
+    return undefined
+  }
+  if (!sender.type) {
+    ctx.log.error('Sender type is not defined in handleWebhookSender')
+    throw new Error('Sender type is not defined in handleWebhookSender')
+  }
   if (sender.type === 'Bot') {
     return prepareBotMember(sender)
   } else if (sender.type === 'User') {
@@ -194,9 +201,21 @@ const parseWebhookPullRequestEvents = async (
       }
       break
     }
-    case 'assigned':
-    case 'review_requested': {
+    case 'assigned': {
       objectMember = await handleWebhookSender(payload?.requested_reviewer, ctx)
+
+      if (member && objectMember) {
+        await ctx.publishData<GithubWebhookData>({
+          webhookType: GithubWehookEvent.PULL_REQUEST,
+          data: payload,
+          member,
+          objectMember,
+        })
+      }
+      break
+    }
+    case 'review_requested': {
+      objectMember = await handleWebhookSender(payload?.requested_reviewers?.[0], ctx)
 
       if (member && objectMember) {
         await ctx.publishData<GithubWebhookData>({
