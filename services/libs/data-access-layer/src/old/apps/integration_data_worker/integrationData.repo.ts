@@ -202,7 +202,7 @@ export default class IntegrationDataRepository extends RepositoryBase<Integratio
     this.checkUpdateRowCount(result.rowCount, 1)
   }
 
-  public async publishResult(result: IIntegrationResult): Promise<string> {
+  public async publishResult(dataId: string, result: IIntegrationResult): Promise<string> {
     const results = await this.db().oneOrNone(
       `
     insert into integration.results(state, data, "streamId", "runId", "webhookId", "tenantId", "integrationId", "microserviceId")
@@ -220,6 +220,7 @@ export default class IntegrationDataRepository extends RepositoryBase<Integratio
       {
         state: IntegrationResultState.PENDING,
         data: JSON.stringify(result),
+        dataId,
       },
     )
 
