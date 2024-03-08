@@ -8,6 +8,7 @@ import { getRedisClient } from '@crowd/redis'
 import { getSqsClient } from '@crowd/sqs'
 import { IntegrationStreamState } from '@crowd/types'
 import {
+  DataSinkWorkerEmitter,
   IntegrationRunWorkerEmitter,
   IntegrationStreamWorkerEmitter,
   PriorityLevelContextRepository,
@@ -53,9 +54,18 @@ setImmediate(async () => {
     loader,
     log,
   )
+  const dataSinkWorkerEmitter = new DataSinkWorkerEmitter(
+    sqsClient,
+    redisClient,
+    tracer,
+    unleash,
+    loader,
+    log,
+  )
 
   await runWorkerEmiiter.init()
   await streamWorkerEmitter.init()
+  await dataSinkWorkerEmitter.init()
 
   const repo = new IntegrationStreamRepository(store, log)
 
@@ -63,6 +73,7 @@ setImmediate(async () => {
     redisClient,
     runWorkerEmiiter,
     streamWorkerEmitter,
+    dataSinkWorkerEmitter,
     store,
     log,
   )
