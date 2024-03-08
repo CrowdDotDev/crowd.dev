@@ -15,11 +15,12 @@ import organizationsMerge from './organizations-merge';
 export interface LogRenderingConfig {
   label: string;
   description: (log: AuditLog) => string;
+  properties?: (log: AuditLog) => {label: string, value: string;}[];
   changes?: (log: AuditLog) => {
     removals: string[]
     additions: string[]
     changes: string[]
-  }
+  } | null
 }
 
 export const logRenderingConfig: Record<ActionType, LogRenderingConfig> = {

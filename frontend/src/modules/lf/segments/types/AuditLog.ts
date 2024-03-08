@@ -16,7 +16,11 @@ export enum ActionType {
 export interface AuditLog{
   id: string;
   timestamp: string;
-  userId: string;
+  user: {
+    id: string;
+    email: string;
+    fullName: string;
+  };
   ipAddress?: string;
   userAgent?: string;
   requestId: string;

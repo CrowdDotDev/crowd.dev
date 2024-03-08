@@ -4,16 +4,24 @@
       ref="memberFilter"
       v-model="filters"
       :config="auditLogsFilters"
-      :search-config="auditLogsSearchFilter"
       hash="audit-logs"
-      @fetch="fetch($event)"
+      @fetch="onFilterChange($event)"
     />
   </div>
-
+  <div
+    v-if="loading"
+    class="h-16 !relative !min-h-5 flex justify-center items-center"
+  >
+    <div class="animate-spin w-fit">
+      <div class="custom-spinner" />
+    </div>
+  </div>
   <el-table
+    v-else
     id="members-table"
     ref="table"
-    :data="[{ id: 1 }, { id: 2 }]"
+    v-loading="loading"
+    :data="auditLogs"
     row-key="id"
     border
   >
@@ -22,19 +30,21 @@
       prop="action"
       class-name="!p-0"
     >
-      <template #default="log">
+      <template #default="{ row }">
         <div class="flex py-4">
           <div class="pr-2 min-w-6">
-            <i v-if="log.success" class="ri-checkbox-circle-fill flex items-center text-base text-green-500 mr-1" />
+            <i v-if="row.success" class="ri-checkbox-circle-fill flex items-center text-base text-green-500 mr-1" />
             <i v-else class="ri-close-circle-fill flex items-center text-base text-red-500 mr-1" />
           </div>
           <div>
             <div class="text-sm font-semibold text-black mb-1 leading-5">
-              {{ logRenderingConfig[log.actionType]?.label ?? log.actionType }}
+              {{ logRenderingConfig[row.actionType as AuditLog]?.label ?? row.actionType }}
             </div>
-            <p class="text-2xs text-gray-500 leading-5">
-              {{ logRenderingConfig[log.actionType]?.description(log) }}
-            </p>
+            <p
+              v-if="logRenderingConfig[row.actionType as AuditLog]?.description"
+              class="text-2xs text-gray-500 leading-5"
+              v-html="$sanitize(logRenderingConfig[row.actionType as AuditLog]?.description(row))"
+            />
           </div>
         </div>
       </template>
@@ -45,13 +55,16 @@
       prop="user"
       class-name="!p-0"
     >
-      <template #default="log">
+      <template #default="{ row }">
         <div class="py-4">
           <div class="text-sm font-semibold text-black mb-1 leading-5">
-            November Echo
+            {{ row.user.fullName }}
           </div>
           <p class="text-2xs text-gray-500 leading-5">
-            novemberecho@gmail.com ・ ID: {{ log.userId }}
+            {{ row.user.email }}
+          </p>
+          <p class="text-2xs text-gray-500 leading-5">
+            ID: {{ row.user.id }}
           </p>
         </div>
       </template>
@@ -63,9 +76,9 @@
       width="200"
       class-name="!p-0"
     >
-      <template #default="log">
+      <template #default="{ row }">
         <div class="text-sm py-4 flex items-center h-full">
-          {{ moment(log.timestamp).format('DD-MM-YYYY HH:mm:ss') }}
+          {{ moment.utc(row.timestamp).local().format('DD-MM-YYYY HH:mm:ss') }}
         </div>
       </template>
     </el-table-column>
@@ -75,9 +88,9 @@
       width="140"
       class-name="!p-0"
     >
-      <template #default="log">
+      <template #default="{ row }">
         <div class="py-4 flex items-center h-full">
-          <cr-button type="secondary" size="small" @click="openLogDetails = log">
+          <cr-button type="secondary" size="small" @click="openLogDetails = row">
             View details
           </cr-button>
         </div>
@@ -85,8 +98,8 @@
     </el-table-column>
   </el-table>
 
-  <div class="pt-6 pb-6 flex justify-center">
-    <cr-button type="tertiary">
+  <div v-if="pagination.total > (pagination.page * pagination.perPage)" class="pt-6 pb-6 flex justify-center">
+    <cr-button type="tertiary" @click="loadMore">
       <i class="ri-arrow-down-line" />Load more
     </cr-button>
   </div>
@@ -98,9 +111,9 @@
 
 <script setup lang="ts">
 import CrFilter from '@/shared/modules/filters/components/Filter.vue';
-import { auditLogsFilters, auditLogsSearchFilter } from '@/modules/lf/config/audit-logs/filters/main';
+import { auditLogsFilters } from '@/modules/lf/config/audit-logs/filters/main';
 import { FilterQuery } from '@/shared/modules/filters/types/FilterQuery';
-import { ref } from 'vue';
+import { reactive, ref } from 'vue';
 import { Filter } from '@/shared/modules/filters/types/FilterConfig';
 import AppLfAuditLogsDrawer from '@/modules/lf/segments/components/logs/log.drawer.vue';
 import { AuditLog } from '@/modules/lf/segments/types/AuditLog';
@@ -111,9 +124,10 @@ import { logRenderingConfig } from '../../config/audit-logs/log-rendering';
 
 const loading = ref<boolean>(false);
 
-const pagination = ref({
+const pagination = reactive({
   page: 1,
   perPage: 20,
+  total: 0,
 });
 
 const filters = ref<Filter>({
@@ -127,30 +141,47 @@ const filters = ref<Filter>({
 
 const openLogDetails = ref<AuditLog | null>(null);
 
-const fetch = ({
-  filter, orderBy, body,
-}: FilterQuery) => {
-  loading.value = true;
-  pagination.value.page = 1;
-  LfService.fetchAuditLogs({
-    limit: 10,
-    offset: 0,
-  })
-    .then((res) => {
-      console.log(res);
-    });
-  // Lf({
-  //   body: {
-  //     ...body,
-  //     filter,
-  //     offset: 0,
-  //     limit: pagination.value.perPage,
-  //     orderBy,
-  //   },
-  // }).finally(() => {
-  //   loading.value = false;
-  // });
+const auditLogs = ref<AuditLog[]>([]);
+const filter = ref({});
+
+const loadMore = () => {
+  pagination.page += 1;
+  fetch();
 };
+
+const onFilterChange = (filterQuery: FilterQuery) => {
+  filter.value = filterQuery.filter;
+  pagination.page = 1;
+  pagination.total = 0;
+  fetch();
+};
+
+const fetch = () => {
+  const query = filter.value.and?.reduce((q: any, filtr: any) => ({
+    ...q,
+    ...filtr,
+  }), {}) || {};
+  loading.value = true;
+  LfService.fetchAuditLogs({
+    filter: query,
+    limit: pagination.perPage,
+    offset: (pagination.page - 1) * pagination.perPage,
+  })
+    .then((res: AuditLog[]) => {
+      if (pagination.page > 1) {
+        auditLogs.value = [...auditLogs.value, ...res];
+      } else {
+        auditLogs.value = res;
+      }
+    })
+    .catch(() => {
+      auditLogs.value = [];
+    })
+    .finally(() => {
+      loading.value = false;
+    });
+};
+
 </script>
 
 <script lang="ts">

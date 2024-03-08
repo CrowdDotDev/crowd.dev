@@ -23,7 +23,7 @@
         Action
       </div>
       <div class="w-7/12 text-sm leading-24">
-        {{ logRenderingConfig[props.log.actionType]?.label }}
+        {{ config?.label }}
       </div>
     </article>
 
@@ -37,13 +37,23 @@
       </div>
     </article>
 
+    <!-- Custom properties -->
+    <template v-if="config.properties">
+      <article v-for="property of config.properties(props.log)" :key="property.label" class="flex pb-4">
+        <div class="w-5/12 text-sm leading-6 font-medium text-gray-500">
+          {{ property.label }}
+        </div>
+        <div class="w-7/12 text-sm leading-24 c-property" v-html="property.value" />
+      </article>
+    </template>
+
     <!-- Timestamp -->
     <article v-if="props.log.timestamp" class="flex pb-4">
       <div class="w-5/12 text-sm leading-6 font-medium text-gray-500">
         Timestamp
       </div>
       <div class="w-7/12 text-sm leading-24">
-        {{ moment(props.log.timestamp).format('DD-MM-YYYY HH:mm:ss') }}
+        {{ moment.utc(props.log.timestamp).local().format('DD-MM-YYYY HH:mm:ss') }}
       </div>
     </article>
 
@@ -53,12 +63,12 @@
         User
       </div>
       <div class="w-7/12 text-sm leading-24">
-        November Echo
+        {{ props.log.user.fullName }}
         <p class="text-2xs text-gray-500">
-          novemberecho@gmail.com
+          {{ props.log.user.email }}
         </p>
         <p class="text-2xs text-gray-500">
-          ID: {{ props.log.userId }}
+          ID: {{ props.log.user.fullName }}
         </p>
       </div>
     </article>
@@ -88,6 +98,7 @@
 <script setup lang="ts">
 import { ActionType, AuditLog } from '@/modules/lf/segments/types/AuditLog';
 import moment from 'moment/moment';
+import { computed } from 'vue';
 import { logRenderingConfig } from '../../../../config/audit-logs/log-rendering';
 
 const props = defineProps<{
@@ -98,6 +109,8 @@ const getEntityType = (actionType: ActionType) => {
   const [entityType] = actionType.split('-');
   return entityType.slice(0, -1);
 };
+
+const config = computed(() => logRenderingConfig[props.log.actionType]);
 </script>
 
 <script lang="ts">
@@ -105,3 +118,11 @@ export default {
   name: 'AppLfAuditLogsProperties',
 };
 </script>
+
+<style lang="scss">
+.c-property{
+  span{
+    @apply text-2xs text-gray-500;
+  }
+}
+</style>

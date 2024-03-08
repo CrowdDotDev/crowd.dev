@@ -1,11 +1,25 @@
 <template>
   <div class="mb-4">
     <div class="flex justify-end pb-4">
-      <cr-filter-search v-model="filters.search" :placeholder="props.searchConfig.placeholder">
+      <cr-filter-search v-if="props.searchConfig" v-model="filters.search" :placeholder="props.searchConfig.placeholder">
         <template #append>
-          <cr-filter-dropdown v-model="filterList" :config="props.config" :custom-config="props.customConfig || {}" @open="open = $event" />
+          <cr-filter-dropdown
+            v-model="filterList"
+            :config="props.config"
+            :custom-config="props.customConfig || {}"
+            @open="open = $event"
+          />
         </template>
       </cr-filter-search>
+      <cr-filter-dropdown
+        v-else
+        v-model="filterList"
+        :config="props.config"
+        :custom-config="props.customConfig || {}"
+        class="!border !rounded mr-auto"
+        placement="bottom-start"
+        @open="open = $event"
+      />
       <el-button
         v-if="isDeveloperModeActive && developerModeEnabled()"
         class="btn btn-brand--secondary !bg-purple-100 !text-purple-600 ml-2"
@@ -70,7 +84,7 @@ const props = defineProps<{
   modelValue: Filter,
   config: Record<string, FilterConfig>,
   customConfig?: Record<string, FilterConfig>,
-  searchConfig: SearchFilterConfig,
+  searchConfig?: SearchFilterConfig,
   savedViewsConfig?: SavedViewsConfig,
   hash?: string,
 }>();

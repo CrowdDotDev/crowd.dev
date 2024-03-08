@@ -1,17 +1,18 @@
 import { FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
 import { itemLabelRendererByType } from '@/shared/modules/filters/config/itemLabelRendererByType';
-import {
-  MultiSelectAsyncFilterConfig,
-  MultiSelectAsyncFilterOptions, MultiSelectAsyncFilterValue,
-} from '@/shared/modules/filters/types/filterTypes/MultiSelectAsyncFilterConfig';
 import { LfService } from '@/modules/lf/segments/lf-segments-service';
+import {
+  SelectAsyncFilterConfig, SelectAsyncFilterValue,
+  SelectAsyncFilterOptions,
+} from '@/shared/modules/filters/types/filterTypes/SelectAsyncFilterConfig';
 
-const user: MultiSelectAsyncFilterConfig = {
+const user: SelectAsyncFilterConfig = {
   id: 'user',
   label: 'User',
   iconClass: 'ri-account-circle-line',
-  type: FilterConfigType.MULTISELECT_ASYNC,
+  type: FilterConfigType.SELECT_ASYNC,
   options: {
+    hideIncludeSwitch: true,
     remoteMethod: (query) => LfService.fetchUsers({
       or: [
         { fullName: { textContains: query } },
@@ -25,33 +26,36 @@ const user: MultiSelectAsyncFilterConfig = {
         description: `${user.email}`,
         value: user.id,
       }))),
-    remotePopulateItems: (ids: string[]) => LfService.fetchUsers(
+    remotePopulateItems: (id: string) => LfService.fetchUsers(
       {
         and: [
           {
-            id: { in: ids },
+            id: { eq: id },
           },
         ],
       },
       null,
-      ids.length,
+      1,
       0,
     )
-      .then(({ rows }: any) => rows.map((member: any) => ({
-        label: member.displayName,
-        value: member.id,
-      }))),
+      .then(({ rows }: any) => {
+        const [user] = rows;
+        if (user) {
+          return {
+            label: user.fullName,
+            value: user.id,
+          };
+        }
+        return null;
+      }),
   },
-  itemLabelRenderer(value: MultiSelectAsyncFilterValue, options: MultiSelectAsyncFilterOptions, data: any): string {
-    return itemLabelRendererByType[FilterConfigType.MULTISELECT_ASYNC]('User', value, options, data);
+  itemLabelRenderer(value: SelectAsyncFilterValue, options: SelectAsyncFilterOptions, data: any): string {
+    return itemLabelRendererByType[FilterConfigType.SELECT_ASYNC]('User', value, options, data);
   },
-  apiFilterRenderer({ value, include }: MultiSelectAsyncFilterValue): any[] {
-    const filter = {
-      userId: { in: value },
-    };
-    return [
-      (include ? filter : { not: filter }),
-    ];
+  apiFilterRenderer({ value }: SelectAsyncFilterValue): any[] {
+    return [{
+      userId: value,
+    }];
   },
 };
 

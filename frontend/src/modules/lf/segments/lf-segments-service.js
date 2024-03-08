@@ -127,14 +127,12 @@ export class LfService {
 
   // AuditLogs
 
-  static async fetchAuditLogs(params) {
+  static async fetchAuditLogs(data) {
     const tenantId = AuthCurrentTenant.get();
 
-    const response = await authAxios.get(
+    const response = await authAxios.post(
       `/tenant/${tenantId}/audit-logs/query`,
-      {
-        params,
-      },
+      data,
     );
 
     return response.data;
