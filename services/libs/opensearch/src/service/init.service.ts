@@ -35,6 +35,7 @@ export class InitService {
       organizationId: InitService.FAKE_ORGANIZATION_ID,
       tenantId: InitService.FAKE_TENANT_ID,
       segmentId: InitService.FAKE_SEGMENT_ID,
+      grandParentSegment: false,
       address: {
         name: 'paris, ile-de-france, france',
         metro: null,
@@ -160,6 +161,7 @@ export class InitService {
       id: InitService.FAKE_MEMBER_ID,
       tenantId: InitService.FAKE_TENANT_ID,
       segmentId: InitService.FAKE_SEGMENT_ID,
+      grandParentSegment: false,
       displayName: 'Test Member',
       emails: ['fake@email.com'],
       score: 10,
