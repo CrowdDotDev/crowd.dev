@@ -153,7 +153,7 @@
                 <template v-if="platformDetails(activity.platform)?.activityDisplay?.showContentDetails" #details>
                   <div v-if="activity.attributes">
                     <app-activity-content-footer
-                      :source-id="activity.sourceId"
+                      :source-id="isMemberEntity ? activity.parent?.sourceId : activity.sourceId"
                       :changes="activity.attributes.lines"
                       changes-copy="line"
                       :insertions="activity.attributes.insertions"
