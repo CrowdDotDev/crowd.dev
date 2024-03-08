@@ -4,7 +4,9 @@
       ref="memberFilter"
       v-model="filters"
       :config="auditLogsFilters"
+      :lock-relation="true"
       hash="audit-logs"
+      class="flex flex-row-reverse justify-between"
       @fetch="onFilterChange($event)"
     />
   </div>

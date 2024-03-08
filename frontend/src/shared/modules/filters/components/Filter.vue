@@ -36,11 +36,13 @@
           effect="dark"
           :content="`${filters.relation} → ${filters.relation === 'and' ? 'or' : 'and'}`"
           placement="top"
+          :disabled="props.lockRelation"
         >
           <div
             v-if="fi > 0"
+            :click="!props.lockRelation ? 'cursor-pointer hover:bg-gray-100' : ''"
             class="border text-xs border-gray-100 rounded-md shadow justify-center
-          h-8 flex font-medium items-center py-1 px-2 bg-white cursor-pointer hover:bg-gray-100 transition mr-3 mb-4"
+          h-8 flex font-medium items-center py-1 px-2 bg-white  transition mr-3 mb-4"
             @click="switchOperator"
           >
             {{ filters.relation }}
@@ -87,6 +89,7 @@ const props = defineProps<{
   searchConfig?: SearchFilterConfig,
   savedViewsConfig?: SavedViewsConfig,
   hash?: string,
+  lockRelation?: boolean,
 }>();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: Filter), (e: 'fetch', value: FilterQuery),}>();
@@ -117,6 +120,9 @@ const configuration = computed(() => ({
 const filterList = ref<string[]>([]);
 
 const switchOperator = () => {
+  if (props.lockRelation) {
+    return;
+  }
   filters.value.relation = filters.value.relation === 'and' ? 'or' : 'and';
 };
 
