@@ -5,7 +5,7 @@ import { IInsertableWebhookStream } from '@crowd/data-access-layer/src/old/apps/
 import IntegrationStreamRepository from '@crowd/data-access-layer/src/old/apps/integration_stream_worker/integrationStream.repo'
 import IntegrationStreamService from '../service/integrationStreamService'
 import {
-  IntegrationDataWorkerEmitter,
+  DataSinkWorkerEmitter,
   IntegrationRunWorkerEmitter,
   IntegrationStreamWorkerEmitter,
 } from '@crowd/common_services'
@@ -14,16 +14,16 @@ export const processOldStreamsJob = async (
   dbConn: DbConnection,
   redis: RedisClient,
   runWorkerEmitter: IntegrationRunWorkerEmitter,
-  dataWorkerEmitter: IntegrationDataWorkerEmitter,
   streamWorkerEmitter: IntegrationStreamWorkerEmitter,
+  dataSinkWorkerEmitter: DataSinkWorkerEmitter,
   log: Logger,
 ): Promise<void> => {
   const store = new DbStore(log, dbConn)
   const service = new IntegrationStreamService(
     redis,
     runWorkerEmitter,
-    dataWorkerEmitter,
     streamWorkerEmitter,
+    dataSinkWorkerEmitter,
     store,
     log,
   )
