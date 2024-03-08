@@ -47,25 +47,31 @@ setImmediate(async () => {
 
   const repo = new IntegrationDataRepository(store, log)
 
-  const dataIds = await repo.getDataForIntegration(integrationId)
+  let dataIds: string[] = []
 
-  for (const dataId of dataIds) {
-    const info = await repo.getDataInfo(dataId)
+  dataIds = await repo.getDataForIntegration(integrationId, 1000)
 
-    if (info) {
-      if (info.state !== IntegrationStreamDataState.PENDING) {
-        await repo.resetStream(dataId)
+  while (dataIds?.length > 0) {
+    for (const dataId of dataIds) {
+      const info = await repo.getDataInfo(dataId)
+
+      if (info) {
+        if (info.state !== IntegrationStreamDataState.PENDING) {
+          await repo.resetStream(dataId)
+        }
+
+        await emitter.triggerDataProcessing(
+          info.tenantId,
+          info.integrationType,
+          dataId,
+          info.onboarding === null ? true : info.onboarding,
+        )
+      } else {
+        log.error({ dataId }, 'Data stream not found!')
+        process.exit(1)
       }
-
-      await emitter.triggerDataProcessing(
-        info.tenantId,
-        info.integrationType,
-        dataId,
-        info.onboarding === null ? true : info.onboarding,
-      )
-    } else {
-      log.error({ dataId }, 'Data stream not found!')
-      process.exit(1)
     }
+
+    dataIds = await repo.getDataForIntegration(integrationId, 1000)
   }
 })
