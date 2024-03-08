@@ -49,17 +49,17 @@ export default {
       });
   },
   handleLocalAuth() {
-    // if (config.env !== 'production') {
-    //   return Promise.reject();
-    // }
-    // const storedToken = AuthService.getToken();
-    // const params = new URLSearchParams(window.location.search);
-    // const myJwt = params.get('my-jwt');
-    //
-    // const localToken = storedToken || myJwt;
-    // if (localToken) {
-    //   return this.getUser(localToken);
-    // }
+    if (config.env === 'production') {
+      return Promise.reject();
+    }
+    const storedToken = AuthService.getToken();
+    const params = new URLSearchParams(window.location.search);
+    const myJwt = params.get('my-jwt');
+
+    const localToken = storedToken || myJwt;
+    if (localToken) {
+      return this.getUser(localToken);
+    }
 
     return Promise.reject();
   },
