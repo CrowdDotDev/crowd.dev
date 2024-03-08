@@ -15,8 +15,6 @@ import config from '@/config';
 
 import { init as i18nInit } from '@/i18n';
 
-import 'v-network-graph/lib/style.css';
-
 import App from '@/app.vue';
 import { vueSanitizeOptions } from '@/plugins/sanitize';
 import marked from '@/plugins/marked';

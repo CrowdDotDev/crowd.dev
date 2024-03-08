@@ -23,7 +23,7 @@ onMounted(() => {
     })
     .then((token) => authCallback(token))
     .then(() => {
-      router.push(auth0State.value?.targetUrl ?? '/');
+      router.push(auth0State.value?.returnTo ?? '/');
     })
     .catch(() => {
       logout();
