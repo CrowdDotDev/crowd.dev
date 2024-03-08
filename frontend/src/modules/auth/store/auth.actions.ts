@@ -30,9 +30,7 @@ export default {
     }
     Auth0Service.getUser()
       .then((user) => {
-        console.log(user);
         lfxHeader.authuser = user;
-        console.log(lfxHeader.authuser)
       });
   },
   silentLogin() {
@@ -43,7 +41,6 @@ export default {
         if (['login_required', 'consent_required', 'missing_refresh_token'].includes(error.error)) {
           const appState: any = {};
           if (window.location.hash) {
-            console.log(window.location.hash);
             appState.returnTo = window.location.hash;
           }
           return this.signin({ appState });
@@ -52,17 +49,17 @@ export default {
       });
   },
   handleLocalAuth() {
-    if (config.env !== 'production') {
+    if (config.env === 'production') {
       return Promise.reject();
     }
-    // const storedToken = AuthService.getToken();
-    // const params = new URLSearchParams(window.location.search);
-    // const myJwt = params.get('my-jwt');
-    //
-    // const localToken = storedToken || myJwt;
-    // if (localToken) {
-    //   return this.getUser(localToken);
-    // }
+    const storedToken = AuthService.getToken();
+    const params = new URLSearchParams(window.location.search);
+    const myJwt = params.get('my-jwt');
+
+    const localToken = storedToken || myJwt;
+    if (localToken) {
+      return this.getUser(localToken);
+    }
 
     return Promise.reject();
   },
