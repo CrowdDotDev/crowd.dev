@@ -43,6 +43,7 @@
           :deletions="footerContent().deletions"
           :source-id="platformConfig?.activityDisplay?.showSourceId && sourceId"
           display="drawer"
+          :type="conversation.conversationStarter?.type"
         />
       </div>
       <div v-if="platformConfig?.conversationDisplay?.showLabels && attributes.labels?.length" class="mt-5">

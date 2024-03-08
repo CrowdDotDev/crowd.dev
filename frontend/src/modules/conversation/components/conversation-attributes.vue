@@ -24,7 +24,7 @@
       </div>
     </div>
     <el-tooltip
-      v-if="sourceId"
+      v-if="sourceId && displaySourceId"
       :content="sourceId"
       placement="top"
     >
@@ -64,6 +64,10 @@ const props = defineProps({
     type: String,
     default: 'item',
   },
+  type: {
+    type: String,
+    default: null,
+  },
 });
 
 const classes = computed(() => {
@@ -83,6 +87,8 @@ const classes = computed(() => {
     sourceId: 'text-gray-500 text-xs overflow-hidden ml-3 text-ellipsis',
   };
 });
+
+const displaySourceId = computed(() => props.type === 'authored-commit');
 </script>
 
 <script>
