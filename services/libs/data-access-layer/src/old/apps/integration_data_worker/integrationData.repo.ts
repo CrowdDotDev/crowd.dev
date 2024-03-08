@@ -59,6 +59,9 @@ export default class IntegrationDataRepository extends RepositoryBase<Integratio
      integration."apiData" d
     where 
      d."integrationId" = $(integrationId)
+     order by d."createdAt" asc
+    limit $(limit)
+   
   `
 
   public async getDataInfo(dataId: string): Promise<IApiDataInfo | null> {
@@ -355,9 +358,10 @@ export default class IntegrationDataRepository extends RepositoryBase<Integratio
     return results.map((r) => r.id)
   }
 
-  public async getDataForIntegration(integrationId: string): Promise<string[]> {
+  public async getDataForIntegration(integrationId: string, limit = 1000): Promise<string[]> {
     const results = await this.db().manyOrNone(this.getDataForIntegrationQuery, {
       integrationId,
+      limit,
     })
 
     return results.map((r) => r.id)
