@@ -48,7 +48,7 @@ export class OrganizationService {
   }
 
   static async unmerge(orgId, preview) {
-    const tenantId = AuthCurrentTenant.get();
+    const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/organization/${orgId}/unmerge`,
@@ -59,7 +59,7 @@ export class OrganizationService {
   }
 
   static async unmergePreview(orgId, platform, name) {
-    const tenantId = AuthCurrentTenant.get();
+    const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/organization/${orgId}/unmerge/preview`,
@@ -238,7 +238,7 @@ export class OrganizationService {
       segments,
     };
 
-    const tenantId = AuthCurrentTenant.get();
+    const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/organization/export`,

@@ -13,7 +13,6 @@ import useOrganizationMergeMessage from '@/shared/modules/merge/config/useOrgani
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';
-import { useStore } from 'vuex';
 import { h } from 'vue';
 
 let socketIoClient: any;
@@ -32,7 +31,6 @@ const SocketEvents = {
 export const isSocketConnected = () => socketIoClient && socketIoClient.connected;
 
 export const connectSocket = (token) => {
-  const store = useStore();
   const authStore = useAuthStore();
   const { user, tenant } = storeToRefs(authStore);
   const { getUser } = authStore;
