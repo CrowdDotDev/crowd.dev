@@ -59,8 +59,9 @@ export default class IntegrationDataRepository extends RepositoryBase<Integratio
      integration."apiData" d
     where 
      d."integrationId" = $(integrationId)
+     order by d."createdAt" asc
     limit $(limit)
-    order by d."createdAt" asc
+   
   `
 
   public async getDataInfo(dataId: string): Promise<IApiDataInfo | null> {
