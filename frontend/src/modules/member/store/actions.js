@@ -11,6 +11,8 @@ import {
   showEnrichmentSuccessMessage,
   showEnrichmentLoadingMessage,
 } from '@/modules/member/member-enrichment';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
+import { storeToRefs } from 'pinia';
 import { MemberModel } from '../member-model';
 
 export default {
@@ -183,9 +185,11 @@ export default {
 
   async doEnrich({ commit, dispatch, rootGetters }, id, segments) {
     try {
-      const currentTenant = rootGetters['auth/currentTenant'];
+      const authStore = useAuthStore();
+      const { tenant } = storeToRefs(authStore);
+      const { getUser } = authStore;
 
-      const planEnrichmentCountMax = getEnrichmentMax(currentTenant.plan);
+      const planEnrichmentCountMax = getEnrichmentMax(tenant.value.plan);
 
       // Start member enrichment
       commit('UPDATE_STARTED');
@@ -197,17 +201,15 @@ export default {
 
       commit('UPDATE_SUCCESS', response);
 
-      await dispatch('auth/doRefreshCurrentUser', null, {
-        root: true,
-      });
+      await getUser();
 
-      const updatedTenant = rootGetters['auth/currentTenant'];
+      const updatedTenant = tenant.value;
 
       // Show enrichment success message
       showEnrichmentSuccessMessage({
         memberEnrichmentCount: updatedTenant.memberEnrichmentCount,
         planEnrichmentCountMax,
-        plan: currentTenant.plan,
+        plan: tenant.value.plan,
         isBulk: false,
       });
 

@@ -34,9 +34,10 @@
 <script setup lang="ts">
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { computed } from 'vue';
-import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import Message from '@/shared/message/message';
 import { i18n } from '@/i18n';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
+import { storeToRefs } from 'pinia';
 import { ConversationPermissions } from '../conversation-permissions';
 import { ConversationService } from '../conversation-service';
 
@@ -47,11 +48,12 @@ const props = defineProps<{
   },
 }>();
 
-const { currentTenant, currentUser } = mapGetters('auth');
+const authStore = useAuthStore();
+const { user, tenant } = storeToRefs(authStore);
 
 const isDeleteLockedForSampleData = computed(() => new ConversationPermissions(
-  currentTenant.value,
-  currentUser.value,
+  tenant.value,
+  user.value,
 ).destroyLockedForSampleData);
 
 const onDeleteConversation = async () => {

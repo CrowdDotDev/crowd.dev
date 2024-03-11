@@ -75,15 +75,16 @@ import AppLfProjectForm from '@/modules/lf/segments/components/form/lf-project-f
 import AppLfProjectGroupsTable from '@/modules/lf/segments/components/view/lf-project-groups-table.vue';
 import AppLfSearchInput from '@/modules/lf/segments/components/view/lf-search-input.vue';
 import { LfPermissions } from '@/modules/lf/lf-permissions';
-import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { PermissionChecker } from '@/modules/user/permission-checker';
 import Roles from '@/security/roles';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { projectGroups } = storeToRefs(lsSegmentsStore);
 const { listProjectGroups, searchProjectGroup, updateSelectedProjectGroup } = lsSegmentsStore;
 
-const { currentTenant, currentUser } = mapGetters('auth');
+const authStore = useAuthStore();
+const { user, tenant } = storeToRefs(authStore);
 
 const loading = computed(() => projectGroups.value.loading);
 const pagination = computed(() => projectGroups.value.pagination);
@@ -96,14 +97,14 @@ const isProjectGroupFormDrawerOpen = ref(false);
 const isProjectFormDrawerOpen = ref(false);
 
 const hasPermissionToCreate = computed(() => new LfPermissions(
-  currentTenant.value,
-  currentUser.value,
+  tenant.value,
+  user.value,
 )?.createProjectGroup);
 
 const isProjectAdminUser = computed(() => {
   const permissionChecker = new PermissionChecker(
-    currentTenant.value,
-    currentUser.value,
+    tenant.value,
+    user.value,
   );
   return permissionChecker.currentUserRolesIds.includes(Roles.values.projectAdmin);
 });

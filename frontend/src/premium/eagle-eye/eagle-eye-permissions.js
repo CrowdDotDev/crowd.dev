@@ -2,10 +2,10 @@ import { PermissionChecker } from '@/modules/user/permission-checker';
 import Permissions from '@/security/permissions';
 
 export class EagleEyePermissions {
-  constructor(currentTenant, currentUser) {
+  constructor(tenant, user) {
     const permissionChecker = new PermissionChecker(
-      currentTenant,
-      currentUser,
+      tenant,
+      user,
     );
 
     this.read = permissionChecker.match(

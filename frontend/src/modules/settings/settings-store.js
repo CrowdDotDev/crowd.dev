@@ -3,7 +3,7 @@ import Errors from '@/shared/error/errors';
 import { router } from '@/router';
 import Message from '@/shared/message/message';
 import { i18n } from '@/i18n';
-import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
+import { AuthService } from '@/modules/auth/services/auth.service';
 
 export default {
   namespaced: true,
@@ -52,8 +52,8 @@ export default {
   actions: {
     async doInit({ commit, rootGetters }) {
       if (
-        !rootGetters['auth/signedIn']
-        || !AuthCurrentTenant.get()
+        !AuthService.getToken()
+        || !AuthService.getTenantId()
       ) {
         return;
       }
