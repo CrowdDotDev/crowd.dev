@@ -1,5 +1,5 @@
 import {
-  IntegrationDataWorkerEmitter,
+  DataSinkWorkerEmitter,
   IntegrationRunWorkerEmitter,
   IntegrationStreamWorkerEmitter,
 } from '@crowd/common_services'
@@ -29,8 +29,8 @@ export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
     private readonly redisClient: RedisClient,
     private readonly dbConn: DbConnection,
     private readonly runWorkerEmitter: IntegrationRunWorkerEmitter,
-    private readonly dataWorkerEmitter: IntegrationDataWorkerEmitter,
     private readonly streamWorkerEmitter: IntegrationStreamWorkerEmitter,
+    private readonly dataSinkWorkerEmitter: DataSinkWorkerEmitter,
     tracer: Tracer,
     parentLog: Logger,
     maxConcurrentProcessing: number,
@@ -53,8 +53,8 @@ export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
         const service = new IntegrationStreamService(
           this.redisClient,
           this.runWorkerEmitter,
-          this.dataWorkerEmitter,
           this.streamWorkerEmitter,
+          this.dataSinkWorkerEmitter,
           new DbStore(this.log, this.dbConn),
           this.log,
         )

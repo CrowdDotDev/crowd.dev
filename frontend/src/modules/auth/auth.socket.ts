@@ -80,7 +80,13 @@ export const connectSocket = (token) => {
       secondaryDisplayName,
       primaryId,
       secondaryId,
+      tenantId,
+      userId,
     } = parsedData;
+
+    if (currentTenant.value.id !== tenantId || currentUser.value.id !== userId) {
+      return;
+    }
 
     const primaryMember = h(
       'a',
@@ -127,8 +133,12 @@ export const connectSocket = (token) => {
     const lsSegmentsStore = useLfSegmentsStore();
     const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
     const {
-      primaryDisplayName, secondaryDisplayName, primaryId, secondaryId,
+      primaryDisplayName, secondaryDisplayName, primaryId, secondaryId, tenantId, userId,
     } = parsedData;
+
+    if (tenant.value.id !== tenantId || user.value.id !== userId) {
+      return;
+    }
 
     const primaryOrganization = h(
       'a',
@@ -241,7 +251,7 @@ export const connectSocket = (token) => {
       toMerge,
     } = JSON.parse(payload);
 
-    if (tenant.value.id !== tenantId && user.value.id !== userId) {
+    if (tenant.value.id !== tenantId || user.value.id !== userId) {
       return;
     }
 
