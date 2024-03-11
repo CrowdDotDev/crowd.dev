@@ -15,6 +15,7 @@ export default {
     }
     Auth0Service.isAuthenticated()
       .then((isAuthenticated: boolean) => {
+        console.log(isAuthenticated);
         if (!isAuthenticated) {
           this.handleLocalAuth()
             .catch(() => this.silentLogin());
@@ -28,14 +29,15 @@ export default {
     if (!lfxHeader || lfxHeader.authuser) {
       return;
     }
-    setTimeout(() => {
-      Auth0Service.getUser()
-        .then((user) => {
-          console.log(user);
-          lfxHeader.authuser = user;
-        });
-    }, 3000)
-
+    Auth0Service.isAuthenticated()
+      .then((isAuthenticated: boolean) => {
+        console.log(isAuthenticated);
+      });
+    Auth0Service.getUser()
+      .then((user) => {
+        console.log(user);
+        lfxHeader.authuser = user;
+      });
   },
   silentLogin() {
     Auth0Service.getTokenSilently()
@@ -53,17 +55,17 @@ export default {
       });
   },
   handleLocalAuth() {
-    if (config.env === 'production') {
-      return Promise.reject();
-    }
-    const storedToken = AuthService.getToken();
-    const params = new URLSearchParams(window.location.search);
-    const myJwt = params.get('my-jwt');
-
-    const localToken = storedToken || myJwt;
-    if (localToken) {
-      return this.getUser(localToken);
-    }
+    // if (config.env !== 'production') {
+    //   return Promise.reject();
+    // }
+    // const storedToken = AuthService.getToken();
+    // const params = new URLSearchParams(window.location.search);
+    // const myJwt = params.get('my-jwt');
+    //
+    // const localToken = storedToken || myJwt;
+    // if (localToken) {
+    //   return this.getUser(localToken);
+    // }
 
     return Promise.reject();
   },
