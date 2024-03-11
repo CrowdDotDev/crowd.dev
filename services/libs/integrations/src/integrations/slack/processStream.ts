@@ -194,7 +194,7 @@ const processChannelStream: ProcessStreamHandler = async (ctx) => {
         )
       }
 
-      await ctx.publishData<ISlackAPIData>({
+      await ctx.processData<ISlackAPIData>({
         type: 'channel',
         message,
         member,
@@ -260,7 +260,7 @@ const processThreadStream: ProcessStreamHandler = async (ctx) => {
 
     // if member is undefined we don't publish the activity
     if (member !== undefined) {
-      await ctx.publishData<ISlackAPIData>({
+      await ctx.processData<ISlackAPIData>({
         type: 'threads',
         message,
         member,
@@ -310,7 +310,7 @@ const processMembersStream: ProcessStreamHandler = async (ctx) => {
   const members = result.records as SlackMember[]
   while (members.length > 0) {
     const member = members.shift()
-    await ctx.publishData<ISlackAPIData>({
+    await ctx.processData<ISlackAPIData>({
       type: 'members',
       member,
       base: {
