@@ -52,7 +52,7 @@ export default {
       });
   },
   handleLocalAuth() {
-    if (config.env !== 'production') {
+    if (config.env === 'production') {
       return Promise.reject();
     }
     const storedToken = AuthService.getToken();
