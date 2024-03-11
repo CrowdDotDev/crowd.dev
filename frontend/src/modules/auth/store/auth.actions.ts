@@ -15,7 +15,6 @@ export default {
     }
     Auth0Service.isAuthenticated()
       .then((isAuthenticated: boolean) => {
-        console.log(isAuthenticated);
         if (!isAuthenticated) {
           this.handleLocalAuth()
             .catch(() => this.silentLogin());
