@@ -82,7 +82,7 @@ const computedOrganizationToMerge = computed({
   },
 });
 
-const fetchFn = async (query, limit) => {
+const fetchFn = async ({ query, limit }) => {
   const options = await OrganizationService.listOrganizationsAutocomplete({
     query,
     limit,
