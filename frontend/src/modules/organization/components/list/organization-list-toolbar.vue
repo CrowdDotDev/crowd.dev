@@ -101,6 +101,7 @@ import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { OrganizationPermissions } from '../../organization-permissions';
 import { OrganizationService } from '../../organization-service';
+import { getExportMax } from '@/modules/member/member-export-limit';
 
 const authStore = useAuthStore();
 const { user, tenant } = storeToRefs(authStore);
@@ -210,9 +211,9 @@ const handleDoExport = async () => {
   };
 
   try {
-    const tenantCsvExportCount = currentTenant.value.csvExportCount;
+    const tenantCsvExportCount = tenant.value.csvExportCount;
     const planExportCountMax = getExportMax(
-      currentTenant.value.plan,
+      tenant.value.plan,
     );
 
     await showExportDialog({
