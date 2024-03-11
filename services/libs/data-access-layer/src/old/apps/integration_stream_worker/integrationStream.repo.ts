@@ -1,19 +1,19 @@
-import { generateUUIDv1 } from '@crowd/common'
 import { DbColumnSet, DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import {
+  IIntegrationResult,
+  IntegrationResultState,
   IntegrationRunState,
-  IntegrationStreamDataState,
   IntegrationStreamState,
   WebhookState,
 } from '@crowd/types'
+import { IWebhookData } from './incomingWebhook.data'
 import {
   IInsertableWebhookStream,
   IProcessableStream,
   IStreamData,
   getInsertWebhookStreamColumnSet,
 } from './integrationStream.data'
-import { IWebhookData } from './incomingWebhook.data'
 
 export default class IntegrationStreamRepository extends RepositoryBase<IntegrationStreamRepository> {
   private readonly insertWebhookStreamColumnSet: DbColumnSet
@@ -397,36 +397,6 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
     this.checkUpdateRowCount(result.rowCount, 1)
   }
 
-  public async publishData(streamId: string, data: unknown): Promise<string> {
-    const id = generateUUIDv1()
-
-    const result = await this.db().result(
-      `
-    insert into integration."apiData"(id, state, data, "streamId", "runId", "webhookId", "tenantId", "integrationId", "microserviceId")
-    select $(id)::uuid,
-           $(state),
-           $(data)::json,
-           $(streamId)::uuid,
-           "runId",
-           "webhookId",
-           "tenantId",
-           "integrationId",
-           "microserviceId"
-    from integration.streams where id = $(streamId);
-    `,
-      {
-        id,
-        streamId,
-        state: IntegrationStreamDataState.PENDING,
-        data: JSON.stringify(data),
-      },
-    )
-
-    this.checkUpdateRowCount(result.rowCount, 1)
-
-    return id
-  }
-
   public async publishStream(
     parentId: string,
     identifier: string,
@@ -529,5 +499,34 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
     }
 
     return undefined
+  }
+
+  public async publishResult(streamId: string, result: IIntegrationResult): Promise<string> {
+    const results = await this.db().oneOrNone(
+      `
+    insert into integration.results(state, data, "streamId", "runId", "webhookId", "tenantId", "integrationId", "microserviceId")
+    select $(state),
+           $(data)::json,
+           "id",
+           "runId",
+           "webhookId",
+           "tenantId",
+           "integrationId",
+           "microserviceId"
+    from integration.streams where id = $(streamId)
+    returning id;
+    `,
+      {
+        state: IntegrationResultState.PENDING,
+        data: JSON.stringify(result),
+        streamId,
+      },
+    )
+
+    if (results) {
+      return results.id
+    }
+
+    return null
   }
 }

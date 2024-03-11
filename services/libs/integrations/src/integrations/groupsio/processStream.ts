@@ -126,7 +126,7 @@ const processTopicStream: ProcessStreamHandler = async (ctx) => {
       )
     }
 
-    await ctx.publishData<GroupsioPublishData<GroupsioMessageData>>({
+    await ctx.processData<GroupsioPublishData<GroupsioMessageData>>({
       type: GroupsioPublishDataType.MESSAGE,
       data: {
         message,
@@ -155,7 +155,7 @@ const processGroupMembersStream: ProcessStreamHandler = async (ctx) => {
     // caching member
     await cacheMember(ctx, member)
     // publishing member
-    await ctx.publishData<GroupsioPublishData<GroupsioMemberJoinData>>({
+    await ctx.processData<GroupsioPublishData<GroupsioMemberJoinData>>({
       type: GroupsioPublishDataType.MEMBER_JOIN,
       data: {
         member,

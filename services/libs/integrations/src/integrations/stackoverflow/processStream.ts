@@ -74,7 +74,7 @@ const processTagStream: ProcessStreamHandler = async (ctx) => {
     } else {
       user = await getStackOverflowUser(ctx, question.owner.user_id.toString())
     }
-    await ctx.publishData<IStackOverflowPublishData>({
+    await ctx.processData<IStackOverflowPublishData>({
       question: {
         question,
         user,
@@ -142,7 +142,7 @@ const processKeywordStream: ProcessStreamHandler = async (ctx) => {
     } else {
       user = await getStackOverflowUser(ctx, question.owner.user_id.toString())
     }
-    await ctx.publishData<IStackOverflowPublishData>({
+    await ctx.processData<IStackOverflowPublishData>({
       question: {
         question,
         user,
@@ -213,7 +213,7 @@ const processAnswerStream: ProcessStreamHandler = async (ctx) => {
     } else {
       user = await getStackOverflowUser(ctx, answer.owner.user_id.toString())
     }
-    await ctx.publishData<IStackOverflowPublishData>({
+    await ctx.processData<IStackOverflowPublishData>({
       answer: {
         answer,
         user,

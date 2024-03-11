@@ -176,7 +176,7 @@ const processPostsByIds: ProcessStreamHandler = async (ctx) => {
       continue
     }
 
-    await ctx.publishData<DiscoursePublishPostData>({
+    await ctx.processData<DiscoursePublishPostData>({
       type: DiscourseDataType.POST,
       user,
       post,
