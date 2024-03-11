@@ -1,11 +1,8 @@
 import { AutomationTypeConfig } from '@/modules/automation/config/automation-types';
 import config from '@/config';
-
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { storeToRefs } from 'pinia';
-import { AuthService } from '@/modules/auth/services/auth.service';
-import AutomationsTriggerMemberActivity from '../shared/trigger-member-activity.vue';
+import { AuthToken } from '@/modules/auth/auth-token';
 import AutomationsSlackAction from './slack-action.vue';
+import AutomationsTriggerMemberActivity from '../shared/trigger-member-activity.vue';
 
 export const slack: AutomationTypeConfig = {
   name: 'Slack notification',
@@ -18,15 +15,13 @@ export const slack: AutomationTypeConfig = {
   triggerText: 'Define the event that triggers your Slack notification.',
   actionText: 'Receive a notification in your Slack workspace every time the event is triggered.',
   createButtonText: 'Add Slack notification',
-  canCreate() {
-    const authStore = useAuthStore();
-    const { tenant } = storeToRefs(authStore);
-    return !!tenant.value?.settings[0].slackWebHook;
+  canCreate(store) {
+    const tenant = store.getters['auth/currentTenant'];
+    return !!tenant.settings[0].slackWebHook;
   },
-  actionButton() {
-    const authStore = useAuthStore();
-    const { tenant } = storeToRefs(authStore);
-    const slackConnected = !!tenant.value?.settings[0].slackWebHook;
+  actionButton(store) {
+    const tenant = store.getters['auth/currentTenant'];
+    const slackConnected = !!tenant.settings[0].slackWebHook;
     if (slackConnected) {
       return null;
     }
@@ -35,8 +30,8 @@ export const slack: AutomationTypeConfig = {
       action: () => {
         const redirectUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}?activeTab=automations&success=true`;
         const slackConnectUrl = `${config.backendUrl}/tenant/${
-          tenant.value?.id
-        }/automation/slack?redirectUrl=${redirectUrl}&crowdToken=${AuthService.getToken()}`;
+          tenant.id
+        }/automation/slack?redirectUrl=${redirectUrl}&crowdToken=${AuthToken.get()}`;
 
         window.open(slackConnectUrl, '_self');
       },

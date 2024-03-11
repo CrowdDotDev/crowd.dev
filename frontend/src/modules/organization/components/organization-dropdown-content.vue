@@ -171,6 +171,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import Message from '@/shared/message/message';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
@@ -180,8 +181,6 @@ import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { HubspotEntity } from '@/integrations/hubspot/types/HubspotEntity';
 import { HubspotApiService } from '@/integrations/hubspot/hubspot.api.service';
 import { useStore } from 'vuex';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { storeToRefs } from 'pinia';
 import { OrganizationService } from '../organization-service';
 import { OrganizationPermissions } from '../organization-permissions';
 import { Organization } from '../types/Organization';
@@ -208,23 +207,22 @@ defineProps<{
 
 const store = useStore();
 
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
+const { currentUser, currentTenant } = mapGetters('auth');
 
 const organizationStore = useOrganizationStore();
 
 const isEditLockedForSampleData = computed(
-  () => new OrganizationPermissions(tenant.value, user.value)
+  () => new OrganizationPermissions(currentTenant.value, currentUser.value)
     .editLockedForSampleData,
 );
 const isDeleteLockedForSampleData = computed(
-  () => new OrganizationPermissions(tenant.value, user.value)
+  () => new OrganizationPermissions(currentTenant.value, currentUser.value)
     .destroyLockedForSampleData,
 );
 
 const hasPermissionsToMerge = computed(() => new OrganizationPermissions(
-  tenant.value,
-  user.value,
+  currentTenant.value,
+  currentUser.value,
 )?.mergeOrganizations);
 
 const isSyncingWithHubspot = (organization: Organization) => organization.attributes?.syncRemote?.hubspot || false;

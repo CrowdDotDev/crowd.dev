@@ -1,5 +1,5 @@
 <template>
-  <el-container v-if="tenant" class="flex-col">
+  <el-container v-if="currentTenant && isAuthenticated" class="flex-col">
     <el-container style="height: calc(100vh - 60px); margin-top: 60px;">
       <!-- App menu -->
       <app-lf-menu />
@@ -18,8 +18,6 @@
 import { mapActions, mapGetters } from 'vuex';
 import AppLfMenu from '@/modules/lf/layout/components/lf-menu.vue';
 import AppLfBanners from '@/modules/lf/layout/components/lf-banners.vue';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { storeToRefs } from 'pinia';
 
 export default {
   name: 'AppLayout',
@@ -29,15 +27,10 @@ export default {
     AppLfBanners,
   },
 
-  setup() {
-    const authStore = useAuthStore();
-    const { token, tenant } = storeToRefs(authStore);
-
-    return { tenant, token };
-  },
-
   computed: {
     ...mapGetters({
+      currentTenant: 'auth/currentTenant',
+      isAuthenticated: 'auth/isAuthenticated',
       menu: 'layout/menuCollapsed',
     }),
   },

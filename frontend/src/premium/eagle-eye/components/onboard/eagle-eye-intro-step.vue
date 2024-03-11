@@ -41,18 +41,16 @@
 import { defineEmits, computed } from 'vue';
 import { pageContent } from '@/modules/layout/layout-page-content';
 import { EagleEyePermissions } from '@/premium/eagle-eye/eagle-eye-permissions';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { storeToRefs } from 'pinia';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
 
 const emit = defineEmits(['onStepChange']);
 
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
+const { currentUser, currentTenant } = mapGetters('auth');
 
 const hasPermissionToCreateContent = computed(
   () => new EagleEyePermissions(
-    tenant.value,
-    user.value,
+    currentTenant.value,
+    currentUser.value,
   ).create,
 );
 </script>

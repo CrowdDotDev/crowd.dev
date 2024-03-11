@@ -28,7 +28,7 @@
 
 <script>
 import Message from '@/shared/message/message';
-import { AuthService } from '@/modules/auth/services/auth.service';
+import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
 
 export default {
   name: 'AppReportTemplateDropdown',
@@ -46,7 +46,7 @@ export default {
       return null;
     },
     async copyToClipboard(value) {
-      const tenantId = AuthService.getTenantId();
+      const tenantId = AuthCurrentTenant.get();
       const url = `${window.location.origin}/tenant/${tenantId}/reports/${value}/public`;
       await navigator.clipboard.writeText(url);
       Message.success(

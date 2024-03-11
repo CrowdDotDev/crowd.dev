@@ -271,13 +271,13 @@ import AppCommunityEngagementLevel from '@/modules/member/components/member-enga
 import AppTags from '@/modules/tag/components/tag-list.vue';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
 import { MemberPermissions } from '@/modules/member/member-permissions';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import memberOrder from '@/shared/modules/identities/config/identitiesOrder/member';
 import AppIdentitiesVerticalListMembers from '@/shared/modules/identities/components/identities-vertical-list-members.vue';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import AppSvg from '@/shared/svg/svg.vue';
 import { getAttributeSourceName } from '@/shared/helpers/attribute.helpers';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
 
 const props = defineProps({
   member: {
@@ -313,14 +313,13 @@ const props = defineProps({
 
 const emit = defineEmits(['makePrimary', 'bioHeight']);
 
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
+const { currentTenant, currentUser } = mapGetters('auth');
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const isEditLockedForSampleData = computed(
-  () => new MemberPermissions(tenant.value, user.value)
+  () => new MemberPermissions(currentTenant.value, currentUser.value)
     .editLockedForSampleData,
 );
 

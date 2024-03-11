@@ -130,16 +130,14 @@ import { ref, computed } from 'vue';
 import platformOptions from '@/premium/eagle-eye/constants/eagle-eye-platforms.json';
 import AppEagleEyeEmailDigestCard from '@/premium/eagle-eye/components/list/eagle-eye-email-digest-card.vue';
 import AppEagleEyeSettingsDrawer from '@/premium/eagle-eye/components/list/eagle-eye-settings-drawer.vue';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { EagleEyePermissions } from '@/premium/eagle-eye/eagle-eye-permissions';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { storeToRefs } from 'pinia';
 
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
+const { currentUser, currentTenant } = mapGetters('auth');
 
 const eagleEyeSettings = computed(
-  () => user?.value?.tenants.find(
-    (tu) => tu.tenantId === tenant?.value.id,
+  () => currentUser?.value?.tenants.find(
+    (tu) => tu.tenantId === currentTenant?.value.id,
   )?.settings.eagleEye,
 );
 
@@ -170,8 +168,8 @@ const aiRepliesEnabled = computed(() => eagleEyeSettings.value?.aiReplies);
 
 const hasPermissionToEditContent = computed(
   () => new EagleEyePermissions(
-    tenant.value,
-    user.value,
+    currentTenant.value,
+    currentUser.value,
   ).edit,
 );
 </script>

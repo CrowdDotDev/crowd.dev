@@ -44,8 +44,7 @@ import {
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { NoteService } from '@/modules/notes/note-service';
 import Message from '@/shared/message/message';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { storeToRefs } from 'pinia';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { NotePermissions } from '../note-permissions';
 
 const emit = defineEmits(['edit', 'reload']);
@@ -59,16 +58,14 @@ const props = defineProps({
 
 const dropdownVisible = ref(false);
 
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
-
+const { currentTenant, currentUser } = mapGetters('auth');
 const isEditLockedForSampleData = computed(() => new NotePermissions(
-  tenant.value,
-  user.value,
+  currentTenant.value,
+  currentUser.value,
 ).editLockedForSampleData);
 const isDeleteLockedForSampleData = computed(() => new NotePermissions(
-  tenant.value,
-  user.value,
+  currentTenant.value,
+  currentUser.value,
 ).destroyLockedForSampleData);
 
 const doDestroyWithConfirm = () => {

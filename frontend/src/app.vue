@@ -2,9 +2,17 @@
   <div id="app">
     <div class="sm:hidden md:block lg:block xl:block">
       <lfx-header-v2 v-if="showLfxMenu" id="lfx-header" product="Community Management" />
-      <router-view v-slot="{ Component }">
+      <div v-if="loading" class="flex items-center bg-white h-screen w-screen justify-center">
+        <div
+          v-loading="true"
+          class="app-page-spinner h-20 w-20 !relative !min-h-20 custom"
+        />
+      </div>
+      <router-view v-show="!loading" v-slot="{ Component }">
         <transition>
-          <component :is="Component" v-if="Component" />
+          <div>
+            <component :is="Component" />
+          </div>
         </transition>
       </router-view>
 
@@ -18,17 +26,17 @@
 </template>
 
 <script>
-import { mapActions, mapState } from 'vuex';
+import { mapGetters, mapActions, mapState } from 'vuex';
 import AppResizePage from '@/modules/layout/pages/resize-page.vue';
 import { FeatureFlag } from '@/utils/featureFlag';
 import config from '@/config';
-import { Auth0Service } from '@/modules/auth/services/auth0.service';
-import { mapActions as piniaMapActions, storeToRefs } from 'pinia';
+import { AuthToken } from '@/modules/auth/auth-token';
+import { Auth0Service } from '@/shared/services/auth0.service';
+import identify from '@/shared/monitoring/identify';
+import { mapActions as piniaMapActions } from 'pinia';
 import { useActivityStore } from '@/modules/activity/store/pinia';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
 import { TenantService } from '@/modules/tenant/tenant-service';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { AuthService } from '@/modules/auth/services/auth.service';
 
 export default {
   name: 'App',
@@ -37,20 +45,18 @@ export default {
     AppResizePage,
   },
 
-  setup() {
-    const authStore = useAuthStore();
-    const { init } = authStore;
-    const { tenant } = storeToRefs(authStore);
-    return { init, tenant };
-  },
-
   computed: {
+    ...mapGetters({
+      currentTenant: 'auth/currentTenant',
+      isAuthenticated: 'auth/isAuthenticated',
+      currentUser: 'auth/currentUser',
+    }),
     ...mapState({
       featureFlag: (state) => state.tenant.featureFlag,
     }),
     loading() {
       return (
-        !((this.isAuthenticated && !!AuthService.getToken())
+        !((this.isAuthenticated && !!AuthToken.get())
         || (!this.featureFlag.isReady
           && !this.featureFlag.hasError
           && !config.isCommunityVersion))
@@ -80,7 +86,14 @@ export default {
         }
       },
     },
-    tenant: {
+    currentUser: {
+      handler(user, oldUser) {
+        if (user?.id && user.id !== oldUser?.id) {
+          identify(user);
+        }
+      },
+    },
+    currentTenant: {
       handler(tenant, oldTenant) {
         if (tenant?.id && tenant.id !== oldTenant?.id) {
           this.fetchActivityTypes();
@@ -91,11 +104,10 @@ export default {
   },
 
   async created() {
-    FeatureFlag.init(this.tenant);
+    FeatureFlag.init(this.currentTenant);
 
     window.addEventListener('resize', this.handleResize);
     this.handleResize();
-    this.init();
   },
 
   unmounted() {

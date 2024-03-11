@@ -137,6 +137,7 @@
 
 <script setup>
 import { defineProps, computed, ref } from 'vue';
+import { useStore } from 'vuex';
 import moment from 'moment';
 import { formatDate } from '@/utils/date';
 
@@ -147,8 +148,8 @@ import { getAttributeSourceName } from '@/shared/helpers/attribute.helpers';
 import AppSvg from '@/shared/svg/svg.vue';
 import CrEnrichmentSneakPeak from '@/shared/modules/enrichment/components/enrichment-sneak-peak.vue';
 import CrEnrichmentSneakPeakContent from '@/shared/modules/enrichment/components/enrichment-sneak-peak-content.vue';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import Plans from '@/security/plans';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
 import AppMemberManageAttributesDrawer from '../../member-manage-attributes-drawer.vue';
 import AppMemberCustomAttributesArrayRenderer from './_aside-custom-attributes-array-renderer.vue';
 
@@ -159,18 +160,19 @@ const props = defineProps({
   },
 });
 
+const store = useStore();
+
 const memberStore = useMemberStore();
 const { customAttributes } = storeToRefs(memberStore);
 
 const attributesDrawer = ref(false);
 
-const authStore = useAuthStore();
-const { tenant, user } = storeToRefs(authStore);
-const isEnrichmentEnabled = computed(() => tenant.value.plan !== Plans.values.essential);
+const { currentTenant } = mapGetters('auth');
+const isEnrichmentEnabled = computed(() => currentTenant.value.plan !== Plans.values.essential);
 
 const isEditLockedForSampleData = computed(() => new MemberPermissions(
-  tenant.value,
-  user.value,
+  store.getters['auth/currentTenant'],
+  store.getters['auth/currentUser'],
 ).editLockedForSampleData);
 
 const hiddenAttributes = ref([

@@ -82,14 +82,12 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex';
+import { mapActions, mapGetters } from 'vuex';
 import Message from '@/shared/message/message';
-import { AuthService } from '@/modules/auth/services/auth.service';
+import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
 import { ReportPermissions } from '@/modules/report/report-permissions';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { ReportService } from '@/modules/report/report-service';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { storeToRefs } from 'pinia';
 
 export default {
   name: 'AppReportDropdown',
@@ -115,17 +113,16 @@ export default {
       default: true,
     },
   },
-  setup() {
-    const authStore = useAuthStore();
-    const { user, tenant } = storeToRefs(authStore);
-    return { user, tenant };
-  },
   computed: {
+    ...mapGetters({
+      currentTenant: 'auth/currentTenant',
+      currentUser: 'auth/currentUser',
+    }),
     isReadOnly() {
       return (
         new ReportPermissions(
-          this.tenant,
-          this.user,
+          this.currentTenant,
+          this.currentUser,
         ).edit === false
       );
     },
@@ -188,7 +185,7 @@ export default {
       });
     },
     async copyToClipboard() {
-      const tenantId = AuthService.getTenantId();
+      const tenantId = AuthCurrentTenant.get();
       const url = `${window.location.origin}/tenant/${tenantId}/reports/${this.report.segmentId}/${this.report.id}/public`;
       await navigator.clipboard.writeText(url);
       Message.success(

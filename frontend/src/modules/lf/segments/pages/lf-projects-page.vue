@@ -127,8 +127,8 @@ import AppLfProjectsTable from '@/modules/lf/segments/components/view/lf-project
 import AppLfSearchInput from '@/modules/lf/segments/components/view/lf-search-input.vue';
 import { storeToRefs } from 'pinia';
 import { LfPermissions } from '@/modules/lf/lf-permissions';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { hasAccessToSegmentId } from '@/utils/segments';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
 
 const route = useRoute();
 const lsSegmentsStore = useLfSegmentsStore();
@@ -152,20 +152,19 @@ const subProjectForm = reactive({
 const isProjectFormDrawerOpen = ref(false);
 const isSubProjectFormDrawerOpen = ref(false);
 
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
+const { currentTenant, currentUser } = mapGetters('auth');
 
 const loading = computed(() => projects.value.loading || loadingProjectGroup.value);
 const pagination = computed(() => projects.value.pagination);
 
 const hasPermissionToCreate = computed(() => new LfPermissions(
-  tenant.value,
-  user.value,
+  currentTenant.value,
+  currentUser.value,
 )?.createProject);
 
 const hasPermissionToEditProjectGroups = computed(() => new LfPermissions(
-  tenant.value,
-  user.value,
+  currentTenant.value,
+  currentUser.value,
 )?.editProjectGroup);
 
 onMounted(() => {

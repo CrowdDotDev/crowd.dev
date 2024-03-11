@@ -91,6 +91,9 @@ export default {
   },
   computed: {
     ...mapGetters('dashboard', ['period', 'platform', 'segments']),
+    ...mapGetters('auth', {
+      currentTenant: 'currentTenant',
+    }),
     ...mapGetters('integration', {
       activeIntegrations: 'activeList',
     }),

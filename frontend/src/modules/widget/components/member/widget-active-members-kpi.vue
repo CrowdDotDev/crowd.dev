@@ -17,7 +17,7 @@
             :title="widget.title"
           />
           <button
-            v-if="user"
+            v-if="currentUser"
             v-show="!isPublicView"
             type="button"
             class="btn btn-link btn-link--sm btn-link--primary"
@@ -99,8 +99,6 @@ import {
 import { MemberService } from '@/modules/member/member-service';
 import MEMBERS_REPORT, { ACTIVE_MEMBERS_KPI_WIDGET } from '@/modules/report/templates/config/members';
 import AppWidgetMembersTable from '@/modules/widget/components/shared/widget-members-table.vue';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { storeToRefs } from 'pinia';
 
 const props = defineProps({
   filters: {
@@ -113,8 +111,7 @@ const props = defineProps({
   },
 });
 
-const authStore = useAuthStore();
-const { user } = storeToRefs(authStore);
+const { currentUser } = mapGetters('auth');
 const { cubejsApi } = mapGetters('widget');
 const { doExport } = mapActions('member');
 

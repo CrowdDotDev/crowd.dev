@@ -1,11 +1,11 @@
 import axios from 'axios';
 import authAxios from '@/shared/axios/auth-axios';
-import { AuthService } from '@/modules/auth/services/auth.service';
+import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
 import config from '@/config';
 
 export class ReportService {
   static async update(id, data, segments) {
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.put(
       `/tenant/${tenantId}/report/${id}`,
@@ -19,7 +19,7 @@ export class ReportService {
   }
 
   static async duplicate(id, segments) {
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/report/${id}/duplicate`,
@@ -36,7 +36,7 @@ export class ReportService {
       ids,
     };
 
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.delete(
       `/tenant/${tenantId}/report`,
@@ -50,7 +50,7 @@ export class ReportService {
   }
 
   static async create(data) {
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/report`,
@@ -61,7 +61,7 @@ export class ReportService {
   }
 
   static async find(id, segments) {
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/report/${id}`,
@@ -99,7 +99,7 @@ export class ReportService {
       offset,
     };
 
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/report`,

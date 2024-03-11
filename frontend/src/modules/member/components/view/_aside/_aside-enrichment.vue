@@ -15,9 +15,8 @@
 <script setup lang="ts">
 import AppSvg from '@/shared/svg/svg.vue';
 import { computed } from 'vue';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import Plans from '@/security/plans';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { storeToRefs } from 'pinia';
 
 const props = defineProps({
   member: {
@@ -28,11 +27,10 @@ const props = defineProps({
 
 const emit = defineEmits<{(e: 'edit'): void}>();
 
-const authStore = useAuthStore();
-const { tenant } = storeToRefs(authStore);
+const { currentTenant } = mapGetters('auth');
 
 const displayEnrichment = computed(() => {
-  const hasAutomaticEnrichmentAvailable = [Plans.values.scale, Plans.values.enterprise].includes(tenant.value.plan);
+  const hasAutomaticEnrichmentAvailable = [Plans.values.scale, Plans.values.enterprise].includes(currentTenant.value.plan);
   const hasGithub = props.member.identities.includes('github');
   const hasEmail = props.member.emails.length > 0;
   return hasAutomaticEnrichmentAvailable && !hasGithub && !hasEmail;

@@ -45,8 +45,7 @@ const props = defineProps<{
 }>();
 
 const { rows } = mapGetters('tenant');
-const authStore = useAuthStore();
-const { tenant } = storeToRefs(authStore);
+const { currentTenant } = mapGetters('auth');
 
 const isPrimaryWorkspace = computed(() => {
   const tenants = rows.value;
@@ -56,7 +55,7 @@ const isPrimaryWorkspace = computed(() => {
       const currentTenantDate = new Date(tenant.createdAt);
       return oldestDate > currentTenantDate ? tenant : oldest;
     }, tenants[0]);
-    return oldestTenant.id === tenant.value.id;
+    return oldestTenant.id === currentTenant.value.id;
   }
   return false;
 });

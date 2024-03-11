@@ -155,6 +155,7 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex';
 import { mapState, storeToRefs } from 'pinia';
 import { toSentenceCase } from '@/utils/string';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
@@ -170,7 +171,6 @@ import Message from '@/shared/message/message';
 import config from '@/config';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { ConversationPermissions } from '../conversation-permissions';
 
 export default {
@@ -201,11 +201,6 @@ export default {
     },
   },
   emits: ['edit-title'],
-  setup() {
-    const authStore = useAuthStore();
-    const { user, tenant } = storeToRefs(authStore);
-    return { user, tenant };
-  },
   data() {
     return {
       sorter: 'all',
@@ -214,6 +209,10 @@ export default {
     };
   },
   computed: {
+    ...mapGetters({
+      currentTenant: 'auth/currentTenant',
+      currentUser: 'auth/currentUser',
+    }),
     ...mapState(useActivityTypeStore, {
       types: 'types',
     }),
@@ -239,8 +238,8 @@ export default {
     },
     isEditLockedForSampleData() {
       return new ConversationPermissions(
-        this.tenant,
-        this.user,
+        this.currentTenant,
+        this.currentUser,
       ).editLockedForSampleData;
     },
     conversationTypes() {

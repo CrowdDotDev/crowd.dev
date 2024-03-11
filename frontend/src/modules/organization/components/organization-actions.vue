@@ -66,6 +66,7 @@
 import {
   computed, onMounted, ref, watch,
 } from 'vue';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { useRoute, useRouter } from 'vue-router';
 import { OrganizationPermissions } from '@/modules/organization/organization-permissions';
 import AppOrganizationDropdown from '@/modules/organization/components/organization-dropdown.vue';
@@ -75,7 +76,6 @@ import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import { storeToRefs } from 'pinia';
 import AppOrganizationMergeSuggestionsDialog
   from '@/modules/organization/components/organization-merge-suggestions-dialog.vue';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
 
 const props = defineProps({
   organization: {
@@ -92,8 +92,7 @@ const router = useRouter();
 const organizationStore = useOrganizationStore();
 const { toMergeOrganizations } = storeToRefs(organizationStore);
 
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
+const { currentUser, currentTenant } = mapGetters('auth');
 
 const isMergeSuggestionsDialogOpen = ref(false);
 const isMergeDialogOpen = ref(null);
@@ -101,13 +100,13 @@ const mergeSuggestionsCount = ref(0);
 const organizationToMerge = ref(null);
 
 const isEditLockedForSampleData = computed(
-  () => new OrganizationPermissions(tenant.value, user.value)
+  () => new OrganizationPermissions(currentTenant.value, currentUser.value)
     .editLockedForSampleData,
 );
 
 const hasPermissionsToMerge = computed(() => new OrganizationPermissions(
-  tenant.value,
-  user.value,
+  currentTenant.value,
+  currentUser.value,
 )?.mergeOrganizations);
 
 watch(toMergeOrganizations.value, (updatedValue) => {

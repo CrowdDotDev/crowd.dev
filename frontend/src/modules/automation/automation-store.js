@@ -1,7 +1,6 @@
 import { AutomationService } from '@/modules/automation/automation-service';
 import Errors from '@/shared/error/errors';
 import Message from '@/shared/message/message';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
 
 const INITIAL_PAGE_SIZE = 20;
 
@@ -408,7 +407,6 @@ export default {
     },
     async doCreate({ commit, dispatch }, automation) {
       try {
-        const { getUser } = useAuthStore();
         commit('CREATE_STARTED');
 
         const response = await AutomationService.create(
@@ -417,7 +415,10 @@ export default {
 
         commit('CREATE_SUCCESS', response);
 
-        await getUser();
+        // Make sure that feature flags are updated for automationsCount
+        await dispatch('auth/doRefreshCurrentUser', null, {
+          root: true,
+        });
 
         Message.success('Automation created successfully');
       } catch (error) {
@@ -431,7 +432,6 @@ export default {
       automationId,
     ) {
       try {
-        const { getUser } = useAuthStore();
         commit('DESTROY_STARTED');
 
         await AutomationService.destroy(automationId);
@@ -439,7 +439,9 @@ export default {
         commit('DESTROY_SUCCESS', automationId);
 
         // Make sure that feature flags are updated for automationsCount
-        await getUser();
+        await dispatch('auth/doRefreshCurrentUser', null, {
+          root: true,
+        });
 
         dispatch(
           'automation/doFetch',
@@ -460,7 +462,6 @@ export default {
       automationIds,
     ) {
       try {
-        const { getUser } = useAuthStore();
         commit('DESTROY_ALL_STARTED');
 
         await AutomationService.destroyAll(automationIds);
@@ -468,7 +469,9 @@ export default {
         commit('DESTROY_ALL_SUCCESS', automationIds);
 
         // Make sure that feature flags are updated for automationsCount
-        await getUser();
+        await dispatch('auth/doRefreshCurrentUser', null, {
+          root: true,
+        });
 
         dispatch(
           'automation/doFetch',

@@ -77,13 +77,12 @@ import {
   computed, onMounted, ref, watch,
 } from 'vue';
 import { MemberPermissions } from '@/modules/member/member-permissions';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { useRouter } from 'vue-router';
 import AppMemberFindGithubDrawer from '@/modules/member/components/member-find-github-drawer.vue';
 import AppMemberMergeDialog from '@/modules/member/components/member-merge-dialog.vue';
 import { MemberService } from '@/modules/member/member-service';
 import AppMemberMergeSuggestionsDialog from '@/modules/member/components/member-merge-suggestions-dialog.vue';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { storeToRefs } from 'pinia';
 
 const props = defineProps({
   member: {
@@ -96,8 +95,7 @@ const emit = defineEmits(['unmerge']);
 
 const router = useRouter();
 
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
+const { currentUser, currentTenant } = mapGetters('auth');
 
 const isMergeDialogOpen = ref(null);
 const isMergeSuggestionsDialogOpen = ref(false);
@@ -105,13 +103,13 @@ const isFindGithubDrawerOpen = ref(null);
 const mergeSuggestionsCount = ref(0);
 
 const isEditLockedForSampleData = computed(
-  () => new MemberPermissions(tenant.value, user.value)
+  () => new MemberPermissions(currentTenant.value, currentUser.value)
     .editLockedForSampleData,
 );
 
 const hasPermissionsToMerge = computed(() => new MemberPermissions(
-  tenant.value,
-  user.value,
+  currentTenant.value,
+  currentUser.value,
 )?.mergeMembers);
 
 const fetchMembersToMergeCount = () => {

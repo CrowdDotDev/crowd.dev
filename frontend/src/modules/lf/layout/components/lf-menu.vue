@@ -266,13 +266,10 @@ import { useMemberStore } from '@/modules/member/store/pinia';
 import allContacts from '@/modules/member/config/saved-views/views/all-contacts';
 import allOrganizations from '@/modules/organization/config/saved-views/views/all-organizations';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
 
 const store = useStore();
 
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
-
+const { currentTenant, currentUser } = mapGetters('auth');
 const { menuCollapsed: isCollapsed } = mapGetters('layout');
 
 const { fetchActivityTypes } = useActivityTypeStore();
@@ -328,23 +325,23 @@ const classFor = (path, exact = false, disabled = false) => {
 
 const hasPermissionToEagleEye = computed(
   () => new EagleEyePermissions(
-    tenant.value,
-    user.value,
+    currentTenant.value,
+    currentUser.value,
   ).read,
 );
 
 const isEagleEyeLocked = computed(
   () => new EagleEyePermissions(
-    tenant.value,
-    user.value,
+    currentTenant.value,
+    currentUser.value,
   ).lockedForCurrentPlan,
 );
 
 const hasPermissionToAccessAdminPanel = computed(
   () => {
     const lfPermissions = new LfPermissions(
-      tenant.value,
-      user.value,
+      currentTenant.value,
+      currentUser.value,
     );
 
     return lfPermissions.createProjectGroup || lfPermissions.editProjectGroup;

@@ -9,8 +9,7 @@ import authGuards from '@/middleware/auth';
 import modules from '@/modules';
 import ProgressBar from '@/shared/progress-bar/progress-bar';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import { AuthService } from '@/modules/auth/services/auth.service';
-import auth from '@/modules/auth';
+import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
 
 /**
  * Loads all the routes from src/modules/ folders, and adds the catch-all rule to handle 404s
@@ -18,7 +17,6 @@ import auth from '@/modules/auth';
  * @type {[...*,{redirect: string, path: string}]}
  */
 const routes = [
-  ...auth.routes,
   ...Object.keys(modules)
     .filter((key) => Boolean(modules[key].routes))
     .map((key) => modules[key].routes.map((r) => {
@@ -36,7 +34,6 @@ const routes = [
   },
   { path: '/:catchAll(.*)', redirect: '/404' },
 ];
-
 // eslint-disable-next-line import/no-mutable-exports
 let router;
 
@@ -111,7 +108,7 @@ export const createRouter = () => {
             return;
           }
 
-          if (!selectedProjectGroup.value && AuthService.getTenantId()) {
+          if (!selectedProjectGroup.value && AuthCurrentTenant.get()) {
             try {
               await listProjectGroups({
                 limit: null,

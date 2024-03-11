@@ -74,10 +74,8 @@ import {
   defineEmits,
 } from 'vue';
 import Message from '@/shared/message/message';
-import { AuthService } from '@/modules/auth/services/auth.service';
-import { mapActions } from '@/shared/vuex/vuex.helpers';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { storeToRefs } from 'pinia';
+import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
+import { mapActions, mapGetters } from '@/shared/vuex/vuex.helpers';
 import { ReportPermissions } from '../report-permissions';
 
 const emit = defineEmits(['update:modelValue']);
@@ -96,8 +94,7 @@ const props = defineProps({
   },
 });
 
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
+const { currentTenant, currentUser } = mapGetters('auth');
 
 const open = ref(false);
 
@@ -113,7 +110,7 @@ const model = computed({
 });
 
 const computedPublicLink = computed(() => {
-  const tenantId = AuthService.getTenantId();
+  const tenantId = AuthCurrentTenant.get();
 
   return `${window.location.origin}/tenant/${tenantId}/reports/${props.segmentId}/${props.id}/public`;
 });
@@ -142,8 +139,8 @@ const handlePublicChange = async (value) => {
 
 const hasPermissionToEditReport = computed(
   () => new ReportPermissions(
-    tenant.value,
-    user.value,
+    currentTenant.value,
+    currentUser.value,
   ).edit,
 );
 </script>

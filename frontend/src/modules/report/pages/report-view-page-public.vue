@@ -19,10 +19,10 @@
         >
           <div class="mb-6 mt-4 w-full">
             <div
-              v-if="tenant.name"
+              v-if="currentTenant.name"
               class="font-medium text-brand-500 text-sm mb-2"
             >
-              {{ tenant.name }}
+              {{ currentTenant.name }}
             </div>
             <div class="flex items-center justify-between">
               <h1 class="text-lg font-semibold">
@@ -177,6 +177,7 @@
 <script>
 import { mapState, mapGetters, mapActions } from 'vuex';
 import ReportGridLayout from '@/modules/report/components/report-grid-layout.vue';
+import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
 import { TenantService } from '@/modules/tenant/tenant-service';
 import AppReportTemplateFilters from '@/modules/report/components/templates/report-template-filters.vue';
 import ActivityPlatformField from '@/modules/activity/activity-platform-field';
@@ -186,7 +187,6 @@ import ACTIVITIES_REPORT from '@/modules/report/templates/config/activities';
 import templates from '@/modules/report/templates/config';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import { AuthService } from '@/modules/auth/services/auth.service';
 
 const platformField = new ActivityPlatformField(
   'activeOn',
@@ -226,7 +226,7 @@ export default {
   data() {
     return {
       loading: false,
-      tenant: null,
+      currentTenant: null,
       platform: initialPlatformValue,
       teamMembers: false,
       teamActivities: false,
@@ -287,14 +287,14 @@ export default {
   async created() {
     this.loading = true;
     if (this.tenantId) {
-      AuthService.setTenant(this.tenantId);
+      await AuthCurrentTenant.set({ id: this.tenantId });
       await this.doFindPublic({
         id: this.id,
         tenantId: this.tenantId,
         excludeSegments: !this.segmentId,
         segments: [this.segmentId],
       });
-      this.tenant = await TenantService.findName(
+      this.currentTenant = await TenantService.findName(
         this.tenantId,
       );
     } else {

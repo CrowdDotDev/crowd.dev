@@ -1,5 +1,5 @@
 import authAxios from '@/shared/axios/auth-axios';
-import { AuthService } from '@/modules/auth/services/auth.service';
+import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
 import { router } from '@/router';
 
 const getSegments = () => ({ segments: [router.currentRoute.value.params.id] });
@@ -11,7 +11,7 @@ export class IntegrationService {
       ...getSegments(),
     };
 
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.put(
       `/tenant/${tenantId}/integration/${id}`,
@@ -27,7 +27,7 @@ export class IntegrationService {
       ...getSegments(),
     };
 
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.delete(`/tenant/${tenantId}/integration`, {
       params,
@@ -42,7 +42,7 @@ export class IntegrationService {
       ...getSegments(),
     };
 
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/integration`,
@@ -53,7 +53,7 @@ export class IntegrationService {
   }
 
   static async find(id) {
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/integration/${id}`,
@@ -74,7 +74,7 @@ export class IntegrationService {
       ...(segments.length ? { segments } : getSegments()),
     };
 
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.post(`/tenant/${tenantId}/integration/query`, body);
 
@@ -83,7 +83,7 @@ export class IntegrationService {
 
   static async devtoConnect(users, organizations, apiKey) {
     // Getting the tenant_id
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     // Calling connect devto function in the backend.
     const response = await authAxios.post(`/tenant/${tenantId}/devto-connect`, {
@@ -97,7 +97,7 @@ export class IntegrationService {
   }
 
   static async devtoValidateAPIKey(apiKey) {
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.get(`/tenant/${tenantId}/devto-validate`, {
       params: {
@@ -111,7 +111,7 @@ export class IntegrationService {
 
   static async hackerNewsConnect(keywords, urls) {
     // Getting the tenant_id
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     // Calling connect devto function in the backend.
     const response = await authAxios.post(
@@ -135,7 +135,7 @@ export class IntegrationService {
       ...getSegments(),
     };
     // Getting the tenant_id
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
     // Calling the authenticate function in the backend.
     const response = await authAxios.put(
       `/authenticate/${tenantId}/${code}`,
@@ -145,7 +145,7 @@ export class IntegrationService {
   }
 
   static async githubMapRepos(integrationId, mapping, segments) {
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
     const response = await authAxios.put(
       `/tenant/${tenantId}/integration/${integrationId}/github/repos`,
       {
@@ -157,7 +157,7 @@ export class IntegrationService {
   }
 
   static async fetchGitHubMappings(integration) {
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
     const response = await authAxios.get(
       `/tenant/${tenantId}/integration/${integration.id}/github/repos`,
       {
@@ -177,14 +177,14 @@ export class IntegrationService {
       ...getSegments(),
     };
     // Getting the tenant_id
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
     // Calling the authenticate function in the backend.
     const response = await authAxios.put(`/reddit-onboard/${tenantId}`, body);
     return response.data;
   }
 
   static async linkedinConnect() {
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
     const response = await authAxios.put(
       `/linkedin-connect/${tenantId}`,
       getSegments(),
@@ -199,7 +199,7 @@ export class IntegrationService {
       ...getSegments(),
     };
 
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.post(
       `/linkedin-onboard/${tenantId}`,
@@ -211,7 +211,7 @@ export class IntegrationService {
 
   static async discordConnect(guildId) {
     // Getting the tenant_id
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
     // Calling the authenticate function in the backend.
     const response = await authAxios.put(
       `/discord-authenticate/${tenantId}/${guildId}`,
@@ -221,7 +221,7 @@ export class IntegrationService {
   }
 
   static async devtoValidateUser(username, apiKey) {
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.get(`/tenant/${tenantId}/devto-validate`, {
       params: {
@@ -235,7 +235,7 @@ export class IntegrationService {
   }
 
   static async devtoValidateOrganization(organization, apiKey) {
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.get(`/tenant/${tenantId}/devto-validate`, {
       params: {
@@ -249,7 +249,7 @@ export class IntegrationService {
   }
 
   static async redditValidate(subreddit) {
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/reddit-validate`,
@@ -265,7 +265,7 @@ export class IntegrationService {
   }
 
   static async stackOverflowValidate(tag) {
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/stackoverflow-validate`,
@@ -281,7 +281,7 @@ export class IntegrationService {
   }
 
   static async stackOverflowVolume(keywords) {
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/stackoverflow-volume`,
@@ -298,7 +298,7 @@ export class IntegrationService {
 
   static async stackOverflowOnboard(tags, keywords) {
     // Getting the tenant_id
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
     // Calling the authenticate function in the backend.
     const response = await authAxios.post(
       `/tenant/${tenantId}/stackoverflow-connect`,
@@ -314,7 +314,7 @@ export class IntegrationService {
 
   static async hubspotConnect() {
     // Getting the tenant_id
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
     // Calling the authenticate function in the backend.
     const response = await authAxios.post(
       `/tenant/${tenantId}/hubspot-connect`,
@@ -326,7 +326,7 @@ export class IntegrationService {
   }
 
   static async gitConnect(remotes) {
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.put(`/tenant/${tenantId}/git-connect`, {
       remotes,
@@ -337,7 +337,7 @@ export class IntegrationService {
   }
 
   static async confluenceConnect(settings) {
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
     const response = await authAxios.put(`/tenant/${tenantId}/confluence-connect`, {
       settings,
       ...getSegments(),
@@ -347,7 +347,7 @@ export class IntegrationService {
   }
 
   static async gerritConnect(remote) {
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
     const response = await authAxios.put(`/tenant/${tenantId}/gerrit-connect`, {
       remote,
       ...getSegments(),
@@ -357,7 +357,7 @@ export class IntegrationService {
   }
 
   static async discourseValidateAPI(forumHostname, apiKey) {
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/discourse-validate`,
@@ -373,7 +373,7 @@ export class IntegrationService {
   }
 
   static async discourseConnect(forumHostname, apiKey, webhookSecret) {
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/discourse-connect`,
@@ -390,7 +390,7 @@ export class IntegrationService {
   }
 
   static async discourseSoftConnect(forumHostname, apiKey, webhookSecret) {
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/discourse-soft-connect`,
@@ -406,7 +406,7 @@ export class IntegrationService {
   }
 
   static async discourseVerifyWebhook(integrationId) {
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/discourse-test-webhook`,
@@ -419,7 +419,7 @@ export class IntegrationService {
   }
 
   static async groupsioConnect(email, token, tokenExpiry, password, groupNames) {
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/groupsio-connect`,
@@ -437,7 +437,7 @@ export class IntegrationService {
   }
 
   static async groupsioGetToken(email, password, twoFactorCode = null) {
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/groupsio-get-token`,
@@ -453,7 +453,7 @@ export class IntegrationService {
   }
 
   static async groupsioVerifyGroup(groupName, cookie) {
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/groupsio-verify-group`,

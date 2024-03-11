@@ -25,7 +25,7 @@ import Nango from '@nangohq/frontend';
 import { useStore } from 'vuex';
 import { useThrottleFn } from '@vueuse/core';
 import config from '@/config';
-import { AuthService } from '@/modules/auth/services/auth.service';
+import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
 import { FeatureFlag } from '@/utils/featureFlag';
 import AppLinkedinSettingsDrawer from '@/integrations/linkedin/components/linkedin-settings-drawer.vue';
 
@@ -38,7 +38,7 @@ const props = defineProps({
   },
 });
 
-const tenantId = computed(() => AuthService.getTenantId());
+const tenantId = computed(() => AuthCurrentTenant.get());
 
 const callOnboard = useThrottleFn(async () => {
   await store.dispatch('integration/doLinkedinConnect');

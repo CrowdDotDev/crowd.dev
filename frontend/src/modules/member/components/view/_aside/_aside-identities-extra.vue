@@ -65,8 +65,7 @@ import {
   computed, ref,
 } from 'vue';
 import { MemberPermissions } from '@/modules/member/member-permissions';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { storeToRefs } from 'pinia';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
 
 const emit = defineEmits(['edit']);
 const props = defineProps<{
@@ -76,8 +75,7 @@ const props = defineProps<{
   }[],
 }>();
 
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
+const { currentTenant, currentUser } = mapGetters('auth');
 
 const displayMore = ref(false);
 const emailRef = ref<Element[]>([]);
@@ -102,7 +100,7 @@ const emails = computed(() => {
 });
 
 const isEditLockedForSampleData = computed(() => new MemberPermissions(
-  tenant.value,
-  user.value,
+  currentTenant.value,
+  currentUser.value,
 ).editLockedForSampleData);
 </script>

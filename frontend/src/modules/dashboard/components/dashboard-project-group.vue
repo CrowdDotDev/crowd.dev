@@ -63,10 +63,10 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import isUrl from '@/utils/isUrl';
 import { ref, computed, onMounted } from 'vue';
 import { LfPermissions } from '@/modules/lf/lf-permissions';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { hasAccessToProjectGroup } from '@/utils/segments';
 import { PermissionChecker } from '@/modules/user/permission-checker';
 import Roles from '@/security/roles';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
 import AppDashboardProjectGroupDrawer from './dashboard-project-group-drawer.vue';
 
 const lsSegmentsStore = useLfSegmentsStore();
@@ -76,20 +76,19 @@ const isDrawerOpen = ref(false);
 
 const loading = ref(true);
 
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
+const { currentTenant, currentUser } = mapGetters('auth');
 
 const hasPermissionToEditProject = computed(
   () => new LfPermissions(
-    tenant.value,
-    user.value,
+    currentTenant.value,
+    currentUser.value,
   ).editProject,
 );
 
 const isProjectAdminUser = computed(() => {
   const permissionChecker = new PermissionChecker(
-    tenant.value,
-    user.value,
+    currentTenant.value,
+    currentUser.value,
   );
 
   return permissionChecker.currentUserRolesIds.includes(Roles.values.projectAdmin);

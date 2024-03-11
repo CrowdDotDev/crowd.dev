@@ -1,4 +1,5 @@
 import io from 'socket.io-client';
+import { computed, h } from 'vue';
 import pluralize from 'pluralize';
 import config from '@/config';
 import { store } from '@/store';
@@ -8,14 +9,13 @@ import {
   getEnrichmentMax,
 } from '@/modules/member/member-enrichment';
 import { useMemberStore } from '@/modules/member/store/pinia';
+import { router } from '@/router';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import useOrganizationMergeMessage from '@/shared/modules/merge/config/useOrganizationMergeMessage';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';
-import { h } from 'vue';
 
-let socketIoClient: any;
+let socketIoClient;
 
 const SocketEvents = {
   connect: 'connect',
@@ -28,15 +28,16 @@ const SocketEvents = {
   organizationUnmerge: 'organization-unmerge',
 };
 
-export const isSocketConnected = () => socketIoClient && socketIoClient.connected;
-
 export const connectSocket = (token) => {
-  const authStore = useAuthStore();
-  const { user, tenant } = storeToRefs(authStore);
-  const { getUser } = authStore;
   if (socketIoClient && socketIoClient.connected) {
     socketIoClient.disconnect();
   }
+  const currentTenant = computed(
+    () => store.getters['auth/currentTenant'],
+  );
+  const currentUser = computed(
+    () => store.getters['auth/currentUser'],
+  );
 
   const path = config.env === 'production' || config.env === 'staging'
     ? '/api/socket.io'
@@ -91,7 +92,7 @@ export const connectSocket = (token) => {
     const primaryMember = h(
       'a',
       {
-        href: `${window.location.origin}/members/${primaryId}?projectGroup=${selectedProjectGroup.value?.id}`,
+        href: `${window.location.origin}/members/${primaryId}?projectGroup=${selectedProjectGroup.value.id}`,
         class: 'underline text-gray-600',
       },
       primaryDisplayName,
@@ -99,7 +100,7 @@ export const connectSocket = (token) => {
     const secondaryMember = h(
       'a',
       {
-        href: `${window.location.origin}/members/${secondaryId}?projectGroup=${selectedProjectGroup.value?.id}`,
+        href: `${window.location.origin}/members/${secondaryId}?projectGroup=${selectedProjectGroup.value.id}`,
         class: 'underline text-gray-600',
       },
       secondaryDisplayName,
@@ -136,14 +137,14 @@ export const connectSocket = (token) => {
       primaryDisplayName, secondaryDisplayName, primaryId, secondaryId, tenantId, userId,
     } = parsedData;
 
-    if (tenant.value.id !== tenantId || user.value.id !== userId) {
+    if (currentTenant.value.id !== tenantId || currentUser.value.id !== userId) {
       return;
     }
 
     const primaryOrganization = h(
       'a',
       {
-        href: `${window.location.origin}/organizations/${primaryId}?projectGroup=${selectedProjectGroup.value?.id}`,
+        href: `${window.location.origin}/organizations/${primaryId}?projectGroup=${selectedProjectGroup.value.id}`,
         class: 'underline text-gray-600',
       },
       primaryDisplayName,
@@ -151,7 +152,7 @@ export const connectSocket = (token) => {
     const secondaryOrganization = h(
       'a',
       {
-        href: `${window.location.origin}/organizations/${secondaryId}?projectGroup=${selectedProjectGroup.value?.id}`,
+        href: `${window.location.origin}/organizations/${secondaryId}?projectGroup=${selectedProjectGroup.value.id}`,
         class: 'underline text-gray-600',
       },
       secondaryDisplayName,
@@ -188,7 +189,7 @@ export const connectSocket = (token) => {
         parsed = JSON.parse(data);
       }
 
-      await getUser();
+      await store.dispatch('auth/doRefreshCurrentUser');
 
       Message.success(
         `Successfully upgraded to ${parsed.plan} plan`,
@@ -202,9 +203,9 @@ export const connectSocket = (token) => {
       parsed = JSON.parse(parsed);
     }
 
-    await getUser();
+    await store.dispatch('auth/doRefreshCurrentUser');
 
-    const updatedTenant = user.value.tenants.find(
+    const updatedTenant = currentUser.value.tenants.find(
       (tenant) => tenant.tenantId === parsed.tenantId,
     );
 
@@ -233,7 +234,7 @@ export const connectSocket = (token) => {
       });
 
       // Update members list if tenant hasn't changed
-      if (tenant.value.id === parsed.tenantId) {
+      if (currentTenant.value.id === parsed.tenantId) {
         // Refresh list page
         const { fetchMembers } = useMemberStore();
         await fetchMembers({ reload: true });
@@ -251,7 +252,7 @@ export const connectSocket = (token) => {
       toMerge,
     } = JSON.parse(payload);
 
-    if (tenant.value.id !== tenantId || user.value.id !== userId) {
+    if (currentTenant.value.id !== tenantId || currentUser.value.id !== userId) {
       return;
     }
 
