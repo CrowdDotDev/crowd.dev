@@ -167,9 +167,6 @@ export class OrganizationService {
               textContains: query,
             },
           },
-          ...(grandParentSegment && {
-            grandParentSegment,
-          }),
         ],
       },
       offset: 0,
@@ -182,6 +179,14 @@ export class OrganizationService {
         excludeSegments,
       }),
     };
+
+    if (grandParentSegment) {
+      payload.filter.and.push({
+        grandParentSegment: {
+          eq: grandParentSegment,
+        },
+      });
+    }
 
     const sampleTenant = AuthCurrentTenant.getSampleTenantData();
     const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
