@@ -1730,6 +1730,9 @@ importers:
       uuid:
         specifier: ^9.0.1
         version: 9.0.1
+      validator:
+        specifier: ^13.7.0
+        version: 13.11.0
     devDependencies:
       sequelize:
         specifier: 6.21.2

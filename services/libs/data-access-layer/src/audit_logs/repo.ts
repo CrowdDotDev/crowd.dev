@@ -1,3 +1,4 @@
+import validator from 'validator'
 import { DbConnection } from '@crowd/database'
 import { QueryExecutor } from '../queryExecutor'
 
@@ -104,10 +105,16 @@ export async function queryAuditLogs(qx: QueryExecutor, { limit, offset, filter 
   let where = ''
 
   if (filter?.entityId) {
+    if (!validator.isUUID(filter?.entityId)) {
+      return []
+    }
     where += ` AND a."entityId" = $(entityId)`
   }
 
   if (filter?.userId) {
+    if (!validator.isUUID(filter?.userId)) {
+      return []
+    }
     where += ` AND a."userId" = $(userId)`
   }
 

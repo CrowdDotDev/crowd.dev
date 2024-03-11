@@ -18,7 +18,8 @@
     "lodash.clonedeep": "^4.5.0",
     "lodash.merge": "^4.6.2",
     "pg-promise": "^11.4.3",
-    "uuid": "^9.0.1"
+    "uuid": "^9.0.1",
+    "validator": "^13.7.0"
   },
   "devDependencies": {
     "sequelize": "6.21.2"
