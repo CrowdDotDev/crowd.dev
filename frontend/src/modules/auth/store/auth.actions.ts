@@ -22,7 +22,6 @@ export default {
           this.silentLogin();
         }
       });
-    this.setLfxHeader();
   },
   setLfxHeader() {
     const lfxHeader = document.getElementById('lfx-header');
@@ -73,6 +72,7 @@ export default {
           () => [this.user, this.tenant],
           ([newUser, newTenant]) => {
             if (newUser && newTenant) {
+              this.setLfxHeader();
               resolve();
               stopWatcher();
             }
@@ -94,12 +94,12 @@ export default {
     if (!isSocketConnected()) {
       connectSocket(t);
     }
-    this.setLfxHeader();
     AuthService.setToken(t);
     return AuthApiService.fetchMe()
       .then((user) => {
         this.user = user;
         identify(user);
+        this.setLfxHeader();
         const [tenantUser] = user.tenants;
         if (tenantUser && tenantUser.tenant) {
           this.tenant = tenantUser.tenant;
