@@ -22,14 +22,17 @@ export default {
           this.silentLogin();
         }
       });
+    this.setLfxHeader();
   },
   setLfxHeader() {
     const lfxHeader = document.getElementById('lfx-header');
+    console.log('setting lfx', lfxHeader);
     if (!lfxHeader || lfxHeader.authuser) {
       return;
     }
     Auth0Service.getUser()
       .then((user) => {
+        console.log(user);
         lfxHeader.authuser = user;
       });
   },
@@ -49,7 +52,7 @@ export default {
       });
   },
   handleLocalAuth() {
-    if (config.env === 'production') {
+    if (config.env !== 'production') {
       return Promise.reject();
     }
     const storedToken = AuthService.getToken();
