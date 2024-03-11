@@ -29,10 +29,8 @@ export default {
     if (!lfxHeader || lfxHeader.authuser) {
       return;
     }
-    Auth0Service.isAuthenticated()
-      .then(() => Auth0Service.getUser())
+    Auth0Service.getUser()
       .then((user) => {
-        console.log(user);
         lfxHeader.authuser = user;
       });
   },
@@ -52,8 +50,7 @@ export default {
       });
   },
   handleLocalAuth() {
-    console.log(config.env);
-    if (config.env === 'production') {
+    if (['production', 'staging'].includes(config.env)) {
       return Promise.reject();
     }
     const storedToken = AuthService.getToken();
