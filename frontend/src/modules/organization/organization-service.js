@@ -161,9 +161,16 @@ export class OrganizationService {
   }) {
     const payload = {
       filter: {
-        displayName: {
-          textContains: query,
-        },
+        and: [
+          {
+            displayName: {
+              textContains: query,
+            },
+          },
+          ...(grandParentSegment && {
+            grandParentSegment,
+          }),
+        ],
       },
       offset: 0,
       orderBy: 'displayName_ASC',
@@ -173,9 +180,6 @@ export class OrganizationService {
       }),
       ...(excludeSegments && {
         excludeSegments,
-      }),
-      ...(grandParentSegment && {
-        grandParentSegment,
       }),
     };
 
