@@ -57,7 +57,7 @@ class Auth0ServiceClass {
   }
 
   public getUser() {
-    return this.webAuth.getUser().then((user) => user);
+    return this.webAuth.getUser();
   }
 }
 

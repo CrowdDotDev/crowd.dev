@@ -25,15 +25,17 @@ export default {
   },
   setLfxHeader() {
     const lfxHeader = document.getElementById('lfx-header');
-    console.log('setting lfx', lfxHeader);
     if (!lfxHeader || lfxHeader.authuser) {
       return;
     }
-    Auth0Service.getUser()
-      .then((user) => {
-        console.log(user);
-        lfxHeader.authuser = user;
-      });
+    setTimeout(() => {
+      Auth0Service.getUser()
+        .then((user) => {
+          console.log(user);
+          lfxHeader.authuser = user;
+        });
+    }, 3000)
+
   },
   silentLogin() {
     Auth0Service.getTokenSilently()
