@@ -1,8 +1,9 @@
 import { PermissionChecker } from '@/modules/user/permission-checker';
 import config from '@/config';
 import { tenantSubdomain } from '@/modules/tenant/tenant-subdomain';
-import { Auth0Service } from '@/shared/services/auth0.service';
-import { AuthToken } from '@/modules/auth/auth-token';
+import { Auth0Service } from '@/modules/auth/services/auth0.service';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
+import { storeToRefs } from 'pinia';
 
 function isGoingToIntegrationsPage(to) {
   return to.name === 'integration';
@@ -14,7 +15,7 @@ function isGoingToIntegrationsPage(to) {
  * This middleware runs before rendering any route that has meta.auth = true
  *
  * It uses the PermissionChecker to validate if:
- * - User is authenticated, and both currentTenant & currentUser exist within our store (if not, redirects to /auth/signup)
+ * - User is authenticated, and both tenant & ser exist within our store (if not, redirects to /auth/signup)
  * - Email of that user is verified (if not, redirects to /auth/email-unverified)
  * - User is onboarded (if not, redirects to /onboard)
  * - User has permissions (if not, redirects to /auth/empty-permissions)
@@ -25,55 +26,25 @@ function isGoingToIntegrationsPage(to) {
  * @returns {Promise<*>}
  */
 
-async function handleAuth(store) {
-  const storedToken = AuthToken.get();
-  if (storedToken) {
-    await store.dispatch('auth/doInit', storedToken);
-    await store.dispatch('auth/doAuthenticate');
-    return;
-  }
-
-  const params = new URLSearchParams(window.location.search);
-  const myJwt = params.get('my-jwt');
-  if (myJwt) {
-    AuthToken.set(myJwt, true);
-    await store.dispatch('auth/doInit', myJwt);
-    await store.dispatch('auth/doAuthenticate');
-    return;
-  }
-
-  await Auth0Service.init();
-}
-
 export default async function ({
-  to, from, store, router,
+  to, router,
 }) {
   if (!to.meta || !to.meta.auth) {
     return;
   }
-
-  if (!store.getters['auth/isAuthenticated']) {
-    if (config.env === 'production') {
-      await Auth0Service.init();
-    } else {
-      await handleAuth(store);
-    }
-  }
-
-  await store.dispatch('auth/doWaitUntilInit');
-
-  const currentUser = store.getters['auth/currentUser'];
+  const authStore = useAuthStore();
+  const { ensureLoaded } = authStore;
+  const { user, tenant } = storeToRefs(authStore);
+  await ensureLoaded();
 
   const permissionChecker = new PermissionChecker(
-    store.getters['auth/currentTenant'],
-    currentUser,
+    tenant.value,
+    user.value,
   );
 
-  // Temporary fix
   if (
     to.meta.permission
-    && (!permissionChecker.match(to.meta.permission)
-      || permissionChecker.lockedForSampleData(to.meta.permission))
+    && (!permissionChecker.match(to.meta.permission))
   ) {
     router.push('/403');
     return;

@@ -125,13 +125,13 @@ import { useStore } from 'vuex';
 import Nango from '@nangohq/frontend';
 import isEqual from 'lodash/isEqual';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
-import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
+import { AuthService } from '@/modules/auth/services/auth.service';
 import config from '@/config';
 import { IntegrationService } from '@/modules/integration/integration-service';
 
 const store = useStore();
 
-const tenantId = computed(() => AuthCurrentTenant.get());
+const tenantId = computed(() => AuthService.getTenantId());
 
 const props = defineProps({
   modelValue: {

@@ -36,14 +36,16 @@ import AppApiKeysPage from '@/modules/settings/pages/api-keys-page.vue';
 import AppAutomationList from '@/modules/automation/components/automation-list.vue';
 import { PermissionChecker } from '@/modules/user/permission-checker';
 import Roles from '@/security/roles';
-import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
+import { storeToRefs } from 'pinia';
 
 const route = useRoute();
 const router = useRouter();
 
 const activeTab = ref<string>();
 
-const { currentTenant, currentUser } = mapGetters('auth');
+const authStore = useAuthStore();
+const { user, tenant } = storeToRefs(authStore);
 
 const computedActiveTab = computed({
   get() {
@@ -59,8 +61,8 @@ const computedActiveTab = computed({
 
 const isAdminUser = computed(() => {
   const permissionChecker = new PermissionChecker(
-    currentTenant.value,
-    currentUser.value,
+    tenant.value,
+    user.value,
   );
 
   return permissionChecker.currentUserRolesIds.includes(Roles.values.admin);

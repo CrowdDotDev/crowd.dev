@@ -13,7 +13,7 @@
         </p>
       </div>
       <app-note-dropdown
-        v-if="props.note.createdById === currentUser.id"
+        v-if="props.note.createdById === user.id"
         :note="props.note"
         @edit="edit()"
         @reload="emit('reload')"
@@ -38,18 +38,16 @@
 
 <script setup>
 import {
-  defineProps,
   ref,
-  defineEmits,
-  defineExpose,
   nextTick,
   computed,
 } from 'vue';
-import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { formatDateToTimeAgo } from '@/utils/date';
 import AppAvatar from '@/shared/avatar/avatar.vue';
 import AppNoteDropdown from '@/modules/notes/components/note-dropdown.vue';
 import AppNoteEditor from '@/modules/notes/components/note-editor.vue';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
+import { storeToRefs } from 'pinia';
 
 const props = defineProps({
   note: {
@@ -60,7 +58,8 @@ const props = defineProps({
 
 const emit = defineEmits(['reload']);
 
-const { currentUser } = mapGetters('auth');
+const authStore = useAuthStore();
+const { user } = storeToRefs(authStore);
 
 const timeAgo = formatDateToTimeAgo;
 const editor = ref(null);

@@ -83,7 +83,6 @@
 
 <script setup>
 import isEqual from 'lodash/isEqual';
-import { useStore } from 'vuex';
 import {
   reactive,
   ref,
@@ -99,6 +98,7 @@ import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { useRoute, useRouter } from 'vue-router';
 import AppIdentitiesHorizontalListMembers from '@/shared/modules/identities/components/identities-horizontal-list-members.vue';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
 
 const SearchIcon = h(
   'i', // type
@@ -106,7 +106,6 @@ const SearchIcon = h(
   [],
 );
 
-const store = useStore();
 const route = useRoute();
 
 const lsSegmentsStore = useLfSegmentsStore();
@@ -162,8 +161,11 @@ const fetchMembers = async () => {
 
   loading.value = true;
 
+  const authStore = useAuthStore();
+  const { tenant } = storeToRefs(authStore);
+
   const { data } = await authAxios.post(
-    `/tenant/${store.getters['auth/currentTenant'].id}/member/query`,
+    `/tenant/${tenant.value?.id}/member/query`,
     {
       filter: filterToApply,
       orderBy: 'joinedAt_DESC',
