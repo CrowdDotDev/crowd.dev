@@ -3,3 +3,9 @@ export interface MemberWithIDOnly {
     id: string
   }
 }
+
+export interface ITenantWithIdOnly {
+  tenant: {
+    id: string
+  }
+}
