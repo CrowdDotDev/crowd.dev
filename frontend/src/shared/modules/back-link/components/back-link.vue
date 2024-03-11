@@ -23,7 +23,7 @@ const router = useRouter();
 
 const backLink = computed(() => {
   const { back } = window.history.state;
-  if (back.includes('/auth')) {
+  if (!back || back.includes('/auth')) {
     return null;
   }
   return window.history.state.back;
