@@ -30,10 +30,7 @@ export default {
       return;
     }
     Auth0Service.isAuthenticated()
-      .then((isAuthenticated: boolean) => {
-        console.log(isAuthenticated);
-      });
-    Auth0Service.getUser()
+      .then(() => Auth0Service.getUser())
       .then((user) => {
         console.log(user);
         lfxHeader.authuser = user;
@@ -55,17 +52,18 @@ export default {
       });
   },
   handleLocalAuth() {
-    // if (config.env !== 'production') {
-    //   return Promise.reject();
-    // }
-    // const storedToken = AuthService.getToken();
-    // const params = new URLSearchParams(window.location.search);
-    // const myJwt = params.get('my-jwt');
-    //
-    // const localToken = storedToken || myJwt;
-    // if (localToken) {
-    //   return this.getUser(localToken);
-    // }
+    console.log(config.env);
+    if (config.env === 'production') {
+      return Promise.reject();
+    }
+    const storedToken = AuthService.getToken();
+    const params = new URLSearchParams(window.location.search);
+    const myJwt = params.get('my-jwt');
+
+    const localToken = storedToken || myJwt;
+    if (localToken) {
+      return this.getUser(localToken);
+    }
 
     return Promise.reject();
   },
