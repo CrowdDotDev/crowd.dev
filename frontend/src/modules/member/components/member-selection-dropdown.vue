@@ -92,8 +92,7 @@ const fetchFn = async ({ query, limit }) => {
     filteredOptions.push({});
   }
 
-  return filteredOptions,
-  }));
+  return filteredOptions;
 };
 </script>
 
