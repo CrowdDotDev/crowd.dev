@@ -22,14 +22,15 @@ const props = defineProps<{
 const router = useRouter();
 
 const backLink = computed(() => {
-  console.log(window.history.state.back);
-  console.log(router.resolve(window.history.state.back));
+  const { back } = window.history.state;
+  if (back.includes('/auth')) {
+    return null;
+  }
   return window.history.state.back;
 });
-const previousRouteTitle = computed(() => {
-  console.log(window.history.state.back);
-  return router.resolve(window.history.state.back)?.meta?.title;
-});
+
+const previousRouteTitle = computed(() => router.resolve(window.history.state.back)?.meta?.title);
+
 const routeLocation = computed(() => (backLink.value ? {
   path: backLink.value,
 } : props.defaultRoute));
