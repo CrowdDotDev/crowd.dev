@@ -117,6 +117,63 @@ export class MemberService {
     return response.data;
   }
 
+  static async listMembersAutocomplete({
+    query,
+    limit,
+    segments = null,
+  }) {
+    const payload = {
+      filter: {
+        and: [
+          {
+            displayName: {
+              textContains: query,
+            },
+          },
+          {
+            isOrganization: {
+              not: true,
+            },
+          },
+        ],
+      },
+      offset: 0,
+      orderBy: 'displayName_ASC',
+      limit,
+      ...(segments && {
+        segments,
+      }),
+    };
+
+    const sampleTenant = AuthCurrentTenant.getSampleTenantData();
+    const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
+
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/member/query`,
+      payload,
+      {
+        headers: {
+          'x-crowd-api-version': '1',
+          Authorization: sampleTenant?.token,
+        },
+      },
+    );
+
+    return response.data.rows
+      .then((m) => ({
+        ...m,
+        id: m.id,
+        label: m.displayName,
+        value: m.id,
+        logo: m.attributes?.avatarUrl?.default || null,
+        organizations: m.organizations?.map((organization) => ({
+          id: organization.id,
+          name: organization.displayName,
+        })) ?? [],
+      }))
+      .catch(() => []);
+  }
+
   static async listMembers(
     body,
     countOnly = false,
@@ -186,29 +243,6 @@ export class MemberService {
         headers: {
           Authorization: sampleTenant?.token,
         },
-      },
-    );
-
-    return response.data;
-  }
-
-  static async listAutocomplete({
-    query,
-    limit,
-    segments = [],
-  }) {
-    const params = {
-      query,
-      limit,
-      segments,
-    };
-
-    const tenantId = AuthCurrentTenant.get();
-
-    const response = await authAxios.get(
-      `/tenant/${tenantId}/member/autocomplete`,
-      {
-        params,
       },
     );
 

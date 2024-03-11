@@ -152,27 +152,53 @@ export class OrganizationService {
     return response.data;
   }
 
-  static async listAutocomplete({
+  static async listOrganizationsAutocomplete({
     query,
     limit,
-    segments,
+    segments = null,
+    excludeSegments = false,
+    grandParentSegment = false,
   }) {
-    const params = {
-      query,
+    const payload = {
+      filter: {
+        displayName: {
+          textContains: query,
+        },
+      },
+      offset: 0,
+      orderBy: 'displayName_ASC',
       limit,
-      segments,
+      ...(segments && {
+        segments,
+      }),
+      ...(excludeSegments && {
+        excludeSegments,
+      }),
+      ...(grandParentSegment && {
+        grandParentSegment,
+      }),
     };
 
-    const tenantId = AuthCurrentTenant.get();
+    const sampleTenant = AuthCurrentTenant.getSampleTenantData();
+    const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
 
-    const response = await authAxios.get(
-      `/tenant/${tenantId}/organization/autocomplete`,
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/organization/query`,
+      payload,
       {
-        params,
+        headers: {
+          Authorization: sampleTenant?.token,
+        },
       },
     );
 
-    return response.data;
+    return response.data.rows
+      .then((o) => ({
+        ...o,
+        label: o.displayName,
+        value: o.id,
+      }))
+      .catch(() => []);
   }
 
   static async fetchMergeSuggestions(limit, offset, query) {
