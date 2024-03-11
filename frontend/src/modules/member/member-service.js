@@ -141,8 +141,7 @@ export class MemberService {
       }),
     };
 
-    const sampleTenant = AuthCurrentTenant.getSampleTenantData();
-    const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
+    const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/member/query`,
@@ -150,7 +149,6 @@ export class MemberService {
       {
         headers: {
           'x-crowd-api-version': '1',
-          Authorization: sampleTenant?.token,
         },
       },
     );
