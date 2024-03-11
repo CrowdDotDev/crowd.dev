@@ -21,7 +21,12 @@ import Sequelize, { QueryTypes } from 'sequelize'
 import { Error400, Error404, dateEqualityChecker } from '@crowd/common'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import { ActivityDisplayService } from '@crowd/integrations'
-import { captureApiChange, memberCreateAction, memberEditProfileAction } from '@crowd/audit-logs'
+import {
+  captureApiChange,
+  memberCreateAction,
+  memberEditOrganizationsAction,
+  memberEditProfileAction,
+} from '@crowd/audit-logs'
 import {
   createMemberIdentity,
   deleteMemberIdentities,
@@ -3631,51 +3636,61 @@ class MemberRepository {
       return moment(v).toISOString()
     }
 
-    const originalOrgs = await MemberRepository.fetchWorkExperiences(record.id, options)
+    await captureApiChange(
+      options,
+      memberEditOrganizationsAction(record.id, async (captureOldState, captureNewState) => {
+        const originalOrgs = await MemberRepository.fetchWorkExperiences(record.id, options)
 
-    if (replace) {
-      const toDelete = originalOrgs.filter(
-        (originalOrg: any) =>
-          !organizations.find(
-            (newOrg) =>
-              originalOrg.organizationId === newOrg.id &&
-              originalOrg.title === (newOrg.title || null) &&
-              iso(originalOrg.dateStart) === iso(newOrg.startDate || null) &&
-              iso(originalOrg.dateEnd) === iso(newOrg.endDate || null),
-          ),
-      )
+        captureOldState(originalOrgs)
+        const newOrgs = [...originalOrgs]
 
-      for (const item of toDelete) {
-        await MemberRepository.deleteWorkExperience((item as any).id, options)
-      }
-    }
+        if (replace) {
+          const toDelete = originalOrgs.filter(
+            (originalOrg: any) =>
+              !organizations.find(
+                (newOrg) =>
+                  originalOrg.organizationId === newOrg.id &&
+                  originalOrg.title === (newOrg.title || null) &&
+                  iso(originalOrg.dateStart) === iso(newOrg.startDate || null) &&
+                  iso(originalOrg.dateEnd) === iso(newOrg.endDate || null),
+              ),
+          )
 
-    for (const item of organizations) {
-      const org = typeof item === 'string' ? { id: item } : item
+          for (const item of toDelete) {
+            await MemberRepository.deleteWorkExperience((item as any).id, options)
+            ;(item as any).delete = true
+          }
+        }
 
-      // we don't need to touch exactly same existing work experiences
-      if (
-        !originalOrgs.some(
-          (w) =>
-            w.organizationId === item.id &&
-            w.dateStart === (item.startDate || null) &&
-            w.dateEnd === (item.endDate || null),
-        )
-      ) {
-        await MemberRepository.createOrUpdateWorkExperience(
-          {
-            memberId: record.id,
-            organizationId: org.id,
-            title: org.title,
-            dateStart: org.startDate,
-            dateEnd: org.endDate,
-            source: org.source,
-          },
-          options,
-        )
-        await OrganizationRepository.includeOrganizationToSegments(org.id, options)
-      }
-    }
+        for (const item of organizations) {
+          const org = typeof item === 'string' ? { id: item } : item
+
+          // we don't need to touch exactly same existing work experiences
+          if (
+            !originalOrgs.some(
+              (w) =>
+                w.organizationId === item.id &&
+                w.dateStart === (item.startDate || null) &&
+                w.dateEnd === (item.endDate || null),
+            )
+          ) {
+            const newOrg = {
+              memberId: record.id,
+              organizationId: org.id,
+              title: org.title,
+              dateStart: org.startDate,
+              dateEnd: org.endDate,
+              source: org.source,
+            }
+            await MemberRepository.createOrUpdateWorkExperience(newOrg, options)
+            await OrganizationRepository.includeOrganizationToSegments(org.id, options)
+            newOrgs.push(newOrg)
+          }
+        }
+
+        captureNewState(newOrgs)
+      }),
+    )
   }
 
   static async createOrUpdateWorkExperience(

@@ -125,3 +125,10 @@ export function memberEditIdentitiesAction<T>(
 ): BuildActionFn<T> {
   return modifyEntityAction(ActionType.MEMBERS_EDIT_IDENTITIES, entityId, captureFn)
 }
+
+export function memberEditOrganizationsAction<T>(
+  entityId: string,
+  captureFn: CaptureFn<T>,
+): BuildActionFn<T> {
+  return modifyEntityAction(ActionType.MEMBERS_EDIT_ORGANIZATIONS, entityId, captureFn)
+}
