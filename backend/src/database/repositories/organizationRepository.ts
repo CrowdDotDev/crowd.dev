@@ -4,6 +4,11 @@ import validator from 'validator'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import { Error400, Error404, Error409, PageData } from '@crowd/common'
 import {
+  addOrgIdentity,
+  cleanUpOrgIdentities,
+  fetchOrgIdentities,
+} from '@crowd/data-access-layer/src/org_identities'
+import {
   FeatureFlag,
   IEnrichableOrganization,
   IMemberRenderFriendlyRole,
@@ -23,6 +28,7 @@ import Sequelize, { QueryTypes } from 'sequelize'
 import {
   captureApiChange,
   organizationCreateAction,
+  organizationEditIdentitiesAction,
   organizationUpdateAction,
 } from '@crowd/audit-logs'
 import SequelizeRepository from './sequelizeRepository'
@@ -738,15 +744,43 @@ class OrganizationRepository {
       await OrganizationRepository.includeOrganizationToSegments(record.id, options)
     }
 
-    if (data.identities && data.identities.length > 0) {
-      if (overrideIdentities) {
-        await this.setIdentities(id, data.identities, options)
-      } else {
-        for (const identity of data.identities) {
-          await this.addIdentity(id, identity, options)
+    await captureApiChange(
+      options,
+      organizationEditIdentitiesAction(id, async (captureOldState, captureNewState) => {
+        const qx = SequelizeRepository.getQueryExecutor(options, transaction)
+        const initialIdentities = await fetchOrgIdentities(qx, id)
+
+        function convertIdentitiesForAudit(identities) {
+          return identities.reduce((acc, r) => {
+            if (!acc[r.platform]) {
+              acc[r.platform] = []
+            }
+
+            acc[r.platform].push(r.name)
+            acc[r.platform] = lodash.uniq(acc[r.platform])
+            acc[r.platform] = acc[r.platform].sort()
+
+            return acc
+          }, {})
         }
-      }
-    }
+
+        captureOldState(convertIdentitiesForAudit(initialIdentities))
+
+        if (data.identities && data.identities.length > 0) {
+          if (overrideIdentities) {
+            captureNewState(
+              convertIdentitiesForAudit(
+                data.identities.map((i) => ({ platform: i.platform, name: i.name })),
+              ),
+            )
+            await this.setIdentities(id, data.identities, options)
+          } else {
+            captureNewState(convertIdentitiesForAudit([...initialIdentities, ...data.identities]))
+            await OrganizationRepository.addIdentities(id, data.identities, options)
+          }
+        }
+      }),
+    )
 
     await this._createAuditLog(AuditLogRepository.UPDATE, record, data, options)
 
@@ -843,21 +877,20 @@ class OrganizationRepository {
     options: IRepositoryOptions,
   ): Promise<void> {
     const transaction = SequelizeRepository.getTransaction(options)
-    const sequelize = SequelizeRepository.getSequelize(options)
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
-    await sequelize.query(
-      `delete from "organizationIdentities" where "organizationId" = :organizationId and "tenantId" = :tenantId`,
-      {
-        replacements: {
-          organizationId,
-          tenantId: currentTenant.id,
-        },
-        type: QueryTypes.DELETE,
-        transaction,
-      },
-    )
+    const qx = SequelizeRepository.getQueryExecutor(options, transaction)
 
+    await cleanUpOrgIdentities(qx, { organizationId, tenantId: currentTenant.id })
+
+    await OrganizationRepository.addIdentities(organizationId, identities, options)
+  }
+
+  static async addIdentities(
+    organizationId: string,
+    identities: IOrganizationIdentity[],
+    options: IRepositoryOptions,
+  ) {
     for (const identity of identities) {
       await OrganizationRepository.addIdentity(organizationId, identity, options)
     }
@@ -869,29 +902,18 @@ class OrganizationRepository {
     options: IRepositoryOptions,
   ): Promise<void> {
     const transaction = SequelizeRepository.getTransaction(options)
-    const sequelize = SequelizeRepository.getSequelize(options)
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
-    const query = `
-          insert into
-              "organizationIdentities"("organizationId", "platform", "name", "url", "sourceId", "tenantId", "integrationId", "createdAt")
-          values
-              (:organizationId, :platform, :name, :url, :sourceId, :tenantId, :integrationId, now())
-          on conflict do nothing;
-    `
+    const qx = SequelizeRepository.getQueryExecutor(options, transaction)
 
-    await sequelize.query(query, {
-      replacements: {
-        organizationId,
-        platform: identity.platform,
-        sourceId: identity.sourceId || null,
-        url: identity.url || null,
-        tenantId: currentTenant.id,
-        integrationId: identity.integrationId || null,
-        name: identity.name,
-      },
-      type: QueryTypes.INSERT,
-      transaction,
+    await addOrgIdentity(qx, {
+      organizationId,
+      platform: identity.platform,
+      sourceId: identity.sourceId || null,
+      url: identity.url || null,
+      tenantId: currentTenant.id,
+      integrationId: identity.integrationId || null,
+      name: identity.name,
     })
   }
 
