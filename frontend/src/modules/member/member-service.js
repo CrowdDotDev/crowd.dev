@@ -160,7 +160,7 @@ export class MemberService {
     );
 
     return response.data.rows
-      .then((m) => ({
+      .map((m) => ({
         ...m,
         id: m.id,
         label: m.displayName,
@@ -170,8 +170,7 @@ export class MemberService {
           id: organization.id,
           name: organization.displayName,
         })) ?? [],
-      }))
-      .catch(() => []);
+      }));
   }
 
   static async listMembers(

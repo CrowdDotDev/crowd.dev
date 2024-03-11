@@ -193,12 +193,11 @@ export class OrganizationService {
     );
 
     return response.data.rows
-      .then((o) => ({
+      .map((o) => ({
         ...o,
         label: o.displayName,
         value: o.id,
-      }))
-      .catch(() => []);
+      }));
   }
 
   static async fetchMergeSuggestions(limit, offset, query) {
