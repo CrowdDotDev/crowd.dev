@@ -17,7 +17,6 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
            r."runId",
            r."webhookId",
            r."streamId",
-           r."apiDataId",
            r."integrationId",
            r.retries,
            r."delayedUntil",
