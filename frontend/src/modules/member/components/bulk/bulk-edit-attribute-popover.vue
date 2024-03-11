@@ -261,11 +261,24 @@ const handleDropdownChange = (value) => {
   }
 };
 
-const fetchOrganizationsFn = (query, limit) => OrganizationService.listAutocomplete(query, limit)
+const fetchOrganizationsFn = (query, limit) => OrganizationService.listAutocomplete({
+  filter: {
+    and: [
+      {
+        displayName: {
+          textContains: query,
+        },
+      },
+    ],
+  },
+  orderBy: 'displayName_ASC',
+  offset: 0,
+  limit,
+})
   .then((options) => options.map((o) => ({
     ...o,
-    displayName: o.label,
-    name: o.label,
+    displayName: o.displayName,
+    name: o.displayName,
     memberOrganizations: {
       title: '',
       dateStart: '',

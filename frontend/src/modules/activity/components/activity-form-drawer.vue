@@ -253,7 +253,22 @@ const $v = useVuelidate(rules, form);
 
 // Members field
 const searchMembers = ({ query, limit }) => MemberService.listAutocomplete({
-  query,
+  filter: {
+    and: [
+      {
+        displayName: {
+          textContains: query,
+        },
+      },
+      {
+        isOrganization: {
+          not: true,
+        },
+      },
+    ],
+  },
+  orderBy: 'displayName_ASC',
+  offset: 0,
   limit,
   segments: [props.subprojectId],
 }).catch(

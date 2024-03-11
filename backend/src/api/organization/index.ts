@@ -11,7 +11,7 @@ export default (app) => {
     safeWrap(require('./organizationImport').default),
   )
   app.delete(`/tenant/:tenantId/organization`, safeWrap(require('./organizationDestroy').default))
-  app.get(
+  app.post(
     `/tenant/:tenantId/organization/autocomplete`,
     safeWrap(require('./organizationAutocomplete').default),
   )
