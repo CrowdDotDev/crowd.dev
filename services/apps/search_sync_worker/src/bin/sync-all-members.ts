@@ -27,7 +27,7 @@ setImmediate(async () => {
     await indexingRepo.deleteIndexedEntities(IndexedEntityType.MEMBER)
   }
 
-  const repo = new MemberRepository(redis, store, log)
+  const repo = new MemberRepository(store, log)
 
   const tenantIds = await repo.getTenantIds()
 

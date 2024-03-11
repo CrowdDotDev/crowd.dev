@@ -9,7 +9,7 @@ export default class MemberAttributeSettingsRepository extends RepositoryBase<Me
   constructor(redis: RedisClient, store: DbStore, parentLog: Logger) {
     super(store, parentLog)
 
-    this.memberAttributeSettingsCache = new RedisCache('memberAttributeSettings', redis, this.log)
+    this.memberAttributeSettingsCache = new RedisCache('memberAttributes', redis, this.log)
   }
 
   public async getPlatformPriorityArray(tenantId: string): Promise<string[] | undefined> {
@@ -49,7 +49,7 @@ export default class MemberAttributeSettingsRepository extends RepositoryBase<Me
         }
       })
 
-      await this.memberAttributeSettingsCache.set(tenantId, JSON.stringify(data), 30)
+      await this.memberAttributeSettingsCache.set(tenantId, JSON.stringify(data), 30 * 60)
 
       return data
     }
