@@ -18,8 +18,9 @@ import { computed, defineProps } from 'vue';
 import { useAutomationStore } from '@/modules/automation/store';
 import { useStore } from 'vuex';
 import { getWorkflowMax, showWorkflowLimitDialog } from '@/modules/automation/automation-limit';
-import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { FeatureFlag } from '@/utils/featureFlag';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
+import { storeToRefs } from 'pinia';
 import { automationTypes } from '../config/automation-types';
 
 const props = defineProps({
@@ -33,7 +34,8 @@ const store = useStore();
 
 const { changePublishState } = useAutomationStore();
 
-const { currentTenant } = mapGetters('auth');
+const authStore = useAuthStore();
+const { tenant } = storeToRefs(authStore);
 
 const canEnable = computed(() => {
   const { type } = props.automation;
@@ -56,7 +58,7 @@ const beforeChange = () => {
 
   if (!isFeatureEnabled) {
     const planWorkflowCountMax = getWorkflowMax(
-      currentTenant.value.plan,
+      tenant.value.plan,
     );
 
     showWorkflowLimitDialog({ planWorkflowCountMax });

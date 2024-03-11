@@ -14,7 +14,7 @@ const processWebhookJoin: ProcessWebhookStreamHandler = async (ctx) => {
   const data = ctx.stream.data as GroupsioWebhookPayload<GroupsioWebhookJoinPayload>
   const payload = data.data
 
-  await ctx.publishData<GroupsioPublishData<GroupsioMemberJoinData>>({
+  await ctx.processData<GroupsioPublishData<GroupsioMemberJoinData>>({
     type: GroupsioPublishDataType.MEMBER_JOIN,
     data: {
       member: payload.member_info,
@@ -28,7 +28,7 @@ const processWebhookLeft: ProcessWebhookStreamHandler = async (ctx) => {
   const data = ctx.stream.data as GroupsioWebhookPayload<GroupsioWebhookJoinPayload>
   const payload = data.data
 
-  await ctx.publishData<GroupsioPublishData<GroupsioMemberLeftData>>({
+  await ctx.processData<GroupsioPublishData<GroupsioMemberLeftData>>({
     type: GroupsioPublishDataType.MEMBER_LEFT,
     data: {
       member: payload.member_info,

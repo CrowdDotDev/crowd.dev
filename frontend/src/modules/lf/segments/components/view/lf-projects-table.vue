@@ -162,10 +162,11 @@ import AppLfProjectsDropdown from '@/modules/lf/segments/components/lf-projects-
 import AppLfSubProjectsDropdown from '@/modules/lf/segments/components/lf-sub-projects-dropdown.vue';
 import { useRoute } from 'vue-router';
 import { LfPermissions } from '@/modules/lf/lf-permissions';
-import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { computed } from 'vue';
 import AppPlatformSvg from '@/shared/modules/platform/components/platform-svg.vue';
 import { hasAccessToSegmentId } from '@/utils/segments';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
+import { storeToRefs } from 'pinia';
 
 const route = useRoute();
 
@@ -177,11 +178,12 @@ defineProps({
   },
 });
 
-const { currentTenant, currentUser } = mapGetters('auth');
+const authStore = useAuthStore();
+const { user, tenant } = storeToRefs(authStore);
 
 const hasPermissionToCreateSubProject = computed(() => new LfPermissions(
-  currentTenant.value,
-  currentUser.value,
+  tenant.value,
+  user.value,
 )?.createSubProject);
 
 const statusDisplay = (status) => statusOptions.find((s) => s.value === status);

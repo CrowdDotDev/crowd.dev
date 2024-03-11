@@ -15,9 +15,6 @@ import config from '@/config';
 
 import { init as i18nInit } from '@/i18n';
 
-import { AuthService } from '@/modules/auth/auth-service';
-import { AuthToken } from '@/modules/auth/auth-token';
-
 import App from '@/app.vue';
 import { vueSanitizeOptions } from '@/plugins/sanitize';
 import marked from '@/plugins/marked';
@@ -39,13 +36,6 @@ i18nInit();
   const store = await createStore(LogRocketClient);
 
   app.use(pinia);
-
-  const isSocialOnboardRequested = AuthService.isSocialOnboardRequested();
-
-  AuthToken.applyFromLocationUrlIfExists();
-  if (isSocialOnboardRequested) {
-    await AuthService.socialOnboard();
-  }
 
   app.use(VueGridLayout);
   app.use(Vue3Sanitize, vueSanitizeOptions);

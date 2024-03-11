@@ -4,6 +4,7 @@ import Roles from '@/security/roles';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { LfService } from '@/modules/lf/segments/lf-segments-service';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
 
 export const getSegmentsFromProjectGroup = (projectGroup, options) => {
   if (!projectGroup) {
@@ -24,10 +25,10 @@ export const getSegmentsFromProjectGroup = (projectGroup, options) => {
 };
 
 export const hasAccessToProjectGroup = (segmentId) => {
-  const currentUser = store.getters['auth/currentUser'];
-  const currentTenant = store.getters['auth/currentTenant'];
+  const authStore = useAuthStore();
+  const { user, tenant } = storeToRefs(authStore);
 
-  const permissionChecker = new PermissionChecker(currentTenant, currentUser);
+  const permissionChecker = new PermissionChecker(tenant.value, user.value);
 
   const isAdmin = permissionChecker.currentUserRolesIds.includes(
     Roles.values.admin,
@@ -37,8 +38,8 @@ export const hasAccessToProjectGroup = (segmentId) => {
     return true;
   }
 
-  const tenant = currentUser.tenants.find((t) => t.tenantId === currentTenant.id);
-  const { adminSegments = [] } = tenant;
+  const tenantUser = user.value.tenants.find((t) => t.tenantId === tenant.value.id);
+  const { adminSegments = [] } = tenantUser;
 
   if (!adminSegments.length) {
     return false;
@@ -53,10 +54,10 @@ export const hasAccessToProjectGroup = (segmentId) => {
 };
 
 export const hasAccessToSegmentId = (segmentId) => {
-  const currentUser = store.getters['auth/currentUser'];
-  const currentTenant = store.getters['auth/currentTenant'];
+  const authStore = useAuthStore();
+  const { user, tenant } = storeToRefs(authStore);
 
-  const permissionChecker = new PermissionChecker(currentTenant, currentUser);
+  const permissionChecker = new PermissionChecker(tenant.value, user.value);
 
   const isAdmin = permissionChecker.currentUserRolesIds.includes(
     Roles.values.admin,
@@ -65,9 +66,8 @@ export const hasAccessToSegmentId = (segmentId) => {
   if (isAdmin) {
     return true;
   }
-
-  const tenant = currentUser.tenants.find((t) => t.tenantId === currentTenant.id);
-  const { adminSegments = [] } = tenant;
+  const tenantUser = user.value?.tenants.find((t) => t.tenantId === tenant.value.id);
+  const { adminSegments = [] } = tenantUser;
 
   if (!adminSegments.length) {
     return false;

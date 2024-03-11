@@ -46,10 +46,11 @@ import {
   computed, defineProps,
 } from 'vue';
 import { MemberPermissions } from '@/modules/member/member-permissions';
-import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import AppIdentitiesVerticalListMembers from '@/shared/modules/identities/components/identities-vertical-list-members.vue';
 import memberOrder from '@/shared/modules/identities/config/identitiesOrder/member';
 import { Member } from '@/modules/member/types/Member';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
+import { storeToRefs } from 'pinia';
 import AppAsideIdentitiesExtra from './_aside-identities-extra.vue';
 
 defineProps<{
@@ -58,10 +59,11 @@ defineProps<{
 
 const emit = defineEmits(['edit', 'editEmail']);
 
-const { currentTenant, currentUser } = mapGetters('auth');
+const authStore = useAuthStore();
+const { user, tenant } = storeToRefs(authStore);
 
 const isEditLockedForSampleData = computed(() => new MemberPermissions(
-  currentTenant.value,
-  currentUser.value,
+  tenant.value,
+  user.value,
 ).editLockedForSampleData);
 </script>

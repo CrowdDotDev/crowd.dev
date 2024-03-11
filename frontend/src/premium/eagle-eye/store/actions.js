@@ -9,6 +9,8 @@ import {
   isStorageUpdating,
 } from '@/premium/eagle-eye/eagle-eye-storage';
 import Message from '@/shared/message/message';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
+import { storeToRefs } from 'pinia';
 
 export default {
   ...sharedActions('eagleEye'),
@@ -18,8 +20,8 @@ export default {
     },
     { keepPagination = false, resetStorage = false },
   ) {
-    const currentUser = rootGetters['auth/currentUser'];
-    const currentTenant = rootGetters['auth/currentTenant'];
+    const authStore = useAuthStore();
+    const { user, tenant } = storeToRefs(authStore);
     const activeView = getters.activeView.id;
     let list = [];
     let count = 0;
@@ -31,8 +33,8 @@ export default {
       activeView === 'feed'
       && state.views[activeView].list.loading
       && isStorageUpdating({
-        tenantId: currentTenant.id,
-        userId: currentUser.id,
+        tenantId: tenant.value.id,
+        userId: user.value.id,
       })
     ) {
       return;
@@ -54,7 +56,7 @@ export default {
             action: {
               type: 'bookmark',
               ...(sorter === 'individualBookmarks' && {
-                actionById: currentUser.id,
+                actionById: user.value.id,
               }),
             },
           },
@@ -78,12 +80,12 @@ export default {
         // or storage is waiting for results
         const fetchNewResults = resetStorage
           || shouldFetchNewResults({
-            tenantId: currentTenant.id,
-            userId: currentUser.id,
+            tenantId: tenant.value.id,
+            userId: user.value.id,
           })
           || isStorageUpdating({
-            tenantId: currentTenant.id,
-            userId: currentUser.id,
+            tenantId: tenant.value.id,
+            userId: user.value.id,
           });
 
         if (fetchNewResults) {
@@ -91,8 +93,8 @@ export default {
           setResultsInStorage({
             posts: [],
             storageDate: null,
-            tenantId: currentTenant.id,
-            userId: currentUser.id,
+            tenantId: tenant.value.id,
+            userId: user.value.id,
           });
 
           list = await EagleEyeService.search();
@@ -101,14 +103,14 @@ export default {
           setResultsInStorage({
             posts: list,
             storageDate: moment(),
-            tenantId: currentTenant.id,
-            userId: currentUser.id,
+            tenantId: tenant.value.id,
+            userId: user.value.id,
           });
         } else {
           // Get results from local storage
           list = getResultsFromStorage({
-            tenantId: currentTenant.id,
-            userId: currentUser.id,
+            tenantId: tenant.value.id,
+            userId: user.value.id,
           });
         }
       }
@@ -241,14 +243,14 @@ export default {
     });
 
     // Update posts with new actions in local storage
-    const currentUser = rootGetters['auth/currentUser'];
-    const currentTenant = rootGetters['auth/currentTenant'];
+    const authStore = useAuthStore();
+    const { user, tenant } = storeToRefs(authStore);
 
     setResultsInStorage({
       posts: state.views.feed.list.posts,
       storageDate: moment(),
-      tenantId: currentTenant.id,
-      userId: currentUser.id,
+      tenantId: tenant.value.id,
+      userId: user.value.id,
     });
   },
 
@@ -287,14 +289,14 @@ export default {
     }
 
     // Update posts with new actions in local storage
-    const currentUser = rootGetters['auth/currentUser'];
-    const currentTenant = rootGetters['auth/currentTenant'];
+    const authStore = useAuthStore();
+    const { user, tenant } = storeToRefs(authStore);
 
     setResultsInStorage({
       posts: state.views.feed.list.posts,
       storageDate: moment(),
-      tenantId: currentTenant.id,
-      userId: currentUser.id,
+      tenantId: tenant.value.id,
+      userId: user.value.id,
     });
   },
 
@@ -330,8 +332,8 @@ export default {
           post: pendingAction.post,
         }).then((response) => {
           const activeView = getters.activeView.id;
-          const currentUser = rootGetters['auth/currentUser'];
-          const currentTenant = rootGetters['auth/currentTenant'];
+          const authStore = useAuthStore();
+          const { user, tenant } = storeToRefs(authStore);
 
           commit('UPDATE_POST', {
             activeView,
@@ -343,8 +345,8 @@ export default {
           setResultsInStorage({
             posts: state.views.feed.list.posts,
             storageDate: moment(),
-            tenantId: currentTenant.id,
-            userId: currentUser.id,
+            tenantId: tenant.value.id,
+            userId: user.value.id,
           });
         });
 
@@ -363,11 +365,10 @@ export default {
     { data, fetchNewResults = true },
   ) {
     commit('UPDATE_EAGLE_EYE_SETTINGS_STARTED');
+    const { getUser } = useAuthStore();
     return EagleEyeService.updateSettings(data)
       .then(() => {
-        dispatch('auth/doRefreshCurrentUser', null, {
-          root: true,
-        }).then(() => {
+        getUser().then(() => {
           commit('UPDATE_EAGLE_EYE_SETTINGS_SUCCESS');
 
           if (fetchNewResults) {

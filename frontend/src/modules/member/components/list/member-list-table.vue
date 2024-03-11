@@ -753,9 +753,9 @@ import AppMemberFindGithubDrawer from '@/modules/member/components/member-find-g
 import AppSharedTagList from '@/shared/tag/tag-list.vue';
 import AppSvg from '@/shared/svg/svg.vue';
 import CrEnrichmentSneakPeakContent from '@/shared/modules/enrichment/components/enrichment-sneak-peak-content.vue';
-import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import Plans from '@/security/plans';
 import AppIdentitiesHorizontalListMembers from '@/shared/modules/identities/components/identities-horizontal-list-members.vue';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
 import AppMemberBadge from '../member-badge.vue';
 import AppMemberDropdownContent from '../member-dropdown-content.vue';
 import AppMemberReach from '../member-reach.vue';
@@ -822,9 +822,10 @@ const { fetchMembers } = memberStore;
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
-const { currentTenant } = mapGetters('auth');
+const authStore = useAuthStore();
+const { tenant } = storeToRefs(authStore);
 
-const isEnrichEnabled = computed(() => currentTenant.value?.plan !== Plans.values.essential);
+const isEnrichEnabled = computed(() => tenant.value?.plan !== Plans.values.essential);
 
 const defaultSort = computed(() => ({
   prop: filters.value.order.prop,

@@ -370,8 +370,9 @@ import moment from 'moment';
 import { formatDateToTimeAgo } from '@/utils/date';
 import platformOptions from '@/premium/eagle-eye/constants/eagle-eye-platforms.json';
 import { withHttp } from '@/utils/string';
-import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { EagleEyePermissions } from '@/premium/eagle-eye/eagle-eye-permissions';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
+import { storeToRefs } from 'pinia';
 import { EagleEyeService } from '../../eagle-eye-service';
 
 const props = defineProps({
@@ -386,11 +387,12 @@ const props = defineProps({
 });
 
 const store = useStore();
-const { currentUser, currentTenant } = mapGetters('auth');
+const authStore = useAuthStore();
+const { user, tenant } = storeToRefs(authStore);
 
 const eagleEyeSettings = computed(
-  () => currentUser?.value?.tenants.find(
-    (tu) => tu.tenantId === currentTenant?.value.id,
+  () => user?.value?.tenants.find(
+    (tu) => tu.tenantId === tenant?.value.id,
   )?.settings.eagleEye,
 );
 
@@ -419,8 +421,8 @@ const DialogHeading = h(
 
 const hasPermissionToTakeAction = computed(
   () => new EagleEyePermissions(
-    currentTenant.value,
-    currentUser.value,
+    tenant.value,
+    user.value,
   ).action,
 );
 
@@ -439,7 +441,7 @@ const isBookmarkedByUser = computed(() => {
   );
   return (
     !bookmarkAction?.actionById
-    || bookmarkAction?.actionById === currentUser.value.id
+    || bookmarkAction?.actionById === user.value.id
   );
 });
 

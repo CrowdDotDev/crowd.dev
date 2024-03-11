@@ -88,7 +88,7 @@ const processArticleStream: ProcessStreamHandler = async (ctx) => {
       }
     }
 
-    await ctx.publishData<IDevToArticleData>({
+    await ctx.processData<IDevToArticleData>({
       article: await getDevToArticle(ctx, articleId),
       comments,
     })

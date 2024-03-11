@@ -19,20 +19,22 @@ import IntegrationStreamRepository from '@crowd/data-access-layer/src/old/apps/i
 import { IStreamData } from '@crowd/data-access-layer/src/old/apps/integration_stream_worker/integrationStream.data'
 import IncomingWebhookRepository from '@crowd/data-access-layer/src/old/apps/integration_stream_worker/incomingWebhook.repo'
 import {
-  IntegrationDataWorkerEmitter,
+  DataSinkWorkerEmitter,
   IntegrationRunWorkerEmitter,
   IntegrationStreamWorkerEmitter,
 } from '@crowd/common_services'
+import IntegrationDataService from './integrationDataService'
 
 export default class IntegrationStreamService extends LoggerBase {
   private readonly repo: IntegrationStreamRepository
   private readonly webhookRepo: IncomingWebhookRepository
+  private readonly dataService: IntegrationDataService
 
   constructor(
     private readonly redisClient: RedisClient,
     private readonly runWorkerEmitter: IntegrationRunWorkerEmitter,
-    private readonly dataWorkerEmitter: IntegrationDataWorkerEmitter,
     private readonly streamWorkerEmitter: IntegrationStreamWorkerEmitter,
+    dataSinkWorkerEmitter: DataSinkWorkerEmitter,
     store: DbStore,
     parentLog: Logger,
   ) {
@@ -40,6 +42,14 @@ export default class IntegrationStreamService extends LoggerBase {
 
     this.repo = new IntegrationStreamRepository(store, this.log)
     this.webhookRepo = new IncomingWebhookRepository(store, this.log)
+
+    this.dataService = new IntegrationDataService(
+      redisClient,
+      streamWorkerEmitter,
+      dataSinkWorkerEmitter,
+      store,
+      this.log,
+    )
   }
 
   public async checkStreams(): Promise<void> {
@@ -312,15 +322,8 @@ export default class IntegrationStreamService extends LoggerBase {
       globalCache,
       integrationCache,
 
-      publishData: async (data) => {
-        await this.publishData(
-          streamInfo.tenantId,
-          streamInfo.integrationType,
-          streamId,
-          streamInfo.onboarding === null ? true : streamInfo.onboarding,
-          data,
-          undefined,
-        )
+      processData: async (data) => {
+        await this.dataService.processData(data, streamInfo)
       },
       publishStream: async (identifier, data) => {
         const webhookId = await this.webhookRepo.createWebhook(
@@ -488,15 +491,8 @@ export default class IntegrationStreamService extends LoggerBase {
       globalCache,
       integrationCache,
 
-      publishData: async (data) => {
-        await this.publishData(
-          streamInfo.tenantId,
-          streamInfo.integrationType,
-          streamId,
-          streamInfo.onboarding === null ? true : streamInfo.onboarding,
-          data,
-          streamInfo.runId,
-        )
+      processData: async (data) => {
+        await this.dataService.processData(data, streamInfo)
       },
       publishStream: async (identifier, data) => {
         await this.publishStream(
@@ -563,6 +559,21 @@ export default class IntegrationStreamService extends LoggerBase {
       return true
     } catch (err) {
       this.log.error(err, 'Error while processing stream!')
+
+      if (err.runError) {
+        try {
+          await this.triggerRunError(
+            streamInfo.runId,
+            err.location,
+            err.message,
+            err.metadata,
+            err.originalError,
+          )
+        } catch (err2) {
+          this.log.error(err2, 'Error while triggering run error!')
+        }
+      }
+
       try {
         await this.triggerStreamError(
           streamInfo,
@@ -687,33 +698,6 @@ export default class IntegrationStreamService extends LoggerBase {
           runId,
           'run-publish-child-stream',
           'Error while publishing child stream!',
-          undefined,
-          err,
-        )
-      }
-
-      throw err
-    }
-  }
-
-  private async publishData(
-    tenantId: string,
-    platform: string,
-    streamId: string,
-    onboarding: boolean,
-    data: unknown,
-    runId?: string,
-  ): Promise<void> {
-    try {
-      this.log.debug('Publishing new stream data!')
-      const dataId = await this.repo.publishData(streamId, data)
-      await this.dataWorkerEmitter.triggerDataProcessing(tenantId, platform, dataId, onboarding)
-    } catch (err) {
-      if (runId) {
-        await this.triggerRunError(
-          runId,
-          'run-publish-stream-data',
-          'Error while publishing stream data!',
           undefined,
           err,
         )

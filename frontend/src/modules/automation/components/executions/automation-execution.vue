@@ -81,8 +81,8 @@ import VueJsonPretty from 'vue-json-pretty';
 import 'vue-json-pretty/lib/styles.css';
 import moment from 'moment';
 import config from '@/config';
-import { AuthToken } from '@/modules/auth/auth-token';
-import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
+import { storeToRefs } from 'pinia';
 
 const props = defineProps({
   execution: {
@@ -95,13 +95,14 @@ const props = defineProps({
   },
 });
 
-const { currentTenant } = mapGetters('auth');
+const authStore = useAuthStore();
+const { tenant } = storeToRefs(authStore);
 
 const slackConnectUrl = computed(() => {
   const redirectUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}?activeTab=automations&success=true`;
 
   return `${config.backendUrl}/tenant/${
-    currentTenant.value.id
+    tenant.value.id
   }/automation/slack?redirectUrl=${redirectUrl}&crowdToken=${AuthToken.get()}`;
 });
 

@@ -74,7 +74,7 @@ const parseWebhookMessage = async (payload: any, ctx: IProcessWebhookStreamConte
     parent = record.message_reference.message_id
   }
 
-  await ctx.publishData<IDiscordAPIData>({
+  await ctx.processData<IDiscordAPIData>({
     type: DiscordAPIDataType.CHANNEL,
     data: {
       ...record,
@@ -97,7 +97,7 @@ const parseWebhookMember = async (payload: any, ctx: IProcessWebhookStreamContex
   )
 
   if (discordMember) {
-    await ctx.publishData<IDiscordAPIData>({
+    await ctx.processData<IDiscordAPIData>({
       type: DiscordAPIDataType.MEMBER,
       data: [discordMember],
     })

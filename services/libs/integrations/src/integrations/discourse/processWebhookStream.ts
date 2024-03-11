@@ -35,7 +35,7 @@ const processPostCreatedWebhook: ProcessWebhookStreamHandler = async (ctx) => {
     ctx as IProcessStreamContext,
   )
 
-  await ctx.publishData<DiscoursePublishPostData>({
+  await ctx.processData<DiscoursePublishPostData>({
     type: DiscourseDataType.POST,
     user,
     post,
@@ -54,7 +54,7 @@ const processUserCreatedWebhook: ProcessWebhookStreamHandler = async (ctx) => {
     return
   }
 
-  await ctx.publishData<DiscoursePublishUserWebhookData>({
+  await ctx.processData<DiscoursePublishUserWebhookData>({
     type: DiscourseDataType.USER_WEBHOOK,
     user,
   })
@@ -92,7 +92,7 @@ const processLikedAPostWebhook: ProcessWebhookStreamHandler = async (ctx) => {
     return
   }
 
-  await ctx.publishData<DiscoursePublishNotificationWebhookData>({
+  await ctx.processData<DiscoursePublishNotificationWebhookData>({
     type: DiscourseDataType.NOTIFICATION_WEBHOOK,
     user,
     notification,
