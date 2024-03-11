@@ -118,3 +118,10 @@ export function integrationConnectAction<T>(
 ): BuildActionFn<T> {
   return createEntityAction(ActionType.INTEGRATIONS_CONNECT, entityId, captureFn)
 }
+
+export function memberEditIdentitiesAction<T>(
+  entityId: string,
+  captureFn: CaptureFn<T>,
+): BuildActionFn<T> {
+  return modifyEntityAction(ActionType.MEMBERS_EDIT_IDENTITIES, entityId, captureFn)
+}

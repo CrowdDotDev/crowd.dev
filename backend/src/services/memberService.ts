@@ -23,6 +23,7 @@ import { randomUUID } from 'crypto'
 import lodash from 'lodash'
 import moment from 'moment-timezone'
 import validator from 'validator'
+import { captureApiChange, memberEditIdentitiesAction, memberMergeAction } from '@crowd/audit-logs'
 import { TEMPORAL_CONFIG } from '@/conf'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
 import ActivityRepository from '../database/repositories/activityRepository'
@@ -52,7 +53,6 @@ import MemberOrganizationService from './memberOrganizationService'
 import { MergeActionsRepository } from '@/database/repositories/mergeActionsRepository'
 import MemberOrganizationRepository from '@/database/repositories/memberOrganizationRepository'
 import OrganizationRepository from '@/database/repositories/organizationRepository'
-import { captureApiChange, memberMergeAction } from '@crowd/audit-logs'
 
 export default class MemberService extends LoggerBase {
   options: IServiceOptions
@@ -1538,39 +1538,85 @@ export default class MemberService extends LoggerBase {
           repoOptions,
         )
       }
-      if (data.username) {
-        // need to filter out existing identities from the payload
-        const existingIdentities = (await MemberRepository.getIdentities([id], repoOptions)).get(id)
 
-        data.username = mapUsernameToIdentities(data.username, data.platform)
+      const record = await captureApiChange(
+        repoOptions,
+        memberEditIdentitiesAction(id, async (captureOldState, captureNewState) => {
+          if (data.username) {
+            // need to filter out existing identities from the payload
+            const existingIdentities = (
+              await MemberRepository.getIdentities([id], repoOptions)
+            ).get(id)
 
-        for (const identity of existingIdentities) {
-          if (identity.platform in data.username) {
-            // new username has this platform - we need to check if it also has the username
-            let found = false
-            for (const newIdentity of data.username[identity.platform]) {
-              if (newIdentity.username === identity.username) {
-                found = true
-                break
+            captureOldState(
+              existingIdentities.reduce((acc, i) => {
+                if (!acc[i.platform]) {
+                  acc[i.platform] = []
+                }
+                acc[i.platform].push(i.username)
+                acc[i.platform] = lodash.uniq(acc[i.platform])
+                acc[i.platform] = lodash.sortBy(acc[i.platform])
+                return acc
+              }, {}),
+            )
+
+            data.username = mapUsernameToIdentities(data.username, data.platform)
+
+            for (const identity of existingIdentities) {
+              if (identity.platform in data.username) {
+                // new username has this platform - we need to check if it also has the username
+                let found = false
+                for (const newIdentity of data.username[identity.platform]) {
+                  if (newIdentity.username === identity.username) {
+                    found = true
+                    break
+                  }
+                }
+
+                if (found) {
+                  // remove from data.username
+                  data.username[identity.platform] = data.username[identity.platform].filter(
+                    (i) => i.username !== identity.username,
+                  )
+                } else {
+                  data.username[identity.platform].push({ ...identity, delete: true })
+                }
+              } else {
+                // new username doesn't have this platform - we can delete the existing identity
+                data.username[identity.platform] = { ...identity, delete: true }
               }
             }
 
-            if (found) {
-              // remove from data.username
-              data.username[identity.platform] = data.username[identity.platform].filter(
-                (i) => i.username !== identity.username,
-              )
-            } else {
-              data.username[identity.platform].push({ ...identity, delete: true })
-            }
-          } else {
-            // new username doesn't have this platform - we can delete the existing identity
-            data.username[identity.platform] = { ...identity, delete: true }
-          }
-        }
-      }
+            captureNewState(
+              Object.entries(data.username).reduce((acc, value: any) => {
+                const [platform, usernames] = value
+                if (!acc[platform]) {
+                  acc[platform] = {}
+                }
 
-      const record = await MemberRepository.update(id, data, repoOptions, true, manualChange)
+                if (Array.isArray(usernames)) {
+                  for (const identity of usernames) {
+                    if (!identity.delete) {
+                      acc[platform].push(identity.username)
+                    }
+                  }
+                } else if (!usernames.delete) {
+                  acc[platform].push(usernames.username)
+                }
+
+                acc[platform] = lodash.uniq(acc[platform])
+                acc[platform] = lodash.sortBy(acc[platform])
+                return acc
+              }, {}),
+            )
+          }
+
+          const record = await MemberRepository.update(id, data, repoOptions, true, manualChange)
+
+          return record
+        }),
+        !data.username,
+      )
 
       await SequelizeRepository.commitTransaction(transaction)
       await this.options.temporal.workflow.start('memberUpdate', {
