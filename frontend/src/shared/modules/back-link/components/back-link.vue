@@ -6,7 +6,7 @@
     <i class="ri-arrow-left-s-line mr-2" />
     <span>
       <slot v-if="!backLink" />
-      <span v-else>{{ previourRouteTitle }}</span>
+      <span v-else>{{ previousRouteTitle }}</span>
     </span>
   </router-link>
 </template>
@@ -21,8 +21,15 @@ const props = defineProps<{
 
 const router = useRouter();
 
-const backLink = computed(() => window.history.state.back);
-const previourRouteTitle = computed(() => router.resolve(window.history.state.back)?.meta?.title);
+const backLink = computed(() => {
+  console.log(window.history.state.back);
+  console.log(router.resolve(window.history.state.back));
+  return window.history.state.back;
+});
+const previousRouteTitle = computed(() => {
+  console.log(window.history.state.back);
+  return router.resolve(window.history.state.back)?.meta?.title;
+});
 const routeLocation = computed(() => (backLink.value ? {
   path: backLink.value,
 } : props.defaultRoute));
