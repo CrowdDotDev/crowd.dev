@@ -30,7 +30,7 @@ export class PermissionChecker {
     if (!tenant) {
       return [];
     }
-
+    console.log('roles', tenant.roles);
     return [...tenant.roles];
   }
 
