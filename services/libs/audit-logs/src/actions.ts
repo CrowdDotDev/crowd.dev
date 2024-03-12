@@ -146,3 +146,10 @@ export function organizationMergeAction<T>(
 ): BuildActionFn<T> {
   return modifyEntityAction(ActionType.ORGANIZATIONS_MERGE, entityId, captureFn)
 }
+
+export function memberEditAffiliationsAction<T>(
+  entityId: string,
+  captureFn: CaptureFn<T>,
+): BuildActionFn<T> {
+  return modifyEntityAction(ActionType.MEMBERS_EDIT_MANUAL_AFFILIATION, entityId, captureFn)
+}

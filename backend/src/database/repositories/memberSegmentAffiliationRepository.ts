@@ -6,6 +6,7 @@ import {
   findMemberAffiliations,
   insertMemberAffiliations,
 } from '@crowd/data-access-layer/src/member_segment_affiliations'
+import { captureApiChange, memberEditAffiliationsAction } from '@crowd/audit-logs'
 import {
   MemberSegmentAffiliation,
   MemberSegmentAffiliationCreate,
@@ -70,13 +71,30 @@ class MemberSegmentAffiliationRepository extends RepositoryBase<
     const transaction = SequelizeRepository.getTransaction(this.options)
     const qx = SequelizeRepository.getQueryExecutor(this.options, transaction)
 
-    await deleteMemberAffiliations(qx, memberId)
+    await captureApiChange(
+      this.options,
+      memberEditAffiliationsAction(memberId, async (captureOldState, captureNewState) => {
+        const oldOnes = await findMemberAffiliations(qx, memberId)
+        captureOldState(
+          oldOnes.map((item) => ({
+            segmentId: item.segmentId,
+            organizationId: item.organizationId,
+            dateStart: item.dateStart,
+            dateEnd: item.dateEnd,
+          })),
+        )
 
-    if (data.length === 0) {
-      return
-    }
+        captureNewState(data)
 
-    await insertMemberAffiliations(qx, memberId, data)
+        await deleteMemberAffiliations(qx, memberId)
+
+        if (data.length === 0) {
+          return
+        }
+
+        await insertMemberAffiliations(qx, memberId, data)
+      }),
+    )
   }
 
   override async findById(id: string): Promise<MemberSegmentAffiliation> {
