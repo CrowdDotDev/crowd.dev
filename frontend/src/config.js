@@ -173,6 +173,7 @@ config.hasPremiumModules = !config.isCommunityVersion
 config.isGitIntegrationEnabled = config.isGitEnabled === 'true';
 config.isGroupsioIntegrationEnabled = config.isGroupsioEnabled === 'true';
 config.isGitHubIntegrationEnabled = config.isGitHubEnabled === 'true';
+config.isDiscordIntegrationEnabled = config.isDiscordEnabled === 'true';
 config.isHackerNewsIntegrationEnabled = config.isHackerNewsEnabled === 'true';
 config.isTwitterIntegrationEnabled = config.isTwitterEnabled === 'true';
 config.isLinkedInIntegrationEnabled = config.isLinkedInEnabled === 'true';
