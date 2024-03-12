@@ -14,6 +14,7 @@ class AuthServiceClass {
   }
 
   getTenantId() {
+    console.log(config.lf.tenantId);
     return config.lf.tenantId || localStorage.getItem('currentTenant');
   }
 
