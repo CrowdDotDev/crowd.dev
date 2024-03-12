@@ -39,21 +39,44 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
     return results
   }
 
-  public async getTenantMembersForSync(tenantId: string, perPage: number): Promise<string[]> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const results = await this.db().any(
-      `
-        select m.id
-        from members m
-        left join indexed_entities ie on m.id = ie.entity_id and ie.type = $(type)
-        where m."tenantId" = $(tenantId) and 
-              ie.entity_id is null
-        limit ${perPage};`,
-      {
-        tenantId,
-        type: IndexedEntityType.MEMBER,
-      },
-    )
+  public async getTenantMembersForSync(
+    tenantId: string,
+    perPage: number,
+    segmentIds?: string[],
+  ): Promise<string[]> {
+    let results
+
+    if (segmentIds) {
+      results = await this.db().any(
+        `
+          select distinct a."memberId" as id
+          from activities a
+          left join indexed_entities ie on a."memberId" = ie.entity_id and ie.type = $(type)
+          where a."tenantId" = $(tenantId) and
+                a."segmentId" in ($(segmentIds:csv)) and 
+                ie.entity_id is null
+          limit ${perPage};`,
+        {
+          tenantId,
+          segmentIds,
+          type: IndexedEntityType.MEMBER,
+        },
+      )
+    } else {
+      results = await this.db().any(
+        `
+          select m.id
+          from members m
+          left join indexed_entities ie on m.id = ie.entity_id and ie.type = $(type)
+          where m."tenantId" = $(tenantId) and 
+                ie.entity_id is null
+          limit ${perPage};`,
+        {
+          tenantId,
+          type: IndexedEntityType.MEMBER,
+        },
+      )
+    }
 
     return results.map((r) => r.id)
   }

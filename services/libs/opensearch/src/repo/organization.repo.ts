@@ -270,21 +270,45 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     return results.map((r) => r.id)
   }
 
-  public async getTenantOrganizationsForSync(tenantId: string, perPage: number): Promise<string[]> {
-    const results = await this.db().any(
-      `
-      select o.id
-      from organizations o
-      left join indexed_entities ie on o.id = ie.entity_id and ie.type = $(type)
-      where o."tenantId" = $(tenantId) and 
-            o."deletedAt" is null and
-            ie.entity_id is null
-      limit ${perPage}`,
-      {
-        tenantId,
-        type: IndexedEntityType.ORGANIZATION,
-      },
-    )
+  public async getTenantOrganizationsForSync(
+    tenantId: string,
+    perPage: number,
+    segmentIds?: string[],
+  ): Promise<string[]> {
+    let results
+
+    if (segmentIds) {
+      results = await this.db().any(
+        `
+          select distinct a."organizationId" as id
+          from activities a
+          left join indexed_entities ie on a."organizationId" = ie.entity_id and ie.type = $(type)
+          where a."tenantId" = $(tenantId) and
+                a."segmentId" in ($(segmentIds:csv)) and 
+                ie.entity_id is null
+          limit ${perPage};`,
+        {
+          tenantId,
+          segmentIds,
+          type: IndexedEntityType.MEMBER,
+        },
+      )
+    } else {
+      results = await this.db().any(
+        `
+        select o.id
+        from organizations o
+        left join indexed_entities ie on o.id = ie.entity_id and ie.type = $(type)
+        where o."tenantId" = $(tenantId) and 
+              o."deletedAt" is null and
+              ie.entity_id is null
+        limit ${perPage}`,
+        {
+          tenantId,
+          type: IndexedEntityType.ORGANIZATION,
+        },
+      )
+    }
 
     return results.map((r) => r.id)
   }
