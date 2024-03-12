@@ -99,7 +99,6 @@ setImmediate(async () => {
     let processing = false
     setInterval(async () => {
       try {
-        log.info('Checking for old results to process...')
         if (!processing) {
           processing = true
           log.info('Processing old results...')

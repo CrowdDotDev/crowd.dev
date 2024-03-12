@@ -13,7 +13,7 @@ import {
 } from '@crowd/common_services'
 
 const MAX_CONCURRENT_PROMISES = 5
-const MAX_RESULTS_TO_LOAD = 50
+const MAX_RESULTS_TO_LOAD = 200
 
 export const processOldResultsJob = async (
   dbConn: DbConnection,
