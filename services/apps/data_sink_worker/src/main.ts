@@ -27,7 +27,7 @@ const tracer = getServiceTracer()
 const log = getServiceLogger()
 
 const MAX_CONCURRENT_PROCESSING = 5
-const PROCESSING_INTERVAL_MINUTES = 4
+const PROCESSING_INTERVAL_MINUTES = 1
 
 setImmediate(async () => {
   log.info('Starting data sink worker...')
