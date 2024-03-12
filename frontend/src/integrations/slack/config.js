@@ -1,7 +1,9 @@
+import config from '@/config';
 import SlackConnect from './components/slack-connect.vue';
 
 export default {
-  enabled: true,
+  enabled: config.isSlackIntegrationEnabled,
+  hideAsIntegration: !config.isSlackIntegrationEnabled,
   name: 'Slack',
   backgroundColor: '#FFFFFF',
   borderColor: '#E5E7EB',

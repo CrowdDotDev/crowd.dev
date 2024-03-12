@@ -1,7 +1,9 @@
+import config from '@/config';
 import StackOverflowConnect from './components/stackoverflow-connect.vue';
 
 export default {
-  enabled: true,
+  enabled: config.isStackOverflowIntegrationEnabled,
+  hideAsIntegration: !config.isStackOverflowIntegrationEnabled,
   name: 'Stack Overflow',
   backgroundColor: '#FFFFFF',
   borderColor: '#FFFFFF',

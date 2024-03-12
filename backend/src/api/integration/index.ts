@@ -1,6 +1,14 @@
 import passport from 'passport'
 import { FeatureFlag } from '@crowd/types'
-import { API_CONFIG, SLACK_CONFIG, TWITTER_CONFIG } from '../../conf'
+import {
+  API_CONFIG,
+  DEVTO_CONFIG,
+  DISCORD_CONFIG,
+  GITHUB_CONFIG,
+  NANGO_CONFIG,
+  SLACK_CONFIG,
+  TWITTER_CONFIG,
+} from '../../conf'
 import SegmentRepository from '../../database/repositories/segmentRepository'
 import { authMiddleware } from '../../middlewares/authMiddleware'
 import { safeWrap } from '../../middlewares/errorMiddleware'
@@ -28,140 +36,150 @@ export default (app) => {
   app.get(`/tenant/:tenantId/integration`, safeWrap(require('./integrationList').default))
   app.get(`/tenant/:tenantId/integration/:id`, safeWrap(require('./integrationFind').default))
 
-  app.put(
-    `/authenticate/:tenantId/:code`,
-    safeWrap(require('./helpers/githubAuthenticate').default),
-  )
-  app.put(
-    `/tenant/:tenantId/integration/:id/github/repos`,
-    safeWrap(require('./helpers/githubMapRepos').default),
-  )
-  app.get(
-    `/tenant/:tenantId/integration/:id/github/repos`,
-    safeWrap(require('./helpers/githubMapReposGet').default),
-  )
-  app.put(
-    `/discord-authenticate/:tenantId/:guild_id`,
-    safeWrap(require('./helpers/discordAuthenticate').default),
-  )
-  app.put(`/reddit-onboard/:tenantId`, safeWrap(require('./helpers/redditOnboard').default))
-  app.put('/linkedin-connect/:tenantId', safeWrap(require('./helpers/linkedinConnect').default))
-  app.post('/linkedin-onboard/:tenantId', safeWrap(require('./helpers/linkedinOnboard').default))
+  // Git
   app.put(`/tenant/:tenantId/git-connect`, safeWrap(require('./helpers/gitAuthenticate').default))
   app.get('/tenant/:tenantId/git', safeWrap(require('./helpers/gitGetRemotes').default))
-  app.get(
-    '/tenant/:tenantId/devto-validate',
-    safeWrap(require('./helpers/devtoValidators').default),
-  )
-  app.get(
-    '/tenant/:tenantId/reddit-validate',
-    safeWrap(require('./helpers/redditValidator').default),
-  )
-  app.post(
-    '/tenant/:tenantId/devto-connect',
-    safeWrap(require('./helpers/devtoCreateOrUpdate').default),
-  )
+
+  // Hacker News
   app.post(
     '/tenant/:tenantId/hackernews-connect',
     safeWrap(require('./helpers/hackerNewsCreateOrUpdate').default),
   )
 
-  app.post(
-    '/tenant/:tenantId/stackoverflow-connect',
-    safeWrap(require('./helpers/stackOverflowCreateOrUpdate').default),
-  )
-  app.get(
-    '/tenant/:tenantId/stackoverflow-validate',
-    safeWrap(require('./helpers/stackOverflowValidator').default),
-  )
-  app.get(
-    '/tenant/:tenantId/stackoverflow-volume',
-    safeWrap(require('./helpers/stackOverflowVolume').default),
-  )
-
+  // Discourse
   app.post(
     '/tenant/:tenantId/discourse-connect',
     safeWrap(require('./helpers/discourseCreateOrUpdate').default),
   )
-
   app.post(
     '/tenant/:tenantId/discourse-validate',
     safeWrap(require('./helpers/discourseValidator').default),
   )
-
   app.post(
     '/tenant/:tenantId/discourse-test-webhook',
     safeWrap(require('./helpers/discourseTestWebhook').default),
   )
 
-  app.post(
-    '/tenant/:tenantId/hubspot-connect',
-    featureFlagMiddleware(FeatureFlag.HUBSPOT, 'hubspot.errors.notInPlan'),
-    safeWrap(require('./helpers/hubspotConnect').default),
-  )
-
-  app.post(
-    '/tenant/:tenantId/hubspot-onboard',
-    featureFlagMiddleware(FeatureFlag.HUBSPOT, 'hubspot.errors.notInPlan'),
-    safeWrap(require('./helpers/hubspotOnboard').default),
-  )
-
-  app.post(
-    '/tenant/:tenantId/hubspot-update-properties',
-    featureFlagMiddleware(FeatureFlag.HUBSPOT, 'hubspot.errors.notInPlan'),
-    safeWrap(require('./helpers/hubspotUpdateProperties').default),
-  )
-
-  app.get(
-    '/tenant/:tenantId/hubspot-mappable-fields',
-    featureFlagMiddleware(FeatureFlag.HUBSPOT, 'hubspot.errors.notInPlan'),
-    safeWrap(require('./helpers/hubspotGetMappableFields').default),
-  )
-
-  app.get(
-    '/tenant/:tenantId/hubspot-get-lists',
-    featureFlagMiddleware(FeatureFlag.HUBSPOT, 'hubspot.errors.notInPlan'),
-    safeWrap(require('./helpers/hubspotGetLists').default),
-  )
-
-  app.post(
-    '/tenant/:tenantId/hubspot-sync-member',
-    featureFlagMiddleware(FeatureFlag.HUBSPOT, 'hubspot.errors.notInPlan'),
-    safeWrap(require('./helpers/hubspotSyncMember').default),
-  )
-
-  app.post(
-    '/tenant/:tenantId/hubspot-stop-sync-member',
-    featureFlagMiddleware(FeatureFlag.HUBSPOT, 'hubspot.errors.notInPlan'),
-    safeWrap(require('./helpers/hubspotStopSyncMember').default),
-  )
-
-  app.post(
-    '/tenant/:tenantId/hubspot-sync-organization',
-    featureFlagMiddleware(FeatureFlag.HUBSPOT, 'hubspot.errors.notInPlan'),
-    safeWrap(require('./helpers/hubspotSyncOrganization').default),
-  )
-
-  app.post(
-    '/tenant/:tenantId/hubspot-stop-sync-organization',
-    featureFlagMiddleware(FeatureFlag.HUBSPOT, 'hubspot.errors.notInPlan'),
-    safeWrap(require('./helpers/hubspotStopSyncOrganization').default),
-  )
-
+  // Groups.io
   app.post(
     '/tenant/:tenantId/groupsio-connect',
     safeWrap(require('./helpers/groupsioConnectOrUpdate').default),
   )
-
   app.post(
     '/tenant/:tenantId/groupsio-get-token',
     safeWrap(require('./helpers/groupsioGetToken').default),
   )
-
   app.post(
     '/tenant/:tenantId/groupsio-verify-group',
     safeWrap(require('./helpers/groupsioVerifyGroup').default),
   )
+
+  if (GITHUB_CONFIG.clientId) {
+    app.put(
+      `/authenticate/:tenantId/:code`,
+      safeWrap(require('./helpers/githubAuthenticate').default),
+    )
+    app.put(
+      `/tenant/:tenantId/integration/:id/github/repos`,
+      safeWrap(require('./helpers/githubMapRepos').default),
+    )
+    app.get(
+      `/tenant/:tenantId/integration/:id/github/repos`,
+      safeWrap(require('./helpers/githubMapReposGet').default),
+    )
+  }
+
+  if (DISCORD_CONFIG.token) {
+    app.put(
+      `/discord-authenticate/:tenantId/:guild_id`,
+      safeWrap(require('./helpers/discordAuthenticate').default),
+    )
+  }
+
+  if (DEVTO_CONFIG.apiKey) {
+    app.get(
+      '/tenant/:tenantId/devto-validate',
+      safeWrap(require('./helpers/devtoValidators').default),
+    )
+    app.post(
+      '/tenant/:tenantId/devto-connect',
+      safeWrap(require('./helpers/devtoCreateOrUpdate').default),
+    )
+  }
+
+  if (NANGO_CONFIG.secretKey) {
+    // Reddit
+    app.put(`/reddit-onboard/:tenantId`, safeWrap(require('./helpers/redditOnboard').default))
+    app.get(
+      '/tenant/:tenantId/reddit-validate',
+      safeWrap(require('./helpers/redditValidator').default),
+    )
+
+    // LinkedIn
+    app.put('/linkedin-connect/:tenantId', safeWrap(require('./helpers/linkedinConnect').default))
+    app.post('/linkedin-onboard/:tenantId', safeWrap(require('./helpers/linkedinOnboard').default))
+
+    // Stack Overflow
+    app.post(
+      '/tenant/:tenantId/stackoverflow-connect',
+      safeWrap(require('./helpers/stackOverflowCreateOrUpdate').default),
+    )
+    app.get(
+      '/tenant/:tenantId/stackoverflow-validate',
+      safeWrap(require('./helpers/stackOverflowValidator').default),
+    )
+    app.get(
+      '/tenant/:tenantId/stackoverflow-volume',
+      safeWrap(require('./helpers/stackOverflowVolume').default),
+    )
+
+    // Hubspot
+    app.post(
+      '/tenant/:tenantId/hubspot-connect',
+      featureFlagMiddleware(FeatureFlag.HUBSPOT, 'hubspot.errors.notInPlan'),
+      safeWrap(require('./helpers/hubspotConnect').default),
+    )
+    app.post(
+      '/tenant/:tenantId/hubspot-onboard',
+      featureFlagMiddleware(FeatureFlag.HUBSPOT, 'hubspot.errors.notInPlan'),
+      safeWrap(require('./helpers/hubspotOnboard').default),
+    )
+    app.post(
+      '/tenant/:tenantId/hubspot-update-properties',
+      featureFlagMiddleware(FeatureFlag.HUBSPOT, 'hubspot.errors.notInPlan'),
+      safeWrap(require('./helpers/hubspotUpdateProperties').default),
+    )
+    app.get(
+      '/tenant/:tenantId/hubspot-mappable-fields',
+      featureFlagMiddleware(FeatureFlag.HUBSPOT, 'hubspot.errors.notInPlan'),
+      safeWrap(require('./helpers/hubspotGetMappableFields').default),
+    )
+    app.get(
+      '/tenant/:tenantId/hubspot-get-lists',
+      featureFlagMiddleware(FeatureFlag.HUBSPOT, 'hubspot.errors.notInPlan'),
+      safeWrap(require('./helpers/hubspotGetLists').default),
+    )
+    app.post(
+      '/tenant/:tenantId/hubspot-sync-member',
+      featureFlagMiddleware(FeatureFlag.HUBSPOT, 'hubspot.errors.notInPlan'),
+      safeWrap(require('./helpers/hubspotSyncMember').default),
+    )
+    app.post(
+      '/tenant/:tenantId/hubspot-stop-sync-member',
+      featureFlagMiddleware(FeatureFlag.HUBSPOT, 'hubspot.errors.notInPlan'),
+      safeWrap(require('./helpers/hubspotStopSyncMember').default),
+    )
+    app.post(
+      '/tenant/:tenantId/hubspot-sync-organization',
+      featureFlagMiddleware(FeatureFlag.HUBSPOT, 'hubspot.errors.notInPlan'),
+      safeWrap(require('./helpers/hubspotSyncOrganization').default),
+    )
+    app.post(
+      '/tenant/:tenantId/hubspot-stop-sync-organization',
+      featureFlagMiddleware(FeatureFlag.HUBSPOT, 'hubspot.errors.notInPlan'),
+      safeWrap(require('./helpers/hubspotStopSyncOrganization').default),
+    )
+  }
 
   if (TWITTER_CONFIG.clientId) {
     /**

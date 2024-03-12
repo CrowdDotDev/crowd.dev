@@ -1,7 +1,9 @@
+import config from '@/config';
 import GithubConnect from './components/github-connect.vue';
 
 export default {
-  enabled: true,
+  enabled: config.isGitHubIntegrationEnabled,
+  hideAsIntegration: !config.isGitHubIntegrationEnabled,
   name: 'GitHub',
   backgroundColor: '#E5E7EB',
   borderColor: '#E5E7EB',

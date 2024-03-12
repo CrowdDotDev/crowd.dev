@@ -1,7 +1,9 @@
+import config from '@/config';
 import ZapierConnect from './components/zapier-connect.vue';
 
 export default {
-  enabled: true,
+  enabled: config.isZapierIntegrationEnabled,
+  hideAsIntegration: !config.isZapierIntegrationEnabled,
   name: 'Zapier',
   backgroundColor: '#FFFFFF',
   borderColor: '#FFFFFF',

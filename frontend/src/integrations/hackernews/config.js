@@ -1,7 +1,9 @@
+import config from '@/config';
 import HackerNewsConnect from './components/hackerNews-connect.vue';
 
 export default {
-  enabled: true,
+  enabled: config.isHackerNewsIntegrationEnabled,
+  hideAsIntegration: !config.isHackerNewsIntegrationEnabled,
   name: 'Hacker News',
   backgroundColor: '#ffdecf',
   borderColor: '#ffdecf',
