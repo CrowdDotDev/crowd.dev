@@ -139,3 +139,10 @@ export function organizationEditIdentitiesAction<T>(
 ): BuildActionFn<T> {
   return modifyEntityAction(ActionType.ORGANIZATIONS_EDIT_IDENTITIES, entityId, captureFn)
 }
+
+export function organizationMergeAction<T>(
+  entityId: string,
+  captureFn: CaptureFn<T>,
+): BuildActionFn<T> {
+  return modifyEntityAction(ActionType.ORGANIZATIONS_MERGE, entityId, captureFn)
+}
