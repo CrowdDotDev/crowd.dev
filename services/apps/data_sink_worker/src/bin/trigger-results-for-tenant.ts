@@ -48,6 +48,7 @@ setImmediate(async () => {
   await dataSinkWorkerEmitter.init()
 
   const repo = new DataSinkRepository(store, log)
+  let count = 0
   for (const tenantId of tenantIds) {
     let resultIds = await repo.getOldResultsToProcessForTenant(tenantId, 100)
 
@@ -61,10 +62,13 @@ setImmediate(async () => {
         generateUUIDv1(),
         true,
       )
+      count += 1
 
       if (resultIds.length === 0) {
         resultIds = await repo.getOldResultsToProcessForTenant(tenantId, 100, resultId)
       }
+
+      log.info(`Triggered ${count} results to process!`)
     }
   }
 
