@@ -1,6 +1,6 @@
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
-import { IIntegrationResult, IntegrationResultState, TenantPlans } from '@crowd/types'
+import { IIntegrationResult, IntegrationResultState } from '@crowd/types'
 import { IDelayedResults, IFailedResultData, IResultData } from './dataSink.data'
 import { distinct, singleOrDefault } from '@crowd/common'
 
