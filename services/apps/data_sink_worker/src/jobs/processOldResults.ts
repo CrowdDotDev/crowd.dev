@@ -12,7 +12,7 @@ import {
   SearchSyncWorkerEmitter,
 } from '@crowd/common_services'
 
-const MAX_CONCURRENT_PROMISES = 5
+const MAX_CONCURRENT_PROMISES = 10
 const MAX_RESULTS_TO_LOAD = 200
 
 export const processOldResultsJob = async (
@@ -56,7 +56,7 @@ export const processOldResultsJob = async (
     const resultId = resultsToProcess.pop()
 
     while (current == MAX_CONCURRENT_PROMISES) {
-      await timeout(1000)
+      await timeout(50)
     }
 
     current += 1
@@ -73,7 +73,7 @@ export const processOldResultsJob = async (
 
     if (resultsToProcess.length === 0) {
       while (current > 0) {
-        await timeout(1000)
+        await timeout(50)
       }
 
       log.info(`Processed ${successCount} old results successfully and ${errorCount} with errors.`)
