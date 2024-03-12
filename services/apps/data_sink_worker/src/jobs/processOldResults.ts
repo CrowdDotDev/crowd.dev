@@ -12,8 +12,8 @@ import {
   SearchSyncWorkerEmitter,
 } from '@crowd/common_services'
 
-const MAX_CONCURRENT_PROMISES = 10
-const MAX_RESULTS_TO_LOAD = 200
+const MAX_CONCURRENT_PROMISES = 5
+const MAX_RESULTS_TO_LOAD = 500
 
 export const processOldResultsJob = async (
   dbConn: DbConnection,
