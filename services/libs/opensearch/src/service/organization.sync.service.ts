@@ -201,7 +201,11 @@ export class OrganizationSyncService {
     }
   }
 
-  public async syncTenantOrganizations(tenantId: string, batchSize = 100): Promise<void> {
+  public async syncTenantOrganizations(
+    tenantId: string,
+    batchSize = 100,
+    segmentIds?: string[],
+  ): Promise<void> {
     this.log.warn({ tenantId }, 'Syncing all tenant organizations!')
     let docCount = 0
     let organizationCount = 0
@@ -213,6 +217,7 @@ export class OrganizationSyncService {
         while (organizationIds.length > 0) {
           const { organizationsSynced, documentsIndexed } = await this.syncOrganizations(
             organizationIds,
+            segmentIds,
           )
 
           organizationCount += organizationsSynced

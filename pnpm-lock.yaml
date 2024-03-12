@@ -1236,6 +1236,12 @@ importers:
       '@crowd/types':
         specifier: workspace:*
         version: link:../../libs/types
+      command-line-args:
+        specifier: ^5.2.1
+        version: 5.2.1
+      command-line-usage:
+        specifier: ^6.1.3
+        version: 6.1.3
       config:
         specifier: ^3.3.9
         version: 3.3.11
