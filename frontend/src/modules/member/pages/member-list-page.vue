@@ -117,6 +117,7 @@ import CrSavedViews from '@/shared/modules/saved-views/components/SavedViews.vue
 import AppMemberListTable from '@/modules/member/components/list/member-list-table.vue';
 import { useRouter } from 'vue-router';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { memberFilters, memberSearchFilter } from '../config/filters/main';
 import { memberSavedViews, memberStaticViews } from '../config/saved-views/main';
 
@@ -134,20 +135,21 @@ const membersToMergeCount = ref(0);
 const isSubProjectSelectionOpen = ref(false);
 
 const { listByPlatform } = mapGetters('integration');
-const { currentUser, currentTenant } = mapGetters('auth');
+const authStore = useAuthStore();
+const { user, tenant } = storeToRefs(authStore);
 
 const memberFilter = ref<CrFilter | null>(null);
 
 const hasIntegrations = computed(() => !!Object.keys(listByPlatform.value || {}).length);
 
 const hasPermissionToCreate = computed(() => new MemberPermissions(
-  currentTenant.value,
-  currentUser.value,
+  tenant.value,
+  user.value,
 )?.create);
 
 const hasPermissionsToMerge = computed(() => new MemberPermissions(
-  currentTenant.value,
-  currentUser.value,
+  tenant.value,
+  user.value,
 )?.mergeMembers);
 
 const pagination = ref({
@@ -156,13 +158,13 @@ const pagination = ref({
 });
 
 const isCreateLockedForSampleData = computed(() => new MemberPermissions(
-  currentTenant.value,
-  currentUser.value,
+  tenant.value,
+  user.value,
 )?.createLockedForSampleData);
 
 const isEditLockedForSampleData = computed(() => new MemberPermissions(
-  currentTenant.value,
-  currentUser.value,
+  tenant.value,
+  user.value,
 )?.editLockedForSampleData);
 
 const fetchMembersToMergeCount = () => {

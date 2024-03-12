@@ -208,7 +208,7 @@
 </template>
 
 <script setup lang="ts">
-import { mapActions, mapGetters } from '@/shared/vuex/vuex.helpers';
+import { mapActions } from '@/shared/vuex/vuex.helpers';
 import { MemberService } from '@/modules/member/member-service';
 import Message from '@/shared/message/message';
 import { MemberPermissions } from '@/modules/member/member-permissions';
@@ -224,6 +224,8 @@ import {
 import { useStore } from 'vuex';
 import { useRoute } from 'vue-router';
 import { computed } from 'vue';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
+import { storeToRefs } from 'pinia';
 import { Member } from '../types/Member';
 
 enum Actions {
@@ -249,24 +251,25 @@ const props = defineProps<{
 const store = useStore();
 const route = useRoute();
 
-const { currentUser, currentTenant } = mapGetters('auth');
+const authStore = useAuthStore();
+const { user, tenant } = storeToRefs(authStore);
 const { doFind } = mapActions('member');
 
 const memberStore = useMemberStore();
 
 const isEditLockedForSampleData = computed(
-  () => new MemberPermissions(currentTenant.value, currentUser.value)
+  () => new MemberPermissions(tenant.value, user.value)
     .editLockedForSampleData,
 );
 
 const isDeleteLockedForSampleData = computed(
-  () => new MemberPermissions(currentTenant.value, currentUser.value)
+  () => new MemberPermissions(tenant.value, user.value)
     .destroyLockedForSampleData,
 );
 
 const hasPermissionsToMerge = computed(() => new MemberPermissions(
-  currentTenant.value,
-  currentUser.value,
+  tenant.value,
+  user.value,
 )?.mergeMembers);
 
 const isSyncingWithHubspot = computed(

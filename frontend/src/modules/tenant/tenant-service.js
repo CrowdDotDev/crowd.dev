@@ -1,6 +1,6 @@
 import authAxios from '@/shared/axios/auth-axios';
 import { tenantSubdomain } from '@/modules/tenant/tenant-subdomain';
-import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
+import { AuthService } from '@/modules/auth/services/auth.service';
 import config from '@/config';
 
 export class TenantService {
@@ -11,41 +11,36 @@ export class TenantService {
       tenantSubdomain.isEnabled
       && tenantSubdomain.isRootDomain
     ) {
-      AuthCurrentTenant.clear();
       return;
     }
 
     // If there is a subdomain with the tenant url,
     // it must fetch the settings form that subdomain no matter
     // which one is on local storage
-    let currentTenant;
+    let tenant;
     if (tenantUrl) {
       try {
-        currentTenant = await this.findByUrl(tenantUrl);
+        tenant = await this.findByUrl(tenantUrl);
       } catch (error) {
         console.error(error);
       }
 
-      AuthCurrentTenant.set(currentTenant);
-
-      if (!currentTenant) {
+      if (!tenant) {
         window.location.href = `${config.frontendUrl.protocol}://${config.frontendUrl.host}`;
         return;
       }
     }
 
-    const tenantId = AuthCurrentTenant.get();
+    const tenantId = AuthService.getTenantId();
     if (tenantId && !tenantUrl) {
       try {
-        currentTenant = await this.find(tenantId);
-
-        AuthCurrentTenant.set(currentTenant);
+        tenant = await this.find(tenantId);
       } catch (error) {
         console.error(error);
       }
     }
     // eslint-disable-next-line consistent-return
-    return currentTenant;
+    return tenant;
   }
 
   static async update(id, data) {
@@ -83,14 +78,14 @@ export class TenantService {
   }
 
   static async viewOrganizations() {
-    const tenantId = AuthCurrentTenant.get();
+    const tenantId = AuthService.getTenantId();
     const response = await authAxios.post(`/tenant/${tenantId}/viewOrganizations`);
 
     return response.data;
   }
 
   static async viewContacts() {
-    const tenantId = AuthCurrentTenant.get();
+    const tenantId = AuthService.getTenantId();
     const response = await authAxios.post(`/tenant/${tenantId}/viewContacts`);
 
     return response.data;

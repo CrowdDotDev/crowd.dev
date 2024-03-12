@@ -2,8 +2,7 @@ import { useLogRocket } from '@/utils/logRocket';
 import { i18n, i18nExists } from '@/i18n';
 import { router } from '@/router';
 import Message from '@/shared/message/message';
-import { AuthService } from '@/modules/auth/auth-service';
-import config from '@/config';
+import { AuthService } from '@/modules/auth/services/auth.service';
 
 const DEFAULT_ERROR_MESSAGE = i18n('errors.defaultErrorMessage');
 
@@ -51,7 +50,7 @@ export default class Errors {
     }
 
     if (selectErrorCode(error) === 401) {
-      AuthService.signout();
+      AuthService.logout();
       window.location.reload();
       return;
     }

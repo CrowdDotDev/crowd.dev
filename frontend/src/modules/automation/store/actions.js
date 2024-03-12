@@ -1,5 +1,8 @@
 import { AutomationService } from '@/modules/automation/automation-service';
 import { store } from '@/store';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
+
+const { getUser } = useAuthStore();
 
 export default {
   getAutomations() {
@@ -27,7 +30,7 @@ export default {
     })
       .then((res) => {
         // Make sure that feature flags are updated for automationsCount
-        store.dispatch('auth/doRefreshCurrentUser');
+        getUser();
 
         this.getAutomations();
         return Promise.resolve(res);
@@ -37,7 +40,7 @@ export default {
     return AutomationService.create(data)
       .then((res) => {
         // Make sure that feature flags are updated for automationsCount
-        store.dispatch('auth/doRefreshCurrentUser');
+        getUser();
 
         this.getAutomations();
         return Promise.resolve(res);
@@ -54,7 +57,7 @@ export default {
     return AutomationService.destroy(id)
       .then((res) => {
         // Make sure that feature flags are updated for automationsCount
-        store.dispatch('auth/doRefreshCurrentUser');
+        getUser();
 
         this.getAutomations();
         return Promise.resolve(res);

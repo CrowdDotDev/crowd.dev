@@ -1,9 +1,9 @@
 import authAxios from '@/shared/axios/auth-axios';
-import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
+import { AuthService } from '@/modules/auth/services/auth.service';
 
 export class OrganizationService {
   static async update(id, data, segments) {
-    const tenantId = AuthCurrentTenant.get();
+    const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.put(
       `/tenant/${tenantId}/organization/${id}`,
@@ -22,7 +22,7 @@ export class OrganizationService {
       segments,
     };
 
-    const tenantId = AuthCurrentTenant.get();
+    const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.delete(
       `/tenant/${tenantId}/organization`,
@@ -35,7 +35,7 @@ export class OrganizationService {
   }
 
   static async mergeOrganizations(organizationToKeepId, organizationToMergeId) {
-    const tenantId = AuthCurrentTenant.get();
+    const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.put(
       `/tenant/${tenantId}/organization/${organizationToKeepId}/merge`,
@@ -48,7 +48,7 @@ export class OrganizationService {
   }
 
   static async unmerge(orgId, preview) {
-    const tenantId = AuthCurrentTenant.get();
+    const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/organization/${orgId}/unmerge`,
@@ -59,7 +59,7 @@ export class OrganizationService {
   }
 
   static async unmergePreview(orgId, platform, name) {
-    const tenantId = AuthCurrentTenant.get();
+    const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/organization/${orgId}/unmerge/preview`,
@@ -73,7 +73,7 @@ export class OrganizationService {
   }
 
   static async addToNoMerge(organizationA, organizationB) {
-    const tenantId = AuthCurrentTenant.get();
+    const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.put(
       `/tenant/${tenantId}/organization/${organizationA.id}/no-merge`,
@@ -86,7 +86,7 @@ export class OrganizationService {
   }
 
   static async noMergeOrganizations(organizationAId, organizationBId) {
-    const tenantId = AuthCurrentTenant.get();
+    const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.put(
       `/tenant/${tenantId}/organization/${organizationAId}/no-merge`,
@@ -99,7 +99,7 @@ export class OrganizationService {
   }
 
   static async create(data, segments) {
-    const tenantId = AuthCurrentTenant.get();
+    const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/organization`,
@@ -113,15 +113,11 @@ export class OrganizationService {
   }
 
   static async find(id, segments) {
-    const sampleTenant = AuthCurrentTenant.getSampleTenantData();
-    const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
+    const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/organization/${id}`,
       {
-        headers: {
-          Authorization: sampleTenant?.token,
-        },
         params: {
           segmentId: segments[0],
           // The parameter id on this one is sematically different, so we are excluding the logic to add segments as an array
@@ -136,17 +132,11 @@ export class OrganizationService {
   static async query(
     body,
   ) {
-    const sampleTenant = AuthCurrentTenant.getSampleTenantData();
-    const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
+    const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/organization/query`,
       body,
-      {
-        headers: {
-          Authorization: sampleTenant?.token,
-        },
-      },
     );
 
     return response.data;
@@ -163,7 +153,7 @@ export class OrganizationService {
       segments,
     };
 
-    const tenantId = AuthCurrentTenant.get();
+    const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/organization/autocomplete`,
@@ -176,8 +166,7 @@ export class OrganizationService {
   }
 
   static async fetchMergeSuggestions(limit, offset, query) {
-    const sampleTenant = AuthCurrentTenant.getSampleTenantData();
-    const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
+    const tenantId = AuthService.getTenantId();
 
     const params = {
       limit,
@@ -189,9 +178,6 @@ export class OrganizationService {
       `/tenant/${tenantId}/organizationsToMerge`,
       {
         params,
-        headers: {
-          Authorization: sampleTenant?.token,
-        },
       },
     )
       .then(({ data }) => Promise.resolve(data));
@@ -225,16 +211,12 @@ export class OrganizationService {
       segments,
     };
 
-    const sampleTenant = AuthCurrentTenant.getSampleTenantData();
-    const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
+    const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/organization/active`,
       {
         params,
-        headers: {
-          Authorization: sampleTenant?.token,
-        },
       },
     );
 
@@ -256,7 +238,7 @@ export class OrganizationService {
       segments,
     };
 
-    const tenantId = AuthCurrentTenant.get();
+    const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/organization/export`,

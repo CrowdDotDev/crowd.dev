@@ -1,0 +1,28 @@
+<template>
+  <div class="text-center">
+    <h4 class="mb-2">
+      You have no permissions yet.
+    </h4>
+    <div class="font-semibold text-base">
+      Wait for the admin to grant you privileges.
+    </div>
+    <div class="pt-10">
+      <cr-button size="large" @click="signout()">
+        Sign out
+      </cr-button>
+    </div>
+  </div>
+</template>
+
+<script lang="ts" setup>
+import { useAuthStore } from '@/modules/auth/store/auth.store';
+import CrButton from '@/ui-kit/button/Button.vue';
+
+const { signout } = useAuthStore();
+</script>
+
+<script lang="ts">
+export default {
+  name: 'AuthEmptyPermissionsPage',
+};
+</script>

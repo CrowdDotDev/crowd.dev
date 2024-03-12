@@ -77,15 +77,15 @@
 
 <script setup>
 import { computed, ref } from 'vue';
-import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
-import { AuthToken } from '@/modules/auth/auth-token';
+import { AuthService } from '@/modules/auth/services/auth.service';
+
 import Message from '@/shared/message/message';
 
 const inputRef = ref();
 const showToken = ref(false);
 
-const tenantId = computed(() => AuthCurrentTenant.get());
-const jwtToken = computed(() => AuthToken.get());
+const tenantId = computed(() => AuthService.getTenantId());
+const jwtToken = computed(() => AuthService.getToken());
 
 const copyToClipboard = async (type) => {
   const toCopy = type === 'token' ? jwtToken.value : tenantId.value;
