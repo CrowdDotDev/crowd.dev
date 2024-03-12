@@ -1,29 +1,63 @@
 import { LogRenderingConfig } from '@/modules/lf/config/audit-logs/log-rendering/index';
+import moment from 'moment/moment';
+
+const formatDateRange = (dateStart, dateEnd) => {
+  // eslint-disable-next-line no-nested-ternary
+  const dateStartFormat = dateStart
+    ? moment(dateStart).utc().format('MMMM YYYY')
+    : 'Unknown';
+  // eslint-disable-next-line no-nested-ternary
+  const dateEndFormat = dateEnd
+    ? moment(dateEnd).utc().format('MMMM YYYY')
+    : (dateStart ? 'Present' : 'Unknown');
+  return `${dateStartFormat} -> ${dateEndFormat}`;
+};
 
 const membersEditManualAffiliation: LogRenderingConfig = {
-  label: 'Contributor manual affiliations edited',
-  changes: () => ({
-    removals: [],
-    additions: [],
-    changes: [],
-  }),
-  description: (log) => {
-    const contributor = log.newState?.displayName;
-    if (contributor) {
-      return `${contributor}<br>ID: ${log.entityId}`;
-    }
-    return '';
+  label: 'Contributor affiliations edited',
+  changes: (log) => {
+    const changes = {
+      removals: [],
+      additions: [],
+      changes: [],
+    };
+
+    const oldStateMap = new Map(log.oldState.map((org) => [org.organizationId, org]));
+    const newStateMap = new Map(log.newState.map((org) => [org.organizationId, org]));
+
+    // Check for removals and modifications
+    log.oldState.forEach((org) => {
+      if (!newStateMap.has(org.organizationId)) {
+        changes.removals.push(`<span>${organizationId}</span>: ${segmentId} (${formatDateRange(dateStart, dateEnd)})`);
+      } else {
+        const newOrg = newStateMap.get(org.organizationId);
+        if (org.dateStart !== newOrg.dateStart || org.dateEnd !== newOrg.dateEnd || org.segmentId !== newOrg.segmentId) {
+          changes.changes.push(
+            `<span>${organizationId}</span>: <s>${org.segmentId} (${formatDateRange(org.dateStart, org.dateEnd)})</s>
+${newOrg.segmentId} (${formatDateRange(newOrg.dateStart, newOrg.dateEnd)})`,
+          );
+        }
+      }
+    });
+
+    // Check for additions
+    log.newState.forEach((org) => {
+      if (!oldStateMap.has(org.organizationId)) {
+        const {
+          organizationId, dateStart, dateEnd, segmentId,
+        } = org;
+
+        changes.additions.push(`<span>${organizationId}</span>: ${segmentId} (${formatDateRange(dateStart, dateEnd)})`);
+      }
+    });
+
+    return changes;
   },
-  properties: (log) => {
-    const contributor = log.newState?.displayName;
-    if (contributor) {
-      return [{
-        label: 'Contributor',
-        value: `${contributor}<br><span>ID: ${log.entityId}</span>`,
-      }];
-    }
-    return [];
-  },
+  description: (log) => `ID: ${log.entityId}`,
+  properties: (log) => [{
+    label: 'Contributor',
+    value: `<span>ID: ${log.entityId}</span>`,
+  }],
 };
 
 export default membersEditManualAffiliation;

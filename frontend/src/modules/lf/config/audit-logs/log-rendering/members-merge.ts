@@ -8,14 +8,14 @@ const membersMerge: LogRenderingConfig = {
     changes: [],
   }),
   description: (log) => {
-    const contributor = log.newState?.displayName;
+    const contributor = log.newState?.displayName || log.oldState?.displayName;
     if (contributor) {
       return `${contributor}<br>ID: ${log.entityId}`;
     }
     return '';
   },
   properties: (log) => {
-    const contributor = log.newState?.displayName;
+    const contributor = log.newState?.displayName || log.oldState?.displayName;
     if (contributor) {
       return [{
         label: 'Contributor',

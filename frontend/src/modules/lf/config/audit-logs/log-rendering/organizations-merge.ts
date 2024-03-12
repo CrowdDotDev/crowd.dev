@@ -8,14 +8,14 @@ const organizationsMerge: LogRenderingConfig = {
     changes: [],
   }),
   description: (log) => {
-    const organization = log.newState?.displayName;
+    const organization = log.newState?.displayName || log.oldState?.displayName;
     if (organization) {
       return `${organization}<br>ID: ${log.entityId}`;
     }
     return '';
   },
   properties: (log) => {
-    const organization = log.newState?.displayName;
+    const organization = log.newState?.displayName || log.oldState?.displayName;;
     if (organization) {
       return [{
         label: 'Organization',
