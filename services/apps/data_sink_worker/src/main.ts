@@ -27,7 +27,6 @@ const tracer = getServiceTracer()
 const log = getServiceLogger()
 
 const MAX_CONCURRENT_PROCESSING = 5
-const PROCESSING_INTERVAL_MINUTES = 1
 
 setImmediate(async () => {
   log.info('Starting data sink worker...')
@@ -96,30 +95,19 @@ setImmediate(async () => {
     await searchSyncWorkerEmitter.init()
     await dataWorkerEmitter.init()
 
-    let processing = false
-    setInterval(async () => {
-      try {
-        if (!processing) {
-          processing = true
-          log.info('Processing old results...')
-          await processOldResultsJob(
-            dbConnection,
-            redisClient,
-            nodejsWorkerEmitter,
-            searchSyncWorkerEmitter,
-            dataWorkerEmitter,
-            unleash,
-            temporal,
-            log,
-          )
-        }
-      } catch (err) {
-        log.error(err, 'Failed to process old results!')
-      } finally {
-        processing = false
-      }
-    }, PROCESSING_INTERVAL_MINUTES * 60 * 1000)
-    await queue.start()
+    await Promise.all([
+      processOldResultsJob(
+        dbConnection,
+        redisClient,
+        nodejsWorkerEmitter,
+        searchSyncWorkerEmitter,
+        dataWorkerEmitter,
+        unleash,
+        temporal,
+        log,
+      ),
+      queue.start(),
+    ])
   } catch (err) {
     log.error({ err }, 'Failed to start queues!')
     process.exit(1)
