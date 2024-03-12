@@ -1,3 +1,5 @@
+import config from '@/config';
+
 class AuthServiceClass {
   setToken(token: string) {
     localStorage.setItem('jwt', token);
@@ -8,11 +10,11 @@ class AuthServiceClass {
   }
 
   setTenant(tenantId: string) {
-    localStorage.setItem('currentTenant', tenantId);
+    localStorage.setItem('currentTenant', config.lf.tenantId || tenantId);
   }
 
   getTenantId() {
-    return localStorage.getItem('currentTenant');
+    return config.lf.tenantId || localStorage.getItem('currentTenant');
   }
 
   logout() {
