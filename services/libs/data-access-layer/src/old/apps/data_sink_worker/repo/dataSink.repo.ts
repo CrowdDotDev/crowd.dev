@@ -73,7 +73,7 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
           or (r.state = $(delayedState) and r."delayedUntil" < now())
           or (r.state = $(errorState) and r.retries <= 5))
           ${lastId !== undefined ? 'and r.id > $(lastId)' : ''}
-        order by  
+        order by r.id
         limit ${limit};
         `,
         {
