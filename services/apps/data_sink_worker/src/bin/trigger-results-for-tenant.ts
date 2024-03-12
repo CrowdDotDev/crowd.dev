@@ -58,7 +58,7 @@ setImmediate(async () => {
       const lastResultId = resultIds[resultIds.length - 1]
       const batches = partition(resultIds, 10)
 
-      for (const batch of batches) {
+      const promises = batches.map((batch) => {
         const messages = batch.map((resultId) => {
           return {
             tenantId,
@@ -70,11 +70,15 @@ setImmediate(async () => {
             deduplicationId: resultId,
           }
         })
+        const promise = dataSinkWorkerEmitter.sendMessages(messages).then(() => {
+          count += messages.length
+        })
 
-        await dataSinkWorkerEmitter.sendMessages(messages)
-        count += messages.length
-        log.info(`Triggered ${count} results to process!`)
-      }
+        return promise
+      })
+
+      await Promise.all(promises)
+      log.info(`Processed ${count} results!`)
 
       resultIds = await repo.getOldResultsToProcessForTenant(tenantId, batchSize, lastResultId)
     }
