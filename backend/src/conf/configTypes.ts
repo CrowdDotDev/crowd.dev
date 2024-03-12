@@ -75,6 +75,7 @@ export interface ApiConfiguration {
   frontendUrl: string
   frontendUrlWithSubdomain: string
   edition: string
+  signUpDomain: string
   jwtSecret: string
   jwtExpiresIn: string
   documentation: boolean
@@ -97,6 +98,7 @@ export interface PlansConfiguration {
 }
 
 export interface DevtoConfiguration {
+  apiKey: string
   globalLimit?: number
 }
 

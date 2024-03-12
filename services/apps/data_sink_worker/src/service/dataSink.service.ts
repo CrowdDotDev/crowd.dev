@@ -125,7 +125,6 @@ export default class DataSinkService extends LoggerBase {
 
     this.log = getChildLogger('result-processor', this.log, {
       resultId,
-      apiDataId: resultInfo.apiDataId,
       streamId: resultInfo.streamId,
       runId: resultInfo.runId,
       webhookId: resultInfo.webhookId,

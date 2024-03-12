@@ -1,7 +1,9 @@
+import config from '@/config';
 import RedditConnect from './components/reddit-connect.vue';
 
 export default {
-  enabled: true,
+  enabled: config.isRedditIntegrationEnabled,
+  hideAsIntegration: !config.isRedditIntegrationEnabled,
   name: 'Reddit',
   backgroundColor: '#ffd8ca',
   borderColor: '#ffd8ca',

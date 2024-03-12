@@ -1,7 +1,9 @@
+import config from '@/config';
 import DiscordConnect from './components/discord-connect.vue';
 
 export default {
-  enabled: true,
+  enabled: config.isDiscordIntegrationEnabled,
+  hideAsIntegration: !config.isDiscordIntegrationEnabled,
   name: 'Discord',
   backgroundColor: '#dee0fc',
   borderColor: '#dee0fc',

@@ -1,6 +1,9 @@
+import config from '@/config';
 import HubspotConnect from './components/hubspot-connect.vue';
 
 export default {
+  enabled: config.isHubspotIntegrationEnabled,
+  hideAsIntegration: !config.isHubspotIntegrationEnabled,
   name: 'HubSpot',
   backgroundColor: '#FFFFFF',
   borderColor: '#FFFFFF',
@@ -8,7 +11,6 @@ export default {
   image:
     '/images/integrations/hubspot.svg',
   connectComponent: HubspotConnect,
-  enabled: true,
   url: (username) => null,
   scale: true,
   chartColor: '#FF712E',

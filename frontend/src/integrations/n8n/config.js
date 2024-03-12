@@ -1,7 +1,9 @@
+import config from '@/config';
 import N8nConnect from './components/n8n-connect.vue';
 
 export default {
-  enabled: true,
+  enabled: config.isN8nIntegrationEnabled,
+  hideAsIntegration: !config.isN8nIntegrationEnabled,
   name: 'n8n',
   backgroundColor: '#FFFFFF',
   borderColor: '#FFFFFF',
