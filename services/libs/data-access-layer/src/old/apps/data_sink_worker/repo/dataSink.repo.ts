@@ -59,6 +59,39 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
     return results.id
   }
 
+  public async getOldResultsToProcessForTenant(
+    tenantId: string,
+    limit: number,
+    lastId?: string,
+  ): Promise<string[]> {
+    try {
+      const results = await this.db().any(
+        `
+        select r.id
+        from integration.results r
+        where r."tenantId" = $(tenantId) and (r.state = $(pendingState) 
+          or (r.state = $(delayedState) and r."delayedUntil" < now())
+          or (r.state = $(errorState) and r.retries <= 5))
+          ${lastId !== undefined ? 'and r.id > $(lastId)' : ''}
+        order by  
+        limit ${limit};
+        `,
+        {
+          pendingState: IntegrationResultState.PENDING,
+          delayedState: IntegrationResultState.DELAYED,
+          errorState: IntegrationResultState.ERROR,
+          tenantId,
+          lastId,
+        },
+      )
+
+      return results.map((s) => s.id)
+    } catch (err) {
+      this.log.error(err, 'Failed to get old results to process!')
+      throw err
+    }
+  }
+
   public async getOldResultsToProcess(limit: number): Promise<string[]> {
     try {
       const results = await this.db().any(
