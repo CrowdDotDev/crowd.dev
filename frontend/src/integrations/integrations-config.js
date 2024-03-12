@@ -94,11 +94,9 @@ class IntegrationsConfig {
   }
 
   mappedEnabledConfigs(store) {
-    const x = this.enabledConfigs
-    .map((i) => this.mapper(i, store))
-    .filter((i) => !i.hideAsIntegration);
-    console.log("ddd", this.configs)
-    return x;
+    return this.enabledConfigs
+      .map((i) => this.mapper(i, store))
+      .filter((i) => !i.hideAsIntegration);
   }
 }
 
