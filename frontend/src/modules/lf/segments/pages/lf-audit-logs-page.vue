@@ -18,89 +18,93 @@
       <div class="custom-spinner" />
     </div>
   </div>
-  <el-table
-    v-else
-    id="members-table"
-    ref="table"
-    v-loading="loading"
-    :data="auditLogs"
-    row-key="id"
-    border
-  >
-    <el-table-column
-      label="Action"
-      prop="action"
-      class-name="!p-0"
+  <div v-else>
+    <div class="border-t -mb-4" />
+    <el-table
+      id="members-table"
+      ref="table"
+      v-loading="loading"
+      :data="auditLogs"
+      row-key="id"
+      border
+      class="mt-4 cursor-pointer"
+      @row-click="openLogDetails = $event"
     >
-      <template #default="{ row }">
-        <div class="flex py-4">
-          <div class="pr-2 min-w-6">
-            <i v-if="row.success" class="ri-checkbox-circle-fill flex items-center text-base text-green-500 mr-1" />
-            <i v-else class="ri-close-circle-fill flex items-center text-base text-red-500 mr-1" />
-          </div>
-          <div>
-            <div class="text-sm font-semibold text-black mb-1 leading-5">
-              {{ logRenderingConfig[row.actionType as AuditLog]?.label ?? row.actionType }}
+      <el-table-column
+        label="Action"
+        prop="action"
+        class-name="!p-0"
+      >
+        <template #default="{ row }">
+          <div class="flex py-4">
+            <div class="pr-2 min-w-6">
+              <i v-if="row.success" class="ri-checkbox-circle-fill flex items-center text-base text-green-500 mr-1" />
+              <i v-else class="ri-close-circle-fill flex items-center text-base text-red-500 mr-1" />
             </div>
-            <p
-              v-if="logRenderingConfig[row.actionType as AuditLog]?.description"
-              class="text-2xs text-gray-500 leading-5"
-              v-html="$sanitize(logRenderingConfig[row.actionType as AuditLog]?.description(row))"
-            />
+            <div>
+              <div class="text-sm font-semibold text-black mb-1 leading-5">
+                {{ logRenderingConfig[row.actionType as AuditLog]?.label ?? row.actionType }}
+              </div>
+              <p
+                v-if="logRenderingConfig[row.actionType as AuditLog]?.description"
+                class="text-2xs text-gray-500 leading-5"
+                v-html="$sanitize(logRenderingConfig[row.actionType as AuditLog]?.description(row))"
+              />
+            </div>
           </div>
-        </div>
-      </template>
-    </el-table-column>
+        </template>
+      </el-table-column>
 
-    <el-table-column
-      label="User"
-      prop="user"
-      class-name="!p-0"
-    >
-      <template #default="{ row }">
-        <div class="py-4">
-          <div class="text-sm font-semibold text-black mb-1 leading-5">
-            {{ row.user.fullName }}
+      <el-table-column
+        label="User"
+        prop="user"
+        class-name="!p-0"
+      >
+        <template #default="{ row }">
+          <div class="py-4">
+            <div class="text-sm font-semibold text-black mb-1 leading-5">
+              {{ row.user.fullName }}
+            </div>
+            <p class="text-2xs text-gray-500 leading-5">
+              {{ row.user.email }}
+            </p>
+            <p class="text-2xs text-gray-500 leading-5">
+              ID: {{ row.user.id }}
+            </p>
           </div>
-          <p class="text-2xs text-gray-500 leading-5">
-            {{ row.user.email }}
-          </p>
-          <p class="text-2xs text-gray-500 leading-5">
-            ID: {{ row.user.id }}
-          </p>
-        </div>
-      </template>
-    </el-table-column>
+        </template>
+      </el-table-column>
 
-    <el-table-column
-      label="Timestamp"
-      prop="timestamp"
-      width="200"
-      class-name="!p-0"
-    >
-      <template #default="{ row }">
-        <div class="text-sm py-4 flex items-center h-full">
-          {{ moment.utc(row.timestamp).local().format('DD-MM-YYYY HH:mm:ss') }}
-        </div>
-      </template>
-    </el-table-column>
+      <el-table-column
+        label="Timestamp"
+        prop="timestamp"
+        width="200"
+        class-name="!p-0"
+      >
+        <template #default="{ row }">
+          <div class="text-sm py-4 flex items-center h-full">
+            {{ moment(row.timestamp).format('DD-MM-YYYY HH:mm:ss') }}
+          </div>
+        </template>
+      </el-table-column>
 
-    <el-table-column
-      prop="details"
-      width="140"
-      class-name="!p-0"
-    >
-      <template #default="{ row }">
-        <div class="py-4 flex items-center h-full">
-          <cr-button type="secondary" size="small" @click="openLogDetails = row">
-            View details
-          </cr-button>
-        </div>
-      </template>
-    </el-table-column>
-  </el-table>
+      <el-table-column
+        prop="details"
+        width="140"
+        class-name="!p-0"
+      >
+        <template #default="{ row }">
+          <div class="py-4 flex items-center h-full">
+            <cr-button type="secondary" size="small" @click="openLogDetails = row">
+              View details
+            </cr-button>
+          </div>
+        </template>
+      </el-table-column>
+    </el-table>
+  </div>
 
-  <div v-if="pagination.total > (pagination.page * pagination.perPage)" class="pt-6 pb-6 flex justify-center">
+  <div v-if="pagination.total >= (pagination.page * pagination.perPage)" class="pt-6 pb-6 flex justify-center">
     <cr-button type="tertiary" @click="loadMore">
       <i class="ri-arrow-down-line" />Load more
     </cr-button>
@@ -175,6 +179,7 @@ const fetch = () => {
       } else {
         auditLogs.value = res;
       }
+      pagination.total = auditLogs.value.length;
     })
     .catch(() => {
       auditLogs.value = [];

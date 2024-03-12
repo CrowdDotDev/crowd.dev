@@ -53,7 +53,7 @@
         Timestamp
       </div>
       <div class="w-7/12 text-sm leading-24">
-        {{ moment.utc(props.log.timestamp).local().format('DD-MM-YYYY HH:mm:ss') }}
+        {{ moment(props.log.timestamp).format('DD-MM-YYYY HH:mm:ss') }}
       </div>
     </article>
 
