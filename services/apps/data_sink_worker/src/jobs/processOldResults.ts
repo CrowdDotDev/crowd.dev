@@ -41,7 +41,7 @@ export const processOldResultsJob = async (
   let current = 0
   const loadNextBatch = async (): Promise<string[]> => {
     const resultIds = await repo.getOldResultsToProcess(MAX_RESULTS_TO_LOAD)
-    await repo.touchUpdatedAt(resultIds)
+    // await repo.touchUpdatedAt(resultIds)
     return resultIds
   }
 
