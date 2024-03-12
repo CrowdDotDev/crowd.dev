@@ -50,8 +50,9 @@ setImmediate(async () => {
 
   const repo = new DataSinkRepository(store, log)
   let count = 0
+  const batchSize = 2000
   for (const tenantId of tenantIds) {
-    let resultIds = await repo.getOldResultsToProcessForTenant(tenantId, 100)
+    let resultIds = await repo.getOldResultsToProcessForTenant(tenantId, batchSize)
 
     while (resultIds.length > 0) {
       const lastResultId = resultIds[resultIds.length - 1]
@@ -75,7 +76,7 @@ setImmediate(async () => {
         log.info(`Triggered ${count} results to process!`)
       }
 
-      resultIds = await repo.getOldResultsToProcessForTenant(tenantId, 100, lastResultId)
+      resultIds = await repo.getOldResultsToProcessForTenant(tenantId, batchSize, lastResultId)
     }
   }
 
