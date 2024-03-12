@@ -99,9 +99,9 @@ import { DEFAULT_ORGANIZATION_FILTERS } from '@/modules/organization/store/const
 import useOrganizationMergeMessage from '@/shared/modules/merge/config/useOrganizationMergeMessage';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import { getExportMax } from '@/modules/member/member-export-limit';
 import { OrganizationPermissions } from '../../organization-permissions';
 import { OrganizationService } from '../../organization-service';
-import { getExportMax } from '@/modules/member/member-export-limit';
 
 const authStore = useAuthStore();
 const { user, tenant } = storeToRefs(authStore);
