@@ -65,11 +65,15 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
         `
         select r.id
         from integration.results r
-        where r.state = $(pendingState)
+        where r.state = $(pendingState) 
+          or (r.state = $(delayedState) and r."delayedUntil" < now())
+          or (r.state = $(errorState) and r.retries <= 5)
         limit ${limit};
         `,
         {
           pendingState: IntegrationResultState.PENDING,
+          delayedState: IntegrationResultState.DELAYED,
+          errorState: IntegrationResultState.ERROR,
         },
       )
 
