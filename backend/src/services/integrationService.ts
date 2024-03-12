@@ -50,6 +50,32 @@ import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 
 const discordToken = DISCORD_CONFIG.token || DISCORD_CONFIG.token2
 
+interface IntegrationProgressDataGithubItem {
+  db: number
+  remote: number
+  status: 'ok' | 'in-progress'
+  percentage: number
+  message: string
+}
+
+interface IntegrationProgressDataGithub {
+  forks: IntegrationProgressDataGithubItem
+  stars: IntegrationProgressDataGithubItem
+  issues: IntegrationProgressDataGithubItem
+  pullRequests: IntegrationProgressDataGithubItem
+}
+
+interface IntegrationProgressDataOther {
+  db: number
+  message: string
+  status: 'ok' | 'in-progress'
+}
+
+interface IntegrationProgress {
+  type: 'github' | 'other'
+  data: IntegrationProgressDataGithub | IntegrationProgressDataOther
+}
+
 export default class IntegrationService {
   options: IServiceOptions
 
@@ -1685,5 +1711,17 @@ export default class IntegrationService {
     } catch (err) {
       throw new Error400(this.options.language, 'errors.groupsio.invalidGroup')
     }
+  }
+
+  async getIntegrationProgress(integrationId: string): Promise<IntegrationProgress> {
+    // For GitHub:
+    // check if state = 'in-progress' - return stats only in this case otherwise throw
+    // on the first request we should get the remote state from GitHub and cache it in Redis (for all repos combined)
+    // get the db state and compare it with the remote state
+    // cache the comparison result in Redis for a short period of time (1 minute)
+    // return the result
+    // For other integrations:
+    // check if state = 'in-progress' - return stats only in this case otherwise throw
+    // return the number of streams remaining in the db (cached in Redis for a short period of time)
   }
 }
