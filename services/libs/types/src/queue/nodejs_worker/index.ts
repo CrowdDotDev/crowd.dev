@@ -9,6 +9,7 @@ export enum NodejsWorkerQueueMessageType {
 
 export enum ExportableEntity {
   MEMBERS = 'members',
+  ORGANIZATIONS = 'organizations',
 }
 
 export class NewActivityAutomationQueueMessage implements IQueueMessage {

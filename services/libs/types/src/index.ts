@@ -19,6 +19,8 @@ export * from './organizations'
 
 export * from './caching'
 
+export * from './merging'
+
 export * from './errors'
 
 export * from './pubsub'
@@ -28,6 +30,10 @@ export * from './opensearch'
 export * from './graphql'
 
 export * from './tags'
+
+export * from './tasks'
+
+export * from './notes'
 
 export * from './attributes'
 

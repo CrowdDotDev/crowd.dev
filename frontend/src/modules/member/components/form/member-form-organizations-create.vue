@@ -135,6 +135,10 @@ import AppAutocompleteOneInput from '@/shared/form/autocomplete-one-input.vue';
 import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 import moment from 'moment';
+import { getSegmentsFromProjectGroup } from '@/utils/segments';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import { Member } from '../../types/Member';
 
 type SelectOrganization = Organization & { label: string };
 
@@ -148,9 +152,13 @@ interface MemberOrganizationForm {
 const props = defineProps<{
   modelValue: boolean,
   organization?: Organization | null,
+  member?: Member | null,
 }>();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: boolean), (e: 'add', value: Organization), (e: 'edit', value: Organization),}>();
+
+const lsSegmentsStore = useLfSegmentsStore();
+const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const isOpened = computed<boolean>({
   get() {
@@ -203,13 +211,25 @@ const submit = () => {
   isOpened.value = false;
 };
 
-const fetchOrganizationsFn = (query: number, limit:number) => OrganizationService.listAutocomplete(query, limit)
-  .then((options: SelectOrganization[]) => options.filter((m) => m.id !== props.modelValue.id).map((o) => ({
-    ...o,
-    displayName: o.label,
-    name: o.label,
-  })))
-  .catch(() => []);
+const fetchOrganizationsFn = async ({ query, limit } : {
+  query: number,
+  limit: number,
+}) => {
+  const subProjects = getSegmentsFromProjectGroup(selectedProjectGroup.value) ?? [];
+  const segments = subProjects.concat((props.member?.segments ?? []).filter((s) => !subProjects.includes(s.id)).map((s) => s.id));
+
+  return OrganizationService.listAutocomplete({
+    query,
+    limit,
+    segments,
+  })
+    .then((options: SelectOrganization[]) => options.filter((m) => m.id !== props.modelValue.id).map((o) => ({
+      ...o,
+      displayName: o.label,
+      name: o.label,
+    })))
+    .catch(() => []);
+};
 
 const createOrganizationFn = (value: string) => OrganizationService.create({
   name: value,

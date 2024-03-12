@@ -68,3 +68,14 @@ export class BatchProcessor<T> {
 
 export const escapeNullByte = (str: string | null | undefined): string =>
   str ? str.replace(/\0/g, 'u0000') : str
+
+export const dateEqualityChecker = (a, b) => {
+  if (a instanceof Date) {
+    a = a.toISOString()
+  }
+  if (b instanceof Date) {
+    b = b.toISOString()
+  }
+
+  return a === b
+}

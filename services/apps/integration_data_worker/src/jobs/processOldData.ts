@@ -1,7 +1,7 @@
-import { DbConnection, DbStore } from '@crowd/database'
+import { DbConnection, DbStore } from '@crowd/data-access-layer/src/database'
 import { Logger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
-import IntegrationDataRepository from '../repo/integrationData.repo'
+import IntegrationDataRepository from '@crowd/data-access-layer/src/old/apps/integration_data_worker/integrationData.repo'
 import IntegrationDataService from '../service/integrationDataService'
 import { DataSinkWorkerEmitter, IntegrationStreamWorkerEmitter } from '@crowd/common_services'
 
@@ -23,11 +23,9 @@ export const processOldDataJob = async (
   )
 
   const loadNextBatch = async (): Promise<string[]> => {
-    return await repo.transactionally(async (txRepo) => {
-      const dataIds = await txRepo.getOldDataToProcess(5)
-      await txRepo.touchUpdatedAt(dataIds)
-      return dataIds
-    })
+    const dataIds = await repo.getOldDataToProcess(5)
+    await repo.touchUpdatedAt(dataIds)
+    return dataIds
   }
 
   // load 5 oldest apiData and try process them

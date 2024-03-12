@@ -85,7 +85,7 @@ export const isFeatureEnabled = async (
     }
   }
 
-  const enabled = unleash.isEnabled(flag, await contextLoader())
+  const enabled = client.isEnabled(flag, await contextLoader())
 
   if (cache) {
     await cache.set(`${flag}-${cacheKey}`, enabled.toString(), redisTimeoutSeconds || 60)

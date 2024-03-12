@@ -17,7 +17,7 @@
     "@crowd/common": "workspace:*",
     "@crowd/feature-flags": "workspace:*",
     "@crowd/opensearch": "workspace:*",
-    "@crowd/database": "workspace:*",
+    "@crowd/data-access-layer": "workspace:*",
     "@crowd/types": "workspace:*",
     "@temporalio/client": "~1.8.6",
     "@temporalio/workflow": "~1.8.6",

@@ -1,10 +1,10 @@
 import { timeout } from '@crowd/common'
-import { DbConnection, DbStore } from '@crowd/database'
+import { DbConnection, DbStore } from '@crowd/data-access-layer/src/database'
 import { Unleash } from '@crowd/feature-flags'
 import { Logger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
 import { Client as TemporalClient } from '@crowd/temporal'
-import DataSinkRepository from '../repo/dataSink.repo'
+import DataSinkRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/dataSink.repo'
 import DataSinkService from '../service/dataSink.service'
 import {
   DataSinkWorkerEmitter,
@@ -40,11 +40,9 @@ export const processOldResultsJob = async (
 
   let current = 0
   const loadNextBatch = async (): Promise<string[]> => {
-    return await repo.transactionally(async (txRepo) => {
-      const resultIds = await txRepo.getOldResultsToProcess(MAX_RESULTS_TO_LOAD)
-      await txRepo.touchUpdatedAt(resultIds)
-      return resultIds
-    })
+    const resultIds = await repo.getOldResultsToProcess(MAX_RESULTS_TO_LOAD)
+    await repo.touchUpdatedAt(resultIds)
+    return resultIds
   }
 
   let resultsToProcess = await loadNextBatch()

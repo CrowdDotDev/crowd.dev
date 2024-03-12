@@ -1,88 +1,17 @@
-import { DbConnection, getDbConnection } from '@crowd/database'
+import { DbConnection, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { getServiceLogger } from '@crowd/logging'
 import { DB_CONFIG } from '../conf'
-import { IDbActivity } from 'repo/activity.data'
+
+import {
+  getFilteredActivities,
+  updateActivity,
+  getMemberIdentityFromUsername,
+  getTenantIds,
+} from '@crowd/data-access-layer/src/old/apps/data_sink_worker/scripts/fix-activity-obj-member-data'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 const log = getServiceLogger()
-
-async function getTenantIds(db: DbConnection): Promise<string[]> {
-  const results = await db.any(`select id from tenants`)
-  return results.map((result) => result.id)
-}
-
-async function getMemberIdentityFromUsername(
-  db: DbConnection,
-  tenantId: string,
-  username: string,
-): Promise<any> {
-  const result = await db.oneOrNone(
-    `
-      select "memberId", "username"
-      from "memberIdentities"
-      where "tenantId" = $(tenantId) 
-      and username = $(username)
-      and platform = 'github'
-      `,
-    { tenantId, username },
-  )
-  return result
-}
-
-async function getFilteredActivities(
-  db: DbConnection,
-  tenantId: string,
-  { offset = 0, countOnly = false },
-): Promise<{ rows: IDbActivity[]; count: number }> {
-  const countResult = await db.one(
-    `
-      select count(*)
-      from activities
-      where "tenantId" = $(tenantId) 
-      and type in ('pull_request-review-requested', 'pull_request-assigned') 
-      and "objectMemberId" is null 
-      and "objectMemberUsername" is null
-      `,
-    { tenantId },
-  )
-
-  if (countOnly) {
-    return { rows: [], count: countResult.count }
-  }
-
-  const results = await db.any(
-    `
-      select *
-      from activities
-      where "tenantId" = $(tenantId) 
-      and type in ('pull_request-review-requested', 'pull_request-assigned') 
-      and "objectMemberId" is null 
-      and "objectMemberUsername" is null
-      limit 100 offset $(offset)
-      `,
-    { tenantId, offset },
-  )
-
-  return { rows: results, count: countResult.count }
-}
-
-async function updateActivity(
-  db: DbConnection,
-  tenantId: string,
-  activityId: string,
-  objectMemberId: string,
-  objectMemberUsername: string,
-): Promise<void> {
-  await db.none(
-    `
-      update activities
-      set "objectMemberId" = $(objectMemberId), "objectMemberUsername" = $(objectMemberUsername)
-      where "tenantId" = $(tenantId) and id = $(activityId)
-      `,
-    { tenantId, activityId, objectMemberId, objectMemberUsername },
-  )
-}
 
 async function fixActivitiesWithoutObjectMemberData(
   db: DbConnection,

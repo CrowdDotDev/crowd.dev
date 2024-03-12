@@ -1,4 +1,5 @@
 import { i18n, i18nExists } from '../i18n'
+import { IS_PROD_ENV } from '../env'
 
 export default class Error403 extends Error {
   code: number
@@ -6,7 +7,8 @@ export default class Error403 extends Error {
   constructor(language?, messageCode?, params?) {
     let message
 
-    if (messageCode && i18nExists(language, messageCode)) {
+    // This production check is to allow us arbitrary error messages in development
+    if (messageCode && (!IS_PROD_ENV || i18nExists(language, messageCode))) {
       message = i18n(language, messageCode)
     }
 

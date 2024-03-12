@@ -4,10 +4,9 @@
 export default (attributes, model) => attributes.reduce(
   (obj, attribute) => {
     if (
-      model[attribute.name] === undefined
-        || model[attribute.name] === null
-        || model[attribute.name] === ''
-        || model[attribute.name].default === ''
+      model.attributes?.[attribute.name]?.default === undefined
+      || model.attributes?.[attribute.name]?.default === null
+      || model.attributes?.[attribute.name]?.default === ''
     ) {
       return {
         ...obj,
@@ -19,8 +18,12 @@ export default (attributes, model) => attributes.reduce(
       ...obj,
       [attribute.name]: {
         ...model.attributes[attribute.name],
-        default: model[attribute.name],
-        custom: model[attribute.name],
+        ...(
+          model[attribute.name] !== model.attributes[attribute.name].default
+          && {
+            custom: model[attribute.name],
+            default: model[attribute.name],
+          }),
       },
     };
   },

@@ -61,7 +61,7 @@ export class ActivityService {
       { ...body, countOnly },
       {
         headers: {
-          ...(isTenantNew ? {} : { 'x-crowd-api-version': '1' }),
+          'x-crowd-api-version': '1',
           Authorization: sampleTenant?.token,
         },
       },

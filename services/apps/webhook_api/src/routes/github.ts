@@ -1,5 +1,5 @@
 import { asyncWrap } from '../middleware/error'
-import { WebhooksRepository } from '../repos/webhooks.repo'
+import { WebhooksRepository } from '@crowd/data-access-layer/src/old/apps/webhook_api/webhooks.repo'
 import { Error400BadRequest } from '@crowd/common'
 import { PlatformType, WebhookType } from '@crowd/types'
 import express from 'express'

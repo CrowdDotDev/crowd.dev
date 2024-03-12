@@ -1,11 +1,15 @@
 import { OrganizationSyncService, OpenSearchService } from '@crowd/opensearch'
 import { DB_CONFIG, OPENSEARCH_CONFIG, SERVICE_CONFIG } from '../conf'
-import { DbStore, getDbConnection } from '@crowd/database'
+import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { getServiceLogger } from '@crowd/logging'
-import { OrganizationRepository } from '../repo/organization.repo'
+import { OrganizationRepository } from '@crowd/data-access-layer/src/old/apps/search_sync_worker/organization.repo'
 import { timeout } from '@crowd/common'
+import { IndexingRepository } from '@crowd/opensearch/src/repo/indexing.repo'
+import { IndexedEntityType } from '@crowd/opensearch/src/repo/indexing.data'
 
 const log = getServiceLogger()
+
+const processArguments = process.argv.slice(2)
 
 const MAX_CONCURRENT = 3
 
@@ -14,6 +18,11 @@ setImmediate(async () => {
 
   const dbConnection = await getDbConnection(DB_CONFIG())
   const store = new DbStore(log, dbConnection)
+
+  if (processArguments.includes('--clean')) {
+    const indexingRepo = new IndexingRepository(store, log)
+    await indexingRepo.deleteIndexedEntities(IndexedEntityType.ORGANIZATION)
+  }
 
   const repo = new OrganizationRepository(store, log)
 

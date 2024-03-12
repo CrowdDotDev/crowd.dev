@@ -1,6 +1,6 @@
 import { IAttributes } from './attributes'
 import { MemberAttributeType } from './enums/members'
-import { IOrganization, IOrganizationOpensearch } from './organizations'
+import { IMemberOrganization, IOrganization, IOrganizationOpensearch } from './organizations'
 import { ITagOpensearch } from './tags'
 import { PlatformType } from './enums/platforms'
 
@@ -13,10 +13,21 @@ export interface IMemberAttribute {
   options?: string[]
 }
 
+export interface IMemberAttributeData extends IMemberAttribute {
+  id: string
+  createdAt: string
+  updatedAt: string
+}
+
 export interface IMemberIdentity {
   sourceId?: string
   platform: string
   username: string
+  tenantId?: string
+  integrationId?: string
+  memberId?: string
+  cretedAt?: string
+  updatedAt?: string
 }
 
 export interface IMemberData {
@@ -88,4 +99,42 @@ export interface IMemberMergeSuggestion {
   similarity: number
   activityEstimate: number
   members: [string, string]
+}
+
+export interface IMemberReach {
+  [key: string]: number
+}
+
+export interface IMemberUsername {
+  [key: string]: string[]
+}
+
+export interface IMemberAffiliation {
+  id: string
+  dateStart: string
+  dateEnd: string
+  segmentId: string
+  segmentName: string
+  segmentSlug: string
+  organizationId: string
+  organizationLogo: string
+  organizationName: string
+  segmentParentName: string
+}
+
+export interface IMemberContribution {
+  id: number
+  url: string
+  topics: string[]
+  summary: string
+  numberCommits: 81
+  lastCommitDate: string
+  firstCommitDate: string
+}
+
+export interface IMemberRenderFriendlyRole {
+  id: string
+  logo: string
+  displayName: string
+  memberOrganizations: IMemberOrganization
 }

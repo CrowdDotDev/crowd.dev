@@ -4,7 +4,7 @@ import {
   IntegrationSyncWorkerEmitter,
   SearchSyncWorkerEmitter,
 } from '@crowd/common_services'
-import { DbConnection, DbStore } from '@crowd/database'
+import { DbConnection, DbStore } from '@crowd/data-access-layer/src/database'
 import { Logger } from '@crowd/logging'
 import { ApiPubSubEmitter, RedisClient } from '@crowd/redis'
 import {

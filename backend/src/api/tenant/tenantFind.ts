@@ -8,11 +8,11 @@ import PermissionChecker from '../../services/user/permissionChecker'
 import AutomationRepository from '@/database/repositories/automationRepository'
 
 export default async (req, res) => {
-  req.currentTenant = { id: req.params.id }
+  req.currentTenant = { id: req.params.tenantId }
   new PermissionChecker(req).validateHas(Permissions.values.memberRead)
   let payload
-  if (req.params.id) {
-    payload = await new TenantService(req).findById(req.params.id)
+  if (req.params.tenantId) {
+    payload = await new TenantService(req).findById(req.params.tenantId)
   } else {
     payload = await new TenantService(req).findByUrl(req.query.url)
   }

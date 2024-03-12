@@ -62,6 +62,7 @@
     v-if="identitiesDrawer"
     v-model="identitiesDrawer"
     :organization="organization"
+    @unmerge="emit('unmerge', $event)"
   />
   <app-organization-manage-emails-drawer
     v-if="emailsDrawer"
@@ -95,6 +96,8 @@ import AppAsideIdentitiesExtra from './_aside-identities-extra.vue';
 defineProps<{
   organization: Organization
 }>();
+
+const emit = defineEmits<{(e: 'unmerge', value: any): void}>();
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);

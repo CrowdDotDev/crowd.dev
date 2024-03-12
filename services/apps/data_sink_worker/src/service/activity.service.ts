@@ -1,19 +1,22 @@
-import { IDbActivity, IDbActivityUpdateData } from '../repo/activity.data'
-import MemberRepository from '../repo/member.repo'
+import {
+  IDbActivity,
+  IDbActivityUpdateData,
+} from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/activity.data'
+import MemberRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.repo'
 import { isObjectEmpty, singleOrDefault, escapeNullByte } from '@crowd/common'
-import { DbStore, arePrimitivesDbEqual } from '@crowd/database'
+import { DbStore, arePrimitivesDbEqual } from '@crowd/data-access-layer/src/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { ISentimentAnalysisResult, getSentiment } from '@crowd/sentiment'
 import { IActivityData, PlatformType, TemporalWorkflowId } from '@crowd/types'
-import ActivityRepository from '../repo/activity.repo'
+import ActivityRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/activity.repo'
 import { IActivityCreateData, IActivityUpdateData } from './activity.data'
 import MemberService from './member.service'
 import mergeWith from 'lodash.mergewith'
 import isEqual from 'lodash.isequal'
-import SettingsRepository from './settings.repo'
+import SettingsRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/settings.repo'
 import { ConversationService } from '@crowd/conversations'
-import IntegrationRepository from '../repo/integration.repo'
-import GithubReposRepository from '../repo/githubRepos.repo'
+import IntegrationRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/integration.repo'
+import GithubReposRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/githubRepos.repo'
 import MemberAffiliationService from './memberAffiliation.service'
 import { RedisClient } from '@crowd/redis'
 import { Unleash } from '@crowd/feature-flags'
@@ -132,6 +135,7 @@ export default class ActivityService extends LoggerBase {
           tenantId,
           activity.memberId,
           onboarding,
+          segmentId,
         )
         await this.searchSyncWorkerEmitter.triggerActivitySync(tenantId, id, onboarding)
       }
@@ -217,6 +221,7 @@ export default class ActivityService extends LoggerBase {
             tenantId,
             activity.memberId,
             onboarding,
+            segmentId,
           )
           await this.searchSyncWorkerEmitter.triggerActivitySync(tenantId, id, onboarding)
         }
@@ -424,9 +429,9 @@ export default class ActivityService extends LoggerBase {
       let memberId: string
       let objectMemberId: string | undefined
       let activityId: string
+      let segmentId: string
 
       await this.store.transactionally(async (txStore) => {
-        let segmentId: string
         try {
           const txRepo = new ActivityRepository(txStore, this.log)
           const txMemberRepo = new MemberRepository(txStore, this.log)
@@ -923,10 +928,20 @@ export default class ActivityService extends LoggerBase {
       })
 
       if (memberId) {
-        await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, memberId, onboarding)
+        await this.searchSyncWorkerEmitter.triggerMemberSync(
+          tenantId,
+          memberId,
+          onboarding,
+          segmentId,
+        )
       }
       if (objectMemberId) {
-        await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, objectMemberId, onboarding)
+        await this.searchSyncWorkerEmitter.triggerMemberSync(
+          tenantId,
+          objectMemberId,
+          onboarding,
+          segmentId,
+        )
       }
       if (activityId) {
         await this.searchSyncWorkerEmitter.triggerActivitySync(tenantId, activityId, onboarding)

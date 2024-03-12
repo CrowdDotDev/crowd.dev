@@ -502,8 +502,8 @@ class IntegrationRepository {
       ...(parsed.where ? { where: parsed.where } : {}),
       ...(parsed.having ? { having: parsed.having } : {}),
       order: parsed.order,
-      limit: parsed.limit,
-      offset: parsed.offset,
+      limit: limit ? parsed.limit : undefined,
+      offset: offset ? parsed.offset : undefined,
       include,
       transaction: SequelizeRepository.getTransaction(options),
     })

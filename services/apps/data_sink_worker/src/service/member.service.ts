@@ -1,6 +1,9 @@
 import { Client as TemporalClient, WorkflowIdReusePolicy } from '@crowd/temporal'
-import { IDbMember, IDbMemberUpdateData } from '../repo/member.data'
-import MemberRepository from '../repo/member.repo'
+import {
+  IDbMember,
+  IDbMemberUpdateData,
+} from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.data'
+import MemberRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.repo'
 import {
   firstArrayContainsSecondArray,
   isObjectEmpty,
@@ -8,7 +11,7 @@ import {
   isDomainExcluded,
   isEmail,
 } from '@crowd/common'
-import { DbStore } from '@crowd/database'
+import { DbStore } from '@crowd/data-access-layer/src/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import {
   IMemberData,
@@ -23,7 +26,7 @@ import isEqual from 'lodash.isequal'
 import moment from 'moment-timezone'
 import { IMemberCreateData, IMemberUpdateData } from './member.data'
 import MemberAttributeService from './memberAttribute.service'
-import IntegrationRepository from '../repo/integration.repo'
+import IntegrationRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/integration.repo'
 import { OrganizationService } from './organization.service'
 import uniqby from 'lodash.uniqby'
 import { Unleash } from '@crowd/feature-flags'
@@ -169,11 +172,16 @@ export default class MemberService extends LoggerBase {
       }
 
       if (fireSync) {
-        await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, id, onboarding)
+        await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, id, onboarding, segmentId)
       }
 
       for (const org of organizations) {
-        await this.searchSyncWorkerEmitter.triggerOrganizationSync(tenantId, org.id, onboarding)
+        await this.searchSyncWorkerEmitter.triggerOrganizationSync(
+          tenantId,
+          org.id,
+          onboarding,
+          segmentId,
+        )
       }
 
       return id
@@ -298,11 +306,16 @@ export default class MemberService extends LoggerBase {
       })
 
       if (updated && fireSync) {
-        await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, id, onboarding)
+        await this.searchSyncWorkerEmitter.triggerMemberSync(tenantId, id, onboarding, segmentId)
       }
 
       for (const org of organizations) {
-        await this.searchSyncWorkerEmitter.triggerOrganizationSync(tenantId, org.id, onboarding)
+        await this.searchSyncWorkerEmitter.triggerOrganizationSync(
+          tenantId,
+          org.id,
+          onboarding,
+          segmentId,
+        )
       }
     } catch (err) {
       this.log.error(err, { memberId: id }, 'Error while updating a member!')

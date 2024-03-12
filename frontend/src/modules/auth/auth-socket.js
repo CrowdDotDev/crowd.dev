@@ -12,6 +12,8 @@ import { useMemberStore } from '@/modules/member/store/pinia';
 import { router } from '@/router';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import useOrganizationMergeMessage from '@/shared/modules/merge/config/useOrganizationMergeMessage';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import { storeToRefs } from 'pinia';
 
 let socketIoClient;
 
@@ -22,6 +24,8 @@ const SocketEvents = {
   tenantPlanUpgraded: 'tenant-plan-upgraded',
   bulkEnrichment: 'bulk-enrichment',
   orgMerge: 'org-merge',
+  memberUnmerge: 'member-unmerge',
+  organizationUnmerge: 'organization-unmerge',
 };
 
 export const connectSocket = (token) => {
@@ -62,6 +66,115 @@ export const connectSocket = (token) => {
       'integration/doFind',
       JSON.parse(data).integrationId,
     );
+  });
+
+  socketIoClient.on(SocketEvents.memberUnmerge, (data) => {
+    console.info('Member unmerge done', data);
+    const parsedData = JSON.parse(data);
+    if (!parsedData.success) {
+      return;
+    }
+    const lsSegmentsStore = useLfSegmentsStore();
+    const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
+    const {
+      primaryDisplayName,
+      secondaryDisplayName,
+      primaryId,
+      secondaryId,
+      tenantId,
+      userId,
+    } = parsedData;
+
+    if (currentTenant.value.id !== tenantId || currentUser.value.id !== userId) {
+      return;
+    }
+
+    const primaryMember = h(
+      'a',
+      {
+        href: `${window.location.origin}/members/${primaryId}?projectGroup=${selectedProjectGroup.value.id}`,
+        class: 'underline text-gray-600',
+      },
+      primaryDisplayName,
+    );
+    const secondaryMember = h(
+      'a',
+      {
+        href: `${window.location.origin}/members/${secondaryId}?projectGroup=${selectedProjectGroup.value.id}`,
+        class: 'underline text-gray-600',
+      },
+      secondaryDisplayName,
+    );
+    const between = h(
+      'span',
+      {},
+      ' unmerged from ',
+    );
+    const after = h(
+      'span',
+      {},
+      '. Syncing contributor activities might take some time to complete.',
+    );
+    Message.closeAll();
+    Message.success(h(
+      'div',
+      {},
+      [secondaryMember, between, primaryMember, after],
+    ), {
+      title: 'Contributors unmerged successfully',
+    });
+  });
+
+  socketIoClient.on(SocketEvents.organizationUnmerge, (data) => {
+    console.info('Organization unmerge done', data);
+    const parsedData = JSON.parse(data);
+    if (!parsedData.success) {
+      return;
+    }
+    const lsSegmentsStore = useLfSegmentsStore();
+    const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
+    const {
+      primaryDisplayName, secondaryDisplayName, primaryId, secondaryId, tenantId, userId,
+    } = parsedData;
+
+    if (currentTenant.value.id !== tenantId || currentUser.value.id !== userId) {
+      return;
+    }
+
+    const primaryOrganization = h(
+      'a',
+      {
+        href: `${window.location.origin}/organizations/${primaryId}?projectGroup=${selectedProjectGroup.value.id}`,
+        class: 'underline text-gray-600',
+      },
+      primaryDisplayName,
+    );
+    const secondaryOrganization = h(
+      'a',
+      {
+        href: `${window.location.origin}/organizations/${secondaryId}?projectGroup=${selectedProjectGroup.value.id}`,
+        class: 'underline text-gray-600',
+      },
+      secondaryDisplayName,
+    );
+    const between = h(
+      'span',
+      {},
+      ' unmerged from ',
+    );
+    const after = h(
+      'span',
+      {},
+      '. Syncing organization activities might take some time to complete.',
+    );
+    Message.closeAll();
+    Message.success(h(
+      'div',
+      {},
+      [secondaryOrganization, between, primaryOrganization, after],
+    ), {
+      title: 'Organizations unmerged successfully',
+    });
   });
 
   socketIoClient.on(
@@ -135,12 +248,11 @@ export const connectSocket = (token) => {
       tenantId,
       userId,
       primaryOrgId,
-      secondaryOrgId,
       original,
       toMerge,
     } = JSON.parse(payload);
 
-    if (currentTenant.value.id !== tenantId && currentUser.value.id !== userId) {
+    if (currentTenant.value.id !== tenantId || currentUser.value.id !== userId) {
       return;
     }
 

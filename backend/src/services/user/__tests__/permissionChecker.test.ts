@@ -29,9 +29,7 @@ describe('PermissionChecker tests', () => {
           status: 'in-progress',
           platform: PlatformType.GITHUB,
         }
-        expect(() => permissionChecker.validateIntegrationsProtectedFields(data)).toThrow(
-          new Error403(),
-        )
+        expect(() => permissionChecker.validateIntegrationsProtectedFields(data)).toThrow(Error403)
       }
     })
 
@@ -47,9 +45,7 @@ describe('PermissionChecker tests', () => {
           status: 'in-progress',
           platform: PlatformType.GITHUB,
         }
-        expect(() => permissionChecker.validateIntegrationsProtectedFields(data)).toThrow(
-          new Error403(),
-        )
+        expect(() => permissionChecker.validateIntegrationsProtectedFields(data)).toThrow(Error403)
       }
     })
   })

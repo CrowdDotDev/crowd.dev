@@ -988,7 +988,7 @@ const parseWebhookPullRequest = async (ctx: IProcessDataContext) => {
       timestamp = payload.pull_request.merged_at
       sourceParentId = payload.pull_request.node_id.toString()
       sourceId = `gen-ME_${payload.pull_request.node_id.toString()}_${
-        payload.pull_request.merged_by.login
+        payload.pull_request.merged_by?.login || member.identities[0].username
       }_${new Date(payload.pull_request.merged_at).toISOString()}`
       break
     }
