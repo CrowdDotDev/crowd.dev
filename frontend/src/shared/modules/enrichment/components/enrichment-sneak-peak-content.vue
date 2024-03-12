@@ -40,18 +40,16 @@ import { computed } from 'vue';
 import AppSvg from '@/shared/svg/svg.vue';
 import { EnrichSneakPeakPopoverType, EnrichSneakPeakPopoverContent } from '@/shared/modules/enrichment/types/SneakPeakPopover';
 import { popoverContent } from '@/shared/modules/enrichment/constants/sneak-peak-popover';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import Plans from '@/security/plans';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { storeToRefs } from 'pinia';
 
 const props = defineProps<{
   type: EnrichSneakPeakPopoverType,
   dark?: boolean,
 }>();
 
-const authStore = useAuthStore();
-const { tenant } = storeToRefs(authStore);
-const displayContent = computed(() => tenant.value.plan === Plans.values.essential);
+const { currentTenant } = mapGetters('auth');
+const displayContent = computed(() => currentTenant.value.plan === Plans.values.essential);
 
 const popover = computed<EnrichSneakPeakPopoverContent>(() => popoverContent[props.type || EnrichSneakPeakPopoverType.CONTACT]);
 </script>

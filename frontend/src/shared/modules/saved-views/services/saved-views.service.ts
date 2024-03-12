@@ -1,10 +1,10 @@
 import authAxios from '@/shared/axios/auth-axios';
-import { AuthService } from '@/modules/auth/services/auth.service';
+import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
 import { SavedViewCreate } from '@/shared/modules/saved-views/types/SavedViewsConfig';
 
 export class SavedViewsService {
   static query(params: any) {
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     return authAxios.get(
       `/tenant/${tenantId}/customview`,
@@ -16,7 +16,7 @@ export class SavedViewsService {
   }
 
   static create(view: SavedViewCreate) {
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     return authAxios.post(
       `/tenant/${tenantId}/customview`,
@@ -26,7 +26,7 @@ export class SavedViewsService {
   }
 
   static update(id: string, view: Partial<SavedViewCreate>) {
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     return authAxios.put(
       `/tenant/${tenantId}/customview/${id}`,
@@ -36,7 +36,7 @@ export class SavedViewsService {
   }
 
   static updateBulk(views: Partial<SavedViewCreate>[]) {
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     return authAxios.patch(
       `/tenant/${tenantId}/customview`,
@@ -46,7 +46,7 @@ export class SavedViewsService {
   }
 
   static delete(id: string) {
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     return authAxios.delete(
       `/tenant/${tenantId}/customview`,

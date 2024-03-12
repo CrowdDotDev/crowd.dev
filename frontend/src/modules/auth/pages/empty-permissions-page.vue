@@ -7,22 +7,25 @@
       Wait for the admin to grant you privileges.
     </div>
     <div class="pt-10">
-      <cr-button size="large" @click="signout()">
+      <el-button
+        class="btn btn--primary btn--lg w-full"
+        @click="doSignout()"
+      >
         Sign out
-      </cr-button>
+      </el-button>
     </div>
   </div>
 </template>
 
-<script lang="ts" setup>
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import CrButton from '@/ui-kit/button/Button.vue';
+<script>
+import { mapActions } from 'vuex';
 
-const { signout } = useAuthStore();
-</script>
-
-<script lang="ts">
 export default {
-  name: 'AuthEmptyPermissionsPage',
+  name: 'AppEmptyPermissionsPage',
+  computed: {},
+
+  methods: {
+    ...mapActions('auth', ['doSignout']),
+  },
 };
 </script>

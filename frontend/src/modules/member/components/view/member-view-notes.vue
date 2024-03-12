@@ -32,11 +32,10 @@ import {
 } from 'vue';
 import { NoteService } from '@/modules/notes/note-service';
 import { NotePermissions } from '@/modules/notes/note-permissions';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import AppNoteItem from '@/modules/notes/components/note-item.vue';
 import AppNoteEditor from '@/modules/notes/components/note-editor.vue';
 import AppLoadMore from '@/shared/button/load-more.vue';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { storeToRefs } from 'pinia';
 
 const props = defineProps({
   member: {
@@ -45,8 +44,7 @@ const props = defineProps({
   },
 });
 
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
+const { currentTenant, currentUser } = mapGetters('auth');
 const notes = ref([]);
 const notesCount = ref(0);
 const notesPage = ref(0);
@@ -54,8 +52,8 @@ const notesLimit = 20;
 const loadingNotes = ref(false);
 
 const isCreateLockedForSampleData = computed(() => new NotePermissions(
-  tenant.value,
-  user.value,
+  currentTenant.value,
+  currentUser.value,
 ).createLockedForSampleData);
 
 const fetchNotes = (page = 0) => {

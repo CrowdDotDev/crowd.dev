@@ -2,10 +2,10 @@ import Permissions from '@/security/permissions';
 import { PermissionChecker } from '@/modules/user/permission-checker';
 
 export class NotePermissions {
-  constructor(tenant, user) {
+  constructor(currentTenant, currentUser) {
     const permissionChecker = new PermissionChecker(
-      tenant,
-      user,
+      currentTenant,
+      currentUser,
     );
 
     this.createLockedForSampleData = permissionChecker.lockedForSampleData(

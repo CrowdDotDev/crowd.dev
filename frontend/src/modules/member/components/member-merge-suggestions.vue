@@ -141,13 +141,13 @@ import {
   ref, onMounted, computed,
 } from 'vue';
 import Message from '@/shared/message/message';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
 import AppMemberMergeSuggestionsDetails from '@/modules/member/components/suggestions/member-merge-suggestions-details.vue';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { merge } from 'lodash';
 import useMemberMergeMessage from '@/shared/modules/merge/config/useMemberMergeMessage';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { MemberService } from '../member-service';
 import { MemberPermissions } from '../member-permissions';
 
@@ -162,8 +162,7 @@ const props = defineProps({
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
+const { currentTenant, currentUser } = mapGetters('auth');
 
 const membersToMerge = ref([]);
 const primary = ref(0);
@@ -177,7 +176,7 @@ const sendingMerge = ref(false);
 const bioHeight = ref(0);
 
 const isEditLockedForSampleData = computed(
-  () => new MemberPermissions(tenant.value, user.value)
+  () => new MemberPermissions(currentTenant.value, currentUser.value)
     .editLockedForSampleData,
 );
 

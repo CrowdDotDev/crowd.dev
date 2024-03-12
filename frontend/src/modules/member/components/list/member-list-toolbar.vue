@@ -98,6 +98,7 @@ import { computed, ref } from 'vue';
 import { MemberPermissions } from '@/modules/member/member-permissions';
 import { useMemberStore } from '@/modules/member/store/pinia';
 import { storeToRefs } from 'pinia';
+import { mapActions, mapGetters } from '@/shared/vuex/vuex.helpers';
 import { MemberService } from '@/modules/member/member-service';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import Message from '@/shared/message/message';
@@ -107,11 +108,9 @@ import AppBulkEditAttributePopover from '@/modules/member/components/bulk/bulk-e
 import AppTagPopover from '@/modules/tag/components/tag-popover.vue';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import useMemberMergeMessage from '@/shared/modules/merge/config/useMemberMergeMessage';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
 
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
-const { getUser } = authStore;
+const { currentUser, currentTenant } = mapGetters('auth');
+const { doRefreshCurrentUser } = mapActions('auth');
 
 const memberStore = useMemberStore();
 const { selectedMembers, filters } = storeToRefs(memberStore);
@@ -125,22 +124,22 @@ const bulkAttributesUpdateVisible = ref(false);
 
 const isReadOnly = computed(() => (
   new MemberPermissions(
-    tenant.value,
-    user.value,
+    currentTenant.value,
+    currentUser.value,
   ).edit === false
 ));
 
 const isEditLockedForSampleData = computed(() => (
   new MemberPermissions(
-    tenant.value,
-    user.value,
+    currentTenant.value,
+    currentUser.value,
   ).editLockedForSampleData
 ));
 
 const isDeleteLockedForSampleData = computed(() => (
   new MemberPermissions(
-    tenant.value,
-    user.value,
+    currentTenant.value,
+    currentUser.value,
   ).destroyLockedForSampleData
 ));
 
@@ -168,8 +167,8 @@ const markAsTeamMemberOptions = computed(() => {
 });
 
 const hasPermissionsToMerge = computed(() => new MemberPermissions(
-  tenant.value,
-  user.value,
+  currentTenant.value,
+  currentUser.value,
 )?.mergeMembers);
 
 const handleMergeMembers = async () => {
@@ -219,9 +218,9 @@ const handleDoExport = async () => {
   };
 
   try {
-    const tenantCsvExportCount = tenant.value.csvExportCount;
+    const tenantCsvExportCount = currentTenant.value.csvExportCount;
     const planExportCountMax = getExportMax(
-      tenant.value.plan,
+      currentTenant.value.plan,
     );
 
     await showExportDialog({
@@ -237,7 +236,7 @@ const handleDoExport = async () => {
       offset: null,
     });
 
-    await getUser();
+    await doRefreshCurrentUser(null);
 
     Message.success(
       'CSV download link will be sent to your e-mail',
@@ -247,7 +246,7 @@ const handleDoExport = async () => {
 
     if (error.response?.status === 403) {
       const planExportCountMax = getExportMax(
-        tenant.value.plan,
+        currentTenant.value.plan,
       );
 
       showExportLimitDialog({ planExportCountMax });

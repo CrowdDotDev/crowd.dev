@@ -1,9 +1,9 @@
 import authAxios from '@/shared/axios/auth-axios';
-import { AuthService } from '@/modules/auth/services/auth.service';
+import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
 
 export class TagService {
   static async update(id, data) {
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.put(
       `/tenant/${tenantId}/tag/${id}`,
@@ -18,7 +18,7 @@ export class TagService {
       ids,
     };
 
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.delete(
       `/tenant/${tenantId}/tag`,
@@ -31,7 +31,7 @@ export class TagService {
   }
 
   static async create(data) {
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/tag`,
@@ -42,7 +42,7 @@ export class TagService {
   }
 
   static async find(id) {
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/tag/${id}`,
@@ -64,7 +64,7 @@ export class TagService {
       offset,
     };
 
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/tag`,
@@ -85,7 +85,7 @@ export class TagService {
       limit,
     };
 
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/tag/autocomplete`,

@@ -242,7 +242,7 @@ export default class DataSinkService extends LoggerBase {
           type: data.type,
         },
       )
-      await this.repo.deleteResult(resultId)
+      // await this.repo.deleteResult(resultId)
       return true
     } catch (err) {
       this.log.error(err, 'Error processing result.')

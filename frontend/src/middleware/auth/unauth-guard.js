@@ -1,11 +1,12 @@
-import { AuthService } from '@/modules/auth/services/auth.service';
+import { AuthToken } from '@/modules/auth/auth-token';
+import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
 
 /**
  * Unauth Guard
  *
  * This middleware runs before rendering any route that has meta.unauth = true
  *
- * It checks if user is undefined (if not, redirects to /)
+ * It checks if currentUser is undefined (if not, redirects to /)
  *
  * @param to
  * @param store
@@ -17,8 +18,8 @@ export default async function ({ to, router }) {
     return;
   }
 
-  const token = AuthService.getToken();
-  const tenantId = AuthService.getTenantId();
+  const token = AuthToken.get();
+  const tenantId = AuthCurrentTenant.get();
 
   if (token && tenantId) {
     // `window.history.replaceState` to replace the current URL with the root URL

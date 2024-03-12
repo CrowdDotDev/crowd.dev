@@ -31,9 +31,8 @@
 
 <script setup>
 import { MemberPermissions } from '@/modules/member/member-permissions';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { computed, ref } from 'vue';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { storeToRefs } from 'pinia';
 import AppMemberDropdownContent from './member-dropdown-content.vue';
 
 const emit = defineEmits(['merge', 'unmerge', 'closeDropdown', 'findGithub']);
@@ -52,15 +51,14 @@ defineProps({
   },
 });
 
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
+const { currentTenant, currentUser } = mapGetters('auth');
 
 const dropdown = ref();
 
 const isReadOnly = computed(() => (
   new MemberPermissions(
-    tenant.value,
-    user.value,
+    currentTenant.value,
+    currentUser.value,
   ).edit === false
 ));
 

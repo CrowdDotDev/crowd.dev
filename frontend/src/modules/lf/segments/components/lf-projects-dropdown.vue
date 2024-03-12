@@ -39,10 +39,9 @@
 
 <script setup>
 import { LfPermissions } from '@/modules/lf/lf-permissions';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { computed } from 'vue';
 import { hasAccessToSegmentId } from '@/utils/segments';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { storeToRefs } from 'pinia';
 
 defineProps({
   id: {
@@ -53,17 +52,16 @@ defineProps({
 
 const emit = defineEmits(['onEditProject', 'onAddSubProject']);
 
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
+const { currentTenant, currentUser } = mapGetters('auth');
 
 const hasPermissionToCreateSubProject = computed(() => new LfPermissions(
-  tenant.value,
-  user.value,
+  currentTenant.value,
+  currentUser.value,
 )?.createSubProject);
 
 const hasPermissionToEditProject = computed(() => new LfPermissions(
-  tenant.value,
-  user.value,
+  currentTenant.value,
+  currentUser.value,
 )?.editProject);
 
 const editProject = () => {

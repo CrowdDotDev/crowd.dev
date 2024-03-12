@@ -1,5 +1,5 @@
 import authAxios from '@/shared/axios/auth-axios';
-import { AuthService } from '@/modules/auth/services/auth.service';
+import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
 
 export class EagleEyeService {
   static async query(filter, orderBy, limit, offset) {
@@ -10,7 +10,7 @@ export class EagleEyeService {
       offset,
     };
 
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/eagleEyeContent/query`,
@@ -21,7 +21,7 @@ export class EagleEyeService {
   }
 
   static async search() {
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/eagleEyeContent/search`,
@@ -31,7 +31,7 @@ export class EagleEyeService {
   }
 
   static async createContent({ post }) {
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/eagleEyeContent`,
@@ -42,7 +42,7 @@ export class EagleEyeService {
   }
 
   static async track({ event, params }) {
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
     const response = await authAxios.post(
       `/tenant/${tenantId}/eagleEyeContent/track`,
       {
@@ -54,7 +54,7 @@ export class EagleEyeService {
   }
 
   static async generateReply({ title, description }) {
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
     const response = await authAxios.get(
       `/tenant/${tenantId}/eagleEyeContent/reply`,
       {
@@ -68,7 +68,7 @@ export class EagleEyeService {
   }
 
   static async addAction({ postId, action }) {
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/eagleEyeContent/${postId}/action`,
@@ -79,7 +79,7 @@ export class EagleEyeService {
   }
 
   static async deleteAction({ postId, actionId }) {
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.delete(
       `/tenant/${tenantId}/eagleEyeContent/${postId}/action/${actionId}`,
@@ -89,7 +89,7 @@ export class EagleEyeService {
   }
 
   static async updateSettings(data) {
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.put(
       `/tenant/${tenantId}/eagleEyeContent/settings`,

@@ -99,6 +99,9 @@ import { computed, ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import AppPageWrapper from '@/shared/layout/page-wrapper.vue';
 import AppOrganizationListTable from '@/modules/organization/components/list/organization-list-table.vue';
+import {
+  mapGetters,
+} from '@/shared/vuex/vuex.helpers';
 import AppLfPageHeader from '@/modules/lf/layout/components/lf-page-header.vue';
 import AppLfSubProjectsListModal from '@/modules/lf/segments/components/lf-sub-projects-list-modal.vue';
 import CrSavedViews from '@/shared/modules/saved-views/components/SavedViews.vue';
@@ -110,13 +113,11 @@ import { organizationSavedViews } from '@/modules/organization/config/saved-view
 import { FilterQuery } from '@/shared/modules/filters/types/FilterQuery';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { OrganizationPermissions } from '../organization-permissions';
 
 const router = useRouter();
 
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
+const { currentUser, currentTenant } = mapGetters('auth');
 
 const organizationStore = useOrganizationStore();
 const { filters, totalOrganizations, savedFilterBody } = storeToRefs(organizationStore);
@@ -134,27 +135,27 @@ const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const hasPermissionToCreate = computed(
   () => new OrganizationPermissions(
-    tenant.value,
-    user.value,
+    currentTenant.value,
+    currentUser.value,
   ).create,
 );
 const isCreateLockedForSampleData = computed(
   () => new OrganizationPermissions(
-    tenant.value,
-    user.value,
+    currentTenant.value,
+    currentUser.value,
   ).createLockedForSampleData,
 );
 
 const isEditLockedForSampleData = computed(
   () => new OrganizationPermissions(
-    tenant.value,
-    user.value,
+    currentTenant.value,
+    currentUser.value,
   ).editLockedForSampleData,
 );
 
 const hasPermissionsToMerge = computed(() => new OrganizationPermissions(
-  tenant.value,
-  user.value,
+  currentTenant.value,
+  currentUser.value,
 )?.mergeOrganizations);
 
 const pagination = ref({

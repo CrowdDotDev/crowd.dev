@@ -88,15 +88,13 @@ import AppActivityList from '@/modules/activity/components/activity-list.vue';
 import AppConversationList from '@/modules/conversation/components/conversation-list.vue';
 import AppLfPageHeader from '@/modules/lf/layout/components/lf-page-header.vue';
 import AppLfSubProjectsListModal from '@/modules/lf/segments/components/lf-sub-projects-list-modal.vue';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { storeToRefs } from 'pinia';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { ActivityPermissions } from '../activity-permissions';
 
 const route = useRoute();
 const router = useRouter();
 
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
+const { currentTenant, currentUser } = mapGetters('auth');
 
 const isActivityTypeDrawerOpen = ref(false);
 const isActivityDrawerOpen = ref(false);
@@ -157,8 +155,8 @@ watch(() => route.hash, (hash: string) => {
 
 const hasPermissionToCreateActivity = computed(
   () => new ActivityPermissions(
-    tenant.value,
-    user.value,
+    currentTenant.value,
+    currentUser.value,
   ).create,
 );
 </script>

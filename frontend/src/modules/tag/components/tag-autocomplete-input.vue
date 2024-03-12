@@ -12,10 +12,8 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex';
+import { mapGetters, mapActions } from 'vuex';
 import { TagPermissions } from '@/modules/tag/tag-permissions';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { storeToRefs } from 'pinia';
 
 export default {
   name: 'AppTagAutocompleteInput',
@@ -42,12 +40,13 @@ export default {
     },
   },
   emits: ['update:modelValue'],
-  setup() {
-    const authStore = useAuthStore();
-    const { user, tenant } = storeToRefs(authStore);
-    return { user, tenant };
-  },
+
   computed: {
+    ...mapGetters({
+      currentUser: 'auth/currentUser',
+      currentTenant: 'auth/currentTenant',
+    }),
+
     model: {
       get() {
         return this.modelValue;
@@ -61,8 +60,8 @@ export default {
     canCreate() {
       return (
         new TagPermissions(
-          this.tenant,
-          this.user,
+          this.currentTenant,
+          this.currentUser,
         ).create && this.createIfNotFound
       );
     },

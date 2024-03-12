@@ -1,5 +1,5 @@
 import authAxios from '@/shared/axios/auth-axios';
-import { AuthService } from '@/modules/auth/services/auth.service';
+import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
 
 export class AutomationService {
   static async update(id, data) {
@@ -9,7 +9,7 @@ export class AutomationService {
       excludeSegments: true,
     };
 
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.put(
       `/tenant/${tenantId}/automation/${id}`,
@@ -20,7 +20,7 @@ export class AutomationService {
   }
 
   static async destroy(id) {
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.delete(
       `/tenant/${tenantId}/automation/${id}`,
@@ -40,7 +40,7 @@ export class AutomationService {
       excludeSegments: true,
     };
 
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.delete(
       `/tenant/${tenantId}/automation`,
@@ -53,7 +53,7 @@ export class AutomationService {
   }
 
   static publishAll(ids) {
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     return Promise.all(ids.map((id) => {
       const body = {
@@ -71,7 +71,7 @@ export class AutomationService {
   }
 
   static unpublishAll(ids) {
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     return Promise.all(ids.map((id) => {
       const body = {
@@ -94,7 +94,7 @@ export class AutomationService {
       excludeSegments: true,
     };
 
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/automation`,
@@ -105,7 +105,7 @@ export class AutomationService {
   }
 
   static async find(id) {
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/automation/${id}`,
@@ -128,7 +128,7 @@ export class AutomationService {
       excludeSegments: true,
     };
 
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/automation`,
@@ -153,7 +153,7 @@ export class AutomationService {
       excludeSegments: true,
     };
 
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/automation/${automationId}/executions`,

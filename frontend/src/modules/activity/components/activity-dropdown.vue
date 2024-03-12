@@ -56,13 +56,12 @@
 import { ref, computed } from 'vue';
 import { ActivityPermissions } from '@/modules/activity/activity-permissions';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import AppLfActivityAffiliations from '@/modules/lf/activity/components/lf-activity-affiliations.vue';
 import Errors from '@/shared/error/errors';
 import { ActivityService } from '@/modules/activity/activity-service';
 import Message from '@/shared/message/message';
 import { i18n } from '@/i18n';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { storeToRefs } from 'pinia';
 
 const emit = defineEmits(['onUpdate', 'edit']);
 const props = defineProps({
@@ -85,17 +84,16 @@ const props = defineProps({
 });
 
 const dropdownVisible = ref(false);
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
+const { currentTenant, currentUser } = mapGetters('auth');
 
 const isReadOnly = computed(() => new ActivityPermissions(
-  tenant.value,
-  user.value,
+  currentTenant.value,
+  currentUser.value,
 ).edit === false);
 
 const isDeleteLockedForSampleData = computed(() => new ActivityPermissions(
-  tenant.value,
-  user.value,
+  currentTenant.value,
+  currentUser.value,
 ).destroyLockedForSampleData);
 
 const editActivity = () => {

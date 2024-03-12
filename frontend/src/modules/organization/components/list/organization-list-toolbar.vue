@@ -91,20 +91,24 @@
 <script setup>
 import pluralize from 'pluralize';
 import { computed } from 'vue';
+import {
+  mapActions,
+  mapGetters,
+} from '@/shared/vuex/vuex.helpers';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import Message from '@/shared/message/message';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import { storeToRefs } from 'pinia';
 import { DEFAULT_ORGANIZATION_FILTERS } from '@/modules/organization/store/constants';
+import { getExportMax, showExportDialog } from '@/modules/member/member-export-limit';
 import useOrganizationMergeMessage from '@/shared/modules/merge/config/useOrganizationMergeMessage';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { OrganizationPermissions } from '../../organization-permissions';
 import { OrganizationService } from '../../organization-service';
 import { getExportMax } from '@/modules/member/member-export-limit';
 
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
+const { currentUser, currentTenant } = mapGetters('auth');
+const { doRefreshCurrentUser } = mapActions('auth');
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
@@ -118,21 +122,21 @@ const { fetchOrganizations } = organizationStore;
 
 const isPermissionReadOnly = computed(
   () => new OrganizationPermissions(
-    tenant.value,
-    user.value,
+    currentTenant.value,
+    currentUser.value,
   ).edit === false,
 );
 
 const isEditLockedForSampleData = computed(
   () => new OrganizationPermissions(
-    tenant.value,
-    user.value,
+    currentTenant.value,
+    currentUser.value,
   ).editLockedForSampleData,
 );
 const isDeleteLockedForSampleData = computed(
   () => new OrganizationPermissions(
-    tenant.value,
-    user.value,
+    currentTenant.value,
+    currentUser.value,
   ).destroyLockedForSampleData,
 );
 
@@ -160,8 +164,8 @@ const markAsTeamOrganizationOptions = computed(() => {
 });
 
 const hasPermissionsToMerge = computed(() => new OrganizationPermissions(
-  tenant.value,
-  user.value,
+  currentTenant.value,
+  currentUser.value,
 )?.mergeOrganizations);
 
 const handleDoDestroyAllWithConfirm = () => ConfirmDialog({

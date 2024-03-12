@@ -1,9 +1,9 @@
 import authAxios from '@/shared/axios/auth-axios';
-import { AuthService } from '@/modules/auth/services/auth.service';
+import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
 
 export class SettingsService {
   static async find() {
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/settings`,
@@ -23,7 +23,7 @@ export class SettingsService {
       excludeSegments: true,
     };
 
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
     const response = await authAxios.put(
       `/tenant/${tenantId}/settings`,
       body,

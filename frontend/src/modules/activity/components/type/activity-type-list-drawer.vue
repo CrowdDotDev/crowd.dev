@@ -102,7 +102,7 @@
     v-model="isFormModalOpen"
     :type="editableActivityType"
     :subproject-id="subprojectId"
-    @on-update="fetchActivityTypes(subprojectId)"
+    @on-update="getTypes(subprojectId)"
     @update:model-value="onModalViewChange($event)"
   />
 </template>
@@ -144,7 +144,7 @@ const store = useStore();
 const { doFetch } = mapActions('integration');
 const activityTypeStore = useActivityTypeStore();
 const { types } = storeToRefs(activityTypeStore);
-const { fetchActivityTypes } = activityTypeStore;
+
 // Drawer open
 const isFormModalOpen = ref(false);
 const editableActivityType = ref(null);

@@ -11,7 +11,7 @@
       <div class="relative">
         <app-editor
           ref="editor"
-          v-model="noteText"
+          v-model="note"
           :placeholder="
             props.note ? 'Note...' : 'Add note...'
           "
@@ -29,7 +29,7 @@
         <div
           class="absolute right-3 transition-all transition-200"
           :class="
-            noteEditorFocused || note?.length
+            noteEditorFocused || note.length
               ? 'bottom-3 opacity-1'
               : 'bottom-0 opacity-0'
           "
@@ -49,12 +49,12 @@
               effect="dark"
               :content="props.note ? 'Save' : 'Add note'"
               placement="top"
-              :disabled="note?.length === 0"
+              :disabled="note.length === 0"
             >
               <div
                 class="text-2xl flex items-center h-8 transition"
                 :class="[
-                  note?.length > 0
+                  note.length > 0
                     ? 'text-gray-900 hover:text-gray-600 cursor-pointer'
                     : 'text-gray-400 cursor-not-allowed',
                   props.note
@@ -85,14 +85,17 @@
 
 <script setup>
 import {
+  computed,
   ref,
-  onMounted, computed,
+  defineProps,
+  defineEmits,
+  onMounted,
+  defineExpose,
 } from 'vue';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { NoteService } from '@/modules/notes/note-service';
 import AppEditor from '@/shared/form/editor.vue';
 import AppAvatar from '@/shared/avatar/avatar.vue';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { storeToRefs } from 'pinia';
 
 const props = defineProps({
   properties: {
@@ -119,25 +122,25 @@ const props = defineProps({
 
 const emit = defineEmits(['created', 'updated', 'cancel']);
 
-const noteText = ref('');
+const note = ref('');
 const editor = ref('');
 const noteEditorFocused = ref(false);
 
-const authStore = useAuthStore();
-const { user } = storeToRefs(authStore);
+const { currentUserNameOrEmailPrefix, currentUserAvatar } = mapGetters('auth');
 
 const computedAvatarEntity = computed(() => ({
-  displayName: user.value.fullName,
+  avatar: currentUserAvatar.value,
+  displayName: currentUserNameOrEmailPrefix.value,
 }));
 
 onMounted(() => {
   if (props.note) {
-    noteText.value = props.note.body;
+    note.value = props.note.body;
   }
 });
 
 const clear = () => {
-  noteText.value = '';
+  note.value = '';
   editor.value.clear();
 };
 
@@ -154,13 +157,13 @@ const submit = () => {
   if (props.note) {
     NoteService.update(props.note.id, {
       members: props.note.members.map((m) => m.id),
-      body: noteText.value,
+      body: note.value,
     }).then(() => {
       emit('updated');
     });
   } else {
     NoteService.create({
-      body: noteText.value,
+      body: note.value,
       ...props.properties,
     }).then(() => {
       clear();

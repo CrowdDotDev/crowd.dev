@@ -246,6 +246,7 @@ import moment from 'moment';
 import AppDrawer from '@/shared/drawer/drawer.vue';
 import {
   mapActions,
+  mapGetters,
   mapState,
 } from '@/shared/vuex/vuex.helpers';
 import Message from '@/shared/message/message';
@@ -253,8 +254,6 @@ import platformOptions from '@/premium/eagle-eye/constants/eagle-eye-platforms.j
 import AppFormItem from '@/shared/form/form-item.vue';
 import formChangeDetector from '@/shared/form/form-change';
 import elementChangeDetector from '@/shared/form/element-change';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { storeToRefs } from 'pinia';
 
 const props = defineProps({
   modelValue: {
@@ -263,12 +262,11 @@ const props = defineProps({
   },
 });
 
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
+const { currentUser, currentTenant } = mapGetters('auth');
 
 const eagleEyeSettings = computed(
-  () => user?.value?.tenants.find(
-    (tu) => tu.tenantId === tenant?.value.id,
+  () => currentUser?.value?.tenants.find(
+    (tu) => tu.tenantId === currentTenant?.value.id,
   )?.settings.eagleEye,
 );
 
@@ -309,7 +307,7 @@ const drawerModel = computed({
 
 const results = computed(() => {
   if (!form.updateResults) {
-    if (user.value && feed.value) {
+    if (currentUser.value && feed.value) {
       return feed.value;
     }
   }
@@ -391,13 +389,13 @@ watch(
   () => props.modelValue,
   (open) => {
     if (open) {
-      fillForm(user.value);
+      fillForm(currentUser.value);
     }
   },
 );
 
 onMounted(() => {
-  fillForm(user.value);
+  fillForm(currentUser.value);
 });
 </script>
 

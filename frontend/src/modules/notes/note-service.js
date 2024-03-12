@@ -1,9 +1,9 @@
 import authAxios from '@/shared/axios/auth-axios';
-import { AuthService } from '@/modules/auth/services/auth.service';
+import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
 
 export class NoteService {
   static create(data, segments) {
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     return authAxios
       .post(`/tenant/${tenantId}/note`, {
@@ -14,7 +14,7 @@ export class NoteService {
   }
 
   static update(id, data, segments) {
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     return authAxios
       .put(`/tenant/${tenantId}/note/${id}`, {
@@ -30,7 +30,7 @@ export class NoteService {
       segments,
     };
 
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     return authAxios
       .delete(`/tenant/${tenantId}/note`, {
@@ -55,10 +55,15 @@ export class NoteService {
       segments,
     };
 
-    const tenantId = AuthService.getTenantId();
+    const sampleTenant = AuthCurrentTenant.getSampleTenantData();
+    const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
 
     return authAxios
-      .post(`/tenant/${tenantId}/note/query`, body)
+      .post(`/tenant/${tenantId}/note/query`, body, {
+        headers: {
+          Authorization: sampleTenant?.token,
+        },
+      })
       .then((response) => response.data);
   }
 }

@@ -12,8 +12,8 @@
     >
       <template
         v-if="link.display({
-          user: user,
-          tenant: tenant,
+          user: currentUser,
+          tenant: currentTenant,
         })"
       >
         <router-link
@@ -21,8 +21,8 @@
           :id="`menu-${link.id}`"
           :to="{ name: link.routeName, ...link.routeOptions }"
           :disabled="link.disable({
-            user: user,
-            tenant: tenant,
+            user: currentUser,
+            tenant: currentTenant,
           })"
           class="rounded-md h-8 transition !text-gray-400 flex items-center whitespace-nowrap
           flex-nowrap px-1.5 hover:bg-gray-50 mb-2 overflow-hidden"
@@ -61,8 +61,7 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router';
 import { MenuLink } from '@/modules/layout/types/MenuLink';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { storeToRefs } from 'pinia';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
 
 const props = defineProps<{
   collapsed: boolean,
@@ -72,8 +71,7 @@ const props = defineProps<{
   disableActiveClass?: boolean,
 }>();
 
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
+const { currentTenant, currentUser } = mapGetters('auth');
 
 </script>
 

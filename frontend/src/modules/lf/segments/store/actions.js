@@ -5,16 +5,14 @@ import { store } from '@/store';
 import { computed } from 'vue';
 import { PermissionChecker } from '@/modules/user/permission-checker';
 import Roles from '@/security/roles';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { storeToRefs } from 'pinia';
 
 const isAdminOnly = () => {
-  const authStore = useAuthStore();
-  const { user, tenant } = storeToRefs(authStore);
+  const currentUser = store.getters['auth/currentUser'];
+  const currentTenant = store.getters['auth/currentTenant'];
 
   return new PermissionChecker(
-    tenant.value,
-    user.value,
+    currentTenant,
+    currentUser,
   ).currentUserRolesIds.includes(Roles.values.projectAdmin);
 };
 

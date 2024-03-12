@@ -126,16 +126,15 @@ import AppLfSearchInput from '@/modules/lf/segments/components/view/lf-search-in
 import pluralize from 'pluralize';
 import { useRoute, useRouter } from 'vue-router';
 import { LfPermissions } from '@/modules/lf/lf-permissions';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { hasAccessToProjectGroup } from '@/utils/segments';
 import { PermissionChecker } from '@/modules/user/permission-checker';
 import Roles from '@/security/roles';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
 
 const router = useRouter();
 const route = useRoute();
 
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
+const { currentTenant, currentUser } = mapGetters('auth');
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { projectGroups } = storeToRefs(lsSegmentsStore);
@@ -147,10 +146,11 @@ const activeTab = ref();
 
 const isProjectAdminUser = computed(() => {
   const permissionChecker = new PermissionChecker(
-    tenant.value,
-    user.value,
+    currentTenant.value,
+    currentUser.value,
   );
-  return permissionChecker.currentUserRolesIds?.includes(Roles.values.projectAdmin);
+
+  return permissionChecker.currentUserRolesIds.includes(Roles.values.projectAdmin);
 });
 const adminOnly = computed(() => isProjectAdminUser.value && activeTab.value === 'project-groups');
 
@@ -202,15 +202,15 @@ const handleImageError = (id, e) => {
 
 const hasPermissionToEditProjectGroup = computed(
   () => new LfPermissions(
-    tenant.value,
-    user.value,
+    currentTenant.value,
+    currentUser.value,
   ).editProjectGroup,
 );
 
 const hasPermissionToCreateProjects = computed(
   () => new LfPermissions(
-    tenant.value,
-    user.value,
+    currentTenant.value,
+    currentUser.value,
   ).createProjectGroup,
 );
 

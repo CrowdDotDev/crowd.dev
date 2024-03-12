@@ -1,13 +1,11 @@
 import authAxios from '@/shared/axios/auth-axios';
-import { AuthService } from '@/modules/auth/services/auth.service';
+import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
 import { store } from '@/store';
 import moment from 'moment';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { storeToRefs } from 'pinia';
 
 export class ActivityService {
   static async update(id, data, segments) {
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.put(
       `/tenant/${tenantId}/activity/${id}`,
@@ -26,7 +24,7 @@ export class ActivityService {
       segments,
     };
 
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.delete(`/tenant/${tenantId}/activity`, {
       params,
@@ -36,7 +34,7 @@ export class ActivityService {
   }
 
   static async create(data, segments) {
-    const tenantId = AuthService.getTenantId();
+    const tenantId = AuthCurrentTenant.get();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/activity`,
@@ -50,7 +48,11 @@ export class ActivityService {
   }
 
   static async query(body, countOnly = false) {
-    const tenantId = AuthService.getTenantId();
+    const sampleTenant = AuthCurrentTenant.getSampleTenantData();
+    const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
+    const currentTenant = store.getters['auth/currentTenant'];
+
+    const isTenantNew = moment(currentTenant.createdAt).add(1, 'months').isAfter(moment());
 
     // If tenant is less than a month old, use old query
     // Else use new query
@@ -60,6 +62,7 @@ export class ActivityService {
       {
         headers: {
           'x-crowd-api-version': '1',
+          Authorization: sampleTenant?.token,
         },
       },
     );
@@ -68,11 +71,15 @@ export class ActivityService {
   }
 
   static async listActivityTypes(segments) {
-    const tenantId = AuthService.getTenantId();
+    const sampleTenant = AuthCurrentTenant.getSampleTenantData();
+    const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/activity/type`,
       {
+        headers: {
+          Authorization: sampleTenant?.token,
+        },
         params: {
           segments,
         },
@@ -83,11 +90,15 @@ export class ActivityService {
   }
 
   static async listActivityChannels(segments) {
-    const tenantId = AuthService.getTenantId();
+    const sampleTenant = AuthCurrentTenant.getSampleTenantData();
+    const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/activity/channel`,
       {
+        headers: {
+          Authorization: sampleTenant?.token,
+        },
         params: {
           segments,
         },
