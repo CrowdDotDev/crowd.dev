@@ -89,7 +89,6 @@ setImmediate(async () => {
     temporal,
     tracer,
     log,
-    MAX_CONCURRENT_PROCESSING,
   )
 
   try {
