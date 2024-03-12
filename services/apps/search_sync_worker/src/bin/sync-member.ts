@@ -24,7 +24,7 @@ setImmediate(async () => {
   const dbConnection = await getDbConnection(DB_CONFIG())
   const store = new DbStore(log, dbConnection)
 
-  const repo = new MemberRepository(redis, store, log)
+  const repo = new MemberRepository(store, log)
   const service = new MemberSyncService(redis, store, openSearchService, log, SERVICE_CONFIG())
 
   const results = await repo.checkMembersExist([memberId])

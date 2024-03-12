@@ -65,7 +65,11 @@ export default class MemberService extends LoggerBase {
 
       const { id, organizations } = await this.store.transactionally(async (txStore) => {
         const txRepo = new MemberRepository(txStore, this.log)
-        const txMemberAttributeService = new MemberAttributeService(txStore, this.log)
+        const txMemberAttributeService = new MemberAttributeService(
+          this.redisClient,
+          txStore,
+          this.log,
+        )
 
         let attributes: Record<string, unknown> = {}
         if (data.attributes) {
@@ -205,7 +209,11 @@ export default class MemberService extends LoggerBase {
     try {
       const { updated, organizations } = await this.store.transactionally(async (txStore) => {
         const txRepo = new MemberRepository(txStore, this.log)
-        const txMemberAttributeService = new MemberAttributeService(txStore, this.log)
+        const txMemberAttributeService = new MemberAttributeService(
+          this.redisClient,
+          txStore,
+          this.log,
+        )
         const dbIdentities = await txRepo.getIdentities(id, tenantId)
 
         if (data.attributes) {
