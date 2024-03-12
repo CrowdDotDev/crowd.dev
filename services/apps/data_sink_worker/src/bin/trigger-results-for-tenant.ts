@@ -1,4 +1,4 @@
-import { generateUUIDv1 } from '@crowd/common'
+import { generateUUIDv1, partition } from '@crowd/common'
 import {
   DataSinkWorkerEmitter,
   PriorityLevelContextRepository,
@@ -12,6 +12,7 @@ import { getRedisClient } from '@crowd/redis'
 import { getSqsClient } from '@crowd/sqs'
 import { getServiceTracer } from '@crowd/tracing'
 import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG, UNLEASH_CONFIG } from '../conf'
+import { DataSinkWorkerQueueMessageType } from '@crowd/types'
 
 const tracer = getServiceTracer()
 const log = getServiceLogger()
@@ -53,22 +54,28 @@ setImmediate(async () => {
     let resultIds = await repo.getOldResultsToProcessForTenant(tenantId, 100)
 
     while (resultIds.length > 0) {
-      const resultId = resultIds.shift()
+      const lastResultId = resultIds[resultIds.length - 1]
+      const batches = partition(resultIds, 10)
 
-      await dataSinkWorkerEmitter.triggerResultProcessing(
-        tenantId,
-        'unknown',
-        resultId,
-        generateUUIDv1(),
-        true,
-      )
-      count += 1
+      for (const batch of batches) {
+        const messages = batch.map((resultId) => {
+          return {
+            tenantId,
+            payload: {
+              type: DataSinkWorkerQueueMessageType.PROCESS_INTEGRATION_RESULT,
+              resultId,
+            },
+            groupId: generateUUIDv1(),
+            deduplicationId: resultId,
+          }
+        })
 
-      if (resultIds.length === 0) {
-        resultIds = await repo.getOldResultsToProcessForTenant(tenantId, 100, resultId)
+        await dataSinkWorkerEmitter.sendMessages(messages)
+        count += messages.length
+        log.info(`Triggered ${count} results to process!`)
       }
 
-      log.info(`Triggered ${count} results to process!`)
+      resultIds = await repo.getOldResultsToProcessForTenant(tenantId, 100, lastResultId)
     }
   }
 
