@@ -290,7 +290,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
         {
           tenantId,
           segmentIds,
-          type: IndexedEntityType.MEMBER,
+          type: IndexedEntityType.ORGANIZATION,
         },
       )
     } else {
