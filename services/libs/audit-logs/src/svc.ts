@@ -19,7 +19,16 @@ function convertRepositoryOptions(options: any): AuditLogRequestOptions {
 async function captureChange(
   options: AuditLogRequestOptions,
   action: AuditLogAction,
+  skipAuditLog: boolean,
 ): Promise<void> {
+  if (skipAuditLog) {
+    return
+  }
+
+  if (!action.diff || !Object.keys(action.diff).length) {
+    return
+  }
+
   const db = await getDbConnection({
     host: process.env.CROWD_DB_WRITE_HOST,
     port: parseInt(process.env.CROWD_DB_PORT),
@@ -39,9 +48,7 @@ export async function captureApiChange<T>(
 
   const buildActionResult = await buildActionFn()
   try {
-    if (!skipAuditLog) {
-      await captureChange(auditOptions, buildActionResult.auditLog)
-    }
+    await captureChange(auditOptions, buildActionResult.auditLog, skipAuditLog)
   } catch (error) {
     throw new Error(`Error capturing change: ${error.message}`)
   }
