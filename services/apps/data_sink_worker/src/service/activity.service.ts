@@ -3,11 +3,11 @@ import {
   IDbActivityUpdateData,
 } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/activity.data'
 import MemberRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.repo'
-import { isObjectEmpty, singleOrDefault, escapeNullByte } from '@crowd/common'
+import { isObjectEmpty, singleOrDefault, escapeNullByte, EDITION } from '@crowd/common'
 import { DbStore, arePrimitivesDbEqual } from '@crowd/data-access-layer/src/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { ISentimentAnalysisResult, getSentiment } from '@crowd/sentiment'
-import { IActivityData, PlatformType, TemporalWorkflowId } from '@crowd/types'
+import { Edition, IActivityData, PlatformType, TemporalWorkflowId } from '@crowd/types'
 import ActivityRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/activity.repo'
 import { IActivityCreateData, IActivityUpdateData } from './activity.data'
 import MemberService from './member.service'
@@ -98,34 +98,36 @@ export default class ActivityService extends LoggerBase {
         return id
       })
 
-      try {
-        const handle = await this.temporal.workflow.start('processNewActivityAutomation', {
-          workflowId: `${TemporalWorkflowId.NEW_ACTIVITY_AUTOMATION}/${id}`,
-          taskQueue: TEMPORAL_CONFIG().automationsTaskQueue,
-          workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
-          retry: {
-            maximumAttempts: 100,
-          },
-          args: [
-            {
-              tenantId,
-              activityId: id,
+      if (EDITION !== Edition.LFX) {
+        try {
+          const handle = await this.temporal.workflow.start('processNewActivityAutomation', {
+            workflowId: `${TemporalWorkflowId.NEW_ACTIVITY_AUTOMATION}/${id}`,
+            taskQueue: TEMPORAL_CONFIG().automationsTaskQueue,
+            workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
+            retry: {
+              maximumAttempts: 100,
             },
-          ],
-          searchAttributes: {
-            TenantId: [tenantId],
-          },
-        })
-        this.log.info(
-          { workflowId: handle.workflowId },
-          'Started temporal workflow to process new activity automation!',
-        )
-      } catch (err) {
-        this.log.error(
-          err,
-          'Error while starting temporal workflow to process new activity automation!',
-        )
-        throw err
+            args: [
+              {
+                tenantId,
+                activityId: id,
+              },
+            ],
+            searchAttributes: {
+              TenantId: [tenantId],
+            },
+          })
+          this.log.info(
+            { workflowId: handle.workflowId },
+            'Started temporal workflow to process new activity automation!',
+          )
+        } catch (err) {
+          this.log.error(
+            err,
+            'Error while starting temporal workflow to process new activity automation!',
+          )
+          throw err
+        }
       }
 
       const affectedIds = await this.conversationService.processActivity(tenantId, segmentId, id)
