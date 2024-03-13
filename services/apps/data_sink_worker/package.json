@@ -15,6 +15,7 @@
     "script:restart-x-failed-results": "SERVICE=script tsx src/bin/restart-x-failed-results.ts",
     "script:restart-result": "SERVICE=script tsx src/bin/restart-result.ts",
     "script:process-results": "SERVICE=script tsx src/bin/process-results.ts",
+    "script:trigger-results-for-tenant": "SERVICE=script tsx src/bin/trigger-results-for-tenant.ts",
     "script:map-tenant-members-to-org": "SERVICE=script tsx src/bin/map-tenant-members-to-org.ts",
     "script:fix-org-cache-identities-duplicates": "SERVICE=script tsx src/bin/fix-org-cache-identities-duplicates.ts",
     "script:map-member-to-org": "SERVICE=script tsx src/bin/map-member-to-org.ts",
