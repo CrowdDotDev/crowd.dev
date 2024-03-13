@@ -16,6 +16,9 @@
     "@crowd/archetype-worker": "workspace:*",
     "@crowd/data-access-layer": "workspace:*",
     "@temporalio/workflow": "~1.8.6",
+    "@temporalio/client": "~1.8.6",
+    "@crowd/types": "workspace:*",
+    "@crowd/common": "workspace:*",
     "tsx": "^4.7.1",
     "typescript": "^5.2.2"
   },
