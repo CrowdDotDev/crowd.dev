@@ -1,5 +1,5 @@
 <template>
-  <slot :connect="connect" :has-settings="true" :settings-component="GithubSettings" />
+  <slot :connect="connect" :has-settings="false" :settings-component="GithubSettings" />
 </template>
 
 <script setup>

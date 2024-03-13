@@ -9,16 +9,13 @@
         class="app-page-spinner w-20"
       />
     </div>
-    <div v-else class="grid grid-cols-3 grid-rows-4 gap-4">
-      <app-integration-list-item
-        v-for="integration in integrationsArray"
-        :key="integration.platform"
-        :integration="integration"
-      />
-      <app-integration-list-item
-        v-if="!hideCustomIntegrations"
-        :integration="customIntegration"
-      />
+    <div v-else class="flex flex-wrap -mx-2.5">
+      <article v-for="integration in integrationsArray" :key="integration.platform" class="px-2.5 w-full sm:1/2 lg:w-1/3 pb-5">
+        <app-integration-list-item
+          class="h-full"
+          :integration="integration"
+        />
+      </article>
     </div>
     <app-dialog
       v-model="showGithubDialog"
@@ -59,14 +56,6 @@ const props = defineProps({
 const integrationCount = computed(() => store.state.integration.count);
 const isSegmentIdDifferent = computed(() => store.state.segmentId !== route.params.id);
 
-const customIntegration = ref({
-  platform: 'custom',
-  name: 'Build your own',
-  description:
-    'Use our integration framework to build your own connector.',
-  image: '/images/integrations/custom.svg',
-});
-
 const loading = computed(
   () => store.getters['integration/loadingFetch'],
 );
@@ -76,8 +65,6 @@ const integrationsArray = computed(() => (props.onboard
   : CrowdIntegrations.mappedConfigs(store)));
 
 const showGithubDialog = ref(false);
-
-const hideCustomIntegrations = CrowdIntegrations.getConfig('lfx').hideCustomIntegration;
 
 onMounted(async () => {
   localStorage.setItem('segmentId', route.params.id);
