@@ -65,10 +65,14 @@ interface IntegrationProgressDataGithub {
   pullRequests: IntegrationProgressDataGithubItem
 }
 
-interface IntegrationProgressDataOther {
+interface IntegrationProgressDataOtherItem {
   db: number
   message: string
   status: 'ok' | 'in-progress'
+}
+
+interface IntegrationProgressDataOther {
+  other: IntegrationProgressDataOtherItem
 }
 
 interface IntegrationProgress {
