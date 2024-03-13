@@ -167,7 +167,9 @@ const fetch = () => {
     ...q,
     ...filtr,
   }), {}) || {};
-  loading.value = true;
+  if (pagination.page <= 1) {
+    loading.value = true;
+  }
   LfService.fetchAuditLogs({
     filter: query,
     limit: pagination.perPage,
