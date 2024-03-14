@@ -1,7 +1,9 @@
+import config from '@/config';
 import DiscourseConnect from './components/discourse-connect.vue';
 
 export default {
-  enabled: true,
+  enabled: config.isDiscourseIntegrationEnabled,
+  hideAsIntegration: !config.isDiscourseIntegrationEnabled,
   name: 'Discourse',
   backgroundColor: '#FFFFFF',
   borderColor: '#FFFFFF',

@@ -42,7 +42,6 @@ export enum SqsFifoThroughputLimitType {
 export enum CrowdQueue {
   INTEGRATION_RUN_WORKER = 'integration-run-worker',
   INTEGRATION_STREAM_WORKER = 'integration-stream-worker',
-  INTEGRATION_DATA_WORKER = 'integration-data-worker',
   DATA_SINK_WORKER = 'data-sink-worker',
   NODEJS_WORKER = 'nodejs-worker',
   SEARCH_SYNC_WORKER = 'search-sync-worker',

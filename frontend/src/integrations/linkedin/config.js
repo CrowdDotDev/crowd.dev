@@ -1,7 +1,9 @@
+import config from '@/config';
 import LinkedInConnect from './components/linkedin-connect.vue';
 
 export default {
-  enabled: true,
+  enabled: config.isLinkedInIntegrationEnabled,
+  hideAsIntegration: !config.isLinkedInIntegrationEnabled,
   name: 'LinkedIn',
   backgroundColor: '#D4E1F0',
   borderColor: '#D4E1F0',

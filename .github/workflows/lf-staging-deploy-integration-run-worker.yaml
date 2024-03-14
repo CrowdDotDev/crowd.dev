@@ -7,7 +7,7 @@ on:
       - 'lf-staging-**'
     paths:
       - 'services/libs/**'
-      - 'services/apps/integration_data_worker/**'
+      - 'services/apps/integration_run_worker/**'
 
 env:
   DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}

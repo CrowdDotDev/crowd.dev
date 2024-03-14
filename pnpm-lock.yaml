@@ -818,61 +818,6 @@ importers:
         specifier: ^3.0.1
         version: 3.0.3
 
-  services/apps/integration_data_worker:
-    dependencies:
-      '@crowd/common':
-        specifier: workspace:*
-        version: link:../../libs/common
-      '@crowd/common_services':
-        specifier: workspace:*
-        version: link:../../libs/common_services
-      '@crowd/data-access-layer':
-        specifier: workspace:*
-        version: link:../../libs/data-access-layer
-      '@crowd/feature-flags':
-        specifier: workspace:*
-        version: link:../../libs/feature-flags
-      '@crowd/integrations':
-        specifier: workspace:*
-        version: link:../../libs/integrations
-      '@crowd/logging':
-        specifier: workspace:*
-        version: link:../../libs/logging
-      '@crowd/redis':
-        specifier: workspace:*
-        version: link:../../libs/redis
-      '@crowd/sqs':
-        specifier: workspace:*
-        version: link:../../libs/sqs
-      '@crowd/telemetry':
-        specifier: workspace:*
-        version: link:../../libs/telemetry
-      '@crowd/tracing':
-        specifier: workspace:*
-        version: link:../../libs/tracing
-      '@crowd/types':
-        specifier: workspace:*
-        version: link:../../libs/types
-      config:
-        specifier: ^3.3.9
-        version: 3.3.11
-      tsx:
-        specifier: ^4.7.1
-        version: 4.7.1
-      typescript:
-        specifier: ^5.0.4
-        version: 5.3.3
-    devDependencies:
-      '@types/config':
-        specifier: ^3.3.0
-        version: 3.3.3
-      '@types/node':
-        specifier: ^18.16.3
-        version: 18.19.16
-      nodemon:
-        specifier: ^2.0.22
-        version: 2.0.22
-
   services/apps/integration_run_worker:
     dependencies:
       '@crowd/common':
@@ -1190,9 +1135,18 @@ importers:
       '@crowd/archetype-worker':
         specifier: workspace:*
         version: link:../../archetypes/worker
+      '@crowd/common':
+        specifier: workspace:*
+        version: link:../../libs/common
       '@crowd/data-access-layer':
         specifier: workspace:*
         version: link:../../libs/data-access-layer
+      '@crowd/types':
+        specifier: workspace:*
+        version: link:../../libs/types
+      '@temporalio/client':
+        specifier: ~1.8.6
+        version: 1.8.6
       '@temporalio/workflow':
         specifier: ~1.8.6
         version: 1.8.6

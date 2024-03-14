@@ -1,5 +1,5 @@
 import { Edition } from '@crowd/types'
-import { EDITION, IS_DEV_ENV, IS_TEST_ENV } from '@crowd/common'
+import { EDITION } from '@crowd/common'
 import { Logger, getServiceChildLogger } from '@crowd/logging'
 import { getTemporalClient } from '@crowd/temporal'
 import { CrowdJob } from '../../types/jobTypes'
@@ -9,7 +9,7 @@ import { refreshMaterializedView } from './refreshMaterializedViews'
 
 const job: CrowdJob = {
   name: 'Refresh Materialized View For Cube',
-  cronTime: IS_DEV_ENV || IS_TEST_ENV ? '* * * * *' : '1,31 * * * *',
+  cronTime: process.env.CROWD_MV_CUBEJS_REFRESH_PERIOD,
   onTrigger: async (log: Logger) => {
     const refreshed = []
 

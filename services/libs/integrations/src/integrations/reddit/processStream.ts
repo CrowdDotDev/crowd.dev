@@ -58,7 +58,7 @@ async function recursiveCommentParser(
   comment = comment as RedditComment
 
   // We need to publish an activity for the comment
-  await ctx.publishData<IRedditPublishData>({
+  await ctx.processData<IRedditPublishData>({
     type: RedditActivityType.COMMENT,
     data: comment,
     subreddit: metadata.channel,
@@ -109,7 +109,7 @@ const processSubredditStream: ProcessStreamHandler = async (ctx) => {
       },
     )
 
-    await ctx.publishData<IRedditPublishData>({
+    await ctx.processData<IRedditPublishData>({
       type: RedditActivityType.POST,
       data: post.data,
       subreddit: subreddit,

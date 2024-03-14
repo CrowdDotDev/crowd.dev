@@ -70,9 +70,9 @@ const store = useStore();
 const loading = computed(
   () => store.getters['integration/loadingFetch'],
 );
-const integrationsArray = computed(() => CrowdIntegrations.mappedConfigs(store)
+const integrationsArray = computed(() => CrowdIntegrations.mappedEnabledConfigs(store)
   .filter((i) => !i.onboard?.highlight && !!i.onboard));
-const highlightedIntegrationsArray = computed(() => CrowdIntegrations.mappedConfigs(store)
+const highlightedIntegrationsArray = computed(() => CrowdIntegrations.mappedEnabledConfigs(store)
   .filter((i) => i.onboard?.highlight && !!i.onboard));
 const showGithubDialog = ref(false);
 

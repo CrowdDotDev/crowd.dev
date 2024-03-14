@@ -1,4 +1,6 @@
 import { DbStore } from '@crowd/database'
+import { IAffiliationsLastCheckedAt, IMemberId } from './types'
+import { ITenant } from '@crowd/types'
 
 export async function runMemberAffiliationsUpdate(db: DbStore, memberId: string) {
   return db.connection().query(
@@ -47,4 +49,109 @@ export async function runMemberAffiliationsUpdate(db: DbStore, memberId: string)
     `,
     [memberId],
   )
+}
+
+export async function getAffiliationsLastCheckedAt(db: DbStore, tenantId: string) {
+  try {
+    const result: IAffiliationsLastCheckedAt = await db.connection().oneOrNone(
+      `
+      select "affiliationsLastCheckedAt"
+      from tenants
+      where "id" = $(tenantId);`,
+      {
+        tenantId,
+      },
+    )
+    return result?.affiliationsLastCheckedAt
+  } catch (err) {
+    throw new Error(err)
+  }
+}
+
+export async function getAllMemberIdsPaginated(db: DbStore, limit: number, offset: number) {
+  try {
+    const results: IMemberId[] = await db.connection().any(
+      `
+      select id from members
+      order by id asc
+      limit $(limit)
+      offset $(offset);`,
+      {
+        limit,
+        offset,
+      },
+    )
+    return results?.map((r) => r.id) || []
+  } catch (err) {
+    throw new Error(err)
+  }
+}
+
+export async function getMemberIdsWithRecentRoleChanges(
+  db: DbStore,
+  affiliationsLastChecked: string,
+  limit: number,
+  offset: number,
+) {
+  try {
+    const results: IMemberId[] = await db.connection().any(
+      `
+      select distinct "memberId" as id from "memberOrganizations"
+      where "createdAt" > $(affiliationsLastChecked) or 
+            "updatedAt" > $(affiliationsLastChecked) or 
+            "deletedAt" > $(affiliationsLastChecked)
+      order by id asc
+      limit $(limit)
+      offset $(offset);`,
+
+      {
+        affiliationsLastChecked,
+        limit,
+        offset,
+      },
+    )
+    return results?.map((r) => r.id) || []
+  } catch (err) {
+    throw new Error(err)
+  }
+}
+
+export async function updateAffiliationsLastCheckedAt(
+  db: DbStore,
+  tenantId: string,
+): Promise<void> {
+  try {
+    await db.connection().any(
+      `
+        update tenants set "affiliationsLastCheckedAt" = now()
+        where "id" = $(tenantId);
+      `,
+      {
+        tenantId,
+      },
+    )
+  } catch (err) {
+    throw new Error(err)
+  }
+}
+
+export async function getAllTenants(db: DbStore): Promise<ITenant[]> {
+  let rows: ITenant[] = []
+  try {
+    rows = await db.connection().query(`
+      select 
+        id as "tenantId", 
+        plan
+      from tenants
+      where "deletedAt" is null
+        and plan IN ('Scale', 'Growth', 'Essential', 'Enterprise')
+        and ("trialEndsAt" > NOW() or "trialEndsAt" is null);
+    `)
+  } catch (err) {
+    this.log.error('Error while getting all tenants', err)
+
+    throw new Error(err)
+  }
+
+  return rows
 }
