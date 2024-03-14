@@ -33,21 +33,21 @@ $$
                                 if member_row."lastEnriched" > '2024-01-01 00:01:00 +00:00'::timestamptz then
                                     -- if it was enriched after January 1st emails that were set are reliable
                                     raise notice 'inserting enriched member (%) identity email "%" that is verified', member_row.id, email;
-                                    insert into "memberIdentities"("memberId", platform, value, type, "sourceId", "tenantId", "isVerified")
-                                    values (member_row.id, 'integration_or_enrichment', email, 'email', null, member_row."tenantId", true)
+                                    insert into "memberIdentities"("memberId", platform, value, type, "tenantId", "isVerified")
+                                    values (member_row.id, 'integration_or_enrichment', email, 'email', member_row."tenantId", true)
                                     on conflict do nothing;
                                 else
                                     -- if member was enriched before January 1st emails that were set are not reliable
                                     raise notice 'inserting enriched member (%) identity email "%" that is not verified', member_row.id, email;
-                                    insert into "memberIdentities"("memberId", platform, value, type, "sourceId", "tenantId", "isVerified")
-                                    values (member_row.id, 'integration_or_enrichment', email, 'email', null, member_row."tenantId", false)
+                                    insert into "memberIdentities"("memberId", platform, value, type, "tenantId", "isVerified")
+                                    values (member_row.id, 'integration_or_enrichment', email, 'email', member_row."tenantId", false)
                                     on conflict do nothing;
                                 end if;
                             else
                                 -- member is not enriched -> emails came from integrations and are verified
                                 raise notice 'inserting member (%) identity email "%" that is verified', member_row.id, email;
-                                insert into "memberIdentities"("memberId", platform, value, type, "sourceId", "tenantId", "isVerified")
-                                values (member_row.id, 'integration', email, 'email', null, member_row."tenantId", true)
+                                insert into "memberIdentities"("memberId", platform, value, type, "tenantId", "isVerified")
+                                values (member_row.id, 'integration', email, 'email', member_row."tenantId", true)
                                 on conflict do nothing;
                             end if;
                         end if;
@@ -63,13 +63,13 @@ $$
         member_row members%rowtype;
         identity   jsonb;
     begin
-        for member_row in select * from members where jsonb_array_length("oldWeakIdentities") > 0
+        for member_row in select * from members
             loop
                 for identity in select jsonb_array_elements(member_row."oldWeakIdentities")
                     loop
                         raise notice 'member %, platform %, username %', member_row.id, (identity ->> 'platform'), (identity ->> 'username');
-                        insert into "memberIdentities"("memberId", platform, value, type, "sourceId", "tenantId", "isVerified")
-                        values (member_row.id, (identity ->> 'platform'), (identity ->> 'username'), 'username', null, member_row."tenantId", false);
+                        insert into "memberIdentities"("memberId", platform, value, type, "tenantId", "isVerified")
+                        values (member_row.id, (identity ->> 'platform'), (identity ->> 'username'), 'username', member_row."tenantId", false);
                     end loop;
             end loop;
     end;
