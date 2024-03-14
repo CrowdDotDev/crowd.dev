@@ -40,6 +40,7 @@ export async function recalculateAffiliationsForNewRoles(
   const offset = input.offset || 0
 
   const memberIds = await getMemberIdsForAffiliationUpdates(
+    input.tenant.id,
     affiliationsLastChecked,
     MEMBER_PAGE_SIZE,
     offset,
