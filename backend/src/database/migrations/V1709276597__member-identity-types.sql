@@ -14,6 +14,10 @@ alter table "memberIdentities"
 alter table members
     rename column emails to "oldEmails";
 
+alter table members
+    rename column "weakIdentities" to "oldWeakIdentities";
+
+-- move emails to identities
 do
 $$
     declare
@@ -47,6 +51,25 @@ $$
                                 on conflict do nothing;
                             end if;
                         end if;
+                    end loop;
+            end loop;
+    end;
+$$;
+
+-- move weak identities to unverified identities
+do
+$$
+    declare
+        member_row members%rowtype;
+        identity   jsonb;
+    begin
+        for member_row in select * from members where jsonb_array_length("oldWeakIdentities") > 0
+            loop
+                for identity in select jsonb_array_elements(member_row."oldWeakIdentities")
+                    loop
+                        raise notice 'member %, platform %, username %', member_row.id, (identity ->> 'platform'), (identity ->> 'username');
+                        insert into "memberIdentities"("memberId", platform, value, type, "sourceId", "tenantId", "isVerified")
+                        values (member_row.id, (identity ->> 'platform'), (identity ->> 'username'), 'username', null, member_row."tenantId", false);
                     end loop;
             end loop;
     end;
