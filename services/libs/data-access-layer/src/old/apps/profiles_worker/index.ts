@@ -113,7 +113,7 @@ export async function getMemberIdsWithRecentRoleChanges(
             mo."updatedAt" > $(affiliationsLastChecked) or 
             mo."deletedAt" > $(affiliationsLastChecked)
             )
-      order by m.id asc
+      order by mo."memberId" asc
       limit $(limit)
       offset $(offset);`,
 
