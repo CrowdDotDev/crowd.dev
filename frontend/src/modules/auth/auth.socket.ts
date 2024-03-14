@@ -91,7 +91,7 @@ export const connectSocket = (token) => {
     const primaryMember = h(
       'a',
       {
-        href: `${window.location.origin}/members/${primaryId}?projectGroup=${selectedProjectGroup.value?.id}`,
+        href: `${window.location.origin}/contributors/${primaryId}?projectGroup=${selectedProjectGroup.value?.id}`,
         class: 'underline text-gray-600',
       },
       primaryDisplayName,
@@ -99,7 +99,7 @@ export const connectSocket = (token) => {
     const secondaryMember = h(
       'a',
       {
-        href: `${window.location.origin}/members/${secondaryId}?projectGroup=${selectedProjectGroup.value?.id}`,
+        href: `${window.location.origin}/contributors/${secondaryId}?projectGroup=${selectedProjectGroup.value?.id}`,
         class: 'underline text-gray-600',
       },
       secondaryDisplayName,
