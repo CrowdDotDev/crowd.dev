@@ -84,7 +84,7 @@ export const connectSocket = (token) => {
       userId,
     } = parsedData;
 
-    if (currentTenant.value.id !== tenantId || currentUser.value.id !== userId) {
+    if (tenant.value?.id !== tenantId || user.value?.id !== userId) {
       return;
     }
 
@@ -136,7 +136,7 @@ export const connectSocket = (token) => {
       primaryDisplayName, secondaryDisplayName, primaryId, secondaryId, tenantId, userId,
     } = parsedData;
 
-    if (tenant.value.id !== tenantId || user.value.id !== userId) {
+    if (tenant.value?.id !== tenantId || user.value?.id !== userId) {
       return;
     }
 

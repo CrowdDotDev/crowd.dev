@@ -25,7 +25,7 @@
         >
           <el-input
             v-model="form.name"
-            maxlength="50"
+            maxlength="100"
             show-word-limit
             placeholder="E.g. Cloud Native Computing Foundation"
           />

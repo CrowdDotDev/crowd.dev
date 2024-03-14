@@ -9,6 +9,7 @@ import config from '@/config';
 import { useRoute } from 'vue-router';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
+import { AuthService } from '@/modules/auth/services/auth.service';
 
 const route = useRoute();
 
@@ -27,7 +28,7 @@ const connectUrl = computed(() => {
 
   return `${config.backendUrl}/slack/${
     tenant.value.id
-  }/connect?redirectUrl=${redirectUrl}&crowdToken=${AuthToken.get()}&segments[]=${route.params.id}`;
+  }/connect?redirectUrl=${redirectUrl}&crowdToken=${AuthService.getToken()}&segments[]=${route.params.id}`;
 });
 
 const connect = () => {
