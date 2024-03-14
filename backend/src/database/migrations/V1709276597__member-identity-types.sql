@@ -11,6 +11,12 @@ set type = 'username';
 alter table "memberIdentities"
     alter column type set not null;
 
+alter table "memberIdentities"
+    drop constraint "memberIdentities_platform_username_tenantId_key";
+
+drop index if exists "memberIdentities_platform_username_tenantId_key";
+create unique index if not exists "uix_memberIdentities_platform_value_type_tenantId_isVerified" on "memberIdentities" (platform, value, type, "tenantId", "isVerified") where "isVerified" = true;
+
 alter table members
     rename column emails to "oldEmails";
 
@@ -69,7 +75,8 @@ $$
                     loop
                         raise notice 'member %, platform %, username %', member_row.id, (identity ->> 'platform'), (identity ->> 'username');
                         insert into "memberIdentities"("memberId", platform, value, type, "tenantId", "isVerified")
-                        values (member_row.id, (identity ->> 'platform'), (identity ->> 'username'), 'username', member_row."tenantId", false);
+                        values (member_row.id, (identity ->> 'platform'), (identity ->> 'username'), 'username', member_row."tenantId", false)
+                        on conflict do nothing;
                     end loop;
             end loop;
     end;
