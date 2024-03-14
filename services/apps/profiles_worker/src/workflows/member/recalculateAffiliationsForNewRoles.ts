@@ -30,6 +30,12 @@ export async function recalculateAffiliationsForNewRoles(
 ): Promise<void> {
   const affiliationsLastChecked = await getAffiliationsLastCheckedAtOfTenant(input.tenant.id)
 
+  console.log(
+    `Recalculating affiliations for tenant ${
+      input.tenant.id
+    } with affiliationsLastChecked: ${affiliationsLastChecked} and offset ${input.offset || 0}`,
+  )
+
   const MEMBER_PAGE_SIZE = 100
   const offset = input.offset || 0
 
