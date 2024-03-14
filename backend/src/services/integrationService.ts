@@ -47,6 +47,7 @@ import {
 } from '@/serverless/integrations/usecases/groupsio/types'
 import SearchSyncService from './searchSyncService'
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
+import IntegrationProgressRepository from '@/database/repositories/integrationProgressRepository'
 
 const discordToken = DISCORD_CONFIG.token || DISCORD_CONFIG.token2
 
@@ -1727,5 +1728,67 @@ export default class IntegrationService {
     // For other integrations:
     // check if state = 'in-progress' - return stats only in this case otherwise throw
     // return the number of streams remaining in the db (cached in Redis for a short period of time)
+
+    const integration = await this.findById(integrationId)
+
+    if (integration.platform === PlatformType.GITHUB) {
+      const githubToken = await IntegrationService.getInstallToken(
+        integration.integrationIdentifier,
+      )
+      const progress: IntegrationProgress = {
+        type: 'github',
+        data: {
+          forks: {
+            db: 0,
+            remote: 0,
+            status: 'ok',
+            message: 'All forks are processed',
+            percentage: 100,
+          },
+          pullRequests: {
+            db: 0,
+            remote: 0,
+            status: 'ok',
+            message: 'All pull requests are processed',
+            percentage: 100,
+          },
+          issues: {
+            db: 0,
+            remote: 0,
+            status: 'ok',
+            message: 'All issues are processed',
+            percentage: 100,
+          },
+          stars: {
+            db: 0,
+            remote: 0,
+            status: 'ok',
+            message: 'All stars are processed',
+            percentage: 100,
+          },
+        },
+      }
+
+      return progress
+    }
+    const remainingStreamsCount = await IntegrationProgressRepository.getPendingStreamsCount(
+      integrationId,
+      this.options,
+    )
+    const progress: IntegrationProgress = {
+      type: 'other',
+      data: {
+        other: {
+          db: remainingStreamsCount,
+          status: remainingStreamsCount > 0 ? 'in-progress' : 'ok',
+          message:
+            remainingStreamsCount > 0
+              ? `${remainingStreamsCount} are being processed`
+              : 'All streams are processed',
+        },
+      },
+    }
+
+    return progress
   }
 }
