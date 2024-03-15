@@ -165,7 +165,6 @@ if (
                 "lastEnriched", 
                 "contributions", 
                 "enrichedBy", 
-                "weakIdentities", 
                 "searchSyncedAt", 
                 "manuallyCreated")
                 VALUES (
@@ -186,7 +185,6 @@ if (
                   :lastEnriched,
                   :contributions,
                   :enrichedBy,
-                  :weakIdentities,
                   :searchSyncedAt,
                   :manuallyCreated)`,
             {
@@ -204,9 +202,6 @@ if (
                   ? JSON.stringify(deletedMember.attributes)
                   : null,
                 reach: deletedMember.reach ? JSON.stringify(deletedMember.reach) : null,
-                weakIdentities: deletedMember.weakIdentities
-                  ? JSON.stringify(deletedMember.weakIdentities)
-                  : null,
                 contributions: deletedMember.contributions
                   ? JSON.stringify(deletedMember.contributions)
                   : null,

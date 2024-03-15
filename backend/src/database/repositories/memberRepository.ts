@@ -675,7 +675,6 @@ class MemberRepository {
     'ultimateParent',
     'immediateParent',
     'attributes',
-    'weakIdentities',
   ]
 
   static isEqual = {
@@ -2972,19 +2971,24 @@ class MemberRepository {
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
     const query = `
-      insert into "memberIdentities"()
+      insert into "memberIdentities"("memberId", platform, type, value, "tenantId", "isVerified")
+      values(:memberId, :platform, :type, :value, :tenantId, :isVerified)
+      on conflict do nothing;
     `
 
-    await seq.query(query, {
-      replacements: {
-        memberIds,
-        username,
-        platform,
-        tenantId: tenant.id,
-      },
-      type: QueryTypes.UPDATE,
-      transaction,
-    })
+    for (const memberId of memberIds) {
+      await seq.query(query, {
+        replacements: {
+          memberId,
+          value,
+          type,
+          platform,
+          tenantId: tenant.id,
+        },
+        type: QueryTypes.INSERT,
+        transaction,
+      })
+    }
   }
 
   static async _createAuditLog(action, record, data, options: IRepositoryOptions) {

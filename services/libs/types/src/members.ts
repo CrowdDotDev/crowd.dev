@@ -29,13 +29,13 @@ export interface IMemberIdentity {
   memberId?: string
   createdAt?: string
   updatedAt?: string
+  verified: boolean
 }
 
 export interface IMemberData {
   displayName?: string
   emails?: string[]
   identities: IMemberIdentity[]
-  weakIdentities?: IMemberIdentity[]
   attributes?: Record<string, unknown>
   joinedAt?: string
   organizations?: IOrganization[]

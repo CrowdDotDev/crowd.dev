@@ -126,7 +126,6 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
         ...data,
         id,
         tenantId,
-        weakIdentities: JSON.stringify(data.weakIdentities || []),
         createdAt: ts,
         updatedAt: ts,
       },
@@ -152,10 +151,6 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
     const prepared = RepositoryBase.prepare(
       {
         ...data,
-        ...(data?.weakIdentities &&
-          data?.weakIdentities?.length > 0 && {
-            weakIdentities: JSON.stringify(data.weakIdentities),
-          }),
         updatedAt,
       },
       dynamicColumnSet,

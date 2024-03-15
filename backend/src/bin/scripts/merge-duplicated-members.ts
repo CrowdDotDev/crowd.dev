@@ -1,6 +1,7 @@
 import { QueryTypes } from 'sequelize'
 import { Logger, getChildLogger, getServiceLogger } from '@crowd/logging'
 import { generateUUIDv1, timeout } from '@crowd/common'
+import { MemberIdentityType } from '@crowd/types'
 import MemberRepository from '../../database/repositories/memberRepository'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 import MemberService from '../../services/memberService'
@@ -163,7 +164,7 @@ async function check(): Promise<number> {
         allMembers.sort((a, b) => new Date(a.joinedAt).getTime() - new Date(b.joinedAt).getTime())
 
         // first member stays the same - it will keep the identity
-        // these ones will get the duplicated identity as weakIdentities
+        // these ones will get the duplicated identity as unverified ones
         const otherMembers = allMembers.slice(1)
 
         for (const member of otherMembers) {
@@ -181,9 +182,10 @@ async function check(): Promise<number> {
 
         logger.info('Adding duplicated identity to other members as weakIdentity...')
         // finally let's add the duplicated identity as weakIdentity
-        await MemberRepository.addToWeakIdentities(
+        await MemberRepository.addAsUnverifiedIdentity(
           otherMembers.map((m) => m.id),
           data.username,
+          MemberIdentityType.USERNAME,
           data.platform,
           txOptions,
         )

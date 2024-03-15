@@ -211,13 +211,13 @@ export class InitService {
           platform: 'devto',
           value: 'Test Member',
           type: MemberIdentityType.USERNAME,
+          isVerified: true,
         },
-      ],
-      weakIdentities: [
         {
           platform: 'github',
           value: 'fakeWeakIdentity',
           type: MemberIdentityType.USERNAME,
+          isVerified: false,
         },
       ],
       organizations: [

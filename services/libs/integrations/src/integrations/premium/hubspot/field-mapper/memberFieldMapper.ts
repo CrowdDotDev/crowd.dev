@@ -172,6 +172,7 @@ export class HubspotMemberFieldMapper extends HubspotFieldMapper {
           value: contactProperties.email,
           type: MemberIdentityType.EMAIL,
           sourceId: hubspotContact.id,
+          verified: true,
         },
       ],
       attributes: {
@@ -182,7 +183,6 @@ export class HubspotMemberFieldMapper extends HubspotFieldMapper {
           [PlatformType.HUBSPOT]: `https://app.hubspot.com/contacts/${this.hubspotId}/contact/${hubspotContact.id}`,
         },
       },
-      weakIdentities: [],
     }
 
     // loop through member properties
@@ -207,10 +207,11 @@ export class HubspotMemberFieldMapper extends HubspotFieldMapper {
             const identityPlatform = crowdKey.split('.')[1] || null
 
             if (identityPlatform) {
-              member.weakIdentities.push({
+              member.identities.push({
                 value: contactProperties[hubspotPropertyName],
                 type: MemberIdentityType.USERNAME,
                 platform: identityPlatform,
+                verified: false,
               })
             }
           } else if (crowdKey === 'organizationName') {

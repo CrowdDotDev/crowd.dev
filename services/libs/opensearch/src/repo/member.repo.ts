@@ -394,7 +394,8 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
             json_build_object(
                     'platform', mi.platform,
                     'value', mi.value,
-                    'type', mi.type
+                    'type', mi.type,
+                    'isVerified', mi."isVerified"
                 )
       ) as identities
       from "memberIdentities" mi
@@ -496,7 +497,6 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
     ad."averageSentiment",
 
     coalesce(i.identities, '[]'::json)            as "identities",
-    coalesce(m."weakIdentities", '[]'::jsonb)            as "weakIdentities",
     coalesce(mo.all_organizations, json_build_array()) as organizations,
     coalesce(mt.all_tags, json_build_array())          as tags,
     coalesce(ma.all_affiliations, json_build_array())  as affiliations,

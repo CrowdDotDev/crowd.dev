@@ -13,6 +13,7 @@ export default async (req, res) => {
     platform: body.platform,
     value: body.value ? body.value : body.username,
     type: body.type ? body.type : MemberIdentityType.USERNAME,
+    verified: body.verified !== undefined ? body.verified : true,
     tenantId: body.tenantId,
     integrationId: body.integrationId,
     memberId: body.memberId,

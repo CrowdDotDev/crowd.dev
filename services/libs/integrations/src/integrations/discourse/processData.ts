@@ -29,6 +29,7 @@ const parseUserIntoMember = (user: DiscourseUserResponse, forumHostname: string)
         value: user.user.username,
         type: MemberIdentityType.USERNAME,
         platform: PlatformType.DISCOURSE,
+        verified: true,
       },
     ],
     displayName: user.user.name,

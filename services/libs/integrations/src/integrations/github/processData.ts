@@ -38,6 +38,7 @@ const parseBotMember = (memberData: GithubPrepareMemberOutput): IMemberData => {
         platform: PlatformType.GITHUB,
         value: memberData.memberFromApi.login,
         type: MemberIdentityType.USERNAME,
+        verified: true,
       },
     ],
     displayName: memberData.memberFromApi.login,
@@ -73,17 +74,9 @@ const parseMember = (memberData: GithubPrepareMemberOutput): IMemberData => {
         platform: PlatformType.GITHUB,
         value: memberFromApi.login,
         type: MemberIdentityType.USERNAME,
+        verified: true,
       },
     ],
-    ...(memberFromApi?.twitterUsername && {
-      weakIdentities: [
-        {
-          platform: PlatformType.TWITTER,
-          value: memberFromApi.twitterUsername,
-          type: MemberIdentityType.USERNAME,
-        },
-      ],
-    }),
     displayName: memberFromApi?.name?.trim() || memberFromApi.login,
     attributes: {
       [MemberAttributeName.IS_HIREABLE]: {
@@ -103,6 +96,15 @@ const parseMember = (memberData: GithubPrepareMemberOutput): IMemberData => {
       },
     },
     emails: email ? [email] : [],
+  }
+
+  if (memberFromApi?.twitterUsername) {
+    member.identities.push({
+      platform: PlatformType.TWITTER,
+      value: memberFromApi.twitterUsername,
+      type: MemberIdentityType.USERNAME,
+      verified: false,
+    })
   }
 
   if (memberFromApi.websiteUrl) {
@@ -183,17 +185,9 @@ const parseOrgMember = (memberData: GithubPrepareOrgMemberOutput): IMemberData =
         platform: PlatformType.GITHUB,
         value: orgFromApi.login,
         type: MemberIdentityType.USERNAME,
+        verified: true,
       },
     ],
-    ...(orgFromApi?.twitterUsername && {
-      weakIdentities: [
-        {
-          platform: PlatformType.TWITTER,
-          value: orgFromApi.twitterUsername,
-          type: MemberIdentityType.USERNAME,
-        },
-      ],
-    }),
     displayName: orgFromApi?.name?.trim() || orgFromApi.login,
     attributes: {
       [MemberAttributeName.URL]: {
@@ -210,6 +204,15 @@ const parseOrgMember = (memberData: GithubPrepareOrgMemberOutput): IMemberData =
       },
     },
     emails: orgFromApi.email ? [orgFromApi.email] : [],
+  }
+
+  if (orgFromApi?.twitterUsername) {
+    member.identities.push({
+      platform: PlatformType.TWITTER,
+      value: orgFromApi.twitterUsername,
+      type: MemberIdentityType.USERNAME,
+      verified: false,
+    })
   }
 
   if (orgFromApi.websiteUrl) {
@@ -994,7 +997,7 @@ const parseWebhookPullRequest = async (ctx: IProcessDataContext) => {
       timestamp = payload.pull_request.merged_at
       sourceParentId = payload.pull_request.node_id.toString()
       sourceId = `gen-ME_${payload.pull_request.node_id.toString()}_${
-        payload.pull_request.merged_by?.login || member.identities[0].username
+        payload.pull_request.merged_by?.login || member.identities[0].value
       }_${new Date(payload.pull_request.merged_at).toISOString()}`
       break
     }

@@ -40,24 +40,28 @@ export const calculateSimilarity = (
   }
 
   // find the smallest edit distance between both identity arrays
-  for (const primaryIdentity of primaryMember.nested_identities) {
+  for (const primaryIdentity of primaryMember.nested_identities.filter((i) => i.bool_verified)) {
     // similar organization has a weakIdentity as one of primary organization's strong identity, return score 95
     if (
-      similarMember.nested_weakIdentities &&
-      similarMember.nested_weakIdentities.length > 0 &&
-      similarMember.nested_weakIdentities.some(
+      similarMember.nested_identities &&
+      similarMember.nested_identities.length > 0 &&
+      similarMember.nested_identities.some(
         (weakIdentity) =>
-          weakIdentity.string_username === primaryIdentity.string_username &&
+          weakIdentity.bool_verified === false &&
+          weakIdentity.string_value === primaryIdentity.string_value &&
+          weakIdentity.string_type === primaryIdentity.string_type &&
           weakIdentity.string_platform === primaryIdentity.string_platform,
       )
     ) {
       return 0.95
     }
 
-    for (const secondaryIdentity of similarMember.nested_identities) {
+    for (const secondaryIdentity of similarMember.nested_identities.filter(
+      (i) => i.bool_verified,
+    )) {
       const currentLevenstheinDistance = getLevenshteinDistance(
-        primaryIdentity.string_username,
-        secondaryIdentity.string_username,
+        `${primaryIdentity.string_type}:${primaryIdentity.string_value}`,
+        `${secondaryIdentity.string_type}:${secondaryIdentity.string_value}`,
       )
       if (smallestEditDistance === null || smallestEditDistance > currentLevenstheinDistance) {
         smallestEditDistance = currentLevenstheinDistance
@@ -67,7 +71,7 @@ export const calculateSimilarity = (
   }
 
   // calculate similarity percentage
-  const identityLength = similarPrimaryIdentity.string_username.length
+  const identityLength = similarPrimaryIdentity.string_value.length
 
   if (identityLength < smallestEditDistance) {
     // if levensthein distance is bigger than the word itself, it might be a prefix match, return medium similarity

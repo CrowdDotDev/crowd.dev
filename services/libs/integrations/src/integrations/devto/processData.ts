@@ -19,6 +19,7 @@ const getMember = (comment: IDevToComment): IMemberData => {
         platform: PlatformType.DEVTO,
         value: comment.user.username,
         type: MemberIdentityType.USERNAME,
+        verified: true,
       },
     ],
     attributes: {
@@ -33,13 +34,11 @@ const getMember = (comment: IDevToComment): IMemberData => {
       PlatformType.TWITTER
     ] = `https://twitter.com/${comment.user.twitter_username}`
 
-    if (!member.weakIdentities) {
-      member.weakIdentities = []
-    }
-    member.weakIdentities.push({
+    member.identities.push({
       platform: PlatformType.TWITTER,
       value: comment.user.twitter_username,
       type: MemberIdentityType.USERNAME,
+      verified: false,
     })
   }
 
@@ -51,13 +50,11 @@ const getMember = (comment: IDevToComment): IMemberData => {
       PlatformType.GITHUB
     ] = `https://github.com/${comment.user.github_username}`
 
-    if (!member.weakIdentities) {
-      member.weakIdentities = []
-    }
-    member.weakIdentities.push({
+    member.identities.push({
       platform: PlatformType.GITHUB,
       value: comment.user.github_username,
       type: MemberIdentityType.USERNAME,
+      verified: false,
     })
   }
 

@@ -27,6 +27,7 @@ const processMemberJoin: ProcessDataHandler = async (ctx) => {
         platform: PlatformType.GROUPSIO,
         value: memberData.email,
         type: MemberIdentityType.USERNAME,
+        verified: true,
       },
     ],
   }
@@ -58,6 +59,7 @@ const processMessage: ProcessDataHandler = async (ctx) => {
         platform: PlatformType.GROUPSIO,
         value: memberData.email,
         type: MemberIdentityType.USERNAME,
+        verified: true,
       },
     ],
   }
@@ -94,6 +96,7 @@ const processMemberLeft: ProcessDataHandler = async (ctx) => {
         platform: PlatformType.GROUPSIO,
         value: memberData.email,
         type: MemberIdentityType.USERNAME,
+        verified: true,
       },
     ],
   }

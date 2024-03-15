@@ -27,6 +27,7 @@ async function parsePost(ctx: IProcessDataContext) {
         value: post.user.id,
         type: MemberIdentityType.USERNAME,
         sourceId: post.user.id,
+        verified: true,
       },
     ],
     displayName: post.user.id,

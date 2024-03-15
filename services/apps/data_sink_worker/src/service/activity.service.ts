@@ -411,6 +411,7 @@ export default class ActivityService extends LoggerBase {
               platform,
               value: username,
               type: MemberIdentityType.USERNAME,
+              verified: true,
             },
           ],
         }
@@ -439,6 +440,7 @@ export default class ActivityService extends LoggerBase {
               platform,
               value: objectMemberUsername,
               type: MemberIdentityType.USERNAME,
+              verified: true,
             },
           ],
         }
@@ -581,7 +583,6 @@ export default class ActivityService extends LoggerBase {
                   joinedAt: member.joinedAt
                     ? new Date(member.joinedAt)
                     : new Date(activity.timestamp),
-                  weakIdentities: member.weakIdentities,
                   identities: member.identities,
                   organizations: member.organizations,
                   reach: member.reach,
@@ -620,7 +621,6 @@ export default class ActivityService extends LoggerBase {
                   joinedAt: member.joinedAt
                     ? new Date(member.joinedAt)
                     : new Date(activity.timestamp),
-                  weakIdentities: member.weakIdentities,
                   identities: member.identities,
                   organizations: member.organizations,
                   reach: member.reach,
@@ -694,7 +694,6 @@ export default class ActivityService extends LoggerBase {
                       joinedAt: objectMember.joinedAt
                         ? new Date(objectMember.joinedAt)
                         : new Date(activity.timestamp),
-                      weakIdentities: objectMember.weakIdentities,
                       identities: objectMember.identities,
                       organizations: objectMember.organizations,
                       reach: member.reach,
@@ -733,7 +732,6 @@ export default class ActivityService extends LoggerBase {
                       joinedAt: objectMember.joinedAt
                         ? new Date(objectMember.joinedAt)
                         : new Date(activity.timestamp),
-                      weakIdentities: objectMember.weakIdentities,
                       identities: objectMember.identities,
                       organizations: objectMember.organizations,
                       reach: member.reach,
@@ -810,7 +808,6 @@ export default class ActivityService extends LoggerBase {
                   joinedAt: member.joinedAt
                     ? new Date(member.joinedAt)
                     : new Date(activity.timestamp),
-                  weakIdentities: member.weakIdentities,
                   identities: member.identities,
                   organizations: member.organizations,
                   reach: member.reach,
@@ -835,7 +832,6 @@ export default class ActivityService extends LoggerBase {
                   joinedAt: member.joinedAt
                     ? new Date(member.joinedAt)
                     : new Date(activity.timestamp),
-                  weakIdentities: member.weakIdentities,
                   identities: member.identities,
                   organizations: member.organizations,
                   reach: member.reach,
@@ -871,7 +867,6 @@ export default class ActivityService extends LoggerBase {
                     joinedAt: objectMember.joinedAt
                       ? new Date(objectMember.joinedAt)
                       : new Date(activity.timestamp),
-                    weakIdentities: objectMember.weakIdentities,
                     identities: objectMember.identities,
                     organizations: objectMember.organizations,
                     reach: member.reach,
@@ -896,7 +891,6 @@ export default class ActivityService extends LoggerBase {
                     joinedAt: objectMember.joinedAt
                       ? new Date(objectMember.joinedAt)
                       : new Date(activity.timestamp),
-                    weakIdentities: objectMember.weakIdentities,
                     identities: objectMember.identities,
                     organizations: objectMember.organizations,
                     reach: member.reach,

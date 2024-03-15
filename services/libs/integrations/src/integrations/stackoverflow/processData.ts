@@ -12,6 +12,7 @@ function parseMember(user: StackOverflowUser): IMemberData {
         value: user.display_name,
         type: MemberIdentityType.USERNAME,
         sourceId: user.user_id.toString(),
+        verified: true,
       },
     ],
     attributes: {
@@ -65,6 +66,7 @@ async function parseQuestion(ctx: IProcessDataContext) {
           platform: PlatformType.STACKOVERFLOW,
           value: question.owner.display_name,
           type: MemberIdentityType.USERNAME,
+          verified: true,
         },
       ],
     }
@@ -110,6 +112,7 @@ async function parseAnswer(ctx: IProcessDataContext) {
           platform: PlatformType.STACKOVERFLOW,
           value: answer.owner.display_name,
           type: MemberIdentityType.USERNAME,
+          verified: true,
         },
       ],
     }

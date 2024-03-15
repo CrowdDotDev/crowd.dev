@@ -4,6 +4,7 @@ export interface IDbMemberIdentityData {
   platform: string
   value: string
   type: MemberIdentityType
+  isVerified: boolean
 }
 
 export interface IDbMemberTagData {
@@ -87,7 +88,6 @@ export interface IDbMemberSyncData {
   contributions: IDbMemberContributionData[]
   affiliations: IDbMemberAffiliationData[]
   identities: IDbMemberIdentityData[]
-  weakIdentities: IDbMemberIdentityData[]
   organizations: IDbMemberOrganization[]
   tags: IDbMemberTagData[]
   toMergeIds: string[]

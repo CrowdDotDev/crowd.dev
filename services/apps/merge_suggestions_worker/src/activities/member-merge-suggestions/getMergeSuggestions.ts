@@ -95,12 +95,12 @@ export async function getMergeSuggestions(
 
     // prevent processing more than 200 identities because of opensearch limits
     for (const identity of member.nested_identities.slice(0, 200)) {
-      if (identity.string_username.length > 0) {
+      if (identity.string_value.length > 0) {
         // weak identity search
         identitiesPartialQuery.should[1].nested.query.bool.should.push({
           bool: {
             must: [
-              { match: { [`nested_weakIdentities.keyword_name`]: identity.string_username } },
+              { match: { [`nested_weakIdentities.keyword_name`]: identity.string_value } },
               {
                 match: {
                   [`nested_weakIdentities.string_platform`]: identity.string_platform,
@@ -112,9 +112,9 @@ export async function getMergeSuggestions(
 
         // some identities have https? in the beginning, resulting in false positive suggestions
         // remove these when making fuzzy and wildcard searches
-        const cleanedIdentityName = identity.string_username.replace(/^https?:\/\//, '')
+        const cleanedIdentityName = identity.string_value.replace(/^https?:\/\//, '')
 
-        if (Number.isNaN(Number(identity.string_username))) {
+        if (Number.isNaN(Number(identity.string_value))) {
           hasFuzzySearch = true
           // fuzzy search for identities
           identitiesPartialQuery.should[2].nested.query.bool.should.push({

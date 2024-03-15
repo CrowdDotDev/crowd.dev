@@ -90,14 +90,14 @@ export default class MemberService extends LoggerBase {
         }
 
         // check if any weak identities are actually strong
-        await this.checkForStrongWeakIdentities(txRepo, tenantId, data)
+        // TODO uros fix
+        // await this.checkForStrongWeakIdentities(txRepo, tenantId, data)
 
         const id = await txRepo.create(tenantId, {
           displayName: data.displayName,
           emails: data.emails,
           joinedAt: data.joinedAt.toISOString(),
           attributes,
-          weakIdentities: data.weakIdentities || [],
           identities: data.identities,
           reach: MemberService.calculateReach({}, data.reach),
         })
@@ -234,7 +234,8 @@ export default class MemberService extends LoggerBase {
         }
 
         // check if any weak identities are actually strong
-        await this.checkForStrongWeakIdentities(txRepo, tenantId, data, id)
+        // TODO uros fix
+        // await this.checkForStrongWeakIdentities(txRepo, tenantId, data, id)
 
         const toUpdate = MemberService.mergeData(original, dbIdentities, data)
 
@@ -461,7 +462,6 @@ export default class MemberService extends LoggerBase {
               attributes: member.attributes,
               emails: member.emails || [],
               joinedAt: member.joinedAt ? new Date(member.joinedAt) : undefined,
-              weakIdentities: member.weakIdentities || undefined,
               identities: member.identities,
               organizations: member.organizations,
               displayName: member.displayName || undefined,
@@ -535,7 +535,6 @@ export default class MemberService extends LoggerBase {
               attributes: member.attributes,
               emails: member.emails || [],
               joinedAt: member.joinedAt ? new Date(member.joinedAt) : undefined,
-              weakIdentities: member.weakIdentities || undefined,
               identities: member.identities,
               organizations: member.organizations,
               displayName: member.displayName || undefined,
@@ -554,46 +553,43 @@ export default class MemberService extends LoggerBase {
     }
   }
 
-  private async checkForStrongWeakIdentities(
-    repo: MemberRepository,
-    tenantId: string,
-    data: IMemberCreateData | IMemberUpdateData,
-    memberId?: string,
-  ): Promise<void> {
-    if (data.weakIdentities && data.weakIdentities.length > 0) {
-      const results = await repo.findIdentities(tenantId, data.weakIdentities, memberId)
-
-      const strongIdentities = []
-
-      for (const weakIdentity of data.weakIdentities) {
-        if (!results.has(`${weakIdentity.platform}:${weakIdentity.type}:${weakIdentity.value}`)) {
-          strongIdentities.push(weakIdentity)
-        }
-      }
-
-      if (strongIdentities.length > 0) {
-        data.weakIdentities = data.weakIdentities.filter(
-          (i) =>
-            strongIdentities.find(
-              (s) => s.platform === i.platform && s.value === i.value && s.type === i.type,
-            ) === undefined,
-        )
-
-        for (const identity of strongIdentities) {
-          if (
-            data.identities.find(
-              (i) =>
-                i.platform === identity.platform &&
-                i.value === identity.value &&
-                i.type === identity.type,
-            ) === undefined
-          ) {
-            data.identities.push(identity)
-          }
-        }
-      }
-    }
-  }
+  // private async checkForStrongWeakIdentities(
+  //   repo: MemberRepository,
+  //   tenantId: string,
+  //   data: IMemberCreateData | IMemberUpdateData,
+  //   memberId?: string,
+  // ): Promise<void> {
+  // TODO uros fix
+  // if (data.weakIdentities && data.weakIdentities.length > 0) {
+  //   const results = await repo.findIdentities(tenantId, data.weakIdentities, memberId)
+  //   const strongIdentities = []
+  //   for (const weakIdentity of data.weakIdentities) {
+  //     if (!results.has(`${weakIdentity.platform}:${weakIdentity.type}:${weakIdentity.value}`)) {
+  //       strongIdentities.push(weakIdentity)
+  //     }
+  //   }
+  //   if (strongIdentities.length > 0) {
+  //     data.weakIdentities = data.weakIdentities.filter(
+  //       (i) =>
+  //         strongIdentities.find(
+  //           (s) => s.platform === i.platform && s.value === i.value && s.type === i.type,
+  //         ) === undefined,
+  //     )
+  //     for (const identity of strongIdentities) {
+  //       if (
+  //         data.identities.find(
+  //           (i) =>
+  //             i.platform === identity.platform &&
+  //             i.value === identity.value &&
+  //             i.type === identity.type,
+  //         ) === undefined
+  //       ) {
+  //         data.identities.push(identity)
+  //       }
+  //     }
+  //   }
+  // }
+  // }
 
   private validateEmails(emails: string[]): string[] {
     let newEmails = emails.filter((email) => isEmail(email))
@@ -642,27 +638,7 @@ export default class MemberService extends LoggerBase {
       }
     }
 
-    let weakIdentities: IMemberIdentity[] | undefined
-    if (member.weakIdentities && member.weakIdentities.length > 0) {
-      const newWeakIdentities: IMemberIdentity[] = []
-      for (const identity of member.weakIdentities) {
-        if (
-          !dbMember.weakIdentities.find(
-            (t) =>
-              t.platform === identity.platform &&
-              t.value === identity.value &&
-              t.type === identity.type,
-          )
-        ) {
-          newWeakIdentities.push(identity)
-        }
-      }
-
-      if (newWeakIdentities.length > 0) {
-        weakIdentities = newWeakIdentities
-      }
-    }
-
+    // TODO uros fix
     let identities: IMemberIdentity[] | undefined
     if (member.identities && member.identities.length > 0) {
       const newIdentities: IMemberIdentity[] = []
@@ -704,7 +680,6 @@ export default class MemberService extends LoggerBase {
       emails,
       joinedAt,
       attributes,
-      weakIdentities,
       identities,
       // we don't want to update the display name if it's already set
       // returned value should be undefined here otherwise it will cause an update!

@@ -90,6 +90,7 @@ const getMember = async (
         value: username,
         type: MemberIdentityType.USERNAME,
         sourceId,
+        verified: true,
       },
     ],
     displayName,

@@ -7,7 +7,6 @@ export interface IDbMember {
   emails: string[]
   joinedAt: string
   attributes: Record<string, unknown>
-  weakIdentities: IMemberIdentity[]
   tenantId: string
   reach: Partial<Record<PlatformType | 'total', number>>
 }
@@ -17,17 +16,7 @@ export function getSelectMemberColumnSet(instance: DbInstance): DbColumnSet {
   if (getMemberColumnSet) return getMemberColumnSet
 
   getMemberColumnSet = new instance.helpers.ColumnSet(
-    [
-      'id',
-      'emails',
-      'score',
-      'joinedAt',
-      'reach',
-      'attributes',
-      'weakIdentities',
-      'displayName',
-      'tenantId',
-    ],
+    ['id', 'emails', 'score', 'joinedAt', 'reach', 'attributes', 'displayName', 'tenantId'],
     {
       table: {
         table: 'members',
@@ -43,7 +32,6 @@ export interface IDbMemberCreateData {
   emails: string[]
   joinedAt: string
   attributes: Record<string, unknown>
-  weakIdentities: IMemberIdentity[]
   identities: IMemberIdentity[]
   reach: Partial<Record<PlatformType, number>>
 }
@@ -60,7 +48,6 @@ export function getInsertMemberColumnSet(instance: DbInstance): DbColumnSet {
       'emails',
       'joinedAt',
       'tenantId',
-      'weakIdentities',
       'reach',
       'createdAt',
       'updatedAt',
@@ -79,7 +66,6 @@ export interface IDbMemberUpdateData {
   emails: string[]
   joinedAt: string
   attributes: Record<string, unknown>
-  weakIdentities: IMemberIdentity[]
   identities: IMemberIdentity[]
   displayName: string
   reach: Partial<Record<PlatformType, number>>

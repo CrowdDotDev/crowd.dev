@@ -30,6 +30,7 @@ function parseMember(record: SlackMember): IMemberData {
         value: record.name,
         type: MemberIdentityType.USERNAME,
         sourceId: record.id,
+        verified: true,
       },
     ],
     emails: record.profile.email ? [record.profile.email] : [],

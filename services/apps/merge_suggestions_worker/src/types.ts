@@ -1,3 +1,5 @@
+import { MemberIdentityType } from '@crowd/types'
+
 interface ITermFilter {
   term: {
     uuid_tenantId: string
@@ -41,7 +43,9 @@ export interface IMemberQueryBody {
 
 export interface IMemberIdentityOpensearch {
   string_platform: string
-  string_username: string
+  string_value: string
+  string_type: MemberIdentityType
+  bool_verified: boolean
 }
 
 export interface IMemberPartialAggregatesOpensearch {
@@ -60,7 +64,6 @@ export interface IMemberPartialAggregatesOpensearchRawResult {
 export interface ISimilarMember {
   uuid_memberId: string
   nested_identities: IMemberIdentityOpensearch[]
-  nested_weakIdentities: IMemberIdentityOpensearch[]
   keyword_displayName: string
   string_arr_emails: string[]
   int_activityCount: number

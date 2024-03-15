@@ -4,7 +4,6 @@ export interface IMemberUpdateData {
   attributes?: Record<string, unknown>
   emails?: string[]
   joinedAt?: Date
-  weakIdentities?: IMemberIdentity[]
   identities: IMemberIdentity[]
   organizations?: IOrganization[]
   displayName?: string
@@ -17,7 +16,6 @@ export interface IMemberCreateData {
   displayName: string
   emails: string[]
   joinedAt: Date
-  weakIdentities?: IMemberIdentity[]
   identities: IMemberIdentity[]
   organizations?: IOrganization[]
   reach?: Partial<Record<PlatformType, number>>
