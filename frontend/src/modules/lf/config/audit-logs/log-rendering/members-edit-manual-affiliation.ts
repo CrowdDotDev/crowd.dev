@@ -28,12 +28,15 @@ const membersEditManualAffiliation: LogRenderingConfig = {
     // Check for removals and modifications
     log.oldState.forEach((org) => {
       if (!newStateMap.has(org.organizationId)) {
-        changes.removals.push(`<span>${organizationId}</span>: ${segmentId} (${formatDateRange(dateStart, dateEnd)})`);
+        const {
+          organizationId, dateStart, dateEnd, segmentId,
+        } = org;
+        changes.removals.push(`<span>Organization Id:</span> ${organizationId || 'Individual'} <br><span>Segment Id:</span> ${segmentId}<br> (${formatDateRange(dateStart, dateEnd)})`);
       } else {
         const newOrg = newStateMap.get(org.organizationId);
         if (org.dateStart !== newOrg.dateStart || org.dateEnd !== newOrg.dateEnd || org.segmentId !== newOrg.segmentId) {
           changes.changes.push(
-            `<span>${organizationId}</span>: <s>${org.segmentId} (${formatDateRange(org.dateStart, org.dateEnd)})</s>
+            `<span>${org.organizationId || 'Individual'}</span>: <s>${org.segmentId} (${formatDateRange(org.dateStart, org.dateEnd)})</s>
 ${newOrg.segmentId} (${formatDateRange(newOrg.dateStart, newOrg.dateEnd)})`,
           );
         }
@@ -47,7 +50,7 @@ ${newOrg.segmentId} (${formatDateRange(newOrg.dateStart, newOrg.dateEnd)})`,
           organizationId, dateStart, dateEnd, segmentId,
         } = org;
 
-        changes.additions.push(`<span>${organizationId}</span>: ${segmentId} (${formatDateRange(dateStart, dateEnd)})`);
+        changes.additions.push(`<span>Organization Id:</span> ${organizationId || 'Individual'} <br><span>Segment Id:</span> ${segmentId}<br> (${formatDateRange(dateStart, dateEnd)})`);
       }
     });
 

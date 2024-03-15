@@ -1,4 +1,17 @@
 import { LogRenderingConfig } from '@/modules/lf/config/audit-logs/log-rendering/index';
+import moment from 'moment';
+
+const formatDateRange = (dateStart, dateEnd) => {
+  // eslint-disable-next-line no-nested-ternary
+  const dateStartFormat = dateStart
+    ? moment(dateStart).utc().format('MMMM YYYY')
+    : 'Unknown';
+  // eslint-disable-next-line no-nested-ternary
+  const dateEndFormat = dateEnd
+    ? moment(dateEnd).utc().format('MMMM YYYY')
+    : (dateStart ? 'Present' : 'Unknown');
+  return `${dateStartFormat} -> ${dateEndFormat}`;
+};
 
 const membersEditOrganizations: LogRenderingConfig = {
   label: 'Contributor organizations edited',
@@ -15,15 +28,14 @@ const membersEditOrganizations: LogRenderingConfig = {
     // Check for removals and modifications
     log.oldState.forEach((org) => {
       if (!newStateMap.has(org.organizationId)) {
-        changes.removals.push(`Organization: ${JSON.stringify(org)}`);
+        changes.removals.push(`<span>Organization Id:</span> ${org.organizationId}`);
       } else {
         const newOrg = newStateMap.get(org.organizationId);
         if (org.dateStart !== newOrg.dateStart || org.dateEnd !== newOrg.dateEnd || org.title !== newOrg.title) {
-          changes.changes.push(JSON.stringify({
-            organizationId: org.organizationId,
-            old: { dateStart: org.dateStart, dateEnd: org.dateEnd, title: org.title },
-            new: { dateStart: newOrg.dateStart, dateEnd: newOrg.dateEnd, title: newOrg.title },
-          }));
+          changes.changes.push(`<span>Organization Id:</span> ${org.organizationId}
+            <br><s>${org.title}: ${formatDateRange(org.dateStart, org.dateEnd)}</s>
+            <br>${newOrg.title}: ${formatDateRange(newOrg.dateStart, newOrg.dateEnd)}
+          `)
         }
       }
     });
@@ -31,7 +43,7 @@ const membersEditOrganizations: LogRenderingConfig = {
     // Check for additions
     log.newState.forEach((org) => {
       if (!oldStateMap.has(org.organizationId)) {
-        changes.additions.push(`Organization: ${JSON.stringify(org)}`);
+        changes.additions.push(`<span>Organization Id:</span> ${org.organizationId}`);
       }
     });
 

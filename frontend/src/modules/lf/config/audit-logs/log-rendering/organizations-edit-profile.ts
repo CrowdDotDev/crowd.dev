@@ -14,13 +14,13 @@ const organizationsEditProfile: LogRenderingConfig = {
 
     Object.keys(diff).forEach((key) => {
       const keyName = camelCaseToName(key);
-      if (!!oldState[key] && !newState[key]) {
+      if (!!oldState[key] && !newState[key] && newState[key] !== undefined) {
         const display = typeof oldState[key] === 'object' ? JSON.stringify(oldState[key]) : `${oldState[key]}`;
         removals.push(`<span>${keyName}: </span> ${display}`);
       } else if (!oldState[key] && !!newState[key]) {
         const display = typeof newState[key] === 'object' ? JSON.stringify(newState[key]) : `${newState[key]}`;
         additions.push(`<span>${keyName}: </span>${display}`);
-      } else if (oldState[key] !== newState[key]) {
+      } else if (oldState[key] !== newState[key] && newState[key] !== undefined) {
         const displayOld = typeof oldState[key] === 'object' ? JSON.stringify(oldState[key]) : `${oldState[key]}`;
         const displayNew = typeof newState[key] === 'object' ? JSON.stringify(newState[key]) : `${newState[key]}`;
         changes.push(`<span>${keyName}: </span><s>${displayOld}</s> ${displayNew}`);

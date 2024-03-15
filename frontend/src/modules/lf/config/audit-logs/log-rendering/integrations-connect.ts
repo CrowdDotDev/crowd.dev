@@ -5,14 +5,14 @@ const integrationsConnect: LogRenderingConfig = {
   label: 'Integration connected',
   changes: () => null,
   description: (log) => {
-    const integration = CrowdIntegrations.getConfig(log.oldState?.platform);
+    const integration = CrowdIntegrations.getConfig(log.newState?.platform || log.oldState?.platform);
     if (integration) {
       return `Integration: ${integration.name}`;
     }
     return '';
   },
   properties: (log) => {
-    const integration = CrowdIntegrations.getConfig(log.oldState?.platform);
+    const integration = CrowdIntegrations.getConfig(log.newState?.platform || log.oldState?.platform);
     if (integration) {
       return [{
         label: 'Integration',
