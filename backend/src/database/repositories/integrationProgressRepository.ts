@@ -193,14 +193,13 @@ class IntegrationProgressRepository {
     return result.map((r: any) => r.id)
   }
 
-  static async getIntegrationProgressForTenant(
+  static async getAllIntegrationsInProgressForMultipleSegments(
     tenantId: string,
     options: IRepositoryOptions,
-  ): Promise<any[]> {
+  ): Promise<string[]> {
     const transaction = options.transaction
     const seq = SequelizeRepository.getSequelize(options)
-
-    const segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
+    const segments = SequelizeRepository.getCurrentSegments(options)
 
     const result = await seq.query(
       `
@@ -209,11 +208,12 @@ class IntegrationProgressRepository {
       where 
         "status" = 'in-progress'
         and "tenantId" = :tenantId
+        and "segmentId" in (:segmentIds)
       `,
       {
         replacements: {
           tenantId,
-          segmentId: segment.id,
+          segmentIds: segments.map((s) => s.id),
         },
         type: QueryTypes.SELECT,
         transaction,

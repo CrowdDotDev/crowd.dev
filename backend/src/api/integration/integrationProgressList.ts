@@ -5,7 +5,7 @@ import IntegrationService from '../../services/integrationService'
 export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.integrationRead)
 
-  const payload = await new IntegrationService(req).getIntegrationProgressForSegment()
+  const payload = await new IntegrationService(req).getIntegrationProgressList()
 
   await req.responseHandler.success(req, res, payload)
 }

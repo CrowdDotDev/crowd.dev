@@ -69,6 +69,7 @@ interface IntegrationProgressDataGithub {
   stars: IntegrationProgressDataGithubItem
   issues: IntegrationProgressDataGithubItem
   pullRequests: IntegrationProgressDataGithubItem
+  other: IntegrationProgressDataOtherItem
 }
 
 interface IntegrationProgressDataOtherItem {
@@ -1790,6 +1791,11 @@ export default class IntegrationService {
         return `${entity} are being processed`
       }
 
+      const remainingStreamsCount = await IntegrationProgressRepository.getPendingStreamsCount(
+        integrationId,
+        this.options,
+      )
+
       const progress: IntegrationProgress = {
         type: 'github',
         segmentId: integration.segmentId,
@@ -1824,6 +1830,14 @@ export default class IntegrationService {
             status: calculateStatus(dbStats.stars, remoteStats.stars),
             message: calculateMessage(dbStats.stars, remoteStats.stars, 'stars'),
             percentage: normailzeStats(dbStats.stars, remoteStats.stars),
+          },
+          other: {
+            db: remainingStreamsCount,
+            status: remainingStreamsCount > 0 ? 'in-progress' : 'ok',
+            message:
+              remainingStreamsCount > 0
+                ? `${remainingStreamsCount} data streams are being processed`
+                : 'All data streams are processed',
           },
         },
       }
@@ -1866,13 +1880,24 @@ export default class IntegrationService {
     return progress
   }
 
-  async getIntegrationProgressForSegment(): Promise<IntegrationProgress[]> {
+  async getIntegrationProgressList(): Promise<IntegrationProgress[]> {
     const currentTenant = SequelizeRepository.getCurrentTenant(this.options)
-    const integrationIds =
-      await IntegrationProgressRepository.getAllIntegrationsInProgressForSegment(
-        currentTenant.id,
-        this.options,
-      )
-    return Promise.all(integrationIds.map((id) => this.getIntegrationProgress(id)))
+    const currentSegments = SequelizeRepository.getCurrentSegments(this.options)
+
+    if (currentSegments.length === 1) {
+      const integrationIds =
+        await IntegrationProgressRepository.getAllIntegrationsInProgressForSegment(
+          currentTenant.id,
+          this.options,
+        )
+      return Promise.all(integrationIds.map((id) => this.getIntegrationProgress(id)))
+    } else {
+      const integrationIds =
+        await IntegrationProgressRepository.getAllIntegrationsInProgressForMultipleSegments(
+          currentTenant.id,
+          this.options,
+        )
+      return Promise.all(integrationIds.map((id) => this.getIntegrationProgress(id)))
+    }
   }
 }
