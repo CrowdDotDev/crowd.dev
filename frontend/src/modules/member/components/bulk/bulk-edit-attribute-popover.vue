@@ -31,6 +31,7 @@
                 :input-class="multiSelectClassName"
                 :create-if-not-found="true"
                 :in-memory-filter="false"
+                :options-limit="10"
               >
                 <template v-if="selectedAttribute.name === 'organizations'" #default="{ item }">
                   <div class="flex items-center">
