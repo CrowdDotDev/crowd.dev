@@ -3,7 +3,7 @@ import { svc } from '../main'
 import { triggerRecalculateAffiliationsForEachTenant } from '../workflows/member/triggerRecalculateAffiliationsForEachTenant'
 import { IS_DEV_ENV, IS_TEST_ENV } from '@crowd/common'
 
-export const triggerRecalculateAffiliationsOfNewRolesForEachTenant = async () => {
+export const scheduleRecalculateAffiliationsOfNewRolesForEachTenant = async () => {
   try {
     await svc.temporal.schedule.create({
       scheduleId: 'recalculate-affiliations-of-new-roles-for-each-tenant',
