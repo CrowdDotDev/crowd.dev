@@ -4,7 +4,8 @@ export interface MemberWithIDOnly {
   }
 }
 
-export interface ITenantWithIdOnly {
+export interface IRecalculateAffiliationsForNewRolesInput {
+  offset?: number
   tenant: {
     id: string
   }
