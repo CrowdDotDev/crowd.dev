@@ -2958,9 +2958,10 @@ class MemberRepository {
     }))
   }
 
-  static async addToWeakIdentities(
+  static async addAsUnverifiedIdentity(
     memberIds: string[],
-    username: string,
+    value: string,
+    type: MemberIdentityType,
     platform: string,
     options: IRepositoryOptions,
   ): Promise<void> {
@@ -2971,13 +2972,7 @@ class MemberRepository {
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
     const query = `
-    update members
-    set "weakIdentities" = "weakIdentities" || jsonb_build_object('username', :username, 'platform', :platform)::jsonb
-    where id in (:memberIds)
-      and not exists (select 1
-                      from jsonb_array_elements("weakIdentities") as wi
-                      where wi ->> 'username' = :username
-                        and wi ->> 'platform' = :platform);
+      insert into "memberIdentities"()
     `
 
     await seq.query(query, {

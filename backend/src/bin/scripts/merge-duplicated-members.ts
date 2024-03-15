@@ -143,7 +143,7 @@ async function check(): Promise<number> {
         username: data.username,
       })
       logger.info(
-        'Can not automatically merge - first member in the group by joinedAt will get the identity and the rest will get them as weakIdentities.',
+        'Can not automatically merge - first member in the group by joinedAt will get the identity and the rest will get them as unverified identities.',
       )
 
       const options = { ...dbOptions, log: logger, currentTenant: { id: data.tenantId } }
