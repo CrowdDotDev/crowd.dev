@@ -179,6 +179,7 @@ class IntegrationProgressRepository {
         "status" = 'in-progress'
         and "tenantId" = :tenantId
         and "segmentId" = :segmentId
+        and "deletedAt" is null
       `,
       {
         replacements: {
@@ -209,6 +210,7 @@ class IntegrationProgressRepository {
         "status" = 'in-progress'
         and "tenantId" = :tenantId
         and "segmentId" in (:segmentIds)
+        and "deletedAt" is null
       `,
       {
         replacements: {

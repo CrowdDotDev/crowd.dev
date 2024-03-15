@@ -53,43 +53,9 @@ import SearchSyncService from './searchSyncService'
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import IntegrationProgressRepository from '@/database/repositories/integrationProgressRepository'
 import { RedisCache } from '@crowd/redis'
+import { IntegrationProgress } from '@/serverless/integrations/types/regularTypes'
 
 const discordToken = DISCORD_CONFIG.token || DISCORD_CONFIG.token2
-
-interface IntegrationProgressDataGithubItem {
-  db: number
-  remote: number
-  status: 'ok' | 'in-progress'
-  percentage: number
-  message: string
-}
-
-interface IntegrationProgressDataGithub {
-  forks: IntegrationProgressDataGithubItem
-  stars: IntegrationProgressDataGithubItem
-  issues: IntegrationProgressDataGithubItem
-  pullRequests: IntegrationProgressDataGithubItem
-  other: IntegrationProgressDataOtherItem
-}
-
-interface IntegrationProgressDataOtherItem {
-  db: number
-  message: string
-  status: 'ok' | 'in-progress'
-}
-
-interface IntegrationProgressDataOther {
-  other: IntegrationProgressDataOtherItem
-}
-
-interface IntegrationProgress {
-  type: 'github' | 'other'
-  platform: PlatformType
-  segmentId: string
-  segmentName: string
-  reportStatus: 'calculating' | 'ok' | 'integration-is-not-in-progress'
-  data?: IntegrationProgressDataGithub | IntegrationProgressDataOther
-}
 
 export default class IntegrationService {
   options: IServiceOptions
@@ -1749,29 +1715,89 @@ export default class IntegrationService {
       )
 
       const repos = await getInstalledRepositories(githubToken)
-      const cache = new RedisCache('github-progress', this.options.redis, this.options.log)
+      const cacheRemote = new RedisCache(
+        'github-progress-remote',
+        this.options.redis,
+        this.options.log,
+      )
+      const cacheDb = new RedisCache('github-progress-db', this.options.redis, this.options.log)
 
-      const getCachedStats = async (key: string) => {
+      const getRemoteCachedStats = async (key: string) => {
         let cachedStats
-        cachedStats = await cache.get(key)
+        cachedStats = await cacheRemote.get(key)
         if (!cachedStats) {
           cachedStats = await getGitHubRemoteStats(githubToken, repos)
           // cache for 2 hours
-          await cache.set(key, JSON.stringify(cachedStats), 2 * 60 * 60)
+          await cacheRemote.set(key, JSON.stringify(cachedStats), 2 * 60 * 60)
         } else {
           cachedStats = JSON.parse(cachedStats)
         }
         return cachedStats as GitHubStats
       }
 
+      const getRemoteStatsOrExitEarly = async (
+        key: string,
+        maxSeconds = 1,
+      ): Promise<GitHubStats | undefined> => {
+        const result = await Promise.race([
+          getRemoteCachedStats(key),
+          new Promise((resolve) => setTimeout(() => resolve(-1), maxSeconds * 1000)),
+        ])
+
+        if (result === -1) {
+          return undefined
+        }
+        return result as GitHubStats
+      }
+
+      const getDbCachedStats = async (key: string) => {
+        let cachedStats
+        cachedStats = await cacheDb.get(key)
+        if (!cachedStats) {
+          cachedStats = await IntegrationProgressRepository.getDbStatsForGithub(
+            integration.tenantId,
+            repos,
+            this.options,
+          )
+          // cache for 1 minute
+          await cacheDb.set(key, JSON.stringify(cachedStats), 60)
+        } else {
+          cachedStats = JSON.parse(cachedStats)
+        }
+        return cachedStats as GitHubStats
+      }
+
+      const getDbStatsOrExitEarly = async (
+        key: string,
+        maxSeconds = 1,
+      ): Promise<GitHubStats | undefined> => {
+        const result = await Promise.race([
+          getDbCachedStats(key),
+          new Promise((resolve) => setTimeout(() => resolve(-1), maxSeconds * 1000)),
+        ])
+
+        if (result === -1) {
+          return undefined
+        }
+
+        return result as GitHubStats
+      }
+
       const [remoteStats, dbStats] = await Promise.all([
-        getCachedStats(integrationId),
-        IntegrationProgressRepository.getDbStatsForGithub(
-          integration.tenantId,
-          repos,
-          this.options,
-        ),
+        getRemoteStatsOrExitEarly(integrationId),
+        getDbStatsOrExitEarly(integrationId),
       ])
+
+      // this to prevent too long waiting time
+      if (remoteStats === undefined || dbStats === undefined) {
+        return {
+          type: 'github',
+          segmentId: integration.segmentId,
+          segmentName: segments.find((s) => s.id === integration.segmentId)?.name,
+          platform: integration.platform,
+          reportStatus: 'calculating',
+        }
+      }
 
       const normailzeStats = (db: number, remote: number) => {
         if (remote === 0) return 100
