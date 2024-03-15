@@ -35,7 +35,7 @@ const membersEditOrganizations: LogRenderingConfig = {
           changes.changes.push(`<span>Organization Id:</span> ${org.organizationId}
             <br><s>${org.title}: ${formatDateRange(org.dateStart, org.dateEnd)}</s>
             <br>${newOrg.title}: ${formatDateRange(newOrg.dateStart, newOrg.dateEnd)}
-          `)
+          `);
         }
       }
     });

@@ -15,7 +15,7 @@ const organizationsMerge: LogRenderingConfig = {
     return '';
   },
   properties: (log) => {
-    const organization = log.newState?.displayName || log.oldState?.displayName;;
+    const organization = log.newState?.displayName || log.oldState?.displayName;
     if (organization) {
       return [{
         label: 'Organization',

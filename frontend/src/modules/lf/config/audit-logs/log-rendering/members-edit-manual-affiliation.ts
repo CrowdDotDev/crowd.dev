@@ -34,7 +34,7 @@ const membersEditManualAffiliation: LogRenderingConfig = {
         changes.removals.push(
           `<span>Organization Id:</span> ${organizationId || 'Individual'} 
           <br><span>Segment Id:</span> ${segmentId}
-          <br> (${formatDateRange(dateStart, dateEnd)})`
+          <br> (${formatDateRange(dateStart, dateEnd)})`,
         );
       } else {
         const newOrg = newStateMap.get(org.organizationId);
@@ -57,7 +57,7 @@ const membersEditManualAffiliation: LogRenderingConfig = {
         changes.additions.push(
           `<span>Organization Id:</span> ${organizationId || 'Individual'} 
           <br><span>Segment Id:</span> ${segmentId}
-          <br> (${formatDateRange(dateStart, dateEnd)})`
+          <br> (${formatDateRange(dateStart, dateEnd)})`,
         );
       }
     });

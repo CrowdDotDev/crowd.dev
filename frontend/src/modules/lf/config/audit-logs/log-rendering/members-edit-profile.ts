@@ -7,15 +7,12 @@ function camelCaseToName(camelCase) {
 
 function flattenObject(obj) {
   const flattenedObj = {};
-  for (const key in obj) {
-    if (obj.hasOwnProperty(key)) {
-      for (const nestedKey in obj[key]) {
-        if (obj[key].hasOwnProperty(nestedKey)) {
-          flattenedObj[`${key}${nestedKey.charAt(0).toUpperCase()}${nestedKey.slice(1)}`] = obj[key][nestedKey];
-        }
-      }
-    }
-  }
+  Object.keys(obj).forEach((key) => {
+    Object.keys(obj[key]).forEach((nestedKey) => {
+      const capitalizedNestedKey = nestedKey.charAt(0).toUpperCase() + nestedKey.slice(1);
+      flattenedObj[`${key}${capitalizedNestedKey}`] = obj[key][nestedKey];
+    });
+  });
   return flattenedObj;
 }
 
