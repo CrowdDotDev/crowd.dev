@@ -19,5 +19,7 @@ CREATE INDEX IF NOT EXISTS mv_members_cube_is_team_member ON mv_members_cube ("i
 CREATE INDEX IF NOT EXISTS mv_members_cube_is_organization ON mv_members_cube ("isOrganization");
 CREATE INDEX IF NOT EXISTS mv_members_cube_joined_at ON mv_members_cube ("joinedAt");
 
+-- For `.../activities/query`
+CREATE INDEX IF NOT EXISTS mv_members_cube_id_bot_teammember ON mv_members_cube (id) WHERE (NOT "isBot" AND NOT "isTeamMember");
 
 CREATE UNIQUE INDEX IF NOT EXISTS mv_members_cube_id ON mv_members_cube (id);
