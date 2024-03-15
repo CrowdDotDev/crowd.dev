@@ -68,15 +68,22 @@ export async function getAffiliationsLastCheckedAt(db: DbStore, tenantId: string
   }
 }
 
-export async function getAllMemberIdsPaginated(db: DbStore, limit: number, offset: number) {
+export async function getAllMemberIdsPaginated(
+  db: DbStore,
+  tenantId: string,
+  limit: number,
+  offset: number,
+) {
   try {
     const results: IMemberId[] = await db.connection().any(
       `
       select id from members
+      where "tenantId" = $(tenantId)
       order by id asc
       limit $(limit)
       offset $(offset);`,
       {
+        tenantId,
         limit,
         offset,
       },
@@ -89,6 +96,7 @@ export async function getAllMemberIdsPaginated(db: DbStore, limit: number, offse
 
 export async function getMemberIdsWithRecentRoleChanges(
   db: DbStore,
+  tenantId: string,
   affiliationsLastChecked: string,
   limit: number,
   offset: number,
@@ -96,15 +104,21 @@ export async function getMemberIdsWithRecentRoleChanges(
   try {
     const results: IMemberId[] = await db.connection().any(
       `
-      select distinct "memberId" as id from "memberOrganizations"
-      where "createdAt" > $(affiliationsLastChecked) or 
-            "updatedAt" > $(affiliationsLastChecked) or 
-            "deletedAt" > $(affiliationsLastChecked)
-      order by id asc
+      select distinct mo."memberId" as id from "memberOrganizations" mo
+      join "members" m on mo."memberId" = m."id"
+      where 
+            m."tenantId" = $(tenantId)
+            and (
+            mo."createdAt" > $(affiliationsLastChecked) or 
+            mo."updatedAt" > $(affiliationsLastChecked) or 
+            mo."deletedAt" > $(affiliationsLastChecked)
+            )
+      order by mo."memberId" asc
       limit $(limit)
       offset $(offset);`,
 
       {
+        tenantId,
         affiliationsLastChecked,
         limit,
         offset,

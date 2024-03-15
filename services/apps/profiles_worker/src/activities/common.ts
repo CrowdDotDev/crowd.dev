@@ -13,16 +13,18 @@ export async function getAffiliationsLastCheckedAtOfTenant(tenantId: string): Pr
 }
 
 export async function getMemberIdsForAffiliationUpdates(
+  tenantId: string,
   affiliationsLastChecked: string,
   limit: number,
   offset: number,
 ): Promise<string[]> {
   if (!affiliationsLastChecked) {
-    return getAllMemberIdsPaginated(svc.postgres.writer, limit, offset)
+    return getAllMemberIdsPaginated(svc.postgres.writer, tenantId, limit, offset)
   }
 
   return getMemberIdsWithRecentRoleChanges(
     svc.postgres.writer,
+    tenantId,
     affiliationsLastChecked,
     limit,
     offset,
