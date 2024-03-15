@@ -149,7 +149,6 @@ if (
           await prodDb.sequelize.query(
             `insert into members (
                 "id", 
-                "usernameOld", 
                 "attributes", 
                 "displayName", 
                 "emails", 
@@ -171,7 +170,6 @@ if (
                 "manuallyCreated")
                 VALUES (
                   :id, 
-                  :usernameOld, 
                   :attributes,
                   :displayName,
                   :emails,
@@ -202,9 +200,6 @@ if (
                   deletedMember.enrichedBy && deletedMember.enrichedBy.length > 0
                     ? `{${deletedMember.enrichedBy.join(',')}}`
                     : '{}',
-                usernameOld: deletedMember.usernameOld
-                  ? JSON.stringify(deletedMember.usernameOld)
-                  : null,
                 attributes: deletedMember.attributes
                   ? JSON.stringify(deletedMember.attributes)
                   : null,
