@@ -1,15 +1,9 @@
-import { getServiceChildLogger } from '@crowd/logging'
 import axios, { AxiosResponse } from 'axios'
-import { GITHUB_CONFIG } from '../../../../../conf'
-import { getInstalledRepositories } from './getInstalledRepositories'
-
-const IS_GITHUB_COMMIT_DATA_ENABLED = GITHUB_CONFIG.isCommitDataEnabled === 'true'
-
-const log = getServiceChildLogger('getRemoteStats')
+import { Repos } from '../../../types/regularTypes'
 
 const commitsRegExp = /&page=(\d+)>; rel="last"/
 
-interface Stats {
+export interface GitHubStats {
   stars: number
   forks: number
   totalIssues: number
@@ -28,8 +22,9 @@ const checkHeaders = (response: AxiosResponse<any>, defaultValue = 0): number =>
   return defaultValue
 }
 
-const getStatsForRepo = async (repoUrl: string, token: string): Promise<Stats> => {
+const getStatsForRepo = async (repoUrl: string, token: string): Promise<GitHubStats> => {
   const [owner, repo] = repoUrl.split('/').slice(-2)
+
   const query = `
         query {
         repository(owner: "${owner}", name: "${repo}") {
@@ -45,24 +40,6 @@ const getStatsForRepo = async (repoUrl: string, token: string): Promise<Stats> =
           }
           issuesClosed: issues(states: CLOSED) {
             totalCount
-          }
-          ref(qualifiedName: "refs/heads/main") {
-            target {
-              ... on Commit {
-                history {
-                  totalCount
-                }
-              }
-            }
-          }
-          refMaster: ref(qualifiedName: "refs/heads/master") {
-            target {
-              ... on Commit {
-                history {
-                  totalCount
-                }
-              }
-            }
           }
         }
     }`
@@ -88,19 +65,30 @@ const getStatsForRepo = async (repoUrl: string, token: string): Promise<Stats> =
     },
   )
 
-  return {
-    stars: result.data.data.repository.starCount.totalCount,
-    forks: result.data.data.repository.forkCountDirect.totalCount,
-    totalIssues:
-      result.data.data.repository.issuesOpened.totalCount +
-      result.data.data.repository.issuesClosed.totalCount,
-    totalPRs: checkHeaders(prsAll),
+  let out
+
+  try {
+    out = {
+      stars: result.data.data.repository.starCount.totalCount,
+      forks: result.data.data.repository.forkCountDirect.totalCount,
+      totalIssues:
+        result.data.data.repository.issuesOpened.totalCount +
+        result.data.data.repository.issuesClosed.totalCount,
+      totalPRs: checkHeaders(prsAll),
+    }
+  } catch (e) {
+    console.error('Error fetching stats for repo', repoUrl, e)
+    console.error('Response:', result.data)
+    throw e
   }
+
+  return out
 }
 
-export const getStatsForIntegration = async (installToken: string): Promise<Stats> => {
-  const repos = await getInstalledRepositories(installToken)
-
+export const getGitHubRemoteStats = async (
+  installToken: string,
+  repos: Repos,
+): Promise<GitHubStats> => {
   const stats = {
     stars: 0,
     forks: 0,
@@ -108,13 +96,15 @@ export const getStatsForIntegration = async (installToken: string): Promise<Stat
     totalPRs: 0,
   }
 
-  for (const repo of repos) {
-    const repoStats = await getStatsForRepo(repo.url, installToken)
+  const statsPromises = repos.map((repo) => getStatsForRepo(repo.url, installToken))
+  const allRepoStats = await Promise.all(statsPromises)
+
+  allRepoStats.forEach((repoStats) => {
     stats.stars += repoStats.stars
     stats.forks += repoStats.forks
     stats.totalIssues += repoStats.totalIssues
     stats.totalPRs += repoStats.totalPRs
-  }
+  })
 
   return stats
 }

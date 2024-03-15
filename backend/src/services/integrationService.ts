@@ -25,6 +25,10 @@ import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import IntegrationRepository from '../database/repositories/integrationRepository'
 import track from '../segment/track'
 import { getInstalledRepositories } from '../serverless/integrations/usecases/github/rest/getInstalledRepositories'
+import {
+  GitHubStats,
+  getGitHubRemoteStats,
+} from '../serverless/integrations/usecases/github/rest/getRemoteStats'
 import telemetryTrack from '../segment/telemetryTrack'
 import getToken from '../serverless/integrations/usecases/nango/getToken'
 import { getOrganizations } from '../serverless/integrations/usecases/linkedin/getOrganizations'
@@ -48,6 +52,7 @@ import {
 import SearchSyncService from './searchSyncService'
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import IntegrationProgressRepository from '@/database/repositories/integrationProgressRepository'
+import { RedisCache } from '@crowd/redis'
 
 const discordToken = DISCORD_CONFIG.token || DISCORD_CONFIG.token2
 
@@ -78,7 +83,11 @@ interface IntegrationProgressDataOther {
 
 interface IntegrationProgress {
   type: 'github' | 'other'
-  data: IntegrationProgressDataGithub | IntegrationProgressDataOther
+  platform: PlatformType
+  segmentId: string
+  segmentName: string
+  reportStatus: 'calculating' | 'ok' | 'integration-is-not-in-progress'
+  data?: IntegrationProgressDataGithub | IntegrationProgressDataOther
 }
 
 export default class IntegrationService {
@@ -1719,76 +1728,151 @@ export default class IntegrationService {
   }
 
   async getIntegrationProgress(integrationId: string): Promise<IntegrationProgress> {
-    // For GitHub:
-    // check if state = 'in-progress' - return stats only in this case otherwise throw
-    // on the first request we should get the remote state from GitHub and cache it in Redis (for all repos combined)
-    // get the db state and compare it with the remote state
-    // cache the comparison result in Redis for a short period of time (1 minute)
-    // return the result
-    // For other integrations:
-    // check if state = 'in-progress' - return stats only in this case otherwise throw
-    // return the number of streams remaining in the db (cached in Redis for a short period of time)
-
     const integration = await this.findById(integrationId)
+    const segments = SequelizeRepository.getCurrentSegments(this.options)
 
+    // special case for github
     if (integration.platform === PlatformType.GITHUB) {
+      if (integration.status !== 'in-progress') {
+        return {
+          type: 'github',
+          segmentId: integration.segmentId,
+          segmentName: segments.find((s) => s.id === integration.segmentId)?.name,
+          platform: integration.platform,
+          reportStatus: 'integration-is-not-in-progress',
+        }
+      }
+
       const githubToken = await IntegrationService.getInstallToken(
         integration.integrationIdentifier,
       )
+
+      const repos = await getInstalledRepositories(githubToken)
+      const cache = new RedisCache('github-progress', this.options.redis, this.options.log)
+
+      const getCachedStats = async (key: string) => {
+        let cachedStats
+        cachedStats = await cache.get(key)
+        if (!cachedStats) {
+          cachedStats = await getGitHubRemoteStats(githubToken, repos)
+          // cache for 2 hours
+          await cache.set(key, JSON.stringify(cachedStats), 2 * 60 * 60)
+        } else {
+          cachedStats = JSON.parse(cachedStats)
+        }
+        return cachedStats as GitHubStats
+      }
+
+      const [remoteStats, dbStats] = await Promise.all([
+        getCachedStats(integrationId),
+        IntegrationProgressRepository.getDbStatsForGithub(
+          integration.tenantId,
+          repos,
+          this.options,
+        ),
+      ])
+
+      const normailzeStats = (db: number, remote: number) => {
+        if (remote === 0) return 100
+        return Math.max(Math.min(Math.round((db / remote) * 100), 100), 0)
+      }
+
+      const calculateStatus = (db: number, remote: number) => {
+        if (remote === 0) return 'ok'
+        if (Math.abs(db - remote) / remote <= 0.02) return 'ok'
+        return 'in-progress'
+      }
+
+      const calculateMessage = (db: number, remote: number, entity: string) => {
+        if (remote === 0) return `All ${entity} are processed`
+        if (db >= remote) return `All ${entity} are processed`
+        if (Math.abs(db - remote) / remote <= 0.02) return `All ${entity} are processed`
+        return `${entity} are being processed`
+      }
+
       const progress: IntegrationProgress = {
         type: 'github',
+        segmentId: integration.segmentId,
+        segmentName: segments.find((s) => s.id === integration.segmentId)?.name,
+        platform: integration.platform,
+        reportStatus: 'ok',
         data: {
           forks: {
-            db: 0,
-            remote: 0,
-            status: 'ok',
-            message: 'All forks are processed',
-            percentage: 100,
+            db: dbStats.forks,
+            remote: remoteStats.forks,
+            status: calculateStatus(dbStats.forks, remoteStats.forks),
+            message: calculateMessage(dbStats.forks, remoteStats.forks, 'forks'),
+            percentage: normailzeStats(dbStats.forks, remoteStats.forks),
           },
           pullRequests: {
-            db: 0,
-            remote: 0,
-            status: 'ok',
-            message: 'All pull requests are processed',
-            percentage: 100,
+            db: dbStats.totalPRs,
+            remote: remoteStats.totalPRs,
+            status: calculateStatus(dbStats.totalPRs, remoteStats.totalPRs),
+            message: calculateMessage(dbStats.totalPRs, remoteStats.totalPRs, 'PRs'),
+            percentage: normailzeStats(dbStats.totalPRs, remoteStats.totalPRs),
           },
           issues: {
-            db: 0,
-            remote: 0,
-            status: 'ok',
-            message: 'All issues are processed',
-            percentage: 100,
+            db: dbStats.totalIssues,
+            remote: remoteStats.totalIssues,
+            status: calculateStatus(dbStats.totalIssues, remoteStats.totalIssues),
+            message: calculateMessage(dbStats.totalIssues, remoteStats.totalIssues, 'issues'),
+            percentage: normailzeStats(dbStats.totalIssues, remoteStats.totalIssues),
           },
           stars: {
-            db: 0,
-            remote: 0,
-            status: 'ok',
-            message: 'All stars are processed',
-            percentage: 100,
+            db: dbStats.stars,
+            remote: remoteStats.stars,
+            status: calculateStatus(dbStats.stars, remoteStats.stars),
+            message: calculateMessage(dbStats.stars, remoteStats.stars, 'stars'),
+            percentage: normailzeStats(dbStats.stars, remoteStats.stars),
           },
         },
       }
 
       return progress
     }
+
+    if (integration.status !== 'in-progress') {
+      return {
+        type: 'github',
+        segmentId: integration.segmentId,
+        segmentName: segments.find((s) => s.id === integration.segmentId)?.name,
+        platform: integration.platform,
+        reportStatus: 'integration-is-not-in-progress',
+      }
+    }
+
     const remainingStreamsCount = await IntegrationProgressRepository.getPendingStreamsCount(
       integrationId,
       this.options,
     )
     const progress: IntegrationProgress = {
       type: 'other',
+      platform: integration.platform,
+      reportStatus: 'ok',
+      segmentId: integration.segmentId,
+      segmentName: segments.find((s) => s.id === integration.segmentId)?.name,
       data: {
         other: {
           db: remainingStreamsCount,
           status: remainingStreamsCount > 0 ? 'in-progress' : 'ok',
           message:
             remainingStreamsCount > 0
-              ? `${remainingStreamsCount} are being processed`
-              : 'All streams are processed',
+              ? `${remainingStreamsCount} data streams are being processed`
+              : 'All data streams are processed',
         },
       },
     }
 
     return progress
+  }
+
+  async getIntegrationProgressForSegment(): Promise<IntegrationProgress[]> {
+    const currentTenant = SequelizeRepository.getCurrentTenant(this.options)
+    const integrationIds =
+      await IntegrationProgressRepository.getAllIntegrationsInProgressForSegment(
+        currentTenant.id,
+        this.options,
+      )
+    return Promise.all(integrationIds.map((id) => this.getIntegrationProgress(id)))
   }
 }
