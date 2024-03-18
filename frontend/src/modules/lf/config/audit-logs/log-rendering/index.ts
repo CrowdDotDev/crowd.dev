@@ -16,7 +16,11 @@ export interface LogRenderingConfig {
   label: string;
   description: (log: AuditLog) => string;
   properties?: (log: AuditLog) => {label: string, value: string;}[];
-  changes?: (log: AuditLog) => {
+  changes?: (log: AuditLog) => Promise<{
+    removals: string[]
+    additions: string[]
+    changes: string[]
+  } | null> | {
     removals: string[]
     additions: string[]
     changes: string[]

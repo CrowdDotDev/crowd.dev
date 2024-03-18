@@ -32,27 +32,38 @@
 
 <script setup lang="ts">
 import { AuditLog } from '@/modules/lf/segments/types/AuditLog';
-import { computed } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { logRenderingConfig } from '@/modules/lf/config/audit-logs/log-rendering';
 
 const props = defineProps<{
   log: AuditLog
 }>();
 
-const changes = computed(() => {
-  if (logRenderingConfig[props.log.actionType]?.changes) {
-    return logRenderingConfig[props.log.actionType]?.changes(props.log);
-  }
-  return {
-    removals: [],
-    additions: [],
-    changes: [],
-  };
+const changes = ref<Record<string, any[]> | null>({
+  removals: [],
+  additions: [],
+  changes: [],
 });
+
+const getChanges = async () => {
+  if (logRenderingConfig[props.log.actionType]?.changes) {
+    changes.value = await logRenderingConfig[props.log.actionType]?.changes?.(props.log) || null;
+  } else {
+    changes.value = {
+      removals: [],
+      additions: [],
+      changes: [],
+    };
+  }
+};
 
 const hasChanges = computed(() => {
   const c = changes.value;
   return [...c.removals, ...c.additions, ...c.changes].length > 0;
+});
+
+onMounted(() => {
+  getChanges();
 });
 </script>
 

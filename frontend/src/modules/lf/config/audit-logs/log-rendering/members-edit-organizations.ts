@@ -1,5 +1,6 @@
 import { LogRenderingConfig } from '@/modules/lf/config/audit-logs/log-rendering/index';
 import moment from 'moment';
+import { OrganizationService } from '@/modules/organization/organization-service';
 
 const formatDateRange = (dateStart, dateEnd) => {
   // eslint-disable-next-line no-nested-ternary
@@ -24,6 +25,25 @@ const membersEditOrganizations: LogRenderingConfig = {
 
     const oldStateMap = new Map(log.oldState.map((org) => [org.organizationId, org]));
     const newStateMap = new Map(log.newState.map((org) => [org.organizationId, org]));
+
+    // const orgIds = [
+    //   ...new Set([
+    //     ...log.oldState.map((org) => org.organizationId),
+    //     ...log.newState.map((org) => org.organizationId),
+    //   ]),
+    // ];
+    //
+    // const org = await OrganizationService.query({
+    //   filter: {
+    //     id: {
+    //       in: orgIds,
+    //     }
+    //   },
+    //   countOnly: false,
+    //   limit: orgIds.length,
+    //   offset: 0,
+    // });
+    // console.log(org);
 
     // Check for removals and modifications
     log.oldState.forEach((org) => {

@@ -68,7 +68,7 @@
           {{ props.log.user.email }}
         </p>
         <p class="text-2xs text-gray-500">
-          ID: {{ props.log.user.fullName }}
+          ID: {{ props.log.user.id }}
         </p>
       </div>
     </article>
