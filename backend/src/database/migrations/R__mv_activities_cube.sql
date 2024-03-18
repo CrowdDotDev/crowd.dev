@@ -31,5 +31,7 @@ CREATE INDEX IF NOT EXISTS mv_activities_cube_segment_id ON mv_activities_cube (
 
 CREATE UNIQUE INDEX IF NOT EXISTS mv_activities_cube_id ON mv_activities_cube (id);
 CREATE INDEX IF NOT EXISTS mv_activities_cube_tenantId_timestamp_idx ON mv_activities_cube ("tenantId", "timestamp");
-CREATE INDEX mv_activities_cube_member_id_timestamp ON mv_activities_cube ("memberId", timestamp);
-CREATE INDEX mv_activities_cube_platform_username ON mv_activities_cube ("platform", username);
+CREATE INDEX IF NOT EXISTS mv_activities_cube_member_id_timestamp ON mv_activities_cube ("memberId", timestamp);
+CREATE INDEX IF NOT EXISTS mv_activities_cube_platform_username ON mv_activities_cube ("platform", username);
+
+CREATE INDEX IF NOT EXISTS mv_activities_cube_tenant_segment ON mv_activities_cube ("tenantId", "segmentId");
