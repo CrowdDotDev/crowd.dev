@@ -409,6 +409,7 @@ class ActivityRepository {
       from mv_activities_cube a
       inner join mv_members_cube m on m.id = a."memberId"
       where a."tenantId" = :tenantId
+        and m."tenantId" = :tenantId
       and a."segmentId" in (:segmentIds)
       and ${filterString}
     `
