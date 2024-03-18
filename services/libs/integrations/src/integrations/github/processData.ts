@@ -58,11 +58,48 @@ const parseBotMember = (memberData: GithubPrepareMemberOutput): IMemberData => {
   return member
 }
 
+const parseDeletedMember = (memberData: GithubPrepareMemberOutput): IMemberData => {
+  const member: IMemberData = {
+    identities: [
+      {
+        platform: PlatformType.GITHUB,
+        username: memberData.memberFromApi.login,
+      },
+    ],
+    displayName: 'Deleted User',
+    attributes: {
+      [MemberAttributeName.URL]: {
+        [PlatformType.GITHUB]: memberData.memberFromApi?.url || '',
+      },
+      [MemberAttributeName.AVATAR_URL]: {
+        [PlatformType.GITHUB]: memberData.memberFromApi?.avatarUrl || '',
+      },
+      [MemberAttributeName.IS_DELETED]: {
+        [PlatformType.GITHUB]: true,
+      },
+      [MemberAttributeName.BIO]: {
+        [PlatformType.GITHUB]:
+          "Hi, I'm @ghost! I take the place of user accounts that have been deleted. :ghost:",
+      },
+    },
+  }
+
+  return member
+}
+
 const parseMember = (memberData: GithubPrepareMemberOutput): IMemberData => {
   const { email, orgs, memberFromApi } = memberData
 
+  if (memberFromApi.isBot && memberFromApi.isDeleted) {
+    throw new Error('Member cannot be both bot and deleted')
+  }
+
   if (memberFromApi.isBot) {
     return parseBotMember(memberData)
+  }
+
+  if (memberFromApi.isDeleted) {
+    return parseDeletedMember(memberData)
   }
 
   const member: IMemberData = {
