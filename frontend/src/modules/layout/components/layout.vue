@@ -3,6 +3,7 @@
     <app-menu />
     <el-container v-if="currentTenant" :style="elMainStyle">
       <el-main id="main-page-wrapper" class="relative">
+        <!-- Revert to "showBanner" when last banner is removed -->
         <div
           :class="{
             'pt-14': showBanner,
@@ -137,20 +138,6 @@
                   Upgrade workspace
                 </el-button>
               </router-link>
-            </div>
-          </banner>
-          <banner
-            variant="alert"
-            class="h-16"
-          >
-            <div
-              class="flex items-center justify-center text-sm"
-            >
-              <p>
-                🚧 <b>We're facing performance issues impacting data processing and app responsiveness.</b>
-                Our team is actively working to fix these issues, and we apologize for any inconvenience.
-                For updates, please check <a href="https://status.crowd.dev/" target="_blank" rel="noopener noreferrer">status.crowd.dev</a>.
-              </p>
             </div>
           </banner>
         </div>
