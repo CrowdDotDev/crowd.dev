@@ -2,7 +2,6 @@ import { IMemberIdentity, IOrganization, OrganizationSource, PlatformType } from
 
 export interface IMemberUpdateData {
   attributes?: Record<string, unknown>
-  emails?: string[]
   joinedAt?: Date
   identities: IMemberIdentity[]
   organizations?: IOrganization[]
@@ -14,7 +13,6 @@ export interface IMemberUpdateData {
 export interface IMemberCreateData {
   attributes: Record<string, unknown>
   displayName: string
-  emails: string[]
   joinedAt: Date
   identities: IMemberIdentity[]
   organizations?: IOrganization[]

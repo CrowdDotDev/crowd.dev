@@ -95,7 +95,15 @@ const parseMember = (memberData: GithubPrepareMemberOutput): IMemberData => {
         [PlatformType.GITHUB]: memberFromApi.avatarUrl || '',
       },
     },
-    emails: email ? [email] : [],
+  }
+
+  if (email) {
+    member.identities.push({
+      platform: PlatformType.GITHUB,
+      value: email,
+      type: MemberIdentityType.EMAIL,
+      verified: true,
+    })
   }
 
   if (memberFromApi?.twitterUsername) {
@@ -203,7 +211,15 @@ const parseOrgMember = (memberData: GithubPrepareOrgMemberOutput): IMemberData =
         [PlatformType.GITHUB]: orgFromApi.avatarUrl || '',
       },
     },
-    emails: orgFromApi.email ? [orgFromApi.email] : [],
+  }
+
+  if (orgFromApi.email) {
+    member.identities.push({
+      platform: PlatformType.GITHUB,
+      value: orgFromApi.email,
+      type: MemberIdentityType.EMAIL,
+      verified: true,
+    })
   }
 
   if (orgFromApi?.twitterUsername) {

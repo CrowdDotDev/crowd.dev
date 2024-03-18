@@ -63,6 +63,7 @@ export class MembersOpensearch extends OpensearchModelBase {
     averageSentiment: {
       type: OpensearchFieldType.FLOAT,
     },
+    // TODO uros ask anil
     identities: {
       type: OpensearchFieldType.NESTED,
       customTranslation: {

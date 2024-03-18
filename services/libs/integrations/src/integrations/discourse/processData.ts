@@ -53,7 +53,15 @@ const parseUserIntoMember = (user: DiscourseUserResponse, forumHostname: string)
           `${forumHostname}${user.user.avatar_template.replace('{size}', '200')}` || '',
       },
     },
-    emails: user.user.email ? [user.user.email] : [],
+  }
+
+  if (user.user.email) {
+    member.identities.push({
+      value: user.user.email,
+      type: MemberIdentityType.EMAIL,
+      platform: PlatformType.DISCOURSE,
+      verified: true,
+    })
   }
 
   return member

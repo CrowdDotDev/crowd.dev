@@ -20,13 +20,19 @@ const processMemberJoin: ProcessDataHandler = async (ctx) => {
 
   const member: IMemberData = {
     displayName: memberData.full_name,
-    emails: [memberData.email],
     identities: [
       {
         sourceId: memberData.user_id.toString(),
         platform: PlatformType.GROUPSIO,
         value: memberData.email,
         type: MemberIdentityType.USERNAME,
+        verified: true,
+      },
+      {
+        sourceId: memberData.user_id.toString(),
+        platform: PlatformType.GROUPSIO,
+        value: memberData.email,
+        type: MemberIdentityType.EMAIL,
         verified: true,
       },
     ],
@@ -52,13 +58,19 @@ const processMessage: ProcessDataHandler = async (ctx) => {
 
   const member: IMemberData = {
     displayName: memberData.full_name,
-    emails: [memberData.email],
     identities: [
       {
         sourceId: memberData.user_id.toString(),
         platform: PlatformType.GROUPSIO,
         value: memberData.email,
         type: MemberIdentityType.USERNAME,
+        verified: true,
+      },
+      {
+        sourceId: memberData.user_id.toString(),
+        platform: PlatformType.GROUPSIO,
+        value: memberData.email,
+        type: MemberIdentityType.EMAIL,
         verified: true,
       },
     ],
@@ -89,13 +101,19 @@ const processMemberLeft: ProcessDataHandler = async (ctx) => {
 
   const member: IMemberData = {
     displayName: memberData.full_name,
-    emails: [memberData.email],
     identities: [
       {
         sourceId: memberData.user_id.toString(),
         platform: PlatformType.GROUPSIO,
         value: memberData.email,
         type: MemberIdentityType.USERNAME,
+        verified: true,
+      },
+      {
+        sourceId: memberData.user_id.toString(),
+        platform: PlatformType.GROUPSIO,
+        value: memberData.email,
+        type: MemberIdentityType.EMAIL,
         verified: true,
       },
     ],

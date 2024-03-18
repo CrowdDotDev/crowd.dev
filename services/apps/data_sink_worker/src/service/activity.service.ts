@@ -579,7 +579,6 @@ export default class ActivityService extends LoggerBase {
                 integrationId,
                 {
                   attributes: member.attributes,
-                  emails: member.emails || [],
                   joinedAt: member.joinedAt
                     ? new Date(member.joinedAt)
                     : new Date(activity.timestamp),
@@ -617,7 +616,6 @@ export default class ActivityService extends LoggerBase {
                 integrationId,
                 {
                   attributes: member.attributes,
-                  emails: member.emails || [],
                   joinedAt: member.joinedAt
                     ? new Date(member.joinedAt)
                     : new Date(activity.timestamp),
@@ -690,7 +688,6 @@ export default class ActivityService extends LoggerBase {
                     integrationId,
                     {
                       attributes: objectMember.attributes,
-                      emails: objectMember.emails || [],
                       joinedAt: objectMember.joinedAt
                         ? new Date(objectMember.joinedAt)
                         : new Date(activity.timestamp),
@@ -728,7 +725,6 @@ export default class ActivityService extends LoggerBase {
                     integrationId,
                     {
                       attributes: objectMember.attributes,
-                      emails: objectMember.emails || [],
                       joinedAt: objectMember.joinedAt
                         ? new Date(objectMember.joinedAt)
                         : new Date(activity.timestamp),
@@ -804,7 +800,6 @@ export default class ActivityService extends LoggerBase {
                 integrationId,
                 {
                   attributes: member.attributes,
-                  emails: member.emails || [],
                   joinedAt: member.joinedAt
                     ? new Date(member.joinedAt)
                     : new Date(activity.timestamp),
@@ -828,7 +823,6 @@ export default class ActivityService extends LoggerBase {
                 {
                   displayName: member.displayName || username,
                   attributes: member.attributes,
-                  emails: member.emails || [],
                   joinedAt: member.joinedAt
                     ? new Date(member.joinedAt)
                     : new Date(activity.timestamp),
@@ -863,7 +857,6 @@ export default class ActivityService extends LoggerBase {
                   integrationId,
                   {
                     attributes: objectMember.attributes,
-                    emails: objectMember.emails || [],
                     joinedAt: objectMember.joinedAt
                       ? new Date(objectMember.joinedAt)
                       : new Date(activity.timestamp),
@@ -887,7 +880,6 @@ export default class ActivityService extends LoggerBase {
                   {
                     displayName: objectMember.displayName || username,
                     attributes: objectMember.attributes,
-                    emails: objectMember.emails || [],
                     joinedAt: objectMember.joinedAt
                       ? new Date(objectMember.joinedAt)
                       : new Date(activity.timestamp),

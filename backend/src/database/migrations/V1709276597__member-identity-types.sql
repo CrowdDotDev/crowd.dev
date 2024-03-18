@@ -7,7 +7,7 @@ alter table "memberIdentities"
 
 update "memberIdentities"
 set type = 'username';
-
+ 
 alter table "memberIdentities"
     alter column type set not null;
 

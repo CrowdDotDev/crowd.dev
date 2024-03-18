@@ -68,7 +68,6 @@ export interface IDbMemberSyncData {
   segmentId: string
   displayName: string | null
   attributes: unknown | null
-  emails: string[] | null
   score: number | null
   lastEnriched: string | null
   joinedAt: string

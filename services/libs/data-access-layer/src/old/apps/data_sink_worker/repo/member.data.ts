@@ -4,7 +4,6 @@ import { IMemberIdentity, PlatformType } from '@crowd/types'
 export interface IDbMember {
   id: string
   displayName: string
-  emails: string[]
   joinedAt: string
   attributes: Record<string, unknown>
   tenantId: string
@@ -16,7 +15,7 @@ export function getSelectMemberColumnSet(instance: DbInstance): DbColumnSet {
   if (getMemberColumnSet) return getMemberColumnSet
 
   getMemberColumnSet = new instance.helpers.ColumnSet(
-    ['id', 'emails', 'score', 'joinedAt', 'reach', 'attributes', 'displayName', 'tenantId'],
+    ['id', 'score', 'joinedAt', 'reach', 'attributes', 'displayName', 'tenantId'],
     {
       table: {
         table: 'members',
@@ -29,7 +28,6 @@ export function getSelectMemberColumnSet(instance: DbInstance): DbColumnSet {
 
 export interface IDbMemberCreateData {
   displayName: string
-  emails: string[]
   joinedAt: string
   attributes: Record<string, unknown>
   identities: IMemberIdentity[]
@@ -41,17 +39,7 @@ export function getInsertMemberColumnSet(instance: DbInstance): DbColumnSet {
   if (insertMemberColumnSet) return insertMemberColumnSet
 
   insertMemberColumnSet = new instance.helpers.ColumnSet(
-    [
-      'id',
-      'attributes',
-      'displayName',
-      'emails',
-      'joinedAt',
-      'tenantId',
-      'reach',
-      'createdAt',
-      'updatedAt',
-    ],
+    ['id', 'attributes', 'displayName', 'joinedAt', 'tenantId', 'reach', 'createdAt', 'updatedAt'],
     {
       table: {
         table: 'members',
@@ -63,10 +51,10 @@ export function getInsertMemberColumnSet(instance: DbInstance): DbColumnSet {
 }
 
 export interface IDbMemberUpdateData {
-  emails: string[]
   joinedAt: string
   attributes: Record<string, unknown>
-  identities: IMemberIdentity[]
+  identitiesToCreate: IMemberIdentity[]
+  identitiesToUpdate: IMemberIdentity[]
   displayName: string
   reach: Partial<Record<PlatformType, number>>
 }

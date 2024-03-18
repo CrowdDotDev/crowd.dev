@@ -33,7 +33,6 @@ function parseMember(record: SlackMember): IMemberData {
         verified: true,
       },
     ],
-    emails: record.profile.email ? [record.profile.email] : [],
     attributes: {
       [MemberAttributeName.SOURCE_ID]: {
         [PlatformType.SLACK]: record.id,
@@ -54,6 +53,16 @@ function parseMember(record: SlackMember): IMemberData {
         },
       }),
     },
+  }
+
+  if (record.profile.email) {
+    member.identities.push({
+      platform: PlatformType.SLACK,
+      value: record.profile.email,
+      type: MemberIdentityType.EMAIL,
+      sourceId: record.id,
+      verified: true,
+    })
   }
 
   return member

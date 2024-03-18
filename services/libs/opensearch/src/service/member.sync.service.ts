@@ -572,8 +572,11 @@ export class MemberSyncService {
     p.obj_reach = typeof data.reach === 'object' ? data.reach : { total: data.reach }
 
     p.obj_attributes = p_attributes
-    p.string_arr_emails = data.emails || []
-    p.keyword_emails = data.emails || []
+    const emails = data.identities
+      .filter((i) => i.isVerified && i.type === MemberIdentityType.EMAIL)
+      .map((e) => e.value)
+    p.string_arr_emails = emails
+    p.keyword_emails = emails
     p.int_score = data.score
     p.date_lastEnriched = data.lastEnriched ? new Date(data.lastEnriched).toISOString() : null
     p.date_joinedAt = new Date(data.joinedAt).toISOString()

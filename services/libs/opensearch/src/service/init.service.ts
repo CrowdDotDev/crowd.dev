@@ -162,7 +162,6 @@ export class InitService {
       tenantId: InitService.FAKE_TENANT_ID,
       segmentId: InitService.FAKE_SEGMENT_ID,
       displayName: 'Test Member',
-      emails: ['fake@email.com'],
       score: 10,
       lastEnriched: new Date().toISOString(),
       joinedAt: new Date().toISOString(),
@@ -218,6 +217,12 @@ export class InitService {
           value: 'fakeWeakIdentity',
           type: MemberIdentityType.USERNAME,
           isVerified: false,
+        },
+        {
+          platform: 'github',
+          value: 'test@email.com',
+          type: MemberIdentityType.EMAIL,
+          isVerified: true,
         },
       ],
       organizations: [

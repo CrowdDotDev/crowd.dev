@@ -16,6 +16,7 @@ import { HubspotOrganizationFieldMapper } from './organizationFieldMapper'
 import { serializeArray, serializeDate } from './utils/serialization'
 
 export class HubspotMemberFieldMapper extends HubspotFieldMapper {
+  // TODO uros ask anil
   protected fieldProperties: Record<string, IFieldProperty> = {
     displayName: {
       hubspotType: HubspotPropertyType.STRING,
@@ -165,8 +166,14 @@ export class HubspotMemberFieldMapper extends HubspotFieldMapper {
 
     // staticly defined member fields
     const member: IMemberData = {
-      emails: [contactProperties.email],
       identities: [
+        {
+          platform: PlatformType.HUBSPOT,
+          value: contactProperties.email,
+          type: MemberIdentityType.USERNAME,
+          sourceId: hubspotContact.id,
+          verified: true,
+        },
         {
           platform: PlatformType.HUBSPOT,
           value: contactProperties.email,

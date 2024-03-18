@@ -34,6 +34,7 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
     this.insertMemberSegmentColumnSet = getInsertMemberSegmentColumnSet(this.dbInstance)
   }
 
+  // TODO uros fix
   public async findMemberByEmail(tenantId: string, email: string): Promise<IDbMember | null> {
     return await this.db().oneOrNone(
       `${this.selectMemberQuery}
@@ -171,7 +172,7 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
   public async getIdentities(memberId: string, tenantId: string): Promise<IMemberIdentity[]> {
     return await this.db().any(
       `
-      select "sourceId", platform, value, type from "memberIdentities"
+      select "sourceId", platform, value, type, "isVerified" as verified from "memberIdentities"
       where "memberId" = $(memberId) and "tenantId" = $(tenantId)
     `,
       {
@@ -203,6 +204,33 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
     })
 
     this.checkUpdateRowCount(result.rowCount, identities.length)
+  }
+
+  public async updateIdentities(
+    memberId: string,
+    tenantId: string,
+    identities: IMemberIdentity[],
+  ): Promise<void> {
+    const objects = identities.map((i) => {
+      return {
+        memberId,
+        tenantId,
+        platform: i.platform,
+        value: i.value,
+        type: i.type,
+        verified: i.verified,
+      }
+    })
+
+    const query =
+      this.dbInstance.helpers.update(
+        objects,
+        ['isVerified', '?memberId', '?tenantId', '?platform', '?type', '?value'],
+        'memberIdentities',
+      ) +
+      ' where t."memberId" = v."memberId"::uuid and t."tenantId" = v."tenantId"::uuid and t.platform = v.platform and t.type = v.type and t.value = v.value'
+
+    await this.db().none(query)
   }
 
   public async insertIdentities(
@@ -266,6 +294,7 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
     )
   }
 
+  // TODO uros fix
   public async getMemberIdsAndEmailsAndCount(
     tenantId: string,
     segmentIds: string[],
@@ -320,7 +349,7 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
 
     const members = await this.db().any(
       `
-      SELECT m.id, m.emails
+      SELECT m.id
       FROM "members" m
       JOIN "memberSegments" ms ON ms."memberId" = m.id
       WHERE m."tenantId" = $(tenantId)

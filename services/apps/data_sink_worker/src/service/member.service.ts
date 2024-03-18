@@ -4,14 +4,7 @@ import {
   IDbMemberUpdateData,
 } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.data'
 import MemberRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.repo'
-import {
-  firstArrayContainsSecondArray,
-  isObjectEmpty,
-  singleOrDefault,
-  isDomainExcluded,
-  isEmail,
-  EDITION,
-} from '@crowd/common'
+import { isObjectEmpty, singleOrDefault, isDomainExcluded, isEmail, EDITION } from '@crowd/common'
 import { DbStore } from '@crowd/data-access-layer/src/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import {
@@ -85,17 +78,10 @@ export default class MemberService extends LoggerBase {
         }
 
         // validate emails
-        if (data.emails) {
-          data.emails = this.validateEmails(data.emails)
-        }
-
-        // check if any weak identities are actually strong
-        // TODO uros fix
-        // await this.checkForStrongWeakIdentities(txRepo, tenantId, data)
+        data.identities = this.validateEmails(data.identities)
 
         const id = await txRepo.create(tenantId, {
           displayName: data.displayName,
-          emails: data.emails,
           joinedAt: data.joinedAt.toISOString(),
           attributes,
           identities: data.identities,
@@ -122,12 +108,15 @@ export default class MemberService extends LoggerBase {
           }
         }
 
-        if (data.emails) {
+        const emailIdentities = data.identities.filter(
+          (i) => i.type === MemberIdentityType.EMAIL && i.verified,
+        )
+        if (emailIdentities.length > 0) {
           const orgs = await this.assignOrganizationByEmailDomain(
             tenantId,
             segmentId,
             integrationId,
-            data.emails,
+            emailIdentities.map((i) => i.value),
           )
           if (orgs.length > 0) {
             organizations.push(...orgs)
@@ -229,13 +218,7 @@ export default class MemberService extends LoggerBase {
         }
 
         // validate emails
-        if (data.emails) {
-          data.emails = this.validateEmails(data.emails)
-        }
-
-        // check if any weak identities are actually strong
-        // TODO uros fix
-        // await this.checkForStrongWeakIdentities(txRepo, tenantId, data, id)
+        data.identities = this.validateEmails(data.identities)
 
         const toUpdate = MemberService.mergeData(original, dbIdentities, data)
 
@@ -271,9 +254,13 @@ export default class MemberService extends LoggerBase {
           await txRepo.addToSegment(id, tenantId, segmentId)
         }
 
-        if (toUpdate.identities) {
-          await txRepo.insertIdentities(id, tenantId, integrationId, toUpdate.identities)
+        if (toUpdate.identitiesToCreate) {
+          await txRepo.insertIdentities(id, tenantId, integrationId, toUpdate.identitiesToCreate)
           updated = true
+        }
+
+        if (toUpdate.identitiesToUpdate) {
+          await txRepo.updateIdentities(id, tenantId, toUpdate.identitiesToUpdate)
         }
 
         if (releaseMemberLock) {
@@ -297,12 +284,15 @@ export default class MemberService extends LoggerBase {
           }
         }
 
-        if (data.emails) {
+        const emailIdentities = data.identities.filter(
+          (i) => i.verified && i.type === MemberIdentityType.EMAIL,
+        )
+        if (emailIdentities.length > 0) {
           const orgs = await this.assignOrganizationByEmailDomain(
             tenantId,
             segmentId,
             integrationId,
-            data.emails,
+            emailIdentities.map((i) => i.value),
           )
           if (orgs.length > 0) {
             organizations.push(...orgs)
@@ -396,10 +386,10 @@ export default class MemberService extends LoggerBase {
     try {
       this.log.debug('Processing member enrich.')
 
-      if (
-        (!member.emails || member.emails.length === 0) &&
-        (!member.identities || member.identities.length === 0)
-      ) {
+      const emailIdentities = member.identities.filter(
+        (i) => i.verified && i.type === MemberIdentityType.EMAIL,
+      )
+      if (emailIdentities.length === 0 && (!member.identities || member.identities.length === 0)) {
         const errorMessage = `Member can't be enriched. It is missing both emails and identities fields.`
         this.log.warn(errorMessage)
         return
@@ -432,8 +422,8 @@ export default class MemberService extends LoggerBase {
         )
         let dbMember = await txRepo.findMember(tenantId, segmentId, platform, identity.value)
 
-        if (!dbMember && member.emails && member.emails.length > 0) {
-          const email = member.emails[0]
+        if (!dbMember && emailIdentities.length > 0) {
+          const email = emailIdentities[0].value
 
           // try finding the member using e-mail
           dbMember = await txRepo.findMemberByEmail(tenantId, email)
@@ -460,7 +450,6 @@ export default class MemberService extends LoggerBase {
             integrationId,
             {
               attributes: member.attributes,
-              emails: member.emails || [],
               joinedAt: member.joinedAt ? new Date(member.joinedAt) : undefined,
               identities: member.identities,
               organizations: member.organizations,
@@ -533,7 +522,6 @@ export default class MemberService extends LoggerBase {
             integrationId,
             {
               attributes: member.attributes,
-              emails: member.emails || [],
               joinedAt: member.joinedAt ? new Date(member.joinedAt) : undefined,
               identities: member.identities,
               organizations: member.organizations,
@@ -553,54 +541,29 @@ export default class MemberService extends LoggerBase {
     }
   }
 
-  // private async checkForStrongWeakIdentities(
-  //   repo: MemberRepository,
-  //   tenantId: string,
-  //   data: IMemberCreateData | IMemberUpdateData,
-  //   memberId?: string,
-  // ): Promise<void> {
-  // TODO uros fix
-  // if (data.weakIdentities && data.weakIdentities.length > 0) {
-  //   const results = await repo.findIdentities(tenantId, data.weakIdentities, memberId)
-  //   const strongIdentities = []
-  //   for (const weakIdentity of data.weakIdentities) {
-  //     if (!results.has(`${weakIdentity.platform}:${weakIdentity.type}:${weakIdentity.value}`)) {
-  //       strongIdentities.push(weakIdentity)
-  //     }
-  //   }
-  //   if (strongIdentities.length > 0) {
-  //     data.weakIdentities = data.weakIdentities.filter(
-  //       (i) =>
-  //         strongIdentities.find(
-  //           (s) => s.platform === i.platform && s.value === i.value && s.type === i.type,
-  //         ) === undefined,
-  //     )
-  //     for (const identity of strongIdentities) {
-  //       if (
-  //         data.identities.find(
-  //           (i) =>
-  //             i.platform === identity.platform &&
-  //             i.value === identity.value &&
-  //             i.type === identity.type,
-  //         ) === undefined
-  //       ) {
-  //         data.identities.push(identity)
-  //       }
-  //     }
-  //   }
-  // }
-  // }
+  private validateEmails(identities: IMemberIdentity[]): IMemberIdentity[] {
+    const toReturn: IMemberIdentity[] = []
 
-  private validateEmails(emails: string[]): string[] {
-    let newEmails = emails.filter((email) => isEmail(email))
-    if (newEmails.length > 0) {
-      const emailSet = new Set(newEmails)
-      newEmails = Array.from(emailSet)
-    } else {
-      newEmails = []
+    for (const identity of identities) {
+      if (identity.type === MemberIdentityType.EMAIL) {
+        // check if email is valid and that the same email doesn't already exists in the array for the same platform
+        if (
+          isEmail(identity.value) &&
+          toReturn.find(
+            (i) =>
+              i.type === MemberIdentityType.EMAIL &&
+              i.value === identity.value &&
+              i.platform === identity.platform,
+          ) === undefined
+        ) {
+          toReturn.push(identity)
+        }
+      } else {
+        toReturn.push(identity)
+      }
     }
 
-    return newEmails
+    return toReturn
   }
 
   private static mergeData(
@@ -631,32 +594,31 @@ export default class MemberService extends LoggerBase {
       }
     }
 
-    let emails: string[] | undefined
-    if (member.emails && member.emails.length > 0) {
-      if (!firstArrayContainsSecondArray(dbMember.emails, member.emails)) {
-        emails = [...new Set([...member.emails, ...dbMember.emails])]
-      }
-    }
-
-    // TODO uros fix
-    let identities: IMemberIdentity[] | undefined
+    let identitiesToCreate: IMemberIdentity[] | undefined
+    let identitiesToUpdate: IMemberIdentity[] | undefined
     if (member.identities && member.identities.length > 0) {
       const newIdentities: IMemberIdentity[] = []
+      const toUpdate: IMemberIdentity[] = []
       for (const identity of member.identities) {
-        if (
-          !dbIdentities.find(
-            (t) =>
-              t.platform === identity.platform &&
-              t.value === identity.value &&
-              t.type === identity.type,
-          )
-        ) {
+        const dbIdentity = dbIdentities.find(
+          (t) =>
+            t.platform === identity.platform &&
+            t.value === identity.value &&
+            t.type === identity.type,
+        )
+        if (!dbIdentities) {
           newIdentities.push(identity)
+        } else if (dbIdentity.verified !== identity.verified) {
+          toUpdate.push(identity)
         }
       }
 
       if (newIdentities.length > 0) {
-        identities = newIdentities
+        identitiesToCreate = newIdentities
+      }
+
+      if (toUpdate.length > 0) {
+        identitiesToUpdate = toUpdate
       }
     }
 
@@ -677,10 +639,10 @@ export default class MemberService extends LoggerBase {
     }
 
     return {
-      emails,
       joinedAt,
       attributes,
-      identities,
+      identitiesToCreate,
+      identitiesToUpdate,
       // we don't want to update the display name if it's already set
       // returned value should be undefined here otherwise it will cause an update!
       displayName: dbMember.displayName ? undefined : member.displayName,
