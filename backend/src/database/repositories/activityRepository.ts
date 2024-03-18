@@ -323,8 +323,8 @@ class ActivityRepository {
   }
 
   public static ACTIVITY_QUERY_FILTER_COLUMN_MAP: Map<string, string> = new Map([
-    ['isTeamMember', "coalesce((m.attributes -> 'isTeamMember' -> 'default')::boolean, false)"],
-    ['isBot', "coalesce((m.attributes -> 'isBot' -> 'default')::boolean, false)"],
+    ['isTeamMember', 'm."isTeamMember"'],
+    ['isBot', 'm."isBot"'],
     ['platform', 'a.platform'],
     ['type', 'a.type'],
     ['channel', 'a.channel'],
@@ -407,8 +407,9 @@ class ActivityRepository {
 
     const baseQuery = `
       from mv_activities_cube a
-      inner join members m on m.id = a."memberId"
+      inner join mv_members_cube m on m.id = a."memberId"
       where a."tenantId" = :tenantId
+        and m."tenantId" = :tenantId
       and a."segmentId" in (:segmentIds)
       and ${filterString}
     `
