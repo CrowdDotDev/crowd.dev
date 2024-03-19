@@ -113,6 +113,60 @@ export class MemberService {
     return response.data;
   }
 
+  static async listMembersAutocomplete({
+    query,
+    limit,
+    segments = null,
+  }) {
+    const payload = {
+      filter: {
+        and: [
+          {
+            displayName: {
+              textContains: query,
+            },
+          },
+          {
+            isOrganization: {
+              not: true,
+            },
+          },
+        ],
+      },
+      offset: 0,
+      orderBy: 'displayName_ASC',
+      limit,
+      ...(segments && {
+        segments,
+      }),
+    };
+
+    const tenantId = AuthService.getTenantId();
+
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/member/query`,
+      payload,
+      {
+        headers: {
+          'x-crowd-api-version': '1',
+        },
+      },
+    );
+
+    return response.data.rows
+      .map((m) => ({
+        ...m,
+        id: m.id,
+        label: m.displayName,
+        value: m.id,
+        logo: m.attributes?.avatarUrl?.default || null,
+        organizations: m.organizations?.map((organization) => ({
+          id: organization.id,
+          name: organization.displayName,
+        })) ?? [],
+      }));
+  }
+
   static async listMembers(
     body,
     countOnly = false,
@@ -174,29 +228,6 @@ export class MemberService {
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/member/active`,
-      {
-        params,
-      },
-    );
-
-    return response.data;
-  }
-
-  static async listAutocomplete({
-    query,
-    limit,
-    segments = [],
-  }) {
-    const params = {
-      query,
-      limit,
-      segments,
-    };
-
-    const tenantId = AuthService.getTenantId();
-
-    const response = await authAxios.get(
-      `/tenant/${tenantId}/member/autocomplete`,
       {
         params,
       },

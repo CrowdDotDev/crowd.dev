@@ -61,6 +61,7 @@ export interface IDbMemberSyncData {
   id: string
   tenantId: string
   segmentId: string
+  grandParentSegment: boolean
   displayName: string | null
   attributes: unknown | null
   emails: string[] | null

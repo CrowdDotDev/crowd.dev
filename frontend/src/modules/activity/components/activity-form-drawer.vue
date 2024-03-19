@@ -252,13 +252,11 @@ const rules = {
 const $v = useVuelidate(rules, form);
 
 // Members field
-const searchMembers = ({ query, limit }) => MemberService.listAutocomplete({
+const searchMembers = ({ query, limit }) => MemberService.listMembersAutocomplete({
   query,
   limit,
   segments: [props.subprojectId],
-}).catch(
-  () => [],
-);
+});
 
 // Datetime field
 const CalendarIcon = h(

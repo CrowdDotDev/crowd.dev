@@ -13,13 +13,11 @@ const organizations: MultiSelectAsyncFilterConfig = {
   iconClass: 'ri-community-line',
   type: FilterConfigType.MULTISELECT_ASYNC,
   options: {
-    remoteMethod: (query) => OrganizationService.listAutocomplete(query, 10)
-      .then((data: any[]) => data.map((organization) => ({
-        label: organization.label,
-        value: organization.id,
-        logo: organization.logo,
-      }))),
-    remotePopulateItems: (ids: string[]) => OrganizationService.listAutocomplete({
+    remoteMethod: (query) => OrganizationService.listOrganizationsAutocomplete({
+      query,
+      limit: 10,
+    }),
+    remotePopulateItems: (ids: string[]) => OrganizationService.query({
       filter: {
         and: [
           ...DEFAULT_ORGANIZATION_FILTERS,

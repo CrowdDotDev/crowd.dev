@@ -358,7 +358,13 @@ export class MemberSyncService {
                 undefined,
                 grandParentId,
               )
-              const prepared = MemberSyncService.prefixData(aggregated, attributes)
+              const prepared = MemberSyncService.prefixData(
+                {
+                  ...aggregated,
+                  grandParentSegment: true,
+                },
+                attributes,
+              )
               syncStream.push({
                 id: `${memberId}-${grandParentId}`,
                 body: prepared,
@@ -631,6 +637,7 @@ export class MemberSyncService {
     p.uuid_memberId = data.id
     p.uuid_tenantId = data.tenantId
     p.uuid_segmentId = data.segmentId
+    p.bool_grandParentSegment = data.grandParentSegment ? data.grandParentSegment : false
     p.string_displayName = data.displayName
     p.keyword_displayName = data.displayName
     const p_attributes = {}

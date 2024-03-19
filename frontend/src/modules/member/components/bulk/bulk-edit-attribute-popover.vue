@@ -32,7 +32,7 @@
                 :create-if-not-found="true"
                 :in-memory-filter="false"
               >
-                <template v-if="selectedAttribute.name === 'organizations'" #default="{ item }">
+                <template v-if="selectedAttribute.name === 'organizations'" #option="{ item }">
                   <div class="flex items-center">
                     <app-avatar
                       :entity="{
@@ -261,18 +261,10 @@ const handleDropdownChange = (value) => {
   }
 };
 
-const fetchOrganizationsFn = (query, limit) => OrganizationService.listAutocomplete(query, limit)
-  .then((options) => options.map((o) => ({
-    ...o,
-    displayName: o.label,
-    name: o.label,
-    memberOrganizations: {
-      title: '',
-      dateStart: '',
-      dateEnd: '',
-    },
-  })))
-  .catch(() => []);
+const fetchOrganizationsFn = ({ query, limit }) => OrganizationService.listOrganizationsAutocomplete({
+  query,
+  limit,
+});
 
 const createOrganizationFn = (value) => OrganizationService.create({
   name: value,
