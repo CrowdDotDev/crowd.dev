@@ -1,6 +1,7 @@
 import { LogRenderingConfig } from '@/modules/lf/config/audit-logs/log-rendering/index';
 import moment from 'moment/moment';
 import { OrganizationService } from '@/modules/organization/organization-service';
+import { LfService } from '@/modules/lf/segments/lf-segments-service';
 
 const formatDateRange = (dateStart, dateEnd) => {
   // eslint-disable-next-line no-nested-ternary
@@ -33,11 +34,26 @@ const membersEditManualAffiliation: LogRenderingConfig = {
       ]),
     ];
 
+    const segmentIds = [
+      ...new Set([
+        ...log.oldState.map((org) => org.segmentId),
+        ...log.newState.map((org) => org.segmentId),
+      ]),
+    ];
+
     const orgs = await OrganizationService.listByIds(orgIds);
+    const segments = await LfService.listSegmentsByIds(segmentIds);
+
     const orgById = orgs.reduce((obj, org) => ({
       ...obj,
       [org.id]: org.displayName,
     }), {});
+
+    const segmentById = segments.reduce((obj, org) => ({
+      ...obj,
+      [org.id]: org.name,
+    }), {});
+    console.log(segments, segmentById);
 
     // Check for removals and modifications
     log.oldState.forEach((org) => {
@@ -47,16 +63,16 @@ const membersEditManualAffiliation: LogRenderingConfig = {
         } = org;
         changes.removals.push(
           `<span>Organization:</span> ${organizationId ? (orgById[organizationId]) : 'Individual'} 
-          <br><span>Segment Id:</span> ${segmentId}
+          <br><span>Segment:</span> ${segmentId ? segmentById[segmentId] : 'None'}
           <br> (${formatDateRange(dateStart, dateEnd)})`,
         );
       } else {
         const newOrg = newStateMap.get(org.organizationId);
         if (org.dateStart !== newOrg.dateStart || org.dateEnd !== newOrg.dateEnd || org.segmentId !== newOrg.segmentId) {
           changes.changes.push(
-            `<span>${organizationId ? (orgById[organizationId]) : 'Individual'} </span>: 
-            <br><s>${org.segmentId} (${formatDateRange(org.dateStart, org.dateEnd)})</s>
-            <br>${newOrg.segmentId} (${formatDateRange(newOrg.dateStart, newOrg.dateEnd)})`,
+            `<span>${org.organizationId ? (orgById[org.organizationId]) : 'Individual'} </span>: 
+            <br><s>${org.segmentId ? segmentById[org.segmentId] : 'None'} (${formatDateRange(org.dateStart, org.dateEnd)})</s>
+            <br>${newOrg.segmentId ? segmentById[newOrg.segmentId] : 'None'} (${formatDateRange(newOrg.dateStart, newOrg.dateEnd)})`,
           );
         }
       }
@@ -70,7 +86,7 @@ const membersEditManualAffiliation: LogRenderingConfig = {
         } = org;
         changes.additions.push(
           `<span>Organization:</span> ${organizationId ? (orgById[organizationId]) : 'Individual'}
-          <br><span>Segment Id:</span> ${segmentId}
+          <br><span>Segment:</span> ${segmentId ? segmentById[segmentId] : 'None'}
           <br> (${formatDateRange(dateStart, dateEnd)})`,
         );
       }

@@ -19,6 +19,19 @@ export class LfService {
     return response.data;
   }
 
+  static async listSegmentsByIds(ids) {
+    const tenantId = AuthCurrentTenant.get();
+
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/segment/id`,
+      {
+        ids
+      },
+    );
+
+    return response.data;
+  }
+
   static async updateSegment(id, data) {
     const tenantId = AuthCurrentTenant.get();
 
