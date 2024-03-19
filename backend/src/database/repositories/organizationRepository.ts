@@ -4,6 +4,11 @@ import validator from 'validator'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import { Error400, Error404, Error409, PageData } from '@crowd/common'
 import {
+  addOrgIdentity,
+  cleanUpOrgIdentities,
+  fetchOrgIdentities,
+} from '@crowd/data-access-layer/src/org_identities'
+import {
   FeatureFlag,
   IEnrichableOrganization,
   IMemberRenderFriendlyRole,
@@ -20,6 +25,12 @@ import {
   SyncStatus,
 } from '@crowd/types'
 import Sequelize, { QueryTypes } from 'sequelize'
+import {
+  captureApiChange,
+  organizationCreateAction,
+  organizationEditIdentitiesAction,
+  organizationUpdateAction,
+} from '@crowd/audit-logs'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
@@ -244,64 +255,69 @@ class OrganizationRepository {
     if (!data.displayName) {
       data.displayName = data.identities[0].name
     }
+    const toInsert = {
+      ...lodash.pick(data, [
+        'displayName',
+        'description',
+        'emails',
+        'phoneNumbers',
+        'logo',
+        'tags',
+        'website',
+        'location',
+        'github',
+        'twitter',
+        'linkedin',
+        'crunchbase',
+        'employees',
+        'revenueRange',
+        'importHash',
+        'isTeamOrganization',
+        'employeeCountByCountry',
+        'type',
+        'ticker',
+        'headline',
+        'profiles',
+        'naics',
+        'industry',
+        'founded',
+        'size',
+        'lastEnrichedAt',
+        'manuallyCreated',
+        'affiliatedProfiles',
+        'allSubsidiaries',
+        'alternativeDomains',
+        'alternativeNames',
+        'averageEmployeeTenure',
+        'averageTenureByLevel',
+        'averageTenureByRole',
+        'directSubsidiaries',
+        'employeeChurnRate',
+        'employeeCountByMonth',
+        'employeeGrowthRate',
+        'employeeCountByMonthByLevel',
+        'employeeCountByMonthByRole',
+        'gicsSector',
+        'grossAdditionsByMonth',
+        'grossDeparturesByMonth',
+        'ultimateParent',
+        'immediateParent',
+      ]),
 
-    const record = await options.database.organization.create(
-      {
-        ...lodash.pick(data, [
-          'displayName',
-          'description',
-          'emails',
-          'phoneNumbers',
-          'logo',
-          'tags',
-          'website',
-          'location',
-          'github',
-          'twitter',
-          'linkedin',
-          'crunchbase',
-          'employees',
-          'revenueRange',
-          'importHash',
-          'isTeamOrganization',
-          'employeeCountByCountry',
-          'type',
-          'ticker',
-          'headline',
-          'profiles',
-          'naics',
-          'industry',
-          'founded',
-          'size',
-          'lastEnrichedAt',
-          'manuallyCreated',
-          'affiliatedProfiles',
-          'allSubsidiaries',
-          'alternativeDomains',
-          'alternativeNames',
-          'averageEmployeeTenure',
-          'averageTenureByLevel',
-          'averageTenureByRole',
-          'directSubsidiaries',
-          'employeeChurnRate',
-          'employeeCountByMonth',
-          'employeeGrowthRate',
-          'employeeCountByMonthByLevel',
-          'employeeCountByMonthByRole',
-          'gicsSector',
-          'grossAdditionsByMonth',
-          'grossDeparturesByMonth',
-          'ultimateParent',
-          'immediateParent',
-        ]),
+      tenantId: tenant.id,
+      createdById: currentUser.id,
+      updatedById: currentUser.id,
+    }
 
-        tenantId: tenant.id,
-        createdById: currentUser.id,
-        updatedById: currentUser.id,
-      },
-      {
-        transaction,
-      },
+    const record = await options.database.organization.create(toInsert, {
+      transaction,
+    })
+
+    await captureApiChange(
+      options,
+      organizationCreateAction(record.id, async (captureState) => {
+        captureState(toInsert)
+      }),
     )
 
     await record.setMembers(data.members || [], {
@@ -602,103 +618,112 @@ class OrganizationRepository {
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
-    const record = await options.database.organization.findOne({
-      where: {
-        id,
-        tenantId: currentTenant.id,
-      },
-      transaction,
-    })
+    const record = await captureApiChange(
+      options,
+      organizationUpdateAction(id, async (captureOldState, captureNewState) => {
+        const record = await options.database.organization.findOne({
+          where: {
+            id,
+            tenantId: currentTenant.id,
+          },
+          transaction,
+        })
 
-    if (!record) {
-      throw new Error404()
-    }
+        if (!record) {
+          throw new Error404()
+        }
 
-    // check if website already exists in another organization in the same tenant
-    if (data.website) {
-      const existingOrg = await options.database.organization.findOne({
-        where: {
-          website: data.website,
-          tenantId: currentTenant.id,
-        },
-        transaction,
-      })
+        captureOldState(record.get({ plain: true }))
 
-      // ensure that it's not the same organization
-      if (existingOrg && existingOrg.id !== record.id) {
-        throw new Error409(
-          options.language,
-          'organization.errors.websiteAlreadyExists',
-          existingOrg.id,
-        )
-      }
-    }
+        // check if website already exists in another organization in the same tenant
+        if (data.website) {
+          const existingOrg = await options.database.organization.findOne({
+            where: {
+              website: data.website,
+              tenantId: currentTenant.id,
+            },
+            transaction,
+          })
 
-    // exclude syncRemote attributes, since these are populated from organizationSyncRemote table
-    if (data.attributes?.syncRemote) {
-      delete data.attributes.syncRemote
-    }
-
-    if (manualChange) {
-      const manuallyChangedFields: string[] = record.manuallyChangedFields || []
-
-      for (const column of this.ORGANIZATION_UPDATE_COLUMNS) {
-        let changed = false
-
-        // only check fields that are in the data object that will be updated
-        if (column in data) {
-          if (
-            record[column] !== null &&
-            column in data &&
-            (data[column] === null || data[column] === undefined)
-          ) {
-            // column was removed in the update -> will be set to null by sequelize
-            changed = true
-          } else if (
-            record[column] === null &&
-            data[column] !== null &&
-            data[column] !== undefined
-          ) {
-            // column was null before now it's not anymore
-            changed = true
-          } else if (
-            this.isEqual[column] &&
-            this.isEqual[column](record[column], data[column]) === false
-          ) {
-            // column value has changed
-            changed = true
+          // ensure that it's not the same organization
+          if (existingOrg && existingOrg.id !== record.id) {
+            throw new Error409(
+              options.language,
+              'organization.errors.websiteAlreadyExists',
+              existingOrg.id,
+            )
           }
         }
 
-        if (changed && !manuallyChangedFields.includes(column)) {
-          manuallyChangedFields.push(column)
+        // exclude syncRemote attributes, since these are populated from organizationSyncRemote table
+        if (data.attributes?.syncRemote) {
+          delete data.attributes.syncRemote
         }
-      }
 
-      data.manuallyChangedFields = manuallyChangedFields
-    } else {
-      // ignore columns that were manually changed
-      // by rewriting them with db data
-      const manuallyChangedFields: string[] = record.manuallyChangedFields || []
-      for (const manuallyChangedColumn of manuallyChangedFields) {
-        data[manuallyChangedColumn] = record[manuallyChangedColumn]
-      }
+        if (manualChange) {
+          const manuallyChangedFields: string[] = record.manuallyChangedFields || []
 
-      data.manuallyChangedFields = manuallyChangedFields
-    }
+          for (const column of this.ORGANIZATION_UPDATE_COLUMNS) {
+            let changed = false
 
-    await options.database.organization.update(
-      {
-        ...lodash.pick(data, this.ORGANIZATION_UPDATE_COLUMNS),
-        updatedById: currentUser.id,
-        manuallyChangedFields: data.manuallyChangedFields,
-      },
-      {
-        where: {
-          id: record.id,
-        },
-        transaction,
-      },
+            // only check fields that are in the data object that will be updated
+            if (column in data) {
+              if (
+                record[column] !== null &&
+                column in data &&
+                (data[column] === null || data[column] === undefined)
+              ) {
+                // column was removed in the update -> will be set to null by sequelize
+                changed = true
+              } else if (
+                record[column] === null &&
+                data[column] !== null &&
+                data[column] !== undefined
+              ) {
+                // column was null before now it's not anymore
+                changed = true
+              } else if (
+                this.isEqual[column] &&
+                this.isEqual[column](record[column], data[column]) === false
+              ) {
+                // column value has changed
+                changed = true
+              }
+            }
+
+            if (changed && !manuallyChangedFields.includes(column)) {
+              manuallyChangedFields.push(column)
+            }
+          }
+
+          data.manuallyChangedFields = manuallyChangedFields
+        } else {
+          // ignore columns that were manually changed
+          // by rewriting them with db data
+          const manuallyChangedFields: string[] = record.manuallyChangedFields || []
+          for (const manuallyChangedColumn of manuallyChangedFields) {
+            data[manuallyChangedColumn] = record[manuallyChangedColumn]
+          }
+
+          data.manuallyChangedFields = manuallyChangedFields
+        }
+
+        const updatedData = {
+          ...lodash.pick(data, this.ORGANIZATION_UPDATE_COLUMNS),
+          updatedById: currentUser.id,
+          manuallyChangedFields: data.manuallyChangedFields,
+        }
+        captureNewState(updatedData)
+        await options.database.organization.update(updatedData, {
+          where: {
+            id: record.id,
+          },
+          transaction,
+        })
+
+        return record
+      }),
+      !manualChange, // skip audit log if not a manual change
     )
     if (data.members) {
       await record.setMembers(data.members || [], {
@@ -719,15 +744,43 @@ class OrganizationRepository {
       await OrganizationRepository.includeOrganizationToSegments(record.id, options)
     }
 
-    if (data.identities && data.identities.length > 0) {
-      if (overrideIdentities) {
-        await this.setIdentities(id, data.identities, options)
-      } else {
-        for (const identity of data.identities) {
-          await this.addIdentity(id, identity, options)
+    await captureApiChange(
+      options,
+      organizationEditIdentitiesAction(id, async (captureOldState, captureNewState) => {
+        const qx = SequelizeRepository.getQueryExecutor(options, transaction)
+        const initialIdentities = await fetchOrgIdentities(qx, id)
+
+        function convertIdentitiesForAudit(identities) {
+          return identities.reduce((acc, r) => {
+            if (!acc[r.platform]) {
+              acc[r.platform] = []
+            }
+
+            acc[r.platform].push(r.name)
+            acc[r.platform] = lodash.uniq(acc[r.platform])
+            acc[r.platform] = acc[r.platform].sort()
+
+            return acc
+          }, {})
         }
-      }
-    }
+
+        captureOldState(convertIdentitiesForAudit(initialIdentities))
+
+        if (data.identities && data.identities.length > 0) {
+          if (overrideIdentities) {
+            captureNewState(
+              convertIdentitiesForAudit(
+                data.identities.map((i) => ({ platform: i.platform, name: i.name })),
+              ),
+            )
+            await this.setIdentities(id, data.identities, options)
+          } else {
+            captureNewState(convertIdentitiesForAudit([...initialIdentities, ...data.identities]))
+            await OrganizationRepository.addIdentities(id, data.identities, options)
+          }
+        }
+      }),
+    )
 
     await this._createAuditLog(AuditLogRepository.UPDATE, record, data, options)
 
@@ -824,21 +877,20 @@ class OrganizationRepository {
     options: IRepositoryOptions,
   ): Promise<void> {
     const transaction = SequelizeRepository.getTransaction(options)
-    const sequelize = SequelizeRepository.getSequelize(options)
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
-    await sequelize.query(
-      `delete from "organizationIdentities" where "organizationId" = :organizationId and "tenantId" = :tenantId`,
-      {
-        replacements: {
-          organizationId,
-          tenantId: currentTenant.id,
-        },
-        type: QueryTypes.DELETE,
-        transaction,
-      },
-    )
+    const qx = SequelizeRepository.getQueryExecutor(options, transaction)
 
+    await cleanUpOrgIdentities(qx, { organizationId, tenantId: currentTenant.id })
+
+    await OrganizationRepository.addIdentities(organizationId, identities, options)
+  }
+
+  static async addIdentities(
+    organizationId: string,
+    identities: IOrganizationIdentity[],
+    options: IRepositoryOptions,
+  ) {
     for (const identity of identities) {
       await OrganizationRepository.addIdentity(organizationId, identity, options)
     }
@@ -850,29 +902,18 @@ class OrganizationRepository {
     options: IRepositoryOptions,
   ): Promise<void> {
     const transaction = SequelizeRepository.getTransaction(options)
-    const sequelize = SequelizeRepository.getSequelize(options)
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
-    const query = `
-          insert into 
-              "organizationIdentities"("organizationId", "platform", "name", "url", "sourceId", "tenantId", "integrationId", "createdAt")
-          values 
-              (:organizationId, :platform, :name, :url, :sourceId, :tenantId, :integrationId, now())
-          on conflict do nothing;
-    `
+    const qx = SequelizeRepository.getQueryExecutor(options, transaction)
 
-    await sequelize.query(query, {
-      replacements: {
-        organizationId,
-        platform: identity.platform,
-        sourceId: identity.sourceId || null,
-        url: identity.url || null,
-        tenantId: currentTenant.id,
-        integrationId: identity.integrationId || null,
-        name: identity.name,
-      },
-      type: QueryTypes.INSERT,
-      transaction,
+    await addOrgIdentity(qx, {
+      organizationId,
+      platform: identity.platform,
+      sourceId: identity.sourceId || null,
+      url: identity.url || null,
+      tenantId: currentTenant.id,
+      integrationId: identity.integrationId || null,
+      name: identity.name,
     })
   }
 
@@ -887,7 +928,7 @@ class OrganizationRepository {
     const results = await sequelize.query(
       `
       select "sourceId", "platform", "name", "integrationId", "organizationId" from "organizationIdentities"
-      where "tenantId" = :tenantId and "organizationId" in (:organizationIds) 
+      where "tenantId" = :tenantId and "organizationId" in (:organizationIds)
     `,
       {
         replacements: {
@@ -915,13 +956,13 @@ class OrganizationRepository {
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
     const query = `
-      update "organizationIdentities" 
-      set 
+      update "organizationIdentities"
+      set
         "organizationId" = :newOrganizationId
-      where 
-        "tenantId" = :tenantId and 
-        "organizationId" = :oldOrganizationId and 
-        platform = :platform and 
+      where
+        "tenantId" = :tenantId and
+        "organizationId" = :oldOrganizationId and
+        platform = :platform and
         name = :name;
     `
 
@@ -955,7 +996,7 @@ class OrganizationRepository {
 
     const query = `
     insert into "organizationNoMerge" ("organizationId", "noMergeId", "createdAt", "updatedAt")
-    values 
+    values
     (:organizationId, :noMergeId, now(), now()),
     (:noMergeId, :organizationId, now(), now())
     on conflict do nothing;
@@ -1508,12 +1549,12 @@ class OrganizationRepository {
           AND (ma.id IS NULL OR ma.state = :mergeActionStatus)
           ${organizationFilter}
       ),
-      
+
       count_cte AS (
         SELECT COUNT(DISTINCT hash) AS total_count
         FROM cte
       ),
-      
+
       final_select AS (
         SELECT DISTINCT ON (hash)
           id,
@@ -1523,7 +1564,7 @@ class OrganizationRepository {
         FROM cte
         ORDER BY hash, id
       )
-      
+
       SELECT
         "organizationsToMerge".id,
         "organizationsToMerge"."toMergeId",
@@ -1623,7 +1664,7 @@ class OrganizationRepository {
           "organizationsWithIdentity" as (
               select oi."organizationId"
               from "organizationIdentities" oi
-              where ${identityConditions} 
+              where ${identityConditions}
           ),
           "organizationsWithCounts" as (
             select o.id, count(oi."organizationId") as total_counts
@@ -1696,7 +1737,7 @@ class OrganizationRepository {
           "organizationsWithIdentity" as (
               select oi."organizationId"
               from "organizationIdentities" oi
-              where 
+              where
                     oi.platform = :platform
                     and oi.name = :name
           )
@@ -1772,7 +1813,7 @@ class OrganizationRepository {
     FROM
       organizations o
     WHERE
-      o."tenantId" = :tenantId AND 
+      o."tenantId" = :tenantId AND
       o.website = :domain
       `,
       {
@@ -2954,6 +2995,28 @@ class OrganizationRepository {
           queryLike: `%${query}%`,
           queryExact: query,
           uuid: validator.isUUID(query) ? query : null,
+        },
+        type: QueryTypes.SELECT,
+        raw: true,
+      },
+    )
+
+    return records
+  }
+
+  static async findByIds(ids: string[], options: IRepositoryOptions) {
+    const records = await options.database.sequelize.query(
+      `
+        SELECT
+            o."id",
+            o."displayName",
+            o."logo"
+        FROM "organizations" AS o
+        WHERE o."id" IN (:ids);
+      `,
+      {
+        replacements: {
+          ids,
         },
         type: QueryTypes.SELECT,
         raw: true,

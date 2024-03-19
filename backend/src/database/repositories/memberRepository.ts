@@ -21,6 +21,18 @@ import Sequelize, { QueryTypes } from 'sequelize'
 import { Error400, Error404, dateEqualityChecker } from '@crowd/common'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import { ActivityDisplayService } from '@crowd/integrations'
+import {
+  captureApiChange,
+  memberCreateAction,
+  memberEditOrganizationsAction,
+  memberEditProfileAction,
+} from '@crowd/audit-logs'
+import {
+  createMemberIdentity,
+  deleteMemberIdentities,
+  deleteMemberIdentitiesByCombinations,
+  moveToNewMember,
+} from '@crowd/data-access-layer/src/member_identities'
 import { KUBE_MODE, SERVICE } from '@/conf'
 import { ServiceType } from '../../conf/configTypes'
 import isFeatureEnabled from '../../feature-flags/isFeatureEnabled'
@@ -85,53 +97,50 @@ class MemberRepository {
 
     const transaction = SequelizeRepository.getTransaction(options)
 
-    const record = await options.database.member.create(
-      {
-        ...lodash.pick(data, [
-          'id',
-          'displayName',
-          'attributes',
-          'emails',
-          'lastEnriched',
-          'enrichedBy',
-          'contributions',
-          'score',
-          'reach',
-          'joinedAt',
-          'manuallyCreated',
-          'importHash',
-        ]),
-        tenantId: tenant.id,
-        createdById: currentUser.id,
-        updatedById: currentUser.id,
-      },
-      {
-        transaction,
-      },
+    const toInsert = {
+      ...lodash.pick(data, [
+        'id',
+        'displayName',
+        'attributes',
+        'emails',
+        'lastEnriched',
+        'enrichedBy',
+        'contributions',
+        'score',
+        'reach',
+        'joinedAt',
+        'manuallyCreated',
+        'importHash',
+      ]),
+      tenantId: tenant.id,
+      createdById: currentUser.id,
+      updatedById: currentUser.id,
+    }
+    const record = await options.database.member.create(toInsert, {
+      transaction,
+    })
+
+    await captureApiChange(
+      options,
+      memberCreateAction(record.id, async (captureNewState) => {
+        captureNewState(toInsert)
+      }),
     )
 
     const username: PlatformIdentities = data.username
 
-    const seq = SequelizeRepository.getSequelize(options)
-    const query = `
-      insert into "memberIdentities"("memberId", platform, username, "sourceId", "tenantId", "integrationId")
-      values(:memberId, :platform, :username, :sourceId, :tenantId, :integrationId);
-    `
+    const qx = SequelizeRepository.getQueryExecutor(options, transaction)
 
     for (const platform of Object.keys(username) as PlatformType[]) {
       const identities: any[] = username[platform]
       for (const identity of identities) {
-        await seq.query(query, {
-          replacements: {
-            memberId: record.id,
-            platform,
-            username: identity.username,
-            sourceId: identity.sourceId || null,
-            integrationId: identity.integrationId || null,
-            tenantId: tenant.id,
-          },
-          type: QueryTypes.INSERT,
-          transaction,
+        await createMemberIdentity(qx, {
+          memberId: record.id,
+          platform,
+          username: identity.username,
+          sourceId: identity.sourceId || null,
+          integrationId: identity.integrationId || null,
+          tenantId: tenant.id,
         })
       }
     }
@@ -335,34 +344,18 @@ class MemberRepository {
     options: IRepositoryOptions,
   ): Promise<void> {
     const transaction = SequelizeRepository.getTransaction(options)
-
-    const seq = SequelizeRepository.getSequelize(options)
+    const qx = SequelizeRepository.getQueryExecutor(options, transaction)
 
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
-    const query = `
-      update "memberIdentities" 
-      set 
-        "memberId" = :newMemberId
-      where 
-        "tenantId" = :tenantId and 
-        "memberId" = :oldMemberId and 
-        platform = :platform and 
-        username = :username;
-    `
-
     for (const identity of identitiesToMove) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const [_, count] = await seq.query(query, {
-        replacements: {
-          tenantId: tenant.id,
-          oldMemberId: fromMemberId,
-          newMemberId: toMemberId,
-          platform: identity.platform,
-          username: identity.username,
-        },
-        type: QueryTypes.UPDATE,
-        transaction,
+      const [_, count] = await moveToNewMember(qx, {
+        tenantId: tenant.id,
+        oldMemberId: fromMemberId,
+        newMemberId: toMemberId,
+        platform: identity.platform,
+        username: identity.username,
       })
 
       if (count !== 1) {
@@ -698,101 +691,110 @@ class MemberRepository {
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
-    const record = await options.database.member.findOne({
-      where: {
-        id,
-        tenantId: currentTenant.id,
-      },
-      transaction,
-    })
+    const record = await captureApiChange(
+      options,
+      memberEditProfileAction(id, async (captureOldState, captureNewState) => {
+        const record = await options.database.member.findOne({
+          where: {
+            id,
+            tenantId: currentTenant.id,
+          },
+          transaction,
+        })
 
-    if (!record) {
-      throw new Error404()
-    }
+        captureOldState(record.get({ plain: true }))
 
-    // exclude syncRemote attributes, since these are populated from memberSyncRemote table
-    if (data.attributes?.syncRemote) {
-      delete data.attributes.syncRemote
-    }
-
-    if (manualChange) {
-      const manuallyChangedFields: string[] = record.manuallyChangedFields || []
-
-      for (const column of this.MEMBER_UPDATE_COLUMNS) {
-        let changed = false
-
-        // only check fields that are in the data object that will be updated
-        if (column in data) {
-          if (
-            record[column] !== null &&
-            column in data &&
-            (data[column] === null || data[column] === undefined)
-          ) {
-            // column was removed in the update -> will be set to null by sequelize
-            changed = true
-          } else if (
-            record[column] === null &&
-            data[column] !== null &&
-            data[column] !== undefined
-          ) {
-            // column was null before now it's not anymore
-            changed = true
-          } else if (
-            this.isEqual[column] &&
-            this.isEqual[column](record[column], data[column]) === false
-          ) {
-            // column value has changed
-            changed = true
-          }
+        if (!record) {
+          throw new Error404()
         }
 
-        if (changed && !manuallyChangedFields.includes(column)) {
-          // handle attributes, keep each changed attribute separately
-          if (column === 'attributes') {
-            for (const key of Object.keys(data.attributes)) {
-              if (!record.attributes[key]) {
-                manuallyChangedFields.push(`attributes.${key}`)
-              } else if (
-                !lodash.isEqual(record.attributes[key].default, data.attributes[key].default)
+        // exclude syncRemote attributes, since these are populated from memberSyncRemote table
+        if (data.attributes?.syncRemote) {
+          delete data.attributes.syncRemote
+        }
+
+        if (manualChange) {
+          const manuallyChangedFields: string[] = record.manuallyChangedFields || []
+
+          for (const column of this.MEMBER_UPDATE_COLUMNS) {
+            let changed = false
+
+            // only check fields that are in the data object that will be updated
+            if (column in data) {
+              if (
+                record[column] !== null &&
+                column in data &&
+                (data[column] === null || data[column] === undefined)
               ) {
-                manuallyChangedFields.push(`attributes.${key}`)
+                // column was removed in the update -> will be set to null by sequelize
+                changed = true
+              } else if (
+                record[column] === null &&
+                data[column] !== null &&
+                data[column] !== undefined
+              ) {
+                // column was null before now it's not anymore
+                changed = true
+              } else if (
+                this.isEqual[column] &&
+                this.isEqual[column](record[column], data[column]) === false
+              ) {
+                // column value has changed
+                changed = true
               }
             }
-          } else {
-            manuallyChangedFields.push(column)
+
+            if (changed && !manuallyChangedFields.includes(column)) {
+              // handle attributes, keep each changed attribute separately
+              if (column === 'attributes') {
+                for (const key of Object.keys(data.attributes)) {
+                  if (!record.attributes[key]) {
+                    manuallyChangedFields.push(`attributes.${key}`)
+                  } else if (
+                    !lodash.isEqual(record.attributes[key].default, data.attributes[key].default)
+                  ) {
+                    manuallyChangedFields.push(`attributes.${key}`)
+                  }
+                }
+              } else {
+                manuallyChangedFields.push(column)
+              }
+            }
           }
-        }
-      }
 
-      data.manuallyChangedFields = manuallyChangedFields
-    } else {
-      // ignore columns that were manually changed
-      // by rewriting them with db data
-      const manuallyChangedFields: string[] = record.manuallyChangedFields || []
-      for (const manuallyChangedColumn of manuallyChangedFields) {
-        if (data.attributes && manuallyChangedColumn.startsWith('attributes')) {
-          const attributeKey = manuallyChangedColumn.split('.')[1]
-          data.attributes[attributeKey] = record.attributes[attributeKey]
+          data.manuallyChangedFields = manuallyChangedFields
         } else {
-          data[manuallyChangedColumn] = record[manuallyChangedColumn]
+          // ignore columns that were manually changed
+          // by rewriting them with db data
+          const manuallyChangedFields: string[] = record.manuallyChangedFields || []
+          for (const manuallyChangedColumn of manuallyChangedFields) {
+            if (data.attributes && manuallyChangedColumn.startsWith('attributes')) {
+              const attributeKey = manuallyChangedColumn.split('.')[1]
+              data.attributes[attributeKey] = record.attributes[attributeKey]
+            } else {
+              data[manuallyChangedColumn] = record[manuallyChangedColumn]
+            }
+          }
+
+          data.manuallyChangedFields = manuallyChangedFields
         }
-      }
 
-      data.manuallyChangedFields = manuallyChangedFields
-    }
+        const updatedMember = {
+          ...lodash.pick(data, this.MEMBER_UPDATE_COLUMNS),
+          updatedById: currentUser.id,
+          manuallyChangedFields: data.manuallyChangedFields,
+        }
 
-    await options.database.member.update(
-      {
-        ...lodash.pick(data, this.MEMBER_UPDATE_COLUMNS),
-        updatedById: currentUser.id,
-        manuallyChangedFields: data.manuallyChangedFields,
-      },
-      {
-        where: {
-          id: record.id,
-        },
-        transaction,
-      },
+        await options.database.member.update(captureNewState(updatedMember), {
+          where: {
+            id: record.id,
+          },
+          transaction,
+        })
+
+        return record
+      }),
+      !manualChange, // no need to track for audit if it's not a manual change
     )
 
     if (data.activities) {
@@ -846,31 +848,13 @@ class MemberRepository {
       await MemberRepository.includeMemberToSegments(record.id, options)
     }
 
-    const seq = SequelizeRepository.getSequelize(options)
+    const qx = SequelizeRepository.getQueryExecutor(options, transaction)
 
     if (data.username) {
       data.username = mapUsernameToIdentities(data.username)
 
       const platforms = Object.keys(data.username) as PlatformType[]
       if (platforms.length > 0) {
-        const query = `
-          insert into "memberIdentities"("memberId", platform, username, "sourceId", "tenantId", "integrationId")
-          values (:memberId, :platform, :username, :sourceId, :tenantId, :integrationId);
-          `
-        const deleteQuery = `
-          delete from "memberIdentities"
-          where ("memberId", "tenantId", "platform", "username") in
-                (select mi."memberId", mi."tenantId", mi."platform", mi."username"
-                from "memberIdentities" mi
-                          join (select :memberId::uuid            as memberid,
-                                      :tenantId::uuid            as tenantid,
-                                      unnest(:platforms::text[]) as platform,
-                                      unnest(:usernames::text[]) as username) as combinations
-                              on mi."memberId" = combinations.memberid
-                                  and mi."tenantId" = combinations.tenantid
-                                  and mi."platform" = combinations.platform
-                                  and mi."username" = combinations.username);`
-
         const platformsToDelete: string[] = []
         const usernamesToDelete: string[] = []
 
@@ -882,32 +866,24 @@ class MemberRepository {
               platformsToDelete.push(identity.platform)
               usernamesToDelete.push(identity.username)
             } else if (identity.username && identity.username !== '') {
-              await seq.query(query, {
-                replacements: {
-                  memberId: record.id,
-                  platform,
-                  username: identity.username,
-                  sourceId: identity.sourceId || null,
-                  integrationId: identity.integrationId || null,
-                  tenantId: currentTenant.id,
-                },
-                type: QueryTypes.INSERT,
-                transaction,
+              await createMemberIdentity(qx, {
+                memberId: record.id,
+                platform,
+                username: identity.username,
+                sourceId: identity.sourceId || null,
+                integrationId: identity.integrationId || null,
+                tenantId: currentTenant.id,
               })
             }
           }
         }
 
         if (platformsToDelete.length > 0) {
-          await seq.query(deleteQuery, {
-            replacements: {
-              tenantId: currentTenant.id,
-              memberId: record.id,
-              platforms: `{${platformsToDelete.join(',')}}`,
-              usernames: `{${usernamesToDelete.join(',')}}`,
-            },
-            type: QueryTypes.DELETE,
-            transaction,
+          await deleteMemberIdentitiesByCombinations(qx, {
+            tenantId: currentTenant.id,
+            memberId: record.id,
+            platforms: `{${platformsToDelete.join(',')}}`,
+            usernames: `{${usernamesToDelete.join(',')}}`,
           })
         }
       }
@@ -1100,18 +1076,18 @@ class MemberRepository {
     const seq = SequelizeRepository.getSequelize(options)
 
     const query = `
-      select 
+      select
         msa.id,
-        s.id as "segmentId", 
+        s.id as "segmentId",
         s.slug as "segmentSlug",
         s.name as "segmentName",
-        s."parentName" as "segmentParentName", 
-        o.id as "organizationId", 
+        s."parentName" as "segmentParentName",
+        o.id as "organizationId",
         o."displayName" as "organizationName",
         o.logo as "organizationLogo",
         msa."dateStart" as "dateStart",
         msa."dateEnd" as "dateEnd"
-      from "memberSegmentAffiliations" msa 
+      from "memberSegmentAffiliations" msa
       left join organizations o on o.id = msa."organizationId"
       join segments s on s.id = msa."segmentId"
       where msa."memberId" = :memberId
@@ -3660,51 +3636,61 @@ class MemberRepository {
       return moment(v).toISOString()
     }
 
-    const originalOrgs = await MemberRepository.fetchWorkExperiences(record.id, options)
+    await captureApiChange(
+      options,
+      memberEditOrganizationsAction(record.id, async (captureOldState, captureNewState) => {
+        const originalOrgs = await MemberRepository.fetchWorkExperiences(record.id, options)
 
-    if (replace) {
-      const toDelete = originalOrgs.filter(
-        (originalOrg: any) =>
-          !organizations.find(
-            (newOrg) =>
-              originalOrg.organizationId === newOrg.id &&
-              originalOrg.title === (newOrg.title || null) &&
-              iso(originalOrg.dateStart) === iso(newOrg.startDate || null) &&
-              iso(originalOrg.dateEnd) === iso(newOrg.endDate || null),
-          ),
-      )
+        captureOldState(originalOrgs)
+        const newOrgs = [...originalOrgs]
 
-      for (const item of toDelete) {
-        await MemberRepository.deleteWorkExperience((item as any).id, options)
-      }
-    }
+        if (replace) {
+          const toDelete = originalOrgs.filter(
+            (originalOrg: any) =>
+              !organizations.find(
+                (newOrg) =>
+                  originalOrg.organizationId === newOrg.id &&
+                  originalOrg.title === (newOrg.title || null) &&
+                  iso(originalOrg.dateStart) === iso(newOrg.startDate || null) &&
+                  iso(originalOrg.dateEnd) === iso(newOrg.endDate || null),
+              ),
+          )
 
-    for (const item of organizations) {
-      const org = typeof item === 'string' ? { id: item } : item
+          for (const item of toDelete) {
+            await MemberRepository.deleteWorkExperience((item as any).id, options)
+            ;(item as any).delete = true
+          }
+        }
 
-      // we don't need to touch exactly same existing work experiences
-      if (
-        !originalOrgs.some(
-          (w) =>
-            w.organizationId === item.id &&
-            w.dateStart === (item.startDate || null) &&
-            w.dateEnd === (item.endDate || null),
-        )
-      ) {
-        await MemberRepository.createOrUpdateWorkExperience(
-          {
-            memberId: record.id,
-            organizationId: org.id,
-            title: org.title,
-            dateStart: org.startDate,
-            dateEnd: org.endDate,
-            source: org.source,
-          },
-          options,
-        )
-        await OrganizationRepository.includeOrganizationToSegments(org.id, options)
-      }
-    }
+        for (const item of organizations) {
+          const org = typeof item === 'string' ? { id: item } : item
+
+          // we don't need to touch exactly same existing work experiences
+          if (
+            !originalOrgs.some(
+              (w) =>
+                w.organizationId === item.id &&
+                w.dateStart === (item.startDate || null) &&
+                w.dateEnd === (item.endDate || null),
+            )
+          ) {
+            const newOrg = {
+              memberId: record.id,
+              organizationId: org.id,
+              title: org.title,
+              dateStart: org.startDate,
+              dateEnd: org.endDate,
+              source: org.source,
+            }
+            await MemberRepository.createOrUpdateWorkExperience(newOrg, options)
+            await OrganizationRepository.includeOrganizationToSegments(org.id, options)
+            newOrgs.push(newOrg)
+          }
+        }
+
+        captureNewState(newOrgs)
+      }),
+    )
   }
 
   static async createOrUpdateWorkExperience(
@@ -4044,10 +4030,10 @@ class MemberRepository {
     const members = await seq.query(
       `SELECT m.id FROM members m
       JOIN "memberSegments" ms ON ms."memberId" = m.id
-      WHERE m."tenantId" = :tenantId and ms."segmentId" in (:segmentIds) 
+      WHERE m."tenantId" = :tenantId and ms."segmentId" in (:segmentIds)
       AND (m."lastEnriched" IS NULL OR date_part('month', age(now(), m."lastEnriched")) >= 6)
       AND m."deletedAt" is NULL
-      ORDER BY ${orderByString} 
+      ORDER BY ${orderByString}
       LIMIT :limit OFFSET :offset`,
       {
         replacements: params,
@@ -4077,7 +4063,7 @@ class MemberRepository {
 
     const deleteQuery = `
       delete from "memberNotes" using "memberNotes" as mn2
-      where "memberNotes"."memberId" = :fromMemberId 
+      where "memberNotes"."memberId" = :fromMemberId
       and "memberNotes"."noteId" = mn2."noteId"
       and mn2."memberId" = :toMemberId;
     `
@@ -4115,7 +4101,7 @@ class MemberRepository {
 
     const deleteQuery = `
       delete from "memberTasks" using "memberTasks" as mt2
-      where "memberTasks"."memberId" = :fromMemberId 
+      where "memberTasks"."memberId" = :fromMemberId
       and "memberTasks"."taskId" = mt2."taskId"
       and mt2."memberId" = :toMemberId;
     `
@@ -4345,21 +4331,13 @@ class MemberRepository {
   ): Promise<void> {
     const transaction = SequelizeRepository.getTransaction(options)
 
-    const seq = SequelizeRepository.getSequelize(options)
-
-    const query = `
-      delete from "memberIdentities" where "memberId" = :memberId and platform = :platform and username = :username;
-    `
+    const qx = SequelizeRepository.getQueryExecutor(options, transaction)
 
     for (const identity of identities) {
-      await seq.query(query, {
-        replacements: {
-          memberId,
-          username: identity.username,
-          platform: identity.platform,
-        },
-        type: QueryTypes.DELETE,
-        transaction,
+      await deleteMemberIdentities(qx, {
+        memberId,
+        username: identity.username,
+        platform: identity.platform,
       })
     }
   }

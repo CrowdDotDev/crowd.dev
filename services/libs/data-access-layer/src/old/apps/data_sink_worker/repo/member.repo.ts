@@ -12,6 +12,11 @@ import {
 } from './member.data'
 import { IMemberIdentity, SyncStatus } from '@crowd/types'
 import { generateUUIDv1 } from '@crowd/common'
+import {
+  deleteManyMemberIdentities,
+  insertManyMemberIdentities,
+} from '../../../../member_identities'
+import { PgPromiseQueryExecutor } from '../../../../queryExecutor'
 
 export default class MemberRepository extends RepositoryBase<MemberRepository> {
   private readonly insertMemberColumnSet: DbColumnSet
@@ -193,20 +198,10 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
     tenantId: string,
     identities: IMemberIdentity[],
   ): Promise<void> {
-    const formattedIdentities = identities
-      .map((i) => `('${i.platform}', '${i.username}')`)
-      .join(', ')
-
-    const query = `delete from "memberIdentities"
-      where "memberId" = $(memberId) and
-      "tenantId" = $(tenantId) and
-      ("platform", "username") in (${formattedIdentities});
-    `
-
-    const result = await this.db().result(query, {
+    const result = await deleteManyMemberIdentities(new PgPromiseQueryExecutor(this.db()), {
       memberId,
       tenantId,
-      formattedIdentities,
+      identities,
     })
 
     this.checkUpdateRowCount(result.rowCount, identities.length)
@@ -229,12 +224,7 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
       }
     })
 
-    const preparedObjects = RepositoryBase.prepareBatch(objects, this.insertMemberIdentityColumnSet)
-    const query = this.dbInstance.helpers.insert(
-      preparedObjects,
-      this.insertMemberIdentityColumnSet,
-    )
-    await this.db().none(query)
+    await insertManyMemberIdentities(new PgPromiseQueryExecutor(this.db()), objects)
   }
 
   public async addToSegment(memberId: string, tenantId: string, segmentId: string): Promise<void> {
