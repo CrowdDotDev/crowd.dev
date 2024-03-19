@@ -636,18 +636,18 @@ while test $# -gt 0; do
         DEV=1
         exit
         ;;
-    service-reset)
+    service-restart)
         kill_all_containers
         service_start
         exit
         ;;
-    service-reset-be)
+    service-restart-be)
         declare -a INGORED_SERVICES=("frontend")
         kill_all_containers
         service_start
         exit
         ;;
-    service-reset-DEV)
+    service-reset-dev)
         DEV=1
         kill_all_containers
         service_start
