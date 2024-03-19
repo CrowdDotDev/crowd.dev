@@ -1205,6 +1205,10 @@ export default class OrganizationService extends LoggerBase {
     return OrganizationRepository.findAndCountAll(args, this.options)
   }
 
+  async findByIds(ids: string[]) {
+    return OrganizationRepository.findByIds(ids, this.options)
+  }
+
   async findAndCountActive(
     filters: IActiveOrganizationFilter,
     offset: number,

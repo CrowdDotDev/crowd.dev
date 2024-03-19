@@ -3004,6 +3004,28 @@ class OrganizationRepository {
     return records
   }
 
+  static async findByIds(ids: string[], options: IRepositoryOptions) {
+    const records = await options.database.sequelize.query(
+      `
+        SELECT
+            o."id",
+            o."displayName",
+            o."logo"
+        FROM "organizations" AS o
+        WHERE o."id" IN (:ids);
+      `,
+      {
+        replacements: {
+          ids,
+        },
+        type: QueryTypes.SELECT,
+        raw: true,
+      },
+    )
+
+    return records
+  }
+
   static async _createAuditLog(action, record, data, options: IRepositoryOptions) {
     let values = {}
 
