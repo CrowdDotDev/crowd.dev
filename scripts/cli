@@ -647,7 +647,7 @@ while test $# -gt 0; do
         service_start
         exit
         ;;
-    service-reset-dev)
+    service-restart-dev)
         DEV=1
         kill_all_containers
         service_start
