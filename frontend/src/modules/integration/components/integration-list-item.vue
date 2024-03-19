@@ -34,8 +34,8 @@
             <i class="ri-link" /> Connect
           </cr-button>
         </div>
-        <div v-else-if="isInProgress" class="bg-gray-50 py-3 px-5 min-h-14">
-          <app-integration-progress-bar :integration="integration" />
+        <div v-else-if="isInProgress && selectedProgress" class="bg-gray-50 py-3 px-5 min-h-14">
+          <app-integration-progress-bar :progress="selectedProgress" />
         </div>
         <div v-else class="bg-gray-50 py-3 px-5 min-h-14 flex items-center justify-between">
           <div>
@@ -88,6 +88,10 @@ const props = defineProps({
     type: Object,
     default: () => {},
   },
+  progress: {
+    type: Object,
+    default: () => {},
+  },
 });
 
 onMounted(() => {
@@ -108,6 +112,8 @@ onMounted(() => {
 const computedClass = computed(() => ({
   'integration-custom': props.integration.platform === 'custom',
 }));
+
+const selectedProgress = computed(() => (props.progress || []).find((p) => p.type === props.integration.platform));
 
 const isDone = computed(
   () => props.integration.status === 'done'

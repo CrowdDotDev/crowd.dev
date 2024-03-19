@@ -1,8 +1,8 @@
 <template>
-  <div>
+  <div v-if="props.progress">
     <div v-if="!props.barOnly" class="flex justify-between items-center mb-1.5">
       <p class="text-2xs text-gray-500 leading-4">
-        100 out of 1,000 data streams processed...
+        {{ inProgress?.message }}...
       </p>
       <el-popover :width="280" placement="top-end">
         <template #reference>
@@ -10,27 +10,34 @@
             <i class="ri-question-line text-lg text-gray-400 flex items-center h-5" />
           </div>
         </template>
-        <app-integration-progress :integration="props.integration" />
+        <app-integration-progress :progress="props.progress" />
       </el-popover>
     </div>
-    <div class="rounded-md h-1 bg-gray-200">
-      <div class="rounded-md h-1 bg-brand-800" style="width: 40%" />
+    <div v-if="inProgress?.percentage" class="rounded-md h-1 bg-gray-200">
+      <div class="rounded-md h-1 bg-brand-800" :style="{ width: `${inProgress?.percentage}%` }" />
     </div>
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import AppIntegrationProgress from '@/modules/integration/components/integration-progress.vue';
+import { IntegrationProgress } from '@/modules/integration/types/IntegrationProgress';
+import { computed } from 'vue';
 
-const props = defineProps({
-  integration: {
-    type: Object,
-    default: () => {},
-  },
+const props = defineProps<{
+  progress: IntegrationProgress | null,
+  barOnly?: boolean
+}>();
+
+const inProgress = computed(() => {
+  if (!props.progress) {
+    return null;
+  }
+  return Object.values(props.progress.data).find((p) => p.status === 'in-progress');
 });
 </script>
 
-<script>
+<script lang="ts">
 export default {
   name: 'AppIntegrationProgressBar',
 };

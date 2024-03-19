@@ -9,14 +9,20 @@
         class="app-page-spinner w-20"
       />
     </div>
-    <div v-else class="flex flex-wrap -mx-2.5">
-      <article v-for="integration in integrationsArray" :key="integration.platform" class="px-2.5 w-full sm:1/2 lg:w-1/3 pb-5">
-        <app-integration-list-item
-          class="h-full"
-          :integration="integration"
-        />
-      </article>
-    </div>
+    <app-integration-progress-wrapper v-else :segments="[props.segment]">
+      <template #default="{ progress }">
+        <div class="flex flex-wrap -mx-2.5">
+          <article v-for="integration in integrationsArray" :key="integration.platform" class="px-2.5 w-full sm:1/2 lg:w-1/3 pb-5">
+            <app-integration-list-item
+              class="h-full"
+              :integration="integration"
+              :progress="progress"
+            />
+          </article>
+        </div>
+      </template>
+    </app-integration-progress-wrapper>
+
     <app-dialog
       v-model="showGithubDialog"
       size="small"
@@ -43,6 +49,7 @@ import {
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppIntegrationListItem from '@/modules/integration/components/integration-list-item.vue';
 import { useRoute } from 'vue-router';
+import AppIntegrationProgressWrapper from '@/modules/integration/components/integration-progress-wrapper.vue';
 
 const route = useRoute();
 const store = useStore();
@@ -50,6 +57,10 @@ const props = defineProps({
   onboard: {
     type: Boolean,
     default: false,
+  },
+  segment: {
+    type: String,
+    required: true,
   },
 });
 

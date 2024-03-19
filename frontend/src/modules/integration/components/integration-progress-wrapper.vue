@@ -1,0 +1,47 @@
+<template>
+  <div>
+    <slot :progress="progress" />
+  </div>
+</template>
+
+<script setup lang="ts">
+import { onMounted, ref } from 'vue';
+import { IntegrationService } from '@/modules/integration/integration-service';
+import { IntegrationProgress } from '@/modules/integration/types/IntegrationProgress';
+
+const props = withDefaults(defineProps<{
+  interval?: number
+  segments?: string[]
+}>(), {
+  interval: 10,
+  segments: [],
+});
+
+const progress = ref<IntegrationProgress | null>(null);
+
+const intervalInstance = ref<any>(null);
+
+const fetchUpdates = () => {
+  console.log('fetching');
+  IntegrationService.fetchIntegrationsProgress(props.segments)
+    .then((data: IntegrationProgress) => {
+      progress.value = data;
+      if (data.length === 0) {
+        clearInterval(intervalInstance.value);
+      }
+    });
+};
+
+onMounted(() => {
+  fetchUpdates();
+  intervalInstance.value = setInterval(() => {
+    fetchUpdates();
+  }, props.interval * 1000);
+});
+</script>
+
+<script lang="ts">
+export default {
+  name: 'AppIntegrationProgressWrapper',
+};
+</script>
