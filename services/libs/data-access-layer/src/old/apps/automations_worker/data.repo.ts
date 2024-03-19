@@ -176,7 +176,6 @@ export class DataRepository extends RepositoryBase<DataRepository> {
         m.id,
         m.attributes,
         m."displayName",
-        m.emails,
         m."joinedAt",
         m.reach,
         m.contributions,

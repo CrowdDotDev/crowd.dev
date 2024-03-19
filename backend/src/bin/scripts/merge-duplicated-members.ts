@@ -76,7 +76,6 @@ async function check(): Promise<number> {
             count(*)                     as duplicate_count,
             coalesce(sum(ac.count), 0)   as total_activitites,
             json_agg(m.id)               as all_ids,
-            jsonb_agg(m.emails)          as all_emails,
             jsonb_agg(m.username)        as all_usernames
         from members m
                 left join activity_counts ac on ac."memberId" = m.id,

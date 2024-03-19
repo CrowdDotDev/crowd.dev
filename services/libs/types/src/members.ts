@@ -46,7 +46,6 @@ export interface IMember {
   tenantId: string
   segmentId: string
   attributes: IAttributes
-  emails: string[]
   displayName?: string
   avatarUrl?: string
   score: number

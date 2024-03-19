@@ -1805,7 +1805,6 @@ class MemberRepository {
     ['importHash', 'm."importHash"'],
     ['createdAt', 'm."createdAt"'],
     ['updatedAt', 'm."updatedAt"'],
-    ['emails', 'm.emails'],
   ])
 
   static async countMembersPerSegment(options: IRepositoryOptions, segmentIds: string[]) {
@@ -2012,23 +2011,6 @@ class MemberRepository {
     )
 
     for (const row of translatedRows) {
-      const identities = []
-      const username: {} = {}
-
-      for (const identity of row.identities) {
-        identities.push(identity.platform)
-
-        if (identity.type === MemberIdentityType.USERNAME) {
-          if (identity.platform in username) {
-            username[identity.platform].push(identity.username)
-          } else {
-            username[identity.platform] = [identity.username]
-          }
-        }
-      }
-
-      row.identities = identities
-      row.username = username
       row.activeDaysCount = parseInt(row.activeDaysCount, 10)
       row.activityCount = parseInt(row.activityCount, 10)
     }
@@ -2798,11 +2780,11 @@ class MemberRepository {
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
     const segmentIds = SequelizeRepository.getSegmentIds(options)
-
+    // TODO Uros fix
     const query = `
     -- Define a CTE named "new_members" to get members created in the last 7 days with a specific tenantId and their emails
     WITH new_members AS (
-      SELECT m.id, m."tenantId", m.emails
+      SELECT m.id, m."tenantId"
       FROM members m
       JOIN "memberSegments" ms ON ms."memberId" = m.id
       WHERE m."createdAt" >= now() - INTERVAL :numberOfHours

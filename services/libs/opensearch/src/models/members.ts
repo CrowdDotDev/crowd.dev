@@ -20,9 +20,6 @@ export class MembersOpensearch extends OpensearchModelBase {
     displayName: {
       type: OpensearchFieldType.STRING,
     },
-    emails: {
-      type: OpensearchFieldType.STRING_ARR,
-    },
     score: {
       type: OpensearchFieldType.INT,
     },

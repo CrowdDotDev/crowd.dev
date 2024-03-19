@@ -303,7 +303,6 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
               ms."segmentId",
               m."displayName",
               m.attributes,
-              m.emails,
               m.score,
               m."lastEnriched",
               m."joinedAt",
