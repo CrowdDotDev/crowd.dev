@@ -1,5 +1,5 @@
 <template>
-  <div v-if="props.progress">
+  <div v-if="props.progress && props.progress.reportStatus !== 'calculating'">
     <div v-if="!props.barOnly" class="flex justify-between items-center mb-1.5">
       <p class="text-2xs text-gray-500 leading-4">
         {{ inProgress?.message }}...
@@ -16,6 +16,16 @@
     <div v-if="inProgress?.percentage" class="rounded-md h-1 bg-gray-200">
       <div class="rounded-md h-1 bg-brand-800" :style="{ width: `${inProgress?.percentage}%` }" />
     </div>
+  </div>
+  <div v-else class="flex justify-between items-center h-full">
+    <p class="text-2xs text-gray-500 leading-4">
+      <span v-if="props.progress">
+        Calculating...
+      </span>
+      <span v-else>
+        Loading progress...
+      </span>
+    </p>
   </div>
 </template>
 

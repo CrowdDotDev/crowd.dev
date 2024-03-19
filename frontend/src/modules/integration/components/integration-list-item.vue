@@ -34,7 +34,7 @@
             <i class="ri-link" /> Connect
           </cr-button>
         </div>
-        <div v-else-if="isInProgress && selectedProgress" class="bg-gray-50 py-3 px-5 min-h-14">
+        <div v-else-if="isInProgress" class="bg-gray-50 py-3 px-5 min-h-14">
           <app-integration-progress-bar :progress="selectedProgress" />
         </div>
         <div v-else class="bg-gray-50 py-3 px-5 min-h-14 flex items-center justify-between">
