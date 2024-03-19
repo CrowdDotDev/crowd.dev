@@ -6,10 +6,12 @@ import { DateFilterConfig } from '@/shared/modules/filters/types/filterTypes/Dat
 import { CustomFilterConfig } from '@/shared/modules/filters/types/filterTypes/CustomFilterConfig';
 import { StringFilterConfig } from '@/shared/modules/filters/types/filterTypes/StringFilterConfig';
 import { MultiSelectAsyncFilterConfig } from '@/shared/modules/filters/types/filterTypes/MultiSelectAsyncFilterConfig';
+import { SelectAsyncFilterConfig } from '@/shared/modules/filters/types/filterTypes/SelectAsyncFilterConfig';
 
 export enum FilterConfigType {
   NUMBER = 'number',
   SELECT = 'select',
+  SELECT_ASYNC = 'select-async',
   MULTISELECT = 'multiselect',
   MULTISELECT_ASYNC = 'multiselect-async',
   BOOLEAN = 'boolean',
@@ -30,6 +32,7 @@ export type FilterConfig = NumberFilterConfig
   | MultiSelectFilterConfig
   | MultiSelectAsyncFilterConfig
   | SelectFilterConfig
+  | SelectAsyncFilterConfig
   | BooleanFilterConfig
   | DateFilterConfig
   | StringFilterConfig

@@ -11,6 +11,7 @@ export const queryUrlParserByType: Record<FilterConfigType, (query: any) => any>
   [FilterConfigType.NUMBER]: numberQueryUrlParser,
   [FilterConfigType.DATE]: dateQueryUrlParser,
   [FilterConfigType.SELECT]: selectQueryUrlParser,
+  [FilterConfigType.SELECT_ASYNC]: selectQueryUrlParser,
   [FilterConfigType.MULTISELECT]: multiSelectQueryUrlParser,
   [FilterConfigType.MULTISELECT_ASYNC]: multiSelectQueryUrlParser,
   [FilterConfigType.STRING]: stringQueryUrlParser,

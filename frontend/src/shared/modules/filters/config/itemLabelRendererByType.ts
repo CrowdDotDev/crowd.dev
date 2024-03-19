@@ -3,6 +3,9 @@ import { stringItemLabelRenderer } from '@/shared/modules/filters/config/itemLab
 import {
   multiSelectAsyncItemLabelRenderer,
 } from '@/shared/modules/filters/config/itemLabelRenderer/multiselectasync.label.renderer';
+import {
+  selectAsyncItemLabelRenderer,
+} from '@/shared/modules/filters/config/itemLabelRenderer/selectasync.label.renderer';
 import { booleanItemLabelRenderer } from './itemLabelRenderer/boolean.label.renderer';
 import { numberItemLabelRenderer } from './itemLabelRenderer/number.label.renderer';
 import { dateItemLabelRenderer } from './itemLabelRenderer/date.label.renderer';
@@ -22,6 +25,7 @@ export const itemLabelRendererByType: Record<FilterConfigType, (
   [FilterConfigType.NUMBER]: numberItemLabelRenderer,
   [FilterConfigType.DATE]: dateItemLabelRenderer,
   [FilterConfigType.SELECT]: selectItemLabelRenderer,
+  [FilterConfigType.SELECT_ASYNC]: selectAsyncItemLabelRenderer,
   [FilterConfigType.MULTISELECT]: multiSelectItemLabelRenderer,
   [FilterConfigType.MULTISELECT_ASYNC]: multiSelectAsyncItemLabelRenderer,
   [FilterConfigType.STRING]: stringItemLabelRenderer,
