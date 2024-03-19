@@ -39,7 +39,12 @@
               module="organization"
               position="top"
               @change-sorter="doChangePaginationPageSize"
-            />
+            >
+              <template #defaultFilters>
+                <div>・</div>
+                <cr-default-filters module="organization" :settings="filters.settings" />
+              </template>
+            </app-pagination-sorter>
           </div>
 
           <!-- Organizations list -->
@@ -869,6 +874,7 @@ import Plans from '@/security/plans';
 import AppIdentitiesHorizontalListOrganizations from '@/shared/modules/identities/components/identities-horizontal-list-organizations.vue';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { OrganizationService } from '@/modules/organization/organization-service';
+import CrDefaultFilters from '@/shared/modules/default-filters/components/default-filters.vue';
 import AppOrganizationListToolbar from './organization-list-toolbar.vue';
 import AppOrganizationName from '../organization-name.vue';
 import AppOrganizationDropdownContent from '../organization-dropdown-content.vue';

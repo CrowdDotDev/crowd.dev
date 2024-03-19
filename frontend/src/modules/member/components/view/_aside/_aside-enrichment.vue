@@ -3,7 +3,7 @@
     <div class="flex pb-3">
       <app-svg name="enriched" class="h-5 w-5" />
       <p class="pl-2 text-xs">
-        <span class="font-semibold">Contact enrichment</span> requires a GitHub profile or Email address.
+        <span class="font-semibold">Contributor enrichment</span> requires a GitHub profile or Email address.
       </p>
     </div>
     <button type="button" class="btn btn--primary btn--sm w-full" @click="emit('edit')">
