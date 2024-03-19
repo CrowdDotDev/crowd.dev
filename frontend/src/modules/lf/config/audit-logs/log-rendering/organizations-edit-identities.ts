@@ -15,31 +15,32 @@ function convertToMap(state: any[]): Map<string, any> {
 
 const organizationsEditIdentities: LogRenderingConfig = {
   label: 'Organization identities edited',
-  changes: (log) => {
+  changes: ({ oldState, newState }) => {
     const additions: any[] = [];
     const removals: any[] = [];
 
-    // Convert state arrays to maps for efficient lookup
-    const oldStateMap = convertToMap(log.oldState);
-    const newStateMap = convertToMap(log.newState);
+    // Helper function to process states
+    const keys = new Set([...Object.keys(oldState), ...Object.keys(newState)]);
+    keys.forEach((key) => {
+      const oldValues = new Set(oldState[key] || []);
+      const newValues = new Set(newState[key] || []);
 
-    log.oldState.forEach((identity) => {
-      const newIdentity = newStateMap.get(getIdentityKey(identity));
-      if (!newIdentity) {
-        removals.push(identity);
-      }
-    });
+      newValues.forEach((value) => {
+        if (!oldValues.has(value)) {
+          additions.push({ platform: key, name: value });
+        }
+      });
 
-    log.newState.forEach((identity) => {
-      const oldIdentity = oldStateMap.get(getIdentityKey(identity));
-      if (!oldIdentity) {
-        additions.push(identity);
-      }
+      oldValues.forEach((value) => {
+        if (!newValues.has(value)) {
+          removals.push({ platform: key, name: value });
+        }
+      });
     });
 
     return {
-      additions: additions.map((p) => `${CrowdIntegrations.getConfig(p.platform)?.name || p.platform}: ${p.name}`),
-      removals: removals.map((p) => `${CrowdIntegrations.getConfig(p.platform)?.name || p.platform}: ${p.name}`),
+      additions: (additions || []).map((p) => `${CrowdIntegrations.getConfig(p.platform)?.name || p.platform}: ${p.name}`),
+      removals: (removals || []).map((p) => `${CrowdIntegrations.getConfig(p.platform)?.name || p.platform}: ${p.name}`),
       changes: [],
     };
   },

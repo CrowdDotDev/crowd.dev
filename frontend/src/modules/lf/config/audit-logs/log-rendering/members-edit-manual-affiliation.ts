@@ -25,6 +25,25 @@ const membersEditManualAffiliation: LogRenderingConfig = {
     const oldStateMap = new Map(log.oldState.map((org) => [org.organizationId, org]));
     const newStateMap = new Map(log.newState.map((org) => [org.organizationId, org]));
 
+    // const orgIds = [
+    //   ...new Set([
+    //     ...log.oldState.map((org) => org.organizationId),
+    //     ...log.newState.map((org) => org.organizationId),
+    //   ]),
+    // ];
+    //
+    // const org = await OrganizationService.query({
+    //   filter: {
+    //     id: {
+    //       in: orgIds,
+    //     }
+    //   },
+    //   countOnly: false,
+    //   limit: orgIds.length,
+    //   offset: 0,
+    // });
+    // console.log(org);
+
     // Check for removals and modifications
     log.oldState.forEach((org) => {
       if (!newStateMap.has(org.organizationId)) {

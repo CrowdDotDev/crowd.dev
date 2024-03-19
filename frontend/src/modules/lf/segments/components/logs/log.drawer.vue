@@ -9,7 +9,7 @@
     <template #content>
       <div class="border-t border-gray-100 -mx-6 px-6 -mt-4">
         <app-lf-audit-logs-properties v-if="props.log" :log="props.log" />
-        <app-lf-audit-logs-changes v-if="props.log" :log="props.log" />
+        <app-lf-audit-logs-changes v-if="props.log && props.log.success" :log="props.log" />
         <app-lf-audit-logs-json v-if="props.log" :log="props.log" />
       </div>
     </template>
