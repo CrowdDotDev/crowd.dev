@@ -24,31 +24,33 @@
       :class="{ 'bg-gray-50': props.isPrimary }"
     >
       <!-- primary member -->
-      <div class="h-13 flex justify-between items-start">
-        <div
-          v-if="props.isPreview"
-          class="bg-brand-800 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
-        >
-          Preview
+      <slot name="header">
+        <div class="h-13 flex justify-between items-start">
+          <div
+            v-if="props.isPreview"
+            class="bg-brand-800 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
+          >
+            Preview
+          </div>
+          <div
+            v-else-if="props.isPrimary"
+            class="bg-brand-100 rounded-full py-0.5 px-2 text-brand-800 inline-block text-xs leading-5 font-medium"
+          >
+            Primary contributor
+          </div>
+          <button
+            v-else
+            :disabled="isEditLockedForSampleData"
+            type="button"
+            class="btn btn--secondary btn--sm leading-5 !px-4 !py-1"
+            @click="emit('makePrimary')"
+          >
+            <span class="ri-arrow-left-right-fill text-base text-gray-600 mr-2" />
+            <span>Make primary</span>
+          </button>
+          <slot name="action" />
         </div>
-        <div
-          v-else-if="props.isPrimary"
-          class="bg-brand-100 rounded-full py-0.5 px-2 text-brand-800 inline-block text-xs leading-5 font-medium"
-        >
-          Primary contributor
-        </div>
-        <button
-          v-else
-          :disabled="isEditLockedForSampleData"
-          type="button"
-          class="btn btn--secondary btn--sm leading-5 !px-4 !py-1"
-          @click="emit('makePrimary')"
-        >
-          <span class="ri-arrow-left-right-fill text-base text-gray-600 mr-2" />
-          <span>Make primary</span>
-        </button>
-        <slot name="action" />
-      </div>
+      </slot>
       <div class="flex justify-between">
         <router-link
           v-if="!isPreview"
@@ -149,7 +151,10 @@
           <p class="text-2xs font-medium text-gray-500 pb-1">
             Engagement level
           </p>
-          <app-community-engagement-level :member="member" />
+          <slot name="engagementLevel">
+            <app-community-engagement-level v-if="member.reach?.total >= 0 && member.score" :member="member" />
+            <span v-else class="text-2xs">-</span>
+          </slot>
         </article>
         <article
           v-if="
@@ -177,7 +182,7 @@
         </article>
         <article
           v-if="
-            member.organizations.length || compareMember?.organizations.length
+            member.organizations?.length || compareMember?.organizations?.length
           "
           class="pb-4"
         >
@@ -238,9 +243,10 @@
           />
           <span v-else>-</span>
         </article>
+        <slot name="property" />
       </div>
       <div class="pt-4">
-        <h6 class="text-sm font-semibold pb-3">
+        <h6 class="text-sm font-semibold text-black pb-3">
           Identities
         </h6>
         <app-identities-vertical-list-members
@@ -249,6 +255,7 @@
           :include-emails="true"
         />
       </div>
+      <slot name="below" />
     </div>
   </section>
 </template>
@@ -264,13 +271,13 @@ import AppCommunityEngagementLevel from '@/modules/member/components/member-enga
 import AppTags from '@/modules/tag/components/tag-list.vue';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
 import { MemberPermissions } from '@/modules/member/member-permissions';
-import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import memberOrder from '@/shared/modules/identities/config/identitiesOrder/member';
 import AppIdentitiesVerticalListMembers from '@/shared/modules/identities/components/identities-vertical-list-members.vue';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import AppSvg from '@/shared/svg/svg.vue';
 import { getAttributeSourceName } from '@/shared/helpers/attribute.helpers';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
 
 const props = defineProps({
   member: {
@@ -306,13 +313,14 @@ const props = defineProps({
 
 const emit = defineEmits(['makePrimary', 'bioHeight']);
 
-const { currentTenant, currentUser } = mapGetters('auth');
+const authStore = useAuthStore();
+const { user, tenant } = storeToRefs(authStore);
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const isEditLockedForSampleData = computed(
-  () => new MemberPermissions(currentTenant.value, currentUser.value)
+  () => new MemberPermissions(tenant.value, user.value)
     .editLockedForSampleData,
 );
 

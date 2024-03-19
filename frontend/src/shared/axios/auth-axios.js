@@ -1,12 +1,12 @@
 import Axios from 'axios';
 import { stringify } from 'qs';
 import moment from 'moment';
-import { AuthToken } from '@/modules/auth/auth-token';
 import config from '@/config';
 import { getLanguageCode } from '@/i18n';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { getSegmentsFromProjectGroup } from '@/utils/segments';
+import { AuthService } from '@/modules/auth/services/auth.service';
 
 const authAxios = Axios.create({
   baseURL: config.backendUrl,
@@ -44,7 +44,6 @@ authAxios.interceptors.request.use(
     // Add segments to requests
     if (includeSegmentsInRequest) {
       let segments;
-
       if (hasSegmentsBody) {
         segments = options.data.segments;
       } else if (hasSegmentsQueryParams) {
@@ -60,6 +59,12 @@ authAxios.interceptors.request.use(
           ...setOptions.params || {},
           segments,
         };
+      } else if (options.method === 'patch') {
+        setOptions.params = {
+          ...setOptions.params || {},
+          segments,
+        };
+        setOptions.data = setOptions.data || {};
       } else {
         setOptions.data = {
           ...setOptions.data || {},
@@ -95,7 +100,7 @@ authAxios.interceptors.request.use(
       Object.assign(setOptions, { url: encodedUrl });
     }
 
-    const token = setOptions.headers?.Authorization || AuthToken.get();
+    const token = setOptions.headers?.Authorization || AuthService.getToken();
 
     if (token) {
       setOptions.headers.Authorization = `Bearer ${token}`;

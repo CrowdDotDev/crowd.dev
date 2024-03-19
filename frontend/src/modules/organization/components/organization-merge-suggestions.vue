@@ -142,7 +142,6 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import Message from '@/shared/message/message';
-import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
 import AppOrganizationMergeSuggestionsDetails from '@/modules/organization/components/suggestions/organization-merge-suggestions-details.vue';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
@@ -150,6 +149,8 @@ import { merge } from 'lodash';
 import AppMemberMergeSuggestionsDetails
   from '@/modules/member/components/suggestions/member-merge-suggestions-details.vue';
 import useOrganizationMergeMessage from '@/shared/modules/merge/config/useOrganizationMergeMessage';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
+import { storeToRefs } from 'pinia';
 import { OrganizationService } from '../organization-service';
 import { OrganizationPermissions } from '../organization-permissions';
 
@@ -161,7 +162,8 @@ const props = defineProps({
   },
 });
 
-const { currentTenant, currentUser } = mapGetters('auth');
+const authStore = useAuthStore();
+const { user, tenant } = storeToRefs(authStore);
 
 const organizationStore = useOrganizationStore();
 
@@ -177,7 +179,7 @@ const sendingMerge = ref(false);
 const bioHeight = ref(0);
 
 const isEditLockedForSampleData = computed(
-  () => new OrganizationPermissions(currentTenant.value, currentUser.value)
+  () => new OrganizationPermissions(tenant.value, user.value)
     .editLockedForSampleData,
 );
 

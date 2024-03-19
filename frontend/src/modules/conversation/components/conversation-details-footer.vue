@@ -43,6 +43,7 @@
           :deletions="footerContent().deletions"
           :source-id="platformConfig?.activityDisplay?.showSourceId && sourceId"
           display="drawer"
+          :display-source-id="conversation.conversationStarter?.type === 'authored-commit'"
         />
       </div>
       <div v-if="platformConfig?.conversationDisplay?.showLabels && attributes.labels?.length" class="mt-5">

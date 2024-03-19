@@ -35,6 +35,7 @@
               :total="totalOrganizations"
               :current-page="pagination.page"
               :has-page-counter="false"
+              :export="doExport"
               module="organization"
               position="top"
               @change-sorter="doChangePaginationPageSize"
@@ -818,6 +819,7 @@
         <app-organization-dropdown-content
           v-if="selectedActionOrganization"
           :organization="selectedActionOrganization"
+          :hide-unmerge="true"
           @merge="isMergeDialogOpen = selectedActionOrganization"
           @close-dropdown="closeDropdown"
         />
@@ -863,9 +865,10 @@ import AppSharedTagList from '@/shared/tag/tag-list.vue';
 import { ClickOutside as vClickOutside } from 'element-plus';
 import AppSvg from '@/shared/svg/svg.vue';
 import CrEnrichmentSneakPeakContent from '@/shared/modules/enrichment/components/enrichment-sneak-peak-content.vue';
-import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import Plans from '@/security/plans';
 import AppIdentitiesHorizontalListOrganizations from '@/shared/modules/identities/components/identities-horizontal-list-organizations.vue';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
+import { OrganizationService } from '@/modules/organization/organization-service';
 import AppOrganizationListToolbar from './organization-list-toolbar.vue';
 import AppOrganizationName from '../organization-name.vue';
 import AppOrganizationDropdownContent from '../organization-dropdown-content.vue';
@@ -898,7 +901,7 @@ const emit = defineEmits(['update:pagination']);
 
 const organizationStore = useOrganizationStore();
 const {
-  organizations, selectedOrganizations, filters, totalOrganizations,
+  organizations, selectedOrganizations, filters, totalOrganizations, savedFilterBody,
 } = storeToRefs(organizationStore);
 
 const lsSegmentsStore = useLfSegmentsStore();
@@ -921,9 +924,10 @@ const showEnrichmentPopover = ref(false);
 const enrichmentRefs = ref({});
 const selectedEnrichmentAttribute = ref(null);
 
-const { currentTenant } = mapGetters('auth');
+const authStore = useAuthStore();
+const { tenant } = storeToRefs(authStore);
 
-const isEnrichEnabled = computed(() => currentTenant.value?.plan !== Plans.values.essential);
+const isEnrichEnabled = computed(() => tenant.value?.plan !== Plans.values.essential);
 
 const pagination = computed({
   get() {
@@ -1092,6 +1096,14 @@ const onTableMouseLeft = () => {
   isTableHovered.value = false;
   isScrollbarVisible.value = isCursorDown.value;
 };
+
+const doExport = () => OrganizationService.export({
+  filter: savedFilterBody.value.filter,
+  orderBy: savedFilterBody.value.orderBy,
+  limit: totalOrganizations.value,
+  offset: null,
+  segments: [selectedProjectGroup.value?.id],
+});
 
 watch(table, (newValue) => {
   // Add scroll events to table, it's not possible to access it from 'el-table'

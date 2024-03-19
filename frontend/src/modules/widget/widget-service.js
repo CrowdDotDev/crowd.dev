@@ -1,10 +1,10 @@
 import authAxios from '@/shared/axios/auth-axios';
-import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
+import { AuthService } from '@/modules/auth/services/auth.service';
 import { router } from '@/router';
 
 export class WidgetService {
   static async update(id, data) {
-    const tenantId = AuthCurrentTenant.get();
+    const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.put(
       `/tenant/${tenantId}/widget/${id}`,
@@ -23,7 +23,7 @@ export class WidgetService {
       excludeSegments: true,
     };
 
-    const tenantId = AuthCurrentTenant.get();
+    const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.delete(
       `/tenant/${tenantId}/widget`,
@@ -36,7 +36,7 @@ export class WidgetService {
   }
 
   static async create(data) {
-    const tenantId = AuthCurrentTenant.get();
+    const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/widget`,
@@ -50,15 +50,11 @@ export class WidgetService {
   }
 
   static async find(id) {
-    const sampleTenant = AuthCurrentTenant.getSampleTenantData();
-    const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
+    const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/widget/${id}`,
       {
-        headers: {
-          Authorization: sampleTenant?.token,
-        },
         params: {
           excludeSegments: true,
         },
@@ -77,16 +73,12 @@ export class WidgetService {
       excludeSegments: true,
     };
 
-    const sampleTenant = AuthCurrentTenant.getSampleTenantData();
-    const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
+    const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/widget`,
       {
         params,
-        headers: {
-          Authorization: sampleTenant?.token,
-        },
       },
     );
 
@@ -103,7 +95,7 @@ export class WidgetService {
       excludeSegments: true,
     };
 
-    const tenantId = AuthCurrentTenant.get();
+    const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/widget/autocomplete`,
@@ -122,15 +114,11 @@ export class WidgetService {
       segments = [router.currentRoute.value.params.segmentId];
     }
 
-    const sampleTenant = AuthCurrentTenant.getSampleTenantData();
-    const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
+    const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/cubejs/auth`,
       {
-        headers: {
-          Authorization: sampleTenant?.token,
-        },
         params: {
           segments,
         },

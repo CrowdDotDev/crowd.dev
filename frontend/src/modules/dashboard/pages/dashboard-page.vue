@@ -1,5 +1,5 @@
 <template>
-  <div v-if="currentTenant" class="flex -m-5">
+  <div v-if="tenant" class="flex -m-5">
     <div
       class="flex-grow overflow-auto h-screen"
       @scroll="handleScroll($event)"
@@ -53,9 +53,8 @@
 
 <script setup>
 import {
-  onMounted, onBeforeUnmount, ref, watch, computed,
+  onMounted, ref, watch, computed,
 } from 'vue';
-import { useStore } from 'vuex';
 import {
   mapGetters,
   mapActions,
@@ -70,24 +69,22 @@ import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import CrDashboardUpgradePlanWidget from '@/modules/dashboard/components/dashboard-upgrade-plan-widget.vue';
 import config from '@/config';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
 
-const { currentTenant } = mapGetters('auth');
+const authStore = useAuthStore();
+const { tenant } = storeToRefs(authStore);
 const { cubejsApi } = mapGetters('widget');
 const { doFetch } = mapActions('report');
-const { reset } = mapActions('dashboard');
 const { getCubeToken } = mapActions('widget');
-
-const store = useStore();
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
-const storeUnsubscribe = ref(null);
 const scrolled = ref(false);
 
 const loadingCubeToken = computed(() => !!cubejsApi.value);
 
-const displayUpgradeWidget = computed(() => currentTenant.value.plan === 'Essential' && !config.isCommunityVersion);
+const displayUpgradeWidget = computed(() => tenant.value.plan === 'Essential' && !config.isCommunityVersion);
 
 const handleScroll = (event) => {
   scrolled.value = event.target.scrollTop > 20;
@@ -96,22 +93,9 @@ const handleScroll = (event) => {
 onMounted(() => {
   window.analytics.page('Dashboard');
 
-  if (currentTenant.value) {
+  if (tenant.value) {
     doFetch({});
   }
-
-  storeUnsubscribe.value = store.subscribeAction(
-    (action) => {
-      if (action.type === 'auth/doSelectTenant') {
-        doFetch({});
-        reset({});
-      }
-    },
-  );
-});
-
-onBeforeUnmount(() => {
-  storeUnsubscribe.value();
 });
 
 watch(selectedProjectGroup, (updatedProjectGroup, previousProjectGroup) => {

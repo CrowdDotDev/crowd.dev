@@ -27,7 +27,7 @@
         </div>
       </div>
     </div>
-    <el-tooltip v-if="sourceId" placement="top" :content="sourceId">
+    <el-tooltip v-if="sourceId && displaySourceId" placement="top" :content="sourceId">
       <div class="text-gray-500 text-xs max-w-sm whitespace-nowrap overflow-hidden text-ellipsis">
         <span class="font-semibold">SHA:</span> {{ sourceId }}
       </div>
@@ -58,6 +58,10 @@ defineProps({
   sourceId: {
     type: String,
     default: null,
+  },
+  displaySourceId: {
+    type: Boolean,
+    default: false,
   },
 });
 </script>

@@ -11,12 +11,14 @@ import {
   SegmentData,
   SegmentProjectGroupNestedData,
   SegmentProjectNestedData,
+  IMemberOrganization,
+  IMemberUsername,
 } from '@crowd/types'
 import lodash, { chunk } from 'lodash'
 import moment from 'moment'
 import Sequelize, { QueryTypes } from 'sequelize'
 
-import { Error400, Error404 } from '@crowd/common'
+import { Error400, Error404, dateEqualityChecker } from '@crowd/common'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import { ActivityDisplayService } from '@crowd/integrations'
 import { KUBE_MODE, SERVICE } from '@/conf'
@@ -47,7 +49,6 @@ import {
 } from './types/memberTypes'
 import OrganizationRepository from './organizationRepository'
 import MemberSyncRemoteRepository from './memberSyncRemoteRepository'
-import MemberAffiliationRepository from './memberAffiliationRepository'
 import MemberAttributeSettingsRepository from './memberAttributeSettingsRepository'
 
 const { Op } = Sequelize
@@ -84,10 +85,10 @@ class MemberRepository {
 
     const transaction = SequelizeRepository.getTransaction(options)
 
-    const segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
     const record = await options.database.member.create(
       {
         ...lodash.pick(data, [
+          'id',
           'displayName',
           'attributes',
           'emails',
@@ -103,7 +104,6 @@ class MemberRepository {
         tenantId: tenant.id,
         createdById: currentUser.id,
         updatedById: currentUser.id,
-        segmentId: segment.id,
       },
       {
         transaction,
@@ -266,7 +266,8 @@ class MemberRepository {
             mtm."activityEstimate"
         FROM "memberToMerge" mtm
         JOIN member_segments_mv ms ON ms."memberId" = mtm."memberId"
-        WHERE ms."segmentId" IN (:segmentIds)
+        JOIN member_segments_mv ms2 ON ms2."memberId" = mtm."toMergeId"
+        WHERE ms."segmentId" IN (:segmentIds) and ms2."segmentId" IN (:segmentIds)
           ${memberFilter}
           ${similarityFilter}
         ORDER BY ${order}
@@ -307,7 +308,8 @@ class MemberRepository {
               COUNT(DISTINCT mtm."memberId"::TEXT || mtm."toMergeId"::TEXT) AS count
           FROM "memberToMerge" mtm
           JOIN member_segments_mv ms ON ms."memberId" = mtm."memberId"
-          WHERE ms."segmentId" IN (:segmentIds)
+          JOIN member_segments_mv ms2 ON ms2."memberId" = mtm."toMergeId"
+          WHERE ms."segmentId" IN (:segmentIds) and ms2."segmentId" IN (:segmentIds)
             ${memberFilter}
             ${similarityFilter}
         `,
@@ -620,14 +622,83 @@ class MemberRepository {
     return records[0]
   }
 
-  static async update(id, data, options: IRepositoryOptions, doPopulateRelations = true) {
+  static MEMBER_UPDATE_COLUMNS = [
+    'displayName',
+    'attributes',
+    'emails',
+    'contributions',
+    'score',
+    'reach',
+    'joinedAt',
+    'importHash',
+    'tags',
+    'website',
+    'location',
+    'github',
+    'twitter',
+    'linkedin',
+    'crunchbase',
+    'employees',
+    'revenueRange',
+    'isTeamOrganization',
+    'employeeCountByCountry',
+    'type',
+    'ticker',
+    'headline',
+    'profiles',
+    'naics',
+    'industry',
+    'founded',
+    'size',
+    'lastEnrichedAt',
+    'affiliatedProfiles',
+    'allSubsidiaries',
+    'alternativeDomains',
+    'alternativeNames',
+    'averageEmployeeTenure',
+    'averageTenureByLevel',
+    'averageTenureByRole',
+    'directSubsidiaries',
+    'employeeChurnRate',
+    'employeeCountByMonth',
+    'employeeGrowthRate',
+    'employeeCountByMonthByLevel',
+    'employeeCountByMonthByRole',
+    'gicsSector',
+    'grossAdditionsByMonth',
+    'grossDeparturesByMonth',
+    'ultimateParent',
+    'immediateParent',
+    'attributes',
+    'weakIdentities',
+  ]
+
+  static isEqual = {
+    displayName: (a, b) => a === b,
+    attributes: (a, b) => lodash.isEqual(a, b),
+    emails: (a, b) => lodash.isEqual(a, b),
+    lastEnriched: (a, b) => dateEqualityChecker(a, b),
+    contributions: (a, b) => lodash.isEqual(a, b),
+    score: (a, b) => a === b,
+    reach: (a, b) => lodash.isEqual(a, b),
+    joinedAt: (a, b) => dateEqualityChecker(a, b),
+    importHash: (a, b) => a === b,
+  }
+
+  static async update(
+    id,
+    data,
+    options: IRepositoryOptions,
+    doPopulateRelations = true,
+    manualChange = false,
+  ) {
     const currentUser = SequelizeRepository.getCurrentUser(options)
 
     const transaction = SequelizeRepository.getTransaction(options)
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
-    let record = await options.database.member.findOne({
+    const record = await options.database.member.findOne({
       where: {
         id,
         tenantId: currentTenant.id,
@@ -644,24 +715,82 @@ class MemberRepository {
       delete data.attributes.syncRemote
     }
 
-    record = await record.update(
-      {
-        ...lodash.pick(data, [
-          'displayName',
-          'attributes',
-          'emails',
-          'lastEnriched',
-          'enrichedBy',
-          'contributions',
-          'score',
-          'reach',
-          'joinedAt',
-          'importHash',
-        ]),
+    if (manualChange) {
+      const manuallyChangedFields: string[] = record.manuallyChangedFields || []
 
+      for (const column of this.MEMBER_UPDATE_COLUMNS) {
+        let changed = false
+
+        // only check fields that are in the data object that will be updated
+        if (column in data) {
+          if (
+            record[column] !== null &&
+            column in data &&
+            (data[column] === null || data[column] === undefined)
+          ) {
+            // column was removed in the update -> will be set to null by sequelize
+            changed = true
+          } else if (
+            record[column] === null &&
+            data[column] !== null &&
+            data[column] !== undefined
+          ) {
+            // column was null before now it's not anymore
+            changed = true
+          } else if (
+            this.isEqual[column] &&
+            this.isEqual[column](record[column], data[column]) === false
+          ) {
+            // column value has changed
+            changed = true
+          }
+        }
+
+        if (changed && !manuallyChangedFields.includes(column)) {
+          // handle attributes, keep each changed attribute separately
+          if (column === 'attributes') {
+            for (const key of Object.keys(data.attributes)) {
+              if (!record.attributes[key]) {
+                manuallyChangedFields.push(`attributes.${key}`)
+              } else if (
+                !lodash.isEqual(record.attributes[key].default, data.attributes[key].default)
+              ) {
+                manuallyChangedFields.push(`attributes.${key}`)
+              }
+            }
+          } else {
+            manuallyChangedFields.push(column)
+          }
+        }
+      }
+
+      data.manuallyChangedFields = manuallyChangedFields
+    } else {
+      // ignore columns that were manually changed
+      // by rewriting them with db data
+      const manuallyChangedFields: string[] = record.manuallyChangedFields || []
+      for (const manuallyChangedColumn of manuallyChangedFields) {
+        if (data.attributes && manuallyChangedColumn.startsWith('attributes')) {
+          const attributeKey = manuallyChangedColumn.split('.')[1]
+          data.attributes[attributeKey] = record.attributes[attributeKey]
+        } else {
+          data[manuallyChangedColumn] = record[manuallyChangedColumn]
+        }
+      }
+
+      data.manuallyChangedFields = manuallyChangedFields
+    }
+
+    await options.database.member.update(
+      {
+        ...lodash.pick(data, this.MEMBER_UPDATE_COLUMNS),
         updatedById: currentUser.id,
+        manuallyChangedFields: data.manuallyChangedFields,
       },
       {
+        where: {
+          id: record.id,
+        },
         transaction,
       },
     )
@@ -752,7 +881,7 @@ class MemberRepository {
             if (identity.delete) {
               platformsToDelete.push(identity.platform)
               usernamesToDelete.push(identity.username)
-            } else {
+            } else if (identity.username && identity.username !== '') {
               await seq.query(query, {
                 replacements: {
                   memberId: record.id,
@@ -961,7 +1090,6 @@ class MemberRepository {
   ): Promise<void> {
     const affiliationRepository = new MemberSegmentAffiliationRepository(options)
     await affiliationRepository.setForMember(memberId, data)
-    await MemberAffiliationRepository.update(memberId, options)
   }
 
   static async getAffiliations(
@@ -1042,6 +1170,75 @@ class MemberRepository {
     return results
   }
 
+  static async getRawMemberIdentities(memberId: string, options: IRepositoryOptions) {
+    const seq = SequelizeRepository.getSequelize(options)
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const memberIdentities = (await seq.query(
+      `
+        SELECT *
+        FROM "memberIdentities"
+        WHERE "memberId" = :memberId;
+      `,
+      {
+        replacements: {
+          memberId,
+        },
+        type: QueryTypes.SELECT,
+        transaction,
+      },
+    )) as IMemberIdentity[]
+
+    return memberIdentities
+  }
+
+  static async getActivityCountOfMembersIdentities(
+    memberId: string,
+    identities: IMemberIdentity[],
+    options: IRepositoryOptions,
+  ): Promise<number> {
+    const seq = SequelizeRepository.getSequelize(options)
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    if (identities.length === 0) {
+      throw new Error(`No identities sent!`)
+    }
+
+    let query = `
+    SELECT count(*) as count
+        FROM "mv_activities_cube"
+        WHERE "memberId" = :memberId AND (`
+
+    const replacements = {
+      memberId,
+    }
+
+    const replacementKey = (key: string, index: number) => `${key}${index}`
+
+    for (let i = 0; i < identities.length; i++) {
+      query += `(platform = :${replacementKey('platform', i)} and username = :${replacementKey(
+        'username',
+        i,
+      )}) `
+      if (i !== identities.length - 1) {
+        query += ' OR '
+      } else {
+        query += ')'
+      }
+
+      replacements[replacementKey('platform', i)] = identities[i].platform
+      replacements[replacementKey('username', i)] = identities[i].username
+    }
+
+    const result = await seq.query(query, {
+      replacements,
+      type: QueryTypes.SELECT,
+      transaction,
+    })
+
+    return (result[0] as any).count as number
+  }
+
   static async findById(
     id,
     options: IRepositoryOptions,
@@ -1102,18 +1299,24 @@ class MemberRepository {
 
     const identities = (await this.getIdentities([data.id], options)).get(data.id)
 
-    data.username = {}
-    for (const identity of identities) {
-      if (data.username[identity.platform]) {
-        data.username[identity.platform].push(identity.username)
-      } else {
-        data.username[identity.platform] = [identity.username]
-      }
-    }
+    data.username = MemberRepository.getUsernameFromIdentities(identities)
 
     data.affiliations = await MemberRepository.getAffiliations(id, options)
 
     return data
+  }
+
+  static getUsernameFromIdentities(identities: IMemberIdentity[]): IMemberUsername {
+    const username = {}
+    for (const identity of identities) {
+      if (username[identity.platform]) {
+        username[identity.platform].push(identity.username)
+      } else {
+        username[identity.platform] = [identity.username]
+      }
+    }
+
+    return username
   }
 
   static async filterIdInTenant(id, options: IRepositoryOptions) {
@@ -3457,9 +3660,9 @@ class MemberRepository {
       return moment(v).toISOString()
     }
 
-    if (replace) {
-      const originalOrgs = await MemberRepository.fetchWorkExperiences(record.id, options)
+    const originalOrgs = await MemberRepository.fetchWorkExperiences(record.id, options)
 
+    if (replace) {
       const toDelete = originalOrgs.filter(
         (originalOrg: any) =>
           !organizations.find(
@@ -3478,31 +3681,34 @@ class MemberRepository {
 
     for (const item of organizations) {
       const org = typeof item === 'string' ? { id: item } : item
-      await MemberRepository.createOrUpdateWorkExperience(
-        {
-          memberId: record.id,
-          organizationId: org.id,
-          title: org.title,
-          dateStart: org.startDate,
-          dateEnd: org.endDate,
-          source: org.source,
-        },
-        options,
-      )
-      await OrganizationRepository.includeOrganizationToSegments(org.id, options)
+
+      // we don't need to touch exactly same existing work experiences
+      if (
+        !originalOrgs.some(
+          (w) =>
+            w.organizationId === item.id &&
+            w.dateStart === (item.startDate || null) &&
+            w.dateEnd === (item.endDate || null),
+        )
+      ) {
+        await MemberRepository.createOrUpdateWorkExperience(
+          {
+            memberId: record.id,
+            organizationId: org.id,
+            title: org.title,
+            dateStart: org.startDate,
+            dateEnd: org.endDate,
+            source: org.source,
+          },
+          options,
+        )
+        await OrganizationRepository.includeOrganizationToSegments(org.id, options)
+      }
     }
   }
 
   static async createOrUpdateWorkExperience(
-    {
-      memberId,
-      organizationId,
-      source,
-      title = null,
-      dateStart = null,
-      dateEnd = null,
-      updateAffiliation = true,
-    },
+    { memberId, organizationId, source, title = null, dateStart = null, dateEnd = null },
     options: IRepositoryOptions,
   ) {
     const seq = SequelizeRepository.getSequelize(options)
@@ -3585,10 +3791,6 @@ class MemberRepository {
         transaction,
       },
     )
-
-    if (updateAffiliation) {
-      await MemberAffiliationRepository.update(memberId, options)
-    }
   }
 
   static async deleteWorkExperience(id, options: IRepositoryOptions) {
@@ -3611,7 +3813,10 @@ class MemberRepository {
     )
   }
 
-  static async fetchWorkExperiences(memberId: string, options: IRepositoryOptions) {
+  static async fetchWorkExperiences(
+    memberId: string,
+    options: IRepositoryOptions,
+  ): Promise<IMemberOrganization[]> {
     const seq = SequelizeRepository.getSequelize(options)
     const transaction = SequelizeRepository.getTransaction(options)
 
@@ -3629,7 +3834,7 @@ class MemberRepository {
       transaction,
     })
 
-    return records
+    return records as IMemberOrganization[]
   }
 
   static async findWorkExperience(
@@ -3930,6 +4135,233 @@ class MemberRepository {
       type: QueryTypes.UPDATE,
       transaction,
     })
+  }
+
+  static async moveAffiliationsBetweenMembers(
+    fromMemberId: string,
+    toMemberId: string,
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const params: any = {
+      fromMemberId,
+      toMemberId,
+    }
+
+    const updateQuery = `
+      update "memberSegmentAffiliations" set "memberId" = :toMemberId where "memberId" = :fromMemberId;
+    `
+
+    await seq.query(updateQuery, {
+      replacements: params,
+      type: QueryTypes.UPDATE,
+      transaction,
+    })
+  }
+
+  static async moveSelectedAffiliationsBetweenMembers(
+    fromMemberId: string,
+    toMemberId: string,
+    memberSegmentAffiliationIds: string[],
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const params: any = {
+      fromMemberId,
+      toMemberId,
+      memberSegmentAffiliationIds,
+    }
+
+    const updateQuery = `
+      update "memberSegmentAffiliations" set "memberId" = :toMemberId where "memberId" = :fromMemberId
+      and "id" in (:memberSegmentAffiliationIds);
+    `
+
+    await seq.query(updateQuery, {
+      replacements: params,
+      type: QueryTypes.UPDATE,
+      transaction,
+    })
+  }
+
+  static async addTagsToMember(
+    memberId: string,
+    tagIds: string[],
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const query = `
+      insert into "memberTags" ("memberId", "tagId", "createdAt", "updatedAt") values (:memberId, :tagId, now(), now());
+    `
+    for (const tagId of tagIds) {
+      await seq.query(query, {
+        replacements: {
+          memberId,
+          tagId,
+        },
+        type: QueryTypes.INSERT,
+        transaction,
+      })
+    }
+  }
+
+  static async removeTagsFromMember(
+    memberId: string,
+    tagIds: string[],
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const query = `
+      delete from "memberTags" where "memberId" = :memberId and "tagId" = :tagId;
+    `
+    for (const tagId of tagIds) {
+      await seq.query(query, {
+        replacements: {
+          memberId,
+          tagId,
+        },
+        type: QueryTypes.DELETE,
+        transaction,
+      })
+    }
+  }
+
+  static async addNotesToMember(
+    memberId: string,
+    noteIds: string[],
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const query = `
+      insert into "memberNotes" ("memberId", "noteId", "createdAt", "updatedAt") values (:memberId, :noteId, now(), now());
+    `
+
+    for (const noteId of noteIds) {
+      await seq.query(query, {
+        replacements: {
+          memberId,
+          noteId,
+        },
+        type: QueryTypes.INSERT,
+        transaction,
+      })
+    }
+  }
+
+  static async removeNotesFromMember(
+    memberId: string,
+    noteIds: string[],
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const query = `
+      delete from "memberNotes" where "memberId" = :memberId and "noteId" = :noteId;
+    `
+
+    for (const noteId of noteIds) {
+      await seq.query(query, {
+        replacements: {
+          memberId,
+          noteId,
+        },
+        type: QueryTypes.DELETE,
+        transaction,
+      })
+    }
+  }
+
+  static async addTasksToMember(
+    memberId: string,
+    taskIds: string[],
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const query = `
+      insert into "memberTasks" ("memberId", "taskId", "createdAt", "updatedAt") values (:memberId, :taskId, now(), now());
+    `
+
+    for (const taskId of taskIds) {
+      await seq.query(query, {
+        replacements: {
+          memberId,
+          taskId,
+        },
+        type: QueryTypes.INSERT,
+        transaction,
+      })
+    }
+  }
+
+  static async removeTasksFromMember(
+    memberId: string,
+    taskIds: string[],
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const query = `
+      delete from "memberTasks" where "memberId" = :memberId and "taskId" = :taskId;
+    `
+
+    for (const taskId of taskIds) {
+      await seq.query(query, {
+        replacements: {
+          memberId,
+          taskId,
+        },
+        type: QueryTypes.DELETE,
+        transaction,
+      })
+    }
+  }
+
+  static async removeIdentitiesFromMember(
+    memberId: string,
+    identities: IMemberIdentity[],
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const query = `
+      delete from "memberIdentities" where "memberId" = :memberId and platform = :platform and username = :username;
+    `
+
+    for (const identity of identities) {
+      await seq.query(query, {
+        replacements: {
+          memberId,
+          username: identity.username,
+          platform: identity.platform,
+        },
+        type: QueryTypes.DELETE,
+        transaction,
+      })
+    }
   }
 }
 

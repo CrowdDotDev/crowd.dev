@@ -1,6 +1,6 @@
 import { Tracer, Span, SpanStatusCode } from '@crowd/tracing'
 import { Logger } from '@crowd/logging'
-import { DbConnection, DbStore } from '@crowd/database'
+import { DbConnection, DbStore } from '@crowd/data-access-layer/src/database'
 import { DATA_SINK_WORKER_QUEUE_SETTINGS, SqsClient, SqsPrioritizedQueueReciever } from '@crowd/sqs'
 import {
   CreateAndProcessActivityResultQueueMessage,
@@ -32,16 +32,8 @@ export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
     private readonly temporal: TemporalClient,
     tracer: Tracer,
     parentLog: Logger,
-    maxConcurrentProcessing: number,
   ) {
-    super(
-      level,
-      client,
-      DATA_SINK_WORKER_QUEUE_SETTINGS,
-      maxConcurrentProcessing,
-      tracer,
-      parentLog,
-    )
+    super(level, client, DATA_SINK_WORKER_QUEUE_SETTINGS, 20, tracer, parentLog)
   }
 
   override async processMessage(message: IQueueMessage): Promise<void> {

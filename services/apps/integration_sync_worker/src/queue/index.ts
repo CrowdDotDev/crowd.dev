@@ -1,4 +1,4 @@
-import { DbConnection, DbStore } from '@crowd/database'
+import { DbConnection, DbStore } from '@crowd/data-access-layer/src/database'
 import { Logger } from '@crowd/logging'
 import {
   INTEGRATION_SYNC_WORKER_QUEUE_SETTINGS,

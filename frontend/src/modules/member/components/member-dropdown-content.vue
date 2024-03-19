@@ -1,4 +1,19 @@
 <template>
+  <template v-if="identities.length > 1 && !props.hideUnmerge">
+    <button
+      class="h-10 el-dropdown-menu__item w-full"
+      :disabled="isEditLockedForSampleData"
+      type="button"
+      @click="handleCommand({
+        action: Actions.UNMERGE_IDENTITY,
+        member,
+      })"
+    >
+      <i class="ri-link-unlink-m text-base mr-2" /><span class="text-xs">Unmerge identity</span>
+    </button>
+    <el-divider class="border-gray-200" />
+  </template>
+
   <router-link
     v-if="!props.hideEdit"
     :to="{
@@ -57,14 +72,6 @@
       <i class="ri-group-line text-base mr-2" /><span class="text-xs">Merge contributor</span>
     </button>
   </el-tooltip>
-  <a
-    class="h-10 el-dropdown-menu__item"
-    href="https://app.formbricks.com/s/clr4u0mp29k228up0nh9yurm5"
-    target="_blank"
-    rel="noopener noreferrer"
-  >
-    <span class="ri-split-cells-horizontal text-base mr-2 text-gray-400" />Request unmerge
-  </a>
 
   <!-- Hubspot -->
   <button
@@ -193,7 +200,7 @@
 </template>
 
 <script setup lang="ts">
-import { mapActions, mapGetters } from '@/shared/vuex/vuex.helpers';
+import { mapActions } from '@/shared/vuex/vuex.helpers';
 import { MemberService } from '@/modules/member/member-service';
 import Message from '@/shared/message/message';
 import { MemberPermissions } from '@/modules/member/member-permissions';
@@ -209,6 +216,8 @@ import {
 import { useStore } from 'vuex';
 import { useRoute } from 'vue-router';
 import { computed } from 'vue';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
+import { storeToRefs } from 'pinia';
 import { Member } from '../types/Member';
 
 enum Actions {
@@ -219,37 +228,40 @@ enum Actions {
   MARK_CONTACT_AS_BOT = 'markContactAsBot',
   UNMARK_CONTACT_AS_BOT = 'unmarkContactAsBot',
   MERGE_CONTACT = 'mergeContact',
+  UNMERGE_IDENTITY = 'unmergeIdentity',
   FIND_GITHUB = 'findGithub'
 }
 
-const emit = defineEmits<{(e: 'merge'): void, (e: 'closeDropdown'): void, (e: 'findGithub'): void }>();
+const emit = defineEmits<{(e: 'merge'): void, (e: 'unmerge'): void, (e: 'closeDropdown'): void, (e: 'findGithub'): void }>();
 const props = defineProps<{
   member: Member;
-  hideMerge: boolean;
-  hideEdit: boolean;
+  hideMerge?: boolean;
+  hideEdit?: boolean;
+  hideUnmerge?: boolean;
 }>();
 
 const store = useStore();
 const route = useRoute();
 
-const { currentUser, currentTenant } = mapGetters('auth');
+const authStore = useAuthStore();
+const { user, tenant } = storeToRefs(authStore);
 const { doFind } = mapActions('member');
 
 const memberStore = useMemberStore();
 
 const isEditLockedForSampleData = computed(
-  () => new MemberPermissions(currentTenant.value, currentUser.value)
+  () => new MemberPermissions(tenant.value, user.value)
     .editLockedForSampleData,
 );
 
 const isDeleteLockedForSampleData = computed(
-  () => new MemberPermissions(currentTenant.value, currentUser.value)
+  () => new MemberPermissions(tenant.value, user.value)
     .destroyLockedForSampleData,
 );
 
 const hasPermissionsToMerge = computed(() => new MemberPermissions(
-  currentTenant.value,
-  currentUser.value,
+  tenant.value,
+  user.value,
 )?.mergeMembers);
 
 const isSyncingWithHubspot = computed(
@@ -433,6 +445,14 @@ const handleCommand = async (command: {
     return;
   }
 
+  // Merge contact
+  if (command.action === Actions.UNMERGE_IDENTITY) {
+    emit('closeDropdown');
+    emit('unmerge');
+
+    return;
+  }
+
   if (command.action === Actions.FIND_GITHUB) {
     emit('closeDropdown');
     emit('findGithub');
@@ -442,6 +462,8 @@ const handleCommand = async (command: {
 
   emit('closeDropdown');
 };
+
+const identities = computed(() => Object.values(props.member.username).flat());
 </script>
 
 <style lang="scss" scoped>

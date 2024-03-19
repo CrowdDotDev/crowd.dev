@@ -31,25 +31,29 @@ import { mapGetters, mapActions, mapState } from 'vuex';
 import { ReportPermissions } from '@/modules/report/report-permissions';
 import { i18n } from '@/i18n';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
+import { storeToRefs } from 'pinia';
 
 export default {
   name: 'AppReportListToolbar',
-
+  setup() {
+    const authStore = useAuthStore();
+    const { user, tenant } = storeToRefs(authStore);
+    return { user, tenant };
+  },
   computed: {
     ...mapState({
       loading: (state) => state.report.loading,
     }),
     ...mapGetters({
-      currentUser: 'auth/currentUser',
-      currentTenant: 'auth/currentTenant',
       hasRows: 'report/hasRows',
       selectedRows: 'report/selectedRows',
     }),
 
     hasPermissionToDestroy() {
       return new ReportPermissions(
-        this.currentTenant,
-        this.currentUser,
+        this.tenant,
+        this.user,
       ).destroy;
     },
 

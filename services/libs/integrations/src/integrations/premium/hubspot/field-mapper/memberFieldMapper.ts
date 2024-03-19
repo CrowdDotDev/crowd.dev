@@ -174,6 +174,7 @@ export class HubspotMemberFieldMapper extends HubspotFieldMapper {
           [PlatformType.HUBSPOT]: `https://app.hubspot.com/contacts/${this.hubspotId}/contact/${hubspotContact.id}`,
         },
       },
+      weakIdentities: [],
     }
 
     // loop through member properties

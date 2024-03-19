@@ -7,7 +7,9 @@ export enum ConfluenceActivityType {
 
   ATTACHMENT_CREATED = 'attachment-created',
 
-  BLOG_POST = 'blogpost',
+  BLOGPOST_CREATED = 'blogpost-created',
+  BLOGPOST_UPDATED = 'blogpost-updated',
+
   ATTACHMENT = 'attachment',
   COMMENT = 'comment',
 }

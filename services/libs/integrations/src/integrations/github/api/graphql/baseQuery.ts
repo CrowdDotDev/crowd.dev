@@ -28,6 +28,27 @@ class BaseQuery {
         email
         bio
         company
+        companyHTML
+        location
+        followers {
+          totalCount
+        }
+    }`
+
+  static USER_SELECT_WITH_TYPENAME = `{
+        __typename
+        login
+        name
+        avatarUrl
+        id
+        isHireable
+        twitterUsername
+        url
+        websiteUrl
+        email
+        bio
+        company
+        companyHTML
         location
         followers {
           totalCount
@@ -132,7 +153,11 @@ class BaseQuery {
         (err.status === 403 &&
           err.message &&
           (err.message as string).toLowerCase().includes('secondary rate limit')) ||
-        (err.errors && err.errors[0].type === 'RATE_LIMITED')
+        (err.errors && err.errors[0].type === 'RATE_LIMITED') ||
+        (err.message &&
+          (err.message as string)
+            .toLowerCase()
+            .includes('although you appear to have the correct authorization credentials'))
       ) {
         logger.error('Error in getSinglePage: rate limit error. Trying token rotation')
         // this is rate limit, let's try token rotation

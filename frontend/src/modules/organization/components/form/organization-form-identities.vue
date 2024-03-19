@@ -27,9 +27,29 @@
                   <span class="font-medium text-gray-500">{{ value.urlPrefix }}</span>
                 </template>
               </el-input>
+
+              <el-tooltip
+                v-if="props.showUnmerge && Object.entries(identitiesForm).length > 1 "
+                :disabled="!staticModel[ii]?.username || staticModel[ii]?.username === model[ii].username"
+                content="Not possible to unmerge an unsaved identity"
+                placement="top"
+              >
+                <div>
+                  <el-button
+                    class="btn btn--md btn--transparent block w-8 !h-8 p-0"
+                    :disabled="!staticModel[ii]?.username || staticModel[ii]?.username !== model[ii].username"
+                    @click="emit('unmerge', {
+                      platform: key,
+                      username: staticModel[ii]?.name,
+                    })"
+                  >
+                    <i class="ri-link-unlink-m text-lg" />
+                  </el-button>
+                </div>
+              </el-tooltip>
               <el-button
                 :disabled="editingDisabled(key)"
-                class="btn btn--md btn--transparent w-10 h-10"
+                class="btn btn--md btn--transparent w-8 !h-8"
                 @click="removeUsername(ii)"
               >
                 <i class="ri-delete-bin-line text-lg" />
@@ -48,7 +68,7 @@ import {
 } from 'vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits(['update:modelValue', 'unmerge']);
 
 const props = defineProps({
   modelValue: {
@@ -58,6 +78,10 @@ const props = defineProps({
   record: {
     type: Object,
     default: () => {},
+  },
+  showUnmerge: {
+    type: Boolean,
+    default: false,
   },
 });
 
@@ -155,6 +179,11 @@ const removeUsername = (index) => {
     model.value[0] = '';
   }
 };
+
+const staticModel = computed(() => props.record.identities.map((i) => ({
+  ...i,
+  username: i.url ? i.url.split('/').at(-1) : '',
+})));
 </script>
 
 <script>

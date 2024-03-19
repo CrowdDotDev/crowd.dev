@@ -91,31 +91,23 @@
 <script setup>
 import pluralize from 'pluralize';
 import { computed } from 'vue';
-import {
-  mapGetters,
-} from '@/shared/vuex/vuex.helpers';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import Message from '@/shared/message/message';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import { storeToRefs } from 'pinia';
-import Errors from '@/shared/error/errors';
-import { Excel } from '@/shared/excel/excel';
 import { DEFAULT_ORGANIZATION_FILTERS } from '@/modules/organization/store/constants';
 import useOrganizationMergeMessage from '@/shared/modules/merge/config/useOrganizationMergeMessage';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import { getExportMax } from '@/modules/member/member-export-limit';
 import { OrganizationPermissions } from '../../organization-permissions';
 import { OrganizationService } from '../../organization-service';
 
-const props = defineProps({
-  pagination: {
-    type: Object,
-    default: () => ({
-      page: 1,
-      perPage: 20,
-    }),
-  },
-});
+const authStore = useAuthStore();
+const { user, tenant } = storeToRefs(authStore);
 
-const { currentUser, currentTenant } = mapGetters('auth');
+const lsSegmentsStore = useLfSegmentsStore();
+const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const organizationStore = useOrganizationStore();
 const {
@@ -126,21 +118,21 @@ const { fetchOrganizations } = organizationStore;
 
 const isPermissionReadOnly = computed(
   () => new OrganizationPermissions(
-    currentTenant.value,
-    currentUser.value,
+    tenant.value,
+    user.value,
   ).edit === false,
 );
 
 const isEditLockedForSampleData = computed(
   () => new OrganizationPermissions(
-    currentTenant.value,
-    currentUser.value,
+    tenant.value,
+    user.value,
   ).editLockedForSampleData,
 );
 const isDeleteLockedForSampleData = computed(
   () => new OrganizationPermissions(
-    currentTenant.value,
-    currentUser.value,
+    tenant.value,
+    user.value,
   ).destroyLockedForSampleData,
 );
 
@@ -168,8 +160,8 @@ const markAsTeamOrganizationOptions = computed(() => {
 });
 
 const hasPermissionsToMerge = computed(() => new OrganizationPermissions(
-  currentTenant.value,
-  currentUser.value,
+  tenant.value,
+  user.value,
 )?.mergeOrganizations);
 
 const handleDoDestroyAllWithConfirm = () => ConfirmDialog({
@@ -207,50 +199,47 @@ const handleMergeOrganizations = async () => {
 };
 
 const handleDoExport = async () => {
-  try {
-    const filter = {
-      and: [
-        ...DEFAULT_ORGANIZATION_FILTERS,
-        {
-          id: {
-            in: selectedOrganizations.value.map((o) => o.id),
-          },
+  const filter = {
+    and: [
+      ...DEFAULT_ORGANIZATION_FILTERS,
+      {
+        id: {
+          in: selectedOrganizations.value.map((o) => o.id),
         },
-      ],
-    };
+      },
+    ],
+  };
 
-    const response = await OrganizationService.query({
-      filter,
-      orderBy: `${filters.value.order.prop}_${filters.value.order.order === 'descending' ? 'DESC' : 'ASC'}`,
-      offset: (props.pagination.page - 1) * props.pagination.perPage || 0,
-      limit: props.pagination.perPage || 20,
-    });
-
-    Excel.exportAsExcelFile(
-      response.rows.map((o) => ({
-        Id: o.id,
-        Name: o.name,
-        Description: o.description,
-        Headline: o.headline,
-        Website: o.website,
-        '# of contributors': o.memberCount,
-        '# of activities': o.activityCount,
-        Location: o.location,
-        Created: o.createdAt,
-        Updated: o.updatedAt,
-      })),
-      ['Id', 'Name', 'Description',
-        'Headline', 'Headline', '# of contributors',
-        '# of activities', 'Location', 'Created', 'Updated',
-      ],
-      `organizations_${new Date().getTime()}`,
+  try {
+    const tenantCsvExportCount = tenant.value.csvExportCount;
+    const planExportCountMax = getExportMax(
+      tenant.value.plan,
     );
 
-    Message.success('Organizations exported successfully');
+    await showExportDialog({
+      tenantCsvExportCount,
+      planExportCountMax,
+      badgeContent: pluralize('organization', selectedOrganizations.value.length, true),
+    });
+
+    await OrganizationService.export({
+      filter,
+      limit: selectedOrganizations.value.length,
+      offset: null,
+      segments: [selectedProjectGroup.value?.id],
+    });
+
+    await doRefreshCurrentUser(null);
+
+    Message.success(
+      'CSV download link will be sent to your e-mail',
+    );
   } catch (error) {
-    Errors.handle(error);
     Message.error(
-      'There was an error exporting organizations',
+      'An error has occured while trying to export the CSV file. Please try again',
+      {
+        title: 'CSV Export failed',
+      },
     );
   }
 };

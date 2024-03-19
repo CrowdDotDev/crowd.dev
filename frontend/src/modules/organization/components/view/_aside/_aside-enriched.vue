@@ -74,8 +74,9 @@ import { AttributeType } from '@/modules/organization/types/Attributes';
 import AppSvg from '@/shared/svg/svg.vue';
 import CrEnrichmentSneakPeak from '@/shared/modules/enrichment/components/enrichment-sneak-peak.vue';
 import CrEnrichmentSneakPeakContent from '@/shared/modules/enrichment/components/enrichment-sneak-peak-content.vue';
-import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import Plans from '@/security/plans';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
+import { storeToRefs } from 'pinia';
 
 const props = defineProps({
   organization: {
@@ -84,8 +85,9 @@ const props = defineProps({
   },
 });
 
-const { currentTenant } = mapGetters('auth');
-const isEnrichmentEnabled = computed(() => currentTenant.value.plan !== Plans.values.essential);
+const authStore = useAuthStore();
+const { tenant } = storeToRefs(authStore);
+const isEnrichmentEnabled = computed(() => tenant.value.plan !== Plans.values.essential);
 
 const visibleAttributes = computed(() => enrichmentAttributes
   .filter((a) => {

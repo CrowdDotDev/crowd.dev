@@ -3,14 +3,18 @@
 </template>
 
 <script setup>
-import { useStore } from 'vuex';
-import { defineProps, computed } from 'vue';
+import { computed } from 'vue';
 import config from '@/config';
-import { AuthToken } from '@/modules/auth/auth-token';
-import { useRoute } from 'vue-router';
 
-const store = useStore();
+import { useRoute } from 'vue-router';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
+import { storeToRefs } from 'pinia';
+import { AuthService } from '@/modules/auth/services/auth.service';
+
 const route = useRoute();
+
+const authStore = useAuthStore();
+const { tenant } = storeToRefs(authStore);
 
 defineProps({
   integration: {
@@ -23,8 +27,8 @@ const connectUrl = computed(() => {
   const redirectUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}?slack-success=true`;
 
   return `${config.backendUrl}/slack/${
-    store.getters['auth/currentTenant'].id
-  }/connect?redirectUrl=${redirectUrl}&crowdToken=${AuthToken.get()}&segments[]=${route.params.id}`;
+    tenant.value.id
+  }/connect?redirectUrl=${redirectUrl}&crowdToken=${AuthService.getToken()}&segments[]=${route.params.id}`;
 });
 
 const connect = () => {

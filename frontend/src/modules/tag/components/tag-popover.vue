@@ -17,7 +17,7 @@
         <el-button class="btn btn--bordered btn--md mr-3" @click="handleCancel">
           Cancel
         </el-button>
-        <el-button class="btn btn--primary btn--md" @click="handleSubmit">
+        <el-button class="btn btn--primary btn--md" :disabled="isSubmitDisabled" @click="handleSubmit">
           Submit
         </el-button>
       </div>
@@ -33,6 +33,8 @@ import { FormSchema } from '@/shared/form/form-schema';
 import { mapActions } from 'vuex';
 import { storeToRefs } from 'pinia';
 import { useMemberStore } from '@/modules/member/store/pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import { hasAccessToSegmentId, getSegmentsFromProjectGroup } from '@/utils/segments';
 
 const memberStore = useMemberStore();
 const { selectedMembers } = storeToRefs(memberStore);
@@ -79,6 +81,17 @@ export default {
     membersToUpdate() {
       return this.member ? [this.member] : selectedMembers.value;
     },
+    selectedProjectGroup() {
+      const lsSegmentsStore = useLfSegmentsStore();
+      const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
+
+      return selectedProjectGroup.value;
+    },
+    isSubmitDisabled() {
+      const segments = this.member.segmentIds ?? this.member.segments?.map((s) => s.id) ?? getSegmentsFromProjectGroup(this.selectedProjectGroup);
+
+      return !segments.some((s) => hasAccessToSegmentId(s));
+    },
   },
 
   watch: {
@@ -121,10 +134,13 @@ export default {
     async handleSubmit() {
       this.loading = true;
 
+      const segments = this.member.segmentIds ?? this.member.segments?.map((s) => s.id) ?? getSegmentsFromProjectGroup(this.selectedProjectGroup);
+
       await this.doBulkUpdateMembersTags({
         members: [...this.membersToUpdate],
         tagsInCommon: this.editTagsInCommon,
         tagsToSave: this.editTagsModel,
+        segments,
       });
 
       this.loading = false;

@@ -36,7 +36,7 @@ export default class PermissionChecker {
    * Validates if the user has a specific permission
    * and throws a Error403 if it doesn't.
    */
-  validateHas(permission) {
+  public validateHas(permission) {
     if (!this.has(permission)) {
       throw new Error403(this.language)
     }
@@ -46,7 +46,7 @@ export default class PermissionChecker {
    * Validates if the user has any permission among specified
    * and throws Error403 if it doesn't
    */
-  validateHasAny(permissions) {
+  public validateHasAny(permissions) {
     const hasOne = permissions.some((p) => this.has(p))
 
     if (!hasOne) {
@@ -59,7 +59,7 @@ export default class PermissionChecker {
    * fields in an integration.
    * @param data Data sent to the integration write service
    */
-  validateIntegrationsProtectedFields(data) {
+  public validateIntegrationsProtectedFields(data) {
     if (data.limitCount !== undefined) {
       this.validateHas(Permissions.values.integrationControlLimit)
     }
@@ -70,7 +70,7 @@ export default class PermissionChecker {
    * fields in a microservice.
    * @param data Data sent to the microservice write service
    */
-  validateMicroservicesProtectedFields(data) {
+  public validateMicroservicesProtectedFields(data) {
     if (data.variant !== undefined) {
       if (data.variant === 'default') {
         this.validateHas(Permissions.values.microserviceVariantFree)
@@ -85,71 +85,77 @@ export default class PermissionChecker {
   /**
    * Checks if the user has a specific permission.
    */
-  has(permission) {
+  private has(permission) {
     assert(permission, 'permission is required')
 
     if (!this.currentUser) {
-      return false
+      throw new Error403(this.language, 'no currentUser')
     }
 
     if (!this.isEmailVerified) {
-      return false
+      throw new Error403(this.language, 'email not verified')
     }
 
     if (!this.hasPlanPermission(permission)) {
-      return false
+      throw new Error403(this.language, 'not allowed on this plan')
     }
 
-    return this.hasRolePermission(permission)
-  }
-
-  /**
-   * Validates if the user has access to a storage
-   * and throws a Error403 if it doesn't.
-   */
-  validateHasStorage(storageId) {
-    if (!this.hasStorage(storageId)) {
-      throw new Error403(this.language)
+    const allowedRoles = this.findAllowedRoles(permission)
+    if (lodash.isEqual(allowedRoles, [roles.projectAdmin])) {
+      this.validateSegmentPermission()
     }
+
+    return true
   }
 
   /**
    * Validates if the user has access to a storage.
    */
-  hasStorage(storageId: string) {
+  private hasStorage(storageId: string) {
     assert(storageId, 'storageId is required')
     return this.allowedStorageIds().includes(storageId)
   }
 
   /**
-   * Checks if the current user roles allows the permission.
+   * Checks if the user has any of the allowed roles for the permission.
    */
-  hasRolePermission(permission) {
-    return this.currentUserRolesIds.some((role) => {
-      if (!permission.allowedRoles.some((allowedRole) => allowedRole === role)) {
-        // First, make sure the role is even allowed
-        return false
-      }
-      if (role !== roles.projectAdmin) {
-        // Second, if the role is not project admin, we don't have to do extra checks
-        return true
-      }
+  private findAllowedRoles(permission) {
+    const allowedRoles = this.currentUserRolesIds.filter((role) =>
+      permission.allowedRoles.some((allowedRole) => allowedRole === role),
+    )
 
-      // Third, for project admin, we need to check if the user is admin of all segments
-      return this.currentSegments.every((segment) => this.adminSegments.includes(segment.id))
-    })
+    if (allowedRoles.length === 0) {
+      throw new Error403(
+        this.language,
+        `not allowed by role. Current: ${this.currentUserRolesIds}. Allowed: ${permission.allowedRoles}`,
+      )
+    }
+
+    return allowedRoles
+  }
+
+  private validateSegmentPermission() {
+    const allowed = this.currentSegments.some((segment) => this.adminSegments.includes(segment.id))
+    if (!allowed) {
+      throw new Error403(
+        this.language,
+        'not allowed by segment. ' +
+          `Request segments: ${this.currentSegments.map((s) => s.id)}. ` +
+          `User admin segments: ${this.adminSegments}`,
+      )
+    }
   }
 
   /**
    * Checks if the current company plan allows the permission.
    */
-  hasPlanPermission(permission) {
+  private hasPlanPermission(permission) {
     assert(permission, 'permission is required')
 
     return permission.allowedPlans.includes(this.currentTenantPlan)
   }
 
-  get isEmailVerified() {
+  private get isEmailVerified() {
     // Only checks if the email is verified
     // if the email system is on
     if (!EmailSender.isConfigured) {
@@ -162,7 +168,7 @@ export default class PermissionChecker {
   /**
    * Returns the Current User Roles.
    */
-  get currentUserRolesIds() {
+  private get currentUserRolesIds() {
     if (!this.currentUser || !this.currentUser.tenants) {
       return []
     }
@@ -187,7 +193,7 @@ export default class PermissionChecker {
    * Return the current tenant plan,
    * check also if it's not expired.
    */
-  get currentTenantPlan() {
+  private get currentTenantPlan() {
     if (!this.currentTenant || !this.currentTenant.plan) {
       return TenantPlans.Essential
     }
@@ -198,7 +204,7 @@ export default class PermissionChecker {
   /**
    * Returns the allowed storage ids for the user.
    */
-  allowedStorageIds() {
+  private allowedStorageIds() {
     let allowedStorageIds: Array<string> = []
 
     Permissions.asArray.forEach((permission) => {

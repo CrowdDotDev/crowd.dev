@@ -16,9 +16,11 @@ import {
 import Nango from '@nangohq/frontend';
 import config from '@/config';
 import AppHubspotSettingsDrawer from '@/integrations/hubspot/components/hubspot-settings-drawer.vue';
-import { mapActions, mapGetters } from '@/shared/vuex/vuex.helpers';
+import { mapActions } from '@/shared/vuex/vuex.helpers';
 import { useRouter } from 'vue-router';
 import { FeatureFlag } from '@/utils/featureFlag';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
+import { storeToRefs } from 'pinia';
 
 defineProps({
   integration: {
@@ -29,7 +31,8 @@ defineProps({
 
 const router = useRouter();
 
-const { currentTenant } = mapGetters('auth');
+const authStore = useAuthStore();
+const { tenant } = storeToRefs(authStore);
 const { doHubspotConnect } = mapActions('integration');
 
 const openSettingsDrawer = ref<boolean>(false);
@@ -40,7 +43,7 @@ const connect = () => {
   const nango = new Nango({ host: config.nangoUrl });
   nango.auth(
     'hubspot',
-    `${currentTenant.value.id}-hubspot`,
+    `${tenant.value.id}-hubspot`,
   )
     .then(() => doHubspotConnect(null))
     .then(() => {

@@ -1,9 +1,9 @@
 import authAxios from '@/shared/axios/auth-axios';
-import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
+import { AuthService } from '@/modules/auth/services/auth.service';
 
 export class ActivityTypeService {
   static async create(data, segments) {
-    const tenantId = AuthCurrentTenant.get();
+    const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/settings/activity/types`,
@@ -17,7 +17,7 @@ export class ActivityTypeService {
   }
 
   static async update(key, data, segments) {
-    const tenantId = AuthCurrentTenant.get();
+    const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.put(
       `/tenant/${tenantId}/settings/activity/types/${key}`,
@@ -31,7 +31,7 @@ export class ActivityTypeService {
   }
 
   static async delete(key, segments) {
-    const tenantId = AuthCurrentTenant.get();
+    const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.delete(
       `/tenant/${tenantId}/settings/activity/types/${key}`,
@@ -46,7 +46,7 @@ export class ActivityTypeService {
   }
 
   static async get() {
-    const tenantId = AuthCurrentTenant.get();
+    const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/settings/activity/types`,

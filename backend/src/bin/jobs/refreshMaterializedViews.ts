@@ -1,7 +1,5 @@
-import cronGenerator from 'cron-time-generator'
 import { QueryTypes } from 'sequelize'
 import { Logger, getChildLogger, getServiceChildLogger, logExecutionTimeV2 } from '@crowd/logging'
-import { IS_DEV_ENV, IS_TEST_ENV } from '@crowd/common'
 import { CrowdJob } from '../../types/jobTypes'
 import { databaseInit } from '@/database/databaseConnection'
 
@@ -58,13 +56,14 @@ export const refreshMaterializedView = async (
 
 const job: CrowdJob = {
   name: 'Refresh Materialized View',
-  cronTime:
-    IS_DEV_ENV || IS_TEST_ENV ? cronGenerator.every(1).minutes() : cronGenerator.every(2).hours(),
+  cronTime: process.env.CROWD_MV_OTHERS_REFRESH_PERIOD,
   onTrigger: async () => {
     const database = await databaseInit(1000 * 60 * 15, true)
     const log = getServiceChildLogger('RefreshMVJob')
 
-    await refreshMaterializedView('memberActivityAggregatesMVs', database, log)
+    if (process.env.CROWD_REFRESH_MEMBER_ACTIVITY_AGGREGATES_MV) {
+      await refreshMaterializedView('memberActivityAggregatesMVs', database, log)
+    }
     await refreshMaterializedView('member_segments_mv', database, log)
   },
 }

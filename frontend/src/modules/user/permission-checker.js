@@ -9,38 +9,34 @@ const plans = Plans.values;
  * based on tenant's plan and users' roles.
  */
 export class PermissionChecker {
-  constructor(currentTenant, currentUser) {
-    this.currentTenant = currentTenant;
-    this.currentUser = currentUser;
+  constructor(tenant, user) {
+    this.tenant = tenant;
+    this.user = user;
   }
 
   get currentUserRolesIds() {
-    if (!this.currentUser || !this.currentUser.tenants || !this.currentTenant) {
+    if (!this.user || !this.user.tenants || !this.tenant) {
       return [];
     }
 
-    const tenant = this.currentUser.tenants
+    const tenant = this.user.tenants
       .filter(
         (tenantUser) => tenantUser.status === 'active',
       )
       .find(
-        (tenantUser) => tenantUser.tenant.id === this.currentTenant.id,
+        (tenantUser) => tenantUser.tenant.id === this.tenant.id,
       );
 
     if (!tenant) {
       return [];
     }
-
-    return tenant.roles;
+    console.log('roles', tenant.roles);
+    return [...tenant.roles];
   }
 
   match(permission) {
     if (!permission) {
       return true;
-    }
-
-    if (!this.planMatchOneOf(permission.allowedPlans)) {
-      return false;
     }
 
     return this.rolesMatchOneOf(permission.allowedRoles);
@@ -59,11 +55,11 @@ export class PermissionChecker {
   }
 
   lockedForSampleData(permission) {
-    if (!permission || !this.currentTenant) {
+    if (!permission || !this.tenant) {
       return true;
     }
 
-    if (!this.currentTenant.hasSampleData) {
+    if (!this.tenant.hasSampleData) {
       return false;
     }
 
@@ -71,11 +67,7 @@ export class PermissionChecker {
   }
 
   rolesMatchOneOf(arg) {
-    if (!this.currentUserRolesIds) {
-      return false;
-    }
-
-    if (!arg) {
+    if (!this.currentUserRolesIds || !arg) {
       return false;
     }
 
@@ -113,15 +105,15 @@ export class PermissionChecker {
   }
 
   get currentTenantPlan() {
-    if (!this.currentTenant) {
+    if (!this.tenant) {
       return plans.essential;
     }
 
-    if (!this.currentTenant.plan) {
+    if (!this.tenant.plan) {
       return plans.essential;
     }
 
-    return this.currentTenant.plan;
+    return this.tenant.plan;
   }
 
   get isEmptyTenant() {
@@ -129,11 +121,11 @@ export class PermissionChecker {
       return true;
     }
 
-    if (!this.currentUser.tenants) {
+    if (!this.user.tenants) {
       return true;
     }
 
-    return !this.currentUser.tenants.some(
+    return !this.user.tenants.some(
       (tenant) => tenant.status === 'active',
     );
   }
@@ -143,11 +135,11 @@ export class PermissionChecker {
       return true;
     }
 
-    if (!this.currentUser.tenants) {
+    if (!this.user.tenants) {
       return true;
     }
 
-    const tenant = this.currentUser.tenants.find(
+    const tenant = this.user.tenants.find(
       (t) => t.status === 'active',
     );
 
@@ -160,8 +152,8 @@ export class PermissionChecker {
 
   get isAuthenticated() {
     return (
-      Boolean(this.currentUser)
-      && Boolean(this.currentUser.id)
+      Boolean(this.user)
+      && Boolean(this.user.id)
     );
   }
 
@@ -170,6 +162,6 @@ export class PermissionChecker {
       return false;
     }
 
-    return this.currentUser.emailVerified;
+    return this.user.emailVerified;
   }
 }

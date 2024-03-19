@@ -14,13 +14,13 @@ import {
   TenantPlans,
 } from '@crowd/types'
 import { svc } from '../main'
-import { OrganizationRepository } from '../repos/organization.repo'
+import { OrganizationRepository } from '@crowd/data-access-layer/src/old/apps/premium/organization_enrichment_worker/organization.repo'
 import {
   IOrganizationCacheData,
   IOrganizationData,
   IOrganizationIdentity,
   IPremiumTenantInfo,
-} from '../types/common'
+} from '@crowd/data-access-layer/src/old/apps/premium/organization_enrichment_worker/types'
 import { MAX_ENRICHED_ORGANIZATION_CACHES_PER_EXECUTION } from './enrichment'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */

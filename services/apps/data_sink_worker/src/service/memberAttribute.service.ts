@@ -1,5 +1,5 @@
-import MemberAttributeSettingsRepository from '../repo/memberAttributeSettings.repo'
-import { DbStore } from '@crowd/database'
+import MemberAttributeSettingsRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/memberAttributeSettings.repo'
+import { DbStore } from '@crowd/data-access-layer/src/database'
 import { Logger, LoggerBase } from '@crowd/logging'
 import { MemberAttributeType } from '@crowd/types'
 
@@ -22,6 +22,15 @@ export default class MemberAttributeService extends LoggerBase {
     }
 
     for (const attributeName of Object.keys(attributes)) {
+      if (typeof attributes[attributeName] === 'string') {
+        // we try to fix it
+        try {
+          attributes[attributeName] = JSON.parse(attributes[attributeName] as string)
+        } catch (err) {
+          this.log.error(err, { attributeName }, 'Could not parse a string attribute value!')
+          throw err
+        }
+      }
       const highestPriorityPlatform =
         MemberAttributeService.getHighestPriorityPlatformForAttributes(
           Object.keys(attributes[attributeName]),

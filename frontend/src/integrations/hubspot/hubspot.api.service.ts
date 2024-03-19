@@ -1,4 +1,4 @@
-import AuthCurrentTenant from '@/modules/auth/auth-current-tenant';
+import { AuthService } from '@/modules/auth/services/auth.service';
 import authAxios from '@/shared/axios/auth-axios';
 import { MappableFields } from '@/integrations/hubspot/types/MappableFields';
 import { HubspotOnboard } from '@/integrations/hubspot/types/HubspotOnboard';
@@ -6,7 +6,7 @@ import { HubspotLists } from '@/integrations/hubspot/types/HubspotLists';
 
 export class HubspotApiService {
   static getMappableFields(): Promise<MappableFields> {
-    const tenantId = AuthCurrentTenant.get();
+    const tenantId = AuthService.getTenantId();
 
     return authAxios.get(
       `/tenant/${tenantId}/hubspot-mappable-fields`,
@@ -15,7 +15,7 @@ export class HubspotApiService {
   }
 
   static updateAttributes(): Promise<any> {
-    const tenantId = AuthCurrentTenant.get();
+    const tenantId = AuthService.getTenantId();
     return authAxios.post(
       `/tenant/${tenantId}/hubspot-update-properties`,
     )
@@ -23,7 +23,7 @@ export class HubspotApiService {
   }
 
   static finishOnboard(data: HubspotOnboard): Promise<any> {
-    const tenantId = AuthCurrentTenant.get();
+    const tenantId = AuthService.getTenantId();
 
     return authAxios.post(
       `/tenant/${tenantId}/hubspot-onboard`,
@@ -33,7 +33,7 @@ export class HubspotApiService {
   }
 
   static syncMember(memberId: string): Promise<any> {
-    const tenantId = AuthCurrentTenant.get();
+    const tenantId = AuthService.getTenantId();
 
     return authAxios.post(
       `/tenant/${tenantId}/hubspot-sync-member`,
@@ -45,7 +45,7 @@ export class HubspotApiService {
   }
 
   static stopSyncMember(memberId: string): Promise<any> {
-    const tenantId = AuthCurrentTenant.get();
+    const tenantId = AuthService.getTenantId();
 
     return authAxios.post(
       `/tenant/${tenantId}/hubspot-stop-sync-member`,
@@ -57,7 +57,7 @@ export class HubspotApiService {
   }
 
   static syncOrganization(organizationId: string): Promise<any> {
-    const tenantId = AuthCurrentTenant.get();
+    const tenantId = AuthService.getTenantId();
 
     return authAxios.post(
       `/tenant/${tenantId}/hubspot-sync-organization`,
@@ -69,7 +69,7 @@ export class HubspotApiService {
   }
 
   static stopSyncOrganization(organizationId: string): Promise<any> {
-    const tenantId = AuthCurrentTenant.get();
+    const tenantId = AuthService.getTenantId();
 
     return authAxios.post(
       `/tenant/${tenantId}/hubspot-stop-sync-organization`,
@@ -81,7 +81,7 @@ export class HubspotApiService {
   }
 
   static getLists(): Promise<HubspotLists> {
-    const tenantId = AuthCurrentTenant.get();
+    const tenantId = AuthService.getTenantId();
 
     return authAxios.get(
       `/tenant/${tenantId}/hubspot-get-lists`,

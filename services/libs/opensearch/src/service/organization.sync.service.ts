@@ -10,12 +10,15 @@ import { IPagedSearchResponse, ISearchHit } from './opensearch.data'
 import { OpenSearchService } from './opensearch.service'
 import { IOrganizationSyncResult } from './organization.sync.data'
 import { IServiceConfig } from '@crowd/types'
+import { IndexingRepository } from '../repo/indexing.repo'
+import { IndexedEntityType } from '../repo/indexing.data'
 
 export class OrganizationSyncService {
   private log: Logger
   private readonly orgRepo: OrganizationRepository
   private readonly segmentRepo: SegmentRepository
   private readonly serviceConfig: IServiceConfig
+  private readonly indexingRepo: IndexingRepository
 
   constructor(
     store: DbStore,
@@ -28,6 +31,7 @@ export class OrganizationSyncService {
 
     this.orgRepo = new OrganizationRepository(store, this.log)
     this.segmentRepo = new SegmentRepository(store, this.log)
+    this.indexingRepo = new IndexingRepository(store, this.log)
   }
 
   public async getAllIndexedTenantIds(
@@ -197,25 +201,14 @@ export class OrganizationSyncService {
     }
   }
 
-  public async syncTenantOrganizations(
-    tenantId: string,
-    batchSize = 100,
-    syncCutoffTime?: string,
-  ): Promise<void> {
-    const cutoffDate = syncCutoffTime ? syncCutoffTime : new Date().toISOString()
-
-    this.log.warn({ tenantId, cutoffDate }, 'Syncing all tenant organizations!')
+  public async syncTenantOrganizations(tenantId: string, batchSize = 100): Promise<void> {
+    this.log.warn({ tenantId }, 'Syncing all tenant organizations!')
     let docCount = 0
     let organizationCount = 0
 
     await logExecutionTime(
       async () => {
-        let organizationIds = await this.orgRepo.getTenantOrganizationsForSync(
-          tenantId,
-          1,
-          batchSize,
-          cutoffDate,
-        )
+        let organizationIds = await this.orgRepo.getTenantOrganizationsForSync(tenantId, batchSize)
 
         while (organizationIds.length > 0) {
           const { organizationsSynced, documentsIndexed } = await this.syncOrganizations(
@@ -229,12 +222,17 @@ export class OrganizationSyncService {
             { tenantId },
             `Synced ${organizationCount} organizations with ${docCount} documents!`,
           )
-          organizationIds = await this.orgRepo.getTenantOrganizationsForSync(
-            tenantId,
-            1,
-            batchSize,
-            cutoffDate,
+
+          await this.indexingRepo.markEntitiesIndexed(
+            IndexedEntityType.ORGANIZATION,
+            organizationIds.map((id) => {
+              return {
+                id,
+                tenantId,
+              }
+            }),
           )
+          organizationIds = await this.orgRepo.getTenantOrganizationsForSync(tenantId, batchSize)
         }
       },
       this.log,
@@ -257,13 +255,16 @@ export class OrganizationSyncService {
    * @param organizationIds organizationIds to be synced to opensearch
    * @returns
    */
-  public async syncOrganizations(organizationIds: string[]): Promise<IOrganizationSyncResult> {
-    const CONCURRENT_DATABASE_QUERIES = 25
+  public async syncOrganizations(
+    organizationIds: string[],
+    segmentIds?: string[],
+  ): Promise<IOrganizationSyncResult> {
+    const CONCURRENT_DATABASE_QUERIES = 5
     const BULK_INDEX_DOCUMENT_BATCH_SIZE = 2500
 
     // get all orgId-segmentId couples
     const orgSegmentCouples: IOrganizationSegmentMatrix =
-      await this.orgRepo.getOrganizationSegmentCouples(organizationIds)
+      await this.orgRepo.getOrganizationSegmentCouples(organizationIds, segmentIds)
     let databaseStream = []
     let syncStream = []
     let documentsIndexed = 0
@@ -385,8 +386,6 @@ export class OrganizationSyncService {
         }
       }
     }
-
-    await this.orgRepo.markSynced(organizationIds)
 
     return {
       organizationsSynced: organizationIds.length,
