@@ -231,7 +231,7 @@ const processPostReactionsStream: ProcessStreamHandler = async (ctx) => {
 
     const author = await parseAuthor(reaction.authorUrn, ctx)
 
-    await ctx.publishData<ILinkedInReactionData>({
+    await ctx.processData<ILinkedInReactionData>({
       type: 'reaction',
       postUrnId,
       postBody,
@@ -293,7 +293,7 @@ const processPostCommentsStream: ProcessStreamHandler = async (ctx) => {
 
     const author = await parseAuthor(comment.authorUrn, ctx)
 
-    await ctx.publishData<ILinkedInCommentData>({
+    await ctx.processData<ILinkedInCommentData>({
       type: 'comment',
       comment,
       postUrnId,
@@ -331,7 +331,7 @@ const processCommentCommentsStream: ProcessStreamHandler = async (ctx) => {
 
     const author = await parseAuthor(comment.authorUrn, ctx)
 
-    await ctx.publishData<ILinkedInChildCommentData>({
+    await ctx.processData<ILinkedInChildCommentData>({
       type: 'child_comment',
       parentCommentUrnId: stream.commentUrnId,
       comment,

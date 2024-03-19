@@ -41,7 +41,7 @@ import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { computed, defineProps } from 'vue';
 import { AutomationPermissions } from '@/modules/automation/automation-permissions';
 import { useAutomationStore } from '@/modules/automation/store';
-import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
 
 const props = defineProps({
   automation: {
@@ -56,14 +56,15 @@ const emit = defineEmits([
   'openEditAutomationDrawer',
 ]);
 
-const { currentTenant, currentUser } = mapGetters('auth');
+const authStore = useAuthStore();
+const { user, tenant } = storeToRefs(authStore);
 
 const automationStore = useAutomationStore();
 const { deleteAutomation } = automationStore;
 
 const isReadOnly = computed(() => new AutomationPermissions(
-  currentTenant.value,
-  currentUser.value,
+  tenant.value,
+  user.value,
 ).edit === false);
 
 const doDestroyWithConfirm = () => ConfirmDialog({

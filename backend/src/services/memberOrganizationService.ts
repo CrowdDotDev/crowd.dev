@@ -1,5 +1,5 @@
 import { LoggerBase } from '@crowd/logging'
-import { IMemberOrganization } from '@crowd/types'
+import { IMemberOrganization, MemberRoleUnmergeStrategy } from '@crowd/types'
 import { IServiceOptions } from './IServiceOptions'
 import MemberOrganizationRepository, {
   EntityField,
@@ -127,24 +127,54 @@ export default class MemberOrganizationService extends LoggerBase {
     }
   }
 
-  static roleExistsInArray(role: IMemberOrganization, roles: IMemberOrganization[]): boolean {
+  static roleExistsInArray(
+    role: IMemberOrganization,
+    roles: IMemberOrganization[],
+    strategy: MemberRoleUnmergeStrategy,
+  ): boolean {
+    if (strategy === MemberRoleUnmergeStrategy.SAME_MEMBER) {
+      return roles.some(
+        (r) =>
+          r.organizationId === role.organizationId &&
+          r.title === role.title &&
+          r.dateStart === role.dateStart &&
+          r.dateEnd === role.dateEnd,
+      )
+    }
+
     return roles.some(
       (r) =>
-        r.organizationId === role.organizationId &&
+        r.memberId === role.memberId &&
         r.title === role.title &&
         r.dateStart === role.dateStart &&
         r.dateEnd === role.dateEnd,
     )
   }
 
-  static rolesIntersects(roleA: IMemberOrganization, roleB: IMemberOrganization): boolean {
+  static rolesIntersects(
+    roleA: IMemberOrganization,
+    roleB: IMemberOrganization,
+    strategy: MemberRoleUnmergeStrategy,
+  ): boolean {
     const startA = new Date(roleA.dateStart).getTime()
     const endA = new Date(roleA.dateEnd).getTime()
     const startB = new Date(roleB.dateStart).getTime()
     const endB = new Date(roleB.dateEnd).getTime()
 
+    if (strategy === MemberRoleUnmergeStrategy.SAME_MEMBER) {
+      return (
+        (roleA.organizationId === roleB.organizationId &&
+          roleA.title === roleB.title &&
+          startA < startB &&
+          endA > startB) ||
+        (startB < startA && endB > startA) ||
+        (startA < startB && endA > endB) ||
+        (startB < startA && endB > endA)
+      )
+    }
+
     return (
-      (roleA.organizationId === roleB.organizationId &&
+      (roleA.memberId === roleB.memberId &&
         roleA.title === roleB.title &&
         startA < startB &&
         endA > startB) ||
@@ -165,27 +195,51 @@ export default class MemberOrganizationService extends LoggerBase {
     mergedRoles: IMemberOrganization[],
     primaryBackupRoles: IMemberOrganization[],
     secondaryBackupRoles: IMemberOrganization[],
+    strategy: MemberRoleUnmergeStrategy,
   ): IMemberOrganization[] {
     // end result must contain existing roles that have source === UI
-    // also we shouldn't touch roles that doesn't have a common organizationId with secondaryBackupRoles
-    const unmergedRoles: IMemberOrganization[] = mergedRoles.filter(
-      (role) =>
-        role.source === 'ui' ||
-        !secondaryBackupRoles.some((r) => r.organizationId === role.organizationId),
-    )
+    // also we shouldn't touch roles that doesn't have a common organizationId (or memberId if the strategy is SAME_ORGANIZATION) with secondaryBackupRoles
+    let unmergedRoles: IMemberOrganization[]
+    // we should only manipulate roles that doesn't have source === UI because these were manually created/edited by user
+    // and shared organization (or member roles if stragey is SAME_ORGANIZATION) roles with secondaryBackupRoles
+    let editableRoles: IMemberOrganization[]
 
-    // we should only manipulate roles that doesn't have source === UI because these were manually created/edited by user and shared organization roles with secondaryBackupRoles
-    const editableRoles = mergedRoles.filter(
-      (role) =>
-        role.source !== 'ui' &&
-        secondaryBackupRoles.some((r) => r.organizationId === role.organizationId),
-    )
+    if (strategy === MemberRoleUnmergeStrategy.SAME_MEMBER) {
+      unmergedRoles = mergedRoles.filter(
+        (role) =>
+          role.source === 'ui' ||
+          !secondaryBackupRoles.some((r) => r.organizationId === role.organizationId),
+      )
+
+      editableRoles = mergedRoles.filter(
+        (role) =>
+          role.source !== 'ui' &&
+          secondaryBackupRoles.some((r) => r.organizationId === role.organizationId),
+      )
+    } else {
+      unmergedRoles = mergedRoles.filter(
+        (role) =>
+          role.source === 'ui' || !secondaryBackupRoles.some((r) => r.memberId === role.memberId),
+      )
+      editableRoles = mergedRoles.filter(
+        (role) =>
+          role.source !== 'ui' && secondaryBackupRoles.some((r) => r.memberId === role.memberId),
+      )
+    }
 
     for (const secondaryBackupRole of secondaryBackupRoles) {
       if (secondaryBackupRole.dateStart === null && secondaryBackupRole.dateEnd === null) {
         if (
-          MemberOrganizationService.roleExistsInArray(secondaryBackupRole, editableRoles) &&
-          MemberOrganizationService.roleExistsInArray(secondaryBackupRole, primaryBackupRoles)
+          MemberOrganizationService.roleExistsInArray(
+            secondaryBackupRole,
+            editableRoles,
+            strategy,
+          ) &&
+          MemberOrganizationService.roleExistsInArray(
+            secondaryBackupRole,
+            primaryBackupRoles,
+            strategy,
+          )
         ) {
           // add it to unmergedRoles
           unmergedRoles.push(secondaryBackupRole)
@@ -205,8 +259,16 @@ export default class MemberOrganizationService extends LoggerBase {
       } else if (secondaryBackupRole.dateStart !== null && secondaryBackupRole.dateEnd !== null) {
         // if it exists both in primary backup and current member, add it
         if (
-          MemberOrganizationService.roleExistsInArray(secondaryBackupRole, editableRoles) &&
-          MemberOrganizationService.roleExistsInArray(secondaryBackupRole, primaryBackupRoles)
+          MemberOrganizationService.roleExistsInArray(
+            secondaryBackupRole,
+            editableRoles,
+            strategy,
+          ) &&
+          MemberOrganizationService.roleExistsInArray(
+            secondaryBackupRole,
+            primaryBackupRoles,
+            strategy,
+          )
         ) {
           // add it to unmergedRoles
           unmergedRoles.push(secondaryBackupRole)
@@ -214,13 +276,13 @@ export default class MemberOrganizationService extends LoggerBase {
           // it could be a merged-role using both roles in primary & secondary
           // check if it intersects with any of the roles in editableRoles
           const intersectingRoleInCurrentMember = editableRoles.find((r) =>
-            MemberOrganizationService.rolesIntersects(secondaryBackupRole, r),
+            MemberOrganizationService.rolesIntersects(secondaryBackupRole, r, strategy),
           )
 
           if (intersectingRoleInCurrentMember) {
             // find intersecting role in primary backup, and add it to unmergedRoles
             const intersectingRoleInPrimaryBackup = primaryBackupRoles.find((r) =>
-              MemberOrganizationService.rolesIntersects(secondaryBackupRole, r),
+              MemberOrganizationService.rolesIntersects(secondaryBackupRole, r, strategy),
             )
 
             if (intersectingRoleInPrimaryBackup) {

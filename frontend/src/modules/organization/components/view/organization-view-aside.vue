@@ -2,6 +2,7 @@
   <div class="member-view-aside panel !px-0">
     <app-organization-aside-identities
       :organization="organization"
+      @unmerge="emit('unmerge', $event)"
     />
   </div>
 
@@ -22,8 +23,9 @@
 import { computed } from 'vue';
 import enrichmentAttributes from '@/modules/organization/config/enrichment';
 import { AttributeType } from '@/modules/organization/types/Attributes';
-import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import Plans from '@/security/plans';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
+import { storeToRefs } from 'pinia';
 import AppOrganizationAsideEnriched from './_aside/_aside-enriched.vue';
 import AppOrganizationAsideIdentities from './_aside/_aside-identities.vue';
 
@@ -34,10 +36,13 @@ const props = defineProps({
   },
 });
 
-const { currentTenant } = mapGetters('auth');
+const emit = defineEmits(['unmerge']);
+
+const authStore = useAuthStore();
+const { tenant } = storeToRefs(authStore);
 
 const shouldShowAttributes = computed(() => {
-  if (currentTenant.value.plan === Plans.values.essential) {
+  if (tenant.value.plan === Plans.values.essential) {
     return true;
   }
   return enrichmentAttributes.some((a) => {

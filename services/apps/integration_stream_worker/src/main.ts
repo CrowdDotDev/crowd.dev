@@ -7,8 +7,8 @@ import { getSqsClient } from '@crowd/sqs'
 import { WorkerQueueReceiver } from './queue'
 import { processOldStreamsJob } from './jobs/processOldStreams'
 import {
+  DataSinkWorkerEmitter,
   IntegrationRunWorkerEmitter,
-  IntegrationDataWorkerEmitter,
   IntegrationStreamWorkerEmitter,
   PriorityLevelContextRepository,
   QueuePriorityContextLoader,
@@ -43,7 +43,7 @@ setImmediate(async () => {
     loader,
     log,
   )
-  const dataWorkerEmitter = new IntegrationDataWorkerEmitter(
+  const streamWorkerEmitter = new IntegrationStreamWorkerEmitter(
     sqsClient,
     redisClient,
     tracer,
@@ -51,7 +51,7 @@ setImmediate(async () => {
     loader,
     log,
   )
-  const streamWorkerEmitter = new IntegrationStreamWorkerEmitter(
+  const dataSinkWorkerEmitter = new DataSinkWorkerEmitter(
     sqsClient,
     redisClient,
     tracer,
@@ -66,8 +66,8 @@ setImmediate(async () => {
     redisClient,
     dbConnection,
     runWorkerEmiiter,
-    dataWorkerEmitter,
     streamWorkerEmitter,
+    dataSinkWorkerEmitter,
     tracer,
     log,
     MAX_CONCURRENT_PROCESSING,
@@ -75,8 +75,8 @@ setImmediate(async () => {
 
   try {
     await runWorkerEmiiter.init()
-    await dataWorkerEmitter.init()
     await streamWorkerEmitter.init()
+    await dataSinkWorkerEmitter.init()
 
     let processing = false
     setInterval(async () => {
@@ -87,8 +87,8 @@ setImmediate(async () => {
             dbConnection,
             redisClient,
             runWorkerEmiiter,
-            dataWorkerEmitter,
             streamWorkerEmitter,
+            dataSinkWorkerEmitter,
             log,
           )
         }

@@ -173,6 +173,32 @@ class MemberOrganizationRepository {
 
     return memberRoles
   }
+
+  static async findRolesInOrganization(
+    organizationId: string,
+    options: IRepositoryOptions,
+  ): Promise<IMemberOrganization[]> {
+    const seq = SequelizeRepository.getSequelize(options)
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const rolesInOrganization = (await seq.query(
+      `
+        SELECT *
+        FROM "memberOrganizations"
+        WHERE "organizationId" = :organizationId
+        AND "deletedAt" IS NULL;
+      `,
+      {
+        replacements: {
+          organizationId,
+        },
+        type: QueryTypes.SELECT,
+        transaction,
+      },
+    )) as IMemberOrganization[]
+
+    return rolesInOrganization
+  }
 }
 
 export default MemberOrganizationRepository

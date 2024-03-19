@@ -24,36 +24,38 @@
       :class="{ 'bg-gray-50': props.isPrimary }"
     >
       <!-- primary member -->
-      <div class="h-13 flex justify-between items-start">
-        <div
-          v-if="props.isPreview"
-          class="bg-brand-800 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
-        >
-          Preview
+      <slot name="header">
+        <div class="h-13 flex justify-between items-start">
+          <div
+            v-if="props.isPreview"
+            class="bg-brand-800 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
+          >
+            Preview
+          </div>
+          <div
+            v-else-if="props.isPrimary"
+            class="bg-brand-100 rounded-full py-0.5 px-2 text-brand-800 inline-block text-xs leading-5 font-medium"
+          >
+            Primary organization
+          </div>
+          <button
+            v-else
+            :disabled="isEditLockedForSampleData"
+            type="button"
+            class="btn btn--bordered btn--sm leading-5 !px-4 !py-1"
+            @click="emit('makePrimary')"
+          >
+            <span class="ri-arrow-left-right-fill text-base text-gray-600 mr-2" />
+            <span>Make primary</span>
+          </button>
+          <slot name="action" />
         </div>
-        <div
-          v-else-if="props.isPrimary"
-          class="bg-brand-100 rounded-full py-0.5 px-2 text-brand-800 inline-block text-xs leading-5 font-medium"
-        >
-          Primary organization
-        </div>
-        <button
-          v-else
-          :disabled="isEditLockedForSampleData"
-          type="button"
-          class="btn btn--bordered btn--sm leading-5 !px-4 !py-1"
-          @click="emit('makePrimary')"
-        >
-          <span class="ri-arrow-left-right-fill text-base text-gray-600 mr-2" />
-          <span>Make primary</span>
-        </button>
-        <slot name="action" />
-      </div>
+      </slot>
       <div class="pb-6">
         <app-organization-merge-dialog v-model="isMergeDialogOpen" />
         <div class="flex justify-between">
           <router-link
-            v-if="!isPreview"
+            v-if="!isPreview && props.organization?.id"
             :to="{
               name: 'organizationView',
               params: { id: organization.id },
@@ -84,7 +86,7 @@
         </div>
         <div>
           <router-link
-            v-if="!isPreview"
+            v-if="!isPreview && props.organization.id"
             :to="{
               name: 'organizationView',
               params: { id: organization.id },
@@ -167,7 +169,7 @@
           class="pb-4"
         >
           <p class="text-2xs font-medium text-gray-500 pb-1">
-            Number of employees
+            # of employees
           </p>
           <p class="text-xs text-gray-900 whitespace-normal">
             {{ props.organization.employees || '-' }}
@@ -296,7 +298,6 @@ import {
 import AppAvatar from '@/shared/avatar/avatar.vue';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
 import { MemberPermissions } from '@/modules/member/member-permissions';
-import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { withHttp } from '@/utils/string';
 import { formatDateToTimeAgo } from '@/utils/date';
 import revenueRange from '@/modules/organization/config/enrichment/revenueRange';
@@ -304,6 +305,7 @@ import AppIdentitiesVerticalListOrganizations from '@/shared/modules/identities/
 import organizationOrder from '@/shared/modules/identities/config/identitiesOrder/organization';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
 
 const props = defineProps({
   organization: {
@@ -339,13 +341,14 @@ const props = defineProps({
 
 const emit = defineEmits(['makePrimary', 'bioHeight']);
 
-const { currentTenant, currentUser } = mapGetters('auth');
+const authStore = useAuthStore();
+const { user, tenant } = storeToRefs(authStore);
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const isEditLockedForSampleData = computed(
-  () => new MemberPermissions(currentTenant.value, currentUser.value)
+  () => new MemberPermissions(tenant.value, user.value)
     .editLockedForSampleData,
 );
 

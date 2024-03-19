@@ -59,15 +59,17 @@
 
 <script setup>
 import { ref, computed } from 'vue';
-import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import AppEagleEyeEmailDigestDrawer from '@/premium/eagle-eye/components/list/eagle-eye-email-digest-drawer.vue';
 import { EagleEyePermissions } from '@/premium/eagle-eye/eagle-eye-permissions';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
+import { storeToRefs } from 'pinia';
 
-const { currentUser, currentTenant } = mapGetters('auth');
+const authStore = useAuthStore();
+const { user, tenant } = storeToRefs(authStore);
 
 const eagleEyeSettings = computed(
-  () => currentUser.value?.tenants.find(
-    (tu) => tu.tenantId === currentTenant.value.id,
+  () => user.value?.tenants.find(
+    (tu) => tu.tenantId === tenant.value.id,
   )?.settings.eagleEye,
 );
 
@@ -84,8 +86,8 @@ const isEmailDigestActivated = computed(
 
 const hasPermissionToEditContent = computed(
   () => new EagleEyePermissions(
-    currentTenant.value,
-    currentUser.value,
+    tenant.value,
+    user.value,
   ).edit,
 );
 </script>

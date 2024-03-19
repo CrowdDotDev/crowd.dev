@@ -1,3 +1,8 @@
+export interface ITenant {
+  tenantId: string
+  plan: string
+}
+
 export interface PageData<T> {
   rows: T[]
   count: number

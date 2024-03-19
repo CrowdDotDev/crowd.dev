@@ -63,7 +63,7 @@ export interface IProcessStreamContext extends IIntegrationContext {
 
   setMessageVisibilityTimeout: (newTimeout: number) => Promise<void>
 
-  publishData: <T>(data: T) => Promise<void>
+  processData: <T>(data: T) => Promise<void>
 
   abortWithError: (message: string, metadata?: unknown, error?: Error) => Promise<void>
 
@@ -97,7 +97,7 @@ export interface IProcessWebhookStreamContext {
   serviceSettings: IIntegrationServiceSettings
   platformSettings?: unknown
 
-  publishData: <T>(data: T) => Promise<void>
+  processData: <T>(data: T) => Promise<void>
 
   abortWithError: (message: string, metadata?: unknown, error?: Error) => Promise<void>
 
@@ -155,9 +155,9 @@ export interface IIntegrationDescriptor {
   /**
    * Function that will be called to process a single stream.
    * The results of this function should be raw data fetched from external API
-   * that will be processed later by the processData function.
+   * that will be processed by the processData function.
    *
-   * Use ctx.publishData to store data for later processing
+   * Use ctx.processData to process data
    * Use ctx.publishStream to create a new stream if needed
    * @param ctx Everything that is needed to process a single stream
    */
@@ -166,9 +166,9 @@ export interface IIntegrationDescriptor {
   /**
    * Function that will be called to process a single webhook stream.
    * The results of this function should be raw data fetched from external API
-   * that will be processed later by the processData function.
+   * that will be processed by the processData function.
    *
-   * Use ctx.publishData to store data for later processing
+   * Use ctx.processData to process data
    * Use ctx.publishStream to create a new stream if needed
    * @param ctx Everything that is needed to process a single stream
    */

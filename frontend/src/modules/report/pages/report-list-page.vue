@@ -87,6 +87,8 @@ import AppReportTemplateItem from '@/modules/report/components/templates/report-
 import templates from '@/modules/report/templates/config';
 import AppLfPageHeader from '@/modules/lf/layout/components/lf-page-header.vue';
 import AppLfSubProjectsListModal from '@/modules/lf/segments/components/lf-sub-projects-list-modal.vue';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
+import { storeToRefs } from 'pinia';
 
 export default {
   name: 'AppReportListPage',
@@ -98,7 +100,11 @@ export default {
     AppLfPageHeader,
     AppLfSubProjectsListModal,
   },
-
+  setup() {
+    const authStore = useAuthStore();
+    const { user, tenant } = storeToRefs(authStore);
+    return { user, tenant };
+  },
   data() {
     return {
       isSubProjectSelectionOpen: false,
@@ -114,15 +120,13 @@ export default {
       loading: (state) => state.report.list.loading,
     }),
     ...mapGetters({
-      currentTenant: 'auth/currentTenant',
-      currentUser: 'auth/currentUser',
       rows: 'report/rows',
       cubejsApi: 'widget/cubejsApi',
     }),
     hasPermissionToCreate() {
       return new ReportPermissions(
-        this.currentTenant,
-        this.currentUser,
+        this.tenant,
+        this.user,
       ).create;
     },
     computedTemplates() {

@@ -20,7 +20,7 @@ export interface IDbOrganization {
   size: string | null
   headline: string | null
   industry: string | null
-  founded: string | null
+  founded: number | null
   attributes: IAttributes | null
   weakIdentities: IOrganizationIdentity[]
 }
@@ -42,7 +42,7 @@ export interface IDbInsertOrganizationData {
   size: string | null
   headline: string | null
   industry: string | null
-  founded: string | null
+  founded: number | null
   attributes?: IAttributes | null
   weakIdentities: IOrganizationIdentity[]
 }
@@ -65,7 +65,7 @@ export interface IDbInsertOrganizationCacheData {
   size: string | null
   headline: string | null
   industry: string | null
-  founded: string | null
+  founded: number | null
   attributes?: IAttributes | null
 }
 
@@ -125,7 +125,7 @@ export interface IDbUpdateOrganizationCacheData {
   size: string | null
   headline: string | null
   industry: string | null
-  founded: string | null
+  founded: number | null
 }
 
 export interface IDbUpdateOrganizationData {
@@ -145,7 +145,7 @@ export interface IDbUpdateOrganizationData {
   size: string | null
   headline: string | null
   industry: string | null
-  founded: string | null
+  founded: number | null
   displayName: string | null
   attributes: IAttributes | null
   weakIdentities: IOrganizationIdentity[]
@@ -206,7 +206,7 @@ export interface IDbCacheOrganization {
   size: string | null
   headline: string | null
   industry: string | null
-  founded: string | null
+  founded: number | null
   attributes: IAttributes | null
   enriched: boolean
 }

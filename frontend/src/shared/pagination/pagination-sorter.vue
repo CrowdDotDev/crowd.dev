@@ -43,7 +43,8 @@ import { computed } from 'vue';
 import pluralize from 'pluralize';
 import { getExportMax, showExportDialog, showExportLimitDialog } from '@/modules/member/member-export-limit';
 import Message from '@/shared/message/message';
-import { mapActions, mapGetters } from '@/shared/vuex/vuex.helpers';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
+import { storeToRefs } from 'pinia';
 
 const emit = defineEmits([
   'changeSorter',
@@ -90,8 +91,9 @@ const props = defineProps({
   },
 });
 
-const { currentTenant } = mapGetters('auth');
-const { doRefreshCurrentUser } = mapActions('auth');
+const authStore = useAuthStore();
+const { tenant } = storeToRefs(authStore);
+const { getUser } = authStore;
 
 const model = computed({
   get() {
@@ -179,9 +181,9 @@ const onChange = (value) => {
 
 const doExport = async () => {
   try {
-    const tenantCsvExportCount = currentTenant.value.csvExportCount;
+    const tenantCsvExportCount = tenant.value.csvExportCount;
     const planExportCountMax = getExportMax(
-      currentTenant.value.plan,
+      tenant.value.plan,
     );
     await showExportDialog({
       tenantCsvExportCount,
@@ -191,7 +193,7 @@ const doExport = async () => {
 
     await props.export();
 
-    await doRefreshCurrentUser(null);
+    await getUser();
 
     Message.success(
       'CSV download link will be sent to your e-mail',
@@ -199,7 +201,7 @@ const doExport = async () => {
   } catch (error) {
     if (error.response?.status === 403) {
       const planExportCountMax = getExportMax(
-        currentTenant.value.plan,
+        tenant.value.plan,
       );
 
       showExportLimitDialog({ planExportCountMax });

@@ -112,7 +112,6 @@
 
 <script setup lang="ts">
 import { MemberPermissions } from '@/modules/member/member-permissions';
-import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { computed, ref } from 'vue';
 import moment from 'moment';
 import AppMemberFormOrganizationsDrawer from '@/modules/member/components/form/member-form-organizations-drawer.vue';
@@ -122,6 +121,7 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import AppSvg from '@/shared/svg/svg.vue';
 import AppEntities from '@/shared/modules/entities/Entities.vue';
 import { Organization, OrganizationSource } from '@/modules/organization/types/Organization';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
 
 const OrganizationSourceValue = {
   [OrganizationSource.EMAIL_DOMAIN]: 'Email domain',
@@ -138,11 +138,12 @@ defineProps<{
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
-const { currentTenant, currentUser } = mapGetters('auth');
+const authStore = useAuthStore();
+const { user, tenant } = storeToRefs(authStore);
 
 const isEditLockedForSampleData = computed(() => new MemberPermissions(
-  currentTenant.value,
-  currentUser.value,
+  tenant.value,
+  user.value,
 ).editLockedForSampleData);
 
 const isOrganizationDrawerOpen = ref<boolean>(false);

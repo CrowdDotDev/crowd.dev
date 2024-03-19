@@ -52,6 +52,18 @@ export default class IntegrationDataRepository extends RepositoryBase<Integratio
      d."tenantId" = $(tenantId)
   `
 
+  private readonly getDataForIntegrationQuery = `
+    select
+      d.id
+    from 
+     integration."apiData" d
+    where 
+     d."integrationId" = $(integrationId)
+     order by d."createdAt" asc
+    limit $(limit)
+   
+  `
+
   public async getDataInfo(dataId: string): Promise<IApiDataInfo | null> {
     const results = await this.db().oneOrNone(this.getDataInfoQuery, {
       dataId,
@@ -196,10 +208,9 @@ export default class IntegrationDataRepository extends RepositoryBase<Integratio
   public async publishResult(dataId: string, result: IIntegrationResult): Promise<string> {
     const results = await this.db().oneOrNone(
       `
-    insert into integration.results(state, data, "apiDataId", "streamId", "runId", "webhookId", "tenantId", "integrationId", "microserviceId")
+    insert into integration.results(state, data, "streamId", "runId", "webhookId", "tenantId", "integrationId", "microserviceId")
     select $(state),
            $(data)::json,
-           $(dataId)::uuid,
            "streamId",
            "runId",
            "webhookId",
@@ -210,9 +221,9 @@ export default class IntegrationDataRepository extends RepositoryBase<Integratio
     returning id;
     `,
       {
-        dataId,
         state: IntegrationResultState.PENDING,
         data: JSON.stringify(result),
+        dataId,
       },
     )
 
@@ -342,6 +353,15 @@ export default class IntegrationDataRepository extends RepositoryBase<Integratio
   public async getDataForTenant(tenantId: string): Promise<string[]> {
     const results = await this.db().manyOrNone(this.getDataForTenantQuery, {
       tenantId,
+    })
+
+    return results.map((r) => r.id)
+  }
+
+  public async getDataForIntegration(integrationId: string, limit = 1000): Promise<string[]> {
+    const results = await this.db().manyOrNone(this.getDataForIntegrationQuery, {
+      integrationId,
+      limit,
     })
 
     return results.map((r) => r.id)

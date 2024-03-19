@@ -2,10 +2,10 @@ import Permissions from '@/security/permissions';
 import { PermissionChecker } from '@/modules/user/permission-checker';
 
 export class ConversationPermissions {
-  constructor(currentTenant, currentUser) {
+  constructor(tenant, user) {
     const permissionChecker = new PermissionChecker(
-      currentTenant,
-      currentUser,
+      tenant,
+      user,
     );
 
     this.read = permissionChecker.match(

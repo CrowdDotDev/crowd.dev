@@ -34,6 +34,13 @@ const handleWebhookSender = async (
   sender: any,
   ctx: IProcessWebhookStreamContext,
 ): Promise<GithubPrepareMemberOutput> => {
+  if (!sender) {
+    return undefined
+  }
+  if (!sender.type) {
+    ctx.log.error('Sender type is not defined in handleWebhookSender')
+    throw new Error('Sender type is not defined in handleWebhookSender')
+  }
   if (sender.type === 'Bot') {
     return prepareBotMember(sender)
   } else if (sender.type === 'User') {
@@ -129,7 +136,7 @@ const parseWebhookIssue = async (payload: any, ctx: IProcessWebhookStreamContext
   const member = await handleWebhookSender(payload?.sender, ctx)
 
   if (member) {
-    await ctx.publishData<GithubWebhookData>({
+    await ctx.processData<GithubWebhookData>({
       webhookType: GithubWehookEvent.ISSUES,
       data: payload,
       member,
@@ -143,7 +150,7 @@ const parseWebhookDiscussion = async (payload: any, ctx: IProcessWebhookStreamCo
     member = await handleWebhookSender(payload?.sender, ctx)
 
     if (member) {
-      await ctx.publishData<GithubWebhookData>({
+      await ctx.processData<GithubWebhookData>({
         webhookType: GithubWehookEvent.DISCUSSION,
         subType: GithubWebhookSubType.DISCUSSION_COMMENT_REPLY,
         data: payload,
@@ -160,7 +167,7 @@ const parseWebhookDiscussion = async (payload: any, ctx: IProcessWebhookStreamCo
   member = await handleWebhookSender(discussion?.user, ctx)
 
   if (member) {
-    await ctx.publishData<GithubWebhookData>({
+    await ctx.processData<GithubWebhookData>({
       webhookType: GithubWehookEvent.DISCUSSION,
       subType: GithubWebhookSubType.DISCUSSION_COMMENT_START,
       data: payload,
@@ -186,7 +193,7 @@ const parseWebhookPullRequestEvents = async (
     case 'closed':
     case 'merged': {
       if (member) {
-        await ctx.publishData<GithubWebhookData>({
+        await ctx.processData<GithubWebhookData>({
           webhookType: GithubWehookEvent.PULL_REQUEST,
           data: payload,
           member,
@@ -194,12 +201,24 @@ const parseWebhookPullRequestEvents = async (
       }
       break
     }
-    case 'assigned':
-    case 'review_requested': {
+    case 'assigned': {
       objectMember = await handleWebhookSender(payload?.requested_reviewer, ctx)
 
       if (member && objectMember) {
-        await ctx.publishData<GithubWebhookData>({
+        await ctx.processData<GithubWebhookData>({
+          webhookType: GithubWehookEvent.PULL_REQUEST,
+          data: payload,
+          member,
+          objectMember,
+        })
+      }
+      break
+    }
+    case 'review_requested': {
+      objectMember = await handleWebhookSender(payload?.requested_reviewers?.[0], ctx)
+
+      if (member && objectMember) {
+        await ctx.processData<GithubWebhookData>({
           webhookType: GithubWehookEvent.PULL_REQUEST,
           data: payload,
           member,
@@ -279,7 +298,7 @@ const parseWebhookPullRequestReview = async (
     const member = await handleWebhookSender(payload?.sender, ctx)
 
     if (member) {
-      await ctx.publishData<GithubWebhookData>({
+      await ctx.processData<GithubWebhookData>({
         webhookType: GithubWehookEvent.PULL_REQUEST_REVIEW,
         data: payload,
         member,
@@ -293,7 +312,7 @@ const parseWebhookStar = async (payload: any, ctx: IProcessWebhookStreamContext,
     const member = await handleWebhookSender(payload?.sender, ctx)
 
     if (member) {
-      await ctx.publishData<GithubWebhookData>({
+      await ctx.processData<GithubWebhookData>({
         webhookType: GithubWehookEvent.STAR,
         data: payload,
         member,
@@ -308,7 +327,7 @@ const parseWebhookFork = async (payload: any, ctx: IProcessWebhookStreamContext)
     const member = await handleWebhookOrgSender(payload?.sender, ctx)
 
     if (member) {
-      await ctx.publishData<GithubWebhookData>({
+      await ctx.processData<GithubWebhookData>({
         webhookType: GithubWehookEvent.FORK,
         data: payload,
         orgMember: member,
@@ -320,7 +339,7 @@ const parseWebhookFork = async (payload: any, ctx: IProcessWebhookStreamContext)
   const member = await handleWebhookSender(payload?.sender, ctx)
 
   if (member) {
-    await ctx.publishData<GithubWebhookData>({
+    await ctx.processData<GithubWebhookData>({
       webhookType: GithubWehookEvent.FORK,
       data: payload,
       member,
@@ -377,7 +396,7 @@ const parseWebhookComment = async (
   const member = await handleWebhookSender(payload?.sender, ctx)
 
   if (member) {
-    await ctx.publishData<GithubWebhookData>({
+    await ctx.processData<GithubWebhookData>({
       webhookType: type,
       data: payload,
       member,
@@ -394,7 +413,7 @@ const parseWebhookPullRequestReviewComment = async (
     const member = await handleWebhookSender(payload?.comment?.user, ctx)
 
     if (member) {
-      await ctx.publishData<GithubWebhookData>({
+      await ctx.processData<GithubWebhookData>({
         webhookType: GithubWehookEvent.PULL_REQUEST_REVIEW_COMMENT,
         data: payload,
         member,

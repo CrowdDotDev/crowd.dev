@@ -54,9 +54,10 @@
 <script setup>
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { LfPermissions } from '@/modules/lf/lf-permissions';
-import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { computed } from 'vue';
 import { hasAccessToSegmentId } from '@/utils/segments';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
+import { storeToRefs } from 'pinia';
 
 const emit = defineEmits(['onEditProjectGroup', 'onAddProject']);
 
@@ -67,19 +68,20 @@ defineProps({
   },
 });
 
-const { currentTenant, currentUser } = mapGetters('auth');
+const authStore = useAuthStore();
+const { user, tenant } = storeToRefs(authStore);
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { updateSelectedProjectGroup } = lsSegmentsStore;
 
 const hasPermissionToCreateProject = computed(() => new LfPermissions(
-  currentTenant.value,
-  currentUser.value,
+  tenant.value,
+  user.value,
 )?.createProject);
 
 const hasPermissionToEditProjectGroup = computed(() => new LfPermissions(
-  currentTenant.value,
-  currentUser.value,
+  tenant.value,
+  user.value,
 )?.editProjectGroup);
 
 const editProjectGroup = () => {

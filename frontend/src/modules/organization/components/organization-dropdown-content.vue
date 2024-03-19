@@ -1,4 +1,20 @@
 <template>
+  <!-- Unmerge -->
+  <template v-if="organization.identities.length > 1 && !hideUnmerge">
+    <button
+      class="h-10 el-dropdown-menu__item w-full"
+      :disabled="isEditLockedForSampleData"
+      type="button"
+      @click="handleCommand({
+        action: Actions.UNMERGE_IDENTITY,
+        organization,
+      })"
+    >
+      <i class="ri-link-unlink-m text-base mr-2" /><span class="text-xs">Unmerge identity</span>
+    </button>
+    <el-divider class="border-gray-200 my-2" />
+  </template>
+
   <!-- Edit -->
   <router-link
     v-if="!hideEdit"
@@ -155,7 +171,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import Message from '@/shared/message/message';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
@@ -165,6 +180,8 @@ import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { HubspotEntity } from '@/integrations/hubspot/types/HubspotEntity';
 import { HubspotApiService } from '@/integrations/hubspot/hubspot.api.service';
 import { useStore } from 'vuex';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
+import { storeToRefs } from 'pinia';
 import { OrganizationService } from '../organization-service';
 import { OrganizationPermissions } from '../organization-permissions';
 import { Organization } from '../types/Organization';
@@ -172,6 +189,7 @@ import { Organization } from '../types/Organization';
 enum Actions {
   DELETE_ORGANIZATION = 'deleteOrganization',
   MERGE_ORGANIZATION = 'mergeOrganization',
+  UNMERGE_IDENTITY = 'unmergeIdentity',
   SYNC_HUBSPOT = 'syncHubspot',
   STOP_SYNC_HUBSPOT = 'stopSyncHubspot',
   MARK_ORGANIZATION_AS_TEAM_ORGANIZATION = 'markOrganizationAsTeamOrganization',
@@ -180,31 +198,33 @@ enum Actions {
 const route = useRoute();
 const router = useRouter();
 
-const emit = defineEmits<{(e: 'merge'): void, (e: 'closeDropdown'): void }>();
+const emit = defineEmits<{(e: 'merge'): void, (e: 'unmerge'): void, (e: 'closeDropdown'): void }>();
 defineProps<{
   organization: Organization;
-  hideMerge: boolean;
-  hideEdit: boolean;
+  hideMerge?: boolean;
+  hideUnmerge?: boolean;
+  hideEdit?: boolean;
 }>();
 
 const store = useStore();
 
-const { currentUser, currentTenant } = mapGetters('auth');
+const authStore = useAuthStore();
+const { user, tenant } = storeToRefs(authStore);
 
 const organizationStore = useOrganizationStore();
 
 const isEditLockedForSampleData = computed(
-  () => new OrganizationPermissions(currentTenant.value, currentUser.value)
+  () => new OrganizationPermissions(tenant.value, user.value)
     .editLockedForSampleData,
 );
 const isDeleteLockedForSampleData = computed(
-  () => new OrganizationPermissions(currentTenant.value, currentUser.value)
+  () => new OrganizationPermissions(tenant.value, user.value)
     .destroyLockedForSampleData,
 );
 
 const hasPermissionsToMerge = computed(() => new OrganizationPermissions(
-  currentTenant.value,
-  currentUser.value,
+  tenant.value,
+  user.value,
 )?.mergeOrganizations);
 
 const isSyncingWithHubspot = (organization: Organization) => organization.attributes?.syncRemote?.hubspot || false;
@@ -292,6 +312,14 @@ const handleCommand = (command: {
     return;
   }
 
+  // Unmerge identity
+  if (command.action === Actions.UNMERGE_IDENTITY) {
+    emit('closeDropdown');
+    emit('unmerge');
+
+    return;
+  }
+
   // Sync with hubspot
   if (
     command.action === Actions.SYNC_HUBSPOT
@@ -347,6 +375,7 @@ const handleCommand = (command: {
 
   emit('closeDropdown');
 };
+
 </script>
 
 <style lang="scss" scoped>

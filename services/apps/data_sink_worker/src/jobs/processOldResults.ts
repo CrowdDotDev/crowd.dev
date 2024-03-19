@@ -12,8 +12,8 @@ import {
   SearchSyncWorkerEmitter,
 } from '@crowd/common_services'
 
-const MAX_CONCURRENT_PROMISES = 2
-const MAX_RESULTS_TO_LOAD = 10
+const MAX_CONCURRENT_PROMISES = 5
+const MAX_RESULTS_TO_LOAD = 500
 
 export const processOldResultsJob = async (
   dbConn: DbConnection,
@@ -39,48 +39,55 @@ export const processOldResultsJob = async (
   )
 
   let current = 0
+
   const loadNextBatch = async (): Promise<string[]> => {
     const resultIds = await repo.getOldResultsToProcess(MAX_RESULTS_TO_LOAD)
-    await repo.touchUpdatedAt(resultIds)
     return resultIds
   }
 
   let resultsToProcess = await loadNextBatch()
 
-  log.info(`Processing ${resultsToProcess.length} old results...`)
+  let totalCount = 0
 
-  let successCount = 0
-  let errorCount = 0
-
-  while (resultsToProcess.length > 0) {
+  const loop = async (): Promise<void> => {
     const resultId = resultsToProcess.pop()
 
     while (current == MAX_CONCURRENT_PROMISES) {
-      await timeout(1000)
+      await timeout(50)
     }
 
     current += 1
+    totalCount += 1
     service
       .processResult(resultId)
       .then(() => {
         current--
-        successCount++
       })
       .catch(() => {
         current--
-        errorCount++
       })
 
     if (resultsToProcess.length === 0) {
       while (current > 0) {
-        await timeout(1000)
+        await timeout(50)
+      }
+    }
+  }
+
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    if (resultsToProcess.length > 0) {
+      log.info(`Processing ${resultsToProcess.length} old results...`)
+
+      while (resultsToProcess.length > 0) {
+        await loop()
       }
 
-      log.info(`Processed ${successCount} old results successfully and ${errorCount} with errors.`)
-      resultsToProcess = await loadNextBatch()
-      log.info(`Processing ${resultsToProcess.length} old results...`)
-      successCount = 0
-      errorCount = 0
+      log.info(`Processed ${totalCount} results in total!`)
+    } else {
+      await timeout(5000)
     }
+
+    resultsToProcess = await loadNextBatch()
   }
 }
