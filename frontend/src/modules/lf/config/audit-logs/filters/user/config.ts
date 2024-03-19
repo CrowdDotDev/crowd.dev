@@ -13,41 +13,24 @@ const user: SelectAsyncFilterConfig = {
   type: FilterConfigType.SELECT_ASYNC,
   options: {
     hideIncludeSwitch: true,
-    remoteMethod: (query) => LfService.fetchUsers({
-      or: [
-        { fullName: { textContains: query } },
-        { email: { textContains: query } },
-        { id: { eq: query } },
-      ],
-    }, null, 10)
+    remoteMethod: (query) => {
+      console.log(query);
+      return LfService.fetchUsers({
+        fullName: query,
+        email: query,
+      }, null, 10)
 
-      .then(({ rows }: any) => rows.map((user: any) => ({
-        label: user.fullName,
-        description: `${user.email}`,
-        value: user.id,
-      }))),
-    remotePopulateItems: (id: string) => LfService.fetchUsers(
-      {
-        and: [
-          {
-            id: { eq: id },
-          },
-        ],
-      },
-      null,
-      1,
-      0,
-    )
-      .then(({ rows }: any) => {
-        const [user] = rows;
-        if (user) {
-          return {
-            label: user.fullName,
-            value: user.id,
-          };
-        }
-        return null;
-      }),
+        .then(({ rows }: any) => rows.map((user: any) => ({
+          label: user.fullName,
+          description: `${user.email}`,
+          value: user.id,
+        })));
+    },
+    remotePopulateItems: (id: string) => LfService.getUser(id)
+      .then((data: any) => ({
+        label: data.fullName,
+        value: data.id,
+      })),
   },
   itemLabelRenderer(value: SelectAsyncFilterValue, options: SelectAsyncFilterOptions, data: any): string {
     return itemLabelRendererByType[FilterConfigType.SELECT_ASYNC]('User', value, options, data);

@@ -138,6 +138,16 @@ export class LfService {
     return response.data;
   }
 
+  static async getUser(id) {
+    const tenantId = AuthService.getTenantId();
+
+    const response = await authAxios.get(
+      `/tenant/${tenantId}/user/${id}`,
+    );
+
+    return response.data;
+  }
+
   // AuditLogs
 
   static async fetchAuditLogs(data) {
