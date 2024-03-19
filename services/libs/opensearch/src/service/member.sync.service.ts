@@ -201,7 +201,11 @@ export class MemberSyncService {
     }
   }
 
-  public async syncTenantMembers(tenantId: string, batchSize = 200): Promise<void> {
+  public async syncTenantMembers(
+    tenantId: string,
+    batchSize = 200,
+    segmentIds?: string[],
+  ): Promise<void> {
     this.log.debug({ tenantId }, 'Syncing all tenant members!')
     let docCount = 0
     let memberCount = 0
@@ -211,7 +215,7 @@ export class MemberSyncService {
     let memberIds = await this.memberRepo.getTenantMembersForSync(tenantId, batchSize)
 
     while (memberIds.length > 0) {
-      const { membersSynced, documentsIndexed } = await this.syncMembers(memberIds)
+      const { membersSynced, documentsIndexed } = await this.syncMembers(memberIds, segmentIds)
 
       docCount += documentsIndexed
       memberCount += membersSynced

@@ -46,7 +46,9 @@
     "@crowd/opensearch": "workspace:*",
     "config": "^3.3.9",
     "tsx": "^4.7.1",
-    "typescript": "^5.0.4"
+    "typescript": "^5.0.4",
+    "command-line-args": "^5.2.1",
+    "command-line-usage": "^6.1.3"
   },
   "devDependencies": {
     "@types/config": "^3.3.0",

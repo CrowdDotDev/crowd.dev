@@ -1,3 +1,5 @@
+import commandLineArgs from 'command-line-args'
+import commandLineUsage from 'command-line-usage'
 import { MemberSyncService, OpenSearchService } from '@crowd/opensearch'
 import { DB_CONFIG, OPENSEARCH_CONFIG, REDIS_CONFIG, SERVICE_CONFIG } from '../conf'
 import { MemberRepository } from '@crowd/data-access-layer/src/old/apps/search_sync_worker/member.repo'
@@ -10,58 +12,96 @@ import { IndexedEntityType } from '@crowd/opensearch/src/repo/indexing.data'
 
 const log = getServiceLogger()
 
-const processArguments = process.argv.slice(2)
-
 const MAX_CONCURRENT = 3
 
-setImmediate(async () => {
-  const openSearchService = new OpenSearchService(log, OPENSEARCH_CONFIG())
+const options = [
+  {
+    name: 'help',
+    alias: 'h',
+    type: Boolean,
+    description: 'Print this usage guide.',
+  },
+  {
+    name: 'clean',
+    alias: 'c',
+    type: Boolean,
+    description: 'Clean indexed_entities table for a full sync',
+  },
+  {
+    name: 'segmentIds',
+    alias: 's',
+    type: String,
+    description: 'Syncing to only specific segmentIds',
+  },
+]
+const sections = [
+  {
+    header: `Sync all members to OpenSearch`,
+    content: 'Sync all members to OpenSearch',
+  },
+  {
+    header: 'Options',
+    optionList: options,
+  },
+]
 
-  const redis = await getRedisClient(REDIS_CONFIG(), true)
+const usage = commandLineUsage(sections)
+const parameters = commandLineArgs(options)
 
-  const dbConnection = await getDbConnection(DB_CONFIG())
-  const store = new DbStore(log, dbConnection)
+if (parameters.help) {
+  console.log(usage)
+} else {
+  setImmediate(async () => {
+    const openSearchService = new OpenSearchService(log, OPENSEARCH_CONFIG())
 
-  if (processArguments.includes('--clean')) {
-    const indexingRepo = new IndexingRepository(store, log)
-    await indexingRepo.deleteIndexedEntities(IndexedEntityType.MEMBER)
-  }
+    const redis = await getRedisClient(REDIS_CONFIG(), true)
 
-  const repo = new MemberRepository(store, log)
+    const dbConnection = await getDbConnection(DB_CONFIG())
+    const store = new DbStore(log, dbConnection)
 
-  const tenantIds = await repo.getTenantIds()
+    if (parameters.clean) {
+      const indexingRepo = new IndexingRepository(store, log)
+      await indexingRepo.deleteIndexedEntities(IndexedEntityType.MEMBER)
+    }
 
-  const service = new MemberSyncService(redis, store, openSearchService, log, SERVICE_CONFIG())
+    const repo = new MemberRepository(store, log)
 
-  let current = 0
-  for (let i = 0; i < tenantIds.length; i++) {
-    const tenantId = tenantIds[i]
+    const tenantIds = await repo.getTenantIds()
 
-    while (current == MAX_CONCURRENT) {
+    const segmentIds = parameters.segmentIds ? parameters.segmentIds.split(',') : undefined
+
+    const service = new MemberSyncService(redis, store, openSearchService, log, SERVICE_CONFIG())
+
+    let current = 0
+    for (let i = 0; i < tenantIds.length; i++) {
+      const tenantId = tenantIds[i]
+
+      while (current == MAX_CONCURRENT) {
+        await timeout(1000)
+      }
+
+      log.info(`Processing tenant ${i + 1}/${tenantIds.length}`)
+      current += 1
+      service
+        .syncTenantMembers(tenantId, 500, segmentIds)
+        .then(() => {
+          current--
+          log.info(`Processed tenant ${i + 1}/${tenantIds.length}`)
+        })
+        .catch((err) => {
+          current--
+          log.error(
+            err,
+            { tenantId },
+            `Error syncing members for tenant ${i + 1}/${tenantIds.length}!`,
+          )
+        })
+    }
+
+    while (current > 0) {
       await timeout(1000)
     }
 
-    log.info(`Processing tenant ${i + 1}/${tenantIds.length}`)
-    current += 1
-    service
-      .syncTenantMembers(tenantId, 500)
-      .then(() => {
-        current--
-        log.info(`Processed tenant ${i + 1}/${tenantIds.length}`)
-      })
-      .catch((err) => {
-        current--
-        log.error(
-          err,
-          { tenantId },
-          `Error syncing members for tenant ${i + 1}/${tenantIds.length}!`,
-        )
-      })
-  }
-
-  while (current > 0) {
-    await timeout(1000)
-  }
-
-  process.exit(0)
-})
+    process.exit(0)
+  })
+}
