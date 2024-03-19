@@ -1,11 +1,9 @@
 <template>
-  <div>
-    <slot :progress="progress" />
-  </div>
+  <slot :progress="progress" />
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onMounted, onUnmounted, ref } from 'vue';
 import { IntegrationService } from '@/modules/integration/integration-service';
 import { IntegrationProgress } from '@/modules/integration/types/IntegrationProgress';
 
@@ -14,7 +12,7 @@ const props = withDefaults(defineProps<{
   segments?: string[]
 }>(), {
   interval: 10,
-  segments: [],
+  segments: () => ([]),
 });
 
 const progress = ref<IntegrationProgress | null>(null);
@@ -37,6 +35,10 @@ onMounted(() => {
   intervalInstance.value = setInterval(() => {
     fetchUpdates();
   }, props.interval * 1000);
+});
+
+onUnmounted(() => {
+  clearInterval(intervalInstance.value);
 });
 </script>
 

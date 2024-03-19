@@ -474,7 +474,7 @@ export class IntegrationService {
       `/tenant/${tenantId}/integration/progress/list`,
       {
         params: {
-          segments,
+          segments: segments || undefined,
         },
       },
     );

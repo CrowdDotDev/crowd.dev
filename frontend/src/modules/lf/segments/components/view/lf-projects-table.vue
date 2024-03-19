@@ -49,7 +49,7 @@
             :key="integration.id"
           >
             <el-popover
-              :disabled="integration.status !== 'in-progress'"
+              :disabled="integration.status !== 'in-progress' || !getProgress(row.id, integration.platform)"
               :width="320"
               placement="top"
             >
@@ -76,7 +76,7 @@
                 </div>
               </template>
               <div class="px-1">
-                <app-integration-progress :integration="integration" :show-bar="true">
+                <app-integration-progress :progress="getProgress(row.id, integration.platform)" :show-bar="true">
                   <h6 class="text-xs text-black leading-5 pb-3">
                     Connecting {{ CrowdIntegrations.getConfig(integration.platform)?.name }} integration
                   </h6>
@@ -197,10 +197,15 @@ import { CrowdIntegrations } from '../../../../../integrations/integrations-conf
 const route = useRoute();
 
 const emit = defineEmits(['onEditProject', 'onEditSubProject', 'onAddSubProject']);
-defineProps({
+const props = defineProps({
   project: {
     type: Object,
     required: true,
+  },
+  progress: {
+    type: Array,
+    required: false,
+    default: () => ([]),
   },
 });
 
@@ -213,6 +218,8 @@ const hasPermissionToCreateSubProject = computed(() => new LfPermissions(
 )?.createSubProject);
 
 const statusDisplay = (status) => statusOptions.find((s) => s.value === status);
+
+const getProgress = (segmentId, platform) => (props.progress || []).find((p) => p.segmentId === segmentId && p.type === platform);
 </script>
 
 <script>
