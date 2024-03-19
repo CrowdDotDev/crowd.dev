@@ -1,5 +1,6 @@
 import { LogRenderingConfig } from '@/modules/lf/config/audit-logs/log-rendering/index';
 import moment from 'moment';
+import { OrganizationService } from '@/modules/organization/organization-service';
 // import { OrganizationService } from '@/modules/organization/organization-service';
 
 const formatDateRange = (dateStart, dateEnd) => {
@@ -16,7 +17,7 @@ const formatDateRange = (dateStart, dateEnd) => {
 
 const membersEditOrganizations: LogRenderingConfig = {
   label: 'Contributor work experience updated',
-  changes: (log) => {
+  changes: async (log) => {
     const changes = {
       removals: [],
       additions: [],
@@ -26,33 +27,27 @@ const membersEditOrganizations: LogRenderingConfig = {
     const oldStateMap = new Map(log.oldState.map((org) => [org.organizationId, org]));
     const newStateMap = new Map(log.newState.map((org) => [org.organizationId, org]));
 
-    // const orgIds = [
-    //   ...new Set([
-    //     ...log.oldState.map((org) => org.organizationId),
-    //     ...log.newState.map((org) => org.organizationId),
-    //   ]),
-    // ];
-    //
-    // const org = await OrganizationService.query({
-    //   filter: {
-    //     id: {
-    //       in: orgIds,
-    //     }
-    //   },
-    //   countOnly: false,
-    //   limit: orgIds.length,
-    //   offset: 0,
-    // });
-    // console.log(org);
+    const orgIds = [
+      ...new Set([
+        ...log.oldState.map((org) => org.organizationId),
+        ...log.newState.map((org) => org.organizationId),
+      ]),
+    ];
+
+    const orgs = await OrganizationService.listByIds(orgIds);
+    const orgById = orgs.reduce((obj, org) => ({
+      ...obj,
+      [org.id]: org.displayName,
+    }), {});
 
     // Check for removals and modifications
     log.oldState.forEach((org) => {
       if (!newStateMap.has(org.organizationId)) {
-        changes.removals.push(`<span>Organization Id:</span> ${org.organizationId}`);
+        changes.removals.push(`<span>Organization:</span> ${org.organizationId ? (orgById[org.organizationId]) : 'Individual'}`);
       } else {
         const newOrg = newStateMap.get(org.organizationId);
         if (org.dateStart !== newOrg.dateStart || org.dateEnd !== newOrg.dateEnd || org.title !== newOrg.title) {
-          changes.changes.push(`<span>Organization Id:</span> ${org.organizationId}
+          changes.changes.push(`<span>Organization:</span> ${org.organizationId ? (orgById[org.organizationId]) : 'Individual'}
             <br><s>${org.title}: ${formatDateRange(org.dateStart, org.dateEnd)}</s>
             <br>${newOrg.title}: ${formatDateRange(newOrg.dateStart, newOrg.dateEnd)}
           `);
@@ -63,7 +58,7 @@ const membersEditOrganizations: LogRenderingConfig = {
     // Check for additions
     log.newState.forEach((org) => {
       if (!oldStateMap.has(org.organizationId)) {
-        changes.additions.push(`<span>Organization Id:</span> ${org.organizationId}`);
+        changes.additions.push(`<span>Organization:</span> ${org.organizationId ? (orgById[org.organizationId]) : 'Individual'}`);
       }
     });
 

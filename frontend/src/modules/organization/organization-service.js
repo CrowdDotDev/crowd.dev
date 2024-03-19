@@ -127,6 +127,22 @@ export class OrganizationService {
     return response.data;
   }
 
+  static async listByIds(
+    ids,
+  ) {
+    const sampleTenant = AuthCurrentTenant.getSampleTenantData();
+    const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
+
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/organization/id`,
+      {
+        ids,
+      },
+    );
+
+    return response.data;
+  }
+
   static async listAutocomplete({
     query,
     limit,
