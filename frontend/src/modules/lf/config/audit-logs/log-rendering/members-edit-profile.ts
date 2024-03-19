@@ -17,11 +17,11 @@ function flattenObject(obj) {
 }
 
 const membersEditProfile: LogRenderingConfig = {
-  label: 'Contributor profile edited',
+  label: 'Contributor profile updated',
   changes: (log) => {
-    const additions = [];
-    const removals = [];
-    const changes = [];
+    const additions: any[] = [];
+    const removals: any[] = [];
+    const changes: any[] = [];
 
     const oldState = { ...log.oldState, ...flattenObject(log.oldState.attributes) };
     const newState = { ...log.newState, ...flattenObject(log.newState.attributes) };

@@ -2,7 +2,7 @@ import { LogRenderingConfig } from '@/modules/lf/config/audit-logs/log-rendering
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 
 const integrationsReconnect: LogRenderingConfig = {
-  label: 'Integration reconnected',
+  label: 'Integration re-connected',
   changes: () => null,
   description: (log) => {
     const integration = CrowdIntegrations.getConfig(log.newState?.platform || log.oldState?.platform);

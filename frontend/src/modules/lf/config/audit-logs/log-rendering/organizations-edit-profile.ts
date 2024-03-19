@@ -6,7 +6,7 @@ function camelCaseToName(camelCase) {
 }
 
 const organizationsEditProfile: LogRenderingConfig = {
-  label: 'Organization profile edited',
+  label: 'Organization profile updated',
   changes: ({ oldState, newState, diff }) => {
     const additions = [];
     const removals = [];

@@ -14,7 +14,7 @@ function convertToMap(state: any[]): Map<string, any> {
 }
 
 const organizationsEditIdentities: LogRenderingConfig = {
-  label: 'Organization identities edited',
+  label: 'Organization identities updated',
   changes: ({ oldState, newState }) => {
     const additions: any[] = [];
     const removals: any[] = [];

@@ -2,7 +2,7 @@ import { LogRenderingConfig } from '@/modules/lf/config/audit-logs/log-rendering
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 
 const membersEditIdentities: LogRenderingConfig = {
-  label: 'Contributor identities edited',
+  label: 'Contributor identities updated',
   changes: (log) => {
     const removals = [];
     const additions = [];

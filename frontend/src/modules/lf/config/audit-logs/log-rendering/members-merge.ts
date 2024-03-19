@@ -1,7 +1,7 @@
 import { LogRenderingConfig } from '@/modules/lf/config/audit-logs/log-rendering/index';
 
 const membersMerge: LogRenderingConfig = {
-  label: 'Contributor merged',
+  label: 'Contributors merged',
   changes: (log) => {
     const primary = log.oldState?.primary;
     const secondary = log.oldState?.secondary;

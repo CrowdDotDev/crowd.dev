@@ -14,7 +14,7 @@ const formatDateRange = (dateStart, dateEnd) => {
 };
 
 const membersEditManualAffiliation: LogRenderingConfig = {
-  label: 'Contributor affiliations edited',
+  label: 'Contributor affiliation updated',
   changes: (log) => {
     const changes = {
       removals: [],

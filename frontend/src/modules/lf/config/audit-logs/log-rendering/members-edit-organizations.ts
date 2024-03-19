@@ -15,7 +15,7 @@ const formatDateRange = (dateStart, dateEnd) => {
 };
 
 const membersEditOrganizations: LogRenderingConfig = {
-  label: 'Contributor organizations edited',
+  label: 'Contributor work experience updated',
   changes: (log) => {
     const changes = {
       removals: [],
