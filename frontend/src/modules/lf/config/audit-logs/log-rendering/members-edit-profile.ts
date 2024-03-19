@@ -6,6 +6,9 @@ function camelCaseToName(camelCase) {
 }
 
 function flattenObject(obj) {
+  if (!obj) {
+    return {};
+  }
   const flattenedObj = {};
   Object.keys(obj).forEach((key) => {
     Object.keys(obj[key]).forEach((nestedKey) => {
