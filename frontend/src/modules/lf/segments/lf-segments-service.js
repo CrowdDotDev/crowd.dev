@@ -25,7 +25,7 @@ export class LfService {
     const response = await authAxios.post(
       `/tenant/${tenantId}/segment/id`,
       {
-        ids
+        ids,
       },
     );
 

@@ -1,18 +1,6 @@
 import { LogRenderingConfig } from '@/modules/lf/config/audit-logs/log-rendering/index';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 
-function getIdentityKey(identity: any): string {
-  return `${identity.name}-${identity.platform}`;
-}
-
-function convertToMap(state: any[]): Map<string, any> {
-  const stateMap = new Map<string, any>();
-  state.forEach((identity) => {
-    stateMap.set(getIdentityKey(identity), identity);
-  });
-  return stateMap;
-}
-
 const organizationsEditIdentities: LogRenderingConfig = {
   label: 'Organization identities updated',
   changes: ({ oldState, newState }) => {
