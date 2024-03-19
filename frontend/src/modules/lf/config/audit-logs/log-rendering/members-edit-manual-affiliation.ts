@@ -62,8 +62,7 @@ const membersEditManualAffiliation: LogRenderingConfig = {
           organizationId, dateStart, dateEnd, segmentId,
         } = org;
         changes.removals.push(
-          `<span>Organization:</span> ${organizationId ? (orgById[organizationId]) : 'Individual'} 
-          <br><span>Segment:</span> ${segmentId ? segmentById[segmentId] : 'None'}
+          `<span>${organizationId ? (orgById[organizationId]) : 'Individual'}:</span> ${segmentId ? segmentById[segmentId] : 'None'}
           <br> (${formatDateRange(dateStart, dateEnd)})`,
         );
       } else {
@@ -85,8 +84,7 @@ const membersEditManualAffiliation: LogRenderingConfig = {
           organizationId, dateStart, dateEnd, segmentId,
         } = org;
         changes.additions.push(
-          `<span>Organization:</span> ${organizationId ? (orgById[organizationId]) : 'Individual'}
-          <br><span>Segment:</span> ${segmentId ? segmentById[segmentId] : 'None'}
+          `<span>${organizationId ? (orgById[organizationId]) : 'Individual'}:</span> ${segmentId ? segmentById[segmentId] : 'None'}
           <br> (${formatDateRange(dateStart, dateEnd)})`,
         );
       }
