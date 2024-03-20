@@ -25,7 +25,9 @@ async function captureChange(
     return
   }
 
-  if (!action.diff || !Object.keys(action.diff).length) {
+  if (action.success && (!action.diff || JSON.stringify(action.diff) === '{}')) {
+    // we ignore empty diffs but only if the action was successful
+    // because when the action fails, the diff will be empty, but we need to log it
     return
   }
 
