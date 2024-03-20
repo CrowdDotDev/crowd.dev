@@ -602,6 +602,26 @@ export class MemberSyncService {
     }
     p.nested_identities = p_identities
 
+    p.string_arr_verified_emails = data.identities
+      .filter((i) => i.isVerified && i.type === MemberIdentityType.EMAIL)
+      .map((i) => i.value)
+
+    p.string_arr_unverified_emails = data.identities
+      .filter((i) => !i.isVerified && i.type === MemberIdentityType.EMAIL)
+      .map((i) => i.value)
+
+    p.string_arr_verified_usernames = data.identities
+      .filter((i) => i.isVerified && i.type === MemberIdentityType.USERNAME)
+      .map((i) => i.value)
+
+    p.string_arr_unverified_usernames = data.identities
+      .filter((i) => !i.isVerified && i.type === MemberIdentityType.USERNAME)
+      .map((i) => i.value)
+
+    p.string_arr_identity_platforms = distinct(
+      data.identities.filter((i) => i.isVerified).map((i) => i.platform),
+    )
+
     const p_contributions = []
     if (data.contributions) {
       for (const contribution of data.contributions) {

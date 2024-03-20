@@ -3,13 +3,14 @@ import { MemberIdentityType, PlatformType } from '@crowd/types'
 
 export interface IMemberIdentityData {
   id: string
-  username: string
+  value: string
 }
 
 export async function fetchIntegrationMembersPaginated(
   db: DbConnection | DbTransaction,
   integrationId: string,
   platform: PlatformType,
+  type: MemberIdentityType,
   page: number,
   perPage: number,
 ): Promise<IMemberIdentityData[]> {
@@ -17,12 +18,12 @@ export async function fetchIntegrationMembersPaginated(
     `
           SELECT
             m."memberId" as id,
-            m.value as username
+            m.value,
           FROM
             "memberIdentities" m
           WHERE
             m."tenantId"= (select "tenantId" from integrations where id = $(integrationId) )
-            and m.platform = $(platform) and m.type = $(type)
+            and m.platform = $(platform) and m.type = $(type) and m."isVerified" = true
           ORDER BY
             m."memberId"
           LIMIT $(perPage)
@@ -30,9 +31,9 @@ export async function fetchIntegrationMembersPaginated(
         `,
     {
       integrationId,
+      type,
       platform,
       perPage,
-      type: MemberIdentityType.USERNAME,
       offset: (page - 1) * perPage,
     },
   )

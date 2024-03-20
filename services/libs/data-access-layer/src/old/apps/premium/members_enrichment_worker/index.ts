@@ -1,18 +1,22 @@
 import { DbStore, DbTransaction } from '@crowd/database'
-import { IAttributes, MemberIdentityType, OrganizationSource } from '@crowd/types'
+import { IAttributes, IMember, MemberIdentityType, OrganizationSource } from '@crowd/types'
 
-export async function fetchMembersForEnrichment(db: DbStore) {
+export async function fetchMembersForEnrichment(db: DbStore): Promise<IMember[]> {
   return db.connection().query(
     `SELECT
         members."id",
         members."displayName",
         members."attributes",
-        members."emails",
         members."contributions",
         members."score",
         members."reach",
         members."tenantId",
-        jsonb_object_agg(mi.platform, mi.value) as username,
+        json_agg(json_build_object(
+          'platform', mi.platform,
+          'value', mi.value,
+          'type', mi.type,
+          'verified', mi."isVerified"
+        )) as identities,
         COUNT(activities."memberId") AS activity_count
       FROM members
       INNER JOIN tenants ON tenants.id = members."tenantId"
@@ -24,8 +28,7 @@ export async function fetchMembersForEnrichment(db: DbStore) {
         OR members."lastEnriched" IS NULL
       )
       AND (
-        mi.platform = 'github'
-        OR array_length(members.emails, 1) > 0
+        mi.platform = 'github' and mi.type = '${MemberIdentityType.EMAIL}'
       )
       AND tenants."deletedAt" IS NULL
       AND members."deletedAt" IS NULL
@@ -48,19 +51,31 @@ export async function updateLastEnrichedDate(
 
 export async function findExistingMember(
   db: DbStore,
+  memberId: string,
   tenantId: string,
   platform: string,
-  usernames: string[],
-) {
-  return db.connection().query(
+  values: string[],
+  type: MemberIdentityType,
+): Promise<string[]> {
+  const results = await db.connection().any(
     `SELECT mi."memberId"
        FROM "memberIdentities" mi
-       WHERE mi."tenantId" = $1
-         AND mi.platform = $2
-         AND mi.value in ($3)
+       WHERE mi."memberId" <> $(memberId)
+         AND mi."tenantId" = $(tenantId)
+         AND mi.platform = $(platform)
+         AND mi.value in ($(values:csv))
+         AND mi.type = $(type)
          AND EXISTS (SELECT 1 FROM "memberSegments" ms WHERE ms."memberId" = mi."memberId")`,
-    [tenantId, platform, usernames],
+    {
+      memberId,
+      tenantId,
+      platform,
+      values,
+      type,
+    },
   )
+
+  return results.map((r) => r.memberId)
 }
 
 export async function addMemberToMerge(tx: DbTransaction, memberId: string, toMergeId: string) {
@@ -196,23 +211,27 @@ export async function updateMember(
   memberId: string,
   displayName: string,
   updateDisplayName: boolean,
-  emails: string[],
   attributes: IAttributes,
   contributions: object,
 ) {
   let stmtDisplayName = ''
   if (updateDisplayName) {
-    stmtDisplayName = `"displayName" = $1,`
+    stmtDisplayName = `"displayName" = $(displayName),`
   }
 
   return tx.query(
     `UPDATE members SET ${stmtDisplayName}
-      emails = $2,
-      attributes = $3,
-      contributions = $4,
+      attributes = $(attributes),
+      contributions = $(contributions),
       "lastEnriched" = NOW(),
       "updatedAt" = NOW()
-    WHERE id = $5 AND "tenantId" = $6;`,
-    [displayName, emails, attributes, JSON.stringify(contributions), memberId, tenantId],
+    WHERE id = $(memberId) AND "tenantId" = $(tenantId);`,
+    {
+      memberId,
+      tenantId,
+      attributes,
+      contributions: JSON.stringify(contributions),
+      displayName,
+    },
   )
 }

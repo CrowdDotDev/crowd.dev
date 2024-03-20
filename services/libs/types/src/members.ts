@@ -65,17 +65,11 @@ export interface IMember {
   tags: ITagOpensearch[]
   toMergeIds: string[]
   noMergeIds: string[]
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  username: PlatformIdentities
   lastActivity: unknown
   bio?: string
   location?: string
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   contributions?: any
-}
-
-export type PlatformIdentities = {
-  [K in keyof typeof PlatformType]?: [MemberIdentity]
 }
 
 export interface MemberIdentity {

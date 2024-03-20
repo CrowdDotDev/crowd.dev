@@ -1,16 +1,13 @@
 import axios, { AxiosResponse } from 'axios'
 
-import { PlatformType } from '@crowd/types'
 import { EnrichmentAPIResponse, EnrichmentAPIMember } from '@crowd/types/src/premium'
-
-import { EnrichingMember } from '../types/enrichment'
 
 /*
 enrichMemberUsingGitHubHandle is a Temporal activity that fetches enrichment data
 from external API using the member's GitHub username.
 */
 export async function enrichMemberUsingGitHubHandle(
-  input: EnrichingMember,
+  githubUsername: string,
 ): Promise<EnrichmentAPIMember> {
   const url = `${process.env['CROWD_ENRICHMENT_URL']}/get_profile`
 
@@ -20,7 +17,7 @@ export async function enrichMemberUsingGitHubHandle(
       method: 'get',
       url,
       params: {
-        github_handle: input.member.username[PlatformType.GITHUB],
+        github_handle: githubUsername,
         with_emails: true,
         api_key: process.env['CROWD_ENRICHMENT_API_KEY'],
       },
@@ -45,9 +42,7 @@ export async function enrichMemberUsingGitHubHandle(
 enrichMemberUsingEmailAddress is a Temporal activity that fetches enrichment data
 from external API using the member's email address.
 */
-export async function enrichMemberUsingEmailAddress(
-  input: EnrichingMember,
-): Promise<EnrichmentAPIMember> {
+export async function enrichMemberUsingEmailAddress(email: string): Promise<EnrichmentAPIMember> {
   const url = `${process.env['CROWD_ENRICHMENT_URL']}/get_profile`
 
   let response: AxiosResponse<EnrichmentAPIResponse> = null
@@ -56,7 +51,7 @@ export async function enrichMemberUsingEmailAddress(
       method: 'get',
       url,
       params: {
-        email: input.member.emails[0],
+        email,
         with_emails: true,
         api_key: process.env['CROWD_ENRICHMENT_API_KEY'],
       },

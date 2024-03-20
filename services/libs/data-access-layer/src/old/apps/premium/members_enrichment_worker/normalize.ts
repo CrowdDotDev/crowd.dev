@@ -8,14 +8,22 @@ export async function insertMemberIdentity(
   platform: string,
   memberId: string,
   tenantId: string,
-  username: string,
+  value: string,
+  type: MemberIdentityType,
+  verified: boolean,
 ) {
   return tx.query(
-    `INSERT INTO "memberIdentities" ("memberId", "tenantId", platform, value, type)
-          VALUES ($1, $2, $3, $4)
-          ON CONFLICT ON CONSTRAINT "memberIdentities_platform_username_tenantId_key" DO UPDATE
-          SET value = EXCLUDED.value, "updatedAt" = NOW();`,
-    [memberId, tenantId, platform, username, MemberIdentityType.USERNAME],
+    `INSERT INTO "memberIdentities" ("memberId", "tenantId", platform, value, type, "isVerified")
+          VALUES ($(memberId), $(tenantId), $(platform), $(value), $(type), $(verified))
+          ON CONFLICT DO NOTHING;`,
+    {
+      memberId,
+      tenantId,
+      platform,
+      value,
+      type,
+      verified,
+    },
   )
 }
 
