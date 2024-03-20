@@ -350,7 +350,7 @@ class MemberRepository {
 
     for (const identity of identitiesToMove) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const [_, count] = await moveToNewMember(qx, {
+      const { rowCount } = await moveToNewMember(qx, {
         tenantId: tenant.id,
         oldMemberId: fromMemberId,
         newMemberId: toMemberId,
@@ -358,7 +358,7 @@ class MemberRepository {
         username: identity.username,
       })
 
-      if (count !== 1) {
+      if (rowCount !== 1) {
         throw new Error('One row should be updated!')
       }
     }

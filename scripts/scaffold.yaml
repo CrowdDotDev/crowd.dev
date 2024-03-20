@@ -105,6 +105,8 @@ services:
       - NGINX_PORT=443
     networks:
       - crowd-bridge
+    profiles:
+      - nginx
 
   redis:
     build:
