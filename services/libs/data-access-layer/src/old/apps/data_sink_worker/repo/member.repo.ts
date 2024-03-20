@@ -34,16 +34,18 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
     this.insertMemberSegmentColumnSet = getInsertMemberSegmentColumnSet(this.dbInstance)
   }
 
-  // TODO uros fix
   public async findMemberByEmail(tenantId: string, email: string): Promise<IDbMember | null> {
     return await this.db().oneOrNone(
       `${this.selectMemberQuery}
-      where "tenantId" = $(tenantId)
-      and "emails" @> ARRAY[$(email)]
+      inner join "memberIdentities" mi on m.id = mi."memberId" and mi."isVerified" = true
+      where m."tenantId" = $(tenantId)
+        and mi.type = $(type)
+        and mi.value = $(email)
       limit 1
     `,
       {
         tenantId,
+        type: MemberIdentityType.EMAIL,
         email,
       },
     )
@@ -294,7 +296,6 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
     )
   }
 
-  // TODO uros fix
   public async getMemberIdsAndEmailsAndCount(
     tenantId: string,
     segmentIds: string[],
@@ -349,9 +350,18 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
 
     const members = await this.db().any(
       `
-      SELECT m.id
+      with member_emails as (
+        select mi."memberId", array_agg(mi.value) as emails
+        from "memberIdentities" mi
+        where mi."tenantId" = $(tenantId) and
+              mi."isVerified" = true and
+              mi.type = '${MemberIdentityType.EMAIL}'
+        group by mi."memberId"
+      )
+      SELECT m.id, me.emails
       FROM "members" m
       JOIN "memberSegments" ms ON ms."memberId" = m.id
+      JOIN member_emails me on me."memberId" = m.id
       WHERE m."tenantId" = $(tenantId)
       AND ms."segmentId" = ANY($(segmentIds)::uuid[])
       ORDER BY ${orderByString}
