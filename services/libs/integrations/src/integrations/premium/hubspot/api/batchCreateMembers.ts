@@ -29,7 +29,11 @@ export const batchCreateMembers = async (
     const hubspotMembers = []
 
     for (const member of members) {
-      const primaryEmail = member.emails.length > 0 ? member.emails[0] : null
+      const primaryEmail =
+        member.identities.filter((i) => i.type === MemberIdentityType.EMAIL && i.verified).length >
+        0
+          ? member.identities.find((i) => i.type === MemberIdentityType.EMAIL && i.verified)?.value
+          : null
 
       if (!primaryEmail) {
         ctx.log.warn(
@@ -100,7 +104,12 @@ export const batchCreateMembers = async (
     const membersCreated = result.data.results.reduce((acc, m) => {
       const member = members.find(
         (crowdMember) =>
-          crowdMember.emails.length > 0 && crowdMember.emails.includes(m.properties.email),
+          crowdMember.identities.filter((i) => i.type === MemberIdentityType.EMAIL && i.verified)
+            .length > 0 &&
+          crowdMember.identities
+            .filter((i) => i.type === MemberIdentityType.EMAIL && i.verified)
+            .map((i) => i.value)
+            .includes(m.properties.email),
       )
 
       if (member) {
@@ -135,15 +144,17 @@ export const batchCreateMembers = async (
           // exclude found member from batch payload
           const createMembers = members.filter(
             (m) =>
-              !m.emails
-                .map((email) => email.toLowerCase())
+              !m.identities
+                .filter((i) => i.type === MemberIdentityType.EMAIL && i.verified)
+                .map((i) => i.value.toLowerCase())
                 .includes((member.properties as any).email.toLowerCase()),
           )
 
           const updateMembers = members
             .filter((m) =>
-              m.emails
-                .map((email) => email.toLowerCase())
+              m.identities
+                .filter((i) => i.type === MemberIdentityType.EMAIL && i.verified)
+                .map((i) => i.value.toLowerCase())
                 .includes((member.properties as any).email.toLowerCase()),
             )
             .map((m) => {

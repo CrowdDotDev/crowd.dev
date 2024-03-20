@@ -30,10 +30,10 @@ export class HubspotMemberFieldMapper extends HubspotFieldMapper {
       readonly: true,
       serialize: serializeDate,
     },
-    emails: {
-      hubspotType: HubspotPropertyType.STRING,
-      serialize: serializeArray,
-    },
+    // emails: {
+    //   hubspotType: HubspotPropertyType.STRING,
+    //   serialize: serializeArray,
+    // },
     joinedAt: {
       hubspotType: HubspotPropertyType.DATE,
       readonly: true,
@@ -170,13 +170,6 @@ export class HubspotMemberFieldMapper extends HubspotFieldMapper {
         {
           platform: PlatformType.HUBSPOT,
           value: contactProperties.email,
-          type: MemberIdentityType.USERNAME,
-          sourceId: hubspotContact.id,
-          verified: true,
-        },
-        {
-          platform: PlatformType.HUBSPOT,
-          value: contactProperties.email,
           type: MemberIdentityType.EMAIL,
           sourceId: hubspotContact.id,
           verified: true,
@@ -201,7 +194,7 @@ export class HubspotMemberFieldMapper extends HubspotFieldMapper {
         // For incoming integrations, we already get the member email from hubspot defined field `email`
         // if user mapped crowd field `emails` to some other field
         // this will be saved to the mapped field when sending the member back to hubspot
-        if (crowdKey !== 'emails' && contactProperties[hubspotPropertyName] !== null) {
+        if (contactProperties[hubspotPropertyName] !== null) {
           if (crowdKey.startsWith('attributes')) {
             const crowdAttributeName = crowdKey.split('.')[1] || null
 
