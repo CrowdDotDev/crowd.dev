@@ -19,6 +19,19 @@ export class LfService {
     return response.data;
   }
 
+  static async listSegmentsByIds(ids) {
+    const tenantId = AuthService.getTenantId();
+
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/segment/id`,
+      {
+        ids,
+      },
+    );
+
+    return response.data;
+  }
+
   static async updateSegment(id, data) {
     const tenantId = AuthService.getTenantId();
 
@@ -98,6 +111,51 @@ export class LfService {
     const response = await authAxios.post(
       `/tenant/${tenantId}/segment/subproject`,
       body,
+    );
+
+    return response.data;
+  }
+
+  // Users
+
+  static async fetchUsers(filter, orderBy, limit, offset) {
+    const params = {
+      filter,
+      orderBy,
+      limit,
+      offset,
+    };
+
+    const tenantId = AuthService.getTenantId();
+
+    const response = await authAxios.get(
+      `/tenant/${tenantId}/user`,
+      {
+        params,
+      },
+    );
+
+    return response.data;
+  }
+
+  static async getUser(id) {
+    const tenantId = AuthService.getTenantId();
+
+    const response = await authAxios.get(
+      `/tenant/${tenantId}/user/${id}`,
+    );
+
+    return response.data;
+  }
+
+  // AuditLogs
+
+  static async fetchAuditLogs(data) {
+    const tenantId = AuthService.getTenantId();
+
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/audit-logs/query`,
+      data,
     );
 
     return response.data;

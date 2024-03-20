@@ -47,4 +47,6 @@ export default (app) => {
     featureFlagMiddleware(FeatureFlag.CSV_EXPORT, 'errors.csvExport.planLimitExceeded'),
     safeWrap(require('./organizationExport').default),
   )
+
+  app.post(`/tenant/:tenantId/organization/id`, safeWrap(require('./organizationByIds').default))
 }

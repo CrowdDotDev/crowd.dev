@@ -1,11 +1,25 @@
 <template>
   <div class="mb-4">
     <div class="flex justify-end pb-4">
-      <cr-filter-search v-model="filters.search" :placeholder="props.searchConfig.placeholder">
+      <cr-filter-search v-if="props.searchConfig" v-model="filters.search" :placeholder="props.searchConfig.placeholder">
         <template #append>
-          <cr-filter-dropdown v-model="filterList" :config="props.config" :custom-config="props.customConfig || {}" @open="open = $event" />
+          <cr-filter-dropdown
+            v-model="filterList"
+            :config="props.config"
+            :custom-config="props.customConfig || {}"
+            @open="open = $event"
+          />
         </template>
       </cr-filter-search>
+      <cr-filter-dropdown
+        v-else
+        v-model="filterList"
+        :config="props.config"
+        :custom-config="props.customConfig || {}"
+        class="!border !rounded mr-auto"
+        placement="bottom-start"
+        @open="open = $event"
+      />
       <el-button
         v-if="isDeveloperModeActive && developerModeEnabled()"
         class="btn btn-brand--secondary !bg-purple-100 !text-purple-600 ml-2"
@@ -22,11 +36,13 @@
           effect="dark"
           :content="`${filters.relation} → ${filters.relation === 'and' ? 'or' : 'and'}`"
           placement="top"
+          :disabled="props.lockRelation"
         >
           <div
             v-if="fi > 0"
+            :click="!props.lockRelation ? 'cursor-pointer hover:bg-gray-100' : ''"
             class="border text-xs border-gray-100 rounded-md shadow justify-center
-          h-8 flex font-medium items-center py-1 px-2 bg-white cursor-pointer hover:bg-gray-100 transition mr-3 mb-4"
+          h-8 flex font-medium items-center py-1 px-2 bg-white  transition mr-3 mb-4"
             @click="switchOperator"
           >
             {{ filters.relation }}
@@ -70,9 +86,10 @@ const props = defineProps<{
   modelValue: Filter,
   config: Record<string, FilterConfig>,
   customConfig?: Record<string, FilterConfig>,
-  searchConfig: SearchFilterConfig,
+  searchConfig?: SearchFilterConfig,
   savedViewsConfig?: SavedViewsConfig,
   hash?: string,
+  lockRelation?: boolean,
 }>();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: Filter), (e: 'fetch', value: FilterQuery),}>();
@@ -103,6 +120,9 @@ const configuration = computed(() => ({
 const filterList = ref<string[]>([]);
 
 const switchOperator = () => {
+  if (props.lockRelation) {
+    return;
+  }
   filters.value.relation = filters.value.relation === 'and' ? 'or' : 'and';
 };
 
@@ -113,7 +133,7 @@ const alignFilterList = (value: Filter) => {
   filterList.value = Object.keys(filterValues);
 };
 
-const removeFilter = (key) => {
+const removeFilter = (key: string) => {
   open.value = '';
   filterList.value = filterList.value.filter((el) => el !== key);
   delete filters.value[key];

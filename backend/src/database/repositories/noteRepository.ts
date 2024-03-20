@@ -359,6 +359,8 @@ class NoteRepository {
     }
 
     const output = record.get({ plain: true })
+    output.updatedAt = new Date(output.updatedAt)
+    output.createdAt = new Date(output.createdAt)
 
     const transaction = SequelizeRepository.getTransaction(options)
 

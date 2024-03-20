@@ -22,23 +22,25 @@ import isFeatureEnabled from '../../feature-flags/isFeatureEnabled'
 export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.organizationRead)
 
-  const segmentId = req.query.segmentId
-  if (!segmentId) {
-    const segmentsEnabled = await isFeatureEnabled(FeatureFlag.SEGMENTS, req)
-    if (segmentsEnabled) {
-      await req.responseHandler.error(req, res, {
-        code: 400,
-        message: 'Segment ID is required',
-      })
-      return
-    }
-  }
+  const forceDb = req.headers['x-crowd-force-db'] === '1'
 
   let payload
-  if (await isFeatureEnabled(FeatureFlag.SERVE_PROFILES_OPENSEARCH, req)) {
+  if (!forceDb && (await isFeatureEnabled(FeatureFlag.SERVE_PROFILES_OPENSEARCH, req))) {
+    const segmentId = req.query.segmentId
+    if (!segmentId) {
+      const segmentsEnabled = await isFeatureEnabled(FeatureFlag.SEGMENTS, req)
+      if (segmentsEnabled) {
+        await req.responseHandler.error(req, res, {
+          code: 400,
+          message: 'Segment ID is required',
+        })
+        return
+      }
+    }
+
     payload = await new OrganizationService(req).findByIdOpensearch(req.params.id, segmentId)
   } else {
-    payload = await new OrganizationService(req).findById(req.params.id, segmentId)
+    payload = await new OrganizationService(req).findById(req.params.id)
   }
 
   await req.responseHandler.success(req, res, payload)

@@ -2,6 +2,7 @@ import lodash from 'lodash'
 import Sequelize, { QueryTypes } from 'sequelize'
 import { IntegrationRunState, PlatformType } from '@crowd/types'
 import { Error404 } from '@crowd/common'
+import { captureApiChange, integrationConnectAction } from '@crowd/audit-logs'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
@@ -26,28 +27,33 @@ class IntegrationRepository {
 
     const segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
 
-    const record = await options.database.integration.create(
-      {
-        ...lodash.pick(data, [
-          'platform',
-          'status',
-          'limitCount',
-          'limitLastResetAt',
-          'token',
-          'refreshToken',
-          'settings',
-          'integrationIdentifier',
-          'importHash',
-          'emailSentAt',
-        ]),
-        segmentId: segment.id,
-        tenantId: tenant.id,
-        createdById: currentUser.id,
-        updatedById: currentUser.id,
-      },
-      {
-        transaction,
-      },
+    const toInsert = {
+      ...lodash.pick(data, [
+        'platform',
+        'status',
+        'limitCount',
+        'limitLastResetAt',
+        'token',
+        'refreshToken',
+        'settings',
+        'integrationIdentifier',
+        'importHash',
+        'emailSentAt',
+      ]),
+      segmentId: segment.id,
+      tenantId: tenant.id,
+      createdById: currentUser.id,
+      updatedById: currentUser.id,
+    }
+    const record = await options.database.integration.create(toInsert, {
+      transaction,
+    })
+
+    await captureApiChange(
+      options,
+      integrationConnectAction(record.id, async (captureState) => {
+        captureState(toInsert)
+      }),
     )
 
     await this._createAuditLog(AuditLogRepository.CREATE, record, data, options)
@@ -518,7 +524,7 @@ class IntegrationRepository {
     let results = []
 
     if (integrationIds.length > 0) {
-      const query = `select "integrationId", max("processedAt") as "processedAt" from "incomingWebhooks" 
+      const query = `select "integrationId", max("processedAt") as "processedAt" from "incomingWebhooks"
       where "integrationId" in (:integrationIds) and state = 'PROCESSED'
       group by "integrationId"`
 
