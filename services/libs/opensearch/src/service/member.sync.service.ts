@@ -602,23 +602,23 @@ export class MemberSyncService {
     }
     p.nested_identities = p_identities
 
-    p.string_arr_verified_emails = data.identities
+    p.string_arr_verifiedEmails = data.identities
       .filter((i) => i.isVerified && i.type === MemberIdentityType.EMAIL)
       .map((i) => i.value)
 
-    p.string_arr_unverified_emails = data.identities
+    p.string_arr_unverifiedEmails = data.identities
       .filter((i) => !i.isVerified && i.type === MemberIdentityType.EMAIL)
       .map((i) => i.value)
 
-    p.string_arr_verified_usernames = data.identities
+    p.string_arr_verifiedUsernames = data.identities
       .filter((i) => i.isVerified && i.type === MemberIdentityType.USERNAME)
       .map((i) => i.value)
 
-    p.string_arr_unverified_usernames = data.identities
+    p.string_arr_unverifiedUsernames = data.identities
       .filter((i) => !i.isVerified && i.type === MemberIdentityType.USERNAME)
       .map((i) => i.value)
 
-    p.string_arr_identity_platforms = distinct(
+    p.string_arr_identityPlatforms = distinct(
       data.identities.filter((i) => i.isVerified).map((i) => i.platform),
     )
 

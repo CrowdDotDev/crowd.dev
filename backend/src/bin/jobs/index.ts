@@ -4,7 +4,6 @@ import memberScoreCoordinator from './memberScoreCoordinator'
 import refreshMaterializedViews from './refreshMaterializedViews'
 import refreshMaterializedViewsForCube from './refreshMaterializedViewsForCube'
 import integrationDataChecker from './integrationDataChecker'
-import mergeSuggestions from './mergeSuggestions'
 import refreshSampleData from './refreshSampleData'
 import cleanUp from './cleanUp'
 import checkStuckIntegrationRuns from './checkStuckIntegrationRuns'
@@ -16,7 +15,6 @@ const jobs: CrowdJob[] = [
   refreshMaterializedViews,
   refreshMaterializedViewsForCube,
   integrationDataChecker,
-  mergeSuggestions,
   refreshSampleData,
   cleanUp,
   checkStuckIntegrationRuns,

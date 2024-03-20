@@ -36,7 +36,6 @@ import TagRepository from '../database/repositories/tagRepository'
 import {
   IActiveMemberFilter,
   IMemberMergeSuggestion,
-  IMemberMergeSuggestionsType,
   mapUsernameToIdentities,
 } from '../database/repositories/types/memberTypes'
 import isFeatureEnabled from '../feature-flags/isFeatureEnabled'
@@ -1454,42 +1453,6 @@ export default class MemberService extends LoggerBase {
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
 
-      throw error
-    }
-  }
-
-  async getMergeSuggestions(
-    type: IMemberMergeSuggestionsType,
-    numberOfHours: Number = 1.2,
-  ): Promise<IMemberMergeSuggestion[]> {
-    // Adding a transaction so it will use the write database
-    const transaction = await SequelizeRepository.createTransaction(this.options)
-
-    try {
-      let out = []
-      if (type === IMemberMergeSuggestionsType.USERNAME) {
-        out = await MemberRepository.mergeSuggestionsByUsername(numberOfHours, {
-          ...this.options,
-          transaction,
-        })
-      }
-      if (type === IMemberMergeSuggestionsType.EMAIL) {
-        out = await MemberRepository.mergeSuggestionsByEmail(numberOfHours, {
-          ...this.options,
-          transaction,
-        })
-      }
-      if (type === IMemberMergeSuggestionsType.SIMILARITY) {
-        out = await MemberRepository.mergeSuggestionsBySimilarity(numberOfHours, {
-          ...this.options,
-          transaction,
-        })
-      }
-      await SequelizeRepository.commitTransaction(transaction)
-      return out
-    } catch (error) {
-      await SequelizeRepository.rollbackTransaction(transaction)
-      this.log.error(error)
       throw error
     }
   }
