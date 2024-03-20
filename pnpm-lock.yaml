@@ -1422,6 +1422,9 @@ importers:
       '@types/node':
         specifier: ^20.8.2
         version: 20.11.18
+      typescript:
+        specifier: ^5.2.2
+        version: 5.3.3
 
   services/archetypes/standard:
     dependencies:
@@ -1648,6 +1651,13 @@ importers:
       uuid:
         specifier: ^9.0.1
         version: 9.0.1
+    devDependencies:
+      '@types/node':
+        specifier: ^18.16.3
+        version: 18.19.16
+      typescript:
+        specifier: ^5.0.4
+        version: 5.3.3
 
   services/libs/database:
     dependencies:

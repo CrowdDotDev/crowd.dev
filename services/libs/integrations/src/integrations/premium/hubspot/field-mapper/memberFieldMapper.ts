@@ -13,7 +13,7 @@ import {
 import { HubspotPropertyType, IFieldProperty, IHubspotContact } from '../types'
 import { HubspotFieldMapper } from './hubspotFieldMapper'
 import { HubspotOrganizationFieldMapper } from './organizationFieldMapper'
-import { serializeArray, serializeDate } from './utils/serialization'
+import { serializeDate } from './utils/serialization'
 
 export class HubspotMemberFieldMapper extends HubspotFieldMapper {
   // TODO uros ask anil
