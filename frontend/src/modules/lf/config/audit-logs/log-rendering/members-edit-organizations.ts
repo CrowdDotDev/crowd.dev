@@ -46,10 +46,12 @@ const membersEditOrganizations: LogRenderingConfig = {
         changes.removals.push(`<span>Organization:</span> ${org.organizationId ? (orgById[org.organizationId]) : 'Individual'}`);
       } else {
         const newOrg = newStateMap.get(org.organizationId);
-        if (org.dateStart !== newOrg.dateStart || org.dateEnd !== newOrg.dateEnd || org.title !== newOrg.title) {
+        if (
+          formatDateRange(org.dateStart, org.dateEnd) !== formatDateRange(newOrg.dateStart, newOrg.dateEnd)
+          || (org.title || '') !== (newOrg.title || '')) {
           changes.changes.push(`<span>Organization:</span> ${org.organizationId ? (orgById[org.organizationId]) : 'Individual'}
-            <br><s>${org.title}: ${formatDateRange(org.dateStart, org.dateEnd)}</s>
-            <br>${newOrg.title}: ${formatDateRange(newOrg.dateStart, newOrg.dateEnd)}
+            <br><s>${org.title ? `${org.title}: ` : ''}${formatDateRange(org.dateStart, org.dateEnd)}</s>
+            <br>${newOrg.title ? `${org.title}: ` : ''}${formatDateRange(newOrg.dateStart, newOrg.dateEnd)}
           `);
         }
       }
@@ -61,8 +63,6 @@ const membersEditOrganizations: LogRenderingConfig = {
         changes.additions.push(`<span>Organization:</span> ${org.organizationId ? (orgById[org.organizationId]) : 'Individual'}`);
       }
     });
-
-    console.log(changes);
 
     return changes;
   },

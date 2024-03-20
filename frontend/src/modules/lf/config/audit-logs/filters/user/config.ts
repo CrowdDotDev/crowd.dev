@@ -13,19 +13,16 @@ const user: SelectAsyncFilterConfig = {
   type: FilterConfigType.SELECT_ASYNC,
   options: {
     hideIncludeSwitch: true,
-    remoteMethod: (query) => {
-      console.log(query);
-      return LfService.fetchUsers({
-        fullName: query,
-        email: query,
-      }, null, 10)
+    remoteMethod: (query) => LfService.fetchUsers({
+      fullName: query,
+      email: query,
+    }, null, 10)
 
-        .then(({ rows }: any) => rows.map((user: any) => ({
-          label: user.fullName,
-          description: `${user.email}`,
-          value: user.id,
-        })));
-    },
+      .then(({ rows }: any) => rows.map((user: any) => ({
+        label: user.fullName,
+        description: `${user.email}`,
+        value: user.id,
+      }))),
     remotePopulateItems: (id: string) => LfService.getUser(id)
       .then((data: any) => ({
         label: data.fullName,
