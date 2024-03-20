@@ -26,6 +26,10 @@ const fetchUpdates = () => {
       if (data.length === 0) {
         clearInterval(intervalInstance.value);
       }
+    })
+    .catch(() => {
+      progress.value = null;
+      clearInterval(intervalInstance.value);
     });
 };
 
