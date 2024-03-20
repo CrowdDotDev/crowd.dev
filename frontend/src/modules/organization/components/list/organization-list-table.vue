@@ -42,7 +42,10 @@
             >
               <template #defaultFilters>
                 <div>・</div>
-                <cr-default-filters module="organization" :settings="filters.settings" />
+                <cr-default-filters
+                  :config="organizationSavedViews"
+                  :settings="filters.settings"
+                />
               </template>
             </app-pagination-sorter>
           </div>
@@ -878,6 +881,7 @@ import CrDefaultFilters from '@/shared/modules/default-filters/components/defaul
 import AppOrganizationListToolbar from './organization-list-toolbar.vue';
 import AppOrganizationName from '../organization-name.vue';
 import AppOrganizationDropdownContent from '../organization-dropdown-content.vue';
+import { organizationSavedViews } from '../../config/saved-views/main';
 
 const router = useRouter();
 

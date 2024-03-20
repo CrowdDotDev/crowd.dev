@@ -1,4 +1,5 @@
 import { SavedView, SavedViewsConfig } from '@/shared/modules/saved-views/types/SavedViewsConfig';
+import { memberDefaultFilterRenderer } from '@/shared/modules/filters/config/defaultFilterRenderer/member.defaultFilter.renderer';
 import allContacts from './views/all-contacts';
 import unaffiliated from './views/unaffiliated';
 import toReview from './views/to-review';
@@ -13,6 +14,9 @@ export const memberSavedViews: SavedViewsConfig = {
     teamMember,
     bot,
     organization,
+  },
+  defaultFilters: {
+    render: memberDefaultFilterRenderer,
   },
   sorting: {
     displayName: 'Contributor',

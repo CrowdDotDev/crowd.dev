@@ -3,18 +3,15 @@
 </template>
 
 <script setup lang="ts">
-import { IncludeEnum } from '@/modules/member/config/saved-views/settings/common/types/IncludeEnum';
 import { computed } from 'vue';
-import config from '../config/index';
+import {
+  SavedViewsConfig, DefaultFiltersSettings,
+} from '@/shared/modules/saved-views/types/SavedViewsConfig';
 
 const props = defineProps<{
-    module: 'member' | 'organization',
-    settings: {
-      teamMember?: IncludeEnum;
-      teamOrganization?: IncludeEnum;
-      bot?: IncludeEnum;
-    };
+  config: SavedViewsConfig;
+  settings: DefaultFiltersSettings;
 }>();
 
-const copy = computed(() => config[props.module].copy(props.settings));
+const copy = computed(() => props.config.defaultFilters.render(props.settings));
 </script>
