@@ -118,18 +118,16 @@ export class LfService {
 
   // Users
 
-  static async fetchUsers(filter, orderBy, limit, offset) {
+  static async fetchUsers(query, limit) {
     const params = {
-      filter,
-      orderBy,
+      query,
       limit,
-      offset,
     };
 
     const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.get(
-      `/tenant/${tenantId}/user`,
+      `/tenant/${tenantId}/user/autocomplete`,
       {
         params,
       },

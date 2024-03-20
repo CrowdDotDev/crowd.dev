@@ -62,7 +62,7 @@ const computedActiveTab = computed({
     router.push({
       name: '',
       hash: `#${v}`,
-      query: route.query,
+      query: {},
     });
   },
 });
