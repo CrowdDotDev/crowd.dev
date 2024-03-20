@@ -51,7 +51,10 @@
           >
             <template #defaultFilters>
               <div>・</div>
-              <cr-default-filters module="member" :settings="filters.settings" />
+              <cr-default-filters
+                :config="memberSavedViews"
+                :settings="filters.settings"
+              />
             </template>
           </app-pagination-sorter>
         </div>
@@ -772,6 +775,7 @@ import AppMemberReach from '../member-reach.vue';
 import AppMemberEngagementLevel from '../member-engagement-level.vue';
 import AppMemberLastActivity from '../member-last-activity.vue';
 import AppMemberSentiment from '../member-sentiment.vue';
+import { memberSavedViews } from '../../config/saved-views/main';
 
 const store = useStore();
 const router = useRouter();
