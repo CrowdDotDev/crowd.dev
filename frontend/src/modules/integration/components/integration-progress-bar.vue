@@ -1,9 +1,11 @@
 <template>
-  <div v-if="props.progress && props.progress.reportStatus !== 'calculating'">
-    <div v-if="!props.barOnly" class="flex justify-between items-center mb-1.5">
+  <div v-if="props.progress && props.progress.reportStatus !== 'calculating'" class="flex flex-col justify-center w-full h-full">
+    <div v-if="!props.barOnly" class="flex justify-between items-center">
       <p class="text-2xs text-gray-500 leading-4">
-        {{ inProgress?.message }}...
+        <span v-if="inProgress?.message">{{ inProgress?.message }}</span>
+        <span v-else>Processing...</span>
       </p>
+
       <el-popover :width="280" placement="top-end">
         <template #reference>
           <div class="h-5 w-5">
@@ -13,7 +15,7 @@
         <app-integration-progress :progress="props.progress" />
       </el-popover>
     </div>
-    <div v-if="inProgress?.percentage" class="rounded-md h-1 bg-gray-200">
+    <div v-if="inProgress?.percentage" class="rounded-md h-1 bg-gray-200 mt-1.5">
       <div class="rounded-md h-1 bg-brand-800" :style="{ width: `${inProgress?.percentage}%` }" />
     </div>
   </div>

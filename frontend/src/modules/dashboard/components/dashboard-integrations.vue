@@ -1,5 +1,5 @@
 <template>
-  <app-integration-progress-wrapper :segments="selectedProjectGroup?.id ? [selectedProjectGroup?.id] : []">
+  <app-integration-progress-wrapper :segments="segmentIds">
     <template #default="{ progress }">
       <div v-if="progress?.length" class="border border-gray-200 rounded-lg overflow-hidden w-full" v-bind="$attrs">
         <div class="pt-4 px-4 pb-6 bg-gradient-to-b from-brand-25 to-white flex items-center">
@@ -42,6 +42,7 @@ import AppIntegrationProgressWrapper from '@/modules/integration/components/inte
 import { IntegrationProgress } from '@/modules/integration/types/IntegrationProgress';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';
+import { computed } from 'vue';
 
 interface SegmentIntegrations {
   id: string;
@@ -50,6 +51,8 @@ interface SegmentIntegrations {
 }
 
 const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
+
+const segmentIds = computed(() => selectedProjectGroup.value?.projects.map((p) => p.subprojects.map((sp) => sp.id)).flat() || []);
 
 const getSegmentList = (progress: IntegrationProgress[]): SegmentIntegrations[] => {
   if (!progress) {

@@ -20,7 +20,6 @@ const progress = ref<IntegrationProgress | null>(null);
 const intervalInstance = ref<any>(null);
 
 const fetchUpdates = () => {
-  console.log('fetching');
   IntegrationService.fetchIntegrationsProgress(props.segments)
     .then((data: IntegrationProgress) => {
       progress.value = data;

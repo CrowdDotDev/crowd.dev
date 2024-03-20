@@ -75,7 +75,7 @@
           />
         </div>
 
-        <app-integration-progress-wrapper :segments="[route.params.id]">
+        <app-integration-progress-wrapper :segments="segmentIds">
           <template #default="{ progress }">
             <app-lf-projects-table
               v-for="project in projects.list"
@@ -168,6 +168,8 @@ const hasPermissionToCreate = computed(() => new LfPermissions(
   tenant.value,
   user.value,
 )?.createProject);
+
+const segmentIds = computed(() => projects.value.list.map((p) => p.subprojects.map((sp) => sp.id)).flat() || []);
 
 const hasPermissionToEditProjectGroups = computed(() => new LfPermissions(
   tenant.value,

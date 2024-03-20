@@ -470,12 +470,10 @@ export class IntegrationService {
   static async fetchIntegrationsProgress(segments) {
     const tenantId = AuthService.getTenantId();
 
-    const response = await authAxios.get(
+    const response = await authAxios.post(
       `/tenant/${tenantId}/integration/progress/list`,
       {
-        params: {
-          segments: segments || undefined,
-        },
+        segments: segments || undefined,
       },
     );
 
