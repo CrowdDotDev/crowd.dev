@@ -21,7 +21,7 @@
           </div>
           <article v-for="integration of segment.integrations" :key="`${segment.id}:${integration.platform}`" class="pb-4 flex w-full">
             <div class="w-4 !min-w-4 mr-2 basis-4">
-              <img :alt="integration.type" :src="CrowdIntegrations.getConfig(integration.type)?.image" class="w-4 h-4 min-w-4">
+              <img :alt="integration.platform" :src="CrowdIntegrations.getConfig(integration.platform)?.image" class="w-4 h-4 min-w-4">
             </div>
             <div class="-mt-px flex-grow">
               <app-integration-progress-bar :progress="integration" />

@@ -219,7 +219,7 @@ const hasPermissionToCreateSubProject = computed(() => new LfPermissions(
 
 const statusDisplay = (status) => statusOptions.find((s) => s.value === status);
 
-const getProgress = (segmentId, platform) => (props.progress || []).find((p) => p.segmentId === segmentId && p.type === platform);
+const getProgress = (segmentId, platform) => (props.progress || []).find((p) => p.segmentId === segmentId && p.platform === platform);
 </script>
 
 <script>

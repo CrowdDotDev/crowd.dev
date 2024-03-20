@@ -113,7 +113,7 @@ const computedClass = computed(() => ({
   'integration-custom': props.integration.platform === 'custom',
 }));
 
-const selectedProgress = computed(() => (props.progress || []).find((p) => p.type === props.integration.platform));
+const selectedProgress = computed(() => (props.progress || []).find((p) => p.platform === props.integration.platform));
 
 const isDone = computed(
   () => props.integration.status === 'done'
