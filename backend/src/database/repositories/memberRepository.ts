@@ -2405,7 +2405,6 @@ class MemberRepository {
               'id',
               'attributes',
               'displayName',
-              'emails',
               'score',
               'lastEnriched',
               'enrichedBy',
@@ -2450,17 +2449,6 @@ class MemberRepository {
             },
           },
         },
-        // TODO: member identitites FIX
-        // customOperators: {
-        //   username: {
-        //     model: 'member',
-        //     column: 'username',
-        //   },
-        //   platform: {
-        //     model: 'member',
-        //     column: 'username',
-        //   },
-        // },
         exportMode,
       },
       options,
@@ -2492,7 +2480,6 @@ class MemberRepository {
             'id',
             'attributes',
             'displayName',
-            'emails',
             'tenantId',
             'score',
             'lastEnriched',
