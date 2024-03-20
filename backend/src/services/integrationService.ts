@@ -1,3 +1,4 @@
+/* eslint-disable no-promise-executor-return */
 import { createAppAuth } from '@octokit/auth-app'
 import { request } from '@octokit/request'
 import moment from 'moment'
@@ -18,6 +19,7 @@ import {
   getHubspotLists,
   IProcessStreamContext,
 } from '@crowd/integrations'
+import { RedisCache } from '@crowd/redis'
 import { ILinkedInOrganization } from '../serverless/integrations/types/linkedinTypes'
 import { DISCORD_CONFIG, GITHUB_CONFIG, IS_TEST_ENV, KUBE_MODE, NANGO_CONFIG } from '../conf/index'
 import { IServiceOptions } from './IServiceOptions'
@@ -52,7 +54,6 @@ import {
 import SearchSyncService from './searchSyncService'
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import IntegrationProgressRepository from '@/database/repositories/integrationProgressRepository'
-import { RedisCache } from '@crowd/redis'
 import { IntegrationProgress } from '@/serverless/integrations/types/regularTypes'
 
 const discordToken = DISCORD_CONFIG.token || DISCORD_CONFIG.token2
@@ -1806,6 +1807,7 @@ export default class IntegrationService {
 
       const calculateStatus = (db: number, remote: number) => {
         if (remote === 0) return 'ok'
+        if (db >= remote) return 'ok'
         if (Math.abs(db - remote) / remote <= 0.02) return 'ok'
         return 'in-progress'
       }
@@ -1917,13 +1919,12 @@ export default class IntegrationService {
           this.options,
         )
       return Promise.all(integrationIds.map((id) => this.getIntegrationProgress(id)))
-    } else {
-      const integrationIds =
-        await IntegrationProgressRepository.getAllIntegrationsInProgressForMultipleSegments(
-          currentTenant.id,
-          this.options,
-        )
-      return Promise.all(integrationIds.map((id) => this.getIntegrationProgress(id)))
     }
+    const integrationIds =
+      await IntegrationProgressRepository.getAllIntegrationsInProgressForMultipleSegments(
+        currentTenant.id,
+        this.options,
+      )
+    return Promise.all(integrationIds.map((id) => this.getIntegrationProgress(id)))
   }
 }
