@@ -90,6 +90,17 @@ setImmediate(async () => {
     }),
   )
 
+  app.use((req, res, next) => {
+    // this middleware fixes the issue with logging and datadog
+    // explained in detail here: https://github.com/CrowdDotDev/crowd.dev/pull/2144
+    // in short: the hostname field in logs breaks how datadog assigns k8s cluster info
+    if (req.log.fields.hostname) {
+      delete req.log.fields.hostname
+    }
+
+    next()
+  })
+
   // Initializes and adds the database middleware.
   app.use(databaseMiddleware)
 
