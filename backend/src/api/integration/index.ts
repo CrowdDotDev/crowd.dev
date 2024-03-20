@@ -36,7 +36,7 @@ export default (app) => {
   app.get(`/tenant/:tenantId/integration`, safeWrap(require('./integrationList').default))
   app.get(`/tenant/:tenantId/integration/:id`, safeWrap(require('./integrationFind').default))
 
-  app.get(
+  app.post(
     `/tenant/:tenantId/integration/progress/list`,
     safeWrap(require('./integrationProgressList').default),
   )
