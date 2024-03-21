@@ -98,6 +98,7 @@ import { useRoute, useRouter } from 'vue-router';
 import MEMBERS_REPORT, {
   ACTIVE_LEADERBOARD_MEMBERS_WIDGET,
 } from '@/modules/report/templates/config/members';
+import Message from '@/shared/message/message';
 
 const props = defineProps({
   filters: {
@@ -221,8 +222,18 @@ const onExport = async ({ ids }) => {
       limit: ids.length,
       offset: null,
     });
+
+    Message.success(
+      'CSV download link will be sent to your e-mail',
+    );
   } catch (e) {
     console.error(e);
+    Message.error(
+      'An error has occured while trying to export the CSV file. Please try again',
+      {
+        title: 'CSV Export failed',
+      },
+    );
   }
 };
 

@@ -98,6 +98,7 @@ import MEMBERS_REPORT, {
 import { parseAxisLabel } from '@/utils/reports';
 import AppWidgetMembersTable from '@/modules/widget/components/shared/widget-members-table.vue';
 import { useRoute, useRouter } from 'vue-router';
+import Message from '@/shared/message/message';
 
 const props = defineProps({
   filters: {
@@ -258,8 +259,18 @@ const onExport = async ({ ids }) => {
       limit: ids.length,
       offset: null,
     });
+
+    Message.success(
+      'CSV download link will be sent to your e-mail',
+    );
   } catch (error) {
     console.error(error);
+    Message.error(
+      'An error has occured while trying to export the CSV file. Please try again',
+      {
+        title: 'CSV Export failed',
+      },
+    );
   }
 };
 </script>
