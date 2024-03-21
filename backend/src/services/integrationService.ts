@@ -1813,10 +1813,11 @@ export default class IntegrationService {
       }
 
       const calculateMessage = (db: number, remote: number, entity: string) => {
-        if (remote === 0) return `All ${entity} are processed`
-        if (db >= remote) return `All ${entity} are processed`
-        if (Math.abs(db - remote) / remote <= 0.02) return `All ${entity} are processed`
-        return `${entity} are being processed`
+        if (remote === 0) return `0 ${entity} synced`
+        if (db >= remote) return `${remote.toLocaleString()} ${entity} synced`
+        if (Math.abs(db - remote) / remote <= 0.02)
+          return `${db.toLocaleString()} ${entity} synced`
+        return `${db.toLocaleString()} out of ${remote.toLocaleString()} ${entity} synced`
       }
 
       const remainingStreamsCount = await IntegrationProgressRepository.getPendingStreamsCount(
@@ -1842,7 +1843,7 @@ export default class IntegrationService {
             db: dbStats.totalPRs,
             remote: remoteStats.totalPRs,
             status: calculateStatus(dbStats.totalPRs, remoteStats.totalPRs),
-            message: calculateMessage(dbStats.totalPRs, remoteStats.totalPRs, 'PRs'),
+            message: calculateMessage(dbStats.totalPRs, remoteStats.totalPRs, 'pull requests'),
             percentage: normailzeStats(dbStats.totalPRs, remoteStats.totalPRs),
           },
           issues: {
@@ -1864,7 +1865,7 @@ export default class IntegrationService {
             status: remainingStreamsCount > 0 ? 'in-progress' : 'ok',
             message:
               remainingStreamsCount > 0
-                ? `${remainingStreamsCount} data streams are being processed`
+                ? `${remainingStreamsCount} data streams are being processed...`
                 : 'All data streams are processed',
           },
         },
@@ -1899,7 +1900,7 @@ export default class IntegrationService {
           status: remainingStreamsCount > 0 ? 'in-progress' : 'ok',
           message:
             remainingStreamsCount > 0
-              ? `${remainingStreamsCount} data streams are being processed`
+              ? `${remainingStreamsCount} data streams are being processed...`
               : 'All data streams are processed',
         },
       },
