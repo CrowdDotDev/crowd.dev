@@ -94,11 +94,10 @@ import AppWidgetLoading from '@/modules/widget/components/shared/widget-loading.
 import AppWidgetError from '@/modules/widget/components/shared/widget-error.vue';
 import AppWidgetEmpty from '@/modules/widget/components/shared/widget-empty.vue';
 import AppWidgetApiDrawer from '@/modules/widget/components/shared/widget-api-drawer.vue';
-import { mapActions } from '@/shared/vuex/vuex.helpers';
+import { useRoute, useRouter } from 'vue-router';
 import MEMBERS_REPORT, {
   ACTIVE_LEADERBOARD_MEMBERS_WIDGET,
 } from '@/modules/report/templates/config/members';
-import { useRoute, useRouter } from 'vue-router';
 
 const props = defineProps({
   filters: {
@@ -121,8 +120,6 @@ const selectedPeriod = ref(
 const activeMembers = ref([]);
 const loading = ref(false);
 const error = ref(false);
-
-const { doExport } = mapActions('member');
 
 const empty = computed(
   () => !loading.value && !error.value && activeMembers.value.length === 0,
@@ -212,12 +209,17 @@ const handleDrawerOpen = async () => {
   drawerTitle.value = 'Most active contacts';
 };
 
-const onExport = async ({ ids, count }) => {
+const onExport = async ({ ids }) => {
   try {
-    await doExport({
-      selected: true,
-      customIds: ids,
-      count,
+    await MemberService.export({
+      filter: {
+        id: {
+          in: ids,
+        },
+      },
+      orderBy: 'displayName_ASC',
+      limit: ids.length,
+      offset: null,
     });
   } catch (e) {
     console.error(e);
