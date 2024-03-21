@@ -16,19 +16,35 @@ const MAX_CONCURRENT = 3
 setImmediate(async () => {
   const openSearchService = new OpenSearchService(log, OPENSEARCH_CONFIG())
 
-  const dbConnection = await getDbConnection(DB_CONFIG())
-  const store = new DbStore(log, dbConnection)
+  const writeHost = await getDbConnection({
+    host: process.env.CROWD_DB_WRITE_HOST,
+    port: parseInt(process.env.CROWD_DB_PORT),
+    database: process.env.CROWD_DB_DATABASE,
+    user: process.env.CROWD_DB_USERNAME,
+    password: process.env.CROWD_DB_PASSWORD,
+  })
+
+  const writeStore = new DbStore(log, writeHost)
+
+  const readHost = await getDbConnection({
+    host: process.env.CROWD_DB_READ_HOST,
+    port: parseInt(process.env.CROWD_DB_PORT),
+    database: process.env.CROWD_DB_DATABASE,
+    user: process.env.CROWD_DB_USERNAME,
+    password: process.env.CROWD_DB_PASSWORD,
+  })
 
   if (processArguments.includes('--clean')) {
-    const indexingRepo = new IndexingRepository(store, log)
+    const indexingRepo = new IndexingRepository(writeStore, log)
     await indexingRepo.deleteIndexedEntities(IndexedEntityType.ORGANIZATION)
   }
 
-  const repo = new OrganizationRepository(store, log)
+  const readStore = new DbStore(log, readHost)
+  const repo = new OrganizationRepository(readStore, log)
 
   const tenantIds = await repo.getTenantIds()
 
-  const service = new OrganizationSyncService(store, openSearchService, log, SERVICE_CONFIG())
+  const service = new OrganizationSyncService(readStore, openSearchService, log, SERVICE_CONFIG())
 
   let current = 0
   for (let i = 0; i < tenantIds.length; i++) {

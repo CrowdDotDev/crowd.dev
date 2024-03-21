@@ -205,6 +205,7 @@ export class OrganizationSyncService {
     this.log.warn({ tenantId }, 'Syncing all tenant organizations!')
     let docCount = 0
     let organizationCount = 0
+    let previousBatchIds: string[] = []
 
     await logExecutionTime(
       async () => {
@@ -232,7 +233,13 @@ export class OrganizationSyncService {
               }
             }),
           )
-          organizationIds = await this.orgRepo.getTenantOrganizationsForSync(tenantId, batchSize)
+
+          previousBatchIds = organizationIds
+          organizationIds = await this.orgRepo.getTenantOrganizationsForSync(
+            tenantId,
+            batchSize,
+            previousBatchIds,
+          )
         }
       },
       this.log,
