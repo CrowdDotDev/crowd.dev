@@ -98,6 +98,7 @@ import AppWidgetError from '@/modules/widget/components/shared/widget-error.vue'
 import AppWidgetEmpty from '@/modules/widget/components/shared/widget-empty.vue';
 import AppWidgetApiDrawer from '@/modules/widget/components/shared/widget-api-drawer.vue';
 import MEMBERS_REPORT, { ACTIVE_LEADERBOARD_MEMBERS_WIDGET } from '@/modules/report/templates/config/members';
+import Message from '@/shared/message/message';
 
 const props = defineProps({
   filters: {
@@ -216,8 +217,18 @@ const onExport = async ({ ids }) => {
       offset: null,
       segments: props.filters.segments.childSegments,
     });
+
+    Message.success(
+      'CSV download link will be sent to your e-mail',
+    );
   } catch (e) {
     console.error(e);
+    Message.error(
+      'An error has occured while trying to export the CSV file. Please try again',
+      {
+        title: 'CSV Export failed',
+      },
+    );
   }
 };
 
