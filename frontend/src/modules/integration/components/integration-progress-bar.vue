@@ -12,6 +12,7 @@
             <i class="ri-question-line text-lg text-gray-400 flex items-center h-5" />
           </div>
         </template>
+
         <app-integration-progress :progress="props.progress" />
       </el-popover>
     </div>

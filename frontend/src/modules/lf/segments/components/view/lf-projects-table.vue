@@ -76,7 +76,7 @@
                 </div>
               </template>
               <div class="px-1">
-                <app-integration-progress :progress="getProgress(row.id, integration.platform)" :show-bar="true">
+                <app-integration-progress :progress="getProgress(row.id, integration.platform)" :show-bar="true" :show-parts="true">
                   <h6 class="text-xs text-black leading-5 pb-3">
                     Connecting {{ CrowdIntegrations.getConfig(integration.platform)?.name }} integration
                   </h6>
