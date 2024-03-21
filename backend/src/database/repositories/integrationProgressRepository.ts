@@ -73,7 +73,7 @@ class IntegrationProgressRepository {
     const seq = SequelizeRepository.getSequelize(options)
 
     const starsQuery = `
-      SELECT COUNT(DISTINCT "username") 
+      SELECT COUNT(DISTINCT "sourceId") 
       FROM activities 
       WHERE "tenantId" = :tenantId
       AND platform = 'github' 
@@ -83,7 +83,7 @@ class IntegrationProgressRepository {
     `
 
     const unstarsQuery = `
-      SELECT COUNT(DISTINCT "username") 
+      SELECT COUNT(DISTINCT "sourceId") 
       FROM activities 
       WHERE "tenantId" = :tenantId
       AND platform = 'github' 
