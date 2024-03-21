@@ -94,9 +94,9 @@ export async function addAuditAction(
       actionType: action.actionType,
       success: action.success,
       entityId: action.entityId,
-      oldState: JSON.stringify(action.oldState),
-      newState: JSON.stringify(action.newState),
-      diff: JSON.stringify(action.diff),
+      oldState: action.success ? JSON.stringify(action.oldState) : '{}',
+      newState: action.success ? JSON.stringify(action.newState) : '{}',
+      diff: action.success ? JSON.stringify(action.diff) : '{}',
     },
   )
 }

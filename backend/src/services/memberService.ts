@@ -1591,7 +1591,7 @@ export default class MemberService extends LoggerBase {
               Object.entries(data.username).reduce((acc, value: any) => {
                 const [platform, usernames] = value
                 if (!acc[platform]) {
-                  acc[platform] = {}
+                  acc[platform] = []
                 }
 
                 if (Array.isArray(usernames)) {

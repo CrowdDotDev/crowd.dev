@@ -53,7 +53,6 @@ const membersEditManualAffiliation: LogRenderingConfig = {
       ...obj,
       [org.id]: org.name,
     }), {});
-    console.log(segments, segmentById);
 
     // Check for removals and modifications
     log.oldState.forEach((org) => {

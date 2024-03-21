@@ -404,7 +404,13 @@ function init_unleash() {
 
 function up_scaffold() {
     scaffold_set_up_network "$PROJECT_NAME-bridge" $DOCKER_NETWORK_SUBNET $DOCKER_NETWORK_GATEWAY
-    $_DC --compatibility -p $PROJECT_NAME -f $CLI_HOME/scaffold.yaml up -d --build
+
+    local profile=''
+    if [[ -n "${WITH_NGINX}" ]]; then
+        profile='--profile nginx'
+    fi
+
+    $_DC --compatibility -p $PROJECT_NAME -f $CLI_HOME/scaffold.yaml ${profile} up -d --build
 }
 
 function post_up_scaffold() {
