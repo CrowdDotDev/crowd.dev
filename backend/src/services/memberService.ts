@@ -1086,7 +1086,6 @@ export default class MemberService extends LoggerBase {
     'tasks',
     'joinedAt',
     'tenantId',
-    'username',
     'attributes',
     'displayName',
     'affiliations',
