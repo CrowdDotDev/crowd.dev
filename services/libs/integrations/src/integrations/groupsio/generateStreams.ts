@@ -4,6 +4,7 @@ import {
   GroupsioIntegrationSettings,
   GroupsioStreamType,
   GroupsioGroupMembersStreamMetadata,
+  GroupsioPastGroupMembersStreamMetadata,
 } from './types'
 
 const handler: GenerateStreamsHandler = async (ctx) => {
@@ -31,6 +32,14 @@ const handler: GenerateStreamsHandler = async (ctx) => {
     // messages don't have enough information to create members
     await ctx.publishStream<GroupsioGroupMembersStreamMetadata>(
       `${GroupsioStreamType.GROUP_MEMBERS}:${group}`,
+      {
+        group,
+        page: null,
+      },
+    )
+    // also parse past group members.
+    await ctx.publishStream<GroupsioPastGroupMembersStreamMetadata>(
+      `${GroupsioStreamType.PAST_GROUP_MEMBERS}:${group}`,
       {
         group,
         page: null,

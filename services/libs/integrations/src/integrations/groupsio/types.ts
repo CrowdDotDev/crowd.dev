@@ -10,6 +10,7 @@ export type GroupName = string
 export enum GroupsioStreamType {
   GROUP = 'group',
   GROUP_MEMBERS = 'group_members',
+  PAST_GROUP_MEMBERS = 'past_group_members',
   TOPIC = 'topic',
 }
 
@@ -45,6 +46,11 @@ export interface GroupsioGroupStreamMetadata {
 }
 
 export interface GroupsioGroupMembersStreamMetadata {
+  group: GroupName
+  page: string | null
+}
+
+export interface GroupsioPastGroupMembersStreamMetadata {
   group: GroupName
   page: string | null
 }
@@ -311,6 +317,14 @@ export interface MemberInfo {
   extra_member_data: ExtraMemberData[]
 }
 
+export interface PastMemberInfo {
+  id: number
+  object: string
+  created: string
+  action: string
+  member_info: MemberInfo
+}
+
 export interface MemberInfoMinimal {
   user_id: number
   full_name: string
@@ -330,6 +344,20 @@ export interface ListMembers {
   query: string
   sort_dir: string
   data: MemberInfo[]
+}
+
+export interface ListPastMembers {
+  object: string
+  total_count: number
+  start_item: number
+  end_item: number
+  has_more: boolean
+  next_page_token: number
+  sort_field: string
+  second_order: string
+  query: string
+  sort_dir: string
+  data: PastMemberInfo[]
 }
 
 export enum GroupsioWebhookEventType {
