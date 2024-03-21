@@ -84,7 +84,6 @@ import AppWidgetLoading from '@/modules/widget/components/shared/widget-loading.
 import AppWidgetError from '@/modules/widget/components/shared/widget-error.vue';
 import { TOTAL_MONTHLY_ACTIVE_CONTRIBUTORS } from '@/modules/widget/widget-queries';
 import {
-  mapActions,
   mapGetters,
 } from '@/shared/vuex/vuex.helpers';
 import AppWidgetApiDrawer from '@/modules/widget/components/shared/widget-api-drawer.vue';
@@ -199,7 +198,6 @@ const widgetChartOptions = computed(() => chartOptions('area', {
 }));
 
 const { cubejsApi } = mapGetters('widget');
-const { doExport } = mapActions('member');
 
 const datasets = computed(() => [
   {
@@ -279,12 +277,18 @@ const onViewMoreClick = (date) => {
   drawerTitle.value = MONTHLY_ACTIVE_CONTRIBUTORS_WIDGET.name;
 };
 
-const onExport = async ({ ids, count }) => {
+const onExport = async ({ ids }) => {
   try {
-    await doExport({
-      selected: true,
-      customIds: ids,
-      count,
+    await MemberService.export({
+      filter: {
+        id: {
+          in: ids,
+        },
+      },
+      orderBy: 'displayName_ASC',
+      limit: ids.length,
+      offset: null,
+      segments: props.filters.segments.childSegments,
     });
   } catch (error) {
     console.error(error);

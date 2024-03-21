@@ -93,7 +93,6 @@ import AppWidgetError from '@/modules/widget/components/shared/widget-error.vue'
 
 import {
   mapGetters,
-  mapActions,
 } from '@/shared/vuex/vuex.helpers';
 import { getTimeGranularityFromPeriod, parseAxisLabel } from '@/utils/reports';
 import {
@@ -141,7 +140,6 @@ const datasets = computed(() => [
   },
 ]);
 
-const { doExport } = mapActions('member');
 const { cubejsApi } = mapGetters('widget');
 
 const query = computed(() => TOTAL_MEMBERS_QUERY({
@@ -206,15 +204,16 @@ const onViewMoreClick = (date) => {
 
 const onExport = async ({ count }) => {
   try {
-    await doExport({
-      selected: false,
-      customFilter: TOTAL_MEMBERS_FILTER({
+    await MemberService.export({
+      filter: TOTAL_MEMBERS_FILTER({
         date: drawerDate.value,
         granularity: granularity.value,
         selectedPlatforms: props.filters.platform.value,
         selectedHasTeamMembers: props.filters.teamMembers,
       }),
-      count,
+      orderBy: 'displayName_ASC',
+      limit: count,
+      offset: null,
       segments: props.filters.segments.childSegments,
     });
   } catch (error) {
