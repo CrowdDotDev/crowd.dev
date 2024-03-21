@@ -2,7 +2,7 @@
   <div v-if="props.progress && props.progress.reportStatus !== 'calculating'" class="flex flex-col justify-center w-full h-full">
     <div v-if="!props.barOnly" class="flex justify-between items-center">
       <p class="text-2xs text-gray-500 leading-4 pr-4">
-        <span v-if="inProgress?.message" v-html="$sanitize(inProgress?.message)" />
+        <span v-if="inProgress?.message" v-html="inProgress?.message" />
         <span v-else>Processing still in progress. Please wait for data stream updates.</span>
       </p>
 
