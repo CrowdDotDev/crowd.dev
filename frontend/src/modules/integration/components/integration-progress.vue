@@ -22,9 +22,7 @@
             <div v-else class="flex items-center justify-center h-4 w-4 mr-2" />
           </div>
 
-          <p class="text-gray-600 text-2xs">
-            {{ part.message }}
-          </p>
+          <p class="text-gray-600 text-2xs" v-html="$sanitize(part.message)" />
         </div>
       </template>
       <p v-if="!showProgress" class="text-2xs text-gray-400">
