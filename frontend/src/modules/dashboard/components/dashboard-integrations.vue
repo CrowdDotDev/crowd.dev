@@ -6,13 +6,18 @@
           <div class="h-5 w-5 flex items-center justify-center mr-1">
             <cr-spinner size="1rem" class="!border-brand-800" />
           </div>
-          <h6 class="text-base leading-5 font-semibold">
+          <h6 class="text-base leading-5 font-semibold font-header">
             Connecting integrations...
           </h6>
         </div>
-        <section v-for="segment of getSegmentList(progress)" :key="segment.id" class="px-4">
+        <section
+          v-for="(segment, si) of getSegmentList(progress)"
+          :key="segment.id"
+          class="px-4 border-gray-200"
+          :class="si > 0 ? 'border-t pt-4' : ''"
+        >
           <div class="pb-4">
-            <p class="text-2xs leading-4.5 text-gray-400 mb-0.5">
+            <p class="text-2xs leading-4.5 text-gray-400 mb-0.5 font-medium">
               Sub-project
             </p>
             <p class="text-xs font-semibold leading-4.5">

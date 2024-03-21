@@ -56,10 +56,10 @@
                 <i class="ri-more-fill" />
               </cr-button>
               <template #dropdown>
-                <el-dropdown-item v-if="hasSettings" @click="settings">
-                  Settings
+                <el-dropdown-item v-if="hasSettings" class="cursor-pointer" @click="settings">
+                  <i class="ri-settings-3-line" />Integration settings
                 </el-dropdown-item>
-                <el-dropdown-item @click="handleDisconnect">
+                <el-dropdown-item class="cursor-pointer" @click="handleDisconnect">
                   <i class="ri-link-unlink !text-red-500" /><span class="text-red-500">Disconnect</span>
                 </el-dropdown-item>
               </template>

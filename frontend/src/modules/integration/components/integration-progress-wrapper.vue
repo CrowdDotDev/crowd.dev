@@ -3,7 +3,9 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from 'vue';
+import {
+  onMounted, onUnmounted, ref, watch,
+} from 'vue';
 import { IntegrationService } from '@/modules/integration/integration-service';
 import { IntegrationProgress } from '@/modules/integration/types/IntegrationProgress';
 
@@ -32,6 +34,10 @@ const fetchUpdates = () => {
       clearInterval(intervalInstance.value);
     });
 };
+
+watch(() => props.segments, () => {
+  fetchUpdates();
+}, { deep: true });
 
 onMounted(() => {
   fetchUpdates();
