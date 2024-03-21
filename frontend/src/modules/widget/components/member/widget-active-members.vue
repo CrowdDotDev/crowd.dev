@@ -89,7 +89,6 @@ import {
 } from '@/modules/widget/widget-constants';
 import {
   mapGetters,
-  mapActions,
 } from '@/shared/vuex/vuex.helpers';
 import { chartOptions } from '@/modules/report/templates/template-chart-config';
 import {
@@ -127,7 +126,6 @@ const widgetChartOptions = chartOptions('area', {
   ) => parseAxisLabel(value, granularity.value.value),
 });
 
-const { doExport } = mapActions('member');
 const { cubejsApi } = mapGetters('widget');
 
 const datasets = computed(() => [
@@ -223,12 +221,18 @@ const onViewMoreClick = (date) => {
   }
 };
 
-const onExport = async ({ ids, count }) => {
+const onExport = async ({ ids }) => {
   try {
-    await doExport({
-      selected: true,
-      customIds: ids,
-      count,
+    await MemberService.export({
+      filter: {
+        id: {
+          in: ids,
+        },
+      },
+      orderBy: 'displayName_ASC',
+      limit: ids.length,
+      offset: null,
+      segments: props.filters.segments.childSegments,
     });
   } catch (error) {
     console.error(error);

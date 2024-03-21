@@ -80,7 +80,6 @@ import { QueryRenderer } from '@cubejs-client/vue3';
 import moment from 'moment';
 import {
   mapGetters,
-  mapActions,
 } from '@/shared/vuex/vuex.helpers';
 import { TOTAL_ACTIVE_MEMBERS_QUERY } from '@/modules/widget/widget-queries';
 import AppWidgetKpi from '@/modules/widget/components/shared/widget-kpi.vue';
@@ -116,7 +115,6 @@ const props = defineProps({
 const authStore = useAuthStore();
 const { user } = storeToRefs(authStore);
 const { cubejsApi } = mapGetters('widget');
-const { doExport } = mapActions('member');
 
 const drawerExpanded = ref();
 const drawerTitle = ref();
@@ -219,12 +217,18 @@ const handleDrawerOpen = async (widget) => {
   drawerGranularity.value = widget.period;
 };
 
-const onExport = async ({ ids, count }) => {
+const onExport = async ({ ids }) => {
   try {
-    await doExport({
-      selected: true,
-      customIds: ids,
-      count,
+    await MemberService.export({
+      filter: {
+        id: {
+          in: ids,
+        },
+      },
+      orderBy: 'displayName_ASC',
+      limit: ids.length,
+      offset: null,
+      segments: props.filters.segments.childSegments,
     });
   } catch (error) {
     console.error(error);
