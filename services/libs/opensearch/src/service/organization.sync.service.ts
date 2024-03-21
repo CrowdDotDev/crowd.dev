@@ -21,17 +21,19 @@ export class OrganizationSyncService {
   private readonly indexingRepo: IndexingRepository
 
   constructor(
-    store: DbStore,
+    writeStore: DbStore,
     private readonly openSearchService: OpenSearchService,
     parentLog: Logger,
     serviceConfig: IServiceConfig,
+    readStore?: DbStore,
   ) {
     this.log = getChildLogger('organization-sync-service', parentLog)
     this.serviceConfig = serviceConfig
 
+    const store = readStore || writeStore
     this.orgRepo = new OrganizationRepository(store, this.log)
     this.segmentRepo = new SegmentRepository(store, this.log)
-    this.indexingRepo = new IndexingRepository(store, this.log)
+    this.indexingRepo = new IndexingRepository(writeStore, this.log)
   }
 
   public async getAllIndexedTenantIds(

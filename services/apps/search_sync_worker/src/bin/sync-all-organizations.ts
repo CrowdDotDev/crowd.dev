@@ -44,7 +44,13 @@ setImmediate(async () => {
 
   const tenantIds = await repo.getTenantIds()
 
-  const service = new OrganizationSyncService(readStore, openSearchService, log, SERVICE_CONFIG())
+  const service = new OrganizationSyncService(
+    writeStore,
+    openSearchService,
+    log,
+    SERVICE_CONFIG(),
+    readStore,
+  )
 
   let current = 0
   for (let i = 0; i < tenantIds.length; i++) {
