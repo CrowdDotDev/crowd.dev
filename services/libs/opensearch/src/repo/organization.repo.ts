@@ -275,6 +275,8 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     perPage: number,
     previousBatchIds: string[],
   ): Promise<string[]> {
+    const notInClause =
+      previousBatchIds.length > 0 ? `o.id NOT IN ($(previousBatchIds:csv)) and` : ''
     const results = await this.db().any(
       `
       select o.id
@@ -282,7 +284,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
       left join indexed_entities ie on o.id = ie.entity_id and ie.type = $(type)
       where o."tenantId" = $(tenantId) and 
             o."deletedAt" is null and
-            o.id not in ($(previousBatchIds:csv)) and
+            ${notInClause}
             ie.entity_id is null
       limit ${perPage}`,
       {

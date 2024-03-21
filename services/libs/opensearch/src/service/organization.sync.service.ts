@@ -209,7 +209,11 @@ export class OrganizationSyncService {
 
     await logExecutionTime(
       async () => {
-        let organizationIds = await this.orgRepo.getTenantOrganizationsForSync(tenantId, batchSize)
+        let organizationIds = await this.orgRepo.getTenantOrganizationsForSync(
+          tenantId,
+          batchSize,
+          previousBatchIds,
+        )
 
         while (organizationIds.length > 0) {
           const { organizationsSynced, documentsIndexed } = await this.syncOrganizations(
