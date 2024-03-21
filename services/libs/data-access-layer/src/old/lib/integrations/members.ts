@@ -23,7 +23,7 @@ export async function fetchIntegrationMembersPaginated(
             "memberIdentities" m
           WHERE
             m."tenantId"= (select "tenantId" from integrations where id = $(integrationId) )
-            and m.platform = $(platform) and m.type = $(type) and m."isVerified" = true
+            and m.platform = $(platform) and m.type = $(type) and m.verified = true
           ORDER BY
             m."memberId"
           LIMIT $(perPage)

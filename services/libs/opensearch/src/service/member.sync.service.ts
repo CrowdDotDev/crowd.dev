@@ -572,11 +572,6 @@ export class MemberSyncService {
     p.obj_reach = typeof data.reach === 'object' ? data.reach : { total: data.reach }
 
     p.obj_attributes = p_attributes
-    const emails = data.identities
-      .filter((i) => i.isVerified && i.type === MemberIdentityType.EMAIL)
-      .map((e) => e.value)
-    p.string_arr_emails = emails
-    p.keyword_emails = emails
     p.int_score = data.score
     p.date_lastEnriched = data.lastEnriched ? new Date(data.lastEnriched).toISOString() : null
     p.date_joinedAt = new Date(data.joinedAt).toISOString()
@@ -597,29 +592,29 @@ export class MemberSyncService {
         string_value: identity.value,
         keyword_value: identity.value,
         keyword_type: identity.type,
-        bool_verified: identity.isVerified,
+        bool_verified: identity.verified,
       })
     }
     p.nested_identities = p_identities
 
     p.string_arr_verifiedEmails = data.identities
-      .filter((i) => i.isVerified && i.type === MemberIdentityType.EMAIL)
+      .filter((i) => i.verified && i.type === MemberIdentityType.EMAIL)
       .map((i) => i.value)
 
     p.string_arr_unverifiedEmails = data.identities
-      .filter((i) => !i.isVerified && i.type === MemberIdentityType.EMAIL)
+      .filter((i) => !i.verified && i.type === MemberIdentityType.EMAIL)
       .map((i) => i.value)
 
     p.string_arr_verifiedUsernames = data.identities
-      .filter((i) => i.isVerified && i.type === MemberIdentityType.USERNAME)
+      .filter((i) => i.verified && i.type === MemberIdentityType.USERNAME)
       .map((i) => i.value)
 
     p.string_arr_unverifiedUsernames = data.identities
-      .filter((i) => !i.isVerified && i.type === MemberIdentityType.USERNAME)
+      .filter((i) => !i.verified && i.type === MemberIdentityType.USERNAME)
       .map((i) => i.value)
 
     p.string_arr_identityPlatforms = distinct(
-      data.identities.filter((i) => i.isVerified).map((i) => i.platform),
+      data.identities.filter((i) => i.verified).map((i) => i.platform),
     )
 
     const p_contributions = []

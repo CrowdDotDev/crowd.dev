@@ -210,19 +210,19 @@ export class InitService {
           platform: 'devto',
           value: 'Test Member',
           type: MemberIdentityType.USERNAME,
-          isVerified: true,
+          verified: true,
         },
         {
           platform: 'github',
           value: 'fakeWeakIdentity',
           type: MemberIdentityType.USERNAME,
-          isVerified: false,
+          verified: false,
         },
         {
           platform: 'github',
           value: 'test@email.com',
           type: MemberIdentityType.EMAIL,
-          isVerified: true,
+          verified: true,
         },
       ],
       organizations: [

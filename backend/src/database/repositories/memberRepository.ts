@@ -1,6 +1,7 @@
 import {
   ActivityDisplayVariant,
   FeatureFlag,
+  IMemberIdentity,
   IMemberOrganization,
   IMemberUsername,
   MemberAttributeType,
@@ -45,7 +46,6 @@ import TenantRepository from './tenantRepository'
 import {
   IActiveMemberData,
   IActiveMemberFilter,
-  IMemberIdentity,
   IMemberMergeSuggestion,
   mapUsernameToIdentities,
 } from './types/memberTypes'
@@ -333,7 +333,8 @@ class MemberRepository {
   static async moveIdentitiesBetweenMembers(
     fromMemberId: string,
     toMemberId: string,
-    identitiesToMove: any[],
+    identitiesToMove: IMemberIdentity[],
+    identitiesToUpdate: IMemberIdentity[],
     options: IRepositoryOptions,
   ): Promise<void> {
     const transaction = SequelizeRepository.getTransaction(options)
@@ -342,7 +343,9 @@ class MemberRepository {
 
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
-    const query = `
+    if (identitiesToMove.length > 0) {
+      // lets just move it by updating memberId
+      const query = `
       update "memberIdentities" 
       set 
         "memberId" = :newMemberId
@@ -354,23 +357,74 @@ class MemberRepository {
         type = :type;
     `
 
-    for (const identity of identitiesToMove) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const [_, count] = await seq.query(query, {
-        replacements: {
-          tenantId: tenant.id,
-          oldMemberId: fromMemberId,
-          newMemberId: toMemberId,
-          platform: identity.platform,
-          value: identity.value ? identity.value : identity.username,
-          type: identity.type ? identity.type : MemberIdentityType.USERNAME,
-        },
-        type: QueryTypes.UPDATE,
-        transaction,
-      })
+      for (const i of identitiesToMove) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const [_, count] = await seq.query(query, {
+          replacements: {
+            tenantId: tenant.id,
+            oldMemberId: fromMemberId,
+            newMemberId: toMemberId,
+            platform: i.platform,
+            value: i.value,
+            type: i.type,
+          },
+          type: QueryTypes.UPDATE,
+          transaction,
+        })
 
-      if (count !== 1) {
-        throw new Error('One row should be updated!')
+        if (count !== 1) {
+          throw new Error('One row should be updated!')
+        }
+      }
+    }
+
+    if (identitiesToUpdate.length > 0) {
+      for (const i of identitiesToUpdate) {
+        // first we remove them from the old member (we can't update and delete at the same time because of a unique index where only one identity can have a verified type:value combination for a tenant, member and platform)
+        await seq.query(
+          `
+      delete from "memberIdentities" 
+      where "memberId" = :memberId and 
+            "tenantId" = :tenantId and
+            platform = :platform and
+            value = :value and
+            type = :type
+      `,
+          {
+            replacements: {
+              memberId: fromMemberId,
+              tenantId: tenant.id,
+              platform: i.platform,
+              value: i.value,
+              type: i.type,
+            },
+            type: QueryTypes.DELETE,
+            transaction,
+          },
+        )
+        // then we update verified flag for the identities in the new member
+        await seq.query(
+          `
+        update "memberIdentities"
+        set verified = true
+        where "memberId" = :memberId and 
+            "tenantId" = :tenantId and
+            platform = :platform and
+            value = :value and
+            type = :type
+        `,
+          {
+            replacements: {
+              memberId: toMemberId,
+              tenantId: tenant.id,
+              platform: i.platform,
+              value: i.value,
+              type: i.type,
+            },
+            type: QueryTypes.UPDATE,
+            transaction,
+          },
+        )
       }
     }
   }
@@ -1163,7 +1217,18 @@ class MemberRepository {
     const seq = SequelizeRepository.getSequelize(options)
 
     const query = `
-      select "memberId", platform, value, type, "sourceId", "integrationId", "createdAt" from "memberIdentities" where "memberId" in (:memberIds)
+      select "memberId",
+             platform,
+             value,
+             type,
+             verified,
+             "sourceId",
+             "tenantId",
+             "integrationId",
+             "createdAt",
+             "updatedAt"
+      from "memberIdentities" 
+      where "memberId" in (:memberIds)
       order by "createdAt" asc;
     `
 
@@ -1180,7 +1245,7 @@ class MemberRepository {
     }
 
     for (const res of data as any[]) {
-      const { memberId, platform, value, type, sourceId, integrationId, createdAt } = res
+      const { memberId, platform, value, type, sourceId, integrationId, createdAt, verified } = res
       const identities = results.get(memberId)
 
       identities.push({
@@ -1190,35 +1255,11 @@ class MemberRepository {
         sourceId,
         integrationId,
         createdAt,
+        verified,
       })
     }
 
     return results
-  }
-
-  static async getRawMemberIdentities(
-    memberId: string,
-    options: IRepositoryOptions,
-  ): Promise<IMemberIdentity[]> {
-    const seq = SequelizeRepository.getSequelize(options)
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    const memberIdentities = (await seq.query(
-      `
-        SELECT *
-        FROM "memberIdentities"
-        WHERE "memberId" = :memberId;
-      `,
-      {
-        replacements: {
-          memberId,
-        },
-        type: QueryTypes.SELECT,
-        transaction,
-      },
-    )) as IMemberIdentity[]
-
-    return memberIdentities
   }
 
   static async getActivityCountOfMembersIdentities(
@@ -2685,8 +2726,8 @@ class MemberRepository {
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
     const query = `
-      insert into "memberIdentities"("memberId", platform, type, value, "tenantId", "isVerified")
-      values(:memberId, :platform, :type, :value, :tenantId, :isVerified)
+      insert into "memberIdentities"("memberId", platform, type, value, "tenantId", verified)
+      values(:memberId, :platform, :type, :value, :tenantId, false)
       on conflict do nothing;
     `
 

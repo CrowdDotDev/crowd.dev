@@ -13,7 +13,7 @@ export async function insertMemberIdentity(
   verified: boolean,
 ) {
   return tx.query(
-    `INSERT INTO "memberIdentities" ("memberId", "tenantId", platform, value, type, "isVerified")
+    `INSERT INTO "memberIdentities" ("memberId", "tenantId", platform, value, type, verified)
           VALUES ($(memberId), $(tenantId), $(platform), $(value), $(type), $(verified))
           ON CONFLICT DO NOTHING;`,
     {

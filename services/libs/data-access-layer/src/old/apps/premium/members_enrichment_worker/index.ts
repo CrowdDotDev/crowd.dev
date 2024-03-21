@@ -15,7 +15,7 @@ export async function fetchMembersForEnrichment(db: DbStore): Promise<IMember[]>
           'platform', mi.platform,
           'value', mi.value,
           'type', mi.type,
-          'verified', mi."isVerified"
+          'verified', mi.verified
         )) as identities,
         COUNT(activities."memberId") AS activity_count
       FROM members

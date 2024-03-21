@@ -37,7 +37,7 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
   public async findMemberByEmail(tenantId: string, email: string): Promise<IDbMember | null> {
     return await this.db().oneOrNone(
       `${this.selectMemberQuery}
-      inner join "memberIdentities" mi on m.id = mi."memberId" and mi."isVerified" = true
+      inner join "memberIdentities" mi on m.id = mi."memberId" and mi.verified = true
       where m."tenantId" = $(tenantId)
         and mi.type = $(type)
         and mi.value = $(email)
@@ -174,7 +174,7 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
   public async getIdentities(memberId: string, tenantId: string): Promise<IMemberIdentity[]> {
     return await this.db().any(
       `
-      select "sourceId", platform, value, type, "isVerified" as verified from "memberIdentities"
+      select "sourceId", platform, value, type, verified from "memberIdentities"
       where "memberId" = $(memberId) and "tenantId" = $(tenantId)
     `,
       {
@@ -227,7 +227,7 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
     const query =
       this.dbInstance.helpers.update(
         objects,
-        ['isVerified', '?memberId', '?tenantId', '?platform', '?type', '?value'],
+        ['verified', '?memberId', '?tenantId', '?platform', '?type', '?value'],
         'memberIdentities',
       ) +
       ' where t."memberId" = v."memberId"::uuid and t."tenantId" = v."tenantId"::uuid and t.platform = v.platform and t.type = v.type and t.value = v.value'
@@ -354,7 +354,7 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
         select mi."memberId", array_agg(mi.value) as emails
         from "memberIdentities" mi
         where mi."tenantId" = $(tenantId) and
-              mi."isVerified" = true and
+              mi.verified = true and
               mi.type = '${MemberIdentityType.EMAIL}'
         group by mi."memberId"
       )

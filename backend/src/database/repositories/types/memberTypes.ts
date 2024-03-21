@@ -21,15 +21,6 @@ export interface IActiveMemberFilter {
   activityTimestampTo: string
 }
 
-export interface IMemberIdentity {
-  platform: string
-  value: string
-  type: MemberIdentityType
-  integrationId?: string
-  sourceId?: string
-  createdAt?: string
-}
-
 export type BasicMemberIdentity = { value: string; type: MemberIdentityType }
 
 export const mapSingleUsernameToIdentity = (usernameOrIdentity: any): BasicMemberIdentity => {

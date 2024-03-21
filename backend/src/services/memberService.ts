@@ -1084,7 +1084,6 @@ export default class MemberService extends LoggerBase {
     'notes',
     'reach',
     'tasks',
-    'emails',
     'joinedAt',
     'tenantId',
     'username',
@@ -1120,10 +1119,18 @@ export default class MemberService extends LoggerBase {
       const original = await MemberRepository.findById(originalId, this.options)
       const toMerge = await MemberRepository.findById(toMergeId, this.options)
 
+      const allIdentities = await MemberRepository.getIdentities(
+        [originalId, toMergeId],
+        this.options,
+      )
+
+      const originalIdentities = allIdentities.get(originalId)
+      const toMergeIdentities = allIdentities.get(toMergeId)
+
       const backup = {
         primary: {
           ...lodash.pick(original, MemberService.MEMBER_MERGE_FIELDS),
-          identities: await MemberRepository.getRawMemberIdentities(originalId, this.options),
+          identities: originalIdentities,
           memberOrganizations: await MemberOrganizationRepository.findMemberRoles(
             originalId,
             this.options,
@@ -1131,7 +1138,7 @@ export default class MemberService extends LoggerBase {
         },
         secondary: {
           ...lodash.pick(toMerge, MemberService.MEMBER_MERGE_FIELDS),
-          identities: await MemberRepository.getRawMemberIdentities(toMergeId, this.options),
+          identities: toMergeIdentities,
           memberOrganizations: await MemberOrganizationRepository.findMemberRoles(
             toMergeId,
             this.options,
@@ -1159,23 +1166,22 @@ export default class MemberService extends LoggerBase {
         await SequelizeRepository.createTransactionalRepositoryOptions(this.options)
       tx = repoOptions.transaction
 
-      const allIdentities = await MemberRepository.getIdentities(
-        [originalId, toMergeId],
-        repoOptions,
-      )
-
-      const originalIdentities = allIdentities.get(originalId)
-      const toMergeIdentities = allIdentities.get(toMergeId)
+      const identitiesToUpdate = []
       const identitiesToMove = []
       for (const identity of toMergeIdentities) {
-        if (
-          !originalIdentities.find(
-            (i) =>
-              i.platform === identity.platform &&
-              i.type === identity.type &&
-              i.value === identity.value,
-          )
-        ) {
+        const existing = originalIdentities.find(
+          (i) =>
+            i.platform === identity.platform &&
+            i.type === identity.type &&
+            i.value === identity.value,
+        )
+
+        if (existing) {
+          // if it's not verified but it should be
+          if (!existing.verified && identity.verified) {
+            identitiesToUpdate.push(identity)
+          }
+        } else {
           identitiesToMove.push(identity)
         }
       }
@@ -1184,6 +1190,7 @@ export default class MemberService extends LoggerBase {
         toMergeId,
         originalId,
         identitiesToMove,
+        identitiesToUpdate,
         repoOptions,
       )
 

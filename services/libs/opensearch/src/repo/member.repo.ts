@@ -394,7 +394,7 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
                     'platform', mi.platform,
                     'value', mi.value,
                     'type', mi.type,
-                    'isVerified', mi."isVerified"
+                    'verified', mi.verified
                 )
       ) as identities
       from "memberIdentities" mi

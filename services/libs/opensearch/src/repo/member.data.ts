@@ -4,7 +4,7 @@ export interface IDbMemberIdentityData {
   platform: string
   value: string
   type: MemberIdentityType
-  isVerified: boolean
+  verified: boolean
 }
 
 export interface IDbMemberTagData {
