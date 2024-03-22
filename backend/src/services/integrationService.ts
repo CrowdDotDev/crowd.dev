@@ -1815,8 +1815,7 @@ export default class IntegrationService {
       const calculateMessage = (db: number, remote: number, entity: string) => {
         if (remote === 0) return `0 ${entity} synced`
         if (db >= remote) return `${remote.toLocaleString()} ${entity} synced`
-        if (Math.abs(db - remote) / remote <= 0.02)
-          return `${db.toLocaleString()} ${entity} synced`
+        if (Math.abs(db - remote) / remote <= 0.02) return `${db.toLocaleString()} ${entity} synced`
         return `${db.toLocaleString()} out of ${remote.toLocaleString()} ${entity} synced`
       }
 
