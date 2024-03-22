@@ -274,7 +274,7 @@ const doMarkAsTeamMember = async (value) => {
   Message.info(
     null,
     {
-      title: 'Contacts are being updated',
+      title: 'Contributors are being updated',
     },
   );
 
@@ -298,7 +298,7 @@ const doMarkAsTeamMember = async (value) => {
     })
     .catch(() => {
       Message.closeAll();
-      Message.error('Error updating contacts');
+      Message.error('Error updating contributors');
     });
 };
 

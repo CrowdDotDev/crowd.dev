@@ -3,7 +3,7 @@ import { MemberPermissions } from '@/modules/member/member-permissions';
 
 const contacts: MenuLink = {
   id: 'contacts',
-  label: 'Contacts',
+  label: 'Contributors',
   icon: 'ri-group-2-line',
   routeName: 'member',
   display: ({ user, tenant }) => {
