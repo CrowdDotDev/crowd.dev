@@ -463,7 +463,7 @@ const handleCommand = async (command: {
   emit('closeDropdown');
 };
 
-const identities = computed(() => Object.values(props.member.username).flat());
+const identities = computed(() => Object.values(props.member.identities).flat());
 </script>
 
 <style lang="scss" scoped>
