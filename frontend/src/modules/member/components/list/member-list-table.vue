@@ -198,75 +198,7 @@
                     }"
                     class="block"
                   >
-                    <div
-                      v-if="scope.row.emails.filter((e) => !!e)?.length && scope.row.emails.filter((e) => !!e)?.some((e) => !!e)"
-                      class="text-sm cursor-auto flex flex-wrap gap-1"
-                    >
-                      <el-tooltip
-                        v-for="email of scope.row.emails.filter((e) => !!e).slice(0, 3)"
-                        :key="email"
-                        :disabled="!email"
-                        popper-class="custom-identity-tooltip"
-                        placement="top"
-                      >
-                        <template #content>
-                          <span>Send email
-                            <i
-                              v-if="email"
-                              class="ri-external-link-line text-gray-400"
-                            /></span>
-                        </template>
-                        <div @click.prevent>
-                          <a
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            class="badge--interactive"
-                            :href="`mailto:${email}`"
-                            @click.stop="trackEmailClick"
-                          >{{ email }}</a>
-                        </div>
-                      </el-tooltip>
-                      <el-popover
-                        v-if="scope.row.emails.filter((e) => !!e)?.length > 3"
-                        placement="top"
-                        :width="400"
-                        trigger="hover"
-                        popper-class="support-popover"
-                      >
-                        <template #reference>
-                          <span
-                            class="badge--interactive hover:text-gray-900"
-                          >+{{ scope.row.emails.filter((e) => !!e).length - 3 }}</span>
-                        </template>
-                        <div class="flex flex-wrap gap-3 my-1">
-                          <el-tooltip
-                            v-for="email of scope.row.emails.filter((e) => !!e).slice(3)"
-                            :key="email"
-                            :disabled="!email"
-                            popper-class="custom-identity-tooltip flex "
-                            placement="top"
-                          >
-                            <template #content>
-                              <span>Send email
-                                <i
-                                  v-if="email"
-                                  class="ri-external-link-line text-gray-400"
-                                /></span>
-                            </template>
-                            <div @click.prevent>
-                              <a
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                class="badge--interactive"
-                                :href="`mailto:${email}`"
-                                @click.stop="trackEmailClick"
-                              >{{ email }}</a>
-                            </div>
-                          </el-tooltip>
-                        </div>
-                      </el-popover>
-                    </div>
-                    <span v-else class="text-gray-500">-</span>
+                    <app-member-list-emails :member="scope.row" />
                   </router-link>
                 </template>
               </el-table-column>
@@ -766,6 +698,7 @@ import AppMemberReach from '../member-reach.vue';
 import AppMemberEngagementLevel from '../member-engagement-level.vue';
 import AppMemberLastActivity from '../member-last-activity.vue';
 import AppMemberSentiment from '../member-sentiment.vue';
+import AppMemberListEmails from '@/modules/member/components/list/columns/member-list-emails.vue';
 
 const store = useStore();
 const router = useRouter();
@@ -865,7 +798,7 @@ const emailsColumnWidth = computed(() => {
   let maxTabWidth = 0;
 
   members.value.forEach((row) => {
-    const tabWidth = row.emails
+    const tabWidth = [...row.verifiedEmails, ...row.unverifiedEmails]
       .map((email) => (email ? email.length * 12 : 0))
       .reduce((a, b) => a + b, 0);
 
@@ -1045,11 +978,7 @@ const onTableMouseLeft = () => {
   isScrollbarVisible.value = isCursorDown.value;
 };
 
-const trackEmailClick = () => {
-  window.analytics.track('Click Member Contact', {
-    channel: 'Email',
-  });
-};
+
 
 watch(table, (newValue) => {
   if (newValue) {
