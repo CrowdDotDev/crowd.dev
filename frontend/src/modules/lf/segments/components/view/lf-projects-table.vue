@@ -11,7 +11,7 @@
       prop="name"
       width="300"
       fixed
-      class-name="table-columns !bg-white"
+      class-name="table-columns"
     >
       <template #header>
         <div>
@@ -29,7 +29,7 @@
     <!-- Connected Integrations -->
     <el-table-column
       width="250"
-      class-name="table-columns !py-0 !bg-white"
+      class-name="table-columns"
     >
       <template #header>
         <div>
@@ -42,47 +42,24 @@
       <template #default="{ row }">
         <div
           v-if="row.integrations?.length"
-          class="flex gap-1 items-center py-2"
+          class="flex gap-1 items-center"
         >
           <div
-            v-for="integration in row.integrations"
-            :key="integration.id"
+            v-for="{ id, platform, status } in row.integrations"
+            :key="id"
+            class="relative w-6 h-6 flex items-center justify-center"
           >
-            <el-popover
-              :disabled="integration.status !== 'in-progress' || !getProgress(row.id, integration.platform)"
-              :width="290"
-              placement="top"
-            >
-              <template #reference>
-                <div class="relative w-6 h-6 flex items-center justify-center">
-                  <app-platform-svg
-                    :platform="integration.platform"
-                  />
-
-                  <i
-                    v-if="integration.status === 'no-data'"
-                    class="ri-alert-fill absolute right-0 top-0 text-2xs leading-3 text-yellow-500"
-                  />
-                  <i
-                    v-else-if="integration.status === 'error'"
-                    class="ri-error-warning-fill absolute right-0 top-0 text-2xs leading-3 text-red-600"
-                  />
-                  <div
-                    v-else-if="integration.status === 'in-progress'"
-                    class="w-4 h-4 bg-white rounded-full -ml-2 flex items-center justify-center -mt-5"
-                  >
-                    <cr-spinner size="0.75rem" class="!border-black" />
-                  </div>
-                </div>
-              </template>
-              <div class="px-1">
-                <app-integration-progress :progress="getProgress(row.id, integration.platform)" :show-bar="true" :show-parts="true">
-                  <h6 class="text-xs text-black leading-5 pb-3">
-                    Connecting {{ CrowdIntegrations.getConfig(integration.platform)?.name }} integration
-                  </h6>
-                </app-integration-progress>
-              </div>
-            </el-popover>
+            <app-platform-svg
+              :platform="platform"
+            />
+            <i
+              v-if="status === 'no-data'"
+              class="ri-alert-fill absolute right-0 top-0 text-2xs leading-3 text-yellow-500"
+            />
+            <i
+              v-else-if="status === 'error'"
+              class="ri-error-warning-fill absolute right-0 top-0 text-2xs leading-3 text-red-600"
+            />
           </div>
         </div>
         <span v-else class="text-gray-400 text-sm">No integrations</span>
@@ -92,7 +69,7 @@
     <!-- Status -->
     <el-table-column
       width="150"
-      class-name="table-columns !bg-white"
+      class-name="table-columns"
     >
       <template #header>
         <div>
@@ -121,13 +98,13 @@
       </template>
     </el-table-column>
 
-    <el-table-column class-name="!bg-white">
+    <el-table-column>
       <template #default>
         <div class="flex grow" />
       </template>
     </el-table-column>
 
-    <el-table-column fixed="right" width="288" class-name="table-columns !bg-white">
+    <el-table-column fixed="right" width="288" class-name="table-columns">
       <template #header>
         <span class="h-10 block" />
         <div class="flex justify-end mb-4">
@@ -190,22 +167,14 @@ import AppPlatformSvg from '@/shared/modules/platform/components/platform-svg.vu
 import { hasAccessToSegmentId } from '@/utils/segments';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
-import CrSpinner from '@/ui-kit/spinner/Spinner.vue';
-import AppIntegrationProgress from '@/modules/integration/components/integration-progress.vue';
-import { CrowdIntegrations } from '../../../../../integrations/integrations-config';
 
 const route = useRoute();
 
 const emit = defineEmits(['onEditProject', 'onEditSubProject', 'onAddSubProject']);
-const props = defineProps({
+defineProps({
   project: {
     type: Object,
     required: true,
-  },
-  progress: {
-    type: Array,
-    required: false,
-    default: () => ([]),
   },
 });
 
@@ -218,8 +187,6 @@ const hasPermissionToCreateSubProject = computed(() => new LfPermissions(
 )?.createSubProject);
 
 const statusDisplay = (status) => statusOptions.find((s) => s.value === status);
-
-const getProgress = (segmentId, platform) => (props.progress || []).find((p) => p.segmentId === segmentId && p.platform === platform);
 </script>
 
 <script>

@@ -75,19 +75,14 @@
           />
         </div>
 
-        <app-integration-progress-wrapper :segments="segmentIds">
-          <template #default="{ progress }">
-            <app-lf-projects-table
-              v-for="project in projects.list"
-              :key="project.id"
-              :project="project"
-              :progress="progress"
-              @on-edit-project="onEditProject"
-              @on-edit-sub-project="onEditSubProject"
-              @on-add-sub-project="onAddSubProject"
-            />
-          </template>
-        </app-integration-progress-wrapper>
+        <app-lf-projects-table
+          v-for="project in projects.list"
+          :key="project.id"
+          :project="project"
+          @on-edit-project="onEditProject"
+          @on-edit-sub-project="onEditSubProject"
+          @on-add-sub-project="onAddSubProject"
+        />
 
         <div v-if="!!pagination.count">
           <app-pagination
@@ -134,7 +129,6 @@ import { storeToRefs } from 'pinia';
 import { LfPermissions } from '@/modules/lf/lf-permissions';
 import { hasAccessToSegmentId } from '@/utils/segments';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
-import AppIntegrationProgressWrapper from '@/modules/integration/components/integration-progress-wrapper.vue';
 
 const route = useRoute();
 const lsSegmentsStore = useLfSegmentsStore();
@@ -168,8 +162,6 @@ const hasPermissionToCreate = computed(() => new LfPermissions(
   tenant.value,
   user.value,
 )?.createProject);
-
-const segmentIds = computed(() => projects.value.list.map((p) => p.subprojects.map((sp) => sp.id)).flat() || []);
 
 const hasPermissionToEditProjectGroups = computed(() => new LfPermissions(
   tenant.value,

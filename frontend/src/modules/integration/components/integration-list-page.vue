@@ -82,7 +82,7 @@
           </template>
         </app-alert>
       </div>
-      <app-integration-list :segment="$route.params.id" />
+      <app-integration-list />
     </div>
   </app-page-wrapper>
 </template>

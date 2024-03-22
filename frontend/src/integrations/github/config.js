@@ -19,7 +19,6 @@ export default {
   url: ({ username }) => (username ? `https://github.com/${username}` : null),
   chartColor: '#111827',
   showProfileLink: true,
-  showProgress: true,
   activityDisplay: {
     showLinkToUrl: true,
   },
