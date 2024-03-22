@@ -29,7 +29,7 @@ const identities: MultiSelectFilterConfig = {
     return itemLabelRendererByType[FilterConfigType.MULTISELECT]('Identities', value, options);
   },
   apiFilterRenderer(value: MultiSelectFilterValue): any[] {
-    return apiFilterRendererByType[FilterConfigType.MULTISELECT]('identities', value);
+    return apiFilterRendererByType[FilterConfigType.MULTISELECT]('identityPlatforms', value);
   },
 };
 
