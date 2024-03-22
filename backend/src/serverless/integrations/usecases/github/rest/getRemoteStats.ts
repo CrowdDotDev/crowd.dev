@@ -1,7 +1,10 @@
+import { getServiceChildLogger } from '@crowd/logging'
 import axios, { AxiosResponse } from 'axios'
 import { Repos } from '../../../types/regularTypes'
 
 const commitsRegExp = /&page=(\d+)>; rel="last"/
+
+const log = getServiceChildLogger('getInstalledRepositories')
 
 export interface GitHubStats {
   stars: number
@@ -77,8 +80,7 @@ const getStatsForRepo = async (repoUrl: string, token: string): Promise<GitHubSt
       totalPRs: checkHeaders(prsAll),
     }
   } catch (e) {
-    console.error('Error fetching stats for repo', repoUrl, e)
-    console.error('Response:', result.data)
+    log.error('Error getting stats for repo', e)
     throw e
   }
 
