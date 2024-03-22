@@ -10,7 +10,7 @@
         <p class="text-sm font-medium text-gray-900 mb-2">
           Email address
         </p>
-        <app-member-form-emails v-model="memberModel" @update:model-value="hasFormChanged = true" />
+        <app-member-form-emails v-model="memberModel" />
       </div>
     </template>
     <template #footer>
@@ -23,7 +23,7 @@
         </el-button>
         <el-button
           type="primary"
-          :disabled="$v.$invalid || !hasFormChanged || loading"
+          :disabled="loading"
           class="btn btn--md btn--primary"
           :loading="loading"
           @click="handleSubmit"
@@ -45,6 +45,7 @@ import AppMemberFormEmails from '@/modules/member/components/form/member-form-em
 import useVuelidate from '@vuelidate/core';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';
+import formChangeDetector from '@/shared/form/form-change';
 
 const store = useStore();
 const props = defineProps({
@@ -74,9 +75,6 @@ const drawerModel = computed({
 const memberModel = ref(cloneDeep(props.member));
 const loading = ref(false);
 
-const $v = useVuelidate({}, memberModel);
-
-const hasFormChanged = ref(false);
 
 const handleCancel = () => {
   emit('update:modelValue', false);
@@ -88,7 +86,7 @@ const handleSubmit = async () => {
   const segments = props.member.segments.map((s) => s.id);
 
   MemberService.update(props.member.id, {
-    emails: memberModel.value.emails.filter((e) => !!e.trim()),
+    identities: memberModel.value.identities,
   }, segments).then(() => {
     store.dispatch('member/doFind', {
       id: props.member.id,
