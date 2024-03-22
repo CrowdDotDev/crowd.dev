@@ -4,7 +4,7 @@ import { Repos } from '../../../types/regularTypes'
 
 const commitsRegExp = /&page=(\d+)>; rel="last"/
 
-const log = getServiceChildLogger('getInstalledRepositories')
+const log = getServiceChildLogger('getRemoteStats')
 
 export interface GitHubStats {
   stars: number
