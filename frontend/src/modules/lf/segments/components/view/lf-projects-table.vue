@@ -50,7 +50,7 @@
           >
             <el-popover
               :disabled="integration.status !== 'in-progress' || !getProgress(row.id, integration.platform)"
-              :width="320"
+              :width="290"
               placement="top"
             >
               <template #reference>

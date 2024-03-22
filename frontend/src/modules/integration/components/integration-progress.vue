@@ -25,7 +25,7 @@
           <p class="text-gray-600 text-2xs" v-html="part.message" />
         </div>
       </template>
-      <p v-if="!showProgress" class="text-2xs text-gray-400">
+      <p v-if="!showProgress" class="text-2xs text-gray-400 !whitespace-normal">
         The total number of data streams processed may change during the process.
       </p>
     </div>
