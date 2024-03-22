@@ -147,14 +147,14 @@
                         </button>
                         <template #dropdown>
                           <template
-                            v-for="i of identities"
-                            :key="`${i.platform}:${i.username}`"
+                            v-for="i of props.modelValue.identities"
+                            :key="`${i.platform}:${i.value}`"
                           >
                             <el-dropdown-item
-                              v-if="`${i.platform}:${i.username}` !== selectedIdentity"
-                              :value="`${i.platform}:${i.username}`"
-                              :label="i.username"
-                              @click="fetchPreview(`${i.platform}:${i.username}`)"
+                              v-if="`${i.platform}:${i.value}` !== selectedIdentity"
+                              :value="`${i.platform}:${i.value}`"
+                              :label="i.value"
+                              @click="fetchPreview(`${i.platform}:${i.value}`)"
                             >
                               <img
                                 v-if="platformDetails(i.platform)"
@@ -218,10 +218,10 @@
                   @update:model-value="fetchPreview($event)"
                 >
                   <el-option
-                    v-for="i of identities"
-                    :key="`${i.platform}:${i.username}`"
-                    :value="`${i.platform}:${i.username}`"
-                    :label="i.username"
+                    v-for="i of props.modelValue.identities"
+                    :key="`${i.platform}:${i.value}`"
+                    :value="`${i.platform}:${i.value}`"
+                    :label="i.value"
                   >
                     <img
                       v-if="platformDetails(i.platform)"
@@ -229,7 +229,7 @@
                       :alt="platformDetails(i.platform)?.name"
                       :src="platformDetails(i.platform)?.image"
                     />
-                    {{ i.username }}
+                    {{ i.value }}
                   </el-option>
                 </el-select>
               </div>
@@ -251,6 +251,8 @@ import CrSpinner from '@/ui-kit/spinner/Spinner.vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppMemberOrganizationList from '@/modules/member/components/suggestions/member-organizations-list.vue';
 import AppMemberSuggestionsDetails from './suggestions/member-merge-suggestions-details.vue';
+import useMemberIdentities from '@/shared/modules/identities/config/useMemberIdentities';
+import memberOrder from '@/shared/modules/identities/config/identitiesOrder/member';
 
 const props = defineProps({
   modelValue: {
@@ -281,14 +283,6 @@ const isModalOpen = computed({
     selectedIdentity.value = null;
     preview.value = null;
   },
-});
-
-const identities = computed(() => {
-  if (!props.modelValue?.username) {
-    return [];
-  }
-  return Object.entries(props.modelValue.username)
-    .reduce((arr, [platform, idents]) => [...arr, ...idents.map((i) => ({ username: i, platform }))], []);
 });
 
 const platformDetails = (platform) => CrowdIntegrations.getConfig(platform);
