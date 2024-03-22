@@ -80,7 +80,6 @@ import { QueryRenderer } from '@cubejs-client/vue3';
 import moment from 'moment';
 import {
   mapGetters,
-  mapActions,
 } from '@/shared/vuex/vuex.helpers';
 import { TOTAL_ACTIVE_MEMBERS_QUERY } from '@/modules/widget/widget-queries';
 import AppWidgetKpi from '@/modules/widget/components/shared/widget-kpi.vue';
@@ -99,6 +98,7 @@ import {
 import { MemberService } from '@/modules/member/member-service';
 import MEMBERS_REPORT, { ACTIVE_MEMBERS_KPI_WIDGET } from '@/modules/report/templates/config/members';
 import AppWidgetMembersTable from '@/modules/widget/components/shared/widget-members-table.vue';
+import Message from '@/shared/message/message';
 
 const props = defineProps({
   filters: {
@@ -113,7 +113,6 @@ const props = defineProps({
 
 const { currentUser } = mapGetters('auth');
 const { cubejsApi } = mapGetters('widget');
-const { doExport } = mapActions('member');
 
 const drawerExpanded = ref();
 const drawerTitle = ref();
@@ -214,15 +213,30 @@ const handleDrawerOpen = async (widget) => {
   drawerGranularity.value = widget.period;
 };
 
-const onExport = async ({ ids, count }) => {
+const onExport = async ({ ids }) => {
   try {
-    await doExport({
-      selected: true,
-      customIds: ids,
-      count,
+    await MemberService.export({
+      filter: {
+        id: {
+          in: ids,
+        },
+      },
+      orderBy: 'displayName_ASC',
+      limit: ids.length,
+      offset: null,
     });
+
+    Message.success(
+      'CSV download link will be sent to your e-mail',
+    );
   } catch (error) {
     console.error(error);
+    Message.error(
+      'An error has occured while trying to export the CSV file. Please try again',
+      {
+        title: 'CSV Export failed',
+      },
+    );
   }
 };
 </script>
