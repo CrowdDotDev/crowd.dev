@@ -137,22 +137,6 @@
           <span>sub-project. Sit back and relax. We will send you an email when it's done.</span>
         </div>
       </banner>
-
-      <!-- info 3 -->
-      <banner
-        v-else-if="integrationsInProgress.subProjects.length > 1"
-        variant="info"
-      >
-        <div
-          class="flex items-center justify-center grow text-sm"
-        >
-          <div
-            v-loading="true"
-            class="w-4 h-4 mr-3"
-          />
-          Integrations are getting set up on several sub-projects. Sit back and relax. We will send you an email when it's done.
-        </div>
-      </banner>
     </div>
   </div>
 </template>

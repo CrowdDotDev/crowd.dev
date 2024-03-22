@@ -45,7 +45,7 @@
       v-if="selectedProjectGroup"
       class="border-l border-gray-200 overflow-auto px-5 py-6 h-screen min-w-[15rem]"
     >
-      <cr-dashboard-upgrade-plan-widget v-if="displayUpgradeWidget" class="mb-10" />
+      <cr-dashboard-integrations class="mb-8" />
       <app-dashboard-project-group />
     </aside>
   </div>
@@ -67,9 +67,8 @@ import AppLfPageHeader from '@/modules/lf/layout/components/lf-page-header.vue';
 import AppDashboardProjectGroup from '@/modules/dashboard/components/dashboard-project-group.vue';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import CrDashboardUpgradePlanWidget from '@/modules/dashboard/components/dashboard-upgrade-plan-widget.vue';
-import config from '@/config';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
+import CrDashboardIntegrations from '@/modules/dashboard/components/dashboard-integrations.vue';
 
 const authStore = useAuthStore();
 const { tenant } = storeToRefs(authStore);
@@ -83,8 +82,6 @@ const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 const scrolled = ref(false);
 
 const loadingCubeToken = computed(() => !!cubejsApi.value);
-
-const displayUpgradeWidget = computed(() => tenant.value.plan === 'Essential' && !config.isCommunityVersion);
 
 const handleScroll = (event) => {
   scrolled.value = event.target.scrollTop > 20;
