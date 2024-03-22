@@ -70,6 +70,7 @@ export async function getMergeSuggestions(
   // string_arr_unverifiedEmails
   // string_arr_unverifiedUsernames
   // and each also has a keyword_ mapping if needed just like emails before (we had string_arr_emails and keyword_emails)
+  // check opensearch member.sync.service.ts -> lines: 588 - 618
   if (member.nested_identities && member.nested_identities.length > 0) {
     // push nested search scaffold for weak identities
     identitiesPartialQuery.should.push({
@@ -145,6 +146,7 @@ export async function getMergeSuggestions(
   }
 
   // TODO uros ask anil - we have verified and unverified emails here...
+  // check opensearch member.sync.service.ts -> lines: 588 - 618
   if (member.string_arr_emails && member.string_arr_emails.length > 0) {
     identitiesPartialQuery.should.push({
       terms: {

@@ -34,6 +34,7 @@ export const calculateSimilarity = (
   // check email match
   // TODO uros ask anil - verified vs unverified emails
   // which ones to use here for which member?
+  // check opensearch member.sync.service.ts -> lines: 588 - 618
   if (
     similarMember.string_arr_verifiedEmails.length > 0 &&
     similarMember.string_arr_verifiedEmails.some((email) =>
@@ -51,6 +52,7 @@ export const calculateSimilarity = (
   // there is also no more weakIdentities -> they have been converted to unverifiedUsernames
   // emails have been also converted to verified/unverified emails based on if and when the member was enriched
   // so now all we have are verified/unverified emails and usernames
+  // check opensearch member.sync.service.ts -> lines: 588 - 618
   for (const primaryIdentity of primaryMember.nested_identities.filter(
     (i) => i.bool_verified && i.string_type === MemberIdentityType.USERNAME,
   )) {
