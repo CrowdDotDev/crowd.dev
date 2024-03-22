@@ -16,7 +16,6 @@ import { HubspotOrganizationFieldMapper } from './organizationFieldMapper'
 import { serializeDate } from './utils/serialization'
 
 export class HubspotMemberFieldMapper extends HubspotFieldMapper {
-  // TODO uros ask anil
   protected fieldProperties: Record<string, IFieldProperty> = {
     displayName: {
       hubspotType: HubspotPropertyType.STRING,
@@ -30,10 +29,6 @@ export class HubspotMemberFieldMapper extends HubspotFieldMapper {
       readonly: true,
       serialize: serializeDate,
     },
-    // emails: {
-    //   hubspotType: HubspotPropertyType.STRING,
-    //   serialize: serializeArray,
-    // },
     joinedAt: {
       hubspotType: HubspotPropertyType.DATE,
       readonly: true,

@@ -41,20 +41,16 @@ export interface IMemberQueryBody {
   _source: string[]
 }
 
-export interface IMemberIdentityOpensearch {
-  string_platform: string
-  string_value: string
-  string_type: MemberIdentityType
-  bool_verified: boolean
-}
-
 export interface IMemberPartialAggregatesOpensearch {
   uuid_memberId: string
-  nested_identities: IMemberIdentityOpensearch[]
   uuid_arr_noMergeIds: string[]
   keyword_displayName: string
-  string_arr_emails: string[]
   int_activityCount: number
+
+  string_arr_verifiedEmails: string[]
+  string_arr_unverifiedEmails: string[]
+  string_arr_verifiedUsernames: string[]
+  string_arr_unverifiedUsernames: string[]
 }
 
 export interface IMemberPartialAggregatesOpensearchRawResult {
@@ -63,10 +59,13 @@ export interface IMemberPartialAggregatesOpensearchRawResult {
 
 export interface ISimilarMember {
   uuid_memberId: string
-  nested_identities: IMemberIdentityOpensearch[]
   keyword_displayName: string
-  string_arr_emails: string[]
   int_activityCount: number
+
+  string_arr_verifiedEmails: string[]
+  string_arr_unverifiedEmails: string[]
+  string_arr_verifiedUsernames: string[]
+  string_arr_unverifiedUsernames: string[]
 }
 
 export interface ISimilarMemberOpensearch {

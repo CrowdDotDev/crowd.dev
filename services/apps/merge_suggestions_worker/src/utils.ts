@@ -5,6 +5,7 @@ import {
   IMemberPartialAggregatesOpensearch,
   ISimilarMember,
 } from './types'
+import { MemberIdentityType } from '@crowd/types'
 
 export const prefixLength = (string: string) => {
   if (string.length > 5 && string.length < 8) {
@@ -31,16 +32,28 @@ export const calculateSimilarity = (
   }
 
   // check email match
+  // TODO uros ask anil - verified vs unverified emails
+  // which ones to use here for which member?
   if (
-    similarMember.string_arr_emails &&
-    similarMember.string_arr_emails.length > 0 &&
-    similarMember.string_arr_emails.some((email) => primaryMember.string_arr_emails.includes(email))
+    similarMember.string_arr_verifiedEmails.length > 0 &&
+    similarMember.string_arr_verifiedEmails.some((email) =>
+      primaryMember.string_arr_verifiedEmails.includes(email),
+    )
   ) {
     return 0.98
   }
 
   // find the smallest edit distance between both identity arrays
-  for (const primaryIdentity of primaryMember.nested_identities.filter((i) => i.bool_verified)) {
+  // TODO uros ask anil - verified vs unverified identities
+  // I provided verifiedEmails, unverifiedEmails and verifiedUsernames, unverifiedUsernames
+  // so we don't have to deal with identities array and how it looks now
+  // but I'm confused how to use it here in terms of verified vs unverified
+  // there is also no more weakIdentities -> they have been converted to unverifiedUsernames
+  // emails have been also converted to verified/unverified emails based on if and when the member was enriched
+  // so now all we have are verified/unverified emails and usernames
+  for (const primaryIdentity of primaryMember.nested_identities.filter(
+    (i) => i.bool_verified && i.string_type === MemberIdentityType.USERNAME,
+  )) {
     // similar organization has a weakIdentity as one of primary organization's strong identity, return score 95
     if (
       similarMember.nested_identities &&

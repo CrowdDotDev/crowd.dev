@@ -62,6 +62,14 @@ export async function getMergeSuggestions(
     ],
   }
 
+  // TODO uros ask anil - what to do here - there are no weakIdentities left
+  // and no emails anymore just identities (verified and unverified)
+  // I prepared helper props to deal with them:
+  // string_arr_verifiedEmails
+  // string_arr_verifiedUsernames
+  // string_arr_unverifiedEmails
+  // string_arr_unverifiedUsernames
+  // and each also has a keyword_ mapping if needed just like emails before (we had string_arr_emails and keyword_emails)
   if (member.nested_identities && member.nested_identities.length > 0) {
     // push nested search scaffold for weak identities
     identitiesPartialQuery.should.push({
@@ -136,6 +144,7 @@ export async function getMergeSuggestions(
     }
   }
 
+  // TODO uros ask anil - we have verified and unverified emails here...
   if (member.string_arr_emails && member.string_arr_emails.length > 0) {
     identitiesPartialQuery.should.push({
       terms: {
@@ -165,11 +174,12 @@ export async function getMergeSuggestions(
     },
     _source: [
       'uuid_memberId',
-      'nested_identities',
-      'nested_weakIdentities',
       'keyword_displayName',
-      'string_arr_emails',
       'int_activityCount',
+      'string_arr_verifiedEmails',
+      'string_arr_unverifiedEmails',
+      'string_arr_verifiedUsernames',
+      'string_arr_unverifiedUsernames',
     ],
   }
 
@@ -258,11 +268,13 @@ export async function getMembers(
       },
       _source: [
         'uuid_memberId',
-        'nested_identities',
         'uuid_arr_noMergeIds',
         'keyword_displayName',
-        'string_arr_emails',
         'int_activityCount',
+        'string_arr_verifiedEmails',
+        'string_arr_unverifiedEmails',
+        'string_arr_verifiedUsernames',
+        'string_arr_unverifiedUsernames',
       ],
     }
 
