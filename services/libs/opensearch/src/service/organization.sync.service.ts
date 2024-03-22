@@ -208,6 +208,7 @@ export class OrganizationSyncService {
     let docCount = 0
     let organizationCount = 0
     let previousBatchIds: string[] = []
+    const now = new Date()
 
     await logExecutionTime(
       async () => {
@@ -225,9 +226,12 @@ export class OrganizationSyncService {
           organizationCount += organizationsSynced
           docCount += documentsIndexed
 
+          const diffInSeconds = (new Date().getTime() - now.getTime()) / 1000
           this.log.info(
             { tenantId },
-            `Synced ${organizationCount} organizations with ${docCount} documents!`,
+            `Synced ${organizationCount} organizations! Speed: ${Math.round(
+              organizationCount / diffInSeconds,
+            )} organizations/second!`,
           )
 
           await this.indexingRepo.markEntitiesIndexed(
