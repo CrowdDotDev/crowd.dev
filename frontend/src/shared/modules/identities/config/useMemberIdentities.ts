@@ -13,11 +13,13 @@ export default ({
     attributes = {}, verifiedEmails = [], unverifiedEmails = [], identities,
   } = member || {};
 
-  const getIdentityHandles = (platform: string) => (identities || []).filter((i) => i.platform === platform).map((i) => ({
-    platform,
-    url: null,
-    name: i.value,
-  }));
+  const getIdentityHandles = (platform: string) => (identities || [])
+    .filter((i) => i.platform === platform && i.type !== 'email')
+    .map((i) => ({
+      platform,
+      url: null,
+      name: i.value,
+    }));
 
   const getIdentityLink = (identity: {
     platform: string;
