@@ -47,18 +47,6 @@ export default (app) => {
   app.put(`/reddit-onboard/:tenantId`, safeWrap(require('./helpers/redditOnboard').default))
   app.put('/linkedin-connect/:tenantId', safeWrap(require('./helpers/linkedinConnect').default))
   app.post('/linkedin-onboard/:tenantId', safeWrap(require('./helpers/linkedinOnboard').default))
-
-  app.post(
-    `/tenant/:tenantId/integration/progress/list`,
-    safeWrap(require('./integrationProgressList').default),
-  )
-
-  app.get(
-    `/tenant/:tenantId/integration/progress/:id`,
-    safeWrap(require('./integrationProgress').default),
-  )
-
-  // Git
   app.put(`/tenant/:tenantId/git-connect`, safeWrap(require('./helpers/gitAuthenticate').default))
   app.get('/tenant/:tenantId/git', safeWrap(require('./helpers/gitGetRemotes').default))
   app.put(
