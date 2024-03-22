@@ -789,7 +789,9 @@ export default class MemberService extends LoggerBase {
       )
 
       // check member has the sent identity
-      const memberIdentities = await MemberRepository.getRawMemberIdentities(memberId, this.options)
+      const memberIdentities = (await MemberRepository.getIdentities([memberId], this.options)).get(
+        memberId,
+      )
 
       if (
         !memberIdentities.some(
