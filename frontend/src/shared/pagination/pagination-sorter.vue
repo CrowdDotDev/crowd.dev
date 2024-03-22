@@ -3,17 +3,21 @@
     class="flex grow gap-8 items-center pagination-sorter"
     :class="sorterClass"
   >
-    <span
-      v-if="total"
-      id="totalCount"
-      data-qa="members-total"
-      class="text-gray-500 text-sm"
-    ><span v-if="hasPageCounter">{{ count.minimum.toLocaleString('en') }}-{{
-       count.maximum.toLocaleString('en')
-     }}
-       of
-     </span>
-      {{ computedLabel }}</span>
+    <div class="flex items-center gap-0.5">
+      <span
+        v-if="total"
+        id="totalCount"
+        data-qa="members-total"
+        class="text-gray-500 text-sm"
+      ><span v-if="hasPageCounter">{{ count.minimum.toLocaleString('en') }}-{{
+         count.maximum.toLocaleString('en')
+       }}
+         of
+       </span>
+        {{ computedLabel }}</span>
+
+      <slot name="defaultFilters" />
+    </div>
     <div class="flex items-center">
       <!-- TODO: Need to refactor this -->
       <button
