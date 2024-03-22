@@ -245,7 +245,7 @@
                     }"
                     class="block"
                   >
-                    <app-member-emails :member="scope.row" />
+                    <app-member-list-emails :member="scope.row" />
                   </router-link>
                 </template>
               </el-table-column>
@@ -772,6 +772,7 @@ import AppMemberEngagementLevel from '../member-engagement-level.vue';
 import AppMemberLastActivity from '../member-last-activity.vue';
 import AppMemberSentiment from '../member-sentiment.vue';
 import { memberSavedViews } from '../../config/saved-views/main';
+import AppMemberListEmails from '@/modules/member/components/list/columns/member-list-emails.vue';
 
 const store = useStore();
 const table = ref(null);
