@@ -600,18 +600,22 @@ export class MemberSyncService {
     p.string_arr_verifiedEmails = data.identities
       .filter((i) => i.verified && i.type === MemberIdentityType.EMAIL)
       .map((i) => i.value)
+    p.keyword_verifiedEmails = p.string_arr_verifiedEmails
 
     p.string_arr_unverifiedEmails = data.identities
       .filter((i) => !i.verified && i.type === MemberIdentityType.EMAIL)
       .map((i) => i.value)
+    p.keyword_unverifiedEmails = p.string_arr_unverifiedEmails
 
     p.string_arr_verifiedUsernames = data.identities
       .filter((i) => i.verified && i.type === MemberIdentityType.USERNAME)
       .map((i) => i.value)
+    p.keyword_verifiedUsernames = p.string_arr_verifiedUsernames
 
     p.string_arr_unverifiedUsernames = data.identities
       .filter((i) => !i.verified && i.type === MemberIdentityType.USERNAME)
       .map((i) => i.value)
+    p.keyword_unverifiedUsernames = p.string_arr_unverifiedUsernames
 
     p.string_arr_identityPlatforms = distinct(
       data.identities.filter((i) => i.verified).map((i) => i.platform),
