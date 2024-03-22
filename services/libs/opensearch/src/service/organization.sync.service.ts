@@ -203,7 +203,7 @@ export class OrganizationSyncService {
     }
   }
 
-  public async syncTenantOrganizations(tenantId: string, batchSize = 100): Promise<void> {
+  public async syncTenantOrganizations(tenantId: string, batchSize = 200): Promise<void> {
     this.log.warn({ tenantId }, 'Syncing all tenant organizations!')
     let docCount = 0
     let organizationCount = 0
@@ -226,12 +226,12 @@ export class OrganizationSyncService {
           organizationCount += organizationsSynced
           docCount += documentsIndexed
 
-          const diffInSeconds = (new Date().getTime() - now.getTime()) / 1000
+          const diffInMinutes = (new Date().getTime() - now.getTime()) / 1000 / 60
           this.log.info(
             { tenantId },
             `Synced ${organizationCount} organizations! Speed: ${Math.round(
-              organizationCount / diffInSeconds,
-            )} organizations/second!`,
+              organizationCount / diffInMinutes,
+            )} organizations/minute!`,
           )
 
           await this.indexingRepo.markEntitiesIndexed(
