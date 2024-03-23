@@ -54,6 +54,22 @@ export default (app) => {
     safeWrap(require('./helpers/confluenceAuthenticate').default),
   )
   app.put(
+    `/tenant/:tenantId/jira-connect`, 
+    safeWrap(require('./helpers/jiraAuthenticate').default)
+  )
+  app.post(
+    '/tenant/:tenantId/jira-validate-url',
+    safeWrap(require('./helpers/jiraURLValidator').default),
+  )
+  app.post(
+    '/tenant/:tenantId/jira-validate-authenticate',
+    safeWrap(require('./helpers/jiraAuthenticateValidator').default),
+  )
+  app.post(
+    '/tenant/:tenantId/jira-validate-project',
+    safeWrap(require('./helpers/jiraProjectValidator').default),
+  )
+  app.put(
     `/tenant/:tenantId/gerrit-connect`,
     safeWrap(require('./helpers/gerritAuthenticate').default),
   )
