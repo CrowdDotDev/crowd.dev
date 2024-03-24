@@ -1,5 +1,3 @@
-import { MemberIdentityType } from '@crowd/types'
-
 interface ITermFilter {
   term: {
     uuid_tenantId: string
@@ -41,6 +39,14 @@ export interface IMemberQueryBody {
   _source: string[]
 }
 
+export interface IMemberIdentityOpensearch {
+  keyword_type: string
+  string_platform: string
+  keyword_value: string
+  string_value: string
+  bool_verified: boolean
+}
+
 export interface IMemberPartialAggregatesOpensearch {
   uuid_memberId: string
   uuid_arr_noMergeIds: string[]
@@ -51,6 +57,7 @@ export interface IMemberPartialAggregatesOpensearch {
   string_arr_unverifiedEmails: string[]
   string_arr_verifiedUsernames: string[]
   string_arr_unverifiedUsernames: string[]
+  nested_identities: IMemberIdentityOpensearch[]
 }
 
 export interface IMemberPartialAggregatesOpensearchRawResult {
@@ -66,6 +73,7 @@ export interface ISimilarMember {
   string_arr_unverifiedEmails: string[]
   string_arr_verifiedUsernames: string[]
   string_arr_unverifiedUsernames: string[]
+  nested_identities: IMemberIdentityOpensearch[]
 }
 
 export interface ISimilarMemberOpensearch {
