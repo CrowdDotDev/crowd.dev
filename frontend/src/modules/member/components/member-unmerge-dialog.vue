@@ -147,7 +147,7 @@
                         </button>
                         <template #dropdown>
                           <template
-                            v-for="i of props.modelValue.identities"
+                            v-for="i of identities"
                             :key="`${i.platform}:${i.value}`"
                           >
                             <el-dropdown-item
@@ -162,7 +162,7 @@
                                 :alt="platformDetails(i.platform)?.name"
                                 :src="platformDetails(i.platform)?.image"
                               />
-                              <span>{{ i.username }}</span>
+                              <span>{{ i.value }}</span>
                             </el-dropdown-item>
                           </template>
                         </template>
@@ -218,7 +218,7 @@
                   @update:model-value="fetchPreview($event)"
                 >
                   <el-option
-                    v-for="i of props.modelValue.identities"
+                    v-for="i of identities"
                     :key="`${i.platform}:${i.value}`"
                     :value="`${i.platform}:${i.value}`"
                     :label="i.value"
@@ -251,8 +251,6 @@ import CrSpinner from '@/ui-kit/spinner/Spinner.vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppMemberOrganizationList from '@/modules/member/components/suggestions/member-organizations-list.vue';
 import AppMemberSuggestionsDetails from './suggestions/member-merge-suggestions-details.vue';
-import useMemberIdentities from '@/shared/modules/identities/config/useMemberIdentities';
-import memberOrder from '@/shared/modules/identities/config/identitiesOrder/member';
 
 const props = defineProps({
   modelValue: {
@@ -286,6 +284,8 @@ const isModalOpen = computed({
 });
 
 const platformDetails = (platform) => CrowdIntegrations.getConfig(platform);
+
+const identities = computed(() => props.modelValue.identities.filter((i) => i.type !== 'email'));
 
 const fetchPreview = (identity) => {
   if (fetchingPreview.value) {

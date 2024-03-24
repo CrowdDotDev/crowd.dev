@@ -692,13 +692,13 @@ import CrEnrichmentSneakPeakContent from '@/shared/modules/enrichment/components
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import Plans from '@/security/plans';
 import AppIdentitiesHorizontalListMembers from '@/shared/modules/identities/components/identities-horizontal-list-members.vue';
+import AppMemberListEmails from '@/modules/member/components/list/columns/member-list-emails.vue';
 import AppMemberBadge from '../member-badge.vue';
 import AppMemberDropdownContent from '../member-dropdown-content.vue';
 import AppMemberReach from '../member-reach.vue';
 import AppMemberEngagementLevel from '../member-engagement-level.vue';
 import AppMemberLastActivity from '../member-last-activity.vue';
 import AppMemberSentiment from '../member-sentiment.vue';
-import AppMemberListEmails from '@/modules/member/components/list/columns/member-list-emails.vue';
 
 const store = useStore();
 const router = useRouter();
@@ -977,8 +977,6 @@ const onTableMouseLeft = () => {
   isTableHovered.value = false;
   isScrollbarVisible.value = isCursorDown.value;
 };
-
-
 
 watch(table, (newValue) => {
   if (newValue) {
