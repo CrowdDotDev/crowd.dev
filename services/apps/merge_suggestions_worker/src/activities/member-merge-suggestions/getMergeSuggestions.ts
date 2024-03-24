@@ -87,14 +87,14 @@ export async function getMergeSuggestions(
           identitiesPartialQuery.should[1].nested.query.bool.should.push({
             bool: {
               must: [
-                { match: { [`nested_identities.keyword_value`]: identity.string_value } },
+                { term: { [`nested_identities.keyword_value`]: identity.keyword_value } },
                 {
                   match: {
                     [`nested_identities.string_platform`]: identity.string_platform,
                   },
                 },
                 {
-                  match: {
+                  term: {
                     [`nested_identities.bool_verified`]: false,
                   },
                 },
@@ -121,7 +121,7 @@ export async function getMergeSuggestions(
                     },
                   },
                   {
-                    match: {
+                    term: {
                       [`nested_identities.bool_verified`]: true,
                     },
                   },
@@ -134,14 +134,14 @@ export async function getMergeSuggestions(
           identitiesPartialQuery.should[1].nested.query.bool.should.push({
             bool: {
               must: [
-                { match: { [`nested_identities.keyword_name`]: identity.string_value } },
+                { term: { [`nested_identities.keyword_name`]: identity.keyword_value } },
                 {
                   match: {
                     [`nested_identities.string_platform`]: identity.string_platform,
                   },
                 },
                 {
-                  match: {
+                  term: {
                     [`nested_identities.bool_verified`]: true,
                   },
                 },
