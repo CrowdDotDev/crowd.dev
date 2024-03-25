@@ -18,3 +18,7 @@ export function initRUM() {
     defaultPrivacyLevel: 'mask-user-input',
   });
 }
+
+export function setRumUser(id) {
+  datadogRum.setUser({ id });
+}

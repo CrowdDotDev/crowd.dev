@@ -167,6 +167,15 @@ setImmediate(async () => {
 
   app.use(bodyParser.urlencoded({ limit: '5mb', extended: true }))
 
+  app.use((req, res, next) => {
+    req.userData = {
+      ip: req.ip,
+      userAgent: req.headers ? req.headers['user-agent'] : null,
+    }
+
+    next()
+  })
+
   // Configure the Entity routes
   const routes = express.Router()
 

@@ -27,6 +27,11 @@ export const getDbInstance = (): DbInstance => {
     },
   })
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  if ((dbInstance.pg as any).usingSequelize) {
+    return dbInstance
+  }
+
   // timestamp
   dbInstance.pg.types.setTypeParser(1114, (s) => s)
 

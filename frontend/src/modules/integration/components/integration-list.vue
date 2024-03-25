@@ -9,17 +9,20 @@
         class="app-page-spinner w-20"
       />
     </div>
-    <div v-else class="grid grid-cols-3 grid-rows-4 gap-4">
-      <app-integration-list-item
-        v-for="integration in integrationsArray"
-        :key="integration.platform"
-        :integration="integration"
-      />
-      <app-integration-list-item
-        v-if="!hideCustomIntegrations"
-        :integration="customIntegration"
-      />
-    </div>
+    <app-integration-progress-wrapper v-else :segments="[props.segment]">
+      <template #default="{ progress }">
+        <div class="flex flex-wrap -mx-2.5">
+          <article v-for="integration in integrationsArray" :key="integration.platform" class="px-2.5 w-full sm:1/2 lg:w-1/3 pb-5">
+            <app-integration-list-item
+              class="h-full"
+              :integration="integration"
+              :progress="progress"
+            />
+          </article>
+        </div>
+      </template>
+    </app-integration-progress-wrapper>
+
     <app-dialog
       v-model="showGithubDialog"
       size="small"
@@ -46,6 +49,7 @@ import {
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppIntegrationListItem from '@/modules/integration/components/integration-list-item.vue';
 import { useRoute } from 'vue-router';
+import AppIntegrationProgressWrapper from '@/modules/integration/components/integration-progress-wrapper.vue';
 
 const route = useRoute();
 const store = useStore();
@@ -54,18 +58,14 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  segment: {
+    type: String,
+    required: true,
+  },
 });
 
 const integrationCount = computed(() => store.state.integration.count);
 const isSegmentIdDifferent = computed(() => store.state.segmentId !== route.params.id);
-
-const customIntegration = ref({
-  platform: 'custom',
-  name: 'Build your own',
-  description:
-    'Use our integration framework to build your own connector.',
-  image: '/images/integrations/custom.svg',
-});
 
 const loading = computed(
   () => store.getters['integration/loadingFetch'],
@@ -76,8 +76,6 @@ const integrationsArray = computed(() => (props.onboard
   : CrowdIntegrations.mappedConfigs(store)));
 
 const showGithubDialog = ref(false);
-
-const hideCustomIntegrations = CrowdIntegrations.getConfig('lfx').hideCustomIntegration;
 
 onMounted(async () => {
   localStorage.setItem('segmentId', route.params.id);

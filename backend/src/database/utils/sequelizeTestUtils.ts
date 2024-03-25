@@ -1,3 +1,4 @@
+import { v4 as uuid } from 'uuid'
 import { getServiceLogger } from '@crowd/logging'
 import { getRedisClient } from '@crowd/redis'
 import { getTemporalClient } from '@crowd/temporal'
@@ -166,6 +167,7 @@ export default class SequelizeTestUtils {
     const redis = await getRedisClient(REDIS_CONFIG, true)
 
     return {
+      requestId: uuid(),
       language: 'en',
       currentUser: user,
       currentTenant: tenant,
@@ -224,6 +226,7 @@ export default class SequelizeTestUtils {
     const redis = await getRedisClient(REDIS_CONFIG, true)
 
     return {
+      requestId: uuid(),
       language: 'en',
       currentUser: user,
       currentTenant: tenant,

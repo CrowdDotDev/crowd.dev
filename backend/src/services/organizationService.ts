@@ -15,6 +15,7 @@ import {
   MemberRoleUnmergeStrategy,
 } from '@crowd/types'
 import lodash from 'lodash'
+import { captureApiChange, organizationMergeAction } from '@crowd/audit-logs'
 import getObjectWithoutKey from '@/utils/getObjectWithoutKey'
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import MemberRepository from '../database/repositories/memberRepository'
@@ -405,179 +406,198 @@ export default class OrganizationService extends LoggerBase {
     let tx
 
     try {
-      this.log.info('[Merge Organizations] - Finding organizations! ')
-      let original = await OrganizationRepository.findById(originalId, this.options)
-      let toMerge = await OrganizationRepository.findById(toMergeId, this.options)
+      const { original, toMerge } = await captureApiChange(
+        this.options,
+        organizationMergeAction(originalId, async (captureOldState, captureNewState) => {
+          this.log.info('[Merge Organizations] - Finding organizations! ')
+          let original = await OrganizationRepository.findById(originalId, this.options)
+          let toMerge = await OrganizationRepository.findById(toMergeId, this.options)
 
-      this.log.info({ originalId, toMergeId }, '[Merge Organizations] - Found organizations! ')
+          this.log.info({ originalId, toMergeId }, '[Merge Organizations] - Found organizations! ')
 
-      const backup = {
-        primary: {
-          ...lodash.pick(
-            await OrganizationRepository.findByIdOpensearch(originalId, this.options),
-            OrganizationService.ORGANIZATION_MERGE_FIELDS,
-          ),
-          identities: await OrganizationRepository.getIdentities([originalId], this.options),
-          memberOrganizations: await MemberOrganizationRepository.findRolesInOrganization(
+          captureOldState({
+            primary: original,
+            secondary: toMerge,
+          })
+
+          const backup = {
+            primary: {
+              ...lodash.pick(
+                await OrganizationRepository.findByIdOpensearch(originalId, this.options),
+                OrganizationService.ORGANIZATION_MERGE_FIELDS,
+              ),
+              identities: await OrganizationRepository.getIdentities([originalId], this.options),
+              memberOrganizations: await MemberOrganizationRepository.findRolesInOrganization(
+                originalId,
+                this.options,
+              ),
+            },
+            secondary: {
+              ...lodash.pick(toMerge, OrganizationService.ORGANIZATION_MERGE_FIELDS),
+              identities: await OrganizationRepository.getIdentities([toMergeId], this.options),
+              memberOrganizations: await MemberOrganizationRepository.findRolesInOrganization(
+                toMergeId,
+                this.options,
+              ),
+            },
+          }
+
+          if (original.id === toMerge.id) {
+            return {
+              status: 203,
+              mergedId: originalId,
+            }
+          }
+
+          await MergeActionsRepository.add(
+            MergeActionType.ORG,
             originalId,
-            this.options,
-          ),
-        },
-        secondary: {
-          ...lodash.pick(toMerge, OrganizationService.ORGANIZATION_MERGE_FIELDS),
-          identities: await OrganizationRepository.getIdentities([toMergeId], this.options),
-          memberOrganizations: await MemberOrganizationRepository.findRolesInOrganization(
             toMergeId,
+            // not using transaction here on purpose,
+            // so this change is visible until we finish
             this.options,
-          ),
-        },
-      }
-
-      if (original.id === toMerge.id) {
-        return {
-          status: 203,
-          mergedId: originalId,
-        }
-      }
-
-      await MergeActionsRepository.add(
-        MergeActionType.ORG,
-        originalId,
-        toMergeId,
-        // not using transaction here on purpose,
-        // so this change is visible until we finish
-        this.options,
-        MergeActionState.IN_PROGRESS,
-        backup,
-      )
-
-      const repoOptions: IRepositoryOptions =
-        await SequelizeRepository.createTransactionalRepositoryOptions(this.options)
-      tx = repoOptions.transaction
-
-      const allIdentities = await OrganizationRepository.getIdentities(
-        [originalId, toMergeId],
-        repoOptions,
-      )
-
-      const originalIdentities = allIdentities.filter((i) => i.organizationId === originalId)
-      const toMergeIdentities = allIdentities.filter((i) => i.organizationId === toMergeId)
-      const identitiesToMove = []
-      for (const identity of toMergeIdentities) {
-        if (
-          !originalIdentities.find(
-            (i) => i.platform === identity.platform && i.name === identity.name,
+            MergeActionState.IN_PROGRESS,
+            backup,
           )
-        ) {
-          identitiesToMove.push(identity)
-        }
-      }
 
-      this.log.info(
-        { originalId, toMergeId },
-        '[Merge Organizations] - Moving identities between organizations! ',
-      )
+          const repoOptions: IRepositoryOptions =
+            await SequelizeRepository.createTransactionalRepositoryOptions(this.options)
+          tx = repoOptions.transaction
 
-      await OrganizationRepository.moveIdentitiesBetweenOrganizations(
-        toMergeId,
-        originalId,
-        identitiesToMove,
-        repoOptions,
-      )
+          const allIdentities = await OrganizationRepository.getIdentities(
+            [originalId, toMergeId],
+            repoOptions,
+          )
 
-      // if toMerge has website - also add it as an identity to the original org
-      // for identifying further organizations, and website information of toMerge is not lost
-      if (toMerge.website) {
-        await OrganizationRepository.addIdentity(
-          originalId,
-          {
-            name: toMerge.website,
-            platform: 'email',
-            integrationId: null,
-          },
-          repoOptions,
-        )
-      }
+          const originalIdentities = allIdentities.filter((i) => i.organizationId === originalId)
+          const toMergeIdentities = allIdentities.filter((i) => i.organizationId === toMergeId)
+          const identitiesToMove = []
+          for (const identity of toMergeIdentities) {
+            if (
+              !originalIdentities.find(
+                (i) => i.platform === identity.platform && i.name === identity.name,
+              )
+            ) {
+              identitiesToMove.push(identity)
+            }
+          }
 
-      // remove aggregate fields and relationships
-      original = removeExtraFields(original)
-      toMerge = removeExtraFields(toMerge)
+          this.log.info(
+            { originalId, toMergeId },
+            '[Merge Organizations] - Moving identities between organizations! ',
+          )
 
-      this.log.info({ originalId, toMergeId }, '[Merge Organizations] - Generating merge object! ')
+          await OrganizationRepository.moveIdentitiesBetweenOrganizations(
+            toMergeId,
+            originalId,
+            identitiesToMove,
+            repoOptions,
+          )
 
-      // Performs a merge and returns the fields that were changed so we can update
-      const toUpdate: any = await OrganizationService.organizationsMerge(original, toMerge)
+          // if toMerge has website - also add it as an identity to the original org
+          // for identifying further organizations, and website information of toMerge is not lost
+          if (toMerge.website) {
+            await OrganizationRepository.addIdentity(
+              originalId,
+              {
+                name: toMerge.website,
+                platform: 'email',
+                integrationId: null,
+              },
+              repoOptions,
+            )
+          }
 
-      this.log.info(
-        { originalId, toMergeId },
-        '[Merge Organizations] - Generating merge object done! ',
-      )
+          // remove aggregate fields and relationships
+          original = removeExtraFields(original)
+          toMerge = removeExtraFields(toMerge)
 
-      const txService = new OrganizationService(repoOptions as IServiceOptions)
+          this.log.info(
+            { originalId, toMergeId },
+            '[Merge Organizations] - Generating merge object! ',
+          )
 
-      this.log.info(
-        { originalId, toMergeId },
-        '[Merge Organizations] - Updating original organisation! ',
-      )
+          // Performs a merge and returns the fields that were changed so we can update
+          const toUpdate: any = await OrganizationService.organizationsMerge(original, toMerge)
 
-      // check if website is being updated, if yes we need to set toMerge.website to null before doing the update
-      // because of website unique constraint
-      if (toUpdate.website && toUpdate.website === toMerge.website) {
-        await txService.update(toMergeId, { website: null }, false, false)
-      }
+          captureNewState({ primary: toUpdate })
 
-      // Update original organization
-      await txService.update(originalId, toUpdate, false, false)
+          this.log.info(
+            { originalId, toMergeId },
+            '[Merge Organizations] - Generating merge object done! ',
+          )
 
-      this.log.info(
-        { originalId, toMergeId },
-        '[Merge Organizations] - Updating original organisation done! ',
-      )
+          const txService = new OrganizationService(repoOptions as IServiceOptions)
 
-      this.log.info(
-        { originalId, toMergeId },
-        '[Merge Organizations] - Moving members to original organisation! ',
-      )
-      // update members that belong to source organization to destination org
-      const memberOrganizationService = new MemberOrganizationService(repoOptions)
-      await memberOrganizationService.moveMembersBetweenOrganizations(toMergeId, originalId)
+          this.log.info(
+            { originalId, toMergeId },
+            '[Merge Organizations] - Updating original organisation! ',
+          )
 
-      this.log.info(
-        { originalId, toMergeId },
-        '[Merge Organizations] - Moving members to original organisation done! ',
-      )
+          // check if website is being updated, if yes we need to set toMerge.website to null before doing the update
+          // because of website unique constraint
+          if (toUpdate.website && toUpdate.website === toMerge.website) {
+            await txService.update(toMergeId, { website: null }, false, false)
+          }
 
-      this.log.info(
-        { originalId, toMergeId },
-        '[Merge Organizations] - Including original organisation into secondary organisation segments! ',
-      )
+          // Update original organization
+          await txService.update(originalId, toUpdate, false, false)
 
-      const secondMemberSegments = await OrganizationRepository.getOrganizationSegments(
-        toMergeId,
-        repoOptions,
-      )
+          this.log.info(
+            { originalId, toMergeId },
+            '[Merge Organizations] - Updating original organisation done! ',
+          )
 
-      if (secondMemberSegments.length > 0) {
-        await OrganizationRepository.includeOrganizationToSegments(originalId, {
-          ...repoOptions,
-          currentSegments: secondMemberSegments,
-        })
-      }
-      this.log.info(
-        { originalId, toMergeId },
-        '[Merge Organizations] - Including original organisation into secondary organisation segments done! ',
-      )
+          this.log.info(
+            { originalId, toMergeId },
+            '[Merge Organizations] - Moving members to original organisation! ',
+          )
 
-      await SequelizeRepository.commitTransaction(tx)
+          // update members that belong to source organization to destination org
+          const memberOrganizationService = new MemberOrganizationService(repoOptions)
+          await memberOrganizationService.moveMembersBetweenOrganizations(toMergeId, originalId)
 
-      this.log.info({ originalId, toMergeId }, '[Merge Organizations] - Transaction commited! ')
+          this.log.info(
+            { originalId, toMergeId },
+            '[Merge Organizations] - Moving members to original organisation done! ',
+          )
 
-      await MergeActionsRepository.setState(
-        MergeActionType.ORG,
-        originalId,
-        toMergeId,
-        MergeActionState.FINISHING,
-        this.options,
+          this.log.info(
+            { originalId, toMergeId },
+            '[Merge Organizations] - Including original organisation into secondary organisation segments! ',
+          )
+
+          const secondMemberSegments = await OrganizationRepository.getOrganizationSegments(
+            toMergeId,
+            repoOptions,
+          )
+
+          if (secondMemberSegments.length > 0) {
+            await OrganizationRepository.includeOrganizationToSegments(originalId, {
+              ...repoOptions,
+              currentSegments: secondMemberSegments,
+            })
+          }
+
+          this.log.info(
+            { originalId, toMergeId },
+            '[Merge Organizations] - Including original organisation into secondary organisation segments done! ',
+          )
+
+          await SequelizeRepository.commitTransaction(tx)
+
+          this.log.info({ originalId, toMergeId }, '[Merge Organizations] - Transaction commited! ')
+
+          await MergeActionsRepository.setState(
+            MergeActionType.ORG,
+            originalId,
+            toMergeId,
+            MergeActionState.FINISHING,
+            this.options,
+          )
+
+          return { original, toMerge }
+        }),
       )
 
       this.log.info(
@@ -1183,6 +1203,10 @@ export default class OrganizationService extends LoggerBase {
 
   async findAndCountAll(args) {
     return OrganizationRepository.findAndCountAll(args, this.options)
+  }
+
+  async findByIds(ids: string[]) {
+    return OrganizationRepository.findByIds(ids, this.options)
   }
 
   async findAndCountActive(

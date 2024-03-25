@@ -89,7 +89,6 @@ import {
 } from '@/modules/widget/widget-constants';
 import {
   mapGetters,
-  mapActions,
 } from '@/shared/vuex/vuex.helpers';
 import { chartOptions } from '@/modules/report/templates/template-chart-config';
 import {
@@ -103,6 +102,7 @@ import { MemberService } from '@/modules/member/member-service';
 import MEMBERS_REPORT, { ACTIVE_MEMBERS_KPI_WIDGET } from '@/modules/report/templates/config/members';
 import { parseAxisLabel } from '@/utils/reports';
 import AppWidgetMembersTable from '@/modules/widget/components/shared/widget-members-table.vue';
+import Message from '@/shared/message/message';
 
 const props = defineProps({
   filters: {
@@ -127,7 +127,6 @@ const widgetChartOptions = chartOptions('area', {
   ) => parseAxisLabel(value, granularity.value.value),
 });
 
-const { doExport } = mapActions('member');
 const { cubejsApi } = mapGetters('widget');
 
 const datasets = computed(() => [
@@ -223,15 +222,31 @@ const onViewMoreClick = (date) => {
   }
 };
 
-const onExport = async ({ ids, count }) => {
+const onExport = async ({ ids }) => {
   try {
-    await doExport({
-      selected: true,
-      customIds: ids,
-      count,
+    await MemberService.export({
+      filter: {
+        id: {
+          in: ids,
+        },
+      },
+      orderBy: 'displayName_ASC',
+      limit: ids.length,
+      offset: null,
+      segments: props.filters.segments.childSegments,
     });
+
+    Message.success(
+      'CSV download link will be sent to your e-mail',
+    );
   } catch (error) {
     console.error(error);
+    Message.error(
+      'An error has occured while trying to export the CSV file. Please try again',
+      {
+        title: 'CSV Export failed',
+      },
+    );
   }
 };
 </script>
