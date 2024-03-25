@@ -1,6 +1,6 @@
 /* eslint-disable no-continue */
 
-import { SERVICE, Error400, isDomainExcluded } from '@crowd/common'
+import { SERVICE, Error400, isDomainExcluded, singleOrDefault } from '@crowd/common'
 import { LoggerBase } from '@crowd/logging'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
 import {
@@ -25,6 +25,7 @@ import lodash from 'lodash'
 import moment from 'moment-timezone'
 import validator from 'validator'
 import { getOpensearchClient } from '@crowd/opensearch'
+import { IMemberId } from '../../../services/libs/data-access-layer/src/old/apps/merge_suggestions_worker/types'
 import { OPENSEARCH_CONFIG, TEMPORAL_CONFIG } from '@/conf'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
 import ActivityRepository from '../database/repositories/activityRepository'
@@ -1496,6 +1497,46 @@ export default class MemberService extends LoggerBase {
           repoOptions,
         )
       }
+
+      if (data.identities) {
+        const incomingIdentities = data.identities as IMemberIdentity[]
+        const existingIdentities = (await MemberRepository.getIdentities([id], repoOptions)).get(id)
+
+        const toCreate: IMemberIdentity[] = []
+        const toUpdate: IMemberIdentity[] = []
+        const toDelete: IMemberIdentity[] = []
+
+        for (const inc of incomingIdentities) {
+          const existing = singleOrDefault(
+            existingIdentities,
+            (i) => i.platform === inc.platform && i.type === inc.type && i.value === inc.value,
+          )
+
+          if (existing) {
+            if (existing.verified !== inc.verified) {
+              toUpdate.push(inc)
+            }
+          } else {
+            toCreate.push(inc)
+          }
+        }
+
+        for (const i of existingIdentities) {
+          const inc = singleOrDefault(
+            incomingIdentities,
+            (inc) => i.platform === inc.platform && i.type === inc.type && i.value === inc.value,
+          )
+
+          if (!inc) {
+            toDelete.push(i)
+          }
+        }
+
+        data.identitiesToCreate = toCreate
+        data.identitiesToUpdate = toUpdate
+        data.identitiesToDelete = toDelete
+      }
+
       if (data.username) {
         // need to filter out existing identities from the payload
         const existingIdentities = (await MemberRepository.getIdentities([id], repoOptions)).get(id)

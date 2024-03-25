@@ -907,13 +907,89 @@ class MemberRepository {
 
     const seq = SequelizeRepository.getSequelize(options)
 
+    if (data.identitiesToCreate && data.identitiesToCreate.length > 0) {
+      const query = `
+        insert into "memberIdentities"("memberId", "tenantId", platform, value, type, "sourceId", "integrationId", verified)
+        values(:memberId, :tenantId, :platform, :value, :type, :sourceId, :integrationId, :verified);
+      `
+
+      for (const i of data.identitiesToCreate) {
+        await seq.query(query, {
+          replacements: {
+            memberId: record.id,
+            platform: i.platform,
+            value: i.value,
+            type: i.type ? i.type : MemberIdentityType.USERNAME,
+            sourceId: i.sourceId || null,
+            integrationId: i.integrationId || null,
+            tenantId: currentTenant.id,
+            verified: i.verified !== undefined ? i.verified : !!manualChange,
+          },
+          type: QueryTypes.INSERT,
+          transaction,
+        })
+      }
+    }
+
+    if (data.identitiesToUpdate && data.identitiesToUpdate.length > 0) {
+      const query = `
+        update "memberIdentities" set verified = :verified
+        where 
+          "memberId" = :memberId and 
+          "tenantId" = :tenantId and 
+          platform = :platform and
+          type = :type and
+          value = :value
+      `
+
+      for (const i of data.identitiesToUpdate) {
+        await seq.query(query, {
+          replacements: {
+            memberId: record.id,
+            platform: i.platform,
+            value: i.value,
+            type: i.type ? i.type : MemberIdentityType.USERNAME,
+            tenantId: currentTenant.id,
+            verified: i.verified !== undefined ? i.verified : !!manualChange,
+          },
+          type: QueryTypes.UPDATE,
+          transaction,
+        })
+      }
+    }
+
+    if (data.identitiesToDelete && data.identitiesToDelete.length > 0) {
+      const query = `
+        delete from "memberIdentities" where 
+          "memberId" = :memberId and
+          "tenantId" = :tenantId and
+          platform = :platform and
+          type = :type and
+          value = :value
+      `
+
+      for (const i of data.identitiesToDelete) {
+        await seq.query(query, {
+          replacements: {
+            memberId: record.id,
+            platform: i.platform,
+            value: i.value,
+            type: i.type ? i.type : MemberIdentityType.USERNAME,
+            tenantId: currentTenant.id,
+          },
+          type: QueryTypes.DELETE,
+          transaction,
+        })
+      }
+    }
+
     if (data.username) {
       data.username = mapUsernameToIdentities(data.username)
 
       const platforms = Object.keys(data.username) as PlatformType[]
       if (platforms.length > 0) {
         const query = `
-          insert into "memberIdentities"("memberId", platform, value, type, "sourceId", "tenantId", "integrationId")
+          insert into "memberIdentities"("memberId", platform, value, type, "sourceId", "tenantId", "integrationId", verified)
           values (:memberId, :platform, :value, :type, :sourceId, :tenantId, :integrationId);
           `
         const deleteQuery = `
@@ -962,6 +1038,7 @@ class MemberRepository {
                   sourceId: identity.sourceId || null,
                   integrationId: identity.integrationId || null,
                   tenantId: currentTenant.id,
+                  verified: identity.verified !== undefined ? identity.verified : !!manualChange,
                 },
                 type: QueryTypes.INSERT,
                 transaction,
