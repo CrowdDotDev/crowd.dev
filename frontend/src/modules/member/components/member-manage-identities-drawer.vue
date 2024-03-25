@@ -27,7 +27,7 @@
         </el-button>
         <el-button
           type="primary"
-          :disabled="!hasFormChanged || loading"
+          :disabled="loading"
           class="btn btn--md btn--primary"
           :loading="loading"
           @click="handleSubmit"
@@ -86,13 +86,7 @@ const handleCancel = () => {
 const handleSubmit = async () => {
   loading.value = true;
   MemberService.update(props.member.id, {
-    attributes: {
-      ...props.member.attributes,
-      ...memberModel.value.attributes,
-    },
-    username: memberModel.value.username,
-    platform: memberModel.value.platform,
-    identities: memberModel.value.identities,
+    identities: memberModel.value.identities.filter((i) => !!i.value),
   }).then(() => {
     store.dispatch('member/doFind', props.member.id).then(() => {
       Message.success('Contact identities updated successfully');

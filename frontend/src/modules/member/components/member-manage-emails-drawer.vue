@@ -42,8 +42,6 @@ import Message from '@/shared/message/message';
 import { MemberService } from '@/modules/member/member-service';
 import cloneDeep from 'lodash/cloneDeep';
 import AppMemberFormEmails from '@/modules/member/components/form/member-form-emails.vue';
-import useVuelidate from '@vuelidate/core';
-import formChangeDetector from '@/shared/form/form-change';
 
 const store = useStore();
 const props = defineProps({
@@ -70,7 +68,6 @@ const drawerModel = computed({
 const memberModel = ref(cloneDeep(props.member));
 const loading = ref(false);
 
-
 const handleCancel = () => {
   emit('update:modelValue', false);
 };
@@ -78,7 +75,7 @@ const handleCancel = () => {
 const handleSubmit = async () => {
   loading.value = true;
   MemberService.update(props.member.id, {
-    identities: memberModel.value.identities,
+    identities: memberModel.value.identities.filter((i) => !!i.value),
   }).then(() => {
     store.dispatch('member/doFind', props.member.id).then(() => {
       Message.success('Contact identities updated successfully');
