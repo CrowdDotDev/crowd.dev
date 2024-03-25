@@ -217,8 +217,7 @@ const integrationsInProgressToString = computed(() => {
 });
 
 const showBanner = computed(() => (integrationsWithErrors.value.length
-  || integrationsWithNoData.value.length
-  || integrationsInProgress.value.subProjects.length) && !route.meta.hideBanner && !!selectedProjectGroup.value && !loading.value);
+  || integrationsWithNoData.value.length) && !route.meta.hideBanner && !!selectedProjectGroup.value && !loading.value);
 
 const fetchIntegrations = (projectGroup) => {
   if (projectGroup) {
