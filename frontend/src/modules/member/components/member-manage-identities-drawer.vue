@@ -27,7 +27,7 @@
         </el-button>
         <el-button
           type="primary"
-          :disabled="!hasFormChanged || loading"
+          :disabled="loading"
           class="btn btn--md btn--primary"
           :loading="loading"
           @click="handleSubmit"
@@ -92,13 +92,7 @@ const handleSubmit = async () => {
   const segments = props.member.segments.map((s) => s.id);
 
   MemberService.update(props.member.id, {
-    attributes: {
-      ...props.member.attributes,
-      ...memberModel.value.attributes,
-    },
-    username: memberModel.value.username,
-    platform: memberModel.value.platform,
-    identities: memberModel.value.identities,
+    identities: memberModel.value.identities.filter((i) => !!i.value),
   }, segments).then(() => {
     store.dispatch('member/doFind', {
       id: props.member.id,

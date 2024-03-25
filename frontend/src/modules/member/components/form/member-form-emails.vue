@@ -2,10 +2,10 @@
   <div>
     <!-- Emails editing -->
     <div>
-      <template v-for="(identity, ii) of identities" :key="ii">
+      <template v-for="(identity, ii) of model.identities" :key="ii">
         <app-member-form-emails-item
           v-if="identity.type === 'email'"
-          v-model="identities[ii].value"
+          v-model="model.identities[ii].value"
           class="pb-3"
         >
           <template #actions>
@@ -31,7 +31,6 @@
 <script setup lang="ts">
 import {
   computed,
-  ref, watch,
 } from 'vue';
 import AppMemberFormEmailsItem from '@/modules/member/components/form/member-form-emails-item.vue';
 import { MemberIdentity } from '@/modules/member/types/Member';
@@ -45,9 +44,9 @@ const props = defineProps({
   },
 });
 
-const identities = computed<MemberIdentity[]>({
+const model = computed({
   get() {
-    return props.modelValue.identities;
+    return props.modelValue;
   },
   set(value) {
     emit('update:modelValue', value);
@@ -61,11 +60,11 @@ const addEmail = () => {
     value: '',
     verified: true,
   };
-  identities.value.push(defaultEmailIdentity);
+  model.value.identities.push(defaultEmailIdentity);
 };
 
-const removeEmail = (index) => {
-  identities.value.splice(index, 1);
+const removeEmail = (index: number) => {
+  model.value.identities.splice(index, 1);
 };
 </script>
 

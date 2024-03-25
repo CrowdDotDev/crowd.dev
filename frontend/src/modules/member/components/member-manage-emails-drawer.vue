@@ -75,7 +75,6 @@ const drawerModel = computed({
 const memberModel = ref(cloneDeep(props.member));
 const loading = ref(false);
 
-
 const handleCancel = () => {
   emit('update:modelValue', false);
 };
@@ -86,7 +85,7 @@ const handleSubmit = async () => {
   const segments = props.member.segments.map((s) => s.id);
 
   MemberService.update(props.member.id, {
-    identities: memberModel.value.identities,
+    identities: memberModel.value.identities.filter((i) => !!i.value),
   }, segments).then(() => {
     store.dispatch('member/doFind', {
       id: props.member.id,
