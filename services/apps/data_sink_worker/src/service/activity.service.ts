@@ -541,7 +541,12 @@ export default class ActivityService extends LoggerBase {
             this.log.trace({ activityId: dbActivity.id }, 'Found existing activity. Updating it.')
             // process member data
 
-            let dbMember = await txMemberRepo.findMember(tenantId, segmentId, platform, username)
+            let dbMember = await txMemberRepo.findMemberByUsername(
+              tenantId,
+              segmentId,
+              platform,
+              username,
+            )
             if (dbMember) {
               // we found a member for the identity from the activity
               this.log.trace({ memberId: dbMember.id }, 'Found existing member.')
@@ -641,7 +646,7 @@ export default class ActivityService extends LoggerBase {
 
             if (objectMember) {
               if (dbActivity.objectMemberId) {
-                let dbObjectMember = await txMemberRepo.findMember(
+                let dbObjectMember = await txMemberRepo.findMemberByUsername(
                   tenantId,
                   segmentId,
                   platform,
@@ -789,7 +794,12 @@ export default class ActivityService extends LoggerBase {
 
             // we don't have the activity yet in the database
             // check if we have a member for the identity from the activity
-            const dbMember = await txMemberRepo.findMember(tenantId, segmentId, platform, username)
+            const dbMember = await txMemberRepo.findMemberByUsername(
+              tenantId,
+              segmentId,
+              platform,
+              username,
+            )
             if (dbMember) {
               this.log.trace({ memberId: dbMember.id }, 'Found existing member.')
               await txMemberService.update(
@@ -838,7 +848,7 @@ export default class ActivityService extends LoggerBase {
               // we don't have the activity yet in the database
               // check if we have an object member for the identity from the activity
 
-              const dbObjectMember = await txMemberRepo.findMember(
+              const dbObjectMember = await txMemberRepo.findMemberByUsername(
                 tenantId,
                 segmentId,
                 platform,

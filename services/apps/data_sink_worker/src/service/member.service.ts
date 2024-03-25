@@ -420,7 +420,12 @@ export default class MemberService extends LoggerBase {
             i.sourceId !== null &&
             i.type === MemberIdentityType.USERNAME,
         )
-        let dbMember = await txRepo.findMember(tenantId, segmentId, platform, identity.value)
+        let dbMember = await txRepo.findMemberByUsername(
+          tenantId,
+          segmentId,
+          platform,
+          identity.value,
+        )
 
         if (!dbMember && emailIdentities.length > 0) {
           const email = emailIdentities[0].value
@@ -509,7 +514,12 @@ export default class MemberService extends LoggerBase {
           member.identities,
           (i) => i.platform === platform && i.type === MemberIdentityType.USERNAME,
         )
-        const dbMember = await txRepo.findMember(tenantId, segmentId, platform, identity.value)
+        const dbMember = await txRepo.findMemberByUsername(
+          tenantId,
+          segmentId,
+          platform,
+          identity.value,
+        )
 
         if (dbMember) {
           this.log.trace({ memberId: dbMember.id }, 'Found existing member.')

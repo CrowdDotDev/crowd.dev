@@ -51,7 +51,7 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
     )
   }
 
-  public async findMember(
+  public async findMemberByUsername(
     tenantId: string,
     segmentId: string,
     platform: string,
