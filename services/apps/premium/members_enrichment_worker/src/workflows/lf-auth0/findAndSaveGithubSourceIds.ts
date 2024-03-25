@@ -8,6 +8,7 @@ import {
 import { IFindAndSaveGithubIdentitySourceIdsArgs } from '../../types/lfid-enrichment'
 
 import * as activities from '../../activities'
+import { IMemberIdentity } from '@crowd/types'
 
 const {
   getGithubIdentitiesWithoutSourceId,
@@ -43,19 +44,26 @@ export async function findAndSaveGithubSourceIds(
     return
   }
 
-  for (const identity of identities) {
-    // find source id
-    const sourceId = await findGithubSourceId(identity.username)
-    if (sourceId) {
-      await updateIdentitySourceId(identity, sourceId)
-    }
+  // This will contain all promises for the identity processing
+  const identityPromises = identities.map((identity) => processIdentity(identity))
 
-    afterId = identity.memberId
-    afterUsername = identity.username
-  }
+  // Wait for all identity processes to complete
+  await Promise.all(identityPromises)
+
+  // Continue as new with the information from the last processed identity
+  afterId = identities[identities.length - 1].memberId
+  afterUsername = identities[identities.length - 1].username
 
   await continueAsNew<typeof findAndSaveGithubSourceIds>({
     afterId,
     afterUsername,
   })
+}
+
+//helper function to process a single identity
+async function processIdentity(identity: IMemberIdentity): Promise<void> {
+  const sourceId = await findGithubSourceId(identity.username)
+  if (sourceId) {
+    await updateIdentitySourceId(identity, sourceId)
+  }
 }
