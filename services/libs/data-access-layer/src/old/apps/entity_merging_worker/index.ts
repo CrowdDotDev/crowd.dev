@@ -76,21 +76,25 @@ export async function moveIdentityActivitiesToNewMember(
   tenantId: string,
   fromId: string,
   toId: string,
-  value: string,
-  type: MemberIdentityType,
+  username: string,
   platform: string,
 ) {
   return db.connection().query(
     `
         UPDATE activities
-        SET "memberId" = $1
-        WHERE "memberId" = $2
-          AND "tenantId" = $3
-          AND value = $4
-          and type = $5
-          AND platform = $6;
+        SET "memberId" = $(toId)
+        WHERE "memberId" = $(fromId)
+          AND "tenantId" = $(tenantId)
+          AND username = $(username)
+          AND platform = $(platform);
       `,
-    [toId, fromId, tenantId, value, type, platform],
+    {
+      toId,
+      fromId,
+      tenantId,
+      username,
+      platform,
+    },
   )
 }
 

@@ -619,7 +619,6 @@ export default class MemberService extends LoggerBase {
 
       // create the secondary member
       const secondaryMember = await MemberRepository.create(payload.secondary, repoOptions)
-
       // move affiliations
       if (payload.secondary.affiliations.length > 0) {
         await MemberRepository.moveSelectedAffiliationsBetweenMembers(
@@ -736,6 +735,10 @@ export default class MemberService extends LoggerBase {
 
       // trigger entity-merging-worker to move activities in the background
       await SequelizeRepository.commitTransaction(tx)
+
+      const searchSyncService = new SearchSyncService(this.options, SyncMode.SYNCHRONOUS)
+      await searchSyncService.triggerMemberSync(this.options.currentTenant.id, memberId)
+      await searchSyncService.triggerMemberSync(this.options.currentTenant.id, secondaryMember.id)
 
       // responsible for moving member's activities, syncing to opensearch afterwards, recalculating activity.organizationIds and notifying frontend via websockets
       await this.options.temporal.workflow.start('finishMemberUnmerging', {
@@ -1220,6 +1223,7 @@ export default class MemberService extends LoggerBase {
       delete toUpdate.activities
       // we already handled identities
       delete toUpdate.username
+      delete toUpdate.identities
       // we merge them manually
       delete toUpdate.organizations
 

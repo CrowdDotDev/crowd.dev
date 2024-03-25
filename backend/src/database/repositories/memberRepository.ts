@@ -67,16 +67,9 @@ interface ActivityAggregates {
 
 class MemberRepository {
   static async create(data, options: IRepositoryOptions, doPopulateRelations = true) {
-    if (!data.username) {
+    if (!data.username && !data.identities) {
       throw new Error('Username not set when creating member!')
     }
-
-    const platforms = Object.keys(data.username) as PlatformType[]
-    if (platforms.length === 0) {
-      throw new Error('Username object does not have any platforms!')
-    }
-
-    data.username = mapUsernameToIdentities(data.username)
 
     const currentUser = SequelizeRepository.getCurrentUser(options)
 
@@ -111,26 +104,57 @@ class MemberRepository {
       },
     )
 
-    const username: PlatformIdentities = data.username
-
     const seq = SequelizeRepository.getSequelize(options)
-    const query = `
-      insert into "memberIdentities"("memberId", platform, value, type, "sourceId", "tenantId", "integrationId")
-      values(:memberId, :platform, :value, :type, :sourceId, :tenantId, :integrationId);
-    `
 
-    for (const platform of Object.keys(username) as PlatformType[]) {
-      const identities: any[] = username[platform]
-      for (const identity of identities) {
+    if (data.username) {
+      const platforms = Object.keys(data.username) as PlatformType[]
+      if (platforms.length === 0) {
+        throw new Error('Username object does not have any platforms!')
+      }
+
+      data.username = mapUsernameToIdentities(data.username)
+
+      const username: PlatformIdentities = data.username
+
+      const query = `
+        insert into "memberIdentities"("memberId", platform, value, type, "sourceId", "tenantId", "integrationId")
+        values(:memberId, :platform, :value, :type, :sourceId, :tenantId, :integrationId);
+      `
+
+      for (const platform of Object.keys(username) as PlatformType[]) {
+        const identities: any[] = username[platform]
+        for (const identity of identities) {
+          await seq.query(query, {
+            replacements: {
+              memberId: record.id,
+              platform,
+              value: identity.value ? identity.value : identity.username,
+              type: identity.type ? identity.type : MemberIdentityType.USERNAME,
+              sourceId: identity.sourceId || null,
+              integrationId: identity.integrationId || null,
+              tenantId: tenant.id,
+            },
+            type: QueryTypes.INSERT,
+            transaction,
+          })
+        }
+      }
+    } else if (data.identities) {
+      const query = `
+      insert into "memberIdentities"("memberId", "tenantId", platform, value, type, "sourceId", "integrationId", verified)
+      values(:memberId, :tenantId, :platform, :value, :type, :sourceId, :integrationId, :verified);
+      `
+      for (const i of data.identities) {
         await seq.query(query, {
           replacements: {
             memberId: record.id,
-            platform,
-            value: identity.value ? identity.value : identity.username,
-            type: identity.type ? identity.type : MemberIdentityType.USERNAME,
-            sourceId: identity.sourceId || null,
-            integrationId: identity.integrationId || null,
             tenantId: tenant.id,
+            platform: i.platform,
+            type: i.type,
+            value: i.value,
+            sourceId: i.sourceId || null,
+            integrationId: i.integrationId || null,
+            verified: i.verified,
           },
           type: QueryTypes.INSERT,
           transaction,

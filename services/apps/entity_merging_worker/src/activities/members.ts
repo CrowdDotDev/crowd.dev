@@ -1,4 +1,9 @@
-import { ApiWebsocketMessage, IMemberIdentity, TemporalWorkflowId } from '@crowd/types'
+import {
+  ApiWebsocketMessage,
+  IMemberIdentity,
+  MemberIdentityType,
+  TemporalWorkflowId,
+} from '@crowd/types'
 import { svc } from '../main'
 import { WorkflowIdReusePolicy } from '@temporalio/workflow'
 import { SearchSyncApiClient } from '@crowd/opensearch'
@@ -44,14 +49,13 @@ export async function moveActivitiesWithIdentityToAnotherMember(
     return
   }
 
-  for (const identity of identities) {
+  for (const identity of identities.filter((i) => i.type === MemberIdentityType.USERNAME)) {
     await moveIdentityActivitiesToNewMember(
       svc.postgres.writer,
       tenantId,
       fromId,
       toId,
       identity.value,
-      identity.type,
       identity.platform,
     )
   }
