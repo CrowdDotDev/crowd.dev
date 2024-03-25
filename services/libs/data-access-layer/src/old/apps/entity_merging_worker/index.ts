@@ -1,5 +1,5 @@
 import { DbStore } from '@crowd/database'
-import { MemberIdentityType, MergeActionState } from '@crowd/types'
+import { MergeActionState } from '@crowd/types'
 import { ISegmentIds } from './types'
 
 export async function deleteMemberSegments(db: DbStore, memberId: string) {
