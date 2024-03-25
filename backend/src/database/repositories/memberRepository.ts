@@ -2680,7 +2680,7 @@ class MemberRepository {
     const where = { [Op.and]: whereAnd }
 
     const records = await options.database.member.findAll({
-      attributes: ['id', 'displayName', 'attributes', 'emails'],
+      attributes: ['id', 'displayName', 'attributes'],
       where,
       limit: limit ? Number(limit) : undefined,
       order: [['displayName', 'ASC']],
@@ -2703,7 +2703,6 @@ class MemberRepository {
     return records.map((record) => ({
       id: record.id,
       label: record.displayName,
-      email: record.emails.length > 0 ? record.emails[0] : null,
       avatar: record.attributes?.avatarUrl?.default || null,
       organizations: record.organizations.map((org) => ({
         id: org.id,

@@ -23,7 +23,6 @@
   "netlify": {},
   "sendgrid": {},
   "plans": {},
-  "devto": {},
   "twitter": {
     "maxRetrospectInSeconds": 7380,
     "limitResetFrequencyDays": 30

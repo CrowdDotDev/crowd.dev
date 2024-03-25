@@ -20,7 +20,6 @@ import {
   CubeJSConfiguration,
   ComprehendConfiguration,
   ClearbitConfiguration,
-  DevtoConfiguration,
   NangoConfiguration,
   EnrichmentConfiguration,
   EagleEyeConfiguration,
@@ -84,8 +83,6 @@ export const API_CONFIG: ApiConfiguration = config.get<ApiConfiguration>('api')
 export const AUTH0_CONFIG: Auth0Configuration = config.get<Auth0Configuration>('auth0')
 
 export const PLANS_CONFIG: PlansConfiguration = config.get<PlansConfiguration>('plans')
-
-export const DEVTO_CONFIG: DevtoConfiguration = config.get<DevtoConfiguration>('devto')
 
 export const TWITTER_CONFIG: TwitterConfiguration = config.get<TwitterConfiguration>('twitter')
 
