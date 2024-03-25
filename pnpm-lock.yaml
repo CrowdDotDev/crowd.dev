@@ -153,6 +153,9 @@ importers:
       analytics-node:
         specifier: ^6.2.0
         version: 6.2.0
+      auth0:
+        specifier: ^4.3.1
+        version: 4.3.1
       aws-sdk:
         specifier: 2.814.0
         version: 2.814.0
@@ -1098,9 +1101,15 @@ importers:
       '@crowd/feature-flags':
         specifier: workspace:*
         version: link:../../../libs/feature-flags
+      '@crowd/integrations':
+        specifier: workspace:*
+        version: link:../../../libs/integrations
       '@crowd/opensearch':
         specifier: workspace:*
         version: link:../../../libs/opensearch
+      '@crowd/redis':
+        specifier: workspace:*
+        version: link:../../../libs/redis
       '@crowd/types':
         specifier: workspace:*
         version: link:../../../libs/types
@@ -1110,6 +1119,9 @@ importers:
       '@temporalio/workflow':
         specifier: ~1.8.6
         version: 1.8.6
+      auth0:
+        specifier: ^4.3.1
+        version: 4.3.1
       axios:
         specifier: ~1.6.2
         version: 1.6.2
@@ -7717,6 +7729,14 @@ packages:
 
   /asynckit@0.4.0:
     resolution: {integrity: sha512-Oei9OH4tRh0YqU3GxhX79dM/mwVgvbZJaSNaRk+bshkj0S5cfHcgYakreBjrHwatXKbz+IoIdYLxrKim2MjW0Q==}
+
+  /auth0@4.3.1:
+    resolution: {integrity: sha512-VuR/PdNHwXD9QiYUZf8UN0qiv07yJWHKfF2yEhePaPCrpwbEm6lHM6dkN7ylOdseogCkGmvchxYGMga0IPNrCA==}
+    engines: {node: '>=18'}
+    dependencies:
+      jose: 4.15.4
+      uuid: 9.0.1
+    dev: false
 
   /available-typed-arrays@1.0.5:
     resolution: {integrity: sha512-DMD0KiN46eipeziST1LPP/STfDU0sufISXmjSgvVsoU2tqxctQeASejWcfNtxYKqETM1UxQ8sp2OrSBWpHY6sw==}

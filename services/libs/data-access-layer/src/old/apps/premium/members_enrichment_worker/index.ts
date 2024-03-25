@@ -1,5 +1,5 @@
 import { DbStore, DbTransaction } from '@crowd/database'
-import { IAttributes, OrganizationSource } from '@crowd/types'
+import { IAttributes, IMemberIdentity, OrganizationSource } from '@crowd/types'
 import { generateUUIDv4 } from '@crowd/common'
 
 export async function fetchMembersForEnrichment(db: DbStore) {
@@ -31,6 +31,80 @@ export async function fetchMembersForEnrichment(db: DbStore) {
      GROUP BY members.id
          LIMIT 50;`,
   )
+}
+
+export async function fetchMembersForLFIDEnrichment(db: DbStore, limit: number, offset: number) {
+  return db.connection().query(
+    `SELECT
+        members."id",
+        members."displayName",
+        members."attributes",
+        members."emails",
+        members."contributions",
+        members."score",
+        members."reach",
+        members."tenantId",
+        jsonb_agg(mi.*) filter (where mi.platform = 'github' OR
+        (mi.platform = 'linkedin' and mi."sourceId" is not null)) as identities
+      FROM members
+              INNER JOIN tenants ON tenants.id = members."tenantId"
+              INNER JOIN "memberIdentities" mi ON mi."memberId" = members.id
+      WHERE tenants.plan IN ('Scale', 'Enterprise')
+        AND (
+          mi.platform = 'github' OR
+          (mi.platform = 'linkedin' and mi."sourceId" is not null) OR
+              array_length(members.emails, 1) > 0
+          )
+        AND tenants."deletedAt" IS NULL
+        AND members."deletedAt" IS NULL
+      GROUP BY members.id
+      ORDER BY members.id desc
+          limit $1
+          offset $2;`,
+    [limit, offset],
+  )
+}
+
+export async function getGithubIdentitiesWithoutSourceId(
+  db: DbStore,
+  limit: number,
+  afterId: string,
+  afterUsername: string,
+): Promise<IMemberIdentity[]> {
+  if (afterId) {
+    return db.connection().query(
+      `select * from "memberIdentities" mi
+      where mi.platform = 'github' and mi."sourceId" is null
+      and (
+        mi."memberId" < $1 OR
+        (mi."memberId" = $1 AND mi."username" < $2)
+      )
+      order by mi."memberId" desc
+      limit $3;`,
+      [afterId, afterUsername, limit],
+    )
+  }
+
+  return db.connection().query(
+    `select * from "memberIdentities" mi
+    where mi.platform = 'github' and mi."sourceId" is null
+    order by mi."memberId" desc
+    limit $1;`,
+    [limit],
+  )
+}
+
+export async function updateIdentitySourceId(
+  db: DbStore,
+  identity: IMemberIdentity,
+  sourceId: string,
+) {
+  await db
+    .connection()
+    .query(
+      `UPDATE "memberIdentities" SET "sourceId" = $1 WHERE "memberId" = $2 AND platform = $3 AND username = $4;`,
+      [sourceId, identity.memberId, identity.platform, identity.username],
+    )
 }
 
 export async function updateLastEnrichedDate(
