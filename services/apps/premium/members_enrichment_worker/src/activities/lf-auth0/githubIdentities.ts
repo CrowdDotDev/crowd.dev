@@ -30,7 +30,7 @@ export async function updateIdentitySourceId(
   sourceId: string,
 ): Promise<void> {
   try {
-    const db = svc.postgres.reader
+    const db = svc.postgres.writer
     await updateSourceId(db, identity, sourceId)
   } catch (err) {
     throw new Error(err)
