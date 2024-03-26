@@ -3049,25 +3049,44 @@ class MemberRepository {
 
     if (newIdentities === true) {
       output.identities = memberIdentities
-      output.verifiedEmails = distinct(memberIdentities.filter(i => i.verified && i.type === MemberIdentityType.EMAIL).map(i => i.value))
-      output.unverifiedEmails = distinct(memberIdentities.filter(i => !i.verified && i.type === MemberIdentityType.EMAIL).map(i => i.value))
-      output.verifiedUsernames = distinct(memberIdentities.filter(i => i.verified && i.type === MemberIdentityType.USERNAME).map(i => i.value))
-      output.unverifiedUsernames = distinct(memberIdentities.filter(i => !i.verified && i.type === MemberIdentityType.USERNAME).map(i => i.value))
-      output.identityPlatforms = distinct(memberIdentities.filter(i => i.verified).map(i => i.platform))
+      output.verifiedEmails = distinct(
+        memberIdentities
+          .filter((i) => i.verified && i.type === MemberIdentityType.EMAIL)
+          .map((i) => i.value),
+      )
+      output.unverifiedEmails = distinct(
+        memberIdentities
+          .filter((i) => !i.verified && i.type === MemberIdentityType.EMAIL)
+          .map((i) => i.value),
+      )
+      output.verifiedUsernames = distinct(
+        memberIdentities
+          .filter((i) => i.verified && i.type === MemberIdentityType.USERNAME)
+          .map((i) => i.value),
+      )
+      output.unverifiedUsernames = distinct(
+        memberIdentities
+          .filter((i) => !i.verified && i.type === MemberIdentityType.USERNAME)
+          .map((i) => i.value),
+      )
+      output.identityPlatforms = distinct(
+        memberIdentities.filter((i) => i.verified).map((i) => i.platform),
+      )
     } else {
       output.username = {}
 
-      for (const identity of memberIdentities.filter((i) => i.type === MemberIdentityType.USERNAME)) {
+      for (const identity of memberIdentities.filter(
+        (i) => i.type === MemberIdentityType.USERNAME,
+      )) {
         if (output.username[identity.platform]) {
           output.username[identity.platform].push(identity.value)
         } else {
           output.username[identity.platform] = [identity.value]
         }
       }
-  
+
       output.identities = Object.keys(output.username)
     }
-
 
     output.affiliations = await this.getAffiliations(record.id, options)
 
