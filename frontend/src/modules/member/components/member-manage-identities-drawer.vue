@@ -49,8 +49,8 @@ import { MemberService } from '@/modules/member/member-service';
 import cloneDeep from 'lodash/cloneDeep';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import AppMemberFormIdentities from './form/member-form-identities.vue';
 import isEqual from 'lodash/isEqual';
+import AppMemberFormIdentities from './form/member-form-identities.vue';
 
 const store = useStore();
 const props = defineProps({

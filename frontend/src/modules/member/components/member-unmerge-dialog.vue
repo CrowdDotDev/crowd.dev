@@ -251,6 +251,8 @@ import CrSpinner from '@/ui-kit/spinner/Spinner.vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppMemberOrganizationList from '@/modules/member/components/suggestions/member-organizations-list.vue';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import { storeToRefs } from 'pinia';
 import AppMemberSuggestionsDetails from './suggestions/member-merge-suggestions-details.vue';
 
 const props = defineProps({
@@ -268,6 +270,9 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue']);
 
 const { doFind } = mapActions('member');
+
+const lsSegmentsStore = useLfSegmentsStore();
+const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const unmerging = ref(false);
 const fetchingPreview = ref(false);
@@ -326,6 +331,16 @@ const unmerge = () => {
           title: 'Contributors unmerging in progress',
         },
       );
+      doFind({
+        id: props.modelValue?.id,
+        segments: [selectedProjectGroup.value?.id],
+      }).then(() => {
+        router.replace({
+          params: {
+            id: props.modelValue?.id,
+          },
+        });
+      });
       emit('update:modelValue', null);
     })
     .catch((error) => {
