@@ -83,7 +83,6 @@ import {
   computed, onMounted, watch,
 } from 'vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
-import isEqual from 'lodash/isEqual';
 
 const emit = defineEmits(['update:modelValue', 'unmerge']);
 

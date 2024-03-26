@@ -42,10 +42,8 @@ import Message from '@/shared/message/message';
 import { MemberService } from '@/modules/member/member-service';
 import cloneDeep from 'lodash/cloneDeep';
 import AppMemberFormEmails from '@/modules/member/components/form/member-form-emails.vue';
-import useVuelidate from '@vuelidate/core';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';
-import formChangeDetector from '@/shared/form/form-change';
 
 const store = useStore();
 const props = defineProps({
