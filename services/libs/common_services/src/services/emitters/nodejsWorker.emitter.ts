@@ -12,7 +12,6 @@ import {
   ExportCSVQueueMessage,
   ExportableEntity,
   IntegrationDataCheckerQueueMessage,
-  MergeSuggestionsQueueMessage,
   NewActivityAutomationQueueMessage,
   NewMemberAutomationQueueMessage,
   ProcessAutomationQueueMessage,
@@ -186,9 +185,5 @@ export class NodejsWorkerEmitter extends QueuePriorityService {
       tenantId,
       new EnrichOrganizationQueueMessage(tenantId, maxEnrichLimit),
     )
-  }
-
-  public async mergeSuggestions(tenantId: string): Promise<void> {
-    await this.sendMessage(tenantId, tenantId, new MergeSuggestionsQueueMessage(tenantId))
   }
 }

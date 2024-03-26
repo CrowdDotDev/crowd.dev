@@ -2,7 +2,6 @@ import passport from 'passport'
 import { FeatureFlag } from '@crowd/types'
 import {
   API_CONFIG,
-  DEVTO_CONFIG,
   DISCORD_CONFIG,
   GITHUB_CONFIG,
   NANGO_CONFIG,
@@ -106,16 +105,14 @@ export default (app) => {
     )
   }
 
-  if (DEVTO_CONFIG.apiKey) {
-    app.get(
-      '/tenant/:tenantId/devto-validate',
-      safeWrap(require('./helpers/devtoValidators').default),
-    )
-    app.post(
-      '/tenant/:tenantId/devto-connect',
-      safeWrap(require('./helpers/devtoCreateOrUpdate').default),
-    )
-  }
+  app.get(
+    '/tenant/:tenantId/devto-validate',
+    safeWrap(require('./helpers/devtoValidators').default),
+  )
+  app.post(
+    '/tenant/:tenantId/devto-connect',
+    safeWrap(require('./helpers/devtoCreateOrUpdate').default),
+  )
 
   if (NANGO_CONFIG.secretKey) {
     // Reddit

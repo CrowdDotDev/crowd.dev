@@ -17,6 +17,7 @@ import {
   QueuePriorityContextLoader,
   SearchSyncWorkerEmitter,
 } from '@crowd/common_services'
+import { MemberIdentityType } from '@crowd/types'
 
 const tracer = getServiceTracer()
 const log = getServiceLogger()
@@ -94,18 +95,23 @@ setImmediate(async () => {
       process.exit(1)
     }
 
+    const identities = await memberRepo.getIdentities(memberId, member.tenantId)
     log.info(`Processing memberId: ${member.id}`)
 
     const segmentIds = await dataSinkRepo.getSegmentIds(member.tenantId)
     const segmentId = segmentIds[segmentIds.length - 1] // leaf segment id
 
-    if (member.emails) {
-      log.info('Member emails:', JSON.stringify(member.emails))
+    const emailIdentities = identities.filter(
+      (i) => i.verified && i.type === MemberIdentityType.EMAIL,
+    )
+    if (emailIdentities.length > 0) {
+      const emails = emailIdentities.map((i) => i.value)
+      log.info({ memberId, emails }, 'Member emails!')
       const orgs = await memberService.assignOrganizationByEmailDomain(
         member.tenantId,
         segmentId,
         null,
-        member.emails,
+        emails,
       )
 
       if (orgs.length > 0) {

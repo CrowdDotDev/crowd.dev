@@ -1,6 +1,6 @@
 import { proxyActivities } from '@temporalio/workflow'
 
-import { IMember } from '@crowd/types'
+import { IMember, MemberIdentityType, PlatformType } from '@crowd/types'
 import { EnrichmentAPIMember } from '@crowd/types/src/premium'
 
 import * as activities from '../activities'
@@ -38,22 +38,24 @@ export async function enrichMember(input: IMember): Promise<EnrichingMember> {
   let enriched: EnrichmentAPIMember = null
 
   // Enrich using GitHub if possible.
-  if (input.username['github']) {
+  const githubUsernames = input.identities.filter(
+    (i) =>
+      i.verified && i.platform === PlatformType.GITHUB && i.type === MemberIdentityType.USERNAME,
+  )
+
+  if (githubUsernames.length > 0) {
     try {
-      enriched = await enrichMemberUsingGitHubHandle({
-        member: input,
-      })
+      enriched = await enrichMemberUsingGitHubHandle(githubUsernames[0].value)
     } catch (err) {
       throw new Error(err)
     }
   }
 
   // Otherwise try with email address.
-  if (!enriched && input.emails.length) {
+  const emails = input.identities.filter((i) => i.verified && i.type === MemberIdentityType.EMAIL)
+  if (!enriched && emails.length) {
     try {
-      enriched = await enrichMemberUsingEmailAddress({
-        member: input,
-      })
+      enriched = await enrichMemberUsingEmailAddress(emails[0].value)
     } catch (err) {
       throw new Error(err)
     }

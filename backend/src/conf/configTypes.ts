@@ -97,11 +97,6 @@ export interface PlansConfiguration {
   stripeScalePlanProductId: string
 }
 
-export interface DevtoConfiguration {
-  apiKey: string
-  globalLimit?: number
-}
-
 export interface TwitterConfiguration {
   clientId: string
   clientSecret: string

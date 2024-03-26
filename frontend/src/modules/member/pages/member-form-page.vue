@@ -196,12 +196,11 @@ const formSchema = computed(
   () => new FormSchema([
     fields.displayName,
     fields.name,
-    fields.emails,
     fields.joinedAt,
     fields.tags,
-    fields.username,
     fields.organizations,
     fields.attributes,
+    fields.identities,
     ...getCustomAttributes({
       customAttributes: customAttributes.value,
       considerShowProperty: false,
@@ -228,7 +227,6 @@ function filteredAttributes(attributes) {
 
 function getInitialModel(r) {
   const attributes = getAttributesModel(r);
-
   return JSON.parse(
     JSON.stringify(
       formSchema.value.initialValues({
@@ -246,10 +244,7 @@ function getInitialModel(r) {
         })) : [],
         ...attributes,
         tags: r ? r.tags : [],
-        username: r ? r.username : {},
-        platform: r
-          ? r.username[Object.keys(r.username)[0]]
-          : '',
+        identities: r ? r.identities : [],
       }),
     ),
   );
@@ -278,7 +273,12 @@ const hasFormChanged = computed(() => {
     ? getInitialModel(record.value)
     : getInitialModel();
 
-  return !isEqual(initialModel, formModel.value);
+  const mappedFromModel = {
+    ...formModel.value,
+    identities: (formModel.value?.identities || []).filter((i) => !!i.value),
+  };
+
+  return !isEqual(initialModel, mappedFromModel);
 });
 
 const isSubmitBtnDisabled = computed(
@@ -379,9 +379,6 @@ async function onSubmit() {
     ...formModel.value.displayName && {
       displayName: formModel.value.displayName,
     },
-    ...formModel.value.emails && {
-      emails: formModel.value.emails,
-    },
     ...formModel.value.joinedAt && {
       joinedAt: formModel.value.joinedAt,
     },
@@ -422,9 +419,8 @@ async function onSubmit() {
         }),
       },
     },
-    ...Object.keys(formModel.value.username).length && {
-      username: formModel.value.username,
-    },
+
+    identities: (formModel.value?.identities || []).filter((i) => !!i.value),
 
     manuallyCreated: true,
   };

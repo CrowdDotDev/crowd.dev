@@ -142,32 +142,6 @@ describe('RawQueryParser', () => {
     expect(params.identities_2).toEqual('slack')
   })
 
-  it('Should parse filter with an in condition', () => {
-    const filter = {
-      and: [
-        {
-          emails: {
-            in: ['crash@crowd.dev', 'burn@crowd.dev'],
-          },
-        },
-        {},
-      ],
-    }
-
-    const params: any = {}
-
-    const result = RawQueryParser.parseFilters(
-      filter,
-      MemberRepository.MEMBER_QUERY_FILTER_COLUMN_MAP,
-      [],
-      params,
-    )
-
-    expect(result).toEqual(`((m.emails in (:emails_1, :emails_2)) and (1=1))`)
-    expect(params.emails_1).toEqual('crash@crowd.dev')
-    expect(params.emails_2).toEqual('burn@crowd.dev')
-  })
-
   it('Should parse filter with attribute column multiselect filter', () => {
     const filter = {
       and: [

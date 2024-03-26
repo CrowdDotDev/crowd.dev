@@ -43,7 +43,8 @@ export const memberSearchFilter: SearchFilterConfig = {
       {
         or: [
           { displayName: { textContains: trimmedValue } },
-          { emails: { textContains: trimmedValue } },
+          { verifiedEmails: { textContains: trimmedValue } },
+          { unverifiedEmails: { textContains: trimmedValue } },
         ],
       },
     ];

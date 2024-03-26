@@ -171,3 +171,8 @@ export const MemberEnrichmentAttributes = {
     label: 'Expertise',
   },
 }
+
+export enum MemberIdentityType {
+  USERNAME = 'username',
+  EMAIL = 'email',
+}

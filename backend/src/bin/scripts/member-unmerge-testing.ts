@@ -12,6 +12,7 @@ import path from 'path'
 import { QueryTypes } from 'sequelize'
 import axios from 'axios'
 
+import { MemberIdentityType } from '@crowd/types'
 import { databaseInit } from '@/database/databaseConnection'
 
 const banner = fs.readFileSync(path.join(__dirname, 'banner.txt'), 'utf8')
@@ -91,9 +92,9 @@ if (parameters.help || !parameters.primaryId || !parameters.secondaryId) {
 
     // find identities in secondary member, it'll be used for the unmerge operation
     const secondaryMemberIdentities = await prodDb.sequelize.query(
-      `SELECT * FROM "memberIdentities" WHERE "memberId" = :primaryId`,
+      `SELECT * FROM "memberIdentities" WHERE "memberId" = :primaryId and type = :type`,
       {
-        replacements: { primaryId: parameters.secondaryId },
+        replacements: { primaryId: parameters.secondaryId, type: MemberIdentityType.USERNAME },
         type: QueryTypes.SELECT,
       },
     )
@@ -127,7 +128,7 @@ if (parameters.help || !parameters.primaryId || !parameters.secondaryId) {
       `http://api:8080/tenant/${tenantId}/member/${parameters.primaryId}/unmerge/preview`,
       {
         platform: secondaryMemberIdentities[0].platform,
-        username: secondaryMemberIdentities[0].username,
+        username: secondaryMemberIdentities[0].value,
       },
       {
         headers: {

@@ -1,4 +1,4 @@
-import { IMemberData, PlatformType } from '@crowd/types'
+import { IMemberData, MemberIdentityType, PlatformType } from '@crowd/types'
 import { LinkedInAuthorType } from './api/types'
 import { single } from '@crowd/common'
 
@@ -28,7 +28,8 @@ export const getLinkedInOrganizationId = (urn: string): string =>
     .replace('urn:li:organizationBrand:', '')
 
 export const isPrivateLinkedInMember = (member: IMemberData): boolean => {
-  return single(member.identities, (i) => i.platform === PlatformType.LINKEDIN).username.startsWith(
-    'private-',
-  )
+  return single(
+    member.identities,
+    (i) => i.platform === PlatformType.LINKEDIN && i.type === MemberIdentityType.USERNAME,
+  ).value.startsWith('private-')
 }

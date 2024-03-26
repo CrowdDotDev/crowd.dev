@@ -3,6 +3,7 @@ import commandLineUsage from 'command-line-usage'
 import * as fs from 'fs'
 import path from 'path'
 import { QueryTypes } from 'sequelize'
+import { MemberIdentityType } from '@crowd/types'
 import { databaseInit } from '@/database/databaseConnection'
 
 /* eslint-disable no-console */
@@ -100,7 +101,7 @@ if (
     // find memberId from snapshot db using identity
     const members = await snapshotDb.sequelize.query(
       `select "memberId" from "memberIdentities" mi
-       where mi.username = '${identityToProcess.username}' and mi.platform = '${identityToProcess.platform}' and "tenantId" = '${member.tenantId}';
+       where mi.type = '${MemberIdentityType.USERNAME}' mi.value = '${identityToProcess.username}' and mi.platform = '${identityToProcess.platform}' and "tenantId" = '${member.tenantId}';
     `,
       {
         useMaster: true,
@@ -164,7 +165,6 @@ if (
                 "lastEnriched", 
                 "contributions", 
                 "enrichedBy", 
-                "weakIdentities", 
                 "searchSyncedAt", 
                 "manuallyCreated")
                 VALUES (
@@ -185,7 +185,6 @@ if (
                   :lastEnriched,
                   :contributions,
                   :enrichedBy,
-                  :weakIdentities,
                   :searchSyncedAt,
                   :manuallyCreated)`,
             {
@@ -203,9 +202,6 @@ if (
                   ? JSON.stringify(deletedMember.attributes)
                   : null,
                 reach: deletedMember.reach ? JSON.stringify(deletedMember.reach) : null,
-                weakIdentities: deletedMember.weakIdentities
-                  ? JSON.stringify(deletedMember.weakIdentities)
-                  : null,
                 contributions: deletedMember.contributions
                   ? JSON.stringify(deletedMember.contributions)
                   : null,
@@ -233,7 +229,10 @@ if (
         )
 
         const identityFilterPartial = result1
-          .map((mi) => ` (username = '${mi.username}' and platform = '${mi.platform}') `)
+          .map(
+            (mi) =>
+              ` (value = '${mi.value}' and platform = '${mi.platform}' and type = '${MemberIdentityType.USERNAME}') `,
+          )
           .join(' or ')
 
         // update identitities to point to the deleted member

@@ -9,31 +9,17 @@ export default ({
   member: Partial<Member>;
   order: Platform[];
 }) => {
-  const { username = {}, attributes = {}, emails = [] } = member || {};
+  const {
+    attributes = {}, verifiedEmails = [], unverifiedEmails = [], identities,
+  } = member || {};
 
-  const getIdentityHandles = (platform: string) => {
-    if (platform === Platform.CUSTOM) {
-      const customPlatforms = Object.keys(username).filter(
-        (p) => (!order.includes(p) || p === Platform.CUSTOM)
-          && p !== Platform.EMAIL
-          && p !== Platform.EMAILS,
-      );
-
-      return customPlatforms.flatMap((p) => username[p].map((u) => ({
-        platform: p,
-        url: null,
-        name: u,
-      })));
-    }
-
-    return username[platform]
-      ? username[platform].map((u) => ({
-        platform,
-        url: null,
-        name: u,
-      }))
-      : [];
-  };
+  const getIdentityHandles = (platform: string) => (identities || [])
+    .filter((i) => i.platform === platform && i.type !== 'email')
+    .map((i) => ({
+      platform,
+      url: null,
+      name: i.value,
+    }));
 
   const getIdentityLink = (identity: {
     platform: string;
@@ -106,34 +92,10 @@ export default ({
   const getEmails = (): {
     handle: string;
     link: string;
-  }[] => {
-    const rootEmails = (emails || [])
-      .filter((e) => !!e)
-      .map((e) => ({
-        link: `mailto:${e}`,
-        handle: e,
-      }));
-
-    const usernameEmail = username.email
-      ? username.email
-        .filter((e) => !!e)
-        .map((e) => ({
-          link: null,
-          handle: e,
-        }))
-      : [];
-
-    const usernameEmails = username.emails
-      ? username.emails
-        .filter((e) => !!e)
-        .map((e) => ({
-          link: `mailto:${e}`,
-          handle: e,
-        }))
-      : [];
-
-    return [...rootEmails, ...usernameEmail, ...usernameEmails];
-  };
+  }[] => [...verifiedEmails, ...unverifiedEmails].map((e) => ({
+    link: `mailto:${e}`,
+    handle: e,
+  }));
 
   return {
     getIdentities,

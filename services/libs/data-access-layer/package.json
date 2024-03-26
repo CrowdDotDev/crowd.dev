@@ -18,5 +18,9 @@
     "@crowd/sentiment": "workspace:*",
     "lodash.clonedeep": "^4.5.0",
     "lodash.merge": "^4.6.2"
+  },
+  "devDependencies": {
+    "@types/node": "^18.16.3",
+    "typescript": "^5.0.4"
   }
 }

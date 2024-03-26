@@ -20,9 +20,6 @@ export class MembersOpensearch extends OpensearchModelBase {
     displayName: {
       type: OpensearchFieldType.STRING,
     },
-    emails: {
-      type: OpensearchFieldType.STRING_ARR,
-    },
     score: {
       type: OpensearchFieldType.INT,
     },
@@ -63,12 +60,23 @@ export class MembersOpensearch extends OpensearchModelBase {
     averageSentiment: {
       type: OpensearchFieldType.FLOAT,
     },
+    verifiedEmails: {
+      type: OpensearchFieldType.STRING_ARR,
+    },
+    unverifiedEmails: {
+      type: OpensearchFieldType.STRING_ARR,
+    },
+    verifiedUsernames: {
+      type: OpensearchFieldType.STRING_ARR,
+    },
+    unverifiedUsernames: {
+      type: OpensearchFieldType.STRING_ARR,
+    },
+    identityPlatforms: {
+      type: OpensearchFieldType.STRING_ARR,
+    },
     identities: {
       type: OpensearchFieldType.NESTED,
-      customTranslation: {
-        toOpensearch: 'nested_identities.string_platform',
-        fromOpensearch: 'nested_identities',
-      },
     },
     attributes: {
       type: OpensearchFieldType.OBJECT,

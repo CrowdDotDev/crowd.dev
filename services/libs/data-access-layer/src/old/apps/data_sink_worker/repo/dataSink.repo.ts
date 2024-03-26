@@ -138,21 +138,6 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
     }
   }
 
-  public async markResultInProgress(resultId: string): Promise<void> {
-    const result = await this.db().result(
-      `update integration.results
-       set  state = $(state),
-            "updatedAt" = now()
-       where id = $(resultId)`,
-      {
-        resultId,
-        state: IntegrationResultState.PROCESSING,
-      },
-    )
-
-    this.checkUpdateRowCount(result.rowCount, 1)
-  }
-
   public async markResultError(resultId: string, error: unknown): Promise<void> {
     const result = await this.db().result(
       `update integration.results

@@ -8,6 +8,7 @@ import {
   MemberEnrichmentAttributeName,
   PlatformType,
   IMember,
+  MemberIdentityType,
 } from '@crowd/types'
 import {
   EnrichmentAPIContribution,
@@ -189,10 +190,6 @@ const fillPlatformData = async (
   //   }
   // }
 
-  if (!member.emails) {
-    member.emails = []
-  }
-
   member.contributions = enriched.oss_contributions?.map(
     (contribution: EnrichmentAPIContribution) => ({
       id: contribution.id,
@@ -207,8 +204,21 @@ const fillPlatformData = async (
 
   if (enriched.github_handle) {
     // Set 'member.username.github' to be equal to 'enriched.github_handle' (if it is not already set)
-    member.username[PlatformType.GITHUB] =
-      member.username[PlatformType.GITHUB] || enriched.github_handle
+    if (
+      member.identities.find(
+        (i) =>
+          i.type === MemberIdentityType.USERNAME &&
+          i.platform === PlatformType.GITHUB &&
+          i.value === enriched.github_handle,
+      ) === undefined
+    ) {
+      member.identities.push({
+        value: enriched.github_handle,
+        type: MemberIdentityType.USERNAME,
+        platform: PlatformType.GITHUB,
+        verified: false,
+      })
+    }
     if (!member.attributes.url) {
       // If it does not exist, initialize it as an empty object
       member.attributes.url = {}
@@ -219,9 +229,22 @@ const fillPlatformData = async (
   }
 
   if (enriched.linkedin_url) {
-    member.username[PlatformType.LINKEDIN] =
-      member.username[PlatformType.LINKEDIN] || enriched.linkedin_url.split('/').pop()
-
+    const linkedinHandle = enriched.linkedin_url.split('/').pop()
+    if (
+      member.identities.find(
+        (i) =>
+          i.type === MemberIdentityType.USERNAME &&
+          i.platform === PlatformType.LINKEDIN &&
+          i.value === linkedinHandle,
+      ) === undefined
+    ) {
+      member.identities.push({
+        value: linkedinHandle,
+        type: MemberIdentityType.USERNAME,
+        platform: PlatformType.LINKEDIN,
+        verified: false,
+      })
+    }
     if (!member.attributes.url) {
       member.attributes.url = {}
     }
@@ -230,9 +253,21 @@ const fillPlatformData = async (
   }
 
   if (enriched.twitter_handle) {
-    member.username[PlatformType.TWITTER] =
-      member.username[PlatformType.TWITTER] || enriched.twitter_handle
-
+    if (
+      member.identities.find(
+        (i) =>
+          i.type === MemberIdentityType.USERNAME &&
+          i.platform === PlatformType.TWITTER &&
+          i.value === enriched.twitter_handle,
+      ) === undefined
+    ) {
+      member.identities.push({
+        value: enriched.twitter_handle,
+        type: MemberIdentityType.USERNAME,
+        platform: PlatformType.TWITTER,
+        verified: false,
+      })
+    }
     if (!member.attributes.url) {
       member.attributes.url = {}
     }
@@ -258,7 +293,6 @@ const fillPlatformData = async (
       member.id,
       member.displayName,
       updateDisplayName,
-      member.emails,
       member.attributes,
       member.contributions,
     )
@@ -266,14 +300,16 @@ const fillPlatformData = async (
     throw new Error(err)
   }
 
-  for (const platform in member.username) {
+  for (const identity of member.identities) {
     try {
       await insertMemberIdentity(
         tx,
-        platform,
+        identity.platform,
         member.id,
         member.tenantId,
-        member.username[platform],
+        identity.value,
+        identity.type,
+        identity.verified,
       )
     } catch (err) {
       throw new Error(err)

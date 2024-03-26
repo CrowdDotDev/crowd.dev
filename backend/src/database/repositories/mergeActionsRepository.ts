@@ -6,6 +6,7 @@ import {
   IOrganizationIdentity,
   IOrganizationUnmergeBackup,
   IUnmergeBackup,
+  MemberIdentityType,
   MergeActionState,
   MergeActionType,
 } from '@crowd/types'
@@ -99,7 +100,35 @@ class MergeActionsRepository {
       },
     )
 
-    return record[0] || null
+    if (record.length === 1) {
+      const data = record[0] as IMergeAction
+
+      // fix old identities to use the new format
+      if (data.type === MergeActionType.MEMBER && data.unmergeBackup) {
+        const backup = data.unmergeBackup as IUnmergeBackup<IMemberUnmergeBackup>
+        if (backup.primary) {
+          for (const identity of backup.primary.identities) {
+            if ('username' in identity) {
+              identity.value = (identity as any).username
+              identity.type = MemberIdentityType.USERNAME
+              delete (identity as any).username
+            }
+          }
+        }
+
+        if (backup.secondary) {
+          for (const identity of backup.secondary.identities) {
+            if ('username' in identity) {
+              identity.value = (identity as any).username
+              identity.type = MemberIdentityType.USERNAME
+              delete (identity as any).username
+            }
+          }
+        }
+      }
+    }
+
+    return null
   }
 
   static async findMergeBackup(
@@ -122,20 +151,51 @@ class MergeActionsRepository {
           and exists(
                 select 1
                 from jsonb_array_elements(ma."unmergeBackup" -> 'secondary' -> 'identities') as identities
-                where identities ->> 'username' = :secondaryMemberIdentityUsername
+                where (identities ->> 'username' = :secondaryMemberIdentityValue or (identities ->> 'type' = :secondaryMemberIdentityType and identities ->> 'value' = :secondaryMemberIdentityValue))
                   and identities ->> 'platform' = :secondaryMemberIdentityPlatform
             );
         `,
         {
           replacements: {
             primaryMemberId,
-            secondaryMemberIdentityUsername: memberIdentity.username,
+            secondaryMemberIdentityValue: memberIdentity.value,
+            secondaryMemberIdentityType: memberIdentity.type,
             secondaryMemberIdentityPlatform: memberIdentity.platform,
           },
           type: QueryTypes.SELECT,
           transaction,
         },
       )
+
+      // fix old identities to use the new format
+      for (const record of records) {
+        const data = record as IMergeAction
+
+        // fix old identities to use the new format
+        if (data.type === MergeActionType.MEMBER && data.unmergeBackup) {
+          const backup = data.unmergeBackup as IUnmergeBackup<IMemberUnmergeBackup>
+
+          if (backup.primary) {
+            for (const identity of backup.primary.identities) {
+              if ('username' in identity) {
+                identity.value = (identity as any).username
+                identity.type = MemberIdentityType.USERNAME
+                delete (identity as any).username
+              }
+            }
+          }
+
+          if (backup.secondary) {
+            for (const identity of backup.secondary.identities) {
+              if ('username' in identity) {
+                identity.value = (identity as any).username
+                identity.type = MemberIdentityType.USERNAME
+                delete (identity as any).username
+              }
+            }
+          }
+        }
+      }
     } else if (type === MergeActionType.ORG) {
       const organizationIdentity = identity as IOrganizationIdentity
       records = await options.database.sequelize.query(
