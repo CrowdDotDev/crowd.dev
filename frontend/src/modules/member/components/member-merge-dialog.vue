@@ -71,6 +71,7 @@ import { useMemberStore } from '@/modules/member/store/pinia';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import useMemberMergeMessage from '@/shared/modules/merge/config/useMemberMergeMessage';
+import Message from '@/shared/message/message';
 import AppMemberSelectionDropdown from './member-selection-dropdown.vue';
 import AppMemberSuggestionsDetails from './suggestions/member-merge-suggestions-details.vue';
 
@@ -137,12 +138,9 @@ const mergeSuggestion = () => {
           selectedProjectGroupId: selectedProjectGroup.value?.id,
         });
 
-        doFind(id).then(() => {
-          router.replace({
-            params: {
-              id: primaryMember.id,
-            },
-          });
+        doFind({
+          id: props.member.id,
+          segments: [selectedProjectGroup.value?.id],
         });
       } else if (route.name === 'member') {
         successMessage({
