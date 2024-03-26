@@ -1,4 +1,5 @@
 import { SavedViewsConfig } from '@/shared/modules/saved-views/types/SavedViewsConfig';
+import { organizationDefaultFilterRenderer } from '@/shared/modules/filters/config/defaultFilterRenderer/organization.defaultFilter.renderer';
 import allOrganizations from './views/all-organizations';
 
 import teamOrganization from './settings/teamOrganization/config';
@@ -9,6 +10,9 @@ export const organizationSavedViews: SavedViewsConfig = {
   settings: {
     teamOrganization,
     hasActivities,
+  },
+  defaultFilters: {
+    render: organizationDefaultFilterRenderer,
   },
   sorting: {
     displayName: 'Organization',

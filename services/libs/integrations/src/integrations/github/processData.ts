@@ -74,6 +74,7 @@ const parseMember = (memberData: GithubPrepareMemberOutput): IMemberData => {
         platform: PlatformType.GITHUB,
         value: memberFromApi.login,
         type: MemberIdentityType.USERNAME,
+        sourceId: memberFromApi.id.toString(),
         verified: true,
       },
     ],

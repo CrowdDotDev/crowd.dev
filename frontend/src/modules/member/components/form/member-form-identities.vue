@@ -17,42 +17,57 @@
           </div>
           <div class="flex-grow">
             <template v-for="(identity, ii) of model.identities" :key="ii">
-              <template v-if="identity.platform === key && identity.type === 'username'">
+              <template
+                v-if="identity.platform === key && identity.type === 'username'"
+              >
                 <article
                   class="flex flex-grow items-center gap-2 pb-3 last:pb-0"
                 >
                   <el-input
                     v-model="model.identities[ii].value"
                     placeholder="johndoe"
-                    :disabled="editingDisabled(key) || key === 'linkedin'
-                      && identity.value.includes(
-                        'private-',
-                      )"
-                    :type="key === 'linkedin'
-                      && identity.value.includes(
-                        'private-',
-                      ) ? 'password' : 'text'"
+                    :disabled="
+                      editingDisabled(key)
+                        || (key === 'linkedin'
+                          && identity.value.includes('private-'))
+                    "
+                    :type="
+                      key === 'linkedin' && identity.value.includes('private-')
+                        ? 'password'
+                        : 'text'
+                    "
                   >
                     <template v-if="value.urlPrefix?.length" #prepend>
-                      <span class="font-medium text-gray-500">{{ value.urlPrefix }}</span>
+                      <span class="font-medium text-gray-500">{{
+                        value.urlPrefix
+                      }}</span>
                     </template>
                   </el-input>
                   <el-tooltip
                     v-if="props.showUnmerge && staticIdentities.length > 1"
-                    :disabled="!props.record.identities?.[ii]?.value || props.record.identities?.[ii]
-                      && props.modelValue.identities?.[ii]?.value === props.record.identities?.[ii]?.value"
+                    :disabled="
+                      !props.record.identities?.[ii]?.value
+                        || (props.record.identities?.[ii]
+                          && props.modelValue.identities?.[ii]?.value
+                            === props.record.identities?.[ii]?.value)
+                    "
                     content="Not possible to unmerge an unsaved identity"
                     placement="top"
                   >
                     <div>
                       <el-button
                         class="btn btn--md btn--transparent block w-8 !h-8 p-0"
-                        :disabled="!props.record.identities?.[ii]
-                          || props.modelValue.identities?.[ii]?.value !== props.record.identities?.[ii]?.value"
-                        @click="emit('unmerge', {
-                          platform: key,
-                          username: props.record.identities?.[ii].value,
-                        })"
+                        :disabled="
+                          !props.record.identities?.[ii]
+                            || props.modelValue.identities?.[ii]?.value
+                              !== props.record.identities?.[ii]?.value
+                        "
+                        @click="
+                          emit('unmerge', {
+                            platform: key,
+                            username: props.record.identities?.[ii].value,
+                          })
+                        "
                       >
                         <i class="ri-link-unlink-m text-lg" />
                       </el-button>
@@ -60,7 +75,10 @@
                   </el-tooltip>
 
                   <el-button
-                    :disabled="getPlatformIdentities(key).length <= 1 || editingDisabled(key)"
+                    :disabled="
+                      getPlatformIdentities(key).length <= 1
+                        || editingDisabled(key)
+                    "
                     class="btn btn--md btn--transparent w-8 !h-8"
                     @click="removeIdentity(ii)"
                   >
@@ -78,12 +96,9 @@
 
 <script setup>
 import {
-  defineEmits,
-  defineProps,
-  computed, onMounted, watch,
+  defineEmits, defineProps, computed, onMounted, watch,
 } from 'vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
-import isEqual from 'lodash/isEqual';
 
 const emit = defineEmits(['update:modelValue', 'unmerge']);
 
@@ -146,14 +161,16 @@ const getPlatformIdentities = (platform) => props.modelValue.identities.filter((
 
 const findPlatform = (platform) => CrowdIntegrations.getConfig(platform);
 
-const editingDisabled = (platform) => (props.record
-  ? props.record.activeOn?.includes(platform)
-  : false);
+const editingDisabled = (platform) => (props.record ? props.record.activeOn?.includes(platform) : false);
 
 const addEmptyIdentities = () => {
-  const usedPlatforms = [...new Set(model.value.identities
-    .filter((i) => i.type !== 'email')
-    .map((i) => i.platform))];
+  const usedPlatforms = [
+    ...new Set(
+      model.value.identities
+        .filter((i) => i.type !== 'email')
+        .map((i) => i.platform),
+    ),
+  ];
   const unused = Object.keys(identitiesForm)
     .filter((p) => !usedPlatforms.includes(p))
     .map((p) => ({
@@ -174,9 +191,13 @@ const removeIdentity = (index) => {
   model.value.identities.splice(index, 1);
 };
 
-watch(() => model.value.identities, () => {
-  addEmptyIdentities();
-}, { deep: true });
+watch(
+  () => model.value.identities,
+  () => {
+    addEmptyIdentities();
+  },
+  { deep: true },
+);
 
 onMounted(() => {
   addEmptyIdentities();
