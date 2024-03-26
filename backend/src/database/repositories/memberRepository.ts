@@ -19,7 +19,7 @@ import lodash, { chunk } from 'lodash'
 import moment from 'moment'
 import Sequelize, { QueryTypes } from 'sequelize'
 
-import { Error400, Error404, dateEqualityChecker } from '@crowd/common'
+import { Error400, Error404, dateEqualityChecker, distinct } from '@crowd/common'
 import { ActivityDisplayService } from '@crowd/integrations'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import { KUBE_MODE, SERVICE } from '@/conf'
@@ -316,8 +316,12 @@ class MemberRepository {
       const toMergePromises = []
 
       for (const mem of mems) {
-        memberPromises.push(MemberRepository.findById(mem.id, options))
-        toMergePromises.push(MemberRepository.findById(mem.toMergeId, options))
+        memberPromises.push(
+          MemberRepository.findById(mem.id, options, true, true, false, undefined, true),
+        )
+        toMergePromises.push(
+          MemberRepository.findById(mem.toMergeId, options, true, true, false, undefined, true),
+        )
       }
 
       const memberResults = await Promise.all(memberPromises)
@@ -1422,6 +1426,7 @@ class MemberRepository {
     doPopulateRelations = true,
     ignoreTenant = false,
     segmentId?: string,
+    newIdentities?: boolean,
   ) {
     const transaction = SequelizeRepository.getTransaction(options)
 
@@ -1467,7 +1472,7 @@ class MemberRepository {
     }
 
     if (doPopulateRelations) {
-      return this._populateRelations(record, options, returnPlain, segmentId)
+      return this._populateRelations(record, options, returnPlain, segmentId, newIdentities)
     }
     const data = record.get({ plain: returnPlain })
 
@@ -2958,6 +2963,7 @@ class MemberRepository {
     options: IRepositoryOptions,
     returnPlain = true,
     segmentId?: string,
+    newIdentities?: boolean,
   ) {
     if (!record) {
       return record
@@ -3041,17 +3047,27 @@ class MemberRepository {
 
     const memberIdentities = (await this.getIdentities([record.id], options)).get(record.id)
 
-    output.username = {}
+    if (newIdentities === true) {
+      output.identities = memberIdentities
+      output.verifiedEmails = distinct(memberIdentities.filter(i => i.verified && i.type === MemberIdentityType.EMAIL).map(i => i.value))
+      output.unverifiedEmails = distinct(memberIdentities.filter(i => !i.verified && i.type === MemberIdentityType.EMAIL).map(i => i.value))
+      output.verifiedUsernames = distinct(memberIdentities.filter(i => i.verified && i.type === MemberIdentityType.USERNAME).map(i => i.value))
+      output.unverifiedUsernames = distinct(memberIdentities.filter(i => !i.verified && i.type === MemberIdentityType.USERNAME).map(i => i.value))
+      output.identityPlatforms = distinct(memberIdentities.filter(i => i.verified).map(i => i.platform))
+    } else {
+      output.username = {}
 
-    for (const identity of memberIdentities.filter((i) => i.type === MemberIdentityType.USERNAME)) {
-      if (output.username[identity.platform]) {
-        output.username[identity.platform].push(identity.value)
-      } else {
-        output.username[identity.platform] = [identity.value]
+      for (const identity of memberIdentities.filter((i) => i.type === MemberIdentityType.USERNAME)) {
+        if (output.username[identity.platform]) {
+          output.username[identity.platform].push(identity.value)
+        } else {
+          output.username[identity.platform] = [identity.value]
+        }
       }
+  
+      output.identities = Object.keys(output.username)
     }
 
-    output.identities = Object.keys(output.username)
 
     output.affiliations = await this.getAffiliations(record.id, options)
 
