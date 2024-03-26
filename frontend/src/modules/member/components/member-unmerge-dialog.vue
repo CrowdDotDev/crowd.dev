@@ -302,10 +302,6 @@ const fetchPreview = (identity) => {
   MemberService.unmergePreview(props.modelValue?.id, platform, username)
     .then((res) => {
       preview.value = res;
-      doFind({
-        id: props.member.id,
-        segments: [selectedProjectGroup.value?.id],
-      });
     })
     .catch((error) => {
       Message.error('There was an error fetching unmerge preview');
