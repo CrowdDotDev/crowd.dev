@@ -2,7 +2,7 @@
 import { IGenerateStreamsContext, IProcessStreamContext } from '../../../../types'
 import axios, { AxiosRequestConfig } from 'axios'
 import { getNangoToken } from './../../../nango'
-import { IMember, PlatformType } from '@crowd/types'
+import { IMember, MemberIdentityType, PlatformType } from '@crowd/types'
 import { RequestThrottler } from '@crowd/common'
 import { HubspotMemberFieldMapper } from '../field-mapper/memberFieldMapper'
 import { IBatchUpdateMembersResult } from './types'
@@ -60,10 +60,12 @@ export const batchUpdateMembers = async (
               } else if (crowdField.startsWith('identities')) {
                 const identityPlatform = crowdField.split('.')[1] || null
 
-                const identityFound = member.identities.find((i) => i.platform === identityPlatform)
+                const identityFound = member.identities.find(
+                  (i) => i.platform === identityPlatform && i.type === MemberIdentityType.USERNAME,
+                )
 
                 if (identityPlatform && hubspotField && identityFound) {
-                  hsMember.properties[hubspotField] = identityFound.username
+                  hsMember.properties[hubspotField] = identityFound.value
                 }
               } else if (crowdField === 'organizationName') {
                 // send latest org of member as value

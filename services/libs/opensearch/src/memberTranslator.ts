@@ -78,7 +78,9 @@ export default class MemberTranslator extends FieldTranslator {
 
     // identities
     this.translations.platform = 'string_platform'
-    this.translations.username = 'string_username'
+    this.translations.value = 'string_value'
+    this.translations.type = 'keyword_type'
+    this.translations.verified = 'bool_verified'
 
     this.setTranslationMaps()
 
