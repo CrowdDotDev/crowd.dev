@@ -70,16 +70,18 @@ const processGroupStream: ProcessStreamHandler = async (ctx) => {
     )
   }
 
-  // publishing topic streams
-  for (const topic of response.data) {
-    await ctx.publishStream<GroupsioTopicStreamMetadata>(
-      `${GroupsioStreamType.TOPIC}:${topic.id}`,
-      {
-        group: data.group,
-        topic,
-        page: null,
-      },
-    )
+  if (response.data !== null) {
+    // publishing topic streams
+    for (const topic of response.data) {
+      await ctx.publishStream<GroupsioTopicStreamMetadata>(
+        `${GroupsioStreamType.TOPIC}:${topic.id}`,
+        {
+          group: data.group,
+          topic,
+          page: null,
+        },
+      )
+    }
   }
 }
 
@@ -155,18 +157,20 @@ const processPastGroupMembersStream: ProcessStreamHandler = async (ctx) => {
   )) as ListPastMembers
 
   // publish members
-  for (const member of response.data) {
-    // caching member
-    await cacheMember(ctx, member.member_info)
-    // publishing member
-    await ctx.processData<GroupsioPublishData<GroupsioMemberLeftData>>({
-      type: GroupsioPublishDataType.MEMBER_LEFT,
-      data: {
-        member: member.member_info,
-        group: data.group,
-        leftAt: new Date(member.created).toISOString(),
-      },
-    })
+  if (response.data !== null) {
+    for (const member of response.data) {
+      // caching member
+      await cacheMember(ctx, member.member_info)
+      // publishing member
+      await ctx.processData<GroupsioPublishData<GroupsioMemberLeftData>>({
+        type: GroupsioPublishDataType.MEMBER_LEFT,
+        data: {
+          member: member.member_info,
+          group: data.group,
+          leftAt: new Date(member.created).toISOString(),
+        },
+      })
+    }
   }
 
   // processing next page stream
@@ -193,18 +197,20 @@ const processGroupMembersStream: ProcessStreamHandler = async (ctx) => {
   )) as ListMembers
 
   // publish members
-  for (const member of response.data) {
-    // caching member
-    await cacheMember(ctx, member)
-    // publishing member
-    await ctx.processData<GroupsioPublishData<GroupsioMemberJoinData>>({
-      type: GroupsioPublishDataType.MEMBER_JOIN,
-      data: {
-        member,
-        group: data.group,
-        joinedAt: new Date(member.created).toISOString(),
-      },
-    })
+  if (response.data !== null) {
+    for (const member of response.data) {
+      // caching member
+      await cacheMember(ctx, member)
+      // publishing member
+      await ctx.processData<GroupsioPublishData<GroupsioMemberJoinData>>({
+        type: GroupsioPublishDataType.MEMBER_JOIN,
+        data: {
+          member,
+          group: data.group,
+          joinedAt: new Date(member.created).toISOString(),
+        },
+      })
+    }
   }
 
   // processing next page stream
