@@ -1,19 +1,19 @@
 <template>
   <div>
-    <el-button
+    <div
       v-if="props.integration?.status === 'mapping'"
-      class="btn btn-link btn-link--md btn-link--primary"
-      @click="settingsDrawerOpen = true"
+      class="text-gray-600 text-2xs flex items-center leading-5 font-medium"
     >
-      <i class="ri-settings-2-line mr-2" />Settings
-    </el-button>
+      <i class="ri-git-repository-line text-base !text-gray-600 mr-1 h-4 flex items-center" />
+      Mapping repositories...
+    </div>
     <el-popover v-else trigger="hover" placement="top" popper-class="!w-auto">
       <template #reference>
         <div
 
-          class="text-gray-500 text-2xs flex items-center leading-4"
+          class="text-gray-600 text-2xs flex items-center leading-5 font-medium"
         >
-          <i class="ri-git-repository-line text-base !text-gray-400 mr-1 h-4 flex items-center" />
+          <i class="ri-git-repository-line text-base !text-gray-600 mr-1 h-4 flex items-center" />
           {{ Object.keys(mappings).length }} {{ Object.keys(mappings).length !== 1 ? 'repositories' : 'repository' }}
         </div>
       </template>

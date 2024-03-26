@@ -14,7 +14,6 @@ export interface IResultData {
   onboarding: boolean | null
   webhookId: string | null
   streamId: string
-  apiDataId: string
   tenantId: string
   integrationId: string
   platform: PlatformType

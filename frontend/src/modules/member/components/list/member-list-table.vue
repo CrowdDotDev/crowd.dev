@@ -46,7 +46,15 @@
             module="member"
             position="top"
             @change-sorter="doChangePaginationPageSize"
-          />
+          >
+            <template #defaultFilters>
+              <div>・</div>
+              <cr-default-filters
+                :config="memberSavedViews"
+                :settings="filters.settings"
+              />
+            </template>
+          </app-pagination-sorter>
         </div>
 
         <!-- Members list -->
@@ -253,8 +261,8 @@
                   <el-tooltip placement="top">
                     <template #content>
                       Calculated based on the recency and importance of the activities<br>
-                      a contact has performed in relation to all other contacts.
-                      <br>E.g. a higher engagement level will be given to a contact who has written
+                      a contributor has performed in relation to all other contributors.
+                      <br>E.g. a higher engagement level will be given to a contributor who has written
                       <br>in your Slack yesterday vs. someone who did so three weeks ago.
                     </template>
                     <span class="underline decoration-dashed decoration-gray-400 underline-offset-4">Engagement Level</span>
@@ -756,12 +764,14 @@ import CrEnrichmentSneakPeakContent from '@/shared/modules/enrichment/components
 import Plans from '@/security/plans';
 import AppIdentitiesHorizontalListMembers from '@/shared/modules/identities/components/identities-horizontal-list-members.vue';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
+import CrDefaultFilters from '@/shared/modules/default-filters/components/default-filters.vue';
 import AppMemberBadge from '../member-badge.vue';
 import AppMemberDropdownContent from '../member-dropdown-content.vue';
 import AppMemberReach from '../member-reach.vue';
 import AppMemberEngagementLevel from '../member-engagement-level.vue';
 import AppMemberLastActivity from '../member-last-activity.vue';
 import AppMemberSentiment from '../member-sentiment.vue';
+import { memberSavedViews } from '../../config/saved-views/main';
 
 const store = useStore();
 const table = ref(null);

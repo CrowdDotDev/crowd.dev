@@ -476,9 +476,6 @@ class TaskRepository {
     }
 
     const output = record.get({ plain: true })
-    output.createdAt = new Date(output.createdAt)
-    output.updatedAt = new Date(output.updatedAt)
-    output.dueDate = output.dueDate ? new Date(output.dueDate) : null
 
     const transaction = SequelizeRepository.getTransaction(options)
 

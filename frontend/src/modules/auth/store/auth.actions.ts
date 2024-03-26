@@ -7,6 +7,7 @@ import { disconnectSocket, connectSocket, isSocketConnected } from '@/modules/au
 import identify from '@/shared/monitoring/identify';
 import { watch } from 'vue';
 import config from '@/config';
+import { setRumUser } from '@/utils/datadog/rum';
 
 export default {
   init() {
@@ -28,10 +29,10 @@ export default {
     if (!lfxHeader || lfxHeader.authuser) {
       return;
     }
-    Auth0Service.getUser()
-      .then((user) => {
-        lfxHeader.authuser = user;
-      });
+    Auth0Service.getUser().then((user) => {
+      setRumUser(user.nickname);
+      lfxHeader.authuser = user;
+    });
   },
   silentLogin() {
     Auth0Service.getTokenSilently()
