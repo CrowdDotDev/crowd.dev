@@ -2,7 +2,6 @@ import passport from 'passport'
 import { FeatureFlag } from '@crowd/types'
 import {
   API_CONFIG,
-  DEVTO_CONFIG,
   DISCORD_CONFIG,
   GITHUB_CONFIG,
   NANGO_CONFIG,
