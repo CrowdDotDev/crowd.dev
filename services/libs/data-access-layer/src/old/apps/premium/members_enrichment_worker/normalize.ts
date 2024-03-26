@@ -3,19 +3,24 @@ import { EnrichmentAPIMember } from '@crowd/types/src/premium'
 import { generateUUIDv4 } from '@crowd/common'
 import { upsertMemberIdentity } from '../../../../member_identities'
 import { PgPromiseQueryExecutor } from '../../../../queryExecutor'
+import { MemberIdentityType } from '@crowd/types'
 
 export async function insertMemberIdentity(
   tx: DbTransaction,
   platform: string,
   memberId: string,
   tenantId: string,
-  username: string,
+  value: string,
+  type: MemberIdentityType,
+  verified: boolean,
 ) {
   return upsertMemberIdentity(new PgPromiseQueryExecutor(tx), {
     memberId,
     tenantId,
     platform,
-    username,
+    value,
+    type,
+    verified,
   })
 }
 

@@ -1,6 +1,7 @@
 import { DbConnection } from '@crowd/database'
 
 import { IDbActivity } from '../repo/activity.data'
+import { MemberIdentityType } from '@crowd/types'
 
 export async function getTenantIds(db: DbConnection): Promise<string[]> {
   const results = await db.any(`select id from tenants`)
@@ -15,13 +16,14 @@ export async function getMemberIdentityFromUsername(
 ): Promise<any> {
   const result = await db.oneOrNone(
     `
-      select "memberId", "username"
+      select "memberId", value, type
       from "memberIdentities"
       where "tenantId" = $(tenantId) 
-      and username = $(username)
+      and value = $(username)
+      and type = $(type)
       and platform = 'github'
       `,
-    { tenantId, username },
+    { tenantId, username, type: MemberIdentityType.USERNAME },
   )
   return result
 }
