@@ -84,6 +84,7 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue']);
 
 const route = useRoute();
+const router = useRouter();
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
@@ -137,8 +138,14 @@ const mergeSuggestion = () => {
         });
 
         doFind({
-          id: props.member.id,
+          id: primaryMember.id,
           segments: [selectedProjectGroup.value?.id],
+        }).then(() => {
+          router.replace({
+            params: {
+              id: primaryMember.id,
+            },
+          });
         });
       } else if (route.name === 'member') {
         successMessage({
@@ -149,6 +156,7 @@ const mergeSuggestion = () => {
 
         fetchMembers({ reload: true });
       }
+      emit('update:modelValue', null);
     })
     .catch((error) => {
       apiErrorMessage({ error });

@@ -23,7 +23,7 @@
         </el-button>
         <el-button
           type="primary"
-          :disabled="loading"
+          :disabled="$v.$invalid || !hasFormChanged || loading"
           class="btn btn--md btn--primary"
           :loading="loading"
           @click="handleSubmit"
@@ -44,6 +44,8 @@ import cloneDeep from 'lodash/cloneDeep';
 import AppMemberFormEmails from '@/modules/member/components/form/member-form-emails.vue';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';
+import useVuelidate from '@vuelidate/core';
+import isEqual from 'lodash/isEqual';
 
 const store = useStore();
 const props = defineProps({
@@ -70,8 +72,16 @@ const drawerModel = computed({
   },
 });
 
+const $v = useVuelidate();
+
 const memberModel = ref(cloneDeep(props.member));
 const loading = ref(false);
+
+const hasFormChanged = computed(() => {
+  const currentEmails = props.member.identities.filter((i) => i.type === 'email' && !!i.value);
+  const formEmails = memberModel.value.identities.filter((i) => i.type === 'email' && !!i.value);
+  return !isEqual(currentEmails, formEmails);
+});
 
 const handleCancel = () => {
   emit('update:modelValue', false);
