@@ -764,6 +764,7 @@ import AppIdentitiesHorizontalListMembers from '@/shared/modules/identities/comp
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import CrDefaultFilters from '@/shared/modules/default-filters/components/default-filters.vue';
 import AppMemberListEmails from '@/modules/member/components/list/columns/member-list-emails.vue';
+import { getSegmentsFromProjectGroup } from '@/utils/segments';
 import AppMemberBadge from '../member-badge.vue';
 import AppMemberDropdownContent from '../member-dropdown-content.vue';
 import AppMemberReach from '../member-reach.vue';

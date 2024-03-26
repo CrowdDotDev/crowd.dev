@@ -250,8 +250,8 @@ import AppDialog from '@/shared/dialog/dialog.vue';
 import CrSpinner from '@/ui-kit/spinner/Spinner.vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppMemberOrganizationList from '@/modules/member/components/suggestions/member-organizations-list.vue';
-import AppMemberSuggestionsDetails from './suggestions/member-merge-suggestions-details.vue';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
+import AppMemberSuggestionsDetails from './suggestions/member-merge-suggestions-details.vue';
 
 const props = defineProps({
   modelValue: {

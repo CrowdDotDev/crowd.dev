@@ -71,7 +71,6 @@ import { useMemberStore } from '@/modules/member/store/pinia';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import useMemberMergeMessage from '@/shared/modules/merge/config/useMemberMergeMessage';
-import Message from '@/shared/message/message';
 import AppMemberSelectionDropdown from './member-selection-dropdown.vue';
 import AppMemberSuggestionsDetails from './suggestions/member-merge-suggestions-details.vue';
 
@@ -85,7 +84,6 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue']);
 
 const route = useRoute();
-const router = useRouter();
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
