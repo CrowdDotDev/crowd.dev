@@ -1,6 +1,6 @@
-import { MemberIdentityType } from '@crowd/types';
-import { QueryExecutor } from '../queryExecutor';
-import { prepareBulkInsert } from '../utils';
+import { MemberIdentityType } from '@crowd/types'
+import { QueryExecutor } from '../queryExecutor'
+import { prepareBulkInsert } from '../utils'
 
 export async function insertManyMemberIdentities(
   qx: QueryExecutor,
@@ -18,7 +18,16 @@ export async function insertManyMemberIdentities(
   return qx.result(
     prepareBulkInsert(
       'memberIdentities',
-      ['memberId', 'tenantId', 'integrationId', 'platform', 'sourceId', 'value', 'type', 'verified'],
+      [
+        'memberId',
+        'tenantId',
+        'integrationId',
+        'platform',
+        'sourceId',
+        'value',
+        'type',
+        'verified',
+      ],
       identities,
     ),
   )
@@ -26,16 +35,30 @@ export async function insertManyMemberIdentities(
 
 export async function createMemberIdentity(
   qx: QueryExecutor,
-  i: { memberId: string, platform: string, value: string, type: MemberIdentityType, verified: boolean, sourceId: string, tenantId: string, integrationId: string },
+  i: {
+    memberId: string
+    platform: string
+    value: string
+    type: MemberIdentityType
+    verified: boolean
+    sourceId: string
+    tenantId: string
+    integrationId: string
+  },
 ) {
-  return insertManyMemberIdentities(qx, [
-    i,
-  ])
+  return insertManyMemberIdentities(qx, [i])
 }
 
 export async function moveToNewMember(
   qx: QueryExecutor,
-  p: { oldMemberId: string, newMemberId: string, tenantId: string, platform: string, value: string, type: MemberIdentityType },
+  p: {
+    oldMemberId: string
+    newMemberId: string
+    tenantId: string
+    platform: string
+    value: string
+    type: MemberIdentityType
+  },
 ) {
   return qx.result(
     `
@@ -55,7 +78,13 @@ export async function moveToNewMember(
 
 export async function deleteMemberIdentitiesByCombinations(
   qx: QueryExecutor,
-  p: { memberId: string, platforms: string[], values: string[], types: MemberIdentityType[], tenantId: string },
+  p: {
+    memberId: string
+    platforms: string[]
+    values: string[]
+    types: MemberIdentityType[]
+    tenantId: string
+  },
 ) {
   return qx.result(
     `
@@ -74,11 +103,27 @@ export async function deleteMemberIdentitiesByCombinations(
                               and mi.value = combinations.value
                               and mi.type = combinations.type);
     `,
-    p,
+    {
+      memberId: p.memberId,
+      tenantId: p.tenantId,
+      platforms: `{${p.platforms.join(',')}}`,
+      values: `{${p.values.join(',')}}`,
+      types: `{${p.types.join(',')}}`,
+    },
   )
 }
 
-export async function updateVerifiedFlag(qx: QueryExecutor, p: { memberId: string, tenantId: string, platform: string, value: string, type: MemberIdentityType, verified: boolean }) {
+export async function updateVerifiedFlag(
+  qx: QueryExecutor,
+  p: {
+    memberId: string
+    tenantId: string
+    platform: string
+    value: string
+    type: MemberIdentityType
+    verified: boolean
+  },
+) {
   return qx.result(
     `
       update "memberIdentities"
@@ -89,11 +134,15 @@ export async function updateVerifiedFlag(qx: QueryExecutor, p: { memberId: strin
         platform = $(platform) and
         value = $(value) and
         type = $(type)
-    `, p
+    `,
+    p,
   )
 }
 
-export async function deleteMemberIdentities(qx: QueryExecutor, p: { memberId: string, value: string, type: MemberIdentityType, platform: string }) {
+export async function deleteMemberIdentities(
+  qx: QueryExecutor,
+  p: { memberId: string; value: string; type: MemberIdentityType; platform: string },
+) {
   return qx.result(
     `
       delete from "memberIdentities"
@@ -119,7 +168,9 @@ export async function deleteManyMemberIdentities(
     }[]
   },
 ) {
-  const formattedIdentities = identities.map((i) => `('${i.platform}', '${i.value}', '${i.type}')`).join(', ')
+  const formattedIdentities = identities
+    .map((i) => `('${i.platform}', '${i.value}', '${i.type}')`)
+    .join(', ')
 
   return qx.result(
     `
@@ -138,7 +189,14 @@ export async function deleteManyMemberIdentities(
 
 export function upsertMemberIdentity(
   qx: QueryExecutor,
-  p: { memberId: string, tenantId: string, platform: string, value: string, type: MemberIdentityType, verified: boolean },
+  p: {
+    memberId: string
+    tenantId: string
+    platform: string
+    value: string
+    type: MemberIdentityType
+    verified: boolean
+  },
 ) {
   return qx.result(
     `
@@ -146,13 +204,6 @@ export function upsertMemberIdentity(
       values ($(memberId), $(tenantId), $(platform), $(value), $(type), $(verified))
       on conflict do nothing;
     `,
-    {
-      memberId,
-      tenantId,
-      platform,
-      value,
-      type,
-      verified
-    },
+    p,
   )
 }

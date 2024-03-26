@@ -1,6 +1,6 @@
 import moment from 'moment'
 
-import { distinct, generateUUIDv4, groupBy } from '@crowd/common'
+import { distinct, groupBy } from '@crowd/common'
 import {
   IMember,
   IOrganizationIdentity,

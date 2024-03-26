@@ -120,10 +120,10 @@ class MemberRepository {
       }),
     )
 
+    const qx = SequelizeRepository.getQueryExecutor(options, transaction)
+
     if (data.username) {
       const username: PlatformIdentities = data.username
-
-      const qx = SequelizeRepository.getQueryExecutor(options, transaction)
 
       for (const platform of Object.keys(username) as PlatformType[]) {
         const identities: any[] = username[platform]
@@ -131,7 +131,9 @@ class MemberRepository {
           await createMemberIdentity(qx, {
             memberId: record.id,
             platform,
-            username: identity.username,
+            value: identity.username,
+            type: MemberIdentityType.USERNAME,
+            verified: true,
             sourceId: identity.sourceId || null,
             integrationId: identity.integrationId || null,
             tenantId: tenant.id,
@@ -142,6 +144,7 @@ class MemberRepository {
       for (const i of data.identities as IMemberIdentity[]) {
         await createMemberIdentity(qx, {
           memberId: record.id,
+          tenantId: tenant.id,
           platform: i.platform,
           type: i.type,
           value: i.value,
@@ -377,7 +380,6 @@ class MemberRepository {
         // first we remove them from the old member (we can't update and delete at the same time because of a unique index where only one identity can have a verified type:value combination for a tenant, member and platform)
         await deleteMemberIdentities(qx, {
           memberId: fromMemberId,
-          tenantId: tenant.id,
           platform: i.platform,
           value: i.value,
           type: i.type,
@@ -929,7 +931,7 @@ class MemberRepository {
       if (platforms.length > 0) {
         const platformsToDelete: string[] = []
         const valuesToDelete: string[] = []
-        const typesToDelete: string[] = []
+        const typesToDelete: MemberIdentityType[] = []
 
         for (const platform of platforms) {
           const identities = data.username[platform]
@@ -966,9 +968,9 @@ class MemberRepository {
           await deleteMemberIdentitiesByCombinations(qx, {
             tenantId: currentTenant.id,
             memberId: record.id,
-            platforms: `{${platformsToDelete.join(',')}}`,
-            values: `{${valuesToDelete.join(',')}}`,
-            types: `{${typesToDelete.join(',')}}`,
+            platforms: platformsToDelete,
+            values: valuesToDelete,
+            types: typesToDelete,
           })
         }
       }
