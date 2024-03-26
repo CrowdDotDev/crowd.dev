@@ -251,6 +251,7 @@ import CrSpinner from '@/ui-kit/spinner/Spinner.vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppMemberOrganizationList from '@/modules/member/components/suggestions/member-organizations-list.vue';
 import AppMemberSuggestionsDetails from './suggestions/member-merge-suggestions-details.vue';
+import { mapActions } from '@/shared/vuex/vuex.helpers';
 
 const props = defineProps({
   modelValue: {
@@ -265,6 +266,8 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['update:modelValue']);
+
+const { doFind } = mapActions('member');
 
 const unmerging = ref(false);
 const fetchingPreview = ref(false);
@@ -299,6 +302,10 @@ const fetchPreview = (identity) => {
   MemberService.unmergePreview(props.modelValue?.id, platform, username)
     .then((res) => {
       preview.value = res;
+      doFind({
+        id: props.member.id,
+        segments: [selectedProjectGroup.value?.id],
+      });
     })
     .catch((error) => {
       Message.error('There was an error fetching unmerge preview');
