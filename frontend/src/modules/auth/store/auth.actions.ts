@@ -85,6 +85,16 @@ export default {
     // Both are already loaded
     return Promise.resolve();
   },
+  setTenant() {
+    const tenants = this.user.tenants.map((t) => t.tenant);
+    const currentTenantId = AuthService.isDevmode() ? AuthService.getTenantId() : config.lf.tenantId;
+    let selectedTenant = tenants.find((t) => t.id === currentTenantId);
+    if (!currentTenantId || !selectedTenant) {
+      [selectedTenant] = tenants;
+    }
+    this.tenant = selectedTenant;
+    AuthService.setTenant(selectedTenant.id);
+  },
   getUser(token?: string) {
     const t = token || AuthService.getToken();
     if (!t) {
@@ -99,10 +109,9 @@ export default {
         this.user = user;
         identify(user);
         this.setLfxHeader();
-        const [tenantUser] = user.tenants;
-        if (tenantUser && tenantUser.tenant) {
-          this.tenant = tenantUser.tenant;
-          AuthService.setTenant(tenantUser.tenantId);
+
+        if (user.tenants.length > 0) {
+          this.setTenant(user);
         }
         return Promise.resolve(user);
       })
