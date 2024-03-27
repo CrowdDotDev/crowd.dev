@@ -6,11 +6,15 @@ import { OrganizationService } from '@/modules/organization/organization-service
 const formatDateRange = (dateStart, dateEnd) => {
   // eslint-disable-next-line no-nested-ternary
   const dateStartFormat = dateStart
-    ? moment(dateStart).utc().format('MMMM YYYY')
+    ? moment(dateStart)
+      .utc()
+      .format('MMMM YYYY')
     : 'Unknown';
   // eslint-disable-next-line no-nested-ternary
   const dateEndFormat = dateEnd
-    ? moment(dateEnd).utc().format('MMMM YYYY')
+    ? moment(dateEnd)
+      .utc()
+      .format('MMMM YYYY')
     : (dateStart ? 'Present' : 'Unknown');
   return `${dateStartFormat} -> ${dateEndFormat}`;
 };
@@ -25,7 +29,11 @@ const membersEditOrganizations: LogRenderingConfig = {
     };
 
     const oldStateMap = new Map(log.oldState.map((org) => [org.organizationId, org]));
-    const newStateMap = new Map(log.newState.map((org) => [org.organizationId, org]));
+    const newStateMap = new Map(
+      log.newState
+        .filter((org) => !!org.dateStart && !!org.dateEnd)
+        .map((org) => [org.organizationId, org]),
+    );
 
     const orgIds = [
       ...new Set([
@@ -46,6 +54,9 @@ const membersEditOrganizations: LogRenderingConfig = {
         changes.removals.push(`<span>Organization:</span> ${org.organizationId ? (orgById[org.organizationId]) : 'Individual'}`);
       } else {
         const newOrg = newStateMap.get(org.organizationId);
+        if (newOrg.dateStart === undefined || newOrg.dateEnd === undefined) {
+          return null;
+        }
         if (
           formatDateRange(org.dateStart, org.dateEnd) !== formatDateRange(newOrg.dateStart, newOrg.dateEnd)
           || (org.title || '') !== (newOrg.title || '')) {

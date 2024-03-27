@@ -118,7 +118,6 @@
           </router-link>
         </div>
       </banner>
-
     </div>
   </div>
 </template>
