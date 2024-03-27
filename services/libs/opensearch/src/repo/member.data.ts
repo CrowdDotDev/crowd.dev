@@ -5,6 +5,8 @@ export interface IDbMemberIdentityData {
   value: string
   type: MemberIdentityType
   verified: boolean
+  sourceId: string | null
+  integrationId: string | null
 }
 
 export interface IDbMemberTagData {

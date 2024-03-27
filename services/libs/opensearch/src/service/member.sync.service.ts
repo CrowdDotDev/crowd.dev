@@ -599,6 +599,8 @@ export class MemberSyncService {
         keyword_value: identity.value,
         keyword_type: identity.type,
         bool_verified: identity.verified,
+        keyword_sourceId: identity.sourceId,
+        keyword_integrationId: identity.integrationId,
       })
     }
     p.nested_identities = p_identities
