@@ -54,9 +54,6 @@ const membersEditOrganizations: LogRenderingConfig = {
         changes.removals.push(`<span>Organization:</span> ${org.organizationId ? (orgById[org.organizationId]) : 'Individual'}`);
       } else {
         const newOrg = newStateMap.get(org.organizationId);
-        if (newOrg.dateStart === undefined || newOrg.dateEnd === undefined) {
-          return null;
-        }
         if (
           formatDateRange(org.dateStart, org.dateEnd) !== formatDateRange(newOrg.dateStart, newOrg.dateEnd)
           || (org.title || '') !== (newOrg.title || '')) {
