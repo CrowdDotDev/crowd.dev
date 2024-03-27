@@ -10,7 +10,7 @@ export const showIntegrationProgressNotification = (platform, segmentId) => {
     const integrationProgress = (progress || []).find((p) => p.platform === platform);
     const text = h('p', {
       class: 'text-2xs text-black leading-4.5 pb-4',
-    }, 'Sit back and relax. We will send you an email when the entire process it’s completed.');
+    }, 'Sit back and relax. We will send you an email when the entire process is completed.');
     const fallback = h('p', {
       class: 'text-2xs text-gray-500 leading-4',
     }, integrationProgress ? 'Calculating...' : 'Loading progress...');
