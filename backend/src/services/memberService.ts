@@ -34,6 +34,7 @@ import SegmentRepository from '../database/repositories/segmentRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import TagRepository from '../database/repositories/tagRepository'
 import {
+  BasicMemberIdentity,
   IActiveMemberFilter,
   IMemberMergeSuggestion,
   mapUsernameToIdentities,
@@ -224,6 +225,27 @@ export default class MemberService extends LoggerBase {
     )
 
     const errorDetails: any = {}
+
+    if (data.identities && data.identities.length > 0) {
+      // map identities to username
+      const username = {}
+      for (const i of data.identities as IMemberIdentity[]) {
+        if (!username[i.platform]) {
+          username[i.platform] = [] as BasicMemberIdentity[]
+        }
+
+        if (!data.platform) {
+          data.platform = i.platform
+        }
+
+        username[i.platform].push({
+          value: i.value,
+          type: i.type,
+        })
+      }
+
+      data.username = username
+    }
 
     if (!('platform' in data)) {
       throw new Error400(this.options.language, 'activity.platformRequiredWhileUpsert')

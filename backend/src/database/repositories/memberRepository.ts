@@ -131,8 +131,8 @@ class MemberRepository {
           await createMemberIdentity(qx, {
             memberId: record.id,
             platform,
-            value: identity.username,
-            type: MemberIdentityType.USERNAME,
+            value: identity.value ? identity.value : identity.username,
+            type: identity.type ? identity.type : MemberIdentityType.USERNAME,
             verified: true,
             sourceId: identity.sourceId || null,
             integrationId: identity.integrationId || null,
