@@ -5,11 +5,9 @@ import { User } from '@/modules/auth/types/User.type';
 import Errors from '@/shared/error/errors';
 import { disconnectSocket, connectSocket, isSocketConnected } from '@/modules/auth/auth.socket';
 import identify from '@/shared/monitoring/identify';
-import { computed, watch } from 'vue';
+import { watch } from 'vue';
 import config from '@/config';
 import { setRumUser } from '@/utils/datadog/rum';
-import { Simulate } from 'react-dom/test-utils';
-import select = Simulate.select;
 
 export default {
   init() {
