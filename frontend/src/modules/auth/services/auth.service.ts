@@ -10,8 +10,9 @@ class AuthServiceClass {
   }
 
   setTenant(tenantId: string) {
-    console.log('setted tenant id', tenantId);
-    console.log('main tenant id', config.lf.tenantId || tenantId);
+    if (!!localStorage.getItem('devmode') && !!localStorage.getItem('currentTenant')) {
+      return;
+    }
     localStorage.setItem('currentTenant', config.lf.tenantId || tenantId);
   }
 
