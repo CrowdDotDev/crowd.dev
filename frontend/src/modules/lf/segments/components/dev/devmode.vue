@@ -29,6 +29,7 @@ import { computed, ref, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 
 const authStore = useAuthStore();
+const { setTenant } = authStore;
 const { user } = storeToRefs(authStore);
 
 const tenants = computed(() => user.value.tenants.map((t) => ({ id: t.tenant.id, name: t.tenant.name })));
@@ -37,6 +38,7 @@ const currentTenant = ref(localStorage.getItem('currentTenant'));
 
 watch(() => currentTenant.value, (tenantId) => {
   localStorage.setItem('currentTenant', tenantId);
+  setTenant();
 });
 </script>
 
