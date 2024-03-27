@@ -149,28 +149,28 @@ const fillPlatformData = async (
   member: IMember,
   enriched: EnrichmentAPIMember,
 ): Promise<IMember> => {
-  if (enriched.emails && Array.isArray(enriched.emails)) {
-    if (enriched.emails.length > 0) {
-      const emailSet = new Set<string>(
-        enriched.emails.filter((email) => !email.includes('noreply.github')),
-      )
+  // if (enriched.emails && Array.isArray(enriched.emails)) {
+  //   if (enriched.emails.length > 0) {
+  //     const emailSet = new Set<string>(
+  //       enriched.emails.filter((email) => !email.includes('noreply.github')),
+  //     )
 
-      for (const email of emailSet) {
-        if (
-          member.identities.find(
-            (i) => i.type === MemberIdentityType.EMAIL && i.value === email,
-          ) === undefined
-        ) {
-          member.identities.push({
-            value: email,
-            type: MemberIdentityType.EMAIL,
-            platform: 'enrichment',
-            verified: false,
-          })
-        }
-      }
-    }
-  }
+  //     for (const email of emailSet) {
+  //       if (
+  //         member.identities.find(
+  //           (i) => i.type === MemberIdentityType.EMAIL && i.value === email,
+  //         ) === undefined
+  //       ) {
+  //         member.identities.push({
+  //           value: email,
+  //           type: MemberIdentityType.EMAIL,
+  //           platform: 'enrichment',
+  //           verified: false,
+  //         })
+  //       }
+  //     }
+  //   }
+  // }
 
   member.contributions = enriched.oss_contributions?.map(
     (contribution: EnrichmentAPIContribution) => ({
