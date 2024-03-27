@@ -234,7 +234,7 @@ export default class MemberService extends LoggerBase {
           username[i.platform] = [] as BasicMemberIdentity[]
         }
 
-        if (!data.platform) {
+        if (!data.platform && i.type === MemberIdentityType.USERNAME) {
           data.platform = i.platform
         }
 
