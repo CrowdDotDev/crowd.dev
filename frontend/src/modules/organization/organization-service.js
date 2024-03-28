@@ -142,6 +142,21 @@ export class OrganizationService {
     return response.data;
   }
 
+  static async listByIds(
+    ids,
+  ) {
+    const tenantId = AuthService.getTenantId();
+
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/organization/id`,
+      {
+        ids,
+      },
+    );
+
+    return response.data;
+  }
+
   static async listAutocomplete({
     query,
     limit,

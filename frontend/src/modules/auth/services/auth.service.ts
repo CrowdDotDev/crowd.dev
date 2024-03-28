@@ -8,16 +8,20 @@ class AuthServiceClass {
   }
 
   setTenant(tenantId: string) {
-    localStorage.setItem('tenantId', tenantId);
+    localStorage.setItem('currentTenant', tenantId);
   }
 
   getTenantId() {
-    return localStorage.getItem('tenantId');
+    return localStorage.getItem('currentTenant');
   }
 
   logout() {
     localStorage.removeItem('jwt');
-    localStorage.removeItem('tenantId');
+    localStorage.removeItem('currentTenant');
+  }
+
+  isDevmode() {
+    return !!localStorage.getItem('devmode');
   }
 }
 

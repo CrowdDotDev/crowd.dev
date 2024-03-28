@@ -84,14 +84,14 @@ export const connectSocket = (token) => {
       userId,
     } = parsedData;
 
-    if (currentTenant.value.id !== tenantId || currentUser.value.id !== userId) {
+    if (tenant.value?.id !== tenantId || user.value?.id !== userId) {
       return;
     }
 
     const primaryMember = h(
       'a',
       {
-        href: `${window.location.origin}/members/${primaryId}?projectGroup=${selectedProjectGroup.value?.id}`,
+        href: `${window.location.origin}/contributors/${primaryId}?projectGroup=${selectedProjectGroup.value?.id}`,
         class: 'underline text-gray-600',
       },
       primaryDisplayName,
@@ -99,7 +99,7 @@ export const connectSocket = (token) => {
     const secondaryMember = h(
       'a',
       {
-        href: `${window.location.origin}/members/${secondaryId}?projectGroup=${selectedProjectGroup.value?.id}`,
+        href: `${window.location.origin}/contributors/${secondaryId}?projectGroup=${selectedProjectGroup.value?.id}`,
         class: 'underline text-gray-600',
       },
       secondaryDisplayName,
@@ -136,7 +136,7 @@ export const connectSocket = (token) => {
       primaryDisplayName, secondaryDisplayName, primaryId, secondaryId, tenantId, userId,
     } = parsedData;
 
-    if (tenant.value.id !== tenantId || user.value.id !== userId) {
+    if (tenant.value?.id !== tenantId || user.value?.id !== userId) {
       return;
     }
 

@@ -32,16 +32,8 @@ export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
     private readonly temporal: TemporalClient,
     tracer: Tracer,
     parentLog: Logger,
-    maxConcurrentProcessing: number,
   ) {
-    super(
-      level,
-      client,
-      DATA_SINK_WORKER_QUEUE_SETTINGS,
-      maxConcurrentProcessing,
-      tracer,
-      parentLog,
-    )
+    super(level, client, DATA_SINK_WORKER_QUEUE_SETTINGS, 20, tracer, parentLog)
   }
 
   override async processMessage(message: IQueueMessage): Promise<void> {

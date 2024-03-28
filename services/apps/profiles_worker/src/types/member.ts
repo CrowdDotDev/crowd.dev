@@ -3,3 +3,10 @@ export interface MemberWithIDOnly {
     id: string
   }
 }
+
+export interface IRecalculateAffiliationsForNewRolesInput {
+  offset?: number
+  tenant: {
+    id: string
+  }
+}

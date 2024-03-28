@@ -46,7 +46,15 @@
             module="member"
             position="top"
             @change-sorter="doChangePaginationPageSize"
-          />
+          >
+            <template #defaultFilters>
+              <div>・</div>
+              <cr-default-filters
+                :config="memberSavedViews"
+                :settings="filters.settings"
+              />
+            </template>
+          </app-pagination-sorter>
         </div>
 
         <!-- Members list -->
@@ -237,7 +245,7 @@
                     }"
                     class="block"
                   >
-                    <app-member-emails :member="scope.row" />
+                    <app-member-list-emails :member="scope.row" />
                   </router-link>
                 </template>
               </el-table-column>
@@ -253,8 +261,8 @@
                   <el-tooltip placement="top">
                     <template #content>
                       Calculated based on the recency and importance of the activities<br>
-                      a contact has performed in relation to all other contacts.
-                      <br>E.g. a higher engagement level will be given to a contact who has written
+                      a contributor has performed in relation to all other contributors.
+                      <br>E.g. a higher engagement level will be given to a contributor who has written
                       <br>in your Slack yesterday vs. someone who did so three weeks ago.
                     </template>
                     <span class="underline decoration-dashed decoration-gray-400 underline-offset-4">Engagement Level</span>
@@ -738,14 +746,12 @@ import { storeToRefs } from 'pinia';
 import AppMemberListToolbar from '@/modules/member/components/list/member-list-toolbar.vue';
 import AppMemberOrganizationsVertical from '@/modules/member/components/member-organizations-vertical.vue';
 import AppMemberJobTitle from '@/modules/member/components/member-job-title.vue';
-import AppMemberEmails from '@/modules/member/components/member-emails.vue';
 import AppTagList from '@/modules/tag/components/tag-list.vue';
 import { formatDateToTimeAgo } from '@/utils/date';
 import { formatNumber } from '@/utils/number';
 import { useMemberStore } from '@/modules/member/store/pinia';
 import { MemberService } from '@/modules/member/member-service';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import { getSegmentsFromProjectGroup } from '@/utils/segments';
 import AppMemberMergeDialog from '@/modules/member/components/member-merge-dialog.vue';
 import AppTagPopover from '@/modules/tag/components/tag-popover.vue';
 import AppPagination from '@/shared/pagination/pagination.vue';
@@ -756,12 +762,16 @@ import CrEnrichmentSneakPeakContent from '@/shared/modules/enrichment/components
 import Plans from '@/security/plans';
 import AppIdentitiesHorizontalListMembers from '@/shared/modules/identities/components/identities-horizontal-list-members.vue';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
+import CrDefaultFilters from '@/shared/modules/default-filters/components/default-filters.vue';
+import AppMemberListEmails from '@/modules/member/components/list/columns/member-list-emails.vue';
+import { getSegmentsFromProjectGroup } from '@/utils/segments';
 import AppMemberBadge from '../member-badge.vue';
 import AppMemberDropdownContent from '../member-dropdown-content.vue';
 import AppMemberReach from '../member-reach.vue';
 import AppMemberEngagementLevel from '../member-engagement-level.vue';
 import AppMemberLastActivity from '../member-last-activity.vue';
 import AppMemberSentiment from '../member-sentiment.vue';
+import { memberSavedViews } from '../../config/saved-views/main';
 
 const store = useStore();
 const table = ref(null);

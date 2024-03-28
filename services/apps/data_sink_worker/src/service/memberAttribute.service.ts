@@ -2,14 +2,15 @@ import MemberAttributeSettingsRepository from '@crowd/data-access-layer/src/old/
 import { DbStore } from '@crowd/data-access-layer/src/database'
 import { Logger, LoggerBase } from '@crowd/logging'
 import { MemberAttributeType } from '@crowd/types'
+import { RedisClient } from '@crowd/redis'
 
 export default class MemberAttributeService extends LoggerBase {
   private readonly repo: MemberAttributeSettingsRepository
 
-  constructor(store: DbStore, parentLog: Logger) {
+  constructor(redis: RedisClient, store: DbStore, parentLog: Logger) {
     super(parentLog)
 
-    this.repo = new MemberAttributeSettingsRepository(store, parentLog)
+    this.repo = new MemberAttributeSettingsRepository(redis, store, parentLog)
   }
 
   public async setAttributesDefaultValues(
@@ -22,6 +23,15 @@ export default class MemberAttributeService extends LoggerBase {
     }
 
     for (const attributeName of Object.keys(attributes)) {
+      if (typeof attributes[attributeName] === 'string') {
+        // we try to fix it
+        try {
+          attributes[attributeName] = JSON.parse(attributes[attributeName] as string)
+        } catch (err) {
+          this.log.error(err, { attributeName }, 'Could not parse a string attribute value!')
+          throw err
+        }
+      }
       const highestPriorityPlatform =
         MemberAttributeService.getHighestPriorityPlatformForAttributes(
           Object.keys(attributes[attributeName]),

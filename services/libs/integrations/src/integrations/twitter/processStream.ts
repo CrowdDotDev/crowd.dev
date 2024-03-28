@@ -9,15 +9,10 @@ import {
 import getPostsByMention from './api/getPostsByMention'
 import getPostsByHashtag from './api/getPostsByHashtag'
 import getProfiles from './api/getProfiles'
-import { PlatformType, RateLimitError } from '@crowd/types'
+import { MemberIdentityType, PlatformType, RateLimitError } from '@crowd/types'
 import { processPaginated } from '@crowd/common'
 import { generateUUIDv4 } from '@crowd/common'
 import { fetchIntegrationMembersPaginated } from '@crowd/data-access-layer/src/old/lib/integrations/members'
-
-interface ReachSelection {
-  id: string
-  username: string
-}
 
 const processMentionsStream: ProcessStreamHandler = async (ctx) => {
   const data = ctx.stream.data as TwitterMentionsStreamData
@@ -105,18 +100,19 @@ const processReachStream: ProcessStreamHandler = async (ctx) => {
 
     ctx.log.info('Getting all usernames for reach update', { int: ctx.integration })
 
-    await processPaginated<ReachSelection>(
+    await processPaginated(
       async (page) => {
         return await fetchIntegrationMembersPaginated(
           db,
           ctx.integration.id,
           PlatformType.TWITTER,
+          MemberIdentityType.USERNAME,
           page,
           perPage,
         )
       },
       async (members) => {
-        const usernames = members.map((m) => m.username)
+        const usernames = members.map((m) => m.value)
         await ctx.publishStream<TwitterReachStreamData>(
           `${TwitterStreamType.REACH}:${generateUUIDv4()}`,
           {

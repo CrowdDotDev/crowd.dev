@@ -1,21 +1,27 @@
 import { DbTransaction } from '@crowd/database'
 import { EnrichmentAPIMember } from '@crowd/types/src/premium'
 import { generateUUIDv4 } from '@crowd/common'
+import { upsertMemberIdentity } from '../../../../member_identities'
+import { PgPromiseQueryExecutor } from '../../../../queryExecutor'
+import { MemberIdentityType } from '@crowd/types'
 
 export async function insertMemberIdentity(
   tx: DbTransaction,
   platform: string,
   memberId: string,
   tenantId: string,
-  username: string,
+  value: string,
+  type: MemberIdentityType,
+  verified: boolean,
 ) {
-  return tx.query(
-    `INSERT INTO "memberIdentities" ("memberId", "tenantId", platform, username)
-          VALUES ($1, $2, $3, $4)
-          ON CONFLICT ON CONSTRAINT "memberIdentities_platform_username_tenantId_key" DO UPDATE
-          SET username = EXCLUDED.username, "updatedAt" = NOW();`,
-    [memberId, tenantId, platform, username],
-  )
+  return upsertMemberIdentity(new PgPromiseQueryExecutor(tx), {
+    memberId,
+    tenantId,
+    platform,
+    value,
+    type,
+    verified,
+  })
 }
 
 export async function insertMemberEnrichmentCache(

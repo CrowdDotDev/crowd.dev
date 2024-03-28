@@ -12,6 +12,7 @@ export interface User {
   id: string;
   importHash: string | null;
   lastName: string;
+  login: string | null;
   phoneNumber: string | null;
   provider: string;
   tenants: TenantUser[];

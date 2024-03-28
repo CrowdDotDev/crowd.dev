@@ -5,6 +5,7 @@ export interface MultiSelectAsyncFilterOption {
   label: string;
   value: string;
   prefix?: string;
+  description?: string;
 }
 export interface MultiSelectAsyncFilterOptions {
   hideIncludeSwitch?: boolean;

@@ -8,7 +8,7 @@ import {
   DiscordAPIDataType,
 } from './types'
 import { DISCORD_GRID } from './grid'
-import { IActivityData } from '@crowd/types'
+import { IActivityData, MemberIdentityType } from '@crowd/types'
 import { PlatformType } from '@crowd/types'
 import { MemberAttributeName } from '@crowd/types'
 import { generateUUIDv1 } from '@crowd/common'
@@ -68,7 +68,9 @@ const parseMembers = async (ctx: IProcessDataContext) => {
             {
               platform: PlatformType.DISCORD,
               sourceId: record.user.id,
-              username,
+              value: username,
+              type: MemberIdentityType.USERNAME,
+              verified: true,
             },
           ],
           attributes: {
@@ -128,7 +130,9 @@ const parseMessage = async (ctx: IProcessDataContext) => {
           {
             platform: PlatformType.DISCORD,
             sourceId: record.author.id,
-            username: record.author.username,
+            value: record.author.username,
+            type: MemberIdentityType.USERNAME,
+            verified: true,
           },
         ],
         attributes: {

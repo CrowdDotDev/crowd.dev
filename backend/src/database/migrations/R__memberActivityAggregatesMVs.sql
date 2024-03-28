@@ -18,7 +18,7 @@ WITH
                 SELECT
                     mi."memberId",
                     mi.platform,
-                    mi.username,
+                    mi.value as username,
                     mi."createdAt",
                     ms."segmentId",
                     ROW_NUMBER()

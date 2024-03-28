@@ -22,6 +22,14 @@
           v-if="activeTab === 'api-keys'"
         />
       </el-tab-pane>
+      <el-tab-pane v-if="isAdminUser" label="Audit logs" name="audit-logs">
+        <app-lf-audit-logs-page
+          v-if="activeTab === 'audit-logs'"
+        />
+      </el-tab-pane>
+      <el-tab-pane v-if="isDevMode" label="Dev" name="dev">
+        <cr-devmode v-if="isDevMode && activeTab === 'dev'" />
+      </el-tab-pane>
     </el-tabs>
   </app-page-wrapper>
 </template>
@@ -38,6 +46,8 @@ import { PermissionChecker } from '@/modules/user/permission-checker';
 import Roles from '@/security/roles';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
+import AppLfAuditLogsPage from '@/modules/lf/segments/pages/lf-audit-logs-page.vue';
+import CrDevmode from '@/modules/lf/segments/components/dev/devmode.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -52,9 +62,11 @@ const computedActiveTab = computed({
     return activeTab.value;
   },
   set(v) {
+    activeTab.value = v;
     router.push({
       name: '',
-      query: { activeTab: v },
+      hash: `#${v}`,
+      query: {},
     });
   },
 });
@@ -68,13 +80,15 @@ const isAdminUser = computed(() => {
   return permissionChecker.currentUserRolesIds.includes(Roles.values.admin);
 });
 
-onMounted(() => {
-  const initialActiveTab = route.query.activeTab as string;
+const isDevMode = !!localStorage.getItem('devmode');
 
-  if ((initialActiveTab === 'automations' || initialActiveTab === 'api-keys') && !isAdminUser.value) {
+onMounted(() => {
+  const initialActiveTab = route.hash.substring(1) as string;
+
+  if ((initialActiveTab === 'automations' || initialActiveTab === 'api-keys' || initialActiveTab === 'audit-logs') && !isAdminUser.value) {
     activeTab.value = 'project-groups';
   } else {
-    activeTab.value = route.query.activeTab as string || 'project-groups';
+    activeTab.value = route.hash.substring(1) as string || 'project-groups';
   }
 });
 

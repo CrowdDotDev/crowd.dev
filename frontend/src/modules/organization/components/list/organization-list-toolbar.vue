@@ -99,6 +99,7 @@ import { DEFAULT_ORGANIZATION_FILTERS } from '@/modules/organization/store/const
 import useOrganizationMergeMessage from '@/shared/modules/merge/config/useOrganizationMergeMessage';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import { getExportMax } from '@/modules/member/member-export-limit';
 import { OrganizationPermissions } from '../../organization-permissions';
 import { OrganizationService } from '../../organization-service';
 
@@ -210,9 +211,9 @@ const handleDoExport = async () => {
   };
 
   try {
-    const tenantCsvExportCount = currentTenant.value.csvExportCount;
+    const tenantCsvExportCount = tenant.value.csvExportCount;
     const planExportCountMax = getExportMax(
-      currentTenant.value.plan,
+      tenant.value.plan,
     );
 
     await showExportDialog({

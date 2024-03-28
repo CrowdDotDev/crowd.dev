@@ -72,14 +72,6 @@
       <i class="ri-group-line text-base mr-2" /><span class="text-xs">Merge contributor</span>
     </button>
   </el-tooltip>
-  <a
-    class="h-10 el-dropdown-menu__item"
-    href="https://app.formbricks.com/s/clr4u0mp29k228up0nh9yurm5"
-    target="_blank"
-    rel="noopener noreferrer"
-  >
-    <span class="ri-split-cells-horizontal text-base mr-2 text-gray-400" />Request unmerge
-  </a>
 
   <!-- Hubspot -->
   <button
@@ -286,7 +278,7 @@ const isHubspotConnected = computed(() => {
 });
 
 const isHubspotDisabledForMember = computed(
-  () => props.member.emails.length === 0,
+  () => (props.member.identities || []).filter((i) => i.type === 'email').length === 0,
 );
 
 const isHubspotActionDisabled = computed(() => !isHubspotConnected.value || isHubspotDisabledForMember.value);
@@ -471,7 +463,7 @@ const handleCommand = async (command: {
   emit('closeDropdown');
 };
 
-const identities = computed(() => Object.values(props.member.username).flat());
+const identities = computed(() => (props.member.identities || []).filter((i) => i.type !== 'email'));
 </script>
 
 <style lang="scss" scoped>

@@ -22,7 +22,6 @@ interface SlackIntegrationType {
   platform: string
   tenantId: string
   id: string
-  apiDataId?: string
   resultId?: string
 }
 
@@ -238,10 +237,6 @@ function getBlocks(
               },
               {
                 type: 'mrkdwn',
-                text: `*API Data ID:*\n${integration.apiDataId}`,
-              },
-              {
-                type: 'mrkdwn',
                 text: `*Framework Version:*\n${frameworkVersion}`,
               },
             ],
@@ -290,10 +285,6 @@ function getBlocks(
               {
                 type: 'mrkdwn',
                 text: `*Result ID:*\n${integration.resultId}`,
-              },
-              {
-                type: 'mrkdwn',
-                text: `*API Data ID:*\n${integration.apiDataId}`,
               },
               {
                 type: 'mrkdwn',

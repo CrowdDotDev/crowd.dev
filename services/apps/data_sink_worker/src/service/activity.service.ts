@@ -3,11 +3,17 @@ import {
   IDbActivityUpdateData,
 } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/activity.data'
 import MemberRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.repo'
-import { isObjectEmpty, singleOrDefault, escapeNullByte } from '@crowd/common'
+import { isObjectEmpty, singleOrDefault, escapeNullByte, EDITION } from '@crowd/common'
 import { DbStore, arePrimitivesDbEqual } from '@crowd/data-access-layer/src/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { ISentimentAnalysisResult, getSentiment } from '@crowd/sentiment'
-import { IActivityData, PlatformType, TemporalWorkflowId } from '@crowd/types'
+import {
+  Edition,
+  IActivityData,
+  MemberIdentityType,
+  PlatformType,
+  TemporalWorkflowId,
+} from '@crowd/types'
 import ActivityRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/activity.repo'
 import { IActivityCreateData, IActivityUpdateData } from './activity.data'
 import MemberService from './member.service'
@@ -98,34 +104,36 @@ export default class ActivityService extends LoggerBase {
         return id
       })
 
-      try {
-        const handle = await this.temporal.workflow.start('processNewActivityAutomation', {
-          workflowId: `${TemporalWorkflowId.NEW_ACTIVITY_AUTOMATION}/${id}`,
-          taskQueue: TEMPORAL_CONFIG().automationsTaskQueue,
-          workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
-          retry: {
-            maximumAttempts: 100,
-          },
-          args: [
-            {
-              tenantId,
-              activityId: id,
+      if (EDITION !== Edition.LFX) {
+        try {
+          const handle = await this.temporal.workflow.start('processNewActivityAutomation', {
+            workflowId: `${TemporalWorkflowId.NEW_ACTIVITY_AUTOMATION}/${id}`,
+            taskQueue: TEMPORAL_CONFIG().automationsTaskQueue,
+            workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
+            retry: {
+              maximumAttempts: 100,
             },
-          ],
-          searchAttributes: {
-            TenantId: [tenantId],
-          },
-        })
-        this.log.info(
-          { workflowId: handle.workflowId },
-          'Started temporal workflow to process new activity automation!',
-        )
-      } catch (err) {
-        this.log.error(
-          err,
-          'Error while starting temporal workflow to process new activity automation!',
-        )
-        throw err
+            args: [
+              {
+                tenantId,
+                activityId: id,
+              },
+            ],
+            searchAttributes: {
+              TenantId: [tenantId],
+            },
+          })
+          this.log.info(
+            { workflowId: handle.workflowId },
+            'Started temporal workflow to process new activity automation!',
+          )
+        } catch (err) {
+          this.log.error(
+            err,
+            'Error while starting temporal workflow to process new activity automation!',
+          )
+          throw err
+        }
       }
 
       const affectedIds = await this.conversationService.processActivity(tenantId, segmentId, id)
@@ -379,7 +387,10 @@ export default class ActivityService extends LoggerBase {
 
       let username = activity.username
       if (!username) {
-        const identity = singleOrDefault(activity.member.identities, (i) => i.platform === platform)
+        const identity = singleOrDefault(
+          activity.member.identities,
+          (i) => i.platform === platform && i.type === MemberIdentityType.USERNAME,
+        )
         if (!identity) {
           this.log.error("Activity's member does not have an identity for the platform.")
           throw new Error(
@@ -387,7 +398,7 @@ export default class ActivityService extends LoggerBase {
           )
         }
 
-        username = identity.username
+        username = identity.value
       }
 
       let member = activity.member
@@ -396,7 +407,9 @@ export default class ActivityService extends LoggerBase {
           identities: [
             {
               platform,
-              username,
+              value: username,
+              type: MemberIdentityType.USERNAME,
+              verified: true,
             },
           ],
         }
@@ -406,7 +419,10 @@ export default class ActivityService extends LoggerBase {
       let objectMember = activity.objectMember
 
       if (objectMember && !objectMemberUsername) {
-        const identity = singleOrDefault(objectMember.identities, (i) => i.platform === platform)
+        const identity = singleOrDefault(
+          objectMember.identities,
+          (i) => i.platform === platform && i.type === MemberIdentityType.USERNAME,
+        )
         if (!identity) {
           this.log.error("Activity's object member does not have an identity for the platform.")
           throw new Error(
@@ -414,13 +430,15 @@ export default class ActivityService extends LoggerBase {
           )
         }
 
-        objectMemberUsername = identity.username
+        objectMemberUsername = identity.value
       } else if (objectMemberUsername && !objectMember) {
         objectMember = {
           identities: [
             {
               platform,
-              username: objectMemberUsername,
+              value: objectMemberUsername,
+              type: MemberIdentityType.USERNAME,
+              verified: true,
             },
           ],
         }
@@ -521,7 +539,12 @@ export default class ActivityService extends LoggerBase {
             this.log.trace({ activityId: dbActivity.id }, 'Found existing activity. Updating it.')
             // process member data
 
-            let dbMember = await txMemberRepo.findMember(tenantId, segmentId, platform, username)
+            let dbMember = await txMemberRepo.findMemberByUsername(
+              tenantId,
+              segmentId,
+              platform,
+              username,
+            )
             if (dbMember) {
               // we found a member for the identity from the activity
               this.log.trace({ memberId: dbMember.id }, 'Found existing member.')
@@ -559,11 +582,9 @@ export default class ActivityService extends LoggerBase {
                 integrationId,
                 {
                   attributes: member.attributes,
-                  emails: member.emails || [],
                   joinedAt: member.joinedAt
                     ? new Date(member.joinedAt)
                     : new Date(activity.timestamp),
-                  weakIdentities: member.weakIdentities,
                   identities: member.identities,
                   organizations: member.organizations,
                   reach: member.reach,
@@ -598,11 +619,9 @@ export default class ActivityService extends LoggerBase {
                 integrationId,
                 {
                   attributes: member.attributes,
-                  emails: member.emails || [],
                   joinedAt: member.joinedAt
                     ? new Date(member.joinedAt)
                     : new Date(activity.timestamp),
-                  weakIdentities: member.weakIdentities,
                   identities: member.identities,
                   organizations: member.organizations,
                   reach: member.reach,
@@ -625,7 +644,7 @@ export default class ActivityService extends LoggerBase {
 
             if (objectMember) {
               if (dbActivity.objectMemberId) {
-                let dbObjectMember = await txMemberRepo.findMember(
+                let dbObjectMember = await txMemberRepo.findMemberByUsername(
                   tenantId,
                   segmentId,
                   platform,
@@ -672,11 +691,9 @@ export default class ActivityService extends LoggerBase {
                     integrationId,
                     {
                       attributes: objectMember.attributes,
-                      emails: objectMember.emails || [],
                       joinedAt: objectMember.joinedAt
                         ? new Date(objectMember.joinedAt)
                         : new Date(activity.timestamp),
-                      weakIdentities: objectMember.weakIdentities,
                       identities: objectMember.identities,
                       organizations: objectMember.organizations,
                       reach: member.reach,
@@ -711,11 +728,9 @@ export default class ActivityService extends LoggerBase {
                     integrationId,
                     {
                       attributes: objectMember.attributes,
-                      emails: objectMember.emails || [],
                       joinedAt: objectMember.joinedAt
                         ? new Date(objectMember.joinedAt)
                         : new Date(activity.timestamp),
-                      weakIdentities: objectMember.weakIdentities,
                       identities: objectMember.identities,
                       organizations: objectMember.organizations,
                       reach: member.reach,
@@ -777,7 +792,12 @@ export default class ActivityService extends LoggerBase {
 
             // we don't have the activity yet in the database
             // check if we have a member for the identity from the activity
-            const dbMember = await txMemberRepo.findMember(tenantId, segmentId, platform, username)
+            const dbMember = await txMemberRepo.findMemberByUsername(
+              tenantId,
+              segmentId,
+              platform,
+              username,
+            )
             if (dbMember) {
               this.log.trace({ memberId: dbMember.id }, 'Found existing member.')
               await txMemberService.update(
@@ -788,11 +808,9 @@ export default class ActivityService extends LoggerBase {
                 integrationId,
                 {
                   attributes: member.attributes,
-                  emails: member.emails || [],
                   joinedAt: member.joinedAt
                     ? new Date(member.joinedAt)
                     : new Date(activity.timestamp),
-                  weakIdentities: member.weakIdentities,
                   identities: member.identities,
                   organizations: member.organizations,
                   reach: member.reach,
@@ -813,11 +831,9 @@ export default class ActivityService extends LoggerBase {
                 {
                   displayName: member.displayName || username,
                   attributes: member.attributes,
-                  emails: member.emails || [],
                   joinedAt: member.joinedAt
                     ? new Date(member.joinedAt)
                     : new Date(activity.timestamp),
-                  weakIdentities: member.weakIdentities,
                   identities: member.identities,
                   organizations: member.organizations,
                   reach: member.reach,
@@ -830,7 +846,7 @@ export default class ActivityService extends LoggerBase {
               // we don't have the activity yet in the database
               // check if we have an object member for the identity from the activity
 
-              const dbObjectMember = await txMemberRepo.findMember(
+              const dbObjectMember = await txMemberRepo.findMemberByUsername(
                 tenantId,
                 segmentId,
                 platform,
@@ -849,11 +865,9 @@ export default class ActivityService extends LoggerBase {
                   integrationId,
                   {
                     attributes: objectMember.attributes,
-                    emails: objectMember.emails || [],
                     joinedAt: objectMember.joinedAt
                       ? new Date(objectMember.joinedAt)
                       : new Date(activity.timestamp),
-                    weakIdentities: objectMember.weakIdentities,
                     identities: objectMember.identities,
                     organizations: objectMember.organizations,
                     reach: member.reach,
@@ -874,11 +888,9 @@ export default class ActivityService extends LoggerBase {
                   {
                     displayName: objectMember.displayName || username,
                     attributes: objectMember.attributes,
-                    emails: objectMember.emails || [],
                     joinedAt: objectMember.joinedAt
                       ? new Date(objectMember.joinedAt)
                       : new Date(activity.timestamp),
-                    weakIdentities: objectMember.weakIdentities,
                     identities: objectMember.identities,
                     organizations: objectMember.organizations,
                     reach: member.reach,

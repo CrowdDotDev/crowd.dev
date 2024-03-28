@@ -452,8 +452,6 @@ export default class IntegrationRunService extends LoggerBase {
 
     this.log.debug('Marking run as in progress!')
     await this.repo.markRunInProgress(runId)
-    // TODO we might need that later to check for stuck runs
-    // await this.repo.touchRun(runId)
 
     this.log.info('Generating streams!')
     try {
@@ -469,10 +467,6 @@ export default class IntegrationRunService extends LoggerBase {
         err,
       )
     }
-    // TODO we might need that later to check for stuck runs
-    // finally {
-    //   await this.repo.touchRun(runId)
-    // }
   }
 
   private async updateIntegrationSettings(runId: string, settings: unknown): Promise<void> {

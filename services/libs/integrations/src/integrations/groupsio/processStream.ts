@@ -4,6 +4,7 @@ import {
   GroupsioStreamType,
   GroupsioGroupStreamMetadata,
   GroupsioGroupMembersStreamMetadata,
+  GroupsioPastGroupMembersStreamMetadata,
   GroupsioIntegrationSettings,
   GroupsioTopicStreamMetadata,
   GroupsioPublishData,
@@ -11,12 +12,15 @@ import {
   MemberInfo,
   MemberInfoMinimal,
   ListMembers,
+  ListPastMembers,
   ListMessages,
   ListTopics,
   GroupsioMessageData,
   GroupsioMemberJoinData,
+  GroupsioMemberLeftData,
 } from './types'
 import { getTopicsFromGroup } from './api/getTopicsFromGroup'
+import { getPastGroupMembers } from './api/getPastGroupMembers'
 import { getMessagesFromTopic } from './api/getMessagesFromTopic'
 import { getGroupMembers } from './api/getGroupMembers'
 
@@ -66,16 +70,18 @@ const processGroupStream: ProcessStreamHandler = async (ctx) => {
     )
   }
 
-  // publishing topic streams
-  for (const topic of response.data) {
-    await ctx.publishStream<GroupsioTopicStreamMetadata>(
-      `${GroupsioStreamType.TOPIC}:${topic.id}`,
-      {
-        group: data.group,
-        topic,
-        page: null,
-      },
-    )
+  if (response.data !== null) {
+    // publishing topic streams
+    for (const topic of response.data) {
+      await ctx.publishStream<GroupsioTopicStreamMetadata>(
+        `${GroupsioStreamType.TOPIC}:${topic.id}`,
+        {
+          group: data.group,
+          topic,
+          page: null,
+        },
+      )
+    }
   }
 }
 
@@ -139,6 +145,46 @@ const processTopicStream: ProcessStreamHandler = async (ctx) => {
   }
 }
 
+const processPastGroupMembersStream: ProcessStreamHandler = async (ctx) => {
+  const data = ctx.stream.data as GroupsioPastGroupMembersStreamMetadata
+  const settings = ctx.integration.settings as GroupsioIntegrationSettings
+
+  const response = (await getPastGroupMembers(
+    data.group,
+    settings.token,
+    ctx,
+    data.page,
+  )) as ListPastMembers
+
+  // publish members
+  if (response.data !== null) {
+    for (const member of response.data) {
+      // caching member
+      await cacheMember(ctx, member.member_info)
+      // publishing member
+      await ctx.processData<GroupsioPublishData<GroupsioMemberLeftData>>({
+        type: GroupsioPublishDataType.MEMBER_LEFT,
+        data: {
+          member: member.member_info,
+          group: data.group,
+          leftAt: new Date(member.created).toISOString(),
+        },
+      })
+    }
+  }
+
+  // processing next page stream
+  if (response?.next_page_token) {
+    await ctx.publishStream<GroupsioPastGroupMembersStreamMetadata>(
+      `${GroupsioStreamType.PAST_GROUP_MEMBERS}:${data.group}-${response.next_page_token}`,
+      {
+        group: data.group,
+        page: response.next_page_token.toString(),
+      },
+    )
+  }
+}
+
 const processGroupMembersStream: ProcessStreamHandler = async (ctx) => {
   const data = ctx.stream.data as GroupsioGroupMembersStreamMetadata
   const settings = ctx.integration.settings as GroupsioIntegrationSettings
@@ -151,18 +197,20 @@ const processGroupMembersStream: ProcessStreamHandler = async (ctx) => {
   )) as ListMembers
 
   // publish members
-  for (const member of response.data) {
-    // caching member
-    await cacheMember(ctx, member)
-    // publishing member
-    await ctx.processData<GroupsioPublishData<GroupsioMemberJoinData>>({
-      type: GroupsioPublishDataType.MEMBER_JOIN,
-      data: {
-        member,
-        group: data.group,
-        joinedAt: new Date(member.created).toISOString(),
-      },
-    })
+  if (response.data !== null) {
+    for (const member of response.data) {
+      // caching member
+      await cacheMember(ctx, member)
+      // publishing member
+      await ctx.processData<GroupsioPublishData<GroupsioMemberJoinData>>({
+        type: GroupsioPublishDataType.MEMBER_JOIN,
+        data: {
+          member,
+          group: data.group,
+          joinedAt: new Date(member.created).toISOString(),
+        },
+      })
+    }
   }
 
   // processing next page stream
@@ -200,6 +248,9 @@ const handler: ProcessStreamHandler = async (ctx) => {
       break
     case GroupsioStreamType.GROUP_MEMBERS:
       await processGroupMembersStream(ctx)
+      break
+    case GroupsioStreamType.PAST_GROUP_MEMBERS:
+      await processPastGroupMembersStream(ctx)
       break
     default:
       await ctx.abortRunWithError(`Unknown stream type: ${streamType}`)

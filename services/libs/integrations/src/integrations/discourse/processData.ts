@@ -11,7 +11,13 @@ import {
   DiscourseDataType,
   FullUser,
 } from './types'
-import { PlatformType, IMemberData, MemberAttributeName, IActivityData } from '@crowd/types'
+import {
+  PlatformType,
+  IMemberData,
+  MemberAttributeName,
+  IActivityData,
+  MemberIdentityType,
+} from '@crowd/types'
 import sanitizeHtml from 'sanitize-html'
 import he from 'he'
 import { DISCOURSE_GRID } from './grid'
@@ -20,8 +26,10 @@ const parseUserIntoMember = (user: DiscourseUserResponse, forumHostname: string)
   const member: IMemberData = {
     identities: [
       {
-        username: user.user.username,
+        value: user.user.username,
+        type: MemberIdentityType.USERNAME,
         platform: PlatformType.DISCOURSE,
+        verified: true,
       },
     ],
     displayName: user.user.name,
@@ -45,7 +53,15 @@ const parseUserIntoMember = (user: DiscourseUserResponse, forumHostname: string)
           `${forumHostname}${user.user.avatar_template.replace('{size}', '200')}` || '',
       },
     },
-    emails: user.user.email ? [user.user.email] : [],
+  }
+
+  if (user.user.email) {
+    member.identities.push({
+      value: user.user.email,
+      type: MemberIdentityType.EMAIL,
+      platform: PlatformType.DISCOURSE,
+      verified: true,
+    })
   }
 
   return member

@@ -16,7 +16,7 @@
       </article>
       <article class="flex pb-2">
         <i class="ri-checkbox-circle-fill text-base text-black h-4.5 flex items-center" />
-        <span class="pl-2 text-xs leading-2 text-gray-600">Automatically enrich contacts and organizations.</span>
+        <span class="pl-2 text-xs leading-2 text-gray-600">Automatically enrich contributors and organizations.</span>
       </article>
       <article class="flex pb-2">
         <i class="ri-checkbox-circle-fill text-base text-black h-4.5 flex items-center" />

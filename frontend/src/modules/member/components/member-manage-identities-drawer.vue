@@ -12,7 +12,6 @@
           :record="member"
           :show-header="false"
           :show-unmerge="true"
-          @update:model-value="hasFormChanged = true"
           @unmerge="emit('unmerge', $event)"
         />
       </div>
@@ -27,7 +26,7 @@
         </el-button>
         <el-button
           type="primary"
-          :disabled="!hasFormChanged || loading"
+          :disabled="loading || !hasFormChanged"
           class="btn btn--md btn--primary"
           :loading="loading"
           @click="handleSubmit"
@@ -50,6 +49,7 @@ import { MemberService } from '@/modules/member/member-service';
 import cloneDeep from 'lodash/cloneDeep';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import isEqual from 'lodash/isEqual';
 import AppMemberFormIdentities from './form/member-form-identities.vue';
 
 const store = useStore();
@@ -80,7 +80,11 @@ const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 const memberModel = ref(cloneDeep(props.member));
 const loading = ref(false);
 
-const hasFormChanged = ref(false);
+const hasFormChanged = computed(() => {
+  const currentEmails = props.member.identities.filter((i) => i.type === 'username' && !!i.value);
+  const formEmails = memberModel.value.identities.filter((i) => i.type === 'username' && !!i.value);
+  return !isEqual(currentEmails, formEmails);
+});
 
 const handleCancel = () => {
   emit('update:modelValue', false);
@@ -92,13 +96,7 @@ const handleSubmit = async () => {
   const segments = props.member.segments.map((s) => s.id);
 
   MemberService.update(props.member.id, {
-    attributes: {
-      ...props.member.attributes,
-      ...memberModel.value.attributes,
-    },
-    username: memberModel.value.username,
-    platform: memberModel.value.platform,
-    identities: memberModel.value.identities,
+    identities: memberModel.value.identities.filter((i) => !!i.value),
   }, segments).then(() => {
     store.dispatch('member/doFind', {
       id: props.member.id,

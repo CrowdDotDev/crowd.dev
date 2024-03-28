@@ -523,6 +523,26 @@ class SegmentRepository extends RepositoryBase<
     return SegmentRepository.populateRelations(record)
   }
 
+  async findByIds(ids: string[]) {
+    const records = await this.options.database.sequelize.query(
+      `
+        SELECT
+            s.*
+        FROM segments s
+        WHERE s."id" IN (:ids);
+      `,
+      {
+        replacements: {
+          ids,
+        },
+        type: QueryTypes.SELECT,
+        raw: true,
+      },
+    )
+
+    return records
+  }
+
   static isProjectGroup(segment: SegmentData | SegmentRawData): boolean {
     return segment.slug && segment.parentSlug === null && segment.grandparentSlug === null
   }

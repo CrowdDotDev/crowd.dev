@@ -50,8 +50,8 @@
       <div v-else-if="!loading">
         <app-empty-state-cta
           icon="ri-contacts-line"
-          title="We could not find any GitHub identities for this contact."
-          description="There are no GitHub users that match the identities in this contact. We recommend Googling them instead."
+          title="We could not find any GitHub identities for this contributor."
+          description="There are no GitHub users that match the identities in this contributor. We recommend Googling them instead."
           secondary-btn="Search on Google"
           @secondary-click="searchContactOnGoogle"
         />

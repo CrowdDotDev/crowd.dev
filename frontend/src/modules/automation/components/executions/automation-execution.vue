@@ -83,6 +83,7 @@ import moment from 'moment';
 import config from '@/config';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
+import { AuthService } from '@/modules/auth/services/auth.service';
 
 const props = defineProps({
   execution: {
@@ -103,7 +104,7 @@ const slackConnectUrl = computed(() => {
 
   return `${config.backendUrl}/tenant/${
     tenant.value.id
-  }/automation/slack?redirectUrl=${redirectUrl}&crowdToken=${AuthToken.get()}`;
+  }/automation/slack?redirectUrl=${redirectUrl}&crowdToken=${AuthService.getToken()}`;
 });
 
 const authenticateSlack = () => {
