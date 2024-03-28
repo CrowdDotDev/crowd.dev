@@ -7,7 +7,7 @@ export enum OpenSearchIndex {
 // Keeps track of version numbers for all OpenSearch indexes, aiding in managing documents.
 // for eg: members_v1, activities_v1, etc.
 export const IndexVersions = new Map<OpenSearchIndex, number>()
-IndexVersions.set(OpenSearchIndex.MEMBERS, 5)
+IndexVersions.set(OpenSearchIndex.MEMBERS, 4)
 IndexVersions.set(OpenSearchIndex.ACTIVITIES, 4)
 IndexVersions.set(OpenSearchIndex.ORGANIZATIONS, 4)
 
