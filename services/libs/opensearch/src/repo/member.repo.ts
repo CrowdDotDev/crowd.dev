@@ -395,7 +395,7 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
                     'value', mi.value,
                     'type', mi.type,
                     'sourceId', mi."sourceId",
-                    "integrationId", mi."integrationId",
+                    'integrationId', mi."integrationId",
                     'verified', mi.verified
                 )
       ) as identities
