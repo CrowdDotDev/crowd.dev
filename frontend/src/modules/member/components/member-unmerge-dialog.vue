@@ -148,13 +148,13 @@
                         <template #dropdown>
                           <template
                             v-for="i of identities"
-                            :key="`${i.platform}:${i.username}`"
+                            :key="`${i.platform}:${i.value}`"
                           >
                             <el-dropdown-item
-                              v-if="`${i.platform}:${i.username}` !== selectedIdentity"
-                              :value="`${i.platform}:${i.username}`"
-                              :label="i.username"
-                              @click="fetchPreview(`${i.platform}:${i.username}`)"
+                              v-if="`${i.platform}:${i.value}` !== selectedIdentity"
+                              :value="`${i.platform}:${i.value}`"
+                              :label="i.value"
+                              @click="fetchPreview(`${i.platform}:${i.value}`)"
                             >
                               <img
                                 v-if="platformDetails(i.platform)"
@@ -162,7 +162,7 @@
                                 :alt="platformDetails(i.platform)?.name"
                                 :src="platformDetails(i.platform)?.image"
                               />
-                              <span>{{ i.username }}</span>
+                              <span>{{ i.value }}</span>
                             </el-dropdown-item>
                           </template>
                         </template>
@@ -219,9 +219,9 @@
                 >
                   <el-option
                     v-for="i of identities"
-                    :key="`${i.platform}:${i.username}`"
-                    :value="`${i.platform}:${i.username}`"
-                    :label="i.username"
+                    :key="`${i.platform}:${i.value}`"
+                    :value="`${i.platform}:${i.value}`"
+                    :label="i.value"
                   >
                     <img
                       v-if="platformDetails(i.platform)"
@@ -229,7 +229,7 @@
                       :alt="platformDetails(i.platform)?.name"
                       :src="platformDetails(i.platform)?.image"
                     />
-                    {{ i.username }}
+                    {{ i.value }}
                   </el-option>
                 </el-select>
               </div>
@@ -250,6 +250,9 @@ import AppDialog from '@/shared/dialog/dialog.vue';
 import CrSpinner from '@/ui-kit/spinner/Spinner.vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppMemberOrganizationList from '@/modules/member/components/suggestions/member-organizations-list.vue';
+import { mapActions } from '@/shared/vuex/vuex.helpers';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import { storeToRefs } from 'pinia';
 import AppMemberSuggestionsDetails from './suggestions/member-merge-suggestions-details.vue';
 
 const props = defineProps({
@@ -265,6 +268,11 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['update:modelValue']);
+
+const { doFind } = mapActions('member');
+
+const lsSegmentsStore = useLfSegmentsStore();
+const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const unmerging = ref(false);
 const fetchingPreview = ref(false);
@@ -283,15 +291,9 @@ const isModalOpen = computed({
   },
 });
 
-const identities = computed(() => {
-  if (!props.modelValue?.username) {
-    return [];
-  }
-  return Object.entries(props.modelValue.username)
-    .reduce((arr, [platform, idents]) => [...arr, ...idents.map((i) => ({ username: i, platform }))], []);
-});
-
 const platformDetails = (platform) => CrowdIntegrations.getConfig(platform);
+
+const identities = computed(() => props.modelValue.identities.filter((i) => i.type !== 'email'));
 
 const fetchPreview = (identity) => {
   if (fetchingPreview.value) {
@@ -329,6 +331,16 @@ const unmerge = () => {
           title: 'Contributors unmerging in progress',
         },
       );
+      doFind({
+        id: props.modelValue?.id,
+        segments: [selectedProjectGroup.value?.id],
+      }).then(() => {
+        router.replace({
+          params: {
+            id: props.modelValue?.id,
+          },
+        });
+      });
       emit('update:modelValue', null);
     })
     .catch((error) => {

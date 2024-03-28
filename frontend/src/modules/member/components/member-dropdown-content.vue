@@ -278,7 +278,7 @@ const isHubspotConnected = computed(() => {
 });
 
 const isHubspotDisabledForMember = computed(
-  () => props.member.emails.length === 0,
+  () => (props.member.identities || []).filter((i) => i.type === 'email').length === 0,
 );
 
 const isHubspotActionDisabled = computed(() => !isHubspotConnected.value || isHubspotDisabledForMember.value);
@@ -463,7 +463,7 @@ const handleCommand = async (command: {
   emit('closeDropdown');
 };
 
-const identities = computed(() => Object.values(props.member.username).flat());
+const identities = computed(() => (props.member.identities || []).filter((i) => i.type !== 'email'));
 </script>
 
 <style lang="scss" scoped>

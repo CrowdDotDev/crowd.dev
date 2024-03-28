@@ -56,20 +56,6 @@ export async function getMergeSuggestions(
   }
 
   if (member.nested_identities && member.nested_identities.length > 0) {
-    // push nested search scaffold for weak identities
-    identitiesPartialQuery.should.push({
-      nested: {
-        path: 'nested_weakIdentities',
-        query: {
-          bool: {
-            should: [],
-            boost: 1000,
-            minimum_should_match: 1,
-          },
-        },
-      },
-    })
-
     // push nested search scaffold for strong identities
     identitiesPartialQuery.should.push({
       nested: {
@@ -84,57 +70,80 @@ export async function getMergeSuggestions(
       },
     })
 
-    let hasFuzzySearch = false
-
     // prevent processing more than 200 identities because of opensearch limits
     for (const identity of member.nested_identities.slice(0, 200)) {
-      if (identity.string_username.length > 0) {
-        // weak identity search
-        identitiesPartialQuery.should[1].nested.query.bool.should.push({
-          bool: {
-            must: [
-              { match: { [`nested_weakIdentities.keyword_name`]: identity.string_username } },
-              {
-                match: {
-                  [`nested_weakIdentities.string_platform`]: identity.string_platform,
+      if (identity.keyword_value.length > 0) {
+        // For verified identities (either email or username)
+        // 1. Exact search the identity in other unverified identities
+        // 2. Fuzzy search the identity in other verified identities
+        if (identity.bool_verified) {
+          identitiesPartialQuery.should[1].nested.query.bool.should.push({
+            bool: {
+              must: [
+                { term: { [`nested_identities.keyword_value`]: identity.keyword_value } },
+                {
+                  match: {
+                    [`nested_identities.string_platform`]: identity.string_platform,
+                  },
                 },
-              },
-            ],
-          },
-        })
+                {
+                  term: {
+                    [`nested_identities.bool_verified`]: false,
+                  },
+                },
+              ],
+            },
+          })
 
-        // some identities have https? in the beginning, resulting in false positive suggestions
-        // remove these when making fuzzy and wildcard searches
-        const cleanedIdentityName = identity.string_username.replace(/^https?:\/\//, '')
+          // some identities have https? in the beginning, resulting in false positive suggestions
+          // remove these when making fuzzy and wildcard searches
+          const cleanedIdentityName = identity.string_value.replace(/^https?:\/\//, '')
 
-        if (Number.isNaN(Number(identity.string_username))) {
-          hasFuzzySearch = true
-          // fuzzy search for identities
-          identitiesPartialQuery.should[2].nested.query.bool.should.push({
-            match: {
-              [`nested_identities.string_username`]: {
-                query: cleanedIdentityName,
-                prefix_length: 1,
-                fuzziness: 'auto',
+          if (Number.isNaN(Number(identity.string_value))) {
+            // fuzzy search for identities
+            identitiesPartialQuery.should[1].nested.query.bool.should.push({
+              bool: {
+                must: [
+                  {
+                    match: {
+                      [`nested_identities.string_value`]: {
+                        query: cleanedIdentityName,
+                        prefix_length: 1,
+                        fuzziness: 'auto',
+                      },
+                    },
+                  },
+                  {
+                    term: {
+                      [`nested_identities.bool_verified`]: true,
+                    },
+                  },
+                ],
               },
+            })
+          }
+        } else {
+          // exact search the unverified identity in other verified identities
+          identitiesPartialQuery.should[1].nested.query.bool.should.push({
+            bool: {
+              must: [
+                { term: { [`nested_identities.keyword_name`]: identity.keyword_value } },
+                {
+                  match: {
+                    [`nested_identities.string_platform`]: identity.string_platform,
+                  },
+                },
+                {
+                  term: {
+                    [`nested_identities.bool_verified`]: true,
+                  },
+                },
+              ],
             },
           })
         }
       }
     }
-
-    // check if we have any actual identity searches, if not remove it from the query
-    if (!hasFuzzySearch) {
-      identitiesPartialQuery.should.pop()
-    }
-  }
-
-  if (member.string_arr_emails && member.string_arr_emails.length > 0) {
-    identitiesPartialQuery.should.push({
-      terms: {
-        keyword_emails: member.string_arr_emails.filter((email: string) => email && email !== null),
-      },
-    })
   }
 
   const noMergeIds = await memberMergeSuggestionsRepo.findNoMergeIds(member.uuid_memberId)
@@ -156,14 +165,7 @@ export async function getMergeSuggestions(
     collapse: {
       field: 'uuid_memberId',
     },
-    _source: [
-      'uuid_memberId',
-      'nested_identities',
-      'nested_weakIdentities',
-      'keyword_displayName',
-      'string_arr_emails',
-      'int_activityCount',
-    ],
+    _source: ['uuid_memberId', 'keyword_displayName', 'int_activityCount', 'nested_identities'],
   }
 
   let membersToMerge: ISimilarMemberOpensearch[]
@@ -251,11 +253,13 @@ export async function getMembers(
       },
       _source: [
         'uuid_memberId',
-        'nested_identities',
         'uuid_arr_noMergeIds',
         'keyword_displayName',
-        'string_arr_emails',
         'int_activityCount',
+        'string_arr_verifiedEmails',
+        'string_arr_unverifiedEmails',
+        'string_arr_verifiedUsernames',
+        'string_arr_unverifiedUsernames',
       ],
     }
 

@@ -30,8 +30,10 @@ export default {
       return;
     }
     Auth0Service.getUser().then((user) => {
-      setRumUser(user.nickname);
-      lfxHeader.authuser = user;
+      if (user) {
+        setRumUser(user.nickname);
+        lfxHeader.authuser = user;
+      }
     });
   },
   silentLogin() {

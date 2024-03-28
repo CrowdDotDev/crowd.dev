@@ -135,20 +135,6 @@ describe('MemberAttributeSettings tests', () => {
         ),
       ).rejects.toThrow()
     })
-
-    it('Should throw 400 error if name exists in member fixed fields', async () => {
-      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-
-      // no type
-      await expect(() =>
-        MemberAttributeSettingsRepository.create(
-          { type: MemberAttributeType.STRING, label: 'Some Email', name: 'emails' },
-          mockIRepositoryOptions,
-        ),
-      ).rejects.toThrowError(
-        new Error400('en', 'settings.memberAttributes.errors.reservedField', 'emails'),
-      )
-    })
   })
 
   describe('findById method', () => {

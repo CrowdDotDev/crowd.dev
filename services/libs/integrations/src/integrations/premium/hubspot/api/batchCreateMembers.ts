@@ -2,7 +2,7 @@
 import { IGenerateStreamsContext, IProcessStreamContext } from '../../../../types'
 import axios, { AxiosRequestConfig } from 'axios'
 import { getNangoToken } from './../../../nango'
-import { IMember, PlatformType } from '@crowd/types'
+import { IMember, MemberIdentityType, PlatformType } from '@crowd/types'
 import { RequestThrottler } from '@crowd/common'
 import { HubspotMemberFieldMapper } from '../field-mapper/memberFieldMapper'
 import { IBatchCreateMembersResult } from './types'
@@ -29,7 +29,11 @@ export const batchCreateMembers = async (
     const hubspotMembers = []
 
     for (const member of members) {
-      const primaryEmail = member.emails.length > 0 ? member.emails[0] : null
+      const primaryEmail =
+        member.identities.filter((i) => i.type === MemberIdentityType.EMAIL && i.verified).length >
+        0
+          ? member.identities.find((i) => i.type === MemberIdentityType.EMAIL && i.verified)?.value
+          : null
 
       if (!primaryEmail) {
         ctx.log.warn(
@@ -62,10 +66,12 @@ export const batchCreateMembers = async (
             } else if (crowdField.startsWith('identities')) {
               const identityPlatform = crowdField.split('.')[1] || null
 
-              const identityFound = member.identities.find((i) => i.platform === identityPlatform)
+              const identityFound = member.identities.find(
+                (i) => i.platform === identityPlatform && i.type === MemberIdentityType.USERNAME,
+              )
 
               if (identityPlatform && hubspotField && identityFound) {
-                hsMember.properties[hubspotField] = identityFound.username
+                hsMember.properties[hubspotField] = identityFound.value
               }
             } else if (crowdField === 'organizationName') {
               // send latest org of member as value
@@ -98,7 +104,12 @@ export const batchCreateMembers = async (
     return result.data.results.reduce((acc, m) => {
       const member = members.find(
         (crowdMember) =>
-          crowdMember.emails.length > 0 && crowdMember.emails[0] === m.properties.email,
+          crowdMember.identities.filter((i) => i.type === MemberIdentityType.EMAIL && i.verified)
+            .length > 0 &&
+          crowdMember.identities
+            .filter((i) => i.type === MemberIdentityType.EMAIL && i.verified)
+            .map((i) => i.value)
+            .includes(m.properties.email),
       )
 
       const hubspotPayload = hubspotMembers.find(
@@ -129,15 +140,17 @@ export const batchCreateMembers = async (
           // exclude found member from batch payload
           const createMembers = members.filter(
             (m) =>
-              !m.emails
-                .map((email) => email.toLowerCase())
+              !m.identities
+                .filter((i) => i.type === MemberIdentityType.EMAIL && i.verified)
+                .map((i) => i.value.toLowerCase())
                 .includes((member.properties as any).email.toLowerCase()),
           )
 
           const updateMembers = members
             .filter((m) =>
-              m.emails
-                .map((email) => email.toLowerCase())
+              m.identities
+                .filter((i) => i.type === MemberIdentityType.EMAIL && i.verified)
+                .map((i) => i.value.toLowerCase())
                 .includes((member.properties as any).email.toLowerCase()),
             )
             .map((m) => {
