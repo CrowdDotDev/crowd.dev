@@ -230,6 +230,10 @@ export default class MemberService extends LoggerBase {
         }
 
         let updated = false
+        const identitiesToCreate = toUpdate.identitiesToCreate
+        delete toUpdate.identitiesToCreate
+        const identitiesToUpdate = toUpdate.identitiesToUpdate
+        delete toUpdate.identitiesToUpdate
 
         if (!isObjectEmpty(toUpdate)) {
           this.log.debug({ memberId: id }, 'Updating a member!')
@@ -254,13 +258,14 @@ export default class MemberService extends LoggerBase {
           await txRepo.addToSegment(id, tenantId, segmentId)
         }
 
-        if (toUpdate.identitiesToCreate) {
-          await txRepo.insertIdentities(id, tenantId, integrationId, toUpdate.identitiesToCreate)
+        if (identitiesToCreate) {
+          await txRepo.insertIdentities(id, tenantId, integrationId, identitiesToCreate)
           updated = true
         }
 
-        if (toUpdate.identitiesToUpdate) {
-          await txRepo.updateIdentities(id, tenantId, toUpdate.identitiesToUpdate)
+        if (identitiesToUpdate) {
+          await txRepo.updateIdentities(id, tenantId, identitiesToUpdate)
+          updated = true
         }
 
         if (releaseMemberLock) {
@@ -616,7 +621,7 @@ export default class MemberService extends LoggerBase {
             t.value === identity.value &&
             t.type === identity.type,
         )
-        if (!dbIdentities) {
+        if (!dbIdentity) {
           newIdentities.push(identity)
         } else if (dbIdentity.verified !== identity.verified) {
           toUpdate.push(identity)
