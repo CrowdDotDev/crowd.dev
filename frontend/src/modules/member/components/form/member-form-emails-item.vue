@@ -12,9 +12,14 @@
         <el-input
           v-model="model"
           placeholder="Enter email address"
+          class="!h-8"
           @change="$v.$touch()"
           @blur="$v.$touch()"
-        />
+        >
+          <template #suffix>
+            <i v-if="props.verified" class="ri-verified-badge-fill text-brand-500 text-base leading-4" />
+          </template>
+        </el-input>
         <slot name="actions" />
       </div>
     </app-form-item>
@@ -35,6 +40,10 @@ const props = defineProps({
   modelValue: {
     type: Object,
     default: () => {},
+  },
+  verified: {
+    type: Boolean,
+    default: false,
   },
 });
 

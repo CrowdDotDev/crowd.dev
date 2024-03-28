@@ -5,14 +5,14 @@
       <section
         v-for="[key, value] in Object.entries(identitiesForm)"
         :key="key"
-        class="border-b border-gray-200 last:border-none pt-5 pb-6"
+        class="border-b border-gray-200 last:border-none py-4"
       >
         <div v-if="findPlatform(key)" class="flex">
-          <div class="w-6 pt-2 mr-4">
+          <div class="w-6 pt-1.5 mr-3">
             <img
               :src="findPlatform(key).image"
               :alt="findPlatform(key).name"
-              class="w-6"
+              class="w-5"
             />
           </div>
           <div class="flex-grow">
@@ -32,21 +32,26 @@
                       && identity.value.includes(
                         'private-',
                       ) ? 'password' : 'text'"
+                    class="!h-8"
                   >
                     <template v-if="value.urlPrefix?.length" #prepend>
                       <span class="font-medium text-gray-500">{{ value.urlPrefix }}</span>
                     </template>
+                    <template #suffix>
+                      <i
+                        v-if="identity.value && identity.verified"
+                        class="ri-verified-badge-fill text-brand-500 text-base leading-4"
+                      />
+                    </template>
                   </el-input>
-                  <el-tooltip
-                    v-if="props.showUnmerge && staticIdentities.length > 1"
-                    :disabled="!props.record.identities?.[ii]?.value || props.record.identities?.[ii]
-                      && props.modelValue.identities?.[ii]?.value === props.record.identities?.[ii]?.value"
-                    content="Not possible to unmerge an unsaved identity"
-                    placement="top"
-                  >
-                    <div>
-                      <el-button
-                        class="btn btn--md btn--transparent block w-8 !h-8 p-0"
+
+                  <el-dropdown trigger="click" placement="bottom-end" :teleported="false">
+                    <cr-button type="tertiary-light-gray" size="small" :icon-only="true">
+                      <i class="ri-more-fill" />
+                    </cr-button>
+                    <template #dropdown>
+                      <el-dropdown-item
+                        v-if="props.record.identities?.[ii]?.value && props.showUnmerge && staticIdentities.length > 1"
                         :disabled="!props.record.identities?.[ii]
                           || props.modelValue.identities?.[ii]?.value !== props.record.identities?.[ii]?.value"
                         @click="emit('unmerge', {
@@ -54,18 +59,53 @@
                           username: props.record.identities?.[ii].value,
                         })"
                       >
-                        <i class="ri-link-unlink-m text-lg" />
-                      </el-button>
-                    </div>
-                  </el-tooltip>
+                        <el-tooltip
+                          content="Not possible to unmerge an unsaved identity"
+                          placement="top-end"
+                          :disabled="!props.record.identities?.[ii]?.value || props.record.identities?.[ii]
+                            && props.modelValue.identities?.[ii]?.value === props.record.identities?.[ii]?.value"
+                        >
+                          <div class="flex items-center">
+                            <i class="ri-link-unlink-m text-gray-600 mr-3 text-base" />
+                            <span>Unmerge identity</span>
+                          </div>
+                        </el-tooltip>
+                      </el-dropdown-item>
 
-                  <el-button
-                    :disabled="getPlatformIdentities(key).length <= 1 || editingDisabled(key)"
-                    class="btn btn--md btn--transparent w-8 !h-8"
-                    @click="removeIdentity(ii)"
-                  >
-                    <i class="ri-delete-bin-line text-lg" />
-                  </el-button>
+                      <template v-if="identity.value">
+                        <el-dropdown-item v-if="!identity.verified" :disabled="editingDisabled(key)" @click="verifyIdentity(ii)">
+                          <i class="ri-verified-badge-line text-gray-600 mr-3 text-base" />
+                          <span>Verify identity</span>
+                        </el-dropdown-item>
+                        <el-dropdown-item v-else :disabled="editingDisabled(key) && identity.sourceId" @click="unverifyIdentity(ii)">
+                          <el-tooltip
+                            content="Identities tracked from Integrations can’t be unverified"
+                            placement="top-end"
+                            :disabled="!identity.sourceId"
+                          >
+                            <div class="flex items-center">
+                              <app-svg name="unverify" class="text-gray-600 mr-3 !h-4 !w-4 min-w-[1rem]" />
+                              <span>Unverify identity</span>
+                            </div>
+                          </el-tooltip>
+                        </el-dropdown-item>
+                        <el-divider />
+                      </template>
+
+                      <el-dropdown-item
+                        :disabled="getPlatformIdentities(key).length <= 1 || editingDisabled(key)"
+                        @click="removeIdentity(ii)"
+                      >
+                        <div
+                          class="flex items-center"
+                          :class="(getPlatformIdentities(key).length <= 1 || editingDisabled(key)) ? '!opacity-50' : ''"
+                        >
+                          <i class="ri-delete-bin-6-line !text-red-600 mr-3 text-base" />
+                          <span class="text-red-600">Delete identity</span>
+                        </div>
+                      </el-dropdown-item>
+                    </template>
+                  </el-dropdown>
                 </article>
               </template>
             </template>
@@ -83,6 +123,8 @@ import {
   computed, onMounted, watch,
 } from 'vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
+import AppSvg from '@/shared/svg/svg.vue';
+import CrButton from '@/ui-kit/button/Button.vue';
 
 const emit = defineEmits(['update:modelValue', 'unmerge']);
 
@@ -179,6 +221,16 @@ const staticIdentities = computed(() => props.record.identities.filter((i) => i.
 
 const removeIdentity = (index) => {
   model.value.identities.splice(index, 1);
+};
+
+const verifyIdentity = (index) => {
+  const identity = { ...model.value.identities[index], verified: true };
+  model.value.identities.splice(index, 1, identity);
+};
+
+const unverifyIdentity = (index) => {
+  const identity = { ...model.value.identities[index], verified: false };
+  model.value.identities.splice(index, 1, identity);
 };
 
 watch(() => model.value.identities, () => {

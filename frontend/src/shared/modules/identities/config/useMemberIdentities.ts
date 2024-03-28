@@ -10,7 +10,7 @@ export default ({
   order: Platform[];
 }) => {
   const {
-    attributes = {}, verifiedEmails = [], unverifiedEmails = [], identities,
+    attributes = {}, identities,
   } = member || {};
 
   const getIdentityHandles = (platform: string) => (identities || [])
@@ -19,6 +19,7 @@ export default ({
       platform,
       url: null,
       name: i.value,
+      verified: i.verified,
     }));
 
   const getIdentityLink = (identity: {
@@ -65,12 +66,14 @@ export default ({
           acc[identity.platform].push({
             handle: identity.name,
             link: getIdentityLink(identity, platform),
+            verified: identity.verified,
           });
         } else {
           acc[identity.platform] = [
             {
               handle: identity.name,
               link: getIdentityLink(identity, platform),
+              verified: identity.verified,
             },
           ];
         }
@@ -79,6 +82,7 @@ export default ({
       const platformHandlesValues = handles.map((identity) => ({
         handle: identity.name,
         link: getIdentityLink(identity, platform),
+        verified: identity.verified,
       }));
 
       if (platformHandlesValues.length) {
@@ -92,10 +96,13 @@ export default ({
   const getEmails = (): {
     handle: string;
     link: string;
-  }[] => [...verifiedEmails, ...unverifiedEmails].map((e) => ({
-    link: `mailto:${e}`,
-    handle: e,
-  }));
+  }[] => (identities || [])
+    .filter((i) => i.type === 'email')
+    .map((i) => ({
+      link: `mailto:${i.value}`,
+      handle: i.value,
+      verified: i.verified,
+    }));
 
   return {
     getIdentities,
