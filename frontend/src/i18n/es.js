@@ -281,6 +281,7 @@ const es = {
         'auth-invalid-provider':
           'This email is already registered to another provider.',
         'auth-no-email': 'The email associated with this account is private or inexistent.',
+        'auth-user-no-exist': 'User or account not found',
       },
     },
     signinWithAnotherAccount:
