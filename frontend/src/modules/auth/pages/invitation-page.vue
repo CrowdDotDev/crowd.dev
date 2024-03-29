@@ -81,7 +81,7 @@ export default {
         await this.doWaitUntilInit();
         if (!this.signedIn) {
           AuthInvitationToken.set(token);
-          router.push('/auth/signup');
+          router.push('/auth/signin');
           return;
         }
 
@@ -116,7 +116,7 @@ export default {
             router.push('/');
           });
       } catch (_) {
-        router.push('/auth/signup');
+        router.push('/auth/signin');
       }
     },
   },
