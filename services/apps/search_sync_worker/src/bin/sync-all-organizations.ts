@@ -1,5 +1,5 @@
 import { OrganizationSyncService, OpenSearchService } from '@crowd/opensearch'
-import { DB_CONFIG, OPENSEARCH_CONFIG, SERVICE_CONFIG } from '../conf'
+import { OPENSEARCH_CONFIG, SERVICE_CONFIG } from '../conf'
 import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { getServiceLogger } from '@crowd/logging'
 import { OrganizationRepository } from '@crowd/data-access-layer/src/old/apps/search_sync_worker/organization.repo'
