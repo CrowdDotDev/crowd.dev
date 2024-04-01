@@ -84,7 +84,6 @@ import AppWidgetLoading from '@/modules/widget/components/shared/widget-loading.
 import AppWidgetError from '@/modules/widget/components/shared/widget-error.vue';
 import { TOTAL_MONTHLY_ACTIVE_CONTRIBUTORS } from '@/modules/widget/widget-queries';
 import {
-  mapActions,
   mapGetters,
 } from '@/shared/vuex/vuex.helpers';
 import AppWidgetApiDrawer from '@/modules/widget/components/shared/widget-api-drawer.vue';
@@ -92,6 +91,7 @@ import { MemberService } from '@/modules/member/member-service';
 import PRODUCT_COMMUNITY_FIT_REPORT, { MONTHLY_ACTIVE_CONTRIBUTORS_WIDGET } from '@/modules/report/templates/config/productCommunityFit';
 import { parseAxisLabel } from '@/utils/reports';
 import AppWidgetMembersTable from '@/modules/widget/components/shared/widget-members-table.vue';
+import Message from '@/shared/message/message';
 
 const props = defineProps({
   filters: {
@@ -199,7 +199,6 @@ const widgetChartOptions = computed(() => chartOptions('area', {
 }));
 
 const { cubejsApi } = mapGetters('widget');
-const { doExport } = mapActions('member');
 
 const datasets = computed(() => [
   {
@@ -279,15 +278,31 @@ const onViewMoreClick = (date) => {
   drawerTitle.value = MONTHLY_ACTIVE_CONTRIBUTORS_WIDGET.name;
 };
 
-const onExport = async ({ ids, count }) => {
+const onExport = async ({ ids }) => {
   try {
-    await doExport({
-      selected: true,
-      customIds: ids,
-      count,
+    await MemberService.export({
+      filter: {
+        id: {
+          in: ids,
+        },
+      },
+      orderBy: 'displayName_ASC',
+      limit: ids.length,
+      offset: null,
+      segments: props.filters.segments.childSegments,
     });
+
+    Message.success(
+      'CSV download link will be sent to your e-mail',
+    );
   } catch (error) {
     console.error(error);
+    Message.error(
+      'An error has occured while trying to export the CSV file. Please try again',
+      {
+        title: 'CSV Export failed',
+      },
+    );
   }
 };
 

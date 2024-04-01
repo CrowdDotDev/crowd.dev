@@ -2,6 +2,12 @@ import { v4 as uuid } from 'uuid'
 import { QueryTypes } from 'sequelize'
 import { Error404 } from '@crowd/common'
 import {
+  deleteMemberAffiliations,
+  findMemberAffiliations,
+  insertMemberAffiliations,
+} from '@crowd/data-access-layer/src/member_segment_affiliations'
+import { captureApiChange, memberEditAffiliationsAction } from '@crowd/audit-logs'
+import {
   MemberSegmentAffiliation,
   MemberSegmentAffiliationCreate,
   MemberSegmentAffiliationUpdate,
@@ -62,53 +68,32 @@ class MemberSegmentAffiliationRepository extends RepositoryBase<
   }
 
   async setForMember(memberId: string, data: MemberSegmentAffiliationCreate[]): Promise<void> {
-    const seq = SequelizeRepository.getSequelize(this.options)
     const transaction = SequelizeRepository.getTransaction(this.options)
+    const qx = SequelizeRepository.getQueryExecutor(this.options, transaction)
 
-    await seq.query(
-      `
-        DELETE FROM "memberSegmentAffiliations"
-        WHERE "memberId" = :memberId
-      `,
-      {
-        replacements: {
-          memberId,
-        },
-        type: QueryTypes.DELETE,
-        transaction,
-      },
-    )
+    await captureApiChange(
+      this.options,
+      memberEditAffiliationsAction(memberId, async (captureOldState, captureNewState) => {
+        const oldOnes = await findMemberAffiliations(qx, memberId)
+        captureOldState(
+          oldOnes.map((item) => ({
+            segmentId: item.segmentId,
+            organizationId: item.organizationId,
+            dateStart: item.dateStart,
+            dateEnd: item.dateEnd,
+          })),
+        )
 
-    if (data.length === 0) {
-      return
-    }
+        captureNewState(data)
 
-    const valuePlaceholders = data
-      .map(
-        (_, i) =>
-          `(:id_${i}, :memberId_${i}, :segmentId_${i}, :organizationId_${i}, :dateStart_${i}, :dateEnd_${i})`,
-      )
-      .join(', ')
+        await deleteMemberAffiliations(qx, memberId)
 
-    await seq.query(
-      `
-        INSERT INTO "memberSegmentAffiliations" ("id", "memberId", "segmentId", "organizationId", "dateStart", "dateEnd")
-        VALUES ${valuePlaceholders}
-      `,
-      {
-        replacements: data.reduce((acc, item, i) => {
-          acc[`id_${i}`] = uuid()
-          acc[`memberId_${i}`] = memberId
-          acc[`segmentId_${i}`] = item.segmentId
-          acc[`organizationId_${i}`] = item.organizationId
-          acc[`dateStart_${i}`] = item.dateStart || null
-          acc[`dateEnd_${i}`] = item.dateEnd || null
+        if (data.length === 0) {
+          return
+        }
 
-          return acc
-        }, {}),
-        type: QueryTypes.INSERT,
-        transaction,
-      },
+        await insertMemberAffiliations(qx, memberId, data)
+      }),
     )
   }
 

@@ -1,9 +1,10 @@
 <template>
-  <el-popover v-model:visible="open" placement="bottom-end" size="large" width="20rem" popper-class="!p-0" trigger="click">
+  <el-popover v-model:visible="open" :placement="$attrs.placement || 'bottom-end'" size="large" width="20rem" popper-class="!p-0" trigger="click">
     <template #reference>
       <el-button
         class="filter-dropdown-trigger"
         data-qa="filter-dropdown"
+        :class="$attrs.class"
       >
         <i class="ri-lg ri-filter-3-line mr-2" />
         Filters

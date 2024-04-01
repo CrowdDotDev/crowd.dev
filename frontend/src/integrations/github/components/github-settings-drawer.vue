@@ -143,6 +143,7 @@ import AppFormItem from '@/shared/form/form-item.vue';
 import { IntegrationService } from '@/modules/integration/integration-service';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
+import { showIntegrationProgressNotification } from '@/modules/integration/helpers/integration-progress-notification';
 
 const props = defineProps<{
   modelValue: boolean,
@@ -216,13 +217,7 @@ const connect = () => {
 
           doFetch([props.integration.segmentId]);
 
-          Message.success(
-            'The first activities will show up in a couple of seconds. <br /> '
-                + '<br /> This process might take a few minutes to finish, depending on the amount of data.',
-            {
-              title: 'GitHub integration created successfully',
-            },
-          );
+          showIntegrationProgressNotification('github', props.integration.segmentId);
 
           router.push({
             name: 'integration',

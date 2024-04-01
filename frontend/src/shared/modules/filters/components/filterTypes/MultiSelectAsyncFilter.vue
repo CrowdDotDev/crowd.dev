@@ -25,6 +25,7 @@
           :key="option.value"
           :label="option.label"
           :value="option"
+          class="!h-auto !min-h-10 !py-2.5"
         >
           <div
             class="h-4 el-checkbox filter-checkbox"
@@ -35,7 +36,17 @@
             </span>
           </div>
           <div v-if="option.prefix" v-html="$sanitize(option.prefix)" />
-          {{ option.label }}
+          <div>
+            <p class="mb-0 leading-5">
+              {{ option.label }}
+            </p>
+            <p
+              v-if="option.description"
+              class="text-2xs text-gray-500 leading-5"
+            >
+              {{ option.description }}
+            </p>
+          </div>
         </el-option>
       </el-select>
     </div>

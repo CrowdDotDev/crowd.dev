@@ -30,6 +30,10 @@ const fields = {
     'attributes',
     label('attributes'),
   ),
+  identities: new JsonField(
+    'identities',
+    label('identities'),
+  ),
   name: new StringField(
     'name',
     'Name',

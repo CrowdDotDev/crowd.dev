@@ -186,6 +186,10 @@ export default class SegmentService extends LoggerBase {
     return new SegmentRepository(this.options).findById(id)
   }
 
+  async findByIds(ids: string[]) {
+    return new SegmentRepository(this.options).findByIds(ids)
+  }
+
   async queryProjectGroups(search: SegmentCriteria) {
     const result = await new SegmentRepository(this.options).queryProjectGroups(search)
 

@@ -2,21 +2,23 @@
   <div>
     <!-- Emails editing -->
     <div>
-      <app-member-form-emails-item
-        v-for="(_, ei) of model"
-        :key="ei"
-        v-model="model[ei]"
-        class="pb-3"
-      >
-        <template #actions>
-          <el-button
-            class="btn btn--md btn--transparent w-10 h-10"
-            @click="removeEmail(ei)"
-          >
-            <i class="ri-delete-bin-line text-lg" />
-          </el-button>
-        </template>
-      </app-member-form-emails-item>
+      <template v-for="(identity, ii) of model.identities" :key="ii">
+        <app-member-form-emails-item
+          v-if="identity.type === 'email'"
+          v-model="model.identities[ii].value"
+          class="pb-3"
+        >
+          <template #actions>
+            <el-button
+              class="btn btn--md btn--transparent w-10 h-10"
+              @click="removeEmail(ii)"
+            >
+              <i class="ri-delete-bin-line text-lg" />
+            </el-button>
+          </template>
+        </app-member-form-emails-item>
+      </template>
+
       <div class="flex">
         <div class="text-xs font-medium text-brand-500 cursor-pointer" @click="addEmail()">
           + Add email address
@@ -26,11 +28,12 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import {
-  ref, watch,
+  computed,
 } from 'vue';
 import AppMemberFormEmailsItem from '@/modules/member/components/form/member-form-emails-item.vue';
+import { MemberIdentity } from '@/modules/member/types/Member';
 
 const emit = defineEmits(['update:modelValue']);
 
@@ -41,45 +44,31 @@ const props = defineProps({
   },
 });
 
-const model = ref([]);
-
-watch(
-  props.modelValue,
-  (member, previous) => {
-    if (!previous) {
-      model.value = member.emails?.length > 0
-        ? member.emails
-        : [''];
-    }
+const model = computed({
+  get() {
+    return props.modelValue;
   },
-  { deep: true, immediate: true },
-);
-
-watch(
-  model,
-  (value) => {
-    // Emit updated member
-    emit('update:modelValue', {
-      ...props.modelValue,
-      emails: value.length ? value : [''],
-    });
+  set(value) {
+    emit('update:modelValue', value);
   },
-  { deep: true },
-);
+});
 
 const addEmail = () => {
-  model.value.push('');
+  const defaultEmailIdentity: MemberIdentity = {
+    platform: 'custom',
+    type: 'email',
+    value: '',
+    verified: true,
+  };
+  model.value.identities.push(defaultEmailIdentity);
 };
-const removeEmail = (index) => {
-  if (model.value.length > 1) {
-    model.value.splice(index, 1);
-  } else if (model.value.length > 0) {
-    model.value[0] = '';
-  }
+
+const removeEmail = (index: number) => {
+  model.value.identities.splice(index, 1);
 };
 </script>
 
-<script>
+<script lang="ts">
 export default {
   name: 'AppMemberFormEmails',
 };

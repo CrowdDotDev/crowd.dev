@@ -1,18 +1,24 @@
+import { distinct, distinctBy, trimUtf8ToMaxByteLength } from '@crowd/common'
+import { DbStore } from '@crowd/database'
+import { Logger, getChildLogger } from '@crowd/logging'
+import { RedisClient } from '@crowd/redis'
+import {
+  Edition,
+  IMemberAttribute,
+  IServiceConfig,
+  MemberAttributeType,
+  MemberIdentityType,
+} from '@crowd/types'
+import { IndexedEntityType } from '../repo/indexing.data'
+import { IndexingRepository } from '../repo/indexing.repo'
 import { IDbMemberSyncData, IMemberSegmentMatrix } from '../repo/member.data'
 import { MemberRepository } from '../repo/member.repo'
 import { IDbSegmentInfo } from '../repo/segment.data'
 import { SegmentRepository } from '../repo/segment.repo'
 import { OpenSearchIndex } from '../types'
-import { distinct, distinctBy, groupBy, trimUtf8ToMaxByteLength } from '@crowd/common'
-import { DbStore } from '@crowd/database'
-import { Logger, getChildLogger } from '@crowd/logging'
-import { RedisClient } from '@crowd/redis'
-import { Edition, IMemberAttribute, IServiceConfig, MemberAttributeType } from '@crowd/types'
 import { IMemberSyncResult } from './member.sync.data'
-import { IIndexRequest, IPagedSearchResponse, ISearchHit } from './opensearch.data'
+import { IPagedSearchResponse, ISearchHit } from './opensearch.data'
 import { OpenSearchService } from './opensearch.service'
-import { IndexingRepository } from '../repo/indexing.repo'
-import { IndexedEntityType } from '../repo/indexing.data'
 
 export class MemberSyncService {
   private static MAX_BYTE_LENGTH = 25000
@@ -430,101 +436,6 @@ export class MemberSyncService {
     }
   }
 
-  public async syncMembersOld(memberIds: string[]): Promise<IMemberSyncResult> {
-    this.log.debug({ memberIds }, 'Syncing members!')
-
-    const isMultiSegment = this.serviceConfig.edition === Edition.LFX
-
-    let docCount = 0
-    let memberCount = 0
-
-    const members = await this.memberRepo.getMemberData(memberIds)
-
-    if (members.length > 0) {
-      const attributes = await this.memberRepo.getTenantMemberAttributes(members[0].tenantId)
-
-      let childSegmentIds: string[] | undefined
-      let segmentInfos: IDbSegmentInfo[] | undefined
-
-      if (isMultiSegment) {
-        childSegmentIds = distinct(members.map((m) => m.segmentId))
-        segmentInfos = await this.segmentRepo.getParentSegmentIds(childSegmentIds)
-      }
-
-      const grouped = groupBy(members, (m) => m.id)
-      const memberIds = Array.from(grouped.keys())
-
-      const forSync: IIndexRequest<unknown>[] = []
-      for (const memberId of memberIds) {
-        const memberDocs = grouped.get(memberId)
-        if (isMultiSegment) {
-          // index each of them individually
-          for (const member of memberDocs) {
-            const prepared = MemberSyncService.prefixData(member, attributes)
-            forSync.push({
-              id: `${memberId}-${member.segmentId}`,
-              body: prepared,
-            })
-
-            const relevantSegmentInfos = segmentInfos.filter((s) => s.id === member.segmentId)
-
-            // and for each parent and grandparent
-            const parentIds = distinct(relevantSegmentInfos.map((s) => s.parentId))
-            for (const parentId of parentIds) {
-              const aggregated = MemberSyncService.aggregateData(
-                memberDocs,
-                relevantSegmentInfos,
-                parentId,
-              )
-              const prepared = MemberSyncService.prefixData(aggregated, attributes)
-              forSync.push({
-                id: `${memberId}-${parentId}`,
-                body: prepared,
-              })
-            }
-
-            const grandParentIds = distinct(relevantSegmentInfos.map((s) => s.grandParentId))
-            for (const grandParentId of grandParentIds) {
-              const aggregated = MemberSyncService.aggregateData(
-                memberDocs,
-                relevantSegmentInfos,
-                undefined,
-                grandParentId,
-              )
-              const prepared = MemberSyncService.prefixData(aggregated, attributes)
-              forSync.push({
-                id: `${memberId}-${grandParentId}`,
-                body: prepared,
-              })
-            }
-          }
-        } else {
-          if (memberDocs.length > 1) {
-            throw new Error(
-              'More than one member found - this can not be the case in single segment edition!',
-            )
-          }
-
-          const member = memberDocs[0]
-          const prepared = MemberSyncService.prefixData(member, attributes)
-          forSync.push({
-            id: `${memberId}-${member.segmentId}`,
-            body: prepared,
-          })
-        }
-      }
-
-      await this.openSearchService.bulkIndex(OpenSearchIndex.MEMBERS, forSync)
-      docCount += forSync.length
-      memberCount += memberIds.length
-    }
-
-    return {
-      membersSynced: memberCount,
-      documentsIndexed: docCount,
-    }
-  }
-
   private static aggregateData(
     segmentMembers: IDbMemberSyncData[],
     segmentInfos: IDbSegmentInfo[],
@@ -674,8 +585,6 @@ export class MemberSyncService {
     p.obj_reach = typeof data.reach === 'object' ? data.reach : { total: data.reach }
 
     p.obj_attributes = p_attributes
-    p.string_arr_emails = data.emails || []
-    p.keyword_emails = data.emails || []
     p.int_score = data.score
     p.date_lastEnriched = data.lastEnriched ? new Date(data.lastEnriched).toISOString() : null
     p.date_joinedAt = new Date(data.joinedAt).toISOString()
@@ -693,21 +602,48 @@ export class MemberSyncService {
     for (const identity of data.identities) {
       p_identities.push({
         string_platform: identity.platform,
-        string_username: identity.username,
-        keyword_username: identity.username,
+        string_value: identity.value,
+        keyword_value: identity.value,
+        keyword_type: identity.type,
+        bool_verified: identity.verified,
+        keyword_sourceId: identity.sourceId,
+        keyword_integrationId: identity.integrationId,
       })
     }
     p.nested_identities = p_identities
 
-    const p_weakIdentities = []
-    for (const identity of data.weakIdentities) {
-      p_weakIdentities.push({
-        string_platform: identity.platform,
-        string_username: identity.username,
-        keyword_username: identity.username,
-      })
-    }
-    p.nested_weakIdentities = p_weakIdentities
+    p.string_arr_verifiedEmails = distinct(
+      data.identities
+        .filter((i) => i.verified && i.type === MemberIdentityType.EMAIL)
+        .map((i) => i.value),
+    )
+    p.keyword_verifiedEmails = p.string_arr_verifiedEmails
+
+    p.string_arr_unverifiedEmails = distinct(
+      data.identities
+        .filter((i) => !i.verified && i.type === MemberIdentityType.EMAIL)
+        .map((i) => i.value),
+    )
+    p.keyword_unverifiedEmails = p.string_arr_unverifiedEmails
+
+    p.string_arr_verifiedUsernames = distinct(
+      data.identities
+        .filter((i) => i.verified && i.type === MemberIdentityType.USERNAME)
+        .map((i) => i.value),
+    )
+    p.keyword_verifiedUsernames = p.string_arr_verifiedUsernames
+
+    p.string_arr_unverifiedUsernames = distinct(
+      data.identities
+        .filter((i) => !i.verified && i.type === MemberIdentityType.USERNAME)
+        .map((i) => i.value),
+    )
+    p.keyword_unverifiedUsernames = p.string_arr_unverifiedUsernames
+
+    p.string_arr_identityPlatforms = distinct(
+      data.identities.filter((i) => i.verified).map((i) => i.platform),
+    )
+
     const p_contributions = []
     if (data.contributions) {
       for (const contribution of data.contributions) {

@@ -137,7 +137,10 @@ const mergeSuggestion = () => {
           selectedProjectGroupId: selectedProjectGroup.value?.id,
         });
 
-        doFind(id).then(() => {
+        doFind({
+          id: primaryMember.id,
+          segments: [selectedProjectGroup.value?.id],
+        }).then(() => {
           router.replace({
             params: {
               id: primaryMember.id,
@@ -153,6 +156,7 @@ const mergeSuggestion = () => {
 
         fetchMembers({ reload: true });
       }
+      emit('update:modelValue', null);
     })
     .catch((error) => {
       apiErrorMessage({ error });

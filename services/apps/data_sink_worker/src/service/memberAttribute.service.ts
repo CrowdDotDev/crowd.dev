@@ -2,14 +2,15 @@ import MemberAttributeSettingsRepository from '@crowd/data-access-layer/src/old/
 import { DbStore } from '@crowd/data-access-layer/src/database'
 import { Logger, LoggerBase } from '@crowd/logging'
 import { MemberAttributeType } from '@crowd/types'
+import { RedisClient } from '@crowd/redis'
 
 export default class MemberAttributeService extends LoggerBase {
   private readonly repo: MemberAttributeSettingsRepository
 
-  constructor(store: DbStore, parentLog: Logger) {
+  constructor(redis: RedisClient, store: DbStore, parentLog: Logger) {
     super(parentLog)
 
-    this.repo = new MemberAttributeSettingsRepository(store, parentLog)
+    this.repo = new MemberAttributeSettingsRepository(redis, store, parentLog)
   }
 
   public async setAttributesDefaultValues(

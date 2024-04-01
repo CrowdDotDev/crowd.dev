@@ -531,6 +531,7 @@ export default class UserRepository {
     return users.map((user) => ({
       id: user.id,
       label: buildText(user),
+      email: user.email,
     }))
   }
 
