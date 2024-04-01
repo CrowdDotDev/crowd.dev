@@ -27,6 +27,9 @@
           v-if="activeTab === 'audit-logs'"
         />
       </el-tab-pane>
+      <el-tab-pane v-if="isDevMode" label="Dev" name="dev">
+        <cr-devmode v-if="isDevMode && activeTab === 'dev'" />
+      </el-tab-pane>
     </el-tabs>
   </app-page-wrapper>
 </template>
@@ -44,6 +47,7 @@ import Roles from '@/security/roles';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
 import AppLfAuditLogsPage from '@/modules/lf/segments/pages/lf-audit-logs-page.vue';
+import CrDevmode from '@/modules/lf/segments/components/dev/devmode.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -75,6 +79,8 @@ const isAdminUser = computed(() => {
 
   return permissionChecker.currentUserRolesIds.includes(Roles.values.admin);
 });
+
+const isDevMode = !!localStorage.getItem('devmode');
 
 onMounted(() => {
   const initialActiveTab = route.hash.substring(1) as string;

@@ -82,13 +82,19 @@ export async function moveIdentityActivitiesToNewMember(
   return db.connection().query(
     `
         UPDATE activities
-        SET "memberId" = $1
-        WHERE "memberId" = $2
-          AND "tenantId" = $3
-          AND username = $4
-          AND platform = $5;
+        SET "memberId" = $(toId)
+        WHERE "memberId" = $(fromId)
+          AND "tenantId" = $(tenantId)
+          AND username = $(username)
+          AND platform = $(platform);
       `,
-    [toId, fromId, tenantId, username, platform],
+    {
+      toId,
+      fromId,
+      tenantId,
+      username,
+      platform,
+    },
   )
 }
 

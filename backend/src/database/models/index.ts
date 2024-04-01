@@ -1,4 +1,6 @@
 import Sequelize, { DataTypes } from 'sequelize'
+import pg from 'pg'
+
 /**
  * This module creates the Sequelize to the database and
  * exports all the models.
@@ -10,6 +12,8 @@ import * as configTypes from '../../conf/configTypes'
 const { highlight } = require('cli-highlight')
 
 const log = getServiceChildLogger('Database')
+
+pg.usingSequelize = true
 
 interface Credentials {
   username: string

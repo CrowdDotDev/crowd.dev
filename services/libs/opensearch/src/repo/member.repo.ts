@@ -199,7 +199,8 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
                                   json_agg(
                                           json_build_object(
                                                   'platform', mi.platform,
-                                                  'username', mi.username
+                                                  'value', mi.value,
+                                                  'type', mi.type
                                               )
                                       ) as identities
                             from "memberIdentities" mi
@@ -282,7 +283,6 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
               m."displayName",
               coalesce(m.contributions, '[]'::jsonb)              as contributions,
               m.attributes,
-              m.emails,
               m.score,
               m."lastEnriched",
               m."joinedAt",
@@ -392,7 +392,11 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
       json_agg(
             json_build_object(
                     'platform', mi.platform,
-                    'username', mi.username
+                    'value', mi.value,
+                    'type', mi.type,
+                    'sourceId', mi."sourceId",
+                    'integrationId', mi."integrationId",
+                    'verified', mi.verified
                 )
       ) as identities
       from "memberIdentities" mi
@@ -477,7 +481,6 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
     m."displayName",
     m.attributes,
     coalesce(m.contributions, '[]'::jsonb)              as contributions,
-    m.emails,
     m.score,
     m."lastEnriched",
     m."joinedAt",
@@ -494,7 +497,6 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
     ad."averageSentiment",
 
     coalesce(i.identities, '[]'::json)            as "identities",
-    coalesce(m."weakIdentities", '[]'::jsonb)            as "weakIdentities",
     coalesce(mo.all_organizations, json_build_array()) as organizations,
     coalesce(mt.all_tags, json_build_array())          as tags,
     coalesce(ma.all_affiliations, json_build_array())  as affiliations,

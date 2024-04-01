@@ -17,7 +17,6 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
            r."runId",
            r."webhookId",
            r."streamId",
-           r."apiDataId",
            r."integrationId",
            r.retries,
            r."delayedUntil",
@@ -137,21 +136,6 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
       this.log.error(err, 'Failed to touch updatedAt for results!')
       throw err
     }
-  }
-
-  public async markResultInProgress(resultId: string): Promise<void> {
-    const result = await this.db().result(
-      `update integration.results
-       set  state = $(state),
-            "updatedAt" = now()
-       where id = $(resultId)`,
-      {
-        resultId,
-        state: IntegrationResultState.PROCESSING,
-      },
-    )
-
-    this.checkUpdateRowCount(result.rowCount, 1)
   }
 
   public async markResultError(resultId: string, error: unknown): Promise<void> {

@@ -1,5 +1,5 @@
 import { IAttributes } from './attributes'
-import { MemberAttributeType } from './enums/members'
+import { MemberAttributeType, MemberIdentityType } from './enums/members'
 import { IMemberOrganization, IOrganization, IOrganizationOpensearch } from './organizations'
 import { ITagOpensearch } from './tags'
 import { PlatformType } from './enums/platforms'
@@ -22,19 +22,19 @@ export interface IMemberAttributeData extends IMemberAttribute {
 export interface IMemberIdentity {
   sourceId?: string
   platform: string
-  username: string
+  value: string
+  type: MemberIdentityType
   tenantId?: string
   integrationId?: string
   memberId?: string
-  cretedAt?: string
+  createdAt?: string
   updatedAt?: string
+  verified: boolean
 }
 
 export interface IMemberData {
   displayName?: string
-  emails?: string[]
   identities: IMemberIdentity[]
-  weakIdentities?: IMemberIdentity[]
   attributes?: Record<string, unknown>
   joinedAt?: string
   organizations?: IOrganization[]
@@ -46,7 +46,6 @@ export interface IMember {
   tenantId: string
   segmentId: string
   attributes: IAttributes
-  emails: string[]
   displayName?: string
   avatarUrl?: string
   score: number
@@ -66,17 +65,11 @@ export interface IMember {
   tags: ITagOpensearch[]
   toMergeIds: string[]
   noMergeIds: string[]
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  username: PlatformIdentities
   lastActivity: unknown
   bio?: string
   location?: string
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   contributions?: any
-}
-
-export type PlatformIdentities = {
-  [K in keyof typeof PlatformType]?: [MemberIdentity]
 }
 
 export interface MemberIdentity {

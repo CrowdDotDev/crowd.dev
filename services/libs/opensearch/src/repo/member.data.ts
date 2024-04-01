@@ -1,6 +1,12 @@
+import { MemberIdentityType } from '@crowd/types'
+
 export interface IDbMemberIdentityData {
   platform: string
-  username: string
+  value: string
+  type: MemberIdentityType
+  verified: boolean
+  sourceId: string | null
+  integrationId: string | null
 }
 
 export interface IDbMemberTagData {
@@ -61,9 +67,9 @@ export interface IDbMemberSyncData {
   id: string
   tenantId: string
   segmentId: string
+  grandParentSegment: boolean
   displayName: string | null
   attributes: unknown | null
-  emails: string[] | null
   score: number | null
   lastEnriched: string | null
   joinedAt: string
@@ -83,7 +89,6 @@ export interface IDbMemberSyncData {
   contributions: IDbMemberContributionData[]
   affiliations: IDbMemberAffiliationData[]
   identities: IDbMemberIdentityData[]
-  weakIdentities: IDbMemberIdentityData[]
   organizations: IDbMemberOrganization[]
   tags: IDbMemberTagData[]
   toMergeIds: string[]

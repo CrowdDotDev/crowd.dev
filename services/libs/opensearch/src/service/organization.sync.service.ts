@@ -345,7 +345,10 @@ export class OrganizationSyncService {
                 undefined,
                 grandParentId,
               )
-              const prepared = OrganizationSyncService.prefixData(aggregated)
+              const prepared = OrganizationSyncService.prefixData({
+                ...aggregated,
+                grandParentSegment: true,
+              })
               syncStream.push({
                 id: `${orgId}-${grandParentId}`,
                 body: prepared,
@@ -505,6 +508,7 @@ export class OrganizationSyncService {
 
     p.uuid_organizationId = data.organizationId
     p.uuid_segmentId = data.segmentId
+    p.bool_grandParentSegment = data.grandParentSegment ? data.grandParentSegment : false
     p.uuid_tenantId = data.tenantId
     p.obj_address = data.address
     p.string_address = data.address ? JSON.stringify(data.address) : null

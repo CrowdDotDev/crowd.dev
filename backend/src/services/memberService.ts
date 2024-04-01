@@ -1,6 +1,6 @@
 /* eslint-disable no-continue */
 
-import { SERVICE, Error400, isDomainExcluded } from '@crowd/common'
+import { SERVICE, Error400, isDomainExcluded, singleOrDefault } from '@crowd/common'
 import { LoggerBase } from '@crowd/logging'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
 import {
@@ -13,6 +13,7 @@ import {
   ISearchSyncOptions,
   IUnmergePreviewResult,
   MemberAttributeType,
+  MemberIdentityType,
   MergeActionState,
   MergeActionType,
   SyncMode,
@@ -33,9 +34,9 @@ import SegmentRepository from '../database/repositories/segmentRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import TagRepository from '../database/repositories/tagRepository'
 import {
+  BasicMemberIdentity,
   IActiveMemberFilter,
   IMemberMergeSuggestion,
-  IMemberMergeSuggestionsType,
   mapUsernameToIdentities,
 } from '../database/repositories/types/memberTypes'
 import isFeatureEnabled from '../feature-flags/isFeatureEnabled'
@@ -224,6 +225,27 @@ export default class MemberService extends LoggerBase {
     )
 
     const errorDetails: any = {}
+
+    if (data.identities && data.identities.length > 0) {
+      // map identities to username
+      const username = {}
+      for (const i of data.identities as IMemberIdentity[]) {
+        if (!username[i.platform]) {
+          username[i.platform] = [] as BasicMemberIdentity[]
+        }
+
+        if (!data.platform && i.type === MemberIdentityType.USERNAME) {
+          data.platform = i.platform
+        }
+
+        username[i.platform].push({
+          value: i.value,
+          type: i.type,
+        })
+      }
+
+      data.username = username
+    }
 
     if (!('platform' in data)) {
       throw new Error400(this.options.language, 'activity.platformRequiredWhileUpsert')
@@ -618,7 +640,6 @@ export default class MemberService extends LoggerBase {
 
       // create the secondary member
       const secondaryMember = await MemberRepository.create(payload.secondary, repoOptions)
-
       // move affiliations
       if (payload.secondary.affiliations.length > 0) {
         await MemberRepository.moveSelectedAffiliationsBetweenMembers(
@@ -736,6 +757,10 @@ export default class MemberService extends LoggerBase {
       // trigger entity-merging-worker to move activities in the background
       await SequelizeRepository.commitTransaction(tx)
 
+      const searchSyncService = new SearchSyncService(this.options, SyncMode.SYNCHRONOUS)
+      await searchSyncService.triggerMemberSync(this.options.currentTenant.id, memberId)
+      await searchSyncService.triggerMemberSync(this.options.currentTenant.id, secondaryMember.id)
+
       // responsible for moving member's activities, syncing to opensearch afterwards, recalculating activity.organizationIds and notifying frontend via websockets
       await this.options.temporal.workflow.start('finishMemberUnmerging', {
         taskQueue: 'entity-merging',
@@ -789,11 +814,16 @@ export default class MemberService extends LoggerBase {
       )
 
       // check member has the sent identity
-      const memberIdentities = await MemberRepository.getRawMemberIdentities(memberId, this.options)
+      const memberIdentities = (await MemberRepository.getIdentities([memberId], this.options)).get(
+        memberId,
+      )
 
       if (
         !memberIdentities.some(
-          (i) => i.platform === identity.platform && i.username === identity.username,
+          (i) =>
+            i.platform === identity.platform &&
+            i.type === identity.type &&
+            i.value === identity.value,
         )
       ) {
         throw new Error(`Member doesn't have the identity sent to be unmerged!`)
@@ -945,7 +975,7 @@ export default class MemberService extends LoggerBase {
         member.identities = member.identities.filter(
           (i) =>
             !secondaryBackup.identities.some(
-              (s) => s.platform === i.platform && s.username === i.username,
+              (s) => s.platform === i.platform && s.value === i.value && s.type === i.type,
             ),
         )
 
@@ -1009,7 +1039,9 @@ export default class MemberService extends LoggerBase {
       const secondaryIdentities = [identity]
       const primaryIdentities = member.identities.filter(
         (i) =>
-          !secondaryIdentities.some((s) => s.platform === i.platform && s.username === i.username),
+          !secondaryIdentities.some(
+            (s) => s.platform === i.platform && s.value === i.value && s.type === i.type,
+          ),
       )
 
       if (primaryIdentities.length === 0) {
@@ -1048,7 +1080,7 @@ export default class MemberService extends LoggerBase {
           id: randomUUID(),
           reach: { total: -1 },
           username: MemberRepository.getUsernameFromIdentities(secondaryIdentities),
-          displayName: identity.username,
+          displayName: identity.value,
           identities: secondaryIdentities,
           memberOrganizations: [],
           organizations: [],
@@ -1079,10 +1111,8 @@ export default class MemberService extends LoggerBase {
     'notes',
     'reach',
     'tasks',
-    'emails',
     'joinedAt',
     'tenantId',
-    'username',
     'attributes',
     'displayName',
     'affiliations',
@@ -1109,6 +1139,13 @@ export default class MemberService extends LoggerBase {
   ) {
     this.options.log.info({ originalId, toMergeId }, 'Merging members!')
 
+    if (originalId === toMergeId) {
+      return {
+        status: 203,
+        mergedId: originalId,
+      }
+    }
+
     let tx
 
     try {
@@ -1123,10 +1160,18 @@ export default class MemberService extends LoggerBase {
             secondary: toMerge,
           })
 
+          const allIdentities = await MemberRepository.getIdentities(
+            [originalId, toMergeId],
+            this.options,
+          )
+
+          const originalIdentities = allIdentities.get(originalId)
+          const toMergeIdentities = allIdentities.get(toMergeId)
+
           const backup = {
             primary: {
               ...lodash.pick(original, MemberService.MEMBER_MERGE_FIELDS),
-              identities: await MemberRepository.getRawMemberIdentities(originalId, this.options),
+              identities: originalIdentities,
               memberOrganizations: await MemberOrganizationRepository.findMemberRoles(
                 originalId,
                 this.options,
@@ -1134,7 +1179,7 @@ export default class MemberService extends LoggerBase {
             },
             secondary: {
               ...lodash.pick(toMerge, MemberService.MEMBER_MERGE_FIELDS),
-              identities: await MemberRepository.getRawMemberIdentities(toMergeId, this.options),
+              identities: toMergeIdentities,
               memberOrganizations: await MemberOrganizationRepository.findMemberRoles(
                 toMergeId,
                 this.options,
@@ -1151,31 +1196,26 @@ export default class MemberService extends LoggerBase {
             backup,
           )
 
-          if (original.id === toMerge.id) {
-            return {
-              status: 203,
-              mergedId: originalId,
-            }
-          }
-
           const repoOptions: IRepositoryOptions =
             await SequelizeRepository.createTransactionalRepositoryOptions(this.options)
           tx = repoOptions.transaction
 
-          const allIdentities = await MemberRepository.getIdentities(
-            [originalId, toMergeId],
-            repoOptions,
-          )
-
-          const originalIdentities = allIdentities.get(originalId)
-          const toMergeIdentities = allIdentities.get(toMergeId)
+          const identitiesToUpdate = []
           const identitiesToMove = []
           for (const identity of toMergeIdentities) {
-            if (
-              !originalIdentities.find(
-                (i) => i.platform === identity.platform && i.username === identity.username,
-              )
-            ) {
+            const existing = originalIdentities.find(
+              (i) =>
+                i.platform === identity.platform &&
+                i.type === identity.type &&
+                i.value === identity.value,
+            )
+
+            if (existing) {
+              // if it's not verified but it should be
+              if (!existing.verified && identity.verified) {
+                identitiesToUpdate.push(identity)
+              }
+            } else {
               identitiesToMove.push(identity)
             }
           }
@@ -1184,9 +1224,9 @@ export default class MemberService extends LoggerBase {
             toMergeId,
             originalId,
             identitiesToMove,
+            identitiesToUpdate,
             repoOptions,
           )
-
           // Update notes to belong to the originalId member
           await MemberRepository.moveNotesBetweenMembers(toMergeId, originalId, repoOptions)
 
@@ -1211,6 +1251,7 @@ export default class MemberService extends LoggerBase {
           delete toUpdate.activities
           // we already handled identities
           delete toUpdate.username
+          delete toUpdate.identities
           // we merge them manually
           delete toUpdate.organizations
 
@@ -1349,7 +1390,10 @@ export default class MemberService extends LoggerBase {
             for (const newIdentity of identities as any[]) {
               let keep = true
               for (const oldIdentity of oldIdentities) {
-                if (oldIdentity.username === newIdentity.username) {
+                if (
+                  oldIdentity.value === newIdentity.value &&
+                  oldIdentity.type === newIdentity.type
+                ) {
                   keep = false
                   break
                 }
@@ -1471,42 +1515,6 @@ export default class MemberService extends LoggerBase {
     }
   }
 
-  async getMergeSuggestions(
-    type: IMemberMergeSuggestionsType,
-    numberOfHours: Number = 1.2,
-  ): Promise<IMemberMergeSuggestion[]> {
-    // Adding a transaction so it will use the write database
-    const transaction = await SequelizeRepository.createTransaction(this.options)
-
-    try {
-      let out = []
-      if (type === IMemberMergeSuggestionsType.USERNAME) {
-        out = await MemberRepository.mergeSuggestionsByUsername(numberOfHours, {
-          ...this.options,
-          transaction,
-        })
-      }
-      if (type === IMemberMergeSuggestionsType.EMAIL) {
-        out = await MemberRepository.mergeSuggestionsByEmail(numberOfHours, {
-          ...this.options,
-          transaction,
-        })
-      }
-      if (type === IMemberMergeSuggestionsType.SIMILARITY) {
-        out = await MemberRepository.mergeSuggestionsBySimilarity(numberOfHours, {
-          ...this.options,
-          transaction,
-        })
-      }
-      await SequelizeRepository.commitTransaction(transaction)
-      return out
-    } catch (error) {
-      await SequelizeRepository.rollbackTransaction(transaction)
-      this.log.error(error)
-      throw error
-    }
-  }
-
   async update(id, data, syncToOpensearch = true, manualChange = false) {
     let transaction
     const searchSyncService = new SearchSyncService(
@@ -1542,18 +1550,61 @@ export default class MemberService extends LoggerBase {
       const record = await captureApiChange(
         repoOptions,
         memberEditIdentitiesAction(id, async (captureOldState, captureNewState) => {
-          if (data.username) {
-            // need to filter out existing identities from the payload
+          if (data.identities) {
+            const incomingIdentities = data.identities as IMemberIdentity[]
             const existingIdentities = (
               await MemberRepository.getIdentities([id], repoOptions)
             ).get(id)
+
+            captureOldState(lodash.sortBy(existingIdentities, [(i) => i.platform, (i) => i.type]))
+            captureNewState(lodash.sortBy(incomingIdentities, [(i) => i.platform, (i) => i.type]))
+
+            const toCreate: IMemberIdentity[] = []
+            const toUpdate: IMemberIdentity[] = []
+            const toDelete: IMemberIdentity[] = []
+
+            for (const inc of incomingIdentities) {
+              const existing = singleOrDefault(
+                existingIdentities,
+                (i) => i.platform === inc.platform && i.type === inc.type && i.value === inc.value,
+              )
+
+              if (existing) {
+                if (existing.verified !== inc.verified) {
+                  toUpdate.push(inc)
+                }
+              } else {
+                toCreate.push(inc)
+              }
+            }
+
+            for (const i of existingIdentities) {
+              const inc = singleOrDefault(
+                incomingIdentities,
+                (inc) =>
+                  i.platform === inc.platform && i.type === inc.type && i.value === inc.value,
+              )
+
+              if (!inc) {
+                toDelete.push(i)
+              }
+            }
+
+            data.identitiesToCreate = toCreate
+            data.identitiesToUpdate = toUpdate
+            data.identitiesToDelete = toDelete
+          } else if (data.username) {
+            // need to filter out existing identities from the payload
+            const existingIdentities = (await MemberRepository.getIdentities([id], repoOptions))
+              .get(id)
+              .filter((i) => i.type === MemberIdentityType.USERNAME)
 
             captureOldState(
               existingIdentities.reduce((acc, i) => {
                 if (!acc[i.platform]) {
                   acc[i.platform] = []
                 }
-                acc[i.platform].push(i.username)
+                acc[i.platform].push(i.value)
                 acc[i.platform] = lodash.uniq(acc[i.platform])
                 acc[i.platform] = lodash.sortBy(acc[i.platform])
                 return acc
@@ -1567,7 +1618,7 @@ export default class MemberService extends LoggerBase {
                 // new username has this platform - we need to check if it also has the username
                 let found = false
                 for (const newIdentity of data.username[identity.platform]) {
-                  if (newIdentity.username === identity.username) {
+                  if (newIdentity.username === identity.value) {
                     found = true
                     break
                   }
@@ -1576,7 +1627,7 @@ export default class MemberService extends LoggerBase {
                 if (found) {
                   // remove from data.username
                   data.username[identity.platform] = data.username[identity.platform].filter(
-                    (i) => i.username !== identity.username,
+                    (i) => i.username !== identity.value,
                   )
                 } else {
                   data.username[identity.platform].push({ ...identity, delete: true })
@@ -1641,6 +1692,11 @@ export default class MemberService extends LoggerBase {
       if (syncToOpensearch) {
         try {
           await searchSyncService.triggerMemberSync(this.options.currentTenant.id, record.id)
+          if (data.organizations) {
+            for (const org of data.organizations) {
+              await searchSyncService.triggerOrganizationSync(this.options.currentTenant.id, org.id)
+            }
+          }
         } catch (emitErr) {
           this.log.error(
             emitErr,

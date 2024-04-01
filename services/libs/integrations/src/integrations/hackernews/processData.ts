@@ -1,6 +1,12 @@
 import { HackerNewsActivityType, HackerNewsPublishData } from './types'
 import { HACKERNEWS_GRID } from './grid'
-import { IActivityData, IMemberData, MemberAttributeName, PlatformType } from '@crowd/types'
+import {
+  IActivityData,
+  IMemberData,
+  MemberAttributeName,
+  MemberIdentityType,
+  PlatformType,
+} from '@crowd/types'
 import sanitizeHtml from 'sanitize-html'
 import { IProcessDataContext, ProcessDataHandler } from '../../types'
 
@@ -18,8 +24,10 @@ async function parsePost(ctx: IProcessDataContext) {
     identities: [
       {
         platform: PlatformType.HACKERNEWS,
-        username: post.user.id,
+        value: post.user.id,
+        type: MemberIdentityType.USERNAME,
         sourceId: post.user.id,
+        verified: true,
       },
     ],
     displayName: post.user.id,

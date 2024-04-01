@@ -7,6 +7,7 @@ import { ActivitySyncService } from './activity.sync.service'
 import { MemberSyncService } from './member.sync.service'
 import { OpenSearchService } from './opensearch.service'
 import { OrganizationSyncService } from './organization.sync.service'
+import { MemberIdentityType } from '@crowd/types'
 
 export class InitService {
   public static FAKE_TENANT_ID = 'b0e82a13-566f-40e0-b0d0-11fcb6596b0f'
@@ -35,6 +36,7 @@ export class InitService {
       organizationId: InitService.FAKE_ORGANIZATION_ID,
       tenantId: InitService.FAKE_TENANT_ID,
       segmentId: InitService.FAKE_SEGMENT_ID,
+      grandParentSegment: false,
       address: {
         name: 'paris, ile-de-france, france',
         metro: null,
@@ -160,8 +162,8 @@ export class InitService {
       id: InitService.FAKE_MEMBER_ID,
       tenantId: InitService.FAKE_TENANT_ID,
       segmentId: InitService.FAKE_SEGMENT_ID,
+      grandParentSegment: false,
       displayName: 'Test Member',
-      emails: ['fake@email.com'],
       score: 10,
       lastEnriched: new Date().toISOString(),
       joinedAt: new Date().toISOString(),
@@ -208,13 +210,27 @@ export class InitService {
       identities: [
         {
           platform: 'devto',
-          username: 'Test Member',
+          value: 'Test Member',
+          type: MemberIdentityType.USERNAME,
+          verified: true,
+          sourceId: null,
+          integrationId: null,
         },
-      ],
-      weakIdentities: [
         {
           platform: 'github',
-          username: 'fakeWeakIdentity',
+          value: 'fakeWeakIdentity',
+          type: MemberIdentityType.USERNAME,
+          verified: false,
+          sourceId: null,
+          integrationId: null,
+        },
+        {
+          platform: 'github',
+          value: 'test@email.com',
+          type: MemberIdentityType.EMAIL,
+          verified: true,
+          sourceId: null,
+          integrationId: null,
         },
       ],
       organizations: [

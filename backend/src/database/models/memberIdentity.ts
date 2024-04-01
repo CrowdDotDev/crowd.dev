@@ -10,9 +10,12 @@ export default (sequelize) => {
       type: DataTypes.TEXT,
       primaryKey: true,
     },
-    username: {
+    value: {
       type: DataTypes.TEXT,
       primaryKey: true,
+    },
+    type: {
+      type: DataTypes.TEXT,
     },
     sourceId: {
       type: DataTypes.TEXT,
