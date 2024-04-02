@@ -13,14 +13,25 @@ export default ({
     attributes = {}, identities,
   } = member || {};
 
-  const getIdentityHandles = (platform: string) => (identities || [])
-    .filter((i) => i.platform === platform && i.type !== 'email')
-    .map((i) => ({
-      platform,
-      url: null,
-      name: i.value,
-      verified: i.verified,
-    }));
+  const getIdentityHandles = (platform: string) => {
+    if (platform === Platform.CUSTOM) {
+      const mainPlatforms = Object.values(Platform) as string[];
+      return (identities || []).filter((i) => !mainPlatforms.includes(i.platform)).map((i) => ({
+        platform: i.platform,
+        url: null,
+        name: i.value,
+        verified: i.verified,
+      }));
+    }
+    return (identities || [])
+      .filter((i) => i.platform === platform && i.type !== 'email')
+      .map((i) => ({
+        platform,
+        url: null,
+        name: i.value,
+        verified: i.verified,
+      }));
+  };
 
   const getIdentityLink = (identity: {
     platform: string;
