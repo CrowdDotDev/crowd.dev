@@ -107,13 +107,15 @@ export async function getIdentitiesExistInOtherMembers(
   replacements.push(excludeMemberId)
   replacements.push(tenantId)
 
-  return db.connection().query(
-    `select * from "memberIdentities" mi
-    where ${identityPartialQuery}
-    and mi."memberId" <> $${replacementIndex + 1}
-    and mi."tenantId" = $${replacementIndex + 2};`,
-    replacements,
-  )
+  const query = `select * from "memberIdentities" mi
+  where ${identityPartialQuery}
+  and mi."memberId" <> $${replacementIndex + 1}
+  and mi."tenantId" = $${replacementIndex + 2};`
+
+  console.log(query)
+  console.log(replacements)
+
+  return db.connection().query(query, replacements)
 }
 
 export async function getGithubIdentitiesWithoutSourceId(
