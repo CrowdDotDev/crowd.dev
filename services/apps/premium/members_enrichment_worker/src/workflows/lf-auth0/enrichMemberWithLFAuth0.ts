@@ -84,13 +84,13 @@ export async function enrichMemberWithLFAuth0(member: IMember): Promise<void> {
         (i) =>
           i.type === MemberIdentityType.USERNAME &&
           i.platform === 'github' &&
-          i.value === enrichmentGithub.profileData.username,
+          i.value === enrichmentGithub.profileData.nickname,
       )
     ) {
       identitiesToCheck.push({
         type: MemberIdentityType.USERNAME,
         platform: 'github',
-        value: enrichmentGithub.profileData.username,
+        value: enrichmentGithub.profileData.nickname,
         verified: true,
       })
     }
