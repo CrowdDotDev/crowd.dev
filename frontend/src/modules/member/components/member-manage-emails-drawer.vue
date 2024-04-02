@@ -10,7 +10,7 @@
         <p class="text-sm font-medium text-gray-900 mb-2">
           Email address
         </p>
-        <app-member-form-emails v-model="memberModel" @update:model-value="hasFormChanged = true" />
+        <app-member-form-emails v-model="memberModel" />
       </div>
     </template>
     <template #footer>
@@ -42,9 +42,10 @@ import Message from '@/shared/message/message';
 import { MemberService } from '@/modules/member/member-service';
 import cloneDeep from 'lodash/cloneDeep';
 import AppMemberFormEmails from '@/modules/member/components/form/member-form-emails.vue';
-import useVuelidate from '@vuelidate/core';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';
+import useVuelidate from '@vuelidate/core';
+import isEqual from 'lodash/isEqual';
 
 const store = useStore();
 const props = defineProps({
@@ -71,12 +72,16 @@ const drawerModel = computed({
   },
 });
 
+const $v = useVuelidate();
+
 const memberModel = ref(cloneDeep(props.member));
 const loading = ref(false);
 
-const $v = useVuelidate({}, memberModel);
-
-const hasFormChanged = ref(false);
+const hasFormChanged = computed(() => {
+  const currentEmails = props.member.identities.filter((i) => i.type === 'email' && !!i.value);
+  const formEmails = memberModel.value.identities.filter((i) => i.type === 'email' && !!i.value);
+  return !isEqual(currentEmails, formEmails);
+});
 
 const handleCancel = () => {
   emit('update:modelValue', false);
@@ -88,7 +93,7 @@ const handleSubmit = async () => {
   const segments = props.member.segments.map((s) => s.id);
 
   MemberService.update(props.member.id, {
-    emails: memberModel.value.emails.filter((e) => !!e.trim()),
+    identities: memberModel.value.identities.filter((i) => !!i.value),
   }, segments).then(() => {
     store.dispatch('member/doFind', {
       id: props.member.id,

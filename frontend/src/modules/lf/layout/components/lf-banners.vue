@@ -118,7 +118,6 @@
           </router-link>
         </div>
       </banner>
-
     </div>
   </div>
 </template>
@@ -133,7 +132,6 @@ import {
 import { IntegrationService } from '@/modules/integration/integration-service';
 import { getSegmentsFromProjectGroup, hasAccessToSegmentId } from '@/utils/segments';
 import { isCurrentDateAfterGivenWorkingDays } from '@/utils/date';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { useRoute } from 'vue-router';
 
 const ERROR_BANNER_WORKING_DAYS_DISPLAY = 3;
@@ -199,22 +197,6 @@ const integrationsInProgress = computed(() => integrations.value.reduce((acc, in
   integrations: [],
   subProjects: [],
 }));
-
-const integrationsInProgressToString = computed(() => {
-  const arr = integrationsInProgress.value.integrations.map(
-    (i) => CrowdIntegrations.getConfig(i.platform)?.name,
-  );
-  if (arr.length === 1) {
-    return arr[0];
-  } if (arr.length === 2) {
-    return `${arr[0]} and ${arr[1]}`;
-  }
-  return (
-    `${arr.slice(0, arr.length - 1).join(', ')
-    }, and ${
-      arr.slice(-1)}`
-  );
-});
 
 const showBanner = computed(() => (integrationsWithErrors.value.length
   || integrationsWithNoData.value.length) && !route.meta.hideBanner && !!selectedProjectGroup.value && !loading.value);

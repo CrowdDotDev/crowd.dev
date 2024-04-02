@@ -4,14 +4,7 @@ import {
   IDbMemberUpdateData,
 } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.data'
 import MemberRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.repo'
-import {
-  firstArrayContainsSecondArray,
-  isObjectEmpty,
-  singleOrDefault,
-  isDomainExcluded,
-  isEmail,
-  EDITION,
-} from '@crowd/common'
+import { isObjectEmpty, singleOrDefault, isDomainExcluded, isEmail, EDITION } from '@crowd/common'
 import { DbStore } from '@crowd/data-access-layer/src/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import {
@@ -21,6 +14,7 @@ import {
   OrganizationSource,
   IOrganizationIdSource,
   TemporalWorkflowId,
+  MemberIdentityType,
   Edition,
 } from '@crowd/types'
 import mergeWith from 'lodash.mergewith'
@@ -84,19 +78,12 @@ export default class MemberService extends LoggerBase {
         }
 
         // validate emails
-        if (data.emails) {
-          data.emails = this.validateEmails(data.emails)
-        }
-
-        // check if any weak identities are actually strong
-        await this.checkForStrongWeakIdentities(txRepo, tenantId, data)
+        data.identities = this.validateEmails(data.identities)
 
         const id = await txRepo.create(tenantId, {
           displayName: data.displayName,
-          emails: data.emails,
           joinedAt: data.joinedAt.toISOString(),
           attributes,
-          weakIdentities: data.weakIdentities || [],
           identities: data.identities,
           reach: MemberService.calculateReach({}, data.reach),
         })
@@ -121,12 +108,15 @@ export default class MemberService extends LoggerBase {
           }
         }
 
-        if (data.emails) {
+        const emailIdentities = data.identities.filter(
+          (i) => i.type === MemberIdentityType.EMAIL && i.verified,
+        )
+        if (emailIdentities.length > 0) {
           const orgs = await this.assignOrganizationByEmailDomain(
             tenantId,
             segmentId,
             integrationId,
-            data.emails,
+            emailIdentities.map((i) => i.value),
           )
           if (orgs.length > 0) {
             organizations.push(...orgs)
@@ -228,12 +218,7 @@ export default class MemberService extends LoggerBase {
         }
 
         // validate emails
-        if (data.emails) {
-          data.emails = this.validateEmails(data.emails)
-        }
-
-        // check if any weak identities are actually strong
-        await this.checkForStrongWeakIdentities(txRepo, tenantId, data, id)
+        data.identities = this.validateEmails(data.identities)
 
         const toUpdate = MemberService.mergeData(original, dbIdentities, data)
 
@@ -245,6 +230,10 @@ export default class MemberService extends LoggerBase {
         }
 
         let updated = false
+        const identitiesToCreate = toUpdate.identitiesToCreate
+        delete toUpdate.identitiesToCreate
+        const identitiesToUpdate = toUpdate.identitiesToUpdate
+        delete toUpdate.identitiesToUpdate
 
         if (!isObjectEmpty(toUpdate)) {
           this.log.debug({ memberId: id }, 'Updating a member!')
@@ -269,8 +258,13 @@ export default class MemberService extends LoggerBase {
           await txRepo.addToSegment(id, tenantId, segmentId)
         }
 
-        if (toUpdate.identities) {
-          await txRepo.insertIdentities(id, tenantId, integrationId, toUpdate.identities)
+        if (identitiesToCreate) {
+          await txRepo.insertIdentities(id, tenantId, integrationId, identitiesToCreate)
+          updated = true
+        }
+
+        if (identitiesToUpdate) {
+          await txRepo.updateIdentities(id, tenantId, identitiesToUpdate)
           updated = true
         }
 
@@ -295,12 +289,15 @@ export default class MemberService extends LoggerBase {
           }
         }
 
-        if (data.emails) {
+        const emailIdentities = data.identities.filter(
+          (i) => i.verified && i.type === MemberIdentityType.EMAIL,
+        )
+        if (emailIdentities.length > 0) {
           const orgs = await this.assignOrganizationByEmailDomain(
             tenantId,
             segmentId,
             integrationId,
-            data.emails,
+            emailIdentities.map((i) => i.value),
           )
           if (orgs.length > 0) {
             organizations.push(...orgs)
@@ -394,10 +391,10 @@ export default class MemberService extends LoggerBase {
     try {
       this.log.debug('Processing member enrich.')
 
-      if (
-        (!member.emails || member.emails.length === 0) &&
-        (!member.identities || member.identities.length === 0)
-      ) {
+      const emailIdentities = member.identities.filter(
+        (i) => i.verified && i.type === MemberIdentityType.EMAIL,
+      )
+      if (emailIdentities.length === 0 && (!member.identities || member.identities.length === 0)) {
         const errorMessage = `Member can't be enriched. It is missing both emails and identities fields.`
         this.log.warn(errorMessage)
         return
@@ -422,12 +419,21 @@ export default class MemberService extends LoggerBase {
         // first try finding the member using the identity
         const identity = singleOrDefault(
           member.identities,
-          (i) => i.platform === platform && i.sourceId !== undefined && i.sourceId !== null,
+          (i) =>
+            i.platform === platform &&
+            i.sourceId !== undefined &&
+            i.sourceId !== null &&
+            i.type === MemberIdentityType.USERNAME,
         )
-        let dbMember = await txRepo.findMember(tenantId, segmentId, platform, identity.username)
+        let dbMember = await txRepo.findMemberByUsername(
+          tenantId,
+          segmentId,
+          platform,
+          identity.value,
+        )
 
-        if (!dbMember && member.emails && member.emails.length > 0) {
-          const email = member.emails[0]
+        if (!dbMember && emailIdentities.length > 0) {
+          const email = emailIdentities[0].value
 
           // try finding the member using e-mail
           dbMember = await txRepo.findMemberByEmail(tenantId, email)
@@ -454,9 +460,7 @@ export default class MemberService extends LoggerBase {
             integrationId,
             {
               attributes: member.attributes,
-              emails: member.emails || [],
               joinedAt: member.joinedAt ? new Date(member.joinedAt) : undefined,
-              weakIdentities: member.weakIdentities || undefined,
               identities: member.identities,
               organizations: member.organizations,
               displayName: member.displayName || undefined,
@@ -511,8 +515,16 @@ export default class MemberService extends LoggerBase {
         const segmentId = dbIntegration.segmentId
 
         // first try finding the member using the identity
-        const identity = singleOrDefault(member.identities, (i) => i.platform === platform)
-        const dbMember = await txRepo.findMember(tenantId, segmentId, platform, identity.username)
+        const identity = singleOrDefault(
+          member.identities,
+          (i) => i.platform === platform && i.type === MemberIdentityType.USERNAME,
+        )
+        const dbMember = await txRepo.findMemberByUsername(
+          tenantId,
+          segmentId,
+          platform,
+          identity.value,
+        )
 
         if (dbMember) {
           this.log.trace({ memberId: dbMember.id }, 'Found existing member.')
@@ -525,9 +537,7 @@ export default class MemberService extends LoggerBase {
             integrationId,
             {
               attributes: member.attributes,
-              emails: member.emails || [],
               joinedAt: member.joinedAt ? new Date(member.joinedAt) : undefined,
-              weakIdentities: member.weakIdentities || undefined,
               identities: member.identities,
               organizations: member.organizations,
               displayName: member.displayName || undefined,
@@ -546,53 +556,29 @@ export default class MemberService extends LoggerBase {
     }
   }
 
-  private async checkForStrongWeakIdentities(
-    repo: MemberRepository,
-    tenantId: string,
-    data: IMemberCreateData | IMemberUpdateData,
-    memberId?: string,
-  ): Promise<void> {
-    if (data.weakIdentities && data.weakIdentities.length > 0) {
-      const results = await repo.findIdentities(tenantId, data.weakIdentities, memberId)
+  private validateEmails(identities: IMemberIdentity[]): IMemberIdentity[] {
+    const toReturn: IMemberIdentity[] = []
 
-      const strongIdentities = []
-
-      for (const weakIdentity of data.weakIdentities) {
-        if (!results.has(`${weakIdentity.platform}:${weakIdentity.username}`)) {
-          strongIdentities.push(weakIdentity)
+    for (const identity of identities) {
+      if (identity.type === MemberIdentityType.EMAIL) {
+        // check if email is valid and that the same email doesn't already exists in the array for the same platform
+        if (
+          isEmail(identity.value) &&
+          toReturn.find(
+            (i) =>
+              i.type === MemberIdentityType.EMAIL &&
+              i.value === identity.value &&
+              i.platform === identity.platform,
+          ) === undefined
+        ) {
+          toReturn.push(identity)
         }
-      }
-
-      if (strongIdentities.length > 0) {
-        data.weakIdentities = data.weakIdentities.filter(
-          (i) =>
-            strongIdentities.find((s) => s.platform === i.platform && s.username === i.username) ===
-            undefined,
-        )
-
-        for (const identity of strongIdentities) {
-          if (
-            data.identities.find(
-              (i) => i.platform === identity.platform && i.username === identity.username,
-            ) === undefined
-          ) {
-            data.identities.push(identity)
-          }
-        }
+      } else {
+        toReturn.push(identity)
       }
     }
-  }
 
-  private validateEmails(emails: string[]): string[] {
-    let newEmails = emails.filter((email) => isEmail(email))
-    if (newEmails.length > 0) {
-      const emailSet = new Set(newEmails)
-      newEmails = Array.from(emailSet)
-    } else {
-      newEmails = []
-    }
-
-    return newEmails
+    return toReturn
   }
 
   private static mergeData(
@@ -623,46 +609,31 @@ export default class MemberService extends LoggerBase {
       }
     }
 
-    let emails: string[] | undefined
-    if (member.emails && member.emails.length > 0) {
-      if (!firstArrayContainsSecondArray(dbMember.emails, member.emails)) {
-        emails = [...new Set([...member.emails, ...dbMember.emails])]
-      }
-    }
-
-    let weakIdentities: IMemberIdentity[] | undefined
-    if (member.weakIdentities && member.weakIdentities.length > 0) {
-      const newWeakIdentities: IMemberIdentity[] = []
-      for (const identity of member.weakIdentities) {
-        if (
-          !dbMember.weakIdentities.find(
-            (t) => t.platform === identity.platform && t.username === identity.username,
-          )
-        ) {
-          newWeakIdentities.push(identity)
-        }
-      }
-
-      if (newWeakIdentities.length > 0) {
-        weakIdentities = newWeakIdentities
-      }
-    }
-
-    let identities: IMemberIdentity[] | undefined
+    let identitiesToCreate: IMemberIdentity[] | undefined
+    let identitiesToUpdate: IMemberIdentity[] | undefined
     if (member.identities && member.identities.length > 0) {
       const newIdentities: IMemberIdentity[] = []
+      const toUpdate: IMemberIdentity[] = []
       for (const identity of member.identities) {
-        if (
-          !dbIdentities.find(
-            (t) => t.platform === identity.platform && t.username === identity.username,
-          )
-        ) {
+        const dbIdentity = dbIdentities.find(
+          (t) =>
+            t.platform === identity.platform &&
+            t.value === identity.value &&
+            t.type === identity.type,
+        )
+        if (!dbIdentity) {
           newIdentities.push(identity)
+        } else if (dbIdentity.verified !== identity.verified) {
+          toUpdate.push(identity)
         }
       }
 
       if (newIdentities.length > 0) {
-        identities = newIdentities
+        identitiesToCreate = newIdentities
+      }
+
+      if (toUpdate.length > 0) {
+        identitiesToUpdate = toUpdate
       }
     }
 
@@ -683,11 +654,10 @@ export default class MemberService extends LoggerBase {
     }
 
     return {
-      emails,
       joinedAt,
       attributes,
-      weakIdentities,
-      identities,
+      identitiesToCreate,
+      identitiesToUpdate,
       // we don't want to update the display name if it's already set
       // returned value should be undefined here otherwise it will cause an update!
       displayName: dbMember.displayName ? undefined : member.displayName,

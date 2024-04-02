@@ -5,7 +5,6 @@ import refreshMaterializedViews from './refreshMaterializedViews'
 import refreshMaterializedViewsForCube from './refreshMaterializedViewsForCube'
 import downgradeExpiredPlans from './downgradeExpiredPlans'
 import integrationDataChecker from './integrationDataChecker'
-import mergeSuggestions from './mergeSuggestions'
 import refreshSampleData from './refreshSampleData'
 import cleanUp from './cleanUp'
 import checkStuckIntegrationRuns from './checkStuckIntegrationRuns'
@@ -19,7 +18,6 @@ const jobs: CrowdJob[] = [
   refreshMaterializedViewsForCube,
   downgradeExpiredPlans,
   integrationDataChecker,
-  mergeSuggestions,
   refreshSampleData,
   cleanUp,
   checkStuckIntegrationRuns,

@@ -12,7 +12,6 @@ import { processSendgridWebhook } from '../../integrations/workers/sendgridWebho
 import { bulkEnrichmentWorker } from './bulk-enrichment/bulkEnrichmentWorker'
 import { integrationDataCheckerWorker } from './integration-data-checker/integrationDataCheckerWorker'
 import { refreshSampleDataWorker } from './integration-data-checker/refreshSampleDataWorker'
-import { mergeSuggestionsWorker } from './merge-suggestions/mergeSuggestionsWorker'
 import { BulkorganizationEnrichmentWorker } from './bulk-enrichment/bulkOrganizationEnrichmentWorker'
 
 /**
@@ -36,8 +35,6 @@ async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
         integrationDataCheckerMessage.integrationId,
         integrationDataCheckerMessage.tenantId,
       )
-    case 'merge-suggestions':
-      return mergeSuggestionsWorker(tenant)
 
     case 'refresh-sample-data':
       return refreshSampleDataWorker()

@@ -1,10 +1,14 @@
 import moment from 'moment'
 
-import { IMember, IOrganizationIdentity, OrganizationSource, PlatformType } from '@crowd/types'
+import { distinct, groupBy } from '@crowd/common'
+import {
+  IMember,
+  IOrganizationIdentity,
+  MemberIdentityType,
+  OrganizationSource,
+  PlatformType,
+} from '@crowd/types'
 
-import { svc } from '../main'
-import { normalize } from '../utils/normalize'
-import { EnrichingMember } from '../types/enrichment'
 import {
   addMemberToMerge,
   deleteMemberOrg,
@@ -14,6 +18,9 @@ import {
   insertWorkExperience,
   upsertOrg,
 } from '@crowd/data-access-layer/src/old/apps/premium/members_enrichment_worker'
+import { svc } from '../main'
+import { EnrichingMember } from '../types/enrichment'
+import { normalize } from '../utils/normalize'
 
 /*
 normalizeEnrichedMember is a Temporal activity that, given a member and enriched
@@ -42,82 +49,60 @@ export async function normalizeEnrichedMember(input: EnrichingMember): Promise<I
 updateMergeSuggestions is a Temporal activity that update member merge suggestions
 in the database for a member and enriched data received.
 */
-export async function updateMergeSuggestions(input: EnrichingMember): Promise<IMember> {
-  if (input.member.username) {
-    try {
-      await svc.postgres.writer.connection().tx(async (tx) => {
-        const filteredUsername = Object.keys(input.member.username).reduce((obj, key) => {
-          if (!input.member.username[key]) {
-            obj[key] = input.member.username[key]
-          }
-          return obj
-        }, {})
+export async function updateMergeSuggestions(input: EnrichingMember): Promise<void> {
+  const usernameIdentities = input.member.identities.filter(
+    (i) => i.type === MemberIdentityType.USERNAME,
+  )
 
-        for (const [platform, usernames] of Object.entries(filteredUsername)) {
-          const usernameArray = Array.isArray(usernames) ? usernames : [usernames]
+  if (usernameIdentities.length > 0) {
+    await svc.postgres.writer.connection().tx(async (tx) => {
+      const platformGroups = groupBy(usernameIdentities, (i) => i.platform)
 
-          for (const username of usernameArray) {
-            const usernames: string[] = []
-            if (typeof username === 'string') {
-              usernames.push(username)
-            } else if (typeof username === 'object') {
-              if ('username' in username) {
-                usernames.push(username.username)
-              } else if (platform in username) {
-                if (typeof username[platform] === 'string') {
-                  usernames.push(username[platform])
-                } else if (Array.isArray(username[platform])) {
-                  if (username[platform].length === 0) {
-                    // throw new Error400(this.options.language, 'activity.platformAndUsernameNotMatching')
-                  } else if (typeof username[platform] === 'string') {
-                    usernames.push(...username[platform])
-                  } else if (typeof username[platform][0] === 'object') {
-                    usernames.push(...username[platform].map((u) => u.username))
-                  }
-                } else if (typeof username[platform] === 'object') {
-                  usernames.push(username[platform].username)
-                } else {
-                  // throw new Error400(this.options.language, 'activity.platformAndUsernameNotMatching')
-                }
-              } else {
-                // throw new Error400(this.options.language, 'activity.platformAndUsernameNotMatching')
-              }
-            }
+      for (const [platform, identities] of platformGroups) {
+        const values = distinct(identities.map((i) => i.value))
 
-            // Check if a member with this username already exists.
-            const existingMember = await findExistingMember(
-              svc.postgres.reader,
-              input.member.tenantId,
-              platform,
-              usernames,
-            )
+        // Check if any members with this username already exists.
+        const existingMembers = await findExistingMember(
+          svc.postgres.reader,
+          input.member.id,
+          input.member.tenantId,
+          platform,
+          values,
+          MemberIdentityType.USERNAME,
+        )
 
-            // Add the member to merge suggestions.
-            if (existingMember) {
-              await addMemberToMerge(tx, input.member.id, existingMember.id)
-
-              // Filter out the identity that belongs to another member from the normalized payload
-              if (Array.isArray(input.member.username[platform])) {
-                input.member.username[platform] = input.member.username[platform].filter(
-                  (u) => u !== username,
-                )
-              } else if (typeof input.member.username[platform] === 'string') {
-                delete input.member.username[platform]
-              } else {
-                throw new Error(
-                  `Unsupported data type for input.member.username[platform] "${input.member.username[platform]}".`,
-                )
-              }
-            }
-          }
+        for (const memberId of existingMembers) {
+          await addMemberToMerge(tx, input.member.id, memberId)
         }
-      })
-    } catch (err) {
-      throw new Error(err)
-    }
+      }
+    })
   }
 
-  return input.member
+  const emailIdentities = input.member.identities.filter((i) => i.type === MemberIdentityType.EMAIL)
+
+  if (emailIdentities.length > 0) {
+    await svc.postgres.writer.connection().tx(async (tx) => {
+      const platformGroups = groupBy(emailIdentities, (i) => i.platform)
+
+      for (const [platform, identities] of platformGroups) {
+        const values = distinct(identities.map((i) => i.value))
+
+        // Check if any members with this email already exists.
+        const existingMembers = await findExistingMember(
+          svc.postgres.reader,
+          input.member.id,
+          input.member.tenantId,
+          platform,
+          values,
+          MemberIdentityType.EMAIL,
+        )
+
+        for (const memberId of existingMembers) {
+          await addMemberToMerge(tx, input.member.id, memberId)
+        }
+      }
+    })
+  }
 }
 
 /*

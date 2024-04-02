@@ -1,26 +1,24 @@
+import { generateUUIDv1 } from '@crowd/common'
 import { DbColumnSet, DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
-import {
-  getInsertMemberColumnSet,
-  getInsertMemberIdentityColumnSet,
-  getInsertMemberSegmentColumnSet,
-  getSelectMemberColumnSet,
-  getUpdateMemberColumnSet,
-  IDbMember,
-  IDbMemberCreateData,
-  IDbMemberUpdateData,
-} from './member.data'
-import { IMemberIdentity, SyncStatus } from '@crowd/types'
-import { generateUUIDv1 } from '@crowd/common'
+import { IMemberIdentity, MemberIdentityType, SyncStatus } from '@crowd/types'
 import {
   deleteManyMemberIdentities,
   insertManyMemberIdentities,
 } from '../../../../member_identities'
 import { PgPromiseQueryExecutor } from '../../../../queryExecutor'
+import {
+  IDbMember,
+  IDbMemberCreateData,
+  IDbMemberUpdateData,
+  getInsertMemberColumnSet,
+  getInsertMemberIdentityColumnSet,
+  getInsertMemberSegmentColumnSet,
+  getSelectMemberColumnSet,
+} from './member.data'
 
 export default class MemberRepository extends RepositoryBase<MemberRepository> {
   private readonly insertMemberColumnSet: DbColumnSet
-  private readonly updateMemberColumnSet: DbColumnSet
   private readonly selectMemberColumnSet: DbColumnSet
   private readonly selectMemberQuery: string
 
@@ -31,7 +29,6 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
     super(dbStore, parentLog)
 
     this.insertMemberColumnSet = getInsertMemberColumnSet(this.dbInstance)
-    this.updateMemberColumnSet = getUpdateMemberColumnSet(this.dbInstance)
     this.selectMemberColumnSet = getSelectMemberColumnSet(this.dbInstance)
 
     this.selectMemberQuery = `
@@ -45,18 +42,21 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
   public async findMemberByEmail(tenantId: string, email: string): Promise<IDbMember | null> {
     return await this.db().oneOrNone(
       `${this.selectMemberQuery}
-      where "tenantId" = $(tenantId)
-      and "emails" @> ARRAY[$(email)]
+      inner join "memberIdentities" mi on m.id = mi."memberId" and mi.verified = true
+      where m."tenantId" = $(tenantId)
+        and mi.type = $(type)
+        and mi.value = $(email)
       limit 1
     `,
       {
         tenantId,
+        type: MemberIdentityType.EMAIL,
         email,
       },
     )
   }
 
-  public async findMember(
+  public async findMemberByUsername(
     tenantId: string,
     segmentId: string,
     platform: string,
@@ -68,13 +68,15 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
                     from "memberIdentities" mi
                     where mi."tenantId" = $(tenantId)
                       and mi.platform = $(platform)
-                      and mi.username = $(username));
+                      and mi.value = $(username)
+                      and mi.type = $(type));
     `,
       {
         tenantId,
         segmentId,
         platform,
         username,
+        type: MemberIdentityType.USERNAME,
       },
     )
   }
@@ -96,26 +98,25 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
     }
 
     const identityParams = identities
-      .map((identity) => `('${identity.platform}', '${identity.username}')`)
+      .map((identity) => `('${identity.platform}', '${identity.value}', '${identity.type}')`)
       .join(', ')
 
     const result = await this.db().any(
       `
-      with input_identities (platform, username) as (
+      with input_identities (platform, value, type) as (
         values ${identityParams}
       )
-      select "memberId", i.platform, i.username
+      select "memberId", i.platform, i.value, i.type
       from "memberIdentities" mi
-        inner join input_identities i on mi.platform = i.platform and mi.username = i.username
+        inner join input_identities i on mi.platform = i.platform and mi.value = i.value and mi.type = i.type
       where mi."tenantId" = $(tenantId) ${condition}
     `,
       params,
     )
 
-    // Map the result to a Map<IMemberIdentity, string>
     const resultMap = new Map<string, string>()
     result.forEach((row) => {
-      resultMap.set(`${row.platform}:${row.username}`, row.memberId)
+      resultMap.set(`${row.platform}:${row.type}:${row.value}`, row.memberId)
     })
 
     return resultMap
@@ -133,7 +134,6 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
         ...data,
         id,
         tenantId,
-        weakIdentities: JSON.stringify(data.weakIdentities || []),
         createdAt: ts,
         updatedAt: ts,
       },
@@ -159,10 +159,6 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
     const prepared = RepositoryBase.prepare(
       {
         ...data,
-        ...(data?.weakIdentities &&
-          data?.weakIdentities?.length > 0 && {
-            weakIdentities: JSON.stringify(data.weakIdentities),
-          }),
         updatedAt,
       },
       dynamicColumnSet,
@@ -183,7 +179,7 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
   public async getIdentities(memberId: string, tenantId: string): Promise<IMemberIdentity[]> {
     return await this.db().any(
       `
-      select "sourceId", "platform", "username" from "memberIdentities"
+      select "sourceId", platform, value, type, verified from "memberIdentities"
       where "memberId" = $(memberId) and "tenantId" = $(tenantId)
     `,
       {
@@ -207,6 +203,33 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
     this.checkUpdateRowCount(result.rowCount, identities.length)
   }
 
+  public async updateIdentities(
+    memberId: string,
+    tenantId: string,
+    identities: IMemberIdentity[],
+  ): Promise<void> {
+    const objects = identities.map((i) => {
+      return {
+        memberId,
+        tenantId,
+        platform: i.platform,
+        value: i.value,
+        type: i.type,
+        verified: i.verified,
+      }
+    })
+
+    const query =
+      this.dbInstance.helpers.update(
+        objects,
+        ['verified', '?memberId', '?tenantId', '?platform', '?type', '?value'],
+        'memberIdentities',
+      ) +
+      ' where t."memberId" = v."memberId"::uuid and t."tenantId" = v."tenantId"::uuid and t.platform = v.platform and t.type = v.type and t.value = v.value'
+
+    await this.db().none(query)
+  }
+
   public async insertIdentities(
     memberId: string,
     tenantId: string,
@@ -220,7 +243,9 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
         integrationId,
         platform: i.platform,
         sourceId: i.sourceId,
-        username: i.username,
+        value: i.value,
+        type: i.type,
+        verified: i.verified,
       }
     })
 
@@ -316,9 +341,18 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
 
     const members = await this.db().any(
       `
-      SELECT m.id, m.emails
+      with member_emails as (
+        select mi."memberId", array_agg(mi.value) as emails
+        from "memberIdentities" mi
+        where mi."tenantId" = $(tenantId) and
+              mi.verified = true and
+              mi.type = '${MemberIdentityType.EMAIL}'
+        group by mi."memberId"
+      )
+      SELECT m.id, me.emails
       FROM "members" m
       JOIN "memberSegments" ms ON ms."memberId" = m.id
+      JOIN member_emails me on me."memberId" = m.id
       WHERE m."tenantId" = $(tenantId)
       AND ms."segmentId" = ANY($(segmentIds)::uuid[])
       ORDER BY ${orderByString}

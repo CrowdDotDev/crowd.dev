@@ -1,22 +1,23 @@
 import { Error400, websiteNormalizer } from '@crowd/common'
 import { LoggerBase } from '@crowd/logging'
-import { randomUUID } from 'crypto'
 import {
   IOrganization,
   IOrganizationIdentity,
+  IOrganizationUnmergeBackup,
+  IOrganizationUnmergePreviewResult,
   ISearchSyncOptions,
   IUnmergePreviewResult,
+  MemberRoleUnmergeStrategy,
   MergeActionState,
   MergeActionType,
-  OrganizationMergeSuggestionType,
   SyncMode,
-  IOrganizationUnmergePreviewResult,
-  IOrganizationUnmergeBackup,
-  MemberRoleUnmergeStrategy,
 } from '@crowd/types'
+import { randomUUID } from 'crypto'
 import lodash from 'lodash'
 import { captureApiChange, organizationMergeAction } from '@crowd/audit-logs'
 import getObjectWithoutKey from '@/utils/getObjectWithoutKey'
+import { IActiveOrganizationFilter } from '@/database/repositories/types/organizationTypes'
+import MemberOrganizationRepository from '@/database/repositories/memberOrganizationRepository'
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import MemberRepository from '../database/repositories/memberRepository'
 import { MergeActionsRepository } from '../database/repositories/mergeActionsRepository'
@@ -33,8 +34,6 @@ import {
 } from './helpers/mergeFunctions'
 import MemberOrganizationService from './memberOrganizationService'
 import SearchSyncService from './searchSyncService'
-import { IActiveOrganizationFilter } from '@/database/repositories/types/organizationTypes'
-import MemberOrganizationRepository from '@/database/repositories/memberOrganizationRepository'
 
 export default class OrganizationService extends LoggerBase {
   options: IServiceOptions
@@ -751,50 +750,6 @@ export default class OrganizationService extends LoggerBase {
         return Object.values(uniqueMap)
       },
     })
-  }
-
-  async generateMergeSuggestions(type: OrganizationMergeSuggestionType): Promise<void> {
-    this.log.trace(`Generating merge suggestions for: ${this.options.currentTenant.id}`)
-    const transaction = await SequelizeRepository.createTransaction(this.options)
-
-    try {
-      if (type === OrganizationMergeSuggestionType.BY_IDENTITY) {
-        let mergeSuggestions
-        let hasSuggestions = false
-
-        const generator = OrganizationRepository.getMergeSuggestions({
-          ...this.options,
-          transaction,
-        })
-        do {
-          mergeSuggestions = await generator.next()
-
-          if (mergeSuggestions.value) {
-            this.log.info(
-              `[Organization Merge Suggestions] tenant: ${this.options.currentTenant.id}, adding ${mergeSuggestions.value.length} organizations to suggestions!`,
-            )
-            hasSuggestions = true
-          } else if (!hasSuggestions) {
-            this.log.info(
-              `[Organization Merge Suggestions] tenant: ${this.options.currentTenant.id} doesn't have any merge suggestions`,
-            )
-          } else {
-            this.log.info(
-              `[Organization Merge Suggestions] tenant: ${this.options.currentTenant.id} Finished going tru all suggestions!`,
-            )
-          }
-
-          if (mergeSuggestions.value && mergeSuggestions.value.length > 0) {
-            await OrganizationRepository.addToMerge(mergeSuggestions.value, this.options)
-          }
-        } while (!mergeSuggestions.done)
-      }
-      await SequelizeRepository.commitTransaction(transaction)
-    } catch (error) {
-      await SequelizeRepository.rollbackTransaction(transaction)
-      this.log.error(error)
-      throw error
-    }
   }
 
   async addToNoMerge(organizationId: string, noMergeId: string): Promise<void> {

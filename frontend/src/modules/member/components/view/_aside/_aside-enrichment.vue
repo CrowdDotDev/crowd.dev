@@ -18,6 +18,7 @@ import { computed } from 'vue';
 import Plans from '@/security/plans';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
+import { MemberIdentity } from '@/modules/member/types/Member';
 
 const props = defineProps({
   member: {
@@ -33,8 +34,8 @@ const { tenant } = storeToRefs(authStore);
 
 const displayEnrichment = computed(() => {
   const hasAutomaticEnrichmentAvailable = [Plans.values.scale, Plans.values.enterprise].includes(tenant.value.plan);
-  const hasGithub = props.member.identities.includes('github');
-  const hasEmail = props.member.emails.length > 0;
+  const hasGithub = props.member.identityPlatforms.includes('github');
+  const hasEmail = props.member.identities.filter((i: MemberIdentity) => i.type === 'email').length > 0;
   return hasAutomaticEnrichmentAvailable && !hasGithub && !hasEmail;
 });
 </script>
