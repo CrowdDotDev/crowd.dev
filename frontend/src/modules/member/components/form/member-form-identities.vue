@@ -94,7 +94,7 @@
             @click="emit('unmerge', {
               platform: props.modelValue.identities?.[identityDropdown]?.platform,
               username: props.record.identities?.[identityDropdown].value,
-            })"
+            }); identityDropdown = null"
           >
             <div class="flex items-center">
               <i class="ri-link-unlink-m text-gray-600 mr-3 text-base" />
@@ -109,7 +109,7 @@
           type="button"
           class="el-dropdown-menu__item"
           :disabled="editingDisabled(props.modelValue.identities?.[identityDropdown].platform)"
-          @click="verifyIdentity(identityDropdown)"
+          @click="verifyIdentity(identityDropdown); identityDropdown = null"
         >
           <i class="ri-verified-badge-line text-gray-600 mr-3 text-base" />
           <span>Verify identity</span>
@@ -126,7 +126,7 @@
               class="el-dropdown-menu__item"
               :disabled="editingDisabled(props.modelValue.identities?.[identityDropdown].platform)
                 && props.modelValue.identities?.[identityDropdown]?.sourceId"
-              @click="unverifyIdentity(identityDropdown)"
+              @click="unverifyIdentity(identityDropdown); identityDropdown = null"
             >
               <div class="flex items-center">
                 <app-svg name="unverify" class="text-gray-600 mr-3 !h-4 !w-4 min-w-[1rem]" />
@@ -142,7 +142,7 @@
         type="button"
         class="el-dropdown-menu__item"
         :disabled="getPlatformIdentities(props.modelValue.identities?.[identityDropdown].platform).length <= 1 || editingDisabled(key)"
-        @click="removeIdentity(identityDropdown)"
+        @click="removeIdentity(identityDropdown); identityDropdown = null"
       >
         <div
           class="flex items-center"
