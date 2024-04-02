@@ -34,10 +34,16 @@
               ref="emailRef"
               target="_blank"
               rel="noopener noreferrer"
-              class="text-xs text-gray-900 hover:text-brand-500 border border-gray-200 rounded-md py-0.5 px-2 truncate"
+              class="text-xs text-gray-900 hover:text-brand-500 border border-gray-200 rounded-md py-0.5 px-2 truncate flex items-center"
               :href="emailIdentity.link"
             >
               {{ emailIdentity.handle }}
+
+              <div v-if="emailIdentity.verified" class="pl-1">
+                <el-tooltip placement="top" content="Verified email">
+                  <i class="ri-verified-badge-fill text-brand-500 text-base leading-4" />
+                </el-tooltip>
+              </div>
             </a>
           </div>
         </el-tooltip>
