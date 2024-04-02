@@ -49,7 +49,7 @@
             :key="integration.id"
           >
             <el-popover
-              :disabled="integration.status !== 'in-progress' || !getProgress(row.id, integration.platform)"
+              :disabled="integration.status !== 'in-progress' || (!getProgress(row.id, integration.platform) && !progressError)"
               :width="290"
               placement="top"
             >
@@ -76,11 +76,19 @@
                 </div>
               </template>
               <div class="px-1">
-                <app-integration-progress :progress="getProgress(row.id, integration.platform)" :show-bar="true" :show-parts="true">
+                <app-integration-progress
+                  v-if="!progressError"
+                  :progress="getProgress(row.id, integration.platform)"
+                  :show-bar="true"
+                  :show-parts="true"
+                >
                   <h6 class="text-xs text-black leading-5 pb-3">
                     Connecting {{ CrowdIntegrations.getConfig(integration.platform)?.name }} integration
                   </h6>
                 </app-integration-progress>
+                <div v-if="progressError" class="text-xs text-gray-500">
+                  <i class="ri-alert-line text-yellow-600" /> Error loading progress
+                </div>
               </div>
             </el-popover>
           </div>
@@ -206,6 +214,10 @@ const props = defineProps({
     type: Array,
     required: false,
     default: () => ([]),
+  },
+  progressError: {
+    type: Boolean,
+    default: false,
   },
 });
 
