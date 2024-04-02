@@ -10,13 +10,14 @@
       />
     </div>
     <app-integration-progress-wrapper v-else :segments="[props.segment]">
-      <template #default="{ progress }">
+      <template #default="{ progress, progressError }">
         <div class="flex flex-wrap -mx-2.5">
           <article v-for="integration in integrationsArray" :key="integration.platform" class="px-2.5 w-full sm:1/2 lg:w-1/3 pb-5">
             <app-integration-list-item
               class="h-full"
               :integration="integration"
               :progress="progress"
+              :progress-error="progressError"
             />
           </article>
         </div>
