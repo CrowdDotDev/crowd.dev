@@ -3,7 +3,7 @@ import { proxyActivities } from '@temporalio/workflow'
 import * as activities from '../../activities'
 import { ILFIDEnrichmentGithubProfile } from '../../types/lfid-enrichment'
 
-const { refreshToken, get, getIdentitiesExistInOtherMembers, enrich } = proxyActivities<
+const { refreshToken, get, getIdentitiesExistInOtherMembers, enrich, syncMembersToOpensearch } = proxyActivities<
   typeof activities
 >({
   startToCloseTimeout: '2 minutes',
@@ -133,6 +133,8 @@ export async function enrichMemberWithLFAuth0(member: IMember): Promise<void> {
     // add identities to current member.
     await enrich(member.id, member.tenantId, identitesToAdd, normalized.attributes)
     // loop through identitiesExistInOtherMembers and merge them with current member. Find the primary by counting the total number of identities.]
+
+    await syncMembersToOpensearch([member.id])
 
     for (const memberToBeMerged of identitiesExistInOtherMembers) {
       // merge
