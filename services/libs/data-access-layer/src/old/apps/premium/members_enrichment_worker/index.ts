@@ -88,11 +88,11 @@ export async function getIdentitiesExistInOtherMembers(
 
   let identityPartialQuery = '('
   const replacements = []
-  let replacementIndex = 1
+  let replacementIndex = 0
 
   for (let i = 0; i < identities.length; i++) {
-    identityPartialQuery += `(mi.platform = $${replacementIndex} and mi."value" = $${
-      replacementIndex + 1
+    identityPartialQuery += `(mi.platform = $${replacementIndex + 1} and mi."value" = $${
+      replacementIndex + 2
     })`
     replacements[replacementIndex] = identities[i].platform
     replacements[replacementIndex + 1] = identities[i].value
@@ -110,8 +110,8 @@ export async function getIdentitiesExistInOtherMembers(
   return db.connection().query(
     `select * from "memberIdentities" mi
     where ${identityPartialQuery}
-    and mi."memberId" <> $${replacementIndex}
-    and mi."tenantId" = $${replacementIndex + 1};`,
+    and mi."memberId" <> $${replacementIndex + 1}
+    and mi."tenantId" = $${replacementIndex + 2};`,
     replacements,
   )
 }
