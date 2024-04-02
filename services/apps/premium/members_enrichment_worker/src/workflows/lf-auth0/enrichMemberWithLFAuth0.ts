@@ -90,7 +90,7 @@ export async function enrichMemberWithLFAuth0(member: IMember): Promise<void> {
       identitiesToCheck.push({
         type: MemberIdentityType.USERNAME,
         platform: 'github',
-        username: enrichmentGithub.profileData.username,
+        value: enrichmentGithub.profileData.username,
         verified: true,
       })
     }
