@@ -48,6 +48,11 @@ export async function tryEnrichOrganizationCache(cacheId: string): Promise<boole
 
   log.debug('Trying to enrich an organization cache!')
 
+  if (!process.env['CROWD_ENABLE_ORGANIZATION_ENRICHMENT']) {
+    log.warn('Organization enrichment is disabled!')
+    return false
+  }
+
   const repo = new OrganizationRepository(svc.postgres.writer, log)
   const cacheData = await repo.getOrganizationCacheData(cacheId)
 
