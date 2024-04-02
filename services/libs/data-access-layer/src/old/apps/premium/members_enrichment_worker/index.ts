@@ -61,8 +61,10 @@ export async function fetchMembersForLFIDEnrichment(db: DbStore, limit: number, 
               INNER JOIN "memberIdentities" mi ON mi."memberId" = members.id
       WHERE tenants.plan IN ('Scale', 'Enterprise')
         AND (
-          mi.platform = 'github' OR
+          (mi.platform = 'github' and mi."sourceId" is not null) OR
           (mi.platform = 'linkedin' and mi."sourceId" is not null) OR
+          (mi.platform = 'cvent') OR
+          (mi.platform = 'tnc') OR
               array_length(members.emails, 1) > 0
           )
         AND tenants."deletedAt" IS NULL
@@ -75,11 +77,51 @@ export async function fetchMembersForLFIDEnrichment(db: DbStore, limit: number, 
   )
 }
 
+export async function getIdentitiesExistInOtherMembers(
+  db: DbStore,
+  tenantId: string,
+  excludeMemberId: string,
+  identities: IMemberIdentity[],
+): Promise<IMemberIdentity[]> {
+  if (identities.length === 0) {
+    throw new Error(`At least one identity must be provided!`)
+  }
+
+  let identityPartialQuery = '('
+  const replacements = []
+  let replacementIndex = 0
+
+  for (let i = 0; i < identities.length; i++) {
+    identityPartialQuery += `(mi.platform = $${replacementIndex} and mi."value" = $${
+      replacementIndex + 1
+    })`
+    replacements[replacementIndex] = identities[i].platform
+    replacements[replacementIndex + 1] = identities[i].value
+    replacementIndex += 2
+    if (i !== identities.length - 1) {
+      identityPartialQuery += ' OR '
+    }
+  }
+  identityPartialQuery += ')'
+
+  // push replacement for excluded member id and tenant id to the end of replacements array
+  replacements.push(excludeMemberId)
+  replacements.push(tenantId)
+
+  return db.connection().query(
+    `select * from "memberIdentities" mi
+    where ${identityPartialQuery}
+    and mi."memberId" <> $${replacementIndex}
+    and mi."tenantId" = $${replacementIndex + 1};`,
+    replacements,
+  )
+}
+
 export async function getGithubIdentitiesWithoutSourceId(
   db: DbStore,
   limit: number,
   afterId: string,
-  afterUsername: string,
+  afterValue: string,
 ): Promise<IMemberIdentity[]> {
   if (afterId) {
     return db.connection().query(
@@ -87,11 +129,11 @@ export async function getGithubIdentitiesWithoutSourceId(
       where mi.platform = 'github' and mi."sourceId" is null
       and (
         mi."memberId" < $1 OR
-        (mi."memberId" = $1 AND mi."username" < $2)
+        (mi."memberId" = $1 AND mi."value" < $2)
       )
       order by mi."memberId" desc
       limit $3;`,
-      [afterId, afterUsername, limit],
+      [afterId, afterValue, limit],
     )
   }
 
@@ -343,5 +385,20 @@ export async function updateMember(
       contributions: JSON.stringify(contributions),
       displayName,
     },
+  )
+}
+
+export async function updateMemberAttributes(
+  tx: DbTransaction,
+  tenantId: string,
+  memberId: string,
+  attributes: IAttributes,
+) {
+  return tx.query(
+    `UPDATE members SET
+      attributes = $1,
+      "updatedAt" = NOW()
+    WHERE id = $2 AND "tenantId" = $3;`,
+    [attributes, memberId, tenantId],
   )
 }

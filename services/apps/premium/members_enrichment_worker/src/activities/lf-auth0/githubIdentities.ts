@@ -8,6 +8,7 @@ import {
 import { GithubAPIResource, GithubTokenRotator } from '@crowd/integrations'
 import { RedisCache } from '@crowd/redis'
 import { IGithubUser } from '../../types/lfid-enrichment'
+
 export async function getGithubIdentitiesWithoutSourceId(
   limit: number,
   afterId: string,

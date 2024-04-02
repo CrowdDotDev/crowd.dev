@@ -1,11 +1,9 @@
 import { ManagementClient, GetUsers200ResponseOneOfInner } from 'auth0'
 import { svc } from '../../main'
 import { RedisCache, acquireLock, releaseLock } from '@crowd/redis'
-import { GithubTokenRotator } from '@crowd/integrations'
 import { randomUUID } from 'crypto'
-import { IMember } from '@crowd/types'
-import { IGetEnrichmentDataResponse, IGithubUser } from '../../types/lfid-enrichment'
-import { updateIdentitySourceId } from '@crowd/data-access-layer/src/old/apps/premium/members_enrichment_worker'
+import { IMember, MemberIdentityType } from '@crowd/types'
+import { IGetEnrichmentDataResponse } from '../../types/lfid-enrichment'
 
 // We'll keep the remaining rate limits in redisCache(lfx-auth0)
 // This key will keep the results from the last request:
@@ -68,38 +66,37 @@ async function getEnrichmentData(
 
   const linkedinIdentity = member.identities?.find((i) => i.platform === 'linkedin') || null
 
-  const email = member.emails?.[0] || null
+  const lfidIdentity =
+    member.identities?.find(
+      (i) => i.platform === 'lfid' || i.platform === 'tnc' || i.platform === 'cvent',
+    ) || null
+
+  const emailIdentity =
+    member.identities?.find((i) => i.type === MemberIdentityType.EMAIL && i.verified === true) ||
+    null
 
   let innerQuery
   let enrichedBySource = null
   let enrichedBySourceId = null
 
-  if (githubIdentity) {
+  if (lfidIdentity) {
+    enrichedBySource = 'lfid'
+    enrichedBySourceId = lfidIdentity.value
+    innerQuery = `username:"${escapeCharacters(lfidIdentity.value)}"`
+  } else if (githubIdentity) {
     enrichedBySource = 'github'
     // check if sourceId for the github identity exists, if it doesn't get it from the github api
-    let githubSourceId = githubIdentity.sourceId
-
-    if (!githubSourceId) {
-      // get the sourceId from the github api
-      githubSourceId = await findGithubSourceId(githubIdentity.username)
-      // update the existing identity, so we don't have to do this again
-      if (githubSourceId) {
-        // update db
-        await updateIdentitySourceId(svc.postgres.writer, githubIdentity, githubSourceId)
-      }
-    }
-
-    if (githubSourceId) {
-      enrichedBySourceId = githubSourceId
-      innerQuery = `identities.user_id:"${escapeCharacters(githubSourceId)}"`
+    if (githubIdentity.sourceId) {
+      enrichedBySourceId = githubIdentity.sourceId
+      innerQuery = `identities.user_id:"${escapeCharacters(githubIdentity.sourceId)}"`
     }
   } else if (linkedinIdentity && linkedinIdentity.sourceId) {
     enrichedBySource = 'linkedin'
     enrichedBySourceId = linkedinIdentity.sourceId
     innerQuery = `identities.user_id:"${escapeCharacters(linkedinIdentity.sourceId)}"`
-  } else if (email) {
+  } else if (emailIdentity) {
     enrichedBySource = 'email'
-    innerQuery = `email:"${escapeCharacters(email)}"`
+    innerQuery = `email:"${escapeCharacters(emailIdentity.value)}"`
   }
 
   if (!innerQuery) {
@@ -123,7 +120,7 @@ async function getEnrichmentData(
   }
 
   if (user) {
-    if (enrichedBySource === 'email') {
+    if (enrichedBySource === 'email' || enrichedBySource === 'lfid') {
       response.user = user
     }
 
@@ -148,25 +145,4 @@ function escapeCharacters(str: string): string {
   return str
     .replace(/\\/g, '\\\\') // replace \ with \\
     .replace(/"/g, '\\"') // replace " with \"
-}
-
-async function findGithubSourceId(username: string): Promise<string | null> {
-  try {
-    const tokenRotator = new GithubTokenRotator(svc.redis, svc.log)
-    const response = await fetch(`https://api.github.com/users/${username}`)
-    if (!response.ok) {
-      console.error('HTTP error', response.status)
-      return null
-    } else {
-      const jsonResponse = (await response.json()) as IGithubUser
-      if (jsonResponse?.login === username) {
-        return jsonResponse?.id.toString()
-      }
-
-      return null
-    }
-  } catch (error) {
-    svc.log.error('Fetch error when getting github user id!', error)
-    return null
-  }
 }

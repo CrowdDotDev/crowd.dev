@@ -23,6 +23,8 @@ import {
   updateIdentitySourceId,
 } from './activities/lf-auth0/githubIdentities'
 
+import { getIdentitiesExistInOtherMembers, enrich } from './activities/lf-auth0/enrich'
+
 export {
   getMembers,
   enrichMemberUsingGitHubHandle,
@@ -39,4 +41,6 @@ export {
   checkTokens,
   findGithubSourceId,
   updateIdentitySourceId,
+  getIdentitiesExistInOtherMembers,
+  enrich,
 }

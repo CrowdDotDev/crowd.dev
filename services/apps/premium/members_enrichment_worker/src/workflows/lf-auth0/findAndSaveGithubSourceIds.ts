@@ -1,10 +1,4 @@
-import {
-  executeChild,
-  ParentClosePolicy,
-  ChildWorkflowCancellationType,
-  continueAsNew,
-  proxyActivities,
-} from '@temporalio/workflow'
+import { continueAsNew, proxyActivities } from '@temporalio/workflow'
 import { IFindAndSaveGithubIdentitySourceIdsArgs } from '../../types/lfid-enrichment'
 
 import * as activities from '../../activities'
@@ -52,7 +46,7 @@ export async function findAndSaveGithubSourceIds(
 
   // Continue as new with the information from the last processed identity
   afterId = identities[identities.length - 1].memberId
-  afterUsername = identities[identities.length - 1].username
+  afterUsername = identities[identities.length - 1].value
 
   await continueAsNew<typeof findAndSaveGithubSourceIds>({
     afterId,
@@ -62,7 +56,7 @@ export async function findAndSaveGithubSourceIds(
 
 //helper function to process a single identity
 async function processIdentity(identity: IMemberIdentity): Promise<void> {
-  const sourceId = await findGithubSourceId(identity.username)
+  const sourceId = await findGithubSourceId(identity.value)
   if (sourceId) {
     await updateIdentitySourceId(identity, sourceId)
   }
