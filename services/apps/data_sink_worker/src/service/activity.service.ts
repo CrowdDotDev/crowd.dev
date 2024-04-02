@@ -802,10 +802,7 @@ export default class ActivityService extends LoggerBase {
             // try to find a member by email if verified one is available
             if (!dbMember) {
               const emails = member.identities
-                .filter(
-                  (i) =>
-                    i.verified && i.platform === platform && i.type === MemberIdentityType.EMAIL,
-                )
+                .filter((i) => i.verified && i.type === MemberIdentityType.EMAIL)
                 .map((i) => i.value)
 
               if (emails.length > 0) {
