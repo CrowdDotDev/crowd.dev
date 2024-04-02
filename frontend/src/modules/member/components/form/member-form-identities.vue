@@ -85,10 +85,10 @@
         :disabled="!props.record.identities?.[identityDropdown]?.value || props.record.identities?.[identityDropdown]
           && props.modelValue.identities?.[identityDropdown]?.value === props.record.identities?.[identityDropdown]?.value"
       >
-        <div>
+        <div class=" w-full">
           <button
             type="button"
-            class="el-dropdown-menu__item"
+            class="el-dropdown-menu__item w-full"
             :disabled="!props.record.identities?.[identityDropdown]
               || props.modelValue.identities?.[identityDropdown]?.value !== props.record.identities?.[identityDropdown]?.value"
             @click="emit('unmerge', {
@@ -107,7 +107,7 @@
         <button
           v-if="!props.modelValue.identities?.[identityDropdown].verified"
           type="button"
-          class="el-dropdown-menu__item"
+          class="el-dropdown-menu__item w-full"
           :disabled="editingDisabled(props.modelValue.identities?.[identityDropdown].platform)"
           @click="verifyIdentity(identityDropdown); identityDropdown = null"
         >
@@ -120,10 +120,10 @@
           placement="top-end"
           :disabled="!props.modelValue.identities?.[identityDropdown].sourceId"
         >
-          <div>
+          <div class="w-full">
             <button
               type="button"
-              class="el-dropdown-menu__item"
+              class="el-dropdown-menu__item w-full"
               :disabled="editingDisabled(props.modelValue.identities?.[identityDropdown].platform)
                 && props.modelValue.identities?.[identityDropdown]?.sourceId"
               @click="unverifyIdentity(identityDropdown); identityDropdown = null"
@@ -140,7 +140,7 @@
 
       <button
         type="button"
-        class="el-dropdown-menu__item"
+        class="el-dropdown-menu__item w-full"
         :disabled="getPlatformIdentities(props.modelValue.identities?.[identityDropdown].platform).length <= 1 || editingDisabled(key)"
         @click="removeIdentity(identityDropdown); identityDropdown = null"
       >
