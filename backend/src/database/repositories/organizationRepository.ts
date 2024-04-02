@@ -1198,7 +1198,8 @@ class OrganizationRepository {
           otm."similarity"
         FROM organizations org
         JOIN "organizationToMerge" otm ON org.id = otm."organizationId"
-        JOIN "organization_segments_mv" os ON os."organizationId" = org.id
+        JOIN "organization_segments_mv" os1 ON os1."organizationId" = org.id
+        JOIN "organization_segments_mv" os2 ON os2."organizationId" = otm."toMergeId"
         LEFT JOIN "mergeActions" ma
           ON ma.type = :mergeActionType
           AND ma."tenantId" = :tenantId
@@ -1207,7 +1208,8 @@ class OrganizationRepository {
             OR (ma."primaryId" = otm."toMergeId" AND ma."secondaryId" = org.id)
           )
         WHERE org."tenantId" = :tenantId
-          AND os."segmentId" IN (:segmentIds)
+          AND os1."segmentId" IN (:segmentIds)
+          AND os2."segmentId" IN (:segmentIds)
           AND (ma.id IS NULL OR ma.state = :mergeActionStatus)
           ${organizationFilter}
       ),
