@@ -17,8 +17,11 @@ const { refreshToken, get, getIdentitiesExistInOtherMembers, enrich } = proxyAct
 export async function enrichMemberWithLFAuth0(member: IMember): Promise<void> {
   const token = await refreshToken()
   const enriched = await get(token, member)
+  console.log(`Enriching member ${member.id}`)
 
   if (enriched) {
+    console.log(`Member ${member.id} found in the lf auth0 enrichment db!`)
+    console.log(`Enriched data: ${JSON.stringify(enriched)}`)
     const normalized: any = {}
     // check logo TODO:: double check
     if (
@@ -134,5 +137,8 @@ export async function enrichMemberWithLFAuth0(member: IMember): Promise<void> {
       // merge
       console.log(`${memberToBeMerged} will be merged with ${member.id}`)
     }
+  }
+  else {
+    console.log(`Member ${member.id} not found in the lf auth0 enrichment db!`)
   }
 }

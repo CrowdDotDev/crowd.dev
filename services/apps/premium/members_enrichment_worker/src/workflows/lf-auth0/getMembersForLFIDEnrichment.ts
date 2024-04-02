@@ -48,7 +48,7 @@ export async function getMembersForLFIDEnrichment(
     }),
   )
 
-  await continueAsNew<typeof getMembersForLFIDEnrichment>({
-    offset: offset + MEMBER_ENRICHMENT_PER_RUN,
-  })
+  // await continueAsNew<typeof getMembersForLFIDEnrichment>({
+  //   offset: offset + MEMBER_ENRICHMENT_PER_RUN,
+  // })
 }
