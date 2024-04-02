@@ -88,7 +88,7 @@ export async function getIdentitiesExistInOtherMembers(
 
   let identityPartialQuery = '('
   const replacements = []
-  let replacementIndex = 0
+  let replacementIndex = 1
 
   for (let i = 0; i < identities.length; i++) {
     identityPartialQuery += `(mi.platform = $${replacementIndex} and mi."value" = $${
