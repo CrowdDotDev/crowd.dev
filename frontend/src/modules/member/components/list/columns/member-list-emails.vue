@@ -1,10 +1,10 @@
 <template>
   <div
-    v-if="hasEmails"
-    class="text-sm cursor-auto flex flex-col gap-2.5"
+    v-if="emails?.length && emails?.some((e) => !!e)"
+    class="text-sm cursor-auto flex flex-wrap gap-1"
   >
     <el-tooltip
-      v-for="email of slicedEmails"
+      v-for="email of emails.slice(0, 3)"
       :key="email"
       :disabled="!email"
       popper-class="custom-identity-tooltip"
@@ -17,17 +17,18 @@
             class="ri-external-link-line text-gray-400"
           /></span>
       </template>
-      <a
-        target="_blank"
-        rel="noopener noreferrer"
-        class="rounded-lg bg-white text-gray-900 hover:text-brand-500 px-2 h-6 border
-        border-gray-200 flex items-center justify-center w-fit line-clamp-1"
-        :href="`mailto:${email}`"
-        @click.stop
-      >{{ email }}</a>
+      <div @click.prevent>
+        <a
+          target="_blank"
+          rel="noopener noreferrer"
+          class="badge--interactive"
+          :href="email.link"
+          @click.stop="trackEmailClick"
+        >{{ email.handle }}</a>
+      </div>
     </el-tooltip>
     <el-popover
-      v-if="remainingEmails.length"
+      v-if="emails?.length > 3"
       placement="top"
       :width="400"
       trigger="hover"
@@ -35,12 +36,12 @@
     >
       <template #reference>
         <span
-          class="rounded-lg bg-white text-gray-500 px-2 h-6 border border-gray-200 flex items-center justify-center w-fit text-xs"
-        >+{{ pluralize('email', remainingEmails.length, true) }}</span>
+          class="badge--interactive hover:text-gray-900"
+        >+{{ emails.length - 3 }}</span>
       </template>
       <div class="flex flex-wrap gap-3 my-1">
         <el-tooltip
-          v-for="email of remainingEmails"
+          v-for="email of emails.slice(3)"
           :key="email"
           :disabled="!email"
           popper-class="custom-identity-tooltip flex "
@@ -57,10 +58,9 @@
             <a
               target="_blank"
               rel="noopener noreferrer"
-              class="rounded-lg bg-white text-gray-900 hover:text-brand-500 px-2 h-6 border
-              border-gray-200 flex items-center justify-center w-fitline-clamp-1"
+              class="badge--interactive"
               :href="`mailto:${email}`"
-              @click.stop
+              @click.stop="trackEmailClick"
             >{{ email }}</a>
           </div>
         </el-tooltip>
@@ -70,19 +70,31 @@
   <span v-else class="text-gray-500">-</span>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
+import { Member } from '@/modules/member/types/Member';
 import { computed } from 'vue';
-import pluralize from 'pluralize';
-import { Member, MemberIdentity } from '../types/Member';
+import useMemberIdentities from '@/shared/modules/identities/config/useMemberIdentities';
+import memberOrder from '@/shared/modules/identities/config/identitiesOrder/member';
 
 const props = defineProps<{
   member: Member
 }>();
 
-const emails = computed(() => (props.member.identities || []).filter((i: MemberIdentity) => i.type === 'email').map((i) => i.value));
+const emails = computed(() => useMemberIdentities({
+  member: props.member,
+  order: memberOrder.list,
+}).getEmails());
 
-const hasEmails = computed(() => emails.value.length);
+const trackEmailClick = () => {
+  window.analytics.track('Click Member Contact', {
+    channel: 'Email',
+  });
+};
 
-const slicedEmails = computed(() => emails.value.slice(0, 3));
-const remainingEmails = computed(() => emails.value.slice(3));
+</script>
+
+<script lang="ts">
+export default {
+  name: 'AppMemberListEmails',
+};
 </script>

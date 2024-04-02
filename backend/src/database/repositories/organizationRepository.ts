@@ -1,8 +1,5 @@
-import lodash, { chunk } from 'lodash'
-import { get as getLevenshteinDistance } from 'fast-levenshtein'
-import validator from 'validator'
-import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import { Error400, Error404, Error409, PageData } from '@crowd/common'
+import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import {
   addOrgIdentity,
   cleanUpOrgIdentities,
@@ -24,6 +21,7 @@ import {
   SegmentProjectNestedData,
   SyncStatus,
 } from '@crowd/types'
+import lodash, { chunk } from 'lodash'
 import Sequelize, { QueryTypes } from 'sequelize'
 import {
   captureApiChange,
@@ -31,45 +29,19 @@ import {
   organizationEditIdentitiesAction,
   organizationUpdateAction,
 } from '@crowd/audit-logs'
+import validator from 'validator'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
+import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import QueryParser from './filters/queryParser'
 import { QueryOutput } from './filters/queryTypes'
 import OrganizationSyncRemoteRepository from './organizationSyncRemoteRepository'
-import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
 import SegmentRepository from './segmentRepository'
 import { IActiveOrganizationData, IActiveOrganizationFilter } from './types/organizationTypes'
 
 const { Op } = Sequelize
-
-interface IOrganizationIdentityOpensearch {
-  string_platform: string
-  string_name: string
-}
-
-interface IOrganizationPartialAggregatesOpensearch {
-  _source: {
-    uuid_organizationId: string
-    nested_identities: {
-      string_platform: string
-      string_name: string
-    }[]
-    uuid_arr_noMergeIds: string[]
-    keyword_displayName: string
-  }
-}
-
-interface ISimilarOrganization {
-  _score: number
-  _source: {
-    uuid_organizationId: string
-    nested_identities: IOrganizationIdentityOpensearch[]
-    nested_weakIdentities: IOrganizationIdentityOpensearch[]
-    keyword_displayName: string
-  }
-}
 
 interface IOrganizationId {
   id: string
@@ -1201,316 +1173,6 @@ class OrganizationRepository {
         options.log.error('error adding organizations to merge', error)
         throw error
       }
-    }
-  }
-
-  static async *getMergeSuggestions(
-    options: IRepositoryOptions,
-  ): AsyncGenerator<IOrganizationMergeSuggestion[], void, undefined> {
-    const BATCH_SIZE = 100
-
-    const YIELD_CHUNK_SIZE = 100
-
-    let yieldChunk: IOrganizationMergeSuggestion[] = []
-
-    const prefixLength = (string: string) => {
-      if (string.length > 5 && string.length < 8) {
-        return 6
-      }
-
-      return 10
-    }
-
-    const calculateSimilarity = (
-      primaryOrganization: IOrganizationPartialAggregatesOpensearch,
-      similarOrganization: ISimilarOrganization,
-    ): number => {
-      let smallestEditDistance: number = null
-
-      let similarPrimaryIdentity: IOrganizationIdentityOpensearch = null
-
-      // find the smallest edit distance between both identity arrays
-      for (const primaryIdentity of primaryOrganization._source.nested_identities) {
-        // similar organization has a weakIdentity as one of primary organization's strong identity, return score 95
-        if (
-          similarOrganization._source.nested_weakIdentities &&
-          similarOrganization._source.nested_weakIdentities.length > 0 &&
-          similarOrganization._source.nested_weakIdentities.some(
-            (weakIdentity) =>
-              weakIdentity.string_name === primaryIdentity.string_name &&
-              weakIdentity.string_platform === primaryIdentity.string_platform,
-          )
-        ) {
-          return 0.95
-        }
-
-        // check displayName match
-        if (
-          similarOrganization._source.keyword_displayName ===
-          primaryOrganization._source.keyword_displayName
-        ) {
-          return 0.98
-        }
-
-        for (const secondaryIdentity of similarOrganization._source.nested_identities) {
-          const currentLevenstheinDistance = getLevenshteinDistance(
-            primaryIdentity.string_name,
-            secondaryIdentity.string_name,
-          )
-          if (smallestEditDistance === null || smallestEditDistance > currentLevenstheinDistance) {
-            smallestEditDistance = currentLevenstheinDistance
-            similarPrimaryIdentity = primaryIdentity
-          }
-        }
-      }
-
-      // calculate similarity percentage
-      const identityLength = similarPrimaryIdentity.string_name.length
-
-      if (identityLength < smallestEditDistance) {
-        // if levensthein distance is bigger than the word itself, it might be a prefix match, return medium similarity
-        return (Math.floor(Math.random() * 21) + 20) / 100
-      }
-
-      return Math.floor(((identityLength - smallestEditDistance) / identityLength) * 100) / 100
-    }
-
-    const tenant = SequelizeRepository.getCurrentTenant(options)
-
-    const queryBody = {
-      from: 0,
-      size: BATCH_SIZE,
-      query: {},
-      sort: {
-        [`uuid_organizationId`]: 'asc',
-      },
-      collapse: {
-        field: 'uuid_organizationId',
-      },
-      _source: [
-        'uuid_organizationId',
-        'nested_identities',
-        'uuid_arr_noMergeIds',
-        'keyword_displayName',
-      ],
-    }
-
-    let organizations: IOrganizationPartialAggregatesOpensearch[] = []
-    let lastUuid: string
-
-    do {
-      if (organizations.length > 0) {
-        queryBody.query = {
-          bool: {
-            filter: [
-              {
-                term: {
-                  uuid_tenantId: tenant.id,
-                },
-              },
-              {
-                range: {
-                  uuid_organizationId: {
-                    gt: lastUuid,
-                  },
-                },
-              },
-            ],
-          },
-        }
-      } else {
-        queryBody.query = {
-          bool: {
-            filter: [
-              {
-                term: {
-                  uuid_tenantId: tenant.id,
-                },
-              },
-            ],
-          },
-        }
-      }
-
-      organizations =
-        (
-          await options.opensearch.search({
-            index: OpenSearchIndex.ORGANIZATIONS,
-            body: queryBody,
-          })
-        ).body?.hits?.hits || []
-
-      if (organizations.length > 0) {
-        lastUuid = organizations[organizations.length - 1]._source.uuid_organizationId
-      }
-
-      for (const organization of organizations) {
-        if (
-          organization._source.nested_identities &&
-          organization._source.nested_identities.length > 0
-        ) {
-          const identitiesPartialQuery = {
-            should: [
-              {
-                term: {
-                  [`keyword_displayName`]: organization._source.keyword_displayName,
-                },
-              },
-              {
-                nested: {
-                  path: 'nested_weakIdentities',
-                  query: {
-                    bool: {
-                      should: [],
-                      boost: 1000,
-                      minimum_should_match: 1,
-                    },
-                  },
-                },
-              },
-              {
-                nested: {
-                  path: 'nested_identities',
-                  query: {
-                    bool: {
-                      should: [],
-                      boost: 1,
-                      minimum_should_match: 1,
-                    },
-                  },
-                },
-              },
-            ],
-            minimum_should_match: 1,
-            must_not: [
-              {
-                term: {
-                  uuid_organizationId: organization._source.uuid_organizationId,
-                },
-              },
-            ],
-            must: [
-              {
-                term: {
-                  uuid_tenantId: tenant.id,
-                },
-              },
-            ],
-          }
-
-          let hasFuzzySearch = false
-
-          for (const identity of organization._source.nested_identities) {
-            if (identity.string_name.length > 0) {
-              // weak identity search
-              identitiesPartialQuery.should[1].nested.query.bool.should.push({
-                bool: {
-                  must: [
-                    { match: { [`nested_weakIdentities.keyword_name`]: identity.string_name } },
-                    {
-                      match: {
-                        [`nested_weakIdentities.string_platform`]: identity.string_platform,
-                      },
-                    },
-                  ],
-                },
-              })
-
-              // some identities have https? in the beginning, resulting in false positive suggestions
-              // remove these when making fuzzy, wildcard and prefix searches
-              const cleanedIdentityName = identity.string_name.replace(/^https?:\/\//, '')
-
-              // only do fuzzy/wildcard/partial search when identity name is not all numbers (like linkedin organization profiles)
-              if (Number.isNaN(Number(identity.string_name))) {
-                hasFuzzySearch = true
-                // fuzzy search for identities
-                identitiesPartialQuery.should[2].nested.query.bool.should.push({
-                  match: {
-                    [`nested_identities.keyword_name`]: {
-                      query: cleanedIdentityName,
-                      prefix_length: 1,
-                      fuzziness: 'auto',
-                    },
-                  },
-                })
-
-                // also check for prefix for identities that has more than 5 characters and no whitespace
-                if (identity.string_name.length > 5 && identity.string_name.indexOf(' ') === -1) {
-                  identitiesPartialQuery.should[2].nested.query.bool.should.push({
-                    prefix: {
-                      [`nested_identities.keyword_name`]: {
-                        value: cleanedIdentityName.slice(0, prefixLength(cleanedIdentityName)),
-                      },
-                    },
-                  })
-                }
-              }
-            }
-          }
-
-          // check if we have any actual identity searches, if not remove it from the query
-          if (!hasFuzzySearch) {
-            identitiesPartialQuery.should.pop()
-          }
-
-          const noMergeIds = await OrganizationRepository.findNoMergeIds(
-            organization._source.uuid_organizationId,
-            options,
-          )
-
-          if (noMergeIds && noMergeIds.length > 0) {
-            for (const noMergeId of noMergeIds) {
-              identitiesPartialQuery.must_not.push({
-                term: {
-                  uuid_organizationId: noMergeId,
-                },
-              })
-            }
-          }
-
-          const sameOrganizationsQueryBody = {
-            query: {
-              bool: identitiesPartialQuery,
-            },
-            collapse: {
-              field: 'uuid_organizationId',
-            },
-            _source: [
-              'uuid_organizationId',
-              'nested_identities',
-              'nested_weakIdentities',
-              'keyword_displayName',
-            ],
-          }
-
-          const organizationsToMerge: ISimilarOrganization[] =
-            (
-              await options.opensearch.search({
-                index: OpenSearchIndex.ORGANIZATIONS,
-                body: sameOrganizationsQueryBody,
-              })
-            ).body?.hits?.hits || []
-
-          for (const organizationToMerge of organizationsToMerge) {
-            yieldChunk.push({
-              similarity: calculateSimilarity(organization, organizationToMerge),
-              organizations: [
-                organization._source.uuid_organizationId,
-                organizationToMerge._source.uuid_organizationId,
-              ],
-            })
-          }
-
-          if (yieldChunk.length >= YIELD_CHUNK_SIZE) {
-            yield yieldChunk
-            yieldChunk = []
-          }
-        }
-      }
-    } while (organizations.length > 0)
-
-    if (yieldChunk.length > 0) {
-      yield yieldChunk
     }
   }
 

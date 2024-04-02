@@ -1,4 +1,4 @@
-import { PlatformType } from '@crowd/types'
+import { MemberIdentityType, PlatformType } from '@crowd/types'
 import { State } from './regularTypes'
 
 export type IntegrationsMessage = {
@@ -48,7 +48,8 @@ export interface SlackIntegrationMessage extends IntegrationsMessage {
 export interface GithubIntegrationMessage extends IntegrationsMessage {}
 
 export interface MemberIdentity {
-  username: string
+  value: string
+  type: MemberIdentityType
   integrationId: string
   sourceId?: string
 }

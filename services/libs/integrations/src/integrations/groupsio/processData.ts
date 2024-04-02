@@ -10,7 +10,7 @@ import {
   GroupsioMemberLeftData,
   GroupsioActivityType,
 } from './types'
-import { IActivityData, IMemberData, PlatformType } from '@crowd/types'
+import { IActivityData, IMemberData, MemberIdentityType, PlatformType } from '@crowd/types'
 import sanitizeHtml from 'sanitize-html'
 
 const processMemberJoin: ProcessDataHandler = async (ctx) => {
@@ -20,12 +20,20 @@ const processMemberJoin: ProcessDataHandler = async (ctx) => {
 
   const member: IMemberData = {
     displayName: memberData.full_name,
-    emails: [memberData.email],
     identities: [
       {
         sourceId: memberData.user_id.toString(),
         platform: PlatformType.GROUPSIO,
-        username: memberData.email,
+        value: memberData.email,
+        type: MemberIdentityType.USERNAME,
+        verified: true,
+      },
+      {
+        sourceId: memberData.user_id.toString(),
+        platform: PlatformType.GROUPSIO,
+        value: memberData.email,
+        type: MemberIdentityType.EMAIL,
+        verified: true,
       },
     ],
   }
@@ -53,12 +61,20 @@ const processMessage: ProcessDataHandler = async (ctx) => {
 
   const member: IMemberData = {
     displayName: memberData.full_name,
-    emails: [memberData.email],
     identities: [
       {
         sourceId: memberData.user_id.toString(),
         platform: PlatformType.GROUPSIO,
-        username: memberData.email,
+        value: memberData.email,
+        type: MemberIdentityType.USERNAME,
+        verified: true,
+      },
+      {
+        sourceId: memberData.user_id.toString(),
+        platform: PlatformType.GROUPSIO,
+        value: memberData.email,
+        type: MemberIdentityType.EMAIL,
+        verified: true,
       },
     ],
   }
@@ -88,12 +104,20 @@ const processMemberLeft: ProcessDataHandler = async (ctx) => {
 
   const member: IMemberData = {
     displayName: memberData.full_name,
-    emails: [memberData.email],
     identities: [
       {
         sourceId: memberData.user_id.toString(),
         platform: PlatformType.GROUPSIO,
-        username: memberData.email,
+        value: memberData.email,
+        type: MemberIdentityType.USERNAME,
+        verified: true,
+      },
+      {
+        sourceId: memberData.user_id.toString(),
+        platform: PlatformType.GROUPSIO,
+        value: memberData.email,
+        type: MemberIdentityType.EMAIL,
+        verified: true,
       },
     ],
   }

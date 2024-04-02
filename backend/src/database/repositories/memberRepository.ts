@@ -1,25 +1,25 @@
 import {
-  ALL_PLATFORM_TYPES,
   ActivityDisplayVariant,
-  MemberAttributeType,
-  OpenSearchIndex,
-  PlatformType,
-  SyncStatus,
-  OrganizationSource,
   FeatureFlag,
+  IMemberIdentity,
+  IMemberOrganization,
+  IMemberUsername,
+  MemberAttributeType,
+  MemberIdentityType,
+  OpenSearchIndex,
+  OrganizationSource,
   PageData,
+  PlatformType,
   SegmentData,
   SegmentProjectGroupNestedData,
   SegmentProjectNestedData,
-  IMemberOrganization,
-  IMemberUsername,
+  SyncStatus,
 } from '@crowd/types'
 import lodash, { chunk } from 'lodash'
 import moment from 'moment'
 import Sequelize, { QueryTypes } from 'sequelize'
 
-import { Error400, Error404, dateEqualityChecker } from '@crowd/common'
-import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
+import { Error400, Error404, dateEqualityChecker, distinct } from '@crowd/common'
 import { ActivityDisplayService } from '@crowd/integrations'
 import {
   captureApiChange,
@@ -30,9 +30,11 @@ import {
 import {
   createMemberIdentity,
   deleteMemberIdentities,
+  updateVerifiedFlag,
   deleteMemberIdentitiesByCombinations,
   moveToNewMember,
 } from '@crowd/data-access-layer/src/member_identities'
+import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import { KUBE_MODE, SERVICE } from '@/conf'
 import { ServiceType } from '../../conf/configTypes'
 import isFeatureEnabled from '../../feature-flags/isFeatureEnabled'
@@ -46,22 +48,20 @@ import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import AuditLogRepository from './auditLogRepository'
 import QueryParser from './filters/queryParser'
-import { JsonColumnInfo, QueryOutput } from './filters/queryTypes'
-import RawQueryParser from './filters/rawQueryParser'
+import { QueryOutput } from './filters/queryTypes'
+import MemberAttributeSettingsRepository from './memberAttributeSettingsRepository'
 import MemberSegmentAffiliationRepository from './memberSegmentAffiliationRepository'
+import MemberSyncRemoteRepository from './memberSyncRemoteRepository'
+import OrganizationRepository from './organizationRepository'
 import SegmentRepository from './segmentRepository'
 import SequelizeRepository from './sequelizeRepository'
 import TenantRepository from './tenantRepository'
 import {
   IActiveMemberData,
   IActiveMemberFilter,
-  IMemberIdentity,
   IMemberMergeSuggestion,
   mapUsernameToIdentities,
 } from './types/memberTypes'
-import OrganizationRepository from './organizationRepository'
-import MemberSyncRemoteRepository from './memberSyncRemoteRepository'
-import MemberAttributeSettingsRepository from './memberAttributeSettingsRepository'
 
 const { Op } = Sequelize
 
@@ -80,16 +80,9 @@ interface ActivityAggregates {
 
 class MemberRepository {
   static async create(data, options: IRepositoryOptions, doPopulateRelations = true) {
-    if (!data.username) {
+    if (!data.username && !data.identities) {
       throw new Error('Username not set when creating member!')
     }
-
-    const platforms = Object.keys(data.username) as PlatformType[]
-    if (platforms.length === 0) {
-      throw new Error('Username object does not have any platforms!')
-    }
-
-    data.username = mapUsernameToIdentities(data.username)
 
     const currentUser = SequelizeRepository.getCurrentUser(options)
 
@@ -127,20 +120,37 @@ class MemberRepository {
       }),
     )
 
-    const username: PlatformIdentities = data.username
-
     const qx = SequelizeRepository.getQueryExecutor(options, transaction)
 
-    for (const platform of Object.keys(username) as PlatformType[]) {
-      const identities: any[] = username[platform]
-      for (const identity of identities) {
+    if (data.username) {
+      const username: PlatformIdentities = data.username
+
+      for (const platform of Object.keys(username) as PlatformType[]) {
+        const identities: any[] = username[platform]
+        for (const identity of identities) {
+          await createMemberIdentity(qx, {
+            memberId: record.id,
+            platform,
+            value: identity.value ? identity.value : identity.username,
+            type: identity.type ? identity.type : MemberIdentityType.USERNAME,
+            verified: true,
+            sourceId: identity.sourceId || null,
+            integrationId: identity.integrationId || null,
+            tenantId: tenant.id,
+          })
+        }
+      }
+    } else if (data.identities) {
+      for (const i of data.identities as IMemberIdentity[]) {
         await createMemberIdentity(qx, {
           memberId: record.id,
-          platform,
-          username: identity.username,
-          sourceId: identity.sourceId || null,
-          integrationId: identity.integrationId || null,
           tenantId: tenant.id,
+          platform: i.platform,
+          type: i.type,
+          value: i.value,
+          sourceId: i.sourceId || null,
+          integrationId: i.integrationId || null,
+          verified: i.verified,
         })
       }
     }
@@ -340,7 +350,8 @@ class MemberRepository {
   static async moveIdentitiesBetweenMembers(
     fromMemberId: string,
     toMemberId: string,
-    identitiesToMove: any[],
+    identitiesToMove: IMemberIdentity[],
+    identitiesToUpdate: IMemberIdentity[],
     options: IRepositoryOptions,
   ): Promise<void> {
     const transaction = SequelizeRepository.getTransaction(options)
@@ -348,18 +359,41 @@ class MemberRepository {
 
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
-    for (const identity of identitiesToMove) {
+    for (const i of identitiesToMove) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { rowCount } = await moveToNewMember(qx, {
         tenantId: tenant.id,
         oldMemberId: fromMemberId,
         newMemberId: toMemberId,
-        platform: identity.platform,
-        username: identity.username,
+        platform: i.platform,
+        value: i.value,
+        type: i.type,
       })
 
       if (rowCount !== 1) {
         throw new Error('One row should be updated!')
+      }
+    }
+
+    if (identitiesToUpdate.length > 0) {
+      for (const i of identitiesToUpdate) {
+        // first we remove them from the old member (we can't update and delete at the same time because of a unique index where only one identity can have a verified type:value combination for a tenant, member and platform)
+        await deleteMemberIdentities(qx, {
+          memberId: fromMemberId,
+          platform: i.platform,
+          value: i.value,
+          type: i.type,
+        })
+
+        // then we update verified flag for the identities in the new member
+        await updateVerifiedFlag(qx, {
+          memberId: toMemberId,
+          tenantId: tenant.id,
+          platform: i.platform,
+          value: i.value,
+          type: i.type,
+          verified: true,
+        })
       }
     }
   }
@@ -502,7 +536,8 @@ class MemberRepository {
     from "memberIdentities" mi
     where mi."tenantId" = :tenantId and
           mi.platform = :platform and
-          mi.username in (:usernames) and
+          mi.type = :type and
+          mi.value in (:usernames) and
           exists (select 1 from "memberSegments" ms where ms."memberId" = mi."memberId")
   `,
       {
@@ -511,6 +546,7 @@ class MemberRepository {
           tenantId: currentTenant.id,
           platform,
           usernames,
+          type: MemberIdentityType.USERNAME,
         },
         transaction,
       },
@@ -543,11 +579,11 @@ class MemberRepository {
                                   array_agg(username) as usernames
                             from (select "memberId",
                                         platform,
-                                        username,
+                                        value as username,
                                         "createdAt",
                                         row_number() over (partition by "memberId", platform order by "createdAt" desc) =
                                         1 as is_latest
-                                  from "memberIdentities" where "memberId" = :memberId) sub
+                                  from "memberIdentities" where "memberId" = :memberId and type = '${MemberIdentityType.USERNAME}') sub
                             group by "memberId", platform) mi
                       group by mi."memberId"),
         member_organizations as (
@@ -663,7 +699,6 @@ class MemberRepository {
     'ultimateParent',
     'immediateParent',
     'attributes',
-    'weakIdentities',
   ]
 
   static isEqual = {
@@ -850,13 +885,53 @@ class MemberRepository {
 
     const qx = SequelizeRepository.getQueryExecutor(options, transaction)
 
+    if (data.identitiesToCreate && data.identitiesToCreate.length > 0) {
+      for (const i of data.identitiesToCreate) {
+        await createMemberIdentity(qx, {
+          memberId: record.id,
+          platform: i.platform,
+          value: i.value,
+          type: i.type ? i.type : MemberIdentityType.USERNAME,
+          sourceId: i.sourceId || null,
+          integrationId: i.integrationId || null,
+          tenantId: currentTenant.id,
+          verified: i.verified !== undefined ? i.verified : !!manualChange,
+        })
+      }
+    }
+
+    if (data.identitiesToUpdate && data.identitiesToUpdate.length > 0) {
+      for (const i of data.identitiesToUpdate) {
+        await updateVerifiedFlag(qx, {
+          memberId: record.id,
+          platform: i.platform,
+          value: i.value,
+          type: i.type ? i.type : MemberIdentityType.USERNAME,
+          tenantId: currentTenant.id,
+          verified: i.verified !== undefined ? i.verified : !!manualChange,
+        })
+      }
+    }
+
+    if (data.identitiesToDelete && data.identitiesToDelete.length > 0) {
+      for (const i of data.identitiesToDelete) {
+        await deleteMemberIdentities(qx, {
+          memberId: record.id,
+          platform: i.platform,
+          value: i.value,
+          type: i.type ? i.type : MemberIdentityType.USERNAME,
+        })
+      }
+    }
+
     if (data.username) {
       data.username = mapUsernameToIdentities(data.username)
 
       const platforms = Object.keys(data.username) as PlatformType[]
       if (platforms.length > 0) {
         const platformsToDelete: string[] = []
-        const usernamesToDelete: string[] = []
+        const valuesToDelete: string[] = []
+        const typesToDelete: MemberIdentityType[] = []
 
         for (const platform of platforms) {
           const identities = data.username[platform]
@@ -864,15 +939,26 @@ class MemberRepository {
           for (const identity of identities) {
             if (identity.delete) {
               platformsToDelete.push(identity.platform)
-              usernamesToDelete.push(identity.username)
-            } else if (identity.username && identity.username !== '') {
+              if (identity.value) {
+                valuesToDelete.push(identity.value)
+                typesToDelete.push(identity.type)
+              } else {
+                valuesToDelete.push(identity.username)
+                typesToDelete.push(MemberIdentityType.USERNAME)
+              }
+            } else if (
+              (identity.username && identity.username !== '') ||
+              (identity.value && identity.value !== '')
+            ) {
               await createMemberIdentity(qx, {
                 memberId: record.id,
                 platform,
-                username: identity.username,
+                value: identity.value ? identity.value : identity.username,
+                type: identity.type ? identity.type : MemberIdentityType.USERNAME,
                 sourceId: identity.sourceId || null,
                 integrationId: identity.integrationId || null,
                 tenantId: currentTenant.id,
+                verified: identity.verified !== undefined ? identity.verified : !!manualChange,
               })
             }
           }
@@ -882,8 +968,9 @@ class MemberRepository {
           await deleteMemberIdentitiesByCombinations(qx, {
             tenantId: currentTenant.id,
             memberId: record.id,
-            platforms: `{${platformsToDelete.join(',')}}`,
-            usernames: `{${usernamesToDelete.join(',')}}`,
+            platforms: platformsToDelete,
+            values: valuesToDelete,
+            types: typesToDelete,
           })
         }
       }
@@ -1114,7 +1201,18 @@ class MemberRepository {
     const seq = SequelizeRepository.getSequelize(options)
 
     const query = `
-      select "memberId", platform, username, "sourceId", "integrationId", "createdAt" from "memberIdentities" where "memberId" in (:memberIds)
+      select "memberId",
+             platform,
+             value,
+             type,
+             verified,
+             "sourceId",
+             "tenantId",
+             "integrationId",
+             "createdAt",
+             "updatedAt"
+      from "memberIdentities" 
+      where "memberId" in (:memberIds)
       order by "createdAt" asc;
     `
 
@@ -1131,41 +1229,21 @@ class MemberRepository {
     }
 
     for (const res of data as any[]) {
-      const { memberId, platform, username, sourceId, integrationId, createdAt } = res
+      const { memberId, platform, value, type, sourceId, integrationId, createdAt, verified } = res
       const identities = results.get(memberId)
 
       identities.push({
         platform,
-        username,
+        value,
+        type,
         sourceId,
         integrationId,
         createdAt,
+        verified,
       })
     }
 
     return results
-  }
-
-  static async getRawMemberIdentities(memberId: string, options: IRepositoryOptions) {
-    const seq = SequelizeRepository.getSequelize(options)
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    const memberIdentities = (await seq.query(
-      `
-        SELECT *
-        FROM "memberIdentities"
-        WHERE "memberId" = :memberId;
-      `,
-      {
-        replacements: {
-          memberId,
-        },
-        type: QueryTypes.SELECT,
-        transaction,
-      },
-    )) as IMemberIdentity[]
-
-    return memberIdentities
   }
 
   static async getActivityCountOfMembersIdentities(
@@ -1183,7 +1261,7 @@ class MemberRepository {
     let query = `
     SELECT count(*) as count
         FROM "mv_activities_cube"
-        WHERE "memberId" = :memberId AND (`
+        WHERE "memberId" = :memberId`
 
     const replacements = {
       memberId,
@@ -1191,19 +1269,24 @@ class MemberRepository {
 
     const replacementKey = (key: string, index: number) => `${key}${index}`
 
-    for (let i = 0; i < identities.length; i++) {
-      query += `(platform = :${replacementKey('platform', i)} and username = :${replacementKey(
-        'username',
-        i,
-      )}) `
-      if (i !== identities.length - 1) {
-        query += ' OR '
-      } else {
-        query += ')'
-      }
+    const conditions: string[] = []
 
-      replacements[replacementKey('platform', i)] = identities[i].platform
-      replacements[replacementKey('username', i)] = identities[i].username
+    for (
+      let i = 0;
+      i < identities.filter((i) => i.type === MemberIdentityType.USERNAME).length;
+      i++
+    ) {
+      const platformKey = replacementKey('platform', i)
+      const usernameKey = replacementKey('username', i)
+
+      conditions.push(`(platform = :${platformKey} and username = :${usernameKey})`)
+
+      replacements[platformKey] = identities[i].platform
+      replacements[usernameKey] = identities[i].value
+    }
+
+    if (conditions.length > 0) {
+      query = `${query} and (${conditions.join(' or ')})`
     }
 
     const result = await seq.query(query, {
@@ -1222,6 +1305,7 @@ class MemberRepository {
     doPopulateRelations = true,
     ignoreTenant = false,
     segmentId?: string,
+    newIdentities?: boolean,
   ) {
     const transaction = SequelizeRepository.getTransaction(options)
 
@@ -1267,7 +1351,7 @@ class MemberRepository {
     }
 
     if (doPopulateRelations) {
-      return this._populateRelations(record, options, returnPlain, segmentId)
+      return this._populateRelations(record, options, returnPlain, segmentId, newIdentities)
     }
     const data = record.get({ plain: returnPlain })
 
@@ -1284,11 +1368,11 @@ class MemberRepository {
 
   static getUsernameFromIdentities(identities: IMemberIdentity[]): IMemberUsername {
     const username = {}
-    for (const identity of identities) {
+    for (const identity of identities.filter((i) => i.type === MemberIdentityType.USERNAME)) {
       if (username[identity.platform]) {
-        username[identity.platform].push(identity.username)
+        username[identity.platform].push(identity.value)
       } else {
-        username[identity.platform] = [identity.username]
+        username[identity.platform] = [identity.value]
       }
     }
 
@@ -1720,186 +1804,6 @@ class MemberRepository {
     }
   }
 
-  static async findAndCountActive(
-    filter: IActiveMemberFilter,
-    limit: number,
-    offset: number,
-    orderBy: string,
-    options: IRepositoryOptions,
-  ): Promise<PageData<IActiveMemberData>> {
-    const tenant = SequelizeRepository.getCurrentTenant(options)
-    const segmentIds = SequelizeRepository.getSegmentIds(options)
-
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    const seq = SequelizeRepository.getSequelize(options)
-
-    const conditions = ['m."tenantId" = :tenantId', 'ms."segmentId" in (:segmentIds)']
-    const parameters: any = {
-      tenantId: tenant.id,
-      segmentIds,
-      periodStart: filter.activityTimestampFrom,
-      periodEnd: filter.activityTimestampTo,
-    }
-
-    if (filter.isTeamMember === true) {
-      conditions.push("COALESCE((m.attributes->'isTeamMember'->'default')::boolean, false) = true")
-    } else if (filter.isTeamMember === false) {
-      conditions.push("COALESCE((m.attributes->'isTeamMember'->'default')::boolean, false) = false")
-    }
-
-    if (filter.isBot === true) {
-      conditions.push("COALESCE((m.attributes->'isBot'->'default')::boolean, false) = true")
-    } else if (filter.isBot === false) {
-      conditions.push("COALESCE((m.attributes->'isBot'->'default')::boolean, false) = false")
-    }
-
-    if (filter.isOrganization === true) {
-      conditions.push(
-        "COALESCE((m.attributes->'isOrganization'->'default')::boolean, false) = true",
-      )
-    } else if (filter.isOrganization === false) {
-      conditions.push(
-        "COALESCE((m.attributes->'isOrganization'->'default')::boolean, false) = false",
-      )
-    }
-
-    const activityConditions = ['1=1']
-
-    if (filter.platforms && filter.platforms.length > 0) {
-      activityConditions.push('platform in (:platforms)')
-      parameters.platforms = filter.platforms
-    }
-
-    if (filter.activityIsContribution) {
-      activityConditions.push('"isContribution" = (:isContribution)')
-      parameters.isContribution = filter.activityIsContribution
-    }
-
-    const conditionsString = conditions.join(' and ')
-    const activityConditionsString = activityConditions.join(' and ')
-
-    const direction = orderBy.split('_')[1].toLowerCase() === 'desc' ? 'desc' : 'asc'
-    let orderString: string
-    if (orderBy.startsWith('activityCount')) {
-      orderString = `ad."activityCount" ${direction}`
-    } else if (orderBy.startsWith('activeDaysCount')) {
-      orderString = `ad."activeDaysCount" ${direction}`
-    } else {
-      throw new Error(`Invalid order by: ${orderBy}`)
-    }
-
-    const limitCondition = `limit ${limit} offset ${offset}`
-    const query = `
-        WITH
-            orgs AS (
-                SELECT mo."memberId", JSON_AGG(ROW_TO_JSON(o.*)) AS organizations
-                FROM "memberOrganizations" mo
-                INNER JOIN organizations o ON mo."organizationId" = o.id
-                WHERE mo."deletedAt" IS NULL
-                GROUP BY mo."memberId"
-            ),
-            activity_data AS (
-                SELECT
-                    "memberId",
-                    COUNT(id) AS "activityCount",
-                    COUNT(DISTINCT timestamp::DATE) AS "activeDaysCount"
-                FROM activities
-                WHERE ${activityConditionsString}
-                  AND timestamp >= :periodStart
-                  AND timestamp < :periodEnd
-                GROUP BY "memberId"
-            ),
-            identities AS (
-                SELECT
-                    mi."memberId",
-                    ARRAY_AGG(DISTINCT mi.platform) AS identities,
-                    JSONB_OBJECT_AGG(mi.platform, mi.usernames) AS username
-                FROM (
-                    SELECT
-                        "memberId",
-                        platform,
-                        ARRAY_AGG(username) AS usernames
-                    FROM (
-                        SELECT
-                            "memberId",
-                            platform,
-                            username,
-                            "createdAt",
-                            ROW_NUMBER() OVER (PARTITION BY "memberId", platform ORDER BY "createdAt" DESC) =
-                            1 AS is_latest
-                        FROM "memberIdentities"
-                        WHERE "tenantId" = :tenantId
-                    ) sub
-                    WHERE is_latest
-                    GROUP BY "memberId", platform
-                ) mi
-                GROUP BY mi."memberId"
-            )
-        SELECT
-            m.id,
-            m."displayName",
-            i.username,
-            i.identities,
-            m.attributes,
-            ad."activityCount",
-            ad."activeDaysCount",
-            m."joinedAt",
-            COALESCE(o.organizations, JSON_BUILD_ARRAY()) AS organizations,
-            COUNT(*) OVER () AS "totalCount"
-        FROM members m
-        INNER JOIN activity_data ad ON ad."memberId" = m.id
-        INNER JOIN identities i ON i."memberId" = m.id
-        LEFT JOIN orgs o ON o."memberId" = m.id
-        JOIN "memberSegments" ms ON ms."memberId" = m.id
-        WHERE ${conditionsString}
-        ORDER BY ${orderString}
-                     ${limitCondition};
-    `
-
-    options.log.debug(
-      { query, filter, orderBy, limit, offset, test: orderBy.split('_')[1].toLowerCase() },
-      'Active members query!',
-    )
-
-    const results = await seq.query(query, {
-      replacements: parameters,
-      type: QueryTypes.SELECT,
-      transaction,
-    })
-
-    if (results.length === 0) {
-      return {
-        rows: [],
-        count: 0,
-        offset,
-        limit,
-      }
-    }
-
-    const count = parseInt((results[0] as any).totalCount, 10)
-    const rows: IActiveMemberData[] = results.map((r) => {
-      const row = r as any
-      return {
-        id: row.id,
-        displayName: row.displayName,
-        username: row.username,
-        attributes: row.attributes,
-        organizations: row.organizations,
-        activityCount: parseInt(row.activityCount, 10),
-        activeDaysCount: parseInt(row.activeDaysCount, 10),
-        joinedAt: row.joinedAt,
-      }
-    })
-
-    return {
-      rows,
-      count,
-      offset,
-      limit,
-    }
-  }
-
   public static MEMBER_QUERY_FILTER_COLUMN_MAP: Map<string, string> = new Map([
     ['isOrganization', "coalesce((m.attributes -> 'isOrganization' -> 'default')::boolean, false)"],
     ['isTeamMember', "coalesce((m.attributes -> 'isTeamMember' -> 'default')::boolean, false)"],
@@ -1923,7 +1827,6 @@ class MemberRepository {
     ['importHash', 'm."importHash"'],
     ['createdAt', 'm."createdAt"'],
     ['updatedAt', 'm."updatedAt"'],
-    ['emails', 'm.emails'],
   ])
 
   static async countMembersPerSegment(options: IRepositoryOptions, segmentIds: string[]) {
@@ -1999,306 +1902,6 @@ class MemberRepository {
       },
       type: QueryTypes.SELECT,
     })
-  }
-
-  static async findAndCountAllv2(
-    {
-      filter = {} as any,
-      limit = 20,
-      offset = 0,
-      orderBy = 'joinedAt_DESC',
-      countOnly = false,
-      attributesSettings = [] as AttributeData[],
-    },
-    options: IRepositoryOptions,
-  ): Promise<PageData<any>> {
-    const tenant = SequelizeRepository.getCurrentTenant(options)
-    const segmentIds = SequelizeRepository.getSegmentIds(options)
-    const seq = SequelizeRepository.getSequelize(options)
-
-    const params: any = {
-      tenantId: tenant.id,
-      segmentIds,
-      limit,
-      offset,
-    }
-
-    let orderByString = ''
-    const orderByParts = orderBy.split('_')
-    const direction = orderByParts[1].toLowerCase()
-    switch (orderByParts[0]) {
-      case 'joinedAt':
-        orderByString = 'm."joinedAt"'
-        break
-      case 'displayName':
-        orderByString = 'm."displayName"'
-        break
-      case 'reach':
-        orderByString = "(m.reach ->> 'total')::int"
-        break
-      case 'score':
-        orderByString = 'm.score'
-        break
-      case 'lastActive':
-        orderByString = 'aggs."lastActive"'
-        break
-      case 'averageSentiment':
-        orderByString = 'aggs."averageSentiment"'
-        break
-      case 'activeDaysCount':
-        orderByString = 'aggs."activeDaysCount"'
-        break
-      case 'activityCount':
-        orderByString = 'aggs."activityCount"'
-        break
-      case 'numberOfOpenSourceContributions':
-        orderByString = '"numberOfOpenSourceContributions"'
-        break
-
-      default:
-        throw new Error(`Invalid order by: ${orderBy}!`)
-    }
-    orderByString = `${orderByString} ${direction}`
-
-    const jsonColumnInfos: JsonColumnInfo[] = [
-      {
-        property: 'attributes',
-        column: 'm.attributes',
-        attributeInfos: attributesSettings,
-      },
-      {
-        property: 'username',
-        column: 'aggs.username',
-        attributeInfos: ALL_PLATFORM_TYPES.map((p) => ({
-          name: p,
-          type: MemberAttributeType.STRING,
-        })),
-      },
-      {
-        property: 'tags',
-        column: 'mt.all_ids',
-        attributeInfos: [],
-      },
-      {
-        property: 'organizations',
-        column: 'mo.all_ids',
-        attributeInfos: [],
-      },
-    ]
-
-    let filterString = RawQueryParser.parseFilters(
-      filter,
-      MemberRepository.MEMBER_QUERY_FILTER_COLUMN_MAP,
-      jsonColumnInfos,
-      params,
-    )
-    if (filterString.trim().length === 0) {
-      filterString = '1=1'
-    }
-
-    const query = `
-        WITH
-            to_merge_data AS (
-                SELECT mtm."memberId", STRING_AGG(DISTINCT mtm."toMergeId"::TEXT, ',') AS to_merge_ids
-                FROM "memberToMerge" mtm
-                INNER JOIN members m ON mtm."memberId" = m.id
-                INNER JOIN members m2 ON mtm."toMergeId" = m2.id
-                JOIN "memberSegments" ms ON m.id = ms."memberId"
-                JOIN "memberSegments" ms2 ON m2.id = ms2."memberId"
-                WHERE m."tenantId" = :tenantId
-                  AND m2."deletedAt" IS NULL
-                  AND ms."segmentId" IN (:segmentIds)
-                  AND ms2."segmentId" IN (:segmentIds)
-                GROUP BY mtm."memberId"
-            ),
-            no_merge_data AS (
-                SELECT mnm."memberId", STRING_AGG(DISTINCT mnm."noMergeId"::TEXT, ',') AS no_merge_ids
-                FROM "memberNoMerge" mnm
-                INNER JOIN members m ON mnm."memberId" = m.id
-                INNER JOIN members m2 ON mnm."noMergeId" = m2.id
-                JOIN "memberSegments" ms ON m.id = ms."memberId"
-                JOIN "memberSegments" ms2 ON m2.id = ms2."memberId"
-                WHERE m."tenantId" = :tenantId
-                  AND m2."deletedAt" IS NULL
-                  AND ms."segmentId" IN (:segmentIds)
-                  AND ms2."segmentId" IN (:segmentIds)
-                GROUP BY mnm."memberId"
-            ),
-            member_tags AS (
-                SELECT
-                    mt."memberId",
-                    JSON_AGG(
-                            DISTINCT JSONB_BUILD_OBJECT(
-                                    'id', t.id,
-                                    'name', t.name
-                                )
-                        ) AS all_tags,
-                    JSONB_AGG(t.id) AS all_ids
-                FROM "memberTags" mt
-                INNER JOIN members m ON mt."memberId" = m.id
-                JOIN "memberSegments" ms ON ms."memberId" = m.id
-                INNER JOIN tags t ON mt."tagId" = t.id
-                WHERE m."tenantId" = :tenantId
-                  AND m."deletedAt" IS NULL
-                  AND ms."segmentId" IN (:segmentIds)
-                  AND t."tenantId" = :tenantId
-                  AND t."deletedAt" IS NULL
-                GROUP BY mt."memberId"
-            ),
-            member_organizations AS (
-                SELECT
-                    mo."memberId",
-                    JSON_AGG(
-                            ROW_TO_JSON(o.*)
-                        ) AS all_organizations,
-                    JSONB_AGG(o.id) AS all_ids
-                FROM "memberOrganizations" mo
-                INNER JOIN members m ON mo."memberId" = m.id
-                INNER JOIN organizations o ON mo."organizationId" = o.id
-                JOIN "memberSegments" ms ON ms."memberId" = m.id
-                JOIN "organizationSegments" os ON o.id = os."organizationId"
-                WHERE m."tenantId" = :tenantId
-                  AND m."deletedAt" IS NULL
-                  AND ms."segmentId" IN (:segmentIds)
-                  AND o."tenantId" = :tenantId
-                  AND o."deletedAt" IS NULL
-                  AND os."segmentId" IN (:segmentIds)
-                  AND ms."segmentId" = os."segmentId"
-                  AND mo."deletedAt" IS NULL
-                GROUP BY mo."memberId"
-            ),
-            aggs AS (
-                SELECT
-                    id,
-                    MAX("lastActive") AS "lastActive",
-                    ARRAY(SELECT DISTINCT UNNEST(ARRAY_AGG(identities))) AS identities,
-                    jsonb_merge_agg(username) AS username,
-                    SUM("activityCount") AS "activityCount",
-                    ARRAY(SELECT DISTINCT UNNEST(array_accum("activityTypes"))) AS "activityTypes",
-                    ARRAY(SELECT DISTINCT UNNEST(array_accum("activeOn"))) AS "activeOn",
-                    SUM("activeDaysCount") AS "activeDaysCount",
-                    ROUND(SUM("averageSentiment" * "activityCount") / SUM("activityCount"), 2) AS "averageSentiment",
-                    ARRAY_AGG(DISTINCT "segmentId") AS "segmentIds"
-                FROM "memberActivityAggregatesMVs"
-                WHERE "segmentId" IN (:segmentIds)
-                GROUP BY id
-            )
-        SELECT
-            m.id,
-            m."displayName",
-            m.attributes,
-            m.emails,
-            m."tenantId",
-            m.score,
-            m."lastEnriched",
-            m.contributions,
-            m."joinedAt",
-            m."importHash",
-            m."createdAt",
-            m."updatedAt",
-            m.reach,
-            tmd.to_merge_ids AS "toMergeIds",
-            nmd.no_merge_ids AS "noMergeIds",
-            aggs.username,
-            aggs.identities,
-            aggs."activeOn",
-            aggs."activityCount",
-            aggs."activityTypes",
-            aggs."activeDaysCount",
-            aggs."lastActive",
-            aggs."averageSentiment",
-            aggs."segmentIds",
-            COALESCE(mt.all_tags, JSON_BUILD_ARRAY()) AS tags,
-            COALESCE(mo.all_organizations, JSON_BUILD_ARRAY()) AS organizations,
-            COALESCE(JSONB_ARRAY_LENGTH(m.contributions), 0) AS "numberOfOpenSourceContributions"
-        FROM members m
-        INNER JOIN aggs ON aggs.id = m.id
-        LEFT JOIN to_merge_data tmd ON m.id = tmd."memberId"
-        LEFT JOIN no_merge_data nmd ON m.id = nmd."memberId"
-        LEFT JOIN member_tags mt ON m.id = mt."memberId"
-        LEFT JOIN member_organizations mo ON m.id = mo."memberId"
-        WHERE m."deletedAt" IS NULL
-          AND m."tenantId" = :tenantId
-          AND ${filterString}
-        ORDER BY ${orderByString}
-        LIMIT :limit OFFSET :offset;
-    `
-
-    const sumMemberCount = (countResults) =>
-      countResults.map((row) => parseInt(row.totalCount, 10)).reduce((a, b) => a + b, 0)
-
-    if (countOnly) {
-      const countResults = await MemberRepository.countMembers(
-        options,
-        segmentIds,
-        filterString,
-        params,
-      )
-      const count = sumMemberCount(countResults)
-
-      return {
-        rows: [],
-        count,
-        limit,
-        offset,
-      }
-    }
-
-    const [results, countResults] = await Promise.all([
-      seq.query(query, {
-        replacements: params,
-        type: QueryTypes.SELECT,
-      }),
-      MemberRepository.countMembers(options, segmentIds, filterString, params),
-    ])
-
-    const memberIds = results.map((r) => (r as any).id)
-    if (memberIds.length > 0) {
-      const lastActivities = await seq.query(
-        `
-            WITH
-                raw_data AS (
-                    SELECT *, ROW_NUMBER() OVER (PARTITION BY "memberId" ORDER BY timestamp DESC) AS rn
-                    FROM activities
-                    WHERE "tenantId" = :tenantId
-                      AND "memberId" IN (:memberIds)
-                      AND "segmentId" IN (:segmentIds)
-                )
-            SELECT *
-            FROM raw_data
-            WHERE rn = 1;
-        `,
-        {
-          replacements: {
-            tenantId: tenant.id,
-            segmentIds,
-            memberIds,
-          },
-          type: QueryTypes.SELECT,
-        },
-      )
-
-      for (const row of results) {
-        const r = row as any
-        r.lastActivity = lastActivities.find((a) => (a as any).memberId === r.id)
-        if (r.lastActivity) {
-          r.lastActivity.display = ActivityDisplayService.getDisplayOptions(
-            r.lastActivity,
-            SegmentRepository.getActivityTypes(options),
-            [ActivityDisplayVariant.SHORT, ActivityDisplayVariant.CHANNEL],
-          )
-        }
-      }
-    }
-
-    const count = sumMemberCount(countResults)
-
-    return {
-      rows: results,
-      count,
-      limit,
-      offset,
-    }
   }
 
   static async findAndCountAllOpensearch(
@@ -2420,20 +2023,6 @@ class MemberRepository {
     )
 
     for (const row of translatedRows) {
-      const identities = []
-      const username: {} = {}
-
-      for (const identity of row.identities) {
-        identities.push(identity.platform)
-        if (identity.platform in username) {
-          username[identity.platform].push(identity.username)
-        } else {
-          username[identity.platform] = [identity.username]
-        }
-      }
-
-      row.identities = identities
-      row.username = username
       row.activeDaysCount = parseInt(row.activeDaysCount, 10)
       row.activityCount = parseInt(row.activityCount, 10)
     }
@@ -2828,7 +2417,6 @@ class MemberRepository {
               'id',
               'attributes',
               'displayName',
-              'emails',
               'score',
               'lastEnriched',
               'enrichedBy',
@@ -2873,17 +2461,6 @@ class MemberRepository {
             },
           },
         },
-        // TODO: member identitites FIX
-        // customOperators: {
-        //   username: {
-        //     model: 'member',
-        //     column: 'username',
-        //   },
-        //   platform: {
-        //     model: 'member',
-        //     column: 'username',
-        //   },
-        // },
         exportMode,
       },
       options,
@@ -2915,7 +2492,6 @@ class MemberRepository {
             'id',
             'attributes',
             'displayName',
-            'emails',
             'tenantId',
             'score',
             'lastEnriched',
@@ -3075,7 +2651,7 @@ class MemberRepository {
     const where = { [Op.and]: whereAnd }
 
     const records = await options.database.member.findAll({
-      attributes: ['id', 'displayName', 'attributes', 'emails'],
+      attributes: ['id', 'displayName', 'attributes'],
       where,
       limit: limit ? Number(limit) : undefined,
       order: [['displayName', 'ASC']],
@@ -3098,7 +2674,6 @@ class MemberRepository {
     return records.map((record) => ({
       id: record.id,
       label: record.displayName,
-      email: record.emails.length > 0 ? record.emails[0] : null,
       avatar: record.attributes?.avatarUrl?.default || null,
       organizations: record.organizations.map((org) => ({
         id: org.id,
@@ -3107,265 +2682,10 @@ class MemberRepository {
     }))
   }
 
-  static async mergeSuggestionsByUsername(
-    numberOfHours,
-    options: IRepositoryOptions,
-  ): Promise<IMemberMergeSuggestion[]> {
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    const seq = SequelizeRepository.getSequelize(options)
-
-    const tenant = SequelizeRepository.getCurrentTenant(options)
-
-    const segmentIds = SequelizeRepository.getSegmentIds(options)
-
-    const query = `
-    -- Define a CTE named "new_members" to get members created in the last 2 hours with a specific tenantId
-    WITH new_members AS (
-      SELECT m.id, m."tenantId"
-      FROM members m
-      JOIN "memberSegments" ms ON ms."memberId" = m.id
-      WHERE m."createdAt" >= now() - INTERVAL :numberOfHours
-      AND m."tenantId" = :tenantId
-      AND ms."segmentId" IN (:segmentIds)
-    ),
-    -- Define a CTE named "identity_join" to find members with the same usernames across different platforms
-    identity_join AS (
-      SELECT
-        m1.id AS m1_id,
-        m2.id AS m2_id,
-        i1.platform AS i1_platform,
-        i2.platform AS i2_platform,
-        i1.username AS i1_username,
-        i2.username AS i2_username
-      FROM new_members m1
-      -- Join memberIdentities and members to get related records
-      JOIN "memberIdentities" i1 ON m1.id = i1."memberId"
-      JOIN "memberIdentities" i2 ON i1.username = i2.username AND i1.platform <> i2.platform
-      JOIN members m2 ON m2.id = i2."memberId"
-      -- Filter out records where tenantId is different and memberIds are the same
-      WHERE m1."tenantId" = m2."tenantId"
-      AND m1.id <> m2.id
-      -- Filter out records present in memberToMerge table
-      AND NOT EXISTS (
-        SELECT 1
-        FROM "memberToMerge"
-        WHERE (
-          "memberId" = m1.id
-          AND "toMergeId" = m2.id
-        ) OR (
-          "memberId" = m2.id
-          AND "toMergeId" = m1.id
-        )
-      )
-      -- Filter out records present in memberNoMerge table
-      AND NOT EXISTS (
-        SELECT 1
-        FROM "memberNoMerge"
-        WHERE (
-          "memberId" = m1.id
-          AND "noMergeId" = m2.id
-        ) OR (
-          "memberId" = m2.id
-          AND "noMergeId" = m1.id
-        )
-      )
-    )
-    -- Select everything from the final CTE "identity_join"
-    SELECT *
-    FROM identity_join;`
-
-    const suggestions = await seq.query(query, {
-      replacements: {
-        tenantId: tenant.id,
-        segmentIds,
-        numberOfHours: `${numberOfHours} hours`,
-      },
-      type: QueryTypes.SELECT,
-      transaction,
-    })
-
-    return suggestions.map((suggestion: any) => ({
-      members: [suggestion.m1_id, suggestion.m2_id],
-      // 100% confidence only from emails
-      similarity: 0.95,
-    }))
-  }
-
-  static async mergeSuggestionsByEmail(
-    numberOfHours,
-    options: IRepositoryOptions,
-  ): Promise<IMemberMergeSuggestion[]> {
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    const seq = SequelizeRepository.getSequelize(options)
-
-    const tenant = SequelizeRepository.getCurrentTenant(options)
-
-    const segmentIds = SequelizeRepository.getSegmentIds(options)
-
-    const query = `
-    -- Define a CTE named "new_members" to get members created in the last 7 days with a specific tenantId and their emails
-    WITH new_members AS (
-      SELECT m.id, m."tenantId", m.emails
-      FROM members m
-      JOIN "memberSegments" ms ON ms."memberId" = m.id
-      WHERE m."createdAt" >= now() - INTERVAL :numberOfHours
-      AND m."tenantId" = :tenantId
-      AND ms."segmentId" IN (:segmentIds)
-    ),
-    -- Define a CTE named "email_join" to find overlapping emails across different members
-    email_join AS (
-      SELECT
-        m1.id AS m1_id,            -- Member 1 ID
-        m2.id AS m2_id,            -- Member 2 ID
-        m1.emails AS m1_emails,    -- Member 1 emails
-        m2.emails AS m2_emails     -- Member 2 emails
-      FROM new_members m1
-      -- Join the members table on the tenantId field and ensuring the IDs are different
-      JOIN members m2 ON m1."tenantId" = m2."tenantId"
-        AND m1.id <> m2.id
-      -- Filter for overlapping emails
-      WHERE m1.emails && m2.emails
-      -- Exclude pairs that are already in the memberToMerge table
-      AND NOT EXISTS (
-        SELECT 1
-        FROM "memberToMerge"
-        WHERE (
-          "memberId" = m1.id
-          AND "toMergeId" = m2.id
-        ) OR (
-          "memberId" = m2.id
-          AND "toMergeId" = m1.id
-        )
-      )
-      -- Exclude pairs that are in the memberNoMerge table
-      AND NOT EXISTS (
-        SELECT 1
-        FROM "memberNoMerge"
-        WHERE (
-          "memberId" = m1.id
-          AND "noMergeId" = m2.id
-        ) OR (
-          "memberId" = m2.id
-          AND "noMergeId" = m1.id
-        )
-      )
-    )
-    -- Select all columns from the email_join CTE
-    SELECT *
-    FROM email_join;`
-
-    const suggestions = await seq.query(query, {
-      replacements: {
-        tenantId: tenant.id,
-        segmentIds,
-        numberOfHours: `${numberOfHours} hours`,
-      },
-      type: QueryTypes.SELECT,
-      transaction,
-    })
-    return suggestions.map((suggestion: any) => ({
-      members: [suggestion.m1_id, suggestion.m2_id],
-      similarity: 1,
-    }))
-  }
-
-  static async mergeSuggestionsBySimilarity(
-    numberOfHours,
-    options: IRepositoryOptions,
-  ): Promise<IMemberMergeSuggestion[]> {
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    const seq = SequelizeRepository.getSequelize(options)
-
-    const tenant = SequelizeRepository.getCurrentTenant(options)
-
-    const segmentIds = SequelizeRepository.getSegmentIds(options)
-
-    const query = `
-    -- Define a CTE named "new_members" to get members created in the last 7 days with a specific tenantId
-    WITH new_members AS (
-      SELECT m.*
-      FROM members m
-      JOIN "memberSegments" ms ON ms."memberId" = m.id
-      WHERE m."createdAt" >= now() - INTERVAL :numberOfHours
-      AND m."tenantId" = :tenantId
-      AND ms."segmentId" IN (:segmentIds)
-      LIMIT 1000
-    ),
-    -- Define a CTE named "identity_join" to find similar identities across platforms
-    identity_join AS (
-      -- Select distinct pairs of memberIds and relevant information, along with the similarity score
-      SELECT DISTINCT ON(m1_id, m2_id)
-        m1.id AS m1_id,
-        m2.id AS m2_id,
-        similarity(i1.username, i2.username) AS similarity
-      FROM new_members m1
-      -- Join memberIdentities and members to get related records
-      JOIN "memberIdentities" i1 ON m1.id = i1."memberId"
-      JOIN "memberIdentities" i2 ON i1.platform <> i2.platform
-      JOIN members m2 ON m2.id = i2."memberId"
-      -- Filter out records where tenantId is different and memberIds are the same
-      WHERE m1."tenantId" = m2."tenantId"
-      AND m1.id <> m2.id
-      -- Consider only records with similarity > 0.5 (adjust this threshold as needed)
-      AND similarity(i1.username, i2.username) > 0.5
-      -- Order by similarity descending to get the most similar records first
-      ORDER BY m1_id, m2_id, similarity DESC
-    ),
-    -- Define a CTE named "exclude_already_processed" to remove the already processed members
-    exclude_already_processed AS (
-      SELECT *
-      FROM identity_join
-      -- Filter out records present in memberToMerge table
-      WHERE NOT EXISTS (
-        SELECT 1
-        FROM "memberToMerge"
-        WHERE (
-          "memberId" = identity_join.m1_id
-          AND "toMergeId" = identity_join.m2_id
-        ) OR (
-          "memberId" = identity_join.m2_id
-          AND "toMergeId" = identity_join.m1_id
-        )
-        -- Filter out records present in memberNoMerge table
-      ) AND NOT EXISTS (
-        SELECT 1
-        FROM "memberNoMerge"
-        WHERE (
-          "memberId" = identity_join.m1_id
-          AND "noMergeId" = identity_join.m2_id
-        ) OR (
-          "memberId" = identity_join.m2_id
-          AND "noMergeId" = identity_join.m1_id
-        )
-      )
-    )
-    -- Select everything from the final CTE "exclude_already_processed"
-    SELECT *
-    FROM exclude_already_processed;`
-
-    const suggestions = await seq.query(query, {
-      replacements: {
-        tenantId: tenant.id,
-        segmentIds,
-        numberOfHours: `${numberOfHours} hours`,
-      },
-      type: QueryTypes.SELECT,
-      transaction,
-    })
-
-    return suggestions.map((suggestion: any) => ({
-      members: [suggestion.m1_id, suggestion.m2_id],
-      // 100% confidence only from emails
-      similarity: suggestion.similarity > 0.95 ? 0.95 : suggestion.similarity,
-    }))
-  }
-
-  static async addToWeakIdentities(
+  static async addAsUnverifiedIdentity(
     memberIds: string[],
-    username: string,
+    value: string,
+    type: MemberIdentityType,
     platform: string,
     options: IRepositoryOptions,
   ): Promise<void> {
@@ -3376,25 +2696,24 @@ class MemberRepository {
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
     const query = `
-    update members
-    set "weakIdentities" = "weakIdentities" || jsonb_build_object('username', :username, 'platform', :platform)::jsonb
-    where id in (:memberIds)
-      and not exists (select 1
-                      from jsonb_array_elements("weakIdentities") as wi
-                      where wi ->> 'username' = :username
-                        and wi ->> 'platform' = :platform);
+      insert into "memberIdentities"("memberId", platform, type, value, "tenantId", verified)
+      values(:memberId, :platform, :type, :value, :tenantId, false)
+      on conflict do nothing;
     `
 
-    await seq.query(query, {
-      replacements: {
-        memberIds,
-        username,
-        platform,
-        tenantId: tenant.id,
-      },
-      type: QueryTypes.UPDATE,
-      transaction,
-    })
+    for (const memberId of memberIds) {
+      await seq.query(query, {
+        replacements: {
+          memberId,
+          value,
+          type,
+          platform,
+          tenantId: tenant.id,
+        },
+        type: QueryTypes.INSERT,
+        transaction,
+      })
+    }
   }
 
   static async _createAuditLog(action, record, data, options: IRepositoryOptions) {
@@ -3508,6 +2827,7 @@ class MemberRepository {
     options: IRepositoryOptions,
     returnPlain = true,
     segmentId?: string,
+    newIdentities?: boolean,
   ) {
     if (!record) {
       return record
@@ -3591,17 +2911,46 @@ class MemberRepository {
 
     const memberIdentities = (await this.getIdentities([record.id], options)).get(record.id)
 
-    output.username = {}
+    if (newIdentities === true) {
+      output.identities = memberIdentities
+      output.verifiedEmails = distinct(
+        memberIdentities
+          .filter((i) => i.verified && i.type === MemberIdentityType.EMAIL)
+          .map((i) => i.value),
+      )
+      output.unverifiedEmails = distinct(
+        memberIdentities
+          .filter((i) => !i.verified && i.type === MemberIdentityType.EMAIL)
+          .map((i) => i.value),
+      )
+      output.verifiedUsernames = distinct(
+        memberIdentities
+          .filter((i) => i.verified && i.type === MemberIdentityType.USERNAME)
+          .map((i) => i.value),
+      )
+      output.unverifiedUsernames = distinct(
+        memberIdentities
+          .filter((i) => !i.verified && i.type === MemberIdentityType.USERNAME)
+          .map((i) => i.value),
+      )
+      output.identityPlatforms = distinct(
+        memberIdentities.filter((i) => i.verified).map((i) => i.platform),
+      )
+    } else {
+      output.username = {}
 
-    for (const identity of memberIdentities) {
-      if (output.username[identity.platform]) {
-        output.username[identity.platform].push(identity.username)
-      } else {
-        output.username[identity.platform] = [identity.username]
+      for (const identity of memberIdentities.filter(
+        (i) => i.type === MemberIdentityType.USERNAME,
+      )) {
+        if (output.username[identity.platform]) {
+          output.username[identity.platform].push(identity.value)
+        } else {
+          output.username[identity.platform] = [identity.value]
+        }
       }
-    }
 
-    output.identities = Object.keys(output.username)
+      output.identities = Object.keys(output.username)
+    }
 
     output.affiliations = await this.getAffiliations(record.id, options)
 
@@ -4336,7 +3685,8 @@ class MemberRepository {
     for (const identity of identities) {
       await deleteMemberIdentities(qx, {
         memberId,
-        username: identity.username,
+        value: identity.value,
+        type: identity.type,
         platform: identity.platform,
       })
     }
