@@ -1198,7 +1198,7 @@ class OrganizationRepository {
           otm."similarity"
         FROM organizations org
         JOIN "organizationToMerge" otm ON org.id = otm."organizationId"
-        JOIN "organizationSegments" os ON os."organizationId" = org.id
+        JOIN "organization_segments_mv" os ON os."organizationId" = org.id
         LEFT JOIN "mergeActions" ma
           ON ma.type = :mergeActionType
           AND ma."tenantId" = :tenantId
