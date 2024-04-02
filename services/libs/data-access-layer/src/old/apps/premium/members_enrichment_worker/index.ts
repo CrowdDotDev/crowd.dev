@@ -65,7 +65,7 @@ export async function fetchMembersForLFIDEnrichment(db: DbStore, limit: number, 
           (mi.platform = 'linkedin' and mi."sourceId" is not null) OR
           (mi.platform = 'cvent') OR
           (mi.platform = 'tnc') OR
-              array_length(members.emails, 1) > 0
+          (mi.type = 'email' and mi.verified)
           )
         AND tenants."deletedAt" IS NULL
         AND members."deletedAt" IS NULL
