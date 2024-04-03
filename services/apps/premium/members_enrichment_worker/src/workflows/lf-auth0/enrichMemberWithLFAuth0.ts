@@ -19,7 +19,6 @@ export async function enrichMemberWithLFAuth0(member: IMember): Promise<void> {
 
   if (enriched) {
     console.log(`Member ${member.id} found in the lf auth0 enrichment db!`)
-    console.log(`Enriched data: ${JSON.stringify(enriched)}`)
     const normalized: any = {}
     // check logo TODO:: double check
     if (

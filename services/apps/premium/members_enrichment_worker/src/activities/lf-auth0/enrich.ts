@@ -32,8 +32,6 @@ export async function enrich(
   try {
     await svc.postgres.writer.connection().tx(async (tx) => {
       for (const identity of identities) {
-        console.log("Trying to insert identity:")
-        console.log(identity)
         await insertMemberIdentity(
           tx,
           identity.platform,

@@ -10,7 +10,6 @@ export async function refreshToken(token?: string): Promise<string> {
 
   if (!token) {
     if (tokenFromRedis) {
-      console.log('Token from redis: ', tokenFromRedis)
       return tokenFromRedis
     }
     const tokenFromAuth0 = await getTokenFromAuth0()

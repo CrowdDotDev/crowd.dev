@@ -111,9 +111,6 @@ export async function getIdentitiesExistInOtherMembers(
   and mi."memberId" <> $${replacementIndex + 1}
   and mi."tenantId" = $${replacementIndex + 2};`
 
-  console.log(query)
-  console.log(replacements)
-
   return db.connection().query(query, replacements)
 }
 

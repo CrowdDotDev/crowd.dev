@@ -36,7 +36,6 @@ export async function get(token: string, member: IMember): Promise<GetUsers200Re
     if (result?.rateLimit) {
       const ttl = Number.parseInt(result.rateLimit.reset, 10) - Math.floor(Date.now() / 1000)
       if (ttl > 0) {
-        console.log(`Setting remaining-requests to ${result.rateLimit.remaining} with ttl ${ttl}!`)
         await rateLimitCache.set('remaining-requests', result.rateLimit.remaining, ttl)
       }
     }
