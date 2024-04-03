@@ -1,5 +1,6 @@
 import authAxios from '@/shared/axios/auth-axios';
 import { AuthService } from '@/modules/auth/services/auth.service';
+import { router } from '@/router';
 
 export class OrganizationService {
   static async update(id, data, segments) {
@@ -41,6 +42,7 @@ export class OrganizationService {
       `/tenant/${tenantId}/organization/${organizationToKeepId}/merge`,
       {
         organizationToMerge: organizationToMergeId,
+        segments: [router.currentRoute.value.query.projectGroup],
       },
     );
 
