@@ -62,9 +62,11 @@ async function getEnrichmentData(
     audience: process.env['CROWD_LFX_AUTH0_AUDIENCE'],
   })
 
-  const githubIdentity = member.identities?.find((i) => i.platform === 'github') || null
+  const githubIdentity =
+    member.identities?.find((i) => i.platform === 'github' && i.sourceId) || null
 
-  const linkedinIdentity = member.identities?.find((i) => i.platform === 'linkedin') || null
+  const linkedinIdentity =
+    member.identities?.find((i) => i.platform === 'linkedin' && i.sourceId) || null
 
   const lfidIdentity =
     member.identities?.find(

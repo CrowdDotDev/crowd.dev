@@ -53,8 +53,7 @@ export async function fetchMembersForLFIDEnrichment(db: DbStore, limit: number, 
         members."score",
         members."reach",
         members."tenantId",
-        jsonb_agg(mi.*) filter (where mi.platform = 'github' OR
-        (mi.platform = 'linkedin' and mi."sourceId" is not null)) as identities
+        jsonb_agg(mi.*) as identities
       FROM members
               INNER JOIN tenants ON tenants.id = members."tenantId"
               INNER JOIN "memberIdentities" mi ON mi."memberId" = members.id
