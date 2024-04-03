@@ -77,41 +77,42 @@ export async function enrichMemberWithLFAuth0(member: IMember): Promise<void> {
     // github
     // check if there's a github profile in the enriched data
     const enrichmentGithub = enriched.identities.find((i) => i.provider === 'github')
-    if (
-      enrichmentGithub &&
-      !member.identities.some(
-        (i) =>
-          i.type === MemberIdentityType.USERNAME &&
-          i.platform === 'github' &&
-          i.value === enrichmentGithub.profileData.nickname,
-      )
-    ) {
-      identitiesToCheck.push({
-        type: MemberIdentityType.USERNAME,
-        platform: 'github',
-        value: enrichmentGithub.profileData.nickname,
-        verified: true,
-      })
-    }
 
-    // also github profile might come with emails, check if these exist yet in the member
-    for (const githubEmail of (
-      enrichmentGithub.profileData as ILFIDEnrichmentGithubProfile
-    ).emails.filter((e) => e.verified)) {
+    if (enrichmentGithub) {
       if (
         !member.identities.some(
-          (e) => e.type === MemberIdentityType.EMAIL && e.value === githubEmail.email,
-        ) &&
-        !identitiesToCheck.some(
-          (i) => i.type === MemberIdentityType.EMAIL && i.value === githubEmail.email,
+          (i) =>
+            i.type === MemberIdentityType.USERNAME &&
+            i.platform === 'github' &&
+            i.value === enrichmentGithub.profileData.nickname,
         )
       ) {
         identitiesToCheck.push({
+          type: MemberIdentityType.USERNAME,
           platform: 'github',
-          type: MemberIdentityType.EMAIL,
-          value: githubEmail.email,
+          value: enrichmentGithub.profileData.nickname,
           verified: true,
         })
+      }
+      // also github profile might come with emails, check if these exist yet in the member
+      for (const githubEmail of (
+        enrichmentGithub.profileData as ILFIDEnrichmentGithubProfile
+      ).emails.filter((e) => e.verified)) {
+        if (
+          !member.identities.some(
+            (e) => e.type === MemberIdentityType.EMAIL && e.value === githubEmail.email,
+          ) &&
+          !identitiesToCheck.some(
+            (i) => i.type === MemberIdentityType.EMAIL && i.value === githubEmail.email,
+          )
+        ) {
+          identitiesToCheck.push({
+            platform: 'github',
+            type: MemberIdentityType.EMAIL,
+            value: githubEmail.email,
+            verified: true,
+          })
+        }
       }
     }
 
