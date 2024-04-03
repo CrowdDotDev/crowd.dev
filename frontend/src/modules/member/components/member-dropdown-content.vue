@@ -218,6 +218,7 @@ import { useRoute } from 'vue-router';
 import { computed } from 'vue';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { Member } from '../types/Member';
 
 enum Actions {
@@ -246,6 +247,8 @@ const route = useRoute();
 const authStore = useAuthStore();
 const { user, tenant } = storeToRefs(authStore);
 const { doFind } = mapActions('member');
+
+const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
 
 const memberStore = useMemberStore();
 
@@ -377,7 +380,10 @@ const handleCommand = async (command: {
       if (route.name === 'member') {
         memberStore.fetchMembers({ reload: true });
       } else {
-        doFind(command.member.id);
+        doFind({
+          id: command.member.id,
+          segments: [selectedProjectGroup.value?.id],
+        });
       }
     });
 
@@ -397,12 +403,15 @@ const handleCommand = async (command: {
             default: command.value,
           },
         },
-      }, command.member.segmentIds),
+      }),
     }).then(() => {
       if (route.name === 'member') {
         memberStore.fetchMembers({ reload: true });
       } else {
-        doFind(command.member.id);
+        doFind({
+          id: command.member.id,
+          segments: [selectedProjectGroup.value?.id],
+        });
       }
     });
 
@@ -425,12 +434,15 @@ const handleCommand = async (command: {
             default: command.action === Actions.MARK_CONTACT_AS_BOT,
           },
         },
-      }, command.member.segmentIds),
+      }),
     }).then(() => {
       if (route.name === 'member') {
         memberStore.fetchMembers({ reload: true });
       } else {
-        doFind(command.member.id);
+        doFind({
+          id: command.member.id,
+          segments: command.member.segments.map((s) => s.id),
+        });
       }
     });
 
