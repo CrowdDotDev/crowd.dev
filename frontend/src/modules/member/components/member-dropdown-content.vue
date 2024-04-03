@@ -377,7 +377,10 @@ const handleCommand = async (command: {
       if (route.name === 'member') {
         memberStore.fetchMembers({ reload: true });
       } else {
-        doFind(command.member.id);
+        doFind({
+          id: command.member.id,
+          segments: command.member.segments.map((s) => s.id),
+        });
       }
     });
 
@@ -397,12 +400,15 @@ const handleCommand = async (command: {
             default: command.value,
           },
         },
-      }, command.member.segmentIds),
+      }),
     }).then(() => {
       if (route.name === 'member') {
         memberStore.fetchMembers({ reload: true });
       } else {
-        doFind(command.member.id);
+        doFind({
+          id: command.member.id,
+          segments: command.member.segments.map((s) => s.id),
+        });
       }
     });
 
@@ -425,12 +431,15 @@ const handleCommand = async (command: {
             default: command.action === Actions.MARK_CONTACT_AS_BOT,
           },
         },
-      }, command.member.segmentIds),
+      }),
     }).then(() => {
       if (route.name === 'member') {
         memberStore.fetchMembers({ reload: true });
       } else {
-        doFind(command.member.id);
+        doFind({
+          id: command.member.id,
+          segments: command.member.segments.map((s) => s.id),
+        });
       }
     });
 
