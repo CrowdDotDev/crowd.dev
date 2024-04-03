@@ -139,7 +139,7 @@ export async function enrichMemberWithLFAuth0(member: IMember): Promise<void> {
 
     for (const memberToBeMerged of identitiesExistInOtherMembers) {
       // merge
-      console.log(`${memberToBeMerged} will be merged with ${member.id}`)
+      console.log(`${memberToBeMerged.memberId} will be merged with ${member.id}`)
     }
   }
 }
