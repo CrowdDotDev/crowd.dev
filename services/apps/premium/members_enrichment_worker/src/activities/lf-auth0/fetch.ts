@@ -68,7 +68,9 @@ async function getEnrichmentData(
 
   const lfidIdentity =
     member.identities?.find(
-      (i) => i.platform === 'lfid' || i.platform === 'tnc' || i.platform === 'cvent',
+      (i) =>
+        (i.platform === 'lfid' || i.platform === 'tnc' || i.platform === 'cvent') &&
+        i.type === MemberIdentityType.USERNAME,
     ) || null
 
   const emailIdentity =

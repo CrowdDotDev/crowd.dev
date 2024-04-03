@@ -3,16 +3,15 @@ import { proxyActivities } from '@temporalio/workflow'
 import * as activities from '../../activities'
 import { ILFIDEnrichmentGithubProfile } from '../../types/lfid-enrichment'
 
-const { refreshToken, get, getIdentitiesExistInOtherMembers, enrich, syncMembersToOpensearch } = proxyActivities<
-  typeof activities
->({
-  startToCloseTimeout: '2 minutes',
-  retry: {
-    initialInterval: '2 seconds',
-    backoffCoefficient: 2,
-    maximumAttempts: 3,
-  },
-})
+const { refreshToken, get, getIdentitiesExistInOtherMembers, enrich, syncMembersToOpensearch } =
+  proxyActivities<typeof activities>({
+    startToCloseTimeout: '2 minutes',
+    retry: {
+      initialInterval: '2 seconds',
+      backoffCoefficient: 2,
+      maximumAttempts: 3,
+    },
+  })
 
 export async function enrichMemberWithLFAuth0(member: IMember): Promise<void> {
   const token = await refreshToken()
@@ -140,8 +139,7 @@ export async function enrichMemberWithLFAuth0(member: IMember): Promise<void> {
       // merge
       console.log(`${memberToBeMerged} will be merged with ${member.id}`)
     }
-  }
-  else {
+  } else {
     console.log(`Member ${member.id} not found in the lf auth0 enrichment db!`)
   }
 }
