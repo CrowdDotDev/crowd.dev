@@ -218,6 +218,7 @@ import { useRoute } from 'vue-router';
 import { computed } from 'vue';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { Member } from '../types/Member';
 
 enum Actions {
@@ -246,6 +247,8 @@ const route = useRoute();
 const authStore = useAuthStore();
 const { user, tenant } = storeToRefs(authStore);
 const { doFind } = mapActions('member');
+
+const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
 
 const memberStore = useMemberStore();
 
@@ -379,7 +382,7 @@ const handleCommand = async (command: {
       } else {
         doFind({
           id: command.member.id,
-          segments: command.member.segments.map((s) => s.id),
+          segments: [selectedProjectGroup.value?.id],
         });
       }
     });
@@ -407,7 +410,7 @@ const handleCommand = async (command: {
       } else {
         doFind({
           id: command.member.id,
-          segments: command.member.segments.map((s) => s.id),
+          segments: [selectedProjectGroup.value?.id],
         });
       }
     });
