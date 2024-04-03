@@ -102,7 +102,9 @@ export async function enrichMemberWithLFAuth0(member: IMember): Promise<void> {
         !member.identities.some(
           (e) => e.type === MemberIdentityType.EMAIL && e.value === githubEmail.email,
         ) &&
-        !identitiesToCheck.some((i) => i.platform === 'email' && i.value === githubEmail.email)
+        !identitiesToCheck.some(
+          (i) => i.type === MemberIdentityType.EMAIL && i.value === githubEmail.email,
+        )
       ) {
         identitiesToCheck.push({
           platform: 'github',
