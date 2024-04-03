@@ -3,6 +3,15 @@
     <article v-if="loading || !activity">
       <app-loading height="85px" radius="8px" />
     </article>
+    <article v-else-if="activity.platform === Platform.GIT">
+      <activity-display
+        :activity="activity"
+        @edit="$emit('edit')"
+        @on-update="$emit('onUpdate')"
+        @activity-destroyed="$emit('activity-destroyed')"
+        @open-conversation="$emit('openConversation', activity.conversationId)"
+      />
+    </article>
     <article v-else class="panel">
       <div class="flex">
         <!-- Avatar -->
@@ -136,6 +145,8 @@ import AppActivityContentFooter from '@/modules/activity/components/activity-con
 import { computed } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import ActivityDisplay from '@/shared/modules/activity/components/activityDisplay.vue';
+import { Platform } from '@/shared/modules/platform/types/Platform';
 import AppActivityHeader from './activity-header.vue';
 
 const emit = defineEmits(['openConversation', 'edit', 'onUpdate', 'activity-destroyed']);

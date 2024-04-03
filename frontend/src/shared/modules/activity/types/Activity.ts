@@ -1,0 +1,41 @@
+import { Member } from '@/modules/member/types/Member';
+import { Organization } from '@/modules/organization/types/Organization';
+import { Platform } from '../../platform/types/Platform';
+
+export interface Activity {
+    id: string;
+    type: string;
+    timestamp: string;
+    platform: Platform;
+    isContribution: boolean;
+    score: number;
+    sourceId: string;
+    sourceParentId: string;
+    username: string;
+    attributes: any;
+    channel: string;
+    body: string;
+    title: string;
+    url: string;
+    sentiment: string;
+    organizationId: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string;
+    memberId: string;
+    segmentId: string;
+    objectMemberId: string;
+    conversationId: string;
+    parentId: string;
+    tenantId: string;
+    createdById: string;
+    updatedById: string;
+    member: Member;
+    parent: Activity;
+    organization: Organization;
+    display: {
+        default: string;
+        short: string;
+        channel: string;
+    }
+}
