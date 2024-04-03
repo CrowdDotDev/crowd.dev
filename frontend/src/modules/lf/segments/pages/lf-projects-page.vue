@@ -76,12 +76,13 @@
         </div>
 
         <app-integration-progress-wrapper :segments="segmentIds">
-          <template #default="{ progress }">
+          <template #default="{ progress, progressError }">
             <app-lf-projects-table
               v-for="project in projects.list"
               :key="project.id"
               :project="project"
               :progress="progress"
+              :progress-error="progressError"
               @on-edit-project="onEditProject"
               @on-edit-sub-project="onEditSubProject"
               @on-add-sub-project="onAddSubProject"

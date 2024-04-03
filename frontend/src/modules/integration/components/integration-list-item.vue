@@ -34,7 +34,7 @@
             <i class="ri-link" /> Connect
           </cr-button>
         </div>
-        <div v-else-if="isInProgress" class="bg-gray-50 py-3 px-5 min-h-14">
+        <div v-else-if="isInProgress && !progressError" class="bg-gray-50 py-3 px-5 min-h-14">
           <app-integration-progress-bar :progress="selectedProgress" />
         </div>
         <div v-else class="bg-gray-50 py-3 px-5 min-h-14 flex items-center justify-between">
@@ -49,6 +49,9 @@
                 {{ lastSynced.relative }}
               </p>
             </el-tooltip>
+            <p v-if="progressError" class="text-3xs text-gray-500 mt-1">
+              <i class="ri-alert-line text-yellow-600" /> Error loading progress
+            </p>
           </div>
           <div>
             <el-dropdown placement="bottom-end">
@@ -91,6 +94,10 @@ const props = defineProps({
   progress: {
     type: Object,
     default: () => {},
+  },
+  progressError: {
+    type: Boolean,
+    default: false,
   },
 });
 

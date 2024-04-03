@@ -8,13 +8,15 @@ export default async (req, res) => {
 
   const primaryOrgId = req.params.organizationId
   const secondaryOrgId = req.body.organizationToMerge
+  const segmentId = req.body.segments[0]
 
   const requestPayload = {
     primary: primaryOrgId,
     secondary: secondaryOrgId,
+    segmentId,
   }
 
-  await new OrganizationService(req).mergeSync(primaryOrgId, secondaryOrgId)
+  await new OrganizationService(req).mergeSync(primaryOrgId, secondaryOrgId, segmentId)
 
   track('Merge organizations', requestPayload, { ...req })
 

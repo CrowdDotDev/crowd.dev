@@ -1,12 +1,22 @@
+import { EDITION, escapeNullByte, isObjectEmpty, singleOrDefault } from '@crowd/common'
+import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/common_services'
+import { ConversationService } from '@crowd/conversations'
+import { DbStore, arePrimitivesDbEqual } from '@crowd/data-access-layer/src/database'
 import {
   IDbActivity,
   IDbActivityUpdateData,
 } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/activity.data'
+import ActivityRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/activity.repo'
+import GithubReposRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/githubRepos.repo'
+import IntegrationRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/integration.repo'
 import MemberRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.repo'
-import { isObjectEmpty, singleOrDefault, escapeNullByte, EDITION } from '@crowd/common'
-import { DbStore, arePrimitivesDbEqual } from '@crowd/data-access-layer/src/database'
+import SettingsRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/settings.repo'
+import { Unleash } from '@crowd/feature-flags'
+import { GithubActivityType } from '@crowd/integrations'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
+import { RedisClient } from '@crowd/redis'
 import { ISentimentAnalysisResult, getSentiment } from '@crowd/sentiment'
+import { Client as TemporalClient, WorkflowIdReusePolicy } from '@crowd/temporal'
 import {
   Edition,
   IActivityData,
@@ -14,22 +24,12 @@ import {
   PlatformType,
   TemporalWorkflowId,
 } from '@crowd/types'
-import ActivityRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/activity.repo'
+import isEqual from 'lodash.isequal'
+import mergeWith from 'lodash.mergewith'
+import { TEMPORAL_CONFIG } from '../conf'
 import { IActivityCreateData, IActivityUpdateData } from './activity.data'
 import MemberService from './member.service'
-import mergeWith from 'lodash.mergewith'
-import isEqual from 'lodash.isequal'
-import SettingsRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/settings.repo'
-import { ConversationService } from '@crowd/conversations'
-import IntegrationRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/integration.repo'
-import GithubReposRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/githubRepos.repo'
 import MemberAffiliationService from './memberAffiliation.service'
-import { RedisClient } from '@crowd/redis'
-import { Unleash } from '@crowd/feature-flags'
-import { Client as TemporalClient, WorkflowIdReusePolicy } from '@crowd/temporal'
-import { TEMPORAL_CONFIG } from '../conf'
-import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/common_services'
-import { GithubActivityType } from '@crowd/integrations'
 
 export default class ActivityService extends LoggerBase {
   private readonly conversationService: ConversationService
@@ -792,12 +792,30 @@ export default class ActivityService extends LoggerBase {
 
             // we don't have the activity yet in the database
             // check if we have a member for the identity from the activity
-            const dbMember = await txMemberRepo.findMemberByUsername(
+            let dbMember = await txMemberRepo.findMemberByUsername(
               tenantId,
               segmentId,
               platform,
               username,
             )
+
+            // try to find a member by email if verified one is available
+            if (!dbMember) {
+              const emails = member.identities
+                .filter((i) => i.verified && i.type === MemberIdentityType.EMAIL)
+                .map((i) => i.value)
+
+              if (emails.length > 0) {
+                for (const email of emails) {
+                  dbMember = await txMemberRepo.findMemberByEmail(tenantId, email)
+
+                  if (dbMember) {
+                    break
+                  }
+                }
+              }
+            }
+
             if (dbMember) {
               this.log.trace({ memberId: dbMember.id }, 'Found existing member.')
               await txMemberService.update(
