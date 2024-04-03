@@ -6,6 +6,11 @@ import { Unleash, getUnleashClient } from '@crowd/feature-flags'
 import { Edition, SegmentData } from '@crowd/types'
 import { SERVICE, Error400 } from '@crowd/common'
 import { Client as TemporalClient, getTemporalClient } from '@crowd/temporal'
+import {
+  QueryExecutor,
+  SequelizeQueryExecutor,
+  TransactionalSequelizeQueryExecutor,
+} from '@crowd/data-access-layer/src/queryExecutor'
 import { API_CONFIG, IS_TEST_ENV, REDIS_CONFIG, TEMPORAL_CONFIG, UNLEASH_CONFIG } from '../../conf'
 import { databaseInit } from '../databaseConnection'
 import { IRepositoryOptions } from './IRepositoryOptions'
@@ -169,6 +174,13 @@ export default class SequelizeRepository {
 
   static getSequelize(options: IRepositoryOptions): Sequelize {
     return options.database.sequelize as Sequelize
+  }
+
+  static getQueryExecutor(options: IRepositoryOptions, transaction?): QueryExecutor {
+    const seq = this.getSequelize(options)
+    return transaction
+      ? new TransactionalSequelizeQueryExecutor(seq, transaction)
+      : new SequelizeQueryExecutor(seq)
   }
 
   static getSegmentIds(options: IRepositoryOptions): string[] {

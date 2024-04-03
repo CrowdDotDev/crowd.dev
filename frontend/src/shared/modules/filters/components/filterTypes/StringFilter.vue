@@ -2,6 +2,7 @@
   <div v-if="form">
     <div class="p-4 pb-5">
       <cr-filter-inline-select
+        v-if="!props.config.options.fixedOperator"
         v-model="form.operator"
         :prefix="`${props.config.label}:`"
         class="mb-3"
@@ -44,7 +45,7 @@ const form = computed<StringFilterValue>({
 
 const defaultForm: StringFilterValue = {
   value: '',
-  operator: FilterStringOperator.LIKE,
+  operator: props.config?.options?.fixedOperator || FilterStringOperator.LIKE,
 };
 
 const rules: any = {

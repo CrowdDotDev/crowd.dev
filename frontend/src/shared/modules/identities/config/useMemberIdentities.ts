@@ -9,30 +9,28 @@ export default ({
   member: Partial<Member>;
   order: Platform[];
 }) => {
-  const { username = {}, attributes = {}, emails = [] } = member || {};
+  const {
+    attributes = {}, identities,
+  } = member || {};
 
   const getIdentityHandles = (platform: string) => {
     if (platform === Platform.CUSTOM) {
-      const customPlatforms = Object.keys(username).filter(
-        (p) => (!order.includes(p) || p === Platform.CUSTOM)
-          && p !== Platform.EMAIL
-          && p !== Platform.EMAILS,
-      );
-
-      return customPlatforms.flatMap((p) => username[p].map((u) => ({
-        platform: p,
+      const mainPlatforms = Object.values(Platform) as string[];
+      return (identities || []).filter((i) => !mainPlatforms.includes(i.platform)).map((i) => ({
+        platform: i.platform,
         url: null,
-        name: u,
-      })));
+        name: i.value,
+        verified: i.verified,
+      }));
     }
-
-    return username[platform]
-      ? username[platform].map((u) => ({
+    return (identities || [])
+      .filter((i) => i.platform === platform && i.type !== 'email')
+      .map((i) => ({
         platform,
         url: null,
-        name: u,
-      }))
-      : [];
+        name: i.value,
+        verified: i.verified,
+      }));
   };
 
   const getIdentityLink = (identity: {
@@ -79,12 +77,14 @@ export default ({
           acc[identity.platform].push({
             handle: identity.name,
             link: getIdentityLink(identity, platform),
+            verified: identity.verified,
           });
         } else {
           acc[identity.platform] = [
             {
               handle: identity.name,
               link: getIdentityLink(identity, platform),
+              verified: identity.verified,
             },
           ];
         }
@@ -93,6 +93,7 @@ export default ({
       const platformHandlesValues = handles.map((identity) => ({
         handle: identity.name,
         link: getIdentityLink(identity, platform),
+        verified: identity.verified,
       }));
 
       if (platformHandlesValues.length) {
@@ -106,34 +107,13 @@ export default ({
   const getEmails = (): {
     handle: string;
     link: string;
-  }[] => {
-    const rootEmails = (emails || [])
-      .filter((e) => !!e)
-      .map((e) => ({
-        link: `mailto:${e}`,
-        handle: e,
-      }));
-
-    const usernameEmail = username.email
-      ? username.email
-        .filter((e) => !!e)
-        .map((e) => ({
-          link: null,
-          handle: e,
-        }))
-      : [];
-
-    const usernameEmails = username.emails
-      ? username.emails
-        .filter((e) => !!e)
-        .map((e) => ({
-          link: `mailto:${e}`,
-          handle: e,
-        }))
-      : [];
-
-    return [...rootEmails, ...usernameEmail, ...usernameEmails];
-  };
+  }[] => (identities || [])
+    .filter((i) => i.type === 'email')
+    .map((i) => ({
+      link: `mailto:${i.value}`,
+      handle: i.value,
+      verified: i.verified,
+    }));
 
   return {
     getIdentities,

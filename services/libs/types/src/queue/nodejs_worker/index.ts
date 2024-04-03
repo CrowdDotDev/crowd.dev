@@ -121,10 +121,3 @@ export class EnrichOrganizationQueueMessage implements IQueueMessage {
 
   constructor(public readonly tenantId: string, public readonly maxEnrichLimit: number) {}
 }
-
-export class MergeSuggestionsQueueMessage implements IQueueMessage {
-  public readonly type: string = NodejsWorkerQueueMessageType.NODE_MICROSERVICE
-  public readonly service = 'merge-suggestions'
-
-  constructor(public readonly tenant: string) {}
-}

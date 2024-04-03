@@ -2,21 +2,38 @@
   <div>
     <!-- Emails editing -->
     <div>
-      <app-member-form-emails-item
-        v-for="(_, ei) of model"
-        :key="ei"
-        v-model="model[ei]"
-        class="pb-3"
-      >
-        <template #actions>
-          <el-button
-            class="btn btn--md btn--transparent w-10 h-10"
-            @click="removeEmail(ei)"
-          >
-            <i class="ri-delete-bin-line text-lg" />
-          </el-button>
-        </template>
-      </app-member-form-emails-item>
+      <template v-for="(identity, ii) of model.identities" :key="ii">
+        <app-member-form-emails-item
+          v-if="identity.type === 'email'"
+          v-model="model.identities[ii].value"
+          :verified="identity.verified"
+          class="pb-3"
+        >
+          <template #actions>
+            <el-dropdown trigger="click" placement="bottom-end">
+              <cr-button type="tertiary-light-gray" size="small" :icon-only="true">
+                <i class="ri-more-fill" />
+              </cr-button>
+              <template #dropdown>
+                <el-dropdown-item v-if="!identity.verified" @click="verifyEmail(ii)">
+                  <i class="ri-verified-badge-line text-gray-600 mr-3 text-base" />
+                  <span class="text-black">Verify email</span>
+                </el-dropdown-item>
+                <el-dropdown-item v-else @click="unverifyEmail(ii)">
+                  <app-svg name="unverify" class="text-gray-600 mr-3 !h-4 !w-4 min-w-[1rem]" />
+                  <span class="text-black">Unverify email</span>
+                </el-dropdown-item>
+                <el-divider />
+                <el-dropdown-item @click="removeEmail(ii)">
+                  <i class="ri-delete-bin-6-line !text-red-600 mr-3 text-base" />
+                  <span class="text-red-600">Delete email</span>
+                </el-dropdown-item>
+              </template>
+            </el-dropdown>
+          </template>
+        </app-member-form-emails-item>
+      </template>
+
       <div class="flex">
         <div class="text-xs font-medium text-brand-500 cursor-pointer" @click="addEmail()">
           + Add email address
@@ -26,11 +43,14 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import {
-  ref, watch,
+  computed,
 } from 'vue';
 import AppMemberFormEmailsItem from '@/modules/member/components/form/member-form-emails-item.vue';
+import { MemberIdentity } from '@/modules/member/types/Member';
+import CrButton from '@/ui-kit/button/Button.vue';
+import AppSvg from '@/shared/svg/svg.vue';
 
 const emit = defineEmits(['update:modelValue']);
 
@@ -41,45 +61,41 @@ const props = defineProps({
   },
 });
 
-const model = ref([]);
-
-watch(
-  props.modelValue,
-  (member, previous) => {
-    if (!previous) {
-      model.value = member.emails?.length > 0
-        ? member.emails
-        : [''];
-    }
+const model = computed({
+  get() {
+    return props.modelValue;
   },
-  { deep: true, immediate: true },
-);
-
-watch(
-  model,
-  (value) => {
-    // Emit updated member
-    emit('update:modelValue', {
-      ...props.modelValue,
-      emails: value.length ? value : [''],
-    });
+  set(value) {
+    emit('update:modelValue', value);
   },
-  { deep: true },
-);
+});
 
 const addEmail = () => {
-  model.value.push('');
+  const defaultEmailIdentity: MemberIdentity = {
+    platform: 'custom',
+    type: 'email',
+    value: '',
+    verified: true,
+  };
+  model.value.identities.push(defaultEmailIdentity);
 };
-const removeEmail = (index) => {
-  if (model.value.length > 1) {
-    model.value.splice(index, 1);
-  } else if (model.value.length > 0) {
-    model.value[0] = '';
-  }
+
+const removeEmail = (index: number) => {
+  model.value.identities.splice(index, 1);
+};
+
+const verifyEmail = (index: number) => {
+  const identity = { ...model.value.identities[index], verified: true };
+  model.value.identities.splice(index, 1, identity);
+};
+
+const unverifyEmail = (index: number) => {
+  const identity = { ...model.value.identities[index], verified: false };
+  model.value.identities.splice(index, 1, identity);
 };
 </script>
 
-<script>
+<script lang="ts">
 export default {
   name: 'AppMemberFormEmails',
 };

@@ -2,7 +2,9 @@
 import { BaseFilterConfig, FilterConfigType } from '@/shared/modules/filters/types/FilterConfig';
 import { FilterStringOperator } from '@/shared/modules/filters/config/constants/string.constants';
 
-export interface StringFilterOptions {}
+export interface StringFilterOptions {
+  fixedOperator?: FilterStringOperator;
+}
 
 export interface StringFilterValue {
   operator: FilterStringOperator,

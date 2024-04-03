@@ -3,6 +3,7 @@ import Errors from '@/shared/error/errors';
 import { router } from '@/router';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { isCurrentDateAfterGivenWorkingDays } from '@/utils/date';
+import { showIntegrationProgressNotification } from '@/modules/integration/helpers/integration-progress-notification';
 import Message from '../../shared/message/message';
 
 export const ERROR_BANNER_WORKING_DAYS_DISPLAY = 3;
@@ -299,13 +300,8 @@ export default {
         const integration = await IntegrationService.redditOnboard(subreddits);
 
         commit('CREATE_SUCCESS', integration);
-        Message.success(
-          'The first activities will show up in a couple of seconds. <br /> <br /> '
-            + 'This process might take a few minutes to finish, depending on the amount of data.',
-          {
-            title: 'Reddit integration created successfully',
-          },
-        );
+
+        showIntegrationProgressNotification('reddit', integration.segmentId);
         router.push({
           name: 'integration',
           params: {
@@ -326,13 +322,7 @@ export default {
 
         commit('CREATE_SUCCESS', integration);
         if (integration.settings?.organizations.length === 1) {
-          Message.success(
-            'The first activities will show up in a couple of seconds. <br /> <br /> '
-              + 'This process might take a few minutes to finish, depending on the amount of data.',
-            {
-              title: 'LinkedIn integration created successfully',
-            },
-          );
+          showIntegrationProgressNotification('linkedin', integration.segmentId);
         }
         router.push({
           name: 'integration',
@@ -355,13 +345,9 @@ export default {
         );
 
         commit('UPDATE_SUCCESS', integration);
-        Message.success(
-          'The first activities will show up in a couple of seconds. <br /> <br /> '
-            + 'This process might take a few minutes to finish, depending on the amount of data.',
-          {
-            title: 'LinkedIn integration updated successfully',
-          },
-        );
+
+        showIntegrationProgressNotification('linkedin', integration.segmentId);
+
         router.push({
           name: 'integration',
           params: {
@@ -383,13 +369,8 @@ export default {
         const integration = await IntegrationService.discordConnect(guildId);
 
         commit('CREATE_SUCCESS', integration);
-        Message.success(
-          'The first activities will show up in a couple of seconds. <br /> '
-            + 'This process might take a few minutes to finish, depending on the amount of data.',
-          {
-            title: 'Discord integration created successfully',
-          },
-        );
+
+        showIntegrationProgressNotification('discord', integration.segmentId);
         router.push({
           name: 'integration',
           params: {
@@ -417,13 +398,7 @@ export default {
 
         commit('CREATE_SUCCESS', integration);
 
-        Message.success(
-          'The first activities will show up in a couple of seconds. <br /> <br /> '
-            + 'This process might take a few minutes to finish, depending on the amount of data.',
-          {
-            title: 'DEV integration created successfully',
-          },
-        );
+        showIntegrationProgressNotification('devto', integration.segmentId);
 
         router.push({
           name: 'integration',
@@ -451,13 +426,7 @@ export default {
 
         commit('CREATE_SUCCESS', integration);
 
-        Message.success(
-          'The first activities will show up in a couple of seconds. <br /> <br /> '
-            + 'This process might take a few minutes to finish, depending on the amount of data.',
-          {
-            title: 'Hacker News integration created successfully',
-          },
-        );
+        showIntegrationProgressNotification('hackernews', integration.segmentId);
 
         router.push({
           name: 'integration',
@@ -484,13 +453,7 @@ export default {
 
         commit('CREATE_SUCCESS', integration);
 
-        Message.success(
-          'The first activities will show up in a couple of seconds. <br /> <br /> '
-            + 'This process might take a few minutes to finish, depending on the amount of data.',
-          {
-            title: 'Stack Overflow integration created successfully',
-          },
-        );
+        showIntegrationProgressNotification('stackoverflow', integration.segmentId);
 
         router.push({
           name: 'integration',

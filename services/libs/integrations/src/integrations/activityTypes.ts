@@ -953,8 +953,8 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
     },
     [GerritActivityType.PATCHSET_COMMENT_CREATED]: {
       display: {
-        default: 'added a comment to gerrit patchset in {channel}',
-        short: 'added a changeset',
+        default: 'added a comment to a gerrit patchset in {channel}',
+        short: 'added a patchset comment',
         channel: '{channel}',
         formatter: {
           channel: defaultGerritChannelFormatter,

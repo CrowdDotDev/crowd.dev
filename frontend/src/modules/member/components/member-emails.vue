@@ -73,14 +73,16 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import pluralize from 'pluralize';
-import { Member } from '../types/Member';
+import { Member, MemberIdentity } from '../types/Member';
 
 const props = defineProps<{
   member: Member
 }>();
 
-const hasEmails = computed(() => props.member.emails.filter((e) => !!e)?.length && props.member.emails.filter((e) => !!e)?.some((e) => !!e));
+const emails = computed(() => (props.member.identities || []).filter((i: MemberIdentity) => i.type === 'email').map((i) => i.value));
 
-const slicedEmails = computed(() => props.member.emails.slice(0, 3));
-const remainingEmails = computed(() => props.member.emails.slice(3));
+const hasEmails = computed(() => emails.value.length);
+
+const slicedEmails = computed(() => emails.value.slice(0, 3));
+const remainingEmails = computed(() => emails.value.slice(3));
 </script>

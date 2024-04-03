@@ -5,81 +5,168 @@
       <section
         v-for="[key, value] in Object.entries(identitiesForm)"
         :key="key"
-        class="border-b border-gray-200 last:border-none pt-5 pb-6"
+        class="border-b border-gray-200 last:border-none py-4"
       >
         <div v-if="findPlatform(key)" class="flex">
-          <div class="w-6 pt-2 mr-4">
+          <div class="w-6 pt-1.5 mr-3">
             <img
               :src="findPlatform(key).image"
               :alt="findPlatform(key).name"
-              class="w-6"
+              class="w-5"
             />
           </div>
           <div class="flex-grow">
-            <article
-              v-for="(handle, ii) of model[key]"
-              :key="ii"
-              class="flex flex-grow items-center gap-2 pb-3 last:pb-0"
-            >
-              <el-input
-                v-model="model[key][ii]"
-                placeholder="johndoe"
-                :disabled="editingDisabled(key) || key === 'linkedin'
-                  && handle.includes(
-                    'private-',
-                  )"
-                :type="key === 'linkedin'
-                  && handle.includes(
-                    'private-',
-                  ) ? 'password' : 'text'"
-              >
-                <template v-if="value.urlPrefix?.length" #prepend>
-                  <span class="font-medium text-gray-500">{{ value.urlPrefix }}</span>
-                </template>
-              </el-input>
-              <el-tooltip
-                v-if="props.showUnmerge && Object.entries(identitiesForm).length > 1 && staticIdentities.length > 1"
-                :disabled="!staticModel?.[key]?.[ii] || staticModel?.[key]?.[ii] === model[key][ii]"
-                content="Not possible to unmerge an unsaved identity"
-                placement="top"
-              >
-                <div>
-                  <el-button
-                    class="btn btn--md btn--transparent block w-8 !h-8 p-0"
-                    :disabled="!staticModel?.[key]?.[ii] || staticModel?.[key]?.[ii] !== model[key][ii]"
-                    @click="emit('unmerge', {
-                      platform: key,
-                      username: staticModel?.[key]?.[ii],
-                    })"
+            <template v-for="(identity, ii) of model.identities" :key="ii">
+              <template v-if="identity.platform === key && identity.type === 'username'">
+                <article
+                  class="flex flex-grow items-center gap-2 pb-3 last:pb-0"
+                >
+                  <el-input
+                    v-model="model.identities[ii].value"
+                    placeholder="johndoe"
+                    :disabled="editingDisabled(key) || key === 'linkedin'
+                      && identity.value.includes(
+                        'private-',
+                      )"
+                    :type="key === 'linkedin'
+                      && identity.value.includes(
+                        'private-',
+                      ) ? 'password' : 'text'"
+                    class="!h-8"
                   >
-                    <i class="ri-link-unlink-m text-lg" />
-                  </el-button>
-                </div>
-              </el-tooltip>
-
-              <el-button
-                :disabled="model[key].length <= 1 || editingDisabled(key)"
-                class="btn btn--md btn--transparent w-8 !h-8"
-                @click="removeUsername(key, ii)"
-              >
-                <i class="ri-delete-bin-line text-lg" />
-              </el-button>
-            </article>
+                    <template v-if="value.urlPrefix?.length" #prepend>
+                      <span class="font-medium text-gray-500">{{ value.urlPrefix }}</span>
+                    </template>
+                    <template #suffix>
+                      <i
+                        v-if="identity.value && identity.verified"
+                        class="ri-verified-badge-fill text-brand-500 text-base leading-4"
+                      />
+                    </template>
+                  </el-input>
+                  <cr-button
+                    :id="`identityRef-${ii}`"
+                    :ref="(el) => setActionBtnsRef(el, ii)"
+                    type="tertiary-light-gray"
+                    size="small"
+                    :icon-only="true"
+                    class="relative"
+                    @click.prevent.stop="() => onActionBtnClick(ii)"
+                  >
+                    <i
+                      :id="`identityRefIcon-${ii}`"
+                      class="ri-more-fill"
+                    />
+                  </cr-button>
+                </article>
+              </template>
+            </template>
           </div>
         </div>
       </section>
     </div>
   </div>
+  <el-popover
+    v-if="identityDropdown !== null"
+    placement="bottom-end"
+    popper-class="popover-dropdown"
+    :virtual-ref="actionBtnRefs[identityDropdown]"
+    trigger="click"
+    :visible="identityDropdown !== null"
+    virtual-triggering
+    width="240"
+    @update:visible="!$event ? identityDropdown = null : null"
+  >
+    <div v-click-outside="onClickOutside">
+      <el-tooltip
+        v-if="props.record.identities?.[identityDropdown]?.value && props.showUnmerge && staticIdentities.length > 1"
+        content="Not possible to unmerge an unsaved identity"
+        placement="top-end"
+        :disabled="!props.record.identities?.[identityDropdown]?.value || props.record.identities?.[identityDropdown]
+          && props.modelValue.identities?.[identityDropdown]?.value === props.record.identities?.[identityDropdown]?.value"
+      >
+        <div class=" w-full">
+          <button
+            type="button"
+            class="el-dropdown-menu__item w-full"
+            :disabled="!props.record.identities?.[identityDropdown]
+              || props.modelValue.identities?.[identityDropdown]?.value !== props.record.identities?.[identityDropdown]?.value"
+            @click="emit('unmerge', {
+              platform: props.modelValue.identities?.[identityDropdown]?.platform,
+              username: props.record.identities?.[identityDropdown].value,
+            }); identityDropdown = null"
+          >
+            <div class="flex items-center">
+              <i class="ri-link-unlink-m text-gray-600 mr-3 text-base" />
+              <span>Unmerge identity</span>
+            </div>
+          </button>
+        </div>
+      </el-tooltip>
+      <template v-if="props.modelValue.identities?.[identityDropdown].value">
+        <button
+          v-if="!props.modelValue.identities?.[identityDropdown].verified"
+          type="button"
+          class="el-dropdown-menu__item w-full"
+          :disabled="editingDisabled(props.modelValue.identities?.[identityDropdown].platform)"
+          @click="verifyIdentity(identityDropdown); identityDropdown = null"
+        >
+          <i class="ri-verified-badge-line text-gray-600 mr-3 text-base" />
+          <span>Verify identity</span>
+        </button>
+        <el-tooltip
+          v-else
+          content="Identities tracked from Integrations can’t be unverified"
+          placement="top-end"
+          :disabled="!props.modelValue.identities?.[identityDropdown].sourceId"
+        >
+          <div class="w-full">
+            <button
+              type="button"
+              class="el-dropdown-menu__item w-full"
+              :disabled="editingDisabled(props.modelValue.identities?.[identityDropdown].platform)
+                && props.modelValue.identities?.[identityDropdown]?.sourceId"
+              @click="unverifyIdentity(identityDropdown); identityDropdown = null"
+            >
+              <div class="flex items-center">
+                <app-svg name="unverify" class="text-gray-600 mr-3 !h-4 !w-4 min-w-[1rem]" />
+                <span>Unverify identity</span>
+              </div>
+            </button>
+          </div>
+        </el-tooltip>
+        <el-divider />
+      </template>
+
+      <button
+        type="button"
+        class="el-dropdown-menu__item w-full"
+        :disabled="getPlatformIdentities(props.modelValue.identities?.[identityDropdown].platform).length <= 1 || editingDisabled(key)"
+        @click="removeIdentity(identityDropdown); identityDropdown = null"
+      >
+        <div
+          class="flex items-center"
+          :class="(getPlatformIdentities(props.modelValue.identities?.[identityDropdown].platform).length <= 1
+            || editingDisabled(key)) ? '!opacity-50' : ''"
+        >
+          <i class="ri-delete-bin-6-line !text-red-600 mr-3 text-base" />
+          <span class="text-red-600">Delete identity</span>
+        </div>
+      </button>
+    </div>
+  </el-popover>
 </template>
 
 <script setup>
 import {
   defineEmits,
   defineProps,
-  watch,
-  ref, onMounted, computed,
+  computed, onMounted, watch, ref,
 } from 'vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
+import AppSvg from '@/shared/svg/svg.vue';
+import CrButton from '@/ui-kit/button/Button.vue';
+import { ClickOutside as vClickOutside } from 'element-plus';
 
 const emit = defineEmits(['update:modelValue', 'unmerge']);
 
@@ -132,84 +219,18 @@ const identitiesForm = {
   },
 };
 
-const defaultValue = Object.keys(identitiesForm).reduce((identities, key) => ({
-  ...identities,
-  [key]: [''],
-}), {});
-
-const model = ref({ ...defaultValue });
-const staticModel = ref({});
-
-watch(
-  props.modelValue,
-  (contact, previous) => {
-    if (!previous) {
-      model.value = {
-        ...defaultValue,
-        ...(contact?.username || {}),
-      };
-    }
+const model = computed({
+  get() {
+    return props.modelValue;
   },
-  { deep: true, immediate: true },
-);
-
-watch(
-  model,
-  (value) => {
-    // Parse username object
-    const username = Object.keys(identitiesForm).reduce((obj, platform) => {
-      const usernames = (value[platform] || []).filter((username) => !!username.trim());
-      return {
-        ...obj,
-        [platform]: usernames,
-      };
-    }, {});
-
-    // Get url object from usernames
-    const url = Object.keys(username).reduce((urls, p) => {
-      if (username[p]?.length) {
-        return {
-          ...urls,
-          [p]: CrowdIntegrations.getConfig(p)?.url({ username: model.value[p][0], attributes: model.value.attributes }),
-        };
-      }
-      return urls;
-    }, {});
-
-    const identities = {
-      ...props.modelValue.username,
-      ...username,
-    };
-
-    Object.keys(identities).forEach((platform) => {
-      identities[platform] = identities[platform].filter((i) => i.trim().length);
-      if (identities[platform].length === 0) {
-        delete identities[platform];
-      }
-    });
-
-    // Get platforms from usernames
-    const platforms = Object.keys(identities || {});
-    const platform = platforms.length ? platforms[0] : null;
-
-    // Emit updated member
-    emit('update:modelValue', {
-      ...props.modelValue,
-      username: identities,
-      platform: platform || props.modelValue.platform,
-      identities: platforms,
-      attributes: {
-        ...props.modelValue.attributes,
-        url,
-      },
-    });
+  set(value) {
+    emit('update:modelValue', value);
   },
-  { deep: true },
-);
+});
 
-function findPlatform(platform) {
-  return CrowdIntegrations.getConfig(platform);
-}
+const getPlatformIdentities = (platform) => props.modelValue.identities.filter((i) => i.platform === platform);
+
+const findPlatform = (platform) => CrowdIntegrations.getConfig(platform);
 
 function editingDisabled(platform) {
   if (['git'].includes(platform)) {
@@ -220,15 +241,86 @@ function editingDisabled(platform) {
     : false;
 }
 
-const removeUsername = (platform, index) => {
-  model.value[platform].splice(index, 1);
+const addEmptyIdentities = () => {
+  const usedPlatforms = [...new Set(model.value.identities
+    .filter((i) => i.type !== 'email')
+    .map((i) => i.platform))];
+  const unused = Object.keys(identitiesForm)
+    .filter((p) => !usedPlatforms.includes(p))
+    .map((p) => ({
+      platform: p,
+      type: 'username',
+      value: '',
+      verified: true,
+    }));
+
+  if (unused.length > 0) {
+    model.value.identities = [...model.value.identities, ...unused];
+  }
 };
 
-const staticIdentities = computed(() => Object.values(staticModel.value).flat());
+const staticIdentities = computed(() => props.record.identities.filter((i) => i.type === 'username'));
+
+const removeIdentity = (index) => {
+  model.value.identities.splice(index, 1);
+};
+
+const verifyIdentity = (index) => {
+  const identity = { ...model.value.identities[index], verified: true };
+  model.value.identities.splice(index, 1, identity);
+};
+
+const unverifyIdentity = (index) => {
+  const identity = { ...model.value.identities[index], verified: false };
+  model.value.identities.splice(index, 1, identity);
+};
+
+const actionBtnRefs = ref({});
+const identityDropdown = ref(null);
+const setActionBtnsRef = (el, index) => {
+  if (el) {
+    actionBtnRefs.value[index] = el;
+  }
+};
+
+const onActionBtnClick = (index) => {
+  if (identityDropdown.value === index) {
+    identityDropdown.value = null;
+  } else {
+    identityDropdown.value = index;
+  }
+};
+
+const onClickOutside = (el) => {
+  if (!el.target?.id.includes('identityRef')) {
+    identityDropdown.value = null;
+  }
+};
+
+watch(() => model.value.identities, () => {
+  addEmptyIdentities();
+}, { deep: true });
 
 onMounted(() => {
-  staticModel.value = {
-    ...props.record.username,
-  };
+  addEmptyIdentities();
 });
 </script>
+
+<style lang="scss" scoped>
+.el-dropdown__popper .el-dropdown__list {
+  @apply p-2;
+}
+
+// Override divider margin
+.el-divider--horizontal {
+  @apply my-2;
+}
+
+.el-dropdown-menu__item:disabled {
+  @apply cursor-not-allowed text-gray-400;
+}
+
+.el-dropdown-menu__item:disabled:hover {
+  @apply bg-white;
+}
+</style>

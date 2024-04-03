@@ -29,6 +29,13 @@ export interface MemberTag {
   name: string;
 }
 
+export interface MemberIdentity {
+  platform: string;
+  type: string;
+  value: string;
+  verified: boolean;
+}
+
 export interface Member {
   activeDaysCount: string;
   activeOn: string[] | null;
@@ -41,7 +48,7 @@ export interface Member {
   displayName: string;
   emails: string[]
   id: string;
-  identities: string[] | null;
+  identities: MemberIdentity[] | null;
   importHash: string | null;
   joinedAt: string;
   lastActive: string | null;
@@ -56,6 +63,8 @@ export interface Member {
   toMergeIds: string[] | null;
   updatedAt: string;
   username: Record<string, string[]>
+  verifiedEmails: string[];
+  unverifiedEmails: string[];
   segments: {
     id: string;
     name: string;

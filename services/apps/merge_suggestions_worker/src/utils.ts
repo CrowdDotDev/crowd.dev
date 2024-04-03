@@ -30,34 +30,59 @@ export const calculateSimilarity = (
     return 0.98
   }
 
-  // check email match
+  // We check if there are any verified<->unverified email matches between primary & similar members
   if (
-    similarMember.string_arr_emails &&
-    similarMember.string_arr_emails.length > 0 &&
-    similarMember.string_arr_emails.some((email) => primaryMember.string_arr_emails.includes(email))
+    (similarMember.string_arr_unverifiedEmails.length > 0 &&
+      similarMember.string_arr_unverifiedEmails.some((email) =>
+        primaryMember.string_arr_verifiedEmails.includes(email),
+      )) ||
+    (similarMember.string_arr_verifiedEmails.length > 0 &&
+      similarMember.string_arr_verifiedEmails.some((email) =>
+        primaryMember.string_arr_unverifiedEmails.includes(email),
+      ))
   ) {
     return 0.98
   }
 
-  // find the smallest edit distance between both identity arrays
-  for (const primaryIdentity of primaryMember.nested_identities) {
-    // similar organization has a weakIdentity as one of primary organization's strong identity, return score 95
+  // check primary unverified identity <-> secondary verified identity exact match
+  for (const primaryIdentity of primaryMember.nested_identities.filter((i) => !i.bool_verified)) {
     if (
-      similarMember.nested_weakIdentities &&
-      similarMember.nested_weakIdentities.length > 0 &&
-      similarMember.nested_weakIdentities.some(
-        (weakIdentity) =>
-          weakIdentity.string_username === primaryIdentity.string_username &&
-          weakIdentity.string_platform === primaryIdentity.string_platform,
+      similarMember.nested_identities &&
+      similarMember.nested_identities.length > 0 &&
+      similarMember.nested_identities.some(
+        (verifiedIdentity) =>
+          verifiedIdentity.bool_verified &&
+          verifiedIdentity.string_value === primaryIdentity.string_value &&
+          verifiedIdentity.keyword_type === primaryIdentity.keyword_type &&
+          verifiedIdentity.string_platform === primaryIdentity.string_platform,
+      )
+    ) {
+      return 0.98
+    }
+  }
+
+  for (const primaryIdentity of primaryMember.nested_identities.filter((i) => i.bool_verified)) {
+    // similar member has an unverified identity as one of primary members's verified identity, return score 95
+    if (
+      similarMember.nested_identities &&
+      similarMember.nested_identities.length > 0 &&
+      similarMember.nested_identities.some(
+        (unverifiedIdentity) =>
+          unverifiedIdentity.bool_verified === false &&
+          unverifiedIdentity.string_value === primaryIdentity.string_value &&
+          unverifiedIdentity.keyword_type === primaryIdentity.keyword_type &&
+          unverifiedIdentity.string_platform === primaryIdentity.string_platform,
       )
     ) {
       return 0.95
     }
 
-    for (const secondaryIdentity of similarMember.nested_identities) {
+    for (const secondaryIdentity of similarMember.nested_identities.filter(
+      (i) => i.bool_verified,
+    )) {
       const currentLevenstheinDistance = getLevenshteinDistance(
-        primaryIdentity.string_username,
-        secondaryIdentity.string_username,
+        `${primaryIdentity.string_value}`,
+        `${secondaryIdentity.string_value}`,
       )
       if (smallestEditDistance === null || smallestEditDistance > currentLevenstheinDistance) {
         smallestEditDistance = currentLevenstheinDistance
@@ -67,7 +92,7 @@ export const calculateSimilarity = (
   }
 
   // calculate similarity percentage
-  const identityLength = similarPrimaryIdentity.string_username.length
+  const identityLength = similarPrimaryIdentity.string_value.length
 
   if (identityLength < smallestEditDistance) {
     // if levensthein distance is bigger than the word itself, it might be a prefix match, return medium similarity

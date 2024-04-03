@@ -14,7 +14,7 @@
       :display-show-more="displayShowMore"
     />
   </div>
-  <div v-else class="text-gray-400 mt-6 text-xs italic">
+  <div v-else class="text-gray-400 mt-6 text-xs italic px-6">
     No identities
   </div>
 
