@@ -22,7 +22,7 @@
               <app-avatar
                 :entity="{
                   displayName: item.label,
-                  avatar: item.logo,
+                  avatar: item.avatar,
                 }"
                 size="xs"
                 class="mr-3"
@@ -79,7 +79,7 @@ const computedMemberToMerge = computed({
 });
 
 const fetchFn = async ({ query, limit }) => {
-  const options = await MemberService.listOrganizationsAutocomplete({
+  const options = await MemberService.listAutocomplete({
     query,
     limit,
   });

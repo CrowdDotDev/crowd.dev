@@ -14,9 +14,6 @@ export class OrganizationsOpensearch extends OpensearchModelBase {
     segmentId: {
       type: OpensearchFieldType.UUID,
     },
-    grandParentSegment: {
-      type: OpensearchFieldType.BOOL,
-    },
     tenantId: {
       type: OpensearchFieldType.UUID,
     },
