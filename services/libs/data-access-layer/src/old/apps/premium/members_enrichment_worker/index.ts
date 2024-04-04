@@ -90,12 +90,21 @@ export async function getIdentitiesExistInOtherMembers(
   let replacementIndex = 0
 
   for (let i = 0; i < identities.length; i++) {
-    identityPartialQuery += `(mi.platform = $${replacementIndex + 1} and mi."value" = $${
-      replacementIndex + 2
-    })`
-    replacements[replacementIndex] = identities[i].platform
-    replacements[replacementIndex + 1] = identities[i].value
-    replacementIndex += 2
+    if (identities[i].type === MemberIdentityType.USERNAME) {
+      identityPartialQuery += `(mi.verified and mi.type = '${
+        MemberIdentityType.USERNAME
+      }' and mi.platform = $${replacementIndex + 1} and mi."value" = $${replacementIndex + 2})`
+      replacements[replacementIndex] = identities[i].platform
+      replacements[replacementIndex + 1] = identities[i].value
+      replacementIndex += 2
+    } else if (identities[i].type === MemberIdentityType.EMAIL) {
+      identityPartialQuery += `(mi.verified and mi.type = '${
+        MemberIdentityType.EMAIL
+      }' and mi."value" = $${replacementIndex + 1})`
+      replacements[replacementIndex] = identities[i].value
+      replacementIndex += 1
+    }
+
     if (i !== identities.length - 1) {
       identityPartialQuery += ' OR '
     }
