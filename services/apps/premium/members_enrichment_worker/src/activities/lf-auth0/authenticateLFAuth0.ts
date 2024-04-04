@@ -44,7 +44,7 @@ async function getTokenFromAuth0(): Promise<ITokenWithExpiration> {
     audience: process.env['CROWD_LFX_AUTH0_AUDIENCE'],
   })
 
-  if (result.data) {
+  if (result.data && result.data.access_token && result.data.expires_in) {
     return {
       token: result.data.access_token,
       expirationInSeconds: result.data.expires_in,
@@ -52,5 +52,5 @@ async function getTokenFromAuth0(): Promise<ITokenWithExpiration> {
   }
 
   svc.log.error({ result }, 'Failed to get token from Auth0!')
-  return null
+  throw new Error('Failed to get token from Auth0!')
 }
