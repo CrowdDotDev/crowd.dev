@@ -136,7 +136,7 @@ export async function enrichMemberWithLFAuth0(member: IMember): Promise<void> {
         ),
     )
 
-    // add identities to current member.
+    // update current member with enrichment data
     await updateMemberWithEnrichmentData(
       member.id,
       member.tenantId,
@@ -146,9 +146,7 @@ export async function enrichMemberWithLFAuth0(member: IMember): Promise<void> {
 
     await syncMembersToOpensearch([member.id])
 
-    // loop through identitiesExistInOtherMembers and merge them with current member. Find the primary by counting the total number of identities.]
     for (const memberToBeMerged of identitiesExistInOtherMembers) {
-      // merge
       console.log(`${memberToBeMerged.memberId} will be merged with ${member.id}`)
       // TODO:: uncomment this
       // await mergeMembers(member.id, memberToBeMerged.memberId, member.tenantId)
