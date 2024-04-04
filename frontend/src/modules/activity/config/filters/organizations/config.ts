@@ -6,7 +6,6 @@ import {
 } from '@/shared/modules/filters/types/filterTypes/MultiSelectAsyncFilterConfig';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import { DEFAULT_ORGANIZATION_FILTERS } from '@/modules/organization/store/constants';
-import { Organization } from '@/modules/organization/types/Organization';
 
 const organizations: MultiSelectAsyncFilterConfig = {
   id: 'organizations',
@@ -14,11 +13,13 @@ const organizations: MultiSelectAsyncFilterConfig = {
   iconClass: 'ri-community-line',
   type: FilterConfigType.MULTISELECT_ASYNC,
   options: {
-    remoteMethod: (query) => OrganizationService.listOrganizationsAutocomplete({
-      query,
-      limit: 10,
-    }),
-    remotePopulateItems: (ids: string[]) => OrganizationService.query({
+    remoteMethod: (query) => OrganizationService.listAutocomplete(query, 10)
+      .then((data: any[]) => data.map((organization) => ({
+        label: organization.label,
+        value: organization.id,
+        logo: organization.logo,
+      }))),
+    remotePopulateItems: (ids: string[]) => OrganizationService.listAutocomplete({
       filter: {
         and: [
           ...DEFAULT_ORGANIZATION_FILTERS,
@@ -31,7 +32,7 @@ const organizations: MultiSelectAsyncFilterConfig = {
       limit: ids.length,
       offset: 0,
     })
-      .then(({ rows }: { rows: Organization[] }) => rows.map((organization) => ({
+      .then(({ rows }: any) => rows.map((organization: any) => ({
         label: organization.displayName,
         value: organization.id,
         logo: organization.logo,

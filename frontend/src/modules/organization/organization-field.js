@@ -9,7 +9,7 @@ export class OrganizationField {
       label,
       '/organization',
       Permissions.values.organizationRead,
-      OrganizationService.listOrganizationsAutocomplete,
+      OrganizationService.listAutocomplete,
       (record) => {
         if (!record) {
           return null;
