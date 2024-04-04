@@ -21,33 +21,41 @@
 
           <div class="flex flex-wrap items-center gap-2">
             <div class="flex flex-wrap items-center">
-              <template v-for="({ handle, link }, vi) of value" :key="handle">
-                <div
-                  v-if="platform === 'linkedin' && handle.includes('private-')"
-                  class="text-gray-900 text-xs"
-                >
-                  <span>*********</span>
-                  <el-tooltip placement="top" content="Private profile">
-                    <i class="ri-lock-line text-gray-400" />
-                  </el-tooltip>
-                </div>
+              <template v-for="({ handle, link, verified }, vi) of value" :key="handle">
+                <div class="flex items-center">
+                  <div
+                    v-if="platform === 'linkedin' && handle.includes('private-')"
+                    class="text-gray-900 text-xs"
+                  >
+                    <span>*********</span>
+                    <el-tooltip placement="top" content="Private profile">
+                      <i class="ri-lock-line text-gray-400" />
+                    </el-tooltip>
+                  </div>
 
-                <component
-                  :is="link ? 'a' : 'span'"
-                  v-else
-                  :href="link"
-                  class="text-gray-900 text-xs font-medium leading-5 items-center w-auto break-all"
-                  :class="{
-                    'underline decoration-dashed decoration-gray-400 underline-offset-4 ':
-                      link,
-                    'hover:decoration-gray-900 hover:cursor-pointer hover:!text-gray-900':
-                      link,
-                  }"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {{ handle }}
-                </component>
+                  <component
+                    :is="link ? 'a' : 'span'"
+                    v-else
+                    :href="link"
+                    class="text-gray-900 text-xs font-medium leading-5 items-center w-auto break-all"
+                    :class="{
+                      'underline decoration-dashed decoration-gray-400 underline-offset-4 ':
+                        link,
+                      'hover:decoration-gray-900 hover:cursor-pointer hover:!text-gray-900':
+                        link,
+                    }"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {{ handle }}
+                  </component>
+
+                  <div v-if="verified" class="pl-1">
+                    <el-tooltip placement="top" content="Verified identity">
+                      <i class="ri-verified-badge-fill text-brand-500" />
+                    </el-tooltip>
+                  </div>
+                </div>
 
                 <span
                   v-if="vi !== value.length - 1"

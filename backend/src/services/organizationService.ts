@@ -389,7 +389,7 @@ export default class OrganizationService extends LoggerBase {
     }
   }
 
-  async mergeSync(originalId, toMergeId) {
+  async mergeSync(originalId, toMergeId, segmentId) {
     this.options.log.info({ originalId, toMergeId }, 'Merging organizations!')
 
     const removeExtraFields = (organization: IOrganization): IOrganization =>
@@ -422,7 +422,11 @@ export default class OrganizationService extends LoggerBase {
           const backup = {
             primary: {
               ...lodash.pick(
-                await OrganizationRepository.findByIdOpensearch(originalId, this.options),
+                await OrganizationRepository.findByIdOpensearch(
+                  originalId,
+                  this.options,
+                  segmentId,
+                ),
                 OrganizationService.ORGANIZATION_MERGE_FIELDS,
               ),
               identities: await OrganizationRepository.getIdentities([originalId], this.options),
