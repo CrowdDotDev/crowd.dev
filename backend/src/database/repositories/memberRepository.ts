@@ -19,7 +19,7 @@ import lodash, { chunk } from 'lodash'
 import moment from 'moment'
 import Sequelize, { QueryTypes } from 'sequelize'
 
-import { Error400, Error404, dateEqualityChecker, distinct } from '@crowd/common'
+import { Error400, Error404, Error409, dateEqualityChecker, distinct } from '@crowd/common'
 import { ActivityDisplayService } from '@crowd/integrations'
 import {
   captureApiChange,
@@ -726,6 +726,8 @@ class MemberRepository {
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
+    const seq = SequelizeRepository.getSequelize(options)
+
     const record = await captureApiChange(
       options,
       memberEditProfileAction(id, async (captureOldState, captureNewState) => {
@@ -881,6 +883,40 @@ class MemberRepository {
 
     if (options.currentSegments && options.currentSegments.length > 0) {
       await MemberRepository.includeMemberToSegments(record.id, options)
+    }
+
+    // Before upserting identities, check if they already exist
+    const checkIdentities = [...(data.identitiesToCreate || []), ...(data.identitiesToUpdate || [])]
+    if (checkIdentities.length > 0) {
+      for (const i of checkIdentities) {
+        const query = `
+          select "memberId"
+          from "memberIdentities"
+          where "platform" = :platform and
+                "value" = :value and
+                "type" = :type and
+                "tenantId" = :tenantId
+        `
+
+        const data: IMemberIdentity[] = await seq.query(query, {
+          replacements: {
+            platform: i.platform,
+            value: i.value,
+            type: i.type || MemberIdentityType.USERNAME,
+            tenantId: currentTenant.id,
+          },
+          type: QueryTypes.SELECT,
+          transaction,
+        })
+
+        if (data.length > 0 && data[0].memberId !== record.id) {
+          throw new Error409(
+            options.language,
+            'errors.alreadyExists',
+            data[0].memberId,
+          )
+        }
+      }
     }
 
     const qx = SequelizeRepository.getQueryExecutor(options, transaction)

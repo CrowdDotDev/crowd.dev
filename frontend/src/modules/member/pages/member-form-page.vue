@@ -196,6 +196,8 @@ import AppMemberFormEmails from '@/modules/member/components/form/member-form-em
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import AppLfSubProjectsListDropdown from '@/modules/lf/segments/components/lf-sub-projects-list-dropdown.vue';
 import AppLfMemberFormAffiliations from '@/modules/lf/member/components/form/lf-member-form-affiliations.vue';
+import { MemberService } from '../member-service';
+import Message from '@/shared/message/message';
 
 const LoaderIcon = h(
   'i',
@@ -517,24 +519,46 @@ async function onSubmit() {
   if (isEditPage.value) {
     isFormSubmitting.value = true;
 
-    isRequestSuccessful = await store.dispatch(
-      'member/doUpdate',
-      {
-        id: record.value.id,
-        values: data,
-        segments: segments.value,
-      },
-    );
+    await MemberService.update(record.value.id, data).then(() => {
+      isRequestSuccessful = true;
+    })
+      .catch((error) => {
+        if (error.response.status === 409) {
+          Message.error(
+            h(
+              'div',
+              {
+                class: 'flex flex-col gap-2',
+              },
+              [
+                h(
+                  'el-button',
+                  {
+                    class: 'btn btn--xs btn--secondary !h-6 !w-fit',
+                    onClick: () => {
+                      console.log('Merge members!', record.value.id, error.response.data);
+                      Message.closeAll();
+                    },
+                  },
+                  'Merge members',
+                ),
+              ],
+            ),
+            {
+              title: 'Member was not updated because the identity already exists in another member.',
+            },
+          );
+        } else {
+          Errors.handle(error);
+        }
+      });
   } else {
     // Create new member
     isFormSubmitting.value = true;
-    isRequestSuccessful = await store.dispatch(
-      'member/doCreate',
-      {
-        data,
-        segments: segments.value,
-      },
-    );
+
+    await MemberService.create(data, segments.value).then(() => {
+      isRequestSuccessful = true;
+    });
   }
 
   isFormSubmitting.value = false;

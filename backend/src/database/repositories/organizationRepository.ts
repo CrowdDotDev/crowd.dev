@@ -621,7 +621,7 @@ class OrganizationRepository {
           if (existingOrg && existingOrg.id !== record.id) {
             throw new Error409(
               options.language,
-              'organization.errors.websiteAlreadyExists',
+              'errors.alreadyExists',
               existingOrg.id,
             )
           }
