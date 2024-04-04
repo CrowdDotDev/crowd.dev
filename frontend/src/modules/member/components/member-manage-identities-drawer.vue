@@ -7,65 +7,87 @@
   >
     <template #content>
       <div class="border-t border-gray-200 -mt-4 -mx-6 px-6">
-        <app-member-form-identities
-          v-model="memberModel"
-          :record="member"
-          :show-header="false"
-          :show-unmerge="true"
-          @unmerge="emit('unmerge', $event)"
-        />
-      </div>
-    </template>
-    <template #footer>
-      <div style="flex: auto">
-        <el-button
-          class="btn btn--md btn--secondary mr-3"
-          @click="handleCancel"
-        >
-          Cancel
-        </el-button>
-        <el-button
-          type="primary"
-          :disabled="loading || !hasFormChanged"
-          class="btn btn--md btn--primary"
-          :loading="loading"
-          @click="handleSubmit"
-        >
-          Update
-        </el-button>
+        <div class="gap-4 flex flex-col pt-6">
+          <template v-for="(identity, ii) of identities" :key="ii">
+            <template v-if="identity.type === 'username'">
+              <app-member-form-identity-item
+                :identity="identity"
+                :index="ii"
+                :member="props.member"
+                @update="update(ii, $event)"
+              >
+                <template #actions>
+                  <cr-button
+                    :id="`identityRef-${ii}`"
+                    :ref="(el) => setActionBtnsRef(el, ii)"
+                    type="tertiary-light-gray"
+                    size="small"
+                    :icon-only="true"
+                    class="relative ml-3"
+                    @click.prevent.stop="() => onActionBtnClick(ii)"
+                  >
+                    <i
+                      :id="`identityRefIcon-${ii}`"
+                      class="ri-more-fill"
+                    />
+                  </cr-button>
+                </template>
+              </app-member-form-identity-item>
+            </template>
+          </template>
+        </div>
       </div>
     </template>
   </app-drawer>
+  <el-popover
+    v-if="identityDropdown !== null"
+    placement="bottom-end"
+    popper-class="popover-dropdown"
+    :virtual-ref="actionBtnRefs[identityDropdown]"
+    trigger="click"
+    :visible="identityDropdown !== null"
+    virtual-triggering
+    width="240"
+    @update:visible="!$event ? identityDropdown = null : null"
+  >
+    <div v-click-outside="onClickOutside">
+      <app-member-form-identity-dropdown
+        :identity="identities[identityDropdown]"
+        @update="update(identityDropdown, $event)"
+      />
+    </div>
+  </el-popover>
 </template>
 
-<script setup>
-import { useStore } from 'vuex';
+<script setup lang="ts">
 import {
-  ref,
-  computed,
+  computed, onUnmounted, ref,
 } from 'vue';
-import Message from '@/shared/message/message';
+import AppMemberFormIdentityItem from '@/modules/member/components/form/identity/member-form-identity-item.vue';
+import { Member, MemberIdentity } from '@/modules/member/types/Member';
 import { MemberService } from '@/modules/member/member-service';
-import cloneDeep from 'lodash/cloneDeep';
+import Message from '@/shared/message/message';
+import { useStore } from 'vuex';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import isEqual from 'lodash/isEqual';
-import AppMemberFormIdentities from './form/member-form-identities.vue';
+import CrButton from '@/ui-kit/button/Button.vue';
+import AppSvg from '@/shared/svg/svg.vue';
+import AppMemberFormIdentityDropdown from '@/modules/member/components/form/identity/member-form-identity-dropdown.vue';
+import { ClickOutside as vClickOutside } from 'element-plus';
 
-const store = useStore();
-const props = defineProps({
-  modelValue: {
-    type: Boolean,
-    default: false,
-  },
-  member: {
-    type: Object,
-    default: () => {},
-  },
+const props = withDefaults(defineProps<{
+  modelValue?: boolean,
+  member: Member
+}>(), {
+  modelValue: false,
 });
+
 const emit = defineEmits(['update:modelValue', 'unmerge']);
 
-const drawerModel = computed({
+const store = useStore();
+const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
+
+const drawerModel = computed<boolean>({
   get() {
     return props.modelValue;
   },
@@ -74,56 +96,53 @@ const drawerModel = computed({
   },
 });
 
-const lsSegmentsStore = useLfSegmentsStore();
-const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
+const identities = ref([...(props.member.identities || [])]);
 
-const memberModel = ref(cloneDeep(props.member));
-const loading = ref(false);
-
-const hasFormChanged = computed(() => {
-  const currentEmails = props.member.identities.filter((i) => i.type === 'username' && !!i.value);
-  const formEmails = memberModel.value.identities.filter((i) => i.type === 'username' && !!i.value);
-  return !isEqual(currentEmails, formEmails);
-});
-
-const handleCancel = () => {
-  emit('update:modelValue', false);
-};
-
-const handleSubmit = async () => {
-  loading.value = true;
-
+const update = (index: number, data: MemberIdentity) => {
+  identities.value[index] = data;
   const segments = props.member.segments.map((s) => s.id);
 
   MemberService.update(props.member.id, {
-    identities: memberModel.value.identities.filter((i) => !!i.value),
-  }, segments).then(() => {
-    store.dispatch('member/doFind', {
-      id: props.member.id,
-      segments: [selectedProjectGroup.value?.id],
-    }).then(() => {
-      Message.success('Contributor identities updated successfully');
+    identities: identities.value,
+  }, segments)
+    .catch((err) => {
+      Message.error(err.response.data);
     });
-  }).catch((err) => {
-    Message.error(err.response.data);
-  }).finally(() => {
-    emit('update:modelValue', false);
-    loading.value = false;
-  });
 };
+
+const actionBtnRefs = ref<Record<number, any>>({});
+const identityDropdown = ref<number | null>(null);
+
+const setActionBtnsRef = (el: any, index: number) => {
+  if (el) {
+    actionBtnRefs.value[index] = el;
+  }
+};
+
+const onActionBtnClick = (index: number) => {
+  if (identityDropdown.value === index) {
+    identityDropdown.value = null;
+  } else {
+    identityDropdown.value = index;
+  }
+};
+
+const onClickOutside = (el: any) => {
+  if (!el.target?.id.includes('identityRef')) {
+    identityDropdown.value = null;
+  }
+};
+
+onUnmounted(() => {
+  store.dispatch('member/doFind', {
+    id: props.member.id,
+    segments: [selectedProjectGroup.value?.id],
+  });
+});
 </script>
 
-<script>
+<script lang="ts">
 export default {
   name: 'AppMemberManageIdentitiesDrawer',
 };
 </script>
-
-<style lang="scss">
-.identities-drawer {
-  .el-form-item,
-  .el-form-item__content {
-    @apply mb-0;
-  }
-}
-</style>
