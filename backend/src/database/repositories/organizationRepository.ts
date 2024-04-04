@@ -1939,7 +1939,7 @@ class OrganizationRepository {
       },
     })
 
-    if (segmentsEnabled && segment) {
+    if (segmentsEnabled) {
       // add segment filter
       parsed.query.bool.must.push({
         term: {

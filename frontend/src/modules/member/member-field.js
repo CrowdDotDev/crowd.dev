@@ -10,7 +10,7 @@ export class MemberField {
       label,
       '/members',
       Permissions.values.memberRead,
-      MemberService.listMembersAutocomplete,
+      MemberService.listAutocomplete,
       (record) => {
         if (!record) {
           return null;
@@ -31,7 +31,7 @@ export class MemberField {
       label,
       '/members',
       Permissions.values.memberRead,
-      MemberService.listMembersAutocomplete,
+      MemberService.listAutocomplete,
       (record) => {
         if (!record) {
           return null;

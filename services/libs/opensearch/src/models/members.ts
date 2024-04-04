@@ -17,9 +17,6 @@ export class MembersOpensearch extends OpensearchModelBase {
     segmentId: {
       type: OpensearchFieldType.UUID,
     },
-    grandParentSegment: {
-      type: OpensearchFieldType.BOOL,
-    },
     displayName: {
       type: OpensearchFieldType.STRING,
     },

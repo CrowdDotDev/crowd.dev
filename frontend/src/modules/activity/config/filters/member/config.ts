@@ -6,7 +6,6 @@ import {
 } from '@/shared/modules/filters/types/filterTypes/MultiSelectAsyncFilterConfig';
 import { MemberService } from '@/modules/member/member-service';
 import { DEFAULT_MEMBER_FILTERS } from '@/modules/member/store/constants';
-import { Member } from '@/modules/member/types/Member';
 
 const member: MultiSelectAsyncFilterConfig = {
   id: 'member',
@@ -14,10 +13,14 @@ const member: MultiSelectAsyncFilterConfig = {
   iconClass: 'ri-account-circle-line',
   type: FilterConfigType.MULTISELECT_ASYNC,
   options: {
-    remoteMethod: (query) => MemberService.listMembersAutocomplete({
+    remoteMethod: (query) => MemberService.listAutocomplete({
       query,
       limit: 10,
-    }),
+    })
+      .then((data: any[]) => data.map((member) => ({
+        label: member.label,
+        value: member.id,
+      }))),
     remotePopulateItems: (ids: string[]) => MemberService.listMembers({
       filter: {
         and: [
@@ -31,10 +34,9 @@ const member: MultiSelectAsyncFilterConfig = {
       limit: ids.length,
       offset: 0,
     })
-      .then(({ rows }: { rows: Member[] }) => rows.map((member) => ({
+      .then(({ rows }: any) => rows.map((member: any) => ({
         label: member.displayName,
         value: member.id,
-        logo: member.attributes?.avatarUrl?.default || null,
       }))),
   },
   itemLabelRenderer(value: MultiSelectAsyncFilterValue, options: MultiSelectAsyncFilterOptions, data: any): string {

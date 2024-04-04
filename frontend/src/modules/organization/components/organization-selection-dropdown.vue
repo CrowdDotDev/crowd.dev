@@ -82,12 +82,12 @@ const computedOrganizationToMerge = computed({
   },
 });
 
-const fetchFn = async ({ query, limit }) => {
-  const options = await OrganizationService.listOrganizationsAutocomplete({
+const fetchFn = async (query, limit) => {
+  const options = await OrganizationService.listAutocomplete(
     query,
     limit,
-    segments: segments.value,
-  });
+    segments.value,
+  );
 
   // Remove primary organization from organizations that can be merged with
   const filteredOptions = options.filter((m) => m.id !== props.id);
