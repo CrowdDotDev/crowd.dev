@@ -432,7 +432,7 @@ export default class OrganizationService extends LoggerBase {
               ),
             },
             secondary: {
-              ...lodash.pick(toMerge, OrganizationService.ORGANIZATION_MERGEw_FIELDS),
+              ...lodash.pick(toMerge, OrganizationService.ORGANIZATION_MERGE_FIELDS),
               identities: await OrganizationRepository.getIdentities([toMergeId], this.options),
               memberOrganizations: await MemberOrganizationRepository.findRolesInOrganization(
                 toMergeId,
