@@ -75,3 +75,10 @@ export const hasAccessToSegmentId = (segmentId) => {
 
   return adminSegments.includes(segmentId);
 };
+
+export const getSegmentName = (segmentId) => {
+  const lsSegmentsStore = useLfSegmentsStore();
+  const { projectGroups } = storeToRefs(lsSegmentsStore);
+
+  return projectGroups.value.list.find((p) => p.id === segmentId)?.name ?? '';
+};

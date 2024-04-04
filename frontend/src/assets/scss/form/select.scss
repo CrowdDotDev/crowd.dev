@@ -117,7 +117,7 @@
 
     & .el-select-dropdown__item {
       padding: 0 52px 0 20px;
-      @apply text-black rounded hover:bg-gray-50 flex items-center h-10;
+      @apply text-black rounded hover:bg-gray-50 flex items-center min-h-10 h-fit leading-5 py-1;
 
       // Select dropdown item prefix
       span.prefix {

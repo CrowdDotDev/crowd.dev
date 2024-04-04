@@ -40,18 +40,24 @@
               </div>
             </template>
             <template #option="{ item }">
-              <div class="flex items-center">
-                <app-avatar
-                  :entity="{
-                    ...item,
-                    displayName: item.label,
-                    avatar: item.logo,
-                  }"
-                  entity-name="organization"
-                  size="xxs"
-                  class="mr-2"
-                />
-                {{ item.label }}
+              <div class="flex w-full items-center justify-between gap-2 flex-wrap">
+                <div class="flex items-center">
+                  <app-avatar
+                    :entity="{
+                      ...item,
+                      displayName: item.label,
+                      avatar: item.logo,
+                    }"
+                    entity-name="organization"
+                    size="xxs"
+                    class="mr-2"
+                  />
+                  {{ item.label }}
+                </div>
+
+                <div v-if="getSegmentName(item.segmentId)" class="text-xs text-gray-900">
+                  <span class="text-gray-400">Project group:</span> {{ getSegmentName(item.segmentId) }}
+                </div>
               </div>
             </template>
           </app-autocomplete-one-input>
@@ -135,12 +141,8 @@ import AppAutocompleteOneInput from '@/shared/form/autocomplete-one-input.vue';
 import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 import moment from 'moment';
-import { getSegmentsFromProjectGroup } from '@/utils/segments';
-import { storeToRefs } from 'pinia';
-import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import { getSegmentName } from '@/utils/segments';
 import { Member } from '../../types/Member';
-
-type SelectOrganization = Organization & { label: string };
 
 interface MemberOrganizationForm {
   organization: Organization | '',
@@ -156,9 +158,6 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: boolean), (e: 'add', value: Organization), (e: 'edit', value: Organization),}>();
-
-const lsSegmentsStore = useLfSegmentsStore();
-const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const isOpened = computed<boolean>({
   get() {
@@ -214,22 +213,13 @@ const submit = () => {
 const fetchOrganizationsFn = async ({ query, limit } : {
   query: number,
   limit: number,
-}) => {
-  const subProjects = getSegmentsFromProjectGroup(selectedProjectGroup.value) ?? [];
-  const segments = subProjects.concat((props.member?.segments ?? []).filter((s) => !subProjects.includes(s.id)).map((s) => s.id));
-
-  return OrganizationService.listAutocomplete({
-    query,
-    limit,
-    segments,
-  })
-    .then((options: SelectOrganization[]) => options.filter((m) => m.id !== props.modelValue.id).map((o) => ({
-      ...o,
-      displayName: o.label,
-      name: o.label,
-    })))
-    .catch(() => []);
-};
+}) => OrganizationService.listOrganizationsAutocomplete({
+  query,
+  limit,
+  excludeSegments: true,
+  grandParentSegment: true,
+})
+  .then((options: Organization[]) => options.filter((m) => m.id !== props.modelValue.id));
 
 const createOrganizationFn = (value: string) => OrganizationService.create({
   name: value,
