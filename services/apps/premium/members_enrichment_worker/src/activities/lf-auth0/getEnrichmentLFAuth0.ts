@@ -2,7 +2,7 @@ import { ManagementClient, GetUsers200ResponseOneOfInner } from 'auth0'
 import { svc } from '../../main'
 import { RedisCache, acquireLock, releaseLock } from '@crowd/redis'
 import { randomUUID } from 'crypto'
-import { IMember, MemberIdentityType } from '@crowd/types'
+import { IMember, MemberIdentityType, PlatformType } from '@crowd/types'
 import { IGetEnrichmentDataResponse } from '../../types/lfid-enrichment'
 
 // We'll keep the remaining rate limits in redisCache(lfx-auth0)
@@ -10,7 +10,10 @@ import { IGetEnrichmentDataResponse } from '../../types/lfid-enrichment'
 // x-ratelimit-reset, x-ratelimit-remaining, x-ratelimit-limit
 // The access to this key will be protected by a mutex lock, only one api call at a time
 // will be allowed to update this key, preventing race conditions to the rate limit redis key
-export async function get(token: string, member: IMember): Promise<GetUsers200ResponseOneOfInner> {
+export async function getEnrichmentLFAuth0(
+  token: string,
+  member: IMember,
+): Promise<GetUsers200ResponseOneOfInner> {
   const MUTEX_LOCK_KEY = 'lfx-auth0-mutex'
   const lockValue = randomUUID()
   let result: IGetEnrichmentDataResponse
@@ -25,7 +28,8 @@ export async function get(token: string, member: IMember): Promise<GetUsers200Re
     // check redis rate limit
     const rateLimit = await rateLimitCache.get('remaining-requests')
 
-    // if nothing found
+    // soft rate limit is when we're left with only one request remaining
+    // instead of hitting the hard rate limit, we'll throw an error and retry
     if (rateLimit && Number.parseInt(rateLimit, 10) <= 1) {
       throw new Error('Soft rate limit exceeded. Starting exponential backoff and retrying!')
     }
@@ -41,13 +45,11 @@ export async function get(token: string, member: IMember): Promise<GetUsers200Re
     }
   } catch (e) {
     result = null
-    // svc.log.error('Error when getting user from lfx-auth0', e)
     throw e
   } finally {
     await releaseLock(svc.redis, MUTEX_LOCK_KEY, lockValue)
   }
 
-  // we can release the lock now
   return result?.user || null
 }
 
@@ -62,15 +64,17 @@ async function getEnrichmentData(
   })
 
   const githubIdentity =
-    member.identities?.find((i) => i.platform === 'github' && i.sourceId) || null
+    member.identities?.find((i) => i.platform === PlatformType.GITHUB && i.sourceId) || null
 
   const linkedinIdentity =
-    member.identities?.find((i) => i.platform === 'linkedin' && i.sourceId) || null
+    member.identities?.find((i) => i.platform === PlatformType.LINKEDIN && i.sourceId) || null
 
   const lfidIdentity =
     member.identities?.find(
       (i) =>
-        (i.platform === 'lfid' || i.platform === 'tnc' || i.platform === 'cvent') &&
+        (i.platform === PlatformType.LFID ||
+          i.platform === PlatformType.TNC ||
+          i.platform === PlatformType.CVENT) &&
         i.type === MemberIdentityType.USERNAME,
     ) || null
 

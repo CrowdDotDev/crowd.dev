@@ -13,8 +13,8 @@ import {
   syncOrganizationsToOpensearch,
 } from './activities/syncEnrichedData'
 
-import { refreshToken } from './activities/lf-auth0/authenticate'
-import { get } from './activities/lf-auth0/fetch'
+import { refreshToken } from './activities/lf-auth0/authenticateLFAuth0'
+import { getEnrichmentLFAuth0 } from './activities/lf-auth0/getEnrichmentLFAuth0'
 import { getLFIDEnrichableMembers } from './activities/lf-auth0/getLFIDEnrichableMembers'
 import {
   getGithubIdentitiesWithoutSourceId,
@@ -23,7 +23,11 @@ import {
   updateIdentitySourceId,
 } from './activities/lf-auth0/githubIdentities'
 
-import { getIdentitiesExistInOtherMembers, enrich } from './activities/lf-auth0/enrich'
+import {
+  getIdentitiesExistInOtherMembers,
+  updateMemberWithEnrichmentData,
+  mergeMembers,
+} from './activities/lf-auth0/enrichLFAuth0'
 
 export {
   getMembers,
@@ -35,12 +39,13 @@ export {
   syncMembersToOpensearch,
   syncOrganizationsToOpensearch,
   refreshToken,
-  get,
+  getEnrichmentLFAuth0,
   getLFIDEnrichableMembers,
   getGithubIdentitiesWithoutSourceId,
   checkTokens,
   findGithubSourceId,
   updateIdentitySourceId,
   getIdentitiesExistInOtherMembers,
-  enrich,
+  updateMemberWithEnrichmentData,
+  mergeMembers,
 }

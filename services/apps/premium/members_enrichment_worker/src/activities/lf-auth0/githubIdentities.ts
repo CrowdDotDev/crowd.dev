@@ -56,8 +56,6 @@ export async function checkTokens(): Promise<boolean> {
       await tokenRotator.updateRateLimitInfoFromApi(token, GithubAPIResource.CORE)
     } catch (e) {
       // something is wrong with the token, remove it from the list
-      console.log(e)
-      console.log('Removing token from rotator!: ', token)
       tokenRotator.removeToken(token)
     }
   }

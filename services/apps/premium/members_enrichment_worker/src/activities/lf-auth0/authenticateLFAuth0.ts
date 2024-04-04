@@ -5,7 +5,6 @@ import { ITokenWithExpiration } from '../../types/lfid-enrichment'
 
 export async function refreshToken(token?: string): Promise<string> {
   const redisCache = new RedisCache(`lfx-auth0`, svc.redis, svc.log)
-  await redisCache.delete('access-token')
   const tokenFromRedis = await redisCache.get('access-token')
 
   if (!token) {

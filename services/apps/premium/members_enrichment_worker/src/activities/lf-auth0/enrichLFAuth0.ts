@@ -23,7 +23,7 @@ export async function getIdentitiesExistInOtherMembers(
   return rows
 }
 
-export async function enrich(
+export async function updateMemberWithEnrichmentData(
   memberId: string,
   tenantId: string,
   identities: IMemberIdentity[],
@@ -49,4 +49,21 @@ export async function enrich(
   } catch (err) {
     throw new Error(err)
   }
+}
+
+export async function mergeMembers(
+  primaryMemberId: string,
+  secondaryMemberId: string,
+  tenantId: string,
+): Promise<void> {
+  await fetch(`${process.env['CROWD_API_URL']}/${tenantId}/member/${primaryMemberId}/merge`, {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${process.env['CROWD_API_SERVICE_USER_TOKEN']}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      memberToMerge: secondaryMemberId,
+    }),
+  })
 }

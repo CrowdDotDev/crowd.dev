@@ -1,26 +1,32 @@
-import { IMember, MemberIdentityType } from '@crowd/types'
+import { IMember, MemberIdentityType, PlatformType } from '@crowd/types'
 import { proxyActivities } from '@temporalio/workflow'
 import * as activities from '../../activities'
 import { ILFIDEnrichmentGithubProfile } from '../../types/lfid-enrichment'
 
-const { refreshToken, get, getIdentitiesExistInOtherMembers, enrich, syncMembersToOpensearch } =
-  proxyActivities<typeof activities>({
-    startToCloseTimeout: '2 minutes',
-    retry: {
-      initialInterval: '2 seconds',
-      backoffCoefficient: 2,
-      maximumAttempts: 3,
-    },
-  })
+const {
+  refreshToken,
+  getEnrichmentLFAuth0,
+  getIdentitiesExistInOtherMembers,
+  updateMemberWithEnrichmentData,
+  syncMembersToOpensearch,
+  mergeMembers,
+} = proxyActivities<typeof activities>({
+  startToCloseTimeout: '2 minutes',
+  retry: {
+    initialInterval: '2 seconds',
+    backoffCoefficient: 2,
+    maximumAttempts: 3,
+  },
+})
 
 export async function enrichMemberWithLFAuth0(member: IMember): Promise<void> {
   const token = await refreshToken()
-  const enriched = await get(token, member)
+  const enriched = await getEnrichmentLFAuth0(token, member)
 
   if (enriched) {
     console.log(`Member ${member.id} found in the lf auth0 enrichment db!`)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const normalized: any = {}
-    // check logo TODO:: double check
     if (
       enriched.picture &&
       (!member.attributes?.avatarUrl || !member.attributes?.avatarUrl.default)
@@ -36,7 +42,6 @@ export async function enrichMemberWithLFAuth0(member: IMember): Promise<void> {
 
     // find identities that doesn't exist in current member, and check if these identities already
     // exist in some other member
-
     const identitiesToCheck = []
 
     // email
@@ -48,7 +53,7 @@ export async function enrichMemberWithLFAuth0(member: IMember): Promise<void> {
     ) {
       identitiesToCheck.push({
         type: MemberIdentityType.EMAIL,
-        platform: 'lfid',
+        platform: PlatformType.LFID,
         value: enriched.email,
         verified: true,
       })
@@ -60,12 +65,12 @@ export async function enrichMemberWithLFAuth0(member: IMember): Promise<void> {
       !member.identities.some(
         (i) =>
           i.type === MemberIdentityType.USERNAME &&
-          i.platform === 'lfid' &&
+          i.platform === PlatformType.LFID &&
           i.value === enriched.username,
       )
     ) {
       identitiesToCheck.push({
-        platform: 'lfid',
+        platform: PlatformType.LFID,
         type: MemberIdentityType.USERNAME,
         value: enriched.username,
         verified: true,
@@ -74,20 +79,20 @@ export async function enrichMemberWithLFAuth0(member: IMember): Promise<void> {
 
     // github
     // check if there's a github profile in the enriched data
-    const enrichmentGithub = enriched.identities.find((i) => i.provider === 'github')
+    const enrichmentGithub = enriched.identities.find((i) => i.provider === PlatformType.GITHUB)
 
     if (enrichmentGithub) {
       if (
         !member.identities.some(
           (i) =>
             i.type === MemberIdentityType.USERNAME &&
-            i.platform === 'github' &&
+            i.platform === PlatformType.GITHUB &&
             i.value === enrichmentGithub.profileData.nickname,
         )
       ) {
         identitiesToCheck.push({
           type: MemberIdentityType.USERNAME,
-          platform: 'github',
+          platform: PlatformType.GITHUB,
           value: enrichmentGithub.profileData.nickname,
           verified: true,
         })
@@ -100,12 +105,13 @@ export async function enrichMemberWithLFAuth0(member: IMember): Promise<void> {
           !member.identities.some(
             (e) => e.type === MemberIdentityType.EMAIL && e.value === githubEmail.email,
           ) &&
+          // check if we haven't already added this email to identitiesToCheck
           !identitiesToCheck.some(
             (i) => i.type === MemberIdentityType.EMAIL && i.value === githubEmail.email,
           )
         ) {
           identitiesToCheck.push({
-            platform: 'github',
+            platform: PlatformType.GITHUB,
             type: MemberIdentityType.EMAIL,
             value: githubEmail.email,
             verified: true,
@@ -114,7 +120,7 @@ export async function enrichMemberWithLFAuth0(member: IMember): Promise<void> {
       }
     }
 
-    // for identities to check, we should check if they already exist in some other member
+    // for each identities to check, we should check if they already exist in some other member
     // if they do, we keep track of this member, remove the identity from enrichment payload
     // and after enrichment is done, merge these two members together
     const identitiesExistInOtherMembers = await getIdentitiesExistInOtherMembers(
@@ -131,14 +137,21 @@ export async function enrichMemberWithLFAuth0(member: IMember): Promise<void> {
     )
 
     // add identities to current member.
-    await enrich(member.id, member.tenantId, identitesToAdd, normalized.attributes)
-    // loop through identitiesExistInOtherMembers and merge them with current member. Find the primary by counting the total number of identities.]
+    await updateMemberWithEnrichmentData(
+      member.id,
+      member.tenantId,
+      identitesToAdd,
+      normalized.attributes,
+    )
 
     await syncMembersToOpensearch([member.id])
 
+    // loop through identitiesExistInOtherMembers and merge them with current member. Find the primary by counting the total number of identities.]
     for (const memberToBeMerged of identitiesExistInOtherMembers) {
       // merge
       console.log(`${memberToBeMerged.memberId} will be merged with ${member.id}`)
+      // TODO:: uncomment this
+      // await mergeMembers(member.id, memberToBeMerged.memberId, member.tenantId)
     }
   }
 }
