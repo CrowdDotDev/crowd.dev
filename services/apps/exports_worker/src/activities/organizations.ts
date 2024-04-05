@@ -67,6 +67,16 @@ export async function buildAndUploadOrganizationsCSV(
       'type',
       'attributes',
       'manuallyCreated',
+      'headline',
+      'identities',
+      'lastActive',
+      'activityCount',
+      'memberCount',
+      'joinedAt',
+      'industry',
+      'size',
+      'founded',
+      'employeeGrowthRate',
     ],
   }
 
