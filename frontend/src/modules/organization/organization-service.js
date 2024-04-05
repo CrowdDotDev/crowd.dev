@@ -171,6 +171,11 @@ export class OrganizationService {
         and: [
           {
             displayName: {
+              matchPhrasePrefix: query,
+            },
+          },
+          {
+            displayName: {
               textContains: query,
             },
           },

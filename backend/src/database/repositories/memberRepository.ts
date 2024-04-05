@@ -1914,7 +1914,6 @@ class MemberRepository {
       attributesSettings = [] as AttributeData[],
       segments = [] as string[],
       customSortFunction = undefined,
-      isAutoCompleteQuery = false,
     },
     options: IRepositoryOptions,
   ): Promise<PageData<any>> {
@@ -1962,19 +1961,6 @@ class MemberRepository {
 
     if (customSortFunction) {
       parsed.sort = customSortFunction
-    }
-
-    if (isAutoCompleteQuery && filter.and) {
-      const autoCompleteQuery = filter?.and[0]?.displayName?.textContains
-      // Improves search relevance by prioritizing results that begin with the query
-      parsed.query.bool.must.push({
-        match_phrase_prefix: {
-          displayName: {
-            query: autoCompleteQuery,
-            boost: 3,
-          }
-        }
-      })
     }
 
     if (filter.organizations && filter.organizations.length > 0) {

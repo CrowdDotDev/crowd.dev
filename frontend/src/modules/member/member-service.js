@@ -123,6 +123,11 @@ export class MemberService {
         and: [
           {
             displayName: {
+              matchPhrasePrefix: query,
+            },
+          },
+          {
+            displayName: {
               textContains: query,
             },
           },

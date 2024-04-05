@@ -117,6 +117,17 @@ export class OpensearchQueryParser {
       value = value.toLowerCase()
     }
 
+    if (operator === Operator.MATCH_PHRASE_PREFIX) {
+      return {
+        match_phrase_prefix: {
+          [searchKey]: {
+            query: value,
+            boost: 3, // Boost the score of the results so that they are ranked higher
+          },
+        },
+      }
+    }
+
     if (operator === Operator.EQUAL) {
       if (value === null) {
         return {
