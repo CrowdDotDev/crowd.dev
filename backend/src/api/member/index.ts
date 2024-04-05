@@ -19,7 +19,7 @@ export default (app) => {
     `/tenant/:tenantId/member/autocomplete`,
     safeWrap(require('./memberAutocomplete').default),
   )
-  app.get(
+  app.post(
     `/tenant/:tenantId/member/orautocomplete`,
     safeWrap(require('./memberAutocomplete').default),
   )
