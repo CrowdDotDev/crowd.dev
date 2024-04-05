@@ -31,6 +31,8 @@ export async function getEnrichmentLFAuth0(
     // soft rate limit is when we're left with only one request remaining
     // instead of hitting the hard rate limit, we'll throw an error and retry
     if (rateLimit && Number.parseInt(rateLimit, 10) <= 1) {
+      console.log('remaining-requests: ')
+      console.log(rateLimit)
       throw new Error('Soft rate limit exceeded. Starting exponential backoff and retrying!')
     }
 
