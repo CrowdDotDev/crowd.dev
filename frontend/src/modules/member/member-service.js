@@ -122,19 +122,18 @@ export class MemberService {
       filter: {
         and: [
           {
-            displayName: {
-              matchPhrasePrefix: query,
-            },
-          },
-          {
-            displayName: {
-              textContains: query,
-            },
-          },
-          {
-            isOrganization: {
-              not: true,
-            },
+            or: [
+              {
+                displayName: {
+                  matchPhrasePrefix: query,
+                },
+              },
+              {
+                displayName: {
+                  textContains: query,
+                },
+              },
+            ],
           },
         ],
       },
