@@ -43,6 +43,7 @@
     >
       <el-option
         v-if="record.id"
+        :key="record.id"
         :value="record"
         :label="record.label"
         class="!px-5"
@@ -182,7 +183,6 @@ export default {
       ) {
         const newItem = await this.createFn(query);
         this.localOptions.push(newItem);
-        this.localOptions = [...this.localOptions];
         console.log('pushed localOptions', this.localOptions);
         this.$emit('update:modelValue', newItem);
       } else {
@@ -217,11 +217,11 @@ export default {
     async fetchAllResults() {
       this.loading = true;
       try {
+        this.localOptions.length = 0;
         this.localOptions = await this.fetchFn({
           query: this.currentQuery,
           limit: AUTOCOMPLETE_SERVER_FETCH_SIZE,
         });
-        this.localOptions = [...this.localOptions];
         this.loading = false;
       } catch (error) {
         console.error(error);
@@ -238,11 +238,11 @@ export default {
       this.loading = true;
 
       try {
+        this.localOptions.length = 0;
         this.localOptions = await this.fetchFn({
           query: value,
           limit: AUTOCOMPLETE_SERVER_FETCH_SIZE,
         });
-        this.localOptions = [...this.localOptions];
         console.log('fetch', this.localOptions);
 
         this.loading = false;
