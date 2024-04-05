@@ -40,18 +40,24 @@
               </div>
             </template>
             <template #option="{ item }">
-              <div class="flex items-center">
-                <app-avatar
-                  :entity="{
-                    ...item,
-                    displayName: item.label,
-                    avatar: item.logo,
-                  }"
-                  entity-name="organization"
-                  size="xxs"
-                  class="mr-2"
-                />
-                {{ item.label }}
+              <div class="flex w-full items-center justify-between gap-2 flex-wrap">
+                <div class="flex items-center">
+                  <app-avatar
+                    :entity="{
+                      ...item,
+                      displayName: item.label,
+                      avatar: item.logo,
+                    }"
+                    entity-name="organization"
+                    size="xxs"
+                    class="mr-2"
+                  />
+                  {{ item.label }}
+                </div>
+
+                <div v-if="getSegmentName(item.segmentId)" class="text-xs text-gray-900">
+                  <span class="text-gray-400">Project group:</span> {{ getSegmentName(item.segmentId) }}
+                </div>
               </div>
             </template>
           </app-autocomplete-one-input>
@@ -135,6 +141,7 @@ import AppAutocompleteOneInput from '@/shared/form/autocomplete-one-input.vue';
 import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 import moment from 'moment';
+import { getSegmentName } from '@/utils/segments';
 import { Member } from '../../types/Member';
 
 interface MemberOrganizationForm {
