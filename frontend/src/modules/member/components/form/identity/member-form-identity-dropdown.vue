@@ -1,30 +1,30 @@
 <template>
   <div>
-        <el-tooltip
-          v-if="props.record.identities?.[identityDropdown]?.value && props.showUnmerge && staticIdentities.length > 1"
-          content="Not possible to unmerge an unsaved identity"
-          placement="top-end"
-          :disabled="!props.record.identities?.[identityDropdown]?.value || props.record.identities?.[identityDropdown]
-            && props.modelValue.identities?.[identityDropdown]?.value === props.record.identities?.[identityDropdown]?.value"
+    <el-tooltip
+      v-if="props.record.identities?.[identityDropdown]?.value && props.showUnmerge && staticIdentities.length > 1"
+      content="Not possible to unmerge an unsaved identity"
+      placement="top-end"
+      :disabled="!props.record.identities?.[identityDropdown]?.value || props.record.identities?.[identityDropdown]
+        && props.modelValue.identities?.[identityDropdown]?.value === props.record.identities?.[identityDropdown]?.value"
+    >
+      <div class=" w-full">
+        <button
+          type="button"
+          class="el-dropdown-menu__item w-full"
+          :disabled="!props.record.identities?.[identityDropdown]
+            || props.modelValue.identities?.[identityDropdown]?.value !== props.record.identities?.[identityDropdown]?.value"
+          @click="emit('unmerge', {
+            platform: props.modelValue.identities?.[identityDropdown]?.platform,
+            username: props.record.identities?.[identityDropdown].value,
+          }); identityDropdown = null"
         >
-          <div class=" w-full">
-            <button
-              type="button"
-              class="el-dropdown-menu__item w-full"
-              :disabled="!props.record.identities?.[identityDropdown]
-                || props.modelValue.identities?.[identityDropdown]?.value !== props.record.identities?.[identityDropdown]?.value"
-              @click="emit('unmerge', {
-                platform: props.modelValue.identities?.[identityDropdown]?.platform,
-                username: props.record.identities?.[identityDropdown].value,
-              }); identityDropdown = null"
-            >
-              <div class="flex items-center">
-                <i class="ri-link-unlink-m text-gray-600 mr-3 text-base" />
-                <span>Unmerge identity</span>
-              </div>
-            </button>
+          <div class="flex items-center">
+            <i class="ri-link-unlink-m text-gray-600 mr-3 text-base" />
+            <span>Unmerge identity</span>
           </div>
-        </el-tooltip>
+        </button>
+      </div>
+    </el-tooltip>
     <!--    <template v-if="props.modelValue.identities?.[identityDropdown].value">-->
     <!--      <button-->
     <!--        v-if="!props.modelValue.identities?.[identityDropdown].verified"-->

@@ -42,7 +42,17 @@
         </template>
       </el-input>
     </div>
-    <slot name="actions" />
+    <cr-drop
+    <cr-button
+      type="tertiary-light-gray"
+      size="small"
+      :icon-only="true"
+      class="relative ml-3"
+    >
+      <i
+        class="ri-more-fill"
+      />
+    </cr-button>
   </article>
 <!--  <div>-->
 <!--    &lt;!&ndash; Identities editing &ndash;&gt;-->

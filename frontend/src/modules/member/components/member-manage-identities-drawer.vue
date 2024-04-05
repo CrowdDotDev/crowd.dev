@@ -17,20 +17,7 @@
                 @update="update(ii, $event)"
               >
                 <template #actions>
-                  <cr-button
-                    :id="`identityRef-${ii}`"
-                    :ref="(el) => setActionBtnsRef(el, ii)"
-                    type="tertiary-light-gray"
-                    size="small"
-                    :icon-only="true"
-                    class="relative ml-3"
-                    @click.prevent.stop="() => onActionBtnClick(ii)"
-                  >
-                    <i
-                      :id="`identityRefIcon-${ii}`"
-                      class="ri-more-fill"
-                    />
-                  </cr-button>
+
                 </template>
               </app-member-form-identity-item>
             </template>
@@ -71,7 +58,6 @@ import { useStore } from 'vuex';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import CrButton from '@/ui-kit/button/Button.vue';
-import AppSvg from '@/shared/svg/svg.vue';
 import AppMemberFormIdentityDropdown from '@/modules/member/components/form/identity/member-form-identity-dropdown.vue';
 import { ClickOutside as vClickOutside } from 'element-plus';
 
