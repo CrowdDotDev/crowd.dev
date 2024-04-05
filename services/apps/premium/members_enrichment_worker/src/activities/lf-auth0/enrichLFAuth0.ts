@@ -56,14 +56,17 @@ export async function mergeMembers(
   secondaryMemberId: string,
   tenantId: string,
 ): Promise<void> {
-  await fetch(`${process.env['CROWD_API_URL']}/${tenantId}/member/${primaryMemberId}/merge`, {
-    method: 'PUT',
-    headers: {
-      Authorization: `Bearer ${process.env['CROWD_API_SERVICE_USER_TOKEN']}`,
-      'Content-Type': 'application/json',
+  await fetch(
+    `${process.env['CROWD_API_SERVICE_URL']}/${tenantId}/member/${primaryMemberId}/merge`,
+    {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${process.env['CROWD_API_SERVICE_USER_TOKEN']}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        memberToMerge: secondaryMemberId,
+      }),
     },
-    body: JSON.stringify({
-      memberToMerge: secondaryMemberId,
-    }),
-  })
+  )
 }
