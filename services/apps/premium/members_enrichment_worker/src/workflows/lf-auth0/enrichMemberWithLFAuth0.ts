@@ -20,8 +20,15 @@ const {
 })
 
 export async function enrichMemberWithLFAuth0(member: IMember): Promise<void> {
+  if (member.id === 'fffd0b78-ce2c-4595-89ba-be3beaa8269e') {
+    console.log('Enriching the DEBUG member!!')
+  }
   const token = await refreshToken()
   const enriched = await getEnrichmentLFAuth0(token, member)
+  if (member.id === 'fffd0b78-ce2c-4595-89ba-be3beaa8269e') {
+    console.log('Enrichment payload returned for the DEBUG member: ')
+    console.log(enriched)
+  }
 
   if (enriched) {
     console.log(`Member ${member.id} found in the lf auth0 enrichment db!`)
@@ -148,7 +155,8 @@ export async function enrichMemberWithLFAuth0(member: IMember): Promise<void> {
 
     for (const memberToBeMerged of identitiesExistInOtherMembers) {
       console.log(`${memberToBeMerged.memberId} will be merged with ${member.id}`)
-      await mergeMembers(member.id, memberToBeMerged.memberId, member.tenantId)
+      // todo: uncomment this
+      // await mergeMembers(member.id, memberToBeMerged.memberId, member.tenantId)
     }
   }
 }
