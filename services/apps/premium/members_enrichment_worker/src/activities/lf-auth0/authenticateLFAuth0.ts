@@ -3,27 +3,16 @@ import { svc } from '../../main'
 import { RedisCache } from '@crowd/redis'
 import { ITokenWithExpiration } from '../../types/lfid-enrichment'
 
-export async function refreshToken(token?: string): Promise<string> {
+export async function refreshToken(): Promise<string> {
   const redisCache = new RedisCache(`lfx-auth0`, svc.redis, svc.log)
   const tokenFromRedis = await redisCache.get('access-token')
 
-  if (!token) {
-    if (tokenFromRedis) {
-      return tokenFromRedis
-    }
-    const tokenFromAuth0 = await getTokenFromAuth0()
-    await saveTokenToRedis(tokenFromAuth0, redisCache)
-    return tokenFromAuth0.token
+  if (tokenFromRedis) {
+    return tokenFromRedis
   }
-
-  // if token is sent along with the function, check if sent token is same as redis token
-  if (token === tokenFromRedis) {
-    const tokenFromAuth0 = await getTokenFromAuth0()
-    await saveTokenToRedis(tokenFromAuth0, redisCache)
-    return tokenFromAuth0.token
-  }
-
-  return tokenFromRedis
+  const tokenFromAuth0 = await getTokenFromAuth0()
+  await saveTokenToRedis(tokenFromAuth0, redisCache)
+  return tokenFromAuth0.token
 }
 
 async function saveTokenToRedis(
