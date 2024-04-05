@@ -20,15 +20,9 @@ const {
 })
 
 export async function enrichMemberWithLFAuth0(member: IMember): Promise<void> {
-  if (member.id === 'fffd0b78-ce2c-4595-89ba-be3beaa8269e') {
-    console.log('Enriching the DEBUG member!!')
-  }
   const token = await refreshToken()
   const enriched = await getEnrichmentLFAuth0(token, member)
-  if (member.id === 'fffd0b78-ce2c-4595-89ba-be3beaa8269e') {
-    console.log('Enrichment payload returned for the DEBUG member: ')
-    console.log(enriched)
-  }
+  console.log(enriched)
 
   if (enriched) {
     console.log(`Member ${member.id} found in the lf auth0 enrichment db!`)
