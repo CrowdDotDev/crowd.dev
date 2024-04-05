@@ -197,7 +197,7 @@ export class OrganizationService {
     const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.post(
-      `/tenant/${tenantId}/organization/query`,
+      `/tenant/${tenantId}/organization/autocomplete`,
       payload,
     );
 

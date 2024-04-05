@@ -144,7 +144,7 @@ export class MemberService {
     const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.post(
-      `/tenant/${tenantId}/member/query`,
+      `/tenant/${tenantId}/member/autocomplete`,
       payload,
       {
         headers: {

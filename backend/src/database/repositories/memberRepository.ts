@@ -1965,11 +1965,11 @@ class MemberRepository {
     }
 
     if (isAutoCompleteQuery && filter.and) {
-      const autoCompleteQuery = filter?.and[0]?.or[0]?.displayName?.textContains
+      const autoCompleteQuery = filter?.and[0]?.displayName?.textContains
       // Improves search relevance by prioritizing results that begin with the query
       parsed.query.bool.must.push({
         match_phrase_prefix: {
-          content: {
+          displayName: {
             query: autoCompleteQuery,
             boost: 3,
           }
