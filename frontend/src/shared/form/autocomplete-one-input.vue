@@ -36,6 +36,7 @@
       <span class="prefix">{{ createPrefix }}</span>
       <span>{{ currentQuery }}</span>
     </el-option>
+    {{ localOptions.length }}
     <template
       v-for="record in localOptions"
       :key="record.id"
@@ -181,8 +182,15 @@ export default {
       ) {
         const newItem = await this.createFn(query);
         this.localOptions.push(newItem);
+        console.log('pushed localOptions', this.localOptions);
         this.$emit('update:modelValue', newItem);
       } else {
+        console.log('updated model value', {
+          ...value,
+          ...this.storeKey && {
+            [this.storeKey]: this.modelValue[this.storeKey],
+          },
+        });
         this.$emit('update:modelValue', {
           ...value,
           ...this.storeKey && {
@@ -230,6 +238,7 @@ export default {
           query: value,
           limit: AUTOCOMPLETE_SERVER_FETCH_SIZE,
         });
+        console.log('fetch', this.localOptions);
 
         this.loading = false;
       } catch (error) {
