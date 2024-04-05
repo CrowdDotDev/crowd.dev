@@ -56,7 +56,6 @@ export async function buildAndUploadOrganizationsCSV(
       'crunchbase',
       'employees',
       'revenueRange',
-      'importHash',
       'createdAt',
       'updatedAt',
       'deletedAt',
@@ -83,6 +82,10 @@ export async function buildAndUploadOrganizationsCSV(
   data.rows.forEach((row) => {
     if (Number.isNaN(row.employees)) {
       row.employees = null
+    }
+
+    if (Number.isNaN(row.founded)) {
+      row.founded = null
     }
   })
 
