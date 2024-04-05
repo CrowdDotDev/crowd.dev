@@ -1894,6 +1894,7 @@ class OrganizationRepository {
       segments = [] as string[],
       customSortFunction = undefined,
       isProfileQuery = false,
+      isAutoCompleteQuery = false,
     },
     options: IRepositoryOptions,
   ): Promise<PageData<any>> {
@@ -1945,6 +1946,20 @@ class OrganizationRepository {
         term: {
           uuid_segmentId: segment,
         },
+      })
+    }
+
+    
+    if (isAutoCompleteQuery && filter.and) {
+      const autoCompleteQuery = filter?.and[0]?.or[0]?.displayName?.textContains
+      // Improves search relevance by prioritizing results that begin with the query
+      parsed.query.bool.must.push({
+        match_phrase_prefix: {
+          content: {
+            query: autoCompleteQuery,
+            boost: 3,
+          }
+        }
       })
     }
 
