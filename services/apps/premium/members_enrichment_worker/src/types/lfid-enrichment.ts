@@ -4,6 +4,13 @@ export interface ITokenWithExpiration {
   expirationInSeconds: number
 }
 
+export interface IGetEnrichmentDataArgs {
+  lfid?: string
+  githubSourceId?: string
+  linkedinSourceId?: string
+  email?: string
+}
+
 export interface IGetMembersForLFIDEnrichmentArgs {
   offset: number
 }
