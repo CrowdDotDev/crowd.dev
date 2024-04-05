@@ -209,6 +209,8 @@ export default {
       this.localOptions.filter((item) => String(item.label || '')
         .toLowerCase()
         .includes(String(value || '').toLowerCase()));
+
+      console.log('handle search', this.localOptions);
     },
 
     async fetchAllResults() {
