@@ -1,6 +1,7 @@
 import { EDITION, escapeNullByte, isObjectEmpty, singleOrDefault } from '@crowd/common'
 import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/common_services'
 import { ConversationService } from '@crowd/conversations'
+import { insertActivities, updateActivity } from '@crowd/data-access-layer'
 import { DbStore, arePrimitivesDbEqual } from '@crowd/data-access-layer/src/database'
 import {
   IDbActivity,
@@ -100,6 +101,30 @@ export default class ActivityService extends LoggerBase {
           objectMemberId: activity.objectMemberId,
           objectMemberUsername: activity.objectMemberUsername,
         })
+        await insertActivities([
+          {
+            timestamp: activity.timestamp.toISOString(),
+            platform: activity.platform,
+            type: activity.type,
+            isContribution: activity.isContribution,
+            score: activity.score,
+            sourceId: activity.sourceId,
+            sourceParentId: activity.sourceParentId,
+            memberId: activity.memberId,
+            tenantId: tenantId,
+            attributes: activity.attributes,
+            sentiment: sentiment,
+            title: activity.title,
+            body: escapeNullByte(activity.body),
+            channel: activity.channel,
+            url: activity.url,
+            username: activity.username,
+            objectMemberId: activity.objectMemberId,
+            objectMemberUsername: activity.objectMemberUsername,
+            segmentId: segmentId,
+            organizationId: activity.organizationId,
+          },
+        ])
 
         return id
       })
@@ -197,6 +222,8 @@ export default class ActivityService extends LoggerBase {
         if (!isObjectEmpty(toUpdate)) {
           this.log.debug({ activityId: id }, 'Updating activity.')
           await txRepo.update(id, tenantId, segmentId, {
+            tenantId: tenantId,
+            segmentId: segmentId,
             type: toUpdate.type || original.type,
             isContribution: toUpdate.isContribution || original.isContribution,
             score: toUpdate.score || original.score,
@@ -781,6 +808,29 @@ export default class ActivityService extends LoggerBase {
                 dbActivity,
                 false,
               )
+              await updateActivity(dbActivity.id, {
+                tenantId: tenantId,
+                segmentId: segmentId,
+                type: activity.type,
+                isContribution: activity.isContribution,
+                score: activity.score,
+                sourceId: activity.sourceId,
+                sourceParentId: activity.sourceParentId,
+                memberId: dbActivity.memberId,
+                username: username,
+                objectMemberId: objectMemberId,
+                objectMemberUsername: objectMemberUsername,
+                attributes: activity.attributes || {},
+                body: activity.body,
+                title: activity.title,
+                channel: activity.channel,
+                url: activity.url,
+                organizationId: organizationId,
+                platform:
+                  platform === PlatformType.GITHUB && dbActivity.platform === PlatformType.GIT
+                    ? PlatformType.GITHUB
+                    : (dbActivity.platform as PlatformType),
+              })
 
               activityId = dbActivity.id
             }

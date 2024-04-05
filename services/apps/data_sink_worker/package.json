@@ -28,6 +28,7 @@
     "@crowd/opensearch": "workspace:*",
     "@crowd/integrations": "workspace:*",
     "@crowd/logging": "workspace:*",
+    "@crowd/questdb": "workspace:*",
     "@crowd/redis": "workspace:*",
     "@crowd/sentiment": "workspace:*",
     "@crowd/sqs": "workspace:*",

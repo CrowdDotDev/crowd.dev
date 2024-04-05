@@ -36,9 +36,10 @@ export interface IDbActivityCreateData {
   sourceParentId?: string
   parentId?: string
   tenantId: string
+  segmentId?: string
   memberId: string
   username: string
-  sentiment: ISentimentAnalysisResult
+  sentiment?: ISentimentAnalysisResult
   attributes: Record<string, unknown>
   body?: string
   title?: string
@@ -97,11 +98,13 @@ export interface IDbActivityUpdateData {
   score: number
   sourceId: string
   sourceParentId?: string
+  tenantId?: string
+  segmentId?: string
   memberId: string
   username: string
   objectMemberId?: string
   objectMemberUsername?: string
-  sentiment: ISentimentAnalysisResult
+  sentiment?: ISentimentAnalysisResult
   attributes?: Record<string, unknown>
   body?: string
   title?: string

@@ -603,6 +603,9 @@ importers:
       '@crowd/opensearch':
         specifier: workspace:*
         version: link:../../libs/opensearch
+      '@crowd/questdb':
+        specifier: workspace:*
+        version: link:../../libs/questdb
       '@crowd/redis':
         specifier: workspace:*
         version: link:../../libs/redis
@@ -1443,6 +1446,12 @@ importers:
 
   services/archetypes/standard:
     dependencies:
+      '@crowd/common':
+        specifier: workspace:*
+        version: link:../../libs/common
+      '@crowd/database':
+        specifier: workspace:*
+        version: link:../../libs/database
       '@crowd/feature-flags':
         specifier: workspace:*
         version: link:../../libs/feature-flags
@@ -1452,6 +1461,9 @@ importers:
       '@crowd/logging':
         specifier: workspace:*
         version: link:../../libs/logging
+      '@crowd/questdb':
+        specifier: workspace:*
+        version: link:../../libs/questdb
       '@crowd/redis':
         specifier: workspace:*
         version: link:../../libs/redis
@@ -1461,9 +1473,15 @@ importers:
       '@crowd/tracing':
         specifier: workspace:*
         version: link:../../libs/tracing
+      '@questdb/nodejs-client':
+        specifier: ~2.1.0
+        version: 2.1.0
       kafkajs:
         specifier: ~2.2.4
         version: 2.2.4
+      pg-promise:
+        specifier: ^11.4.3
+        version: 11.5.4
     devDependencies:
       '@types/config':
         specifier: ^3.3.1
@@ -1664,6 +1682,9 @@ importers:
       '@crowd/logging':
         specifier: workspace:*
         version: link:../logging
+      '@crowd/questdb':
+        specifier: workspace:*
+        version: link:../questdb
       '@crowd/redis':
         specifier: workspace:*
         version: link:../redis
@@ -1673,6 +1694,9 @@ importers:
       '@crowd/types':
         specifier: workspace:*
         version: link:../types
+      '@questdb/nodejs-client':
+        specifier: ~2.1.0
+        version: 2.1.0
       lodash.clonedeep:
         specifier: ^4.5.0
         version: 4.5.0
@@ -1858,6 +1882,28 @@ importers:
       lodash.merge:
         specifier: ^4.6.2
         version: 4.6.2
+    devDependencies:
+      '@types/node':
+        specifier: ^18.16.3
+        version: 18.19.16
+      typescript:
+        specifier: ^5.0.4
+        version: 5.3.3
+
+  services/libs/questdb:
+    dependencies:
+      '@crowd/common':
+        specifier: workspace:*
+        version: link:../common
+      '@crowd/logging':
+        specifier: workspace:*
+        version: link:../logging
+      '@questdb/nodejs-client':
+        specifier: ~2.1.0
+        version: 2.1.0
+      pg-promise:
+        specifier: ^11.4.3
+        version: 11.5.4
     devDependencies:
       '@types/node':
         specifier: ^18.16.3
@@ -5685,6 +5731,10 @@ packages:
 
   /@protobufjs/utf8@1.1.0:
     resolution: {integrity: sha512-Vvn3zZrhQZkkBE8LSuW3em98c0FwgO4nxzv6OdSxPKJIEKY2bGbHn+mhGIPerzI4twdxaP8/0+06HBpwf345Lw==}
+    dev: false
+
+  /@questdb/nodejs-client@2.1.0:
+    resolution: {integrity: sha512-ss7jhLhSgK/s+eMp60zVFZUe0/MCgl1RtxhhhKbCQH17cbKvTzZMwQhkNpP5XSGKIbDI+zZ/vtukLi/v+9uozg==}
     dev: false
 
   /@readme/better-ajv-errors@1.6.0(ajv@8.12.0):

@@ -1,9 +1,9 @@
 import sendgrid from '@sendgrid/mail'
 
 import { Config } from '@crowd/archetype-standard'
-import { ServiceWorker, Options } from '@crowd/archetype-worker'
+import { Options, ServiceWorker } from '@crowd/archetype-worker'
 
-import { scheduleEmailEagleEyeDigest, scheduleEmailAnalyticsWeekly } from './schedules'
+import { scheduleEmailAnalyticsWeekly, scheduleEmailEagleEyeDigest } from './schedules'
 
 const config: Config = {
   envvars: [
@@ -25,6 +25,9 @@ const config: Config = {
   },
   temporal: {
     enabled: true,
+  },
+  questdb: {
+    enabled: false,
   },
   redis: {
     enabled: false,

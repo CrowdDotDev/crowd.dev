@@ -1,5 +1,5 @@
 import { Config } from '@crowd/archetype-standard'
-import { ServiceWorker, Options } from '@crowd/archetype-worker'
+import { Options, ServiceWorker } from '@crowd/archetype-worker'
 import { scheduleOrganizationCachesEnrichment, scheduleOrganizationUpdate } from './schedules'
 
 const config: Config = {
@@ -9,6 +9,9 @@ const config: Config = {
   },
   temporal: {
     enabled: true,
+  },
+  questdb: {
+    enabled: false,
   },
   redis: {
     enabled: true,
