@@ -36,7 +36,6 @@
       <span class="prefix">{{ createPrefix }}</span>
       <span>{{ currentQuery }}</span>
     </el-option>
-    {{ localOptions.length }}
     <template
       v-for="record in localOptions"
       :key="record.id"
