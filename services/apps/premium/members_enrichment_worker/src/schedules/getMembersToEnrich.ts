@@ -48,6 +48,11 @@ export const scheduleMembersLFIDEnrichment = async () => {
         workflowType: getMembersForLFIDEnrichment,
         taskQueue: 'members-enrichment',
         workflowExecutionTimeout: '5 minutes',
+        retry: {
+          initialInterval: '2 seconds',
+          backoffCoefficient: 2,
+          maximumAttempts: 3,
+        },
         args: [
           {
             offset: 0,
