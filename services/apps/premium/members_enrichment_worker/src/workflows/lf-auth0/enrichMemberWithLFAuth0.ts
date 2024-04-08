@@ -83,7 +83,7 @@ export async function enrichMemberWithLFAuth0(member: IMember): Promise<void> {
 
     console.log(enrichmentGithub)
 
-    if (enrichmentGithub) {
+    if (enrichmentGithub && enrichmentGithub.profileData) {
       if (
         !member.identities.some(
           (i) =>
