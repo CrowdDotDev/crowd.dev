@@ -81,8 +81,6 @@ export async function enrichMemberWithLFAuth0(member: IMember): Promise<void> {
     // check if there's a github profile in the enriched data
     const enrichmentGithub = enriched.identities.find((i) => i.provider === PlatformType.GITHUB)
 
-    console.log(enrichmentGithub)
-
     if (enrichmentGithub && enrichmentGithub.profileData) {
       if (
         !member.identities.some(
