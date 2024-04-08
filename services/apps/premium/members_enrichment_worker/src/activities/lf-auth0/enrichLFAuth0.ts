@@ -56,7 +56,7 @@ export async function mergeMembers(
   secondaryMemberId: string,
   tenantId: string,
 ): Promise<void> {
-  await fetch(
+  const res = await fetch(
     `${process.env['CROWD_API_SERVICE_URL']}/${tenantId}/member/${primaryMemberId}/merge`,
     {
       method: 'PUT',
@@ -69,4 +69,7 @@ export async function mergeMembers(
       }),
     },
   )
+  console.log(res)
+  console.log(res.status)
+  console.log(res.body)
 }
