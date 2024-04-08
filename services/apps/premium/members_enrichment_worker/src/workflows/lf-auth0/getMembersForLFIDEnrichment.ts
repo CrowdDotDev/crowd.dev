@@ -19,7 +19,7 @@ import { IMember } from '@crowd/types'
 export async function getMembersForLFIDEnrichment(
   args: IGetMembersForLFIDEnrichmentArgs,
 ): Promise<void> {
-  const MEMBER_ENRICHMENT_PER_RUN = 50
+  const MEMBER_ENRICHMENT_PER_RUN = 10
   const offset = args?.offset || 0
   const members = await getLFIDEnrichableMembers(MEMBER_ENRICHMENT_PER_RUN, offset)
 
