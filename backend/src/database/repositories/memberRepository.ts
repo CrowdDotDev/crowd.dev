@@ -910,10 +910,49 @@ class MemberRepository {
         })
 
         if (data.length > 0 && data[0].memberId !== record.id) {
+          const memberSegment = await seq.query(
+            `
+            select distinct a."segmentId", a."memberId"
+        from activities a where a."memberId" = :memberId
+        limit 1
+          `,
+            {
+              replacements: {
+                memberId: data[0].memberId,
+              },
+              type: QueryTypes.SELECT,
+              transaction,
+            },
+          )
+
+          const segmentInfo = await seq.query(
+            `
+          select s.id, pd.id as "parentId", gpd.id as "grandParentId"
+          from segments s
+                  inner join segments pd
+                              on pd."tenantId" = s."tenantId" and pd.slug = s."parentSlug" and pd."grandparentSlug" is null and
+                                pd."parentSlug" is not null
+                  inner join segments gpd on gpd."tenantId" = s."tenantId" and gpd.slug = s."grandparentSlug" and
+                                              gpd."grandparentSlug" is null and gpd."parentSlug" is null
+          where s.id = :segmentId;
+          `,
+            {
+              replacements: {
+                segmentId: memberSegment[0].segmentId,
+              },
+              type: QueryTypes.SELECT,
+              transaction,
+            },
+          )
+
           throw new Error409(
             options.language,
             'errors.alreadyExists',
-            data[0].memberId,
+            // @ts-ignore
+            JSON.stringify({
+              memberId: data[0].memberId,
+              grandParentId: segmentInfo[0].grandParentId,
+            }),
           )
         }
       }

@@ -619,11 +619,7 @@ class OrganizationRepository {
 
           // ensure that it's not the same organization
           if (existingOrg && existingOrg.id !== record.id) {
-            throw new Error409(
-              options.language,
-              'errors.alreadyExists',
-              existingOrg.id,
-            )
+            throw new Error409(options.language, 'errors.alreadyExists', existingOrg.id)
           }
         }
 
