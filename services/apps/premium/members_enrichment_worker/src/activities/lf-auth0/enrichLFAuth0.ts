@@ -56,6 +56,8 @@ export async function mergeMembers(
   secondaryMemberId: string,
   tenantId: string,
 ): Promise<void> {
+  console.log(`${process.env['CROWD_API_SERVICE_URL']}/${tenantId}/member/${primaryMemberId}/merge`)
+  console.log(`Bearer: ${process.env['CROWD_API_SERVICE_USER_TOKEN']}`)
   const res = await fetch(
     `${process.env['CROWD_API_SERVICE_URL']}/${tenantId}/member/${primaryMemberId}/merge`,
     {
