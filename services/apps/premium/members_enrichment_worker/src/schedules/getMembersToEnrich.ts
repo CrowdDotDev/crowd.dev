@@ -35,7 +35,7 @@ export const scheduleMembersEnrichment = async () => {
 export const scheduleMembersLFIDEnrichment = async () => {
   try {
     await svc.temporal.schedule.create({
-      scheduleId: 'members-lfid-enrichment',
+      scheduleId: 'members-lfid-enrichment-2',
       spec: {
         cronExpressions: IS_DEV_ENV || IS_TEST_ENV ? ['*/2 * * * *'] : ['0 0 1 */2 *'],
       },
