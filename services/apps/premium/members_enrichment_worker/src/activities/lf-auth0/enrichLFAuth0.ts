@@ -59,7 +59,7 @@ export async function mergeMembers(
   console.log(`${process.env['CROWD_API_SERVICE_URL']}/${tenantId}/member/${primaryMemberId}/merge`)
   console.log(`Bearer: ${process.env['CROWD_API_SERVICE_USER_TOKEN']}`)
   const res = await fetch(
-    `${process.env['CROWD_API_SERVICE_URL']}/${tenantId}/member/${primaryMemberId}/merge`,
+    `${process.env['CROWD_API_SERVICE_URL']}/tenant/${tenantId}/member/${primaryMemberId}/merge`,
     {
       method: 'PUT',
       headers: {
