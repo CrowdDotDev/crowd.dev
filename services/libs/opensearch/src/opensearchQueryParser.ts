@@ -122,7 +122,6 @@ export class OpensearchQueryParser {
         match_phrase_prefix: {
           [searchKey]: {
             query: value,
-            boost: 3, // Boost the score of the results so that they are ranked higher
           },
         },
       }

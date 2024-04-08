@@ -170,18 +170,9 @@ export class OrganizationService {
       filter: {
         and: [
           {
-            or: [
-              {
-                displayName: {
-                  matchPhrasePrefix: query,
-                },
-              },
-              {
-                displayName: {
-                  textContains: query,
-                },
-              },
-            ],
+            displayName: {
+              matchPhrasePrefix: query,
+            },
           },
         ],
       },
