@@ -196,8 +196,8 @@ import AppMemberFormEmails from '@/modules/member/components/form/member-form-em
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import AppLfSubProjectsListDropdown from '@/modules/lf/segments/components/lf-sub-projects-list-dropdown.vue';
 import AppLfMemberFormAffiliations from '@/modules/lf/member/components/form/lf-member-form-affiliations.vue';
-import { MemberService } from '../member-service';
 import Message from '@/shared/message/message';
+import { MemberService } from '../member-service';
 
 const LoaderIcon = h(
   'i',
@@ -360,6 +360,7 @@ const isSubmitBtnDisabled = computed(
 );
 
 const isLeaving = ref(false);
+const leaveWithoutConfirmation = ref(false);
 
 // Prevent lost data on route change
 onBeforeRouteLeave((to) => {
@@ -368,6 +369,7 @@ onBeforeRouteLeave((to) => {
     && hasFormChanged.value
     && !wasFormSubmittedSuccessfuly.value
     && to.fullPath !== '/500'
+    && !leaveWithoutConfirmation.value
   ) {
     isLeaving.value = true;
     return ConfirmDialog({})
@@ -524,6 +526,7 @@ async function onSubmit() {
     })
       .catch((error) => {
         if (error.response.status === 409) {
+          leaveWithoutConfirmation.value = true;
           Message.error(
             h(
               'div',
@@ -536,7 +539,9 @@ async function onSubmit() {
                   {
                     class: 'btn btn--xs btn--secondary !h-6 !w-fit',
                     onClick: () => {
-                      console.log('Merge members!', record.value.id, error.response.data);
+                      const { memberId, grandParentId } = error.response.data;
+
+                      memberStore.addToMergeMember(memberId, grandParentId);
                       Message.closeAll();
                     },
                   },
@@ -548,6 +553,14 @@ async function onSubmit() {
               title: 'Member was not updated because the identity already exists in another member.',
             },
           );
+
+          router.push({
+            name: 'memberView',
+            params: {
+              id: record.value.id,
+            },
+            query: { projectGroup: selectedProjectGroup?.id },
+          });
         } else {
           Errors.handle(error);
         }
