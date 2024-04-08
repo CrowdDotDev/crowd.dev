@@ -55,7 +55,7 @@
                   {{ item.label }}
                 </div>
 
-                <div v-if="getSegmentName(item.segmentId)" class="text-xs text-gray-900">
+                <div v-if="getSegmentName(item.segmentId)" class="text-xs text-gray-900 pr-4">
                   <span class="text-gray-400">Project group:</span> {{ getSegmentName(item.segmentId) }}
                 </div>
               </div>
