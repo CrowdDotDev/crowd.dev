@@ -63,7 +63,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { MemberService } from '@/modules/member/member-service';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
@@ -79,6 +79,10 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  toMerge: {
+    type: Object,
+    default: null,
+  },
 });
 
 const emit = defineEmits(['update:modelValue']);
@@ -89,8 +93,10 @@ const router = useRouter();
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
+const memberStore = useMemberStore();
+const { fetchMembers } = memberStore;
+
 const { doFind } = mapActions('member');
-const { fetchMembers } = useMemberStore();
 
 const originalMemberPrimary = ref(true);
 const sendingMerge = ref(false);
@@ -105,6 +111,14 @@ const isModalOpen = computed({
     emit('update:modelValue', null);
     memberToMerge.value = null;
   },
+});
+
+watch(() => props.toMerge, (toMerge) => {
+  if (toMerge) {
+    memberToMerge.value = toMerge;
+  }
+}, {
+  immediate: true,
 });
 
 const changeMember = () => {

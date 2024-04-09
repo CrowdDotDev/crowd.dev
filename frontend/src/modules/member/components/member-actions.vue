@@ -61,6 +61,7 @@
   <app-member-merge-dialog
     v-if="isMergeDialogOpen"
     v-model="isMergeDialogOpen"
+    :to-merge="memberToMerge"
   />
   <app-member-merge-suggestions-dialog
     v-if="isMergeSuggestionsDialogOpen"
@@ -84,6 +85,7 @@ import { MemberService } from '@/modules/member/member-service';
 import AppMemberMergeSuggestionsDialog from '@/modules/member/components/member-merge-suggestions-dialog.vue';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
+import { useMemberStore } from '@/modules/member/store/pinia';
 
 const props = defineProps({
   member: {
@@ -99,10 +101,14 @@ const router = useRouter();
 const authStore = useAuthStore();
 const { user, tenant } = storeToRefs(authStore);
 
+const memberStore = useMemberStore();
+const { toMergeMember } = storeToRefs(memberStore);
+
 const isMergeDialogOpen = ref(null);
 const isMergeSuggestionsDialogOpen = ref(false);
 const isFindGithubDrawerOpen = ref(null);
 const mergeSuggestionsCount = ref(0);
+const memberToMerge = ref(null);
 
 const isEditLockedForSampleData = computed(
   () => new MemberPermissions(tenant.value, user.value)
@@ -113,6 +119,19 @@ const hasPermissionsToMerge = computed(() => new MemberPermissions(
   tenant.value,
   user.value,
 )?.mergeMembers);
+
+watch(toMergeMember, (updatedValue) => {
+  if (updatedValue) {
+    MemberService.find(updatedValue.id, [updatedValue.segmentId]).then((response) => {
+      isMergeDialogOpen.value = props.member;
+      memberToMerge.value = response;
+
+      memberStore.removeToMergeMember();
+    });
+  }
+}, {
+  deep: true,
+});
 
 const fetchMembersToMergeCount = () => {
   MemberService.fetchMergeSuggestions(1, 0, {
