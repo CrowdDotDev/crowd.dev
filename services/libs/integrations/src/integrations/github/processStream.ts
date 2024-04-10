@@ -253,6 +253,19 @@ export const prepareBotMember = (bot: GithubBotMember): GithubPrepareMemberOutpu
   }
 }
 
+export const prepareDeletedMember = (): GithubPrepareMemberOutput => {
+  return {
+    email: '',
+    orgs: [],
+    memberFromApi: {
+      login: 'ghost',
+      avatarUrl: 'https://avatars.githubusercontent.com/u/10137?v=4',
+      url: 'https://github.com/ghost',
+      isDeleted: true,
+    },
+  }
+}
+
 export const prepareMemberFromOrg = (orgFromApi: any): GithubPrepareOrgMemberOutput => {
   return {
     orgFromApi,
@@ -357,7 +370,17 @@ const processStargazersStream: ProcessStreamHandler = async (ctx) => {
   await publishNextPageStream(ctx, result)
 
   for (const record of result.data) {
-    const member = await prepareMember(record.node, ctx)
+    let member: GithubPrepareMemberOutput
+    if (record.node === null) {
+      throw new Error('Stargazer is not found. This might be a deleted user.')
+    }
+    if (record.node.__typename === 'User') {
+      member = await prepareMember(record.node, ctx)
+    } else if (record.node.__typename === 'Bot') {
+      member = prepareBotMember(record.node)
+    } else {
+      ctx.log.warn(`Unsupported stargazer type: ${record.node.__typename}`)
+    }
 
     // publish data
     await ctx.processData<GithubApiData>({
@@ -385,6 +408,9 @@ const processForksStream: ProcessStreamHandler = async (ctx) => {
   await publishNextPageStream(ctx, result)
 
   for (const record of result.data) {
+    if (record.owner === null) {
+      throw new Error('Fork owner is not found. This might be a deleted user.')
+    }
     if (record.owner.__typename === 'User') {
       const member = await prepareMember(record.owner, ctx)
 
@@ -411,6 +437,9 @@ const processForksStream: ProcessStreamHandler = async (ctx) => {
 
     // traverse through indirect forks
     for (const indirectFork of record.indirectForks.nodes) {
+      if (indirectFork.owner === null) {
+        throw new Error('Fork owner is not found. This might be a deleted user.')
+      }
       if (indirectFork.owner.__typename === 'User') {
         const member = await prepareMember(indirectFork.owner, ctx)
 
@@ -463,6 +492,8 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
       member = await prepareMember(pull.author, ctx)
     } else if (pull.authorBot?.login) {
       member = prepareBotMember(pull.authorBot)
+    } else if (pull.author === null && pull.authorBot === null) {
+      member = prepareDeletedMember()
     } else {
       ctx.log.warn('Pull request author is not found. This pull request will not be parsed.')
       continue
@@ -487,6 +518,8 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
             member = await prepareMember(pullEvent.actor, ctx)
           } else if (pullEvent?.actorBot?.login) {
             member = prepareBotMember(pullEvent.actorBot)
+          } else if (pullEvent.actor === null && pullEvent.actorBot === null) {
+            member = prepareDeletedMember()
           } else {
             ctx.log.warn(
               'Pull request author is not found. This pull request event will not be parsed.',
@@ -498,6 +531,8 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
             objectMember = await prepareMember(pullEvent.assignee, ctx)
           } else if (pullEvent?.assigneeBot?.login) {
             objectMember = prepareBotMember(pullEvent.assigneeBot)
+          } else if (pullEvent.assignee === null && pullEvent.assigneeBot === null) {
+            objectMember = prepareDeletedMember()
           } else {
             ctx.log.warn(
               'Pull request assignee is not found. This pull request assignee event will not be parsed.',
@@ -526,6 +561,8 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
               member = await prepareMember(pullEvent.actor, ctx)
             } else if (pullEvent?.actorBot?.login) {
               member = prepareBotMember(pullEvent.actorBot)
+            } else if (pullEvent.actor === null && pullEvent.actorBot === null) {
+              member = prepareDeletedMember()
             } else {
               ctx.log.warn(
                 'Pull request author is not found. This pull request event will not be parsed.',
@@ -537,6 +574,11 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
               objectMember = await prepareMember(pullEvent.requestedReviewer, ctx)
             } else if (pullEvent?.requestedReviewerBot?.login) {
               objectMember = prepareBotMember(pullEvent.requestedReviewerBot)
+            } else if (
+              pullEvent.requestedReviewer === null &&
+              pullEvent.requestedReviewerBot === null
+            ) {
+              objectMember = prepareDeletedMember()
             } else {
               ctx.log.warn(
                 'Pull request requested reviewer is not found. This pull request requested reviewer event will not be parsed.',
@@ -559,6 +601,8 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
               member = await prepareMember(pullEvent.actor, ctx)
             } else if (pullEvent?.actorBot?.login) {
               member = prepareBotMember(pullEvent.actorBot)
+            } else if (pullEvent.actor === null && pullEvent.actorBot === null) {
+              member = prepareDeletedMember()
             } else {
               ctx.log.warn(
                 'Pull request author is not found. This pull request event will not be parsed.',
@@ -589,6 +633,8 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
               member = await prepareMember(pullEvent.author, ctx)
             } else if (pullEvent?.authorBot?.login) {
               member = prepareBotMember(pullEvent.authorBot)
+            } else if (pullEvent.author === null && pullEvent.authorBot === null) {
+              member = prepareDeletedMember()
             } else {
               ctx.log.warn(
                 'Pull request author is not found. This pull request event will not be parsed.',
@@ -612,6 +658,8 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
             member = await prepareMember(pullEvent.actor, ctx)
           } else if (pullEvent?.actorBot?.login) {
             member = prepareBotMember(pullEvent.actorBot)
+          } else if (pullEvent.actor === null && pullEvent.actorBot === null) {
+            member = prepareDeletedMember()
           } else {
             ctx.log.warn(
               'Pull request author is not found. This pull request event will not be parsed.',
@@ -635,6 +683,8 @@ const processPullsStream: ProcessStreamHandler = async (ctx) => {
             member = await prepareMember(pullEvent.actor, ctx)
           } else if (pullEvent?.actorBot?.login) {
             member = prepareBotMember(pullEvent.actorBot)
+          } else if (pullEvent.actor === null && pullEvent.actorBot === null) {
+            member = prepareDeletedMember()
           } else {
             ctx.log.warn(
               'Pull request author is not found. This pull request event will not be parsed.',
@@ -732,6 +782,8 @@ const processPullCommentsStream: ProcessStreamHandler = async (ctx) => {
       member = await prepareMember(record.author, ctx)
     } else if (record.authorBot?.login) {
       member = prepareBotMember(record.authorBot)
+    } else if (record.author === null && record.authorBot === null) {
+      member = prepareDeletedMember()
     } else {
       ctx.log.warn(
         'Pull request comment author is not found. This pull request comment will not be parsed.',
@@ -812,6 +864,8 @@ const processPullReviewThreadCommentsStream: ProcessStreamHandler = async (ctx) 
       member = await prepareMember(record.author, ctx)
     } else if (record.authorBot?.login) {
       member = prepareBotMember(record.authorBot)
+    } else if (record.author === null && record.authorBot === null) {
+      member = prepareDeletedMember()
     } else {
       ctx.log.warn(
         'Pull request review thread comment author is not found. This pull request review thread comment will not be parsed.',
@@ -922,6 +976,8 @@ const processIssuesStream: ProcessStreamHandler = async (ctx) => {
       member = await prepareMember(issue.author, ctx)
     } else if (issue.authorBot?.login) {
       member = prepareBotMember(issue.authorBot)
+    } else if (issue.author === null && issue.authorBot === null) {
+      member = prepareDeletedMember()
     } else {
       ctx.log.warn('Issue author is not found. This issue will not be parsed.')
       continue
@@ -943,6 +999,8 @@ const processIssuesStream: ProcessStreamHandler = async (ctx) => {
             member = await prepareMember(issueEvent.actor, ctx)
           } else if (issueEvent.actorBot?.login) {
             member = prepareBotMember(issueEvent.actorBot)
+          } else if (issueEvent.actor === null && issueEvent.actorBot === null) {
+            member = prepareDeletedMember()
           } else {
             ctx.log.warn('Issue event author is not found. This issue event will not be parsed.')
             continue
@@ -1004,6 +1062,8 @@ const processIssueCommentsStream: ProcessStreamHandler = async (ctx) => {
       member = await prepareMember(record.author, ctx)
     } else if (record.authorBot?.login) {
       member = prepareBotMember(record.authorBot)
+    } else if (record.author === null && record.authorBot === null) {
+      member = prepareDeletedMember()
     } else {
       ctx.log.warn('Issue comment author is not found. This issue comment will not be parsed.')
       continue
@@ -1040,6 +1100,8 @@ const processDiscussionsStream: ProcessStreamHandler = async (ctx) => {
       member = await prepareMember(discussion.author, ctx)
     } else if (discussion.authorBot?.login) {
       member = prepareBotMember(discussion.authorBot)
+    } else if (discussion.author === null && discussion.authorBot === null) {
+      member = prepareDeletedMember()
     } else {
       ctx.log.warn('Discussion author is not found. This discussion will not be parsed.')
       continue
@@ -1091,6 +1153,8 @@ const processDiscussionCommentsStream: ProcessStreamHandler = async (ctx) => {
       member = await prepareMember(record.author, ctx)
     } else if (record.authorBot?.login) {
       member = prepareBotMember(record.authorBot)
+    } else if (record.author === null && record.authorBot === null) {
+      member = prepareDeletedMember()
     } else {
       ctx.log.warn(
         'Discussion comment author is not found. This discussion comment will not be parsed.',
@@ -1115,6 +1179,8 @@ const processDiscussionCommentsStream: ProcessStreamHandler = async (ctx) => {
         member = await prepareMember(reply.author, ctx)
       } else if (reply.authorBot?.login) {
         member = prepareBotMember(reply.authorBot)
+      } else if (reply.author === null && reply.authorBot === null) {
+        member = prepareDeletedMember()
       } else {
         ctx.log.warn(
           'Discussion comment reply author is not found. This discussion comment reply will not be parsed.',

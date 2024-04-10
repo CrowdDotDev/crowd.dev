@@ -13,7 +13,13 @@ class StargazersQuery extends BaseQuery {
                 totalCount
                 edges {
                   starredAt
-                  node ${BaseQuery.USER_SELECT}
+                  node {
+                    ___typename
+                    ... on Actor {
+                      ... on User ${BaseQuery.USER_SELECT}
+                      ... on Bot ${BaseQuery.BOT_SELECT}
+                    }
+                  }
                 }
               }
             }
