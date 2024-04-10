@@ -23,7 +23,7 @@ export async function getMembersForLFIDEnrichment(
   const offset = args?.offset || 0
   const members = await getLFIDEnrichableMembers(MEMBER_ENRICHMENT_PER_RUN, offset)
 
-  if (members.length === 0) {
+  if (members.length === 0 || offset >= 1000) {
     return
   }
 
