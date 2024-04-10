@@ -216,6 +216,22 @@ function deploy_staging(){
     gh workflow run $WORKFLOW_FILE --repo $REPOSITORY --ref $CURRENT_BRANCH -f services="$SERVICES"
 }
 
+function deploy_production(){
+    REPOSITORY="CrowdDotDev/crowd.dev"
+    WORKFLOW_FILE="lf-production-deploy.yaml"
+    CURRENT_BRANCH=$(git branch --show-current)
+    SERVICES="$(IFS=" "; echo "${SELECTED_SERVICES[*]}")"
+
+    gh workflow run $WORKFLOW_FILE --repo $REPOSITORY --ref $CURRENT_BRANCH -f services="$SERVICES"
+}
+
+function reset_selected_services(){
+    for SERVICE in "${SELECTED_SERVICES[@]}"; do
+        echo "Restarting service $SERVICE."
+        kill_containers $SERVICE && start_service $SERVICE
+    done
+}
+
 function build() {
     HELP="${RESET}\nUsage:\n ./cli build [ $HELP_BUILD_STRING ]\n"
     [[ -z "$1" ]] && say "$HELP" && exit 1
@@ -792,6 +808,16 @@ while test $# -gt 0; do
     deploy-staging)
         select_services
         deploy_staging
+        exit
+        ;;
+    deploy-production)
+        select_services
+        deploy_production
+        exit
+        ;;
+    reset-selected-services)
+        select_services
+        reset_selected_services
         exit
         ;;
     build)
