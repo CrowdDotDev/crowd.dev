@@ -49,6 +49,7 @@
 
           <span v-if="sentiment" class="text-gray-500">・</span>
 
+          <!-- Sentiment -->
           <app-activity-sentiment
             v-if="sentiment"
             :sentiment="sentiment"

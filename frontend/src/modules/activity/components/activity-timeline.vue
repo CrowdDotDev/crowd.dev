@@ -139,6 +139,7 @@
                 </div>
               </div>
 
+              <!-- For now only render a special UI for Git -->
               <div v-if="activity.platform === Platform.GIT">
                 <lf-activity-display
                   :activity="activity"

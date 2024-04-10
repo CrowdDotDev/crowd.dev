@@ -43,7 +43,7 @@ export interface Activity {
   display: {
     default: string;
     short: string;
-    conversation: string;
+    author: string;
     channel: string;
   };
 }

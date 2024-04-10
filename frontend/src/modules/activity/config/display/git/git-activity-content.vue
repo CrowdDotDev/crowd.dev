@@ -31,7 +31,7 @@
 
       <div v-if="activity.parent" class="flex items-center gap-2">
         <span class="font-medium text-gray-400 text-2xs">{{
-          toSentenceCase(activity.parent.display.conversation)
+          toSentenceCase(activity.parent.display.author ?? '')
         }}</span>
         <div class="flex items-center gap-1.5">
           <app-avatar :entity="activity.member" size="xxs" />

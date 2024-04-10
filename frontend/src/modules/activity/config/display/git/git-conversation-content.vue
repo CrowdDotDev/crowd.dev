@@ -16,7 +16,7 @@
     <div class="px-6 py-8 flex flex-col gap-6">
       <div v-for="activitiesByType in Object.values(activitiesList)" :key="activitiesByType.display.type" class="flex flex-col gap-1">
         <div class="text-xs text-gray-400 font-medium">
-          {{ toSentenceCase(activitiesByType.display.conversation) }}
+          {{ toSentenceCase(activitiesByType.display.author ?? '') }}
         </div>
         <div class="flex flex-col gap-4">
           <div v-for="activity in activitiesByType.activities" :key="activity.id" class="flex items-center gap-2">
@@ -81,7 +81,7 @@ const activitiesList = computed(() => props.conversation.activities.reduce((acc,
         type: string;
         default: string;
         short: string;
-        conversation: string;
+        author: string;
         channel: string;
     }
       activities: Activity[];

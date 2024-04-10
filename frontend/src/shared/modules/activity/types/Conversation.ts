@@ -13,7 +13,7 @@ export interface Conversation {
   createdById: string;
   updatedById: string;
   activities: Activity[];
-  memberCount: 1;
+  memberCount: number;
   conversationStarter: Activity;
   activityCount: number;
   platform: Platform;
