@@ -118,7 +118,11 @@
       </el-tooltip>
 
       <cr-dropdown-separator />
-      <cr-dropdown-item type="danger" @click="emit('remove')">
+      <cr-dropdown-item
+        type="danger"
+        :disabled="editingDisabled"
+        @click="emit('remove')"
+      >
         <i class="ri-delete-bin-6-line" />
         Delete identity
       </cr-dropdown-item>

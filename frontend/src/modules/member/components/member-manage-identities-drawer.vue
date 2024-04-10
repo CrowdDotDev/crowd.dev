@@ -50,8 +50,7 @@
             </template>
           </template>
         </div>
-
-        <p class="text-2xs leading-4.5 tracking-1 text-gray-400 font-semibold pb-4">
+        <p v-if="hasCustomIdentities" class="text-2xs leading-4.5 tracking-1 text-gray-400 font-semibold pb-4">
           CUSTOM PLATFORMS
         </p>
         <div class="flex flex-col gap-3">
@@ -185,6 +184,8 @@ const addIdentity = (platform: string) => {
 
 const platforms = CrowdIntegrations.enabledConfigs;
 const platformsKeys = CrowdIntegrations.enabledConfigs.map((p) => p.platform);
+
+const hasCustomIdentities = computed(() => identities.value.some((i) => !platformsKeys.includes(i.platform) && i.type === 'username'));
 
 onUnmounted(() => {
   store.dispatch('member/doFind', {
