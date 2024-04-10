@@ -75,6 +75,7 @@
 
 <script setup lang="ts">
 import {
+  h,
   computed, onUnmounted, ref,
 } from 'vue';
 import AppMemberFormIdentityItem from '@/modules/member/components/form/identity/member-form-identity-item.vue';
@@ -87,6 +88,8 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import CrDropdown from '@/ui-kit/dropdown/Dropdown.vue';
 import CrDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
+import Errors from '@/shared/error/errors';
+import { useMemberStore } from '@/modules/member/store/pinia';
 
 const props = withDefaults(defineProps<{
   modelValue?: boolean,
@@ -99,6 +102,8 @@ const emit = defineEmits(['update:modelValue', 'unmerge']);
 
 const store = useStore();
 const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
+
+const memberStore = useMemberStore();
 
 const drawerModel = computed<boolean>({
   get() {
@@ -118,8 +123,37 @@ const serverUpdate = () => {
   MemberService.update(props.member.id, {
     identities: identities.value,
   }, segments)
-    .catch((err) => {
-      Message.error(err.response.data);
+    .catch((error) => {
+      if (error.response.status === 409) {
+        Message.error(
+          h(
+            'div',
+            {
+              class: 'flex flex-col gap-2',
+            },
+            [
+              h(
+                'el-button',
+                {
+                  class: 'btn btn--xs btn--secondary !h-6 !w-fit',
+                  onClick: () => {
+                    const { memberId, grandParentId } = error.response.data;
+
+                    memberStore.addToMergeMember(memberId, grandParentId);
+                    Message.closeAll();
+                  },
+                },
+                'Merge members',
+              ),
+            ],
+          ),
+          {
+            title: 'Member was not updated because the identity already exists in another member.',
+          },
+        );
+      } else {
+        Errors.handle(error);
+      }
     });
 };
 

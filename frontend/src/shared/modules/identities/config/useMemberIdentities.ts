@@ -62,7 +62,6 @@ export default ({
   } => order.reduce((acc, platform) => {
     const handles = getIdentityHandles(platform);
 
-    console.log(platform, handles);
     if (platform === Platform.CUSTOM && handles.length) {
       const sortedCustomIdentities = handles.sort((a, b) => {
         const platformComparison = a.platform.localeCompare(b.platform);

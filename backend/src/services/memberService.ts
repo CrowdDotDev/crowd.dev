@@ -1692,6 +1692,11 @@ export default class MemberService extends LoggerBase {
       if (syncToOpensearch) {
         try {
           await searchSyncService.triggerMemberSync(this.options.currentTenant.id, record.id)
+          if (data.organizations) {
+            for (const org of data.organizations) {
+              await searchSyncService.triggerOrganizationSync(this.options.currentTenant.id, org.id)
+            }
+          }
         } catch (emitErr) {
           this.log.error(
             emitErr,
@@ -1789,8 +1794,22 @@ export default class MemberService extends LoggerBase {
     )
   }
 
-  async findAllAutocomplete(search, limit) {
-    return MemberRepository.findAllAutocomplete(search, limit, this.options)
+  async findAllAutocomplete(data) {
+    const memberAttributeSettings = (
+      await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
+    ).rows
+
+    return MemberRepository.findAndCountAllOpensearch(
+      {
+        filter: data.filter,
+        offset: data.offset,
+        orderBy: data.orderBy,
+        limit: data.limit,
+        segments: data.segments,
+        attributesSettings: memberAttributeSettings,
+      },
+      this.options,
+    )
   }
 
   async findAndCountActive(
