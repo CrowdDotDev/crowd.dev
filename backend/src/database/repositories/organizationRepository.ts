@@ -619,11 +619,7 @@ class OrganizationRepository {
 
           // ensure that it's not the same organization
           if (existingOrg && existingOrg.id !== record.id) {
-            throw new Error409(
-              options.language,
-              'organization.errors.websiteAlreadyExists',
-              existingOrg.id,
-            )
+            throw new Error409(options.language, 'errors.alreadyExists', existingOrg.id)
           }
         }
 
@@ -1939,7 +1935,7 @@ class OrganizationRepository {
       },
     })
 
-    if (segmentsEnabled) {
+    if (segmentsEnabled && segment) {
       // add segment filter
       parsed.query.bool.must.push({
         term: {

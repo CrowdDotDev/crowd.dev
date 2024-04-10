@@ -4,6 +4,7 @@ export interface IDbOrganizationSyncData {
   // organization data
   organizationId: string
   segmentId: string
+  grandParentSegment: boolean
   tenantId: string
   address: unknown | null
   attributes: unknown

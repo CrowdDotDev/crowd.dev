@@ -33,4 +33,14 @@ export default {
         return Promise.resolve(this.customAttributesFilter);
       });
   },
+  addToMergeMember(this: MemberState, toMergeId: string, toMergeGrandParentId: string) {
+    this.toMergeMember = {
+      id: toMergeId,
+      segmentId: toMergeGrandParentId,
+    };
+  },
+
+  removeToMergeMember(this: MemberState) {
+    this.toMergeMember = null;
+  },
 };

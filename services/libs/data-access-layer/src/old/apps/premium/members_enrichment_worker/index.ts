@@ -14,7 +14,6 @@ export async function fetchMembersForEnrichment(db: DbStore): Promise<IMember[]>
          members."id",
          members."displayName",
          members."attributes",
-         members."emails",
          members."contributions",
          members."score",
          members."reach",

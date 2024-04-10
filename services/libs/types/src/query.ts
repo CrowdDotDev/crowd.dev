@@ -33,6 +33,8 @@ export enum Operator {
   NOT = 'not',
 
   ARRAY_LENGTH = 'arrayLength',
+
+  MATCH_PHRASE_PREFIX = 'matchPhrasePrefix',
 }
 
 export interface ParsedJsonColumn {
