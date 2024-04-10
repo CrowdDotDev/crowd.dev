@@ -910,7 +910,7 @@ class MemberRepository {
         })
 
         if (data.length > 0 && data[0].memberId !== record.id) {
-          const memberSegment = await seq.query(
+          const memberSegment = (await seq.query(
             `
             select distinct a."segmentId", a."memberId"
         from activities a where a."memberId" = :memberId
@@ -923,9 +923,9 @@ class MemberRepository {
               type: QueryTypes.SELECT,
               transaction,
             },
-          )
+          )) as any[]
 
-          const segmentInfo = await seq.query(
+          const segmentInfo = (await seq.query(
             `
           select s.id, pd.id as "parentId", gpd.id as "grandParentId"
           from segments s
@@ -943,7 +943,7 @@ class MemberRepository {
               type: QueryTypes.SELECT,
               transaction,
             },
-          )
+          )) as any[]
 
           throw new Error409(
             options.language,
