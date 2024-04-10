@@ -2,8 +2,10 @@
   <div>
     <component
       :is="configuration?.activityHeaderContent"
-      v-if="!inTimeline"
+      v-if="!inProfile"
       :activity="activity"
+      :in-profile="inProfile"
+      :in-dashboard="inDashboard"
       @edit="emit('edit')"
       @on-update="emit('onUpdate')"
       @activity-destroyed="emit('activity-destroyed')"
@@ -26,7 +28,8 @@ const emit = defineEmits<{(e: 'edit'): void;
 
 defineProps<{
   activity: Activity;
-  inTimeline?: boolean;
+  inProfile?: boolean;
+  inDashboard?: boolean;
 }>();
 
 const configuration = computed(() => config.git);

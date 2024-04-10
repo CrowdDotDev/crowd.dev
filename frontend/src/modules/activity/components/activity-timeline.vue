@@ -142,7 +142,7 @@
               <div v-if="activity.platform === Platform.GIT">
                 <lf-activity-display
                   :activity="activity"
-                  in-timeline
+                  in-profile
                 />
               </div>
               <div v-else>

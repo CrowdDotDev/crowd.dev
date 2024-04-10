@@ -46,13 +46,20 @@
           <div class="text-xs text-gray-500">
             {{ timeAgo }}
           </div>
+
+          <span v-if="sentiment" class="text-gray-500">・</span>
+
+          <app-activity-sentiment
+            v-if="sentiment"
+            :sentiment="sentiment"
+          />
         </div>
       </div>
     </div>
 
     <!-- Activity actions -->
     <div class="flex items-center gap-3">
-      <div v-if="activity.conversationId">
+      <div v-if="activity.conversationId && !inDashboard">
         <a
           class="text-xs font-medium flex items-center cursor-pointer hover:underline"
           target="_blank"
@@ -63,7 +70,7 @@
       </div>
 
       <app-activity-dropdown
-        :show-affiliations="false"
+        :show-affiliations="inProfile"
         :activity="activity"
         @edit="emit('edit')"
         @on-update="emit('onUpdate')"
@@ -82,6 +89,7 @@ import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppActivityDropdown from '@/modules/activity/components/activity-dropdown.vue';
 import { formatDateToTimeAgo } from '@/utils/date';
 import LfActivityMemberOrganization from '@/shared/modules/activity/components/activity-member-organization.vue';
+import AppActivitySentiment from '@/modules/activity/components/activity-sentiment.vue';
 
 const emit = defineEmits<{(e: 'edit'): void;
   (e: 'onUpdate'): void;
@@ -90,14 +98,15 @@ const emit = defineEmits<{(e: 'edit'): void;
 }>();
 const props = defineProps<{
   activity: Activity;
+  inProfile?: boolean;
+  inDashboard?: boolean;
 }>();
 
 const platform = computed(() => CrowdIntegrations.getConfig(props.activity.platform));
 
 const activityMessage = computed(() => props.activity.display?.default ?? '');
 const timeAgo = computed(() => formatDateToTimeAgo(props.activity.timestamp));
-// TBD:
-// const sentiment = computed(() => props.activity?.sentiment?.sentiment || 0);
+const sentiment = computed(() => props.activity?.sentiment?.sentiment || 0);
 </script>
 
 <style lang="scss">
