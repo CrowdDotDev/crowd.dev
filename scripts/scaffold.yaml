@@ -36,6 +36,19 @@ services:
     networks:
       - crowd-bridge
 
+  questdb:
+    image: questdb/questdb:7.4.0
+    restart: unless-stopped
+    ports:
+      - 8812:8812
+      - 9001:9000
+      - 9003:9003
+      - 9009:9009
+    volumes:
+      - questdb-dev:/var/lib/questdb
+    networks:
+      - crowd-bridge
+
   open-search:
     image: opensearchproject/opensearch:2.7.0
     restart: unless-stopped
@@ -169,6 +182,7 @@ networks:
 
 volumes:
   pgdata-dev:
+  questdb-dev:
   opensearch-dev:
   s3-dev:
   redis-dev:
