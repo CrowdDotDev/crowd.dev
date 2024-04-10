@@ -457,6 +457,26 @@ function kill_all_containers() {
     done
 }
 
+function service_start() {
+  for SERVICE in $CONTAINERS; do
+      if [[ ${#INGORED_SERVICES[@]} -ne 0 ]]; then
+          for IGNORED_SERVICE in "${INGORED_SERVICES[@]}"; do
+              if [[ "$SERVICE" == "${IGNORED_SERVICE}" ]]; then
+                  SKIP=1
+                  break
+              fi
+          done
+      fi
+
+      if [[ -z "$SKIP" ]]; then
+          say "Starting service $SERVICE."
+          start_service $SERVICE
+          nl
+      fi
+      unset SKIP
+  done
+}
+
 function scaffold_destroy_confirmed() {
     kill_all_containers
     $_DC --compatibility -p $PROJECT_NAME -f $CLI_HOME/scaffold.yaml down
@@ -498,23 +518,7 @@ function start() {
         scaffold_reset
     fi
 
-    for SERVICE in $CONTAINERS; do
-        if [[ ${#INGORED_SERVICES[@]} -ne 0 ]]; then
-            for IGNORED_SERVICE in "${INGORED_SERVICES[@]}"; do
-                if [[ "$SERVICE" == "${IGNORED_SERVICE}" ]]; then
-                    SKIP=1
-                    break
-                fi
-            done
-        fi
-
-        if [[ -z "$SKIP" ]]; then
-            say "Starting service $SERVICE."
-            start_service $SERVICE
-            nl
-        fi
-        unset SKIP
-    done
+    service_start;
 }
 
 SCRIPT_USAGE="${YELLOW}${PROJECT_NAME} CLI ${RESET}\n\nExample usage: ./cli [ start, start-dev, clean-start, clean-start-dev, start-backend, start-backend-dev, clean-start-backend, clean-start-backend-dev, start-premium, start-premium-dev, clean-start-premium, clean-start-premium-dev, scaffold =>, service =>, build =>, build-and-push ]"
@@ -630,6 +634,23 @@ while test $# -gt 0; do
     clean-start-premium-dev)
         CLEAN_START=1
         DEV=1
+        exit
+        ;;
+    service-restart)
+        kill_all_containers
+        service_start
+        exit
+        ;;
+    service-restart-be)
+        declare -a INGORED_SERVICES=("frontend")
+        kill_all_containers
+        service_start
+        exit
+        ;;
+    service-restart-dev)
+        DEV=1
+        kill_all_containers
+        service_start
         exit
         ;;
     build)

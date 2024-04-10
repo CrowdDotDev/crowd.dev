@@ -281,6 +281,7 @@ const ptBR = {
         'auth-invalid-provider':
           'Este email está registrado para outro provedor.',
         'auth-no-email': 'O email associado a esta conta é privado ou não existe.',
+        'auth-user-no-exist': 'User or account not found',
       },
     },
     signinWithAnotherAccount: 'Entrar com outra conta',

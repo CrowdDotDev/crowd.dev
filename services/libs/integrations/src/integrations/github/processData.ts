@@ -107,6 +107,7 @@ const parseMember = (memberData: GithubPrepareMemberOutput): IMemberData => {
       {
         platform: PlatformType.GITHUB,
         username: memberFromApi.login,
+        sourceId: memberFromApi.id.toString(),
       },
     ],
     ...(memberFromApi?.twitterUsername && {

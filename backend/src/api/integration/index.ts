@@ -36,6 +36,16 @@ export default (app) => {
   app.get(`/tenant/:tenantId/integration`, safeWrap(require('./integrationList').default))
   app.get(`/tenant/:tenantId/integration/:id`, safeWrap(require('./integrationFind').default))
 
+  app.post(
+    `/tenant/:tenantId/integration/progress/list`,
+    safeWrap(require('./integrationProgressList').default),
+  )
+
+  app.get(
+    `/tenant/:tenantId/integration/progress/:id`,
+    safeWrap(require('./integrationProgress').default),
+  )
+
   // Git
   app.put(`/tenant/:tenantId/git-connect`, safeWrap(require('./helpers/gitAuthenticate').default))
   app.get('/tenant/:tenantId/git', safeWrap(require('./helpers/gitGetRemotes').default))

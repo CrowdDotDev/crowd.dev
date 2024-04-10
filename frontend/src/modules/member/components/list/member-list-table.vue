@@ -48,7 +48,15 @@
             module="contact"
             position="top"
             @change-sorter="doChangePaginationPageSize"
-          />
+          >
+            <template #defaultFilters>
+              <div>・</div>
+              <cr-default-filters
+                :config="memberSavedViews"
+                :settings="filters.settings"
+              />
+            </template>
+          </app-pagination-sorter>
         </div>
 
         <!-- Members list -->
@@ -760,12 +768,14 @@ import CrEnrichmentSneakPeakContent from '@/shared/modules/enrichment/components
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import Plans from '@/security/plans';
 import AppIdentitiesHorizontalListMembers from '@/shared/modules/identities/components/identities-horizontal-list-members.vue';
+import CrDefaultFilters from '@/shared/modules/default-filters/components/default-filters.vue';
 import AppMemberBadge from '../member-badge.vue';
 import AppMemberDropdownContent from '../member-dropdown-content.vue';
 import AppMemberReach from '../member-reach.vue';
 import AppMemberEngagementLevel from '../member-engagement-level.vue';
 import AppMemberLastActivity from '../member-last-activity.vue';
 import AppMemberSentiment from '../member-sentiment.vue';
+import { memberSavedViews } from '../../config/saved-views/main';
 
 const store = useStore();
 const router = useRouter();

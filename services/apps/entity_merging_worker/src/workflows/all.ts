@@ -29,6 +29,7 @@ export async function finishMemberMerging(
 ): Promise<void> {
   await moveActivitiesBetweenMembers(primaryId, secondaryId, tenantId)
   await recalculateActivityAffiliationsOfMemberAsync(primaryId, tenantId)
+  await syncMember(primaryId, secondaryId)
   await deleteMember(secondaryId)
   await setMergeActionState(primaryId, secondaryId, tenantId, 'merged' as MergeActionState)
 }
