@@ -75,5 +75,5 @@ export async function getEnrichmentData(args: IGetEnrichmentDataArgs): Promise<v
 
   const data = await getEnrichmentLFAuth0(token, mem)
   console.log(data)
-  console.log(data.identities.find((i) => i.provider === 'github')?.profileData)
+  // console.log(data.identities.find((i) => i.provider === 'github')?.profileData)
 }
