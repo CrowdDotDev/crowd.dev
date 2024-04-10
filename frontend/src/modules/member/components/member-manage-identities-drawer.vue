@@ -56,7 +56,7 @@
         </p>
         <div class="flex flex-col gap-3">
           <template v-for="(identity, ii) of identities" :key="ii">
-            <template v-if="!platformsKeys.includes(identity.platform)">
+            <template v-if="identity.type === 'username' && !platformsKeys.includes(identity.platform)">
               <app-member-form-identity-item
                 :identity="identity"
                 :member="props.member"

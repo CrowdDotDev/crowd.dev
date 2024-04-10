@@ -15,13 +15,15 @@ export default ({
 
   const getIdentityHandles = (platform: string) => {
     if (platform === Platform.CUSTOM) {
-      const mainPlatforms = Object.values(Platform) as string[];
-      return (identities || []).filter((i) => !mainPlatforms.includes(i.platform)).map((i) => ({
-        platform: i.platform,
-        url: null,
-        name: i.value,
-        verified: i.verified,
-      }));
+      const mainPlatforms = (Object.values(Platform) as string[]).filter((p) => p !== 'custom');
+      return (identities || [])
+        .filter((i) => !mainPlatforms.includes(i.platform) && i.type !== 'email')
+        .map((i) => ({
+          platform: i.platform,
+          url: null,
+          name: i.value,
+          verified: i.verified,
+        }));
     }
     return (identities || [])
       .filter((i) => i.platform === platform && i.type !== 'email')
@@ -60,6 +62,7 @@ export default ({
   } => order.reduce((acc, platform) => {
     const handles = getIdentityHandles(platform);
 
+    console.log(platform, handles);
     if (platform === Platform.CUSTOM && handles.length) {
       const sortedCustomIdentities = handles.sort((a, b) => {
         const platformComparison = a.platform.localeCompare(b.platform);
