@@ -32,7 +32,7 @@
 
           <div
             class="activity-message text-xs font-medium"
-            v-html="$sanitize(activityMessage)"
+            v-html="$sanitize(toSentenceCase(activityMessage))"
           />
 
           <span v-if="activity.organization" class="text-gray-500">・</span>
@@ -91,6 +91,7 @@ import AppActivityDropdown from '@/modules/activity/components/activity-dropdown
 import { formatDateToTimeAgo } from '@/utils/date';
 import LfActivityMemberOrganization from '@/shared/modules/activity/components/activity-member-organization.vue';
 import AppActivitySentiment from '@/modules/activity/components/activity-sentiment.vue';
+import { toSentenceCase } from '@/utils/string';
 
 const emit = defineEmits<{(e: 'edit'): void;
   (e: 'onUpdate'): void;
