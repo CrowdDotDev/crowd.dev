@@ -1,4 +1,5 @@
-import { IMember, MemberIdentityType, PlatformType } from '@crowd/types'
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { IMember, MemberAttributeName, MemberIdentityType, PlatformType } from '@crowd/types'
 import { proxyActivities } from '@temporalio/workflow'
 import * as activities from '../../activities'
 import { ILFIDEnrichmentGithubProfile } from '../../types/lfid-enrichment'
@@ -25,8 +26,7 @@ export async function enrichMemberWithLFAuth0(member: IMember): Promise<void> {
 
   if (enriched) {
     console.log(`Member ${member.id} found in the lf auth0 enrichment db!`)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const normalized: any = {}
+    let normalized: any = {}
     if (
       enriched.picture &&
       (!member.attributes?.avatarUrl || !member.attributes?.avatarUrl.default)
@@ -118,6 +118,65 @@ export async function enrichMemberWithLFAuth0(member: IMember): Promise<void> {
           })
         }
       }
+
+      const profileData = enrichmentGithub.profileData as ILFIDEnrichmentGithubProfile
+      if (profileData.bio) {
+        normalized = addAttributeToNormalizedMemberIfNotAlreadyExisting(
+          member,
+          normalized,
+          MemberAttributeName.BIO,
+          PlatformType.GITHUB,
+          profileData.bio,
+        )
+      }
+
+      if (profileData.hireable) {
+        normalized = addAttributeToNormalizedMemberIfNotAlreadyExisting(
+          member,
+          normalized,
+          MemberAttributeName.IS_HIREABLE,
+          PlatformType.GITHUB,
+          profileData.hireable,
+        )
+      }
+
+      if (profileData.url) {
+        normalized = addAttributeToNormalizedMemberIfNotAlreadyExisting(
+          member,
+          normalized,
+          MemberAttributeName.URL,
+          PlatformType.GITHUB,
+          profileData.url,
+        )
+      }
+
+      if (profileData.location) {
+        normalized = addAttributeToNormalizedMemberIfNotAlreadyExisting(
+          member,
+          normalized,
+          MemberAttributeName.LOCATION,
+          PlatformType.GITHUB,
+          profileData.url,
+        )
+      }
+
+      // add unverified twitter identity coming from github profile
+      if (
+        profileData.twitter_username &&
+        !member.identities.some(
+          (i) =>
+            i.type === MemberIdentityType.USERNAME &&
+            i.platform === PlatformType.TWITTER &&
+            i.value === profileData.twitter_username,
+        )
+      ) {
+        identitiesToCheck.push({
+          type: MemberIdentityType.USERNAME,
+          platform: PlatformType.TWITTER,
+          value: profileData.twitter_username,
+          verified: false,
+        })
+      }
     }
 
     // for each identities to check, we should check if they already exist in some other member
@@ -151,4 +210,34 @@ export async function enrichMemberWithLFAuth0(member: IMember): Promise<void> {
       await mergeMembers(member.id, memberToBeMerged.memberId, member.tenantId)
     }
   }
+}
+
+function addAttributeToNormalizedMemberIfNotAlreadyExisting(
+  member: IMember,
+  normalized: any,
+  attributeName: string,
+  platform: string,
+  value: number | string | boolean,
+) {
+  if (!member.attributes?.[attributeName] && !member.attributes?.[attributeName].default) {
+    if (!normalized.attributes) {
+      normalized.attributes = {
+        ...member.attributes,
+        [attributeName]: {
+          default: value,
+          [platform]: value,
+        },
+      }
+    } else {
+      normalized.attributes = {
+        ...member.attributes,
+        ...normalized.attributes,
+        [attributeName]: {
+          default: value,
+          [platform]: value,
+        },
+      }
+    }
+  }
+  return normalized
 }
