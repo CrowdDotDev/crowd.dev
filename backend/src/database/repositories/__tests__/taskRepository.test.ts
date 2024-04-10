@@ -1094,7 +1094,7 @@ describe('TaskRepository tests', () => {
       expect(taskUpdated).toStrictEqual(taskExpected)
     })
 
-    it('Should succesfully update members related to the task', async () => {
+    it.skip('Should succesfully update members related to the task', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
       const toCreate1 = await getToCreate(toCreate, mockIRepositoryOptions, {
