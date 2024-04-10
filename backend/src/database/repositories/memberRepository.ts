@@ -938,6 +938,7 @@ class MemberRepository {
           `,
             {
               replacements: {
+                // @ts-ignore
                 segmentId: memberSegment[0].segmentId,
               },
               type: QueryTypes.SELECT,
@@ -951,6 +952,7 @@ class MemberRepository {
             // @ts-ignore
             JSON.stringify({
               memberId: data[0].memberId,
+              // @ts-ignore
               grandParentId: segmentInfo[0].grandParentId,
             }),
           )
