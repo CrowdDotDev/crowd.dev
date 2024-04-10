@@ -48,13 +48,15 @@ export async function enrichMemberWithLFAuth0(member: IMember): Promise<void> {
     if (
       enriched.email &&
       !member.identities.some(
-        (e) => e.type === MemberIdentityType.EMAIL && e.value === enriched.email,
+        (e) =>
+          e.type === MemberIdentityType.EMAIL &&
+          e.value.toLowerCase() === enriched.email.toLowerCase(),
       )
     ) {
       identitiesToCheck.push({
         type: MemberIdentityType.EMAIL,
         platform: PlatformType.LFID,
-        value: enriched.email,
+        value: enriched.email.toLowerCase(),
         verified: true,
       })
     }
@@ -66,13 +68,13 @@ export async function enrichMemberWithLFAuth0(member: IMember): Promise<void> {
         (i) =>
           i.type === MemberIdentityType.USERNAME &&
           i.platform === PlatformType.LFID &&
-          i.value === enriched.username,
+          i.value.toLowerCase() === enriched.username.toLowerCase(),
       )
     ) {
       identitiesToCheck.push({
         platform: PlatformType.LFID,
         type: MemberIdentityType.USERNAME,
-        value: enriched.username,
+        value: enriched.username.toLowerCase(),
         verified: true,
       })
     }
@@ -87,13 +89,13 @@ export async function enrichMemberWithLFAuth0(member: IMember): Promise<void> {
           (i) =>
             i.type === MemberIdentityType.USERNAME &&
             i.platform === PlatformType.GITHUB &&
-            i.value === enrichmentGithub.profileData.nickname,
+            i.value.toLowerCase() === enrichmentGithub.profileData.nickname.toLowerCase(),
         )
       ) {
         identitiesToCheck.push({
           type: MemberIdentityType.USERNAME,
           platform: PlatformType.GITHUB,
-          value: enrichmentGithub.profileData.nickname,
+          value: enrichmentGithub.profileData.nickname.toLowerCase(),
           verified: true,
         })
       }
@@ -103,17 +105,21 @@ export async function enrichMemberWithLFAuth0(member: IMember): Promise<void> {
       ).emails.filter((e) => e.verified)) {
         if (
           !member.identities.some(
-            (e) => e.type === MemberIdentityType.EMAIL && e.value === githubEmail.email,
+            (e) =>
+              e.type === MemberIdentityType.EMAIL &&
+              e.value.toLowerCase() === githubEmail.email.toLowerCase(),
           ) &&
           // check if we haven't already added this email to identitiesToCheck
           !identitiesToCheck.some(
-            (i) => i.type === MemberIdentityType.EMAIL && i.value === githubEmail.email,
+            (i) =>
+              i.type === MemberIdentityType.EMAIL &&
+              i.value.toLowerCase() === githubEmail.email.toLowerCase(),
           )
         ) {
           identitiesToCheck.push({
             platform: PlatformType.GITHUB,
             type: MemberIdentityType.EMAIL,
-            value: githubEmail.email,
+            value: githubEmail.email.toLowerCase(),
             verified: true,
           })
         }
@@ -167,13 +173,13 @@ export async function enrichMemberWithLFAuth0(member: IMember): Promise<void> {
           (i) =>
             i.type === MemberIdentityType.USERNAME &&
             i.platform === PlatformType.TWITTER &&
-            i.value === profileData.twitter_username,
+            i.value.toLowerCase() === profileData.twitter_username.toLowerCase(),
         )
       ) {
         identitiesToCheck.push({
           type: MemberIdentityType.USERNAME,
           platform: PlatformType.TWITTER,
-          value: profileData.twitter_username,
+          value: profileData.twitter_username.toLowerCase(),
           verified: false,
         })
       }

@@ -92,14 +92,14 @@ export async function getIdentitiesExistInOtherMembers(
     if (identities[i].type === MemberIdentityType.USERNAME) {
       identityPartialQuery += `(mi.verified and mi.type = '${
         MemberIdentityType.USERNAME
-      }' and mi.platform = $${replacementIndex + 1} and mi."value" = $${replacementIndex + 2})`
+      }' and mi.platform = $${replacementIndex + 1} and mi."value" ilike $${replacementIndex + 2})`
       replacements[replacementIndex] = identities[i].platform
       replacements[replacementIndex + 1] = identities[i].value
       replacementIndex += 2
     } else if (identities[i].type === MemberIdentityType.EMAIL) {
       identityPartialQuery += `(mi.verified and mi.type = '${
         MemberIdentityType.EMAIL
-      }' and mi."value" = $${replacementIndex + 1})`
+      }' and mi."value" ilike $${replacementIndex + 1})`
       replacements[replacementIndex] = identities[i].value
       replacementIndex += 1
     }
