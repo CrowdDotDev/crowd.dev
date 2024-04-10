@@ -6,69 +6,66 @@
     custom-class="emails-drawer"
   >
     <template #content>
-      <div class="border-t border-gray-200 -mt-4 -mx-6 px-6 pt-5">
-        <p class="text-sm font-medium text-gray-900 mb-2">
-          Email address
-        </p>
-        <app-organization-form-emails
-          v-model="organizationModel"
-          @update:model-value="hasFormChanged = true"
-        />
+      <div class="-mt-8 z-10 pb-6">
+        <div
+          class="flex gap-2 text-xs text-brand-500 font-semibold items-center cursor-pointer"
+          @click="addEmail()"
+        >
+          <i class="ri-add-line text-base" />Add email
+        </div>
       </div>
-    </template>
-    <template #footer>
-      <div style="flex: auto">
-        <el-button
-          class="btn btn--md btn--bordered mr-3"
-          @click="handleCancel"
-        >
-          Cancel
-        </el-button>
-        <el-button
-          type="primary"
-          :disabled="$v.$invalid || !hasFormChanged || loading"
-          class="btn btn--md btn--primary"
-          :loading="loading"
-          @click="handleSubmit"
-        >
-          Update
-        </el-button>
+      <div class="border-t border-gray-200 -mx-6 px-6">
+        <div class="gap-4 flex flex-col pt-6 pb-10">
+          <template v-for="(email, ii) of emails" :key="ii">
+            <app-organization-form-email-item
+              :email="email"
+              :organization="props.organization"
+              @update="update(ii, $event)"
+              @remove="remove(ii)"
+            />
+          </template>
+
+          <template v-for="(email, ai) of addEmails" :key="ai">
+            <app-organization-form-email-item
+              :email="email"
+              :organization="props.organization"
+              :actions-disabled="true"
+              @update="create(ai, $event)"
+              @clear="addEmails.splice(ai, 1)"
+            />
+          </template>
+        </div>
       </div>
     </template>
   </app-drawer>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import {
   ref,
-  computed,
+  computed, onUnmounted,
 } from 'vue';
 import Message from '@/shared/message/message';
-import cloneDeep from 'lodash/cloneDeep';
 import { OrganizationService } from '@/modules/organization/organization-service';
-import AppOrganizationFormEmails from '@/modules/organization/components/form/organization-form-emails.vue';
-import useVuelidate from '@vuelidate/core';
-import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';
+import { Organization } from '@/modules/organization/types/Organization';
+import AppDrawer from '@/shared/drawer/drawer.vue';
+import AppOrganizationFormEmailItem
+  from '@/modules/organization/components/form/email/organization-form-email-item.vue';
+import { useOrganizationStore } from '@/modules/organization/store/pinia';
 
-const props = defineProps({
-  modelValue: {
-    type: Boolean,
-    default: false,
-  },
-  organization: {
-    type: Object,
-    default: () => {},
-  },
-});
+const props = defineProps<{
+  modelValue: boolean,
+  organization: Organization,
+}>();
+
 const emit = defineEmits(['update:modelValue']);
-
-const organizationStore = useOrganizationStore();
-const { fetchOrganization } = organizationStore;
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
+
+const { fetchOrganization } = useOrganizationStore();
 
 const drawerModel = computed({
   get() {
@@ -79,45 +76,47 @@ const drawerModel = computed({
   },
 });
 
-const organizationModel = ref(cloneDeep(props.organization));
-const loading = ref(false);
+const emails = ref<string[]>([...(props.organization.emails || [])]);
+const addEmails = ref<string[]>([]);
 
-const $v = useVuelidate({}, organizationModel);
-
-const hasFormChanged = ref(false);
-
-const handleCancel = () => {
-  emit('update:modelValue', false);
-};
-
-const handleSubmit = async () => {
-  loading.value = true;
+const serverUpdate = () => {
   OrganizationService.update(props.organization.id, {
-    emails: organizationModel.value.emails.filter((e) => !!e.trim()),
+    emails: emails.value.filter((e) => !!e.trim()),
   }).then(() => {
-    fetchOrganization(props.organization.id, [selectedProjectGroup.value?.id]).then(() => {
-      Message.success('Organization emails updated successfully');
-    });
+    Message.success('Organization email updated successfully');
   }).catch((err) => {
     Message.error(err.response.data);
-  }).finally(() => {
-    loading.value = false;
   });
-  emit('update:modelValue', false);
 };
+
+const update = (index: number, data: string) => {
+  emails.value[index] = data;
+  serverUpdate();
+};
+
+const remove = (index: number) => {
+  emails.value.splice(index, 1);
+  serverUpdate();
+};
+
+const create = (index: number, data: string) => {
+  emails.value.push(data);
+  addEmails.value.splice(index, 1);
+  serverUpdate();
+};
+
+const addEmail = () => {
+  addEmails.value.push('');
+};
+
+onUnmounted(() => {
+  fetchOrganization(props.organization.id, [selectedProjectGroup.value?.id])
+});
+
 </script>
 
-<script>
+<script lang="ts">
 export default {
   name: 'AppOrganizationManageEmailsDrawer',
 };
 </script>
-
-<style lang="scss">
-.identities-drawer {
-  .el-form-item,
-  .el-form-item__content {
-    @apply mb-0;
-  }
-}
-</style>

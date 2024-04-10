@@ -53,7 +53,6 @@ import { storeToRefs } from 'pinia';
 import { Member, MemberIdentity } from '@/modules/member/types/Member';
 import AppMemberFormEmailItem from '@/modules/member/components/form/email/member-form-email-item.vue';
 
-const store = useStore();
 const props = defineProps<{
   modelValue: boolean,
   member: Member,
@@ -61,6 +60,7 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:modelValue']);
 
+const store = useStore();
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 

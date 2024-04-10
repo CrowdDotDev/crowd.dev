@@ -89,6 +89,7 @@ import CrDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import Errors from '@/shared/error/errors';
 import { useMemberStore } from '@/modules/member/store/pinia';
+import { i18n } from '@/i18n';
 
 const props = withDefaults(defineProps<{
   modelValue?: boolean,
@@ -122,6 +123,9 @@ const serverUpdate = () => {
   MemberService.update(props.member.id, {
     identities: identities.value,
   }, segments)
+    .then(() => {
+      Message.success('Identity successfully updated');
+    })
     .catch((error) => {
       if (error.response.status === 409) {
         Message.error(
