@@ -18,6 +18,7 @@ export * from './discourse/memberAttributes'
 export * from './github/grid'
 export * from './github/types'
 export * from './github/memberAttributes'
+export * from './github/tokenRotator'
 
 export * from './hackernews/grid'
 export * from './hackernews/types'
