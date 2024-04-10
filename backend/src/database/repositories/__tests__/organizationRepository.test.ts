@@ -1423,7 +1423,7 @@ describe('OrganizationRepository tests', () => {
       expect(organizationUpdated).toStrictEqual(organizationExpected)
     })
 
-    it.('Should throw 404 error when trying to update non existent organization', async () => {
+    it('Should throw 404 error when trying to update non existent organization', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
       const { randomUUID } = require('crypto')
