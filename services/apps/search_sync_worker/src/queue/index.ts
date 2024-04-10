@@ -1,4 +1,3 @@
-import { BatchProcessor } from '@crowd/common'
 import { DbConnection, DbStore } from '@crowd/data-access-layer/src/database'
 import { Logger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
@@ -9,18 +8,12 @@ import {
 } from '@crowd/sqs'
 import { Span, SpanStatusCode, Tracer } from '@crowd/tracing'
 import { IQueueMessage, QueuePriorityLevel, SearchSyncWorkerQueueMessageType } from '@crowd/types'
-import {
-  OpenSearchService,
-  ActivitySyncService,
-  MemberSyncService,
-  OrganizationSyncService,
-} from '@crowd/opensearch'
+import { OpenSearchService, MemberSyncService, OrganizationSyncService } from '@crowd/opensearch'
 import { SERVICE_CONFIG } from '../conf'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
   // private readonly memberBatchProcessor: BatchProcessor<string>
-  private readonly activityBatchProcessor: BatchProcessor<string>
   // private readonly organizationBatchProcessor: BatchProcessor<string>
 
   constructor(
@@ -60,21 +53,6 @@ export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
     //   },
     // )
 
-    this.activityBatchProcessor = new BatchProcessor(
-      200,
-      30,
-      async (activityIds) => {
-        const distinct = Array.from(new Set(activityIds))
-        if (distinct.length > 0) {
-          this.log.info({ batchSize: distinct.length }, 'Processing batch of activities!')
-          await this.initActivityService().syncActivities(distinct)
-        }
-      },
-      async (activityIds, err) => {
-        this.log.error(err, { activityIds }, 'Error while processing batch of activities!')
-      },
-    )
-
     // this.organizationBatchProcessor = new BatchProcessor(
     //   20,
     //   30,
@@ -98,14 +76,6 @@ export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
       this.openSearchService,
       this.log,
       SERVICE_CONFIG(),
-    )
-  }
-
-  private initActivityService(): ActivitySyncService {
-    return new ActivitySyncService(
-      new DbStore(this.log, this.dbConn),
-      this.openSearchService,
-      this.log,
     )
   }
 
@@ -167,39 +137,6 @@ export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
           case SearchSyncWorkerQueueMessageType.REMOVE_MEMBER:
             if (data.memberId) {
               await this.initMemberService().removeMember(data.memberId)
-            }
-            break
-
-          // activities
-          case SearchSyncWorkerQueueMessageType.SYNC_ACTIVITY:
-            if (data.activityId) {
-              await this.activityBatchProcessor.addToBatch(data.activityId)
-            }
-            break
-          case SearchSyncWorkerQueueMessageType.SYNC_TENANT_ACTIVITIES:
-            if (data.tenantId) {
-              this.initActivityService()
-                .syncTenantActivities(data.tenantId)
-                .catch((err) => this.log.error(err, 'Error while syncing tenant activities!'))
-            }
-            break
-          case SearchSyncWorkerQueueMessageType.SYNC_ORGANIZATION_ACTIVITIES:
-            if (data.organizationId) {
-              this.initActivityService()
-                .syncOrganizationActivities(data.organizationId)
-                .catch((err) => this.log.error(err, 'Error while syncing organization activities!'))
-            }
-            break
-          case SearchSyncWorkerQueueMessageType.CLEANUP_TENANT_ACTIVITIES:
-            if (data.tenantId) {
-              this.initActivityService()
-                .cleanupActivityIndex(data.tenantId)
-                .catch((err) => this.log.error(err, 'Error while cleaning up tenant activities!'))
-            }
-            break
-          case SearchSyncWorkerQueueMessageType.REMOVE_ACTIVITY:
-            if (data.activityId) {
-              await this.initActivityService().removeActivity(data.activityId)
             }
             break
 

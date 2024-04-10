@@ -186,7 +186,6 @@ export default class ActivityService extends LoggerBase {
 
       if (fireSync) {
         await searchSyncService.triggerMemberSync(this.options.currentTenant.id, record.memberId)
-        await searchSyncService.triggerActivitySync(this.options.currentTenant.id, record.id)
       }
 
       if (!existing && fireCrowdWebhooks) {
@@ -393,7 +392,6 @@ export default class ActivityService extends LoggerBase {
    */
 
   async addToConversation(id: string, parentId: string, transaction: Transaction) {
-    const searchSyncService = new SearchSyncService(this.options)
     const parent = await ActivityRepository.findById(parentId, { ...this.options, transaction })
     const child = await ActivityRepository.findById(id, { ...this.options, transaction })
     const conversationService = new ConversationService({
@@ -438,7 +436,6 @@ export default class ActivityService extends LoggerBase {
         { conversationId: conversation.id },
         { ...this.options, transaction },
       )
-      await searchSyncService.triggerActivitySync(this.options.currentTenant.id, parent.id)
     } else {
       // neither child nor parent is in a conversation, create one from parent
       const conversationTitle = await conversationService.generateTitle(
@@ -467,7 +464,6 @@ export default class ActivityService extends LoggerBase {
         { conversationId: conversation.id },
         { ...this.options, transaction },
       )
-      await searchSyncService.triggerActivitySync(this.options.currentTenant.id, parentId)
       record = await ActivityRepository.update(
         id,
         { conversationId: conversation.id },
@@ -566,10 +562,6 @@ export default class ActivityService extends LoggerBase {
           )
 
           await ActivityRepository.destroy(activityExists.id, this.options, true)
-          await searchSyncService.triggerRemoveActivity(
-            this.options.currentTenant.id,
-            activityExists.id,
-          )
           activityExists = false
           existingMember = false
         }
@@ -636,7 +628,6 @@ export default class ActivityService extends LoggerBase {
       await SequelizeRepository.commitTransaction(transaction)
 
       await searchSyncService.triggerMemberSync(this.options.currentTenant.id, record.memberId)
-      await searchSyncService.triggerActivitySync(this.options.currentTenant.id, record.id)
 
       if (data.objectMember) {
         await searchSyncService.triggerMemberSync(this.options.currentTenant.id, data.objectMember)
@@ -693,7 +684,6 @@ export default class ActivityService extends LoggerBase {
 
       await SequelizeRepository.commitTransaction(transaction)
 
-      await searchSyncService.triggerActivitySync(this.options.currentTenant.id, record.id)
       await searchSyncService.triggerMemberSync(this.options.currentTenant.id, record.memberId)
       return record
     } catch (error) {
@@ -718,8 +708,6 @@ export default class ActivityService extends LoggerBase {
   }
 
   async destroyAll(ids) {
-    const searchSyncService = new SearchSyncService(this.options)
-
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
@@ -734,10 +722,6 @@ export default class ActivityService extends LoggerBase {
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw error
-    }
-
-    for (const id of ids) {
-      await searchSyncService.triggerRemoveActivity(this.options.currentTenant.id, id)
     }
   }
 

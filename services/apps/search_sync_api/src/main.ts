@@ -7,7 +7,6 @@ import { errorMiddleware } from './middleware/error'
 import { loggingMiddleware } from './middleware/logging'
 import { InitService, OpenSearchService } from '@crowd/opensearch'
 import memberRoutes from './routes/member'
-import activityRoutes from './routes/activity'
 import organizationRoutes from './routes/organization'
 import { getDbConnection } from '@crowd/data-access-layer/src/database'
 import { opensearchMiddleware } from './middleware/opensearch'
@@ -40,7 +39,6 @@ setImmediate(async () => {
 
   // add routes
   app.use(memberRoutes)
-  app.use(activityRoutes)
   app.use(organizationRoutes)
 
   app.use('/health', async (req: ApiRequest, res) => {

@@ -161,7 +161,7 @@ export default class ActivityService extends LoggerBase {
         }
       }
 
-      const affectedIds = await this.conversationService.processActivity(tenantId, segmentId, id)
+      await this.conversationService.processActivity(tenantId, segmentId, id)
 
       if (fireSync) {
         await this.searchSyncWorkerEmitter.triggerMemberSync(
@@ -170,13 +170,6 @@ export default class ActivityService extends LoggerBase {
           onboarding,
           segmentId,
         )
-        await this.searchSyncWorkerEmitter.triggerActivitySync(tenantId, id, onboarding)
-      }
-
-      if (affectedIds.length > 0) {
-        for (const affectedId of affectedIds.filter((i) => i !== id)) {
-          await this.searchSyncWorkerEmitter.triggerActivitySync(tenantId, affectedId, onboarding)
-        }
       }
 
       return id
@@ -258,7 +251,6 @@ export default class ActivityService extends LoggerBase {
             onboarding,
             segmentId,
           )
-          await this.searchSyncWorkerEmitter.triggerActivitySync(tenantId, id, onboarding)
         }
       }
     } catch (err) {
@@ -473,7 +465,6 @@ export default class ActivityService extends LoggerBase {
 
       let memberId: string
       let objectMemberId: string | undefined
-      let activityId: string
       let segmentId: string
 
       await this.store.transactionally(async (txStore) => {
@@ -592,11 +583,6 @@ export default class ActivityService extends LoggerBase {
 
                 // delete activity
                 await txRepo.delete(dbActivity.id)
-                await this.searchSyncWorkerEmitter.triggerRemoveActivity(
-                  tenantId,
-                  dbActivity.id,
-                  onboarding,
-                )
                 createActivity = true
               }
 
@@ -701,11 +687,6 @@ export default class ActivityService extends LoggerBase {
 
                     // delete activity
                     await txRepo.delete(dbActivity.id)
-                    await this.searchSyncWorkerEmitter.triggerRemoveActivity(
-                      tenantId,
-                      dbActivity.id,
-                      onboarding,
-                    )
                     createActivity = true
                   }
 
@@ -831,8 +812,6 @@ export default class ActivityService extends LoggerBase {
                     ? PlatformType.GITHUB
                     : (dbActivity.platform as PlatformType),
               })
-
-              activityId = dbActivity.id
             }
 
             // release lock for member inside activity exists - this migth be redundant, but just in case
@@ -976,7 +955,7 @@ export default class ActivityService extends LoggerBase {
               activity.timestamp,
             )
 
-            activityId = await txActivityService.create(
+            await txActivityService.create(
               tenantId,
               segmentId,
               {
@@ -1022,9 +1001,6 @@ export default class ActivityService extends LoggerBase {
           onboarding,
           segmentId,
         )
-      }
-      if (activityId) {
-        await this.searchSyncWorkerEmitter.triggerActivitySync(tenantId, activityId, onboarding)
       }
     } catch (err) {
       this.log.error(err, 'Error while processing an activity!')

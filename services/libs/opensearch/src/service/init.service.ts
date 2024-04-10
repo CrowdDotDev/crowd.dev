@@ -1,9 +1,7 @@
-import { IDbActivitySyncData } from '../repo/activity.data'
 import { IDbMemberSyncData } from '../repo/member.data'
 import { IDbOrganizationSyncData } from '../repo/organization.data'
 import { OpenSearchIndex } from '../types'
 import { Logger, getChildLogger } from '@crowd/logging'
-import { ActivitySyncService } from './activity.sync.service'
 import { MemberSyncService } from './member.sync.service'
 import { OpenSearchService } from './opensearch.service'
 import { OrganizationSyncService } from './organization.sync.service'
@@ -27,7 +25,6 @@ export class InitService {
     await this.openSearchService.initialize()
 
     await this.createFakeMember()
-    await this.createFakeActivity()
     await this.createFakeOrganization()
   }
 
@@ -277,46 +274,6 @@ export class InitService {
     await this.openSearchService.index(
       `${InitService.FAKE_MEMBER_ID}-${InitService.FAKE_SEGMENT_ID}`,
       OpenSearchIndex.MEMBERS,
-      prepared,
-    )
-  }
-
-  private async createFakeActivity(): Promise<void> {
-    // we need to create a fake activity to initialize the index with the proper data
-    // it will be created in a nonexisting tenant so no one will see it ever
-    // if we don't have anything in the index any search by any field will return an error
-
-    const fakeActivity: IDbActivitySyncData = {
-      id: InitService.FAKE_ACTIVITY_ID,
-      tenantId: InitService.FAKE_TENANT_ID,
-      segmentId: InitService.FAKE_SEGMENT_ID,
-      memberId: InitService.FAKE_MEMBER_ID,
-      type: 'comment',
-      timestamp: new Date().toISOString(),
-      platform: 'devto',
-      isContribution: true,
-      score: 10,
-      sourceId: '123',
-      sourceParentId: '456',
-      attributes: {},
-      channel: 'channel',
-      body: 'body',
-      title: 'title',
-      url: 'https://placehold.co/400',
-      sentiment: 10,
-      importHash: 'importHash',
-      conversationId: InitService.FAKE_CONVERSATION_ID,
-      parentId: '6952eace-e083-4c53-a65c-f99848c47c1c',
-      username: 'Test Member',
-      objectMemberId: '4ea4c0f7-fdf8-448c-99ff-e03d0df95358',
-      objectMemberUsername: 'Test Member2',
-      organizationId: '2badb0e5-e21b-4955-aba7-d52ef66bae59',
-    }
-
-    const prepared = ActivitySyncService.prefixData(fakeActivity)
-    await this.openSearchService.index(
-      InitService.FAKE_ACTIVITY_ID,
-      OpenSearchIndex.ACTIVITIES,
       prepared,
     )
   }

@@ -18,6 +18,9 @@ const config: Config = {
   redis: {
     enabled: false,
   },
+  questdb: {
+    enabled: false,
+  },
 }
 
 export const svc = new Service(config)

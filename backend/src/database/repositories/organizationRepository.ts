@@ -2033,7 +2033,7 @@ class OrganizationRepository {
     }
 
     const activityPageSize = 10000
-    let activityOffset = 0
+    const activityOffset = 0
 
     const activityQuery = {
       query: {
@@ -2120,37 +2120,38 @@ class OrganizationRepository {
     }
 
     const organizationIds = []
-    let organizationMap = {}
-    let activities
+    const organizationMap = {}
+    // TODO questdb replace with query
+    // let activities
 
-    do {
-      activities = await options.opensearch.search({
-        index: OpenSearchIndex.ACTIVITIES,
-        body: activityQuery,
-      })
+    // do {
+    //   activities = await options.opensearch.search({
+    //     index: OpenSearchIndex.ACTIVITIES,
+    //     body: activityQuery,
+    //   })
 
-      organizationIds.push(
-        ...activities.body.aggregations.group_by_organization.buckets.map((b) => b.key),
-      )
+    //   organizationIds.push(
+    //     ...activities.body.aggregations.group_by_organization.buckets.map((b) => b.key),
+    //   )
 
-      organizationMap = {
-        ...organizationMap,
-        ...activities.body.aggregations.group_by_organization.buckets.reduce((acc, b) => {
-          acc[b.key] = {
-            activityCount: b.activity_count,
-            activeDaysCount: b.active_days_count,
-          }
+    //   organizationMap = {
+    //     ...organizationMap,
+    //     ...activities.body.aggregations.group_by_organization.buckets.reduce((acc, b) => {
+    //       acc[b.key] = {
+    //         activityCount: b.activity_count,
+    //         activeDaysCount: b.active_days_count,
+    //       }
 
-          return acc
-        }, {}),
-      }
+    //       return acc
+    //     }, {}),
+    //   }
 
-      activityOffset += activityPageSize
+    //   activityOffset += activityPageSize
 
-      // update page
-      activityQuery.aggs.group_by_organization.aggs.active_organizations_bucket_sort.bucket_sort.from =
-        activityOffset
-    } while (activities.body.aggregations.group_by_organization.buckets.length === activityPageSize)
+    //   // update page
+    //   activityQuery.aggs.group_by_organization.aggs.active_organizations_bucket_sort.bucket_sort.from =
+    //     activityOffset
+    // } while (activities.body.aggregations.group_by_organization.buckets.length === activityPageSize)
 
     if (organizationIds.length === 0) {
       return {

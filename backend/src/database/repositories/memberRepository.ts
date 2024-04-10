@@ -910,7 +910,7 @@ class MemberRepository {
         })
 
         if (data.length > 0 && data[0].memberId !== record.id) {
-          const memberSegment = await seq.query(
+          const memberSegment = (await seq.query(
             `
             select distinct a."segmentId", a."memberId"
         from activities a where a."memberId" = :memberId
@@ -923,9 +923,9 @@ class MemberRepository {
               type: QueryTypes.SELECT,
               transaction,
             },
-          )
+          )) as any[]
 
-          const segmentInfo = await seq.query(
+          const segmentInfo = (await seq.query(
             `
           select s.id, pd.id as "parentId", gpd.id as "grandParentId"
           from segments s
@@ -943,7 +943,7 @@ class MemberRepository {
               type: QueryTypes.SELECT,
               transaction,
             },
-          )
+          )) as any[]
 
           throw new Error409(
             options.language,
@@ -1648,7 +1648,7 @@ class MemberRepository {
     }
 
     const activityPageSize = 10000
-    let activityOffset = 0
+    const activityOffset = 0
 
     const activityQuery = {
       query: {
@@ -1745,35 +1745,36 @@ class MemberRepository {
     }
 
     const memberIds = []
-    let memberMap = {}
-    let activities
+    const memberMap = {}
+    // TODO questdb replace with query
+    // const activities = []
 
-    do {
-      activities = await options.opensearch.search({
-        index: OpenSearchIndex.ACTIVITIES,
-        body: activityQuery,
-      })
+    // do {
+    //   activities = await options.opensearch.search({
+    //     index: OpenSearchIndex.ACTIVITIES,
+    //     body: activityQuery,
+    //   })
 
-      memberIds.push(...activities.body.aggregations.group_by_member.buckets.map((b) => b.key))
+    //   memberIds.push(...activities.body.aggregations.group_by_member.buckets.map((b) => b.key))
 
-      memberMap = {
-        ...memberMap,
-        ...activities.body.aggregations.group_by_member.buckets.reduce((acc, b) => {
-          acc[b.key] = {
-            activityCount: b.activity_count,
-            activeDaysCount: b.active_days_count,
-          }
+    //   memberMap = {
+    //     ...memberMap,
+    //     ...activities.body.aggregations.group_by_member.buckets.reduce((acc, b) => {
+    //       acc[b.key] = {
+    //         activityCount: b.activity_count,
+    //         activeDaysCount: b.active_days_count,
+    //       }
 
-          return acc
-        }, {}),
-      }
+    //       return acc
+    //     }, {}),
+    //   }
 
-      activityOffset += activityPageSize
+    //   activityOffset += activityPageSize
 
-      // update page
-      activityQuery.aggs.group_by_member.aggs.active_members_bucket_sort.bucket_sort.from =
-        activityOffset
-    } while (activities.body.aggregations.group_by_member.buckets.length === activityPageSize)
+    //   // update page
+    //   activityQuery.aggs.group_by_member.aggs.active_members_bucket_sort.bucket_sort.from =
+    //     activityOffset
+    // } while (activities.body.aggregations.group_by_member.buckets.length === activityPageSize)
 
     if (memberIds.length === 0) {
       return {

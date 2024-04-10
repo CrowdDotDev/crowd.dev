@@ -100,60 +100,6 @@ export default class SearchSyncService extends LoggerBase {
     }
   }
 
-  async triggerActivitySync(tenantId: string, activityId: string) {
-    const client = await this.getSearchSyncClient()
-
-    if (client instanceof SearchSyncApiClient) {
-      await client.triggerActivitySync(activityId)
-    } else if (client instanceof SearchSyncWorkerEmitter) {
-      await client.triggerActivitySync(tenantId, activityId, false)
-    } else {
-      throw new Error('Unexpected search client type!')
-    }
-  }
-
-  async triggerTenantActivitiesSync(tenantId: string) {
-    const client = await this.getSearchSyncClient()
-
-    if (client instanceof SearchSyncApiClient || client instanceof SearchSyncWorkerEmitter) {
-      await client.triggerTenantActivitiesSync(tenantId)
-    } else {
-      throw new Error('Unexpected search client type!')
-    }
-  }
-
-  async triggerOrganizationActivitiesSync(tenantId: string, organizationId: string) {
-    const client = await this.getSearchSyncClient()
-
-    if (client instanceof SearchSyncApiClient || client instanceof SearchSyncWorkerEmitter) {
-      await client.triggerOrganizationActivitiesSync(tenantId, organizationId, false)
-    } else {
-      throw new Error('Unexpected search client type!')
-    }
-  }
-
-  async triggerRemoveActivity(tenantId: string, activityId: string) {
-    const client = await this.getSearchSyncClient()
-
-    if (client instanceof SearchSyncApiClient) {
-      await client.triggerRemoveActivity(activityId)
-    } else if (client instanceof SearchSyncWorkerEmitter) {
-      await client.triggerRemoveActivity(tenantId, activityId, false)
-    } else {
-      throw new Error('Unexpected search client type!')
-    }
-  }
-
-  async triggerActivityCleanup(tenantId: string) {
-    const client = await this.getSearchSyncClient()
-
-    if (client instanceof SearchSyncApiClient || client instanceof SearchSyncWorkerEmitter) {
-      await client.triggerActivityCleanup(tenantId)
-    } else {
-      throw new Error('Unexpected search client type!')
-    }
-  }
-
   async triggerOrganizationSync(tenantId: string, organizationId: string) {
     const client = await this.getSearchSyncClient()
 

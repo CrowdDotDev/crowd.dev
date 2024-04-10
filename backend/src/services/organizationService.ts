@@ -619,12 +619,6 @@ export default class OrganizationService extends LoggerBase {
         originalId,
       )
 
-      // sync organization activities
-      await searchSyncService.triggerOrganizationActivitiesSync(
-        this.options.currentTenant.id,
-        originalId,
-      )
-
       this.log.info(
         { originalId, toMergeId },
         '[Merge Organizations] - Sending refresh opensearch messages done! ',
