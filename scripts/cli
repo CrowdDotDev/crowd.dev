@@ -79,6 +79,143 @@ HELP_STRING=$(prepare_service_string HELP "$CONTAINERS")
 LIST_STRING=$(prepare_service_string LIST "$CONTAINERS")
 HELP_BUILD_STRING=$(prepare_service_string HELP "$BUILDERS")
 
+function multiselect {
+    # little helpers for terminal print control and key input
+    ESC=$( printf "\033")
+    cursor_blink_on()   { printf "$ESC[?25h"; }
+    cursor_blink_off()  { printf "$ESC[?25l"; }
+    cursor_to()         { printf "$ESC[$1;${2:-1}H"; }
+    print_inactive()    { printf "$2   $1 "; }
+    print_active()      { printf "$2  $ESC[7m $1 $ESC[27m"; }
+    get_cursor_row()    { IFS=';' read -sdR -p $'\E[6n' ROW COL; echo ${ROW#*[}; }
+
+    local return_value=$1
+    local options=("${!2}")
+    local defaults=()
+
+    local selected=()
+    for ((i=0; i<${#options[@]}; i++)); do
+        if [[ ${defaults[i]} == "true" ]]; then
+            selected+=("true")
+        else
+            selected+=("false")
+        fi
+        printf "\n"
+    done
+
+    local lastrow=`get_cursor_row`
+    local startrow=$(($lastrow - ${#options[@]}))
+
+    trap "cursor_blink_on; stty echo; printf '\n'; exit" 2
+    cursor_blink_off
+
+    key_input() {
+        local key
+        IFS= read -rsn1 key
+        if [[ -z $key ]]; then echo enter; return; fi  # Handle Enter key (when key is a newline)
+
+        case "$key" in
+            $'\x20') echo space;;  # Space key
+            k) echo up;;           # 'k' for up
+            j) echo down;;         # 'j' for down
+            $'\x1b')               # Handle arrow keys
+                read -rsn2 key
+                if [[ $key == "[A" ]]; then echo up; fi    # Up arrow
+                if [[ $key == "[B" ]]; then echo down; fi  # Down arrow
+                ;;
+            *) echo "unknown";;    # Handle other keys
+        esac
+    }
+
+    toggle_option() {
+        local option=$1
+        if [[ ${selected[option]} == true ]]; then
+            selected[option]=false
+        else
+            selected[option]=true
+        fi
+    }
+
+    print_options() {
+        local idx=0
+        for option in "${options[@]}"; do
+            local prefix="[ ]"
+            if [[ ${selected[idx]} == true ]]; then
+                prefix="[\e[38;5;46m✔\e[0m]"
+            fi
+
+            cursor_to $(($startrow + $idx))
+            if [ $idx -eq $1 ]; then
+                print_active "$option" "$prefix"
+            else
+                print_inactive "$option" "$prefix"
+            fi
+            ((idx++))
+        done
+    }
+
+    local active=0
+    while true; do
+        print_options $active
+
+        case $(key_input) in
+            space) toggle_option $active;;
+            enter) print_options -1; break;;
+            up)    ((active--));
+                   if [ $active -lt 0 ]; then active=$((${#options[@]} - 1)); fi;;
+            down)  ((active++));
+                   if [ $active -ge ${#options[@]} ]; then active=0; fi;;
+        esac
+    done
+
+    cursor_to $lastrow
+    printf "\n"
+    cursor_blink_on
+
+
+    # Construct the result array based on selections
+    local result=()
+    for i in "${!selected[@]}"; do
+        if [[ ${selected[i]} == true ]]; then
+            result+=(${options[$i]})
+        fi
+    done
+
+    # Return the result
+    eval $return_value='("${result[@]}")'
+}
+
+SELECTED_SERVICES=()
+
+function select_services(){
+  # Get all services
+  SERVICES=()
+  while IFS= read -r file; do
+      filename=$(basename "$file" .yaml)
+      SERVICES+=("$filename")
+  done < <(find "$CLI_HOME/services" -name '*.yaml')
+
+  # Show multiselect and store results in SELECTED_SERVICES
+  multiselect SELECTED_SERVICES SERVICES[@]
+
+  for service in "${SELECTED_SERVICES[@]}"; do
+      selected_services+="$service, "
+  done
+
+  selected_services=${selected_services%, }
+
+  echo "Selected services: $selected_services"
+}
+
+function deploy_staging(){
+    REPOSITORY="CrowdDotDev/crowd.dev"
+    WORKFLOW_FILE="lf-staging-deploy.yaml"
+    CURRENT_BRANCH=$(git branch --show-current)
+    SERVICES="$(IFS=" "; echo "${SELECTED_SERVICES[*]}")"
+
+    gh workflow run $WORKFLOW_FILE --repo $REPOSITORY --ref $CURRENT_BRANCH -f services="$SERVICES"
+}
+
 function build() {
     HELP="${RESET}\nUsage:\n ./cli build [ $HELP_BUILD_STRING ]\n"
     [[ -z "$1" ]] && say "$HELP" && exit 1
@@ -650,6 +787,11 @@ while test $# -gt 0; do
         DEV=1
         kill_all_containers
         service_start
+        exit
+        ;;
+    deploy-staging)
+        select_services
+        deploy_staging
         exit
         ;;
     build)
