@@ -1,5 +1,6 @@
 import authAxios from '@/shared/axios/auth-axios';
 import { AuthService } from '@/modules/auth/services/auth.service';
+import { router } from '@/router';
 
 export class OrganizationService {
   static async update(id, data, segments) {
@@ -41,6 +42,7 @@ export class OrganizationService {
       `/tenant/${tenantId}/organization/${organizationToKeepId}/merge`,
       {
         organizationToMerge: organizationToMergeId,
+        segments: [router.currentRoute.value.query.projectGroup],
       },
     );
 
@@ -157,27 +159,54 @@ export class OrganizationService {
     return response.data;
   }
 
-  static async listAutocomplete({
+  static async listOrganizationsAutocomplete({
     query,
     limit,
-    segments,
+    segments = null,
+    excludeSegments = false,
+    grandParentSegment = false,
   }) {
-    const params = {
-      query,
+    const payload = {
+      filter: {
+        and: [
+          {
+            displayName: {
+              matchPhrasePrefix: query,
+            },
+          },
+        ],
+      },
+      offset: 0,
+      orderBy: 'displayName_ASC',
       limit,
-      segments,
+      ...(segments && {
+        segments,
+      }),
+      ...(excludeSegments && {
+        excludeSegments,
+      }),
     };
 
+    if (grandParentSegment) {
+      payload.filter.and.push({
+        grandParentSegment: {
+          eq: grandParentSegment,
+        },
+      });
+    }
     const tenantId = AuthService.getTenantId();
 
-    const response = await authAxios.get(
+    const response = await authAxios.post(
       `/tenant/${tenantId}/organization/autocomplete`,
-      {
-        params,
-      },
+      payload,
     );
 
-    return response.data;
+    return response.data.rows
+      .map((o) => ({
+        ...o,
+        label: o.displayName,
+        value: o.id,
+      }));
   }
 
   static async fetchMergeSuggestions(limit, offset, query) {

@@ -93,12 +93,6 @@ const en = {
     },
   },
 
-  organization: {
-    errors: {
-      websiteAlreadyExists: '{0}',
-    },
-  },
-
   errors: {
     notFound: {
       message: 'Page not found',
@@ -183,6 +177,7 @@ const en = {
     git: {
       noIntegration: 'The Git integration is not configured.',
     },
+    alreadyExists: '{0}',
   },
 
   email: {

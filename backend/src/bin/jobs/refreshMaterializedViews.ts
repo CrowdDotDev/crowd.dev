@@ -65,6 +65,7 @@ const job: CrowdJob = {
       await refreshMaterializedView('memberActivityAggregatesMVs', database, log)
     }
     await refreshMaterializedView('member_segments_mv', database, log)
+    await refreshMaterializedView('organization_segments_mv', database, log)
   },
 }
 

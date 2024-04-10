@@ -42,6 +42,7 @@
     >
       <el-option
         v-if="record.id"
+        :key="record.id"
         :value="record"
         :label="record.label"
         class="!px-5"
@@ -206,6 +207,7 @@ export default {
     async fetchAllResults() {
       this.loading = true;
       try {
+        this.localOptions.length = 0;
         this.localOptions = await this.fetchFn({
           query: this.currentQuery,
           limit: AUTOCOMPLETE_SERVER_FETCH_SIZE,
@@ -226,6 +228,7 @@ export default {
       this.loading = true;
 
       try {
+        this.localOptions.length = 0;
         this.localOptions = await this.fetchFn({
           query: value,
           limit: AUTOCOMPLETE_SERVER_FETCH_SIZE,
@@ -234,7 +237,7 @@ export default {
         this.loading = false;
       } catch (error) {
         console.error(error);
-        this.localOptions = [];
+        this.localOptions.length = 0;
         this.loading = false;
       }
     },

@@ -43,6 +43,7 @@ import { useStore } from 'vuex';
 import {
   ref,
   computed,
+  h,
 } from 'vue';
 import Message from '@/shared/message/message';
 import { MemberService } from '@/modules/member/member-service';
@@ -50,6 +51,7 @@ import cloneDeep from 'lodash/cloneDeep';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import isEqual from 'lodash/isEqual';
+import { useMemberStore } from '@/modules/member/store/pinia';
 import AppMemberFormIdentities from './form/member-form-identities.vue';
 
 const store = useStore();
@@ -76,6 +78,8 @@ const drawerModel = computed({
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
+
+const memberStore = useMemberStore();
 
 const memberModel = ref(cloneDeep(props.member));
 const loading = ref(false);
@@ -104,8 +108,37 @@ const handleSubmit = async () => {
     }).then(() => {
       Message.success('Contributor identities updated successfully');
     });
-  }).catch((err) => {
-    Message.error(err.response.data);
+  }).catch((error) => {
+    if (error.response.status === 409) {
+      Message.error(
+        h(
+          'div',
+          {
+            class: 'flex flex-col gap-2',
+          },
+          [
+            h(
+              'el-button',
+              {
+                class: 'btn btn--xs btn--secondary !h-6 !w-fit',
+                onClick: () => {
+                  const { memberId, grandParentId } = error.response.data;
+
+                  memberStore.addToMergeMember(memberId, grandParentId);
+                  Message.closeAll();
+                },
+              },
+              'Merge members',
+            ),
+          ],
+        ),
+        {
+          title: 'Member was not updated because the identity already exists in another member.',
+        },
+      );
+    } else {
+      Errors.handle(error);
+    }
   }).finally(() => {
     emit('update:modelValue', false);
     loading.value = false;
