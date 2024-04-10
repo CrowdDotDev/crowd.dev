@@ -66,7 +66,9 @@ const parseDeletedMember = (memberData: GithubPrepareMemberOutput): IMemberData 
     identities: [
       {
         platform: PlatformType.GITHUB,
-        username: memberData.memberFromApi.login,
+        value: memberData.memberFromApi.login,
+        type: MemberIdentityType.USERNAME,
+        verified: true,
       },
     ],
     displayName: 'Deleted User',
@@ -76,9 +78,6 @@ const parseDeletedMember = (memberData: GithubPrepareMemberOutput): IMemberData 
       },
       [MemberAttributeName.AVATAR_URL]: {
         [PlatformType.GITHUB]: memberData.memberFromApi?.avatarUrl || '',
-      },
-      [MemberAttributeName.IS_DELETED]: {
-        [PlatformType.GITHUB]: true,
       },
       [MemberAttributeName.BIO]: {
         [PlatformType.GITHUB]:
