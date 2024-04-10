@@ -12,7 +12,7 @@ export async function insertActivities(activities: IDbActivityCreateData[]): Pro
   const now = Date.now()
 
   for (const activity of activities) {
-    const id = generateUUIDv4()
+    const id = activity.id || generateUUIDv4()
     ids.push(id)
 
     const row = ilp
@@ -29,12 +29,12 @@ export async function insertActivities(activities: IDbActivityCreateData[]): Pro
     }
 
     row
-      .stringColumn('id', generateUUIDv4())
+      .stringColumn('id', id)
       .stringColumn('type', activity.type)
       .booleanColumn('isContribution', activity.isContribution)
       .stringColumn('sourceId', activity.sourceId)
-      .timestampColumn('createdAt', now)
-      .timestampColumn('updatedAt', now)
+      .timestampColumn('createdAt', now, 'ms')
+      .timestampColumn('updatedAt', now, 'ms')
       .stringColumn('attributes', objectToBytes(activity.attributes))
       .stringColumn('username', activity.username)
 
@@ -82,7 +82,7 @@ export async function insertActivities(activities: IDbActivityCreateData[]): Pro
       row.stringColumn('objectMemberUsername', activity.objectMemberUsername)
     }
 
-    row.at(new Date(activity.timestamp).getTime())
+    row.at(activity.timestamp ? new Date(activity.timestamp).getTime() : now, 'ms')
   }
 
   await ilp.flush()

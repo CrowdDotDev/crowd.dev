@@ -27,6 +27,7 @@ export interface IDbActivity {
 }
 
 export interface IDbActivityCreateData {
+  id?: string
   type: string
   timestamp: string
   platform: string

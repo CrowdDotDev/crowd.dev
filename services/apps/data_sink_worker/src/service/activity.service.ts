@@ -103,6 +103,7 @@ export default class ActivityService extends LoggerBase {
         })
         await insertActivities([
           {
+            id,
             timestamp: activity.timestamp.toISOString(),
             platform: activity.platform,
             type: activity.type,

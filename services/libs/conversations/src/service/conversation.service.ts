@@ -2,6 +2,7 @@ import { distinct, getCleanString, processPaginated } from '@crowd/common'
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { PlatformType } from '@crowd/types'
+import { insertConversation } from '@crowd/data-access-layer'
 import { convert as convertHtmlToText } from 'html-to-text'
 import {
   IDbActivityInfo,
@@ -216,6 +217,17 @@ export class ConversationService extends LoggerBase {
           published,
           conversationSlug,
         )
+
+        await insertConversation({
+          tenantId,
+          segmentId,
+          activityParentId: parent.id,
+          activityChildId: child.id,
+          title: conversationTitle,
+          published,
+          slug: conversationSlug,
+          timestamp: new Date(),
+        })
 
         conversation = {
           id: conversationId,
