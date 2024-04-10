@@ -1,5 +1,5 @@
 <template>
-  <div ref="dropdown" class="c-dropdown" @click="toggleDropdown">
+  <div ref="dropdown" class="c-dropdown" @click.stop="toggleDropdown">
     <slot name="trigger" />
     <div
       class="c-dropdown__menu"
@@ -23,25 +23,33 @@ const props = withDefaults(defineProps<{
   width: 'auto',
 });
 
-const isOpen = ref<boolean>(false);
-const dropdown = ref<any>(null);
+const isOpen = ref(false);
+const dropdown = ref(null);
 
 const toggleDropdown = () => {
   isOpen.value = !isOpen.value;
 };
 
-const handleClickOutside = (event: any) => {
-  if (dropdown.value && !dropdown.value.contains(event.target)) {
+const handleClickOutside = (event) => {
+  // Check if the click is inside the dropdown. If so, do nothing.
+  if (dropdown.value && dropdown.value.contains(event.target)) {
+    return;
+  }
+
+  // If the dropdown is open and the click is outside, close it.
+  if (isOpen.value) {
     isOpen.value = false;
   }
 };
 
 onMounted(() => {
-  document.addEventListener('click', handleClickOutside);
+  // Add the click event listener to the document.
+  document.addEventListener('click', handleClickOutside, true);
 });
 
 onUnmounted(() => {
-  document.removeEventListener('click', handleClickOutside);
+  // Remove the event listener when the component is unmounted.
+  document.removeEventListener('click', handleClickOutside, true);
 });
 </script>
 

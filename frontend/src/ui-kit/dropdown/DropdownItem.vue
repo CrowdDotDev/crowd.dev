@@ -22,12 +22,16 @@ const props = withDefaults(defineProps<{
   type: 'regular',
 });
 
+const emit = defineEmits<{(e: 'click'): void}>();
+
 const handleClick = (event: MouseEvent) => {
   if (props.disabled) {
     event.preventDefault();
-    event.stopPropagation();
+    return;
   }
+  emit('click');
 };
+
 </script>
 
 <script lang="ts">

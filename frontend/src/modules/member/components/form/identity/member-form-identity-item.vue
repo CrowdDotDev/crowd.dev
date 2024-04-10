@@ -2,13 +2,16 @@
   <article class="flex items-center">
     <div class="mr-3">
       <img
+        v-if="platform"
         :src="platform.image"
         :alt="platform.name"
         class="w-5"
       />
+      <i v-else class="text-lg ri-fingerprint-line" />
     </div>
     <div class="flex-grow">
       <el-input
+        v-if="props.editable"
         v-model="model.value"
         placeholder="johndoe"
         :disabled="editingDisabled || platform === 'linkedin'
@@ -25,73 +28,102 @@
           <span class="font-medium text-gray-500">{{ prefixes[model.platform] }}</span>
         </template>
         <template #suffix>
-          <div v-if="model.value === props.identity.value">
+          <div v-if="model.value === props.identity.value && props.identity.value">
             <i
-              v-if="model.value && model.verified"
+              v-if="model.value && props.identity.verified"
               class="ri-verified-badge-fill text-brand-500 text-base leading-4"
             />
           </div>
           <div v-else class="flex gap-1 -mr-1">
-            <cr-button size="tiny" :icon-only="true" @click="update()">
+            <cr-button
+              size="tiny"
+              :icon-only="true"
+              :disabled="model.value === props.identity.value"
+              @click="update()"
+            >
               <i class="ri-check-fill" />
             </cr-button>
-            <cr-button size="tiny" type="secondary" :icon-only="true" @click="model.value = props.identity.value">
+            <cr-button
+              size="tiny"
+              type="secondary"
+              :icon-only="true"
+              @click="clear()"
+            >
               <i class="ri-close-line" />
             </cr-button>
           </div>
         </template>
       </el-input>
+      <p v-else class="text-xs gap-2 flex items-center">
+        <span class="font-medium">{{ props.identity.value }}</span>
+        <span class="text-gray-400">{{ props.identity.platform }}</span>
+        <i
+          v-if="props.identity.verified"
+          class="ri-verified-badge-fill text-brand-500 text-base leading-4"
+        />
+      </p>
     </div>
-    <cr-drop
-    <cr-button
-      type="tertiary-light-gray"
-      size="small"
-      :icon-only="true"
-      class="relative ml-3"
-    >
-      <i
-        class="ri-more-fill"
-      />
-    </cr-button>
+    <cr-dropdown placement="bottom-end" width="15rem" class="ml-3">
+      <template #trigger>
+        <cr-button
+          type="tertiary-light-gray"
+          size="small"
+          :icon-only="true"
+          class="relative"
+          :disabled="props.actionsDisabled"
+        >
+          <i
+            class="ri-more-fill"
+          />
+        </cr-button>
+      </template>
+
+      <el-tooltip
+        content="Not possible to unmerge an unsaved identity"
+        placement="top-end"
+        :disabled="model.value === props.identity.value"
+      >
+        <cr-dropdown-item
+          :disabled="model.value !== props.identity.value"
+          @click="emit('unmerge', {
+            platform: props.identity.platform,
+            username: props.identity.value,
+          })"
+        >
+          <i class="ri-link-unlink" />
+          Unmerge identity
+        </cr-dropdown-item>
+      </el-tooltip>
+      <cr-dropdown-item
+        v-if="!props.identity.verified"
+        :disabled="editingDisabled"
+        @click="verify(true)"
+      >
+        <i class="ri-verified-badge-line" />
+        Verify identity
+      </cr-dropdown-item>
+      <el-tooltip
+        v-else
+        content="Identities tracked from Integrations can’t be unverified"
+        placement="top-end"
+        :disabled="!props.identity.sourceId"
+      >
+        <cr-dropdown-item
+          :disabled="editingDisabled"
+          @click="verify(false)"
+        >
+          <app-svg name="unverify" class="!h-4 !w-4" />
+          Unverify identity
+        </cr-dropdown-item>
+      </el-tooltip>
+
+      <cr-dropdown-separator />
+      <cr-dropdown-item type="danger" @click="emit('remove')">
+        <i class="ri-delete-bin-6-line" />
+        Delete identity
+      </cr-dropdown-item>
+    </cr-dropdown>
   </article>
-<!--  <div>-->
-<!--    &lt;!&ndash; Identities editing &ndash;&gt;-->
-<!--    <div>-->
-<!--      <section-->
-<!--        v-for="platform of platforms"-->
-<!--        :key="platform"-->
-<!--        class="border-b border-gray-200 last:border-none py-4"-->
-<!--      >-->
-
-<!--          <div class="flex-grow">-->
-<!--            <template v-for="(identity, ii) of model.identities" :key="ii">-->
-<!--              <template v-if="identity.platform === platform && identity.type === 'username'">-->
-<!--                <article-->
-<!--                  class="flex flex-grow items-center gap-2 pb-3 last:pb-0"-->
-<!--                >-->
-
-<!--                  <cr-button-->
-<!--                    :id="`identityRef-${ii}`"-->
-<!--                    :ref="(el) => setActionBtnsRef(el, ii)"-->
-<!--                    type="tertiary-light-gray"-->
-<!--                    size="small"-->
-<!--                    :icon-only="true"-->
-<!--                    class="relative"-->
-<!--                    @click.prevent.stop="() => onActionBtnClick(ii)"-->
-<!--                  >-->
-<!--                    <i-->
-<!--                      :id="`identityRefIcon-${ii}`"-->
-<!--                      class="ri-more-fill"-->
-<!--                    />-->
-<!--                  </cr-button>-->
-<!--                </article>-->
-<!--              </template>-->
-<!--            </template>-->
-<!--          </div>-->
-<!--        </div>-->
-<!--      </section>-->
-<!--    </div>-->
-<!--  </div>-->
 </template>
 
 <script setup lang="ts">
@@ -101,13 +133,25 @@ import {
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { Member, MemberIdentity } from '@/modules/member/types/Member';
 import CrButton from '@/ui-kit/button/Button.vue';
+import CrDropdown from '@/ui-kit/dropdown/Dropdown.vue';
+import CrDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
+import CrDropdownSeparator from '@/ui-kit/dropdown/DropdownSeparator.vue';
+import AppSvg from '@/shared/svg/svg.vue';
 
-const emit = defineEmits<{(e: 'update', value: MemberIdentity): void}>();
+const emit = defineEmits<{(e: 'update', value: MemberIdentity): void,
+  (e: 'unmerge', value: { platform: string, username: string }): void,
+  (e: 'remove'): void,
+  (e: 'clear'): void}>();
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   identity: MemberIdentity,
   member: Member,
-}>();
+  actionsDisabled?: boolean,
+  editable?: boolean,
+}>(), {
+  actionsDisabled: false,
+  editable: true,
+});
 
 const model = ref({ ...props.identity });
 
@@ -141,53 +185,17 @@ const update = () => {
   });
 };
 
-// const platforms = computed(() => {
-//   const usedPlatforms = model.value.identities.map((i) => i.platform);
-//   return Object.keys(prefixes).filter((p) => usedPlatforms.includes(p));
-// });
-//
-// const getPlatformIdentities = (platform) => props.modelValue.identities.filter((i) => i.platform === platform);
-//
-// const findPlatform = (platform) => CrowdIntegrations.getConfig(platform);
-//
-//
-// const staticIdentities = computed(() => props.record.identities.filter((i) => i.type === 'username'));
-//
-// const removeIdentity = (index) => {
-//   model.value.identities.splice(index, 1);
-// };
-//
-// const verifyIdentity = (index) => {
-//   const identity = { ...model.value.identities[index], verified: true };
-//   model.value.identities.splice(index, 1, identity);
-// };
-//
-// const unverifyIdentity = (index) => {
-//   const identity = { ...model.value.identities[index], verified: false };
-//   model.value.identities.splice(index, 1, identity);
-// };
-//
-// const actionBtnRefs = ref({});
-// const identityDropdown = ref(null);
-// const setActionBtnsRef = (el, index) => {
-//   if (el) {
-//     actionBtnRefs.value[index] = el;
-//   }
-// };
-//
-// const onActionBtnClick = (index) => {
-//   if (identityDropdown.value === index) {
-//     identityDropdown.value = null;
-//   } else {
-//     identityDropdown.value = index;
-//   }
-// };
-//
-// const onClickOutside = (el) => {
-//   if (!el.target?.id.includes('identityRef')) {
-//     identityDropdown.value = null;
-//   }
-// };
+const clear = () => {
+  model.value.value = props.identity.value;
+  emit('clear');
+};
+
+const verify = (verified: boolean) => {
+  emit('update', {
+    ...props.identity,
+    verified,
+  });
+};
 </script>
 
 <script lang="ts">

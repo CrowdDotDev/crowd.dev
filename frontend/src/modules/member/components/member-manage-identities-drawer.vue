@@ -4,46 +4,73 @@
     size="600px"
     title="Edit identities"
     custom-class="identities-drawer"
+    :show-footer="false"
   >
     <template #content>
-      <div class="border-t border-gray-200 -mt-4 -mx-6 px-6">
-        <div class="gap-4 flex flex-col pt-6">
+      <div class="-mt-8 z-10 pb-6">
+        <cr-dropdown width="260px">
+          <template #trigger>
+            <div class="flex gap-2 text-xs text-brand-500 font-semibold items-center cursor-pointer">
+              <i class="ri-add-line text-base" />Add identity
+            </div>
+          </template>
+          <div class="max-h-64 overflow-auto">
+            <cr-dropdown-item v-for="platform of platforms" :key="platform.platform" @click="addIdentity(platform.platform)">
+              <img :src="platform.image" :alt="platform.name" class="h-4 w-4" />
+              <span>{{ platform.name }}</span>
+            </cr-dropdown-item>
+          </div>
+        </cr-dropdown>
+      </div>
+      <div class="border-t border-gray-200 -mx-6 px-6">
+        <div class="gap-4 flex flex-col pt-6 pb-10">
+          <template v-for="{ platform } of platforms" :key="platform">
+            <template v-for="(identity, ii) of identities" :key="ii">
+              <template v-if="identity.type === 'username' && identity.platform === platform">
+                <app-member-form-identity-item
+                  :identity="identity"
+                  :member="props.member"
+                  @update="update(ii, $event)"
+                  @unmerge="emit('unmerge', $event)"
+                  @remove="remove(ii)"
+                />
+              </template>
+            </template>
+
+            <template v-for="(identity, ai) of addIdentities" :key="ai">
+              <template v-if="identity.platform === platform">
+                <app-member-form-identity-item
+                  :identity="identity"
+                  :member="props.member"
+                  :actions-disabled="true"
+                  @update="create(ai, $event)"
+                  @clear="addIdentities.splice(ai, 1)"
+                />
+              </template>
+            </template>
+          </template>
+        </div>
+
+        <p class="text-2xs leading-4.5 tracking-1 text-gray-400 font-semibold pb-4">
+          CUSTOM PLATFORMS
+        </p>
+        <div class="flex flex-col gap-3">
           <template v-for="(identity, ii) of identities" :key="ii">
-            <template v-if="identity.type === 'username'">
+            <template v-if="!platformsKeys.includes(identity.platform)">
               <app-member-form-identity-item
                 :identity="identity"
-                :index="ii"
                 :member="props.member"
+                :editable="false"
                 @update="update(ii, $event)"
-              >
-                <template #actions>
-
-                </template>
-              </app-member-form-identity-item>
+                @unmerge="emit('unmerge', $event)"
+                @remove="remove(ii)"
+              />
             </template>
           </template>
         </div>
       </div>
     </template>
   </app-drawer>
-  <el-popover
-    v-if="identityDropdown !== null"
-    placement="bottom-end"
-    popper-class="popover-dropdown"
-    :virtual-ref="actionBtnRefs[identityDropdown]"
-    trigger="click"
-    :visible="identityDropdown !== null"
-    virtual-triggering
-    width="240"
-    @update:visible="!$event ? identityDropdown = null : null"
-  >
-    <div v-click-outside="onClickOutside">
-      <app-member-form-identity-dropdown
-        :identity="identities[identityDropdown]"
-        @update="update(identityDropdown, $event)"
-      />
-    </div>
-  </el-popover>
 </template>
 
 <script setup lang="ts">
@@ -57,9 +84,9 @@ import Message from '@/shared/message/message';
 import { useStore } from 'vuex';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import CrButton from '@/ui-kit/button/Button.vue';
-import AppMemberFormIdentityDropdown from '@/modules/member/components/form/identity/member-form-identity-dropdown.vue';
-import { ClickOutside as vClickOutside } from 'element-plus';
+import CrDropdown from '@/ui-kit/dropdown/Dropdown.vue';
+import CrDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
 
 const props = withDefaults(defineProps<{
   modelValue?: boolean,
@@ -82,10 +109,10 @@ const drawerModel = computed<boolean>({
   },
 });
 
-const identities = ref([...(props.member.identities || [])]);
+const identities = ref<MemberIdentity[]>([...(props.member.identities || [])]);
+const addIdentities = ref<MemberIdentity[]>([]);
 
-const update = (index: number, data: MemberIdentity) => {
-  identities.value[index] = data;
+const serverUpdate = () => {
   const segments = props.member.segments.map((s) => s.id);
 
   MemberService.update(props.member.id, {
@@ -96,28 +123,34 @@ const update = (index: number, data: MemberIdentity) => {
     });
 };
 
-const actionBtnRefs = ref<Record<number, any>>({});
-const identityDropdown = ref<number | null>(null);
-
-const setActionBtnsRef = (el: any, index: number) => {
-  if (el) {
-    actionBtnRefs.value[index] = el;
-  }
+const update = (index: number, data: MemberIdentity) => {
+  identities.value[index] = data;
+  serverUpdate();
 };
 
-const onActionBtnClick = (index: number) => {
-  if (identityDropdown.value === index) {
-    identityDropdown.value = null;
-  } else {
-    identityDropdown.value = index;
-  }
+const remove = (index: number) => {
+  identities.value.splice(index, 1);
+  serverUpdate();
 };
 
-const onClickOutside = (el: any) => {
-  if (!el.target?.id.includes('identityRef')) {
-    identityDropdown.value = null;
-  }
+const create = (index: number, data: MemberIdentity) => {
+  identities.value.push(data);
+  addIdentities.value.splice(index, 1);
+  serverUpdate();
 };
+
+const addIdentity = (platform: string) => {
+  addIdentities.value.push({
+    platform,
+    type: 'username',
+    value: '',
+    verified: true,
+    sourceId: null,
+  });
+};
+
+const platforms = CrowdIntegrations.enabledConfigs;
+const platformsKeys = CrowdIntegrations.enabledConfigs.map((p) => p.platform);
 
 onUnmounted(() => {
   store.dispatch('member/doFind', {
