@@ -820,6 +820,12 @@ while test $# -gt 0; do
         reset_selected_services
         exit
         ;;
+    reset-selected-services-dev)
+        DEV=1
+        select_services
+        reset_selected_services
+        exit
+        ;;
     build)
         BUILD=1
         build $2 $3
