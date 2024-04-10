@@ -219,7 +219,7 @@ function addAttributeToNormalizedMemberIfNotAlreadyExisting(
   platform: string,
   value: number | string | boolean,
 ) {
-  if (!member.attributes?.[attributeName] && !member.attributes?.[attributeName].default) {
+  if (!member.attributes?.[attributeName] && !member.attributes?.[attributeName]?.default) {
     if (!normalized.attributes) {
       normalized.attributes = {
         ...member.attributes,
