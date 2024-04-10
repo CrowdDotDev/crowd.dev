@@ -1,17 +1,15 @@
 <template>
   <div>
     <component
-      :is="configuration?.header"
+      :is="configuration?.activityHeaderContent"
+      v-if="!inTimeline"
       :activity="activity"
       @edit="emit('edit')"
       @on-update="emit('onUpdate')"
       @activity-destroyed="emit('activity-destroyed')"
-    />
-    <component
-      :is="configuration?.body"
-      :activity="activity"
       @open-conversation="emit('openConversation')"
     />
+    <component :is="configuration?.activityContent" :activity="activity" />
   </div>
 </template>
 
@@ -28,6 +26,7 @@ const emit = defineEmits<{(e: 'edit'): void;
 
 defineProps<{
   activity: Activity;
+  inTimeline?: boolean;
 }>();
 
 const configuration = computed(() => config.git);

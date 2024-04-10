@@ -20,7 +20,7 @@ export default {
   chartColor: '#E5512C',
   activityDisplay: {
     showContentDetails: true,
-    showLinkToUrl: false,
+    showLinkToUrl: true,
     showSourceId: true,
     typeIcon: 'commit',
   },

@@ -3,8 +3,9 @@
     <article v-if="loading || !activity">
       <app-loading height="85px" radius="8px" />
     </article>
+    <!-- For now only render the new UI for Git activities -->
     <article v-else-if="activity.platform === Platform.GIT">
-      <activity-display
+      <lf-activity-display
         :activity="activity"
         @edit="$emit('edit')"
         @on-update="$emit('onUpdate')"
@@ -50,7 +51,7 @@
                   >
                     <img
                       :alt="platform.name"
-                      class="w-4 h-4"
+                      class="min-w-[16px] w-4 h-4"
                       :src="platform.image"
                     />
                   </el-tooltip>
@@ -77,9 +78,9 @@
                   openConversation(activity.conversationId)
                 "
               ><i
-                 class="ri-lg ri-arrow-right-up-line mr-1"
+                 class="text-sm ri-eye-line mr-1"
                />
-                <span class="block">Open conversation</span></a>
+                <span class="block">View conversation</span></a>
               <app-activity-dropdown
                 :show-affiliations="false"
                 :activity="activity"
@@ -145,7 +146,7 @@ import AppActivityContentFooter from '@/modules/activity/components/activity-con
 import { computed } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import ActivityDisplay from '@/shared/modules/activity/components/activityDisplay.vue';
+import LfActivityDisplay from '@/shared/modules/activity/components/activity-display.vue';
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import AppActivityHeader from './activity-header.vue';
 

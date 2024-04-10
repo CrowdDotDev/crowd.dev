@@ -4,9 +4,12 @@ import { type Component } from 'vue';
 export interface ActivityDisplayConfig {
   id: string;
   platform: Platform;
-  header: Component;
-  body: Component;
-  conversationLinkLabel: string;
+  activityHeaderContent: Component;
+  activityContent: Component;
+  conversationHeaderContent: Component;
+  conversationContent: Component;
+  conversationTitle: string;
+  conversationActivityLink?: Component;
 }
 
 export type ActivityDisplayPlatformConfig = {

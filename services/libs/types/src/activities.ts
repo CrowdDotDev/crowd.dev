@@ -98,6 +98,7 @@ export enum ActivityDisplayVariant {
   DEFAULT = 'default',
   SHORT = 'short',
   CHANNEL = 'channel',
+  CONVERSATION = 'conversation',
 }
 
 export type ActivityTypeSettings = {
@@ -127,6 +128,7 @@ export type ActivityTypeDisplayProperties = {
   [ActivityDisplayVariant.DEFAULT]: string
   [ActivityDisplayVariant.SHORT]: string
   [ActivityDisplayVariant.CHANNEL]: string
+  [ActivityDisplayVariant.CONVERSATION]?: string
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   formatter?: { [key: string]: (input: any) => string }
 }

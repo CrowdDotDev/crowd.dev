@@ -36,6 +36,7 @@ export interface Activity {
     display: {
         default: string;
         short: string;
+        conversation: string;
         channel: string;
     }
 }

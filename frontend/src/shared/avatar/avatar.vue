@@ -61,7 +61,6 @@ export default {
         xs: '2rem',
         xxs: '1.25rem',
         xxxs: '1rem',
-        small: '1.5rem',
       },
     };
   },
