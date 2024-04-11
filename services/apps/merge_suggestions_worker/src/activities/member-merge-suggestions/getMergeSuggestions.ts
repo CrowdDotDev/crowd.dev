@@ -25,6 +25,7 @@ export async function getMergeSuggestions(
   tenantId: string,
   member: IMemberPartialAggregatesOpensearch,
 ): Promise<IMemberMergeSuggestion[]> {
+  const SIMILARITY_CONFIDENCE_SCORE_THRESHOLD = 0.9
   const mergeSuggestions: IMemberMergeSuggestion[] = []
   const memberMergeSuggestionsRepo = new MemberMergeSuggestionsRepository(
     svc.postgres.writer.connection(),
@@ -165,7 +166,14 @@ export async function getMergeSuggestions(
     collapse: {
       field: 'uuid_memberId',
     },
-    _source: ['uuid_memberId', 'keyword_displayName', 'int_activityCount', 'nested_identities'],
+    _source: [
+      'uuid_memberId',
+      'keyword_displayName',
+      'int_activityCount',
+      'nested_identities',
+      'obj_attributes',
+      'nested_organizations',
+    ],
   }
 
   let membersToMerge: ISimilarMemberOpensearch[]
@@ -187,12 +195,15 @@ export async function getMergeSuggestions(
   }
 
   for (const memberToMerge of membersToMerge) {
-    mergeSuggestions.push({
-      similarity: calculateSimilarity(member, memberToMerge._source),
-      activityEstimate:
-        (memberToMerge._source.int_activityCount || 0) + (member.int_activityCount || 0),
-      members: [member.uuid_memberId, memberToMerge._source.uuid_memberId],
-    })
+    const similarityConfidenceScore = calculateSimilarity(member, memberToMerge._source)
+    if (similarityConfidenceScore > SIMILARITY_CONFIDENCE_SCORE_THRESHOLD) {
+      mergeSuggestions.push({
+        similarity: similarityConfidenceScore,
+        activityEstimate:
+          (memberToMerge._source.int_activityCount || 0) + (member.int_activityCount || 0),
+        members: [member.uuid_memberId, memberToMerge._source.uuid_memberId],
+      })
+    }
   }
 
   return mergeSuggestions
@@ -260,6 +271,8 @@ export async function getMembers(
         'string_arr_unverifiedEmails',
         'string_arr_verifiedUsernames',
         'string_arr_unverifiedUsernames',
+        'obj_attributes',
+        'nested_organizations',
       ],
     }
 

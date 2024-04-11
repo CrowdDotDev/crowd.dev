@@ -1,3 +1,5 @@
+import { MemberAttributeOpensearch } from './enums'
+
 interface ITermFilter {
   term: {
     uuid_tenantId: string
@@ -47,6 +49,24 @@ export interface IMemberIdentityOpensearch {
   bool_verified: boolean
 }
 
+export interface IMemberOrganizationOpensearch {
+  uuid_id: string
+  string_logo: string
+  string_displayName: string
+  obj_memberOrganizations: {
+    string_title: string
+    date_dateStart: string
+    date_dateEnd: string
+    string_source: string
+  }
+}
+
+export type IMemberAttributesOpensearch = {
+  [key in MemberAttributeOpensearch]?: {
+    string_default: string
+  }
+}
+
 export interface IMemberPartialAggregatesOpensearch {
   uuid_memberId: string
   uuid_arr_noMergeIds: string[]
@@ -58,6 +78,8 @@ export interface IMemberPartialAggregatesOpensearch {
   string_arr_verifiedUsernames: string[]
   string_arr_unverifiedUsernames: string[]
   nested_identities: IMemberIdentityOpensearch[]
+  nested_organizations: IMemberOrganizationOpensearch[]
+  obj_attributes: IMemberAttributesOpensearch
 }
 
 export interface IMemberPartialAggregatesOpensearchRawResult {
@@ -74,6 +96,8 @@ export interface ISimilarMember {
   string_arr_verifiedUsernames: string[]
   string_arr_unverifiedUsernames: string[]
   nested_identities: IMemberIdentityOpensearch[]
+  nested_organizations: IMemberOrganizationOpensearch[]
+  obj_attributes: IMemberAttributesOpensearch
 }
 
 export interface ISimilarMemberOpensearch {

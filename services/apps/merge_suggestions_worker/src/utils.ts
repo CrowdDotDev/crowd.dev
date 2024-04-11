@@ -2,9 +2,12 @@ import { get as getLevenshteinDistance } from 'fast-levenshtein'
 
 import {
   IMemberIdentityOpensearch,
+  IMemberOrganizationOpensearch,
   IMemberPartialAggregatesOpensearch,
   ISimilarMember,
 } from './types'
+import { MemberAttributeOpensearch } from './enums'
+import { MemberIdentityType } from '@crowd/types'
 
 export const prefixLength = (string: string) => {
   if (string.length > 5 && string.length < 8) {
@@ -22,12 +25,30 @@ export const calculateSimilarity = (
 
   let similarPrimaryIdentity: IMemberIdentityOpensearch = null
 
+  // return a small confidence score when there's clashing identities
+  // clashing identities are username identities in same platform and different values
+  if (hasClashingIdentities(primaryMember, similarMember)) {
+    return 0.2
+  }
+
   // check displayName match
   if (
     similarMember.keyword_displayName.toLowerCase() ===
     primaryMember.keyword_displayName.toLowerCase()
   ) {
-    return 0.98
+    // since display name match is quite vague, we'll also check location and avatarUrl matches
+    if (
+      hasSameAvatarUrl(primaryMember, similarMember) ||
+      hasSameLocation(primaryMember, similarMember)
+    ) {
+      return 0.98
+    }
+
+    if (hasRolesInSameOrganization(primaryMember, similarMember)) {
+      return 0.92
+    }
+
+    return 0.3
   }
 
   // We check if there are any verified<->unverified email matches between primary & similar members
@@ -108,4 +129,78 @@ export function chunkArray<T>(array: T[], chunkSize: number): T[][] {
     chunks.push(array.slice(i, i + chunkSize))
   }
   return chunks
+}
+
+export function getLocation(member: ISimilarMember | IMemberPartialAggregatesOpensearch): string {
+  return member.obj_attributes[MemberAttributeOpensearch.LOCATION]?.string_default || null
+}
+
+export function getAvatarUrl(member: ISimilarMember | IMemberPartialAggregatesOpensearch): string {
+  return member.obj_attributes[MemberAttributeOpensearch.AVATAR_URL]?.string_default || null
+}
+
+export function getOrganizations(
+  member: ISimilarMember | IMemberPartialAggregatesOpensearch,
+): IMemberOrganizationOpensearch[] {
+  return member.nested_organizations || null
+}
+
+export function hasClashingIdentities(
+  member: IMemberPartialAggregatesOpensearch,
+  similarMember: ISimilarMember,
+): boolean {
+  for (const identity of member.nested_identities) {
+    if (
+      similarMember.nested_identities.some(
+        (i) =>
+          i.keyword_type === MemberIdentityType.USERNAME &&
+          i.string_platform === identity.string_platform &&
+          i.keyword_value !== identity.keyword_value,
+      )
+    ) {
+      return true
+    }
+  }
+
+  return false
+}
+
+export function hasSameLocation(
+  member: IMemberPartialAggregatesOpensearch,
+  similarMember: ISimilarMember,
+): boolean {
+  const primaryMemberLocation = getLocation(member)
+  const similarMemberLocation = getLocation(similarMember)
+
+  return (
+    primaryMemberLocation &&
+    similarMemberLocation &&
+    primaryMemberLocation.toLowerCase() === similarMemberLocation.toLowerCase()
+  )
+}
+
+export function hasSameAvatarUrl(
+  member: IMemberPartialAggregatesOpensearch,
+  similarMember: ISimilarMember,
+): boolean {
+  const primaryMemberAvatar = getAvatarUrl(member)
+  const similarMemberAvatar = getAvatarUrl(similarMember)
+
+  return (
+    primaryMemberAvatar &&
+    similarMemberAvatar &&
+    primaryMemberAvatar.toLowerCase() === similarMemberAvatar.toLowerCase()
+  )
+}
+
+export function hasRolesInSameOrganization(
+  member: IMemberPartialAggregatesOpensearch,
+  similarMember: ISimilarMember,
+): boolean {
+  for (const memberRoles of member.nested_organizations) {
+    if (similarMember.nested_organizations.some((o) => memberRoles.uuid_id === o.uuid_id)) {
+      return true
+    }
+  }
+  return false
 }
