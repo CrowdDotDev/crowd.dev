@@ -53,11 +53,13 @@ export const calculateSimilarity = (
 
   // We check if there are any verified<->unverified email matches between primary & similar members
   if (
-    (similarMember.string_arr_unverifiedEmails.length > 0 &&
+    (similarMember.string_arr_unverifiedEmails &&
+      similarMember.string_arr_unverifiedEmails.length > 0 &&
       similarMember.string_arr_unverifiedEmails.some((email) =>
         primaryMember.string_arr_verifiedEmails.includes(email),
       )) ||
-    (similarMember.string_arr_verifiedEmails.length > 0 &&
+    (similarMember.string_arr_verifiedEmails &&
+      similarMember.string_arr_verifiedEmails.length > 0 &&
       similarMember.string_arr_verifiedEmails.some((email) =>
         primaryMember.string_arr_unverifiedEmails.includes(email),
       ))
