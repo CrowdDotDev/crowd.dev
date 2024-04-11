@@ -105,7 +105,6 @@ import CrButton from '@/ui-kit/button/Button.vue';
 import CrDropdown from '@/ui-kit/dropdown/Dropdown.vue';
 import CrDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import CrDropdownSeparator from '@/ui-kit/dropdown/DropdownSeparator.vue';
-import AppSvg from '@/shared/svg/svg.vue';
 import { Organization, OrganizationIdentity } from '@/modules/organization/types/Organization';
 
 const emit = defineEmits<{(e: 'update', value: OrganizationIdentity): void,

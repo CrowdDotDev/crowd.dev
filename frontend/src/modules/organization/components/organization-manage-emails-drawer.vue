@@ -110,7 +110,7 @@ const addEmail = () => {
 };
 
 onUnmounted(() => {
-  fetchOrganization(props.organization.id, [selectedProjectGroup.value?.id])
+  fetchOrganization(props.organization.id, [selectedProjectGroup.value?.id]);
 });
 
 </script>

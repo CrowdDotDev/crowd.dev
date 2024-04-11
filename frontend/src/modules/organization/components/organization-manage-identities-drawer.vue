@@ -78,8 +78,6 @@ import {
   computed, onUnmounted,
 } from 'vue';
 import Message from '@/shared/message/message';
-import cloneDeep from 'lodash/cloneDeep';
-import AppOrganizationFormIdentities from '@/modules/organization/components/form/organization-form-identities.vue';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
@@ -131,7 +129,7 @@ const prefixes: Record<string, string> = {
 const platformsKeys = Object.keys(prefixes);
 const platforms = platformsKeys.map((key) => ({
   ...CrowdIntegrations.getConfig(key),
-  platform: key
+  platform: key,
 }));
 const hasCustomIdentities = computed(() => identities.value.some((i) => !platformsKeys.includes(i.platform)));
 
