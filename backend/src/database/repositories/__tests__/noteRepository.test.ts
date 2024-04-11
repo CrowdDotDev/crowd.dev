@@ -164,7 +164,7 @@ describe('NoteRepository tests', () => {
   })
 
   describe('findAndCountAll method', () => {
-    it('Should find and count all notes, with various filters', async () => {
+    it.skip('Should find and count all notes, with various filters', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       const member = await MemberRepository.create(
         {

@@ -22,6 +22,9 @@ export enum PlatformType {
   GROUPSIO = 'groupsio',
   CONFLUENCE = 'confluence',
   GERRIT = 'gerrit',
+  LFID = 'lfid',
+  CVENT = 'cvent',
+  TNC = 'tnc',
   OTHER = 'other',
 }
 

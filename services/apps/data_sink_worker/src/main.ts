@@ -21,7 +21,6 @@ import {
 } from './conf'
 import { WorkerQueueReceiver } from './queue'
 import { getRedisClient } from '@crowd/redis'
-import { processOldResultsJob } from './jobs/processOldResults'
 import { getUnleashClient } from '@crowd/feature-flags'
 import { Client as TemporalClient, getTemporalClient } from '@crowd/temporal'
 
@@ -107,20 +106,7 @@ setImmediate(async () => {
     await searchSyncWorkerEmitter.init()
     await dataWorkerEmitter.init()
 
-    await Promise.all([
-      processOldResultsJob(
-        dbConnection,
-        qdbConnection,
-        redisClient,
-        nodejsWorkerEmitter,
-        searchSyncWorkerEmitter,
-        dataWorkerEmitter,
-        unleash,
-        temporal,
-        log,
-      ),
-      queue.start(),
-    ])
+    await queue.start()
   } catch (err) {
     log.error({ err }, 'Failed to start queues!')
     process.exit(1)
