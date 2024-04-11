@@ -271,6 +271,7 @@ export async function getMembers(
         'string_arr_unverifiedEmails',
         'string_arr_verifiedUsernames',
         'string_arr_unverifiedUsernames',
+        'nested_identities',
         'obj_attributes',
         'nested_organizations',
       ],
