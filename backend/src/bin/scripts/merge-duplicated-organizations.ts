@@ -63,7 +63,7 @@ async function mergeOrganizationsWithSameWebsite(): Promise<void> {
       const primaryOrganizationId = orgInfo.organizationIds.shift()
       for (const orgId of orgInfo.organizationIds) {
         log.info(`Merging organization ${orgId} into ${primaryOrganizationId}!`)
-        await service.mergeSync(primaryOrganizationId, orgId)
+        await service.mergeSync(primaryOrganizationId, orgId, null)
       }
     }
   } while (mergeableOrganizations.length > 0)
