@@ -55,7 +55,7 @@
         </p>
         <div class="flex flex-col gap-3">
           <template v-for="(identity, ii) of identities" :key="ii">
-            <template v-if="!platformsKeys.includes(identity.platform)">
+            <template v-if="!platformsKeys.includes(identity.platform) && identity.platform !== 'email'">
               <app-organization-form-identity-item
                 :identity="identity"
                 :organization="props.organization"
