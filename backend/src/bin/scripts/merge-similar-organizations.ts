@@ -146,7 +146,7 @@ if (parameters.help || (!parameters.tenant && !parameters.allTenants)) {
                 row.toMergeId,
                 userContext,
               )
-              await orgService.mergeSync(row.organizationId, row.toMergeId)
+              await orgService.mergeSync(row.organizationId, row.toMergeId, null)
             } catch (err) {
               console.log('Error merging organizations - continuing with the rest', err)
               await MergeActionsRepository.setState(

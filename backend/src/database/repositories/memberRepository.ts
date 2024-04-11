@@ -19,7 +19,7 @@ import lodash, { chunk } from 'lodash'
 import moment from 'moment'
 import Sequelize, { QueryTypes } from 'sequelize'
 
-import { Error400, Error404, dateEqualityChecker, distinct } from '@crowd/common'
+import { Error400, Error404, Error409, dateEqualityChecker, distinct } from '@crowd/common'
 import { ActivityDisplayService } from '@crowd/integrations'
 import {
   captureApiChange,
@@ -726,6 +726,8 @@ class MemberRepository {
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
+    const seq = SequelizeRepository.getSequelize(options)
+
     const record = await captureApiChange(
       options,
       memberEditProfileAction(id, async (captureOldState, captureNewState) => {
@@ -881,6 +883,79 @@ class MemberRepository {
 
     if (options.currentSegments && options.currentSegments.length > 0) {
       await MemberRepository.includeMemberToSegments(record.id, options)
+    }
+
+    // Before upserting identities, check if they already exist
+    const checkIdentities = [...(data.identitiesToCreate || []), ...(data.identitiesToUpdate || [])]
+    if (checkIdentities.length > 0) {
+      for (const i of checkIdentities) {
+        const query = `
+          select "memberId"
+          from "memberIdentities"
+          where "platform" = :platform and
+                "value" = :value and
+                "type" = :type and
+                "tenantId" = :tenantId
+        `
+
+        const data: IMemberIdentity[] = await seq.query(query, {
+          replacements: {
+            platform: i.platform,
+            value: i.value,
+            type: i.type || MemberIdentityType.USERNAME,
+            tenantId: currentTenant.id,
+          },
+          type: QueryTypes.SELECT,
+          transaction,
+        })
+
+        if (data.length > 0 && data[0].memberId !== record.id) {
+          const memberSegment = (await seq.query(
+            `
+            select distinct a."segmentId", a."memberId"
+        from activities a where a."memberId" = :memberId
+        limit 1
+          `,
+            {
+              replacements: {
+                memberId: data[0].memberId,
+              },
+              type: QueryTypes.SELECT,
+              transaction,
+            },
+          )) as any[]
+
+          const segmentInfo = (await seq.query(
+            `
+          select s.id, pd.id as "parentId", gpd.id as "grandParentId"
+          from segments s
+                  inner join segments pd
+                              on pd."tenantId" = s."tenantId" and pd.slug = s."parentSlug" and pd."grandparentSlug" is null and
+                                pd."parentSlug" is not null
+                  inner join segments gpd on gpd."tenantId" = s."tenantId" and gpd.slug = s."grandparentSlug" and
+                                              gpd."grandparentSlug" is null and gpd."parentSlug" is null
+          where s.id = :segmentId;
+          `,
+            {
+              replacements: {
+                segmentId: memberSegment[0].segmentId,
+              },
+              type: QueryTypes.SELECT,
+              transaction,
+            },
+          )) as any[]
+
+          throw new Error409(
+            options.language,
+            'errors.alreadyExists',
+            // @ts-ignore
+            JSON.stringify({
+              memberId: data[0].memberId,
+              grandParentId: segmentInfo[0].grandParentId,
+            }),
+          )
+        }
+      }
     }
 
     const qx = SequelizeRepository.getQueryExecutor(options, transaction)

@@ -1,3 +1,6 @@
-import { scheduleMembersEnrichment } from './schedules/getMembersToEnrich'
+import {
+  scheduleMembersEnrichment,
+  scheduleMembersLFIDEnrichment,
+} from './schedules/getMembersToEnrich'
 
-export { scheduleMembersEnrichment }
+export { scheduleMembersEnrichment, scheduleMembersLFIDEnrichment }

@@ -389,7 +389,7 @@ export default class OrganizationService extends LoggerBase {
     }
   }
 
-  async mergeSync(originalId, toMergeId, segmentId) {
+  async mergeSync(originalId: string, toMergeId: string, segmentId?: string) {
     this.options.log.info({ originalId, toMergeId }, 'Merging organizations!')
 
     const removeExtraFields = (organization: IOrganization): IOrganization =>
