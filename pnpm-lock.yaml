@@ -1208,6 +1208,9 @@ importers:
       '@crowd/opensearch':
         specifier: workspace:*
         version: link:../../libs/opensearch
+      '@crowd/questdb':
+        specifier: workspace:*
+        version: link:../../libs/questdb
       '@crowd/redis':
         specifier: workspace:*
         version: link:../../libs/redis
@@ -1260,6 +1263,9 @@ importers:
       '@crowd/opensearch':
         specifier: workspace:*
         version: link:../../libs/opensearch
+      '@crowd/questdb':
+        specifier: workspace:*
+        version: link:../../libs/questdb
       '@crowd/redis':
         specifier: workspace:*
         version: link:../../libs/redis
