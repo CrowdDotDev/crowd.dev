@@ -47,7 +47,7 @@
 </template>
 
 <script setup lang="ts">
-import { Conversation } from '@/shared/modules/activity/types/Conversation';
+import { Conversation } from '@/shared/modules/conversation/types/Conversation';
 import AppActivityContent from '@/modules/activity/components/activity-content.vue';
 import { computed } from 'vue';
 import { Activity } from '@/shared/modules/activity/types/Activity';

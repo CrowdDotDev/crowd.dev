@@ -51,10 +51,10 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { Conversation } from '@/shared/modules/activity/types/Conversation';
+import { Conversation } from '@/shared/modules/conversation/types/Conversation';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppActivityLink from '@/modules/activity/components/activity-link.vue';
-import config from '@/modules/activity/config/display/main';
+import config from '@/modules/conversation/config/display/main';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
 
 const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void }>();
