@@ -1,5 +1,5 @@
 <template>
-  <slot :progress="progress" />
+  <slot :progress="progress" :progress-error="progressError" />
 </template>
 
 <script setup lang="ts">
@@ -18,6 +18,7 @@ const props = withDefaults(defineProps<{
 });
 
 const progress = ref<IntegrationProgress | null>(null);
+const progressError = ref(false);
 
 const intervalInstance = ref<any>(null);
 
@@ -31,6 +32,7 @@ const fetchUpdates = () => {
     })
     .catch(() => {
       progress.value = null;
+      progressError.value = true;
       clearInterval(intervalInstance.value);
     });
 };

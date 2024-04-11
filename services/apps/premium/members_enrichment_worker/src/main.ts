@@ -1,7 +1,8 @@
 import { Config } from '@crowd/archetype-standard'
 import { ServiceWorker, Options } from '@crowd/archetype-worker'
 
-import { scheduleMembersEnrichment } from './schedules'
+import { scheduleMembersEnrichment, scheduleMembersLFIDEnrichment } from './schedules'
+import { Edition } from '@crowd/types'
 
 const config: Config = {
   producer: {
@@ -30,6 +31,10 @@ setImmediate(async () => {
   await svc.init()
 
   await scheduleMembersEnrichment()
+
+  if (process.env['CROWD_EDITION'] === Edition.LFX) {
+    await scheduleMembersLFIDEnrichment()
+  }
 
   await svc.start()
 })

@@ -10,16 +10,30 @@ export default ({
   order: Platform[];
 }) => {
   const {
-    attributes = {}, verifiedEmails = [], unverifiedEmails = [], identities,
+    attributes = {}, identities,
   } = member || {};
 
-  const getIdentityHandles = (platform: string) => (identities || [])
-    .filter((i) => i.platform === platform && i.type !== 'email')
-    .map((i) => ({
-      platform,
-      url: null,
-      name: i.value,
-    }));
+  const getIdentityHandles = (platform: string) => {
+    if (platform === Platform.CUSTOM) {
+      const mainPlatforms = Object.values(Platform) as string[];
+      return (identities || [])
+        .filter((i) => !mainPlatforms.includes(i.platform) && i.type !== 'email')
+        .map((i) => ({
+          platform: i.platform,
+          url: null,
+          name: i.value,
+          verified: i.verified,
+        }));
+    }
+    return (identities || [])
+      .filter((i) => i.platform === platform && i.type !== 'email')
+      .map((i) => ({
+        platform,
+        url: null,
+        name: i.value,
+        verified: i.verified,
+      }));
+  };
 
   const getIdentityLink = (identity: {
     platform: string;
@@ -65,12 +79,14 @@ export default ({
           acc[identity.platform].push({
             handle: identity.name,
             link: getIdentityLink(identity, platform),
+            verified: identity.verified,
           });
         } else {
           acc[identity.platform] = [
             {
               handle: identity.name,
               link: getIdentityLink(identity, platform),
+              verified: identity.verified,
             },
           ];
         }
@@ -79,6 +95,7 @@ export default ({
       const platformHandlesValues = handles.map((identity) => ({
         handle: identity.name,
         link: getIdentityLink(identity, platform),
+        verified: identity.verified,
       }));
 
       if (platformHandlesValues.length) {
@@ -92,10 +109,13 @@ export default ({
   const getEmails = (): {
     handle: string;
     link: string;
-  }[] => [...verifiedEmails, ...unverifiedEmails].map((e) => ({
-    link: `mailto:${e}`,
-    handle: e,
-  }));
+  }[] => (identities || [])
+    .filter((i) => i.type === 'email')
+    .map((i) => ({
+      link: `mailto:${i.value}`,
+      handle: i.value,
+      verified: i.verified,
+    }));
 
   return {
     getIdentities,

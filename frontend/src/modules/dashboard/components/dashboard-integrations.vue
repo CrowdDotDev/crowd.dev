@@ -1,7 +1,7 @@
 <template>
   <app-integration-progress-wrapper :segments="segmentIds">
-    <template #default="{ progress }">
-      <div v-if="progress?.length" class="border border-gray-200 rounded-lg overflow-hidden w-full" v-bind="$attrs">
+    <template #default="{ progress, progressError }">
+      <div v-if="progress?.length || progressError" class="border border-gray-200 rounded-lg overflow-hidden w-full" v-bind="$attrs">
         <div class="pt-4 px-4 pb-6 bg-gradient-to-b from-brand-25 to-white flex items-center">
           <div class="h-5 w-5 flex items-center justify-center mr-1">
             <cr-spinner size="1rem" class="!border-brand-800" />
@@ -9,6 +9,9 @@
           <h6 class="text-base leading-5 font-semibold font-header">
             Connecting integrations...
           </h6>
+        </div>
+        <div v-if="progressError" class="px-4 text-xs text-gray-500 my-2">
+          <i class="ri-alert-line text-yellow-600" /> Error loading progress
         </div>
         <section
           v-for="(segment, si) of getSegmentList(progress)"

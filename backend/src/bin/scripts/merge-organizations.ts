@@ -87,7 +87,7 @@ if (parameters.help || !parameters.originalId || !parameters.toMergeId || !param
         log.info(`Merging ${toMergeId} into ${originalId}...`)
         const service = new OrganizationService(options)
         try {
-          await service.mergeSync(originalId, toMergeId)
+          await service.mergeSync(originalId, toMergeId, null)
         } catch (err) {
           log.error(`Error merging organizations: ${err.message}`)
           process.exit(1)
