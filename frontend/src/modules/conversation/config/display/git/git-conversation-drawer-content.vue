@@ -88,3 +88,4 @@ const activitiesList = computed(() => props.conversation.activities.reduce((acc,
     }
   }));
 </script>
+@/shared/modules/conversation/types/Conversation

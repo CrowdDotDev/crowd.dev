@@ -6,10 +6,6 @@ export interface ActivityDisplayConfig {
   platform: Platform;
   activityHeaderContent: Component;
   activityContent: Component;
-  conversationHeaderContent: Component;
-  conversationContent: Component;
-  conversationTitle: string;
-  conversationActivityLink?: Component;
 }
 
 export type ActivityDisplayPlatformConfig = {

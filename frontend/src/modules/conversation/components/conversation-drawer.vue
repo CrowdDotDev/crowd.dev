@@ -1,6 +1,6 @@
 <template>
   <!-- For now only render a special UI for Git -->
-  <lf-conversation-display
+  <lf-conversation-drawer-display
     v-if="loading || conversation?.platform === Platform.GIT"
     v-model="isExpanded"
     :conversation="conversation"
@@ -53,12 +53,12 @@
 import { ConversationService } from '@/modules/conversation/conversation-service';
 import AppActivityLink from '@/modules/activity/components/activity-link.vue';
 import AppConversationDetails from '@/modules/conversation/components/conversation-details.vue';
-import LfConversationDisplay from '@/shared/modules/activity/components/conversation-display.vue';
+import LfConversationDrawerDisplay from '@/shared/modules/conversation/components/conversation-drawer-display.vue';
 import { Platform } from '@/shared/modules/platform/types/Platform';
 
 export default {
   name: 'AppConversationDrawer',
-  components: { AppConversationDetails, AppActivityLink, LfConversationDisplay },
+  components: { AppConversationDetails, AppActivityLink, LfConversationDrawerDisplay },
   props: {
     conversationId: {
       type: String,

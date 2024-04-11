@@ -1,5 +1,5 @@
 import { Platform } from '../../platform/types/Platform';
-import { Activity } from './Activity';
+import { Activity } from '../../activity/types/Activity';
 
 export interface Conversation {
   id: string;
@@ -19,4 +19,5 @@ export interface Conversation {
   platform: Platform;
   channel: string;
   lastActive: string;
+  lastReplies: Activity[];
 }

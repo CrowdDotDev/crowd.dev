@@ -37,11 +37,11 @@
       </article>
       <div v-else class="flex flex-col">
         <component
-          :is="configuration?.conversationHeaderContent"
+          :is="configuration?.conversationDrawerHeaderContent"
           :conversation="conversation"
         />
         <component
-          :is="configuration?.conversationContent"
+          :is="configuration?.conversationDrawerContent"
           :conversation="conversation"
         />
       </div>

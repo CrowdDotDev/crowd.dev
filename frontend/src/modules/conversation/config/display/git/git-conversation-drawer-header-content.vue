@@ -28,11 +28,12 @@
 
 <script setup lang="ts">
 import pluralize from 'pluralize';
-import { Conversation } from '@/shared/modules/activity/types/Conversation';
+import { Conversation } from '@/shared/modules/conversation/types/Conversation';
 import AppConversationDropdown from '@/modules/conversation/components/conversation-dropdown.vue';
-import LfGitAttributes from './git-attributes.vue';
+import LfGitAttributes from '@/modules/activity/config/display/git/git-attributes.vue';
 
 defineProps<{
   conversation: Conversation;
 }>();
 </script>
+@/shared/modules/conversation/types/Conversation
