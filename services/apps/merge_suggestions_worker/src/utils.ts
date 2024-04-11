@@ -149,16 +149,18 @@ export function hasClashingIdentities(
   member: IMemberPartialAggregatesOpensearch,
   similarMember: ISimilarMember,
 ): boolean {
-  for (const identity of member.nested_identities) {
-    if (
-      similarMember.nested_identities.some(
-        (i) =>
-          i.keyword_type === MemberIdentityType.USERNAME &&
-          i.string_platform === identity.string_platform &&
-          i.keyword_value !== identity.keyword_value,
-      )
-    ) {
-      return true
+  if (member.nested_identities && member.nested_identities.length > 0) {
+    for (const identity of member.nested_identities) {
+      if (
+        similarMember.nested_identities.some(
+          (i) =>
+            i.keyword_type === MemberIdentityType.USERNAME &&
+            i.string_platform === identity.string_platform &&
+            i.keyword_value !== identity.keyword_value,
+        )
+      ) {
+        return true
+      }
     }
   }
 
