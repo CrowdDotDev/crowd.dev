@@ -131,7 +131,8 @@ const platforms = platformsKeys.map((key) => ({
   ...CrowdIntegrations.getConfig(key),
   platform: key,
 }));
-const hasCustomIdentities = computed(() => identities.value.some((i) => !platformsKeys.includes(i.platform)));
+const hasCustomIdentities = computed(() => identities.value
+  .some((i) => !platformsKeys.includes(i.platform) && i.platform !== 'email'));
 
 const serverUpdate = () => {
   const identityList = identities.value
