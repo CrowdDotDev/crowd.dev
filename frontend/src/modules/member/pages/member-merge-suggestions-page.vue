@@ -1,36 +1,108 @@
 <template>
   <app-page-wrapper>
-    <app-back-link
-      class="mt-1 mb-4"
-      :default-route="{
-        path: '/contributors',
-        query: { projectGroup: selectedProjectGroup?.id },
-      }"
-    >
-      <template #default>
-        Contributors
-      </template>
-    </app-back-link>
-    <h4 class="text-xl font-semibold leading-9 mb-1">
-      Merging suggestions
-    </h4>
-    <div class="text-xs text-gray-600 pb-6">
-      LFX is constantly checking your community for duplicate contributors.
-      Here you can check all the merging suggestions.
-    </div>
+    <div>
+      <app-back-link
+        :default-route="{
+          path: '/contributors',
+          query: { projectGroup: selectedProjectGroup?.id },
+        }"
+        class="font-semibold"
+      >
+        <template #default>
+          Contributors
+        </template>
+      </app-back-link>
+      <div class="flex items-center">
+        <h4 class="text-xl font-semibold leading-9">
+          Merging suggestions <span class="font-light text-gray-500">(256)</span>
+        </h4>
+        <el-tooltip
+          placement="top"
+          content="LFX is constantly checking your community for duplicate contributors. Here you can check all the merging suggestions."
+        >
+          <i class="ri-question-line text-lg text-gray-500 flex items-center ml-2 h-5" />
+        </el-tooltip>
+      </div>
 
-    <app-member-merge-suggestions :query="route.query" />
+      <cr-table class="mt-6">
+        <thead>
+          <tr>
+            <th colspan="2">
+              Contributors
+            </th>
+            <th>Confidence level</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(suggestion, si) of mergeSuggestions" :key="si">
+            <td>
+              <div class="flex items-center gap-2">
+                <app-avatar
+                  :entity="suggestion.members[0]"
+                  size="xs"
+                />
+                <p class="text-xs leading-5 font-semibold">
+                  {{ suggestion.members[0].displayName }}
+                </p>
+              </div>
+            </td>
+            <td>
+              <div class="flex items-center gap-2">
+                <i class="text-xl ri-subtract-line text-gray-300" />
+                <app-avatar
+                  :entity="suggestion.members[1]"
+                  size="xs"
+                />
+                <p class="text-xs leading-5 font-semibold">
+                  {{ suggestion.members[1].displayName }}
+                </p>
+              </div>
+            </td>
+            <td>
+              <app-member-merge-similarity :similarity="suggestion.similarity" />
+            </td>
+            <td class="w-48">
+              <div class="flex justify-end items-center gap-3">
+                <cr-button size="small" type="tertiary">
+                  View suggestion
+                </cr-button>
+                <cr-button size="small" type="tertiary-light-gray" :icon-only="true">
+                  <i class="ri-more-fill" />
+                </cr-button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </cr-table>
+    </div>
   </app-page-wrapper>
 </template>
 
-<script setup>
-import AppMemberMergeSuggestions from '@/modules/member/components/member-merge-suggestions.vue';
+<script setup lang="ts">
 import { useRoute } from 'vue-router';
+import AppBackLink from '@/shared/modules/back-link/components/back-link.vue';
+import CrTable from '@/ui-kit/table/Table.vue';
+import { MemberService } from '@/modules/member/member-service';
+import { onMounted, ref } from 'vue';
+import AppAvatar from '@/shared/avatar/avatar.vue';
+import CrButton from '@/ui-kit/button/Button.vue';
+import AppMemberMergeSimilarity from '@/modules/member/components/suggestions/member-merge-similarity.vue';
 
-const route = useRoute();
+const mergeSuggestions = ref<any[]>([]);
+
+const loadMergeSuggestions = () => {
+  MemberService.fetchMergeSuggestions(10, 0)
+    .then((res) => {
+      mergeSuggestions.value = res.rows;
+    });
+};
+
+onMounted(() => {
+  loadMergeSuggestions();
+});
 </script>
 
-<script>
+<script lang="ts">
 export default {
   name: 'AppMemberMergeSuggestionsPage',
 };
