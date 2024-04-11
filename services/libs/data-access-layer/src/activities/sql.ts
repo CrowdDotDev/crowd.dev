@@ -1,13 +1,10 @@
-import { DbConnection } from '@crowd/database'
-import { getClientSQL } from '@crowd/questdb'
+import { DbConnOrTx } from '@crowd/database'
 import { IActivity } from '@crowd/types'
 
 import { IDbActivityUpdateData } from '../old/apps/data_sink_worker/repo/activity.data'
 
-const sql: DbConnection = getClientSQL()
-
-export async function getActivityById(id: string): Promise<IActivity> {
-  const activity: IActivity = await sql.query(
+export async function getActivityById(conn: DbConnOrTx, id: string): Promise<IActivity> {
+  const activity: IActivity = await conn.query(
     `SELECT
       "id",
       "type",
@@ -39,7 +36,11 @@ export async function getActivityById(id: string): Promise<IActivity> {
   return activity
 }
 
-export async function updateActivity(id: string, activity: IDbActivityUpdateData): Promise<void> {
+export async function updateActivity(
+  conn: DbConnOrTx,
+  id: string,
+  activity: IDbActivityUpdateData,
+): Promise<void> {
   let query = `UPDATE activities SET
   "type" = $(type),
   "isContribution" = $(isContribution),
@@ -91,7 +92,7 @@ export async function updateActivity(id: string, activity: IDbActivityUpdateData
 
   query += 'WHERE "id" = $(id);'
 
-  await sql.none(query, {
+  await conn.none(query, {
     id: id,
     type: activity.type,
     isContribution: activity.isContribution,
@@ -114,11 +115,12 @@ export async function updateActivity(id: string, activity: IDbActivityUpdateData
 }
 
 export async function updateActivityParentIds(
+  conn: DbConnOrTx,
   id: string,
   activity: IDbActivityUpdateData,
 ): Promise<void> {
   const promises: Promise<void>[] = [
-    sql.none(
+    conn.none(
       `
       UPDATE activities SET "parentId" = $(id)
       WHERE "tenantId" = $(tenantId)
@@ -136,7 +138,7 @@ export async function updateActivityParentIds(
 
   if (activity.sourceParentId) {
     promises.push(
-      sql.none(
+      conn.none(
         `
         UPDATE activities SET "parentId" = (
           SELECT "id" FROM activities
@@ -163,6 +165,6 @@ export async function updateActivityParentIds(
   await Promise.all(promises)
 }
 
-export async function deleteActivity(id: string): Promise<void> {
-  await sql.none('DELETE FROM activities WHERE id = $(id);', { id })
+export async function deleteActivity(conn: DbConnOrTx, id: string): Promise<void> {
+  await conn.none('DELETE FROM activities WHERE id = $(id);', { id })
 }

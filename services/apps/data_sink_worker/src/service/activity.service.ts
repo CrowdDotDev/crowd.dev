@@ -36,7 +36,8 @@ export default class ActivityService extends LoggerBase {
   private readonly conversationService: ConversationService
 
   constructor(
-    private readonly store: DbStore,
+    private readonly pgStore: DbStore,
+    private readonly qdbStore: DbStore,
     private readonly nodejsWorkerEmitter: NodejsWorkerEmitter,
     private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
     private readonly redisClient: RedisClient,
@@ -46,7 +47,7 @@ export default class ActivityService extends LoggerBase {
   ) {
     super(parentLog)
 
-    this.conversationService = new ConversationService(store, this.log)
+    this.conversationService = new ConversationService(pgStore, qdbStore, this.log)
   }
 
   public async create(
@@ -61,7 +62,7 @@ export default class ActivityService extends LoggerBase {
 
       const sentiment = await getSentiment(`${activity.body || ''} ${activity.title || ''}`.trim())
 
-      const id = await this.store.transactionally(async (txStore) => {
+      const id = await this.pgStore.transactionally(async (txStore) => {
         const txRepo = new ActivityRepository(txStore, this.log)
         const txSettingsRepo = new SettingsRepository(txStore, this.log)
 
@@ -190,7 +191,7 @@ export default class ActivityService extends LoggerBase {
     fireSync = true,
   ): Promise<void> {
     try {
-      const updated = await this.store.transactionally(async (txStore) => {
+      const updated = await this.pgStore.transactionally(async (txStore) => {
         const txRepo = new ActivityRepository(txStore, this.log)
         const txSettingsRepo = new SettingsRepository(txStore, this.log)
 
@@ -468,7 +469,7 @@ export default class ActivityService extends LoggerBase {
       let objectMemberId: string | undefined
       let segmentId: string
 
-      await this.store.transactionally(async (txStore) => {
+      await this.pgStore.transactionally(async (txStore) => {
         try {
           const txRepo = new ActivityRepository(txStore, this.log)
           const txMemberRepo = new MemberRepository(txStore, this.log)
@@ -483,6 +484,7 @@ export default class ActivityService extends LoggerBase {
           )
           const txActivityService = new ActivityService(
             txStore,
+            this.qdbStore,
             this.nodejsWorkerEmitter,
             this.searchSyncWorkerEmitter,
             this.redisClient,
@@ -790,7 +792,7 @@ export default class ActivityService extends LoggerBase {
                 dbActivity,
                 false,
               )
-              await updateActivity(dbActivity.id, {
+              await updateActivity(this.qdbStore.connection(), dbActivity.id, {
                 tenantId: tenantId,
                 segmentId: segmentId,
                 type: activity.type,

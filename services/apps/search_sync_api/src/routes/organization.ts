@@ -11,7 +11,8 @@ router.post(
   '/sync/organizations',
   asyncWrap(async (req: ApiRequest, res) => {
     const organizationSyncService = new OrganizationSyncService(
-      req.dbStore,
+      req.pgStore,
+      req.qdbStore,
       req.opensearch,
       req.log,
       serviceConfig,
@@ -31,7 +32,8 @@ router.post(
   '/sync/tenant/organizations',
   asyncWrap(async (req: ApiRequest, res) => {
     const organizationSyncService = new OrganizationSyncService(
-      req.dbStore,
+      req.pgStore,
+      req.qdbStore,
       req.opensearch,
       req.log,
       serviceConfig,
@@ -54,7 +56,8 @@ router.post(
   '/cleanup/tenant/organizations',
   asyncWrap(async (req: ApiRequest, res) => {
     const organizationSyncService = new OrganizationSyncService(
-      req.dbStore,
+      req.pgStore,
+      req.qdbStore,
       req.opensearch,
       req.log,
       serviceConfig,
@@ -77,7 +80,8 @@ router.post(
   '/cleanup/organization',
   asyncWrap(async (req: ApiRequest, res) => {
     const organizationSyncService = new OrganizationSyncService(
-      req.dbStore,
+      req.pgStore,
+      req.qdbStore,
       req.opensearch,
       req.log,
       serviceConfig,

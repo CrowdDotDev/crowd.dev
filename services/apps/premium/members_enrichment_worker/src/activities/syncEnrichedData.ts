@@ -1,6 +1,7 @@
 import { MemberSyncService, OrganizationSyncService } from '@crowd/opensearch'
 
 import { svc } from '../main'
+import { DbStore } from '@crowd/data-access-layer/src/database'
 
 const syncMembers = new MemberSyncService(svc.redis, svc.postgres.writer, svc.opensearch, svc.log, {
   edition: process.env['CROWD_EDITION'],
@@ -8,6 +9,7 @@ const syncMembers = new MemberSyncService(svc.redis, svc.postgres.writer, svc.op
 
 const syncOrganizations = new OrganizationSyncService(
   svc.postgres.writer,
+  new DbStore(svc.log, svc.questdbSQL),
   svc.opensearch,
   svc.log,
   {

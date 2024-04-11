@@ -1,5 +1,5 @@
 import { IDbMemberSyncData } from '../repo/member.data'
-import { IDbOrganizationSyncData } from '../repo/organization.data'
+import { IDbOrganizationSyncData, IOrganizationSegmentAggregates } from '../repo/organization.data'
 import { OpenSearchIndex } from '../types'
 import { Logger, getChildLogger } from '@crowd/logging'
 import { MemberSyncService } from './member.sync.service'
@@ -32,7 +32,6 @@ export class InitService {
     const fakeOrg: IDbOrganizationSyncData = {
       organizationId: InitService.FAKE_ORGANIZATION_ID,
       tenantId: InitService.FAKE_TENANT_ID,
-      segmentId: InitService.FAKE_SEGMENT_ID,
       grandParentSegment: false,
       address: {
         name: 'paris, ile-de-france, france',
@@ -79,11 +78,6 @@ export class InitService {
       github: {},
       crunchbase: {},
       twitter: {},
-      joinedAt: new Date().toISOString(),
-      lastActive: new Date().toISOString(),
-      activeOn: ['devto'],
-      activityCount: 10,
-      memberCount: 10,
       identities: [
         {
           platform: 'devto',
@@ -142,7 +136,18 @@ export class InitService {
       directSubsidiaries: ['Fake direct subsidiary 1', 'Fake direct subsidiary 2'],
     }
 
-    const prepared = OrganizationSyncService.prefixData(fakeOrg)
+    const fakeAggregates: IOrganizationSegmentAggregates = {
+      organizationId: InitService.FAKE_ORGANIZATION_ID,
+      segmentId: InitService.FAKE_SEGMENT_ID,
+      memberIds: [InitService.FAKE_MEMBER_ID],
+      joinedAt: new Date().toISOString(),
+      lastActive: new Date().toISOString(),
+      activeOn: ['devto'],
+      activityCount: 10,
+      memberCount: 10,
+    }
+
+    const prepared = OrganizationSyncService.prefixData(fakeOrg, fakeAggregates)
     await this.openSearchService.index(
       `${InitService.FAKE_ORGANIZATION_ID}-${InitService.FAKE_SEGMENT_ID}`,
       OpenSearchIndex.ORGANIZATIONS,

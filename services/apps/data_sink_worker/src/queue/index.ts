@@ -23,7 +23,8 @@ export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
   constructor(
     level: QueuePriorityLevel,
     client: SqsClient,
-    private readonly dbConn: DbConnection,
+    private readonly pgConn: DbConnection,
+    private readonly qdbConn: DbConnection,
     private readonly nodejsWorkerEmitter: NodejsWorkerEmitter,
     private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
     private readonly dataSinkWorkerEmitter: DataSinkWorkerEmitter,
@@ -42,7 +43,8 @@ export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
         this.log.trace({ messageType: message.type }, 'Processing message!')
 
         const service = new DataSinkService(
-          new DbStore(this.log, this.dbConn, undefined, false),
+          new DbStore(this.log, this.pgConn, undefined, false),
+          new DbStore(this.log, this.qdbConn, undefined, false),
           this.nodejsWorkerEmitter,
           this.searchSyncWorkerEmitter,
           this.dataSinkWorkerEmitter,

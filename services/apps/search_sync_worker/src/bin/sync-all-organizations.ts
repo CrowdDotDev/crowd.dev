@@ -6,6 +6,7 @@ import { OrganizationRepository } from '@crowd/data-access-layer/src/old/apps/se
 import { timeout } from '@crowd/common'
 import { IndexingRepository } from '@crowd/opensearch/src/repo/indexing.repo'
 import { IndexedEntityType } from '@crowd/opensearch/src/repo/indexing.data'
+import { getClientSQL } from '@crowd/questdb'
 
 const log = getServiceLogger()
 
@@ -18,6 +19,8 @@ setImmediate(async () => {
 
   const dbConnection = await getDbConnection(DB_CONFIG())
   const store = new DbStore(log, dbConnection)
+  const qdbConn = await getClientSQL()
+  const qdbStore = new DbStore(log, qdbConn)
 
   if (processArguments.includes('--clean')) {
     const indexingRepo = new IndexingRepository(store, log)
@@ -28,7 +31,13 @@ setImmediate(async () => {
 
   const tenantIds = await repo.getTenantIds()
 
-  const service = new OrganizationSyncService(store, openSearchService, log, SERVICE_CONFIG())
+  const service = new OrganizationSyncService(
+    store,
+    qdbStore,
+    openSearchService,
+    log,
+    SERVICE_CONFIG(),
+  )
 
   let current = 0
   for (let i = 0; i < tenantIds.length; i++) {

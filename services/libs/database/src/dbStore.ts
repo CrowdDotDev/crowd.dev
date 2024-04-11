@@ -2,6 +2,7 @@ import { Logger, LoggerBase, logError } from '@crowd/logging'
 import { getDbInstance } from './connection'
 import { lockTable, lockTableRow } from './locking'
 import {
+  DbConnOrTx,
   DbConnection,
   DbInstance,
   DbTransaction,
@@ -33,7 +34,7 @@ export class DbStore extends LoggerBase {
     return this.dbTransaction !== undefined
   }
 
-  public connection(): DbConnection | DbTransaction {
+  public connection(): DbConnOrTx {
     this.checkValid()
     return this.isTransaction()
       ? <DbTransaction>this.dbTransaction

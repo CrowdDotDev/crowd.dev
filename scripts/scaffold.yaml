@@ -33,6 +33,7 @@ services:
     volumes:
       - pgdata-dev:/var/lib/postgresql/data
     shm_size: 1gb
+    command: postgres -c 'max_connections=1000'
     networks:
       - crowd-bridge
 

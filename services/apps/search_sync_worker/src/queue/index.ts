@@ -20,7 +20,8 @@ export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
     level: QueuePriorityLevel,
     private readonly redisClient: RedisClient,
     client: SqsClient,
-    private readonly dbConn: DbConnection,
+    private readonly pgConn: DbConnection,
+    private readonly qdbConn: DbConnection,
     private readonly openSearchService: OpenSearchService,
     tracer: Tracer,
     parentLog: Logger,
@@ -72,7 +73,7 @@ export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
   private initMemberService(): MemberSyncService {
     return new MemberSyncService(
       this.redisClient,
-      new DbStore(this.log, this.dbConn),
+      new DbStore(this.log, this.pgConn),
       this.openSearchService,
       this.log,
       SERVICE_CONFIG(),
@@ -81,7 +82,8 @@ export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
 
   private initOrganizationService(): OrganizationSyncService {
     return new OrganizationSyncService(
-      new DbStore(this.log, this.dbConn),
+      new DbStore(this.log, this.pgConn),
+      new DbStore(this.log, this.qdbConn),
       this.openSearchService,
       this.log,
       SERVICE_CONFIG(),

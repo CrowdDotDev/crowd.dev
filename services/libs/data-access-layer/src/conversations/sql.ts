@@ -1,16 +1,16 @@
 import { generateUUIDv4 } from '@crowd/common'
-import { DbConnection } from '@crowd/database'
-import { getClientSQL } from '@crowd/questdb'
+import { DbConnOrTx } from '@crowd/database'
 
 import { IDbConversationCreateData } from '../old/apps/data_sink_worker/repo/conversation.data'
 
-const sql: DbConnection = getClientSQL()
-
-export async function insertConversation(conversation: IDbConversationCreateData): Promise<string> {
+export async function insertConversation(
+  conn: DbConnOrTx,
+  conversation: IDbConversationCreateData,
+): Promise<string> {
   const now = new Date()
   const id = generateUUIDv4()
 
-  await sql.tx(async (tx) => {
+  await conn.tx(async (tx) => {
     await tx.none(
       `
       INSERT INTO "conversations" ("id", "tenantId", "segmentId", "slug", "title", "published", "createdAt", "updatedAt", "timestamp")
@@ -69,9 +69,9 @@ export async function insertConversation(conversation: IDbConversationCreateData
   return id
 }
 
-export async function deleteConversation(id: string): Promise<void> {
+export async function deleteConversation(conn: DbConnOrTx, id: string): Promise<void> {
   await Promise.all([
-    sql.none('DELETE FROM activities WHERE "conversationId" = $(id);', { id }),
-    sql.none('DELETE FROM conversations WHERE "id" = $(id);', { id }),
+    conn.none('DELETE FROM activities WHERE "conversationId" = $(id);', { id }),
+    conn.none('DELETE FROM conversations WHERE "id" = $(id);', { id }),
   ])
 }

@@ -17,6 +17,7 @@ const MAX_RESULTS_TO_LOAD = 500
 
 export const processOldResultsJob = async (
   dbConn: DbConnection,
+  qdbConn: DbConnection,
   redis: RedisClient,
   nodejsWorkerEmitter: NodejsWorkerEmitter,
   searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
@@ -26,9 +27,11 @@ export const processOldResultsJob = async (
   log: Logger,
 ): Promise<void> => {
   const store = new DbStore(log, dbConn, undefined, false)
+  const qdbStore = new DbStore(log, qdbConn, undefined, false)
   const repo = new DataSinkRepository(store, log)
   const service = new DataSinkService(
     store,
+    qdbStore,
     nodejsWorkerEmitter,
     searchSyncWorkerEmitter,
     dataSinkWorkerEmitter,

@@ -1,4 +1,8 @@
-import { IDbOrganizationSyncData, IOrganizationSegmentMatrix } from '../repo/organization.data'
+import {
+  IDbOrganizationSyncData,
+  IOrganizationSegmentAggregates,
+  IOrganizationSegmentMatrix,
+} from '../repo/organization.data'
 import { OrganizationRepository } from '../repo/organization.repo'
 import { IDbSegmentInfo } from '../repo/segment.data'
 import { SegmentRepository } from '../repo/segment.repo'
@@ -12,6 +16,9 @@ import { IOrganizationSyncResult } from './organization.sync.data'
 import { IServiceConfig } from '@crowd/types'
 import { IndexingRepository } from '../repo/indexing.repo'
 import { IndexedEntityType } from '../repo/indexing.data'
+import { ActivityRepository } from '../repo/activity.repo'
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 export class OrganizationSyncService {
   private log: Logger
@@ -19,9 +26,11 @@ export class OrganizationSyncService {
   private readonly segmentRepo: SegmentRepository
   private readonly serviceConfig: IServiceConfig
   private readonly indexingRepo: IndexingRepository
+  private readonly activityRepo: ActivityRepository
 
   constructor(
-    store: DbStore,
+    pgStore: DbStore,
+    qdbStore: DbStore,
     private readonly openSearchService: OpenSearchService,
     parentLog: Logger,
     serviceConfig: IServiceConfig,
@@ -29,9 +38,10 @@ export class OrganizationSyncService {
     this.log = getChildLogger('organization-sync-service', parentLog)
     this.serviceConfig = serviceConfig
 
-    this.orgRepo = new OrganizationRepository(store, this.log)
-    this.segmentRepo = new SegmentRepository(store, this.log)
-    this.indexingRepo = new IndexingRepository(store, this.log)
+    this.orgRepo = new OrganizationRepository(pgStore, this.log)
+    this.segmentRepo = new SegmentRepository(pgStore, this.log)
+    this.indexingRepo = new IndexingRepository(pgStore, this.log)
+    this.activityRepo = new ActivityRepository(qdbStore, this.log)
   }
 
   public async getAllIndexedTenantIds(
@@ -263,8 +273,26 @@ export class OrganizationSyncService {
     const BULK_INDEX_DOCUMENT_BATCH_SIZE = 2500
 
     // get all orgId-segmentId couples
-    const orgSegmentCouples: IOrganizationSegmentMatrix =
-      await this.orgRepo.getOrganizationSegmentCouples(organizationIds, segmentIds)
+    let orgSegmentCouples: IOrganizationSegmentMatrix
+    if (segmentIds && segmentIds.length > 0) {
+      // we have segmentIds as parameters so we don't need to find all that orgs is in from db
+      orgSegmentCouples = await this.orgRepo.getOrganizationSegmentCouples(
+        organizationIds,
+        [],
+        segmentIds,
+      )
+    } else {
+      // first we fetch org - segment couples from activities table in questdb
+      const organizationSegments = await this.activityRepo.getOrganizationSegmentCoupleso(
+        organizationIds,
+      )
+      // then we further process it to include orgs without activities (like manual orgs)
+      orgSegmentCouples = await this.orgRepo.getOrganizationSegmentCouples(
+        organizationIds,
+        organizationSegments,
+      )
+    }
+
     let databaseStream = []
     let syncStream = []
     let documentsIndexed = 0
@@ -272,19 +300,20 @@ export class OrganizationSyncService {
     const totalOrgIds = allOrgIds.length
 
     const processSegmentsStream = async (databaseStream): Promise<void> => {
-      const results = await Promise.all(databaseStream.map((s) => s.promise))
+      const results = await Promise.all(databaseStream.map((s) => s.orgDataPromise))
 
       let index = 0
 
       while (results.length > 0) {
         const result = results.shift()
-        const { orgId, segmentId } = databaseStream[index]
+        const { orgId, segmentId, aggregatesPromise } = databaseStream[index]
         const orgSegments = orgSegmentCouples[orgId]
 
         // Find the correct segment and mark it as processed and add the data
         const targetSegment = orgSegments.find((s) => s.segmentId === segmentId)
         targetSegment.processed = true
         targetSegment.data = result
+        targetSegment.aggregates = await aggregatesPromise
 
         // Check if all segments for the organization have been processed
         const allSegmentsOfOrgIsProcessed = orgSegments.every((s) => s.processed)
@@ -293,8 +322,8 @@ export class OrganizationSyncService {
           syncStream.push(
             ...orgSegmentCouples[orgId].map((s) => {
               return {
-                id: `${s.data.organizationId}-${s.data.segmentId}`,
-                body: OrganizationSyncService.prefixData(s.data),
+                id: `${s.data.organizationId}-${s.aggregates.segmentId}`,
+                body: OrganizationSyncService.prefixData(s.data, s.aggregates),
               }
             }),
           )
@@ -309,11 +338,15 @@ export class OrganizationSyncService {
             const parentIds: string[] = distinct(segmentInfos.map((s) => s.parentId))
             for (const parentId of parentIds) {
               const aggregated = OrganizationSyncService.aggregateData(
-                orgSegmentCouples[orgId].map((s) => s.data),
+                orgSegmentCouples[orgId].map((s) => s.aggregates),
                 segmentInfos,
                 parentId,
               )
-              const prepared = OrganizationSyncService.prefixData(aggregated)
+
+              const prepared = OrganizationSyncService.prefixData(
+                orgSegmentCouples[orgId][0].data,
+                aggregated,
+              )
               syncStream.push({
                 id: `${orgId}-${parentId}`,
                 body: prepared,
@@ -323,15 +356,19 @@ export class OrganizationSyncService {
             const grandParentIds = distinct(segmentInfos.map((s) => s.grandParentId))
             for (const grandParentId of grandParentIds) {
               const aggregated = OrganizationSyncService.aggregateData(
-                orgSegmentCouples[orgId].map((s) => s.data),
+                orgSegmentCouples[orgId].map((s) => s.aggregates),
                 segmentInfos,
                 undefined,
                 grandParentId,
               )
-              const prepared = OrganizationSyncService.prefixData({
-                ...aggregated,
-                grandParentSegment: true,
-              })
+
+              const prepared = OrganizationSyncService.prefixData(
+                {
+                  ...orgSegmentCouples[orgId][0].data,
+                  grandParentSegment: true,
+                },
+                aggregated,
+              )
               syncStream.push({
                 id: `${orgId}-${grandParentId}`,
                 body: prepared,
@@ -356,7 +393,11 @@ export class OrganizationSyncService {
         databaseStream.push({
           orgId: orgId,
           segmentId: segment.segmentId,
-          promise: this.orgRepo.getOrganizationDataInOneSegment(orgId, segment.segmentId),
+          orgDataPromise: this.orgRepo.getOrganizationData(orgId),
+          aggregatesPromise: this.activityRepo.getOrganizationAggregateData(
+            orgId,
+            segment.segmentId,
+          ),
         })
 
         // databaseStreams will create syncStreams items in processSegmentsStream, which'll later be used to sync to opensearch in bulk
@@ -397,11 +438,11 @@ export class OrganizationSyncService {
   }
 
   private static aggregateData(
-    segmentOrganizationss: IDbOrganizationSyncData[],
+    aggregates: IOrganizationSegmentAggregates[],
     segmentInfos: IDbSegmentInfo[],
     parentId?: string,
     grandParentId?: string,
-  ): IDbOrganizationSyncData | undefined {
+  ): IOrganizationSegmentAggregates | undefined {
     if (!parentId && !grandParentId) {
       throw new Error('Either parentId or grandParentId must be provided!')
     }
@@ -415,82 +456,67 @@ export class OrganizationSyncService {
       }
     }
 
-    const organizations = segmentOrganizationss.filter((m) =>
-      relevantSubchildIds.includes(m.segmentId),
-    )
+    const relevantAggregates = aggregates.filter((m) => relevantSubchildIds.includes(m.segmentId))
 
-    if (organizations.length === 0) {
+    if (relevantAggregates.length === 0) {
       throw new Error('No organizations found for given parent or grandParent segment id!')
     }
 
     // aggregate data
-    const organization = { ...organizations[0] }
-
-    // use corrent id as segmentId
-    if (parentId) {
-      organization.segmentId = parentId
-    } else {
-      organization.segmentId = grandParentId
+    const data: IOrganizationSegmentAggregates = {
+      organizationId: relevantAggregates[0].organizationId,
+      segmentId: parentId !== undefined ? parentId : grandParentId,
+      joinedAt: undefined,
+      lastActive: undefined,
+      memberIds: [],
+      memberCount: 0,
+      activityCount: 0,
+      activeOn: [],
     }
 
-    // reset aggregates
-    organization.joinedAt = undefined
-    organization.lastActive = undefined
-    organization.activeOn = []
-    organization.activityCount = 0
-    organization.memberCount = 0
-    organization.identities = []
-    organization.memberIds = []
-
-    for (const org of organizations) {
-      if (!organization.joinedAt) {
-        organization.joinedAt = org.joinedAt
-      } else if (org.joinedAt) {
-        const d1 = new Date(organization.joinedAt)
-        const d2 = new Date(org.joinedAt)
+    for (const agg of relevantAggregates) {
+      if (!data.joinedAt) {
+        data.joinedAt = agg.joinedAt
+      } else if (agg.joinedAt) {
+        const d1 = new Date(data.joinedAt)
+        const d2 = new Date(agg.joinedAt)
 
         if (d1 > d2) {
-          organization.joinedAt = org.joinedAt
+          data.joinedAt = agg.joinedAt
         }
       }
 
-      if (!organization.lastActive) {
-        organization.lastActive = org.lastActive
-      } else if (org.lastActive) {
-        const d1 = new Date(organization.lastActive)
-        const d2 = new Date(org.lastActive)
+      if (!data.lastActive) {
+        data.lastActive = agg.lastActive
+      } else if (agg.lastActive) {
+        const d1 = new Date(data.lastActive)
+        const d2 = new Date(agg.lastActive)
 
         if (d1 < d2) {
-          organization.lastActive = org.lastActive
+          data.lastActive = agg.lastActive
         }
       }
 
-      organization.activeOn.push(...org.activeOn)
-      organization.activityCount += org.activityCount
-      // organization.memberCount += org.memberCount
-      organization.identities.push(...org.identities)
-      organization.memberIds.push(...org.memberIds)
+      data.activeOn.push(...agg.activeOn)
+      data.activityCount += agg.activityCount
+      data.memberIds.push(...agg.memberIds)
     }
 
     // gather only uniques
-    organization.activeOn = distinct(organization.activeOn)
-    organization.identities = organization.identities.reduce((acc, identity) => {
-      if (!acc.find((i) => i.platform === identity.platform && i.name === identity.name)) {
-        acc.push(identity)
-      }
-      return acc
-    }, [])
-    organization.memberCount = distinct(organization.memberIds).length
+    data.activeOn = distinct(data.activeOn)
+    data.memberCount = distinct(data.memberIds).length
 
-    return organization
+    return data
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public static prefixData(data: IDbOrganizationSyncData): any {
+  public static prefixData(
+    data: IDbOrganizationSyncData,
+    aggregates: IOrganizationSegmentAggregates,
+  ): any {
     const p: Record<string, unknown> = {}
 
     p.uuid_organizationId = data.organizationId
-    p.uuid_segmentId = data.segmentId
+    p.uuid_segmentId = aggregates.segmentId
     p.bool_grandParentSegment = data.grandParentSegment ? data.grandParentSegment : false
     p.uuid_tenantId = data.tenantId
     p.obj_address = data.address
@@ -572,11 +598,11 @@ export class OrganizationSyncService {
     p.nested_weakIdentities = p_weakIdentities
 
     // aggregate data
-    p.date_joinedAt = data.joinedAt ? new Date(data.joinedAt).toISOString() : null
-    p.date_lastActive = data.lastActive ? new Date(data.lastActive).toISOString() : null
-    p.string_arr_activeOn = data.activeOn
-    p.int_activityCount = data.activityCount
-    p.int_memberCount = data.memberCount
+    p.date_joinedAt = aggregates.joinedAt ? new Date(aggregates.joinedAt).toISOString() : null
+    p.date_lastActive = aggregates.lastActive ? new Date(aggregates.lastActive).toISOString() : null
+    p.string_arr_activeOn = aggregates.activeOn
+    p.int_activityCount = aggregates.activityCount
+    p.int_memberCount = aggregates.memberCount
 
     return p
   }

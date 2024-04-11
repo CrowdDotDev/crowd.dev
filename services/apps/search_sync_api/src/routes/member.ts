@@ -12,7 +12,7 @@ router.post(
   asyncWrap(async (req: ApiRequest, res) => {
     const memberSyncService = new MemberSyncService(
       req.redisClient,
-      req.dbStore,
+      req.pgStore,
       req.opensearch,
       req.log,
       serviceConfig,
@@ -34,7 +34,7 @@ router.post(
   asyncWrap(async (req: ApiRequest, res) => {
     const memberSyncService = new MemberSyncService(
       req.redisClient,
-      req.dbStore,
+      req.pgStore,
       req.opensearch,
       req.log,
       serviceConfig,
@@ -56,7 +56,7 @@ router.post(
   asyncWrap(async (req: ApiRequest, res) => {
     const memberSyncService = new MemberSyncService(
       req.redisClient,
-      req.dbStore,
+      req.pgStore,
       req.opensearch,
       req.log,
       serviceConfig,
@@ -80,7 +80,7 @@ router.post(
   asyncWrap(async (req: ApiRequest, res) => {
     const memberSyncService = new MemberSyncService(
       req.redisClient,
-      req.dbStore,
+      req.pgStore,
       req.opensearch,
       req.log,
       serviceConfig,
@@ -102,7 +102,7 @@ router.post(
   asyncWrap(async (req: ApiRequest, res) => {
     const memberSyncService = new MemberSyncService(
       req.redisClient,
-      req.dbStore,
+      req.pgStore,
       req.opensearch,
       req.log,
       serviceConfig,

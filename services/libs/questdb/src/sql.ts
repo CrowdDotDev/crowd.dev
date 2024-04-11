@@ -6,7 +6,7 @@ const log = getServiceChildLogger('questdb.sql.connection')
 
 let client: pgpromise.IDatabase<unknown> | undefined
 
-export const getClientSQL = (): pgpromise.IDatabase<unknown> => {
+export const getClientSQL = async (): Promise<pgpromise.IDatabase<unknown>> => {
   if (client) {
     return client
   }
@@ -20,6 +20,8 @@ export const getClientSQL = (): pgpromise.IDatabase<unknown> => {
     password: process.env['CROWD_QUESTDB_READ_PASSWORD'],
     database: process.env['CROWD_QUESTDB_READ_DATABASE'],
   })
+
+  await client.connect()
 
   return client
 }

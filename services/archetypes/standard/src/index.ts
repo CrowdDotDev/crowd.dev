@@ -11,6 +11,7 @@ import { Logger, getServiceLogger } from '@crowd/logging'
 import { RedisClient, acquireLock, getRedisClient, releaseLock } from '@crowd/redis'
 import { Client as TemporalClient, getTemporalClient } from '@crowd/temporal'
 import { Tracer, getServiceTracer } from '@crowd/tracing'
+import { DbConnection } from '@crowd/database'
 
 // Retrieve automatically configured tracer and logger.
 const tracer = getServiceTracer()
@@ -135,6 +136,14 @@ export class Service {
     }
 
     return this._redisClient
+  }
+
+  get questdbSQL(): DbConnection | null {
+    if (!this.config.questdb.enabled) {
+      return null
+    }
+
+    return this._questdbSQL
   }
 
   // Redis utility to acquire a lock. Redis must be enabled in the service.
@@ -273,8 +282,7 @@ export class Service {
     // ingestion.
     if (this.config.questdb?.enabled) {
       try {
-        this._questdbSQL = getClientSQL()
-        await this._questdbSQL.connect()
+        this._questdbSQL = await getClientSQL()
       } catch (err) {
         throw new Error(err)
       }
