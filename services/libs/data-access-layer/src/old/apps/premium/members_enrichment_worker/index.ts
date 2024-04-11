@@ -1,6 +1,12 @@
 import { DbStore, DbTransaction } from '@crowd/database'
 import { generateUUIDv4 } from '@crowd/common'
-import { IAttributes, IMember, MemberIdentityType, OrganizationSource } from '@crowd/types'
+import {
+  IAttributes,
+  IMember,
+  MemberIdentityType,
+  OrganizationSource,
+  IMemberIdentity,
+} from '@crowd/types'
 
 export async function fetchMembersForEnrichment(db: DbStore): Promise<IMember[]> {
   return db.connection().query(
@@ -34,6 +40,128 @@ export async function fetchMembersForEnrichment(db: DbStore): Promise<IMember[]>
      GROUP BY members.id
          LIMIT 50;`,
   )
+}
+
+export async function fetchMembersForLFIDEnrichment(db: DbStore, limit: number, offset: number) {
+  return db.connection().query(
+    `SELECT
+        members."id",
+        members."displayName",
+        members."attributes",
+        members."contributions",
+        members."score",
+        members."reach",
+        members."tenantId",
+        jsonb_agg(mi.*) as identities
+      FROM members
+              INNER JOIN tenants ON tenants.id = members."tenantId"
+              INNER JOIN "memberIdentities" mi ON mi."memberId" = members.id
+      WHERE tenants.plan IN ('Scale', 'Enterprise')
+        AND (
+          (mi.platform = 'github' and mi."sourceId" is not null) OR
+          (mi.platform = 'linkedin' and mi."sourceId" is not null) OR
+          (mi.platform = 'cvent') OR
+          (mi.platform = 'tnc') OR
+          (mi.type = 'email' and mi.verified)
+          )
+        AND tenants."deletedAt" IS NULL
+        AND members."deletedAt" IS NULL
+      GROUP BY members.id
+      ORDER BY members.id desc
+          limit $1
+          offset $2;`,
+    [limit, offset],
+  )
+}
+
+export async function getIdentitiesExistInOtherMembers(
+  db: DbStore,
+  tenantId: string,
+  excludeMemberId: string,
+  identities: IMemberIdentity[],
+): Promise<IMemberIdentity[]> {
+  if (identities.length === 0) {
+    throw new Error(`At least one identity must be provided!`)
+  }
+
+  let identityPartialQuery = '('
+  const replacements = []
+  let replacementIndex = 0
+
+  for (let i = 0; i < identities.length; i++) {
+    if (identities[i].type === MemberIdentityType.USERNAME) {
+      identityPartialQuery += `(mi.verified and mi.type = '${
+        MemberIdentityType.USERNAME
+      }' and mi.platform = $${replacementIndex + 1} and mi."value" ilike $${replacementIndex + 2})`
+      replacements[replacementIndex] = identities[i].platform
+      replacements[replacementIndex + 1] = identities[i].value
+      replacementIndex += 2
+    } else if (identities[i].type === MemberIdentityType.EMAIL) {
+      identityPartialQuery += `(mi.verified and mi.type = '${
+        MemberIdentityType.EMAIL
+      }' and mi."value" ilike $${replacementIndex + 1})`
+      replacements[replacementIndex] = identities[i].value
+      replacementIndex += 1
+    }
+
+    if (i !== identities.length - 1) {
+      identityPartialQuery += ' OR '
+    }
+  }
+  identityPartialQuery += ')'
+
+  // push replacement for excluded member id and tenant id to the end of replacements array
+  replacements.push(excludeMemberId)
+  replacements.push(tenantId)
+
+  const query = `select * from "memberIdentities" mi
+  where ${identityPartialQuery}
+  and mi."memberId" <> $${replacementIndex + 1}
+  and mi."tenantId" = $${replacementIndex + 2};`
+
+  return db.connection().query(query, replacements)
+}
+
+export async function getGithubIdentitiesWithoutSourceId(
+  db: DbStore,
+  limit: number,
+  afterId: string,
+  afterValue: string,
+): Promise<IMemberIdentity[]> {
+  if (afterId) {
+    return db.connection().query(
+      `select * from "memberIdentities" mi
+      where mi.platform = 'github' and mi."sourceId" is null
+      and (
+        mi."memberId" < $1 OR
+        (mi."memberId" = $1 AND mi."value" < $2)
+      )
+      order by mi."memberId" desc
+      limit $3;`,
+      [afterId, afterValue, limit],
+    )
+  }
+
+  return db.connection().query(
+    `select * from "memberIdentities" mi
+    where mi.platform = 'github' and mi."sourceId" is null
+    order by mi."memberId" desc
+    limit $1;`,
+    [limit],
+  )
+}
+
+export async function updateIdentitySourceId(
+  db: DbStore,
+  identity: IMemberIdentity,
+  sourceId: string,
+) {
+  await db
+    .connection()
+    .query(
+      `UPDATE "memberIdentities" SET "sourceId" = $1 WHERE "memberId" = $2 AND platform = $3 AND value = $4;`,
+      [sourceId, identity.memberId, identity.platform, identity.value],
+    )
 }
 
 export async function updateLastEnrichedDate(
@@ -262,5 +390,20 @@ export async function updateMember(
       contributions: JSON.stringify(contributions),
       displayName,
     },
+  )
+}
+
+export async function updateMemberAttributes(
+  tx: DbTransaction,
+  tenantId: string,
+  memberId: string,
+  attributes: IAttributes,
+) {
+  return tx.query(
+    `UPDATE members SET
+      attributes = $1,
+      "updatedAt" = NOW()
+    WHERE id = $2 AND "tenantId" = $3;`,
+    [attributes, memberId, tenantId],
   )
 }

@@ -5,7 +5,6 @@ import { getRedisClient } from '@crowd/redis'
 import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { getSqsClient } from '@crowd/sqs'
 import { WorkerQueueReceiver } from './queue'
-import { processOldStreamsJob } from './jobs/processOldStreams'
 import {
   DataSinkWorkerEmitter,
   IntegrationRunWorkerEmitter,
@@ -19,7 +18,6 @@ const tracer = getServiceTracer()
 const log = getServiceLogger()
 
 const MAX_CONCURRENT_PROCESSING = 2
-const PROCESSING_INTERVAL_MINUTES = 5
 
 setImmediate(async () => {
   log.info('Starting integration stream worker...')
@@ -77,27 +75,6 @@ setImmediate(async () => {
     await runWorkerEmiiter.init()
     await streamWorkerEmitter.init()
     await dataSinkWorkerEmitter.init()
-
-    let processing = false
-    setInterval(async () => {
-      try {
-        if (!processing) {
-          processing = true
-          await processOldStreamsJob(
-            dbConnection,
-            redisClient,
-            runWorkerEmiiter,
-            streamWorkerEmitter,
-            dataSinkWorkerEmitter,
-            log,
-          )
-        }
-      } catch (err) {
-        log.error(err, 'Failed to process old streams/webhooks!')
-      } finally {
-        processing = false
-      }
-    }, PROCESSING_INTERVAL_MINUTES * 60 * 1000)
 
     await queue.start()
   } catch (err) {

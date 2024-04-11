@@ -8,6 +8,19 @@ interface TokenInfo {
   reset: number
 }
 
+export enum GithubAPIResource {
+  GRAPHQL = 'graphql',
+  CORE = 'core',
+  SEARCH = 'search',
+  SOURCE_IMPORT = 'source_import',
+  INTEGRATION_MANIFEST = 'integration_manifest',
+  CODE_SCANNING_UPLOAD = 'code_scanning_upload',
+  ACTIONS_RUNNER_REGISTRATION = 'actions_runner_registration',
+  SCIM = 'scim',
+  AUDIT_LOG = 'audit_log',
+  CODE_SEARCH = 'code_search',
+}
+
 export class GithubTokenRotator {
   static CACHE_KEY = 'integration-cache:github-token-rotator:tokens'
   constructor(private cache: ICache, private tokens: string[]) {
@@ -35,7 +48,7 @@ export class GithubTokenRotator {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public async getToken(integrationId: string, err?: any): Promise<string | null> {
+  public async getToken(integrationId?: string, err?: any): Promise<string | null> {
     const tokens = await this.cache.hgetall(GithubTokenRotator.CACHE_KEY)
     let minResetTime = Infinity
 
@@ -87,7 +100,10 @@ export class GithubTokenRotator {
     }
   }
 
-  public async updateRateLimitInfoFromApi(token: string): Promise<void> {
+  public async updateRateLimitInfoFromApi(
+    token: string,
+    resource: GithubAPIResource = GithubAPIResource.GRAPHQL,
+  ): Promise<void> {
     if (this.tokens.length === 0) {
       throw new Error('No tokens configured in token rotator')
     }
@@ -103,9 +119,18 @@ export class GithubTokenRotator {
         headers: { Authorization: `token ${token}` },
       })
 
-      const remaining = parseInt(response.data.resources.graphql.remaining)
-      const reset = parseInt(response.data.resources.graphql.reset)
+      const remaining = parseInt(response.data.resources[resource].remaining)
+      const reset = parseInt(response.data.resources[resource].reset)
       await this.updateTokenInfo(token, remaining, reset)
     }
+  }
+
+  public async getAllTokens(): Promise<string[]> {
+    return this.tokens
+  }
+
+  public async removeToken(token: string): Promise<void> {
+    this.tokens = this.tokens.filter((t) => t !== token)
+    await this.initializeTokens()
   }
 }

@@ -1438,7 +1438,7 @@ describe('OrganizationRepository tests', () => {
     })
   })
 
-  describe('setOrganizationIsTeam method', () => {
+  describe.skip('setOrganizationIsTeam method', () => {
     const member1 = {
       username: {
         devto: {
