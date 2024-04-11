@@ -99,10 +99,13 @@ export async function enrichMemberWithLFAuth0(member: IMember): Promise<void> {
           verified: true,
         })
       }
+
       // also github profile might come with emails, check if these exist yet in the member
-      for (const githubEmail of (
-        enrichmentGithub.profileData as ILFIDEnrichmentGithubProfile
-      ).emails.filter((e) => e.verified)) {
+      const emailsFromGithubProfile = (
+        (enrichmentGithub.profileData as ILFIDEnrichmentGithubProfile)?.emails || []
+      ).filter((e) => e.verified)
+
+      for (const githubEmail of emailsFromGithubProfile) {
         if (
           !member.identities.some(
             (e) =>
