@@ -53,10 +53,6 @@ export async function insertActivities(activities: IDbActivityCreateData[]): Pro
       row.stringColumn('sourceParentId', activity.sourceParentId)
     }
 
-    if (activity.segmentId) {
-      row.stringColumn('segmentId', activity.segmentId)
-    }
-
     if (activity.organizationId) {
       row.stringColumn('organizationId', activity.organizationId)
     }
