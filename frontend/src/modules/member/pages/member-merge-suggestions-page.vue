@@ -14,7 +14,7 @@
       </app-back-link>
       <div class="flex items-center">
         <h4 class="text-xl font-semibold leading-9">
-          Merging suggestions <span class="font-light text-gray-500">(256)</span>
+          Merging suggestions <span class="font-light text-gray-500">({{ total }})</span>
         </h4>
         <el-tooltip
           placement="top"
@@ -87,12 +87,21 @@ import { onMounted, ref } from 'vue';
 import AppAvatar from '@/shared/avatar/avatar.vue';
 import CrButton from '@/ui-kit/button/Button.vue';
 import AppMemberMergeSimilarity from '@/modules/member/components/suggestions/member-merge-similarity.vue';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+
+const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
 
 const mergeSuggestions = ref<any[]>([]);
 
+const total = ref<number>(0);
+const limit = ref<number>(10);
+const offset = ref<number>(0);
+
 const loadMergeSuggestions = () => {
-  MemberService.fetchMergeSuggestions(10, 0)
+  MemberService.fetchMergeSuggestions(limit.value, offset.value)
     .then((res) => {
+      total.value = +res.count;
       mergeSuggestions.value = res.rows;
     });
 };
