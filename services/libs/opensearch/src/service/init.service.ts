@@ -163,7 +163,6 @@ export class InitService {
     const fakeMember: IDbMemberSyncData = {
       id: InitService.FAKE_MEMBER_ID,
       tenantId: InitService.FAKE_TENANT_ID,
-      segmentId: InitService.FAKE_SEGMENT_ID,
       grandParentSegment: false,
       displayName: 'Test Member',
       score: 10,

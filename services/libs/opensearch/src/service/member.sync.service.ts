@@ -377,7 +377,7 @@ export class MemberSyncService {
           syncStream.push(
             ...memberSegmentCouples[memberId].map((s) => {
               return {
-                id: `${s.data.id}-${s.data.segmentId}`,
+                id: `${s.data.id}-${s.aggregates.segmentId}`,
                 body: MemberSyncService.prefixData(s.data, s.aggregates, attributes),
               }
             }),
@@ -575,7 +575,7 @@ export class MemberSyncService {
 
     p.uuid_memberId = data.id
     p.uuid_tenantId = data.tenantId
-    p.uuid_segmentId = data.segmentId
+    p.uuid_segmentId = aggregates.segmentId
     p.bool_grandParentSegment = data.grandParentSegment ? data.grandParentSegment : false
     p.string_displayName = data.displayName
     p.keyword_displayName = data.displayName
