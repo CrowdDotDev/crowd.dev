@@ -157,6 +157,11 @@ const props = defineProps({
     required: false,
     default: () => ({}),
   },
+  offset: {
+    type: Number,
+    required: false,
+    default: 0,
+  },
 });
 
 const lsSegmentsStore = useLfSegmentsStore();
@@ -167,7 +172,7 @@ const { user, tenant } = storeToRefs(authStore);
 
 const membersToMerge = ref([]);
 const primary = ref(0);
-const offset = ref(0);
+const offset = ref(props.offset);
 const count = ref(0);
 const loading = ref(false);
 
@@ -331,7 +336,7 @@ const mergeSuggestion = () => {
 };
 
 onMounted(async () => {
-  fetch(0);
+  fetch(props.offset);
 });
 </script>
 

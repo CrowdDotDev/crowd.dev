@@ -7,7 +7,11 @@
     custom-class="mt-6 mb-6"
   >
     <template #content>
-      <app-member-merge-suggestions :query="props.query" class="!border-t-0 !shadow-none -mt-5" />
+      <app-member-merge-suggestions
+        :query="props.query"
+        :offset="props.offset"
+        class="!border-t-0 !shadow-none -mt-5"
+      />
     </template>
   </app-dialog>
 </template>
@@ -17,10 +21,14 @@ import { computed } from 'vue';
 import AppMemberMergeSuggestions from '@/modules/member/components/member-merge-suggestions.vue';
 import AppDialog from '@/shared/dialog/dialog.vue';
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   modelValue: boolean,
   query?: any
-}>();
+  offset?: number
+}>(), {
+  offset: 0,
+  query: {},
+});
 
 const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void}>();
 

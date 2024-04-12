@@ -63,19 +63,48 @@
             </td>
             <td class="w-48">
               <div class="flex justify-end items-center gap-3">
-                <cr-button size="small" type="tertiary">
+                <cr-button size="small" type="tertiary" @click="openDetails(si)">
                   View suggestion
                 </cr-button>
-                <cr-button size="small" type="tertiary-light-gray" :icon-only="true">
-                  <i class="ri-more-fill" />
-                </cr-button>
+                <cr-dropdown placement="bottom-end" width="15rem">
+                  <template #trigger>
+                    <cr-button
+                      size="small"
+                      type="tertiary-light-gray"
+                      :loading="sending === `${suggestion.members[0].id}:${suggestion.members[1].id}`"
+                      :icon-only="true"
+                    >
+                      <i class="ri-more-fill" />
+                    </cr-button>
+                  </template>
+
+                  <cr-dropdown-item @click="merge(suggestion)">
+                    <i class="ri-shuffle-line" /> Merge suggestion
+                  </cr-dropdown-item>
+
+                  <cr-dropdown-item @click="ignore(suggestion)">
+                    <i class="ri-close-circle-line" />Ignore suggestion
+                  </cr-dropdown-item>
+                </cr-dropdown>
               </div>
             </td>
           </tr>
         </tbody>
       </cr-table>
+
+      <div v-if="total > mergeSuggestions.length" class="mt-6 flex justify-center">
+        <cr-button type="tertiary" size="small" @click="loadMore()">
+          <i class="ri-arrow-down-line" />Load more
+        </cr-button>
+      </div>
     </div>
   </app-page-wrapper>
+  <app-member-merge-suggestions-dialog
+    v-model="isModalOpen"
+    :query="{
+    }"
+    :offset="detailsOffset"
+  />
 </template>
 
 <script setup lang="ts">
@@ -89,20 +118,102 @@ import CrButton from '@/ui-kit/button/Button.vue';
 import AppMemberMergeSimilarity from '@/modules/member/components/suggestions/member-merge-similarity.vue';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import CrDropdown from '@/ui-kit/dropdown/Dropdown.vue';
+import CrDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
+import AppMemberMergeSuggestionsDialog from '@/modules/member/components/member-merge-suggestions-dialog.vue';
+import useMemberMergeMessage from '@/shared/modules/merge/config/useMemberMergeMessage';
+import Message from '@/shared/message/message';
 
 const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
 
 const mergeSuggestions = ref<any[]>([]);
 
+const isModalOpen = ref<boolean>(false);
+
 const total = ref<number>(0);
 const limit = ref<number>(10);
-const offset = ref<number>(0);
+const page = ref<number>(1);
 
 const loadMergeSuggestions = () => {
-  MemberService.fetchMergeSuggestions(limit.value, offset.value)
+  MemberService.fetchMergeSuggestions(limit.value, (page.value - 1) * limit.value)
     .then((res) => {
       total.value = +res.count;
-      mergeSuggestions.value = res.rows;
+      if (+res.offset > 0) {
+        mergeSuggestions.value = mapSuggestions([...mergeSuggestions.value, ...res.rows]);
+      } else {
+        mergeSuggestions.value = mapSuggestions(res.rows);
+      }
+    });
+};
+
+const mapSuggestions = (suggestions: any[]) => suggestions.map((s) => {
+  const suggestion = { ...s };
+  if (s.members.length >= 2 && ((s.members[0].identities.length < s.members[1].identities.length)
+        || (s.members[0].activityCount < s.members[1].activityCount))) {
+    suggestion.members.reverse();
+  }
+  return suggestion;
+});
+
+const detailsOffset = ref<number>(0);
+
+const openDetails = (index: number) => {
+  detailsOffset.value = index;
+  isModalOpen.value = true;
+};
+
+const reload = () => {
+  page.value = 1;
+  loadMergeSuggestions();
+};
+
+const loadMore = () => {
+  page.value += 1;
+  loadMergeSuggestions();
+};
+
+const sending = ref<string>('');
+
+const merge = (suggestion: any) => {
+  if (sending.value.length) {
+    return;
+  }
+  const primaryMember = suggestion.members[0];
+  const secondaryMember = suggestion.members[1];
+  sending.value = `${primaryMember.id}:${secondaryMember.id}`;
+
+  const { loadingMessage, successMessage, apiErrorMessage } = useMemberMergeMessage;
+
+  loadingMessage();
+
+  MemberService.merge(primaryMember, secondaryMember)
+    .then(() => {
+      successMessage({
+        primaryMember,
+        secondaryMember,
+        selectedProjectGroupId: selectedProjectGroup.value?.id as string,
+      });
+    })
+    .finally(() => {
+      reload();
+      sending.value = '';
+    });
+};
+
+const ignore = (suggestion: any) => {
+  if (sending.value.length) {
+    return;
+  }
+  const primaryMember = suggestion.members[0];
+  const secondaryMember = suggestion.members[1];
+  sending.value = `${primaryMember.id}:${secondaryMember.id}`;
+  MemberService.addToNoMerge(...suggestion.members)
+    .then(() => {
+      Message.success('Merging suggestion ignored successfuly');
+      reload();
+    })
+    .finally(() => {
+      sending.value = '';
     });
 };
 
