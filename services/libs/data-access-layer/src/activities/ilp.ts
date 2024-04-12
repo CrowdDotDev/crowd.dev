@@ -85,28 +85,30 @@ export async function insertActivities(activities: IDbActivityCreateData[]): Pro
       row.stringColumn('objectMemberUsername', activity.objectMemberUsername)
     }
 
-    if (activity.sentiment.label) {
-      row.stringColumn('sentimentLabel', activity.sentiment.label)
-    }
+    if (activity.sentiment) {
+      if (activity.sentiment.label) {
+        row.stringColumn('sentimentLabel', activity.sentiment.label)
+      }
 
-    if (activity.sentiment.sentiment) {
-      row.intColumn('sentimentScore', activity.sentiment.sentiment)
-    }
+      if (activity.sentiment.sentiment) {
+        row.intColumn('sentimentScore', activity.sentiment.sentiment)
+      }
 
-    if (activity.sentiment.negative) {
-      row.floatColumn('sentimentScoreNegative', activity.sentiment.negative)
-    }
+      if (activity.sentiment.negative) {
+        row.floatColumn('sentimentScoreNegative', activity.sentiment.negative)
+      }
 
-    if (activity.sentiment.mixed) {
-      row.floatColumn('sentimentScoreMixed', activity.sentiment.mixed)
-    }
+      if (activity.sentiment.mixed) {
+        row.floatColumn('sentimentScoreMixed', activity.sentiment.mixed)
+      }
 
-    if (activity.sentiment.positive) {
-      row.floatColumn('sentimentScorePositive', activity.sentiment.positive)
-    }
+      if (activity.sentiment.positive) {
+        row.floatColumn('sentimentScorePositive', activity.sentiment.positive)
+      }
 
-    if (activity.sentiment.neutral) {
-      row.floatColumn('sentimentScoreNeutral', activity.sentiment.neutral)
+      if (activity.sentiment.neutral) {
+        row.floatColumn('sentimentScoreNeutral', activity.sentiment.neutral)
+      }
     }
 
     row.at(activity.timestamp ? new Date(activity.timestamp).getTime() : now, 'ms')
