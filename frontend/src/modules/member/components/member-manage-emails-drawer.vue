@@ -4,62 +4,63 @@
     size="480px"
     title="Edit emails"
     custom-class="emails-drawer"
+    :show-footer="false"
   >
     <template #content>
-      <div class="border-t border-gray-200 -mt-4 -mx-6 px-6 pt-5">
-        <p class="text-sm font-medium text-gray-900 mb-2">
-          Email address
-        </p>
-        <app-member-form-emails v-model="memberModel" />
+      <div class="-mt-8 z-10 pb-6">
+        <div
+          class="flex gap-2 text-xs text-brand-500 font-semibold items-center cursor-pointer"
+          @click="addIdentity()"
+        >
+          <i class="ri-add-line text-base" />Add email
+        </div>
       </div>
-    </template>
-    <template #footer>
-      <div style="flex: auto">
-        <el-button
-          class="btn btn--md btn--bordered mr-3"
-          @click="handleCancel"
-        >
-          Cancel
-        </el-button>
-        <el-button
-          type="primary"
-          :disabled="$v.$invalid || !hasFormChanged || loading"
-          class="btn btn--md btn--primary"
-          :loading="loading"
-          @click="handleSubmit"
-        >
-          Update
-        </el-button>
+      <div class="border-t border-gray-200 -mx-6 px-6">
+        <div class="gap-4 flex flex-col pt-6 pb-10">
+          <template v-for="(identity, ii) of identities" :key="ii">
+            <template v-if="identity.type === 'email'">
+              <app-member-form-email-item
+                :identity="identity"
+                :member="props.member"
+                @update="update(ii, $event)"
+                @remove="remove(ii)"
+              />
+            </template>
+          </template>
+
+          <template v-for="(identity, ai) of addIdentities" :key="ai">
+            <app-member-form-email-item
+              :identity="identity"
+              :member="props.member"
+              :actions-disabled="true"
+              @update="create(ai, $event)"
+              @clear="addIdentities.splice(ai, 1)"
+            />
+          </template>
+        </div>
       </div>
     </template>
   </app-drawer>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { useStore } from 'vuex';
-import { computed, ref } from 'vue';
+import { computed, onUnmounted, ref } from 'vue';
 import Message from '@/shared/message/message';
 import { MemberService } from '@/modules/member/member-service';
-import cloneDeep from 'lodash/cloneDeep';
-import AppMemberFormEmails from '@/modules/member/components/form/member-form-emails.vue';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';
-import useVuelidate from '@vuelidate/core';
-import isEqual from 'lodash/isEqual';
+import { Member, MemberIdentity } from '@/modules/member/types/Member';
+import AppMemberFormEmailItem from '@/modules/member/components/form/email/member-form-email-item.vue';
 
-const store = useStore();
-const props = defineProps({
-  modelValue: {
-    type: Boolean,
-    default: false,
-  },
-  member: {
-    type: Object,
-    default: () => {},
-  },
-});
+const props = defineProps<{
+  modelValue: boolean,
+  member: Member,
+}>();
+
 const emit = defineEmits(['update:modelValue']);
 
+const store = useStore();
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
@@ -72,45 +73,55 @@ const drawerModel = computed({
   },
 });
 
-const $v = useVuelidate();
+const identities = ref<MemberIdentity[]>([...(props.member.identities || [])]);
+const addIdentities = ref<MemberIdentity[]>([]);
 
-const memberModel = ref(cloneDeep(props.member));
-const loading = ref(false);
-
-const hasFormChanged = computed(() => {
-  const currentEmails = props.member.identities.filter((i) => i.type === 'email' && !!i.value);
-  const formEmails = memberModel.value.identities.filter((i) => i.type === 'email' && !!i.value);
-  return !isEqual(currentEmails, formEmails);
-});
-
-const handleCancel = () => {
-  emit('update:modelValue', false);
-};
-
-const handleSubmit = async () => {
-  loading.value = true;
-
+const serverUpdate = () => {
   const segments = props.member.segments.map((s) => s.id);
 
   MemberService.update(props.member.id, {
-    identities: memberModel.value.identities.filter((i) => !!i.value),
-  }, segments).then(() => {
-    store.dispatch('member/doFind', {
-      id: props.member.id,
-      segments: [selectedProjectGroup.value?.id],
-    }).then(() => {
-      Message.success('Contributor identities updated successfully');
+    identities: identities.value.filter((i) => !!i.value),
+  }, segments)
+    .catch((err) => {
+      Message.error(err.response.data);
     });
-  }).catch((err) => {
-    Message.error(err.response.data);
-  }).finally(() => {
-    emit('update:modelValue', false);
-    loading.value = false;
+};
+
+const update = (index: number, data: MemberIdentity) => {
+  identities.value[index] = data;
+  serverUpdate();
+};
+
+const remove = (index: number) => {
+  identities.value.splice(index, 1);
+  serverUpdate();
+};
+
+const create = (index: number, data: MemberIdentity) => {
+  identities.value.push(data);
+  addIdentities.value.splice(index, 1);
+  serverUpdate();
+};
+
+const addIdentity = () => {
+  addIdentities.value.push({
+    platform: 'custom',
+    type: 'email',
+    value: '',
+    verified: true,
+    sourceId: null,
   });
 };
+
+onUnmounted(() => {
+  store.dispatch('member/doFind', {
+    id: props.member.id,
+    segments: [selectedProjectGroup.value?.id],
+  });
+});
 </script>
 
-<script>
+<script lang="ts">
 export default {
   name: 'AppMemberManageEmailsDrawer',
 };
