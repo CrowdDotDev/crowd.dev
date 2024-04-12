@@ -1,4 +1,4 @@
-import { IDbMemberSyncData } from '../repo/member.data'
+import { IDbMemberSyncData, IMemberSegmentAggregates } from '../repo/member.data'
 import { IDbOrganizationSyncData, IOrganizationSegmentAggregates } from '../repo/organization.data'
 import { OpenSearchIndex } from '../types'
 import { Logger, getChildLogger } from '@crowd/logging'
@@ -174,14 +174,6 @@ export class InitService {
         total: 20,
       },
       numberOfOpenSourceContributions: 10,
-
-      activeOn: ['devto'],
-      activityCount: 10,
-      activityTypes: ['devto:comment'],
-      activeDaysCount: 20,
-      lastActive: new Date().toISOString(),
-      averageSentiment: 20.32,
-
       contributions: [
         {
           id: '112529472',
@@ -275,7 +267,18 @@ export class InitService {
       manuallyCreated: false,
     }
 
-    const prepared = MemberSyncService.prefixData(fakeMember, [])
+    const aggregates: IMemberSegmentAggregates = {
+      memberId: InitService.FAKE_MEMBER_ID,
+      segmentId: InitService.FAKE_SEGMENT_ID,
+      activeOn: ['devto'],
+      activityCount: 10,
+      activityTypes: ['devto:comment'],
+      activeDaysCount: 20,
+      lastActive: new Date().toISOString(),
+      averageSentiment: 20.32,
+    }
+
+    const prepared = MemberSyncService.prefixData(fakeMember, aggregates, [])
     await this.openSearchService.index(
       `${InitService.FAKE_MEMBER_ID}-${InitService.FAKE_SEGMENT_ID}`,
       OpenSearchIndex.MEMBERS,

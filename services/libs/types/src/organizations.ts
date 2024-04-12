@@ -40,7 +40,6 @@ export interface IOrganization {
   founded?: number
   displayName?: string
   attributes?: IAttributes
-  searchSyncedAt?: string | Date
   manuallyCreated?: boolean
   affiliatedProfiles?: string[]
   allSubsidiaries?: string[]

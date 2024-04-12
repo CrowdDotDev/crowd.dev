@@ -13,6 +13,7 @@ router.post(
     const memberSyncService = new MemberSyncService(
       req.redisClient,
       req.pgStore,
+      req.qdbStore,
       req.opensearch,
       req.log,
       serviceConfig,
@@ -35,6 +36,7 @@ router.post(
     const memberSyncService = new MemberSyncService(
       req.redisClient,
       req.pgStore,
+      req.qdbStore,
       req.opensearch,
       req.log,
       serviceConfig,
@@ -57,6 +59,7 @@ router.post(
     const memberSyncService = new MemberSyncService(
       req.redisClient,
       req.pgStore,
+      req.qdbStore,
       req.opensearch,
       req.log,
       serviceConfig,
@@ -81,6 +84,7 @@ router.post(
     const memberSyncService = new MemberSyncService(
       req.redisClient,
       req.pgStore,
+      req.qdbStore,
       req.opensearch,
       req.log,
       serviceConfig,
@@ -103,6 +107,7 @@ router.post(
     const memberSyncService = new MemberSyncService(
       req.redisClient,
       req.pgStore,
+      req.qdbStore,
       req.opensearch,
       req.log,
       serviceConfig,

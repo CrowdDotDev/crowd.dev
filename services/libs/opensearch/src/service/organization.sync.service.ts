@@ -283,7 +283,7 @@ export class OrganizationSyncService {
       )
     } else {
       // first we fetch org - segment couples from activities table in questdb
-      const organizationSegments = await this.activityRepo.getOrganizationSegmentCoupleso(
+      const organizationSegments = await this.activityRepo.getOrganizationSegmentCouples(
         organizationIds,
       )
       // then we further process it to include orgs without activities (like manual orgs)

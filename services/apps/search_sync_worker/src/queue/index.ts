@@ -74,6 +74,7 @@ export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
     return new MemberSyncService(
       this.redisClient,
       new DbStore(this.log, this.pgConn),
+      new DbStore(this.log, this.qdbConn),
       this.openSearchService,
       this.log,
       SERVICE_CONFIG(),

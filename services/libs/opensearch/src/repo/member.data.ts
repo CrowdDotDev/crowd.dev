@@ -78,14 +78,6 @@ export interface IDbMemberSyncData {
   reach: unknown | null
   numberOfOpenSourceContributions: number
 
-  // member activity data
-  activeOn: string[]
-  activityCount: number
-  activityTypes: string[]
-  activeDaysCount: number
-  lastActive: string
-  averageSentiment: number | null
-
   contributions: IDbMemberContributionData[]
   affiliations: IDbMemberAffiliationData[]
   identities: IDbMemberIdentityData[]
@@ -97,10 +89,22 @@ export interface IDbMemberSyncData {
   tasks: IDbMemberTaskData[]
 }
 
+export interface IMemberSegmentAggregates {
+  memberId: string
+  segmentId: string
+  activeOn: string[]
+  activityCount: number
+  activityTypes: string[]
+  activeDaysCount: number
+  lastActive: string
+  averageSentiment: number | null
+}
+
 export interface IMemberSegmentMatrixItem {
   segmentId: string
   processed: boolean
   data: IDbMemberSyncData
+  aggregates: IMemberSegmentAggregates
 }
 
 export interface IMemberSegmentMatrix {
@@ -110,4 +114,9 @@ export interface IMemberSegmentMatrix {
 export interface IMemberSegment {
   memberId: string
   segmentId: string
+}
+
+export interface IMemberIdData {
+  memberId: string
+  manuallyCreated: boolean
 }
