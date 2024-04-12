@@ -142,11 +142,3 @@ To provide your own PostgreSQL instance you should:
 
 5. After that you can start services normally with `./cli clean-start`. After a few minutes, the web application should be running at [http://localhost:8081](http://localhost:8081).
 
-## High production load deployment
-
-We recommend deployment using Kubernetes with a dedicated PostgreSQL database and OpenSearch cluster. You can use:
-- `scripts/scaffold.yaml` docker compose file
-- `scripts/services/*.yaml` docker compose files and
-- `scripts/services/docker` docker image build files
-
-to create Kubernetes resources. We are available to help with more advanced scenarios until 30th of June 2024, but to clarify an engineer with some DevOps and Kubernetes experience should be enough to make this deployment work.
