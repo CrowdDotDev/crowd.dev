@@ -85,6 +85,14 @@ export function chartOptions(widget, resultSet) {
         borderWidth: 0,
         cutout: '65%',
         plugins: {
+          tooltip: {
+            enabled: true,
+            callbacks: {
+              label(tooltipItem) {
+                return `${tooltipItem.label}: ${tooltipItem.formattedValue}`;
+              },
+            },
+          },
           legend: {
             display: true,
             position: 'right',
@@ -162,6 +170,19 @@ export function chartOptions(widget, resultSet) {
     ...options,
     library: {
       ...options.library,
+      scales: {
+        x: {
+          time: {
+            displayFormats: {
+              day: 'MMM DD, YYYY',
+              week: 'MMM DD, YYYY',
+              month: 'MMM DD, YYYY',
+              year: 'MMM DD, YYYY',
+            },
+            tooltipFormat: 'MMM DD, YYYY',
+          },
+        },
+      },
       plugins: {
         ...options.library.plugins,
         verticalHoverLine: false,
