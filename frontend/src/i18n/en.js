@@ -437,12 +437,14 @@ const en = {
       tooltip: {
         Activities: 'Activity',
         Members: 'Contributor',
+        Contributors: 'Contributor',
         Conversations: 'Conversation',
         Organizations: 'Organization',
       },
       cubes: {
         Activities: 'Activities',
         Members: 'Contributors',
+        Contributors: 'Contributors',
         Conversations: 'Conversations',
         Organizations: 'Organizations',
       },
