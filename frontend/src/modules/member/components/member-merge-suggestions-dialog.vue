@@ -5,13 +5,22 @@
     title="Merge suggestions"
     size="2extra-large"
     custom-class="mt-6 mb-6"
+    :show-header="false"
   >
     <template #content>
-      <app-member-merge-suggestions
-        :query="props.query"
-        :offset="props.offset"
-        class="!border-t-0 !shadow-none -mt-5"
-      />
+      <div class="-mt-12">
+        <app-member-merge-suggestions
+          :query="props.query"
+          :offset="props.offset"
+          class="!border-t-0 !shadow-none -mt-5"
+        >
+          <template #actions>
+            <cr-button type="tertiary-light-gray" :icon-only="true" @click="isModalOpen = false">
+              <i class="ri-close-line" />
+            </cr-button>
+          </template>
+        </app-member-merge-suggestions>
+      </div>
     </template>
   </app-dialog>
 </template>
@@ -20,6 +29,7 @@
 import { computed } from 'vue';
 import AppMemberMergeSuggestions from '@/modules/member/components/member-merge-suggestions.vue';
 import AppDialog from '@/shared/dialog/dialog.vue';
+import CrButton from '@/ui-kit/button/Button.vue';
 
 const props = withDefaults(defineProps<{
   modelValue: boolean,

@@ -108,7 +108,6 @@
 </template>
 
 <script setup lang="ts">
-import { useRoute } from 'vue-router';
 import AppBackLink from '@/shared/modules/back-link/components/back-link.vue';
 import CrTable from '@/ui-kit/table/Table.vue';
 import { MemberService } from '@/modules/member/member-service';
@@ -131,7 +130,7 @@ const mergeSuggestions = ref<any[]>([]);
 const isModalOpen = ref<boolean>(false);
 
 const total = ref<number>(0);
-const limit = ref<number>(10);
+const limit = ref<number>(20);
 const page = ref<number>(1);
 
 const loadMergeSuggestions = () => {
@@ -182,7 +181,7 @@ const merge = (suggestion: any) => {
   const secondaryMember = suggestion.members[1];
   sending.value = `${primaryMember.id}:${secondaryMember.id}`;
 
-  const { loadingMessage, successMessage, apiErrorMessage } = useMemberMergeMessage;
+  const { loadingMessage, successMessage } = useMemberMergeMessage;
 
   loadingMessage();
 

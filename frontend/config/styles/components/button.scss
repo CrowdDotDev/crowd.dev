@@ -45,25 +45,25 @@
 
   /* Primary */
   --cr-btn-primary-text: var(--color-white);
-  --cr-btn-primary-background: var(--color-gray-900);
-  --cr-btn-primary-border: var(--color-gray-900);
+  --cr-btn-primary-background: var(--color-brand-500);
+  --cr-btn-primary-border: var(--color-brand-500);
   --cr-btn-primary-shadow: var(--shadow-none);
   // Hover
   --cr-btn-primary-hover-text: var(--color-white);
-  --cr-btn-primary-hover-background: var(--color-gray-700);
-  --cr-btn-primary-hover-border: var(--color-gray-700);
+  --cr-btn-primary-hover-background: var(--color-brand-600);
+  --cr-btn-primary-hover-border: var(--color-brand-600);
   // Active
   --cr-btn-primary-active-text: var(--color-white);
-  --cr-btn-primary-active-background: var(--color-gray-500);
-  --cr-btn-primary-active-border: var(--color-gray-500);
+  --cr-btn-primary-active-background: var(--color-brand-600);
+  --cr-btn-primary-active-border: var(--color-brand-600);
   // Disabled
   --cr-btn-primary-disabled-text: var(--color-white);
-  --cr-btn-primary-disabled-background: var(--color-gray-300);
-  --cr-btn-primary-disabled-border: var(--color-gray-300);
+  --cr-btn-primary-disabled-background: var(--color-brand-200);
+  --cr-btn-primary-disabled-border: var(--color-brand-200);
   // Loading
-  --cr-btn-primary-loading-text: var(--color-gray-400);
-  --cr-btn-primary-loading-background: var(--color-gray-900);
-  --cr-btn-primary-loading-border: var(--color-gray-900);
+  --cr-btn-primary-loading-text: var(--color-white);
+  --cr-btn-primary-loading-background: var(--color-brand-300);
+  --cr-btn-primary-loading-border: var(--color-brand-300);
 
 
   /* Secondary */

@@ -2,72 +2,61 @@
   <div v-if="loading || count > 0" class="panel !p-0">
     <!-- Header -->
     <header class="flex items-center justify-between px-6 py-5 border-b">
-      <div class="flex items-center">
-        <button
-          v-if="Math.ceil(count) > 1"
-          type="button"
-          class="btn btn--transparent btn--md"
-          :disabled="loading || offset <= 0"
-          @click="fetch(offset - 1)"
-        >
-          <span class="ri-arrow-left-s-line text-lg mr-2" />
-          <span>Previous</span>
-        </button>
-        <app-loading v-if="loading" height="16px" width="131px" radius="3px" />
+      <div class="flex items-center gap-4">
+        <div class="flex items-center gap-2">
+          <cr-button
+            type="secondary"
+            size="small"
+            :disabled="loading || offset <= 0"
+            :icon-only="true"
+            @click="fetch(offset - 1)"
+          >
+            <i class="ri-arrow-left-s-line" />
+          </cr-button>
+          <cr-button
+            type="secondary"
+            size="small"
+            :disabled="loading || offset >= count - 1"
+            :icon-only="true"
+            @click="fetch(offset + 1)"
+          >
+            <i class="ri-arrow-right-s-line" />
+          </cr-button>
+        </div>
+
+        <app-loading v-if="loading" height="16px" width="128px" radius="3px" />
         <div
           v-else-if="Math.ceil(count) > 1"
-          class="text-sm leading-5 text-gray-500 flex flex-wrap justify-center px-4"
+          class="text-xs leading-5 text-gray-500"
         >
           <div>{{ offset + 1 }} of {{ Math.ceil(count) }} suggestions</div>
         </div>
         <div
           v-else
-          class="text-sm leading-5 text-gray-500 flex flex-wrap justify-center px-4"
+          class="text-xs leading-5 text-gray-500"
         >
           <div>1 suggestion</div>
         </div>
-        <button
-          v-if="Math.ceil(count) > 1"
-          type="button"
-          class="btn btn--transparent btn--md"
-          :disabled="loading || offset >= count - 1"
-          @click="fetch(offset + 1)"
-        >
-          <span>Next</span>
-          <span class="ri-arrow-right-s-line text-lg ml-2" />
-        </button>
       </div>
-      <div class="flex items-center">
-        <div
-          v-if="!loading && membersToMerge.similarity"
-          class="w-full flex items-center justify-center pr-3"
-        >
-          <div
-            class="flex text-sm"
-            :style="{
-              color: confidence.color,
-            }"
-          >
-            <div class="pr-1" v-html="confidence.svg" />
-            {{ Math.round(membersToMerge.similarity * 100) }}% confidence
-          </div>
-        </div>
-        <el-button
+      <div class="flex items-center gap-4">
+        <app-member-merge-similarity v-if="!loading && membersToMerge.similarity" :similarity="membersToMerge.similarity" />
+        <cr-button
+          type="secondary"
           :disabled="loading || isEditLockedForSampleData"
-          class="btn btn--secondary btn--md"
           :loading="sendingIgnore"
           @click="ignoreSuggestion()"
         >
           Ignore suggestion
-        </el-button>
-        <el-button
+        </cr-button>
+        <cr-button
+          type="primary"
           :disabled="loading || isEditLockedForSampleData"
-          class="btn btn--primary btn--md !ml-4"
           :loading="sendingMerge"
           @click="mergeSuggestion()"
         >
           Merge contributors
-        </el-button>
+        </cr-button>
+        <slot name="actions"/>
       </div>
     </header>
 
@@ -148,6 +137,8 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { merge } from 'lodash';
 import useMemberMergeMessage from '@/shared/modules/merge/config/useMemberMergeMessage';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
+import CrButton from '@/ui-kit/button/Button.vue';
+import AppMemberMergeSimilarity from '@/modules/member/components/suggestions/member-merge-similarity.vue';
 import { MemberService } from '../member-service';
 import { MemberPermissions } from '../member-permissions';
 
