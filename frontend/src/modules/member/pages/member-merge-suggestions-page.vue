@@ -41,7 +41,7 @@
                   :entity="suggestion.members[0]"
                   size="xs"
                 />
-                <p class="text-xs leading-5 font-semibold">
+                <p class="text-xs leading-5 font-semibold whitespace-nowrap">
                   {{ suggestion.members[0].displayName }}
                 </p>
               </div>
@@ -53,7 +53,7 @@
                   :entity="suggestion.members[1]"
                   size="xs"
                 />
-                <p class="text-xs leading-5 font-semibold">
+                <p class="text-xs leading-5 font-semibold whitespace-nowrap">
                   {{ suggestion.members[1].displayName }}
                 </p>
               </div>

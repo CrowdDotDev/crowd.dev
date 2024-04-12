@@ -1,7 +1,9 @@
 <template>
-  <div class="flex items-center gap-1" :style="{color: style.color}">
-    <div v-html="style.svg"></div>
-    <p class="text-xs leading-5">{{percentage}}% confidence</p>
+  <div class="flex items-center gap-1" :style="{ color: style.color }">
+    <div v-html="style.svg" />
+    <p class="text-xs leading-5 whitespace-nowrap">
+      {{ percentage }}% confidence
+    </p>
   </div>
 </template>
 
@@ -44,7 +46,7 @@ const style = computed<{
 <path d="M2.5 12H5.83333V17.5H2.5V12Z" fill="#F59E0B"/>
 </svg>`,
   };
-})
+});
 </script>
 
 <script lang="ts">
