@@ -22,10 +22,17 @@ export async function insertActivities(activities: IDbActivityCreateData[]): Pro
       .symbol('platform', activity.platform)
 
     if (activity.platform === 'git' || activity.platform === 'github') {
-      row
-        .booleanColumn('gitIsMainBranch', activity.attributes['isMainBranch'] as boolean)
-        .intColumn('gitInsertions', activity.attributes['additions'] as number)
-        .intColumn('gitDeletions', activity.attributes['deletions'] as number)
+      if (activity.attributes['isMainBranch']) {
+        row.booleanColumn('gitIsMainBranch', activity.attributes['isMainBranch'] as boolean)
+      }
+
+      if (activity.attributes['additions']) {
+        row.intColumn('gitInsertions', activity.attributes['additions'] as number)
+      }
+
+      if (activity.attributes['deletions']) {
+        row.intColumn('gitDeletions', activity.attributes['deletions'] as number)
+      }
     }
 
     row
