@@ -4,22 +4,20 @@ crowd.dev offers a variety of integrations to help you track community activitie
 
 ## Table of Contents
 
-- Supported integrations
-    1. [GitHub](#1-github)
-    2. [Discord](#2-discord)
-    3. [Hacker News](#3-hacker-news)
-    4. [LinkedIn](#4-linkedin)
-    5. [Twitter](#5-xtwitter)
-    6. [HubSpot](#6-hubspot)
-    7. [Slack](#7-slack)
-    8. [Dev](#8-dev)
-    9. [Reddit](#9-reddit)
-    10. [Stack Overflow](#10-stack-overflow)
-    11. [Discourse](#11-discourse)
-    12. [Zapier](#12-zapier)
-    13. [n8n](#13-n8n)
-- Other configurations
-    - [Nango Configuration](#nango-configuration)
+1. [GitHub](#1-github)
+2. [Discord](#2-discord)
+3. [Hacker News](#3-hacker-news)
+4. [LinkedIn](#4-linkedin)
+5. [Twitter](#5-xtwitter)
+6. [HubSpot](#6-hubspot)
+7. [Slack](#7-slack)
+8. [Dev](#8-dev)
+9. [Reddit](#9-reddit)
+10. [Stack Overflow](#10-stack-overflow)
+11. [Discourse](#11-discourse)
+12. [Zapier](#12-zapier)
+13. [n8n](#13-n8n)
+- [Nango configuration](#nango-configuration)
 
 ## 1. GitHub
 
