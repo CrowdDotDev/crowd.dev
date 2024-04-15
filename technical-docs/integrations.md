@@ -23,6 +23,7 @@ crowd.dev offers a variety of integrations to help you track community activitie
 
 Data tracked includes activities such as stars/un-stars, forks, issues, pull requests, discussions, comments on issues/pull requests/discussions, and the closing of issues/pull requests/discussions. Additionally, historical imports are supported with no limitation. The refresh period is instant, with a maximum delay of a few seconds.
 
+
 To set up GitHub integration, make sure you provide the following env variables in the backend:
 
 ```sh
@@ -32,6 +33,30 @@ CROWD_GITHUB_CLIENT_SECRET
 CROWD_GITHUB_PRIVATE_KEY
 CROWD_GITHUB_WEBHOOK_SECRET
 ```
+
+You can obtain these environment variables by registering a new GitHub App. Follow the steps outlined in the [GitHub docs](https://docs.github.com/en/apps/creating-github-apps/registering-a-github-app/registering-a-github-app) to register your app and retrieve the necessary creds.
+
+When setting up your GitHub App, ensure you configure the permissions as `read-only`. The app doesn't write any data, it only requires read access. 
+
+The necessary permissions are:
+
+- Repository permissions
+    - **Contents**
+    - **Discussions**
+    - **Issues**
+    - **Metadata**
+    - **Pull requests**
+- Organization permissions
+    - **Events** 
+    - **Members**
+    - **Projects**
+- Account permissions
+    - **Email addresses**
+    - **Followers**
+    - **Starring**
+    - **Watching**
+
+
 
 ### To connect GitHub with crowd.dev
 
@@ -65,6 +90,11 @@ To set up Discord integration, make sure you provide the following env variables
 ```sh
 CROWD_DISCORD_TOKEN
 ```
+
+For more information on how to obtain these environment variables, please refer to the [Discord Developer Documentation](https://discord.com/developers/docs/quick-start/overview-of-apps).
+
+When setting up your Discord App, ensure you configure the below permissions to work properly:
+   - Enable `Read Message History` or `permission integer: 65536`
 
 ### To connect Discord with crowd.dev
 
@@ -118,6 +148,9 @@ To set up Twitter integration, make sure you provide the following env variables
 CROWD_TWITTER_CLIENT_ID
 CROWD_TWITTER_CLIENT_SECRET
 ```
+
+For more information on how to obtain these environment variables, please refer to the [Twitter Developer Docs](https://developer.twitter.com/en/docs/twitter-api/getting-started/getting-access-to-the-twitter-api#:~:text=Step%20one%3A%20Sign%20up%20for%20a%20developer%20account&text=Next%20you%20will%20create%20a,all%20requests%20to%20the%20API).
+
 
 ### To connect Twitter with crowd.dev
 
@@ -241,6 +274,30 @@ CROWD_SLACK_NOTIFIER_CLIENT_ID
 CROWD_SLACK_NOTIFIER_CLIENT_SECRET
 ```
 
+For more information on how to obtain these environment variables, please refer to the [Slack Developer Quickstart Guide](https://api.slack.com/start/quickstart).
+
+When setting up your Slack App, ensure you configure the below permissions to work properly:
+
+```
+// Enable these permissions
+"user": [
+    "channels:history",
+    "channels:read",
+    "reactions:read",
+    "users:read",
+    "users:read.email"
+],
+"bot": [
+    "channels:history",
+    "channels:join",
+    "channels:read",
+    "files:read",
+    "reactions:read",
+    "users:read",
+    "users:read.email"
+]
+```
+
 ### To connect Slack with crowd.dev
 
 1. Connect Slack bot
@@ -286,6 +343,9 @@ To set up Dev integration, make sure you provide the following env variables in 
 ```sh
 CROWD_DEVTO_API_KEY
 ```
+
+For more information on how to obtain these environment variables, please refer to the [DEV.to API Guide](https://dev.to/guilhermecheng/how-to-use-devto-api-4p65).
+
 
 ### To connect Dev with crowd.dev
 
@@ -497,3 +557,5 @@ Some of our integrations, like LinkedIn, Reddit, Stack Overflow, and HubSpot, us
 CROWD_NANGO_URL
 CROWD_NANGO_SECRET_KEY
 ```
+
+For more information on how to obtain these environment variables, please refer to the [Nango docs](https://docs.nango.dev/introduction).
