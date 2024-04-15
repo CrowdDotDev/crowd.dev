@@ -2,72 +2,61 @@
   <div v-if="loading || count > 0" class="panel !p-0">
     <!-- Header -->
     <header class="flex items-center justify-between px-6 py-5 border-b">
-      <div class="flex items-center">
-        <button
-          v-if="Math.ceil(count) > 1"
-          type="button"
-          class="btn btn--transparent btn--md"
-          :disabled="loading || offset <= 0"
-          @click="fetch(offset - 1)"
-        >
-          <span class="ri-arrow-left-s-line text-lg mr-2" />
-          <span>Previous</span>
-        </button>
-        <app-loading v-if="loading" height="16px" width="131px" radius="3px" />
+      <div class="flex items-center gap-4">
+        <div class="flex items-center gap-2">
+          <cr-button
+            type="secondary"
+            size="small"
+            :disabled="loading || offset <= 0"
+            :icon-only="true"
+            @click="fetch(offset - 1)"
+          >
+            <i class="ri-arrow-left-s-line" />
+          </cr-button>
+          <cr-button
+            type="secondary"
+            size="small"
+            :disabled="loading || offset >= count - 1"
+            :icon-only="true"
+            @click="fetch(offset + 1)"
+          >
+            <i class="ri-arrow-right-s-line" />
+          </cr-button>
+        </div>
+
+        <app-loading v-if="loading" height="16px" width="128px" radius="3px" />
         <div
           v-else-if="Math.ceil(count) > 1"
-          class="text-sm leading-5 text-gray-500 flex flex-wrap justify-center px-4"
+          class="text-xs leading-5 text-gray-500"
         >
           <div>{{ offset + 1 }} of {{ Math.ceil(count) }} suggestions</div>
         </div>
         <div
           v-else
-          class="text-sm leading-5 text-gray-500 flex flex-wrap justify-center"
+          class="text-xs leading-5 text-gray-500"
         >
           <div>1 suggestion</div>
         </div>
-        <button
-          v-if="Math.ceil(count) > 1"
-          type="button"
-          class="btn btn--transparent btn--md"
-          :disabled="loading || offset >= count - 1"
-          @click="fetch(offset + 1)"
-        >
-          <span>Next</span>
-          <span class="ri-arrow-right-s-line text-lg ml-2" />
-        </button>
       </div>
-      <div class="flex items-center">
-        <div
-          v-if="!loading && organizationsToMerge.similarity"
-          class="w-full flex items-center justify-center pr-3"
-        >
-          <div
-            class="flex text-sm"
-            :style="{
-              color: confidence.color,
-            }"
-          >
-            <div class="pr-1" v-html="confidence.svg" />
-            {{ Math.round(organizationsToMerge.similarity * 100) }}% confidence
-          </div>
-        </div>
-        <el-button
+      <div class="flex items-center gap-4">
+        <app-member-merge-similarity v-if="!loading && organizationsToMerge.similarity" :similarity="organizationsToMerge.similarity" />
+        <cr-button
+          type="secondary"
           :disabled="loading || isEditLockedForSampleData"
-          class="btn btn--bordered btn--md"
           :loading="sendingIgnore"
           @click="ignoreSuggestion()"
         >
           Ignore suggestion
-        </el-button>
-        <el-button
+        </cr-button>
+        <cr-button
+          type="primary"
           :disabled="loading || isEditLockedForSampleData"
-          class="btn btn--primary btn--md !ml-4"
           :loading="sendingMerge"
           @click="mergeSuggestion()"
         >
-          Merge organizations
-        </el-button>
+          Merge contributors
+        </cr-button>
+        <slot name="actions" />
       </div>
     </header>
 
@@ -151,6 +140,8 @@ import AppMemberMergeSuggestionsDetails
 import useOrganizationMergeMessage from '@/shared/modules/merge/config/useOrganizationMergeMessage';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
+import CrButton from '@/ui-kit/button/Button.vue';
+import AppMemberMergeSimilarity from '@/modules/member/components/suggestions/member-merge-similarity.vue';
 import { OrganizationService } from '../organization-service';
 import { OrganizationPermissions } from '../organization-permissions';
 
@@ -159,6 +150,11 @@ const props = defineProps({
     type: Object,
     required: false,
     default: () => ({}),
+  },
+  offset: {
+    type: Number,
+    required: false,
+    default: 0,
   },
 });
 
@@ -207,35 +203,6 @@ const preview = computed(() => {
 
   mergedOrganizations.identities = [...(primaryOrganization.identities || []), ...(secondaryOrganization.identities || [])];
   return mergedOrganizations;
-});
-
-const confidence = computed(() => {
-  if (organizationsToMerge.value.similarity >= 0.8) {
-    return {
-      color: '#059669',
-      svg: `<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M14.1667 2.66699H17.5V17.5003H14.1667V2.66699ZM8.33337 7.5H11.6667V17.5003H8.33337V7.5Z" fill="#059669"/>
-<path d="M2.5 12H5.83333V17.5H2.5V12Z" fill="#059669"/>
-</svg>`,
-    };
-  }
-  if (organizationsToMerge.value.similarity >= 0.6) {
-    return {
-      color: '#3B82F6',
-      svg: `<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M14.1666 2.66699H17.4999V17.5003H14.1666V2.66699ZM8.33325 7.5H11.6666V17.5003H8.33325V7.5Z" fill="#D1D5DB"/>
-<path d="M8.33325 7.5H11.6666V17.5003H8.33325V7.5Z" fill="#3B82F6"/>
-<path d="M2.5 12H5.83333V17.5H2.5V12Z" fill="#3B82F6"/>
-</svg>`,
-    };
-  }
-  return {
-    color: '#D97706',
-    svg: `<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M14.1667 2.66699H17.5V17.5003H14.1667V2.66699ZM8.33337 7.5H11.6667V17.5003H8.33337V7.5Z" fill="#D1D5DB"/>
-<path d="M2.5 12H5.83333V17.5H2.5V12Z" fill="#F59E0B"/>
-</svg>`,
-  };
 });
 
 const fetch = (page) => {
@@ -331,7 +298,7 @@ const mergeSuggestion = () => {
 };
 
 onMounted(async () => {
-  fetch(0);
+  fetch(props.offset);
 });
 </script>
 
