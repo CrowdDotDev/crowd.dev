@@ -9,12 +9,12 @@ services:
       - '4000:4000'
       - '3001:3000'
     environment:
-      - CUBEJS_DEV_MODE=true
       - CUBEJS_DB_HOST=db
       - CUBEJS_DB_PORT=5432
       - CUBEJS_DB_NAME=crowd-web
       - CUBEJS_DB_USER=postgres
       - CUBEJS_DB_PASS=example
+      - CUBEJS_DEV_MODE=true
       - CUBEJS_DB_TYPE=postgres
       - CUBEJS_API_SECRET=137ea167812145c6d77452a58d7dd29b
       - CUBEJS_EXTERNAL_DEFAULT=true
