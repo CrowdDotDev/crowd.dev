@@ -85,6 +85,7 @@ export async function enrichMemberWithLFAuth0(member: IMember): Promise<void> {
 
     if (enrichmentGithub && enrichmentGithub.profileData) {
       if (
+        enrichmentGithub.profileData.nickname &&
         !member.identities.some(
           (i) =>
             i.type === MemberIdentityType.USERNAME &&
