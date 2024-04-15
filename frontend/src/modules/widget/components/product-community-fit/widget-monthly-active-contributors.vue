@@ -122,6 +122,8 @@ const widgetChartOptions = computed(() => chartOptions('area', {
   yType: yType.value,
   yMin: 0,
   yStepSize: 50,
+  xMaxTicksLimit: 8,
+  xMaxRotation: 0,
   yAfterBuildTicks: (axis) => {
     // Default ticks that need to be rendered regardless of axis type
     const ticks = [
