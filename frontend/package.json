@@ -42,7 +42,7 @@
     "@vueuse/core": "^9.13.0",
     "auth0-js": "^9.21.0",
     "auth0-spa-js": "^1.6.5",
-    "axios": "^0.22.0",
+    "axios": "^1.6.8",
     "chart.js": "^3.9.1",
     "chartjs-adapter-moment": "^1.0.1",
     "chartjs-plugin-annotation": "^2.2.1",
@@ -96,7 +96,7 @@
     "autoprefixer": "^10.4.14",
     "concurrently": "^7.6.0",
     "css-minimizer-webpack-plugin": "^4.2.2",
-    "cypress": "^10.11.0",
+    "cypress": "^13.7.3",
     "cypress-mailosaur": "^2.13.0",
     "dotenv": "^16.0.3",
     "eslint": "^8.36.0",
@@ -117,6 +117,6 @@
     "typescript": "~5.0.4",
     "unplugin-auto-import": "^0.15.2",
     "unplugin-vue-components": "^0.24.1",
-    "wait-on": "^6.0.1"
+    "wait-on": "^7.2.0"
   }
 }
