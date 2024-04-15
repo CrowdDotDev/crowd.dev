@@ -15,3 +15,16 @@ export interface ITenant {
   tenantId: string
   plan: string
 }
+
+export interface IOrganizationNoMerge {
+  organizationId: string
+  noMergeId: string
+}
+
+export interface IOrganizationMergeSuggestionsLatestGeneratedAt {
+  organizationMergeSuggestionsLastGeneratedAt: string
+}
+
+export interface IOrganizationId {
+  id: string
+}

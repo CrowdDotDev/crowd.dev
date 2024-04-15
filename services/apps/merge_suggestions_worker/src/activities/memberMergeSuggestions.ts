@@ -4,10 +4,10 @@ import {
   IMemberPartialAggregatesOpensearchRawResult,
   IMemberQueryBody,
   ISimilarMemberOpensearch,
-} from '../../types'
-import { svc } from '../../main'
+} from '../types'
+import { svc } from '../main'
 import { IMemberMergeSuggestion, OpenSearchIndex } from '@crowd/types'
-import { calculateSimilarity } from '../../utils'
+import { calculateMemberSimilarity } from '../utils'
 import MemberMergeSuggestionsRepository from '@crowd/data-access-layer/src/old/apps/merge_suggestions_worker/memberMergeSuggestions.repo'
 
 /**
@@ -21,7 +21,7 @@ import MemberMergeSuggestionsRepository from '@crowd/data-access-layer/src/old/a
  * @returns similar members in an array with calculated similarity score and activityEstimate
  * Activity estimate is calculated by adding activity counts of both members
  */
-export async function getMergeSuggestions(
+export async function getMemberMergeSuggestions(
   tenantId: string,
   member: IMemberPartialAggregatesOpensearch,
 ): Promise<IMemberMergeSuggestion[]> {
@@ -195,7 +195,7 @@ export async function getMergeSuggestions(
   }
 
   for (const memberToMerge of membersToMerge) {
-    const similarityConfidenceScore = calculateSimilarity(member, memberToMerge._source)
+    const similarityConfidenceScore = calculateMemberSimilarity(member, memberToMerge._source)
     if (similarityConfidenceScore > SIMILARITY_CONFIDENCE_SCORE_THRESHOLD) {
       mergeSuggestions.push({
         similarity: similarityConfidenceScore,
@@ -209,7 +209,7 @@ export async function getMergeSuggestions(
   return mergeSuggestions
 }
 
-export async function addToMerge(suggestions: IMemberMergeSuggestion[]): Promise<void> {
+export async function addMemberToMerge(suggestions: IMemberMergeSuggestion[]): Promise<void> {
   const memberMergeSuggestionsRepo = new MemberMergeSuggestionsRepository(
     svc.postgres.writer.connection(),
     svc.log,

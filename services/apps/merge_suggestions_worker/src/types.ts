@@ -14,6 +14,14 @@ interface IRangeFilterMemberId {
   }
 }
 
+interface IRangeFilterOrganizationId {
+  range: {
+    uuid_organizationId: {
+      gt: string
+    }
+  }
+}
+
 interface IRangeFilterCreatedAt {
   range: {
     date_createdAt: {
@@ -23,6 +31,7 @@ interface IRangeFilterCreatedAt {
 }
 
 export type IMemberFilter = ITermFilter | IRangeFilterMemberId | IRangeFilterCreatedAt
+export type IOrganizationFilter = ITermFilter | IRangeFilterOrganizationId | IRangeFilterCreatedAt
 
 export interface IMemberQueryBody {
   from: number
@@ -63,7 +72,8 @@ export interface IMemberOrganizationOpensearch {
 
 export type IMemberAttributesOpensearch = {
   [key in MemberAttributeOpensearch]?: {
-    string_default: string
+    string_default?: string
+    string_arr_default?: string[]
   }
 }
 
@@ -102,4 +112,52 @@ export interface ISimilarMember {
 
 export interface ISimilarMemberOpensearch {
   _source: ISimilarMember
+}
+
+// organizations
+
+export interface IOrganizationIdentityOpensearch {
+  string_platform: string
+  string_name: string
+  keyword_name: string
+  string_url: string
+}
+
+export interface IOrganizationPartialAggregatesOpensearch {
+  uuid_organizationId: string
+  uuid_arr_noMergeIds: string[]
+  keyword_displayName: string
+  nested_identities: IOrganizationIdentityOpensearch[]
+}
+
+export interface ISimilarOrganization {
+  uuid_organizationId: string
+  keyword_displayName: string
+  nested_identities: IOrganizationIdentityOpensearch[]
+  nested_weakIdentities: IOrganizationIdentityOpensearch[]
+}
+
+export interface ISimilarOrganizationOpensearch {
+  _source: ISimilarOrganization
+}
+
+export interface IOrganizationPartialAggregatesOpensearchRawResult {
+  _source: IOrganizationPartialAggregatesOpensearch
+}
+
+export interface IOrganizationQueryBody {
+  from: number
+  size: number
+  query: {
+    bool: {
+      filter: IOrganizationFilter[]
+    }
+  }
+  sort: {
+    [key: string]: string
+  }
+  collapse: {
+    field: string
+  }
+  _source: string[]
 }
