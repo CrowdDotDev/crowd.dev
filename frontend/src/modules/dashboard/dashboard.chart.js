@@ -22,4 +22,6 @@ export const dashboardChartOptions = {
     ],
   },
   legendPlugin: false,
+  xMaxTicksLimit: 3,
+  xMaxRotation: 0,
 };
