@@ -148,4 +148,4 @@ For a single-machine deplpymnent, we recommend a Linux server, with at least 24G
 
 ### Setting up integrations
 
-Integrations will need to be set on a individual basis. You can check the guides on setting up integrations in our integrations guide.
+Integrations will need to be set on a individual basis. You can check the guides on setting up integrations in our [integrations guide](integrations.md).
