@@ -134,7 +134,11 @@ const drawerDate = ref();
 const drawerTitle = ref();
 
 const widgetChartOptions = chartOptions('area', {
-  xTicksCallback: (value) => parseAxisLabel(value, granularity.value.value),
+  xMaxTicksLimit: 9,
+  xMaxRotation: 0,
+  xTicksCallback: (
+    value,
+  ) => parseAxisLabel(value, granularity.value.value),
 });
 
 const { cubejsApi } = mapGetters('widget');

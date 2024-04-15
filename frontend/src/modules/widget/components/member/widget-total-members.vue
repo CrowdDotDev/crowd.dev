@@ -130,7 +130,11 @@ const drawerTitle = ref();
 const granularity = computed(() => getTimeGranularityFromPeriod(period.value));
 const widgetChartOptions = chartOptions('area', {
   legendPlugin: false,
-  xTicksCallback: (value) => parseAxisLabel(value, granularity.value),
+  xMaxTicksLimit: 5,
+  xMaxRotation: 0,
+  xTicksCallback: (
+    value,
+  ) => parseAxisLabel(value, granularity.value),
 });
 
 const datasets = computed(() => [
