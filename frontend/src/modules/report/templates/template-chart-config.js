@@ -26,9 +26,12 @@ const defaultChartOptions = (config) => ({
             month: 'MMM DD, YYYY',
             year: 'MMM DD, YYYY',
           },
+          tooltipFormat: 'MM/DD/YYYY',
         },
         ticks: {
           display: config.xTicks,
+          maxTicksLimit: config.xMaxTicksLimit,
+          maxRotation: config.xMaxRotation,
           color: '#003778',
           font: {
             family: 'Open Sans',

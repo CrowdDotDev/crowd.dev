@@ -12,6 +12,14 @@ export enum OrganizationSource {
   UI = 'ui',
 }
 
+export interface OrganizationIdentity {
+    name: string;
+    platform: string;
+    url: string | null;
+    username: string;
+    organizationId?: string;
+}
+
 export interface Organization{
   attributes: Record<string, OrganizationAttribute>,
   activeOn: string[];
@@ -31,11 +39,7 @@ export interface Organization{
   github: Record<string, string> | null;
   headline: string;
   id: string;
-  identities: {
-    name: string;
-    platform: string;
-    url: string | null;
-  }[];
+  identities: OrganizationIdentity[];
   importHash: string | null;
   industry: string;
   isTeamOrganization: boolean;
