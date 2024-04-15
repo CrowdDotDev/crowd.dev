@@ -99,6 +99,8 @@ const period = ref(SEVEN_DAYS_PERIOD_FILTER);
 const granularity = computed(() => getTimeGranularityFromPeriod(period.value));
 
 const widgetChartOptions = chartOptions('area', {
+  xMaxTicksLimit: 5,
+  xMaxRotation: 0,
   legendPlugin: false,
   xTicksCallback: (
     value,
