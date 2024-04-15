@@ -1,3 +1,9 @@
+# Table of contents
+
+- [Local development](#local-development)
+- [Production deployment](#production-deployment)
+- [High-load deployment with Kubernetes](#high-load-deployment)
+
 # Local development
 
 ## Prerequisites
@@ -149,3 +155,13 @@ For a single-machine deplpymnent, we recommend a Linux server, with at least 24G
 ### Setting up integrations
 
 Integrations will need to be set on a individual basis. You can check the guides on setting up integrations in our integrations guide.
+
+# High-load deployment with Kubernetes
+
+For high data loads, we recommend deployment using Kubernetes with a dedicated PostgreSQL database and OpenSearch cluster. The main files for handling these resources are:
+
+- `scripts/scaffold.yaml` docker compose file
+- `scripts/services/*.yaml` docker compose files and
+- `scripts/services/docker` docker image build files
+
+For most people, deploying like this will not be needed. For those who needed, an engineer with DevOps and Kubernetes experience will be required to maintain the deployment. How to carry out the deployment will vary on a case-by-case basis, and we are available to help with these advanced scenarios until 30th of June 2024.
