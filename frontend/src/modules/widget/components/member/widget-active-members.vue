@@ -122,6 +122,8 @@ const drawerDate = ref();
 const drawerTitle = ref();
 
 const widgetChartOptions = chartOptions('area', {
+  xMaxTicksLimit: 9,
+  xMaxRotation: 0,
   xTicksCallback: (
     value,
   ) => parseAxisLabel(value, granularity.value.value),
