@@ -1,5 +1,5 @@
 <template>
-  <div v-if="loading || count > 0" class="panel !p-0">
+  <div class="panel !p-0">
     <!-- Header -->
     <header class="flex items-center justify-between px-6 py-5 border-b">
       <div class="flex items-center gap-4">
@@ -7,7 +7,7 @@
           <cr-button
             type="secondary"
             size="small"
-            :disabled="loading || offset <= 0"
+            :disabled="loading || offset <= 0 || count === 0"
             :icon-only="true"
             @click="fetch(offset - 1)"
           >
@@ -16,7 +16,7 @@
           <cr-button
             type="secondary"
             size="small"
-            :disabled="loading || offset >= count - 1"
+            :disabled="loading || offset >= count - 1 || count === 0"
             :icon-only="true"
             @click="fetch(offset + 1)"
           >
@@ -32,17 +32,23 @@
           <div>{{ offset + 1 }} of {{ Math.ceil(count) }} suggestions</div>
         </div>
         <div
-          v-else
+          v-else-if="Math.ceil(count) === 1"
           class="text-xs leading-5 text-gray-500"
         >
           <div>1 suggestion</div>
+        </div>
+        <div
+          v-else
+          class="text-xs leading-5 text-gray-500"
+        >
+          <div>0 suggestions</div>
         </div>
       </div>
       <div class="flex items-center gap-4">
         <app-member-merge-similarity v-if="!loading && organizationsToMerge.similarity" :similarity="organizationsToMerge.similarity" />
         <cr-button
           type="secondary"
-          :disabled="loading || isEditLockedForSampleData"
+          :disabled="loading || isEditLockedForSampleData || count === 0"
           :loading="sendingIgnore"
           @click="ignoreSuggestion()"
         >
@@ -50,7 +56,7 @@
         </cr-button>
         <cr-button
           type="primary"
-          :disabled="loading || isEditLockedForSampleData"
+          :disabled="loading || isEditLockedForSampleData || count === 0"
           :loading="sendingMerge"
           @click="mergeSuggestion()"
         >
@@ -60,71 +66,73 @@
       </div>
     </header>
 
-    <!-- Comparison -->
-    <!-- Loading -->
-    <div v-if="loading" class="flex p-5">
-      <div class="w-1/3 border rounded-l-lg">
-        <app-organization-merge-suggestions-details
-          :organization="null"
-          :loading="true"
-          :is-primary="true"
-        />
-      </div>
-      <div class="w-1/3 -ml-px border rounded-r-lg">
-        <app-organization-merge-suggestions-details
-          :organization="null"
-          :loading="true"
-        />
-      </div>
+    <div v-if="loading || count > 0">
+      <!-- Comparison -->
+      <!-- Loading -->
+      <div v-if="loading" class="flex p-5">
+        <div class="w-1/3 border rounded-l-lg">
+          <app-organization-merge-suggestions-details
+            :organization="null"
+            :loading="true"
+            :is-primary="true"
+          />
+        </div>
+        <div class="w-1/3 -ml-px border rounded-r-lg">
+          <app-organization-merge-suggestions-details
+            :organization="null"
+            :loading="true"
+          />
+        </div>
 
-      <div class="w-1/3 ml-8 border rounded-lg bg-brand-25">
-        <app-member-merge-suggestions-details
-          :member="null"
-          :loading="true"
-        />
+        <div class="w-1/3 ml-8 border rounded-lg bg-brand-25">
+          <app-member-merge-suggestions-details
+            :member="null"
+            :loading="true"
+          />
+        </div>
       </div>
-    </div>
-    <div v-else class="flex p-5">
-      <div
-        v-for="(organization, mi) of organizationsToMerge.organizations"
-        :key="organization.id"
-        class="w-1/3"
-      >
-        <app-organization-merge-suggestions-details
-          :organization="organization"
-          :compare-organization="
-            organizationsToMerge.organizations[(mi + 1) % organizationsToMerge.organizations.length]
-          "
-          :is-primary="mi === primary"
-          :extend-bio="bioHeight"
-          class="border"
-          :class="mi > 0 ? 'rounded-r-lg -ml-px' : 'rounded-l-lg'"
-          @make-primary="primary = mi"
-          @bio-height="$event > bioHeight ? (bioHeight = $event) : null"
-        />
+      <div v-else class="flex p-5">
+        <div
+          v-for="(organization, mi) of organizationsToMerge.organizations"
+          :key="organization.id"
+          class="w-1/3"
+        >
+          <app-organization-merge-suggestions-details
+            :organization="organization"
+            :compare-organization="
+              organizationsToMerge.organizations[(mi + 1) % organizationsToMerge.organizations.length]
+            "
+            :is-primary="mi === primary"
+            :extend-bio="bioHeight"
+            class="border"
+            :class="mi > 0 ? 'rounded-r-lg -ml-px' : 'rounded-l-lg'"
+            @make-primary="primary = mi"
+            @bio-height="$event > bioHeight ? (bioHeight = $event) : null"
+          />
+        </div>
+        <div class="w-1/3 ml-8">
+          <app-organization-merge-suggestions-details
+            :organization="preview"
+            :is-preview="true"
+            class="border rounded-lg bg-brand-25"
+          />
+        </div>
       </div>
-      <div class="w-1/3 ml-8">
-        <app-organization-merge-suggestions-details
-          :organization="preview"
-          :is-preview="true"
-          class="border rounded-lg bg-brand-25"
-        />
-      </div>
-    </div>
 
     <!-- Actions -->
-  </div>
-  <!-- Empty state -->
-  <div v-else class="pt-20 flex flex-col items-center pb-20">
-    <div
-      class="ri-shuffle-line text-gray-200 text-10xl h-40 flex items-center mb-8"
-    />
-    <h5 class="text-center text-lg font-semibold mb-4">
-      No merge suggestions
-    </h5>
-    <p class="text-sm text-center text-gray-600 leading-5">
-      We couldn’t find any duplicated organizations
-    </p>
+    </div>
+    <!-- Empty state -->
+    <div v-else class="py-20 flex flex-col items-center pb-20">
+      <div
+        class="ri-shuffle-line text-gray-200 text-10xl h-40 flex items-center mb-8"
+      />
+      <h5 class="text-center text-lg font-semibold mb-4">
+        No merge suggestions
+      </h5>
+      <p class="text-sm text-center text-gray-600 leading-5">
+        We couldn’t find any duplicated organizations
+      </p>
+    </div>
   </div>
 </template>
 
@@ -246,7 +254,9 @@ const ignoreSuggestion = () => {
   OrganizationService.addToNoMerge(...organizationsToMerge.value.organizations)
     .then(() => {
       Message.success('Merging suggestion ignored successfuly');
-      fetch();
+
+      const nextIndex = offset.value >= (count.value - 1) ? Math.max(count.value - 2, 0) : offset.value;
+      fetch(nextIndex);
     })
     .catch((error) => {
       if (error.response.status === 404) {
@@ -283,7 +293,8 @@ const mergeSuggestion = () => {
 
       loadingMessage();
 
-      fetch();
+      const nextIndex = offset.value >= (count.value - 1) ? Math.max(count.value - 2, 0) : offset.value;
+      fetch(nextIndex);
     })
     .catch((error) => {
       const shouldLoadNextSuggestion = apiErrorMessage({ error });

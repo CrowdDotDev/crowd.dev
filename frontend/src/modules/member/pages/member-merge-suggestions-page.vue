@@ -101,9 +101,8 @@
   </app-page-wrapper>
   <app-member-merge-suggestions-dialog
     v-model="isModalOpen"
-    :query="{
-    }"
     :offset="detailsOffset"
+    @update:model-value="reload()"
   />
 </template>
 

@@ -111,6 +111,7 @@
   <app-organization-merge-suggestions-dialog
     v-model="isModalOpen"
     :offset="detailsOffset"
+    @update:model-value="reload()"
   />
 </template>
 
