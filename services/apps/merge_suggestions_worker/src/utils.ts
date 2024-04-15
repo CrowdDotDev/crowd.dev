@@ -238,7 +238,7 @@ export function getAvatarUrl(member: ISimilarMember | IMemberPartialAggregatesOp
 export function getLanguages(
   member: ISimilarMember | IMemberPartialAggregatesOpensearch,
 ): string[] {
-  return member.obj_attributes[MemberAttributeOpensearch.AVATAR_URL]?.string_arr_default || null
+  return member.obj_attributes[MemberAttributeOpensearch.AVATAR_URL]?.string_arr_default || []
 }
 
 export function getTimezone(member: ISimilarMember | IMemberPartialAggregatesOpensearch): string {
@@ -248,7 +248,7 @@ export function getTimezone(member: ISimilarMember | IMemberPartialAggregatesOpe
 export function getProgrammingLanguages(
   member: ISimilarMember | IMemberPartialAggregatesOpensearch,
 ): string[] {
-  return member.obj_attributes[MemberAttributeOpensearch.AVATAR_URL]?.string_arr_default || null
+  return member.obj_attributes[MemberAttributeOpensearch.AVATAR_URL]?.string_arr_default || []
 }
 
 export function getOrganizations(
