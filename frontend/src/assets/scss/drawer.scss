@@ -35,4 +35,10 @@
       @apply border-t border-gray-200;
     }
   }
+
+  &.no-padding {
+    .el-drawer__body {
+      @apply p-0;
+    }
+  }
 }

@@ -5,11 +5,11 @@
     @command="$event()"
   >
     <button
-      class="el-dropdown-link btn p-1.5 rounder-md hover:bg-gray-200 text-gray-600"
+      class="el-dropdown-link btn p-1.5 rounder-md hover:bg-gray-200 text-gray-400"
       type="button"
       @click.stop
     >
-      <i class="text-xl ri-more-fill" />
+      <i class="text-lg ri-more-fill" />
     </button>
     <template #dropdown>
       <el-dropdown-item

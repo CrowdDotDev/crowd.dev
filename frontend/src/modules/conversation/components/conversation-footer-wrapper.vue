@@ -21,7 +21,13 @@ const props = defineProps({
 });
 
 const attributes = computed(() => props.conversation.conversationStarter?.attributes);
-const sourceId = computed(() => props.conversation.conversationStarter?.sourceId);
+const sourceId = computed(() => {
+  if (props.conversation.conversationStarter.type === 'authored-commit') {
+    return props.conversation.conversationStarter.sourceId;
+  }
+
+  return props.conversation.conversationStarter.parent?.sourceId;
+});
 
 const platformConfig = computed(() => CrowdIntegrations.getConfig(
   props.conversation.conversationStarter?.platform,
