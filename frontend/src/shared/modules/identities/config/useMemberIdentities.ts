@@ -60,6 +60,7 @@ export default ({
       link: string;
     }[];
   } => order.reduce((acc, platform) => {
+    console.log(order)
     const handles = getIdentityHandles(platform);
 
     if (platform === Platform.CUSTOM && handles.length) {
@@ -115,7 +116,17 @@ export default ({
       link: `mailto:${i.value}`,
       handle: i.value,
       verified: i.verified,
-    }));
+      platform: i.platform,
+    }))
+    .sort((a, b) => {
+      const indexA = order.findIndex(p => p === a.platform);
+      const indexB = order.findIndex(p => p === b.platform);
+
+      const orderA = indexA === -1 ? 999 : indexA;
+      const orderB = indexB === -1 ? 999 : indexB;
+
+      return orderA - orderB;
+    })
 
   return {
     getIdentities,
