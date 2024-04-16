@@ -1,4 +1,4 @@
-FROM node:16-alpine as builder
+FROM node:20-alpine as dependencies
 
 WORKDIR /usr/crowd/frontend
 
@@ -10,6 +10,11 @@ COPY ./public ./public
 COPY ./src ./src
 COPY ./.tailwind ./.tailwind
 COPY ./config ./config
+
+FROM dependencies as builder
+
+WORKDIR /usr/crowd/frontend
+
 RUN NODE_ENV=production npm run build:production
 
 FROM nginx:1.23-alpine as release
