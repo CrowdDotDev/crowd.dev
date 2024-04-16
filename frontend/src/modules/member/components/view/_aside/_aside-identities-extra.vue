@@ -42,7 +42,7 @@
           <div class="ml-2 flex items-center">
             <el-tooltip placement="top">
               <template #content>
-                <span class="font-semibold">Source:&nbsp;</span>{{getPlatformLabel(emailIdentity.platforms)}}
+                <span class="font-semibold">Source:&nbsp;</span>{{ getPlatformLabel(emailIdentity.platforms) }}
               </template>
               <i class="ri-shining-fill text-sm" :class="isEnrichment(emailIdentity.platforms) ? 'text-purple-400' : 'text-gray-300'" />
             </el-tooltip>
