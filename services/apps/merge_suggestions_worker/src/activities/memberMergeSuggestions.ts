@@ -25,7 +25,7 @@ export async function getMemberMergeSuggestions(
   tenantId: string,
   member: IMemberPartialAggregatesOpensearch,
 ): Promise<IMemberMergeSuggestion[]> {
-  const SIMILARITY_CONFIDENCE_SCORE_THRESHOLD = 0.9
+  const SIMILARITY_CONFIDENCE_SCORE_THRESHOLD = 0.5
   const mergeSuggestions: IMemberMergeSuggestion[] = []
   const memberMergeSuggestionsRepo = new MemberMergeSuggestionsRepository(
     svc.postgres.writer.connection(),
