@@ -20,8 +20,8 @@ export async function getMembersForLFIDEnrichment(
   args: IGetMembersForLFIDEnrichmentArgs,
 ): Promise<void> {
   const MEMBER_ENRICHMENT_PER_RUN = 10
-  const offset = args?.offset || 0
-  const members = await getLFIDEnrichableMembers(MEMBER_ENRICHMENT_PER_RUN, offset)
+  const afterId = args?.afterId || null
+  const members = await getLFIDEnrichableMembers(MEMBER_ENRICHMENT_PER_RUN, afterId)
 
   if (members.length === 0) {
     return
@@ -49,6 +49,6 @@ export async function getMembersForLFIDEnrichment(
   )
 
   await continueAsNew<typeof getMembersForLFIDEnrichment>({
-    offset: offset + MEMBER_ENRICHMENT_PER_RUN,
+    afterId: members[members.length - 1].id,
   })
 }
