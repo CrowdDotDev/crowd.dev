@@ -109,7 +109,7 @@ export const calculateMemberSimilarity = (
   }
 
   // calculate similarity percentage
-  const identityLength = similarPrimaryIdentity.string_value.length
+  const identityLength = similarPrimaryIdentity?.string_value.length || 0
 
   if (identityLength < smallestEditDistance) {
     return LOW_CONFIDENCE_SCORE
