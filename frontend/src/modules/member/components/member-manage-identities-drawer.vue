@@ -4,70 +4,107 @@
     size="600px"
     title="Edit identities"
     custom-class="identities-drawer"
+    :show-footer="false"
   >
     <template #content>
-      <div class="border-t border-gray-200 -mt-4 -mx-6 px-6">
-        <app-member-form-identities
-          v-model="memberModel"
-          :record="member"
-          :show-header="false"
-          :show-unmerge="true"
-          @unmerge="emit('unmerge', $event)"
-        />
+      <div class="-mt-8 z-10 pb-6">
+        <cr-dropdown width="260px">
+          <template #trigger>
+            <div class="flex gap-2 text-xs text-brand-500 font-semibold items-center cursor-pointer">
+              <i class="ri-add-line text-base" />Add identity
+            </div>
+          </template>
+          <div class="max-h-64 overflow-auto">
+            <cr-dropdown-item v-for="platform of platforms" :key="platform.platform" @click="addIdentity(platform.platform)">
+              <img :src="platform.image" :alt="platform.name" class="h-4 w-4" />
+              <span>{{ platform.name }}</span>
+            </cr-dropdown-item>
+          </div>
+        </cr-dropdown>
       </div>
-    </template>
-    <template #footer>
-      <div style="flex: auto">
-        <el-button
-          class="btn btn--md btn--secondary mr-3"
-          @click="handleCancel"
-        >
-          Cancel
-        </el-button>
-        <el-button
-          type="primary"
-          :disabled="loading || !hasFormChanged"
-          class="btn btn--md btn--primary"
-          :loading="loading"
-          @click="handleSubmit"
-        >
-          Update
-        </el-button>
+      <div class="border-t border-gray-200 -mx-6 px-6">
+        <div class="gap-4 flex flex-col pt-6 pb-10">
+          <template v-for="{ platform } of platforms" :key="platform">
+            <template v-for="(identity, ii) of identities" :key="ii">
+              <template v-if="identity.type === 'username' && identity.platform === platform">
+                <app-member-form-identity-item
+                  :identity="identity"
+                  :member="props.member"
+                  @update="update(ii, $event)"
+                  @unmerge="emit('unmerge', $event)"
+                  @remove="remove(ii)"
+                />
+              </template>
+            </template>
+
+            <template v-for="(identity, ai) of addIdentities" :key="ai">
+              <template v-if="identity.platform === platform">
+                <app-member-form-identity-item
+                  :identity="identity"
+                  :member="props.member"
+                  :actions-disabled="true"
+                  @update="create(ai, $event)"
+                  @clear="addIdentities.splice(ai, 1)"
+                />
+              </template>
+            </template>
+          </template>
+        </div>
+        <p v-if="hasCustomIdentities" class="text-2xs leading-4.5 tracking-1 text-gray-400 font-semibold pb-4">
+          CUSTOM PLATFORMS
+        </p>
+        <div class="flex flex-col gap-3">
+          <template v-for="(identity, ii) of identities" :key="ii">
+            <template v-if="identity.type === 'username' && !platformsKeys.includes(identity.platform)">
+              <app-member-form-identity-item
+                :identity="identity"
+                :member="props.member"
+                :editable="false"
+                @update="update(ii, $event)"
+                @unmerge="emit('unmerge', $event)"
+                @remove="remove(ii)"
+              />
+            </template>
+          </template>
+        </div>
       </div>
     </template>
   </app-drawer>
 </template>
 
-<script setup>
-import { useStore } from 'vuex';
+<script setup lang="ts">
 import {
-  ref,
-  computed,
   h,
+  computed, onUnmounted, ref,
 } from 'vue';
-import Message from '@/shared/message/message';
+import AppMemberFormIdentityItem from '@/modules/member/components/form/identity/member-form-identity-item.vue';
+import { Member, MemberIdentity } from '@/modules/member/types/Member';
 import { MemberService } from '@/modules/member/member-service';
-import cloneDeep from 'lodash/cloneDeep';
+import Message from '@/shared/message/message';
+import { useStore } from 'vuex';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import isEqual from 'lodash/isEqual';
+import CrDropdown from '@/ui-kit/dropdown/Dropdown.vue';
+import CrDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
+import Errors from '@/shared/error/errors';
 import { useMemberStore } from '@/modules/member/store/pinia';
-import AppMemberFormIdentities from './form/member-form-identities.vue';
 
-const store = useStore();
-const props = defineProps({
-  modelValue: {
-    type: Boolean,
-    default: false,
-  },
-  member: {
-    type: Object,
-    default: () => {},
-  },
+const props = withDefaults(defineProps<{
+  modelValue?: boolean,
+  member: Member
+}>(), {
+  modelValue: false,
 });
+
 const emit = defineEmits(['update:modelValue', 'unmerge']);
 
-const drawerModel = computed({
+const store = useStore();
+const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
+
+const memberStore = useMemberStore();
+
+const drawerModel = computed<boolean>({
   get() {
     return props.modelValue;
   },
@@ -76,87 +113,93 @@ const drawerModel = computed({
   },
 });
 
-const lsSegmentsStore = useLfSegmentsStore();
-const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
+const identities = ref<MemberIdentity[]>([...(props.member.identities || [])]);
+const addIdentities = ref<MemberIdentity[]>([]);
 
-const memberStore = useMemberStore();
-
-const memberModel = ref(cloneDeep(props.member));
-const loading = ref(false);
-
-const hasFormChanged = computed(() => {
-  const currentEmails = props.member.identities.filter((i) => i.type === 'username' && !!i.value);
-  const formEmails = memberModel.value.identities.filter((i) => i.type === 'username' && !!i.value);
-  return !isEqual(currentEmails, formEmails);
-});
-
-const handleCancel = () => {
-  emit('update:modelValue', false);
-};
-
-const handleSubmit = async () => {
-  loading.value = true;
-
+const serverUpdate = () => {
   const segments = props.member.segments.map((s) => s.id);
 
   MemberService.update(props.member.id, {
-    identities: memberModel.value.identities.filter((i) => !!i.value),
-  }, segments).then(() => {
-    store.dispatch('member/doFind', {
-      id: props.member.id,
-      segments: [selectedProjectGroup.value?.id],
-    }).then(() => {
-      Message.success('Contributor identities updated successfully');
-    });
-  }).catch((error) => {
-    if (error.response.status === 409) {
-      Message.error(
-        h(
-          'div',
-          {
-            class: 'flex flex-col gap-2',
-          },
-          [
-            h(
-              'el-button',
-              {
-                class: 'btn btn--xs btn--secondary !h-6 !w-fit',
-                onClick: () => {
-                  const { memberId, grandParentId } = error.response.data;
+    identities: identities.value,
+  }, segments)
+    .then(() => {
+      Message.success('Identity successfully updated');
+    })
+    .catch((error) => {
+      if (error.response.status === 409) {
+        Message.error(
+          h(
+            'div',
+            {
+              class: 'flex flex-col gap-2',
+            },
+            [
+              h(
+                'el-button',
+                {
+                  class: 'btn btn--xs btn--secondary !h-6 !w-fit',
+                  onClick: () => {
+                    const { memberId, grandParentId } = error.response.data;
 
-                  memberStore.addToMergeMember(memberId, grandParentId);
-                  Message.closeAll();
+                    memberStore.addToMergeMember(memberId, grandParentId);
+                    Message.closeAll();
+                  },
                 },
-              },
-              'Merge members',
-            ),
-          ],
-        ),
-        {
-          title: 'Member was not updated because the identity already exists in another member.',
-        },
-      );
-    } else {
-      Errors.handle(error);
-    }
-  }).finally(() => {
-    emit('update:modelValue', false);
-    loading.value = false;
+                'Merge members',
+              ),
+            ],
+          ),
+          {
+            title: 'Member was not updated because the identity already exists in another member.',
+          },
+        );
+      } else {
+        Errors.handle(error);
+      }
+    });
+};
+
+const update = (index: number, data: MemberIdentity) => {
+  identities.value[index] = data;
+  serverUpdate();
+};
+
+const remove = (index: number) => {
+  identities.value.splice(index, 1);
+  serverUpdate();
+};
+
+const create = (index: number, data: MemberIdentity) => {
+  identities.value.push(data);
+  addIdentities.value.splice(index, 1);
+  serverUpdate();
+};
+
+const addIdentity = (platform: string) => {
+  addIdentities.value.push({
+    platform,
+    type: 'username',
+    value: '',
+    verified: true,
+    sourceId: null,
   });
 };
+
+const platforms = CrowdIntegrations.enabledConfigs;
+const platformsKeys = CrowdIntegrations.enabledConfigs.map((p) => p.platform);
+
+const hasCustomIdentities = computed(() => identities.value.some((i) => !platformsKeys.includes(i.platform) && i.type === 'username'));
+
+onUnmounted(() => {
+  store.dispatch('member/doFind', {
+    id: props.member.id,
+    segments: [selectedProjectGroup.value?.id],
+  });
+});
 </script>
 
-<script>
+<script lang="ts">
 export default {
   name: 'AppMemberManageIdentitiesDrawer',
 };
 </script>
-
-<style lang="scss">
-.identities-drawer {
-  .el-form-item,
-  .el-form-item__content {
-    @apply mb-0;
-  }
-}
-</style>
