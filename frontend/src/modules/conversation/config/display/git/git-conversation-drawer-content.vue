@@ -28,7 +28,7 @@
                 :member="activity.member"
                 with-link
               />
-              <span v-if="activity.organization">
+              <span v-if="activity.organization" class="flex items-center">
                 <span>・</span>
 
                 <lf-activity-member-organization :organization="activity.organization" />
