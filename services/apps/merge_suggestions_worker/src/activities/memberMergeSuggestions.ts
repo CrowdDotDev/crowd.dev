@@ -73,7 +73,7 @@ export async function getMemberMergeSuggestions(
 
     // prevent processing more than 200 identities because of opensearch limits
     for (const identity of member.nested_identities.slice(0, 200)) {
-      if (identity.keyword_value.length > 0) {
+      if (identity.keyword_value && identity.keyword_value.length > 0) {
         // For verified identities (either email or username)
         // 1. Exact search the identity in other unverified identities
         // 2. Fuzzy search the identity in other verified identities
