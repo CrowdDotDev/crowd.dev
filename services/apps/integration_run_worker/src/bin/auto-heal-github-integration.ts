@@ -155,7 +155,7 @@ setImmediate(async () => {
 
     const repoFullNames = []
     const partialMap = new Map<string, Array<GithubManualStreamType>>()
-    const detailedMap = new Map<Repo, Array<GithubManualStreamType>>()
+    const detailedMap = new Map<string, Array<GithubManualStreamType>>()
 
     for (const row of rows) {
       const repoFullName = row[0].value
@@ -207,7 +207,7 @@ setImmediate(async () => {
     for (const repo of repos) {
       const repoFullName = repo.url
       if (partialMap.has(repoFullName)) {
-        detailedMap.set(repo, partialMap.get(repoFullName))
+        detailedMap.set(repoFullName, partialMap.get(repoFullName))
       } else {
         log.error(`No metrics found for ${repoFullName} when building detailed map!`)
       }
@@ -224,7 +224,7 @@ setImmediate(async () => {
       manualSettingsType: 'detailed_map',
       repos,
       unavailableRepos: [],
-      map: detailedMap,
+      map: mapToObject(detailedMap),
     }
 
     await emitter.triggerIntegrationRun(
