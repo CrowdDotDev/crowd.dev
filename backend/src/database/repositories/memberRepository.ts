@@ -135,7 +135,25 @@ class MemberRepository {
           verified: i.verified,
         })
       }
-    }
+    } else if (data.username) {
+      const username: PlatformIdentities = mapUsernameToIdentities(data.username)
+
+      for (const platform of Object.keys(username) as PlatformType[]) {
+        const identities: any[] = username[platform]
+        for (const identity of identities) {
+          await createMemberIdentity(qx, {
+            memberId: record.id,
+            platform,
+            value: identity.value ? identity.value : identity.username,
+            type: identity.type ? identity.type : MemberIdentityType.USERNAME,
+            verified: true,
+            sourceId: identity.sourceId || null,
+            integrationId: identity.integrationId || null,
+            tenantId: tenant.id,
+          })
+        }
+      }
+    } 
 
     await MemberRepository.includeMemberToSegments(record.id, options)
 
