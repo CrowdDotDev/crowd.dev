@@ -41,24 +41,24 @@
           placeholder="Enter Project key"
         />
         <app-array-input
-            v-for="(_, ii) of form.projectNames"
+            v-for="(_, ii) of form.repoNames"
             :key="ii"
-            v-model="form.projectNames[ii]"
+            v-model="form.repoNames[ii]"
             class="text-green-500 mt-2"
             placeholder="Enter Project Name"
         >
           <template #after>
             <el-button
                 class="btn btn-link btn-link--md btn-link--primary w-10 h-10"
-                @click="removeProjectName(ii)"
+                @click="removeRepoName(ii)"
             >
               <i class="ri-delete-bin-line text-lg" />
             </el-button>
           </template>
         </app-array-input>
       </el-form>
-      <el-button class="btn btn-link btn-link--primary" @click="addProjectName()">
-        + Add Project Name
+      <el-button class="btn btn-link btn-link--primary" @click="addRepoName()">
+        + Add Repository Name
       </el-button>
     </template>
 
@@ -110,10 +110,9 @@ const props = defineProps({
 const loading = ref(false);
 const form = reactive({
   orgURL: '',
-  projectName: '',
   user: '',
   key: '',
-  projectNames: [''],
+  repoNames: [''],
 });
 
 const { hasFormChanged, formSnapshot } = formChangeDetector(form);
@@ -133,20 +132,19 @@ const logoUrl = computed(() => CrowdIntegrations.getConfig('gerrit').image);
 onMounted(() => {
   if (props.integration?.settings?.remote) {
     form.orgURL = props.integration.settings.remote.orgURL;
-    form.projectName = props.integration.settings.remote.projectName;
     form.user = props.integration.settings.remote.user;
     form.key = props.integration.settings.remote.key;
-    form.projectNames = props.integration.settings.remote.projectNames;
+    form.repoNames = props.integration.settings.remote.repoNames;
   }
   formSnapshot();
 });
 
-const addProjectName = () => {
-  form.projectNames.push('');
+const addRepoName = () => {
+  form.repoNames.push('');
 };
 
-const removeProjectName = (index) => {
-  form.projectNames.splice(index, 1);
+const removeRepoName = (index) => {
+  form.repoNames.splice(index, 1);
 };
 
 const cancel = () => {
@@ -160,7 +158,7 @@ const connect = async () => {
     orgURL: form.orgURL,
     user: form.user,
     key: form.key,
-    projectNames: form.projectNames,
+    repoNames: form.repoNames,
   })
     .then(() => {
       isVisible.value = false;

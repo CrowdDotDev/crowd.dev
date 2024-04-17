@@ -547,7 +547,7 @@ export default {
     async doGerritConnect(
       { commit },
       {
-        orgURL, user, key, isUpdate, projectNames,
+        orgURL, user, key, isUpdate, repoNames,
       },
     ) {
       try {
@@ -557,7 +557,7 @@ export default {
           orgURL,
           user,
           key,
-          projectNames,
+          repoNames,
         });
 
         commit('CREATE_SUCCESS', integration);
