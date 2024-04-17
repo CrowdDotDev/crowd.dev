@@ -52,7 +52,7 @@
               class="btn btn-link btn-link--md btn-link--primary w-10 h-10"
               @click="removeRepoName(ii)"
             >
-             <i class="ri-delete-bin-line text-lg" />
+               <i class="ri-delete-bin-line text-lg" />
             </el-button>
           </template>
         </app-array-input>
