@@ -13,7 +13,7 @@ const activity = proxyActivities<typeof activities>({ startToCloseTimeout: '1 mi
 export async function generateOrganizationMergeSuggestions(
   args: IProcessGenerateMemberMergeSuggestionsArgs,
 ): Promise<void> {
-  const PAGE_SIZE = 1000
+  const PAGE_SIZE = 500
   const PARALLEL_SUGGESTION_PROCESSING = 250
 
   let lastUuid: string = args.lastUuid || null

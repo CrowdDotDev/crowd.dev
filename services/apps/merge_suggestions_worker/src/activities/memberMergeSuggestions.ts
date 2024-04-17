@@ -7,8 +7,8 @@ import {
 } from '../types'
 import { svc } from '../main'
 import { IMemberMergeSuggestion, OpenSearchIndex } from '@crowd/types'
-import { calculateMemberSimilarity } from '../utils'
 import MemberMergeSuggestionsRepository from '@crowd/data-access-layer/src/old/apps/merge_suggestions_worker/memberMergeSuggestions.repo'
+import MemberSimilarityCalculator from '../memberSimilarityCalculator'
 
 /**
  * Finds similar members of given member in a tenant
@@ -195,7 +195,10 @@ export async function getMemberMergeSuggestions(
   }
 
   for (const memberToMerge of membersToMerge) {
-    const similarityConfidenceScore = calculateMemberSimilarity(member, memberToMerge._source)
+    const similarityConfidenceScore = MemberSimilarityCalculator.calculateSimilarity(
+      member,
+      memberToMerge._source,
+    )
     if (similarityConfidenceScore > SIMILARITY_CONFIDENCE_SCORE_THRESHOLD) {
       mergeSuggestions.push({
         similarity: similarityConfidenceScore,

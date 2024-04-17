@@ -8,7 +8,8 @@ import {
   ISimilarOrganizationOpensearch,
 } from '../types'
 import OrganizationMergeSuggestionsRepository from '@crowd/data-access-layer/src/old/apps/merge_suggestions_worker/organizationMergeSuggestions.repo'
-import { calculateOrganizationSimilarity, prefixLength } from '../utils'
+import { prefixLength } from '../utils'
+import OrganizationSimilarityCalculator from '../organizationSimilarityCalculator'
 
 export async function getOrganizations(
   tenantId: string,
@@ -42,6 +43,10 @@ export async function getOrganizations(
         'nested_identities',
         'uuid_arr_noMergeIds',
         'keyword_displayName',
+        'string_location',
+        'string_industry',
+        'string_website',
+        'string_ticker',
       ],
     }
 
@@ -245,6 +250,10 @@ export async function getOrganizationMergeSuggestions(
       'nested_identities',
       'nested_weakIdentities',
       'keyword_displayName',
+      'string_location',
+      'string_industry',
+      'string_website',
+      'string_ticker',
     ],
   }
 
@@ -267,7 +276,7 @@ export async function getOrganizationMergeSuggestions(
   }
 
   for (const organizationToMerge of organizationsToMerge) {
-    const similarityConfidenceScore = calculateOrganizationSimilarity(
+    const similarityConfidenceScore = OrganizationSimilarityCalculator.calculateSimilarity(
       organization,
       organizationToMerge._source,
     )

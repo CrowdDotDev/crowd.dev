@@ -128,6 +128,10 @@ export interface IOrganizationPartialAggregatesOpensearch {
   uuid_arr_noMergeIds: string[]
   keyword_displayName: string
   nested_identities: IOrganizationIdentityOpensearch[]
+  string_location: string
+  string_industry: string
+  string_website: string
+  string_ticker: string
 }
 
 export interface ISimilarOrganization {
@@ -135,6 +139,10 @@ export interface ISimilarOrganization {
   keyword_displayName: string
   nested_identities: IOrganizationIdentityOpensearch[]
   nested_weakIdentities: IOrganizationIdentityOpensearch[]
+  string_location: string
+  string_industry: string
+  string_website: string
+  string_ticker: string
 }
 
 export interface ISimilarOrganizationOpensearch {
