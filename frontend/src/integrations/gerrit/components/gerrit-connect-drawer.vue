@@ -28,13 +28,6 @@
         />
         <el-input
           id="devUrl"
-          v-model="form.projectName"
-          class="text-green-500 mt-2"
-          spellcheck="false"
-          placeholder="Enter Project Name"
-        />
-        <el-input
-          id="devUrl"
           v-model="form.user"
           class="text-green-500 mt-2"
           spellcheck="false"
@@ -47,7 +40,26 @@
           spellcheck="false"
           placeholder="Enter Project key"
         />
+        <app-array-input
+            v-for="(_, ii) of form.projectNames"
+            :key="ii"
+            v-model="form.projectNames[ii]"
+            class="text-green-500 mt-2"
+            placeholder="Enter Project Name"
+        >
+          <template #after>
+            <el-button
+                class="btn btn-link btn-link--md btn-link--primary w-10 h-10"
+                @click="removeProjectName(ii)"
+            >
+              <i class="ri-delete-bin-line text-lg" />
+            </el-button>
+          </template>
+        </app-array-input>
       </el-form>
+      <el-button class="btn btn-link btn-link--primary" @click="addProjectName()">
+        + Add Project Name
+      </el-button>
     </template>
 
     <template #footer>
@@ -81,6 +93,7 @@ import {
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import formChangeDetector from '@/shared/form/form-change';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
+import AppArrayInput from "@/shared/form/array-input.vue";
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps({
@@ -100,6 +113,7 @@ const form = reactive({
   projectName: '',
   user: '',
   key: '',
+  projectNames: [''],
 });
 
 const { hasFormChanged, formSnapshot } = formChangeDetector(form);
@@ -122,9 +136,18 @@ onMounted(() => {
     form.projectName = props.integration.settings.remote.projectName;
     form.user = props.integration.settings.remote.user;
     form.key = props.integration.settings.remote.key;
+    form.projectNames = props.integration.settings.remote.projectNames;
   }
   formSnapshot();
 });
+
+const addProjectName = () => {
+  form.projectNames.push('');
+};
+
+const removeProjectName = (index) => {
+  form.projectNames.splice(index, 1);
+};
 
 const cancel = () => {
   isVisible.value = false;
@@ -135,9 +158,9 @@ const connect = async () => {
 
   doGerritConnect({
     orgURL: form.orgURL,
-    projectName: form.projectName,
     user: form.user,
     key: form.key,
+    projectNames: form.projectNames,
   })
     .then(() => {
       isVisible.value = false;
