@@ -1634,7 +1634,7 @@ export default class MemberService extends LoggerBase {
                 }
               } else {
                 // new username doesn't have this platform - we can delete the existing identity
-                data.username[identity.platform] = { ...identity, delete: true }
+                data.username[identity.platform] = [{ ...identity, delete: true }]
               }
             }
 
