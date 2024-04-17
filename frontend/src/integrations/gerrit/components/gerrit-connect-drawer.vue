@@ -41,18 +41,18 @@
           placeholder="Enter Project key"
         />
         <app-array-input
-            v-for="(_, ii) of form.repoNames"
-            :key="ii"
-            v-model="form.repoNames[ii]"
-            class="text-green-500 mt-2"
-            placeholder="Enter Project Name"
+          v-for="(_, ii) of form.repoNames"
+          :key="ii"
+          v-model="form.repoNames[ii]"
+          class="text-green-500 mt-2"
+          placeholder="Enter Project Name"
         >
           <template #after>
             <el-button
-                class="btn btn-link btn-link--md btn-link--primary w-10 h-10"
-                @click="removeRepoName(ii)"
+              class="btn btn-link btn-link--md btn-link--primary w-10 h-10"
+              @click="removeRepoName(ii)"
             >
-              <i class="ri-delete-bin-line text-lg" />
+            <i class="ri-delete-bin-line text-lg" />
             </el-button>
           </template>
         </app-array-input>
