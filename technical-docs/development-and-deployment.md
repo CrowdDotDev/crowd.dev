@@ -169,7 +169,13 @@ Your website is running at `crowd.yourdomain.com` on port 80 (http) without encr
 - currently the file is set up to host on `*.yourdomain.com` so please open it up and change all occurances to your domain (see `server_name`)
 - open up `scripts/scaffold.yaml` and find `nginx` service and change ports to be `80:80` instead of `443:443`
 
-To initiate all the services, use the command `./cli clean-start` only once. This command creates and stores data in Docker volumes. It's crucial to understand that running `./cli clean-start` again will result in the loss of all previously stored data because it reinitializes the services and their associated volumes from scratch.
+### Machine specifications
+
+For a single-machine deplpymnent, we recommend a Linux server, with at least 24GB of RAM and 8 cores 2Ghz CPU.
+
+### Deploying services
+
+Clone the code into your machine. To initiate all the services, use the command `./cli clean-start`. This command creates and stores data in Docker volumes. It's crucial to understand that running `./cli clean-start` again will result in the loss of all previously stored data because it reinitializes the services and their associated volumes from scratch.
 
 In scenarios where your server encounters an issue and requires a restart without losing existing data, you should opt for `./cli start`. This command ensures that your services are rebooted using the existing data stored in Docker volumes, thus preserving your data integrity.
 
@@ -227,10 +233,6 @@ To provide your own PostgreSQL instance you should:
    ```
 
 5. After that you can start services normally with `./cli clean-start`. After a few minutes, the web application should be running at [http://localhost:8081](http://localhost:8081).
-
-### Machine specifications
-
-For a single-machine deplpymnent, we recommend a Linux server, with at least 24GB of RAM and 8 cores 2Ghz CPU.
 
 ### Setting up integrations
 
