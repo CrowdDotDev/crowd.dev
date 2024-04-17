@@ -182,7 +182,7 @@ export interface GitHubManualIntegrationSettingsDefault extends GithubIntegratio
 
 export interface GitHubManualIntegrationSettingsDetailedMap extends GithubIntegrationSettings {
   manualSettingsType: 'detailed_map'
-  map: Map<Repo, Array<GithubManualStreamType>>
+  map: object
 }
 
 export type GithubManualIntegrationSettings =
