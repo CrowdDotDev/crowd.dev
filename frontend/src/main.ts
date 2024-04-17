@@ -21,6 +21,12 @@ import marked from '@/plugins/marked';
 import { useLogRocket } from '@/utils/logRocket';
 import { initRUM } from '@/utils/datadog/rum';
 
+declare module 'vue' {
+  interface ComponentCustomProperties {
+    $sanitize: (key: string) => string;
+  }
+}
+
 i18nInit();
 /**
  * We're using Immediately Invoked Function Expressions (IIFE) here because of the async/awaits

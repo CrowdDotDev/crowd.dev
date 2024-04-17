@@ -42,7 +42,7 @@
           :insertions="footerContent().insertions"
           :deletions="footerContent().deletions"
           :source-id="platformConfig?.activityDisplay?.showSourceId && sourceId"
-          :display-source-id="conversation.conversationStarter?.type === 'authored-commit'"
+          :display-source-id="conversation.conversationStarter?.platform === Platform.GIT"
         />
 
         <div v-if="platformConfig?.conversationDisplay?.showLabels && attributes.labels?.length">
@@ -80,6 +80,7 @@ import AppConversationFooterWrapper from '@/modules/conversation/components/conv
 import AppConversationAttributes from '@/modules/conversation/components/conversation-attributes.vue';
 import { computed } from 'vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
+import { Platform } from '@/shared/modules/platform/types/Platform';
 
 const props = defineProps({
   conversation: {
