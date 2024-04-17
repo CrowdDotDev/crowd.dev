@@ -25,10 +25,12 @@ Our project comprises several key files and directories that orchestrate the set
 - **`scripts/services/docker`**: Houses Dockerfiles for building our services.
 
 **Environment Configuration Files**:
-  - `frontend/.env.dist.composed` and `frontend/.env.dist.local`: Environment variables for the frontend service. `.dist.composed` files are used when running inside Docker, while `.dist.local` files are for local runs.
-  - `backend/.env.dist.composed` and `backend/.env.dist.local`: Similar to frontend, these files contain environment variables for the backend service.
+
+- `frontend/.env.dist.composed` and `frontend/.env.dist.local`: Environment variables for the frontend service. `.dist.composed` files are used when running inside Docker, while `.dist.local` files are for local runs.
+- `backend/.env.dist.composed` and `backend/.env.dist.local`: Similar to frontend, these files contain environment variables for the backend service.
 
 When starting `cli` for the first time it also creates these env files for you:
+
 - `backend/.env.override.local`
 - `backend/.env.override.composed`
 - `frontend/.env.override.local`
@@ -92,6 +94,81 @@ Enable development mode with hot reload by setting the `DEV=1` environment varia
 
 ## Single machine deployment
 
+### Domain & SSL settings
+
+If you want to host our app so that it is publicly available on the internet you need to do some extra configuration work before you start any service.
+
+#### Services to expose
+
+Here is a list of services that need to be available publicly.
+
+- CubeJS running on port 4000
+- Nango running on port 3003
+- our frontend service running on port 8081
+
+For instance if you want to host our app at domain `crowd.yourdomain.com` lets say these are the urls:
+
+- CubeJS - `cubejs.crowd.yourdomain.com`
+- Nango - `nango.crowd.yourdomain.com`
+- our frontend - `crowd.yourdomain.com`
+
+#### Configuration changes
+
+You need to make changes to frontend and backend env. configuration files:
+
+- `frontend/.env.override.local`
+
+```
+# If you decided to use SSL use wss instead of ws
+VUE_APP_WEBSOCKETS_URL=ws://crowd.yourdomain.com
+
+# Where the frontend is hosted (use https instead of http if you are using SSL)
+VUE_APP_FRONTEND_HOST=crowd.yourdomain.com
+VUE_APP_FRONTEND_PROTOCOL=http
+
+# Where CubeJS is hosted (use https instead of http if you are using SSL)
+VUE_APP_CUBEJS_URL=http://nango.crowd.yourdomain.com
+
+# Where Nango is hosted (use https instead of http if you are using SSL)
+VUE_APP_NANGO_URL=http://nango.crowd.yourdomain.com
+```
+
+- `backend/.env.override.local`
+
+```
+# Only users with emails from this domain can sign up
+CROWD_SIGNUP_DOMAIN=yourdomain.com
+
+# API service URL (use https instead of http if you are using SSL)
+CROWD_API_URL=http://crowd.yourdomain.com/api
+
+# Frontend service URL (use https instead of http if you are using SSL)
+CROWD_API_FRONTEND_URL=http://crowd.yourdomain.com
+```
+
+And some changes to `scripts/scaffold.yaml` docker compose file so that `nango` service will know where it's hosted:
+
+- find `NANGO_CALLBACK_URL` and change it to `http://nango.crowd.yourdomain.com/oauth/callback` (use https if needed)
+- find `NANGO_SERVER_URL` and change it to `http://nango.crowd.yourdomain.com` (use https if needed)
+
+Now depending on if you want to use SSL or not we prepared two options here:
+
+##### SSL Nginx configuration
+
+Your website is running at `crowd.yourdomain.com` on port 443 (https) with encryption.
+
+- copy `scripts/scaffold/ssl.default.conf.template` to `scripts/scaffold/templates/default.conf.template` overwritting the existing file
+- currently the file is set up to host on `*.yourdomain.com` so please open it up and change all occurances to your domain (see `server_name`)
+- place your SSL certificate and key file in PEM format into `scripts/scaffold/nginx/ssl` folder named `cert.pem` and `key.pem`.
+
+##### No SSL Nginx configuration (not recommended)
+
+Your website is running at `crowd.yourdomain.com` on port 80 (http) without encryption.
+
+- copy `scripts/scaffold/nossl.default.conf.template` to `scripts/scaffold/templates/default.conf.template` overwritting the existing file
+- currently the file is set up to host on `*.yourdomain.com` so please open it up and change all occurances to your domain (see `server_name`)
+- open up `scripts/scaffold.yaml` and find `nginx` service and change ports to be `80:80` instead of `443:443`
+
 To initiate all the services, use the command `./cli clean-start` only once. This command creates and stores data in Docker volumes. It's crucial to understand that running `./cli clean-start` again will result in the loss of all previously stored data because it reinitializes the services and their associated volumes from scratch.
 
 In scenarios where your server encounters an issue and requires a restart without losing existing data, you should opt for `./cli start`. This command ensures that your services are rebooted using the existing data stored in Docker volumes, thus preserving your data integrity.
@@ -101,6 +178,7 @@ After the command is run, the application will be available on [http://localhost
 This, however, will start the PostgreSQL and OpenSearch dependencies running together with all other services in a docker container. We recommend that you provide your own PostgreSQL and OpenSearch for a production deployment. To do so, first comment them out in `scripts/scaffold.yaml`. Then, provide configuration in the `backend/.env.override.local`.
 
 To provide your own PostgreSQL instance you should:
+
 1. Comment out `db` service in `scripts/scaffold.yaml` docker compose file. This can be done by adding a `#` before the `db` service definition:
    ```yaml
    # db:
@@ -110,7 +188,7 @@ To provide your own PostgreSQL instance you should:
 2. Configure database environment variables in `backend/.env.override.local`:
    ```
    # DB settings
-   CROWD_DB_WRITE_HOST=write_host 
+   CROWD_DB_WRITE_HOST=write_host
    CROWD_DB_READ_HOST=read_host  # if you only have one replica, use the write
    CROWD_DB_PORT=port
    CROWD_DB_USERNAME=username
@@ -118,24 +196,26 @@ To provide your own PostgreSQL instance you should:
    CROWD_DB_DATABASE=database
    ```
 3. Configure CubeJS and Nango to use the new database in `scripts/scaffold.yaml`. Search for `cubejs` and `nango` and replace the following variables:
-    ```yaml
-    cubejs:
-        environment:
-        - CUBEJS_DB_HOST=db
-        - CUBEJS_DB_PORT=5432
-        - CUBEJS_DB_NAME=crowd-web
-        - CUBEJS_DB_USER=postgres
-        - CUBEJS_DB_PASS=example
-    nango:
-        environment:
-        - NANGO_DB_HOST=write_host
-        - NANGO_DB_PORT=port
-        - NANGO_DB_NAME=database
-        - NANGO_DB_USER=user
-        - NANGO_DB_PASSWORD=password
-    ```
+
+   ```yaml
+   cubejs:
+     environment:
+       - CUBEJS_DB_HOST=db
+       - CUBEJS_DB_PORT=5432
+       - CUBEJS_DB_NAME=crowd-web
+       - CUBEJS_DB_USER=postgres
+       - CUBEJS_DB_PASS=example
+   nango:
+     environment:
+       - NANGO_DB_HOST=write_host
+       - NANGO_DB_PORT=port
+       - NANGO_DB_NAME=database
+       - NANGO_DB_USER=user
+       - NANGO_DB_PASSWORD=password
+   ```
 
 4. To initialize the database schema, export the environment variables and then run `./cli migrate-env`. Here's an example of how to do this in a bash shell:
+
    ```bash
    export CROWD_DB_WRITE_HOST=write_host
    export CROWD_DB_READ_HOST=read_host
