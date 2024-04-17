@@ -122,8 +122,21 @@ class MemberRepository {
 
     const qx = SequelizeRepository.getQueryExecutor(options, transaction)
 
-    if (data.username) {
-      const username: PlatformIdentities = data.username
+    if (data.identities) {
+      for (const i of data.identities as IMemberIdentity[]) {
+        await createMemberIdentity(qx, {
+          memberId: record.id,
+          tenantId: tenant.id,
+          platform: i.platform,
+          type: i.type,
+          value: i.value,
+          sourceId: i.sourceId || null,
+          integrationId: i.integrationId || null,
+          verified: i.verified,
+        })
+      }
+    } else if (data.username) {
+      const username: PlatformIdentities = mapUsernameToIdentities(data.username)
 
       for (const platform of Object.keys(username) as PlatformType[]) {
         const identities: any[] = username[platform]
@@ -139,19 +152,6 @@ class MemberRepository {
             tenantId: tenant.id,
           })
         }
-      }
-    } else if (data.identities) {
-      for (const i of data.identities as IMemberIdentity[]) {
-        await createMemberIdentity(qx, {
-          memberId: record.id,
-          tenantId: tenant.id,
-          platform: i.platform,
-          type: i.type,
-          value: i.value,
-          sourceId: i.sourceId || null,
-          integrationId: i.integrationId || null,
-          verified: i.verified,
-        })
       }
     }
 
