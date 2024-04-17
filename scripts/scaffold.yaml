@@ -100,9 +100,6 @@ services:
       - ./scaffold/nginx/ssl:/etc/nginx/ssl
     ports:
       - '443:443'
-    environment:
-      - NGINX_HOST=localhost
-      - NGINX_PORT=443
     networks:
       - crowd-bridge
 
