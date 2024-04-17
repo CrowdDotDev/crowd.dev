@@ -6,6 +6,12 @@ interface ITermFilter {
   }
 }
 
+interface IExistsFilter {
+  exists: {
+    field: string
+  }
+}
+
 interface IRangeFilterMemberId {
   range: {
     uuid_memberId: {
@@ -31,7 +37,11 @@ interface IRangeFilterCreatedAt {
 }
 
 export type IMemberFilter = ITermFilter | IRangeFilterMemberId | IRangeFilterCreatedAt
-export type IOrganizationFilter = ITermFilter | IRangeFilterOrganizationId | IRangeFilterCreatedAt
+export type IOrganizationFilter =
+  | ITermFilter
+  | IRangeFilterOrganizationId
+  | IRangeFilterCreatedAt
+  | IExistsFilter
 
 export interface IMemberQueryBody {
   from: number

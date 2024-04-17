@@ -29,6 +29,11 @@ export async function getOrganizations(
                 uuid_tenantId: tenantId,
               },
             },
+            {
+              exists: {
+                field: 'keyword_displayName',
+              },
+            },
           ],
         },
       },
