@@ -10,8 +10,8 @@ const activity = proxyActivities<typeof activities>({ startToCloseTimeout: '1 mi
 export async function generateMemberMergeSuggestions(
   args: IProcessGenerateMemberMergeSuggestionsArgs,
 ): Promise<void> {
-  const PAGE_SIZE = 500
-  const PARALLEL_SUGGESTION_PROCESSING = 50
+  const PAGE_SIZE = 50
+  const PARALLEL_SUGGESTION_PROCESSING = 10
 
   let lastUuid: string = args.lastUuid || null
 
