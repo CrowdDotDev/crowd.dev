@@ -190,10 +190,9 @@ setImmediate(async () => {
     const repos: Repo[] = []
 
     for (const repoFullName of repoFullNames) {
-      const repoURL = `https://github.com/${repoFullName}`
-      const repoExists = currentSettings.repos.find((r) => r.url === repoURL)
+      const repoExists = currentSettings.repos.find((r) => r.url === repoFullName)
       if (!repoExists) {
-        log.error(`Repo ${repoURL} is not configured in integration settings, skipping!`)
+        log.error(`Repo ${repoFullName} is not configured in integration settings, skipping!`)
         continue
       }
       repos.push(repoExists)
