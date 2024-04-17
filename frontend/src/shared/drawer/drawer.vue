@@ -3,6 +3,8 @@
     v-model="model"
     :custom-class="`${customClass} ${
       hasBorder ? 'bordered' : ''
+    } ${
+      hasPadding ? '' : 'no-padding'
     }`"
     :show-close="false"
     :destroy-on-close="true"
@@ -95,6 +97,10 @@ const props = defineProps({
   hasBorder: {
     type: Boolean,
     default: () => false,
+  },
+  hasPadding: {
+    type: Boolean,
+    default: () => true,
   },
 });
 

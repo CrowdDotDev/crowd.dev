@@ -96,7 +96,7 @@ export async function deleteMemberIdentitiesByCombinations(
                                   $(tenantId)::uuid            as tenantid,
                                   unnest($(platforms)::text[]) as platform,
                                   unnest($(values)::text[]) as value,
-                                  unnest($(types)::text[])) as combinations
+                                  unnest($(types)::text[]) as type) as combinations
                           on mi."memberId" = combinations.memberid
                               and mi."tenantId" = combinations.tenantid
                               and mi.platform = combinations.platform
