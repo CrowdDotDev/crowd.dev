@@ -7,7 +7,7 @@ import { IS_DEV_ENV, IS_TEST_ENV } from '@crowd/common'
 export const scheduleGenerateOrganizationMergeSuggestions = async () => {
   try {
     await svc.temporal.schedule.create({
-      scheduleId: 'member-merge-suggestions',
+      scheduleId: 'organization-merge-suggestions',
       spec:
         IS_DEV_ENV || IS_TEST_ENV
           ? {
