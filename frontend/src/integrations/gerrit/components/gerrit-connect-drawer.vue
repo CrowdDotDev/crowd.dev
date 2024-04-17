@@ -45,7 +45,7 @@
           :key="ii"
           v-model="form.repoNames[ii]"
           class="text-green-500 mt-2"
-          placeholder="Enter Project Name"
+          placeholder="Enter Repository Name"
         >
           <template #after>
             <el-button
