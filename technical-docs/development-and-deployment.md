@@ -158,6 +158,7 @@ Now depending on if you want to use SSL or not we prepared two options here:
 Your website is running at `crowd.yourdomain.com` on port 443 (https) with encryption.
 
 - copy `scripts/scaffold/ssl.default.conf.template` to `scripts/scaffold/templates/default.conf.template` overwritting the existing file
+- currently the file is set up to host on `*.yourdomain.com` so please open it up and change all occurances to your domain (see `server_name`)
 - place your SSL certificate and key file in PEM format into `scripts/scaffold/nginx/ssl` folder named `cert.pem` and `key.pem`.
 
 ##### No SSL Nginx configuration (not recommended)
@@ -165,6 +166,7 @@ Your website is running at `crowd.yourdomain.com` on port 443 (https) with encry
 Your website is running at `crowd.yourdomain.com` on port 80 (http) without encryption.
 
 - copy `scripts/scaffold/nossl.default.conf.template` to `scripts/scaffold/templates/default.conf.template` overwritting the existing file
+- currently the file is set up to host on `*.yourdomain.com` so please open it up and change all occurances to your domain (see `server_name`)
 - open up `scripts/scaffold.yaml` and find `nginx` service and change ports to be `80:80` instead of `443:443`
 
 To initiate all the services, use the command `./cli clean-start` only once. This command creates and stores data in Docker volumes. It's crucial to understand that running `./cli clean-start` again will result in the loss of all previously stored data because it reinitializes the services and their associated volumes from scratch.
