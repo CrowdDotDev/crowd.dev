@@ -39,7 +39,7 @@
             </div>
 
           </a>
-          <div class="ml-2 flex items-center">
+          <div v-if="getPlatformLabel(emailIdentity.platforms)" class="ml-2 flex items-center">
             <el-tooltip placement="top">
               <template #content>
                 <span class="font-semibold">Source:&nbsp;</span>{{ getPlatformLabel(emailIdentity.platforms) }}
@@ -107,24 +107,27 @@ const distinctEmails = computed(() => props.emails.reduce((obj: Record<string, a
     };
   }
   emailObject[identity.handle].platforms.push(identity.platform);
+  emailObject[identity.handle].verified = emailObject[identity.handle].verified || identity.verified;
 
   return emailObject;
 }, {}));
 
 const isEnrichment = (platforms:string[]) => platforms.includes('enrichment');
 
-const getPlatformLabel = (platforms: string[]) => platforms.map((platform) => {
-  if (platform === 'lfid') {
-    return 'LFID';
-  }
-  if (platform === 'integration') {
-    return 'Unknown Integration';
-  }
-  if (platform === 'enrichment') {
-    return 'Enrichment';
-  }
-  return CrowdIntegrations.getConfig(platform)?.name || platform;
-}).join(', ');
+const getPlatformLabel = (platforms: string[]) => platforms
+  .filter((platform) => !['integration_or_enrichment'].includes(platform))
+  .map((platform) => {
+    if (platform === 'lfid') {
+      return 'LFID';
+    }
+    if (platform === 'integration') {
+      return 'Integration';
+    }
+    if (platform === 'enrichment') {
+      return 'Enrichment';
+    }
+    return CrowdIntegrations.getConfig(platform)?.name || platform;
+  }).join(', ');
 
 const isEditLockedForSampleData = computed(() => new MemberPermissions(
   tenant.value,

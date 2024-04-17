@@ -60,7 +60,6 @@ export default ({
       link: string;
     }[];
   } => order.reduce((acc, platform) => {
-    console.log(order);
     const handles = getIdentityHandles(platform);
 
     if (platform === Platform.CUSTOM && handles.length) {
@@ -122,8 +121,8 @@ export default ({
       const indexA = order.findIndex((p) => p === a.platform);
       const indexB = order.findIndex((p) => p === b.platform);
 
-      const orderA = indexA === -1 ? 999 : indexA;
-      const orderB = indexB === -1 ? 999 : indexB;
+      const orderA = indexA === -1 ? order.length : indexA;
+      const orderB = indexB === -1 ? order.length : indexB;
 
       return orderA - orderB;
     });
