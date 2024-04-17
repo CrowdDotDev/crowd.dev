@@ -59,7 +59,7 @@
                   <el-popover trigger="hover" placement="top" popper-class="!w-auto">
                     <template #reference>
                       <el-tag type="info" size="small">
-                        {{ pluralize('project group', item.segments.length, true) }}
+                        {{ item.segments.length > 1 ? pluralize('project group', item.segments.length, true) : getSegmentName(item.segments[0]) }}
                       </el-tag>
                     </template>
 
