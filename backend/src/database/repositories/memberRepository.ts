@@ -153,7 +153,7 @@ class MemberRepository {
           })
         }
       }
-    } 
+    }
 
     await MemberRepository.includeMemberToSegments(record.id, options)
 
