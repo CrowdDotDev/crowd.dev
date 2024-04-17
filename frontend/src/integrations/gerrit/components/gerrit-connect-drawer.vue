@@ -52,7 +52,7 @@
               class="btn btn-link btn-link--md btn-link--primary w-10 h-10"
               @click="removeRepoName(ii)"
             >
-            <i class="ri-delete-bin-line text-lg" />
+             <i class="ri-delete-bin-line text-lg" />
             </el-button>
           </template>
         </app-array-input>
@@ -93,7 +93,7 @@ import {
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import formChangeDetector from '@/shared/form/form-change';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
-import AppArrayInput from "@/shared/form/array-input.vue";
+import AppArrayInput from '@/shared/form/array-input.vue';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps({
