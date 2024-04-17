@@ -18,7 +18,7 @@ export async function generateOrganizationMergeSuggestions(
 
   let lastUuid: string = args.lastUuid || null
 
-  // get the latest generation time of tenant's member suggestions, we'll only get members created after that for new suggestions
+  // get the latest generation time of tenant's organization suggestions, we'll only get organizations created after that for new suggestions
   const lastGeneratedAt = await activity.findTenantsLatestOrganizationSuggestionGeneratedAt(
     args.tenantId,
   )
