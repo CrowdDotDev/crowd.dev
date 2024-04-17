@@ -29,6 +29,7 @@ import { GerritActivityType } from './gerrit/types'
 export const UNKNOWN_ACTIVITY_TYPE_DISPLAY: ActivityTypeDisplayProperties = {
   default: 'Conducted an activity',
   short: 'conducted an activity',
+  author: 'conducted by',
   channel: '',
 }
 
@@ -38,7 +39,7 @@ const defaultGithubChannelFormatter = (channel) => {
   const channelSplit = channel.split('/')
   const organization = channelSplit[3]
   const repo = channelSplit[4]
-  return `<a href="${githubUrl}/${organization}/${repo}" target="_blank">${repo}</a>`
+  return `<a href="${githubUrl}/${organization}/${repo}" target="_blank">/${repo}</a>`
 }
 
 const defaultConfluenceChannelFormatter = (channel) => {
@@ -282,6 +283,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
       display: {
         default: 'authored a commit in {channel}',
         short: 'authored a commit',
+        author: 'authored by',
         channel: '{channel}',
         formatter: {
           channel: defaultGithubChannelFormatter,
@@ -293,6 +295,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
       display: {
         default: 'reviewed a commit in {channel}',
         short: 'reviewed a commit',
+        author: 'reviewed by',
         channel: '{channel}',
         formatter: {
           channel: defaultGithubChannelFormatter,
@@ -304,6 +307,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
       display: {
         default: 'tested a commit in {channel}',
         short: 'tested a commit',
+        author: 'tested by',
         channel: '{channel}',
         formatter: {
           channel: defaultGithubChannelFormatter,
@@ -315,6 +319,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
       display: {
         default: 'co-authored a commit in {channel}',
         short: 'co-authored a commit',
+        author: 'co-authored by',
         channel: '{channel}',
         formatter: {
           channel: defaultGithubChannelFormatter,
@@ -326,6 +331,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
       display: {
         default: 'informed a commit in {channel}',
         short: 'informed a commit',
+        author: 'informed by',
         channel: '{channel}',
         formatter: {
           channel: defaultGithubChannelFormatter,
@@ -337,6 +343,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
       display: {
         default: 'influenced a commit in {channel}',
         short: 'influenced a commit',
+        author: 'influenced by',
         channel: '{channel}',
         formatter: {
           channel: defaultGithubChannelFormatter,
@@ -348,6 +355,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
       display: {
         default: 'approved a commit in {channel}',
         short: 'approved a commit',
+        author: 'approved by',
         channel: '{channel}',
         formatter: {
           channel: defaultGithubChannelFormatter,
@@ -357,8 +365,9 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
     },
     [GitActivityType.COMMITTED_COMMIT]: {
       display: {
-        default: 'committed a commit in {channel}',
-        short: 'committed a commit',
+        default: 'committed in {channel}',
+        short: 'committed',
+        author: 'committed by',
         channel: '{channel}',
         formatter: {
           channel: defaultGithubChannelFormatter,
@@ -370,6 +379,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
       display: {
         default: 'reported a commit in {channel}',
         short: 'reported a commit',
+        author: 'reported by',
         channel: '{channel}',
         formatter: {
           channel: defaultGithubChannelFormatter,
@@ -381,6 +391,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
       display: {
         default: 'resolved a commit in {channel}',
         short: 'resolved a commit',
+        author: 'resolved by',
         channel: '{channel}',
         formatter: {
           channel: defaultGithubChannelFormatter,
@@ -392,6 +403,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
       display: {
         default: 'signed off a commit in {channel}',
         short: 'signed off a commit',
+        author: 'signed off by',
         channel: '{channel}',
         formatter: {
           channel: defaultGithubChannelFormatter,
@@ -405,7 +417,11 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
       display: {
         default: 'authored a commit in {channel}',
         short: 'authored a commit',
+        author: 'authored by',
         channel: '{channel}',
+        formatter: {
+          channel: defaultGithubChannelFormatter,
+        },
       },
       isContribution: true,
     },
@@ -413,7 +429,11 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
       display: {
         default: 'reviewed a commit in {channel}',
         short: 'reviewed a commit',
+        author: 'reviewed by',
         channel: '{channel}',
+        formatter: {
+          channel: defaultGithubChannelFormatter,
+        },
       },
       isContribution: true,
     },
@@ -421,7 +441,11 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
       display: {
         default: 'tested a commit in {channel}',
         short: 'tested a commit',
+        author: 'tested by',
         channel: '{channel}',
+        formatter: {
+          channel: defaultGithubChannelFormatter,
+        },
       },
       isContribution: true,
     },
@@ -429,7 +453,11 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
       display: {
         default: 'co-authored a commit in {channel}',
         short: 'co-authored a commit',
+        author: 'co-authored by',
         channel: '{channel}',
+        formatter: {
+          channel: defaultGithubChannelFormatter,
+        },
       },
       isContribution: true,
     },
@@ -437,7 +465,11 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
       display: {
         default: 'informed a commit in {channel}',
         short: 'informed a commit',
+        author: 'informed by',
         channel: '{channel}',
+        formatter: {
+          channel: defaultGithubChannelFormatter,
+        },
       },
       isContribution: true,
     },
@@ -445,7 +477,11 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
       display: {
         default: 'influenced a commit in {channel}',
         short: 'influenced a commit',
+        author: 'influenced by',
         channel: '{channel}',
+        formatter: {
+          channel: defaultGithubChannelFormatter,
+        },
       },
       isContribution: true,
     },
@@ -453,7 +489,11 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
       display: {
         default: 'approved a commit in {channel}',
         short: 'approved a commit',
+        author: 'approved by',
         channel: '{channel}',
+        formatter: {
+          channel: defaultGithubChannelFormatter,
+        },
       },
       isContribution: true,
     },
@@ -461,7 +501,11 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
       display: {
         default: 'committed a commit in {channel}',
         short: 'committed a commit',
+        author: 'committed by',
         channel: '{channel}',
+        formatter: {
+          channel: defaultGithubChannelFormatter,
+        },
       },
       isContribution: true,
     },
@@ -469,7 +513,11 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
       display: {
         default: 'reported a commit in {channel}',
         short: 'reported a commit',
+        author: 'reported by',
         channel: '{channel}',
+        formatter: {
+          channel: defaultGithubChannelFormatter,
+        },
       },
       isContribution: true,
     },
@@ -477,7 +525,11 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
       display: {
         default: 'resolved a commit in {channel}',
         short: 'resolved a commit',
+        author: 'resolved by',
         channel: '{channel}',
+        formatter: {
+          channel: defaultGithubChannelFormatter,
+        },
       },
       isContribution: true,
     },
@@ -485,7 +537,11 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
       display: {
         default: 'signed off a commit in {channel}',
         short: 'signed off a commit',
+        author: 'signed off by',
         channel: '{channel}',
+        formatter: {
+          channel: defaultGithubChannelFormatter,
+        },
       },
       isContribution: true,
     },

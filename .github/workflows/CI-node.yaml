@@ -20,7 +20,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: 20
 
       - name: Install dependencies
         run: cd .. && corepack enable && pnpm i --frozen-lockfile
@@ -48,7 +48,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: 20
 
       - name: Install dependencies
         run: cd .. && corepack enable && pnpm i --frozen-lockfile
@@ -74,7 +74,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: 20
 
       - name: Install dependencies
         run: cd .. && corepack enable && pnpm i --frozen-lockfile
@@ -98,7 +98,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: 20
 
       - name: Install dependencies
         run: cd .. && corepack enable && pnpm i --frozen-lockfile
