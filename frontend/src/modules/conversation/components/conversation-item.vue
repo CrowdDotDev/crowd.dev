@@ -2,6 +2,13 @@
   <article v-if="loading || !conversation">
     <app-loading height="380px" />
   </article>
+  <!-- For now only render the new UI for Git activities -->
+  <article v-else-if="conversation.platform === Platform.GIT">
+    <lf-conversation-display
+      :conversation="conversation"
+      @click="openConversation()"
+    />
+  </article>
   <article
     v-else
     class="conversation-item panel"
@@ -93,6 +100,8 @@ import AppConversationReply from '@/modules/conversation/components/conversation
 import AppConversationItemFooter from '@/modules/conversation/components/conversation-item-footer.vue';
 import pluralize from 'pluralize';
 import AppActivityHeader from '@/modules/activity/components/activity-header.vue';
+import { Platform } from '@/shared/modules/platform/types/Platform';
+import LfConversationDisplay from '@/shared/modules/conversation/components/conversation-display.vue';
 
 export default {
   name: 'AppConversationItem',
@@ -104,6 +113,7 @@ export default {
     AppAvatar,
     AppConversationItemFooter,
     AppActivityHeader,
+    LfConversationDisplay,
   },
   props: {
     conversation: {
@@ -118,6 +128,9 @@ export default {
     },
   },
   emits: ['details'],
+  data() {
+    return { Platform };
+  },
   computed: {
     platform() {
       return CrowdIntegrations.getConfig(

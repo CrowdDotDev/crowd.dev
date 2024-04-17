@@ -27,7 +27,7 @@
         <i class="ri-arrow-right-line ml-1" />
       </router-link>
     </div>
-    <div class="pt-4">
+    <div class="pt-6">
       <div
         v-if="loading"
         v-loading="loading"

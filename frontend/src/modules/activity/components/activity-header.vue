@@ -3,6 +3,7 @@
     <slot>
       <app-activity-message
         :activity="activity"
+        class="font-medium"
       />
     </slot>
     <div class="whitespace-nowrap flex items-center">
@@ -28,7 +29,10 @@
               :src="activity.organization.logo"
               :alt="`${activity.organization.displayName} logo`"
             />
-            <span class="text-gray-900 group-hover:text-brand-500 transition">{{ activity.organization.displayName }}</span>
+            <span
+              class="text-gray-500 group-hover:decoration-gray-900
+             transition text-xs underline decoration-dashed underline-offset-4 decoration-gray-400"
+            >{{ activity.organization.displayName }}</span>
           </div>
         </router-link>
       </div>

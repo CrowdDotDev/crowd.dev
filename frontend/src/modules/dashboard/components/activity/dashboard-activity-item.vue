@@ -21,6 +21,14 @@
       </div>
     </div>
   </article>
+  <!-- For now only render a special UI for Git -->
+  <article v-else-if="activity.platform === Platform.GIT" class="py-5">
+    <lf-activity-display
+      in-dashboard
+      :activity="activity"
+      @activity-destroyed="$emit('activity-destroyed', activity.id)"
+    />
+  </article>
   <article v-else class="py-5 border-gray-200 relative">
     <div class="flex">
       <!-- avatar -->
@@ -136,6 +144,8 @@ import AppActivityContentFooter from '@/modules/activity/components/activity-con
 import AppActivityHeader from '@/modules/activity/components/activity-header.vue';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import LfActivityDisplay from '@/shared/modules/activity/components/activity-display.vue';
+import { Platform } from '@/shared/modules/platform/types/Platform';
 
 export default {
   name: 'AppDashboardActivityItem',
@@ -147,6 +157,7 @@ export default {
     AppAvatar,
     AppActivityContentFooter,
     AppActivityHeader,
+    LfActivityDisplay,
   },
   props: {
     activity: {
@@ -161,6 +172,11 @@ export default {
     },
   },
   emits: ['activity-destroyed'],
+  data() {
+    return {
+      Platform,
+    };
+  },
   computed: {
     platform() {
       return CrowdIntegrations.getConfig(

@@ -2,11 +2,11 @@
   <a
     v-if="activity && activity.url && platform?.activityDisplay?.showLinkToUrl"
     :href="activity.url"
-    class="text-xs text-gray-600 font-medium flex items-center"
+    class="text-2xs text-gray-500 font-medium flex items-center"
     target="_blank"
     rel="noopener noreferrer"
     @click.stop
-  ><i class="ri-lg ri-external-link-line mr-1" />
+  ><i class="text-sm ri-external-link-line mr-1" />
     <span
       v-if="platform"
       class="block"

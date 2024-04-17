@@ -370,17 +370,13 @@ const processStargazersStream: ProcessStreamHandler = async (ctx) => {
   await publishNextPageStream(ctx, result)
 
   for (const record of result.data) {
-    let member: GithubPrepareMemberOutput
     if (record.node === null) {
-      throw new Error('Stargazer is not found. This might be a deleted user.')
+      throw new Error(
+        'Stargazer is not found. This might be a deleted user. Please check the data.',
+      )
     }
-    if (record.node.__typename === 'User') {
-      member = await prepareMember(record.node, ctx)
-    } else if (record.node.__typename === 'Bot') {
-      member = prepareBotMember(record.node)
-    } else {
-      ctx.log.warn(`Unsupported stargazer type: ${record.node.__typename}`)
-    }
+
+    const member = await prepareMember(record.node, ctx)
 
     // publish data
     await ctx.processData<GithubApiData>({
