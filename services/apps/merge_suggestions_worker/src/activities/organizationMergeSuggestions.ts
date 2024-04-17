@@ -110,7 +110,7 @@ export async function getOrganizationMergeSuggestions(
   tenantId: string,
   organization: IOrganizationPartialAggregatesOpensearch,
 ): Promise<IOrganizationMergeSuggestion[]> {
-  const SIMILARITY_CONFIDENCE_SCORE_THRESHOLD = 0.9
+  const SIMILARITY_CONFIDENCE_SCORE_THRESHOLD = 0.5
   const mergeSuggestions: IOrganizationMergeSuggestion[] = []
   const organizationMergeSuggestionsRepo = new OrganizationMergeSuggestionsRepository(
     svc.postgres.writer.connection(),
