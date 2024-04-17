@@ -16,6 +16,14 @@ const streamToManualStreamMap: Map<GithubStreamType, GithubManualStreamType> = n
   [GithubStreamType.DISCUSSIONS, GithubManualStreamType.DISCUSSIONS],
 ])
 
+const manualStreamToStreamMap: Map<GithubManualStreamType, GithubStreamType> = new Map([
+  [GithubManualStreamType.STARGAZERS, GithubStreamType.STARGAZERS],
+  [GithubManualStreamType.FORKS, GithubStreamType.FORKS],
+  [GithubManualStreamType.PULLS, GithubStreamType.PULLS],
+  [GithubManualStreamType.ISSUES, GithubStreamType.ISSUES],
+  [GithubManualStreamType.DISCUSSIONS, GithubStreamType.DISCUSSIONS],
+])
+
 const handler: GenerateStreamsHandler = async (ctx) => {
   const settings = ctx.integration.settings as GithubIntegrationSettings
   const reposToCheck = [...(settings.repos || []), ...(settings.unavailableRepos || [])]
@@ -28,7 +36,7 @@ const handler: GenerateStreamsHandler = async (ctx) => {
       ctx.abortRunWithError('isManualRun is true but manualSettings is not set!')
     }
 
-    if (manualSettings.repos) {
+    if (manualSettings.repos && manualSettings.manualSettingsType === 'default') {
       for (const repo of manualSettings.repos) {
         for (const endpoint of [
           GithubStreamType.STARGAZERS,
@@ -46,6 +54,19 @@ const handler: GenerateStreamsHandler = async (ctx) => {
               page: '',
             })
           }
+        }
+      }
+    } else if (manualSettings.repos && manualSettings.manualSettingsType === 'detailed_map') {
+      for (const [repo, streams] of manualSettings.map) {
+        for (const stream of streams) {
+          const endpoint = manualStreamToStreamMap.get(stream)
+          if (!endpoint) {
+            ctx.abortRunWithError(`Invalid stream type: ${stream}`)
+          }
+          await ctx.publishStream<GithubBasicStream>(`${endpoint}:${repo.name}:firstPage`, {
+            repo,
+            page: '',
+          })
         }
       }
     }

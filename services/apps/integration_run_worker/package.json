@@ -13,7 +13,8 @@
     "script:onboard-integration": "SERVICE=script tsx src/bin/onboard-integration.ts",
     "script:process-repo": "SERVICE=script tsx src/bin/process-repo.ts",
     "script:trigger-stream-processed": "SERVICE=script tsx src/bin/trigger-stream-processed.ts",
-    "script:continue-run": "SERVICE=script tsx src/bin/continue-run.ts"
+    "script:continue-run": "SERVICE=script tsx src/bin/continue-run.ts",
+    "script:auto-heal": "SERVICE=script tsx src/bin/auto-heal-github-integration.ts"
   },
   "dependencies": {
     "@crowd/common": "workspace:*",
