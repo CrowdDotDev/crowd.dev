@@ -14,7 +14,7 @@
       </app-back-link>
       <div class="flex items-center">
         <h4 class="text-xl font-semibold leading-9">
-          Merging suggestions <span class="font-light text-gray-500">({{ total }})</span>
+          Merge suggestions <span class="font-light text-gray-500">({{ total }})</span>
         </h4>
         <el-tooltip
           placement="top"
@@ -34,7 +34,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(suggestion, si) of mergeSuggestions" :key="si" @click="openDetails(si)">
+          <tr v-for="(suggestion, si) of mergeSuggestions" :key="si">
             <td>
               <div class="flex items-center">
                 <router-link
@@ -45,7 +45,6 @@
                   }"
                   target="_blank"
                   class="text-black hover:text-primary-500"
-                  @click.stop
                 >
                   <div class="flex items-center gap-2">
                     <app-avatar
@@ -69,7 +68,6 @@
                   }"
                   target="_blank"
                   class="text-black hover:text-primary-500"
-                  @click.stop
                 >
                   <div class="flex items-center gap-2">
                     <i class="text-xl ri-subtract-line text-gray-300" />
@@ -89,10 +87,10 @@
             </td>
             <td class="w-48">
               <div class="flex justify-end items-center gap-3">
-                <cr-button size="small" type="tertiary">
+                <cr-button size="small" type="tertiary" @click="openDetails(si)">
                   View suggestion
                 </cr-button>
-                <cr-dropdown placement="bottom-end" width="15rem" @click.stop>
+                <cr-dropdown placement="bottom-end" width="15rem">
                   <template #trigger>
                     <cr-button
                       size="small"
