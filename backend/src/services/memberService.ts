@@ -1706,7 +1706,8 @@ export default class MemberService extends LoggerBase {
         }
       }
 
-      return record
+      // return updated record from OpenSearch instead of db
+      return await MemberRepository.findByIdOpensearch(record.id, this.options)
     } catch (error) {
       if (error.name && error.name.includes('Sequelize')) {
         this.log.error(
