@@ -4,7 +4,6 @@
     v-model="isModalOpen"
     title="Merge suggestions"
     size="2extra-large"
-    custom-class="mt-6 mb-6"
     :show-header="false"
   >
     <template #content>

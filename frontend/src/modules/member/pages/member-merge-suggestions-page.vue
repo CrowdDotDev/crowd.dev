@@ -20,11 +20,11 @@
           placement="top"
           content="LFX is constantly checking your community for duplicate contributors. Here you can check all the merging suggestions."
         >
-          <i class="ri-question-line text-lg text-gray-500 flex items-center ml-2 h-5" />
+          <i class="ri-question-line text-lg text-gray-400 flex items-center ml-2 h-5" />
         </el-tooltip>
       </div>
 
-      <cr-table class="mt-6">
+      <cr-table class="mt-6 pb-30">
         <thead>
           <tr>
             <th colspan="2">
@@ -34,28 +34,54 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(suggestion, si) of mergeSuggestions" :key="si">
+          <tr v-for="(suggestion, si) of mergeSuggestions" :key="si" @click="openDetails(si)">
             <td>
-              <div class="flex items-center gap-2">
-                <app-avatar
-                  :entity="suggestion.members[0]"
-                  size="xs"
-                />
-                <p class="text-xs leading-5 font-semibold whitespace-nowrap">
-                  {{ suggestion.members[0].displayName }}
-                </p>
+              <div class="flex items-center">
+                <router-link
+                  :to="{
+                    name: 'memberView',
+                    params: { id: suggestion.members[0].id },
+                    query: { projectGroup: selectedProjectGroup?.id },
+                  }"
+                  target="_blank"
+                  class="text-black hover:text-primary-500"
+                  @click.stop
+                >
+                  <div class="flex items-center gap-2">
+                    <app-avatar
+                      :entity="suggestion.members[0]"
+                      size="xs"
+                    />
+                    <p class="text-xs leading-5 font-semibold whitespace-nowrap">
+                      {{ suggestion.members[0].displayName }}
+                    </p>
+                  </div>
+                </router-link>
               </div>
             </td>
             <td>
-              <div class="flex items-center gap-2">
-                <i class="text-xl ri-subtract-line text-gray-300" />
-                <app-avatar
-                  :entity="suggestion.members[1]"
-                  size="xs"
-                />
-                <p class="text-xs leading-5 font-semibold whitespace-nowrap">
-                  {{ suggestion.members[1].displayName }}
-                </p>
+              <div class="flex items-center">
+                <router-link
+                  :to="{
+                    name: 'memberView',
+                    params: { id: suggestion.members[0].id },
+                    query: { projectGroup: selectedProjectGroup?.id },
+                  }"
+                  target="_blank"
+                  class="text-black hover:text-primary-500"
+                  @click.stop
+                >
+                  <div class="flex items-center gap-2">
+                    <i class="text-xl ri-subtract-line text-gray-300" />
+                    <app-avatar
+                      :entity="suggestion.members[1]"
+                      size="xs"
+                    />
+                    <p class="text-xs leading-5 font-semibold whitespace-nowrap">
+                      {{ suggestion.members[1].displayName }}
+                    </p>
+                  </div>
+                </router-link>
               </div>
             </td>
             <td>
@@ -63,10 +89,10 @@
             </td>
             <td class="w-48">
               <div class="flex justify-end items-center gap-3">
-                <cr-button size="small" type="tertiary" @click="openDetails(si)">
+                <cr-button size="small" type="tertiary">
                   View suggestion
                 </cr-button>
-                <cr-dropdown placement="bottom-end" width="15rem">
+                <cr-dropdown placement="bottom-end" width="15rem" @click.stop>
                   <template #trigger>
                     <cr-button
                       size="small"
