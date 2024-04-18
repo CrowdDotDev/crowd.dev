@@ -547,7 +547,7 @@ export default {
     async doGerritConnect(
       { commit },
       {
-        orgURL, projectName, user, key, isUpdate,
+        orgURL, user, key, isUpdate, repoNames,
       },
     ) {
       try {
@@ -555,9 +555,9 @@ export default {
 
         const integration = await IntegrationService.gerritConnect({
           orgURL,
-          projectName,
           user,
           key,
+          repoNames,
         });
 
         commit('CREATE_SUCCESS', integration);

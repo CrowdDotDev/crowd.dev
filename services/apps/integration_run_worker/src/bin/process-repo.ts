@@ -135,6 +135,7 @@ setImmediate(async () => {
     }
 
     const settings: GithubManualIntegrationSettings = {
+      manualSettingsType: 'default',
       repos,
       unavailableRepos: [],
       streamType,
