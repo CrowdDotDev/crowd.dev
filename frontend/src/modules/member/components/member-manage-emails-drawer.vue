@@ -17,13 +17,13 @@
       </div>
       <div class="border-t border-gray-200 -mx-6 px-6">
         <div class="gap-4 flex flex-col pt-6 pb-10">
-          <template v-for="(identity, ii) of identities" :key="ii">
+          <template v-for="(identity, email) of distinctEmails" :key="email">
             <template v-if="identity.type === 'email'">
               <app-member-form-email-item
                 :identity="identity"
                 :member="props.member"
-                @update="update(ii, $event)"
-                @remove="remove(ii)"
+                @update="update(email, $event)"
+                @remove="remove(email)"
               />
             </template>
           </template>
@@ -76,6 +76,22 @@ const drawerModel = computed({
 const identities = ref<MemberIdentity[]>([...(props.member.identities || [])]);
 const addIdentities = ref<MemberIdentity[]>([]);
 
+const distinctEmails = computed(() => identities.value
+  .filter((identity) => identity.type === 'email')
+  .reduce((obj: Record<string, any>, identity: any) => {
+    const emailObject = { ...obj };
+    if (!(identity.value in emailObject)) {
+      emailObject[identity.value] = {
+        ...identity,
+        platforms: [],
+      };
+    }
+    emailObject[identity.value].platforms.push(identity.platform);
+    emailObject[identity.value].verified = emailObject[identity.value].verified || identity.verified;
+
+    return emailObject;
+  }, {}));
+
 const serverUpdate = () => {
   const segments = props.member.segments.map((s) => s.id);
 
@@ -87,18 +103,29 @@ const serverUpdate = () => {
     });
 };
 
-const update = (index: number, data: MemberIdentity) => {
-  identities.value[index] = data;
+const update = (email: string, data: MemberIdentity) => {
+  identities.value = identities.value.map((i) => {
+    if (i.value === email) {
+      return {
+        ...i,
+        ...data,
+      };
+    }
+    return i;
+  });
   serverUpdate();
 };
 
-const remove = (index: number) => {
-  identities.value.splice(index, 1);
+const remove = (email: string) => {
+  identities.value = identities.value.filter((i) => i.value !== email);
   serverUpdate();
 };
 
 const create = (index: number, data: MemberIdentity) => {
-  identities.value.push(data);
+  identities.value.push({
+    ...addIdentities.value[index],
+    ...data,
+  });
   addIdentities.value.splice(index, 1);
   serverUpdate();
 };

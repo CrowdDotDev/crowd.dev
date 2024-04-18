@@ -1,0 +1,27 @@
+.c-table {
+  table {
+    @apply w-full;
+
+    thead {
+      @apply border-b border-gray-100;
+      th {
+        @apply h-12 text-sm leading-5 font-semibold text-gray-400 text-left;
+      }
+    }
+
+    tbody {
+      tr:not(:last-child){
+        @apply border-b border-gray-100;
+      }
+
+      tr{
+        td{
+          @apply py-4;
+        }
+        td:not(:last-child){
+          @apply pr-3;
+        }
+      }
+    }
+  }
+}
