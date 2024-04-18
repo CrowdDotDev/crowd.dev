@@ -11,7 +11,7 @@ export const getClientSQL = async (): Promise<pgpromise.IDatabase<unknown>> => {
     return client
   }
 
-  log.trace('Creating QuestDB client (SQL) instance!')
+  log.info('Creating QuestDB client (SQL) instance!')
 
   client = pgpromise()({
     host: process.env['CROWD_QUESTDB_READ_HOST'],
