@@ -24,7 +24,7 @@
         </el-tooltip>
       </div>
 
-      <cr-table class="mt-6 pb-30">
+      <cr-table class="mt-6">
         <thead>
           <tr>
             <th colspan="2">
