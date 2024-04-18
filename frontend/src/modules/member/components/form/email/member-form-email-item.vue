@@ -47,7 +47,7 @@
             v-if="emailExists && !(model.value === props.identity.value && props.identity.value)"
             class="el-form-item__error"
           >
-            The email is already associated to the contributor
+            This email is already associated with the contributor
           </div>
         </div>
       </div>
