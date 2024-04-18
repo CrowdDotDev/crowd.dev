@@ -20,6 +20,7 @@
     "script:sync-tenant-members": "SERVICE=script tsx src/bin/sync-tenant-members.ts",
     "script:sync-tenant-activities": "SERVICE=script tsx src/bin/sync-tenant-activities.ts",
     "script:sync-tenant-organizations": "SERVICE=script tsx src/bin/sync-tenant-organizations.ts",
+    "script:cleanup-member": "SERVICE=script tsx src/bin/cleanup-member.ts",
     "script:cleanup-organization": "SERVICE=script tsx src/bin/cleanup-organization.ts",
     "script:cleanup-tenant-members": "SERVICE=script tsx src/bin/cleanup-tenant-members.ts",
     "script:cleanup-tenant-activities": "SERVICE=script tsx src/bin/cleanup-tenant-activities.ts",
