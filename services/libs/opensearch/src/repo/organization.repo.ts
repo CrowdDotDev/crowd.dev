@@ -312,10 +312,8 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     } else {
       organizationSegments = await this.db().any(
         `
-        select distinct mo."organizationId", a."segmentId"
-        from "memberOrganizations" mo
-        inner join activities a on mo."memberId" = a."memberId"
-        where mo."organizationId" in ($(ids:csv));
+        SELECT * FROM organization_segments_mv
+        WHERE "organizationId" in ($(ids:csv));
         `,
         {
           ids: organizationIds,
