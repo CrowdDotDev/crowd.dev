@@ -1697,7 +1697,7 @@ export default class MemberService extends LoggerBase {
               await searchSyncService.triggerOrganizationSync(this.options.currentTenant.id, org.id)
             }
           }
-          
+
           // return updated record from OpenSearch instead of db
           // quick hack to make sure tests don't fail if OpenSearch is disabled
           return await MemberRepository.findByIdOpensearch(record.id, this.options)
