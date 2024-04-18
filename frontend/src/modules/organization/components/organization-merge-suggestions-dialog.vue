@@ -12,6 +12,7 @@
           :offset="props.offset"
           :query="props.query"
           class="!border-t-0 !shadow-none -mt-5"
+          @reload="emit('reload')"
         >
           <template #actions>
             <cr-button type="tertiary-light-gray" :icon-only="true" @click="isModalOpen = false">
@@ -39,7 +40,7 @@ const props = withDefaults(defineProps<{
   offset: 0,
 });
 
-const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void}>();
+const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void, (e: 'reload'): void}>();
 
 const isModalOpen = computed<boolean>({
   get() {

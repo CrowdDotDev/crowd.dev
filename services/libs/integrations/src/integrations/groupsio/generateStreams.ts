@@ -9,10 +9,11 @@ import {
 
 const handler: GenerateStreamsHandler = async (ctx) => {
   const settings = ctx.integration.settings as GroupsioIntegrationSettings
-
   const groups = settings.groups
   const token = settings.token
   const email = settings.email
+
+  const onboarding = ctx.onboarding
 
   if (!groups || groups.length === 0) {
     await ctx.abortRunWithError('No groups specified!')
@@ -37,14 +38,16 @@ const handler: GenerateStreamsHandler = async (ctx) => {
         page: null,
       },
     )
-    // also parse past group members.
-    await ctx.publishStream<GroupsioPastGroupMembersStreamMetadata>(
-      `${GroupsioStreamType.PAST_GROUP_MEMBERS}:${group}`,
-      {
-        group,
-        page: null,
-      },
-    )
+    // also parse past group members but only when onboarding is true
+    if (onboarding) {
+      await ctx.publishStream<GroupsioPastGroupMembersStreamMetadata>(
+        `${GroupsioStreamType.PAST_GROUP_MEMBERS}:${group}`,
+        {
+          group,
+          page: null,
+        },
+      )
+    }
   }
 }
 
