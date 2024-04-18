@@ -1,6 +1,7 @@
 import { getCleanString, Error403 } from '@crowd/common'
 import { LoggerBase } from '@crowd/logging'
 import { PlatformType } from '@crowd/types'
+import { deleteConversations, insertConversation } from '@crowd/data-access-layer'
 import emoji from 'emoji-dictionary'
 import { convert as convertHtmlToText } from 'html-to-text'
 import fetch from 'node-fetch'
@@ -33,6 +34,21 @@ export default class ConversationService extends LoggerBase {
       const record = await ConversationRepository.create(data, {
         ...this.options,
         transaction,
+      })
+
+      const currentSegment = SequelizeRepository.getStrictlySingleActiveSegment(this.options)
+      const currentUser = SequelizeRepository.getCurrentUser(this.options)
+
+      await insertConversation(this.options.qdb, {
+        id: record.id,
+        tenantId: this.options.currentTenant.id,
+        segmentId: currentSegment.id,
+        title: data.title,
+        published: data.published,
+        slug: data.slug,
+        timestamp: new Date(Date.now()),
+        createdById: currentUser.id,
+        updatedById: currentUser.id,
       })
 
       telemetryTrack(
@@ -379,6 +395,7 @@ export default class ConversationService extends LoggerBase {
         })
       }
 
+      await deleteConversations(this.options.qdb, ids)
       await SequelizeRepository.commitTransaction(transaction)
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
@@ -440,6 +457,7 @@ export default class ConversationService extends LoggerBase {
         true,
       )
 
+      await deleteConversations(this.options.qdb, ids)
       await SequelizeRepository.commitTransaction(transaction)
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)

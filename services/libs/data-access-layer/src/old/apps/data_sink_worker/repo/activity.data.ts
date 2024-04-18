@@ -97,6 +97,7 @@ export interface IDbActivityUpdateData {
   type: string
   isContribution: boolean
   score: number
+  parentId?: string
   sourceId: string
   sourceParentId?: string
   tenantId?: string

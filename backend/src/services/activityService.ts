@@ -1,6 +1,7 @@
 import { Error400 } from '@crowd/common'
 import { LoggerBase, logExecutionTime } from '@crowd/logging'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
+import { addActivityToConversation, deleteActivities, insertActivities, updateActivity } from '@crowd/data-access-layer'
 import { PlatformType, SyncMode, TemporalWorkflowId, SegmentData } from '@crowd/types'
 import { Blob } from 'buffer'
 import vader from 'crowd-sentiment'
@@ -119,6 +120,7 @@ export default class ActivityService extends LoggerBase {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           organizationId: (oldValue, _newValue) => oldValue,
         })
+        await updateActivity(this.options.qdb, id, toUpdate)
         record = await ActivityRepository.update(id, toUpdate, repositoryOptions)
         if (data.parent) {
           await this.addToConversation(record.id, data.parent, transaction)
@@ -147,6 +149,7 @@ export default class ActivityService extends LoggerBase {
         )
 
         record = await ActivityRepository.create(data, repositoryOptions)
+        await insertActivities([{...data, id: record.id}])
 
         // Only track activity's platform and timestamp and memberId. It is completely annonymous.
         telemetryTrack(
@@ -174,6 +177,7 @@ export default class ActivityService extends LoggerBase {
 
           for (const child of children.rows) {
             // update children with newly created parentId
+            await updateActivity(this.options.qdb, child.id, {...record, parentId: record.id })
             await ActivityRepository.update(child.id, { parent: record.id }, repositoryOptions)
 
             // manage conversations for each child
@@ -436,6 +440,7 @@ export default class ActivityService extends LoggerBase {
         { conversationId: conversation.id },
         { ...this.options, transaction },
       )
+      await addActivityToConversation(this.options.qdb, parent.id, conversation.id)
     } else {
       // neither child nor parent is in a conversation, create one from parent
       const conversationTitle = await conversationService.generateTitle(
@@ -561,6 +566,7 @@ export default class ActivityService extends LoggerBase {
             'We found a member with the same username and platform but different id! Deleting the activity and continuing as if the activity did not exist.',
           )
 
+          await deleteActivities(this.options.qdb, [activityExists.id])
           await ActivityRepository.destroy(activityExists.id, this.options, true)
           activityExists = false
           existingMember = false
@@ -717,7 +723,8 @@ export default class ActivityService extends LoggerBase {
           transaction,
         })
       }
-
+      
+      await deleteActivities(this.options.qdb, ids)
       await SequelizeRepository.commitTransaction(transaction)
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)

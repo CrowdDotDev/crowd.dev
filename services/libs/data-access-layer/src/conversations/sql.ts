@@ -17,7 +17,7 @@ export async function insertConversation(
       VALUES ($(id), $(tenantId), $(segmentId), $(slug), $(title), $(published), $(now), $(now), $(timestamp));
       `,
       {
-        id,
+        id: conversation.id || id,
         tenantId: conversation.tenantId,
         segmentId: conversation.segmentId,
         slug: conversation.slug,
@@ -37,7 +37,7 @@ export async function insertConversation(
         AND "segmentId" = $(segmentId);
         `,
         {
-          id,
+          id: conversation.id || id,
           tenantId: conversation.tenantId,
           segmentId: conversation.segmentId,
           activityParentId: conversation.activityParentId,
@@ -57,7 +57,7 @@ export async function insertConversation(
         AND "segmentId" = $(segmentId);
         `,
         {
-          id,
+          id: conversation.id || id,
           tenantId: conversation.tenantId,
           segmentId: conversation.segmentId,
           activityChildId: conversation.activityChildId,
@@ -69,9 +69,18 @@ export async function insertConversation(
   return id
 }
 
-export async function deleteConversation(conn: DbConnOrTx, id: string): Promise<void> {
-  await Promise.all([
-    conn.none('DELETE FROM activities WHERE "conversationId" = $(id);', { id }),
-    conn.none('DELETE FROM conversations WHERE "id" = $(id);', { id }),
-  ])
+export async function deleteConversations(conn: DbConnOrTx, ids: string[]): Promise<void> {
+  await Promise.all(
+    ids.map(async (id) => {
+      return Promise.all([
+        await conn.query(
+          'UPDATE activities SET deletedAt = NOW() WHERE "conversationId" = $(id);',
+          {
+            id,
+          },
+        ),
+        await conn.query('UPDATE conversations SET deletedAt = NOW() WHERE "id" = $(id);', { id }),
+      ])
+    }),
+  )
 }

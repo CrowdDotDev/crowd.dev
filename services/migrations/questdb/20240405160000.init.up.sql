@@ -47,6 +47,7 @@ CREATE TABLE 'conversations' (
   timestamp TIMESTAMP,
   createdAt TIMESTAMP,
   updatedAt TIMESTAMP,
+  deletedAt TIMESTAMP,
   tenantId SYMBOL,
   segmentId SYMBOL,
   createdById UUID,

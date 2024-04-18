@@ -1,4 +1,5 @@
 export interface IDbConversationCreateData {
+  id?: string
   tenantId: string
   segmentId: string
   activityParentId?: string
@@ -7,4 +8,6 @@ export interface IDbConversationCreateData {
   published: boolean
   slug: string
   timestamp: Date | string
+  createdById?: string
+  updatedById?: string
 }

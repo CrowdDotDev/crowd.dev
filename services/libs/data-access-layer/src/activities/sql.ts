@@ -50,6 +50,10 @@ export async function updateActivity(
   "memberId" = $(memberId),
   "username" = $(username)`
 
+  if (activity.parentId) {
+    query += `, "parentId" = $(parentId)`
+  }
+
   if (activity.objectMemberId) {
     query += `, "objectMemberId" = $(objectMemberId)`
   }
@@ -97,6 +101,7 @@ export async function updateActivity(
     type: activity.type,
     isContribution: activity.isContribution,
     score: activity.score,
+    parentId: activity.parentId,
     sourceId: activity.sourceId,
     sourceParentId: activity.sourceParentId,
     memberId: activity.memberId,
@@ -165,6 +170,26 @@ export async function updateActivityParentIds(
   await Promise.all(promises)
 }
 
-export async function deleteActivity(conn: DbConnOrTx, id: string): Promise<void> {
-  await conn.none('DELETE FROM activities WHERE id = $(id);', { id })
+export async function addActivityToConversation(
+  conn: DbConnOrTx,
+  id: string,
+  conversationId: string,
+): Promise<void> {
+  await conn.none(
+    `
+    UPDATE activities SET "conversationId" = $(conversationId) WHERE id = $(id);
+    `,
+    {
+      id,
+      conversationId,
+    },
+  )
+}
+
+export async function deleteActivities(conn: DbConnOrTx, ids: string[]): Promise<void> {
+  await Promise.all(
+    ids.map(async (id) => {
+      return await conn.none('UPDATE activities SET deletedAt = NOW() WHERE id = $(id);', { id })
+    }),
+  )
 }
