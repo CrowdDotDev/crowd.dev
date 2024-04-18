@@ -54,7 +54,7 @@ export const scheduleMembersLFIDEnrichment = async () => {
         },
         args: [
           {
-            offset: 0,
+            afterId: null,
           },
         ],
       },
