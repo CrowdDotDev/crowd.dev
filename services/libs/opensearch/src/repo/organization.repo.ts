@@ -15,7 +15,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
   public async getOrganizationData(ids: string[]): Promise<IDbOrganizationSyncData[]> {
     const results = await this.db().any(
       `
-      with 
+      with
         organization_segments as (
           select "segmentId", "organizationId"
           from "organizationSegments"
@@ -33,7 +33,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
             min(a.timestamp) filter ( where a.timestamp <> '1970-01-01T00:00:00.000Z') as "joinedAt"
             from organization_segments os
             join activities a
-                      on a."organizationId" = os."organizationId" 
+                      on a."organizationId" = os."organizationId"
                           and a."segmentId" = os."segmentId" and a."deletedAt" is null
             join members m on a."memberId" = m.id and m."deletedAt" is null
             join "memberOrganizations" mo
@@ -49,7 +49,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
             where oi."organizationId" in ($(ids:csv))
             group by oi."organizationId"
         )
-    select 
+    select
         o.id as "organizationId",
         md."segmentId",
         o."tenantId",
@@ -253,12 +253,12 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
   public async checkOrganizationsExists(tenantId: string, orgIds: string[]): Promise<string[]> {
     const results = await this.db().any(
       `
-      select id 
-      from 
-        organizations 
-      where 
-        "tenantId" = $(tenantId) and 
-        id in ($(orgIds:csv)) and 
+      select id
+      from
+        organizations
+      where
+        "tenantId" = $(tenantId) and
+        id in ($(orgIds:csv)) and
         "deletedAt" is null
       `,
       {
@@ -276,7 +276,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
       select o.id
       from organizations o
       left join indexed_entities ie on o.id = ie.entity_id and ie.type = $(type)
-      where o."tenantId" = $(tenantId) and 
+      where o."tenantId" = $(tenantId) and
             o."deletedAt" is null and
             ie.entity_id is null
       limit ${perPage}`,
@@ -312,10 +312,8 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     } else {
       organizationSegments = await this.db().any(
         `
-        select distinct mo."organizationId", a."segmentId"
-        from "memberOrganizations" mo
-        inner join activities a on mo."memberId" = a."memberId"
-        where mo."organizationId" in ($(ids:csv));
+        SELECT * FROM organization_segments_mv
+        WHERE "organizationId" in ($(ids:csv));
         `,
         {
           ids: organizationIds,
