@@ -1699,7 +1699,7 @@ export default class MemberService extends LoggerBase {
           }
 
           // return updated record from OpenSearch instead of db
-          // quick hack to make sure tests don't fail if OpenSearch is disabled
+          // quick hack to ensure tests that use this method don't fail if OpenSearch is disabled
           return await MemberRepository.findByIdOpensearch(record.id, this.options)
         } catch (emitErr) {
           this.log.error(
