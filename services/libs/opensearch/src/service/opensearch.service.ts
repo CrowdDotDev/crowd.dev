@@ -10,6 +10,7 @@ import { Client } from '@opensearch-project/opensearch'
 import { IIndexRequest, ISearchHit } from './opensearch.data'
 import { AwsSigv4Signer } from '@opensearch-project/opensearch/aws'
 import { IOpenSearchConfig } from '@crowd/types'
+import telemetry from '@crowd/telemetry'
 
 export class OpenSearchService extends LoggerBase {
   public readonly client: Client
@@ -277,11 +278,16 @@ export class OpenSearchService extends LoggerBase {
   public async removeFromIndex(id: string, index: OpenSearchIndex): Promise<void> {
     try {
       const indexName = this.indexVersionMap.get(index)
-      await this.client.delete({
-        id,
-        index: indexName,
-        refresh: true,
-      })
+      await telemetry.measure(
+        'opensearch.delete',
+        () =>
+          this.client.delete({
+            id,
+            index: indexName,
+            refresh: true,
+          }),
+        { index },
+      )
     } catch (err) {
       if (err.meta.statusCode === 404) {
         this.log.debug(err, { id, index }, 'Document not found in index!')
@@ -295,12 +301,17 @@ export class OpenSearchService extends LoggerBase {
   public async index<T>(id: string, index: OpenSearchIndex, body: T): Promise<void> {
     const indexName = this.indexVersionMap.get(index)
     try {
-      await this.client.index({
-        id,
-        index: indexName,
-        body,
-        refresh: true,
-      })
+      await telemetry.measure(
+        'opensearch.index',
+        () =>
+          this.client.index({
+            id,
+            index: indexName,
+            body,
+            refresh: true,
+          }),
+        { index },
+      )
     } catch (err) {
       this.log.error(err, { id, index }, 'Failed to index document!')
       throw new Error(`Failed to index document with id: ${id} in index ${index}!`)
@@ -320,10 +331,15 @@ export class OpenSearchService extends LoggerBase {
         })
       }
 
-      const result = await this.client.bulk({
-        body,
-        refresh: true,
-      })
+      const result = await telemetry.measure(
+        'opensearch.bulk',
+        () =>
+          this.client.bulk({
+            body,
+            refresh: true,
+          }),
+        { index },
+      )
 
       if (result.body.errors === true) {
         const errorItems = result.body.items
@@ -370,7 +386,9 @@ export class OpenSearchService extends LoggerBase {
         size,
       }
 
-      const data = await this.client.search(payload)
+      const data = await telemetry.measure('opensearch.search', () => this.client.search(payload), {
+        index,
+      })
 
       if (query) {
         return data.body.hits.hits
