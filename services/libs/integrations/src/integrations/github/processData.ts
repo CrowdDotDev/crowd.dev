@@ -131,6 +131,9 @@ const parseMember = (memberData: GithubPrepareMemberOutput): IMemberData => {
       [MemberAttributeName.AVATAR_URL]: {
         [PlatformType.GITHUB]: memberFromApi.avatarUrl || '',
       },
+      [MemberAttributeName.COMPANY]: {
+        [PlatformType.GITHUB]: memberFromApi.company || '',
+      },
     },
   }
 
@@ -198,18 +201,6 @@ const parseMember = (memberData: GithubPrepareMemberOutput): IMemberData => {
         }
 
         member.organizations = [organizationPayload]
-      } else if (company.length > 0) {
-        member.organizations = [
-          {
-            identities: [
-              {
-                platform: PlatformType.GITHUB,
-                name: company,
-              },
-            ],
-            source: OrganizationSource.GITHUB,
-          },
-        ]
       }
     }
   }
