@@ -14,11 +14,11 @@
       </app-back-link>
       <div class="flex items-center">
         <h4 class="text-xl font-semibold leading-9">
-          Merging suggestions <span class="font-light text-gray-500">({{ total }})</span>
+          Merge suggestions <span class="font-light text-gray-500">({{ total }})</span>
         </h4>
         <el-tooltip
           placement="top"
-          content="LFX is constantly checking your community for duplicate organizations. Here you can check all the merging suggestions."
+          content="LFX is constantly checking your community for duplicate organizations. Here you can check all the merge suggestions."
         >
           <i class="ri-question-line text-lg text-gray-500 flex items-center ml-2 h-5" />
         </el-tooltip>
@@ -36,35 +36,59 @@
         <tbody>
           <tr v-for="(suggestion, si) of mergeSuggestions" :key="si">
             <td>
-              <div class="flex items-center gap-2">
-                <app-avatar
-                  size="xs"
-                  :entity="{
-                    ...suggestion.organizations[0],
-                    avatar: suggestion.organizations[0].logo,
-                    displayName: (suggestion.organizations[0].displayName || suggestion.organizations[0].name)?.replace('@', ''),
+              <div class="flex items-center">
+                <router-link
+                  :to="{
+                    name: 'organizationView',
+                    params: { id: suggestion.organizations[0].id },
+                    query: { projectGroup: selectedProjectGroup?.id },
                   }"
-                />
+                  target="_blank"
+                  class="text-black hover:text-brand-500"
+                >
+                  <div class="flex items-center gap-2">
+                    <app-avatar
+                      size="xs"
+                      :entity="{
+                        ...suggestion.organizations[0],
+                        avatar: suggestion.organizations[0].logo,
+                        displayName: (suggestion.organizations[0].displayName || suggestion.organizations[0].name)?.replace('@', ''),
+                      }"
+                    />
 
-                <p class="text-xs leading-5 font-semibold whitespace-nowrap">
-                  {{ suggestion.organizations[0].displayName }}
-                </p>
+                    <p class="text-xs leading-5 font-semibold whitespace-nowrap">
+                      {{ suggestion.organizations[0].displayName }}
+                    </p>
+                  </div>
+                </router-link>
               </div>
             </td>
             <td>
-              <div class="flex items-center gap-2">
-                <i class="text-xl ri-subtract-line text-gray-300" />
-                <app-avatar
-                  size="xs"
-                  :entity="{
-                    ...suggestion.organizations[1],
-                    avatar: suggestion.organizations[1].logo,
-                    displayName: (suggestion.organizations[1].displayName || suggestion.organizations[1].name)?.replace('@', ''),
+              <div class="flex items-center">
+                <router-link
+                  :to="{
+                    name: 'organizationView',
+                    params: { id: suggestion.organizations[1].id },
+                    query: { projectGroup: selectedProjectGroup?.id },
                   }"
-                />
-                <p class="text-xs leading-5 font-semibold whitespace-nowrap">
-                  {{ suggestion.organizations[1].displayName }}
-                </p>
+                  target="_blank"
+                  class="text-black hover:text-brand-500"
+                >
+                  <div class="flex items-center gap-2">
+                    <i class="text-xl ri-subtract-line text-gray-300" />
+                    <app-avatar
+                      size="xs"
+                      :entity="{
+                        ...suggestion.organizations[1],
+                        avatar: suggestion.organizations[1].logo,
+                        displayName: (suggestion.organizations[1].displayName || suggestion.organizations[1].name)?.replace('@', ''),
+                      }"
+                    />
+                    <p class="text-xs leading-5 font-semibold whitespace-nowrap">
+                      {{ suggestion.organizations[1].displayName }}
+                    </p>
+                  </div>
+                </router-link>
               </div>
             </td>
             <td>
