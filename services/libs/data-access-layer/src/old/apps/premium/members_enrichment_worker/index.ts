@@ -42,7 +42,9 @@ export async function fetchMembersForEnrichment(db: DbStore): Promise<IMember[]>
   )
 }
 
-export async function fetchMembersForLFIDEnrichment(db: DbStore, limit: number, offset: number) {
+export async function fetchMembersForLFIDEnrichment(db: DbStore, limit: number, afterId: string) {
+  const idFilter = afterId ? ' and members.id < $2 ' : ''
+
   return db.connection().query(
     `SELECT
         members."id",
@@ -66,11 +68,11 @@ export async function fetchMembersForLFIDEnrichment(db: DbStore, limit: number, 
           )
         AND tenants."deletedAt" IS NULL
         AND members."deletedAt" IS NULL
+        ${idFilter}
       GROUP BY members.id
       ORDER BY members.id desc
-          limit $1
-          offset $2;`,
-    [limit, offset],
+          limit $1;`,
+    [limit, afterId],
   )
 }
 
