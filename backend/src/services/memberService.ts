@@ -525,7 +525,8 @@ export default class MemberService extends LoggerBase {
         this.log.info('Ignoring outgoing webhooks because of fireCrowdWebhooks!')
       }
 
-      return record
+      // upserted record from Opensearch
+      return await MemberRepository.findByIdOpensearch(record.id, this.options)
     } catch (error) {
       const reason = errorDetails.reason || undefined
       const details = errorDetails.details || undefined
