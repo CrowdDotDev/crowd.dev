@@ -137,7 +137,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import {
+  ref, onMounted, computed, onUnmounted,
+} from 'vue';
 import Message from '@/shared/message/message';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
 import AppOrganizationMergeSuggestionsDetails from '@/modules/organization/components/suggestions/organization-merge-suggestions-details.vue';
@@ -166,6 +168,8 @@ const props = defineProps({
   },
 });
 
+const emit = defineEmits(['reload']);
+
 const authStore = useAuthStore();
 const { user, tenant } = storeToRefs(authStore);
 
@@ -179,6 +183,8 @@ const loading = ref(false);
 
 const sendingIgnore = ref(false);
 const sendingMerge = ref(false);
+
+const changed = ref(false);
 
 const bioHeight = ref(0);
 
@@ -257,6 +263,7 @@ const ignoreSuggestion = () => {
 
       const nextIndex = offset.value >= (count.value - 1) ? Math.max(count.value - 2, 0) : offset.value;
       fetch(nextIndex);
+      changed.value = true;
     })
     .catch((error) => {
       if (error.response.status === 404) {
@@ -295,6 +302,7 @@ const mergeSuggestion = () => {
 
       const nextIndex = offset.value >= (count.value - 1) ? Math.max(count.value - 2, 0) : offset.value;
       fetch(nextIndex);
+      changed.value = true;
     })
     .catch((error) => {
       const shouldLoadNextSuggestion = apiErrorMessage({ error });
@@ -310,6 +318,12 @@ const mergeSuggestion = () => {
 
 onMounted(async () => {
   fetch(props.offset);
+});
+
+onUnmounted(() => {
+  if (changed.value) {
+    emit('reload');
+  }
 });
 </script>
 

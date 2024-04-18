@@ -24,7 +24,13 @@
         </el-tooltip>
       </div>
 
-      <cr-table class="mt-6">
+      <div
+        v-if="page <= 1 && loading && mergeSuggestions.length === 0"
+        class="flex justify-center pt-8"
+      >
+        <cr-spinner />
+      </div>
+      <cr-table v-else class="mt-6">
         <thead>
           <tr>
             <th colspan="2">
@@ -115,9 +121,6 @@
           </tr>
         </tbody>
       </cr-table>
-      <div v-if="page <= 1 && loading">
-        <app-loading v-for="i in 6" :key="i" height="4rem" class="mb-0.5" />
-      </div>
 
       <div v-if="total > mergeSuggestions.length" class="mt-6 flex justify-center">
         <cr-button type="tertiary" size="small" :loading="loading" @click="loadMore()">
@@ -129,7 +132,7 @@
   <app-member-merge-suggestions-dialog
     v-model="isModalOpen"
     :offset="detailsOffset"
-    @update:model-value="reload()"
+    @reload="reload()"
   />
 </template>
 
@@ -148,7 +151,7 @@ import CrDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import AppMemberMergeSuggestionsDialog from '@/modules/member/components/member-merge-suggestions-dialog.vue';
 import useMemberMergeMessage from '@/shared/modules/merge/config/useMemberMergeMessage';
 import Message from '@/shared/message/message';
-import AppLoading from '@/shared/loading/loading-placeholder.vue';
+import CrSpinner from '@/ui-kit/spinner/Spinner.vue';
 
 const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
 
