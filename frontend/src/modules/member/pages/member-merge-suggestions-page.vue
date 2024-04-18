@@ -14,7 +14,7 @@
       </app-back-link>
       <div class="flex items-center">
         <h4 class="text-xl font-semibold leading-9">
-          Merge suggestions <span class="font-light text-gray-500">({{ total }})</span>
+          Merge suggestions <span v-if="!loading" class="font-light text-gray-500">({{ total }})</span>
         </h4>
         <el-tooltip
           placement="top"
@@ -115,9 +115,12 @@
           </tr>
         </tbody>
       </cr-table>
+      <div v-if="page <= 1 && loading">
+        <app-loading v-for="i in 6" :key="i" height="4rem" class="mb-0.5" />
+      </div>
 
       <div v-if="total > mergeSuggestions.length" class="mt-6 flex justify-center">
-        <cr-button type="tertiary" size="small" @click="loadMore()">
+        <cr-button type="tertiary" size="small" :loading="loading" @click="loadMore()">
           <i class="ri-arrow-down-line" />Load more
         </cr-button>
       </div>
@@ -145,6 +148,7 @@ import CrDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import AppMemberMergeSuggestionsDialog from '@/modules/member/components/member-merge-suggestions-dialog.vue';
 import useMemberMergeMessage from '@/shared/modules/merge/config/useMemberMergeMessage';
 import Message from '@/shared/message/message';
+import AppLoading from '@/shared/loading/loading-placeholder.vue';
 
 const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
 
@@ -153,10 +157,12 @@ const mergeSuggestions = ref<any[]>([]);
 const isModalOpen = ref<boolean>(false);
 
 const total = ref<number>(0);
-const limit = ref<number>(20);
+const limit = ref<number>(10);
 const page = ref<number>(1);
+const loading = ref<boolean>(false);
 
 const loadMergeSuggestions = () => {
+  loading.value = true;
   MemberService.fetchMergeSuggestions(limit.value, (page.value - 1) * limit.value)
     .then((res) => {
       total.value = +res.count;
@@ -165,17 +171,22 @@ const loadMergeSuggestions = () => {
       } else {
         mergeSuggestions.value = mapSuggestions(res.rows);
       }
+    })
+    .finally(() => {
+      loading.value = false;
     });
 };
 
-const mapSuggestions = (suggestions: any[]) => suggestions.map((s) => {
-  const suggestion = { ...s };
-  if (s.members.length >= 2 && ((s.members[0].identities.length < s.members[1].identities.length)
+const mapSuggestions = (suggestions: any[]) => suggestions
+  .filter((s) => s.similarity > 0)
+  .map((s) => {
+    const suggestion = { ...s };
+    if (s.members.length >= 2 && ((s.members[0].identities.length < s.members[1].identities.length)
         || (s.members[0].activityCount < s.members[1].activityCount))) {
-    suggestion.members.reverse();
-  }
-  return suggestion;
-});
+      suggestion.members.reverse();
+    }
+    return suggestion;
+  });
 
 const detailsOffset = ref<number>(0);
 
