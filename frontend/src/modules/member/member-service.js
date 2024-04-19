@@ -116,7 +116,7 @@ export class MemberService {
   static async listMembersAutocomplete({
     query,
     limit,
-    segments = null,
+    segments,
   }) {
     const payload = {
       filter: {
