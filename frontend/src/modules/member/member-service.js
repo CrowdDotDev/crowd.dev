@@ -119,15 +119,11 @@ export class MemberService {
     segments,
   }) {
     const payload = {
-      filter: {
-        and: [
-          {
-            displayName: {
-              like: query,
-            },
-          },
-        ],
-      },
+      filter: query ? {
+        displayName: {
+          matchPhrasePrefix: query,
+        },
+      } : {},
       offset: 0,
       orderBy: 'displayName_ASC',
       limit,
