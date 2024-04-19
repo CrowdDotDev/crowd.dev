@@ -79,7 +79,7 @@ const computedMemberToMerge = computed({
 });
 
 const fetchFn = async ({ query, limit }) => {
-  const options = await MemberService.listOrganizationsAutocomplete({
+  const options = await MemberService.listMembersAutocomplete({
     query,
     limit,
   });
