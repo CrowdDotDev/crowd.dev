@@ -121,7 +121,7 @@ export class MemberService {
     const payload = {
       filter: query ? {
         displayName: {
-          matchPhrasePrefix: query,
+          textContains: query,
         },
       } : {},
       offset: 0,
