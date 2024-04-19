@@ -123,7 +123,7 @@ export class MemberService {
         and: [
           {
             displayName: {
-              matchPhrasePrefix: query,
+              like: query,
             },
           },
         ],
