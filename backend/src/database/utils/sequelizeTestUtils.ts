@@ -6,6 +6,7 @@ import { SegmentStatus, TenantPlans } from '@crowd/types'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import moment from 'moment'
+import { getClientSQL } from '@crowd/questdb'
 import { API_CONFIG, REDIS_CONFIG, TEMPORAL_CONFIG } from '../../conf'
 import Roles from '../../security/roles'
 import { IServiceOptions } from '../../services/IServiceOptions'
@@ -179,7 +180,7 @@ export default class SequelizeTestUtils {
     } as IServiceOptions
   }
 
-  static async getTestIRepositoryOptions(db) {
+  static async getTestIRepositoryOptions(db): Promise<IRepositoryOptions> {
     db = await this.getDatabase(db)
 
     const randomTenant = this.getRandomTestTenant()
@@ -224,6 +225,7 @@ export default class SequelizeTestUtils {
 
     const log = getServiceLogger()
     const redis = await getRedisClient(REDIS_CONFIG, true)
+    const qdb = await getClientSQL()
 
     return {
       requestId: uuid(),
@@ -232,6 +234,7 @@ export default class SequelizeTestUtils {
       currentTenant: tenant,
       currentSegments: [segment],
       database: db,
+      qdb,
       bypassPermissionValidation: true,
       log,
       redis,

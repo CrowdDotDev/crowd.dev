@@ -112,8 +112,7 @@ describe('Serverless database operations worker tests', () => {
 
       await worker('upsert_activities_with_members', [activity], mockIRepositoryOptions)
 
-      const dbActivities = (await new ActivityService(mockIRepositoryOptions).findAndCountAll({}))
-        .rows
+      const dbActivities = (await new ActivityService(mockIRepositoryOptions).query({})).rows
 
       expect(dbActivities.length).toBe(1)
       expect(moment(dbActivities[0].timestamp).unix()).toBe(moment(ts).unix())
@@ -161,8 +160,7 @@ describe('Serverless database operations worker tests', () => {
 
       await worker('upsert_activities_with_members', activities, mockIRepositoryOptions)
 
-      const dbActivities = (await new ActivityService(mockIRepositoryOptions).findAndCountAll({}))
-        .rows
+      const dbActivities = (await new ActivityService(mockIRepositoryOptions).query({})).rows
       expect(dbActivities.length).toBe(2)
     })
 
@@ -171,8 +169,7 @@ describe('Serverless database operations worker tests', () => {
 
       await worker('upsert_activities_with_members', [], mockIRepositoryOptions)
 
-      const dbActivities = (await new ActivityService(mockIRepositoryOptions).findAndCountAll({}))
-        .rows
+      const dbActivities = (await new ActivityService(mockIRepositoryOptions).query({})).rows
 
       expect(dbActivities.length).toBe(0)
     })

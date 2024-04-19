@@ -4,6 +4,7 @@ import {
   IMemberIdentity,
   IMemberOrganization,
   IMemberUsername,
+  MemberAttributeName,
   MemberAttributeType,
   MemberIdentityType,
   OpenSearchIndex,
@@ -35,6 +36,7 @@ import {
   moveToNewMember,
 } from '@crowd/data-access-layer/src/member_identities'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
+import { setMemberDataToActivities } from '@crowd/data-access-layer'
 import { KUBE_MODE, SERVICE } from '@/conf'
 import { ServiceType } from '../../conf/configTypes'
 import isFeatureEnabled from '../../feature-flags/isFeatureEnabled'
@@ -828,6 +830,21 @@ class MemberRepository {
           },
           transaction,
         })
+
+        if (
+          manualChange &&
+          (data.attributes[MemberAttributeName.IS_BOT] ||
+            data.attributes[MemberAttributeName.IS_TEAM_MEMBER])
+        ) {
+          await setMemberDataToActivities(options.qdb, record.id, {
+            isBot: data.attributes[MemberAttributeName.IS_BOT]
+              ? data.attributes[MemberAttributeName.IS_BOT].default
+              : false,
+            isTeamMember: data.attributes[MemberAttributeName.IS_TEAM_MEMBER]
+              ? data.attributes[MemberAttributeName.IS_TEAM_MEMBER].default
+              : false,
+          })
+        }
 
         return record
       }),

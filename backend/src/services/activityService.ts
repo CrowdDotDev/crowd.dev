@@ -1,14 +1,19 @@
 import { Error400 } from '@crowd/common'
 import { LoggerBase, logExecutionTime } from '@crowd/logging'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
-import { addActivityToConversation, deleteActivities, insertActivities, updateActivity } from '@crowd/data-access-layer'
+import {
+  addActivityToConversation,
+  deleteActivities,
+  insertActivities,
+  updateActivity,
+  queryActivities,
+} from '@crowd/data-access-layer'
 import { PlatformType, SyncMode, TemporalWorkflowId, SegmentData } from '@crowd/types'
 import { Blob } from 'buffer'
 import vader from 'crowd-sentiment'
 import { Transaction } from 'sequelize/types'
 import { GITHUB_CONFIG, IS_DEV_ENV, IS_TEST_ENV, TEMPORAL_CONFIG } from '../conf'
 import ActivityRepository from '../database/repositories/activityRepository'
-import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
 import MemberRepository from '../database/repositories/memberRepository'
 import SegmentRepository from '../database/repositories/segmentRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
@@ -149,7 +154,7 @@ export default class ActivityService extends LoggerBase {
         )
 
         record = await ActivityRepository.create(data, repositoryOptions)
-        await insertActivities([{...data, id: record.id}])
+        await insertActivities([{ ...data, id: record.id }])
 
         // Only track activity's platform and timestamp and memberId. It is completely annonymous.
         telemetryTrack(
@@ -170,14 +175,15 @@ export default class ActivityService extends LoggerBase {
           record = await this.addToConversation(record.id, data.parent, transaction)
         } else if ('sourceId' in data && data.sourceId) {
           // if it's not a child, it may be a parent of previously added activities
-          const children = await ActivityRepository.findAndCountAll(
-            { filter: { sourceParentId: data.sourceId } },
-            repositoryOptions,
-          )
+          const children = await queryActivities(repositoryOptions.qdb, {
+            tenantId: record.tenantId,
+            segmentIds: [record.segmentId],
+            filter: { and: [{ sourceParentId: { eq: data.sourceId } }] },
+          })
 
           for (const child of children.rows) {
             // update children with newly created parentId
-            await updateActivity(this.options.qdb, child.id, {...record, parentId: record.id })
+            await updateActivity(this.options.qdb, child.id, { ...record, parentId: record.id })
             await ActivityRepository.update(child.id, { parent: record.id }, repositoryOptions)
 
             // manage conversations for each child
@@ -723,7 +729,7 @@ export default class ActivityService extends LoggerBase {
           transaction,
         })
       }
-      
+
       await deleteActivities(this.options.qdb, ids)
       await SequelizeRepository.commitTransaction(transaction)
     } catch (error) {
@@ -771,34 +777,27 @@ export default class ActivityService extends LoggerBase {
     return ActivityRepository.findAllAutocomplete(search, limit, this.options)
   }
 
-  async findAndCountAll(args) {
-    return ActivityRepository.findAndCountAll(args, this.options)
-  }
-
-  async queryV2(data) {
+  async query(data) {
     const filter = data.filter
     const orderBy = Array.isArray(data.orderBy) ? data.orderBy : [data.orderBy]
     const limit = data.limit
     const offset = data.offset
     const countOnly = data.countOnly ?? false
-    return ActivityRepository.findAndCountAllv2(
-      { filter, orderBy, limit, offset, countOnly },
-      this.options,
-    )
-  }
 
-  async query(data) {
-    const memberAttributeSettings = (
-      await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
-    ).rows
-    const advancedFilter = data.filter
-    const orderBy = data.orderBy
-    const limit = data.limit
-    const offset = data.offset
-    return ActivityRepository.findAndCountAll(
-      { advancedFilter, orderBy, limit, offset, attributesSettings: memberAttributeSettings },
-      this.options,
-    )
+    const tenantId = SequelizeRepository.getCurrentTenant(this.options).id
+    const segmentIds = SequelizeRepository.getSegmentIds(this.options)
+
+    const page = queryActivities(this.options.qdb, {
+      tenantId,
+      segmentIds,
+      filter,
+      orderBy,
+      limit,
+      offset,
+      countOnly,
+    })
+
+    return page
   }
 
   async import(data, importHash) {

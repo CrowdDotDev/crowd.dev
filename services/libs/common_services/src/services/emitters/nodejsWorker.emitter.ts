@@ -11,7 +11,6 @@ import {
   EnrichOrganizationQueueMessage,
   ExportCSVQueueMessage,
   ExportableEntity,
-  IntegrationDataCheckerQueueMessage,
   NewActivityAutomationQueueMessage,
   NewMemberAutomationQueueMessage,
   ProcessAutomationQueueMessage,
@@ -113,14 +112,6 @@ export class NodejsWorkerEmitter extends QueuePriorityService {
       tenantId,
       generateUUIDv1(),
       new EagleEyeEmailDigestQueueMessage(tenantId, user),
-    )
-  }
-
-  public async integrationDataChecker(tenantId: string, integrationId: string): Promise<void> {
-    await this.sendMessage(
-      tenantId,
-      generateUUIDv1(),
-      new IntegrationDataCheckerQueueMessage(tenantId, integrationId),
     )
   }
 

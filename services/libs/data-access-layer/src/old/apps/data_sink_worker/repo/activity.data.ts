@@ -49,6 +49,8 @@ export interface IDbActivityCreateData {
   organizationId?: string
   objectMemberId?: string
   objectMemberUsername?: string
+  isTeamMemberActivity?: boolean
+  isBotActivity?: boolean
 }
 
 let insertActivityColumnSet: DbColumnSet
@@ -114,6 +116,8 @@ export interface IDbActivityUpdateData {
   url?: string
   organizationId?: string
   platform?: PlatformType
+  isTeamMemberActivity?: boolean
+  isBotActivity?: boolean
 }
 
 let updateActivityColumnSet: DbColumnSet

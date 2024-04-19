@@ -6,6 +6,8 @@ import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
 import MemberRepository from '../memberRepository'
 import ActivityRepository from '../activityRepository'
 import lodash from 'lodash'
+import { queryActivities } from '@crowd/data-access-layer'
+import SequelizeRepository from '../sequelizeRepository'
 
 const db = null
 
@@ -910,12 +912,10 @@ describe('TaskRepository tests', () => {
         await TaskRepository.create(toCreate2, mockIRepositoryOptions)
 
         const act = (
-          await ActivityRepository.findAndCountAll(
-            {
-              filter: {},
-            },
-            mockIRepositoryOptions,
-          )
+          await queryActivities(mockIRepositoryOptions.qdb, {
+            tenantId: SequelizeRepository.getCurrentTenant(mockIRepositoryOptions).id,
+            segmentIds: SequelizeRepository.getSegmentIds(mockIRepositoryOptions),
+          })
         ).rows[0]
 
         const toFilter = [act.id.toString()]
@@ -931,12 +931,10 @@ describe('TaskRepository tests', () => {
         expect(found.count).toBe(1)
 
         const activities = (
-          await ActivityRepository.findAndCountAll(
-            {
-              filter: {},
-            },
-            mockIRepositoryOptions,
-          )
+          await queryActivities(mockIRepositoryOptions.qdb, {
+            tenantId: SequelizeRepository.getCurrentTenant(mockIRepositoryOptions).id,
+            segmentIds: SequelizeRepository.getSegmentIds(mockIRepositoryOptions),
+          })
         ).rows
 
         const a0Id = activities.filter((a) => a.sourceId === sampleActivities[0].sourceId)[0].id
@@ -1004,12 +1002,10 @@ describe('TaskRepository tests', () => {
       const m1Id = members.filter((m) => m.displayName === sampleMembers[1].displayName)[0].id
 
       const activities = (
-        await ActivityRepository.findAndCountAll(
-          {
-            filter: {},
-          },
-          mockIRepositoryOptions,
-        )
+        await queryActivities(mockIRepositoryOptions.qdb, {
+          tenantId: SequelizeRepository.getCurrentTenant(mockIRepositoryOptions).id,
+          segmentIds: SequelizeRepository.getSegmentIds(mockIRepositoryOptions),
+        })
       ).rows
 
       const a1Id = activities.filter((a) => a.sourceId === sampleActivities[1].sourceId)[0].id

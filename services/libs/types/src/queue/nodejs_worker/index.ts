@@ -82,13 +82,6 @@ export class EagleEyeEmailDigestQueueMessage implements IQueueMessage {
   constructor(public readonly tenant: string, public readonly user: string) {}
 }
 
-export class IntegrationDataCheckerQueueMessage implements IQueueMessage {
-  public readonly type: string = NodejsWorkerQueueMessageType.NODE_MICROSERVICE
-  public readonly service = 'integration-data-checker'
-
-  constructor(public readonly tenantId: string, public readonly integrationId: string) {}
-}
-
 export class WeeklyAnalyticsEmailQueueMessage implements IQueueMessage {
   public readonly type: string = NodejsWorkerQueueMessageType.NODE_MICROSERVICE
   public readonly service = 'weekly-analytics-emails'

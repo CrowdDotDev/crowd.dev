@@ -34,6 +34,9 @@ CREATE TABLE 'activities' (
   sentimentScoreNegative FLOAT,
   sentimentScorePositive FLOAT,
 
+  member_isBot BOOLEAN
+  member_isTeamMember BOOLEAN
+
   gitIsMainBranch BOOLEAN,
   gitInsertions INT,
   gitDeletions INT

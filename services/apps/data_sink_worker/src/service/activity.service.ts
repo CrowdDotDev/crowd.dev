@@ -20,6 +20,7 @@ import { Client as TemporalClient, WorkflowIdReusePolicy } from '@crowd/temporal
 import {
   Edition,
   IActivityData,
+  MemberAttributeName,
   MemberIdentityType,
   PlatformType,
   TemporalWorkflowId,
@@ -30,6 +31,7 @@ import { TEMPORAL_CONFIG } from '../conf'
 import { IActivityCreateData, IActivityUpdateData } from './activity.data'
 import MemberService from './member.service'
 import MemberAffiliationService from './memberAffiliation.service'
+import { IDbMember } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.data'
 
 export default class ActivityService extends LoggerBase {
   private readonly conversationService: ConversationService
@@ -54,6 +56,7 @@ export default class ActivityService extends LoggerBase {
     segmentId: string,
     activity: IActivityCreateData,
     onboarding: boolean,
+    memberInfo: { isBot: boolean; isTeamMember: boolean },
     fireSync = true,
   ): Promise<string> {
     try {
@@ -124,6 +127,8 @@ export default class ActivityService extends LoggerBase {
             objectMemberUsername: activity.objectMemberUsername,
             segmentId: segmentId,
             organizationId: activity.organizationId,
+            isBotActivity: memberInfo.isBot,
+            isTeamMemberActivity: memberInfo.isTeamMember,
           },
         ])
 
@@ -187,6 +192,7 @@ export default class ActivityService extends LoggerBase {
     segmentId: string,
     activity: IActivityUpdateData,
     original: IDbActivity,
+    memberInfo: { isBot: boolean; isTeamMember: boolean },
     fireSync = true,
   ): Promise<void> {
     try {
@@ -233,6 +239,28 @@ export default class ActivityService extends LoggerBase {
             url: toUpdate.url || original.url,
             organizationId: toUpdate.organizationId || original.organizationId,
             platform: toUpdate.platform || (original.platform as PlatformType),
+          })
+
+          await updateActivity(this.qdbStore.connection(), id, {
+            tenantId: tenantId,
+            segmentId: segmentId,
+            type: toUpdate.type || original.type,
+            isContribution: toUpdate.isContribution || original.isContribution,
+            score: toUpdate.score || original.score,
+            sourceId: toUpdate.sourceId || original.sourceId,
+            sourceParentId: toUpdate.sourceParentId || original.sourceParentId,
+            memberId: toUpdate.memberId || original.memberId,
+            username: toUpdate.username || original.username,
+            sentiment: toUpdate.sentiment || original.sentiment,
+            attributes: toUpdate.attributes || original.attributes,
+            body: escapeNullByte(toUpdate.body || original.body),
+            title: escapeNullByte(toUpdate.title || original.title),
+            channel: toUpdate.channel || original.channel,
+            url: toUpdate.url || original.url,
+            organizationId: toUpdate.organizationId || original.organizationId,
+            platform: toUpdate.platform || (original.platform as PlatformType),
+            isBotActivity: memberInfo.isBot,
+            isTeamMemberActivity: memberInfo.isTeamMember,
           })
 
           return true
@@ -465,6 +493,35 @@ export default class ActivityService extends LoggerBase {
       }
 
       let memberId: string
+      let memberIsBot = false
+      let memberIsTeamMember = false
+
+      const memberAttValue = (attName: MemberAttributeName, dbMember?: IDbMember): unknown => {
+        let result: unknown
+        if (dbMember && dbMember.attributes[attName]) {
+          // db member already has this attribute
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const att = dbMember.attributes[attName] as any
+          // if it's manually set we use that
+          if (att.custom) {
+            // manually set
+            result = att.custom
+          } else {
+            // if it's not manually set we check if incoming member data has the attribute set for the platform
+            if (member.attributes[attName] && member.attributes[attName][platform]) {
+              result = member.attributes[attName][platform]
+            } else {
+              // if none of those work we just use db member attribute default value
+              result = att.default
+            }
+          }
+        } else if (member.attributes[attName] && member.attributes[attName][platform]) {
+          result = member.attributes[attName][platform]
+        }
+
+        return result
+      }
+
       let objectMemberId: string | undefined
       let segmentId: string
 
@@ -588,6 +645,11 @@ export default class ActivityService extends LoggerBase {
               }
 
               memberId = dbMember.id
+              // determine isBot and isTeamMember
+              memberIsBot =
+                (memberAttValue(MemberAttributeName.IS_BOT, dbMember) as boolean) ?? false
+              memberIsTeamMember =
+                (memberAttValue(MemberAttributeName.IS_TEAM_MEMBER, dbMember) as boolean) ?? false
             } else {
               this.log.trace(
                 'We did not find a member for the identity provided! Updating the one from db activity.',
@@ -620,6 +682,11 @@ export default class ActivityService extends LoggerBase {
               )
 
               memberId = dbActivity.memberId
+              // determine isBot and isTeamMember
+              memberIsBot =
+                (memberAttValue(MemberAttributeName.IS_BOT, dbMember) as boolean) ?? false
+              memberIsTeamMember =
+                (memberAttValue(MemberAttributeName.IS_TEAM_MEMBER, dbMember) as boolean) ?? false
             }
 
             // process object member data
@@ -763,31 +830,12 @@ export default class ActivityService extends LoggerBase {
                       : (dbActivity.platform as PlatformType),
                 },
                 dbActivity,
+                {
+                  isBot: memberIsBot ?? false,
+                  isTeamMember: memberIsTeamMember ?? false,
+                },
                 false,
               )
-              await updateActivity(this.qdbStore.connection(), dbActivity.id, {
-                tenantId: tenantId,
-                segmentId: segmentId,
-                type: activity.type,
-                isContribution: activity.isContribution,
-                score: activity.score,
-                sourceId: activity.sourceId,
-                sourceParentId: activity.sourceParentId,
-                memberId: dbActivity.memberId,
-                username: username,
-                objectMemberId: objectMemberId,
-                objectMemberUsername: objectMemberUsername,
-                attributes: activity.attributes || {},
-                body: activity.body,
-                title: activity.title,
-                channel: activity.channel,
-                url: activity.url,
-                organizationId: organizationId,
-                platform:
-                  platform === PlatformType.GITHUB && dbActivity.platform === PlatformType.GIT
-                    ? PlatformType.GITHUB
-                    : (dbActivity.platform as PlatformType),
-              })
             }
 
             // release lock for member inside activity exists - this migth be redundant, but just in case
@@ -842,6 +890,11 @@ export default class ActivityService extends LoggerBase {
                 false,
               )
               memberId = dbMember.id
+              // determine isBot and isTeamMember
+              memberIsBot =
+                (memberAttValue(MemberAttributeName.IS_BOT, dbMember) as boolean) ?? false
+              memberIsTeamMember =
+                (memberAttValue(MemberAttributeName.IS_TEAM_MEMBER, dbMember) as boolean) ?? false
             } else {
               this.log.trace(
                 'We did not find a member for the identity provided! Creating a new one.',
@@ -864,6 +917,10 @@ export default class ActivityService extends LoggerBase {
                 false,
               )
             }
+            // determine isBot and isTeamMember
+            memberIsBot = (memberAttValue(MemberAttributeName.IS_BOT) as boolean) ?? false
+            memberIsTeamMember =
+              (memberAttValue(MemberAttributeName.IS_TEAM_MEMBER) as boolean) ?? false
 
             if (objectMember) {
               // we don't have the activity yet in the database
@@ -954,6 +1011,10 @@ export default class ActivityService extends LoggerBase {
                 organizationId,
               },
               onboarding,
+              {
+                isBot: memberIsBot ?? false,
+                isTeamMember: memberIsTeamMember ?? false,
+              },
               false,
             )
           }
