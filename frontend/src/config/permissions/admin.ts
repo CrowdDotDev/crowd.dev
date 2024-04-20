@@ -78,8 +78,7 @@ const admin: Record<LfPermission, boolean> = {
   [LfPermission.subProjectCreate]: true,
   [LfPermission.subProjectEdit]: true,
   [LfPermission.mergeMembers]: true,
-  [LfPermission.mergeOrganizations]: true
+  [LfPermission.mergeOrganizations]: true,
 };
-
 
 export default admin;
