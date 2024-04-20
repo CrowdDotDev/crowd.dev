@@ -11,7 +11,6 @@ export default [
   Platform.REDDIT,
   Platform.STACK_OVERFLOW,
   Platform.DISCOURSE,
-  Platform.HUBSPOT,
   Platform.GIT,
   Platform.GROUPS_IO,
   Platform.CUSTOM,

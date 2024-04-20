@@ -1,13 +1,11 @@
 export interface OrganizationAttribute {
   default: string;
   sourceId?: any;
-  hubspot?: any;
 }
 
 export enum OrganizationSource {
   EMAIL_DOMAIN = 'email-domain',
   ENRICHMENT = 'enrichment',
-  HUBSPOT = 'hubspot',
   GITHUB = 'github',
   UI = 'ui',
 }

@@ -146,7 +146,7 @@ export const plans = {
         {
           includes: true,
           value: 'Integrates with Essential integrations and',
-          integrations: ['linkedin', 'twitter', 'hubspot'],
+          integrations: ['linkedin', 'twitter'],
         },
       ],
       ctaLabel: {

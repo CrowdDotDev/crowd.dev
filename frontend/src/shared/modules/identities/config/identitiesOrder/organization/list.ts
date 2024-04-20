@@ -5,6 +5,5 @@ export default [
   Platform.LINKEDIN,
   Platform.TWITTER,
   Platform.CRUNCHBASE,
-  Platform.HUBSPOT,
   Platform.CUSTOM,
 ];

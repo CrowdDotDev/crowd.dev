@@ -126,7 +126,6 @@ import { useAuthStore } from '@/modules/auth/store/auth.store';
 const OrganizationSourceValue = {
   [OrganizationSource.EMAIL_DOMAIN]: 'Email domain',
   [OrganizationSource.ENRICHMENT]: 'Enrichment',
-  [OrganizationSource.HUBSPOT]: 'HubSpot',
   [OrganizationSource.GITHUB]: 'GitHub',
   [OrganizationSource.UI]: 'Custom',
 };

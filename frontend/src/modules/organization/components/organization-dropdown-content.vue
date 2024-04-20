@@ -62,42 +62,6 @@
     </button>
   </el-tooltip>
 
-  <!-- Hubspot -->
-  <button
-    v-if="!isSyncingWithHubspot(organization)"
-    class="h-10 el-dropdown-menu__item w-full"
-    type="button"
-    :disabled="
-      !isHubspotConnected
-        || (!organization.website
-          && !organization.attributes?.sourceId?.hubspot)
-    "
-    @click="
-      handleCommand({
-        action: Actions.SYNC_HUBSPOT,
-        organization,
-      })
-    "
-  >
-    <app-svg name="hubspot" class="h-4 w-4 text-current" />
-    <span class="text-xs pl-2">Sync with HubSpot</span>
-  </button>
-  <button
-    v-else
-    class="h-10 el-dropdown-menu__item w-full"
-    type="button"
-    :disabled="!isHubspotConnected"
-    @click="
-      handleCommand({
-        action: Actions.STOP_SYNC_HUBSPOT,
-        organization,
-      })
-    "
-  >
-    <app-svg name="hubspot" class="h-4 w-4 text-current" />
-    <span class="text-xs pl-2">Stop sync with HubSpot</span>
-  </button>
-
   <!-- Mark as Team Organization -->
   <el-tooltip
     placement="top"
@@ -175,11 +139,6 @@ import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import Message from '@/shared/message/message';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import { i18n } from '@/i18n';
-import AppSvg from '@/shared/svg/svg.vue';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
-import { HubspotEntity } from '@/integrations/hubspot/types/HubspotEntity';
-import { HubspotApiService } from '@/integrations/hubspot/hubspot.api.service';
-import { useStore } from 'vuex';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
 import { OrganizationService } from '../organization-service';
@@ -190,8 +149,6 @@ enum Actions {
   DELETE_ORGANIZATION = 'deleteOrganization',
   MERGE_ORGANIZATION = 'mergeOrganization',
   UNMERGE_IDENTITY = 'unmergeIdentity',
-  SYNC_HUBSPOT = 'syncHubspot',
-  STOP_SYNC_HUBSPOT = 'stopSyncHubspot',
   MARK_ORGANIZATION_AS_TEAM_ORGANIZATION = 'markOrganizationAsTeamOrganization',
 }
 
@@ -205,8 +162,6 @@ defineProps<{
   hideUnmerge?: boolean;
   hideEdit?: boolean;
 }>();
-
-const store = useStore();
 
 const authStore = useAuthStore();
 const { user, tenant } = storeToRefs(authStore);
@@ -226,17 +181,6 @@ const hasPermissionsToMerge = computed(() => new OrganizationPermissions(
   tenant.value,
   user.value,
 )?.mergeOrganizations);
-
-const isSyncingWithHubspot = (organization: Organization) => organization.attributes?.syncRemote?.hubspot || false;
-
-const isHubspotConnected = computed(() => {
-  const hubspot = CrowdIntegrations.getMappedConfig('hubspot', store);
-  const enabledFor = hubspot.settings?.enabledFor || [];
-  return (
-    hubspot.status === 'done'
-    && enabledFor.includes(HubspotEntity.ORGANIZATIONS)
-  );
-});
 
 const doManualAction = async ({
   loadingMessage,
@@ -316,37 +260,6 @@ const handleCommand = (command: {
   if (command.action === Actions.UNMERGE_IDENTITY) {
     emit('closeDropdown');
     emit('unmerge');
-
-    return;
-  }
-
-  // Sync with hubspot
-  if (
-    command.action === Actions.SYNC_HUBSPOT
-    || command.action === Actions.STOP_SYNC_HUBSPOT
-  ) {
-    const isSyncing = command.action === Actions.SYNC_HUBSPOT;
-
-    doManualAction({
-      loadingMessage: isSyncing
-        ? 'Organization is being synced with Hubspot'
-        : 'Organization syncing with Hubspot is being stopped',
-      successMessage: isSyncing
-        ? 'Organization is now syncing with HubSpot'
-        : 'Organization syncing stopped',
-      errorMessage: 'Something went wrong',
-      actionFn: isSyncing
-        ? HubspotApiService.syncOrganization(command.organization.id)
-        : HubspotApiService.stopSyncOrganization(command.organization.id),
-    }).then(() => {
-      if (router.currentRoute.value.name === 'organization') {
-        organizationStore.fetchOrganizations({
-          reload: true,
-        });
-      } else {
-        organizationStore.fetchOrganization(command.organization.id, segments);
-      }
-    });
 
     return;
   }

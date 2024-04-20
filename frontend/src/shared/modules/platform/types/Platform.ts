@@ -9,7 +9,6 @@ export enum Platform {
     REDDIT = 'reddit',
     STACK_OVERFLOW = 'stackOverflow',
     DISCOURSE = 'discourse',
-    HUBSPOT = 'hubspot',
     GIT = 'git',
     GROUPS_IO = 'groupsio',
     CUSTOM = 'custom',
