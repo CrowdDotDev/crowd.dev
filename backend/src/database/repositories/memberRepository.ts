@@ -62,6 +62,7 @@ import {
   IMemberMergeSuggestion,
   mapUsernameToIdentities,
 } from './types/memberTypes'
+import { IFetchMemberMergeSuggestionArgs } from '@/types/mergeSuggestionTypes'
 
 const { Op } = Sequelize
 
@@ -258,22 +259,58 @@ class MemberRepository {
   }
 
   static async findMembersWithMergeSuggestions(
-    { limit = 20, offset = 0, memberId = undefined },
+    args: IFetchMemberMergeSuggestionArgs,
     options: IRepositoryOptions,
   ) {
-    const segmentIds = SequelizeRepository.getSegmentIds(options)
+    let segmentIds: string[]
 
-    const isSegmentsEnabled = await isFeatureEnabled(FeatureFlag.SEGMENTS, options)
+    if (args.filter?.projectIds) {
+      segmentIds = (
+        await new SegmentRepository(options).getSegmentSubprojects(args.filter.projectIds)
+      ).map((s) => s.id)
+    } else if (args.filter?.subprojectIds) {
+      segmentIds = args.filter.subprojectIds
+    } else {
+      segmentIds = SequelizeRepository.getSegmentIds(options)
+    }
 
-    const order = isSegmentsEnabled
-      ? 'mtm."activityEstimate" desc, mtm.similarity desc, mtm."memberId", mtm."toMergeId"'
-      : 'mtm.similarity desc, mtm."activityEstimate" desc, mtm."memberId", mtm."toMergeId"'
+    let similarityFilter = ''
+    let similarityReplacement
 
-    const similarityFilter = isSegmentsEnabled ? ' and mtm.similarity > 0.95 ' : ''
+    if (args.filter?.similarity) {
+      if (args.filter.similarity.gte) {
+        similarityFilter = 'and mtm.similarity >= :similarityReplacement '
+        similarityReplacement = args.filter.similarity.gte
+      } else if (args.filter?.similarity.lte) {
+        similarityFilter = 'and mtm.similarity <= :similarityReplacement '
+        similarityReplacement = args.filter.similarity.lte
+      }
+    }
 
-    const memberFilter = memberId
+    const memberFilter = args.filter?.memberId
       ? ` and (mtm."memberId" = :memberId OR mtm."toMergeId" = :memberId)`
       : ''
+
+    const displayNameFilter = args.filter?.displayName
+      ? ` and (m."displayName" ilike :displayName OR m2."displayName" ilike :displayName)`
+      : ''
+
+    let order = 'mtm."activityEstimate" desc, mtm.similarity desc, mtm."memberId", mtm."toMergeId"'
+
+    if (args.orderBy?.length > 0) {
+      order = ''
+      for (const orderBy of args.orderBy) {
+        const [field, direction] = orderBy.split('_')
+        if (
+          ['similarity', 'activityEstimate'].includes(field) &&
+          ['asc', 'desc'].includes(direction.toLowerCase())
+        ) {
+          order += `mtm.${field} ${direction}, `
+        }
+      }
+
+      order += 'mtm."memberId", mtm."toMergeId"'
+    }
 
     const mems = await options.database.sequelize.query(
       `
@@ -286,9 +323,12 @@ class MemberRepository {
         FROM "memberToMerge" mtm
         JOIN member_segments_mv ms ON ms."memberId" = mtm."memberId"
         JOIN member_segments_mv ms2 ON ms2."memberId" = mtm."toMergeId"
+        join members m on m.id = mtm."memberId"
+        join members m2 on m2.id = mtm."toMergeId"
         WHERE ms."segmentId" IN (:segmentIds) and ms2."segmentId" IN (:segmentIds)
           ${memberFilter}
           ${similarityFilter}
+          ${displayNameFilter}
         ORDER BY ${order}
         LIMIT :limit
         OFFSET :offset
@@ -296,9 +336,11 @@ class MemberRepository {
       {
         replacements: {
           segmentIds,
-          limit,
-          offset,
-          memberId,
+          similarityReplacement,
+          limit: args.limit,
+          offset: args.offset,
+          displayName: args?.filter?.displayName ? `${args.filter.displayName}%` : undefined,
+          memberId: args?.filter?.memberId,
         },
         type: QueryTypes.SELECT,
       },
@@ -328,23 +370,33 @@ class MemberRepository {
           FROM "memberToMerge" mtm
           JOIN member_segments_mv ms ON ms."memberId" = mtm."memberId"
           JOIN member_segments_mv ms2 ON ms2."memberId" = mtm."toMergeId"
+          join members m on m.id = mtm."memberId"
+          join members m2 on m2.id = mtm."toMergeId"
           WHERE ms."segmentId" IN (:segmentIds) and ms2."segmentId" IN (:segmentIds)
             ${memberFilter}
             ${similarityFilter}
+            ${displayNameFilter}
         `,
         {
           replacements: {
             segmentIds,
-            memberId,
+            similarityReplacement,
+            memberId: args?.filter?.memberId,
+            displayName: args?.filter?.displayName ? `${args.filter.displayName}%` : undefined,
           },
           type: QueryTypes.SELECT,
         },
       )
 
-      return { rows: result, count: totalCount[0].count, limit, offset }
+      return { rows: result, count: totalCount[0].count, limit: args.limit, offset: args.offset }
     }
 
-    return { rows: [{ members: [], similarity: 0 }], count: 0, limit, offset }
+    return {
+      rows: [{ members: [], similarity: 0 }],
+      count: 0,
+      limit: args.limit,
+      offset: args.offset,
+    }
   }
 
   static async moveIdentitiesBetweenMembers(
