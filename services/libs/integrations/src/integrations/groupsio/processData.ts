@@ -1,6 +1,7 @@
 // processData.ts content
 import { ProcessDataHandler } from '../../types'
 import { Groupsio_GRID } from './grid'
+import { roundToNearestMinute } from '../utils'
 import {
   GroupsioPublishData,
   GroupsioPublishDataType,
@@ -38,12 +39,13 @@ const processMemberJoin: ProcessDataHandler = async (ctx) => {
     ],
   }
 
+  const roundToMinJoinedAt = roundToNearestMinute(data.joinedAt)
   const activity: IActivityData = {
     type: GroupsioActivityType.MEMBER_JOIN,
     member,
     channel: data.group,
     timestamp: data.joinedAt,
-    sourceId: `join-${memberData.user_id}-${memberData.group_id}-${data.joinedAt}`,
+    sourceId: `join-${memberData.user_id}-${memberData.group_id}-${roundToMinJoinedAt}`,
     score: Groupsio_GRID[GroupsioActivityType.MEMBER_JOIN].score,
     isContribution: Groupsio_GRID[GroupsioActivityType.MEMBER_JOIN].isContribution,
     attributes: {
@@ -122,12 +124,13 @@ const processMemberLeft: ProcessDataHandler = async (ctx) => {
     ],
   }
 
+  const roundToMinLeftAt = roundToNearestMinute(data.leftAt)
   const activity: IActivityData = {
     type: GroupsioActivityType.MEMBER_LEAVE,
     member,
     channel: data.group,
     timestamp: data.leftAt,
-    sourceId: `left-${memberData.user_id}-${memberData.group_id}-${data.leftAt}`,
+    sourceId: `left-${memberData.user_id}-${memberData.group_id}-${roundToMinLeftAt}`,
     score: Groupsio_GRID[GroupsioActivityType.MEMBER_LEAVE].score,
     isContribution: Groupsio_GRID[GroupsioActivityType.MEMBER_LEAVE].isContribution,
   }

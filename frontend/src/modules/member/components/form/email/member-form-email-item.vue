@@ -1,38 +1,56 @@
 <template>
   <article class="flex items-center">
     <div class="flex-grow">
-      <el-input
-        v-model="model.value"
-        placeholder="johndoe@gmail.com"
-        class="!h-8"
-      >
-        <template #suffix>
-          <div v-if="model.value === props.identity.value && props.identity.value">
-            <i
-              v-if="model.value && props.identity.verified"
-              class="ri-verified-badge-fill text-brand-500 text-base leading-4"
-            />
+      <div class="el-form-item mb-0" :class="{ 'is-error': emailExists && !(model.value === props.identity.value && props.identity.value) }">
+        <div class="el-form-item__content flex-col items-start">
+          <el-input
+            v-model="model.value"
+            placeholder="johndoe@gmail.com"
+            class="!h-8"
+          >
+            <template #suffix>
+              <div v-if="model.value === props.identity.value && props.identity.value">
+                <div class="flex items-center gap-2">
+                  <el-tooltip v-if="getPlatformLabel(props.identity.platforms)" placement="top-end">
+                    <template #content>
+                      <span class="font-semibold">Source:&nbsp;</span>{{ getPlatformLabel(props.identity.platforms) }}
+                    </template>
+                    <i class="ri-shining-fill text-sm" :class="isEnrichment(props.identity.platforms) ? 'text-purple-400' : 'text-gray-300'" />
+                  </el-tooltip>
+                  <i
+                    v-if="model.value && props.identity.verified"
+                    class="ri-verified-badge-fill text-brand-500 text-base leading-4"
+                  />
+                </div>
+              </div>
+              <div v-else class="flex gap-1 -mr-1">
+                <cr-button
+                  size="tiny"
+                  :icon-only="true"
+                  :disabled="model.value === props.identity.value || $v.$invalid || emailExists"
+                  @click="update()"
+                >
+                  <i class="ri-check-fill" />
+                </cr-button>
+                <cr-button
+                  size="tiny"
+                  type="secondary"
+                  :icon-only="true"
+                  @click="clear()"
+                >
+                  <i class="ri-close-line" />
+                </cr-button>
+              </div>
+            </template>
+          </el-input>
+          <div
+            v-if="emailExists && !(model.value === props.identity.value && props.identity.value)"
+            class="el-form-item__error"
+          >
+            This email is already associated with the contributor
           </div>
-          <div v-else class="flex gap-1 -mr-1">
-            <cr-button
-              size="tiny"
-              :icon-only="true"
-              :disabled="model.value === props.identity.value || $v.$invalid"
-              @click="update()"
-            >
-              <i class="ri-check-fill" />
-            </cr-button>
-            <cr-button
-              size="tiny"
-              type="secondary"
-              :icon-only="true"
-              @click="clear()"
-            >
-              <i class="ri-close-line" />
-            </cr-button>
-          </div>
-        </template>
-      </el-input>
+        </div>
+      </div>
     </div>
     <cr-dropdown placement="bottom-end" width="15rem" class="ml-3">
       <template #trigger>
@@ -81,6 +99,7 @@
 
 <script setup lang="ts">
 import {
+  computed,
   ref,
 } from 'vue';
 import { Member, MemberIdentity } from '@/modules/member/types/Member';
@@ -91,13 +110,18 @@ import CrDropdownSeparator from '@/ui-kit/dropdown/DropdownSeparator.vue';
 import AppSvg from '@/shared/svg/svg.vue';
 import useVuelidate from '@vuelidate/core';
 import { email } from '@vuelidate/validators';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
 
-const emit = defineEmits<{(e: 'update', value: MemberIdentity): void,
+const emit = defineEmits<{(e: 'update', value: Partial<MemberIdentity>): void,
   (e: 'remove'): void,
   (e: 'clear'): void}>();
 
+export interface MemberIdentityEdit extends MemberIdentity{
+  platforms?: string[]
+}
+
 const props = withDefaults(defineProps<{
-  identity: MemberIdentity,
+  identity: MemberIdentityEdit,
   member: Member,
   actionsDisabled?: boolean,
 }>(), {
@@ -116,7 +140,6 @@ const $v = useVuelidate(rules, model);
 
 const update = () => {
   emit('update', {
-    ...props.identity,
     value: model.value.value,
   });
 };
@@ -128,10 +151,30 @@ const clear = () => {
 
 const verify = (verified: boolean) => {
   emit('update', {
-    ...props.identity,
     verified,
   });
 };
+
+const isEnrichment = (platforms?: string[]) => (platforms || []).includes('enrichment');
+
+const getPlatformLabel = (platforms?: string[]) => (platforms || [])
+  .filter((platform) => !['integration_or_enrichment'].includes(platform))
+  .map((platform) => {
+    if (platform === 'lfid') {
+      return 'LFID';
+    }
+    if (platform === 'integration') {
+      return 'Integration';
+    }
+    if (platform === 'enrichment') {
+      return 'Enrichment';
+    }
+    return CrowdIntegrations.getConfig(platform)?.name || platform;
+  }).join(', ');
+
+const emailExists = computed(() => (props.member.identities || [])
+  .filter((i) => i.type === 'email')
+  .some((i) => i.value === model.value.value && i.platform === model.value.platform));
 </script>
 
 <script lang="ts">

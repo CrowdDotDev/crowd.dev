@@ -17,36 +17,37 @@
 
     <div v-if="emails.length" class="flex flex-col gap-2 mt-6">
       <div
-        v-for="(emailIdentity, index) in emails"
-        :key="emailIdentity.handle"
+        v-for="(emailIdentity, email) in distinctEmails"
+        :key="email"
       >
-        <el-tooltip
-          placement="top"
-          :content="emailIdentity.handle"
-          :disabled="!showTooltip[index]"
+        <div
+          class="flex overflow-hidden"
         >
-          <div
-            class="flex overflow-hidden"
-            @mouseover="handleOnMouseOver(index)"
-            @mouseleave="handleOnMouseLeave(index)"
+          <a
+            ref="emailRef"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-xs text-gray-900 hover:text-brand-500 border border-gray-200 rounded-md py-0.5 px-2 truncate flex items-center"
+            :href="emailIdentity.link"
           >
-            <a
-              ref="emailRef"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="text-xs text-gray-900 hover:text-brand-500 border border-gray-200 rounded-md py-0.5 px-2 truncate flex items-center"
-              :href="emailIdentity.link"
-            >
-              {{ emailIdentity.handle }}
+            {{ email }}
 
-              <div v-if="emailIdentity.verified" class="pl-1">
-                <el-tooltip placement="top" content="Verified email">
-                  <i class="ri-verified-badge-fill text-brand-500 text-base leading-4" />
-                </el-tooltip>
-              </div>
-            </a>
+            <div v-if="emailIdentity.verified" class="pl-1">
+              <el-tooltip placement="top" content="Verified email">
+                <i class="ri-verified-badge-fill text-brand-500 text-base leading-4" />
+              </el-tooltip>
+            </div>
+
+          </a>
+          <div v-if="getPlatformLabel(emailIdentity.platforms)" class="ml-2 flex items-center">
+            <el-tooltip placement="top">
+              <template #content>
+                <span class="font-semibold">Source:&nbsp;</span>{{ getPlatformLabel(emailIdentity.platforms) }}
+              </template>
+              <i class="ri-shining-fill text-sm" :class="isEnrichment(emailIdentity.platforms) ? 'text-purple-400' : 'text-gray-300'" />
+            </el-tooltip>
           </div>
-        </el-tooltip>
+        </div>
       </div>
       <div
         v-if="props.emails.length > 5"
@@ -73,6 +74,7 @@ import {
 import { MemberPermissions } from '@/modules/member/member-permissions';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
 
 const emit = defineEmits(['edit']);
 const props = defineProps<{
@@ -87,17 +89,6 @@ const { user, tenant } = storeToRefs(authStore);
 
 const displayMore = ref(false);
 const emailRef = ref<Element[]>([]);
-const showTooltip = ref<boolean[]>([]);
-
-const handleOnMouseOver = (index: number) => {
-  if (!emailRef.value[index]) {
-    showTooltip.value[index] = false;
-  }
-  showTooltip.value[index] = emailRef.value[index].scrollWidth > emailRef.value[index].clientWidth;
-};
-const handleOnMouseLeave = (index: number) => {
-  showTooltip.value[index] = false;
-};
 
 const emails = computed(() => {
   if (!displayMore.value) {
@@ -106,6 +97,37 @@ const emails = computed(() => {
 
   return props.emails;
 });
+
+const distinctEmails = computed(() => props.emails.reduce((obj: Record<string, any>, identity: any) => {
+  const emailObject = { ...obj };
+  if (!(identity.handle in emailObject)) {
+    emailObject[identity.handle] = {
+      ...identity,
+      platforms: [],
+    };
+  }
+  emailObject[identity.handle].platforms.push(identity.platform);
+  emailObject[identity.handle].verified = emailObject[identity.handle].verified || identity.verified;
+
+  return emailObject;
+}, {}));
+
+const isEnrichment = (platforms:string[]) => platforms.includes('enrichment');
+
+const getPlatformLabel = (platforms: string[]) => platforms
+  .filter((platform) => !['integration_or_enrichment'].includes(platform))
+  .map((platform) => {
+    if (platform === 'lfid') {
+      return 'LFID';
+    }
+    if (platform === 'integration') {
+      return 'Integration';
+    }
+    if (platform === 'enrichment') {
+      return 'Enrichment';
+    }
+    return CrowdIntegrations.getConfig(platform)?.name || platform;
+  }).join(', ');
 
 const isEditLockedForSampleData = computed(() => new MemberPermissions(
   tenant.value,

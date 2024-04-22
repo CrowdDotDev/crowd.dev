@@ -1634,7 +1634,7 @@ export default class MemberService extends LoggerBase {
                 }
               } else {
                 // new username doesn't have this platform - we can delete the existing identity
-                data.username[identity.platform] = { ...identity, delete: true }
+                data.username[identity.platform] = [{ ...identity, delete: true }]
               }
             }
 
@@ -1697,6 +1697,10 @@ export default class MemberService extends LoggerBase {
               await searchSyncService.triggerOrganizationSync(this.options.currentTenant.id, org.id)
             }
           }
+
+          // return updated record from OpenSearch instead of db
+          // quick hack to ensure tests that use this method don't fail if OpenSearch is disabled
+          return await MemberRepository.findByIdOpensearch(record.id, this.options)
         } catch (emitErr) {
           this.log.error(
             emitErr,

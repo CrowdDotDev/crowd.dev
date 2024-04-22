@@ -49,5 +49,9 @@
   },
   "worker": {
     "queuePriorityLevel": "QUEUE_PRIORITY_LEVEL"
+  },
+  "loki": {
+    "url": "CROWD_LOKI_DB_TURSO_URL",
+    "token": "CROWD_LOKI_DB_TURSO_TOKEN"
   }
 }

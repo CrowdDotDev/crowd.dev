@@ -1161,10 +1161,30 @@ export default class OrganizationService extends LoggerBase {
     const orderBy = data.orderBy
     const limit = data.limit
     const offset = data.offset
-    return OrganizationRepository.findAndCountAllOpensearch(
+
+    const res = await OrganizationRepository.findAndCountAllOpensearch(
       { filter: advancedFilter, orderBy, limit, offset, segments: data.segments },
       this.options,
     )
+
+    // group orgs by id to avoid duplicates and store segmentId in a segments array
+    const grouped = res.rows.reduce((acc, org) => {
+      if (!acc[org.id]) {
+        acc[org.id] = { ...org, segments: [org.segmentId] }
+      } else {
+        acc[org.id].segments.push(org.segmentId)
+      }
+
+      // drop unnecessary fields
+      delete acc[org.id].grandParentSegment
+      delete acc[org.id].segmentId
+
+      return acc
+    }, {})
+
+    res.rows = Object.values(grouped)
+
+    return res
   }
 
   async findAndCountAll(args) {

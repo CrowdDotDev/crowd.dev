@@ -13,6 +13,7 @@ const descriptor: IIntegrationDescriptor = {
   generateStreams,
   processStream,
   processData,
+  checkEvery: 2 * 24 * 60,
   processWebhookStream,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   postProcess: (settings: any) => {
