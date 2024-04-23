@@ -202,6 +202,7 @@ const loadMergeSuggestions = () => {
   OrganizationService.fetchMergeSuggestions(limit.value, (page.value - 1) * limit.value, {
     filter: filter.value,
     orderBy: [sorting.value],
+    detail: false
   })
     .then((res) => {
       total.value = +res.count;
@@ -218,7 +219,7 @@ const loadMergeSuggestions = () => {
 };
 
 const getTotalCount = () => {
-  MemberService.fetchMergeSuggestions(0, 0, {
+  OrganizationService.fetchMergeSuggestions(0, 0, {
     countOnly: true,
   })
     .then(({ count }) => {

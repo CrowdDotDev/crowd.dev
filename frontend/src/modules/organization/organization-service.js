@@ -215,6 +215,7 @@ export class OrganizationService {
     const data = {
       limit,
       offset,
+      detail: true,
       ...query,
     };
 

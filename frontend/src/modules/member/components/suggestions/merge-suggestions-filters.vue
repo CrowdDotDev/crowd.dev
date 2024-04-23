@@ -1,7 +1,13 @@
 <template>
   <div class="flex items-center gap-3">
-    <app-merge-suggestions-search v-model="form.search" />
-    <app-merge-suggestions-confidence-filter v-model="form.confidence" />
+    <app-merge-suggestions-search
+        v-model="form.search" />
+    <app-merge-suggestions-confidence-filter
+        v-model="form.confidence" />
+    <app-merge-suggestions-projects-filter
+        v-model:segments="form.segments"
+        v-model:childSegments="form.childSegments"
+    />
   </div>
 </template>
 
@@ -10,15 +16,15 @@ import { reactive, watch } from 'vue';
 import AppMergeSuggestionsConfidenceFilter
   from '@/modules/member/components/suggestions/filters/merge-suggestions-confidence-filter.vue';
 import AppMergeSuggestionsSearch from '@/modules/member/components/suggestions/filters/merge-suggestions-search.vue';
+import AppMergeSuggestionsProjectsFilter
+  from '@/modules/member/components/suggestions/filters/merge-suggestions-projects-filter.vue';
 
 const emit = defineEmits<{(e: 'search', value: any): void}>();
 
 const form = reactive({
   search: '',
-  segments: {
-    segments: [],
-    childSegments: [],
-  },
+  segments: [],
+  childSegments: [],
   confidence: ['high'],
 });
 
