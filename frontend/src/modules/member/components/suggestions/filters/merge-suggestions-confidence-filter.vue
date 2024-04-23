@@ -23,7 +23,7 @@
         <cr-checkbox v-model="model" value="high" />
         <div class="ml-1 mr-2 h-2 w-2 rounded-full bg-green-600" />
         <p class="text-black text-xs">
-          High <span class="text-gray-500">(80% - 100%)</span>
+          High <span class="text-gray-500">(90% - 100%)</span>
         </p>
       </label>
       <label
@@ -32,7 +32,7 @@
         <cr-checkbox v-model="model" value="medium" />
         <div class="ml-1 mr-2 h-2 w-2 rounded-full bg-blue-600" />
         <p class="text-black text-xs">
-          Medium <span class="text-gray-500">(60% - 79%)</span>
+          Medium <span class="text-gray-500">(70% - 89%)</span>
         </p>
       </label>
       <label
@@ -41,7 +41,7 @@
         <cr-checkbox v-model="model" value="low" />
         <div class="ml-1 mr-2 h-2 w-2 rounded-full bg-yellow-600" />
         <p class="text-black text-xs">
-          Low <span class="text-gray-500">(&lt;59%)</span>
+          Low <span class="text-gray-500">(&lt;69%)</span>
         </p>
       </label>
     </div>

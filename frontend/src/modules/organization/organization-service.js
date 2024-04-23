@@ -212,17 +212,15 @@ export class OrganizationService {
   static async fetchMergeSuggestions(limit, offset, query) {
     const tenantId = AuthService.getTenantId();
 
-    const params = {
+    const data = {
       limit,
       offset,
       ...query,
     };
 
-    return authAxios.get(
+    return authAxios.post(
       `/tenant/${tenantId}/organizationsToMerge`,
-      {
-        params,
-      },
+      data,
     )
       .then(({ data }) => Promise.resolve(data));
   }

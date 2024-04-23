@@ -1,15 +1,15 @@
 <template>
-    <el-input
-      v-model="proxy"
-      clearable
-      placeholder="Search contributors"
-      class="!h-8"
-      @update:model-value="search($event)"
-    >
-      <template #prefix>
-        <i class="ri-search-line text-gray-400" />
-      </template>
-    </el-input>
+  <el-input
+    v-model="proxy"
+    clearable
+    placeholder="Search contributors"
+    class="!h-8"
+    @update:model-value="search($event)"
+  >
+    <template #prefix>
+      <i class="ri-search-line text-gray-400" />
+    </template>
+  </el-input>
 </template>
 
 <script setup lang="ts">
@@ -26,7 +26,6 @@ const proxy = ref<string>(props.modelValue);
 const search = (val: string) => {
   setTimeout(() => {
     if (proxy.value === val) {
-      console.log(val);
       emit('update:modelValue', val);
     }
   }, 300);

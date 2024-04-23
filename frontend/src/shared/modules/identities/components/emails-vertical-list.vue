@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col gap-5">
+  <div v-if="props.emails.length" class="flex flex-col gap-5">
     <div
       class="flex gap-3 items-start relative min-h-4"
       :class="{

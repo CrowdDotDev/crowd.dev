@@ -19,15 +19,22 @@ const form = reactive({
     segments: [],
     childSegments: [],
   },
-  confidence: [],
+  confidence: ['high'],
 });
 
 const defineConfidenceRange = (values: string[]) => {
   const ranges: any = {
-    high: { gte: 0.8, lte: 1 },
-    medium: { gte: 0.6, lte: 0.79999 },
-    low: { gte: 0, lte: 0.59999 },
+    high: { gte: 0.9, lte: 1 },
+    medium: { gte: 0.7, lte: 0.89999 },
+    low: { gte: 0, lte: 0.69999 },
   };
+
+  if (values.length === 0) {
+    return {
+      gte: 0,
+      lte: 1,
+    };
+  }
 
   if (values.includes('high') && values.includes('low') && !values.includes('medium')) {
     return {
@@ -58,7 +65,7 @@ watch(() => form, (form) => {
     similarity: confidence,
     displayName: form.search,
   });
-}, { deep: true });
+}, { deep: true, immediate: true });
 
 </script>
 
