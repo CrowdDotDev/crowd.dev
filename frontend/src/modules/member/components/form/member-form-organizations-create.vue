@@ -56,7 +56,12 @@
                 </div>
 
                 <div v-if="item.segments.length">
-                  <el-popover trigger="hover" placement="top" popper-class="!w-auto">
+                  <el-popover
+                    trigger="hover"
+                    placement="top"
+                    popper-class="!w-[260px] !max-w-[260px] !max-h-[400px] overflow-auto"
+                    :disabled="item.segments.length === 1"
+                  >
                     <template #reference>
                       <el-tag type="info" size="small">
                         {{ item.segments.length > 1 ? pluralize('project group', item.segments.length, true) : getSegmentName(item.segments[0]) }}
@@ -67,7 +72,7 @@
                       <div class="mb-2 text-gray-400 text-2xs">
                         Project groups
                       </div>
-                      <div class="flex items-center gap-1">
+                      <div class="flex flex-wrap items-center gap-1">
                         <div v-for="segmentId in item.segments" :key="segmentId">
                           <el-tag type="info" size="small">
                             {{ getSegmentName(segmentId) }}

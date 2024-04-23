@@ -20,7 +20,7 @@
       </article>
       <article class="flex pb-2">
         <i class="ri-checkbox-circle-fill text-base text-black h-4.5 flex items-center" />
-        <span class="pl-2 text-xs leading-2 text-gray-600">Connect HubSpot and LinkedIn for a stronger pipeline.</span>
+        <span class="pl-2 text-xs leading-2 text-gray-600">Connect LinkedIn for a stronger pipeline.</span>
       </article>
     </div>
     <div class="text-xs text-center text-gray-500 italic pt-1 pb-4">
