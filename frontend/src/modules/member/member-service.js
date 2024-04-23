@@ -116,18 +116,14 @@ export class MemberService {
   static async listMembersAutocomplete({
     query,
     limit,
-    segments = null,
+    segments,
   }) {
     const payload = {
-      filter: {
-        and: [
-          {
-            displayName: {
-              matchPhrasePrefix: query,
-            },
-          },
-        ],
-      },
+      filter: query ? {
+        displayName: {
+          textContains: query,
+        },
+      } : {},
       offset: 0,
       orderBy: 'displayName_ASC',
       limit,

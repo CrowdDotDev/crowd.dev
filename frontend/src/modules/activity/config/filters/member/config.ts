@@ -7,6 +7,8 @@ import {
 import { MemberService } from '@/modules/member/member-service';
 import { DEFAULT_MEMBER_FILTERS } from '@/modules/member/store/constants';
 import { Member } from '@/modules/member/types/Member';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
 const member: MultiSelectAsyncFilterConfig = {
   id: 'member',
@@ -14,10 +16,16 @@ const member: MultiSelectAsyncFilterConfig = {
   iconClass: 'ri-account-circle-line',
   type: FilterConfigType.MULTISELECT_ASYNC,
   options: {
-    remoteMethod: (query) => MemberService.listMembersAutocomplete({
-      query,
-      limit: 10,
-    }),
+    remoteMethod: (query) => {
+      const lsSegmentsStore = useLfSegmentsStore();
+      const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
+
+      return MemberService.listMembersAutocomplete({
+        query,
+        limit: 10,
+        segments: selectedProjectGroup.value ? [selectedProjectGroup.value.id] : null,
+      });
+    },
     remotePopulateItems: (ids: string[]) => MemberService.listMembers({
       filter: {
         and: [

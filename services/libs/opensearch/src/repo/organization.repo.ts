@@ -75,7 +75,6 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
             o."manuallyChangedFields",
             nullif(o."employeeChurnRate" -> '12_month', 'null')::decimal  as "employeeChurnRate12Month",
             nullif(o."employeeGrowthRate" -> '12_month', 'null')::decimal as "employeeGrowthRate12Month",
-            o.tags,
             coalesce(i.identities, '[]'::jsonb)                           as "identities"
       from organizations o
               left join identities i on o.id = i."organizationId"
@@ -93,12 +92,12 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
   public async checkOrganizationsExists(tenantId: string, orgIds: string[]): Promise<string[]> {
     const results = await this.db().any(
       `
-      select id 
-      from 
-        organizations 
-      where 
-        "tenantId" = $(tenantId) and 
-        id in ($(orgIds:csv)) and 
+      select id
+      from
+        organizations
+      where
+        "tenantId" = $(tenantId) and
+        id in ($(orgIds:csv)) and
         "deletedAt" is null
       `,
       {
@@ -116,7 +115,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
       select o.id
       from organizations o
       left join indexed_entities ie on o.id = ie.entity_id and ie.type = $(type)
-      where o."tenantId" = $(tenantId) and 
+      where o."tenantId" = $(tenantId) and
             o."deletedAt" is null and
             ie.entity_id is null
       limit ${perPage}`,

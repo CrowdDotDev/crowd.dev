@@ -51,6 +51,8 @@ import {
 import { MemberService } from '@/modules/member/member-service';
 import AppAutocompleteOneInput from '@/shared/form/autocomplete-one-input.vue';
 import AppAvatar from '@/shared/avatar/avatar.vue';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
 const emit = defineEmits('update:modelValue');
 const props = defineProps({
@@ -78,10 +80,14 @@ const computedMemberToMerge = computed({
   },
 });
 
+const lsSegmentsStore = useLfSegmentsStore();
+const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
+
 const fetchFn = async ({ query, limit }) => {
-  const options = await MemberService.listOrganizationsAutocomplete({
+  const options = await MemberService.listMembersAutocomplete({
     query,
     limit,
+    segments: [selectedProjectGroup.value.id],
   });
 
   // Remove primary member from members that can be merged with
