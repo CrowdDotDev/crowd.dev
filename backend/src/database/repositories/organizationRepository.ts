@@ -1189,16 +1189,19 @@ class OrganizationRepository {
       segmentIds = SequelizeRepository.getSegmentIds(options)
     }
 
-    let similarityFilter = ''
-    let similarityReplacement
+    let similarityLTEFilter = ''
+    let similarityGTEFilter = ''
+    let similarityLTEReplacement
+    let similarityGTEReplacement
+
 
     if (args.filter?.similarity) {
       if (args.filter.similarity.gte) {
-        similarityFilter = 'and otm.similarity >= :similarityReplacement '
-        similarityReplacement = args.filter.similarity.gte
+        similarityGTEFilter = 'and otm.similarity >= :similarityGTEReplacement '
+        similarityGTEReplacement = args.filter.similarity.gte
       } else if (args.filter?.similarity.lte) {
-        similarityFilter = 'and otm.similarity <= :similarityReplacement '
-        similarityReplacement = args.filter.similarity.lte
+        similarityLTEFilter = 'and otm.similarity <= :similarityLTEReplacement '
+        similarityLTEReplacement = args.filter.similarity.lte
       }
     }
 
@@ -1252,7 +1255,8 @@ class OrganizationRepository {
           AND os2."segmentId" IN (:segmentIds)
           AND (ma.id IS NULL OR ma.state = :mergeActionStatus)
           ${organizationFilter}
-          ${similarityFilter}
+          ${similarityLTEFilter}
+          ${similarityGTEFilter}
           ${displayNameFilter}
       ),
 
@@ -1287,7 +1291,8 @@ class OrganizationRepository {
         replacements: {
           tenantId: options.currentTenant.id,
           segmentIds,
-          similarityReplacement,
+          similarityLTEReplacement,
+          similarityGTEReplacement,
           limit: args.limit,
           offset: args.offset,
           displayName: args?.filter?.displayName ? `${args.filter.displayName}%` : undefined,

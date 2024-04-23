@@ -274,16 +274,18 @@ class MemberRepository {
       segmentIds = SequelizeRepository.getSegmentIds(options)
     }
 
-    let similarityFilter = ''
-    let similarityReplacement
+    let similarityLTEFilter = ''
+    let similarityGTEFilter = ''
+    let similarityLTEReplacement
+    let similarityGTEReplacement
 
     if (args.filter?.similarity) {
       if (args.filter.similarity.gte) {
-        similarityFilter = 'and mtm.similarity >= :similarityReplacement '
-        similarityReplacement = args.filter.similarity.gte
+        similarityGTEFilter = 'and mtm.similarity >= :similarityGTEReplacement '
+        similarityGTEReplacement = args.filter.similarity.gte
       } else if (args.filter?.similarity.lte) {
-        similarityFilter = 'and mtm.similarity <= :similarityReplacement '
-        similarityReplacement = args.filter.similarity.lte
+        similarityLTEFilter = 'and mtm.similarity <= :similarityLTEReplacement '
+        similarityLTEReplacement = args.filter.similarity.lte
       }
     }
 
@@ -327,7 +329,8 @@ class MemberRepository {
         join members m2 on m2.id = mtm."toMergeId"
         WHERE ms."segmentId" IN (:segmentIds) and ms2."segmentId" IN (:segmentIds)
           ${memberFilter}
-          ${similarityFilter}
+          ${similarityLTEFilter}
+          ${similarityGTEFilter}
           ${displayNameFilter}
         ORDER BY ${order}
         LIMIT :limit
@@ -336,7 +339,8 @@ class MemberRepository {
       {
         replacements: {
           segmentIds,
-          similarityReplacement,
+          similarityLTEReplacement,
+          similarityGTEReplacement,
           limit: args.limit,
           offset: args.offset,
           displayName: args?.filter?.displayName ? `${args.filter.displayName}%` : undefined,
@@ -374,13 +378,15 @@ class MemberRepository {
           join members m2 on m2.id = mtm."toMergeId"
           WHERE ms."segmentId" IN (:segmentIds) and ms2."segmentId" IN (:segmentIds)
             ${memberFilter}
-            ${similarityFilter}
+            ${similarityLTEFilter}
+            ${similarityGTEFilter}
             ${displayNameFilter}
         `,
         {
           replacements: {
             segmentIds,
-            similarityReplacement,
+            similarityLTEReplacement,
+            similarityGTEReplacement,
             memberId: args?.filter?.memberId,
             displayName: args?.filter?.displayName ? `${args.filter.displayName}%` : undefined,
           },
