@@ -20,8 +20,8 @@ export async function insertActivities(activities: IDbActivityCreateData[]): Pro
       .symbol('tenantId', activity.tenantId)
       .symbol('segmentId', activity.segmentId)
       .symbol('platform', activity.platform)
-      .symbol('member_isTeamMember', activity.isTeamMemberActivity || false)
-      .symbol('member_isBot', activity.isBotActivity || false)
+      .booleanColumn('member_isTeamMember', activity.isTeamMemberActivity || false)
+      .booleanColumn('member_isBot', activity.isBotActivity || false)
 
     if (activity.platform === 'git' || activity.platform === 'github') {
       if (activity.attributes['isMainBranch']) {
