@@ -1,11 +1,23 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { DbConnOrTx } from '@crowd/database'
-import { IActivity, PageData } from '@crowd/types'
+import { ActivityDisplayVariant, IActivity, PageData } from '@crowd/types'
 
-import { RawQueryParser } from '@crowd/common'
+import { RawQueryParser, getEnv } from '@crowd/common'
 import { IDbActivityUpdateData } from '../old/apps/data_sink_worker/repo/activity.data'
-import { IActivitySentiment, IQueryActivitiesParameters, IQueryActivityResult } from './types'
+import {
+  IActivitySentiment,
+  IQueryActivitiesParameters,
+  IQueryActivityResult,
+  IQueryTopActivitiesParameters,
+} from './types'
+import { ActivityDisplayService } from '@crowd/integrations'
+
+import merge from 'lodash.merge'
+
+const s3Url = `https://${
+  process.env['CROWD_S3_MICROSERVICES_ASSETS_BUCKET']
+}-${getEnv()}.s3.eu-central-1.amazonaws.com`
 
 export async function getActivityById(conn: DbConnOrTx, id: string): Promise<IActivity> {
   const activity: IActivity = await conn.query(
@@ -431,4 +443,60 @@ export async function queryActivities(
     limit: arg.limit,
     offset: arg.offset,
   }
+}
+
+export interface ActivityType {
+  count: number
+  type: string
+  platform: string
+  percentage: string
+  platformIcon: string
+}
+
+export async function findTopActivityTypes(
+  qdbConn: DbConnOrTx,
+  arg: IQueryTopActivitiesParameters,
+): Promise<ActivityType[]> {
+  let result: ActivityType[] = []
+
+  const query = `
+    SELECT
+      a.type, COUNT(id) as count,
+      a.platform
+    FROM activities a
+    WHERE a."tenantId" = $(tenantId)
+    AND a.timestamp BETWEEN $(after) AND $(before)
+    GROUP BY a.type, a.platform
+    ORDER BY COUNT(*) DESC
+    LIMIT $(limit);
+  `
+
+  result = await qdbConn.query(query, {
+    tenantId: arg.tenantId,
+    after: arg.after,
+    before: arg.before,
+    limit: arg.limit || 10,
+  })
+
+  const totalCount = result.map((row) => {
+    return totalCount + row.count
+  })
+
+  result = result.map((a) => {
+    const displayOptions = ActivityDisplayService.getDisplayOptions(
+      {
+        platform: a.platform,
+        type: a.type,
+      },
+      arg.segments.reduce((acc, s) => merge(acc, s.customActivityTypes), {}),
+      [ActivityDisplayVariant.SHORT],
+    )
+    const prettyName: string = displayOptions.short
+    a.type = prettyName[0].toUpperCase() + prettyName.slice(1)
+    a.percentage = Number((a.count / totalCount) * 100).toFixed(2)
+    a.platformIcon = `${s3Url}/email/${a.platform}.png`
+    return a
+  })
+
+  return result
 }
