@@ -14,6 +14,7 @@ import {
 import { ActivityDisplayService } from '@crowd/integrations'
 
 import merge from 'lodash.merge'
+import { arrayBuffer } from 'stream/consumers'
 
 const s3Url = `https://${
   process.env['CROWD_S3_MICROSERVICES_ASSETS_BUCKET']
@@ -266,11 +267,26 @@ export async function queryActivities(
 
   if (arg.filter.member) {
     if (arg.filter.member.isTeamMember) {
-      arg.filter.isTeamMember = arg.filter.member.isTeamMember
+      const condition = {
+        isTeamMember: arg.filter.member.isTeamMember,
+      }
+      if (arg.filter.and) {
+        arg.filter.and.push(condition)
+      } else {
+        arg.filter.and = [condition]
+      }
     }
 
     if (arg.filter.member.isBot) {
-      arg.filter.isBot = arg.filter.member.isBot
+      const condition = {
+        isBot: arg.filter.member.isBot,
+      }
+
+      if (arg.filter.and) {
+        arg.filter.and.push(condition)
+      } else {
+        arg.filter.and = [condition]
+      }
     }
 
     delete arg.filter.member
@@ -307,14 +323,15 @@ export async function queryActivities(
   const params: any = {
     tenantId: arg.tenantId,
     segmentIds: arg.segmentIds,
-    limit: arg.limit,
-    offset: arg.offset,
+    lowerLimit: arg.offset,
+    upperLimit: arg.offset + arg.limit - 1,
   }
   let filterString = RawQueryParser.parseFilters(
-    params.filter,
+    arg.filter,
     ACTIVITY_QUERY_FILTER_COLUMN_MAP,
     [],
     params,
+    true,
   )
 
   if (filterString.trim().length === 0) {
@@ -353,7 +370,6 @@ export async function queryActivities(
               a."conversationId",
               a."createdAt",
               a."createdById",
-              a."importHash",
               a."isContribution",
               a."memberId",
               a.username,
@@ -381,7 +397,7 @@ export async function queryActivities(
               a.url
       ${baseQuery}
       order by ${orderByString}
-      limit $(limit) offset $(offset)
+      limit $(lowerLimit), $(upperLimit);
     `
 
     const [results, countResults] = await Promise.all([
@@ -396,14 +412,16 @@ export async function queryActivities(
   const results: IQueryActivityResult[] = []
 
   for (const a of activities) {
-    const sentiment: IActivitySentiment = {
-      label: a.sentimentLabel,
-      sentiment: a.sentimentScore,
-      mixed: a.sentimentScoreMixed,
-      neutral: a.sentimentScoreNeutral,
-      negative: a.sentimentScoreNegative,
-      positive: a.sentimentScorePositive,
-    }
+    const sentiment: IActivitySentiment | null = a.sentimentLabel
+      ? {
+          label: a.sentimentLabel,
+          sentiment: a.sentimentScore,
+          mixed: a.sentimentScoreMixed,
+          neutral: a.sentimentScoreNeutral,
+          negative: a.sentimentScoreNegative,
+          positive: a.sentimentScorePositive,
+        }
+      : null
 
     results.push({
       id: a.id,
@@ -413,7 +431,6 @@ export async function queryActivities(
       conversationId: a.conversationId,
       createdAt: a.createdAt,
       createdById: a.createdById,
-      importHash: a.importHash,
       isContribution: a.isContribution,
       memberId: a.memberId,
       username: a.username,

@@ -859,8 +859,8 @@ export default class ActivityService extends LoggerBase {
           {
             filter: {
               and: [{ id: { in: organizationIds } }],
-              limit: organizationIds.length,
             },
+            limit: organizationIds.length,
           },
           this.options,
         ).then((organizations) => {

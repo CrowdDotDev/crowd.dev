@@ -8,7 +8,6 @@ export interface IQueryActivityResult {
   conversationId?: string | null
   createdAt: string
   createdById: string
-  importHash?: string | null
   isContribution: boolean
   memberId: string
   username: string
