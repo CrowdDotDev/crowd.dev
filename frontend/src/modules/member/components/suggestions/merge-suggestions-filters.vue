@@ -1,12 +1,14 @@
 <template>
   <div class="flex items-center gap-3">
     <app-merge-suggestions-search
-        v-model="form.search" />
+      v-model="form.search"
+    />
     <app-merge-suggestions-confidence-filter
-        v-model="form.confidence" />
+      v-model="form.confidence"
+    />
     <app-merge-suggestions-projects-filter
-        v-model:segments="form.segments"
-        v-model:childSegments="form.childSegments"
+      v-model:segments="form.segments"
+      v-model:childSegments="form.childSegments"
     />
   </div>
 </template>
@@ -21,7 +23,12 @@ import AppMergeSuggestionsProjectsFilter
 
 const emit = defineEmits<{(e: 'search', value: any): void}>();
 
-const form = reactive({
+const form = reactive<{
+  search: string;
+  segments: string[],
+  childSegments: string[],
+  confidence: string[],
+}>({
   search: '',
   segments: [],
   childSegments: [],
@@ -66,10 +73,14 @@ const defineConfidenceRange = (values: string[]) => {
 
 watch(() => form, (form) => {
   const confidence = defineConfidenceRange(form.confidence);
+  const subprojects = form.childSegments.length ? form.childSegments : undefined;
+  const projects = form.segments.length ? form.segments : subprojects;
 
   emit('search', {
     similarity: confidence,
     displayName: form.search,
+    projectIds: projects,
+    subprojectIds: subprojects,
   });
 }, { deep: true, immediate: true });
 

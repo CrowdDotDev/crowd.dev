@@ -180,7 +180,6 @@ import useOrganizationMergeMessage from '@/shared/modules/merge/config/useOrgani
 import CrSpinner from '@/ui-kit/spinner/Spinner.vue';
 import CrTableHead from '@/ui-kit/table/TableHead.vue';
 import AppMergeSuggestionsFilters from '@/modules/member/components/suggestions/merge-suggestions-filters.vue';
-import { MemberService } from '@/modules/member/member-service';
 
 const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
 
@@ -202,7 +201,7 @@ const loadMergeSuggestions = () => {
   OrganizationService.fetchMergeSuggestions(limit.value, (page.value - 1) * limit.value, {
     filter: filter.value,
     orderBy: [sorting.value],
-    detail: false
+    detail: false,
   })
     .then((res) => {
       total.value = +res.count;

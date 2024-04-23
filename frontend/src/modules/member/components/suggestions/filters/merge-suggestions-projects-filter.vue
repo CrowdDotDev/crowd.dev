@@ -2,18 +2,18 @@
   <el-popover v-model:visible="visible" placement="bottom-start" trigger="click" popper-class="!p-0" width="20rem">
     <template #reference>
       <cr-button type="secondary" size="small">
-        <i class="ri-stack-line" /> <p>Projects: <span class="font-normal">All</span></p>
+        <i class="ri-stack-line" /> <p>Projects: <span class="font-normal">{{ label }}</span></p>
       </cr-button>
     </template>
 
     <div class="pt-1.5 pb-2 px-2">
       <article
         class="px-3 py-2.5 leading-5 font-xs flex justify-between items-center transition cursor-pointer rounded-md hover:bg-gray-50"
-        :class="segments.length === 0 ? '!bg-brand-50' : ''"
-        @click="segments = []"
+        :class="empty ? '!bg-brand-50' : ''"
+        @click="segments = []; childSegments = []"
       >
         <span class="text-black">All projects</span>
-        <i v-if="segments.length === 0" class="ri-check-line text-lg text-primary-600" />
+        <i v-if="empty" class="ri-check-line text-lg text-primary-600" />
       </article>
     </div>
     <div class="border-t border-gray-100 px-2 pt-2 pb-1 w-full sticky top-0 bg-white z-10">
@@ -28,20 +28,29 @@
       />
     </div>
     <div class="p-2 border-t border-gray-100 flex flex-col gap-1">
-      <section v-for="project of projects.list">
+      <section v-for="project of projects.list" :key="project.id">
         <label
           class="px-3 py-2.5 leading-5 font-xs flex items-center transition cursor-pointer rounded-md hover:bg-gray-50"
         >
-          <cr-checkbox v-model="segments" :value="project.id" />
+          <cr-checkbox
+            v-model="segments"
+            :value="project.id"
+            @update:model-value="onProjectSelect(project)"
+          />
           <p class="text-black text-xs">
             {{ project.name }}
           </p>
         </label>
         <label
           v-for="subproject of project.subprojects"
+          :key="subproject.id"
           class="pr-3 pl-10 py-2.5 leading-5 font-xs flex items-center transition cursor-pointer rounded-md hover:bg-gray-50"
         >
-          <cr-checkbox v-model="childSegments" :value="subproject.id" />
+          <cr-checkbox
+            v-model="childSegments"
+            :value="subproject.id"
+            @update:model-value="onSubprojectSelect(project, subproject)"
+          />
           <p class="text-black text-xs">
             {{ subproject.name }}
           </p>
@@ -60,12 +69,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import {
+  computed, onMounted, ref,
+} from 'vue';
 import CrButton from '@/ui-kit/button/Button.vue';
 import CrCheckbox from '@/ui-kit/checkbox/Checkbox.vue';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';
-import debounce from 'lodash/debounce';
 
 const props = defineProps<{
   segments: string[]
@@ -84,14 +94,90 @@ const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup, projects } = storeToRefs(lsSegmentsStore);
 const { listProjects } = lsSegmentsStore;
 
+const labelData: Record<string, {
+  name: string;
+  parentId?: string;
+  parentName?: string;
+}> = {};
+
+const label = computed(() => {
+  if (props.segments.length === 0 && props.childSegments.length === 0) {
+    return 'All';
+  }
+  const labels: string[] = [];
+  props.segments.forEach((s) => {
+    labels.push(`${labelData[s]?.name || ''} (all sub-projects)`);
+  });
+
+  props.childSegments
+    .filter((cs) => !props.segments.includes(labelData[cs]?.parentId || ''))
+    .forEach((s) => {
+      labels.push(`${labelData[s]?.name || ''}`);
+    });
+
+  const joined = labels.join(', ');
+  return joined.length > 40 ? `${joined.substring(0, 40)}...` : joined;
+});
+
+const loadProjects = (search: string) => {
+  listProjects({
+    parentSlug: selectedProjectGroup.value.slug, search, reset: true, limit: 40,
+  });
+};
+
 // Search
 const searchQuery = ref('');
 const onSearchQueryChange = (value: string) => {
   setTimeout(() => {
     if (value === searchQuery.value) {
-      listProjects({ parentSlug: selectedProjectGroup.value.slug, search: value, reset: true });
+      loadProjects(value);
     }
   }, 300);
+};
+
+const empty = computed(() => (segments.value.length + childSegments.value.length) === 0);
+
+const onProjectSelect = (project: any) => {
+  labelData[project.id] = {
+    name: project.name,
+  };
+  const subprojectIds = project.subprojects.map((sp: any) => sp.id);
+  if (segments.value.includes(project.id)) {
+    childSegments.value = [...new Set([
+      ...childSegments.value,
+      ...subprojectIds,
+    ])];
+  } else {
+    childSegments.value = childSegments.value.filter((cs) => !subprojectIds.includes(cs));
+  }
+  project.subprojects.forEach((sp) => {
+    labelData[sp.id] = {
+      name: sp.name,
+      parentId: project.id,
+      parentName: project.name,
+    };
+  });
+};
+
+const onSubprojectSelect = (project: any, subproject: any) => {
+  labelData[subproject.id] = {
+    name: subproject.name,
+    parentId: project.id,
+    parentName: project.name,
+  };
+  labelData[project.id] = {
+    name: project.name,
+  };
+  const subprojectIds = project.subprojects.map((sp: any) => sp.id);
+  const allSubsChecked = subprojectIds.every((spi) => childSegments.value.includes(spi));
+  if (allSubsChecked) {
+    segments.value = [...new Set([
+      ...segments.value,
+      project.id,
+    ])];
+  } else {
+    segments.value = segments.value.filter((s) => s !== project.id);
+  }
 };
 
 const apply = () => {
@@ -99,6 +185,10 @@ const apply = () => {
   emit('update:childSegments', childSegments.value);
   visible.value = false;
 };
+
+onMounted(() => {
+  loadProjects('');
+});
 </script>
 
 <script lang="ts">

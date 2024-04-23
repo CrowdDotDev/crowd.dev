@@ -1,5 +1,5 @@
 <template>
-  <el-popover placement="bottom-start" trigger="click" popper-class="!p-0" width="20rem" v-model:visible="visible">
+  <el-popover v-model:visible="visible" placement="bottom-start" trigger="click" popper-class="!p-0" width="20rem">
     <template #reference>
       <cr-button type="secondary" size="small">
         <i class="ri-command-line" /> <p>Confidence level: <span class="font-normal">{{ label }}</span></p>
@@ -72,16 +72,16 @@ const model = ref<string[]>(props.modelValue);
 const emit = defineEmits<{(e: 'update:modelValue', value: string[]): void}>();
 
 const label = computed(() => {
-  if(props.modelValue.length > 0){
+  if (props.modelValue.length > 0) {
     return props.modelValue.map((l) => l.charAt(0).toUpperCase() + l.substring(1)).join(', ');
   }
-  return 'All'
-})
+  return 'All';
+});
 
 const apply = () => {
   emit('update:modelValue', model.value);
   visible.value = false;
-}
+};
 </script>
 
 <script lang="ts">
