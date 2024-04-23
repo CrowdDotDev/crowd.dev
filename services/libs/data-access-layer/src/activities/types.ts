@@ -2,8 +2,42 @@
 
 export interface IQueryActivityResult {
   id: string
-  timestamp: string
+  attributes: unknown
+  body?: string | null
+  channel?: string | null
+  conversationId?: string | null
+  createdAt: string
+  createdById: string
+  importHash?: string | null
+  isContribution: boolean
+  memberId: string
+  username: string
+  objectMemberId?: string | null
+  objectMemberUsername?: string | null
+  organizationId?: string | null
+  parentId?: string | null
+  platform: string
+  score: number
+  segmentId: string
+  sentiment?: IActivitySentiment | null
   sourceId: string
+  sourceParentId?: string | null
+  tenantId: string
+  timestamp: string
+  title?: string | null
+  type: string
+  updatedAt: string
+  updatedById: string
+  url?: string | null
+}
+
+export interface IActivitySentiment {
+  label: string
+  sentiment: number
+  mixed: number
+  neutral: number
+  positive: number
+  negative: number
 }
 
 export interface IQueryActivitiesParameters {

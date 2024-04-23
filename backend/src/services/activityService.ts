@@ -1,4 +1,4 @@
-import { Error400 } from '@crowd/common'
+import { Error400, singleOrDefault } from '@crowd/common'
 import { LoggerBase, logExecutionTime } from '@crowd/logging'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
 import {
@@ -12,6 +12,7 @@ import { PlatformType, SyncMode, TemporalWorkflowId, SegmentData } from '@crowd/
 import { Blob } from 'buffer'
 import vader from 'crowd-sentiment'
 import { Transaction } from 'sequelize/types'
+import { ActivityDisplayService } from '@crowd/integrations'
 import { GITHUB_CONFIG, IS_DEV_ENV, IS_TEST_ENV, TEMPORAL_CONFIG } from '../conf'
 import ActivityRepository from '../database/repositories/activityRepository'
 import MemberRepository from '../database/repositories/memberRepository'
@@ -28,6 +29,7 @@ import MemberAffiliationService from './memberAffiliationService'
 import MemberService from './memberService'
 import SearchSyncService from './searchSyncService'
 import SegmentService from './segmentService'
+import OrganizationRepository from '@/database/repositories/organizationRepository'
 
 const IS_GITHUB_COMMIT_DATA_ENABLED = GITHUB_CONFIG.isCommitDataEnabled === 'true'
 
@@ -787,7 +789,7 @@ export default class ActivityService extends LoggerBase {
     const tenantId = SequelizeRepository.getCurrentTenant(this.options).id
     const segmentIds = SequelizeRepository.getSegmentIds(this.options)
 
-    const page = queryActivities(this.options.qdb, {
+    const page = await queryActivities(this.options.qdb, {
       tenantId,
       segmentIds,
       filter,
@@ -796,6 +798,83 @@ export default class ActivityService extends LoggerBase {
       offset,
       countOnly,
     })
+
+    // TODO uros add parent data
+
+    const parentIds: string[] = []
+    const memberIds: string[] = []
+    const organizationIds: string[] = []
+    for (const row of page.rows) {
+      ;(row as any).display = ActivityDisplayService.getDisplayOptions(
+        row,
+        SegmentRepository.getActivityTypes(this.options),
+      )
+
+      if (row.parentId && !parentIds.includes(row.parentId)) {
+        parentIds.push(row.parentId)
+      }
+
+      if (row.memberId && !memberIds.includes(row.memberId)) {
+        memberIds.push(row.memberId)
+      }
+
+      if (row.objectMemberId && !memberIds.includes(row.objectMemberId)) {
+        memberIds.push(row.objectMemberId)
+      }
+
+      if (row.organizationId && !organizationIds.includes(row.organizationId)) {
+        organizationIds.push(row.organizationId)
+      }
+    }
+
+    const promises = []
+
+    if (memberIds.length > 0) {
+      promises.push(
+        MemberRepository.findAndCountAllOpensearch(
+          {
+            filter: {
+              and: [{ id: { in: memberIds } }],
+            },
+            limit: memberIds.length,
+          },
+          this.options,
+        ).then((members) => {
+          for (const row of page.rows) {
+            ;(row as any).member = singleOrDefault(members.rows, (m) => m.id === row.memberId)
+            if (row.objectMemberId) {
+              ;(row as any).objectMember = singleOrDefault(
+                members.rows,
+                (m) => m.id === row.objectMemberId,
+              )
+            }
+          }
+        }),
+      )
+    }
+
+    if (organizationIds.length > 0) {
+      promises.push(
+        OrganizationRepository.findAndCountAllOpensearch(
+          {
+            filter: {
+              and: [{ id: { in: organizationIds } }],
+              limit: organizationIds.length,
+            },
+          },
+          this.options,
+        ).then((organizations) => {
+          for (const row of page.rows.filter((r) => r.organizationId)) {
+            ;(row as any).organization = singleOrDefault(
+              organizations.rows,
+              (o) => o.id === row.organizationId,
+            )
+          }
+        }),
+      )
+    }
+
+    await Promise.all(promises)
 
     return page
   }

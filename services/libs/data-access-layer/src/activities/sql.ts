@@ -5,7 +5,7 @@ import { IActivity, PageData } from '@crowd/types'
 
 import { RawQueryParser } from '@crowd/common'
 import { IDbActivityUpdateData } from '../old/apps/data_sink_worker/repo/activity.data'
-import { IQueryActivitiesParameters, IQueryActivityResult } from './types'
+import { IActivitySentiment, IQueryActivitiesParameters, IQueryActivityResult } from './types'
 
 export async function getActivityById(conn: DbConnOrTx, id: string): Promise<IActivity> {
   const activity: IActivity = await conn.query(
@@ -230,7 +230,6 @@ export async function deleteActivities(conn: DbConnOrTx, ids: string[]): Promise
 const ACTIVITY_QUERY_FILTER_COLUMN_MAP: Map<string, string> = new Map([
   ['isTeamMember', 'a."member_isTeamMember"'],
   ['isBot', 'a."member_isBot"'],
-  ['isBot', "coalesce((m.attributes -> 'isBot' -> 'default')::boolean, false)"],
   ['platform', 'a.platform'],
   ['type', 'a.type'],
   ['channel', 'a.channel'],
@@ -238,7 +237,8 @@ const ACTIVITY_QUERY_FILTER_COLUMN_MAP: Map<string, string> = new Map([
   ['memberId', 'a."memberId"'],
   ['organizationId', 'a."organizationId"'],
   ['conversationId', 'a."conversationId"'],
-  ['sentiment', 'a."sentimentMood"'],
+  ['sentiment', 'a."sentimentLabel"'],
+  ['id', 'a.id'],
 ])
 
 export async function queryActivities(
@@ -321,7 +321,7 @@ export async function queryActivities(
     select count_distinct(a.id) as count ${baseQuery}
   `
 
-  let activities: IQueryActivityResult[] = []
+  let activities = []
   let count: number
   if (arg.countOnly) {
     const countResults = (await qdbConn.one(countQuery, params)).count
@@ -335,8 +335,38 @@ export async function queryActivities(
     //
     const query = `
       select  a.id,
+              a.attributes,
+              a.body,
+              a.channel,
+              a."conversationId",
+              a."createdAt",
+              a."createdById",
+              a."importHash",
+              a."isContribution",
+              a."memberId",
+              a.username,
+              a."objectMemberId",
+              a."objectMemberUsername",
+              a."organizationId",
+              a."parentId",
+              a.platform,
+              a.score,
+              a."segmentId",
+              a."sentimentLabel",
+              a."sentimentScore",
+              a."sentimentScoreMixed",
+              a."sentimentScoreNeutral",
+              a."sentimentScoreNegative",
+              a."sentimentScorePositive",
+              a."sourceId",
+              a."sourceParentId",
+              a."tenantId",
               a.timestamp,
-              a."sourceId"
+              a.title,
+              a.type,
+              a."updatedAt",
+              a."updatedById",
+              a.url
       ${baseQuery}
       order by ${orderByString}
       limit $(limit) offset $(offset)
@@ -351,15 +381,53 @@ export async function queryActivities(
     count = countResults.count
   }
 
-  // TODO uros add members data
+  const results: IQueryActivityResult[] = []
 
-  // TODO uros add organizations data
+  for (const a of activities) {
+    const sentiment: IActivitySentiment = {
+      label: a.sentimentLabel,
+      sentiment: a.sentimentScore,
+      mixed: a.sentimentScoreMixed,
+      neutral: a.sentimentScoreNeutral,
+      negative: a.sentimentScoreNegative,
+      positive: a.sentimentScorePositive,
+    }
 
-  // TODO uros add display data
+    results.push({
+      id: a.id,
+      attributes: JSON.parse(a.attributes),
+      body: a.body,
+      channel: a.channel,
+      conversationId: a.conversationId,
+      createdAt: a.createdAt,
+      createdById: a.createdById,
+      importHash: a.importHash,
+      isContribution: a.isContribution,
+      memberId: a.memberId,
+      username: a.username,
+      objectMemberId: a.objectMemberId,
+      objectMemberUsername: a.objectMemberUsername,
+      organizationId: a.organizationId,
+      parentId: a.parentId,
+      platform: a.platform,
+      score: a.score,
+      segmentId: a.segmentId,
+      sentiment,
+      sourceId: a.sourceId,
+      sourceParentId: a.sourceParentId,
+      tenantId: a.tenantId,
+      timestamp: a.timestamp,
+      title: a.title,
+      type: a.type,
+      updatedAt: a.updatedAt,
+      updatedById: a.updatedById,
+      url: a.url,
+    })
+  }
 
   return {
     count,
-    rows: activities,
+    rows: results,
     limit: arg.limit,
     offset: arg.offset,
   }
