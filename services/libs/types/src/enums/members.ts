@@ -99,6 +99,10 @@ export const MemberAttributes = {
     name: MemberAttributeName.SYNC_REMOTE,
     label: 'Sync remote',
   },
+  [MemberAttributeName.COMPANY]: {
+    name: MemberAttributeName.COMPANY,
+    label: 'Company',
+  },
 }
 
 export enum MemberEnrichmentAttributeName {
