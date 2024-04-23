@@ -258,6 +258,44 @@ class MemberRepository {
     return sampleMemberIds.map((i) => i.id)
   }
 
+  static async countMemberMergeSuggestions(
+    memberFilter: string,
+    similarityGTEFilter: string,
+    similarityLTEFilter: string,
+    displayNameFilter: string,
+    replacements: {
+      segmentIds: string[]
+      memberId?: string
+      similarityGTEReplacement?: number
+      similarityLTEReplacement?: number
+      displayName?: string
+    },
+    options: IRepositoryOptions,
+  ): Promise<number> {
+    const totalCount = await options.database.sequelize.query(
+      `
+        SELECT
+            COUNT(DISTINCT mtm."memberId"::TEXT || mtm."toMergeId"::TEXT) AS count
+        FROM "memberToMerge" mtm
+        JOIN member_segments_mv ms ON ms."memberId" = mtm."memberId"
+        JOIN member_segments_mv ms2 ON ms2."memberId" = mtm."toMergeId"
+        join members m on m.id = mtm."memberId"
+        join members m2 on m2.id = mtm."toMergeId"
+        WHERE ms."segmentId" IN (:segmentIds) and ms2."segmentId" IN (:segmentIds)
+          ${memberFilter}
+          ${similarityLTEFilter}
+          ${similarityGTEFilter}
+          ${displayNameFilter}
+      `,
+      {
+        replacements,
+        type: QueryTypes.SELECT,
+      },
+    )
+
+    return totalCount[0]?.count || 0
+  }
+
   static async findMembersWithMergeSuggestions(
     args: IFetchMemberMergeSuggestionArgs,
     options: IRepositoryOptions,
@@ -281,10 +319,11 @@ class MemberRepository {
 
     if (args.filter?.similarity) {
       if (args.filter.similarity.gte) {
-        similarityGTEFilter = 'and mtm.similarity >= :similarityGTEReplacement '
+        similarityGTEFilter = ' and mtm.similarity >= :similarityGTEReplacement '
         similarityGTEReplacement = args.filter.similarity.gte
-      } else if (args.filter?.similarity.lte) {
-        similarityLTEFilter = 'and mtm.similarity <= :similarityLTEReplacement '
+      }
+      if (args.filter?.similarity.lte) {
+        similarityLTEFilter = ' and mtm.similarity <= :similarityLTEReplacement '
         similarityLTEReplacement = args.filter.similarity.lte
       }
     }
@@ -314,6 +353,25 @@ class MemberRepository {
       order += 'mtm."memberId", mtm."toMergeId"'
     }
 
+    if (args.countOnly) {
+      const totalCount = await this.countMemberMergeSuggestions(
+        memberFilter,
+        similarityGTEFilter,
+        similarityLTEFilter,
+        displayNameFilter,
+        {
+          segmentIds,
+          similarityGTEReplacement,
+          similarityLTEReplacement,
+          displayName: args?.filter?.displayName ? `${args.filter.displayName}%` : undefined,
+          memberId: args?.filter?.memberId,
+        },
+        options,
+      )
+
+      return { count: totalCount }
+    }
+
     const mems = await options.database.sequelize.query(
       `
         SELECT
@@ -321,7 +379,11 @@ class MemberRepository {
             mtm."memberId" AS id,
             mtm."toMergeId",
             mtm.similarity,
-            mtm."activityEstimate"
+            mtm."activityEstimate",
+            m."displayName" as "primaryDisplayName",
+            m.attributes->'avatarUrl'->>'default' as "primaryAvatarUrl",
+            m2."displayName" as "toMergeDisplayName",
+            m2.attributes->'avatarUrl'->>'default' as "toMergeAvatarUrl"
         FROM "memberToMerge" mtm
         JOIN member_segments_mv ms ON ms."memberId" = mtm."memberId"
         JOIN member_segments_mv ms2 ON ms2."memberId" = mtm."toMergeId"
@@ -351,50 +413,60 @@ class MemberRepository {
     )
 
     if (mems.length > 0) {
-      const memberPromises = []
-      const toMergePromises = []
 
-      for (const mem of mems) {
-        memberPromises.push(MemberRepository.findByIdOpensearch(mem.id, options))
-        toMergePromises.push(MemberRepository.findByIdOpensearch(mem.toMergeId, options))
+      let result
+
+      if (args.detail) {
+        const memberPromises = []
+        const toMergePromises = []
+  
+        for (const mem of mems) {
+          memberPromises.push(MemberRepository.findByIdOpensearch(mem.id, options))
+          toMergePromises.push(MemberRepository.findByIdOpensearch(mem.toMergeId, options))
+        }
+  
+        const memberResults = await Promise.all(memberPromises)
+        const memberToMergeResults = await Promise.all(toMergePromises)
+  
+        result = memberResults.map((i, idx) => ({
+          members: [i, memberToMergeResults[idx]],
+          similarity: mems[idx].similarity,
+        }))
+      }
+      else {
+        result = mems.map((i) => ({
+          members: [
+            {
+              id: i.id,
+              displayName: i.primaryDisplayName,
+              avatarUrl: i.primaryAvatarUrl,
+            },
+            {
+              id: i.toMergeId,
+              displayName: i.toMergeDisplayName,
+              avatarUrl: i.toMergeAvatarUrl,
+            },
+          ],
+          similarity: i.similarity,
+        }))
       }
 
-      const memberResults = await Promise.all(memberPromises)
-      const memberToMergeResults = await Promise.all(toMergePromises)
-
-      const result = memberResults.map((i, idx) => ({
-        members: [i, memberToMergeResults[idx]],
-        similarity: mems[idx].similarity,
-      }))
-
-      const totalCount = await options.database.sequelize.query(
-        `
-          SELECT
-              COUNT(DISTINCT mtm."memberId"::TEXT || mtm."toMergeId"::TEXT) AS count
-          FROM "memberToMerge" mtm
-          JOIN member_segments_mv ms ON ms."memberId" = mtm."memberId"
-          JOIN member_segments_mv ms2 ON ms2."memberId" = mtm."toMergeId"
-          join members m on m.id = mtm."memberId"
-          join members m2 on m2.id = mtm."toMergeId"
-          WHERE ms."segmentId" IN (:segmentIds) and ms2."segmentId" IN (:segmentIds)
-            ${memberFilter}
-            ${similarityLTEFilter}
-            ${similarityGTEFilter}
-            ${displayNameFilter}
-        `,
+      const totalCount = await this.countMemberMergeSuggestions(
+        memberFilter,
+        similarityGTEFilter,
+        similarityLTEFilter,
+        displayNameFilter,
         {
-          replacements: {
-            segmentIds,
-            similarityLTEReplacement,
-            similarityGTEReplacement,
-            memberId: args?.filter?.memberId,
-            displayName: args?.filter?.displayName ? `${args.filter.displayName}%` : undefined,
-          },
-          type: QueryTypes.SELECT,
+          segmentIds,
+          similarityLTEReplacement,
+          similarityGTEReplacement,
+          memberId: args?.filter?.memberId,
+          displayName: args?.filter?.displayName ? `${args.filter.displayName}%` : undefined,
         },
+        options,
       )
 
-      return { rows: result, count: totalCount[0].count, limit: args.limit, offset: args.offset }
+      return { rows: result, count: totalCount, limit: args.limit, offset: args.offset }
     }
 
     return {

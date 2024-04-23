@@ -26,6 +26,8 @@ export interface IFetchMemberMergeSuggestionArgs {
   limit: number
   offset: number
   orderBy?: string[]
+  detail: boolean
+  countOnly: boolean
 }
 
 
