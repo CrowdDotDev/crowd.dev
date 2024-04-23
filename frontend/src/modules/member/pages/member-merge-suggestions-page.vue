@@ -12,7 +12,7 @@
           Contributors
         </template>
       </app-back-link>
-      <div class="flex items-center">
+      <div class="flex items-center pb-6">
         <h4 class="text-xl font-semibold leading-9">
           Merge suggestions <span v-if="!loading" class="font-light text-gray-500">({{ total }})</span>
         </h4>
@@ -23,6 +23,7 @@
           <i class="ri-question-line text-lg text-gray-400 flex items-center ml-2 h-5" />
         </el-tooltip>
       </div>
+      <app-merge-suggestions-filters @search="search" />
 
       <div
         v-if="page <= 1 && loading && mergeSuggestions.length === 0"
@@ -163,6 +164,7 @@ import AppMemberMergeSuggestionsDialog from '@/modules/member/components/member-
 import useMemberMergeMessage from '@/shared/modules/merge/config/useMemberMergeMessage';
 import Message from '@/shared/message/message';
 import CrSpinner from '@/ui-kit/spinner/Spinner.vue';
+import AppMergeSuggestionsFilters from '@/modules/member/components/suggestions/merge-suggestions-filters.vue';
 
 const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
 
@@ -175,9 +177,13 @@ const limit = ref<number>(10);
 const page = ref<number>(1);
 const loading = ref<boolean>(false);
 
+const filter = ref<any>(undefined);
+
 const loadMergeSuggestions = () => {
   loading.value = true;
-  MemberService.fetchMergeSuggestions(limit.value, (page.value - 1) * limit.value)
+  MemberService.fetchMergeSuggestions(limit.value, (page.value - 1) * limit.value, {
+    filter: filter.value,
+  })
     .then((res) => {
       total.value = +res.count;
       if (+res.offset > 0) {
@@ -207,6 +213,12 @@ const detailsOffset = ref<number>(0);
 const openDetails = (index: number) => {
   detailsOffset.value = index;
   isModalOpen.value = true;
+};
+
+const search = (query: any) => {
+  page.value = 1;
+  filter.value = query;
+  loadMergeSuggestions();
 };
 
 const reload = () => {
