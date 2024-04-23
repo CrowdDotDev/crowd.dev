@@ -12,7 +12,7 @@ export interface IGetEnrichmentDataArgs {
 }
 
 export interface IGetMembersForLFIDEnrichmentArgs {
-  offset: number
+  afterId: string
 }
 
 export interface IFindAndSaveGithubIdentitySourceIdsArgs {

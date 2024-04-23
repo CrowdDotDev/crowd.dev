@@ -74,38 +74,38 @@
   </el-tooltip>
 
   <!-- Hubspot -->
-  <button
-    v-if="!isSyncingWithHubspot"
-    class="h-10 el-dropdown-menu__item w-full"
-    :disabled="isHubspotActionDisabled"
-    type="button"
-    @click="handleCommand({
-      action: Actions.SYNC_HUBSPOT,
-      member,
-    })
-    "
-  >
-    <app-svg name="hubspot" class="h-4 w-4 text-current" />
-    <span
-      class="text-xs pl-2"
-    >Sync with HubSpot</span>
-  </button>
-  <button
-    v-else
-    class="h-10 el-dropdown-menu__item w-full"
-    :disabled="isHubspotActionDisabled"
-    type="button"
-    @click="handleCommand({
-      action: Actions.STOP_SYNC_HUBSPOT,
-      member,
-    })
-    "
-  >
-    <app-svg name="hubspot" class="h-4 w-4 text-current" />
-    <span
-      class="text-xs pl-2"
-    >Stop sync with HubSpot</span>
-  </button>
+  <!--  <button-->
+  <!--    v-if="!isSyncingWithHubspot"-->
+  <!--    class="h-10 el-dropdown-menu__item w-full"-->
+  <!--    :disabled="isHubspotActionDisabled"-->
+  <!--    type="button"-->
+  <!--    @click="handleCommand({-->
+  <!--      action: Actions.SYNC_HUBSPOT,-->
+  <!--      member,-->
+  <!--    })-->
+  <!--    "-->
+  <!--  >-->
+  <!--    <app-svg name="hubspot" class="h-4 w-4 text-current" />-->
+  <!--    <span-->
+  <!--      class="text-xs pl-2"-->
+  <!--    >Sync with HubSpot</span>-->
+  <!--  </button>-->
+  <!--  <button-->
+  <!--    v-else-->
+  <!--    class="h-10 el-dropdown-menu__item w-full"-->
+  <!--    :disabled="isHubspotActionDisabled"-->
+  <!--    type="button"-->
+  <!--    @click="handleCommand({-->
+  <!--      action: Actions.STOP_SYNC_HUBSPOT,-->
+  <!--      member,-->
+  <!--    })-->
+  <!--    "-->
+  <!--  >-->
+  <!--    <app-svg name="hubspot" class="h-4 w-4 text-current" />-->
+  <!--    <span-->
+  <!--      class="text-xs pl-2"-->
+  <!--    >Stop sync with HubSpot</span>-->
+  <!--  </button>-->
 
   <el-tooltip
     placement="top"
@@ -205,15 +205,11 @@ import { MemberService } from '@/modules/member/member-service';
 import Message from '@/shared/message/message';
 import { MemberPermissions } from '@/modules/member/member-permissions';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
-import AppSvg from '@/shared/svg/svg.vue';
 import { useMemberStore } from '@/modules/member/store/pinia';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
-import { HubspotEntity } from '@/integrations/hubspot/types/HubspotEntity';
 import { HubspotApiService } from '@/integrations/hubspot/hubspot.api.service';
 import {
   FeatureFlag, FEATURE_FLAGS,
 } from '@/utils/featureFlag';
-import { useStore } from 'vuex';
 import { useRoute } from 'vue-router';
 import { computed } from 'vue';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
@@ -241,7 +237,6 @@ const props = defineProps<{
   hideUnmerge?: boolean;
 }>();
 
-const store = useStore();
 const route = useRoute();
 
 const authStore = useAuthStore();
@@ -267,24 +262,24 @@ const hasPermissionsToMerge = computed(() => new MemberPermissions(
   user.value,
 )?.mergeMembers);
 
-const isSyncingWithHubspot = computed(
-  () => props.member.attributes?.syncRemote?.hubspot || false,
-);
+// const isSyncingWithHubspot = computed(
+//   () => props.member.attributes?.syncRemote?.hubspot || false,
+// );
 
-const isHubspotConnected = computed(() => {
-  const hubspot = CrowdIntegrations.getMappedConfig('hubspot', store);
-  const enabledFor = hubspot.settings?.enabledFor || [];
+// const isHubspotConnected = computed(() => {
+//   const hubspot = CrowdIntegrations.getMappedConfig('hubspot', store);
+//   const enabledFor = hubspot.settings?.enabledFor || [];
+//
+//   return (
+//     hubspot.status === 'done' && enabledFor.includes(HubspotEntity.MEMBERS)
+//   );
+// });
+//
+// const isHubspotDisabledForMember = computed(
+//   () => (props.member.identities || []).filter((i) => i.type === 'email').length === 0,
+// );
 
-  return (
-    hubspot.status === 'done' && enabledFor.includes(HubspotEntity.MEMBERS)
-  );
-});
-
-const isHubspotDisabledForMember = computed(
-  () => (props.member.identities || []).filter((i) => i.type === 'email').length === 0,
-);
-
-const isHubspotActionDisabled = computed(() => !isHubspotConnected.value || isHubspotDisabledForMember.value);
+// const isHubspotActionDisabled = computed(() => !isHubspotConnected.value || isHubspotDisabledForMember.value);
 
 const isFindingGitHubDisabled = computed(() => (
   !!props.member.username?.github
