@@ -1,44 +1,38 @@
 /* eslint-disable no-promise-executor-return */
-import { createAppAuth } from '@octokit/auth-app'
-import { request } from '@octokit/request'
+import {createAppAuth} from '@octokit/auth-app'
+import {request} from '@octokit/request'
 import moment from 'moment'
 import lodash from 'lodash'
-import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
-import { PlatformType, Edition } from '@crowd/types'
-import { Error400, Error404, Error542, EDITION } from '@crowd/common'
+import axios, {AxiosRequestConfig, AxiosResponse} from 'axios'
+import {Edition, PlatformType} from '@crowd/types'
+import {EDITION, Error400, Error404, Error542} from '@crowd/common'
 import {
-  HubspotFieldMapperFactory,
+  getHubspotLists,
   getHubspotProperties,
   getHubspotTokenInfo,
+  HubspotEndpoint,
+  HubspotEntity,
+  HubspotFieldMapperFactory,
+  IHubspotManualSyncPayload,
   IHubspotOnboardingSettings,
   IHubspotProperty,
-  HubspotEntity,
   IHubspotTokenInfo,
-  HubspotEndpoint,
-  IHubspotManualSyncPayload,
-  getHubspotLists,
   IProcessStreamContext,
 } from '@crowd/integrations'
-import { RedisCache } from '@crowd/redis'
-import { encryptData } from '../utils/crypto'
-import { ILinkedInOrganization } from '../serverless/integrations/types/linkedinTypes'
-import { DISCORD_CONFIG, GITHUB_CONFIG, IS_TEST_ENV, KUBE_MODE, NANGO_CONFIG } from '../conf/index'
-import { IServiceOptions } from './IServiceOptions'
+import {RedisCache} from '@crowd/redis'
+import {encryptData} from '../utils/crypto'
+import {ILinkedInOrganization} from '../serverless/integrations/types/linkedinTypes'
+import {DISCORD_CONFIG, GITHUB_CONFIG, IS_TEST_ENV, KUBE_MODE, NANGO_CONFIG} from '../conf/index'
+import {IServiceOptions} from './IServiceOptions'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import IntegrationRepository from '../database/repositories/integrationRepository'
 import track from '../segment/track'
-import { getInstalledRepositories } from '../serverless/integrations/usecases/github/rest/getInstalledRepositories'
-import {
-  GitHubStats,
-  getGitHubRemoteStats,
-} from '../serverless/integrations/usecases/github/rest/getRemoteStats'
+import {getInstalledRepositories} from '../serverless/integrations/usecases/github/rest/getInstalledRepositories'
+import {getGitHubRemoteStats, GitHubStats,} from '../serverless/integrations/usecases/github/rest/getRemoteStats'
 import telemetryTrack from '../segment/telemetryTrack'
 import getToken from '../serverless/integrations/usecases/nango/getToken'
-import { getOrganizations } from '../serverless/integrations/usecases/linkedin/getOrganizations'
-import {
-  getIntegrationRunWorkerEmitter,
-  getIntegrationSyncWorkerEmitter,
-} from '../serverless/utils/serviceSQS'
+import {getOrganizations} from '../serverless/integrations/usecases/linkedin/getOrganizations'
+import {getIntegrationRunWorkerEmitter, getIntegrationSyncWorkerEmitter,} from '../serverless/utils/serviceSQS'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
 import TenantRepository from '../database/repositories/tenantRepository'
 import GithubReposRepository from '../database/repositories/githubReposRepository'
@@ -48,14 +42,14 @@ import MemberSyncRemoteRepository from '@/database/repositories/memberSyncRemote
 import OrganizationSyncRemoteRepository from '@/database/repositories/organizationSyncRemoteRepository'
 import MemberRepository from '@/database/repositories/memberRepository'
 import {
-  GroupsioIntegrationData,
   GroupsioGetToken,
+  GroupsioIntegrationData,
   GroupsioVerifyGroup,
 } from '@/serverless/integrations/usecases/groupsio/types'
 import SearchSyncService from './searchSyncService'
-import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
+import {IRepositoryOptions} from '@/database/repositories/IRepositoryOptions'
 import IntegrationProgressRepository from '@/database/repositories/integrationProgressRepository'
-import { IntegrationProgress } from '@/serverless/integrations/types/regularTypes'
+import {IntegrationProgress} from '@/serverless/integrations/types/regularTypes'
 
 const discordToken = DISCORD_CONFIG.token || DISCORD_CONFIG.token2
 
@@ -1366,8 +1360,12 @@ export default class IntegrationService {
    */
   async gerritConnectOrUpdate(integrationData) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
-    let integration
+   let integration
     try {
+      let res = await this.getGerritServerRepos(integrationData.remote.orgURL)
+      if (integrationData.remote.enableAllRepos) {
+        integrationData.remote.repoNames = res.repoNames;
+      }
       integration = await this.createOrUpdate(
         {
           platform: PlatformType.GERRIT,
@@ -1379,6 +1377,26 @@ export default class IntegrationService {
         transaction,
       )
 
+      if (integrationData.remote.enableGit) {
+        const stripGit = (url: string) => {
+          if (url.endsWith('.git')) {
+            return url.slice(0, -4)
+          }
+          return url
+        }
+
+        integration = await this.createOrUpdate(
+            {
+              platform: PlatformType.GIT,
+              settings: {
+                remotes: integrationData.remote.repoNames.map((repo) => stripGit(`${integrationData.remote.orgURL}${res.urlPartial}/${repo}`)),
+              },
+              status: 'done',
+            },
+            transaction,
+        )
+      }
+
       await SequelizeRepository.commitTransaction(transaction)
     } catch (err) {
       await SequelizeRepository.rollbackTransaction(transaction)
@@ -1387,6 +1405,27 @@ export default class IntegrationService {
     return integration
   }
 
+  async getGerritServerRepos(serverURL: string): Promise<{repoNames: string[], urlPartial: string}> {
+      let urlPartials = ["/r", "/gerrit", "/"]
+      for (let p of urlPartials){
+        try {
+            const result = await axios.get(`${serverURL}${p}/projects/?`, {});
+           const str = result.data.replace(")]}'\n", "");
+           const data = JSON.parse(str);
+
+           const repos = Object.keys(data).filter(key => key !== ".github" && key !== "All-Projects" && key !== "All-Users");
+           return {
+               repoNames: repos,
+               urlPartial: p,
+           }
+        } catch (error) {
+            if (error.response && error.response.status === 404) {
+                continue;
+            }
+          console.error('Error in getGerritServerRepos:', error);
+        }
+      }
+  }
   /**
    * Get all remotes for the Git integration, by segment
    * @returns Remotes for the Git integration
