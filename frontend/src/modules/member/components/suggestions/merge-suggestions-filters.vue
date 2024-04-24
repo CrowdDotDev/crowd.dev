@@ -2,6 +2,7 @@
   <div class="flex items-center gap-3">
     <app-merge-suggestions-search
       v-model="form.search"
+      :placeholder="props.placeholder"
     />
     <app-merge-suggestions-confidence-filter
       v-model="form.confidence"
@@ -21,6 +22,10 @@ import AppMergeSuggestionsSearch from '@/modules/member/components/suggestions/f
 import AppMergeSuggestionsProjectsFilter
   from '@/modules/member/components/suggestions/filters/merge-suggestions-projects-filter.vue';
 
+const props = defineProps<{
+  placeholder?: string;
+}>();
+
 const emit = defineEmits<{(e: 'search', value: any): void}>();
 
 const form = reactive<{
@@ -35,49 +40,12 @@ const form = reactive<{
   confidence: ['high'],
 });
 
-const defineConfidenceRange = (values: string[]) => {
-  const ranges: any = {
-    high: { gte: 0.9, lte: 1 },
-    medium: { gte: 0.7, lte: 0.89999 },
-    low: { gte: 0, lte: 0.69999 },
-  };
-
-  if (values.length === 0) {
-    return {
-      gte: 0,
-      lte: 1,
-    };
-  }
-
-  if (values.includes('high') && values.includes('low') && !values.includes('medium')) {
-    return {
-      gte: ranges.high.gte,
-      lte: ranges.low.lte,
-    };
-  }
-
-  let minGte = 1;
-  let maxLte = 0;
-
-  values.forEach((value) => {
-    const range = ranges[value];
-    minGte = Math.min(minGte, range.gte);
-    maxLte = Math.max(maxLte, range.lte);
-  });
-
-  return {
-    gte: minGte,
-    lte: maxLte,
-  };
-};
-
 watch(() => form, (form) => {
-  const confidence = defineConfidenceRange(form.confidence);
   const subprojects = form.childSegments.length ? form.childSegments : undefined;
   const projects = form.segments.length ? form.segments : subprojects;
 
   emit('search', {
-    similarity: confidence,
+    similarity: form.confidence,
     displayName: form.search,
     projectIds: projects,
     subprojectIds: subprojects,
