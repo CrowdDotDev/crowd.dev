@@ -1,15 +1,18 @@
-import { Error400, Error404, RawQueryParser } from '@crowd/common'
+import { Error400, Error404 } from '@crowd/common'
 import { ActivityDisplayService } from '@crowd/integrations'
 import lodash from 'lodash'
 import sanitizeHtml from 'sanitize-html'
-import Sequelize, { QueryTypes } from 'sequelize'
-import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
+import {
+  IQueryActivitiesParameters,
+  deleteActivities,
+  insertActivities,
+  queryActivities,
+  updateActivity,
+} from '@crowd/data-access-layer'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import AuditLogRepository from './auditLogRepository'
 import SegmentRepository from './segmentRepository'
 import SequelizeRepository from './sequelizeRepository'
-
-const { Op } = Sequelize
 
 const log: boolean = false
 
@@ -18,8 +21,6 @@ class ActivityRepository {
     const currentUser = SequelizeRepository.getCurrentUser(options)
 
     const tenant = SequelizeRepository.getCurrentTenant(options)
-
-    const transaction = SequelizeRepository.getTransaction(options)
 
     const segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
 
@@ -44,48 +45,49 @@ class ActivityRepository {
       data.platform = data.platform.toLowerCase()
     }
 
-    const record = await options.database.activity.create(
+    const ids = await insertActivities([
       {
-        ...lodash.pick(data, [
-          'type',
-          'timestamp',
-          'platform',
-          'isContribution',
-          'score',
-          'attributes',
-          'channel',
-          'body',
-          'title',
-          'url',
-          'sentiment',
-          'sourceId',
-          'importHash',
-          'username',
-          'objectMemberUsername',
-        ]),
-        memberId: data.member || null,
-        objectMemberId: data.objectMember || undefined,
-        organizationId: data.organizationId || undefined,
-        parentId: data.parent || null,
-        sourceParentId: data.sourceParentId || null,
-        conversationId: data.conversationId || null,
-        segmentId: segment.id,
+        type: data.type,
+        timestamp: data.timestamp,
+        isContribution: data.isContribution,
+        score: data.score,
+        parentId: data.parent || undefined,
+        sourceId: data.sourceId,
+        sourceParentId: data.sourceParentId || undefined,
         tenantId: tenant.id,
+        segmentId: segment.id,
+        memberId: data.member || undefined,
+        username: data.username,
+        objectMemberId: data.objectMember || undefined,
+        objectMemberUsername: data.objectMemberUsername,
+        sentiment: data.sentiment,
+        attributes: data.attributes,
+        body: data.body,
+        title: data.title,
+        channel: data.channel,
+        url: data.url,
+        organizationId: data.organizationId || undefined,
+        platform: data.platform,
+        conversationId: data.conversationId || undefined,
         createdById: currentUser.id,
         updatedById: currentUser.id,
       },
-      {
-        transaction,
-      },
-    )
+    ])
 
-    await record.setTasks(data.tasks || [], {
-      transaction,
-    })
+    // TODO uros set tasks if any
+    // await record.setTasks(data.tasks || [], {
+    //   transaction,
+    // })
+
+    if (ids.length !== 1) {
+      throw new Error('Activity was not created!')
+    }
+
+    const record = await this.findById(ids[0], options)
 
     await this._createAuditLog(AuditLogRepository.CREATE, record, data, options)
 
-    return this.findById(record.id, options)
+    return record
   }
 
   /**
@@ -109,31 +111,12 @@ class ActivityRepository {
     }
   }
 
-  static async update(id, data, options: IRepositoryOptions) {
+  static async update(id: string, data, options: IRepositoryOptions) {
     const currentUser = SequelizeRepository.getCurrentUser(options)
-
-    const transaction = SequelizeRepository.getTransaction(options)
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
     const segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
-
-    let record = await options.database.activity.findOne({
-      where: {
-        id,
-        tenantId: currentTenant.id,
-        segmentId: segment.id,
-      },
-      transaction,
-    })
-
-    await record.setTasks(data.tasks || [], {
-      transaction,
-    })
-
-    if (!record) {
-      throw new Error404()
-    }
 
     // Data and body will be displayed as HTML. We need to sanitize them.
     if (data.body) {
@@ -147,108 +130,72 @@ class ActivityRepository {
       this._validateSentiment(data.sentiment)
     }
 
-    record = await record.update(
-      {
-        ...lodash.pick(data, [
-          'type',
-          'timestamp',
-          'platform',
-          'isContribution',
-          'attributes',
-          'channel',
-          'body',
-          'title',
-          'url',
-          'sentiment',
-          'score',
-          'sourceId',
-          'importHash',
-          'username',
-          'objectMemberUsername',
-        ]),
-        memberId: data.member || undefined,
-        objectMemberId: data.objectMember || undefined,
-        organizationId: data.organizationId,
-        parentId: data.parent || undefined,
-        sourceParentId: data.sourceParentId || undefined,
-        conversationId: data.conversationId || undefined,
-        updatedById: currentUser.id,
-      },
-      {
-        transaction,
-      },
-    )
+    const record = await this.findById(id, options)
+
+    await updateActivity(options.qdb, id, {
+      type: data.type,
+      isContribution: data.isContribution,
+      score: data.score,
+      parentId: data.parent || undefined,
+      sourceId: data.sourceId,
+      sourceParentId: data.sourceParentId || undefined,
+      tenantId: currentTenant.id,
+      segmentId: segment.id,
+      memberId: data.member || undefined,
+      username: data.username,
+      objectMemberId: data.objectMember || undefined,
+      objectMemberUsername: data.objectMemberUsername,
+      sentiment: data.sentiment,
+      attributes: data.attributes,
+      body: data.body,
+      title: data.title,
+      channel: data.channel,
+      url: data.url,
+      organizationId: data.organizationId,
+      platform: data.platform,
+      conversationId: data.conversationId || undefined,
+      updatedById: currentUser.id,
+    })
 
     await this._createAuditLog(AuditLogRepository.UPDATE, record, data, options)
 
     return this.findById(record.id, options)
   }
 
-  static async destroy(id, options: IRepositoryOptions, force = false) {
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    const currentTenant = SequelizeRepository.getCurrentTenant(options)
-
-    const record = await options.database.activity.findOne({
-      where: {
-        id,
-        tenantId: currentTenant.id,
-        segmentId: SequelizeRepository.getSegmentIds(options),
-      },
-      transaction,
-    })
+  static async destroy(id: string, options: IRepositoryOptions) {
+    const record = await this.findById(id, options, false)
 
     if (!record) {
       throw new Error404()
     }
 
-    await record.destroy({
-      transaction,
-      force,
-    })
+    await deleteActivities(options.qdb, [id])
 
     await this._createAuditLog(AuditLogRepository.DELETE, record, record, options)
   }
 
-  static async findById(id, options: IRepositoryOptions) {
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    const include = [
-      {
-        model: options.database.member,
-        as: 'member',
-      },
-      {
-        model: options.database.member,
-        as: 'objectMember',
-      },
-      {
-        model: options.database.activity,
-        as: 'parent',
-      },
-      {
-        model: options.database.organization,
-        as: 'organization',
-      },
-    ]
-
+  static async findById(id: string, options: IRepositoryOptions, loadChildren = true) {
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
+    const segmentIds = SequelizeRepository.getSegmentIds(options)
 
-    const record = await options.database.activity.findOne({
-      where: {
-        id,
-        tenantId: currentTenant.id,
-        segmentId: SequelizeRepository.getSegmentIds(options),
+    const results = await queryActivities(options.qdb, {
+      filter: {
+        and: [{ id: { eq: id } }],
       },
-      include,
-      transaction,
+      tenantId: currentTenant.id,
+      segmentIds,
+      limit: 1,
     })
 
-    if (!record) {
-      throw new Error404()
+    if (results.rows.length === 0) {
+      throw new Error404(`Activity with id ${id} is not found!`)
     }
 
-    return this._populateRelations(record, true, options)
+    if (loadChildren) {
+      return this._populateRelations(results.rows[0], true, options)
+    }
+
+    return this._populateRelations(results.rows[0], false, options)
   }
 
   /**
@@ -257,278 +204,51 @@ class ActivityRepository {
    * @param options Repository options
    * @returns The found record. Null if none is found.
    */
-  static async findOne(query, options: IRepositoryOptions) {
-    const transaction = SequelizeRepository.getTransaction(options)
-
+  static async findOne(
+    arg: IQueryActivitiesParameters,
+    options: IRepositoryOptions,
+  ): Promise<any | null> {
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
+    const segmentIds = SequelizeRepository.getSegmentIds(options)
 
-    const record = await options.database.activity.findOne({
-      where: {
-        tenantId: currentTenant.id,
-        segmentId: SequelizeRepository.getSegmentIds(options),
-        ...query,
-      },
-      transaction,
-    })
+    arg.limit = 1
+    arg.tenantId = currentTenant.id
+    arg.segmentIds = segmentIds
 
-    return this._populateRelations(record, true, options)
+    const results = await queryActivities(options.qdb, arg)
+
+    if (results.rows.length === 0) {
+      return null
+    }
+
+    return this._populateRelations(results.rows[0], true, options)
   }
 
   static async filterIdInTenant(id, options: IRepositoryOptions) {
     return lodash.get(await this.filterIdsInTenant([id], options), '[0]', null)
   }
 
-  static async filterIdsInTenant(ids, options: IRepositoryOptions) {
+  static async filterIdsInTenant(ids: string[], options: IRepositoryOptions) {
     if (!ids || !ids.length) {
       return []
     }
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    const where = {
-      id: {
-        [Op.in]: ids,
+    const records = await queryActivities(
+      options.qdb,
+      {
+        filter: {
+          and: [{ id: { in: ids } }],
+        },
+        tenantId: currentTenant.id,
+        segmentIds: SequelizeRepository.getSegmentIds(options),
+        limit: ids.length,
       },
-      tenantId: currentTenant.id,
-    }
-
-    const records = await options.database.activity.findAll({
-      attributes: ['id'],
-      where,
-      transaction,
-    })
-
-    return records.map((record) => record.id)
-  }
-
-  static async count(filter, options: IRepositoryOptions) {
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    const tenant = SequelizeRepository.getCurrentTenant(options)
-
-    return options.database.activity.count({
-      where: {
-        ...filter,
-        tenantId: tenant.id,
-        segmentId: SequelizeRepository.getSegmentIds(options),
-      },
-      transaction,
-    })
-  }
-
-  public static ACTIVITY_QUERY_FILTER_COLUMN_MAP: Map<string, string> = new Map([
-    ['isTeamMember', "coalesce((m.attributes -> 'isTeamMember' -> 'default')::boolean, false)"],
-    ['isBot', "coalesce((m.attributes -> 'isBot' -> 'default')::boolean, false)"],
-    ['platform', 'a.platform'],
-    ['type', 'a.type'],
-    ['channel', 'a.channel'],
-    ['timestamp', 'a.timestamp'],
-    ['memberId', 'a."memberId"'],
-    ['organizationId', 'a."organizationId"'],
-    ['conversationId', 'a."conversationId"'],
-    ['sentiment', 'a."sentimentMood"'],
-  ])
-
-  static async findAndCountAllv2(
-    { filter = {} as any, limit = 20, offset = 0, orderBy = [''], countOnly = false },
-    options: IRepositoryOptions,
-  ) {
-    if (orderBy.length === 0 || (orderBy.length === 1 && orderBy[0].trim().length === 0)) {
-      orderBy = ['timestamp_DESC']
-    }
-
-    const tenant = SequelizeRepository.getCurrentTenant(options)
-    const segmentIds = SequelizeRepository.getSegmentIds(options)
-    const seq = SequelizeRepository.getSequelize(options)
-
-    const params: any = {
-      tenantId: tenant.id,
-      segmentIds,
-      limit,
-      offset,
-    }
-
-    if (filter.member) {
-      if (filter.member.isTeamMember) {
-        filter.isTeamMember = filter.member.isTeamMember
-      }
-
-      if (filter.member.isBot) {
-        filter.isBot = filter.member.isBot
-      }
-
-      delete filter.member
-    }
-
-    const parsedOrderBys = []
-
-    for (const orderByPart of orderBy) {
-      const orderByParts = orderByPart.split('_')
-      const direction = orderByParts[1].toLowerCase()
-      switch (orderByParts[0]) {
-        case 'timestamp':
-          parsedOrderBys.push({
-            property: orderByParts[0],
-            column: 'a.timestamp',
-            direction,
-          })
-          break
-        case 'createdAt':
-          parsedOrderBys.push({
-            property: orderByParts[0],
-            column: 'a."createdAt"',
-            direction,
-          })
-          break
-
-        default:
-          throw new Error(`Invalid order by: ${orderByPart}!`)
-      }
-    }
-
-    const orderByString = parsedOrderBys.map((o) => `${o.column} ${o.direction}`).join(',')
-
-    let filterString = RawQueryParser.parseFilters(
-      filter,
-      ActivityRepository.ACTIVITY_QUERY_FILTER_COLUMN_MAP,
-      [],
-      params,
+      ['id'],
     )
 
-    if (filterString.trim().length === 0) {
-      filterString = '1=1'
-    }
-
-    const baseQuery = `
-      from mv_activities_cube a
-      inner join members m on m.id = a."memberId"
-      where a."tenantId" = :tenantId
-      and a."segmentId" in (:segmentIds)
-      and ${filterString}
-    `
-
-    const countQuery = `
-    select count(a.id) as count
-    ${baseQuery}
-    `
-
-    if (countOnly) {
-      const countResults = (await seq.query(countQuery, {
-        replacements: params,
-        type: QueryTypes.SELECT,
-      })) as any
-
-      const count = countResults[0].count
-
-      return {
-        rows: [],
-        count,
-        limit,
-        offset,
-      }
-    }
-
-    const query = `
-      select a.id
-      ${baseQuery}
-      order by ${orderByString}
-      limit :limit offset :offset
-    `
-
-    const [results, countResults] = await Promise.all([
-      seq.query(query, {
-        replacements: params,
-        type: QueryTypes.SELECT,
-      }),
-      seq.query(countQuery, {
-        replacements: params,
-        type: QueryTypes.SELECT,
-      }),
-    ])
-
-    const count = (countResults[0] as any).count
-    const ids = (results as any).map((r) => r.id)
-
-    const include = [
-      {
-        model: options.database.member,
-        as: 'member',
-      },
-      {
-        model: options.database.activity,
-        as: 'parent',
-        include: [
-          {
-            model: options.database.member,
-            as: 'member',
-          },
-        ],
-      },
-      {
-        model: options.database.member,
-        as: 'objectMember',
-      },
-      {
-        model: options.database.organization,
-        as: 'organization',
-      },
-    ]
-
-    const order = parsedOrderBys.map((a) => [a.property, a.direction])
-
-    let rows = await options.database.activity.findAll({
-      include,
-      attributes: [
-        ...SequelizeFilterUtils.getLiteralProjectionsOfModel('activity', options.database),
-      ],
-      where: {
-        id: {
-          [Op.in]: ids,
-        },
-      },
-      order,
-    })
-
-    rows = await this._populateRelationsForRows(rows, false, options)
-
-    return {
-      rows,
-      count,
-      limit,
-      offset,
-    }
-  }
-
-  static async findAllAutocomplete(query, limit, options: IRepositoryOptions) {
-    const tenant = SequelizeRepository.getCurrentTenant(options)
-
-    const whereAnd: Array<any> = [
-      {
-        tenantId: tenant.id,
-      },
-    ]
-
-    if (query) {
-      whereAnd.push({
-        [Op.or]: [{ id: SequelizeFilterUtils.uuid(query) }],
-      })
-    }
-
-    const where = { [Op.and]: whereAnd }
-
-    const records = await options.database.activity.findAll({
-      attributes: ['id', 'id'],
-      where,
-      limit: limit ? Number(limit) : undefined,
-      order: [['id', 'ASC']],
-    })
-
-    return records.map((record) => ({
-      id: record.id,
-      label: record.id,
-    }))
+    return records.rows.map((record) => record.id)
   }
 
   static async _createAuditLog(action, record, data, options: IRepositoryOptions) {
@@ -561,13 +281,12 @@ class ActivityRepository {
     return Promise.all(rows.map((record) => this._populateRelations(record, loadTasks, options)))
   }
 
-  static async _populateRelations(record, loadTasks: boolean, options: IRepositoryOptions) {
+  static async _populateRelations(record: any, loadChildren: boolean, options: IRepositoryOptions) {
     if (!record) {
       return record
     }
-    const transaction = SequelizeRepository.getTransaction(options)
 
-    const output = record.get({ plain: true })
+    const output = { ...record }
 
     output.display = ActivityDisplayService.getDisplayOptions(
       record,
@@ -581,12 +300,9 @@ class ActivityRepository {
       )
     }
 
-    if (loadTasks) {
-      output.tasks = await record.getTasks({
-        transaction,
-        joinTableAttributes: [],
-      })
-    }
+    // if (loadChildren) {
+    // TODO uros load tasks
+    // }
 
     return output
   }

@@ -118,10 +118,6 @@ export default (sequelize) => {
       foreignKey: 'id',
     })
 
-    models.member.hasMany(models.activity, {
-      as: 'activities',
-    })
-
     models.member.belongsToMany(models.note, {
       as: 'notes',
       through: 'memberNotes',

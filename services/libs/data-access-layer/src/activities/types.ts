@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import { SegmentRawData } from '@crowd/types'
+
 export interface IQueryActivityResult {
   id: string
   attributes: unknown
@@ -40,11 +42,19 @@ export interface IActivitySentiment {
 }
 
 export interface IQueryActivitiesParameters {
-  tenantId: string
-  segmentIds: string[]
+  tenantId?: string
+  segmentIds?: string[]
   filter?: any
   orderBy?: string[]
   limit?: number
   offset?: number
   countOnly?: boolean
+}
+
+export interface IQueryTopActivitiesParameters {
+  tenantId: string
+  segments?: SegmentRawData[]
+  after: Date
+  before: Date
+  limit: number
 }

@@ -30,6 +30,7 @@ import MemberService from './memberService'
 import SearchSyncService from './searchSyncService'
 import SegmentService from './segmentService'
 import OrganizationRepository from '@/database/repositories/organizationRepository'
+import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 
 const IS_GITHUB_COMMIT_DATA_ENABLED = GITHUB_CONFIG.isCommitDataEnabled === 'true'
 
@@ -92,7 +93,11 @@ export default class ActivityService extends LoggerBase {
       // If a sourceParentId is sent, try to find it in our db
       if ('sourceParentId' in data && data.sourceParentId) {
         const parent = await ActivityRepository.findOne(
-          { sourceId: data.sourceParentId },
+          {
+            filter: {
+              and: [{ sourceId: { eq: data.sourceParentId } }],
+            },
+          },
           repositoryOptions,
         )
         if (parent) {
@@ -494,15 +499,15 @@ export default class ActivityService extends LoggerBase {
    * @returns The existing activity if it exists, false otherwise
    */
   async _activityExists(data, transaction) {
+    const options: IRepositoryOptions = { ...this.options, transaction }
     // An activity is unique by it's sourceId and tenantId
     const exists = await ActivityRepository.findOne(
       {
-        sourceId: data.sourceId,
+        filter: {
+          and: [{ sourceId: { eq: data.sourceId } }],
+        },
       },
-      {
-        ...this.options,
-        transaction,
-      },
+      options,
     )
     return exists || false
   }
@@ -575,7 +580,7 @@ export default class ActivityService extends LoggerBase {
           )
 
           await deleteActivities(this.options.qdb, [activityExists.id])
-          await ActivityRepository.destroy(activityExists.id, this.options, true)
+          await ActivityRepository.destroy(activityExists.id, this.options)
           activityExists = false
           existingMember = false
         }
@@ -775,10 +780,6 @@ export default class ActivityService extends LoggerBase {
     )
   }
 
-  async findAllAutocomplete(search, limit) {
-    return ActivityRepository.findAllAutocomplete(search, limit, this.options)
-  }
-
   async query(data) {
     const filter = data.filter
     const orderBy = Array.isArray(data.orderBy) ? data.orderBy : [data.orderBy]
@@ -896,10 +897,12 @@ export default class ActivityService extends LoggerBase {
     return this.upsert(dataToCreate)
   }
 
-  async _isImportHashExistent(importHash) {
-    const count = await ActivityRepository.count(
+  async _isImportHashExistent(importHash: string) {
+    const count = await ActivityRepository.findOne(
       {
-        importHash,
+        filter: {
+          and: [{ importHash: { eq: importHash } }],
+        },
       },
       this.options,
     )

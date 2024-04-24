@@ -14,7 +14,6 @@ import {
 import { ActivityDisplayService } from '@crowd/integrations'
 
 import merge from 'lodash.merge'
-import { arrayBuffer } from 'stream/consumers'
 
 const s3Url = `https://${
   process.env['CROWD_S3_MICROSERVICES_ASSETS_BUCKET']
@@ -53,7 +52,7 @@ export async function getActivityById(conn: DbConnOrTx, id: string): Promise<IAc
   return activity
 }
 
-const ACTIVITY_UPDATABLE_COLUMNS = [
+const ACTIVITY_UPDATABLE_COLUMNS: ActivityColumn[] = [
   'type',
   'isContribution',
   'score',
@@ -252,12 +251,94 @@ const ACTIVITY_QUERY_FILTER_COLUMN_MAP: Map<string, string> = new Map([
   ['conversationId', 'a."conversationId"'],
   ['sentiment', 'a."sentimentLabel"'],
   ['id', 'a.id'],
+  ['sourceId', 'a."sourceId"'],
+  ['sourceParentId', 'a."sourceParentId"'],
 ])
+
+export type ActivityColumn =
+  | 'id'
+  | 'type'
+  | 'timestamp'
+  | 'platform'
+  | 'isContribution'
+  | 'score'
+  | 'sourceId'
+  | 'createdAt'
+  | 'updatedAt'
+  | 'deletedAt'
+  | 'memberId'
+  | 'parentId'
+  | 'tenantId'
+  | 'createdById'
+  | 'updatedById'
+  | 'sourceParentId'
+  | 'conversationId'
+  | 'attributes'
+  | 'title'
+  | 'body'
+  | 'channel'
+  | 'url'
+  | 'username'
+  | 'objectMemberId'
+  | 'objectMemberUsername'
+  | 'segmentId'
+  | 'organizationId'
+  | 'sentimentLabel'
+  | 'sentimentScore'
+  | 'sentimentScoreMixed'
+  | 'sentimentScoreNeutral'
+  | 'sentimentScoreNegative'
+  | 'sentimentScorePositive'
+  | 'member_isBot'
+  | 'member_isTeamMember'
+  | 'gitIsMainBranch'
+  | 'gitInsertions'
+  | 'gitDeletions'
+
+const DEFAULT_COLUMNS_TO_SELECT: ActivityColumn[] = [
+  'id',
+  'attributes',
+  'body',
+  'channel',
+  'conversationId',
+  'createdAt',
+  'createdById',
+  'isContribution',
+  'memberId',
+  'username',
+  'objectMemberId',
+  'objectMemberUsername',
+  'organizationId',
+  'parentId',
+  'platform',
+  'score',
+  'segmentId',
+  'sentimentLabel',
+  'sentimentScore',
+  'sentimentScoreMixed',
+  'sentimentScoreNeutral',
+  'sentimentScoreNegative',
+  'sentimentScorePositive',
+  'sourceId',
+  'sourceParentId',
+  'tenantId',
+  'timestamp',
+  'title',
+  'type',
+  'updatedAt',
+  'updatedById',
+  'url',
+]
 
 export async function queryActivities(
   qdbConn: DbConnOrTx, // to query questdb activities
   arg: IQueryActivitiesParameters,
-): Promise<PageData<IQueryActivityResult>> {
+  columns: ActivityColumn[] = DEFAULT_COLUMNS_TO_SELECT,
+): Promise<PageData<IQueryActivityResult | any>> {
+  if (arg.tenantId === undefined || arg.segmentIds === undefined || arg.segmentIds.length === 0) {
+    throw new Error('tenantId and segmentIds are required to query activities!')
+  }
+
   // set defaults
   arg.filter = arg.filter || {}
   arg.orderBy = arg.orderBy || ['timestamp_DESC']
@@ -361,40 +442,9 @@ export async function queryActivities(
       offset: arg.offset,
     }
   } else {
-    //
+    const columnString = columns.map((c) => `a.${c}`).join(', ')
     const query = `
-      select  a.id,
-              a.attributes,
-              a.body,
-              a.channel,
-              a."conversationId",
-              a."createdAt",
-              a."createdById",
-              a."isContribution",
-              a."memberId",
-              a.username,
-              a."objectMemberId",
-              a."objectMemberUsername",
-              a."organizationId",
-              a."parentId",
-              a.platform,
-              a.score,
-              a."segmentId",
-              a."sentimentLabel",
-              a."sentimentScore",
-              a."sentimentScoreMixed",
-              a."sentimentScoreNeutral",
-              a."sentimentScoreNegative",
-              a."sentimentScorePositive",
-              a."sourceId",
-              a."sourceParentId",
-              a."tenantId",
-              a.timestamp,
-              a.title,
-              a.type,
-              a."updatedAt",
-              a."updatedById",
-              a.url
+      select  ${columnString}
       ${baseQuery}
       order by ${orderByString}
       limit $(lowerLimit), $(upperLimit);
@@ -409,49 +459,44 @@ export async function queryActivities(
     count = countResults.count
   }
 
-  const results: IQueryActivityResult[] = []
+  const results: any[] = []
 
   for (const a of activities) {
-    const sentiment: IActivitySentiment | null = a.sentimentLabel
-      ? {
-          label: a.sentimentLabel,
-          sentiment: a.sentimentScore,
-          mixed: a.sentimentScoreMixed,
-          neutral: a.sentimentScoreNeutral,
-          negative: a.sentimentScoreNegative,
-          positive: a.sentimentScorePositive,
-        }
-      : null
+    const sentiment: IActivitySentiment | null =
+      a.sentimentLabel &&
+      a.sentimentScore &&
+      a.sentimentScoreMixed &&
+      a.sentimentScoreNeutral &&
+      a.sentimentScoreNegative &&
+      a.sentimentScorePositive
+        ? {
+            label: a.sentimentLabel,
+            sentiment: a.sentimentScore,
+            mixed: a.sentimentScoreMixed,
+            neutral: a.sentimentScoreNeutral,
+            negative: a.sentimentScoreNegative,
+            positive: a.sentimentScorePositive,
+          }
+        : null
 
-    results.push({
-      id: a.id,
-      attributes: JSON.parse(a.attributes),
-      body: a.body,
-      channel: a.channel,
-      conversationId: a.conversationId,
-      createdAt: a.createdAt,
-      createdById: a.createdById,
-      isContribution: a.isContribution,
-      memberId: a.memberId,
-      username: a.username,
-      objectMemberId: a.objectMemberId,
-      objectMemberUsername: a.objectMemberUsername,
-      organizationId: a.organizationId,
-      parentId: a.parentId,
-      platform: a.platform,
-      score: a.score,
-      segmentId: a.segmentId,
-      sentiment,
-      sourceId: a.sourceId,
-      sourceParentId: a.sourceParentId,
-      tenantId: a.tenantId,
-      timestamp: a.timestamp,
-      title: a.title,
-      type: a.type,
-      updatedAt: a.updatedAt,
-      updatedById: a.updatedById,
-      url: a.url,
-    })
+    const data: any = {}
+    for (const column of columns) {
+      if (column.startsWith('sentiment')) {
+        continue
+      }
+
+      if (column === 'attributes') {
+        data[column] = JSON.parse(a[column])
+      } else {
+        data[column] = a[column]
+      }
+    }
+
+    if (sentiment) {
+      data.sentiment = sentiment
+    }
+
+    results.push(data)
   }
 
   return {

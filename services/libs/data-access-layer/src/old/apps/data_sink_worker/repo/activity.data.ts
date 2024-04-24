@@ -51,6 +51,9 @@ export interface IDbActivityCreateData {
   objectMemberUsername?: string
   isTeamMemberActivity?: boolean
   isBotActivity?: boolean
+  conversationId?: string
+  createdById?: string
+  updatedById?: string
 }
 
 let insertActivityColumnSet: DbColumnSet
@@ -87,7 +90,7 @@ export const getInsertActivityColumnSet = (instance: DbInstance): DbColumnSet =>
     ],
     {
       table: {
-        table: 'activities',
+        table: 'old_activities',
       },
     },
   )
@@ -115,9 +118,11 @@ export interface IDbActivityUpdateData {
   channel?: string
   url?: string
   organizationId?: string
+  conversationId?: string
   platform?: PlatformType
   isTeamMemberActivity?: boolean
   isBotActivity?: boolean
+  updatedById?: string
 }
 
 let updateActivityColumnSet: DbColumnSet
@@ -149,7 +154,7 @@ export const getUpdateActivityColumnSet = (instance: DbInstance): DbColumnSet =>
     ],
     {
       table: {
-        table: 'activities',
+        table: 'old_activities',
       },
     },
   )

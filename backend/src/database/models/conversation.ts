@@ -41,10 +41,6 @@ export default (sequelize) => {
   )
 
   conversation.associate = (models) => {
-    models.conversation.hasMany(models.activity, {
-      as: 'activities',
-    })
-
     models.conversation.belongsTo(models.tenant, {
       as: 'tenant',
       foreignKey: {

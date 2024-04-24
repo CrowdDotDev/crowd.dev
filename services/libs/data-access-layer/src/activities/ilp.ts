@@ -59,6 +59,10 @@ export async function insertActivities(activities: IDbActivityCreateData[]): Pro
       row.stringColumn('organizationId', activity.organizationId)
     }
 
+    if (activity.conversationId) {
+      row.stringColumn('conversationId', activity.conversationId)
+    }
+
     if (activity.channel) {
       row.stringColumn('channel', activity.channel)
     }
@@ -77,6 +81,14 @@ export async function insertActivities(activities: IDbActivityCreateData[]): Pro
 
     if (activity.parentId) {
       row.stringColumn('parentId', activity.parentId)
+    }
+
+    if (activity.memberId) {
+      row.stringColumn('memberId', activity.memberId)
+    }
+
+    if (activity.username) {
+      row.stringColumn('username', activity.username)
     }
 
     if (activity.objectMemberId) {
@@ -111,6 +123,14 @@ export async function insertActivities(activities: IDbActivityCreateData[]): Pro
       if (activity.sentiment.neutral) {
         row.floatColumn('sentimentScoreNeutral', activity.sentiment.neutral)
       }
+    }
+
+    if (activity.createdById) {
+      row.stringColumn('createdById', activity.createdById)
+    }
+
+    if (activity.updatedById) {
+      row.stringColumn('updatedById', activity.updatedById)
     }
 
     row.at(activity.timestamp ? new Date(activity.timestamp).getTime() : now, 'ms')

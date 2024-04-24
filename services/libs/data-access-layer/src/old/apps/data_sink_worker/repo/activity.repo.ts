@@ -41,7 +41,7 @@ export default class ActivityRepository extends RepositoryBase<ActivityRepositor
             url,
             sentiment,
             "deletedAt"
-    from activities
+    from old_activities
     where "tenantId" = $(tenantId)
       and "segmentId" = $(segmentId)
       and "sourceId" = $(sourceId)
@@ -98,7 +98,7 @@ export default class ActivityRepository extends RepositoryBase<ActivityRepositor
               url,
               sentiment,
               "deletedAt"
-      from activities
+      from old_activities
       where "tenantId" = $(tenantId)
         and "segmentId" = $(segmentId)
         and "sourceId" = $(sourceId)
@@ -118,7 +118,7 @@ export default class ActivityRepository extends RepositoryBase<ActivityRepositor
   }
 
   public async delete(id: string): Promise<void> {
-    await this.db().none('delete from activities where id = $(id)', { id })
+    await this.db().none('delete from old_activities where id = $(id)', { id })
   }
 
   private async updateParentIds(
@@ -130,7 +130,7 @@ export default class ActivityRepository extends RepositoryBase<ActivityRepositor
     const promises: Promise<void>[] = [
       this.db().none(
         `
-        update activities set "parentId" = $(id)
+        update old_activities set "parentId" = $(id)
         where "tenantId" = $(tenantId) and "sourceParentId" = $(sourceId)
         and "segmentId" = $(segmentId)
       `,
@@ -147,7 +147,7 @@ export default class ActivityRepository extends RepositoryBase<ActivityRepositor
       promises.push(
         this.db().none(
           `
-          update activities set "parentId" = (select id from activities where "tenantId" = $(tenantId) and "sourceId" = $(sourceParentId) and  "segmentId" = $(segmentId) and "deletedAt" IS NULL limit 1)
+          update old_activities set "parentId" = (select id from old_activities where "tenantId" = $(tenantId) and "sourceId" = $(sourceParentId) and  "segmentId" = $(segmentId) and "deletedAt" IS NULL limit 1)
           where "id" = $(id) and "tenantId" = $(tenantId) and "segmentId" = $(segmentId)
           `,
           {

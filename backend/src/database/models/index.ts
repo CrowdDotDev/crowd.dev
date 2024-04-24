@@ -103,7 +103,6 @@ function models(queryTimeoutMilliseconds: number, databaseHostnameOverride = nul
   )
 
   const modelClasses = [
-    require('./activity').default,
     require('./auditLog').default,
     require('./member').default,
     require('./memberIdentity').default,
@@ -128,7 +127,6 @@ function models(queryTimeoutMilliseconds: number, databaseHostnameOverride = nul
     require('./memberAttributeSettings').default,
     require('./task').default,
     require('./note').default,
-    require('./memberActivityAggregatesMV').default,
     require('./segment').default,
     require('./customView').default,
     require('./customViewOrder').default,
