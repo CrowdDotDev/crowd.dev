@@ -114,11 +114,6 @@ export async function getMemberMergeSuggestions(
                       },
                     },
                   },
-                  {
-                    term: {
-                      [`nested_identities.bool_verified`]: true,
-                    },
-                  },
                 ],
               },
             })
