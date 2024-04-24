@@ -23,7 +23,7 @@
           <i class="ri-question-line text-lg text-gray-400 flex items-center ml-2 h-5" />
         </el-tooltip>
       </div>
-      <app-merge-suggestions-filters @search="search" />
+      <app-merge-suggestions-filters placeholder="Search contributors" @search="search" />
       <div
         v-if="page <= 1 && loading && mergeSuggestions.length === 0"
         class="flex justify-center pt-8"

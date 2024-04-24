@@ -24,7 +24,7 @@
         </el-tooltip>
       </div>
 
-      <app-merge-suggestions-filters @search="search" />
+      <app-merge-suggestions-filters placeholder="Search organizations" @search="search" />
 
       <div
         v-if="page <= 1 && loading && mergeSuggestions.length === 0"
