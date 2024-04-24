@@ -46,7 +46,7 @@ watch(() => form, (form) => {
 
   emit('search', {
     similarity: form.confidence,
-    displayName: form.search,
+    displayName: form.search || undefined,
     projectIds: projects,
     subprojectIds: subprojects,
   });
