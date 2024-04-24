@@ -4,10 +4,23 @@
     v-model="isModalOpen"
     title="Merge suggestions"
     size="2extra-large"
-    custom-class="mt-6 mb-6"
+    :show-header="false"
   >
     <template #content>
-      <app-member-merge-suggestions :query="props.query" class="!border-t-0 !shadow-none -mt-5" />
+      <div class="-mt-12">
+        <app-member-merge-suggestions
+          :query="props.query"
+          :offset="props.offset"
+          class="!border-t-0 !shadow-none -mt-5"
+          @reload="emit('reload')"
+        >
+          <template #actions>
+            <cr-button type="tertiary-light-gray" :icon-only="true" @click="isModalOpen = false">
+              <i class="ri-close-line" />
+            </cr-button>
+          </template>
+        </app-member-merge-suggestions>
+      </div>
     </template>
   </app-dialog>
 </template>
@@ -16,13 +29,18 @@
 import { computed } from 'vue';
 import AppMemberMergeSuggestions from '@/modules/member/components/member-merge-suggestions.vue';
 import AppDialog from '@/shared/dialog/dialog.vue';
+import CrButton from '@/ui-kit/button/Button.vue';
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   modelValue: boolean,
   query?: any
-}>();
+  offset?: number
+}>(), {
+  offset: 0,
+  query: {},
+});
 
-const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void}>();
+const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void, (e: 'reload'): void}>();
 
 const isModalOpen = computed<boolean>({
   get() {
@@ -32,6 +50,7 @@ const isModalOpen = computed<boolean>({
     emit('update:modelValue', false);
   },
 });
+
 </script>
 
 <script lang="ts">

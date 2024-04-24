@@ -52,7 +52,7 @@ export default {
   data() {
     return {
       backgroundColors: ['#DBEBFE'],
-      textColors: ['#0094FF'],
+      textColors: ['#205089'],
       sizes: {
         xl: '4.5rem',
         lg: '4rem',
@@ -94,7 +94,7 @@ export default {
         height: this.computedSize,
         width: this.computedSize,
         lineHeight: this.computedSize,
-        fontSize: `calc(${this.computedSize} * 0.4)`,
+        fontSize: `calc(${this.computedSize} * 0.44)`,
       };
     },
     computedInitials() {
