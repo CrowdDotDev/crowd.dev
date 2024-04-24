@@ -147,7 +147,7 @@
     :offset="detailsOffset"
     :query="{
       filter,
-      orderBy: [sorting],
+      orderBy: [sorting, 'activityCount_DESC'],
     }"
     @reload="reload()"
   />
@@ -191,7 +191,7 @@ const loadMergeSuggestions = () => {
   loading.value = true;
   MemberService.fetchMergeSuggestions(limit.value, (page.value - 1) * limit.value, {
     filter: filter.value,
-    orderBy: [sorting.value],
+    orderBy: [sorting.value, 'activityCount_DESC'],
     detail: false,
   })
     .then((res) => {
