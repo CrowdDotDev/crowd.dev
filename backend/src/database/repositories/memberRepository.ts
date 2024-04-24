@@ -62,7 +62,7 @@ import {
   IMemberMergeSuggestion,
   mapUsernameToIdentities,
 } from './types/memberTypes'
-import { IFetchMemberMergeSuggestionArgs } from '@/types/mergeSuggestionTypes'
+import { IFetchMemberMergeSuggestionArgs, SimilarityScoreRange } from '@/types/mergeSuggestionTypes'
 
 const { Op } = Sequelize
 
@@ -260,14 +260,11 @@ class MemberRepository {
 
   static async countMemberMergeSuggestions(
     memberFilter: string,
-    similarityGTEFilter: string,
-    similarityLTEFilter: string,
+    similarityFilter: string,
     displayNameFilter: string,
     replacements: {
       segmentIds: string[]
       memberId?: string
-      similarityGTEReplacement?: number
-      similarityLTEReplacement?: number
       displayName?: string
     },
     options: IRepositoryOptions,
@@ -283,8 +280,7 @@ class MemberRepository {
         join members m2 on m2.id = mtm."toMergeId"
         WHERE ms."segmentId" IN (:segmentIds) and ms2."segmentId" IN (:segmentIds)
           ${memberFilter}
-          ${similarityLTEFilter}
-          ${similarityGTEFilter}
+          ${similarityFilter}
           ${displayNameFilter}
       `,
       {
@@ -302,6 +298,9 @@ class MemberRepository {
   ) {
     let segmentIds: string[]
 
+    const HIGH_CONFIDENCE_LOWER_BOUND = 0.9
+    const MEDIUM_CONFIDENCE_LOWER_BOUND = 0.7
+    
     if (args.filter?.projectIds) {
       segmentIds = (
         await new SegmentRepository(options).getSegmentSubprojects(args.filter.projectIds)
@@ -312,20 +311,23 @@ class MemberRepository {
       segmentIds = SequelizeRepository.getSegmentIds(options)
     }
 
-    let similarityLTEFilter = ''
-    let similarityGTEFilter = ''
-    let similarityLTEReplacement
-    let similarityGTEReplacement
+    let similarityFilter = ''
+    const similarityConditions = []
 
-    if (args.filter?.similarity) {
-      if (args.filter.similarity.gte) {
-        similarityGTEFilter = ' and mtm.similarity >= :similarityGTEReplacement '
-        similarityGTEReplacement = args.filter.similarity.gte
+    for (const similarity of args.filter?.similarity || []) {
+      if (similarity === SimilarityScoreRange.HIGH) {
+        similarityConditions.push(`(mtm.similarity >= ${HIGH_CONFIDENCE_LOWER_BOUND})`)
       }
-      if (args.filter?.similarity.lte) {
-        similarityLTEFilter = ' and mtm.similarity <= :similarityLTEReplacement '
-        similarityLTEReplacement = args.filter.similarity.lte
+      else if (similarity === SimilarityScoreRange.MEDIUM) {
+        similarityConditions.push(`(mtm.similarity >= ${MEDIUM_CONFIDENCE_LOWER_BOUND} and mtm.similarity < ${HIGH_CONFIDENCE_LOWER_BOUND})`)
       }
+      else if (similarity === SimilarityScoreRange.LOW) {
+        similarityConditions.push(`(mtm.similarity < ${MEDIUM_CONFIDENCE_LOWER_BOUND})`)
+      }
+    }
+
+    if (similarityConditions.length > 0) {
+      similarityFilter = ` and (${similarityConditions.join(' or ')})`
     }
 
     const memberFilter = args.filter?.memberId
@@ -356,13 +358,10 @@ class MemberRepository {
     if (args.countOnly) {
       const totalCount = await this.countMemberMergeSuggestions(
         memberFilter,
-        similarityGTEFilter,
-        similarityLTEFilter,
+        similarityFilter,
         displayNameFilter,
         {
           segmentIds,
-          similarityGTEReplacement,
-          similarityLTEReplacement,
           displayName: args?.filter?.displayName ? `${args.filter.displayName}%` : undefined,
           memberId: args?.filter?.memberId,
         },
@@ -391,8 +390,7 @@ class MemberRepository {
         join members m2 on m2.id = mtm."toMergeId"
         WHERE ms."segmentId" IN (:segmentIds) and ms2."segmentId" IN (:segmentIds)
           ${memberFilter}
-          ${similarityLTEFilter}
-          ${similarityGTEFilter}
+          ${similarityFilter}
           ${displayNameFilter}
         ORDER BY ${order}
         LIMIT :limit
@@ -401,9 +399,7 @@ class MemberRepository {
       {
         replacements: {
           segmentIds,
-          similarityLTEReplacement,
-          similarityGTEReplacement,
-          limit: args.limit,
+           limit: args.limit,
           offset: args.offset,
           displayName: args?.filter?.displayName ? `${args.filter.displayName}%` : undefined,
           memberId: args?.filter?.memberId,
@@ -453,13 +449,10 @@ class MemberRepository {
 
       const totalCount = await this.countMemberMergeSuggestions(
         memberFilter,
-        similarityGTEFilter,
-        similarityLTEFilter,
+        similarityFilter,
         displayNameFilter,
         {
           segmentIds,
-          similarityLTEReplacement,
-          similarityGTEReplacement,
           memberId: args?.filter?.memberId,
           displayName: args?.filter?.displayName ? `${args.filter.displayName}%` : undefined,
         },

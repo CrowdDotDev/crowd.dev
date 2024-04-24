@@ -40,7 +40,7 @@ import { QueryOutput } from './filters/queryTypes'
 import OrganizationSyncRemoteRepository from './organizationSyncRemoteRepository'
 import SegmentRepository from './segmentRepository'
 import { IActiveOrganizationData, IActiveOrganizationFilter } from './types/organizationTypes'
-import { IFetchOrganizationMergeSuggestionArgs } from '@/types/mergeSuggestionTypes'
+import { IFetchOrganizationMergeSuggestionArgs, SimilarityScoreRange } from '@/types/mergeSuggestionTypes'
 
 const { Op } = Sequelize
 
@@ -1175,14 +1175,11 @@ class OrganizationRepository {
 
   static async countOrganizationMergeSuggestions(
     organizationFilter: string,
-    similarityGTEFilter: string,
-    similarityLTEFilter: string,
+    similarityFilter: string,
     displayNameFilter: string,
     replacements: {
       segmentIds: string[]
       organizationId?: string
-      similarityGTEReplacement?: number
-      similarityLTEReplacement?: number
       displayName?: string
     },
     options: IRepositoryOptions,
@@ -1215,8 +1212,7 @@ class OrganizationRepository {
           AND os2."segmentId" IN (:segmentIds)
           AND (ma.id IS NULL OR ma.state = :mergeActionStatus)
           ${organizationFilter}
-          ${similarityLTEFilter}
-          ${similarityGTEFilter}
+          ${similarityFilter}
           ${displayNameFilter}
       ),
 
@@ -1236,6 +1232,9 @@ class OrganizationRepository {
     args: IFetchOrganizationMergeSuggestionArgs,
     options: IRepositoryOptions,
   ) {
+    const HIGH_CONFIDENCE_LOWER_BOUND = 0.9
+    const MEDIUM_CONFIDENCE_LOWER_BOUND = 0.7
+
     let segmentIds: string[]
 
     if (args.filter?.projectIds) {
@@ -1248,20 +1247,23 @@ class OrganizationRepository {
       segmentIds = SequelizeRepository.getSegmentIds(options)
     }
 
-    let similarityLTEFilter = ''
-    let similarityGTEFilter = ''
-    let similarityLTEReplacement
-    let similarityGTEReplacement
+    let similarityFilter = ''
+    const similarityConditions = []
 
-    if (args.filter?.similarity) {
-      if (args.filter.similarity.gte) {
-        similarityGTEFilter = ' and otm.similarity >= :similarityGTEReplacement '
-        similarityGTEReplacement = args.filter.similarity.gte
+    for (const similarity of args.filter?.similarity || []) {
+      if (similarity === SimilarityScoreRange.HIGH) {
+        similarityConditions.push(`(mtm.similarity >= ${HIGH_CONFIDENCE_LOWER_BOUND})`)
       }
-      if (args.filter?.similarity.lte) {
-        similarityLTEFilter = ' and otm.similarity <= :similarityLTEReplacement '
-        similarityLTEReplacement = args.filter.similarity.lte
+      else if (similarity === SimilarityScoreRange.MEDIUM) {
+        similarityConditions.push(`(mtm.similarity >= ${MEDIUM_CONFIDENCE_LOWER_BOUND} and mtm.similarity < ${HIGH_CONFIDENCE_LOWER_BOUND})`)
       }
+      else if (similarity === SimilarityScoreRange.LOW) {
+        similarityConditions.push(`(mtm.similarity < ${MEDIUM_CONFIDENCE_LOWER_BOUND})`)
+      }
+    }
+
+    if (similarityConditions.length > 0) {
+      similarityFilter = ` and (${similarityConditions.join(' or ')})`
     }
 
     const organizationFilter = args.filter?.organizationId
@@ -1290,13 +1292,10 @@ class OrganizationRepository {
     if (args.countOnly) {
       const totalCount = await this.countOrganizationMergeSuggestions(
         organizationFilter,
-        similarityGTEFilter,
-        similarityLTEFilter,
+        similarityFilter,
         displayNameFilter,
         {
           segmentIds,
-          similarityGTEReplacement,
-          similarityLTEReplacement,
           displayName: args?.filter?.displayName ? `${args.filter.displayName}%` : undefined,
           organizationId: args?.filter?.organizationId,
         },
@@ -1337,8 +1336,7 @@ class OrganizationRepository {
           AND os2."segmentId" IN (:segmentIds)
           AND (ma.id IS NULL OR ma.state = :mergeActionStatus)
           ${organizationFilter}
-          ${similarityLTEFilter}
-          ${similarityGTEFilter}
+          ${similarityFilter}
           ${displayNameFilter}
       ),
 
@@ -1373,8 +1371,6 @@ class OrganizationRepository {
         replacements: {
           tenantId: options.currentTenant.id,
           segmentIds,
-          similarityLTEReplacement,
-          similarityGTEReplacement,
           limit: args.limit,
           offset: args.offset,
           displayName: args?.filter?.displayName ? `${args.filter.displayName}%` : undefined,
