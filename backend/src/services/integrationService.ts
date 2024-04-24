@@ -4,8 +4,8 @@ import {request} from '@octokit/request'
 import moment from 'moment'
 import lodash from 'lodash'
 import axios, {AxiosRequestConfig, AxiosResponse} from 'axios'
-import {Edition, PlatformType} from '@crowd/types'
-import {EDITION, Error400, Error404, Error542} from '@crowd/common'
+import { Edition, PlatformType } from '@crowd/types'
+import { EDITION, Error400, Error404, Error542 } from '@crowd/common'
 import {
   getHubspotLists,
   getHubspotProperties,
@@ -19,11 +19,11 @@ import {
   IHubspotTokenInfo,
   IProcessStreamContext,
 } from '@crowd/integrations'
-import {RedisCache} from '@crowd/redis'
-import {encryptData} from '../utils/crypto'
-import {ILinkedInOrganization} from '../serverless/integrations/types/linkedinTypes'
-import {DISCORD_CONFIG, GITHUB_CONFIG, IS_TEST_ENV, KUBE_MODE, NANGO_CONFIG} from '../conf/index'
-import {IServiceOptions} from './IServiceOptions'
+import { RedisCache } from '@crowd/redis'
+import { encryptData } from '../utils/crypto'
+import { ILinkedInOrganization } from '../serverless/integrations/types/linkedinTypes'
+import { DISCORD_CONFIG, GITHUB_CONFIG, IS_TEST_ENV, KUBE_MODE, NANGO_CONFIG } from '../conf/index'
+import { IServiceOptions } from './IServiceOptions'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import IntegrationRepository from '../database/repositories/integrationRepository'
 import track from '../segment/track'
