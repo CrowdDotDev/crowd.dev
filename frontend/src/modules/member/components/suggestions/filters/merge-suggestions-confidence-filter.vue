@@ -1,5 +1,5 @@
 <template>
-  <el-popover placement="bottom-start" trigger="click" popper-class="!p-0" width="20rem" v-model:visible="visible">
+  <el-popover v-model:visible="visible" placement="bottom-start" trigger="click" popper-class="!p-0" width="20rem">
     <template #reference>
       <cr-button type="secondary" size="small">
         <i class="ri-command-line" /> <p>Confidence level: <span class="font-normal">{{ label }}</span></p>
@@ -23,7 +23,7 @@
         <cr-checkbox v-model="model" value="high" />
         <div class="ml-1 mr-2 h-2 w-2 rounded-full bg-green-600" />
         <p class="text-black text-xs">
-          High <span class="text-gray-500">(80% - 100%)</span>
+          High <span class="text-gray-500">(90% - 100%)</span>
         </p>
       </label>
       <label
@@ -32,7 +32,7 @@
         <cr-checkbox v-model="model" value="medium" />
         <div class="ml-1 mr-2 h-2 w-2 rounded-full bg-blue-600" />
         <p class="text-black text-xs">
-          Medium <span class="text-gray-500">(60% - 79%)</span>
+          Medium <span class="text-gray-500">(70% - 89%)</span>
         </p>
       </label>
       <label
@@ -41,7 +41,7 @@
         <cr-checkbox v-model="model" value="low" />
         <div class="ml-1 mr-2 h-2 w-2 rounded-full bg-yellow-600" />
         <p class="text-black text-xs">
-          Low <span class="text-gray-500">(&lt;59%)</span>
+          Low <span class="text-gray-500">(&lt;69%)</span>
         </p>
       </label>
     </div>
@@ -72,16 +72,16 @@ const model = ref<string[]>(props.modelValue);
 const emit = defineEmits<{(e: 'update:modelValue', value: string[]): void}>();
 
 const label = computed(() => {
-  if(props.modelValue.length > 0){
+  if (props.modelValue.length > 0) {
     return props.modelValue.map((l) => l.charAt(0).toUpperCase() + l.substring(1)).join(', ');
   }
-  return 'All'
-})
+  return 'All';
+});
 
 const apply = () => {
   emit('update:modelValue', model.value);
   visible.value = false;
-}
+};
 </script>
 
 <script lang="ts">

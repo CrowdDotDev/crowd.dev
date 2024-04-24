@@ -14,7 +14,7 @@
       </app-back-link>
       <div class="flex items-center pb-6">
         <h4 class="text-xl font-semibold leading-9">
-          Merge suggestions <span v-if="!loading" class="font-light text-gray-500">({{ total }})</span>
+          Merge suggestions <span v-if="totalCount" class="font-light text-gray-500">({{ totalCount }})</span>
         </h4>
         <el-tooltip
           placement="top"
@@ -24,7 +24,6 @@
         </el-tooltip>
       </div>
       <app-merge-suggestions-filters @search="search" />
-
       <div
         v-if="page <= 1 && loading && mergeSuggestions.length === 0"
         class="flex justify-center pt-8"
@@ -34,10 +33,12 @@
       <cr-table v-else-if="mergeSuggestions.length > 0" class="mt-6">
         <thead>
           <tr>
-            <th colspan="2">
+            <cr-table-head colspan="2">
               Contributors
-            </th>
-            <th>Confidence level</th>
+            </cr-table-head>
+            <cr-table-head v-model="sorting" property="similarity" @update:model-value="loadMergeSuggestions">
+              Confidence level
+            </cr-table-head>
           </tr>
         </thead>
         <tbody>
@@ -144,6 +145,10 @@
   <app-member-merge-suggestions-dialog
     v-model="isModalOpen"
     :offset="detailsOffset"
+    :query="{
+      filter,
+      orderBy: [sorting],
+    }"
     @reload="reload()"
   />
 </template>
@@ -165,6 +170,7 @@ import useMemberMergeMessage from '@/shared/modules/merge/config/useMemberMergeM
 import Message from '@/shared/message/message';
 import CrSpinner from '@/ui-kit/spinner/Spinner.vue';
 import AppMergeSuggestionsFilters from '@/modules/member/components/suggestions/merge-suggestions-filters.vue';
+import CrTableHead from '@/ui-kit/table/TableHead.vue';
 
 const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
 
@@ -176,6 +182,8 @@ const total = ref<number>(0);
 const limit = ref<number>(10);
 const page = ref<number>(1);
 const loading = ref<boolean>(false);
+const sorting = ref<string>('similarity_DESC');
+const totalCount = ref<number>(0);
 
 const filter = ref<any>(undefined);
 
@@ -183,13 +191,16 @@ const loadMergeSuggestions = () => {
   loading.value = true;
   MemberService.fetchMergeSuggestions(limit.value, (page.value - 1) * limit.value, {
     filter: filter.value,
+    orderBy: [sorting.value],
+    detail: false,
   })
     .then((res) => {
       total.value = +res.count;
+      const rows = res.rows.filter((s: any) => s.similarity > 0);
       if (+res.offset > 0) {
-        mergeSuggestions.value = mapSuggestions([...mergeSuggestions.value, ...res.rows]);
+        mergeSuggestions.value = [...mergeSuggestions.value, ...rows];
       } else {
-        mergeSuggestions.value = mapSuggestions(res.rows);
+        mergeSuggestions.value = rows;
       }
     })
     .finally(() => {
@@ -197,16 +208,14 @@ const loadMergeSuggestions = () => {
     });
 };
 
-const mapSuggestions = (suggestions: any[]) => suggestions
-  .filter((s) => s.similarity > 0)
-  .map((s) => {
-    const suggestion = { ...s };
-    if (s.members.length >= 2 && ((s.members[0].identities.length < s.members[1].identities.length)
-        || (s.members[0].activityCount < s.members[1].activityCount))) {
-      suggestion.members.reverse();
-    }
-    return suggestion;
-  });
+const getTotalCount = () => {
+  MemberService.fetchMergeSuggestions(0, 0, {
+    countOnly: true,
+  })
+    .then(({ count }) => {
+      totalCount.value = count;
+    });
+};
 
 const detailsOffset = ref<number>(0);
 
@@ -223,6 +232,7 @@ const search = (query: any) => {
 
 const reload = () => {
   page.value = 1;
+  getTotalCount();
   loadMergeSuggestions();
 };
 
@@ -277,7 +287,7 @@ const ignore = (suggestion: any) => {
 };
 
 onMounted(() => {
-  loadMergeSuggestions();
+  getTotalCount();
 });
 </script>
 

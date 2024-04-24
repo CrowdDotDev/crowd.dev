@@ -1,7 +1,15 @@
 <template>
   <div class="flex items-center gap-3">
-    <app-merge-suggestions-search v-model="form.search" />
-    <app-merge-suggestions-confidence-filter v-model="form.confidence" />
+    <app-merge-suggestions-search
+      v-model="form.search"
+    />
+    <app-merge-suggestions-confidence-filter
+      v-model="form.confidence"
+    />
+    <app-merge-suggestions-projects-filter
+      v-model:segments="form.segments"
+      v-model:childSegments="form.childSegments"
+    />
   </div>
 </template>
 
@@ -10,24 +18,36 @@ import { reactive, watch } from 'vue';
 import AppMergeSuggestionsConfidenceFilter
   from '@/modules/member/components/suggestions/filters/merge-suggestions-confidence-filter.vue';
 import AppMergeSuggestionsSearch from '@/modules/member/components/suggestions/filters/merge-suggestions-search.vue';
+import AppMergeSuggestionsProjectsFilter
+  from '@/modules/member/components/suggestions/filters/merge-suggestions-projects-filter.vue';
 
 const emit = defineEmits<{(e: 'search', value: any): void}>();
 
-const form = reactive({
+const form = reactive<{
+  search: string;
+  segments: string[],
+  childSegments: string[],
+  confidence: string[],
+}>({
   search: '',
-  segments: {
-    segments: [],
-    childSegments: [],
-  },
-  confidence: [],
+  segments: [],
+  childSegments: [],
+  confidence: ['high'],
 });
 
 const defineConfidenceRange = (values: string[]) => {
   const ranges: any = {
-    high: { gte: 0.8, lte: 1 },
-    medium: { gte: 0.6, lte: 0.79999 },
-    low: { gte: 0, lte: 0.59999 },
+    high: { gte: 0.9, lte: 1 },
+    medium: { gte: 0.7, lte: 0.89999 },
+    low: { gte: 0, lte: 0.69999 },
   };
+
+  if (values.length === 0) {
+    return {
+      gte: 0,
+      lte: 1,
+    };
+  }
 
   if (values.includes('high') && values.includes('low') && !values.includes('medium')) {
     return {
@@ -53,12 +73,16 @@ const defineConfidenceRange = (values: string[]) => {
 
 watch(() => form, (form) => {
   const confidence = defineConfidenceRange(form.confidence);
+  const subprojects = form.childSegments.length ? form.childSegments : undefined;
+  const projects = form.segments.length ? form.segments : subprojects;
 
   emit('search', {
     similarity: confidence,
     displayName: form.search,
+    projectIds: projects,
+    subprojectIds: subprojects,
   });
-}, { deep: true });
+}, { deep: true, immediate: true });
 
 </script>
 

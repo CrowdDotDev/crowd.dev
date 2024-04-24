@@ -287,6 +287,7 @@ export class MemberService {
       limit,
       offset,
       segments,
+      detail: true,
       ...query,
     };
 

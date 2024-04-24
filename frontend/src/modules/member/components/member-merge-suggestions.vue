@@ -204,12 +204,10 @@ const preview = computed(() => {
   const primaryMember = membersToMerge.value.members[primary.value];
   const secondaryMember = membersToMerge.value.members[(primary.value + 1) % 2];
   const mergedMembers = merge({}, clearMember(secondaryMember), clearMember(primaryMember));
-  Object.keys(mergedMembers?.username || {}).forEach((key) => {
-    if (!primaryMember.username[key] || !secondaryMember.username[key]) {
-      return;
-    }
-    mergedMembers.username[key] = [...Object.values(primaryMember.username[key]), ...Object.values(secondaryMember.username[key])];
-  });
+  mergedMembers.identities = [
+    ...primaryMember.identities,
+    ...secondaryMember.identities,
+  ];
   mergedMembers.score = Math.max(primaryMember.score, secondaryMember.score);
   return mergedMembers;
 });
@@ -226,15 +224,7 @@ const fetch = (page) => {
       count.value = res.count;
       [membersToMerge.value] = res.rows;
 
-      const { members } = membersToMerge.value;
-
       primary.value = 0;
-
-      // Set member with maximum identities and activities as primary
-      if (members.length >= 2 && ((members[0].identities.length < members[1].identities.length)
-            || (members[0].activityCount < members[1].activityCount))) {
-        membersToMerge.value.members.reverse();
-      }
     })
     .catch(() => {
       Message.error(
