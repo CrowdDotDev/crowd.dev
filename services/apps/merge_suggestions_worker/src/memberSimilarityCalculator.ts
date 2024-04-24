@@ -213,7 +213,11 @@ class MemberSimilarityCalculator {
     similarMember: ISimilarMember,
   ): boolean {
     for (const memberRoles of member.nested_organizations) {
-      if (similarMember.nested_organizations.some((o) => memberRoles.uuid_id === o.uuid_id)) {
+      if (
+        similarMember.nested_organizations.some(
+          (o) => memberRoles.string_displayName === o.string_displayName,
+        )
+      ) {
         return true
       }
     }

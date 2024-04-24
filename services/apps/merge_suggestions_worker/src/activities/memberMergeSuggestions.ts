@@ -200,11 +200,28 @@ export async function getMemberMergeSuggestions(
       memberToMerge._source,
     )
     if (similarityConfidenceScore > SIMILARITY_CONFIDENCE_SCORE_THRESHOLD) {
+      // decide the primary member using number of activities & number of identities
+      const membersSorted = [member, memberToMerge._source].sort((a, b) => {
+        if (
+          a.nested_identities.length > b.nested_identities.length ||
+          (a.nested_identities.length === b.nested_identities.length &&
+            a.int_activityCount > b.int_activityCount)
+        ) {
+          return -1
+        } else if (
+          a.nested_identities.length < b.nested_identities.length ||
+          (a.nested_identities.length === b.nested_identities.length &&
+            a.int_activityCount < b.int_activityCount)
+        ) {
+          return 1
+        }
+        return 0
+      })
       mergeSuggestions.push({
         similarity: similarityConfidenceScore,
         activityEstimate:
           (memberToMerge._source.int_activityCount || 0) + (member.int_activityCount || 0),
-        members: [member.uuid_memberId, memberToMerge._source.uuid_memberId],
+        members: [membersSorted[0].uuid_memberId, membersSorted[1].uuid_memberId],
       })
     }
   }
