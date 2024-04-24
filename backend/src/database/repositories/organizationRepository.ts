@@ -1181,6 +1181,9 @@ class OrganizationRepository {
       segmentIds: string[]
       organizationId?: string
       displayName?: string
+      mergeActionType: MergeActionType,
+      mergeActionStatus: MergeActionState,
+      tenantId: string,
     },
     options: IRepositoryOptions,
   ): Promise<number> {
@@ -1214,8 +1217,7 @@ class OrganizationRepository {
           ${organizationFilter}
           ${similarityFilter}
           ${displayNameFilter}
-      ),
-
+      )
       SELECT COUNT(DISTINCT hash) AS total_count
       FROM cte
       `,
@@ -1252,13 +1254,13 @@ class OrganizationRepository {
 
     for (const similarity of args.filter?.similarity || []) {
       if (similarity === SimilarityScoreRange.HIGH) {
-        similarityConditions.push(`(mtm.similarity >= ${HIGH_CONFIDENCE_LOWER_BOUND})`)
+        similarityConditions.push(`(otm.similarity >= ${HIGH_CONFIDENCE_LOWER_BOUND})`)
       }
       else if (similarity === SimilarityScoreRange.MEDIUM) {
-        similarityConditions.push(`(mtm.similarity >= ${MEDIUM_CONFIDENCE_LOWER_BOUND} and mtm.similarity < ${HIGH_CONFIDENCE_LOWER_BOUND})`)
+        similarityConditions.push(`(otm.similarity >= ${MEDIUM_CONFIDENCE_LOWER_BOUND} and otm.similarity < ${HIGH_CONFIDENCE_LOWER_BOUND})`)
       }
       else if (similarity === SimilarityScoreRange.LOW) {
-        similarityConditions.push(`(mtm.similarity < ${MEDIUM_CONFIDENCE_LOWER_BOUND})`)
+        similarityConditions.push(`(otm.similarity < ${MEDIUM_CONFIDENCE_LOWER_BOUND})`)
       }
     }
 
@@ -1298,6 +1300,9 @@ class OrganizationRepository {
           segmentIds,
           displayName: args?.filter?.displayName ? `${args.filter.displayName}%` : undefined,
           organizationId: args?.filter?.organizationId,
+          mergeActionType: MergeActionType.ORG,
+          mergeActionStatus: MergeActionState.ERROR,
+          tenantId: options.currentTenant.id,
         },
         options,
       )
@@ -1349,6 +1354,10 @@ class OrganizationRepository {
         SELECT DISTINCT ON (hash)
           id,
           "toMergeId",
+          "primaryDisplayName",
+          "primaryLogo",
+          "secondaryDisplayName",
+          "secondaryLogo",
           "createdAt",
           "similarity"
         FROM cte
@@ -1358,6 +1367,10 @@ class OrganizationRepository {
       SELECT
         "organizationsToMerge".id,
         "organizationsToMerge"."toMergeId",
+        "organizationsToMerge"."primaryDisplayName",
+        "organizationsToMerge"."primaryLogo",
+        "organizationsToMerge"."secondaryDisplayName",
+        "organizationsToMerge"."secondaryLogo",
         count_cte."total_count",
         "organizationsToMerge"."similarity"
       FROM
