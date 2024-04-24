@@ -47,9 +47,9 @@ import {
   GroupsioVerifyGroup,
 } from '@/serverless/integrations/usecases/groupsio/types'
 import SearchSyncService from './searchSyncService'
-import {IRepositoryOptions} from '@/database/repositories/IRepositoryOptions'
+import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import IntegrationProgressRepository from '@/database/repositories/integrationProgressRepository'
-import {IntegrationProgress} from '@/serverless/integrations/types/regularTypes'
+import { IntegrationProgress } from '@/serverless/integrations/types/regularTypes'
 
 const discordToken = DISCORD_CONFIG.token || DISCORD_CONFIG.token2
 
