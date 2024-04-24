@@ -69,7 +69,6 @@
 
                     <p class="text-xs leading-5 font-semibold truncate max-w-3xs">
                       {{ suggestion.organizations[0].displayName }}
-                      Maulana Azad National Institute of Technology Bhopal
                     </p>
                   </div>
                 </router-link>
@@ -98,7 +97,6 @@
                     />
                     <p class="text-xs leading-5 font-semibold truncate max-w-3xs">
                       {{ suggestion.organizations[1].displayName }}
-                      Maulana Azad National Institute of Technology Bhopal
                     </p>
                   </div>
                 </router-link>
