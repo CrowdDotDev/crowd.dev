@@ -1,10 +1,10 @@
 /* eslint-disable no-promise-executor-return */
-import {createAppAuth} from '@octokit/auth-app'
-import {request} from '@octokit/request'
+import { createAppAuth } from '@octokit/auth-app'
+import { request } from '@octokit/request'
 import moment from 'moment'
 import lodash from 'lodash'
-import axios, {AxiosRequestConfig, AxiosResponse} from 'axios'
-import { Edition, PlatformType } from '@crowd/types'
+import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
+import { PlatformType, Edition } from '@crowd/types'
 import { EDITION, Error400, Error404, Error542 } from '@crowd/common'
 import {
   getHubspotLists,
