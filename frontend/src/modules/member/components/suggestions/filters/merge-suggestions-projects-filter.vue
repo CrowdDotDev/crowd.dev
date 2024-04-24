@@ -21,7 +21,7 @@
         id="filterSearch"
         ref="searchQueryInput"
         v-model="searchQuery"
-        placeholder="Search..."
+        placeholder="Search for projects"
         class="lf-filter-input filter-dropdown-search"
         data-qa="filter-list-search"
         @input="onSearchQueryChange"
