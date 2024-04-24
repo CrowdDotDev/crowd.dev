@@ -14,7 +14,7 @@
       </app-back-link>
       <div class="flex items-center pb-6">
         <h4 class="text-xl font-semibold leading-9">
-          Merge suggestions <span v-if="!loading" class="font-light text-gray-500">({{ totalCount }})</span>
+          Merge suggestions <span v-if="totalCount" class="font-light text-gray-500">({{ totalCount }})</span>
         </h4>
         <el-tooltip
           placement="top"
