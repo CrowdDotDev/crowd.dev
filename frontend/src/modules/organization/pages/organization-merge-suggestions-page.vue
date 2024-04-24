@@ -14,7 +14,7 @@
       </app-back-link>
       <div class="flex items-center pb-6">
         <h4 class="text-xl font-semibold leading-9">
-          Merge suggestions <span v-if="!loading" class="font-light text-gray-500">({{ total }})</span>
+          Merge suggestions <span v-if="!loading" class="font-light text-gray-500">({{ totalCount }})</span>
         </h4>
         <el-tooltip
           placement="top"
@@ -67,8 +67,9 @@
                       }"
                     />
 
-                    <p class="text-xs leading-5 font-semibold whitespace-nowrap">
+                    <p class="text-xs leading-5 font-semibold truncate max-w-3xs">
                       {{ suggestion.organizations[0].displayName }}
+                      Maulana Azad National Institute of Technology Bhopal
                     </p>
                   </div>
                 </router-link>
@@ -95,8 +96,9 @@
                         displayName: (suggestion.organizations[1].displayName || suggestion.organizations[1].name)?.replace('@', ''),
                       }"
                     />
-                    <p class="text-xs leading-5 font-semibold whitespace-nowrap">
+                    <p class="text-xs leading-5 font-semibold truncate max-w-3xs">
                       {{ suggestion.organizations[1].displayName }}
+                      Maulana Azad National Institute of Technology Bhopal
                     </p>
                   </div>
                 </router-link>
