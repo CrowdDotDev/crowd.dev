@@ -67,6 +67,10 @@ export async function insertActivities(activities: IDbActivityCreateData[]): Pro
       row.stringColumn('channel', activity.channel)
     }
 
+    if (activity.importHash) {
+      row.stringColumn('importHash', activity.importHash)
+    }
+
     if (activity.body) {
       row.stringColumn('body', activity.body)
     }

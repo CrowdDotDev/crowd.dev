@@ -1724,12 +1724,18 @@ importers:
       '@questdb/nodejs-client':
         specifier: ~2.1.0
         version: 2.1.0
+      html-to-text:
+        specifier: ~9.0.5
+        version: 9.0.5
       lodash.clonedeep:
         specifier: ^4.5.0
         version: 4.5.0
       lodash.merge:
         specifier: ^4.6.2
         version: 4.6.2
+      moment:
+        specifier: ~2.29.4
+        version: 2.29.4
       pg-promise:
         specifier: ^11.4.3
         version: 11.6.0

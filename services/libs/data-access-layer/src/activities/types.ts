@@ -30,6 +30,10 @@ export interface IQueryActivityResult {
   updatedAt: string
   updatedById: string
   url?: string | null
+
+  // TODO questdb: Needed?
+  ids?: string[]
+  count?: number
 }
 
 export interface IActivitySentiment {
@@ -57,4 +61,21 @@ export interface IQueryTopActivitiesParameters {
   after: Date
   before: Date
   limit: number
+}
+
+export interface INumberOfActivitiesPerMember {
+  memberId: string
+  count: number
+}
+
+export interface INumberOfActivitiesPerOrganization {
+  organizationId: string
+  count: number
+}
+
+export interface IQueryDistinctParameters {
+  tenantId: string
+  after: Date
+  before: Date
+  limit?: number
 }

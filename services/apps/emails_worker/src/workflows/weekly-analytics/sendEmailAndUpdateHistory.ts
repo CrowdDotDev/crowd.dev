@@ -10,32 +10,32 @@ import { InputAnalyticsWithSegments, InputAnalyticsWithTimes } from '../../types
 const {
   getTotalMembersThisWeek,
   getTotalMembersPreviousWeek,
-  getActiveMembersThisWeek,
-  getActiveMembersPreviousWeek,
   getNewMembersThisWeek,
   getNewMembersPreviousWeek,
   getTotalOrganizationsThisWeek,
   getTotalOrganizationsPreviousWeek,
-  getActiveOrganizationsThisWeek,
-  getActiveOrganizationsPreviousWeek,
   getNewOrganizationsThisWeek,
   getNewOrganizationsPreviousWeek,
+} = proxyActivities<typeof activities>({ startToCloseTimeout: '15 seconds' })
+
+// Configure timeouts and retry policies to fetch content from the databases.
+const {
+  getTenantUsers,
+  getSegments,
+  getActiveTenantIntegrations,
   getTotalActivitiesThisWeek,
   getTotalActivitiesPreviousWeek,
   getNewActivitiesThisWeek,
   getNewActivitiesPreviousWeek,
-} = proxyActivities<typeof activities>({ startToCloseTimeout: '15 seconds' })
-
-// Configure timeouts and retry policies to fetch content from the database.
-const {
-  updateEmailHistory,
-  getTenantUsers,
-  getSegments,
-  getMostActiveMembers,
-  getMostActiveOrganizations,
+  getMostActiveMembersThisWeek,
+  getMostActiveOrganizationsThisWeek,
   getTopActivityTypes,
   getConversations,
-  getActiveTenantIntegrations,
+  getActiveMembersThisWeek,
+  getActiveMembersPreviousWeek,
+  getActiveOrganizationsThisWeek,
+  getActiveOrganizationsPreviousWeek,
+  updateEmailHistory,
 } = proxyActivities<typeof activities>({ startToCloseTimeout: '10 seconds' })
 
 // Configure timeouts and retry policies to actually send the email.
@@ -105,9 +105,8 @@ export async function weeklySendEmailAndUpdateHistory(
     totalActivitiesPreviousWeek,
     newActivitiesThisWeek,
     newActivitiesPreviousWeek,
-
-    mostActiveMembers,
-    mostActiveOrganizations,
+    mostActiveMembersThisWeek,
+    mostActiveOrganizationsThisWeek,
     topActivityTypes,
     conversations,
   ] = await Promise.all([
@@ -127,9 +126,8 @@ export async function weeklySendEmailAndUpdateHistory(
     getTotalActivitiesPreviousWeek(withTimeAndSegmentIds),
     getNewActivitiesThisWeek(withTimeAndSegmentIds),
     getNewActivitiesPreviousWeek(withTimeAndSegmentIds),
-
-    getMostActiveMembers(withTimeAndSegments),
-    getMostActiveOrganizations(withTimeAndSegments),
+    getMostActiveMembersThisWeek(withTimeAndSegments),
+    getMostActiveOrganizationsThisWeek(withTimeAndSegments),
     getTopActivityTypes(withTimeAndSegments),
     getConversations(withTimeAndSegments),
   ])
@@ -151,7 +149,7 @@ export async function weeklySendEmailAndUpdateHistory(
         value: activeMembersThisWeek,
         ...getChangeAndDirection(activeMembersThisWeek, activeMembersPreviousWeek),
       },
-      mostActive: mostActiveMembers,
+      mostActive: mostActiveMembersThisWeek,
     },
     organizations: {
       total: {
@@ -166,7 +164,7 @@ export async function weeklySendEmailAndUpdateHistory(
         value: activeOrganizationsThisWeek,
         ...getChangeAndDirection(activeOrganizationsThisWeek, activeOrganizationsPreviousWeek),
       },
-      mostActive: mostActiveOrganizations,
+      mostActive: mostActiveOrganizationsThisWeek,
     },
     activities: {
       total: {

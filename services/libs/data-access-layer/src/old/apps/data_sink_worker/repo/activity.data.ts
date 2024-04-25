@@ -35,6 +35,7 @@ export interface IDbActivityCreateData {
   score: number
   sourceId: string
   sourceParentId?: string
+  importHash?: string
   parentId?: string
   tenantId: string
   segmentId?: string

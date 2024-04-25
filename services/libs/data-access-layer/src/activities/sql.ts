@@ -7,8 +7,11 @@ import { RawQueryParser, getEnv } from '@crowd/common'
 import { IDbActivityUpdateData } from '../old/apps/data_sink_worker/repo/activity.data'
 import {
   IActivitySentiment,
+  INumberOfActivitiesPerMember,
+  INumberOfActivitiesPerOrganization,
   IQueryActivitiesParameters,
   IQueryActivityResult,
+  IQueryDistinctParameters,
   IQueryTopActivitiesParameters,
 } from './types'
 import { ActivityDisplayService } from '@crowd/integrations'
@@ -540,8 +543,9 @@ export async function findTopActivityTypes(
     limit: arg.limit || 10,
   })
 
-  const totalCount = result.map((row) => {
-    return totalCount + row.count
+  let totalCount = 0
+  result.forEach((row) => {
+    totalCount += row.count
   })
 
   result = result.map((a) => {
@@ -558,6 +562,62 @@ export async function findTopActivityTypes(
     a.percentage = Number((a.count / totalCount) * 100).toFixed(2)
     a.platformIcon = `${s3Url}/email/${a.platform}.png`
     return a
+  })
+
+  return result
+}
+
+export async function getDistinctActiveOrganizations(
+  qdbConn: DbConnOrTx,
+  arg: IQueryDistinctParameters,
+): Promise<INumberOfActivitiesPerOrganization[]> {
+  let query = `
+    SELECT DISTINCT organizationId, COUNT()
+    FROM activities
+    WHERE tenantId = $(tenantId)
+    AND organizationId IS NOT NULL
+    AND timestamp BETWEEN $(after) AND $(before)
+  `
+
+  if (arg.limit) {
+    query += ` LIMIT $(limit)`
+  }
+
+  query += ';'
+
+  const result: INumberOfActivitiesPerOrganization[] = await qdbConn.query(query, {
+    tenantId: arg.tenantId,
+    after: arg.after,
+    before: arg.before,
+    limit: arg.limit || 20,
+  })
+
+  return result
+}
+
+export async function getDistinctActiveMembers(
+  qdbConn: DbConnOrTx,
+  arg: IQueryDistinctParameters,
+): Promise<INumberOfActivitiesPerMember[]> {
+  let query = `
+    SELECT DISTINCT memberId, COUNT()
+    FROM activities
+    WHERE tenantId = $(tenantId)
+    AND memberId IS NOT NULL
+    AND timestamp BETWEEN $(after) AND $(before)
+  `
+
+  if (arg.limit) {
+    query += ` LIMIT $(limit)`
+  }
+
+  query += ';'
+
+  const result: INumberOfActivitiesPerMember[] = await qdbConn.query(query, {
+    tenantId: arg.tenantId,
+    after: arg.after,
+    before: arg.before,
+    limit: arg.limit,
   })
 
   return result
