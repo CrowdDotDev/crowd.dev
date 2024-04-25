@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: api
-          image: crowddotdev/backend:1666904557.59dad54
+          image: liscioapps/sphere-backend:1714074134.152e16cb
           command: ['npm']
           args: ['run', 'start:api']
           envFrom:
