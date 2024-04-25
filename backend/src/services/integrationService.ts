@@ -1420,7 +1420,7 @@ export default class IntegrationService {
            }
         } catch (error) {
             if (error.response && error.response.status !== 404) {
-              console.error('Error in getGerritServerRepos:', error);
+              throw new Error404('Error in getGerritServerRepos:', error)
             }
         }
       }
