@@ -3,12 +3,12 @@
     class="h-14 flex items-center transition group pl-4 pr-4"
   >
     <router-link to="/" class="w-8 flex justify-center">
-      <div>
+      <div class="flex justify-center">
         <img
           key="logo"
-          class="h-6 !opacity-100"
-          src="/images/logo/crowd-mini.svg"
-          alt="crowd.dev logo"
+          class="h-8 !opacity-100"
+          src="/images/logo/sphere-mini.svg"
+          alt="GetSphere logo"
         />
       </div>
     </router-link>
