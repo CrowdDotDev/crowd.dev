@@ -1359,8 +1359,8 @@ export default class IntegrationService {
    * @returns integration object
    */
   async gerritConnectOrUpdate(integrationData) {
-    const transaction = await SequelizeRepository.createTransaction(this.options)
-   let integration
+   const transaction = await SequelizeRepository.createTransaction(this.options)
+   let integration: any
     try {
       const res = await IntegrationService.getGerritServerRepos(integrationData.remote.orgURL)
       if (integrationData.remote.enableAllRepos) {
