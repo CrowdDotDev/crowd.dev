@@ -1362,9 +1362,9 @@ export default class IntegrationService {
     const transaction = await SequelizeRepository.createTransaction(this.options)
    let integration
     try {
-      let res = await this.getGerritServerRepos(integrationData.remote.orgURL)
+      const res = await this.getGerritServerRepos(integrationData.remote.orgURL)
       if (integrationData.remote.enableAllRepos) {
-        integrationData.remote.repoNames = res.repoNames;
+        integrationData.remote.repoNames = res.repoNames
       }
       integration = await this.createOrUpdate(
         {
@@ -1406,25 +1406,25 @@ export default class IntegrationService {
   }
 
   async getGerritServerRepos(serverURL: string): Promise<{repoNames: string[], urlPartial: string}> {
-      let urlPartials = ["/r", "/gerrit", "/"]
-      for (let p of urlPartials){
+      const urlPartials = ["/r", "/gerrit", "/"]
+      for (const p of urlPartials){
         try {
-            const result = await axios.get(`${serverURL}${p}/projects/?`, {});
-           const str = result.data.replace(")]}'\n", "");
-           const data = JSON.parse(str);
+            const result = await axios.get(`${serverURL}${p}/projects/?`, {})
+           const str = result.data.replace(")]}'\n", "")
+           const data = JSON.parse(str)
 
-           const repos = Object.keys(data).filter(key => key !== ".github" && key !== "All-Projects" && key !== "All-Users");
+           const repos = Object.keys(data).filter(key => key !== ".github" && key !== "All-Projects" && key !== "All-Users")
            return {
                repoNames: repos,
                urlPartial: p,
            }
         } catch (error) {
-            if (error.response && error.response.status === 404) {
-                continue;
+            if (error.response && error.response.status !== 404) {
+              console.error('Error in getGerritServerRepos:', error);
             }
-          console.error('Error in getGerritServerRepos:', error);
         }
       }
+      return {  repoNames: [], urlPartial: "" }
   }
   /**
    * Get all remotes for the Git integration, by segment
