@@ -1,4 +1,4 @@
-FROM node:18-alpine as builder
+FROM node:20-alpine as builder
 
 WORKDIR /usr/crowd/app
 RUN corepack enable 
@@ -10,7 +10,7 @@ COPY ./pnpm-workspace.yaml ./pnpm-lock.yaml ./
 COPY ./services ./services
 RUN pnpm i --frozen-lockfile
 
-FROM node:18-alpine as runner
+FROM node:20-alpine as runner
 
 WORKDIR /usr/crowd/app
 RUN corepack enable
