@@ -59,7 +59,7 @@
                       :entity="suggestion.members[0]"
                       size="xs"
                     />
-                    <p class="text-xs leading-5 font-semibold whitespace-nowrap">
+                    <p class="text-xs leading-5 font-semibold truncate max-w-3xs">
                       {{ suggestion.members[0].displayName }}
                     </p>
                   </div>
@@ -83,7 +83,7 @@
                       :entity="suggestion.members[1]"
                       size="xs"
                     />
-                    <p class="text-xs leading-5 font-semibold whitespace-nowrap">
+                    <p class="text-xs leading-5 font-semibold truncate max-w-3xs">
                       {{ suggestion.members[1].displayName }}
                     </p>
                   </div>
@@ -147,7 +147,7 @@
     :offset="detailsOffset"
     :query="{
       filter,
-      orderBy: [sorting],
+      orderBy: [sorting, 'activityCount_DESC'],
     }"
     @reload="reload()"
   />
@@ -191,7 +191,7 @@ const loadMergeSuggestions = () => {
   loading.value = true;
   MemberService.fetchMergeSuggestions(limit.value, (page.value - 1) * limit.value, {
     filter: filter.value,
-    orderBy: [sorting.value],
+    orderBy: [sorting.value, 'activityCount_DESC'],
     detail: false,
   })
     .then((res) => {

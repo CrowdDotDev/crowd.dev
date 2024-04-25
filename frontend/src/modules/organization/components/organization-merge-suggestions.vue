@@ -60,7 +60,7 @@
           :loading="sendingMerge"
           @click="mergeSuggestion()"
         >
-          Merge contributors
+          Merge organizations
         </cr-button>
         <slot name="actions" />
       </div>

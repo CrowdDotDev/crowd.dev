@@ -65,4 +65,11 @@ export const DEFAULT_MEMBER_ATTRIBUTES: IMemberAttribute[] = [
     canDelete: false,
     show: false,
   },
+  {
+    name: MemberAttributes[MemberAttributeName.COMPANY].name,
+    label: MemberAttributes[MemberAttributeName.COMPANY].label,
+    type: MemberAttributeType.STRING,
+    canDelete: false,
+    show: false,
+  },
 ]
