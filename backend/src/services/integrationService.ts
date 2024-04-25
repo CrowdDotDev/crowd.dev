@@ -1362,7 +1362,7 @@ export default class IntegrationService {
     const transaction = await SequelizeRepository.createTransaction(this.options)
    let integration
     try {
-      const res = await this.getGerritServerRepos(integrationData.remote.orgURL)
+      const res = await IntegrationService.getGerritServerRepos(integrationData.remote.orgURL)
       if (integrationData.remote.enableAllRepos) {
         integrationData.remote.repoNames = res.repoNames
       }
@@ -1405,7 +1405,7 @@ export default class IntegrationService {
     return integration
   }
 
-  async getGerritServerRepos(serverURL: string): Promise<{repoNames: string[], urlPartial: string}> {
+  static async getGerritServerRepos(serverURL: string): Promise<{repoNames: string[], urlPartial: string}> {
       const urlPartials = ["/r", "/gerrit", "/"]
       for (const p of urlPartials){
         try {
