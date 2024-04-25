@@ -9,12 +9,12 @@ export default async (req, res) => {
   }
 
   // Allow sign-ups only from a configured domain in community edition
-  if (
-    API_CONFIG.edition === 'community' &&
-    API_CONFIG.signUpDomain !== req.body.email.split('@')[1]
-  ) {
-    throw new Error400(req.language, 'auth.invalidSignUpDomain')
-  }
+  // if (
+  //   API_CONFIG.edition === 'community' &&
+  //   API_CONFIG.signUpDomain !== req.body.email.split('@')[1]
+  // ) {
+  //   throw new Error400(req.language, 'auth.invalidSignUpDomain')
+  // }
 
   const { token, user } = await AuthService.signup(
     req.body.email,
