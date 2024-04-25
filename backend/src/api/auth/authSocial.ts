@@ -2,6 +2,7 @@ import passport from 'passport'
 import { getServiceChildLogger } from '@crowd/logging'
 import { API_CONFIG, GITHUB_CONFIG, GOOGLE_CONFIG } from '../../conf'
 import AuthService from '../../services/auth/authService'
+import TenantService from '@/services/tenantService'
 
 const log = getServiceChildLogger('AuthSocial')
 
@@ -23,6 +24,11 @@ export default (app, routes) => {
       req.body.tenantId,
       req,
     )
+    if (!req.body.tenantId && !req.body.invitationToken) {
+      await new TenantService(req).create({
+        name: 'temporaryName',
+      })
+    }
 
     await req.responseHandler.success(req, res, payload)
   })
@@ -73,7 +79,7 @@ function handleCallback(res, err, jwtToken) {
     log.error(err, 'Error handling social callback!')
     let errorCode = 'generic'
 
-    if (['auth-invalid-provider', 'auth-no-email', 'auth-user-no-exist'].includes(err.message)) {
+    if (['auth-invalid-provider', 'auth-no-email'].includes(err.message)) {
       errorCode = err.message
     }
 

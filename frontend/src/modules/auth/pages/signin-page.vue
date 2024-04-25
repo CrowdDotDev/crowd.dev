@@ -2,9 +2,9 @@
   <div class="flex justify-end mt-5 mb-20">
     <p class="text-sm leading-5 text-center">
       Don't have an account yet?
-      <a href="https://app.formbricks.com/s/clsbss9bw85hystedb8h5vhpz">
-        Get started
-      </a>
+      <router-link :to="{ name: 'signup' }">
+        Sign up
+      </router-link>
     </p>
   </div>
 

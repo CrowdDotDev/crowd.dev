@@ -1,6 +1,8 @@
 import Layout from '@/modules/layout/components/layout.vue';
 import AuthLayout from '@/modules/auth/layouts/auth-layout.vue';
 
+const SignupPage = () => import('@/modules/auth/pages/signup-page.vue');
+
 const SigninPage = () => import('@/modules/auth/pages/signin-page.vue');
 
 const ForgotPasswordPage = () => import('@/modules/auth/pages/forgot-password-page.vue');
@@ -19,12 +21,13 @@ export default [
     name: 'auth',
     path: '/auth',
     component: AuthLayout,
-    redirect: '/auth/signin',
+    redirect: '/auth/signup',
     children: [
       {
         name: 'signup',
         path: 'signup',
-        redirect: '/auth/signin',
+        component: SignupPage,
+        meta: { unauth: true, title: 'Sign up' },
       },
       {
         name: 'signin',
