@@ -243,6 +243,17 @@
           />
           <span v-else>-</span>
         </article>
+        <article
+          v-if="member.activityCount > 0"
+          class="pb-4"
+        >
+          <p class="text-2xs font-medium text-gray-500 pb-1">
+            Activity Count
+          </p>
+          <p class="text-xs text-gray-900 whitespace-normal">
+            {{ member.activityCount || 0 }}
+          </p>
+        </article>
         <slot name="property" />
       </div>
       <div class="pt-4">

@@ -27,7 +27,7 @@
         @input="onSearchQueryChange"
       />
     </div>
-    <div class="p-2 border-t border-gray-100 flex flex-col gap-1">
+    <div class="p-2 border-t border-gray-100 flex flex-col gap-1 max-h-72 overflow-auto">
       <section v-for="project of projects.list" :key="project.id">
         <label
           class="px-3 py-2.5 leading-5 font-xs flex items-center transition cursor-pointer rounded-md hover:bg-gray-50"
