@@ -45,7 +45,7 @@
           :key="ii"
           v-model="form.repoNames[ii]"
           class="text-green-500 mt-2"
-          placeholder="Enter Repository Name"
+          placeholder="Enter Project Name"
         >
           <template #after>
             <el-button
@@ -60,6 +60,13 @@
       <el-button class="btn btn-link btn-link--primary" @click="addRepoName()">
         + Add Repository Name
       </el-button>
+      <br>
+      <el-checkbox id="enableAllRepos" v-model="form.enableAllRepos">
+        Enable All Projects
+      </el-checkbox>
+      <el-checkbox id="enableGit" v-model="form.enableGit">
+        Enable Git Integration
+      </el-checkbox>
     </template>
 
     <template #footer>
@@ -112,7 +119,9 @@ const form = reactive({
   orgURL: '',
   user: '',
   key: '',
-  repoNames: [''],
+  enableAllRepos: false,
+  enableGit: false,
+  repoNames: [],
 });
 
 const { hasFormChanged, formSnapshot } = formChangeDetector(form);
@@ -135,6 +144,8 @@ onMounted(() => {
     form.user = props.integration.settings.remote.user;
     form.key = props.integration.settings.remote.key;
     form.repoNames = props.integration.settings.remote.repoNames;
+    form.enableAllRepos = props.integration.settings.remote.enableAllRepos;
+    form.enableGit = props.integration.settings.remote.enableGit;
   }
   formSnapshot();
 });
@@ -159,6 +170,8 @@ const connect = async () => {
     user: form.user,
     key: form.key,
     repoNames: form.repoNames,
+    enableAllRepos: form.enableAllRepos,
+    enableGit: form.enableGit,
   })
     .then(() => {
       isVisible.value = false;
