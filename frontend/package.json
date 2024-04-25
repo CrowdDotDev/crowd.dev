@@ -42,7 +42,7 @@
     "chart.js": "^3.9.1",
     "chartjs-adapter-moment": "^1.0.1",
     "chartjs-plugin-annotation": "^2.2.1",
-    "chartkick": "github:CrowdDotDev/chartkick.js",
+    "chartkick": "^5.0.1",
     "element-plus": "^2.3.1",
     "eslint-import-resolver-alias": "^1.1.2",
     "eslint-plugin-import": "^2.27.5",
