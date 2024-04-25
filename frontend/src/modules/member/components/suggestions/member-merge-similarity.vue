@@ -21,13 +21,13 @@ const style = computed<{
   color: string,
   svg: string
 }>(() => {
-  if (props.similarity >= 0.8) {
+  if (props.similarity >= 0.9) {
     return {
       color: 'text-green-600',
       svg: 'similarity-high',
     };
   }
-  if (props.similarity >= 0.6) {
+  if (props.similarity >= 0.7) {
     return {
       color: 'text-blue-500',
       svg: 'similarity-medium',

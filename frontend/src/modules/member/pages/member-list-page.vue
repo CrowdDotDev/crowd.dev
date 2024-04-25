@@ -168,7 +168,9 @@ const isEditLockedForSampleData = computed(() => new MemberPermissions(
 )?.editLockedForSampleData);
 
 const fetchMembersToMergeCount = () => {
-  MemberService.fetchMergeSuggestions(1, 0)
+  MemberService.fetchMergeSuggestions(0, 0, {
+    countOnly: true,
+  })
     .then(({ count }: any) => {
       membersToMergeCount.value = count;
     });
