@@ -269,8 +269,7 @@ class MemberRepository {
       ? 'mtm."activityEstimate" desc, mtm.similarity desc, mtm."memberId", mtm."toMergeId"'
       : 'mtm.similarity desc, mtm."activityEstimate" desc, mtm."memberId", mtm."toMergeId"'
 
-    // const similarityFilter = isSegmentsEnabled ? ' and mtm.similarity > 0.95 ' : ''
-    const similarityFilter = ''
+    const similarityFilter = isSegmentsEnabled ? ' and mtm.similarity > 0.95 ' : ''
 
     const memberFilter = memberId
       ? ` and (mtm."memberId" = :memberId OR mtm."toMergeId" = :memberId)`
