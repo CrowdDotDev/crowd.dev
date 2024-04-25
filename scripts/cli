@@ -335,7 +335,7 @@ function migrate_env() {
 
     say "Building flyway migration image..."
     docker build $DOCKER_PLATFORM_FLAGS -t crowd_flyway -f $CLI_HOME/../backend/src/database/Dockerfile.flyway $CLI_HOME/../backend/src/database --load
-    say "Applying database migrations to $CROWD_DB_WRITE_HOST!"
+    say "Applying env database migrations to $CROWD_DB_WRITE_HOST!"
     docker run --rm \
         -e PGHOST=$CROWD_DB_WRITE_HOST \
         -e PGPORT=$CROWD_DB_PORT \
@@ -348,7 +348,7 @@ function migrate_env() {
 function migrate_local() {
     say "Building flyway migration image..."
     docker build $DOCKER_PLATFORM_FLAGS -t crowd_flyway -f $CLI_HOME/../backend/src/database/Dockerfile.flyway $CLI_HOME/../backend/src/database --load
-    say "Applying database migrations!"
+    say "Applying local database migrations!"
     docker run --rm --network "${PROJECT_NAME}-bridge" \
         -e PGHOST=db \
         -e PGPORT=5432 \
@@ -369,7 +369,7 @@ function migrate_test() {
     say "Building flyway migration image..."
     docker build -t crowd_flyway -f $CLI_HOME/../backend/src/database/Dockerfile.flyway $CLI_HOME/../backend/src/database
 
-    say "Applying database migrations!"
+    say "Applying test database migrations!"
     docker run --rm --network "${PROJECT_NAME}-bridge-test" \
         -e PGHOST=db-test \
         -e PGPORT=5432 \
