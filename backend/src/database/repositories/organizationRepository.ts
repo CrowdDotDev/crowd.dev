@@ -40,7 +40,10 @@ import { QueryOutput } from './filters/queryTypes'
 import OrganizationSyncRemoteRepository from './organizationSyncRemoteRepository'
 import SegmentRepository from './segmentRepository'
 import { IActiveOrganizationData, IActiveOrganizationFilter } from './types/organizationTypes'
-import { IFetchOrganizationMergeSuggestionArgs, SimilarityScoreRange } from '@/types/mergeSuggestionTypes'
+import {
+  IFetchOrganizationMergeSuggestionArgs,
+  SimilarityScoreRange,
+} from '@/types/mergeSuggestionTypes'
 
 const { Op } = Sequelize
 
@@ -1181,9 +1184,9 @@ class OrganizationRepository {
       segmentIds: string[]
       organizationId?: string
       displayName?: string
-      mergeActionType: MergeActionType,
-      mergeActionStatus: MergeActionState,
-      tenantId: string,
+      mergeActionType: MergeActionType
+      mergeActionStatus: MergeActionState
+      tenantId: string
     },
     options: IRepositoryOptions,
   ): Promise<number> {
@@ -1255,11 +1258,11 @@ class OrganizationRepository {
     for (const similarity of args.filter?.similarity || []) {
       if (similarity === SimilarityScoreRange.HIGH) {
         similarityConditions.push(`(otm.similarity >= ${HIGH_CONFIDENCE_LOWER_BOUND})`)
-      }
-      else if (similarity === SimilarityScoreRange.MEDIUM) {
-        similarityConditions.push(`(otm.similarity >= ${MEDIUM_CONFIDENCE_LOWER_BOUND} and otm.similarity < ${HIGH_CONFIDENCE_LOWER_BOUND})`)
-      }
-      else if (similarity === SimilarityScoreRange.LOW) {
+      } else if (similarity === SimilarityScoreRange.MEDIUM) {
+        similarityConditions.push(
+          `(otm.similarity >= ${MEDIUM_CONFIDENCE_LOWER_BOUND} and otm.similarity < ${HIGH_CONFIDENCE_LOWER_BOUND})`,
+        )
+      } else if (similarity === SimilarityScoreRange.LOW) {
         similarityConditions.push(`(otm.similarity < ${MEDIUM_CONFIDENCE_LOWER_BOUND})`)
       }
     }

@@ -300,7 +300,7 @@ class MemberRepository {
 
     const HIGH_CONFIDENCE_LOWER_BOUND = 0.9
     const MEDIUM_CONFIDENCE_LOWER_BOUND = 0.7
-    
+
     if (args.filter?.projectIds) {
       segmentIds = (
         await new SegmentRepository(options).getSegmentSubprojects(args.filter.projectIds)
@@ -317,11 +317,11 @@ class MemberRepository {
     for (const similarity of args.filter?.similarity || []) {
       if (similarity === SimilarityScoreRange.HIGH) {
         similarityConditions.push(`(mtm.similarity >= ${HIGH_CONFIDENCE_LOWER_BOUND})`)
-      }
-      else if (similarity === SimilarityScoreRange.MEDIUM) {
-        similarityConditions.push(`(mtm.similarity >= ${MEDIUM_CONFIDENCE_LOWER_BOUND} and mtm.similarity < ${HIGH_CONFIDENCE_LOWER_BOUND})`)
-      }
-      else if (similarity === SimilarityScoreRange.LOW) {
+      } else if (similarity === SimilarityScoreRange.MEDIUM) {
+        similarityConditions.push(
+          `(mtm.similarity >= ${MEDIUM_CONFIDENCE_LOWER_BOUND} and mtm.similarity < ${HIGH_CONFIDENCE_LOWER_BOUND})`,
+        )
+      } else if (similarity === SimilarityScoreRange.LOW) {
         similarityConditions.push(`(mtm.similarity < ${MEDIUM_CONFIDENCE_LOWER_BOUND})`)
       }
     }
@@ -399,7 +399,7 @@ class MemberRepository {
       {
         replacements: {
           segmentIds,
-           limit: args.limit,
+          limit: args.limit,
           offset: args.offset,
           displayName: args?.filter?.displayName ? `${args.filter.displayName}%` : undefined,
           memberId: args?.filter?.memberId,
@@ -409,27 +409,25 @@ class MemberRepository {
     )
 
     if (mems.length > 0) {
-
       let result
 
       if (args.detail) {
         const memberPromises = []
         const toMergePromises = []
-  
+
         for (const mem of mems) {
           memberPromises.push(MemberRepository.findByIdOpensearch(mem.id, options))
           toMergePromises.push(MemberRepository.findByIdOpensearch(mem.toMergeId, options))
         }
-  
+
         const memberResults = await Promise.all(memberPromises)
         const memberToMergeResults = await Promise.all(toMergePromises)
-  
+
         result = memberResults.map((i, idx) => ({
           members: [i, memberToMergeResults[idx]],
           similarity: mems[idx].similarity,
         }))
-      }
-      else {
+      } else {
         result = mems.map((i) => ({
           members: [
             {
