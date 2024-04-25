@@ -27,12 +27,18 @@ import { IServiceOptions } from './IServiceOptions'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import IntegrationRepository from '../database/repositories/integrationRepository'
 import track from '../segment/track'
-import {getInstalledRepositories} from '../serverless/integrations/usecases/github/rest/getInstalledRepositories'
-import {getGitHubRemoteStats, GitHubStats,} from '../serverless/integrations/usecases/github/rest/getRemoteStats'
+import { getInstalledRepositories } from '../serverless/integrations/usecases/github/rest/getInstalledRepositories'
+import {
+  getGitHubRemoteStats,
+  GitHubStats,
+} from '../serverless/integrations/usecases/github/rest/getRemoteStats'
 import telemetryTrack from '../segment/telemetryTrack'
 import getToken from '../serverless/integrations/usecases/nango/getToken'
-import {getOrganizations} from '../serverless/integrations/usecases/linkedin/getOrganizations'
-import {getIntegrationRunWorkerEmitter, getIntegrationSyncWorkerEmitter,} from '../serverless/utils/serviceSQS'
+import { getOrganizations } from '../serverless/integrations/usecases/linkedin/getOrganizations'
+import {
+  getIntegrationRunWorkerEmitter,
+  getIntegrationSyncWorkerEmitter,
+} from '../serverless/utils/serviceSQS'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
 import TenantRepository from '../database/repositories/tenantRepository'
 import GithubReposRepository from '../database/repositories/githubReposRepository'
@@ -1359,8 +1365,8 @@ export default class IntegrationService {
    * @returns integration object
    */
   async gerritConnectOrUpdate(integrationData) {
-   const transaction = await SequelizeRepository.createTransaction(this.options)
-   let integration: any
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+    let integration: any
     try {
       const res = await IntegrationService.getGerritServerRepos(integrationData.remote.orgURL)
       if (integrationData.remote.enableAllRepos) {
@@ -1386,14 +1392,16 @@ export default class IntegrationService {
         }
 
         integration = await this.createOrUpdate(
-            {
-              platform: PlatformType.GIT,
-              settings: {
-                remotes: integrationData.remote.repoNames.map((repo) => stripGit(`${integrationData.remote.orgURL}${res.urlPartial}/${repo}`)),
-              },
-              status: 'done',
+          {
+            platform: PlatformType.GIT,
+            settings: {
+              remotes: integrationData.remote.repoNames.map((repo) =>
+                stripGit(`${integrationData.remote.orgURL}${res.urlPartial}/${repo}`),
+              ),
             },
-            transaction,
+            status: 'done',
+          },
+          transaction,
         )
       }
 
@@ -1405,26 +1413,30 @@ export default class IntegrationService {
     return integration
   }
 
-  static async getGerritServerRepos(serverURL: string): Promise<{repoNames: string[], urlPartial: string}> {
-      const urlPartials = ["/r", "/gerrit", "/"]
-      for (const p of urlPartials){
-        try {
-            const result = await axios.get(`${serverURL}${p}/projects/?`, {})
-           const str = result.data.replace(")]}'\n", "")
-           const data = JSON.parse(str)
+  static async getGerritServerRepos(
+    serverURL: string,
+  ): Promise<{ repoNames: string[]; urlPartial: string }> {
+    const urlPartials = ['/r', '/gerrit', '/']
+    for (const p of urlPartials) {
+      try {
+        const result = await axios.get(`${serverURL}${p}/projects/?`, {})
+        const str = result.data.replace(")]}'\n", '')
+        const data = JSON.parse(str)
 
-           const repos = Object.keys(data).filter(key => key !== ".github" && key !== "All-Projects" && key !== "All-Users")
-           return {
-               repoNames: repos,
-               urlPartial: p,
-           }
-        } catch (error) {
-            if (error.response && error.response.status !== 404) {
-              throw new Error404('Error in getGerritServerRepos:', error)
-            }
+        const repos = Object.keys(data).filter(
+          (key) => key !== '.github' && key !== 'All-Projects' && key !== 'All-Users',
+        )
+        return {
+          repoNames: repos,
+          urlPartial: p,
+        }
+      } catch (error) {
+        if (error.response && error.response.status !== 404) {
+          throw new Error404('Error in getGerritServerRepos:', error)
         }
       }
-      return {  repoNames: [], urlPartial: "" }
+    }
+    return { repoNames: [], urlPartial: '' }
   }
 
   /**
