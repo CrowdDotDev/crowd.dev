@@ -208,12 +208,13 @@ class ConversationRepository {
   ) {
     let customOrderBy: Array<any> = []
     let include = [
-      {
-        model: options.database.activity,
-        as: 'activities',
-        attributes: [],
-        where: {} as Record<string, any>,
-      },
+      // TODO questdb load activities for conversations
+      // {
+      //   model: options.database.activity,
+      //   as: 'activities',
+      //   attributes: [],
+      //   where: {} as Record<string, any>,
+      // },
     ]
 
     orderBy = 'lastActive_DESC'
@@ -300,6 +301,7 @@ class ConversationRepository {
         })
       }
 
+      // TODO questdb fix - how to filter by activity count here?
       if (filter.activityCountRange) {
         const [start, end] = filter.activityCountRange
 
@@ -342,9 +344,11 @@ class ConversationRepository {
     }
 
     // generate customOrderBy array for ordering Sequelize literals
+    // TODO questdb fix
     customOrderBy = customOrderBy.concat(
       SequelizeFilterUtils.customOrderByIfExists('activityCount', orderBy),
     )
+    // TODO questdb fix
     customOrderBy = customOrderBy.concat(
       SequelizeFilterUtils.customOrderByIfExists('lastActive', orderBy),
     )
@@ -353,16 +357,19 @@ class ConversationRepository {
       SequelizeFilterUtils.customOrderByIfExists('channel', orderBy),
     )
 
+    // TODO questdb fix
     const activityCount = options.database.Sequelize.fn(
       'COUNT',
       options.database.Sequelize.col('activities.id'),
     )
 
+    // TODO questdb fix
     const lastActive = options.database.Sequelize.fn(
       'MAX',
       options.database.Sequelize.col('activities.timestamp'),
     )
 
+    // TODO questdb
     const platform = Sequelize.col('activities.platform')
 
     const parser = new QueryParser(
@@ -508,6 +515,7 @@ class ConversationRepository {
       rows.map(async (record) => {
         const rec = record.get({ plain: true })
         for (const relationship of lazyLoad) {
+          // TODO questdb load activities for conversations
           if (relationship === 'activities') {
             const allActivities = await record.getActivities({
               order: [
@@ -603,6 +611,7 @@ class ConversationRepository {
 
     const transaction = SequelizeRepository.getTransaction(options)
 
+    // TODO questdb
     // Fetch the first activity with parent = null
     const firstActivity = await record.getActivities({
       where: {

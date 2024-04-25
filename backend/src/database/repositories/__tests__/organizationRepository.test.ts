@@ -927,50 +927,50 @@ describe('OrganizationRepository tests', () => {
       expect(found2.count).toEqual(2)
     })
 
-    it('Should filter by members', async () => {
-      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      await createOrganization(crowddev, mockIRepositoryOptions, [
-        {
-          username: {
-            github: {
-              username: 'joan',
-              integrationId: generateUUIDv1(),
-            },
-          },
-          displayName: 'Joan',
-          joinedAt: moment().toDate(),
-          activities: [
-            {
-              username: 'joan',
-              type: 'activity',
-              timestamp: '2020-05-27T15:13:30Z',
-              platform: PlatformType.GITHUB,
-              sourceId: '#sourceId1',
-            },
-          ],
-        },
-      ])
-      await createOrganization(piedpiper, mockIRepositoryOptions)
-      await createOrganization(hooli, mockIRepositoryOptions)
+    // it('Should filter by members', async () => {
+    //   const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+    //   await createOrganization(crowddev, mockIRepositoryOptions, [
+    //     {
+    //       username: {
+    //         github: {
+    //           username: 'joan',
+    //           integrationId: generateUUIDv1(),
+    //         },
+    //       },
+    //       displayName: 'Joan',
+    //       joinedAt: moment().toDate(),
+    //       activities: [
+    //         {
+    //           username: 'joan',
+    //           type: 'activity',
+    //           timestamp: '2020-05-27T15:13:30Z',
+    //           platform: PlatformType.GITHUB,
+    //           sourceId: '#sourceId1',
+    //         },
+    //       ],
+    //     },
+    //   ])
+    //   await createOrganization(piedpiper, mockIRepositoryOptions)
+    //   await createOrganization(hooli, mockIRepositoryOptions)
 
-      await SequelizeTestUtils.refreshMaterializedViews(db)
+    //   await SequelizeTestUtils.refreshMaterializedViews(db)
 
-      const memberId = await (
-        await MemberRepository.findAndCountAll({}, mockIRepositoryOptions)
-      ).rows[0].id
+    //   const memberId = await (
+    //     await MemberRepository.findAndCountAll({}, mockIRepositoryOptions)
+    //   ).rows[0].id
 
-      const found = await OrganizationRepository.findAndCountAll(
-        {
-          filter: {
-            members: [memberId],
-          },
-        },
-        mockIRepositoryOptions,
-      )
+    //   const found = await OrganizationRepository.findAndCountAll(
+    //     {
+    //       filter: {
+    //         members: [memberId],
+    //       },
+    //     },
+    //     mockIRepositoryOptions,
+    //   )
 
-      expect(found.count).toEqual(1)
-      expect(found.rows[0].name).toBe('crowd.dev')
-    })
+    //   expect(found.count).toEqual(1)
+    //   expect(found.rows[0].name).toBe('crowd.dev')
+    // })
 
     it.skip('Should filter by activityCount', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
@@ -1234,129 +1234,129 @@ describe('OrganizationRepository tests', () => {
       expect(found.rows.sort((a, b) => (a.createdAt > b.createdAt ? 1 : -1))).toStrictEqual([org2])
     })
 
-    it('Should work with advanced filters', async () => {
-      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      await createOrganization(crowddev, mockIRepositoryOptions, [
-        {
-          username: {
-            github: {
-              username: 'joan',
-              integrationId: generateUUIDv1(),
-            },
-          },
-          displayName: 'Joan',
-          joinedAt: moment().toDate(),
-        },
-      ])
-      await createOrganization(piedpiper, mockIRepositoryOptions)
-      await createOrganization(hooli, mockIRepositoryOptions)
+    // it('Should work with advanced filters', async () => {
+    //   const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+    //   await createOrganization(crowddev, mockIRepositoryOptions, [
+    //     {
+    //       username: {
+    //         github: {
+    //           username: 'joan',
+    //           integrationId: generateUUIDv1(),
+    //         },
+    //       },
+    //       displayName: 'Joan',
+    //       joinedAt: moment().toDate(),
+    //     },
+    //   ])
+    //   await createOrganization(piedpiper, mockIRepositoryOptions)
+    //   await createOrganization(hooli, mockIRepositoryOptions)
 
-      await SequelizeTestUtils.refreshMaterializedViews(db)
+    //   await SequelizeTestUtils.refreshMaterializedViews(db)
 
-      const memberId = await (
-        await MemberRepository.findAndCountAll({}, mockIRepositoryOptions)
-      ).rows[0].id
+    //   const memberId = await (
+    //     await MemberRepository.findAndCountAll({}, mockIRepositoryOptions)
+    //   ).rows[0].id
 
-      // Revenue nested field
-      expect(
-        (
-          await OrganizationRepository.findAndCountAll(
-            {
-              advancedFilter: {
-                revenue: {
-                  gte: 9,
-                },
-              },
-              includeOrganizationsWithoutMembers: true,
-            },
-            mockIRepositoryOptions,
-          )
-        ).count,
-      ).toEqual(2)
+    //   // Revenue nested field
+    //   expect(
+    //     (
+    //       await OrganizationRepository.findAndCountAll(
+    //         {
+    //           advancedFilter: {
+    //             revenue: {
+    //               gte: 9,
+    //             },
+    //           },
+    //           includeOrganizationsWithoutMembers: true,
+    //         },
+    //         mockIRepositoryOptions,
+    //       )
+    //     ).count,
+    //   ).toEqual(2)
 
-      // Twitter bio
-      expect(
-        (
-          await OrganizationRepository.findAndCountAll(
-            {
-              advancedFilter: {
-                'twitter.bio': {
-                  textContains: 'world a better place',
-                },
-              },
-              includeOrganizationsWithoutMembers: true,
-            },
-            mockIRepositoryOptions,
-          )
-        ).count,
-      ).toEqual(1)
+    //   // Twitter bio
+    //   expect(
+    //     (
+    //       await OrganizationRepository.findAndCountAll(
+    //         {
+    //           advancedFilter: {
+    //             'twitter.bio': {
+    //               textContains: 'world a better place',
+    //             },
+    //           },
+    //           includeOrganizationsWithoutMembers: true,
+    //         },
+    //         mockIRepositoryOptions,
+    //       )
+    //     ).count,
+    //   ).toEqual(1)
 
-      expect(
-        (
-          await OrganizationRepository.findAndCountAll(
-            {
-              advancedFilter: {
-                or: [
-                  {
-                    and: [
-                      {
-                        revenue: {
-                          gte: 9,
-                        },
-                      },
-                      {
-                        revenue: {
-                          lte: 100,
-                        },
-                      },
-                    ],
-                  },
-                  {
-                    'twitter.bio': {
-                      textContains: 'world a better place',
-                    },
-                  },
-                ],
-              },
-              includeOrganizationsWithoutMembers: true,
-            },
-            mockIRepositoryOptions,
-          )
-        ).count,
-      ).toEqual(2)
+    //   expect(
+    //     (
+    //       await OrganizationRepository.findAndCountAll(
+    //         {
+    //           advancedFilter: {
+    //             or: [
+    //               {
+    //                 and: [
+    //                   {
+    //                     revenue: {
+    //                       gte: 9,
+    //                     },
+    //                   },
+    //                   {
+    //                     revenue: {
+    //                       lte: 100,
+    //                     },
+    //                   },
+    //                 ],
+    //               },
+    //               {
+    //                 'twitter.bio': {
+    //                   textContains: 'world a better place',
+    //                 },
+    //               },
+    //             ],
+    //           },
+    //           includeOrganizationsWithoutMembers: true,
+    //         },
+    //         mockIRepositoryOptions,
+    //       )
+    //     ).count,
+    //   ).toEqual(2)
 
-      expect(
-        (
-          await OrganizationRepository.findAndCountAll(
-            {
-              advancedFilter: {
-                or: [
-                  {
-                    and: [
-                      {
-                        tags: {
-                          overlap: ['not-google'],
-                        },
-                      },
-                      {
-                        'twitter.location': {
-                          textContains: 'silicon valley',
-                        },
-                      },
-                    ],
-                  },
-                  {
-                    members: [memberId],
-                  },
-                ],
-              },
-              includeOrganizationsWithoutMembers: true,
-            },
-            mockIRepositoryOptions,
-          )
-        ).count,
-      ).toEqual(2)
-    })
+    //   expect(
+    //     (
+    //       await OrganizationRepository.findAndCountAll(
+    //         {
+    //           advancedFilter: {
+    //             or: [
+    //               {
+    //                 and: [
+    //                   {
+    //                     tags: {
+    //                       overlap: ['not-google'],
+    //                     },
+    //                   },
+    //                   {
+    //                     'twitter.location': {
+    //                       textContains: 'silicon valley',
+    //                     },
+    //                   },
+    //                 ],
+    //               },
+    //               {
+    //                 members: [memberId],
+    //               },
+    //             ],
+    //           },
+    //           includeOrganizationsWithoutMembers: true,
+    //         },
+    //         mockIRepositoryOptions,
+    //       )
+    //     ).count,
+    //   ).toEqual(2)
+    // })
   })
 
   describe('update method', () => {

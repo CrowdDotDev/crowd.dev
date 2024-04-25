@@ -42,9 +42,11 @@ class TaskRepository {
     await record.setMembers(data.members || [], {
       transaction,
     })
-    await record.setActivities(data.activities || [], {
-      transaction,
-    })
+
+    // TODO questdb
+    // await record.setActivities(data.activities || [], {
+    //   transaction,
+    // })
 
     await record.setAssignees(data.assignees || [], {
       transaction,
@@ -484,10 +486,11 @@ class TaskRepository {
       joinTableAttributes: [],
     })
 
-    output.activities = await record.getActivities({
-      transaction,
-      joinTableAttributes: [],
-    })
+    // TODO questdb
+    // output.activities = await record.getActivities({
+    //   transaction,
+    //   joinTableAttributes: [],
+    // })
 
     output.assignees = (
       await record.getAssignees({

@@ -9,7 +9,6 @@ import {
   BulkEnrichQueueMessage,
   EagleEyeEmailDigestQueueMessage,
   EnrichOrganizationQueueMessage,
-  ExportCSVQueueMessage,
   ExportableEntity,
   NewActivityAutomationQueueMessage,
   NewMemberAutomationQueueMessage,
@@ -90,20 +89,6 @@ export class NodejsWorkerEmitter extends QueuePriorityService {
       tenantId,
       generateUUIDv1(),
       new BulkEnrichQueueMessage(tenantId, memberIds, segmentIds, notifyFrontend, skipCredits),
-    )
-  }
-
-  public async exportCSV(
-    tenantId: string,
-    user: string,
-    entity: ExportableEntity,
-    segmentIds: string[],
-    criteria: any,
-  ): Promise<void> {
-    await this.sendMessage(
-      tenantId,
-      generateUUIDv1(),
-      new ExportCSVQueueMessage(user, tenantId, entity, segmentIds, criteria),
     )
   }
 

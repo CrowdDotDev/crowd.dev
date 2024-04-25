@@ -62,19 +62,6 @@ export class BulkEnrichQueueMessage implements IQueueMessage {
   ) {}
 }
 
-export class ExportCSVQueueMessage implements IQueueMessage {
-  public readonly type: string = NodejsWorkerQueueMessageType.NODE_MICROSERVICE
-  public readonly service = 'csv-export'
-
-  constructor(
-    public readonly user: string,
-    public readonly tenant: string,
-    public readonly entity: ExportableEntity,
-    public readonly segmentIds: string[],
-    public readonly criteria: any,
-  ) {}
-}
-
 export class EagleEyeEmailDigestQueueMessage implements IQueueMessage {
   public readonly type: string = NodejsWorkerQueueMessageType.NODE_MICROSERVICE
   public readonly service = 'eagle-eye-email-digest'

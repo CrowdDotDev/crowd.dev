@@ -113,11 +113,6 @@ export default (sequelize) => {
       timestamps: false,
     })
 
-    models.member.hasOne(models.memberActivityAggregatesMV, {
-      as: 'memberActivityAggregatesMVs',
-      foreignKey: 'id',
-    })
-
     models.member.belongsToMany(models.note, {
       as: 'notes',
       through: 'memberNotes',
