@@ -32,7 +32,7 @@ export const bottomMenu: MenuLink[] = [
 
 // Support menu
 export const supportMenu: MenuLink[] = [
-  shareFeedback,
+  // shareFeedback,
   documentation,
   changelog,
   community,

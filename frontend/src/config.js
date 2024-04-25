@@ -83,6 +83,7 @@ const defaultConfig = {
   isN8nEnabled: import.meta.env.VUE_APP_IS_N8N_ENABLED,
   isGitEnabled: import.meta.env.VUE_APP_IS_GIT_ENABLED,
   isGroupsioEnabled: import.meta.env.VUE_APP_IS_GROUPSIO_ENABLED,
+  isFormbricksEnabled: import.meta.env.VUE_APP_IS_FORMBRICKS_ENABLED,
   isTwitterEnabled: import.meta.env.VUE_APP_IS_TWITTER_ENABLED,
 };
 
@@ -159,6 +160,7 @@ const composedConfig = {
   isN8nEnabled: 'CROWD_VUE_APP_IS_N8N_ENABLED',
   isGitEnabled: 'CROWD_VUE_APP_IS_GIT_ENABLED',
   isGroupsioEnabled: 'CROWD_VUE_APP_IS_GROUPSIO_ENABLED',
+  isFormbricksEnabled: 'CROWD_VUE_APP_IS_FORMBRICKS_ENABLED',
   isTwitterEnabled: 'CROWD_VUE_APP_IS_TWITTER_ENABLED',
 };
 

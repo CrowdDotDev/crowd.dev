@@ -32,12 +32,12 @@ export default {
 
     if (state.currentUser) {
       // initialize Formbricks
-      setupFormbricks(state.currentUser);
+      if (config.isFormbricksEnabled) setupFormbricks(state.currentUser);
     }
   },
 
   AUTH_ERROR(state) {
-    formbricks.logout();
+    if (config.isFormbricksEnabled) formbricks.logout();
     state.currentUser = null;
     state.currentTenant = null;
     state.loading = false;
@@ -131,12 +131,12 @@ export default {
     }
     if (state.currentUser) {
       // initialize Formbricks
-      setupFormbricks(state.currentUser);
+      if (config.isFormbricksEnabled) setupFormbricks(state.currentUser);
     }
   },
 
   AUTH_INIT_ERROR(state) {
-    formbricks.logout();
+    if (config.isFormbricksEnabled) formbricks.logout();
     state.currentUser = null;
     state.currentTenant = null;
     state.loadingInit = false;

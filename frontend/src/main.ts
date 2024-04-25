@@ -77,7 +77,7 @@ i18nInit();
     });
 
   router.afterEach(() => {
-    if (typeof formbricks !== 'undefined') {
+    if (config.isFormbricksEnabled && typeof formbricks !== 'undefined') {
       formbricks.registerRouteChange();
     }
   });
