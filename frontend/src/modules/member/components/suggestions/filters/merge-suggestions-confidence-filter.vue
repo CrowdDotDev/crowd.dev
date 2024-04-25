@@ -49,7 +49,7 @@
       <cr-button size="small" type="tertiary-gray" @click="visible = false">
         Cancel
       </cr-button>
-      <cr-button size="small" type="primary" @click="apply()">
+      <cr-button size="small" type="primary" :disabled="!hasChanged" @click="apply()">
         Apply
       </cr-button>
     </div>
@@ -60,6 +60,7 @@
 import { computed, ref } from 'vue';
 import CrButton from '@/ui-kit/button/Button.vue';
 import CrCheckbox from '@/ui-kit/checkbox/Checkbox.vue';
+import isEqual from 'lodash/isEqual';
 
 const props = defineProps<{
   modelValue: string[]
@@ -82,6 +83,8 @@ const apply = () => {
   emit('update:modelValue', model.value);
   visible.value = false;
 };
+
+const hasChanged = computed(() => !isEqual(model.value, props.modelValue));
 </script>
 
 <script lang="ts">

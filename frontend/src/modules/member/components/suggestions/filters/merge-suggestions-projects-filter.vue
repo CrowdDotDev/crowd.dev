@@ -61,7 +61,7 @@
       <cr-button size="small" type="tertiary-gray" @click="visible = false">
         Cancel
       </cr-button>
-      <cr-button size="small" type="primary" @click="apply()">
+      <cr-button size="small" type="primary" :disabled="!hasChanged" @click="apply()">
         Apply
       </cr-button>
     </div>
@@ -76,6 +76,7 @@ import CrButton from '@/ui-kit/button/Button.vue';
 import CrCheckbox from '@/ui-kit/checkbox/Checkbox.vue';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';
+import isEqual from 'lodash/isEqual';
 
 const props = defineProps<{
   segments: string[]
@@ -185,6 +186,8 @@ const apply = () => {
   emit('update:childSegments', childSegments.value);
   visible.value = false;
 };
+
+const hasChanged = computed(() => !isEqual(segments.value, props.segments) || !isEqual(childSegments.value, props.childSegments));
 
 onMounted(() => {
   loadProjects('');
