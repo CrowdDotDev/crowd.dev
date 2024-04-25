@@ -3,7 +3,7 @@
     <div class="flex gap-6 items-center limit-width">
       <img
         alt="Crowd logo mini"
-        src="/images/logo/crowd-mini.svg"
+        src="/images/logo/sphere-mini.svg"
         class="w-10"
       />
       <div>
