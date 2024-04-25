@@ -1426,6 +1426,7 @@ export default class IntegrationService {
       }
       return {  repoNames: [], urlPartial: "" }
   }
+
   /**
    * Get all remotes for the Git integration, by segment
    * @returns Remotes for the Git integration
