@@ -1,23 +1,22 @@
 <template>
   <div class="flex grow flex-col justify-between p-5">
     <div class="p-5 flex flex-col gap-16 md:gap-12">
-      <div class="pb-4 md:pb-2">
+      <div class="pb-2 flex justify-center">
         <img
-          class="h-6 w-auto"
-          src="/images/logo/crowd.svg"
-          alt="crowd.dev logo"
+          class="h-18 w-auto"
+          src="/icons/logo/getsphere.svg"
+          alt="GetSphere.dev logo"
         />
       </div>
-      <div class="flex flex-col gap-4">
+      <div class="flex flex-col gap-6">
         <h4>
-          Find high-intent accounts in your developer data
+          Foster Community Growth &amp; Engagement
         </h4>
         <p class="text-sm leading-6">
-          Combine data from GitHub, LinkedIn, your product, and many other sources to understand which companies
-          engage with your developer product. Sync insights with your CRM to prioritize the right accounts and build pipeline.
+          Integrate data from GitHub, LinkedIn, your product, and other sources to pinpoint which companies engage with your developer product. Sync these insights with your CRM to prioritize key accounts and build your pipeline. Utilize these insights to cultivate ambassadors, generate referrals, capture leads, and foster a positive community atmosphere.
         </p>
       </div>
-      <div class="grid grid-rows-2 gap-8">
+      <!-- <div class="grid grid-rows-2 gap-8">
         <div class="grid grid-cols-3 gap-4 col-span-1">
           <div class="flex items-center">
             <img
@@ -64,33 +63,14 @@
             />
           </div>
         </div>
-      </div>
+      </div> -->
     </div>
     <div>
       <div class="bg-brand-500 rounded-lg p-6">
         <p class="text-white text-sm font-medium pb-6">
-          “crowd.dev uncovers companies that already use our product but haven't
-          engaged with our Go-To-Market team yet. This helped us to 4x the opportunities in our sales pipeline.”
+          GetSphere.dev provides hosting services for the open source 
+          <a href="https://github.com/CrowdDotDev/crowd.dev" class="text-current hover:text-blue-700" target="_blank">crowd.dev</a> software. GetSphere.dev is not associated with crowd.dev or the Linux Foundation.
         </p>
-        <div class="flex items-center">
-          <div class="pr-4">
-            <img
-              alt="Testimonials Crowd.dev"
-              src="/images/auth/testimonial.png"
-              class="h-11 w-11"
-            />
-          </div>
-          <div>
-            <h6
-              class="text-sm font-semibold text-white leading-5"
-            >
-              Johannes Hötter
-            </h6>
-            <p class="text-white text-xs leading-5">
-              Co-Founder & CEO, Kern AI
-            </p>
-          </div>
-        </div>
       </div>
     </div>
   </div>

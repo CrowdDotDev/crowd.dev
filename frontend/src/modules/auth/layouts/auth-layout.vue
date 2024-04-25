@@ -31,8 +31,8 @@ export default {
 .auth-side {
   background: linear-gradient(
     154.2deg,
-    #ffffff 0%,
-    #f8efed 57.5%
+    #ece8ff 0%,
+    #f5f2ff 57.5%
   );
   width: 28rem;
   position: fixed;

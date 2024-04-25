@@ -1,5 +1,5 @@
 <template>
-  <div class="flex justify-end mt-5 mb-20">
+  <div class="flex justify-end mt-5 mb-5">
     <p class="text-sm leading-5 text-center">
       Already have an account?
       <router-link :to="{ name: 'signin' }">
@@ -12,10 +12,7 @@
     <h3 class="text-2xl leading-12 font-semibold mb-1">
       Create an account
     </h3>
-    <p class="text-gray-500 text-xs leading-5">
-      Unify community, product, and customer data and provide insights to your go-to-market team.
-    </p>
-    <div class="pt-10">
+    <div class="pt-4">
       <el-form
         ref="form"
         :model="model"
