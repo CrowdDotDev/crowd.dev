@@ -15,6 +15,7 @@ spec:
       containers:
         - name: api
           image: liscioapps/sphere-backend:1714074134.152e16cb
+          workingDir: /usr/crowd/app/backend
           command: ['npm']
           args: ['run', 'start:api']
           envFrom:

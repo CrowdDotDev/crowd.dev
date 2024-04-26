@@ -3,6 +3,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: redis-dpl
+  labels:
+    force-update: "true"
 spec:
   selector:
     matchLabels:
@@ -14,7 +16,7 @@ spec:
     spec:
       containers:
         - name: redis
-          image: crowddotdev/redis:1669030011.68836df
+          image: liscioapps/sphere-redis:1714089032.bd9a4a5f
           command: ['redis-server']
           args: ['/redis.conf', '--requirepass', 'crowdtest']
           ports:
