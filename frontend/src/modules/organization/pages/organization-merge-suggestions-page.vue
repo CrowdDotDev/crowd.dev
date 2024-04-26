@@ -31,7 +31,7 @@
         <cr-spinner />
       </div>
 
-      <cr-table v-else class="mt-6">
+      <cr-table v-else-if="mergeSuggestions.length > 0" class="mt-6">
         <thead>
           <tr>
             <th colspan="2">
@@ -131,6 +131,17 @@
           </tr>
         </tbody>
       </cr-table>
+      <div v-else class="py-20 flex flex-col items-center">
+        <div
+          class="ri-shuffle-line text-gray-200 text-10xl h-40 flex items-center mb-8"
+        />
+        <h5 class="text-center text-lg font-semibold mb-4">
+          No merge suggestions
+        </h5>
+        <p class="text-sm text-center text-gray-600 leading-5">
+          We couldn’t find any duplicated organizations
+        </p>
+      </div>
 
       <div v-if="total > mergeSuggestions.length" class="mt-6 flex justify-center">
         <cr-button type="tertiary" size="small" :loading="loading" @click="loadMore()">
