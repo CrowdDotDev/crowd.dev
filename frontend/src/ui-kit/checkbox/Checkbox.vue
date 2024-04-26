@@ -19,7 +19,7 @@ import { computed, withDefaults } from 'vue';
 
 const props = withDefaults(defineProps<{
   size?: CheckboxSize,
-  modelValue: string | boolean,
+  modelValue: string | boolean | string[],
   value?: string | boolean,
   disabled?: boolean,
   multiple?: boolean,
@@ -30,13 +30,13 @@ const props = withDefaults(defineProps<{
   multiple: false,
 });
 
-const emit = defineEmits<{(e: 'update:modelValue', value: string | boolean): any}>();
+const emit = defineEmits<{(e: 'update:modelValue', value: string | boolean | string[]): any}>();
 
-const checked = computed<string | boolean>({
+const checked = computed<string | boolean | string[]>({
   get() {
     return props.modelValue;
   },
-  set(val: string | boolean) {
+  set(val: string | boolean | string[]) {
     emit('update:modelValue', val);
   },
 });

@@ -12,9 +12,9 @@
           Organizations
         </template>
       </app-back-link>
-      <div class="flex items-center">
+      <div class="flex items-center pb-6">
         <h4 class="text-xl font-semibold leading-9">
-          Merge suggestions <span v-if="!loading" class="font-light text-gray-500">({{ total }})</span>
+          Merge suggestions <span v-if="totalCount" class="font-light text-gray-500">({{ totalCount }})</span>
         </h4>
         <el-tooltip
           placement="top"
@@ -23,6 +23,8 @@
           <i class="ri-question-line text-lg text-gray-500 flex items-center ml-2 h-5" />
         </el-tooltip>
       </div>
+
+      <app-merge-suggestions-filters placeholder="Search organizations" @search="search" />
 
       <div
         v-if="page <= 1 && loading && mergeSuggestions.length === 0"
@@ -34,10 +36,12 @@
       <cr-table v-else-if="mergeSuggestions.length > 0" class="mt-6">
         <thead>
           <tr>
-            <th colspan="2">
+            <cr-table-head colspan="2">
               Organizations
-            </th>
-            <th>Confidence level</th>
+            </cr-table-head>
+            <cr-table-head v-model="sorting" property="similarity" @update:model-value="loadMergeSuggestions">
+              Confidence level
+            </cr-table-head>
           </tr>
         </thead>
         <tbody>
@@ -63,7 +67,7 @@
                       }"
                     />
 
-                    <p class="text-xs leading-5 font-semibold whitespace-nowrap">
+                    <p class="text-xs leading-5 font-semibold truncate max-w-3xs">
                       {{ suggestion.organizations[0].displayName }}
                     </p>
                   </div>
@@ -91,7 +95,7 @@
                         displayName: (suggestion.organizations[1].displayName || suggestion.organizations[1].name)?.replace('@', ''),
                       }"
                     />
-                    <p class="text-xs leading-5 font-semibold whitespace-nowrap">
+                    <p class="text-xs leading-5 font-semibold truncate max-w-3xs">
                       {{ suggestion.organizations[1].displayName }}
                     </p>
                   </div>
@@ -174,6 +178,8 @@ import AppOrganizationMergeSuggestionsDialog
   from '@/modules/organization/components/organization-merge-suggestions-dialog.vue';
 import useOrganizationMergeMessage from '@/shared/modules/merge/config/useOrganizationMergeMessage';
 import CrSpinner from '@/ui-kit/spinner/Spinner.vue';
+import CrTableHead from '@/ui-kit/table/TableHead.vue';
+import AppMergeSuggestionsFilters from '@/modules/member/components/suggestions/merge-suggestions-filters.vue';
 
 const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
 
@@ -185,16 +191,25 @@ const total = ref<number>(0);
 const limit = ref<number>(10);
 const page = ref<number>(1);
 const loading = ref<boolean>(false);
+const sorting = ref<string>('similarity_DESC');
+const totalCount = ref<number>(0);
+
+const filter = ref<any>(undefined);
 
 const loadMergeSuggestions = () => {
   loading.value = true;
-  OrganizationService.fetchMergeSuggestions(limit.value, (page.value - 1) * limit.value)
+  OrganizationService.fetchMergeSuggestions(limit.value, (page.value - 1) * limit.value, {
+    filter: filter.value,
+    orderBy: [sorting.value],
+    detail: false,
+  })
     .then((res) => {
       total.value = +res.count;
+      const rows = res.rows.filter((s: any) => s.similarity > 0);
       if (+res.offset > 0) {
-        mergeSuggestions.value = mapSuggestions([...mergeSuggestions.value, ...res.rows]);
+        mergeSuggestions.value = [...mergeSuggestions.value, ...rows];
       } else {
-        mergeSuggestions.value = mapSuggestions(res.rows);
+        mergeSuggestions.value = rows;
       }
     })
     .finally(() => {
@@ -202,16 +217,14 @@ const loadMergeSuggestions = () => {
     });
 };
 
-const mapSuggestions = (suggestions: any[]) => suggestions
-  .filter((s) => s.similarity > 0)
-  .map((s) => {
-    const suggestion = { ...s };
-    if (s.organizations.length >= 2 && ((s.organizations[0].identities.length < s.organizations[1].identities.length)
-      || (s.organizations[0].activityCount < s.organizations[1].activityCount))) {
-      suggestion.organizations.reverse();
-    }
-    return suggestion;
-  });
+const getTotalCount = () => {
+  OrganizationService.fetchMergeSuggestions(0, 0, {
+    countOnly: true,
+  })
+    .then(({ count }) => {
+      totalCount.value = count;
+    });
+};
 
 const detailsOffset = ref<number>(0);
 
@@ -220,9 +233,16 @@ const openDetails = (index: number) => {
   isModalOpen.value = true;
 };
 
+const search = (query: any) => {
+  page.value = 1;
+  filter.value = query;
+  loadMergeSuggestions();
+};
+
 const reload = () => {
   page.value = 1;
   loadMergeSuggestions();
+  getTotalCount();
 };
 
 const loadMore = () => {
@@ -275,7 +295,7 @@ const ignore = (suggestion: any) => {
 };
 
 onMounted(() => {
-  loadMergeSuggestions();
+  getTotalCount();
 });
 </script>
 

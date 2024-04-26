@@ -283,18 +283,17 @@ export class MemberService {
   static async fetchMergeSuggestions(limit, offset, query, segments) {
     const tenantId = AuthService.getTenantId();
 
-    const params = {
+    const data = {
       limit,
       offset,
       segments,
+      detail: true,
       ...query,
     };
 
-    return authAxios.get(
+    return authAxios.post(
       `/tenant/${tenantId}/membersToMerge`,
-      {
-        params,
-      },
+      data,
     )
       .then(({ data }) => Promise.resolve(data));
   }
