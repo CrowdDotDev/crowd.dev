@@ -45,8 +45,15 @@ spec:
                 name: api-svc
                 port:
                   number: 8080
-          - path: /
-            pathType: Prefix
+          - path: /app(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: frontend-svc
+                port:
+                  number: 8081
+          - path: /()(.*)
+            pathType: ImplementationSpecific
             backend:
               service:
                 name: frontend-svc

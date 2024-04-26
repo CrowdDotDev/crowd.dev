@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: liscioapps/sphere-frontend:1714139190.9d70374c
+          image: liscioapps/sphere-frontend:1714148630.aae85d89
           envFrom:
             - configMapRef:
                 name: frontend-config
