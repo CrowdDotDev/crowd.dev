@@ -142,6 +142,7 @@ export interface IOrganizationPartialAggregatesOpensearch {
   string_industry: string
   string_website: string
   string_ticker: string
+  int_activityCount: number
 }
 
 export interface ISimilarOrganization {
@@ -153,6 +154,7 @@ export interface ISimilarOrganization {
   string_industry: string
   string_website: string
   string_ticker: string
+  int_activityCount: number
 }
 
 export interface ISimilarOrganizationOpensearch {

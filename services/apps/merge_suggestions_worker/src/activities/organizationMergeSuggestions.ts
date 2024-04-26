@@ -52,6 +52,7 @@ export async function getOrganizations(
         'string_industry',
         'string_website',
         'string_ticker',
+        'int_activityCount',
       ],
     }
 
@@ -259,6 +260,7 @@ export async function getOrganizationMergeSuggestions(
       'string_industry',
       'string_website',
       'string_ticker',
+      'int_activityCount',
     ],
   }
 
@@ -285,12 +287,29 @@ export async function getOrganizationMergeSuggestions(
       organization,
       organizationToMerge._source,
     )
+
     if (similarityConfidenceScore > SIMILARITY_CONFIDENCE_SCORE_THRESHOLD) {
+      const organizationsSorted = [organization, organizationToMerge._source].sort((a, b) => {
+        if (
+          a.nested_identities.length > b.nested_identities.length ||
+          (a.nested_identities.length === b.nested_identities.length &&
+            a.int_activityCount > b.int_activityCount)
+        ) {
+          return -1
+        } else if (
+          a.nested_identities.length < b.nested_identities.length ||
+          (a.nested_identities.length === b.nested_identities.length &&
+            a.int_activityCount < b.int_activityCount)
+        ) {
+          return 1
+        }
+        return 0
+      })
       mergeSuggestions.push({
         similarity: similarityConfidenceScore,
         organizations: [
-          organization.uuid_organizationId,
-          organizationToMerge._source.uuid_organizationId,
+          organizationsSorted[0].uuid_organizationId,
+          organizationsSorted[1].uuid_organizationId,
         ],
       })
     }
