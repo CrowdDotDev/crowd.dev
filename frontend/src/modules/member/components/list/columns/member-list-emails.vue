@@ -42,15 +42,15 @@
       <div class="flex flex-wrap gap-3 my-1">
         <el-tooltip
           v-for="email of emails.slice(3)"
-          :key="email"
-          :disabled="!email"
+          :key="email.handle"
+          :disabled="!email.handle"
           popper-class="custom-identity-tooltip flex "
           placement="top"
         >
           <template #content>
             <span>Send email
               <i
-                v-if="email"
+                v-if="email.link"
                 class="ri-external-link-line text-gray-400"
               /></span>
           </template>
@@ -59,9 +59,9 @@
               target="_blank"
               rel="noopener noreferrer"
               class="badge--interactive"
-              :href="`mailto:${email}`"
+              :href="email.link"
               @click.stop="trackEmailClick"
-            >{{ email }}</a>
+            >{{ email.handle }}</a>
           </div>
         </el-tooltip>
       </div>
