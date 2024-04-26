@@ -7,6 +7,7 @@ import {
 
 class OrganizationSimilarityCalculator {
   static HIGH_CONFIDENCE_SCORE = 0.9
+  static MEDIUM_CONFIDENCE_SCORE = 0.75
   static LOW_CONFIDENCE_SCORE = 0.2
 
   static calculateSimilarity(
@@ -98,7 +99,7 @@ class OrganizationSimilarityCalculator {
     }
 
     if (!isHighConfidence) {
-      return this.LOW_CONFIDENCE_SCORE
+      return this.MEDIUM_CONFIDENCE_SCORE
     }
 
     return confidenceScore
