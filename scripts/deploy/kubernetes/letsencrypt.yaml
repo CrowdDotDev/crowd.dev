@@ -1,9 +1,11 @@
 ---
 apiVersion: cert-manager.io/v1
-kind: ClusterIssuer
+kind: Issuer
 metadata:
   name: letsencrypt-issuer
   namespace: cert-manager
+  labels:
+    force-reload: 'true'
 spec:
   acme:
     server: https://acme-v02.api.letsencrypt.org/directory

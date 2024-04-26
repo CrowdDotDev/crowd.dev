@@ -5,6 +5,7 @@ metadata:
   name: ingress
   labels:
     name: ingress
+    force-update: 'false' # allows force update when changing something else
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-issuer
     nginx.ingress.kubernetes.io/ssl-redirect: 'true'
@@ -21,28 +22,28 @@ spec:
     - host: app.getsphere.dev
       http:
         paths:
-          - path: /search/?(.*)
+          - path: /search
             pathType: Prefix
             backend:
               service:
                 name: search-engine-svc
                 port:
                   number: 7700
-          - path: /cjs/?(.*)
+          - path: /cjs
             pathType: Prefix
             backend:
               service:
                 name: cubejs-svc
                 port:
                   number: 4000
-          - path: /api/?(.*)
+          - path: /api
             pathType: Prefix
             backend:
               service:
                 name: api-svc
                 port:
                   number: 8080
-          - path: /?(.*)
+          - path: /
             pathType: Prefix
             backend:
               service:
@@ -52,10 +53,11 @@ spec:
     - host: nango.getsphere.dev
       http:
         paths:
-          - path: /?(.*)
+          - path: /
             pathType: Prefix
             backend:
               service:
                 name: nango-svc
                 port:
                   number: 3003
+
