@@ -10,6 +10,22 @@ Which then users a Dockerfile and context file (env file) to build and publish t
 
 # Deployment
 
+## General Workflow
+The general workflow deploying or redploying a service is:
+
+Build and tag image -> Push to Docker Hub -> Update Kubernetes deployment to new tag -> Re-apply deployment yaml
+
+So, for example to change the backend service (api service) we would:
+
+- Make the code changes
+- Go to ./scripts
+- Run `./cli build-and-push backend`
+- Update the `app.yaml` with the new tag from the `Pushing image liscioapps/sphere...` line
+- Go to ./scripts/kubernetes
+- Run `kubectl apply -f api.yaml`
+- Observe the line `deployment.apps/api-dpl configured`
+- Observe K8s automatically recared the pod `api-dpl-{guid}`
+
 ## Endpoints
 
 - app.getsphere.dev

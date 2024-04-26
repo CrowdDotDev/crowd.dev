@@ -5,12 +5,14 @@ metadata:
   name: ingress
   labels:
     name: ingress
-    force-update: 'false' # allows force update when changing something else
+    force-update: 'true' # allows force update when changing something else
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-issuer
     nginx.ingress.kubernetes.io/ssl-redirect: 'true'
     nginx.ingress.kubernetes.io/force-ssl-redirect: 'true'
-    nginx.ingress.kubernetes.io/rewrite-target: /$1
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+
 spec:
   ingressClassName: nginx
   tls:
@@ -22,22 +24,22 @@ spec:
     - host: app.getsphere.dev
       http:
         paths:
-          - path: /search
-            pathType: Prefix
+          - path: /search(/|$)(.*)
+            pathType: ImplementationSpecific
             backend:
               service:
                 name: search-engine-svc
                 port:
                   number: 7700
-          - path: /cjs
-            pathType: Prefix
+          - path: /cjs(/|$)(.*)
+            pathType: ImplementationSpecific
             backend:
               service:
                 name: cubejs-svc
                 port:
                   number: 4000
-          - path: /api
-            pathType: Prefix
+          - path: /api(/|$)(.*)
+            pathType: ImplementationSpecific
             backend:
               service:
                 name: api-svc
@@ -61,3 +63,11 @@ spec:
                 port:
                   number: 3003
 
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-configuration
+  namespace: ingress-nginx
+data:
+  logLevel: debug

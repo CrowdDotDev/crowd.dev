@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: cubejs
-          image: crowddotdev/cubejs:1666904701.59dad54
+          image: liscioapps/sphere-cubejs:1714137479.9d70374c
           env:
             - name: CUBEJS_DEV_MODE
               value: 'true'
@@ -31,7 +31,7 @@ spec:
             - name: CUBEJS_DB_TYPE
               value: 'postgres'
             - name: CUBEJS_API_SECRET
-              value: '137ea167812145c6d77452a58d7dd29b'
+              value: '117ea167812145c6d77452a58d7dd29b'
             - name: CUBEJS_EXTERNAL_DEFAULT
               value: 'true'
             - name: CUBEJS_SCHEDULED_REFRESH_DEFAULT

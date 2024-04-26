@@ -86,7 +86,7 @@ setImmediate(async () => {
       propertyName: 'requestId',
       logName: `requestId`,
       logger: serviceLogger,
-      level: 'trace',
+      level: 'debug',
     }),
   )
 

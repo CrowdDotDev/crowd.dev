@@ -3,6 +3,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: frontend-dpl
+  labels:
+    force-reload: 'true'
 spec:
   selector:
     matchLabels:
@@ -14,7 +16,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: liscioapps/sphere-frontend:1714134153.e8408796
+          image: liscioapps/sphere-frontend:1714139190.9d70374c
           envFrom:
             - configMapRef:
                 name: frontend-config
