@@ -2,18 +2,18 @@ import axios, { AxiosRequestConfig } from 'axios'
 import { IProcessStreamContext } from '../../../types'
 import { GroupName } from '../types'
 
-export const getTopicsFromGroup = async (
+export const getActivityLogs = async (
   groupName: GroupName,
   cookie: string,
   ctx: IProcessStreamContext,
-  page: string = null,
+  page = null,
 ) => {
   const config: AxiosRequestConfig = {
     method: 'get',
     url:
-      `https://groups.io/api/v1/gettopics?group_name=${encodeURIComponent(
+      `https://groups.io/api/v1/getactivitylog?limit=100&sort_field=created&sort_dir=asc&group_name=${encodeURIComponent(
         groupName,
-      )}&sort_field=updated&sort_dir=desc` + (page ? `&page_token=${page}` : ''),
+      )}` + (page ? `&page_token=${page}` : ''),
     headers: {
       Cookie: cookie,
     },
@@ -23,7 +23,7 @@ export const getTopicsFromGroup = async (
     const response = await axios(config)
     return response.data
   } catch (err) {
-    ctx.log.error(err, { groupName }, 'Error fetching topics from group!')
+    ctx.log.error(err, { groupName }, 'Error fetching activity logs from group!')
     throw err
   }
 }
