@@ -46,6 +46,7 @@ module.exports = {
     'vuejs-accessibility/mouse-events-have-key-events': 'off',
     'vuejs-accessibility/click-events-have-key-events': 'off',
     'vuejs-accessibility/form-control-has-label': 'off',
+    'vuejs-accessibility/label-has-for': 'off',
     'func-names': 'off',
     'import/no-cycle': 'off',
     'vue/max-len': [

@@ -55,11 +55,13 @@ describe('MemberAttributeSettingService tests', () => {
         urlCreated,
         websiteUrlCreated,
         bioCreated,
-        companyCreated,
         locationCreated,
+        avatarUrlCreated,
+        companyCreated,
       ] = attributes
 
-      const [isHireable, url, websiteUrl, bio, company, location] = GITHUB_MEMBER_ATTRIBUTES
+      const [isHireable, url, websiteUrl, bio, location, avatarUrl, company] =
+        GITHUB_MEMBER_ATTRIBUTES
 
       const expected = [
         {
@@ -119,20 +121,6 @@ describe('MemberAttributeSettingService tests', () => {
           label: bio.label,
         },
         {
-          id: companyCreated.id,
-          createdAt: SequelizeTestUtils.getNowWithoutTime(),
-          updatedAt: SequelizeTestUtils.getNowWithoutTime(),
-          createdById: mockIRepositoryOptions.currentUser.id,
-          updatedById: mockIRepositoryOptions.currentUser.id,
-          tenantId: mockIRepositoryOptions.currentTenant.id,
-          options: [],
-          show: company.show,
-          type: company.type,
-          canDelete: company.canDelete,
-          name: company.name,
-          label: company.label,
-        },
-        {
           id: locationCreated.id,
           createdAt: SequelizeTestUtils.getNowWithoutTime(),
           updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -145,6 +133,34 @@ describe('MemberAttributeSettingService tests', () => {
           canDelete: location.canDelete,
           name: location.name,
           label: location.label,
+        },
+        {
+          id: avatarUrlCreated.id,
+          createdAt: SequelizeTestUtils.getNowWithoutTime(),
+          updatedAt: SequelizeTestUtils.getNowWithoutTime(),
+          createdById: mockIRepositoryOptions.currentUser.id,
+          updatedById: mockIRepositoryOptions.currentUser.id,
+          tenantId: mockIRepositoryOptions.currentTenant.id,
+          options: [],
+          show: avatarUrlCreated.show,
+          type: avatarUrlCreated.type,
+          canDelete: avatarUrlCreated.canDelete,
+          name: avatarUrlCreated.name,
+          label: avatarUrlCreated.label,
+        },
+        {
+          id: companyCreated.id,
+          createdAt: SequelizeTestUtils.getNowWithoutTime(),
+          updatedAt: SequelizeTestUtils.getNowWithoutTime(),
+          createdById: mockIRepositoryOptions.currentUser.id,
+          updatedById: mockIRepositoryOptions.currentUser.id,
+          tenantId: mockIRepositoryOptions.currentTenant.id,
+          options: [],
+          show: company.show,
+          type: company.type,
+          canDelete: company.canDelete,
+          name: company.name,
+          label: company.label,
         },
       ]
 

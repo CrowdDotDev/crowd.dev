@@ -16,8 +16,8 @@ export default (app) => {
   app.get(`/tenant/url`, safeWrap(require('./tenantFind').default))
   app.get(`/tenant/:tenantId`, safeWrap(require('./tenantFind').default))
   app.get(`/tenant/:tenantId/name`, safeWrap(require('./tenantFindName').default))
-  app.get(`/tenant/:tenantId/membersToMerge`, safeWrap(require('./tenantMembersToMerge').default))
-  app.get(
+  app.post(`/tenant/:tenantId/membersToMerge`, safeWrap(require('./tenantMembersToMerge').default))
+  app.post(
     `/tenant/:tenantId/organizationsToMerge`,
     safeWrap(require('./tenantOrganizationsToMerge').default),
   )
