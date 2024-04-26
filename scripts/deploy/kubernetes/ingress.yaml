@@ -15,11 +15,11 @@ metadata:
 spec:
   tls:
     - hosts:
-        - example.domain.name
-        - nango.domain.name
+        - app.getsphere.dev
+        - nango.getsphere.dev
       secretName: letsencrypt-issuer
   rules:
-    - host: example.domain.name
+    - host: app.getsphere.dev
       http:
         paths:
           - path: /search/?(.*)
@@ -50,7 +50,7 @@ spec:
                 name: frontend-svc
                 port:
                   number: 8081
-    - host: nango.domain.name
+    - host: nango.getsphere.dev
       http:
         paths:
           - path: /?(.*)
