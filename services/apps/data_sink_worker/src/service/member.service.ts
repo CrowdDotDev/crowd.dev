@@ -55,8 +55,8 @@ export default class MemberService extends LoggerBase {
     try {
       this.log.debug('Creating a new member!')
 
-      // prevent empty identity handles
-      data.identities = data.identities.filter((i) => i.value)
+      // prevent empty identity handles & lowercase values
+      data.identities = data.identities.filter((i) => i.value).map((i) => ({...i, value: i.value.toLowerCase()}))
 
       if (data.identities.length === 0) {
         throw new Error('Member must have at least one identity!')
@@ -220,8 +220,8 @@ export default class MemberService extends LoggerBase {
           )
         }
 
-        // prevent empty identity handles
-        data.identities = data.identities.filter((i) => i.value)
+        // prevent empty identity handles & lowercase values
+        data.identities = data.identities.filter((i) => i.value).map((i) => ({...i, value: i.value.toLowerCase()}))
 
         // validate emails
         data.identities = this.validateEmails(data.identities)
