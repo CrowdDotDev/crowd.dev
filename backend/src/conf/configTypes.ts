@@ -52,6 +52,7 @@ export interface DbConfiguration {
 
   username?: string
   password?: string
+  ssl?: boolean
   apiUsername?: string
   apiPassword?: string
   nodejsWorkerUsername?: string

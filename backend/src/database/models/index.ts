@@ -71,6 +71,7 @@ function models(queryTimeoutMilliseconds: number, databaseHostnameOverride = nul
         idle_in_transaction_session_timeout: 10000,
       },
       port: DB_CONFIG.port,
+      ssl: DB_CONFIG.ssl,
       replication: {
         read: [
           {
