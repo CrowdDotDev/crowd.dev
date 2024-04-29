@@ -55,6 +55,9 @@ export default class MemberService extends LoggerBase {
     try {
       this.log.debug('Creating a new member!')
 
+      // prevent empty identity handles
+      data.identities = data.identities.filter((i) => i.value)
+
       if (data.identities.length === 0) {
         throw new Error('Member must have at least one identity!')
       }
@@ -216,6 +219,9 @@ export default class MemberService extends LoggerBase {
             data.attributes,
           )
         }
+
+        // prevent empty identity handles
+        data.identities = data.identities.filter((i) => i.value)
 
         // validate emails
         data.identities = this.validateEmails(data.identities)

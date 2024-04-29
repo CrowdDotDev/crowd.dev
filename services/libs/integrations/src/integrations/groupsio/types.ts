@@ -12,6 +12,7 @@ export enum GroupsioStreamType {
   GROUP_MEMBERS = 'group_members',
   PAST_GROUP_MEMBERS = 'past_group_members',
   TOPIC = 'topic',
+  ACTIVITY_LOGS = 'activity_logs',
 }
 
 export enum GroupsioPublishDataType {
@@ -66,6 +67,11 @@ export interface GroupsioTopicStreamMetadata {
   page: string | null
 }
 
+export interface GroupsioActivityLogsStreamMetadata {
+  group: GroupName
+  page: string | null
+}
+
 export interface GroupsioPublishData<T> {
   type: GroupsioPublishDataType
   data: T
@@ -75,6 +81,15 @@ export interface GroupsioIntegrationSettings {
   email: string
   token: string
   groups: GroupName[]
+}
+
+export interface ActivityLog {
+  id: number
+  object: 'activity_log'
+  created: string
+  group_id: number
+  entry: string
+  via: string
 }
 
 export interface Topic {
@@ -96,6 +111,20 @@ export interface Topic {
   reply_to: string
   most_recent_message: string
   hashtags: null | string[]
+}
+
+export interface ListActivityLogs {
+  object: 'list'
+  total_count: number
+  start_item: number
+  end_item: number
+  has_more: boolean
+  next_page_token: number
+  sort_field: string
+  second_order: string
+  query: string
+  sort_dir: 'asc' | 'desc'
+  data: ActivityLog[]
 }
 
 export interface ListBase {
@@ -320,6 +349,7 @@ export interface MemberInfo {
 export interface PastMemberInfo {
   id: number
   object: string
+  joined: string
   created: string
   action: string
   member_info: MemberInfo
