@@ -31,13 +31,13 @@ spec:
               name: http
             - containerPort: 9300
               name: transport
-          # resources:
-          #   limits:
-          #     cpu: "2"
-          #     memory: "4Gi"
-          #   requests:
-          #     cpu: "1"
-          #     memory: "2Gi"
+          resources:
+            limits:
+              cpu: "2"
+              memory: "6Gi"
+            requests:
+              cpu: "1"
+              memory: "3Gi"
 
 # Missing from test config
   # ulimits:
