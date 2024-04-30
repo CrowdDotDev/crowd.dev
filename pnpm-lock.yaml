@@ -676,9 +676,6 @@ importers:
       '@crowd/common':
         specifier: workspace:*
         version: link:../../libs/common
-      '@crowd/cubejs':
-        specifier: workspace:*
-        version: link:../../libs/cubejs
       '@crowd/data-access-layer':
         specifier: workspace:*
         version: link:../../libs/data-access-layer
@@ -1903,6 +1900,9 @@ importers:
       '@crowd/redis':
         specifier: workspace:*
         version: link:../redis
+      '@crowd/telemetry':
+        specifier: workspace:*
+        version: link:../telemetry
       '@crowd/types':
         specifier: workspace:*
         version: link:../types
