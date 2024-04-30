@@ -69,7 +69,9 @@
       <div class="bg-brand-500 rounded-lg p-6">
         <p class="text-white text-sm font-medium pb-6">
           GetSphere.dev provides hosting services for the open source 
-          <a href="https://github.com/CrowdDotDev/crowd.dev" class="text-current hover:text-blue-700" target="_blank">crowd.dev</a> software. GetSphere.dev is not associated with crowd.dev or the Linux Foundation.
+          <a href="https://github.com/CrowdDotDev/crowd.dev" class="text-current hover:text-blue-700" target="_blank">crowd.dev</a> software. 
+          <br/><br/>
+          GetSphere.dev is not associated with crowd.dev or the Linux Foundation.
         </p>
       </div>
     </div>

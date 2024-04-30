@@ -30,7 +30,7 @@ const ptBR = {
   },
 
   app: {
-    title: 'crowd.dev',
+    title: 'getsphere.dev',
   },
   api: {
     menu: 'API',
