@@ -1,0 +1,28 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: automations-worker-dpl
+  labels:
+    force-reload: 'true'
+spec:
+  selector:
+    matchLabels:
+      app: automations-worker
+  template:
+    metadata:
+      labels:
+        app: automations-worker
+    spec:
+      containers:
+        - name: automations-worker
+          image: liscioapps/sphere-automations-worker:1714504030.d322b634
+          workingDir: /usr/crowd/app/services/apps/automations_worker
+          command: ['pnpm']
+          args: ['run', 'start']
+          envFrom:
+            - configMapRef:
+                name: backend-config
+          env:
+            - name: SERVICE
+              value: automations-worker

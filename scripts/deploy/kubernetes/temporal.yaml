@@ -29,5 +29,7 @@ spec:
   ports:
     - port: 7233
       targetPort: 7233
+      name: grpc
     - port: 8233
       targetPort: 8233
+      name: webui

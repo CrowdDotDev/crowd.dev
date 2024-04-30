@@ -4,6 +4,7 @@ export interface IDatabaseConfig {
   host: string
   port: number
   user: string
+  ssl?: boolean
   password: string
   database: string
 }

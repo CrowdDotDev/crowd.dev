@@ -60,8 +60,17 @@ export const getDbConnection = async (
 
   const dbInstance = getDbInstance()
 
+  let ssl = {}
+  if (process.env.CROWD_DB_SSL) {
+    ssl = {
+      require: true,
+      rejectUnauthorized: false
+    }
+  }
+
   dbConnection[config.host] = dbInstance({
     ...config,
+    ssl,
     max: maxPoolSize || 20,
     idleTimeoutMillis: idleTimeoutMillis !== undefined ? idleTimeoutMillis : 10000,
     // query_timeout: 30000,
