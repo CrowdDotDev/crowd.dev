@@ -19,19 +19,37 @@ spec:
             - name: CUBEJS_DEV_MODE
               value: 'true'
             - name: CUBEJS_DB_HOST
-              value: db-svc
+              valueFrom:
+                configMapKeyRef:
+                  name: backend-config
+                  key: CUBEJS_DB_HOST
             - name: CUBEJS_DB_PORT
-              value: '5432'
+              valueFrom:
+                configMapKeyRef:
+                  name: backend-config
+                  key: CUBEJS_DB_PORT
             - name: CUBEJS_DB_NAME
-              value: 'crowd-web'
+              valueFrom:
+                configMapKeyRef:
+                  name: backend-config
+                  key: CUBEJS_DB_NAME
             - name: CUBEJS_DB_USER
-              value: 'postgres'
+              valueFrom:
+                configMapKeyRef:
+                  name: backend-config
+                  key: CUBEJS_DB_USER
             - name: CUBEJS_DB_PASS
-              value: 'example'
+              valueFrom:
+                configMapKeyRef:
+                  name: backend-config
+                  key: CUBEJS_DB_PASS
             - name: CUBEJS_DB_TYPE
               value: 'postgres'
             - name: CUBEJS_API_SECRET
-              value: '117ea167812145c6d77452a58d7dd29b'
+              valueFrom:
+                configMapKeyRef:
+                  name: backend-config
+                  key: CUBEJS_API_SECRET
             - name: CUBEJS_EXTERNAL_DEFAULT
               value: 'true'
             - name: CUBEJS_SCHEDULED_REFRESH_DEFAULT

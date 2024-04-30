@@ -6,6 +6,7 @@ const dbEnvVars = {
   username: process.env.CROWD_DB_USERNAME,
   password: process.env.CROWD_DB_PASSWORD,
   database: process.env.CROWD_DB_DATABASE,
+  ssl: process.env.CROWD_DB_SSL,
   host: process.env.CROWD_DB_WRITE_HOST,
   port: process.env.CROWD_DB_PORT,
   dialect: 'postgres',

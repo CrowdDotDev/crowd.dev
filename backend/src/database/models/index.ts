@@ -69,6 +69,10 @@ function models(queryTimeoutMilliseconds: number, databaseHostnameOverride = nul
         connectionTimeoutMillis: 5000,
         query_timeout: queryTimeoutMilliseconds,
         idle_in_transaction_session_timeout: 10000,
+        ssl: {
+          require: DB_CONFIG.ssl,
+          rejectUnauthorized: false // Some environments may require this option
+        }
       },
       port: DB_CONFIG.port,
       ssl: DB_CONFIG.ssl,
@@ -87,7 +91,7 @@ function models(queryTimeoutMilliseconds: number, databaseHostnameOverride = nul
         idle: 10000,
       },
       logging: DB_CONFIG.logging
-        ? (dbLog) =>
+        ? (dbLog) => {
             log.info(
               highlight(dbLog, {
                 language: 'sql',
@@ -95,6 +99,7 @@ function models(queryTimeoutMilliseconds: number, databaseHostnameOverride = nul
               }),
               'DB LOG',
             )
+          }
         : false,
     },
   )

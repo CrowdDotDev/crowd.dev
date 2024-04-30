@@ -31,6 +31,7 @@ spec:
                 configMapKeyRef:
                   name: backend-config
                   key: CROWD_DB_DATABASE
+                # TODO: SSL?
             - name: NANGO_DB_USER
               valueFrom:
                 configMapKeyRef:

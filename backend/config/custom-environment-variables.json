@@ -46,6 +46,7 @@
     "port": "CROWD_DB_PORT",
     "username": "CROWD_DB_USERNAME",
     "password": "CROWD_DB_PASSWORD",
+    "ssl": "CROWD_DB_SSL",
     "apiUsername": "CROWD_DB_API_USERNAME",
     "apiPassword": "CROWD_DB_API_PASSWORD",
     "nodejsWorkerUsername": "CROWD_DB_NODEJS_WORKER_USERNAME",

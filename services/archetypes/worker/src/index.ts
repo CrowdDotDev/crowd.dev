@@ -25,6 +25,7 @@ const envvars = {
     'CROWD_DB_PORT',
     'CROWD_DB_USERNAME',
     'CROWD_DB_PASSWORD',
+    'CROWD_DB_SSL',
     'CROWD_DB_DATABASE',
   ],
   opensearch:

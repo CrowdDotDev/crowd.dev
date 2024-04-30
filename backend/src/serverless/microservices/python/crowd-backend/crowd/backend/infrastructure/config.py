@@ -44,4 +44,5 @@ else:
 DB_DATABASE = os.environ.get("CROWD_DB_DATABASE")
 DB_HOST = os.environ.get("CROWD_DB_READ_HOST")
 DB_PORT = os.environ.get("CROWD_DB_PORT")
+# TODO: Add SSL here?
 DB_URL = f'postgresql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_DATABASE}'

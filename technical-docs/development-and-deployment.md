@@ -200,6 +200,7 @@ To provide your own PostgreSQL instance you should:
    CROWD_DB_USERNAME=username
    CROWD_DB_PASSWORD=password
    CROWD_DB_DATABASE=database
+   CROWD_DB_SSL=true
    ```
 3. Configure CubeJS and Nango to use the new database in `scripts/scaffold.yaml`. Search for `cubejs` and `nango` and replace the following variables:
 
