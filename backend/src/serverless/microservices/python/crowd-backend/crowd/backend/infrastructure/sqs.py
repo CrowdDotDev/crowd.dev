@@ -109,15 +109,19 @@ class SQS:
             WaitTimeSeconds=wait_time_seconds,
         )
 
+        logger.info(response)
+        logger.info(response.keys())
+        logger.info(response["Messages"])
+
         if "Messages" in response.keys():
+            if len(response["Messages"]) > 0:
+                message = response["Messages"][0]
+                receipt_handle = message["ReceiptHandle"]
 
-            message = response["Messages"][0]
-            receipt_handle = message["ReceiptHandle"]
-
-            if delete:
-                # Delete received message from queue
-                self.sqs.delete_message(QueueUrl=self.sqs_url, ReceiptHandle=receipt_handle)
-            return message
+                if delete:
+                    # Delete received message from queue
+                    self.sqs.delete_message(QueueUrl=self.sqs_url, ReceiptHandle=receipt_handle)
+                return message
 
         return None
 
