@@ -202,7 +202,7 @@ export default class ActivityService extends LoggerBase {
             sourceId: toUpdate.sourceId || original.sourceId,
             sourceParentId: toUpdate.sourceParentId || original.sourceParentId,
             memberId: toUpdate.memberId || original.memberId,
-            username: toUpdate.username?.toLowerCase() || original.username.toLowerCase(),
+            username: toUpdate.username || original.username,
             sentiment: toUpdate.sentiment || original.sentiment,
             attributes: toUpdate.attributes || original.attributes,
             body: escapeNullByte(toUpdate.body || original.body),
