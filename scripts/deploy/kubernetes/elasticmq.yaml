@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: elasticmq
-          image: liscioapps/sphere-elasticmq:1714445437.705a9f75
+          image: liscioapps/sphere-elasticmq:1714487284.ce6964eb
           ports:
             - containerPort: 9324
 ---

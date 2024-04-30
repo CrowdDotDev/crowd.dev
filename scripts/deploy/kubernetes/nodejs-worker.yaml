@@ -14,7 +14,8 @@ spec:
     spec:
       containers:
         - name: nodejs-worker
-          image: crowddotdev/backend:1666904557.59dad54
+          image: liscioapps/sphere-backend:1714487847.ce6964eb
+          workingDir: /usr/crowd/app/backend
           command: ['npm']
           args: ['run', 'start:nodejs-worker']
           envFrom:

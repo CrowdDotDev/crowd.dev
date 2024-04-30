@@ -34,11 +34,14 @@ process.on('SIGTERM', async () => {
 })
 
 const receive = async (queue: string): Promise<SqsMessage | undefined> => {
+  serviceLogger.info(`Recieving from ${queue}`);
   const params: SqsReceiveMessageRequest = {
     QueueUrl: queue,
   }
 
   const messages = await receiveMessage(SQS_CLIENT(), params)
+
+  serviceLogger.info(`Messages: ${messages}`)
 
   if (messages && messages.length === 1) {
     return messages[0]
@@ -57,6 +60,7 @@ const removeFromQueue = (queue: string, receiptHandle: string): Promise<void> =>
 }
 
 async function handleMessages(queue: string) {
+  serviceLogger.info(`handleMessages called for queue: ${queue}`)
   const handlerLogger = getChildLogger('messages', serviceLogger, {
     queue,
   })
@@ -181,6 +185,8 @@ const initRedisSeq = async () => {
 
 setImmediate(async () => {
   await initRedisSeq()
+
+  serviceLogger.info(`nodejs-worker SQS_CONFG.nodejsWorkerQueue ${SQS_CONFIG.nodejsWorkerQueue} and SQS_CONFIG.nodejsWorkerPriorityQueue ${SQS_CONFIG.nodejsWorkerPriorityQueue}`)
 
   await getNodejsWorkerEmitter()
   await Promise.all([
