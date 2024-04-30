@@ -1,0 +1,33 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: temporal-dpl
+spec:
+  selector:
+    matchLabels:
+      app: temporal
+  template:
+    metadata:
+      labels:
+        app: temporal
+    spec:
+      containers:
+        - name: temporal
+          image: liscioapps/sphere-temporal:1714498867.7e0ff8f6
+          ports:
+            - containerPort: 7233
+            - containerPort: 8233
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: temporal-svc
+spec:
+  selector:
+    app: temporal
+  ports:
+    - port: 7233
+      targetPort: 7233
+    - port: 8233
+      targetPort: 8233
