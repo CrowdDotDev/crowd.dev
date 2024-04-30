@@ -271,9 +271,7 @@ export class OrganizationService extends LoggerBase {
 
         for (const identity of data.identities) {
           const identityExists = identities.find(
-            (i) =>
-              i.name.toLowerCase() === identity.name.toLowerCase() &&
-              i.platform === identity.platform,
+            (i) => i.name === identity.name && i.platform === identity.platform,
           )
 
           if (!identityExists) {
@@ -281,7 +279,6 @@ export class OrganizationService extends LoggerBase {
             await txRepo.addIdentity(id, tenantId, {
               ...identity,
               integrationId,
-              name: identity.name.toLowerCase(),
             })
           }
         }

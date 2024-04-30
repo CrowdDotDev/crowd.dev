@@ -332,7 +332,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
               from "organizationIdentities" oi
               where 
                     oi.platform = $(platform)
-                    and oi.name = $(name)
+                    and oi.name ilike $(name)
           )
           select o.id,
                   o.description,

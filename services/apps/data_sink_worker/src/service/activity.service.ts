@@ -88,7 +88,7 @@ export default class ActivityService extends LoggerBase {
           sourceParentId: activity.sourceParentId,
           tenantId,
           memberId: activity.memberId,
-          username: activity.username?.toLowerCase(),
+          username: activity.username,
           sentiment,
           attributes: activity.attributes || {},
           body: escapeNullByte(activity.body),
@@ -97,7 +97,7 @@ export default class ActivityService extends LoggerBase {
           url: activity.url,
           organizationId: activity.organizationId,
           objectMemberId: activity.objectMemberId,
-          objectMemberUsername: activity.objectMemberUsername?.toLowerCase(),
+          objectMemberUsername: activity.objectMemberUsername,
         })
 
         return id
