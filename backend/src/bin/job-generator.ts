@@ -13,6 +13,7 @@ const tracer = getServiceTracer()
 const log = getServiceLogger()
 
 for (const job of jobs) {
+  log.info(`Current job { name: ${job.name}, cronTime: ${job.cronTime} }`)
   const cronJob = new CronJob(
     job.cronTime,
     async () => {
@@ -36,7 +37,7 @@ for (const job of jobs) {
     },
     null,
     true,
-    'Europe/Berlin',
+    'America/New_York',
   )
   if (cronJob.running) {
     log.info({ job: job.name }, 'Scheduled a job.')
