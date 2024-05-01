@@ -259,3 +259,118 @@ spec:
             - name: SERVICE
               value: integration-sync-worker
 
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: merge-suggestions-worker-dpl
+  labels:
+    force-reload: 'true'
+spec:
+  selector:
+    matchLabels:
+      app: merge-suggestions-worker
+  template:
+    metadata:
+      labels:
+        app: merge-suggestions-worker
+    spec:
+      containers:
+        - name: merge-suggestions-worker
+          image: liscioapps/sphere-merge-suggestions-worker:1714527620.0b14e1b4
+          workingDir: /usr/crowd/app/services/apps/merge_suggestions_worker
+          command: ['pnpm']
+          args: ['run', 'start']
+          envFrom:
+            - configMapRef:
+                name: backend-config
+          env:
+            - name: SERVICE
+              value: merge-suggestions-worker
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: profiles-worker-dpl
+  labels:
+    force-reload: 'true'
+spec:
+  selector:
+    matchLabels:
+      app: profiles-worker
+  template:
+    metadata:
+      labels:
+        app: profiles-worker
+    spec:
+      containers:
+        - name: profiles-worker
+          image: liscioapps/sphere-profiles-worker:1714527896.0b14e1b4
+          workingDir: /usr/crowd/app/services/apps/profiles_worker
+          command: ['pnpm']
+          args: ['run', 'start']
+          envFrom:
+            - configMapRef:
+                name: backend-config
+          env:
+            - name: SERVICE
+              value: profiles-worker
+
+# ---
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: search-sync-api-dpl
+#   labels:
+#     force-reload: 'true'
+# spec:
+#   selector:
+#     matchLabels:
+#       app: search-sync-api
+#   template:
+#     metadata:
+#       labels:
+#         app: search-sync-api
+#     spec:
+#       containers:
+#         - name: search-sync-api
+#           image: liscioapps/sphere-search-sync-api:1714527987.0b14e1b4
+#           workingDir: /usr/crowd/app/services/apps/search_sync_api
+#           command: ['pnpm']
+#           args: ['run', 'start']
+#           envFrom:
+#             - configMapRef:
+#                 name: backend-config
+#           env:
+#             - name: SERVICE
+#               value: search-sync-api
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webhook-api-dpl
+  labels:
+    force-reload: 'true'
+spec:
+  selector:
+    matchLabels:
+      app: webhook-api
+  template:
+    metadata:
+      labels:
+        app: webhook-api
+    spec:
+      containers:
+        - name: webhook-api
+          image: liscioapps/sphere-webhook-api:1714528133.0b14e1b4
+          workingDir: /usr/crowd/app/services/apps/webhook_api
+          command: ['pnpm']
+          args: ['run', 'start']
+          envFrom:
+            - configMapRef:
+                name: backend-config
+          env:
+            - name: SERVICE
+              value: webhook-api

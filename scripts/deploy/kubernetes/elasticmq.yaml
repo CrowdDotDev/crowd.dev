@@ -17,6 +17,7 @@ spec:
           image: liscioapps/sphere-elasticmq:1714487284.ce6964eb
           ports:
             - containerPort: 9324
+            - containerPort: 9325
 ---
 apiVersion: v1
 kind: Service
@@ -28,3 +29,7 @@ spec:
   ports:
     - port: 9324
       targetPort: 9324
+      name: SQS
+    - port: 9325
+      targetPort: 9325
+      name: webui

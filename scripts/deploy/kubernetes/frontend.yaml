@@ -4,7 +4,7 @@ kind: Deployment
 metadata:
   name: frontend-dpl
   labels:
-    force-reload: 'true'
+    force-reload: 'false'
 spec:
   selector:
     matchLabels:
