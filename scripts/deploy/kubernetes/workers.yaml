@@ -26,3 +26,236 @@ spec:
           env:
             - name: SERVICE
               value: automations-worker
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cache-worker-dpl
+  labels:
+    force-reload: 'true'
+spec:
+  selector:
+    matchLabels:
+      app: cache-worker
+  template:
+    metadata:
+      labels:
+        app: cache-worker
+    spec:
+      containers:
+        - name: cache-worker
+          image: liscioapps/sphere-cache-worker:1714511229.2d0ae48d
+          workingDir: /usr/crowd/app/services/apps/cache_worker
+          command: ['pnpm']
+          args: ['run', 'start']
+          envFrom:
+            - configMapRef:
+                name: backend-config
+          env:
+            - name: SERVICE
+              value: cache-worker
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: data-sink-worker-dpl
+  labels:
+    force-reload: 'true'
+spec:
+  selector:
+    matchLabels:
+      app: data-sink-worker
+  template:
+    metadata:
+      labels:
+        app: data-sink-worker
+    spec:
+      containers:
+        - name: data-sink-worker
+          image: liscioapps/sphere-data-sink-worker:1714511473.2d0ae48d
+          workingDir: /usr/crowd/app/services/apps/data_sink_worker
+          command: ['pnpm']
+          args: ['run', 'start']
+          envFrom:
+            - configMapRef:
+                name: backend-config
+          env:
+            - name: SERVICE
+              value: data-sink-worker
+
+# ---
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: emails-worker-dpl
+#   labels:
+#     force-reload: 'true'
+# spec:
+#   selector:
+#     matchLabels:
+#       app: emails-worker
+#   template:
+#     metadata:
+#       labels:
+#         app: emails-worker
+#     spec:
+#       containers:
+#         - name: emails-worker
+#           image: liscioapps/sphere-emails-worker:1714522933.2d0ae48d
+#           workingDir: /usr/crowd/app/services/apps/emails_worker
+#           command: ['pnpm']
+#           args: ['run', 'start']
+#           envFrom:
+#             - configMapRef:
+#                 name: backend-config
+#           env:
+#             - name: SERVICE
+#               value: emails-worker
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: entity-merging-worker-dpl
+  labels:
+    force-reload: 'true'
+spec:
+  selector:
+    matchLabels:
+      app: entity-merging-worker
+  template:
+    metadata:
+      labels:
+        app: entity-merging-worker
+    spec:
+      containers:
+        - name: entity-merging-worker
+          image: liscioapps/sphere-entity-merging-worker:1714524331.2d0ae48d
+          workingDir: /usr/crowd/app/services/apps/entity_merging_worker
+          command: ['pnpm']
+          args: ['run', 'start']
+          envFrom:
+            - configMapRef:
+                name: backend-config
+          env:
+            - name: SERVICE
+              value: entity-merging-worker
+
+# ---
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: exports-worker-dpl
+#   labels:
+#     force-reload: 'true'
+# spec:
+#   selector:
+#     matchLabels:
+#       app: exports-worker
+#   template:
+#     metadata:
+#       labels:
+#         app: exports-worker
+#     spec:
+#       containers:
+#         - name: exports-worker
+#           image: liscioapps/sphere-exports-worker:1714526113.2d0ae48d
+#           workingDir: /usr/crowd/app/services/apps/exports_worker
+#           command: ['pnpm']
+#           args: ['run', 'start']
+#           envFrom:
+#             - configMapRef:
+#                 name: backend-config
+#           env:
+#             - name: SERVICE
+#               value: exports-worker
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: integration-run-worker-dpl
+  labels:
+    force-reload: 'true'
+spec:
+  selector:
+    matchLabels:
+      app: integration-run-worker
+  template:
+    metadata:
+      labels:
+        app: integration-run-worker
+    spec:
+      containers:
+        - name: integration-run-worker
+          image: liscioapps/sphere-integration-run-worker:1714525074.2d0ae48d
+          workingDir: /usr/crowd/app/services/apps/integration_run_worker
+          command: ['pnpm']
+          args: ['run', 'start']
+          envFrom:
+            - configMapRef:
+                name: backend-config
+          env:
+            - name: SERVICE
+              value: integration-run-worker
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: integration-stream-worker-dpl
+  labels:
+    force-reload: 'true'
+spec:
+  selector:
+    matchLabels:
+      app: integration-stream-worker
+  template:
+    metadata:
+      labels:
+        app: integration-stream-worker
+    spec:
+      containers:
+        - name: integration-stream-worker
+          image: liscioapps/sphere-integration-stream-worker:1714525133.2d0ae48d
+          workingDir: /usr/crowd/app/services/apps/integration_stream_worker
+          command: ['pnpm']
+          args: ['run', 'start']
+          envFrom:
+            - configMapRef:
+                name: backend-config
+          env:
+            - name: SERVICE
+              value: integration-stream-worker
+
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: integration-sync-worker-dpl
+  labels:
+    force-reload: 'true'
+spec:
+  selector:
+    matchLabels:
+      app: integration-sync-worker
+  template:
+    metadata:
+      labels:
+        app: integration-sync-worker
+    spec:
+      containers:
+        - name: integration-sync-worker
+          image: liscioapps/sphere-integration-sync-worker:1714525295.2d0ae48d
+          workingDir: /usr/crowd/app/services/apps/integration_sync_worker
+          command: ['pnpm']
+          args: ['run', 'start']
+          envFrom:
+            - configMapRef:
+                name: backend-config
+          env:
+            - name: SERVICE
+              value: integration-sync-worker
+

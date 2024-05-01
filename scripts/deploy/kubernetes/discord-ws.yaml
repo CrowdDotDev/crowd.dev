@@ -2,39 +2,39 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: api-dpl
+  name: discord-ws-dpl
 spec:
   selector:
     matchLabels:
-      app: api
+      app: discord-ws
   template:
     metadata:
       labels:
-        app: api
+        app: discord-ws
     spec:
       containers:
-        - name: api
-          image: liscioapps/sphere-backend:1714526910.2d0ae48d
+        - name: discord-ws
+          image: liscioapps/sphere-backend:1714510921.2d0ae48d
           workingDir: /usr/crowd/app/backend
           command: ['npm']
-          args: ['run', 'start:api']
+          args: ['run', 'start:discord-ws']
           envFrom:
             - configMapRef:
                 name: backend-config
           env:
             - name: SERVICE
-              value: api
+              value: discord-ws
           ports:
             - containerPort: 8080
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: api-svc
+  name: discord-ws-svc
 spec:
   type: ClusterIP
   selector:
-    app: api
+    app: discord-ws
   ports:
     - port: 8080
       targetPort: 8080

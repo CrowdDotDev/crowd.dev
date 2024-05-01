@@ -50,7 +50,10 @@ setImmediate(async () => {
 
   sendgrid.setApiKey(process.env['CROWD_SENDGRID_KEY'])
 
-  await scheduleEmailEagleEyeDigest()
+   // EagleEye is disabled for community edition
+  if (process.env['CROWD_EDITION'] != 'community') {
+    await scheduleEmailEagleEyeDigest()
+  }
   await scheduleEmailAnalyticsWeekly()
 
   await svc.start()
