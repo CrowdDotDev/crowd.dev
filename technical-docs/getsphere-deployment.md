@@ -81,3 +81,31 @@ This adds the nginx ingress for all of the Endpoints listed above. For DigitalOc
 These pods and services for NGINX will run in the `ingress-nginx` namespace.
 
 We've customized some of that setup in `do-nginx.yaml`
+
+# Monitoring
+
+## Datadog
+Datadog monitoring is enabled through the [Datadog operator helm chart]() using the values file at `./scrips/deploy/kubernetes/datadog-values.yaml`
+
+To update or upgrade it, change the values as desired and run
+
+`helm upgrade datadog-agent -f datadog-values.yaml datadog/datadog`
+
+## Kube Prometheus Stack
+The [kube-prometheus-stack]() helm chart was automatically installed via DigitalOcean, but can also have the values tweaked in `./scripes/deploy/kubernetes/kube-prometheus-stack.yaml`
+
+### Prometheus
+To access Prometheus locally, run
+
+`kubectl port-forward svc/kube-prometheus-stack-prometheus 9090:9090 -n kube-prometheus-stack`
+
+and then go to http://localhost:9090
+
+### Grafana
+To access Grafana locally, run
+
+`kubectl port-forward svc/kube-prometheus-stack-grafana 3000:80 -n kube-prometheus-stack`
+
+and then go to http://localhost:3000
+
+The username is `admin` and the password is `prom-operator` or whatever is in the values file.

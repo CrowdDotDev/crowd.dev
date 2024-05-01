@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: job-generator
-          image: liscioapps/sphere-backend:1714571110.bbea5aac
+          image: liscioapps/sphere-backend:1714572966.fbd2d4a0
           workingDir: /usr/crowd/app/backend
           command: ['npm']
           args: ['run', 'start:job-generator']
