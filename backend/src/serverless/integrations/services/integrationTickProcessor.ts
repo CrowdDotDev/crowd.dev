@@ -54,7 +54,7 @@ export class IntegrationTickProcessor extends LoggerBase {
   }
 
   private async processCheckTick() {
-    this.log.trace('Processing integration processor tick!')
+    this.log.debug('Processing integration processor tick! Version: 1')
 
     const tickers: IIntTicker[] = INTEGRATION_SERVICES.map((i) => ({
       type: i.type,
