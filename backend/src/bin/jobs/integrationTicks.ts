@@ -25,6 +25,7 @@ const job: CrowdJob = {
   // every two hours
   cronTime: cronGenerator.every(1).minutes(),
   onTrigger: async () => {
+    console.log(`Running integration ticker at ${new Date().toISOString()} `)
     const processor = await getIntegrationProcessor()
     await processor.processTick()
   },
