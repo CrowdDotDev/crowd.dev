@@ -58,7 +58,7 @@ export class IntegrationTickProcessor extends LoggerBase {
 
     const tickers: IIntTicker[] = INTEGRATION_SERVICES.map((i) => ({
       type: i.type,
-      ticksBetweenChecks: i.checkEvery || -1,
+      ticksBetweenChecks: 0, // i.checkEvery || -1,
     }))
 
     const promises: Promise<void>[] = []
