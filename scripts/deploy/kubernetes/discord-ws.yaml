@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: discord-ws
-          image: liscioapps/sphere-backend:1714510921.2d0ae48d
+          image: liscioapps/sphere-backend:1714571110.bbea5aac
           workingDir: /usr/crowd/app/backend
           command: ['npm']
           args: ['run', 'start:discord-ws']
