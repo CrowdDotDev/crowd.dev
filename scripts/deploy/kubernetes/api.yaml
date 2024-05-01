@@ -3,6 +3,12 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: api-dpl
+  labels:
+    force-reload: 'true'
+    tags.datadoghq.com/env: prod
+    tags.datadoghq.com/service: api
+    tags.datadoghq.com/version: 1714527244.0b14e1b4
+    admission.datadoghq.com/enabled: "true"
 spec:
   selector:
     matchLabels:
@@ -24,6 +30,12 @@ spec:
           env:
             - name: SERVICE
               value: api
+            - name: DD_AGENT_HOST
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: DD_LOGS_INJECTION
+              value: "true"
           ports:
             - containerPort: 8080
 ---
