@@ -9,6 +9,8 @@ metadata:
     tags.datadoghq.com/service: api
     tags.datadoghq.com/version: 1714527244.0b14e1b4
     admission.datadoghq.com/enabled: "true"
+    app.kubernetes.io/component: agent
+    app.kubernetes.io/managed-by: Helm
 spec:
   selector:
     matchLabels:

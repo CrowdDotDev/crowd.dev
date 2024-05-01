@@ -1,0 +1,22 @@
+# # targetSystem -- Target OS for this deployment
+# # (possible values: linux, windows)
+# targetSystem: "linux"
+# datadog:
+#   # datadog.apiKey -- Your Datadog API key
+#   apiKey: "279bdaaf996f40abedf6a50dd68069d1a64e0b16"
+
+datadog:
+ apiKeyExistingSecret: datadog-secret
+ site: datadoghq.com
+ tlsVerify: false
+ apm:
+  socketEnabled: true
+
+ logs:
+  enabled: true
+  containerCollectAll: true
+  
+
+clusterAgent:
+  replicas: 2
+  createPodDisruptionBudget: true
