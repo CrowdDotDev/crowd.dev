@@ -59,7 +59,7 @@ export class IntegrationTickProcessor extends LoggerBase {
     const tickers: IIntTicker[] = INTEGRATION_SERVICES.map((i) => ({
       type: i.type,
       ticksBetweenChecks: 0, // i.checkEvery || -1,
-    }))
+    })).filter((i) => i.type === 'hackernews')
 
     const promises: Promise<void>[] = []
 
