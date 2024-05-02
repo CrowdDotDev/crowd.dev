@@ -36,7 +36,7 @@ export const memberFilters: Record<string, FilterConfig> = {
 };
 
 export const memberSearchFilter: SearchFilterConfig = {
-  placeholder: 'Search contacts',
+  placeholder: 'Search contact\'s name or email',
   apiFilterRenderer(value: string): any[] {
     const trimmedValue = trimAndReduceSpaces(value);
     return [
