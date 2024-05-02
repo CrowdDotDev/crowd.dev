@@ -4,7 +4,7 @@ import config from '@/config';
 export default function identify(user) {
   const { identify } = useLogRocket();
 
-  window.analytics.identify(user.id, {
+  window.analytics?.identify(user.id, {
     name: user.fullName,
     firstName: user.firstName,
     lastName: user.lastName,

@@ -57,6 +57,7 @@ function models(queryTimeoutMilliseconds: number, databaseHostnameOverride = nul
   }
 
   const credentials = getCredentials()
+  const ssl = DB_CONFIG.ssl === 'true' || DB_CONFIG.ssl === true
 
   const sequelize = new (<any>Sequelize)(
     DB_CONFIG.database,
@@ -68,14 +69,16 @@ function models(queryTimeoutMilliseconds: number, databaseHostnameOverride = nul
         application_name: SERVICE,
         connectionTimeoutMillis: 5000,
         query_timeout: queryTimeoutMilliseconds,
-        idle_in_transaction_session_timeout: 10000,
-        ssl: {
-          require: DB_CONFIG.ssl,
-          rejectUnauthorized: false // Some environments may require this option
-        }
+        // idle_in_transaction_session_timeout: 10000,
+        ssl: ssl
+          ? {
+              require: ssl,
+              rejectUnauthorized: false, // Some environments may require this option
+            }
+          : undefined,
       },
       port: DB_CONFIG.port,
-      ssl: DB_CONFIG.ssl,
+      ssl,
       replication: {
         read: [
           {

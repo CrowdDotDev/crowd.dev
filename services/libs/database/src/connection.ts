@@ -54,23 +54,26 @@ export const getDbConnection = async (
   }
 
   log.info(
-    { database: config.database, host: config.host, port: config.port },
+    { database: config.database, host: config.host, port: config.port, ssl: config.ssl },
     'Connecting to database!',
   )
 
   const dbInstance = getDbInstance()
 
-  let ssl = {}
-  if (process.env.CROWD_DB_SSL) {
-    ssl = {
+  const sslConfig: {
+    ssl: boolean | { require: boolean; rejectUnauthorized: boolean }
+  } = {
+    ssl: false,
+  }
+  if (config.ssl === 'true' || config.ssl === true) {
+    sslConfig.ssl = {
       require: true,
-      rejectUnauthorized: false
+      rejectUnauthorized: false,
     }
   }
-
   dbConnection[config.host] = dbInstance({
     ...config,
-    ssl,
+    ...sslConfig,
     max: maxPoolSize || 20,
     idleTimeoutMillis: idleTimeoutMillis !== undefined ? idleTimeoutMillis : 10000,
     // query_timeout: 30000,

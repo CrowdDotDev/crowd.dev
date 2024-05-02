@@ -59,17 +59,19 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: data-sink-worker-dpl
+  name: data-sink-worker-normal-dpl
   labels:
     force-reload: 'true'
 spec:
   selector:
     matchLabels:
       app: data-sink-worker
+      priority: normal
   template:
     metadata:
       labels:
         app: data-sink-worker
+        priority: normal
     spec:
       containers:
         - name: data-sink-worker
@@ -83,6 +85,107 @@ spec:
           env:
             - name: SERVICE
               value: data-sink-worker
+            - name: QUEUE_PRIORITY_LEVEL
+              value: normal
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: data-sink-worker-system-dpl
+  labels:
+    force-reload: 'true'
+spec:
+  selector:
+    matchLabels:
+      app: data-sink-worker
+      priority: system
+  template:
+    metadata:
+      labels:
+        app: data-sink-worker
+        priority: system
+    spec:
+      containers:
+        - name: data-sink-worker
+          image: liscioapps/sphere-data-sink-worker:1714511473.2d0ae48d
+          workingDir: /usr/crowd/app/services/apps/data_sink_worker
+          command: ['pnpm']
+          args: ['run', 'start']
+          envFrom:
+            - configMapRef:
+                name: backend-config
+          env:
+            - name: SERVICE
+              value: data-sink-worker
+            - name: QUEUE_PRIORITY_LEVEL
+              value: system
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: data-sink-worker-high-dpl
+  labels:
+    force-reload: 'true'
+spec:
+  selector:
+    matchLabels:
+      app: data-sink-worker
+      priority: high
+  template:
+    metadata:
+      labels:
+        app: data-sink-worker
+        priority: high
+    spec:
+      containers:
+        - name: data-sink-worker
+          image: liscioapps/sphere-data-sink-worker:1714511473.2d0ae48d
+          workingDir: /usr/crowd/app/services/apps/data_sink_worker
+          command: ['pnpm']
+          args: ['run', 'start']
+          envFrom:
+            - configMapRef:
+                name: backend-config
+          env:
+            - name: SERVICE
+              value: data-sink-worker
+            - name: QUEUE_PRIORITY_LEVEL
+              value: high
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: data-sink-worker-urgent-dpl
+  labels:
+    force-reload: 'true'
+spec:
+  selector:
+    matchLabels:
+      app: data-sink-worker
+      priority: urgent
+  template:
+    metadata:
+      labels:
+        app: data-sink-worker
+        priority: urgent
+    spec:
+      containers:
+        - name: data-sink-worker
+          image: liscioapps/sphere-data-sink-worker:1714511473.2d0ae48d
+          workingDir: /usr/crowd/app/services/apps/data_sink_worker
+          command: ['pnpm']
+          args: ['run', 'start']
+          envFrom:
+            - configMapRef:
+                name: backend-config
+          env:
+            - name: SERVICE
+              value: data-sink-worker
+            - name: QUEUE_PRIORITY_LEVEL
+              value: urgent
 
 # ---
 # apiVersion: apps/v1
@@ -175,21 +278,23 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: integration-run-worker-dpl
+  name: integration-run-worker-normal-dpl
   labels:
     force-reload: 'true'
 spec:
   selector:
     matchLabels:
       app: integration-run-worker
+      priority: normal
   template:
     metadata:
       labels:
         app: integration-run-worker
+        priority: normal
     spec:
       containers:
         - name: integration-run-worker
-          image: liscioapps/sphere-integration-run-worker:1714525074.2d0ae48d
+          image: liscioapps/sphere-integration-run-worker:1714647258.7352cf6f
           workingDir: /usr/crowd/app/services/apps/integration_run_worker
           command: ['pnpm']
           args: ['run', 'start']
@@ -199,22 +304,126 @@ spec:
           env:
             - name: SERVICE
               value: integration-run-worker
+            - name: QUEUE_PRIORITY_LEVEL
+              value: normal
 
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: integration-stream-worker-dpl
+  name: integration-run-worker-system-dpl
+  labels:
+    force-reload: 'true'
+spec:
+  selector:
+    matchLabels:
+      app: integration-run-worker
+      priority: system
+  template:
+    metadata:
+      labels:
+        app: integration-run-worker
+        priority: system
+    spec:
+      containers:
+        - name: integration-run-worker
+          image: liscioapps/sphere-integration-run-worker:1714647258.7352cf6f
+          workingDir: /usr/crowd/app/services/apps/integration_run_worker
+          command: ['pnpm']
+          args: ['run', 'start']
+          envFrom:
+            - configMapRef:
+                name: backend-config
+          env:
+            - name: SERVICE
+              value: integration-run-worker
+            - name: QUEUE_PRIORITY_LEVEL
+              value: system
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: integration-run-worker-hight-dpl
+  labels:
+    force-reload: 'true'
+spec:
+  selector:
+    matchLabels:
+      app: integration-run-worker
+      priority: hight
+  template:
+    metadata:
+      labels:
+        app: integration-run-worker
+        priority: hight
+    spec:
+      containers:
+        - name: integration-run-worker
+          image: liscioapps/sphere-integration-run-worker:1714647258.7352cf6f
+          workingDir: /usr/crowd/app/services/apps/integration_run_worker
+          command: ['pnpm']
+          args: ['run', 'start']
+          envFrom:
+            - configMapRef:
+                name: backend-config
+          env:
+            - name: SERVICE
+              value: integration-run-worker
+            - name: QUEUE_PRIORITY_LEVEL
+              value: hight
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: integration-run-worker-urgent-dpl
+  labels:
+    force-reload: 'true'
+spec:
+  selector:
+    matchLabels:
+      app: integration-run-worker
+      priority: urgent
+  template:
+    metadata:
+      labels:
+        app: integration-run-worker
+        priority: urgent
+    spec:
+      containers:
+        - name: integration-run-worker
+          image: liscioapps/sphere-integration-run-worker:1714647258.7352cf6f
+          workingDir: /usr/crowd/app/services/apps/integration_run_worker
+          command: ['pnpm']
+          args: ['run', 'start']
+          envFrom:
+            - configMapRef:
+                name: backend-config
+          env:
+            - name: SERVICE
+              value: integration-run-worker
+            - name: QUEUE_PRIORITY_LEVEL
+              value: urgent
+
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: integration-stream-worker-normal-dpl
   labels:
     force-reload: 'true'
 spec:
   selector:
     matchLabels:
       app: integration-stream-worker
+      priority: normal
   template:
     metadata:
       labels:
         app: integration-stream-worker
+        priority: normal
     spec:
       containers:
         - name: integration-stream-worker
@@ -228,23 +437,125 @@ spec:
           env:
             - name: SERVICE
               value: integration-stream-worker
-
+            - name: QUEUE_PRIORITY_LEVEL
+              value: normal
 
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: integration-sync-worker-dpl
+  name: integration-stream-worker-system-dpl
+  labels:
+    force-reload: 'true'
+spec:
+  selector:
+    matchLabels:
+      app: integration-stream-worker
+      priority: system
+  template:
+    metadata:
+      labels:
+        app: integration-stream-worker
+        priority: system
+    spec:
+      containers:
+        - name: integration-stream-worker
+          image: liscioapps/sphere-integration-stream-worker:1714525133.2d0ae48d
+          workingDir: /usr/crowd/app/services/apps/integration_stream_worker
+          command: ['pnpm']
+          args: ['run', 'start']
+          envFrom:
+            - configMapRef:
+                name: backend-config
+          env:
+            - name: SERVICE
+              value: integration-stream-worker
+            - name: QUEUE_PRIORITY_LEVEL
+              value: system
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: integration-stream-worker-hight-dpl
+  labels:
+    force-reload: 'true'
+spec:
+  selector:
+    matchLabels:
+      app: integration-stream-worker
+      priority: hight
+  template:
+    metadata:
+      labels:
+        app: integration-stream-worker
+        priority: hight
+    spec:
+      containers:
+        - name: integration-stream-worker
+          image: liscioapps/sphere-integration-stream-worker:1714525133.2d0ae48d
+          workingDir: /usr/crowd/app/services/apps/integration_stream_worker
+          command: ['pnpm']
+          args: ['run', 'start']
+          envFrom:
+            - configMapRef:
+                name: backend-config
+          env:
+            - name: SERVICE
+              value: integration-stream-worker
+            - name: QUEUE_PRIORITY_LEVEL
+              value: hight
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: integration-stream-worker-urgent-dpl
+  labels:
+    force-reload: 'true'
+spec:
+  selector:
+    matchLabels:
+      app: integration-stream-worker
+      priority: urgent
+  template:
+    metadata:
+      labels:
+        app: integration-stream-worker
+        priority: urgent
+    spec:
+      containers:
+        - name: integration-stream-worker
+          image: liscioapps/sphere-integration-stream-worker:1714525133.2d0ae48d
+          workingDir: /usr/crowd/app/services/apps/integration_stream_worker
+          command: ['pnpm']
+          args: ['run', 'start']
+          envFrom:
+            - configMapRef:
+                name: backend-config
+          env:
+            - name: SERVICE
+              value: integration-stream-worker
+            - name: QUEUE_PRIORITY_LEVEL
+              value: urgent
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: integration-sync-worker-normal-dpl
   labels:
     force-reload: 'true'
 spec:
   selector:
     matchLabels:
       app: integration-sync-worker
+      priority: normal
   template:
     metadata:
       labels:
         app: integration-sync-worker
+        priority: normal
     spec:
       containers:
         - name: integration-sync-worker
@@ -258,6 +569,108 @@ spec:
           env:
             - name: SERVICE
               value: integration-sync-worker
+            - name: QUEUE_PRIORITY_LEVEL
+              value: normal
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: integration-sync-worker-system-dpl
+  labels:
+    force-reload: 'true'
+spec:
+  selector:
+    matchLabels:
+      app: integration-sync-worker
+      priority: system
+  template:
+    metadata:
+      labels:
+        app: integration-sync-worker
+        priority: system
+    spec:
+      containers:
+        - name: integration-sync-worker
+          image: liscioapps/sphere-integration-sync-worker:1714525295.2d0ae48d
+          workingDir: /usr/crowd/app/services/apps/integration_sync_worker
+          command: ['pnpm']
+          args: ['run', 'start']
+          envFrom:
+            - configMapRef:
+                name: backend-config
+          env:
+            - name: SERVICE
+              value: integration-sync-worker
+            - name: QUEUE_PRIORITY_LEVEL
+              value: system
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: integration-sync-worker-hight-dpl
+  labels:
+    force-reload: 'true'
+spec:
+  selector:
+    matchLabels:
+      app: integration-sync-worker
+      priority: hight
+  template:
+    metadata:
+      labels:
+        app: integration-sync-worker
+        priority: hight
+    spec:
+      containers:
+        - name: integration-sync-worker
+          image: liscioapps/sphere-integration-sync-worker:1714525295.2d0ae48d
+          workingDir: /usr/crowd/app/services/apps/integration_sync_worker
+          command: ['pnpm']
+          args: ['run', 'start']
+          envFrom:
+            - configMapRef:
+                name: backend-config
+          env:
+            - name: SERVICE
+              value: integration-sync-worker
+            - name: QUEUE_PRIORITY_LEVEL
+              value: hight
+
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: integration-sync-worker-urgent-dpl
+  labels:
+    force-reload: 'true'
+spec:
+  selector:
+    matchLabels:
+      app: integration-sync-worker
+      priority: urgent
+  template:
+    metadata:
+      labels:
+        app: integration-sync-worker
+        priority: urgent
+    spec:
+      containers:
+        - name: integration-sync-worker
+          image: liscioapps/sphere-integration-sync-worker:1714525295.2d0ae48d
+          workingDir: /usr/crowd/app/services/apps/integration_sync_worker
+          command: ['pnpm']
+          args: ['run', 'start']
+          envFrom:
+            - configMapRef:
+                name: backend-config
+          env:
+            - name: SERVICE
+              value: integration-sync-worker
+            - name: QUEUE_PRIORITY_LEVEL
+              value: urgent
 
 ---
 apiVersion: apps/v1
