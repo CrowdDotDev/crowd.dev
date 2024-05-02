@@ -270,7 +270,7 @@ export default {
       // This function uses the placeholder 'ACCOUNT-UNIQUE-ID' value for account ID unless you change the account id field to use your app's values
       // Call this function in your authentication promise handler or callback when your visitor and account id values are available
       // Please use Strings, Numbers, or Bools for value types.
-      window.pendo.initialize({
+      window.pendo?.initialize({
         visitor: {
           id: this.currentUser.id, // Required if user is logged in, default creates anonymous ID
           email: this.currentUser.email, // Recommended if using Pendo Feedback, or NPS Email
