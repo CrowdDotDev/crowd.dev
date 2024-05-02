@@ -1,6 +1,8 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 ..env-configmap.yaml
+.backend-config.yaml
+.frontend-config.yaml
 
 # dependencies
 /node_modules

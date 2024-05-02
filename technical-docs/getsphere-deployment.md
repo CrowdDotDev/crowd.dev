@@ -45,10 +45,19 @@ The following services run in Kubernetes:
 - `redis`
 
 #### Config
-Kubernetes requires the following configmaps. These config maps are not commited to the repository as they contain secerts. They are all contained in the `/scripts/deploy/kubernetes/.env-configmap.yaml` file.
+Kubernetes requires the following configmaps. These config maps are not commited to the repository as they contain secerts.
 
 - `backend-config`: the values from `../kubernetes/.backend.env`
 - `frontend-config`: the values from `../kubernetes/.frontend.env`
+
+To update these, download the latest files to the ignored config files by:
+
+- `cd scripts/deploy/kubernetes`
+- `kubectl get  configmaps backend-config -o yaml > .backend-config.yaml`
+- `kubectl get  configmaps frontend-config -o yaml > .frontend-config.yaml`
+- Modify the files as needed
+- `kubectl apply -f .backend-config.yaml`
+- `kubectl apply -f .frontend-config.yaml`
 
 ## Service Notes
 
