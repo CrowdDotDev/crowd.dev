@@ -28,8 +28,8 @@ export const activitySearchFilter: SearchFilterConfig = {
     return [
       {
         or: [
-          { title: { textContains: trimmedValue } },
-          { body: { textContains: trimmedValue } },
+          { channel: { textContains: trimmedValue } },
+          { type: { textContains: trimmedValue } },
         ],
       },
     ];
