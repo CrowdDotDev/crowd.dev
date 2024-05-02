@@ -38,6 +38,11 @@ spec:
                   fieldPath: status.hostIP
             - name: DD_LOGS_INJECTION
               value: "true"
+            - name: CROWD_GITHUB_PRIVATE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: getsphere
+                  key: github-private-key
           ports:
             - containerPort: 8080
 ---

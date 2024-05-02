@@ -1,0 +1,42 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webhook-api-dpl
+  labels:
+    force-reload: 'true'
+spec:
+  selector:
+    matchLabels:
+      app: webhook-api
+  template:
+    metadata:
+      labels:
+        app: webhook-api
+    spec:
+      containers:
+        - name: webhook-api
+          image: liscioapps/sphere-webhook-api:1714528133.0b14e1b4
+          workingDir: /usr/crowd/app/services/apps/webhook_api
+          command: ['pnpm']
+          args: ['run', 'start']
+          envFrom:
+            - configMapRef:
+                name: backend-config
+          env:
+            - name: SERVICE
+              value: webhook-api
+
+---
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webhook-api-svc
+spec:
+  type: ClusterIP
+  selector:
+    app: webhook-api
+  ports:
+    - port: 8082
+      targetPort: 8082

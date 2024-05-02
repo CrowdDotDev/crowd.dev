@@ -59,6 +59,13 @@ spec:
                 name: frontend-svc
                 port:
                   number: 8081
+          - path: /webhooks(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: webhook-api-svc
+                port:
+                  number: 8082
     - host: nango.getsphere.dev
       http:
         paths:
