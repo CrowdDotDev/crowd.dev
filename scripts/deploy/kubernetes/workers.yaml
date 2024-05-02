@@ -730,35 +730,6 @@ spec:
             - name: SERVICE
               value: profiles-worker
 
-# ---
-# apiVersion: apps/v1
-# kind: Deployment
-# metadata:
-#   name: search-sync-api-dpl
-#   labels:
-#     force-reload: 'true'
-# spec:
-#   selector:
-#     matchLabels:
-#       app: search-sync-api
-#   template:
-#     metadata:
-#       labels:
-#         app: search-sync-api
-#     spec:
-#       containers:
-#         - name: search-sync-api
-#           image: liscioapps/sphere-search-sync-api:1714527987.0b14e1b4
-#           workingDir: /usr/crowd/app/services/apps/search_sync_api
-#           command: ['pnpm']
-#           args: ['run', 'start']
-#           envFrom:
-#             - configMapRef:
-#                 name: backend-config
-#           env:
-#             - name: SERVICE
-#               value: search-sync-api
-
 ---
 apiVersion: apps/v1
 kind: Deployment

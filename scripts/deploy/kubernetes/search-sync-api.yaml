@@ -1,0 +1,41 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: search-sync-api-dpl
+  labels:
+    force-reload: "true"
+spec:
+  selector:
+    matchLabels:
+      app: search-sync-api
+  template:
+    metadata:
+      labels:
+        app: search-sync-api
+    spec:
+      containers:
+        - name: search-sync-api
+          image: liscioapps/sphere-search-sync-api:1714660543.f9b2f844
+          workingDir: /usr/crowd/app/services/apps/search_sync_api
+          command: ["pnpm"]
+          args: ["run", "start"]
+          envFrom:
+            - configMapRef:
+                name: backend-config
+          env:
+            - name: SERVICE
+              value: search-sync-api
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: search-sync-api-svc
+spec:
+  type: ClusterIP
+  selector:
+    app: search-sync-api
+  ports:
+    - port: 8083
+      targetPort: 8083
