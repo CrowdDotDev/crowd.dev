@@ -15,7 +15,7 @@ export default (app) => {
   app.put(`/tenant/:tenantId/member/:id`, safeWrap(require('./memberUpdate').default))
   app.post(`/tenant/:tenantId/member/import`, safeWrap(require('./memberImport').default))
   app.delete(`/tenant/:tenantId/member`, safeWrap(require('./memberDestroy').default))
-  app.get(
+  app.post(
     `/tenant/:tenantId/member/autocomplete`,
     safeWrap(require('./memberAutocomplete').default),
   )

@@ -243,9 +243,38 @@ const rules = {
 const $v = useVuelidate(rules, form);
 
 // Members field
-const searchMembers = (query, limit) => MemberService.listAutocomplete(query, limit).catch(
-  () => [],
-);
+const searchMembers = (query, limit) => MemberService.listAutocomplete({
+  filter: {
+    and: [
+      {
+        displayName: {
+          textContains: query,
+        },
+      },
+      {
+        isOrganization: {
+          not: true,
+        },
+      },
+    ],
+  },
+  orderBy: 'displayName_ASC',
+  offset: 0,
+  limit,
+})
+  .then(({ rows }) => rows.map((member) => ({
+    id: member.id,
+    label: member.displayName,
+    email: member.emails.length > 0 ? member.emails[0] : null,
+    avatar: member.attributes?.avatarUrl?.default || null,
+    organizations: member.organizations.map((organization) => ({
+      id: organization.id,
+      name: organization.displayName,
+    })),
+  })))
+  .catch(
+    () => [],
+  );
 
 // Datetime field
 const CalendarIcon = h(
