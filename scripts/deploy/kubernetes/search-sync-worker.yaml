@@ -1,0 +1,131 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: search-sync-worker-normal-dpl
+  labels:
+    force-reload: "true"
+spec:
+  selector:
+    matchLabels:
+      app: search-sync-worker
+      priority: normal
+  template:
+    metadata:
+      labels:
+        app: search-sync-worker
+        priority: normal
+    spec:
+      containers:
+        - name: search-sync-worker-normal
+          image: liscioapps/sphere-search-sync-worker:1714653574.368f50e1
+          workingDir: /usr/crowd/app/services/apps/search_sync_worker
+          command: ["pnpm"]
+          args: ["run", "start"]
+          envFrom:
+            - configMapRef:
+                name: backend-config
+          env:
+            - name: SERVICE
+              value: search-sync-worker
+            - name: QUEUE_PRIORITY_LEVEL
+              value: normal
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: search-sync-worker-system-dpl
+  labels:
+    force-reload: "true"
+spec:
+  selector:
+    matchLabels:
+      app: search-sync-worker
+      priority: system
+  template:
+    metadata:
+      labels:
+        app: search-sync-worker
+        priority: system
+    spec:
+      containers:
+        - name: search-sync-worker-system
+          image: liscioapps/sphere-search-sync-worker:1714653574.368f50e1
+          workingDir: /usr/crowd/app/services/apps/search_sync_worker
+          command: ["pnpm"]
+          args: ["run", "start"]
+          envFrom:
+            - configMapRef:
+                name: backend-config
+          env:
+            - name: SERVICE
+              value: search-sync-worker
+            - name: QUEUE_PRIORITY_LEVEL
+              value: system
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: search-sync-worker-hight-dpl
+  labels:
+    force-reload: "true"
+spec:
+  selector:
+    matchLabels:
+      app: search-sync-worker
+      priority: hight
+  template:
+    metadata:
+      labels:
+        app: search-sync-worker
+        priority: hight
+    spec:
+      containers:
+        - name: search-sync-worker-hight
+          image: liscioapps/sphere-search-sync-worker:1714653574.368f50e1
+          workingDir: /usr/crowd/app/services/apps/search_sync_worker
+          command: ["pnpm"]
+          args: ["run", "start"]
+          envFrom:
+            - configMapRef:
+                name: backend-config
+          env:
+            - name: SERVICE
+              value: search-sync-worker
+            - name: QUEUE_PRIORITY_LEVEL
+              value: hight
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: search-sync-worker-urgent-dpl
+  labels:
+    force-reload: "true"
+spec:
+  selector:
+    matchLabels:
+      app: search-sync-worker
+      priority: urgent
+  template:
+    metadata:
+      labels:
+        app: search-sync-worker
+        priority: urgent
+    spec:
+      containers:
+        - name: search-sync-worker-urgent
+          image: liscioapps/sphere-search-sync-worker:1714653574.368f50e1
+          workingDir: /usr/crowd/app/services/apps/search_sync_worker
+          command: ["pnpm"]
+          args: ["run", "start"]
+          envFrom:
+            - configMapRef:
+                name: backend-config
+          env:
+            - name: SERVICE
+              value: search-sync-worker
+            - name: QUEUE_PRIORITY_LEVEL
+              value: urgent

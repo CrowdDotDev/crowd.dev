@@ -2,18 +2,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nodejs-worker-dpl
+  name: nodejs-worker-normal-dpl
 spec:
   selector:
     matchLabels:
       app: nodejs-worker
+      priority: normal
   template:
     metadata:
       labels:
         app: nodejs-worker
+        priority: normal
     spec:
       containers:
-        - name: nodejs-worker
+        - name: nodejs-worker-normal
           image: liscioapps/sphere-backend:1714571110.bbea5aac
           workingDir: /usr/crowd/app/backend
           command: ['npm']
@@ -24,3 +26,103 @@ spec:
           env:
             - name: SERVICE
               value: nodejs-worker
+          env:
+            - name: QUEUE_PRIORITY_LEVEL
+              value: normal
+
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nodejs-worker-system-dpl
+spec:
+  selector:
+    matchLabels:
+      app: nodejs-worker
+      priority: system
+  template:
+    metadata:
+      labels:
+        app: nodejs-worker
+        priority: system
+    spec:
+      containers:
+        - name: nodejs-worker-system
+          image: liscioapps/sphere-backend:1714571110.bbea5aac
+          workingDir: /usr/crowd/app/backend
+          command: ['npm']
+          args: ['run', 'start:nodejs-worker']
+          envFrom:
+            - configMapRef:
+                name: backend-config
+          env:
+            - name: SERVICE
+              value: nodejs-worker
+          env:
+            - name: QUEUE_PRIORITY_LEVEL
+              value: system
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nodejs-worker-hight-dpl
+spec:
+  selector:
+    matchLabels:
+      app: nodejs-worker
+      priority: hight
+  template:
+    metadata:
+      labels:
+        app: nodejs-worker
+        priority: hight
+    spec:
+      containers:
+        - name: nodejs-worker-hight
+          image: liscioapps/sphere-backend:1714571110.bbea5aac
+          workingDir: /usr/crowd/app/backend
+          command: ['npm']
+          args: ['run', 'start:nodejs-worker']
+          envFrom:
+            - configMapRef:
+                name: backend-config
+          env:
+            - name: SERVICE
+              value: nodejs-worker
+          env:
+            - name: QUEUE_PRIORITY_LEVEL
+              value: hight
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nodejs-worker-urgent-dpl
+spec:
+  selector:
+    matchLabels:
+      app: nodejs-worker
+      priority: urgent
+  template:
+    metadata:
+      labels:
+        app: nodejs-worker
+        priority: urgent
+    spec:
+      containers:
+        - name: nodejs-worker-urgent
+          image: liscioapps/sphere-backend:1714571110.bbea5aac
+          workingDir: /usr/crowd/app/backend
+          command: ['npm']
+          args: ['run', 'start:nodejs-worker']
+          envFrom:
+            - configMapRef:
+                name: backend-config
+          env:
+            - name: SERVICE
+              value: nodejs-worker
+          env:
+            - name: QUEUE_PRIORITY_LEVEL
+              value: urgent

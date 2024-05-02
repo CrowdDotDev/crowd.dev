@@ -74,7 +74,7 @@ spec:
         priority: normal
     spec:
       containers:
-        - name: data-sink-worker
+        - name: data-sink-worker-normal
           image: liscioapps/sphere-data-sink-worker:1714511473.2d0ae48d
           workingDir: /usr/crowd/app/services/apps/data_sink_worker
           command: ['pnpm']
@@ -107,7 +107,7 @@ spec:
         priority: system
     spec:
       containers:
-        - name: data-sink-worker
+        - name: data-sink-worker-system
           image: liscioapps/sphere-data-sink-worker:1714511473.2d0ae48d
           workingDir: /usr/crowd/app/services/apps/data_sink_worker
           command: ['pnpm']
@@ -140,7 +140,7 @@ spec:
         priority: high
     spec:
       containers:
-        - name: data-sink-worker
+        - name: data-sink-worker-high
           image: liscioapps/sphere-data-sink-worker:1714511473.2d0ae48d
           workingDir: /usr/crowd/app/services/apps/data_sink_worker
           command: ['pnpm']
@@ -173,7 +173,7 @@ spec:
         priority: urgent
     spec:
       containers:
-        - name: data-sink-worker
+        - name: data-sink-worker-urgent
           image: liscioapps/sphere-data-sink-worker:1714511473.2d0ae48d
           workingDir: /usr/crowd/app/services/apps/data_sink_worker
           command: ['pnpm']
@@ -293,7 +293,7 @@ spec:
         priority: normal
     spec:
       containers:
-        - name: integration-run-worker
+        - name: integration-run-worker-normal
           image: liscioapps/sphere-integration-run-worker:1714647258.7352cf6f
           workingDir: /usr/crowd/app/services/apps/integration_run_worker
           command: ['pnpm']
@@ -326,7 +326,7 @@ spec:
         priority: system
     spec:
       containers:
-        - name: integration-run-worker
+        - name: integration-run-worker-system
           image: liscioapps/sphere-integration-run-worker:1714647258.7352cf6f
           workingDir: /usr/crowd/app/services/apps/integration_run_worker
           command: ['pnpm']
@@ -359,7 +359,7 @@ spec:
         priority: hight
     spec:
       containers:
-        - name: integration-run-worker
+        - name: integration-run-worker-hight
           image: liscioapps/sphere-integration-run-worker:1714647258.7352cf6f
           workingDir: /usr/crowd/app/services/apps/integration_run_worker
           command: ['pnpm']
@@ -392,7 +392,7 @@ spec:
         priority: urgent
     spec:
       containers:
-        - name: integration-run-worker
+        - name: integration-run-worker-urgent
           image: liscioapps/sphere-integration-run-worker:1714647258.7352cf6f
           workingDir: /usr/crowd/app/services/apps/integration_run_worker
           command: ['pnpm']
@@ -426,7 +426,7 @@ spec:
         priority: normal
     spec:
       containers:
-        - name: integration-stream-worker
+        - name: integration-stream-worker-normal
           image: liscioapps/sphere-integration-stream-worker:1714525133.2d0ae48d
           workingDir: /usr/crowd/app/services/apps/integration_stream_worker
           command: ['pnpm']
@@ -459,7 +459,7 @@ spec:
         priority: system
     spec:
       containers:
-        - name: integration-stream-worker
+        - name: integration-stream-worker-system
           image: liscioapps/sphere-integration-stream-worker:1714525133.2d0ae48d
           workingDir: /usr/crowd/app/services/apps/integration_stream_worker
           command: ['pnpm']
@@ -492,7 +492,7 @@ spec:
         priority: hight
     spec:
       containers:
-        - name: integration-stream-worker
+        - name: integration-stream-worker-hight
           image: liscioapps/sphere-integration-stream-worker:1714525133.2d0ae48d
           workingDir: /usr/crowd/app/services/apps/integration_stream_worker
           command: ['pnpm']
@@ -525,7 +525,7 @@ spec:
         priority: urgent
     spec:
       containers:
-        - name: integration-stream-worker
+        - name: integration-stream-worker-urgent
           image: liscioapps/sphere-integration-stream-worker:1714525133.2d0ae48d
           workingDir: /usr/crowd/app/services/apps/integration_stream_worker
           command: ['pnpm']
@@ -558,7 +558,7 @@ spec:
         priority: normal
     spec:
       containers:
-        - name: integration-sync-worker
+        - name: integration-sync-worker-normal
           image: liscioapps/sphere-integration-sync-worker:1714525295.2d0ae48d
           workingDir: /usr/crowd/app/services/apps/integration_sync_worker
           command: ['pnpm']
@@ -591,7 +591,7 @@ spec:
         priority: system
     spec:
       containers:
-        - name: integration-sync-worker
+        - name: integration-sync-worker-system
           image: liscioapps/sphere-integration-sync-worker:1714525295.2d0ae48d
           workingDir: /usr/crowd/app/services/apps/integration_sync_worker
           command: ['pnpm']
@@ -624,7 +624,7 @@ spec:
         priority: hight
     spec:
       containers:
-        - name: integration-sync-worker
+        - name: integration-sync-worker-hight
           image: liscioapps/sphere-integration-sync-worker:1714525295.2d0ae48d
           workingDir: /usr/crowd/app/services/apps/integration_sync_worker
           command: ['pnpm']
@@ -658,7 +658,7 @@ spec:
         priority: urgent
     spec:
       containers:
-        - name: integration-sync-worker
+        - name: integration-sync-worker-urgent
           image: liscioapps/sphere-integration-sync-worker:1714525295.2d0ae48d
           workingDir: /usr/crowd/app/services/apps/integration_sync_worker
           command: ['pnpm']
