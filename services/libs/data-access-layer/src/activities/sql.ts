@@ -545,7 +545,7 @@ export async function findTopActivityTypes(
 
   let totalCount = 0
   result.forEach((row) => {
-    totalCount += row.count
+    totalCount += Number(row.count)
   })
 
   result = result.map((a) => {
@@ -557,26 +557,29 @@ export async function findTopActivityTypes(
       arg.segments.reduce((acc, s) => merge(acc, s.customActivityTypes), {}),
       [ActivityDisplayVariant.SHORT],
     )
+
     const prettyName: string = displayOptions.short
     a.type = prettyName[0].toUpperCase() + prettyName.slice(1)
     a.percentage = Number((a.count / totalCount) * 100).toFixed(2)
     a.platformIcon = `${s3Url}/email/${a.platform}.png`
+
     return a
   })
 
   return result
 }
 
-export async function getDistinctActiveOrganizations(
+export async function getMostActiveOrganizations(
   qdbConn: DbConnOrTx,
   arg: IQueryDistinctParameters,
 ): Promise<INumberOfActivitiesPerOrganization[]> {
   let query = `
-    SELECT DISTINCT organizationId, COUNT()
+    SELECT DISTINCT organizationId, COUNT() AS count
     FROM activities
     WHERE tenantId = $(tenantId)
     AND organizationId IS NOT NULL
     AND timestamp BETWEEN $(after) AND $(before)
+    ORDER BY count DESC;
   `
 
   if (arg.limit) {
@@ -595,16 +598,17 @@ export async function getDistinctActiveOrganizations(
   return result
 }
 
-export async function getDistinctActiveMembers(
+export async function getMostActiveMembers(
   qdbConn: DbConnOrTx,
   arg: IQueryDistinctParameters,
 ): Promise<INumberOfActivitiesPerMember[]> {
   let query = `
-    SELECT DISTINCT memberId, COUNT()
+    SELECT DISTINCT memberId, COUNT() AS count
     FROM activities
     WHERE tenantId = $(tenantId)
     AND memberId IS NOT NULL
     AND timestamp BETWEEN $(after) AND $(before)
+    ORDER BY count DESC;
   `
 
   if (arg.limit) {

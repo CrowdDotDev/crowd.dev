@@ -17,7 +17,6 @@
     "@crowd/common": "workspace:*",
     "@crowd/data-access-layer": "workspace:*",
     "@crowd/integrations": "workspace:*",
-    "@crowd/cubejs": "workspace:*",
     "@crowd/types": "workspace:*",
     "@sendgrid/mail": "~7.7.0",
     "@temporalio/client": "~1.8.6",

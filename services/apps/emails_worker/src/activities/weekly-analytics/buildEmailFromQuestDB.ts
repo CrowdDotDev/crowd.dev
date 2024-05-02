@@ -11,8 +11,8 @@ import {
   ActivityType,
   findConversationsWithActivities,
   IConversationWithActivities,
-  getDistinctActiveMembers,
-  getDistinctActiveOrganizations,
+  getMostActiveMembers,
+  getMostActiveOrganizations,
   INumberOfActivitiesPerOrganization,
   INumberOfActivitiesPerMember,
   getMemberById,
@@ -172,7 +172,7 @@ export async function getMostActiveMembersThisWeek(
   let rows: INumberOfActivitiesPerMember[] = []
 
   try {
-    rows = await getDistinctActiveMembers(qdb, {
+    rows = await getMostActiveMembers(qdb, {
       tenantId: input.tenantId,
       after: new Date(Date.parse(input.dateTimeStartThisWeek)),
       before: new Date(Date.parse(input.dateTimeEndThisWeek)),
@@ -184,7 +184,14 @@ export async function getMostActiveMembersThisWeek(
 
   const members: IMember[] = []
   for (const row of rows) {
-    members.push(await getMemberById(db, row.memberId))
+    const member = await getMemberById(db, row.memberId)
+    member.activityCount = rows.filter((row) => row.memberId === member.id)[0].count
+
+    // Backward compatibility since the Sendgrid dynamic email template use "name"
+    // and not "displayName".
+    member.name = member.displayName
+
+    members.push(member)
   }
 
   return members
@@ -200,7 +207,7 @@ export async function getMostActiveOrganizationsThisWeek(
   let rows: INumberOfActivitiesPerOrganization[] = []
 
   try {
-    rows = await getDistinctActiveOrganizations(qdb, {
+    rows = await getMostActiveOrganizations(qdb, {
       tenantId: input.tenantId,
       after: new Date(Date.parse(input.dateTimeStartThisWeek)),
       before: new Date(Date.parse(input.dateTimeEndThisWeek)),
@@ -212,7 +219,14 @@ export async function getMostActiveOrganizationsThisWeek(
 
   const orgs: IOrganization[] = []
   for (const row of rows) {
-    orgs.push(await getOrganizationById(db, row.organizationId))
+    const org = await getOrganizationById(db, row.organizationId)
+    org.activityCount = rows.filter((row) => row.organizationId === org.id)[0].count
+
+    // Backward compatibility since the Sendgrid dynamic email template use "name"
+    // and not "displayName".
+    org.name = org.displayName
+
+    orgs.push(org)
   }
 
   return orgs
@@ -274,7 +288,7 @@ export async function getActiveMembersThisWeek(input: InputAnalyticsWithTimes): 
   let result = 0
 
   try {
-    const rows: INumberOfActivitiesPerMember[] = await getDistinctActiveMembers(qdb, {
+    const rows: INumberOfActivitiesPerMember[] = await getMostActiveMembers(qdb, {
       tenantId: input.tenantId,
       after: new Date(Date.parse(input.dateTimeStartThisWeek)),
       before: new Date(Date.parse(input.dateTimeEndThisWeek)),
@@ -298,7 +312,7 @@ export async function getActiveMembersPreviousWeek(
   let result = 0
 
   try {
-    const rows: INumberOfActivitiesPerMember[] = await getDistinctActiveMembers(qdb, {
+    const rows: INumberOfActivitiesPerMember[] = await getMostActiveMembers(qdb, {
       tenantId: input.tenantId,
       after: new Date(Date.parse(input.dateTimeStartPreviousWeek)),
       before: new Date(Date.parse(input.dateTimeEndPreviousWeek)),
@@ -322,7 +336,7 @@ export async function getActiveOrganizationsThisWeek(
   let result = 0
 
   try {
-    const rows: INumberOfActivitiesPerOrganization[] = await getDistinctActiveOrganizations(qdb, {
+    const rows: INumberOfActivitiesPerOrganization[] = await getMostActiveOrganizations(qdb, {
       tenantId: input.tenantId,
       after: new Date(Date.parse(input.dateTimeStartThisWeek)),
       before: new Date(Date.parse(input.dateTimeEndThisWeek)),
@@ -346,7 +360,7 @@ export async function getActiveOrganizationsPreviousWeek(
   let result = 0
 
   try {
-    const rows: INumberOfActivitiesPerOrganization[] = await getDistinctActiveOrganizations(qdb, {
+    const rows: INumberOfActivitiesPerOrganization[] = await getMostActiveOrganizations(qdb, {
       tenantId: input.tenantId,
       after: new Date(Date.parse(input.dateTimeStartPreviousWeek)),
       before: new Date(Date.parse(input.dateTimeEndPreviousWeek)),

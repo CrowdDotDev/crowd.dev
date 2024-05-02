@@ -8,6 +8,8 @@ import { InputAnalyticsWithSegments, InputAnalyticsWithTimes } from '../../types
 
 // Configure timeouts and retry policies to fetch content from Cube.js.
 const {
+  getTenantUsers,
+  getSegments,
   getTotalMembersThisWeek,
   getTotalMembersPreviousWeek,
   getNewMembersThisWeek,
@@ -16,12 +18,11 @@ const {
   getTotalOrganizationsPreviousWeek,
   getNewOrganizationsThisWeek,
   getNewOrganizationsPreviousWeek,
+  updateEmailHistory,
 } = proxyActivities<typeof activities>({ startToCloseTimeout: '15 seconds' })
 
 // Configure timeouts and retry policies to fetch content from the databases.
 const {
-  getTenantUsers,
-  getSegments,
   getActiveTenantIntegrations,
   getTotalActivitiesThisWeek,
   getTotalActivitiesPreviousWeek,
@@ -35,7 +36,6 @@ const {
   getActiveMembersPreviousWeek,
   getActiveOrganizationsThisWeek,
   getActiveOrganizationsPreviousWeek,
-  updateEmailHistory,
 } = proxyActivities<typeof activities>({ startToCloseTimeout: '10 seconds' })
 
 // Configure timeouts and retry policies to actually send the email.
