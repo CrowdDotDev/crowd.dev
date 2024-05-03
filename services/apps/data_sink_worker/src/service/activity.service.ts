@@ -104,6 +104,8 @@ export default class ActivityService extends LoggerBase {
           objectMemberId: activity.objectMemberId,
           objectMemberUsername: activity.objectMemberUsername,
         })
+
+        this.log.info('Creating an activity in QuestDB!')
         await insertActivities([
           {
             id,

@@ -1,7 +1,7 @@
 import { SegmentRawData } from '@crowd/types'
 import { IQueryActivityResult } from '../activities'
 
-export interface IQueryConversationsParameters {
+export interface IQueryConversationsWithActivitiesParameters {
   tenantId: string
   segments: SegmentRawData[]
   after?: Date
@@ -35,4 +35,24 @@ export interface IConversationWithActivities extends IDbConversation {
   memberCount?: number
 
   activities: IQueryActivityResult[]
+}
+
+export interface IQueryConversationsParameters {
+  tenantId: string
+  segmentIds: string[]
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  filter?: any
+  orderBy?: string[]
+  limit?: number
+  offset?: number
+  countOnly?: boolean
+}
+
+export interface IQueryConversationResult {
+  id: string
+  title: string
+  slug: string
+  published: boolean
+  tenantId: string
+  segmentId: string
 }

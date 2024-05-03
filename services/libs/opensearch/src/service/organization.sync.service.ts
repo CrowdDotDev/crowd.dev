@@ -1,8 +1,4 @@
-import {
-  IDbOrganizationSyncData,
-  IOrganizationSegmentAggregates,
-  IOrganizationSegmentMatrix,
-} from '../repo/organization.data'
+import { IDbOrganizationSyncData, IOrganizationSegmentMatrix } from '../repo/organization.data'
 import { OrganizationRepository } from '../repo/organization.repo'
 import { IDbSegmentInfo } from '../repo/segment.data'
 import { SegmentRepository } from '../repo/segment.repo'
@@ -16,7 +12,11 @@ import { IOrganizationSyncResult } from './organization.sync.data'
 import { IServiceConfig } from '@crowd/types'
 import { IndexingRepository } from '../repo/indexing.repo'
 import { IndexedEntityType } from '../repo/indexing.data'
-import { ActivityRepository } from '../repo/activity.repo'
+import {
+  IOrganizationSegmentAggregates,
+  getOrganizationAggregates,
+  getOrganizationSegmentCouples,
+} from '@crowd/data-access-layer'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -26,11 +26,10 @@ export class OrganizationSyncService {
   private readonly segmentRepo: SegmentRepository
   private readonly serviceConfig: IServiceConfig
   private readonly indexingRepo: IndexingRepository
-  private readonly activityRepo: ActivityRepository
 
   constructor(
     pgStore: DbStore,
-    qdbStore: DbStore,
+    private readonly qdbStore: DbStore,
     private readonly openSearchService: OpenSearchService,
     parentLog: Logger,
     serviceConfig: IServiceConfig,
@@ -41,7 +40,6 @@ export class OrganizationSyncService {
     this.orgRepo = new OrganizationRepository(pgStore, this.log)
     this.segmentRepo = new SegmentRepository(pgStore, this.log)
     this.indexingRepo = new IndexingRepository(pgStore, this.log)
-    this.activityRepo = new ActivityRepository(qdbStore, this.log)
   }
 
   public async getAllIndexedTenantIds(
@@ -283,7 +281,8 @@ export class OrganizationSyncService {
       )
     } else {
       // first we fetch org - segment couples from activities table in questdb
-      const organizationSegments = await this.activityRepo.getOrganizationSegmentCouples(
+      const organizationSegments = await getOrganizationSegmentCouples(
+        this.qdbStore.connection(),
         organizationIds,
       )
       // then we further process it to include orgs without activities (like manual orgs)
@@ -394,7 +393,8 @@ export class OrganizationSyncService {
           orgId: orgId,
           segmentId: segment.segmentId,
           orgDataPromise: this.orgRepo.getOrganizationData(orgId),
-          aggregatesPromise: this.activityRepo.getOrganizationAggregateData(
+          aggregatesPromise: getOrganizationAggregates(
+            this.qdbStore.connection(),
             orgId,
             segment.segmentId,
           ),

@@ -1,3 +1,12 @@
+export interface IDbConversation {
+  id: string
+  title: string
+  slug: string
+  published: boolean
+  tenantId: string
+  segmentId: string
+}
+
 export interface IDbConversationCreateData {
   id?: string
   tenantId: string
@@ -9,5 +18,14 @@ export interface IDbConversationCreateData {
   slug: string
   timestamp: Date | string
   createdById?: string
+  updatedById?: string
+}
+
+export interface IDbConversationUpdateData {
+  tenantId: string
+  segmentId: string
+  title?: string
+  slug?: string
+  published?: boolean
   updatedById?: string
 }

@@ -1,33 +1,52 @@
 import lodash from 'lodash'
 import Sequelize from 'sequelize'
-import { PlatformType } from '@crowd/types'
-import { Error404 } from '@crowd/common'
+import { PageData, PlatformType } from '@crowd/types'
+import { Error404, single } from '@crowd/common'
 import { ActivityDisplayService } from '@crowd/integrations'
+import {
+  IQueryActivityResult,
+  deleteConversations,
+  getConversationById,
+  insertConversation,
+  queryActivities,
+  updateConversation,
+} from '@crowd/data-access-layer'
+import { IDbConversation } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/conversation.data'
 import { QueryOutput } from './filters/queryTypes'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
 import { IRepositoryOptions } from './IRepositoryOptions'
-import snakeCaseNames from '../../utils/snakeCaseNames'
 import QueryParser from './filters/queryParser'
 import SegmentRepository from './segmentRepository'
-
-const Op = Sequelize.Op
+import MemberRepository from './memberRepository'
 
 class ConversationRepository {
   static async create(data, options: IRepositoryOptions) {
     const currentUser = SequelizeRepository.getCurrentUser(options)
 
-    const tenant = SequelizeRepository.getCurrentTenant(options)
-
     const transaction = SequelizeRepository.getTransaction(options)
+
+    const tenant = SequelizeRepository.getCurrentTenant(options)
 
     const segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
 
-    const record = await options.database.conversation.create(
-      {
-        ...lodash.pick(data, ['title', 'slug', 'published']),
+    const id = await insertConversation(options.qdb, {
+      title: data.title,
+      slug: data.slug,
+      published: data.published,
+      tenantId: tenant.id,
+      segmentId: segment.id,
+      createdById: currentUser.id,
+      updatedById: currentUser.id,
+      timestamp: data.timestamp ? new Date(data.timestamp) : new Date(),
+    })
 
+    // still leave it in postgresql for now
+    await options.database.conversation.create(
+      {
+        id,
+        ...lodash.pick(data, ['title', 'slug', 'published']),
         tenantId: tenant.id,
         segmentId: segment.id,
         createdById: currentUser.id,
@@ -38,21 +57,21 @@ class ConversationRepository {
       },
     )
 
-    await record.setActivities(data.activities || [], {
-      transaction,
-    })
+    const record = await this.findById(id, options)
 
     await this._createAuditLog(AuditLogRepository.CREATE, record, data, options)
 
-    return this.findById(record.id, options)
+    return record
   }
 
   static async update(id, data, options: IRepositoryOptions) {
     const currentUser = SequelizeRepository.getCurrentUser(options)
 
-    const transaction = SequelizeRepository.getTransaction(options)
-
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
+
+    const segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
+
+    const transaction = SequelizeRepository.getTransaction(options)
 
     let record = await options.database.conversation.findOne({
       where: {
@@ -67,7 +86,7 @@ class ConversationRepository {
       throw new Error404()
     }
 
-    record = await record.update(
+    await record.update(
       {
         ...lodash.pick(data, ['title', 'slug', 'published']),
 
@@ -78,15 +97,20 @@ class ConversationRepository {
       },
     )
 
-    if (data.activities) {
-      await record.setActivities(data.activities, {
-        transaction,
-      })
-    }
+    await updateConversation(options.qdb, id, {
+      tenantId: currentTenant.id,
+      segmentId: segment.id,
+      title: data.title,
+      slug: data.slug,
+      published: data.published,
+      updatedById: currentUser.id,
+    })
+
+    record = await this.findById(id, options)
 
     await this._createAuditLog(AuditLogRepository.UPDATE, record, data, options)
 
-    return this.findById(record.id, options)
+    return record
   }
 
   static async destroy(id, options: IRepositoryOptions) {
@@ -111,60 +135,30 @@ class ConversationRepository {
       transaction,
     })
 
+    await deleteConversations(options.qdb, [id])
+
     await this._createAuditLog(AuditLogRepository.DELETE, record, record, options)
   }
 
   static async findById(id, options: IRepositoryOptions) {
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    const include = []
-
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
-    const record = await options.database.conversation.findOne({
-      where: {
-        id,
-        tenantId: currentTenant.id,
-        segmentId: SequelizeRepository.getSegmentIds(options),
-      },
-      include,
-      transaction,
-    })
+    // quest db for selects
+    const conversation = await getConversationById(
+      options.qdb,
+      id,
+      currentTenant.id,
+      SequelizeRepository.getSegmentIds(options),
+    )
 
-    if (!record) {
+    if (!conversation) {
       throw new Error404()
     }
 
-    return this._populateRelations(record, options)
+    return this._populateRelations(conversation, options)
   }
 
-  static async filterIdInTenant(id, options: IRepositoryOptions) {
-    return lodash.get(await this.filterIdsInTenant([id], options), '[0]', null)
-  }
-
-  static async filterIdsInTenant(ids, options: IRepositoryOptions) {
-    if (!ids || !ids.length) {
-      return []
-    }
-
-    const currentTenant = SequelizeRepository.getCurrentTenant(options)
-
-    const where = {
-      id: {
-        [Op.in]: ids,
-      },
-      tenantId: currentTenant.id,
-    }
-
-    const records = await options.database.conversation.findAll({
-      attributes: ['id'],
-      where,
-    })
-
-    return records.map((record) => record.id)
-  }
-
-  static async destroyBulk(ids, options: IRepositoryOptions, force = false) {
+  static async destroyBulk(ids: string[], options: IRepositoryOptions, force = false) {
     const transaction = SequelizeRepository.getTransaction(options)
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
@@ -178,21 +172,8 @@ class ConversationRepository {
       force,
       transaction,
     })
-  }
 
-  static async count(filter, options: IRepositoryOptions) {
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    const tenant = SequelizeRepository.getCurrentTenant(options)
-
-    return options.database.conversation.count({
-      where: {
-        ...filter,
-        tenantId: tenant.id,
-        segmentId: SequelizeRepository.getSegmentIds(options),
-      },
-      transaction,
-    })
+    await deleteConversations(options.qdb, ids)
   }
 
   static async findAndCountAll(
@@ -207,7 +188,7 @@ class ConversationRepository {
     options: IRepositoryOptions,
   ) {
     let customOrderBy: Array<any> = []
-    let include = [
+    const include = [
       // TODO questdb load activities for conversations
       // {
       //   model: options.database.activity,
@@ -222,14 +203,14 @@ class ConversationRepository {
     // Quick win, need to be improved. We are seeing long requests because
     // filters are applied in HAVING using Sequelize, but setting these in
     // WHERE clause is better for performances.
-    if (advancedFilter) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      Object.entries(advancedFilter).forEach(([key, value], index) => {
-        if (Array.isArray(value) && value.length > 0) {
-          include = applyHavingInWhereClause(include, value)
-        }
-      })
-    }
+    // if (advancedFilter) {
+    //   // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    //   Object.entries(advancedFilter).forEach(([key, value], index) => {
+    //     if (Array.isArray(value) && value.length > 0) {
+    //       include = applyHavingInWhereClause(include, value)
+    //     }
+    //   })
+    // }
 
     // If the advanced filter is empty, we construct it from the query parameter filter
     if (!advancedFilter) {
@@ -485,113 +466,17 @@ class ConversationRepository {
     )
   }
 
-  /**
-   * Counts distinct members in a conversation
-   * @param activities Activity list in a conversation
-   */
-  static getTotalMemberCount(activities) {
-    return (
-      activities.reduce((acc, i) => {
-        if (!acc.ids) {
-          acc.ids = []
-          acc.count = 0
-        }
-
-        if (!acc.ids[i.memberId]) {
-          acc.ids[i.memberId] = true
-          acc.count += 1
-        }
-        return acc
-      }, {}).count ?? 0
-    )
-  }
-
-  static async _populateRelationsForRows(rows, options, lazyLoad = []) {
+  static async _populateRelationsForRows(
+    rows: IDbConversation[],
+    options: IRepositoryOptions,
+    lazyLoad: string[] = [],
+  ) {
     if (!rows) {
       return rows
     }
 
     return Promise.all(
-      rows.map(async (record) => {
-        const rec = record.get({ plain: true })
-        for (const relationship of lazyLoad) {
-          // TODO questdb load activities for conversations
-          if (relationship === 'activities') {
-            const allActivities = await record.getActivities({
-              order: [
-                ['timestamp', 'ASC'],
-                ['createdAt', 'ASC'],
-              ],
-              include: ['parent', 'organization'],
-            })
-
-            rec.memberCount = ConversationRepository.getTotalMemberCount(allActivities)
-
-            if (allActivities.length > 0) {
-              let neededActivities = []
-              const parentActivity =
-                allActivities.find((a) => a.parent === null) || allActivities[0]
-
-              if (parentActivity) {
-                neededActivities = [parentActivity]
-              }
-
-              if (allActivities.length > 2) {
-                neededActivities = [
-                  ...neededActivities,
-                  allActivities[allActivities.length - 2],
-                  allActivities[allActivities.length - 1],
-                ]
-              } else {
-                neededActivities = [...neededActivities, allActivities[allActivities.length - 1]]
-              }
-
-              const promises = neededActivities.map(async (act) => {
-                const member = (await act.getMember()).get({ plain: true })
-
-                let objectMember = null
-                if (act.objectMemberId) {
-                  objectMember = (await act.getObjectMember()).get({ plain: true })
-                }
-
-                act = act.get({ plain: true })
-                act.member = member
-                act.objectMember = objectMember
-                act.display = ActivityDisplayService.getDisplayOptions(
-                  act,
-                  SegmentRepository.getActivityTypes(options),
-                )
-
-                return act
-              })
-              const returnedNeededActivities = await Promise.all(promises)
-              rec.conversationStarter = returnedNeededActivities[0]
-              rec.lastReplies = returnedNeededActivities.slice(1)
-            } else {
-              rec.conversationStarter = null
-              rec.lastReplies = []
-            }
-
-            if (rec.conversationStarter) {
-              rec.conversationStarter.display = ActivityDisplayService.getDisplayOptions(
-                rec.conversationStarter,
-                SegmentRepository.getActivityTypes(options),
-              )
-            }
-          } else {
-            rec[relationship] = (await record[`get${snakeCaseNames(relationship)}`]()).map((a) =>
-              a.get({ plain: true }),
-            )
-          }
-        }
-        if (rec.activityCount) {
-          rec.activityCount = parseInt(rec.activityCount, 10)
-          if (rec.platform && rec.platform === PlatformType.GITHUB) {
-            rec.channel = this.extractGitHubRepoPath(rec.channel)
-          }
-        }
-        return rec
-      }),
+      rows.map(async (record) => this._populateRelations(record, options, lazyLoad)),
     )
   }
 
@@ -602,142 +487,98 @@ class ConversationRepository {
     return `${match.groups.owner}/${match.groups.name}`
   }
 
-  static async _populateRelations(record, options: IRepositoryOptions) {
-    if (!record) {
-      return record
+  static async _populateRelations(
+    conversation: IDbConversation,
+    options: IRepositoryOptions,
+    lazyLoad: string[] = [],
+  ) {
+    if (!conversation) {
+      return conversation
     }
 
-    const output = record.get({ plain: true })
+    const output: any = { ...conversation }
 
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    // TODO questdb
-    // Fetch the first activity with parent = null
-    const firstActivity = await record.getActivities({
-      where: {
-        parentId: null,
-      },
-      include: ['member', 'parent', 'objectMember', 'organization'],
-      transaction,
-      order: [
-        ['timestamp', 'ASC'],
-        ['createdAt', 'ASC'],
-      ],
-    })
-
-    // Fetch remaining activities with parent != null
-    const remainingActivities = await record.getActivities({
-      where: {
-        parentId: {
-          [Sequelize.Op.not]: null,
+    if (lazyLoad.includes('activities')) {
+      const results = (await queryActivities(options.qdb, {
+        filter: {
+          and: [{ conversationId: { eq: conversation.id } }],
         },
-      },
-      include: ['member', 'parent', 'objectMember', 'organization'],
-      order: [
-        ['timestamp', 'ASC'],
-        ['createdAt', 'ASC'],
-      ],
-      transaction,
-    })
+        noLimit: true,
+        tenantId: conversation.tenantId,
+        segmentIds: [conversation.segmentId],
+      })) as PageData<IQueryActivityResult>
 
-    output.activities = [...firstActivity, ...remainingActivities]
+      // find the first one
+      const firstActivity = single(results.rows, (a) => a.parentId === null)
+      const remainingActivities = results.rows
+        .filter((a) => a.parentId !== null)
+        .sort(
+          (a, b) =>
+            // from oldest to newest
+            new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+        )
 
-    let memberPromises = output.activities.map(async (act) => {
-      const member = (await act.getMember()).get({ plain: true })
-      act = act.get({ plain: true })
-      act.member = member
-      act.display = ActivityDisplayService.getDisplayOptions(
-        act,
-        SegmentRepository.getActivityTypes(options),
-      )
-      return act
-    })
+      output.activities = [firstActivity, ...remainingActivities]
 
-    const chunkedPromises = []
+      const memberIds: string[] = []
+      for (const activity of output.activities) {
+        if (!memberIds.includes(activity.memberId)) {
+          memberIds.push(activity.memberId)
+        }
 
-    const CHUNK_PROMISE_SIZE = 50
+        if (activity.objectMemberId && !memberIds.includes(activity.objectMemberId)) {
+          memberIds.push(activity.objectMemberId)
+        }
 
-    if (memberPromises.length > CHUNK_PROMISE_SIZE) {
-      while (memberPromises.length > CHUNK_PROMISE_SIZE) {
-        chunkedPromises.push(memberPromises.slice(0, CHUNK_PROMISE_SIZE))
-        memberPromises = memberPromises.slice(CHUNK_PROMISE_SIZE)
+        activity.display = ActivityDisplayService.getDisplayOptions(
+          activity,
+          SegmentRepository.getActivityTypes(options),
+        )
       }
-      if (memberPromises.length > 0) {
-        chunkedPromises.push(memberPromises)
+
+      if (memberIds.length > 0) {
+        const memberResults = await MemberRepository.findAndCountAllOpensearch(
+          {
+            filter: {
+              and: [
+                {
+                  id: { in: memberIds },
+                },
+              ],
+            },
+            limit: memberIds.length,
+          },
+          options,
+        )
+
+        for (const activity of output.activities) {
+          activity.member = memberResults.rows.find((m) => m.id === activity.memberId)
+          if (activity.objectMemberId) {
+            activity.objectMember = memberResults.rows.find((m) => m.id === activity.objectMemberId)
+          }
+        }
       }
-    } else {
-      chunkedPromises.push(memberPromises)
-    }
 
-    output.activities = []
-    for (const memberPromiseChunk of chunkedPromises) {
-      output.activities.push(...(await Promise.all(memberPromiseChunk)))
-    }
+      output.memberCount = memberIds.length
+      output.conversationStarter = output.activities[0] ?? null
+      output.activityCount = output.activities.length
+      output.platform = null
+      output.channel = null
+      output.lastActive = null
 
-    output.memberCount = ConversationRepository.getTotalMemberCount(output.activities)
-    output.conversationStarter = output.activities[0] ?? null
-    output.activityCount = output.activities.length
-    output.platform = null
-    output.channel = null
-    output.lastActive = null
+      if (output.activityCount > 0) {
+        output.platform = output.activities[0].platform ?? null
+        output.lastActive = output.activities[output.activities.length - 1].timestamp
+        output.channel = output.activities[0].channel ? output.activities[0].channel : null
 
-    if (output.activityCount > 0) {
-      output.platform = output.activities[0].platform ?? null
-      output.lastActive = output.activities[output.activities.length - 1].timestamp
-      output.channel = output.activities[0].channel ? output.activities[0].channel : null
-      output.conversationStarter.display = ActivityDisplayService.getDisplayOptions(
-        output.conversationStarter,
-        SegmentRepository.getActivityTypes(options),
-      )
+        if (output.platform && output.platform === PlatformType.GITHUB) {
+          output.channel = this.extractGitHubRepoPath(output.channel)
+        }
+      }
     }
 
     return output
   }
-}
-
-function applyHavingInWhereClause(include, value) {
-  value.forEach((constraint) => {
-    if (constraint.and) {
-      include = applyHavingInWhereClause(include, constraint.and)
-    } else if (constraint.or) {
-      include = applyHavingInWhereClause(include, constraint.or)
-    }
-
-    if (constraint.lastActive) {
-      if (!include[0].where.timestamp) {
-        include[0].where.timestamp = {}
-      }
-
-      if (constraint.lastActive.gte) {
-        include[0].where.timestamp[Op.gte] = constraint.lastActive.gte
-      }
-      if (constraint.lastActive.lte) {
-        include[0].where.timestamp[Op.lte] = constraint.lastActive.lte
-      }
-      if (constraint.lastActive.between) {
-        include[0].where.timestamp[Op.between] = constraint.lastActive.between
-      }
-      if (constraint.lastActive.not) {
-        if (constraint.lastActive.not.between) {
-          include[0].where.timestamp[Op.notBetween] = constraint.lastActive.not.between
-        }
-      }
-    } else if (constraint.platform) {
-      if (!include[0].where.platform) {
-        include[0].where.platform = {
-          [Op.in]: [],
-        }
-      }
-
-      include[0].where.platform[Op.in].push(constraint.platform)
-    } else if (constraint.createdAt) {
-      include[0].where.createdAt = {
-        [Op.gte]: constraint.createdAt.gte,
-      }
-    }
-  })
-
-  return include
 }
 
 export default ConversationRepository

@@ -1,14 +1,25 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { DbConnOrTx } from '@crowd/database'
-import { ActivityDisplayVariant, IActivity, PageData } from '@crowd/types'
+import {
+  ActivityDisplayVariant,
+  IActivity,
+  IMemberIdentity,
+  IMemberSegmentAggregates,
+  MemberIdentityType,
+  PageData,
+} from '@crowd/types'
 
 import { RawQueryParser, getEnv } from '@crowd/common'
 import { IDbActivityUpdateData } from '../old/apps/data_sink_worker/repo/activity.data'
 import {
+  ActivityType,
   IActivitySentiment,
+  IMemberSegment,
   INumberOfActivitiesPerMember,
   INumberOfActivitiesPerOrganization,
+  IOrganizationSegment,
+  IOrganizationSegmentAggregates,
   IQueryActivitiesParameters,
   IQueryActivityResult,
   IQueryDistinctParameters,
@@ -17,13 +28,14 @@ import {
 import { ActivityDisplayService } from '@crowd/integrations'
 
 import merge from 'lodash.merge'
+import { checkUpdateRowCount } from '../utils'
 
 const s3Url = `https://${
   process.env['CROWD_S3_MICROSERVICES_ASSETS_BUCKET']
 }-${getEnv()}.s3.eu-central-1.amazonaws.com`
 
-export async function getActivityById(conn: DbConnOrTx, id: string): Promise<IActivity> {
-  const activity: IActivity = await conn.query(
+export async function getActivitiesById(conn: DbConnOrTx, ids: string[]): Promise<IActivity[]> {
+  const activities = await conn.any(
     `SELECT
       "id",
       "type",
@@ -32,7 +44,9 @@ export async function getActivityById(conn: DbConnOrTx, id: string): Promise<IAc
       "score",
       "isContribution",
       "sourceId",
+      "parentId",
       "sourceParentId",
+      "conversationId",
       "attributes",
       "channel",
       "body",
@@ -43,16 +57,15 @@ export async function getActivityById(conn: DbConnOrTx, id: string): Promise<IAc
       "objectMemberUsername",
       "objectMember"
     FROM activities
-    WHERE "id" = $(id)
+    WHERE "id" in ($(ids:csv))
     AND "deletedAt" IS NULL
-    LIMIT 1;
   `,
     {
-      id,
+      ids,
     },
   )
 
-  return activity
+  return activities
 }
 
 const ACTIVITY_UPDATABLE_COLUMNS: ActivityColumn[] = [
@@ -83,7 +96,7 @@ export async function updateActivity(
   activity: IDbActivityUpdateData,
 ): Promise<void> {
   if (!activity.tenantId || !activity.segmentId) {
-    throw new Error('tenantId and segmentId are required to update an activity!')
+    throw new Error('tenantId and segmentId are required to update activity!')
   }
 
   const data: any = {}
@@ -135,15 +148,20 @@ export async function updateActivity(
     params[key] = data[key]
   }
 
+  if (activity.updatedById) {
+    sets.push('"updatedById" = $(updatedById)')
+    params.updatedById = activity.updatedById
+  }
+
   const query = `
     update activities set
     ${sets.join(', \n')}
     where id = $(id) and "tenantId" = $(tenantId) and "segmentId" = $(segmentId);
   `
 
-  const result = await this.db().result(query)
+  const result = await conn.result(query, params)
 
-  this.checkUpdateRowCount(result.rowCount, 1)
+  checkUpdateRowCount(result.rowCount, 1)
 
   await updateActivityParentIds(conn, id, activity)
 }
@@ -345,7 +363,9 @@ export async function queryActivities(
   // set defaults
   arg.filter = arg.filter || {}
   arg.orderBy = arg.orderBy || ['timestamp_DESC']
-  arg.limit = arg.limit || 20
+  if (!(arg.noLimit === true)) {
+    arg.limit = arg.limit || 20
+  }
   arg.offset = arg.offset || 0
   arg.countOnly = arg.countOnly || false
 
@@ -510,14 +530,6 @@ export async function queryActivities(
   }
 }
 
-export interface ActivityType {
-  count: number
-  type: string
-  platform: string
-  percentage: string
-  platformIcon: string
-}
-
 export async function findTopActivityTypes(
   qdbConn: DbConnOrTx,
   arg: IQueryTopActivitiesParameters,
@@ -625,4 +637,227 @@ export async function getMostActiveMembers(
   })
 
   return result
+}
+
+export async function getOrganizationAggregates(
+  qdbConn: DbConnOrTx,
+  organizationId: string,
+  segmentId: string,
+): Promise<IOrganizationSegmentAggregates> {
+  const result = await qdbConn.oneOrNone(
+    `
+    with relevant_activities as (select id, timestamp, platform, "memberId", "organizationId", "segmentId"
+                                from activities
+                                where "organizationId" = $(organizationId)
+                                  and "segmentId" = $(segmentId)
+                                  and "deletedAt" is null),
+        distinct_platforms as (select distinct "organizationId", "segmentId", platform from relevant_activities),
+        distinct_members as (select distinct "organizationId", "segmentId", "memberId" from relevant_activities),
+        joined_at_timestamp as (select "organizationId", "segmentId", min(timestamp) as "joinedAt"
+                                from relevant_activities
+                                where timestamp <> '1970-01-01T00:00:00.000Z')
+    select a."organizationId",
+          a."segmentId",
+          count_distinct(a."memberId")  as "memberCount",
+          count_distinct(a.id)          as "activityCount",
+          max(a.timestamp)              as "lastActive",
+          string_agg(p.platform, ':')   as "activeOn",
+          string_agg(m."memberId", ':') as "memberIds",
+          t."joinedAt"
+    from relevant_activities a
+            inner join distinct_platforms p on a."organizationId" = p."organizationId" and a."segmentId" = p."segmentId"
+            inner join distinct_members m on a."organizationId" = m."organizationId" and a."segmentId" = m."segmentId"
+            left join joined_at_timestamp t on a."organizationId" = t."organizationId" and a."segmentId" = t."segmentId"
+    group by a."organizationId", a."segmentId", t."joinedAt";
+    `,
+    {
+      organizationId,
+      segmentId,
+    },
+  )
+
+  if (result) {
+    return {
+      organizationId,
+      segmentId,
+      memberIds: result.memberIds.split(':'),
+      memberCount: result.memberCount,
+      activityCount: result.activityCount,
+      activeOn: result.activeOn.split(':'),
+      lastActive: result.lastActive,
+      joinedAt: result.joinedAt,
+    }
+  } else {
+    return {
+      organizationId,
+      segmentId,
+      memberIds: [],
+      memberCount: 0,
+      activityCount: 0,
+      activeOn: [],
+      lastActive: null,
+      joinedAt: null,
+    }
+  }
+}
+
+export async function getMemberAggregates(
+  qdbConn: DbConnOrTx,
+  memberId: string,
+  segmentIds: string[],
+): Promise<IMemberSegmentAggregates[]> {
+  const results = await qdbConn.any(
+    `
+    with relevant_activities as (select id, platform, type, timestamp, "sentimentScore", "memberId", "segmentId"
+                                from activities
+                                where "memberId" = $(memberId)
+                                  and "segmentId" in ($(segmentId:csv))
+                                  and "deletedAt" is null),
+        activity_types as (select distinct "memberId", "segmentId", type, platform
+                            from relevant_activities
+                            where platform is not null
+                              and type is not null),
+        distinct_platforms as (select distinct "memberId", "segmentId", platform from relevant_activities),
+        average_sentiment as (select "memberId", "segmentId", avg("sentimentScore") as "averageSentiment"
+                              from relevant_activities
+                              where "sentimentScore" is not null)
+    select a."memberId",
+          a."segmentId",
+          count(a.id)                                      as "activityCount",
+          max(a.timestamp)                                 as "lastActive",
+          string_agg(p.platform, ':')                      as "activeOn",
+          string_agg(concat(t.platform, ':', t.type), '|') as "activityTypes",
+          count_distinct(date_trunc('day', now()))         as "activeDaysCount",
+          s."averageSentiment"
+    from relevant_activities a
+            inner join activity_types t on a."memberId" = t."memberId" and a."segmentId" = t."segmentId"
+            inner join distinct_platforms p on a."memberId" = p."memberId" and a."segmentId" = p."segmentId"
+            left join average_sentiment s on a."memberId" = s."memberId" and a."segmentId" = s."segmentId"
+    group by a."memberId", a."segmentId", s."averageSentiment";
+    `,
+    {
+      memberId,
+      segmentIds,
+    },
+  )
+
+  return results.map((result) => {
+    return {
+      memberId: result.memberId,
+      segmentId: result.segmentId,
+      activityCount: result.activityCount,
+      lastActive: result.lastActive,
+      activeOn: result.activeOn.split(':'),
+      activityTypes: result.activityTypes.split('|'),
+      activeDaysCount: result.activeDaysCount,
+      averageSentiment: result.averageSentiment,
+    }
+  })
+}
+
+export async function getActivityCountOfMemberIdentities(
+  qdbConn: DbConnOrTx,
+  memberId: string,
+  identities: IMemberIdentity[],
+): Promise<number> {
+  if (identities.length === 0) {
+    throw new Error(`No identities sent!`)
+  }
+
+  let query = `
+  select count(id) from activities
+  where "deletedAt" is null and "memberId" = $(memberId)  
+  `
+
+  const replacementKey = (key: string, index: number) => `${key}${index}`
+
+  const conditions: string[] = []
+
+  const params = {
+    memberId,
+  }
+
+  for (
+    let i = 0;
+    i < identities.filter((i) => i.type === MemberIdentityType.USERNAME).length;
+    i++
+  ) {
+    const platformKey = replacementKey('platform', i)
+    const usernameKey = replacementKey('username', i)
+
+    conditions.push(`(platform = $(${platformKey}) and username = $(${usernameKey}))`)
+
+    params[platformKey] = identities[i].platform
+    params[usernameKey] = identities[i].value
+  }
+
+  if (conditions.length > 0) {
+    query = `${query} and (${conditions.join(' or ')})`
+  }
+
+  return await qdbConn.one(query, params, (a) => a.count)
+}
+
+export async function countMembersWithActivities(
+  qdbConn: DbConnOrTx,
+  segmentIds: string[],
+): Promise<{ count: number; segmentId: string }[]> {
+  return await qdbConn.any(
+    `
+      select count(id) as count, "segmentId" from activities 
+      where "deletedAt" is null and "segmentId" in ($(segmentIds:csv))
+      group by "segmentId"
+    `,
+    {
+      segmentIds,
+    },
+  )
+}
+
+export async function filterMembersWithActivities(
+  qdbConn: DbConnOrTx,
+  memberIds: string[],
+): Promise<string[]> {
+  const results = await qdbConn.any(
+    `
+    select distinct "memberId" from activities where "deletedAt" is null and "memberId" in ($(memberIds:csv))
+    `,
+    {
+      memberIds,
+    },
+  )
+
+  return results.map((r) => r.memberId)
+}
+
+export async function getMemberSegmentCouples(
+  qdbConn: DbConnOrTx,
+  memberIds: string[],
+): Promise<IMemberSegment[]> {
+  return qdbConn.any(
+    `
+    select distinct "memberId", "segmentId" 
+    from activities 
+    where "deletedAt" is null and "memberId" in ($(memberIds:csv));
+    `,
+    {
+      memberIds,
+    },
+  )
+}
+
+export async function getOrganizationSegmentCouples(
+  qdbConn: DbConnOrTx,
+  organizationIds: string[],
+): Promise<IOrganizationSegment[]> {
+  return qdbConn.any(
+    `
+    select distinct "organizationId", "segmentId" 
+    from activities 
+    where "deletedAt" is null and "organizationId" in ($(organizationIds:csv));
+    `,
+    {
+      organizationIds,
+    },
+  )
 }

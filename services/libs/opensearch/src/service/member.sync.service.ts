@@ -1,22 +1,23 @@
 import { distinct, trimUtf8ToMaxByteLength } from '@crowd/common'
+import {
+  filterMembersWithActivities,
+  getMemberAggregates,
+  getMemberSegmentCouples,
+} from '@crowd/data-access-layer'
 import { DbStore } from '@crowd/database'
 import { Logger, getChildLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
 import {
   Edition,
   IMemberAttribute,
+  IMemberSegmentAggregates,
   IServiceConfig,
   MemberAttributeType,
   MemberIdentityType,
 } from '@crowd/types'
-import { ActivityRepository } from '../repo/activity.repo'
 import { IndexedEntityType } from '../repo/indexing.data'
 import { IndexingRepository } from '../repo/indexing.repo'
-import {
-  IDbMemberSyncData,
-  IMemberSegmentAggregates,
-  IMemberSegmentMatrix,
-} from '../repo/member.data'
+import { IDbMemberSyncData, IMemberSegmentMatrix } from '../repo/member.data'
 import { MemberRepository } from '../repo/member.repo'
 import { IDbSegmentInfo } from '../repo/segment.data'
 import { SegmentRepository } from '../repo/segment.repo'
@@ -34,12 +35,11 @@ export class MemberSyncService {
   private readonly segmentRepo: SegmentRepository
   private readonly serviceConfig: IServiceConfig
   private readonly indexingRepo: IndexingRepository
-  private readonly activityRepo: ActivityRepository
 
   constructor(
     redisClient: RedisClient,
     pgStore: DbStore,
-    qdbStore: DbStore,
+    private readonly qdbStore: DbStore,
     private readonly openSearchService: OpenSearchService,
     parentLog: Logger,
     serviceConfig: IServiceConfig,
@@ -50,7 +50,6 @@ export class MemberSyncService {
     this.memberRepo = new MemberRepository(redisClient, pgStore, this.log)
     this.segmentRepo = new SegmentRepository(pgStore, this.log)
     this.indexingRepo = new IndexingRepository(pgStore, this.log)
-    this.activityRepo = new ActivityRepository(qdbStore, this.log)
   }
 
   public async getAllIndexedTenantIds(
@@ -139,7 +138,8 @@ export class MemberSyncService {
         results.map((r) => r._source.uuid_memberId),
       )
 
-      const membersWithActivities = await this.activityRepo.membersWithActivities(
+      const membersWithActivities = await filterMembersWithActivities(
+        this.qdbStore.connection(),
         memberData.map((m) => m.memberId),
       )
 
@@ -281,7 +281,8 @@ export class MemberSyncService {
         lastId,
       )
 
-      const membersWithActivities = await this.activityRepo.membersWithActivities(
+      const membersWithActivities = await filterMembersWithActivities(
+        this.qdbStore.connection(),
         memberIdData.map((m) => m.memberId),
       )
 
@@ -329,7 +330,7 @@ export class MemberSyncService {
       )
     } else {
       // first we fetch member - segment couples from activities table in questdb
-      const memberSegments = await this.activityRepo.getMemberSegmentCouples(memberIds)
+      const memberSegments = await getMemberSegmentCouples(this.qdbStore.connection(), memberIds)
 
       // then we further process it to include members without activities (like manual members)
       memberSegmentCouples = await this.memberRepo.getMemberSegmentCouples(
@@ -449,7 +450,9 @@ export class MemberSyncService {
           memberId: memberId,
           segmentId: segment.segmentId,
           memberDataPromise: this.memberRepo.getMemberData(memberId),
-          aggregatesPromise: this.activityRepo.getMemberAggregateData(memberId, segment.segmentId),
+          aggregatesPromise: getMemberAggregates(this.qdbStore.connection(), memberId, [
+            segment.segmentId,
+          ]),
         })
 
         // databaseStreams will create syncStreams items in processSegmentsStream, which'll later be used to sync to opensearch in bulk

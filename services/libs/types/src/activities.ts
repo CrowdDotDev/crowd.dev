@@ -3,6 +3,8 @@ import { IMemberData } from './members'
 
 export interface IActivity extends IActivityData {
   id?: string
+  parentId?: string
+  conversationId?: string
 }
 
 export interface IActivityCreateData {
@@ -158,4 +160,15 @@ export type ActivityTypeDisplayProperties = {
   [ActivityDisplayVariant.AUTHOR]?: string
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   formatter?: { [key: string]: (input: any) => string }
+}
+
+export interface IMemberSegmentAggregates {
+  memberId: string
+  segmentId: string
+  activeOn: string[]
+  activityCount: number
+  activityTypes: string[]
+  activeDaysCount: number
+  lastActive: string
+  averageSentiment: number | null
 }

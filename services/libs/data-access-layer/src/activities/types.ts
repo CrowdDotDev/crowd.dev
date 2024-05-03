@@ -51,6 +51,7 @@ export interface IQueryActivitiesParameters {
   filter?: any
   orderBy?: string[]
   limit?: number
+  noLimit?: boolean
   offset?: number
   countOnly?: boolean
 }
@@ -78,4 +79,33 @@ export interface IQueryDistinctParameters {
   after: Date
   before: Date
   limit?: number
+}
+
+export interface ActivityType {
+  count: number
+  type: string
+  platform: string
+  percentage: string
+  platformIcon: string
+}
+
+export interface IMemberSegment {
+  memberId: string
+  segmentId: string
+}
+
+export interface IOrganizationSegment {
+  organizationId: string
+  segmentId: string
+}
+
+export interface IOrganizationSegmentAggregates {
+  organizationId: string
+  segmentId: string
+  memberIds: string[]
+  memberCount: number
+  activityCount: number
+  activeOn: string[]
+  lastActive: string
+  joinedAt: string
 }

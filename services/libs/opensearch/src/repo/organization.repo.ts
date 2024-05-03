@@ -1,11 +1,8 @@
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
-import {
-  IDbOrganizationSyncData,
-  IOrganizationSegment,
-  IOrganizationSegmentMatrix,
-} from './organization.data'
+import { IDbOrganizationSyncData, IOrganizationSegmentMatrix } from './organization.data'
 import { IndexedEntityType } from './indexing.data'
+import { IOrganizationSegment } from '@crowd/data-access-layer'
 
 export class OrganizationRepository extends RepositoryBase<OrganizationRepository> {
   constructor(dbStore: DbStore, parentLog: Logger) {

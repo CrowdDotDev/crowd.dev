@@ -25,14 +25,12 @@ export default async (req, res) => {
     const verifyToken = new Promise((resolve, reject) => {
       jwt.verify(idToken, getKey, { algorithms: ['RS256'] }, (err, decoded) => {
         if (err) {
-          console.log('sso callback verify', err)
           reject(new Error401())
         }
 
         const { aud } = decoded as any
 
         if (aud !== AUTH0_CONFIG.clientId) {
-          console.log('sso callback aud', aud, AUTH0_CONFIG.clientId)
           reject(new Error401())
         }
 
@@ -57,7 +55,6 @@ export default async (req, res) => {
     )
     return res.send(token)
   } catch (err) {
-    console.log('sso callback', err)
     return res.status(401).send({ error: err })
   }
 }

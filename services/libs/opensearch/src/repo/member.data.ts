@@ -1,4 +1,4 @@
-import { MemberIdentityType } from '@crowd/types'
+import { IMemberSegmentAggregates, MemberIdentityType } from '@crowd/types'
 
 export interface IDbMemberIdentityData {
   platform: string
@@ -88,17 +88,6 @@ export interface IDbMemberSyncData {
   tasks: IDbMemberTaskData[]
 }
 
-export interface IMemberSegmentAggregates {
-  memberId: string
-  segmentId: string
-  activeOn: string[]
-  activityCount: number
-  activityTypes: string[]
-  activeDaysCount: number
-  lastActive: string
-  averageSentiment: number | null
-}
-
 export interface IMemberSegmentMatrixItem {
   segmentId: string
   processed: boolean
@@ -108,11 +97,6 @@ export interface IMemberSegmentMatrixItem {
 
 export interface IMemberSegmentMatrix {
   [key: string]: IMemberSegmentMatrixItem[]
-}
-
-export interface IMemberSegment {
-  memberId: string
-  segmentId: string
 }
 
 export interface IMemberIdData {

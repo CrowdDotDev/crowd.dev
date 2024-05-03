@@ -28,7 +28,7 @@ export interface IOrganization {
   website?: string
   isTeamOrganization?: boolean
   lastEnrichedAt?: string | Date
-  activityCount: number
+  activityCount?: number
   employeeCountByCountry?: Record<string, number>
   type?: string
   geoLocation?: string

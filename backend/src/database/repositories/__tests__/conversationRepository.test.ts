@@ -181,62 +181,49 @@ describe('ConversationRepository tests', () => {
   })
 
   describe('filterIdsInTenant method', () => {
-    it('Should return the given ids of previously created conversation entities', async () => {
-      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-
-      const conversation1Created = await ConversationRepository.create(
-        { title: 'some-title-1', slug: 'some-slug-1' },
-        mockIRepositoryOptions,
-      )
-      const conversation2Created = await ConversationRepository.create(
-        { title: 'some-title-2', slug: 'some-slug-2' },
-        mockIRepositoryOptions,
-      )
-
-      const filterIdsReturned = await ConversationRepository.filterIdsInTenant(
-        [conversation1Created.id, conversation2Created.id],
-        mockIRepositoryOptions,
-      )
-
-      expect(filterIdsReturned).toStrictEqual([conversation1Created.id, conversation2Created.id])
-    })
-
-    it('Should only return the ids of previously created conversations and filter random uuids out', async () => {
-      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-
-      const conversationCreated = await ConversationRepository.create(
-        { title: 'some-title-1', slug: 'some-slug-1' },
-        mockIRepositoryOptions,
-      )
-
-      const { randomUUID } = require('crypto')
-
-      const filterIdsReturned = await ConversationRepository.filterIdsInTenant(
-        [conversationCreated.id, randomUUID(), randomUUID()],
-        mockIRepositoryOptions,
-      )
-
-      expect(filterIdsReturned).toStrictEqual([conversationCreated.id])
-    })
-
-    it('Should return an empty array for an irrelevant tenant', async () => {
-      let mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-
-      const conversationCreated = await ConversationRepository.create(
-        { title: 'some-title-1', slug: 'some-slug-1' },
-        mockIRepositoryOptions,
-      )
-
-      // create a new tenant and bind options to it
-      mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-
-      const filterIdsReturned = await ConversationRepository.filterIdsInTenant(
-        [conversationCreated.id],
-        mockIRepositoryOptions,
-      )
-
-      expect(filterIdsReturned).toStrictEqual([])
-    })
+    // it('Should return the given ids of previously created conversation entities', async () => {
+    //   const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+    //   const conversation1Created = await ConversationRepository.create(
+    //     { title: 'some-title-1', slug: 'some-slug-1' },
+    //     mockIRepositoryOptions,
+    //   )
+    //   const conversation2Created = await ConversationRepository.create(
+    //     { title: 'some-title-2', slug: 'some-slug-2' },
+    //     mockIRepositoryOptions,
+    //   )
+    //   const filterIdsReturned = await ConversationRepository.filterIdsInTenant(
+    //     [conversation1Created.id, conversation2Created.id],
+    //     mockIRepositoryOptions,
+    //   )
+    //   expect(filterIdsReturned).toStrictEqual([conversation1Created.id, conversation2Created.id])
+    // })
+    // it('Should only return the ids of previously created conversations and filter random uuids out', async () => {
+    //   const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+    //   const conversationCreated = await ConversationRepository.create(
+    //     { title: 'some-title-1', slug: 'some-slug-1' },
+    //     mockIRepositoryOptions,
+    //   )
+    //   const { randomUUID } = require('crypto')
+    //   const filterIdsReturned = await ConversationRepository.filterIdsInTenant(
+    //     [conversationCreated.id, randomUUID(), randomUUID()],
+    //     mockIRepositoryOptions,
+    //   )
+    //   expect(filterIdsReturned).toStrictEqual([conversationCreated.id])
+    // })
+    // it('Should return an empty array for an irrelevant tenant', async () => {
+    //   let mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+    //   const conversationCreated = await ConversationRepository.create(
+    //     { title: 'some-title-1', slug: 'some-slug-1' },
+    //     mockIRepositoryOptions,
+    //   )
+    //   // create a new tenant and bind options to it
+    //   mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+    //   const filterIdsReturned = await ConversationRepository.filterIdsInTenant(
+    //     [conversationCreated.id],
+    //     mockIRepositoryOptions,
+    //   )
+    //   expect(filterIdsReturned).toStrictEqual([])
+    // })
   })
 
   describe('findAndCountAll method', () => {

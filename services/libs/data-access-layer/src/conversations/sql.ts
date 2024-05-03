@@ -1,18 +1,61 @@
-import merge from 'lodash.merge'
 import { convert as convertHtmlToText } from 'html-to-text'
+import merge from 'lodash.merge'
 
 import { generateUUIDv4, getEnv } from '@crowd/common'
 import { DbConnOrTx } from '@crowd/database'
 
-import { IDbConversationCreateData } from '../old/apps/data_sink_worker/repo/conversation.data'
-import { IConversationWithActivities, IQueryConversationsParameters } from './types'
-import { ActivityDisplayVariant, PlatformType } from '@crowd/types'
 import { ActivityDisplayService } from '@crowd/integrations'
+import { ActivityDisplayVariant, PageData, PlatformType } from '@crowd/types'
 import { IQueryActivityResult, queryActivities } from '../activities'
+import {
+  IDbConversation,
+  IDbConversationCreateData,
+  IDbConversationUpdateData,
+} from '../old/apps/data_sink_worker/repo/conversation.data'
+import { checkUpdateRowCount } from '../utils'
+import {
+  IConversationWithActivities,
+  IQueryConversationResult,
+  IQueryConversationsParameters,
+  IQueryConversationsWithActivitiesParameters,
+} from './types'
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 const s3Url = `https://${
   process.env['CROWD_S3_MICROSERVICES_ASSETS_BUCKET']
 }-${getEnv()}.s3.eu-central-1.amazonaws.com`
+
+export async function getConversationById(
+  conn: DbConnOrTx,
+  id: string,
+  tenantId: string,
+  segmentIds: string[],
+): Promise<IDbConversation | null> {
+  const conversation: IDbConversation | null = await conn.oneOrNone(
+    `
+      select id,
+             title,
+             slug, 
+             published,
+             "tenantId",
+             "segmentId"
+      from conversations
+      where 
+        id = $(id) and 
+        "tenantId" = $(tenantId) and 
+        "segmentId" in ($(segmentIds:csv)) and 
+        "deletedAt" is null
+    `,
+    {
+      id,
+      tenantId,
+      segmentIds,
+    },
+  )
+
+  return conversation
+}
 
 export async function insertConversation(
   conn: DbConnOrTx,
@@ -80,9 +123,65 @@ export async function insertConversation(
   return id
 }
 
+export async function updateConversation(
+  conn: DbConnOrTx,
+  id: string,
+  data: IDbConversationUpdateData,
+): Promise<void> {
+  if (!data.tenantId || !data.segmentId) {
+    throw new Error('tenantId and segmentId are required to update conversation!')
+  }
+
+  const toUpdate: any = {}
+
+  if (data.title) {
+    toUpdate.title = data.title
+  }
+
+  if (data.slug) {
+    toUpdate.slug = data.slug
+  }
+
+  if (data.published !== undefined) {
+    toUpdate.published = data.published
+  }
+
+  const keys = Object.keys(toUpdate)
+  if (keys.length === 0) {
+    return
+  }
+
+  const params: any = {
+    id,
+    tenantId: data.tenantId,
+    segmentId: data.segmentId,
+  }
+
+  const sets: string[] = []
+  for (const key of keys) {
+    sets.push(`"${key}" = $(${key})`)
+    params[key] = toUpdate[key]
+  }
+
+  if (data.updatedById) {
+    sets.push('"updatedById" = $(updatedById)')
+    params.updatedById = data.updatedById
+  }
+
+  const query = `
+    update conversations set
+    ${sets.join(', ')}
+    where "id" = $(id) and "tenantId" = $(tenantId) and "segmentId" = $(segmentId);
+  `
+
+  const result = await conn.result(query, params)
+
+  checkUpdateRowCount(result.rowCount, 1)
+}
+
 export async function findConversationsWithActivities(
   conn: DbConnOrTx,
-  arg: IQueryConversationsParameters,
+  arg: IQueryConversationsWithActivitiesParameters,
 ): Promise<IConversationWithActivities[]> {
   const query = `
     SELECT * FROM conversations
@@ -201,4 +300,86 @@ export async function deleteConversations(conn: DbConnOrTx, ids: string[]): Prom
       ])
     }),
   )
+}
+
+export async function setConversationToActivity(
+  conn: DbConnOrTx,
+  conversationId: string,
+  activityId: string,
+  tenantId: string,
+  segmentId: string,
+): Promise<void> {
+  const result = await conn.result(
+    `
+      update activities
+      set "conversationId" = $(conversationId)
+      where id = $(activityId) and "tenantId" = $(tenantId) and "segmentId" = $(segmentId) and "deletedAt" is null
+    `,
+    {
+      conversationId,
+      activityId,
+      tenantId,
+      segmentId,
+    },
+  )
+
+  checkUpdateRowCount(result.rowCount, 1)
+}
+
+export async function doesConversationWithSlugExists(
+  conn: DbConnOrTx,
+  slug: string,
+  tenantId: string,
+  segmentId: string,
+): Promise<boolean> {
+  const results = await conn.any(
+    `
+    select id 
+    from conversations 
+    where 
+      "tenantId" = $(tenantId) and 
+      "segmentId" = $(segmentId) and 
+      slug = $(slug) and 
+      "deletedAt" is null
+  `,
+    {
+      tenantId,
+      segmentId,
+      slug,
+    },
+  )
+
+  if (results.length > 0) {
+    return true
+  }
+
+  return false
+}
+
+// const CONVERSATION_QUERY_FILTER_COLUMN_MAP: Map<string, string> = new Map([
+//   ['id', 'c.id'],
+//   ['title', 'c.title'],
+//   ['slug', 'c.slug'],
+//   ['published', 'c.published'],
+// ])
+export async function queryConversations(
+  qdbConn: DbConnOrTx,
+  arg: IQueryConversationsParameters,
+): Promise<PageData<IQueryConversationResult>> {
+  if (arg.tenantId === undefined || arg.segmentIds === undefined || arg.segmentIds.length === 0) {
+    throw new Error('tenantId and segmentIds are required to query conversations!')
+  }
+
+  // set defaults
+  arg.filter = arg.filter || {}
+  arg.orderBy = arg.orderBy || ['createdAt', 'DESC']
+
+  // TODO questdb
+
+  return {
+    rows: [],
+    count: 0,
+    limit: arg.limit,
+    offset: arg.offset,
+  }
 }

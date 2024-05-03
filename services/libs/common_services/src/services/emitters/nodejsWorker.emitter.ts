@@ -9,7 +9,6 @@ import {
   BulkEnrichQueueMessage,
   EagleEyeEmailDigestQueueMessage,
   EnrichOrganizationQueueMessage,
-  ExportableEntity,
   NewActivityAutomationQueueMessage,
   NewMemberAutomationQueueMessage,
   ProcessAutomationQueueMessage,

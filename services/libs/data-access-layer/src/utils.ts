@@ -25,3 +25,9 @@ export function prepareBulkInsert(table: string, columns: string[], objects: obj
     },
   )
 }
+
+export function checkUpdateRowCount(rowCount: number, expected: number) {
+  if (rowCount !== expected) {
+    new Error(`Updated number of rows (${rowCount}) not equal to expected number (${expected})!`)
+  }
+}

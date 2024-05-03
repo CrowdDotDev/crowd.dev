@@ -2,13 +2,9 @@ import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { RedisCache, RedisClient } from '@crowd/redis'
 import { IMemberAttribute } from '@crowd/types'
-import {
-  IDbMemberSyncData,
-  IMemberIdData,
-  IMemberSegment,
-  IMemberSegmentMatrix,
-} from './member.data'
+import { IDbMemberSyncData, IMemberIdData, IMemberSegmentMatrix } from './member.data'
 import { IndexedEntityType } from './indexing.data'
+import { IMemberSegment } from '@crowd/data-access-layer'
 
 export class MemberRepository extends RepositoryBase<MemberRepository> {
   private readonly cache: RedisCache

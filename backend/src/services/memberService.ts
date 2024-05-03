@@ -23,6 +23,7 @@ import { randomUUID } from 'crypto'
 import lodash from 'lodash'
 import moment from 'moment-timezone'
 import validator from 'validator'
+import { getActivityCountOfMemberIdentities } from '@crowd/data-access-layer'
 import OrganizationRepository from '@/database/repositories/organizationRepository'
 import { MergeActionsRepository } from '@/database/repositories/mergeActionsRepository'
 import MemberOrganizationRepository from '@/database/repositories/memberOrganizationRepository'
@@ -998,15 +999,15 @@ export default class MemberService extends LoggerBase {
         member.memberOrganizations = unmergedRoles
 
         // activity count
-        const secondaryActivityCount = await MemberRepository.getActivityCountOfMembersIdentities(
+        const secondaryActivityCount = await getActivityCountOfMemberIdentities(
+          this.options.qdb,
           member.id,
           secondaryBackup.identities,
-          this.options,
         )
-        const primaryActivityCount = await MemberRepository.getActivityCountOfMembersIdentities(
+        const primaryActivityCount = await getActivityCountOfMemberIdentities(
+          this.options.qdb,
           member.id,
           member.identities,
-          this.options,
         )
 
         return {
@@ -1045,16 +1046,16 @@ export default class MemberService extends LoggerBase {
         throw new Error(`Original member only has one identity, cannot extract it!`)
       }
 
-      const secondaryActivityCount = await MemberRepository.getActivityCountOfMembersIdentities(
+      const secondaryActivityCount = await getActivityCountOfMemberIdentities(
+        this.options.qdb,
         member.id,
         secondaryIdentities,
-        this.options,
       )
 
-      const primaryActivityCount = await MemberRepository.getActivityCountOfMembersIdentities(
+      const primaryActivityCount = await getActivityCountOfMemberIdentities(
+        this.options.qdb,
         member.id,
         primaryIdentities,
-        this.options,
       )
 
       const primaryMemberRoles = await MemberOrganizationRepository.findMemberRoles(

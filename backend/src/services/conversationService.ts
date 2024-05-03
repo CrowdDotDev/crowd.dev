@@ -1,7 +1,13 @@
 import { getCleanString, Error403 } from '@crowd/common'
 import { LoggerBase } from '@crowd/logging'
-import { PlatformType } from '@crowd/types'
-import { deleteConversations, insertConversation } from '@crowd/data-access-layer'
+import { PageData, PlatformType } from '@crowd/types'
+import {
+  IQueryActivityResult,
+  deleteConversations,
+  insertConversation,
+  queryActivities,
+  queryConversations,
+} from '@crowd/data-access-layer'
 import emoji from 'emoji-dictionary'
 import { convert as convertHtmlToText } from 'html-to-text'
 import fetch from 'node-fetch'
@@ -412,15 +418,48 @@ export default class ConversationService extends LoggerBase {
   }
 
   async query(data) {
-    const advancedFilter = data.filter
-    const orderBy = data.orderBy
+    const filter = data.filter
+    const orderBy = Array.isArray(data.orderBy) ? data.orderBy : [data.orderBy]
     const limit = data.limit
     const offset = data.offset
-    const lazyLoad = ['activities']
-    return ConversationRepository.findAndCountAll(
-      { advancedFilter, orderBy, limit, offset, lazyLoad },
-      this.options,
-    )
+    const countOnly = data.countOnly ?? false
+
+    const tenantId = SequelizeRepository.getCurrentTenant(this.options).id
+    const segmentIds = SequelizeRepository.getSegmentIds(this.options)
+
+    // TODO questdb load activities for conversations
+
+    const results = await queryConversations(this.options.qdb, {
+      tenantId,
+      segmentIds,
+      filter,
+      orderBy,
+      limit,
+      offset,
+      countOnly,
+    })
+
+    const conversationIds = results.rows.map((r) => r.id)
+    const activities = (await queryActivities(this.options.qdb, {
+      filter: {
+        and: [{ conversationId: { in: conversationIds } }],
+      },
+      tenantId,
+      segmentIds,
+      noLimit: true,
+    })) as PageData<IQueryActivityResult>
+
+    for (const conversation of results.rows) {
+      ;(conversation as any).activities = activities.rows
+        .filter((a) => a.conversationId === conversation.id)
+        .sort(
+          (a, b) =>
+            // from oldest to newest
+            new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+        )
+    }
+
+    return results
   }
 
   /**
@@ -431,7 +470,16 @@ export default class ConversationService extends LoggerBase {
    */
   async generateTitle(title: string, isHtml: boolean = false): Promise<string> {
     if (!title || getCleanString(title) === '') {
-      return `conversation-${await ConversationRepository.count({}, this.options)}`
+      const currentTenant = SequelizeRepository.getCurrentTenant(this.options)
+      const segmentIds = SequelizeRepository.getSegmentIds(this.options)
+
+      const results = await queryConversations(this.options.qdb, {
+        tenantId: currentTenant.id,
+        segmentIds,
+        countOnly: true,
+      })
+
+      return `conversation-${results.count}`
     }
 
     if (isHtml) {
