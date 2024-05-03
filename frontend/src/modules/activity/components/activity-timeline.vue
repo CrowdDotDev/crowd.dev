@@ -363,27 +363,7 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
     if (query.value && query.value !== '') {
       filterToApply.or = [
         {
-          body: {
-            textContains: query.value,
-          },
-        },
-        {
           channel: {
-            textContains: query.value,
-          },
-        },
-        {
-          url: {
-            textContains: query.value,
-          },
-        },
-        {
-          body: {
-            textContains: query.value,
-          },
-        },
-        {
-          title: {
             textContains: query.value,
           },
         },
