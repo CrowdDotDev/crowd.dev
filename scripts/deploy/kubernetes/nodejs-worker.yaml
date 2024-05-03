@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: nodejs-worker-normal
-          image: liscioapps/sphere-backend:1714571110.bbea5aac
+          image: liscioapps/sphere-backend:1714736070.408fa80a
           workingDir: /usr/crowd/app/backend
           command: ['npm']
           args: ['run', 'start:nodejs-worker']
@@ -49,7 +49,7 @@ spec:
     spec:
       containers:
         - name: nodejs-worker-system
-          image: liscioapps/sphere-backend:1714571110.bbea5aac
+          image: liscioapps/sphere-backend:1714736070.408fa80a
           workingDir: /usr/crowd/app/backend
           command: ['npm']
           args: ['run', 'start:nodejs-worker']
@@ -81,7 +81,7 @@ spec:
     spec:
       containers:
         - name: nodejs-worker-hight
-          image: liscioapps/sphere-backend:1714571110.bbea5aac
+          image: liscioapps/sphere-backend:1714736070.408fa80a
           workingDir: /usr/crowd/app/backend
           command: ['npm']
           args: ['run', 'start:nodejs-worker']
@@ -113,7 +113,7 @@ spec:
     spec:
       containers:
         - name: nodejs-worker-urgent
-          image: liscioapps/sphere-backend:1714571110.bbea5aac
+          image: liscioapps/sphere-backend:1714736070.408fa80a
           workingDir: /usr/crowd/app/backend
           command: ['npm']
           args: ['run', 'start:nodejs-worker']

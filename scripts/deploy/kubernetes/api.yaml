@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: api
-          image: liscioapps/sphere-backend:1714649322.7352cf6f
+          image: liscioapps/sphere-backend:1714736070.408fa80a
           workingDir: /usr/crowd/app/backend
           command: ['npm']
           args: ['run', 'start:api']
@@ -38,11 +38,6 @@ spec:
                   fieldPath: status.hostIP
             - name: DD_LOGS_INJECTION
               value: "true"
-            - name: CROWD_GITHUB_PRIVATE_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: getsphere
-                  key: github-private-key
           ports:
             - containerPort: 8080
 ---

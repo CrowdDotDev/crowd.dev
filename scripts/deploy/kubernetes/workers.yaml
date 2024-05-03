@@ -306,12 +306,6 @@ spec:
               value: integration-run-worker
             - name: QUEUE_PRIORITY_LEVEL
               value: normal
-            - name: CROWD_GITHUB_PRIVATE_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: getsphere
-                  key: github-private-key
-
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -344,11 +338,6 @@ spec:
               value: integration-run-worker
             - name: QUEUE_PRIORITY_LEVEL
               value: system
-            - name: CROWD_GITHUB_PRIVATE_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: getsphere
-                  key: github-private-key
 
 ---
 apiVersion: apps/v1
@@ -382,11 +371,6 @@ spec:
               value: integration-run-worker
             - name: QUEUE_PRIORITY_LEVEL
               value: hight
-            - name: CROWD_GITHUB_PRIVATE_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: getsphere
-                  key: github-private-key
 
 ---
 apiVersion: apps/v1
@@ -420,12 +404,6 @@ spec:
               value: integration-run-worker
             - name: QUEUE_PRIORITY_LEVEL
               value: urgent
-            - name: CROWD_GITHUB_PRIVATE_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: getsphere
-                  key: github-private-key
-
 
 ---
 apiVersion: apps/v1
@@ -459,11 +437,7 @@ spec:
               value: integration-stream-worker
             - name: QUEUE_PRIORITY_LEVEL
               value: normal
-            - name: CROWD_GITHUB_PRIVATE_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: getsphere
-                  key: github-private-key
+
 
 ---
 apiVersion: apps/v1
@@ -497,11 +471,7 @@ spec:
               value: integration-stream-worker
             - name: QUEUE_PRIORITY_LEVEL
               value: system
-            - name: CROWD_GITHUB_PRIVATE_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: getsphere
-                  key: github-private-key
+ 
 
 ---
 apiVersion: apps/v1
@@ -535,11 +505,6 @@ spec:
               value: integration-stream-worker
             - name: QUEUE_PRIORITY_LEVEL
               value: hight
-            - name: CROWD_GITHUB_PRIVATE_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: getsphere
-                  key: github-private-key
 
 ---
 apiVersion: apps/v1
@@ -573,11 +538,7 @@ spec:
               value: integration-stream-worker
             - name: QUEUE_PRIORITY_LEVEL
               value: urgent
-            - name: CROWD_GITHUB_PRIVATE_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: getsphere
-                  key: github-private-key
+ 
 
 ---
 apiVersion: apps/v1
