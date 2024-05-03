@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: api
-          image: liscioapps/sphere-backend:1714749337.1a89d485
+          image: liscioapps/sphere-backend:1714754233.e2fe998d
           workingDir: /usr/crowd/app/backend
           command: ['npm']
           args: ['run', 'start:api']

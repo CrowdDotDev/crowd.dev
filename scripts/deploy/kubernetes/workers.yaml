@@ -425,7 +425,7 @@ spec:
     spec:
       containers:
         - name: integration-stream-worker-normal
-          image: liscioapps/sphere-integration-stream-worker:1714525133.2d0ae48d
+          image: liscioapps/sphere-integration-stream-worker:1714757978.e2fe998d
           workingDir: /usr/crowd/app/services/apps/integration_stream_worker
           command: ['pnpm']
           args: ['run', 'start']
@@ -459,7 +459,7 @@ spec:
     spec:
       containers:
         - name: integration-stream-worker-system
-          image: liscioapps/sphere-integration-stream-worker:1714525133.2d0ae48d
+          image: liscioapps/sphere-integration-stream-worker:1714757978.e2fe998d
           workingDir: /usr/crowd/app/services/apps/integration_stream_worker
           command: ['pnpm']
           args: ['run', 'start']
@@ -493,7 +493,7 @@ spec:
     spec:
       containers:
         - name: integration-stream-worker-hight
-          image: liscioapps/sphere-integration-stream-worker:1714525133.2d0ae48d
+          image: liscioapps/sphere-integration-stream-worker:1714757978.e2fe998d
           workingDir: /usr/crowd/app/services/apps/integration_stream_worker
           command: ['pnpm']
           args: ['run', 'start']
@@ -526,7 +526,7 @@ spec:
     spec:
       containers:
         - name: integration-stream-worker-urgent
-          image: liscioapps/sphere-integration-stream-worker:1714525133.2d0ae48d
+          image: liscioapps/sphere-integration-stream-worker:1714757978.e2fe998d
           workingDir: /usr/crowd/app/services/apps/integration_stream_worker
           command: ['pnpm']
           args: ['run', 'start']

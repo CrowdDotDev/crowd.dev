@@ -27,6 +27,8 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
   public async getOldWebhooksToProcess(limit: number): Promise<IWebhookData[]> {
     this.ensureTransactional()
 
+    this.log.info('Running getOldWebhooksToProcess');
+
     try {
       const results = await this.db().any(
         `
@@ -62,6 +64,8 @@ export default class IntegrationStreamRepository extends RepositoryBase<Integrat
 
   public async getOldStreamsToProcess(limit: number): Promise<string[]> {
     this.ensureTransactional()
+
+    this.log.info('Running getOldStreamsToProcess');
 
     try {
       const results = await this.db().any(
