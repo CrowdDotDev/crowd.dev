@@ -54,6 +54,11 @@ spec:
               value: 'true'
             - name: CUBEJS_SCHEDULED_REFRESH_DEFAULT
               value: 'true'
+            - name: CUBEJS_DB_SSL
+              valueFrom:
+                configMapKeyRef:
+                  name: backend-config
+                  key: CUBEJS_DB_SSL
           ports:
             - containerPort: 4000
             - containerPort: 3000
