@@ -43,7 +43,7 @@ create table "organizationCacheLinks" (
 
     primary key ("organizationCacheId", "organizationId"),
     foreign key ("organizationCacheId") references "organizationCaches" (id),
-    foreign key ("organizationId") references organizations (id)
+    foreign key ("organizationId") references organizations (id)  ON DELETE CASCADE
 );
 
 -- fill the new organizationCacheLinks table
