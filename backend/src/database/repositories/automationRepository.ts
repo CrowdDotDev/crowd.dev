@@ -34,9 +34,9 @@ export default class AutomationRepository extends RepositoryBase<
 
     const transaction = this.transaction
 
-    const existingActiveAutomations = await this.findAndCountAll({
-      state: AutomationState.ACTIVE,
-    })
+    // const existingActiveAutomations = await this.findAndCountAll({
+    //   state: AutomationState.ACTIVE,
+    // })
 
     const record = await this.database.automation.create(
       {
@@ -44,10 +44,7 @@ export default class AutomationRepository extends RepositoryBase<
         type: data.type,
         trigger: data.trigger,
         settings: data.settings,
-        state:
-          existingActiveAutomations.count >= PLAN_LIMITS[tenant.plan][FeatureFlag.AUTOMATIONS]
-            ? AutomationState.DISABLED
-            : data.state,
+        state:  data.state,
         tenantId: tenant.id,
         createdById: currentUser.id,
         updatedById: currentUser.id,
