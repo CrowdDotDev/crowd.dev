@@ -11,7 +11,11 @@ import {
 
 import { weeklyGetNextEmails, calculateTimes } from './activities/weekly-analytics/getNextEmails'
 import { weeklySendEmail } from './activities/weekly-analytics/sendEmail'
+
 import {
+  getTenantUsers,
+  getSegments,
+  getActiveTenantIntegrations,
   getTotalMembersThisWeek,
   getTotalMembersPreviousWeek,
   getNewMembersThisWeek,
@@ -20,13 +24,7 @@ import {
   getTotalOrganizationsPreviousWeek,
   getNewOrganizationsThisWeek,
   getNewOrganizationsPreviousWeek,
-} from './activities/weekly-analytics/buildEmailFromCube'
-
-import {
-  getTenantUsers,
-  getSegments,
-  getActiveTenantIntegrations,
-} from './activities/weekly-analytics/buildEmailFromDatabase'
+} from './activities/weekly-analytics/buildEmailFromPostgreSQL'
 
 import {
   getTotalActivitiesThisWeek,

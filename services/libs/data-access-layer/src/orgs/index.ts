@@ -1,6 +1,7 @@
 import { getEnv } from '@crowd/common'
 import { DbStore } from '@crowd/database'
 import { IOrganization } from '@crowd/types'
+import { IQueryNumberOfNewOrganizations } from './types'
 
 const s3Url = `https://${
   process.env['CROWD_S3_MICROSERVICES_ASSETS_BUCKET']
@@ -30,4 +31,25 @@ export async function getOrganizationById(db: DbStore, id: string): Promise<IOrg
   })
 
   return rows[0]
+}
+
+export async function getNumberOfNewOrganizations(
+  db: DbStore,
+  arg: IQueryNumberOfNewOrganizations,
+): Promise<number> {
+  const query = `
+    SELECT DISTINCT COUNT(id)
+    FROM organizations
+    WHERE "tenantId" = $(tenantId)
+    AND "createdAt" BETWEEN $(after) AND $(before)
+    AND "deletedAt" IS NULL;
+  `
+
+  const rows: { count: number }[] = await db.connection().query(query, {
+    tenantId: arg.tenantId,
+    after: arg.after,
+    before: arg.before,
+  })
+
+  return rows[0].count
 }

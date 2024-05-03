@@ -86,7 +86,7 @@ export async function findConversationsWithActivities(
 ): Promise<IConversationWithActivities[]> {
   const query = `
     SELECT * FROM conversations
-    WHERE tenantId = $(tenantId)
+    WHERE "tenantId" = $(tenantId)
     AND timestamp BETWEEN $(after) AND $(before)
     LIMIT $(limit);
   `
