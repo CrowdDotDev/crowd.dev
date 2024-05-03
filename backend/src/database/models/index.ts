@@ -116,7 +116,6 @@ function models(queryTimeoutMilliseconds: number, databaseHostnameOverride = nul
     require('./user').default,
     require('./widget').default,
     require('./microservice').default,
-    require('./conversation').default,
     require('./conversationSettings').default,
     require('./eagleEyeContent').default,
     require('./eagleEyeAction').default,
