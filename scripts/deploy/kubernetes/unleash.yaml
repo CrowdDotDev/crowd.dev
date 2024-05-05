@@ -41,6 +41,16 @@ spec:
                 configMapKeyRef:
                   name: backend-config
                   key: CROWD_UNLEASH_DB_PASSWORD
+            - name: UNLEASH_DEFAULT_ADMIN_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: backend-config
+                  key: UNLEASH_DEFAULT_ADMIN_USERNAME
+            - name: UNLEASH_DEFAULT_ADMIN_PASSWORD
+              valueFrom:
+                configMapKeyRef:
+                  name: backend-config
+                  key: UNLEASH_DEFAULT_ADMIN_PASSWORD
 
           ports:
             - containerPort: 4242
