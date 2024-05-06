@@ -1,4 +1,4 @@
-import { distinct, getCleanString, processPaginated } from '@crowd/common'
+import { distinct, getCleanString, processPaginated, timeout } from '@crowd/common'
 import {
   doesConversationWithSlugExists,
   getActivitiesById,
@@ -121,6 +121,8 @@ export class ConversationService extends LoggerBase {
     segmentId: string,
     activityId: string,
   ): Promise<string[]> {
+    await timeout(1000)
+    this.log.debug({ activityId }, 'Processing activity')
     let results = await getActivitiesById(this.qdbStore.connection(), [activityId])
 
     if (results.length !== 1) {

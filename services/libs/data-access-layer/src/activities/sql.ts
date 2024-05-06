@@ -53,9 +53,9 @@ export async function getActivitiesById(conn: DbConnOrTx, ids: string[]): Promis
       "title",
       "url",
       "username",
-      "member",
+      "memberId",
       "objectMemberUsername",
-      "objectMember"
+      "objectMemberId"
     FROM activities
     WHERE "id" in ($(ids:csv))
     AND "deletedAt" IS NULL
@@ -208,28 +208,44 @@ export async function updateActivityParentIds(
   ]
 
   if (activity.sourceParentId) {
+    // need to first query for parent id and then update to set it
+    // because questdb doesn't support subqueries in updates
     promises.push(
-      conn.none(
-        `
-        UPDATE activities SET "parentId" = (
-          SELECT "id" FROM activities
-          WHERE "tenantId" = $(tenantId)
-          AND "sourceId" = $(sourceParentId)
-          AND "segmentId" = $(segmentId)
-          AND "deletedAt" IS NULL
-          LIMIT 1
+      conn
+        .oneOrNone(
+          `
+  select id from activities 
+  where "deletedAt" is null and 
+        "tenantId" = $(tenantId) and
+        "sourceId" = $(sourceParentId) and
+        "segmentId" = $(segmentId)
+  limit 1
+`,
+          {
+            tenantId: activity.tenantId,
+            segmentId: activity.segmentId,
+            sourceParentId: activity.sourceParentId,
+          },
         )
-        WHERE "id" = $(id)
-        AND "tenantId" = $(tenantId)
-        AND "segmentId" = $(segmentId);
-        `,
-        {
-          id,
-          tenantId: activity.tenantId,
-          segmentId: activity.segmentId,
-          sourceParentId: activity.sourceParentId,
-        },
-      ),
+        .then((res) => {
+          if (res) {
+            return conn.none(
+              `
+              update activities set "parentId" = $(parentId)
+              where id = $(id) and
+                    "tenantId" = $(tenantId) and
+                    "segmentId" = $(segmentId) and
+                    "deletedAt" is null
+            `,
+              {
+                id,
+                tenantId: activity.tenantId,
+                segmentId: activity.segmentId,
+                parentId: res.id,
+              },
+            )
+          }
+        }),
     )
   }
 
@@ -352,7 +368,7 @@ const DEFAULT_COLUMNS_TO_SELECT: ActivityColumn[] = [
 ]
 
 export async function queryActivities(
-  qdbConn: DbConnOrTx, // to query questdb activities
+  qdbConn: DbConnOrTx,
   arg: IQueryActivitiesParameters,
   columns: ActivityColumn[] = DEFAULT_COLUMNS_TO_SELECT,
 ): Promise<PageData<IQueryActivityResult | any>> {

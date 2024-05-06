@@ -19,10 +19,14 @@ export const getDbInstance = (): DbInstance => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async error(err: any, e: pgPromise.IEventContext): Promise<void> {
       if (e.cn) {
-        if (log !== undefined) log.fatal(err, { cn: e.cn }, 'DB connection error. Stopping process')
+        log.fatal(err, { cn: e.cn }, 'PostgreSQL connection error. Stopping process')
         // logs don't have flush:
         await new Promise((resolve) => setTimeout(resolve, 100))
         process.nextTick(() => process.exit())
+      }
+
+      if (e.query) {
+        log.error(err, { query: e.query, params: e.params }, 'Error executing a PostgreSQL query!')
       }
     },
   })

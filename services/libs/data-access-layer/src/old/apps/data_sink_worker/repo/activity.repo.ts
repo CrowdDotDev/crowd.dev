@@ -168,7 +168,8 @@ export default class ActivityRepository extends RepositoryBase<ActivityRepositor
     segmentId: string,
     data: IDbActivityCreateData,
   ): Promise<string> {
-    this.log.info('Creating an activity in PostgreSQL!')
+    this.log.debug('Creating an activity in PostgreSQL!')
+
     const id = generateUUIDv1()
     const ts = new Date()
     const prepared = RepositoryBase.prepare(

@@ -427,8 +427,6 @@ export default class ConversationService extends LoggerBase {
     const tenantId = SequelizeRepository.getCurrentTenant(this.options).id
     const segmentIds = SequelizeRepository.getSegmentIds(this.options)
 
-    // TODO questdb load activities for conversations
-
     const results = await queryConversations(this.options.qdb, {
       tenantId,
       segmentIds,

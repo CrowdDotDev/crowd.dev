@@ -356,12 +356,12 @@ export async function doesConversationWithSlugExists(
   return false
 }
 
-// const CONVERSATION_QUERY_FILTER_COLUMN_MAP: Map<string, string> = new Map([
-//   ['id', 'c.id'],
-//   ['title', 'c.title'],
-//   ['slug', 'c.slug'],
-//   ['published', 'c.published'],
-// ])
+const CONVERSATION_QUERY_FILTER_COLUMN_MAP: Map<string, string> = new Map([
+  ['id', 'c.id'],
+  ['title', 'c.title'],
+  ['slug', 'c.slug'],
+  ['published', 'c.published'],
+])
 export async function queryConversations(
   qdbConn: DbConnOrTx,
   arg: IQueryConversationsParameters,
@@ -372,7 +372,7 @@ export async function queryConversations(
 
   // set defaults
   arg.filter = arg.filter || {}
-  arg.orderBy = arg.orderBy || ['createdAt', 'DESC']
+  arg.orderBy = arg.orderBy || ['lastActive_DESC']
 
   // TODO questdb
 
