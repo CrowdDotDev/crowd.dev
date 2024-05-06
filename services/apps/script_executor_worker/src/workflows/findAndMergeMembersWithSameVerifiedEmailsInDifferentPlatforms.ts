@@ -17,7 +17,7 @@ const common = proxyActivities<typeof commonActivities>({
 export async function findAndMergeMembersWithSameVerifiedEmailsInDifferentPlatforms(
   args: IFindAndMergeMembersWithSameVerifiedEmailsInDifferentPlatformsArgs,
 ): Promise<void> {
-  const PROCESS_MEMBERS_PER_RUN = 10
+  const PROCESS_MEMBERS_PER_RUN = 1000
 
   const mergeableMemberCouples =
     await activity.findMembersWithSameVerifiedEmailsInDifferentPlatforms(
