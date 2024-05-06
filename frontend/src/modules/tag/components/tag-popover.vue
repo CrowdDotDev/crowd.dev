@@ -88,7 +88,9 @@ export default {
       return selectedProjectGroup.value;
     },
     isSubmitDisabled() {
-      const segments = this.member.segmentIds ?? this.member.segments?.map((s) => s.id) ?? getSegmentsFromProjectGroup(this.selectedProjectGroup);
+      const segments = this.member
+        ? this.member.segmentIds ?? this.member.segments?.map((s) => s.id) ?? getSegmentsFromProjectGroup(this.selectedProjectGroup)
+        : getSegmentsFromProjectGroup(this.selectedProjectGroup);
 
       return !segments.some((s) => hasAccessToSegmentId(s));
     },
@@ -134,7 +136,9 @@ export default {
     async handleSubmit() {
       this.loading = true;
 
-      const segments = this.member.segmentIds ?? this.member.segments?.map((s) => s.id) ?? getSegmentsFromProjectGroup(this.selectedProjectGroup);
+      const segments = this.member
+        ? this.member.segmentIds ?? this.member.segments?.map((s) => s.id) ?? getSegmentsFromProjectGroup(this.selectedProjectGroup)
+        : getSegmentsFromProjectGroup(this.selectedProjectGroup);
 
       await this.doBulkUpdateMembersTags({
         members: [...this.membersToUpdate],
