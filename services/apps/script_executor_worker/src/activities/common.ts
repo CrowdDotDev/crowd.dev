@@ -4,6 +4,7 @@ export async function mergeMembers(
   tenantId: string,
 ): Promise<void> {
   const url = `${process.env['CROWD_API_SERVICE_URL']}/tenant/${tenantId}/member/${primaryMemberId}/merge`
+  console.log(url)
   const requestOptions = {
     method: 'PUT',
     headers: {
@@ -14,7 +15,13 @@ export async function mergeMembers(
       memberToMerge: secondaryMemberId,
     }),
   }
+
+  console.log(requestOptions)
+
   const res = await fetch(url, requestOptions)
+
+  console.log('Result: ')
+  console.log(res)
 
   if (res.status !== 200) {
     throw new Error(`Failed to merge member ${primaryMemberId} with ${secondaryMemberId}!`)
