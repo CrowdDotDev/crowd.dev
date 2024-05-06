@@ -1494,7 +1494,7 @@ class MemberRepository {
     return (result[0] as any).count as number
   }
 
-  static async  findById(
+  static async findById(
     id,
     options: IRepositoryOptions,
     returnPlain = true,
