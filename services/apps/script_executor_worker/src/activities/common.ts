@@ -19,7 +19,6 @@ export async function mergeMembers(
 
   try {
     const response = await axios(url, requestOptions)
-    console.log('Result: ', response)
 
     // Axios throws an error for bad status codes, so this check is technically redundant
     if (response.status !== 200) {
