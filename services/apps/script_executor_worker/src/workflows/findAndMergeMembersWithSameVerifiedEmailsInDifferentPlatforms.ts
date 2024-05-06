@@ -38,8 +38,8 @@ export async function findAndMergeMembersWithSameVerifiedEmailsInDifferentPlatfo
     await common.mergeMembers(couple.primaryMemberId, couple.secondaryMemberId, args.tenantId)
   }
 
-  // await continueAsNew<typeof findAndMergeMembersWithSameVerifiedEmailsInDifferentPlatforms>({
-  //   tenantId: args.tenantId,
-  //   afterHash: mergeableMemberCouples[mergeableMemberCouples.length - 1]?.hash,
-  // })
+  await continueAsNew<typeof findAndMergeMembersWithSameVerifiedEmailsInDifferentPlatforms>({
+    tenantId: args.tenantId,
+    afterHash: mergeableMemberCouples[mergeableMemberCouples.length - 1]?.hash,
+  })
 }

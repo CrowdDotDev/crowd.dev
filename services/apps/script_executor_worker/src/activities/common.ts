@@ -6,8 +6,6 @@ export async function mergeMembers(
   tenantId: string,
 ): Promise<void> {
   const url = `${process.env['CROWD_API_SERVICE_URL']}/tenant/${tenantId}/member/${primaryMemberId}/merge`
-  console.log(url)
-
   const requestOptions = {
     method: 'PUT',
     headers: {
@@ -19,11 +17,8 @@ export async function mergeMembers(
     },
   }
 
-  console.log('Request Options:', requestOptions)
-
   try {
     const response = await axios(url, requestOptions)
-
     console.log('Result: ', response)
 
     // Axios throws an error for bad status codes, so this check is technically redundant
