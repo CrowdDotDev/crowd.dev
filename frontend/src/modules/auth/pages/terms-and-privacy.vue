@@ -10,12 +10,12 @@
           v-model="model[fields.acceptedTermsAndPrivacy.name]"
         >
           <span class="text-sm text-gray-900" /><span class="text-sm text-gray-900">  I accept the <a
-            href="https://www.crowd.dev/terms-of-use"
+            href="https://getsphere.dev/terms"
             target="_blank"
             rel="noopener noreferrer"
           >terms of service</a>
             and <a
-              href="https://www.crowd.dev/privacy-policy"
+              href="https://getsphere.dev/privacy"
               target="_blank"
               rel="noopener noreferrer"
             >privacy policy</a>.
