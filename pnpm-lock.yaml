@@ -1223,6 +1223,9 @@ importers:
       '@temporalio/workflow':
         specifier: ~1.8.6
         version: 1.8.6
+      axios:
+        specifier: ^1.6.8
+        version: 1.6.8
       moment:
         specifier: ~2.29.4
         version: 2.29.4
