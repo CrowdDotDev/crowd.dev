@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@crowd/database": "workspace:*",
+    "@crowd/data-access-layer": "workspace:*",
     "@crowd/common": "workspace:*",
     "@crowd/feature-flags": "workspace:*",
     "@crowd/integrations": "workspace:*",
