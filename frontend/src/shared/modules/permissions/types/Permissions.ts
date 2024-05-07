@@ -82,9 +82,9 @@ export enum LfPermission {
   conversationAutocomplete = 'conversationAutocomplete',
 
   // Eagle eye
-  eagleEyeContentRead = 'eagleEyeRead',
-  eagleEyeContentCreate = 'eagleEyeContentCreate',
-  eagleEyeContentEdit = 'eagleEyeContentEdit',
+  eagleEyeRead = 'eagleEyeRead',
+  eagleEyeCreate = 'eagleEyeCreate',
+  eagleEyeEdit = 'eagleEyeEdit',
   eagleEyeActionCreate = 'eagleEyeActionCreate',
 
   // Automations

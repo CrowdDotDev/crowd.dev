@@ -169,7 +169,7 @@
       </template>
     </el-table-column>
 
-    <template v-if="project.subprojects?.length && (hasPermissionToCreateSubProject && hasAccessToSegmentId(project.id))" #append>
+    <template v-if="project.subprojects?.length && (hasPerm && hasAccessToSegmentId(project.id))" #append>
       <div class="w-full flex justify-start p-6">
         <el-button class="btn btn-link btn-link--primary" @click="emit('onAddSubProject', project.slug)">
           + Add sub-project
@@ -177,7 +177,7 @@
       </div>
     </template>
 
-    <template v-if="(hasPermissionToCreateSubProject && hasAccessToSegmentId(project.id))" #empty>
+    <template v-if="(hasPermission(LfPermission.subProjectCreate) && hasAccessToSegmentId(project.id))" #empty>
       <div class="w-full flex justify-start p-6">
         <el-button class="btn btn-link btn-link--primary" @click="emit('onAddSubProject', project.slug)">
           + Add sub-project
@@ -192,15 +192,12 @@ import statusOptions from '@/modules/lf/config/status';
 import AppLfProjectsDropdown from '@/modules/lf/segments/components/lf-projects-dropdown.vue';
 import AppLfSubProjectsDropdown from '@/modules/lf/segments/components/lf-sub-projects-dropdown.vue';
 import { useRoute } from 'vue-router';
-import { LfPermissions } from '@/modules/lf/lf-permissions';
-import { computed } from 'vue';
 import AppPlatformSvg from '@/shared/modules/platform/components/platform-svg.vue';
-import { hasAccessToSegmentId } from '@/utils/segments';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { storeToRefs } from 'pinia';
 import CrSpinner from '@/ui-kit/spinner/Spinner.vue';
 import AppIntegrationProgress from '@/modules/integration/components/integration-progress.vue';
-import { CrowdIntegrations } from '../../../../../integrations/integrations-config';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
 
 const route = useRoute();
 
@@ -221,13 +218,7 @@ const props = defineProps({
   },
 });
 
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
-
-const hasPermissionToCreateSubProject = computed(() => new LfPermissions(
-  tenant.value,
-  user.value,
-)?.createSubProject);
+const { hasPermission, hasAccessToSegmentId } = usePermissions();
 
 const statusDisplay = (status) => statusOptions.find((s) => s.value === status);
 

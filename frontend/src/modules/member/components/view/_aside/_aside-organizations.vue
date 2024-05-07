@@ -7,7 +7,6 @@
 
       <el-button
         class="btn btn-link btn-link--linux"
-        :disabled="isEditLockedForSampleData"
         @click="isOrganizationDrawerOpen = true"
       >
         <i class="ri-pencil-line text-lg" />
@@ -111,8 +110,7 @@
 </template>
 
 <script setup lang="ts">
-import { MemberPermissions } from '@/modules/member/member-permissions';
-import { computed, ref } from 'vue';
+import { ref } from 'vue';
 import moment from 'moment';
 import AppMemberFormOrganizationsDrawer from '@/modules/member/components/form/member-form-organizations-drawer.vue';
 import { Member } from '@/modules/member/types/Member';
@@ -121,7 +119,6 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import AppSvg from '@/shared/svg/svg.vue';
 import AppEntities from '@/shared/modules/entities/Entities.vue';
 import { Organization, OrganizationSource } from '@/modules/organization/types/Organization';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
 
 const OrganizationSourceValue = {
   [OrganizationSource.EMAIL_DOMAIN]: 'Email domain',
@@ -137,14 +134,6 @@ defineProps<{
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
-
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
-
-const isEditLockedForSampleData = computed(() => new MemberPermissions(
-  tenant.value,
-  user.value,
-).editLockedForSampleData);
 
 const isOrganizationDrawerOpen = ref<boolean>(false);
 

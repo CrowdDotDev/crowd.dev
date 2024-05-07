@@ -17,7 +17,6 @@
       </div>
       <el-button
         class="btn btn-link btn-link--linux"
-        :disabled="isEditLockedForSampleData"
         @click="emit('edit')"
       >
         <i class="ri-pencil-line text-lg" />
@@ -42,15 +41,9 @@
 </template>
 
 <script setup lang="ts">
-import {
-  computed, defineProps,
-} from 'vue';
-import { MemberPermissions } from '@/modules/member/member-permissions';
 import AppIdentitiesVerticalListMembers from '@/shared/modules/identities/components/identities-vertical-list-members.vue';
 import memberOrder from '@/shared/modules/identities/config/identitiesOrder/member';
 import { Member } from '@/modules/member/types/Member';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { storeToRefs } from 'pinia';
 import AppAsideIdentitiesExtra from './_aside-identities-extra.vue';
 
 defineProps<{
@@ -58,12 +51,4 @@ defineProps<{
 }>();
 
 const emit = defineEmits(['edit', 'editEmail']);
-
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
-
-const isEditLockedForSampleData = computed(() => new MemberPermissions(
-  tenant.value,
-  user.value,
-).editLockedForSampleData);
 </script>

@@ -1,6 +1,5 @@
 import { OrganizationService } from '@/modules/organization/organization-service';
 import RelationToManyField from '@/shared/fields/relation-to-many-field';
-import Permissions from '@/security/permissions';
 
 export class OrganizationField {
   static relationToMany(name, label, options) {
@@ -8,7 +7,7 @@ export class OrganizationField {
       name,
       label,
       '/organization',
-      Permissions.values.organizationRead,
+      null,
       OrganizationService.listOrganizationsAutocomplete,
       (record) => {
         if (!record) {

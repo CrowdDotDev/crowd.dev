@@ -17,7 +17,6 @@
 
       <el-button
         class="btn btn-link btn-link--linux"
-        :disabled="isEditLockedForSampleData"
         @click="attributesDrawer = true"
       >
         <i class="ri-pencil-line text-lg" />
@@ -140,7 +139,6 @@ import { defineProps, computed, ref } from 'vue';
 import moment from 'moment';
 import { formatDate } from '@/utils/date';
 
-import { MemberPermissions } from '@/modules/member/member-permissions';
 import { useMemberStore } from '@/modules/member/store/pinia';
 import { storeToRefs } from 'pinia';
 import { getAttributeSourceName } from '@/shared/helpers/attribute.helpers';
@@ -165,13 +163,9 @@ const { customAttributes } = storeToRefs(memberStore);
 const attributesDrawer = ref(false);
 
 const authStore = useAuthStore();
-const { tenant, user } = storeToRefs(authStore);
-const isEnrichmentEnabled = computed(() => tenant.value.plan !== Plans.values.essential);
+const { tenant } = storeToRefs(authStore);
 
-const isEditLockedForSampleData = computed(() => new MemberPermissions(
-  tenant.value,
-  user.value,
-).editLockedForSampleData);
+const isEnrichmentEnabled = computed(() => tenant.value.plan !== Plans.values.essential);
 
 const hiddenAttributes = ref([
   {

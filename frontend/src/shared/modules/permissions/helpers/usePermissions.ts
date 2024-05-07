@@ -29,7 +29,6 @@ export default function usePermissions() {
       .includes(segmentId);
   };
 
-  //
   const hasAccessToSegmentId = (segmentId: string) => {
     if (roles.value.includes(LfRole.admin)) {
       return true;

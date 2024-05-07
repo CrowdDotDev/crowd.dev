@@ -2,7 +2,6 @@
   <template v-if="identities.length > 1 && !props.hideUnmerge">
     <button
       class="h-10 el-dropdown-menu__item w-full"
-      :disabled="isEditLockedForSampleData"
       type="button"
       @click="handleCommand({
         action: Actions.UNMERGE_IDENTITY,
@@ -22,13 +21,9 @@
         id: member.id,
       },
     }"
-    :class="{
-      'pointer-events-none cursor-not-allowed': isEditLockedForSampleData,
-    }"
   >
     <button
       class="h-10 el-dropdown-menu__item w-full mb-1"
-      :disabled="isEditLockedForSampleData"
       type="button"
     >
       <i class="ri-pencil-line text-base mr-2" />
@@ -56,11 +51,11 @@
     v-if="!props.hideMerge"
     content="Coming soon"
     placement="top"
-    :disabled="hasPermissionsToMerge"
+    :disabled="hasPermission(LfPermission.mergeMembers)"
   >
     <button
       class="h-10 el-dropdown-menu__item w-full"
-      :disabled="isEditLockedForSampleData || !hasPermissionsToMerge"
+      :disabled="!hasPermission(LfPermission.mergeMembers)"
       type="button"
       @click="
         handleCommand({
@@ -116,7 +111,6 @@
       <button
         v-if="!member.attributes?.isTeamMember?.default"
         class="h-10 el-dropdown-menu__item w-full"
-        :disabled="isEditLockedForSampleData"
         type="button"
         @click="
           handleCommand({
@@ -133,7 +127,6 @@
   <button
     v-if="member.attributes?.isTeamMember?.default"
     class="h-10 el-dropdown-menu__item w-full"
-    :disabled="isEditLockedForSampleData"
     type="button"
     @click="
       handleCommand({
@@ -148,7 +141,6 @@
   <button
     v-if="!member.attributes.isBot?.default"
     class="h-10 el-dropdown-menu__item w-full"
-    :disabled="isEditLockedForSampleData"
     type="button"
     @click="
       handleCommand({
@@ -162,7 +154,6 @@
   <button
     v-if="member.attributes.isBot?.default"
     class="h-10 el-dropdown-menu__item w-full"
-    :disabled="isEditLockedForSampleData"
     type="button"
     @click="
       handleCommand({
@@ -176,7 +167,6 @@
   <el-divider class="border-gray-200" />
   <button
     class="h-10 el-dropdown-menu__item w-full"
-    :disabled="isDeleteLockedForSampleData"
     type="button"
     @click="
       handleCommand({
@@ -186,15 +176,9 @@
     "
   >
     <i
-      class="ri-delete-bin-line text-base mr-2"
-      :class="{
-        'text-red-500': !isDeleteLockedForSampleData,
-      }"
+      class="ri-delete-bin-line text-base mr-2 text-red-500"
     /><span
-      class="text-xs"
-      :class="{
-        'text-red-500': !isDeleteLockedForSampleData,
-      }"
+      class="text-xs text-red-500"
     >Delete contributor</span>
   </button>
 </template>
@@ -203,7 +187,6 @@
 import { mapActions } from '@/shared/vuex/vuex.helpers';
 import { MemberService } from '@/modules/member/member-service';
 import Message from '@/shared/message/message';
-import { MemberPermissions } from '@/modules/member/member-permissions';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import AppSvg from '@/shared/svg/svg.vue';
 import { useMemberStore } from '@/modules/member/store/pinia';
@@ -216,9 +199,10 @@ import {
 import { useStore } from 'vuex';
 import { useRoute } from 'vue-router';
 import { computed } from 'vue';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import { Member } from '../types/Member';
 
 enum Actions {
@@ -244,28 +228,13 @@ const props = defineProps<{
 const store = useStore();
 const route = useRoute();
 
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
 const { doFind } = mapActions('member');
 
 const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
 
 const memberStore = useMemberStore();
 
-const isEditLockedForSampleData = computed(
-  () => new MemberPermissions(tenant.value, user.value)
-    .editLockedForSampleData,
-);
-
-const isDeleteLockedForSampleData = computed(
-  () => new MemberPermissions(tenant.value, user.value)
-    .destroyLockedForSampleData,
-);
-
-const hasPermissionsToMerge = computed(() => new MemberPermissions(
-  tenant.value,
-  user.value,
-)?.mergeMembers);
+const { hasPermission } = usePermissions();
 
 const isSyncingWithHubspot = computed(
   () => props.member.attributes?.syncRemote?.hubspot || false,

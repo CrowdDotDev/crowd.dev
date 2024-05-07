@@ -53,7 +53,7 @@
           </div>
         </div>
         <el-button
-          :disabled="loading || isEditLockedForSampleData"
+          :disabled="loading"
           class="btn btn--secondary btn--md"
           :loading="sendingIgnore"
           @click="ignoreSuggestion()"
@@ -61,7 +61,7 @@
           Ignore suggestion
         </el-button>
         <el-button
-          :disabled="loading || isEditLockedForSampleData"
+          :disabled="loading"
           class="btn btn--primary btn--md !ml-4"
           :loading="sendingMerge"
           @click="mergeSuggestion()"
@@ -147,9 +147,7 @@ import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { merge } from 'lodash';
 import useMemberMergeMessage from '@/shared/modules/merge/config/useMemberMergeMessage';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { MemberService } from '../member-service';
-import { MemberPermissions } from '../member-permissions';
 
 const props = defineProps({
   query: {
@@ -162,9 +160,6 @@ const props = defineProps({
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
-
 const membersToMerge = ref([]);
 const primary = ref(0);
 const offset = ref(0);
@@ -175,11 +170,6 @@ const sendingIgnore = ref(false);
 const sendingMerge = ref(false);
 
 const bioHeight = ref(0);
-
-const isEditLockedForSampleData = computed(
-  () => new MemberPermissions(tenant.value, user.value)
-    .editLockedForSampleData,
-);
 
 const clearMember = (member) => {
   const cleanedMember = { ...member };

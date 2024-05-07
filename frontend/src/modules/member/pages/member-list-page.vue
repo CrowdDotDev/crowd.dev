@@ -10,20 +10,19 @@
               v-if="membersToMergeCount > 0"
               content="Coming soon"
               placement="top"
-              :disabled="hasPermissionsToMerge"
+              :disabled="hasPermission(LfPermission.mergeMembers)"
             >
               <span>
                 <component
-                  :is="hasPermissionsToMerge ? 'router-link' : 'span'"
+                  :is="hasPermission(LfPermission.mergeMembers) ? 'router-link' : 'span'"
                   class="mr-4"
-                  :class="{ 'pointer-events-none': isEditLockedForSampleData }"
                   :to="{
                     name: 'memberMergeSuggestions',
                     query: { projectGroup: selectedProjectGroup?.id },
                   }"
                 >
                   <button
-                    :disabled="isEditLockedForSampleData || !hasPermissionsToMerge"
+                    :disabled="!hasPermission(LfPermission.mergeMembers)"
                     type="button"
                     class="btn btn--secondary btn--md flex items-center"
                   >
@@ -40,15 +39,10 @@
 
             <el-button
               v-if="
-                hasPermissionToCreate
+                hasPermission(LfPermission.memberCreate)
                   && (hasIntegrations || membersCount > 0)
               "
               class="btn btn--primary btn--md"
-              :class="{
-                'pointer-events-none cursor-not-allowed':
-                  isCreateLockedForSampleData,
-              }"
-              :disabled="isCreateLockedForSampleData"
               @click="onAddMember"
             >
               Add contributor
@@ -110,14 +104,14 @@ import {
   ref, onMounted, computed,
 } from 'vue';
 import { MemberService } from '@/modules/member/member-service';
-import { MemberPermissions } from '@/modules/member/member-permissions';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { FilterQuery } from '@/shared/modules/filters/types/FilterQuery';
 import CrSavedViews from '@/shared/modules/saved-views/components/SavedViews.vue';
 import AppMemberListTable from '@/modules/member/components/list/member-list-table.vue';
 import { useRouter } from 'vue-router';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import { memberFilters, memberSearchFilter } from '../config/filters/main';
 import { memberSavedViews, memberStaticViews } from '../config/saved-views/main';
 
@@ -135,37 +129,17 @@ const membersToMergeCount = ref(0);
 const isSubProjectSelectionOpen = ref(false);
 
 const { listByPlatform } = mapGetters('integration');
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
+
+const { hasPermission } = usePermissions();
 
 const memberFilter = ref<CrFilter | null>(null);
 
 const hasIntegrations = computed(() => !!Object.keys(listByPlatform.value || {}).length);
 
-const hasPermissionToCreate = computed(() => new MemberPermissions(
-  tenant.value,
-  user.value,
-)?.create);
-
-const hasPermissionsToMerge = computed(() => new MemberPermissions(
-  tenant.value,
-  user.value,
-)?.mergeMembers);
-
 const pagination = ref({
   page: 1,
   perPage: 20,
 });
-
-const isCreateLockedForSampleData = computed(() => new MemberPermissions(
-  tenant.value,
-  user.value,
-)?.createLockedForSampleData);
-
-const isEditLockedForSampleData = computed(() => new MemberPermissions(
-  tenant.value,
-  user.value,
-)?.editLockedForSampleData);
 
 const fetchMembersToMergeCount = () => {
   MemberService.fetchMergeSuggestions(1, 0)

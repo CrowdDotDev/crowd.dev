@@ -3,7 +3,6 @@
   <template v-if="organization.identities.length > 1 && !hideUnmerge">
     <button
       class="h-10 el-dropdown-menu__item w-full"
-      :disabled="isEditLockedForSampleData"
       type="button"
       @click="handleCommand({
         action: Actions.UNMERGE_IDENTITY,
@@ -27,12 +26,8 @@
         segmentId: route.query.segmentId || route.query.projectGroup,
       },
     }"
-    :class="{
-      'pointer-events-none cursor-not-allowed': isEditLockedForSampleData,
-    }"
   >
     <button
-      :disabled="isEditLockedForSampleData"
       class="h-10 el-dropdown-menu__item w-full"
       type="button"
     >
@@ -45,12 +40,12 @@
     v-if="!hideMerge"
     content="Coming soon"
     placement="top"
-    :disabled="hasPermissionsToMerge"
+    :disabled="hasPermission(LfPermission.mergeOrganizations)"
   >
     <button
       class="h-10 el-dropdown-menu__item w-full"
       type="button"
-      :disabled="isEditLockedForSampleData || !hasPermissionsToMerge"
+      :disabled="!hasPermission(LfPermission.mergeOrganizations)"
       @click="
         handleCommand({
           action: Actions.MERGE_ORGANIZATION,
@@ -109,7 +104,6 @@
         v-if="!organization.isTeamOrganization"
         class="h-10 el-dropdown-menu__item w-full"
         type="button"
-        :disabled="isEditLockedForSampleData"
         @click="
           handleCommand({
             action: Actions.MARK_ORGANIZATION_AS_TEAM_ORGANIZATION,
@@ -128,7 +122,6 @@
     v-if="organization.isTeamOrganization"
     type="button"
     class="h-10 el-dropdown-menu__item w-full"
-    :disabled="isEditLockedForSampleData"
     @click="
       handleCommand({
         action: Actions.MARK_ORGANIZATION_AS_TEAM_ORGANIZATION,
@@ -145,7 +138,6 @@
   <!-- Delete -->
   <button
     class="h-10 el-dropdown-menu__item w-full"
-    :disabled="isDeleteLockedForSampleData"
     type="button"
     @click="
       handleCommand({
@@ -155,15 +147,9 @@
     "
   >
     <i
-      class="ri-delete-bin-line text-base mr-2"
-      :class="{
-        'text-red-500': !isDeleteLockedForSampleData,
-      }"
+      class="ri-delete-bin-line text-base mr-2 text-red-500"
     /><span
-      class="text-xs"
-      :class="{
-        'text-red-500': !isDeleteLockedForSampleData,
-      }"
+      class="text-xs text-red-500"
     >Delete organization</span>
   </button>
 </template>
@@ -180,10 +166,9 @@ import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { HubspotEntity } from '@/integrations/hubspot/types/HubspotEntity';
 import { HubspotApiService } from '@/integrations/hubspot/hubspot.api.service';
 import { useStore } from 'vuex';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { storeToRefs } from 'pinia';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import { OrganizationService } from '../organization-service';
-import { OrganizationPermissions } from '../organization-permissions';
 import { Organization } from '../types/Organization';
 
 enum Actions {
@@ -208,24 +193,9 @@ defineProps<{
 
 const store = useStore();
 
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
-
 const organizationStore = useOrganizationStore();
 
-const isEditLockedForSampleData = computed(
-  () => new OrganizationPermissions(tenant.value, user.value)
-    .editLockedForSampleData,
-);
-const isDeleteLockedForSampleData = computed(
-  () => new OrganizationPermissions(tenant.value, user.value)
-    .destroyLockedForSampleData,
-);
-
-const hasPermissionsToMerge = computed(() => new OrganizationPermissions(
-  tenant.value,
-  user.value,
-)?.mergeOrganizations);
+const { hasPermission } = usePermissions();
 
 const isSyncingWithHubspot = (organization: Organization) => organization.attributes?.syncRemote?.hubspot || false;
 

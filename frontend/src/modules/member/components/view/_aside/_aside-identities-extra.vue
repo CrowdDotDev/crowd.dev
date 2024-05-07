@@ -8,7 +8,6 @@
       </div>
       <el-button
         class="btn btn-link btn-link--linux"
-        :disabled="isEditLockedForSampleData"
         @click="emit('edit')"
       >
         <i class="ri-pencil-line text-lg" />
@@ -71,9 +70,6 @@
 import {
   computed, ref,
 } from 'vue';
-import { MemberPermissions } from '@/modules/member/member-permissions';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { storeToRefs } from 'pinia';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 
 const emit = defineEmits(['edit']);
@@ -83,9 +79,6 @@ const props = defineProps<{
     link: string;
   }[],
 }>();
-
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
 
 const displayMore = ref(false);
 const emailRef = ref<Element[]>([]);
@@ -128,9 +121,4 @@ const getPlatformLabel = (platforms: string[]) => platforms
     }
     return CrowdIntegrations.getConfig(platform)?.name || platform;
   }).join(', ');
-
-const isEditLockedForSampleData = computed(() => new MemberPermissions(
-  tenant.value,
-  user.value,
-).editLockedForSampleData);
 </script>

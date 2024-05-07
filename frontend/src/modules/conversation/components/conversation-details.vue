@@ -88,7 +88,6 @@
         <button
           class="btn btn-link btn-link--primary w-8 !h-8 flex-shrink-0"
           type="button"
-          :disabled="isEditLockedForSampleData"
           @click.stop="$emit('edit-title')"
         >
           <i class="ri-lg ri-pencil-line" />
@@ -171,7 +170,6 @@ import config from '@/config';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { ConversationPermissions } from '../conversation-permissions';
 
 export default {
   name: 'AppConversationDetails',
@@ -236,12 +234,6 @@ export default {
       return this.editing
         ? this.conversation.activities
         : this.conversation.activities.slice(1);
-    },
-    isEditLockedForSampleData() {
-      return new ConversationPermissions(
-        this.tenant,
-        this.user,
-      ).editLockedForSampleData;
     },
     conversationTypes() {
       const [, ...activities] = this.conversation.activities;

@@ -2,19 +2,19 @@
   <div>
     <el-button-group class="ml-4">
       <!-- Edit contributor -->
-      <el-button class="btn btn--bordered btn--sm !h-8" :disabled="isEditLockedForSampleData" @click="edit()">
+      <el-button class="btn btn--bordered btn--sm !h-8" @click="edit()">
         <span class="ri-pencil-line text-base mr-2" />Edit contributor
       </el-button>
       <el-tooltip
         v-if="mergeSuggestionsCount > 0"
         content="Coming soon"
         placement="top"
-        :disabled="hasPermissionsToMerge"
+        :disabled="hasPermission(LfPermission.mergeMembers)"
       >
         <span>
           <el-button
             class="btn btn--bordered btn--sm !h-8 !-ml-px !-mr-0.5 !bg-brand-25 !rounded-l-none !rounded-r-none"
-            :disabled="isEditLockedForSampleData || !hasPermissionsToMerge"
+            :disabled="!hasPermission(LfPermission.mergeMembers)"
             @click="mergeSuggestions()"
           >
             <span class="mr-2 h-5 px-1.5 rounded-md bg-brand-100 text-brand-500 leading-5">{{ mergeSuggestionsCount }}</span>Merge suggestion
@@ -26,12 +26,12 @@
         v-else
         content="Coming soon"
         placement="top"
-        :disabled="hasPermissionsToMerge"
+        :disabled="hasPermission(LfPermission.mergeMembers)"
       >
         <span>
           <el-button
             class="btn btn--bordered btn--sm !h-8 !-ml-px !-mr-0.5 !rounded-l-none !rounded-r-none"
-            :disabled="isEditLockedForSampleData || !hasPermissionsToMerge"
+            :disabled="!hasPermission(LfPermission.mergeMembers)"
             @click="merge()"
           >
             <span class="ri-shuffle-line text-base mr-2" />Merge
@@ -75,17 +75,17 @@
 <script setup>
 import AppMemberDropdown from '@/modules/member/components/member-dropdown.vue';
 import {
-  computed, onMounted, ref, watch,
+  onMounted, ref, watch,
 } from 'vue';
-import { MemberPermissions } from '@/modules/member/member-permissions';
 import { useRouter } from 'vue-router';
 import AppMemberFindGithubDrawer from '@/modules/member/components/member-find-github-drawer.vue';
 import AppMemberMergeDialog from '@/modules/member/components/member-merge-dialog.vue';
 import { MemberService } from '@/modules/member/member-service';
 import AppMemberMergeSuggestionsDialog from '@/modules/member/components/member-merge-suggestions-dialog.vue';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
 import { useMemberStore } from '@/modules/member/store/pinia';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 
 const props = defineProps({
   member: {
@@ -98,27 +98,16 @@ const emit = defineEmits(['unmerge']);
 
 const router = useRouter();
 
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
-
 const memberStore = useMemberStore();
 const { toMergeMember } = storeToRefs(memberStore);
+
+const { hasPermission } = usePermissions();
 
 const isMergeDialogOpen = ref(null);
 const isMergeSuggestionsDialogOpen = ref(false);
 const isFindGithubDrawerOpen = ref(null);
 const mergeSuggestionsCount = ref(0);
 const memberToMerge = ref(null);
-
-const isEditLockedForSampleData = computed(
-  () => new MemberPermissions(tenant.value, user.value)
-    .editLockedForSampleData,
-);
-
-const hasPermissionsToMerge = computed(() => new MemberPermissions(
-  tenant.value,
-  user.value,
-)?.mergeMembers);
 
 watch(toMergeMember, (updatedValue) => {
   if (updatedValue) {
@@ -143,9 +132,6 @@ const fetchMembersToMergeCount = () => {
 };
 
 const edit = () => {
-  if (isEditLockedForSampleData.value) {
-    return;
-  }
   router.push({
     name: 'memberEdit',
     params: {
@@ -154,16 +140,10 @@ const edit = () => {
   });
 };
 const mergeSuggestions = () => {
-  if (isEditLockedForSampleData.value) {
-    return;
-  }
   isMergeSuggestionsDialogOpen.value = true;
 };
 
 const merge = () => {
-  if (isEditLockedForSampleData.value) {
-    return;
-  }
   isMergeDialogOpen.value = props.member;
 };
 

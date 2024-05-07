@@ -25,7 +25,7 @@
           v-if="selectedOrganizations.length === 2"
           content="Coming soon"
           placement="top"
-          :disabled="hasPermissionsToMerge"
+          :disabled="hasPermission(LfPermission.mergeOrganizations)"
         >
           <span>
             <el-dropdown-item
@@ -33,9 +33,8 @@
                 action: 'mergeOrganizations',
               }"
               :disabled="
-                isPermissionReadOnly
-                  || isEditLockedForSampleData
-                  || !hasPermissionsToMerge
+                !hasPermission(LfPermission.organizationEdit)
+                  || !hasPermission(LfPermission.mergeOrganizations)
               "
             >
               <i
@@ -52,10 +51,7 @@
             action: 'markAsTeamOrganization',
             value: markAsTeamOrganizationOptions.value,
           }"
-          :disabled="
-            isPermissionReadOnly
-              || isEditLockedForSampleData
-          "
+          :disabled="!hasPermission(LfPermission.organizationEdit)"
         >
           <i
             class="ri-lg mr-1"
@@ -68,16 +64,10 @@
 
         <el-dropdown-item
           :command="{ action: 'destroyAll' }"
-          :disabled="
-            isPermissionReadOnly
-              || isDeleteLockedForSampleData
-          "
+          :disabled="!hasPermission(LfPermission.organizationEdit)"
         >
           <div
-            class="flex items-center"
-            :class="{
-              'text-red-500': !isDeleteLockedForSampleData,
-            }"
+            class="flex items-center text-red-500"
           >
             <i class="ri-lg ri-delete-bin-line mr-2" />
             <span>Delete organizations</span>
@@ -100,11 +90,12 @@ import useOrganizationMergeMessage from '@/shared/modules/merge/config/useOrgani
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { getExportMax } from '@/modules/member/member-export-limit';
-import { OrganizationPermissions } from '../../organization-permissions';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import { OrganizationService } from '../../organization-service';
 
 const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
+const { tenant } = storeToRefs(authStore);
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
@@ -116,25 +107,7 @@ const {
 } = storeToRefs(organizationStore);
 const { fetchOrganizations } = organizationStore;
 
-const isPermissionReadOnly = computed(
-  () => new OrganizationPermissions(
-    tenant.value,
-    user.value,
-  ).edit === false,
-);
-
-const isEditLockedForSampleData = computed(
-  () => new OrganizationPermissions(
-    tenant.value,
-    user.value,
-  ).editLockedForSampleData,
-);
-const isDeleteLockedForSampleData = computed(
-  () => new OrganizationPermissions(
-    tenant.value,
-    user.value,
-  ).destroyLockedForSampleData,
-);
+const { hasPermission } = usePermissions();
 
 const markAsTeamOrganizationOptions = computed(() => {
   const isTeamView = filters.value.settings.teamOrganization === 'filter';
@@ -158,11 +131,6 @@ const markAsTeamOrganizationOptions = computed(() => {
     value: true,
   };
 });
-
-const hasPermissionsToMerge = computed(() => new OrganizationPermissions(
-  tenant.value,
-  user.value,
-)?.mergeOrganizations);
 
 const handleDoDestroyAllWithConfirm = () => ConfirmDialog({
   type: 'danger',

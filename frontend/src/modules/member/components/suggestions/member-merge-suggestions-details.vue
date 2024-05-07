@@ -40,7 +40,6 @@
           </div>
           <button
             v-else
-            :disabled="isEditLockedForSampleData"
             type="button"
             class="btn btn--secondary btn--sm leading-5 !px-4 !py-1"
             @click="emit('makePrimary')"
@@ -262,7 +261,7 @@
 
 <script setup>
 import {
-  computed, defineProps, onMounted, ref, defineExpose,
+  onMounted, ref,
 } from 'vue';
 import moment from 'moment';
 import AppMemberOrganizations from '@/modules/member/components/member-organizations.vue';
@@ -270,14 +269,12 @@ import AppAvatar from '@/shared/avatar/avatar.vue';
 import AppCommunityEngagementLevel from '@/modules/member/components/member-engagement-level.vue';
 import AppTags from '@/modules/tag/components/tag-list.vue';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
-import { MemberPermissions } from '@/modules/member/member-permissions';
 import memberOrder from '@/shared/modules/identities/config/identitiesOrder/member';
 import AppIdentitiesVerticalListMembers from '@/shared/modules/identities/components/identities-vertical-list-members.vue';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import AppSvg from '@/shared/svg/svg.vue';
 import { getAttributeSourceName } from '@/shared/helpers/attribute.helpers';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
 
 const props = defineProps({
   member: {
@@ -313,16 +310,8 @@ const props = defineProps({
 
 const emit = defineEmits(['makePrimary', 'bioHeight']);
 
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
-
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
-
-const isEditLockedForSampleData = computed(
-  () => new MemberPermissions(tenant.value, user.value)
-    .editLockedForSampleData,
-);
 
 const bio = ref(null);
 const displayShowMore = ref(null);

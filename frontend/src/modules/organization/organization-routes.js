@@ -1,6 +1,6 @@
 import Layout from '@/modules/layout/components/layout.vue';
-import Permissions from '@/security/permissions';
 import { store } from '@/store';
+import Permissions from '@/security/permissions';
 
 const OrganizationListPage = () => import(
   '@/modules/organization/pages/organization-list-page.vue'

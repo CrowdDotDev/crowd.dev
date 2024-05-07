@@ -53,7 +53,7 @@
           </div>
         </div>
         <el-button
-          :disabled="loading || isEditLockedForSampleData"
+          :disabled="loading"
           class="btn btn--bordered btn--md"
           :loading="sendingIgnore"
           @click="ignoreSuggestion()"
@@ -61,7 +61,7 @@
           Ignore suggestion
         </el-button>
         <el-button
-          :disabled="loading || isEditLockedForSampleData"
+          :disabled="loading"
           class="btn btn--primary btn--md !ml-4"
           :loading="sendingMerge"
           @click="mergeSuggestion()"
@@ -149,10 +149,7 @@ import { merge } from 'lodash';
 import AppMemberMergeSuggestionsDetails
   from '@/modules/member/components/suggestions/member-merge-suggestions-details.vue';
 import useOrganizationMergeMessage from '@/shared/modules/merge/config/useOrganizationMergeMessage';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { storeToRefs } from 'pinia';
 import { OrganizationService } from '../organization-service';
-import { OrganizationPermissions } from '../organization-permissions';
 
 const props = defineProps({
   query: {
@@ -161,9 +158,6 @@ const props = defineProps({
     default: () => ({}),
   },
 });
-
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
 
 const organizationStore = useOrganizationStore();
 
@@ -177,11 +171,6 @@ const sendingIgnore = ref(false);
 const sendingMerge = ref(false);
 
 const bioHeight = ref(0);
-
-const isEditLockedForSampleData = computed(
-  () => new OrganizationPermissions(tenant.value, user.value)
-    .editLockedForSampleData,
-);
 
 const clearOrganization = (organization) => {
   const cleanedOrganization = { ...organization };

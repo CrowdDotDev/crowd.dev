@@ -1,5 +1,5 @@
-import { hasAccessToProjectGroup, hasAccessToSegmentId } from '@/utils/segments';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 
 /**
  * Segment Guard
@@ -19,6 +19,8 @@ export default async function ({ to, store, router }) {
   }
 
   const lsSegmentsStore = useLfSegmentsStore();
+
+  const { hasAccessToProjectGroup, hasAccessToSegmentId } = usePermissions();
   const isCheckingProjectGroup = to.meta.paramSegmentAccess.name === 'grandparent';
   let hasPermission;
 

@@ -1,7 +1,7 @@
 <template>
   <app-page-wrapper>
     <router-link
-      v-if="hasPermissionToEditProjectGroups"
+      v-if="hasPermission(LfPermission.projectGroupEdit)"
       class="text-gray-600 btn-link--md btn-link--secondary p-0 inline-flex items-center pb-6"
       :to="{
         name: 'adminPanel',
@@ -22,7 +22,7 @@
         Manage projects
       </h4>
       <el-button
-        v-if="pagination.total && hasPermissionToCreate && hasAccessToSegmentId(route.params.id)"
+        v-if="pagination.total && hasPermission(LfPermission.projectCreate) && hasAccessToSegmentId(route.params.id)"
         class="btn btn--md btn--primary"
         @click="onAddProject"
       >
@@ -49,9 +49,9 @@
         class="mt-20"
         icon="ri-stack-line"
         title="No projects yet"
-        :description="`${!(hasPermissionToCreate && hasAccessToSegmentId(route.params.id))
+        :description="`${!(hasPermission(LfPermission.projectCreate) && hasAccessToSegmentId(route.params.id))
           ? 'Ask an administrator to a' : 'A'}dd your first project and start collecting data from your community`"
-        :cta-btn="hasPermissionToCreate && hasAccessToSegmentId(route.params.id) ? 'Add project' : null"
+        :cta-btn="hasPermission(LfPermission.projectCreate) && hasAccessToSegmentId(route.params.id) ? 'Add project' : null"
         @cta-click="onAddProject"
       />
 
@@ -132,10 +132,9 @@ import AppLfSubProjectForm from '@/modules/lf/segments/components/form/lf-sub-pr
 import AppLfProjectsTable from '@/modules/lf/segments/components/view/lf-projects-table.vue';
 import AppLfSearchInput from '@/modules/lf/segments/components/view/lf-search-input.vue';
 import { storeToRefs } from 'pinia';
-import { LfPermissions } from '@/modules/lf/lf-permissions';
-import { hasAccessToSegmentId } from '@/utils/segments';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
 import AppIntegrationProgressWrapper from '@/modules/integration/components/integration-progress-wrapper.vue';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 
 const route = useRoute();
 const lsSegmentsStore = useLfSegmentsStore();
@@ -143,6 +142,8 @@ const { projects } = storeToRefs(lsSegmentsStore);
 const {
   findProjectGroup, searchProject, listProjects, updateProjectsPageSize, doChangeProjectCurrentPage,
 } = lsSegmentsStore;
+
+const { hasPermission, hasAccessToSegmentId } = usePermissions();
 
 const loadingProjectGroup = ref(true);
 const projectGroupForm = reactive({
@@ -159,23 +160,10 @@ const subProjectForm = reactive({
 const isProjectFormDrawerOpen = ref(false);
 const isSubProjectFormDrawerOpen = ref(false);
 
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
-
 const loading = computed(() => projects.value.loading || loadingProjectGroup.value);
 const pagination = computed(() => projects.value.pagination);
 
-const hasPermissionToCreate = computed(() => new LfPermissions(
-  tenant.value,
-  user.value,
-)?.createProject);
-
 const segmentIds = computed(() => projects.value.list.map((p) => p.subprojects.map((sp) => sp.id)).flat() || []);
-
-const hasPermissionToEditProjectGroups = computed(() => new LfPermissions(
-  tenant.value,
-  user.value,
-)?.editProjectGroup);
 
 onMounted(() => {
   findProjectGroup(route.params.id)

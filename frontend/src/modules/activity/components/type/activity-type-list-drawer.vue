@@ -47,6 +47,7 @@
             </div>
           </div>
           <p
+            v-if="hasPermission(LfPermission.activityEdit)"
             class="text-sm leading-5 font-medium text-brand-500 cursor-pointer"
             @click="isFormModalOpen = true"
           >
@@ -124,6 +125,8 @@ import {
 } from '@/shared/vuex/vuex.helpers';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 
 // Props & emits
 const props = defineProps({
@@ -138,6 +141,7 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['update:modelValue']);
+const { hasPermission } = usePermissions();
 
 // Store
 const store = useStore();

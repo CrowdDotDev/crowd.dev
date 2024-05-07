@@ -1,5 +1,6 @@
 <template>
   <el-dropdown
+    v-if="hasPermission(LfPermission.conversationEdit)"
     trigger="click"
     placement="bottom-end"
     @command="$event()"
@@ -14,17 +15,11 @@
     <template #dropdown>
       <el-dropdown-item
         :command="onDeleteConversation"
-        :disabled="isDeleteLockedForSampleData"
       >
         <i
-          class="ri-delete-bin-line mr-1"
-          :class="{
-            'text-red-500': !isDeleteLockedForSampleData,
-          }"
+          class="ri-delete-bin-line mr-1 text-red-500"
         /><span
-          :class="{
-            'text-red-500': !isDeleteLockedForSampleData,
-          }"
+          class="text-red-500"
         >Delete conversation</span>
       </el-dropdown-item>
     </template>
@@ -33,12 +28,10 @@
 
 <script setup lang="ts">
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
-import { computed } from 'vue';
 import Message from '@/shared/message/message';
 import { i18n } from '@/i18n';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { storeToRefs } from 'pinia';
-import { ConversationPermissions } from '../conversation-permissions';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import { ConversationService } from '../conversation-service';
 
 const emit = defineEmits<{(e: 'conversation-destroyed'): void}>();
@@ -48,13 +41,7 @@ const props = defineProps<{
   },
 }>();
 
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
-
-const isDeleteLockedForSampleData = computed(() => new ConversationPermissions(
-  tenant.value,
-  user.value,
-).destroyLockedForSampleData);
+const { hasPermission } = usePermissions();
 
 const onDeleteConversation = async () => {
   try {

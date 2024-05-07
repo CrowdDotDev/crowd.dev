@@ -16,7 +16,6 @@
       <template #dropdown>
         <el-dropdown-item
           command="noteEdit"
-          :disabled="isEditLockedForSampleData"
         >
           <i class="ri-pencil-line text-gray-400 mr-1" />
           <span>Edit note</span>
@@ -24,7 +23,6 @@
         <el-dropdown-item
           command="noteDelete"
           divided="divided"
-          :disabled="isDeleteLockedForSampleData"
         >
           <i class="ri-delete-bin-line text-red-500 mr-1" />
           <span class="text-red-500">Delete note</span>
@@ -37,16 +35,10 @@
 <script setup>
 import {
   ref,
-  defineEmits,
-  defineProps,
-  computed,
 } from 'vue';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { NoteService } from '@/modules/notes/note-service';
 import Message from '@/shared/message/message';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { storeToRefs } from 'pinia';
-import { NotePermissions } from '../note-permissions';
 
 const emit = defineEmits(['edit', 'reload']);
 
@@ -58,18 +50,6 @@ const props = defineProps({
 });
 
 const dropdownVisible = ref(false);
-
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
-
-const isEditLockedForSampleData = computed(() => new NotePermissions(
-  tenant.value,
-  user.value,
-).editLockedForSampleData);
-const isDeleteLockedForSampleData = computed(() => new NotePermissions(
-  tenant.value,
-  user.value,
-).destroyLockedForSampleData);
 
 const doDestroyWithConfirm = () => {
   ConfirmDialog({

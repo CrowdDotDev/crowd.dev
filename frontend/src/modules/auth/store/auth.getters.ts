@@ -9,4 +9,10 @@ export default {
     return (state.user?.tenants || []).find((t) => t.tenantId === tenantId);
   },
   roles: (state: AuthState): LfRole[] => state.tenantUser.roles || [LfRole.readonly],
+  isEmailVerified: (state: AuthState): boolean => {
+    if (!state.user || !state.user.id) {
+      return false;
+    }
+    return state.user.emailVerified;
+  },
 };
