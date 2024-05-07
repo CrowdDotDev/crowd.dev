@@ -28,8 +28,12 @@ export async function mergeMembers(
     }
   } catch (error) {
     console.error('Error during member merge:', error.message)
-    throw new Error(
-      `Failed to merge member ${primaryMemberId} with ${secondaryMemberId}! Error: ${error.message}`,
-    )
+    if (error.status === 404) {
+      console.log('Failed finding member while merging. Skipping!')
+    } else {
+      throw new Error(
+        `Failed to merge member ${primaryMemberId} with ${secondaryMemberId}! Error: ${error.message}`,
+      )
+    }
   }
 }
