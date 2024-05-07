@@ -27,6 +27,7 @@ export async function mergeMembers(
       throw new Error(`Failed to merge member ${primaryMemberId} with ${secondaryMemberId}!`)
     }
   } catch (error) {
+    console.log(error)
     console.error('Error during member merge:', error.message)
     if (error.status === 404) {
       console.log('Failed finding member while merging. Skipping!')
