@@ -84,7 +84,7 @@ export default {
       ];
     },
     url() {
-      return this.entity.avatar ?? this.entity.attributes?.avatarUrl?.default ?? null;
+      return this.entity.avatar ?? this.entity.attributes?.avatarUrl?.default ?? this.entity.avatarUrl ?? null;
     },
     computedStyle() {
       return {
