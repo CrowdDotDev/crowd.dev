@@ -2,6 +2,7 @@ import { Config } from '@crowd/archetype-standard'
 import { ServiceWorker, Options } from '@crowd/archetype-worker'
 
 import { scheduleGenerateMemberMergeSuggestions } from './schedules/memberMergeSuggestions'
+import { scheduleGenerateOrganizationMergeSuggestions } from './schedules/organizationMergeSuggestions'
 
 const config: Config = {
   envvars: [],
@@ -31,6 +32,7 @@ setImmediate(async () => {
   await svc.init()
 
   await scheduleGenerateMemberMergeSuggestions()
+  await scheduleGenerateOrganizationMergeSuggestions()
 
   await svc.start()
 })
