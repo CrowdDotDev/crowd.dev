@@ -72,7 +72,7 @@ function models(queryTimeoutMilliseconds: number, databaseHostnameOverride = nul
         application_name: SERVICE,
         connectionTimeoutMillis: 15000,
         query_timeout: queryTimeoutMilliseconds,
-        idle_in_transaction_session_timeout: 10000,
+        idle_in_transaction_session_timeout: 20000,
       },
       port: DB_CONFIG.port,
       replication: {
