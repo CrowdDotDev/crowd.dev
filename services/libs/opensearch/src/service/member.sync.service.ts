@@ -422,6 +422,7 @@ export class MemberSyncService {
 
           // check if there are remaining syncStreams to process
           if (syncStream.length > 0) {
+            console.log(`Last bit processing! ${syncStream.length} sync streams!`)
             await this.openSearchService.bulkIndex(OpenSearchIndex.MEMBERS, syncStream)
             documentsIndexed += syncStream.length
           }
