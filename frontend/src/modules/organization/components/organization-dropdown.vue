@@ -1,6 +1,6 @@
 <template>
   <el-dropdown
-    v-if="hasPermission(LfPermission.organizationEdit) && organization"
+    v-if="organization"
     ref="dropdown"
     trigger="click"
     placement="bottom-end"
@@ -29,8 +29,6 @@
 
 <script setup>
 import { ref } from 'vue';
-import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
-import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import AppOrganizationDropdownContent from './organization-dropdown-content.vue';
 
 defineProps({
@@ -53,8 +51,6 @@ const emit = defineEmits([
   'unmerge',
   'closeDropdown',
 ]);
-
-const { hasPermission } = usePermissions();
 
 const dropdown = ref();
 

@@ -108,4 +108,8 @@ export enum LfPermission {
   projectEdit = 'projectEdit',
   subProjectCreate = 'subProjectCreate',
   subProjectEdit = 'subProjectEdit',
+
+  // Custom views
+  customViewsCreate = 'customViewsCreate',
+  customViewsTenantManage = 'customViewsTenantManage',
 }

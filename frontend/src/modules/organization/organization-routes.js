@@ -1,6 +1,7 @@
 import Layout from '@/modules/layout/components/layout.vue';
 import { store } from '@/store';
-import Permissions from '@/security/permissions';
+import { PermissionGuard } from '@/shared/modules/permissions/router/PermissionGuard';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 
 const OrganizationListPage = () => import(
   '@/modules/organization/pages/organization-list-page.vue'
@@ -37,11 +38,13 @@ export default [
         component: OrganizationsMainPage,
         meta: {
           auth: true,
-          permission: Permissions.values.organizationRead,
         },
         props: {
           module: 'organizations',
         },
+        beforeEnter: [
+          PermissionGuard(LfPermission.organizationRead),
+        ],
       },
       {
         name: 'organizationCreate',
@@ -49,8 +52,10 @@ export default [
         component: OrganizationFormPage,
         meta: {
           auth: true,
-          permission: Permissions.values.organizationCreate,
         },
+        beforeEnter: [
+          PermissionGuard(LfPermission.organizationCreate),
+        ],
       },
       {
         name: 'organizationEdit',
@@ -58,9 +63,11 @@ export default [
         component: OrganizationFormPage,
         meta: {
           auth: true,
-          permission: Permissions.values.organizationEdit,
         },
         props: true,
+        beforeEnter: [
+          PermissionGuard(LfPermission.organizationEdit),
+        ],
       },
       {
         name: 'organizationView',
@@ -69,9 +76,11 @@ export default [
         meta: {
           title: 'Organization',
           auth: true,
-          permission: Permissions.values.organizationRead,
         },
         props: true,
+        beforeEnter: [
+          PermissionGuard(LfPermission.organizationRead),
+        ],
       },
       {
         name: 'organizationMergeSuggestions',
@@ -79,9 +88,11 @@ export default [
         component: OrganizationMergeSuggestionsPage,
         meta: {
           auth: true,
-          permission: Permissions.values.mergeOrganizations,
         },
         props: true,
+        beforeEnter: [
+          PermissionGuard(LfPermission.mergeOrganizations),
+        ],
       },
     ],
   },

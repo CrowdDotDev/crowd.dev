@@ -56,7 +56,7 @@ export default class Message {
         message: options.title ? message : null,
         customClass: 'error',
         icon: errorIcon,
-        duration: 0,
+        duration: 6000,
         dangerouslyUseHTMLString: true,
         position: 'bottom-right',
         offset: 24,

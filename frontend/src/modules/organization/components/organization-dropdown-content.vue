@@ -1,6 +1,6 @@
 <template>
   <!-- Unmerge -->
-  <template v-if="organization.identities.length > 1 && !hideUnmerge">
+  <template v-if="organization.identities.length > 1 && !hideUnmerge && hasPermission(LfPermission.organizationEdit)">
     <button
       class="h-10 el-dropdown-menu__item w-full"
       type="button"
@@ -16,7 +16,7 @@
 
   <!-- Edit -->
   <router-link
-    v-if="!hideEdit"
+    v-if="!hideEdit && hasPermission(LfPermission.organizationEdit)"
     :to="{
       name: 'organizationEdit',
       params: {
@@ -36,26 +36,20 @@
   </router-link>
 
   <!-- Merge organization -->
-  <el-tooltip
-    v-if="!hideMerge"
-    content="Coming soon"
-    placement="top"
-    :disabled="hasPermission(LfPermission.mergeOrganizations)"
+  <button
+    v-if="!hideMerge && hasPermission(LfPermission.organizationEdit)"
+    class="h-10 el-dropdown-menu__item w-full"
+    type="button"
+    :disabled="!hasPermission(LfPermission.mergeOrganizations)"
+    @click="
+      handleCommand({
+        action: Actions.MERGE_ORGANIZATION,
+        organization,
+      })
+    "
   >
-    <button
-      class="h-10 el-dropdown-menu__item w-full"
-      type="button"
-      :disabled="!hasPermission(LfPermission.mergeOrganizations)"
-      @click="
-        handleCommand({
-          action: Actions.MERGE_ORGANIZATION,
-          organization,
-        })
-      "
-    >
-      <i class="ri-shuffle-line text-base mr-2" /><span class="text-xs">Merge organization</span>
-    </button>
-  </el-tooltip>
+    <i class="ri-shuffle-line text-base mr-2" /><span class="text-xs">Merge organization</span>
+  </button>
 
   <!-- Hubspot -->
   <button
@@ -94,69 +88,73 @@
   </button>
 
   <!-- Mark as Team Organization -->
-  <el-tooltip
-    placement="top"
-    content="Mark as team organization if it is your own organization."
-    popper-class="max-w-[260px]"
-  >
-    <span>
-      <button
-        v-if="!organization.isTeamOrganization"
-        class="h-10 el-dropdown-menu__item w-full"
-        type="button"
-        @click="
-          handleCommand({
-            action: Actions.MARK_ORGANIZATION_AS_TEAM_ORGANIZATION,
-            organization,
-            value: true,
-          })
-        "
-      >
-        <i class="ri-bookmark-line text-base mr-2" /><span class="text-xs">Mark as team organization</span>
-      </button>
-    </span>
-  </el-tooltip>
+  <template v-if="hasPermission(LfPermission.organizationEdit)">
+    <el-tooltip
+      placement="top"
+      content="Mark as team organization if it is your own organization."
+      popper-class="max-w-[260px]"
+    >
+      <span>
+        <button
+          v-if="!organization.isTeamOrganization"
+          class="h-10 el-dropdown-menu__item w-full"
+          type="button"
+          @click="
+            handleCommand({
+              action: Actions.MARK_ORGANIZATION_AS_TEAM_ORGANIZATION,
+              organization,
+              value: true,
+            })
+          "
+        >
+          <i class="ri-bookmark-line text-base mr-2" /><span class="text-xs">Mark as team organization</span>
+        </button>
+      </span>
+    </el-tooltip>
 
-  <!-- Unmark as Team Organization -->
-  <button
-    v-if="organization.isTeamOrganization"
-    type="button"
-    class="h-10 el-dropdown-menu__item w-full"
-    @click="
-      handleCommand({
-        action: Actions.MARK_ORGANIZATION_AS_TEAM_ORGANIZATION,
-        organization,
-        value: false,
-      })
-    "
-  >
-    <i class="ri-bookmark-2-line text-base mr-2" /><span class="text-xs">Unmark as team organization</span>
-  </button>
+    <!-- Unmark as Team Organization -->
+    <button
+      v-if="organization.isTeamOrganization"
+      type="button"
+      class="h-10 el-dropdown-menu__item w-full"
+      @click="
+        handleCommand({
+          action: Actions.MARK_ORGANIZATION_AS_TEAM_ORGANIZATION,
+          organization,
+          value: false,
+        })
+      "
+    >
+      <i class="ri-bookmark-2-line text-base mr-2" /><span class="text-xs">Unmark as team organization</span>
+    </button>
+  </template>
 
-  <el-divider class="border-gray-200 my-2" />
+  <template v-if="hasPermission(LfPermission.organizationDestroy)">
+    <el-divider class="border-gray-200 my-2" />
 
-  <!-- Delete -->
-  <button
-    class="h-10 el-dropdown-menu__item w-full"
-    type="button"
-    @click="
-      handleCommand({
-        action: Actions.DELETE_ORGANIZATION,
-        organization,
-      })
-    "
-  >
-    <i
-      class="ri-delete-bin-line text-base mr-2 text-red-500"
-    /><span
-      class="text-xs text-red-500"
-    >Delete organization</span>
-  </button>
+    <!-- Delete -->
+    <button
+      class="h-10 el-dropdown-menu__item w-full"
+      type="button"
+      @click="
+        handleCommand({
+          action: Actions.DELETE_ORGANIZATION,
+          organization,
+        })
+      "
+    >
+      <i
+        class="ri-delete-bin-line text-base mr-2 text-red-500"
+      /><span
+        class="text-xs text-red-500"
+      >Delete organization</span>
+    </button>
+  </template>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import Message from '@/shared/message/message';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';

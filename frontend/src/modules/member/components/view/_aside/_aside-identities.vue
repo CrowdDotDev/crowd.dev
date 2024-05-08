@@ -16,6 +16,7 @@
         </el-tooltip>
       </div>
       <el-button
+        v-if="hasPermission(LfPermission.memberEdit)"
         class="btn btn-link btn-link--linux"
         @click="emit('edit')"
       >
@@ -41,9 +42,12 @@
 </template>
 
 <script setup lang="ts">
-import AppIdentitiesVerticalListMembers from '@/shared/modules/identities/components/identities-vertical-list-members.vue';
+import AppIdentitiesVerticalListMembers
+  from '@/shared/modules/identities/components/identities-vertical-list-members.vue';
 import memberOrder from '@/shared/modules/identities/config/identitiesOrder/member';
 import { Member } from '@/modules/member/types/Member';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import AppAsideIdentitiesExtra from './_aside-identities-extra.vue';
 
 defineProps<{
@@ -51,4 +55,6 @@ defineProps<{
 }>();
 
 const emit = defineEmits(['edit', 'editEmail']);
+
+const { hasPermission } = usePermissions();
 </script>

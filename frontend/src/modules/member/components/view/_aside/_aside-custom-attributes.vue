@@ -16,6 +16,7 @@
       </div>
 
       <el-button
+        v-if="hasPermission(LfPermission.memberEdit)"
         class="btn btn-link btn-link--linux"
         @click="attributesDrawer = true"
       >
@@ -147,6 +148,8 @@ import CrEnrichmentSneakPeak from '@/shared/modules/enrichment/components/enrich
 import CrEnrichmentSneakPeakContent from '@/shared/modules/enrichment/components/enrichment-sneak-peak-content.vue';
 import Plans from '@/security/plans';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import AppMemberManageAttributesDrawer from '../../member-manage-attributes-drawer.vue';
 import AppMemberCustomAttributesArrayRenderer from './_aside-custom-attributes-array-renderer.vue';
 
@@ -164,6 +167,8 @@ const attributesDrawer = ref(false);
 
 const authStore = useAuthStore();
 const { tenant } = storeToRefs(authStore);
+
+const { hasPermission } = usePermissions();
 
 const isEnrichmentEnabled = computed(() => tenant.value.plan !== Plans.values.essential);
 

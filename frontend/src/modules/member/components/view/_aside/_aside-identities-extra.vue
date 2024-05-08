@@ -7,6 +7,7 @@
         Email(s)
       </div>
       <el-button
+        v-if="hasPermission(LfPermission.memberEdit)"
         class="btn btn-link btn-link--linux"
         @click="emit('edit')"
       >
@@ -71,6 +72,8 @@ import {
   computed, ref,
 } from 'vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 
 const emit = defineEmits(['edit']);
 const props = defineProps<{
@@ -79,6 +82,8 @@ const props = defineProps<{
     link: string;
   }[],
 }>();
+
+const { hasPermission } = usePermissions();
 
 const displayMore = ref(false);
 const emailRef = ref<Element[]>([]);

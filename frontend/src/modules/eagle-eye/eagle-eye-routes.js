@@ -1,6 +1,7 @@
 import Layout from '@/modules/layout/components/layout.vue';
 import { store } from '@/store';
-import Permissions from '@/security/permissions';
+import { PermissionGuard } from '@/shared/modules/permissions/router/PermissionGuard';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 
 const EagleEyePage = () => import(
   '@/modules/eagle-eye/pages/eagle-eye-page-wrapper.vue'
@@ -23,22 +24,24 @@ export default [
         exact: true,
         meta: {
           auth: true,
-          permission: Permissions.values.eagleEyeRead,
         },
-        beforeEnter: async (to, _from, next) => {
-          if (
-            to.query.activeTab !== undefined
-            && store.getters['eagleEye/activeView'].id
+        beforeEnter: [
+          PermissionGuard(LfPermission.memberEdit),
+          async (to, _from, next) => {
+            if (
+              to.query.activeTab !== undefined
+              && store.getters['eagleEye/activeView'].id
               !== to.query.activeTab
-          ) {
-            store.dispatch(
-              'eagleEye/doChangeActiveView',
-              to.query.activeTab,
-            );
-          }
+            ) {
+              store.dispatch(
+                'eagleEye/doChangeActiveView',
+                to.query.activeTab,
+              );
+            }
 
-          return next();
-        },
+            return next();
+          },
+        ],
       },
     ],
   },

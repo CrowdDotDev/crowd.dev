@@ -1,5 +1,5 @@
 <template>
-  <template v-if="identities.length > 1 && !props.hideUnmerge">
+  <template v-if="identities.length > 1 && !props.hideUnmerge && hasPermission(LfPermission.memberEdit)">
     <button
       class="h-10 el-dropdown-menu__item w-full"
       type="button"
@@ -14,7 +14,7 @@
   </template>
 
   <router-link
-    v-if="!props.hideEdit"
+    v-if="!props.hideEdit && hasPermission(LfPermission.memberEdit)"
     :to="{
       name: 'memberEdit',
       params: {
@@ -47,26 +47,20 @@
     <span class="ml-2 text-xs"> Find GitHub </span>
   </button>
 
-  <el-tooltip
-    v-if="!props.hideMerge"
-    content="Coming soon"
-    placement="top"
-    :disabled="hasPermission(LfPermission.mergeMembers)"
+  <button
+    v-if="!props.hideMerge && hasPermission(LfPermission.mergeMembers)"
+    class="h-10 el-dropdown-menu__item w-full"
+    :disabled="!hasPermission(LfPermission.mergeMembers)"
+    type="button"
+    @click="
+      handleCommand({
+        action: Actions.MERGE_CONTACT,
+        member,
+      })
+    "
   >
-    <button
-      class="h-10 el-dropdown-menu__item w-full"
-      :disabled="!hasPermission(LfPermission.mergeMembers)"
-      type="button"
-      @click="
-        handleCommand({
-          action: Actions.MERGE_CONTACT,
-          member,
-        })
-      "
-    >
-      <i class="ri-group-line text-base mr-2" /><span class="text-xs">Merge contributor</span>
-    </button>
-  </el-tooltip>
+    <i class="ri-group-line text-base mr-2" /><span class="text-xs">Merge contributor</span>
+  </button>
 
   <!-- Hubspot -->
   <button
@@ -102,85 +96,89 @@
     >Stop sync with HubSpot</span>
   </button>
 
-  <el-tooltip
-    placement="top"
-    content="Mark as team contact if they belong to your own organization"
-    popper-class="max-w-[260px]"
-  >
-    <span>
-      <button
-        v-if="!member.attributes?.isTeamMember?.default"
-        class="h-10 el-dropdown-menu__item w-full"
-        type="button"
-        @click="
-          handleCommand({
-            action: Actions.MARK_CONTACT_AS_TEAM_CONTACT,
-            member,
-            value: true,
-          })
-        "
-      >
-        <i class="ri-bookmark-line text-base mr-2" /><span class="text-xs">Mark as team contributor</span>
-      </button>
-    </span>
-  </el-tooltip>
-  <button
-    v-if="member.attributes?.isTeamMember?.default"
-    class="h-10 el-dropdown-menu__item w-full"
-    type="button"
-    @click="
-      handleCommand({
-        action: Actions.MARK_CONTACT_AS_TEAM_CONTACT,
-        member,
-        value: false,
-      })
-    "
-  >
-    <i class="ri-bookmark-2-line text-base mr-2" /><span class="text-xs">Unmark as team contributor</span>
-  </button>
-  <button
-    v-if="!member.attributes.isBot?.default"
-    class="h-10 el-dropdown-menu__item w-full"
-    type="button"
-    @click="
-      handleCommand({
-        action: Actions.MARK_CONTACT_AS_BOT,
-        member,
-      })
-    "
-  >
-    <i class="ri-robot-line text-base mr-2" /><span class="text-xs">Mark as bot</span>
-  </button>
-  <button
-    v-if="member.attributes.isBot?.default"
-    class="h-10 el-dropdown-menu__item w-full"
-    type="button"
-    @click="
-      handleCommand({
-        action: Actions.UNMARK_CONTACT_AS_BOT,
-        member,
-      })
-    "
-  >
-    <i class="ri-robot-line text-base mr-2" /><span class="text-xs">Unmark as bot</span>
-  </button>
-  <el-divider class="border-gray-200" />
-  <button
-    class="h-10 el-dropdown-menu__item w-full"
-    type="button"
-    @click="
-      handleCommand({
-        action: Actions.DELETE_CONTACT,
-        member,
-      })
-    "
-  >
-    <i
-      class="ri-delete-bin-line text-base mr-2 text-red-500"
-    /><span
-      class="text-xs text-red-500"
-    >Delete contributor</span>
-  </button>
+  <template v-if="hasPermission(LfPermission.memberEdit)">
+    <el-tooltip
+      placement="top"
+      content="Mark as team contact if they belong to your own organization"
+      popper-class="max-w-[260px]"
+    >
+      <span>
+        <button
+          v-if="!member.attributes?.isTeamMember?.default"
+          class="h-10 el-dropdown-menu__item w-full"
+          type="button"
+          @click="
+            handleCommand({
+              action: Actions.MARK_CONTACT_AS_TEAM_CONTACT,
+              member,
+              value: true,
+            })
+          "
+        >
+          <i class="ri-bookmark-line text-base mr-2" /><span class="text-xs">Mark as team contributor</span>
+        </button>
+      </span>
+    </el-tooltip>
+    <button
+      v-if="member.attributes?.isTeamMember?.default"
+      class="h-10 el-dropdown-menu__item w-full"
+      type="button"
+      @click="
+        handleCommand({
+          action: Actions.MARK_CONTACT_AS_TEAM_CONTACT,
+          member,
+          value: false,
+        })
+      "
+    >
+      <i class="ri-bookmark-2-line text-base mr-2" /><span class="text-xs">Unmark as team contributor</span>
+    </button>
+    <button
+      v-if="!member.attributes.isBot?.default"
+      class="h-10 el-dropdown-menu__item w-full"
+      type="button"
+      @click="
+        handleCommand({
+          action: Actions.MARK_CONTACT_AS_BOT,
+          member,
+        })
+      "
+    >
+      <i class="ri-robot-line text-base mr-2" /><span class="text-xs">Mark as bot</span>
+    </button>
+    <button
+      v-if="member.attributes.isBot?.default"
+      class="h-10 el-dropdown-menu__item w-full"
+      type="button"
+      @click="
+        handleCommand({
+          action: Actions.UNMARK_CONTACT_AS_BOT,
+          member,
+        })
+      "
+    >
+      <i class="ri-robot-line text-base mr-2" /><span class="text-xs">Unmark as bot</span>
+    </button>
+  </template>
+  <template v-if="hasPermission(LfPermission.memberDestroy)">
+    <el-divider class="border-gray-200" />
+    <button
+      class="h-10 el-dropdown-menu__item w-full"
+      type="button"
+      @click="
+        handleCommand({
+          action: Actions.DELETE_CONTACT,
+          member,
+        })
+      "
+    >
+      <i
+        class="ri-delete-bin-line text-base mr-2 text-red-500"
+      /><span
+        class="text-xs text-red-500"
+      >Delete contributor</span>
+    </button>
+  </template>
 </template>
 
 <script setup lang="ts">
@@ -193,9 +191,7 @@ import { useMemberStore } from '@/modules/member/store/pinia';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { HubspotEntity } from '@/integrations/hubspot/types/HubspotEntity';
 import { HubspotApiService } from '@/integrations/hubspot/hubspot.api.service';
-import {
-  FeatureFlag, FEATURE_FLAGS,
-} from '@/utils/featureFlag';
+import { FEATURE_FLAGS, FeatureFlag } from '@/utils/featureFlag';
 import { useStore } from 'vuex';
 import { useRoute } from 'vue-router';
 import { computed } from 'vue';

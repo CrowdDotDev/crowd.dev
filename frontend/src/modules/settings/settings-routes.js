@@ -1,5 +1,6 @@
 import Layout from '@/modules/layout/components/layout.vue';
-import Permissions from '@/security/permissions';
+import { PermissionGuard } from '@/shared/modules/permissions/router/PermissionGuard';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 
 const SettingsPaywallPage = () => import(
   '@/modules/layout/pages/temporary-paywall-page.vue'
@@ -23,8 +24,10 @@ export default [
         exact: true,
         meta: {
           auth: true,
-          permission: Permissions.values.settingsEdit,
         },
+        beforeEnter: [
+          PermissionGuard(LfPermission.settingsEdit),
+        ],
       },
       {
         name: 'settingsPaywall',

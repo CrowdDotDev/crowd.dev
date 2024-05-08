@@ -6,6 +6,7 @@
       </div>
 
       <el-button
+        v-if="hasPermission(LfPermission.memberEdit)"
         class="btn btn-link btn-link--linux"
         @click="isOrganizationDrawerOpen = true"
       >
@@ -119,6 +120,8 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import AppSvg from '@/shared/svg/svg.vue';
 import AppEntities from '@/shared/modules/entities/Entities.vue';
 import { Organization, OrganizationSource } from '@/modules/organization/types/Organization';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 
 const OrganizationSourceValue = {
   [OrganizationSource.EMAIL_DOMAIN]: 'Email domain',
@@ -131,6 +134,8 @@ const OrganizationSourceValue = {
 defineProps<{
   member: Member
 }>();
+
+const { hasPermission } = usePermissions();
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);

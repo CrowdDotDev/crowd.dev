@@ -2,42 +2,25 @@
   <div>
     <el-button-group class="ml-4">
       <!-- Edit contributor -->
-      <el-button class="btn btn--bordered btn--sm !h-8" @click="edit()">
+      <el-button v-if="hasPermission(LfPermission.memberEdit)" class="btn btn--bordered btn--sm !h-8" @click="edit()">
         <span class="ri-pencil-line text-base mr-2" />Edit contributor
       </el-button>
-      <el-tooltip
-        v-if="mergeSuggestionsCount > 0"
-        content="Coming soon"
-        placement="top"
-        :disabled="hasPermission(LfPermission.mergeMembers)"
+      <el-button
+        v-if="mergeSuggestionsCount > 0 && hasPermission(LfPermission.mergeMembers)"
+        class="btn btn--bordered btn--sm !h-8 !-ml-px !-mr-0.5 !bg-brand-25 !rounded-l-none !rounded-r-none"
+        :disabled="!hasPermission(LfPermission.mergeMembers)"
+        @click="mergeSuggestions()"
       >
-        <span>
-          <el-button
-            class="btn btn--bordered btn--sm !h-8 !-ml-px !-mr-0.5 !bg-brand-25 !rounded-l-none !rounded-r-none"
-            :disabled="!hasPermission(LfPermission.mergeMembers)"
-            @click="mergeSuggestions()"
-          >
-            <span class="mr-2 h-5 px-1.5 rounded-md bg-brand-100 text-brand-500 leading-5">{{ mergeSuggestionsCount }}</span>Merge suggestion
-          </el-button>
-        </span>
-      </el-tooltip>
+        <span class="mr-2 h-5 px-1.5 rounded-md bg-brand-100 text-brand-500 leading-5">{{ mergeSuggestionsCount }}</span>Merge suggestion
+      </el-button>
 
-      <el-tooltip
-        v-else
-        content="Coming soon"
-        placement="top"
-        :disabled="hasPermission(LfPermission.mergeMembers)"
+      <el-button
+        v-else-if="hasPermission(LfPermission.mergeMembers)"
+        class="btn btn--bordered btn--sm !h-8 !-ml-px !-mr-0.5 !rounded-l-none !rounded-r-none"
+        @click="merge()"
       >
-        <span>
-          <el-button
-            class="btn btn--bordered btn--sm !h-8 !-ml-px !-mr-0.5 !rounded-l-none !rounded-r-none"
-            :disabled="!hasPermission(LfPermission.mergeMembers)"
-            @click="merge()"
-          >
-            <span class="ri-shuffle-line text-base mr-2" />Merge
-          </el-button>
-        </span>
-      </el-tooltip>
+        <span class="ri-shuffle-line text-base mr-2" />Merge
+      </el-button>
 
       <app-member-dropdown
         :member="props.member"
@@ -47,7 +30,10 @@
         @find-github="isFindGithubDrawerOpen = member"
       >
         <template #trigger>
-          <el-button class="btn btn--bordered btn--sm !p-2 !h-8 !border-l-2 !border-l-gray-200">
+          <el-button
+            class="btn btn--bordered btn--sm !p-2 !h-8  !border-l-gray-200"
+            :class="{ '!rounded-l-md': !hasPermission(LfPermission.mergeMembers) }"
+          >
             <span class="ri-more-fill text-base" />
           </el-button>
         </template>

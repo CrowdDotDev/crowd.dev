@@ -79,6 +79,8 @@ const readonly: Record<LfPermission, boolean> = {
   [LfPermission.subProjectEdit]: false,
   [LfPermission.mergeMembers]: false,
   [LfPermission.mergeOrganizations]: false,
+  [LfPermission.customViewsCreate]: true,
+  [LfPermission.customViewsTenantManage]: false,
 };
 
 export default readonly;
