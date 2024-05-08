@@ -421,6 +421,15 @@ export class MemberSyncService {
             await processSegmentsStream(databaseStream)
           }
 
+          while (syncStream.length >= BULK_INDEX_DOCUMENT_BATCH_SIZE) {
+            await this.openSearchService.bulkIndex(
+              OpenSearchIndex.MEMBERS,
+              syncStream.slice(0, BULK_INDEX_DOCUMENT_BATCH_SIZE),
+            )
+            documentsIndexed += syncStream.slice(0, BULK_INDEX_DOCUMENT_BATCH_SIZE).length
+            syncStream = syncStream.slice(BULK_INDEX_DOCUMENT_BATCH_SIZE)
+          }
+
           // check if there are remaining syncStreams to process
           if (syncStream.length > 0) {
             console.log(`Last bit processing! ${syncStream.length} sync streams!`)
