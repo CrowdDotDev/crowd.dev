@@ -331,15 +331,20 @@ export class OpenSearchService extends LoggerBase {
         })
       }
 
-      const result = await telemetry.measure(
-        'opensearch.bulk',
-        () =>
-          this.client.bulk({
-            body,
-            refresh: true,
-          }),
-        { index },
-      )
+      // const result = await telemetry.measure(
+      //   'opensearch.bulk',
+      //   () =>
+      //     this.client.bulk({
+      //       body,
+      //       refresh: true,
+      //     }),
+      //   { index },
+      // )
+
+      const result = await this.client.bulk({
+        body,
+        refresh: true,
+      })
 
       if (result.body.errors === true) {
         const errorItems = result.body.items
