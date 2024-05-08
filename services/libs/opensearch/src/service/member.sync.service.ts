@@ -286,7 +286,7 @@ export class MemberSyncService {
 
   public async syncMembers(memberIds: string[], segmentIds?: string[]): Promise<IMemberSyncResult> {
     const CONCURRENT_DATABASE_QUERIES = 10
-    const BULK_INDEX_DOCUMENT_BATCH_SIZE = 2500
+    const BULK_INDEX_DOCUMENT_BATCH_SIZE = 100
 
     // get all memberId-segmentId couples
     const memberSegmentCouples: IMemberSegmentMatrix =
