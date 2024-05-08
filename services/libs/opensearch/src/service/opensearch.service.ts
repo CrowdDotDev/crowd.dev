@@ -320,8 +320,6 @@ export class OpenSearchService extends LoggerBase {
 
   public async bulkIndex<T>(index: OpenSearchIndex, batch: IIndexRequest<T>[]): Promise<void> {
     try {
-      console.log(`Bulk indexing ${batch.length} documents in index ${index}`)
-      console.log(`Batch: ${JSON.stringify(batch)}`)
       const body = []
       const indexName = this.indexVersionMap.get(index)
       for (const doc of batch) {
@@ -333,20 +331,15 @@ export class OpenSearchService extends LoggerBase {
         })
       }
 
-      // const result = await telemetry.measure(
-      //   'opensearch.bulk',
-      //   () =>
-      //     this.client.bulk({
-      //       body,
-      //       refresh: true,
-      //     }),
-      //   { index },
-      // )
-
-      const result = await this.client.bulk({
-        body,
-        refresh: true,
-      })
+      const result = await telemetry.measure(
+        'opensearch.bulk',
+        () =>
+          this.client.bulk({
+            body,
+            refresh: true,
+          }),
+        { index },
+      )
 
       if (result.body.errors === true) {
         const errorItems = result.body.items

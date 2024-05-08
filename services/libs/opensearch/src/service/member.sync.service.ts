@@ -398,7 +398,6 @@ export class MemberSyncService {
           promise: this.memberRepo.getMemberDataInOneSegment(memberId, segment.segmentId),
         })
 
-        console.log(`Current database stream length: ${databaseStream.length}!`)
         // databaseStreams will create syncStreams items in processSegmentsStream, which'll later be used to sync to opensearch in bulk
         const isLastSegment = i === totalMemberIds - 1 && j === totalSegments - 1
 
@@ -418,7 +417,6 @@ export class MemberSyncService {
 
         // check if there are remaining syncStreams to process
         if (isLastSegment && syncStream.length > 0) {
-          console.log(`Last bit processing! ${syncStream.length} sync streams!`)
           await this.openSearchService.bulkIndex(OpenSearchIndex.MEMBERS, syncStream)
           documentsIndexed += syncStream.length
         }
