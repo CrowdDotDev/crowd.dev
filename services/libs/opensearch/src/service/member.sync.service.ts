@@ -398,6 +398,7 @@ export class MemberSyncService {
           promise: this.memberRepo.getMemberDataInOneSegment(memberId, segment.segmentId),
         })
 
+        console.log(`Current database stream length: ${databaseStream.length}!`)
         // databaseStreams will create syncStreams items in processSegmentsStream, which'll later be used to sync to opensearch in bulk
         if (databaseStream.length >= CONCURRENT_DATABASE_QUERIES) {
           await processSegmentsStream(databaseStream)
