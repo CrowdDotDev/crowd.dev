@@ -1,32 +1,32 @@
+import { Error400, Error404 } from '@crowd/common'
+import { queryConversations } from '@crowd/data-access-layer'
 import { DEFAULT_MEMBER_ATTRIBUTES } from '@crowd/integrations'
 import { SegmentData, SegmentStatus, TenantPlans } from '@crowd/types'
-import { Error400, Error404 } from '@crowd/common'
 import { TENANT_MODE } from '../conf/index'
+import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import TenantRepository from '../database/repositories/tenantRepository'
 import TenantUserRepository from '../database/repositories/tenantUserRepository'
-import SequelizeRepository from '../database/repositories/sequelizeRepository'
-import PermissionChecker from './user/permissionChecker'
+import * as microserviceTypes from '../database/utils/keys/microserviceTypes'
+import dashboardWidgets from '../jsons/dashboard-widgets.json'
+import defaultReport from '../jsons/default-report.json'
 import Permissions from '../security/permissions'
-import Roles from '../security/roles'
-import SettingsService from './settingsService'
 import Plans from '../security/plans'
+import Roles from '../security/roles'
 import { IServiceOptions } from './IServiceOptions'
 import MemberService from './memberService'
-import * as microserviceTypes from '../database/utils/keys/microserviceTypes'
-import defaultReport from '../jsons/default-report.json'
-import dashboardWidgets from '../jsons/dashboard-widgets.json'
+import SettingsService from './settingsService'
+import PermissionChecker from './user/permissionChecker'
 
-import ReportRepository from '../database/repositories/reportRepository'
-import WidgetRepository from '../database/repositories/widgetRepository'
-import MicroserviceRepository from '../database/repositories/microserviceRepository'
-import ConversationRepository from '../database/repositories/conversationRepository'
-import MemberAttributeSettingsService from './memberAttributeSettingsService'
-import { TenantMode } from '../conf/configTypes'
-import TaskRepository from '../database/repositories/taskRepository'
-import SegmentService from './segmentService'
-import OrganizationService from './organizationService'
-import { defaultCustomViews } from '@/types/customView'
 import CustomViewRepository from '@/database/repositories/customViewRepository'
+import { defaultCustomViews } from '@/types/customView'
+import { TenantMode } from '../conf/configTypes'
+import MicroserviceRepository from '../database/repositories/microserviceRepository'
+import ReportRepository from '../database/repositories/reportRepository'
+import TaskRepository from '../database/repositories/taskRepository'
+import WidgetRepository from '../database/repositories/widgetRepository'
+import MemberAttributeSettingsService from './memberAttributeSettingsService'
+import OrganizationService from './organizationService'
+import SegmentService from './segmentService'
 
 export default class TenantService {
   options: IServiceOptions
@@ -330,10 +330,21 @@ export default class TenantService {
 
       // if tenant already has some published conversations, updating url is not allowed
       if (data.url && data.url !== record.url) {
-        const publishedConversations = await ConversationRepository.findAndCountAll(
-          { filter: { published: true } },
-          { ...this.options, transaction, currentTenant: record },
-        )
+        const tenantId = SequelizeRepository.getCurrentTenant(this.options).id
+        const segmentIds = SequelizeRepository.getSegmentIds(this.options)
+
+        const publishedConversations = await queryConversations(this.options.qdb, {
+          tenantId,
+          segmentIds,
+          filter: {
+            and: [
+              {
+                published: true,
+              },
+            ],
+          },
+          countOnly: true,
+        })
 
         if (publishedConversations.count > 0) {
           throw new Error400(this.options.language, 'tenant.errors.publishedConversationExists')

@@ -1,9 +1,7 @@
 import { convert as convertHtmlToText } from 'html-to-text'
 import merge from 'lodash.merge'
-
-import { generateUUIDv4, getEnv } from '@crowd/common'
+import { RawQueryParser, generateUUIDv4, getEnv } from '@crowd/common'
 import { DbConnOrTx } from '@crowd/database'
-
 import { ActivityDisplayService } from '@crowd/integrations'
 import { ActivityDisplayVariant, PageData, PlatformType } from '@crowd/types'
 import { IQueryActivityResult, queryActivities } from '../activities'
@@ -361,6 +359,9 @@ const CONVERSATION_QUERY_FILTER_COLUMN_MAP: Map<string, string> = new Map([
   ['title', 'c.title'],
   ['slug', 'c.slug'],
   ['published', 'c.published'],
+  ['channel', 'c.channel'],
+  ['lastActive', 'a."lastActive"'],
+  ['activityCount', 'a."activityCount"'],
 ])
 export async function queryConversations(
   qdbConn: DbConnOrTx,
@@ -373,13 +374,122 @@ export async function queryConversations(
   // set defaults
   arg.filter = arg.filter || {}
   arg.orderBy = arg.orderBy || ['lastActive_DESC']
+  arg.limit = arg.limit || 10
+  arg.offset = arg.offset || 0
+  arg.countOnly = arg.countOnly || false
 
-  // TODO questdb
+  const parsedOrderBys = []
 
-  return {
-    rows: [],
-    count: 0,
-    limit: arg.limit,
-    offset: arg.offset,
+  for (const orderByPart of arg.orderBy) {
+    const orderByParts = orderByPart.split('_')
+    const direction = orderByParts[1].toLowerCase()
+    switch (orderByParts[0]) {
+      case 'lastActive':
+        parsedOrderBys.push({
+          property: orderByParts[0],
+          column: 'a."lastActive',
+          direction,
+        })
+        break
+      case 'createdAt':
+        parsedOrderBys.push({
+          property: orderByParts[0],
+          column: 'c."createdAt"',
+          direction,
+        })
+        break
+
+      default:
+        throw new Error(`Invalid order by: ${orderByPart}!`)
+    }
+  }
+
+  const orderByString = parsedOrderBys.map((o) => `${o.column} ${o.direction}`).join(',')
+
+  const params: any = {
+    tenantId: arg.tenantId,
+    segmentIds: arg.segmentIds,
+    lowerLimit: arg.offset,
+    upperLimit: arg.offset + arg.limit - 1,
+  }
+
+  let filterString = RawQueryParser.parseFilters(
+    arg.filter,
+    CONVERSATION_QUERY_FILTER_COLUMN_MAP,
+    [],
+    params,
+    true,
+  )
+
+  if (filterString.trim().length === 0) {
+    filterString = '1=1'
+  }
+
+  const baseQuery = `
+  with activity_data as (
+    select count_distinct(id) as "activityCount",
+           count_distinct("memberId") as "memberCount",
+           max(timestamp) as "lastActive",
+           max(channel) as channel,
+           max(platform) as platform,
+           "conversationId"
+    from activities
+    where "deletedAt" is null and
+          "conversationId" is not null
+    group by "conversationId"
+  )
+  select <columns_to_select>
+  from conversations c 
+  inner join activity_data a on a."conversationId" = c.id
+  where c."deletedAt" is null and 
+        c."tenantId" = $(tenantId) and
+        c."segmentId" in ($(segmentIds:csv)) and
+        ${filterString}
+  `
+
+  const countQuery = baseQuery.replace('<columns_to_select>', 'count_distinct(c.id) as count')
+
+  if (arg.countOnly) {
+    const countResults = (await qdbConn.one(countQuery, params)).count
+
+    return {
+      rows: [],
+      count: countResults,
+      limit: arg.limit,
+      offset: arg.offset,
+    }
+  } else {
+    const query = `${baseQuery.replace(
+      '<columns_to_select>',
+      `
+      c.id, 
+      a.channel,
+      c."createdAt",
+      a."memberCount",
+      a."activityCount",
+      a."lastActive",
+      a.platform,
+      c.published,
+      c."segmentId",
+      c."tenantId",
+      c.slug,
+      c.title,
+      c."updatedAt"
+      `,
+    )}
+    order by ${orderByString}
+    limit $(lowerLimit), $(upperLimit)`
+
+    const [results, countResults] = await Promise.all([
+      qdbConn.any(query, params),
+      qdbConn.one(countQuery, params),
+    ])
+
+    return {
+      rows: results,
+      count: countResults.count,
+      limit: arg.limit,
+      offset: arg.offset,
+    }
   }
 }

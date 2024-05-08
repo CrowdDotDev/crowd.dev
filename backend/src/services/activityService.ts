@@ -1,18 +1,20 @@
 import { Error400, singleOrDefault } from '@crowd/common'
-import { LoggerBase, logExecutionTime } from '@crowd/logging'
-import { WorkflowIdReusePolicy } from '@crowd/temporal'
 import {
   addActivityToConversation,
   deleteActivities,
   insertActivities,
-  updateActivity,
   queryActivities,
+  updateActivity,
 } from '@crowd/data-access-layer'
-import { PlatformType, SyncMode, TemporalWorkflowId, SegmentData } from '@crowd/types'
+import { ActivityDisplayService } from '@crowd/integrations'
+import { LoggerBase, logExecutionTime } from '@crowd/logging'
+import { WorkflowIdReusePolicy } from '@crowd/temporal'
+import { PlatformType, SegmentData, SyncMode, TemporalWorkflowId } from '@crowd/types'
 import { Blob } from 'buffer'
 import vader from 'crowd-sentiment'
 import { Transaction } from 'sequelize/types'
-import { ActivityDisplayService } from '@crowd/integrations'
+import OrganizationRepository from '@/database/repositories/organizationRepository'
+import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import { GITHUB_CONFIG, IS_DEV_ENV, IS_TEST_ENV, TEMPORAL_CONFIG } from '../conf'
 import ActivityRepository from '../database/repositories/activityRepository'
 import MemberRepository from '../database/repositories/memberRepository'
@@ -23,14 +25,11 @@ import telemetryTrack from '../segment/telemetryTrack'
 import { IServiceOptions } from './IServiceOptions'
 import { detectSentiment, detectSentimentBatch } from './aws'
 import ConversationService from './conversationService'
-import ConversationSettingsService from './conversationSettingsService'
 import merge from './helpers/merge'
 import MemberAffiliationService from './memberAffiliationService'
 import MemberService from './memberService'
 import SearchSyncService from './searchSyncService'
 import SegmentService from './segmentService'
-import OrganizationRepository from '@/database/repositories/organizationRepository'
-import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 
 const IS_GITHUB_COMMIT_DATA_ENABLED = GITHUB_CONFIG.isCommitDataEnabled === 'true'
 
@@ -460,20 +459,9 @@ export default class ActivityService extends LoggerBase {
         parent.title || parent.body,
         ActivityService.hasHtmlActivities(parent.platform),
       )
-      const conversationSettings = await ConversationSettingsService.findOrCreateDefault(
-        this.options,
-      )
-      const channel = ConversationService.getChannelFromActivity(parent)
-
-      const published = ConversationService.shouldAutoPublishConversation(
-        conversationSettings,
-        parent.platform,
-        channel,
-      )
-
       conversation = await conversationService.create({
         title: conversationTitle,
-        published,
+        published: false,
         slug: await conversationService.generateSlug(conversationTitle),
         platform: parent.platform,
       })
@@ -800,8 +788,6 @@ export default class ActivityService extends LoggerBase {
       countOnly,
     })
 
-    // TODO uros add parent data
-
     const parentIds: string[] = []
     const memberIds: string[] = []
     const organizationIds: string[] = []
@@ -870,6 +856,23 @@ export default class ActivityService extends LoggerBase {
               organizations.rows,
               (o) => o.id === row.organizationId,
             )
+          }
+        }),
+      )
+    }
+
+    if (parentIds.length > 0) {
+      promises.push(
+        queryActivities(this.options.qdb, {
+          filter: {
+            and: [{ id: { in: parentIds } }],
+          },
+          tenantId,
+          segmentIds,
+          noLimit: true,
+        }).then((activities) => {
+          for (const row of page.rows.filter((r) => r.parentId)) {
+            ;(row as any).parent = singleOrDefault(activities.rows, (a) => a.id === row.parentId)
           }
         }),
       )

@@ -43,11 +43,6 @@ class TaskRepository {
       transaction,
     })
 
-    // TODO questdb
-    // await record.setActivities(data.activities || [], {
-    //   transaction,
-    // })
-
     await record.setAssignees(data.assignees || [], {
       transaction,
     })
@@ -486,7 +481,8 @@ class TaskRepository {
       joinTableAttributes: [],
     })
 
-    // TODO questdb
+    // TODO questdb -> activityTasks table in postgre is link between tasks and activities
+    // First fetch activity ids from activityTasks then load activities using queryActivities from questdb
     // output.activities = await record.getActivities({
     //   transaction,
     //   joinTableAttributes: [],

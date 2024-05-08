@@ -1,4 +1,4 @@
-import { getCleanString, Error403 } from '@crowd/common'
+import { getCleanString, Error403, distinct, singleOrDefault, single } from '@crowd/common'
 import { LoggerBase } from '@crowd/logging'
 import { PageData, PlatformType } from '@crowd/types'
 import {
@@ -11,6 +11,7 @@ import {
 import emoji from 'emoji-dictionary'
 import { convert as convertHtmlToText } from 'html-to-text'
 import fetch from 'node-fetch'
+import { ActivityDisplayService } from '@crowd/integrations'
 import { S3_CONFIG } from '../conf/index'
 import ConversationRepository from '../database/repositories/conversationRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
@@ -22,6 +23,9 @@ import getStage from './helpers/getStage'
 import IntegrationService from './integrationService'
 import SettingsService from './settingsService'
 import TenantService from './tenantService'
+import MemberRepository from '@/database/repositories/memberRepository'
+import OrganizationRepository from '@/database/repositories/organizationRepository'
+import SegmentRepository from '@/database/repositories/segmentRepository'
 
 export default class ConversationService extends LoggerBase {
   static readonly MAX_SLUG_WORD_LENGTH = 10
@@ -146,17 +150,6 @@ export default class ConversationService extends LoggerBase {
         await ConversationSettingsService.updateCustomDomainNetlify(data.customUrl)
       }
 
-      if (
-        data.autoPublish &&
-        data.autoPublish.status &&
-        ConversationSettingsService.isAutoPublishUpdated(
-          data.autoPublish,
-          conversationSettings.autoPublish,
-        )
-      ) {
-        await this.autoPublishPastConversations(data.autoPublish)
-      }
-
       conversationSettings = await ConversationSettingsService.save(
         {
           enabled: data.enabled,
@@ -242,60 +235,6 @@ export default class ConversationService extends LoggerBase {
     }
 
     return channel
-  }
-
-  /**
-   * Will return true if:
-   * - conversationSettings.autoPublish.status === 'all'
-   * - conversationSettings.autoPublish.status === 'custom' and channel & platform exist within autoPublish.channelsByPlatform
-   *
-   * else returns false
-   *
-   * @param conversationSettings
-   * @param platform
-   * @param channel
-   *
-   * @returns shouldAutoPublish
-   */
-  static shouldAutoPublishConversation(conversationSettings, platform, channel) {
-    let shouldAutoPublish = false
-
-    if (!conversationSettings.autoPublish) {
-      return shouldAutoPublish
-    }
-
-    if (conversationSettings.autoPublish.status === 'all') {
-      shouldAutoPublish = true
-    } else if (conversationSettings.autoPublish.status === 'custom') {
-      shouldAutoPublish =
-        conversationSettings.autoPublish.channelsByPlatform[platform] &&
-        conversationSettings.autoPublish.channelsByPlatform[platform].includes(channel)
-    }
-    return shouldAutoPublish
-  }
-
-  async autoPublishPastConversations(dataAutoPublish) {
-    const conversations = await ConversationRepository.findAndCountAll(
-      {
-        filter: {
-          published: false,
-        },
-        lazyLoad: ['activities'],
-      },
-      this.options,
-    )
-
-    for (const conversation of conversations.rows) {
-      if (
-        ConversationService.shouldAutoPublishConversation(
-          { autoPublish: dataAutoPublish },
-          conversation.platform,
-          conversation.channel,
-        )
-      ) {
-        await this.update(conversation.id, { published: true })
-      }
-    }
   }
 
   /**
@@ -413,8 +352,133 @@ export default class ConversationService extends LoggerBase {
     return ConversationRepository.findById(id, this.options)
   }
 
-  async findAndCountAll(args) {
-    return ConversationRepository.findAndCountAll(args, this.options)
+  async findAndCountAll(data) {
+    const filter = data.filter
+    const orderBy = Array.isArray(data.orderBy) ? data.orderBy : [data.orderBy]
+    const limit = data.limit
+    const offset = data.offset
+    const countOnly = data.countOnly ?? false
+
+    const tenantId = SequelizeRepository.getCurrentTenant(this.options).id
+    const segmentIds = SequelizeRepository.getSegmentIds(this.options)
+
+    const page = await queryConversations(this.options.qdb, {
+      tenantId,
+      segmentIds,
+      filter,
+      orderBy,
+      limit,
+      offset,
+      countOnly,
+    })
+
+    const conversationIds = page.rows.map((r) => r.id)
+    const activities = await queryActivities(this.options.qdb, {
+      filter: {
+        and: [{ conversationId: { in: conversationIds } }],
+      },
+      tenantId,
+      segmentIds,
+      noLimit: true,
+    })
+    const memberIds = distinct(activities.rows.map((a) => a.memberId))
+    const organizationIds = distinct(
+      activities.rows.filter((a) => a.organizationId).map((a) => a.organizationId),
+    )
+
+    const promises = []
+    if (memberIds.length > 0) {
+      promises.push(
+        MemberRepository.findAndCountAllOpensearch(
+          {
+            filter: {
+              and: [{ id: { in: memberIds } }],
+            },
+            limit: memberIds.length,
+          },
+          this.options,
+        ).then((members) => {
+          for (const row of activities.rows) {
+            ;(row as any).member = singleOrDefault(members.rows, (m) => m.id === row.memberId)
+            if (row.objectMemberId) {
+              ;(row as any).objectMember = singleOrDefault(
+                members.rows,
+                (m) => m.id === row.objectMemberId,
+              )
+            }
+          }
+        }),
+      )
+    }
+
+    if (organizationIds.length > 0) {
+      promises.push(
+        OrganizationRepository.findAndCountAllOpensearch(
+          {
+            filter: {
+              and: [{ id: { in: organizationIds } }],
+            },
+            limit: organizationIds.length,
+          },
+          this.options,
+        ).then((organizations) => {
+          for (const row of activities.rows.filter((r) => r.organizationId)) {
+            ;(row as any).organization = singleOrDefault(
+              organizations.rows,
+              (o) => o.id === row.organizationId,
+            )
+          }
+        }),
+      )
+    }
+
+    await Promise.all(promises)
+
+    for (const conversation of page.rows as any[]) {
+      // find the first one
+      const firstActivity = single(
+        activities.rows,
+        (a) => a.conversationId === conversation.id && a.parentId === null,
+      )
+
+      const remainingActivities = activities.rows
+        .filter((a) => a.conversationId === conversation.id && a.parentId !== null)
+        .sort(
+          (a, b) =>
+            // from oldest to newest
+            new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+        )
+
+      conversation.activities = [firstActivity, ...remainingActivities]
+      for (const activity of conversation.activities) {
+        activity.display = ActivityDisplayService.getDisplayOptions(
+          activity,
+          SegmentRepository.getActivityTypes(this.options),
+        )
+      }
+
+      conversation.conversationStarter = conversation.activities[0] ?? null
+
+      if (conversation.platform && conversation.platform === PlatformType.GITHUB) {
+        conversation.channel = ConversationRepository.extractGitHubRepoPath(conversation.channel)
+      }
+    }
+
+    return page
+  }
+
+  async count(filter: any) {
+    const tenantId = SequelizeRepository.getCurrentTenant(this.options).id
+    const segmentIds = SequelizeRepository.getSegmentIds(this.options)
+
+    const results = await queryConversations(this.options.qdb, {
+      tenantId,
+      segmentIds,
+      filter,
+      countOnly: true,
+    })
+
+    return results.count
   }
 
   async query(data) {
@@ -537,23 +601,17 @@ export default class ConversationService extends LoggerBase {
     cleanedSlug = cleanedSlug.replace(/-$/gi, '')
 
     // check generated slug already exists in tenant
-    let checkSlug = await ConversationRepository.findAndCountAll(
-      { filter: { slug: cleanedSlug } },
-      this.options,
-    )
+    let checkSlugCount = await this.count({ and: [{ slug: cleanedSlug }] })
 
     // generated slug already exists in the tenant, start adding suffixes and re-check
-    if (checkSlug.count > 0) {
+    if (checkSlugCount > 0) {
       let suffix = 1
 
       const slugCopy = cleanedSlug
 
-      while (checkSlug.count > 0) {
+      while (checkSlugCount > 0) {
         const suffixedSlug = `${slugCopy}-${suffix}`
-        checkSlug = await ConversationRepository.findAndCountAll(
-          { filter: { slug: suffixedSlug } },
-          this.options,
-        )
+        checkSlugCount = await this.count({ and: [{ slug: suffixedSlug }] })
         suffix += 1
         cleanedSlug = suffixedSlug
       }

@@ -121,6 +121,7 @@ export class ConversationService extends LoggerBase {
     segmentId: string,
     activityId: string,
   ): Promise<string[]> {
+    // TODO questdb remove and find out about why activities are not found immediately after insertion...
     await timeout(1000)
     this.log.debug({ activityId }, 'Processing activity')
     let results = await getActivitiesById(this.qdbStore.connection(), [activityId])

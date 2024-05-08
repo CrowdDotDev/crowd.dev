@@ -50,9 +50,16 @@ export interface IQueryConversationsParameters {
 
 export interface IQueryConversationResult {
   id: string
+  channel: string
+  createdAt: string
+  memberCount: number
+  activityCount: number
+  lastActive: string
+  platform: string
   title: string
   slug: string
   published: boolean
   tenantId: string
   segmentId: string
+  updatedAt: string
 }
