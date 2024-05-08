@@ -1,4 +1,16 @@
 ---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: opensearch-pvc
+spec:
+  accessModes:
+    - ReadWriteOncePod
+  resources:
+    requests:
+      storage: 10Gi
+
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -12,6 +24,20 @@ spec:
       labels:
         app: opensearch
     spec:
+      securityContext:
+        fsGroup: 1000
+        runAsUser: 1000
+      volumes:
+      - name: opensearch-data
+        persistentVolumeClaim:
+          claimName: opensearch-pvc
+      initContainers:
+        - name: check-permissions
+          image: busybox
+          command: ['sh', '-c', 'ls -l /usr/share/opensearch/data && id']
+          volumeMounts:
+          - name: opensearch-data
+            mountPath: /usr/share/opensearch/data
       containers:
         - name: opensearch
           image: opensearchproject/opensearch:2.7.0
@@ -31,6 +57,9 @@ spec:
               name: http
             - containerPort: 9300
               name: transport
+          volumeMounts:
+            - name: opensearch-data
+              mountPath: /usr/share/opensearch/data
           resources:
             limits:
               cpu: "2"

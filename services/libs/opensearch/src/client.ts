@@ -19,6 +19,9 @@ export const getOpensearchClient = (config: IOpenSearchConfig) => {
     }
     return new Client({
       node: config.node,
+      ssl: {
+        rejectUnauthorized: false
+      }
     })
   }
 

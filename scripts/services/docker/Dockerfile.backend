@@ -14,6 +14,8 @@ RUN pnpm i --frozen-lockfile
 
 FROM node:20-alpine as runner
 
+RUN apk add --no-cache curl
+
 WORKDIR /usr/crowd/app
 RUN corepack enable
 

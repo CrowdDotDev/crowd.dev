@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: search-sync-worker-normal
-          image: liscioapps/sphere-search-sync-worker:1715042059.5c902283
+          image: liscioapps/sphere-search-sync-worker:1715172744.8cd21f2d
           workingDir: /usr/crowd/app/services/apps/search_sync_worker
           command: ["pnpm"]
           args: ["run", "start"]
@@ -51,7 +51,7 @@ spec:
     spec:
       containers:
         - name: search-sync-worker-system
-          image: liscioapps/sphere-search-sync-worker:1715042059.5c902283
+          image: liscioapps/sphere-search-sync-worker:1715172744.8cd21f2d
           workingDir: /usr/crowd/app/services/apps/search_sync_worker
           command: ["pnpm"]
           args: ["run", "start"]
@@ -68,23 +68,23 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: search-sync-worker-hight-dpl
+  name: search-sync-worker-high-dpl
   labels:
     force-reload: "true"
 spec:
   selector:
     matchLabels:
       app: search-sync-worker
-      priority: hight
+      priority: high
   template:
     metadata:
       labels:
         app: search-sync-worker
-        priority: hight
+        priority: high
     spec:
       containers:
-        - name: search-sync-worker-hight
-          image: liscioapps/sphere-search-sync-worker:1715042059.5c902283
+        - name: search-sync-worker-high
+          image: liscioapps/sphere-search-sync-worker:1715172744.8cd21f2d
           workingDir: /usr/crowd/app/services/apps/search_sync_worker
           command: ["pnpm"]
           args: ["run", "start"]
@@ -95,7 +95,7 @@ spec:
             - name: SERVICE
               value: search-sync-worker
             - name: QUEUE_PRIORITY_LEVEL
-              value: hight
+              value: high
 
 ---
 apiVersion: apps/v1
@@ -117,7 +117,7 @@ spec:
     spec:
       containers:
         - name: search-sync-worker-urgent
-          image: liscioapps/sphere-search-sync-worker:1715042059.5c902283
+          image: liscioapps/sphere-search-sync-worker:1715172744.8cd21f2d
           workingDir: /usr/crowd/app/services/apps/search_sync_worker
           command: ["pnpm"]
           args: ["run", "start"]

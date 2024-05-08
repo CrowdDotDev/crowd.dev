@@ -43,6 +43,9 @@ export class OpenSearchService extends LoggerBase {
     } else {
       this.client = new Client({
         node: this.config.node,
+        ssl: {
+          rejectUnauthorized: false
+        }
       })
     }
   }

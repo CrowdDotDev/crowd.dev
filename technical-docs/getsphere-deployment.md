@@ -76,6 +76,9 @@ Redis is deployed as a standalone service
 
 TODO: What is redis used for exactly
 
+### OpenSearch
+???
+
 ### Ingress & Related Services
 #### letsencrypt
 This is not a deploymnet but a ClusterIssuer that allows us to have letsencrypt issue certificates for our ingress endpoints.
