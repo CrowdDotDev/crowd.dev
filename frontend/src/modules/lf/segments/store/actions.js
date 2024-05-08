@@ -1,9 +1,6 @@
 import { LfService } from '@/modules/lf/segments/lf-segments-service';
 import Message from '@/shared/message/message';
 import { router } from '@/router';
-import { store } from '@/store';
-import { computed } from 'vue';
-import Roles from '@/security/roles';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
 import { LfRole } from '@/shared/modules/permissions/types/Roles';
