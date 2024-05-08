@@ -11,7 +11,7 @@ const activity = proxyActivities<typeof activities>({
 
 const common = proxyActivities<typeof commonActivities>({
   startToCloseTimeout: '3 minute',
-  retry: { maximumAttempts: 3 },
+  retry: { maximumAttempts: 3, backoffCoefficient: 5 },
 })
 
 export async function findAndMergeMembersWithSameVerifiedEmailsInDifferentPlatforms(
