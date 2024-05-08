@@ -1,7 +1,7 @@
 import { ScheduleAlreadyRunning, ScheduleOverlapPolicy } from '@temporalio/client'
 
 import { svc } from '../main'
-import { spawnSuggestionsForAllTenants } from '../workflows/spawnSuggestionsForAllTenants'
+import { spawnMemberMergeSuggestionsForAllTenants } from '../workflows/spawnMemberMergeSuggestionsForAllTenants'
 import { IS_DEV_ENV, IS_TEST_ENV } from '@crowd/common'
 
 export const scheduleGenerateMemberMergeSuggestions = async () => {
@@ -26,7 +26,7 @@ export const scheduleGenerateMemberMergeSuggestions = async () => {
       },
       action: {
         type: 'startWorkflow',
-        workflowType: spawnSuggestionsForAllTenants,
+        workflowType: spawnMemberMergeSuggestionsForAllTenants,
         taskQueue: 'merge-suggestions',
         workflowExecutionTimeout: '5 minutes',
       },

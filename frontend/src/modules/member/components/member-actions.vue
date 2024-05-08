@@ -53,7 +53,9 @@
     v-if="isMergeSuggestionsDialogOpen"
     v-model="isMergeSuggestionsDialogOpen"
     :query="{
-      memberId: props.member?.id,
+      filter: {
+        memberId: props.member?.id,
+      },
     }"
   />
 </template>
@@ -110,7 +112,11 @@ watch(toMergeMember, (updatedValue) => {
 
 const fetchMembersToMergeCount = () => {
   MemberService.fetchMergeSuggestions(1, 0, {
-    memberId: props.member.id,
+    filter: {
+      memberId: props.member.id,
+    },
+    detail: false,
+    countOnly: true,
   })
     .then(({ count }) => {
       mergeSuggestionsCount.value = count;

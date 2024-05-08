@@ -1,5 +1,6 @@
 import passport from 'passport'
 import { FeatureFlag } from '@crowd/types'
+import { RedisCache } from '@crowd/redis'
 import { API_CONFIG, SLACK_CONFIG, TWITTER_CONFIG } from '../../conf'
 import SegmentRepository from '../../database/repositories/segmentRepository'
 import { authMiddleware } from '../../middlewares/authMiddleware'
@@ -223,21 +224,29 @@ export default (app) => {
       //   session: false,
       //   failureRedirect: `${API_CONFIG.frontendUrl}/integrations?error=true`,
       // }),
-      (req, _res, next) => {
+      async (req, _res, next) => {
         const stateQueryParam = req.query.state
         const decodedState = decodeBase64Url(stateQueryParam)
-        const stateObject = JSON.parse(decodedState)
-        const { crowdToken } = stateObject
+        req.state = JSON.parse(decodedState)
+        next()
+      },
+      (req, _res, next) => {
+        const { crowdToken } = req.state
         req.headers.authorization = `Bearer ${crowdToken}`
         next()
       },
       authMiddleware,
       async (req, _res, next) => {
-        const stateQueryParam = req.query.state
-        const decodedState = decodeBase64Url(stateQueryParam)
-        const stateObject = JSON.parse(decodedState)
-        const { tenantId } = stateObject
+        const { tenantId } = req.state
         req.currentTenant = await new TenantService(req).findById(tenantId)
+        next()
+      },
+      async (req, _res, next) => {
+        const cache = new RedisCache('twitterPKCE', req.redis, req.log)
+        const state = await cache.get(req.currentUser.id)
+        const { segmentIds } = JSON.parse(state)
+        const segmentRepository = new SegmentRepository(req)
+        req.currentSegments = await segmentRepository.findInIds(segmentIds)
         next()
       },
       safeWrap(require('./helpers/twitterAuthenticateCallback').default),

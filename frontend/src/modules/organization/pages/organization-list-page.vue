@@ -189,7 +189,9 @@ const onPaginationChange = ({
 
 const organizationsToMergeCount = ref(0);
 const fetchOrganizationsToMergeCount = () => {
-  OrganizationService.fetchMergeSuggestions(1, 0)
+  OrganizationService.fetchMergeSuggestions(0, 0, {
+    countOnly: true,
+  })
     .then(({ count }: any) => {
       organizationsToMergeCount.value = count;
     });

@@ -1,33 +1,305 @@
 <template>
-  <app-page-wrapper size="narrow">
-    <app-back-link
-      class="mt-1 mb-4"
-      :default-route="{ path: '/organizations' }"
-    >
-      <template #default>
-        Organizations
-      </template>
-    </app-back-link>
-    <h4 class="text-xl font-semibold leading-9 mb-1">
-      Merging suggestions
-    </h4>
-    <div class="text-xs text-gray-600 pb-6">
-      crowd.dev is constantly checking your community for duplicate organizations.
-      Here you can check all the merging suggestions.
-    </div>
+  <app-page-wrapper>
+    <div class="pb-40">
+      <app-back-link
+        :default-route="{
+          path: '/organizations',
+          query: { projectGroup: selectedProjectGroup?.id },
+        }"
+        class="font-semibold"
+      >
+        <template #default>
+          Organizations
+        </template>
+      </app-back-link>
+      <div class="flex items-center pb-6">
+        <h4 class="text-xl font-semibold leading-9">
+          Merge suggestions <span v-if="totalCount" class="font-light text-gray-500">({{ totalCount }})</span>
+        </h4>
+        <el-tooltip
+          placement="top"
+          content="LFX is constantly checking your community for duplicate organizations. Here you can check all the merge suggestions."
+        >
+          <i class="ri-question-line text-lg text-gray-500 flex items-center ml-2 h-5" />
+        </el-tooltip>
+      </div>
 
-    <app-organization-merge-suggestions :query="route.query" />
+      <app-merge-suggestions-filters placeholder="Search organizations" @search="search" />
+
+      <div
+        v-if="page <= 1 && loading && mergeSuggestions.length === 0"
+        class="flex justify-center pt-8"
+      >
+        <cr-spinner />
+      </div>
+
+      <cr-table v-else-if="mergeSuggestions.length > 0" class="mt-6">
+        <thead>
+          <tr>
+            <cr-table-head colspan="2">
+              Organizations
+            </cr-table-head>
+            <cr-table-head v-model="sorting" property="similarity" @update:model-value="loadMergeSuggestions">
+              Confidence level
+            </cr-table-head>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(suggestion, si) of mergeSuggestions" :key="si">
+            <td>
+              <div class="flex items-center">
+                <router-link
+                  :to="{
+                    name: 'organizationView',
+                    params: { id: suggestion.organizations[0].id },
+                    query: { projectGroup: selectedProjectGroup?.id },
+                  }"
+                  target="_blank"
+                  class="text-black hover:text-brand-500"
+                >
+                  <div class="flex items-center gap-2">
+                    <app-avatar
+                      size="xs"
+                      :entity="{
+                        ...suggestion.organizations[0],
+                        avatar: suggestion.organizations[0].logo,
+                        displayName: (suggestion.organizations[0].displayName || suggestion.organizations[0].name)?.replace('@', ''),
+                      }"
+                    />
+
+                    <p class="text-xs leading-5 font-semibold truncate max-w-3xs">
+                      {{ suggestion.organizations[0].displayName }}
+                    </p>
+                  </div>
+                </router-link>
+              </div>
+            </td>
+            <td>
+              <div class="flex items-center">
+                <router-link
+                  :to="{
+                    name: 'organizationView',
+                    params: { id: suggestion.organizations[1].id },
+                    query: { projectGroup: selectedProjectGroup?.id },
+                  }"
+                  target="_blank"
+                  class="text-black hover:text-brand-500"
+                >
+                  <div class="flex items-center gap-2">
+                    <i class="text-xl ri-subtract-line text-gray-300" />
+                    <app-avatar
+                      size="xs"
+                      :entity="{
+                        ...suggestion.organizations[1],
+                        avatar: suggestion.organizations[1].logo,
+                        displayName: (suggestion.organizations[1].displayName || suggestion.organizations[1].name)?.replace('@', ''),
+                      }"
+                    />
+                    <p class="text-xs leading-5 font-semibold truncate max-w-3xs">
+                      {{ suggestion.organizations[1].displayName }}
+                    </p>
+                  </div>
+                </router-link>
+              </div>
+            </td>
+            <td>
+              <app-member-merge-similarity :similarity="suggestion.similarity" />
+            </td>
+            <td class="w-48">
+              <div class="flex justify-end items-center gap-3">
+                <cr-button size="small" type="tertiary" @click="openDetails(si)">
+                  View suggestion
+                </cr-button>
+                <cr-dropdown placement="bottom-end" width="15rem">
+                  <template #trigger>
+                    <cr-button
+                      size="small"
+                      type="tertiary-light-gray"
+                      :loading="sending === `${suggestion.organizations[0].id}:${suggestion.organizations[1].id}`"
+                      :icon-only="true"
+                    >
+                      <i class="ri-more-fill" />
+                    </cr-button>
+                  </template>
+
+                  <cr-dropdown-item @click="merge(suggestion)">
+                    <i class="ri-shuffle-line" /> Merge suggestion
+                  </cr-dropdown-item>
+
+                  <cr-dropdown-item @click="ignore(suggestion)">
+                    <i class="ri-close-circle-line" />Ignore suggestion
+                  </cr-dropdown-item>
+                </cr-dropdown>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </cr-table>
+      <div v-else class="py-20 flex flex-col items-center">
+        <div
+          class="ri-shuffle-line text-gray-200 text-10xl h-40 flex items-center mb-8"
+        />
+        <h5 class="text-center text-lg font-semibold mb-4">
+          No merge suggestions
+        </h5>
+        <p class="text-sm text-center text-gray-600 leading-5">
+          We couldn’t find any duplicated organizations
+        </p>
+      </div>
+
+      <div v-if="total > mergeSuggestions.length" class="mt-6 flex justify-center">
+        <cr-button type="tertiary" size="small" :loading="loading" @click="loadMore()">
+          <i class="ri-arrow-down-line" />Load more
+        </cr-button>
+      </div>
+    </div>
   </app-page-wrapper>
+  <app-organization-merge-suggestions-dialog
+    v-model="isModalOpen"
+    :offset="detailsOffset"
+    @reload="reload()"
+  />
 </template>
 
-<script setup>
-import { useRoute } from 'vue-router';
-import AppOrganizationMergeSuggestions from '@/modules/organization/components/organization-merge-suggestions.vue';
+<script setup lang="ts">
+import AppBackLink from '@/shared/modules/back-link/components/back-link.vue';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import { onMounted, ref } from 'vue';
+import Message from '@/shared/message/message';
+import { OrganizationService } from '@/modules/organization/organization-service';
+import CrButton from '@/ui-kit/button/Button.vue';
+import CrDropdown from '@/ui-kit/dropdown/Dropdown.vue';
+import CrTable from '@/ui-kit/table/Table.vue';
+import CrDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
+import AppMemberMergeSimilarity from '@/modules/member/components/suggestions/member-merge-similarity.vue';
+import AppAvatar from '@/shared/avatar/avatar.vue';
+import AppOrganizationMergeSuggestionsDialog
+  from '@/modules/organization/components/organization-merge-suggestions-dialog.vue';
+import useOrganizationMergeMessage from '@/shared/modules/merge/config/useOrganizationMergeMessage';
+import CrSpinner from '@/ui-kit/spinner/Spinner.vue';
+import CrTableHead from '@/ui-kit/table/TableHead.vue';
+import AppMergeSuggestionsFilters from '@/modules/member/components/suggestions/merge-suggestions-filters.vue';
 
-const route = useRoute();
+const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
+
+const mergeSuggestions = ref<any[]>([]);
+
+const isModalOpen = ref<boolean>(false);
+
+const total = ref<number>(0);
+const limit = ref<number>(10);
+const page = ref<number>(1);
+const loading = ref<boolean>(false);
+const sorting = ref<string>('similarity_DESC');
+const totalCount = ref<number>(0);
+
+const filter = ref<any>(undefined);
+
+const loadMergeSuggestions = () => {
+  loading.value = true;
+  OrganizationService.fetchMergeSuggestions(limit.value, (page.value - 1) * limit.value, {
+    filter: filter.value,
+    orderBy: [sorting.value],
+    detail: false,
+  })
+    .then((res) => {
+      total.value = +res.count;
+      const rows = res.rows.filter((s: any) => s.similarity > 0);
+      if (+res.offset > 0) {
+        mergeSuggestions.value = [...mergeSuggestions.value, ...rows];
+      } else {
+        mergeSuggestions.value = rows;
+      }
+    })
+    .finally(() => {
+      loading.value = false;
+    });
+};
+
+const getTotalCount = () => {
+  OrganizationService.fetchMergeSuggestions(0, 0, {
+    countOnly: true,
+  })
+    .then(({ count }) => {
+      totalCount.value = count;
+    });
+};
+
+const detailsOffset = ref<number>(0);
+
+const openDetails = (index: number) => {
+  detailsOffset.value = index;
+  isModalOpen.value = true;
+};
+
+const search = (query: any) => {
+  page.value = 1;
+  filter.value = query;
+  loadMergeSuggestions();
+};
+
+const reload = () => {
+  page.value = 1;
+  loadMergeSuggestions();
+  getTotalCount();
+};
+
+const loadMore = () => {
+  page.value += 1;
+  loadMergeSuggestions();
+};
+
+const sending = ref<string>('');
+
+const merge = (suggestion: any) => {
+  if (sending.value.length) {
+    return;
+  }
+  const primaryOrganization = suggestion.organizations[0];
+  const secondaryOrganization = suggestion.organizations[1];
+  sending.value = `${primaryOrganization.id}:${secondaryOrganization.id}`;
+
+  const { loadingMessage, successMessage } = useOrganizationMergeMessage;
+
+  loadingMessage();
+
+  OrganizationService.mergeOrganizations(primaryOrganization.id, secondaryOrganization.id)
+    .then(() => {
+      successMessage({
+        primaryOrganization,
+        secondaryOrganization,
+      });
+    })
+    .finally(() => {
+      reload();
+      sending.value = '';
+    });
+};
+
+const ignore = (suggestion: any) => {
+  if (sending.value.length) {
+    return;
+  }
+  const primaryMember = suggestion.members[0];
+  const secondaryMember = suggestion.members[1];
+  sending.value = `${primaryMember.id}:${secondaryMember.id}`;
+  OrganizationService.addToNoMerge(...suggestion.members)
+    .then(() => {
+      Message.success('Merging suggestion ignored successfuly');
+      reload();
+    })
+    .finally(() => {
+      sending.value = '';
+    });
+};
+
+onMounted(() => {
+  getTotalCount();
+});
 </script>
 
-<script>
+<script lang="ts">
 export default {
   name: 'AppOrganizationMergeSuggestionsPage',
 };

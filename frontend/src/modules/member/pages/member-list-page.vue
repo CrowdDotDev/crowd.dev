@@ -6,36 +6,26 @@
         <div class="flex items-center justify-between">
           <h4>Contributors</h4>
           <div class="flex items-center">
-            <el-tooltip
-              v-if="membersToMergeCount > 0"
-              content="Coming soon"
-              placement="top"
-              :disabled="hasPermission(LfPermission.mergeMembers)"
+            <router-link
+              v-if="membersToMergeCount > 0 && hasPermission(LfPermission.mergeMembers)"
+              class="mr-4"
+              :to="{
+                name: 'memberMergeSuggestions',
+                query: { projectGroup: selectedProjectGroup?.id },
+              }"
             >
-              <span>
-                <component
-                  :is="hasPermission(LfPermission.mergeMembers) ? 'router-link' : 'span'"
-                  class="mr-4"
-                  :to="{
-                    name: 'memberMergeSuggestions',
-                    query: { projectGroup: selectedProjectGroup?.id },
-                  }"
-                >
-                  <button
-                    :disabled="!hasPermission(LfPermission.mergeMembers)"
-                    type="button"
-                    class="btn btn--secondary btn--md flex items-center"
-                  >
-                    <span class="ri-shuffle-line text-base mr-2 text-gray-900" />
-                    <span class="text-gray-900">Merge suggestions</span>
-                    <span
-                      v-if="membersToMergeCount > 0"
-                      class="ml-2 bg-brand-100 text-brand-500 py-px px-1.5 leading-5 rounded-full font-semibold"
-                    >{{ Math.ceil(membersToMergeCount) }}</span>
-                  </button>
-                </component>
-              </span>
-            </el-tooltip>
+              <button
+                type="button"
+                class="btn btn--secondary btn--md flex items-center"
+              >
+                <span class="ri-shuffle-line text-base mr-2 text-gray-900" />
+                <span class="text-gray-900">Merge suggestions</span>
+                <span
+                  v-if="membersToMergeCount > 0"
+                  class="ml-2 bg-brand-100 text-brand-500 py-px px-1.5 leading-5 rounded-full font-semibold"
+                >{{ Math.ceil(membersToMergeCount) }}</span>
+              </button>
+            </router-link>
 
             <el-button
               v-if="
@@ -142,7 +132,9 @@ const pagination = ref({
 });
 
 const fetchMembersToMergeCount = () => {
-  MemberService.fetchMergeSuggestions(1, 0)
+  MemberService.fetchMergeSuggestions(0, 0, {
+    countOnly: true,
+  })
     .then(({ count }: any) => {
       membersToMergeCount.value = count;
     });

@@ -1,20 +1,18 @@
-import { IMemberMergeSuggestion } from '@crowd/types'
+import { SuggestionType } from '@crowd/types'
 
-export function removeDuplicateSuggestions(
-  suggestions: IMemberMergeSuggestion[],
-): IMemberMergeSuggestion[] {
+export function removeDuplicateSuggestions<T>(suggestions: T[], type: SuggestionType): T[] {
   const seen = new Set<string>()
 
   return suggestions.filter((suggestion) => {
-    // Sort members and convert them to string for comparison
-    const membersString = suggestion.members.slice().sort().join()
+    // Sort and convert suggestions to string for comparison
+    const suggestionString = suggestion[type].slice().sort().join()
 
-    if (seen.has(membersString)) {
+    if (seen.has(suggestionString)) {
       // We have seen this pair of members before, filter it out
       return false
     } else {
       // This is a new pair of members, add it to the set
-      seen.add(membersString)
+      seen.add(suggestionString)
       return true
     }
   })

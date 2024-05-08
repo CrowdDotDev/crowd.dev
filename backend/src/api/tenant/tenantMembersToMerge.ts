@@ -9,7 +9,7 @@ export default async (req, res) => {
   }
   new PermissionChecker(req).validateHas(Permissions.values.memberRead)
 
-  const payload = await new TenantService(req).findMembersToMerge(req.query)
+  const payload = await new TenantService(req).findMembersToMerge(req.body)
 
   await req.responseHandler.success(req, res, payload)
 }

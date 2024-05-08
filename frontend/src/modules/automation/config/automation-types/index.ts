@@ -1,6 +1,6 @@
 import { webhook } from './webhook/config';
 import { slack } from './slack/config';
-import { hubspot } from './hubspot/config';
+// import { hubspot } from './hubspot/config';
 
 interface AutomationTypeAction {
   label: string; // Text of the action button
@@ -33,7 +33,7 @@ export interface AutomationTypeConfig {
 }
 
 export const automationTypes: Record<string, AutomationTypeConfig> = {
-  hubspot,
+  // hubspot,
   slack,
   webhook,
 };

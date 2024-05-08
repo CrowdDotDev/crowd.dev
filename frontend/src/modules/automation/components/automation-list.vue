@@ -106,7 +106,7 @@
       v-else
       icon="ri-flow-chart"
       title="Start automating your workflows"
-      :description="`Take instant action on your data. For example, set up Slack notifications for new contributors, sync high-intent contributors with HubSpot, or set up a Webhook to trigger a workflow with Zapier or Make. <a href='https://docs.crowd.dev/docs/guides/automations' target='_blank'>Read more</a>`"
+      :description="`Take instant action on your data. For example, set up Slack notifications for new contributors or set up a Webhook to trigger a workflow with Zapier or Make. <a href='https://docs.crowd.dev/docs/guides/automations' target='_blank'>Read more</a>`"
     />
 
     <!-- Add/Edit Webhook form drawer -->

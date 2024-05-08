@@ -85,6 +85,7 @@ export async function enrichMemberWithLFAuth0(member: IMember): Promise<void> {
 
     if (enrichmentGithub && enrichmentGithub.profileData) {
       if (
+        enrichmentGithub.profileData.nickname &&
         !member.identities.some(
           (i) =>
             i.type === MemberIdentityType.USERNAME &&
@@ -99,10 +100,13 @@ export async function enrichMemberWithLFAuth0(member: IMember): Promise<void> {
           verified: true,
         })
       }
+
       // also github profile might come with emails, check if these exist yet in the member
-      for (const githubEmail of (
-        enrichmentGithub.profileData as ILFIDEnrichmentGithubProfile
-      ).emails.filter((e) => e.verified)) {
+      const emailsFromGithubProfile = (
+        (enrichmentGithub.profileData as ILFIDEnrichmentGithubProfile)?.emails || []
+      ).filter((e) => e.verified)
+
+      for (const githubEmail of emailsFromGithubProfile) {
         if (
           !member.identities.some(
             (e) =>
@@ -211,9 +215,13 @@ export async function enrichMemberWithLFAuth0(member: IMember): Promise<void> {
 
     await syncMembersToOpensearch([member.id])
 
-    for (const memberToBeMerged of identitiesExistInOtherMembers) {
-      console.log(`${memberToBeMerged.memberId} will be merged with ${member.id}`)
-      await mergeMembers(member.id, memberToBeMerged.memberId, member.tenantId)
+    const memberIdsToBeMerged: string[] = [
+      ...new Set(identitiesExistInOtherMembers.map((item) => item.memberId)),
+    ]
+
+    for (const memberIdToBeMerged of memberIdsToBeMerged) {
+      console.log(`${memberIdToBeMerged} will be merged with ${member.id}`)
+      await mergeMembers(member.id, memberIdToBeMerged, member.tenantId)
     }
   }
 }
