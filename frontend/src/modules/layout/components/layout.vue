@@ -6,7 +6,7 @@
         <!-- Revert to "showBanner" when last banner is removed -->
         <div
           :class="{
-            'pt-14': showBanner,
+            'pt-14': true,
           }"
         >
           <banner
