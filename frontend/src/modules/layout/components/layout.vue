@@ -6,7 +6,7 @@
         <!-- Revert to "showBanner" when last banner is removed -->
         <div
           :class="{
-            'pt-14': showBanner,
+            'pt-14': true,
           }"
         >
           <banner
@@ -139,6 +139,12 @@
                 </el-button>
               </router-link>
             </div>
+          </banner>
+          <banner variant="danger">
+            <p class="text-sm text-center inline-flex w-full items-center justify-center flex-wrap">
+              <span>⚠️ <b>The crowd.dev SaaS will be shut down by 30 June 2024.</b>
+                We will be available to assist with any data migrations and other issues until that date.</span><span>Read more details in our <a href="https://www.crowd.dev/post/crowd-dev-acquired-by-the-linux-foundation" target="_blank" rel="noopener noreferrer">announcement</a>.</span>
+            </p>
           </banner>
         </div>
         <router-view />
