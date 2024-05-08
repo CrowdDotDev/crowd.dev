@@ -1,0 +1,32 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: search-sync-script-runner-dpl
+  labels:
+    force-reload: "true"
+spec:
+  selector:
+    matchLabels:
+      app: search-sync-worker
+      priority: normal
+  template:
+    metadata:
+      labels:
+        app: search-sync-worker
+        priority: normal
+    spec:
+      containers:
+        - name: search-sync-script-runner
+          image: liscioapps/sphere-search-sync-worker:1715042059.5c902283
+          workingDir: /usr/crowd/app/services/apps/search_sync_worker
+          command: ["pnpm"]
+          args: ["run", "script:sync-all-members", "--clean"]
+          envFrom:
+            - configMapRef:
+                name: backend-config
+          env:
+            - name: SERVICE
+              value: search-sync-worker
+            - name: QUEUE_PRIORITY_LEVEL
+              value: normal

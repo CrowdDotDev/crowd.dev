@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: search-sync-worker-normal
-          image: liscioapps/sphere-search-sync-worker:1714653574.368f50e1
+          image: liscioapps/sphere-search-sync-worker:1715042059.5c902283
           workingDir: /usr/crowd/app/services/apps/search_sync_worker
           command: ["pnpm"]
           args: ["run", "start"]
@@ -51,7 +51,7 @@ spec:
     spec:
       containers:
         - name: search-sync-worker-system
-          image: liscioapps/sphere-search-sync-worker:1714653574.368f50e1
+          image: liscioapps/sphere-search-sync-worker:1715042059.5c902283
           workingDir: /usr/crowd/app/services/apps/search_sync_worker
           command: ["pnpm"]
           args: ["run", "start"]
@@ -84,7 +84,7 @@ spec:
     spec:
       containers:
         - name: search-sync-worker-hight
-          image: liscioapps/sphere-search-sync-worker:1714653574.368f50e1
+          image: liscioapps/sphere-search-sync-worker:1715042059.5c902283
           workingDir: /usr/crowd/app/services/apps/search_sync_worker
           command: ["pnpm"]
           args: ["run", "start"]
@@ -117,7 +117,7 @@ spec:
     spec:
       containers:
         - name: search-sync-worker-urgent
-          image: liscioapps/sphere-search-sync-worker:1714653574.368f50e1
+          image: liscioapps/sphere-search-sync-worker:1715042059.5c902283
           workingDir: /usr/crowd/app/services/apps/search_sync_worker
           command: ["pnpm"]
           args: ["run", "start"]
