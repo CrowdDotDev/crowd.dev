@@ -233,24 +233,25 @@ export class OpenSearchService extends LoggerBase {
     const aliasExists = await this.doesAliasExist(aliasName)
     const aliasPointsToIndex = await this.doesAliasPointToIndex(indexNameWithVersion, aliasName)
 
+    // TODO: revert this and deploy database correctly
     // create index and alias if they don't exist (only in dev environment)
-    if (IS_DEV_ENV) {
-      if (!indexExists) {
-        this.log.info('Creating versioned index with settings and mappings!', {
-          indexNameWithVersion,
-        })
-        await this.createIndexWithVersion(indexName)
-      }
-
-      if (!aliasExists) {
-        this.log.info('Creating alias for index!', { indexNameWithVersion, aliasName })
-        await this.createAlias(indexNameWithVersion, aliasName)
-      }
-    } else {
-      if (!indexExists || !aliasExists || !aliasPointsToIndex) {
-        throw new Error('Index and alias are either missing or not properly configured!')
-      }
+    // if (IS_DEV_ENV) {
+    if (!indexExists) {
+      this.log.info('Creating versioned index with settings and mappings!', {
+        indexNameWithVersion,
+      })
+      await this.createIndexWithVersion(indexName)
     }
+
+    if (!aliasExists) {
+      this.log.info('Creating alias for index!', { indexNameWithVersion, aliasName })
+      await this.createAlias(indexNameWithVersion, aliasName)
+    }
+    // } else {
+    //   if (!indexExists || !aliasExists || !aliasPointsToIndex) {
+    //     throw new Error('Index and alias are either missing or not properly configured!')
+    //   }
+    // }
 
     // check if index and alias exist and alias points to the index
     if (indexExists && aliasExists && aliasPointsToIndex) {
