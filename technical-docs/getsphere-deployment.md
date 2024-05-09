@@ -111,12 +111,20 @@ To access Prometheus locally, run
 
 `kubectl port-forward svc/kube-prometheus-stack-prometheus 9090:9090 -n kube-prometheus-stack`
 
+or
+
+`kubectl port-forward --address 0.0.0.0 svc/kube-prometheus-stack-prometheus 9090:9090 -n kube-prometheus-stack`
+
 and then go to http://localhost:9090
 
 ### Grafana
 To access Grafana locally, run
 
 `kubectl port-forward svc/kube-prometheus-stack-grafana 3000:80 -n kube-prometheus-stack`
+
+or
+
+`kubectl port-forward --address 0.0.0.0 svc/kube-prometheus-stack-grafana 3000:80 -n kube-prometheus-stack`
 
 and then go to http://localhost:3000
 

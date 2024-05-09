@@ -343,22 +343,22 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: integration-run-worker-hight-dpl
+  name: integration-run-worker-high-dpl
   labels:
     force-reload: 'true'
 spec:
   selector:
     matchLabels:
       app: integration-run-worker
-      priority: hight
+      priority: high
   template:
     metadata:
       labels:
         app: integration-run-worker
-        priority: hight
+        priority: high
     spec:
       containers:
-        - name: integration-run-worker-hight
+        - name: integration-run-worker-high
           image: liscioapps/sphere-integration-run-worker:1714647258.7352cf6f
           workingDir: /usr/crowd/app/services/apps/integration_run_worker
           command: ['pnpm']
@@ -370,7 +370,7 @@ spec:
             - name: SERVICE
               value: integration-run-worker
             - name: QUEUE_PRIORITY_LEVEL
-              value: hight
+              value: high
 
 ---
 apiVersion: apps/v1
@@ -477,22 +477,22 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: integration-stream-worker-hight-dpl
+  name: integration-stream-worker-high-dpl
   labels:
     force-reload: 'true'
 spec:
   selector:
     matchLabels:
       app: integration-stream-worker
-      priority: hight
+      priority: high
   template:
     metadata:
       labels:
         app: integration-stream-worker
-        priority: hight
+        priority: high
     spec:
       containers:
-        - name: integration-stream-worker-hight
+        - name: integration-stream-worker-high
           image: liscioapps/sphere-integration-stream-worker:1714757978.e2fe998d
           workingDir: /usr/crowd/app/services/apps/integration_stream_worker
           command: ['pnpm']
@@ -504,7 +504,7 @@ spec:
             - name: SERVICE
               value: integration-stream-worker
             - name: QUEUE_PRIORITY_LEVEL
-              value: hight
+              value: high
 
 ---
 apiVersion: apps/v1
@@ -610,22 +610,22 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: integration-sync-worker-hight-dpl
+  name: integration-sync-worker-high-dpl
   labels:
     force-reload: 'true'
 spec:
   selector:
     matchLabels:
       app: integration-sync-worker
-      priority: hight
+      priority: high
   template:
     metadata:
       labels:
         app: integration-sync-worker
-        priority: hight
+        priority: high
     spec:
       containers:
-        - name: integration-sync-worker-hight
+        - name: integration-sync-worker-high
           image: liscioapps/sphere-integration-sync-worker:1714525295.2d0ae48d
           workingDir: /usr/crowd/app/services/apps/integration_sync_worker
           command: ['pnpm']
@@ -637,7 +637,7 @@ spec:
             - name: SERVICE
               value: integration-sync-worker
             - name: QUEUE_PRIORITY_LEVEL
-              value: hight
+              value: high
 
 
 ---

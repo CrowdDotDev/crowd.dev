@@ -927,6 +927,12 @@ alertmanager:
 grafana:
   enabled: true
   namespaceOverride: ""
+  persistence:
+    enabled: true
+    #storageClassName: "your-storage-class"
+    accessModes:
+      - ReadWriteOnce
+    size: 10Gi
 
   ## ForceDeployDatasources Create datasource configmap even if grafana deployment has been disabled
   ##

@@ -26,7 +26,6 @@ spec:
           env:
             - name: SERVICE
               value: nodejs-worker
-          env:
             - name: QUEUE_PRIORITY_LEVEL
               value: normal
 
@@ -59,7 +58,6 @@ spec:
           env:
             - name: SERVICE
               value: nodejs-worker
-          env:
             - name: QUEUE_PRIORITY_LEVEL
               value: system
 
@@ -67,20 +65,20 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nodejs-worker-hight-dpl
+  name: nodejs-worker-high-dpl
 spec:
   selector:
     matchLabels:
       app: nodejs-worker
-      priority: hight
+      priority: high
   template:
     metadata:
       labels:
         app: nodejs-worker
-        priority: hight
+        priority: high
     spec:
       containers:
-        - name: nodejs-worker-hight
+        - name: nodejs-worker-high
           image: liscioapps/sphere-backend:1714762035.72509745
           workingDir: /usr/crowd/app/backend
           command: ['npm']
@@ -91,9 +89,8 @@ spec:
           env:
             - name: SERVICE
               value: nodejs-worker
-          env:
             - name: QUEUE_PRIORITY_LEVEL
-              value: hight
+              value: high
 
 ---
 apiVersion: apps/v1
@@ -123,6 +120,5 @@ spec:
           env:
             - name: SERVICE
               value: nodejs-worker
-          env:
             - name: QUEUE_PRIORITY_LEVEL
               value: urgent
