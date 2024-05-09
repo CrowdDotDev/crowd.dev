@@ -5,16 +5,17 @@ metadata:
   name: opensearch-pvc
 spec:
   accessModes:
-    - ReadWriteOncePod
+    - ReadWriteOnce
+  volumeMode: Filesystem
   resources:
     requests:
       storage: 10Gi
 
 ---
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
-  name: opensearch-dpl
+  name: opensearch-set
 spec:
   selector:
     matchLabels:
@@ -24,34 +25,31 @@ spec:
       labels:
         app: opensearch
     spec:
-      securityContext:
-        fsGroup: 1000
-        runAsUser: 1000
       volumes:
-      - name: opensearch-data
-        persistentVolumeClaim:
-          claimName: opensearch-pvc
+        - name: opensearch-data
+          persistentVolumeClaim:
+            claimName: opensearch-pvc
       initContainers:
         - name: check-permissions
           image: busybox
-          command: ['sh', '-c', 'ls -l /usr/share/opensearch/data && id']
+          command: ["/bin/chown", "1000", "/usr/share/opensearch/data"]
           volumeMounts:
-          - name: opensearch-data
-            mountPath: /usr/share/opensearch/data
+            - name: opensearch-data
+              mountPath: /usr/share/opensearch/data
       containers:
         - name: opensearch
           image: opensearchproject/opensearch:2.7.0
           env:
             - name: discovery.type
-              value: 'single-node'
+              value: "single-node"
             - name: bootstrap.memory_lock
-              value: 'true'
+              value: "true"
             - name: DISABLE_INSTALL_DEMO_CONFIG
-              value: 'true'
+              value: "true"
             - name: DISABLE_SECURITY_PLUGIN
-              value: 'true'
+              value: "true"
             - name: cluster.routing.allocation.disk.threshold_enabled
-              value: 'false'
+              value: "false"
           ports:
             - containerPort: 9200
               name: http
@@ -67,7 +65,6 @@ spec:
             requests:
               cpu: "1"
               memory: "3Gi"
-
 # Missing from test config
   # ulimits:
   #   memlock:
