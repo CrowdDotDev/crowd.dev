@@ -18,23 +18,8 @@ export async function mergeMembers(
   }
 
   try {
-    const response = await axios(url, requestOptions)
-
-    // Axios throws an error for bad status codes, so this check is technically redundant
-    if (response.status === 404) {
-      console.log('Failed finding member while merging. Skipping!')
-    } else if (response.status === 500) {
-      throw new Error(`Failed to merge member ${primaryMemberId} with ${secondaryMemberId}!`)
-    }
+    await axios(url, requestOptions)
   } catch (error) {
-    console.log(error.response.status)
-    console.error('Error during member merge:', error.message)
-    if (error.response.status === 404) {
-      console.log('Failed finding member while merging. Skipping!')
-    } else {
-      throw new Error(
-        `Failed to merge member ${primaryMemberId} with ${secondaryMemberId}! Error: ${error.message}`,
-      )
-    }
+    console.log(`Failed merging member wit status [${error.response.status}]. Skipping!`)
   }
 }
