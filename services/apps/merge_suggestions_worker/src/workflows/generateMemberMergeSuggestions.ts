@@ -1,5 +1,5 @@
 import { proxyActivities, continueAsNew } from '@temporalio/workflow'
-import * as activities from '../activities/member-merge-suggestions/getMergeSuggestions'
+import * as activities from '../activities/memberMergeSuggestions'
 
 import { IMemberMergeSuggestion, IProcessGenerateMemberMergeSuggestionsArgs } from '@crowd/types'
 import { IMemberPartialAggregatesOpensearch } from '../types'
@@ -10,8 +10,8 @@ const activity = proxyActivities<typeof activities>({ startToCloseTimeout: '1 mi
 export async function generateMemberMergeSuggestions(
   args: IProcessGenerateMemberMergeSuggestionsArgs,
 ): Promise<void> {
-  const PAGE_SIZE = 1000
-  const PARALLEL_SUGGESTION_PROCESSING = 250
+  const PAGE_SIZE = 50
+  const PARALLEL_SUGGESTION_PROCESSING = 10
 
   let lastUuid: string = args.lastUuid || null
 
@@ -38,7 +38,7 @@ export async function generateMemberMergeSuggestions(
 
   for (const chunk of promiseChunks) {
     const mergeSuggestionsPromises: Promise<IMemberMergeSuggestion[]>[] = chunk.map((member) =>
-      activity.getMergeSuggestions(args.tenantId, member),
+      activity.getMemberMergeSuggestions(args.tenantId, member),
     )
 
     const mergeSuggestionsResults: IMemberMergeSuggestion[][] = await Promise.all(
@@ -49,7 +49,7 @@ export async function generateMemberMergeSuggestions(
 
   // Add all merge suggestions to add to merge
   if (allMergeSuggestions.length > 0) {
-    await activity.addToMerge(allMergeSuggestions)
+    await activity.addMemberToMerge(allMergeSuggestions)
   }
 
   await continueAsNew<typeof generateMemberMergeSuggestions>({ tenantId: args.tenantId, lastUuid })

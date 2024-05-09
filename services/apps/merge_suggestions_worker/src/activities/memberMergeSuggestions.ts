@@ -4,11 +4,11 @@ import {
   IMemberPartialAggregatesOpensearchRawResult,
   IMemberQueryBody,
   ISimilarMemberOpensearch,
-} from '../../types'
-import { svc } from '../../main'
+} from '../types'
+import { svc } from '../main'
 import { IMemberMergeSuggestion, OpenSearchIndex } from '@crowd/types'
-import { calculateSimilarity } from '../../utils'
 import MemberMergeSuggestionsRepository from '@crowd/data-access-layer/src/old/apps/merge_suggestions_worker/memberMergeSuggestions.repo'
+import MemberSimilarityCalculator from '../memberSimilarityCalculator'
 
 /**
  * Finds similar members of given member in a tenant
@@ -21,10 +21,11 @@ import MemberMergeSuggestionsRepository from '@crowd/data-access-layer/src/old/a
  * @returns similar members in an array with calculated similarity score and activityEstimate
  * Activity estimate is calculated by adding activity counts of both members
  */
-export async function getMergeSuggestions(
+export async function getMemberMergeSuggestions(
   tenantId: string,
   member: IMemberPartialAggregatesOpensearch,
 ): Promise<IMemberMergeSuggestion[]> {
+  const SIMILARITY_CONFIDENCE_SCORE_THRESHOLD = 0.5
   const mergeSuggestions: IMemberMergeSuggestion[] = []
   const memberMergeSuggestionsRepo = new MemberMergeSuggestionsRepository(
     svc.postgres.writer.connection(),
@@ -72,7 +73,7 @@ export async function getMergeSuggestions(
 
     // prevent processing more than 200 identities because of opensearch limits
     for (const identity of member.nested_identities.slice(0, 200)) {
-      if (identity.keyword_value.length > 0) {
+      if (identity.keyword_value && identity.keyword_value.length > 0) {
         // For verified identities (either email or username)
         // 1. Exact search the identity in other unverified identities
         // 2. Fuzzy search the identity in other verified identities
@@ -111,11 +112,6 @@ export async function getMergeSuggestions(
                         prefix_length: 1,
                         fuzziness: 'auto',
                       },
-                    },
-                  },
-                  {
-                    term: {
-                      [`nested_identities.bool_verified`]: true,
                     },
                   },
                 ],
@@ -165,7 +161,14 @@ export async function getMergeSuggestions(
     collapse: {
       field: 'uuid_memberId',
     },
-    _source: ['uuid_memberId', 'keyword_displayName', 'int_activityCount', 'nested_identities'],
+    _source: [
+      'uuid_memberId',
+      'keyword_displayName',
+      'int_activityCount',
+      'nested_identities',
+      'obj_attributes',
+      'nested_organizations',
+    ],
   }
 
   let membersToMerge: ISimilarMemberOpensearch[]
@@ -187,18 +190,41 @@ export async function getMergeSuggestions(
   }
 
   for (const memberToMerge of membersToMerge) {
-    mergeSuggestions.push({
-      similarity: calculateSimilarity(member, memberToMerge._source),
-      activityEstimate:
-        (memberToMerge._source.int_activityCount || 0) + (member.int_activityCount || 0),
-      members: [member.uuid_memberId, memberToMerge._source.uuid_memberId],
-    })
+    const similarityConfidenceScore = MemberSimilarityCalculator.calculateSimilarity(
+      member,
+      memberToMerge._source,
+    )
+    if (similarityConfidenceScore > SIMILARITY_CONFIDENCE_SCORE_THRESHOLD) {
+      // decide the primary member using number of activities & number of identities
+      const membersSorted = [member, memberToMerge._source].sort((a, b) => {
+        if (
+          a.nested_identities.length > b.nested_identities.length ||
+          (a.nested_identities.length === b.nested_identities.length &&
+            a.int_activityCount > b.int_activityCount)
+        ) {
+          return -1
+        } else if (
+          a.nested_identities.length < b.nested_identities.length ||
+          (a.nested_identities.length === b.nested_identities.length &&
+            a.int_activityCount < b.int_activityCount)
+        ) {
+          return 1
+        }
+        return 0
+      })
+      mergeSuggestions.push({
+        similarity: similarityConfidenceScore,
+        activityEstimate:
+          (memberToMerge._source.int_activityCount || 0) + (member.int_activityCount || 0),
+        members: [membersSorted[0].uuid_memberId, membersSorted[1].uuid_memberId],
+      })
+    }
   }
 
   return mergeSuggestions
 }
 
-export async function addToMerge(suggestions: IMemberMergeSuggestion[]): Promise<void> {
+export async function addMemberToMerge(suggestions: IMemberMergeSuggestion[]): Promise<void> {
   const memberMergeSuggestionsRepo = new MemberMergeSuggestionsRepository(
     svc.postgres.writer.connection(),
     svc.log,
@@ -260,6 +286,9 @@ export async function getMembers(
         'string_arr_unverifiedEmails',
         'string_arr_verifiedUsernames',
         'string_arr_unverifiedUsernames',
+        'nested_identities',
+        'obj_attributes',
+        'nested_organizations',
       ],
     }
 

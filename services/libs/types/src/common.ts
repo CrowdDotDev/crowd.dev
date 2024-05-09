@@ -27,3 +27,8 @@ export enum AuthProvider {
   GOOGLE = 'google',
   GITHUB = 'github',
 }
+
+export enum SuggestionType {
+  MEMBERS = 'members',
+  ORGANIZATIONS = 'organizations',
+}
