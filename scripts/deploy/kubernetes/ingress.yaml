@@ -19,6 +19,7 @@ spec:
     - hosts:
         - app.getsphere.dev
         - nango.getsphere.dev
+        - search.getsphere.dev
       secretName: letsencrypt-issuer
   rules:
     - host: app.getsphere.dev
@@ -76,6 +77,16 @@ spec:
                 name: nango-svc
                 port:
                   number: 3003
+    - host: search.getsphere.dev
+      http:
+        paths:
+          - path: /()(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: search-dashboard-svc
+                port:
+                  number: 5601
 
 ---
 apiVersion: v1

@@ -89,3 +89,45 @@ spec:
     - port: 9600
       targetPort: 9600
       name: transport
+
+
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opensearch-dashboard-dpl
+spec:
+  selector:
+    matchLabels:
+      app: opensearch-dashboard
+  template:
+    metadata:
+      labels:
+        app: opensearch-dashboard
+    spec:
+      containers:
+        - name: opensearch-dashboard
+          image: opensearchproject/opensearch-dashboards:2.7.0
+          env:
+            - name: DISABLE_SECURITY_DASHBOARDS_PLUGIN
+              value: "true"
+            - name: OPENSEARCH_HOSTS
+              value: '["http://search-engine-svc:9200"]'
+          ports:
+            - containerPort: 5601
+
+
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: search-dashboard-svc
+spec:
+  type: ClusterIP
+  selector:
+    app: opensearch-dashboard
+  ports:
+    - port: 5601
+      targetPort: 5601
