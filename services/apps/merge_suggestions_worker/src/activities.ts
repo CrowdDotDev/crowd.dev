@@ -1,17 +1,30 @@
-import { getAllTenants } from './activities/getAllTenants'
+import { getAllTenants } from './activities/common'
 import {
-  getMergeSuggestions,
-  addToMerge,
+  getMemberMergeSuggestions,
+  addMemberToMerge,
   getMembers,
   findTenantsLatestMemberSuggestionGeneratedAt,
   updateMemberMergeSuggestionsLastGeneratedAt,
-} from './activities/member-merge-suggestions/getMergeSuggestions'
+} from './activities/memberMergeSuggestions'
+
+import {
+  getOrganizations,
+  getOrganizationMergeSuggestions,
+  findTenantsLatestOrganizationSuggestionGeneratedAt,
+  updateOrganizationMergeSuggestionsLastGeneratedAt,
+  addOrganizationToMerge,
+} from './activities/organizationMergeSuggestions'
 
 export {
   getAllTenants,
-  getMergeSuggestions,
+  getMemberMergeSuggestions,
   getMembers,
-  addToMerge,
+  addMemberToMerge,
   findTenantsLatestMemberSuggestionGeneratedAt,
   updateMemberMergeSuggestionsLastGeneratedAt,
+  getOrganizations,
+  getOrganizationMergeSuggestions,
+  findTenantsLatestOrganizationSuggestionGeneratedAt,
+  updateOrganizationMergeSuggestionsLastGeneratedAt,
+  addOrganizationToMerge,
 }

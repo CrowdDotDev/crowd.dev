@@ -6,12 +6,12 @@ import {
   workflowInfo,
 } from '@temporalio/workflow'
 
-import * as activities from '../activities/getAllTenants'
+import * as activities from '../activities/common'
 import { generateMemberMergeSuggestions } from './generateMemberMergeSuggestions'
 
 const activity = proxyActivities<typeof activities>({ startToCloseTimeout: '1 minute' })
 
-export async function spawnSuggestionsForAllTenants(): Promise<void> {
+export async function spawnMemberMergeSuggestionsForAllTenants(): Promise<void> {
   const tenants = await activity.getAllTenants()
   const info = workflowInfo()
   await Promise.all(
