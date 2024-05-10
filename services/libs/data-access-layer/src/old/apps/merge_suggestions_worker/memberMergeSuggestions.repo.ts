@@ -198,8 +198,8 @@ class MemberMergeSuggestionsRepository {
         select mem.attributes,
         mem."displayName",
         mem."joinedAt",
-        jsonb_agg(mI)            as identities,
-        jsonb_agg(organizations) as organizations
+        jsonb_agg(distinct mI)            as identities,
+        jsonb_agg(distinct organizations) as organizations
  from members mem
           join "memberIdentities" mI on mem.id = mI."memberId"
           join "memberOrganizations" mo on mem.id = mo."memberId"
