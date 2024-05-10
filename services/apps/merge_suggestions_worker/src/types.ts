@@ -181,3 +181,24 @@ export interface IOrganizationQueryBody {
   }
   _source: string[]
 }
+
+export interface ILLMResult {
+  generation: string
+  prompt_token_count: number
+  generation_token_count: number
+  stop_reason: string
+}
+
+export interface IProcessGenerateMemberMergeSuggestionsArgs {
+  tenantId: string
+  lastUuid?: string
+}
+
+export interface IProcessGenerateOrganizationMergeSuggestionsArgs {
+  tenantId: string
+  lastUuid?: string
+}
+
+export interface IProcessCheckMemberSimilarityWithLLM {
+  memberCouples: string[][]
+}

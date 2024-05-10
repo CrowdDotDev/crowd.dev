@@ -131,3 +131,18 @@ export interface IMemberRenderFriendlyRole {
   displayName: string
   memberOrganizations: IMemberOrganization
 }
+
+export interface ILLMConsumableMember {
+  displayName: string
+  attributes: IAttributes
+  joinedAt: string
+  identities: IMemberIdentity[]
+  organizations: {
+    logo: string
+    displayName: string
+    title: string
+    dateStart: string
+    dateEnd: string
+    memberId: string
+  }[]
+}

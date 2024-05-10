@@ -1,6 +1,6 @@
 import { DbConnection, DbTransaction } from '@crowd/database'
 import { Logger } from '@crowd/logging'
-import { IMemberMergeSuggestion, SuggestionType } from '@crowd/types'
+import { ILLMConsumableMember, IMemberMergeSuggestion, SuggestionType } from '@crowd/types'
 import { IMemberId, IMemberMergeSuggestionsLatestGeneratedAt, IMemberNoMerge } from './types'
 import { removeDuplicateSuggestions, chunkArray } from './utils'
 
@@ -188,6 +188,35 @@ class MemberMergeSuggestionsRepository {
     } catch (error) {
       this.log.error('Error while getting non existing members from db', error)
       throw error
+    }
+  }
+
+  async getMembers(memberIds: string[]): Promise<ILLMConsumableMember[]> {
+    try {
+      const result: ILLMConsumableMember[] = await this.connection.oneOrNone(
+        `
+        select mem.attributes,
+        mem."displayName",
+        mem."joinedAt",
+        jsonb_agg(mI)            as identities,
+        jsonb_agg(organizations) as organizations
+ from members mem
+          join "memberIdentities" mI on mem.id = mI."memberId"
+          join "memberOrganizations" mo on mem.id = mo."memberId"
+          join (select o."displayName", o.logo, mox."dateStart", mox."dateEnd", mox.title, mox."memberId"
+                from "memberOrganizations" mox
+                         join organizations o on mox."organizationId" = o.id) as organizations
+               on organizations."memberId" = mo."memberId"
+ where mem.id in ($(memberIds:csv))
+ group by mI."memberId", mem.attributes, mem."displayName", mem."joinedAt";`,
+        {
+          memberIds,
+        },
+      )
+
+      return result || []
+    } catch (err) {
+      throw new Error(err)
     }
   }
 }

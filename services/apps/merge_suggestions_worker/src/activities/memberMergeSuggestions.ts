@@ -6,9 +6,11 @@ import {
   ISimilarMemberOpensearch,
 } from '../types'
 import { svc } from '../main'
-import { IMemberMergeSuggestion, OpenSearchIndex } from '@crowd/types'
+import { ILLMConsumableMember, IMemberMergeSuggestion, OpenSearchIndex } from '@crowd/types'
 import MemberMergeSuggestionsRepository from '@crowd/data-access-layer/src/old/apps/merge_suggestions_worker/memberMergeSuggestions.repo'
 import MemberSimilarityCalculator from '../memberSimilarityCalculator'
+import { BedrockRuntimeClient, InvokeModelCommand } from '@aws-sdk/client-bedrock-runtime'
+import { logExecutionTime } from '@crowd/logging'
 
 /**
  * Finds similar members of given member in a tenant
@@ -324,4 +326,49 @@ export async function getMembers(
   } catch (err) {
     throw new Error(err)
   }
+}
+
+export async function getLLMResult(members: ILLMConsumableMember[]): Promise<string> {
+  if (members.length !== 2) {
+    throw new Error('Exactly 2 members are required for LLM comparison')
+  }
+  const client = new BedrockRuntimeClient({
+    credentials: {
+      accessKeyId: process.env['CROWD_AWS_BEDROCK_ACCESS_KEY_ID'],
+      secretAccessKey: process.env['CROWD_AWS_BEDROCK_SECRET_ACCESS_KEY'],
+    },
+    region: process.env['CROWD_AWS_BEDROCK_REGION'],
+  })
+
+  const promptPrologue = `[INST] ${JSON.stringify(members)} [/INST]
+  
+  You are comparing these two members. You will try to find if these are the same person or not.
+  Payloads might differentiate slightly between different profiles of the same person. 
+  Please compare and come up with a boolean answer if these two members are the same person or not. Print "true" if they are the same person, "false" otherwise. No explanation required. Don't print anything else.`
+
+  const command = new InvokeModelCommand({
+    body: JSON.stringify({
+      prompt: promptPrologue,
+      max_gen_len: 512,
+      temperature: 0.5,
+      top_p: 0.9,
+    }),
+    modelId: 'meta.llama3-70b-instruct-v1:0',
+    accept: 'application/json',
+    contentType: 'application/json',
+  })
+
+  const res = await logExecutionTime(async () => client.send(command), svc.log, 'llm-invoke-model')
+
+  return res.body.transformToString()
+}
+
+export async function getMembersForLLMConsumption(
+  memberIds: string[],
+): Promise<ILLMConsumableMember[]> {
+  const memberMergeSuggestionsRepo = new MemberMergeSuggestionsRepository(
+    svc.postgres.writer.connection(),
+    svc.log,
+  )
+  return memberMergeSuggestionsRepo.getMembers(memberIds)
 }

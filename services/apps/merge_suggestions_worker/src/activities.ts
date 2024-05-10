@@ -5,6 +5,8 @@ import {
   getMembers,
   findTenantsLatestMemberSuggestionGeneratedAt,
   updateMemberMergeSuggestionsLastGeneratedAt,
+  getLLMResult,
+  getMembersForLLMConsumption,
 } from './activities/memberMergeSuggestions'
 
 import {
@@ -27,4 +29,6 @@ export {
   findTenantsLatestOrganizationSuggestionGeneratedAt,
   updateOrganizationMergeSuggestionsLastGeneratedAt,
   addOrganizationToMerge,
+  getLLMResult,
+  getMembersForLLMConsumption,
 }
