@@ -1,4 +1,8 @@
-import { IOrganizationMergeSuggestion, OpenSearchIndex, OrganizationMergeSuggestionTable } from '@crowd/types'
+import {
+  IOrganizationMergeSuggestion,
+  OpenSearchIndex,
+  OrganizationMergeSuggestionTable,
+} from '@crowd/types'
 import { svc } from '../main'
 
 import {
