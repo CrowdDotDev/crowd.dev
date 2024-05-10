@@ -346,6 +346,8 @@ export async function getLLMResult(members: ILLMConsumableMember[]): Promise<str
   Payloads might differentiate slightly between different profiles of the same person. 
   Please compare and come up with a boolean answer if these two members are the same person or not. Print "true" if they are the same person, "false" otherwise. No explanation required. Don't print anything else.`
 
+  console.log('Prompt:', promptPrologue)
+
   const command = new InvokeModelCommand({
     body: JSON.stringify({
       prompt: promptPrologue,
