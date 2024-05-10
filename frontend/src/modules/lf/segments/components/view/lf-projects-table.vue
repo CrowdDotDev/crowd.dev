@@ -142,7 +142,7 @@
           <app-lf-projects-dropdown
             :id="project.id"
             @on-edit-project="emit('onEditProject', project.id)"
-            @on-add-sub-project="emit('onAddSubProject', project.slug)"
+            @on-add-sub-project="emit('onAddSubProject', project)"
           />
         </div>
       </template>
@@ -171,7 +171,7 @@
 
     <template v-if="project.subprojects?.length && (hasPermission(LfPermission.subProjectCreate) && hasAccessToSegmentId(project.id))" #append>
       <div class="w-full flex justify-start p-6">
-        <el-button class="btn btn-link btn-link--primary" @click="emit('onAddSubProject', project.slug)">
+        <el-button class="btn btn-link btn-link--primary" @click="emit('onAddSubProject', project)">
           + Add sub-project
         </el-button>
       </div>
@@ -179,7 +179,7 @@
 
     <template v-if="(hasPermission(LfPermission.subProjectCreate) && hasAccessToSegmentId(project.id))" #empty>
       <div class="w-full flex justify-start p-6">
-        <el-button class="btn btn-link btn-link--primary" @click="emit('onAddSubProject', project.slug)">
+        <el-button class="btn btn-link btn-link--primary" @click="emit('onAddSubProject', project)">
           + Add sub-project
         </el-button>
       </div>

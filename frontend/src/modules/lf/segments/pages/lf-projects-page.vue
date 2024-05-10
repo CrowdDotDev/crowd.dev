@@ -117,6 +117,7 @@
       :parent-slug="projectForm.slug"
       :parent-id="projectForm.id"
       :grandparent-slug="projectGroupForm.slug"
+      :grandparent-id="projectGroupForm.id"
     />
   </app-page-wrapper>
 </template>
@@ -192,9 +193,10 @@ const onEditSubProject = (id, parentSlug) => {
   isSubProjectFormDrawerOpen.value = true;
 };
 
-const onAddSubProject = (parentSlug) => {
+const onAddSubProject = ({ slug, id }) => {
   subProjectForm.id = null;
-  projectForm.slug = parentSlug;
+  projectForm.id = id;
+  projectForm.slug = slug;
   isSubProjectFormDrawerOpen.value = true;
 };
 
