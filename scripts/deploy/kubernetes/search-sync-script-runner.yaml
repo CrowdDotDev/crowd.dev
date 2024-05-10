@@ -18,10 +18,10 @@ spec:
     spec:
       containers:
         - name: search-sync-script-runner
-          image: liscioapps/sphere-search-sync-worker:1715042059.5c902283
+          image: liscioapps/sphere-search-sync-worker:1715324917.eece5234
           workingDir: /usr/crowd/app/services/apps/search_sync_worker
           command: ["pnpm"]
-          args: ["run", "script:sync-all-members", "--clean"]
+          args: ["run", "script:sync-all-organizations", "--clean"]
           envFrom:
             - configMapRef:
                 name: backend-config

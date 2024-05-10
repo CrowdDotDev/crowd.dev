@@ -69,8 +69,8 @@ spec:
     - host: nango.getsphere.dev
       http:
         paths:
-          - path: /
-            pathType: Prefix
+          - path: /()(.*)
+            pathType: ImplementationSpecific
             backend:
               service:
                 name: nango-svc

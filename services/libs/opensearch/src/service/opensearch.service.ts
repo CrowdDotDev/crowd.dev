@@ -44,8 +44,8 @@ export class OpenSearchService extends LoggerBase {
       this.client = new Client({
         node: this.config.node,
         ssl: {
-          rejectUnauthorized: false
-        }
+          rejectUnauthorized: false,
+        },
       })
     }
   }
@@ -238,23 +238,23 @@ export class OpenSearchService extends LoggerBase {
 
     // TODO: revert this and deploy database correctly
     // create index and alias if they don't exist (only in dev environment)
-    // if (IS_DEV_ENV) {
-    if (!indexExists) {
-      this.log.info('Creating versioned index with settings and mappings!', {
-        indexNameWithVersion,
-      })
-      await this.createIndexWithVersion(indexName)
-    }
+    if (IS_DEV_ENV) {
+      if (!indexExists) {
+        this.log.info('Creating versioned index with settings and mappings!', {
+          indexNameWithVersion,
+        })
+        await this.createIndexWithVersion(indexName)
+      }
 
-    if (!aliasExists) {
-      this.log.info('Creating alias for index!', { indexNameWithVersion, aliasName })
-      await this.createAlias(indexNameWithVersion, aliasName)
+      if (!aliasExists) {
+        this.log.info('Creating alias for index!', { indexNameWithVersion, aliasName })
+        await this.createAlias(indexNameWithVersion, aliasName)
+      }
+    } else {
+      if (!indexExists || !aliasExists || !aliasPointsToIndex) {
+        throw new Error('Index and alias are either missing or not properly configured!')
+      }
     }
-    // } else {
-    //   if (!indexExists || !aliasExists || !aliasPointsToIndex) {
-    //     throw new Error('Index and alias are either missing or not properly configured!')
-    //   }
-    // }
 
     // check if index and alias exist and alias points to the index
     if (indexExists && aliasExists && aliasPointsToIndex) {
