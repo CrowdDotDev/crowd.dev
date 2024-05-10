@@ -4,7 +4,7 @@ import { Kafka, Producer as KafkaProducer } from 'kafkajs'
 import pgpromise from 'pg-promise'
 
 import { getEnv } from '@crowd/common'
-import { getClientSQL, getClientILP } from '@crowd/questdb'
+import { getClientSQL } from '@crowd/questdb'
 import { Unleash as UnleashClient, getUnleashClient } from '@crowd/feature-flags'
 import { IIntegrationDescriptor, INTEGRATION_SERVICES } from '@crowd/integrations'
 import { Logger, getServiceLogger } from '@crowd/logging'
@@ -283,19 +283,6 @@ export class Service {
     if (this.config.questdb?.enabled) {
       try {
         this._questdbSQL = await getClientSQL()
-      } catch (err) {
-        throw new Error(err)
-      }
-
-      try {
-        this._questdbILP = getClientILP()
-        await this._questdbILP.connect(
-          {
-            host: process.env['CROWD_QUESTDB_WRITE_HOST'],
-            port: Number(process.env['CROWD_QUESTDB_WRITE_PORT']),
-          },
-          getEnv() === 'local' ? false : true,
-        )
       } catch (err) {
         throw new Error(err)
       }

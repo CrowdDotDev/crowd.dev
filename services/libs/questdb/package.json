@@ -10,7 +10,7 @@
   "dependencies": {
     "@crowd/common": "workspace:*",
     "@crowd/logging": "workspace:*",
-    "@questdb/nodejs-client": "~2.1.0",
+    "@questdb/nodejs-client": "~3.0.0",
     "pg-promise": "^11.4.3"
   },
   "devDependencies": {

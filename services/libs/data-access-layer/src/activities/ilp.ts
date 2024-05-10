@@ -137,7 +137,7 @@ export async function insertActivities(activities: IDbActivityCreateData[]): Pro
       row.stringColumn('updatedById', activity.updatedById)
     }
 
-    row.at(activity.timestamp ? new Date(activity.timestamp).getTime() : now, 'ms')
+    await row.at(activity.timestamp ? new Date(activity.timestamp).getTime() : now, 'ms')
   }
 
   await ilp.flush()

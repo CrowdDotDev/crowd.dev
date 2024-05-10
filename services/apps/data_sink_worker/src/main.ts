@@ -6,11 +6,10 @@ import {
   NodejsWorkerEmitter,
 } from '@crowd/common_services'
 import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
-import { getEnv } from '@crowd/common'
 import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
 import { getSqsClient } from '@crowd/sqs'
-import { getClientILP, getClientSQL } from '@crowd/questdb'
+import { getClientSQL } from '@crowd/questdb'
 import {
   DB_CONFIG,
   SQS_CONFIG,
@@ -44,14 +43,6 @@ setImmediate(async () => {
 
   const dbConnection = await getDbConnection(DB_CONFIG(), MAX_CONCURRENT_PROCESSING)
   const qdbConnection = await getClientSQL()
-
-  await getClientILP().connect(
-    {
-      host: process.env['CROWD_QUESTDB_WRITE_HOST'],
-      port: Number(process.env['CROWD_QUESTDB_WRITE_PORT']),
-    },
-    getEnv() === 'local' ? false : true,
-  )
 
   const redisClient = await getRedisClient(REDIS_CONFIG())
 

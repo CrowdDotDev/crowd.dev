@@ -1,4 +1,4 @@
-import { distinct, getCleanString, processPaginated, timeout } from '@crowd/common'
+import { distinct, getCleanString, processPaginated } from '@crowd/common'
 import {
   doesConversationWithSlugExists,
   getActivitiesById,
@@ -30,7 +30,7 @@ export class ConversationService extends LoggerBase {
     segmentId: string,
     id: string,
   ): Promise<IDbConversation> {
-    const conversation = await getConversationById(this.pgStore.connection(), id, tenantId, [
+    const conversation = await getConversationById(this.qdbStore.connection(), id, tenantId, [
       segmentId,
     ])
 
@@ -121,8 +121,6 @@ export class ConversationService extends LoggerBase {
     segmentId: string,
     activityId: string,
   ): Promise<string[]> {
-    // TODO questdb remove and find out about why activities are not found immediately after insertion...
-    await timeout(1000)
     this.log.debug({ activityId }, 'Processing activity')
     let results = await getActivitiesById(this.qdbStore.connection(), [activityId])
 
