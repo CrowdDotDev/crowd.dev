@@ -55,6 +55,7 @@ import { ActivityService } from '@/modules/activity/activity-service';
 import Message from '@/shared/message/message';
 import { i18n } from '@/i18n';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 
 const emit = defineEmits(['onUpdate', 'edit']);
 const props = defineProps({

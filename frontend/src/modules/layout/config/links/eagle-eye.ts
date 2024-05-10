@@ -11,7 +11,6 @@ const eagleEye: MenuLink = {
     const { hasPermission } = usePermissions();
     return hasPermission(LfPermission.eagleEyeRead);
   },
-  disable: () => false,
 };
 
 export default eagleEye;

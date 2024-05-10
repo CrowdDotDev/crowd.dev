@@ -1,5 +1,7 @@
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { useAuthStore } from '@/modules/auth/store/auth.store';
+import Message from '@/shared/message/message';
 
 /**
  * Segment Guard
@@ -18,6 +20,9 @@ export default async function ({ to, store, router }) {
     return;
   }
 
+  const { ensureLoaded } = useAuthStore();
+  await ensureLoaded();
+
   const lsSegmentsStore = useLfSegmentsStore();
 
   const { hasAccessToProjectGroup, hasAccessToSegmentId } = usePermissions();
@@ -33,6 +38,7 @@ export default async function ({ to, store, router }) {
   }
 
   if (!hasPermission) {
-    router.push('/403');
+    Message.error('You don\'t have access to this page');
+    router.push('/');
   }
 }

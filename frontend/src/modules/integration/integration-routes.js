@@ -26,7 +26,7 @@ export default [
           auth: true,
         },
         beforeEnter: [
-          PermissionGuard(LfPermission.activityRead),
+          PermissionGuard(LfPermission.integrationRead),
           (to, from, next) => {
             const segmentId = localStorage.getItem('segmentId');
             const segmentGrandparentId = localStorage.getItem('segmentGrandparentId');

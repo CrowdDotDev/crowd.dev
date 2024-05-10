@@ -13,7 +13,6 @@ const usersPermissions: MenuLink = {
     const { hasPermission } = usePermissions();
     return hasPermission(LfPermission.settingsEdit);
   },
-  disable: () => false,
 };
 
 export default usersPermissions;

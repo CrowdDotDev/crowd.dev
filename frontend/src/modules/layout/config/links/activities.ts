@@ -11,7 +11,6 @@ const activities: MenuLink = {
     const { hasPermission } = usePermissions();
     return hasPermission(LfPermission.activityRead);
   },
-  disable: () => false,
 };
 
 export default activities;

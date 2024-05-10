@@ -21,7 +21,7 @@ export default function usePermissions() {
     if (roles.value.includes(LfRole.admin)) {
       return true;
     }
-    if (!tenantUser.value.adminSegments.length) {
+    if (!tenantUser.value?.adminSegments.length) {
       return false;
     }
     return adminProjectGroups.value.list
@@ -33,7 +33,7 @@ export default function usePermissions() {
     if (roles.value.includes(LfRole.admin)) {
       return true;
     }
-    return tenantUser.value.adminSegments.includes(segmentId);
+    return tenantUser.value?.adminSegments.includes(segmentId);
   };
 
   return {

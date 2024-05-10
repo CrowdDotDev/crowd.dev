@@ -11,7 +11,6 @@ const contacts: MenuLink = {
     const { hasPermission } = usePermissions();
     return hasPermission(LfPermission.memberRead);
   },
-  disable: () => false,
 };
 
 export default contacts;

@@ -169,7 +169,7 @@
       </template>
     </el-table-column>
 
-    <template v-if="project.subprojects?.length && (hasPerm && hasAccessToSegmentId(project.id))" #append>
+    <template v-if="project.subprojects?.length && (hasPermission(LfPermission.subProjectCreate) && hasAccessToSegmentId(project.id))" #append>
       <div class="w-full flex justify-start p-6">
         <el-button class="btn btn-link btn-link--primary" @click="emit('onAddSubProject', project.slug)">
           + Add sub-project

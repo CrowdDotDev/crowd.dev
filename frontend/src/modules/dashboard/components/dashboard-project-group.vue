@@ -65,6 +65,7 @@ import { ref, computed, onMounted } from 'vue';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import { LfRole } from '@/shared/modules/permissions/types/Roles';
 import AppDashboardProjectGroupDrawer from './dashboard-project-group-drawer.vue';
 
 const lsSegmentsStore = useLfSegmentsStore();

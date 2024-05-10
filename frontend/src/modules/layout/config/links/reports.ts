@@ -11,7 +11,6 @@ const reports: MenuLink = {
     const { hasPermission } = usePermissions();
     return hasPermission(LfPermission.reportRead);
   },
-  disable: () => false,
 };
 
 export default reports;

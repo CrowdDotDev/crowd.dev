@@ -86,6 +86,7 @@
           {{ conversation.title }}
         </div>
         <button
+          v-if="hasPermission(LfPermission.conversationEdit)"
           class="btn btn-link btn-link--primary w-8 !h-8 flex-shrink-0"
           type="button"
           @click.stop="$emit('edit-title')"
@@ -170,6 +171,8 @@ import config from '@/config';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 
 export default {
   name: 'AppConversationDetails',
@@ -202,7 +205,10 @@ export default {
   setup() {
     const authStore = useAuthStore();
     const { user, tenant } = storeToRefs(authStore);
-    return { user, tenant };
+
+    const { hasPermission } = usePermissions();
+
+    return { user, tenant, hasPermission };
   },
   data() {
     return {
@@ -212,6 +218,9 @@ export default {
     };
   },
   computed: {
+    LfPermission() {
+      return LfPermission;
+    },
     ...mapState(useActivityTypeStore, {
       types: 'types',
     }),

@@ -1,6 +1,7 @@
 <template>
   <div>
     <el-dropdown
+      v-if="hasPermission(LfPermission.noteEdit) || hasPermission(LfPermission.noteDestroy)"
       placement="bottom-end"
       trigger="click"
       @command="handleCommand"
@@ -15,12 +16,14 @@
       </button>
       <template #dropdown>
         <el-dropdown-item
+          v-if="hasPermission(LfPermission.noteEdit)"
           command="noteEdit"
         >
           <i class="ri-pencil-line text-gray-400 mr-1" />
           <span>Edit note</span>
         </el-dropdown-item>
         <el-dropdown-item
+          v-if="hasPermission(LfPermission.noteDestroy)"
           command="noteDelete"
           divided="divided"
         >
@@ -39,6 +42,8 @@ import {
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { NoteService } from '@/modules/notes/note-service';
 import Message from '@/shared/message/message';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 
 const emit = defineEmits(['edit', 'reload']);
 
@@ -48,6 +53,8 @@ const props = defineProps({
     required: true,
   },
 });
+
+const { hasPermission } = usePermissions();
 
 const dropdownVisible = ref(false);
 

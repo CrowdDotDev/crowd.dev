@@ -26,7 +26,7 @@ export default [
           auth: true,
         },
         beforeEnter: [
-          PermissionGuard(LfPermission.memberEdit),
+          PermissionGuard(LfPermission.eagleEyeRead),
           async (to, _from, next) => {
             if (
               to.query.activeTab !== undefined

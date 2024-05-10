@@ -11,7 +11,6 @@ const automations: MenuLink = {
     const { hasPermission } = usePermissions();
     return hasPermission(LfPermission.automationRead);
   },
-  disable: () => false,
 };
 
 export default automations;
