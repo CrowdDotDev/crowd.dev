@@ -19,6 +19,7 @@ import { ISentimentAnalysisResult, getSentiment } from '@crowd/sentiment'
 import { Client as TemporalClient, WorkflowIdReusePolicy } from '@crowd/temporal'
 import {
   Edition,
+  IActivity,
   IActivityData,
   MemberAttributeName,
   MemberIdentityType,
@@ -169,7 +170,24 @@ export default class ActivityService extends LoggerBase {
         }
       }
 
-      await this.conversationService.processActivity(tenantId, segmentId, id)
+      const activityToProcess: IActivity = {
+        id: id,
+        type: activity.type,
+        sourceId: activity.sourceId,
+        platform: activity.platform,
+        score: activity.score,
+        isContribution: activity.isContribution,
+        sourceParentId: activity.sourceParentId,
+        attributes: activity.attributes,
+        channel: activity.channel,
+        body: activity.body,
+        title: activity.title,
+        url: activity.url,
+        username: activity.username,
+        objectMemberUsername: activity.objectMemberUsername,
+      }
+
+      await this.conversationService.processActivity(tenantId, segmentId, activityToProcess)
 
       if (fireSync) {
         await this.searchSyncWorkerEmitter.triggerMemberSync(
@@ -198,11 +216,12 @@ export default class ActivityService extends LoggerBase {
     fireSync = true,
   ): Promise<void> {
     try {
+      let toUpdate: IDbActivityUpdateData
       const updated = await this.pgStore.transactionally(async (txStore) => {
         const txRepo = new ActivityRepository(txStore, this.log)
         const txSettingsRepo = new SettingsRepository(txStore, this.log)
 
-        const toUpdate = await this.mergeActivityData(activity, original)
+        toUpdate = await this.mergeActivityData(activity, original)
 
         if (toUpdate.type) {
           await txSettingsRepo.createActivityType(
@@ -273,7 +292,26 @@ export default class ActivityService extends LoggerBase {
       })
 
       if (updated) {
-        await this.conversationService.processActivity(tenantId, segmentId, id)
+        const activityToProcess: IActivity = {
+          id: id,
+          type: toUpdate.type,
+          parentId: toUpdate.parentId,
+          conversationId: toUpdate.conversationId,
+          sourceId: toUpdate.sourceId,
+          platform: toUpdate.platform,
+          score: toUpdate.score,
+          isContribution: toUpdate.isContribution,
+          sourceParentId: toUpdate.sourceParentId,
+          attributes: toUpdate.attributes,
+          channel: toUpdate.channel,
+          body: toUpdate.body,
+          title: toUpdate.title,
+          url: toUpdate.url,
+          username: toUpdate.username,
+          objectMemberUsername: toUpdate.objectMemberUsername,
+        }
+
+        await this.conversationService.processActivity(tenantId, segmentId, activityToProcess)
 
         if (fireSync) {
           await this.searchSyncWorkerEmitter.triggerMemberSync(

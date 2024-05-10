@@ -119,16 +119,15 @@ export class ConversationService extends LoggerBase {
   public async processActivity(
     tenantId: string,
     segmentId: string,
-    activityId: string,
+    activity: IActivity,
   ): Promise<string[]> {
-    this.log.debug({ activityId }, 'Processing activity')
-    let results = await getActivitiesById(this.qdbStore.connection(), [activityId])
-
-    if (results.length !== 1) {
-      throw new Error(`Activity ${activityId} does not exist!`)
+    if (!activity) {
+      throw new Error('Activity must be set!')
     }
 
-    const activity = results[0]
+    this.log.debug({ activityId: activity.id }, 'Processing activity')
+
+    let results: IActivity[] = [activity]
     if (activity.parentId) {
       results = await getActivitiesById(this.qdbStore.connection(), [activity.parentId])
       if (results.length !== 1) {
