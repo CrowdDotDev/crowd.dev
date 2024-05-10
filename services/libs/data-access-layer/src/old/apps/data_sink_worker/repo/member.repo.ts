@@ -69,7 +69,8 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
                     where mi."tenantId" = $(tenantId)
                       and mi.platform = $(platform)
                       and mi.value ilike $(username)
-                      and mi.type = $(type));
+                      and mi.type = $(type))
+      limit 1;
     `,
       {
         tenantId,
