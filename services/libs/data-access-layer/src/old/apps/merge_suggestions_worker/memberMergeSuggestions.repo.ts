@@ -193,7 +193,7 @@ class MemberMergeSuggestionsRepository {
 
   async getMembers(memberIds: string[]): Promise<ILLMConsumableMember[]> {
     try {
-      const result: ILLMConsumableMember[] = await this.connection.oneOrNone(
+      const result: ILLMConsumableMember[] = await this.connection.manyOrNone(
         `
         select mem.attributes,
         mem."displayName",
