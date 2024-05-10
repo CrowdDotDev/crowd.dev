@@ -22,10 +22,9 @@
         </el-dropdown-item>
 
         <el-tooltip
-          v-if="selectedOrganizations.length === 2"
+          v-if="selectedOrganizations.length === 2 && hasPermission(LfPermission.mergeOrganizations)"
           content="Coming soon"
           placement="top"
-          :disabled="hasPermission(LfPermission.mergeOrganizations)"
         >
           <span>
             <el-dropdown-item
@@ -46,12 +45,11 @@
         </el-tooltip>
 
         <el-dropdown-item
-          v-if="markAsTeamOrganizationOptions"
+          v-if="markAsTeamOrganizationOptions && hasPermission(LfPermission.organizationEdit)"
           :command="{
             action: 'markAsTeamOrganization',
             value: markAsTeamOrganizationOptions.value,
           }"
-          :disabled="!hasPermission(LfPermission.organizationEdit)"
         >
           <i
             class="ri-lg mr-1"
@@ -60,19 +58,21 @@
           {{ markAsTeamOrganizationOptions.copy }}
         </el-dropdown-item>
 
-        <hr class="border-gray-200 my-1 mx-2" />
+        <template v-if="hasPermission(LfPermission.organizationDestroy)">
+          <hr class="border-gray-200 my-1 mx-2" />
 
-        <el-dropdown-item
-          :command="{ action: 'destroyAll' }"
-          :disabled="!hasPermission(LfPermission.organizationEdit)"
-        >
-          <div
-            class="flex items-center text-red-500"
+          <el-dropdown-item
+            :command="{ action: 'destroyAll' }"
+            :disabled="!hasPermission(LfPermission.organizationDestroy)"
           >
-            <i class="ri-lg ri-delete-bin-line mr-2" />
-            <span>Delete organizations</span>
-          </div>
-        </el-dropdown-item>
+            <div
+              class="flex items-center text-red-500"
+            >
+              <i class="ri-lg ri-delete-bin-line mr-2" />
+              <span>Delete organizations</span>
+            </div>
+          </el-dropdown-item>
+        </template>
       </template>
     </el-dropdown>
   </div>

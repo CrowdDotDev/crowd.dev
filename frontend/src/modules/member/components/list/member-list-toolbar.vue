@@ -17,10 +17,9 @@
           Export to CSV
         </el-dropdown-item>
         <el-tooltip
-          v-if="selectedMembers.length === 2"
+          v-if="selectedMembers.length === 2 && hasPermission(LfPermission.mergeMembers)"
           content="Coming soon"
           placement="top"
-          :disabled="hasPermission(LfPermission.mergeMembers)"
         >
           <span>
             <el-dropdown-item
@@ -33,11 +32,11 @@
           </span>
         </el-tooltip>
         <el-dropdown-item
+          v-if="hasPermission(LfPermission.memberEdit)"
           :command="{
             action: 'markAsTeamMember',
             value: markAsTeamMemberOptions.value,
           }"
-          :disabled="!hasPermission(LfPermission.memberEdit)"
         >
           <i
             class="ri-lg mr-1"
@@ -46,29 +45,32 @@
           {{ markAsTeamMemberOptions.copy }}
         </el-dropdown-item>
         <el-dropdown-item
+          v-if="hasPermission(LfPermission.memberEdit)"
           :command="{ action: 'editAttribute' }"
         >
           <i class="ri-lg ri-file-edit-line mr-1" />
           Edit attribute
         </el-dropdown-item>
         <el-dropdown-item
+          v-if="hasPermission(LfPermission.tagEdit)"
           :command="{ action: 'editTags' }"
         >
           <i class="ri-lg ri-price-tag-3-line mr-1" />
           Edit tags
         </el-dropdown-item>
-        <hr class="border-gray-200 my-1 mx-2" />
-        <el-dropdown-item
-          :command="{ action: 'destroyAll' }"
-          :disabled="!hasPermission(LfPermission.memberEdit)"
-        >
-          <div
-            class="flex items-center text-red-500"
+        <template v-if="hasPermission(LfPermission.memberDestroy)">
+          <hr class="border-gray-200 my-1 mx-2" />
+          <el-dropdown-item
+            :command="{ action: 'destroyAll' }"
           >
-            <i class="ri-lg ri-delete-bin-line mr-2" />
-            <app-i18n code="common.destroy" />
-          </div>
-        </el-dropdown-item>
+            <div
+              class="flex items-center text-red-500"
+            >
+              <i class="ri-lg ri-delete-bin-line mr-2" />
+              <app-i18n code="common.destroy" />
+            </div>
+          </el-dropdown-item>
+        </template>
       </template>
     </el-dropdown>
 
