@@ -9,7 +9,7 @@ const isAdminOnly = () => {
   const authStore = useAuthStore();
   const { roles } = storeToRefs(authStore);
 
-  return roles.value.includes(LfRole.admin);
+  return roles.value.includes(LfRole.projectAdmin);
 };
 
 export default {

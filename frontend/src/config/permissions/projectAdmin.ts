@@ -71,7 +71,7 @@ const projectAdmin: Record<LfPermission, boolean> = {
   [LfPermission.noteCreate]: true,
   [LfPermission.noteEdit]: true,
   [LfPermission.noteDestroy]: true,
-  [LfPermission.projectGroupCreate]: true,
+  [LfPermission.projectGroupCreate]: false,
   [LfPermission.projectGroupEdit]: true,
   [LfPermission.projectCreate]: true,
   [LfPermission.projectEdit]: true,
