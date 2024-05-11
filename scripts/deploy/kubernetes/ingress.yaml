@@ -20,6 +20,7 @@ spec:
         - app.getsphere.dev
         - nango.getsphere.dev
         - search.getsphere.dev
+        - temporal.getsphere.dev
       secretName: letsencrypt-issuer
   rules:
     - host: app.getsphere.dev
@@ -87,6 +88,17 @@ spec:
                 name: search-dashboard-svc
                 port:
                   number: 5601
+    - host: temporal.getsphere.dev
+      http:
+        paths:
+          - path: /()(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: temporal-svc
+                port:
+                  number: 8233
+
 
 ---
 apiVersion: v1

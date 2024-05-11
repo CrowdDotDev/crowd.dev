@@ -18,6 +18,37 @@ spec:
           ports:
             - containerPort: 7233
             - containerPort: 8233
+          env:
+            - name: POSTGRES_SEEDS
+              valueFrom:
+                configMapKeyRef:
+                  name: backend-config
+                  key: CROWD_DB_WRITE_HOST
+            - name: DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: backend-config
+                  key: CROWD_DB_PORT
+            - name: DB
+              valueFrom:
+                configMapKeyRef:
+                  name: backend-config
+                  key: CROWD_DB_DATABASE
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: backend-config
+                  key: CROWD_DB_USERNAME
+            - name: POSTGRES_PWD
+              valueFrom:
+                configMapKeyRef:
+                  name: backend-config
+                  key: CROWD_DB_PASSWORD
+            - name: SQL_TLS_ENABLED
+              valueFrom:
+                configMapKeyRef:
+                  name: backend-config
+                  key: CROWD_DB_SSL
 ---
 apiVersion: v1
 kind: Service
