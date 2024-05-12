@@ -8,6 +8,6 @@ export interface QuickstartWidget {
 }
 
 export const quickstartWidgets: QuickstartWidget[] = [
-  support,
+  // support,
   resources,
 ];

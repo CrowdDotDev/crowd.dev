@@ -38,7 +38,7 @@
         </p>
       </div>
       <div class="px-3 -mx-1 border-b border-gray-100 pb-4 mb-2">
-        <cr-menu-support-help />
+        <!-- <cr-menu-support-help /> -->
       </div>
       <cr-menu-links
         :collapsed="false"
