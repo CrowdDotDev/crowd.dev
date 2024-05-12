@@ -40,9 +40,31 @@ The services in place in DigitalOcean are:
 ### Kubernetes
 The following services run in Kubernetes:
 
-- `api` (backend)
-- `nango`
-- `redis`
+```bash
+├── api.yaml                    Backend API
+├── cubejs.yaml                 CubeJS
+├── datadog-values.yaml         Used to install datadog (see below)
+├── discord-ws.yaml             Discord Web Socket service
+├── do-nginx.yaml               Ingress for DigitalOcean
+├── elasticmq.yaml              SQS for messaging
+├── frontend.yaml               Vue Frontend
+├── ingress.yaml                Ingress for the app
+├── job-generator.yaml          Job Generator service
+├── kube-prometheus-stack-values.yaml   Used to install the kube-prometheus-stack (see below)
+├── letsencrypt.yaml            Used to get ceritificates for all the external facing services
+├── nango.yaml                  Nango
+├── nodejs-worker.yaml          NodeJS Worker
+├── opensearch.yaml             OpenSearch for search and indexing
+├── python-worker.yaml          Python Worker
+├── redis.yaml                  Redis
+├── search-sync-api.yaml        Search sync API
+├── search-sync-script-runner.yaml      Search Sync script runner (not intended to be deployed forever)
+├── search-sync-worker.yaml     Search sync worker(s)
+├── temporal.yaml               Temporal for messaging
+├── unleash.yaml                Unleash
+├── webhook-api.yaml            Webhook API services
+└── workers.yaml                Various workers (lots of bespoke worker services)
+```
 
 #### Config
 Kubernetes requires the following configmaps. These config maps are not commited to the repository as they contain secerts.
@@ -105,6 +127,14 @@ To update or upgrade it, change the values as desired and run
 
 ## Kube Prometheus Stack
 The [kube-prometheus-stack]() helm chart was automatically installed via DigitalOcean, but can also have the values tweaked in `./scripes/deploy/kubernetes/kube-prometheus-stack.yaml`
+
+Installed with:
+
+```bash
+helm upgrade kube-prometheus-stack prometheus-community/kube-prometheus-stack --version 55.7.0 \
+  --namespace kube-prometheus-stack \
+  --values kube-prometheus-stack-values.yaml
+```
 
 ### Prometheus
 To access Prometheus locally, run
