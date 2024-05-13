@@ -1,7 +1,7 @@
 import { EDITION, escapeNullByte, isObjectEmpty, singleOrDefault } from '@crowd/common'
 import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/common_services'
 import { ConversationService } from '@crowd/conversations'
-import { insertActivities, updateActivity } from '@crowd/data-access-layer'
+import { IQueryActivityResult, insertActivities, updateActivity } from '@crowd/data-access-layer'
 import { DbStore, arePrimitivesDbEqual } from '@crowd/data-access-layer/src/database'
 import {
   IDbActivity,
@@ -19,7 +19,6 @@ import { ISentimentAnalysisResult, getSentiment } from '@crowd/sentiment'
 import { Client as TemporalClient, WorkflowIdReusePolicy } from '@crowd/temporal'
 import {
   Edition,
-  IActivity,
   IActivityData,
   MemberAttributeName,
   MemberIdentityType,
@@ -170,7 +169,7 @@ export default class ActivityService extends LoggerBase {
         }
       }
 
-      const activityToProcess: IActivity = {
+      const activityToProcess: IQueryActivityResult = {
         id: id,
         type: activity.type,
         sourceId: activity.sourceId,
@@ -185,6 +184,10 @@ export default class ActivityService extends LoggerBase {
         url: activity.url,
         username: activity.username,
         objectMemberUsername: activity.objectMemberUsername,
+        memberId: activity.memberId,
+        timestamp: activity.timestamp.toISOString(),
+        tenantId: tenantId,
+        segmentId: segmentId,
       }
 
       await this.conversationService.processActivity(tenantId, segmentId, activityToProcess)
@@ -292,23 +295,26 @@ export default class ActivityService extends LoggerBase {
       })
 
       if (updated) {
-        const activityToProcess: IActivity = {
+        const activityToProcess: IQueryActivityResult = {
           id: id,
-          type: toUpdate.type,
-          parentId: toUpdate.parentId,
-          conversationId: toUpdate.conversationId,
-          sourceId: toUpdate.sourceId,
-          platform: toUpdate.platform,
-          score: toUpdate.score,
-          isContribution: toUpdate.isContribution,
-          sourceParentId: toUpdate.sourceParentId,
-          attributes: toUpdate.attributes,
-          channel: toUpdate.channel,
-          body: toUpdate.body,
-          title: toUpdate.title,
-          url: toUpdate.url,
-          username: toUpdate.username,
-          objectMemberUsername: toUpdate.objectMemberUsername,
+          tenantId: tenantId,
+          segmentId: segmentId,
+          type: toUpdate.type || original.type,
+          isContribution: toUpdate.isContribution || original.isContribution,
+          score: toUpdate.score || original.score,
+          sourceId: toUpdate.sourceId || original.sourceId,
+          sourceParentId: toUpdate.sourceParentId || original.sourceParentId,
+          memberId: toUpdate.memberId || original.memberId,
+          username: toUpdate.username || original.username,
+          sentiment: toUpdate.sentiment || original.sentiment,
+          attributes: toUpdate.attributes || original.attributes,
+          body: escapeNullByte(toUpdate.body || original.body),
+          title: escapeNullByte(toUpdate.title || original.title),
+          channel: toUpdate.channel || original.channel,
+          url: toUpdate.url || original.url,
+          organizationId: toUpdate.organizationId || original.organizationId,
+          platform: toUpdate.platform || (original.platform as PlatformType),
+          timestamp: original.timestamp,
         }
 
         await this.conversationService.processActivity(tenantId, segmentId, activityToProcess)

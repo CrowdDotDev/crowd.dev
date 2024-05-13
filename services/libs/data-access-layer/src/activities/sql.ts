@@ -3,7 +3,6 @@
 import { DbConnOrTx } from '@crowd/database'
 import {
   ActivityDisplayVariant,
-  IActivity,
   IMemberIdentity,
   IMemberSegmentAggregates,
   MemberIdentityType,
@@ -14,12 +13,14 @@ import { RawQueryParser, getEnv } from '@crowd/common'
 import { IDbActivityUpdateData } from '../old/apps/data_sink_worker/repo/activity.data'
 import {
   ActivityType,
+  IActiveMemberData,
   IActivitySentiment,
   IMemberSegment,
   INumberOfActivitiesPerMember,
   INumberOfActivitiesPerOrganization,
   IOrganizationSegment,
   IOrganizationSegmentAggregates,
+  IQueryActiveMembersParameters,
   IQueryActivitiesParameters,
   IQueryActivityResult,
   IQueryDistinctParameters,
@@ -34,38 +35,64 @@ const s3Url = `https://${
   process.env['CROWD_S3_MICROSERVICES_ASSETS_BUCKET']
 }-${getEnv()}.s3.eu-central-1.amazonaws.com`
 
-export async function getActivitiesById(conn: DbConnOrTx, ids: string[]): Promise<IActivity[]> {
+export async function getActivitiesById(
+  conn: DbConnOrTx,
+  ids: string[],
+): Promise<IQueryActivityResult[]> {
+  const columnString = DEFAULT_COLUMNS_TO_SELECT.map((c) => `a.${c}`).join(', ')
+
   const activities = await conn.any(
-    `SELECT
-      "id",
-      "type",
-      "platform",
-      "timestamp",
-      "score",
-      "isContribution",
-      "sourceId",
-      "parentId",
-      "sourceParentId",
-      "conversationId",
-      "attributes",
-      "channel",
-      "body",
-      "title",
-      "url",
-      "username",
-      "memberId",
-      "objectMemberUsername",
-      "objectMemberId"
-    FROM activities
-    WHERE "id" in ($(ids:csv))
-    AND "deletedAt" IS NULL
+    `select
+      ${columnString}
+    from activities a
+    where a."id" in ($(ids:csv))
+    and "deletedAt" is null
   `,
     {
       ids,
     },
   )
 
-  return activities
+  const results: IQueryActivityResult[] = []
+  for (const a of activities) {
+    const sentiment: IActivitySentiment | null =
+      a.sentimentLabel &&
+      a.sentimentScore &&
+      a.sentimentScoreMixed &&
+      a.sentimentScoreNeutral &&
+      a.sentimentScoreNegative &&
+      a.sentimentScorePositive
+        ? {
+            label: a.sentimentLabel,
+            sentiment: a.sentimentScore,
+            mixed: a.sentimentScoreMixed,
+            neutral: a.sentimentScoreNeutral,
+            negative: a.sentimentScoreNegative,
+            positive: a.sentimentScorePositive,
+          }
+        : null
+
+    const data: any = {}
+    for (const column of DEFAULT_COLUMNS_TO_SELECT) {
+      if (column.startsWith('sentiment')) {
+        continue
+      }
+
+      if (column === 'attributes') {
+        data[column] = JSON.parse(a[column])
+      } else {
+        data[column] = a[column]
+      }
+    }
+
+    if (sentiment) {
+      data.sentiment = sentiment
+    }
+
+    results.push(data)
+  }
+
+  return results
 }
 
 const ACTIVITY_UPDATABLE_COLUMNS: ActivityColumn[] = [
@@ -743,7 +770,7 @@ export async function getMemberAggregates(
           max(a.timestamp)                                 as "lastActive",
           string_agg(p.platform, ':')                      as "activeOn",
           string_agg(concat(t.platform, ':', t.type), '|') as "activityTypes",
-          count_distinct(date_trunc('day', now()))         as "activeDaysCount",
+          count_distinct(date_trunc('day', a.timestamp))   as "activeDaysCount",
           s."averageSentiment"
     from relevant_activities a
             inner join activity_types t on a."memberId" = t."memberId" and a."segmentId" = t."segmentId"
@@ -876,4 +903,92 @@ export async function getOrganizationSegmentCouples(
       organizationIds,
     },
   )
+}
+
+export async function getActiveMembers(
+  qdbConn: DbConnOrTx,
+  arg: IQueryActiveMembersParameters,
+): Promise<IActiveMemberData[]> {
+  if (arg.tenantId === undefined || arg.segmentIds === undefined || arg.segmentIds.length === 0) {
+    throw new Error('tenantId and segmentIds are required to query active member ids!')
+  }
+
+  const params: any = {
+    tenantId: arg.tenantId,
+    segmentIds: arg.segmentIds,
+    tsFrom: arg.timestampFrom,
+    tsTo: arg.timestampTo,
+    lowerLimit: arg.offset,
+    upperLimit: arg.offset + arg.limit - 1,
+  }
+
+  const conditions: string[] = [
+    'a."tenantId" = $(tenantId)',
+    'a."segmentId" in ($(segmentIds:csv))',
+    'a."deletedAt" is null',
+    'a.timestamp >= $(tsFrom)',
+    'a.timestamp <= $(tsTo)',
+  ]
+
+  if (arg.platforms && arg.platforms.length > 0) {
+    params.platforms = arg.platforms
+    conditions.push('a.platform in ($(platforms:csv))')
+  }
+
+  if (arg.isContribution === true) {
+    conditions.push('a."isContribution" = true')
+  }
+
+  let orderByString: string
+  if (arg.orderBy === 'activityCount') {
+    orderByString = `count_distinct(a.id) ${arg.orderByDirection}`
+  } else if (arg.orderBy === 'activeDaysCount') {
+    orderByString = `count_distinct(date_trunc('day', a.timestamp)) ${arg.orderByDirection}`
+  } else {
+    throw new Error(`Invalid order by: ${arg.orderBy}!`)
+  }
+
+  const query = `
+  select  a."memberId",
+          count_distinct(a.id) as "activityCount",
+          count_distinct(date_trunc('day', a.timestamp)) as "activeDaysCount"
+  from activities a
+  where ${conditions.join(' and ')}
+  group by a."memberId"
+  order by ${orderByString}
+  limit $(lowerLimit), $(upperLimit);
+  `
+
+  const results = await qdbConn.any(query, params)
+
+  return results
+}
+
+export async function getLastActivitiesForMembers(
+  qdbConn: DbConnOrTx,
+  tenantId: string,
+  memberIds: string[],
+): Promise<IQueryActivityResult[]> {
+  if (memberIds.length === 0) {
+    return []
+  }
+
+  const results = await qdbConn.any(
+    `
+    with data as (
+      select a.id, row_number() over (partition by a."memberId" order by timestamp desc) as row_number
+      from activities a
+      where a."tenantId" = $(tenantId) and a."deletedAt" is null and a."memberId" in ($(memberIds:csv))
+    )
+    select d.id from data d where d.row_number = 1;
+    `,
+    {
+      tenantId,
+      memberIds,
+    },
+  )
+
+  const ids = results.map((r) => r.id)
+
+  return getActivitiesById(qdbConn, ids)
 }

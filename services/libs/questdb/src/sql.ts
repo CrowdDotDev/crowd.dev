@@ -29,12 +29,18 @@ export const getClientSQL = async (): Promise<pgpromise.IDatabase<unknown>> => {
         log.error(err, { query: e.query, params: e.params }, 'Error executing a QuestDB query!')
       }
     },
+    query(e) {
+      log.debug({ query: e.query, params: e.params }, 'Executing QuestDB query')
+    },
   })({
     host: process.env['CROWD_QUESTDB_READ_HOST'],
     port: Number(process.env['CROWD_QUESTDB_READ_PORT']),
     user: process.env['CROWD_QUESTDB_READ_USERNAME'],
     password: process.env['CROWD_QUESTDB_READ_PASSWORD'],
     database: process.env['CROWD_QUESTDB_READ_DATABASE'],
+    max: 20,
+    idleTimeoutMillis: 10000,
+    application_name: process.env.SERVICE || 'unknown-app',
   })
 
   await client.connect()

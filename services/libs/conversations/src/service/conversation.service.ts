@@ -1,5 +1,6 @@
 import { distinct, getCleanString, processPaginated } from '@crowd/common'
 import {
+  IQueryActivityResult,
   doesConversationWithSlugExists,
   getActivitiesById,
   getConversationById,
@@ -11,7 +12,7 @@ import {
 } from '@crowd/data-access-layer'
 import { DbStore } from '@crowd/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
-import { IActivity, PlatformType } from '@crowd/types'
+import { PlatformType } from '@crowd/types'
 import { convert as convertHtmlToText } from 'html-to-text'
 import { IDbConversation } from '../repo/conversation.data'
 import { ConversationRepository } from '../repo/conversation.repo'
@@ -119,7 +120,7 @@ export class ConversationService extends LoggerBase {
   public async processActivity(
     tenantId: string,
     segmentId: string,
-    activity: IActivity,
+    activity: IQueryActivityResult,
   ): Promise<string[]> {
     if (!activity) {
       throw new Error('Activity must be set!')
@@ -127,7 +128,7 @@ export class ConversationService extends LoggerBase {
 
     this.log.debug({ activityId: activity.id }, 'Processing activity')
 
-    let results: IActivity[] = [activity]
+    let results: IQueryActivityResult[] = [activity]
     if (activity.parentId) {
       results = await getActivitiesById(this.qdbStore.connection(), [activity.parentId])
       if (results.length !== 1) {
@@ -167,8 +168,8 @@ export class ConversationService extends LoggerBase {
   public async addToConversation(
     tenantId: string,
     segmentId: string,
-    child: IActivity,
-    parent: IActivity,
+    child: IQueryActivityResult,
+    parent: IQueryActivityResult,
   ): Promise<string[]> {
     this.log = getChildLogger('addToConversation', this.log, {
       activityId: child.id,

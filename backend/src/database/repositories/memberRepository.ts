@@ -29,6 +29,8 @@ import {
 import { Error400, Error404, Error409, dateEqualityChecker, distinct } from '@crowd/common'
 import {
   countMembersWithActivities,
+  getActiveMembers,
+  getLastActivitiesForMembers,
   getMemberAggregates,
   setMemberDataToActivities,
 } from '@crowd/data-access-layer'
@@ -1711,135 +1713,29 @@ class MemberRepository {
       originalSegment = (await new SegmentRepository(options).getDefaultSegment()).id
     }
 
-    const activityPageSize = 10000
-    const activityOffset = 0
-
-    // TODO questdb
-    const activityQuery = {
-      query: {
-        bool: {
-          must: [
-            {
-              range: {
-                date_timestamp: {
-                  gte: filter.activityTimestampFrom,
-                  lte: filter.activityTimestampTo,
-                },
-              },
-            },
-            {
-              term: {
-                uuid_tenantId: tenant.id,
-              },
-            },
-          ],
-        },
-      },
-      aggs: {
-        group_by_member: {
-          terms: {
-            field: 'uuid_memberId',
-            size: 10000000,
-          },
-          aggs: {
-            activity_count: {
-              value_count: {
-                field: 'uuid_id',
-              },
-            },
-            active_days_count: {
-              cardinality: {
-                field: 'date_timestamp',
-                script: {
-                  source: "doc['date_timestamp'].value.toInstant().toEpochMilli()/86400000",
-                },
-              },
-            },
-            active_members_bucket_sort: {
-              bucket_sort: {
-                sort: [{ activity_count: { order: 'desc' } }],
-                size: activityPageSize,
-                from: activityOffset,
-              },
-            },
-          },
-        },
-      },
-      size: 0,
-    } as any
-
-    if (filter.platforms) {
-      const subQueries = filter.platforms.map((p) => ({ match_phrase: { keyword_platform: p } }))
-
-      activityQuery.query.bool.must.push({
-        bool: {
-          should: subQueries,
-        },
-      })
-    }
-
-    if (filter.activityIsContribution === true) {
-      activityQuery.query.bool.must.push({
-        term: {
-          bool_isContribution: true,
-        },
-      })
-    }
-
-    if (segmentsEnabled) {
-      const subQueries = segments.map((s) => ({ term: { uuid_segmentId: s } }))
-
-      activityQuery.query.bool.must.push({
-        bool: {
-          should: subQueries,
-        },
-      })
-    }
-
-    const direction = orderBy.split('_')[1].toLowerCase() === 'desc' ? 'desc' : 'asc'
-    if (orderBy.startsWith('activityCount')) {
-      activityQuery.aggs.group_by_member.aggs.active_members_bucket_sort.bucket_sort.sort = [
-        { activity_count: { order: direction } },
-      ]
-    } else if (orderBy.startsWith('activeDaysCount')) {
-      activityQuery.aggs.group_by_member.aggs.active_members_bucket_sort.bucket_sort.sort = [
-        { active_days_count: { order: direction } },
-      ]
-    } else {
-      throw new Error(`Invalid order by: ${orderBy}`)
-    }
+    const activeMemberResults = await getActiveMembers(options.qdb, {
+      timestampFrom: filter.activityTimestampFrom,
+      timestampTo: filter.activityTimestampTo,
+      isContribution: filter.activityIsContribution === true ? true : undefined,
+      platforms: filter.platforms ? filter.platforms : undefined,
+      segmentIds: segments,
+      tenantId: tenant.id,
+      limit: 10000,
+      offset: 0,
+      orderBy: orderBy.startsWith('activityCount') ? 'activityCount' : 'activeDaysCount',
+      orderByDirection: orderBy.split('_')[1].toLowerCase() === 'desc' ? 'desc' : 'asc',
+    })
 
     const memberIds = []
     const memberMap = {}
-    // TODO questdb replace with query
-    // const activities = []
 
-    // do {
-    //   activities = await options.opensearch.search({
-    //     index: OpenSearchIndex.ACTIVITIES,
-    //     body: activityQuery,
-    //   })
-
-    //   memberIds.push(...activities.body.aggregations.group_by_member.buckets.map((b) => b.key))
-
-    //   memberMap = {
-    //     ...memberMap,
-    //     ...activities.body.aggregations.group_by_member.buckets.reduce((acc, b) => {
-    //       acc[b.key] = {
-    //         activityCount: b.activity_count,
-    //         activeDaysCount: b.active_days_count,
-    //       }
-
-    //       return acc
-    //     }, {}),
-    //   }
-
-    //   activityOffset += activityPageSize
-
-    //   // update page
-    //   activityQuery.aggs.group_by_member.aggs.active_members_bucket_sort.bucket_sort.from =
-    //     activityOffset
-    // } while (activities.body.aggregations.group_by_member.buckets.length === activityPageSize)
+    for (const res of activeMemberResults) {
+      memberIds.push(res.memberId)
+      memberMap[res.memberId] = {
+        activityCount: res.activityCount,
+        activeDaysCount: res.activeDaysCount,
+      }
+    }
 
     if (memberIds.length === 0) {
       return {
@@ -2078,33 +1974,7 @@ class MemberRepository {
 
     const memberIds = translatedRows.map((r) => r.id)
     if (memberIds.length > 0) {
-      const seq = SequelizeRepository.getSequelize(options)
-
-      // TODO questdb
-      const lastActivities = await seq.query(
-        `
-            SELECT
-                a.*
-            FROM (
-                VALUES
-                  ${memberIds.map((id) => `('${id}')`).join(',')}
-            ) m ("memberId")
-            JOIN activities a ON (a.id = (
-                SELECT id
-                FROM mv_activities_cube
-                WHERE "memberId" = m."memberId"::uuid
-                ORDER BY timestamp DESC
-                LIMIT 1
-            ))
-            WHERE a."tenantId" = :tenantId
-        `,
-        {
-          replacements: {
-            tenantId: tenant.id,
-          },
-          type: QueryTypes.SELECT,
-        },
-      )
+      const lastActivities = await getLastActivitiesForMembers(options.qdb, tenant.id, memberIds)
 
       for (const row of translatedRows) {
         const r = row as any

@@ -8,8 +8,8 @@ export interface IQueryActivityResult {
   body?: string | null
   channel?: string | null
   conversationId?: string | null
-  createdAt: string
-  createdById: string
+  createdAt?: string
+  createdById?: string
   isContribution: boolean
   memberId: string
   username: string
@@ -27,8 +27,8 @@ export interface IQueryActivityResult {
   timestamp: string
   title?: string | null
   type: string
-  updatedAt: string
-  updatedById: string
+  updatedAt?: string
+  updatedById?: string
   url?: string | null
 
   // TODO questdb: Needed?
@@ -108,4 +108,23 @@ export interface IOrganizationSegmentAggregates {
   activeOn: string[]
   lastActive: string
   joinedAt: string
+}
+
+export interface IActiveMemberData {
+  memberId: string
+  activityCount: number
+  activeDaysCount: number
+}
+
+export interface IQueryActiveMembersParameters {
+  tenantId: string
+  segmentIds: string[]
+  timestampFrom: string
+  timestampTo: string
+  platforms?: string[]
+  isContribution?: boolean
+  orderBy: 'activityCount' | 'activeDaysCount'
+  orderByDirection: 'asc' | 'desc'
+  limit: number
+  offset: number
 }

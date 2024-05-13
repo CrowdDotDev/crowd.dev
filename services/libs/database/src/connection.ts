@@ -29,6 +29,9 @@ export const getDbInstance = (): DbInstance => {
         log.error(err, { query: e.query, params: e.params }, 'Error executing a PostgreSQL query!')
       }
     },
+    query(e) {
+      log.debug({ query: e.query, params: e.params }, 'Executing PostgreSQL query')
+    },
   })
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

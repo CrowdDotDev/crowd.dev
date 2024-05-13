@@ -1,12 +1,6 @@
 import { PlatformType } from './enums/platforms'
 import { IMemberData } from './members'
 
-export interface IActivity extends IActivityData {
-  id?: string
-  parentId?: string
-  conversationId?: string
-}
-
 export interface IActivityCreateData {
   id?: string
   type: string
