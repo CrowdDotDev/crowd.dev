@@ -78,24 +78,39 @@ export async function moveIdentityActivitiesToNewMember(
   toId: string,
   username: string,
   platform: string,
+  batchSize = 1000,
 ) {
-  return db.connection().query(
-    `
-        UPDATE activities
-        SET "memberId" = $(toId)
-        WHERE "memberId" = $(fromId)
-          AND "tenantId" = $(tenantId)
-          AND username = $(username)
-          AND platform = $(platform);
-      `,
-    {
-      toId,
-      fromId,
-      tenantId,
-      username,
-      platform,
-    },
-  )
+  let rowsUpdated
+
+  do {
+    console.log('Moving 1000 activities!')
+    const result = await db.connection().query(
+      `
+          UPDATE activities
+          SET "memberId" = $(toId)
+          WHERE id in (
+            select id from activities
+            where "memberId" = $(fromId)
+              and "tenantId" = $(tenantId)
+              and "username" = $(username)
+              and "platform" = $(platform)
+              limit $(batchSize)
+          )
+          returning id
+        `,
+      {
+        toId,
+        fromId,
+        tenantId,
+        username,
+        platform,
+        batchSize,
+      },
+    )
+
+    rowsUpdated = result.length
+    console.log('`Rows updated: ', rowsUpdated)
+  } while (rowsUpdated === batchSize)
 }
 
 export async function findMemberSegments(db: DbStore, memberId: string): Promise<ISegmentIds> {
