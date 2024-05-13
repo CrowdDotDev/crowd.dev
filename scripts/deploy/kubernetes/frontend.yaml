@@ -6,6 +6,7 @@ metadata:
   labels:
     force-reload: 'false'
 spec:
+  replicas: 3
   selector:
     matchLabels:
       app: frontend

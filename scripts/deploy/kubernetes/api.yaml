@@ -12,6 +12,7 @@ metadata:
     app.kubernetes.io/component: agent
     app.kubernetes.io/managed-by: Helm
 spec:
+  replicas: 3
   selector:
     matchLabels:
       app: api
