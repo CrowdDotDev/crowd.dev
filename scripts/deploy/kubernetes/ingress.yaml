@@ -12,15 +12,12 @@ metadata:
     nginx.ingress.kubernetes.io/force-ssl-redirect: 'true'
     nginx.ingress.kubernetes.io/use-regex: "true"
     nginx.ingress.kubernetes.io/rewrite-target: /$2
-
 spec:
   ingressClassName: nginx
   tls:
     - hosts:
         - app.getsphere.dev
         - nango.getsphere.dev
-        - search.getsphere.dev
-        - temporal.getsphere.dev
       secretName: letsencrypt-issuer
   rules:
     - host: app.getsphere.dev
@@ -83,9 +80,9 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: ingress
+  name: ingress-private
   labels:
-    name: ingress
+    name: ingress-private
     force-update: 'true' # allows force update when changing something else
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-issuer
@@ -103,7 +100,7 @@ spec:
         - search.getsphere.dev
         - temporal.getsphere.dev
         - grafana.getsphere.dev
-      secretName: letsencrypt-issuer
+      secretName: letsencrypt-issuer-private
   rules:
     - host: search.getsphere.dev
       http:
