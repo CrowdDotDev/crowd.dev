@@ -16,7 +16,6 @@
         v-if="editable && showEdit"
         class="text-gray-400 btn btn-link text-2xs bg-transparent hover:bg-transparent focus:bg-transparent"
         :class="member.tags.length > 0 ? 'ml-2' : ''"
-        :disabled="isEditLockedForSampleData"
         @click.prevent.stop="$emit('edit')"
       >
         <i class="ri-pencil-line !mr-1 text-sm" />
@@ -27,7 +26,6 @@
 </template>
 
 <script>
-import { MemberPermissions } from '@/modules/member/member-permissions';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
 
@@ -77,12 +75,6 @@ export default {
     },
     fields() {
       return fields;
-    },
-    isEditLockedForSampleData() {
-      return new MemberPermissions(
-        this.tenant,
-        this.user,
-      ).editLockedForSampleData;
     },
   },
 

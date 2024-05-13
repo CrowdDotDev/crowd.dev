@@ -1,5 +1,5 @@
 <template>
-  <div v-if="hasPermissionToEditSubProject && hasAccessToSegmentId(id)">
+  <div v-if="hasPermission(LfPermission.subProjectEdit) && hasAccessToSegmentId(id)">
     <el-dropdown
       trigger="click"
       placement="bottom-end"
@@ -28,11 +28,8 @@
 </template>
 
 <script setup>
-import { LfPermissions } from '@/modules/lf/lf-permissions';
-import { computed } from 'vue';
-import { hasAccessToSegmentId } from '@/utils/segments';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { storeToRefs } from 'pinia';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 
 defineProps({
   id: {
@@ -43,13 +40,7 @@ defineProps({
 
 const emit = defineEmits(['onEditSubProject']);
 
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
-
-const hasPermissionToEditSubProject = computed(() => new LfPermissions(
-  tenant.value,
-  user.value,
-)?.editSubProject);
+const { hasPermission, hasAccessToSegmentId } = usePermissions();
 
 const editSubProject = () => {
   emit('onEditSubProject');

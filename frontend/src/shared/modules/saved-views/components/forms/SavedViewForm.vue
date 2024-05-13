@@ -3,7 +3,8 @@
     <template #content>
       <div class="-mx-6 -mt-4">
         <!-- Share with workspace -->
-        <section class="border-y border-gray-200 bg-gray-50 py-4 px-6">
+        <div class="border-t border-gray-200" />
+        <section v-if="hasPermission(LfPermission.customViewsTenantManage)" class="border-b border-gray-200 bg-gray-50 py-4 px-6">
           <div class="flex justify-between items-center">
             <div>
               <h6 class="text-sm font-medium leading-5">
@@ -14,7 +15,7 @@
               </p>
             </div>
             <div>
-              <el-switch v-model="form.shared" :disabled="isEdit" />
+              <el-switch v-model="form.shared" :disabled="isEdit || !hasPermission(LfPermission.customViewsTenantManage)" />
             </div>
           </div>
         </section>
@@ -219,6 +220,8 @@ import { SavedViewsService } from '@/shared/modules/saved-views/services/saved-v
 import Message from '@/shared/message/message';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import formChangeDetector from '@/shared/form/form-change';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 
 const props = defineProps<{
   modelValue: boolean,
@@ -232,6 +235,8 @@ const props = defineProps<{
 const emit = defineEmits<{(e: 'update:modelValue', value: boolean): any,
   (e: 'reload'): any
 }>();
+
+const { hasPermission } = usePermissions();
 
 const isEdit = computed(() => props.view && (props.view as SavedView).id);
 const isDuplicate = computed(() => props.view && !(props.view as SavedView).id);
@@ -342,7 +347,7 @@ const removeFilter = (key: any) => {
 
 const fillForm = () => {
   if (props.view) {
-    form.shared = props.view.visibility === 'tenant';
+    form.shared = hasPermission(LfPermission.customViewsTenantManage) ? props.view.visibility === 'tenant' : false;
     form.name = props.view.name;
     const {
       relation, order, settings, search, ...restFilters
