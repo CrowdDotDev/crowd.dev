@@ -857,7 +857,7 @@ export default class MemberService extends LoggerBase {
 
               // loop through current member attributes
               for (const attributeKey of Object.keys(member.attributes)) {
-                if (!member.manuallyChangedFields.some((f) => f === `attributes.${key}`)) {
+                if (!(member.manuallyChangedFields || []).some((f) => f === `attributes.${key}`)) {
                   // both backups have the attribute
                   if (
                     primaryBackup.attributes[attributeKey] &&
