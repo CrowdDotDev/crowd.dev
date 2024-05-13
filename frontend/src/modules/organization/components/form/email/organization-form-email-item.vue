@@ -11,7 +11,7 @@
             <cr-button
               size="tiny"
               :icon-only="true"
-              :disabled="model.email === props.email || $v.$invalid"
+              :disabled="model.email === props.email"
               @click="update()"
             >
               <i class="ri-check-fill" />
@@ -58,8 +58,6 @@ import {
 import CrButton from '@/ui-kit/button/Button.vue';
 import CrDropdown from '@/ui-kit/dropdown/Dropdown.vue';
 import CrDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
-import useVuelidate from '@vuelidate/core';
-import { email } from '@vuelidate/validators';
 import { Organization } from '@/modules/organization/types/Organization';
 
 const emit = defineEmits<{(e: 'update', value: string): void,
@@ -77,14 +75,6 @@ const props = withDefaults(defineProps<{
 const model = ref({
   email: props.email,
 });
-
-const rules = {
-  email: {
-    email,
-  },
-};
-
-const $v = useVuelidate(rules, model);
 
 const update = () => {
   emit('update', model.value.email);
