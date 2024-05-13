@@ -1190,6 +1190,7 @@ class OrganizationRepository {
     },
     options: IRepositoryOptions,
   ): Promise<number> {
+    // TODO questdb
     const result = await options.database.sequelize.query(
       `
       WITH
@@ -1313,6 +1314,7 @@ class OrganizationRepository {
       return { count: totalCount }
     }
 
+    // TODO questdb
     const orgs = await options.database.sequelize.query(
       `WITH
       cte AS (

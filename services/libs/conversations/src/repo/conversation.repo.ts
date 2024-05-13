@@ -47,7 +47,7 @@ export class ConversationRepository extends RepositoryBase<ConversationRepositor
     slug: string,
   ): Promise<void> {
     const result = await this.db().result(
-      `update conversations 
+      `update old_conversations 
        set title = $(title),
            slug = $(slug)
        where id = $(id) and "tenantId" = $(tenantId) and "segmentId" = $(segmentId)`,

@@ -274,6 +274,7 @@ class MemberRepository {
     },
     options: IRepositoryOptions,
   ): Promise<number> {
+    // TODO questdb
     const totalCount = await options.database.sequelize.query(
       `
         SELECT
@@ -376,6 +377,7 @@ class MemberRepository {
       return { count: totalCount }
     }
 
+    // TODO questdb
     const mems = await options.database.sequelize.query(
       `
         SELECT

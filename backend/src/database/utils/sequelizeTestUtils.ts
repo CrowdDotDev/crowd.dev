@@ -90,13 +90,6 @@ export default class SequelizeTestUtils {
     }
   }
 
-  static async refreshMaterializedViews(db) {
-    db = await this.getDatabase(db)
-    await db.sequelize.query(
-      'refresh materialized view concurrently "memberActivityAggregatesMVs";',
-    )
-  }
-
   static async getDatabase(db?) {
     if (!db) {
       db = await databaseInit()

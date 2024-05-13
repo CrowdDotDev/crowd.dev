@@ -205,6 +205,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
       filterString = OrganizationRepository.replaceParametersWithDollarSign(filterString)
     }
 
+    // TODO questdb
     const query = `
             with orgAggregates as (select memOrgs."organizationId",
             count(actAgg.id)            as "memberCount",
