@@ -27,5 +27,5 @@ export const websiteNormalizer = (website: string, throwError = true): string | 
     return undefined
   }
 
-  return parsed.domain
+  return parsed.domain?.toLowerCase()
 }
