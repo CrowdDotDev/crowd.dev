@@ -200,5 +200,7 @@ export interface IProcessGenerateOrganizationMergeSuggestionsArgs {
 }
 
 export interface IProcessCheckMemberSimilarityWithLLM {
+  prompt: string
+  modelId: string
   memberCouples: string[][]
 }

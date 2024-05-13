@@ -10,7 +10,7 @@ export async function llm(args: IProcessCheckMemberSimilarityWithLLM): Promise<v
 
   for (const memberCouple of args.memberCouples) {
     const members = await activity.getMembersForLLMConsumption(memberCouple)
-    const res = await activity.getLLMResult(members)
+    const res = await activity.getLLMResult(members, args.modelId, args.prompt)
     const result: ILLMResult = JSON.parse(res)
     console.log(`Raw res: `)
     console.log(result)

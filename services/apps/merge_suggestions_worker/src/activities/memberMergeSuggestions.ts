@@ -328,7 +328,11 @@ export async function getMembers(
   }
 }
 
-export async function getLLMResult(members: ILLMConsumableMember[]): Promise<string> {
+export async function getLLMResult(
+  members: ILLMConsumableMember[],
+  modelId: string,
+  prompt: string,
+): Promise<string> {
   if (members.length !== 2) {
     throw new Error('Exactly 2 members are required for LLM comparison')
   }
@@ -340,22 +344,19 @@ export async function getLLMResult(members: ILLMConsumableMember[]): Promise<str
     region: process.env['CROWD_AWS_BEDROCK_REGION'],
   })
 
-  const promptPrologue = `[INST] ${JSON.stringify(members)} [/INST]
-  
-  You are comparing these two members. You will try to find if these are the same person or not.
-  Payloads might differentiate slightly between different profiles of the same person. 
-  Please compare and come up with a boolean answer if these two members are the same person or not. Print "true" if they are the same person, "false" otherwise. No explanation required. Don't print anything else.`
+  const promptPrologue = `[INST] ${JSON.stringify(members)} [/INST]`
+
 
   console.log('Prompt:', promptPrologue)
 
   const command = new InvokeModelCommand({
     body: JSON.stringify({
-      prompt: promptPrologue,
+      prompt: `${promptPrologue} ${prompt}`,
       max_gen_len: 512,
       temperature: 0.5,
       top_p: 0.9,
     }),
-    modelId: 'meta.llama3-70b-instruct-v1:0',
+    modelId,
     accept: 'application/json',
     contentType: 'application/json',
   })
