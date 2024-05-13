@@ -26,9 +26,14 @@ export default {
   },
   setLfxHeader() {
     const lfxHeader = document.getElementById('lfx-header');
+
     if (!lfxHeader || lfxHeader.authuser) {
       return;
     }
+
+    lfxHeader.docslink = 'https://docs.linuxfoundation.org/lfx/community-management';
+    lfxHeader.supportlink = 'https://jira.linuxfoundation.org/plugins/servlet/desk/portal/4?requestGroup=54';
+
     Auth0Service.getUser().then((user) => {
       if (user) {
         setRumUser(user.nickname);

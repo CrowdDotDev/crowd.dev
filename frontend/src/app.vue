@@ -21,14 +21,10 @@
 import { mapActions, mapState } from 'vuex';
 import AppResizePage from '@/modules/layout/pages/resize-page.vue';
 import { FeatureFlag } from '@/utils/featureFlag';
-import config from '@/config';
-import { Auth0Service } from '@/modules/auth/services/auth0.service';
 import { mapActions as piniaMapActions, storeToRefs } from 'pinia';
 import { useActivityStore } from '@/modules/activity/store/pinia';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
-import { TenantService } from '@/modules/tenant/tenant-service';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { AuthService } from '@/modules/auth/services/auth.service';
 
 export default {
   name: 'App',
@@ -48,38 +44,12 @@ export default {
     ...mapState({
       featureFlag: (state) => state.tenant.featureFlag,
     }),
-    loading() {
-      return (
-        !((this.isAuthenticated && !!AuthService.getToken())
-        || (!this.featureFlag.isReady
-          && !this.featureFlag.hasError
-          && !config.isCommunityVersion))
-      );
-    },
     showLfxMenu() {
       return this.$route.name !== 'reportPublicView';
     },
   },
 
   watch: {
-    isAuthenticated: {
-      async handler(value) {
-        if (value) {
-          await TenantService.fetchAndApply();
-
-          try {
-            const user = await Auth0Service.getUser();
-            const lfxHeader = document.getElementById('lfx-header');
-
-            if (lfxHeader) {
-              lfxHeader.authuser = user;
-            }
-          } catch (e) {
-            console.error(e);
-          }
-        }
-      },
-    },
     tenant: {
       handler(tenant, oldTenant) {
         if (tenant?.id && tenant.id !== oldTenant?.id) {
