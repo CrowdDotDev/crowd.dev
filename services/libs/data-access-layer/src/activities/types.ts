@@ -128,3 +128,21 @@ export interface IQueryActiveMembersParameters {
   limit: number
   offset: number
 }
+
+export interface IActiveOrganizationData {
+  organizationId: string
+  activityCount: number
+  activeDaysCount: number
+}
+
+export interface IQueryActiveOrganizationsParameters {
+  tenantId: string
+  segmentIds: string[]
+  timestampFrom: string
+  timestampTo: string
+  platforms?: string[]
+  orderBy: 'activityCount' | 'activeDaysCount'
+  orderByDirection: 'asc' | 'desc'
+  limit: number
+  offset: number
+}

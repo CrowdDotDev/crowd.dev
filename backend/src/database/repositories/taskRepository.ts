@@ -2,6 +2,7 @@ import sanitizeHtml from 'sanitize-html'
 import lodash from 'lodash'
 import Sequelize from 'sequelize'
 import { Error404 } from '@crowd/common'
+import { getActivitiesById } from '@crowd/data-access-layer'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
@@ -475,18 +476,27 @@ class TaskRepository {
     const output = record.get({ plain: true })
 
     const transaction = SequelizeRepository.getTransaction(options)
+    const seq = SequelizeRepository.getSequelize(options)
 
     output.members = await record.getMembers({
       transaction,
       joinTableAttributes: [],
     })
 
-    // TODO questdb -> activityTasks table in postgre is link between tasks and activities
-    // First fetch activity ids from activityTasks then load activities using queryActivities from questdb
-    // output.activities = await record.getActivities({
-    //   transaction,
-    //   joinTableAttributes: [],
-    // })
+    const results = await seq.query(
+      `
+      select distinct "activityId" from "activityTasks" where "taskId" = :taskId
+    `,
+      {
+        replacements: {
+          taskId: record.id,
+        },
+        type: Sequelize.QueryTypes.SELECT,
+        transaction,
+      },
+    )
+    const activityIds = results.map((r) => (r as any).activityId)
+    output.activities = await getActivitiesById(options.qdb, activityIds)
 
     output.assignees = (
       await record.getAssignees({

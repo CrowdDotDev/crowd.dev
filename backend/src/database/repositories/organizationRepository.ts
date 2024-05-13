@@ -30,6 +30,7 @@ import {
   organizationUpdateAction,
 } from '@crowd/audit-logs'
 import validator from 'validator'
+import { getActiveOrganizations } from '@crowd/data-access-layer'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
@@ -1190,7 +1191,6 @@ class OrganizationRepository {
     },
     options: IRepositoryOptions,
   ): Promise<number> {
-    // TODO questdb
     const result = await options.database.sequelize.query(
       `
       WITH
@@ -1314,7 +1314,6 @@ class OrganizationRepository {
       return { count: totalCount }
     }
 
-    // TODO questdb
     const orgs = await options.database.sequelize.query(
       `WITH
       cte AS (
@@ -2204,126 +2203,28 @@ class OrganizationRepository {
       originalSegment = (await new SegmentRepository(options).getDefaultSegment()).id
     }
 
-    const activityPageSize = 10000
-    const activityOffset = 0
-
-    const activityQuery = {
-      query: {
-        bool: {
-          must: [
-            {
-              range: {
-                date_timestamp: {
-                  gte: filter.activityTimestampFrom,
-                  lte: filter.activityTimestampTo,
-                },
-              },
-            },
-            {
-              term: {
-                uuid_tenantId: tenant.id,
-              },
-            },
-          ],
-        },
-      },
-      aggs: {
-        group_by_organization: {
-          terms: {
-            field: 'uuid_organizationId',
-            size: 10000000,
-          },
-          aggs: {
-            activity_count: {
-              value_count: {
-                field: 'uuid_id',
-              },
-            },
-            active_days_count: {
-              cardinality: {
-                field: 'date_timestamp',
-                script: {
-                  source: "doc['date_timestamp'].value.toInstant().toEpochMilli()/86400000",
-                },
-              },
-            },
-            active_organizations_bucket_sort: {
-              bucket_sort: {
-                sort: [{ activity_count: { order: 'desc' } }],
-                size: activityPageSize,
-                from: activityOffset,
-              },
-            },
-          },
-        },
-      },
-      size: 0,
-    } as any
-
-    if (filter.platforms) {
-      const subQueries = filter.platforms.map((p) => ({ match_phrase: { keyword_platform: p } }))
-
-      activityQuery.query.bool.must.push({
-        bool: {
-          should: subQueries,
-        },
-      })
-    }
-
-    if (segmentsEnabled) {
-      const subQueries = segments.map((s) => ({ term: { uuid_segmentId: s } }))
-
-      activityQuery.query.bool.must.push({
-        bool: {
-          should: subQueries,
-        },
-      })
-    }
-
-    const direction = orderBy.split('_')[1].toLowerCase() === 'desc' ? 'desc' : 'asc'
-    if (orderBy.startsWith('activityCount')) {
-      activityQuery.aggs.group_by_organization.aggs.active_organizations_bucket_sort.bucket_sort.sort =
-        [{ activity_count: { order: direction } }]
-    } else if (orderBy.startsWith('activeDaysCount')) {
-      activityQuery.aggs.group_by_organization.aggs.active_organizations_bucket_sort.bucket_sort.sort =
-        [{ active_days_count: { order: direction } }]
-    } else {
-      throw new Error(`Invalid order by: ${orderBy}`)
-    }
+    const activeOrgsResults = await getActiveOrganizations(options.qdb, {
+      timestampFrom: filter.activityTimestampFrom,
+      timestampTo: filter.activityTimestampTo,
+      tenantId: tenant.id,
+      platforms: filter.platforms ? filter.platforms : undefined,
+      segmentIds: segments,
+      offset: 0,
+      limit: 10000,
+      orderByDirection: orderBy.split('_')[1].toLowerCase() === 'desc' ? 'desc' : 'asc',
+      orderBy: orderBy.startsWith('activityCount') ? 'activityCount' : 'activeDaysCount',
+    })
 
     const organizationIds = []
     const organizationMap = {}
-    // TODO questdb replace with query
-    // let activities
 
-    // do {
-    //   activities = await options.opensearch.search({
-    //     index: OpenSearchIndex.ACTIVITIES,
-    //     body: activityQuery,
-    //   })
-
-    //   organizationIds.push(
-    //     ...activities.body.aggregations.group_by_organization.buckets.map((b) => b.key),
-    //   )
-
-    //   organizationMap = {
-    //     ...organizationMap,
-    //     ...activities.body.aggregations.group_by_organization.buckets.reduce((acc, b) => {
-    //       acc[b.key] = {
-    //         activityCount: b.activity_count,
-    //         activeDaysCount: b.active_days_count,
-    //       }
-
-    //       return acc
-    //     }, {}),
-    //   }
-
-    //   activityOffset += activityPageSize
-
-    //   // update page
-    //   activityQuery.aggs.group_by_organization.aggs.active_organizations_bucket_sort.bucket_sort.from =
-    //     activityOffset
-    // } while (activities.body.aggregations.group_by_organization.buckets.length === activityPageSize)
+    for (const res of activeOrgsResults) {
+      organizationIds.push(res.organizationId)
+      organizationMap[res.organizationId] = {
+        activityCount: res.activityCount,
+        activeDaysCount: res.activeDaysCount,
+      }
+    }
 
     if (organizationIds.length === 0) {
       return {

@@ -14,6 +14,7 @@ import { IDbActivityUpdateData } from '../old/apps/data_sink_worker/repo/activit
 import {
   ActivityType,
   IActiveMemberData,
+  IActiveOrganizationData,
   IActivitySentiment,
   IMemberSegment,
   INumberOfActivitiesPerMember,
@@ -21,6 +22,7 @@ import {
   IOrganizationSegment,
   IOrganizationSegmentAggregates,
   IQueryActiveMembersParameters,
+  IQueryActiveOrganizationsParameters,
   IQueryActivitiesParameters,
   IQueryActivityResult,
   IQueryDistinctParameters,
@@ -903,6 +905,61 @@ export async function getOrganizationSegmentCouples(
       organizationIds,
     },
   )
+}
+
+export async function getActiveOrganizations(
+  qdbConn: DbConnOrTx,
+  arg: IQueryActiveOrganizationsParameters,
+): Promise<IActiveOrganizationData[]> {
+  if (arg.tenantId === undefined || arg.segmentIds === undefined || arg.segmentIds.length === 0) {
+    throw new Error('tenantId and segmentIds are required to query active member ids!')
+  }
+
+  const params: any = {
+    tenantId: arg.tenantId,
+    segmentIds: arg.segmentIds,
+    tsFrom: arg.timestampFrom,
+    tsTo: arg.timestampTo,
+    lowerLimit: arg.offset,
+    upperLimit: arg.offset + arg.limit - 1,
+  }
+
+  const conditions: string[] = [
+    'a."tenantId" = $(tenantId)',
+    'a."segmentId" in ($(segmentIds:csv))',
+    'a."deletedAt" is null',
+    'a.timestamp >= $(tsFrom)',
+    'a.timestamp <= $(tsTo)',
+  ]
+
+  if (arg.platforms && arg.platforms.length > 0) {
+    params.platforms = arg.platforms
+    conditions.push('a.platform in ($(platforms:csv))')
+  }
+
+  let orderByString: string
+  if (arg.orderBy === 'activityCount') {
+    orderByString = `count_distinct(a.id) ${arg.orderByDirection}`
+  } else if (arg.orderBy === 'activeDaysCount') {
+    orderByString = `count_distinct(date_trunc('day', a.timestamp)) ${arg.orderByDirection}`
+  } else {
+    throw new Error(`Invalid order by: ${arg.orderBy}!`)
+  }
+
+  const query = `
+  select  a."organizationId",
+          count_distinct(a.id) as "activityCount",
+          count_distinct(date_trunc('day', a.timestamp)) as "activeDaysCount"
+  from activities a
+  where ${conditions.join(' and ')}
+  group by a."organizationId"
+  order by ${orderByString}
+  limit $(lowerLimit), $(upperLimit);
+  `
+
+  const results = await qdbConn.any(query, params)
+
+  return results
 }
 
 export async function getActiveMembers(
