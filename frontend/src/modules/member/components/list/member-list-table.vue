@@ -631,7 +631,11 @@
                     }"
                     class="block"
                   >
-                    <app-tag-list :member="scope.row" @edit="handleEditTagsDialog(scope.row)" />
+                    <app-tag-list
+                      :member="scope.row"
+                      :editable="hasPermission(LfPermission.tagEdit)"
+                      @edit="handleEditTagsDialog(scope.row)"
+                    />
                   </router-link>
                 </template>
               </el-table-column>
