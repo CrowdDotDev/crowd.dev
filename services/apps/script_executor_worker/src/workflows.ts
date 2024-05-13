@@ -1,0 +1,7 @@
+import { findAndMergeMembersWithSamePlatformIdentitiesDifferentCapitalization } from './workflows/findAndMergeMembersWithSamePlatformIdentitiesDifferentCapitalization'
+import { findAndMergeMembersWithSameVerifiedEmailsInDifferentPlatforms } from './workflows/findAndMergeMembersWithSameVerifiedEmailsInDifferentPlatforms'
+
+export {
+  findAndMergeMembersWithSameVerifiedEmailsInDifferentPlatforms,
+  findAndMergeMembersWithSamePlatformIdentitiesDifferentCapitalization,
+}
