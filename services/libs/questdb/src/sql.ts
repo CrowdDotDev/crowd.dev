@@ -35,6 +35,7 @@ export const getClientSQL = async (): Promise<pgpromise.IDatabase<unknown>> => {
     user: process.env['CROWD_QUESTDB_READ_USERNAME'],
     password: process.env['CROWD_QUESTDB_READ_PASSWORD'],
     database: process.env['CROWD_QUESTDB_READ_DATABASE'],
+    application_name: process.env.SERVICE || 'unknown-app',
   })
 
   await client.connect()
