@@ -47,7 +47,7 @@
       <div class="bg-gray-50 px-6 py-4 flex items-center justify-end gap-4">
         <el-button
           class="btn btn--md btn--bordered"
-          @click="isModalVisible = false"
+          @click="isModalVisible = false; reset()"
         >
           Cancel
         </el-button>
@@ -56,7 +56,9 @@
           :disabled="$v.$invalid"
           @click="mapRepos()"
         >
-          Map repositories
+          <span>
+            Map repositories <span v-if="form.repositories.length > 0">({{ form.repositories.length }})</span>
+          </span>
         </cr-button>
       </div>
     </template>

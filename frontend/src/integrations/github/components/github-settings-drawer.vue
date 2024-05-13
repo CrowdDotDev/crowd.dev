@@ -59,8 +59,20 @@
           </div>
         </section>
 
+        <section class="pb-4">
+          <el-input
+            v-model="search"
+            clearable
+            placeholder="Search repositories..."
+          >
+            <template #prefix>
+              <i class="ri-search-line text-gray-400" />
+            </template>
+          </el-input>
+        </section>
+
         <!-- Repository mapping -->
-        <section>
+        <section v-if="filteredRepos.length > 0">
           <div class="flex border-b border-gray-200 items-center h-8">
             <div class="w-1/2 pr-4">
               <p class="text-3xs uppercase text-gray-400 font-semibold tracking-1">
@@ -74,7 +86,7 @@
             </div>
           </div>
           <div class="py-1.5">
-            <article v-for="repo of repos" :key="repo.url" class="py-1.5 flex items-center">
+            <article v-for="repo of filteredRepos" :key="repo.url" class="py-1.5 flex items-center">
               <div class="w-1/2 flex items-center pr-4">
                 <i class="ri-git-repository-line text-base mr-2" />
                 <p class="text-2xs leading-5 flex-grow truncate">
@@ -110,6 +122,11 @@
               </div>
             </article>
           </div>
+        </section>
+        <section v-else>
+          <p class="text-center text-sm text-gray-500 mb-4">
+            No repositories found
+          </p>
         </section>
       </div>
     </template>
@@ -182,6 +199,11 @@ const isDrawerVisible = computed({
     emit('update:modelValue', val);
   },
 });
+
+// Search
+const search = ref('');
+
+const filteredRepos = computed(() => repos.value.filter((r: any) => r.name.toLowerCase().includes(search.value.toLowerCase())));
 
 // Bulk select
 const isBulkSelectOpened = ref<boolean>(false);
