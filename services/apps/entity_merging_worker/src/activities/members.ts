@@ -50,6 +50,9 @@ export async function moveActivitiesWithIdentityToAnotherMember(
   }
 
   for (const identity of identities.filter((i) => i.type === MemberIdentityType.USERNAME)) {
+    console.log(
+      `Moving activities in identity platform = [${identity.platform}] and value = [${identity.value}] to ${toId}`,
+    )
     await moveIdentityActivitiesToNewMember(
       svc.postgres.writer,
       tenantId,
