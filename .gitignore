@@ -3,6 +3,7 @@
 ..env-configmap.yaml
 .backend-config.yaml
 .frontend-config.yaml
+scripts/deploy/kubernetes/auth
 
 # dependencies
 /node_modules

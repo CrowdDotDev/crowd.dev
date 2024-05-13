@@ -78,6 +78,33 @@ spec:
                 name: nango-svc
                 port:
                   number: 3003
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress
+  labels:
+    name: ingress
+    force-update: 'true' # allows force update when changing something else
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-issuer
+    nginx.ingress.kubernetes.io/ssl-redirect: 'true'
+    nginx.ingress.kubernetes.io/force-ssl-redirect: 'true'
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/auth-type: basic
+    nginx.ingress.kubernetes.io/auth-secret: basic-auth
+    nginx.ingress.kubernetes.io/auth-realm: "Authentication Required"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - search.getsphere.dev
+        - temporal.getsphere.dev
+        - grafana.getsphere.dev
+      secretName: letsencrypt-issuer
+  rules:
     - host: search.getsphere.dev
       http:
         paths:
@@ -98,7 +125,6 @@ spec:
                 name: temporal-svc
                 port:
                   number: 8233
-
 
 ---
 apiVersion: v1
