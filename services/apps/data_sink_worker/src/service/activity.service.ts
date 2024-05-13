@@ -67,6 +67,7 @@ export default class ActivityService extends LoggerBase {
           tenantId,
           activity.platform as PlatformType,
           activity.type,
+          segmentId,
         )
 
         if (activity.channel) {
@@ -181,6 +182,7 @@ export default class ActivityService extends LoggerBase {
             tenantId,
             original.platform as PlatformType,
             toUpdate.type,
+            segmentId,
           )
         }
 

@@ -1,7 +1,7 @@
 import { Error400 } from '@crowd/common'
 import { LoggerBase, logExecutionTime } from '@crowd/logging'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
-import { PlatformType, SyncMode, TemporalWorkflowId, SegmentData } from '@crowd/types'
+import { PlatformType, TemporalWorkflowId, SegmentData } from '@crowd/types'
 import { Blob } from 'buffer'
 import vader from 'crowd-sentiment'
 import { Transaction } from 'sequelize/types'
@@ -19,9 +19,9 @@ import ConversationService from './conversationService'
 import ConversationSettingsService from './conversationSettingsService'
 import merge from './helpers/merge'
 import MemberAffiliationService from './memberAffiliationService'
-import MemberService from './memberService'
 import SearchSyncService from './searchSyncService'
 import SegmentService from './segmentService'
+import { getDataSinkWorkerEmitter } from '@/serverless/utils/serviceSQS'
 
 const IS_GITHUB_COMMIT_DATA_ENABLED = GITHUB_CONFIG.isCommitDataEnabled === 'true'
 
@@ -498,14 +498,9 @@ export default class ActivityService extends LoggerBase {
     return exists || false
   }
 
-  async createWithMember(data, fireCrowdWebhooks: boolean = true) {
+  async createWithMember(data) {
     const logger = this.options.log
-    const searchSyncService = new SearchSyncService(this.options, SyncMode.ASYNCHRONOUS)
-
-    const errorDetails: any = {}
-
-    const transaction = await SequelizeRepository.createTransaction(this.options)
-    const memberService = new MemberService(this.options)
+    const dataSinkWorkerEmitter = await getDataSinkWorkerEmitter()
 
     try {
       data.member.username = mapUsernameToIdentities(data.member.username, data.platform)
@@ -516,156 +511,49 @@ export default class ActivityService extends LoggerBase {
       }
 
       if (!data.username) {
-        data.username = data.member.username[data.platform][0].username
+        data.username = data.member.username[data.platform][0].value
       }
 
       logger.trace(
         { type: data.type, platform: data.platform, username: data.username },
-        'Creating activity with member!',
+        'Send activity with member to data-sink-worker!',
       )
 
-      let activityExists = await this._activityExists(data, transaction)
+      const segment = SequelizeRepository.getStrictlySingleActiveSegment(this.options)
 
-      let existingMember = activityExists
-        ? await memberService.findById(activityExists.memberId, true, false)
-        : false
+      data.member.identities = []
 
-      if (existingMember) {
-        // let's look just in case for an existing member and if they are different we should log them because they will probably fail to insert
-        const tempExisting = await memberService.memberExists(data.member.username, data.platform)
-
-        if (!tempExisting) {
-          logger.warn(
-            {
-              existingMemberId: existingMember.id,
-              username: data.username,
-              platform: data.platform,
-              activityType: data.type,
-            },
-            'We have found an existing member but actually we could not find him by username and platform!',
-          )
-          errorDetails.reason = 'activity_service_createWithMember_existing_member_not_found'
-          errorDetails.details = {
-            existingMemberId: existingMember.id,
-            existingActivityId: activityExists.id,
-            username: data.username,
-            platform: data.platform,
-            activityType: data.type,
-          }
-        } else if (existingMember.id !== tempExisting.id) {
-          logger.warn(
-            {
-              existingMemberId: existingMember.id,
-              actualExistingMemberId: tempExisting.id,
-              existingActivityId: activityExists.id,
-              username: data.username,
-              platform: data.platform,
-              activityType: data.type,
-            },
-            'We found a member with the same username and platform but different id! Deleting the activity and continuing as if the activity did not exist.',
-          )
-
-          await ActivityRepository.destroy(activityExists.id, this.options, true)
-          await searchSyncService.triggerRemoveActivity(
-            this.options.currentTenant.id,
-            activityExists.id,
-          )
-          activityExists = false
-          existingMember = false
+      if (data.member.username) {
+        for (const platform of Object.keys(data.member.username)) {
+          const identity = data.member.username[platform][0]
+          data.member.identities.push({
+            platform,
+            value: identity.value,
+            type: identity.type,
+            verified: true,
+          })
         }
       }
 
-      const member = await memberService.upsert(
-        {
-          ...data.member,
+      if (data.member.email){
+        data.member.identities.push({
           platform: data.platform,
-          joinedAt: activityExists ? activityExists.timestamp : data.timestamp,
-        },
-        existingMember,
-        fireCrowdWebhooks,
+          value: data.member.email,
+          type: 'email',
+          verified: true,
+        })
+      }
+
+      await dataSinkWorkerEmitter.createAndProcessActivityResult(
+        this.options.currentTenant.id,
+        segment.id,
+        null,
+        data,
         false,
       )
-
-      if (data.objectMember) {
-        if (typeof data.objectMember.username === 'string') {
-          data.objectMember.username = {
-            [data.platform]: {
-              username: data.objectMember.username,
-            },
-          }
-        }
-
-        const objectMemberPlatforms = Object.keys(data.objectMember.username)
-
-        if (objectMemberPlatforms.length === 0) {
-          throw new Error('Object member must have at least one platform username set!')
-        }
-
-        for (const platform of objectMemberPlatforms) {
-          if (typeof data.objectMember.username[platform] === 'string') {
-            data.objectMember.username[platform] = {
-              username: data.objectMember.username[platform],
-            }
-          }
-        }
-
-        const objectMember = await memberService.upsert(
-          {
-            ...data.objectMember,
-            platform: data.platform,
-            joinedAt: data.timestamp,
-          },
-          false,
-          fireCrowdWebhooks,
-        )
-
-        if (!data.objectMemberUsername) {
-          data.objectMemberUsername = data.objectMember.username[data.platform].username
-        }
-
-        data.objectMember = objectMember.id
-      }
-
-      data.member = member.id
-
-      const memberAffilationService = new MemberAffiliationService(this.options)
-      data.organizationId = await memberAffilationService.findAffiliation(member.id, data.timestamp)
-
-      const record = await this.upsert(data, activityExists, fireCrowdWebhooks, false)
-
-      await SequelizeRepository.commitTransaction(transaction)
-
-      await searchSyncService.triggerMemberSync(this.options.currentTenant.id, record.memberId)
-      await searchSyncService.triggerActivitySync(this.options.currentTenant.id, record.id)
-
-      if (data.objectMember) {
-        await searchSyncService.triggerMemberSync(this.options.currentTenant.id, data.objectMember)
-      }
-
-      return record
     } catch (error) {
-      const reason = errorDetails.reason || undefined
-      const details = errorDetails.details || undefined
-
-      if (error.name && error.name.includes('Sequelize') && error.original) {
-        this.log.error(
-          error,
-          {
-            query: error.sql,
-            errorMessage: error.original.message,
-            reason,
-            details,
-          },
-          'Error during activity create with member!',
-        )
-      } else {
-        this.log.error(error, { reason, details }, 'Error during activity create with member!')
-      }
-      await SequelizeRepository.rollbackTransaction(transaction)
-
-      SequelizeRepository.handleUniqueFieldError(error, this.options.language, 'activity')
-
-      throw { ...error, reason, details }
+      this.log.error(error, 'Error during activity create with member!')
+      throw error
     }
   }
 

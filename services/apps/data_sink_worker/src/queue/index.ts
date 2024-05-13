@@ -63,6 +63,7 @@ export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
               msg.segmentId,
               msg.integrationId,
               msg.activityData,
+              msg.fromIntegration,
             )
             break
           }

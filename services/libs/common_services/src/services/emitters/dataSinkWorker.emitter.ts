@@ -59,11 +59,18 @@ export class DataSinkWorkerEmitter extends QueuePriorityService {
     segmentId: string,
     integrationId: string,
     activity: IActivityData,
+    fromIntegration = true,
   ) {
     await this.sendMessage(
       tenantId,
       generateUUIDv1(),
-      new CreateAndProcessActivityResultQueueMessage(tenantId, segmentId, integrationId, activity),
+      new CreateAndProcessActivityResultQueueMessage(
+        tenantId,
+        segmentId,
+        integrationId,
+        activity,
+        fromIntegration,
+      ),
       undefined,
       {
         onboarding: true,

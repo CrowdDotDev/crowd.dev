@@ -101,6 +101,7 @@ export default class DataSinkService extends LoggerBase {
     segmentId: string,
     integrationId: string,
     data: IActivityData,
+    fromIntegration = true,
   ): Promise<void> {
     this.log.debug({ tenantId, segmentId }, 'Creating and processing activity result.')
 
@@ -110,13 +111,13 @@ export default class DataSinkService extends LoggerBase {
       segmentId,
     })
 
-    await this.processResult(resultId)
+    await this.processResult(resultId, fromIntegration)
   }
 
-  public async processResult(resultId: string): Promise<boolean> {
+  public async processResult(resultId: string, fromIntegration?: boolean): Promise<boolean> {
     this.log.debug({ resultId }, 'Processing result.')
 
-    const resultInfo = await this.repo.getResultInfo(resultId)
+    const resultInfo = await this.repo.getResultInfo(resultId, fromIntegration)
 
     if (!resultInfo) {
       telemetry.increment('data_sync_worker.result_not_found', 1)
@@ -258,6 +259,27 @@ export default class DataSinkService extends LoggerBase {
       }
 
       return false
+    }
+  }
+
+  public async createAndProcessActivityFromAPI(
+    tenantId: string,
+    data: IActivityData,
+  ): Promise<void> {
+    const service = new ActivityService(
+      this.store,
+      this.nodejsWorkerEmitter,
+      this.searchSyncWorkerEmitter,
+      this.redisClient,
+      this.unleash,
+      this.temporal,
+      this.log,
+    )
+
+    try {
+      await service.processActivity(tenantId, null, true, data.platform as PlatformType, data)
+    } catch (err) {
+      this.log.error(err, 'Error processing activity from API.')
     }
   }
 }
