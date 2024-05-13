@@ -723,7 +723,6 @@ describe('OrganizationRepository tests', () => {
           filter: {
             name: 'Pied Piper',
           },
-          includeOrganizationsWithoutMembers: true,
         },
         mockIRepositoryOptions,
       )
@@ -743,7 +742,6 @@ describe('OrganizationRepository tests', () => {
           filter: {
             url: 'crowd.dev',
           },
-          includeOrganizationsWithoutMembers: true,
         },
         mockIRepositoryOptions,
       )
@@ -763,7 +761,6 @@ describe('OrganizationRepository tests', () => {
           filter: {
             description: 'community',
           },
-          includeOrganizationsWithoutMembers: true,
         },
         mockIRepositoryOptions,
       )
@@ -783,7 +780,6 @@ describe('OrganizationRepository tests', () => {
           filter: {
             emails: 'richard@piedpiper.io,jonathan@crowd.dev',
           },
-          includeOrganizationsWithoutMembers: true,
         },
         mockIRepositoryOptions,
       )
@@ -795,7 +791,6 @@ describe('OrganizationRepository tests', () => {
           filter: {
             emails: ['richard@piedpiper.io', 'jonathan@crowd.dev'],
           },
-          includeOrganizationsWithoutMembers: true,
         },
         mockIRepositoryOptions,
       )
@@ -814,7 +809,6 @@ describe('OrganizationRepository tests', () => {
           filter: {
             tags: 'new-internet,not-google,new',
           },
-          includeOrganizationsWithoutMembers: true,
         },
         mockIRepositoryOptions,
       )
@@ -826,7 +820,6 @@ describe('OrganizationRepository tests', () => {
           filter: {
             tags: ['new-internet', 'not-google', 'new'],
           },
-          includeOrganizationsWithoutMembers: true,
         },
         mockIRepositoryOptions,
       )
@@ -845,7 +838,6 @@ describe('OrganizationRepository tests', () => {
           filter: {
             twitter: 'crowdDotDev',
           },
-          includeOrganizationsWithoutMembers: true,
         },
         mockIRepositoryOptions,
       )
@@ -865,7 +857,6 @@ describe('OrganizationRepository tests', () => {
           filter: {
             linkedin: 'crowddevhq',
           },
-          includeOrganizationsWithoutMembers: true,
         },
         mockIRepositoryOptions,
       )
@@ -885,7 +876,6 @@ describe('OrganizationRepository tests', () => {
           filter: {
             employeesRange: [90, 120],
           },
-          includeOrganizationsWithoutMembers: true,
         },
         mockIRepositoryOptions,
       )
@@ -906,7 +896,6 @@ describe('OrganizationRepository tests', () => {
             revenueMin: 0,
             revenueMax: 1,
           },
-          includeOrganizationsWithoutMembers: true,
         },
         mockIRepositoryOptions,
       )
@@ -919,7 +908,6 @@ describe('OrganizationRepository tests', () => {
           filter: {
             revenueMin: 9,
           },
-          includeOrganizationsWithoutMembers: true,
         },
         mockIRepositoryOptions,
       )
@@ -972,268 +960,6 @@ describe('OrganizationRepository tests', () => {
       expect(found.rows[0].name).toBe('crowd.dev')
     })
 
-    it.skip('Should filter by activityCount', async () => {
-      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const org1 = await createOrganization(crowddev, mockIRepositoryOptions, [
-        {
-          username: {
-            github: {
-              username: 'joan',
-              integrationId: generateUUIDv1(),
-            },
-          },
-          displayName: 'Joan',
-          joinedAt: moment().toDate(),
-          activities: [
-            {
-              type: 'activity',
-              username: 'joan',
-              timestamp: '2020-05-27T15:13:30Z',
-              platform: PlatformType.GITHUB,
-              sourceId: '#sourceId1',
-            },
-          ],
-        },
-        {
-          username: {
-            github: {
-              username: 'anil',
-              integrationId: generateUUIDv1(),
-            },
-          },
-          displayName: 'anil',
-          joinedAt: moment().toDate(),
-          activities: [
-            {
-              type: 'activity',
-              username: 'anil',
-              timestamp: '2020-06-27T15:13:30Z',
-              platform: PlatformType.TWITTER,
-              sourceId: '#sourceId2',
-            },
-          ],
-        },
-      ])
-      await createOrganization(piedpiper, mockIRepositoryOptions)
-      await createOrganization(hooli, mockIRepositoryOptions)
-
-      const found = await OrganizationRepository.findAndCountAll(
-        {
-          advancedFilter: {
-            activityCount: {
-              gte: 2,
-            },
-          },
-        },
-        mockIRepositoryOptions,
-      )
-
-      delete org1.members
-
-      expect(found.count).toBe(1)
-      expect(found.rows).toStrictEqual([org1])
-    })
-
-    // we can skip this test - findAndCount is not used anymore - we use opensearch method findAndCountAllOpensearch instead
-    it.skip('Should filter by memberCount', async () => {
-      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const org1 = await createOrganization(crowddev, mockIRepositoryOptions, [
-        {
-          username: {
-            github: {
-              username: 'joan',
-              integrationId: generateUUIDv1(),
-            },
-          },
-          displayName: 'Joan',
-          joinedAt: moment().toDate(),
-        },
-        {
-          username: {
-            github: {
-              username: 'anil',
-              integrationId: generateUUIDv1(),
-            },
-          },
-          displayName: 'anil',
-          joinedAt: moment().toDate(),
-        },
-        {
-          username: {
-            github: {
-              username: 'uros',
-              integrationId: generateUUIDv1(),
-            },
-          },
-          displayName: 'uros',
-          joinedAt: moment().toDate(),
-        },
-      ])
-      const org2 = await createOrganization(piedpiper, mockIRepositoryOptions, [
-        {
-          username: {
-            github: {
-              username: 'mario',
-              integrationId: generateUUIDv1(),
-            },
-          },
-          displayName: 'mario',
-          joinedAt: moment().toDate(),
-        },
-        {
-          username: {
-            github: {
-              username: 'igor',
-              integrationId: generateUUIDv1(),
-            },
-          },
-          displayName: 'igor',
-          joinedAt: moment().toDate(),
-        },
-      ])
-      await createOrganization(hooli, mockIRepositoryOptions)
-
-      const found = await OrganizationRepository.findAndCountAll(
-        {
-          advancedFilter: {
-            memberCount: {
-              gte: 2,
-            },
-          },
-        },
-        mockIRepositoryOptions,
-      )
-
-      delete org1.members
-      delete org2.members
-
-      expect(found.count).toBe(2)
-      expect(found.rows.sort((a, b) => (a.createdAt > b.createdAt ? 1 : -1))).toStrictEqual([
-        org1,
-        org2,
-      ])
-    })
-
-    it.skip('Should filter by joinedAt', async () => {
-      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      await createOrganization(crowddev, mockIRepositoryOptions, [
-        {
-          username: {
-            github: {
-              username: 'joan',
-              integrationId: generateUUIDv1(),
-            },
-          },
-          displayName: 'Joan',
-          joinedAt: moment().toDate(),
-          activities: [
-            {
-              type: 'activity',
-              username: 'joan',
-              timestamp: '2020-05-27T15:13:30Z',
-              platform: PlatformType.GITHUB,
-              sourceId: '#sourceId1',
-            },
-          ],
-        },
-        {
-          username: {
-            github: {
-              username: 'anil',
-              integrationId: generateUUIDv1(),
-            },
-          },
-          displayName: 'anil',
-          joinedAt: moment().toDate(),
-          activities: [
-            {
-              username: 'anil',
-              type: 'activity',
-              timestamp: '2020-04-27T15:13:30Z',
-              platform: PlatformType.SLACK,
-              sourceId: '#sourceId2',
-            },
-          ],
-        },
-        {
-          username: {
-            github: {
-              username: 'uros',
-              integrationId: generateUUIDv1(),
-            },
-          },
-          displayName: 'uros',
-          joinedAt: moment().toDate(),
-          activities: [
-            {
-              type: 'activity',
-              username: 'uros',
-              timestamp: '2020-03-27T15:13:30Z',
-              platform: PlatformType.TWITTER,
-              sourceId: '#sourceId3',
-            },
-          ],
-        },
-      ])
-      const org2 = await createOrganization(piedpiper, mockIRepositoryOptions, [
-        {
-          username: {
-            github: {
-              username: 'mario',
-              integrationId: generateUUIDv1(),
-            },
-          },
-          displayName: 'mario',
-          joinedAt: moment().toDate(),
-          activities: [
-            {
-              type: 'activity',
-              username: 'mario',
-              timestamp: '2022-03-27T15:13:30Z',
-              platform: PlatformType.DEVTO,
-              sourceId: '#sourceId4',
-            },
-          ],
-        },
-        {
-          username: {
-            github: {
-              username: 'igor',
-              integrationId: generateUUIDv1(),
-            },
-          },
-          displayName: 'igor',
-          joinedAt: moment().toDate(),
-          activities: [
-            {
-              type: 'activity',
-              username: 'igor',
-              timestamp: '2022-02-27T15:13:30Z',
-              platform: PlatformType.DEVTO,
-              sourceId: '#sourceId5',
-            },
-          ],
-        },
-      ])
-      await createOrganization(hooli, mockIRepositoryOptions)
-
-      const found = await OrganizationRepository.findAndCountAll(
-        {
-          advancedFilter: {
-            joinedAt: {
-              gte: '2022-02-27',
-            },
-          },
-        },
-        mockIRepositoryOptions,
-      )
-
-      delete org2.members
-
-      expect(found.count).toBe(1)
-      expect(found.rows.sort((a, b) => (a.createdAt > b.createdAt ? 1 : -1))).toStrictEqual([org2])
-    })
-
     it('Should work with advanced filters', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       await createOrganization(crowddev, mockIRepositoryOptions, [
@@ -1262,12 +988,11 @@ describe('OrganizationRepository tests', () => {
         (
           await OrganizationRepository.findAndCountAll(
             {
-              advancedFilter: {
+              filter: {
                 revenue: {
                   gte: 9,
                 },
               },
-              includeOrganizationsWithoutMembers: true,
             },
             mockIRepositoryOptions,
           )
@@ -1279,12 +1004,11 @@ describe('OrganizationRepository tests', () => {
         (
           await OrganizationRepository.findAndCountAll(
             {
-              advancedFilter: {
+              filter: {
                 'twitter.bio': {
                   textContains: 'world a better place',
                 },
               },
-              includeOrganizationsWithoutMembers: true,
             },
             mockIRepositoryOptions,
           )
@@ -1295,7 +1019,7 @@ describe('OrganizationRepository tests', () => {
         (
           await OrganizationRepository.findAndCountAll(
             {
-              advancedFilter: {
+              filter: {
                 or: [
                   {
                     and: [
@@ -1318,7 +1042,6 @@ describe('OrganizationRepository tests', () => {
                   },
                 ],
               },
-              includeOrganizationsWithoutMembers: true,
             },
             mockIRepositoryOptions,
           )
@@ -1329,7 +1052,7 @@ describe('OrganizationRepository tests', () => {
         (
           await OrganizationRepository.findAndCountAll(
             {
-              advancedFilter: {
+              filter: {
                 or: [
                   {
                     and: [
@@ -1350,7 +1073,6 @@ describe('OrganizationRepository tests', () => {
                   },
                 ],
               },
-              includeOrganizationsWithoutMembers: true,
             },
             mockIRepositoryOptions,
           )

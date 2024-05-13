@@ -1200,16 +1200,38 @@ export default class OrganizationService extends LoggerBase {
   }
 
   async query(data) {
-    const advancedFilter = data.filter
-    const orderBy = data.orderBy
-    const limit = data.limit
-    const offset = data.offset
-    const pageData = await OrganizationRepository.findAndCountAllOpensearch(
-      { filter: advancedFilter, orderBy, limit, offset, segments: data.segments },
+    const { filter, orderBy, limit, offset, segments } = data
+    const result = await OrganizationRepository.findAndCountAll(
+      {
+        filter,
+        orderBy,
+        limit,
+        offset,
+        segments,
+        fields: [
+          'id',
+          'segmentId',
+          'displayName',
+          'website',
+          'headline',
+          'identities',
+          'memberCount',
+          'activityCount',
+          'lastActive',
+          'joinedAt',
+          'location',
+          'industry',
+          'size',
+          'revenueRange',
+          'founded',
+          'employeeGrowthRate',
+          'tags',
+        ],
+      },
       this.options,
     )
 
-    const orgIds = pageData.rows.map((org) => org.id)
+    const orgIds = result.rows.map((org) => org.id)
 
     const qx = SequelizeRepository.getQueryExecutor(this.options)
     const lfxMemberships = await findManyLfxMemberships(qx, {
@@ -1217,11 +1239,11 @@ export default class OrganizationService extends LoggerBase {
       tenantId: this.options.currentTenant.id,
     })
 
-    pageData.rows.forEach((org) => {
+    result.rows.forEach((org) => {
       org.lfxMembership = lfxMemberships.find((lm) => lm.organizationId === org.id)
     })
 
-    return pageData
+    return result
   }
 
   async destroyBulk(ids) {
