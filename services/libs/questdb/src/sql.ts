@@ -38,8 +38,6 @@ export const getClientSQL = async (): Promise<pgpromise.IDatabase<unknown>> => {
     user: process.env['CROWD_QUESTDB_READ_USERNAME'],
     password: process.env['CROWD_QUESTDB_READ_PASSWORD'],
     database: process.env['CROWD_QUESTDB_READ_DATABASE'],
-    max: 20,
-    idleTimeoutMillis: 10000,
     application_name: process.env.SERVICE || 'unknown-app',
   })
 

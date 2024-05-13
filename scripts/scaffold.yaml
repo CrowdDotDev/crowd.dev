@@ -45,6 +45,8 @@ services:
       - 9001:9000
       - 9003:9003
       - 9009:9009
+    environment:
+      - QDB_PG_NET_CONNECTION_TIMEOUT=0
     volumes:
       - questdb-dev:/var/lib/questdb
     networks:
