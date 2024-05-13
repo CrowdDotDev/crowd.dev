@@ -84,6 +84,8 @@ class MemberRepository {
         and a."tenantId" = $(tenantId)
         and a.platform = $(platform)
         ${afterHashFilter}
+    where a."memberId" <> '5c1a19a0-f85f-11ee-9aad-07d434aa9110' and
+          b."memberId" <> '5c1a19a0-f85f-11ee-9aad-07d434aa9110'
     group by hash
     order by hash desc
     limit $(limit);
