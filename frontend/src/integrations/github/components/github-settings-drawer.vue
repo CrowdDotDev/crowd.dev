@@ -35,9 +35,17 @@
         <!-- Disclaimer -->
         <section class="pb-4">
           <div class="pb-4">
-            <h6 class="text-sm font-medium leading-5 mb-2">
-              Repository mapping
-            </h6>
+            <div class="flex justify-between items-center">
+              <h6 class="text-sm font-medium leading-5 mb-2">
+                Repository mapping
+              </h6>
+              <div class="flex items-center text-brand-500 cursor-pointer select-none" @click="isBulkSelectOpened = true">
+                <i class="ri-checkbox-multiple-line text-base mr-1" />
+                <span class="text-xs font-normal">
+                  Bulk selection
+                </span>
+              </div>
+            </div>
             <p class="text-2xs leading-4.5 text-gray-500">
               Select the subproject you want to map with each connected repository.
             </p>
@@ -126,11 +134,17 @@
       </div>
     </template>
   </app-drawer>
+  <app-github-settings-bulk-select
+    v-model="isBulkSelectOpened"
+    :repositories="repos"
+    :subprojects="subprojects"
+    @apply="bulkApply"
+  />
 </template>
 
 <script lang="ts" setup>
 import {
-  computed, onMounted, reactive,
+  computed, onMounted,
   ref,
 } from 'vue';
 import Message from '@/shared/message/message';
@@ -144,6 +158,7 @@ import { IntegrationService } from '@/modules/integration/integration-service';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
 import { showIntegrationProgressNotification } from '@/modules/integration/helpers/integration-progress-notification';
+import AppGithubSettingsBulkSelect from '@/integrations/github/components/github-settings-bulk-select.vue';
 
 const props = defineProps<{
   modelValue: boolean,
@@ -168,6 +183,16 @@ const isDrawerVisible = computed({
   },
 });
 
+// Bulk select
+const isBulkSelectOpened = ref<boolean>(false);
+
+const bulkApply = (data: Record<string, string>) => {
+  form.value = {
+    ...form.value,
+    ...data,
+  };
+};
+
 // Display data
 const repos = computed(() => props.integration?.settings?.repos || []);
 
@@ -180,7 +205,7 @@ const owner = computed<{name: string, logo?: string} | null>(() => (repos.value.
 const githubDetails = computed(() => CrowdIntegrations.getConfig('github'));
 
 // Form
-const form = reactive<Record<string, string>>(repos.value.reduce((a: Record<string, any>, b: any) => ({
+const form = ref<Record<string, string>>(repos.value.reduce((a: Record<string, any>, b: any) => ({
   ...a,
   [b.url]: props.integration.segmentId,
 }), {}));
@@ -198,7 +223,7 @@ const $v = useVuelidate(rules, form);
 const sending = ref(false);
 
 const connect = () => {
-  const data = { ...form };
+  const data = { ...form.value };
   ConfirmDialog({
     type: 'warning',
     title: 'Are you sure you want to proceed?',
