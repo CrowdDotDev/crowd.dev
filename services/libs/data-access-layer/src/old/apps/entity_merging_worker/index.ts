@@ -108,8 +108,10 @@ export async function moveIdentityActivitiesToNewMember(
       },
     )
 
+    console.log(result)
+
     rowsUpdated = result.length
-    console.log('`Rows updated: ', rowsUpdated)
+    console.log('Rows updated: ', rowsUpdated)
   } while (rowsUpdated === batchSize)
 }
 
