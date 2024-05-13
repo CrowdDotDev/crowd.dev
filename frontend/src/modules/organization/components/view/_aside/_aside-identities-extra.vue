@@ -4,7 +4,7 @@
   <div class="flex flex-col px-6">
     <div class="flex items-center justify-between">
       <div class="font-medium text-black">
-        Email(s)
+        Email Domain(s)
       </div>
       <el-button
         v-if="hasPermission(LfPermission.organizationEdit)"
