@@ -847,7 +847,7 @@ export default class MemberService extends LoggerBase {
         // construct primary member with best effort
         for (const key of MemberService.MEMBER_MERGE_FIELDS) {
           // delay relationships for later
-          if (!(key in relationships) && !member.manuallyChangedFields.includes(key)) {
+          if (!(key in relationships) && !(member.manuallyChangedFields || []).includes(key)) {
             if (key === 'attributes') {
               // 1) if both primary and secondary backup have the attribute, check any platform specific value came from merge, if current member has it, revert it
               // 2) if primary backup doesn't have the attribute, and secondary backup does, check if current member has the same value, if yes revert it (it came through merge)
