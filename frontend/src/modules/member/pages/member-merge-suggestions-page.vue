@@ -71,7 +71,7 @@
                 <router-link
                   :to="{
                     name: 'memberView',
-                    params: { id: suggestion.members[0].id },
+                    params: { id: suggestion.members[1].id },
                     query: { projectGroup: selectedProjectGroup?.id },
                   }"
                   target="_blank"
