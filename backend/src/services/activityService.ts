@@ -526,6 +526,15 @@ export default class ActivityService extends LoggerBase {
         data.objectMember.identities = ActivityService.processMemberIdentities(data.objectMember, data.platform)
       }
 
+      if (data.member.organizations){
+        data.member.organizations.forEach(org => {
+          org.identities = [{
+            name: org.name || org.website,
+            platform: data.platform
+          }]
+        })
+      }
+
       logger.trace(
         { type: data.type, platform: data.platform, username: data.username, processedData: data },
         'Sending activity with member to data-sink-worker!',
@@ -736,12 +745,14 @@ export default class ActivityService extends LoggerBase {
       })
     }
 
-    if (member.email) {
-      identities.push({
-        platform,
-        value: member.email,
-        type: 'email',
-        verified: true,
+    if (member.emails) {
+      member.emails.forEach(email => {
+        identities.push({
+          platform,
+          value: email,
+          type: 'email',
+          verified: true,
+        })
       })
     }
 
