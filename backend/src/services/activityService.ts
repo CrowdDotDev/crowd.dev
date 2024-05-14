@@ -520,18 +520,26 @@ export default class ActivityService extends LoggerBase {
       data.isContribution = data.isContribution || false
 
       // prepare objectMember for dataSinkWorker
-      if (data.objectMember){
-        data.objectMember.username = mapUsernameToIdentities(data.objectMember.username, data.platform)
+      if (data.objectMember) {
+        data.objectMember.username = mapUsernameToIdentities(
+          data.objectMember.username,
+          data.platform,
+        )
         data.objectMemberUsername = data.objectMember.username[data.platform][0].value
-        data.objectMember.identities = ActivityService.processMemberIdentities(data.objectMember, data.platform)
+        data.objectMember.identities = ActivityService.processMemberIdentities(
+          data.objectMember,
+          data.platform,
+        )
       }
 
-      if (data.member.organizations){
-        data.member.organizations.forEach(org => {
-          org.identities = [{
-            name: org.name || org.website,
-            platform: data.platform
-          }]
+      if (data.member.organizations) {
+        data.member.organizations.forEach((org) => {
+          org.identities = [
+            {
+              name: org.name || org.website,
+              platform: data.platform,
+            },
+          ]
         })
       }
 
@@ -735,18 +743,18 @@ export default class ActivityService extends LoggerBase {
     const identities = []
 
     if (member.username) {
-      Object.keys(member.username).forEach(platform => {
+      Object.keys(member.username).forEach((platform) => {
         identities.push({
-            platform,
-            value: member.username[platform][0].value,
-            type: member.username[platform][0].type,
-            verified: true,
+          platform,
+          value: member.username[platform][0].value,
+          type: member.username[platform][0].type,
+          verified: true,
         })
       })
     }
 
     if (member.emails) {
-      member.emails.forEach(email => {
+      member.emails.forEach((email) => {
         identities.push({
           platform,
           value: email,
