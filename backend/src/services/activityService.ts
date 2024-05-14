@@ -505,44 +505,31 @@ export default class ActivityService extends LoggerBase {
     try {
       data.member.username = mapUsernameToIdentities(data.member.username, data.platform)
 
-      const platforms = Object.keys(data.member.username)
-      if (platforms.length === 0) {
-        throw new Error('Member must have at least one platform username set!')
-      }
-
       if (!data.username) {
         data.username = data.member.username[data.platform][0].value
       }
 
       logger.trace(
         { type: data.type, platform: data.platform, username: data.username },
-        'Send activity with member to data-sink-worker!',
+        'Processing activity with member!',
       )
 
       const segment = SequelizeRepository.getStrictlySingleActiveSegment(this.options)
 
-      data.member.identities = []
+      data.member.identities = ActivityService.processMemberIdentities(data.member, data.platform)
+      data.isContribution = data.isContribution || false
 
-      if (data.member.username) {
-        for (const platform of Object.keys(data.member.username)) {
-          const identity = data.member.username[platform][0]
-          data.member.identities.push({
-            platform,
-            value: identity.value,
-            type: identity.type,
-            verified: true,
-          })
-        }
+      // prepare objectMember for dataSinkWorker
+      if (data.objectMember){
+        data.objectMember.username = mapUsernameToIdentities(data.objectMember.username, data.platform)
+        data.objectMemberUsername = data.objectMember.username[data.platform][0].value
+        data.objectMember.identities = ActivityService.processMemberIdentities(data.objectMember, data.platform)
       }
 
-      if (data.member.email){
-        data.member.identities.push({
-          platform: data.platform,
-          value: data.member.email,
-          type: 'email',
-          verified: true,
-        })
-      }
+      logger.trace(
+        { type: data.type, platform: data.platform, username: data.username, processedData: data },
+        'Sending activity with member to data-sink-worker!',
+      )
 
       await dataSinkWorkerEmitter.createAndProcessActivityResult(
         this.options.currentTenant.id,
@@ -733,5 +720,31 @@ export default class ActivityService extends LoggerBase {
       default:
         return false
     }
+  }
+
+  static processMemberIdentities(member, platform) {
+    const identities = []
+
+    if (member.username) {
+      Object.keys(member.username).forEach(platform => {
+        identities.push({
+            platform,
+            value: member.username[platform][0].value,
+            type: member.username[platform][0].type,
+            verified: true,
+        })
+      })
+    }
+
+    if (member.email) {
+      identities.push({
+        platform,
+        value: member.email,
+        type: 'email',
+        verified: true,
+      })
+    }
+
+    return identities
   }
 }
