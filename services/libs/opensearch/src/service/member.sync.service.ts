@@ -375,14 +375,20 @@ export class MemberSyncService {
           const attributes = await this.memberRepo.getTenantMemberAttributes(result.tenantId)
 
           // All segments processed, push the segment related docs into syncStream
-          syncStream.push(
-            ...memberSegmentCouples[memberId].map((s) => {
-              return {
-                id: `${s.data.id}-${s.aggregates.segmentId}`,
-                body: MemberSyncService.prefixData(s.data, s.aggregates, attributes),
+          for (const memberId of Object.keys(memberSegmentCouples)) {
+            const values = memberSegmentCouples[memberId]
+            for (const value of values) {
+              if (value.aggregates.activityCount === 0 && !value.data.manuallyCreated) {
+                // if there are no activities for the member in the segment, we don't sync it
+                continue
               }
-            }),
-          )
+
+              syncStream.push({
+                id: `${value.data.id}-${value.aggregates.segmentId}`,
+                body: MemberSyncService.prefixData(value.data, value.aggregates, attributes),
+              })
+            }
+          }
 
           const isMultiSegment = this.serviceConfig.edition === Edition.LFX
 

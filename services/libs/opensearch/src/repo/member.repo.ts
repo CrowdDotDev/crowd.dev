@@ -64,7 +64,6 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
     perPage: number,
     lastId?: string,
   ): Promise<IMemberIdData[]> {
-    // TODO questdb check for activities and manuallyCreated
     return await this.db().any(
       `
       select distinct mo."memberId", m."manuallyCreated"
@@ -85,7 +84,6 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
   }
 
   public async getMemberData(memberId: string): Promise<IDbMemberSyncData[]> {
-    // TODO questdb check for activities and manuallyCreated
     const results = await this.db().oneOrNone(
       ` 
       with to_merge_data as (select mtm."memberId",
@@ -243,7 +241,6 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
   }
 
   public async checkMembersExists(tenantId: string, memberIds: string[]): Promise<IMemberIdData[]> {
-    // TODO questdb check for activities and manuallyCreated
     return await this.db().any(
       `
       select m.id as "memberId", m."manuallyCreated"

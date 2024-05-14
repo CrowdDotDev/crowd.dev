@@ -496,7 +496,11 @@ class TaskRepository {
       },
     )
     const activityIds = results.map((r) => (r as any).activityId)
-    output.activities = await getActivitiesById(options.qdb, activityIds)
+    if (activityIds.length > 0) {
+      output.activities = await getActivitiesById(options.qdb, activityIds)
+    } else {
+      output.activities = []
+    }
 
     output.assignees = (
       await record.getAssignees({

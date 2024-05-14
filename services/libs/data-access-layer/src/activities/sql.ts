@@ -41,6 +41,10 @@ export async function getActivitiesById(
   conn: DbConnOrTx,
   ids: string[],
 ): Promise<IQueryActivityResult[]> {
+  if (ids.length === 0) {
+    return []
+  }
+
   const columnString = DEFAULT_COLUMNS_TO_SELECT.map((c) => `a.${c}`).join(', ')
 
   const activities = await conn.any(
@@ -687,14 +691,14 @@ export async function getMostActiveMembers(
 export async function getOrganizationAggregates(
   qdbConn: DbConnOrTx,
   organizationId: string,
-  segmentId: string,
+  segmentId?: string,
 ): Promise<IOrganizationSegmentAggregates> {
   const result = await qdbConn.oneOrNone(
     `
     with relevant_activities as (select id, timestamp, platform, "memberId", "organizationId", "segmentId"
                                 from activities
                                 where "organizationId" = $(organizationId)
-                                  and "segmentId" = $(segmentId)
+                                  ${segmentId ? 'and "segmentId" = $(segmentId)' : ''}
                                   and "deletedAt" is null),
         distinct_platforms as (select distinct "organizationId", "segmentId", platform from relevant_activities),
         distinct_members as (select distinct "organizationId", "segmentId", "memberId" from relevant_activities),
@@ -1047,5 +1051,9 @@ export async function getLastActivitiesForMembers(
 
   const ids = results.map((r) => r.id)
 
-  return getActivitiesById(qdbConn, ids)
+  if (ids.length > 0) {
+    return getActivitiesById(qdbConn, ids)
+  }
+
+  return []
 }
