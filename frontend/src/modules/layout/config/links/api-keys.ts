@@ -1,5 +1,6 @@
 import { MenuLink } from '@/modules/layout/types/MenuLink';
-import { SettingsPermissions } from '@/modules/settings/settings-permissions';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 
 const apiKeys: MenuLink = {
   id: 'api-keys',
@@ -8,15 +9,10 @@ const apiKeys: MenuLink = {
   routeOptions: {
     query: { activeTab: 'api-keys' },
   },
-  display: ({ user, tenant }) => {
-    const settingsPermissions = new SettingsPermissions(
-      tenant,
-      user,
-    );
-
-    return settingsPermissions.edit || settingsPermissions.lockedForCurrentPlan;
+  display: () => {
+    const { hasPermission } = usePermissions();
+    return hasPermission(LfPermission.settingsEdit);
   },
-  disable: () => false,
 };
 
 export default apiKeys;

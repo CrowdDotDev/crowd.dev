@@ -144,11 +144,9 @@ import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { merge } from 'lodash';
 import useMemberMergeMessage from '@/shared/modules/merge/config/useMemberMergeMessage';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
 import CrButton from '@/ui-kit/button/Button.vue';
 import AppMemberMergeSimilarity from '@/modules/member/components/suggestions/member-merge-similarity.vue';
 import { MemberService } from '../member-service';
-import { MemberPermissions } from '../member-permissions';
 
 const props = defineProps({
   query: {
@@ -168,9 +166,6 @@ const emit = defineEmits(['reload']);
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
-
 const membersToMerge = ref([]);
 const primary = ref(0);
 const offset = ref(props.offset);
@@ -183,11 +178,6 @@ const sendingMerge = ref(false);
 const changed = ref(false);
 
 const bioHeight = ref(0);
-
-const isEditLockedForSampleData = computed(
-  () => new MemberPermissions(tenant.value, user.value)
-    .editLockedForSampleData,
-);
 
 const clearMember = (member) => {
   const cleanedMember = { ...member };

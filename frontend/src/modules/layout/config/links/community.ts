@@ -6,7 +6,6 @@ const community: MenuLink = {
   icon: 'ri-discord-fill',
   href: 'https://crowd.dev/discord',
   display: () => true,
-  disable: () => false,
 };
 
 export default community;

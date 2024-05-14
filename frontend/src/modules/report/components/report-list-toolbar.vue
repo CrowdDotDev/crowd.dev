@@ -8,7 +8,7 @@
       selected</span>
 
     <el-tooltip
-      v-if="hasPermissionToDestroy"
+      v-if="hasPermission(LfPermission.reportDestroy)"
       :content="destroyButtonTooltip"
       :disabled="!destroyButtonTooltip"
     >
@@ -28,20 +28,26 @@
 
 <script>
 import { mapGetters, mapActions, mapState } from 'vuex';
-import { ReportPermissions } from '@/modules/report/report-permissions';
 import { i18n } from '@/i18n';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 
 export default {
   name: 'AppReportListToolbar',
   setup() {
     const authStore = useAuthStore();
     const { user, tenant } = storeToRefs(authStore);
-    return { user, tenant };
+
+    const { hasPermission } = usePermissions();
+    return { user, tenant, hasPermission };
   },
   computed: {
+    LfPermission() {
+      return LfPermission;
+    },
     ...mapState({
       loading: (state) => state.report.loading,
     }),
@@ -49,13 +55,6 @@ export default {
       hasRows: 'report/hasRows',
       selectedRows: 'report/selectedRows',
     }),
-
-    hasPermissionToDestroy() {
-      return new ReportPermissions(
-        this.tenant,
-        this.user,
-      ).destroy;
-    },
 
     destroyButtonDisabled() {
       return !this.selectedRows.length || this.loading;
