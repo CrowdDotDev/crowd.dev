@@ -276,7 +276,10 @@ export class OrganizationService extends LoggerBase {
 
           if (!identityExists) {
             // add the identity
-            await txRepo.addIdentity(id, tenantId, { ...identity, integrationId })
+            await txRepo.addIdentity(id, tenantId, {
+              ...identity,
+              integrationId,
+            })
           }
         }
 

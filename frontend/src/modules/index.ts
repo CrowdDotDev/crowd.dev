@@ -12,8 +12,8 @@ import report from '@/modules/report/report-module';
 import automation from '@/modules/automation/automation-module';
 import organization from '@/modules/organization/organization-module';
 
-import eagleEye from '@/premium/eagle-eye/eagle-eye-module';
 import lf from '@/modules/lf/lf-modules';
+import eagleEye from '@/modules/eagle-eye/eagle-eye-module';
 
 const modules: Record<string, any> = {
   shared,

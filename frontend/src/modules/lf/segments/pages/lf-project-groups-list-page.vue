@@ -39,9 +39,9 @@
         class="mt-20"
         icon="ri-folder-5-line"
         title="No project groups yet"
-        :description="`${!hasPermissionToCreateProjects
+        :description="`${!hasPermission(LfPermission.projectGroupCreate)
           ? 'Ask an administrator to c' : 'C'}reate your first project group and start integrating your projects`"
-        :cta-btn="hasPermissionToCreateProjects ? 'Manage project groups' : null"
+        :cta-btn="hasPermission(LfPermission.projectGroupCreate) ? 'Manage project groups' : null"
         @cta-click="router.push({
           name: 'adminPanel',
           query: {
@@ -95,7 +95,7 @@
             </el-button>
 
             <router-link
-              v-if="hasPermissionToEditProjectGroup && hasAccessToProjectGroup(projectGroup.id)"
+              v-if="hasPermission(LfPermission.projectGroupEdit) && hasAccessToProjectGroup(projectGroup.id)"
               :to="{
                 name: 'adminProjects',
                 params: {
@@ -125,17 +125,16 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import AppLfSearchInput from '@/modules/lf/segments/components/view/lf-search-input.vue';
 import pluralize from 'pluralize';
 import { useRoute, useRouter } from 'vue-router';
-import { LfPermissions } from '@/modules/lf/lf-permissions';
-import { hasAccessToProjectGroup } from '@/utils/segments';
-import { PermissionChecker } from '@/modules/user/permission-checker';
-import Roles from '@/security/roles';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import { LfRole } from '@/shared/modules/permissions/types/Roles';
 
 const router = useRouter();
 const route = useRoute();
 
 const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
+const { roles } = storeToRefs(authStore);
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { projectGroups } = storeToRefs(lsSegmentsStore);
@@ -143,15 +142,12 @@ const {
   listProjectGroups, updateSelectedProjectGroup, searchProjectGroup, listAdminProjectGroups,
 } = lsSegmentsStore;
 
+const { hasPermission, hasAccessToProjectGroup } = usePermissions();
+
 const activeTab = ref();
 
-const isProjectAdminUser = computed(() => {
-  const permissionChecker = new PermissionChecker(
-    tenant.value,
-    user.value,
-  );
-  return permissionChecker.currentUserRolesIds?.includes(Roles.values.projectAdmin);
-});
+const isProjectAdminUser = computed(() => roles.value.includes(LfRole.projectAdmin));
+
 const adminOnly = computed(() => isProjectAdminUser.value && activeTab.value === 'project-groups');
 
 const loadingProjectAdmin = ref(true);
@@ -199,20 +195,6 @@ onMounted(() => {
 const handleImageError = (id, e) => {
   imageErrors[id] = true;
 };
-
-const hasPermissionToEditProjectGroup = computed(
-  () => new LfPermissions(
-    tenant.value,
-    user.value,
-  ).editProjectGroup,
-);
-
-const hasPermissionToCreateProjects = computed(
-  () => new LfPermissions(
-    tenant.value,
-    user.value,
-  ).createProjectGroup,
-);
 
 onMounted(() => {
   if (isProjectAdminUser.value) {

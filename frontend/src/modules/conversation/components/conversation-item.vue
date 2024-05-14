@@ -14,38 +14,48 @@
     class="conversation-item panel"
     @click="openConversation()"
   >
-    <div class="flex items-center pb-8">
-      <!-- avatar conversation starter -->
-      <app-avatar :entity="member" size="xs" />
-      <!-- conversation info-->
-      <div class="pl-3">
-        <app-member-display-name
-          class="flex items-center mb-0.5"
-          custom-class="text-2xs leading-4 font-medium"
-          :member="member"
-        />
-        <div class="flex items-center">
-          <el-tooltip
-            v-if="platform"
-            effect="dark"
-            :content="platform.name"
-            placement="top"
-          >
-            <img
-              :alt="platform.name"
-              class="w-4 h-4 mr-2"
-              :src="platform.image"
-            />
-          </el-tooltip>
-          <div class="flex-grow leading-none">
-            <app-activity-header
-              :activity="conversation.conversationStarter"
-              class="text-xs leading-4 flex flex-wrap"
-            />
+    <div class="flex justify-between">
+      <div class="flex items-center pb-8">
+        <!-- avatar conversation starter -->
+        <app-avatar :entity="member" size="xs" />
+        <!-- conversation info-->
+        <div class="pl-3">
+          <app-member-display-name
+            class="flex items-center mb-0.5"
+            custom-class="text-2xs leading-4 font-medium"
+            :member="member"
+          />
+          <div class="flex items-center">
+            <el-tooltip
+              v-if="platform"
+              effect="dark"
+              :content="platform.name"
+              placement="top"
+            >
+              <img
+                :alt="platform.name"
+                class="w-4 h-4 mr-2"
+                :src="platform.image"
+              />
+            </el-tooltip>
+            <div class="flex-grow leading-none">
+              <app-activity-header
+                :activity="conversation.conversationStarter"
+                class="text-xs leading-4 flex flex-wrap"
+              />
+            </div>
           </div>
         </div>
       </div>
+      <div @click.stop>
+        <app-conversation-dropdown
+          :publish-enabled="false"
+          :conversation="conversation"
+          @conversation-destroyed="$emit('reload')"
+        />
+      </div>
     </div>
+
     <div>
       <app-activity-content
         :class="
@@ -102,10 +112,12 @@ import pluralize from 'pluralize';
 import AppActivityHeader from '@/modules/activity/components/activity-header.vue';
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import LfConversationDisplay from '@/shared/modules/conversation/components/conversation-display.vue';
+import AppConversationDropdown from '@/modules/conversation/components/conversation-dropdown.vue';
 
 export default {
   name: 'AppConversationItem',
   components: {
+    AppConversationDropdown,
     AppMemberDisplayName,
     AppConversationReply,
     AppActivityContent,
@@ -127,7 +139,7 @@ export default {
       default: false,
     },
   },
-  emits: ['details'],
+  emits: ['details', 'reload'],
   data() {
     return { Platform };
   },
