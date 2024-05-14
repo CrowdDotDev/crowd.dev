@@ -86,9 +86,9 @@
           {{ conversation.title }}
         </div>
         <button
+          v-if="hasPermission(LfPermission.conversationEdit)"
           class="btn btn-link btn-link--primary w-8 !h-8 flex-shrink-0"
           type="button"
-          :disabled="isEditLockedForSampleData"
           @click.stop="$emit('edit-title')"
         >
           <i class="ri-lg ri-pencil-line" />
@@ -171,7 +171,8 @@ import config from '@/config';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { ConversationPermissions } from '../conversation-permissions';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 
 export default {
   name: 'AppConversationDetails',
@@ -204,7 +205,10 @@ export default {
   setup() {
     const authStore = useAuthStore();
     const { user, tenant } = storeToRefs(authStore);
-    return { user, tenant };
+
+    const { hasPermission } = usePermissions();
+
+    return { user, tenant, hasPermission };
   },
   data() {
     return {
@@ -214,6 +218,9 @@ export default {
     };
   },
   computed: {
+    LfPermission() {
+      return LfPermission;
+    },
     ...mapState(useActivityTypeStore, {
       types: 'types',
     }),
@@ -236,12 +243,6 @@ export default {
       return this.editing
         ? this.conversation.activities
         : this.conversation.activities.slice(1);
-    },
-    isEditLockedForSampleData() {
-      return new ConversationPermissions(
-        this.tenant,
-        this.user,
-      ).editLockedForSampleData;
     },
     conversationTypes() {
       const [, ...activities] = this.conversation.activities;

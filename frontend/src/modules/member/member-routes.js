@@ -1,5 +1,6 @@
 import Layout from '@/modules/layout/components/layout.vue';
-import Permissions from '@/security/permissions';
+import { PermissionGuard } from '@/shared/modules/permissions/router/PermissionGuard';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 
 const MemberListPage = () => import('@/modules/member/pages/member-list-page.vue');
 const MemberMergeSuggestionsPage = () => import(
@@ -27,8 +28,10 @@ export default [
         component: MemberListPage,
         meta: {
           auth: true,
-          permission: Permissions.values.memberRead,
         },
+        beforeEnter: [
+          PermissionGuard(LfPermission.memberRead),
+        ],
       },
       {
         name: 'memberCreate',
@@ -36,8 +39,10 @@ export default [
         component: MemberCreatePage,
         meta: {
           auth: true,
-          permission: Permissions.values.memberCreate,
         },
+        beforeEnter: [
+          PermissionGuard(LfPermission.memberCreate),
+        ],
       },
       {
         name: 'memberEdit',
@@ -45,9 +50,11 @@ export default [
         component: MemberCreatePage,
         meta: {
           auth: true,
-          permission: Permissions.values.memberEdit,
         },
         props: true,
+        beforeEnter: [
+          PermissionGuard(LfPermission.memberEdit),
+        ],
       },
       {
         name: 'memberMergeSuggestions',
@@ -55,8 +62,10 @@ export default [
         component: MemberMergeSuggestionsPage,
         meta: {
           auth: true,
-          permission: Permissions.values.mergeMembers,
         },
+        beforeEnter: [
+          PermissionGuard(LfPermission.mergeMembers),
+        ],
       },
       {
         name: 'memberView',
@@ -65,9 +74,11 @@ export default [
         meta: {
           auth: true,
           title: 'Contributor',
-          permission: Permissions.values.memberRead,
         },
         props: true,
+        beforeEnter: [
+          PermissionGuard(LfPermission.memberRead),
+        ],
       },
       {
         name: 'memberMerge',
@@ -75,9 +86,11 @@ export default [
         component: MemberMergeSuggestionsPage,
         meta: {
           auth: true,
-          permission: Permissions.values.memberEdit,
         },
         props: true,
+        beforeEnter: [
+          PermissionGuard(LfPermission.memberEdit),
+        ],
       },
     ],
   },

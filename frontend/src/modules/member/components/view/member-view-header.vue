@@ -110,9 +110,14 @@
       </div>
     </div>
 
-    <div class="absolute inset-x-0 bottom-0 rounded-b-md bg-gray-50 p-6 mt-9">
+    <div v-if="hasPermission(LfPermission.tagEdit) || member.tags.length > 0" class="absolute inset-x-0 bottom-0 rounded-b-md bg-gray-50 p-6 mt-9">
       <div class="text-sm">
-        <app-tags :long="true" :member="member" @edit="isEditTagsDialogOpen = true" />
+        <app-tags
+          :long="true"
+          :member="member"
+          :editable="hasPermission(LfPermission.tagEdit)"
+          @edit="isEditTagsDialogOpen = true"
+        />
         <app-tag-popover v-model="isEditTagsDialogOpen" :member="member" />
       </div>
     </div>
@@ -135,6 +140,8 @@ import AppTagPopover from '@/modules/tag/components/tag-popover.vue';
 import AppSvg from '@/shared/svg/svg.vue';
 import { getAttributeSourceName } from '@/shared/helpers/attribute.helpers';
 import CrEnrichmentSneakPeak from '@/shared/modules/enrichment/components/enrichment-sneak-peak.vue';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 
 defineProps({
   member: {
@@ -142,6 +149,8 @@ defineProps({
     default: () => {},
   },
 });
+
+const { hasPermission } = usePermissions();
 
 const isEditTagsDialogOpen = ref(false);
 

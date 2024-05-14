@@ -16,6 +16,7 @@
         </el-tooltip>
       </div>
       <el-button
+        v-if="hasPermission(LfPermission.organizationEdit)"
         class="btn btn-link btn-link--primary"
         @click="identitiesDrawer = true"
       >
@@ -31,7 +32,7 @@
       >
         <template #default="{ identities }">
           <div
-            v-if="!Object.keys(identities.getIdentities())?.length"
+            v-if="!Object.keys(identities.getIdentities())?.length && hasPermission(LfPermission.organizationEdit)"
             class="text-sm text-gray-600 px-6 pt-6"
           >
             <router-link
@@ -91,6 +92,8 @@ import AppOrganizationManageIdentitiesDrawer
 import AppOrganizationManageEmailsDrawer from '@/modules/organization/components/organization-manage-emails-drawer.vue';
 import AppOrganizationManagePhoneNumbersDrawer
   from '@/modules/organization/components/organization-manage-phone-numbers-drawer.vue';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import AppAsideIdentitiesExtra from './_aside-identities-extra.vue';
 
 defineProps<{
@@ -98,6 +101,8 @@ defineProps<{
 }>();
 
 const emit = defineEmits<{(e: 'unmerge', value: any): void}>();
+
+const { hasPermission } = usePermissions();
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);

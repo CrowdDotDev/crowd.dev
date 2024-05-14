@@ -27,7 +27,6 @@ export default class RelationToManyField extends GenericField {
     this.fetchFn = fetchFn;
     this.mapperFn = mapperFn;
     this.viewUrl = viewUrl;
-    this.readPermission = readPermission;
     this.filterable = config.filterable || false;
     this.custom = config.custom || false;
   }

@@ -61,12 +61,19 @@
           Save as...
         </el-button>
         <template #dropdown>
-          <el-dropdown-item v-if="selectedTab.length > 0 && selectedTab !== props.config.defaultView.id && selectedTab !== ''" @click="update()">
+          <el-dropdown-item
+            v-if="
+              selectedTab.length > 0
+                && selectedTab !== props.config.defaultView.id
+                && selectedTab !== ''
+                && (currentView.visibility !== 'tenant' || hasPermission(LfPermission.customViewsTenantManage))"
+            @click="update()"
+          >
             <div class="w-40">
               <i class="ri-loop-left-line text-gray-400 text-base mr-2" />Update view
             </div>
           </el-dropdown-item>
-          <el-dropdown-item @click="createNewView()">
+          <el-dropdown-item v-if="hasPermission(LfPermission.customViewsCreate)" @click="createNewView()">
             <div class="w-40">
               <i class="ri-add-line text-gray-400 text-base mr-2" />Create new view
             </div>
@@ -74,7 +81,7 @@
         </template>
       </el-dropdown>
 
-      <el-tooltip content="Add view" placement="top">
+      <el-tooltip v-if="hasPermission(LfPermission.customViewsCreate)" content="Add view" placement="top">
         <el-button class="btn btn-brand btn--transparent btn--icon--sm inset-y-0 !border-0 mr-2" @click="isFormOpen = true">
           <i class="ri-add-line text-lg text-gray-400 h-5 flex items-center" />
         </el-button>
@@ -120,6 +127,8 @@ import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import CrSavedViewsManagement from '@/shared/modules/saved-views/components/SavedViewManagement.vue';
 import { SavedViewsService } from '@/shared/modules/saved-views/services/saved-views.service';
 import Message from '@/shared/message/message';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 
 const props = defineProps<{
   modelValue: Filter,
@@ -131,6 +140,8 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: Filter): any}>();
+
+const { hasPermission } = usePermissions();
 
 // Drawer
 const isFormOpen = ref<boolean>(false);
