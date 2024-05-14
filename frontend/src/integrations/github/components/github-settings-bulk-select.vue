@@ -16,10 +16,16 @@
             :teleported="false"
           >
             <el-option
+              value="all"
+              label="All repositories"
+              @click="form.repositories = ['all']"
+            />
+            <el-option
               v-for="repo of props.repositories"
               :key="repo.url"
               :value="repo.url"
               :label="repo.name"
+              @click="isAll ? form.repositories = form.repositories.filter((r) => r !== 'all') : null"
             />
           </el-select>
         </article>
@@ -57,7 +63,7 @@
           @click="mapRepos()"
         >
           <span>
-            Map repositories <span v-if="form.repositories.length > 0">({{ form.repositories.length }})</span>
+            Map repositories <span v-if="form.repositories.length > 0">({{ isAll ? props.repositories.length : form.repositories.length }})</span>
           </span>
         </cr-button>
       </div>
@@ -92,7 +98,10 @@ const isModalVisible = computed({
   },
 });
 
-const form = reactive({
+const form = reactive<{
+  subproject: string;
+  repositories: string[]
+}>({
   subproject: '',
   repositories: [],
 });
@@ -108,6 +117,8 @@ const rules = {
 
 const $v = useVuelidate(rules, form, { $stopPropagation: true });
 
+const isAll = computed<boolean>(() => form.repositories.includes('all'));
+
 const reset = () => {
   form.subproject = '';
   form.repositories = [];
@@ -115,7 +126,11 @@ const reset = () => {
 };
 
 const mapRepos = () => {
-  const data = form.repositories.reduce((mapping, url) => ({
+  let repos = form.repositories;
+  if (isAll.value) {
+    repos = props.repositories.map((r) => r.url);
+  }
+  const data = repos.reduce((mapping, url) => ({
     ...mapping,
     [url]: form.subproject,
   }), {});
