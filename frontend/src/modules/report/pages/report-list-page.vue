@@ -5,7 +5,7 @@
       <div class="flex items-center justify-between">
         <h4>Reports</h4>
         <el-button
-          v-if="(computedTemplates.length || customReportsCount) && hasPermissionToCreate"
+          v-if="(computedTemplates.length || customReportsCount) && hasPermission(LfPermission.reportCreate)"
           class="btn btn--primary btn--md"
           @click="onAddReport"
         >
@@ -82,13 +82,14 @@
 import { mapActions, mapGetters, mapState } from 'vuex';
 import ReportListTable from '@/modules/report/components/report-list-table.vue';
 import AppReportCreateDialog from '@/modules/report/components/report-create-dialog.vue';
-import { ReportPermissions } from '@/modules/report/report-permissions';
 import AppReportTemplateItem from '@/modules/report/components/templates/report-template-item.vue';
 import templates from '@/modules/report/templates/config';
 import AppLfPageHeader from '@/modules/lf/layout/components/lf-page-header.vue';
 import AppLfSubProjectsListModal from '@/modules/lf/segments/components/lf-sub-projects-list-modal.vue';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 
 export default {
   name: 'AppReportListPage',
@@ -103,7 +104,10 @@ export default {
   setup() {
     const authStore = useAuthStore();
     const { user, tenant } = storeToRefs(authStore);
-    return { user, tenant };
+
+    const { hasPermission } = usePermissions();
+
+    return { user, tenant, hasPermission };
   },
   data() {
     return {
@@ -115,6 +119,9 @@ export default {
   },
 
   computed: {
+    LfPermission() {
+      return LfPermission;
+    },
     ...mapState({
       count: (state) => state.report.count,
       loading: (state) => state.report.list.loading,
@@ -123,12 +130,6 @@ export default {
       rows: 'report/rows',
       cubejsApi: 'widget/cubejsApi',
     }),
-    hasPermissionToCreate() {
-      return new ReportPermissions(
-        this.tenant,
-        this.user,
-      ).create;
-    },
     computedTemplates() {
       if (this.loading) {
         return [];

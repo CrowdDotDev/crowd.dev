@@ -14,7 +14,7 @@
     <template #dropdown>
       <div class="p-2 w-100">
         <div
-          v-if="hasPermissionToEditReport"
+          v-if="hasPermission(LfPermission.reportEdit)"
           class="flex items-start justify-between flex-grow"
         >
           <div>
@@ -76,9 +76,8 @@ import {
 import Message from '@/shared/message/message';
 import { AuthService } from '@/modules/auth/services/auth.service';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { storeToRefs } from 'pinia';
-import { ReportPermissions } from '../report-permissions';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps({
@@ -96,8 +95,7 @@ const props = defineProps({
   },
 });
 
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
+const { hasPermission } = usePermissions();
 
 const open = ref(false);
 
@@ -140,10 +138,4 @@ const handlePublicChange = async (value) => {
   });
 };
 
-const hasPermissionToEditReport = computed(
-  () => new ReportPermissions(
-    tenant.value,
-    user.value,
-  ).edit,
-);
 </script>

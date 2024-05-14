@@ -18,7 +18,7 @@
             Activity types
           </el-button>
           <el-button
-            v-if="hasPermissionToCreateActivity"
+            v-if="hasPermission(LfPermission.activityCreate)"
             class="btn btn--primary btn--md text-gray-600"
             @click="onAddActivity"
           >
@@ -77,9 +77,7 @@
 </template>
 
 <script setup lang="ts">
-import {
-  computed, onMounted, ref, watch,
-} from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import AppActivityTypeListDrawer from '@/modules/activity/components/type/activity-type-list-drawer.vue';
 import AppActivityFormDrawer from '@/modules/activity/components/activity-form-drawer.vue';
@@ -88,15 +86,11 @@ import AppActivityList from '@/modules/activity/components/activity-list.vue';
 import AppConversationList from '@/modules/conversation/components/conversation-list.vue';
 import AppLfPageHeader from '@/modules/lf/layout/components/lf-page-header.vue';
 import AppLfSubProjectsListModal from '@/modules/lf/segments/components/lf-sub-projects-list-modal.vue';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { storeToRefs } from 'pinia';
-import { ActivityPermissions } from '../activity-permissions';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 
 const route = useRoute();
 const router = useRouter();
-
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
 
 const isActivityTypeDrawerOpen = ref(false);
 const isActivityDrawerOpen = ref(false);
@@ -108,6 +102,8 @@ const subprojectId = ref<string | undefined>();
 const drawer = ref<string | undefined>();
 
 const activeView = ref('activity');
+
+const { hasPermission } = usePermissions();
 
 onMounted(() => {
   window.analytics.page('Activities');
@@ -154,11 +150,4 @@ watch(() => route.hash, (hash: string) => {
     activeView.value = view;
   }
 }, { immediate: true });
-
-const hasPermissionToCreateActivity = computed(
-  () => new ActivityPermissions(
-    tenant.value,
-    user.value,
-  ).create,
-);
 </script>

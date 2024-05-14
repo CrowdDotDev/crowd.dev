@@ -42,12 +42,11 @@ import { useRoute, useRouter } from 'vue-router';
 import AppLfProjectGroupsPage from '@/modules/lf/segments/pages/lf-project-groups-page.vue';
 import AppApiKeysPage from '@/modules/settings/pages/api-keys-page.vue';
 import AppAutomationList from '@/modules/automation/components/automation-list.vue';
-import { PermissionChecker } from '@/modules/user/permission-checker';
-import Roles from '@/security/roles';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
 import AppLfAuditLogsPage from '@/modules/lf/segments/pages/lf-audit-logs-page.vue';
 import CrDevmode from '@/modules/lf/segments/components/dev/devmode.vue';
+import { LfRole } from '@/shared/modules/permissions/types/Roles';
 
 const route = useRoute();
 const router = useRouter();
@@ -55,7 +54,7 @@ const router = useRouter();
 const activeTab = ref<string>();
 
 const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
+const { roles } = storeToRefs(authStore);
 
 const computedActiveTab = computed({
   get() {
@@ -71,14 +70,7 @@ const computedActiveTab = computed({
   },
 });
 
-const isAdminUser = computed(() => {
-  const permissionChecker = new PermissionChecker(
-    tenant.value,
-    user.value,
-  );
-
-  return permissionChecker.currentUserRolesIds.includes(Roles.values.admin);
-});
+const isAdminUser = computed(() => roles.value.includes(LfRole.admin));
 
 const isDevMode = !!localStorage.getItem('devmode');
 

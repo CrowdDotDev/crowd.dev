@@ -317,7 +317,7 @@ export class MemberSyncService {
 
   public async syncMembers(memberIds: string[], segmentIds?: string[]): Promise<IMemberSyncResult> {
     const CONCURRENT_DATABASE_QUERIES = 10
-    const BULK_INDEX_DOCUMENT_BATCH_SIZE = 2500
+    const BULK_INDEX_DOCUMENT_BATCH_SIZE = 100
 
     // get all memberId-segmentId couples
     let memberSegmentCouples: IMemberSegmentMatrix
@@ -462,7 +462,9 @@ export class MemberSyncService {
         })
 
         // databaseStreams will create syncStreams items in processSegmentsStream, which'll later be used to sync to opensearch in bulk
-        if (databaseStream.length >= CONCURRENT_DATABASE_QUERIES) {
+        const isLastSegment = i === totalMemberIds - 1 && j === totalSegments - 1
+
+        if (isLastSegment || databaseStream.length >= CONCURRENT_DATABASE_QUERIES) {
           await processSegmentsStream(databaseStream)
           databaseStream = []
         }
@@ -476,18 +478,10 @@ export class MemberSyncService {
           syncStream = syncStream.slice(BULK_INDEX_DOCUMENT_BATCH_SIZE)
         }
 
-        // if we're processing the last segment
-        if (i === totalMemberIds - 1 && j === totalSegments - 1) {
-          // check if there are remaining databaseStreams to process
-          if (databaseStream.length > 0) {
-            await processSegmentsStream(databaseStream)
-          }
-
-          // check if there are remaining syncStreams to process
-          if (syncStream.length > 0) {
-            await this.openSearchService.bulkIndex(OpenSearchIndex.MEMBERS, syncStream)
-            documentsIndexed += syncStream.length
-          }
+        // check if there are remaining syncStreams to process
+        if (isLastSegment && syncStream.length > 0) {
+          await this.openSearchService.bulkIndex(OpenSearchIndex.MEMBERS, syncStream)
+          documentsIndexed += syncStream.length
         }
         successfullySyncedMembers.push(memberId)
       }

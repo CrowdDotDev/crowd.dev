@@ -6,16 +6,17 @@
       :create-fn="createTag"
       :mapper-fn="mapperFn"
       :placeholder="placeholder"
-      :create-if-not-found="canCreate"
+      :create-if-not-found="hasPermission(LfPermission.tagCreate) && createIfNotFound"
     />
   </div>
 </template>
 
 <script>
 import { mapActions } from 'vuex';
-import { TagPermissions } from '@/modules/tag/tag-permissions';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 
 export default {
   name: 'AppTagAutocompleteInput',
@@ -45,9 +46,14 @@ export default {
   setup() {
     const authStore = useAuthStore();
     const { user, tenant } = storeToRefs(authStore);
-    return { user, tenant };
+
+    const { hasPermission } = usePermissions();
+    return { user, tenant, hasPermission };
   },
   computed: {
+    LfPermission() {
+      return LfPermission;
+    },
     model: {
       get() {
         return this.modelValue;
@@ -56,15 +62,6 @@ export default {
       set(value) {
         this.$emit('update:modelValue', value);
       },
-    },
-
-    canCreate() {
-      return (
-        new TagPermissions(
-          this.tenant,
-          this.user,
-        ).create && this.createIfNotFound
-      );
     },
   },
 
