@@ -1,7 +1,7 @@
 import { Error400 } from '@crowd/common'
 import { LoggerBase, logExecutionTime } from '@crowd/logging'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
-import { PlatformType, TemporalWorkflowId, SegmentData } from '@crowd/types'
+import { PlatformType, TemporalWorkflowId, SegmentData, IMemberIdentity } from '@crowd/types'
 import { Blob } from 'buffer'
 import vader from 'crowd-sentiment'
 import { Transaction } from 'sequelize/types'
@@ -11,7 +11,10 @@ import MemberAttributeSettingsRepository from '../database/repositories/memberAt
 import MemberRepository from '../database/repositories/memberRepository'
 import SegmentRepository from '../database/repositories/segmentRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
-import { mapUsernameToIdentities } from '../database/repositories/types/memberTypes'
+import {
+  UsernameIdentities,
+  mapUsernameToIdentities,
+} from '../database/repositories/types/memberTypes'
 import telemetryTrack from '../segment/telemetryTrack'
 import { IServiceOptions } from './IServiceOptions'
 import { detectSentiment, detectSentimentBatch } from './aws'
@@ -525,6 +528,11 @@ export default class ActivityService extends LoggerBase {
           data.objectMember.username,
           data.platform,
         )
+
+        if (!data.objectMember.username[data.platform]) {
+          throw new Error(`objectMember username for ${data.platform} is missing!`)
+        }
+
         data.objectMemberUsername = data.objectMember.username[data.platform][0].value
         data.objectMember.identities = ActivityService.processMemberIdentities(
           data.objectMember,
@@ -739,7 +747,13 @@ export default class ActivityService extends LoggerBase {
     }
   }
 
-  static processMemberIdentities(member, platform) {
+  static processMemberIdentities(
+    member: {
+      username: UsernameIdentities
+      emails: string[]
+    },
+    platform: string,
+  ): IMemberIdentity[] {
     const identities = []
 
     if (member.username) {
