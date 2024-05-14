@@ -261,25 +261,4 @@ export default class DataSinkService extends LoggerBase {
       return false
     }
   }
-
-  public async createAndProcessActivityFromAPI(
-    tenantId: string,
-    data: IActivityData,
-  ): Promise<void> {
-    const service = new ActivityService(
-      this.store,
-      this.nodejsWorkerEmitter,
-      this.searchSyncWorkerEmitter,
-      this.redisClient,
-      this.unleash,
-      this.temporal,
-      this.log,
-    )
-
-    try {
-      await service.processActivity(tenantId, null, true, data.platform as PlatformType, data)
-    } catch (err) {
-      this.log.error(err, 'Error processing activity from API.')
-    }
-  }
 }
