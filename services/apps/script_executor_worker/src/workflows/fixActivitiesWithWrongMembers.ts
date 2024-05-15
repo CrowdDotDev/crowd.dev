@@ -1,4 +1,4 @@
-import { continueAsNew, proxyActivities } from '@temporalio/workflow'
+import { proxyActivities } from '@temporalio/workflow'
 
 import * as activities from '../activities/fix-activities-with-wrong-members'
 import * as commonActivities from '../activities/common'
