@@ -21,4 +21,5 @@ export {
   findActivitiesWithWrongMemberId,
   syncMember,
   updateActivityMember,
+  recalculateActivityAffiliationsOfMemberAsync,
 }
