@@ -17,7 +17,7 @@ const common = proxyActivities<typeof commonActivities>({
 export async function fixActivitiesWithWrongMembers(
   args: IFixActivitiesWithWrongMembersArgs,
 ): Promise<void> {
-  const PROCESS_ACTIVITIES_PER_RUN = 5
+  const PROCESS_ACTIVITIES_PER_RUN = 5000
 
   const memberIds = new Set<string>()
 
@@ -33,7 +33,7 @@ export async function fixActivitiesWithWrongMembers(
 
   for (const currentActivity of activitiesWithWrongMemberId) {
     console.log(
-      `Setting activity [${currentActivity.id}] memberId to [${currentActivity.correctMemberId}]! `,
+      `Changing activity [${currentActivity.id}] memberId from [${currentActivity.wrongMemberId}] to [${currentActivity.correctMemberId}]! `,
     )
     await activity.updateActivityMember(currentActivity.id, currentActivity.correctMemberId)
     memberIds.add(currentActivity.correctMemberId)
