@@ -2120,20 +2120,27 @@ class OrganizationRepository {
 
     if (distinct) {
       parsed.aggs = {
-        distinct_ids: {
+        distinct_orgs: {
           terms: {
             field: 'uuid_organizationId',
-            size: limit,
+            size: 10000
           },
           aggs: {
+            segment_ids: {
+              terms: {
+                field: 'uuid_segmentId',
+                size: 999
+              }
+            },
             top_hits: {
               top_hits: {
-                size: 1,
-              },
-            },
-          },
-        },
+                size: 1
+              }
+            }
+          }
+        }
       }
+      parsed.size = 0 // This is to ensure no documents are returned outside the aggregation context
     }
 
     // exclude empty filters if any
@@ -2169,17 +2176,22 @@ class OrganizationRepository {
     })
 
     if (distinct) {
-      const bucketItems = response.body.aggregations.distinct_ids.buckets
-      const translatedRows = bucketItems.map((bucket) =>
-        translator.translateObjectToCrowd(bucket.top_hits.hits.hits[0]._source),
-      )
+      const allBuckets = response.body.aggregations.distinct_orgs.buckets;
+      const paginatedBuckets = allBuckets.slice(offset, offset + limit); // Apply pagination here
+      const translatedRows = paginatedBuckets.map(bucket => {
+        const organizationDetails = translator.translateObjectToCrowd(bucket.top_hits.hits.hits[0]._source);
+        return {
+          ...organizationDetails,
+          segmentIds: bucket.segment_ids.buckets.map(segment => segment.key),
+        };
+      });
 
       return {
         rows: translatedRows,
-        count: bucketItems.length,
+        count: allBuckets.length, // Now reflects the total count of unique organizations
         limit,
-        offset,
-      }
+        offset
+      };
     }
     const translatedRows = response.body.hits.hits.map((o) =>
       translator.translateObjectToCrowd(o._source),

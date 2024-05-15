@@ -24,4 +24,17 @@
       }
     }
   }
+
+  &--bordered{
+    @apply border border-gray-100 shadow-sm rounded-lg;
+
+    table{
+      tr{
+
+        td, th{
+          @apply p-5;
+        }
+      }
+    }
+  }
 }
