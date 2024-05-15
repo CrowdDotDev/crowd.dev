@@ -1,7 +1,7 @@
 import { Error400 } from '@crowd/common'
 import { LoggerBase, logExecutionTime } from '@crowd/logging'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
-import { PlatformType, TemporalWorkflowId, SegmentData, IMemberIdentity } from '@crowd/types'
+import { PlatformType, TemporalWorkflowId, SegmentData, IMemberIdentity, IntegrationResultType } from '@crowd/types'
 import { Blob } from 'buffer'
 import vader from 'crowd-sentiment'
 import { Transaction } from 'sequelize/types'
@@ -517,8 +517,6 @@ export default class ActivityService extends LoggerBase {
         'Processing activity with member!',
       )
 
-      const segment = SequelizeRepository.getStrictlySingleActiveSegment(this.options)
-
       data.member.identities = ActivityService.processMemberIdentities(data.member, data.platform)
       data.isContribution = data.isContribution || false
 
@@ -551,18 +549,20 @@ export default class ActivityService extends LoggerBase {
         })
       }
 
+      const resultId = await ActivityRepository.createResults({
+        type: IntegrationResultType.ACTIVITY,
+        data,
+      }, this.options)
+
+      logger.info('Result Id', resultId)
+
       logger.trace(
         { type: data.type, platform: data.platform, username: data.username, processedData: data },
         'Sending activity with member to data-sink-worker!',
       )
 
-      await dataSinkWorkerEmitter.createAndProcessActivityResult(
-        this.options.currentTenant.id,
-        segment.id,
-        null,
-        data,
-        false,
-      )
+      await dataSinkWorkerEmitter.triggerResultProcessing(this.options.currentTenant.id, data.platform, resultId, resultId, true)
+
     } catch (error) {
       this.log.error(error, 'Error during activity create with member!')
       throw error

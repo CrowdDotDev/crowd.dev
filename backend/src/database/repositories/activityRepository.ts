@@ -3,6 +3,7 @@ import lodash from 'lodash'
 import Sequelize, { QueryTypes } from 'sequelize'
 import { ActivityDisplayService } from '@crowd/integrations'
 import { Error400, Error404, RawQueryParser } from '@crowd/common'
+import { IIntegrationResult, IntegrationResultState } from '@crowd/types'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
@@ -909,6 +910,34 @@ class ActivityRepository {
       id: record.id,
       label: record.id,
     }))
+  }
+
+  static async createResults(result: IIntegrationResult, options: IRepositoryOptions) {
+    const tenant = SequelizeRepository.getCurrentTenant(options)
+
+    const segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
+
+    const seq = SequelizeRepository.getSequelize(options)
+
+    result.segmentId = segment.id
+
+    const results = await seq.query(
+      `
+      insert into integration.results(state, data, "tenantId")
+      values(:state, :data, :tenantId)
+      returning id;
+      `,
+      {
+        replacements: {
+          tenantId: tenant.id,
+          state: IntegrationResultState.PENDING,
+          data: JSON.stringify(result),
+        },
+        type: QueryTypes.INSERT,
+      },
+    )
+    
+    return results[0][0].id
   }
 
   static async _createAuditLog(action, record, data, options: IRepositoryOptions) {

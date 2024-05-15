@@ -27,43 +27,13 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
            t."name",
            run.onboarding
     from integration.results r
-        inner join integrations i on r."integrationId" = i.id
+        left join integrations i on r."integrationId" = i.id
         inner join tenants t on t.id = r."tenantId"
         left join integration.runs run on run.id = r."runId"
     where r.id = $(resultId)
   `
-  public async getResultInfo(
-    resultId: string,
-    fromIntegration = true,
-  ): Promise<IResultData | null> {
-    let query = this.getResultInfoQuery
-
-    // custom activities created through API don't have runId and integrationId
-    if (!fromIntegration) {
-      query = `
-        select r.id,
-            r.state,
-            r.data, 
-            r."tenantId",
-            r."runId",
-            r."webhookId",
-            r."streamId",
-            r."integrationId",
-            r.retries,
-            r."delayedUntil",
-            i.platform,
-            t."hasSampleData", 
-            t."plan",
-            t."isTrialPlan",
-            t."name",
-            run.onboarding
-            from integration.results r
-                inner join tenants t on t.id = r."tenantId"
-            where r.id = $(resultId)
-        `
-    }
-
-    const result = await this.db().oneOrNone(query, { resultId })
+  public async getResultInfo(resultId: string): Promise<IResultData | null> {
+    const result = await this.db().oneOrNone(this.getResultInfoQuery, { resultId })
     return result
   }
 

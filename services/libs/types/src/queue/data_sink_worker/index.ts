@@ -28,7 +28,6 @@ export class CreateAndProcessActivityResultQueueMessage implements IQueueMessage
     public readonly segmentId: string,
     public readonly integrationId: string,
     public readonly activityData: IActivityData,
-    public readonly fromIntegration?: boolean,
   ) {}
 }
 

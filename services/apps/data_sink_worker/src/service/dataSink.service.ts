@@ -101,7 +101,6 @@ export default class DataSinkService extends LoggerBase {
     segmentId: string,
     integrationId: string,
     data: IActivityData,
-    fromIntegration = true,
   ): Promise<void> {
     this.log.debug({ tenantId, segmentId }, 'Creating and processing activity result.')
 
@@ -111,13 +110,13 @@ export default class DataSinkService extends LoggerBase {
       segmentId,
     })
 
-    await this.processResult(resultId, fromIntegration)
+    await this.processResult(resultId)
   }
 
-  public async processResult(resultId: string, fromIntegration?: boolean): Promise<boolean> {
+  public async processResult(resultId: string): Promise<boolean> {
     this.log.debug({ resultId }, 'Processing result.')
 
-    const resultInfo = await this.repo.getResultInfo(resultId, fromIntegration)
+    const resultInfo = await this.repo.getResultInfo(resultId)
 
     if (!resultInfo) {
       telemetry.increment('data_sync_worker.result_not_found', 1)
