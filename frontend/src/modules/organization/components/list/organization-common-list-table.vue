@@ -27,7 +27,7 @@
           <td>
             <div class="flex">
               <div class="border border-gray-300 h-6 px-2 rounded-md bg-white text-sm whitespace-nowrap">
-                {{ org.segmentIds.length }} project groups
+                {{ org.segments.length }} project group
               </div>
             </div>
           </td>
@@ -40,26 +40,28 @@
             </div>
           </td>
           <td>
-            <cr-dropdown placement="bottom-end">
-              <template #trigger>
-                <cr-button type="tertiary-gray" :icon-only="true" size="small">
-                  <i class="ri-more-fill !text-lg" />
-                </cr-button>
-              </template>
-              <cr-dropdown-item>
-                <i class="ri-link-m" />
-                Merge organization
-              </cr-dropdown-item>
-              <cr-dropdown-item>
-                <i class="ri-team-line" />
-                Mark as team organization
-              </cr-dropdown-item>
-              <cr-dropdown-separator />
-              <cr-dropdown-item type="danger">
-                <i class="ri-delete-bin-6-line" />
-                Delete organization
-              </cr-dropdown-item>
-            </cr-dropdown>
+            <div class="flex justify-end">
+              <cr-dropdown placement="bottom-end">
+                <template #trigger>
+                  <cr-button type="tertiary-gray" :icon-only="true" size="small">
+                    <i class="ri-more-fill !text-lg" />
+                  </cr-button>
+                </template>
+                <cr-dropdown-item>
+                  <i class="ri-link-m" />
+                  Merge organization
+                </cr-dropdown-item>
+                <cr-dropdown-item>
+                  <i class="ri-team-line" />
+                  Mark as team organization
+                </cr-dropdown-item>
+                <cr-dropdown-separator />
+                <cr-dropdown-item type="danger">
+                  <i class="ri-delete-bin-6-line" />
+                  Delete organization
+                </cr-dropdown-item>
+              </cr-dropdown>
+            </div>
           </td>
         </tr>
       </tbody>
