@@ -254,8 +254,8 @@ export async function updateActivityParentIds(
       conn
         .oneOrNone(
           `
-  select id from activities 
-  where "deletedAt" is null and 
+  select id from activities
+  where "deletedAt" is null and
         "tenantId" = $(tenantId) and
         "sourceId" = $(sourceParentId) and
         "segmentId" = $(segmentId)
@@ -501,7 +501,7 @@ export async function queryActivities(
 
   let baseQuery = `
     from activities a
-    where 
+    where
       a."tenantId" = $(tenantId) and
       a."segmentId" in ($(segmentIds:csv)) and
       a."deletedAt" is null and ${filterString}
@@ -834,7 +834,7 @@ export async function getActivityCountOfMemberIdentities(
 
   let query = `
   select count(id) from activities
-  where "deletedAt" is null and "memberId" = $(memberId)  
+  where "deletedAt" is null and "memberId" = $(memberId)
   `
 
   const replacementKey = (key: string, index: number) => `${key}${index}`
@@ -872,7 +872,7 @@ export async function countMembersWithActivities(
 ): Promise<{ count: number; segmentId: string; date?: string }[]> {
   let query = `
     SELECT COUNT(id) AS count, "segmentId", timestamp AS date
-    FROM activities 
+    FROM activities
     WHERE "deletedAt" IS NULL
     AND "tenantId" = $(tenantId)
     AND "memberId" IS NOT NULL
@@ -912,7 +912,7 @@ export async function countOrganizationsWithActivities(
 ): Promise<{ count: number; segmentId: string; date?: string }[]> {
   let query = `
     SELECT COUNT(id) AS count, "segmentId", timestamp AS date
-    FROM activities 
+    FROM activities
     WHERE "deletedAt" IS NULL
     AND "tenantId" = $(tenantId)
     AND "organizationId" IS NOT NULL
@@ -1078,8 +1078,8 @@ export async function getMemberSegmentCouples(
 ): Promise<IMemberSegment[]> {
   return qdbConn.any(
     `
-    select distinct "memberId", "segmentId" 
-    from activities 
+    select distinct "memberId", "segmentId"
+    from activities
     where "deletedAt" is null and "memberId" in ($(memberIds:csv));
     `,
     {
@@ -1094,8 +1094,8 @@ export async function getOrganizationSegmentCouples(
 ): Promise<IOrganizationSegment[]> {
   return qdbConn.any(
     `
-    select distinct "organizationId", "segmentId" 
-    from activities 
+    select distinct "organizationId", "segmentId"
+    from activities
     where "deletedAt" is null and "organizationId" in ($(organizationIds:csv));
     `,
     {

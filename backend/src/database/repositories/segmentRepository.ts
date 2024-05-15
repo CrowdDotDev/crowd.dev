@@ -672,7 +672,7 @@ class SegmentRepository extends RepositoryBase<
 
     const projects = await this.options.database.sequelize.query(
       `
-            SELECT 
+            SELECT
                 s.*,
                 COUNT(DISTINCT sp.id)                                       AS subproject_count,
                 jsonb_agg(jsonb_build_object('id', sp.id, 'name', sp.name, 'status', sp.status)) as subprojects,
@@ -680,7 +680,7 @@ class SegmentRepository extends RepositoryBase<
             FROM segments s
                 JOIN segments sp ON sp."parentSlug" = s."slug" and sp."grandparentSlug" is not null
                 AND sp."tenantId" = s."tenantId"
-            WHERE 
+            WHERE
                 s."grandparentSlug" IS NULL
             and s."parentSlug" is not null
             and s."tenantId" = :tenantId
