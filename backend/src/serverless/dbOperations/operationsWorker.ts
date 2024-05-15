@@ -41,13 +41,12 @@ async function upsertMembers(records: Array<any>, options: IServiceOptions): Pro
 async function upsertActivityWithMembers(
   records: Array<any>,
   options: IServiceOptions,
-  fireCrowdWebhooks: boolean = true,
 ): Promise<any> {
   const activityService = new ActivityService(options)
 
   while (records.length > 0) {
     const record = records.shift()
-    await activityService.createWithMember(record, fireCrowdWebhooks)
+    await activityService.createWithMember(record)
   }
 }
 
@@ -88,7 +87,6 @@ async function bulkOperations(
   operation: string,
   records: Array<any>,
   options: IServiceOptions,
-  fireCrowdWebhooks: boolean = false,
 ): Promise<any> {
   switch (operation) {
     case Operations.UPDATE_MEMBERS:
@@ -98,7 +96,7 @@ async function bulkOperations(
       return upsertMembers(records, options)
 
     case Operations.UPSERT_ACTIVITIES_WITH_MEMBERS:
-      return upsertActivityWithMembers(records, options, fireCrowdWebhooks)
+      return upsertActivityWithMembers(records, options)
 
     case Operations.UPDATE_INTEGRATIONS:
       return updateIntegrations(records, options)
