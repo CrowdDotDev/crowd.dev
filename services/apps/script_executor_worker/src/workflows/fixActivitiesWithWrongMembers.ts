@@ -48,6 +48,8 @@ export async function fixActivitiesWithWrongMembers(
     await common.recalculateActivityAffiliationsOfMemberAsync(memberId, args.tenantId)
   }
 
+  console.log('Finished this run!')
+
   // await continueAsNew<typeof fixActivitiesWithWrongMembers>({
   //   tenantId: args.tenantId,
   // })
