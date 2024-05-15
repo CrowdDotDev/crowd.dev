@@ -50,10 +50,13 @@ export class DbStore extends LoggerBase {
     throw logError(this.log, new Error('Store is not in transaction!'))
   }
 
-  public transactionally<T>(inTransaction: (store: DbStore) => Promise<T>): Promise<T> {
+  public transactionally<T>(
+    inTransaction: (store: DbStore) => Promise<T>,
+    actuallyTransactionally?: boolean,
+  ): Promise<T> {
     this.checkValid()
 
-    if (!this.withTransactions) {
+    if (!this.withTransactions && !actuallyTransactionally) {
       return inTransaction(this)
     }
 
