@@ -1,5 +1,8 @@
 import axios from 'axios'
 import { SearchSyncApiClient } from '@crowd/opensearch'
+import { TemporalWorkflowId } from '@crowd/types'
+import { WorkflowIdReusePolicy } from '@temporalio/workflow'
+import { svc } from '../main'
 
 export async function mergeMembers(
   primaryMemberId: string,
@@ -36,4 +39,28 @@ export async function syncMember(memberId: string): Promise<void> {
     console.log(`Failed syncing member [${memberId}]!`)
     throw new Error(error)
   }
+}
+
+export async function recalculateActivityAffiliationsOfMemberAsync(
+  memberId: string,
+  tenantId: string,
+): Promise<void> {
+  await svc.temporal.workflow.start('memberUpdate', {
+    taskQueue: 'profiles',
+    workflowId: `${TemporalWorkflowId.MEMBER_UPDATE}/${tenantId}/${memberId}`,
+    workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+    retry: {
+      maximumAttempts: 10,
+    },
+    args: [
+      {
+        member: {
+          id: memberId,
+        },
+      },
+    ],
+    searchAttributes: {
+      TenantId: [tenantId],
+    },
+  })
 }

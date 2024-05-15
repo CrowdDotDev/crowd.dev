@@ -3,7 +3,11 @@ import {
   findMembersWithSamePlatformIdentitiesDifferentCapitalization,
 } from './activities/merge-members-with-similar-identities'
 
-import { mergeMembers, syncMember } from './activities/common'
+import {
+  mergeMembers,
+  syncMember,
+  recalculateActivityAffiliationsOfMemberAsync,
+} from './activities/common'
 
 import {
   findActivitiesWithWrongMemberId,

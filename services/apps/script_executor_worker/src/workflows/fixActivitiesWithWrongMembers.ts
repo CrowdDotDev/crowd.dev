@@ -39,8 +39,11 @@ export async function fixActivitiesWithWrongMembers(
   }
 
   for (const memberId of Array.from(memberIds)) {
-    console.log(`Syncing member [${memberId}] to opensearch!`)
+    console.log(
+      `Syncing member [${memberId}] to opensearch & triggering recalculation of affiliations!`,
+    )
     await common.syncMember(memberId)
+    await common.recalculateActivityAffiliationsOfMemberAsync(memberId, args.tenantId)
   }
 
   // await continueAsNew<typeof fixActivitiesWithWrongMembers>({
