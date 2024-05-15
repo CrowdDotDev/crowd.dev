@@ -2063,6 +2063,7 @@ class OrganizationRepository {
       segments = [] as string[],
       customSortFunction = undefined,
       isProfileQuery = false,
+      distinct = false,
     },
     options: IRepositoryOptions,
   ): Promise<PageData<any>> {
@@ -2117,6 +2118,24 @@ class OrganizationRepository {
       })
     }
 
+    if (distinct) {
+      parsed.aggs = {
+        distinct_ids: {
+          terms: {
+            field: 'uuid_organizationId',
+            size: limit,
+          },
+          aggs: {
+            top_hits: {
+              top_hits: {
+                size: 1,
+              },
+            },
+          },
+        },
+      }
+    }
+
     // exclude empty filters if any
     parsed.query.bool.must = parsed.query.bool.must.filter((obj) => {
       // Check if the object has a non-empty 'term' property
@@ -2149,11 +2168,29 @@ class OrganizationRepository {
       body: parsed,
     })
 
+    if (distinct) {
+      const bucketItems = response.body.aggregations.distinct_ids.buckets
+      const translatedRows = bucketItems.map((bucket) =>
+        translator.translateObjectToCrowd(bucket.top_hits.hits.hits[0]._source),
+      )
+
+      return {
+        rows: translatedRows,
+        count: bucketItems.length,
+        limit,
+        offset,
+      }
+    }
     const translatedRows = response.body.hits.hits.map((o) =>
       translator.translateObjectToCrowd(o._source),
     )
 
-    return { rows: translatedRows, count: countResponse.body.count, limit, offset }
+    return {
+      rows: translatedRows,
+      count: countResponse.body.count,
+      limit,
+      offset,
+    }
   }
 
   static async findAndCountActiveOpensearch(
