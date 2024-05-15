@@ -5,3 +5,9 @@ export interface ISimilarMember {
   secondaryMemberIdentityValue: string
   hash: number
 }
+
+export interface IActivityPartial {
+  id: string
+  wrongMemberId: string
+  correctMemberId: string
+}

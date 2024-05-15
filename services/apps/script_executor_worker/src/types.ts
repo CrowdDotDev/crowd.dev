@@ -8,3 +8,7 @@ export interface IFindAndMergeMembersWithSameIdentitiesDifferentCapitalizationIn
   platform: string
   afterHash?: number
 }
+
+export interface IFixActivitiesWithWrongMembersArgs {
+  tenantId: string
+}

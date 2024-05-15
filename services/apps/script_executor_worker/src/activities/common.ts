@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { SearchSyncApiClient } from '@crowd/opensearch'
 
 export async function mergeMembers(
   primaryMemberId: string,
@@ -21,5 +22,18 @@ export async function mergeMembers(
     await axios(url, requestOptions)
   } catch (error) {
     console.log(`Failed merging member wit status [${error.response.status}]. Skipping!`)
+  }
+}
+
+export async function syncMember(memberId: string): Promise<void> {
+  const syncApi = new SearchSyncApiClient({
+    baseUrl: process.env['CROWD_SEARCH_SYNC_API_URL'],
+  })
+
+  try {
+    await syncApi.triggerMemberSync(memberId)
+  } catch (error) {
+    console.log(`Failed syncing member [${memberId}]!`)
+    throw new Error(error)
   }
 }
