@@ -31,11 +31,13 @@ export async function fixActivitiesWithWrongMembers(
     return
   }
 
-  for (const activity of activitiesWithWrongMemberId) {
-    console.log(`Setting activity [${activity.id}] memberId to [${activity.correctMemberId}]! `)
-    await activities.updateActivityMember(activity.id, activity.correctMemberId)
-    memberIds.add(activity.correctMemberId)
-    memberIds.add(activity.wrongMemberId)
+  for (const currentActivity of activitiesWithWrongMemberId) {
+    console.log(
+      `Setting activity [${currentActivity.id}] memberId to [${currentActivity.correctMemberId}]! `,
+    )
+    await activity.updateActivityMember(currentActivity.id, currentActivity.correctMemberId)
+    memberIds.add(currentActivity.correctMemberId)
+    memberIds.add(currentActivity.wrongMemberId)
   }
 
   for (const memberId of Array.from(memberIds)) {
