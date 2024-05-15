@@ -936,7 +936,7 @@ class ActivityRepository {
         type: QueryTypes.INSERT,
       },
     )
-    
+
     return results[0][0].id
   }
 
