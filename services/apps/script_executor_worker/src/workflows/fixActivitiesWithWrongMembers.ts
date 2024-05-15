@@ -1,4 +1,4 @@
-import { proxyActivities } from '@temporalio/workflow'
+import { continueAsNew, proxyActivities } from '@temporalio/workflow'
 
 import * as activities from '../activities/fix-activities-with-wrong-members'
 import * as commonActivities from '../activities/common'
@@ -45,12 +45,17 @@ export async function fixActivitiesWithWrongMembers(
       `Syncing member [${memberId}] to opensearch & triggering recalculation of affiliations!`,
     )
     await common.syncMember(memberId)
-    await common.recalculateActivityAffiliationsOfMemberAsync(memberId, args.tenantId)
+
+    // We should also recalculate affiliations for members that we moved the activites to
+    // so activity.organizatonIds of the moved activites are also updated
+    if (activitiesWithWrongMemberId.map((a) => a.correctMemberId).includes(memberId)) {
+      await common.recalculateActivityAffiliationsOfMemberAsync(memberId, args.tenantId)
+    }
   }
 
-  console.log('Finished this run!')
+  console.log('Finished this run. Continuing as new for next batch!')
 
-  // await continueAsNew<typeof fixActivitiesWithWrongMembers>({
-  //   tenantId: args.tenantId,
-  // })
+  await continueAsNew<typeof fixActivitiesWithWrongMembers>({
+    tenantId: args.tenantId,
+  })
 }
