@@ -554,8 +554,6 @@ export default class ActivityService extends LoggerBase {
         data,
       }, this.options)
 
-      logger.info('Result Id', resultId)
-
       logger.trace(
         { type: data.type, platform: data.platform, username: data.username, processedData: data },
         'Sending activity with member to data-sink-worker!',
