@@ -769,6 +769,91 @@ export async function getOrganizationAggregates(
   }
 }
 
+export async function getOrgAggregates(
+  qdbConn: DbConnOrTx,
+  organizationId: string,
+): Promise<IOrganizationSegmentAggregates[]> {
+  const result = await qdbConn.many(
+    `
+      WITH
+        platforms AS (
+          SELECT
+            DISTINCT
+            a."organizationId",
+            a."segmentId",
+            a.platform
+          FROM activities a
+          WHERE a."organizationId" = $(organizationId)
+        ),
+        platforms_agg AS (
+          SELECT
+            p.organizationId,
+            p.segmentId,
+            STRING_AGG(p.platform, ':') AS "activeOn"
+          FROM platforms p
+        ),
+        activites_agg AS (
+          SELECT
+            a."organizationId",
+            a."tenantId",
+            a."segmentId",
+            count_distinct(a."memberId")  AS "memberCount",
+            count_distinct(a.id)          AS "activityCount",
+            max(a.timestamp)              AS "lastActive",
+            min(a.timestamp)              AS "joinedAt"
+          FROM activities a
+          WHERE a."organizationId" = $(organizationId)
+            AND a."deletedAt" IS NULL
+          GROUP BY a.organizationId, a.tenantId, a.segmentId
+        )
+      SELECT
+        a.organizationId,
+        a.tenantId,
+        a.segmentId,
+        -- <option1>
+        MIN(a.memberCount) AS memberCount,
+        MIN(a.activityCount) AS activityCount,
+        MIN(a.lastActive) AS lastActive,
+        MIN(a.joinedAt) AS joinedAt,
+        STRING_AGG(p.platform, ':') AS "activeOn"
+        -- </option1>
+
+        -- -- <option2>
+        -- a.memberCount,
+        -- a.activityCount,
+        -- a.lastActive,
+        -- a.joinedAt,
+        -- p.activeOn
+        -- -- </option2>
+      FROM activites_agg a
+
+      -- <option1>
+      JOIN platforms p ON p.organizationId = a.organizationId AND p.segmentId = a.segmentId
+      GROUP BY a.organizationId, a.tenantId, a.segmentId
+      -- </option1>
+
+      -- -- <option2>
+      -- JOIN platforms_agg p ON p.organizationId = a.organizationId AND p.segmentId = a.segmentId
+      -- -- </option2>
+      ;
+    `,
+    {
+      organizationId,
+    },
+  )
+
+  return result.map((r) => ({
+    organizationId,
+    segmentId: r.segmentId,
+    tenantId: r.tenantId,
+    memberCount: r.memberCount,
+    activityCount: r.activityCount,
+    activeOn: r.activeOn.split(':'),
+    lastActive: r.lastActive,
+    joinedAt: r.joinedAt,
+  }))
+}
+
 export async function getMemberAggregates(
   qdbConn: DbConnOrTx,
   memberId: string,
