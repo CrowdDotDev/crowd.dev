@@ -1,6 +1,7 @@
 import axios from 'axios'
 import { SearchSyncApiClient } from '@crowd/opensearch'
 import { TemporalWorkflowId } from '@crowd/types'
+import { chunkArray } from '@crowd/common'
 import { WorkflowIdReusePolicy } from '@temporalio/workflow'
 import { svc } from '../main'
 
@@ -38,6 +39,23 @@ export async function syncMember(memberId: string): Promise<void> {
   } catch (error) {
     console.log(`Failed syncing member [${memberId}]!`)
     throw new Error(error)
+  }
+}
+
+export async function syncActivities(activityIds: string[]): Promise<void> {
+  const syncApi = new SearchSyncApiClient({
+    baseUrl: process.env['CROWD_SEARCH_SYNC_API_URL'],
+  })
+
+  const chunks = chunkArray<string>(activityIds, 100)
+
+  for (const chunk of chunks) {
+    try {
+      await syncApi.triggerActivitiesSync(chunk)
+    } catch (error) {
+      console.log(`Failed syncing activities !`)
+      throw new Error(error)
+    }
   }
 }
 

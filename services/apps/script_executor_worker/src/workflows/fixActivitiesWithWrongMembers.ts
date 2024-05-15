@@ -17,7 +17,7 @@ const common = proxyActivities<typeof commonActivities>({
 export async function fixActivitiesWithWrongMembers(
   args: IFixActivitiesWithWrongMembersArgs,
 ): Promise<void> {
-  const PROCESS_ACTIVITIES_PER_RUN = 5000
+  const PROCESS_ACTIVITIES_PER_RUN = 1000
 
   const memberIds = new Set<string>()
 
@@ -39,6 +39,9 @@ export async function fixActivitiesWithWrongMembers(
     memberIds.add(currentActivity.correctMemberId)
     memberIds.add(currentActivity.wrongMemberId)
   }
+
+  console.log(`Syncing moved activities to opensearch!`)
+  await common.syncActivities(activitiesWithWrongMemberId.map((a) => a.id))
 
   for (const memberId of Array.from(memberIds)) {
     console.log(

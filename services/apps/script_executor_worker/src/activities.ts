@@ -6,6 +6,7 @@ import {
 import {
   mergeMembers,
   syncMember,
+  syncActivities,
   recalculateActivityAffiliationsOfMemberAsync,
 } from './activities/common'
 
@@ -22,4 +23,5 @@ export {
   syncMember,
   updateActivityMember,
   recalculateActivityAffiliationsOfMemberAsync,
+  syncActivities,
 }
