@@ -20,7 +20,7 @@ export async function findActivitiesWithWrongMemberId(
 
 export async function updateActivityMember(id: string, memberId: string): Promise<void> {
   try {
-    const activityRepo = new ActivityRepository(svc.postgres.reader.connection(), svc.log)
+    const activityRepo = new ActivityRepository(svc.postgres.writer.connection(), svc.log)
     await activityRepo.updateActivityMember(id, memberId)
   } catch (err) {
     throw new Error(err)
