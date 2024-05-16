@@ -146,6 +146,7 @@ export abstract class SqsQueueReceiver extends SqsQueueBase {
             if (!this.isAvailable()) {
               this.log.debug('Queue is busy, waiting...')
               await timeout(50)
+              continue
             }
             const now = performance.now()
 
