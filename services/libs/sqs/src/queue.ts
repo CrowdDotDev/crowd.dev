@@ -168,14 +168,14 @@ export abstract class SqsQueueReceiver extends SqsQueueBase {
                 await this.deleteMessage(message.ReceiptHandle)
               }
             } else {
-              this.log.trace('Queue is busy, waiting...')
+              this.log.warn('Queue is busy, waiting...')
               await timeout(100)
             }
           }
         }
       } else {
-        this.log.trace('Queue is busy, waiting...')
-        await timeout(200)
+        this.log.warn('Queue is empty, waiting...')
+        await timeout(100)
       }
     }
   }
