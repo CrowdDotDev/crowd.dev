@@ -18,8 +18,11 @@ import {
   NodejsWorkerEmitter,
   SearchSyncWorkerEmitter,
 } from '@crowd/common_services'
+import { performance } from 'perf_hooks'
 
 export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
+  private readonly timingMap = new Map<string, { count: number; time: number }>()
+
   constructor(
     level: QueuePriorityLevel,
     client: SqsClient,
@@ -37,58 +40,66 @@ export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
   }
 
   override async processMessage(message: IQueueMessage): Promise<void> {
-    await this.tracer.startActiveSpan('ProcessMessage', async (span: Span) => {
-      try {
-        this.log.trace({ messageType: message.type }, 'Processing message!')
+    const startTime = performance.now()
 
-        const service = new DataSinkService(
-          new DbStore(this.log, this.dbConn, undefined, false),
-          this.nodejsWorkerEmitter,
-          this.searchSyncWorkerEmitter,
-          this.dataSinkWorkerEmitter,
-          this.redisClient,
-          this.unleash,
-          this.temporal,
-          this.log,
-        )
+    try {
+      this.log.trace({ messageType: message.type }, 'Processing message!')
 
-        switch (message.type) {
-          case DataSinkWorkerQueueMessageType.PROCESS_INTEGRATION_RESULT:
-            await service.processResult((message as ProcessIntegrationResultQueueMessage).resultId)
-            break
-          case DataSinkWorkerQueueMessageType.CREATE_AND_PROCESS_ACTIVITY_RESULT: {
-            const msg = message as CreateAndProcessActivityResultQueueMessage
-            await service.createAndProcessActivityResult(
-              msg.tenantId,
-              msg.segmentId,
-              msg.integrationId,
-              msg.activityData,
-            )
-            break
-          }
-          case DataSinkWorkerQueueMessageType.CHECK_RESULTS: {
-            await service.checkResults()
-            break
-          }
+      const service = new DataSinkService(
+        new DbStore(this.log, this.dbConn, undefined, false),
+        this.nodejsWorkerEmitter,
+        this.searchSyncWorkerEmitter,
+        this.dataSinkWorkerEmitter,
+        this.redisClient,
+        this.unleash,
+        this.temporal,
+        this.log,
+      )
 
-          default:
-            throw new Error(`Unknown message type: ${message.type}`)
+      switch (message.type) {
+        case DataSinkWorkerQueueMessageType.PROCESS_INTEGRATION_RESULT:
+          await service.processResult((message as ProcessIntegrationResultQueueMessage).resultId)
+          break
+        case DataSinkWorkerQueueMessageType.CREATE_AND_PROCESS_ACTIVITY_RESULT: {
+          const msg = message as CreateAndProcessActivityResultQueueMessage
+          await service.createAndProcessActivityResult(
+            msg.tenantId,
+            msg.segmentId,
+            msg.integrationId,
+            msg.activityData,
+          )
+          break
+        }
+        case DataSinkWorkerQueueMessageType.CHECK_RESULTS: {
+          await service.checkResults()
+          break
         }
 
-        span.setStatus({
-          code: SpanStatusCode.OK,
-        })
-      } catch (err) {
-        span.setStatus({
-          code: SpanStatusCode.ERROR,
-          message: err,
-        })
-
-        this.log.error(err, 'Error while processing message!')
-        throw err
-      } finally {
-        span.end()
+        default:
+          throw new Error(`Unknown message type: ${message.type}`)
       }
-    })
+    } catch (err) {
+      this.log.error(err, 'Error while processing message!')
+      throw err
+    } finally {
+      const endTime = performance.now()
+      const duration = endTime - startTime
+      this.log.info({ msgType: message.type }, `Message processed in ${duration.toFixed(2)}ms!`)
+
+      if (this.timingMap.has(message.type)) {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const data = this.timingMap.get(message.type)!
+        this.timingMap.set(message.type, { count: data.count + 1, time: data.time + duration })
+      } else {
+        this.timingMap.set(message.type, { count: 1, time: duration })
+      }
+
+      const data = this.timingMap.get(message.type)
+
+      this.log.info(
+        { msgType: message.type },
+        `Average processing time: ${data.time / data.count}ms!`,
+      )
+    }
   }
 }
