@@ -352,7 +352,7 @@ export async function getLLMResult(
   })
 
   const bdy = JSON.stringify({
-    prompt: mergedPrompt,
+    prompt: `"Human: ${mergedPrompt}"`,
     ...modelSpecificArgs,
   })
 
