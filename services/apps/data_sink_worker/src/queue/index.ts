@@ -45,7 +45,7 @@ export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
       parentLog,
       undefined,
       undefined,
-      5,
+      20,
     )
   }
 
