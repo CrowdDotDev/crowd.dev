@@ -1,4 +1,4 @@
-import { Tracer, Span, SpanStatusCode } from '@crowd/tracing'
+import { Tracer } from '@crowd/tracing'
 import { Logger } from '@crowd/logging'
 import { DbConnection, DbStore } from '@crowd/data-access-layer/src/database'
 import { DATA_SINK_WORKER_QUEUE_SETTINGS, SqsClient, SqsPrioritizedQueueReciever } from '@crowd/sqs'
