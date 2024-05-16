@@ -9,6 +9,7 @@ export async function llm(args: IProcessCheckMemberSimilarityWithLLM): Promise<v
   console.log('llm workflow')
 
   for (const memberCouple of args.memberCouples) {
+    console.log(`Asking LLM if [${memberCouple[0]}] and [${memberCouple[1]}] are same.`)
     const members = await activity.getMembersForLLMConsumption(memberCouple)
     if (members.length !== 2) {
       console.log(`Member(s) were not found in the db for couple [${memberCouple}] skipping!`)
