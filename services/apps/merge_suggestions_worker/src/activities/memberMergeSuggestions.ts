@@ -351,7 +351,8 @@ export async function getLLMResult(
     prompt,
   })
 
-  // console.log('Prompt:', promptPrologue)
+  console.log('Merged prompt:')
+  console.log(mergedPrompt)
 
   const command = new InvokeModelCommand({
     body: JSON.stringify({
