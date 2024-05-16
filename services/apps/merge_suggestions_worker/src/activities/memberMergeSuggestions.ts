@@ -336,6 +336,7 @@ export async function getLLMResult(
   modelSpecificArgs: any,
 ): Promise<string> {
   if (members.length !== 2) {
+    console.log(members)
     throw new Error('Exactly 2 members are required for LLM comparison')
   }
   const client = new BedrockRuntimeClient({
