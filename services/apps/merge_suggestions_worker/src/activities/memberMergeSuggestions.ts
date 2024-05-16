@@ -332,6 +332,7 @@ export async function getLLMResult(
   members: ILLMConsumableMember[],
   modelId: string,
   prompt: string,
+  region: string,
 ): Promise<string> {
   if (members.length !== 2) {
     throw new Error('Exactly 2 members are required for LLM comparison')
@@ -341,11 +342,10 @@ export async function getLLMResult(
       accessKeyId: process.env['CROWD_AWS_BEDROCK_ACCESS_KEY_ID'],
       secretAccessKey: process.env['CROWD_AWS_BEDROCK_SECRET_ACCESS_KEY'],
     },
-    region: process.env['CROWD_AWS_BEDROCK_REGION'],
+    region,
   })
 
   const promptPrologue = `[INST] ${JSON.stringify(members)} [/INST]`
-
 
   console.log('Prompt:', promptPrologue)
 
