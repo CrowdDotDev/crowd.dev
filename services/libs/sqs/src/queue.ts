@@ -144,7 +144,7 @@ export abstract class SqsQueueReceiver extends SqsQueueBase {
         if (messages.length > 0) {
           while (messages.length > 0) {
             if (!this.isAvailable()) {
-              this.log.warn('Queue is busy, waiting...')
+              this.log.debug('Queue is busy, waiting...')
               await timeout(50)
             }
             const now = performance.now()
@@ -161,7 +161,7 @@ export abstract class SqsQueueReceiver extends SqsQueueBase {
                 }
 
                 const duration = performance.now() - now
-                this.log.info(`Message processed successfully in ${duration.toFixed(2)}ms!`)
+                this.log.debug(`Message processed successfully in ${duration.toFixed(2)}ms!`)
                 this.removeJob()
               })
               // if error is detected don't delete the message from the queue
@@ -169,7 +169,7 @@ export abstract class SqsQueueReceiver extends SqsQueueBase {
                 this.log.error(err, 'Error processing message!')
 
                 const duration = performance.now() - now
-                this.log.info(`Message processed unsuccessfully in ${duration.toFixed(2)}ms!`)
+                this.log.debug(`Message processed unsuccessfully in ${duration.toFixed(2)}ms!`)
                 this.removeJob()
               })
 
@@ -182,7 +182,7 @@ export abstract class SqsQueueReceiver extends SqsQueueBase {
           await timeout(50)
         }
       } else {
-        this.log.warn('Queue is busy, waiting before receiving messages...')
+        this.log.debug('Queue is busy, waiting before receiving messages...')
         await timeout(50)
       }
     }
@@ -215,7 +215,7 @@ export abstract class SqsQueueReceiver extends SqsQueueBase {
       throw err
     } finally {
       const duration = performance.now() - now
-      this.log.info(`Received messages in ${duration.toFixed(2)}ms!`)
+      this.log.debug(`Received messages in ${duration.toFixed(2)}ms!`)
     }
   }
 

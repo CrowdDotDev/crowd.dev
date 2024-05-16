@@ -8,7 +8,7 @@ import { ISqsQueueConfig, SqsClient } from './types'
 export abstract class SqsPrioritizedQueueReciever {
   protected readonly log: Logger
   private readonly levelReceiver: ISqsQueueReceiver
-  // private readonly defaultReceiver: ISqsQueueReceiver
+  private readonly defaultReceiver: ISqsQueueReceiver
 
   public constructor(
     level: QueuePriorityLevel,
@@ -28,24 +28,24 @@ export abstract class SqsPrioritizedQueueReciever {
 
     const processFunc = this.processMessage.bind(this)
 
-    // this.defaultReceiver = new (class extends SqsQueueReceiver {
-    //   constructor() {
-    //     super(
-    //       sqsClient,
-    //       queueConf,
-    //       maxConcurrentMessageProcessing,
-    //       tracer,
-    //       parentLog,
-    //       deleteMessageImmediately,
-    //       visibilityTimeoutSeconds,
-    //       receiveMessageCount,
-    //     )
-    //   }
+    this.defaultReceiver = new (class extends SqsQueueReceiver {
+      constructor() {
+        super(
+          sqsClient,
+          queueConf,
+          maxConcurrentMessageProcessing,
+          tracer,
+          parentLog,
+          deleteMessageImmediately,
+          visibilityTimeoutSeconds,
+          receiveMessageCount,
+        )
+      }
 
-    //   public async processMessage(data: IQueueMessage, receiptHandle?: string): Promise<void> {
-    //     return processFunc(data, receiptHandle)
-    //   }
-    // })()
+      public async processMessage(data: IQueueMessage, receiptHandle?: string): Promise<void> {
+        return processFunc(data, receiptHandle)
+      }
+    })()
 
     const config = { ...queueConf, name: `${queueConf.name}-${level}` }
     this.levelReceiver = new (class extends SqsQueueReceiver {
@@ -69,14 +69,11 @@ export abstract class SqsPrioritizedQueueReciever {
   }
 
   public async start(): Promise<void> {
-    await Promise.all([
-      // this.defaultReceiver.start(),
-      this.levelReceiver.start(),
-    ])
+    await Promise.all([this.defaultReceiver.start(), this.levelReceiver.start()])
   }
 
   public stop(): void {
-    // this.defaultReceiver.stop()
+    this.defaultReceiver.stop()
     this.levelReceiver.stop()
   }
 
