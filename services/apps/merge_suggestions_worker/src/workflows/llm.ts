@@ -20,8 +20,8 @@ export async function llm(args: IProcessCheckMemberSimilarityWithLLM): Promise<v
     const result: ILLMResult = JSON.parse(res)
     console.log(`Raw res: `)
     console.log(result)
-    const textResponse =
-      result.generation.replace(/`/g, '').trim() === 'true' ? 'similar' : 'not similar'
-    console.log(`LLM thinks that ${memberCouple[0]} and ${memberCouple[1]} are ${textResponse}`)
+    // const textResponse =
+    //   result.generation.replace(/`/g, '').trim() === 'true' ? 'similar' : 'not similar'
+    // console.log(`LLM thinks that ${memberCouple[0]} and ${memberCouple[1]} are ${textResponse}`)
   }
 }
