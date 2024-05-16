@@ -195,6 +195,7 @@ export abstract class SqsQueueReceiver extends SqsQueueBase {
   protected abstract processMessage(data: IQueueMessage, receiptHandle?: string): Promise<void>
 
   private async receiveMessage(): Promise<SqsMessage[]> {
+    const now = performance.now()
     try {
       const params: ReceiveMessageRequest = {
         QueueUrl: this.getQueueUrl(),
@@ -212,6 +213,9 @@ export abstract class SqsQueueReceiver extends SqsQueueBase {
       }
 
       throw err
+    } finally {
+      const duration = performance.now() - now
+      this.log.info(`Received messages in ${duration.toFixed(2)}ms!`)
     }
   }
 
