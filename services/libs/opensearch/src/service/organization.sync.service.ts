@@ -126,9 +126,7 @@ export class OrganizationSyncService {
 
       if (toRemove.length > 0) {
         this.log.warn({ tenantId, toRemove }, 'Removing organizations from index!')
-        for (const id of toRemove) {
-          await this.openSearchService.removeFromIndex(id, OpenSearchIndex.ORGANIZATIONS)
-        }
+        await this.openSearchService.bulkRemoveFromIndex(toRemove, OpenSearchIndex.ORGANIZATIONS)
       }
 
       processed += results.length
@@ -183,9 +181,7 @@ export class OrganizationSyncService {
 
     while (results.length > 0) {
       const ids = results.map((r) => r._id)
-      for (const id of ids) {
-        await this.openSearchService.removeFromIndex(id, OpenSearchIndex.ORGANIZATIONS)
-      }
+      await this.openSearchService.bulkRemoveFromIndex(ids, OpenSearchIndex.ORGANIZATIONS)
 
       // use last joinedAt to get the next page
       lastJoinedAt = results[results.length - 1]._source.date_joinedAt
