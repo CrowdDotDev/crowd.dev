@@ -142,40 +142,41 @@ export abstract class SqsQueueReceiver extends SqsQueueBase {
         // first receive the message
         const messages = await this.receiveMessage()
         if (messages.length > 0) {
-          for (const message of messages) {
-            if (this.isAvailable()) {
-              this.log.trace({ messageId: message.MessageId }, 'Received message from queue!')
-              this.addJob()
-              this.processMessage(JSON.parse(message.Body), message.ReceiptHandle)
-                // when the message is processed, delete it from the queue
-                .then(async () => {
-                  this.log.trace(
-                    { messageReceiptHandle: message.ReceiptHandle },
-                    'Deleting message',
-                  )
-                  if (!this.deleteMessageImmediately) {
-                    await this.deleteMessage(message.ReceiptHandle)
-                  }
-                  this.removeJob()
-                })
-                // if error is detected don't delete the message from the queue
-                .catch((err) => {
-                  this.log.error(err, 'Error processing message!')
-                  this.removeJob()
-                })
-
-              if (this.deleteMessageImmediately) {
-                await this.deleteMessage(message.ReceiptHandle)
-              }
-            } else {
+          while (messages.length > 0) {
+            if (!this.isAvailable()) {
               this.log.warn('Queue is busy, waiting...')
-              await timeout(100)
+              await timeout(50)
+            }
+
+            const message = messages.shift()
+            this.log.trace({ messageId: message.MessageId }, 'Received message from queue!')
+            this.addJob()
+            this.processMessage(JSON.parse(message.Body), message.ReceiptHandle)
+              // when the message is processed, delete it from the queue
+              .then(async () => {
+                this.log.trace({ messageReceiptHandle: message.ReceiptHandle }, 'Deleting message')
+                if (!this.deleteMessageImmediately) {
+                  await this.deleteMessage(message.ReceiptHandle)
+                }
+                this.removeJob()
+              })
+              // if error is detected don't delete the message from the queue
+              .catch((err) => {
+                this.log.error(err, 'Error processing message!')
+                this.removeJob()
+              })
+
+            if (this.deleteMessageImmediately) {
+              await this.deleteMessage(message.ReceiptHandle)
             }
           }
+        } else {
+          this.log.warn('No messages in queue, waiting...')
+          await timeout(50)
         }
       } else {
-        this.log.warn('Queue is empty, waiting...')
-        await timeout(100)
+        this.log.warn('Queue is busy, waiting before receiving messages...')
+        await timeout(50)
       }
     }
   }
