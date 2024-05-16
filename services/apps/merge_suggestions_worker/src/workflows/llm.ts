@@ -10,6 +10,10 @@ export async function llm(args: IProcessCheckMemberSimilarityWithLLM): Promise<v
 
   for (const memberCouple of args.memberCouples) {
     const members = await activity.getMembersForLLMConsumption(memberCouple)
+    if (members.length !== 2) {
+      console.log(`Member(s) were not found in the db for couple [${memberCouple}] skipping!`)
+      continue
+    }
     const res = await activity.getLLMResult(
       members,
       args.modelId,
