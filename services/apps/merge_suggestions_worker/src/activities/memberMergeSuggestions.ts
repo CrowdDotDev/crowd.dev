@@ -346,12 +346,10 @@ export async function getLLMResult(
     region,
   })
 
-  const mergedPrompt = JSON.stringify(
-    JSON.stringify({
-      members,
-      prompt,
-    }),
-  )
+  const mergedPrompt = JSON.stringify({
+    members,
+    prompt,
+  })
 
   console.log('Merged prompt:')
   console.log(mergedPrompt)
