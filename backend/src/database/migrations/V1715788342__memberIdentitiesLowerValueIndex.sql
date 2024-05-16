@@ -1,1 +1,1 @@
-create index ix_memberidentities_tenantid_platform_lowervalue_type on "memberIdentities" ("tenantId", platform, lower(value), type);
+create index if not exists ix_memberidentities_tenantid_platform_lowervalue_type on "memberIdentities" ("tenantId", platform, lower(value), type);
