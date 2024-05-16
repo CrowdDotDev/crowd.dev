@@ -19,7 +19,7 @@ import {
 import { ISqsQueueConfig, SqsClient, SqsMessage, SqsQueueType } from './types'
 import { IQueueMessage, ISqsQueueEmitter } from '@crowd/types'
 import { Tracer } from '@crowd/tracing'
-
+import { performance } from 'perf_hooks'
 export abstract class SqsQueueBase extends LoggerBase {
   private readonly queueName: string
   private queueUrl: string | undefined
@@ -147,6 +147,7 @@ export abstract class SqsQueueReceiver extends SqsQueueBase {
               this.log.warn('Queue is busy, waiting...')
               await timeout(50)
             }
+            const now = performance.now()
 
             const message = messages.shift()
             this.log.trace({ messageId: message.MessageId }, 'Received message from queue!')
@@ -158,11 +159,17 @@ export abstract class SqsQueueReceiver extends SqsQueueBase {
                 if (!this.deleteMessageImmediately) {
                   await this.deleteMessage(message.ReceiptHandle)
                 }
+
+                const duration = performance.now() - now
+                this.log.info(`Message processed successfully in ${duration.toFixed(2)}ms!`)
                 this.removeJob()
               })
               // if error is detected don't delete the message from the queue
               .catch((err) => {
                 this.log.error(err, 'Error processing message!')
+
+                const duration = performance.now() - now
+                this.log.info(`Message processed unsuccessfully in ${duration.toFixed(2)}ms!`)
                 this.removeJob()
               })
 
