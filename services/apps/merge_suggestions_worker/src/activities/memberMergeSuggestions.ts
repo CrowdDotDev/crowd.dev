@@ -333,6 +333,7 @@ export async function getLLMResult(
   modelId: string,
   prompt: string,
   region: string,
+  modelSpecificArgs: any,
 ): Promise<string> {
   if (members.length !== 2) {
     throw new Error('Exactly 2 members are required for LLM comparison')
@@ -352,9 +353,7 @@ export async function getLLMResult(
   const command = new InvokeModelCommand({
     body: JSON.stringify({
       prompt: `${promptPrologue} ${prompt}`,
-      max_gen_len: 512,
-      temperature: 0.5,
-      top_p: 0.9,
+      ...modelSpecificArgs,
     }),
     modelId,
     accept: 'application/json',

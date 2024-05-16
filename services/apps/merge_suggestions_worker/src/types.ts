@@ -204,4 +204,6 @@ export interface IProcessCheckMemberSimilarityWithLLM {
   modelId: string
   region: string
   memberCouples: string[][]
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  modelSpecificArgs: any
 }
