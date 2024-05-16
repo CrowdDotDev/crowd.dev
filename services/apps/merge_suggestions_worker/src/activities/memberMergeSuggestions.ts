@@ -351,14 +351,16 @@ export async function getLLMResult(
     prompt,
   })
 
-  console.log('Merged prompt:')
-  console.log(mergedPrompt)
+  const bdy = JSON.stringify({
+    prompt: mergedPrompt,
+    ...modelSpecificArgs,
+  })
+
+  console.log('Bdy: ')
+  console.log(bdy)
 
   const command = new InvokeModelCommand({
-    body: JSON.stringify({
-      prompt: mergedPrompt,
-      ...modelSpecificArgs,
-    }),
+    body: bdy,
     modelId,
     accept: 'application/json',
     contentType: 'application/json',
