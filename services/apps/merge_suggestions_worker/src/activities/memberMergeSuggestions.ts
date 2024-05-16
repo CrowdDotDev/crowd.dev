@@ -346,7 +346,7 @@ export async function getLLMResult(
     region,
   })
 
-  const promptPrologue = `[INST] ${JSON.stringify(members)} [/INST]`
+  const promptPrologue = ` ${JSON.stringify(members)} `
 
   console.log('Prompt:', promptPrologue)
 
