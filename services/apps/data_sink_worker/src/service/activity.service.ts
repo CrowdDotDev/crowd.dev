@@ -376,7 +376,7 @@ export default class ActivityService extends LoggerBase {
     })
 
     try {
-      this.log.debug('Processing activity.')
+      this.log.debug({ tenantId, integrationId, platform }, 'Processing activity.')
 
       if (!activity.username && !activity.member) {
         this.log.error(

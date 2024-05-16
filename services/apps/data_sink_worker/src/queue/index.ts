@@ -1,4 +1,4 @@
-import { Tracer, Span, SpanStatusCode } from '@crowd/tracing'
+import { Tracer } from '@crowd/tracing'
 import { Logger } from '@crowd/logging'
 import { DbConnection, DbStore } from '@crowd/data-access-layer/src/database'
 import { DATA_SINK_WORKER_QUEUE_SETTINGS, SqsClient, SqsPrioritizedQueueReciever } from '@crowd/sqs'
@@ -36,7 +36,17 @@ export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
     tracer: Tracer,
     parentLog: Logger,
   ) {
-    super(level, client, DATA_SINK_WORKER_QUEUE_SETTINGS, 20, tracer, parentLog)
+    super(
+      level,
+      client,
+      DATA_SINK_WORKER_QUEUE_SETTINGS,
+      20,
+      tracer,
+      parentLog,
+      undefined,
+      undefined,
+      10,
+    )
   }
 
   override async processMessage(message: IQueueMessage): Promise<void> {
@@ -84,7 +94,7 @@ export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
     } finally {
       const endTime = performance.now()
       const duration = endTime - startTime
-      this.log.info({ msgType: message.type }, `Message processed in ${duration.toFixed(2)}ms!`)
+      this.log.debug({ msgType: message.type }, `Message processed in ${duration.toFixed(2)}ms!`)
 
       if (this.timingMap.has(message.type)) {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -96,7 +106,7 @@ export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
 
       const data = this.timingMap.get(message.type)
 
-      this.log.info(
+      this.log.debug(
         { msgType: message.type },
         `Average processing time: ${data.time / data.count}ms!`,
       )
