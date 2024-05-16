@@ -36,7 +36,17 @@ export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
     tracer: Tracer,
     parentLog: Logger,
   ) {
-    super(level, client, DATA_SINK_WORKER_QUEUE_SETTINGS, 20, tracer, parentLog)
+    super(
+      level,
+      client,
+      DATA_SINK_WORKER_QUEUE_SETTINGS,
+      20,
+      tracer,
+      parentLog,
+      undefined,
+      undefined,
+      5,
+    )
   }
 
   override async processMessage(message: IQueueMessage): Promise<void> {
