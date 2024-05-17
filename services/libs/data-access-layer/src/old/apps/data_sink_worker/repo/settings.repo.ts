@@ -12,16 +12,18 @@ export default class SettingsRepository extends RepositoryBase<SettingsRepositor
     tenantId: string,
     platform: PlatformType,
     type: string,
+    segmentId: string,
   ): Promise<void> {
     const defaultTypes = DEFAULT_ACTIVITY_TYPE_SETTINGS[platform]
 
-    if (type in defaultTypes) {
+    if (defaultTypes && type in defaultTypes) {
       return
     }
 
     const results = await this.db().one(
-      'select "customActivityTypes" from settings where "tenantId" = $(tenantId)',
+      'select "customActivityTypes" from segments where id = $(segmentId) and "tenantId" = $(tenantId)',
       {
+        segmentId,
         tenantId,
       },
     )
@@ -46,10 +48,11 @@ export default class SettingsRepository extends RepositoryBase<SettingsRepositor
     }
 
     const result = await this.db().result(
-      `update settings set "customActivityTypes" = $(custom) where "tenantId" = $(tenantId)`,
+      `update segments set "customActivityTypes" = $(custom) where id = $(segmentId) and "tenantId" = $(tenantId)`,
       {
         tenantId,
         custom,
+        segmentId,
       },
     )
 

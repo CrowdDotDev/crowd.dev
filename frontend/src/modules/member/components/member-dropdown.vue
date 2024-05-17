@@ -1,6 +1,6 @@
 <template>
   <el-dropdown
-    v-if="!isReadOnly"
+    v-if="hasPermissions"
     ref="dropdown"
     trigger="click"
     placement="bottom-end"
@@ -30,10 +30,9 @@
 </template>
 
 <script setup>
-import { MemberPermissions } from '@/modules/member/member-permissions';
 import { computed, ref } from 'vue';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { storeToRefs } from 'pinia';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import AppMemberDropdownContent from './member-dropdown-content.vue';
 
 const emit = defineEmits(['merge', 'unmerge', 'closeDropdown', 'findGithub']);
@@ -52,17 +51,14 @@ defineProps({
   },
 });
 
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
+const { hasPermission } = usePermissions();
+
+const hasPermissions = computed(() => [LfPermission.memberEdit,
+  LfPermission.memberDestroy,
+  LfPermission.mergeMembers]
+  .some((permission) => hasPermission(permission)));
 
 const dropdown = ref();
-
-const isReadOnly = computed(() => (
-  new MemberPermissions(
-    tenant.value,
-    user.value,
-  ).edit === false
-));
 
 const onDropdownClose = () => {
   dropdown.value?.handleClose();

@@ -51,6 +51,7 @@
           :key="conversation?.id"
           :conversation="conversation"
           @details="conversationId = conversation.id"
+          @reload="reload()"
         />
 
         <!-- Load more button -->
@@ -118,6 +119,17 @@ const onLoadMore = () => {
     offset: (pagination.value.page - 1) * pagination.value.perPage,
     limit: pagination.value.perPage,
     append: true,
+  });
+};
+
+const reload = () => {
+  pagination.value.page = 1;
+
+  fetch({
+    ...savedFilterBody.value,
+    offset: (pagination.value.page - 1) * pagination.value.perPage,
+    limit: pagination.value.perPage,
+    append: false,
   });
 };
 

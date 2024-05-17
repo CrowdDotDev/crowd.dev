@@ -1,5 +1,6 @@
 import Layout from '@/modules/layout/components/layout.vue';
-import Permissions from '@/security/permissions';
+import { PermissionGuard } from '@/shared/modules/permissions/router/PermissionGuard';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 
 const ReportListPage = () => import('@/modules/report/pages/report-list-page.vue');
 const ReportFormPage = () => import('@/modules/report/pages/report-form-page.vue');
@@ -30,8 +31,10 @@ export default [
         component: ReportListPage,
         meta: {
           auth: true,
-          permission: Permissions.values.reportRead,
         },
+        beforeEnter: [
+          PermissionGuard(LfPermission.reportRead),
+        ],
       },
       {
         name: 'reportTemplate',
@@ -40,9 +43,11 @@ export default [
         meta: {
           auth: true,
           title: 'Report',
-          permission: Permissions.values.reportRead,
         },
         props: true,
+        beforeEnter: [
+          PermissionGuard(LfPermission.reportRead),
+        ],
       },
       {
         name: 'reportEdit',
@@ -51,9 +56,11 @@ export default [
         meta: {
           auth: true,
           title: 'Report',
-          permission: Permissions.values.reportEdit,
         },
         props: true,
+        beforeEnter: [
+          PermissionGuard(LfPermission.reportEdit),
+        ],
       },
       {
         name: 'reportView',
@@ -62,9 +69,11 @@ export default [
         meta: {
           auth: true,
           title: 'Report',
-          permission: Permissions.values.reportRead,
         },
         props: true,
+        beforeEnter: [
+          PermissionGuard(LfPermission.reportRead),
+        ],
       },
     ],
   },

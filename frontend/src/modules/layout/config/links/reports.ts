@@ -1,20 +1,16 @@
 import { MenuLink } from '@/modules/layout/types/MenuLink';
-import { ReportPermissions } from '@/modules/report/report-permissions';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 
 const reports: MenuLink = {
   id: 'reports',
   label: 'Reports',
   icon: 'ri-bar-chart-line',
   routeName: 'report',
-  display: ({ user, tenant }) => {
-    const reportPermissions = new ReportPermissions(
-      tenant,
-      user,
-    );
-    return reportPermissions.read || reportPermissions.lockedForCurrentPlan;
+  display: () => {
+    const { hasPermission } = usePermissions();
+    return hasPermission(LfPermission.reportRead);
   },
-  disable: ({ user, tenant }) => new ReportPermissions(tenant, user).lockedForCurrentPlan,
-
 };
 
 export default reports;

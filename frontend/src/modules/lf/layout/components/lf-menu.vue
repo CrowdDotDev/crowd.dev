@@ -180,9 +180,7 @@
 
         <!-- Eagle eye -->
         <el-tooltip
-          v-if="
-            hasPermissionToEagleEye || isEagleEyeLocked
-          "
+          v-if="hasPermission(LfPermission.eagleEyeRead)"
           :disabled="!isCollapsed"
           :hide-after="50"
           effect="dark"
@@ -205,13 +203,13 @@
         </el-tooltip>
 
         <el-divider
-          v-if="hasPermissionToAccessAdminPanel"
+          v-if="hasPermission(LfPermission.projectGroupCreate) || hasPermission(LfPermission.projectGroupEdit)"
           class="border-gray-200 !mb-1"
         />
 
         <div class="mb-6">
           <el-tooltip
-            v-if="hasPermissionToAccessAdminPanel"
+            v-if="hasPermission(LfPermission.projectGroupCreate) || hasPermission(LfPermission.projectGroupEdit)"
             :disabled="!isCollapsed"
             :hide-after="50"
             effect="dark"
@@ -251,27 +249,23 @@
 </template>
 
 <script setup>
-import { watch, computed } from 'vue';
+import { watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';
 import AppLfMenuProjectGroupSelection from '@/modules/lf/layout/components/lf-menu-project-group-selection.vue';
-import { EagleEyePermissions } from '@/premium/eagle-eye/eagle-eye-permissions';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
-import { LfPermissions } from '@/modules/lf/lf-permissions';
 import { useStore } from 'vuex';
 import { useActivityStore } from '@/modules/activity/store/pinia';
 import { useMemberStore } from '@/modules/member/store/pinia';
 import allContacts from '@/modules/member/config/saved-views/views/all-contacts';
 import allOrganizations from '@/modules/organization/config/saved-views/views/all-organizations';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 
 const store = useStore();
-
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
 
 const { menuCollapsed: isCollapsed } = mapGetters('layout');
 
@@ -286,6 +280,8 @@ const { filters: membersFilters } = storeToRefs(memberStore);
 
 const organizationStore = useOrganizationStore();
 const { filters: organizationFilters } = storeToRefs(organizationStore);
+
+const { hasPermission } = usePermissions();
 
 const onContributorsClick = () => {
   membersFilters.value = allContacts.config;
@@ -325,31 +321,6 @@ const classFor = (path, exact = false, disabled = false) => {
     'is-active': active,
   };
 };
-
-const hasPermissionToEagleEye = computed(
-  () => new EagleEyePermissions(
-    tenant.value,
-    user.value,
-  ).read,
-);
-
-const isEagleEyeLocked = computed(
-  () => new EagleEyePermissions(
-    tenant.value,
-    user.value,
-  ).lockedForCurrentPlan,
-);
-
-const hasPermissionToAccessAdminPanel = computed(
-  () => {
-    const lfPermissions = new LfPermissions(
-      tenant.value,
-      user.value,
-    );
-
-    return lfPermissions.createProjectGroup || lfPermissions.editProjectGroup;
-  },
-);
 
 function toggleMenu() {
   store.dispatch('layout/toggleMenu');

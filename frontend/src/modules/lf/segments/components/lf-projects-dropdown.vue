@@ -1,5 +1,8 @@
 <template>
-  <div v-if="(hasPermissionToCreateSubProject && hasAccessToSegmentId(id)) || (hasPermissionToEditProject && hasAccessToSegmentId(id))">
+  <div
+    v-if="(hasPermission(LfPermission.subProjectCreate) && hasAccessToSegmentId(id))
+      || (hasPermission(LfPermission.projectEdit) && hasAccessToSegmentId(id))"
+  >
     <el-dropdown
       trigger="click"
       placement="bottom-end"
@@ -14,7 +17,7 @@
       </button>
       <template #dropdown>
         <el-dropdown-item
-          v-if="(hasPermissionToEditProject && hasAccessToSegmentId(id))"
+          v-if="(hasPermission(LfPermission.projectEdit) && hasAccessToSegmentId(id))"
           class="h-10 mb-1"
           :command="editProject"
         >
@@ -24,7 +27,7 @@
           <span class="text-xs">Edit project</span>
         </el-dropdown-item>
         <el-dropdown-item
-          v-if="(hasPermissionToCreateSubProject && hasAccessToSegmentId(id))"
+          v-if="(hasPermission(LfPermission.subProjectCreate) && hasAccessToSegmentId(id))"
           class="h-10"
           :command="addSubProject"
         >
@@ -38,11 +41,8 @@
 </template>
 
 <script setup>
-import { LfPermissions } from '@/modules/lf/lf-permissions';
-import { computed } from 'vue';
-import { hasAccessToSegmentId } from '@/utils/segments';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { storeToRefs } from 'pinia';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 
 defineProps({
   id: {
@@ -53,18 +53,7 @@ defineProps({
 
 const emit = defineEmits(['onEditProject', 'onAddSubProject']);
 
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
-
-const hasPermissionToCreateSubProject = computed(() => new LfPermissions(
-  tenant.value,
-  user.value,
-)?.createSubProject);
-
-const hasPermissionToEditProject = computed(() => new LfPermissions(
-  tenant.value,
-  user.value,
-)?.editProject);
+const { hasPermission, hasAccessToSegmentId } = usePermissions();
 
 const editProject = () => {
   emit('onEditProject');

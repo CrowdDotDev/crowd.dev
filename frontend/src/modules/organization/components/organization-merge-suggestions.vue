@@ -148,12 +148,9 @@ import { merge } from 'lodash';
 import AppMemberMergeSuggestionsDetails
   from '@/modules/member/components/suggestions/member-merge-suggestions-details.vue';
 import useOrganizationMergeMessage from '@/shared/modules/merge/config/useOrganizationMergeMessage';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { storeToRefs } from 'pinia';
 import CrButton from '@/ui-kit/button/Button.vue';
 import AppMemberMergeSimilarity from '@/modules/member/components/suggestions/member-merge-similarity.vue';
 import { OrganizationService } from '../organization-service';
-import { OrganizationPermissions } from '../organization-permissions';
 
 const props = defineProps({
   query: {
@@ -170,9 +167,6 @@ const props = defineProps({
 
 const emit = defineEmits(['reload']);
 
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
-
 const organizationStore = useOrganizationStore();
 
 const organizationsToMerge = ref([]);
@@ -187,11 +181,6 @@ const sendingMerge = ref(false);
 const changed = ref(false);
 
 const bioHeight = ref(0);
-
-const isEditLockedForSampleData = computed(
-  () => new OrganizationPermissions(tenant.value, user.value)
-    .editLockedForSampleData,
-);
 
 const clearOrganization = (organization) => {
   const cleanedOrganization = { ...organization };

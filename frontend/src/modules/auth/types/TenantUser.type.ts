@@ -12,6 +12,7 @@ export interface TenantUser {
   settings: TenantUserSettings
   status: string;
   tenant: Tenant;
+  adminSegments: string[];
   tenantId: string;
   updatedAt: string;
   updatedById: string | null;

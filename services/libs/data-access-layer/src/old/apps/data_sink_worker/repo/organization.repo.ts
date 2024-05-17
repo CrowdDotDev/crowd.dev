@@ -332,7 +332,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
               from "organizationIdentities" oi
               where 
                     oi.platform = $(platform)
-                    and oi.name = $(name)
+                    and oi.name ilike $(name)
           )
           select o.id,
                   o.description,
@@ -354,7 +354,8 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
                   o.attributes
           from organizations o
           where o."tenantId" = $(tenantId) 
-          and o.id in (select "organizationId" from "organizationsWithIdentity");
+          and o.id in (select "organizationId" from "organizationsWithIdentity")
+          limit 1;
       `,
       { tenantId, name: identity.name, platform: identity.platform },
     )

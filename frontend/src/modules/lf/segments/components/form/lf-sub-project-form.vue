@@ -143,6 +143,10 @@ const props = defineProps({
     type: String,
     default: () => null,
   },
+  grandparentId: {
+    type: String,
+    default: () => null,
+  },
 });
 
 const lsSegmentsStore = useLfSegmentsStore();
@@ -230,7 +234,7 @@ const onSubmit = () => {
   } else {
     createSubProject({
       ...form,
-      segments: [props.parentId],
+      segments: [props.parentId, props.grandparentId],
     })
       .finally(() => {
         submitLoading.value = false;
