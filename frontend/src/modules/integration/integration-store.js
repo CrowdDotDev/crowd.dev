@@ -669,5 +669,43 @@ export default {
         commit('CREATE_ERROR');
       }
     },
+
+    async doJiraConnect({ commit }, {
+      url, token, projects, isUpdate,
+    }) {
+      try {
+        commit('CREATE_STARTED');
+
+        const integration = await IntegrationService.jiraConnect(
+          url,
+          token,
+          projects,
+        );
+
+        commit('CREATE_SUCCESS', integration);
+
+        Message.success(
+          'The first activities will show up in a couple of seconds. <br /> <br /> '
+            + 'This process might take a few minutes to finish, depending on the amount of data.',
+          {
+            title: `
+              Jira integration ${
+  isUpdate ? 'updated' : 'created'
+} successfully`,
+          },
+        );
+
+        router.push({
+          name: 'integration',
+          params: {
+            id: integration.segmentId,
+          },
+        });
+      } catch (error) {
+        Errors.handle(error);
+        Message.error('Something went wrong. Please try again later.');
+        commit('CREATE_ERROR');
+      }
+    },
   },
 };

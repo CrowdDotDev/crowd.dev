@@ -184,6 +184,11 @@ export default (app) => {
     safeWrap(require('./helpers/groupsioVerifyGroup').default),
   )
 
+  app.post(
+    '/tenant/:tenantId/jira-connect',
+    safeWrap(require('./helpers/jiraConnectOrUpdate').default),
+  )
+
   if (TWITTER_CONFIG.clientId) {
     /**
      * Using the passport.authenticate this endpoint forces a

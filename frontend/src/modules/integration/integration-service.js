@@ -467,6 +467,22 @@ export class IntegrationService {
     return response.data;
   }
 
+  static async jiraConnect(url, token, projects) {
+    const tenantId = AuthService.getTenantId();
+
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/jira-connect`,
+      {
+        url,
+        token,
+        projects,
+        ...getSegments(),
+      },
+    );
+
+    return response.data;
+  }
+
   static async fetchIntegrationsProgress(segments) {
     const tenantId = AuthService.getTenantId();
 
