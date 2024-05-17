@@ -5,23 +5,19 @@
       v-model="filters"
       :config="organizationFilters"
       :search-config="organizationSearchFilter"
-      :saved-views-config="organizationSavedViews"
+      :saved-views-config="commonOrganizationSavedViews"
       @fetch="fetch($event)"
-    >
-      <template #actions>
-        <cr-button type="secondary" class="ml-4">
-          <i class="ri-add-line" />Add organization
-        </cr-button>
-      </template>
-    </cr-filter>
+    />
     <app-organization-common-list-table
       :organizations="organizations"
+      @reload="getOrganizations()"
     >
       <template #pagination>
         <app-pagination
           :total="totalOrganizations"
           :page-size="Number(pagination.perPage)"
           :current-page="pagination.page || 1"
+          :hide-sorting="true"
           @change-current-page="onPaginationChange({ page: $event })"
           @change-page-size="onPaginationChange({ perPage: $event })"
         />
@@ -34,9 +30,8 @@
 import { ref } from 'vue';
 import CrFilter from '@/shared/modules/filters/components/Filter.vue';
 import { organizationFilters, organizationSearchFilter } from '@/modules/organization/config/filters/main';
-import { organizationSavedViews } from '@/modules/organization/config/saved-views/main';
+import { commonOrganizationSavedViews } from '@/modules/organization/config/saved-views/main';
 import { FilterQuery } from '@/shared/modules/filters/types/FilterQuery';
-import CrButton from '@/ui-kit/button/Button.vue';
 import allOrganizations from '@/modules/organization/config/saved-views/views/all-organizations';
 import AppOrganizationCommonListTable from '@/modules/organization/components/list/organization-common-list-table.vue';
 import { OrganizationService } from '@/modules/organization/organization-service';
@@ -54,23 +49,11 @@ const savedBody = ref({});
 
 const pagination = ref({
   page: 1,
-  perPage: 20,
+  perPage: 100,
 });
 
 const organizations = ref<any[]>([]);
 const totalOrganizations = ref<number>(0);
-
-const showLoading = (filter: any, body: any): boolean =>
-  // const saved: any = { ...savedFilterBody.value };
-  // delete saved.offset;
-  // delete saved.limit;
-  // delete saved.orderBy;
-  // const compare = {
-  //   ...body,
-  //   filter,
-  // };
-  // return JSON.stringify(saved) !== JSON.stringify(compare);
-  false;
 
 const getOrganizations = (body?: any) => {
   savedBody.value = {
@@ -95,7 +78,7 @@ const fetch = ({
   filter, orderBy, body,
 }: FilterQuery) => {
   if (!loading.value) {
-    loading.value = showLoading(filter, body);
+    loading.value = true;
   }
   filter.and.push({
     grandParentSegment: {
