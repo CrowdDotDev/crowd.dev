@@ -1,6 +1,6 @@
 <template>
   <el-dropdown
-    v-if="!isReadOnly && organization"
+    v-if="organization && hasPermissions"
     ref="dropdown"
     trigger="click"
     placement="bottom-end"
@@ -29,9 +29,8 @@
 
 <script setup>
 import { computed, ref } from 'vue';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { storeToRefs } from 'pinia';
-import { OrganizationPermissions } from '../organization-permissions';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import AppOrganizationDropdownContent from './organization-dropdown-content.vue';
 
 defineProps({
@@ -55,17 +54,14 @@ const emit = defineEmits([
   'closeDropdown',
 ]);
 
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
+const { hasPermission } = usePermissions();
+
+const hasPermissions = computed(() => [LfPermission.organizationEdit,
+  LfPermission.organizationDestroy,
+  LfPermission.mergeOrganizations]
+  .some((permission) => hasPermission(permission)));
 
 const dropdown = ref();
-
-const isReadOnly = computed(
-  () => new OrganizationPermissions(
-    tenant.value,
-    user.value,
-  ).edit === false,
-);
 
 const onDropdownClose = () => {
   dropdown.value?.handleClose();

@@ -1,19 +1,16 @@
 import { MenuLink } from '@/modules/layout/types/MenuLink';
-import { AutomationPermissions } from '@/modules/automation/automation-permissions';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 
 const automations: MenuLink = {
   id: 'automations',
   label: 'Automations',
   icon: 'ri-mind-map',
   routeName: 'automations',
-  display: ({ user, tenant }) => {
-    const automationPermissions = new AutomationPermissions(
-      tenant,
-      user,
-    );
-    return automationPermissions.read || automationPermissions.lockedForCurrentPlan;
+  display: () => {
+    const { hasPermission } = usePermissions();
+    return hasPermission(LfPermission.automationRead);
   },
-  disable: ({ user, tenant }) => new AutomationPermissions(tenant, user).lockedForCurrentPlan,
 };
 
 export default automations;

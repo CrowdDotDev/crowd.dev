@@ -34,7 +34,8 @@ import { mapActions } from 'vuex';
 import { storeToRefs } from 'pinia';
 import { useMemberStore } from '@/modules/member/store/pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import { hasAccessToSegmentId, getSegmentsFromProjectGroup } from '@/utils/segments';
+import { getSegmentsFromProjectGroup } from '@/utils/segments';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 
 const memberStore = useMemberStore();
 const { selectedMembers } = storeToRefs(memberStore);
@@ -57,6 +58,11 @@ export default {
     },
   },
   emits: ['reload', 'update:modelValue'],
+
+  setup() {
+    const { hasAccessToSegmentId } = usePermissions();
+    return { hasAccessToSegmentId };
+  },
 
   data() {
     return {
@@ -92,7 +98,7 @@ export default {
         ? this.member.segmentIds ?? this.member.segments?.map((s) => s.id) ?? getSegmentsFromProjectGroup(this.selectedProjectGroup)
         : getSegmentsFromProjectGroup(this.selectedProjectGroup);
 
-      return !segments.some((s) => hasAccessToSegmentId(s));
+      return !segments.some((s) => this.hasAccessToSegmentId(s));
     },
   },
 

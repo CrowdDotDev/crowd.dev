@@ -45,7 +45,7 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
       inner join "memberIdentities" mi on m.id = mi."memberId" and mi.verified = true
       where m."tenantId" = $(tenantId)
         and mi.type = $(type)
-        and mi.value = $(email)
+        and mi.value ilike $(email)
       limit 1
     `,
       {
@@ -68,8 +68,10 @@ export default class MemberRepository extends RepositoryBase<MemberRepository> {
                     from "memberIdentities" mi
                     where mi."tenantId" = $(tenantId)
                       and mi.platform = $(platform)
-                      and mi.value = $(username)
-                      and mi.type = $(type));
+                      and lower(mi.value) = lower($(username))
+                      and mi.type = $(type)
+                      limit 1
+                    );
     `,
       {
         tenantId,

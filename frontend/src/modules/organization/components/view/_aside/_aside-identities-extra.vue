@@ -4,9 +4,10 @@
   <div class="flex flex-col px-6">
     <div class="flex items-center justify-between">
       <div class="font-medium text-black">
-        Email(s)
+        Email Domain(s)
       </div>
       <el-button
+        v-if="hasPermission(LfPermission.organizationEdit)"
         class="btn btn-link btn-link--primary"
         @click="emit('editEmail')"
       >
@@ -65,6 +66,7 @@
         Phone number(s)
       </div>
       <el-button
+        v-if="hasPermission(LfPermission.organizationEdit)"
         class="btn btn-link btn-link--primary"
         @click="emit('editPhoneNumber')"
       >
@@ -119,6 +121,8 @@
 import {
   computed, ref,
 } from 'vue';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 
 const props = defineProps<{
   emails: {
@@ -132,6 +136,8 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{(e: 'editEmail'): void, (e: 'editPhoneNumber'): void, }>();
+
+const { hasPermission } = usePermissions();
 
 const displayEmailsMore = ref(false);
 const displayPhoneNumbersMore = ref(false);

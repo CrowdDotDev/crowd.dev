@@ -3,7 +3,7 @@
     <el-switch
       :model-value="props.automation.state === 'active'"
       class="!grow-0 !ml-0"
-      :disabled="!canEnable"
+      :disabled="!canEnable || !hasPermission(LfPermission.automationEdit)"
       :before-change="beforeChange"
       @change="handleChange"
     />
@@ -21,6 +21,8 @@ import { getWorkflowMax, showWorkflowLimitDialog } from '@/modules/automation/au
 import { FeatureFlag } from '@/utils/featureFlag';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import { automationTypes } from '../config/automation-types';
 
 const props = defineProps({
@@ -31,6 +33,8 @@ const props = defineProps({
 });
 
 const store = useStore();
+
+const { hasPermission } = usePermissions();
 
 const { changePublishState } = useAutomationStore();
 

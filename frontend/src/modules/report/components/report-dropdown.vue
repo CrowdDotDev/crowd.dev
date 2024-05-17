@@ -1,5 +1,5 @@
 <template>
-  <div v-if="isReadOnly && report.public">
+  <div v-if="!hasPermission(LfPermission.reportEdit) && report.public">
     <el-button
       class="btn btn--secondary"
       @click.stop="copyToClipboard()"
@@ -8,7 +8,7 @@
       Copy Public Url
     </el-button>
   </div>
-  <div v-else-if="!isReadOnly">
+  <div v-else-if="hasPermission(LfPermission.reportEdit)">
     <el-dropdown
       trigger="click"
       placement="bottom-end"
@@ -85,11 +85,12 @@
 import { mapActions } from 'vuex';
 import Message from '@/shared/message/message';
 import { AuthService } from '@/modules/auth/services/auth.service';
-import { ReportPermissions } from '@/modules/report/report-permissions';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { ReportService } from '@/modules/report/report-service';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 
 export default {
   name: 'AppReportDropdown',
@@ -118,16 +119,14 @@ export default {
   setup() {
     const authStore = useAuthStore();
     const { user, tenant } = storeToRefs(authStore);
-    return { user, tenant };
+
+    const { hasPermission } = usePermissions();
+
+    return { user, tenant, hasPermission };
   },
   computed: {
-    isReadOnly() {
-      return (
-        new ReportPermissions(
-          this.tenant,
-          this.user,
-        ).edit === false
-      );
+    LfPermission() {
+      return LfPermission;
     },
   },
   methods: {

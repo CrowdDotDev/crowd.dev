@@ -130,9 +130,10 @@ import {
   watch, ref, computed, onUnmounted,
 } from 'vue';
 import { IntegrationService } from '@/modules/integration/integration-service';
-import { getSegmentsFromProjectGroup, hasAccessToSegmentId } from '@/utils/segments';
+import { getSegmentsFromProjectGroup } from '@/utils/segments';
 import { isCurrentDateAfterGivenWorkingDays } from '@/utils/date';
 import { useRoute } from 'vue-router';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 
 const ERROR_BANNER_WORKING_DAYS_DISPLAY = 3;
 
@@ -144,6 +145,8 @@ const loading = ref(true);
 const subProjects = ref([]);
 
 const route = useRoute();
+
+const { hasAccessToSegmentId } = usePermissions();
 
 const integrationsWithErrors = computed(() => integrations.value.reduce((acc, integration) => {
   if (integration.status === 'error' && isCurrentDateAfterGivenWorkingDays(integration.updatedAt, ERROR_BANNER_WORKING_DAYS_DISPLAY)) {
