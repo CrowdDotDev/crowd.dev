@@ -12,11 +12,11 @@
           v-if="activeTab === 'project-groups'"
         />
       </el-tab-pane>
-      <el-tab-pane v-if="isAdminUser" label="Organizations" name="organizations">
-        <app-organization-common-page
-          v-if="activeTab === 'organizations'"
-        />
-      </el-tab-pane>
+      <!--      <el-tab-pane v-if="isAdminUser" label="Organizations" name="organizations">-->
+      <!--        <app-organization-common-page-->
+      <!--          v-if="activeTab === 'organizations'"-->
+      <!--        />-->
+      <!--      </el-tab-pane>-->
       <el-tab-pane v-if="isAdminUser" label="Automations" name="automations">
         <app-automation-list
           v-if="activeTab === 'automations'"
