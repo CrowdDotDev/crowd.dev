@@ -1,15 +1,12 @@
 import { IOrganizationMergeSuggestion, OpenSearchIndex } from '@crowd/types'
 import { svc } from '../main'
 
-import {
-  IOrganizationPartialAggregatesOpensearch,
-  IOrganizationPartialAggregatesOpensearchRawResult,
-  IOrganizationQueryBody,
-  ISimilarOrganizationOpensearch,
-} from '../types'
+import { IOrganizationPartialAggregatesOpensearch, ISimilarOrganizationOpensearch } from '../types'
 import OrganizationMergeSuggestionsRepository from '@crowd/data-access-layer/src/old/apps/merge_suggestions_worker/organizationMergeSuggestions.repo'
 import { prefixLength } from '../utils'
 import OrganizationSimilarityCalculator from '../organizationSimilarityCalculator'
+import { findOrgsForMergeSuggestions } from '@crowd/data-access-layer'
+import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 
 export async function getOrganizations(
   tenantId: string,
@@ -18,73 +15,31 @@ export async function getOrganizations(
   lastGeneratedAt?: string,
 ): Promise<IOrganizationPartialAggregatesOpensearch[]> {
   try {
-    const queryBody: IOrganizationQueryBody = {
-      from: 0,
-      size: batchSize,
-      query: {
-        bool: {
-          filter: [
-            {
-              term: {
-                uuid_tenantId: tenantId,
-              },
-            },
-            {
-              exists: {
-                field: 'keyword_displayName',
-              },
-            },
-          ],
-        },
-      },
-      sort: {
-        [`uuid_organizationId`]: 'asc',
-      },
-      collapse: {
-        field: 'uuid_organizationId',
-      },
-      _source: [
-        'uuid_organizationId',
-        'nested_identities',
-        'uuid_arr_noMergeIds',
-        'keyword_displayName',
-        'string_location',
-        'string_industry',
-        'string_website',
-        'string_ticker',
-        'int_activityCount',
-      ],
-    }
+    const qx = pgpQx(svc.postgres.reader.connection())
+    const rows = await findOrgsForMergeSuggestions(
+      qx,
+      tenantId,
+      batchSize,
+      afterOrganizationId,
+      lastGeneratedAt,
+    )
 
-    if (afterOrganizationId) {
-      queryBody.query.bool.filter.push({
-        range: {
-          uuid_organizationId: {
-            gt: afterOrganizationId,
-          },
-        },
-      })
-    }
-
-    if (lastGeneratedAt) {
-      queryBody.query.bool.filter.push({
-        range: {
-          date_createdAt: {
-            gt: new Date(lastGeneratedAt).toISOString(),
-          },
-        },
-      })
-    }
-
-    const organizations: IOrganizationPartialAggregatesOpensearchRawResult[] =
-      (
-        await svc.opensearch.client.search({
-          index: OpenSearchIndex.ORGANIZATIONS,
-          body: queryBody,
-        })
-      ).body?.hits?.hits || []
-
-    return organizations.map((organization) => organization._source)
+    return rows.map((org) => ({
+      uuid_organizationId: org.id,
+      uuid_arr_noMergeIds: org.noMergeIds,
+      keyword_displayName: org.displayName,
+      nested_identities: org.identities.map((identity) => ({
+        string_platform: identity.platform,
+        string_name: identity.name,
+        keyword_name: identity.name,
+        string_url: identity.url,
+      })),
+      string_location: org.location,
+      string_industry: org.industry,
+      string_website: org.website,
+      string_ticker: org.ticker,
+      int_activityCount: org.activityCount,
+    }))
   } catch (err) {
     throw new Error(err)
   }
