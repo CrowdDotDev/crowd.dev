@@ -64,6 +64,12 @@ export interface IDbOrganizationSyncData {
 
   // aggregate data
   identities: IOrganizationIdentity[]
+  memberIds?: string[]
+  memberCount: number
+  activityCount: number
+  activeOn: string[]
+  lastActive: string
+  joinedAt: string
 }
 
 export interface IOrganizationSegmentMatrixItem {

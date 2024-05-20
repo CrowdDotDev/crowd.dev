@@ -273,58 +273,77 @@ export class OrganizationSyncService {
     organizationIds: string[],
     segmentIds?: string[],
   ): Promise<IOrganizationSyncResult> {
-    let documentsIndexed = 0
-    for (const organizationId of organizationIds) {
-      let orgData
-      try {
-        orgData = await logExecutionTimeV2(
-          () => getOrgAggregates(this.qdbStore.connection(), organizationId),
-          this.log,
-          'getOrgAggregates',
-        )
+    const syncOrgAggregates = async (organizationIds) => {
+      let documentsIndexed = 0
+      for (const organizationId of organizationIds) {
+        let orgData
+        try {
+          orgData = await logExecutionTimeV2(
+            () => getOrgAggregates(this.qdbStore.connection(), organizationId),
+            this.log,
+            'getOrgAggregates',
+          )
 
-        for (const row of orgData) {
-          if (!row.segmentId || !row.tenantId || !row.organizationId) {
-            console.error('row', row)
-            throw new Error('Missing segmentId, tenantId or organizationId in orgData')
+          for (const row of orgData) {
+            if (!row.segmentId || !row.tenantId || !row.organizationId) {
+              console.error('row', row)
+              throw new Error('Missing segmentId, tenantId or organizationId in orgData')
+            }
           }
+        } catch (e) {
+          console.error(e)
+          throw e
         }
-      } catch (e) {
-        console.error(e)
-        throw e
+
+        try {
+          await this.orgRepo.transactionally(
+            async (txRepo) => {
+              const qx = repoQx(txRepo)
+              console.log('qx', qx)
+              await logExecutionTimeV2(
+                () => cleanupForOganization(qx, organizationId),
+                this.log,
+                'cleanupForOganization',
+              )
+              await logExecutionTimeV2(
+                () => insertOrganizationSegments(qx, orgData),
+                this.log,
+                'insertOrganizationSegments',
+              )
+            },
+            undefined,
+            true,
+          )
+
+          documentsIndexed += orgData.length
+        } catch (e) {
+          console.error(e)
+          throw e
+        }
       }
 
-      try {
-        await this.orgRepo.transactionally(
-          async (txRepo) => {
-            const qx = repoQx(txRepo)
-            console.log('qx', qx)
-            await logExecutionTimeV2(
-              () => cleanupForOganization(qx, organizationId),
-              this.log,
-              'cleanupForOganization',
-            )
-            await logExecutionTimeV2(
-              () => insertOrganizationSegments(qx, orgData),
-              this.log,
-              'insertOrganizationSegments',
-            )
-          },
-          undefined,
-          true,
-        )
-
-        documentsIndexed += orgData.length
-      } catch (e) {
-        console.error(e)
-        throw e
+      return {
+        organizationsSynced: organizationIds.length,
+        documentsIndexed,
       }
     }
 
-    return {
-      organizationsSynced: organizationIds.length,
-      documentsIndexed,
+    const syncResults = await syncOrgAggregates(organizationIds)
+
+    const syncOrgsToOpensearchForMergeSuggestions = async (organizationIds) => {
+      for (const orgId of organizationIds) {
+        const data = await this.orgRepo.getOrganizationData(orgId)
+        if (!data) {
+          this.log.error('Organization not found in database!', { orgId, data })
+          throw new Error('Organization not found in database!')
+        }
+        const prefixed = OrganizationSyncService.prefixData(data)
+        await this.openSearchService.index(orgId, OpenSearchIndex.ORGANIZATIONS, prefixed)
+      }
     }
+    await syncOrgsToOpensearchForMergeSuggestions(organizationIds)
+
+    return syncResults
   }
 
   private static aggregateData(
@@ -399,14 +418,10 @@ export class OrganizationSyncService {
     return data
   }
 
-  public static prefixData(
-    data: IDbOrganizationSyncData,
-    aggregates: IOrganizationSegmentAggregates,
-  ): any {
+  public static prefixData(data: IDbOrganizationSyncData): any {
     const p: Record<string, unknown> = {}
 
     p.uuid_organizationId = data.organizationId
-    p.uuid_segmentId = aggregates.segmentId
     p.bool_grandParentSegment = data.grandParentSegment ? data.grandParentSegment : false
     p.uuid_tenantId = data.tenantId
     p.obj_address = data.address
@@ -488,11 +503,11 @@ export class OrganizationSyncService {
     p.nested_weakIdentities = p_weakIdentities
 
     // aggregate data
-    p.date_joinedAt = aggregates.joinedAt ? new Date(aggregates.joinedAt).toISOString() : null
-    p.date_lastActive = aggregates.lastActive ? new Date(aggregates.lastActive).toISOString() : null
-    p.string_arr_activeOn = aggregates.activeOn
-    p.int_activityCount = aggregates.activityCount
-    p.int_memberCount = aggregates.memberCount
+    p.date_joinedAt = data.joinedAt ? new Date(data.joinedAt).toISOString() : null
+    p.date_lastActive = data.lastActive ? new Date(data.lastActive).toISOString() : null
+    p.string_arr_activeOn = data.activeOn
+    p.int_activityCount = data.activityCount
+    p.int_memberCount = data.memberCount
 
     return p
   }

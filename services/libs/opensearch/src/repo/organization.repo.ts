@@ -9,15 +9,33 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     super(dbStore, parentLog)
   }
 
-  public async getOrganizationData(organizationId: string): Promise<IDbOrganizationSyncData[]> {
+  public async getOrganizationData(organizationId: string): Promise<IDbOrganizationSyncData> {
     const results = await this.db().oneOrNone(
       `
-          with identities as (select oi."organizationId",
-                                jsonb_agg(oi) as "identities"
-                          from "organizationIdentities" oi
-                          where oi."organizationId" = $(organizationId)
-                          group by oi."organizationId")
-      select o.id                                                          as "organizationId",
+        WITH
+            identities AS (
+                SELECT
+                    oi."organizationId",
+                    JSONB_AGG(oi) AS "identities"
+                FROM "organizationIdentities" oi
+                WHERE oi."organizationId" = $(organizationId)
+                GROUP BY oi."organizationId"
+            ),
+            aggs AS (
+                SELECT
+                    osa."organizationId",
+                    SUM(osa."memberCount") AS "memberCount",
+                    SUM(osa."activityCount") AS "activityCount",
+                    ARRAY_AGG(DISTINCT ao."activeOn") AS "activeOn",
+                    MAX(osa."lastActive") AS "lastActive",
+                    MIN(osa."joinedAt") AS "joinedAt"
+                FROM "organizationSegmentsAgg" osa
+                CROSS JOIN LATERAL UNNEST(osa."activeOn") as ao("activeOn")
+                WHERE osa."organizationId" = $(organizationId)
+                GROUP BY osa."organizationId"
+            )
+        SELECT
+            o.id AS "organizationId",
             o."tenantId",
             o.address,
             o.tags,
@@ -70,13 +88,19 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
             o."immediateParent",
             o."weakIdentities",
             o."manuallyChangedFields",
-            nullif(o."employeeChurnRate" -> '12_month', 'null')::decimal  as "employeeChurnRate12Month",
-            nullif(o."employeeGrowthRate" -> '12_month', 'null')::decimal as "employeeGrowthRate12Month",
-            coalesce(i.identities, '[]'::jsonb)                           as "identities"
-      from organizations o
-              left join identities i on o.id = i."organizationId"
-      where o.id = $(organizationId)
-        and o."deletedAt" is null;
+            NULLIF(o."employeeChurnRate" -> '12_month', 'null')::DECIMAL AS "employeeChurnRate12Month",
+            NULLIF(o."employeeGrowthRate" -> '12_month', 'null')::DECIMAL AS "employeeGrowthRate12Month",
+            COALESCE(i.identities, '[]'::jsonb) AS "identities",
+            a."memberCount",
+            a."activityCount",
+            a."activeOn",
+            a."lastActive",
+            a."joinedAt"
+        FROM organizations o
+        JOIN aggs a ON a."organizationId" = o.id
+        LEFT JOIN identities i ON o.id = i."organizationId"
+        WHERE o.id = $(organizationId)
+          AND o."deletedAt" IS NULL
       `,
       {
         organizationId,
