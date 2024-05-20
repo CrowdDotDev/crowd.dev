@@ -3,7 +3,7 @@ export interface GroupsioIntegrationData {
   token: string
   tokenExpiry: string
   password: string
-  groupNames: GroupName[]
+  groups: GroupDetails[]
 }
 
 export interface GroupsioGetToken {
@@ -15,6 +15,12 @@ export interface GroupsioGetToken {
 export interface GroupsioVerifyGroup {
   groupName: GroupName
   cookie: string
+}
+
+export interface GroupDetails {
+  id: number
+  slug: string
+  name: string
 }
 
 export type GroupName = string
