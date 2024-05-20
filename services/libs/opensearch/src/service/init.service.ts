@@ -6,7 +6,6 @@ import { MemberSyncService } from './member.sync.service'
 import { OpenSearchService } from './opensearch.service'
 import { OrganizationSyncService } from './organization.sync.service'
 import { IMemberSegmentAggregates, MemberIdentityType } from '@crowd/types'
-import { IOrganizationSegmentAggregates } from '@crowd/data-access-layer'
 
 export class InitService {
   public static FAKE_TENANT_ID = 'b0e82a13-566f-40e0-b0d0-11fcb6596b0f'

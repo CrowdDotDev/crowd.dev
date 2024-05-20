@@ -19,7 +19,6 @@ import {
   IMemberSegment,
   INumberOfActivitiesPerMember,
   INumberOfActivitiesPerOrganization,
-  IOrganizationSegment,
   IOrganizationSegmentAggregates,
   IQueryActiveMembersParameters,
   IQueryActiveOrganizationsParameters,
@@ -707,68 +706,6 @@ export async function getMostActiveMembers(
   return result
 }
 
-export async function getOrganizationAggregates(
-  qdbConn: DbConnOrTx,
-  organizationId: string,
-  segmentId?: string,
-): Promise<IOrganizationSegmentAggregates> {
-  const result = await qdbConn.oneOrNone(
-    `
-    with relevant_activities as (select id, timestamp, platform, "memberId", "organizationId", "segmentId"
-                                from activities
-                                where "organizationId" = $(organizationId)
-                                  ${segmentId ? 'and "segmentId" = $(segmentId)' : ''}
-                                  and "deletedAt" is null),
-        distinct_platforms as (select distinct "organizationId", "segmentId", platform from relevant_activities),
-        distinct_members as (select distinct "organizationId", "segmentId", "memberId" from relevant_activities),
-        joined_at_timestamp as (select "organizationId", "segmentId", min(timestamp) as "joinedAt"
-                                from relevant_activities
-                                where timestamp <> '1970-01-01T00:00:00.000Z')
-    select a."organizationId",
-          a."segmentId",
-          count_distinct(a."memberId")  as "memberCount",
-          count_distinct(a.id)          as "activityCount",
-          max(a.timestamp)              as "lastActive",
-          string_agg(p.platform, ':')   as "activeOn",
-          string_agg(m."memberId", ':') as "memberIds",
-          t."joinedAt"
-    from relevant_activities a
-            inner join distinct_platforms p on a."organizationId" = p."organizationId" and a."segmentId" = p."segmentId"
-            inner join distinct_members m on a."organizationId" = m."organizationId" and a."segmentId" = m."segmentId"
-            left join joined_at_timestamp t on a."organizationId" = t."organizationId" and a."segmentId" = t."segmentId"
-    group by a."organizationId", a."segmentId", t."joinedAt";
-    `,
-    {
-      organizationId,
-      segmentId,
-    },
-  )
-
-  if (result) {
-    return {
-      organizationId,
-      segmentId,
-      memberIds: result.memberIds.split(':'),
-      memberCount: result.memberCount,
-      activityCount: result.activityCount,
-      activeOn: result.activeOn.split(':'),
-      lastActive: result.lastActive,
-      joinedAt: result.joinedAt,
-    }
-  } else {
-    return {
-      organizationId,
-      segmentId,
-      memberIds: [],
-      memberCount: 0,
-      activityCount: 0,
-      activeOn: [],
-      lastActive: null,
-      joinedAt: null,
-    }
-  }
-}
-
 export async function getOrgAggregates(
   qdbConn: DbConnOrTx,
   organizationId: string,
@@ -1169,22 +1106,6 @@ export async function getMemberSegmentCouples(
     `,
     {
       memberIds,
-    },
-  )
-}
-
-export async function getOrganizationSegmentCouples(
-  qdbConn: DbConnOrTx,
-  organizationIds: string[],
-): Promise<IOrganizationSegment[]> {
-  return qdbConn.any(
-    `
-    select distinct "organizationId", "segmentId"
-    from activities
-    where "deletedAt" is null and "organizationId" in ($(organizationIds:csv));
-    `,
-    {
-      organizationIds,
     },
   )
 }
