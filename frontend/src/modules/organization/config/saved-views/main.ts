@@ -24,7 +24,23 @@ export const organizationSavedViews: SavedViewsConfig = {
 };
 
 export const commonOrganizationSavedViews: SavedViewsConfig = {
-  defaultView: allOrganizations,
+  defaultView: {
+    id: 'common-organizations',
+    name: 'Common organizations',
+    visibility: 'tenant',
+    placement: 'organization',
+    config: {
+      search: '',
+      relation: 'and',
+      order: {
+        prop: 'activityCount',
+        order: 'descending',
+      },
+      settings: {
+        hasActivities: 'true',
+      },
+    },
+  },
   settings: {
     hasActivities,
   },

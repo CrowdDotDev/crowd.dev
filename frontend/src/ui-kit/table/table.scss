@@ -74,6 +74,10 @@
           }
         }
       }
+
+      th {
+        @apply text-2xs #{!important};
+      }
     }
   }
 

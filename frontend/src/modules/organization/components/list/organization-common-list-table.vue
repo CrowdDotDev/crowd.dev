@@ -1,9 +1,9 @@
 <template>
   <div>
-    <cr-table type="bordered" class="pb-14">
+    <cr-table type="bordered" class="pb-12">
       <thead>
         <tr>
-          <cr-table-head :sticky="false">
+          <cr-table-head v-model="sort" property="displayName" :sticky="true">
             ORGANIZATION
           </cr-table-head>
           <cr-table-head>
@@ -12,34 +12,44 @@
           <cr-table-head>
             IDENTITIES
           </cr-table-head>
-          <cr-table-head :sticky="false" />
+          <cr-table-head :sticky="true" />
         </tr>
       </thead>
 
       <tbody>
-        <tr v-for="org of props.organizations" :key="org.id">
-          <cr-table-cell :sticky="false">
+        <tr v-for="(org, oi) of props.organizations" :key="org.id">
+          <cr-table-cell :sticky="true">
             <app-organization-name
               class="w-full"
               :organization="org"
             />
           </cr-table-cell>
-          <td>
+          <cr-table-cell>
             <div class="flex">
-              <div class="border border-gray-300 h-6 px-2 rounded-md bg-white text-sm whitespace-nowrap">
-                {{ org.segments.length }} project groups
-              </div>
+              <el-popover placement="top-start">
+                <template #reference>
+                  <div class="border border-gray-300 h-6 px-2 rounded-md bg-white text-sm whitespace-nowrap">
+                    {{ org.segments.length }} project group{{ org.segments.length !== 1 ? 's' : '' }}
+                  </div>
+                </template>
+
+                <div>
+                  <div v-for="segmentId of org.segments" :key="segmentId" class="text-black text-2xs">
+                    {{ getSegmentName(segmentId) }}
+                  </div>
+                </div>
+              </el-popover>
             </div>
-          </td>
-          <td>
+          </cr-table-cell>
+          <cr-table-cell>
             <div class="h-full flex items-center">
               <app-identities-horizontal-list-organizations
                 :organization="org"
                 :limit="5"
               />
             </div>
-          </td>
-          <cr-table-cell :sticky="false">
+          </cr-table-cell>
+          <cr-table-cell :sticky="true" :style="{ 'z-index': props.organizations.length - oi + 2 }">
             <div class="flex justify-end">
               <cr-dropdown placement="bottom-end">
                 <template #trigger>
@@ -69,13 +79,14 @@
         </tr>
       </tbody>
 
-      <tfoot class="border-b border-gray-100">
+      <tfoot class="border-b border-gray-100" style="z-index: 0">
         <tr>
-          <cr-table-cell :sticky="false" colspan="3">
+          <cr-table-cell :sticky="true" colspan="2" style="z-index: 0">
             <slot name="pagination" />
           </cr-table-cell>
         </tr>
       </tfoot>
+      <div class="absolute bottom-0 left-0 right-0 bg-white h-12" />
     </cr-table>
   </div>
 
@@ -94,17 +105,28 @@ import CrDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import CrDropdownSeparator from '@/ui-kit/dropdown/DropdownSeparator.vue';
 import CrTableCell from '@/ui-kit/table/TableCell.vue';
 import AppOrganizationMergeDialog from '@/modules/organization/components/organization-merge-dialog.vue';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import Message from '@/shared/message/message';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { i18n } from '@/i18n';
+import { getSegmentName } from '../../../../utils/segments';
 
 const props = defineProps<{
+  sorting: string,
   organizations: any[]
 }>();
 
-const emit = defineEmits<{(e: 'reload'): void}>();
+const emit = defineEmits<{(e: 'reload'): void, (e: 'update:sorting', value: string): void}>();
+
+const sort = computed<string>({
+  get() {
+    return props.sorting;
+  },
+  set(val: string) {
+    emit('update:sorting', val);
+  },
+});
 
 const isMergeDialogOpen = ref<any>(null);
 

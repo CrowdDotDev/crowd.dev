@@ -6,10 +6,13 @@
       :config="organizationFilters"
       :search-config="organizationSearchFilter"
       :saved-views-config="commonOrganizationSavedViews"
+      hash="organizations"
       @fetch="fetch($event)"
     />
     <app-organization-common-list-table
+      v-model:sorting="sorting"
       :organizations="organizations"
+      @update:sorting="getOrganizations"
       @reload="getOrganizations()"
     >
       <template #pagination>
@@ -32,7 +35,6 @@ import CrFilter from '@/shared/modules/filters/components/Filter.vue';
 import { organizationFilters, organizationSearchFilter } from '@/modules/organization/config/filters/main';
 import { commonOrganizationSavedViews } from '@/modules/organization/config/saved-views/main';
 import { FilterQuery } from '@/shared/modules/filters/types/FilterQuery';
-import allOrganizations from '@/modules/organization/config/saved-views/views/all-organizations';
 import AppOrganizationCommonListTable from '@/modules/organization/components/list/organization-common-list-table.vue';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import { Pagination } from '@/shared/types/Pagination';
@@ -42,7 +44,7 @@ import AppPagination from '@/shared/pagination/pagination.vue';
 const loading = ref(true);
 
 const filters = ref({
-  ...allOrganizations.config,
+  ...commonOrganizationSavedViews.defaultView.config,
 });
 
 const savedBody = ref({});
@@ -52,6 +54,8 @@ const pagination = ref({
   perPage: 100,
 });
 
+const sorting = ref('activityCount_DESC');
+
 const organizations = ref<any[]>([]);
 const totalOrganizations = ref<number>(0);
 
@@ -60,7 +64,10 @@ const getOrganizations = (body?: any) => {
     ...savedBody.value,
     ...body,
   };
-  OrganizationService.query(savedBody.value)
+  OrganizationService.query({
+    ...savedBody.value,
+    orderBy: sorting.value,
+  })
     .then((data: Pagination<Organization>) => {
       organizations.value = data.rows;
       totalOrganizations.value = data.count;
@@ -75,7 +82,7 @@ const getOrganizations = (body?: any) => {
 };
 
 const fetch = ({
-  filter, orderBy, body,
+  filter, body,
 }: FilterQuery) => {
   if (!loading.value) {
     loading.value = true;
@@ -90,7 +97,6 @@ const fetch = ({
     filter,
     offset: 0,
     limit: pagination.value.perPage,
-    orderBy,
     distinct: true,
   });
 };
