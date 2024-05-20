@@ -83,7 +83,7 @@ export class OrganizationSyncService {
     }
   }
 
-  public async cleanupOrganizationIndex(tenantId: string): Promise<void> {
+  public async cleanupOrganizationIndex(tenantId: string, batchSize = 300): Promise<void> {
     this.log.warn({ tenantId }, 'Cleaning up organization index!')
 
     const query = {
@@ -112,6 +112,7 @@ export class OrganizationSyncService {
     )) as ISearchHit<{ date_createdAt: string; uuid_organizationId: string }>[]
 
     let processed = 0
+    const idsToRemove: string[] = []
 
     while (results.length > 0) {
       // check every organization if they exists in the database and if not remove them from the index
@@ -124,9 +125,13 @@ export class OrganizationSyncService {
         .filter((r) => !dbIds.includes(r._source.uuid_organizationId))
         .map((r) => r._id)
 
-      if (toRemove.length > 0) {
-        this.log.warn({ tenantId, toRemove }, 'Removing organizations from index!')
-        await this.openSearchService.bulkRemoveFromIndex(toRemove, OpenSearchIndex.ORGANIZATIONS)
+      idsToRemove.push(...toRemove)
+
+      // Process bulk removals in chunks
+      while (idsToRemove.length >= batchSize) {
+        const batch = idsToRemove.splice(0, batchSize)
+        this.log.warn({ tenantId, batch }, 'Removing organizations from index!')
+        await this.openSearchService.bulkRemoveFromIndex(batch, OpenSearchIndex.ORGANIZATIONS)
       }
 
       processed += results.length
@@ -143,6 +148,12 @@ export class OrganizationSyncService {
         lastCreatedAt,
         include,
       )) as ISearchHit<{ date_createdAt: string; uuid_organizationId: string }>[]
+    }
+
+    // Remove any remaining IDs that were not processed
+    if (idsToRemove.length > 0) {
+      this.log.warn({ tenantId, idsToRemove }, 'Removing remaining organizations from index!')
+      await this.openSearchService.bulkRemoveFromIndex(idsToRemove, OpenSearchIndex.ORGANIZATIONS)
     }
 
     this.log.warn(
