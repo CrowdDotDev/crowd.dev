@@ -1,8 +1,6 @@
 import { IDbOrganizationSyncData } from '../repo/organization.data'
 import { OrganizationRepository } from '../repo/organization.repo'
-import { IDbSegmentInfo } from '../repo/segment.data'
 import { SegmentRepository } from '../repo/segment.repo'
-import { distinct } from '@crowd/common'
 import { DbStore } from '@crowd/database'
 import { Logger, getChildLogger, logExecutionTime, logExecutionTimeV2 } from '@crowd/logging'
 import { OpenSearchIndex } from '@crowd/types'
@@ -12,8 +10,12 @@ import { IOrganizationSyncResult } from './organization.sync.data'
 import { IServiceConfig } from '@crowd/types'
 import { IndexingRepository } from '../repo/indexing.repo'
 import { IndexedEntityType } from '../repo/indexing.data'
-import { getOrgAggregates } from '@crowd/data-access-layer/src/activities'
 import {
+  IOrganizationSegmentAggregates,
+  getOrgAggregates,
+} from '@crowd/data-access-layer/src/activities'
+import {
+  IOrganizationAggregateData,
   cleanupForOganization,
   insertOrganizationSegments,
 } from '@crowd/data-access-layer/src/org_segments'
@@ -287,14 +289,11 @@ export class OrganizationSyncService {
    * @param organizationIds organizationIds to be synced to opensearch
    * @returns
    */
-  public async syncOrganizations(
-    organizationIds: string[],
-    segmentIds?: string[],
-  ): Promise<IOrganizationSyncResult> {
+  public async syncOrganizations(organizationIds: string[]): Promise<IOrganizationSyncResult> {
     const syncOrgAggregates = async (organizationIds) => {
       let documentsIndexed = 0
       for (const organizationId of organizationIds) {
-        let orgData
+        let orgData: IOrganizationSegmentAggregates[]
         try {
           const qx = repoQx(this.orgRepo)
           orgData = await logExecutionTimeV2(
@@ -318,7 +317,7 @@ export class OrganizationSyncService {
                 'cleanupForOganization',
               )
               await logExecutionTimeV2(
-                () => insertOrganizationSegments(qx, orgData),
+                () => insertOrganizationSegments(qx, orgData as IOrganizationAggregateData[]),
                 this.log,
                 'insertOrganizationSegments',
               )
@@ -356,101 +355,6 @@ export class OrganizationSyncService {
     await syncOrgsToOpensearchForMergeSuggestions(organizationIds)
 
     return syncResults
-  }
-
-  private static aggregateData(
-    segmentOrganizationss: IDbOrganizationSyncData[],
-    segmentInfos: IDbSegmentInfo[],
-    parentId?: string,
-    grandParentId?: string,
-  ): IDbOrganizationSyncData | undefined {
-    if (!parentId && !grandParentId) {
-      throw new Error('Either parentId or grandParentId must be provided!')
-    }
-
-    const relevantSubchildIds: string[] = []
-    for (const si of segmentInfos) {
-      if (parentId && si.parentId === parentId) {
-        relevantSubchildIds.push(si.id)
-      } else if (grandParentId && si.grandParentId === grandParentId) {
-        relevantSubchildIds.push(si.id)
-      }
-    }
-
-    const organizations = segmentOrganizationss.filter((m) =>
-      relevantSubchildIds.includes(m.segmentId),
-    )
-
-    if (organizations.length === 0) {
-      throw new Error('No organizations found for given parent or grandParent segment id!')
-    }
-
-    // aggregate data
-    const organization = { ...organizations[0] }
-
-    // use corrent id as segmentId
-    if (parentId) {
-      organization.segmentId = parentId
-    } else {
-      organization.segmentId = grandParentId
-    }
-
-    // reset aggregates
-    organization.joinedAt = undefined
-    organization.lastActive = undefined
-    organization.activeOn = []
-    organization.activityCount = 0
-    organization.memberCount = 0
-    organization.identities = []
-
-    for (const org of organizations) {
-      if (!organization.joinedAt) {
-        organization.joinedAt = org.joinedAt
-      } else if (org.joinedAt) {
-        const d1 = new Date(organization.joinedAt)
-        const d2 = new Date(org.joinedAt)
-
-        if (d1 > d2) {
-          organization.joinedAt = org.joinedAt
-        }
-      }
-
-      if (!organization.lastActive) {
-        organization.lastActive = org.lastActive
-      } else if (org.lastActive) {
-        const d1 = new Date(organization.lastActive)
-        const d2 = new Date(org.lastActive)
-
-        if (d1 < d2) {
-          organization.lastActive = org.lastActive
-        }
-      }
-
-      organization.activeOn.push(...org.activeOn)
-      organization.activityCount += org.activityCount
-      // organization.memberCount += org.memberCount
-      organization.identities.push(...org.identities)
-    }
-
-    // gather only uniques
-    organization.activeOn = distinct(organization.activeOn)
-    organization.identities = organization.identities.reduce((acc, identity) => {
-      if (
-        !acc.find(
-          (i) =>
-            i.platform === identity.platform &&
-            i.type === identity.type &&
-            i.value === identity.value &&
-            i.verified === identity.verified,
-        )
-      ) {
-        acc.push(identity)
-      }
-      return acc
-    }, [])
-    organization.memberCount = distinct(organization.memberIds).length
-
-    return organization
   }
 
   public static prefixData(data: IDbOrganizationSyncData): any {
