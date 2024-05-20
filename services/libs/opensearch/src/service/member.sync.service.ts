@@ -139,7 +139,7 @@ export class MemberSyncService {
       // Process bulk removals in chunks
       while (idsToRemove.length >= batchSize) {
         const batch = idsToRemove.splice(0, batchSize)
-        this.log.warn({ tenantId, batch }, 'Removing organizations from index!')
+        this.log.warn({ tenantId, batch }, 'Removing members from index!')
         await this.openSearchService.bulkRemoveFromIndex(batch, OpenSearchIndex.MEMBERS)
       }
 
@@ -161,7 +161,7 @@ export class MemberSyncService {
 
     // Remove any remaining IDs that were not processed
     if (idsToRemove.length > 0) {
-      this.log.warn({ tenantId, idsToRemove }, 'Removing remaining organizations from index!')
+      this.log.warn({ tenantId, idsToRemove }, 'Removing remaining members from index!')
       await this.openSearchService.bulkRemoveFromIndex(idsToRemove, OpenSearchIndex.MEMBERS)
     }
 
