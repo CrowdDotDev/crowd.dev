@@ -1,15 +1,7 @@
-import { EDITION, singleOrDefault } from '@crowd/common'
+import { singleOrDefault } from '@crowd/common'
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
-import { Edition, TenantPlans } from '@crowd/types'
-import {
-  ENRICHMENT_PLATFORM_PRIORITY,
-  IEnrichableOrganizationCache,
-  IOrganizationCacheData,
-  IOrganizationData,
-  IOrganizationIdentity,
-  IPremiumTenantInfo,
-} from './types'
+import { IOrganizationData, IOrganizationIdentity } from './types'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -18,144 +10,85 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     super(dbStore, parentLog)
   }
 
-  async getPremiumTenants(): Promise<IPremiumTenantInfo[]> {
-    return await this.db().any(
-      `
-      select  t.id,
-              t.plan,
-              json_agg(
-                      json_build_object(
-                              'lastEnrichedAt', oc."lastEnrichedAt",
-                              'organizationCacheId', oc.id,
-                              'organizationId', sub."organizationId"
-                      )
-              )                           as "orgData"
-        from tenants t
-                inner join (select o."tenantId",
-                                    o.id                                                                            as "organizationId",
-                                    ocl."organizationCacheId",
-                                    row_number() over (partition by o."tenantId" order by oc."lastEnrichedAt" desc) as rn
-                            from organizations o
-                                      inner join "organizationCacheLinks" ocl on ocl."organizationId" = o.id
-                                      inner join "organizationCaches" oc on ocl."organizationCacheId" = oc.id
-                            where o."deletedAt" is null
-                              and oc."deletedAt" is null
-                              and oc."lastEnrichedAt" is not null
-                              and (o."lastEnrichedAt" is null or o."lastEnrichedAt" < oc."lastEnrichedAt")) sub
-                            on sub."tenantId" = t.id and sub.rn <= 100
-                inner join "organizationCaches" oc on sub."organizationCacheId" = oc.id
-        where t.plan in ($(plans:csv))
-        group by t.id, t.plan;
-      `,
-      {
-        plans: [TenantPlans.Enterprise, TenantPlans.Growth, TenantPlans.Scale],
-      },
-    )
-  }
+  // async getPremiumTenants(): Promise<IPremiumTenantInfo[]> {
+  //   // TODO uros
+  //   return await this.db().any(
+  //     `
+  //     select  t.id,
+  //             t.plan,
+  //             json_agg(
+  //                     json_build_object(
+  //                             'lastEnrichedAt', oc."lastEnrichedAt",
+  //                             'organizationCacheId', oc.id,
+  //                             'organizationId', sub."organizationId"
+  //                     )
+  //             )                           as "orgData"
+  //       from tenants t
+  //               inner join (select o."tenantId",
+  //                                   o.id                                                                            as "organizationId",
+  //                                   ocl."organizationCacheId",
+  //                                   row_number() over (partition by o."tenantId" order by oc."lastEnrichedAt" desc) as rn
+  //                           from organizations o
+  //                                     inner join "organizationCacheLinks" ocl on ocl."organizationId" = o.id
+  //                                     inner join "organizationCaches" oc on ocl."organizationCacheId" = oc.id
+  //                           where o."deletedAt" is null
+  //                             and oc."deletedAt" is null
+  //                             and oc."lastEnrichedAt" is not null
+  //                             and (o."lastEnrichedAt" is null or o."lastEnrichedAt" < oc."lastEnrichedAt")) sub
+  //                           on sub."tenantId" = t.id and sub.rn <= 100
+  //               inner join "organizationCaches" oc on sub."organizationCacheId" = oc.id
+  //       where t.plan in ($(plans:csv))
+  //       group by t.id, t.plan;
+  //     `,
+  //     {
+  //       plans: [TenantPlans.Enterprise, TenantPlans.Growth, TenantPlans.Scale],
+  //     },
+  //   )
+  // }
 
-  public async getOrganizationCachesToEnrich(
-    perPage: number,
-    page: number,
-  ): Promise<IEnrichableOrganizationCache[]> {
-    const conditions: string[] = [
-      `(oc."lastEnrichedAt" is null or oc."lastEnrichedAt" < now() - interval '3 months')`,
-      ENRICHMENT_PLATFORM_PRIORITY.map((p) => `(oc.${p} -> 'handle') is not null`).join(' or '),
-    ]
+  // public async getOrganizationCachesToEnrich(
+  //   perPage: number,
+  //   page: number,
+  // ): Promise<IEnrichableOrganizationCache[]> {
+  //   // TODO uros
+  //   const conditions: string[] = [
+  //     `(oc."lastEnrichedAt" is null or oc."lastEnrichedAt" < now() - interval '3 months')`,
+  //     ENRICHMENT_PLATFORM_PRIORITY.map((p) => `(oc.${p} -> 'handle') is not null`).join(' or '),
+  //   ]
 
-    if (EDITION === Edition.LFX) {
-      conditions.push('ad."activityCount" >= 3')
-    } else {
-      conditions.push(`ad."lastActive" > now() - interval '1 year'`)
+  //   if (EDITION === Edition.LFX) {
+  //     conditions.push('ad."activityCount" >= 3')
+  //   } else {
+  //     conditions.push(`ad."lastActive" > now() - interval '1 year'`)
 
-      // this is guaranteed for now by the inner join just leaving it here for future reference
-      // conditions.push(`ad."activityCount" >= 1`)
-    }
+  //     // this is guaranteed for now by the inner join just leaving it here for future reference
+  //     // conditions.push(`ad."activityCount" >= 1`)
+  //   }
 
-    const query = `
-    with activity_data as (select "organizationId",
-                                  count(id)      as "activityCount",
-                                  max(timestamp) as "lastActive"
-                          from activities
-                          where "deletedAt" is null
-                          group by "organizationId")
-    select oc.id, json_agg(json_build_object('id', t.id, 'plan', t.plan, 'name', t.name)) as tenants
-    from "organizationCaches" oc
-            inner join "organizationCacheLinks" ocl on oc.id = ocl."organizationCacheId"
-            inner join organizations o on ocl."organizationId" = o.id and o."deletedAt" is null
-            inner join activity_data ad on ad."organizationId" = o.id and ad."activityCount" >= 3
-            inner join tenants t on t.id = o."tenantId" and t.plan in ($(plans:csv))
-    where ${conditions.join(' and ')}
-    group by oc.id, ad."activityCount"
-    order by ad."activityCount" desc
-    limit ${perPage} offset ${(page - 1) * perPage};
-    `
+  //   const query = `
+  //   with activity_data as (select "organizationId",
+  //                                 count(id)      as "activityCount",
+  //                                 max(timestamp) as "lastActive"
+  //                         from activities
+  //                         where "deletedAt" is null
+  //                         group by "organizationId")
+  //   select oc.id, json_agg(json_build_object('id', t.id, 'plan', t.plan, 'name', t.name)) as tenants
+  //   from "organizationCaches" oc
+  //           inner join "organizationCacheLinks" ocl on oc.id = ocl."organizationCacheId"
+  //           inner join organizations o on ocl."organizationId" = o.id and o."deletedAt" is null
+  //           inner join activity_data ad on ad."organizationId" = o.id and ad."activityCount" >= 3
+  //           inner join tenants t on t.id = o."tenantId" and t.plan in ($(plans:csv))
+  //   where ${conditions.join(' and ')}
+  //   group by oc.id, ad."activityCount"
+  //   order by ad."activityCount" desc
+  //   limit ${perPage} offset ${(page - 1) * perPage};
+  //   `
 
-    const results = await this.db().any(query, {
-      plans: [TenantPlans.Enterprise, TenantPlans.Growth, TenantPlans.Scale],
-    })
-    return results
-  }
-
-  public async getOrganizationCacheData(cacheId: string): Promise<IOrganizationCacheData | null> {
-    return await this.db().oneOrNone(
-      `
-    with identities as (select  oi.id,
-                                json_agg(json_build_object(
-                                        'name', oi.name,
-                                        'website', oi.website
-                                          )) as identities
-                          from "organizationCacheIdentities" oi
-                          where oi.id = $(cacheId)
-                          group by oi.id)
-      select oc.id,
-            oc.description,
-            oc.emails,
-            oc."phoneNumbers",
-            oc.logo,
-            oc.tags,
-            oc.twitter,
-            oc.linkedin,
-            oc.crunchbase,
-            oc.employees,
-            oc."revenueRange",
-            oc.location,
-            oc.github,
-            oc."employeeCountByCountry",
-            oc.type,
-            oc."geoLocation",
-            oc.size,
-            oc.ticker,
-            oc.headline,
-            oc.profiles,
-            oc.naics,
-            oc.address,
-            oc.industry,
-            oc."affiliatedProfiles",
-            oc."allSubsidiaries",
-            oc."alternativeDomains",
-            oc."alternativeNames",
-            oc."averageEmployeeTenure",
-            oc."averageTenureByLevel",
-            oc."averageTenureByRole",
-            oc."directSubsidiaries",
-            oc."employeeChurnRate",
-            oc."employeeCountByMonth",
-            oc."employeeGrowthRate",
-            oc."employeeCountByMonthByLevel",
-            oc."employeeCountByMonthByRole",
-            oc."ultimateParent",
-            oc."immediateParent",
-            i.identities
-      from "organizationCaches" oc
-              inner join identities i on oc.id = i.id
-      where oc.id = $(cacheId)
-        and oc."deletedAt" is null;
-    `,
-      {
-        cacheId,
-      },
-    )
-  }
+  //   const results = await this.db().any(query, {
+  //     plans: [TenantPlans.Enterprise, TenantPlans.Growth, TenantPlans.Scale],
+  //   })
+  //   return results
+  // }
 
   public async getOrganizationData(organizationId: string): Promise<IOrganizationData | null> {
     return await this.db().oneOrNone(
@@ -236,19 +169,6 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
       `,
       {
         organizationId,
-      },
-    )
-  }
-
-  public async markOrganizationCacheEnriched(cacheId: string): Promise<void> {
-    await this.db().none(
-      `
-      update "organizationCaches"
-      set "lastEnrichedAt" = now()
-      where id = $(cacheId)
-      `,
-      {
-        cacheId,
       },
     )
   }
@@ -488,81 +408,82 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     }
   }
 
-  public async updateOrganizationCacheWithEnrichedData(
-    originalData: IOrganizationCacheData,
-    enrichedData: any,
-  ): Promise<void> {
-    this.ensureTransactional()
+  // public async updateOrganizationCacheWithEnrichedData(
+  //   originalData: IOrganizationCacheData,
+  //   enrichedData: any,
+  // ): Promise<void> {
+  //   // TODO uros
+  //   this.ensureTransactional()
 
-    const toUpdate: Record<string, unknown> = {}
+  //   const toUpdate: Record<string, unknown> = {}
 
-    const name = enrichedData.displayName
+  //   const name = enrichedData.displayName
 
-    if (name && originalData.identities.find((i) => i.name === name.trim()) === undefined) {
-      await this.db().none(
-        `insert into "organizationCacheIdentities"(id, name) values($(id), $(name))`,
-        {
-          id: originalData.id,
-          name: name.trim(),
-        },
-      )
-    }
+  //   if (name && originalData.identities.find((i) => i.name === name.trim()) === undefined) {
+  //     await this.db().none(
+  //       `insert into "organizationCacheIdentities"(id, name) values($(id), $(name))`,
+  //       {
+  //         id: originalData.id,
+  //         name: name.trim(),
+  //       },
+  //     )
+  //   }
 
-    for (const field of OrganizationRepository.ENRICHABLE_ORGANIZATION_FIELDS) {
-      if (field in enrichedData) {
-        const enrichedValue = enrichedData[field]
+  //   for (const field of OrganizationRepository.ENRICHABLE_ORGANIZATION_FIELDS) {
+  //     if (field in enrichedData) {
+  //       const enrichedValue = enrichedData[field]
 
-        // ignore null/undefined/empty string values
-        if (
-          enrichedValue === null ||
-          enrichedValue === undefined ||
-          (typeof enrichedValue === 'string' && enrichedValue.trim() === '')
-        ) {
-          continue
-        }
+  //       // ignore null/undefined/empty string values
+  //       if (
+  //         enrichedValue === null ||
+  //         enrichedValue === undefined ||
+  //         (typeof enrichedValue === 'string' && enrichedValue.trim() === '')
+  //       ) {
+  //         continue
+  //       }
 
-        const existingValue = originalData[field]
+  //       const existingValue = originalData[field]
 
-        if (typeof enrichedValue === 'object') {
-          // compare stringified objects
-          if (JSON.stringify(enrichedValue) === JSON.stringify(existingValue)) {
-            continue
-          }
-        } else if (enrichedValue === existingValue) {
-          continue
-        }
+  //       if (typeof enrichedValue === 'object') {
+  //         // compare stringified objects
+  //         if (JSON.stringify(enrichedValue) === JSON.stringify(existingValue)) {
+  //           continue
+  //         }
+  //       } else if (enrichedValue === existingValue) {
+  //         continue
+  //       }
 
-        toUpdate[field] = enrichedValue
-      }
-    }
+  //       toUpdate[field] = enrichedValue
+  //     }
+  //   }
 
-    const keysToUpdate = Object.keys(toUpdate).filter((k) => !['website'].includes(k))
-    if (keysToUpdate.length > 0) {
-      this.log.debug(
-        { organizationId: originalData.id },
-        `Updating organization cache with enriched data! With ${keysToUpdate.length} fields`,
-      )
+  //   const keysToUpdate = Object.keys(toUpdate).filter((k) => !['website'].includes(k))
+  //   if (keysToUpdate.length > 0) {
+  //     this.log.debug(
+  //       { organizationId: originalData.id },
+  //       `Updating organization cache with enriched data! With ${keysToUpdate.length} fields`,
+  //     )
 
-      if (toUpdate.naics) {
-        toUpdate.naics = JSON.stringify(toUpdate.naics)
-      }
+  //     if (toUpdate.naics) {
+  //       toUpdate.naics = JSON.stringify(toUpdate.naics)
+  //     }
 
-      // set lastEnrichedAt to now
-      keysToUpdate.push('lastEnrichedAt')
-      toUpdate.lastEnrichedAt = new Date()
+  //     // set lastEnrichedAt to now
+  //     keysToUpdate.push('lastEnrichedAt')
+  //     toUpdate.lastEnrichedAt = new Date()
 
-      const query = this.dbInstance.helpers.update(toUpdate, keysToUpdate, 'organizationCaches')
+  //     const query = this.dbInstance.helpers.update(toUpdate, keysToUpdate, 'organizationCaches')
 
-      const result = await this.db().result(`${query} where id = $(id)`, {
-        ...toUpdate,
-        id: originalData.id,
-      })
+  //     const result = await this.db().result(`${query} where id = $(id)`, {
+  //       ...toUpdate,
+  //       id: originalData.id,
+  //     })
 
-      this.checkUpdateRowCount(result.rowCount, 1)
-    } else {
-      await this.markOrganizationCacheEnriched(originalData.id)
-    }
-  }
+  //     this.checkUpdateRowCount(result.rowCount, 1)
+  //   } else {
+  //     await this.markOrganizationCacheEnriched(originalData.id)
+  //   }
+  // }
 
   public async anyOtherOrganizationWithTheSameWebsite(
     organizationId: string,
@@ -588,44 +509,45 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     return false
   }
 
-  public async generateMergeSuggestions(
-    organizationId: string,
-    tenantId: string,
-    website: string,
-  ): Promise<void> {
-    await this.db().none(
-      `
-      insert into "organizationToMerge"("organizationId", "toMergeId", "similarity", "createdAt", "updatedAt")
-      -- find all organization caches that have this website
-      with applicable_organization_caches as (select distinct id
-                                              from "organizationCacheIdentities"
-                                              where website = $(website)),
-      -- then find all organizations that are connected to that cache
-      -- and are in the correct tenant and are not the same as the organization we are enriching
-          applicable_organizations as (select o.id
-                                        from "organizationCacheLinks" ocl
-                                                inner join applicable_organization_caches aoc on ocl."organizationCacheId" = aoc.id
-                                                inner join organizations o on ocl."organizationId" = o.id
-                                        where o."tenantId" = $(tenantId)
-                                          and o.id <> $(organizationId))
-      -- then again filter out the ones that are already in the toMerge and noMerge tables
-      -- and insert the rest into the toMerge table
-      select $(organizationId), ao.id, 0.9, now(), now()
-      from applicable_organizations ao
-              left join "organizationNoMerge" anm
-                        on anm."organizationId" = $(organizationId) and anm."noMergeId" = ao.id
-              left join "organizationToMerge" atm
-                        on atm."organizationId" = $(organizationId) and atm."toMergeId" = ao.id
-      where anm."noMergeId" is null
-        and atm."toMergeId" is null
-      -- just in case add this
-      on conflict do nothing;
-      `,
-      {
-        organizationId,
-        tenantId,
-        website,
-      },
-    )
-  }
+  // public async generateMergeSuggestions(
+  //   organizationId: string,
+  //   tenantId: string,
+  //   website: string,
+  // ): Promise<void> {
+  //   // TODO uros
+  //   await this.db().none(
+  //     `
+  //     insert into "organizationToMerge"("organizationId", "toMergeId", "similarity", "createdAt", "updatedAt")
+  //     -- find all organization caches that have this website
+  //     with applicable_organization_caches as (select distinct id
+  //                                             from "organizationCacheIdentities"
+  //                                             where website = $(website)),
+  //     -- then find all organizations that are connected to that cache
+  //     -- and are in the correct tenant and are not the same as the organization we are enriching
+  //         applicable_organizations as (select o.id
+  //                                       from "organizationCacheLinks" ocl
+  //                                               inner join applicable_organization_caches aoc on ocl."organizationCacheId" = aoc.id
+  //                                               inner join organizations o on ocl."organizationId" = o.id
+  //                                       where o."tenantId" = $(tenantId)
+  //                                         and o.id <> $(organizationId))
+  //     -- then again filter out the ones that are already in the toMerge and noMerge tables
+  //     -- and insert the rest into the toMerge table
+  //     select $(organizationId), ao.id, 0.9, now(), now()
+  //     from applicable_organizations ao
+  //             left join "organizationNoMerge" anm
+  //                       on anm."organizationId" = $(organizationId) and anm."noMergeId" = ao.id
+  //             left join "organizationToMerge" atm
+  //                       on atm."organizationId" = $(organizationId) and atm."toMergeId" = ao.id
+  //     where anm."noMergeId" is null
+  //       and atm."toMergeId" is null
+  //     -- just in case add this
+  //     on conflict do nothing;
+  //     `,
+  //     {
+  //       organizationId,
+  //       tenantId,
+  //       website,
+  //     },
+  //   )
+  // }
 }

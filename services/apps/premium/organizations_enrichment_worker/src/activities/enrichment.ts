@@ -3,36 +3,15 @@ import { Logger, getChildLogger } from '@crowd/logging'
 import { Edition, IEnrichableOrganization, PlatformType } from '@crowd/types'
 import { svc } from '../main'
 import { OrganizationRepository } from '@crowd/data-access-layer/src/old/apps/premium/organization_enrichment_worker/organization.repo'
-import {
-  ENRICHMENT_PLATFORM_PRIORITY,
-  IEnrichableOrganizationCache,
-} from '@crowd/data-access-layer/src/old/apps/premium/organization_enrichment_worker/types'
+import { ENRICHMENT_PLATFORM_PRIORITY } from '@crowd/data-access-layer/src/old/apps/premium/organization_enrichment_worker/types'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-export const MAX_ENRICHED_ORGANIZATION_CACHES_PER_EXECUTION =
+export const MAX_ENRICHED_ORGANIZATIONS_PER_EXECUTION =
   IS_DEV_ENV || IS_TEST_ENV ? 10 : EDITION === Edition.LFX ? 500 : 100
 
-export async function getMaxEnrichedOrganizationCachesPerExecution(): Promise<number> {
-  return MAX_ENRICHED_ORGANIZATION_CACHES_PER_EXECUTION
-}
-
-export async function getOrganizationCachesToEnrich(
-  perPage: number,
-  page: number,
-): Promise<IEnrichableOrganizationCache[]> {
-  const log = getChildLogger(getOrganizationCachesToEnrich.name, svc.log, {
-    perPage,
-    page,
-  })
-
-  const repo = new OrganizationRepository(svc.postgres.reader, log)
-
-  const caches = await repo.getOrganizationCachesToEnrich(perPage, page)
-
-  log.info({ nrCaches: caches.length }, 'Fetched organization caches to enrich!')
-
-  return caches
+export async function getMaxEnrichedOrganizationsPerExecution(): Promise<number> {
+  return MAX_ENRICHED_ORGANIZATIONS_PER_EXECUTION
 }
 
 /**
@@ -41,9 +20,9 @@ export async function getOrganizationCachesToEnrich(
  * @param cacheId
  * @returns true if organization was enriched, false otherwise
  */
-export async function tryEnrichOrganizationCache(cacheId: string): Promise<boolean> {
-  const log = getChildLogger(tryEnrichOrganizationCache.name, svc.log, {
-    cacheId,
+export async function tryEnrichOrganization(organizationId: string): Promise<boolean> {
+  const log = getChildLogger(tryEnrichOrganization.name, svc.log, {
+    organizationId,
   })
 
   log.debug('Trying to enrich an organization cache!')

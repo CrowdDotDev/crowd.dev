@@ -6,7 +6,7 @@ export const ENRICHMENT_PLATFORM_PRIORITY = [
   PlatformType.TWITTER,
 ]
 
-export interface IEnrichableOrganizationCache {
+export interface IEnrichableOrganization {
   id: string
   tenants: {
     id: string
@@ -34,7 +34,7 @@ export interface IOrganizationSocialData {
   url?: string
 }
 
-export interface IOrganizationCacheData {
+export interface IOrganizationData {
   id: string
   description: string | null
   emails: string[] | null

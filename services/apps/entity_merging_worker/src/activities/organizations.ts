@@ -3,7 +3,6 @@ import { svc } from '../main'
 import { ApiWebsocketMessage, TemporalWorkflowId } from '@crowd/types'
 import {
   deleteOrganizationById,
-  deleteOrganizationCacheLinks,
   deleteOrganizationSegments,
   findOrganizationCacheIdFromIdentities,
   findOrganizationIdentities,
@@ -18,7 +17,6 @@ import {
 import { WorkflowIdReusePolicy } from '@temporalio/workflow'
 
 export async function deleteOrganization(organizationId: string): Promise<void> {
-  await deleteOrganizationCacheLinks(svc.postgres.writer, organizationId)
   await deleteOrganizationSegments(svc.postgres.writer, organizationId)
   await deleteOrganizationById(svc.postgres.writer, organizationId)
 }
