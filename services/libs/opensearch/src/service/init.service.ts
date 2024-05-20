@@ -132,6 +132,13 @@ export class InitService {
       grossAdditionsByMonth: { '2022-05': 7, '2022-06': 6, '2022-07': 1, '2022-08': 1 },
       grossDeparturesByMonth: { '2022-06': 2, '2022-07': 1, '2022-08': 2, '2022-09': 2 },
       directSubsidiaries: ['Fake direct subsidiary 1', 'Fake direct subsidiary 2'],
+
+      memberIds: [InitService.FAKE_MEMBER_ID],
+      joinedAt: new Date().toISOString(),
+      lastActive: new Date().toISOString(),
+      activeOn: ['devto'],
+      activityCount: 10,
+      memberCount: 10,
     }
 
     const prepared = OrganizationSyncService.prefixData(fakeOrg)

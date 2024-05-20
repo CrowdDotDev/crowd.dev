@@ -62,7 +62,6 @@ export interface IDbOrganizationSyncData {
   activityCount: number
   memberCount: number
   identities: IOrganizationIdentity[]
-  memberIds?: string[]
 }
 
 export interface IOrganizationSegmentMatrixItem {

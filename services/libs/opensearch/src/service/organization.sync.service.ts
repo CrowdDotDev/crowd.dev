@@ -291,52 +291,71 @@ export class OrganizationSyncService {
     organizationIds: string[],
     segmentIds?: string[],
   ): Promise<IOrganizationSyncResult> {
-    let documentsIndexed = 0
-    for (const organizationId of organizationIds) {
-      let orgData
-      try {
-        const qx = repoQx(this.orgRepo)
-        orgData = await logExecutionTimeV2(
-          () => getOrgAggregates(qx, organizationId),
-          this.log,
-          'getOrgAggregates',
-        )
-      } catch (e) {
-        console.error(e)
-        throw e
+    const syncOrgAggregates = async (organizationIds) => {
+      let documentsIndexed = 0
+      for (const organizationId of organizationIds) {
+        let orgData
+        try {
+          const qx = repoQx(this.orgRepo)
+          orgData = await logExecutionTimeV2(
+            () => getOrgAggregates(qx, organizationId),
+            this.log,
+            'getOrgAggregates',
+          )
+        } catch (e) {
+          console.error(e)
+          throw e
+        }
+
+        try {
+          await this.orgRepo.transactionally(
+            async (txRepo) => {
+              const qx = repoQx(txRepo)
+              console.log('qx', qx)
+              await logExecutionTimeV2(
+                () => cleanupForOganization(qx, organizationId),
+                this.log,
+                'cleanupForOganization',
+              )
+              await logExecutionTimeV2(
+                () => insertOrganizationSegments(qx, orgData),
+                this.log,
+                'insertOrganizationSegments',
+              )
+            },
+            undefined,
+            true,
+          )
+
+          documentsIndexed += orgData.length
+        } catch (e) {
+          console.error(e)
+          throw e
+        }
       }
 
-      try {
-        await this.orgRepo.transactionally(
-          async (txRepo) => {
-            const qx = repoQx(txRepo)
-            console.log('qx', qx)
-            await logExecutionTimeV2(
-              () => cleanupForOganization(qx, organizationId),
-              this.log,
-              'cleanupForOganization',
-            )
-            await logExecutionTimeV2(
-              () => insertOrganizationSegments(qx, orgData),
-              this.log,
-              'insertOrganizationSegments',
-            )
-          },
-          undefined,
-          true,
-        )
-
-        documentsIndexed += orgData.length
-      } catch (e) {
-        console.error(e)
-        throw e
+      return {
+        organizationsSynced: organizationIds.length,
+        documentsIndexed,
       }
     }
 
-    return {
-      organizationsSynced: organizationIds.length,
-      documentsIndexed,
+    const syncResults = await syncOrgAggregates(organizationIds)
+
+    const syncOrgsToOpensearchForMergeSuggestions = async (organizationIds) => {
+      for (const orgId of organizationIds) {
+        const data = await this.orgRepo.getOrganizationData(orgId)
+        if (!data) {
+          this.log.error('Organization not found in database!', { orgId, data })
+          throw new Error('Organization not found in database!')
+        }
+        const prefixed = OrganizationSyncService.prefixData(data)
+        await this.openSearchService.index(orgId, OpenSearchIndex.ORGANIZATIONS, prefixed)
+      }
     }
+    await syncOrgsToOpensearchForMergeSuggestions(organizationIds)
+
+    return syncResults
   }
 
   private static aggregateData(
@@ -383,7 +402,6 @@ export class OrganizationSyncService {
     organization.activityCount = 0
     organization.memberCount = 0
     organization.identities = []
-    organization.memberIds = []
 
     for (const org of organizations) {
       if (!organization.joinedAt) {
@@ -412,7 +430,6 @@ export class OrganizationSyncService {
       organization.activityCount += org.activityCount
       // organization.memberCount += org.memberCount
       organization.identities.push(...org.identities)
-      organization.memberIds.push(...org.memberIds)
     }
 
     // gather only uniques
@@ -436,12 +453,10 @@ export class OrganizationSyncService {
     return organization
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public static prefixData(data: IDbOrganizationSyncData): any {
     const p: Record<string, unknown> = {}
 
     p.uuid_organizationId = data.organizationId
-    p.uuid_segmentId = data.segmentId
     p.bool_grandParentSegment = data.grandParentSegment ? data.grandParentSegment : false
     p.uuid_tenantId = data.tenantId
     p.obj_address = data.address
