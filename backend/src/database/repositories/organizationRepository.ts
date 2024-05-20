@@ -2063,7 +2063,6 @@ class OrganizationRepository {
       segments = [] as string[],
       customSortFunction = undefined,
       isProfileQuery = false,
-      distinct = false,
     },
     options: IRepositoryOptions,
   ): Promise<PageData<any>> {
@@ -2150,35 +2149,11 @@ class OrganizationRepository {
       body: parsed,
     })
 
-    let translatedRows = response.body.hits.hits.map((o) =>
+    const translatedRows = response.body.hits.hits.map((o) =>
       translator.translateObjectToCrowd(o._source),
     )
 
-    if(distinct){
-      // group orgs by id to avoid duplicates and store segmentId in a segments array
-      const grouped = translatedRows.reduce((acc, org) => {
-        if (!acc[org.id]) {
-          acc[org.id] = { ...org, segments: [org.segmentId] }
-        } else {
-          acc[org.id].segments.push(org.segmentId)
-        }
-
-        // drop unnecessary fields
-        delete acc[org.id].grandParentSegment
-        delete acc[org.id].segmentId
-
-        return acc
-      }, {})
-
-      translatedRows = Object.values(grouped)
-    }
-
-    return {
-      rows: translatedRows,
-      count: countResponse.body.count,
-      limit,
-      offset,
-    }
+    return { rows: translatedRows, count: countResponse.body.count, limit, offset }
   }
 
   static async findAndCountActiveOpensearch(

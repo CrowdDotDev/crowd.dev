@@ -34,8 +34,15 @@
                 </template>
 
                 <div>
-                  <div v-for="segmentId of org.segments" :key="segmentId" class="text-black text-2xs">
-                    {{ getSegmentName(segmentId) }}
+                  <div class="mb-2 text-gray-400 text-2xs">
+                    Project groups
+                  </div>
+                  <div class="flex flex-wrap items-center gap-1">
+                    <div v-for="segmentId of org.segments" :key="segmentId">
+                      <el-tag type="info" size="small">
+                        {{ getSegmentName(segmentId) }}
+                      </el-tag>
+                    </div>
                   </div>
                 </div>
               </el-popover>
