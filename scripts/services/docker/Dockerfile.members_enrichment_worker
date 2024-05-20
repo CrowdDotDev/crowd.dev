@@ -1,9 +1,13 @@
 FROM node:20-alpine as builder
 
+RUN apk add --no-cache python3 make g++
+
 WORKDIR /usr/crowd/app
 RUN corepack enable
 
 COPY ./pnpm-workspace.yaml ./pnpm-lock.yaml ./
+RUN pnpm fetch
+
 COPY ./services ./services
 RUN pnpm i --frozen-lockfile
 
@@ -12,7 +16,7 @@ FROM node:20-bookworm-slim as runner
 WORKDIR /usr/crowd/app
 RUN corepack enable && apt update && apt install -y ca-certificates --no-install-recommends && rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /usr/crowd/app/node_modules ./node_modules  
+COPY --from=builder /usr/crowd/app/node_modules ./node_modules
 COPY --from=builder /usr/crowd/app/services/libs ./services/libs
 COPY --from=builder /usr/crowd/app/services/archetypes/ ./services/archetypes
 COPY --from=builder /usr/crowd/app/services/apps/premium/members_enrichment_worker/ ./services/apps/premium/members_enrichment_worker
