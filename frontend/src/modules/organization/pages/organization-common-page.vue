@@ -30,7 +30,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import CrFilter from '@/shared/modules/filters/components/Filter.vue';
 import { organizationFilters, organizationSearchFilter } from '@/modules/organization/config/filters/main';
 import { commonOrganizationSavedViews } from '@/modules/organization/config/saved-views/main';
@@ -40,6 +40,9 @@ import { OrganizationService } from '@/modules/organization/organization-service
 import { Pagination } from '@/shared/types/Pagination';
 import { Organization } from '@/modules/organization/types/Organization';
 import AppPagination from '@/shared/pagination/pagination.vue';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+
+const { listProjectGroups } = useLfSegmentsStore();
 
 const loading = ref(true);
 
@@ -112,6 +115,12 @@ const onPaginationChange = (paginationData: any) => {
     limit: pagination.value.perPage,
   });
 };
+
+onMounted(() => {
+  listProjectGroups({
+    reset: true,
+  } as any);
+});
 </script>
 
 <script lang="ts">
