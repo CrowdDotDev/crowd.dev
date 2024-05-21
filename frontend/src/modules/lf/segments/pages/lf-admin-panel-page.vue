@@ -12,11 +12,11 @@
           v-if="activeTab === 'project-groups'"
         />
       </el-tab-pane>
-      <el-tab-pane v-if="isAdminUser" label="Organizations" name="organizations">
-        <app-organization-common-page
-          v-if="activeTab === 'organizations'"
-        />
-      </el-tab-pane>
+      <!--      <el-tab-pane v-if="isAdminUser" label="Organizations" name="organizations">-->
+      <!--        <app-organization-common-page-->
+      <!--          v-if="activeTab === 'organizations'"-->
+      <!--        />-->
+      <!--      </el-tab-pane>-->
       <el-tab-pane v-if="isAdminUser" label="Automations" name="automations">
         <app-automation-list
           v-if="activeTab === 'automations'"
@@ -52,7 +52,7 @@ import { storeToRefs } from 'pinia';
 import AppLfAuditLogsPage from '@/modules/lf/segments/pages/lf-audit-logs-page.vue';
 import CrDevmode from '@/modules/lf/segments/components/dev/devmode.vue';
 import { LfRole } from '@/shared/modules/permissions/types/Roles';
-import AppOrganizationCommonPage from '@/modules/organization/pages/organization-common-page.vue';
+// import AppOrganizationCommonPage from '@/modules/organization/pages/organization-common-page.vue';
 
 const route = useRoute();
 const router = useRouter();
