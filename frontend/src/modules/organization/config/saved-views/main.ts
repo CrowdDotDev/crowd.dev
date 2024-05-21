@@ -22,3 +22,30 @@ export const organizationSavedViews: SavedViewsConfig = {
     founded: 'Founded',
   },
 };
+
+export const commonOrganizationSavedViews: SavedViewsConfig = {
+  defaultView: {
+    id: 'common-organizations',
+    name: 'Common organizations',
+    visibility: 'tenant',
+    placement: 'organization',
+    config: {
+      search: '',
+      relation: 'and',
+      order: {
+        prop: 'activityCount',
+        order: 'descending',
+      },
+      settings: {
+        hasActivities: 'true',
+      },
+    },
+  },
+  settings: {
+    hasActivities,
+  },
+  defaultFilters: {
+    render: organizationDefaultFilterRenderer,
+  },
+  sorting: {},
+};
