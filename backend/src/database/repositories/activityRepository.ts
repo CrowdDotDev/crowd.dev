@@ -1,7 +1,3 @@
-import { Error400, Error404 } from '@crowd/common'
-import { ActivityDisplayService } from '@crowd/integrations'
-import lodash from 'lodash'
-import sanitizeHtml from 'sanitize-html'
 import {
   IQueryActivitiesParameters,
   deleteActivities,
@@ -9,10 +5,16 @@ import {
   queryActivities,
   updateActivity,
 } from '@crowd/data-access-layer'
-import { IRepositoryOptions } from './IRepositoryOptions'
-import AuditLogRepository from './auditLogRepository'
-import SegmentRepository from './segmentRepository'
+import { Error400, Error404 } from '@crowd/common'
+import { ActivityDisplayService } from '@crowd/integrations'
+import sanitizeHtml from 'sanitize-html'
+import lodash from 'lodash'
+import { QueryTypes } from 'sequelize'
+import { IIntegrationResult, IntegrationResultState } from '@crowd/types'
 import SequelizeRepository from './sequelizeRepository'
+import AuditLogRepository from './auditLogRepository'
+import { IRepositoryOptions } from './IRepositoryOptions'
+import SegmentRepository from './segmentRepository'
 
 const log: boolean = false
 
@@ -249,6 +251,35 @@ class ActivityRepository {
     )
 
     return records.rows.map((record) => record.id)
+  }
+
+
+  static async createResults(result: IIntegrationResult, options: IRepositoryOptions) {
+    const tenant = SequelizeRepository.getCurrentTenant(options)
+
+    const segment = SequelizeRepository.getStrictlySingleActiveSegment(options)
+
+    const seq = SequelizeRepository.getSequelize(options)
+
+    result.segmentId = segment.id
+
+    const results = await seq.query(
+      `
+      insert into integration.results(state, data, "tenantId")
+      values(:state, :data, :tenantId)
+      returning id;
+      `,
+      {
+        replacements: {
+          tenantId: tenant.id,
+          state: IntegrationResultState.PENDING,
+          data: JSON.stringify(result),
+        },
+        type: QueryTypes.INSERT,
+      },
+    )
+
+    return results[0][0].id
   }
 
   static async _createAuditLog(action, record, data, options: IRepositoryOptions) {

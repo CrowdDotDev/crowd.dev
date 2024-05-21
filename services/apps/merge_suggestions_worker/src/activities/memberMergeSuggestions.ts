@@ -123,7 +123,7 @@ export async function getMemberMergeSuggestions(
           identitiesPartialQuery.should[1].nested.query.bool.should.push({
             bool: {
               must: [
-                { term: { [`nested_identities.keyword_name`]: identity.keyword_value } },
+                { term: { [`nested_identities.keyword_value`]: identity.keyword_value } },
                 {
                   match: {
                     [`nested_identities.string_platform`]: identity.string_platform,

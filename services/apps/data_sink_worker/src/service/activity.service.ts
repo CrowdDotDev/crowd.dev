@@ -72,6 +72,7 @@ export default class ActivityService extends LoggerBase {
           tenantId,
           activity.platform as PlatformType,
           activity.type,
+          segmentId,
         )
 
         if (activity.channel) {
@@ -231,6 +232,7 @@ export default class ActivityService extends LoggerBase {
             tenantId,
             original.platform as PlatformType,
             toUpdate.type,
+            segmentId,
           )
         }
 
@@ -469,7 +471,7 @@ export default class ActivityService extends LoggerBase {
     })
 
     try {
-      this.log.debug('Processing activity.')
+      this.log.debug({ tenantId, integrationId, platform }, 'Processing activity.')
 
       if (!activity.username && !activity.member) {
         this.log.error(
