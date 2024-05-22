@@ -15,11 +15,11 @@
 </template>
 
 <script setup lang="ts">
-import AppWidgetArea from '@/modules/widget/components/shared/widget-area.vue';
 import { chartOptions } from '@/modules/report/templates/template-chart-config';
 import { dashboardChartOptions } from '@/modules/dashboard/dashboard.chart';
 import { ResultSet } from '@cubejs-client/core';
 import { computed } from 'vue';
+import AppWidgetArea from '@/modules/widget/components/shared/widget-area.vue';
 
 const props = defineProps<{
   data: any,
