@@ -77,6 +77,9 @@ export async function getIdentitiesWithActivity(
   tenantId: string,
   identities: IMemberIdentity[],
 ): Promise<IActivityIdentity[]> {
+  if (identities.length === 0) {
+    return []
+  }
   const replacements = [memberId, tenantId]
 
   let query = `select distinct username, platform from activities a
@@ -109,7 +112,6 @@ export async function moveIdentityActivitiesToNewMember(
   let rowsUpdated
 
   do {
-    console.log('Moving 1000 activities!')
     const result = await db.connection().query(
       `
           UPDATE activities
@@ -134,10 +136,7 @@ export async function moveIdentityActivitiesToNewMember(
       },
     )
 
-    console.log(result)
-
     rowsUpdated = result.length
-    console.log('Rows updated: ', rowsUpdated)
   } while (rowsUpdated === batchSize)
 }
 
