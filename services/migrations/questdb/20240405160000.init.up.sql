@@ -38,6 +38,7 @@ CREATE TABLE 'activities' (
   member_isTeamMember BOOLEAN,
 
   gitIsMainBranch BOOLEAN,
+  gitIsIndirectFork BOOLEAN,
   gitInsertions INT,
   gitDeletions INT
 ) TIMESTAMP (timestamp) PARTITION BY DAY WAL;

@@ -28,6 +28,10 @@ export async function insertActivities(activities: IDbActivityCreateData[]): Pro
         row.booleanColumn('gitIsMainBranch', activity.attributes['isMainBranch'] as boolean)
       }
 
+      if (activity.attributes['isIndirectFork']) {
+        row.booleanColumn('gitIsIndirectFork', activity.attributes['isIndirectFork'] as boolean)
+      }
+
       if (activity.attributes['additions']) {
         row.intColumn('gitInsertions', activity.attributes['additions'] as number)
       }

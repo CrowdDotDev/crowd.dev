@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { SegmentRawData } from '@crowd/types'
+import { ActivityColumn } from './sql'
 
 export interface IQueryActivityResult {
   id: string
@@ -54,6 +55,7 @@ export interface IQueryActivitiesParameters {
   noLimit?: boolean
   offset?: number
   countOnly?: boolean
+  groupBy?: ActivityColumn
 }
 
 export interface IQueryTopActivitiesParameters {
@@ -76,8 +78,10 @@ export interface INumberOfActivitiesPerOrganization {
 
 export interface IQueryDistinctParameters {
   tenantId: string
+  segmentIds?: string[]
   after: Date
   before: Date
+  platform?: string
   limit?: number
 }
 
@@ -116,6 +120,15 @@ export interface IActiveMemberData {
   activeDaysCount: number
 }
 
+export interface IQueryNumberOfActiveMembersParameters {
+  tenantId: string
+  segmentIds?: string[]
+  timestampFrom?: string
+  timestampTo?: string
+  platform?: string
+  groupBy?: undefined | 'day'
+}
+
 export interface IQueryActiveMembersParameters {
   tenantId: string
   segmentIds: string[]
@@ -145,4 +158,13 @@ export interface IQueryActiveOrganizationsParameters {
   orderByDirection: 'asc' | 'desc'
   limit: number
   offset: number
+}
+
+export interface IQueryNumberOfActiveOrganizationsParameters {
+  tenantId: string
+  segmentIds?: string[]
+  timestampFrom?: string
+  timestampTo?: string
+  platform?: string
+  groupBy?: undefined | 'day'
 }

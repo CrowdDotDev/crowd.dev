@@ -26,6 +26,8 @@ import {
   IQueryActivitiesParameters,
   IQueryActivityResult,
   IQueryDistinctParameters,
+  IQueryNumberOfActiveOrganizationsParameters,
+  IQueryNumberOfActiveMembersParameters,
   IQueryTopActivitiesParameters,
 } from './types'
 import { ActivityDisplayService } from '@crowd/integrations'
@@ -120,6 +122,7 @@ const ACTIVITY_UPDATABLE_COLUMNS: ActivityColumn[] = [
   'member_isBot',
   'member_isTeamMember',
   'gitIsMainBranch',
+  'gitIsIndirectFork',
   'gitInsertions',
   'gitDeletions',
 ]
@@ -362,6 +365,7 @@ export type ActivityColumn =
   | 'member_isBot'
   | 'member_isTeamMember'
   | 'gitIsMainBranch'
+  | 'gitIsIndirectFork'
   | 'gitInsertions'
   | 'gitDeletions'
 
@@ -454,14 +458,14 @@ export async function queryActivities(
       case 'timestamp':
         parsedOrderBys.push({
           property: orderByParts[0],
-          column: 'a.timestamp',
+          column: 'timestamp',
           direction,
         })
         break
       case 'createdAt':
         parsedOrderBys.push({
           property: orderByParts[0],
-          column: 'a."createdAt"',
+          column: 'createdAt',
           direction,
         })
         break
@@ -491,13 +495,20 @@ export async function queryActivities(
     filterString = '1=1'
   }
 
-  const baseQuery = `
+  let baseQuery = `
     from activities a
     where 
       a."tenantId" = $(tenantId) and
       a."segmentId" in ($(segmentIds:csv)) and
       a."deletedAt" is null and ${filterString}
   `
+  if (arg.groupBy) {
+    if (arg.groupBy === 'platform') {
+      baseQuery += ' SAMPLE BY 1d ALIGN TO CALENDAR'
+    }
+
+    baseQuery += ` group by a.${arg.groupBy}`
+  }
 
   const countQuery = `
     select count_distinct(a.id) as count ${baseQuery}
@@ -506,7 +517,8 @@ export async function queryActivities(
   let activities = []
   let count: number
   if (arg.countOnly) {
-    const countResults = (await qdbConn.one(countQuery, params)).count
+    const rows = await qdbConn.query(countQuery, params)
+    const countResults = rows[0] ? rows[0].count : 0
     return {
       rows: [],
       count: countResults,
@@ -515,20 +527,23 @@ export async function queryActivities(
     }
   } else {
     const columnString = columns.map((c) => `a.${c}`).join(', ')
-    const query = `
+    let query = `
       select  ${columnString}
       ${baseQuery}
+    `
+
+    query += `
       order by ${orderByString}
       limit $(lowerLimit), $(upperLimit);
     `
 
     const [results, countResults] = await Promise.all([
       qdbConn.any(query, params),
-      qdbConn.one(countQuery, params),
+      qdbConn.query(countQuery, params),
     ])
 
     activities = results
-    count = countResults.count
+    count = countResults[0] ? countResults[0].count : 0
   }
 
   const results: any[] = []
@@ -673,7 +688,7 @@ export async function getMostActiveMembers(
   `
 
   if (arg.limit) {
-    query += ` LIMIT $(limit)`
+    query += ' LIMIT $(limit)'
   }
 
   query += ';'
@@ -849,18 +864,85 @@ export async function getActivityCountOfMemberIdentities(
 
 export async function countMembersWithActivities(
   qdbConn: DbConnOrTx,
-  segmentIds: string[],
-): Promise<{ count: number; segmentId: string }[]> {
-  return await qdbConn.any(
-    `
-      select count(id) as count, "segmentId" from activities 
-      where "deletedAt" is null and "segmentId" in ($(segmentIds:csv))
-      group by "segmentId"
-    `,
-    {
-      segmentIds,
-    },
-  )
+  arg: IQueryNumberOfActiveMembersParameters,
+): Promise<{ count: number; segmentId: string; date?: string }[]> {
+  let query = `
+    SELECT COUNT(id) AS count, "segmentId", timestamp AS date
+    FROM activities 
+    WHERE "deletedAt" IS NULL
+    AND "tenantId" = $(tenantId)
+    AND "memberId" IS NOT NULL
+  `
+
+  if (arg.segmentIds) {
+    query += ' AND "segmentId" IN ($(segmentIds:csv))'
+  }
+
+  if (arg.platform) {
+    query += ' AND platform = $(platform)'
+  }
+
+  if (arg.timestampFrom && arg.timestampTo) {
+    query += ' AND timestamp BETWEEN $(after) AND $(before)'
+  }
+
+  if (arg.groupBy === 'day') {
+    query += ' SAMPLE BY 1d ALIGN TO CALENDAR'
+  }
+
+  query += ' GROUP BY "segmentId"'
+  if (!arg.groupBy) {
+    query += ', date'
+  }
+
+  query += ' ORDER BY date DESC;'
+
+  return await qdbConn.any(query, {
+    tenantId: arg.tenantId,
+    segmentIds: arg.segmentIds,
+    after: arg.timestampFrom,
+    before: arg.timestampFrom,
+    platform: arg.platform,
+  })
+}
+
+export async function countOrganizationsWithActivities(
+  qdbConn: DbConnOrTx,
+  arg: IQueryNumberOfActiveOrganizationsParameters,
+): Promise<{ count: number; segmentId: string; date?: string }[]> {
+  let query = `
+    SELECT COUNT(id) AS count, "segmentId", timestamp AS date
+    FROM activities 
+    WHERE "deletedAt" IS NULL
+    AND "tenantId" = $(tenantId)
+    AND "organizationId" IS NOT NULL
+  `
+
+  if (arg.segmentIds) {
+    query += ' AND "segmentId" IN ($(segmentIds:csv))'
+  }
+
+  if (arg.platform) {
+    query += ' AND platform = $(platform)'
+  }
+
+  if (arg.timestampFrom && arg.timestampTo) {
+    query += ' AND timestamp BETWEEN $(after) AND $(before)'
+  }
+
+  if (arg.groupBy === 'day') {
+    query += ' SAMPLE BY 1d ALIGN TO CALENDAR'
+  }
+
+  query += ' GROUP BY "segmentId", timestamp ORDER BY date DESC;'
+
+  return await qdbConn.any(query, {
+    tenantId: arg.tenantId,
+    segmentIds: arg.segmentIds,
+    after: arg.timestampFrom,
+    before: arg.timestampFrom,
+    platform: arg.platform,
+  })
 }
 
 export async function filterMembersWithActivities(

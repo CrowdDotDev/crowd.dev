@@ -1842,7 +1842,10 @@ class MemberRepository {
   }
 
   static async countMembersPerSegment(options: IRepositoryOptions, segmentIds: string[]) {
-    const countResults = await countMembersWithActivities(options.qdb, segmentIds)
+    const countResults = await countMembersWithActivities(options.qdb, {
+      tenantId: options.currentTenant.id,
+      segmentIds,
+    })
     return countResults.reduce((acc, curr: any) => {
       acc[curr.segmentId] = parseInt(curr.totalCount, 10)
       return acc

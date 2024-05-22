@@ -387,7 +387,7 @@ export async function queryConversations(
       case 'lastActive':
         parsedOrderBys.push({
           property: orderByParts[0],
-          column: 'a."lastActive',
+          column: 'a."lastActive"',
           direction,
         })
         break
