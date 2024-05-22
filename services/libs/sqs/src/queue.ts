@@ -19,7 +19,7 @@ import {
 import { ISqsQueueConfig, SqsClient, SqsMessage, SqsQueueType } from './types'
 import { IQueueMessage, ISqsQueueEmitter } from '@crowd/types'
 import { Tracer } from '@crowd/tracing'
-
+import { performance } from 'perf_hooks'
 export abstract class SqsQueueBase extends LoggerBase {
   private readonly queueName: string
   private queueUrl: string | undefined
@@ -142,40 +142,49 @@ export abstract class SqsQueueReceiver extends SqsQueueBase {
         // first receive the message
         const messages = await this.receiveMessage()
         if (messages.length > 0) {
-          for (const message of messages) {
-            if (this.isAvailable()) {
-              this.log.trace({ messageId: message.MessageId }, 'Received message from queue!')
-              this.addJob()
-              this.processMessage(JSON.parse(message.Body), message.ReceiptHandle)
-                // when the message is processed, delete it from the queue
-                .then(async () => {
-                  this.log.trace(
-                    { messageReceiptHandle: message.ReceiptHandle },
-                    'Deleting message',
-                  )
-                  if (!this.deleteMessageImmediately) {
-                    await this.deleteMessage(message.ReceiptHandle)
-                  }
-                  this.removeJob()
-                })
-                // if error is detected don't delete the message from the queue
-                .catch((err) => {
-                  this.log.error(err, 'Error processing message!')
-                  this.removeJob()
-                })
+          while (messages.length > 0) {
+            if (!this.isAvailable()) {
+              this.log.debug('Queue is busy, waiting...')
+              await timeout(50)
+              continue
+            }
+            const now = performance.now()
 
-              if (this.deleteMessageImmediately) {
-                await this.deleteMessage(message.ReceiptHandle)
-              }
-            } else {
-              this.log.trace('Queue is busy, waiting...')
-              await timeout(100)
+            const message = messages.shift()
+            this.log.trace({ messageId: message.MessageId }, 'Received message from queue!')
+            this.addJob()
+            this.processMessage(JSON.parse(message.Body), message.ReceiptHandle)
+              // when the message is processed, delete it from the queue
+              .then(async () => {
+                this.log.trace({ messageReceiptHandle: message.ReceiptHandle }, 'Deleting message')
+                if (!this.deleteMessageImmediately) {
+                  await this.deleteMessage(message.ReceiptHandle)
+                }
+
+                const duration = performance.now() - now
+                this.log.debug(`Message processed successfully in ${duration.toFixed(2)}ms!`)
+                this.removeJob()
+              })
+              // if error is detected don't delete the message from the queue
+              .catch((err) => {
+                this.log.error(err, 'Error processing message!')
+
+                const duration = performance.now() - now
+                this.log.debug(`Message processed unsuccessfully in ${duration.toFixed(2)}ms!`)
+                this.removeJob()
+              })
+
+            if (this.deleteMessageImmediately) {
+              await this.deleteMessage(message.ReceiptHandle)
             }
           }
+        } else {
+          this.log.warn('No messages in queue, waiting...')
+          await timeout(50)
         }
       } else {
-        this.log.trace('Queue is busy, waiting...')
-        await timeout(200)
+        this.log.debug('Queue is busy, waiting before receiving messages...')
+        await timeout(50)
       }
     }
   }
@@ -187,6 +196,7 @@ export abstract class SqsQueueReceiver extends SqsQueueBase {
   protected abstract processMessage(data: IQueueMessage, receiptHandle?: string): Promise<void>
 
   private async receiveMessage(): Promise<SqsMessage[]> {
+    const now = performance.now()
     try {
       const params: ReceiveMessageRequest = {
         QueueUrl: this.getQueueUrl(),
@@ -204,6 +214,9 @@ export abstract class SqsQueueReceiver extends SqsQueueBase {
       }
 
       throw err
+    } finally {
+      const duration = performance.now() - now
+      this.log.debug(`Received messages in ${duration.toFixed(2)}ms!`)
     }
   }
 

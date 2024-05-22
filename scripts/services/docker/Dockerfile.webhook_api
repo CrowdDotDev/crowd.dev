@@ -1,9 +1,13 @@
 FROM node:20-alpine as builder
 
+RUN apk add --no-cache python3 make g++
+
 WORKDIR /usr/crowd/app
 RUN corepack enable
 
 COPY ./pnpm-workspace.yaml ./pnpm-lock.yaml ./
+RUN pnpm fetch
+
 COPY ./services ./services
 RUN pnpm i --frozen-lockfile
 

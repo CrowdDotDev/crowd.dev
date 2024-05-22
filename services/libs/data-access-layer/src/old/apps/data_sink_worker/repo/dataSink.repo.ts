@@ -27,7 +27,7 @@ export default class DataSinkRepository extends RepositoryBase<DataSinkRepositor
            t."name",
            run.onboarding
     from integration.results r
-        inner join integrations i on r."integrationId" = i.id
+        left join integrations i on r."integrationId" = i.id
         inner join tenants t on t.id = r."tenantId"
         left join integration.runs run on run.id = r."runId"
     where r.id = $(resultId)

@@ -12,7 +12,7 @@
           :src="organization.logo"
           class="max-h-8"
         >
-          <i class="ri-community-line text-lg text-gray-300 h-5" />
+          <i class="ri-community-line text-lg text-gray-300" />
         </app-avatar-image>
         <app-avatar-new-badge
           :entity="organization"
