@@ -1,4 +1,4 @@
-CREATE TABLE 'activities' (
+CREATE TABLE IF NOT EXISTS 'activities' (
   id UUID,
   type STRING,
   timestamp TIMESTAMP,
@@ -43,7 +43,7 @@ CREATE TABLE 'activities' (
   gitDeletions INT
 ) TIMESTAMP (timestamp) PARTITION BY DAY WAL;
 
-CREATE TABLE 'conversations' (
+CREATE TABLE IF NOT EXISTS 'conversations' (
   id UUID,
   title STRING,
   slug STRING,
