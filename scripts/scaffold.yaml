@@ -45,7 +45,7 @@ services:
     ports:
       - 5433:5432
     volumes:
-      - pgdata-product:/var/lib/postgresql/data
+      - pgdata-product-dev/var/lib/postgresql/data
     shm_size: 1gb
     networks:
       - crowd-bridge
@@ -183,7 +183,7 @@ networks:
 
 volumes:
   pgdata-dev:
-  pgdata-product:
+  pgdata-product-dev:
   opensearch-dev:
   s3-dev:
   redis-dev:

@@ -11,7 +11,8 @@ import {
   SequelizeQueryExecutor,
   TransactionalSequelizeQueryExecutor,
 } from '@crowd/data-access-layer/src/queryExecutor'
-import { API_CONFIG, IS_TEST_ENV, REDIS_CONFIG, TEMPORAL_CONFIG, UNLEASH_CONFIG } from '../../conf'
+import { getDbConnection } from '@crowd/data-access-layer/src/database'
+import { API_CONFIG, IS_TEST_ENV, PRODUCT_DB_CONFIG, REDIS_CONFIG, TEMPORAL_CONFIG, UNLEASH_CONFIG } from '../../conf'
 import { databaseInit } from '../databaseConnection'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import { IServiceOptions } from '../../services/IServiceOptions'
@@ -63,6 +64,7 @@ export default class SequelizeRepository {
       redis: await getRedisClient(REDIS_CONFIG, true),
       unleash,
       temporal,
+      productDb: await getDbConnection(PRODUCT_DB_CONFIG),
     }
   }
 
