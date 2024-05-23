@@ -1,5 +1,4 @@
 import { DbStore } from '@crowd/database'
-import { IOrganizationIdentity } from '@crowd/types'
 
 export async function deleteOrganizationSegments(db: DbStore, organizationId: string) {
   await db.connection().query(
@@ -61,18 +60,4 @@ export async function markOrgMergeActionsDone(
     `,
     [primaryId, secondaryId, tenantId, 'done', 'org'],
   )
-}
-
-export async function findOrganizationIdentities(
-  db: DbStore,
-  organizationId: string,
-): Promise<IOrganizationIdentity[]> {
-  const result = await db.connection().any(
-    `
-      SELECT * from "organizationIdentities"
-      WHERE "organizationId" = $1
-    `,
-    [organizationId],
-  )
-  return result as IOrganizationIdentity[]
 }

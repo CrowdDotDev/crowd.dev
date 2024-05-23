@@ -5,30 +5,33 @@ import {
   startChild,
 } from '@temporalio/workflow'
 import * as enrichmentActivities from '../activities/enrichment'
-import { enrichOrganizationCache } from '../workflows'
+import { enrichOrganization } from '../workflows'
 
 const aCtx = proxyActivities<typeof enrichmentActivities>({
   startToCloseTimeout: '75 seconds',
 })
 
-export async function triggerOrganizationCacheEnrichment(): Promise<void> {
+export async function triggerOrganizationsEnrichment(): Promise<void> {
   const perPage = 100
   let page = 1
 
-  const max = await aCtx.getMaxEnrichedOrganizationCachesPerExecution()
+  const max = await aCtx.getMaxEnrichedOrganizationsPerExecution()
   let remaining = max
 
-  // get organization caches to enrich
-  let caches = await aCtx.getOrganizationCachesToEnrich(perPage, page)
+  // get organizations to enrich
+  let orgs = await aCtx.getOrganizationsToEnrich(perPage, page)
 
-  while (caches.length > 0) {
-    for (const cache of caches) {
+  // TODO uros
+  console.log('found orgs to enrich: ', orgs.length)
+
+  while (orgs.length > 0) {
+    for (const org of orgs) {
       if (remaining > 0) {
         remaining--
 
-        // trigger organization cache enrichment
-        await startChild(enrichOrganizationCache, {
-          workflowId: 'organization-cache-enrichment/' + cache.id,
+        // trigger organization enrichment
+        await startChild(enrichOrganization, {
+          workflowId: 'organization-enrichment/' + org.organizationId,
           cancellationType: ChildWorkflowCancellationType.ABANDON,
           parentClosePolicy: ParentClosePolicy.PARENT_CLOSE_POLICY_ABANDON,
           workflowExecutionTimeout: '15 minutes',
@@ -38,7 +41,7 @@ export async function triggerOrganizationCacheEnrichment(): Promise<void> {
             initialInterval: 2 * 1000,
             maximumInterval: 30 * 1000,
           },
-          args: [cache],
+          args: [org],
         })
       } else {
         break
@@ -49,6 +52,8 @@ export async function triggerOrganizationCacheEnrichment(): Promise<void> {
       break
     }
 
-    caches = await aCtx.getOrganizationCachesToEnrich(perPage, ++page)
+    orgs = await aCtx.getOrganizationsToEnrich(perPage, ++page)
+    // TODO uros
+    console.log('found orgs to enrich: ', orgs.length)
   }
 }
