@@ -26,7 +26,7 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
-  resultSet: {
+  data: {
     type: null,
     required: true,
   },
@@ -55,119 +55,7 @@ const props = defineProps({
 const highestValue = ref(0);
 const lowestValue = ref(0);
 const dataset = ref({});
-const loading = computed(
-  () => !props.resultSet?.loadResponses,
-);
 const emptyData = ref(false);
-
-const buildSeriesDataset = (d, index) => {
-  const seriesDataset = {
-    ...dataset.value,
-    ...props.datasets[index],
-  };
-
-  // Default dataset colors
-  const {
-    pointHoverBorderColor,
-    borderColor,
-    backgroundColor,
-  } = seriesDataset;
-
-  // Colors to configure today on graph
-  const grey = 'rgba(180,180,180)';
-  const transparent = 'rgba(255,255,255,0)';
-
-  // Add customization to data points and line segments
-  // according to datapoint position
-  return {
-    ...seriesDataset,
-    pointHoverBorderColor: (ctx) => {
-      const isAfterPenultimatePoint = ctx.dataIndex >= d.length - 2;
-
-      return isAfterPenultimatePoint
-        ? grey
-        : pointHoverBorderColor;
-    },
-    segment: {
-      borderColor: (ctx) => {
-        const isLastPoint = ctx.p1DataIndex === d.length - 1;
-
-        return isLastPoint ? grey : borderColor;
-      },
-      backgroundColor: (ctx) => {
-        const isLastPoint = ctx.p1DataIndex === d.length - 1;
-
-        return isLastPoint ? transparent : backgroundColor;
-      },
-    },
-  };
-};
-
-// Parse resultSet into data that can be consumed by area-chart component
-const series = (resultSet) => {
-  // For line & area charts
-  const pivot = resultSet.chartPivot();
-
-  if (props.pivotModifier) {
-    props.pivotModifier(pivot);
-  }
-
-  const computedSeries = [];
-
-  if (resultSet.loadResponses.length > 0) {
-    resultSet.loadResponses.forEach((_, index) => {
-      if (!props.datasets[index]) {
-        return;
-      }
-      const prefix = resultSet.loadResponses.length === 1
-        ? ''
-        : `${index},`; // has more than 1 dataset
-      const computedData = pivot.map((p) => [
-        p.x,
-        p[`${prefix}${props.datasets[index]?.measure}`] || 0,
-      ]);
-
-      highestValue.value = Math.max(...computedData.map((d) => d[1]));
-      lowestValue.value = Math.min(...computedData.map((d) => d[1]));
-
-      emit('on-highest-number-calculation', highestValue.value);
-      computedSeries.push({
-        name: props.datasets[index]?.name,
-        data: computedData,
-        ...{
-          dataset: buildSeriesDataset(computedData, index),
-        },
-      });
-    });
-  }
-
-  // Search for hidden datasets to add to the available series
-  const hiddenDatasets = props.datasets
-    .filter((d) => d.hidden)
-    .map((d) => ({
-      name: d.name,
-      ...{
-        dataset: d,
-      },
-    }));
-
-  if (hiddenDatasets.length) {
-    computedSeries.push(...hiddenDatasets);
-  }
-
-  if (!computedSeries.some((s) => !!s?.data?.length)) {
-    emptyData.value = true;
-  }
-
-  return computedSeries;
-};
-
-const data = computed(() => {
-  if (loading.value) {
-    return [];
-  }
-  return series(props.resultSet);
-});
 
 const customChartOptions = computed(() => {
   const options = cloneDeep(props.chartOptions);
