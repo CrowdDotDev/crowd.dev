@@ -149,33 +149,6 @@
           </router-link>
         </el-tooltip>
 
-        <!-- Reports -->
-        <el-tooltip
-          :disabled="!isCollapsed"
-          :hide-after="50"
-          effect="dark"
-          placement="right"
-          raw-content
-          popper-class="custom-menu-tooltip"
-          content="Reports"
-        >
-          <router-link
-            id="menu-reports"
-            :to="{
-              path: '/reports',
-              query: { projectGroup: selectedProjectGroup?.id },
-            }"
-            class="el-menu-item"
-            :class="classFor('/reports', false, !selectedProjectGroup)"
-            :disabled="!selectedProjectGroup"
-          >
-            <i class="ri-bar-chart-line" />
-            <span v-if="!isCollapsed">
-              Reports
-            </span>
-          </router-link>
-        </el-tooltip>
-
         <div class="grow" />
 
         <!-- Eagle eye -->

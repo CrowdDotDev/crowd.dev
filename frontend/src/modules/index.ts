@@ -7,8 +7,6 @@ import integration from '@/modules/integration/integration-module';
 import member from '@/modules/member/member-module';
 import tag from '@/modules/tag/tag-module';
 import activity from '@/modules/activity/activity-module';
-import widget from '@/modules/widget/widget-module';
-import report from '@/modules/report/report-module';
 import automation from '@/modules/automation/automation-module';
 import organization from '@/modules/organization/organization-module';
 
@@ -25,8 +23,6 @@ const modules: Record<string, any> = {
   member,
   activity,
   tag,
-  widget,
-  report,
   automation,
   eagleEye,
   organization,

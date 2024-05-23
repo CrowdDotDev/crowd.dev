@@ -10,7 +10,6 @@
         query: filterQueryService().setQuery(allOrganizations.config),
       }"
       button-title="All organizations"
-      report-name="Organizations report"
     />
 
     <div class="flex -mx-5 pt-7">

@@ -11,7 +11,6 @@
         query: filterQueryService().setQuery(allActivitiesFilter),
       }"
       button-title="All activities"
-      report-name="Activities report"
     />
 
     <div class="pt-6 flex -mx-5 pb-12">
