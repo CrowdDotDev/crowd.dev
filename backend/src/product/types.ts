@@ -8,16 +8,17 @@ export interface ISessionData {
   location: string
 }
 
-// export interface IProductAnalyticsData {
-//     id: string
-//     eventKey: string
-//     userEmail: string
-//     properties: object
-//     createdAt: string
-//   }
+export type IDbSessionInsertData = Omit<ISessionData, 'endTime'>
 
-//   export interface DbProductAnalyticsInsertData {
-//     eventKey: string
-//     userEmail: string
-//     properties: object
-//   }
+export interface IEventData {
+  id: string
+  sessionId: string
+  type: string
+  key: string
+  properties?: object
+  createdAt: string
+  userId: string
+  userEmail: string
+}
+
+export type IDbEventInsertData = Omit<IEventData, 'id' | 'createdAt'>

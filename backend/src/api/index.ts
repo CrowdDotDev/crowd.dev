@@ -230,6 +230,7 @@ setImmediate(async () => {
   require('./customViews').default(routes)
   require('./dashboard').default(routes)
   require('./premium/enrichment').default(routes)
+  require('./product').default(routes)
   // Loads the Tenant if the :tenantId param is passed
   routes.param('tenantId', tenantMiddleware)
   routes.param('tenantId', segmentMiddleware)

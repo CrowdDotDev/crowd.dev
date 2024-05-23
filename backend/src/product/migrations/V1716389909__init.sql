@@ -13,7 +13,7 @@ create table public.events (
     "sessionId" uuid not null references public.sessions(id) on delete cascade,
     type text not null,
     key text not null,
-    properties jsonb null,
+    properties jsonb default '{}'::jsonb,
     "createdAt" timestamp with time zone default now() not null,
     "userId" uuid not null,
     "userEmail" text not null
