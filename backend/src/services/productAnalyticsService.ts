@@ -14,8 +14,8 @@ export default class ProductAnalyticsService extends LoggerBase {
     return ProductAnalyticsRepository.createSession(data, this.options)
   }
 
-  public async updateSession(data) {
-    return ProductAnalyticsRepository.updateSession(data.sessionId, data, this.options)
+  public async updateSession(id, data) {
+    return ProductAnalyticsRepository.updateSession(id, data, this.options)
   }
 
   public async createEvent(data) {

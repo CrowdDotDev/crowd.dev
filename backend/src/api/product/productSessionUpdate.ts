@@ -6,7 +6,7 @@ export default async (req, res) => {
     throw new Error403(req.language)
   }
 
-  await new ProductAnalyticsService(req).updateSession(req.body)
+  await new ProductAnalyticsService(req).updateSession(req.params.id, req.body)
 
   const payload = true
 

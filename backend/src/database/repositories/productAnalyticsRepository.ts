@@ -26,13 +26,13 @@ export default class ProductAnalyticsRepository {
     options: IRepositoryOptions,
   ): Promise<void> {
     const updateFields = Object.entries(data)
-      .map(([key, value]) => `"${key}" = ${value}`)
+      .map(([key, value]) => `"${key}" = '${value}'`)
       .join(', ')
 
     await options.productDb.none(
       `update "sessions"
        set ${updateFields}
-       where "id" = ${sessionId}`,
+       where "id" = '${sessionId}'`,
     )
   }
 
