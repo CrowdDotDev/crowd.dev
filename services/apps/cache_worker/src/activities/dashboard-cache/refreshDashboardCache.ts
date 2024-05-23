@@ -3,7 +3,7 @@ import {
   IActiveMembersTimeseriesResult,
   IActivityBySentimentMoodResult,
   IActivityByTypeAndPlatformResult,
-  ICubeQueryParams,
+  IGraphQueryParams,
   IDashboardData,
   INewMembersTimeseriesResult,
   INewOrganizationsTimeseriesResult,
@@ -59,7 +59,7 @@ export async function updateMemberMergeSuggestionsLastGeneratedAt(
   await segmentRepo.updateDashboardCacheLastRefreshedAt(segmentId)
 }
 
-export async function getNewMembersNumber(params: ICubeQueryParams): Promise<number> {
+export async function getNewMembersNumber(params: IGraphQueryParams): Promise<number> {
   let result = 0
   try {
     result = await getNumberOfNewMembers(svc.postgres.reader, {
@@ -77,7 +77,7 @@ export async function getNewMembersNumber(params: ICubeQueryParams): Promise<num
 }
 
 export async function getNewMembersTimeseries(
-  params: ICubeQueryParams,
+  params: IGraphQueryParams,
 ): Promise<INewMembersTimeseriesResult[]> {
   let result: INewMembersTimeseriesResult[]
 
@@ -111,7 +111,7 @@ export async function getNewMembersTimeseries(
   return result
 }
 
-export async function getActiveMembersNumber(params: ICubeQueryParams): Promise<number> {
+export async function getActiveMembersNumber(params: IGraphQueryParams): Promise<number> {
   let result = 0
   try {
     const rows = await countMembersWithActivities(svc.questdbSQL, {
@@ -134,7 +134,7 @@ export async function getActiveMembersNumber(params: ICubeQueryParams): Promise<
 }
 
 export async function getActiveMembersTimeseries(
-  params: ICubeQueryParams,
+  params: IGraphQueryParams,
 ): Promise<IActiveMembersTimeseriesResult[]> {
   let result: IActiveMembersTimeseriesResult[]
   try {
@@ -152,7 +152,7 @@ export async function getActiveMembersTimeseries(
   return result
 }
 
-export async function getNewOrganizationsNumber(params: ICubeQueryParams): Promise<number> {
+export async function getNewOrganizationsNumber(params: IGraphQueryParams): Promise<number> {
   let result = 0
   try {
     result = await getNumberOfNewOrganizations(svc.postgres.reader, {
@@ -170,7 +170,7 @@ export async function getNewOrganizationsNumber(params: ICubeQueryParams): Promi
 }
 
 export async function getNewOrganizationsTimeseries(
-  params: ICubeQueryParams,
+  params: IGraphQueryParams,
 ): Promise<INewOrganizationsTimeseriesResult[]> {
   let result: INewOrganizationsTimeseriesResult[]
 
@@ -203,7 +203,7 @@ export async function getNewOrganizationsTimeseries(
   return result
 }
 
-export async function getActiveOrganizationsNumber(params: ICubeQueryParams): Promise<number> {
+export async function getActiveOrganizationsNumber(params: IGraphQueryParams): Promise<number> {
   let result = 0
   try {
     result = await getNumberOfActiveOrganizations(qdb, {
@@ -221,7 +221,7 @@ export async function getActiveOrganizationsNumber(params: ICubeQueryParams): Pr
 }
 
 export async function getActiveOrganizationsTimeseries(
-  params: ICubeQueryParams,
+  params: IGraphQueryParams,
 ): Promise<IActiveOrganizationsTimeseriesResult[]> {
   let result: IActiveOrganizationsTimeseriesResult[]
   try {
@@ -239,7 +239,7 @@ export async function getActiveOrganizationsTimeseries(
   return result
 }
 
-export async function getActivitiesNumber(params: ICubeQueryParams): Promise<number> {
+export async function getActivitiesNumber(params: IGraphQueryParams): Promise<number> {
   let result = 0
   try {
     const filters: any[] = [
@@ -280,7 +280,7 @@ export async function getActivitiesNumber(params: ICubeQueryParams): Promise<num
   return result
 }
 
-export async function getActivitiesTimeseries<T>(params: ICubeQueryParams): Promise<T> {
+export async function getActivitiesTimeseries<T>(params: IGraphQueryParams): Promise<T> {
   let result: T
   try {
     const filters: any[] = [

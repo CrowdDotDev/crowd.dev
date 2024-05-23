@@ -7,8 +7,6 @@ import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import TenantRepository from '../database/repositories/tenantRepository'
 import TenantUserRepository from '../database/repositories/tenantUserRepository'
 import * as microserviceTypes from '../database/utils/keys/microserviceTypes'
-import dashboardWidgets from '../jsons/dashboard-widgets.json'
-import defaultReport from '../jsons/default-report.json'
 import Permissions from '../security/permissions'
 import Plans from '../security/plans'
 import Roles from '../security/roles'
@@ -21,9 +19,7 @@ import CustomViewRepository from '@/database/repositories/customViewRepository'
 import { defaultCustomViews } from '@/types/customView'
 import { TenantMode } from '../conf/configTypes'
 import MicroserviceRepository from '../database/repositories/microserviceRepository'
-import ReportRepository from '../database/repositories/reportRepository'
 import TaskRepository from '../database/repositories/taskRepository'
-import WidgetRepository from '../database/repositories/widgetRepository'
 import MemberAttributeSettingsService from './memberAttributeSettingsService'
 import OrganizationService from './organizationService'
 import SegmentService from './segmentService'
@@ -219,66 +215,6 @@ export default class TenantService {
         { type: microserviceTypes.membersScore },
         { ...this.options, transaction, currentTenant: record },
       )
-
-      // create default report for the tenant
-      const report = await ReportRepository.create(
-        {
-          name: defaultReport.name,
-          public: defaultReport.public,
-        },
-        { ...this.options, transaction, currentTenant: record },
-      )
-
-      // create member template report
-      await ReportRepository.create(
-        {
-          name: 'Members report',
-          public: false,
-          isTemplate: true,
-          noSegment: true,
-        },
-        { ...this.options, transaction, currentTenant: record },
-      )
-
-      // create community-product fit template report
-      await ReportRepository.create(
-        {
-          name: 'Product-community fit report',
-          public: false,
-          isTemplate: true,
-          noSegment: true,
-        },
-        { ...this.options, transaction, currentTenant: record },
-      )
-
-      // create activities template report
-      await ReportRepository.create(
-        {
-          name: 'Activities report',
-          public: false,
-          isTemplate: true,
-          noSegment: true,
-        },
-        { ...this.options, transaction, currentTenant: record },
-      )
-
-      for (const widgetToCreate of defaultReport.widgets) {
-        await WidgetRepository.create(
-          {
-            ...widgetToCreate,
-            report: report.id,
-          },
-          { ...this.options, transaction, currentTenant: record },
-        )
-      }
-
-      // create dashboard widgets
-      for (const widgetType of dashboardWidgets) {
-        await WidgetRepository.create(
-          { type: widgetType },
-          { ...this.options, transaction, currentTenant: record },
-        )
-      }
 
       // create suggested tasks
       await TaskRepository.createSuggestedTasks({

@@ -1,5 +1,3 @@
-import { CubeDimension, CubeGranularity, CubeMeasure, ICubeOrder } from '@crowd/cubejs'
-
 export interface IActiveMembersTimeseriesResult {
   date: string
   count: number
@@ -72,13 +70,10 @@ export interface ITimeframe {
   previousPeriodEndDate: Date
 }
 
-export interface ICubeQueryParams {
+export interface IGraphQueryParams {
   tenantId: string
   segmentIds: string[]
   startDate: Date
   endDate: Date
-  granularity?: CubeGranularity | string
   platform?: string
-  dimensions?: CubeDimension[] | string[]
-  order?: ICubeOrder
 }

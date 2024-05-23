@@ -11,10 +11,8 @@ import { Error400 } from '@crowd/common'
 import { LoggerBase } from '@crowd/logging'
 import SegmentRepository from '../database/repositories/segmentRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
-import defaultReport from '../jsons/default-report.json'
 import { IServiceOptions } from './IServiceOptions'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
-import ReportRepository from '../database/repositories/reportRepository'
 import MemberRepository from '../database/repositories/memberRepository'
 
 interface UnnestedActivityTypes {
@@ -163,15 +161,6 @@ export default class SegmentService extends LoggerBase {
       }
 
       const subproject = await segmentRepository.create(data)
-
-      // create default report for the tenant
-      await ReportRepository.create(
-        {
-          name: defaultReport.name,
-          public: defaultReport.public,
-        },
-        { ...this.options, transaction, currentSegments: [subproject] },
-      )
 
       await SequelizeRepository.commitTransaction(transaction)
 

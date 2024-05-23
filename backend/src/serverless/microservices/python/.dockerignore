@@ -5,7 +5,6 @@ Dockerfile
 **/.git
 **/.webpack
 **/.serverless
-**/.cubestore
 **/.idea
 **/.vscode
 **/.env

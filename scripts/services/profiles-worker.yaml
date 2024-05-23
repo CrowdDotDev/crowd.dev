@@ -47,7 +47,6 @@ services:
       - ../../services/libs/common/src:/usr/crowd/app/services/libs/common/src
       - ../../services/libs/common_services/src:/usr/crowd/app/services/libs/common_services/src
       - ../../services/libs/conversations/src:/usr/crowd/app/services/libs/conversations/src
-      - ../../services/libs/cubejs/src:/usr/crowd/app/services/libs/cubejs/src
       - ../../services/libs/database/src:/usr/crowd/app/services/libs/database/src
       - ../../services/libs/integrations/src:/usr/crowd/app/services/libs/integrations/src
       - ../../services/libs/ioc/src:/usr/crowd/app/services/libs/ioc/src

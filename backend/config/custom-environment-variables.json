@@ -54,11 +54,6 @@
     "database": "CROWD_DB_DATABASE",
     "logging": "CROWD_DB_LOGGING"
   },
-  "cubejs": {
-    "url": "CROWD_CUBEJS_URL",
-    "jwtSecret": "CROWD_CUBEJS_JWT_SECRET",
-    "jwtExpiry": "CROWD_CUBEJS_JWT_EXPIRY"
-  },
   "segment": {
     "writeKey": "CROWD_SEGMENT_WRITE_KEY"
   },

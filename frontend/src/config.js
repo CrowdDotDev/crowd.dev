@@ -24,7 +24,6 @@ const defaultConfig = {
     import.meta.env.VUE_APP_GITHUB_INSTALLATION_URL,
   discordInstallationUrl:
     import.meta.env.VUE_APP_DISCORD_INSTALLATION_URL,
-  cubejsUrl: import.meta.env.VUE_APP_CUBEJS_URL,
   conversationPublicUrl:
     import.meta.env.VUE_APP_CONVERSATIONS_PUBLIC_URL,
   edition: import.meta.env.VUE_APP_EDITION,
@@ -90,7 +89,6 @@ const composedConfig = {
     'CROWD_VUE_APP_GITHUB_INSTALLATION_URL',
   discordInstallationUrl:
     'CROWD_VUE_APP_DISCORD_INSTALLATION_URL',
-  cubejsUrl: 'CROWD_VUE_APP_CUBEJS_URL',
   conversationPublicUrl:
     'CROWD_VUE_APP_CONVERSATIONS_PUBLIC_URL',
   edition: 'CROWD_VUE_APP_EDITION',

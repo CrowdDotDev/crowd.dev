@@ -47,8 +47,6 @@ export default class SequelizeTestUtils {
       '"eagleEyeActions"',
       '"tasks"',
       '"tags"',
-      '"reports"',
-      '"widgets"',
 
       '"memberAttributeSettings"',
       '"memberEnrichmentCache"',

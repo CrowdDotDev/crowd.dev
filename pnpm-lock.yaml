@@ -84,9 +84,6 @@ importers:
       '@crowd/common_services':
         specifier: workspace:*
         version: link:../services/libs/common_services
-      '@crowd/cubejs':
-        specifier: workspace:*
-        version: link:../services/libs/cubejs
       '@crowd/data-access-layer':
         specifier: workspace:*
         version: link:../services/libs/data-access-layer
@@ -123,9 +120,6 @@ importers:
       '@crowd/types':
         specifier: workspace:*
         version: link:../services/libs/types
-      '@cubejs-client/core':
-        specifier: ^0.30.4
-        version: 0.30.74(encoding@0.1.13)
       '@google-cloud/storage':
         specifier: 5.3.0
         version: 5.3.0(encoding@0.1.13)
@@ -545,9 +539,6 @@ importers:
       '@crowd/archetype-worker':
         specifier: workspace:*
         version: link:../../archetypes/worker
-      '@crowd/cubejs':
-        specifier: workspace:*
-        version: link:../../libs/cubejs
       '@crowd/data-access-layer':
         specifier: workspace:*
         version: link:../../libs/data-access-layer
@@ -1208,9 +1199,6 @@ importers:
       '@crowd/archetype-worker':
         specifier: workspace:*
         version: link:../../archetypes/worker
-      '@crowd/cubejs':
-        specifier: workspace:*
-        version: link:../../libs/cubejs
       '@crowd/data-access-layer':
         specifier: workspace:*
         version: link:../../libs/data-access-layer
@@ -1709,31 +1697,6 @@ importers:
       '@types/html-to-text':
         specifier: ^9.0.0
         version: 9.0.4
-      '@types/node':
-        specifier: ^18.16.3
-        version: 18.19.31
-      typescript:
-        specifier: ^5.0.4
-        version: 5.4.5
-
-  services/libs/cubejs:
-    dependencies:
-      '@crowd/common':
-        specifier: workspace:*
-        version: link:../common
-      '@crowd/logging':
-        specifier: workspace:*
-        version: link:../logging
-      '@cubejs-client/core':
-        specifier: ~0.34.9
-        version: 0.34.60(encoding@0.1.13)
-      jsonwebtoken:
-        specifier: ~9.0.2
-        version: 9.0.2
-      moment:
-        specifier: ~2.29.4
-        version: 2.29.4
-    devDependencies:
       '@types/node':
         specifier: ^18.16.3
         version: 18.19.31
@@ -2967,12 +2930,6 @@ packages:
   '@cspotcode/source-map-support@0.8.1':
     resolution: {integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==}
     engines: {node: '>=12'}
-
-  '@cubejs-client/core@0.30.74':
-    resolution: {integrity: sha512-InZa/nKw1ldzvRui0nuZvLGrtYZOmGmIa1gCrCU4i9wAR7pQjlTL2nK+kZ6XLZ5MsuZGWgi3LZNNRkz1wNeiwA==}
-
-  '@cubejs-client/core@0.34.60':
-    resolution: {integrity: sha512-0goUcqG7gREEP2LQ6uIGdFVQ5ojhRqRnbE9PqxfQsEsdSQcJnWU8h0BU82va5Ik7tdRzs+GrN0pbp8s1Ki4egA==}
 
   '@datadog/native-appsec@7.1.1':
     resolution: {integrity: sha512-1XVrCY4g1ArN79SQANMtiIkaxKSPfgdAGv0VAM4Pz+NQuxKfl+2xQPXjQPm87LI1KQIO6MU6qzv3sUUSesb9lA==}
@@ -5313,9 +5270,6 @@ packages:
 
   core-js-compat@3.37.0:
     resolution: {integrity: sha512-vYq4L+T8aS5UuFg4UwDhc7YNRWVeVZwltad9C/jV3R2LgVOpS9BDr7l/WL6BN0dbV3k1XejPTHqqEzJgsa0frA==}
-
-  core-js@3.37.0:
-    resolution: {integrity: sha512-fu5vHevQ8ZG4og+LXug8ulUtVxjOcEYvifJr7L5Bfq9GOztVqsKd9/59hUk2ZSbCrS3BqUr3EpaYGIYzq7g3Ug==}
 
   core-util-is@1.0.3:
     resolution: {integrity: sha512-ZQBvi1DcpJ4GDqanjucZ2Hj3wEO5pZDS89BWbkcrvdxksJorwUDDZamX9ldFkp9aw2lmBDLgkObEA4DWNJ9FYQ==}
@@ -8258,9 +8212,6 @@ packages:
   railroad-diagrams@1.0.0:
     resolution: {integrity: sha512-cz93DjNeLY0idrCNOH6PviZGRN9GJhsdm9hpn1YCS879fj4W+x5IFJhhkRZcwVgMmFF7R82UA/7Oh+R8lLZg6A==}
 
-  ramda@0.27.2:
-    resolution: {integrity: sha512-SbiLPU40JuJniHexQSAgad32hfwd+DRUdwF2PlVuI5RZD0/vahUco7R8vD86J/tcEKKF9vZrUVwgtmGCqlCKyA==}
-
   randexp@0.4.6:
     resolution: {integrity: sha512-80WNmd9DA0tmZrw9qQa62GPPWfuXJknrmVmLcxvq4uZBdYqb1wYoKTmnlGUchvVWe0XiLupYkBoXVOxz3C8DYQ==}
     engines: {node: '>=0.12'}
@@ -9299,9 +9250,6 @@ packages:
   url-parse-lax@3.0.0:
     resolution: {integrity: sha512-NjFKA0DidqPa5ciFcSrXnAltTtzz84ogy+NebPvfEgAck0+TNg4UJ4IN+fB7zRZfbgUf0syOo9MDxFkDSMuFaQ==}
     engines: {node: '>=4'}
-
-  url-search-params-polyfill@7.0.1:
-    resolution: {integrity: sha512-bAw7L2E+jn9XHG5P9zrPnHdO0yJub4U+yXJOdpcpkr7OBd9T8oll4lUos0iSGRcDvfZoLUKfx9a6aNmIhJ4+mQ==}
 
   url@0.10.3:
     resolution: {integrity: sha512-hzSUW2q06EqL1gKM/a+obYHLIO6ct2hwPuviqTTOcfFVc61UbfJ2Q32+uGL/HCPxKqrdGB5QUwIe7UqlDgwsOQ==}
@@ -10868,29 +10816,6 @@ snapshots:
   '@cspotcode/source-map-support@0.8.1':
     dependencies:
       '@jridgewell/trace-mapping': 0.3.9
-
-  '@cubejs-client/core@0.30.74(encoding@0.1.13)':
-    dependencies:
-      core-js: 3.37.0
-      cross-fetch: 3.1.8(encoding@0.1.13)
-      dayjs: 1.11.11
-      ramda: 0.27.2
-      url-search-params-polyfill: 7.0.1
-      uuid: 8.3.2
-    transitivePeerDependencies:
-      - encoding
-
-  '@cubejs-client/core@0.34.60(encoding@0.1.13)':
-    dependencies:
-      '@babel/runtime': 7.24.4
-      core-js: 3.37.0
-      cross-fetch: 3.1.8(encoding@0.1.13)
-      dayjs: 1.11.11
-      ramda: 0.27.2
-      url-search-params-polyfill: 7.0.1
-      uuid: 8.3.2
-    transitivePeerDependencies:
-      - encoding
 
   '@datadog/native-appsec@7.1.1':
     dependencies:
@@ -13981,8 +13906,6 @@ snapshots:
   core-js-compat@3.37.0:
     dependencies:
       browserslist: 4.23.0
-
-  core-js@3.37.0: {}
 
   core-util-is@1.0.3: {}
 
@@ -17553,8 +17476,6 @@ snapshots:
 
   railroad-diagrams@1.0.0: {}
 
-  ramda@0.27.2: {}
-
   randexp@0.4.6:
     dependencies:
       discontinuous-range: 1.0.0
@@ -18770,8 +18691,6 @@ snapshots:
   url-parse-lax@3.0.0:
     dependencies:
       prepend-http: 2.0.0
-
-  url-search-params-polyfill@7.0.1: {}
 
   url@0.10.3:
     dependencies:

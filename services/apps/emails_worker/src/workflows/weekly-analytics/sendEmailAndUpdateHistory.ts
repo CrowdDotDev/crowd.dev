@@ -6,7 +6,7 @@ import * as activities from '../../activities'
 import { getChangeAndDirection } from '../../utils/analytics'
 import { InputAnalyticsWithSegments, InputAnalyticsWithTimes } from '../../types/analytics'
 
-// Configure timeouts and retry policies to fetch content from Cube.js.
+// Configure timeouts and retry policies to fetch content from the databases.
 const {
   getTenantUsers,
   getSegments,
@@ -19,10 +19,6 @@ const {
   getNewOrganizationsThisWeek,
   getNewOrganizationsPreviousWeek,
   updateEmailHistory,
-} = proxyActivities<typeof activities>({ startToCloseTimeout: '15 seconds' })
-
-// Configure timeouts and retry policies to fetch content from the databases.
-const {
   getActiveTenantIntegrations,
   getTotalActivitiesThisWeek,
   getTotalActivitiesPreviousWeek,
@@ -47,7 +43,7 @@ const { weeklySendEmail } = proxyActivities<typeof activities>({
 weeklySendEmailAndUpdateHistory is a Temporal workflow that:
   - [Activity]: Fetch the tenant's segments.
   - [Activity]: Ensure the tenant has an active integration.
-  - [Async Activities]: Fetch results from Cube.js and database.
+  - [Async Activities]: Fetch results from database.
   - [Activity]: Fetch the tenant's users to have email addresses to send the
     email to.
   - [Activity]: Actually send the email to the each user's email address using
