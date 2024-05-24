@@ -1,8 +1,8 @@
 <template>
-  <h6 v-if="cube?.activity?.bySentimentMood" class="text-sm leading-5 font-semibold mb-4">
+  <h6 v-if="chartData?.activity?.bySentimentMood" class="text-sm leading-5 font-semibold mb-4">
     Overall sentiment
   </h6>
-  <div v-if="!cube">
+  <div v-if="!chartData">
     <div class="pb-3">
       <app-loading height="8px" />
     </div>
@@ -76,61 +76,40 @@
   </div>
 </template>
 
-<script lang="ts" setup>
-import AppLoading from '@/shared/loading/loading-placeholder.vue';
+<script setup lang="ts">
 import { computed, ref } from 'vue';
-import { DashboardCubeData } from '@/modules/dashboard/types/DashboardCubeData';
-import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import AppLoading from '@/shared/loading/loading-placeholder.vue';
 import { useRouter } from 'vue-router';
 import { filterQueryService } from '@/shared/modules/filters/services/filter-query.service';
-import { ResultSet } from '@cubejs-client/core';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
 
 const router = useRouter();
 
-const {
-  cubeData,
-} = mapGetters('dashboard');
+const { chartData } = mapGetters('dashboard');
 
-const cube = computed<DashboardCubeData>(() => cubeData.value);
-
-const bySentiment = computed<Record<string, number>>(() => {
-  if (!cube.value?.activity?.bySentimentMood) {
-    return {
-      positive: 0,
-      negative: 0,
-      neutral: 0,
-    };
-  }
-  const data = new ResultSet(cube.value.activity.bySentimentMood);
-  const seriesNames = data.seriesNames();
-  const pivot = data.chartPivot();
-  let series: any[] = [];
-  seriesNames.forEach((e: any) => {
-    const data = pivot.map((p: any) => [p.x, p[e.key]]);
-    series = [...series, ...data];
-  });
-  const seriesObject = series.reduce(
-    (a, [key, value]) => ({
-      ...a,
-      [key]: +value,
-    }),
-    {},
-  );
-
-  return {
-    positive: seriesObject.positive > 0 ? seriesObject.positive : undefined,
-    negative: seriesObject.negative > 0 ? seriesObject.negative : undefined,
-    neutral: seriesObject.neutral > 0 ? seriesObject.neutral : undefined,
+const bySentiment = computed(() => {
+  const sentimentMap: Record<string, number> = {
+    positive: 0,
+    negative: 0,
+    neutral: 0,
   };
+
+  if (chartData.value?.activity?.bySentimentMood) {
+    chartData.value.activity.bySentimentMood.forEach((item: { sentiment: string, count: number }) => {
+      sentimentMap[item.sentiment] = item.count;
+    });
+  }
+
+  return sentimentMap;
 });
 
 const total = computed(() => Object.values(bySentiment.value).reduce((a, b) => a + b, 0));
 
-const calculatePercentage = (count: number) => Math.round((count / total.value) * 100);
+const calculatePercentage = (count: number) => (total.value > 0 ? Math.round((count / total.value) * 100) : 0);
 
 const hoveredSentiment = ref('');
 
-const valuesByType: Record<string, {class:string, emoji: string}> = {
+const valuesByType: Record<string, { class: string, emoji: string }> = {
   positive: {
     class: 'bg-green-500',
     emoji: 'ri-emotion-happy-line text-green-500',
@@ -145,10 +124,7 @@ const valuesByType: Record<string, {class:string, emoji: string}> = {
   },
 };
 
-const hoverSentimentClass = (type: string) => (hoveredSentiment.value !== type
-  && hoveredSentiment.value !== ''
-  ? 'opacity-50'
-  : '');
+const hoverSentimentClass = (type: string) => (hoveredSentiment.value !== type && hoveredSentiment.value !== '' ? 'opacity-50' : '');
 
 const handleSentimentClick = (sentiment: string) => {
   router.push({
