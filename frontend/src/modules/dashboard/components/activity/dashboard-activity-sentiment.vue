@@ -95,8 +95,8 @@ const bySentiment = computed(() => {
   };
 
   if (chartData.value?.activity?.bySentimentMood) {
-    chartData.value.activity.bySentimentMood.forEach((item: { sentiment: string, count: number }) => {
-      sentimentMap[item.sentiment] = item.count;
+    chartData.value.activity.bySentimentMood.forEach((item: { sentimentLabel: string, count: number }) => {
+      sentimentMap[item.sentimentLabel] = item.count;
     });
   }
 
