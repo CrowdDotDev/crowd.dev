@@ -24,7 +24,6 @@ export async function dissectMember(args: IDissectMemberArgs): Promise<void> {
   )
 
   for (const mergeAction of mergeActions) {
-    // call api.unmerge, and then wait for corresponding async temporal finishMemberUnmerging workflow to complete
     // 1. call api.unmerge using backups
     // 2. wait for temporal async stuff to complete
 
