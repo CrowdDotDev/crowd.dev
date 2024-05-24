@@ -21,9 +21,6 @@ export async function triggerOrganizationsEnrichment(): Promise<void> {
   // get organizations to enrich
   let orgs = await aCtx.getOrganizationsToEnrich(perPage, page)
 
-  // TODO uros
-  console.log('found orgs to enrich: ', orgs.length)
-
   while (orgs.length > 0) {
     for (const org of orgs) {
       if (remaining > 0) {
@@ -53,7 +50,5 @@ export async function triggerOrganizationsEnrichment(): Promise<void> {
     }
 
     orgs = await aCtx.getOrganizationsToEnrich(perPage, ++page)
-    // TODO uros
-    console.log('found orgs to enrich: ', orgs.length)
   }
 }

@@ -7,14 +7,9 @@ const aCtx = proxyActivities<typeof activities>({
 })
 
 export async function enrichOrganization(org: IEnrichableOrganizationData): Promise<void> {
-  // TODO uros
-  console.log('enriching org', org.organizationId)
-
   const updated = await aCtx.tryEnrichOrganization(org.organizationId)
 
   if (updated) {
-    // TODO uros
-    console.log('indexing org', org.organizationId)
     await aCtx.syncToOpensearch(org.tenantId, org.organizationId)
   }
 }
