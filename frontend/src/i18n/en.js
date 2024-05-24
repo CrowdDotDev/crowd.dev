@@ -320,42 +320,6 @@ const en = {
       },
     },
 
-    report: {
-      name: 'Reports',
-      label: 'Reports',
-      menu: 'Reports',
-      edit: {
-        title: 'Edit Report',
-      },
-      new: {
-        title: 'New Report',
-      },
-      view: {
-        title: 'View Report',
-      },
-      exporterFileName: 'report_export',
-      list: {
-        menu: 'Reports',
-        title: 'Reports',
-      },
-      create: {
-        success: 'Report successfully saved',
-      },
-      update: {
-        success: 'Report successfully saved',
-      },
-      destroy: {
-        success: 'Report successfully deleted',
-      },
-      destroyAll: {
-        success: 'Report(s) successfully deleted',
-      },
-      fields: {
-        name: 'Name',
-        public: 'Public',
-      },
-    },
-
     eagleEye: {
       name: 'Eagle Eye',
       label: 'Eagle Eye',

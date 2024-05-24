@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <div class="sm:hidden md:block lg:block xl:block">
-      <lfx-header-v2 v-if="showLfxMenu" id="lfx-header" product="Community Management" />
+      <lfx-header-v2 id="lfx-header" product="Community Management" />
       <router-view v-slot="{ Component }">
         <transition>
           <component :is="Component" v-if="Component" />
@@ -44,9 +44,6 @@ export default {
     ...mapState({
       featureFlag: (state) => state.tenant.featureFlag,
     }),
-    showLfxMenu() {
-      return this.$route.name !== 'reportPublicView';
-    },
   },
 
   watch: {
