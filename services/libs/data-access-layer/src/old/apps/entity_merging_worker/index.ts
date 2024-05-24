@@ -97,6 +97,9 @@ export async function getIdentitiesWithActivity(
 
   query += ` and (${identityFilters.join(' or ')})`
 
+  console.log(query)
+  console.log(replacements)
+
   return db.connection().any(query, replacements)
 }
 
