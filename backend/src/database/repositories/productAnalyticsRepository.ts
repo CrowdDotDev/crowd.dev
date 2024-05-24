@@ -6,18 +6,20 @@ export default class ProductAnalyticsRepository {
   static async createSession(
     data: IDbSessionInsertData,
     options: IRepositoryOptions,
-  ): Promise<void> {
-    await options.productDb.none(
+  ): Promise<ISessionData> {
+    const record = await options.productDb.one(
       `insert into "sessions" ("id", "userId", "userEmail", "ipAddress", "location")
-      values ($(id), $(userId), $(userEmail), $(ipAddress), $(location))`,
+      values ($(id), $(userId), $(userEmail), $(ipAddress), $(location)) returning *`,
       {
-        id: data.id,
+        id: generateUUIDv4(),
         userId: data.userId,
         userEmail: data.userEmail,
         ipAddress: data.ipAddress,
         location: data.location,
       },
     )
+
+    return record
   }
 
   static async updateSession(

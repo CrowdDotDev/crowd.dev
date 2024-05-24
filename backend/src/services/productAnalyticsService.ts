@@ -11,14 +11,26 @@ export default class ProductAnalyticsService extends LoggerBase {
   }
 
   public async createSession(data) {
-    return ProductAnalyticsRepository.createSession(data, this.options)
+    try {
+      return await ProductAnalyticsRepository.createSession(data, this.options)
+    } catch (error) {
+      throw new Error('Error during session create!')
+    }
   }
 
   public async updateSession(id, data) {
-    return ProductAnalyticsRepository.updateSession(id, data, this.options)
+    try {
+      return await ProductAnalyticsRepository.updateSession(id, data, this.options)
+    } catch (error) {
+      throw new Error('Error during session update!')
+    }
   }
 
   public async createEvent(data) {
-    return ProductAnalyticsRepository.createEvent(data, this.options)
+    try {
+      return await ProductAnalyticsRepository.createEvent(data, this.options)
+    } catch (error) {
+      throw new Error('Error during event create!')
+    }
   }
 }
