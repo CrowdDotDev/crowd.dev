@@ -23,21 +23,21 @@
               New organizations
             </h6>
             <app-dashboard-count
-              :loading="!cube"
-              :current-total="cube?.newOrganizations.total"
-              :previous-total="cube?.newOrganizations.previousPeriodTotal"
+              :loading="!chartData"
+              :current-total="chartData?.newOrganizations.total"
+              :previous-total="chartData?.newOrganizations.previousPeriodTotal"
             />
           </div>
           <div class="w-7/12">
             <!-- Chart -->
             <div
-              v-if="!cube"
-              v-loading="!cube"
+              v-if="!chartData"
+              v-loading="!chartData"
               class="app-page-spinner !relative chart-loading"
             />
             <app-dashboard-widget-chart
               v-else
-              :data="cube?.newOrganizations.timeseries"
+              :data="chartData?.newOrganizations.timeseries"
               :datasets="datasets('new organizations')"
             />
           </div>
@@ -115,21 +115,21 @@
             </div>
             <!-- info -->
             <app-dashboard-count
-              :loading="!cube"
-              :current-total="cube?.activeOrganizations.total"
-              :previous-total="cube?.activeOrganizations.previousPeriodTotal"
+              :loading="!chartData"
+              :current-total="chartData?.activeOrganizations.total"
+              :previous-total="chartData?.activeOrganizations.previousPeriodTotal"
             />
           </div>
           <div class="w-7/12">
             <!-- Chart -->
             <div
-              v-if="!cube"
-              v-loading="!cube"
+              v-if="!chartData"
+              v-loading="!chartData"
               class="app-page-spinner !relative chart-loading"
             />
             <app-dashboard-widget-chart
               v-else
-              :data="cube?.activeOrganizations.timeseries"
+              :data="chartData?.activeOrganizations.timeseries"
               :datasets="datasets('active organizations')"
             />
           </div>
@@ -201,13 +201,10 @@ import allOrganizations from '@/modules/organization/config/saved-views/views/al
 import { filterQueryService } from '@/shared/modules/filters/services/filter-query.service';
 import { computed } from 'vue';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
-import { DashboardCubeData } from '@/modules/dashboard/types/DashboardCubeData';
 
 const {
-  cubeData, organizations, period, activeOrganizations, recentOrganizations,
+  chartData, organizations, period, activeOrganizations, recentOrganizations,
 } = mapGetters('dashboard');
-
-const cube = computed<DashboardCubeData>(() => cubeData.value);
 
 const periodRange = computed(() => [
   moment()

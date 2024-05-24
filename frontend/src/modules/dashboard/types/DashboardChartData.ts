@@ -1,4 +1,4 @@
-export interface DashboardCubeData {
+export interface DashboardChartData {
   activeMembers: {
     total: number,
     previousPeriodTotal: number,
