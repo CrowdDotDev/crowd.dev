@@ -55,7 +55,7 @@ export async function getNumberOfNewOrganizations(
     before: arg.before,
   })
 
-  return rows[0].count || 0
+  return Number(rows[0].count || 0)
 }
 
 export async function getNumberOfActiveOrganizations(
@@ -67,8 +67,11 @@ export async function getNumberOfActiveOrganizations(
     FROM activities
     WHERE "tenantId" = $(tenantId)
     AND "organizationId" IS NOT NULL
-    AND "createdAt" BETWEEN $(after) AND $(before)
     AND "deletedAt" IS NULL`
+
+  if (arg.before && arg.after) {
+    query += ' AND timestamp BETWEEN $(after) AND $(before)'
+  }
 
   if (arg.platform) {
     query += ` AND "platform" = $(platform)`
@@ -88,7 +91,7 @@ export async function getNumberOfActiveOrganizations(
     platform: arg.platform,
   })
 
-  return rows[0].count || 0
+  return Number(rows[0].count || 0)
 }
 
 export interface IActiveOrganizationsTimeseriesResult {
@@ -116,7 +119,7 @@ export async function getTimeseriesOfActiveOrganizations(
     query += ` AND "platform" = $(platform)`
   }
 
-  query += ' SAMPLE BY 1d ALIGN TO CALENDAR ORDER BY timestamp DESC;'
+  query += ' SAMPLE BY 1d FILL(0) ALIGN TO CALENDAR ORDER BY timestamp DESC;'
 
   const rows = await db.connection().query(query, {
     tenantId: arg.tenantId,

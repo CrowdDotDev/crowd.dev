@@ -29,6 +29,10 @@ import {
   IQueryNumberOfActiveOrganizationsParameters,
   IQueryNumberOfActiveMembersParameters,
   IQueryTopActivitiesParameters,
+  IQueryGroupedActivitiesParameters,
+  IActivityByTypeAndPlatformResult,
+  IActivityBySentimentMoodResult,
+  IActivityTimeseriesResult,
 } from './types'
 import { ActivityDisplayService } from '@crowd/integrations'
 
@@ -887,14 +891,10 @@ export async function countMembersWithActivities(
   }
 
   if (arg.groupBy === 'day') {
-    query += ' SAMPLE BY 1d ALIGN TO CALENDAR'
+    query += ' SAMPLE BY 1d FILL(0) ALIGN TO CALENDAR'
   }
 
-  query += ' GROUP BY "segmentId"'
-  if (!arg.groupBy) {
-    query += ', date'
-  }
-
+  query += ' GROUP BY "segmentId", date'
   query += ' ORDER BY date DESC;'
 
   return await qdbConn.any(query, {
@@ -931,7 +931,7 @@ export async function countOrganizationsWithActivities(
   }
 
   if (arg.groupBy === 'day') {
-    query += ' SAMPLE BY 1d ALIGN TO CALENDAR'
+    query += ' SAMPLE BY 1d FILL(0) ALIGN TO CALENDAR'
   }
 
   query += ' GROUP BY "segmentId", timestamp ORDER BY date DESC;'
@@ -943,6 +943,117 @@ export async function countOrganizationsWithActivities(
     before: arg.timestampFrom,
     platform: arg.platform,
   })
+}
+
+export async function activitiesTimeseries(
+  qdbConn: DbConnOrTx,
+  arg: IQueryGroupedActivitiesParameters,
+): Promise<IActivityTimeseriesResult[]> {
+  let query = `
+    SELECT COUNT_DISTINCT(id) AS count, timestamp AS date
+    FROM activities
+    WHERE "tenantId" = $(tenantId)
+    AND "deletedAt" IS NULL
+  `
+
+  if (arg.segmentIds) {
+    query += ' AND "segmentId" IN ($(segmentIds:csv))'
+  }
+
+  if (arg.platform) {
+    query += ' AND "platform" = $(platform)'
+  }
+
+  if (arg.after && arg.before) {
+    query += ' AND "timestamp" BETWEEN $(after) AND $(before)'
+  }
+
+  query += `
+    SAMPLE BY 1d FILL(0) ALIGN TO CALENDAR
+    ORDER BY timestamp DESC;
+  `
+
+  const rows: IActivityTimeseriesResult[] = await qdbConn.query(query, {
+    tenantId: arg.tenantId,
+    segmentIds: arg.segmentIds,
+    platform: arg.platform,
+    after: arg.after,
+    before: arg.before,
+  })
+
+  return rows
+}
+
+export async function activitiesBySentiment(
+  qdbConn: DbConnOrTx,
+  arg: IQueryGroupedActivitiesParameters,
+): Promise<IActivityBySentimentMoodResult[]> {
+  let query = `
+    SELECT COUNT_DISTINCT(id) AS count, sentimentLabel
+    FROM activities
+    WHERE "tenantId" = $(tenantId)
+    AND "deletedAt" IS NULL
+  `
+
+  if (arg.segmentIds) {
+    query += ' AND "segmentId" IN ($(segmentIds:csv))'
+  }
+
+  if (arg.platform) {
+    query += ' AND "platform" = $(platform)'
+  }
+
+  if (arg.after && arg.before) {
+    query += ' AND "timestamp" BETWEEN $(after) AND $(before)'
+  }
+
+  query += ` GROUP BY sentimentLabel;`
+
+  const rows: IActivityBySentimentMoodResult[] = await qdbConn.query(query, {
+    tenantId: arg.tenantId,
+    segmentIds: arg.segmentIds,
+    platform: arg.platform,
+    after: arg.after,
+    before: arg.before,
+  })
+
+  return rows
+}
+
+export async function activitiesByTypeAndPlatform(
+  qdbConn: DbConnOrTx,
+  arg: IQueryGroupedActivitiesParameters,
+): Promise<IActivityByTypeAndPlatformResult[]> {
+  let query = `
+    SELECT COUNT_DISTINCT(id) AS count, platform, type
+    FROM activities
+    WHERE "tenantId" = $(tenantId)
+    AND "deletedAt" IS NULL
+  `
+
+  if (arg.segmentIds) {
+    query += ' AND "segmentId" IN ($(segmentIds:csv))'
+  }
+
+  if (arg.platform) {
+    query += ' AND "platform" = $(platform)'
+  }
+
+  if (arg.after && arg.before) {
+    query += ' AND "timestamp" BETWEEN $(after) AND $(before)'
+  }
+
+  query += ` GROUP BY platform, type;`
+
+  const rows: IActivityByTypeAndPlatformResult[] = await qdbConn.query(query, {
+    tenantId: arg.tenantId,
+    segmentIds: arg.segmentIds,
+    platform: arg.platform,
+    after: arg.after,
+    before: arg.before,
+  })
+
+  return rows
 }
 
 export async function filterMembersWithActivities(

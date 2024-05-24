@@ -74,7 +74,7 @@ export async function getNumberOfNewMembers(
     platform: arg.platform,
   })
 
-  return rows[0].count || 0
+  return Number(rows[0].count || 0)
 }
 
 export interface IActiveMembersTimeseriesResult {
@@ -102,7 +102,7 @@ export async function getTimeseriesOfActiveMembers(
     query += ` AND "platform" = $(platform)`
   }
 
-  query += ' SAMPLE BY 1d ALIGN TO CALENDAR ORDER BY timestamp DESC;'
+  query += ' SAMPLE BY 1d FILL(0) ALIGN TO CALENDAR ORDER BY timestamp DESC;'
 
   const rows = await db.connection().query(query, {
     tenantId: arg.tenantId,
@@ -116,7 +116,7 @@ export async function getTimeseriesOfActiveMembers(
   rows.forEach((row) => {
     results.push({
       date: row.timestamp,
-      count: row.count,
+      count: Number(row.count),
     })
   })
 

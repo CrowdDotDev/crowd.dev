@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { SegmentRawData } from '@crowd/types'
-import { ActivityColumn } from './sql'
 
 export interface IQueryActivityResult {
   id: string
@@ -55,7 +54,15 @@ export interface IQueryActivitiesParameters {
   noLimit?: boolean
   offset?: number
   countOnly?: boolean
-  groupBy?: ActivityColumn
+  groupBy?: string
+}
+
+export interface IQueryGroupedActivitiesParameters {
+  tenantId: string
+  segmentIds?: string[]
+  after?: Date
+  before?: Date
+  platform?: string
 }
 
 export interface IQueryTopActivitiesParameters {
@@ -123,8 +130,8 @@ export interface IActiveMemberData {
 export interface IQueryNumberOfActiveMembersParameters {
   tenantId: string
   segmentIds?: string[]
-  timestampFrom?: string
-  timestampTo?: string
+  timestampFrom?: Date
+  timestampTo?: Date
   platform?: string
   groupBy?: undefined | 'day'
 }
@@ -132,8 +139,8 @@ export interface IQueryNumberOfActiveMembersParameters {
 export interface IQueryActiveMembersParameters {
   tenantId: string
   segmentIds: string[]
-  timestampFrom: string
-  timestampTo: string
+  timestampFrom: Date
+  timestampTo: Date
   platforms?: string[]
   isContribution?: boolean
   orderBy: 'activityCount' | 'activeDaysCount'
@@ -151,8 +158,8 @@ export interface IActiveOrganizationData {
 export interface IQueryActiveOrganizationsParameters {
   tenantId: string
   segmentIds: string[]
-  timestampFrom: string
-  timestampTo: string
+  timestampFrom: Date
+  timestampTo: Date
   platforms?: string[]
   orderBy: 'activityCount' | 'activeDaysCount'
   orderByDirection: 'asc' | 'desc'
@@ -163,8 +170,23 @@ export interface IQueryActiveOrganizationsParameters {
 export interface IQueryNumberOfActiveOrganizationsParameters {
   tenantId: string
   segmentIds?: string[]
-  timestampFrom?: string
-  timestampTo?: string
+  timestampFrom?: Date
+  timestampTo?: Date
   platform?: string
   groupBy?: undefined | 'day'
+}
+
+export interface IActivityTimeseriesResult {
+  date: string
+  count: number
+}
+
+export interface IActivityBySentimentMoodResult {
+  sentiment: string
+}
+
+export interface IActivityByTypeAndPlatformResult {
+  type: string
+  platform: string
+  count: number
 }

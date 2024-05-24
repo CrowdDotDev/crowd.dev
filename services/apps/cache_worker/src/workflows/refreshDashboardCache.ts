@@ -3,13 +3,7 @@ import { proxyActivities } from '@temporalio/workflow'
 import { IProcessRefreshDashboardCacheArgs } from '@crowd/types'
 import * as activities from '../activities/dashboard-cache/refreshDashboardCache'
 
-import {
-  IActivityBySentimentMoodResult,
-  IActivityByTypeAndPlatformResult,
-  IActivityTimeseriesResult,
-  IDashboardData,
-  ITimeframe,
-} from '../types'
+import { IDashboardData, ITimeframe } from '../types'
 import moment from 'moment'
 import { DashboardTimeframe } from '../enums'
 
@@ -244,7 +238,7 @@ async function getDashboardCacheData(
   })
 
   // activities timeseries
-  const activitiesTimeseries = await activity.getActivitiesTimeseries<IActivityTimeseriesResult[]>({
+  const activitiesTimeseries = await activity.getActivitiesTimeseries({
     tenantId,
     segmentIds,
     startDate,
@@ -253,27 +247,20 @@ async function getDashboardCacheData(
   })
 
   // activities by sentiment mood
-  const activitiesBySentimentMood = await activity.getActivitiesTimeseries<
-    IActivityBySentimentMoodResult[]
-  >({
+  const activitiesBySentimentMood = await activity.getActivitiesBySentiment({
     tenantId,
     segmentIds,
     startDate,
     endDate,
-    dimensions: ['Activities.sentimentMood'],
     platform,
   })
 
   // activities by type and platform
-  const activitiesByTypeAndPlatform = await activity.getActivitiesTimeseries<
-    IActivityByTypeAndPlatformResult[]
-  >({
+  const activitiesByTypeAndPlatform = await activity.getActivitiesByType({
     tenantId,
     segmentIds,
     startDate,
     endDate,
-    dimensions: ['Activities.platform', 'Activities.type'],
-    order: { 'Activities.count': 'desc' },
     platform,
   })
 

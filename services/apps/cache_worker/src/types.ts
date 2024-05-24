@@ -1,3 +1,9 @@
+import {
+  IActivityBySentimentMoodResult,
+  IActivityByTypeAndPlatformResult,
+  IActivityTimeseriesResult,
+} from '@crowd/data-access-layer'
+
 export interface IActiveMembersTimeseriesResult {
   date: string
   count: number
@@ -15,21 +21,6 @@ export interface INewOrganizationsTimeseriesResult {
 
 export interface IActiveOrganizationsTimeseriesResult {
   date: string
-  count: number
-}
-
-export interface IActivityTimeseriesResult {
-  date: string
-  count: number
-}
-
-export interface IActivityBySentimentMoodResult {
-  sentiment: string
-}
-
-export interface IActivityByTypeAndPlatformResult {
-  type: string
-  platform: string
   count: number
 }
 
@@ -76,4 +67,5 @@ export interface IGraphQueryParams {
   startDate: Date
   endDate: Date
   platform?: string
+  groupBy?: string
 }

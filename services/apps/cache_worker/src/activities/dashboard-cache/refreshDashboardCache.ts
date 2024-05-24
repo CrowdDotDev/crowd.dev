@@ -1,8 +1,5 @@
 import { svc } from '../../main'
 import {
-  IActiveMembersTimeseriesResult,
-  IActivityBySentimentMoodResult,
-  IActivityByTypeAndPlatformResult,
   IGraphQueryParams,
   IDashboardData,
   INewMembersTimeseriesResult,
@@ -15,7 +12,14 @@ import { DashboardTimeframe } from '@crowd/types'
 import IntegrationRepository from '@crowd/data-access-layer/src/old/apps/cache_worker/integration.repo'
 import ActivityRepository from '@crowd/data-access-layer/src/old/apps/cache_worker/activity.repo'
 import {
+  IActiveMembersTimeseriesResult,
   IActiveOrganizationsTimeseriesResult,
+  IActivityBySentimentMoodResult,
+  IActivityByTypeAndPlatformResult,
+  IActivityTimeseriesResult,
+  activitiesBySentiment,
+  activitiesByTypeAndPlatform,
+  activitiesTimeseries,
   countMembersWithActivities,
   countOrganizationsWithActivities,
   getNumberOfActiveOrganizations,
@@ -85,8 +89,8 @@ export async function getNewMembersTimeseries(
     const rows = await countMembersWithActivities(svc.questdbSQL, {
       tenantId: params.tenantId,
       segmentIds: params.segmentIds,
-      timestampFrom: params.startDate instanceof Date ? params.startDate.toISOString() : null,
-      timestampTo: params.endDate instanceof Date ? params.endDate.toISOString() : null,
+      timestampFrom: params.startDate,
+      timestampTo: params.endDate,
       platform: params.platform,
       groupBy: 'day',
     })
@@ -117,8 +121,8 @@ export async function getActiveMembersNumber(params: IGraphQueryParams): Promise
     const rows = await countMembersWithActivities(svc.questdbSQL, {
       tenantId: params.tenantId,
       segmentIds: params.segmentIds,
-      timestampFrom: params.startDate instanceof Date ? params.startDate.toISOString() : null,
-      timestampTo: params.endDate instanceof Date ? params.endDate.toISOString() : null,
+      timestampFrom: params.startDate,
+      timestampTo: params.endDate,
       platform: params.platform,
       groupBy: 'day',
     })
@@ -178,8 +182,8 @@ export async function getNewOrganizationsTimeseries(
     const rows = await countOrganizationsWithActivities(svc.questdbSQL, {
       tenantId: params.tenantId,
       segmentIds: params.segmentIds,
-      timestampFrom: params.startDate instanceof Date ? params.startDate.toISOString() : null,
-      timestampTo: params.endDate instanceof Date ? params.endDate.toISOString() : null,
+      timestampFrom: params.startDate,
+      timestampTo: params.endDate,
       platform: params.platform,
     })
 
@@ -242,6 +246,7 @@ export async function getActiveOrganizationsTimeseries(
 export async function getActivitiesNumber(params: IGraphQueryParams): Promise<number> {
   let result = 0
   try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const filters: any[] = [
       {
         timestamp: {
@@ -280,47 +285,57 @@ export async function getActivitiesNumber(params: IGraphQueryParams): Promise<nu
   return result
 }
 
-export async function getActivitiesTimeseries<T>(params: IGraphQueryParams): Promise<T> {
-  let result: T
+export async function getActivitiesTimeseries(
+  params: IGraphQueryParams,
+): Promise<IActivityTimeseriesResult[]> {
+  let result: IActivityTimeseriesResult[]
+
   try {
-    const filters: any[] = [
-      {
-        timestamp: {
-          gte: params.startDate,
-        },
-      },
-      {
-        timestamp: {
-          lte: params.endDate,
-        },
-      },
-    ]
+    result = await activitiesTimeseries(svc.questdbSQL, {
+      tenantId: params.tenantId,
+      segmentIds: params.segmentIds,
+      after: params.startDate,
+      before: params.endDate,
+      platform: params.platform,
+    })
+  } catch (err) {
+    throw new Error(err)
+  }
 
-    if (params.platform) {
-      filters.push({
-        platform: {
-          eq: params.platform,
-        },
-      })
-    }
+  return result
+}
+export async function getActivitiesBySentiment(
+  params: IGraphQueryParams,
+): Promise<IActivityBySentimentMoodResult[]> {
+  let result: IActivityBySentimentMoodResult[]
 
-    const res = await queryActivities(
-      svc.questdbSQL,
-      {
-        tenantId: params.tenantId,
-        segmentIds: params.segmentIds,
-        groupBy: 'platform',
-        filter: {
-          and: filters,
-        },
-      },
-      ['timestamp', 'platform'],
-    )
+  try {
+    result = await activitiesBySentiment(svc.questdbSQL, {
+      tenantId: params.tenantId,
+      segmentIds: params.segmentIds,
+      after: params.startDate,
+      before: params.endDate,
+      platform: params.platform,
+    })
+  } catch (err) {
+    throw new Error(err)
+  }
 
-    console.log('RES COUNT', res.count)
-    console.log('RES ROWS', res.rows)
+  return result
+}
+export async function getActivitiesByType(
+  params: IGraphQueryParams,
+): Promise<IActivityByTypeAndPlatformResult[]> {
+  let result: IActivityByTypeAndPlatformResult[]
 
-    result = res.rows as T
+  try {
+    result = await activitiesByTypeAndPlatform(svc.questdbSQL, {
+      tenantId: params.tenantId,
+      segmentIds: params.segmentIds,
+      after: params.startDate,
+      before: params.endDate,
+      platform: params.platform,
+    })
   } catch (err) {
     throw new Error(err)
   }
