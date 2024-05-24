@@ -97,7 +97,7 @@ export async function getIdentitiesWithActivity(
 
   query += ` and (${identityFilters.join(' or ')})`
 
-  return db.connection().query(query, replacements)
+  return db.connection().any(query, replacements)
 }
 
 export async function moveIdentityActivitiesToNewMember(
