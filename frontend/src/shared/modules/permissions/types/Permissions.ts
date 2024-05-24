@@ -30,14 +30,6 @@ export enum LfPermission {
   integrationRead = 'integrationRead',
   integrationAutocomplete = 'integrationAutocomplete',
 
-  // Reports
-  reportImport = 'reportImport',
-  reportCreate = 'reportCreate',
-  reportEdit = 'reportEdit',
-  reportDestroy = 'reportDestroy',
-  reportRead = 'reportRead',
-  reportAutocomplete = 'reportAutocomplete',
-
   // Contributors
   memberImport = 'memberImport',
   memberCreate = 'memberCreate',
