@@ -42,6 +42,8 @@ class MergeActionRepository {
       replacements.userId = userId
     }
 
+    query += ' order by ma."createdAt" desc'
+
     try {
       rows = await this.connection.query(query, replacements)
     } catch (err) {
