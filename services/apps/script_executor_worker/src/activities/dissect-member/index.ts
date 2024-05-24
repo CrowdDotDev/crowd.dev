@@ -11,7 +11,12 @@ export async function findMemberMergeActions(
 
   try {
     const mergeActionRepo = new MergeActionRepository(svc.postgres.reader.connection(), svc.log)
-    mergeActions = await mergeActionRepo.findMergeActions(memberId, startDate, endDate, userId)
+    mergeActions = await mergeActionRepo.findMemberMergeActions(
+      memberId,
+      startDate,
+      endDate,
+      userId,
+    )
   } catch (err) {
     throw new Error(err)
   }
@@ -26,7 +31,7 @@ export async function waitForTemporalWorkflowExecutionFinish(workflowId: string)
 
   try {
     // Wait for the workflow to complete or the timeout to occur
-    const result = await Promise.race([handle.result(), timeout(timeoutDuration, workflowId)])
+    await Promise.race([handle.result(), timeout(timeoutDuration, workflowId)])
   } catch (err) {
     console.error('Failed to get workflow result:', err.message)
   }
