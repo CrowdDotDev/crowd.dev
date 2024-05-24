@@ -24,11 +24,12 @@ class MergeActionsRepository {
   ) {
     const transaction = SequelizeRepository.getTransaction(options)
     const tenantId = options.currentTenant.id
+    const userId = options.currentUser?.id
 
     await options.database.sequelize.query(
       `
-        INSERT INTO "mergeActions" ("tenantId", "type", "primaryId", "secondaryId", state, "unmergeBackup")
-        VALUES (:tenantId, :type, :primaryId, :secondaryId, :state, :backup)
+        INSERT INTO "mergeActions" ("tenantId", "type", "primaryId", "secondaryId", state, "unmergeBackup", "actionBy")
+        VALUES (:tenantId, :type, :primaryId, :secondaryId, :state, :backup, :userId)
         ON CONFLICT ("tenantId", "type", "primaryId", "secondaryId")
         DO UPDATE SET state = :state, "unmergeBackup" = :backup
       `,
@@ -40,6 +41,7 @@ class MergeActionsRepository {
           secondaryId,
           state,
           backup: backup ? JSON.stringify(backup) : null,
+          userId,
         },
         type: QueryTypes.INSERT,
         transaction,
