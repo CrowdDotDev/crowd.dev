@@ -85,13 +85,13 @@ export async function getIdentitiesWithActivity(
   let query = `select distinct username, platform from activities a
                where a."memberId" = $1 and a."tenantId" = $2 `
 
-  let index = 2
+  let index = 3
   const identityFilters = []
 
   for (let i = 0; i < identities.length; i++) {
     identityFilters.push(`(a.platform = $${index} and a.username = $${index + 1})`)
-    replacements[index] = identities[i].platform
-    replacements[index + 1] = identities[i].value
+    replacements[index - 1] = identities[i].platform
+    replacements[index] = identities[i].value
     index += 2
   }
 
