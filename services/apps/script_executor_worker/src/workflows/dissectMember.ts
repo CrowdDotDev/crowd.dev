@@ -36,7 +36,7 @@ export async function dissectMember(args: IDissectMemberArgs): Promise<void> {
 
     const workflowId = `finishMemberUnmerging/${mergeAction.primaryId}/${mergeAction.secondaryId}`
 
-    await activity.waitForTemporalWorkflowExecutionFinish(workflowId)
+    await common.waitForTemporalWorkflowExecutionFinish(workflowId)
 
     console.log(
       `Finished unmerging member ${mergeAction.secondaryId} from ${mergeAction.primaryId}!`,

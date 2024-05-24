@@ -23,24 +23,3 @@ export async function findMemberMergeActions(
 
   return mergeActions
 }
-
-export async function waitForTemporalWorkflowExecutionFinish(workflowId: string): Promise<void> {
-  const handle = svc.temporal.workflow.getHandle(workflowId)
-
-  const timeoutDuration = 1000 * 60 * 2 // 2 minutes
-
-  try {
-    // Wait for the workflow to complete or the timeout to occur
-    await Promise.race([handle.result(), timeout(timeoutDuration, workflowId)])
-  } catch (err) {
-    console.error('Failed to get workflow result:', err.message)
-  }
-}
-
-export function timeout(ms: number, workflowId: string): Promise<void> {
-  return new Promise((_, reject) => {
-    setTimeout(() => {
-      reject(new Error(`Timeout waiting for workflow ${workflowId} to finish`))
-    }, ms)
-  })
-}

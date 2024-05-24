@@ -5,7 +5,11 @@ import {
 
 import { findMemberMergeActions } from './activities/dissect-member'
 
-import { mergeMembers, unmergeMembers } from './activities/common'
+import {
+  mergeMembers,
+  unmergeMembers,
+  waitForTemporalWorkflowExecutionFinish,
+} from './activities/common'
 
 export {
   findMembersWithSameVerifiedEmailsInDifferentPlatforms,
@@ -13,4 +17,5 @@ export {
   mergeMembers,
   findMemberMergeActions,
   unmergeMembers,
+  waitForTemporalWorkflowExecutionFinish,
 }
