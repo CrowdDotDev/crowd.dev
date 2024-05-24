@@ -46,16 +46,10 @@ export async function moveActivitiesWithIdentityToAnotherMember(
 ): Promise<void> {
   const memberExists = await findMemberById(svc.postgres.writer, toId, tenantId)
 
-  console.log('Member exists result: ')
-  console.log(memberExists)
-
   if (!memberExists) {
     return
   }
 
-  console.log('Getting identities with activity')
-  console.log(`fromId: ${fromId}`)
-  console.log(identities)
   const identitiesWithActivity = await getIdentitiesWithActivity(
     svc.postgres.writer,
     fromId,
@@ -63,17 +57,11 @@ export async function moveActivitiesWithIdentityToAnotherMember(
     identities,
   )
 
-  console.log('Identites with activity: ')
-  console.log(identitiesWithActivity)
-
   for (const identity of identities.filter(
     (i) =>
       i.type === MemberIdentityType.USERNAME &&
       identitiesWithActivity.some((ai) => ai.platform === i.platform && ai.username === i.value),
   )) {
-    console.log('Moving activities for identity: ')
-    console.log(identity)
-
     await moveIdentityActivitiesToNewMember(
       svc.postgres.writer,
       tenantId,
