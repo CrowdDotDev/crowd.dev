@@ -8,3 +8,14 @@ export interface IFindAndMergeMembersWithSameIdentitiesDifferentCapitalizationIn
   platform: string
   afterHash?: number
 }
+
+export interface IUnmergeWronglyMergedEmailIdentitiesArgs {
+  tenantId: string
+}
+
+export interface IDissectMemberArgs {
+  memberId: string
+  userId?: string
+  startDate?: string
+  endDate?: string
+}
