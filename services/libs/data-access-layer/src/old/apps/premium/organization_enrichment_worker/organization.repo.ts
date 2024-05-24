@@ -313,11 +313,12 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
       if (field in enrichedData) {
         const enrichedValue = enrichedData[field]
 
-        // ignore null/undefined/empty string values
+        // ignore null/undefined/empty string values/empty arrays
         if (
           enrichedValue === null ||
           enrichedValue === undefined ||
-          (typeof enrichedValue === 'string' && enrichedValue.trim() === '')
+          (typeof enrichedValue === 'string' && enrichedValue.trim() === '') ||
+          (Array.isArray(enrichedValue) && enrichedValue.length === 0)
         ) {
           continue
         }

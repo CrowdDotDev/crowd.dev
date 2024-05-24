@@ -633,6 +633,11 @@ class OrganizationRepository {
         }
 
         if (manualChange) {
+          console.log(
+            'manual change',
+            JSON.stringify(data, null, 2),
+            JSON.stringify(record, null, 2),
+          )
           const manuallyChangedFields: string[] = record.manuallyChangedFields || []
 
           for (const column of this.ORGANIZATION_UPDATE_COLUMNS) {
@@ -650,7 +655,8 @@ class OrganizationRepository {
               } else if (
                 record[column] === null &&
                 data[column] !== null &&
-                data[column] !== undefined
+                data[column] !== undefined &&
+                (!Array.isArray(data[column]) || data[column].length > 0)
               ) {
                 // column was null before now it's not anymore
                 changed = true
@@ -669,6 +675,7 @@ class OrganizationRepository {
           }
 
           data.manuallyChangedFields = manuallyChangedFields
+          console.log('manually changed fields', JSON.stringify(manuallyChangedFields, null, 2))
         } else {
           // ignore columns that were manually changed
           // by rewriting them with db data

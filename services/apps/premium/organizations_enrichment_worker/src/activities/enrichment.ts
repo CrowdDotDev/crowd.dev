@@ -182,6 +182,7 @@ async function getEnrichment({ name, website, locality }: any, log: Logger): Pro
   const PDLClient = new PDLJSModule.default({
     apiKey: process.env['CROWD_ORGANIZATION_ENRICHMENT_API_KEY'],
   })
+
   let data: null | any
   try {
     const payload: any = {}
