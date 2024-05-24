@@ -57,6 +57,9 @@ export async function moveActivitiesWithIdentityToAnotherMember(
     identities,
   )
 
+  console.log('Identites with activity: ')
+  console.log(identitiesWithActivity)
+
   for (const identity of identities.filter(
     (i) =>
       i.type === MemberIdentityType.USERNAME &&
