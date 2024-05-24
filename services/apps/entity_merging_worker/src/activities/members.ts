@@ -46,6 +46,9 @@ export async function moveActivitiesWithIdentityToAnotherMember(
 ): Promise<void> {
   const memberExists = await findMemberById(svc.postgres.writer, toId, tenantId)
 
+  console.log('Member exists result: ')
+  console.log(memberExists)
+
   if (!memberExists) {
     return
   }
