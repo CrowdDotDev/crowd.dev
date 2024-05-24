@@ -1,9 +1,5 @@
 lockfileVersion: '6.0'
 
-settings:
-  autoInstallPeers: true
-  excludeLinksFromLockfile: false
-
 importers:
 
   .github/actions/node:
@@ -234,6 +230,9 @@ importers:
       express-rate-limit:
         specifier: 6.5.1
         version: 6.5.1(express@4.17.1)
+      fast-geoip:
+        specifier: ^1.1.88
+        version: 1.1.88
       fast-levenshtein:
         specifier: ^3.0.0
         version: 3.0.0
@@ -10259,6 +10258,10 @@ packages:
     resolution: {integrity: sha512-VxPP4NqbUjj6MaAOafWeUn2cXWLcCtljklUtZf0Ind4XQ+QPtmA0b18zZy0jIQx+ExRVCR/ZQpBmik5lXshNsw==}
     dev: true
 
+  /fast-geoip@1.1.88:
+    resolution: {integrity: sha512-rGBGyHTKwNtdXmlgX1IDaf0gskqzQRXR4EWFCuD6V4YSrAzhVZCS53kvKFECQkEylXd0I8rEPV7x4xhhRA4ymw==}
+    dev: false
+
   /fast-glob@3.3.2:
     resolution: {integrity: sha512-oX2ruAFQwf/Orj8m737Y5adxDQO0LAB7/S5MnxCdTNDd4p6BsyIVsv9JQsATbTSq8KHRpLwIHbVlUNatxd+1Ow==}
     engines: {node: '>=8.6.0'}
@@ -16876,3 +16879,7 @@ packages:
     dependencies:
       iconv-lite: 0.4.24
     dev: false
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
