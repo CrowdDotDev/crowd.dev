@@ -65,6 +65,9 @@ export async function moveActivitiesWithIdentityToAnotherMember(
       i.type === MemberIdentityType.USERNAME &&
       identitiesWithActivity.some((ai) => ai.platform === i.platform && ai.username === i.value),
   )) {
+    console.log('Moving activities for identity: ')
+    console.log(identity)
+
     await moveIdentityActivitiesToNewMember(
       svc.postgres.writer,
       tenantId,
