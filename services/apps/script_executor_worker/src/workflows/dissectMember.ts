@@ -16,7 +16,7 @@ const common = proxyActivities<typeof commonActivities>({
 })
 
 export async function dissectMember(args: IDissectMemberArgs): Promise<void> {
-  const mergeActions = await activities.findMemberMergeActions(
+  const mergeActions = await activity.findMemberMergeActions(
     args.memberId,
     args.startDate,
     args.endDate,
