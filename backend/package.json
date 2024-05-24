@@ -109,7 +109,6 @@
     "erlpack": "^0.1.4",
     "express": "4.17.1",
     "express-rate-limit": "6.5.1",
-    "fast-geoip": "^1.1.88",
     "fast-levenshtein": "^3.0.0",
     "formidable-serverless": "1.1.1",
     "he": "^1.2.0",

@@ -8,14 +8,14 @@ export default class ProductAnalyticsRepository {
     options: IRepositoryOptions,
   ): Promise<ISessionData> {
     const record = await options.productDb.one(
-      `insert into "sessions" ("id", "userId", "userEmail", "ipAddress", "location")
-      values ($(id), $(userId), $(userEmail), $(ipAddress), $(location)) returning *`,
+      `insert into "sessions" ("id", "userId", "userEmail", "ipAddress", "country")
+      values ($(id), $(userId), $(userEmail), $(ipAddress), $(country)) returning *`,
       {
         id: generateUUIDv4(),
         userId: data.userId,
         userEmail: data.userEmail,
         ipAddress: data.ipAddress,
-        location: data.location,
+        country: data.country,
       },
     )
 

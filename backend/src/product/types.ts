@@ -5,7 +5,7 @@ export interface ISessionData {
   startTime: string
   endTime: string
   ipAddress: string
-  location: string
+  country: string
 }
 
 export type IDbSessionInsertData = Omit<ISessionData, 'endTime'>

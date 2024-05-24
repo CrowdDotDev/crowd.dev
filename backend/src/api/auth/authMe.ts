@@ -38,8 +38,5 @@ export default async (req, res) => {
     }),
   )
 
-  const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress
-  req.log.info('authMe ip', ip)
-
   await req.responseHandler.success(req, res, payload)
 }

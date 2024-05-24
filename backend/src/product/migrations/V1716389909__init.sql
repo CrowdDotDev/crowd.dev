@@ -5,7 +5,7 @@ create table public.sessions (
     "startTime" timestamp with time zone default now() not null,
     "endTime" timestamp with time zone,
     "ipAddress" text not null,
-    location text not null
+    country text not null
 );
 
 create table public.events (
