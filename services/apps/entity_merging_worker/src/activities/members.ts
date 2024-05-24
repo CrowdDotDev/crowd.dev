@@ -53,6 +53,9 @@ export async function moveActivitiesWithIdentityToAnotherMember(
     return
   }
 
+  console.log('Getting identities with activity')
+  console.log(`fromId: ${fromId}`)
+  console.log(identities)
   const identitiesWithActivity = await getIdentitiesWithActivity(
     svc.postgres.writer,
     fromId,
