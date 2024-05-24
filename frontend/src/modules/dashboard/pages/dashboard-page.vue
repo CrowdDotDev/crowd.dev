@@ -28,12 +28,7 @@
             <app-dashboard-filters class="block" />
           </div>
 
-          <div
-            v-if="!loadingCubeToken"
-            v-loading="!loadingCubeToken"
-            class="app-page-spinner h-16 !relative !min-h-5"
-          />
-          <div v-else>
+          <div>
             <app-dashboard-members class="mb-8" />
             <app-dashboard-organizations class="mb-8" />
             <app-dashboard-activities class="mb-8" />
@@ -53,12 +48,8 @@
 
 <script setup>
 import {
-  onMounted, ref, watch, computed,
+  onMounted, ref,
 } from 'vue';
-import {
-  mapGetters,
-  mapActions,
-} from '@/shared/vuex/vuex.helpers';
 import AppDashboardActivities from '@/modules/dashboard/components/dashboard-activities.vue';
 import AppDashboardMembers from '@/modules/dashboard/components/dashboard-members.vue';
 import AppDashboardOrganizations from '@/modules/dashboard/components/dashboard-organizations.vue';
@@ -72,16 +63,11 @@ import CrDashboardIntegrations from '@/modules/dashboard/components/dashboard-in
 
 const authStore = useAuthStore();
 const { tenant } = storeToRefs(authStore);
-const { cubejsApi } = mapGetters('widget');
-const { doFetch } = mapActions('report');
-const { getCubeToken } = mapActions('widget');
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const scrolled = ref(false);
-
-const loadingCubeToken = computed(() => !!cubejsApi.value);
 
 const handleScroll = (event) => {
   scrolled.value = event.target.scrollTop > 20;
@@ -89,19 +75,6 @@ const handleScroll = (event) => {
 
 onMounted(() => {
   window.analytics.page('Dashboard');
-
-  if (tenant.value) {
-    doFetch({});
-  }
-});
-
-watch(selectedProjectGroup, (updatedProjectGroup, previousProjectGroup) => {
-  if (updatedProjectGroup?.id !== previousProjectGroup?.id) {
-    getCubeToken();
-  }
-}, {
-  deep: true,
-  immediate: true,
 });
 </script>
 
