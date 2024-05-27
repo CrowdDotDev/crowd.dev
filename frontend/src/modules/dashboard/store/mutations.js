@@ -1,5 +1,5 @@
-import { SEVEN_DAYS_PERIOD_FILTER } from '@/modules/widget/widget-constants';
 import { useRoute } from 'vue-router';
+import { SEVEN_DAYS_PERIOD_FILTER } from '@/modules/widget/widget-constants';
 
 export default {
   SET_FILTERS(state, payload) {

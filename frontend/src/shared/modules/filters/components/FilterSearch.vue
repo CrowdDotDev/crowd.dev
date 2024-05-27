@@ -7,6 +7,9 @@
     data-qa="filter-search"
     @input="changeValue($event)"
   >
+    <template #prefix>
+      <i class="ri-search-line text-gray-400" />
+    </template>
     <template #append>
       <slot name="append" />
     </template>

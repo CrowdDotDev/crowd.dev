@@ -80,7 +80,13 @@ export interface GroupsioPublishData<T> {
 export interface GroupsioIntegrationSettings {
   email: string
   token: string
-  groups: GroupName[]
+  groups: GroupDetails[]
+}
+
+export interface GroupDetails {
+  id: number
+  name: string
+  slug: string
 }
 
 export interface ActivityLog {

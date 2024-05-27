@@ -124,7 +124,7 @@
           <app-array-input
             v-for="(_, ii) of form.groups"
             :key="ii"
-            v-model="form.groups[ii]"
+            v-model="form.groups[ii].slug"
             placeholder="crowd-test"
             :validation-function="validateGroup"
             :disabled="!isAPIConnectionValid"
@@ -202,7 +202,9 @@ const form = reactive({
   email: '',
   password: '',
   twoFactorCode: '',
-  groups: [''],
+  groups: [{
+    slug: '',
+  }],
   groupsValidationState: [null],
 });
 
@@ -239,7 +241,7 @@ const rules = computed(() => {
 });
 
 const addGroup = () => {
-  form.groups.push('');
+  form.groups.push({});
 };
 
 const removeGroup = (index) => {
@@ -323,7 +325,7 @@ const handleCancel = () => {
     form.email = '';
     form.password = '';
     form.twoFactorCode = '';
-    form.groups = [''];
+    form.groups = [{}];
     form.groupsValidationState = new Array(form.groups.length).fill(true);
     cookie.value = '';
     isAPIConnectionValid.value = false;
@@ -334,7 +336,7 @@ const handleCancel = () => {
     form.email = props.integration?.settings?.email;
     form.password = '';
     form.twoFactorCode = '';
-    form.groups = props?.integration?.settings?.groups ? [...props.integration.settings.groups] : [''];
+    form.groups = props?.integration?.settings?.groups ? [...props.integration.settings.groups] : [{}];
     form.groupsValidationState = new Array(form.groups.length).fill(true);
     cookie.value = props.integration?.settings?.token;
     isAPIConnectionValid.value = true;
@@ -364,7 +366,7 @@ const connect = async () => {
     token: cookie.value,
     tokenExpiry: cookieExpiry.value,
     password: form.password,
-    groupNames: form.groups,
+    groups: form.groups,
     isUpdate: !!props.integration.settings?.email,
   })
     .then(() => {
