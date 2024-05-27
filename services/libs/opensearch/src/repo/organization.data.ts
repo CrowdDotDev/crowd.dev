@@ -1,4 +1,3 @@
-import { IOrganizationSegmentAggregates } from '@crowd/data-access-layer'
 import { IOrganizationIdentity } from '@crowd/types'
 
 export interface IDbOrganizationSyncData {
@@ -64,15 +63,10 @@ export interface IDbOrganizationSyncData {
 
   // aggregate data
   identities: IOrganizationIdentity[]
-}
-
-export interface IOrganizationSegmentMatrixItem {
-  segmentId: string
-  processed: boolean
-  data: IDbOrganizationSyncData
-  aggregates: IOrganizationSegmentAggregates
-}
-
-export interface IOrganizationSegmentMatrix {
-  [key: string]: IOrganizationSegmentMatrixItem[]
+  memberIds?: string[]
+  memberCount: number
+  activityCount: number
+  activeOn: string[]
+  lastActive: string
+  joinedAt: string
 }

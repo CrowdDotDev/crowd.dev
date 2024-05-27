@@ -1217,12 +1217,34 @@ export default class OrganizationService extends LoggerBase {
   }
 
   async query(data) {
-    const advancedFilter = data.filter
-    const orderBy = data.orderBy
-    const limit = data.limit
-    const offset = data.offset
-    return OrganizationRepository.findAndCountAllOpensearch(
-      { filter: advancedFilter, orderBy, limit, offset, segments: data.segments },
+    const { filter, orderBy, limit, offset, segments } = data
+    return OrganizationRepository.findAndCountAll(
+      {
+        filter,
+        orderBy,
+        limit,
+        offset,
+        segments,
+        fields: [
+          'id',
+          'segmentId',
+          'displayName',
+          'website',
+          'headline',
+          'identities',
+          'memberCount',
+          'activityCount',
+          'lastActive',
+          'joinedAt',
+          'location',
+          'industry',
+          'size',
+          'revenueRange',
+          'founded',
+          'employeeGrowthRate',
+          'tags',
+        ],
+      },
       this.options,
     )
   }

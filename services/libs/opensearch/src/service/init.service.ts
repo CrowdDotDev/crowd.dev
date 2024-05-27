@@ -6,7 +6,6 @@ import { MemberSyncService } from './member.sync.service'
 import { OpenSearchService } from './opensearch.service'
 import { OrganizationSyncService } from './organization.sync.service'
 import { IMemberSegmentAggregates, MemberIdentityType } from '@crowd/types'
-import { IOrganizationSegmentAggregates } from '@crowd/data-access-layer'
 
 export class InitService {
   public static FAKE_TENANT_ID = 'b0e82a13-566f-40e0-b0d0-11fcb6596b0f'
@@ -135,11 +134,7 @@ export class InitService {
       grossAdditionsByMonth: { '2022-05': 7, '2022-06': 6, '2022-07': 1, '2022-08': 1 },
       grossDeparturesByMonth: { '2022-06': 2, '2022-07': 1, '2022-08': 2, '2022-09': 2 },
       directSubsidiaries: ['Fake direct subsidiary 1', 'Fake direct subsidiary 2'],
-    }
 
-    const fakeAggregates: IOrganizationSegmentAggregates = {
-      organizationId: InitService.FAKE_ORGANIZATION_ID,
-      segmentId: InitService.FAKE_SEGMENT_ID,
       memberIds: [InitService.FAKE_MEMBER_ID],
       joinedAt: new Date().toISOString(),
       lastActive: new Date().toISOString(),
@@ -148,7 +143,7 @@ export class InitService {
       memberCount: 10,
     }
 
-    const prepared = OrganizationSyncService.prefixData(fakeOrg, fakeAggregates)
+    const prepared = OrganizationSyncService.prefixData(fakeOrg)
     await this.openSearchService.index(
       `${InitService.FAKE_ORGANIZATION_ID}-${InitService.FAKE_SEGMENT_ID}`,
       OpenSearchIndex.ORGANIZATIONS,

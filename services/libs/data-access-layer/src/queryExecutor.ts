@@ -1,4 +1,4 @@
-import { DbConnection, DbTransaction } from '@crowd/database'
+import { DbConnection, DbStore, DbTransaction, RepositoryBase } from '@crowd/database'
 import { QueryTypes, Sequelize, Transaction } from 'sequelize'
 import pgp from 'pg-promise'
 
@@ -120,4 +120,16 @@ export class PgPromiseQueryExecutor implements QueryExecutor {
   tx<T>(fn: (tx: QueryExecutor) => Promise<T>): Promise<T> {
     return this.db.tx((tx) => fn(new PgPromiseQueryExecutor(tx)))
   }
+}
+
+export function pgpQx(db: DbConnection | DbTransaction): QueryExecutor {
+  return new PgPromiseQueryExecutor(db)
+}
+
+export function dbStoreQx(dbStore: DbStore): QueryExecutor {
+  return pgpQx(dbStore.connection())
+}
+
+export function repoQx(repo: RepositoryBase<any>): QueryExecutor {
+  return pgpQx(repo.db())
 }

@@ -19,7 +19,6 @@ import {
   IMemberSegment,
   INumberOfActivitiesPerMember,
   INumberOfActivitiesPerOrganization,
-  IOrganizationSegment,
   IOrganizationSegmentAggregates,
   IQueryActiveMembersParameters,
   IQueryActiveOrganizationsParameters,
@@ -254,8 +253,8 @@ export async function updateActivityParentIds(
       conn
         .oneOrNone(
           `
-  select id from activities 
-  where "deletedAt" is null and 
+  select id from activities
+  where "deletedAt" is null and
         "tenantId" = $(tenantId) and
         "sourceId" = $(sourceParentId) and
         "segmentId" = $(segmentId)
@@ -501,7 +500,7 @@ export async function queryActivities(
 
   let baseQuery = `
     from activities a
-    where 
+    where
       a."tenantId" = $(tenantId) and
       a."segmentId" in ($(segmentIds:csv)) and
       a."deletedAt" is null and ${filterString}
@@ -707,66 +706,89 @@ export async function getMostActiveMembers(
   return result
 }
 
-export async function getOrganizationAggregates(
+export async function getOrgAggregates(
   qdbConn: DbConnOrTx,
   organizationId: string,
-  segmentId?: string,
-): Promise<IOrganizationSegmentAggregates> {
-  const result = await qdbConn.oneOrNone(
+): Promise<IOrganizationSegmentAggregates[]> {
+  const result = await qdbConn.many(
     `
-    with relevant_activities as (select id, timestamp, platform, "memberId", "organizationId", "segmentId"
-                                from activities
-                                where "organizationId" = $(organizationId)
-                                  ${segmentId ? 'and "segmentId" = $(segmentId)' : ''}
-                                  and "deletedAt" is null),
-        distinct_platforms as (select distinct "organizationId", "segmentId", platform from relevant_activities),
-        distinct_members as (select distinct "organizationId", "segmentId", "memberId" from relevant_activities),
-        joined_at_timestamp as (select "organizationId", "segmentId", min(timestamp) as "joinedAt"
-                                from relevant_activities
-                                where timestamp <> '1970-01-01T00:00:00.000Z')
-    select a."organizationId",
-          a."segmentId",
-          count_distinct(a."memberId")  as "memberCount",
-          count_distinct(a.id)          as "activityCount",
-          max(a.timestamp)              as "lastActive",
-          string_agg(p.platform, ':')   as "activeOn",
-          string_agg(m."memberId", ':') as "memberIds",
-          t."joinedAt"
-    from relevant_activities a
-            inner join distinct_platforms p on a."organizationId" = p."organizationId" and a."segmentId" = p."segmentId"
-            inner join distinct_members m on a."organizationId" = m."organizationId" and a."segmentId" = m."segmentId"
-            left join joined_at_timestamp t on a."organizationId" = t."organizationId" and a."segmentId" = t."segmentId"
-    group by a."organizationId", a."segmentId", t."joinedAt";
+      WITH
+        platforms AS (
+          SELECT
+            DISTINCT
+            a."organizationId",
+            a."segmentId",
+            a.platform
+          FROM activities a
+          WHERE a."organizationId" = $(organizationId)
+        ),
+        platforms_agg AS (
+          SELECT
+            p.organizationId,
+            p.segmentId,
+            STRING_AGG(p.platform, ':') AS "activeOn"
+          FROM platforms p
+        ),
+        activites_agg AS (
+          SELECT
+            a."organizationId",
+            a."tenantId",
+            a."segmentId",
+            count_distinct(a."memberId")  AS "memberCount",
+            count_distinct(a.id)          AS "activityCount",
+            max(a.timestamp)              AS "lastActive",
+            min(a.timestamp)              AS "joinedAt"
+          FROM activities a
+          WHERE a."organizationId" = $(organizationId)
+            AND a."deletedAt" IS NULL
+          GROUP BY a.organizationId, a.tenantId, a.segmentId
+        )
+      SELECT
+        a.organizationId,
+        a.tenantId,
+        a.segmentId,
+        -- <option1>
+        MIN(a.memberCount) AS memberCount,
+        MIN(a.activityCount) AS activityCount,
+        MIN(a.lastActive) AS lastActive,
+        MIN(a.joinedAt) AS joinedAt,
+        STRING_AGG(p.platform, ':') AS "activeOn"
+        -- </option1>
+
+        -- -- <option2>
+        -- a.memberCount,
+        -- a.activityCount,
+        -- a.lastActive,
+        -- a.joinedAt,
+        -- p.activeOn
+        -- -- </option2>
+      FROM activites_agg a
+
+      -- <option1>
+      JOIN platforms p ON p.organizationId = a.organizationId AND p.segmentId = a.segmentId
+      GROUP BY a.organizationId, a.tenantId, a.segmentId
+      -- </option1>
+
+      -- -- <option2>
+      -- JOIN platforms_agg p ON p.organizationId = a.organizationId AND p.segmentId = a.segmentId
+      -- -- </option2>
+      ;
     `,
     {
       organizationId,
-      segmentId,
     },
   )
 
-  if (result) {
-    return {
-      organizationId,
-      segmentId,
-      memberIds: result.memberIds.split(':'),
-      memberCount: result.memberCount,
-      activityCount: result.activityCount,
-      activeOn: result.activeOn.split(':'),
-      lastActive: result.lastActive,
-      joinedAt: result.joinedAt,
-    }
-  } else {
-    return {
-      organizationId,
-      segmentId,
-      memberIds: [],
-      memberCount: 0,
-      activityCount: 0,
-      activeOn: [],
-      lastActive: null,
-      joinedAt: null,
-    }
-  }
+  return result.map((r) => ({
+    organizationId,
+    segmentId: r.segmentId,
+    tenantId: r.tenantId,
+    memberCount: r.memberCount,
+    activityCount: r.activityCount,
+    activeOn: r.activeOn.split(':'),
+    lastActive: r.lastActive,
+    joinedAt: r.joinedAt,
+  }))
 }
 
 export async function getMemberAggregates(
@@ -834,7 +856,7 @@ export async function getActivityCountOfMemberIdentities(
 
   let query = `
   select count(id) from activities
-  where "deletedAt" is null and "memberId" = $(memberId)  
+  where "deletedAt" is null and "memberId" = $(memberId)
   `
 
   const replacementKey = (key: string, index: number) => `${key}${index}`
@@ -872,7 +894,7 @@ export async function countMembersWithActivities(
 ): Promise<{ count: number; segmentId: string; date?: string }[]> {
   let query = `
     SELECT COUNT(id) AS count, "segmentId", timestamp AS date
-    FROM activities 
+    FROM activities
     WHERE "deletedAt" IS NULL
     AND "tenantId" = $(tenantId)
     AND "memberId" IS NOT NULL
@@ -912,7 +934,7 @@ export async function countOrganizationsWithActivities(
 ): Promise<{ count: number; segmentId: string; date?: string }[]> {
   let query = `
     SELECT COUNT(id) AS count, "segmentId", timestamp AS date
-    FROM activities 
+    FROM activities
     WHERE "deletedAt" IS NULL
     AND "tenantId" = $(tenantId)
     AND "organizationId" IS NOT NULL
@@ -1078,28 +1100,12 @@ export async function getMemberSegmentCouples(
 ): Promise<IMemberSegment[]> {
   return qdbConn.any(
     `
-    select distinct "memberId", "segmentId" 
-    from activities 
+    select distinct "memberId", "segmentId"
+    from activities
     where "deletedAt" is null and "memberId" in ($(memberIds:csv));
     `,
     {
       memberIds,
-    },
-  )
-}
-
-export async function getOrganizationSegmentCouples(
-  qdbConn: DbConnOrTx,
-  organizationIds: string[],
-): Promise<IOrganizationSegment[]> {
-  return qdbConn.any(
-    `
-    select distinct "organizationId", "segmentId" 
-    from activities 
-    where "deletedAt" is null and "organizationId" in ($(organizationIds:csv));
-    `,
-    {
-      organizationIds,
     },
   )
 }
