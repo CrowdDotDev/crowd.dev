@@ -90,14 +90,14 @@ export async function getIdentitiesWithActivity(
 
   for (let i = 0; i < identities.length; i++) {
     identityFilters.push(`(a.platform = $${index} and a.username = $${index + 1})`)
-    replacements[index] = identities[i].platform
-    replacements[index + 1] = identities[i].value
+    replacements[index - 1] = identities[i].platform
+    replacements[index] = identities[i].value
     index += 2
   }
 
   query += ` and (${identityFilters.join(' or ')})`
 
-  return db.connection().query(query, replacements)
+  return db.connection().any(query, replacements)
 }
 
 export async function moveIdentityActivitiesToNewMember(

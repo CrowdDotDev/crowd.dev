@@ -5,3 +5,10 @@ export interface ISimilarMember {
   secondaryMemberIdentityValue: string
   hash: number
 }
+
+export interface IFindMemberMergeActionReplacement {
+  memberId: string
+  startDate?: string
+  endDate?: string
+  userId?: string
+}
