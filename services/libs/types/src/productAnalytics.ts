@@ -8,8 +8,6 @@ export interface ISessionData {
   country: string
 }
 
-export type IDbSessionInsertData = Omit<ISessionData, 'endTime'>
-
 export interface IEventData {
   id: string
   sessionId: string
@@ -20,5 +18,3 @@ export interface IEventData {
   userId: string
   userEmail: string
 }
-
-export type IDbEventInsertData = Omit<IEventData, 'id' | 'createdAt'>
