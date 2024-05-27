@@ -42,7 +42,6 @@ import {
   IFetchOrganizationMergeSuggestionArgs,
   SimilarityScoreRange,
 } from '@/types/mergeSuggestionTypes'
-import { logExecutionTimeV2 } from '@crowd/logging'
 
 const { Op } = Sequelize
 
@@ -67,17 +66,15 @@ class OrganizationRepository {
     ['employees', 'o."employees"'],
     ['lastEnrichedAt', 'o."lastEnrichedAt"'],
     ['founded', 'o."founded"'],
-    ['size', 'o."size"'],
     ['headline', 'o."headline"'],
-    ['industry', 'o."industry"'],
     ['location', 'o."location"'],
     ['tags', 'o."tags"'],
     ['type', 'o."type"'],
+    ['isTeamOrganization', 'o."isTeamOrganization"'],
 
     // basic fields for querying
     ['displayName', 'o."displayName"'],
     ['website', 'o."website"'],
-    ['identities', 'o."identities"'],
     ['revenueRange', 'o."revenueRange"'],
     ['employeeGrowthRate', 'o."employeeGrowthRate"'],
 
@@ -96,6 +93,37 @@ class OrganizationRepository {
 
     // joined fields
     ['identities', 'i."identities"'],
+
+    // org fields for display
+    ['twitter', 'o."twitter"'],
+    ['naics', 'o."naics"'],
+    ['profiles', 'o."profiles"'],
+    ['ticker', 'o."ticker"'],
+    ['address', 'o."address"'],
+    ['geoLocation', 'o."geoLocation"'],
+    ['employeeCountByCountry', 'o."employeeCountByCountry"'],
+    ['twitter', 'o."twitter"'],
+    ['linkedin', 'o."linkedin"'],
+    ['crunchbase', 'o."crunchbase"'],
+    ['github', 'o."github"'],
+    ['description', 'o."description"'],
+    ['affiliatedProfiles', 'o."affiliatedProfiles"'],
+    ['allSubsidiaries', 'o."allSubsidiaries"'],
+    ['alternativeDomains', 'o."alternativeDomains"'],
+    ['alternativeNames', 'o."alternativeNames"'],
+    ['averageEmployeeTenure', 'o."averageEmployeeTenure"'],
+    ['averageTenureByLevel', 'o."averageTenureByLevel"'],
+    ['averageTenureByRole', 'o."averageTenureByRole"'],
+    ['directSubsidiaries', 'o."directSubsidiaries"'],
+    ['employeeChurnRate', 'o."employeeChurnRate"'],
+    ['employeeCountByMonth', 'o."employeeCountByMonth"'],
+    ['employeeCountByMonthByLevel', 'o."employeeCountByMonthByLevel"'],
+    ['employeeCountByMonthByRole', 'o."employeeCountByMonthByRole"'],
+    ['gicsSector', 'o."gicsSector"'],
+    ['grossAdditionsByMonth', 'o."grossAdditionsByMonth"'],
+    ['grossDeparturesByMonth', 'o."grossDeparturesByMonth"'],
+    ['ultimateParent', 'o."ultimateParent"'],
+    ['immediateParent', 'o."immediateParent"'],
   ])
 
   static async filterByPayingTenant(
@@ -1764,126 +1792,17 @@ class OrganizationRepository {
   }
 
   static async findById(id: string, options: IRepositoryOptions, segmentId?: string) {
-    const transaction = SequelizeRepository.getTransaction(options)
-    const sequelize = SequelizeRepository.getSequelize(options)
-
-    const currentTenant = SequelizeRepository.getCurrentTenant(options)
-
-    const replacements: Record<string, unknown> = {
-      id,
-      tenantId: currentTenant.id,
-    }
-
-    // query for all leaf segment ids
-    let extraCTEs = `
-      leaf_segment_ids AS (
-        select id
-        from segments
-        where "tenantId" = :tenantId and "parentSlug" is not null and "grandparentSlug" is not null
-      ),
-    `
-
-    if (segmentId) {
-      // we load data for a specific segment (can be leaf, parent or grand parent id)
-      replacements.segmentId = segmentId
-      extraCTEs = `
-        leaf_segment_ids AS (
-          SELECT
-              s.id
-          FROM segments s
-          JOIN segments sp ON sp.slug = s."parentSlug"
-              AND sp."grandparentSlug" IS NULL
-              AND sp."parentSlug" IS NOT NULL
-              AND sp."tenantId" = s."tenantId"
-          JOIN segments sgp ON sgp.slug = sp."parentSlug"
-              AND sgp."parentSlug" IS NULL
-              AND sgp."grandparentSlug" IS NULL
-              AND sgp."tenantId" = s."tenantId"
-          WHERE s."parentSlug" IS NOT NULL
-            AND s."grandparentSlug" IS NOT NULL
-            AND s."tenantId" = :tenantId
-            AND (
-              s.id = :segmentId
-              OR sp.id = :segmentId
-              OR sgp.id = :segmentId
-            )
-        ),
-      `
-    }
-
-    const query = `
-      WITH
-        ${extraCTEs}
-        member_data AS (
-          select
-            a."organizationId",
-            count(distinct a."memberId")                                                        as "memberCount",
-            count(distinct a.id)                                                        as "activityCount",
-            case
-                when array_agg(distinct a.platform::TEXT) = array [null] then array []::text[]
-                else array_agg(distinct a.platform::TEXT) end                                 as "activeOn",
-            max(a.timestamp)                                                            as "lastActive",
-            min(a.timestamp) filter ( where a.timestamp <> '1970-01-01T00:00:00.000Z' ) as "joinedAt"
-          from leaf_segment_ids ls
-          join mv_activities_cube a on a."segmentId" = ls.id and a."organizationId" = :id
-          group by a."organizationId"
-        ),
-        organization_segments AS (
-          select "organizationId", array_agg("segmentId") as "segments"
-          from "organizationSegments"
-          where "organizationId" = :id
-          group by "organizationId"
-        ),
-        identities as (
-          SELECT oi."organizationId", jsonb_agg(oi) AS "identities"
-          FROM "organizationIdentities" oi
-          WHERE oi."organizationId" = :id
-          GROUP BY "organizationId"
-        )
-        select
-          o.*,
-          coalesce(md."activityCount", 0)::integer as "activityCount",
-          coalesce(md."memberCount", 0)::integer   as "memberCount",
-          coalesce(md."activeOn", '{}')            as "activeOn",
-          coalesce(i.identities, '{}')            as identities,
-          coalesce(os.segments, '{}')              as segments,
-          md."lastActive",
-          md."joinedAt"
-        from organizations o
-        left join member_data md on md."organizationId" = o.id
-        left join organization_segments os on os."organizationId" = o.id
-        left join identities i on i."organizationId" = o.id
-        where o.id = :id
-        and o."tenantId" = :tenantId;
-    `
-
-    const results = await sequelize.query(query, {
-      replacements,
-      type: QueryTypes.SELECT,
-      transaction,
-    })
-
-    if (results.length === 0) {
-      throw new Error404()
-    }
-
-    const result = results[0] as any
-
-    const manualSyncRemote = await new OrganizationSyncRemoteRepository(
+    const { rows } = await OrganizationRepository.findAndCountAll(
+      {
+        filter: { id: { eq: id } },
+        limit: 1,
+        offset: 0,
+        segments: [segmentId],
+      },
       options,
-    ).findOrganizationManualSync(result.id)
+    )
 
-    for (const syncRemote of manualSyncRemote) {
-      if (result.attributes?.syncRemote) {
-        result.attributes.syncRemote[syncRemote.platform] = syncRemote.status === SyncStatus.ACTIVE
-      } else {
-        result.attributes.syncRemote = {
-          [syncRemote.platform]: syncRemote.status === SyncStatus.ACTIVE,
-        }
-      }
-    }
-
-    return result
+    return rows[0]
   }
 
   static async findByName(name, options: IRepositoryOptions) {
@@ -2343,7 +2262,7 @@ class OrganizationRepository {
       offset = 0,
       orderBy = 'joinedAt_DESC',
       segments = [] as string[],
-      fields = [],
+      fields = [...OrganizationRepository.QUERY_FILTER_COLUMN_MAP.keys()],
     },
     options: IRepositoryOptions,
   ) {
