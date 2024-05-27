@@ -58,7 +58,7 @@ export default {
       });
   },
   handleLocalAuth() {
-    if (['production', 'staging', 'local'].includes(config.env)) {
+    if (['production', 'staging'].includes(config.env)) {
       return Promise.reject();
     }
     const storedToken = AuthService.getToken();
