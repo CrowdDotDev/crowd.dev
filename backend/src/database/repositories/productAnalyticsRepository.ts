@@ -14,8 +14,8 @@ export default class ProductAnalyticsRepository {
         id: generateUUIDv4(),
         userId: data.userId,
         userEmail: data.userEmail,
-        ipAddress: data.ipAddress,
-        country: data.country,
+        ipAddress: data.ipAddress || null,
+        country: data.country || null,
       },
     )
 

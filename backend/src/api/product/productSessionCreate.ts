@@ -7,9 +7,8 @@ export default async (req, res) => {
   }
 
   // cloudflare headers to get the real ip & country
-  // default to localhost if not found (for local development)
-  const ipAddress = req.headers['cf-connecting-ip'] || '127.0.0.1'
-  const country = req.headers['cf-ipcountry'] || 'US'
+  const ipAddress = req.headers['cf-connecting-ip']
+  const country = req.headers['cf-ipcountry']
 
   req.body = {
     ...req.body,
