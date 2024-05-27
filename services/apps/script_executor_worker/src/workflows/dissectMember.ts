@@ -32,7 +32,7 @@ export async function dissectMember(args: IDissectMemberArgs): Promise<void> {
     args.startDate,
     args.endDate,
     args.userId,
-    MERGE_ACTIONS_PAGE_SIZE,
+    args.undoActionPerWorkflow || MERGE_ACTIONS_PAGE_SIZE,
   )
 
   for (const mergeAction of mergeActions) {
