@@ -6,6 +6,7 @@ export async function findMemberMergeActions(
   startDate: string,
   endDate: string,
   userId: string,
+  limit: number,
 ): Promise<IMergeAction[]> {
   let mergeActions: IMergeAction[] = []
 
@@ -16,6 +17,7 @@ export async function findMemberMergeActions(
       startDate,
       endDate,
       userId,
+      limit,
     )
   } catch (err) {
     throw new Error(err)

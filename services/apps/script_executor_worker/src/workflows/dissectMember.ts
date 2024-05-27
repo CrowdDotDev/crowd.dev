@@ -1,6 +1,7 @@
 import {
   ChildWorkflowCancellationType,
   ParentClosePolicy,
+  continueAsNew,
   proxyActivities,
   startChild,
   workflowInfo,
@@ -24,11 +25,14 @@ const common = proxyActivities<typeof commonActivities>({
 export async function dissectMember(args: IDissectMemberArgs): Promise<void> {
   const info = workflowInfo()
 
+  const MERGE_ACTIONS_PAGE_SIZE = 10
+
   const mergeActions = await activity.findMemberMergeActions(
     args.memberId,
     args.startDate,
     args.endDate,
     args.userId,
+    MERGE_ACTIONS_PAGE_SIZE,
   )
 
   for (const mergeAction of mergeActions) {
@@ -69,5 +73,9 @@ export async function dissectMember(args: IDissectMemberArgs): Promise<void> {
     console.log(
       `Finished unmerging member ${mergeAction.secondaryId} from ${mergeAction.primaryId}!`,
     )
+  }
+
+  if (mergeActions.length === MERGE_ACTIONS_PAGE_SIZE) {
+    await continueAsNew<typeof dissectMember>(args)
   }
 }

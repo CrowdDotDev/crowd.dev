@@ -11,4 +11,5 @@ export interface IFindMemberMergeActionReplacement {
   startDate?: string
   endDate?: string
   userId?: string
+  limit?: number
 }
