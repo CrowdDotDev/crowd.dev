@@ -11,6 +11,7 @@ import * as activities from '../activities/dissect-member'
 import * as commonActivities from '../activities/common'
 import { IDissectMemberArgs } from '../types'
 import { IMemberUnmergeBackup, IUnmergeBackup } from '@crowd/types'
+import { start } from 'repl'
 
 const activity = proxyActivities<typeof activities>({
   startToCloseTimeout: '3 minute',
@@ -52,7 +53,7 @@ export async function dissectMember(args: IDissectMemberArgs): Promise<void> {
 
     await common.waitForTemporalWorkflowExecutionFinish(workflowId)
 
-    startChild(dissectMember, {
+    await startChild(dissectMember, {
       workflowId: `${info.workflowId}/${mergeAction.secondaryId}`,
       cancellationType: ChildWorkflowCancellationType.ABANDON,
       parentClosePolicy: ParentClosePolicy.PARENT_CLOSE_POLICY_ABANDON,
