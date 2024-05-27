@@ -25,14 +25,16 @@ const common = proxyActivities<typeof commonActivities>({
 export async function dissectMember(args: IDissectMemberArgs): Promise<void> {
   const info = workflowInfo()
 
-  const MERGE_ACTIONS_PAGE_SIZE = 10
+  const DEFAULT_MERGE_ACTIONS_PAGE_SIZE = 10
+
+  const mergeActionPageSize = args.undoActionPerWorkflow || DEFAULT_MERGE_ACTIONS_PAGE_SIZE
 
   const mergeActions = await activity.findMemberMergeActions(
     args.memberId,
     args.startDate,
     args.endDate,
     args.userId,
-    args.undoActionPerWorkflow || MERGE_ACTIONS_PAGE_SIZE,
+    mergeActionPageSize,
   )
 
   for (const mergeAction of mergeActions) {
@@ -75,7 +77,7 @@ export async function dissectMember(args: IDissectMemberArgs): Promise<void> {
     )
   }
 
-  if (mergeActions.length === MERGE_ACTIONS_PAGE_SIZE) {
+  if (mergeActions.length === mergeActionPageSize) {
     await continueAsNew<typeof dissectMember>(args)
   }
 }
