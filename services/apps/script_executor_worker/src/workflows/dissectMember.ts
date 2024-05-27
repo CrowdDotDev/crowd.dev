@@ -11,7 +11,6 @@ import * as activities from '../activities/dissect-member'
 import * as commonActivities from '../activities/common'
 import { IDissectMemberArgs } from '../types'
 import { IMemberUnmergeBackup, IUnmergeBackup } from '@crowd/types'
-import { start } from 'repl'
 
 const activity = proxyActivities<typeof activities>({
   startToCloseTimeout: '3 minute',
@@ -19,8 +18,8 @@ const activity = proxyActivities<typeof activities>({
 })
 
 const common = proxyActivities<typeof commonActivities>({
-  startToCloseTimeout: '5 minute',
-  retry: { maximumAttempts: 6, backoffCoefficient: 3 },
+  startToCloseTimeout: '10 minute',
+  retry: { maximumAttempts: 1, backoffCoefficient: 3 },
 })
 
 export async function dissectMember(args: IDissectMemberArgs): Promise<void> {
