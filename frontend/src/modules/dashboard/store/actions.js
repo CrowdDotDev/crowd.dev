@@ -3,11 +3,11 @@ import { MemberService } from '@/modules/member/member-service';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import { ActivityService } from '@/modules/activity/activity-service';
 import { ConversationService } from '@/modules/conversation/conversation-service';
-import { SEVEN_DAYS_PERIOD_FILTER } from '@/modules/widget/widget-constants';
 import { DEFAULT_ACTIVITY_FILTERS } from '@/modules/activity/store/constants';
 import { DEFAULT_ORGANIZATION_FILTERS } from '@/modules/organization/store/constants';
 import { DEFAULT_MEMBER_FILTERS } from '@/modules/member/store/constants';
 import { DashboardApiService } from '@/modules/dashboard/services/dashboard.api.service';
+import { SEVEN_DAYS_PERIOD_FILTER } from '@/modules/widget/widget-constants';
 
 export default {
   async reset({ dispatch }) {

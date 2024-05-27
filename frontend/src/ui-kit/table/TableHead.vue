@@ -1,8 +1,8 @@
 <template>
-  <th>
+  <th :class="props.sticky ? 'is-sticky' : ''">
     <div
       class="flex items-center gap-1"
-      :class="props.property ? 'cursor-pointer select-none' : ''"
+      :class="[props.property ? 'cursor-pointer select-none' : '']"
       @click="sort()"
     >
       <slot />
@@ -18,6 +18,7 @@ import { computed } from 'vue';
 const props = defineProps<{
   modelValue?: string,
   property?: string,
+  sticky?: boolean,
 }>();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: string): void}>();

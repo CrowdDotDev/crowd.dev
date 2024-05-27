@@ -22,8 +22,6 @@ export default class SequelizeTestUtils {
     db = await this.getDatabase(db)
 
     const tables = [
-      '"organizationCacheIdentities"',
-      '"organizationCacheLinks"',
       '"organizationIdentities"',
       '"activityTasks"',
       '"automationExecutions"',
@@ -66,7 +64,6 @@ export default class SequelizeTestUtils {
       '"incomingWebhooks"',
       '"githubRepos"',
 
-      '"organizationCaches"',
       '"organizationsSyncRemote"',
       '"organizationSegments"',
       '"organizationToMerge"',
