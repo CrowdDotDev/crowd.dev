@@ -1226,6 +1226,7 @@ export default class OrganizationService extends LoggerBase {
           'founded',
           'employeeGrowthRate',
           'tags',
+          'logo',
         ],
       },
       this.options,

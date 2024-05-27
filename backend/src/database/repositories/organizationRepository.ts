@@ -27,7 +27,6 @@ import {
   SegmentData,
   SegmentProjectGroupNestedData,
   SegmentProjectNestedData,
-  SyncStatus,
 } from '@crowd/types'
 import lodash, { chunk, uniq } from 'lodash'
 import Sequelize, { QueryTypes } from 'sequelize'
@@ -40,7 +39,6 @@ import {
 import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import AuditLogRepository from './auditLogRepository'
-import OrganizationSyncRemoteRepository from './organizationSyncRemoteRepository'
 import SegmentRepository from './segmentRepository'
 import SequelizeRepository from './sequelizeRepository'
 import { IActiveOrganizationData, IActiveOrganizationFilter } from './types/organizationTypes'
@@ -68,17 +66,15 @@ class OrganizationRepository {
     ['employees', 'o."employees"'],
     ['lastEnrichedAt', 'o."lastEnrichedAt"'],
     ['founded', 'o."founded"'],
-    ['size', 'o."size"'],
     ['headline', 'o."headline"'],
-    ['industry', 'o."industry"'],
     ['location', 'o."location"'],
     ['tags', 'o."tags"'],
     ['type', 'o."type"'],
+    ['isTeamOrganization', 'o."isTeamOrganization"'],
 
     // basic fields for querying
     ['displayName', 'o."displayName"'],
     ['website', 'o."website"'],
-    ['identities', 'o."identities"'],
     ['revenueRange', 'o."revenueRange"'],
     ['employeeGrowthRate', 'o."employeeGrowthRate"'],
 
@@ -97,6 +93,38 @@ class OrganizationRepository {
 
     // joined fields
     ['identities', 'i."identities"'],
+
+    // org fields for display
+    ['logo', 'o."logo"'],
+    ['twitter', 'o."twitter"'],
+    ['naics', 'o."naics"'],
+    ['profiles', 'o."profiles"'],
+    ['ticker', 'o."ticker"'],
+    ['address', 'o."address"'],
+    ['geoLocation', 'o."geoLocation"'],
+    ['employeeCountByCountry', 'o."employeeCountByCountry"'],
+    ['twitter', 'o."twitter"'],
+    ['linkedin', 'o."linkedin"'],
+    ['crunchbase', 'o."crunchbase"'],
+    ['github', 'o."github"'],
+    ['description', 'o."description"'],
+    ['affiliatedProfiles', 'o."affiliatedProfiles"'],
+    ['allSubsidiaries', 'o."allSubsidiaries"'],
+    ['alternativeDomains', 'o."alternativeDomains"'],
+    ['alternativeNames', 'o."alternativeNames"'],
+    ['averageEmployeeTenure', 'o."averageEmployeeTenure"'],
+    ['averageTenureByLevel', 'o."averageTenureByLevel"'],
+    ['averageTenureByRole', 'o."averageTenureByRole"'],
+    ['directSubsidiaries', 'o."directSubsidiaries"'],
+    ['employeeChurnRate', 'o."employeeChurnRate"'],
+    ['employeeCountByMonth', 'o."employeeCountByMonth"'],
+    ['employeeCountByMonthByLevel', 'o."employeeCountByMonthByLevel"'],
+    ['employeeCountByMonthByRole', 'o."employeeCountByMonthByRole"'],
+    ['gicsSector', 'o."gicsSector"'],
+    ['grossAdditionsByMonth', 'o."grossAdditionsByMonth"'],
+    ['grossDeparturesByMonth', 'o."grossDeparturesByMonth"'],
+    ['ultimateParent', 'o."ultimateParent"'],
+    ['immediateParent', 'o."immediateParent"'],
   ])
 
   static async filterByPayingTenant(
@@ -2151,7 +2179,7 @@ class OrganizationRepository {
       offset = 0,
       orderBy = 'joinedAt_DESC',
       segments = [] as string[],
-      fields = [],
+      fields = [...OrganizationRepository.QUERY_FILTER_COLUMN_MAP.keys()],
     },
     options: IRepositoryOptions,
   ) {
