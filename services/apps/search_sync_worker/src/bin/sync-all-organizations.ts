@@ -1,5 +1,5 @@
 import { OrganizationSyncService, OpenSearchService } from '@crowd/opensearch'
-import { OPENSEARCH_CONFIG, SERVICE_CONFIG } from '../conf'
+import { DB_CONFIG, OPENSEARCH_CONFIG, SERVICE_CONFIG } from '../conf'
 import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { getServiceLogger } from '@crowd/logging'
 import { OrganizationRepository } from '@crowd/data-access-layer/src/old/apps/search_sync_worker/organization.repo'
@@ -16,41 +16,19 @@ const MAX_CONCURRENT = 3
 setImmediate(async () => {
   const openSearchService = new OpenSearchService(log, OPENSEARCH_CONFIG())
 
-  const writeHost = await getDbConnection({
-    host: process.env.CROWD_DB_WRITE_HOST,
-    port: parseInt(process.env.CROWD_DB_PORT),
-    database: process.env.CROWD_DB_DATABASE,
-    user: process.env.CROWD_DB_USERNAME,
-    password: process.env.CROWD_DB_PASSWORD,
-  })
-
-  const writeStore = new DbStore(log, writeHost)
-
-  const readHost = await getDbConnection({
-    host: process.env.CROWD_DB_READ_HOST,
-    port: parseInt(process.env.CROWD_DB_PORT),
-    database: process.env.CROWD_DB_DATABASE,
-    user: process.env.CROWD_DB_USERNAME,
-    password: process.env.CROWD_DB_PASSWORD,
-  })
+  const dbConnection = await getDbConnection(DB_CONFIG())
+  const store = new DbStore(log, dbConnection)
 
   if (processArguments.includes('--clean')) {
-    const indexingRepo = new IndexingRepository(writeStore, log)
+    const indexingRepo = new IndexingRepository(store, log)
     await indexingRepo.deleteIndexedEntities(IndexedEntityType.ORGANIZATION)
   }
 
-  const readStore = new DbStore(log, readHost)
-  const repo = new OrganizationRepository(readStore, log)
+  const repo = new OrganizationRepository(store, log)
 
   const tenantIds = await repo.getTenantIds()
 
-  const service = new OrganizationSyncService(
-    writeStore,
-    openSearchService,
-    log,
-    SERVICE_CONFIG(),
-    readStore,
-  )
+  const service = new OrganizationSyncService(store, openSearchService, log, SERVICE_CONFIG())
 
   let current = 0
   for (let i = 0; i < tenantIds.length; i++) {
