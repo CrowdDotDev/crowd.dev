@@ -1,4 +1,10 @@
-import { ChildWorkflowCancellationType, ParentClosePolicy, proxyActivities, startChild, workflowInfo } from '@temporalio/workflow'
+import {
+  ChildWorkflowCancellationType,
+  ParentClosePolicy,
+  proxyActivities,
+  startChild,
+  workflowInfo,
+} from '@temporalio/workflow'
 
 import * as activities from '../activities/dissect-member'
 import * as commonActivities from '../activities/common'
