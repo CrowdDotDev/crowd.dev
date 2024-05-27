@@ -1,4 +1,4 @@
-import { proxyActivities } from '@temporalio/workflow'
+import { ChildWorkflowCancellationType, ParentClosePolicy, proxyActivities, startChild, workflowInfo } from '@temporalio/workflow'
 
 import * as activities from '../activities/dissect-member'
 import * as commonActivities from '../activities/common'
@@ -16,6 +16,8 @@ const common = proxyActivities<typeof commonActivities>({
 })
 
 export async function dissectMember(args: IDissectMemberArgs): Promise<void> {
+  const info = workflowInfo()
+
   const mergeActions = await activity.findMemberMergeActions(
     args.memberId,
     args.startDate,
@@ -26,6 +28,7 @@ export async function dissectMember(args: IDissectMemberArgs): Promise<void> {
   for (const mergeAction of mergeActions) {
     // 1. call api.unmerge using backups
     // 2. wait for temporal async stuff to complete
+    // 3. call the same workflow again for the unmerged secondary member
 
     await common.unmergeMembers(
       mergeAction.primaryId,
@@ -36,6 +39,26 @@ export async function dissectMember(args: IDissectMemberArgs): Promise<void> {
     const workflowId = `finishMemberUnmerging/${mergeAction.primaryId}/${mergeAction.secondaryId}`
 
     await common.waitForTemporalWorkflowExecutionFinish(workflowId)
+
+    startChild(dissectMember, {
+      workflowId: `${info.workflowId}/${mergeAction.secondaryId}`,
+      cancellationType: ChildWorkflowCancellationType.ABANDON,
+      parentClosePolicy: ParentClosePolicy.PARENT_CLOSE_POLICY_ABANDON,
+      retry: {
+        backoffCoefficient: 2,
+        initialInterval: 2 * 1000,
+        maximumInterval: 30 * 1000,
+      },
+      args: [
+        {
+          ...args,
+          memberId: mergeAction.secondaryId,
+        },
+      ],
+      searchAttributes: {
+        TenantId: [mergeAction.tenantId],
+      },
+    })
 
     console.log(
       `Finished unmerging member ${mergeAction.secondaryId} from ${mergeAction.primaryId}!`,
