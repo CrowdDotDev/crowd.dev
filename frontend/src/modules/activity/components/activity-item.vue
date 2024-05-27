@@ -148,6 +148,8 @@ import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import LfActivityDisplay from '@/shared/modules/activity/components/activity-display.vue';
 import { Platform } from '@/shared/modules/platform/types/Platform';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import AppActivityHeader from './activity-header.vue';
 
 const emit = defineEmits(['openConversation', 'edit', 'onUpdate', 'activity-destroyed']);
@@ -169,6 +171,8 @@ const props = defineProps({
   },
 });
 
+const { trackEvent } = useProductTracking();
+
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
@@ -177,6 +181,14 @@ const platform = computed(() => CrowdIntegrations.getConfig(
 ));
 
 const openConversation = (conversationId) => {
+  trackEvent({
+    key: FeatureEventKey.VIEW_CONVERSATION,
+    type: EventType.FEATURE,
+    properties: {
+      conversationPlatform: props.activity.platform,
+    },
+  });
+
   emit('openConversation', conversationId);
 };
 </script>

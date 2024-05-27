@@ -77,6 +77,8 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';
 import { getSegmentsFromProjectGroup } from '@/utils/segments';
 import AppWidgetPeriod from '@/modules/widget/components/shared/widget-period.vue';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 
 export default {
   name: 'AppDashboardFilters',
@@ -133,6 +135,16 @@ export default {
     }),
     setSegment(filters) {
       if (filters.segments?.segments?.length) {
+        const { trackEvent } = useProductTracking();
+
+        trackEvent({
+          key: FeatureEventKey.FILTER_DASHBOARD,
+          type: EventType.FEATURE,
+          properties: {
+            filter: { projects: filters.segments.segments },
+          },
+        });
+
         this.setFilters(filters);
       }
     },
@@ -140,11 +152,31 @@ export default {
       return CrowdIntegrations.getConfig(platform);
     },
     setPeriod(period) {
+      trackEvent({
+        key: FeatureEventKey.FILTER_DASHBOARD,
+        type: EventType.FEATURE,
+        properties: {
+          filter: {
+            period,
+          },
+        },
+      });
+
       this.setFilters({
         period,
       });
     },
     setPlatform(platform) {
+      trackEvent({
+        key: FeatureEventKey.FILTER_DASHBOARD,
+        type: EventType.FEATURE,
+        properties: {
+          filter: {
+            platform,
+          },
+        },
+      });
+
       this.setFilters({
         platform,
       });

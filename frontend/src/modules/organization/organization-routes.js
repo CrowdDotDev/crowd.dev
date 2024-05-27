@@ -2,6 +2,7 @@ import Layout from '@/modules/layout/components/layout.vue';
 import { store } from '@/store';
 import { PermissionGuard } from '@/shared/modules/permissions/router/PermissionGuard';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import { PageEventKey } from '@/shared/modules/monitoring/types/event';
 
 const OrganizationListPage = () => import(
   '@/modules/organization/pages/organization-list-page.vue'
@@ -38,6 +39,7 @@ export default [
         component: OrganizationsMainPage,
         meta: {
           auth: true,
+          eventKey: PageEventKey.ORGANIZATIONS,
         },
         props: {
           module: 'organizations',
@@ -52,6 +54,7 @@ export default [
         component: OrganizationFormPage,
         meta: {
           auth: true,
+          eventKey: PageEventKey.NEW_ORGANIZATION,
         },
         beforeEnter: [
           PermissionGuard(LfPermission.organizationCreate),
@@ -63,6 +66,7 @@ export default [
         component: OrganizationFormPage,
         meta: {
           auth: true,
+          eventKey: PageEventKey.EDIT_ORGANIZATION,
         },
         props: true,
         beforeEnter: [
@@ -76,6 +80,7 @@ export default [
         meta: {
           title: 'Organization',
           auth: true,
+          eventKey: PageEventKey.ORGANIZATION_PROFILE,
         },
         props: true,
         beforeEnter: [
@@ -88,6 +93,7 @@ export default [
         component: OrganizationMergeSuggestionsPage,
         meta: {
           auth: true,
+          eventKey: PageEventKey.ORGANIZATIONS_MERGE_SUGGESTIONS,
         },
         props: true,
         beforeEnter: [

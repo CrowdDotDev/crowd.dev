@@ -92,7 +92,14 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { getExportMax } from '@/modules/member/member-export-limit';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import { useRoute } from 'vue-router';
 import { OrganizationService } from '../../organization-service';
+
+const { trackEvent } = useProductTracking();
+
+const route = useRoute();
 
 const authStore = useAuthStore();
 const { tenant } = storeToRefs(authStore);
@@ -142,6 +149,15 @@ const handleDoDestroyAllWithConfirm = () => ConfirmDialog({
   icon: 'ri-delete-bin-line',
 })
   .then(() => {
+    trackEvent({
+      key: FeatureEventKey.DELETE_ORGANIZATION,
+      type: EventType.FEATURE,
+      properties: {
+        path: route.path,
+        bulk: true,
+      },
+    });
+
     const ids = selectedOrganizations.value.map((m) => m.id);
     return OrganizationService.destroyAll(ids);
   })
@@ -190,6 +206,15 @@ const handleDoExport = async () => {
       badgeContent: pluralize('organization', selectedOrganizations.value.length, true),
     });
 
+    trackEvent({
+      key: FeatureEventKey.EXPORT_ORGANIZATIONS,
+      type: EventType.FEATURE,
+      properties: {
+        path: route.path,
+        bulk: true,
+      },
+    });
+
     await OrganizationService.export({
       filter,
       limit: selectedOrganizations.value.length,
@@ -220,6 +245,15 @@ const handleCommand = async (command) => {
   } else if (command.action === 'mergeOrganizations') {
     await handleMergeOrganizations();
   } else if (command.action === 'markAsTeamOrganization') {
+    trackEvent({
+      key: FeatureEventKey.MARK_AS_TEAM_ORGANIZATION,
+      type: EventType.FEATURE,
+      properties: {
+        path: route.path,
+        bulk: true,
+      },
+    });
+
     Message.info(
       null,
       {

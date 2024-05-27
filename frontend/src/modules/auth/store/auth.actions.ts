@@ -4,10 +4,11 @@ import { AuthService } from '@/modules/auth/services/auth.service';
 import { User } from '@/modules/auth/types/User.type';
 import Errors from '@/shared/error/errors';
 import { disconnectSocket, connectSocket, isSocketConnected } from '@/modules/auth/auth.socket';
-import identify from '@/shared/monitoring/identify';
+import identify from '@/shared/modules/monitoring/identify';
 import { watch } from 'vue';
 import config from '@/config';
 import { setRumUser } from '@/utils/datadog/rum';
+import useSessionTracking from '@/shared/modules/monitoring/useSessionTracking';
 
 export default {
   init() {
@@ -57,7 +58,7 @@ export default {
       });
   },
   handleLocalAuth() {
-    if (['production', 'staging'].includes(config.env)) {
+    if (['production', 'staging', 'local'].includes(config.env)) {
       return Promise.reject();
     }
     const storedToken = AuthService.getToken();
@@ -71,14 +72,42 @@ export default {
 
     return Promise.reject();
   },
+  ensureTrackingSession(): Promise<void> {
+    if (!this.loaded) {
+      return new Promise((resolve) => {
+        const stopWatcher = watch(
+          () => this.loaded,
+          async (loaded) => {
+            if (!loaded) {
+              const { startSession, attachListeners } = useSessionTracking();
+
+              this.loaded = true;
+
+              await startSession();
+              attachListeners();
+            }
+
+            resolve();
+            stopWatcher();
+          },
+          {
+            immediate: true,
+          },
+        );
+      });
+    }
+
+    return Promise.resolve();
+  },
   ensureLoaded(): Promise<void> {
     if (!this.user || !this.tenant) {
       return new Promise((resolve) => {
         const stopWatcher = watch(
           () => [this.user, this.tenant],
-          ([newUser, newTenant]) => {
+          async ([newUser, newTenant]) => {
             if (newUser && newTenant) {
               this.setLfxHeader();
+
               resolve();
               stopWatcher();
             }

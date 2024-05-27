@@ -176,6 +176,9 @@ import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
 import { showIntegrationProgressNotification } from '@/modules/integration/helpers/integration-progress-notification';
 import AppGithubSettingsBulkSelect from '@/integrations/github/components/github-settings-bulk-select.vue';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import { Platform } from '@/shared/modules/platform/types/Platform';
 
 const props = defineProps<{
   modelValue: boolean,
@@ -183,6 +186,8 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void }>();
+
+const { trackEvent } = useProductTracking();
 
 const route = useRoute();
 const router = useRouter();
@@ -263,6 +268,14 @@ const connect = () => {
           isDrawerVisible.value = false;
 
           doFetch([props.integration.segmentId]);
+
+          trackEvent({
+            key: FeatureEventKey.CONNECT_INTEGRATION,
+            type: EventType.FEATURE,
+            properties: {
+              integration: Platform.GITHUB,
+            },
+          });
 
           showIntegrationProgressNotification('github', props.integration.segmentId);
 

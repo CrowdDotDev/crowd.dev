@@ -107,6 +107,8 @@ import { useAutomationStore } from '@/modules/automation/store';
 import Message from '@/shared/message/message';
 import { i18n } from '@/i18n';
 import formChangeDetector from '@/shared/form/form-change';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { automationTypes } from '../config/automation-types';
 
 const props = defineProps({
@@ -129,6 +131,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'update:automation']);
 
+const { trackEvent } = useProductTracking();
 const { createAutomation, updateAutomation, getAutomations } = useAutomationStore();
 
 const isDrawerOpen = computed({
@@ -202,6 +205,14 @@ const doSubmit = () => {
     },
   };
   if (!isEdit.value) {
+    trackEvent({
+      key: FeatureEventKey.ADD_AUTOMATION,
+      type: EventType.FEATURE,
+      properties: {
+        automationType: data.type,
+      },
+    });
+
     createAutomation(data)
       .then(() => {
         getAutomations();
@@ -214,6 +225,14 @@ const doSubmit = () => {
         sending.value = false;
       });
   } else {
+    trackEvent({
+      key: FeatureEventKey.EDIT_AUTOMATION,
+      type: EventType.FEATURE,
+      properties: {
+        automationType: data.type,
+      },
+    });
+
     updateAutomation(props.automation.id, data)
       .then(() => {
         getAutomations();

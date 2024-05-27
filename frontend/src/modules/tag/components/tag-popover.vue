@@ -36,6 +36,10 @@ import { useMemberStore } from '@/modules/member/store/pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { getSegmentsFromProjectGroup } from '@/utils/segments';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+
+const { trackEvent } = useProductTracking();
 
 const memberStore = useMemberStore();
 const { selectedMembers } = storeToRefs(memberStore);
@@ -145,6 +149,11 @@ export default {
       const segments = this.member
         ? this.member.segmentIds ?? this.member.segments?.map((s) => s.id) ?? getSegmentsFromProjectGroup(this.selectedProjectGroup)
         : getSegmentsFromProjectGroup(this.selectedProjectGroup);
+
+      trackEvent({
+        key: FeatureEventKey.EDIT_CONTRIBUTOR_TAGS,
+        type: EventType.FEATURE,
+      });
 
       await this.doBulkUpdateMembersTags({
         members: [...this.membersToUpdate],

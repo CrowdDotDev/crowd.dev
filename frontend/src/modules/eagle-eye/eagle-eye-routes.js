@@ -2,6 +2,7 @@ import Layout from '@/modules/layout/components/layout.vue';
 import { store } from '@/store';
 import { PermissionGuard } from '@/shared/modules/permissions/router/PermissionGuard';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import { PageEventKey } from '@/shared/modules/monitoring/types/event';
 
 const EagleEyePage = () => import(
   '@/modules/eagle-eye/pages/eagle-eye-page-wrapper.vue'
@@ -14,6 +15,7 @@ export default [
     meta: {
       auth: true,
       title: 'Community Lens',
+      eventKey: PageEventKey.COMMUNITY_LENS,
       hideBanner: true,
     },
     children: [

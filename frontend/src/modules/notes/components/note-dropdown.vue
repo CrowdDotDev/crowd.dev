@@ -44,6 +44,8 @@ import { NoteService } from '@/modules/notes/note-service';
 import Message from '@/shared/message/message';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 
 const emit = defineEmits(['edit', 'reload']);
 
@@ -54,6 +56,7 @@ const props = defineProps({
   },
 });
 
+const { trackEvent } = useProductTracking();
 const { hasPermission } = usePermissions();
 
 const dropdownVisible = ref(false);
@@ -68,7 +71,14 @@ const doDestroyWithConfirm = () => {
     confirmButtonText: 'Confirm',
     cancelButtonText: 'Cancel',
   })
-    .then(() => NoteService.destroyAll([props.note.id]))
+    .then(() => {
+      trackEvent({
+        key: FeatureEventKey.DELETE_NOTE,
+        type: EventType.FEATURE,
+      });
+
+      NoteService.destroyAll([props.note.id]);
+    })
     .then(() => {
       Message.success('Note successfully deleted!');
       emit('reload');

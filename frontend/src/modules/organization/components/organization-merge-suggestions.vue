@@ -150,6 +150,8 @@ import AppMemberMergeSuggestionsDetails
 import useOrganizationMergeMessage from '@/shared/modules/merge/config/useOrganizationMergeMessage';
 import CrButton from '@/ui-kit/button/Button.vue';
 import AppMemberMergeSimilarity from '@/modules/member/components/suggestions/member-merge-similarity.vue';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { OrganizationService } from '../organization-service';
 
 const props = defineProps({
@@ -168,6 +170,8 @@ const props = defineProps({
 const emit = defineEmits(['reload']);
 
 const organizationStore = useOrganizationStore();
+
+const { trackEvent } = useProductTracking();
 
 const organizationsToMerge = ref([]);
 const primary = ref(0);
@@ -212,6 +216,12 @@ const fetch = (page) => {
   if (page > -1) {
     offset.value = page;
   }
+
+  trackEvent({
+    key: FeatureEventKey.NAVIGATE_ORGANIZATIONS_MERGE_SUGGESTIONS,
+    type: EventType.FEATURE,
+  });
+
   loading.value = true;
 
   OrganizationService.fetchMergeSuggestions(1, offset.value, props.query ?? {})
@@ -236,6 +246,15 @@ const ignoreSuggestion = () => {
   if (sendingIgnore.value || sendingMerge.value || loading.value) {
     return;
   }
+
+  trackEvent({
+    key: FeatureEventKey.IGNORE_ORGANIZATION_MERGE_SUGGESTION,
+    type: EventType.FEATURE,
+    properties: {
+      similarity: organizationsToMerge.value.similarity,
+    },
+  });
+
   sendingIgnore.value = true;
   OrganizationService.addToNoMerge(...organizationsToMerge.value.organizations)
     .then(() => {
@@ -264,6 +283,15 @@ const mergeSuggestion = () => {
   if (sendingIgnore.value || sendingMerge.value || loading.value) {
     return;
   }
+
+  trackEvent({
+    key: FeatureEventKey.MERGE_ORGANIZATION_MERGE_SUGGESTION,
+    type: EventType.FEATURE,
+    properties: {
+      similarity: organizationsToMerge.value.similarity,
+    },
+  });
+
   sendingMerge.value = true;
 
   const primaryOrganization = organizationsToMerge.value.organizations[primary.value];

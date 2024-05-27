@@ -77,6 +77,9 @@ import CrCheckbox from '@/ui-kit/checkbox/Checkbox.vue';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';
 import isEqual from 'lodash/isEqual';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import { useRouter } from 'vue-router';
 
 const props = defineProps<{
   segments: string[]
@@ -90,6 +93,9 @@ const visible = ref<boolean>(false);
 
 const segments = ref<string[]>(props.segments);
 const childSegments = ref<string[]>(props.childSegments);
+
+const { trackEvent } = useProductTracking();
+const router = useRouter();
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup, projects } = storeToRefs(lsSegmentsStore);
@@ -184,6 +190,29 @@ const onSubprojectSelect = (project: any, subproject: any) => {
 const apply = () => {
   emit('update:segments', segments.value);
   emit('update:childSegments', childSegments.value);
+
+  let key: FeatureEventKey | null = null;
+  const { name: routeName } = router.currentRoute.value;
+
+  if (routeName === 'memberMergeSuggestions') {
+    key = FeatureEventKey.FILTER_CONTRIBUTORS_MERGE_SUGGESTIONS;
+  } else if (routeName === 'organizationMergeSuggestions') {
+    key = FeatureEventKey.FILTER_ORGANIZATIONS_MERGE_SUGGESTIONS;
+  }
+
+  if (key) {
+    trackEvent({
+      key,
+      type: EventType.FEATURE,
+      properties: {
+        filter: {
+          projects: segments.value,
+          subprojects: childSegments.value,
+        },
+      },
+    });
+  }
+
   visible.value = false;
 };
 
