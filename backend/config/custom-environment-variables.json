@@ -54,13 +54,6 @@
     "database": "CROWD_DB_DATABASE",
     "logging": "CROWD_DB_LOGGING"
   },
-  "productDb": {
-    "host": "PRODUCT_DB_HOST",
-    "port": "PRODUCT_DB_PORT",
-    "user": "PRODUCT_DB_USER",
-    "password": "PRODUCT_DB_PASSWORD",
-    "database": "PRODUCT_DB_DATABASE"
-  },
   "cubejs": {
     "url": "CROWD_CUBEJS_URL",
     "jwtSecret": "CROWD_CUBEJS_JWT_SECRET",
