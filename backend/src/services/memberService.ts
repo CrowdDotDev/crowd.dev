@@ -638,6 +638,25 @@ export default class MemberService extends LoggerBase {
         repoOptions,
       )
 
+      // we need to exclude identities in secondary that still exists in some other member
+      const identitiesToExclude = await MemberRepository.findAlreadyExistingIdentities(
+        payload.secondary.identities.filter((i) => i.verified),
+        repoOptions,
+      )
+
+      console.log('Found identities to exclude: ', identitiesToExclude)
+
+      payload.secondary.identities = payload.secondary.identities.filter(
+        (i) =>
+          !identitiesToExclude.some(
+            (ie) =>
+              ie.platform === i.platform &&
+              ie.value === i.value &&
+              ie.type === i.type &&
+              ie.verified,
+          ),
+      )
+
       // create the secondary member
       const secondaryMember = await MemberRepository.create(payload.secondary, repoOptions)
       // move affiliations

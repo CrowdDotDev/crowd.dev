@@ -1,4 +1,4 @@
-import { MemberIdentityType } from '@crowd/types'
+import { IMemberIdentity, MemberIdentityType } from '@crowd/types'
 import { QueryExecutor } from '../queryExecutor'
 import { prepareBulkInsert } from '../utils'
 
@@ -205,5 +205,28 @@ export function upsertMemberIdentity(
       on conflict do nothing;
     `,
     p,
+  )
+}
+
+export async function findAlreadyExistingVerifiedIdentities(
+  qx: QueryExecutor,
+  p: { identities: IMemberIdentity[] },
+): Promise<IMemberIdentity[]> {
+  const conditions: string[] = []
+  const values: string[] = []
+
+  p.identities.forEach((identity, index) => {
+    conditions.push(`(mi.platform = $${index * 2 + 1} AND mi.value = $${index * 2 + 2})`)
+    values.push(identity.platform, identity.value)
+  })
+
+  const whereClause = conditions.length > 0 ? conditions.join(' OR ') : '1=0'
+
+  return qx.result(
+    `
+    select mi.* from "memberIdentities" mi
+    where ${whereClause}
+    `,
+    values,
   )
 }
