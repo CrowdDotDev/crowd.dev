@@ -7,16 +7,16 @@ import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
 import { PlatformType, Edition } from '@crowd/types'
 import { Error400, Error404, Error542, EDITION } from '@crowd/common'
 import {
-  HubspotFieldMapperFactory,
+  getHubspotLists,
   getHubspotProperties,
   getHubspotTokenInfo,
+  HubspotEndpoint,
+  HubspotEntity,
+  HubspotFieldMapperFactory,
+  IHubspotManualSyncPayload,
   IHubspotOnboardingSettings,
   IHubspotProperty,
-  HubspotEntity,
   IHubspotTokenInfo,
-  HubspotEndpoint,
-  IHubspotManualSyncPayload,
-  getHubspotLists,
   IProcessStreamContext,
 } from '@crowd/integrations'
 import { RedisCache } from '@crowd/redis'
@@ -29,8 +29,8 @@ import IntegrationRepository from '../database/repositories/integrationRepositor
 import track from '../segment/track'
 import { getInstalledRepositories } from '../serverless/integrations/usecases/github/rest/getInstalledRepositories'
 import {
-  GitHubStats,
   getGitHubRemoteStats,
+  GitHubStats,
 } from '../serverless/integrations/usecases/github/rest/getRemoteStats'
 import telemetryTrack from '../segment/telemetryTrack'
 import getToken from '../serverless/integrations/usecases/nango/getToken'
@@ -48,8 +48,8 @@ import MemberSyncRemoteRepository from '@/database/repositories/memberSyncRemote
 import OrganizationSyncRemoteRepository from '@/database/repositories/organizationSyncRemoteRepository'
 import MemberRepository from '@/database/repositories/memberRepository'
 import {
-  GroupsioIntegrationData,
   GroupsioGetToken,
+  GroupsioIntegrationData,
   GroupsioVerifyGroup,
 } from '@/serverless/integrations/usecases/groupsio/types'
 import SearchSyncService from './searchSyncService'
@@ -1366,8 +1366,12 @@ export default class IntegrationService {
    */
   async gerritConnectOrUpdate(integrationData) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
-    let integration
+    let integration: any
     try {
+      const res = await IntegrationService.getGerritServerRepos(integrationData.remote.orgURL)
+      if (integrationData.remote.enableAllRepos) {
+        integrationData.remote.repoNames = res.repoNames
+      }
       integration = await this.createOrUpdate(
         {
           platform: PlatformType.GERRIT,
@@ -1379,12 +1383,60 @@ export default class IntegrationService {
         transaction,
       )
 
+      if (integrationData.remote.enableGit) {
+        const stripGit = (url: string) => {
+          if (url.endsWith('.git')) {
+            return url.slice(0, -4)
+          }
+          return url
+        }
+
+        integration = await this.createOrUpdate(
+          {
+            platform: PlatformType.GIT,
+            settings: {
+              remotes: integrationData.remote.repoNames.map((repo) =>
+                stripGit(`${integrationData.remote.orgURL}${res.urlPartial}/${repo}`),
+              ),
+            },
+            status: 'done',
+          },
+          transaction,
+        )
+      }
+
       await SequelizeRepository.commitTransaction(transaction)
     } catch (err) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw err
     }
     return integration
+  }
+
+  static async getGerritServerRepos(
+    serverURL: string,
+  ): Promise<{ repoNames: string[]; urlPartial: string }> {
+    const urlPartials = ['/r', '/gerrit', '/']
+    for (const p of urlPartials) {
+      try {
+        const result = await axios.get(`${serverURL}${p}/projects/?`, {})
+        const str = result.data.replace(")]}'\n", '')
+        const data = JSON.parse(str)
+
+        const repos = Object.keys(data).filter(
+          (key) => key !== '.github' && key !== 'All-Projects' && key !== 'All-Users',
+        )
+        return {
+          repoNames: repos,
+          urlPartial: p,
+        }
+      } catch (error) {
+        if (error.response && error.response.status !== 404) {
+          throw new Error404('Error in getGerritServerRepos:', error)
+        }
+      }
+    }
+    return { repoNames: [], urlPartial: '' }
   }
 
   /**
@@ -1658,6 +1710,20 @@ export default class IntegrationService {
     // user should update them every time thety change something
 
     try {
+      for (const group of integrationData.groups) {
+        const config: AxiosRequestConfig = {
+          method: 'get',
+          url: `https://groups.io/api/v1/getgroup?group_name=${encodeURIComponent(group.slug)}`,
+          headers: {
+            'Content-Type': 'application/json',
+            Cookie: integrationData.token,
+          },
+        }
+
+        const response = await axios(config)
+        group.id = response.data.id
+        group.name = response.data.nice_group_name
+      }
       this.options.log.info('Creating Groups.io integration!')
       const encryptedPassword = encryptData(integrationData.password)
       integration = await this.createOrUpdate(
@@ -1668,7 +1734,7 @@ export default class IntegrationService {
             token: integrationData.token,
             tokenExpiry: integrationData.tokenExpiry,
             password: encryptedPassword,
-            groups: integrationData.groupNames,
+            groups: integrationData.groups,
             updateMemberAttributes: true,
           },
           status: 'in-progress',

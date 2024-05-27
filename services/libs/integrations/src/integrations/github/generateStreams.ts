@@ -16,6 +16,22 @@ const streamToManualStreamMap: Map<GithubStreamType, GithubManualStreamType> = n
   [GithubStreamType.DISCUSSIONS, GithubManualStreamType.DISCUSSIONS],
 ])
 
+const manualStreamToStreamMap: Map<GithubManualStreamType, GithubStreamType> = new Map([
+  [GithubManualStreamType.STARGAZERS, GithubStreamType.STARGAZERS],
+  [GithubManualStreamType.FORKS, GithubStreamType.FORKS],
+  [GithubManualStreamType.PULLS, GithubStreamType.PULLS],
+  [GithubManualStreamType.ISSUES, GithubStreamType.ISSUES],
+  [GithubManualStreamType.DISCUSSIONS, GithubStreamType.DISCUSSIONS],
+])
+
+const objectToMap = (obj: object): Map<string, Array<GithubManualStreamType>> => {
+  const map = new Map<string, Array<GithubManualStreamType>>()
+  for (const [key, value] of Object.entries(obj)) {
+    map.set(key, value)
+  }
+  return map
+}
+
 const handler: GenerateStreamsHandler = async (ctx) => {
   const settings = ctx.integration.settings as GithubIntegrationSettings
   const reposToCheck = [...(settings.repos || []), ...(settings.unavailableRepos || [])]
@@ -28,7 +44,7 @@ const handler: GenerateStreamsHandler = async (ctx) => {
       ctx.abortRunWithError('isManualRun is true but manualSettings is not set!')
     }
 
-    if (manualSettings.repos) {
+    if (manualSettings.repos && manualSettings.manualSettingsType === 'default') {
       for (const repo of manualSettings.repos) {
         for (const endpoint of [
           GithubStreamType.STARGAZERS,
@@ -46,6 +62,21 @@ const handler: GenerateStreamsHandler = async (ctx) => {
               page: '',
             })
           }
+        }
+      }
+    } else if (manualSettings.repos && manualSettings.manualSettingsType === 'detailed_map') {
+      const map = objectToMap(manualSettings.map)
+      for (const [repoUrl, streams] of map) {
+        for (const stream of streams) {
+          const endpoint = manualStreamToStreamMap.get(stream)
+          if (!endpoint) {
+            ctx.abortRunWithError(`Invalid stream type: ${stream}`)
+          }
+          const repo = manualSettings.repos.find((r) => r.url === repoUrl)
+          await ctx.publishStream<GithubBasicStream>(`${endpoint}:${repo.name}:firstPage`, {
+            repo,
+            page: '',
+          })
         }
       }
     }

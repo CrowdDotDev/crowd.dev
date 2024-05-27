@@ -57,7 +57,7 @@ const props = defineProps({
     default: null,
   },
   sourceId: {
-    type: Number,
+    type: String,
     default: null,
   },
   display: {

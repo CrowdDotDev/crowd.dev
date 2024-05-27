@@ -34,6 +34,7 @@ export interface MemberIdentity {
   type: string;
   value: string;
   verified: boolean;
+  sourceId: string | null;
 }
 
 export interface Member {

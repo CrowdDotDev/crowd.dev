@@ -40,6 +40,10 @@ import { QueryOutput } from './filters/queryTypes'
 import OrganizationSyncRemoteRepository from './organizationSyncRemoteRepository'
 import SegmentRepository from './segmentRepository'
 import { IActiveOrganizationData, IActiveOrganizationFilter } from './types/organizationTypes'
+import {
+  IFetchOrganizationMergeSuggestionArgs,
+  SimilarityScoreRange,
+} from '@/types/mergeSuggestionTypes'
 
 const { Op } = Sequelize
 
@@ -619,11 +623,7 @@ class OrganizationRepository {
 
           // ensure that it's not the same organization
           if (existingOrg && existingOrg.id !== record.id) {
-            throw new Error409(
-              options.language,
-              'organization.errors.websiteAlreadyExists',
-              existingOrg.id,
-            )
+            throw new Error409(options.language, 'errors.alreadyExists', existingOrg.id)
           }
         }
 
@@ -650,7 +650,9 @@ class OrganizationRepository {
               } else if (
                 record[column] === null &&
                 data[column] !== null &&
-                data[column] !== undefined
+                data[column] !== undefined &&
+                // also ignore empty arrays
+                (!Array.isArray(data[column]) || data[column].length > 0)
               ) {
                 // column was null before now it's not anymore
                 changed = true
@@ -1176,19 +1178,23 @@ class OrganizationRepository {
     }
   }
 
-  static async findOrganizationsWithMergeSuggestions(
-    { limit = 20, offset = 0, organizationId = undefined },
+  static async countOrganizationMergeSuggestions(
+    organizationFilter: string,
+    similarityFilter: string,
+    displayNameFilter: string,
+    replacements: {
+      segmentIds: string[]
+      organizationId?: string
+      displayName?: string
+      mergeActionType: MergeActionType
+      mergeActionStatus: MergeActionState
+      tenantId: string
+    },
     options: IRepositoryOptions,
-  ) {
-    const currentTenant = SequelizeRepository.getCurrentTenant(options)
-    const segmentIds = SequelizeRepository.getSegmentIds(options)
-
-    const organizationFilter = organizationId
-      ? ` AND ("otm"."organizationId" = :organizationId OR "otm"."toMergeId" = :organizationId)`
-      : ''
-
-    const orgs = await options.database.sequelize.query(
-      `WITH
+  ): Promise<number> {
+    const result = await options.database.sequelize.query(
+      `
+      WITH
       cte AS (
         SELECT
           Greatest(Hashtext(Concat(org.id, otm."toMergeId")), Hashtext(Concat(otm."toMergeId", org.id))) as hash,
@@ -1200,6 +1206,8 @@ class OrganizationRepository {
         JOIN "organizationToMerge" otm ON org.id = otm."organizationId"
         JOIN "organization_segments_mv" os1 ON os1."organizationId" = org.id
         JOIN "organization_segments_mv" os2 ON os2."organizationId" = otm."toMergeId"
+        join organizations o1 on o1.id = org.id
+        join organizations o2 on o2.id = otm."toMergeId"
         LEFT JOIN "mergeActions" ma
           ON ma.type = :mergeActionType
           AND ma."tenantId" = :tenantId
@@ -1212,6 +1220,134 @@ class OrganizationRepository {
           AND os2."segmentId" IN (:segmentIds)
           AND (ma.id IS NULL OR ma.state = :mergeActionStatus)
           ${organizationFilter}
+          ${similarityFilter}
+          ${displayNameFilter}
+      )
+      SELECT COUNT(DISTINCT hash) AS total_count
+      FROM cte
+      `,
+      {
+        replacements,
+        type: QueryTypes.SELECT,
+      },
+    )
+
+    return result[0]?.total_count || 0
+  }
+
+  static async findOrganizationsWithMergeSuggestions(
+    args: IFetchOrganizationMergeSuggestionArgs,
+    options: IRepositoryOptions,
+  ) {
+    const HIGH_CONFIDENCE_LOWER_BOUND = 0.9
+    const MEDIUM_CONFIDENCE_LOWER_BOUND = 0.7
+
+    let segmentIds: string[]
+
+    if (args.filter?.projectIds) {
+      segmentIds = (
+        await new SegmentRepository(options).getSegmentSubprojects(args.filter.projectIds)
+      ).map((s) => s.id)
+    } else if (args.filter?.subprojectIds) {
+      segmentIds = args.filter.subprojectIds
+    } else {
+      segmentIds = SequelizeRepository.getSegmentIds(options)
+    }
+
+    let similarityFilter = ''
+    const similarityConditions = []
+
+    for (const similarity of args.filter?.similarity || []) {
+      if (similarity === SimilarityScoreRange.HIGH) {
+        similarityConditions.push(`(otm.similarity >= ${HIGH_CONFIDENCE_LOWER_BOUND})`)
+      } else if (similarity === SimilarityScoreRange.MEDIUM) {
+        similarityConditions.push(
+          `(otm.similarity >= ${MEDIUM_CONFIDENCE_LOWER_BOUND} and otm.similarity < ${HIGH_CONFIDENCE_LOWER_BOUND})`,
+        )
+      } else if (similarity === SimilarityScoreRange.LOW) {
+        similarityConditions.push(`(otm.similarity < ${MEDIUM_CONFIDENCE_LOWER_BOUND})`)
+      }
+    }
+
+    if (similarityConditions.length > 0) {
+      similarityFilter = ` and (${similarityConditions.join(' or ')})`
+    }
+
+    const organizationFilter = args.filter?.organizationId
+      ? ` AND ("otm"."organizationId" = :organizationId OR "otm"."toMergeId" = :organizationId)`
+      : ''
+
+    const displayNameFilter = args.filter?.displayName
+      ? ` and (o1."displayName" ilike :displayName OR o2."displayName" ilike :displayName)`
+      : ''
+
+    let order =
+      '"organizationsToMerge".similarity desc, "organizationsToMerge"."id", "organizationsToMerge"."toMergeId"'
+
+    if (args.orderBy?.length > 0) {
+      order = ''
+      for (const orderBy of args.orderBy) {
+        const [field, direction] = orderBy.split('_')
+        if (['similarity'].includes(field) && ['asc', 'desc'].includes(direction.toLowerCase())) {
+          order += `"organizationsToMerge".${field} ${direction}, `
+        }
+      }
+
+      order += '"organizationsToMerge"."id", "organizationsToMerge"."toMergeId"'
+    }
+
+    if (args.countOnly) {
+      const totalCount = await this.countOrganizationMergeSuggestions(
+        organizationFilter,
+        similarityFilter,
+        displayNameFilter,
+        {
+          segmentIds,
+          displayName: args?.filter?.displayName ? `${args.filter.displayName}%` : undefined,
+          organizationId: args?.filter?.organizationId,
+          mergeActionType: MergeActionType.ORG,
+          mergeActionStatus: MergeActionState.ERROR,
+          tenantId: options.currentTenant.id,
+        },
+        options,
+      )
+
+      return { count: totalCount }
+    }
+
+    const orgs = await options.database.sequelize.query(
+      `WITH
+      cte AS (
+        SELECT
+          Greatest(Hashtext(Concat(org.id, otm."toMergeId")), Hashtext(Concat(otm."toMergeId", org.id))) as hash,
+          org.id,
+          otm."toMergeId",
+          org."createdAt",
+          otm."similarity",
+          o1."displayName" as "primaryDisplayName",
+          o1.logo as "primaryLogo",
+          o2."displayName" as "secondaryDisplayName",
+          o2.logo as "secondaryLogo"
+        FROM organizations org
+        JOIN "organizationToMerge" otm ON org.id = otm."organizationId"
+        JOIN "organization_segments_mv" os1 ON os1."organizationId" = org.id
+        JOIN "organization_segments_mv" os2 ON os2."organizationId" = otm."toMergeId"
+        join organizations o1 on o1.id = org.id
+        join organizations o2 on o2.id = otm."toMergeId"
+        LEFT JOIN "mergeActions" ma
+          ON ma.type = :mergeActionType
+          AND ma."tenantId" = :tenantId
+          AND (
+            (ma."primaryId" = org.id AND ma."secondaryId" = otm."toMergeId")
+            OR (ma."primaryId" = otm."toMergeId" AND ma."secondaryId" = org.id)
+          )
+        WHERE org."tenantId" = :tenantId
+          AND os1."segmentId" IN (:segmentIds)
+          AND os2."segmentId" IN (:segmentIds)
+          AND (ma.id IS NULL OR ma.state = :mergeActionStatus)
+          ${organizationFilter}
+          ${similarityFilter}
+          ${displayNameFilter}
       ),
 
       count_cte AS (
@@ -1223,6 +1359,10 @@ class OrganizationRepository {
         SELECT DISTINCT ON (hash)
           id,
           "toMergeId",
+          "primaryDisplayName",
+          "primaryLogo",
+          "secondaryDisplayName",
+          "secondaryLogo",
           "createdAt",
           "similarity"
         FROM cte
@@ -1232,49 +1372,80 @@ class OrganizationRepository {
       SELECT
         "organizationsToMerge".id,
         "organizationsToMerge"."toMergeId",
+        "organizationsToMerge"."primaryDisplayName",
+        "organizationsToMerge"."primaryLogo",
+        "organizationsToMerge"."secondaryDisplayName",
+        "organizationsToMerge"."secondaryLogo",
         count_cte."total_count",
         "organizationsToMerge"."similarity"
       FROM
         final_select AS "organizationsToMerge",
         count_cte
       ORDER BY
-        "organizationsToMerge"."similarity" DESC, "organizationsToMerge".id
+        ${order}
       LIMIT :limit OFFSET :offset
     `,
       {
         replacements: {
-          tenantId: currentTenant.id,
+          tenantId: options.currentTenant.id,
           segmentIds,
-          limit,
-          offset,
+          limit: args.limit,
+          offset: args.offset,
+          displayName: args?.filter?.displayName ? `${args.filter.displayName}%` : undefined,
           mergeActionType: MergeActionType.ORG,
           mergeActionStatus: MergeActionState.ERROR,
-          organizationId,
+          organizationId: args?.filter?.organizationId,
         },
         type: QueryTypes.SELECT,
       },
     )
 
     if (orgs.length > 0) {
-      const organizationPromises = []
-      const toMergePromises = []
+      let result
 
-      for (const org of orgs) {
-        organizationPromises.push(OrganizationRepository.findById(org.id, options))
-        toMergePromises.push(OrganizationRepository.findById(org.toMergeId, options))
+      if (args.detail) {
+        const organizationPromises = []
+        const toMergePromises = []
+
+        for (const org of orgs) {
+          organizationPromises.push(OrganizationRepository.findById(org.id, options))
+          toMergePromises.push(OrganizationRepository.findById(org.toMergeId, options))
+        }
+
+        const organizationResults = await Promise.all(organizationPromises)
+        const organizationToMergeResults = await Promise.all(toMergePromises)
+
+        result = organizationResults.map((i, idx) => ({
+          organizations: [i, organizationToMergeResults[idx]],
+          similarity: orgs[idx].similarity,
+        }))
+      } else {
+        result = orgs.map((o) => ({
+          organizations: [
+            {
+              id: o.id,
+              displayName: o.primaryDisplayName,
+              logo: o.primaryLogo,
+            },
+            {
+              id: o.toMergeId,
+              displayName: o.secondaryDisplayName,
+              logo: o.secondaryLogo,
+            },
+          ],
+          similarity: o.similarity,
+        }))
       }
 
-      const organizationResults = await Promise.all(organizationPromises)
-      const organizationToMergeResults = await Promise.all(toMergePromises)
-
-      const result = organizationResults.map((i, idx) => ({
-        organizations: [i, organizationToMergeResults[idx]],
-        similarity: orgs[idx].similarity,
-      }))
-      return { rows: result, count: orgs[0].total_count, limit, offset }
+      return { rows: result, count: orgs[0].total_count, limit: args.limit, offset: args.offset }
     }
 
-    return { rows: [{ organizations: [], similarity: 0 }], count: 0, limit, offset }
+    return {
+      rows: [{ organizations: [], similarity: 0 }],
+      count: 0,
+      limit: args.limit,
+      offset: args.offset,
+    }
   }
 
   static async getOrganizationSegments(

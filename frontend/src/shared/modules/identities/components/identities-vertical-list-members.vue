@@ -4,12 +4,18 @@
       ...identities.getIdentities(),
       ...(includeEmails ? { emails: identities.getEmails() } : {}),
     }).length"
+    class="flex flex-col gap-3"
   >
     <app-identities-vertical-list
       :identities="{
         ...identities.getIdentities(),
-        ...(includeEmails ? { emails: identities.getEmails() } : {}),
       }"
+      :x-padding="xPadding"
+      :display-show-more="displayShowMore"
+    />
+    <app-emails-vertical-list
+      v-if="includeEmails"
+      :emails="identities.getEmails()"
       :x-padding="xPadding"
       :display-show-more="displayShowMore"
     />
@@ -27,6 +33,7 @@ import useMemberIdentities from '@/shared/modules/identities/config/useMemberIde
 import AppIdentitiesVerticalList from '@/shared/modules/identities/components/identities-vertical-list.vue';
 import { computed } from 'vue';
 import { Platform } from '@/shared/modules/platform/types/Platform';
+import AppEmailsVerticalList from '@/shared/modules/identities/components/emails-vertical-list.vue';
 
 const props = defineProps<{
   member: Member;

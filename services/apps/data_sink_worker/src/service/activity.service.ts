@@ -12,7 +12,6 @@ import IntegrationRepository from '@crowd/data-access-layer/src/old/apps/data_si
 import MemberRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.repo'
 import SettingsRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/settings.repo'
 import { Unleash } from '@crowd/feature-flags'
-import { GithubActivityType } from '@crowd/integrations'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
 import { ISentimentAnalysisResult, getSentiment } from '@crowd/sentiment'
@@ -68,6 +67,7 @@ export default class ActivityService extends LoggerBase {
           tenantId,
           activity.platform as PlatformType,
           activity.type,
+          segmentId,
         )
 
         if (activity.channel) {
@@ -182,6 +182,7 @@ export default class ActivityService extends LoggerBase {
             tenantId,
             original.platform as PlatformType,
             toUpdate.type,
+            segmentId,
           )
         }
 
@@ -375,7 +376,7 @@ export default class ActivityService extends LoggerBase {
     })
 
     try {
-      this.log.debug('Processing activity.')
+      this.log.debug({ tenantId, integrationId, platform }, 'Processing activity.')
 
       if (!activity.username && !activity.member) {
         this.log.error(
@@ -488,41 +489,15 @@ export default class ActivityService extends LoggerBase {
                 : dbIntegration.segmentId
           }
 
-          let dbActivity: IDbActivity | null
-
-          if (
-            (platform === PlatformType.GITHUB &&
-              activity.type === GithubActivityType.AUTHORED_COMMIT) ||
-            platform === PlatformType.GIT
-          ) {
-            // we are looking up without platform and type, so we can find the activity with platform = github
-            // and "enrich" it with git data
-            // we also include channel here, because different repos (channels) might have the same commit hash
-
-            if (!activity.channel) {
-              this.log.error('Missing activity channel for github authored commit or git activity!')
-              throw new Error(
-                'Missing activity channel for github authored commit or git activity!',
-              )
-            }
-
-            dbActivity = await txRepo.findExistingBySourceIdAndChannel(
-              tenantId,
-              segmentId,
-              activity.sourceId,
-              activity.channel,
-            )
-          } else {
-            // find existing activity
-            dbActivity = await txRepo.findExisting(
-              tenantId,
-              segmentId,
-              activity.sourceId,
-              platform,
-              activity.type,
-              activity.channel,
-            )
-          }
+          // find existing activity
+          const dbActivity = await txRepo.findExisting(
+            tenantId,
+            segmentId,
+            activity.sourceId,
+            platform,
+            activity.type,
+            activity.channel,
+          )
 
           if (dbActivity && dbActivity?.deletedAt) {
             // we found an existing activity but it's deleted - nothing to do here

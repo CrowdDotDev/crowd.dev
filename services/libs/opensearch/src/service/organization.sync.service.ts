@@ -277,7 +277,7 @@ export class OrganizationSyncService {
     segmentIds?: string[],
   ): Promise<IOrganizationSyncResult> {
     const CONCURRENT_DATABASE_QUERIES = 5
-    const BULK_INDEX_DOCUMENT_BATCH_SIZE = 2500
+    const BULK_INDEX_DOCUMENT_BATCH_SIZE = 100
 
     // get all orgId-segmentId couples
     const orgSegmentCouples: IOrganizationSegmentMatrix =
@@ -377,7 +377,9 @@ export class OrganizationSyncService {
         })
 
         // databaseStreams will create syncStreams items in processSegmentsStream, which'll later be used to sync to opensearch in bulk
-        if (databaseStream.length >= CONCURRENT_DATABASE_QUERIES) {
+        const isLastSegment = i === totalOrgIds - 1 && j === totalSegments - 1
+
+        if (isLastSegment || databaseStream.length >= CONCURRENT_DATABASE_QUERIES) {
           await processSegmentsStream(databaseStream)
           databaseStream = []
         }
@@ -391,18 +393,10 @@ export class OrganizationSyncService {
           syncStream = syncStream.slice(BULK_INDEX_DOCUMENT_BATCH_SIZE)
         }
 
-        // if we're processing the last segment
-        if (i === totalOrgIds - 1 && j === totalSegments - 1) {
-          // check if there are remaining databaseStreams to process
-          if (databaseStream.length > 0) {
-            await processSegmentsStream(databaseStream)
-          }
-
-          // check if there are remaining syncStreams to process
-          if (syncStream.length > 0) {
-            await this.openSearchService.bulkIndex(OpenSearchIndex.ORGANIZATIONS, syncStream)
-            documentsIndexed += syncStream.length
-          }
+        // check if there are remaining syncStreams to process
+        if (isLastSegment && syncStream.length > 0) {
+          await this.openSearchService.bulkIndex(OpenSearchIndex.ORGANIZATIONS, syncStream)
+          documentsIndexed += syncStream.length
         }
       }
     }

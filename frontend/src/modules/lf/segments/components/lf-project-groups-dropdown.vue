@@ -14,7 +14,7 @@
       </button>
       <template #dropdown>
         <el-dropdown-item
-          v-if="hasPermissionToEditProjectGroup && hasAccessToSegmentId(id)"
+          v-if="hasPermission(LfPermission.projectGroupEdit) && hasAccessToSegmentId(id)"
           class="h-10 mb-1"
           :command="editProjectGroup"
         >
@@ -24,7 +24,7 @@
           <span class="text-xs">Edit project group</span>
         </el-dropdown-item>
         <el-dropdown-item
-          v-if="hasPermissionToCreateProject && hasAccessToSegmentId(id)"
+          v-if="hasPermission(LfPermission.projectCreate) && hasAccessToSegmentId(id)"
           class="h-10 mb-1"
           :command="addProject"
         >
@@ -33,7 +33,8 @@
           /><span class="text-xs">Add project</span>
         </el-dropdown-item>
         <el-divider
-          v-if="(hasPermissionToEditProjectGroup && hasAccessToSegmentId(id)) || (hasPermissionToCreateProject && hasAccessToSegmentId(id))"
+          v-if="(hasPermission(LfPermission.projectGroupEdit) && hasAccessToSegmentId(id))
+            || (hasPermission(LfPermission.projectCreate) && hasAccessToSegmentId(id))"
           class="border-gray-200 !my-2"
         />
         <el-dropdown-item
@@ -53,11 +54,8 @@
 
 <script setup>
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import { LfPermissions } from '@/modules/lf/lf-permissions';
-import { computed } from 'vue';
-import { hasAccessToSegmentId } from '@/utils/segments';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { storeToRefs } from 'pinia';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 
 const emit = defineEmits(['onEditProjectGroup', 'onAddProject']);
 
@@ -68,21 +66,10 @@ defineProps({
   },
 });
 
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
-
 const lsSegmentsStore = useLfSegmentsStore();
 const { updateSelectedProjectGroup } = lsSegmentsStore;
 
-const hasPermissionToCreateProject = computed(() => new LfPermissions(
-  tenant.value,
-  user.value,
-)?.createProject);
-
-const hasPermissionToEditProjectGroup = computed(() => new LfPermissions(
-  tenant.value,
-  user.value,
-)?.editProjectGroup);
+const { hasPermission, hasAccessToSegmentId } = usePermissions();
 
 const editProjectGroup = () => {
   emit('onEditProjectGroup');

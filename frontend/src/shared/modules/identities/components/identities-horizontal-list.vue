@@ -8,7 +8,8 @@
   >
     <template #reference>
       <div
-        class="flex gap-3 items-center bg-white border border-gray-200 hover:bg-gray-50 rounded-full h-8 px-3 relative cursor-auto group"
+        class="flex gap-3 items-center bg-white border border-gray-200
+        hover:bg-gray-50 rounded-full h-8 px-3 relative cursor-auto group whitespace-nowrap"
       >
         <div class="text-xs text-gray-500 font-medium">
           {{ pluralize("identity", parsedIdentities.identitiesLength, true) }}

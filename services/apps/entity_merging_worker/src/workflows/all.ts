@@ -17,9 +17,8 @@ const {
   syncMember,
   syncOrganization,
   notifyFrontendMemberUnmergeSuccessful,
-  linkOrganizationToCache,
 } = proxyActivities<typeof activities>({
-  startToCloseTimeout: '5 minutes',
+  startToCloseTimeout: '15 minutes',
 })
 
 export async function finishMemberMerging(
@@ -96,7 +95,6 @@ export async function finishOrganizationUnmerging(
   await recalculateActivityAffiliationsOfOrganizationSynchronous(secondaryId, tenantId)
   await syncOrganization(primaryId, secondaryId)
   await syncOrganization(secondaryId, primaryId)
-  await linkOrganizationToCache(secondaryId)
   await setMergeActionState(primaryId, secondaryId, tenantId, 'unmerged' as MergeActionState)
   await notifyFrontendOrganizationUnmergeSuccessful(
     primaryId,

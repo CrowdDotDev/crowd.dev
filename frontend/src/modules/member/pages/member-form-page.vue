@@ -196,6 +196,8 @@ import AppMemberFormEmails from '@/modules/member/components/form/member-form-em
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import AppLfSubProjectsListDropdown from '@/modules/lf/segments/components/lf-sub-projects-list-dropdown.vue';
 import AppLfMemberFormAffiliations from '@/modules/lf/member/components/form/lf-member-form-affiliations.vue';
+import Message from '@/shared/message/message';
+import { MemberService } from '../member-service';
 
 const LoaderIcon = h(
   'i',
@@ -358,6 +360,7 @@ const isSubmitBtnDisabled = computed(
 );
 
 const isLeaving = ref(false);
+const leaveWithoutConfirmation = ref(false);
 
 // Prevent lost data on route change
 onBeforeRouteLeave((to) => {
@@ -366,6 +369,7 @@ onBeforeRouteLeave((to) => {
     && hasFormChanged.value
     && !wasFormSubmittedSuccessfuly.value
     && to.fullPath !== '/500'
+    && !leaveWithoutConfirmation.value
   ) {
     isLeaving.value = true;
     return ConfirmDialog({})
@@ -453,63 +457,89 @@ async function onSubmit() {
     formModel.value,
   );
 
-  // Remove any existent empty data
-  const data = {
+  const data = {};
 
-    ...formModel.value.displayName && {
-      displayName: formModel.value.displayName,
-    },
-    ...formModel.value.joinedAt && {
-      joinedAt: formModel.value.joinedAt,
-    },
-    ...formModel.value.platform && {
-      platform: formModel.value.platform,
-    },
-    ...formModel.value.tags.length && {
-      tags: formModel.value.tags.map((t) => t.id),
-    },
-    ...formModel.value.organizations.length && {
-      organizationsReplace: true,
-      organizations: formModel.value.organizations.map(
-        (o) => ({
-          id: o.id,
-          name: o.name,
-          ...o.memberOrganizations?.title && {
-            title: o.memberOrganizations?.title,
-          },
-          ...o.memberOrganizations?.dateStart && {
-            startDate: o.memberOrganizations?.dateStart,
-          },
-          ...o.memberOrganizations?.dateEnd && {
-            endDate: o.memberOrganizations?.dateEnd,
-          },
-          source: 'ui',
-        }),
-      ).filter(
-        (o) => !!o.id,
-      ),
-    },
-    ...(Object.keys(formattedAttributes).length
-      || formModel.value.attributes) && {
-      attributes: {
-        ...(Object.keys(formattedAttributes).length
-          && formattedAttributes),
-        ...(formModel.value.attributes.url && {
-          url: formModel.value.attributes.url,
-        }),
-      },
-    },
-    identities: (formModel.value?.identities || []).filter((i) => !!i.value),
+  // Display Name
+  if (!isEqual(formModel.value.displayName, record.value.displayName)) {
+    data.displayName = formModel.value.displayName;
+  }
 
-    affiliations: formModel.value.affiliations.map((affiliation) => ({
+  // Joined At
+  if (!isEqual(formModel.value.joinedAt, record.value.joinedAt)) {
+    data.joinedAt = formModel.value.joinedAt;
+  }
+
+  // Platform
+  if (!isEqual(formModel.value.platform, record.value.platform)) {
+    data.platform = formModel.value.platform;
+  }
+
+  // Tags
+  if (!isEqual(formModel.value.tags.map((t) => ({
+    id: t.id,
+    name: t.label,
+  })), record.value.tags)) {
+    data.tags = formModel.value.tags.map((t) => t.id);
+  }
+
+  // Organizations
+  if (!isEqual(formModel.value.organizations.map((o) => ({
+    id: o.id,
+    displayName: o.displayName,
+    logo: o.logo,
+    memberOrganizations: o.memberOrganizations,
+  })), record.value.organizations)) {
+    data.organizationsReplace = true;
+    data.organizations = formModel.value.organizations.map(
+      (o) => ({
+        id: o.id,
+        name: o.name,
+        ...o.memberOrganizations?.title && {
+          title: o.memberOrganizations?.title,
+        },
+        ...o.memberOrganizations?.dateStart && {
+          startDate: o.memberOrganizations?.dateStart,
+        },
+        ...o.memberOrganizations?.dateEnd && {
+          endDate: o.memberOrganizations?.dateEnd,
+        },
+        source: 'ui',
+      }),
+    ).filter(
+      (o) => !!o.id,
+    );
+  }
+
+  // Attributes
+  if (!isEqual(formattedAttributes, record.value.attributes)) {
+    data.attributes = {
+      ...(Object.values(formattedAttributes).length
+        && formattedAttributes),
+      ...(formModel.value.attributes.url && {
+        url: formModel.value.attributes.url,
+      }),
+    };
+  }
+
+  // Identities
+  if (!isEqual((formModel.value?.identities || []).filter((i) => !!i.value), record.value.identities)) {
+    data.identities = (formModel.value?.identities || []).filter((i) => !!i.value);
+  }
+
+  // Affiliations
+  if (!isEqual(formModel.value.affiliations, record.value.affiliations)) {
+    data.affiliations = formModel.value.affiliations.map((affiliation) => ({
       memberId: affiliation.memberId,
       segmentId: affiliation.segmentId,
       organizationId: affiliation.organizationId,
       dateStart: affiliation.dateStart,
       dateEnd: affiliation.dateEnd,
-    })),
-    manuallyCreated: true,
-  };
+    }));
+  }
+
+  if (!isEditPage.value) {
+    data.manuallyCreated = true;
+  }
 
   let isRequestSuccessful = false;
 
@@ -517,24 +547,57 @@ async function onSubmit() {
   if (isEditPage.value) {
     isFormSubmitting.value = true;
 
-    isRequestSuccessful = await store.dispatch(
-      'member/doUpdate',
-      {
-        id: record.value.id,
-        values: data,
-        segments: segments.value,
-      },
-    );
+    await MemberService.update(record.value.id, data).then(() => {
+      isRequestSuccessful = true;
+    })
+      .catch((error) => {
+        if (error.response.status === 409) {
+          leaveWithoutConfirmation.value = true;
+          Message.error(
+            h(
+              'div',
+              {
+                class: 'flex flex-col gap-2',
+              },
+              [
+                h(
+                  'el-button',
+                  {
+                    class: 'btn btn--xs btn--secondary !h-6 !w-fit',
+                    onClick: () => {
+                      const { memberId, grandParentId } = error.response.data;
+
+                      memberStore.addToMergeMember(memberId, grandParentId);
+                      Message.closeAll();
+                    },
+                  },
+                  'Merge members',
+                ),
+              ],
+            ),
+            {
+              title: 'Member was not updated because the identity already exists in another member.',
+            },
+          );
+
+          router.push({
+            name: 'memberView',
+            params: {
+              id: record.value.id,
+            },
+            query: { projectGroup: selectedProjectGroup?.id },
+          });
+        } else {
+          Errors.handle(error);
+        }
+      });
   } else {
     // Create new member
     isFormSubmitting.value = true;
-    isRequestSuccessful = await store.dispatch(
-      'member/doCreate',
-      {
-        data,
-        segments: segments.value,
-      },
-    );
+
+    await MemberService.create(data, segments.value).then(() => {
+      isRequestSuccessful = true;
+    });
   }
 
   isFormSubmitting.value = false;

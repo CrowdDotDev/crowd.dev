@@ -1,8 +1,7 @@
 <template>
-  <template v-if="identities.length > 1 && !props.hideUnmerge">
+  <template v-if="identities.length > 1 && !props.hideUnmerge && hasPermission(LfPermission.memberEdit)">
     <button
       class="h-10 el-dropdown-menu__item w-full"
-      :disabled="isEditLockedForSampleData"
       type="button"
       @click="handleCommand({
         action: Actions.UNMERGE_IDENTITY,
@@ -15,20 +14,16 @@
   </template>
 
   <router-link
-    v-if="!props.hideEdit"
+    v-if="!props.hideEdit && hasPermission(LfPermission.memberEdit)"
     :to="{
       name: 'memberEdit',
       params: {
         id: member.id,
       },
     }"
-    :class="{
-      'pointer-events-none cursor-not-allowed': isEditLockedForSampleData,
-    }"
   >
     <button
       class="h-10 el-dropdown-menu__item w-full mb-1"
-      :disabled="isEditLockedForSampleData"
       type="button"
     >
       <i class="ri-pencil-line text-base mr-2" />
@@ -52,173 +47,154 @@
     <span class="ml-2 text-xs"> Find GitHub </span>
   </button>
 
-  <el-tooltip
-    v-if="!props.hideMerge"
-    content="Coming soon"
-    placement="top"
-    :disabled="hasPermissionsToMerge"
+  <button
+    v-if="!props.hideMerge && hasPermission(LfPermission.mergeMembers)"
+    class="h-10 el-dropdown-menu__item w-full"
+    :disabled="!hasPermission(LfPermission.mergeMembers)"
+    type="button"
+    @click="
+      handleCommand({
+        action: Actions.MERGE_CONTACT,
+        member,
+      })
+    "
   >
+    <i class="ri-group-line text-base mr-2" /><span class="text-xs">Merge contributor</span>
+  </button>
+
+  <!-- Hubspot -->
+  <!--  <button-->
+  <!--    v-if="!isSyncingWithHubspot"-->
+  <!--    class="h-10 el-dropdown-menu__item w-full"-->
+  <!--    :disabled="isHubspotActionDisabled"-->
+  <!--    type="button"-->
+  <!--    @click="handleCommand({-->
+  <!--      action: Actions.SYNC_HUBSPOT,-->
+  <!--      member,-->
+  <!--    })-->
+  <!--    "-->
+  <!--  >-->
+  <!--    <app-svg name="hubspot" class="h-4 w-4 text-current" />-->
+  <!--    <span-->
+  <!--      class="text-xs pl-2"-->
+  <!--    >Sync with HubSpot</span>-->
+  <!--  </button>-->
+  <!--  <button-->
+  <!--    v-else-->
+  <!--    class="h-10 el-dropdown-menu__item w-full"-->
+  <!--    :disabled="isHubspotActionDisabled"-->
+  <!--    type="button"-->
+  <!--    @click="handleCommand({-->
+  <!--      action: Actions.STOP_SYNC_HUBSPOT,-->
+  <!--      member,-->
+  <!--    })-->
+  <!--    "-->
+  <!--  >-->
+  <!--    <app-svg name="hubspot" class="h-4 w-4 text-current" />-->
+  <!--    <span-->
+  <!--      class="text-xs pl-2"-->
+  <!--    >Stop sync with HubSpot</span>-->
+  <!--  </button>-->
+
+  <template v-if="hasPermission(LfPermission.memberEdit)">
+    <el-tooltip
+      placement="top"
+      content="Mark as team contact if they belong to your own organization"
+      popper-class="max-w-[260px]"
+    >
+      <span>
+        <button
+          v-if="!member.attributes?.isTeamMember?.default"
+          class="h-10 el-dropdown-menu__item w-full"
+          type="button"
+          @click="
+            handleCommand({
+              action: Actions.MARK_CONTACT_AS_TEAM_CONTACT,
+              member,
+              value: true,
+            })
+          "
+        >
+          <i class="ri-bookmark-line text-base mr-2" /><span class="text-xs">Mark as team contributor</span>
+        </button>
+      </span>
+    </el-tooltip>
     <button
+      v-if="member.attributes?.isTeamMember?.default"
       class="h-10 el-dropdown-menu__item w-full"
-      :disabled="isEditLockedForSampleData || !hasPermissionsToMerge"
       type="button"
       @click="
         handleCommand({
-          action: Actions.MERGE_CONTACT,
+          action: Actions.MARK_CONTACT_AS_TEAM_CONTACT,
+          member,
+          value: false,
+        })
+      "
+    >
+      <i class="ri-bookmark-2-line text-base mr-2" /><span class="text-xs">Unmark as team contributor</span>
+    </button>
+    <button
+      v-if="!member.attributes.isBot?.default"
+      class="h-10 el-dropdown-menu__item w-full"
+      type="button"
+      @click="
+        handleCommand({
+          action: Actions.MARK_CONTACT_AS_BOT,
           member,
         })
       "
     >
-      <i class="ri-group-line text-base mr-2" /><span class="text-xs">Merge contributor</span>
+      <i class="ri-robot-line text-base mr-2" /><span class="text-xs">Mark as bot</span>
     </button>
-  </el-tooltip>
-
-  <!-- Hubspot -->
-  <button
-    v-if="!isSyncingWithHubspot"
-    class="h-10 el-dropdown-menu__item w-full"
-    :disabled="isHubspotActionDisabled"
-    type="button"
-    @click="handleCommand({
-      action: Actions.SYNC_HUBSPOT,
-      member,
-    })
-    "
-  >
-    <app-svg name="hubspot" class="h-4 w-4 text-current" />
-    <span
-      class="text-xs pl-2"
-    >Sync with HubSpot</span>
-  </button>
-  <button
-    v-else
-    class="h-10 el-dropdown-menu__item w-full"
-    :disabled="isHubspotActionDisabled"
-    type="button"
-    @click="handleCommand({
-      action: Actions.STOP_SYNC_HUBSPOT,
-      member,
-    })
-    "
-  >
-    <app-svg name="hubspot" class="h-4 w-4 text-current" />
-    <span
-      class="text-xs pl-2"
-    >Stop sync with HubSpot</span>
-  </button>
-
-  <el-tooltip
-    placement="top"
-    content="Mark as team contact if they belong to your own organization"
-    popper-class="max-w-[260px]"
-  >
-    <span>
-      <button
-        v-if="!member.attributes?.isTeamMember?.default"
-        class="h-10 el-dropdown-menu__item w-full"
-        :disabled="isEditLockedForSampleData"
-        type="button"
-        @click="
-          handleCommand({
-            action: Actions.MARK_CONTACT_AS_TEAM_CONTACT,
-            member,
-            value: true,
-          })
-        "
-      >
-        <i class="ri-bookmark-line text-base mr-2" /><span class="text-xs">Mark as team contributor</span>
-      </button>
-    </span>
-  </el-tooltip>
-  <button
-    v-if="member.attributes?.isTeamMember?.default"
-    class="h-10 el-dropdown-menu__item w-full"
-    :disabled="isEditLockedForSampleData"
-    type="button"
-    @click="
-      handleCommand({
-        action: Actions.MARK_CONTACT_AS_TEAM_CONTACT,
-        member,
-        value: false,
-      })
-    "
-  >
-    <i class="ri-bookmark-2-line text-base mr-2" /><span class="text-xs">Unmark as team contributor</span>
-  </button>
-  <button
-    v-if="!member.attributes.isBot?.default"
-    class="h-10 el-dropdown-menu__item w-full"
-    :disabled="isEditLockedForSampleData"
-    type="button"
-    @click="
-      handleCommand({
-        action: Actions.MARK_CONTACT_AS_BOT,
-        member,
-      })
-    "
-  >
-    <i class="ri-robot-line text-base mr-2" /><span class="text-xs">Mark as bot</span>
-  </button>
-  <button
-    v-if="member.attributes.isBot?.default"
-    class="h-10 el-dropdown-menu__item w-full"
-    :disabled="isEditLockedForSampleData"
-    type="button"
-    @click="
-      handleCommand({
-        action: Actions.UNMARK_CONTACT_AS_BOT,
-        member,
-      })
-    "
-  >
-    <i class="ri-robot-line text-base mr-2" /><span class="text-xs">Unmark as bot</span>
-  </button>
-  <el-divider class="border-gray-200" />
-  <button
-    class="h-10 el-dropdown-menu__item w-full"
-    :disabled="isDeleteLockedForSampleData"
-    type="button"
-    @click="
-      handleCommand({
-        action: Actions.DELETE_CONTACT,
-        member,
-      })
-    "
-  >
-    <i
-      class="ri-delete-bin-line text-base mr-2"
-      :class="{
-        'text-red-500': !isDeleteLockedForSampleData,
-      }"
-    /><span
-      class="text-xs"
-      :class="{
-        'text-red-500': !isDeleteLockedForSampleData,
-      }"
-    >Delete contributor</span>
-  </button>
+    <button
+      v-if="member.attributes.isBot?.default"
+      class="h-10 el-dropdown-menu__item w-full"
+      type="button"
+      @click="
+        handleCommand({
+          action: Actions.UNMARK_CONTACT_AS_BOT,
+          member,
+        })
+      "
+    >
+      <i class="ri-robot-line text-base mr-2" /><span class="text-xs">Unmark as bot</span>
+    </button>
+  </template>
+  <template v-if="hasPermission(LfPermission.memberDestroy)">
+    <el-divider class="border-gray-200" />
+    <button
+      class="h-10 el-dropdown-menu__item w-full"
+      type="button"
+      @click="
+        handleCommand({
+          action: Actions.DELETE_CONTACT,
+          member,
+        })
+      "
+    >
+      <i
+        class="ri-delete-bin-line text-base mr-2 text-red-500"
+      /><span
+        class="text-xs text-red-500"
+      >Delete contributor</span>
+    </button>
+  </template>
 </template>
 
 <script setup lang="ts">
 import { mapActions } from '@/shared/vuex/vuex.helpers';
 import { MemberService } from '@/modules/member/member-service';
 import Message from '@/shared/message/message';
-import { MemberPermissions } from '@/modules/member/member-permissions';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
-import AppSvg from '@/shared/svg/svg.vue';
 import { useMemberStore } from '@/modules/member/store/pinia';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
-import { HubspotEntity } from '@/integrations/hubspot/types/HubspotEntity';
 import { HubspotApiService } from '@/integrations/hubspot/hubspot.api.service';
-import {
-  FeatureFlag, FEATURE_FLAGS,
-} from '@/utils/featureFlag';
-import { useStore } from 'vuex';
+import { FEATURE_FLAGS, FeatureFlag } from '@/utils/featureFlag';
 import { useRoute } from 'vue-router';
 import { computed } from 'vue';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import { Member } from '../types/Member';
 
 enum Actions {
@@ -241,50 +217,34 @@ const props = defineProps<{
   hideUnmerge?: boolean;
 }>();
 
-const store = useStore();
 const route = useRoute();
 
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
 const { doFind } = mapActions('member');
 
 const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
 
 const memberStore = useMemberStore();
 
-const isEditLockedForSampleData = computed(
-  () => new MemberPermissions(tenant.value, user.value)
-    .editLockedForSampleData,
-);
+const { hasPermission } = usePermissions();
 
-const isDeleteLockedForSampleData = computed(
-  () => new MemberPermissions(tenant.value, user.value)
-    .destroyLockedForSampleData,
-);
+// const isSyncingWithHubspot = computed(
+//   () => props.member.attributes?.syncRemote?.hubspot || false,
+// );
 
-const hasPermissionsToMerge = computed(() => new MemberPermissions(
-  tenant.value,
-  user.value,
-)?.mergeMembers);
+// const isHubspotConnected = computed(() => {
+//   const hubspot = CrowdIntegrations.getMappedConfig('hubspot', store);
+//   const enabledFor = hubspot.settings?.enabledFor || [];
+//
+//   return (
+//     hubspot.status === 'done' && enabledFor.includes(HubspotEntity.MEMBERS)
+//   );
+// });
+//
+// const isHubspotDisabledForMember = computed(
+//   () => (props.member.identities || []).filter((i) => i.type === 'email').length === 0,
+// );
 
-const isSyncingWithHubspot = computed(
-  () => props.member.attributes?.syncRemote?.hubspot || false,
-);
-
-const isHubspotConnected = computed(() => {
-  const hubspot = CrowdIntegrations.getMappedConfig('hubspot', store);
-  const enabledFor = hubspot.settings?.enabledFor || [];
-
-  return (
-    hubspot.status === 'done' && enabledFor.includes(HubspotEntity.MEMBERS)
-  );
-});
-
-const isHubspotDisabledForMember = computed(
-  () => (props.member.identities || []).filter((i) => i.type === 'email').length === 0,
-);
-
-const isHubspotActionDisabled = computed(() => !isHubspotConnected.value || isHubspotDisabledForMember.value);
+// const isHubspotActionDisabled = computed(() => !isHubspotConnected.value || isHubspotDisabledForMember.value);
 
 const isFindingGitHubDisabled = computed(() => (
   !!props.member.username?.github

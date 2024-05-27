@@ -15,7 +15,7 @@ export default ({
 
   const getIdentityHandles = (platform: string) => {
     if (platform === Platform.CUSTOM) {
-      const mainPlatforms = Object.values(Platform) as string[];
+      const mainPlatforms = (Object.values(Platform) as string[]).filter((p) => p !== 'custom');
       return (identities || [])
         .filter((i) => !mainPlatforms.includes(i.platform) && i.type !== 'email')
         .map((i) => ({
@@ -115,7 +115,17 @@ export default ({
       link: `mailto:${i.value}`,
       handle: i.value,
       verified: i.verified,
-    }));
+      platform: i.platform,
+    }))
+    .sort((a, b) => {
+      const indexA = order.findIndex((p) => p === a.platform);
+      const indexB = order.findIndex((p) => p === b.platform);
+
+      const orderA = indexA === -1 ? order.length : indexA;
+      const orderB = indexB === -1 ? order.length : indexB;
+
+      return orderA - orderB;
+    });
 
   return {
     getIdentities,

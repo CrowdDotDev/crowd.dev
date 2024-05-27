@@ -6,7 +6,6 @@ const documentation: MenuLink = {
   icon: 'ri-book-open-line',
   href: 'https://docs.crowd.dev',
   display: () => true,
-  disable: () => false,
 };
 
 export default documentation;

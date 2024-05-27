@@ -847,7 +847,7 @@ export default class MemberService extends LoggerBase {
         // construct primary member with best effort
         for (const key of MemberService.MEMBER_MERGE_FIELDS) {
           // delay relationships for later
-          if (!(key in relationships) && !member.manuallyChangedFields.includes(key)) {
+          if (!(key in relationships) && !(member.manuallyChangedFields || []).includes(key)) {
             if (key === 'attributes') {
               // 1) if both primary and secondary backup have the attribute, check any platform specific value came from merge, if current member has it, revert it
               // 2) if primary backup doesn't have the attribute, and secondary backup does, check if current member has the same value, if yes revert it (it came through merge)
@@ -857,7 +857,7 @@ export default class MemberService extends LoggerBase {
 
               // loop through current member attributes
               for (const attributeKey of Object.keys(member.attributes)) {
-                if (!member.manuallyChangedFields.some((f) => f === `attributes.${key}`)) {
+                if (!(member.manuallyChangedFields || []).some((f) => f === `attributes.${key}`)) {
                   // both backups have the attribute
                   if (
                     primaryBackup.attributes[attributeKey] &&
@@ -1634,7 +1634,7 @@ export default class MemberService extends LoggerBase {
                 }
               } else {
                 // new username doesn't have this platform - we can delete the existing identity
-                data.username[identity.platform] = { ...identity, delete: true }
+                data.username[identity.platform] = [{ ...identity, delete: true }]
               }
             }
 
@@ -1697,6 +1697,10 @@ export default class MemberService extends LoggerBase {
               await searchSyncService.triggerOrganizationSync(this.options.currentTenant.id, org.id)
             }
           }
+
+          // return updated record from OpenSearch instead of db
+          // quick hack to ensure tests that use this method don't fail if OpenSearch is disabled
+          return await MemberRepository.findByIdOpensearch(record.id, this.options)
         } catch (emitErr) {
           this.log.error(
             emitErr,
@@ -1794,8 +1798,22 @@ export default class MemberService extends LoggerBase {
     )
   }
 
-  async findAllAutocomplete(search, limit) {
-    return MemberRepository.findAllAutocomplete(search, limit, this.options)
+  async findAllAutocomplete(data) {
+    const memberAttributeSettings = (
+      await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
+    ).rows
+
+    return MemberRepository.findAndCountAllOpensearch(
+      {
+        filter: data.filter,
+        offset: data.offset,
+        orderBy: data.orderBy,
+        limit: data.limit,
+        segments: data.segments,
+        attributesSettings: memberAttributeSettings,
+      },
+      this.options,
+    )
   }
 
   async findAndCountActive(

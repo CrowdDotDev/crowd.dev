@@ -76,9 +76,9 @@ const telemetry = {
       },
     }
   },
-  measure: async (
+  measure: async <T>(
     name: string,
-    fn: () => Promise<void>,
+    fn: () => Promise<T>,
     tags?: Record<string, string | number>,
   ) => {
     const timer = telemetry.timer(`${name}`, tags)

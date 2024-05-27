@@ -175,9 +175,19 @@ export interface GithubIntegrationSettings {
   unavailableRepos: Repos
 }
 
-export interface GithubManualIntegrationSettings extends GithubIntegrationSettings {
+export interface GitHubManualIntegrationSettingsDefault extends GithubIntegrationSettings {
+  manualSettingsType: 'default'
   streamType: GithubManualStreamType
 }
+
+export interface GitHubManualIntegrationSettingsDetailedMap extends GithubIntegrationSettings {
+  manualSettingsType: 'detailed_map'
+  map: object
+}
+
+export type GithubManualIntegrationSettings =
+  | GitHubManualIntegrationSettingsDefault
+  | GitHubManualIntegrationSettingsDetailedMap
 
 export enum GithubPullRequestEvents {
   REQUEST_REVIEW = 'ReviewRequestedEvent',

@@ -1,6 +1,6 @@
 import { Config } from '@crowd/archetype-standard'
 import { ServiceWorker, Options } from '@crowd/archetype-worker'
-import { scheduleOrganizationCachesEnrichment, scheduleOrganizationUpdate } from './schedules'
+import { scheduleOrganizationsEnrichment } from './schedules'
 
 const config: Config = {
   envvars: ['CROWD_ORGANIZATION_ENRICHMENT_API_KEY'],
@@ -29,8 +29,7 @@ export const svc = new ServiceWorker(config, options)
 setImmediate(async () => {
   await svc.init()
 
-  await scheduleOrganizationCachesEnrichment()
-  await scheduleOrganizationUpdate()
+  await scheduleOrganizationsEnrichment()
 
   await svc.start()
 })

@@ -124,9 +124,9 @@
                     "
                   >
                     <i
-                      class="ri-lg ri-arrow-right-up-line mr-1"
+                      class="text-sm ri-eye-line mr-1"
                     />
-                    <span class="block whitespace-nowrap">Open conversation</span>
+                    <span class="block whitespace-nowrap">View {{ activity.platform !== Platform.GIT ? 'conversation' : 'commit' }}</span>
                   </a>
                   <app-activity-dropdown
                     v-if="showAffiliations"
@@ -139,39 +139,48 @@
                 </div>
               </div>
 
-              <app-lf-activity-parent
-                v-if="activity.parent && isMemberEntity"
-                :parent="activity.parent"
-              />
+              <!-- For now only render a special UI for Git -->
+              <div v-if="activity.platform === Platform.GIT">
+                <lf-activity-display
+                  :activity="activity"
+                  in-profile
+                />
+              </div>
+              <div v-else>
+                <app-lf-activity-parent
+                  v-if="activity.parent && isMemberEntity"
+                  :parent="activity.parent"
+                />
 
-              <app-activity-content
-                v-if="activity.title || activity.body"
-                class="text-sm bg-gray-50 rounded-lg p-4 mt-3"
-                :activity="activity"
-                :show-more="true"
-              >
-                <template v-if="platformDetails(activity.platform)?.activityDisplay?.showContentDetails" #details>
-                  <div v-if="activity.attributes">
-                    <app-activity-content-footer
-                      :source-id="isMemberEntity && activity.parent ? activity.parent?.sourceId : activity.sourceId"
-                      :changes="activity.attributes.lines"
-                      changes-copy="line"
-                      :insertions="activity.attributes.insertions"
-                      :deletions="activity.attributes.deletions"
-                      :display-source-id="isMemberEntity && activity.parent
-                        ? activity.parent?.type === 'authored-commit' : activity.type === 'authored-commit'"
-                    />
-                  </div>
-                </template>
+                <app-activity-content
+                  v-if="activity.title || activity.body"
+                  class="text-sm bg-gray-50 rounded-lg p-4 mt-3"
+                  :activity="activity"
+                  :show-more="true"
+                >
+                  <template v-if="platformDetails(activity.platform)?.activityDisplay?.showContentDetails" #details>
+                    <div v-if="activity.attributes">
+                      <app-activity-content-footer
+                        :source-id="isMemberEntity && activity.parent ? activity.parent?.sourceId : activity.sourceId"
+                        :changes="activity.attributes.lines"
+                        changes-copy="line"
+                        :insertions="activity.attributes.insertions"
+                        :deletions="activity.attributes.deletions"
+                        :display-source-id="isMemberEntity && activity.parent
+                          ? activity.parent?.type === 'authored-commit' : activity.type === 'authored-commit'"
+                      />
+                    </div>
+                  </template>
 
-                <template #bottomLink>
-                  <div v-if="activity.url" class="pt-6">
-                    <app-activity-link
-                      :activity="activity"
-                    />
-                  </div>
-                </template>
-              </app-activity-content>
+                  <template #bottomLink>
+                    <div v-if="activity.url" class="pt-6">
+                      <app-activity-link
+                        :activity="activity"
+                      />
+                    </div>
+                  </template>
+                </app-activity-content>
+              </div>
             </div>
             <template #dot>
               <span
@@ -258,6 +267,8 @@ import AppActivityDropdown from '@/modules/activity/components/activity-dropdown
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { getSegmentsFromProjectGroup } from '@/utils/segments';
+import { Platform } from '@/shared/modules/platform/types/Platform';
+import LfActivityDisplay from '@/shared/modules/activity/components/activity-display.vue';
 import { ActivityService } from '../activity-service';
 
 const SearchIcon = h(
@@ -352,27 +363,7 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
     if (query.value && query.value !== '') {
       filterToApply.or = [
         {
-          body: {
-            textContains: query.value,
-          },
-        },
-        {
           channel: {
-            textContains: query.value,
-          },
-        },
-        {
-          url: {
-            textContains: query.value,
-          },
-        },
-        {
-          body: {
-            textContains: query.value,
-          },
-        },
-        {
-          title: {
             textContains: query.value,
           },
         },

@@ -3,7 +3,6 @@ import home from './links/home';
 import contacts from './links/contacts';
 import organizations from './links/organizations';
 import activities from './links/activities';
-import reports from './links/reports';
 import eagleEye from './links/eagle-eye';
 import automations from './links/automations';
 import integrations from './links/integrations';
@@ -19,7 +18,6 @@ export const mainMenu: MenuLink[] = [
   contacts,
   organizations,
   activities,
-  reports,
   eagleEye,
 ];
 

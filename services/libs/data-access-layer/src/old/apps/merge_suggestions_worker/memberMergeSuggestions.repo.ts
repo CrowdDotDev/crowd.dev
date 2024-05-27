@@ -1,6 +1,6 @@
 import { DbConnection, DbTransaction } from '@crowd/database'
 import { Logger } from '@crowd/logging'
-import { IMemberMergeSuggestion } from '@crowd/types'
+import { IMemberMergeSuggestion, SuggestionType } from '@crowd/types'
 import { IMemberId, IMemberMergeSuggestionsLatestGeneratedAt, IMemberNoMerge } from './types'
 import { removeDuplicateSuggestions, chunkArray } from './utils'
 
@@ -69,7 +69,10 @@ class MemberMergeSuggestionsRepository {
 
   async addToMerge(suggestions: IMemberMergeSuggestion[]): Promise<void> {
     // Remove possible duplicates
-    suggestions = removeDuplicateSuggestions(suggestions)
+    suggestions = removeDuplicateSuggestions<IMemberMergeSuggestion>(
+      suggestions,
+      SuggestionType.MEMBERS,
+    )
 
     // check all suggestion ids exists in the db
     const uniqueMemberIds = Array.from(

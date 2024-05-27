@@ -547,7 +547,7 @@ export default {
     async doGerritConnect(
       { commit },
       {
-        orgURL, projectName, user, key, isUpdate,
+        orgURL, user, key, isUpdate, repoNames, enableAllRepos, enableGit,
       },
     ) {
       try {
@@ -555,9 +555,11 @@ export default {
 
         const integration = await IntegrationService.gerritConnect({
           orgURL,
-          projectName,
           user,
           key,
+          repoNames,
+          enableAllRepos,
+          enableGit,
         });
 
         commit('CREATE_SUCCESS', integration);
@@ -626,10 +628,10 @@ export default {
     async doGroupsioConnect(
       { commit },
       {
-        email, token, tokenExpiry, password, groupNames, isUpdate,
+        email, token, tokenExpiry, password, groups, isUpdate,
       },
     ) {
-      console.log('doGroupsioConnect', email, token, groupNames, isUpdate);
+      console.log('doGroupsioConnect', email, token, groups, isUpdate);
 
       try {
         commit('CREATE_STARTED');
@@ -639,7 +641,7 @@ export default {
           token,
           tokenExpiry,
           password,
-          groupNames,
+          groups,
         );
 
         commit('CREATE_SUCCESS', integration);

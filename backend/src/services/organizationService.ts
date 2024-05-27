@@ -21,7 +21,6 @@ import MemberOrganizationRepository from '@/database/repositories/memberOrganiza
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import MemberRepository from '../database/repositories/memberRepository'
 import { MergeActionsRepository } from '../database/repositories/mergeActionsRepository'
-import organizationCacheRepository from '../database/repositories/organizationCacheRepository'
 import OrganizationRepository from '../database/repositories/organizationRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import telemetryTrack from '../segment/telemetryTrack'
@@ -389,7 +388,7 @@ export default class OrganizationService extends LoggerBase {
     }
   }
 
-  async mergeSync(originalId, toMergeId, segmentId) {
+  async mergeSync(originalId: string, toMergeId: string, segmentId?: string) {
     this.options.log.info({ originalId, toMergeId }, 'Merging organizations!')
 
     const removeExtraFields = (organization: IOrganization): IOrganization =>
@@ -810,93 +809,15 @@ export default class OrganizationService extends LoggerBase {
 
     try {
       const primaryIdentity = data.identities[0]
-      const nameToCheckInCache = (data as any).name || primaryIdentity.name
+      const name = (data as any).name || primaryIdentity.name
 
       // Normalize the website URL if it exists
       if (data.website) {
         data.website = websiteNormalizer(data.website)
       }
 
-      // lets check if we have this organization in cache by website
-      let cache
-      let createCacheIdentity = false
-      if (data.website) {
-        cache = await organizationCacheRepository.findByWebsite(data.website, {
-          ...this.options,
-          transaction,
-        })
-
-        if (cache && !cache.names.includes(nameToCheckInCache)) {
-          createCacheIdentity = true
-        }
-      }
-
-      // check cache existing by name
-      if (!cache) {
-        cache = await organizationCacheRepository.findByName(nameToCheckInCache, {
-          ...this.options,
-          transaction,
-        })
-      }
-
-      // if cache exists, merge current data with cache data
-      // if it doesn't exist, create it from incoming data
-      if (cache) {
-        // if exists in cache update it
-        const updateData: Partial<IOrganization> = {}
-        const fields = [
-          'url',
-          'description',
-          'emails',
-          'logo',
-          'tags',
-          'github',
-          'twitter',
-          'linkedin',
-          'crunchbase',
-          'employees',
-          'location',
-          'website',
-          'type',
-          'size',
-          'headline',
-          'industry',
-          'founded',
-        ]
-        fields.forEach((field) => {
-          if (data[field] && !lodash.isEqual(data[field], cache[field])) {
-            updateData[field] = data[field]
-          }
-        })
-        if (Object.keys(updateData).length > 0) {
-          await organizationCacheRepository.update(
-            cache.id,
-            updateData,
-            {
-              ...this.options,
-              transaction,
-            },
-            createCacheIdentity ? nameToCheckInCache : undefined,
-          )
-
-          cache = { ...cache, ...updateData } // Update the cached data with the new data
-        }
-      } else {
-        // save it to cache
-        cache = await organizationCacheRepository.create(
-          {
-            ...data,
-            name: primaryIdentity.name,
-          },
-          {
-            ...this.options,
-            transaction,
-          },
-        )
-      }
-
       if (data.members) {
-        cache.members = await MemberRepository.filterIdsInTenant(data.members, {
+        data.members = await MemberRepository.filterIdsInTenant(data.members, {
           ...this.options,
           transaction,
         })
@@ -906,14 +827,14 @@ export default class OrganizationService extends LoggerBase {
       let existing
 
       // check if organization already exists using website or primary identity
-      if (cache.website) {
-        existing = await OrganizationRepository.findByDomain(cache.website, this.options)
+      if (data.website) {
+        existing = await OrganizationRepository.findByDomain(data.website, this.options)
 
         // also check domain in identities
         if (!existing) {
           existing = await OrganizationRepository.findByIdentity(
             {
-              name: websiteNormalizer(cache.website),
+              name: websiteNormalizer(data.website),
               platform: 'email',
             },
             this.options,
@@ -930,7 +851,7 @@ export default class OrganizationService extends LoggerBase {
 
         // Set displayName if it doesn't exist
         if (!existing.displayName) {
-          data.displayName = cache.name
+          data.displayName = name
         }
 
         // if it does exists update it
@@ -957,8 +878,8 @@ export default class OrganizationService extends LoggerBase {
           'weakIdentities',
         ]
         fields.forEach((field) => {
-          if (!existing[field] && cache[field]) {
-            updateData[field] = cache[field]
+          if (!existing[field] && data[field]) {
+            updateData[field] = data[field]
           }
         })
 
@@ -975,8 +896,7 @@ export default class OrganizationService extends LoggerBase {
 
         const organization = {
           ...data, // to keep uncacheable data (like identities, weakIdentities)
-          ...cache,
-          displayName: cache.name,
+          displayName: name,
         }
 
         record = await OrganizationRepository.create(organization, {
@@ -1013,11 +933,6 @@ export default class OrganizationService extends LoggerBase {
           }
         }
       }
-
-      await organizationCacheRepository.linkCacheAndOrganization(cache.id, record.id, {
-        ...this.options,
-        transaction,
-      })
 
       await SequelizeRepository.commitTransaction(transaction)
 
@@ -1156,8 +1071,35 @@ export default class OrganizationService extends LoggerBase {
     return OrganizationRepository.findById(id, this.options, segmentId)
   }
 
-  async findAllAutocomplete(search, limit) {
-    return OrganizationRepository.findAllAutocomplete(search, limit, this.options)
+  async findAllAutocomplete(data) {
+    const advancedFilter = data.filter
+    const orderBy = data.orderBy
+    const limit = data.limit
+    const offset = data.offset
+
+    const res = await OrganizationRepository.findAndCountAllOpensearch(
+      { filter: advancedFilter, orderBy, limit, offset, segments: data.segments },
+      this.options,
+    )
+
+    // group orgs by id to avoid duplicates and store segmentId in a segments array
+    const grouped = res.rows.reduce((acc, org) => {
+      if (!acc[org.id]) {
+        acc[org.id] = { ...org, segments: [org.segmentId] }
+      } else {
+        acc[org.id].segments.push(org.segmentId)
+      }
+
+      // drop unnecessary fields
+      delete acc[org.id].grandParentSegment
+      delete acc[org.id].segmentId
+
+      return acc
+    }, {})
+
+    res.rows = Object.values(grouped)
+
+    return res
   }
 
   async findAndCountAll(args) {

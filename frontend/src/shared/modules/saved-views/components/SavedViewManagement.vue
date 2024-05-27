@@ -25,6 +25,7 @@
           <div class="flex items-center">
             <el-tooltip placement="top" content="Edit view">
               <div
+                v-if="view.visibility !== 'tenant' || hasPermission(LfPermission.customViewsTenantManage)"
                 class="h-6 w-6 flex items-center justify-center ml-1 group cursor-pointer hover:bg-gray-100 rounded"
                 @click="edit(view)"
               >
@@ -41,6 +42,7 @@
             </el-tooltip>
             <el-tooltip placement="top" content="Delete view">
               <div
+                v-if="view.visibility !== 'tenant' || hasPermission(LfPermission.customViewsTenantManage)"
                 class="h-6 w-6 flex items-center justify-center ml-1 group cursor-pointer hover:bg-gray-100 rounded"
                 @click="remove(view)"
               >
@@ -61,6 +63,8 @@ import { computed } from 'vue';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { SavedViewsService } from '@/shared/modules/saved-views/services/saved-views.service';
 import Message from '@/shared/message/message';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 
 const props = defineProps<{
   config: SavedViewsConfig,
@@ -72,6 +76,8 @@ const emit = defineEmits<{(e: 'update:views', value: SavedView[]): any,
   (e: 'duplicate', value: SavedView): any,
   (e: 'reload'): any,
 }>();
+
+const { hasPermission } = usePermissions();
 
 const views = computed<SavedView[]>({
   get() {

@@ -12,13 +12,12 @@
               v-if="organizationsToMergeCount > 0"
               content="Coming soon"
               placement="top"
-              :disabled="hasPermissionsToMerge"
+              :disabled="hasPermission(LfPermission.mergeOrganizations)"
             >
               <span>
                 <component
-                  :is="hasPermissionsToMerge ? 'router-link' : 'span'"
+                  :is="hasPermission(LfPermission.mergeOrganizations) ? 'router-link' : 'span'"
                   class=" mr-4 "
-                  :class="{ 'pointer-events-none': isEditLockedForSampleData }"
                   :to="{
                     name: 'organizationMergeSuggestions',
                     query: {
@@ -27,7 +26,7 @@
                   }"
                 >
                   <button
-                    :disabled="isEditLockedForSampleData || !hasPermissionsToMerge"
+                    :disabled="!hasPermission(LfPermission.mergeOrganizations)"
                     type="button"
                     class="btn btn--secondary btn--md flex items-center"
                   >
@@ -42,13 +41,8 @@
               </span>
             </el-tooltip>
             <el-button
-              v-if="hasPermissionToCreate"
+              v-if="hasPermission(LfPermission.organizationCreate)"
               class="btn btn--primary btn--md"
-              :class="{
-                'pointer-events-none cursor-not-allowed':
-                  isCreateLockedForSampleData,
-              }"
-              :disabled="isCreateLockedForSampleData"
               @click="onAddOrganization"
             >
               Add organization
@@ -95,7 +89,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted } from 'vue';
+import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import AppPageWrapper from '@/shared/layout/page-wrapper.vue';
 import AppOrganizationListTable from '@/modules/organization/components/list/organization-list-table.vue';
@@ -110,13 +104,10 @@ import { organizationSavedViews } from '@/modules/organization/config/saved-view
 import { FilterQuery } from '@/shared/modules/filters/types/FilterQuery';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { OrganizationPermissions } from '../organization-permissions';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 
 const router = useRouter();
-
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
 
 const organizationStore = useOrganizationStore();
 const { filters, totalOrganizations, savedFilterBody } = storeToRefs(organizationStore);
@@ -132,30 +123,7 @@ const lsSegmentsStore = useLfSegmentsStore();
 
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
-const hasPermissionToCreate = computed(
-  () => new OrganizationPermissions(
-    tenant.value,
-    user.value,
-  ).create,
-);
-const isCreateLockedForSampleData = computed(
-  () => new OrganizationPermissions(
-    tenant.value,
-    user.value,
-  ).createLockedForSampleData,
-);
-
-const isEditLockedForSampleData = computed(
-  () => new OrganizationPermissions(
-    tenant.value,
-    user.value,
-  ).editLockedForSampleData,
-);
-
-const hasPermissionsToMerge = computed(() => new OrganizationPermissions(
-  tenant.value,
-  user.value,
-)?.mergeOrganizations);
+const { hasPermission } = usePermissions();
 
 const pagination = ref({
   page: 1,
@@ -221,7 +189,9 @@ const onPaginationChange = ({
 
 const organizationsToMergeCount = ref(0);
 const fetchOrganizationsToMergeCount = () => {
-  OrganizationService.fetchMergeSuggestions(1, 0)
+  OrganizationService.fetchMergeSuggestions(0, 0, {
+    countOnly: true,
+  })
     .then(({ count }: any) => {
       organizationsToMergeCount.value = count;
     });

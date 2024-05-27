@@ -42,6 +42,9 @@ export default {
   },
 
   removeToMergeOrganizations(this: OrganizationState) {
-    this.toMergeOrganizations = {};
+    this.toMergeOrganizations = {
+      originalId: null,
+      toMergeId: null,
+    };
   },
 };

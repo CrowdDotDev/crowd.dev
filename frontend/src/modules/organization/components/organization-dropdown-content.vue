@@ -1,9 +1,8 @@
 <template>
   <!-- Unmerge -->
-  <template v-if="organization.identities.length > 1 && !hideUnmerge">
+  <template v-if="organization.identities.length > 1 && !hideUnmerge && hasPermission(LfPermission.organizationEdit)">
     <button
       class="h-10 el-dropdown-menu__item w-full"
-      :disabled="isEditLockedForSampleData"
       type="button"
       @click="handleCommand({
         action: Actions.UNMERGE_IDENTITY,
@@ -17,7 +16,7 @@
 
   <!-- Edit -->
   <router-link
-    v-if="!hideEdit"
+    v-if="!hideEdit && hasPermission(LfPermission.organizationEdit)"
     :to="{
       name: 'organizationEdit',
       params: {
@@ -27,12 +26,8 @@
         segmentId: route.query.segmentId || route.query.projectGroup,
       },
     }"
-    :class="{
-      'pointer-events-none cursor-not-allowed': isEditLockedForSampleData,
-    }"
   >
     <button
-      :disabled="isEditLockedForSampleData"
       class="h-10 el-dropdown-menu__item w-full"
       type="button"
     >
@@ -41,149 +36,132 @@
   </router-link>
 
   <!-- Merge organization -->
-  <el-tooltip
-    v-if="!hideMerge"
-    content="Coming soon"
-    placement="top"
-    :disabled="hasPermissionsToMerge"
+  <button
+    v-if="!hideMerge && hasPermission(LfPermission.organizationEdit)"
+    class="h-10 el-dropdown-menu__item w-full"
+    type="button"
+    :disabled="!hasPermission(LfPermission.mergeOrganizations)"
+    @click="
+      handleCommand({
+        action: Actions.MERGE_ORGANIZATION,
+        organization,
+      })
+    "
   >
+    <i class="ri-shuffle-line text-base mr-2" /><span class="text-xs">Merge organization</span>
+  </button>
+
+  <!-- Hubspot -->
+  <!--  <button-->
+  <!--    v-if="!isSyncingWithHubspot(organization)"-->
+  <!--    class="h-10 el-dropdown-menu__item w-full"-->
+  <!--    type="button"-->
+  <!--    :disabled="-->
+  <!--      !isHubspotConnected-->
+  <!--        || (!organization.website-->
+  <!--          && !organization.attributes?.sourceId?.hubspot)-->
+  <!--    "-->
+  <!--    @click="-->
+  <!--      handleCommand({-->
+  <!--        action: Actions.SYNC_HUBSPOT,-->
+  <!--        organization,-->
+  <!--      })-->
+  <!--    "-->
+  <!--  >-->
+  <!--    <app-svg name="hubspot" class="h-4 w-4 text-current" />-->
+  <!--    <span class="text-xs pl-2">Sync with HubSpot</span>-->
+  <!--  </button>-->
+  <!--  <button-->
+  <!--    v-else-->
+  <!--    class="h-10 el-dropdown-menu__item w-full"-->
+  <!--    type="button"-->
+  <!--    :disabled="!isHubspotConnected"-->
+  <!--    @click="-->
+  <!--      handleCommand({-->
+  <!--        action: Actions.STOP_SYNC_HUBSPOT,-->
+  <!--        organization,-->
+  <!--      })-->
+  <!--    "-->
+  <!--  >-->
+  <!--    <app-svg name="hubspot" class="h-4 w-4 text-current" />-->
+  <!--    <span class="text-xs pl-2">Stop sync with HubSpot</span>-->
+  <!--  </button>-->
+
+  <!-- Mark as Team Organization -->
+  <template v-if="hasPermission(LfPermission.organizationEdit)">
+    <el-tooltip
+      placement="top"
+      content="Mark as team organization if it is your own organization."
+      popper-class="max-w-[260px]"
+    >
+      <span>
+        <button
+          v-if="!organization.isTeamOrganization"
+          class="h-10 el-dropdown-menu__item w-full"
+          type="button"
+          @click="
+            handleCommand({
+              action: Actions.MARK_ORGANIZATION_AS_TEAM_ORGANIZATION,
+              organization,
+              value: true,
+            })
+          "
+        >
+          <i class="ri-bookmark-line text-base mr-2" /><span class="text-xs">Mark as team organization</span>
+        </button>
+      </span>
+    </el-tooltip>
+
+    <!-- Unmark as Team Organization -->
+    <button
+      v-if="organization.isTeamOrganization"
+      type="button"
+      class="h-10 el-dropdown-menu__item w-full"
+      @click="
+        handleCommand({
+          action: Actions.MARK_ORGANIZATION_AS_TEAM_ORGANIZATION,
+          organization,
+          value: false,
+        })
+      "
+    >
+      <i class="ri-bookmark-2-line text-base mr-2" /><span class="text-xs">Unmark as team organization</span>
+    </button>
+  </template>
+
+  <template v-if="hasPermission(LfPermission.organizationDestroy)">
+    <el-divider class="border-gray-200 my-2" />
+
+    <!-- Delete -->
     <button
       class="h-10 el-dropdown-menu__item w-full"
       type="button"
-      :disabled="isEditLockedForSampleData || !hasPermissionsToMerge"
       @click="
         handleCommand({
-          action: Actions.MERGE_ORGANIZATION,
+          action: Actions.DELETE_ORGANIZATION,
           organization,
         })
       "
     >
-      <i class="ri-shuffle-line text-base mr-2" /><span class="text-xs">Merge organization</span>
+      <i
+        class="ri-delete-bin-line text-base mr-2 text-red-500"
+      /><span
+        class="text-xs text-red-500"
+      >Delete organization</span>
     </button>
-  </el-tooltip>
-
-  <!-- Hubspot -->
-  <button
-    v-if="!isSyncingWithHubspot(organization)"
-    class="h-10 el-dropdown-menu__item w-full"
-    type="button"
-    :disabled="
-      !isHubspotConnected
-        || (!organization.website
-          && !organization.attributes?.sourceId?.hubspot)
-    "
-    @click="
-      handleCommand({
-        action: Actions.SYNC_HUBSPOT,
-        organization,
-      })
-    "
-  >
-    <app-svg name="hubspot" class="h-4 w-4 text-current" />
-    <span class="text-xs pl-2">Sync with HubSpot</span>
-  </button>
-  <button
-    v-else
-    class="h-10 el-dropdown-menu__item w-full"
-    type="button"
-    :disabled="!isHubspotConnected"
-    @click="
-      handleCommand({
-        action: Actions.STOP_SYNC_HUBSPOT,
-        organization,
-      })
-    "
-  >
-    <app-svg name="hubspot" class="h-4 w-4 text-current" />
-    <span class="text-xs pl-2">Stop sync with HubSpot</span>
-  </button>
-
-  <!-- Mark as Team Organization -->
-  <el-tooltip
-    placement="top"
-    content="Mark as team organization if it is your own organization."
-    popper-class="max-w-[260px]"
-  >
-    <span>
-      <button
-        v-if="!organization.isTeamOrganization"
-        class="h-10 el-dropdown-menu__item w-full"
-        type="button"
-        :disabled="isEditLockedForSampleData"
-        @click="
-          handleCommand({
-            action: Actions.MARK_ORGANIZATION_AS_TEAM_ORGANIZATION,
-            organization,
-            value: true,
-          })
-        "
-      >
-        <i class="ri-bookmark-line text-base mr-2" /><span class="text-xs">Mark as team organization</span>
-      </button>
-    </span>
-  </el-tooltip>
-
-  <!-- Unmark as Team Organization -->
-  <button
-    v-if="organization.isTeamOrganization"
-    type="button"
-    class="h-10 el-dropdown-menu__item w-full"
-    :disabled="isEditLockedForSampleData"
-    @click="
-      handleCommand({
-        action: Actions.MARK_ORGANIZATION_AS_TEAM_ORGANIZATION,
-        organization,
-        value: false,
-      })
-    "
-  >
-    <i class="ri-bookmark-2-line text-base mr-2" /><span class="text-xs">Unmark as team organization</span>
-  </button>
-
-  <el-divider class="border-gray-200 my-2" />
-
-  <!-- Delete -->
-  <button
-    class="h-10 el-dropdown-menu__item w-full"
-    :disabled="isDeleteLockedForSampleData"
-    type="button"
-    @click="
-      handleCommand({
-        action: Actions.DELETE_ORGANIZATION,
-        organization,
-      })
-    "
-  >
-    <i
-      class="ri-delete-bin-line text-base mr-2"
-      :class="{
-        'text-red-500': !isDeleteLockedForSampleData,
-      }"
-    /><span
-      class="text-xs"
-      :class="{
-        'text-red-500': !isDeleteLockedForSampleData,
-      }"
-    >Delete organization</span>
-  </button>
+  </template>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import Message from '@/shared/message/message';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import { i18n } from '@/i18n';
-import AppSvg from '@/shared/svg/svg.vue';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
-import { HubspotEntity } from '@/integrations/hubspot/types/HubspotEntity';
 import { HubspotApiService } from '@/integrations/hubspot/hubspot.api.service';
-import { useStore } from 'vuex';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { storeToRefs } from 'pinia';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import { OrganizationService } from '../organization-service';
-import { OrganizationPermissions } from '../organization-permissions';
 import { Organization } from '../types/Organization';
 
 enum Actions {
@@ -206,37 +184,20 @@ defineProps<{
   hideEdit?: boolean;
 }>();
 
-const store = useStore();
-
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
-
 const organizationStore = useOrganizationStore();
 
-const isEditLockedForSampleData = computed(
-  () => new OrganizationPermissions(tenant.value, user.value)
-    .editLockedForSampleData,
-);
-const isDeleteLockedForSampleData = computed(
-  () => new OrganizationPermissions(tenant.value, user.value)
-    .destroyLockedForSampleData,
-);
+const { hasPermission } = usePermissions();
 
-const hasPermissionsToMerge = computed(() => new OrganizationPermissions(
-  tenant.value,
-  user.value,
-)?.mergeOrganizations);
-
-const isSyncingWithHubspot = (organization: Organization) => organization.attributes?.syncRemote?.hubspot || false;
-
-const isHubspotConnected = computed(() => {
-  const hubspot = CrowdIntegrations.getMappedConfig('hubspot', store);
-  const enabledFor = hubspot.settings?.enabledFor || [];
-  return (
-    hubspot.status === 'done'
-    && enabledFor.includes(HubspotEntity.ORGANIZATIONS)
-  );
-});
+// const isSyncingWithHubspot = (organization: Organization) => organization.attributes?.syncRemote?.hubspot || false;
+//
+// const isHubspotConnected = computed(() => {
+//   const hubspot = CrowdIntegrations.getMappedConfig('hubspot', store);
+//   const enabledFor = hubspot.settings?.enabledFor || [];
+//   return (
+//     hubspot.status === 'done'
+//     && enabledFor.includes(HubspotEntity.ORGANIZATIONS)
+//   );
+// });
 
 const doManualAction = async ({
   loadingMessage,

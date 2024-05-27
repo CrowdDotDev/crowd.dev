@@ -1,0 +1,95 @@
+.c-table {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  overflow-y: hidden;
+  height: 100%;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  td, th {
+    &.is-sticky {
+      @apply sticky pl-3 bg-white left-0 right-0 z-20;
+
+      &:before {
+        content: '';
+        height: calc(100% + 3px);
+        @apply absolute top-0 w-3;
+      }
+
+      &:first-child:before {
+        right: 0;
+        box-shadow: rem(6) 0 rem(8) rem(-2) rgba(0, 0, 0, 0.1);
+      }
+
+      &:last-child:before {
+        left: 0;
+        box-shadow: rem(-6) 0 rem(8) rem(-2) rgba(0, 0, 0, 0.1);
+      }
+    }
+  }
+
+  table {
+    @apply w-full;
+
+    thead {
+      @apply border-b border-gray-100;
+      th {
+        @apply h-12 text-sm leading-5 font-semibold text-gray-400 text-left whitespace-nowrap;
+      }
+    }
+
+    tbody {
+      tr:not(:last-child) {
+        @apply border-b border-gray-100;
+      }
+
+      tr {
+        td {
+          @apply py-4;
+        }
+
+        td:not(:last-child) {
+          @apply pr-3;
+        }
+      }
+    }
+
+    tfoot {
+      @apply border-t border-gray-100;
+    }
+  }
+
+  &--bordered {
+    @apply border-t border-x border-gray-100 shadow-sm rounded-lg;
+
+    table {
+      tr {
+        td, th {
+          @apply py-5 pr-5;
+
+          &:first-child {
+            @apply pl-5;
+          }
+        }
+      }
+
+      th {
+        @apply text-2xs #{!important};
+      }
+    }
+  }
+
+  &.is-scroll-start {
+    .is-sticky:first-child:before {
+      @apply hidden;
+    }
+  }
+
+  &.is-scroll-end {
+    .is-sticky:last-child:before {
+      @apply hidden;
+    }
+  }
+}

@@ -631,13 +631,17 @@
                     }"
                     class="block"
                   >
-                    <app-tag-list :member="scope.row" @edit="handleEditTagsDialog(scope.row)" />
+                    <app-tag-list
+                      :member="scope.row"
+                      :editable="hasPermission(LfPermission.tagEdit)"
+                      @edit="handleEditTagsDialog(scope.row)"
+                    />
                   </router-link>
                 </template>
               </el-table-column>
 
               <!-- Action button -->
-              <el-table-column fixed="right">
+              <el-table-column v-if="hasPermissions" fixed="right">
                 <template #default="scope">
                   <router-link
                     :to="{
@@ -765,6 +769,8 @@ import { useAuthStore } from '@/modules/auth/store/auth.store';
 import CrDefaultFilters from '@/shared/modules/default-filters/components/default-filters.vue';
 import AppMemberListEmails from '@/modules/member/components/list/columns/member-list-emails.vue';
 import { getSegmentsFromProjectGroup } from '@/utils/segments';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import AppMemberBadge from '../member-badge.vue';
 import AppMemberDropdownContent from '../member-dropdown-content.vue';
 import AppMemberReach from '../member-reach.vue';
@@ -834,6 +840,13 @@ const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 const authStore = useAuthStore();
 const { tenant } = storeToRefs(authStore);
+
+const { hasPermission } = usePermissions();
+
+const hasPermissions = computed(() => [LfPermission.memberEdit,
+  LfPermission.memberDestroy,
+  LfPermission.mergeMembers]
+  .some((permission) => hasPermission(permission)));
 
 const isEnrichEnabled = computed(() => tenant.value?.plan !== Plans.values.essential);
 

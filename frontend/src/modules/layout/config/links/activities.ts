@@ -1,19 +1,16 @@
 import { MenuLink } from '@/modules/layout/types/MenuLink';
-import { ActivityPermissions } from '@/modules/activity/activity-permissions';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 
 const activities: MenuLink = {
   id: 'activities',
   label: 'Activities',
   icon: 'ri-radar-line',
   routeName: 'activity',
-  display: ({ user, tenant }) => {
-    const activityPermissions = new ActivityPermissions(
-      tenant,
-      user,
-    );
-    return activityPermissions.read || activityPermissions.lockedForCurrentPlan;
+  display: () => {
+    const { hasPermission } = usePermissions();
+    return hasPermission(LfPermission.activityRead);
   },
-  disable: ({ user, tenant }) => new ActivityPermissions(tenant, user).lockedForCurrentPlan,
 };
 
 export default activities;

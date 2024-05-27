@@ -48,6 +48,10 @@ export const receiveMessage = async (
   maxMessages?: number,
 ): Promise<SqsMessage[]> => {
   params.MaxNumberOfMessages = maxMessages || 1
+  // max is 10
+  if (params.MaxNumberOfMessages > 10) {
+    params.MaxNumberOfMessages = 10
+  }
   params.WaitTimeSeconds = 15
 
   if (visibilityTimeoutSeconds) {

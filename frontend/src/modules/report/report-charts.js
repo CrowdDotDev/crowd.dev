@@ -24,7 +24,6 @@ const formatTooltipOptions = {
     plugins: {
       tooltip: {
         callbacks: {
-
           label: (context) => (context.dataset.label ? pluralize(
             i18n(
               `widget.cubejs.tooltip.${context.dataset.label}`,
@@ -46,8 +45,25 @@ const platformColors = {
   devto: '#5EEAD4',
 };
 
+const timeXScale = {
+  scales: {
+    x: {
+      time: {
+        displayFormats: {
+          day: 'MMM DD, YYYY',
+          week: 'MMM DD, YYYY',
+          month: 'MMM DD, YYYY',
+          year: 'MMM DD, YYYY',
+        },
+        tooltipFormat: 'MMM DD, YYYY',
+      },
+    },
+  },
+};
+
 export function chartOptions(widget, resultSet) {
   let chartTypeOptions = {};
+
   const seriesNames = resultSet
     ? resultSet.seriesNames()
     : [];
@@ -56,6 +72,9 @@ export function chartOptions(widget, resultSet) {
   if (type === 'area' || type === 'line') {
     if (seriesNames.length <= 1) {
       chartTypeOptions = {
+        library: {
+          ...timeXScale,
+        },
         computeDataset: (canvas) => {
           const ctx = canvas.getContext('2d');
           const gradient = ctx.createLinearGradient(
@@ -71,11 +90,18 @@ export function chartOptions(widget, resultSet) {
       };
     } else {
       chartTypeOptions = {
+        library: {
+          ...timeXScale,
+        },
         computeDataset: () => ({ backgroundColor: 'transparent' }),
       };
     }
   } else if (type === 'bar') {
-    chartTypeOptions = {};
+    chartTypeOptions = {
+      library: {
+        ...timeXScale,
+      },
+    };
   } else if (type === 'pie' || type === 'donut') {
     chartTypeOptions = {
       donut: true,
@@ -85,6 +111,14 @@ export function chartOptions(widget, resultSet) {
         borderWidth: 0,
         cutout: '65%',
         plugins: {
+          tooltip: {
+            enabled: true,
+            callbacks: {
+              label(tooltipItem) {
+                return `${tooltipItem.label}: ${tooltipItem.formattedValue}`;
+              },
+            },
+          },
           legend: {
             display: true,
             position: 'right',
@@ -162,6 +196,7 @@ export function chartOptions(widget, resultSet) {
     ...options,
     library: {
       ...options.library,
+      ...timeXScale,
       plugins: {
         ...options.library.plugins,
         verticalHoverLine: false,

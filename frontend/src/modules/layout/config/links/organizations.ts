@@ -6,7 +6,6 @@ const organizations: MenuLink = {
   icon: 'ri-community-line',
   routeName: 'organization',
   display: () => true,
-  disable: () => false,
 };
 
 export default organizations;

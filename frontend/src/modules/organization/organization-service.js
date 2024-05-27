@@ -171,7 +171,7 @@ export class OrganizationService {
         and: [
           {
             displayName: {
-              textContains: query,
+              matchPhrasePrefix: query,
             },
           },
         ],
@@ -197,7 +197,7 @@ export class OrganizationService {
     const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.post(
-      `/tenant/${tenantId}/organization/query`,
+      `/tenant/${tenantId}/organization/autocomplete`,
       payload,
     );
 
@@ -212,17 +212,16 @@ export class OrganizationService {
   static async fetchMergeSuggestions(limit, offset, query) {
     const tenantId = AuthService.getTenantId();
 
-    const params = {
+    const data = {
       limit,
       offset,
+      detail: true,
       ...query,
     };
 
-    return authAxios.get(
+    return authAxios.post(
       `/tenant/${tenantId}/organizationsToMerge`,
-      {
-        params,
-      },
+      data,
     )
       .then(({ data }) => Promise.resolve(data));
   }

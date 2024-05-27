@@ -13,7 +13,7 @@
         </p>
       </div>
       <app-note-dropdown
-        v-if="props.note.createdById === user.id"
+        v-if="props.note.createdById === user.id && hasPermission(LfPermission.noteEdit)"
         :note="props.note"
         @edit="edit()"
         @reload="emit('reload')"
@@ -25,7 +25,7 @@
       v-html="$sanitize(props.note.body)"
     />
     <app-note-editor
-      v-else
+      v-else-if="hasPermission(LfPermission.noteEdit)"
       ref="editor"
       :hide-avatar="true"
       :hide-suggestion="true"
@@ -48,6 +48,8 @@ import AppNoteDropdown from '@/modules/notes/components/note-dropdown.vue';
 import AppNoteEditor from '@/modules/notes/components/note-editor.vue';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 
 const props = defineProps({
   note: {
@@ -60,6 +62,8 @@ const emit = defineEmits(['reload']);
 
 const authStore = useAuthStore();
 const { user } = storeToRefs(authStore);
+
+const { hasPermission } = usePermissions();
 
 const timeAgo = formatDateToTimeAgo;
 const editor = ref(null);
