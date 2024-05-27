@@ -1,11 +1,4 @@
-import { triggerOrganizationCacheEnrichment } from './workflows/triggerOrganizationCacheEnrichment'
-import { enrichOrganizationCache } from './workflows/enrichOrganizationCache'
-import { updateTenantOrganization } from './workflows/updateTenantOrganization'
-import { triggerUpdateTenantOrganizations } from './workflows/triggerUpdateTenantOrganizations'
+import { triggerOrganizationsEnrichment } from './workflows/triggerOrganizationEnrichment'
+import { enrichOrganization } from './workflows/enrichOrganization'
 
-export {
-  triggerUpdateTenantOrganizations,
-  triggerOrganizationCacheEnrichment,
-  enrichOrganizationCache,
-  updateTenantOrganization,
-}
+export { triggerOrganizationsEnrichment, enrichOrganization }

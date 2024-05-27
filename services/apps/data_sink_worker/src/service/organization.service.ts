@@ -1,10 +1,6 @@
 import mergeWith from 'lodash.mergewith'
 import isEqual from 'lodash.isequal'
 import IntegrationRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/integration.repo'
-import {
-  IDbCacheOrganization,
-  IDbInsertOrganizationCacheData,
-} from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/organization.data'
 import { OrganizationRepository } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/organization.repo'
 import { DbStore } from '@crowd/data-access-layer/src/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
@@ -55,108 +51,15 @@ export class OrganizationService extends LoggerBase {
           data.website = websiteNormalizer(data.website, false)
         }
 
-        this.log.trace(`Checking organization exists in cache..`)
-
-        // find from cache by website if we have one
-        let cached: IDbCacheOrganization | null = null
-        let createCacheIdentity = false
-        if (data.website) {
-          cached = await txRepo.findCacheByWebsite(data.website)
-
-          if (cached && !cached.names.includes(primaryIdentity.name)) {
-            createCacheIdentity = true
-          }
-        }
-
-        if (!cached) {
-          cached = await txRepo.findCacheByName(primaryIdentity.name)
-        }
-
-        if (cached) {
-          this.log.trace({ cached }, `Organization exists in cache!`)
-
-          // if exists in cache update it
-          const updateData: Partial<IOrganization> = {}
-          // no need to update name since it's aka primary key
-          const fields = [
-            'url',
-            'description',
-            'emails',
-            'logo',
-            'tags',
-            'github',
-            'twitter',
-            'linkedin',
-            'crunchbase',
-            'employees',
-            'location',
-            'website',
-            'type',
-            'size',
-            'headline',
-            'industry',
-            'founded',
-          ]
-          fields.forEach((field) => {
-            if (data[field] && !isEqual(data[field], cached[field])) {
-              updateData[field] = data[field]
-            }
-          })
-          if (Object.keys(updateData).length > 0) {
-            await this.repo.updateCache(
-              cached.id,
-              updateData,
-              createCacheIdentity ? primaryIdentity.name : undefined,
-            )
-            cached = { ...cached, ...updateData } // Update the cached data with the new data
-          }
-        } else {
-          this.log.trace({ cached }, `Organization doesn't exist in cache!`)
-
-          // if it doesn't exists in cache create it
-          const insertData: IDbInsertOrganizationCacheData = {
-            name: primaryIdentity.name,
-            url: data.url || null,
-            description: data.description || null,
-            emails: data.emails || null,
-            logo: data.logo || null,
-            tags: data.tags || null,
-            github: (data.github || null) as IOrganizationSocial,
-            twitter: (data.twitter || null) as IOrganizationSocial,
-            linkedin: (data.linkedin || null) as IOrganizationSocial,
-            crunchbase: (data.crunchbase || null) as IOrganizationSocial,
-            employees: data.employees || null,
-            location: data.location || null,
-            website: data.website || null,
-            type: data.type || null,
-            size: data.size || null,
-            headline: data.headline || null,
-            industry: data.industry || null,
-            founded: data.founded || null,
-          }
-
-          this.log.trace({ insertData }, ` Creating cache entry!`)
-
-          const id = await txRepo.insertCache(insertData)
-
-          cached = {
-            id,
-            enriched: false,
-            ...insertData,
-            attributes: {},
-            names: [primaryIdentity.name],
-          }
-        }
-
         let existing
 
         // check organization exists by domain
-        if (cached.website) {
-          existing = await txRepo.findByDomain(tenantId, cached.website)
+        if (data.website) {
+          existing = await txRepo.findByDomain(tenantId, data.website)
 
           // also check domain in identities
           if (!existing) {
-            const normalizedWebsite = websiteNormalizer(cached.website, false)
+            const normalizedWebsite = websiteNormalizer(data.website, false)
             if (normalizedWebsite !== undefined) {
               existing = await txRepo.findByIdentity(tenantId, {
                 name: normalizedWebsite,
@@ -210,8 +113,8 @@ export class OrganizationService extends LoggerBase {
             'weakIdentities',
           ]
           fields.forEach((field) => {
-            if (!existing[field] && cached[field]) {
-              updateData[field] = cached[field]
+            if (!existing[field] && data[field]) {
+              updateData[field] = data[field]
             }
           })
 
@@ -229,22 +132,22 @@ export class OrganizationService extends LoggerBase {
 
           const payload = {
             displayName: primaryIdentity.name,
-            description: cached.description,
-            emails: cached.emails,
-            logo: cached.logo,
-            tags: cached.tags,
-            github: cached.github,
-            twitter: cached.twitter,
-            linkedin: cached.linkedin,
-            crunchbase: cached.crunchbase,
-            employees: cached.employees,
-            location: cached.location,
-            website: cached.website,
-            type: cached.type,
-            size: cached.size,
-            headline: cached.headline,
-            industry: cached.industry,
-            founded: cached.founded,
+            description: data.description,
+            emails: data.emails,
+            logo: data.logo,
+            tags: data.tags,
+            github: data.github,
+            twitter: data.twitter,
+            linkedin: data.linkedin,
+            crunchbase: data.crunchbase,
+            employees: data.employees,
+            location: data.location,
+            website: data.website,
+            type: data.type,
+            size: data.size,
+            headline: data.headline,
+            industry: data.industry,
+            founded: data.founded,
             attributes,
             weakIdentities: data.weakIdentities,
           }
@@ -282,8 +185,6 @@ export class OrganizationService extends LoggerBase {
             })
           }
         }
-
-        await txRepo.linkCacheAndOrganization(cached.id, id)
 
         return id
       })

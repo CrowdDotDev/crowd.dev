@@ -1,24 +1,13 @@
 import {
-  getOrganizationCachesToEnrich,
-  tryEnrichOrganizationCache,
-  getMaxEnrichedOrganizationCachesPerExecution,
+  syncToOpensearch,
+  getOrganizationsToEnrich,
+  tryEnrichOrganization,
+  getMaxEnrichedOrganizationsPerExecution,
 } from './activities/enrichment'
 
-import {
-  getApplicableTenants,
-  syncToOpensearch,
-  getRemainingTenantCredits,
-  incrementTenantCredits,
-  updateTenantOrganization,
-} from './activities/tenantUpdate'
-
 export {
-  getApplicableTenants,
-  getOrganizationCachesToEnrich,
-  tryEnrichOrganizationCache,
-  getMaxEnrichedOrganizationCachesPerExecution,
   syncToOpensearch,
-  getRemainingTenantCredits,
-  incrementTenantCredits,
-  updateTenantOrganization,
+  getOrganizationsToEnrich,
+  tryEnrichOrganization,
+  getMaxEnrichedOrganizationsPerExecution,
 }

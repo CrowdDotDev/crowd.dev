@@ -17,6 +17,7 @@ import {
   moveIdentityActivitiesToNewMember,
   findMemberSegments,
   markMemberAsManuallyCreated,
+  getIdentitiesWithActivity,
 } from '@crowd/data-access-layer/src/old/apps/entity_merging_worker'
 
 export async function deleteMember(memberId: string): Promise<void> {
@@ -49,7 +50,18 @@ export async function moveActivitiesWithIdentityToAnotherMember(
     return
   }
 
-  for (const identity of identities.filter((i) => i.type === MemberIdentityType.USERNAME)) {
+  const identitiesWithActivity = await getIdentitiesWithActivity(
+    svc.postgres.writer,
+    fromId,
+    tenantId,
+    identities,
+  )
+
+  for (const identity of identities.filter(
+    (i) =>
+      i.type === MemberIdentityType.USERNAME &&
+      identitiesWithActivity.some((ai) => ai.platform === i.platform && ai.username === i.value),
+  )) {
     await moveIdentityActivitiesToNewMember(
       svc.postgres.writer,
       tenantId,
