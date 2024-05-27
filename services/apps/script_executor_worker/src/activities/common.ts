@@ -53,7 +53,7 @@ export async function unmergeMembers(
 export async function waitForTemporalWorkflowExecutionFinish(workflowId: string): Promise<void> {
   const handle = svc.temporal.workflow.getHandle(workflowId)
 
-  const timeoutDuration = 1000 * 60 * 2 // 2 minutes
+  const timeoutDuration = 1000 * 60 * 10 // 10 minutes
 
   try {
     // Wait for the workflow to complete or the timeout to occur
