@@ -28,6 +28,7 @@
         <i class="ri-clipboard-line" />
         <span>Copy JSON query</span>
       </el-button>
+      <slot name="actions" />
     </div>
     <div class="flex items-center flex-wrap">
       <template v-for="(filter, fi) of filterList" :key="filter">

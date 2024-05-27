@@ -7,15 +7,15 @@
       placement="top"
       content="Your own organization"
     >
-      <div class="flex text-2xs px-1 font-medium text-white rounded h-4 items-center justify-center bg-gray-400">
-        Team
+      <div class="px-2 py-0.5 flex items-center text-2xs font-medium bg-gray-200 text-gray-600 rounded-md gap-1">
+        <i class="ri-team-line text-2xs" />Team
       </div>
     </el-tooltip>
   </div>
 </template>
 
 <script setup>
-import { defineProps, computed } from 'vue';
+import { computed } from 'vue';
 
 const props = defineProps({
   organization: {

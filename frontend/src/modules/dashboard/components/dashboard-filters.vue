@@ -72,11 +72,11 @@
 <script>
 import { mapGetters, mapActions } from 'vuex';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
-import AppWidgetPeriod from '@/modules/widget/components/shared/widget-period.vue';
 import AppLfProjectFilterButton from '@/modules/lf/segments/components/filter/lf-project-filter-button.vue';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';
 import { getSegmentsFromProjectGroup } from '@/utils/segments';
+import AppWidgetPeriod from '@/modules/widget/components/shared/widget-period.vue';
 
 export default {
   name: 'AppDashboardFilters',

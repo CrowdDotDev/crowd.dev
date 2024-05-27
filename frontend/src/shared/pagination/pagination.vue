@@ -15,6 +15,7 @@
     />
 
     <app-pagination-sorter
+      v-if="!hideSorting"
       :page-size="pageSize"
       :total="total"
       :current-page="currentPage"
@@ -61,6 +62,11 @@ defineProps({
   total: {
     type: Number,
     required: true,
+  },
+  hideSorting: {
+    type: Boolean,
+    required: false,
+    default: false,
   },
   module: {
     type: String,
