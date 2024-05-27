@@ -222,7 +222,7 @@ export async function findAlreadyExistingVerifiedIdentities(
 
   const whereClause = conditions.length > 0 ? conditions.join(' OR ') : '1=0'
 
-  return qx.result(
+  return qx.select(
     `
     select mi.* from "memberIdentities" mi
     where ${whereClause}
