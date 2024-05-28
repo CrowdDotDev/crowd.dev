@@ -40,6 +40,9 @@
 
 <script setup>
 import { ActivityService } from '@/modules/activity/activity-service';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import { useRoute } from 'vue-router';
 
 const emit = defineEmits(['onUpdate']);
 const props = defineProps({
@@ -57,7 +60,18 @@ const props = defineProps({
   },
 });
 
+const route = useRoute();
+const { trackEvent } = useProductTracking();
+
 const editActivity = (organizationId) => {
+  trackEvent({
+    key: FeatureEventKey.AFFILIATE_ACTIVITY,
+    type: EventType.FEATURE,
+    properties: {
+      path: route.path,
+    },
+  });
+
   ActivityService.update(
     props.activity.id,
     {

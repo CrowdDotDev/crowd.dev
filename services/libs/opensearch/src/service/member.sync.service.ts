@@ -92,7 +92,7 @@ export class MemberSyncService {
     }
   }
 
-  public async cleanupMemberIndex(tenantId: string): Promise<void> {
+  public async cleanupMemberIndex(tenantId: string, batchSize = 300): Promise<void> {
     this.log.warn({ tenantId }, 'Cleaning up member index!')
 
     const query = {
@@ -121,6 +121,7 @@ export class MemberSyncService {
     )) as ISearchHit<{ date_joinedAt: string; uuid_memberId: string }>[]
 
     let processed = 0
+    const idsToRemove: string[] = []
 
     while (results.length > 0) {
       // check every member if they exists in the database and if not remove them from the index
@@ -133,11 +134,13 @@ export class MemberSyncService {
         .filter((r) => !dbIds.includes(r._source.uuid_memberId))
         .map((r) => r._id)
 
-      if (toRemove.length > 0) {
-        this.log.warn({ tenantId, toRemove }, 'Removing members from index!')
-        for (const id of toRemove) {
-          await this.openSearchService.removeFromIndex(id, OpenSearchIndex.MEMBERS)
-        }
+      idsToRemove.push(...toRemove)
+
+      // Process bulk removals in chunks
+      while (idsToRemove.length >= batchSize) {
+        const batch = idsToRemove.splice(0, batchSize)
+        this.log.warn({ tenantId, batch }, 'Removing members from index!')
+        await this.openSearchService.bulkRemoveFromIndex(batch, OpenSearchIndex.MEMBERS)
       }
 
       processed += results.length
@@ -154,6 +157,12 @@ export class MemberSyncService {
         lastJoinedAt,
         include,
       )) as ISearchHit<{ date_joinedAt: string; uuid_memberId: string }>[]
+    }
+
+    // Remove any remaining IDs that were not processed
+    if (idsToRemove.length > 0) {
+      this.log.warn({ tenantId, idsToRemove }, 'Removing remaining members from index!')
+      await this.openSearchService.bulkRemoveFromIndex(idsToRemove, OpenSearchIndex.MEMBERS)
     }
 
     this.log.warn({ tenantId }, `Processed total of ${processed} members while cleaning up tenant!`)
@@ -189,9 +198,7 @@ export class MemberSyncService {
 
     while (results.length > 0) {
       const ids = results.map((r) => r._id)
-      for (const id of ids) {
-        await this.openSearchService.removeFromIndex(id, OpenSearchIndex.MEMBERS)
-      }
+      await this.openSearchService.bulkRemoveFromIndex(ids, OpenSearchIndex.MEMBERS)
 
       // use last joinedAt to get the next page
       lastJoinedAt = results[results.length - 1]._source.date_joinedAt
@@ -286,7 +293,7 @@ export class MemberSyncService {
 
   public async syncMembers(memberIds: string[], segmentIds?: string[]): Promise<IMemberSyncResult> {
     const CONCURRENT_DATABASE_QUERIES = 10
-    const BULK_INDEX_DOCUMENT_BATCH_SIZE = 2500
+    const BULK_INDEX_DOCUMENT_BATCH_SIZE = 100
 
     // get all memberId-segmentId couples
     const memberSegmentCouples: IMemberSegmentMatrix =
@@ -399,7 +406,9 @@ export class MemberSyncService {
         })
 
         // databaseStreams will create syncStreams items in processSegmentsStream, which'll later be used to sync to opensearch in bulk
-        if (databaseStream.length >= CONCURRENT_DATABASE_QUERIES) {
+        const isLastSegment = i === totalMemberIds - 1 && j === totalSegments - 1
+
+        if (isLastSegment || databaseStream.length >= CONCURRENT_DATABASE_QUERIES) {
           await processSegmentsStream(databaseStream)
           databaseStream = []
         }
@@ -413,18 +422,10 @@ export class MemberSyncService {
           syncStream = syncStream.slice(BULK_INDEX_DOCUMENT_BATCH_SIZE)
         }
 
-        // if we're processing the last segment
-        if (i === totalMemberIds - 1 && j === totalSegments - 1) {
-          // check if there are remaining databaseStreams to process
-          if (databaseStream.length > 0) {
-            await processSegmentsStream(databaseStream)
-          }
-
-          // check if there are remaining syncStreams to process
-          if (syncStream.length > 0) {
-            await this.openSearchService.bulkIndex(OpenSearchIndex.MEMBERS, syncStream)
-            documentsIndexed += syncStream.length
-          }
+        // check if there are remaining syncStreams to process
+        if (isLastSegment && syncStream.length > 0) {
+          await this.openSearchService.bulkIndex(OpenSearchIndex.MEMBERS, syncStream)
+          documentsIndexed += syncStream.length
         }
         successfullySyncedMembers.push(memberId)
       }

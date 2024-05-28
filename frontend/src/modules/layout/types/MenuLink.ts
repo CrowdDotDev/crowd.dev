@@ -12,5 +12,4 @@ export interface MenuLink {
   href?: string;
   click?: () => void;
   display: (params: MenuLinkParams) => boolean;
-  disable: (params: MenuLinkParams) => boolean;
 }

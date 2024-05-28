@@ -577,7 +577,7 @@ export default class MemberService extends LoggerBase {
               i.platform === identity.platform,
           ) === undefined
         ) {
-          toReturn.push(identity)
+          toReturn.push({ ...identity, value: identity.value.toLowerCase() })
         }
       } else {
         toReturn.push(identity)

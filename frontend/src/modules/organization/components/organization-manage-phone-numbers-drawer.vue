@@ -51,6 +51,8 @@ import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import AppOrganizationFormPhoneNumber from '@/modules/organization/components/form/organization-form-phone-number.vue';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 
 const props = defineProps({
   modelValue: {
@@ -69,6 +71,8 @@ const { fetchOrganization } = organizationStore;
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
+
+const { trackEvent } = useProductTracking();
 
 const drawerModel = computed({
   get() {
@@ -91,6 +95,14 @@ const handleCancel = () => {
 };
 
 const handleSubmit = async () => {
+  trackEvent({
+    key: FeatureEventKey.EDIT_ORGANIZATION_PHONE_NUMBER,
+    type: EventType.FEATURE,
+    properties: {
+      phoneNumbers: organizationModel.value.phoneNumbers.filter((p) => p.trim().length),
+    },
+  });
+
   loading.value = true;
   OrganizationService.update(props.organization.id, {
     phoneNumbers: organizationModel.value.phoneNumbers.filter((p) => p.trim().length),

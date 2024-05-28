@@ -650,7 +650,9 @@ class OrganizationRepository {
               } else if (
                 record[column] === null &&
                 data[column] !== null &&
-                data[column] !== undefined
+                data[column] !== undefined &&
+                // also ignore empty arrays
+                (!Array.isArray(data[column]) || data[column].length > 0)
               ) {
                 // column was null before now it's not anymore
                 changed = true

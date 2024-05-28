@@ -11,6 +11,7 @@ import ProgressBar from '@/shared/progress-bar/progress-bar';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { AuthService } from '@/modules/auth/services/auth.service';
 import auth from '@/modules/auth';
+import navigationGuard from '@/middleware/navigation/navigation-guard';
 
 /**
  * Loads all the routes from src/modules/ folders, and adds the catch-all rule to handle 404s
@@ -130,8 +131,9 @@ export const createRouter = () => {
       next();
     });
 
-    router.afterEach(() => {
+    router.afterEach(async (to) => {
       ProgressBar.done();
+      await navigationGuard({ to });
     });
   }
 

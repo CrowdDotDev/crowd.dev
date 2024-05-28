@@ -52,6 +52,8 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';
 import { Member, MemberIdentity } from '@/modules/member/types/Member';
 import AppMemberFormEmailItem from '@/modules/member/components/form/email/member-form-email-item.vue';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 
 const props = defineProps<{
   modelValue: boolean,
@@ -59,6 +61,8 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits(['update:modelValue']);
+
+const { trackEvent } = useProductTracking();
 
 const store = useStore();
 const lsSegmentsStore = useLfSegmentsStore();
@@ -94,6 +98,14 @@ const distinctEmails = computed(() => identities.value
 
 const serverUpdate = () => {
   const segments = props.member.segments.map((s) => s.id);
+
+  trackEvent({
+    key: FeatureEventKey.EDIT_CONTRIBUTOR_EMAIL,
+    type: EventType.FEATURE,
+    properties: {
+      identities: identities.value.filter((i) => !!i.value),
+    },
+  });
 
   MemberService.update(props.member.id, {
     identities: identities.value.filter((i) => !!i.value),

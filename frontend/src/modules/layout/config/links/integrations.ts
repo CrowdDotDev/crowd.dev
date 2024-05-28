@@ -6,7 +6,6 @@ const integrations: MenuLink = {
   icon: 'ri-apps-2-line',
   routeName: 'integration',
   display: () => true,
-  disable: () => false,
 };
 
 export default integrations;

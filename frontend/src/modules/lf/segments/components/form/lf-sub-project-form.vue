@@ -120,6 +120,8 @@ import {
 import AppFormItem from '@/shared/form/form-item.vue';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import statusOptions from '@/modules/lf/config/status';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps({
@@ -143,7 +145,13 @@ const props = defineProps({
     type: String,
     default: () => null,
   },
+  grandparentId: {
+    type: String,
+    default: () => null,
+  },
 });
+
+const { trackEvent } = useProductTracking();
 
 const lsSegmentsStore = useLfSegmentsStore();
 const {
@@ -222,15 +230,25 @@ const onSubmit = () => {
   submitLoading.value = true;
 
   if (isEditForm.value) {
+    trackEvent({
+      key: FeatureEventKey.EDIT_SUB_PROJECT,
+      type: EventType.FEATURE,
+    });
+
     updateSubProject(props.id, form)
       .finally(() => {
         submitLoading.value = false;
         model.value = false;
       });
   } else {
+    trackEvent({
+      key: FeatureEventKey.ADD_SUB_PROJECT,
+      type: EventType.FEATURE,
+    });
+
     createSubProject({
       ...form,
-      segments: [props.parentId],
+      segments: [props.parentId, props.grandparentId],
     })
       .finally(() => {
         submitLoading.value = false;

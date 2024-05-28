@@ -211,6 +211,11 @@ import formChangeDetector from '@/shared/form/form-change';
 import { IntegrationService } from '@/modules/integration/integration-service';
 import Message from '@/shared/message/message';
 import { AuthService } from '@/modules/auth/services/auth.service';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import { Platform } from '@/shared/modules/platform/types/Platform';
+
+const { trackEvent } = useProductTracking();
 
 const tenantId = AuthService.getTenantId();
 
@@ -398,13 +403,23 @@ const verifyWebhook = async () => {
 const connect = async () => {
   loading.value = true;
 
+  const isUpdate = props.integration.settings?.forumHostname;
+
   doDiscourseConnect({
     forumHostname: form.discourseURL,
     apiKey: form.apiKey,
     webhookSecret: webhookSecret.value,
-    isUpdate: props.integration.settings?.forumHostname,
+    isUpdate,
   })
     .then(() => {
+      trackEvent({
+        key: isUpdate ? FeatureEventKey.EDIT_INTEGRATION_SETTINGS : FeatureEventKey.CONNECT_INTEGRATION,
+        type: EventType.FEATURE,
+        properties: {
+          platform: Platform.DISCOURSE,
+        },
+      });
+
       isVisible.value = false;
     })
     .finally(() => {

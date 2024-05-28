@@ -5,10 +5,10 @@
       <app-lf-search-input
         v-if="pagination.total"
         placeholder="Search project groups..."
-        @on-change="searchProjectGroup"
+        @on-change="onSearchProjectGroup"
       />
       <el-button
-        v-if="pagination.total && hasPermissionToCreate"
+        v-if="pagination.total && hasPermission(LfPermission.projectGroupCreate)"
         class="btn btn--md btn--primary"
         @click="onAddProjectGroup"
       >
@@ -28,9 +28,9 @@
         class="mt-20"
         icon="ri-folder-5-line"
         title="No project groups yet"
-        :description="`${!hasPermissionToCreate
+        :description="`${!hasPermission(LfPermission.projectGroupCreate)
           ? 'Ask an administrator to c' : 'C'}reate your first project group and start integrating your projects`"
-        :cta-btn="hasPermissionToCreate ? 'Add project group' : null"
+        :cta-btn="hasPermission(LfPermission.projectGroupCreate) ? 'Add project group' : null"
         @cta-click="onAddProjectGroup"
       />
 
@@ -74,17 +74,22 @@ import AppLfProjectGroupForm from '@/modules/lf/segments/components/form/lf-proj
 import AppLfProjectForm from '@/modules/lf/segments/components/form/lf-project-form.vue';
 import AppLfProjectGroupsTable from '@/modules/lf/segments/components/view/lf-project-groups-table.vue';
 import AppLfSearchInput from '@/modules/lf/segments/components/view/lf-search-input.vue';
-import { LfPermissions } from '@/modules/lf/lf-permissions';
-import { PermissionChecker } from '@/modules/user/permission-checker';
-import Roles from '@/security/roles';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import { LfRole } from '@/shared/modules/permissions/types/Roles';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { projectGroups } = storeToRefs(lsSegmentsStore);
 const { listProjectGroups, searchProjectGroup, updateSelectedProjectGroup } = lsSegmentsStore;
 
 const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
+const { roles } = storeToRefs(authStore);
+
+const { trackEvent } = useProductTracking();
+const { hasPermission } = usePermissions();
 
 const loading = computed(() => projectGroups.value.loading);
 const pagination = computed(() => projectGroups.value.pagination);
@@ -96,18 +101,7 @@ const projectGroupForm = reactive({
 const isProjectGroupFormDrawerOpen = ref(false);
 const isProjectFormDrawerOpen = ref(false);
 
-const hasPermissionToCreate = computed(() => new LfPermissions(
-  tenant.value,
-  user.value,
-)?.createProjectGroup);
-
-const isProjectAdminUser = computed(() => {
-  const permissionChecker = new PermissionChecker(
-    tenant.value,
-    user.value,
-  );
-  return permissionChecker.currentUserRolesIds.includes(Roles.values.projectAdmin);
-});
+const isProjectAdminUser = computed(() => roles.value.includes(LfRole.projectAdmin));
 
 onMounted(() => {
   updateSelectedProjectGroup(null);
@@ -130,6 +124,15 @@ const onAddProjectGroup = () => {
 const onEditProjectGroup = (id) => {
   projectGroupForm.id = id;
   isProjectGroupFormDrawerOpen.value = true;
+};
+
+const onSearchProjectGroup = (val) => {
+  trackEvent({
+    key: FeatureEventKey.SEARCH_PROJECT_GROUPS,
+    type: EventType.FEATURE,
+  });
+
+  searchProjectGroup(val);
 };
 </script>
 

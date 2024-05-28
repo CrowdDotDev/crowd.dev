@@ -32,9 +32,9 @@ const handler: GenerateStreamsHandler = async (ctx) => {
     // because we need to know who the members are before we can start parsing
     // messages don't have enough information to create members
     await ctx.publishStream<GroupsioGroupMembersStreamMetadata>(
-      `${GroupsioStreamType.GROUP_MEMBERS}:${group}`,
+      `${GroupsioStreamType.GROUP_MEMBERS}:${group.slug}`,
       {
-        group,
+        group: group.slug,
         page: null,
       },
     )
@@ -43,7 +43,7 @@ const handler: GenerateStreamsHandler = async (ctx) => {
       await ctx.publishStream<GroupsioPastGroupMembersStreamMetadata>(
         `${GroupsioStreamType.PAST_GROUP_MEMBERS}:${group}`,
         {
-          group,
+          group: group.slug,
           page: null,
         },
       )

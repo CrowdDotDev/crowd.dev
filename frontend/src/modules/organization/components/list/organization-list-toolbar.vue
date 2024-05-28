@@ -22,10 +22,9 @@
         </el-dropdown-item>
 
         <el-tooltip
-          v-if="selectedOrganizations.length === 2"
+          v-if="selectedOrganizations.length === 2 && hasPermission(LfPermission.mergeOrganizations)"
           content="Coming soon"
           placement="top"
-          :disabled="hasPermissionsToMerge"
         >
           <span>
             <el-dropdown-item
@@ -33,9 +32,8 @@
                 action: 'mergeOrganizations',
               }"
               :disabled="
-                isPermissionReadOnly
-                  || isEditLockedForSampleData
-                  || !hasPermissionsToMerge
+                !hasPermission(LfPermission.organizationEdit)
+                  || !hasPermission(LfPermission.mergeOrganizations)
               "
             >
               <i
@@ -47,15 +45,11 @@
         </el-tooltip>
 
         <el-dropdown-item
-          v-if="markAsTeamOrganizationOptions"
+          v-if="markAsTeamOrganizationOptions && hasPermission(LfPermission.organizationEdit)"
           :command="{
             action: 'markAsTeamOrganization',
             value: markAsTeamOrganizationOptions.value,
           }"
-          :disabled="
-            isPermissionReadOnly
-              || isEditLockedForSampleData
-          "
         >
           <i
             class="ri-lg mr-1"
@@ -64,25 +58,21 @@
           {{ markAsTeamOrganizationOptions.copy }}
         </el-dropdown-item>
 
-        <hr class="border-gray-200 my-1 mx-2" />
+        <template v-if="hasPermission(LfPermission.organizationDestroy)">
+          <hr class="border-gray-200 my-1 mx-2" />
 
-        <el-dropdown-item
-          :command="{ action: 'destroyAll' }"
-          :disabled="
-            isPermissionReadOnly
-              || isDeleteLockedForSampleData
-          "
-        >
-          <div
-            class="flex items-center"
-            :class="{
-              'text-red-500': !isDeleteLockedForSampleData,
-            }"
+          <el-dropdown-item
+            :command="{ action: 'destroyAll' }"
+            :disabled="!hasPermission(LfPermission.organizationDestroy)"
           >
-            <i class="ri-lg ri-delete-bin-line mr-2" />
-            <span>Delete organizations</span>
-          </div>
-        </el-dropdown-item>
+            <div
+              class="flex items-center text-red-500"
+            >
+              <i class="ri-lg ri-delete-bin-line mr-2" />
+              <span>Delete organizations</span>
+            </div>
+          </el-dropdown-item>
+        </template>
       </template>
     </el-dropdown>
   </div>
@@ -100,11 +90,19 @@ import useOrganizationMergeMessage from '@/shared/modules/merge/config/useOrgani
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { getExportMax } from '@/modules/member/member-export-limit';
-import { OrganizationPermissions } from '../../organization-permissions';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import { useRoute } from 'vue-router';
 import { OrganizationService } from '../../organization-service';
 
+const { trackEvent } = useProductTracking();
+
+const route = useRoute();
+
 const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
+const { tenant } = storeToRefs(authStore);
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
@@ -116,25 +114,7 @@ const {
 } = storeToRefs(organizationStore);
 const { fetchOrganizations } = organizationStore;
 
-const isPermissionReadOnly = computed(
-  () => new OrganizationPermissions(
-    tenant.value,
-    user.value,
-  ).edit === false,
-);
-
-const isEditLockedForSampleData = computed(
-  () => new OrganizationPermissions(
-    tenant.value,
-    user.value,
-  ).editLockedForSampleData,
-);
-const isDeleteLockedForSampleData = computed(
-  () => new OrganizationPermissions(
-    tenant.value,
-    user.value,
-  ).destroyLockedForSampleData,
-);
+const { hasPermission } = usePermissions();
 
 const markAsTeamOrganizationOptions = computed(() => {
   const isTeamView = filters.value.settings.teamOrganization === 'filter';
@@ -159,11 +139,6 @@ const markAsTeamOrganizationOptions = computed(() => {
   };
 });
 
-const hasPermissionsToMerge = computed(() => new OrganizationPermissions(
-  tenant.value,
-  user.value,
-)?.mergeOrganizations);
-
 const handleDoDestroyAllWithConfirm = () => ConfirmDialog({
   type: 'danger',
   title: 'Delete organizations',
@@ -174,6 +149,15 @@ const handleDoDestroyAllWithConfirm = () => ConfirmDialog({
   icon: 'ri-delete-bin-line',
 })
   .then(() => {
+    trackEvent({
+      key: FeatureEventKey.DELETE_ORGANIZATION,
+      type: EventType.FEATURE,
+      properties: {
+        path: route.path,
+        bulk: true,
+      },
+    });
+
     const ids = selectedOrganizations.value.map((m) => m.id);
     return OrganizationService.destroyAll(ids);
   })
@@ -222,6 +206,15 @@ const handleDoExport = async () => {
       badgeContent: pluralize('organization', selectedOrganizations.value.length, true),
     });
 
+    trackEvent({
+      key: FeatureEventKey.EXPORT_ORGANIZATIONS,
+      type: EventType.FEATURE,
+      properties: {
+        path: route.path,
+        bulk: true,
+      },
+    });
+
     await OrganizationService.export({
       filter,
       limit: selectedOrganizations.value.length,
@@ -252,6 +245,15 @@ const handleCommand = async (command) => {
   } else if (command.action === 'mergeOrganizations') {
     await handleMergeOrganizations();
   } else if (command.action === 'markAsTeamOrganization') {
+    trackEvent({
+      key: FeatureEventKey.MARK_AS_TEAM_ORGANIZATION,
+      type: EventType.FEATURE,
+      properties: {
+        path: route.path,
+        bulk: true,
+      },
+    });
+
     Message.info(
       null,
       {

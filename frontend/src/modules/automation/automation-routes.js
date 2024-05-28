@@ -1,5 +1,6 @@
 import Layout from '@/modules/layout/components/layout.vue';
-import Permissions from '@/security/permissions';
+import { PermissionGuard } from '@/shared/modules/permissions/router/PermissionGuard';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 
 const AutomationsPage = () => import('@/modules/automation/pages/automation-page.vue');
 
@@ -19,8 +20,10 @@ export default [
         exact: true,
         meta: {
           auth: true,
-          permission: Permissions.values.automationEdit,
         },
+        beforeEnter: [
+          PermissionGuard(LfPermission.automationEdit),
+        ],
       },
     ],
   },

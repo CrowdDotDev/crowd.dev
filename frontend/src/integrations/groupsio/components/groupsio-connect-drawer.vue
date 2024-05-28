@@ -124,7 +124,7 @@
           <app-array-input
             v-for="(_, ii) of form.groups"
             :key="ii"
-            v-model="form.groups[ii]"
+            v-model="form.groups[ii].slug"
             placeholder="crowd-test"
             :validation-function="validateGroup"
             :disabled="!isAPIConnectionValid"
@@ -183,6 +183,9 @@ import AppFormItem from '@/shared/form/form-item.vue';
 import formChangeDetector from '@/shared/form/form-change';
 // import elementChangeDetector from '@/shared/form/element-change';
 import { IntegrationService } from '@/modules/integration/integration-service';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import { Platform } from '@/shared/modules/platform/types/Platform';
 import AppArrayInput from './groupsio-array-input.vue';
 
 const { doGroupsioConnect } = mapActions('integration');
@@ -202,9 +205,13 @@ const form = reactive({
   email: '',
   password: '',
   twoFactorCode: '',
-  groups: [''],
+  groups: [{
+    slug: '',
+  }],
   groupsValidationState: [null],
 });
+
+const { trackEvent } = useProductTracking();
 
 const isValidating = ref(false);
 const isVerificationEnabled = ref(false);
@@ -239,7 +246,7 @@ const rules = computed(() => {
 });
 
 const addGroup = () => {
-  form.groups.push('');
+  form.groups.push({});
 };
 
 const removeGroup = (index) => {
@@ -323,7 +330,7 @@ const handleCancel = () => {
     form.email = '';
     form.password = '';
     form.twoFactorCode = '';
-    form.groups = [''];
+    form.groups = [{}];
     form.groupsValidationState = new Array(form.groups.length).fill(true);
     cookie.value = '';
     isAPIConnectionValid.value = false;
@@ -334,7 +341,7 @@ const handleCancel = () => {
     form.email = props.integration?.settings?.email;
     form.password = '';
     form.twoFactorCode = '';
-    form.groups = props?.integration?.settings?.groups ? [...props.integration.settings.groups] : [''];
+    form.groups = props?.integration?.settings?.groups ? [...props.integration.settings.groups] : [{}];
     form.groupsValidationState = new Array(form.groups.length).fill(true);
     cookie.value = props.integration?.settings?.token;
     isAPIConnectionValid.value = true;
@@ -359,15 +366,25 @@ onMounted(() => {
 const connect = async () => {
   loading.value = true;
 
+  const isUpdate = !!props.integration.settings?.email;
+
   doGroupsioConnect({
     email: form.email,
     token: cookie.value,
     tokenExpiry: cookieExpiry.value,
     password: form.password,
-    groupNames: form.groups,
-    isUpdate: !!props.integration.settings?.email,
+    groups: form.groups,
+    isUpdate,
   })
     .then(() => {
+      trackEvent({
+        key: isUpdate ? FeatureEventKey.EDIT_INTEGRATION_SETTINGS : FeatureEventKey.CONNECT_INTEGRATION,
+        type: EventType.FEATURE,
+        properties: {
+          platform: Platform.GROUPS_IO,
+        },
+      });
+
       isVisible.value = false;
     })
     .finally(() => {

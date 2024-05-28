@@ -49,6 +49,9 @@ import { getExportMax, showExportDialog, showExportLimitDialog } from '@/modules
 import Message from '@/shared/message/message';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import { useRoute } from 'vue-router';
 
 const emit = defineEmits([
   'changeSorter',
@@ -94,6 +97,9 @@ const props = defineProps({
     default: () => false,
   },
 });
+
+const { trackEvent } = useProductTracking();
+const route = useRoute();
 
 const authStore = useAuthStore();
 const { tenant } = storeToRefs(authStore);
@@ -193,6 +199,14 @@ const doExport = async () => {
       tenantCsvExportCount,
       planExportCountMax,
       badgeContent: pluralize(props.module === 'member' ? 'contributor' : props.module, props.total, true),
+    });
+
+    trackEvent({
+      key: props.module === 'member' ? FeatureEventKey.EXPORT_CONTRIBUTORS : FeatureEventKey.EXPORT_ORGANIZATIONS,
+      type: EventType.FEATURE,
+      properties: {
+        path: route.path,
+      },
     });
 
     await props.export();

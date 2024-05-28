@@ -197,6 +197,8 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import AppLfSubProjectsListDropdown from '@/modules/lf/segments/components/lf-sub-projects-list-dropdown.vue';
 import AppLfMemberFormAffiliations from '@/modules/lf/member/components/form/lf-member-form-affiliations.vue';
 import Message from '@/shared/message/message';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { MemberService } from '../member-service';
 
 const LoaderIcon = h(
@@ -213,6 +215,8 @@ const ArrowPrevIcon = h(
   }, // props
   [],
 );
+
+const { trackEvent } = useProductTracking();
 
 const memberStore = useMemberStore();
 const { customAttributes } = storeToRefs(memberStore);
@@ -457,69 +461,111 @@ async function onSubmit() {
     formModel.value,
   );
 
-  // Remove any existent empty data
-  const data = {
+  const data = {};
 
-    ...formModel.value.displayName && {
-      displayName: formModel.value.displayName,
-    },
-    ...formModel.value.joinedAt && {
-      joinedAt: formModel.value.joinedAt,
-    },
-    ...formModel.value.platform && {
-      platform: formModel.value.platform,
-    },
-    ...formModel.value.tags.length && {
-      tags: formModel.value.tags.map((t) => t.id),
-    },
-    ...formModel.value.organizations.length && {
-      organizationsReplace: true,
-      organizations: formModel.value.organizations.map(
-        (o) => ({
-          id: o.id,
-          name: o.name,
-          ...o.memberOrganizations?.title && {
-            title: o.memberOrganizations?.title,
-          },
-          ...o.memberOrganizations?.dateStart && {
-            startDate: o.memberOrganizations?.dateStart,
-          },
-          ...o.memberOrganizations?.dateEnd && {
-            endDate: o.memberOrganizations?.dateEnd,
-          },
-          source: 'ui',
-        }),
-      ).filter(
-        (o) => !!o.id,
-      ),
-    },
-    ...(Object.keys(formattedAttributes).length
-      || formModel.value.attributes) && {
-      attributes: {
-        ...(Object.keys(formattedAttributes).length
-          && formattedAttributes),
-        ...(formModel.value.attributes.url && {
-          url: formModel.value.attributes.url,
-        }),
+  // Display Name
+  if (!isEqual(formModel.value.displayName, record.value.displayName)) {
+    data.displayName = formModel.value.displayName;
+  }
+
+  // Joined At
+  if (!isEqual(formModel.value.joinedAt, record.value.joinedAt)) {
+    data.joinedAt = formModel.value.joinedAt;
+  }
+
+  // Platform
+  if (!isEqual(formModel.value.platform, record.value.platform)) {
+    data.platform = formModel.value.platform;
+  }
+
+  // Tags
+  if (!isEqual(formModel.value.tags.map((t) => ({
+    id: t.id,
+    name: t.label,
+  })), record.value.tags)) {
+    data.tags = formModel.value.tags.map((t) => t.id);
+  }
+
+  // Organizations
+  if (!isEqual(formModel.value.organizations.map((o) => ({
+    id: o.id,
+    displayName: o.displayName,
+    logo: o.logo,
+    memberOrganizations: o.memberOrganizations,
+  })), record.value.organizations)) {
+    data.organizationsReplace = true;
+    data.organizations = formModel.value.organizations.map(
+      (o) => ({
+        id: o.id,
+        name: o.name,
+        ...o.memberOrganizations?.title && {
+          title: o.memberOrganizations?.title,
+        },
+        ...o.memberOrganizations?.dateStart && {
+          startDate: o.memberOrganizations?.dateStart,
+        },
+        ...o.memberOrganizations?.dateEnd && {
+          endDate: o.memberOrganizations?.dateEnd,
+        },
+        source: 'ui',
+      }),
+    ).filter(
+      (o) => !!o.id,
+    );
+  }
+
+  // Attributes
+  if (!isEqual(formattedAttributes, record.value.attributes)) {
+    data.attributes = {
+      ...(Object.values(formattedAttributes).length
+        && formattedAttributes),
+      ...(formModel.value.attributes.url && {
+        url: formModel.value.attributes.url,
+      }),
+    };
+  }
+
+  // Identities
+  if (!isEqual((formModel.value?.identities || []).filter((i) => !!i.value), record.value.identities)) {
+    data.identities = (formModel.value?.identities || []).filter((i) => !!i.value);
+  }
+
+  // Affiliations
+  if (!isEqual(formModel.value.affiliations, record.value.affiliations)) {
+    trackEvent({
+      key: FeatureEventKey.MANUAL_AFFILIATE_ACTIVITY,
+      type: EventType.FEATURE,
+      properties: {
+        path: route.path,
       },
-    },
-    identities: (formModel.value?.identities || []).filter((i) => !!i.value),
+    });
 
-    affiliations: formModel.value.affiliations.map((affiliation) => ({
+    data.affiliations = formModel.value.affiliations.map((affiliation) => ({
       memberId: affiliation.memberId,
       segmentId: affiliation.segmentId,
       organizationId: affiliation.organizationId,
       dateStart: affiliation.dateStart,
       dateEnd: affiliation.dateEnd,
-    })),
-    manuallyCreated: true,
-  };
+    }));
+  }
+
+  if (!isEditPage.value) {
+    data.manuallyCreated = true;
+  }
 
   let isRequestSuccessful = false;
 
   // Edit member
   if (isEditPage.value) {
     isFormSubmitting.value = true;
+
+    trackEvent({
+      key: FeatureEventKey.EDIT_CONTRIBUTOR,
+      type: EventType.FEATURE,
+      properties: {
+        ...data,
+      },
+    });
 
     await MemberService.update(record.value.id, data).then(() => {
       isRequestSuccessful = true;
@@ -568,6 +614,14 @@ async function onSubmit() {
   } else {
     // Create new member
     isFormSubmitting.value = true;
+
+    trackEvent({
+      key: FeatureEventKey.ADD_CONTRIBUTOR,
+      type: EventType.FEATURE,
+      properties: {
+        ...data,
+      },
+    });
 
     await MemberService.create(data, segments.value).then(() => {
       isRequestSuccessful = true;

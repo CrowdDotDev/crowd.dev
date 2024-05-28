@@ -148,12 +148,11 @@ import { merge } from 'lodash';
 import AppMemberMergeSuggestionsDetails
   from '@/modules/member/components/suggestions/member-merge-suggestions-details.vue';
 import useOrganizationMergeMessage from '@/shared/modules/merge/config/useOrganizationMergeMessage';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { storeToRefs } from 'pinia';
 import CrButton from '@/ui-kit/button/Button.vue';
 import AppMemberMergeSimilarity from '@/modules/member/components/suggestions/member-merge-similarity.vue';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { OrganizationService } from '../organization-service';
-import { OrganizationPermissions } from '../organization-permissions';
 
 const props = defineProps({
   query: {
@@ -170,10 +169,9 @@ const props = defineProps({
 
 const emit = defineEmits(['reload']);
 
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
-
 const organizationStore = useOrganizationStore();
+
+const { trackEvent } = useProductTracking();
 
 const organizationsToMerge = ref([]);
 const primary = ref(0);
@@ -187,11 +185,6 @@ const sendingMerge = ref(false);
 const changed = ref(false);
 
 const bioHeight = ref(0);
-
-const isEditLockedForSampleData = computed(
-  () => new OrganizationPermissions(tenant.value, user.value)
-    .editLockedForSampleData,
-);
 
 const clearOrganization = (organization) => {
   const cleanedOrganization = { ...organization };
@@ -223,6 +216,12 @@ const fetch = (page) => {
   if (page > -1) {
     offset.value = page;
   }
+
+  trackEvent({
+    key: FeatureEventKey.NAVIGATE_ORGANIZATIONS_MERGE_SUGGESTIONS,
+    type: EventType.FEATURE,
+  });
+
   loading.value = true;
 
   OrganizationService.fetchMergeSuggestions(1, offset.value, props.query ?? {})
@@ -247,6 +246,15 @@ const ignoreSuggestion = () => {
   if (sendingIgnore.value || sendingMerge.value || loading.value) {
     return;
   }
+
+  trackEvent({
+    key: FeatureEventKey.IGNORE_ORGANIZATION_MERGE_SUGGESTION,
+    type: EventType.FEATURE,
+    properties: {
+      similarity: organizationsToMerge.value.similarity,
+    },
+  });
+
   sendingIgnore.value = true;
   OrganizationService.addToNoMerge(...organizationsToMerge.value.organizations)
     .then(() => {
@@ -275,6 +283,15 @@ const mergeSuggestion = () => {
   if (sendingIgnore.value || sendingMerge.value || loading.value) {
     return;
   }
+
+  trackEvent({
+    key: FeatureEventKey.MERGE_ORGANIZATION_MERGE_SUGGESTION,
+    type: EventType.FEATURE,
+    properties: {
+      similarity: organizationsToMerge.value.similarity,
+    },
+  });
+
   sendingMerge.value = true;
 
   const primaryOrganization = organizationsToMerge.value.organizations[primary.value];

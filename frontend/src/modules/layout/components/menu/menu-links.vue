@@ -20,10 +20,6 @@
           v-if="link.routeName"
           :id="`menu-${link.id}`"
           :to="{ name: link.routeName, ...link.routeOptions }"
-          :disabled="link.disable({
-            user: user,
-            tenant: tenant,
-          })"
           class="rounded-md h-8 transition !text-gray-400 flex items-center whitespace-nowrap
           flex-nowrap px-1.5 hover:bg-gray-50 mb-2 overflow-hidden"
           :active-class="!disableActiveClass ? '!bg-gray-100 font-medium !text-gray-900' : ''"

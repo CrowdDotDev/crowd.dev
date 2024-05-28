@@ -750,7 +750,7 @@
                 </el-table-column>
 
                 <!-- Actions -->
-                <el-table-column fixed="right">
+                <el-table-column v-if="hasPermissions" fixed="right">
                   <template #default="scope">
                     <router-link
                       :to="{
@@ -878,11 +878,16 @@ import AppIdentitiesHorizontalListOrganizations from '@/shared/modules/identitie
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import CrDefaultFilters from '@/shared/modules/default-filters/components/default-filters.vue';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import AppOrganizationListToolbar from './organization-list-toolbar.vue';
 import AppOrganizationName from '../organization-name.vue';
 import AppOrganizationDropdownContent from '../organization-dropdown-content.vue';
 import { organizationSavedViews } from '../../config/saved-views/main';
 
+const { trackEvent } = useProductTracking();
 const router = useRouter();
 
 const props = defineProps({
@@ -908,6 +913,13 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['update:pagination']);
+
+const { hasPermission } = usePermissions();
+
+const hasPermissions = computed(() => [LfPermission.organizationEdit,
+  LfPermission.organizationDestroy,
+  LfPermission.mergeOrganizations]
+  .some((permission) => hasPermission(permission)));
 
 const organizationStore = useOrganizationStore();
 const {
@@ -1040,6 +1052,15 @@ const onClickOutside = (el) => {
 };
 
 function doChangeSort(sorter) {
+  trackEvent({
+    key: FeatureEventKey.SORT_ORGANIZATIONS,
+    type: EventType.FEATURE,
+    properties: {
+      sortBy: sorter.prop,
+      sortOrder: sorter.order,
+    },
+  });
+
   filters.value.order = {
     prop: sorter.prop,
     order: sorter.order,

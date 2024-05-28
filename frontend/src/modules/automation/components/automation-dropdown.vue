@@ -15,33 +15,34 @@
           class="text-xs"
         >View executions</span>
       </el-dropdown-item>
-      <el-dropdown-item
-        v-if="!isReadOnly"
-        :command="edit"
-      >
-        <i class="ri-pencil-line mr-2" /><span
-          class="text-xs"
-        >Edit automation</span>
-      </el-dropdown-item>
-      <el-divider class="border-gray-200 my-2" />
-      <el-dropdown-item
-        v-if="!isReadOnly"
-        :command="doDestroyWithConfirm"
-      >
-        <i
-          class="ri-delete-bin-line mr-2 text-red-500"
-        /><span class="text-xs text-red-500">Delete automation</span>
-      </el-dropdown-item>
+      <template v-if="hasPermission(LfPermission.automationEdit)">
+        <el-dropdown-item
+          :command="edit"
+        >
+          <i class="ri-pencil-line mr-2" /><span
+            class="text-xs"
+          >Edit automation</span>
+        </el-dropdown-item>
+        <el-divider class="border-gray-200 my-2" />
+        <el-dropdown-item
+          :command="doDestroyWithConfirm"
+        >
+          <i
+            class="ri-delete-bin-line mr-2 text-red-500"
+          /><span class="text-xs text-red-500">Delete automation</span>
+        </el-dropdown-item>
+      </template>
     </template>
   </el-dropdown>
 </template>
 
 <script setup>
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
-import { computed, defineProps } from 'vue';
-import { AutomationPermissions } from '@/modules/automation/automation-permissions';
 import { useAutomationStore } from '@/modules/automation/store';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 
 const props = defineProps({
   automation: {
@@ -56,16 +57,11 @@ const emit = defineEmits([
   'openEditAutomationDrawer',
 ]);
 
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
+const { hasPermission } = usePermissions();
+const { trackEvent } = useProductTracking();
 
 const automationStore = useAutomationStore();
 const { deleteAutomation } = automationStore;
-
-const isReadOnly = computed(() => new AutomationPermissions(
-  tenant.value,
-  user.value,
-).edit === false);
 
 const doDestroyWithConfirm = () => ConfirmDialog({
   type: 'danger',
@@ -76,12 +72,27 @@ const doDestroyWithConfirm = () => ConfirmDialog({
   cancelButtonText: 'Cancel',
   icon: 'ri-delete-bin-line',
 })
-  .then(() => deleteAutomation(props.automation.id));
+  .then(() => {
+    trackEvent({
+      key: FeatureEventKey.DELETE_AUTOMATION,
+      type: EventType.FEATURE,
+      properties: {
+        automationType: props.automation.type,
+      },
+    });
+
+    deleteAutomation(props.automation.id);
+  });
 
 const edit = () => {
   emit('openEditAutomationDrawer');
 };
 const openExecutions = () => {
+  trackEvent({
+    key: FeatureEventKey.VIEW_AUTOMATION_EXECUTION,
+    type: EventType.FEATURE,
+  });
+
   emit('openExecutionsDrawer');
 };
 </script>

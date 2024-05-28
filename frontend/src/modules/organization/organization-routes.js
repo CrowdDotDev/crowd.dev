@@ -1,6 +1,8 @@
 import Layout from '@/modules/layout/components/layout.vue';
-import Permissions from '@/security/permissions';
 import { store } from '@/store';
+import { PermissionGuard } from '@/shared/modules/permissions/router/PermissionGuard';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import { PageEventKey } from '@/shared/modules/monitoring/types/event';
 
 const OrganizationListPage = () => import(
   '@/modules/organization/pages/organization-list-page.vue'
@@ -37,11 +39,14 @@ export default [
         component: OrganizationsMainPage,
         meta: {
           auth: true,
-          permission: Permissions.values.organizationRead,
+          eventKey: PageEventKey.ORGANIZATIONS,
         },
         props: {
           module: 'organizations',
         },
+        beforeEnter: [
+          PermissionGuard(LfPermission.organizationRead),
+        ],
       },
       {
         name: 'organizationCreate',
@@ -49,8 +54,11 @@ export default [
         component: OrganizationFormPage,
         meta: {
           auth: true,
-          permission: Permissions.values.organizationCreate,
+          eventKey: PageEventKey.NEW_ORGANIZATION,
         },
+        beforeEnter: [
+          PermissionGuard(LfPermission.organizationCreate),
+        ],
       },
       {
         name: 'organizationEdit',
@@ -58,9 +66,12 @@ export default [
         component: OrganizationFormPage,
         meta: {
           auth: true,
-          permission: Permissions.values.organizationEdit,
+          eventKey: PageEventKey.EDIT_ORGANIZATION,
         },
         props: true,
+        beforeEnter: [
+          PermissionGuard(LfPermission.organizationEdit),
+        ],
       },
       {
         name: 'organizationView',
@@ -69,9 +80,12 @@ export default [
         meta: {
           title: 'Organization',
           auth: true,
-          permission: Permissions.values.organizationRead,
+          eventKey: PageEventKey.ORGANIZATION_PROFILE,
         },
         props: true,
+        beforeEnter: [
+          PermissionGuard(LfPermission.organizationRead),
+        ],
       },
       {
         name: 'organizationMergeSuggestions',
@@ -79,9 +93,12 @@ export default [
         component: OrganizationMergeSuggestionsPage,
         meta: {
           auth: true,
-          permission: Permissions.values.mergeOrganizations,
+          eventKey: PageEventKey.ORGANIZATIONS_MERGE_SUGGESTIONS,
         },
         props: true,
+        beforeEnter: [
+          PermissionGuard(LfPermission.mergeOrganizations),
+        ],
       },
     ],
   },

@@ -89,6 +89,8 @@ import CrDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import Errors from '@/shared/error/errors';
 import { useMemberStore } from '@/modules/member/store/pinia';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 
 const props = withDefaults(defineProps<{
   modelValue?: boolean,
@@ -98,6 +100,8 @@ const props = withDefaults(defineProps<{
 });
 
 const emit = defineEmits(['update:modelValue', 'unmerge']);
+
+const { trackEvent } = useProductTracking();
 
 const store = useStore();
 const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
@@ -118,6 +122,14 @@ const addIdentities = ref<MemberIdentity[]>([]);
 
 const serverUpdate = () => {
   const segments = props.member.segments.map((s) => s.id);
+
+  trackEvent({
+    key: FeatureEventKey.EDIT_CONTRIBUTOR_IDENTITY,
+    type: EventType.FEATURE,
+    properties: {
+      identities: identities.value,
+    },
+  });
 
   MemberService.update(props.member.id, {
     identities: identities.value,

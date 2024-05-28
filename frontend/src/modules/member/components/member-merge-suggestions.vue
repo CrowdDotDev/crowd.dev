@@ -144,11 +144,11 @@ import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { merge } from 'lodash';
 import useMemberMergeMessage from '@/shared/modules/merge/config/useMemberMergeMessage';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
 import CrButton from '@/ui-kit/button/Button.vue';
 import AppMemberMergeSimilarity from '@/modules/member/components/suggestions/member-merge-similarity.vue';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { MemberService } from '../member-service';
-import { MemberPermissions } from '../member-permissions';
 
 const props = defineProps({
   query: {
@@ -168,8 +168,7 @@ const emit = defineEmits(['reload']);
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
+const { trackEvent } = useProductTracking();
 
 const membersToMerge = ref([]);
 const primary = ref(0);
@@ -183,11 +182,6 @@ const sendingMerge = ref(false);
 const changed = ref(false);
 
 const bioHeight = ref(0);
-
-const isEditLockedForSampleData = computed(
-  () => new MemberPermissions(tenant.value, user.value)
-    .editLockedForSampleData,
-);
 
 const clearMember = (member) => {
   const cleanedMember = { ...member };
@@ -216,6 +210,12 @@ const fetch = (page) => {
   if (page > -1) {
     offset.value = page;
   }
+
+  trackEvent({
+    key: FeatureEventKey.NAVIGATE_CONTRIBUTORS_MERGE_SUGGESTIONS,
+    type: EventType.FEATURE,
+  });
+
   loading.value = true;
 
   MemberService.fetchMergeSuggestions(1, offset.value, props.query ?? {})
@@ -240,6 +240,15 @@ const ignoreSuggestion = () => {
   if (sendingIgnore.value || sendingMerge.value || loading.value) {
     return;
   }
+
+  trackEvent({
+    key: FeatureEventKey.IGNORE_CONTRIBUTOR_MERGE_SUGGESTION,
+    type: EventType.FEATURE,
+    properties: {
+      similarity: membersToMerge.value.similarity,
+    },
+  });
+
   sendingIgnore.value = true;
   MemberService.addToNoMerge(...membersToMerge.value.members)
     .then(() => {
@@ -277,6 +286,14 @@ const mergeSuggestion = () => {
   const { loadingMessage, successMessage, apiErrorMessage } = useMemberMergeMessage;
 
   loadingMessage();
+
+  trackEvent({
+    key: FeatureEventKey.MERGE_CONTRIBUTOR_MERGE_SUGGESTION,
+    type: EventType.FEATURE,
+    properties: {
+      similarity: membersToMerge.value.similarity,
+    },
+  });
 
   MemberService.merge(primaryMember, secondaryMember)
     .then(() => {

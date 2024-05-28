@@ -57,6 +57,8 @@ import Message from '@/shared/message/message';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
 import formChangeDetector from '@/shared/form/form-change';
 import { useActivityStore } from '@/modules/activity/store/pinia';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 
 // Props & Emits
 const props = defineProps({
@@ -77,6 +79,8 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['update:modelValue', 'onUpdate']);
+
+const { trackEvent } = useProductTracking();
 
 const { createActivityType, updateActivityType } = useActivityTypeStore();
 
@@ -116,6 +120,11 @@ const submit = () => {
   const segments = [props.subprojectId];
 
   if (!isEdit.value) {
+    trackEvent({
+      key: FeatureEventKey.ADD_ACTIVITY_TYPE,
+      type: EventType.FEATURE,
+    });
+
     // Create
     createActivityType({
       type: form.name,
@@ -134,6 +143,11 @@ const submit = () => {
         );
       });
   } else {
+    trackEvent({
+      key: FeatureEventKey.EDIT_ACTIVITY_TYPE,
+      type: EventType.FEATURE,
+    });
+
     // Update
     updateActivityType(props.type.key, {
       type: form.name,

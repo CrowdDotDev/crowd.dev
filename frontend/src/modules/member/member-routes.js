@@ -1,5 +1,7 @@
 import Layout from '@/modules/layout/components/layout.vue';
-import Permissions from '@/security/permissions';
+import { PageEventKey } from '@/shared/modules/monitoring/types/event';
+import { PermissionGuard } from '@/shared/modules/permissions/router/PermissionGuard';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 
 const MemberListPage = () => import('@/modules/member/pages/member-list-page.vue');
 const MemberMergeSuggestionsPage = () => import(
@@ -27,8 +29,11 @@ export default [
         component: MemberListPage,
         meta: {
           auth: true,
-          permission: Permissions.values.memberRead,
+          eventKey: PageEventKey.CONTRIBUTORS,
         },
+        beforeEnter: [
+          PermissionGuard(LfPermission.memberRead),
+        ],
       },
       {
         name: 'memberCreate',
@@ -36,8 +41,11 @@ export default [
         component: MemberCreatePage,
         meta: {
           auth: true,
-          permission: Permissions.values.memberCreate,
+          eventKey: PageEventKey.NEW_CONTRIBUTOR,
         },
+        beforeEnter: [
+          PermissionGuard(LfPermission.memberCreate),
+        ],
       },
       {
         name: 'memberEdit',
@@ -45,9 +53,12 @@ export default [
         component: MemberCreatePage,
         meta: {
           auth: true,
-          permission: Permissions.values.memberEdit,
+          eventKey: PageEventKey.EDIT_CONTRIBUTOR,
         },
         props: true,
+        beforeEnter: [
+          PermissionGuard(LfPermission.memberEdit),
+        ],
       },
       {
         name: 'memberMergeSuggestions',
@@ -55,8 +66,11 @@ export default [
         component: MemberMergeSuggestionsPage,
         meta: {
           auth: true,
-          permission: Permissions.values.mergeMembers,
+          eventKey: PageEventKey.CONTRIBUTORS_MERGE_SUGGESTIONS,
         },
+        beforeEnter: [
+          PermissionGuard(LfPermission.mergeMembers),
+        ],
       },
       {
         name: 'memberView',
@@ -65,9 +79,12 @@ export default [
         meta: {
           auth: true,
           title: 'Contributor',
-          permission: Permissions.values.memberRead,
+          eventKey: PageEventKey.CONTRIBUTOR_PROFILE,
         },
         props: true,
+        beforeEnter: [
+          PermissionGuard(LfPermission.memberRead),
+        ],
       },
       {
         name: 'memberMerge',
@@ -75,9 +92,12 @@ export default [
         component: MemberMergeSuggestionsPage,
         meta: {
           auth: true,
-          permission: Permissions.values.memberEdit,
+          eventKey: PageEventKey.CONTRIBUTORS_MERGE_SUGGESTIONS,
         },
         props: true,
+        beforeEnter: [
+          PermissionGuard(LfPermission.memberEdit),
+        ],
       },
     ],
   },

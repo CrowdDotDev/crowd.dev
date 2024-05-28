@@ -21,6 +21,8 @@
 import CrButton from '@/ui-kit/button/Button.vue';
 import { AuditLog } from '@/modules/lf/segments/types/AuditLog';
 import { ref } from 'vue';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 
 const props = defineProps<{
   log: AuditLog
@@ -28,8 +30,15 @@ const props = defineProps<{
 
 const copied = ref(false);
 
+const { trackEvent } = useProductTracking();
+
 const copy = () => {
   if (navigator.clipboard) {
+    trackEvent({
+      key: FeatureEventKey.COPY_AUDIT_LOG_JSON,
+      type: EventType.FEATURE,
+    });
+
     navigator.clipboard.writeText(JSON.stringify(props.log, null, 2));
     copied.value = true;
     setTimeout(() => {
