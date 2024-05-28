@@ -66,6 +66,10 @@ export async function dissectMember(args: IDissectMemberArgs): Promise<void> {
 
       preview.secondary.identities = [...preview.secondary.identities, ...toMove]
 
+      console.log(
+        `Identity [${groupedIdentities.groupedByValue}] will be split from [${args.memberId}] into member ${preview.secondary.id}!`,
+      )
+
       // 2. call api.unmerge using the payload
       await common.unmergeMembers(args.memberId, preview, groupedIdentities.tenantId)
     }
