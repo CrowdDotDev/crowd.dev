@@ -57,7 +57,7 @@
   "productDb": {
     "host": "PRODUCT_DB_HOST",
     "port": "PRODUCT_DB_PORT",
-    "user": "PRODUCT_DB_USER",
+    "user": "PRODUCT_DB_USERNAME",
     "password": "PRODUCT_DB_PASSWORD",
     "database": "PRODUCT_DB_DATABASE"
   },
