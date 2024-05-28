@@ -323,9 +323,11 @@ export async function addOrganizationToMerge(
   suggestions: IOrganizationMergeSuggestion[],
   table: OrganizationMergeSuggestionTable,
 ): Promise<void> {
-  const organizationMergeSuggestionsRepo = new OrganizationMergeSuggestionsRepository(
-    svc.postgres.writer.connection(),
-    svc.log,
-  )
-  await organizationMergeSuggestionsRepo.addToMerge(suggestions, table)
+  if (suggestions.length > 0) {
+    const organizationMergeSuggestionsRepo = new OrganizationMergeSuggestionsRepository(
+      svc.postgres.writer.connection(),
+      svc.log,
+    )
+    await organizationMergeSuggestionsRepo.addToMerge(suggestions, table)
+  }
 }
