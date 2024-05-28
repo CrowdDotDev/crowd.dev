@@ -21,10 +21,9 @@ const useSessionTracking = () => {
 
     const userSession = sessionStorage.getItem('userSession');
 
-    sessionStorage.removeItem('userSession');
-
     if (userSession) {
       updateSession(userSession, new Date().toISOString());
+      sessionStorage.removeItem('userSession');
     }
   };
 
