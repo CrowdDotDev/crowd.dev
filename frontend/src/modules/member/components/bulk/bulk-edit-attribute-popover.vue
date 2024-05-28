@@ -117,6 +117,9 @@ import { OrganizationService } from '@/modules/organization/organization-service
 import getCustomAttributes from '@/shared/fields/get-custom-attributes';
 import getParsedAttributes from '@/shared/attributes/get-parsed-attributes';
 import AppBulkEditAttributeDropdown from '@/modules/member/components/bulk/bulk-edit-attribute-dropdown.vue';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import { useRoute } from 'vue-router';
 
 const CalendarIcon = h(
   'i', // type
@@ -127,6 +130,8 @@ const CalendarIcon = h(
   [],
 );
 
+const route = useRoute();
+const { trackEvent } = useProductTracking();
 const memberStore = useMemberStore();
 const store = useStore();
 const { selectedMembers, customAttributes } = storeToRefs(memberStore);
@@ -303,6 +308,15 @@ const updateCustomAttribute = (attribute, value) => {
 };
 
 const handleSubmit = async () => {
+  trackEvent({
+    key: FeatureEventKey.EDIT_CONTRIBUTOR_ATTRIBUTES,
+    type: EventType.FEATURE,
+    properties: {
+      path: route.path,
+      bulk: true,
+    },
+  });
+
   const formattedAttributes = getParsedAttributes(
     computedCustomAttributes.value,
     formModel.value,

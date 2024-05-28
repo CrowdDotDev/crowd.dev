@@ -82,6 +82,8 @@ import { useUserStore } from '@/modules/user/store/pinia';
 import Message from '@/shared/message/message';
 import { storeToRefs } from 'pinia';
 import { FeatureFlag } from '@/utils/featureFlag';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 
 const props = defineProps<{
   modelValue: Filter,
@@ -95,6 +97,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{(e: 'update:modelValue', value: Filter), (e: 'fetch', value: FilterQuery),}>();
 
+const { trackEvent } = useProductTracking();
 const router = useRouter();
 const route = useRoute();
 
@@ -155,7 +158,35 @@ const fetch = (value: Filter) => {
 
 watch(() => filters.value, (value: Filter) => {
   fetch(value);
+
   const query = setQuery(value);
+
+  let key;
+  const { name: routeName, hash: routeHash } = router.currentRoute.value;
+
+  if (routeName === 'member') {
+    key = FeatureEventKey.FILTER_CONTRIBUTORS;
+  } else if (routeName === 'organization') {
+    key = FeatureEventKey.FILTER_ORGANIZATIONS;
+  } else if (routeName === 'activity' && routeHash === '#activity') {
+    key = FeatureEventKey.FILTER_ACTIVITIES;
+  } else if (routeName === 'activity' && routeHash === '#conversation') {
+    key = FeatureEventKey.FILTER_CONVERSATIONS;
+  } else {
+    key = null;
+  }
+
+  if (key) {
+    trackEvent({
+      key,
+      type: EventType.FEATURE,
+      properties: {
+        path: router.currentRoute.value.path,
+        filter: value,
+      },
+    });
+  }
+
   router.push({ query, hash: props.hash ? `#${props.hash}` : undefined });
 }, { deep: true });
 

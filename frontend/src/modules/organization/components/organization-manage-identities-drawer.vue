@@ -89,6 +89,8 @@ import CrDropdown from '@/ui-kit/dropdown/Dropdown.vue';
 import CrDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import AppOrganizationFormIdentityItem
   from '@/modules/organization/components/form/identity/organization-form-identity-item.vue';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 
 const props = withDefaults(defineProps<{
   modelValue?: boolean,
@@ -98,6 +100,8 @@ const props = withDefaults(defineProps<{
 });
 
 const emit = defineEmits(['update:modelValue', 'unmerge']);
+
+const { trackEvent } = useProductTracking();
 
 const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
 const { fetchOrganization } = useOrganizationStore();
@@ -149,6 +153,15 @@ const serverUpdate = () => {
         url: i.username?.length ? `https://${prefixes[i.platform]}${i.username}` : null,
       };
     });
+
+  trackEvent({
+    key: FeatureEventKey.EDIT_ORGANIZATION_IDENTITY,
+    type: EventType.FEATURE,
+    properties: {
+      identities: identityList,
+    },
+  });
+
   OrganizationService.update(props.organization.id, {
     identities: identityList,
   }).then(() => {

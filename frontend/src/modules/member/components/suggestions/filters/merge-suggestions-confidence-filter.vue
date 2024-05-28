@@ -61,10 +61,16 @@ import { computed, ref } from 'vue';
 import CrButton from '@/ui-kit/button/Button.vue';
 import CrCheckbox from '@/ui-kit/checkbox/Checkbox.vue';
 import isEqual from 'lodash/isEqual';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import { useRouter } from 'vue-router';
 
 const props = defineProps<{
   modelValue: string[]
 }>();
+
+const { trackEvent } = useProductTracking();
+const router = useRouter();
 
 const visible = ref<boolean>(false);
 
@@ -80,6 +86,27 @@ const label = computed(() => {
 });
 
 const apply = () => {
+  let key: FeatureEventKey | null = null;
+  const { name: routeName } = router.currentRoute.value;
+
+  if (routeName === 'memberMergeSuggestions') {
+    key = FeatureEventKey.FILTER_CONTRIBUTORS_MERGE_SUGGESTIONS;
+  } else if (routeName === 'organizationMergeSuggestions') {
+    key = FeatureEventKey.FILTER_ORGANIZATIONS_MERGE_SUGGESTIONS;
+  }
+
+  if (key) {
+    trackEvent({
+      key,
+      type: EventType.FEATURE,
+      properties: {
+        filter: {
+          confidence: model.value,
+        },
+      },
+    });
+  }
+
   emit('update:modelValue', model.value);
   visible.value = false;
 };

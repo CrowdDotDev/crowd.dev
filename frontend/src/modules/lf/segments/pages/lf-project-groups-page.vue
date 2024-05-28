@@ -5,7 +5,7 @@
       <app-lf-search-input
         v-if="pagination.total"
         placeholder="Search project groups..."
-        @on-change="searchProjectGroup"
+        @on-change="onSearchProjectGroup"
       />
       <el-button
         v-if="pagination.total && hasPermission(LfPermission.projectGroupCreate)"
@@ -78,6 +78,8 @@ import { useAuthStore } from '@/modules/auth/store/auth.store';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import { LfRole } from '@/shared/modules/permissions/types/Roles';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { projectGroups } = storeToRefs(lsSegmentsStore);
@@ -86,6 +88,7 @@ const { listProjectGroups, searchProjectGroup, updateSelectedProjectGroup } = ls
 const authStore = useAuthStore();
 const { roles } = storeToRefs(authStore);
 
+const { trackEvent } = useProductTracking();
 const { hasPermission } = usePermissions();
 
 const loading = computed(() => projectGroups.value.loading);
@@ -121,6 +124,15 @@ const onAddProjectGroup = () => {
 const onEditProjectGroup = (id) => {
   projectGroupForm.id = id;
   isProjectGroupFormDrawerOpen.value = true;
+};
+
+const onSearchProjectGroup = (val) => {
+  trackEvent({
+    key: FeatureEventKey.SEARCH_PROJECT_GROUPS,
+    type: EventType.FEATURE,
+  });
+
+  searchProjectGroup(val);
 };
 </script>
 

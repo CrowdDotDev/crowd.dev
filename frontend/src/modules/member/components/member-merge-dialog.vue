@@ -71,6 +71,8 @@ import { useMemberStore } from '@/modules/member/store/pinia';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import useMemberMergeMessage from '@/shared/modules/merge/config/useMemberMergeMessage';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import AppMemberSelectionDropdown from './member-selection-dropdown.vue';
 import AppMemberSuggestionsDetails from './suggestions/member-merge-suggestions-details.vue';
 
@@ -86,6 +88,8 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['update:modelValue']);
+
+const { trackEvent } = useProductTracking();
 
 const route = useRoute();
 const router = useRouter();
@@ -139,6 +143,14 @@ const mergeSuggestion = () => {
   const { loadingMessage, successMessage, apiErrorMessage } = useMemberMergeMessage;
 
   loadingMessage();
+
+  trackEvent({
+    key: FeatureEventKey.MERGE_CONTRIBUTOR,
+    type: EventType.FEATURE,
+    properties: {
+      path: route.path,
+    },
+  });
 
   MemberService.merge(primaryMember, secondaryMember)
     .then(() => {

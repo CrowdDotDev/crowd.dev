@@ -140,6 +140,8 @@ import AppLfSearchInput from '@/modules/lf/segments/components/view/lf-search-in
 import { LfService } from '@/modules/lf/segments/lf-segments-service';
 import pluralize from 'pluralize';
 import AppPlatformSvg from '@/shared/modules/platform/components/platform-svg.vue';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 
 const emit = defineEmits(['update:isVisible']);
 const props = defineProps({
@@ -182,6 +184,8 @@ const isLoadMoreVisible = computed(
   () => pagination.value.currentPage * pagination.value.pageSize < pagination.value.count || loading.value,
 );
 
+const { trackEvent } = useProductTracking();
+
 const listProjects = (clearList) => {
   loading.value = true;
 
@@ -208,6 +212,11 @@ const listProjects = (clearList) => {
 };
 
 const onSearchProjects = (query) => {
+  trackEvent({
+    key: FeatureEventKey.SEARCH_PROJECTS,
+    type: EventType.FEATURE,
+  });
+
   searchQuery.value = query;
   pagination.value = {
     pageSize: 20,

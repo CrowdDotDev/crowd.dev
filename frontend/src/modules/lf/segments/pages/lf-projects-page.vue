@@ -34,7 +34,7 @@
     <app-lf-search-input
       v-if="pagination.total"
       placeholder="Search projects..."
-      @on-change="searchProject"
+      @on-change="onSearchProjects"
     />
 
     <div
@@ -136,6 +136,8 @@ import { storeToRefs } from 'pinia';
 import AppIntegrationProgressWrapper from '@/modules/integration/components/integration-progress-wrapper.vue';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 
 const route = useRoute();
 const lsSegmentsStore = useLfSegmentsStore();
@@ -145,6 +147,7 @@ const {
 } = lsSegmentsStore;
 
 const { hasPermission, hasAccessToSegmentId } = usePermissions();
+const { trackEvent } = useProductTracking();
 
 const loadingProjectGroup = ref(true);
 const projectGroupForm = reactive({
@@ -202,6 +205,15 @@ const onAddSubProject = ({ slug, id }) => {
 
 const onPageSizeChange = (pageSize) => {
   updateProjectsPageSize(pageSize);
+};
+
+const onSearchProjects = (query) => {
+  trackEvent({
+    key: FeatureEventKey.SEARCH_PROJECTS,
+    type: EventType.FEATURE,
+  });
+
+  searchProject(query);
 };
 </script>
 

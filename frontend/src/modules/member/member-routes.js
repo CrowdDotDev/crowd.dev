@@ -1,4 +1,5 @@
 import Layout from '@/modules/layout/components/layout.vue';
+import { PageEventKey } from '@/shared/modules/monitoring/types/event';
 import { PermissionGuard } from '@/shared/modules/permissions/router/PermissionGuard';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 
@@ -28,6 +29,7 @@ export default [
         component: MemberListPage,
         meta: {
           auth: true,
+          eventKey: PageEventKey.CONTRIBUTORS,
         },
         beforeEnter: [
           PermissionGuard(LfPermission.memberRead),
@@ -39,6 +41,7 @@ export default [
         component: MemberCreatePage,
         meta: {
           auth: true,
+          eventKey: PageEventKey.NEW_CONTRIBUTOR,
         },
         beforeEnter: [
           PermissionGuard(LfPermission.memberCreate),
@@ -50,6 +53,7 @@ export default [
         component: MemberCreatePage,
         meta: {
           auth: true,
+          eventKey: PageEventKey.EDIT_CONTRIBUTOR,
         },
         props: true,
         beforeEnter: [
@@ -62,6 +66,7 @@ export default [
         component: MemberMergeSuggestionsPage,
         meta: {
           auth: true,
+          eventKey: PageEventKey.CONTRIBUTORS_MERGE_SUGGESTIONS,
         },
         beforeEnter: [
           PermissionGuard(LfPermission.mergeMembers),
@@ -74,6 +79,7 @@ export default [
         meta: {
           auth: true,
           title: 'Contributor',
+          eventKey: PageEventKey.CONTRIBUTOR_PROFILE,
         },
         props: true,
         beforeEnter: [
@@ -86,6 +92,7 @@ export default [
         component: MemberMergeSuggestionsPage,
         meta: {
           auth: true,
+          eventKey: PageEventKey.CONTRIBUTORS_MERGE_SUGGESTIONS,
         },
         props: true,
         beforeEnter: [

@@ -78,7 +78,8 @@
 <script setup>
 import { computed, ref } from 'vue';
 import { AuthService } from '@/modules/auth/services/auth.service';
-
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import Message from '@/shared/message/message';
 
 const inputRef = ref();
@@ -87,8 +88,16 @@ const showToken = ref(false);
 const tenantId = computed(() => AuthService.getTenantId());
 const jwtToken = computed(() => AuthService.getToken());
 
+const { trackEvent } = useProductTracking();
+
 const copyToClipboard = async (type) => {
   const toCopy = type === 'token' ? jwtToken.value : tenantId.value;
+
+  trackEvent({
+    key: type === 'token' ? FeatureEventKey.COPY_AUTH_TOKEN : FeatureEventKey.COPY_TENANT_ID,
+    type: EventType.FEATURE,
+  });
+
   await navigator.clipboard.writeText(toCopy);
 
   Message.success(
@@ -99,6 +108,11 @@ const copyToClipboard = async (type) => {
 };
 
 const onShowToken = () => {
+  trackEvent({
+    key: FeatureEventKey.SHOW_AUTH_TOKEN,
+    type: EventType.FEATURE,
+  });
+
   showToken.value = true;
   inputRef.value.focus();
 };

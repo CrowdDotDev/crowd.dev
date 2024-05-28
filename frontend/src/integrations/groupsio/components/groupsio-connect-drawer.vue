@@ -183,6 +183,9 @@ import AppFormItem from '@/shared/form/form-item.vue';
 import formChangeDetector from '@/shared/form/form-change';
 // import elementChangeDetector from '@/shared/form/element-change';
 import { IntegrationService } from '@/modules/integration/integration-service';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import { Platform } from '@/shared/modules/platform/types/Platform';
 import AppArrayInput from './groupsio-array-input.vue';
 
 const { doGroupsioConnect } = mapActions('integration');
@@ -207,6 +210,8 @@ const form = reactive({
   }],
   groupsValidationState: [null],
 });
+
+const { trackEvent } = useProductTracking();
 
 const isValidating = ref(false);
 const isVerificationEnabled = ref(false);
@@ -361,15 +366,25 @@ onMounted(() => {
 const connect = async () => {
   loading.value = true;
 
+  const isUpdate = !!props.integration.settings?.email;
+
   doGroupsioConnect({
     email: form.email,
     token: cookie.value,
     tokenExpiry: cookieExpiry.value,
     password: form.password,
     groups: form.groups,
-    isUpdate: !!props.integration.settings?.email,
+    isUpdate,
   })
     .then(() => {
+      trackEvent({
+        key: isUpdate ? FeatureEventKey.EDIT_INTEGRATION_SETTINGS : FeatureEventKey.CONNECT_INTEGRATION,
+        type: EventType.FEATURE,
+        properties: {
+          platform: Platform.GROUPS_IO,
+        },
+      });
+
       isVisible.value = false;
     })
     .finally(() => {

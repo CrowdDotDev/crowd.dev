@@ -177,9 +177,14 @@ import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { AuthService } from '@/modules/auth/services/auth.service';
 import config from '@/config';
 import { IntegrationService } from '@/modules/integration/integration-service';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import { Platform } from '@/shared/modules/platform/types/Platform';
 
 const MAX_STACK_OVERFLOW_QUESTIONS_PER_TAG = 350000;
 const MAX_STACK_OVERFLOW_QUESTIONS_FOR_KEYWORDS = 1100;
+
+const { trackEvent } = useProductTracking();
 
 const store = useStore();
 
@@ -375,6 +380,14 @@ const callOnboard = useThrottleFn(async () => {
         keywords: modelKeywords.value,
       },
     );
+
+    const isUpdate = !!props.integration.settings;
+
+    trackEvent({
+      key: isUpdate ? FeatureEventKey.EDIT_INTEGRATION_SETTINGS : FeatureEventKey.CONNECT_INTEGRATION,
+      type: EventType.FEATURE,
+      properties: { platform: Platform.STACK_OVERFLOW },
+    });
   }
 }, 2000);
 

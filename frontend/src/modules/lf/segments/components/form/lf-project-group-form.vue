@@ -140,6 +140,8 @@ import {
 import AppFormItem from '@/shared/form/form-item.vue';
 import statusOptions from '@/modules/lf/config/status';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps({
@@ -152,6 +154,8 @@ const props = defineProps({
     default: () => null,
   },
 });
+
+const { trackEvent } = useProductTracking();
 
 const lsSegmentsStore = useLfSegmentsStore();
 const {
@@ -228,12 +232,22 @@ const onSubmit = () => {
   submitLoading.value = true;
 
   if (isEditForm.value) {
+    trackEvent({
+      key: FeatureEventKey.EDIT_PROJECT_GROUP,
+      type: EventType.FEATURE,
+    });
+
     updateProjectGroup(props.id, form)
       .finally(() => {
         submitLoading.value = false;
         model.value = false;
       });
   } else {
+    trackEvent({
+      key: FeatureEventKey.ADD_PROJECT_GROUP,
+      type: EventType.FEATURE,
+    });
+
     createProjectGroup(form)
       .finally(() => {
         submitLoading.value = false;
