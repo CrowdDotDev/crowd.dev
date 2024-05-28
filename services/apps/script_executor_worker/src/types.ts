@@ -19,4 +19,5 @@ export interface IDissectMemberArgs {
   startDate?: string
   endDate?: string
   undoActionPerWorkflow?: number
+  forceSplitAllIdentities?: boolean
 }

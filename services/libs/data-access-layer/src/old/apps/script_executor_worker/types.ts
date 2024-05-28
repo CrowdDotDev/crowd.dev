@@ -13,3 +13,11 @@ export interface IFindMemberMergeActionReplacement {
   userId?: string
   limit?: number
 }
+
+export interface IFindMemberIdentitiesGroupedByPlatformResult {
+  platforms: string[]
+  types: string[]
+  verified: boolean[]
+  tenantId: string
+  value: string
+}

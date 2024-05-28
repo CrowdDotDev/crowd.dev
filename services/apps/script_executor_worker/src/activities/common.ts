@@ -1,4 +1,4 @@
-import { IMemberUnmergeBackup, IUnmergeBackup } from '@crowd/types'
+import { IMemberIdentity, IMemberUnmergeBackup, IMemberUnmergePreviewResult, IUnmergeBackup, IUnmergePreviewResult } from '@crowd/types'
 import axios from 'axios'
 import { svc } from '../main'
 
@@ -45,6 +45,33 @@ export async function unmergeMembers(
 
   try {
     await axios(url, requestOptions)
+  } catch (error) {
+    console.log(`Failed unmerging member with status [${error.response.status}]. Skipping!`)
+  }
+}
+
+export async function unmergeMembersPreview(
+  tenantId: string,
+  memberId: string,
+  memberIdentity: IMemberIdentity,
+): Promise<IUnmergePreviewResult<IMemberUnmergePreviewResult>> {
+  const url = `${process.env['CROWD_API_SERVICE_URL']}/tenant/${tenantId}/member/${memberId}/unmerge/preview`
+  const requestOptions = {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${process.env['CROWD_API_SERVICE_USER_TOKEN']}`,
+      'Content-Type': 'application/json',
+    },
+    data: {
+      platform: memberIdentity.platform,
+      value: memberIdentity.value,
+      type: memberIdentity.type,
+    },
+  }
+
+  try {
+    const result = await axios(url, requestOptions)
+    return result.data
   } catch (error) {
     console.log(`Failed unmerging member with status [${error.response.status}]. Skipping!`)
   }
