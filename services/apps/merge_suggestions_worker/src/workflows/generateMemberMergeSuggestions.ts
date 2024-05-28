@@ -1,7 +1,11 @@
 import { proxyActivities, continueAsNew } from '@temporalio/workflow'
 import * as activities from '../activities/memberMergeSuggestions'
 
-import { IMemberMergeSuggestion, IProcessGenerateMemberMergeSuggestionsArgs } from '@crowd/types'
+import {
+  IMemberMergeSuggestion,
+  IProcessGenerateMemberMergeSuggestionsArgs,
+  MemberMergeSuggestionTable,
+} from '@crowd/types'
 import { IMemberPartialAggregatesOpensearch } from '../types'
 import { chunkArray } from '../utils'
 
@@ -12,6 +16,7 @@ export async function generateMemberMergeSuggestions(
 ): Promise<void> {
   const PAGE_SIZE = 50
   const PARALLEL_SUGGESTION_PROCESSING = 10
+  const SIMILARITY_CONFIDENCE_SCORE_THRESHOLD = 0.5
 
   let lastUuid: string = args.lastUuid || null
 
@@ -49,7 +54,15 @@ export async function generateMemberMergeSuggestions(
 
   // Add all merge suggestions to add to merge
   if (allMergeSuggestions.length > 0) {
-    await activity.addMemberToMerge(allMergeSuggestions)
+    await activity.addMemberToMerge(
+      allMergeSuggestions,
+      MemberMergeSuggestionTable.MEMBER_TO_MERGE_RAW,
+    )
+
+    await activity.addMemberToMerge(
+      allMergeSuggestions.filter((s) => s.similarity > SIMILARITY_CONFIDENCE_SCORE_THRESHOLD),
+      MemberMergeSuggestionTable.MEMBER_TO_MERGE_FILTERED,
+    )
   }
 
   await continueAsNew<typeof generateMemberMergeSuggestions>({ tenantId: args.tenantId, lastUuid })
