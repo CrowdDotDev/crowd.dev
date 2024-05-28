@@ -19,5 +19,6 @@ export interface IFindMemberIdentitiesGroupedByPlatformResult {
   types: string[]
   verified: boolean[]
   tenantId: string
-  value: string
+  values: string[]
+  groupedByValue: string
 }

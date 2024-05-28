@@ -48,17 +48,17 @@ export async function dissectMember(args: IDissectMemberArgs): Promise<void> {
           platform: groupedIdentities.platforms[0],
           type: groupedIdentities.types[0] as MemberIdentityType,
           verified: groupedIdentities.verified[0],
-          value: groupedIdentities.value,
+          value: groupedIdentities.values[0],
         },
       )
       // 2. Currently unmerge preview only supports a single identity as input. Add grouped identities to secondary payload
       // and remove the grouped identities from the primary payload
       const toMove = preview.primary.identities.filter(
-        (identity) => identity.value.toLowerCase() === groupedIdentities.value.toLowerCase(),
+        (identity) => identity.value.toLowerCase() === groupedIdentities.groupedByValue,
       )
 
       preview.primary.identities = preview.primary.identities.filter(
-        (identity) => identity.value.toLowerCase() !== groupedIdentities.value.toLowerCase(),
+        (identity) => identity.value.toLowerCase() !== groupedIdentities.groupedByValue,
       )
 
       preview.secondary.identities = [...preview.secondary.identities, ...toMove]

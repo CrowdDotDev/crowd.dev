@@ -118,7 +118,8 @@ class MemberRepository {
           array_agg(mi.type) as types,
           array_agg(mi.verified) as verified,
           max(mi."tenantId"::text) as "tenantId",
-          lower(mi.value) as value
+          array_agg(mi.value) as values,
+          lower(mi.value) as "groupedByValue"
         from "memberIdentities" mi
         where mi."memberId" = $(memberId)
         group by lower(mi.value);
