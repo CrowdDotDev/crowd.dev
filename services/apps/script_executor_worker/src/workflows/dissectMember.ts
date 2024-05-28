@@ -39,6 +39,9 @@ export async function dissectMember(args: IDissectMemberArgs): Promise<void> {
       return
     }
 
+    // we'll keep the last group in the current member and create new members for the remaining
+    memberIdentitiesGroupedByPlatform.pop()
+
     for (const groupedIdentities of memberIdentitiesGroupedByPlatform) {
       // 1. get payload for identity split using unmergePreview endpoint
       const preview = await common.unmergeMembersPreview(
