@@ -214,16 +214,6 @@ export async function addMemberToMerge(tx: DbTransaction, memberId: string, toMe
   )
 }
 
-export async function findExistingOrganization(db: DbStore, orgName: string, tenantId: string) {
-  return await db.connection().query(
-    `SELECT id FROM organizations
-            WHERE "displayName" ILIKE $1
-            AND "tenantId" = $2
-            AND "deletedAt" IS NULL;`,
-    [orgName, tenantId],
-  )
-}
-
 export async function upsertOrg(
   tx: DbTransaction,
   tenantId: string,
