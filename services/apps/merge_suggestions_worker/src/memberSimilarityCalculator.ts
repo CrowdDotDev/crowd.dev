@@ -60,8 +60,7 @@ class MemberSimilarityCalculator {
           (verifiedIdentity) =>
             verifiedIdentity.bool_verified &&
             verifiedIdentity.string_value === primaryIdentity.string_value &&
-            verifiedIdentity.keyword_type === primaryIdentity.keyword_type &&
-            verifiedIdentity.string_platform === primaryIdentity.string_platform,
+            verifiedIdentity.keyword_type === primaryIdentity.keyword_type,
         )
       ) {
         return 0.98
@@ -77,8 +76,7 @@ class MemberSimilarityCalculator {
           (unverifiedIdentity) =>
             unverifiedIdentity.bool_verified === false &&
             unverifiedIdentity.string_value === primaryIdentity.string_value &&
-            unverifiedIdentity.keyword_type === primaryIdentity.keyword_type &&
-            unverifiedIdentity.string_platform === primaryIdentity.string_platform,
+            unverifiedIdentity.keyword_type === primaryIdentity.keyword_type,
         )
       ) {
         return 0.95
