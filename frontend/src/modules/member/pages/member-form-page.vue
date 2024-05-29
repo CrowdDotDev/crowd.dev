@@ -197,6 +197,8 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import AppLfSubProjectsListDropdown from '@/modules/lf/segments/components/lf-sub-projects-list-dropdown.vue';
 import AppLfMemberFormAffiliations from '@/modules/lf/member/components/form/lf-member-form-affiliations.vue';
 import Message from '@/shared/message/message';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { MemberService } from '../member-service';
 
 const LoaderIcon = h(
@@ -213,6 +215,8 @@ const ArrowPrevIcon = h(
   }, // props
   [],
 );
+
+const { trackEvent } = useProductTracking();
 
 const memberStore = useMemberStore();
 const { customAttributes } = storeToRefs(memberStore);
@@ -528,6 +532,14 @@ async function onSubmit() {
 
   // Affiliations
   if (!isEqual(formModel.value.affiliations, record.value.affiliations)) {
+    trackEvent({
+      key: FeatureEventKey.MANUAL_AFFILIATE_ACTIVITY,
+      type: EventType.FEATURE,
+      properties: {
+        path: route.path,
+      },
+    });
+
     data.affiliations = formModel.value.affiliations.map((affiliation) => ({
       memberId: affiliation.memberId,
       segmentId: affiliation.segmentId,
@@ -546,6 +558,14 @@ async function onSubmit() {
   // Edit member
   if (isEditPage.value) {
     isFormSubmitting.value = true;
+
+    trackEvent({
+      key: FeatureEventKey.EDIT_CONTRIBUTOR,
+      type: EventType.FEATURE,
+      properties: {
+        ...data,
+      },
+    });
 
     await MemberService.update(record.value.id, data).then(() => {
       isRequestSuccessful = true;
@@ -594,6 +614,14 @@ async function onSubmit() {
   } else {
     // Create new member
     isFormSubmitting.value = true;
+
+    trackEvent({
+      key: FeatureEventKey.ADD_CONTRIBUTOR,
+      type: EventType.FEATURE,
+      properties: {
+        ...data,
+      },
+    });
 
     await MemberService.create(data, segments.value).then(() => {
       isRequestSuccessful = true;

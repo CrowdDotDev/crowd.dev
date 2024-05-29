@@ -169,6 +169,8 @@ import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import AppOrganizationMergeSuggestionsDetails
   from '@/modules/organization/components/suggestions/organization-merge-suggestions-details.vue';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 
 const props = defineProps({
   modelValue: {
@@ -183,6 +185,8 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['update:modelValue']);
+
+const { trackEvent } = useProductTracking();
 
 const unmerging = ref(false);
 const fetchingPreview = ref(false);
@@ -235,6 +239,14 @@ const unmerge = () => {
   if (unmerging.value) {
     return;
   }
+
+  trackEvent({
+    key: FeatureEventKey.UNMERGE_ORGANIZATION_IDENTITY,
+    type: EventType.FEATURE,
+    properties: {
+      identity: selectedIdentity.value,
+    },
+  });
 
   unmerging.value = true;
 

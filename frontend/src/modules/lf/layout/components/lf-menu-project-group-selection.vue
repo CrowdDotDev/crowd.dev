@@ -42,7 +42,7 @@
           :class="{
             'bg-brand-50': projectGroup.id === selectedProjectGroup?.id,
           }"
-          @click="onOptionClick(projectGroup.id)"
+          @click="onOptionClick(projectGroup)"
         >
           <div class="flex gap-2 items-start truncate">
             <div class="block truncate mr-2">
@@ -72,6 +72,8 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { LfService } from '@/modules/lf/segments/lf-segments-service';
 import pluralize from 'pluralize';
 import debounce from 'lodash/debounce';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 
 const SearchIcon = h(
   'i', // type
@@ -100,6 +102,8 @@ const isPopoverVisible = ref(false);
 const projectGroupsList = ref([]);
 const loading = ref(false);
 const isSearchVisible = ref(false);
+
+const { trackEvent } = useProductTracking();
 
 const model = computed({
   get() {
@@ -149,7 +153,16 @@ const onSearchProjects = debounce(() => {
   queryProjectGroups();
 }, 300);
 
-const onOptionClick = (id) => {
+const onOptionClick = ({ id, name }) => {
+  trackEvent({
+    key: FeatureEventKey.SELECT_PROJECT_GROUP,
+    type: EventType.FEATURE,
+    properties: {
+      projectGroupId: id,
+      projectName: name,
+    },
+  });
+
   isPopoverVisible.value = false;
   updateSelectedProjectGroup(id);
 };

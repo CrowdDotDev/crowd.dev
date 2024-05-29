@@ -880,11 +880,14 @@ import { OrganizationService } from '@/modules/organization/organization-service
 import CrDefaultFilters from '@/shared/modules/default-filters/components/default-filters.vue';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import AppOrganizationListToolbar from './organization-list-toolbar.vue';
 import AppOrganizationName from '../organization-name.vue';
 import AppOrganizationDropdownContent from '../organization-dropdown-content.vue';
 import { organizationSavedViews } from '../../config/saved-views/main';
 
+const { trackEvent } = useProductTracking();
 const router = useRouter();
 
 const props = defineProps({
@@ -1049,6 +1052,15 @@ const onClickOutside = (el) => {
 };
 
 function doChangeSort(sorter) {
+  trackEvent({
+    key: FeatureEventKey.SORT_ORGANIZATIONS,
+    type: EventType.FEATURE,
+    properties: {
+      sortBy: sorter.prop,
+      sortOrder: sorter.order,
+    },
+  });
+
   filters.value.order = {
     prop: sorter.prop,
     order: sorter.order,

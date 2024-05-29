@@ -5,9 +5,11 @@ export interface AuthState {
   token: string | null,
   user: User | null,
   tenant: Tenant | null,
+  loaded: boolean,
 }
 
 export default () => ({
   user: null,
   tenant: null,
+  loaded: false,
 } as AuthState);

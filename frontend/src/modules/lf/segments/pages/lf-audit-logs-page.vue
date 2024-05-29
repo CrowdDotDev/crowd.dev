@@ -95,7 +95,7 @@
       >
         <template #default="{ row }">
           <div class="py-4 flex items-center h-full">
-            <cr-button type="secondary" size="small" @click="openLogDetails = row">
+            <cr-button type="secondary" size="small" @click="() => openLogDetailsDrawer(row)">
               View details
             </cr-button>
           </div>
@@ -126,6 +126,8 @@ import { AuditLog } from '@/modules/lf/segments/types/AuditLog';
 import CrButton from '@/ui-kit/button/Button.vue';
 import moment from 'moment';
 import { LfService } from '@/modules/lf/segments/lf-segments-service';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { logRenderingConfig } from '../../config/audit-logs/log-rendering';
 
 const loading = ref<boolean>(false);
@@ -150,12 +152,22 @@ const openLogDetails = ref<AuditLog | null>(null);
 const auditLogs = ref<AuditLog[]>([]);
 const filter = ref({});
 
+const { trackEvent } = useProductTracking();
+
 const loadMore = () => {
   pagination.page += 1;
   fetch();
 };
 
 const onFilterChange = (filterQuery: FilterQuery) => {
+  trackEvent({
+    key: FeatureEventKey.FILTER_AUDIT_LOGS,
+    type: EventType.FEATURE,
+    properties: {
+      filter: filterQuery.filter,
+    },
+  });
+
   filter.value = filterQuery.filter;
   pagination.page = 1;
   pagination.total = 0;
@@ -189,6 +201,15 @@ const fetch = () => {
     .finally(() => {
       loading.value = false;
     });
+};
+
+const openLogDetailsDrawer = (log: AuditLog) => {
+  openLogDetails.value = log;
+
+  trackEvent({
+    key: FeatureEventKey.VIEW_AUDIT_LOG_DETAILS,
+    type: EventType.FEATURE,
+  });
 };
 
 </script>

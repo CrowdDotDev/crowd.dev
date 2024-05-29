@@ -1,4 +1,5 @@
 import Layout from '@/modules/layout/components/layout.vue';
+import { PageEventKey } from '@/shared/modules/monitoring/types/event';
 import { PermissionGuard } from '@/shared/modules/permissions/router/PermissionGuard';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 
@@ -12,6 +13,7 @@ export default [
     meta: {
       auth: true,
       title: 'Activities',
+      eventKey: PageEventKey.ACTIVITIES,
       segments: {
         requireSelectedProjectGroup: true,
       },
