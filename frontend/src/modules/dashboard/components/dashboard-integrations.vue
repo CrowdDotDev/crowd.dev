@@ -6,7 +6,7 @@
           <div class="h-5 w-5 flex items-center justify-center mr-1">
             <cr-spinner size="1rem" class="!border-primary-800" />
           </div>
-          <h6 class="text-base leading-5 font-semibold font-header">
+          <h6 class="text-base leading-5 font-semibold font-secondary">
             Connecting integrations...
           </h6>
         </div>
