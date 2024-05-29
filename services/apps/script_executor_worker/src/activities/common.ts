@@ -77,9 +77,6 @@ export async function unmergeMembersPreview(
 
   try {
     const result = await axios(url, requestOptions)
-    console.log('UNMERGE PREVIEW RESULT: ')
-    console.log(result)
-    console.log(result.data)
     return result.data
   } catch (error) {
     console.log(`Failed unmerging member with status [${error.response.status}]. Skipping!`)

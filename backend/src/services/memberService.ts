@@ -644,8 +644,6 @@ export default class MemberService extends LoggerBase {
         repoOptions,
       )
 
-      console.log('Found identities to exclude: ', identitiesToExclude)
-
       payload.secondary.identities = payload.secondary.identities.filter(
         (i) =>
           !identitiesToExclude.some(
