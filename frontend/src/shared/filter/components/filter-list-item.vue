@@ -341,9 +341,9 @@ export default {
     }
 
     &.is-active {
-      @apply bg-brand-50 border-brand-200 text-brand-600 outline-none;
+      @apply bg-primary-50 border-primary-200 text-primary-600 outline-none;
       &:hover {
-        @apply bg-brand-100;
+        @apply bg-primary-100;
       }
     }
   }

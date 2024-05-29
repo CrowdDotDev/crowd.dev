@@ -10,7 +10,7 @@
       <div class="-mt-8 z-10 pb-6">
         <cr-dropdown width="260px">
           <template #trigger>
-            <div class="flex gap-2 text-xs text-brand-500 font-semibold items-center cursor-pointer">
+            <div class="flex gap-2 text-xs text-primary-500 font-semibold items-center cursor-pointer">
               <i class="ri-add-line text-base" />Add identity
             </div>
           </template>

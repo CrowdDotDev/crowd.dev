@@ -29,7 +29,7 @@ const style = computed<{
   }
   if (props.similarity >= 0.7) {
     return {
-      color: 'text-blue-500',
+      color: 'text-primary-500',
       svg: 'similarity-medium',
     };
   }

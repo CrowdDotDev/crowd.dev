@@ -27,7 +27,7 @@
         }"
       >
         <el-button
-          class="btn btn-link btn-link--sm btn-link--primary w-full leading-5 text-brand-500"
+          class="btn btn-link btn-link--sm btn-link--primary w-full leading-5 text-primary-500"
         >
           {{ props.buttonTitle }}
         </el-button>

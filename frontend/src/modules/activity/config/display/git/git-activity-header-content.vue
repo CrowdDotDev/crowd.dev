@@ -135,7 +135,7 @@ const openConversation = () => {
 
   a,
   span {
-    @apply text-brand-500;
+    @apply text-primary-500;
 
     &.gray {
       @apply text-gray-500;

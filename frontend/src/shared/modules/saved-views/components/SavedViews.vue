@@ -7,7 +7,7 @@
         </el-button>
         <template #dropdown>
           <el-dropdown-item
-            :class="selectedTab === '' ? 'bg-brand-50' : ''"
+            :class="selectedTab === '' ? 'bg-primary-50' : ''"
             @click="selectedTab = ''"
           >
             {{ props.config.defaultView.name }}
@@ -15,7 +15,7 @@
           <el-dropdown-item
             v-for="view of views"
             :key="view.name"
-            :class="selectedTab === view.id ? 'bg-brand-50' : ''"
+            :class="selectedTab === view.id ? 'bg-primary-50' : ''"
             @click="selectedTab = view.id"
           >
             {{ view.name }}
@@ -53,11 +53,11 @@
       </el-tabs>
     </div>
     <div class="border-b-2 border-[#e4e7ed] flex-grow flex justify-end -mb-px pb-1">
-      <el-button v-if="hasChanged" class="btn btn-brand btn-brand--transparent btn--sm !leading-5 !h-8 mr-2" @click="reset()">
+      <el-button v-if="hasChanged" class="btn btn-brand btn-primary--transparent btn--sm !leading-5 !h-8 mr-2" @click="reset()">
         Reset view
       </el-button>
       <el-dropdown v-if="hasChanged" placement="bottom-end">
-        <el-button class="btn btn-brand btn-brand--transparent btn--sm !h-8 !leading-5 mr-2">
+        <el-button class="btn btn-brand btn-primary--transparent btn--sm !h-8 !leading-5 mr-2">
           Save as...
         </el-button>
         <template #dropdown>

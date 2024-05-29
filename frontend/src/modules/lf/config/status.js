@@ -5,7 +5,7 @@ export default [
     value: 'active',
   },
   {
-    color: 'bg-blue-500',
+    color: 'bg-primary-500',
     label: 'Formation',
     value: 'formation',
   },

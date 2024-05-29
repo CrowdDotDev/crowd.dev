@@ -31,7 +31,7 @@
           <div v-if="model.value === props.identity.value && props.identity.value">
             <i
               v-if="model.value && props.identity.verified"
-              class="ri-verified-badge-fill text-brand-500 text-base leading-4"
+              class="ri-verified-badge-fill text-primary-500 text-base leading-4"
             />
           </div>
           <div v-else class="flex gap-1 -mr-1">
@@ -59,7 +59,7 @@
         <span class="text-gray-400">{{ props.identity.platform }}</span>
         <i
           v-if="props.identity.verified"
-          class="ri-verified-badge-fill text-brand-500 text-base leading-4"
+          class="ri-verified-badge-fill text-primary-500 text-base leading-4"
         />
       </p>
     </div>

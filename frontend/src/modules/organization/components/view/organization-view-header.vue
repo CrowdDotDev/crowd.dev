@@ -80,7 +80,7 @@
       <!-- show more/less button -->
       <div
         v-if="displayShowMore"
-        class="text-2xs text-brand-500 mt-3 cursor-pointer"
+        class="text-2xs text-primary-500 mt-3 cursor-pointer"
         @click.stop="toggleContent"
       >
         Show {{ showMore ? 'less' : 'more' }}

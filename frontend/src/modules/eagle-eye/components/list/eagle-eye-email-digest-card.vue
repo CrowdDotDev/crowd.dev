@@ -1,7 +1,7 @@
 <template>
   <div
     v-if="!isEmailDigestConfiguredOnce"
-    class="bg-brand-25 rounded-lg p-5 shadow"
+    class="bg-primary-25 rounded-lg p-5 shadow"
   >
     <div class="flex items-center gap-2">
       <i class="ri-mail-open-line text-lg text-gray-900" />

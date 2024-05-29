@@ -12,7 +12,7 @@
     <span>Manage Projects</span>
   </router-link>
   <div v-if="!loading" class="text-sm mb-2">
-    <span class="text-brand-600">{{ subProject?.name }}</span>
+    <span class="text-primary-600">{{ subProject?.name }}</span>
   </div>
 </template>
 

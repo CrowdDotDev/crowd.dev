@@ -125,7 +125,7 @@ export default {
       }
 
       &.is-active {
-        @apply bg-brand-500 border-brand-500 text-white;
+        @apply bg-primary-500 border-primary-500 text-white;
       }
     }
   }

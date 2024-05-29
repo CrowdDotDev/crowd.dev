@@ -17,7 +17,7 @@
       </el-popover>
     </div>
     <div v-if="inProgress?.percentage" class="rounded-md h-1 bg-gray-200 mt-1.5">
-      <div class="rounded-md h-1 bg-brand-800" :style="{ width: `${inProgress?.percentage}%` }" />
+      <div class="rounded-md h-1 bg-primary-800" :style="{ width: `${inProgress?.percentage}%` }" />
     </div>
   </div>
   <div v-else class="flex justify-between items-center h-full">
