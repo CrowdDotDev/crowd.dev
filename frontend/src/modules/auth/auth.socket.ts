@@ -61,10 +61,10 @@ export const connectSocket = (token) => {
 
   socketIoClient.on(SocketEvents.integrationCompleted, (data) => {
     console.info('Integration onboarding done', data);
-    store.dispatch(
-      'integration/doFind',
-      JSON.parse(data).integrationId,
-    );
+    // store.dispatch(
+    //   'integration/doFind',
+    //   JSON.parse(data).integrationId,
+    // );
   });
 
   socketIoClient.on(SocketEvents.memberUnmerge, (data) => {
