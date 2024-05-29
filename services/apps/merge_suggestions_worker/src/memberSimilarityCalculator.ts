@@ -215,7 +215,8 @@ class MemberSimilarityCalculator {
     for (const memberRoles of member.nested_organizations) {
       if (
         similarMember.nested_organizations.some(
-          (o) => memberRoles.string_displayName === o.string_displayName,
+          (o) =>
+            memberRoles.string_displayName.toLowerCase() === o.string_displayName.toLowerCase(),
         )
       ) {
         return true
