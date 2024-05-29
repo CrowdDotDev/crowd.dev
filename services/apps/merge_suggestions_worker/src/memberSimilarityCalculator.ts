@@ -35,22 +35,6 @@ class MemberSimilarityCalculator {
       return this.decideMemberSimilarityUsingAdditionalChecks(primaryMember, similarMember)
     }
 
-    // We check if there are any verified<->unverified email matches between primary & similar members
-    if (
-      (similarMember.string_arr_unverifiedEmails &&
-        similarMember.string_arr_unverifiedEmails.length > 0 &&
-        similarMember.string_arr_unverifiedEmails.some((email) =>
-          primaryMember.string_arr_verifiedEmails.includes(email),
-        )) ||
-      (similarMember.string_arr_verifiedEmails &&
-        similarMember.string_arr_verifiedEmails.length > 0 &&
-        similarMember.string_arr_verifiedEmails.some((email) =>
-          primaryMember.string_arr_unverifiedEmails.includes(email),
-        ))
-    ) {
-      return 0.98
-    }
-
     // check primary unverified identity <-> secondary verified identity exact match
     for (const primaryIdentity of primaryMember.nested_identities.filter((i) => !i.bool_verified)) {
       if (
