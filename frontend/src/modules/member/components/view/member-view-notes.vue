@@ -1,10 +1,14 @@
 <template>
-  <div
-    class="w-full text-gray-400 pt-8 italic text-sm"
-  >
-    Connect integrations to add notes to contributors
+  <div v-if="hasPermission(LfPermission.noteCreate)" class="pt-8">
+    <app-note-editor
+      :properties="{ members: [props.member.id] }"
+      @created="fetchNotes()"
+    />
   </div>
-  <div v-if="notes.length > 0" class="pt-6">
+  <div v-else-if="!notes.length" class="w-full text-gray-400 pt-8 italic text-sm">
+    You don't have permissions to create notes.
+  </div>
+  <div class="pt-6">
     <app-note-item
       v-for="note of notes"
       :key="note.id"
@@ -26,6 +30,9 @@ import {
 import { NoteService } from '@/modules/notes/note-service';
 import AppNoteItem from '@/modules/notes/components/note-item.vue';
 import AppLoadMore from '@/shared/button/load-more.vue';
+import AppNoteEditor from '@/modules/notes/components/note-editor.vue';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 
 const props = defineProps({
   member: {
@@ -39,6 +46,8 @@ const notesCount = ref(0);
 const notesPage = ref(0);
 const notesLimit = 20;
 const loadingNotes = ref(false);
+
+const { hasPermission } = usePermissions();
 
 const fetchNotes = (page = 0) => {
   loadingNotes.value = true;

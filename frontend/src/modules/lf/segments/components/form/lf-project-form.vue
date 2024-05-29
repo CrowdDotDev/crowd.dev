@@ -121,6 +121,8 @@ import AppFormItem from '@/shared/form/form-item.vue';
 import statusOptions from '@/modules/lf/config/status';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { useRoute } from 'vue-router';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps({
@@ -139,6 +141,8 @@ const props = defineProps({
 });
 
 const route = useRoute();
+
+const { trackEvent } = useProductTracking();
 
 const lsSegmentsStore = useLfSegmentsStore();
 const {
@@ -215,12 +219,22 @@ const onSubmit = () => {
   submitLoading.value = true;
 
   if (isEditForm.value) {
+    trackEvent({
+      key: FeatureEventKey.EDIT_PROJECT,
+      type: EventType.FEATURE,
+    });
+
     updateProject(props.id, form)
       .finally(() => {
         submitLoading.value = false;
         model.value = false;
       });
   } else {
+    trackEvent({
+      key: FeatureEventKey.ADD_PROJECT,
+      type: EventType.FEATURE,
+    });
+
     createProject({
       ...form,
       segments: [route.params.id],

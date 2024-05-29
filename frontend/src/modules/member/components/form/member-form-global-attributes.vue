@@ -130,6 +130,8 @@ import parseCustomAttributes from '@/shared/fields/parse-custom-attributes';
 import { onSelectMouseLeave } from '@/utils/select';
 import { useMemberStore } from '@/modules/member/store/pinia';
 import { storeToRefs } from 'pinia';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps({
@@ -138,6 +140,8 @@ const props = defineProps({
     default: () => false,
   },
 });
+
+const { trackEvent } = useProductTracking();
 
 const store = useStore();
 const memberStore = useMemberStore();
@@ -185,6 +189,14 @@ async function onSubmit() {
         confirmButtonText: 'Confirm update',
       });
 
+      trackEvent({
+        key: FeatureEventKey.DELETE_GLOBAL_ATTRIBUTE,
+        type: EventType.FEATURE,
+        properties: {
+          data: deletedFields,
+        },
+      });
+
       const ids = deletedFields.map(
         (deletedField) => deletedField.id,
       );
@@ -201,6 +213,14 @@ async function onSubmit() {
 
   // Handle added fields
   if (addedFields.length) {
+    trackEvent({
+      key: FeatureEventKey.ADD_GLOBAL_ATTRIBUTE,
+      type: EventType.FEATURE,
+      properties: {
+        data: addedFields,
+      },
+    });
+
     addedFields.forEach(async ({ type, label }) => {
       try {
         await store.dispatch(
@@ -218,6 +238,14 @@ async function onSubmit() {
 
   // Handle edited fields
   if (editedFields.length) {
+    trackEvent({
+      key: FeatureEventKey.EDIT_GLOBAL_ATTRIBUTE,
+      type: EventType.FEATURE,
+      properties: {
+        data: editedFields,
+      },
+    });
+
     editedFields.forEach(async ({ id, label }) => {
       try {
         await store.dispatch(
