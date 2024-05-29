@@ -2,9 +2,9 @@
   <app-integration-progress-wrapper :segments="segmentIds">
     <template #default="{ progress, progressError }">
       <div v-if="progress?.length || progressError" class="border border-gray-200 rounded-lg overflow-hidden w-full" v-bind="$attrs">
-        <div class="pt-4 px-4 pb-6 bg-gradient-to-b from-brand-25 to-white flex items-center">
+        <div class="pt-4 px-4 pb-6 bg-gradient-to-b from-primary-25 to-white flex items-center">
           <div class="h-5 w-5 flex items-center justify-center mr-1">
-            <cr-spinner size="1rem" class="!border-brand-800" />
+            <cr-spinner size="1rem" class="!border-primary-800" />
           </div>
           <h6 class="text-base leading-5 font-semibold font-header">
             Connecting integrations...

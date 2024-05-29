@@ -40,7 +40,7 @@
                     <template #suffix>
                       <i
                         v-if="identity.value && identity.verified"
-                        class="ri-verified-badge-fill text-brand-500 text-base leading-4"
+                        class="ri-verified-badge-fill text-primary-500 text-base leading-4"
                       />
                     </template>
                   </el-input>

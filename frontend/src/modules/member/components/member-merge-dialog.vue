@@ -37,8 +37,8 @@
                   type="button"
                   @click="changeMember()"
                 >
-                  <span class="ri-refresh-line text-base text-brand-500 mr-2" />
-                  <span class="text-brand-500">Change contributor</span>
+                  <span class="ri-refresh-line text-base text-primary-500 mr-2" />
+                  <span class="text-primary-500">Change contributor</span>
                 </button>
               </template>
             </app-member-suggestions-details>

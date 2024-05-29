@@ -84,7 +84,7 @@
           />
         </div>
 
-        <div class="w-1/3 ml-8 rounded-lg bg-brand-25">
+        <div class="w-1/3 ml-8 rounded-lg bg-primary-25">
           <app-member-merge-suggestions-details
             :member="null"
             :loading="true"
@@ -114,7 +114,7 @@
           <app-organization-merge-suggestions-details
             :organization="preview"
             :is-preview="true"
-            class="rounded-lg bg-brand-25"
+            class="rounded-lg bg-primary-25"
           />
         </div>
       </div>

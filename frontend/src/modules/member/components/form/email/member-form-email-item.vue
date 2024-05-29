@@ -19,7 +19,7 @@
                   </el-tooltip>
                   <i
                     v-if="model.value && props.identity.verified"
-                    class="ri-verified-badge-fill text-brand-500 text-base leading-4"
+                    class="ri-verified-badge-fill text-primary-500 text-base leading-4"
                   />
                 </div>
               </div>

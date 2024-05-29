@@ -19,7 +19,7 @@
           </div>
         </div>
         <p
-          class="text-gray-900 text-xs hover:text-brand-500 transition leading-relaxed line-clamp-2 word-break"
+          class="text-gray-900 text-xs hover:text-primary-500 transition leading-relaxed line-clamp-2 word-break"
         >
           {{ activeOrganization.displayName || activeOrganization.name || '-' }}
         </p>

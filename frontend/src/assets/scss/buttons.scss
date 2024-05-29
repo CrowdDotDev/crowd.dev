@@ -38,7 +38,7 @@
     }
     &:focus {
       background: linear-gradient(180deg, #1E9FFD 0%, #0094FF 100%);
-      @apply outline outline-1 outline-brand-500 outline-offset-2 text-white;
+      @apply outline outline-1 outline-primary-500 outline-offset-2 text-white;
     }
     &:active {
       background: linear-gradient(180deg, #45b1ff 0%, #1E9FFD 100%);
@@ -46,27 +46,27 @@
     }
     &[disabled],
     &.disabled {
-      @apply cursor-not-allowed bg-brand-200 text-white;
+      @apply cursor-not-allowed bg-primary-200 text-white;
     }
   }
 
   &--secondary {
     background: linear-gradient(180deg, #FFF 0%, #E6E6E6 100%);
     border: 1px solid #E6E6E6;
-    @apply text-brand-500;
+    @apply text-primary-500;
 
     &:hover {
       border: 1px solid #E6E6E6;
-      @apply cursor-pointer bg-gray-100 text-brand-500 border-solid;
+      @apply cursor-pointer bg-gray-100 text-primary-500 border-solid;
     }
     &:focus {
       border: 1px solid #E6E6E6;
       background: linear-gradient(180deg, #FFF 0%, #E6E6E6 100%);
-      @apply text-brand-500  border-solid outline outline-offset-2 outline-1 outline-gray-300;
+      @apply text-primary-500  border-solid outline outline-offset-2 outline-1 outline-gray-300;
     }
     &:active {
       border: 1px solid #E6E6E6;
-      @apply bg-gray-200 text-brand-500 border-solid;
+      @apply bg-gray-200 text-primary-500 border-solid;
     }
     &[disabled],
     &:disabled {
@@ -98,15 +98,15 @@
 
     // Link buttons' variations
     &--primary {
-      @apply text-brand-500;
+      @apply text-primary-500;
 
       &:hover,
       &:active,
       &:focus {
-        @apply cursor-pointer text-brand-500 bg-transparent underline;
+        @apply cursor-pointer text-primary-500 bg-transparent underline;
       }
       &[disabled] {
-        @apply cursor-not-allowed text-brand-300 bg-transparent;
+        @apply cursor-not-allowed text-primary-300 bg-transparent;
       }
     }
 
@@ -116,7 +116,7 @@
       &:hover,
       &:active,
       &:focus {
-        @apply cursor-pointer text-brand-500 bg-transparent;
+        @apply cursor-pointer text-primary-500 bg-transparent;
       }
       &[disabled] {
         @apply cursor-not-allowed text-gray-400 bg-transparent;
@@ -129,7 +129,7 @@
       &:hover,
       &:active,
       &:focus {
-        @apply cursor-pointer text-brand-500 bg-transparent;
+        @apply cursor-pointer text-primary-500 bg-transparent;
       }
       &[disabled] {
         @apply cursor-not-allowed text-gray-200 bg-transparent;
@@ -138,19 +138,19 @@
   }
 
   &--link {
-    @apply bg-transparent border-0 p-0 rounded-none text-blue-500 shadow-none;
+    @apply bg-transparent border-0 p-0 rounded-none text-primary-500 shadow-none;
     &:hover,
     &:active,
     &:focus {
-      @apply bg-transparent text-blue-500 opacity-80;
+      @apply bg-transparent text-primary-500 opacity-80;
     }
   }
 
   &--text {
-    @apply bg-transparent border-0 shadow-none text-brand-500;
+    @apply bg-transparent border-0 shadow-none text-primary-500;
     &:hover,
     &:focus {
-      @apply text-brand-500;
+      @apply text-primary-500;
       background: #fdedea;
     }
   }

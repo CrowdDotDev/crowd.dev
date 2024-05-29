@@ -112,7 +112,7 @@
 
     // For multiple selection dropdowns
     .el-select-dropdown__item.selected::after {
-      @apply bg-brand-600;
+      @apply bg-primary-600;
     }
 
     & .el-select-dropdown__item {
@@ -127,7 +127,7 @@
       // Select dropdown item selected
       &.selected,
       &.selected.hover {
-        @apply font-medium bg-brand-50 text-gray-900;
+        @apply font-medium bg-primary-50 text-gray-900;
       }
 
       // Select dropdown item on hover

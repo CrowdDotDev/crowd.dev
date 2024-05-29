@@ -7,7 +7,7 @@
 
     <!-- Bar -->
     <div v-if="props.showBar && props.progress?.percentage" class="rounded-md h-1 bg-gray-200">
-      <div class="rounded-md h-1 bg-brand-800" :style="{ width: `${props.progress?.percentage}%` }" />
+      <div class="rounded-md h-1 bg-primary-800" :style="{ width: `${props.progress?.percentage}%` }" />
     </div>
 
     <!-- Details -->

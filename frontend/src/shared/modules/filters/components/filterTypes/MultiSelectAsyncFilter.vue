@@ -172,7 +172,7 @@ export default {
     @apply px-3 #{!important};
 
     &.selected{
-      @apply bg-brand-25 font-normal px-3 #{!important};
+      @apply bg-primary-25 font-normal px-3 #{!important};
     }
 
     &:after{

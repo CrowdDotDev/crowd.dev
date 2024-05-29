@@ -98,7 +98,7 @@
             <div class="grid gap-x-12 grid-cols-4">
               <div>
                 <h6>
-                  Identities <span class="text-brand-500">*</span>
+                  Identities <span class="text-primary-500">*</span>
                 </h6>
                 <p class="text-gray-500 text-2xs leading-normal mt-1">
                   Connect with contributors' external data sources or

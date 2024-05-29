@@ -2,7 +2,7 @@
   <app-page-wrapper size="full-width">
     <div class="member-list-page">
       <div class="mb-10">
-        <app-lf-page-header text-class="text-sm text-brand-600 mb-2.5" />
+        <app-lf-page-header text-class="text-sm text-primary-600 mb-2.5" />
         <div class="flex items-center justify-between">
           <h4>Contributors</h4>
           <div class="flex items-center">
@@ -22,7 +22,7 @@
                 <span class="text-gray-900">Merge suggestions</span>
                 <span
                   v-if="membersToMergeCount > 0"
-                  class="ml-2 bg-brand-100 text-brand-500 py-px px-1.5 leading-5 rounded-full font-semibold"
+                  class="ml-2 bg-primary-100 text-primary-500 py-px px-1.5 leading-5 rounded-full font-semibold"
                 >{{ Math.ceil(membersToMergeCount) }}</span>
               </button>
             </router-link>

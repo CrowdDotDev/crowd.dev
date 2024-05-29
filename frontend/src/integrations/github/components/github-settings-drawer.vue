@@ -39,7 +39,7 @@
               <h6 class="text-sm font-medium leading-5 mb-2">
                 Repository mapping
               </h6>
-              <div class="flex items-center text-brand-500 cursor-pointer select-none" @click="isBulkSelectOpened = true">
+              <div class="flex items-center text-primary-500 cursor-pointer select-none" @click="isBulkSelectOpened = true">
                 <i class="ri-checkbox-multiple-line text-base mr-1" />
                 <span class="text-xs font-normal">
                   Bulk selection

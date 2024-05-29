@@ -39,7 +39,7 @@
               <template #header>
                 <div class="h-13 flex justify-between items-start">
                   <div
-                    class="bg-brand-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
+                    class="bg-primary-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
                   >
                     Current contributor
                   </div>
@@ -76,7 +76,7 @@
               <template #header>
                 <div class="h-13 flex justify-between items-start">
                   <div
-                    class="bg-brand-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
+                    class="bg-primary-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
                   >
                     Updated contributor
                   </div>
@@ -139,7 +139,7 @@
                         trigger="click"
                       >
                         <button
-                          class="btn btn--link !text-brand-500"
+                          class="btn btn--link !text-primary-500"
                           type="button"
                           @click.stop
                         >

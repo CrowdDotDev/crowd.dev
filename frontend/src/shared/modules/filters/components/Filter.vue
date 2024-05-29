@@ -22,7 +22,7 @@
       />
       <el-button
         v-if="isDeveloperModeActive && developerModeEnabled()"
-        class="btn btn-brand--secondary !bg-purple-100 !text-purple-600 ml-2"
+        class="btn btn-primary--secondary !bg-purple-100 !text-purple-600 ml-2"
         @click="copyToClipboard"
       >
         <i class="ri-clipboard-line" />

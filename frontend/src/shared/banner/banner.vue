@@ -40,7 +40,7 @@ export default {
   }
 
   &--info {
-    @apply border-blue-100 bg-blue-100 text-black;
+    @apply border-primary-100 bg-primary-100 text-black;
   }
 
   &-icon {
