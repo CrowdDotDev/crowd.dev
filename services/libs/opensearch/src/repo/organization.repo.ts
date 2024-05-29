@@ -270,7 +270,13 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     return results.map((r) => r.id)
   }
 
-  public async getTenantOrganizationsForSync(tenantId: string, perPage: number): Promise<string[]> {
+  public async getTenantOrganizationsForSync(
+    tenantId: string,
+    perPage: number,
+    previousBatchIds: string[],
+  ): Promise<string[]> {
+    const notInClause =
+      previousBatchIds.length > 0 ? `o.id NOT IN ($(previousBatchIds:csv)) and` : ''
     const results = await this.db().any(
       `
       select o.id
@@ -278,11 +284,13 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
       left join indexed_entities ie on o.id = ie.entity_id and ie.type = $(type)
       where o."tenantId" = $(tenantId) and
             o."deletedAt" is null and
+            ${notInClause}
             ie.entity_id is null
       limit ${perPage}`,
       {
         tenantId,
         type: IndexedEntityType.ORGANIZATION,
+        previousBatchIds,
       },
     )
 

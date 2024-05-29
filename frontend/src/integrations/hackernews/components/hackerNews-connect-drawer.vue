@@ -123,6 +123,9 @@
 import { mapActions } from 'vuex';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import isUrl from '@/utils/isUrl';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import { Platform } from '@/shared/modules/platform/types/Platform';
 
 export default {
   name: 'AppHackerNewsConnectDrawer',
@@ -283,6 +286,16 @@ export default {
       await this.doHackerNewsConnect({
         urls: relevantUrls.map((u) => u.url),
         keywords: relevantKeywords,
+      });
+
+      const { trackEvent } = useProductTracking();
+
+      const isUpdate = !!this.integration.settings;
+
+      trackEvent({
+        key: isUpdate ? FeatureEventKey.EDIT_INTEGRATION_SETTINGS : FeatureEventKey.CONNECT_INTEGRATION,
+        type: EventType.FEATURE,
+        properties: { platform: Platform.HACKER_NEWS },
       });
 
       this.isVisible = false;

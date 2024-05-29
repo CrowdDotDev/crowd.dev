@@ -222,6 +222,8 @@ import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import formChangeDetector from '@/shared/form/form-change';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 
 const props = defineProps<{
   modelValue: boolean,
@@ -297,6 +299,8 @@ const rules = {
     required,
   },
 };
+
+const { trackEvent } = useProductTracking();
 
 const $v = useVuelidate(rules, form);
 const { hasFormChanged, formSnapshot } = formChangeDetector(form);
@@ -408,6 +412,11 @@ const submit = (): void => {
     visibility: form.shared ? 'tenant' : 'user',
   };
   if (isEdit.value) {
+    trackEvent({
+      key: FeatureEventKey.EDIT_CUSTOM_VIEW,
+      type: EventType.FEATURE,
+    });
+
     (form.shared ? ConfirmDialog({
       type: 'danger',
       title: 'Update shared view',
@@ -443,6 +452,18 @@ const submit = (): void => {
           });
       });
   } else {
+    if (isDuplicate.value) {
+      trackEvent({
+        key: FeatureEventKey.DUPLICATE_CUSTOM_VIEW,
+        type: EventType.FEATURE,
+      });
+    } else {
+      trackEvent({
+        key: FeatureEventKey.ADD_CUSTOM_VIEW,
+        type: EventType.FEATURE,
+      });
+    }
+
     SavedViewsService.create(data)
       .then(() => {
         if (isDuplicate.value) {

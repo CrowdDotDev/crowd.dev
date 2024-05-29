@@ -36,7 +36,7 @@
             <cr-table-head colspan="2">
               Contributors
             </cr-table-head>
-            <cr-table-head v-model="sorting" property="similarity" @update:model-value="loadMergeSuggestions">
+            <cr-table-head v-model="sorting" property="similarity" @update:model-value="() => loadMergeSuggestions(true)">
               Confidence level
             </cr-table-head>
           </tr>
@@ -171,6 +171,8 @@ import Message from '@/shared/message/message';
 import CrSpinner from '@/ui-kit/spinner/Spinner.vue';
 import AppMergeSuggestionsFilters from '@/modules/member/components/suggestions/merge-suggestions-filters.vue';
 import CrTableHead from '@/ui-kit/table/TableHead.vue';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 
 const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
 
@@ -187,7 +189,19 @@ const totalCount = ref<number>(0);
 
 const filter = ref<any>(undefined);
 
-const loadMergeSuggestions = () => {
+const { trackEvent } = useProductTracking();
+
+const loadMergeSuggestions = (sort: boolean = false) => {
+  if (sort) {
+    trackEvent({
+      key: FeatureEventKey.SORT_CONTRIBUTORS_MERGE_SUGGESTIONS,
+      type: EventType.FEATURE,
+      properties: {
+        orderBy: [sorting.value, 'activityCount_DESC'],
+      },
+    });
+  }
+
   loading.value = true;
   MemberService.fetchMergeSuggestions(limit.value, (page.value - 1) * limit.value, {
     filter: filter.value,
@@ -220,6 +234,14 @@ const getTotalCount = () => {
 const detailsOffset = ref<number>(0);
 
 const openDetails = (index: number) => {
+  trackEvent({
+    key: FeatureEventKey.VIEW_CONTRIBUTOR_MERGE_SUGGESTION,
+    type: EventType.FEATURE,
+    properties: {
+      similarity: mergeSuggestions.value[index].similarity,
+    },
+  });
+
   detailsOffset.value = index;
   isModalOpen.value = true;
 };
@@ -247,6 +269,15 @@ const merge = (suggestion: any) => {
   if (sending.value.length) {
     return;
   }
+
+  trackEvent({
+    key: FeatureEventKey.MERGE_CONTRIBUTOR_MERGE_SUGGESTION,
+    type: EventType.FEATURE,
+    properties: {
+      similarity: suggestion.similarity,
+    },
+  });
+
   const primaryMember = suggestion.members[0];
   const secondaryMember = suggestion.members[1];
   sending.value = `${primaryMember.id}:${secondaryMember.id}`;
@@ -273,6 +304,15 @@ const ignore = (suggestion: any) => {
   if (sending.value.length) {
     return;
   }
+
+  trackEvent({
+    key: FeatureEventKey.IGNORE_CONTRIBUTOR_MERGE_SUGGESTION,
+    type: EventType.FEATURE,
+    properties: {
+      similarity: suggestion.similarity,
+    },
+  });
+
   const primaryMember = suggestion.members[0];
   const secondaryMember = suggestion.members[1];
   sending.value = `${primaryMember.id}:${secondaryMember.id}`;

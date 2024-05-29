@@ -14,9 +14,11 @@ import * as http from 'http'
 import { getTemporalClient, Client as TemporalClient } from '@crowd/temporal'
 import { QueryTypes, Sequelize } from 'sequelize'
 import { telemetryExpressMiddleware } from '@crowd/telemetry'
+import { getDbConnection } from '@crowd/data-access-layer/src/database'
 import {
   API_CONFIG,
   OPENSEARCH_CONFIG,
+  PRODUCT_DB_CONFIG,
   REDIS_CONFIG,
   TEMPORAL_CONFIG,
   UNLEASH_CONFIG,
@@ -36,6 +38,7 @@ import { createRateLimiter } from './apiRateLimiter'
 import authSocial from './auth/authSocial'
 import WebSockets from './websockets'
 import { databaseInit } from '@/database/databaseConnection'
+import { productDatabaseMiddleware } from '@/middlewares/productDbMiddleware'
 
 const serviceLogger = getServiceLogger()
 getServiceTracer()
@@ -48,6 +51,8 @@ setImmediate(async () => {
   const redis = await getRedisClient(REDIS_CONFIG, true)
 
   const opensearch = getOpensearchClient(OPENSEARCH_CONFIG)
+
+  const productDbClient = await getDbConnection(PRODUCT_DB_CONFIG)
 
   const redisPubSubPair = await getRedisPubSubPair(REDIS_CONFIG)
   const userNamespace = await WebSockets.initialize(server)
@@ -103,6 +108,9 @@ setImmediate(async () => {
 
   // Initializes and adds the database middleware.
   app.use(databaseMiddleware)
+
+  // Bind product db
+  app.use(productDatabaseMiddleware(productDbClient))
 
   // Bind redis to request
   app.use(redisMiddleware(redis))
@@ -222,6 +230,7 @@ setImmediate(async () => {
   require('./customViews').default(routes)
   require('./dashboard').default(routes)
   require('./premium/enrichment').default(routes)
+  require('./product').default(routes)
   // Loads the Tenant if the :tenantId param is passed
   routes.param('tenantId', tenantMiddleware)
   routes.param('tenantId', segmentMiddleware)

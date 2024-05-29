@@ -84,6 +84,8 @@ import moment from 'moment';
 import CrButton from '@/ui-kit/button/Button.vue';
 import AppIntegrationStatus from '@/modules/integration/components/integration-status.vue';
 import AppIntegrationProgressBar from '@/modules/integration/components/integration-progress-bar.vue';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 
 const store = useStore();
 const props = defineProps({
@@ -100,6 +102,8 @@ const props = defineProps({
     default: false,
   },
 });
+
+const { trackEvent } = useProductTracking();
 
 onMounted(() => {
   moment.updateLocale('en', {
@@ -138,6 +142,14 @@ const lastSynced = computed(() => ({
 const loadingDisconnect = ref(false);
 
 const handleDisconnect = async () => {
+  trackEvent({
+    key: FeatureEventKey.DISCONNECT_INTEGRATION,
+    type: EventType.FEATURE,
+    properties: {
+      platform: props.integration.platform,
+    },
+  });
+
   loadingDisconnect.value = true;
   await store.dispatch('integration/doDestroy', props.integration.id);
   loadingDisconnect.value = false;

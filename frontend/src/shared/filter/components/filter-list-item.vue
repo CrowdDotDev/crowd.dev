@@ -106,8 +106,8 @@ import {
 } from 'vue';
 import isEqual from 'lodash/isEqual';
 import { formatDate } from '@/utils/date';
-import filterOperators from '../helpers/operators';
 import { attributesAreDifferent } from '../helpers/different-util';
+import filterOperators from '../helpers/operators';
 
 const props = defineProps({
   filter: {

@@ -253,6 +253,8 @@ import AppMemberOrganizationList from '@/modules/member/components/suggestions/m
 import { mapActions } from '@/shared/vuex/vuex.helpers';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import AppMemberSuggestionsDetails from './suggestions/member-merge-suggestions-details.vue';
 
 const props = defineProps({
@@ -268,6 +270,8 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['update:modelValue']);
+
+const { trackEvent } = useProductTracking();
 
 const { doFind } = mapActions('member');
 
@@ -320,6 +324,14 @@ const unmerge = () => {
   if (unmerging.value) {
     return;
   }
+
+  trackEvent({
+    key: FeatureEventKey.UNMERGE_CONTRIBUTOR_IDENTITY,
+    type: EventType.FEATURE,
+    properties: {
+      identity: selectedIdentity.value,
+    },
+  });
 
   unmerging.value = true;
 

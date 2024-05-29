@@ -195,6 +195,8 @@ import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { Member } from '../types/Member';
 
 enum Actions {
@@ -220,6 +222,8 @@ const props = defineProps<{
 const route = useRoute();
 
 const { doFind } = mapActions('member');
+
+const { trackEvent } = useProductTracking();
 
 const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
 
@@ -305,6 +309,14 @@ const handleCommand = async (command: {
       cancelButtonText: 'Cancel',
       icon: 'ri-delete-bin-line',
     }).then(() => {
+      trackEvent({
+        key: FeatureEventKey.DELETE_CONTRIBUTOR,
+        type: EventType.FEATURE,
+        properties: {
+          path: route.path,
+        },
+      });
+
       doManualAction({
         loadingMessage: 'Contributor is being deleted',
         successMessage: 'Contributor successfully deleted',
@@ -352,6 +364,14 @@ const handleCommand = async (command: {
 
   // Mark as team contact
   if (command.action === Actions.MARK_CONTACT_AS_TEAM_CONTACT) {
+    trackEvent({
+      key: FeatureEventKey.MARK_AS_TEAM_CONTRIBUTOR,
+      type: EventType.FEATURE,
+      properties: {
+        path: route.path,
+      },
+    });
+
     doManualAction({
       loadingMessage: 'Contributor is being updated',
       successMessage: 'Contributor updated successfully',
@@ -383,6 +403,14 @@ const handleCommand = async (command: {
     command.action === Actions.MARK_CONTACT_AS_BOT
     || command.action === Actions.UNMARK_CONTACT_AS_BOT
   ) {
+    trackEvent({
+      key: FeatureEventKey.MARK_AS_BOT,
+      type: EventType.FEATURE,
+      properties: {
+        path: route.path,
+      },
+    });
+
     doManualAction({
       loadingMessage: 'Contributor is being updated',
       successMessage: 'Contributor updated successfully',
@@ -426,6 +454,11 @@ const handleCommand = async (command: {
   }
 
   if (command.action === Actions.FIND_GITHUB) {
+    trackEvent({
+      key: FeatureEventKey.FIND_IDENTITY,
+      type: EventType.FEATURE,
+    });
+
     emit('closeDropdown');
     emit('findGithub');
 
