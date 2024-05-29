@@ -40,7 +40,7 @@
       v-if="selectedProjectGroup"
       class="border-l border-gray-200 overflow-auto px-5 py-6 h-screen min-w-[15rem] max-w-[20rem]"
     >
-      <cr-dashboard-integrations class="mb-8" />
+      <lf-dashboard-integrations class="mb-8" />
       <app-dashboard-project-group />
     </aside>
   </div>
@@ -59,7 +59,7 @@ import AppDashboardProjectGroup from '@/modules/dashboard/components/dashboard-p
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
-import CrDashboardIntegrations from '@/modules/dashboard/components/dashboard-integrations.vue';
+import LfDashboardIntegrations from '@/modules/dashboard/components/dashboard-integrations.vue';
 
 const authStore = useAuthStore();
 const { tenant } = storeToRefs(authStore);

@@ -13,6 +13,6 @@ const props = withDefaults(defineProps<{
 
 <script lang="ts">
 export default {
-  name: 'CrSpinner',
+  name: 'LfSpinner',
 };
 </script>

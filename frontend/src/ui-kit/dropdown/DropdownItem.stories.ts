@@ -1,9 +1,9 @@
 import { dropdownItemTypes } from '@/ui-kit/dropdown/types/DropdownItemType';
-import CrDropdownItem from './DropdownItem.vue';
+import LfDropdownItem from './DropdownItem.vue';
 
 export default {
   title: 'Crowd.dev/DropdownItem',
-  component: CrDropdownItem,
+  component: LfDropdownItem,
   tags: ['autodocs'],
   argTypes: {
     type: {
@@ -27,15 +27,15 @@ export const Regular = {
   },
   render: (args) => ({
     components: {
-      CrDropdownItem,
+      LfDropdownItem,
     },
     setup() {
       return { args };
     },
     template: `<div class="c-dropdown__menu is-open">
-      <cr-dropdown-item :disabled="args.disabled" :type="args.type">
+      <lf-dropdown-item :disabled="args.disabled" :type="args.type">
         <i class="ri-link-unlink" />
         Dropdown item
-      </cr-dropdown-item></div>`,
+      </lf-dropdown-item></div>`,
   }),
 };

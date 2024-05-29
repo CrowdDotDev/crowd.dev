@@ -73,6 +73,6 @@ const changeValue = debounce((search: string) => {
 
 <script lang="ts">
 export default {
-  name: 'CrFilterSearch',
+  name: 'LfFilterSearch',
 };
 </script>

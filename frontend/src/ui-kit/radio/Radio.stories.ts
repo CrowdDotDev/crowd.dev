@@ -1,10 +1,10 @@
 import { radioSizes } from '@/ui-kit/radio/types/RadioSize';
 import { reactive } from 'vue';
-import CrRadio from './Radio.vue';
+import LfRadio from './Radio.vue';
 
 export default {
   title: 'Crowd.dev/Radio',
-  component: CrRadio,
+  component: LfRadio,
   tags: ['autodocs'],
   argTypes: {
     // Props
@@ -78,15 +78,15 @@ export const Multiple = {
       return { args, form };
     },
     template: `<div>
-      <cr-radio v-model="form.type" value="primary" class="mb-2" :size="args.size" :disabled="args.disabled">
+      <lf-radio v-model="form.type" value="primary" class="mb-2" :size="args.size" :disabled="args.disabled">
         Primary<p>This is primary description</p>
-      </cr-radio>
-      <cr-radio v-model="form.type" value="secondary" class="mb-2" :size="args.size" :disabled="args.disabled">
+      </lf-radio>
+      <lf-radio v-model="form.type" value="secondary" class="mb-2" :size="args.size" :disabled="args.disabled">
         Secondary<p>This is secondary description</p>
-      </cr-radio>
-      <cr-radio v-model="form.type" value="tertiary" :size="args.size" :disabled="args.disabled">
+      </lf-radio>
+      <lf-radio v-model="form.type" value="tertiary" :size="args.size" :disabled="args.disabled">
         Tertiary<p>This is tertiary description</p>
-      </cr-radio>
+      </lf-radio>
     </div>`,
   }),
 };

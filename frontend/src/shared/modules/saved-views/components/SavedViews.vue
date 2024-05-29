@@ -92,7 +92,7 @@
             <i class="ri-list-settings-line text-lg text-gray-400 h-5 flex items-center" />
           </el-button>
         </template>
-        <cr-saved-views-management
+        <lf-saved-views-management
           v-model:views="views"
           :config="props.config"
           @edit="edit($event)"
@@ -102,7 +102,7 @@
       </el-popover>
     </div>
   </div>
-  <cr-saved-views-form
+  <lf-saved-views-form
     v-model="isFormOpen"
     :config="props.config"
     :filters="props.filters"
@@ -122,9 +122,9 @@ import {
 import { Filter, FilterConfig } from '@/shared/modules/filters/types/FilterConfig';
 import { SavedView, SavedViewsConfig } from '@/shared/modules/saved-views/types/SavedViewsConfig';
 import { isEqual } from 'lodash';
-import CrSavedViewsForm from '@/shared/modules/saved-views/components/forms/SavedViewForm.vue';
+import LfSavedViewsForm from '@/shared/modules/saved-views/components/forms/SavedViewForm.vue';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
-import CrSavedViewsManagement from '@/shared/modules/saved-views/components/SavedViewManagement.vue';
+import LfSavedViewsManagement from '@/shared/modules/saved-views/components/SavedViewManagement.vue';
 import { SavedViewsService } from '@/shared/modules/saved-views/services/saved-views.service';
 import Message from '@/shared/message/message';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
@@ -314,7 +314,7 @@ onUnmounted(() => {
 
 <script lang="ts">
 export default {
-  name: 'CrSavedViews',
+  name: 'LfSavedViews',
 };
 </script>
 

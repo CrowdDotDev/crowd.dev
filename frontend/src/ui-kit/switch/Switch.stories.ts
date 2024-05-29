@@ -1,9 +1,9 @@
 import { switchSizes } from '@/ui-kit/switch/types/SwitchSize';
-import CrSwitch from './Switch.vue';
+import LfSwitch from './Switch.vue';
 
 export default {
   title: 'Crowd.dev/Switch',
-  component: CrSwitch,
+  component: LfSwitch,
   tags: ['autodocs'],
   argTypes: {
     // Props

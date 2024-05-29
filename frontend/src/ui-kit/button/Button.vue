@@ -42,6 +42,6 @@ const props = withDefaults(defineProps<{
 
 <script lang="ts">
 export default {
-  name: 'CrButton',
+  name: 'LfButton',
 };
 </script>

@@ -37,6 +37,6 @@ const iconClass = computed(() => {
 
 <script lang="ts">
 export default {
-  name: 'CrFieldMessage',
+  name: 'LfFieldMessage',
 };
 </script>

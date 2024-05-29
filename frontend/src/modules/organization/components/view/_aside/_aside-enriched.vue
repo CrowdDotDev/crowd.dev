@@ -8,7 +8,7 @@
         'py-3 border-b border-gray-200': organization[attribute.name],
       }"
     >
-      <cr-enrichment-sneak-peak v-if="!isEnrichmentEnabled" type="contact">
+      <lf-enrichment-sneak-peak v-if="!isEnrichmentEnabled" type="contact">
         <div>
           <div class="flex items-center">
             <div
@@ -25,7 +25,7 @@
             </div>
           </div>
         </div>
-      </cr-enrichment-sneak-peak>
+      </lf-enrichment-sneak-peak>
       <div v-else-if="organization[attribute.name]">
         <div class="flex items-center">
           <div
@@ -63,7 +63,7 @@
         </div>
       </div>
     </div>
-    <cr-enrichment-sneak-peak-content type="organization" :dark="true" class="mt-10 -mx-2" />
+    <lf-enrichment-sneak-peak-content type="organization" :dark="true" class="mt-10 -mx-2" />
   </div>
 </template>
 
@@ -72,8 +72,8 @@ import { computed, defineProps } from 'vue';
 import enrichmentAttributes from '@/modules/organization/config/enrichment';
 import { AttributeType } from '@/modules/organization/types/Attributes';
 import AppSvg from '@/shared/svg/svg.vue';
-import CrEnrichmentSneakPeak from '@/shared/modules/enrichment/components/enrichment-sneak-peak.vue';
-import CrEnrichmentSneakPeakContent from '@/shared/modules/enrichment/components/enrichment-sneak-peak-content.vue';
+import LfEnrichmentSneakPeak from '@/shared/modules/enrichment/components/enrichment-sneak-peak.vue';
+import LfEnrichmentSneakPeakContent from '@/shared/modules/enrichment/components/enrichment-sneak-peak-content.vue';
 import Plans from '@/security/plans';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';

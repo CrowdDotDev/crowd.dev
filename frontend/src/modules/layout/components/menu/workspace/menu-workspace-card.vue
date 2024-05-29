@@ -56,6 +56,6 @@ const getPlan = (plan: string) => {
 
 <script lang="ts">
 export default {
-  name: 'CrMenuWorkspaceCard',
+  name: 'LfMenuWorkspaceCard',
 };
 </script>

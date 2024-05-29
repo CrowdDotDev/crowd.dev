@@ -36,6 +36,6 @@ const handleClick = (event: MouseEvent) => {
 
 <script lang="ts">
 export default {
-  name: 'CrDropdownItem',
+  name: 'LfDropdownItem',
 };
 </script>

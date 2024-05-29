@@ -78,7 +78,7 @@ onMounted(() => {
 
 <script lang="ts">
 export default {
-  name: 'CrMultiSelectTagsFilter',
+  name: 'LfMultiSelectTagsFilter',
 };
 </script>
 

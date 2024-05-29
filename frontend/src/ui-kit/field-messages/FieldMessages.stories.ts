@@ -1,13 +1,13 @@
-import CrField from '@/ui-kit/field/Field.vue';
-import CrInput from '@/ui-kit/input/Input.vue';
+import LfField from '@/ui-kit/field/Field.vue';
+import LfInput from '@/ui-kit/input/Input.vue';
 import { reactive } from 'vue';
 import { email, required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
-import CrFieldMessages from './FieldMessages.vue';
+import LfFieldMessages from './FieldMessages.vue';
 
 export default {
   title: 'Crowd.dev/FieldMessages',
-  component: CrFieldMessages,
+  component: LfFieldMessages,
   tags: ['autodocs'],
   argTypes: {
     // Props
@@ -39,7 +39,7 @@ export const Regular = {
     errorMessages: { required: 'This field is required', email: 'Invalid email' },
   },
   render: (args: any) => ({
-    components: { CrField, CrInput, CrFieldMessages },
+    components: { LfField, LfInput, LfFieldMessages },
     setup() {
       const form = reactive({
         email: '',
@@ -56,20 +56,20 @@ export const Regular = {
 
       return { args, form, v };
     },
-    template: `<cr-field
+    template: `<lf-field
         label-text="Email"
         :required="true"
     >
-      <cr-input
+      <lf-input
           v-model="form.email"
           placeholder="Email address"
           :invalid="v.email.$invalid && v.email.$dirty"
           @blur="v.email.$touch()"
       />
-      <cr-field-messages
+      <lf-field-messages
           :validation="v.email"
           :error-messages="args.errorMessages"
       />
-    </cr-field>`,
+    </lf-field>`,
   }),
 };

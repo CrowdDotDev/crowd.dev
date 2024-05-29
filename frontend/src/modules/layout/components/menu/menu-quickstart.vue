@@ -67,6 +67,6 @@ onMounted(() => {
 
 <script lang="ts">
 export default {
-  name: 'CrMenuQuickstart',
+  name: 'LfMenuQuickstart',
 };
 </script>

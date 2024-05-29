@@ -44,7 +44,7 @@
         </div>
       </div>
 
-      <cr-saved-views
+      <lf-saved-views
         v-model="filters"
         :config="memberSavedViews"
         :filters="memberFilters"
@@ -53,7 +53,7 @@
         placement="member"
         @update:model-value="memberFilter.alignFilterList($event)"
       />
-      <cr-filter
+      <lf-filter
         v-if="customAttributesFilter"
         ref="memberFilter"
         v-model="filters"
@@ -87,7 +87,7 @@
 import AppLfPageHeader from '@/modules/lf/layout/components/lf-page-header.vue';
 import AppLfSubProjectsListModal from '@/modules/lf/segments/components/lf-sub-projects-list-modal.vue';
 import AppPageWrapper from '@/shared/layout/page-wrapper.vue';
-import CrFilter from '@/shared/modules/filters/components/Filter.vue';
+import LfFilter from '@/shared/modules/filters/components/Filter.vue';
 import { useMemberStore } from '@/modules/member/store/pinia';
 import { storeToRefs } from 'pinia';
 import {
@@ -96,7 +96,7 @@ import {
 import { MemberService } from '@/modules/member/member-service';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { FilterQuery } from '@/shared/modules/filters/types/FilterQuery';
-import CrSavedViews from '@/shared/modules/saved-views/components/SavedViews.vue';
+import LfSavedViews from '@/shared/modules/saved-views/components/SavedViews.vue';
 import AppMemberListTable from '@/modules/member/components/list/member-list-table.vue';
 import { useRouter } from 'vue-router';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
@@ -122,7 +122,7 @@ const { listByPlatform } = mapGetters('integration');
 
 const { hasPermission } = usePermissions();
 
-const memberFilter = ref<CrFilter | null>(null);
+const memberFilter = ref<LfFilter | null>(null);
 
 const hasIntegrations = computed(() => !!Object.keys(listByPlatform.value || {}).length);
 

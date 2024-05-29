@@ -15,9 +15,9 @@
           @reload="emit('reload')"
         >
           <template #actions>
-            <cr-button type="tertiary-light-gray" :icon-only="true" @click="isModalOpen = false">
+            <lf-button type="tertiary-light-gray" :icon-only="true" @click="isModalOpen = false">
               <i class="ri-close-line" />
-            </cr-button>
+            </lf-button>
           </template>
         </app-member-merge-suggestions>
       </div>
@@ -29,7 +29,7 @@
 import { computed } from 'vue';
 import AppMemberMergeSuggestions from '@/modules/member/components/member-merge-suggestions.vue';
 import AppDialog from '@/shared/dialog/dialog.vue';
-import CrButton from '@/ui-kit/button/Button.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 const props = withDefaults(defineProps<{
   modelValue: boolean,

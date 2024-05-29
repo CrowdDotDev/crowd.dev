@@ -44,7 +44,7 @@
                       />
                     </template>
                   </el-input>
-                  <cr-button
+                  <lf-button
                     :id="`identityRef-${ii}`"
                     :ref="(el) => setActionBtnsRef(el, ii)"
                     type="tertiary-light-gray"
@@ -57,7 +57,7 @@
                       :id="`identityRefIcon-${ii}`"
                       class="ri-more-fill"
                     />
-                  </cr-button>
+                  </lf-button>
                 </article>
               </template>
             </template>
@@ -165,7 +165,7 @@ import {
 } from 'vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppSvg from '@/shared/svg/svg.vue';
-import CrButton from '@/ui-kit/button/Button.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 import { ClickOutside as vClickOutside } from 'element-plus';
 
 const emit = defineEmits(['update:modelValue', 'unmerge']);

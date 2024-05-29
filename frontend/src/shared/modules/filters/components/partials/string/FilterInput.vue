@@ -40,7 +40,7 @@ const model = computed<string | number>({
 
 <script lang="ts">
 export default {
-  name: 'CrFilterInput',
+  name: 'LfFilterInput',
 };
 </script>
 
