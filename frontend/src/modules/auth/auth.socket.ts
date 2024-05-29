@@ -1,7 +1,6 @@
 import io from 'socket.io-client';
 import pluralize from 'pluralize';
 import config from '@/config';
-import { store } from '@/store';
 import Message from '@/shared/message/message';
 import {
   showEnrichmentSuccessMessage,

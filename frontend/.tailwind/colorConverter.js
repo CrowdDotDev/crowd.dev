@@ -1,7 +1,6 @@
 const fs = require('fs');
 const path = require('path');
 
-const colorUtilities = path.resolve(__dirname + '/' + '../config/styles/utilities/_colors.scss')
 const colorVariables = path.resolve(__dirname + '/' + '../config/styles/variables/_colors.scss')
 
 function extractRootVariables(file) {
@@ -22,17 +21,8 @@ function extractRootVariables(file) {
 
 function getThemeReplacementsValues() {
   const colorValues = extractRootVariables(colorVariables);
-  const colorMappings = extractRootVariables(colorUtilities);
 
   const colorHexes = {...colorValues}; // Clone the first object
-  for (const key in colorMappings) {
-    if (colorMappings.hasOwnProperty(key)) {
-      const varName = colorMappings[key].match(/\(([^)]+)\)/)[1]; // Extract the variable name
-      if (varName && colorHexes[varName]) {
-        colorHexes[key] = colorHexes[varName]; // Replace var(--variable) with actual value
-      }
-    }
-  }
   return Object.keys(colorHexes)
     .reduce((map, key) => {
       return {
