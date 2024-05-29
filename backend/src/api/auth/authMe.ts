@@ -38,7 +38,5 @@ export default async (req, res) => {
     }),
   )
 
-  req.log.info('Request headers', req.headers)
-
   await req.responseHandler.success(req, res, payload)
 }
