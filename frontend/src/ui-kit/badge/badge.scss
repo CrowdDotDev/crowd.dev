@@ -1,41 +1,41 @@
 .c-badge {
-  background: var(--cr-badge-background);
-  border: rem(1) solid var(--cr-badge-border);
-  color: var(--cr-badge-text);
+  background: var(--lf-badge-background);
+  border: rem(1) solid var(--lf-badge-border);
+  color: var(--lf-badge-text);
 
-  font-size: var(--cr-badge-font-size);
-  height: var(--cr-badge-height);
-  line-height: calc(var(--cr-badge-height) - rem(2));
+  font-size: var(--lf-badge-font-size);
+  height: var(--lf-badge-height);
+  line-height: calc(var(--lf-badge-height) - rem(2));
 
   @apply px-2 rounded-md inline-block font-medium;
 
   /* Badge types */
   &--default{
-    --cr-badge-background: var(--cr-badge-default-background);
-    --cr-badge-border: var(--cr-badge-default-border);
-    --cr-badge-text: var(--cr-badge-default-text);
+    --lf-badge-background: var(--lf-badge-default-background);
+    --lf-badge-border: var(--lf-badge-default-border);
+    --lf-badge-text: var(--lf-badge-default-text);
   }
 
   &--white{
-    --cr-badge-background: var(--cr-badge-white-background);
-    --cr-badge-border: var(--cr-badge-white-border);
-    --cr-badge-text: var(--cr-badge-white-text);
+    --lf-badge-background: var(--lf-badge-white-background);
+    --lf-badge-border: var(--lf-badge-white-border);
+    --lf-badge-text: var(--lf-badge-white-text);
   }
 
   &--primary{
-    --cr-badge-background: var(--cr-badge-primary-background);
-    --cr-badge-border: var(--cr-badge-primary-border);
-    --cr-badge-text: var(--cr-badge-primary-text);
+    --lf-badge-background: var(--lf-badge-primary-background);
+    --lf-badge-border: var(--lf-badge-primary-border);
+    --lf-badge-text: var(--lf-badge-primary-text);
   }
 
   /* Badge sizes */
   &--small{
-    --cr-badge-font-size: var(--cr-badge-small-font-size);
-    --cr-badge-height: var(--cr-badge-small-height);
+    --lf-badge-font-size: var(--lf-badge-small-font-size);
+    --lf-badge-height: var(--lf-badge-small-height);
   }
 
   &--medium{
-    --cr-badge-font-size: var(--cr-badge-medium-font-size);
-    --cr-badge-height: var(--cr-badge-medium-height);
+    --lf-badge-font-size: var(--lf-badge-medium-font-size);
+    --lf-badge-height: var(--lf-badge-medium-height);
   }
 }

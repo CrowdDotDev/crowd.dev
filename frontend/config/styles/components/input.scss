@@ -4,22 +4,22 @@
   \* ---------------------------------- */
 
   // Input
-  --cr-input-background: var(--color-white);
-  --cr-input-border: var(--color-gray-200);
-  --cr-input-border-radius: #{rem(8)};
-  --cr-input-shadow: var(--shadow-s);
-  --cr-input-color: var(--color-gray-900);
-  --cr-input-placeholder-color: var(--color-gray-400);
+  --lf-input-background: var(--color-white);
+  --lf-input-border: var(--color-gray-200);
+  --lf-input-border-radius: #{rem(8)};
+  --lf-input-shadow: var(--shadow-s);
+  --lf-input-color: var(--color-gray-900);
+  --lf-input-placeholder-color: var(--color-gray-400);
 
   // Focus
-  --cr-input-focus-border: var(--color-gray-900);
+  --lf-input-focus-border: var(--color-gray-900);
 
   // Disabled
-  --cr-input-disabled-background: var(--color-gray-50);
-  --cr-input-disabled-border: var(--color-gray-200);
-  --cr-input-disabled-color: var(--color-gray-400);
-  --cr-input-disabled-placeholder-color: var(--color-gray-300);
+  --lf-input-disabled-background: var(--color-gray-50);
+  --lf-input-disabled-border: var(--color-gray-200);
+  --lf-input-disabled-color: var(--color-gray-400);
+  --lf-input-disabled-placeholder-color: var(--color-gray-300);
 
   // Invalid
-  --cr-input-invalid-border: var(--color-red-600);
+  --lf-input-invalid-border: var(--color-red-600);
 }

@@ -4,13 +4,13 @@
   \* ---------------------------------- */
 
   // Field label
-  --cr-field-label-font-size: #{rem(14)};
-  --cr-field-label-font-weight: var(--font-medium);
-  --cr-field-label-color: var(--color-gray-900);
+  --lf-field-label-font-size: #{rem(14)};
+  --lf-field-label-font-weight: var(--font-medium);
+  --lf-field-label-color: var(--color-gray-900);
 
   // Required sign
-  --cr-field-required-color: var(--color-primary-500);
+  --lf-field-required-color: var(--color-primary-500);
 
   // Spacing
-  --cr-field-spacing: #{rem(4)};
+  --lf-field-spacing: #{rem(4)};
 }
