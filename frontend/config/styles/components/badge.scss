@@ -18,17 +18,17 @@
   \* ---------------------------------- */
 
   /* Default */
-  --lf-badge-default-background: var(--color-gray-100);
-  --lf-badge-default-border: var(--color-gray-200);
-  --lf-badge-default-text: var(--color-gray-900);
+  --lf-badge-default-background: var(--lf-color-gray-100);
+  --lf-badge-default-border: var(--lf-color-gray-200);
+  --lf-badge-default-text: var(--lf-color-gray-900);
 
   /* White */
-  --lf-badge-white-background: var(--color-white);
-  --lf-badge-white-border: var(--color-gray-200);
-  --lf-badge-white-text: var(--color-gray-900);
+  --lf-badge-white-background: var(--lf-color-white);
+  --lf-badge-white-border: var(--lf-color-gray-200);
+  --lf-badge-white-text: var(--lf-color-gray-900);
 
   /* Primary */
-  --lf-badge-primary-background: var(--color-primary-50);
-  --lf-badge-primary-border: var(--color-primary-100);
-  --lf-badge-primary-text: var(--color-primary-600);
+  --lf-badge-primary-background: var(--lf-color-primary-50);
+  --lf-badge-primary-border: var(--lf-color-primary-100);
+  --lf-badge-primary-text: var(--lf-color-primary-600);
 }

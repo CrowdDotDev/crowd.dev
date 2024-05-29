@@ -8,30 +8,30 @@
 
   // Text style
   --lf-radio-text-font-weight: var(--font-medium);
-  --lf-radio-text-color: var(--color-gray-900);
+  --lf-radio-text-color: var(--lf-color-gray-900);
 
   // Description style
   --lf-radio-description-font-size: #{rem(12)};
   --lf-radio-description-line-height: #{rem(15)};
   --lf-radio-description-font-weight: var(--font-normal);
-  --lf-radio-description-color: var(--color-gray-500);
+  --lf-radio-description-color: var(--lf-color-gray-500);
   --lf-radio-description-spacing: #{rem(4)};
 
   // Unchecked
-  --lf-radio-unchecked-border: var(--color-gray-300);
-  --lf-radio-unchecked-background: var(--color-white);
+  --lf-radio-unchecked-border: var(--lf-color-gray-300);
+  --lf-radio-unchecked-background: var(--lf-color-white);
 
   // Checked
-  --lf-radio-checked-border: var(--color-gray-900);
-  --lf-radio-checked-background: var(--color-white);
+  --lf-radio-checked-border: var(--lf-color-gray-900);
+  --lf-radio-checked-background: var(--lf-color-white);
 
   // Disabled Unchecked
-  --lf-radio-disabled-unchecked-border: var(--color-gray-200);
-  --lf-radio-disabled-unchecked-background: var(--color-gray-50);
+  --lf-radio-disabled-unchecked-border: var(--lf-color-gray-200);
+  --lf-radio-disabled-unchecked-background: var(--lf-color-gray-50);
 
   // Disabled Checked
-  --lf-radio-disabled-checked-border: var(--color-gray-400);
-  --lf-radio-disabled-checked-background: var(--color-white);
+  --lf-radio-disabled-checked-border: var(--lf-color-gray-400);
+  --lf-radio-disabled-checked-background: var(--lf-color-white);
 
   /* ---------------------------------- *\
            Checkbox sizes

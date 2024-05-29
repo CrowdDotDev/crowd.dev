@@ -5,30 +5,30 @@
 
   // Text style
   --lf-switch-text-font-weight: var(--font-medium);
-  --lf-switch-text-color: var(--color-gray-900);
+  --lf-switch-text-color: var(--lf-color-gray-900);
 
   // Description style
   --lf-switch-description-font-size: #{rem(12)};
   --lf-switch-description-line-height: #{rem(15)};
   --lf-switch-description-font-weight: var(--font-normal);
-  --lf-switch-description-color: var(--color-gray-500);
+  --lf-switch-description-color: var(--lf-color-gray-500);
   --lf-switch-description-spacing: #{rem(4)};
 
   // Unchecked
-  --lf-switch-background: var(--color-gray-200);
-  --lf-switch-handle: var(--color-white);
+  --lf-switch-background: var(--lf-color-gray-200);
+  --lf-switch-handle: var(--lf-color-white);
 
   // Checked
-  --lf-switch-checked-background: var(--color-gray-900);
-  --lf-switch-checked-handle: var(--color-white);
+  --lf-switch-checked-background: var(--lf-color-gray-900);
+  --lf-switch-checked-handle: var(--lf-color-white);
 
   // Disabled Unchecked
-  --lf-switch-disabled-unchecked-background: var(--color-gray-100);
-  --lf-switch-disabled-unchecked-handle: var(--color-white);
+  --lf-switch-disabled-unchecked-background: var(--lf-color-gray-100);
+  --lf-switch-disabled-unchecked-handle: var(--lf-color-white);
 
   // Disabled Checked
-  --lf-switch-disabled-checked-background: var(--color-gray-400);
-  --lf-switch-disabled-checked-handle: var(--color-white);
+  --lf-switch-disabled-checked-background: var(--lf-color-gray-400);
+  --lf-switch-disabled-checked-handle: var(--lf-color-white);
 
   /* ---------------------------------- *\
            Switch sizes
