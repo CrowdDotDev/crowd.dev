@@ -22,6 +22,7 @@ export * from './byteLength'
 export * from './http'
 export * from './websiteNormalizer'
 export * from './emailDomainValidator'
+export * from './displayName'
 
 export * from './i18n'
 

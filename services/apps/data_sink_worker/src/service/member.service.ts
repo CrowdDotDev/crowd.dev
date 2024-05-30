@@ -4,7 +4,14 @@ import {
   IDbMemberUpdateData,
 } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.data'
 import MemberRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.repo'
-import { isObjectEmpty, singleOrDefault, isDomainExcluded, isEmail, EDITION } from '@crowd/common'
+import {
+  isObjectEmpty,
+  singleOrDefault,
+  isDomainExcluded,
+  isEmail,
+  EDITION,
+  getProperDisplayName,
+} from '@crowd/common'
 import { DbStore } from '@crowd/data-access-layer/src/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import {
@@ -84,7 +91,7 @@ export default class MemberService extends LoggerBase {
         data.identities = this.validateEmails(data.identities)
 
         const id = await txRepo.create(tenantId, {
-          displayName: data.displayName,
+          displayName: getProperDisplayName(data.displayName),
           joinedAt: data.joinedAt.toISOString(),
           attributes,
           identities: data.identities,
@@ -225,6 +232,9 @@ export default class MemberService extends LoggerBase {
 
         // validate emails
         data.identities = this.validateEmails(data.identities)
+
+        // check if displayName is proper
+        data.displayName = getProperDisplayName(data.displayName)
 
         const toUpdate = MemberService.mergeData(original, dbIdentities, data)
 
