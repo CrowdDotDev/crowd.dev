@@ -55,7 +55,7 @@ export const Primary = {
     default: '',
   },
   render: (args: any) => ({
-    components: { CrField, LfInput },
+    components: { LfField, LfInput },
     setup() {
       return { args };
     },

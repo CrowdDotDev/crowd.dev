@@ -69,7 +69,7 @@ export const Multiple = {
     modelValue: true,
   },
   render: (args: any) => ({
-    components: { CrRadio },
+    components: { LfRadio },
     setup() {
       const form = reactive({
         type: 'primary',
