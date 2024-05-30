@@ -16,6 +16,6 @@ const props = defineProps<{
 
 <script lang="ts">
 export default {
-  name: 'CrTableCell',
+  name: 'LfTableCell',
 };
 </script>

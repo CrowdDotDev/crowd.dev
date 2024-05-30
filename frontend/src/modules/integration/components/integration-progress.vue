@@ -17,7 +17,7 @@
           <div v-if="showProgress">
             <i v-if="part.status === 'ok'" class="ri-checkbox-circle-fill text-green-500 text-base mr-2 h-4 flex items-center" />
             <div v-else-if="part.status === 'in-progress'" class="flex items-center justify-center h-4 w-4 mr-2">
-              <cr-spinner size="0.75rem" />
+              <lf-spinner size="0.75rem" />
             </div>
             <div v-else class="flex items-center justify-center h-4 w-4 mr-2" />
           </div>
@@ -33,7 +33,7 @@
 </template>
 
 <script setup lang="ts">
-import CrSpinner from '@/ui-kit/spinner/Spinner.vue';
+import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import { IntegrationProgress, IntegrationProgressPart } from '@/modules/integration/types/IntegrationProgress';
 import { computed } from 'vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';

@@ -118,7 +118,7 @@
           <div class="w-1/2 px-3">
             <!-- Loading preview -->
             <div v-if="fetchingPreview" class="flex items-center justify-center pt-40 w-full">
-              <cr-spinner />
+              <lf-spinner />
             </div>
             <!-- Unmerge preview -->
             <div v-else-if="preview">
@@ -247,7 +247,7 @@ import { computed, onMounted, ref } from 'vue';
 import { MemberService } from '@/modules/member/member-service';
 import Message from '@/shared/message/message';
 import AppDialog from '@/shared/dialog/dialog.vue';
-import CrSpinner from '@/ui-kit/spinner/Spinner.vue';
+import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppMemberOrganizationList from '@/modules/member/components/suggestions/member-organizations-list.vue';
 import { mapActions } from '@/shared/vuex/vuex.helpers';

@@ -54,14 +54,14 @@
         </div>
       </div>
 
-      <cr-saved-views
+      <lf-saved-views
         v-model="filters"
         :config="organizationSavedViews"
         :filters="organizationFilters"
         placement="organization"
         @update:model-value="organizationFilter.alignFilterList($event)"
       />
-      <cr-filter
+      <lf-filter
         ref="organizationFilter"
         v-model="filters"
         :config="organizationFilters"
@@ -95,8 +95,8 @@ import AppPageWrapper from '@/shared/layout/page-wrapper.vue';
 import AppOrganizationListTable from '@/modules/organization/components/list/organization-list-table.vue';
 import AppLfPageHeader from '@/modules/lf/layout/components/lf-page-header.vue';
 import AppLfSubProjectsListModal from '@/modules/lf/segments/components/lf-sub-projects-list-modal.vue';
-import CrSavedViews from '@/shared/modules/saved-views/components/SavedViews.vue';
-import CrFilter from '@/shared/modules/filters/components/Filter.vue';
+import LfSavedViews from '@/shared/modules/saved-views/components/SavedViews.vue';
+import LfFilter from '@/shared/modules/filters/components/Filter.vue';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import { storeToRefs } from 'pinia';
 import { organizationFilters, organizationSearchFilter } from '@/modules/organization/config/filters/main';
@@ -118,7 +118,7 @@ const tableLoading = ref(false);
 const organizationCount = ref(0);
 const isSubProjectSelectionOpen = ref(false);
 
-const organizationFilter = ref<CrFilter | null>(null);
+const organizationFilter = ref<LfFilter | null>(null);
 const lsSegmentsStore = useLfSegmentsStore();
 
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);

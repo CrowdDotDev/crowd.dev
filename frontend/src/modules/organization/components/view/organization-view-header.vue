@@ -116,7 +116,7 @@
           }}
         </p>
       </div>
-      <cr-enrichment-sneak-peak type="contact">
+      <lf-enrichment-sneak-peak type="contact">
         <template #default="{ enabled }">
           <div>
             <div class="flex items-center">
@@ -149,7 +149,7 @@
             </div>
           </div>
         </template>
-      </cr-enrichment-sneak-peak>
+      </lf-enrichment-sneak-peak>
       <div>
         <p class="text-gray-400 font-medium text-2xs">
           Joined date
@@ -163,7 +163,7 @@
           }}
         </p>
       </div>
-      <cr-enrichment-sneak-peak type="contact">
+      <lf-enrichment-sneak-peak type="contact">
         <template #default="{ enabled }">
           <div>
             <div class="flex items-center">
@@ -194,7 +194,7 @@
             </div>
           </div>
         </template>
-      </cr-enrichment-sneak-peak>
+      </lf-enrichment-sneak-peak>
       <div>
         <p class="text-gray-400 font-medium text-2xs">
           Last active
@@ -227,7 +227,7 @@ import { withHttp } from '@/utils/string';
 import AppOrganizationBadge from '@/modules/organization/components/organization-badge.vue';
 import AppOrganizationHeadline from '@/modules/organization/components/organization-headline..vue';
 import AppSvg from '@/shared/svg/svg.vue';
-import CrEnrichmentSneakPeak from '@/shared/modules/enrichment/components/enrichment-sneak-peak.vue';
+import LfEnrichmentSneakPeak from '@/shared/modules/enrichment/components/enrichment-sneak-peak.vue';
 import revenueRange from '../../config/enrichment/revenueRange';
 
 const props = defineProps({

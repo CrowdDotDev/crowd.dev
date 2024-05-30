@@ -29,22 +29,22 @@
         </template>
         <template #suffix>
           <div v-if="model.username !== props.identity.username || !props.identity.username" class="flex gap-1 -mr-1">
-            <cr-button
+            <lf-button
               size="tiny"
               :icon-only="true"
               :disabled="model.username === props.identity.username"
               @click="update()"
             >
               <i class="ri-check-fill" />
-            </cr-button>
-            <cr-button
+            </lf-button>
+            <lf-button
               size="tiny"
               type="secondary"
               :icon-only="true"
               @click="clear()"
             >
               <i class="ri-close-line" />
-            </cr-button>
+            </lf-button>
           </div>
         </template>
       </el-input>
@@ -53,9 +53,9 @@
         <span class="text-gray-400">{{ props.identity.platform }}</span>
       </p>
     </div>
-    <cr-dropdown placement="bottom-end" width="15rem" class="ml-3">
+    <lf-dropdown placement="bottom-end" width="15rem" class="ml-3">
       <template #trigger>
-        <cr-button
+        <lf-button
           type="tertiary-light-gray"
           size="small"
           :icon-only="true"
@@ -65,7 +65,7 @@
           <i
             class="ri-more-fill"
           />
-        </cr-button>
+        </lf-button>
       </template>
 
       <el-tooltip
@@ -73,7 +73,7 @@
         placement="top-end"
         :disabled="model.username === props.identity.username"
       >
-        <cr-dropdown-item
+        <lf-dropdown-item
           :disabled="model.username !== props.identity.username"
           @click="emit('unmerge', {
             platform: props.identity.platform as string,
@@ -82,17 +82,17 @@
         >
           <i class="ri-link-unlink" />
           Unmerge identity
-        </cr-dropdown-item>
+        </lf-dropdown-item>
       </el-tooltip>
-      <cr-dropdown-separator />
-      <cr-dropdown-item
+      <lf-dropdown-separator />
+      <lf-dropdown-item
         type="danger"
         @click="emit('remove')"
       >
         <i class="ri-delete-bin-6-line" />
         Delete identity
-      </cr-dropdown-item>
-    </cr-dropdown>
+      </lf-dropdown-item>
+    </lf-dropdown>
   </article>
 </template>
 
@@ -101,10 +101,10 @@ import {
   computed, ref,
 } from 'vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
-import CrButton from '@/ui-kit/button/Button.vue';
-import CrDropdown from '@/ui-kit/dropdown/Dropdown.vue';
-import CrDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
-import CrDropdownSeparator from '@/ui-kit/dropdown/DropdownSeparator.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
+import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
+import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
+import LfDropdownSeparator from '@/ui-kit/dropdown/DropdownSeparator.vue';
 import { Organization, OrganizationIdentity } from '@/modules/organization/types/Organization';
 
 const emit = defineEmits<{(e: 'update', value: OrganizationIdentity): void,

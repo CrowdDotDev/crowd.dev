@@ -33,7 +33,7 @@ const selectOption = () => {
 
 <script lang="ts">
 export default {
-  name: 'CrFilterSelectOption',
+  name: 'LfFilterSelectOption',
 };
 </script>
 

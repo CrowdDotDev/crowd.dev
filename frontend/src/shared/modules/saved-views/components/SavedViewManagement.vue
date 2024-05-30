@@ -154,7 +154,7 @@ const remove = (view: SavedView) => {
 
 <script lang="ts">
 export default {
-  name: 'CrSavedViewsManagement',
+  name: 'LfSavedViewsManagement',
 };
 </script>
 

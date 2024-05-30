@@ -25,7 +25,7 @@
     <i class="ri-alert-line mr-1" /> Needs to be reconnected
   </div>
   <div v-else-if="isConnected" class="flex items-center">
-    <cr-spinner size="1rem" class="mr-2 text-black" />
+    <lf-spinner size="1rem" class="mr-2 text-black" />
     <span class="text-xs font-medium text-gray-600">Connecting</span>
   </div>
 </template>
@@ -34,7 +34,7 @@
 import { computed } from 'vue';
 import { isCurrentDateAfterGivenWorkingDays } from '@/utils/date';
 import { ERROR_BANNER_WORKING_DAYS_DISPLAY } from '@/modules/integration/integration-store';
-import CrSpinner from '@/ui-kit/spinner/Spinner.vue';
+import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 
 const props = defineProps({
   integration: {

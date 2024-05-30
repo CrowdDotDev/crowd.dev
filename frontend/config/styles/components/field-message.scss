@@ -4,23 +4,23 @@
   \* ---------------------------------- */
 
   // Message
-  --cr-field-message-font-size: #{rem(13)};
-  --cr-field-message-line-height: #{rem(17)};
-  --cr-field-message-spacing: #{rem(4)};
+  --lf-field-message-font-size: #{rem(13)};
+  --lf-field-message-line-height: #{rem(17)};
+  --lf-field-message-spacing: #{rem(4)};
 
   // Icon
-  --cr-field-message-icon-size: #{rem(20)};
-  --cr-field-message-icon-spacing: #{rem(4)};
+  --lf-field-message-icon-size: #{rem(20)};
+  --lf-field-message-icon-spacing: #{rem(4)};
 
   // Error
-  --cr-field-message-error-color: var(--color-red-600);
+  --lf-field-message-error-color: var(--lf-color-red-600);
 
   // Info
-  --cr-field-message-info-color: var(--color-primary-600);
+  --lf-field-message-info-color: var(--lf-color-primary-600);
 
   // Warning
-  --cr-field-message-warning-color: var(--color-yellow-600);
+  --lf-field-message-warning-color: var(--lf-color-yellow-600);
 
   // Hint
-  --cr-field-message-hint-color: var(--color-gray-400);
+  --lf-field-message-hint-color: var(--lf-color-gray-400);
 }

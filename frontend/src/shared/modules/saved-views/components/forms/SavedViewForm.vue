@@ -86,7 +86,7 @@
           </div>
           <div>
             <div v-for="filter of filterList" :key="filter" class="flex items-center mb-3">
-              <cr-filter-item
+              <lf-filter-item
                 v-model="form.filters[filter]"
                 v-model:open="openedFilter"
                 :config="allFilters[filter]"
@@ -215,7 +215,7 @@ import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 import { SavedView, SavedViewCreate, SavedViewsConfig } from '@/shared/modules/saved-views/types/SavedViewsConfig';
 import { FilterConfig } from '@/shared/modules/filters/types/FilterConfig';
-import CrFilterItem from '@/shared/modules/filters/components/FilterItem.vue';
+import LfFilterItem from '@/shared/modules/filters/components/FilterItem.vue';
 import { SavedViewsService } from '@/shared/modules/saved-views/services/saved-views.service';
 import Message from '@/shared/message/message';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
@@ -502,7 +502,7 @@ const submit = (): void => {
 
 <script lang="ts">
 export default {
-  name: 'CrSavedViewsForm',
+  name: 'LfSavedViewsForm',
 };
 </script>
 

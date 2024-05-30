@@ -39,6 +39,6 @@
 
 <script lang="ts">
 export default {
-  name: 'CrUpgradePlanWidget',
+  name: 'LfUpgradePlanWidget',
 };
 </script>

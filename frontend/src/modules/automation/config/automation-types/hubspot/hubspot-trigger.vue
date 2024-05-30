@@ -64,7 +64,7 @@
 
       <div>
         <div v-for="filter of settings.list" :key="filter" class="flex items-center mb-3">
-          <cr-filter-item
+          <lf-filter-item
             v-model="settings.data[filter]"
             v-model:open="open"
             :config="filterConfigs[filter]"
@@ -113,7 +113,7 @@ import {
   HubspotAutomationTrigger,
 } from '@/modules/automation/config/automation-types/hubspot/types/HubspotAutomationTrigger';
 import { FilterConfig } from '@/shared/modules/filters/types/FilterConfig';
-import CrFilterItem from '@/shared/modules/filters/components/FilterItem.vue';
+import LfFilterItem from '@/shared/modules/filters/components/FilterItem.vue';
 import { useStore } from 'vuex';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import {

@@ -1,5 +1,5 @@
 <template>
-  <cr-multi-select-filter v-model="form" :config="(props.config as MultiSelectFilterConfig)" :options="data.options || []" />
+  <lf-multi-select-filter v-model="form" :config="(props.config as MultiSelectFilterConfig)" :options="data.options || []" />
 </template>
 
 <script setup lang="ts">
@@ -8,7 +8,7 @@ import {
 } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useStore } from 'vuex';
-import CrMultiSelectFilter from '@/shared/modules/filters/components/filterTypes/MultiSelectFilter.vue';
+import LfMultiSelectFilter from '@/shared/modules/filters/components/filterTypes/MultiSelectFilter.vue';
 import {
   MultiSelectFilterConfig,
 } from '@/shared/modules/filters/types/filterTypes/MultiSelectFilterConfig';

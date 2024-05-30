@@ -57,7 +57,7 @@
         >
           Cancel
         </el-button>
-        <cr-button
+        <lf-button
           type="primary"
           :disabled="$v.$invalid"
           @click="mapRepos()"
@@ -65,7 +65,7 @@
           <span>
             Map repositories <span v-if="form.repositories.length > 0">({{ isAll ? props.repositories.length : form.repositories.length }})</span>
           </span>
-        </cr-button>
+        </lf-button>
       </div>
     </template>
   </app-dialog>
@@ -76,7 +76,7 @@ import {
   computed, reactive,
 } from 'vue';
 import AppDialog from '@/shared/dialog/dialog.vue';
-import CrButton from '@/ui-kit/button/Button.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 

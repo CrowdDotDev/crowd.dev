@@ -1,17 +1,17 @@
 <template>
   <div class="mb-4">
     <div class="flex justify-end pb-4">
-      <cr-filter-search v-if="props.searchConfig" v-model="filters.search" :placeholder="props.searchConfig.placeholder">
+      <lf-filter-search v-if="props.searchConfig" v-model="filters.search" :placeholder="props.searchConfig.placeholder">
         <template #append>
-          <cr-filter-dropdown
+          <lf-filter-dropdown
             v-model="filterList"
             :config="props.config"
             :custom-config="props.customConfig || {}"
             @open="open = $event"
           />
         </template>
-      </cr-filter-search>
-      <cr-filter-dropdown
+      </lf-filter-search>
+      <lf-filter-dropdown
         v-else
         v-model="filterList"
         :config="props.config"
@@ -51,7 +51,7 @@
         </el-tooltip>
 
         <!-- Filter -->
-        <cr-filter-item
+        <lf-filter-item
           v-model="filters[filter]"
           v-model:open="open"
           :config="configuration[filter]"
@@ -69,9 +69,9 @@ import {
   defineProps, onMounted, ref, watch,
 } from 'vue';
 import { Filter, FilterConfig } from '@/shared/modules/filters/types/FilterConfig';
-import CrFilterDropdown from '@/shared/modules/filters/components/FilterDropdown.vue';
-import CrFilterItem from '@/shared/modules/filters/components/FilterItem.vue';
-import CrFilterSearch from '@/shared/modules/filters/components/FilterSearch.vue';
+import LfFilterDropdown from '@/shared/modules/filters/components/FilterDropdown.vue';
+import LfFilterItem from '@/shared/modules/filters/components/FilterItem.vue';
+import LfFilterSearch from '@/shared/modules/filters/components/FilterSearch.vue';
 import { filterQueryService } from '@/shared/modules/filters/services/filter-query.service';
 import { SearchFilterConfig } from '@/shared/modules/filters/types/filterTypes/SearchFilterConfig';
 import { useRoute, useRouter } from 'vue-router';
@@ -242,6 +242,6 @@ const developerModeEnabled = () => FeatureFlag.isFlagEnabled(
 
 <script lang="ts">
 export default {
-  name: 'CrFilter',
+  name: 'LfFilter',
 };
 </script>

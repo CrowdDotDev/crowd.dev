@@ -4,6 +4,6 @@
 
 <script lang="ts">
 export default {
-  name: 'CrDropdownSeparator',
+  name: 'LfDropdownSeparator',
 };
 </script>
