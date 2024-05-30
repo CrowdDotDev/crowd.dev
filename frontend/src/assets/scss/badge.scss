@@ -18,11 +18,11 @@
   }
 
   &--light-brand {
-    @apply bg-brand-50 text-brand-600;
+    @apply bg-primary-50 text-primary-600;
   }
 
   &--brand {
-    @apply bg-brand-500 text-white;
+    @apply bg-primary-500 text-white;
   }
 
   &--black {
@@ -32,7 +32,7 @@
   &--gray-light {
     @apply bg-gray-100 text-gray-900 border border-gray-200;
   }
-  
+
   &--gray {
     @apply bg-gray-400 text-white;
   }
@@ -62,6 +62,6 @@
   }
 
   &--interactive {
-    @apply text-gray-900 hover:text-brand-500 transition text-ellipsis truncate flex items-center hover:cursor-pointer gap-1.5 border px-1.5 rounded-md h-6;
+    @apply text-gray-900 hover:text-primary-500 transition text-ellipsis truncate flex items-center hover:cursor-pointer gap-1.5 border px-1.5 rounded-md h-6;
   }
 }

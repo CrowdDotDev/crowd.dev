@@ -1,7 +1,7 @@
 <template>
   <app-page-wrapper size="narrow">
     <div class="activity-list-page">
-      <app-lf-page-header text-class="text-sm text-brand-600 mb-2.5" />
+      <app-lf-page-header text-class="text-sm text-primary-600 mb-2.5" />
       <div class="flex justify-between">
         <div>
           <h4>Activities</h4>

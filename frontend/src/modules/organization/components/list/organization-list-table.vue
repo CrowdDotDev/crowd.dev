@@ -42,7 +42,7 @@
             >
               <template #defaultFilters>
                 <div>・</div>
-                <cr-default-filters
+                <lf-default-filters
                   :config="organizationSavedViews"
                   :settings="filters.settings"
                 />
@@ -845,7 +845,7 @@
       virtual-triggering
       @hide="onHide"
     >
-      <cr-enrichment-sneak-peak-content id="popover-content" type="organization" @mouseleave="closeEnrichmentPopover" />
+      <lf-enrichment-sneak-peak-content id="popover-content" type="organization" @mouseleave="closeEnrichmentPopover" />
     </el-popover>
 
     <app-organization-merge-dialog v-model="isMergeDialogOpen" />
@@ -872,19 +872,22 @@ import revenueRange from '@/modules/organization/config/enrichment/revenueRange'
 import AppSharedTagList from '@/shared/tag/tag-list.vue';
 import { ClickOutside as vClickOutside } from 'element-plus';
 import AppSvg from '@/shared/svg/svg.vue';
-import CrEnrichmentSneakPeakContent from '@/shared/modules/enrichment/components/enrichment-sneak-peak-content.vue';
+import LfEnrichmentSneakPeakContent from '@/shared/modules/enrichment/components/enrichment-sneak-peak-content.vue';
 import Plans from '@/security/plans';
 import AppIdentitiesHorizontalListOrganizations from '@/shared/modules/identities/components/identities-horizontal-list-organizations.vue';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { OrganizationService } from '@/modules/organization/organization-service';
-import CrDefaultFilters from '@/shared/modules/default-filters/components/default-filters.vue';
+import LfDefaultFilters from '@/shared/modules/default-filters/components/default-filters.vue';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import AppOrganizationListToolbar from './organization-list-toolbar.vue';
 import AppOrganizationName from '../organization-name.vue';
 import AppOrganizationDropdownContent from '../organization-dropdown-content.vue';
 import { organizationSavedViews } from '../../config/saved-views/main';
 
+const { trackEvent } = useProductTracking();
 const router = useRouter();
 
 const props = defineProps({
@@ -1049,6 +1052,15 @@ const onClickOutside = (el) => {
 };
 
 function doChangeSort(sorter) {
+  trackEvent({
+    key: FeatureEventKey.SORT_ORGANIZATIONS,
+    type: EventType.FEATURE,
+    properties: {
+      sortBy: sorter.prop,
+      sortOrder: sorter.order,
+    },
+  });
+
   filters.value.order = {
     prop: sorter.prop,
     order: sorter.order,

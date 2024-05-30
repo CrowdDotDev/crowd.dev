@@ -102,6 +102,13 @@ import useMemberMergeMessage from '@/shared/modules/merge/config/useMemberMergeM
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import { useRoute } from 'vue-router';
+
+const { trackEvent } = useProductTracking();
+
+const route = useRoute();
 
 const authStore = useAuthStore();
 const { tenant } = storeToRefs(authStore);
@@ -174,6 +181,15 @@ const doDestroyAllWithConfirm = () => ConfirmDialog({
   icon: 'ri-delete-bin-line',
 })
   .then(() => {
+    trackEvent({
+      key: FeatureEventKey.DELETE_CONTRIBUTOR,
+      type: EventType.FEATURE,
+      properties: {
+        path: route.path,
+        bulk: true,
+      },
+    });
+
     const ids = selectedMembers.value.map((m) => m.id);
     return MemberService.destroyAll(ids);
   })
@@ -198,6 +214,15 @@ const handleDoExport = async () => {
       tenantCsvExportCount,
       planExportCountMax,
       badgeContent: pluralize('contributor', selectedMembers.value.length, true),
+    });
+
+    trackEvent({
+      key: FeatureEventKey.EXPORT_CONTRIBUTORS,
+      type: EventType.FEATURE,
+      properties: {
+        path: route.path,
+        bulk: true,
+      },
     });
 
     await MemberService.export({
@@ -274,6 +299,15 @@ const doMarkAsTeamMember = async (value) => {
 
 const handleCommand = async (command) => {
   if (command.action === 'markAsTeamMember') {
+    trackEvent({
+      key: FeatureEventKey.MARK_AS_TEAM_CONTRIBUTOR,
+      type: EventType.FEATURE,
+      properties: {
+        path: route.path,
+        bulk: true,
+      },
+    });
+
     await doMarkAsTeamMember(command.value);
   } else if (command.action === 'export') {
     await handleDoExport();

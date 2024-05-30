@@ -47,7 +47,7 @@ const datePublished = computed({
 
       &.is-active {
         .el-radio-button__inner {
-          @apply border-r border-y border-brand-500 rounded-none text-gray-900;
+          @apply border-r border-y border-primary-500 rounded-none text-gray-900;
           box-shadow: -1px 0 0 0 #0094FF;
         }
       }

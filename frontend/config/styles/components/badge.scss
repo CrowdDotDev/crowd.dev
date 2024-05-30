@@ -5,30 +5,30 @@
 
 
   /* Small */
-  --cr-badge-small-font-size: #{rem(12)};
-  --cr-badge-small-height: #{rem(22)};
+  --lf-badge-small-font-size: #{rem(12)};
+  --lf-badge-small-height: #{rem(22)};
 
 
   /* Medium */
-  --cr-badge-medium-font-size: #{rem(13)};
-  --cr-badge-medium-height: #{rem(26)};
+  --lf-badge-medium-font-size: #{rem(13)};
+  --lf-badge-medium-height: #{rem(26)};
 
   /* ---------------------------------- *\
             Badge styles
   \* ---------------------------------- */
 
   /* Default */
-  --cr-badge-default-background: var(--color-gray-100);
-  --cr-badge-default-border: var(--color-gray-200);
-  --cr-badge-default-text: var(--color-gray-900);
+  --lf-badge-default-background: var(--lf-color-gray-100);
+  --lf-badge-default-border: var(--lf-color-gray-200);
+  --lf-badge-default-text: var(--lf-color-gray-900);
 
   /* White */
-  --cr-badge-white-background: var(--color-white);
-  --cr-badge-white-border: var(--color-gray-200);
-  --cr-badge-white-text: var(--color-gray-900);
+  --lf-badge-white-background: var(--lf-color-white);
+  --lf-badge-white-border: var(--lf-color-gray-200);
+  --lf-badge-white-text: var(--lf-color-gray-900);
 
-  /* Brand */
-  --cr-badge-brand-background: var(--color-brand-50);
-  --cr-badge-brand-border: var(--color-brand-100);
-  --cr-badge-brand-text: var(--color-brand-600);
+  /* Primary */
+  --lf-badge-primary-background: var(--lf-color-primary-50);
+  --lf-badge-primary-border: var(--lf-color-primary-100);
+  --lf-badge-primary-text: var(--lf-color-primary-600);
 }

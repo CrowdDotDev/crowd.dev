@@ -1,10 +1,17 @@
+import {
+  captureApiChange,
+  organizationCreateAction,
+  organizationEditIdentitiesAction,
+  organizationUpdateAction,
+} from '@crowd/audit-logs'
 import { Error400, Error404, Error409, PageData, RawQueryParser } from '@crowd/common'
-import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
+import { getActiveOrganizations } from '@crowd/data-access-layer'
 import {
   addOrgIdentity,
   cleanUpOrgIdentities,
   fetchOrgIdentities,
 } from '@crowd/data-access-layer/src/org_identities'
+import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import {
   FeatureFlag,
   IEnrichableOrganization,
@@ -19,29 +26,20 @@ import {
   SegmentData,
   SegmentProjectGroupNestedData,
   SegmentProjectNestedData,
-  SyncStatus,
 } from '@crowd/types'
 import lodash, { chunk } from 'lodash'
 import Sequelize, { QueryTypes } from 'sequelize'
-import {
-  captureApiChange,
-  organizationCreateAction,
-  organizationEditIdentitiesAction,
-  organizationUpdateAction,
-} from '@crowd/audit-logs'
 import validator from 'validator'
-import { getActiveOrganizations } from '@crowd/data-access-layer'
-import SequelizeRepository from './sequelizeRepository'
-import AuditLogRepository from './auditLogRepository'
-import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
-import { IRepositoryOptions } from './IRepositoryOptions'
-import OrganizationSyncRemoteRepository from './organizationSyncRemoteRepository'
-import SegmentRepository from './segmentRepository'
-import { IActiveOrganizationData, IActiveOrganizationFilter } from './types/organizationTypes'
 import {
   IFetchOrganizationMergeSuggestionArgs,
   SimilarityScoreRange,
 } from '@/types/mergeSuggestionTypes'
+import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
+import { IRepositoryOptions } from './IRepositoryOptions'
+import AuditLogRepository from './auditLogRepository'
+import SegmentRepository from './segmentRepository'
+import SequelizeRepository from './sequelizeRepository'
+import { IActiveOrganizationData, IActiveOrganizationFilter } from './types/organizationTypes'
 
 const { Op } = Sequelize
 
@@ -719,7 +717,9 @@ class OrganizationRepository {
               } else if (
                 record[column] === null &&
                 data[column] !== null &&
-                data[column] !== undefined
+                data[column] !== undefined &&
+                // also ignore empty arrays
+                (!Array.isArray(data[column]) || data[column].length > 0)
               ) {
                 // column was null before now it's not anymore
                 changed = true
@@ -2122,8 +2122,6 @@ class OrganizationRepository {
     segments: string[] = [],
   ): Promise<PageData<IActiveOrganizationData>> {
     const tenant = SequelizeRepository.getCurrentTenant(options)
-
-    const segmentsEnabled = await isFeatureEnabled(FeatureFlag.SEGMENTS, options)
 
     if (segments.length !== 1) {
       throw new Error400(

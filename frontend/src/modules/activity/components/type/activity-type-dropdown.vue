@@ -32,6 +32,8 @@
 <script setup>
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 
 const props = defineProps({
   activityTypeKey: {
@@ -46,6 +48,8 @@ const props = defineProps({
 
 const emit = defineEmits(['edit']);
 
+const { trackEvent } = useProductTracking();
+
 const { deleteActivityType } = useActivityTypeStore();
 
 const doDestroyWithConfirm = () => {
@@ -58,6 +62,11 @@ const doDestroyWithConfirm = () => {
     cancelButtonText: 'Cancel',
     icon: 'ri-delete-bin-line',
   }).then(() => {
+    trackEvent({
+      key: FeatureEventKey.DELETE_ACTIVITY_TYPE,
+      type: EventType.FEATURE,
+    });
+
     deleteActivityType(props.activityTypeKey, [props.subprojectId]);
   });
 };

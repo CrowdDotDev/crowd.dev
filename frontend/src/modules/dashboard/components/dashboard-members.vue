@@ -251,7 +251,7 @@ const getPlatformDetails = (platform: string) => CrowdIntegrations.getConfig(pla
 
 <script lang="ts">
 export default {
-  name: 'CrDashboardMember',
+  name: 'LfDashboardMember',
 };
 </script>
 

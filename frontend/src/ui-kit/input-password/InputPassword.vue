@@ -1,5 +1,5 @@
 <template>
-  <cr-input v-bind="$attrs" v-model="value" :type="reveal ? 'text' : 'password'">
+  <lf-input v-bind="$attrs" v-model="value" :type="reveal ? 'text' : 'password'">
     <template #suffix>
       <div @click="reveal = !reveal">
         <span
@@ -8,12 +8,12 @@
         />
       </div>
     </template>
-  </cr-input>
+  </lf-input>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import CrInput from '@/ui-kit/input/Input.vue';
+import LfInput from '@/ui-kit/input/Input.vue';
 
 const props = defineProps<{
   modelValue: string,
@@ -35,6 +35,6 @@ const reveal = ref<boolean>(false);
 
 <script lang="ts">
 export default {
-  name: 'CrInputPassword',
+  name: 'LfInputPassword',
 };
 </script>

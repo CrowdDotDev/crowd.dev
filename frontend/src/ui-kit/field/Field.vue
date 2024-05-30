@@ -26,6 +26,6 @@ const props = withDefaults(defineProps<{
 
 <script lang="ts">
 export default {
-  name: 'CrField',
+  name: 'LfField',
 };
 </script>

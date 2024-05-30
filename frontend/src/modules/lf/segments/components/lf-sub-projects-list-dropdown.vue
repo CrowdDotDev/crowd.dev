@@ -56,7 +56,7 @@
               :key="subproject.id"
               class="h-10 flex items-center px-3 text-xs text-gray-900 hover:bg-gray-50 rounded cursor-pointer"
               :class="{
-                'bg-brand-50': subproject.id === form.subprojectId,
+                'bg-primary-50': subproject.id === form.subprojectId,
               }"
               @click="onOptionClick(subproject, project)"
             >

@@ -34,7 +34,7 @@
         <el-dropdown-menu class="w-42">
           <!-- all platforms -->
           <el-dropdown-item
-            :class="{ 'bg-brand-50': platform === 'all' }"
+            :class="{ 'bg-primary-50': platform === 'all' }"
             @click="setPlatform('all')"
           >
             All platforms
@@ -47,7 +47,7 @@
             :key="integration"
             :divided="ii === 0"
             :class="{
-              'bg-brand-50': platform === integration,
+              'bg-primary-50': platform === integration,
             }"
             @click="setPlatform(integration)"
           >
@@ -77,6 +77,8 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';
 import { getSegmentsFromProjectGroup } from '@/utils/segments';
 import AppWidgetPeriod from '@/modules/widget/components/shared/widget-period.vue';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 
 export default {
   name: 'AppDashboardFilters',
@@ -133,6 +135,16 @@ export default {
     }),
     setSegment(filters) {
       if (filters.segments?.segments?.length) {
+        const { trackEvent } = useProductTracking();
+
+        trackEvent({
+          key: FeatureEventKey.FILTER_DASHBOARD,
+          type: EventType.FEATURE,
+          properties: {
+            filter: { projects: filters.segments.segments },
+          },
+        });
+
         this.setFilters(filters);
       }
     },
@@ -140,11 +152,35 @@ export default {
       return CrowdIntegrations.getConfig(platform);
     },
     setPeriod(period) {
+      const { trackEvent } = useProductTracking();
+
+      trackEvent({
+        key: FeatureEventKey.FILTER_DASHBOARD,
+        type: EventType.FEATURE,
+        properties: {
+          filter: {
+            period,
+          },
+        },
+      });
+
       this.setFilters({
         period,
       });
     },
     setPlatform(platform) {
+      const { trackEvent } = useProductTracking();
+
+      trackEvent({
+        key: FeatureEventKey.FILTER_DASHBOARD,
+        type: EventType.FEATURE,
+        properties: {
+          filter: {
+            platform,
+          },
+        },
+      });
+
       this.setFilters({
         platform,
       });

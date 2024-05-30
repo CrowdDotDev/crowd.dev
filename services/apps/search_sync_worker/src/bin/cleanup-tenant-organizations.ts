@@ -1,4 +1,4 @@
-import { DB_CONFIG, OPENSEARCH_CONFIG, SERVICE_CONFIG } from '../conf'
+import { DB_CONFIG, OPENSEARCH_CONFIG } from '../conf'
 import { OpenSearchService, OrganizationSyncService } from '@crowd/opensearch'
 import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { getServiceLogger } from '@crowd/logging'
@@ -23,13 +23,7 @@ setImmediate(async () => {
   const qdbConn = await getClientSQL()
   const qdbStore = new DbStore(log, qdbConn)
 
-  const service = new OrganizationSyncService(
-    store,
-    qdbStore,
-    openSearchService,
-    log,
-    SERVICE_CONFIG(),
-  )
+  const service = new OrganizationSyncService(store, qdbStore, openSearchService, log)
 
   await service.cleanupOrganizationIndex(tenantId)
 

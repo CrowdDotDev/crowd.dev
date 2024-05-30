@@ -31,7 +31,7 @@
           class="mr-4"
         />
         <h6
-          class="text-xs leading-5 font-medium text-gray-900 hover:text-brand-500 transition"
+          class="text-xs leading-5 font-medium text-gray-900 hover:text-primary-500 transition"
         >
           {{ organization.displayName || organization.name }}
         </h6>

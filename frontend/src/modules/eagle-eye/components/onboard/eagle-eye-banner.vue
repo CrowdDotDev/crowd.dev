@@ -1,11 +1,11 @@
 <template>
   <div
-    class="bg-brand-50/50 relative p-8 h-fit"
+    class="bg-primary-50/50 relative p-8 h-fit"
     :class="{ 'h-68': showImage }"
   >
     <div class="">
       <div
-        class="uppercase text-xs text-brand-500 font-semibold"
+        class="uppercase text-xs text-primary-500 font-semibold"
       >
         {{ preTitle }}
       </div>

@@ -8,10 +8,8 @@ import { DbStore } from '@crowd/database'
 import { Logger, getChildLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
 import {
-  Edition,
   IMemberAttribute,
   IMemberSegmentAggregates,
-  IServiceConfig,
   MemberAttributeType,
   MemberIdentityType,
 } from '@crowd/types'
@@ -33,7 +31,6 @@ export class MemberSyncService {
   private log: Logger
   private readonly memberRepo: MemberRepository
   private readonly segmentRepo: SegmentRepository
-  private readonly serviceConfig: IServiceConfig
   private readonly indexingRepo: IndexingRepository
 
   constructor(
@@ -42,10 +39,8 @@ export class MemberSyncService {
     private readonly qdbStore: DbStore,
     private readonly openSearchService: OpenSearchService,
     parentLog: Logger,
-    serviceConfig: IServiceConfig,
   ) {
     this.log = getChildLogger('member-sync-service', parentLog)
-    this.serviceConfig = serviceConfig
 
     this.memberRepo = new MemberRepository(redisClient, pgStore, this.log)
     this.segmentRepo = new SegmentRepository(pgStore, this.log)
@@ -101,7 +96,7 @@ export class MemberSyncService {
     }
   }
 
-  public async cleanupMemberIndex(tenantId: string): Promise<void> {
+  public async cleanupMemberIndex(tenantId: string, batchSize = 300): Promise<void> {
     this.log.warn({ tenantId }, 'Cleaning up member index!')
 
     const query = {
@@ -130,6 +125,7 @@ export class MemberSyncService {
     )) as ISearchHit<{ date_joinedAt: string; uuid_memberId: string }>[]
 
     let processed = 0
+    const idsToRemove: string[] = []
 
     while (results.length > 0) {
       // check every member if they exists in the database and if not remove them from the index
@@ -151,11 +147,13 @@ export class MemberSyncService {
         .filter((r) => !ids.includes(r._source.uuid_memberId))
         .map((r) => r._id)
 
-      if (toRemove.length > 0) {
-        this.log.warn({ tenantId, toRemove }, 'Removing members from index!')
-        for (const id of toRemove) {
-          await this.openSearchService.removeFromIndex(id, OpenSearchIndex.MEMBERS)
-        }
+      idsToRemove.push(...toRemove)
+
+      // Process bulk removals in chunks
+      while (idsToRemove.length >= batchSize) {
+        const batch = idsToRemove.splice(0, batchSize)
+        this.log.warn({ tenantId, batch }, 'Removing members from index!')
+        await this.openSearchService.bulkRemoveFromIndex(batch, OpenSearchIndex.MEMBERS)
       }
 
       processed += results.length
@@ -172,6 +170,12 @@ export class MemberSyncService {
         lastJoinedAt,
         include,
       )) as ISearchHit<{ date_joinedAt: string; uuid_memberId: string }>[]
+    }
+
+    // Remove any remaining IDs that were not processed
+    if (idsToRemove.length > 0) {
+      this.log.warn({ tenantId, idsToRemove }, 'Removing remaining members from index!')
+      await this.openSearchService.bulkRemoveFromIndex(idsToRemove, OpenSearchIndex.MEMBERS)
     }
 
     this.log.warn({ tenantId }, `Processed total of ${processed} members while cleaning up tenant!`)
@@ -207,9 +211,7 @@ export class MemberSyncService {
 
     while (results.length > 0) {
       const ids = results.map((r) => r._id)
-      for (const id of ids) {
-        await this.openSearchService.removeFromIndex(id, OpenSearchIndex.MEMBERS)
-      }
+      await this.openSearchService.bulkRemoveFromIndex(ids, OpenSearchIndex.MEMBERS)
 
       // use last joinedAt to get the next page
       lastJoinedAt = results[results.length - 1]._source.date_joinedAt
@@ -390,52 +392,48 @@ export class MemberSyncService {
             }
           }
 
-          const isMultiSegment = this.serviceConfig.edition === Edition.LFX
+          // also calculate and push for parent and grandparent segments
+          const childSegmentIds: string[] = distinct(memberSegments.map((m) => m.segmentId))
+          const segmentInfos = await this.segmentRepo.getParentSegmentIds(childSegmentIds)
 
-          if (isMultiSegment) {
-            // also calculate and push for parent and grandparent segments
-            const childSegmentIds: string[] = distinct(memberSegments.map((m) => m.segmentId))
-            const segmentInfos = await this.segmentRepo.getParentSegmentIds(childSegmentIds)
+          const parentIds: string[] = distinct(segmentInfos.map((s) => s.parentId))
+          for (const parentId of parentIds) {
+            const aggregated = MemberSyncService.aggregateData(
+              memberSegmentCouples[memberId].map((s) => s.aggregates),
+              segmentInfos,
+              parentId,
+            )
+            const prepared = MemberSyncService.prefixData(
+              memberSegmentCouples[memberId][0].data,
+              aggregated,
+              attributes,
+            )
+            syncStream.push({
+              id: `${memberId}-${parentId}`,
+              body: prepared,
+            })
+          }
 
-            const parentIds: string[] = distinct(segmentInfos.map((s) => s.parentId))
-            for (const parentId of parentIds) {
-              const aggregated = MemberSyncService.aggregateData(
-                memberSegmentCouples[memberId].map((s) => s.aggregates),
-                segmentInfos,
-                parentId,
-              )
-              const prepared = MemberSyncService.prefixData(
-                memberSegmentCouples[memberId][0].data,
-                aggregated,
-                attributes,
-              )
-              syncStream.push({
-                id: `${memberId}-${parentId}`,
-                body: prepared,
-              })
-            }
-
-            const grandParentIds = distinct(segmentInfos.map((s) => s.grandParentId))
-            for (const grandParentId of grandParentIds) {
-              const aggregated = MemberSyncService.aggregateData(
-                memberSegmentCouples[memberId].map((s) => s.aggregates),
-                segmentInfos,
-                undefined,
-                grandParentId,
-              )
-              const prepared = MemberSyncService.prefixData(
-                {
-                  ...memberSegmentCouples[memberId][0].data,
-                  grandParentSegment: true,
-                },
-                aggregated,
-                attributes,
-              )
-              syncStream.push({
-                id: `${memberId}-${grandParentId}`,
-                body: prepared,
-              })
-            }
+          const grandParentIds = distinct(segmentInfos.map((s) => s.grandParentId))
+          for (const grandParentId of grandParentIds) {
+            const aggregated = MemberSyncService.aggregateData(
+              memberSegmentCouples[memberId].map((s) => s.aggregates),
+              segmentInfos,
+              undefined,
+              grandParentId,
+            )
+            const prepared = MemberSyncService.prefixData(
+              {
+                ...memberSegmentCouples[memberId][0].data,
+                grandParentSegment: true,
+              },
+              aggregated,
+              attributes,
+            )
+            syncStream.push({
+              id: `${memberId}-${grandParentId}`,
+              body: prepared,
+            })
           }
 
           // delete the memberId from matrix, we already created syncStreams for indexing to opensearch

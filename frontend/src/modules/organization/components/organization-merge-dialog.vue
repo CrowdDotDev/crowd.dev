@@ -37,8 +37,8 @@
                   type="button"
                   @click="changeOrganization()"
                 >
-                  <span class="ri-refresh-line text-base text-brand-500 mr-2" />
-                  <span class="text-brand-500">Change organization</span>
+                  <span class="ri-refresh-line text-base text-primary-500 mr-2" />
+                  <span class="text-primary-500">Change organization</span>
                 </button>
               </template>
             </app-organization-merge-suggestions-details>
@@ -72,6 +72,8 @@ import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import AppOrganizationSelectionDropdown from '@/modules/organization/components/organization-selection-dropdown.vue';
 import useOrganizationMergeMessage from '@/shared/modules/merge/config/useOrganizationMergeMessage';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 
 const props = defineProps({
   modelValue: {
@@ -85,6 +87,8 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['update:modelValue']);
+
+const { trackEvent } = useProductTracking();
 
 const route = useRoute();
 const router = useRouter();
@@ -128,6 +132,14 @@ const mergeSuggestion = () => {
   const secondaryOrganization = originalOrganizationPrimary.value ? organizationToMerge.value : props.modelValue;
 
   const { loadingMessage, apiErrorMessage } = useOrganizationMergeMessage;
+
+  trackEvent({
+    key: FeatureEventKey.MERGE_ORGANIZATION,
+    type: EventType.FEATURE,
+    properties: {
+      path: route.path,
+    },
+  });
 
   OrganizationService.mergeOrganizations(primaryOrganization.id, secondaryOrganization.id)
     .then(() => {

@@ -1,4 +1,4 @@
-import { DB_CONFIG, OPENSEARCH_CONFIG, REDIS_CONFIG, SERVICE_CONFIG } from '../conf'
+import { DB_CONFIG, OPENSEARCH_CONFIG, REDIS_CONFIG } from '../conf'
 import { OpenSearchService, MemberSyncService } from '@crowd/opensearch'
 import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { getServiceLogger } from '@crowd/logging'
@@ -26,14 +26,7 @@ setImmediate(async () => {
   const qdb = await getClientSQL()
   const qdbStore = new DbStore(log, qdb)
 
-  const service = new MemberSyncService(
-    redis,
-    store,
-    qdbStore,
-    openSearchService,
-    log,
-    SERVICE_CONFIG(),
-  )
+  const service = new MemberSyncService(redis, store, qdbStore, openSearchService, log)
 
   for (const memberId of memberIds) {
     await service.removeMember(memberId)

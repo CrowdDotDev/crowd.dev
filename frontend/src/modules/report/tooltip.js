@@ -88,8 +88,8 @@ export const externalTooltipHandler = (
           let classes;
           if (a.difference === 0) {
             classes = {
-              bgColor: 'bg-blue-100',
-              color: 'text-blue-700',
+              bgColor: 'bg-primary-100',
+              color: 'text-primary-700',
             };
           } else if (a.difference > 0) {
             classes = {

@@ -1,15 +1,15 @@
 <template>
-  <cr-field-message v-for="error of errors.slice(0, 1)" :key="error.$property" v-bind="$attrs">
+  <lf-field-message v-for="error of errors.slice(0, 1)" :key="error.$property" v-bind="$attrs">
     {{ errorMessage(error) }}
     <template v-if="$slots.icon" #icon>
       <slot name="icon" />
     </template>
-  </cr-field-message>
+  </lf-field-message>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import CrFieldMessage from '@/ui-kit/field-message/FieldMessage.vue';
+import LfFieldMessage from '@/ui-kit/field-message/FieldMessage.vue';
 
 const props = withDefaults(defineProps<{
   validation: any,
@@ -37,6 +37,6 @@ const errorMessage = (error) => {
 
 <script lang="ts">
 export default {
-  name: 'CrFieldMessages',
+  name: 'LfFieldMessages',
 };
 </script>

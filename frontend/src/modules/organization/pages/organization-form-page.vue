@@ -171,6 +171,8 @@ import enrichmentAttributes from '@/modules/organization/config/enrichment';
 import { AttributeType } from '@/modules/organization/types/Attributes';
 import AppOrganizationFormEmails from '@/modules/organization/components/form/organization-form-emails.vue';
 import AppOrganizationFormPhoneNumber from '@/modules/organization/components/form/organization-form-phone-number.vue';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { useOrganizationStore } from '../store/pinia';
 
 const LoaderIcon = h(
@@ -236,6 +238,8 @@ const formSchema = new FormSchema([
   fields.tags,
   fields.ultimateParent,
 ]);
+
+const { trackEvent } = useProductTracking();
 
 const router = useRouter();
 const route = useRoute();
@@ -482,6 +486,14 @@ async function onSubmit() {
 
   // Edit
   if (isEditPage.value) {
+    trackEvent({
+      key: FeatureEventKey.EDIT_ORGANIZATION,
+      type: EventType.FEATURE,
+      properties: {
+        ...payload.values,
+      },
+    });
+
     try {
       await OrganizationService.update(payload.id, payload.values);
       Message.success(i18n('entities.organization.update.success'));
@@ -516,6 +528,14 @@ async function onSubmit() {
       }
     }
   } else {
+    trackEvent({
+      key: FeatureEventKey.ADD_ORGANIZATION,
+      type: EventType.FEATURE,
+      properties: {
+        ...payload,
+      },
+    });
+
     // Create
     try {
       await OrganizationService.create(payload);

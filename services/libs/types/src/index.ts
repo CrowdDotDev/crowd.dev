@@ -53,3 +53,5 @@ export * from './segments'
 export * from './enums'
 
 export * from './service'
+
+export * from './productAnalytics'

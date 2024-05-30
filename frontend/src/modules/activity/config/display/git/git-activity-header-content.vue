@@ -64,7 +64,7 @@
         <a
           class="text-xs font-medium flex items-center cursor-pointer hover:underline"
           target="_blank"
-          @click="emit('openConversation')"
+          @click="openConversation"
         >
           <i class="text-sm ri-eye-line mr-1" />
           <span class="block">View commit</span></a>
@@ -92,6 +92,8 @@ import { formatDateToTimeAgo } from '@/utils/date';
 import LfActivityMemberOrganization from '@/shared/modules/activity/components/activity-member-organization.vue';
 import AppActivitySentiment from '@/modules/activity/components/activity-sentiment.vue';
 import { toSentenceCase } from '@/utils/string';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 
 const emit = defineEmits<{(e: 'edit'): void;
   (e: 'onUpdate'): void;
@@ -104,11 +106,25 @@ const props = defineProps<{
   inDashboard?: boolean;
 }>();
 
+const { trackEvent } = useProductTracking();
+
 const platform = computed(() => CrowdIntegrations.getConfig(props.activity.platform));
 
 const activityMessage = computed(() => props.activity.display?.default ?? '');
 const timeAgo = computed(() => formatDateToTimeAgo(props.activity.timestamp));
 const sentiment = computed(() => props.activity?.sentiment?.sentiment || 0);
+
+const openConversation = () => {
+  trackEvent({
+    key: FeatureEventKey.VIEW_CONVERSATION,
+    type: EventType.FEATURE,
+    properties: {
+      conversationPlatform: props.activity.platform,
+    },
+  });
+
+  emit('openConversation');
+};
 </script>
 
 <style lang="scss">
@@ -119,7 +135,7 @@ const sentiment = computed(() => props.activity?.sentiment?.sentiment || 0);
 
   a,
   span {
-    @apply text-brand-500;
+    @apply text-primary-500;
 
     &.gray {
       @apply text-gray-500;

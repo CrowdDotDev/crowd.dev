@@ -23,7 +23,7 @@
       }
 
       & td.today .cell {
-        @apply text-brand-500 font-medium;
+        @apply text-primary-500 font-medium;
       }
 
       & td.current:not(.disabled):not(:hover) .cell {
@@ -41,7 +41,7 @@
     margin-top: 5px;
 
     &:hover {
-      @apply text-brand-500;
+      @apply text-primary-500;
     }
   }
 
@@ -80,17 +80,17 @@
       @apply h-8 p-0;
 
       &.current:not(.disabled):not(:hover) .el-date-table-cell__text {
-        @apply bg-brand-500 text-brand-50 font-medium;
+        @apply bg-primary-500 text-primary-50 font-medium;
       }
 
       &.available:hover .el-date-table-cell__text {
-        @apply bg-brand-50;
+        @apply bg-primary-50;
       }
 
       &.today
         .el-date-table-cell
         .el-date-table-cell__text {
-        @apply text-brand-500 font-medium;
+        @apply text-primary-500 font-medium;
       }
 
       &.next-month,
@@ -111,14 +111,14 @@
       &.start-date, &.end-date {
         &, &:hover{
           .el-date-table-cell__text{
-            @apply bg-brand-500 text-brand-50 rounded;
+            @apply bg-primary-500 text-primary-50 rounded;
           }
         }
       }
 
       &.in-range {
         .el-date-table-cell{
-          @apply bg-brand-50 text-gray-900 rounded;
+          @apply bg-primary-50 text-gray-900 rounded;
         }
       }
     }
@@ -126,25 +126,25 @@
 
   .el-month-table{
     .cell:hover{
-      @apply bg-brand-100 #{!important};
+      @apply bg-primary-100 #{!important};
     }
 
     .in-range {
       &>div{
-        @apply bg-brand-50 #{!important};
+        @apply bg-primary-50 #{!important};
       }
 
       .el-date-table-cell, .cell{
-        @apply bg-brand-50 text-gray-900 rounded;
+        @apply bg-primary-50 text-gray-900 rounded;
       }
 
       &.start-date, &.end-date{
         &>div{
-          @apply bg-brand-500 #{!important};
+          @apply bg-primary-500 #{!important};
         }
 
         .el-date-table-cell, .cell{
-          @apply bg-brand-500 text-white rounded #{!important};
+          @apply bg-primary-500 text-white rounded #{!important};
         }
       }
     }
