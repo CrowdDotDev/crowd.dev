@@ -1641,22 +1641,24 @@ class MemberRepository {
       })
     }
 
-    const seq = SequelizeRepository.getSequelize(options)
-    result.segments = await seq.query(
+    const segmentsFound = await options.qdb.query(
       `
-      SELECT
-          s.id,
-          s.name
-      FROM mv_activities_cube a
-      JOIN segments s ON s.id = a."segmentId"
-      WHERE a."memberId" = :id
-      GROUP BY s.id
+      SELECT segmentId FROM activities
+      WHERE memberId = $(memberId)
+      AND deletedAt IS NULL
+      GROUP BY segmentId;`,
+      {
+        memberId: id,
+      },
+    )
+
+    result.segments = await options.database(
+      `
+      SELECT id, name FROM segments
+      WHERE id IN ($(segmentIds:csv));
       `,
       {
-        replacements: {
-          id,
-        },
-        type: QueryTypes.SELECT,
+        segmentIds: segmentsFound.map((row) => row.segmentId),
       },
     )
 
@@ -1714,8 +1716,8 @@ class MemberRepository {
     }
 
     const activeMemberResults = await getActiveMembers(options.qdb, {
-      timestampFrom: filter.activityTimestampFrom,
-      timestampTo: filter.activityTimestampTo,
+      timestampFrom: new Date(Date.parse(filter.activityTimestampFrom)),
+      timestampTo: new Date(Date.parse(filter.activityTimestampTo)),
       isContribution: filter.activityIsContribution === true ? true : undefined,
       platforms: filter.platforms ? filter.platforms : undefined,
       segmentIds: segments,

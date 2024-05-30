@@ -216,6 +216,7 @@ class ActivityRepository {
     arg.limit = 1
     arg.tenantId = currentTenant.id
     arg.segmentIds = segmentIds
+    arg.groupBy = null
 
     const results = await queryActivities(options.qdb, arg)
 
@@ -252,7 +253,6 @@ class ActivityRepository {
 
     return records.rows.map((record) => record.id)
   }
-
 
   static async createResults(result: IIntegrationResult, options: IRepositoryOptions) {
     const tenant = SequelizeRepository.getCurrentTenant(options)

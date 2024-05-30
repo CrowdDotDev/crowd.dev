@@ -1,5 +1,6 @@
 import { Error400, singleOrDefault } from '@crowd/common'
 import {
+  DEFAULT_COLUMNS_TO_SELECT,
   addActivityToConversation,
   deleteActivities,
   insertActivities,
@@ -190,11 +191,17 @@ export default class ActivityService extends LoggerBase {
           record = await this.addToConversation(record.id, data.parent, transaction)
         } else if ('sourceId' in data && data.sourceId) {
           // if it's not a child, it may be a parent of previously added activities
-          const children = await queryActivities(repositoryOptions.qdb, {
-            tenantId: record.tenantId,
-            segmentIds: [record.segmentId],
-            filter: { and: [{ sourceParentId: { eq: data.sourceId } }] },
-          })
+          const children = await queryActivities(
+            repositoryOptions.qdb,
+            {
+              tenantId: record.tenantId,
+              segmentIds: [record.segmentId],
+              filter: { and: [{ sourceParentId: { eq: data.sourceId } }] },
+              populate: { member: true },
+            },
+            DEFAULT_COLUMNS_TO_SELECT,
+            this.options.database.sequelize,
+          )
 
           for (const child of children.rows) {
             // update children with newly created parentId
@@ -686,7 +693,7 @@ export default class ActivityService extends LoggerBase {
 
   async query(data) {
     const filter = data.filter
-    const orderBy = Array.isArray(data.orderBy) ? data.orderBy : [data.orderBy]
+    // const orderBy = Array.isArray(data.orderBy) ? data.orderBy : [data.orderBy]
     const limit = data.limit
     const offset = data.offset
     const countOnly = data.countOnly ?? false
@@ -694,15 +701,23 @@ export default class ActivityService extends LoggerBase {
     const tenantId = SequelizeRepository.getCurrentTenant(this.options).id
     const segmentIds = SequelizeRepository.getSegmentIds(this.options)
 
-    const page = await queryActivities(this.options.qdb, {
-      tenantId,
-      segmentIds,
-      filter,
-      orderBy,
-      limit,
-      offset,
-      countOnly,
-    })
+    const page = await queryActivities(
+      this.options.qdb,
+      {
+        tenantId,
+        segmentIds,
+        filter,
+        // orderBy,
+        limit,
+        offset,
+        countOnly,
+        populate: {
+          member: true,
+        },
+      },
+      DEFAULT_COLUMNS_TO_SELECT,
+      this.options.database.sequelize,
+    )
 
     const parentIds: string[] = []
     const memberIds: string[] = []
@@ -731,31 +746,6 @@ export default class ActivityService extends LoggerBase {
     }
 
     const promises = []
-
-    if (memberIds.length > 0) {
-      promises.push(
-        MemberRepository.findAndCountAllOpensearch(
-          {
-            filter: {
-              and: [{ id: { in: memberIds } }],
-            },
-            limit: memberIds.length,
-          },
-          this.options,
-        ).then((members) => {
-          for (const row of page.rows) {
-            ;(row as any).member = singleOrDefault(members.rows, (m) => m.id === row.memberId)
-            if (row.objectMemberId) {
-              ;(row as any).objectMember = singleOrDefault(
-                members.rows,
-                (m) => m.id === row.objectMemberId,
-              )
-            }
-          }
-        }),
-      )
-    }
-
     if (organizationIds.length > 0) {
       promises.push(
         OrganizationRepository.findAndCountAllOpensearch(

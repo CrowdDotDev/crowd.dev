@@ -19,7 +19,6 @@ import {
   SegmentData,
   SegmentProjectGroupNestedData,
   SegmentProjectNestedData,
-  SyncStatus,
 } from '@crowd/types'
 import lodash, { chunk } from 'lodash'
 import Sequelize, { QueryTypes } from 'sequelize'
@@ -30,12 +29,15 @@ import {
   organizationUpdateAction,
 } from '@crowd/audit-logs'
 import validator from 'validator'
-import { getActiveOrganizations } from '@crowd/data-access-layer'
+import {
+  countMembersWithActivities,
+  getActiveOrganizations,
+  queryActivities,
+} from '@crowd/data-access-layer'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
 import { IRepositoryOptions } from './IRepositoryOptions'
-import OrganizationSyncRemoteRepository from './organizationSyncRemoteRepository'
 import SegmentRepository from './segmentRepository'
 import { IActiveOrganizationData, IActiveOrganizationFilter } from './types/organizationTypes'
 import {
@@ -2122,9 +2124,6 @@ class OrganizationRepository {
     segments: string[] = [],
   ): Promise<PageData<IActiveOrganizationData>> {
     const tenant = SequelizeRepository.getCurrentTenant(options)
-
-    const segmentsEnabled = await isFeatureEnabled(FeatureFlag.SEGMENTS, options)
-
     if (segments.length !== 1) {
       throw new Error400(
         `This operation can have exactly one segment. Found ${segments.length} segments.`,
@@ -2158,8 +2157,8 @@ class OrganizationRepository {
     }
 
     const activeOrgsResults = await getActiveOrganizations(options.qdb, {
-      timestampFrom: filter.activityTimestampFrom,
-      timestampTo: filter.activityTimestampTo,
+      timestampFrom: new Date(Date.parse(filter.activityTimestampFrom)),
+      timestampTo: new Date(Date.parse(filter.activityTimestampTo)),
       tenantId: tenant.id,
       platforms: filter.platforms ? filter.platforms : undefined,
       segmentIds: segments,
@@ -2469,24 +2468,24 @@ class OrganizationRepository {
     platform: string,
     options: IRepositoryOptions,
   ): Promise<number> {
-    const seq = SequelizeRepository.getSequelize(options)
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    const query = `
-    SELECT count(*) as count
-        FROM "mv_activities_cube"
-        WHERE "organizationId" = :organizationId AND platform = :platform`
-
-    const result = await seq.query(query, {
-      replacements: {
-        organizationId,
-        platform,
+    const result = await queryActivities(options.qdb, {
+      countOnly: true,
+      tenantId: options.currentTenant.id,
+      filter: {
+        and: [
+          {
+            organizationId: {
+              eq: organizationId,
+            },
+            platform: {
+              eq: platform,
+            },
+          },
+        ],
       },
-      type: QueryTypes.SELECT,
-      transaction,
     })
 
-    return (result[0] as any).count as number
+    return result.count
   }
 
   static async getMemberCountInPlatform(
@@ -2494,23 +2493,18 @@ class OrganizationRepository {
     platform: string,
     options: IRepositoryOptions,
   ): Promise<number> {
-    const seq = SequelizeRepository.getSequelize(options)
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    const query = `
-    select count(distinct  "memberId") from mv_activities_cube
-    where "organizationId" = :organizationId AND platform = :platform`
-
-    const result = await seq.query(query, {
-      replacements: {
-        organizationId,
-        platform,
-      },
-      type: QueryTypes.SELECT,
-      transaction,
+    const rows = await countMembersWithActivities(options.qdb, {
+      tenantId: options.currentTenant.id,
+      organizationId,
+      platform,
     })
 
-    return (result[0] as any).count as number
+    let count = 0
+    rows.forEach((row) => {
+      count += Number(row.count)
+    })
+
+    return count
   }
 
   static async removeIdentitiesFromOrganization(

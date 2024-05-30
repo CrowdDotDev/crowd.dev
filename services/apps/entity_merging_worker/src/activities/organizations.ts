@@ -28,7 +28,7 @@ export async function moveActivitiesBetweenOrgs(
   secondaryId: string,
   tenantId: string,
 ): Promise<boolean> {
-  const result = await moveActivitiesToNewOrg(svc.postgres.writer, primaryId, secondaryId, tenantId)
+  const result = await moveActivitiesToNewOrg(svc.questdbSQL.$dc, primaryId, secondaryId, tenantId)
 
   return result.rowCount > 0
 }

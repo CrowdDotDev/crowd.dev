@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { SegmentRawData } from '@crowd/types'
+import { IDbMember } from '../old/apps/data_sink_worker/repo/member.data'
 
 export interface IQueryActivityResult {
   id: string
@@ -30,6 +31,9 @@ export interface IQueryActivityResult {
   updatedAt?: string
   updatedById?: string
   url?: string | null
+  relations: {
+    member?: IDbMember
+  }
 
   // TODO questdb: Needed?
   ids?: string[]
@@ -55,6 +59,9 @@ export interface IQueryActivitiesParameters {
   offset?: number
   countOnly?: boolean
   groupBy?: string
+  populate?: {
+    member?: boolean
+  }
 }
 
 export interface IQueryGroupedActivitiesParameters {
@@ -131,6 +138,7 @@ export interface IActiveMemberData {
 export interface IQueryNumberOfActiveMembersParameters {
   tenantId: string
   segmentIds?: string[]
+  organizationId?: string
   timestampFrom?: Date
   timestampTo?: Date
   platform?: string
@@ -190,4 +198,9 @@ export interface IActivityByTypeAndPlatformResult {
   type: string
   platform: string
   count: number
+}
+
+export interface INewActivityPlatforms {
+  segmentIds: string[]
+  after: Date
 }

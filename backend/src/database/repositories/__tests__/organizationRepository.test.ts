@@ -256,9 +256,6 @@ describe('OrganizationRepository tests', () => {
         mockIRepositoryOptions,
       )
       await createActivitiesForMembers(memberIds, organizationCreated.id, mockIRepositoryOptions)
-      await mockIRepositoryOptions.database.sequelize.query(
-        'REFRESH MATERIALIZED VIEW mv_activities_cube',
-      )
 
       organizationCreated = await OrganizationRepository.findById(
         organizationCreated.id,

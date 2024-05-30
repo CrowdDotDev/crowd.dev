@@ -2,6 +2,7 @@ import { getCleanString, Error403, distinct, singleOrDefault, single } from '@cr
 import { LoggerBase } from '@crowd/logging'
 import { PageData, PlatformType } from '@crowd/types'
 import {
+  DEFAULT_COLUMNS_TO_SELECT,
   IQueryActivityResult,
   deleteConversations,
   insertConversation,
@@ -502,14 +503,22 @@ export default class ConversationService extends LoggerBase {
     })
 
     const conversationIds = results.rows.map((r) => r.id)
-    const activities = (await queryActivities(this.options.qdb, {
-      filter: {
-        and: [{ conversationId: { in: conversationIds } }],
+    const activities = (await queryActivities(
+      this.options.qdb,
+      {
+        filter: {
+          and: [{ conversationId: { in: conversationIds } }],
+        },
+        tenantId,
+        segmentIds,
+        populate: {
+          member: true,
+        },
+        noLimit: true,
       },
-      tenantId,
-      segmentIds,
-      noLimit: true,
-    })) as PageData<IQueryActivityResult>
+      DEFAULT_COLUMNS_TO_SELECT,
+      this.options.database.sequelize,
+    )) as PageData<IQueryActivityResult>
 
     for (const conversation of results.rows) {
       ;(conversation as any).activities = activities.rows
@@ -519,6 +528,11 @@ export default class ConversationService extends LoggerBase {
             // from oldest to newest
             new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
         )
+
+      // TODO questdb: This should not be needed. Front-end must be updated to
+      // only get activities array.
+      conversation.conversationStarter = conversation.activities[0]
+      conversation.lastReplies = conversation.activities.slice(1)
     }
 
     return results

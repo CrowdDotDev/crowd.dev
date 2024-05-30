@@ -32,11 +32,14 @@ import {
   IActivityByTypeAndPlatformResult,
   IActivityBySentimentMoodResult,
   IActivityTimeseriesResult,
+  INewActivityPlatforms,
 } from './types'
 import { ActivityDisplayService } from '@crowd/integrations'
 
 import merge from 'lodash.merge'
 import { checkUpdateRowCount } from '../utils'
+import { IPlatforms } from '../old/apps/cache_worker/types'
+import { QueryTypes } from 'sequelize'
 
 const s3Url = `https://${
   process.env['CROWD_S3_MICROSERVICES_ASSETS_BUCKET']
@@ -372,7 +375,7 @@ export type ActivityColumn =
   | 'gitInsertions'
   | 'gitDeletions'
 
-const DEFAULT_COLUMNS_TO_SELECT: ActivityColumn[] = [
+export const DEFAULT_COLUMNS_TO_SELECT: ActivityColumn[] = [
   'id',
   'attributes',
   'body',
@@ -411,6 +414,7 @@ export async function queryActivities(
   qdbConn: DbConnOrTx,
   arg: IQueryActivitiesParameters,
   columns: ActivityColumn[] = DEFAULT_COLUMNS_TO_SELECT,
+  pgdbConn?: DbConnOrTx, // Required if arg.populate is set.
 ): Promise<PageData<IQueryActivityResult | any>> {
   if (arg.tenantId === undefined || arg.segmentIds === undefined || arg.segmentIds.length === 0) {
     throw new Error('tenantId and segmentIds are required to query activities!')
@@ -537,8 +541,19 @@ export async function queryActivities(
 
     query += `
       order by ${orderByString}
-      limit $(lowerLimit), $(upperLimit);
     `
+
+    if (arg.limit > 0) {
+      query += `limit $(lowerLimit)`
+
+      if (params.upperLimit) {
+        query += `, $(upperLimit)`
+      }
+    }
+
+    query += ';'
+
+    console.log('query', query)
 
     const [results, countResults] = await Promise.all([
       qdbConn.any(query, params),
@@ -589,9 +604,47 @@ export async function queryActivities(
     results.push(data)
   }
 
+  const memberIds: string[] = []
+  if (activities.length > 0 && arg.populate) {
+    if (arg.populate.member) {
+      activities.forEach((row) => {
+        if (memberIds.indexOf(row.memberId) === -1) {
+          memberIds.push(row.memberId)
+        }
+      })
+
+      // TODO questdb: This is using Sequelize methods because back-end code still
+      // relies on it.
+      const membersFound = await pgdbConn.query(
+        `
+        SELECT *
+        FROM members
+        WHERE "tenantId" = :tenantId
+        AND id IN (:memberIds)
+        `,
+        {
+          replacements: {
+            tenantId: arg.tenantId,
+            memberIds,
+          },
+          type: QueryTypes.SELECT,
+        },
+      )
+
+      for (const result of activities) {
+        for (const memberFound of membersFound) {
+          if (result.memberId === memberFound.id) {
+            result.member = memberFound
+            break
+          }
+        }
+      }
+    }
+  }
+
   return {
     count,
-    rows: results,
+    rows: activities,
     limit: arg.limit,
     offset: arg.offset,
   }
@@ -801,7 +854,7 @@ export async function getMemberAggregates(
     with relevant_activities as (select id, platform, type, timestamp, "sentimentScore", "memberId", "segmentId"
                                 from activities
                                 where "memberId" = $(memberId)
-                                  and "segmentId" in ($(segmentId:csv))
+                                  and "segmentId" in ($(segmentIds:csv))
                                   and "deletedAt" is null),
         activity_types as (select distinct "memberId", "segmentId", type, platform
                             from relevant_activities
@@ -904,6 +957,10 @@ export async function countMembersWithActivities(
     query += ' AND "segmentId" IN ($(segmentIds:csv))'
   }
 
+  if (arg.organizationId) {
+    query += ' AND organizationId = $(organizationId)'
+  }
+
   if (arg.platform) {
     query += ' AND platform = $(platform)'
   }
@@ -922,8 +979,9 @@ export async function countMembersWithActivities(
   return await qdbConn.any(query, {
     tenantId: arg.tenantId,
     segmentIds: arg.segmentIds,
+    organizationId: arg.organizationId,
     after: arg.timestampFrom,
-    before: arg.timestampFrom,
+    before: arg.timestampTo,
     platform: arg.platform,
   })
 }
@@ -962,7 +1020,7 @@ export async function countOrganizationsWithActivities(
     tenantId: arg.tenantId,
     segmentIds: arg.segmentIds,
     after: arg.timestampFrom,
-    before: arg.timestampFrom,
+    before: arg.timestampTo,
     platform: arg.platform,
   })
 }
@@ -1015,6 +1073,7 @@ export async function activitiesBySentiment(
     FROM activities
     WHERE "tenantId" = $(tenantId)
     AND "deletedAt" IS NULL
+    AND "sentimentLabel" IS NOT NULL
   `
 
   if (arg.segmentIds) {
@@ -1065,7 +1124,7 @@ export async function activitiesByTypeAndPlatform(
     query += ' AND "timestamp" BETWEEN $(after) AND $(before)'
   }
 
-  query += ` GROUP BY platform, type;`
+  query += ` GROUP BY platform, type ORDER BY count DESC;`
 
   const rows: IActivityByTypeAndPlatformResult[] = await qdbConn.query(query, {
     tenantId: arg.tenantId,
@@ -1255,4 +1314,28 @@ export async function getLastActivitiesForMembers(
   }
 
   return []
+}
+
+export async function getNewActivityPlatforms(
+  qdbConn: DbConnOrTx,
+  arg: INewActivityPlatforms,
+): Promise<IPlatforms> {
+  const query = `
+    SELECT DISTINCT(platform) FROM activities
+    WHERE "segmentId" IN ($(segmentIds:csv))
+    AND "deletedAt" IS NULL
+    AND "timestamp" > $(after);
+  `
+
+  const rows: { platform: string }[] = await qdbConn.query(query, {
+    segmentIds: arg.segmentIds,
+    after: arg.after,
+  })
+
+  const results: IPlatforms = { platforms: [] }
+  rows.forEach((row) => {
+    results.platforms.push(row.platform)
+  })
+
+  return results
 }

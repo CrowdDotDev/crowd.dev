@@ -151,7 +151,7 @@ class ConversationRepository {
       throw new Error404()
     }
 
-    return this._populateRelations(conversation, options)
+    return this._populateRelations(conversation, options, ['activities'])
   }
 
   static async destroyBulk(ids: string[], options: IRepositoryOptions, force = false) {

@@ -459,7 +459,7 @@ export async function queryConversations(
       offset: arg.offset,
     }
   } else {
-    const query = `${baseQuery.replace(
+    let query = `${baseQuery.replace(
       '<columns_to_select>',
       `
       c.id, 
@@ -477,8 +477,17 @@ export async function queryConversations(
       c."updatedAt"
       `,
     )}
-    order by ${orderByString}
-    limit $(lowerLimit), $(upperLimit)`
+    order by ${orderByString}`
+
+    if (arg.limit > 0) {
+      query += `limit $(lowerLimit)`
+
+      if (params.upperLimit) {
+        query += `, $(upperLimit)`
+      }
+    }
+
+    query += ';'
 
     const [results, countResults] = await Promise.all([
       qdbConn.any(query, params),
