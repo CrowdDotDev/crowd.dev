@@ -1,15 +1,15 @@
 <template>
   <el-popover v-model:visible="visible" placement="bottom-start" trigger="click" popper-class="!p-0" width="20rem">
     <template #reference>
-      <cr-button type="secondary" size="small">
+      <lf-button type="secondary" size="small">
         <i class="ri-stack-line" /> <p>Projects: <span class="font-normal">{{ label }}</span></p>
-      </cr-button>
+      </lf-button>
     </template>
 
     <div class="pt-1.5 pb-2 px-2">
       <article
         class="px-3 py-2.5 leading-5 font-xs flex justify-between items-center transition cursor-pointer rounded-md hover:bg-gray-50"
-        :class="empty ? '!bg-brand-50' : ''"
+        :class="empty ? '!bg-primary-50' : ''"
         @click="segments = []; childSegments = []"
       >
         <span class="text-black">All projects</span>
@@ -32,7 +32,7 @@
         <label
           class="px-3 py-2.5 leading-5 font-xs flex items-center transition cursor-pointer rounded-md hover:bg-gray-50"
         >
-          <cr-checkbox
+          <lf-checkbox
             v-model="segments"
             :value="project.id"
             @update:model-value="onProjectSelect(project)"
@@ -46,7 +46,7 @@
           :key="subproject.id"
           class="pr-3 pl-10 py-2.5 leading-5 font-xs flex items-center transition cursor-pointer rounded-md hover:bg-gray-50"
         >
-          <cr-checkbox
+          <lf-checkbox
             v-model="childSegments"
             :value="subproject.id"
             @update:model-value="onSubprojectSelect(project, subproject)"
@@ -58,12 +58,12 @@
       </section>
     </div>
     <div class="py-3 px-4 border-t border-gray-100 flex justify-end gap-3">
-      <cr-button size="small" type="tertiary-gray" @click="visible = false">
+      <lf-button size="small" type="tertiary-gray" @click="visible = false">
         Cancel
-      </cr-button>
-      <cr-button size="small" type="primary" :disabled="!hasChanged" @click="apply()">
+      </lf-button>
+      <lf-button size="small" type="primary" :disabled="!hasChanged" @click="apply()">
         Apply
-      </cr-button>
+      </lf-button>
     </div>
   </el-popover>
 </template>
@@ -72,11 +72,14 @@
 import {
   computed, onMounted, ref,
 } from 'vue';
-import CrButton from '@/ui-kit/button/Button.vue';
-import CrCheckbox from '@/ui-kit/checkbox/Checkbox.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
+import LfCheckbox from '@/ui-kit/checkbox/Checkbox.vue';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';
 import isEqual from 'lodash/isEqual';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import { useRouter } from 'vue-router';
 
 const props = defineProps<{
   segments: string[]
@@ -90,6 +93,9 @@ const visible = ref<boolean>(false);
 
 const segments = ref<string[]>(props.segments);
 const childSegments = ref<string[]>(props.childSegments);
+
+const { trackEvent } = useProductTracking();
+const router = useRouter();
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup, projects } = storeToRefs(lsSegmentsStore);
@@ -184,6 +190,29 @@ const onSubprojectSelect = (project: any, subproject: any) => {
 const apply = () => {
   emit('update:segments', segments.value);
   emit('update:childSegments', childSegments.value);
+
+  let key: FeatureEventKey | null = null;
+  const { name: routeName } = router.currentRoute.value;
+
+  if (routeName === 'memberMergeSuggestions') {
+    key = FeatureEventKey.FILTER_CONTRIBUTORS_MERGE_SUGGESTIONS;
+  } else if (routeName === 'organizationMergeSuggestions') {
+    key = FeatureEventKey.FILTER_ORGANIZATIONS_MERGE_SUGGESTIONS;
+  }
+
+  if (key) {
+    trackEvent({
+      key,
+      type: EventType.FEATURE,
+      properties: {
+        filter: {
+          projects: segments.value,
+          subprojects: childSegments.value,
+        },
+      },
+    });
+  }
+
   visible.value = false;
 };
 

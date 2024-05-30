@@ -18,7 +18,7 @@
         </template>
       </app-organization-form-phone-number-item>
       <div class="flex">
-        <div class="text-xs font-medium text-brand-500 cursor-pointer" @click="addPhoneNumber()">
+        <div class="text-xs font-medium text-primary-500 cursor-pointer" @click="addPhoneNumber()">
           + Add phone number
         </div>
       </div>

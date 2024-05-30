@@ -5,15 +5,18 @@ import {
 
 import {
   mergeMembers,
+  unmergeMembers,
   syncMember,
   syncActivities,
   recalculateActivityAffiliationsOfMemberAsync,
+  waitForTemporalWorkflowExecutionFinish,
 } from './activities/common'
 
 import {
   findActivitiesWithWrongMemberId,
   updateActivityMember,
 } from './activities/fix-activities-with-wrong-members'
+import { findMemberMergeActions } from './activities/dissect-member'
 
 export {
   findMembersWithSameVerifiedEmailsInDifferentPlatforms,
@@ -24,4 +27,7 @@ export {
   updateActivityMember,
   recalculateActivityAffiliationsOfMemberAsync,
   syncActivities,
+  findMemberMergeActions,
+  unmergeMembers,
+  waitForTemporalWorkflowExecutionFinish,
 }

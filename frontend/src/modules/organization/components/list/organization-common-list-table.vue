@@ -1,30 +1,30 @@
 <template>
   <div>
-    <cr-table type="bordered" class="pb-12">
+    <lf-table type="bordered" class="pb-12">
       <thead>
         <tr>
-          <cr-table-head v-model="sort" property="displayName" :sticky="true">
+          <lf-table-head v-model="sort" property="displayName" :sticky="true">
             ORGANIZATION
-          </cr-table-head>
-          <cr-table-head>
+          </lf-table-head>
+          <lf-table-head>
             ASSOCIATED PROJECT GROUPS
-          </cr-table-head>
-          <cr-table-head>
+          </lf-table-head>
+          <lf-table-head>
             IDENTITIES
-          </cr-table-head>
-          <cr-table-head :sticky="true" />
+          </lf-table-head>
+          <lf-table-head :sticky="true" />
         </tr>
       </thead>
 
       <tbody>
         <tr v-for="(org, oi) of props.organizations" :key="org.id">
-          <cr-table-cell :sticky="true">
+          <lf-table-cell :sticky="true">
             <app-organization-name
               class="w-full"
               :organization="org"
             />
-          </cr-table-cell>
-          <cr-table-cell>
+          </lf-table-cell>
+          <lf-table-cell>
             <div class="flex">
               <el-popover placement="top-start">
                 <template #reference>
@@ -47,70 +47,70 @@
                 </div>
               </el-popover>
             </div>
-          </cr-table-cell>
-          <cr-table-cell>
+          </lf-table-cell>
+          <lf-table-cell>
             <div class="h-full flex items-center">
               <app-identities-horizontal-list-organizations
                 :organization="org"
                 :limit="5"
               />
             </div>
-          </cr-table-cell>
-          <cr-table-cell :sticky="true" :style="{ 'z-index': props.organizations.length - oi + 2 }">
+          </lf-table-cell>
+          <lf-table-cell :sticky="true" :style="{ 'z-index': props.organizations.length - oi + 2 }">
             <div class="flex justify-end">
-              <cr-dropdown placement="bottom-end">
+              <lf-dropdown placement="bottom-end">
                 <template #trigger>
-                  <cr-button type="tertiary-gray" :icon-only="true" size="small">
+                  <lf-button type="tertiary-gray" :icon-only="true" size="small">
                     <i class="ri-more-fill !text-lg" />
-                  </cr-button>
+                  </lf-button>
                 </template>
-                <cr-dropdown-item @click="isMergeDialogOpen = org">
+                <lf-dropdown-item @click="isMergeDialogOpen = org">
                   <i class="ri-link-m" />
                   Merge organization
-                </cr-dropdown-item>
-                <cr-dropdown-item
+                </lf-dropdown-item>
+                <lf-dropdown-item
                   v-if="!org.isTeamOrganization"
                   @click="markAsTeamOrganization(org)"
                 >
                   <i class="ri-team-line" />
                   Mark as team organization
-                </cr-dropdown-item>
-                <cr-dropdown-separator />
-                <cr-dropdown-item type="danger" @click="deleteOrganization(org)">
+                </lf-dropdown-item>
+                <lf-dropdown-separator />
+                <lf-dropdown-item type="danger" @click="deleteOrganization(org)">
                   <i class="ri-delete-bin-6-line" />
                   Delete organization
-                </cr-dropdown-item>
-              </cr-dropdown>
+                </lf-dropdown-item>
+              </lf-dropdown>
             </div>
-          </cr-table-cell>
+          </lf-table-cell>
         </tr>
       </tbody>
 
       <tfoot class="border-b border-gray-100" style="z-index: 0">
         <tr>
-          <cr-table-cell :sticky="true" colspan="2" style="z-index: 0">
+          <lf-table-cell :sticky="true" colspan="2" style="z-index: 0">
             <slot name="pagination" />
-          </cr-table-cell>
+          </lf-table-cell>
         </tr>
       </tfoot>
       <div class="absolute bottom-0 left-0 right-0 bg-white h-12" />
-    </cr-table>
+    </lf-table>
   </div>
 
   <app-organization-merge-dialog v-model="isMergeDialogOpen" />
 </template>
 
 <script setup lang="ts">
-import CrTable from '@/ui-kit/table/Table.vue';
-import CrTableHead from '@/ui-kit/table/TableHead.vue';
+import LfTable from '@/ui-kit/table/Table.vue';
+import LfTableHead from '@/ui-kit/table/TableHead.vue';
 import AppOrganizationName from '@/modules/organization/components/organization-name.vue';
 import AppIdentitiesHorizontalListOrganizations
   from '@/shared/modules/identities/components/identities-horizontal-list-organizations.vue';
-import CrDropdown from '@/ui-kit/dropdown/Dropdown.vue';
-import CrButton from '@/ui-kit/button/Button.vue';
-import CrDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
-import CrDropdownSeparator from '@/ui-kit/dropdown/DropdownSeparator.vue';
-import CrTableCell from '@/ui-kit/table/TableCell.vue';
+import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
+import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
+import LfDropdownSeparator from '@/ui-kit/dropdown/DropdownSeparator.vue';
+import LfTableCell from '@/ui-kit/table/TableCell.vue';
 import AppOrganizationMergeDialog from '@/modules/organization/components/organization-merge-dialog.vue';
 import { computed, ref } from 'vue';
 import { OrganizationService } from '@/modules/organization/organization-service';

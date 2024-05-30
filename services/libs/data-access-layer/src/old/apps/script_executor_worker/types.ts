@@ -11,3 +11,10 @@ export interface IActivityPartial {
   wrongMemberId: string
   correctMemberId: string
 }
+
+export interface IFindMemberMergeActionReplacement {
+  memberId: string
+  startDate?: string
+  endDate?: string
+  userId?: string
+}

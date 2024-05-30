@@ -311,10 +311,10 @@ export default {
 
   .app-menu {
     --el-menu-base-level-padding: 24px;
-    @apply bg-brand-25 flex flex-col relative;
+    @apply bg-primary-25 flex flex-col relative;
 
     .el-menu {
-      @apply bg-brand-25;
+      @apply bg-primary-25;
     }
 
     a,
@@ -331,7 +331,7 @@ export default {
       }
 
       &.is-active {
-        @apply bg-brand-50 text-gray-900 font-medium;
+        @apply bg-primary-50 text-gray-900 font-medium;
 
         i {
           @apply text-gray-900;

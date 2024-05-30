@@ -2,7 +2,7 @@
   <app-page-wrapper size="full-width">
     <div class="member-list-page">
       <div class="mb-10">
-        <app-lf-page-header text-class="text-sm text-brand-600 mb-2.5" />
+        <app-lf-page-header text-class="text-sm text-primary-600 mb-2.5" />
         <div class="flex items-center justify-between">
           <div class="flex items-center">
             <h4>Organizations</h4>
@@ -34,7 +34,7 @@
                     <span class="text-gray-900">Merge suggestions</span>
                     <span
                       v-if="organizationsToMergeCount > 0"
-                      class="ml-2 bg-brand-100 text-brand-500 py-px px-1.5 leading-5 rounded-full font-semibold"
+                      class="ml-2 bg-primary-100 text-primary-500 py-px px-1.5 leading-5 rounded-full font-semibold"
                     >{{ Math.ceil(organizationsToMergeCount) }}</span>
                   </button>
                 </component>
@@ -54,14 +54,14 @@
         </div>
       </div>
 
-      <cr-saved-views
+      <lf-saved-views
         v-model="filters"
         :config="organizationSavedViews"
         :filters="organizationFilters"
         placement="organization"
         @update:model-value="organizationFilter.alignFilterList($event)"
       />
-      <cr-filter
+      <lf-filter
         ref="organizationFilter"
         v-model="filters"
         :config="organizationFilters"
@@ -95,8 +95,8 @@ import AppPageWrapper from '@/shared/layout/page-wrapper.vue';
 import AppOrganizationListTable from '@/modules/organization/components/list/organization-list-table.vue';
 import AppLfPageHeader from '@/modules/lf/layout/components/lf-page-header.vue';
 import AppLfSubProjectsListModal from '@/modules/lf/segments/components/lf-sub-projects-list-modal.vue';
-import CrSavedViews from '@/shared/modules/saved-views/components/SavedViews.vue';
-import CrFilter from '@/shared/modules/filters/components/Filter.vue';
+import LfSavedViews from '@/shared/modules/saved-views/components/SavedViews.vue';
+import LfFilter from '@/shared/modules/filters/components/Filter.vue';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import { storeToRefs } from 'pinia';
 import { organizationFilters, organizationSearchFilter } from '@/modules/organization/config/filters/main';
@@ -118,7 +118,7 @@ const tableLoading = ref(false);
 const organizationCount = ref(0);
 const isSubProjectSelectionOpen = ref(false);
 
-const organizationFilter = ref<CrFilter | null>(null);
+const organizationFilter = ref<LfFilter | null>(null);
 const lsSegmentsStore = useLfSegmentsStore();
 
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);

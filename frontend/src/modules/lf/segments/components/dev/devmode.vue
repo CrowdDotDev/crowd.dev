@@ -44,6 +44,6 @@ watch(() => currentTenant.value, (tenantId) => {
 
 <script lang="ts">
 export default {
-  name: 'CrDevmode',
+  name: 'LfDevmode',
 };
 </script>

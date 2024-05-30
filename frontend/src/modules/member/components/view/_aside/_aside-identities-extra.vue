@@ -27,14 +27,14 @@
             ref="emailRef"
             target="_blank"
             rel="noopener noreferrer"
-            class="text-xs text-gray-900 hover:text-brand-500 border border-gray-200 rounded-md py-0.5 px-2 truncate flex items-center"
+            class="text-xs text-gray-900 hover:text-primary-500 border border-gray-200 rounded-md py-0.5 px-2 truncate flex items-center"
             :href="email.link"
           >
             {{ email.handle }}
 
             <div v-if="email.verified" class="pl-1">
               <el-tooltip placement="top" content="Verified email">
-                <i class="ri-verified-badge-fill text-brand-500 text-base leading-4" />
+                <i class="ri-verified-badge-fill text-primary-500 text-base leading-4" />
               </el-tooltip>
             </div>
 
@@ -51,7 +51,7 @@
       </div>
       <div
         v-if="distinctEmails.length > 5"
-        class="underline cursor-pointer text-gray-500 hover:text-brand-500 text-xs underline-offset-4 mt-5"
+        class="underline cursor-pointer text-gray-500 hover:text-primary-500 text-xs underline-offset-4 mt-5"
         @click="displayMore = !displayMore"
       >
         Show {{ displayMore ? 'less' : 'more' }}

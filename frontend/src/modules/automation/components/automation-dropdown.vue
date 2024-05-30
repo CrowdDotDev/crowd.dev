@@ -41,6 +41,8 @@ import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { useAutomationStore } from '@/modules/automation/store';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 
 const props = defineProps({
   automation: {
@@ -56,6 +58,7 @@ const emit = defineEmits([
 ]);
 
 const { hasPermission } = usePermissions();
+const { trackEvent } = useProductTracking();
 
 const automationStore = useAutomationStore();
 const { deleteAutomation } = automationStore;
@@ -69,12 +72,27 @@ const doDestroyWithConfirm = () => ConfirmDialog({
   cancelButtonText: 'Cancel',
   icon: 'ri-delete-bin-line',
 })
-  .then(() => deleteAutomation(props.automation.id));
+  .then(() => {
+    trackEvent({
+      key: FeatureEventKey.DELETE_AUTOMATION,
+      type: EventType.FEATURE,
+      properties: {
+        automationType: props.automation.type,
+      },
+    });
+
+    deleteAutomation(props.automation.id);
+  });
 
 const edit = () => {
   emit('openEditAutomationDrawer');
 };
 const openExecutions = () => {
+  trackEvent({
+    key: FeatureEventKey.VIEW_AUTOMATION_EXECUTION,
+    type: EventType.FEATURE,
+  });
+
   emit('openExecutionsDrawer');
 };
 </script>

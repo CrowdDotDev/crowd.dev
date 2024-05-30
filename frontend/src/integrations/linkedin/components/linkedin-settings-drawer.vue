@@ -115,6 +115,9 @@ import {
 } from 'vue';
 import { useStore } from 'vuex';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import { Platform } from '@/shared/modules/platform/types/Platform';
 
 const store = useStore();
 
@@ -128,6 +131,8 @@ const props = defineProps({
     default: () => {},
   },
 });
+
+const { trackEvent } = useProductTracking();
 
 const emit = defineEmits(['update:modelValue']);
 const organizations = computed(
@@ -166,10 +171,20 @@ const doReset = () => {
 
 const connect = async () => {
   loading.value = true;
+
   await store.dispatch(
     'integration/doLinkedinOnboard',
     model.value,
   );
+
+  const isUpdate = props.integration?.settings?.organizations.length > 0;
+
+  trackEvent({
+    key: isUpdate ? FeatureEventKey.EDIT_INTEGRATION_SETTINGS : FeatureEventKey.CONNECT_INTEGRATION,
+    type: EventType.FEATURE,
+    properties: { platform: Platform.LINKEDIN },
+  });
+
   loading.value = false;
   isVisible.value = false;
 };

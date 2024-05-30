@@ -73,6 +73,7 @@ import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppArrayInput from '@/shared/form/array-input.vue';
 import formChangeDetector from '@/shared/form/form-change';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
+import { Platform } from '@/shared/modules/platform/types/Platform';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps({
@@ -127,11 +128,21 @@ const cancel = () => {
 const connect = async () => {
   loading.value = true;
 
+  const isUpdate = !!props.integration?.settings?.remotes?.length;
+
   doGitConnect({
     remotes: form.remotes,
-    isUpdate: props.integration?.settings?.remotes?.length,
+    isUpdate,
   })
     .then(() => {
+      trackEvent({
+        key: isUpdate ? FeatureEventKey.EDIT_INTEGRATION_SETTINGS : FeatureEventKey.CONNECT_INTEGRATION,
+        type: EventType.FEATURE,
+        properties: {
+          platform: Platform.GIT,
+        },
+      });
+
       isVisible.value = false;
     })
     .finally(() => {

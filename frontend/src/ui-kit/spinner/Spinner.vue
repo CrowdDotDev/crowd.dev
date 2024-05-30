@@ -1,5 +1,5 @@
 <template>
-  <div class="c-spinner" :style="{ '--cr-spinner-size': props.size }" />
+  <div class="c-spinner" :style="{ '--lf-spinner-size': props.size }" />
 </template>
 
 <script setup lang="ts">
@@ -13,6 +13,6 @@ const props = withDefaults(defineProps<{
 
 <script lang="ts">
 export default {
-  name: 'CrSpinner',
+  name: 'LfSpinner',
 };
 </script>

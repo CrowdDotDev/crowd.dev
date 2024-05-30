@@ -21,17 +21,19 @@ export class OrganizationSyncService {
   private readonly indexingRepo: IndexingRepository
 
   constructor(
-    store: DbStore,
+    writeStore: DbStore,
     private readonly openSearchService: OpenSearchService,
     parentLog: Logger,
     serviceConfig: IServiceConfig,
+    readStore?: DbStore,
   ) {
     this.log = getChildLogger('organization-sync-service', parentLog)
     this.serviceConfig = serviceConfig
 
+    const store = readStore || writeStore
     this.orgRepo = new OrganizationRepository(store, this.log)
     this.segmentRepo = new SegmentRepository(store, this.log)
-    this.indexingRepo = new IndexingRepository(store, this.log)
+    this.indexingRepo = new IndexingRepository(writeStore, this.log)
   }
 
   public async getAllIndexedTenantIds(
@@ -83,7 +85,7 @@ export class OrganizationSyncService {
     }
   }
 
-  public async cleanupOrganizationIndex(tenantId: string): Promise<void> {
+  public async cleanupOrganizationIndex(tenantId: string, batchSize = 300): Promise<void> {
     this.log.warn({ tenantId }, 'Cleaning up organization index!')
 
     const query = {
@@ -112,6 +114,7 @@ export class OrganizationSyncService {
     )) as ISearchHit<{ date_createdAt: string; uuid_organizationId: string }>[]
 
     let processed = 0
+    const idsToRemove: string[] = []
 
     while (results.length > 0) {
       // check every organization if they exists in the database and if not remove them from the index
@@ -124,11 +127,13 @@ export class OrganizationSyncService {
         .filter((r) => !dbIds.includes(r._source.uuid_organizationId))
         .map((r) => r._id)
 
-      if (toRemove.length > 0) {
-        this.log.warn({ tenantId, toRemove }, 'Removing organizations from index!')
-        for (const id of toRemove) {
-          await this.openSearchService.removeFromIndex(id, OpenSearchIndex.ORGANIZATIONS)
-        }
+      idsToRemove.push(...toRemove)
+
+      // Process bulk removals in chunks
+      while (idsToRemove.length >= batchSize) {
+        const batch = idsToRemove.splice(0, batchSize)
+        this.log.warn({ tenantId, batch }, 'Removing organizations from index!')
+        await this.openSearchService.bulkRemoveFromIndex(batch, OpenSearchIndex.ORGANIZATIONS)
       }
 
       processed += results.length
@@ -145,6 +150,12 @@ export class OrganizationSyncService {
         lastCreatedAt,
         include,
       )) as ISearchHit<{ date_createdAt: string; uuid_organizationId: string }>[]
+    }
+
+    // Remove any remaining IDs that were not processed
+    if (idsToRemove.length > 0) {
+      this.log.warn({ tenantId, idsToRemove }, 'Removing remaining organizations from index!')
+      await this.openSearchService.bulkRemoveFromIndex(idsToRemove, OpenSearchIndex.ORGANIZATIONS)
     }
 
     this.log.warn(
@@ -183,9 +194,7 @@ export class OrganizationSyncService {
 
     while (results.length > 0) {
       const ids = results.map((r) => r._id)
-      for (const id of ids) {
-        await this.openSearchService.removeFromIndex(id, OpenSearchIndex.ORGANIZATIONS)
-      }
+      await this.openSearchService.bulkRemoveFromIndex(ids, OpenSearchIndex.ORGANIZATIONS)
 
       // use last joinedAt to get the next page
       lastJoinedAt = results[results.length - 1]._source.date_joinedAt
@@ -201,14 +210,20 @@ export class OrganizationSyncService {
     }
   }
 
-  public async syncTenantOrganizations(tenantId: string, batchSize = 100): Promise<void> {
+  public async syncTenantOrganizations(tenantId: string, batchSize = 200): Promise<void> {
     this.log.warn({ tenantId }, 'Syncing all tenant organizations!')
     let docCount = 0
     let organizationCount = 0
+    let previousBatchIds: string[] = []
+    const now = new Date()
 
     await logExecutionTime(
       async () => {
-        let organizationIds = await this.orgRepo.getTenantOrganizationsForSync(tenantId, batchSize)
+        let organizationIds = await this.orgRepo.getTenantOrganizationsForSync(
+          tenantId,
+          batchSize,
+          previousBatchIds,
+        )
 
         while (organizationIds.length > 0) {
           const { organizationsSynced, documentsIndexed } = await this.syncOrganizations(
@@ -218,9 +233,12 @@ export class OrganizationSyncService {
           organizationCount += organizationsSynced
           docCount += documentsIndexed
 
+          const diffInMinutes = (new Date().getTime() - now.getTime()) / 1000 / 60
           this.log.info(
             { tenantId },
-            `Synced ${organizationCount} organizations with ${docCount} documents!`,
+            `Synced ${organizationCount} organizations! Speed: ${Math.round(
+              organizationCount / diffInMinutes,
+            )} organizations/minute!`,
           )
 
           await this.indexingRepo.markEntitiesIndexed(
@@ -232,7 +250,13 @@ export class OrganizationSyncService {
               }
             }),
           )
-          organizationIds = await this.orgRepo.getTenantOrganizationsForSync(tenantId, batchSize)
+
+          previousBatchIds = organizationIds
+          organizationIds = await this.orgRepo.getTenantOrganizationsForSync(
+            tenantId,
+            batchSize,
+            previousBatchIds,
+          )
         }
       },
       this.log,

@@ -36,6 +36,20 @@ services:
     networks:
       - crowd-bridge
 
+  product:
+    image: postgres:13.6-alpine
+    restart: unless-stopped
+    environment:
+      - POSTGRES_PASSWORD=example
+      - POSTGRES_DB=product-db
+    ports:
+      - 5433:5432
+    volumes:
+      - pgdata-product-dev:/var/lib/postgresql/data
+    shm_size: 1gb
+    networks:
+      - crowd-bridge
+
   open-search:
     image: opensearchproject/opensearch:2.7.0
     restart: unless-stopped
@@ -169,6 +183,7 @@ networks:
 
 volumes:
   pgdata-dev:
+  pgdata-product-dev:
   opensearch-dev:
   s3-dev:
   redis-dev:

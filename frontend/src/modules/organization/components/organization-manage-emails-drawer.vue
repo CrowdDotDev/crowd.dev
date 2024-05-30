@@ -8,7 +8,7 @@
     <template #content>
       <div class="-mt-8 z-10 pb-6">
         <div
-          class="flex gap-2 text-xs text-brand-500 font-semibold items-center cursor-pointer"
+          class="flex gap-2 text-xs text-primary-500 font-semibold items-center cursor-pointer"
           @click="addEmail()"
         >
           <i class="ri-add-line text-base" />Add email
@@ -54,6 +54,8 @@ import AppDrawer from '@/shared/drawer/drawer.vue';
 import AppOrganizationFormEmailItem
   from '@/modules/organization/components/form/email/organization-form-email-item.vue';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 
 const props = defineProps<{
   modelValue: boolean,
@@ -61,6 +63,8 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits(['update:modelValue']);
+
+const { trackEvent } = useProductTracking();
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
@@ -80,6 +84,14 @@ const emails = ref<string[]>([...(props.organization.emails || [])]);
 const addEmails = ref<string[]>([]);
 
 const serverUpdate = () => {
+  trackEvent({
+    key: FeatureEventKey.EDIT_ORGANIZATION_EMAIL_DOMAIN,
+    type: EventType.FEATURE,
+    properties: {
+      emails: emails.value.filter((e) => !!e.trim()),
+    },
+  });
+
   OrganizationService.update(props.organization.id, {
     emails: emails.value.filter((e) => !!e.trim()),
   }).then(() => {

@@ -12,7 +12,7 @@
         <app-lf-search-input
           v-if="pagination.total && !isProjectAdminUser"
           placeholder="Search project group..."
-          @on-change="(query) => searchProjectGroup(query, null, adminOnly)"
+          @on-change="onSearchProjectGroup"
         />
       </div>
     </div>
@@ -26,7 +26,7 @@
       v-if="pagination.total && isProjectAdminUser"
       class="my-6"
       placeholder="Search project group..."
-      @on-change="(query) => searchProjectGroup(query, null, adminOnly)"
+      @on-change="onSearchProjectGroup"
     />
     <div
       v-if="loading"
@@ -129,9 +129,13 @@ import { useAuthStore } from '@/modules/auth/store/auth.store';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import { LfRole } from '@/shared/modules/permissions/types/Roles';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 
 const router = useRouter();
 const route = useRoute();
+
+const { trackEvent } = useProductTracking();
 
 const authStore = useAuthStore();
 const { roles } = storeToRefs(authStore);
@@ -205,6 +209,15 @@ onMounted(() => {
     loadingProjectAdmin.value = false;
   }
 });
+
+const onSearchProjectGroup = (query) => {
+  trackEvent({
+    key: FeatureEventKey.SEARCH_PROJECT_GROUPS,
+    type: EventType.FEATURE,
+  });
+
+  searchProjectGroup(query, null, adminOnly.value);
+};
 </script>
 
 <script>

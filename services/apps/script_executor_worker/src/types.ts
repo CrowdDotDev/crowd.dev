@@ -12,3 +12,13 @@ export interface IFindAndMergeMembersWithSameIdentitiesDifferentCapitalizationIn
 export interface IFixActivitiesWithWrongMembersArgs {
   tenantId: string
 }
+export interface IUnmergeWronglyMergedEmailIdentitiesArgs {
+  tenantId: string
+}
+
+export interface IDissectMemberArgs {
+  memberId: string
+  userId?: string
+  startDate?: string
+  endDate?: string
+}

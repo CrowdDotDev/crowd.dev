@@ -58,7 +58,7 @@ const popover = computed<EnrichSneakPeakPopoverContent>(() => popoverContent[pro
 
 <script lang="ts">
 export default {
-  name: 'CrEnrichmentSneakPeakContent',
+  name: 'LfEnrichmentSneakPeakContent',
 };
 </script>
 

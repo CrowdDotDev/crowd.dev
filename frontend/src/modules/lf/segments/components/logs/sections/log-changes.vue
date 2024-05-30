@@ -24,7 +24,7 @@
       :key="ci"
       class="pb-2 flex items-center text-sm"
     >
-      <i class="ri-loop-left-line text-base text-blue-500 mr-2" />
+      <i class="ri-loop-left-line text-base text-primary-500 mr-2" />
       <p class="c-changes" v-html="$sanitize(change)" />
     </article>
   </section>

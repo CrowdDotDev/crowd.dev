@@ -177,7 +177,7 @@ onMounted(() => {
 
 <script lang="ts">
 export default {
-  name: 'CrDateFilter',
+  name: 'LfDateFilter',
 };
 </script>
 

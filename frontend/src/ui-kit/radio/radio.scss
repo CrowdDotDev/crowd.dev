@@ -1,19 +1,19 @@
 .c-radio {
-  font-size: var(--cr-radio-font-size);
-  line-height: var(--cr-radio-line-height);
-  font-weight: var(--cr-radio-text-font-weight);
-  color: var(--cr-radio-text-color);
+  font-size: var(--lf-radio-font-size);
+  line-height: var(--lf-radio-line-height);
+  font-weight: var(--lf-radio-text-font-weight);
+  color: var(--lf-radio-text-color);
   @apply flex flex-wrap relative;
 
   input {
-    height: var(--cr-radio-size);
-    width: var(--cr-radio-size);
-    border: rem(1) solid var(--cr-radio-border);
-    background: var(--cr-radio-background);
-    box-shadow: var(--cr-radio-shadow);
+    height: var(--lf-radio-size);
+    width: var(--lf-radio-size);
+    border: rem(1) solid var(--lf-radio-border);
+    background: var(--lf-radio-background);
+    box-shadow: var(--lf-radio-shadow);
 
-    --cr-radio-border: var(--cr-radio-unchecked-border);
-    --cr-radio-background: var(--cr-radio-unchecked-background);
+    --lf-radio-border: var(--lf-radio-unchecked-border);
+    --lf-radio-background: var(--lf-radio-unchecked-background);
 
     @apply transition-all appearance-none rounded-full p-0 my-0 ml-0 inline-block mr-2 cursor-pointer;
 
@@ -24,20 +24,20 @@
 
     // Checked
     &:checked{
-      --cr-radio-border: var(--cr-radio-checked-border);
-      --cr-radio-background: var(--cr-radio-checked-background);
+      --lf-radio-border: var(--lf-radio-checked-border);
+      --lf-radio-background: var(--lf-radio-checked-background);
       border-width: rem(5);
     }
 
     // Disabled
     &:disabled {
-      --cr-radio-border: var(--cr-radio-disabled-unchecked-border);
-      --cr-radio-background: var(--cr-radio-disabled-unchecked-background);
+      --lf-radio-border: var(--lf-radio-disabled-unchecked-border);
+      --lf-radio-background: var(--lf-radio-disabled-unchecked-background);
       @apply cursor-not-allowed;
 
       &:checked {
-        --cr-radio-border: var(--cr-radio-disabled-checked-border);
-        --cr-radio-background: var(--cr-radio-disabled-checked-background);
+        --lf-radio-border: var(--lf-radio-disabled-checked-border);
+        --lf-radio-background: var(--lf-radio-disabled-checked-background);
       }
 
       & + span{
@@ -48,22 +48,22 @@
 
   // Checkbox sizes
   &--small {
-    --cr-radio-size: var(--cr-radio-small-size);
-    --cr-radio-font-size: var(--cr-radio-small-font-size);
-    --cr-radio-line-height: var(--cr-radio-small-line-height);
+    --lf-radio-size: var(--lf-radio-small-size);
+    --lf-radio-font-size: var(--lf-radio-small-font-size);
+    --lf-radio-line-height: var(--lf-radio-small-line-height);
   }
 
   &--medium {
-    --cr-radio-size: var(--cr-radio-medium-size);
-    --cr-radio-font-size: var(--cr-radio-medium-font-size);
-    --cr-radio-line-height: var(--cr-radio-medium-line-height);
+    --lf-radio-size: var(--lf-radio-medium-size);
+    --lf-radio-font-size: var(--lf-radio-medium-font-size);
+    --lf-radio-line-height: var(--lf-radio-medium-line-height);
   }
 
   p{
-    font-size: var(--cr-radio-description-font-size);
-    line-height: var(--cr-radio-description-line-height);
-    font-weight: var(--cr-radio-description-font-weight);
-    color: var(--cr-radio-description-color);
-    margin-top: var(--cr-radio-description-spacing);
+    font-size: var(--lf-radio-description-font-size);
+    line-height: var(--lf-radio-description-line-height);
+    font-weight: var(--lf-radio-description-font-weight);
+    color: var(--lf-radio-description-color);
+    margin-top: var(--lf-radio-description-spacing);
   }
 }

@@ -65,6 +65,8 @@ import { SavedViewsService } from '@/shared/modules/saved-views/services/saved-v
 import Message from '@/shared/message/message';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 
 const props = defineProps<{
   config: SavedViewsConfig,
@@ -76,6 +78,8 @@ const emit = defineEmits<{(e: 'update:views', value: SavedView[]): any,
   (e: 'duplicate', value: SavedView): any,
   (e: 'reload'): any,
 }>();
+
+const { trackEvent } = useProductTracking();
 
 const { hasPermission } = usePermissions();
 
@@ -89,6 +93,11 @@ const views = computed<SavedView[]>({
 });
 
 const onListChange = () => {
+  trackEvent({
+    key: FeatureEventKey.REORDER_CUSTOM_VIEW,
+    type: EventType.FEATURE,
+  });
+
   SavedViewsService.updateBulk(
     views.value.map(
       (view, viewIndex) => ({
@@ -122,6 +131,11 @@ const remove = (view: SavedView) => {
     confirmButtonText: isShared ? 'Delete shared view' : 'Delete view',
   } as any)
     .then(() => {
+      trackEvent({
+        key: FeatureEventKey.DELETE_CUSTOM_VIEW,
+        type: EventType.FEATURE,
+      });
+
       SavedViewsService.delete(view.id)
         .then(() => {
           (window as any).analytics.track('Custom view deleted', {
@@ -140,7 +154,7 @@ const remove = (view: SavedView) => {
 
 <script lang="ts">
 export default {
-  name: 'CrSavedViewsManagement',
+  name: 'LfSavedViewsManagement',
 };
 </script>
 

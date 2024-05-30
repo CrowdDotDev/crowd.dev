@@ -65,7 +65,7 @@
         </p>
       </div>
       <div>
-        <cr-enrichment-sneak-peak type="contact">
+        <lf-enrichment-sneak-peak type="contact">
           <template #default="{ enabled }">
             <div>
               <div class="flex items-center gap-1">
@@ -98,7 +98,7 @@
               </div>
             </div>
           </template>
-        </cr-enrichment-sneak-peak>
+        </lf-enrichment-sneak-peak>
       </div>
       <div>
         <p class="text-gray-400 font-medium text-2xs">
@@ -139,7 +139,7 @@ import AppMemberBio from '@/modules/member/components/member-bio.vue';
 import AppTagPopover from '@/modules/tag/components/tag-popover.vue';
 import AppSvg from '@/shared/svg/svg.vue';
 import { getAttributeSourceName } from '@/shared/helpers/attribute.helpers';
-import CrEnrichmentSneakPeak from '@/shared/modules/enrichment/components/enrichment-sneak-peak.vue';
+import LfEnrichmentSneakPeak from '@/shared/modules/enrichment/components/enrichment-sneak-peak.vue';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 
