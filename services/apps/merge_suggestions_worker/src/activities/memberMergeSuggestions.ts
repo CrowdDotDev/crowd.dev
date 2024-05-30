@@ -74,7 +74,8 @@ export async function getMemberMergeSuggestions(
     for (const identity of member.nested_identities.slice(0, 200)) {
       if (identity.keyword_value && identity.keyword_value.length > 0) {
         // For verified identities (either email or username)
-        // 1. Exact search the identity in other unverified identities
+        // 1. Exact search the identity in other identities
+        //    This will also search for different capitalizations of the same identity, because keyword types are normalized using the lowercase normalizer
         // 2. Fuzzy search the identity in other verified identities
         if (identity.bool_verified) {
           identitiesPartialQuery.should[1].nested.query.bool.should.push({
@@ -84,11 +85,6 @@ export async function getMemberMergeSuggestions(
                 {
                   match: {
                     [`nested_identities.string_platform`]: identity.string_platform,
-                  },
-                },
-                {
-                  term: {
-                    [`nested_identities.bool_verified`]: false,
                   },
                 },
               ],
