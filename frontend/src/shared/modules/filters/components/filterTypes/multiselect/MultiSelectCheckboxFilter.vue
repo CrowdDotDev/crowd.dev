@@ -7,9 +7,9 @@
       >
         {{ group.label }}
       </div>
-      <cr-filter-multi-select-option v-for="(option, oi) of group.options" :key="oi" v-model="form" :value="option.value">
+      <lf-filter-multi-select-option v-for="(option, oi) of group.options" :key="oi" v-model="form" :value="option.value">
         {{ option.label }}
-      </cr-filter-multi-select-option>
+      </lf-filter-multi-select-option>
     </template>
   </div>
 </template>
@@ -20,7 +20,7 @@ import {
   MultiSelectFilterOptions,
   MultiSelectFilterConfig,
 } from '@/shared/modules/filters/types/filterTypes/MultiSelectFilterConfig';
-import CrFilterMultiSelectOption
+import LfFilterMultiSelectOption
   from '@/shared/modules/filters/components/partials/multiselect/FilterMultiSelectOption.vue';
 
 const props = defineProps<{
@@ -38,6 +38,6 @@ const form = computed({
 
 <script lang="ts">
 export default {
-  name: 'CrMultiSelectCheckboxFilter',
+  name: 'LfMultiSelectCheckboxFilter',
 };
 </script>

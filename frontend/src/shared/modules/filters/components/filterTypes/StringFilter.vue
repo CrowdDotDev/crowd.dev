@@ -1,7 +1,7 @@
 <template>
   <div v-if="form">
     <div class="p-4 pb-5">
-      <cr-filter-inline-select
+      <lf-filter-inline-select
         v-if="!props.config.options.fixedOperator"
         v-model="form.operator"
         :prefix="`${props.config.label}:`"
@@ -9,7 +9,7 @@
         :options="stringFilterOperators"
       />
 
-      <cr-filter-input
+      <lf-filter-input
         v-model="form.value"
         placeholder="Enter a value"
         data-qa="filter-input"
@@ -27,8 +27,8 @@ import {
   StringFilterOptions,
   StringFilterValue,
 } from '@/shared/modules/filters/types/filterTypes/StringFilterConfig';
-import CrFilterInlineSelect from '@/shared/modules/filters/components/partials/FilterInlineSelect.vue';
-import CrFilterInput from '@/shared/modules/filters/components/partials/string/FilterInput.vue';
+import LfFilterInlineSelect from '@/shared/modules/filters/components/partials/FilterInlineSelect.vue';
+import LfFilterInput from '@/shared/modules/filters/components/partials/string/FilterInput.vue';
 import { stringFilterOperators, FilterStringOperator } from '@/shared/modules/filters/config/constants/string.constants';
 
 const props = defineProps<{
@@ -69,6 +69,6 @@ onMounted(() => {
 
 <script lang="ts">
 export default {
-  name: 'CrStringFilter',
+  name: 'LfStringFilter',
 };
 </script>

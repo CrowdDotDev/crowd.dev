@@ -4,7 +4,7 @@
     <header class="flex items-center justify-between px-6 py-5 border-b">
       <div class="flex items-center gap-4">
         <div class="flex items-center gap-2">
-          <cr-button
+          <lf-button
             type="secondary"
             size="small"
             :disabled="loading || offset <= 0 || count === 0"
@@ -12,8 +12,8 @@
             @click="fetch(offset - 1)"
           >
             <i class="ri-arrow-left-s-line" />
-          </cr-button>
-          <cr-button
+          </lf-button>
+          <lf-button
             type="secondary"
             size="small"
             :disabled="loading || offset >= count - 1 || count === 0"
@@ -21,7 +21,7 @@
             @click="fetch(offset + 1)"
           >
             <i class="ri-arrow-right-s-line" />
-          </cr-button>
+          </lf-button>
         </div>
 
         <app-loading v-if="loading" height="16px" width="128px" radius="3px" />
@@ -46,22 +46,22 @@
       </div>
       <div class="flex items-center gap-4">
         <app-member-merge-similarity v-if="!loading && organizationsToMerge.similarity" :similarity="organizationsToMerge.similarity" />
-        <cr-button
+        <lf-button
           type="secondary"
           :disabled="loading || isEditLockedForSampleData || count === 0"
           :loading="sendingIgnore"
           @click="ignoreSuggestion()"
         >
           Ignore suggestion
-        </cr-button>
-        <cr-button
+        </lf-button>
+        <lf-button
           type="primary"
           :disabled="loading || isEditLockedForSampleData || count === 0"
           :loading="sendingMerge"
           @click="mergeSuggestion()"
         >
           Merge organizations
-        </cr-button>
+        </lf-button>
         <slot name="actions" />
       </div>
     </header>
@@ -84,7 +84,7 @@
           />
         </div>
 
-        <div class="w-1/3 ml-8 rounded-lg bg-brand-25">
+        <div class="w-1/3 ml-8 rounded-lg bg-primary-25">
           <app-member-merge-suggestions-details
             :member="null"
             :loading="true"
@@ -114,7 +114,7 @@
           <app-organization-merge-suggestions-details
             :organization="preview"
             :is-preview="true"
-            class="rounded-lg bg-brand-25"
+            class="rounded-lg bg-primary-25"
           />
         </div>
       </div>
@@ -148,7 +148,7 @@ import { merge } from 'lodash';
 import AppMemberMergeSuggestionsDetails
   from '@/modules/member/components/suggestions/member-merge-suggestions-details.vue';
 import useOrganizationMergeMessage from '@/shared/modules/merge/config/useOrganizationMergeMessage';
-import CrButton from '@/ui-kit/button/Button.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 import AppMemberMergeSimilarity from '@/modules/member/components/suggestions/member-merge-similarity.vue';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';

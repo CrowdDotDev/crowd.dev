@@ -1,12 +1,12 @@
 <template>
-  <cr-multi-select-filter v-model="form" :config="(props.config as MultiSelectFilterConfig)" :options="data.options || []" />
+  <lf-multi-select-filter v-model="form" :config="(props.config as MultiSelectFilterConfig)" :options="data.options || []" />
 </template>
 
 <script setup lang="ts">
 import {
   computed, watch,
 } from 'vue';
-import CrMultiSelectFilter from '@/shared/modules/filters/components/filterTypes/MultiSelectFilter.vue';
+import LfMultiSelectFilter from '@/shared/modules/filters/components/filterTypes/MultiSelectFilter.vue';
 import {
   MultiSelectFilterConfig, MultiSelectFilterOptionGroup,
 } from '@/shared/modules/filters/types/filterTypes/MultiSelectFilterConfig';

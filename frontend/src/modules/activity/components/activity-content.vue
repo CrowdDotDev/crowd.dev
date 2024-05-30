@@ -88,7 +88,7 @@
           <div>
             <div
               v-if="displayShowMore"
-              class="text-sm text-brand-500 mt-6 cursor-pointer"
+              class="text-sm text-primary-500 mt-6 cursor-pointer"
               @click.stop="more = !more"
             >
               Show {{ more ? 'less' : 'more' }}
@@ -214,7 +214,7 @@ export default {
 <style scoped lang="scss">
 :deep(.content) {
   a {
-    @apply text-brand-500;
+    @apply text-primary-500;
   }
 
   h1,

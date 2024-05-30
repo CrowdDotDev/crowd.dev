@@ -66,7 +66,7 @@ const selectOptionLabel = computed<string>(() => props.options.find((o) => o.val
 
 <script  lang="ts">
 export default {
-  name: 'CrFilterInlineSelect',
+  name: 'LfFilterInlineSelect',
 };
 </script>
 

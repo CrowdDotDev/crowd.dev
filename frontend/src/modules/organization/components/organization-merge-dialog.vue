@@ -37,8 +37,8 @@
                   type="button"
                   @click="changeOrganization()"
                 >
-                  <span class="ri-refresh-line text-base text-brand-500 mr-2" />
-                  <span class="text-brand-500">Change organization</span>
+                  <span class="ri-refresh-line text-base text-primary-500 mr-2" />
+                  <span class="text-primary-500">Change organization</span>
                 </button>
               </template>
             </app-organization-merge-suggestions-details>

@@ -20,7 +20,7 @@
       <a
         target="_blank"
         rel="noopener noreferrer"
-        class="rounded-lg bg-white text-gray-900 hover:text-brand-500 px-2 h-6 border
+        class="rounded-lg bg-white text-gray-900 hover:text-primary-500 px-2 h-6 border
         border-gray-200 flex items-center justify-center w-fit line-clamp-1"
         :href="`mailto:${email}`"
         @click.stop
@@ -57,7 +57,7 @@
             <a
               target="_blank"
               rel="noopener noreferrer"
-              class="rounded-lg bg-white text-gray-900 hover:text-brand-500 px-2 h-6 border
+              class="rounded-lg bg-white text-gray-900 hover:text-primary-500 px-2 h-6 border
               border-gray-200 flex items-center justify-center w-fitline-clamp-1"
               :href="`mailto:${email}`"
               @click.stop

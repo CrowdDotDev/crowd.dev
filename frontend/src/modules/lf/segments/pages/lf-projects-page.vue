@@ -13,7 +13,7 @@
       <i class="ri-arrow-left-s-line mr-2" />
       <span>Project groups</span>
     </router-link>
-    <div class="text-sm text-brand-500 pb-2">
+    <div class="text-sm text-primary-500 pb-2">
       {{ projectGroupForm.name }}
     </div>
 

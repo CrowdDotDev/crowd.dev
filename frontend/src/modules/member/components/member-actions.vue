@@ -7,11 +7,11 @@
       </el-button>
       <el-button
         v-if="mergeSuggestionsCount > 0 && hasPermission(LfPermission.mergeMembers)"
-        class="btn btn--bordered btn--sm !h-8 !-ml-px !-mr-0.5 !bg-brand-25 !rounded-l-none !rounded-r-none"
+        class="btn btn--bordered btn--sm !h-8 !-ml-px !-mr-0.5 !bg-primary-25 !rounded-l-none !rounded-r-none"
         :disabled="!hasPermission(LfPermission.mergeMembers)"
         @click="mergeSuggestions()"
       >
-        <span class="mr-2 h-5 px-1.5 rounded-md bg-brand-100 text-brand-500 leading-5">{{ mergeSuggestionsCount }}</span>Merge suggestion
+        <span class="mr-2 h-5 px-1.5 rounded-md bg-primary-100 text-primary-500 leading-5">{{ mergeSuggestionsCount }}</span>Merge suggestion
       </el-button>
 
       <el-button

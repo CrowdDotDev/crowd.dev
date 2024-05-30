@@ -80,14 +80,14 @@
               </el-button>
             </div>
           </div>
-          <div v-if="form.members || form.organizations" class="p-2 rounded bg-blue-50 flex items-center mb-3">
-            <span class="ri-information-line text-blue-900 mr-2 text-base h-4 flex items-center" />
-            <span class="text-[11px] text-blue-900 leading-4.5">We recommend creating custom properties in Hubspot for every LFX attribute.
+          <div v-if="form.members || form.organizations" class="p-2 rounded bg-primary-50 flex items-center mb-3">
+            <span class="ri-information-line text-primary-900 mr-2 text-base h-4 flex items-center" />
+            <span class="text-[11px] text-primary-900 leading-4.5">We recommend creating custom properties in Hubspot for every LFX attribute.
               <a
                 href="https://go.crowd.dev/hubspot-docs-properties"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="underline text-blue-900 font-medium"
+                class="underline text-primary-900 font-medium"
               >Read more</a>
             </span>
           </div>
@@ -107,7 +107,7 @@
                   <div
                     v-if="form.members"
                     class="h-5 px-2 rounded-full text-3xs flex items-center"
-                    :class="memberAttributesSynced > 0 ? 'text-brand-700 bg-brand-50' : 'text-gray-600 bg-gray-100'"
+                    :class="memberAttributesSynced > 0 ? 'text-primary-700 bg-primary-50' : 'text-gray-600 bg-gray-100'"
                   >
                     {{ memberAttributesSynced }} attributes synced
                   </div>
@@ -120,7 +120,7 @@
                     LFX ATTRIBUTES
                   </div>
                   <div class="w-1/2 pl-8 text-gray-400 font-semibold tracking-1 text-3xs">
-                    HUBSPOT PROPERTIES <span class="text-brand-500">*</span>
+                    HUBSPOT PROPERTIES <span class="text-primary-500">*</span>
                   </div>
                 </div>
                 <section class="pt-1 pb-3">
@@ -149,7 +149,7 @@
                   <div
                     v-if="form.organizations"
                     class="h-5 px-2 rounded-full text-3xs flex items-center"
-                    :class="organizationAttributesSynced > 0 ? 'text-brand-700 bg-brand-50' : 'text-gray-600 bg-gray-100'"
+                    :class="organizationAttributesSynced > 0 ? 'text-primary-700 bg-primary-50' : 'text-gray-600 bg-gray-100'"
                   >
                     {{ organizationAttributesSynced }} attributes synced
                   </div>
@@ -161,7 +161,7 @@
                     LFX ATTRIBUTES
                   </div>
                   <div class="w-1/2 pl-8 text-gray-400 font-semibold tracking-1 text-3xs">
-                    HUBSPOT PROPERTIES <span class="text-brand-500">*</span>
+                    HUBSPOT PROPERTIES <span class="text-primary-500">*</span>
                   </div>
                 </div>
                 <section class="pt-1 pb-3">

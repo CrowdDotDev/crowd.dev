@@ -37,7 +37,7 @@ const model = computed<boolean>({
 
 <script lang="ts">
 export default {
-  name: 'CrFilterIncludeSwitch',
+  name: 'LfFilterIncludeSwitch',
 };
 </script>
 

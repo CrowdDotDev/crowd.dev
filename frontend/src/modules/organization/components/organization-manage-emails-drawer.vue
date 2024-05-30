@@ -8,7 +8,7 @@
     <template #content>
       <div class="-mt-8 z-10 pb-6">
         <div
-          class="flex gap-2 text-xs text-brand-500 font-semibold items-center cursor-pointer"
+          class="flex gap-2 text-xs text-primary-500 font-semibold items-center cursor-pointer"
           @click="addEmail()"
         >
           <i class="ri-add-line text-base" />Add email

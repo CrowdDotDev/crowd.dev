@@ -31,26 +31,26 @@
           <div v-if="model.value === props.identity.value && props.identity.value">
             <i
               v-if="model.value && props.identity.verified"
-              class="ri-verified-badge-fill text-brand-500 text-base leading-4"
+              class="ri-verified-badge-fill text-primary-500 text-base leading-4"
             />
           </div>
           <div v-else class="flex gap-1 -mr-1">
-            <cr-button
+            <lf-button
               size="tiny"
               :icon-only="true"
               :disabled="model.value === props.identity.value"
               @click="update()"
             >
               <i class="ri-check-fill" />
-            </cr-button>
-            <cr-button
+            </lf-button>
+            <lf-button
               size="tiny"
               type="secondary"
               :icon-only="true"
               @click="clear()"
             >
               <i class="ri-close-line" />
-            </cr-button>
+            </lf-button>
           </div>
         </template>
       </el-input>
@@ -59,13 +59,13 @@
         <span class="text-gray-400">{{ props.identity.platform }}</span>
         <i
           v-if="props.identity.verified"
-          class="ri-verified-badge-fill text-brand-500 text-base leading-4"
+          class="ri-verified-badge-fill text-primary-500 text-base leading-4"
         />
       </p>
     </div>
-    <cr-dropdown placement="bottom-end" width="15rem" class="ml-3">
+    <lf-dropdown placement="bottom-end" width="15rem" class="ml-3">
       <template #trigger>
-        <cr-button
+        <lf-button
           type="tertiary-light-gray"
           size="small"
           :icon-only="true"
@@ -75,7 +75,7 @@
           <i
             class="ri-more-fill"
           />
-        </cr-button>
+        </lf-button>
       </template>
 
       <el-tooltip
@@ -83,7 +83,7 @@
         placement="top-end"
         :disabled="model.value === props.identity.value"
       >
-        <cr-dropdown-item
+        <lf-dropdown-item
           :disabled="model.value !== props.identity.value"
           @click="emit('unmerge', {
             platform: props.identity.platform,
@@ -92,40 +92,40 @@
         >
           <i class="ri-link-unlink" />
           Unmerge identity
-        </cr-dropdown-item>
+        </lf-dropdown-item>
       </el-tooltip>
-      <cr-dropdown-item
+      <lf-dropdown-item
         v-if="!props.identity.verified"
         @click="verify(true)"
       >
         <i class="ri-verified-badge-line" />
         Verify identity
-      </cr-dropdown-item>
+      </lf-dropdown-item>
       <el-tooltip
         v-else
         content="Identities tracked from Integrations can’t be unverified"
         placement="top-end"
         :disabled="!props.identity.sourceId"
       >
-        <cr-dropdown-item
+        <lf-dropdown-item
           :disabled="!!props.identity.sourceId"
           @click="verify(false)"
         >
           <app-svg name="unverify" class="!h-4 !w-4" />
           Unverify identity
-        </cr-dropdown-item>
+        </lf-dropdown-item>
       </el-tooltip>
 
-      <cr-dropdown-separator />
-      <cr-dropdown-item
+      <lf-dropdown-separator />
+      <lf-dropdown-item
         type="danger"
         :disabled="editingDisabled"
         @click="emit('remove')"
       >
         <i class="ri-delete-bin-6-line" />
         Delete identity
-      </cr-dropdown-item>
-    </cr-dropdown>
+      </lf-dropdown-item>
+    </lf-dropdown>
   </article>
 </template>
 
@@ -135,10 +135,10 @@ import {
 } from 'vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { Member, MemberIdentity } from '@/modules/member/types/Member';
-import CrButton from '@/ui-kit/button/Button.vue';
-import CrDropdown from '@/ui-kit/dropdown/Dropdown.vue';
-import CrDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
-import CrDropdownSeparator from '@/ui-kit/dropdown/DropdownSeparator.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
+import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
+import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
+import LfDropdownSeparator from '@/ui-kit/dropdown/DropdownSeparator.vue';
 import AppSvg from '@/shared/svg/svg.vue';
 
 const emit = defineEmits<{(e: 'update', value: MemberIdentity): void,

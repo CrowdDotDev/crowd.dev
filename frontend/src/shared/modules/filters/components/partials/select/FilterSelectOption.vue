@@ -8,7 +8,7 @@
     <slot />
     <i
       v-if="selected"
-      class="ri-check-line text-brand-600 absolute right-0 mr-4"
+      class="ri-check-line text-primary-600 absolute right-0 mr-4"
     />
   </div>
 </template>
@@ -33,7 +33,7 @@ const selectOption = () => {
 
 <script lang="ts">
 export default {
-  name: 'CrFilterSelectOption',
+  name: 'LfFilterSelectOption',
 };
 </script>
 
@@ -66,13 +66,13 @@ export default {
 
   &.is-selected,
   &:focus.is-selected {
-    @apply relative bg-brand-50;
+    @apply relative bg-primary-50;
     i {
-      @apply mr-3 text-brand-600;
+      @apply mr-3 text-primary-600;
     }
 
     &:hover{
-      @apply bg-brand-50;
+      @apply bg-primary-50;
     }
   }
 }

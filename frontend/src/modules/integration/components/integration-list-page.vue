@@ -117,7 +117,7 @@ export default {
             type: 'custom',
             icon: '<img src="https://cdn-icons-png.flaticon.com/512/3800/3800024.png" class="h-8 w-8" alt="slack logo" />',
             title: `<span class="flex items-start gap-1">Connect Slack bot
-              <span class="text-brand-500 text-3xs leading-3 pt-1 font-normal">Required</span></span>`,
+              <span class="text-primary-500 text-3xs leading-3 pt-1 font-normal">Required</span></span>`,
             titleClass: 'text-lg',
             message: `
             <img src="/images/integrations/slack-bot.png" class="mb-6" alt="slack bot installation" />

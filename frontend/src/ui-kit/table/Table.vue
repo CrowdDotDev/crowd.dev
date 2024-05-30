@@ -69,6 +69,6 @@ onBeforeUnmount(() => {
 
 <script lang="ts">
 export default {
-  name: 'CrTable',
+  name: 'LfTable',
 };
 </script>

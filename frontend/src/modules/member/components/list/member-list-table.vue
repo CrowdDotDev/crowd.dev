@@ -49,7 +49,7 @@
           >
             <template #defaultFilters>
               <div>・</div>
-              <cr-default-filters
+              <lf-default-filters
                 :config="memberSavedViews"
                 :settings="filters.settings"
               />
@@ -728,7 +728,7 @@
       virtual-triggering
       @hide="onHide"
     >
-      <cr-enrichment-sneak-peak-content id="popover-content" type="contact" @mouseleave="closeEnrichmentPopover" />
+      <lf-enrichment-sneak-peak-content id="popover-content" type="contact" @mouseleave="closeEnrichmentPopover" />
     </el-popover>
 
     <app-member-find-github-drawer
@@ -762,11 +762,11 @@ import AppPagination from '@/shared/pagination/pagination.vue';
 import AppMemberFindGithubDrawer from '@/modules/member/components/member-find-github-drawer.vue';
 import AppSharedTagList from '@/shared/tag/tag-list.vue';
 import AppSvg from '@/shared/svg/svg.vue';
-import CrEnrichmentSneakPeakContent from '@/shared/modules/enrichment/components/enrichment-sneak-peak-content.vue';
+import LfEnrichmentSneakPeakContent from '@/shared/modules/enrichment/components/enrichment-sneak-peak-content.vue';
 import Plans from '@/security/plans';
 import AppIdentitiesHorizontalListMembers from '@/shared/modules/identities/components/identities-horizontal-list-members.vue';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
-import CrDefaultFilters from '@/shared/modules/default-filters/components/default-filters.vue';
+import LfDefaultFilters from '@/shared/modules/default-filters/components/default-filters.vue';
 import AppMemberListEmails from '@/modules/member/components/list/columns/member-list-emails.vue';
 import { getSegmentsFromProjectGroup } from '@/utils/segments';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';

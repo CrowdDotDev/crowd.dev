@@ -30,7 +30,7 @@
         </app-form-item>
         <hr>
         <div class="py-6">
-          <h5 class="text-base leading-5 text-brand-500 font-semibold mb-1">
+          <h5 class="text-base leading-5 text-primary-500 font-semibold mb-1">
             Trigger
           </h5>
           <p class="text-2xs text-gray-500">
@@ -43,7 +43,7 @@
 
         <hr>
         <div class="py-6">
-          <h5 class="text-base leading-5 text-brand-500 font-semibold mb-1">
+          <h5 class="text-base leading-5 text-primary-500 font-semibold mb-1">
             Action
           </h5>
           <p class="text-2xs text-gray-500">

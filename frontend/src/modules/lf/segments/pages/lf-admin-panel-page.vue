@@ -33,7 +33,7 @@
         />
       </el-tab-pane>
       <el-tab-pane v-if="isDevMode" label="Dev" name="dev">
-        <cr-devmode v-if="isDevMode && activeTab === 'dev'" />
+        <lf-devmode v-if="isDevMode && activeTab === 'dev'" />
       </el-tab-pane>
     </el-tabs>
   </app-page-wrapper>
@@ -50,7 +50,7 @@ import AppAutomationList from '@/modules/automation/components/automation-list.v
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
 import AppLfAuditLogsPage from '@/modules/lf/segments/pages/lf-audit-logs-page.vue';
-import CrDevmode from '@/modules/lf/segments/components/dev/devmode.vue';
+import LfDevmode from '@/modules/lf/segments/components/dev/devmode.vue';
 import { LfRole } from '@/shared/modules/permissions/types/Roles';
 // import AppOrganizationCommonPage from '@/modules/organization/pages/organization-common-page.vue';
 

@@ -75,6 +75,6 @@ const { user, tenant } = storeToRefs(authStore);
 
 <script lang="ts">
 export default {
-  name: 'CrMenuLinks',
+  name: 'LfMenuLinks',
 };
 </script>
