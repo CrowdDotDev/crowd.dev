@@ -67,7 +67,7 @@
               <div class="flex flex-col gap-1">
                 <div class="flex gap-2 items-center">
                   <div
-                    class="text-xs text-gray-900 group-hover:text-brand-500 transition font-medium"
+                    class="text-xs text-gray-900 group-hover:text-primary-500 transition font-medium"
                   >
                     {{ displayName || name }}
                   </div>

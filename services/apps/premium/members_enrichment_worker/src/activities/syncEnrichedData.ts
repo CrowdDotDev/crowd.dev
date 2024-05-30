@@ -9,9 +9,6 @@ const syncMembers = new MemberSyncService(
   new DbStore(svc.log, svc.questdbSQL),
   svc.opensearch,
   svc.log,
-  {
-    edition: process.env['CROWD_EDITION'],
-  },
 )
 
 const syncOrganizations = new OrganizationSyncService(
@@ -19,9 +16,6 @@ const syncOrganizations = new OrganizationSyncService(
   new DbStore(svc.log, svc.questdbSQL),
   svc.opensearch,
   svc.log,
-  {
-    edition: process.env['CROWD_EDITION'],
-  },
 )
 
 /*

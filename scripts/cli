@@ -81,20 +81,23 @@ HELP_BUILD_STRING=$(prepare_service_string HELP "$BUILDERS")
 
 function multiselect {
     # little helpers for terminal print control and key input
-    ESC=$( printf "\033")
-    cursor_blink_on()   { printf "$ESC[?25h"; }
-    cursor_blink_off()  { printf "$ESC[?25l"; }
-    cursor_to()         { printf "$ESC[$1;${2:-1}H"; }
-    print_inactive()    { printf "$2   $1 "; }
-    print_active()      { printf "$2  $ESC[7m $1 $ESC[27m"; }
-    get_cursor_row()    { IFS=';' read -sdR -p $'\E[6n' ROW COL; echo ${ROW#*[}; }
+    ESC=$(printf "\033")
+    cursor_blink_on() { printf "$ESC[?25h"; }
+    cursor_blink_off() { printf "$ESC[?25l"; }
+    cursor_to() { printf "$ESC[$1;${2:-1}H"; }
+    print_inactive() { printf "$2   $1 "; }
+    print_active() { printf "$2  $ESC[7m $1 $ESC[27m"; }
+    get_cursor_row() {
+        IFS=';' read -sdR -p $'\E[6n' ROW COL
+        echo ${ROW#*[}
+    }
 
     local return_value=$1
     local options=("${!2}")
     local defaults=()
 
     local selected=()
-    for ((i=0; i<${#options[@]}; i++)); do
+    for ((i = 0; i < ${#options[@]}; i++)); do
         if [[ ${defaults[i]} == "true" ]]; then
             selected+=("true")
         else
@@ -103,7 +106,7 @@ function multiselect {
         printf "\n"
     done
 
-    local lastrow=`get_cursor_row`
+    local lastrow=$(get_cursor_row)
     local startrow=$(($lastrow - ${#options[@]}))
 
     trap "cursor_blink_on; stty echo; printf '\n'; exit" 2
@@ -112,18 +115,21 @@ function multiselect {
     key_input() {
         local key
         IFS= read -rsn1 key
-        if [[ -z $key ]]; then echo enter; return; fi  # Handle Enter key (when key is a newline)
+        if [[ -z $key ]]; then
+            echo enter
+            return
+        fi # Handle Enter key (when key is a newline)
 
         case "$key" in
-            $'\x20') echo space;;  # Space key
-            k) echo up;;           # 'k' for up
-            j) echo down;;         # 'j' for down
-            $'\x1b')               # Handle arrow keys
-                read -rsn2 key
-                if [[ $key == "[A" ]]; then echo up; fi    # Up arrow
-                if [[ $key == "[B" ]]; then echo down; fi  # Down arrow
-                ;;
-            *) echo "unknown";;    # Handle other keys
+        $'\x20') echo space ;; # Space key
+        k) echo up ;;          # 'k' for up
+        j) echo down ;;        # 'j' for down
+        $'\x1b')               # Handle arrow keys
+            read -rsn2 key
+            if [[ $key == "[A" ]]; then echo up; fi   # Up arrow
+            if [[ $key == "[B" ]]; then echo down; fi # Down arrow
+            ;;
+        *) echo "unknown" ;; # Handle other keys
         esac
     }
 
@@ -159,19 +165,25 @@ function multiselect {
         print_options $active
 
         case $(key_input) in
-            space) toggle_option $active;;
-            enter) print_options -1; break;;
-            up)    ((active--));
-                   if [ $active -lt 0 ]; then active=$((${#options[@]} - 1)); fi;;
-            down)  ((active++));
-                   if [ $active -ge ${#options[@]} ]; then active=0; fi;;
+        space) toggle_option $active ;;
+        enter)
+            print_options -1
+            break
+            ;;
+        up)
+            ((active--))
+            if [ $active -lt 0 ]; then active=$((${#options[@]} - 1)); fi
+            ;;
+        down)
+            ((active++))
+            if [ $active -ge ${#options[@]} ]; then active=0; fi
+            ;;
         esac
     done
 
     cursor_to $lastrow
     printf "\n"
     cursor_blink_on
-
 
     # Construct the result array based on selections
     local result=()
@@ -187,45 +199,51 @@ function multiselect {
 
 SELECTED_SERVICES=()
 
-function select_services(){
-  # Get all services
-  SERVICES=()
-  while IFS= read -r file; do
-      filename=$(basename "$file" .yaml)
-      SERVICES+=("$filename")
-  done < <(find "$CLI_HOME/services" -name '*.yaml')
+function select_services() {
+    # Get all services
+    SERVICES=()
+    while IFS= read -r file; do
+        filename=$(basename "$file" .yaml)
+        SERVICES+=("$filename")
+    done < <(find "$CLI_HOME/services" -name '*.yaml')
 
-  # Show multiselect and store results in SELECTED_SERVICES
-  multiselect SELECTED_SERVICES SERVICES[@]
+    # Show multiselect and store results in SELECTED_SERVICES
+    multiselect SELECTED_SERVICES SERVICES[@]
 
-  for service in "${SELECTED_SERVICES[@]}"; do
-      selected_services+="$service, "
-  done
+    for service in "${SELECTED_SERVICES[@]}"; do
+        selected_services+="$service, "
+    done
 
-  selected_services=${selected_services%, }
+    selected_services=${selected_services%, }
 
-  echo "Selected services: $selected_services"
+    echo "Selected services: $selected_services"
 }
 
-function deploy_staging(){
+function deploy_staging() {
     REPOSITORY="CrowdDotDev/crowd.dev"
     WORKFLOW_FILE="lf-staging-deploy.yaml"
     CURRENT_BRANCH=$(git branch --show-current)
-    SERVICES="$(IFS=" "; echo "${SELECTED_SERVICES[*]}")"
+    SERVICES="$(
+        IFS=" "
+        echo "${SELECTED_SERVICES[*]}"
+    )"
 
     gh workflow run $WORKFLOW_FILE --repo $REPOSITORY --ref $CURRENT_BRANCH -f services="$SERVICES"
 }
 
-function deploy_production(){
+function deploy_production() {
     REPOSITORY="CrowdDotDev/crowd.dev"
     WORKFLOW_FILE="lf-production-deploy.yaml"
     CURRENT_BRANCH=$(git branch --show-current)
-    SERVICES="$(IFS=" "; echo "${SELECTED_SERVICES[*]}")"
+    SERVICES="$(
+        IFS=" "
+        echo "${SELECTED_SERVICES[*]}"
+    )"
 
     gh workflow run $WORKFLOW_FILE --repo $REPOSITORY --ref $CURRENT_BRANCH -f services="$SERVICES"
 }
 
-function reset_selected_services(){
+function reset_selected_services() {
     for SERVICE in "${SELECTED_SERVICES[@]}"; do
         echo "Restarting service $SERVICE."
         kill_containers $SERVICE && start_service $SERVICE
@@ -249,6 +267,16 @@ function create_migration() {
     MIG_VERSION=$(date +%s)
     UP_MIG_FILE="${CLI_HOME}/../backend/src/database/migrations/V${MIG_VERSION}__${MIG_NAME}.sql"
     DOWN_MIG_FILE="${CLI_HOME}/../backend/src/database/migrations/U${MIG_VERSION}__${MIG_NAME}.sql"
+    touch $UP_MIG_FILE
+    touch $DOWN_MIG_FILE
+    yell "Created ${MIG_FILE}"
+}
+
+function create_product_migration() {
+    MIG_NAME="$1"
+    MIG_VERSION=$(date +%s)
+    UP_MIG_FILE="${CLI_HOME}/../backend/src/product/migrations/V${MIG_VERSION}__${MIG_NAME}.sql"
+    DOWN_MIG_FILE="${CLI_HOME}/../backend/src/product/migrations/U${MIG_VERSION}__${MIG_NAME}.sql"
     touch $UP_MIG_FILE
     touch $DOWN_MIG_FILE
     yell "Created ${MIG_FILE}"
@@ -334,6 +362,10 @@ function scaffold() {
             ;;
         create-migration)
             create_migration $2
+            exit
+            ;;
+        create-product-migration)
+            create_product_migration $2
             exit
             ;;
         migrate-up)
@@ -501,11 +533,11 @@ function migrate_env() {
     docker run --rm --network "${PROJECT_NAME}-bridge" \
         -v $CLI_HOME/../services/migrations/questdb/:/tmp/migrations \
         postgres psql postgresql://$CROWD_QUESTDB_READ_USERNAME:$CROWD_QUESTDB_READ_PASSWORD@$CROWD_QUESTDB_READ_HOST:$CROWD_QUESTDB_READ_PORT/qdb \
-            -f /tmp/migrations/V1716382997__init-questdb.sql
+        -f /tmp/migrations/V1716382997__init-questdb.sql
 }
 
 function migrate_local() {
-    say "Building flyway migration image..."
+    say "Building crowd flyway migration image..."
     docker build $DOCKER_PLATFORM_FLAGS -t crowd_flyway -f $CLI_HOME/../backend/src/database/Dockerfile.flyway $CLI_HOME/../backend/src/database --load
     say "Applying PostgreSQL migrations!"
     docker run --rm --network "${PROJECT_NAME}-bridge" \
@@ -520,7 +552,18 @@ function migrate_local() {
     docker run --rm --network "${PROJECT_NAME}-bridge" \
         -v $CLI_HOME/../services/migrations/questdb/:/tmp/migrations \
         postgres psql postgresql://admin:quest@questdb:8812/qdb \
-            -f /tmp/migrations/V1716382997__init-questdb.sql
+        -f /tmp/migrations/V1716382997__init-questdb.sql
+
+    say "Building product flyway migration image..."
+    docker build $DOCKER_PLATFORM_FLAGS -t product_flyway -f $CLI_HOME/../backend/src/product/Dockerfile.flyway $CLI_HOME/../backend/src/product --load
+    say "Applying product database migrations!"
+    docker run --rm --network "${PROJECT_NAME}-bridge" \
+        -e PGHOST=product \
+        -e PGPORT=5432 \
+        -e PGUSER=postgres \
+        -e PGPASSWORD=example \
+        -e PGDATABASE=product-db \
+        product_flyway
 }
 
 function up_test_scaffold() {
@@ -629,23 +672,23 @@ function kill_all_containers() {
 }
 
 function service_start() {
-  for SERVICE in $CONTAINERS; do
-      if [[ ${#INGORED_SERVICES[@]} -ne 0 ]]; then
-          for IGNORED_SERVICE in "${INGORED_SERVICES[@]}"; do
-              if [[ "$SERVICE" == "${IGNORED_SERVICE}" ]]; then
-                  SKIP=1
-                  break
-              fi
-          done
-      fi
+    for SERVICE in $CONTAINERS; do
+        if [[ ${#INGORED_SERVICES[@]} -ne 0 ]]; then
+            for IGNORED_SERVICE in "${INGORED_SERVICES[@]}"; do
+                if [[ "$SERVICE" == "${IGNORED_SERVICE}" ]]; then
+                    SKIP=1
+                    break
+                fi
+            done
+        fi
 
-      if [[ -z "$SKIP" ]]; then
-          say "Starting service $SERVICE."
-          start_service $SERVICE
-          nl
-      fi
-      unset SKIP
-  done
+        if [[ -z "$SKIP" ]]; then
+            say "Starting service $SERVICE."
+            start_service $SERVICE
+            nl
+        fi
+        unset SKIP
+    done
 }
 
 function scaffold_destroy_confirmed() {
@@ -689,7 +732,7 @@ function start() {
         scaffold_reset
     fi
 
-    service_start;
+    service_start
 }
 
 SCRIPT_USAGE="${YELLOW}${PROJECT_NAME} CLI ${RESET}\n\nExample usage: ./cli [ start, start-dev, clean-start, clean-start-dev, start-backend, start-backend-dev, clean-start-backend, clean-start-backend-dev, start-premium, start-premium-dev, clean-start-premium, clean-start-premium-dev, scaffold =>, service =>, build =>, build-and-push ]"

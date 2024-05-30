@@ -71,7 +71,7 @@
                     v-else-if="integration.status === 'in-progress'"
                     class="w-4 h-4 bg-white rounded-full -ml-2 flex items-center justify-center -mt-5"
                   >
-                    <cr-spinner size="0.75rem" class="!border-black" />
+                    <lf-spinner size="0.75rem" class="!border-black" />
                   </div>
                 </div>
               </template>
@@ -193,7 +193,7 @@ import AppLfProjectsDropdown from '@/modules/lf/segments/components/lf-projects-
 import AppLfSubProjectsDropdown from '@/modules/lf/segments/components/lf-sub-projects-dropdown.vue';
 import { useRoute } from 'vue-router';
 import AppPlatformSvg from '@/shared/modules/platform/components/platform-svg.vue';
-import CrSpinner from '@/ui-kit/spinner/Spinner.vue';
+import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import AppIntegrationProgress from '@/modules/integration/components/integration-progress.vue';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';

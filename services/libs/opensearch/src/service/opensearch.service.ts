@@ -297,6 +297,27 @@ export class OpenSearchService extends LoggerBase {
     }
   }
 
+  public async bulkRemoveFromIndex(ids: string[], index: OpenSearchIndex): Promise<void> {
+    try {
+      const indexName = this.indexVersionMap.get(index)
+      const body = ids.flatMap((id) => [{ delete: { _id: id } }])
+
+      await telemetry.measure(
+        'opensearch.bulk',
+        () =>
+          this.client.bulk({
+            index: indexName,
+            body,
+            refresh: true,
+          }),
+        { index },
+      )
+    } catch (err) {
+      this.log.error(err, { index }, 'Failed to bulk remove documents from index!')
+      throw new Error(`Failed to bulk remove documents from index ${index}!`)
+    }
+  }
+
   public async index<T>(id: string, index: OpenSearchIndex, body: T): Promise<void> {
     const indexName = this.indexVersionMap.get(index)
     try {

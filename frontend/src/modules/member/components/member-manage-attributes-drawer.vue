@@ -120,6 +120,9 @@ import getAttributesModel from '@/shared/attributes/get-attributes-model';
 import getParsedAttributes from '@/shared/attributes/get-parsed-attributes';
 import { useMemberStore } from '@/modules/member/store/pinia';
 import { storeToRefs } from 'pinia';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import { useRoute } from 'vue-router';
 import AppMemberFormGlobalAttributes from './form/member-form-global-attributes.vue';
 import AppMemberFormAttributes from './form/member-form-attributes.vue';
 
@@ -135,6 +138,9 @@ const props = defineProps({
   },
 });
 const emit = defineEmits(['update:modelValue']);
+
+const route = useRoute();
+const { trackEvent } = useProductTracking();
 
 const memberStore = useMemberStore();
 const { customAttributes } = storeToRefs(memberStore);
@@ -176,6 +182,14 @@ const handleCancel = () => {
 
 const handleSubmit = async () => {
   loading.value = true;
+
+  trackEvent({
+    key: FeatureEventKey.EDIT_CONTRIBUTOR_ATTRIBUTES,
+    type: EventType.FEATURE,
+    properties: {
+      path: route.path,
+    },
+  });
 
   const segments = props.member.segments.map((s) => s.id);
   const formattedAttributes = getParsedAttributes(

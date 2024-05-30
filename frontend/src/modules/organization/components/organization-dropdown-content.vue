@@ -161,6 +161,8 @@ import { i18n } from '@/i18n';
 import { HubspotApiService } from '@/integrations/hubspot/hubspot.api.service';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { OrganizationService } from '../organization-service';
 import { Organization } from '../types/Organization';
 
@@ -183,6 +185,8 @@ defineProps<{
   hideUnmerge?: boolean;
   hideEdit?: boolean;
 }>();
+
+const { trackEvent } = useProductTracking();
 
 const organizationStore = useOrganizationStore();
 
@@ -250,6 +254,14 @@ const handleCommand = (command: {
       cancelButtonText: 'Cancel',
       icon: 'ri-delete-bin-line',
     }).then(() => {
+      trackEvent({
+        key: FeatureEventKey.DELETE_ORGANIZATION,
+        type: EventType.FEATURE,
+        properties: {
+          path: router.currentRoute.value.path,
+        },
+      });
+
       doManualAction({
         loadingMessage: 'Organization is being deleted',
         successMessage: i18n('entities.organization.destroy.success'),
@@ -314,6 +326,14 @@ const handleCommand = (command: {
 
   // Mark as team organization
   if (command.action === Actions.MARK_ORGANIZATION_AS_TEAM_ORGANIZATION) {
+    trackEvent({
+      key: FeatureEventKey.MARK_AS_TEAM_ORGANIZATION,
+      type: EventType.FEATURE,
+      properties: {
+        path: router.currentRoute.value.path,
+      },
+    });
+
     doManualAction({
       loadingMessage: 'Organization is being updated',
       successMessage: 'Organization updated successfully',

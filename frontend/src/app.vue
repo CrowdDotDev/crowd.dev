@@ -25,6 +25,7 @@ import { mapActions as piniaMapActions, storeToRefs } from 'pinia';
 import { useActivityStore } from '@/modules/activity/store/pinia';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
+import useSessionTracking from '@/shared/modules/monitoring/useSessionTracking';
 
 export default {
   name: 'App',
@@ -35,9 +36,12 @@ export default {
 
   setup() {
     const authStore = useAuthStore();
+    const { detachListeners } = useSessionTracking();
     const { init } = authStore;
-    const { tenant } = storeToRefs(authStore);
-    return { init, tenant };
+    const { tenant, loaded } = storeToRefs(authStore);
+    return {
+      init, tenant, loaded, detachListeners,
+    };
   },
 
   computed: {
@@ -66,6 +70,7 @@ export default {
   },
 
   unmounted() {
+    this.detachListeners();
     window.removeEventListener('resize', this.handleResize);
   },
 

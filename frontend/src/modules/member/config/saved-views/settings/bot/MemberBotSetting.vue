@@ -51,6 +51,6 @@ watch(() => props.settings, (current) => {
 
 <script lang="ts">
 export default {
-  name: 'CrMemberTeamMemberSetting',
+  name: 'LfMemberTeamMemberSetting',
 };
 </script>

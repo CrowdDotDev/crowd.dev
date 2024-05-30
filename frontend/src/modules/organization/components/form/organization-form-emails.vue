@@ -18,7 +18,7 @@
         </template>
       </app-organization-form-emails-item>
       <div class="flex">
-        <div class="text-xs font-medium text-brand-500 cursor-pointer" @click="addEmail()">
+        <div class="text-xs font-medium text-primary-500 cursor-pointer" @click="addEmail()">
           + Add email address
         </div>
       </div>

@@ -4,7 +4,7 @@
   >
     <div class="content">
       <div
-        class="text-brand-500 text-xs uppercase font-semibold"
+        class="text-primary-500 text-xs uppercase font-semibold"
       >
         Error {{ code }}
       </div>

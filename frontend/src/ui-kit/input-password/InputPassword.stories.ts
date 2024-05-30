@@ -1,8 +1,8 @@
-import CrInputPassword from './InputPassword.vue';
+import LfInputPassword from './InputPassword.vue';
 
 export default {
   title: 'Crowd.dev/InputPassword',
-  component: CrInputPassword,
+  component: LfInputPassword,
   tags: ['autodocs'],
   argTypes: {
     modelValue: {

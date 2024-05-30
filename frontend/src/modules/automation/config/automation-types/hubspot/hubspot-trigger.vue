@@ -38,24 +38,24 @@
           <template #dropdown>
             <el-dropdown-item
               class="flex items-center justify-between"
-              :class="{ 'bg-brand-50': settings.operator === 'and' }"
+              :class="{ 'bg-primary-50': settings.operator === 'and' }"
               @click="settings.operator = 'and'"
             >
               Matching all
               <i
                 :class="settings.operator === 'and' ? 'opacity-100' : 'opacity-0'"
-                class="ri-check-line !text-brand-500 !mr-0 ml-1"
+                class="ri-check-line !text-primary-500 !mr-0 ml-1"
               />
             </el-dropdown-item>
             <el-dropdown-item
               class="flex items-center justify-between"
-              :class="{ 'bg-brand-50': settings.operator === 'or' }"
+              :class="{ 'bg-primary-50': settings.operator === 'or' }"
               @click="settings.operator = 'or'"
             >
               Matching any
               <i
                 :class="settings.operator === 'or' ? 'opacity-100' : 'opacity-0'"
-                class="ri-check-line !text-brand-500 !mr-0 ml-1"
+                class="ri-check-line !text-primary-500 !mr-0 ml-1"
               />
             </el-dropdown-item>
           </template>
@@ -64,7 +64,7 @@
 
       <div>
         <div v-for="filter of settings.list" :key="filter" class="flex items-center mb-3">
-          <cr-filter-item
+          <lf-filter-item
             v-model="settings.data[filter]"
             v-model:open="open"
             :config="filterConfigs[filter]"
@@ -83,7 +83,7 @@
 
       <div class="pt-1">
         <el-dropdown placement="bottom-start">
-          <p class="text-brand-500 text-xs leading-5 font-medium cursor-pointer">
+          <p class="text-primary-500 text-xs leading-5 font-medium cursor-pointer">
             + Add condition
           </p>
           <template #dropdown>
@@ -113,7 +113,7 @@ import {
   HubspotAutomationTrigger,
 } from '@/modules/automation/config/automation-types/hubspot/types/HubspotAutomationTrigger';
 import { FilterConfig } from '@/shared/modules/filters/types/FilterConfig';
-import CrFilterItem from '@/shared/modules/filters/components/FilterItem.vue';
+import LfFilterItem from '@/shared/modules/filters/components/FilterItem.vue';
 import { useStore } from 'vuex';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import {

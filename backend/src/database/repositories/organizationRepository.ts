@@ -1,10 +1,16 @@
+import {
+  captureApiChange,
+  organizationCreateAction,
+  organizationEditIdentitiesAction,
+  organizationUpdateAction,
+} from '@crowd/audit-logs'
 import { Error400, Error404, Error409, PageData, RawQueryParser } from '@crowd/common'
-import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import {
   addOrgIdentity,
   cleanUpOrgIdentities,
   fetchOrgIdentities,
 } from '@crowd/data-access-layer/src/org_identities'
+import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import {
   FeatureFlag,
   IEnrichableOrganization,
@@ -22,12 +28,6 @@ import {
 } from '@crowd/types'
 import lodash, { chunk } from 'lodash'
 import Sequelize, { QueryTypes } from 'sequelize'
-import {
-  captureApiChange,
-  organizationCreateAction,
-  organizationEditIdentitiesAction,
-  organizationUpdateAction,
-} from '@crowd/audit-logs'
 import validator from 'validator'
 import {
   countMembersWithActivities,
@@ -721,7 +721,9 @@ class OrganizationRepository {
               } else if (
                 record[column] === null &&
                 data[column] !== null &&
-                data[column] !== undefined
+                data[column] !== undefined &&
+                // also ignore empty arrays
+                (!Array.isArray(data[column]) || data[column].length > 0)
               ) {
                 // column was null before now it's not anymore
                 changed = true
@@ -2124,6 +2126,7 @@ class OrganizationRepository {
     segments: string[] = [],
   ): Promise<PageData<IActiveOrganizationData>> {
     const tenant = SequelizeRepository.getCurrentTenant(options)
+
     if (segments.length !== 1) {
       throw new Error400(
         `This operation can have exactly one segment. Found ${segments.length} segments.`,

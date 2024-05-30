@@ -148,8 +148,8 @@ export interface IQueryNumberOfActiveMembersParameters {
 export interface IQueryActiveMembersParameters {
   tenantId: string
   segmentIds: string[]
-  timestampFrom: Date
-  timestampTo: Date
+  timestampFrom: string
+  timestampTo: string
   platforms?: string[]
   isContribution?: boolean
   orderBy: 'activityCount' | 'activeDaysCount'

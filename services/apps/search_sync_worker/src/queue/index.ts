@@ -9,7 +9,6 @@ import {
 import { Span, SpanStatusCode, Tracer } from '@crowd/tracing'
 import { IQueueMessage, QueuePriorityLevel, SearchSyncWorkerQueueMessageType } from '@crowd/types'
 import { OpenSearchService, MemberSyncService, OrganizationSyncService } from '@crowd/opensearch'
-import { SERVICE_CONFIG } from '../conf'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
@@ -77,7 +76,6 @@ export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
       new DbStore(this.log, this.qdbConn),
       this.openSearchService,
       this.log,
-      SERVICE_CONFIG(),
     )
   }
 
@@ -87,7 +85,6 @@ export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
       new DbStore(this.log, this.qdbConn),
       this.openSearchService,
       this.log,
-      SERVICE_CONFIG(),
     )
   }
 
@@ -147,10 +144,7 @@ export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
           case SearchSyncWorkerQueueMessageType.SYNC_ORGANIZATION:
             if (data.organizationId) {
               // await this.organizationBatchProcessor.addToBatch(data.organizationId)
-              await this.initOrganizationService().syncOrganizations(
-                [data.organizationId],
-                data.segmentId ? [data.segmentId] : undefined,
-              )
+              await this.initOrganizationService().syncOrganizations([data.organizationId])
             }
             break
           case SearchSyncWorkerQueueMessageType.SYNC_TENANT_ORGANIZATIONS:

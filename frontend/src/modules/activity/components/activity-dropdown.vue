@@ -56,6 +56,8 @@ import Message from '@/shared/message/message';
 import { i18n } from '@/i18n';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 
 const emit = defineEmits(['onUpdate', 'edit']);
 const props = defineProps({
@@ -79,6 +81,8 @@ const props = defineProps({
 
 const dropdownVisible = ref(false);
 
+const { trackEvent } = useProductTracking();
+
 const { hasPermission } = usePermissions();
 
 const editActivity = () => {
@@ -97,6 +101,15 @@ const doDestroyWithConfirm = async () => {
   }).then(() => {
     ActivityService.destroyAll([props.activity.id], [props.activity.segmentId])
       .then(() => {
+        trackEvent({
+          key: FeatureEventKey.DELETE_ACTIVITY,
+          type: EventType.FEATURE,
+          properties: {
+            activityType: props.activity.type,
+            activityPlatform: props.activity.platform,
+          },
+        });
+
         Message.success(
           i18n('entities.activity.destroy.success'),
         );

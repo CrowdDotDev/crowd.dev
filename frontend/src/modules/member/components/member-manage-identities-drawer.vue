@@ -8,19 +8,19 @@
   >
     <template #content>
       <div class="-mt-8 z-10 pb-6">
-        <cr-dropdown width="260px">
+        <lf-dropdown width="260px">
           <template #trigger>
-            <div class="flex gap-2 text-xs text-brand-500 font-semibold items-center cursor-pointer">
+            <div class="flex gap-2 text-xs text-primary-500 font-semibold items-center cursor-pointer">
               <i class="ri-add-line text-base" />Add identity
             </div>
           </template>
           <div class="max-h-64 overflow-auto">
-            <cr-dropdown-item v-for="platform of platforms" :key="platform.platform" @click="addIdentity(platform.platform)">
+            <lf-dropdown-item v-for="platform of platforms" :key="platform.platform" @click="addIdentity(platform.platform)">
               <img :src="platform.image" :alt="platform.name" class="h-4 w-4" />
               <span>{{ platform.name }}</span>
-            </cr-dropdown-item>
+            </lf-dropdown-item>
           </div>
-        </cr-dropdown>
+        </lf-dropdown>
       </div>
       <div class="border-t border-gray-200 -mx-6 px-6">
         <div class="gap-4 flex flex-col pt-6 pb-10">
@@ -84,11 +84,13 @@ import Message from '@/shared/message/message';
 import { useStore } from 'vuex';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import CrDropdown from '@/ui-kit/dropdown/Dropdown.vue';
-import CrDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
+import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
+import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import Errors from '@/shared/error/errors';
 import { useMemberStore } from '@/modules/member/store/pinia';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 
 const props = withDefaults(defineProps<{
   modelValue?: boolean,
@@ -98,6 +100,8 @@ const props = withDefaults(defineProps<{
 });
 
 const emit = defineEmits(['update:modelValue', 'unmerge']);
+
+const { trackEvent } = useProductTracking();
 
 const store = useStore();
 const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
@@ -118,6 +122,14 @@ const addIdentities = ref<MemberIdentity[]>([]);
 
 const serverUpdate = () => {
   const segments = props.member.segments.map((s) => s.id);
+
+  trackEvent({
+    key: FeatureEventKey.EDIT_CONTRIBUTOR_IDENTITY,
+    type: EventType.FEATURE,
+    properties: {
+      identities: identities.value,
+    },
+  });
 
   MemberService.update(props.member.id, {
     identities: identities.value,

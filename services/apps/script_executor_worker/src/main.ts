@@ -2,7 +2,7 @@ import { Config } from '@crowd/archetype-standard'
 import { ServiceWorker, Options } from '@crowd/archetype-worker'
 
 const config: Config = {
-  envvars: [],
+  envvars: ['CROWD_API_SERVICE_URL', 'CROWD_API_SERVICE_USER_TOKEN'],
   producer: {
     enabled: false,
   },
@@ -15,17 +15,12 @@ const config: Config = {
   redis: {
     enabled: true,
   },
+  questdb: {
+    enabled: false,
+  },
 }
 
 const options: Options = {
-  maxTaskQueueActivitiesPerSecond: process.env['CROWD_TEMPORAL_TASKQUEUE_CACHE_MAX_ACTIVITIES']
-    ? Number(process.env['CROWD_TEMPORAL_TASKQUEUE_CACHE_MAX_ACTIVITIES'])
-    : undefined,
-  maxConcurrentActivityTaskExecutions: process.env[
-    'CROWD_TEMPORAL_TASKQUEUE_CACHE_CONCURRENT_ACTIVITIES'
-  ]
-    ? Number(process.env['CROWD_TEMPORAL_TASKQUEUE_CACHE_CONCURRENT_ACTIVITIES'])
-    : undefined,
   postgres: {
     enabled: true,
   },

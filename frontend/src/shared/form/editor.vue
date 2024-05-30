@@ -160,9 +160,9 @@ export default {
     padding: 0 4px;
     border-radius: 4px;
     display: inline-block;
-    border: solid 1px var(--color-primary-10);
-    color: var(--color-primary-100);
-    background: var(--color-primary-5);
+    border: solid 1px var(--lf-color-primary-10);
+    color: var(--lf-color-primary-100);
+    background: var(--lf-color-primary-5);
   }
 }
 

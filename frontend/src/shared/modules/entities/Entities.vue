@@ -3,7 +3,7 @@
 
   <div
     v-if="entities.length > limit"
-    class="underline cursor-pointer text-gray-500 hover:text-brand-500 text-xs underline-offset-4"
+    class="underline cursor-pointer text-gray-500 hover:text-primary-500 text-xs underline-offset-4"
     @click="displayMore = !displayMore"
   >
     Show {{ displayMore ? "less" : "more" }}
