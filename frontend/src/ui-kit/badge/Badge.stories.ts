@@ -47,10 +47,10 @@ export const White = {
   },
 };
 
-export const Brand = {
+export const Primary = {
   args: {
     size: 'medium',
-    type: 'brand',
+    type: 'primary',
     default: 'Badge',
   },
 };
