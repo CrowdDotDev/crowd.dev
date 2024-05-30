@@ -15,6 +15,10 @@ import {
 import { randomUUID } from 'crypto'
 import lodash from 'lodash'
 import { captureApiChange, organizationMergeAction } from '@crowd/audit-logs'
+import {
+  findLfxMembership,
+  findManyLfxMemberships,
+} from '@crowd/data-access-layer/src/lfx_memberships'
 import getObjectWithoutKey from '@/utils/getObjectWithoutKey'
 import { IActiveOrganizationFilter } from '@/database/repositories/types/organizationTypes'
 import MemberOrganizationRepository from '@/database/repositories/memberOrganizationRepository'
@@ -1136,7 +1140,17 @@ export default class OrganizationService extends LoggerBase {
   }
 
   async findByIdOpensearch(id: string, segmentId?: string) {
-    return OrganizationRepository.findByIdOpensearch(id, this.options, segmentId)
+    const org = await OrganizationRepository.findByIdOpensearch(id, this.options, segmentId)
+
+    const qx = SequelizeRepository.getQueryExecutor(this.options)
+
+    org.lfxMembership = await findLfxMembership(qx, {
+      organizationId: id,
+      tenantId: this.options.currentTenant.id,
+      segmentId,
+    })
+
+    return org
   }
 
   async query(data) {
@@ -1144,10 +1158,25 @@ export default class OrganizationService extends LoggerBase {
     const orderBy = data.orderBy
     const limit = data.limit
     const offset = data.offset
-    return OrganizationRepository.findAndCountAllOpensearch(
+    const pageData = await OrganizationRepository.findAndCountAllOpensearch(
       { filter: advancedFilter, orderBy, limit, offset, segments: data.segments },
       this.options,
     )
+
+    const orgIds = pageData.rows.map((org) => org.id)
+
+    const qx = SequelizeRepository.getQueryExecutor(this.options)
+    const lfxMemberships = await findManyLfxMemberships(qx, {
+      organizationIds: orgIds,
+      tenantId: this.options.currentTenant.id,
+      segmentIds: data.segments,
+    })
+
+    pageData.rows.forEach((org) => {
+      org.lfxMembership = lfxMemberships.find((lm) => lm.organizationId === org.id)
+    })
+
+    return pageData
   }
 
   async destroyBulk(ids) {
