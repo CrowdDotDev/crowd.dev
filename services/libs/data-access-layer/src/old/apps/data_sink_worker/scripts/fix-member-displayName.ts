@@ -2,7 +2,7 @@ import { DbConnection } from '@crowd/database'
 
 export async function getMembersWithWrongDisplayName(
   db: DbConnection,
-  { offset = 0, countOnly = false },
+  { countOnly = false },
 ): Promise<{ rows: { id: string; displayName: string }[]; count: number }> {
   const countResult = await db.one(
     `
@@ -17,9 +17,8 @@ export async function getMembersWithWrongDisplayName(
   const results = await db.any(
     `
       select "id", "displayName" from members
-      where "displayName" like '%@%' limit 100 offset $(offset)
+      where "displayName" like '%@%' limit 100;
     `,
-    { offset },
   )
 
   return { rows: results, count: countResult.count }
@@ -34,7 +33,7 @@ export async function updateMemberDisplayName(
     `
       update members
       set "displayName" = $(displayName)
-      where id = $(memberId)
+      where id = $(memberId);
     `,
     { memberId, displayName },
   )

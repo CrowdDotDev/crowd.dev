@@ -36,16 +36,18 @@ setImmediate(async () => {
 
   log.info('Started fixing members displayName!')
 
-  const BATCH_SIZE = 100
-
-  let offset
   let fixableMembers
   let processedMembers = 0
 
   const totalWrongMembers = (await getMembersWithWrongDisplayName(dbClient, { countOnly: true }))
     .count
 
-  log.info(`Found ${totalWrongMembers} activities!`)
+  if (totalWrongMembers == 0) {
+    log.info('No members with incorrect displayName found!')
+    process.exit(0)
+  }
+
+  log.info(`Found ${totalWrongMembers} members!`)
 
   const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(
     sqsClient,
@@ -57,22 +59,21 @@ setImmediate(async () => {
   )
   await searchSyncWorkerEmitter.init()
 
-  do {
-    offset = fixableMembers ? offset + BATCH_SIZE : 0
-    const result = await getMembersWithWrongDisplayName(dbClient, { offset })
+  while (processedMembers < totalWrongMembers) {
+    const result = await getMembersWithWrongDisplayName(dbClient, {})
     fixableMembers = result.rows
 
     for (const member of fixableMembers) {
-      const displayName = getProperDisplayName(member.displayName)
+      const displayName = getProperDisplayName(member.displayName.split(' ')[0])
       await updateMemberDisplayName(dbClient, member.id, displayName)
 
       processedMembers += 1
     }
 
     log.info(`Processed ${processedMembers}/${totalWrongMembers} members`)
-  } while (fixableMembers.length > 0)
+  }
 
-  log.info('Finished, good job! 👏🏻')
+  log.info('Finished fixing members with incorrect displayName!')
 
   process.exit(0)
 })
