@@ -2,7 +2,7 @@ import { dropdownItemTypes } from '@/ui-kit/dropdown/types/DropdownItemType';
 import LfDropdownItem from './DropdownItem.vue';
 
 export default {
-  title: 'Crowd.dev/DropdownItem',
+  title: 'LinuxFoundation/DropdownItem',
   component: LfDropdownItem,
   tags: ['autodocs'],
   argTypes: {

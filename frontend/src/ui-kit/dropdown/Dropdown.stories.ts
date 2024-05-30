@@ -6,7 +6,7 @@ import LfDropdownSeparator from './DropdownSeparator.vue';
 import LfButton from '../button/Button.vue';
 
 export default {
-  title: 'Crowd.dev/Dropdown',
+  title: 'LinuxFoundation/Dropdown',
   component: LfDropdown,
   tags: ['autodocs'],
   argTypes: {
