@@ -43,7 +43,8 @@ class MemberSimilarityCalculator {
         similarMember.nested_identities.some(
           (verifiedIdentity) =>
             verifiedIdentity.bool_verified &&
-            verifiedIdentity.string_value === primaryIdentity.string_value &&
+            verifiedIdentity.string_value.toLowerCase() ===
+              primaryIdentity.string_value.toLowerCase() &&
             verifiedIdentity.keyword_type === primaryIdentity.keyword_type,
         )
       ) {
@@ -59,7 +60,8 @@ class MemberSimilarityCalculator {
         similarMember.nested_identities.some(
           (unverifiedIdentity) =>
             unverifiedIdentity.bool_verified === false &&
-            unverifiedIdentity.string_value === primaryIdentity.string_value &&
+            unverifiedIdentity.string_value.toLowerCase() ===
+              primaryIdentity.string_value.toLowerCase() &&
             unverifiedIdentity.keyword_type === primaryIdentity.keyword_type,
         )
       ) {
