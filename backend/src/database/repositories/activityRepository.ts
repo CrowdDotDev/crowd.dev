@@ -253,7 +253,6 @@ class ActivityRepository {
     return records.rows.map((record) => record.id)
   }
 
-
   static async createResults(result: IIntegrationResult, options: IRepositoryOptions) {
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
