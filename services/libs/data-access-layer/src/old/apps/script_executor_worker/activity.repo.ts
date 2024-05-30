@@ -32,6 +32,7 @@ class ActivityRepository {
           join "memberIdentities" mi on mi.platform = a.platform and
                                         mi.value = a.username and
                                         mi."tenantId" = a."tenantId" and
+                                        mi.type = 'username' and
                                         mi.verified
           where a."memberId" <> mi."memberId"
           and a."tenantId" = $(tenantId)
