@@ -22,6 +22,15 @@ import { getServiceTracer } from '@crowd/tracing'
 const tracer = getServiceTracer()
 const log = getServiceLogger()
 
+const processArguments = process.argv.slice(2)
+
+if (processArguments.length !== 1) {
+  log.error('Expected 1 argument: tenantId')
+  process.exit(1)
+}
+
+const tenantId = processArguments[0]
+
 setImmediate(async () => {
   const dbClient = await getDbConnection(DB_CONFIG())
   const sqsClient = getSqsClient(SQS_CONFIG())
@@ -66,6 +75,8 @@ setImmediate(async () => {
     for (const member of fixableMembers) {
       const displayName = getProperDisplayName(member.displayName.split(' ')[0])
       await updateMemberDisplayName(dbClient, member.id, displayName)
+
+      searchSyncWorkerEmitter.triggerMemberSync(tenantId, member.id, false)
 
       processedMembers += 1
     }
