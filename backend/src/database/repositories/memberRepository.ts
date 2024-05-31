@@ -944,14 +944,14 @@ class MemberRepository {
           data.manuallyChangedFields = manuallyChangedFields
         }
 
+        if (data.displayName){
+          data.displayName = getProperDisplayName(data.displayName)
+        }
+
         const updatedMember = {
           ...lodash.pick(data, this.MEMBER_UPDATE_COLUMNS),
           updatedById: currentUser.id,
           manuallyChangedFields: data.manuallyChangedFields,
-        }
-
-        if (updatedMember.displayName){
-          updatedMember.displayName = getProperDisplayName(updatedMember.displayName)
         }
 
         await options.database.member.update(captureNewState(updatedMember), {
