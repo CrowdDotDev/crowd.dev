@@ -19,7 +19,7 @@ import lodash, { chunk } from 'lodash'
 import moment from 'moment'
 import Sequelize, { QueryTypes } from 'sequelize'
 
-import { Error400, Error404, Error409, dateEqualityChecker, distinct } from '@crowd/common'
+import { Error400, Error404, Error409, dateEqualityChecker, distinct, getProperDisplayName } from '@crowd/common'
 import { ActivityDisplayService } from '@crowd/integrations'
 import {
   captureApiChange,
@@ -110,6 +110,11 @@ class MemberRepository {
       createdById: currentUser.id,
       updatedById: currentUser.id,
     }
+
+    if (toInsert.displayName){
+      toInsert.displayName = getProperDisplayName(toInsert.displayName)
+    }
+
     const record = await options.database.member.create(toInsert, {
       transaction,
     })
@@ -943,6 +948,10 @@ class MemberRepository {
           ...lodash.pick(data, this.MEMBER_UPDATE_COLUMNS),
           updatedById: currentUser.id,
           manuallyChangedFields: data.manuallyChangedFields,
+        }
+
+        if (updatedMember.displayName){
+          updatedMember.displayName = getProperDisplayName(updatedMember.displayName)
         }
 
         await options.database.member.update(captureNewState(updatedMember), {

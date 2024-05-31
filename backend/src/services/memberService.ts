@@ -1,6 +1,6 @@
 /* eslint-disable no-continue */
 
-import { SERVICE, Error400, isDomainExcluded, singleOrDefault } from '@crowd/common'
+import { SERVICE, Error400, isDomainExcluded, singleOrDefault, getProperDisplayName } from '@crowd/common'
 import { LoggerBase } from '@crowd/logging'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
 import {
@@ -1080,7 +1080,7 @@ export default class MemberService extends LoggerBase {
           id: randomUUID(),
           reach: { total: -1 },
           username: MemberRepository.getUsernameFromIdentities(secondaryIdentities),
-          displayName: identity.value,
+          displayName: getProperDisplayName(identity.value),
           identities: secondaryIdentities,
           memberOrganizations: [],
           organizations: [],
