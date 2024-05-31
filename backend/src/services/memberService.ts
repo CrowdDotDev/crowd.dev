@@ -258,7 +258,7 @@ export default class MemberService extends LoggerBase {
     }
 
     if (!data.displayName) {
-      data.displayName = data.username[data.platform][0].username
+      data.displayName = getProperDisplayName(data.username[data.platform][0].username)
     }
 
     if (!(data.platform in data.username)) {
@@ -1527,6 +1527,10 @@ export default class MemberService extends LoggerBase {
         this.options,
       )
       transaction = repoOptions.transaction
+
+      if (data.displayName){
+        data.displayName = getProperDisplayName(data.displayName)
+      }
 
       if (data.activities) {
         data.activities = await ActivityRepository.filterIdsInTenant(data.activities, repoOptions)
