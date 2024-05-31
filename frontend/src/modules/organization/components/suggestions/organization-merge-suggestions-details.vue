@@ -104,7 +104,7 @@
           >
             <div class="flex items-center gap-1">
               <h6
-                class="text-base text-black font-semibold hover:text-brand-500 leading-6"
+                class="text-base text-black font-semibold hover:text-primary-500 leading-6"
                 v-html="$sanitize(props.organization.displayName || props.organization.name)"
               />
               <lf-organization-lf-member-tag
