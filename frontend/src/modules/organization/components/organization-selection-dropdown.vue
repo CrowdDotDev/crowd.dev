@@ -39,7 +39,7 @@
       </div>
     </div>
     <div class="flex justify-center mt-4 text-gray-500 text-2xs">
-      <span class="font-semibold pr-1">Note:</span>LF Member organizations can't be merged into another organization.
+      <span class="font-semibold pr-1">Note:</span>Active member organizations of the Linux Foundation can't be merged into other organizations.
     </div>
   </div>
 </template>

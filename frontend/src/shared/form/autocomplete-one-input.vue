@@ -44,7 +44,7 @@
         v-if="record.id"
         :key="record.id"
         :disabled="!disableOption(record)"
-        content="LF Member organizations can't be merged into another organization."
+        content="Active member organizations of the Linux Foundation can't be merged into other organizations."
         placement="top"
       >
         <span>

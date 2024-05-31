@@ -23,7 +23,7 @@
 
         <el-tooltip
           v-if="selectedOrganizations.length === 2 && hasPermission(LfPermission.mergeOrganizations)"
-          content="LF Member organizations can't be merged into another organization."
+          content="Active member organizations of the Linux Foundation can't be merged into other organizations."
           :disabled="!(!!selectedOrganizations?.[0]?.lfxMembership && !!selectedOrganizations?.[1]?.lfxMembership)"
           placement="top"
         >

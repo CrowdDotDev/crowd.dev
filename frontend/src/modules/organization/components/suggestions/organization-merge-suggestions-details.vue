@@ -40,7 +40,7 @@
           </div>
           <el-tooltip
             v-else
-            content="LF Member organizations must be the primary organization."
+            content="Linux Foundation's member organization must be the primary organization."
             :disabled="!props.compareOrganization.lfxMembership"
             placement="top"
           >
