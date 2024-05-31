@@ -110,7 +110,6 @@ class MemberRepository {
       createdById: currentUser.id,
       updatedById: currentUser.id,
     }
-
     const record = await options.database.member.create(toInsert, {
       transaction,
     })
