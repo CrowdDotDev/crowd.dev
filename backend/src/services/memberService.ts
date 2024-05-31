@@ -624,7 +624,7 @@ export default class MemberService extends LoggerBase {
   ): Promise<void> {
     let tx
 
-    // this field is purely for rendering the preview, we'll set the secondary member roles using the payload.secondary.memberOrganizations field 
+    // this field is purely for rendering the preview, we'll set the secondary member roles using the payload.secondary.memberOrganizations field
     // consequentially this field is checked in member.create - we'll instead handle roles manually after creation
     delete payload.secondary.organizations
 
@@ -716,8 +716,13 @@ export default class MemberService extends LoggerBase {
 
       // move memberOrganizations
       if (payload.secondary.memberOrganizations.length > 0) {
-        const nonExistingOrganizationIds = await OrganizationRepository.findNonExistingIds(payload.secondary.memberOrganizations.map((o) => o.organizationId), repoOptions)
-        for (const role of payload.secondary.memberOrganizations.filter((r) => !nonExistingOrganizationIds.includes(r.organizationId))) {
+        const nonExistingOrganizationIds = await OrganizationRepository.findNonExistingIds(
+          payload.secondary.memberOrganizations.map((o) => o.organizationId),
+          repoOptions,
+        )
+        for (const role of payload.secondary.memberOrganizations.filter(
+          (r) => !nonExistingOrganizationIds.includes(r.organizationId),
+        )) {
           await MemberOrganizationRepository.addMemberRole(
             { ...role, memberId: secondaryMember.id },
             repoOptions,
