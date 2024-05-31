@@ -83,7 +83,7 @@ export async function getIdentitiesWithActivity(
   const replacements = [memberId, tenantId]
 
   let query = `select distinct username, platform from activities a
-               where a."memberId" = $1 and a."tenantId" = $2 `
+               where a."deletedAt" is null and a."memberId" = $1 and a."tenantId" = $2 `
 
   let index = 3
   const identityFilters = []
