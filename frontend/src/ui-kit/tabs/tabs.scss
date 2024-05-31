@@ -1,0 +1,43 @@
+.c-tabs{
+  background: var(--lf-tabs-background);
+  border-radius: var(--lf-tabs-radius);
+  gap: var(--lf-tabs-spacing);
+  padding: var(--lf-tabs-padding);
+  @apply flex relative whitespace-nowrap w-fit transition;
+
+  &--small {
+    .c-tab{
+      --lf-tab-font-size: var(--lf-tabs-small-font-size);
+      --lf-tab-line-height: var(--lf-tabs-small-line-height);
+      --lf-tab-padding: var(--lf-tabs-small-padding);
+    }
+  }
+
+  &--medium {
+    .c-tab{
+      --lf-tab-font-size: var(--lf-tabs-medium-font-size);
+      --lf-tab-line-height: var(--lf-tabs-medium-line-height);
+      --lf-tab-padding: var(--lf-tabs-medium-padding);
+    }
+  }
+}
+
+.c-tab{
+  font-size: var(--lf-tab-font-size);
+  line-height: var(--lf-tab-line-height);
+  font-weight: var(--lf-tab-font-weight);
+  color: var(--lf-tab-text);
+  padding: var(--lf-tab-padding);
+  border-radius: var(--lf-tab-radius);
+  @apply flex items-center justify-center text-center cursor-pointer transition-all select-none;
+
+  &:hover{
+    background: var(--lf-tab-hover-background);
+  }
+
+  &.is-active{
+    background: var(--lf-tab-active-background);
+    color: var(--lf-tab-active-text);
+    box-shadow: var(--lf-tab-active-shadow);
+  }
+}

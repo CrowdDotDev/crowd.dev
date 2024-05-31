@@ -1,7 +1,7 @@
 import LfTable from './Table.vue';
 
 export default {
-  title: 'Crowd.dev/Table',
+  title: 'LinuxFoundation/Table',
   component: LfTable,
   tags: ['autodocs'],
   argTypes: {

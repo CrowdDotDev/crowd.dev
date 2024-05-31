@@ -3,7 +3,7 @@ import { reactive } from 'vue';
 import LfRadio from './Radio.vue';
 
 export default {
-  title: 'Crowd.dev/Radio',
+  title: 'LinuxFoundation/Radio',
   component: LfRadio,
   tags: ['autodocs'],
   argTypes: {
@@ -69,7 +69,7 @@ export const Multiple = {
     modelValue: true,
   },
   render: (args: any) => ({
-    components: { CrRadio },
+    components: { LfRadio },
     setup() {
       const form = reactive({
         type: 'primary',

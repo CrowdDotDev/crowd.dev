@@ -55,7 +55,7 @@
           </div>
           <div>
             <el-dropdown placement="bottom-end">
-              <lf-button size="small" type="tertiary-light-gray" :icon-only="true">
+              <lf-button size="small" type="secondary-ghost" :icon-only="true">
                 <i class="ri-more-fill" />
               </lf-button>
               <template #dropdown>

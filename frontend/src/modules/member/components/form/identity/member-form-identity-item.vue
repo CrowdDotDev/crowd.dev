@@ -66,7 +66,7 @@
     <lf-dropdown placement="bottom-end" width="15rem" class="ml-3">
       <template #trigger>
         <lf-button
-          type="tertiary-light-gray"
+          type="secondary-ghost-light"
           size="small"
           :icon-only="true"
           class="relative"

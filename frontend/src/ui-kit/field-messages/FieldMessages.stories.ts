@@ -6,7 +6,7 @@ import useVuelidate from '@vuelidate/core';
 import LfFieldMessages from './FieldMessages.vue';
 
 export default {
-  title: 'Crowd.dev/FieldMessages',
+  title: 'LinuxFoundation/FieldMessages',
   component: LfFieldMessages,
   tags: ['autodocs'],
   argTypes: {

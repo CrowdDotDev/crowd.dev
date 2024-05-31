@@ -4,7 +4,7 @@
       <h4 class="text-base font-semibold">
         JSON
       </h4>
-      <lf-button :type="copied ? 'success-transparent' : 'tertiary-gray'" size="small" @click="copy">
+      <lf-button type="secondary-ghost" size="small" @click="copy">
         <template v-if="!copied">
           <i class="ri-file-copy-line" /> Copy
         </template>

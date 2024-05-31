@@ -1,7 +1,7 @@
 import LfCard from './Card.vue';
 
 export default {
-  title: 'Crowd.dev/Card',
+  title: 'LinuxFoundation/Card',
   component: LfCard,
   tags: ['autodocs'],
   argTypes: {

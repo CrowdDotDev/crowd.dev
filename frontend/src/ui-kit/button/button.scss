@@ -155,355 +155,141 @@
     --lf-btn-loading-border: var(--lf-btn-secondary-loading-border);
   }
 
-  &--tertiary {
-    --lf-btn-text: var(--lf-btn-tertiary-text);
-    --lf-btn-background: var(--lf-btn-tertiary-background);
-    --lf-btn-border: var(--lf-btn-tertiary-border);
-    --lf-btn-shadow: var(--lf-btn-tertiary-shadow);
+  &--primary-ghost {
+    --lf-btn-text: var(--lf-btn-primary-ghost-text);
+    --lf-btn-background: var(--lf-btn-primary-ghost-background);
+    --lf-btn-border: var(--lf-btn-primary-ghost-border);
+    --lf-btn-shadow: var(--lf-btn-primary-ghost-shadow);
 
     // Hover
-    --lf-btn-hover-text: var(--lf-btn-tertiary-hover-text);
-    --lf-btn-hover-background: var(--lf-btn-tertiary-hover-background);
-    --lf-btn-hover-border: var(--lf-btn-tertiary-hover-border);
+    --lf-btn-hover-text: var(--lf-btn-primary-ghost-hover-text);
+    --lf-btn-hover-background: var(--lf-btn-primary-ghost-hover-background);
+    --lf-btn-hover-border: var(--lf-btn-primary-ghost-hover-border);
 
     // Active
-    --lf-btn-active-text: var(--lf-btn-tertiary-active-text);
-    --lf-btn-active-background: var(--lf-btn-tertiary-active-background);
-    --lf-btn-active-border: var(--lf-btn-tertiary-active-border);
+    --lf-btn-active-text: var(--lf-btn-primary-ghost-active-text);
+    --lf-btn-active-background: var(--lf-btn-primary-ghost-active-background);
+    --lf-btn-active-border: var(--lf-btn-primary-ghost-active-border);
 
     // Disabled
-    --lf-btn-disabled-text: var(--lf-btn-tertiary-disabled-text);
-    --lf-btn-disabled-background: var(--lf-btn-tertiary-disabled-background);
-    --lf-btn-disabled-border: var(--lf-btn-tertiary-disabled-border);
+    --lf-btn-disabled-text: var(--lf-btn-primary-ghost-disabled-text);
+    --lf-btn-disabled-background: var(--lf-btn-primary-ghost-disabled-background);
+    --lf-btn-disabled-border: var(--lf-btn-primary-ghost-disabled-border);
 
     // Loading
-    --lf-btn-loading-text: var(--lf-btn-tertiary-loading-text);
-    --lf-btn-loading-background: var(--lf-btn-tertiary-loading-background);
-    --lf-btn-loading-border: var(--lf-btn-tertiary-loading-border);
+    --lf-btn-loading-text: var(--lf-btn-primary-ghost-loading-text);
+    --lf-btn-loading-background: var(--lf-btn-primary-ghost-loading-background);
+    --lf-btn-loading-border: var(--lf-btn-primary-ghost-loading-border);
   }
 
-  &--tertiary-gray {
-    --lf-btn-text: var(--lf-btn-tertiary-gray-text);
-    --lf-btn-background: var(--lf-btn-tertiary-gray-background);
-    --lf-btn-border: var(--lf-btn-tertiary-gray-border);
-    --lf-btn-shadow: var(--lf-btn-tertiary-gray-shadow);
+  &--secondary-ghost {
+    --lf-btn-text: var(--lf-btn-secondary-ghost-text);
+    --lf-btn-background: var(--lf-btn-secondary-ghost-background);
+    --lf-btn-border: var(--lf-btn-secondary-ghost-border);
+    --lf-btn-shadow: var(--lf-btn-secondary-ghost-shadow);
 
     // Hover
-    --lf-btn-hover-text: var(--lf-btn-tertiary-gray-hover-text);
-    --lf-btn-hover-background: var(--lf-btn-tertiary-gray-hover-background);
-    --lf-btn-hover-border: var(--lf-btn-tertiary-gray-hover-border);
+    --lf-btn-hover-text: var(--lf-btn-secondary-ghost-hover-text);
+    --lf-btn-hover-background: var(--lf-btn-secondary-ghost-hover-background);
+    --lf-btn-hover-border: var(--lf-btn-secondary-ghost-hover-border);
 
     // Active
-    --lf-btn-active-text: var(--lf-btn-tertiary-gray-active-text);
-    --lf-btn-active-background: var(--lf-btn-tertiary-gray-active-background);
-    --lf-btn-active-border: var(--lf-btn-tertiary-gray-active-border);
+    --lf-btn-active-text: var(--lf-btn-secondary-ghost-active-text);
+    --lf-btn-active-background: var(--lf-btn-secondary-ghost-active-background);
+    --lf-btn-active-border: var(--lf-btn-secondary-ghost-active-border);
 
     // Disabled
-    --lf-btn-disabled-text: var(--lf-btn-tertiary-gray-disabled-text);
-    --lf-btn-disabled-background: var(--lf-btn-tertiary-gray-disabled-background);
-    --lf-btn-disabled-border: var(--lf-btn-tertiary-gray-disabled-border);
+    --lf-btn-disabled-text: var(--lf-btn-secondary-ghost-disabled-text);
+    --lf-btn-disabled-background: var(--lf-btn-secondary-ghost-disabled-background);
+    --lf-btn-disabled-border: var(--lf-btn-secondary-ghost-disabled-border);
 
     // Loading
-    --lf-btn-loading-text: var(--lf-btn-tertiary-gray-loading-text);
-    --lf-btn-loading-background: var(--lf-btn-tertiary-gray-loading-background);
-    --lf-btn-loading-border: var(--lf-btn-tertiary-gray-loading-border);
+    --lf-btn-loading-text: var(--lf-btn-secondary-ghost-loading-text);
+    --lf-btn-loading-background: var(--lf-btn-secondary-ghost-loading-background);
+    --lf-btn-loading-border: var(--lf-btn-secondary-ghost-loading-border);
   }
 
-  &--tertiary-light-gray {
-    --lf-btn-text: var(--lf-btn-tertiary-light-gray-text);
-    --lf-btn-background: var(--lf-btn-tertiary-light-gray-background);
-    --lf-btn-border: var(--lf-btn-tertiary-light-gray-border);
-    --lf-btn-shadow: var(--lf-btn-tertiary-light-gray-shadow);
+  &--secondary-ghost-light {
+    --lf-btn-text: var(--lf-btn-secondary-ghost-light-text);
+    --lf-btn-background: var(--lf-btn-secondary-ghost-light-background);
+    --lf-btn-border: var(--lf-btn-secondary-ghost-light-border);
+    --lf-btn-shadow: var(--lf-btn-secondary-ghost-light-shadow);
 
     // Hover
-    --lf-btn-hover-text: var(--lf-btn-tertiary-light-gray-hover-text);
-    --lf-btn-hover-background: var(--lf-btn-tertiary-light-gray-hover-background);
-    --lf-btn-hover-border: var(--lf-btn-tertiary-light-gray-hover-border);
+    --lf-btn-hover-text: var(--lf-btn-secondary-ghost-light-hover-text);
+    --lf-btn-hover-background: var(--lf-btn-secondary-ghost-light-hover-background);
+    --lf-btn-hover-border: var(--lf-btn-secondary-ghost-light-hover-border);
 
     // Active
-    --lf-btn-active-text: var(--lf-btn-tertiary-light-gray-active-text);
-    --lf-btn-active-background: var(--lf-btn-tertiary-light-gray-active-background);
-    --lf-btn-active-border: var(--lf-btn-tertiary-light-gray-active-border);
+    --lf-btn-active-text: var(--lf-btn-secondary-ghost-light-active-text);
+    --lf-btn-active-background: var(--lf-btn-secondary-ghost-light-active-background);
+    --lf-btn-active-border: var(--lf-btn-secondary-ghost-light-active-border);
 
     // Disabled
-    --lf-btn-disabled-text: var(--lf-btn-tertiary-light-gray-disabled-text);
-    --lf-btn-disabled-background: var(--lf-btn-tertiary-light-gray-disabled-background);
-    --lf-btn-disabled-border: var(--lf-btn-tertiary-light-gray-disabled-border);
+    --lf-btn-disabled-text: var(--lf-btn-secondary-ghost-light-disabled-text);
+    --lf-btn-disabled-background: var(--lf-btn-secondary-ghost-light-disabled-background);
+    --lf-btn-disabled-border: var(--lf-btn-secondary-ghost-light-disabled-border);
 
     // Loading
-    --lf-btn-loading-text: var(--lf-btn-tertiary-light-gray-loading-text);
-    --lf-btn-loading-background: var(--lf-btn-tertiary-light-gray-loading-background);
-    --lf-btn-loading-border: var(--lf-btn-tertiary-light-gray-loading-border);
+    --lf-btn-loading-text: var(--lf-btn-secondary-ghost-light-loading-text);
+    --lf-btn-loading-background: var(--lf-btn-secondary-ghost-light-loading-background);
+    --lf-btn-loading-border: var(--lf-btn-secondary-ghost-light-loading-border);
   }
 
-  &--info {
-    --lf-btn-text: var(--lf-btn-info-text);
-    --lf-btn-background: var(--lf-btn-info-background);
-    --lf-btn-border: var(--lf-btn-info-border);
-    --lf-btn-shadow: var(--lf-btn-info-shadow);
+  &--primary-link {
+    @apply p-0 h-auto border-none;
+    --lf-btn-text: var(--lf-btn-primary-link-text);
+    --lf-btn-background: var(--lf-btn-primary-link-background);
+    --lf-btn-border: var(--lf-btn-primary-link-border);
+    --lf-btn-shadow: var(--lf-btn-primary-link-shadow);
 
     // Hover
-    --lf-btn-hover-text: var(--lf-btn-info-hover-text);
-    --lf-btn-hover-background: var(--lf-btn-info-hover-background);
-    --lf-btn-hover-border: var(--lf-btn-info-hover-border);
+    --lf-btn-hover-text: var(--lf-btn-primary-link-hover-text);
+    --lf-btn-hover-background: var(--lf-btn-primary-link-hover-background);
+    --lf-btn-hover-border: var(--lf-btn-primary-link-hover-border);
 
     // Active
-    --lf-btn-active-text: var(--lf-btn-info-active-text);
-    --lf-btn-active-background: var(--lf-btn-info-active-background);
-    --lf-btn-active-border: var(--lf-btn-info-active-border);
+    --lf-btn-active-text: var(--lf-btn-primary-link-active-text);
+    --lf-btn-active-background: var(--lf-btn-primary-link-active-background);
+    --lf-btn-active-border: var(--lf-btn-primary-link-active-border);
 
     // Disabled
-    --lf-btn-disabled-text: var(--lf-btn-info-disabled-text);
-    --lf-btn-disabled-background: var(--lf-btn-info-disabled-background);
-    --lf-btn-disabled-border: var(--lf-btn-info-disabled-border);
+    --lf-btn-disabled-text: var(--lf-btn-primary-link-disabled-text);
+    --lf-btn-disabled-background: var(--lf-btn-primary-link-disabled-background);
+    --lf-btn-disabled-border: var(--lf-btn-primary-link-disabled-border);
 
     // Loading
-    --lf-btn-loading-text: var(--lf-btn-info-loading-text);
-    --lf-btn-loading-background: var(--lf-btn-info-loading-background);
-    --lf-btn-loading-border: var(--lf-btn-info-loading-border);
+    --lf-btn-loading-text: var(--lf-btn-primary-link-loading-text);
+    --lf-btn-loading-background: var(--lf-btn-primary-link-loading-background);
+    --lf-btn-loading-border: var(--lf-btn-primary-link-loading-border);
   }
 
-  &--info-transparent {
-    --lf-btn-text: var(--lf-btn-info-transparent-text);
-    --lf-btn-background: var(--lf-btn-info-transparent-background);
-    --lf-btn-border: var(--lf-btn-info-transparent-border);
-    --lf-btn-shadow: var(--lf-btn-info-transparent-shadow);
+  &--secondary-link {
+    @apply p-0 h-auto border-none;
+    --lf-btn-text: var(--lf-btn-secondary-link-text);
+    --lf-btn-background: var(--lf-btn-secondary-link-background);
+    --lf-btn-border: var(--lf-btn-secondary-link-border);
+    --lf-btn-shadow: var(--lf-btn-secondary-link-shadow);
 
     // Hover
-    --lf-btn-hover-text: var(--lf-btn-info-transparent-hover-text);
-    --lf-btn-hover-background: var(--lf-btn-info-transparent-hover-background);
-    --lf-btn-hover-border: var(--lf-btn-info-transparent-hover-border);
+    --lf-btn-hover-text: var(--lf-btn-secondary-link-hover-text);
+    --lf-btn-hover-background: var(--lf-btn-secondary-link-hover-background);
+    --lf-btn-hover-border: var(--lf-btn-secondary-link-hover-border);
 
     // Active
-    --lf-btn-active-text: var(--lf-btn-info-transparent-active-text);
-    --lf-btn-active-background: var(--lf-btn-info-transparent-active-background);
-    --lf-btn-active-border: var(--lf-btn-info-transparent-active-border);
+    --lf-btn-active-text: var(--lf-btn-secondary-link-active-text);
+    --lf-btn-active-background: var(--lf-btn-secondary-link-active-background);
+    --lf-btn-active-border: var(--lf-btn-secondary-link-active-border);
 
     // Disabled
-    --lf-btn-disabled-text: var(--lf-btn-info-transparent-disabled-text);
-    --lf-btn-disabled-background: var(--lf-btn-info-transparent-disabled-background);
-    --lf-btn-disabled-border: var(--lf-btn-info-transparent-disabled-border);
+    --lf-btn-disabled-text: var(--lf-btn-secondary-link-disabled-text);
+    --lf-btn-disabled-background: var(--lf-btn-secondary-link-disabled-background);
+    --lf-btn-disabled-border: var(--lf-btn-secondary-link-disabled-border);
 
     // Loading
-    --lf-btn-loading-text: var(--lf-btn-info-transparent-loading-text);
-    --lf-btn-loading-background: var(--lf-btn-info-transparent-loading-background);
-    --lf-btn-loading-border: var(--lf-btn-info-transparent-loading-border);
-  }
-
-  &--success {
-    --lf-btn-text: var(--lf-btn-success-text);
-    --lf-btn-background: var(--lf-btn-success-background);
-    --lf-btn-border: var(--lf-btn-success-border);
-    --lf-btn-shadow: var(--lf-btn-success-shadow);
-
-    // Hover
-    --lf-btn-hover-text: var(--lf-btn-success-hover-text);
-    --lf-btn-hover-background: var(--lf-btn-success-hover-background);
-    --lf-btn-hover-border: var(--lf-btn-success-hover-border);
-
-    // Active
-    --lf-btn-active-text: var(--lf-btn-success-active-text);
-    --lf-btn-active-background: var(--lf-btn-success-active-background);
-    --lf-btn-active-border: var(--lf-btn-success-active-border);
-
-    // Disabled
-    --lf-btn-disabled-text: var(--lf-btn-success-disabled-text);
-    --lf-btn-disabled-background: var(--lf-btn-success-disabled-background);
-    --lf-btn-disabled-border: var(--lf-btn-success-disabled-border);
-
-    // Loading
-    --lf-btn-loading-text: var(--lf-btn-success-loading-text);
-    --lf-btn-loading-background: var(--lf-btn-success-loading-background);
-    --lf-btn-loading-border: var(--lf-btn-success-loading-border);
-  }
-
-  &--success-transparent {
-    --lf-btn-text: var(--lf-btn-success-transparent-text);
-    --lf-btn-background: var(--lf-btn-success-transparent-background);
-    --lf-btn-border: var(--lf-btn-success-transparent-border);
-    --lf-btn-shadow: var(--lf-btn-success-transparent-shadow);
-
-    // Hover
-    --lf-btn-hover-text: var(--lf-btn-success-transparent-hover-text);
-    --lf-btn-hover-background: var(--lf-btn-success-transparent-hover-background);
-    --lf-btn-hover-border: var(--lf-btn-success-transparent-hover-border);
-
-    // Active
-    --lf-btn-active-text: var(--lf-btn-success-transparent-active-text);
-    --lf-btn-active-background: var(--lf-btn-success-transparent-active-background);
-    --lf-btn-active-border: var(--lf-btn-success-transparent-active-border);
-
-    // Disabled
-    --lf-btn-disabled-text: var(--lf-btn-success-transparent-disabled-text);
-    --lf-btn-disabled-background: var(--lf-btn-success-transparent-disabled-background);
-    --lf-btn-disabled-border: var(--lf-btn-success-transparent-disabled-border);
-
-    // Loading
-    --lf-btn-loading-text: var(--lf-btn-success-transparent-loading-text);
-    --lf-btn-loading-background: var(--lf-btn-success-transparent-loading-background);
-    --lf-btn-loading-border: var(--lf-btn-success-transparent-loading-border);
-  }
-
-  &--danger {
-    --lf-btn-text: var(--lf-btn-danger-text);
-    --lf-btn-background: var(--lf-btn-danger-background);
-    --lf-btn-border: var(--lf-btn-danger-border);
-    --lf-btn-shadow: var(--lf-btn-danger-shadow);
-
-    // Hover
-    --lf-btn-hover-text: var(--lf-btn-danger-hover-text);
-    --lf-btn-hover-background: var(--lf-btn-danger-hover-background);
-    --lf-btn-hover-border: var(--lf-btn-danger-hover-border);
-
-    // Active
-    --lf-btn-active-text: var(--lf-btn-danger-active-text);
-    --lf-btn-active-background: var(--lf-btn-danger-active-background);
-    --lf-btn-active-border: var(--lf-btn-danger-active-border);
-
-    // Disabled
-    --lf-btn-disabled-text: var(--lf-btn-danger-disabled-text);
-    --lf-btn-disabled-background: var(--lf-btn-danger-disabled-background);
-    --lf-btn-disabled-border: var(--lf-btn-danger-disabled-border);
-
-    // Loading
-    --lf-btn-loading-text: var(--lf-btn-danger-loading-text);
-    --lf-btn-loading-background: var(--lf-btn-danger-loading-background);
-    --lf-btn-loading-border: var(--lf-btn-danger-loading-border);
-  }
-
-  &--danger-transparent {
-    --lf-btn-text: var(--lf-btn-danger-transparent-text);
-    --lf-btn-background: var(--lf-btn-danger-transparent-background);
-    --lf-btn-border: var(--lf-btn-danger-transparent-border);
-    --lf-btn-shadow: var(--lf-btn-danger-transparent-shadow);
-
-    // Hover
-    --lf-btn-hover-text: var(--lf-btn-danger-transparent-hover-text);
-    --lf-btn-hover-background: var(--lf-btn-danger-transparent-hover-background);
-    --lf-btn-hover-border: var(--lf-btn-danger-transparent-hover-border);
-
-    // Active
-    --lf-btn-active-text: var(--lf-btn-danger-transparent-active-text);
-    --lf-btn-active-background: var(--lf-btn-danger-transparent-active-background);
-    --lf-btn-active-border: var(--lf-btn-danger-transparent-active-border);
-
-    // Disabled
-    --lf-btn-disabled-text: var(--lf-btn-danger-transparent-disabled-text);
-    --lf-btn-disabled-background: var(--lf-btn-danger-transparent-disabled-background);
-    --lf-btn-disabled-border: var(--lf-btn-danger-transparent-disabled-border);
-
-    // Loading
-    --lf-btn-loading-text: var(--lf-btn-danger-transparent-loading-text);
-    --lf-btn-loading-background: var(--lf-btn-danger-transparent-loading-background);
-    --lf-btn-loading-border: var(--lf-btn-danger-transparent-loading-border);
-  }
-
-  &--warning {
-    --lf-btn-text: var(--lf-btn-warning-text);
-    --lf-btn-background: var(--lf-btn-warning-background);
-    --lf-btn-border: var(--lf-btn-warning-border);
-    --lf-btn-shadow: var(--lf-btn-warning-shadow);
-
-    // Hover
-    --lf-btn-hover-text: var(--lf-btn-warning-hover-text);
-    --lf-btn-hover-background: var(--lf-btn-warning-hover-background);
-    --lf-btn-hover-border: var(--lf-btn-warning-hover-border);
-
-    // Active
-    --lf-btn-active-text: var(--lf-btn-warning-active-text);
-    --lf-btn-active-background: var(--lf-btn-warning-active-background);
-    --lf-btn-active-border: var(--lf-btn-warning-active-border);
-
-    // Disabled
-    --lf-btn-disabled-text: var(--lf-btn-warning-disabled-text);
-    --lf-btn-disabled-background: var(--lf-btn-warning-disabled-background);
-    --lf-btn-disabled-border: var(--lf-btn-warning-disabled-border);
-
-    // Loading
-    --lf-btn-loading-text: var(--lf-btn-warning-loading-text);
-    --lf-btn-loading-background: var(--lf-btn-warning-loading-background);
-    --lf-btn-loading-border: var(--lf-btn-warning-loading-border);
-  }
-
-  &--warning-transparent {
-    --lf-btn-text: var(--lf-btn-warning-transparent-text);
-    --lf-btn-background: var(--lf-btn-warning-transparent-background);
-    --lf-btn-border: var(--lf-btn-warning-transparent-border);
-    --lf-btn-shadow: var(--lf-btn-warning-transparent-shadow);
-
-    // Hover
-    --lf-btn-hover-text: var(--lf-btn-warning-transparent-hover-text);
-    --lf-btn-hover-background: var(--lf-btn-warning-transparent-hover-background);
-    --lf-btn-hover-border: var(--lf-btn-warning-transparent-hover-border);
-
-    // Active
-    --lf-btn-active-text: var(--lf-btn-warning-transparent-active-text);
-    --lf-btn-active-background: var(--lf-btn-warning-transparent-active-background);
-    --lf-btn-active-border: var(--lf-btn-warning-transparent-active-border);
-
-    // Disabled
-    --lf-btn-disabled-text: var(--lf-btn-warning-transparent-disabled-text);
-    --lf-btn-disabled-background: var(--lf-btn-warning-transparent-disabled-background);
-    --lf-btn-disabled-border: var(--lf-btn-warning-transparent-disabled-border);
-
-    // Loading
-    --lf-btn-loading-text: var(--lf-btn-warning-transparent-loading-text);
-    --lf-btn-loading-background: var(--lf-btn-warning-transparent-loading-background);
-    --lf-btn-loading-border: var(--lf-btn-warning-transparent-loading-border);
-  }
-
-  &--feature {
-    --lf-btn-text: var(--lf-btn-feature-text);
-    --lf-btn-background: var(--lf-btn-feature-background);
-    --lf-btn-border: var(--lf-btn-feature-border);
-    --lf-btn-shadow: var(--lf-btn-feature-shadow);
-
-    // Hover
-    --lf-btn-hover-text: var(--lf-btn-feature-hover-text);
-    --lf-btn-hover-background: var(--lf-btn-feature-hover-background);
-    --lf-btn-hover-border: var(--lf-btn-feature-hover-border);
-
-    // Active
-    --lf-btn-active-text: var(--lf-btn-feature-active-text);
-    --lf-btn-active-background: var(--lf-btn-feature-active-background);
-    --lf-btn-active-border: var(--lf-btn-feature-active-border);
-
-    // Disabled
-    --lf-btn-disabled-text: var(--lf-btn-feature-disabled-text);
-    --lf-btn-disabled-background: var(--lf-btn-feature-disabled-background);
-    --lf-btn-disabled-border: var(--lf-btn-feature-disabled-border);
-
-    // Loading
-    --lf-btn-loading-text: var(--lf-btn-feature-loading-text);
-    --lf-btn-loading-background: var(--lf-btn-feature-loading-background);
-    --lf-btn-loading-border: var(--lf-btn-feature-loading-border);
-  }
-
-  &--feature-transparent {
-    --lf-btn-text: var(--lf-btn-feature-transparent-text);
-    --lf-btn-background: var(--lf-btn-feature-transparent-background);
-    --lf-btn-border: var(--lf-btn-feature-transparent-border);
-    --lf-btn-shadow: var(--lf-btn-feature-transparent-shadow);
-
-    // Hover
-    --lf-btn-hover-text: var(--lf-btn-feature-transparent-hover-text);
-    --lf-btn-hover-background: var(--lf-btn-feature-transparent-hover-background);
-    --lf-btn-hover-border: var(--lf-btn-feature-transparent-hover-border);
-
-    // Active
-    --lf-btn-active-text: var(--lf-btn-feature-transparent-active-text);
-    --lf-btn-active-background: var(--lf-btn-feature-transparent-active-background);
-    --lf-btn-active-border: var(--lf-btn-feature-transparent-active-border);
-
-    // Disabled
-    --lf-btn-disabled-text: var(--lf-btn-feature-transparent-disabled-text);
-    --lf-btn-disabled-background: var(--lf-btn-feature-transparent-disabled-background);
-    --lf-btn-disabled-border: var(--lf-btn-feature-transparent-disabled-border);
-
-    // Loading
-    --lf-btn-loading-text: var(--lf-btn-feature-transparent-loading-text);
-    --lf-btn-loading-background: var(--lf-btn-feature-transparent-loading-background);
-    --lf-btn-loading-border: var(--lf-btn-feature-transparent-loading-border);
+    --lf-btn-loading-text: var(--lf-btn-secondary-link-loading-text);
+    --lf-btn-loading-background: var(--lf-btn-secondary-link-loading-background);
+    --lf-btn-loading-border: var(--lf-btn-secondary-link-loading-border);
   }
 }
 

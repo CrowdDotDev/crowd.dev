@@ -4,7 +4,7 @@ import LfInput from '../input/Input.vue';
 import LfField from '../field/Field.vue';
 
 export default {
-  title: 'Crowd.dev/FieldMessage',
+  title: 'LinuxFoundation/FieldMessage',
   component: LfFieldMessage,
   tags: ['autodocs'],
   argTypes: {

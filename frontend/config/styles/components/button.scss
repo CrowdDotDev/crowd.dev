@@ -5,38 +5,38 @@
 
   /* Tiny */
   --lf-btn-tiny-font-size: #{rem(12)};
-  --lf-btn-tiny-line-height: #{rem(20)};
+  --lf-btn-tiny-line-height: #{rem(16)};
   --lf-btn-tiny-height: #{rem(24)};
   --lf-btn-tiny-border-radius: #{rem(6)};
-  --lf-btn-tiny-padding: #{rem(8)};
+  --lf-btn-tiny-padding: #{rem(6)};
   --lf-btn-tiny-icon: #{rem(14)};
 
 
   /* Small */
   --lf-btn-small-font-size: #{rem(13)};
-  --lf-btn-small-line-height: #{rem(20)};
-  --lf-btn-small-height: #{rem(32)};
-  --lf-btn-small-border-radius: #{rem(8)};
-  --lf-btn-small-padding: #{rem(12)};
+  --lf-btn-small-line-height: #{rem(16)};
+  --lf-btn-small-height: #{rem(28)};
+  --lf-btn-small-border-radius: #{rem(6)};
+  --lf-btn-small-padding: #{rem(8)};
   --lf-btn-small-icon: #{rem(16)};
 
 
   /* Medium */
   --lf-btn-medium-font-size: #{rem(14)};
   --lf-btn-medium-line-height: #{rem(20)};
-  --lf-btn-medium-height: #{rem(40)};
-  --lf-btn-medium-border-radius: #{rem(8)};
-  --lf-btn-medium-padding: #{rem(16)};
+  --lf-btn-medium-height: #{rem(36)};
+  --lf-btn-medium-border-radius: #{rem(6)};
+  --lf-btn-medium-padding: #{rem(12)};
   --lf-btn-medium-icon: #{rem(20)};
 
 
   /* Large */
   --lf-btn-large-font-size: #{rem(16)};
   --lf-btn-large-line-height: #{rem(20)};
-  --lf-btn-large-height: #{rem(48)};
-  --lf-btn-large-border-radius: #{rem(10)};
-  --lf-btn-large-padding: #{rem(20)};
-  --lf-btn-large-icon: #{rem(24)};
+  --lf-btn-large-height: #{rem(40)};
+  --lf-btn-large-border-radius: #{rem(8)};
+  --lf-btn-large-padding: #{rem(16)};
+  --lf-btn-large-icon: #{rem(20)};
 
 
   /* ---------------------------------- *\
@@ -54,336 +54,152 @@
   --lf-btn-primary-hover-border: var(--lf-color-primary-600);
   // Active
   --lf-btn-primary-active-text: var(--lf-color-white);
-  --lf-btn-primary-active-background: var(--lf-color-primary-600);
-  --lf-btn-primary-active-border: var(--lf-color-primary-600);
+  --lf-btn-primary-active-background: var(--lf-color-primary-700);
+  --lf-btn-primary-active-border: var(--lf-color-primary-700);
   // Disabled
   --lf-btn-primary-disabled-text: var(--lf-color-white);
   --lf-btn-primary-disabled-background: var(--lf-color-primary-200);
   --lf-btn-primary-disabled-border: var(--lf-color-primary-200);
   // Loading
-  --lf-btn-primary-loading-text: var(--lf-color-white);
-  --lf-btn-primary-loading-background: var(--lf-color-primary-300);
-  --lf-btn-primary-loading-border: var(--lf-color-primary-300);
+  --lf-btn-primary-loading-text: var(--lf-color-primary-100);
+  --lf-btn-primary-loading-background: var(--lf-color-primary-500);
+  --lf-btn-primary-loading-border: var(--lf-color-primary-500);
 
 
   /* Secondary */
   --lf-btn-secondary-text: var(--lf-color-gray-900);
   --lf-btn-secondary-background: var(--lf-color-white);
-  --lf-btn-secondary-border: var(--lf-color-gray-100);
+  --lf-btn-secondary-border: var(--lf-color-gray-200);
   --lf-btn-secondary-shadow: var(--shadow-default);
   // Hover
   --lf-btn-secondary-hover-text: var(--lf-color-gray-900);
   --lf-btn-secondary-hover-background: var(--lf-color-gray-50);
-  --lf-btn-secondary-hover-border: var(--lf-color-gray-100);
+  --lf-btn-secondary-hover-border: var(--lf-color-gray-200);
   // Active
   --lf-btn-secondary-active-text: var(--lf-color-gray-900);
   --lf-btn-secondary-active-background: var(--lf-color-gray-100);
-  --lf-btn-secondary-active-border: var(--lf-color-gray-100);
+  --lf-btn-secondary-active-border: var(--lf-color-gray-200);
   // Disabled
-  --lf-btn-secondary-disabled-text: var(--lf-color-gray-300);
+  --lf-btn-secondary-disabled-text: var(--lf-color-gray-400);
   --lf-btn-secondary-disabled-background: var(--lf-color-white);
   --lf-btn-secondary-disabled-border: var(--lf-color-gray-100);
   // Loading
   --lf-btn-secondary-loading-text: var(--lf-color-gray-400);
   --lf-btn-secondary-loading-background: var(--lf-color-white);
-  --lf-btn-secondary-loading-border: var(--lf-color-gray-100);
+  --lf-btn-secondary-loading-border: var(--lf-color-gray-200);
 
 
-  /* Tertiary */
-  --lf-btn-tertiary-text: var(--lf-color-primary-500);
-  --lf-btn-tertiary-background: var(--lf-color-transparent);
-  --lf-btn-tertiary-border: var(--lf-color-transparent);
-  --lf-btn-tertiary-shadow: var(--shadow-none);
+  /* Primary Ghost */
+  --lf-btn-primary-ghost-text: var(--lf-color-primary-500);
+  --lf-btn-primary-ghost-background: var(--lf-color-transparent);
+  --lf-btn-primary-ghost-border: var(--lf-color-transparent);
+  --lf-btn-primary-ghost-shadow: var(--shadow-none);
   // Hover
-  --lf-btn-tertiary-hover-text: var(--lf-color-primary-500);
-  --lf-btn-tertiary-hover-background: var(--lf-color-primary-50);
-  --lf-btn-tertiary-hover-border: var(--lf-color-primary-50);
+  --lf-btn-primary-ghost-hover-text: var(--lf-color-primary-500);
+  --lf-btn-primary-ghost-hover-background: var(--lf-color-primary-50);
+  --lf-btn-primary-ghost-hover-border: var(--lf-color-primary-50);
   // Active
-  --lf-btn-tertiary-active-text: var(--lf-color-primary-500);
-  --lf-btn-tertiary-active-background: var(--lf-color-primary-100);
-  --lf-btn-tertiary-active-border: var(--lf-color-primary-100);
+  --lf-btn-primary-ghost-active-text: var(--lf-color-primary-500);
+  --lf-btn-primary-ghost-active-background: var(--lf-color-primary-100);
+  --lf-btn-primary-ghost-active-border: var(--lf-color-primary-100);
   // Disabled
-  --lf-btn-tertiary-disabled-text: var(--lf-color-primary-200);
-  --lf-btn-tertiary-disabled-background: var(--lf-color-transparent);
-  --lf-btn-tertiary-disabled-border: var(--lf-color-transparent);
+  --lf-btn-primary-ghost-disabled-text: var(--lf-color-primary-200);
+  --lf-btn-primary-ghost-disabled-background: var(--lf-color-transparent);
+  --lf-btn-primary-ghost-disabled-border: var(--lf-color-transparent);
   // Loading
-  --lf-btn-tertiary-loading-text: var(--lf-color-primary-300);
-  --lf-btn-tertiary-loading-background: var(--lf-color-transparent);
-  --lf-btn-tertiary-loading-border: var(--lf-color-transparent);
+  --lf-btn-primary-ghost-loading-text: var(--lf-color-primary-200);
+  --lf-btn-primary-ghost-loading-background: var(--lf-color-transparent);
+  --lf-btn-primary-ghost-loading-border: var(--lf-color-transparent);
 
 
-  /* Tertiary Gray */
-  --lf-btn-tertiary-gray-text: var(--lf-color-gray-600);
-  --lf-btn-tertiary-gray-background: var(--lf-color-transparent);
-  --lf-btn-tertiary-gray-border: var(--lf-color-transparent);
-  --lf-btn-tertiary-gray-shadow: var(--shadow-none);
+  /* Secondary Ghost */
+  --lf-btn-secondary-ghost-text: var(--lf-color-gray-900);
+  --lf-btn-secondary-ghost-background: var(--lf-color-transparent);
+  --lf-btn-secondary-ghost-border: var(--lf-color-transparent);
+  --lf-btn-secondary-ghost-shadow: var(--shadow-none);
   // Hover
-  --lf-btn-tertiary-gray-hover-text: var(--lf-color-gray-600);
-  --lf-btn-tertiary-gray-hover-background: var(--lf-color-gray-100);
-  --lf-btn-tertiary-gray-hover-border: var(--lf-color-gray-100);
+  --lf-btn-secondary-ghost-hover-text: var(--lf-color-gray-900);
+  --lf-btn-secondary-ghost-hover-background: var(--lf-color-gray-100);
+  --lf-btn-secondary-ghost-hover-border: var(--lf-color-gray-100);
   // Active
-  --lf-btn-tertiary-gray-active-text: var(--lf-color-gray-600);
-  --lf-btn-tertiary-gray-active-background: var(--lf-color-gray-200);
-  --lf-btn-tertiary-gray-active-border: var(--lf-color-gray-200);
+  --lf-btn-secondary-ghost-active-text: var(--lf-color-gray-900);
+  --lf-btn-secondary-ghost-active-background: var(--lf-color-gray-200);
+  --lf-btn-secondary-ghost-active-border: var(--lf-color-gray-200);
   // Disabled
-  --lf-btn-tertiary-gray-disabled-text: var(--lf-color-gray-300);
-  --lf-btn-tertiary-gray-disabled-background: var(--lf-color-transparent);
-  --lf-btn-tertiary-gray-disabled-border: var(--lf-color-transparent);
+  --lf-btn-secondary-ghost-disabled-text: var(--lf-color-gray-400);
+  --lf-btn-secondary-ghost-disabled-background: var(--lf-color-transparent);
+  --lf-btn-secondary-ghost-disabled-border: var(--lf-color-transparent);
   // Loading
-  --lf-btn-tertiary-gray-loading-text: var(--lf-color-gray-400);
-  --lf-btn-tertiary-gray-loading-background: var(--lf-color-transparent);
-  --lf-btn-tertiary-gray-loading-border: var(--lf-color-transparent);
+  --lf-btn-secondary-ghost-loading-text: var(--lf-color-gray-400);
+  --lf-btn-secondary-ghost-loading-background: var(--lf-color-transparent);
+  --lf-btn-secondary-ghost-loading-border: var(--lf-color-transparent);
 
 
-  /* Tertiary Light Gray */
-  --lf-btn-tertiary-light-gray-text: var(--lf-color-gray-400);
-  --lf-btn-tertiary-light-gray-background: var(--lf-color-transparent);
-  --lf-btn-tertiary-light-gray-border: var(--lf-color-transparent);
-  --lf-btn-tertiary-light-gray-shadow: var(--shadow-none);
+  /* Secondary Ghost Light */
+  --lf-btn-secondary-ghost-light-text: var(--lf-color-gray-400);
+  --lf-btn-secondary-ghost-light-background: var(--lf-color-transparent);
+  --lf-btn-secondary-ghost-light-border: var(--lf-color-transparent);
+  --lf-btn-secondary-ghost-light-shadow: var(--shadow-none);
   // Hover
-  --lf-btn-tertiary-light-gray-hover-text: var(--lf-color-gray-500);
-  --lf-btn-tertiary-light-gray-hover-background: var(--lf-color-gray-50);
-  --lf-btn-tertiary-light-gray-hover-border: var(--lf-color-gray-50);
+  --lf-btn-secondary-ghost-light-hover-text: var(--lf-color-gray-500);
+  --lf-btn-secondary-ghost-light-hover-background: var(--lf-color-gray-50);
+  --lf-btn-secondary-ghost-light-hover-border: var(--lf-color-gray-50);
   // Active
-  --lf-btn-tertiary-light-gray-active-text: var(--lf-color-gray-500);
-  --lf-btn-tertiary-light-gray-active-background: var(--lf-color-gray-100);
-  --lf-btn-tertiary-light-gray-active-border: var(--lf-color-gray-100);
+  --lf-btn-secondary-ghost-light-active-text: var(--lf-color-gray-500);
+  --lf-btn-secondary-ghost-light-active-background: var(--lf-color-gray-100);
+  --lf-btn-secondary-ghost-light-active-border: var(--lf-color-gray-100);
   // Disabled
-  --lf-btn-tertiary-light-gray-disabled-text: var(--lf-color-gray-300);
-  --lf-btn-tertiary-light-gray-disabled-background: var(--lf-color-transparent);
-  --lf-btn-tertiary-light-gray-disabled-border: var(--lf-color-transparent);
+  --lf-btn-secondary-ghost-light-disabled-text: var(--lf-color-gray-300);
+  --lf-btn-secondary-ghost-light-disabled-background: var(--lf-color-transparent);
+  --lf-btn-secondary-ghost-light-disabled-border: var(--lf-color-transparent);
   // Loading
-  --lf-btn-tertiary-light-gray-loading-text: var(--lf-color-gray-300);
-  --lf-btn-tertiary-light-gray-loading-background: var(--lf-color-transparent);
-  --lf-btn-tertiary-light-gray-loading-border: var(--lf-color-transparent);
+  --lf-btn-secondary-ghost-light-loading-text: var(--lf-color-gray-400);
+  --lf-btn-secondary-ghost-light-loading-background: var(--lf-color-transparent);
+  --lf-btn-secondary-ghost-light-loading-border: var(--lf-color-transparent);
 
 
-  /* Info */
-  --lf-btn-info-text: var(--lf-color-white);
-  --lf-btn-info-background: var(--lf-color-primary-600);
-  --lf-btn-info-border: var(--lf-color-primary-600);
-  --lf-btn-info-shadow: var(--shadow-none);
+  /* Primary Link */
+  --lf-btn-primary-link-text: var(--lf-color-primary-500);
+  --lf-btn-primary-link-background: var(--lf-color-transparent);
+  --lf-btn-primary-link-border: var(--lf-color-transparent);
+  --lf-btn-primary-link-shadow: var(--shadow-none);
   // Hover
-  --lf-btn-info-hover-text: var(--lf-color-white);
-  --lf-btn-info-hover-background: var(--lf-color-primary-700);
-  --lf-btn-info-hover-border: var(--lf-color-primary-700);
+  --lf-btn-primary-link-hover-text: var(--lf-color-primary-600);
+  --lf-btn-primary-link-hover-background: var(--lf-color-transparent);
+  --lf-btn-primary-link-hover-border: var(--lf-color-transparent);
   // Active
-  --lf-btn-info-active-text: var(--lf-color-white);
-  --lf-btn-info-active-background: var(--lf-color-primary-800);
-  --lf-btn-info-active-border: var(--lf-color-primary-800);
+  --lf-btn-primary-link-active-text: var(--lf-color-primary-700);
+  --lf-btn-primary-link-active-background: var(--lf-color-transparent);
+  --lf-btn-primary-link-active-border: var(--lf-color-transparent);
   // Disabled
-  --lf-btn-info-disabled-text: var(--lf-color-white);
-  --lf-btn-info-disabled-background: var(--lf-color-primary-300);
-  --lf-btn-info-disabled-border: var(--lf-color-primary-300);
+  --lf-btn-primary-link-disabled-text: var(--lf-color-primary-200);
+  --lf-btn-primary-link-disabled-background: var(--lf-color-transparent);
+  --lf-btn-primary-link-disabled-border: var(--lf-color-transparent);
   // Loading
-  --lf-btn-info-loading-text: var(--lf-color-primary-200);
-  --lf-btn-info-loading-background: var(--lf-color-primary-600);
-  --lf-btn-info-loading-border: var(--lf-color-primary-600);
+  --lf-btn-primary-link-loading-text: var(--lf-color-primary-200);
+  --lf-btn-primary-link-loading-background: var(--lf-color-transparent);
+  --lf-btn-primary-link-loading-border: var(--lf-color-transparent);
 
 
-  /* Info Transparent */
-  --lf-btn-info-transparent-text: var(--lf-color-primary-600);
-  --lf-btn-info-transparent-background: var(--lf-color-transparent);
-  --lf-btn-info-transparent-border: var(--lf-color-transparent);
-  --lf-btn-info-transparent-shadow: var(--shadow-none);
+  /* Secondary Link */
+  --lf-btn-secondary-link-text: var(--lf-color-gray-600);
+  --lf-btn-secondary-link-background: var(--lf-color-transparent);
+  --lf-btn-secondary-link-border: var(--lf-color-transparent);
+  --lf-btn-secondary-link-shadow: var(--shadow-none);
   // Hover
-  --lf-btn-info-transparent-hover-text: var(--lf-color-primary-600);
-  --lf-btn-info-transparent-hover-background: var(--lf-color-primary-50);
-  --lf-btn-info-transparent-hover-border: var(--lf-color-primary-50);
+  --lf-btn-secondary-link-hover-text: var(--lf-color-gray-900);
+  --lf-btn-secondary-link-hover-background: var(--lf-color-transparent);
+  --lf-btn-secondary-link-hover-border: var(--lf-color-transparent);
   // Active
-  --lf-btn-info-transparent-active-text: var(--lf-color-primary-600);
-  --lf-btn-info-transparent-active-background: var(--lf-color-primary-100);
-  --lf-btn-info-transparent-active-border: var(--lf-color-primary-100);
+  --lf-btn-secondary-link-active-text: var(--lf-color-gray-900);
+  --lf-btn-secondary-link-active-background: var(--lf-color-transparent);
+  --lf-btn-secondary-link-active-border: var(--lf-color-transparent);
   // Disabled
-  --lf-btn-info-transparent-disabled-text: var(--lf-color-primary-300);
-  --lf-btn-info-transparent-disabled-background: var(--lf-color-transparent);
-  --lf-btn-info-transparent-disabled-border: var(--lf-color-transparent);
+  --lf-btn-secondary-link-disabled-text: var(--lf-color-gray-400);
+  --lf-btn-secondary-link-disabled-background: var(--lf-color-transparent);
+  --lf-btn-secondary-link-disabled-border: var(--lf-color-transparent);
   // Loading
-  --lf-btn-info-transparent-loading-text: var(--lf-color-primary-400);
-  --lf-btn-info-transparent-loading-background: var(--lf-color-transparent);
-  --lf-btn-info-transparent-loading-border: var(--lf-color-transparent);
-
-
-  /* Success */
-  --lf-btn-success-text: var(--lf-color-white);
-  --lf-btn-success-background: var(--lf-color-green-600);
-  --lf-btn-success-border: var(--lf-color-green-600);
-  --lf-btn-success-shadow: var(--shadow-none);
-  // Hover
-  --lf-btn-success-hover-text: var(--lf-color-white);
-  --lf-btn-success-hover-background: var(--lf-color-green-700);
-  --lf-btn-success-hover-border: var(--lf-color-green-700);
-  // Active
-  --lf-btn-success-active-text: var(--lf-color-white);
-  --lf-btn-success-active-background: var(--lf-color-green-800);
-  --lf-btn-success-active-border: var(--lf-color-green-800);
-  // Disabled
-  --lf-btn-success-disabled-text: var(--lf-color-white);
-  --lf-btn-success-disabled-background: var(--lf-color-green-300);
-  --lf-btn-success-disabled-border: var(--lf-color-green-300);
-  // Loading
-  --lf-btn-success-loading-text: var(--lf-color-green-200);
-  --lf-btn-success-loading-background: var(--lf-color-green-600);
-  --lf-btn-success-loading-border: var(--lf-color-green-600);
-
-
-  /* Success Transparent */
-  --lf-btn-success-transparent-text: var(--lf-color-green-600);
-  --lf-btn-success-transparent-background: var(--lf-color-transparent);
-  --lf-btn-success-transparent-border: var(--lf-color-transparent);
-  --lf-btn-success-transparent-shadow: var(--shadow-none);
-  // Hover
-  --lf-btn-success-transparent-hover-text: var(--lf-color-green-600);
-  --lf-btn-success-transparent-hover-background: var(--lf-color-green-50);
-  --lf-btn-success-transparent-hover-border: var(--lf-color-green-50);
-  // Active
-  --lf-btn-success-transparent-active-text: var(--lf-color-green-600);
-  --lf-btn-success-transparent-active-background: var(--lf-color-green-100);
-  --lf-btn-success-transparent-active-border: var(--lf-color-green-100);
-  // Disabled
-  --lf-btn-success-transparent-disabled-text: var(--lf-color-green-300);
-  --lf-btn-success-transparent-disabled-background: var(--lf-color-transparent);
-  --lf-btn-success-transparent-disabled-border: var(--lf-color-transparent);
-  // Loading
-  --lf-btn-success-transparent-loading-text: var(--lf-color-green-400);
-  --lf-btn-success-transparent-loading-background: var(--lf-color-transparent);
-  --lf-btn-success-transparent-loading-border: var(--lf-color-transparent);
-
-
-  /* Danger */
-  --lf-btn-danger-text: var(--lf-color-white);
-  --lf-btn-danger-background: var(--lf-color-red-600);
-  --lf-btn-danger-border: var(--lf-color-red-600);
-  --lf-btn-danger-shadow: var(--shadow-none);
-  // Hover
-  --lf-btn-danger-hover-text: var(--lf-color-white);
-  --lf-btn-danger-hover-background: var(--lf-color-red-700);
-  --lf-btn-danger-hover-border: var(--lf-color-red-700);
-  // Active
-  --lf-btn-danger-active-text: var(--lf-color-white);
-  --lf-btn-danger-active-background: var(--lf-color-red-800);
-  --lf-btn-danger-active-border: var(--lf-color-red-800);
-  // Disabled
-  --lf-btn-danger-disabled-text: var(--lf-color-white);
-  --lf-btn-danger-disabled-background: var(--lf-color-red-300);
-  --lf-btn-danger-disabled-border: var(--lf-color-red-300);
-  // Loading
-  --lf-btn-danger-loading-text: var(--lf-color-red-200);
-  --lf-btn-danger-loading-background: var(--lf-color-red-600);
-  --lf-btn-danger-loading-border: var(--lf-color-red-600);
-
-
-  /* Danger Transparent */
-  --lf-btn-danger-transparent-text: var(--lf-color-red-600);
-  --lf-btn-danger-transparent-background: var(--lf-color-transparent);
-  --lf-btn-danger-transparent-border: var(--lf-color-transparent);
-  --lf-btn-danger-transparent-shadow: var(--shadow-none);
-  // Hover
-  --lf-btn-danger-transparent-hover-text: var(--lf-color-red-600);
-  --lf-btn-danger-transparent-hover-background: var(--lf-color-red-50);
-  --lf-btn-danger-transparent-hover-border: var(--lf-color-red-50);
-  // Active
-  --lf-btn-danger-transparent-active-text: var(--lf-color-red-600);
-  --lf-btn-danger-transparent-active-background: var(--lf-color-red-100);
-  --lf-btn-danger-transparent-active-border: var(--lf-color-red-100);
-  // Disabled
-  --lf-btn-danger-transparent-disabled-text: var(--lf-color-red-300);
-  --lf-btn-danger-transparent-disabled-background: var(--lf-color-transparent);
-  --lf-btn-danger-transparent-disabled-border: var(--lf-color-transparent);
-  // Loading
-  --lf-btn-danger-transparent-loading-text: var(--lf-color-red-400);
-  --lf-btn-danger-transparent-loading-background: var(--lf-color-transparent);
-  --lf-btn-danger-transparent-loading-border: var(--lf-color-transparent);
-
-
-  /* Warning */
-  --lf-btn-warning-text: var(--lf-color-white);
-  --lf-btn-warning-background: var(--lf-color-yellow-500);
-  --lf-btn-warning-border: var(--lf-color-yellow-500);
-  --lf-btn-warning-shadow: var(--shadow-none);
-  // Hover
-  --lf-btn-warning-hover-text: var(--lf-color-white);
-  --lf-btn-warning-hover-background: var(--lf-color-yellow-600);
-  --lf-btn-warning-hover-border: var(--lf-color-yellow-600);
-  // Active
-  --lf-btn-warning-active-text: var(--lf-color-white);
-  --lf-btn-warning-active-background: var(--lf-color-yellow-700);
-  --lf-btn-warning-active-border: var(--lf-color-yellow-700);
-  // Disabled
-  --lf-btn-warning-disabled-text: var(--lf-color-white);
-  --lf-btn-warning-disabled-background: var(--lf-color-yellow-300);
-  --lf-btn-warning-disabled-border: var(--lf-color-yellow-300);
-  // Loading
-  --lf-btn-warning-loading-text: var(--lf-color-yellow-200);
-  --lf-btn-warning-loading-background: var(--lf-color-yellow-500);
-  --lf-btn-warning-loading-border: var(--lf-color-yellow-500);
-
-
-  /* Warning Transparent */
-  --lf-btn-warning-transparent-text: var(--lf-color-yellow-500);
-  --lf-btn-warning-transparent-background: var(--lf-color-transparent);
-  --lf-btn-warning-transparent-border: var(--lf-color-transparent);
-  --lf-btn-warning-transparent-shadow: var(--shadow-none);
-  // Hover
-  --lf-btn-warning-transparent-hover-text: var(--lf-color-yellow-500);
-  --lf-btn-warning-transparent-hover-background: var(--lf-color-yellow-50);
-  --lf-btn-warning-transparent-hover-border: var(--lf-color-yellow-50);
-  // Active
-  --lf-btn-warning-transparent-active-text: var(--lf-color-yellow-500);
-  --lf-btn-warning-transparent-active-background: var(--lf-color-yellow-100);
-  --lf-btn-warning-transparent-active-border: var(--lf-color-yellow-100);
-  // Disabled
-  --lf-btn-warning-transparent-disabled-text: var(--lf-color-yellow-300);
-  --lf-btn-warning-transparent-disabled-background: var(--lf-color-transparent);
-  --lf-btn-warning-transparent-disabled-border: var(--lf-color-transparent);
-  // Loading
-  --lf-btn-warning-transparent-loading-text: var(--lf-color-yellow-400);
-  --lf-btn-warning-transparent-loading-background: var(--lf-color-transparent);
-  --lf-btn-warning-transparent-loading-border: var(--lf-color-transparent);
-
-
-  /* Feature */
-  --lf-btn-feature-text: var(--lf-color-white);
-  --lf-btn-feature-background: var(--lf-color-purple-600);
-  --lf-btn-feature-border: var(--lf-color-purple-600);
-  --lf-btn-feature-shadow: var(--shadow-none);
-  // Hover
-  --lf-btn-feature-hover-text: var(--lf-color-white);
-  --lf-btn-feature-hover-background: var(--lf-color-purple-700);
-  --lf-btn-feature-hover-border: var(--lf-color-purple-700);
-  // Active
-  --lf-btn-feature-active-text: var(--lf-color-white);
-  --lf-btn-feature-active-background: var(--lf-color-purple-800);
-  --lf-btn-feature-active-border: var(--lf-color-purple-800);
-  // Disabled
-  --lf-btn-feature-disabled-text: var(--lf-color-white);
-  --lf-btn-feature-disabled-background: var(--lf-color-purple-300);
-  --lf-btn-feature-disabled-border: var(--lf-color-purple-300);
-  // Loading
-  --lf-btn-feature-loading-text: var(--lf-color-purple-200);
-  --lf-btn-feature-loading-background: var(--lf-color-purple-600);
-  --lf-btn-feature-loading-border: var(--lf-color-purple-600);
-
-
-  /* Feature Transparent */
-  --lf-btn-feature-transparent-text: var(--lf-color-purple-600);
-  --lf-btn-feature-transparent-background: var(--lf-color-transparent);
-  --lf-btn-feature-transparent-border: var(--lf-color-transparent);
-  --lf-btn-feature-transparent-shadow: var(--shadow-none);
-  // Hover
-  --lf-btn-feature-transparent-hover-text: var(--lf-color-purple-600);
-  --lf-btn-feature-transparent-hover-background: var(--lf-color-purple-50);
-  --lf-btn-feature-transparent-hover-border: var(--lf-color-purple-50);
-  // Active
-  --lf-btn-feature-transparent-active-text: var(--lf-color-purple-600);
-  --lf-btn-feature-transparent-active-background: var(--lf-color-purple-100);
-  --lf-btn-feature-transparent-active-border: var(--lf-color-purple-100);
-  // Disabled
-  --lf-btn-feature-transparent-disabled-text: var(--lf-color-purple-300);
-  --lf-btn-feature-transparent-disabled-background: var(--lf-color-transparent);
-  --lf-btn-feature-transparent-disabled-border: var(--lf-color-transparent);
-  // Loading
-  --lf-btn-feature-transparent-loading-text: var(--lf-color-purple-400);
-  --lf-btn-feature-transparent-loading-background: var(--lf-color-transparent);
-  --lf-btn-feature-transparent-loading-border: var(--lf-color-transparent);
+  --lf-btn-secondary-link-loading-text: var(--lf-color-gray-400);
+  --lf-btn-secondary-link-loading-background: var(--lf-color-transparent);
+  --lf-btn-secondary-link-loading-border: var(--lf-color-transparent);
 }

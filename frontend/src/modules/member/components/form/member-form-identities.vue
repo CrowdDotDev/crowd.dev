@@ -47,7 +47,7 @@
                   <lf-button
                     :id="`identityRef-${ii}`"
                     :ref="(el) => setActionBtnsRef(el, ii)"
-                    type="tertiary-light-gray"
+                    type="secondary-ghost-light"
                     size="small"
                     :icon-only="true"
                     class="relative"

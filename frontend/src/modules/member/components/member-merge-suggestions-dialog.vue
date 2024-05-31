@@ -15,7 +15,7 @@
           @reload="emit('reload')"
         >
           <template #actions>
-            <lf-button type="tertiary-light-gray" :icon-only="true" @click="isModalOpen = false">
+            <lf-button type="secondary-ghost-light" :icon-only="true" @click="isModalOpen = false">
               <i class="ri-close-line" />
             </lf-button>
           </template>
