@@ -109,3 +109,26 @@ export async function findManyLfxMemberships(
     { tenantId, segmentIds, organizationIds },
   )
 }
+
+export async function hasLfxMembership(
+  qx: QueryExecutor,
+  {
+    tenantId,
+    organizationId,
+    segmentId,
+  }: { tenantId: string; organizationId: string; segmentId?: string },
+): Promise<boolean> {
+  const segmentClause = segmentId ? 'AND "segmentId" = $(segmentId)' : ''
+  const result = await qx.selectOneOrNone(
+    `
+        SELECT 1
+        FROM "lfxMemberships"
+        WHERE "tenantId" = $(tenantId)
+          ${segmentClause}
+          AND "organizationId" = $(organizationId)
+        LIMIT 1
+      `,
+    { tenantId, segmentId, organizationId },
+  )
+  return !!result
+}
