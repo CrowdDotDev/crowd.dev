@@ -4,7 +4,7 @@ import { buttonNativeTypes } from '@/ui-kit/button/types/ButtonNativeType';
 import LfButton from './Button.vue';
 
 export default {
-  title: 'Crowd.dev/Button',
+  title: 'LinuxFoundation/Button',
   component: LfButton,
   tags: ['autodocs'],
   argTypes: {

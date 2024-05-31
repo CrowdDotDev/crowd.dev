@@ -233,8 +233,10 @@ export default class MemberService extends LoggerBase {
         // validate emails
         data.identities = this.validateEmails(data.identities)
 
-        // check if displayName is proper
-        data.displayName = getProperDisplayName(data.displayName.split(' ')[0])
+        // make sure displayName is proper
+        if (data.displayName) {
+          data.displayName = getProperDisplayName(data.displayName.split(' ')[0])
+        }
 
         const toUpdate = MemberService.mergeData(original, dbIdentities, data)
 

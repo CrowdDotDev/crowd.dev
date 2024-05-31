@@ -1,7 +1,7 @@
 import LfInput from './Input.vue';
 
 export default {
-  title: 'Crowd.dev/Input',
+  title: 'LinuxFoundation/Input',
   component: LfInput,
   tags: ['autodocs'],
   argTypes: {
