@@ -1,6 +1,12 @@
 /* eslint-disable no-continue */
 
-import { SERVICE, Error400, isDomainExcluded, singleOrDefault, getProperDisplayName } from '@crowd/common'
+import {
+  SERVICE,
+  Error400,
+  isDomainExcluded,
+  singleOrDefault,
+  getProperDisplayName,
+} from '@crowd/common'
 import { LoggerBase } from '@crowd/logging'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
 import {
@@ -1528,7 +1534,7 @@ export default class MemberService extends LoggerBase {
       )
       transaction = repoOptions.transaction
 
-      if (data.displayName){
+      if (data.displayName) {
         data.displayName = getProperDisplayName(data.displayName)
       }
 
