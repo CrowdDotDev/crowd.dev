@@ -14,6 +14,7 @@
           id="searchOrganizations"
           v-model="computedOrganizationToMerge"
           :fetch-fn="fetchFn"
+          :disable-option="disableOption"
           placeholder="Type to search organizations"
           input-class="w-full"
         >
@@ -107,6 +108,8 @@ const fetchFn = async ({ query, limit }) => {
 onMounted(() => {
   segments.value = route.query.segmentId ? [route.query.segmentId] : [route.query.projectGroup];
 });
+
+const disableOption = (option) => !!option.lfxMembership;
 
 </script>
 

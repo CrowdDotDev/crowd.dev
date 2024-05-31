@@ -175,11 +175,11 @@ export class OrganizationService {
               matchPhrasePrefix: query,
             },
           },
-          ...(excludeLfMember ? [{
-            lfxMembership: {
-              ne: true,
-            },
-          }] : []),
+          // ...(excludeLfMember ? [{
+          //   lfxMembership: {
+          //     ne: true,
+          //   },
+          // }] : []),
         ],
       },
       offset: 0,
