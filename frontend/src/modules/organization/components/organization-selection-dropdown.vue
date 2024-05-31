@@ -37,6 +37,9 @@
         </app-autocomplete-one-input>
       </div>
     </div>
+    <div class="flex justify-center mt-4 text-gray-500 text-2xs">
+      <span class="font-semibold pr-1">Note:</span>LF Member organizations can't be merged into another organization.
+    </div>
   </div>
 </template>
 
@@ -86,6 +89,7 @@ const fetchFn = async ({ query, limit }) => {
   const options = await OrganizationService.listOrganizationsAutocomplete({
     query,
     limit,
+    excludeLfMember: true,
     segments: segments.value,
   });
 

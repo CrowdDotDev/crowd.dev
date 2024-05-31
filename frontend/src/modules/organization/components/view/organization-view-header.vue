@@ -23,6 +23,13 @@
           <div
             class="text-sm text-gray-600 flex items-center"
           >
+            <div v-if="true" class="flex items-center gap-2 mr-2">
+              <lf-organization-lf-member-tag
+                :organization="organization"
+                icon-font-size="text-sm"
+              />
+              <span class="text-gray-400">·</span>
+            </div>
             <div
               v-if="organization.website"
               class="flex items-center"
@@ -228,6 +235,7 @@ import AppOrganizationBadge from '@/modules/organization/components/organization
 import AppOrganizationHeadline from '@/modules/organization/components/organization-headline..vue';
 import AppSvg from '@/shared/svg/svg.vue';
 import CrEnrichmentSneakPeak from '@/shared/modules/enrichment/components/enrichment-sneak-peak.vue';
+import LfOrganizationLfMemberTag from '@/modules/organization/components/lf-member/organization-lf-member-tag.vue';
 import revenueRange from '../../config/enrichment/revenueRange';
 
 const props = defineProps({

@@ -29,6 +29,7 @@
               logo,
               name,
               displayName,
+              lfxMembership,
               memberOrganizations,
             } of (slicedEntities as Organization[])"
             :key="id"
@@ -66,10 +67,20 @@
               </div>
               <div class="flex flex-col gap-1">
                 <div class="flex gap-2 items-center">
-                  <div
-                    class="text-xs text-gray-900 group-hover:text-brand-500 transition font-medium"
-                  >
-                    {{ displayName || name }}
+                  <div class="flex items-center gap-1">
+                    <div
+                      class="text-xs text-gray-900 group-hover:text-brand-500 transition font-medium"
+                    >
+                      {{ displayName || name }}
+                    </div>
+                    <lf-organization-lf-member-tag
+                      :organization="{
+                        id,
+                        lfxMembership,
+                      }"
+                      :only-show-icon="true"
+                      icon-font-size="text-base"
+                    />
                   </div>
                   <el-tooltip
                     v-if="memberOrganizations?.source"
@@ -122,6 +133,7 @@ import AppEntities from '@/shared/modules/entities/Entities.vue';
 import { Organization, OrganizationSource } from '@/modules/organization/types/Organization';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import LfOrganizationLfMemberTag from '@/modules/organization/components/lf-member/organization-lf-member-tag.vue';
 
 const OrganizationSourceValue = {
   [OrganizationSource.EMAIL_DOMAIN]: 'Email domain',

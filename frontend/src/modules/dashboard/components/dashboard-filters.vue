@@ -152,6 +152,8 @@ export default {
       return CrowdIntegrations.getConfig(platform);
     },
     setPeriod(period) {
+      const { trackEvent } = useProductTracking();
+
       trackEvent({
         key: FeatureEventKey.FILTER_DASHBOARD,
         type: EventType.FEATURE,
@@ -167,6 +169,8 @@ export default {
       });
     },
     setPlatform(platform) {
+      const { trackEvent } = useProductTracking();
+
       trackEvent({
         key: FeatureEventKey.FILTER_DASHBOARD,
         type: EventType.FEATURE,
