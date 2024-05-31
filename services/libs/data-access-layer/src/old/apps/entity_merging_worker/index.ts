@@ -122,6 +122,7 @@ export async function moveIdentityActivitiesToNewMember(
               and "tenantId" = $(tenantId)
               and "username" = $(username)
               and "platform" = $(platform)
+              and "deletedAt" is null
               limit $(batchSize)
           )
           returning id
