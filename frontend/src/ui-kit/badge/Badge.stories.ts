@@ -3,7 +3,7 @@ import { badgeType } from '@/ui-kit/badge/types/BadgeType';
 import LfBadge from './Badge.vue';
 
 export default {
-  title: 'Crowd.dev/Badge',
+  title: 'LinuxFoundation/Badge',
   component: LfBadge,
   tags: ['autodocs'],
   argTypes: {

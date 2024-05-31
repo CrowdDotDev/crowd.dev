@@ -11,7 +11,7 @@
         >
           <template #actions>
             <el-dropdown trigger="click" placement="bottom-end">
-              <lf-button type="tertiary-light-gray" size="small" :icon-only="true">
+              <lf-button type="secondary-ghost-light" size="small" :icon-only="true">
                 <i class="ri-more-fill" />
               </lf-button>
               <template #dropdown>

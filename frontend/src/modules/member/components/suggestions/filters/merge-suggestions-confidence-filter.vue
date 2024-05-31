@@ -46,7 +46,7 @@
       </label>
     </div>
     <div class="py-3 px-4 border-t border-gray-100 flex justify-end gap-3">
-      <lf-button size="small" type="tertiary-gray" @click="visible = false">
+      <lf-button size="small" type="secondary-ghost" @click="visible = false">
         Cancel
       </lf-button>
       <lf-button size="small" type="primary" :disabled="!hasChanged" @click="apply()">

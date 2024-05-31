@@ -107,14 +107,14 @@
             </td>
             <td class="w-48">
               <div class="flex justify-end items-center gap-3">
-                <lf-button size="small" type="tertiary" @click="openDetails(si)">
+                <lf-button size="small" type="primary-ghost" @click="openDetails(si)">
                   View suggestion
                 </lf-button>
                 <lf-dropdown placement="bottom-end" width="15rem">
                   <template #trigger>
                     <lf-button
                       size="small"
-                      type="tertiary-light-gray"
+                      type="secondary-ghost-light"
                       :loading="sending === `${suggestion.organizations[0].id}:${suggestion.organizations[1].id}`"
                       :icon-only="true"
                     >
@@ -148,7 +148,7 @@
       </div>
 
       <div v-if="total > mergeSuggestions.length" class="mt-6 flex justify-center">
-        <lf-button type="tertiary" size="small" :loading="loading" @click="loadMore()">
+        <lf-button type="primary-ghost" size="small" :loading="loading" @click="loadMore()">
           <i class="ri-arrow-down-line" />Load more
         </lf-button>
       </div>

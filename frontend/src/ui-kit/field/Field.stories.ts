@@ -2,7 +2,7 @@ import LfField from './Field.vue';
 import LfInput from '../input/Input.vue';
 
 export default {
-  title: 'Crowd.dev/Field',
+  title: 'LinuxFoundation/Field',
   component: LfField,
   tags: ['autodocs'],
   argTypes: {
