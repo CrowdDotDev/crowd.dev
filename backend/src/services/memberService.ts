@@ -1,6 +1,12 @@
 /* eslint-disable no-continue */
 
-import { SERVICE, Error400, isDomainExcluded, singleOrDefault } from '@crowd/common'
+import {
+  SERVICE,
+  Error400,
+  isDomainExcluded,
+  singleOrDefault,
+  getProperDisplayName,
+} from '@crowd/common'
 import { LoggerBase } from '@crowd/logging'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
 import {
@@ -258,7 +264,7 @@ export default class MemberService extends LoggerBase {
     }
 
     if (!data.displayName) {
-      data.displayName = data.username[data.platform][0].username
+      data.displayName = getProperDisplayName(data.username[data.platform][0].username)
     }
 
     if (!(data.platform in data.username)) {
@@ -1080,7 +1086,7 @@ export default class MemberService extends LoggerBase {
           id: randomUUID(),
           reach: { total: -1 },
           username: MemberRepository.getUsernameFromIdentities(secondaryIdentities),
-          displayName: identity.value,
+          displayName: getProperDisplayName(identity.value),
           identities: secondaryIdentities,
           memberOrganizations: [],
           organizations: [],
@@ -1527,6 +1533,10 @@ export default class MemberService extends LoggerBase {
         this.options,
       )
       transaction = repoOptions.transaction
+
+      if (data.displayName) {
+        data.displayName = getProperDisplayName(data.displayName)
+      }
 
       if (data.activities) {
         data.activities = await ActivityRepository.filterIdsInTenant(data.activities, repoOptions)
