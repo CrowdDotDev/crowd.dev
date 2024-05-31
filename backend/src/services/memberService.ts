@@ -713,7 +713,10 @@ export default class MemberService extends LoggerBase {
       // move memberOrganizations
       if (payload.secondary.memberOrganizations.length > 0) {
         const nonExistingIds = await OrganizationRepository.findNonExistingIds(payload.secondary.memberOrganizations.map((o) => o.organizationId), repoOptions)
+        console.log(`nonExistingIds:`, nonExistingIds)
         for (const role of payload.secondary.memberOrganizations.filter((r) => !nonExistingIds.includes(r.organizationId))) {
+          console.log(`creating role:`)
+          console.log(role)
           await MemberOrganizationRepository.addMemberRole(
             { ...role, memberId: secondaryMember.id },
             repoOptions,
