@@ -1,8 +1,8 @@
 <template>
   <div v-if="form">
-    <cr-filter-include-switch v-model="form.include" />
+    <lf-filter-include-switch v-model="form.include" />
     <div class="p-4 pb-5">
-      <cr-filter-inline-select
+      <lf-filter-inline-select
         v-if="!props.forceOperator"
         v-model="form.operator"
         :prefix="`${props.config.label}:`"
@@ -11,7 +11,7 @@
       />
       <div class="flex -mx-1">
         <div class="flex-grow px-1">
-          <cr-filter-input
+          <lf-filter-input
             v-model="form.value"
             type="number"
             min="0"
@@ -31,7 +31,7 @@
             :show-error="false"
             :filter-errors="['minValue']"
           >
-            <cr-filter-input
+            <lf-filter-input
               v-model="form.valueTo"
               type="number"
               placeholder="Max"
@@ -73,11 +73,11 @@ import {
   FilterNumberOperator,
   numberFilterOperators,
 } from '@/shared/modules/filters/config/constants/number.constants';
-import CrFilterInput from '@/shared/modules/filters/components/partials/string/FilterInput.vue';
-import CrFilterInlineSelect from '@/shared/modules/filters/components/partials/FilterInlineSelect.vue';
+import LfFilterInput from '@/shared/modules/filters/components/partials/string/FilterInput.vue';
+import LfFilterInlineSelect from '@/shared/modules/filters/components/partials/FilterInlineSelect.vue';
 import AppFormErrors from '@/shared/form/form-errors.vue';
 import AppFormItem from '@/shared/form/form-item.vue';
-import CrFilterIncludeSwitch from '@/shared/modules/filters/components/partials/FilterIncludeSwitch.vue';
+import LfFilterIncludeSwitch from '@/shared/modules/filters/components/partials/FilterIncludeSwitch.vue';
 
 const props = defineProps<{
   modelValue: NumberFilterValue,

@@ -53,7 +53,7 @@ const selectOption = () => {
 
 <script lang="ts">
 export default {
-  name: 'CrFilterMultiSelectOption',
+  name: 'LfFilterMultiSelectOption',
 };
 </script>
 
@@ -86,13 +86,13 @@ export default {
 
   &.is-selected,
   &:focus.is-selected {
-    @apply relative bg-brand-50;
+    @apply relative bg-primary-50;
     i {
-      @apply mr-3 text-brand-600;
+      @apply mr-3 text-primary-600;
     }
 
     &:hover{
-      @apply bg-brand-50;
+      @apply bg-primary-50;
     }
   }
 }

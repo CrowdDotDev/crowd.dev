@@ -2,9 +2,9 @@ html body {
   margin: 0;
   padding: 0;
   height: 100%;
-  font-family: "Open Sans", sans-serif;
   font-weight: 400;
   -webkit-font-smoothing: antialiased;
+  @apply font-primary;
 }
 
 @supports (font-variation-settings: normal) {
@@ -14,41 +14,38 @@ html body {
 }
 
 // Headings
+h1, h2, h3, h4, h5, h6 {
+  @apply font-secondary font-semibold;
+}
 
 h1 {
-  font-family: "Roboto Slab", sans-serif;
-  @apply text-4xl font-semibold leading-normal uppercase;
+  @apply text-h1;
 }
 
 h2 {
-  font-family: "Roboto Slab", sans-serif;
-  @apply text-3xl font-semibold leading-normal uppercase;
+  @apply text-h2;
 }
 
 h3 {
-  font-family: "Roboto Slab", sans-serif;
-  @apply text-2xl font-semibold leading-normal uppercase;
+  @apply text-h3;
 }
 
 h4 {
-  font-family: "Roboto Slab", sans-serif;
-  @apply text-xl font-semibold leading-normal uppercase;
+  @apply text-h4;
 }
 
 h5 {
-  font-family: "Roboto Slab", sans-serif;
-  @apply text-lg font-semibold leading-normal uppercase;
+  @apply text-h5;
 }
 
 h6 {
-  font-family: "Open Sans", sans-serif;
-  @apply text-base font-semibold leading-normal;
+  @apply text-h6;
 }
 
 a {
-  @apply no-underline text-brand-500;
+  @apply no-underline text-primary-500;
   transition: color 0.2s ease;
   &[href]:hover {
-    @apply text-brand-500;
+    @apply text-primary-500;
   }
 }

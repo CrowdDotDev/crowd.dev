@@ -1,6 +1,6 @@
 <template>
   <div v-if="props.modelValue">
-    <cr-filter-include-switch
+    <lf-filter-include-switch
       v-if="!props.hideIncludeSwitch"
       v-model="include"
     />
@@ -59,7 +59,7 @@ import {
 } from 'vue';
 import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
-import CrFilterIncludeSwitch from '@/shared/modules/filters/components/partials/FilterIncludeSwitch.vue';
+import LfFilterIncludeSwitch from '@/shared/modules/filters/components/partials/FilterIncludeSwitch.vue';
 import {
   MultiSelectAsyncFilterConfig,
   MultiSelectAsyncFilterOption,
@@ -156,7 +156,7 @@ onMounted(() => {
 
 <script lang="ts">
 export default {
-  name: 'CrMultiSelectAsyncFilter',
+  name: 'LfMultiSelectAsyncFilter',
 };
 </script>
 
@@ -172,7 +172,7 @@ export default {
     @apply px-3 #{!important};
 
     &.selected{
-      @apply bg-brand-25 font-normal px-3 #{!important};
+      @apply bg-primary-25 font-normal px-3 #{!important};
     }
 
     &:after{

@@ -39,7 +39,7 @@
               <template #header>
                 <div class="h-13 flex justify-between items-start">
                   <div
-                    class="bg-brand-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
+                    class="bg-primary-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
                   >
                     Current organization
                   </div>
@@ -56,7 +56,7 @@
               <template #header>
                 <div class="h-13 flex justify-between items-start">
                   <div
-                    class="bg-brand-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
+                    class="bg-primary-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
                   >
                     Updated organization
                   </div>
@@ -67,7 +67,7 @@
           <div class="w-1/2 px-3">
             <!-- Loading preview -->
             <div v-if="fetchingPreview" class="flex items-center justify-center pt-40 w-full">
-              <cr-spinner />
+              <lf-spinner />
             </div>
             <!-- Unmerge preview -->
             <div v-else-if="preview">
@@ -89,7 +89,7 @@
                         trigger="click"
                       >
                         <button
-                          class="btn btn--link !text-brand-500"
+                          class="btn btn--link !text-primary-500"
                           type="button"
                           @click.stop
                         >
@@ -164,7 +164,7 @@
 import { computed, onMounted, ref } from 'vue';
 import Message from '@/shared/message/message';
 import AppDialog from '@/shared/dialog/dialog.vue';
-import CrSpinner from '@/ui-kit/spinner/Spinner.vue';
+import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import AppOrganizationMergeSuggestionsDetails

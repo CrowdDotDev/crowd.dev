@@ -19,7 +19,7 @@
           v-model="mapping"
           placeholder="Select property"
           :class="[
-            enabled && !mapping ? 'border-brand-400' : '',
+            enabled && !mapping ? 'border-primary-400' : '',
           ]"
           class="w-full"
           clearable

@@ -52,7 +52,7 @@
 
                   <div v-if="verified" class="pl-1">
                     <el-tooltip placement="top" content="Verified identity">
-                      <i class="ri-verified-badge-fill text-brand-500" />
+                      <i class="ri-verified-badge-fill text-primary-500" />
                     </el-tooltip>
                   </div>
                 </div>
@@ -74,7 +74,7 @@
 
     <div
       v-if="displayShowMore && Object.keys(identities).length > 5"
-      class="underline cursor-pointer text-gray-500 hover:text-brand-500 text-xs underline-offset-4"
+      class="underline cursor-pointer text-gray-500 hover:text-primary-500 text-xs underline-offset-4"
       :class="{
         [`px-${xPadding}`]: !!xPadding,
       }"

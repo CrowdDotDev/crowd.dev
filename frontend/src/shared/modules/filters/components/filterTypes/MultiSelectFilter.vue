@@ -1,15 +1,15 @@
 <template>
   <div v-if="form">
-    <cr-filter-include-switch v-if="!props.hideIncludeSwitch" v-model="form.include" />
+    <lf-filter-include-switch v-if="!props.hideIncludeSwitch" v-model="form.include" />
     <div v-if="allOptions.length <= 7">
-      <cr-multi-select-checkbox-filter
+      <lf-multi-select-checkbox-filter
         v-model="form.value"
         :config="props.config"
         :options="props.options"
       />
     </div>
     <div v-else>
-      <cr-multi-select-tags-filter
+      <lf-multi-select-tags-filter
         v-model="form.value"
         :config="props.config"
         :options="props.options"
@@ -27,10 +27,10 @@ import {
 } from '@/shared/modules/filters/types/filterTypes/MultiSelectFilterConfig';
 import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
-import CrFilterIncludeSwitch from '@/shared/modules/filters/components/partials/FilterIncludeSwitch.vue';
-import CrMultiSelectCheckboxFilter
+import LfFilterIncludeSwitch from '@/shared/modules/filters/components/partials/FilterIncludeSwitch.vue';
+import LfMultiSelectCheckboxFilter
   from '@/shared/modules/filters/components/filterTypes/multiselect/MultiSelectCheckboxFilter.vue';
-import CrMultiSelectTagsFilter
+import LfMultiSelectTagsFilter
   from '@/shared/modules/filters/components/filterTypes/multiselect/MultiSelectTagsFilter.vue';
 
 const props = defineProps<{
@@ -70,6 +70,6 @@ onMounted(() => {
 
 <script lang="ts">
 export default {
-  name: 'CrMultiSelectFilter',
+  name: 'LfMultiSelectFilter',
 };
 </script>

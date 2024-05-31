@@ -11,7 +11,7 @@
     >
       <i
         v-if="hasWarningIcon"
-        class="ri-information-line text-brand-500 text-base mr-2"
+        class="ri-information-line text-primary-500 text-base mr-2"
       />
       <span v-html="description" />
     </div>

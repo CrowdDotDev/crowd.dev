@@ -1,7 +1,7 @@
 <template>
   <div class="panel px-5 pb-5 pt-6">
     <div class="flex justify-center pb-4">
-      <div class="bg-brand-500 flex items-center rounded-2xl py-1 px-2">
+      <div class="bg-primary-500 flex items-center rounded-2xl py-1 px-2">
         <i class="ri-vip-crown-2-fill text-white text-base h-4 flex items-center" />
         <span class="text-xs text-white font-medium leading-4 pl-2">Scale plan</span>
       </div>
@@ -39,6 +39,6 @@
 
 <script lang="ts">
 export default {
-  name: 'CrUpgradePlanWidget',
+  name: 'LfUpgradePlanWidget',
 };
 </script>

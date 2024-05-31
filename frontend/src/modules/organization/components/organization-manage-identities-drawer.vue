@@ -8,19 +8,19 @@
   >
     <template #content>
       <div class="-mt-8 z-10 pb-6">
-        <cr-dropdown width="260px">
+        <lf-dropdown width="260px">
           <template #trigger>
-            <div class="flex gap-2 text-xs text-brand-500 font-semibold items-center cursor-pointer">
+            <div class="flex gap-2 text-xs text-primary-500 font-semibold items-center cursor-pointer">
               <i class="ri-add-line text-base" />Add identity
             </div>
           </template>
           <div class="max-h-64 overflow-auto">
-            <cr-dropdown-item v-for="platform of platforms" :key="platform.platform" @click="addIdentity(platform.platform)">
+            <lf-dropdown-item v-for="platform of platforms" :key="platform.platform" @click="addIdentity(platform.platform)">
               <img :src="platform.image" :alt="platform.name" class="h-4 w-4" />
               <span>{{ platform.name }}</span>
-            </cr-dropdown-item>
+            </lf-dropdown-item>
           </div>
-        </cr-dropdown>
+        </lf-dropdown>
       </div>
       <div class="border-t border-gray-200 -mx-6 px-6">
         <div class="gap-4 flex flex-col pt-6 pb-10">
@@ -85,8 +85,8 @@ import { storeToRefs } from 'pinia';
 import AppDrawer from '@/shared/drawer/drawer.vue';
 import { Organization, OrganizationIdentity } from '@/modules/organization/types/Organization';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
-import CrDropdown from '@/ui-kit/dropdown/Dropdown.vue';
-import CrDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
+import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
+import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import AppOrganizationFormIdentityItem
   from '@/modules/organization/components/form/identity/organization-form-identity-item.vue';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';

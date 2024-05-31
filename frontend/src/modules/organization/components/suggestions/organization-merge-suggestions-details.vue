@@ -28,13 +28,13 @@
         <div class="h-13 flex justify-between items-start">
           <div
             v-if="props.isPreview"
-            class="bg-brand-800 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
+            class="bg-primary-800 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
           >
             Preview
           </div>
           <div
             v-else-if="props.isPrimary"
-            class="bg-brand-100 rounded-full py-0.5 px-2 text-brand-800 inline-block text-xs leading-5 font-medium"
+            class="bg-primary-100 rounded-full py-0.5 px-2 text-primary-800 inline-block text-xs leading-5 font-medium"
           >
             Primary organization
           </div>
@@ -116,8 +116,7 @@
           </router-link>
           <div v-else class="flex items-center gap-1">
             <h6
-
-              class="text-base text-black font-semibold leading-6"
+              class="text-base text-black font-semibold hover:text-primary-500 leading-6"
               v-html="$sanitize(props.organization.displayName || props.organization.name)"
             />
             <lf-organization-lf-member-tag
@@ -142,7 +141,7 @@
 
           <div
             v-if="displayShowMore"
-            class="text-sm text-brand-500 mt-2 cursor-pointer"
+            class="text-sm text-primary-500 mt-2 cursor-pointer"
             :class="{ invisible: !props.organization.description }"
             @click.stop="more = !more"
           >

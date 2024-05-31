@@ -1,9 +1,9 @@
-import CrField from './Field.vue';
-import CrInput from '../input/Input.vue';
+import LfField from './Field.vue';
+import LfInput from '../input/Input.vue';
 
 export default {
-  title: 'Crowd.dev/Field',
-  component: CrField,
+  title: 'LinuxFoundation/Field',
+  component: LfField,
   tags: ['autodocs'],
   argTypes: {
     // Props
@@ -55,12 +55,12 @@ export const Primary = {
     default: '',
   },
   render: (args: any) => ({
-    components: { CrField, CrInput },
+    components: { CrField, LfInput },
     setup() {
       return { args };
     },
-    template: `<cr-field :label-text="args.labelText" :required="args.required">
-      <cr-input model-value="" placeholder="placeholder"></cr-input>
-    </cr-field>`,
+    template: `<lf-field :label-text="args.labelText" :required="args.required">
+      <lf-input model-value="" placeholder="placeholder"></lf-input>
+    </lf-field>`,
   }),
 };

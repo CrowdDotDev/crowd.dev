@@ -18,7 +18,7 @@ const errorIcon = h(
 
 const infoIcon = h(
   'i', // type
-  { class: 'ri-loader-4-line text-blue-600 animate-spin' }, // props
+  { class: 'ri-loader-4-line text-primary-600 animate-spin' }, // props
   [],
 );
 

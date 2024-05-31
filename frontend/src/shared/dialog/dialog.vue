@@ -56,7 +56,7 @@
                 @click="close"
               >
                 <i
-                  class="ri-close-line text-lg text-gray-400 group-hover:text-brand-500"
+                  class="ri-close-line text-lg text-gray-400 group-hover:text-primary-500"
                 />
               </el-button>
             </div>

@@ -60,6 +60,6 @@ onMounted(() => {
 
 <script lang="ts">
 export default {
-  name: 'CrBooleanFilter',
+  name: 'LfBooleanFilter',
 };
 </script>

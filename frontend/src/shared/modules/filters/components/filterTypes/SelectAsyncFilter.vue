@@ -1,6 +1,6 @@
 <template>
   <div v-if="form">
-    <cr-filter-include-switch v-if="!props.hideIncludeSwitch" v-model="form.include" />
+    <lf-filter-include-switch v-if="!props.hideIncludeSwitch" v-model="form.include" />
     <div class="border-b border-gray-100 px-2 py-1">
       <el-input
         ref="queryInput"
@@ -18,7 +18,7 @@
       </el-input>
     </div>
     <div class="max-h-58 overflow-auto pb-3 px-2 pt-1">
-      <cr-filter-select-option
+      <lf-filter-select-option
         v-for="(option, oi) of filteredOptions"
         :key="oi"
         :value="option.value"
@@ -39,7 +39,7 @@
             {{ option.description }}
           </p>
         </div>
-      </cr-filter-select-option>
+      </lf-filter-select-option>
       <div v-if="search.length && filteredOptions.length === 0" class="text-gray-400 text-xs italic pb-1 pt-3 px-2">
         No results found
       </div>
@@ -53,8 +53,8 @@ import {
 } from 'vue';
 import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
-import CrFilterIncludeSwitch from '@/shared/modules/filters/components/partials/FilterIncludeSwitch.vue';
-import CrFilterSelectOption from '@/shared/modules/filters/components/partials/select/FilterSelectOption.vue';
+import LfFilterIncludeSwitch from '@/shared/modules/filters/components/partials/FilterIncludeSwitch.vue';
+import LfFilterSelectOption from '@/shared/modules/filters/components/partials/select/FilterSelectOption.vue';
 import {
   SelectAsyncFilterConfig, SelectAsyncFilterOption, SelectAsyncFilterOptions,
   SelectAsyncFilterValue,
@@ -137,6 +137,6 @@ onMounted(() => {
 
 <script lang="ts">
 export default {
-  name: 'CrSelectAsyncFilter',
+  name: 'LfSelectAsyncFilter',
 };
 </script>

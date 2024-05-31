@@ -28,17 +28,17 @@
         v-if="page <= 1 && loading && mergeSuggestions.length === 0"
         class="flex justify-center pt-8"
       >
-        <cr-spinner />
+        <lf-spinner />
       </div>
-      <cr-table v-else-if="mergeSuggestions.length > 0" class="mt-6">
+      <lf-table v-else-if="mergeSuggestions.length > 0" class="mt-6">
         <thead>
           <tr>
-            <cr-table-head colspan="2">
+            <lf-table-head colspan="2">
               Contributors
-            </cr-table-head>
-            <cr-table-head v-model="sorting" property="similarity" @update:model-value="() => loadMergeSuggestions(true)">
+            </lf-table-head>
+            <lf-table-head v-model="sorting" property="similarity" @update:model-value="() => loadMergeSuggestions(true)">
               Confidence level
-            </cr-table-head>
+            </lf-table-head>
           </tr>
         </thead>
         <tbody>
@@ -95,34 +95,34 @@
             </td>
             <td class="w-48">
               <div class="flex justify-end items-center gap-3">
-                <cr-button size="small" type="tertiary" @click="openDetails(si)">
+                <lf-button size="small" type="primary-ghost" @click="openDetails(si)">
                   View suggestion
-                </cr-button>
-                <cr-dropdown placement="bottom-end" width="15rem">
+                </lf-button>
+                <lf-dropdown placement="bottom-end" width="15rem">
                   <template #trigger>
-                    <cr-button
+                    <lf-button
                       size="small"
-                      type="tertiary-light-gray"
+                      type="secondary-ghost-light"
                       :loading="sending === `${suggestion.members[0].id}:${suggestion.members[1].id}`"
                       :icon-only="true"
                     >
                       <i class="ri-more-fill" />
-                    </cr-button>
+                    </lf-button>
                   </template>
 
-                  <cr-dropdown-item @click="merge(suggestion)">
+                  <lf-dropdown-item @click="merge(suggestion)">
                     <i class="ri-shuffle-line" /> Merge suggestion
-                  </cr-dropdown-item>
+                  </lf-dropdown-item>
 
-                  <cr-dropdown-item @click="ignore(suggestion)">
+                  <lf-dropdown-item @click="ignore(suggestion)">
                     <i class="ri-close-circle-line" />Ignore suggestion
-                  </cr-dropdown-item>
-                </cr-dropdown>
+                  </lf-dropdown-item>
+                </lf-dropdown>
               </div>
             </td>
           </tr>
         </tbody>
-      </cr-table>
+      </lf-table>
       <div v-else class="py-20 flex flex-col items-center">
         <div
           class="ri-shuffle-line text-gray-200 text-10xl h-40 flex items-center mb-8"
@@ -136,9 +136,9 @@
       </div>
 
       <div v-if="total > mergeSuggestions.length" class="mt-6 flex justify-center">
-        <cr-button type="tertiary" size="small" :loading="loading" @click="loadMore()">
+        <lf-button type="primary-ghost" size="small" :loading="loading" @click="loadMore()">
           <i class="ri-arrow-down-line" />Load more
-        </cr-button>
+        </lf-button>
       </div>
     </div>
   </app-page-wrapper>
@@ -155,22 +155,22 @@
 
 <script setup lang="ts">
 import AppBackLink from '@/shared/modules/back-link/components/back-link.vue';
-import CrTable from '@/ui-kit/table/Table.vue';
+import LfTable from '@/ui-kit/table/Table.vue';
 import { MemberService } from '@/modules/member/member-service';
 import { onMounted, ref } from 'vue';
 import AppAvatar from '@/shared/avatar/avatar.vue';
-import CrButton from '@/ui-kit/button/Button.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 import AppMemberMergeSimilarity from '@/modules/member/components/suggestions/member-merge-similarity.vue';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import CrDropdown from '@/ui-kit/dropdown/Dropdown.vue';
-import CrDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
+import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
+import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import AppMemberMergeSuggestionsDialog from '@/modules/member/components/member-merge-suggestions-dialog.vue';
 import useMemberMergeMessage from '@/shared/modules/merge/config/useMemberMergeMessage';
 import Message from '@/shared/message/message';
-import CrSpinner from '@/ui-kit/spinner/Spinner.vue';
+import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import AppMergeSuggestionsFilters from '@/modules/member/components/suggestions/merge-suggestions-filters.vue';
-import CrTableHead from '@/ui-kit/table/TableHead.vue';
+import LfTableHead from '@/ui-kit/table/TableHead.vue';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 

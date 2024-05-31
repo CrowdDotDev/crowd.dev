@@ -1,10 +1,10 @@
 import { badgeSize } from '@/ui-kit/badge/types/BadgeSize';
 import { badgeType } from '@/ui-kit/badge/types/BadgeType';
-import CrBadge from './Badge.vue';
+import LfBadge from './Badge.vue';
 
 export default {
-  title: 'Crowd.dev/Badge',
-  component: CrBadge,
+  title: 'LinuxFoundation/Badge',
+  component: LfBadge,
   tags: ['autodocs'],
   argTypes: {
     // Props

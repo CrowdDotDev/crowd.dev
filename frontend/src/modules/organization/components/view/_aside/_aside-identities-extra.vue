@@ -36,7 +36,7 @@
               rel="noopener noreferrer"
               class="text-xs text-gray-900 border border-gray-200 rounded-md py-0.5 px-2 truncate"
               :class="{
-                'hover:text-brand-500 cursor:pointer': emailIdentity.link,
+                'hover:text-primary-500 cursor:pointer': emailIdentity.link,
               }"
               :href="emailIdentity.link"
             >{{ emailIdentity.handle }}</a>
@@ -46,7 +46,7 @@
 
       <div
         v-if="props.emails.length > 5"
-        class="underline cursor-pointer text-gray-500 hover:text-brand-500 text-xs underline-offset-4 mt-5"
+        class="underline cursor-pointer text-gray-500 hover:text-primary-500 text-xs underline-offset-4 mt-5"
         @click="displayEmailsMore = !displayEmailsMore"
       >
         Show {{ displayEmailsMore ? 'less' : 'more' }}
@@ -94,7 +94,7 @@
               rel="noopener noreferrer"
               class="text-xs text-gray-900 border border-gray-200 rounded-md py-0.5 px-2 truncate"
               :class="{
-                'hover:text-brand-500 cursor:pointer': phoneNumberIdentity.link,
+                'hover:text-primary-500 cursor:pointer': phoneNumberIdentity.link,
               }"
               :href="phoneNumberIdentity.link"
             >{{ phoneNumberIdentity.handle }}</a>
@@ -104,7 +104,7 @@
 
       <div
         v-if="props.phoneNumbers.length > 5"
-        class="underline cursor-pointer text-gray-500 hover:text-brand-500 text-xs underline-offset-4 mt-5"
+        class="underline cursor-pointer text-gray-500 hover:text-primary-500 text-xs underline-offset-4 mt-5"
         @click="displayPhoneNumbersMore = !displayPhoneNumbersMore"
       >
         Show {{ displayPhoneNumbersMore ? 'less' : 'more' }}
