@@ -1,7 +1,7 @@
 import LfInputPassword from './InputPassword.vue';
 
 export default {
-  title: 'Crowd.dev/InputPassword',
+  title: 'LinuxFoundation/InputPassword',
   component: LfInputPassword,
   tags: ['autodocs'],
   argTypes: {

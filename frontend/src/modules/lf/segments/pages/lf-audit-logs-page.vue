@@ -105,7 +105,7 @@
   </div>
 
   <div v-if="pagination.total >= (pagination.page * pagination.perPage)" class="pt-6 pb-6 flex justify-center">
-    <lf-button type="tertiary" @click="loadMore">
+    <lf-button type="secondary-ghost" @click="loadMore">
       <i class="ri-arrow-down-line" />Load more
     </lf-button>
   </div>

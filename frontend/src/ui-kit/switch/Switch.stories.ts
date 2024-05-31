@@ -2,7 +2,7 @@ import { switchSizes } from '@/ui-kit/switch/types/SwitchSize';
 import LfSwitch from './Switch.vue';
 
 export default {
-  title: 'Crowd.dev/Switch',
+  title: 'LinuxFoundation/Switch',
   component: LfSwitch,
   tags: ['autodocs'],
   argTypes: {

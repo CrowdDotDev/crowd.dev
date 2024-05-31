@@ -60,7 +60,7 @@
             <div class="flex justify-end">
               <lf-dropdown placement="bottom-end">
                 <template #trigger>
-                  <lf-button type="tertiary-gray" :icon-only="true" size="small">
+                  <lf-button type="secondary-ghost" :icon-only="true" size="small">
                     <i class="ri-more-fill !text-lg" />
                   </lf-button>
                 </template>
