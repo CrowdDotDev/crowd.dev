@@ -2019,7 +2019,7 @@ class OrganizationRepository {
     id: string,
     options: IRepositoryOptions,
     segmentId?: string,
-  ): Promise<PageData<any>> {
+  ): Promise<any> {
     const segments = segmentId ? [segmentId] : SequelizeRepository.getSegmentIds(options)
 
     const response = await this.findAndCountAllOpensearch(
