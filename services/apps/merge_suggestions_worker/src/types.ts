@@ -199,8 +199,9 @@ export interface IProcessGenerateOrganizationMergeSuggestionsArgs {
   lastUuid?: string
 }
 
-export interface IProcessCheckMemberSimilarityWithLLM {
+export interface IProcessCheckSimilarityWithLLM {
   prompt: string
   modelId: string
-  memberCouples: string[][]
+  memberCouples?: string[][]
+  organizationCouples?: string[][]
 }

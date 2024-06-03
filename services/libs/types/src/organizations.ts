@@ -221,3 +221,24 @@ export interface IOrganizationAddress {
   address_line_2: string
   street_address: string
 }
+
+export interface ILLMConsumableOrganization {
+  displayName: string
+  description: string
+  phoneNumbers: number[]
+  logo: string
+  tags: string[]
+  location: string
+  website: string
+  type: string
+  geoLocation: string
+  ticker: string
+  profiles: string[]
+  headline: string
+  industry: string
+  founded: number
+  affiliatedProfiles: string[]
+  alternativeDomains: string[]
+  alternativeNames: string[]
+  identities: IOrganizationIdentity[]
+}

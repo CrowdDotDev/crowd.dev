@@ -1,4 +1,8 @@
-import { IOrganizationMergeSuggestion, OpenSearchIndex } from '@crowd/types'
+import {
+  ILLMConsumableOrganization,
+  IOrganizationMergeSuggestion,
+  OpenSearchIndex,
+} from '@crowd/types'
 import { svc } from '../main'
 
 import {
@@ -326,4 +330,14 @@ export async function addOrganizationToMerge(
     svc.log,
   )
   await organizationMergeSuggestionsRepo.addToMerge(suggestions)
+}
+
+export async function getOrganizationsForLLMConsumption(
+  organizationIds: string[],
+): Promise<ILLMConsumableOrganization[]> {
+  const memberMergeSuggestionsRepo = new OrganizationMergeSuggestionsRepository(
+    svc.postgres.writer.connection(),
+    svc.log,
+  )
+  return memberMergeSuggestionsRepo.getOrganizations(organizationIds)
 }

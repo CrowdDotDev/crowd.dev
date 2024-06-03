@@ -1,11 +1,10 @@
-import { getAllTenants } from './activities/common'
+import { getAllTenants, getLLMResult } from './activities/common'
 import {
   getMemberMergeSuggestions,
   addMemberToMerge,
   getMembers,
   findTenantsLatestMemberSuggestionGeneratedAt,
   updateMemberMergeSuggestionsLastGeneratedAt,
-  getLLMResult,
   getMembersForLLMConsumption,
 } from './activities/memberMergeSuggestions'
 
@@ -15,6 +14,7 @@ import {
   findTenantsLatestOrganizationSuggestionGeneratedAt,
   updateOrganizationMergeSuggestionsLastGeneratedAt,
   addOrganizationToMerge,
+  getOrganizationsForLLMConsumption,
 } from './activities/organizationMergeSuggestions'
 
 export {

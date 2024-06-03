@@ -1,6 +1,10 @@
 import { DbConnection, DbTransaction } from '@crowd/database'
 import { Logger } from '@crowd/logging'
-import { IOrganizationMergeSuggestion, SuggestionType } from '@crowd/types'
+import {
+  ILLMConsumableOrganization,
+  IOrganizationMergeSuggestion,
+  SuggestionType,
+} from '@crowd/types'
 import {
   IOrganizationId,
   IOrganizationMergeSuggestionsLatestGeneratedAt,
@@ -188,6 +192,46 @@ class OrganizationMergeSuggestionsRepository {
     } catch (error) {
       this.log.error('Error while getting non existing organizations from db', error)
       throw error
+    }
+  }
+
+  async getOrganizations(organizationIds: string[]): Promise<ILLMConsumableOrganization[]> {
+    try {
+      const result: ILLMConsumableOrganization[] = await this.connection.manyOrNone(
+        `
+        select
+            o."displayName",
+            o.description,
+            o."phoneNumbers",
+            o.logo,
+            o.tags,
+            o.location,
+            o.website,
+            o.type,
+            o."geoLocation",
+            o.ticker,
+            o.profiles,
+            o.headline,
+            o.industry,
+            o.founded,
+            o."affiliatedProfiles",
+            o."alternativeDomains",
+            o."alternativeNames",
+            jsonb_agg(oi) as identities
+        from
+            organizations o
+        join "organizationIdentities" oi on o.id = oi."organizationId"
+        where
+            o.id in ($(organizationIds:csv))
+        group by o.id;`,
+        {
+          organizationIds,
+        },
+      )
+
+      return result || []
+    } catch (err) {
+      throw new Error(err)
     }
   }
 }

@@ -1197,55 +1197,6 @@ importers:
         specifier: ^3.0.1
         version: 3.1.0
 
-  services/apps/script_executor_worker:
-    dependencies:
-      '@crowd/archetype-standard':
-        specifier: workspace:*
-        version: link:../../archetypes/standard
-      '@crowd/archetype-worker':
-        specifier: workspace:*
-        version: link:../../archetypes/worker
-      '@crowd/cubejs':
-        specifier: workspace:*
-        version: link:../../libs/cubejs
-      '@crowd/data-access-layer':
-        specifier: workspace:*
-        version: link:../../libs/data-access-layer
-      '@crowd/feature-flags':
-        specifier: workspace:*
-        version: link:../../libs/feature-flags
-      '@crowd/logging':
-        specifier: workspace:*
-        version: link:../../libs/logging
-      '@crowd/redis':
-        specifier: workspace:*
-        version: link:../../libs/redis
-      '@crowd/types':
-        specifier: workspace:*
-        version: link:../../libs/types
-      '@temporalio/workflow':
-        specifier: ~1.8.6
-        version: 1.8.6
-      axios:
-        specifier: ^1.6.8
-        version: 1.6.8
-      moment:
-        specifier: ~2.29.4
-        version: 2.29.4
-      tsx:
-        specifier: ^4.7.1
-        version: 4.7.3
-      typescript:
-        specifier: ^5.2.2
-        version: 5.4.5
-    devDependencies:
-      '@types/node':
-        specifier: ^20.8.2
-        version: 20.12.7
-      nodemon:
-        specifier: ^3.0.1
-        version: 3.1.0
-
   services/apps/search_sync_api:
     dependencies:
       '@crowd/common':

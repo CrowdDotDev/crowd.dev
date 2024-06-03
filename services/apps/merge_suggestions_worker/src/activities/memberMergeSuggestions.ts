@@ -9,8 +9,6 @@ import { svc } from '../main'
 import { ILLMConsumableMember, IMemberMergeSuggestion, OpenSearchIndex } from '@crowd/types'
 import MemberMergeSuggestionsRepository from '@crowd/data-access-layer/src/old/apps/merge_suggestions_worker/memberMergeSuggestions.repo'
 import MemberSimilarityCalculator from '../memberSimilarityCalculator'
-import { BedrockRuntimeClient, InvokeModelCommand } from '@aws-sdk/client-bedrock-runtime'
-import { logExecutionTime } from '@crowd/logging'
 
 /**
  * Finds similar members of given member in a tenant
@@ -326,44 +324,6 @@ export async function getMembers(
   } catch (err) {
     throw new Error(err)
   }
-}
-
-export async function getLLMResult(
-  members: ILLMConsumableMember[],
-  modelId: string,
-  prompt: string,
-): Promise<string> {
-  if (members.length !== 2) {
-    throw new Error('Exactly 2 members are required for LLM comparison')
-  }
-  const client = new BedrockRuntimeClient({
-    credentials: {
-      accessKeyId: process.env['CROWD_AWS_BEDROCK_ACCESS_KEY_ID'],
-      secretAccessKey: process.env['CROWD_AWS_BEDROCK_SECRET_ACCESS_KEY'],
-    },
-    region: process.env['CROWD_AWS_BEDROCK_REGION'],
-  })
-
-  const promptPrologue = `[INST] ${JSON.stringify(members)} [/INST]`
-
-
-  console.log('Prompt:', promptPrologue)
-
-  const command = new InvokeModelCommand({
-    body: JSON.stringify({
-      prompt: `${promptPrologue} ${prompt}`,
-      max_gen_len: 512,
-      temperature: 0.5,
-      top_p: 0.9,
-    }),
-    modelId,
-    accept: 'application/json',
-    contentType: 'application/json',
-  })
-
-  const res = await logExecutionTime(async () => client.send(command), svc.log, 'llm-invoke-model')
-
-  return res.body.transformToString()
 }
 
 export async function getMembersForLLMConsumption(
