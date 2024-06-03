@@ -67,9 +67,16 @@
                       }"
                     />
 
-                    <p class="text-xs leading-5 font-semibold truncate max-w-3xs">
-                      {{ suggestion.organizations[0].displayName }}
-                    </p>
+                    <div class="flex items-center gap-1">
+                      <p class="text-xs leading-5 font-semibold truncate max-w-3xs">
+                        {{ suggestion.organizations[0].displayName }}
+                      </p>
+
+                      <lf-organization-lf-member-tag
+                        :organization="suggestion.organizations[0]"
+                        :only-show-icon="true"
+                      />
+                    </div>
                   </div>
                 </router-link>
               </div>
@@ -95,9 +102,17 @@
                         displayName: (suggestion.organizations[1].displayName || suggestion.organizations[1].name)?.replace('@', ''),
                       }"
                     />
-                    <p class="text-xs leading-5 font-semibold truncate max-w-3xs">
-                      {{ suggestion.organizations[1].displayName }}
-                    </p>
+
+                    <div class="flex items-center gap-1">
+                      <p class="text-xs leading-5 font-semibold truncate max-w-3xs">
+                        {{ suggestion.organizations[1].displayName }}
+                      </p>
+
+                      <lf-organization-lf-member-tag
+                        :organization="suggestion.organizations[1]"
+                        :only-show-icon="true"
+                      />
+                    </div>
                   </div>
                 </router-link>
               </div>
@@ -182,6 +197,7 @@ import LfTableHead from '@/ui-kit/table/TableHead.vue';
 import AppMergeSuggestionsFilters from '@/modules/member/components/suggestions/merge-suggestions-filters.vue';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import LfOrganizationLfMemberTag from '@/modules/organization/components/lf-member/organization-lf-member-tag.vue';
 
 const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
 
