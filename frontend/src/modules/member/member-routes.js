@@ -8,6 +8,7 @@ const MemberMergeSuggestionsPage = () => import(
   '@/modules/member/pages/member-merge-suggestions-page.vue'
 );
 const MemberViewPage = () => import('@/modules/member/pages/member-view-page.vue');
+const ContributorViewPage = () => import('@/modules/contributor/pages/contributor-details.page.vue');
 const MemberCreatePage = () => import('@/modules/member/pages/member-form-page.vue');
 
 export default [
@@ -75,7 +76,7 @@ export default [
       {
         name: 'memberView',
         path: '/contributors/:id',
-        component: MemberViewPage,
+        component: true ? ContributorViewPage : MemberViewPage,
         meta: {
           auth: true,
           title: 'Contributor',
