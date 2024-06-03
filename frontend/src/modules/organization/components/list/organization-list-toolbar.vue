@@ -23,8 +23,7 @@
 
         <el-tooltip
           v-if="selectedOrganizations.length === 2 && hasPermission(LfPermission.mergeOrganizations)"
-          content="Active member organizations of the Linux Foundation can't be merged into other organizations."
-          :disabled="!(!!selectedOrganizations?.[0]?.lfxMembership && !!selectedOrganizations?.[1]?.lfxMembership)"
+          content="Coming soon"
           placement="top"
         >
           <span>
@@ -33,8 +32,7 @@
                 action: 'mergeOrganizations',
               }"
               :disabled="
-                (!!selectedOrganizations?.[0]?.lfxMembership && !!selectedOrganizations?.[1]?.lfxMembership)
-                  || !hasPermission(LfPermission.organizationEdit)
+                !hasPermission(LfPermission.organizationEdit)
                   || !hasPermission(LfPermission.mergeOrganizations)
               "
             >
@@ -78,12 +76,11 @@
       </template>
     </el-dropdown>
   </div>
-  <app-organization-merge-dialog v-model="isMergeDialogOpen" :to-merge="organizationToMerge" />
 </template>
 
 <script setup>
 import pluralize from 'pluralize';
-import { ref, computed } from 'vue';
+import { computed } from 'vue';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import Message from '@/shared/message/message';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
@@ -98,7 +95,6 @@ import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { useRoute } from 'vue-router';
-import AppOrganizationMergeDialog from '@/modules/organization/components/organization-merge-dialog.vue';
 import { OrganizationService } from '../../organization-service';
 
 const { trackEvent } = useProductTracking();
@@ -119,9 +115,6 @@ const {
 const { fetchOrganizations } = organizationStore;
 
 const { hasPermission } = usePermissions();
-
-const isMergeDialogOpen = ref(null);
-const organizationToMerge = ref(null);
 
 const markAsTeamOrganizationOptions = computed(() => {
   const isTeamView = filters.value.settings.teamOrganization === 'filter';
@@ -175,10 +168,18 @@ const handleMergeOrganizations = async () => {
 
   const { loadingMessage, apiErrorMessage } = useOrganizationMergeMessage;
 
-  const isLfMemberOrganization = !!firstOrganization.lfxMembership || !!secondOrganization.lfxMembership;
+  OrganizationService.mergeOrganizations(firstOrganization.id, secondOrganization.id)
+    .then(() => {
+      organizationStore
+        .addMergedOrganizations(firstOrganization.id, secondOrganization.id);
 
-  isMergeDialogOpen.value = firstOrganization;
-  organizationToMerge.value = secondOrganization;
+      loadingMessage();
+
+      fetchOrganizations({ reload: true });
+    })
+    .catch((error) => {
+      apiErrorMessage({ error });
+    });
 };
 
 const handleDoExport = async () => {

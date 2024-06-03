@@ -71,26 +71,4 @@ export interface Organization{
     dateEnd: string;
     source: OrganizationSource;
   }
-  lfxMembership?: {
-    accountDomain: string;
-    accountName: string;
-    createdAt: string;
-    domainAlias: string[];
-    id: string;
-    installDate: string;
-    organizationId: string;
-    parentAccount: string;
-    price: number;
-    priceCurrency: string;
-    productFamily: string;
-    productName: string;
-    project: string;
-    purchaseHistoryName: string;
-    segmentId: string;
-    status: string;
-    tenantId: string;
-    tier: string;
-    updatedAt: string;
-    usageEndDate: string;
-  }
 }

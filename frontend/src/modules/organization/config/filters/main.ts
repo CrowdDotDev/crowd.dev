@@ -11,7 +11,6 @@ import headline from './headline/config';
 import industry from './industry/config';
 import joinedDate from './joinedDate/config';
 import lastActivityDate from './lastActivityDate/config';
-// import lfxMembership from './lfxMembership/config';
 import location from './location/config';
 import projects from './projects/config';
 import annualRevenue from './annualRevenue/config';
@@ -38,7 +37,6 @@ export const organizationFilters: Record<string, FilterConfig> = {
   industry,
   joinedDate,
   lastActivityDate,
-  // lfxMembership, Uncomment when backend supports the filter. Waiting for OpenSearch
   location,
   projects,
   tags,

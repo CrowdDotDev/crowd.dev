@@ -20,18 +20,13 @@
         </div>
         <i v-else class="ri-community-line text-sm text-gray-300" />
       </div>
-      <div class="max-w-full flex items-center gap-1">
+      <div class="max-w-full">
         <p
           class="text-gray-900 text-sm line-clamp-1 font-medium underline decoration-dashed decoration-gray-400 underline-offset-4
           hover:decoration-gray-900 hover:cursor-pointer hover:!text-gray-900"
         >
           {{ organization.displayName || organization.name || '-' }}
         </p>
-        <lf-organization-lf-member-tag
-          :organization="organization"
-          :only-show-icon="true"
-          icon-font-size="text-base"
-        />
       </div>
     </router-link>
     <el-popover
@@ -67,18 +62,13 @@
             <img v-if="organization.logo" :src="organization.logo" alt="Logo" />
             <i v-else class="ri-community-line text-sm text-gray-300" />
           </div>
-          <div class="max-w-full flex items-center gap-1">
+          <div class="max-w-full">
             <p
               class="text-gray-900 text-sm line-clamp-1 font-medium underline decoration-2 decoration-dashed decoration-gray-400 underline-offset-4
           hover:decoration-gray-900 hover:cursor-pointer hover:!text-gray-900"
             >
               {{ organization.displayName || organization.name || '-' }}
             </p>
-            <lf-organization-lf-member-tag
-              :organization="organization"
-              :only-show-icon="true"
-              icon-font-size="text-base"
-            />
           </div>
         </router-link>
       </div>
@@ -94,7 +84,6 @@ import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { computed } from 'vue';
 import pluralize from 'pluralize';
-import LfOrganizationLfMemberTag from '@/modules/organization/components/lf-member/organization-lf-member-tag.vue';
 
 const props = defineProps({
   member: {

@@ -26,16 +26,9 @@
         :src="organization.logo"
         :alt="`${organization.displayName} logo`"
       />
-      <div class="flex items-center gap-1">
-        <span
-          class="text-gray-500 group-hover:decoration-gray-900 transition text-xs underline decoration-dashed underline-offset-4 decoration-gray-400"
-        >{{ organization.displayName }}</span>
-        <lf-organization-lf-member-tag
-          :organization="organization"
-          :only-show-icon="true"
-          icon-font-size="text-sm"
-        />
-      </div>
+      <span
+        class="text-gray-500 group-hover:decoration-gray-900 transition text-xs underline decoration-dashed underline-offset-4 decoration-gray-400"
+      >{{ organization.displayName }}</span>
     </div>
   </router-link>
 </template>
@@ -46,7 +39,6 @@ import { computed } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { useActivityStore } from '@/modules/activity/store/pinia';
-import LfOrganizationLfMemberTag from '@/modules/organization/components/lf-member/organization-lf-member-tag.vue';
 
 defineProps<{
   organization: Organization;

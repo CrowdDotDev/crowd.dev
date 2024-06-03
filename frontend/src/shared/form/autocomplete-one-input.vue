@@ -40,32 +40,20 @@
       v-for="record in localOptions"
       :key="record.id"
     >
-      <el-tooltip
+      <el-option
         v-if="record.id"
         :key="record.id"
-        :disabled="!disableOption(record)"
-        content="Active member organizations of the Linux Foundation can't be merged into other organizations."
-        placement="top"
+        :value="record"
+        :label="record.label"
+        class="!px-5"
+        @mouseleave="onSelectMouseLeave"
       >
-        <span>
-          <el-option
-            :value="record"
-            :label="record.label"
-            :disabled="disableOption(record)"
-            class="!px-5"
-            :class="{
-              'hover:!bg-transparent': disableOption(record),
-            }"
-            @mouseleave="onSelectMouseLeave"
-          >
-            <slot name="option" :item="record">
-              <span class="text-ellipsis overflow-hidden">
-                {{ record.label }}
-              </span>
-            </slot>
-          </el-option>
-        </span>
-      </el-tooltip>
+        <slot name="option" :item="record">
+          <span class="text-ellipsis overflow-hidden">
+            {{ record.label }}
+          </span>
+        </slot>
+      </el-option>
     </template>
     <div
       v-if="!loading && localOptions.length === limit"
@@ -143,10 +131,6 @@ export default {
     storeKey: {
       type: String,
       default: null,
-    },
-    disableOption: {
-      type: Function,
-      default: () => {},
     },
   },
   emits: ['update:modelValue'],
