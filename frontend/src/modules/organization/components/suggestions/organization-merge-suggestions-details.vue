@@ -38,15 +38,24 @@
           >
             Primary organization
           </div>
-          <button
+          <el-tooltip
             v-else
-            type="button"
-            class="btn btn--bordered btn--sm leading-5 !px-4 !py-1"
-            @click="emit('makePrimary')"
+            content="Linux Foundation's member organization must be the primary organization."
+            :disabled="!props.compareOrganization.lfxMembership"
+            placement="top"
           >
-            <span class="ri-arrow-left-right-fill text-base text-gray-600 mr-2" />
-            <span>Make primary</span>
-          </button>
+            <span>
+              <button
+                type="button"
+                class="btn btn--bordered btn--sm leading-5 !px-4 !py-1"
+                :disabled="!!props.compareOrganization.lfxMembership"
+                @click="emit('makePrimary')"
+              >
+                <span class="ri-arrow-left-right-fill text-base text-gray-600 mr-2" />
+                <span>Make primary</span>
+              </button>
+            </span>
+          </el-tooltip>
           <slot name="action" />
         </div>
       </slot>
@@ -93,16 +102,29 @@
             }"
             target="_blank"
           >
+            <div class="flex items-center gap-1">
+              <h6
+                class="text-base text-black font-semibold hover:text-primary-500 leading-6"
+                v-html="$sanitize(props.organization.displayName || props.organization.name)"
+              />
+              <lf-organization-lf-member-tag
+                :organization="props.organization"
+                :only-show-icon="true"
+                icon-font-size="text-sm"
+              />
+            </div>
+          </router-link>
+          <div v-else class="flex items-center gap-1">
             <h6
               class="text-base text-black font-semibold hover:text-primary-500 leading-6"
               v-html="$sanitize(props.organization.displayName || props.organization.name)"
             />
-          </router-link>
-          <h6
-            v-else
-            class="text-base text-black font-semibold leading-6"
-            v-html="$sanitize(props.organization.displayName || props.organization.name)"
-          />
+            <lf-organization-lf-member-tag
+              :organization="props.organization"
+              :only-show-icon="true"
+              icon-font-size="text-sm"
+            />
+          </div>
           <div
             v-if="props.organization.description"
             ref="bio"
@@ -303,6 +325,7 @@ import AppIdentitiesVerticalListOrganizations from '@/shared/modules/identities/
 import organizationOrder from '@/shared/modules/identities/config/identitiesOrder/organization';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import LfOrganizationLfMemberTag from '@/modules/organization/components/lf-member/organization-lf-member-tag.vue';
 
 const props = defineProps({
   organization: {

@@ -18,11 +18,18 @@
             <img :src="activeOrganization.logo" alt="Logo" />
           </div>
         </div>
-        <p
-          class="text-gray-900 text-xs hover:text-primary-500 transition leading-relaxed line-clamp-2 word-break"
-        >
-          {{ activeOrganization.displayName || activeOrganization.name || '-' }}
-        </p>
+        <div class="flex items-center gap-1">
+          <p
+            class="text-gray-900 text-xs hover:text-primary-500 transition leading-relaxed line-clamp-2 word-break"
+          >
+            {{ activeOrganization.displayName || activeOrganization.name || '-' }}
+          </p>
+          <lf-organization-lf-member-tag
+            :organization="activeOrganization"
+            :only-show-icon="true"
+            icon-font-size="text-sm"
+          />
+        </div>
       </router-link>
       <div
         v-if="
@@ -97,6 +104,11 @@
         <span class="text-xs">{{
           activeOrganization.displayName || activeOrganization.name || '-'
         }}</span>
+        <lf-organization-lf-member-tag
+          :organization="activeOrganization"
+          :only-show-icon="true"
+          icon-font-size="text-sm"
+        />
       </router-link>
     </div>
   </div>
@@ -109,6 +121,7 @@
 import { computed } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import LfOrganizationLfMemberTag from '@/modules/organization/components/lf-member/organization-lf-member-tag.vue';
 
 const props = defineProps({
   member: {
