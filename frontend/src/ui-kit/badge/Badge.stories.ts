@@ -23,7 +23,7 @@ export default {
 
     // Slots
     default: {
-      description: 'Text or html content of the radio',
+      description: 'Text or html content of the badge',
       control: {
         type: null,
       },
@@ -47,10 +47,10 @@ export const White = {
   },
 };
 
-export const Brand = {
+export const Primary = {
   args: {
     size: 'medium',
-    type: 'brand',
+    type: 'primary',
     default: 'Badge',
   },
 };
