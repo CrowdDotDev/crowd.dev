@@ -7,28 +7,31 @@
   /* Small */
   --lf-badge-small-font-size: #{rem(12)};
   --lf-badge-small-height: #{rem(20)};
+  --lf-badge-small-padding: #{rem(4)};
 
 
   /* Medium */
   --lf-badge-medium-font-size: #{rem(13)};
   --lf-badge-medium-height: #{rem(24)};
+  --lf-badge-medium-padding: #{rem(6)};
 
   /* ---------------------------------- *\
             Badge styles
   \* ---------------------------------- */
 
-  /* Default */
-  --lf-badge-default-background: var(--lf-color-gray-100);
-  --lf-badge-default-border: var(--lf-color-gray-200);
-  --lf-badge-default-text: var(--lf-color-gray-900);
-
-  /* White */
-  --lf-badge-white-background: var(--lf-color-white);
-  --lf-badge-white-border: var(--lf-color-gray-200);
-  --lf-badge-white-text: var(--lf-color-gray-900);
 
   /* Primary */
   --lf-badge-primary-background: var(--lf-color-primary-50);
   --lf-badge-primary-border: var(--lf-color-primary-100);
-  --lf-badge-primary-text: var(--lf-color-primary-600);
+  --lf-badge-primary-text: var(--lf-color-primary-800);
+
+  /* Secondary */
+  --lf-badge-secondary-background: var(--lf-color-white);
+  --lf-badge-secondary-border: var(--lf-color-gray-200);
+  --lf-badge-secondary-text: var(--lf-color-gray-900);
+
+  /* Tertiary */
+  --lf-badge-tertiary-background: var(--lf-color-gray-100);
+  --lf-badge-tertiary-border: var(--lf-color-gray-200);
+  --lf-badge-tertiary-text: var(--lf-color-gray-900);
 }

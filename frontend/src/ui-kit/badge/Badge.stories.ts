@@ -23,7 +23,7 @@ export default {
 
     // Slots
     default: {
-      description: 'Text or html content of the radio',
+      description: 'Text or html content of the badge',
       control: {
         type: null,
       },
