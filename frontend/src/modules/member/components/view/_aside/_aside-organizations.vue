@@ -79,7 +79,6 @@
                         lfxMembership,
                       }"
                       :only-show-icon="true"
-                      icon-font-size="text-base"
                     />
                   </div>
                   <el-tooltip

@@ -39,7 +39,6 @@
           <lf-organization-lf-member-tag
             :organization="organization"
             :only-show-icon="true"
-            icon-font-size="text-sm"
           />
         </div>
       </div>

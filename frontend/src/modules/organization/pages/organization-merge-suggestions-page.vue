@@ -75,7 +75,6 @@
                       <lf-organization-lf-member-tag
                         :organization="suggestion.organizations[0]"
                         :only-show-icon="true"
-                        icon-font-size="text-sm"
                       />
                     </div>
                   </div>
@@ -112,7 +111,6 @@
                       <lf-organization-lf-member-tag
                         :organization="suggestion.organizations[1]"
                         :only-show-icon="true"
-                        icon-font-size="text-sm"
                       />
                     </div>
                   </div>

@@ -27,7 +27,6 @@
           <lf-organization-lf-member-tag
             :organization="activeOrganization"
             :only-show-icon="true"
-            icon-font-size="text-sm"
           />
         </div>
       </router-link>
@@ -107,7 +106,6 @@
         <lf-organization-lf-member-tag
           :organization="activeOrganization"
           :only-show-icon="true"
-          icon-font-size="text-sm"
         />
       </router-link>
     </div>

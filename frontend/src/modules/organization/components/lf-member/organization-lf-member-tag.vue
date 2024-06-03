@@ -1,7 +1,7 @@
 <template>
-  <el-tooltip v-if="!!organization.lfxMembership" :disabled="!onlyShowIcon" content="Active member of the Linux Foundation." placement="top">
+  <el-tooltip v-if="!!organization.lfxMembership" content="Active member of the Linux Foundation." placement="top">
     <div class="text-primary-500 flex items-center gap-1">
-      <i :class="`ri-star-s-fill ${iconFontSize}`" />
+      <i :class="`ri-bookmark-3-fill ${iconFontSize}`" />
       <span v-if="!onlyShowIcon" class="font-semibold text-xs">LF Member</span>
     </div>
   </el-tooltip>
@@ -18,7 +18,7 @@ withDefaults(
   }>(),
   {
     onlyShowIcon: false,
-    iconFontSize: 'text-sm',
+    iconFontSize: 'text-base',
   },
 );
 </script>

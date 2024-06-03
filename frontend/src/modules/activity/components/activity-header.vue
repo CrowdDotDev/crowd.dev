@@ -36,7 +36,6 @@
             <lf-organization-lf-member-tag
               :organization="activity.organization"
               :only-show-icon="true"
-              icon-font-size="text-sm"
             />
           </div>
         </router-link>

@@ -30,7 +30,6 @@
         <lf-organization-lf-member-tag
           :organization="organization"
           :only-show-icon="true"
-          icon-font-size="text-base"
         />
       </div>
     </router-link>
@@ -77,7 +76,6 @@
             <lf-organization-lf-member-tag
               :organization="organization"
               :only-show-icon="true"
-              icon-font-size="text-base"
             />
           </div>
         </router-link>

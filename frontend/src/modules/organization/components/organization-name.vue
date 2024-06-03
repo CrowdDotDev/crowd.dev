@@ -41,7 +41,6 @@
         <lf-organization-lf-member-tag
           :organization="organization"
           :only-show-icon="true"
-          icon-font-size="text-base"
         />
       </div>
       <app-organization-badge

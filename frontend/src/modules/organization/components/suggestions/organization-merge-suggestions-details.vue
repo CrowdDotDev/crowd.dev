@@ -110,7 +110,6 @@
               <lf-organization-lf-member-tag
                 :organization="props.organization"
                 :only-show-icon="true"
-                icon-font-size="text-sm"
               />
             </div>
           </router-link>
@@ -122,7 +121,6 @@
             <lf-organization-lf-member-tag
               :organization="props.organization"
               :only-show-icon="true"
-              icon-font-size="text-sm"
             />
           </div>
           <div

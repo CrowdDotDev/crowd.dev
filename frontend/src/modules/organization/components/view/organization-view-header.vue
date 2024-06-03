@@ -26,7 +26,6 @@
             <div v-if="true" class="flex items-center gap-2 mr-2">
               <lf-organization-lf-member-tag
                 :organization="organization"
-                icon-font-size="text-sm"
               />
               <span class="text-gray-400">·</span>
             </div>
