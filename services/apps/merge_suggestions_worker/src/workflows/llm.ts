@@ -23,27 +23,31 @@ export async function llm(args: IProcessCheckSimilarityWithLLM): Promise<void> {
 
   for (const memberCouple of args.memberCouples) {
     const members = await memberActivitiesProxy.getMembersForLLMConsumption(memberCouple)
-    const res = await commonActivitiesProxy.getLLMResult(members, args.modelId, args.prompt)
+    const res = await commonActivitiesProxy.getLLMResult(
+      members,
+      args.modelId,
+      args.prompt,
+      args.region,
+      args.modelSpecificArgs,
+    )
     const result: ILLMResult = JSON.parse(res)
     console.log(`Raw res: `)
     console.log(result)
-    const textResponse =
-      result.generation.replace(/`/g, '').trim() === 'true' ? 'similar' : 'not similar'
-    console.log(`LLM thinks that ${memberCouple[0]} and ${memberCouple[1]} are ${textResponse}`)
   }
 
   for (const organizationCouple of args.organizationCouples) {
     const organizations = await organizationActivitiesProxy.getOrganizationsForLLMConsumption(
       organizationCouple,
     )
-    const res = await commonActivitiesProxy.getLLMResult(organizations, args.modelId, args.prompt)
+    const res = await commonActivitiesProxy.getLLMResult(
+      organizations,
+      args.modelId,
+      args.prompt,
+      args.region,
+      args.modelSpecificArgs,
+    )
     const result: ILLMResult = JSON.parse(res)
     console.log(`Raw res: `)
     console.log(result)
-    const textResponse =
-      result.generation.replace(/`/g, '').trim() === 'true' ? 'similar' : 'not similar'
-    console.log(
-      `LLM thinks that ${organizationCouple[0]} and ${organizationCouple[1]} are ${textResponse}`,
-    )
   }
 }
