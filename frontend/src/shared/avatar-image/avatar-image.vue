@@ -28,6 +28,6 @@ const handleImageError = () => {
 
 <style lang="scss" scoped>
 img[lazy='loading'] {
-  @apply w-full bg-brand-50 animate-pulse;
+  @apply w-full bg-primary-50 animate-pulse;
 }
 </style>

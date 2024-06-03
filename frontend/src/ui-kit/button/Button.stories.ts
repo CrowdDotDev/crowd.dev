@@ -1,11 +1,11 @@
 import { buttonTypes } from '@/ui-kit/button/types/ButtonType';
 import { buttonSizes } from '@/ui-kit/button/types/ButtonSize';
 import { buttonNativeTypes } from '@/ui-kit/button/types/ButtonNativeType';
-import CrButton from './Button.vue';
+import LfButton from './Button.vue';
 
 export default {
-  title: 'Crowd.dev/Button',
-  component: CrButton,
+  title: 'LinuxFoundation/Button',
+  component: LfButton,
   tags: ['autodocs'],
   argTypes: {
     // Props

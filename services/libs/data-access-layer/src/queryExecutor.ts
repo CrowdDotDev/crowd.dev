@@ -121,3 +121,7 @@ export class PgPromiseQueryExecutor implements QueryExecutor {
     return this.db.tx((tx) => fn(new PgPromiseQueryExecutor(tx)))
   }
 }
+
+export function pgpQx(db: DbConnection | DbTransaction): QueryExecutor {
+  return new PgPromiseQueryExecutor(db)
+}

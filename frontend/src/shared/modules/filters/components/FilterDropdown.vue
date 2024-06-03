@@ -120,6 +120,6 @@ const add = (key: string) => {
 
 <script lang="ts">
 export default {
-  name: 'CrFilterDropdown',
+  name: 'LfFilterDropdown',
 };
 </script>

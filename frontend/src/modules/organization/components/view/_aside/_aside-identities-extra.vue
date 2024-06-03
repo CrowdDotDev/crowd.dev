@@ -4,9 +4,10 @@
   <div class="flex flex-col px-6">
     <div class="flex items-center justify-between">
       <div class="font-medium text-black">
-        Email(s)
+        Email Domain(s)
       </div>
       <el-button
+        v-if="hasPermission(LfPermission.organizationEdit)"
         class="btn btn-link btn-link--primary"
         @click="emit('editEmail')"
       >
@@ -35,7 +36,7 @@
               rel="noopener noreferrer"
               class="text-xs text-gray-900 border border-gray-200 rounded-md py-0.5 px-2 truncate"
               :class="{
-                'hover:text-brand-500 cursor:pointer': emailIdentity.link,
+                'hover:text-primary-500 cursor:pointer': emailIdentity.link,
               }"
               :href="emailIdentity.link"
             >{{ emailIdentity.handle }}</a>
@@ -45,7 +46,7 @@
 
       <div
         v-if="props.emails.length > 5"
-        class="underline cursor-pointer text-gray-500 hover:text-brand-500 text-xs underline-offset-4 mt-5"
+        class="underline cursor-pointer text-gray-500 hover:text-primary-500 text-xs underline-offset-4 mt-5"
         @click="displayEmailsMore = !displayEmailsMore"
       >
         Show {{ displayEmailsMore ? 'less' : 'more' }}
@@ -65,6 +66,7 @@
         Phone number(s)
       </div>
       <el-button
+        v-if="hasPermission(LfPermission.organizationEdit)"
         class="btn btn-link btn-link--primary"
         @click="emit('editPhoneNumber')"
       >
@@ -92,7 +94,7 @@
               rel="noopener noreferrer"
               class="text-xs text-gray-900 border border-gray-200 rounded-md py-0.5 px-2 truncate"
               :class="{
-                'hover:text-brand-500 cursor:pointer': phoneNumberIdentity.link,
+                'hover:text-primary-500 cursor:pointer': phoneNumberIdentity.link,
               }"
               :href="phoneNumberIdentity.link"
             >{{ phoneNumberIdentity.handle }}</a>
@@ -102,7 +104,7 @@
 
       <div
         v-if="props.phoneNumbers.length > 5"
-        class="underline cursor-pointer text-gray-500 hover:text-brand-500 text-xs underline-offset-4 mt-5"
+        class="underline cursor-pointer text-gray-500 hover:text-primary-500 text-xs underline-offset-4 mt-5"
         @click="displayPhoneNumbersMore = !displayPhoneNumbersMore"
       >
         Show {{ displayPhoneNumbersMore ? 'less' : 'more' }}
@@ -119,6 +121,8 @@
 import {
   computed, ref,
 } from 'vue';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 
 const props = defineProps<{
   emails: {
@@ -132,6 +136,8 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{(e: 'editEmail'): void, (e: 'editPhoneNumber'): void, }>();
+
+const { hasPermission } = usePermissions();
 
 const displayEmailsMore = ref(false);
 const displayPhoneNumbersMore = ref(false);

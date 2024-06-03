@@ -1,11 +1,11 @@
 import { proxyActivities, continueAsNew } from '@temporalio/workflow'
 import * as activities from '../activities/organizationMergeSuggestions'
 
-import { IOrganizationMergeSuggestion } from '@crowd/types'
 import {
   IOrganizationPartialAggregatesOpensearch,
   IProcessGenerateOrganizationMergeSuggestionsArgs,
 } from '../types'
+import { IOrganizationMergeSuggestion, OrganizationMergeSuggestionTable } from '@crowd/types'
 import { chunkArray } from '../utils'
 
 const activity = proxyActivities<typeof activities>({ startToCloseTimeout: '1 minute' })
@@ -15,6 +15,7 @@ export async function generateOrganizationMergeSuggestions(
 ): Promise<void> {
   const PAGE_SIZE = 500
   const PARALLEL_SUGGESTION_PROCESSING = 250
+  const SIMILARITY_CONFIDENCE_SCORE_THRESHOLD = 0.5
 
   let lastUuid: string = args.lastUuid || null
 
@@ -54,7 +55,15 @@ export async function generateOrganizationMergeSuggestions(
 
   // Add all merge suggestions to add to merge
   if (allMergeSuggestions.length > 0) {
-    await activity.addOrganizationToMerge(allMergeSuggestions)
+    await activity.addOrganizationToMerge(
+      allMergeSuggestions,
+      OrganizationMergeSuggestionTable.ORGANIZATION_TO_MERGE_RAW,
+    )
+
+    await activity.addOrganizationToMerge(
+      allMergeSuggestions.filter((s) => s.similarity > SIMILARITY_CONFIDENCE_SCORE_THRESHOLD),
+      OrganizationMergeSuggestionTable.ORGANIZATION_TO_MERGE_FILTERED,
+    )
   }
 
   await continueAsNew<typeof generateOrganizationMergeSuggestions>({

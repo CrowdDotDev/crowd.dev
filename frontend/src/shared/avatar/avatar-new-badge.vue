@@ -6,14 +6,14 @@
   >
     <div
       v-if="!isSmallAvatar"
-      class="absolute text-3xs text-white bg-brand-500
+      class="absolute text-3xs text-white bg-primary-500
       h-3 flex items-center justify-center top-[-4px] px-1 font-medium rounded z-10 outline outline-2 outline-white"
     >
       New
     </div>
     <div
       v-else
-      class="absolute bg-brand-500 rounded-full h-2 w-2 top-0 right-0 z-10 outline outline-2 outline-white"
+      class="absolute bg-primary-500 rounded-full h-2 w-2 top-0 right-0 z-10 outline outline-2 outline-white"
     />
   </el-tooltip>
 </template>

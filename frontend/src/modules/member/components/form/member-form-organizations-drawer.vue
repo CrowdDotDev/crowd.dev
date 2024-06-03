@@ -80,12 +80,16 @@ import moment from 'moment/moment';
 import { Organization } from '@/modules/organization/types/Organization';
 import AppMemberFormOrganizationsCreate from '@/modules/member/components/form/member-form-organizations-create.vue';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 
 const emit = defineEmits<{(e: 'update:modelValue', value: boolean): any}>();
 const props = defineProps<{
   modelValue: boolean,
   member: Member,
 }>();
+
+const { trackEvent } = useProductTracking();
 
 const { doUpdate } = mapActions('member');
 
@@ -149,6 +153,11 @@ const add = (organization: Organization) => {
 };
 
 const remove = (index: number) => {
+  trackEvent({
+    key: FeatureEventKey.DELETE_WORK_EXPERIENCE,
+    type: EventType.FEATURE,
+  });
+
   organizations.value.splice(index, 1);
   save();
 };

@@ -1,6 +1,11 @@
 import { DbConnection, DbTransaction } from '@crowd/database'
 import { Logger } from '@crowd/logging'
-import { ILLMConsumableMember, IMemberMergeSuggestion, SuggestionType } from '@crowd/types'
+import {
+  ILLMConsumableMember,
+  IMemberMergeSuggestion,
+  SuggestionType,
+  MemberMergeSuggestionTable,
+} from '@crowd/types'
 import { IMemberId, IMemberMergeSuggestionsLatestGeneratedAt, IMemberNoMerge } from './types'
 import { removeDuplicateSuggestions, chunkArray } from './utils'
 
@@ -67,7 +72,10 @@ class MemberMergeSuggestionsRepository {
     }
   }
 
-  async addToMerge(suggestions: IMemberMergeSuggestion[]): Promise<void> {
+  async addToMerge(
+    suggestions: IMemberMergeSuggestion[],
+    table: MemberMergeSuggestionTable,
+  ): Promise<void> {
     // Remove possible duplicates
     suggestions = removeDuplicateSuggestions<IMemberMergeSuggestion>(
       suggestions,
@@ -136,7 +144,7 @@ class MemberMergeSuggestionsRepository {
       })
 
       const query = `
-        insert into "memberToMerge" ("memberId", "toMergeId", "similarity", "activityEstimate", "createdAt", "updatedAt")
+        insert into "${table}" ("memberId", "toMergeId", "similarity", "activityEstimate", "createdAt", "updatedAt")
         select new_vals.*
         from (
           values
@@ -144,7 +152,7 @@ class MemberMergeSuggestionsRepository {
         ) AS new_vals ("memberId", "toMergeId", "similarity", "activityEstimate", "createdAt", "updatedAt")
         where not exists (
           select 1
-          from "memberToMerge"
+          from "${table}"
           where ("memberId" = new_vals."memberId"::uuid AND "toMergeId" = new_vals."toMergeId"::uuid) 
           or ("memberId" = new_vals."toMergeId"::uuid AND "toMergeId" = new_vals."memberId"::uuid)
         );

@@ -1,5 +1,7 @@
 import Layout from '@/modules/layout/components/layout.vue';
-import Permissions from '@/security/permissions';
+import { PageEventKey } from '@/shared/modules/monitoring/types/event';
+import { PermissionGuard } from '@/shared/modules/permissions/router/PermissionGuard';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 
 const ActivityListPage = () => import('@/modules/activity/pages/activity-list-page.vue');
 
@@ -11,6 +13,7 @@ export default [
     meta: {
       auth: true,
       title: 'Activities',
+      eventKey: PageEventKey.ACTIVITIES,
       segments: {
         requireSelectedProjectGroup: true,
       },
@@ -22,8 +25,10 @@ export default [
         component: ActivityListPage,
         meta: {
           auth: true,
-          permission: Permissions.values.activityRead,
         },
+        beforeEnter: [
+          PermissionGuard(LfPermission.activityRead),
+        ],
       },
     ],
   },

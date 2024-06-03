@@ -18,7 +18,7 @@
   </div>
   <div
     v-if="displayShowMore"
-    class="text-2xs text-brand-500 mt-3 cursor-pointer"
+    class="text-2xs text-primary-500 mt-3 cursor-pointer"
     @click.stop="showMore = !showMore"
   >
     Show {{ showMore ? 'less' : 'more' }}

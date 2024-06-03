@@ -36,9 +36,9 @@
   // Selected state
   &.is-selected,
   &:focus.is-selected {
-    @apply relative bg-brand-50 text-gray-900 cursor-default;
+    @apply relative bg-primary-50 text-gray-900 cursor-default;
     i {
-      @apply mr-3 text-brand-600;
+      @apply mr-3 text-primary-600;
     }
   }
 
@@ -82,5 +82,5 @@
 .el-select-dropdown.is-multiple
   .el-select-dropdown__item.selected,
 .el-select-dropdown .el-select-dropdown__item.selected {
-  @apply text-brand-500;
+  @apply text-primary-500;
 }

@@ -1,5 +1,5 @@
 import { DbStore } from '@crowd/database'
-import { MergeActionState } from '@crowd/types'
+import { IActivityIdentity, IMemberIdentity, MergeActionState } from '@crowd/types'
 import { ISegmentIds } from './types'
 
 export async function deleteMemberSegments(db: DbStore, memberId: string) {
@@ -71,6 +71,35 @@ export async function updateMergeActionState(
   )
 }
 
+export async function getIdentitiesWithActivity(
+  db: DbStore,
+  memberId: string,
+  tenantId: string,
+  identities: IMemberIdentity[],
+): Promise<IActivityIdentity[]> {
+  if (identities.length === 0) {
+    return []
+  }
+  const replacements = [memberId, tenantId]
+
+  let query = `select distinct username, platform from activities a
+               where a."deletedAt" is null and a."memberId" = $1 and a."tenantId" = $2 `
+
+  let index = 3
+  const identityFilters = []
+
+  for (let i = 0; i < identities.length; i++) {
+    identityFilters.push(`(a.platform = $${index} and a.username = $${index + 1})`)
+    replacements[index - 1] = identities[i].platform
+    replacements[index] = identities[i].value
+    index += 2
+  }
+
+  query += ` and (${identityFilters.join(' or ')})`
+
+  return db.connection().any(query, replacements)
+}
+
 export async function moveIdentityActivitiesToNewMember(
   db: DbStore,
   tenantId: string,
@@ -78,24 +107,38 @@ export async function moveIdentityActivitiesToNewMember(
   toId: string,
   username: string,
   platform: string,
+  batchSize = 1000,
 ) {
-  return db.connection().query(
-    `
-        UPDATE activities
-        SET "memberId" = $(toId)
-        WHERE "memberId" = $(fromId)
-          AND "tenantId" = $(tenantId)
-          AND username = $(username)
-          AND platform = $(platform);
-      `,
-    {
-      toId,
-      fromId,
-      tenantId,
-      username,
-      platform,
-    },
-  )
+  let rowsUpdated
+
+  do {
+    const result = await db.connection().query(
+      `
+          UPDATE activities
+          SET "memberId" = $(toId)
+          WHERE id in (
+            select id from activities
+            where "memberId" = $(fromId)
+              and "tenantId" = $(tenantId)
+              and "username" = $(username)
+              and "platform" = $(platform)
+              and "deletedAt" is null
+              limit $(batchSize)
+          )
+          returning id
+        `,
+      {
+        toId,
+        fromId,
+        tenantId,
+        username,
+        platform,
+        batchSize,
+      },
+    )
+
+    rowsUpdated = result.length
+  } while (rowsUpdated === batchSize)
 }
 
 export async function findMemberSegments(db: DbStore, memberId: string): Promise<ISegmentIds> {

@@ -28,19 +28,18 @@
         <div class="h-13 flex justify-between items-start">
           <div
             v-if="props.isPreview"
-            class="bg-brand-800 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
+            class="bg-primary-800 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
           >
             Preview
           </div>
           <div
             v-else-if="props.isPrimary"
-            class="bg-brand-100 rounded-full py-0.5 px-2 text-brand-800 inline-block text-xs leading-5 font-medium"
+            class="bg-primary-100 rounded-full py-0.5 px-2 text-primary-800 inline-block text-xs leading-5 font-medium"
           >
             Primary contributor
           </div>
           <button
             v-else
-            :disabled="isEditLockedForSampleData"
             type="button"
             class="btn btn--secondary btn--sm leading-5 !px-4 !py-1"
             @click="emit('makePrimary')"
@@ -101,7 +100,7 @@
           target="_blank"
         >
           <h6
-            class="text-base text-black font-semibold hover:text-brand-500"
+            class="text-base text-black font-semibold hover:text-primary-500"
             v-html="$sanitize(member.displayName)"
           />
         </router-link>
@@ -138,7 +137,7 @@
 
         <div
           v-if="displayShowMore"
-          class="text-sm text-brand-500 mt-2 cursor-pointer"
+          class="text-sm text-primary-500 mt-2 cursor-pointer"
           :class="{ invisible: !member.attributes.bio?.default }"
           @click.stop="more = !more"
         >
@@ -273,7 +272,7 @@
 
 <script setup>
 import {
-  computed, defineProps, onMounted, ref, defineExpose,
+  onMounted, ref,
 } from 'vue';
 import moment from 'moment';
 import AppMemberOrganizations from '@/modules/member/components/member-organizations.vue';
@@ -281,14 +280,12 @@ import AppAvatar from '@/shared/avatar/avatar.vue';
 import AppCommunityEngagementLevel from '@/modules/member/components/member-engagement-level.vue';
 import AppTags from '@/modules/tag/components/tag-list.vue';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
-import { MemberPermissions } from '@/modules/member/member-permissions';
 import memberOrder from '@/shared/modules/identities/config/identitiesOrder/member';
 import AppIdentitiesVerticalListMembers from '@/shared/modules/identities/components/identities-vertical-list-members.vue';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import AppSvg from '@/shared/svg/svg.vue';
 import { getAttributeSourceName } from '@/shared/helpers/attribute.helpers';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
 
 const props = defineProps({
   member: {
@@ -324,16 +321,8 @@ const props = defineProps({
 
 const emit = defineEmits(['makePrimary', 'bioHeight']);
 
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
-
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
-
-const isEditLockedForSampleData = computed(
-  () => new MemberPermissions(tenant.value, user.value)
-    .editLockedForSampleData,
-);
 
 const bio = ref(null);
 const displayShowMore = ref(null);

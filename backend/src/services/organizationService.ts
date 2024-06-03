@@ -15,13 +15,17 @@ import {
 import { randomUUID } from 'crypto'
 import lodash from 'lodash'
 import { captureApiChange, organizationMergeAction } from '@crowd/audit-logs'
+import {
+  findLfxMembership,
+  findManyLfxMemberships,
+  hasLfxMembership,
+} from '@crowd/data-access-layer/src/lfx_memberships'
 import getObjectWithoutKey from '@/utils/getObjectWithoutKey'
 import { IActiveOrganizationFilter } from '@/database/repositories/types/organizationTypes'
 import MemberOrganizationRepository from '@/database/repositories/memberOrganizationRepository'
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import MemberRepository from '../database/repositories/memberRepository'
 import { MergeActionsRepository } from '../database/repositories/mergeActionsRepository'
-import organizationCacheRepository from '../database/repositories/organizationCacheRepository'
 import OrganizationRepository from '../database/repositories/organizationRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import telemetryTrack from '../segment/telemetryTrack'
@@ -403,6 +407,8 @@ export default class OrganizationService extends LoggerBase {
       ])
 
     let tx
+    const qx = SequelizeRepository.getQueryExecutor(this.options)
+    const tenantId = this.options.currentTenant.id
 
     try {
       const { original, toMerge } = await captureApiChange(
@@ -411,6 +417,28 @@ export default class OrganizationService extends LoggerBase {
           this.log.info('[Merge Organizations] - Finding organizations! ')
           let original = await OrganizationRepository.findById(originalId, this.options)
           let toMerge = await OrganizationRepository.findById(toMergeId, this.options)
+
+          const originalWithLfxMembership = await hasLfxMembership(qx, {
+            tenantId,
+            organizationId: originalId,
+          })
+          const toMergeWithLfxMembership = await hasLfxMembership(qx, {
+            tenantId,
+            organizationId: toMergeId,
+          })
+
+          if (originalWithLfxMembership && toMergeWithLfxMembership) {
+            await OrganizationRepository.addNoMerge(originalId, toMergeId, this.options)
+            this.log.info(
+              { originalId, toMergeId },
+              '[Merge Organizations] - Skipping merge of two LFX membership orgs! ',
+            )
+
+            return {
+              status: 203,
+              mergedId: originalId,
+            }
+          }
 
           this.log.info({ originalId, toMergeId }, '[Merge Organizations] - Found organizations! ')
 
@@ -610,20 +638,14 @@ export default class OrganizationService extends LoggerBase {
 
       const searchSyncService = new SearchSyncService(this.options, SyncMode.ASYNCHRONOUS)
 
-      await searchSyncService.triggerOrganizationSync(this.options.currentTenant.id, originalId)
-      await searchSyncService.triggerRemoveOrganization(this.options.currentTenant.id, toMergeId)
+      await searchSyncService.triggerOrganizationSync(tenantId, originalId)
+      await searchSyncService.triggerRemoveOrganization(tenantId, toMergeId)
 
       // sync organization members
-      await searchSyncService.triggerOrganizationMembersSync(
-        this.options.currentTenant.id,
-        originalId,
-      )
+      await searchSyncService.triggerOrganizationMembersSync(tenantId, originalId)
 
       // sync organization activities
-      await searchSyncService.triggerOrganizationActivitiesSync(
-        this.options.currentTenant.id,
-        originalId,
-      )
+      await searchSyncService.triggerOrganizationActivitiesSync(tenantId, originalId)
 
       this.log.info(
         { originalId, toMergeId },
@@ -641,11 +663,11 @@ export default class OrganizationService extends LoggerBase {
           toMergeId,
           original.displayName,
           toMerge.displayName,
-          this.options.currentTenant.id,
+          tenantId,
           this.options.currentUser.id,
         ],
         searchAttributes: {
-          TenantId: [this.options.currentTenant.id],
+          TenantId: [tenantId],
         },
       })
 
@@ -810,93 +832,15 @@ export default class OrganizationService extends LoggerBase {
 
     try {
       const primaryIdentity = data.identities[0]
-      const nameToCheckInCache = (data as any).name || primaryIdentity.name
+      const name = (data as any).name || primaryIdentity.name
 
       // Normalize the website URL if it exists
       if (data.website) {
         data.website = websiteNormalizer(data.website)
       }
 
-      // lets check if we have this organization in cache by website
-      let cache
-      let createCacheIdentity = false
-      if (data.website) {
-        cache = await organizationCacheRepository.findByWebsite(data.website, {
-          ...this.options,
-          transaction,
-        })
-
-        if (cache && !cache.names.includes(nameToCheckInCache)) {
-          createCacheIdentity = true
-        }
-      }
-
-      // check cache existing by name
-      if (!cache) {
-        cache = await organizationCacheRepository.findByName(nameToCheckInCache, {
-          ...this.options,
-          transaction,
-        })
-      }
-
-      // if cache exists, merge current data with cache data
-      // if it doesn't exist, create it from incoming data
-      if (cache) {
-        // if exists in cache update it
-        const updateData: Partial<IOrganization> = {}
-        const fields = [
-          'url',
-          'description',
-          'emails',
-          'logo',
-          'tags',
-          'github',
-          'twitter',
-          'linkedin',
-          'crunchbase',
-          'employees',
-          'location',
-          'website',
-          'type',
-          'size',
-          'headline',
-          'industry',
-          'founded',
-        ]
-        fields.forEach((field) => {
-          if (data[field] && !lodash.isEqual(data[field], cache[field])) {
-            updateData[field] = data[field]
-          }
-        })
-        if (Object.keys(updateData).length > 0) {
-          await organizationCacheRepository.update(
-            cache.id,
-            updateData,
-            {
-              ...this.options,
-              transaction,
-            },
-            createCacheIdentity ? nameToCheckInCache : undefined,
-          )
-
-          cache = { ...cache, ...updateData } // Update the cached data with the new data
-        }
-      } else {
-        // save it to cache
-        cache = await organizationCacheRepository.create(
-          {
-            ...data,
-            name: primaryIdentity.name,
-          },
-          {
-            ...this.options,
-            transaction,
-          },
-        )
-      }
-
       if (data.members) {
-        cache.members = await MemberRepository.filterIdsInTenant(data.members, {
+        data.members = await MemberRepository.filterIdsInTenant(data.members, {
           ...this.options,
           transaction,
         })
@@ -906,14 +850,14 @@ export default class OrganizationService extends LoggerBase {
       let existing
 
       // check if organization already exists using website or primary identity
-      if (cache.website) {
-        existing = await OrganizationRepository.findByDomain(cache.website, this.options)
+      if (data.website) {
+        existing = await OrganizationRepository.findByDomain(data.website, this.options)
 
         // also check domain in identities
         if (!existing) {
           existing = await OrganizationRepository.findByIdentity(
             {
-              name: websiteNormalizer(cache.website),
+              name: websiteNormalizer(data.website),
               platform: 'email',
             },
             this.options,
@@ -930,7 +874,7 @@ export default class OrganizationService extends LoggerBase {
 
         // Set displayName if it doesn't exist
         if (!existing.displayName) {
-          data.displayName = cache.name
+          data.displayName = name
         }
 
         // if it does exists update it
@@ -957,8 +901,8 @@ export default class OrganizationService extends LoggerBase {
           'weakIdentities',
         ]
         fields.forEach((field) => {
-          if (!existing[field] && cache[field]) {
-            updateData[field] = cache[field]
+          if (!existing[field] && data[field]) {
+            updateData[field] = data[field]
           }
         })
 
@@ -975,8 +919,7 @@ export default class OrganizationService extends LoggerBase {
 
         const organization = {
           ...data, // to keep uncacheable data (like identities, weakIdentities)
-          ...cache,
-          displayName: cache.name,
+          displayName: name,
         }
 
         record = await OrganizationRepository.create(organization, {
@@ -1013,11 +956,6 @@ export default class OrganizationService extends LoggerBase {
           }
         }
       }
-
-      await organizationCacheRepository.linkCacheAndOrganization(cache.id, record.id, {
-        ...this.options,
-        transaction,
-      })
 
       await SequelizeRepository.commitTransaction(transaction)
 
@@ -1221,7 +1159,17 @@ export default class OrganizationService extends LoggerBase {
   }
 
   async findByIdOpensearch(id: string, segmentId?: string) {
-    return OrganizationRepository.findByIdOpensearch(id, this.options, segmentId)
+    const org = await OrganizationRepository.findByIdOpensearch(id, this.options, segmentId)
+
+    const qx = SequelizeRepository.getQueryExecutor(this.options)
+
+    org.lfxMembership = await findLfxMembership(qx, {
+      organizationId: id,
+      tenantId: this.options.currentTenant.id,
+      segmentId,
+    })
+
+    return org
   }
 
   async query(data) {
@@ -1229,10 +1177,25 @@ export default class OrganizationService extends LoggerBase {
     const orderBy = data.orderBy
     const limit = data.limit
     const offset = data.offset
-    return OrganizationRepository.findAndCountAllOpensearch(
+    const pageData = await OrganizationRepository.findAndCountAllOpensearch(
       { filter: advancedFilter, orderBy, limit, offset, segments: data.segments },
       this.options,
     )
+
+    const orgIds = pageData.rows.map((org) => org.id)
+
+    const qx = SequelizeRepository.getQueryExecutor(this.options)
+    const lfxMemberships = await findManyLfxMemberships(qx, {
+      organizationIds: orgIds,
+      tenantId: this.options.currentTenant.id,
+      segmentIds: data.segments,
+    })
+
+    pageData.rows.forEach((org) => {
+      org.lfxMembership = lfxMemberships.find((lm) => lm.organizationId === org.id)
+    })
+
+    return pageData
   }
 
   async destroyBulk(ids) {

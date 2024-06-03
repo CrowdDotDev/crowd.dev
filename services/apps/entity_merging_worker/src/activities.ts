@@ -14,7 +14,6 @@ export {
   notifyFrontendOrganizationUnmergeSuccessful,
   syncOrganization,
   recalculateActivityAffiliationsOfOrganizationSynchronous,
-  linkOrganizationToCache,
 } from './activities/organizations'
 
 export { setMergeActionState } from './activities/common'

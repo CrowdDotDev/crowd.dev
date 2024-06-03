@@ -1,19 +1,16 @@
 import { MenuLink } from '@/modules/layout/types/MenuLink';
-import { EagleEyePermissions } from '@/premium/eagle-eye/eagle-eye-permissions';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 
 const eagleEye: MenuLink = {
   id: 'eagle-eye',
   label: 'Eagle Eye',
   icon: 'ri-search-eye-line',
   routeName: 'eagleEye',
-  display: ({ user, tenant }) => {
-    const eagleEyePermissions = new EagleEyePermissions(
-      tenant,
-      user,
-    );
-    return eagleEyePermissions.read || eagleEyePermissions.lockedForCurrentPlan;
+  display: () => {
+    const { hasPermission } = usePermissions();
+    return hasPermission(LfPermission.eagleEyeRead);
   },
-  disable: ({ user, tenant }) => new EagleEyePermissions(tenant, user).lockedForCurrentPlan,
 };
 
 export default eagleEye;

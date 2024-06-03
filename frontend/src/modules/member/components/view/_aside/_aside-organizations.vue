@@ -6,8 +6,8 @@
       </div>
 
       <el-button
+        v-if="hasPermission(LfPermission.memberEdit)"
         class="btn btn-link btn-link--linux"
-        :disabled="isEditLockedForSampleData"
         @click="isOrganizationDrawerOpen = true"
       >
         <i class="ri-pencil-line text-lg" />
@@ -29,6 +29,7 @@
               logo,
               name,
               displayName,
+              lfxMembership,
               memberOrganizations,
             } of (slicedEntities as Organization[])"
             :key="id"
@@ -66,10 +67,19 @@
               </div>
               <div class="flex flex-col gap-1">
                 <div class="flex gap-2 items-center">
-                  <div
-                    class="text-xs text-gray-900 group-hover:text-brand-500 transition font-medium"
-                  >
-                    {{ displayName || name }}
+                  <div class="flex items-center gap-1">
+                    <div
+                      class="text-xs text-gray-900 group-hover:text-primary-500 transition font-medium"
+                    >
+                      {{ displayName || name }}
+                    </div>
+                    <lf-organization-lf-member-tag
+                      :organization="{
+                        id,
+                        lfxMembership,
+                      }"
+                      :only-show-icon="true"
+                    />
                   </div>
                   <el-tooltip
                     v-if="memberOrganizations?.source"
@@ -111,8 +121,7 @@
 </template>
 
 <script setup lang="ts">
-import { MemberPermissions } from '@/modules/member/member-permissions';
-import { computed, ref } from 'vue';
+import { ref } from 'vue';
 import moment from 'moment';
 import AppMemberFormOrganizationsDrawer from '@/modules/member/components/form/member-form-organizations-drawer.vue';
 import { Member } from '@/modules/member/types/Member';
@@ -121,7 +130,9 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import AppSvg from '@/shared/svg/svg.vue';
 import AppEntities from '@/shared/modules/entities/Entities.vue';
 import { Organization, OrganizationSource } from '@/modules/organization/types/Organization';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import LfOrganizationLfMemberTag from '@/modules/organization/components/lf-member/organization-lf-member-tag.vue';
 
 const OrganizationSourceValue = {
   [OrganizationSource.EMAIL_DOMAIN]: 'Email domain',
@@ -135,16 +146,10 @@ defineProps<{
   member: Member
 }>();
 
+const { hasPermission } = usePermissions();
+
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
-
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
-
-const isEditLockedForSampleData = computed(() => new MemberPermissions(
-  tenant.value,
-  user.value,
-).editLockedForSampleData);
 
 const isOrganizationDrawerOpen = ref<boolean>(false);
 

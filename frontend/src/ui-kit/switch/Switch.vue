@@ -41,6 +41,6 @@ const checked = computed<string | boolean>({
 
 <script lang="ts">
 export default {
-  name: 'CrSwitch',
+  name: 'LfSwitch',
 };
 </script>

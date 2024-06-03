@@ -1,6 +1,7 @@
 <template>
   <div>
     <el-dropdown
+      v-if="hasPermission(LfPermission.noteEdit) || hasPermission(LfPermission.noteDestroy)"
       placement="bottom-end"
       trigger="click"
       @command="handleCommand"
@@ -15,16 +16,16 @@
       </button>
       <template #dropdown>
         <el-dropdown-item
+          v-if="hasPermission(LfPermission.noteEdit)"
           command="noteEdit"
-          :disabled="isEditLockedForSampleData"
         >
           <i class="ri-pencil-line text-gray-400 mr-1" />
           <span>Edit note</span>
         </el-dropdown-item>
         <el-dropdown-item
+          v-if="hasPermission(LfPermission.noteDestroy)"
           command="noteDelete"
           divided="divided"
-          :disabled="isDeleteLockedForSampleData"
         >
           <i class="ri-delete-bin-line text-red-500 mr-1" />
           <span class="text-red-500">Delete note</span>
@@ -37,16 +38,14 @@
 <script setup>
 import {
   ref,
-  defineEmits,
-  defineProps,
-  computed,
 } from 'vue';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { NoteService } from '@/modules/notes/note-service';
 import Message from '@/shared/message/message';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { storeToRefs } from 'pinia';
-import { NotePermissions } from '../note-permissions';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 
 const emit = defineEmits(['edit', 'reload']);
 
@@ -57,19 +56,10 @@ const props = defineProps({
   },
 });
 
+const { trackEvent } = useProductTracking();
+const { hasPermission } = usePermissions();
+
 const dropdownVisible = ref(false);
-
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
-
-const isEditLockedForSampleData = computed(() => new NotePermissions(
-  tenant.value,
-  user.value,
-).editLockedForSampleData);
-const isDeleteLockedForSampleData = computed(() => new NotePermissions(
-  tenant.value,
-  user.value,
-).destroyLockedForSampleData);
 
 const doDestroyWithConfirm = () => {
   ConfirmDialog({
@@ -81,7 +71,14 @@ const doDestroyWithConfirm = () => {
     confirmButtonText: 'Confirm',
     cancelButtonText: 'Cancel',
   })
-    .then(() => NoteService.destroyAll([props.note.id]))
+    .then(() => {
+      trackEvent({
+        key: FeatureEventKey.DELETE_NOTE,
+        type: EventType.FEATURE,
+      });
+
+      NoteService.destroyAll([props.note.id]);
+    })
     .then(() => {
       Message.success('Note successfully deleted!');
       emit('reload');

@@ -1,7 +1,13 @@
 import { Error400 } from '@crowd/common'
 import { LoggerBase, logExecutionTime } from '@crowd/logging'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
-import { PlatformType, SyncMode, TemporalWorkflowId, SegmentData } from '@crowd/types'
+import {
+  PlatformType,
+  TemporalWorkflowId,
+  SegmentData,
+  IMemberIdentity,
+  IntegrationResultType,
+} from '@crowd/types'
 import { Blob } from 'buffer'
 import vader from 'crowd-sentiment'
 import { Transaction } from 'sequelize/types'
@@ -11,7 +17,10 @@ import MemberAttributeSettingsRepository from '../database/repositories/memberAt
 import MemberRepository from '../database/repositories/memberRepository'
 import SegmentRepository from '../database/repositories/segmentRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
-import { mapUsernameToIdentities } from '../database/repositories/types/memberTypes'
+import {
+  UsernameIdentities,
+  mapUsernameToIdentities,
+} from '../database/repositories/types/memberTypes'
 import telemetryTrack from '../segment/telemetryTrack'
 import { IServiceOptions } from './IServiceOptions'
 import { detectSentiment, detectSentimentBatch } from './aws'
@@ -19,9 +28,9 @@ import ConversationService from './conversationService'
 import ConversationSettingsService from './conversationSettingsService'
 import merge from './helpers/merge'
 import MemberAffiliationService from './memberAffiliationService'
-import MemberService from './memberService'
 import SearchSyncService from './searchSyncService'
 import SegmentService from './segmentService'
+import { getDataSinkWorkerEmitter } from '@/serverless/utils/serviceSQS'
 
 const IS_GITHUB_COMMIT_DATA_ENABLED = GITHUB_CONFIG.isCommitDataEnabled === 'true'
 
@@ -498,174 +507,77 @@ export default class ActivityService extends LoggerBase {
     return exists || false
   }
 
-  async createWithMember(data, fireCrowdWebhooks: boolean = true) {
+  async createWithMember(data) {
     const logger = this.options.log
-    const searchSyncService = new SearchSyncService(this.options, SyncMode.ASYNCHRONOUS)
-
-    const errorDetails: any = {}
-
-    const transaction = await SequelizeRepository.createTransaction(this.options)
-    const memberService = new MemberService(this.options)
+    const dataSinkWorkerEmitter = await getDataSinkWorkerEmitter()
 
     try {
       data.member.username = mapUsernameToIdentities(data.member.username, data.platform)
 
-      const platforms = Object.keys(data.member.username)
-      if (platforms.length === 0) {
-        throw new Error('Member must have at least one platform username set!')
-      }
-
       if (!data.username) {
-        data.username = data.member.username[data.platform][0].username
+        data.username = data.member.username[data.platform][0].value
       }
 
       logger.trace(
         { type: data.type, platform: data.platform, username: data.username },
-        'Creating activity with member!',
+        'Processing activity with member!',
       )
 
-      let activityExists = await this._activityExists(data, transaction)
+      data.member.identities = ActivityService.processMemberIdentities(data.member, data.platform)
+      data.isContribution = data.isContribution || false
 
-      let existingMember = activityExists
-        ? await memberService.findById(activityExists.memberId, true, false)
-        : false
+      // prepare objectMember for dataSinkWorker
+      if (data.objectMember) {
+        data.objectMember.username = mapUsernameToIdentities(
+          data.objectMember.username,
+          data.platform,
+        )
 
-      if (existingMember) {
-        // let's look just in case for an existing member and if they are different we should log them because they will probably fail to insert
-        const tempExisting = await memberService.memberExists(data.member.username, data.platform)
-
-        if (!tempExisting) {
-          logger.warn(
-            {
-              existingMemberId: existingMember.id,
-              username: data.username,
-              platform: data.platform,
-              activityType: data.type,
-            },
-            'We have found an existing member but actually we could not find him by username and platform!',
-          )
-          errorDetails.reason = 'activity_service_createWithMember_existing_member_not_found'
-          errorDetails.details = {
-            existingMemberId: existingMember.id,
-            existingActivityId: activityExists.id,
-            username: data.username,
-            platform: data.platform,
-            activityType: data.type,
-          }
-        } else if (existingMember.id !== tempExisting.id) {
-          logger.warn(
-            {
-              existingMemberId: existingMember.id,
-              actualExistingMemberId: tempExisting.id,
-              existingActivityId: activityExists.id,
-              username: data.username,
-              platform: data.platform,
-              activityType: data.type,
-            },
-            'We found a member with the same username and platform but different id! Deleting the activity and continuing as if the activity did not exist.',
-          )
-
-          await ActivityRepository.destroy(activityExists.id, this.options, true)
-          await searchSyncService.triggerRemoveActivity(
-            this.options.currentTenant.id,
-            activityExists.id,
-          )
-          activityExists = false
-          existingMember = false
+        if (!data.objectMember.username[data.platform]) {
+          throw new Error(`objectMember username for ${data.platform} is missing!`)
         }
+
+        data.objectMemberUsername = data.objectMember.username[data.platform][0].value
+        data.objectMember.identities = ActivityService.processMemberIdentities(
+          data.objectMember,
+          data.platform,
+        )
       }
 
-      const member = await memberService.upsert(
+      if (data.member.organizations) {
+        data.member.organizations.forEach((org) => {
+          org.identities = [
+            {
+              name: org.name || org.website,
+              platform: data.platform,
+            },
+          ]
+        })
+      }
+
+      const resultId = await ActivityRepository.createResults(
         {
-          ...data.member,
-          platform: data.platform,
-          joinedAt: activityExists ? activityExists.timestamp : data.timestamp,
+          type: IntegrationResultType.ACTIVITY,
+          data,
         },
-        existingMember,
-        fireCrowdWebhooks,
-        false,
+        this.options,
       )
 
-      if (data.objectMember) {
-        if (typeof data.objectMember.username === 'string') {
-          data.objectMember.username = {
-            [data.platform]: {
-              username: data.objectMember.username,
-            },
-          }
-        }
+      logger.trace(
+        { type: data.type, platform: data.platform, username: data.username, processedData: data },
+        'Sending activity with member to data-sink-worker!',
+      )
 
-        const objectMemberPlatforms = Object.keys(data.objectMember.username)
-
-        if (objectMemberPlatforms.length === 0) {
-          throw new Error('Object member must have at least one platform username set!')
-        }
-
-        for (const platform of objectMemberPlatforms) {
-          if (typeof data.objectMember.username[platform] === 'string') {
-            data.objectMember.username[platform] = {
-              username: data.objectMember.username[platform],
-            }
-          }
-        }
-
-        const objectMember = await memberService.upsert(
-          {
-            ...data.objectMember,
-            platform: data.platform,
-            joinedAt: data.timestamp,
-          },
-          false,
-          fireCrowdWebhooks,
-        )
-
-        if (!data.objectMemberUsername) {
-          data.objectMemberUsername = data.objectMember.username[data.platform].username
-        }
-
-        data.objectMember = objectMember.id
-      }
-
-      data.member = member.id
-
-      const memberAffilationService = new MemberAffiliationService(this.options)
-      data.organizationId = await memberAffilationService.findAffiliation(member.id, data.timestamp)
-
-      const record = await this.upsert(data, activityExists, fireCrowdWebhooks, false)
-
-      await SequelizeRepository.commitTransaction(transaction)
-
-      await searchSyncService.triggerMemberSync(this.options.currentTenant.id, record.memberId)
-      await searchSyncService.triggerActivitySync(this.options.currentTenant.id, record.id)
-
-      if (data.objectMember) {
-        await searchSyncService.triggerMemberSync(this.options.currentTenant.id, data.objectMember)
-      }
-
-      return record
+      await dataSinkWorkerEmitter.triggerResultProcessing(
+        this.options.currentTenant.id,
+        data.platform,
+        resultId,
+        resultId,
+        true,
+      )
     } catch (error) {
-      const reason = errorDetails.reason || undefined
-      const details = errorDetails.details || undefined
-
-      if (error.name && error.name.includes('Sequelize') && error.original) {
-        this.log.error(
-          error,
-          {
-            query: error.sql,
-            errorMessage: error.original.message,
-            reason,
-            details,
-          },
-          'Error during activity create with member!',
-        )
-      } else {
-        this.log.error(error, { reason, details }, 'Error during activity create with member!')
-      }
-      await SequelizeRepository.rollbackTransaction(transaction)
-
-      SequelizeRepository.handleUniqueFieldError(error, this.options.language, 'activity')
-
-      throw { ...error, reason, details }
+      this.log.error(error, 'Error during activity create with member!')
+      throw error
     }
   }
 
@@ -845,5 +757,39 @@ export default class ActivityService extends LoggerBase {
       default:
         return false
     }
+  }
+
+  static processMemberIdentities(
+    member: {
+      username: UsernameIdentities
+      emails: string[]
+    },
+    platform: string,
+  ): IMemberIdentity[] {
+    const identities = []
+
+    if (member.username) {
+      Object.keys(member.username).forEach((platform) => {
+        identities.push({
+          platform,
+          value: member.username[platform][0].value,
+          type: member.username[platform][0].type,
+          verified: true,
+        })
+      })
+    }
+
+    if (member.emails) {
+      member.emails.forEach((email) => {
+        identities.push({
+          platform,
+          value: email,
+          type: 'email',
+          verified: true,
+        })
+      })
+    }
+
+    return identities
   }
 }

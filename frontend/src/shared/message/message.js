@@ -18,7 +18,7 @@ const errorIcon = h(
 
 const infoIcon = h(
   'i', // type
-  { class: 'ri-loader-4-line text-blue-600 animate-spin' }, // props
+  { class: 'ri-loader-4-line text-primary-600 animate-spin' }, // props
   [],
 );
 
@@ -56,7 +56,7 @@ export default class Message {
         message: options.title ? message : null,
         customClass: 'error',
         icon: errorIcon,
-        duration: 0,
+        duration: 6000,
         dangerouslyUseHTMLString: true,
         position: 'bottom-right',
         offset: 24,

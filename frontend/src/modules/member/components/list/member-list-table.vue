@@ -49,7 +49,7 @@
           >
             <template #defaultFilters>
               <div>・</div>
-              <cr-default-filters
+              <lf-default-filters
                 :config="memberSavedViews"
                 :settings="filters.settings"
               />
@@ -631,13 +631,17 @@
                     }"
                     class="block"
                   >
-                    <app-tag-list :member="scope.row" @edit="handleEditTagsDialog(scope.row)" />
+                    <app-tag-list
+                      :member="scope.row"
+                      :editable="hasPermission(LfPermission.tagEdit)"
+                      @edit="handleEditTagsDialog(scope.row)"
+                    />
                   </router-link>
                 </template>
               </el-table-column>
 
               <!-- Action button -->
-              <el-table-column fixed="right">
+              <el-table-column v-if="hasPermissions" fixed="right">
                 <template #default="scope">
                   <router-link
                     :to="{
@@ -724,7 +728,7 @@
       virtual-triggering
       @hide="onHide"
     >
-      <cr-enrichment-sneak-peak-content id="popover-content" type="contact" @mouseleave="closeEnrichmentPopover" />
+      <lf-enrichment-sneak-peak-content id="popover-content" type="contact" @mouseleave="closeEnrichmentPopover" />
     </el-popover>
 
     <app-member-find-github-drawer
@@ -758,13 +762,17 @@ import AppPagination from '@/shared/pagination/pagination.vue';
 import AppMemberFindGithubDrawer from '@/modules/member/components/member-find-github-drawer.vue';
 import AppSharedTagList from '@/shared/tag/tag-list.vue';
 import AppSvg from '@/shared/svg/svg.vue';
-import CrEnrichmentSneakPeakContent from '@/shared/modules/enrichment/components/enrichment-sneak-peak-content.vue';
+import LfEnrichmentSneakPeakContent from '@/shared/modules/enrichment/components/enrichment-sneak-peak-content.vue';
 import Plans from '@/security/plans';
 import AppIdentitiesHorizontalListMembers from '@/shared/modules/identities/components/identities-horizontal-list-members.vue';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
-import CrDefaultFilters from '@/shared/modules/default-filters/components/default-filters.vue';
+import LfDefaultFilters from '@/shared/modules/default-filters/components/default-filters.vue';
 import AppMemberListEmails from '@/modules/member/components/list/columns/member-list-emails.vue';
 import { getSegmentsFromProjectGroup } from '@/utils/segments';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import AppMemberBadge from '../member-badge.vue';
 import AppMemberDropdownContent from '../member-dropdown-content.vue';
 import AppMemberReach from '../member-reach.vue';
@@ -773,6 +781,7 @@ import AppMemberLastActivity from '../member-last-activity.vue';
 import AppMemberSentiment from '../member-sentiment.vue';
 import { memberSavedViews } from '../../config/saved-views/main';
 
+const { trackEvent } = useProductTracking();
 const store = useStore();
 const table = ref(null);
 const scrollbarRef = ref();
@@ -834,6 +843,13 @@ const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 const authStore = useAuthStore();
 const { tenant } = storeToRefs(authStore);
+
+const { hasPermission } = usePermissions();
+
+const hasPermissions = computed(() => [LfPermission.memberEdit,
+  LfPermission.memberDestroy,
+  LfPermission.mergeMembers]
+  .some((permission) => hasPermission(permission)));
 
 const isEnrichEnabled = computed(() => tenant.value?.plan !== Plans.values.essential);
 
@@ -951,6 +967,15 @@ function handleEditTagsDialog(member) {
 }
 
 function doChangeSort(sorter) {
+  trackEvent({
+    key: FeatureEventKey.SORT_CONTRIBUTORS,
+    type: EventType.FEATURE,
+    properties: {
+      sortBy: sorter.prop,
+      sortOrder: sorter.order,
+    },
+  });
+
   filters.value.order = {
     prop: sorter.prop,
     order: sorter.order,

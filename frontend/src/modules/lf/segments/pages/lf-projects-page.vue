@@ -1,7 +1,7 @@
 <template>
   <app-page-wrapper>
     <router-link
-      v-if="hasPermissionToEditProjectGroups"
+      v-if="hasPermission(LfPermission.projectGroupEdit)"
       class="text-gray-600 btn-link--md btn-link--secondary p-0 inline-flex items-center pb-6"
       :to="{
         name: 'adminPanel',
@@ -13,7 +13,7 @@
       <i class="ri-arrow-left-s-line mr-2" />
       <span>Project groups</span>
     </router-link>
-    <div class="text-sm text-brand-500 pb-2">
+    <div class="text-sm text-primary-500 pb-2">
       {{ projectGroupForm.name }}
     </div>
 
@@ -22,7 +22,7 @@
         Manage projects
       </h4>
       <el-button
-        v-if="pagination.total && hasPermissionToCreate && hasAccessToSegmentId(route.params.id)"
+        v-if="pagination.total && hasPermission(LfPermission.projectCreate) && hasAccessToSegmentId(route.params.id)"
         class="btn btn--md btn--primary"
         @click="onAddProject"
       >
@@ -34,7 +34,7 @@
     <app-lf-search-input
       v-if="pagination.total"
       placeholder="Search projects..."
-      @on-change="searchProject"
+      @on-change="onSearchProjects"
     />
 
     <div
@@ -49,9 +49,9 @@
         class="mt-20"
         icon="ri-stack-line"
         title="No projects yet"
-        :description="`${!(hasPermissionToCreate && hasAccessToSegmentId(route.params.id))
+        :description="`${!(hasPermission(LfPermission.projectCreate) && hasAccessToSegmentId(route.params.id))
           ? 'Ask an administrator to a' : 'A'}dd your first project and start collecting data from your community`"
-        :cta-btn="hasPermissionToCreate && hasAccessToSegmentId(route.params.id) ? 'Add project' : null"
+        :cta-btn="hasPermission(LfPermission.projectCreate) && hasAccessToSegmentId(route.params.id) ? 'Add project' : null"
         @cta-click="onAddProject"
       />
 
@@ -117,6 +117,7 @@
       :parent-slug="projectForm.slug"
       :parent-id="projectForm.id"
       :grandparent-slug="projectGroupForm.slug"
+      :grandparent-id="projectGroupForm.id"
     />
   </app-page-wrapper>
 </template>
@@ -132,10 +133,11 @@ import AppLfSubProjectForm from '@/modules/lf/segments/components/form/lf-sub-pr
 import AppLfProjectsTable from '@/modules/lf/segments/components/view/lf-projects-table.vue';
 import AppLfSearchInput from '@/modules/lf/segments/components/view/lf-search-input.vue';
 import { storeToRefs } from 'pinia';
-import { LfPermissions } from '@/modules/lf/lf-permissions';
-import { hasAccessToSegmentId } from '@/utils/segments';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
 import AppIntegrationProgressWrapper from '@/modules/integration/components/integration-progress-wrapper.vue';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 
 const route = useRoute();
 const lsSegmentsStore = useLfSegmentsStore();
@@ -143,6 +145,9 @@ const { projects } = storeToRefs(lsSegmentsStore);
 const {
   findProjectGroup, searchProject, listProjects, updateProjectsPageSize, doChangeProjectCurrentPage,
 } = lsSegmentsStore;
+
+const { hasPermission, hasAccessToSegmentId } = usePermissions();
+const { trackEvent } = useProductTracking();
 
 const loadingProjectGroup = ref(true);
 const projectGroupForm = reactive({
@@ -159,23 +164,10 @@ const subProjectForm = reactive({
 const isProjectFormDrawerOpen = ref(false);
 const isSubProjectFormDrawerOpen = ref(false);
 
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
-
 const loading = computed(() => projects.value.loading || loadingProjectGroup.value);
 const pagination = computed(() => projects.value.pagination);
 
-const hasPermissionToCreate = computed(() => new LfPermissions(
-  tenant.value,
-  user.value,
-)?.createProject);
-
 const segmentIds = computed(() => projects.value.list.map((p) => p.subprojects.map((sp) => sp.id)).flat() || []);
-
-const hasPermissionToEditProjectGroups = computed(() => new LfPermissions(
-  tenant.value,
-  user.value,
-)?.editProjectGroup);
 
 onMounted(() => {
   findProjectGroup(route.params.id)
@@ -204,14 +196,24 @@ const onEditSubProject = (id, parentSlug) => {
   isSubProjectFormDrawerOpen.value = true;
 };
 
-const onAddSubProject = (parentSlug) => {
+const onAddSubProject = ({ slug, id }) => {
   subProjectForm.id = null;
-  projectForm.slug = parentSlug;
+  projectForm.id = id;
+  projectForm.slug = slug;
   isSubProjectFormDrawerOpen.value = true;
 };
 
 const onPageSizeChange = (pageSize) => {
   updateProjectsPageSize(pageSize);
+};
+
+const onSearchProjects = (query) => {
+  trackEvent({
+    key: FeatureEventKey.SEARCH_PROJECTS,
+    type: EventType.FEATURE,
+  });
+
+  searchProject(query);
 };
 </script>
 

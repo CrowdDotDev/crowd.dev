@@ -203,8 +203,13 @@ import { mapActions } from '@/shared/vuex/vuex.helpers';
 import AppFormItem from '@/shared/form/form-item.vue';
 // import elementChangeDetector from '@/shared/form/element-change';
 import { IntegrationService } from '@/modules/integration/integration-service';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import { Platform } from '@/shared/modules/platform/types/Platform';
 
 const { doDevtoConnect } = mapActions('integration');
+
+const { trackEvent } = useProductTracking();
 
 const props = defineProps({
   integration: {
@@ -414,10 +419,19 @@ const save = async () => {
 
   const relevantOrganizations = organizations.value.filter((o) => !!o.username);
   const relevantUsers = users.value.filter((u) => !!u.username);
+
   await doDevtoConnect({
     users: relevantUsers.map((u) => u.username),
     organizations: relevantOrganizations.map((o) => o.username),
     apiKey: form.apiKey,
+  });
+
+  const isUpdate = !!props.integration.settings;
+
+  trackEvent({
+    key: isUpdate ? FeatureEventKey.EDIT_INTEGRATION_SETTINGS : FeatureEventKey.CONNECT_INTEGRATION,
+    type: EventType.FEATURE,
+    properties: { platform: Platform.DEVTO },
   });
 
   isVisible.value = false;

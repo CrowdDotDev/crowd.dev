@@ -40,8 +40,8 @@ export default ({
     iconColorClass = 'text-green-500';
     iconBgColorClass = 'bg-green-100';
   } else if (type === 'notification') {
-    iconColorClass = 'text-blue-600';
-    iconBgColorClass = 'bg-blue-50';
+    iconColorClass = 'text-primary-600';
+    iconBgColorClass = 'bg-primary-50';
   }
 
   let content = h(
@@ -146,7 +146,7 @@ export default ({
                 h(
                   'i', // type
                   {
-                    class: 'text-lg ri-close-line leading-none text-gray-400 group-hover:text-brand-500',
+                    class: 'text-lg ri-close-line leading-none text-gray-400 group-hover:text-primary-500',
                   }, // props
                   [],
                 ),

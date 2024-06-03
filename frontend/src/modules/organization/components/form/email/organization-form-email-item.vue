@@ -8,30 +8,30 @@
       >
         <template #suffix>
           <div v-if="model.email !== props.email || !props.email" class="flex gap-1 -mr-1">
-            <cr-button
+            <lf-button
               size="tiny"
               :icon-only="true"
-              :disabled="model.email === props.email || $v.$invalid"
+              :disabled="model.email === props.email"
               @click="update()"
             >
               <i class="ri-check-fill" />
-            </cr-button>
-            <cr-button
+            </lf-button>
+            <lf-button
               size="tiny"
               type="secondary"
               :icon-only="true"
               @click="clear()"
             >
               <i class="ri-close-line" />
-            </cr-button>
+            </lf-button>
           </div>
         </template>
       </el-input>
     </div>
-    <cr-dropdown placement="bottom-end" width="15rem" class="ml-3">
+    <lf-dropdown placement="bottom-end" width="15rem" class="ml-3">
       <template #trigger>
-        <cr-button
-          type="tertiary-light-gray"
+        <lf-button
+          type="secondary-ghost-light"
           size="small"
           :icon-only="true"
           class="relative"
@@ -40,14 +40,14 @@
           <i
             class="ri-more-fill"
           />
-        </cr-button>
+        </lf-button>
       </template>
 
-      <cr-dropdown-item type="danger" @click="emit('remove')">
+      <lf-dropdown-item type="danger" @click="emit('remove')">
         <i class="ri-delete-bin-6-line" />
         Delete email
-      </cr-dropdown-item>
-    </cr-dropdown>
+      </lf-dropdown-item>
+    </lf-dropdown>
   </article>
 </template>
 
@@ -55,11 +55,9 @@
 import {
   ref,
 } from 'vue';
-import CrButton from '@/ui-kit/button/Button.vue';
-import CrDropdown from '@/ui-kit/dropdown/Dropdown.vue';
-import CrDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
-import useVuelidate from '@vuelidate/core';
-import { email } from '@vuelidate/validators';
+import LfButton from '@/ui-kit/button/Button.vue';
+import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
+import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import { Organization } from '@/modules/organization/types/Organization';
 
 const emit = defineEmits<{(e: 'update', value: string): void,
@@ -77,14 +75,6 @@ const props = withDefaults(defineProps<{
 const model = ref({
   email: props.email,
 });
-
-const rules = {
-  email: {
-    email,
-  },
-};
-
-const $v = useVuelidate(rules, model);
 
 const update = () => {
   emit('update', model.value.email);

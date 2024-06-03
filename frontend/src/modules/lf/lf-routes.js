@@ -1,5 +1,7 @@
 import Layout from '@/modules/layout/components/layout.vue';
-import Permissions from '@/security/permissions';
+import { PageEventKey } from '@/shared/modules/monitoring/types/event';
+import { PermissionGuard } from '@/shared/modules/permissions/router/PermissionGuard';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 
 const ProjectGroupsListPage = () => import(
   '@/modules/lf/segments/pages/lf-project-groups-list-page.vue'
@@ -30,6 +32,7 @@ export default [
         meta: {
           auth: true,
           title: 'Project Groups',
+          eventKey: PageEventKey.PROJECT_GROUPS,
         },
       },
       {
@@ -38,8 +41,11 @@ export default [
         component: AdminPanelPage,
         meta: {
           title: 'Admin Panel',
-          permission: Permissions.values.projectGroupEdit,
+          eventKey: PageEventKey.ADMIN_PANEL,
         },
+        beforeEnter: [
+          PermissionGuard(LfPermission.projectGroupEdit),
+        ],
       },
       {
         name: 'adminProjects',
@@ -48,12 +54,15 @@ export default [
         meta: {
           auth: true,
           title: 'Admin Panel',
-          permission: Permissions.values.projectEdit,
+          eventKey: PageEventKey.MANAGE_PROJECTS,
           paramSegmentAccess: {
             name: 'grandparent',
             parameter: 'id',
           },
         },
+        beforeEnter: [
+          PermissionGuard(LfPermission.projectEdit),
+        ],
       },
     ],
   },

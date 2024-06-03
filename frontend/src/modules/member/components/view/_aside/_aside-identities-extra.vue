@@ -7,8 +7,8 @@
         Email(s)
       </div>
       <el-button
+        v-if="hasPermission(LfPermission.memberEdit)"
         class="btn btn-link btn-link--linux"
-        :disabled="isEditLockedForSampleData"
         @click="emit('edit')"
       >
         <i class="ri-pencil-line text-lg" />
@@ -27,14 +27,14 @@
             ref="emailRef"
             target="_blank"
             rel="noopener noreferrer"
-            class="text-xs text-gray-900 hover:text-brand-500 border border-gray-200 rounded-md py-0.5 px-2 truncate flex items-center"
+            class="text-xs text-gray-900 hover:text-primary-500 border border-gray-200 rounded-md py-0.5 px-2 truncate flex items-center"
             :href="email.link"
           >
             {{ email.handle }}
 
             <div v-if="email.verified" class="pl-1">
               <el-tooltip placement="top" content="Verified email">
-                <i class="ri-verified-badge-fill text-brand-500 text-base leading-4" />
+                <i class="ri-verified-badge-fill text-primary-500 text-base leading-4" />
               </el-tooltip>
             </div>
 
@@ -51,7 +51,7 @@
       </div>
       <div
         v-if="distinctEmails.length > 5"
-        class="underline cursor-pointer text-gray-500 hover:text-brand-500 text-xs underline-offset-4 mt-5"
+        class="underline cursor-pointer text-gray-500 hover:text-primary-500 text-xs underline-offset-4 mt-5"
         @click="displayMore = !displayMore"
       >
         Show {{ displayMore ? 'less' : 'more' }}
@@ -71,10 +71,9 @@
 import {
   computed, ref,
 } from 'vue';
-import { MemberPermissions } from '@/modules/member/member-permissions';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { storeToRefs } from 'pinia';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 
 const emit = defineEmits(['edit']);
 const props = defineProps<{
@@ -84,8 +83,7 @@ const props = defineProps<{
   }[],
 }>();
 
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
+const { hasPermission } = usePermissions();
 
 const displayMore = ref(false);
 const emailRef = ref<Element[]>([]);
@@ -134,9 +132,4 @@ const getPlatformLabel = (platforms: string[]) => platforms
     }
     return CrowdIntegrations.getConfig(platform)?.name || platform;
   }).join(', ');
-
-const isEditLockedForSampleData = computed(() => new MemberPermissions(
-  tenant.value,
-  user.value,
-).editLockedForSampleData);
 </script>

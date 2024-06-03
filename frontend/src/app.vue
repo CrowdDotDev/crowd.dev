@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <div class="sm:hidden md:block lg:block xl:block">
-      <lfx-header-v2 v-if="showLfxMenu" id="lfx-header" product="Community Management" />
+      <lfx-header-v2 id="lfx-header" product="Community Management" />
       <router-view v-slot="{ Component }">
         <transition>
           <component :is="Component" v-if="Component" />
@@ -25,6 +25,7 @@ import { mapActions as piniaMapActions, storeToRefs } from 'pinia';
 import { useActivityStore } from '@/modules/activity/store/pinia';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
+import useSessionTracking from '@/shared/modules/monitoring/useSessionTracking';
 
 export default {
   name: 'App',
@@ -35,18 +36,18 @@ export default {
 
   setup() {
     const authStore = useAuthStore();
+    const { detachListeners } = useSessionTracking();
     const { init } = authStore;
-    const { tenant } = storeToRefs(authStore);
-    return { init, tenant };
+    const { tenant, loaded } = storeToRefs(authStore);
+    return {
+      init, tenant, loaded, detachListeners,
+    };
   },
 
   computed: {
     ...mapState({
       featureFlag: (state) => state.tenant.featureFlag,
     }),
-    showLfxMenu() {
-      return this.$route.name !== 'reportPublicView';
-    },
   },
 
   watch: {
@@ -69,6 +70,7 @@ export default {
   },
 
   unmounted() {
+    this.detachListeners();
     window.removeEventListener('resize', this.handleResize);
   },
 

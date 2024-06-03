@@ -47,28 +47,6 @@ export interface IDbInsertOrganizationData {
   weakIdentities: IOrganizationIdentity[]
 }
 
-export interface IDbInsertOrganizationCacheData {
-  name: string
-  url: string | null
-  description: string | null
-  emails: string[] | null
-  logo: string | null
-  tags: string[] | null
-  github: IOrganizationSocial | null
-  twitter: IOrganizationSocial | null
-  linkedin: IOrganizationSocial | null
-  crunchbase: IOrganizationSocial | null
-  employees: number | null
-  location: string | null
-  website: string | null
-  type: string | null
-  size: string | null
-  headline: string | null
-  industry: string | null
-  founded: number | null
-  attributes?: IAttributes | null
-}
-
 let insertOrganizationColumnSet: DbColumnSet
 export function getInsertOrganizationColumnSet(instance: DbInstance): DbColumnSet {
   if (insertOrganizationColumnSet) return insertOrganizationColumnSet
@@ -105,27 +83,6 @@ export function getInsertOrganizationColumnSet(instance: DbInstance): DbColumnSe
   )
 
   return insertOrganizationColumnSet
-}
-
-export interface IDbUpdateOrganizationCacheData {
-  name: string
-  url: string | null
-  description: string | null
-  emails: string[] | null
-  logo: string | null
-  tags: string[] | null
-  github: IOrganizationSocial | null
-  twitter: IOrganizationSocial | null
-  linkedin: IOrganizationSocial | null
-  crunchbase: IOrganizationSocial | null
-  employees: number | null
-  location: string | null
-  website: string | null
-  type: string | null
-  size: string | null
-  headline: string | null
-  industry: string | null
-  founded: number | null
 }
 
 export interface IDbUpdateOrganizationData {
@@ -185,100 +142,4 @@ export function getUpdateOrganizationColumnSet(instance: DbInstance): DbColumnSe
   )
 
   return updateOrganizationColumnSet
-}
-
-export interface IDbCacheOrganization {
-  id: string
-  names: string[]
-  url: string | null
-  description: string | null
-  emails: string[] | null
-  logo: string | null
-  tags: string[] | null
-  github: IOrganizationSocial | null
-  twitter: IOrganizationSocial | null
-  linkedin: IOrganizationSocial | null
-  crunchbase: IOrganizationSocial | null
-  employees: number | null
-  location: string | null
-  website: string | null
-  type: string | null
-  size: string | null
-  headline: string | null
-  industry: string | null
-  founded: number | null
-  attributes: IAttributes | null
-  enriched: boolean
-}
-
-let insertCacheOrganizationColumnSet: DbColumnSet
-export function getInsertCacheOrganizationColumnSet(instance: DbInstance): DbColumnSet {
-  if (insertCacheOrganizationColumnSet) return insertCacheOrganizationColumnSet
-
-  insertCacheOrganizationColumnSet = new instance.helpers.ColumnSet(
-    [
-      'id',
-      'url',
-      'description',
-      'emails',
-      'logo',
-      'tags',
-      'github',
-      'twitter',
-      'linkedin',
-      'crunchbase',
-      'employees',
-      'location',
-      'type',
-      'size',
-      'headline',
-      'industry',
-      'founded',
-      'createdAt',
-      'updatedAt',
-    ],
-    {
-      table: {
-        table: 'organizationCaches',
-      },
-    },
-  )
-
-  return insertCacheOrganizationColumnSet
-}
-
-export type IDbUpdateCacheOrganizationData = IDbUpdateOrganizationData
-
-let updateCacheOrganizationColumnSet: DbColumnSet
-export function getUpdateCacheOrganizationColumnSet(instance: DbInstance): DbColumnSet {
-  if (updateCacheOrganizationColumnSet) return updateCacheOrganizationColumnSet
-
-  updateCacheOrganizationColumnSet = new instance.helpers.ColumnSet(
-    [
-      'url',
-      'description',
-      'emails',
-      'logo',
-      'tags',
-      'github',
-      'twitter',
-      'linkedin',
-      'crunchbase',
-      'employees',
-      'location',
-      'type',
-      'size',
-      'headline',
-      'industry',
-      'founded',
-      'updatedAt',
-    ],
-    {
-      table: {
-        table: 'organizationCaches',
-      },
-    },
-  )
-
-  return updateCacheOrganizationColumnSet
 }

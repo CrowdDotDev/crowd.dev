@@ -3,7 +3,8 @@
     <template #content>
       <div class="-mx-6 -mt-4">
         <!-- Share with workspace -->
-        <section class="border-y border-gray-200 bg-gray-50 py-4 px-6">
+        <div class="border-t border-gray-200" />
+        <section v-if="hasPermission(LfPermission.customViewsTenantManage)" class="border-b border-gray-200 bg-gray-50 py-4 px-6">
           <div class="flex justify-between items-center">
             <div>
               <h6 class="text-sm font-medium leading-5">
@@ -14,7 +15,7 @@
               </p>
             </div>
             <div>
-              <el-switch v-model="form.shared" :disabled="isEdit" />
+              <el-switch v-model="form.shared" :disabled="isEdit || !hasPermission(LfPermission.customViewsTenantManage)" />
             </div>
           </div>
         </section>
@@ -60,24 +61,24 @@
               <template #dropdown>
                 <el-dropdown-item
                   class="flex items-center justify-between"
-                  :class="{ 'bg-brand-50': form.relation === 'and' }"
+                  :class="{ 'bg-primary-50': form.relation === 'and' }"
                   @click="form.relation = 'and'"
                 >
                   Matching all
                   <i
                     :class="form.relation === 'and' ? 'opacity-100' : 'opacity-0'"
-                    class="ri-check-line !text-brand-500 !mr-0 ml-1"
+                    class="ri-check-line !text-primary-500 !mr-0 ml-1"
                   />
                 </el-dropdown-item>
                 <el-dropdown-item
                   class="flex items-center justify-between"
-                  :class="{ 'bg-brand-50': form.relation === 'or' }"
+                  :class="{ 'bg-primary-50': form.relation === 'or' }"
                   @click="form.relation = 'or'"
                 >
                   Matching any
                   <i
                     :class="form.relation === 'or' ? 'opacity-100' : 'opacity-0'"
-                    class="ri-check-line !text-brand-500 !mr-0 ml-1"
+                    class="ri-check-line !text-primary-500 !mr-0 ml-1"
                   />
                 </el-dropdown-item>
               </template>
@@ -85,7 +86,7 @@
           </div>
           <div>
             <div v-for="filter of filterList" :key="filter" class="flex items-center mb-3">
-              <cr-filter-item
+              <lf-filter-item
                 v-model="form.filters[filter]"
                 v-model:open="openedFilter"
                 :config="allFilters[filter]"
@@ -105,7 +106,7 @@
             class="flex pb-10 border-b border-gray-200 pt-1"
           >
             <el-dropdown placement="bottom-start" trigger="click" popper-class="!p-0">
-              <p class="text-xs font-medium leading-5 text-brand-500">
+              <p class="text-xs font-medium leading-5 text-primary-500">
                 + Add filter
               </p>
               <template #dropdown>
@@ -214,11 +215,15 @@ import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 import { SavedView, SavedViewCreate, SavedViewsConfig } from '@/shared/modules/saved-views/types/SavedViewsConfig';
 import { FilterConfig } from '@/shared/modules/filters/types/FilterConfig';
-import CrFilterItem from '@/shared/modules/filters/components/FilterItem.vue';
+import LfFilterItem from '@/shared/modules/filters/components/FilterItem.vue';
 import { SavedViewsService } from '@/shared/modules/saved-views/services/saved-views.service';
 import Message from '@/shared/message/message';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import formChangeDetector from '@/shared/form/form-change';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 
 const props = defineProps<{
   modelValue: boolean,
@@ -232,6 +237,8 @@ const props = defineProps<{
 const emit = defineEmits<{(e: 'update:modelValue', value: boolean): any,
   (e: 'reload'): any
 }>();
+
+const { hasPermission } = usePermissions();
 
 const isEdit = computed(() => props.view && (props.view as SavedView).id);
 const isDuplicate = computed(() => props.view && !(props.view as SavedView).id);
@@ -293,6 +300,8 @@ const rules = {
   },
 };
 
+const { trackEvent } = useProductTracking();
+
 const $v = useVuelidate(rules, form);
 const { hasFormChanged, formSnapshot } = formChangeDetector(form);
 
@@ -342,7 +351,7 @@ const removeFilter = (key: any) => {
 
 const fillForm = () => {
   if (props.view) {
-    form.shared = props.view.visibility === 'tenant';
+    form.shared = hasPermission(LfPermission.customViewsTenantManage) ? props.view.visibility === 'tenant' : false;
     form.name = props.view.name;
     const {
       relation, order, settings, search, ...restFilters
@@ -403,6 +412,11 @@ const submit = (): void => {
     visibility: form.shared ? 'tenant' : 'user',
   };
   if (isEdit.value) {
+    trackEvent({
+      key: FeatureEventKey.EDIT_CUSTOM_VIEW,
+      type: EventType.FEATURE,
+    });
+
     (form.shared ? ConfirmDialog({
       type: 'danger',
       title: 'Update shared view',
@@ -438,6 +452,18 @@ const submit = (): void => {
           });
       });
   } else {
+    if (isDuplicate.value) {
+      trackEvent({
+        key: FeatureEventKey.DUPLICATE_CUSTOM_VIEW,
+        type: EventType.FEATURE,
+      });
+    } else {
+      trackEvent({
+        key: FeatureEventKey.ADD_CUSTOM_VIEW,
+        type: EventType.FEATURE,
+      });
+    }
+
     SavedViewsService.create(data)
       .then(() => {
         if (isDuplicate.value) {
@@ -476,7 +502,7 @@ const submit = (): void => {
 
 <script lang="ts">
 export default {
-  name: 'CrSavedViewsForm',
+  name: 'LfSavedViewsForm',
 };
 </script>
 

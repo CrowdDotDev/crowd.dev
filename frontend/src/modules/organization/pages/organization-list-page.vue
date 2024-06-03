@@ -2,7 +2,7 @@
   <app-page-wrapper size="full-width">
     <div class="member-list-page">
       <div class="mb-10">
-        <app-lf-page-header text-class="text-sm text-brand-600 mb-2.5" />
+        <app-lf-page-header text-class="text-sm text-primary-600 mb-2.5" />
         <div class="flex items-center justify-between">
           <div class="flex items-center">
             <h4>Organizations</h4>
@@ -12,13 +12,12 @@
               v-if="organizationsToMergeCount > 0"
               content="Coming soon"
               placement="top"
-              :disabled="hasPermissionsToMerge"
+              :disabled="hasPermission(LfPermission.mergeOrganizations)"
             >
               <span>
                 <component
-                  :is="hasPermissionsToMerge ? 'router-link' : 'span'"
+                  :is="hasPermission(LfPermission.mergeOrganizations) ? 'router-link' : 'span'"
                   class=" mr-4 "
-                  :class="{ 'pointer-events-none': isEditLockedForSampleData }"
                   :to="{
                     name: 'organizationMergeSuggestions',
                     query: {
@@ -27,7 +26,7 @@
                   }"
                 >
                   <button
-                    :disabled="isEditLockedForSampleData || !hasPermissionsToMerge"
+                    :disabled="!hasPermission(LfPermission.mergeOrganizations)"
                     type="button"
                     class="btn btn--secondary btn--md flex items-center"
                   >
@@ -35,20 +34,15 @@
                     <span class="text-gray-900">Merge suggestions</span>
                     <span
                       v-if="organizationsToMergeCount > 0"
-                      class="ml-2 bg-brand-100 text-brand-500 py-px px-1.5 leading-5 rounded-full font-semibold"
+                      class="ml-2 bg-primary-100 text-primary-500 py-px px-1.5 leading-5 rounded-full font-semibold"
                     >{{ Math.ceil(organizationsToMergeCount) }}</span>
                   </button>
                 </component>
               </span>
             </el-tooltip>
             <el-button
-              v-if="hasPermissionToCreate"
+              v-if="hasPermission(LfPermission.organizationCreate)"
               class="btn btn--primary btn--md"
-              :class="{
-                'pointer-events-none cursor-not-allowed':
-                  isCreateLockedForSampleData,
-              }"
-              :disabled="isCreateLockedForSampleData"
               @click="onAddOrganization"
             >
               Add organization
@@ -60,14 +54,14 @@
         </div>
       </div>
 
-      <cr-saved-views
+      <lf-saved-views
         v-model="filters"
         :config="organizationSavedViews"
         :filters="organizationFilters"
         placement="organization"
         @update:model-value="organizationFilter.alignFilterList($event)"
       />
-      <cr-filter
+      <lf-filter
         ref="organizationFilter"
         v-model="filters"
         :config="organizationFilters"
@@ -95,14 +89,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted } from 'vue';
+import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import AppPageWrapper from '@/shared/layout/page-wrapper.vue';
 import AppOrganizationListTable from '@/modules/organization/components/list/organization-list-table.vue';
 import AppLfPageHeader from '@/modules/lf/layout/components/lf-page-header.vue';
 import AppLfSubProjectsListModal from '@/modules/lf/segments/components/lf-sub-projects-list-modal.vue';
-import CrSavedViews from '@/shared/modules/saved-views/components/SavedViews.vue';
-import CrFilter from '@/shared/modules/filters/components/Filter.vue';
+import LfSavedViews from '@/shared/modules/saved-views/components/SavedViews.vue';
+import LfFilter from '@/shared/modules/filters/components/Filter.vue';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import { storeToRefs } from 'pinia';
 import { organizationFilters, organizationSearchFilter } from '@/modules/organization/config/filters/main';
@@ -110,13 +104,10 @@ import { organizationSavedViews } from '@/modules/organization/config/saved-view
 import { FilterQuery } from '@/shared/modules/filters/types/FilterQuery';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { OrganizationPermissions } from '../organization-permissions';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 
 const router = useRouter();
-
-const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
 
 const organizationStore = useOrganizationStore();
 const { filters, totalOrganizations, savedFilterBody } = storeToRefs(organizationStore);
@@ -127,35 +118,12 @@ const tableLoading = ref(false);
 const organizationCount = ref(0);
 const isSubProjectSelectionOpen = ref(false);
 
-const organizationFilter = ref<CrFilter | null>(null);
+const organizationFilter = ref<LfFilter | null>(null);
 const lsSegmentsStore = useLfSegmentsStore();
 
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
-const hasPermissionToCreate = computed(
-  () => new OrganizationPermissions(
-    tenant.value,
-    user.value,
-  ).create,
-);
-const isCreateLockedForSampleData = computed(
-  () => new OrganizationPermissions(
-    tenant.value,
-    user.value,
-  ).createLockedForSampleData,
-);
-
-const isEditLockedForSampleData = computed(
-  () => new OrganizationPermissions(
-    tenant.value,
-    user.value,
-  ).editLockedForSampleData,
-);
-
-const hasPermissionsToMerge = computed(() => new OrganizationPermissions(
-  tenant.value,
-  user.value,
-)?.mergeOrganizations);
+const { hasPermission } = usePermissions();
 
 const pagination = ref({
   page: 1,

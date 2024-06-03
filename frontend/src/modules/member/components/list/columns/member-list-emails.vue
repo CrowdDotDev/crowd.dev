@@ -31,7 +31,7 @@
             {{ email.handle }}
             <div v-if="email.verified">
               <el-tooltip placement="top" content="Verified email">
-                <i class="ri-verified-badge-fill text-brand-500 text-base leading-4" />
+                <i class="ri-verified-badge-fill text-primary-500 text-base leading-4" />
               </el-tooltip>
             </div>
           </a>
@@ -89,7 +89,7 @@
                 {{ email.handle }}
                 <div v-if="email.verified">
                   <el-tooltip placement="top" content="Verified email">
-                    <i class="ri-verified-badge-fill text-brand-500 text-base leading-4" />
+                    <i class="ri-verified-badge-fill text-primary-500 text-base leading-4" />
                   </el-tooltip>
                 </div>
               </a>

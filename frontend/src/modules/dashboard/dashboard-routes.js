@@ -1,4 +1,5 @@
 import Layout from '@/modules/layout/components/layout.vue';
+import { PageEventKey } from '@/shared/modules/monitoring/types/event';
 
 const DashboardPage = () => import('@/modules/dashboard/pages/dashboard-page.vue');
 
@@ -9,7 +10,8 @@ export default [
     component: Layout,
     meta: {
       auth: true,
-      title: 'Home',
+      title: 'Overview',
+      eventKey: PageEventKey.OVERVIEW,
       segments: {
         requireSelectedProjectGroup: true,
       },
@@ -20,7 +22,9 @@ export default [
         path: '',
         component: DashboardPage,
         exact: true,
-        meta: { auth: true },
+        meta: {
+          auth: true,
+        },
       },
     ],
   },

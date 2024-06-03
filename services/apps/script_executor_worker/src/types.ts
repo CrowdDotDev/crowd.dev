@@ -1,0 +1,21 @@
+export interface IFindAndMergeMembersWithSameVerifiedEmailsInDifferentPlatformsArgs {
+  tenantId: string
+  afterHash?: number
+}
+
+export interface IFindAndMergeMembersWithSameIdentitiesDifferentCapitalizationInPlatformArgs {
+  tenantId: string
+  platform: string
+  afterHash?: number
+}
+
+export interface IUnmergeWronglyMergedEmailIdentitiesArgs {
+  tenantId: string
+}
+
+export interface IDissectMemberArgs {
+  memberId: string
+  userId?: string
+  startDate?: string
+  endDate?: string
+}

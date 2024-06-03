@@ -1,0 +1,23 @@
+/* ---------------------------------- *\
+          Avatar
+\* ---------------------------------- */
+
+.c-avatar {
+  width: var(--lf-avatar-size);
+  height: var(--lf-avatar-size);
+  background: var(--lf-avatar-background);
+  aspect-ratio: 1;
+  @apply overflow-hidden relative rounded-full;
+
+  &:before{
+    content: attr(data-initials);
+    font-size: calc(var(--lf-avatar-size) * var(--lf-avatar-text-size));
+    line-height: var(--lf-avatar-size);
+    color: var(--lf-avatar-color);
+    @apply absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center uppercase font-semibold;
+  }
+
+  img{
+    @apply relative object-cover w-full h-full;
+  }
+}

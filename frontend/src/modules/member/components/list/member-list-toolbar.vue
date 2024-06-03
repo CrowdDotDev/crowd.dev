@@ -17,15 +17,14 @@
           Export to CSV
         </el-dropdown-item>
         <el-tooltip
-          v-if="selectedMembers.length === 2"
+          v-if="selectedMembers.length === 2 && hasPermission(LfPermission.mergeMembers)"
           content="Coming soon"
           placement="top"
-          :disabled="hasPermissionsToMerge"
         >
           <span>
             <el-dropdown-item
               :command="{ action: 'mergeMembers' }"
-              :disabled="isEditLockedForSampleData || !hasPermissionsToMerge"
+              :disabled="!hasPermission(LfPermission.mergeMembers)"
             >
               <i class="ri-lg ri-group-line mr-1" />
               Merge contributors
@@ -33,13 +32,11 @@
           </span>
         </el-tooltip>
         <el-dropdown-item
+          v-if="hasPermission(LfPermission.memberEdit)"
           :command="{
             action: 'markAsTeamMember',
             value: markAsTeamMemberOptions.value,
           }"
-          :disabled="
-            isReadOnly || isEditLockedForSampleData
-          "
         >
           <i
             class="ri-lg mr-1"
@@ -48,36 +45,32 @@
           {{ markAsTeamMemberOptions.copy }}
         </el-dropdown-item>
         <el-dropdown-item
+          v-if="hasPermission(LfPermission.memberEdit)"
           :command="{ action: 'editAttribute' }"
-          :disabled="isEditLockedForSampleData"
         >
           <i class="ri-lg ri-file-edit-line mr-1" />
           Edit attribute
         </el-dropdown-item>
         <el-dropdown-item
+          v-if="hasPermission(LfPermission.tagEdit)"
           :command="{ action: 'editTags' }"
-          :disabled="isEditLockedForSampleData"
         >
           <i class="ri-lg ri-price-tag-3-line mr-1" />
           Edit tags
         </el-dropdown-item>
-        <hr class="border-gray-200 my-1 mx-2" />
-        <el-dropdown-item
-          :command="{ action: 'destroyAll' }"
-          :disabled="
-            isReadOnly || isDeleteLockedForSampleData
-          "
-        >
-          <div
-            class="flex items-center"
-            :class="{
-              'text-red-500': !isDeleteLockedForSampleData,
-            }"
+        <template v-if="hasPermission(LfPermission.memberDestroy)">
+          <hr class="border-gray-200 my-1 mx-2" />
+          <el-dropdown-item
+            :command="{ action: 'destroyAll' }"
           >
-            <i class="ri-lg ri-delete-bin-line mr-2" />
-            <app-i18n code="common.destroy" />
-          </div>
-        </el-dropdown-item>
+            <div
+              class="flex items-center text-red-500"
+            >
+              <i class="ri-lg ri-delete-bin-line mr-2" />
+              <app-i18n code="common.destroy" />
+            </div>
+          </el-dropdown-item>
+        </template>
       </template>
     </el-dropdown>
 
@@ -95,7 +88,6 @@
 
 <script setup>
 import { computed, ref } from 'vue';
-import { MemberPermissions } from '@/modules/member/member-permissions';
 import { useMemberStore } from '@/modules/member/store/pinia';
 import { storeToRefs } from 'pinia';
 import { MemberService } from '@/modules/member/member-service';
@@ -108,9 +100,18 @@ import AppTagPopover from '@/modules/tag/components/tag-popover.vue';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import useMemberMergeMessage from '@/shared/modules/merge/config/useMemberMergeMessage';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import { useRoute } from 'vue-router';
+
+const { trackEvent } = useProductTracking();
+
+const route = useRoute();
 
 const authStore = useAuthStore();
-const { user, tenant } = storeToRefs(authStore);
+const { tenant } = storeToRefs(authStore);
 const { getUser } = authStore;
 
 const memberStore = useMemberStore();
@@ -120,29 +121,10 @@ const { fetchMembers } = memberStore;
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
+const { hasPermission } = usePermissions();
+
 const bulkTagsUpdateVisible = ref(false);
 const bulkAttributesUpdateVisible = ref(false);
-
-const isReadOnly = computed(() => (
-  new MemberPermissions(
-    tenant.value,
-    user.value,
-  ).edit === false
-));
-
-const isEditLockedForSampleData = computed(() => (
-  new MemberPermissions(
-    tenant.value,
-    user.value,
-  ).editLockedForSampleData
-));
-
-const isDeleteLockedForSampleData = computed(() => (
-  new MemberPermissions(
-    tenant.value,
-    user.value,
-  ).destroyLockedForSampleData
-));
 
 const markAsTeamMemberOptions = computed(() => {
   const isTeamView = filters.value.settings.teamMember === 'filter';
@@ -166,11 +148,6 @@ const markAsTeamMemberOptions = computed(() => {
     value: true,
   };
 });
-
-const hasPermissionsToMerge = computed(() => new MemberPermissions(
-  tenant.value,
-  user.value,
-)?.mergeMembers);
 
 const handleMergeMembers = async () => {
   const [firstMember, secondMember] = selectedMembers.value;
@@ -204,6 +181,15 @@ const doDestroyAllWithConfirm = () => ConfirmDialog({
   icon: 'ri-delete-bin-line',
 })
   .then(() => {
+    trackEvent({
+      key: FeatureEventKey.DELETE_CONTRIBUTOR,
+      type: EventType.FEATURE,
+      properties: {
+        path: route.path,
+        bulk: true,
+      },
+    });
+
     const ids = selectedMembers.value.map((m) => m.id);
     return MemberService.destroyAll(ids);
   })
@@ -228,6 +214,15 @@ const handleDoExport = async () => {
       tenantCsvExportCount,
       planExportCountMax,
       badgeContent: pluralize('contributor', selectedMembers.value.length, true),
+    });
+
+    trackEvent({
+      key: FeatureEventKey.EXPORT_CONTRIBUTORS,
+      type: EventType.FEATURE,
+      properties: {
+        path: route.path,
+        bulk: true,
+      },
     });
 
     await MemberService.export({
@@ -304,6 +299,15 @@ const doMarkAsTeamMember = async (value) => {
 
 const handleCommand = async (command) => {
   if (command.action === 'markAsTeamMember') {
+    trackEvent({
+      key: FeatureEventKey.MARK_AS_TEAM_CONTRIBUTOR,
+      type: EventType.FEATURE,
+      properties: {
+        path: route.path,
+        bulk: true,
+      },
+    });
+
     await doMarkAsTeamMember(command.value);
   } else if (command.action === 'export') {
     await handleDoExport();

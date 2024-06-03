@@ -65,7 +65,7 @@
         </p>
       </div>
       <div>
-        <cr-enrichment-sneak-peak type="contact">
+        <lf-enrichment-sneak-peak type="contact">
           <template #default="{ enabled }">
             <div>
               <div class="flex items-center gap-1">
@@ -98,7 +98,7 @@
               </div>
             </div>
           </template>
-        </cr-enrichment-sneak-peak>
+        </lf-enrichment-sneak-peak>
       </div>
       <div>
         <p class="text-gray-400 font-medium text-2xs">
@@ -110,9 +110,14 @@
       </div>
     </div>
 
-    <div class="absolute inset-x-0 bottom-0 rounded-b-md bg-gray-50 p-6 mt-9">
+    <div v-if="hasPermission(LfPermission.tagEdit) || member.tags.length > 0" class="absolute inset-x-0 bottom-0 rounded-b-md bg-gray-50 p-6 mt-9">
       <div class="text-sm">
-        <app-tags :long="true" :member="member" @edit="isEditTagsDialogOpen = true" />
+        <app-tags
+          :long="true"
+          :member="member"
+          :editable="hasPermission(LfPermission.tagEdit)"
+          @edit="isEditTagsDialogOpen = true"
+        />
         <app-tag-popover v-model="isEditTagsDialogOpen" :member="member" />
       </div>
     </div>
@@ -134,7 +139,9 @@ import AppMemberBio from '@/modules/member/components/member-bio.vue';
 import AppTagPopover from '@/modules/tag/components/tag-popover.vue';
 import AppSvg from '@/shared/svg/svg.vue';
 import { getAttributeSourceName } from '@/shared/helpers/attribute.helpers';
-import CrEnrichmentSneakPeak from '@/shared/modules/enrichment/components/enrichment-sneak-peak.vue';
+import LfEnrichmentSneakPeak from '@/shared/modules/enrichment/components/enrichment-sneak-peak.vue';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 
 defineProps({
   member: {
@@ -142,6 +149,8 @@ defineProps({
     default: () => {},
   },
 });
+
+const { hasPermission } = usePermissions();
 
 const isEditTagsDialogOpen = ref(false);
 

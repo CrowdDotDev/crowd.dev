@@ -1,6 +1,6 @@
 <template>
   <div v-if="form">
-    <cr-filter-include-switch v-if="!props.hideIncludeSwitch" v-model="form.include" />
+    <lf-filter-include-switch v-if="!props.hideIncludeSwitch" v-model="form.include" />
     <div v-if="allOptions.length > 7" class="border-b border-gray-100 px-2 py-1">
       <el-input
         ref="queryInput"
@@ -24,7 +24,7 @@
         >
           {{ group.label }}
         </div>
-        <cr-filter-select-option
+        <lf-filter-select-option
           v-for="(option, oi) of group.options"
           :key="oi"
           v-model="form.value"
@@ -33,7 +33,7 @@
           :data-qa-value="option.value"
         >
           {{ option.label }}
-        </cr-filter-select-option>
+        </lf-filter-select-option>
       </template>
       <div v-if="isEmpty" class="text-gray-400 text-xs italic pb-1 pt-3 px-2">
         No results found
@@ -51,8 +51,8 @@ import {
 } from '@/shared/modules/filters/types/filterTypes/SelectFilterConfig';
 import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
-import CrFilterIncludeSwitch from '@/shared/modules/filters/components/partials/FilterIncludeSwitch.vue';
-import CrFilterSelectOption from '@/shared/modules/filters/components/partials/select/FilterSelectOption.vue';
+import LfFilterIncludeSwitch from '@/shared/modules/filters/components/partials/FilterIncludeSwitch.vue';
+import LfFilterSelectOption from '@/shared/modules/filters/components/partials/select/FilterSelectOption.vue';
 
 const props = defineProps<{
   modelValue: SelectFilterValue,
@@ -100,6 +100,6 @@ onMounted(() => {
 
 <script lang="ts">
 export default {
-  name: 'CrSelectFilter',
+  name: 'LfSelectFilter',
 };
 </script>

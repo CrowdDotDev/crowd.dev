@@ -20,6 +20,7 @@
       </div>
       <div>
         <el-popover
+          v-if="hasPermission(LfPermission.automationCreate)"
           trigger="click"
           placement="bottom-end"
           width="15rem"
@@ -56,7 +57,7 @@
                 <div class="pl-2">
                   <h6 class="text-xs leading-5 font-medium mb-0.5 text-gray-900">
                     {{ automationType.name }}
-                    <sup v-if="plan(automationType)" class="text-brand-500">
+                    <sup v-if="plan(automationType)" class="text-primary-500">
                       {{ plan(automationType) }}
                     </sup>
                   </h6>
@@ -133,7 +134,11 @@ import AppAutomationExecutions from '@/modules/automation/components/automation-
 import { FeatureFlag } from '@/utils/featureFlag';
 import { useStore } from 'vuex';
 import config from '@/config';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import { automationTypes } from '../config/automation-types';
+
+const { hasPermission } = usePermissions();
 
 const options = ref([
   {

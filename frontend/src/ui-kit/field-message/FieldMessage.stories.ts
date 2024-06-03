@@ -1,11 +1,11 @@
 import { fieldMessageTypes } from '@/ui-kit/field-message/types/FieldMessageType';
-import CrFieldMessage from './FieldMessage.vue';
-import CrInput from '../input/Input.vue';
-import CrField from '../field/Field.vue';
+import LfFieldMessage from './FieldMessage.vue';
+import LfInput from '../input/Input.vue';
+import LfField from '../field/Field.vue';
 
 export default {
-  title: 'Crowd.dev/FieldMessage',
-  component: CrFieldMessage,
+  title: 'LinuxFoundation/FieldMessage',
+  component: LfFieldMessage,
   tags: ['autodocs'],
   argTypes: {
     // Props
@@ -38,14 +38,14 @@ export default {
 };
 
 const render = (args: any) => ({
-  components: { CrField, CrInput, CrFieldMessage },
+  components: { LfField, LfInput, LfFieldMessage },
   setup() {
     return { args };
   },
-  template: `<cr-field label-text="Field">
-      <cr-input model-value="" placeholder="placeholder" :invalid="args.type === 'error'" />
-      <cr-field-message :type="args.type" :hide-icon="args.hideIcon">{{args.default}}</cr-field-message>
-    </cr-field>`,
+  template: `<lf-field label-text="Field">
+      <lf-input model-value="" placeholder="placeholder" :invalid="args.type === 'error'" />
+      <lf-field-message :type="args.type" :hide-icon="args.hideIcon">{{args.default}}</lf-field-message>
+    </lf-field>`,
 });
 
 export const Error = {

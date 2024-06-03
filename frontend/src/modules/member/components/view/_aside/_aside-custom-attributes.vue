@@ -16,8 +16,8 @@
       </div>
 
       <el-button
+        v-if="hasPermission(LfPermission.memberEdit)"
         class="btn btn-link btn-link--linux"
-        :disabled="isEditLockedForSampleData"
         @click="attributesDrawer = true"
       >
         <i class="ri-pencil-line text-lg" />
@@ -51,7 +51,7 @@
         class="attribute"
       >
         <!-- Enrichment sneak peak attributes -->
-        <cr-enrichment-sneak-peak v-if="!isEnrichmentEnabled && hiddenAttributeNames.includes(attribute.name)" type="contact">
+        <lf-enrichment-sneak-peak v-if="!isEnrichmentEnabled && hiddenAttributeNames.includes(attribute.name)" type="contact">
           <template #default>
             <div>
               <div class="flex items-center">
@@ -67,7 +67,7 @@
               </div>
             </div>
           </template>
-        </cr-enrichment-sneak-peak>
+        </lf-enrichment-sneak-peak>
 
         <!-- Remaining attributes that are not hidden -->
         <div v-else>
@@ -124,7 +124,7 @@
 
     <!-- CTA widget -->
     <div class="-mx-2 pt-2">
-      <cr-enrichment-sneak-peak-content type="contact" :dark="true" />
+      <lf-enrichment-sneak-peak-content type="contact" :dark="true" />
     </div>
 
     <app-member-manage-attributes-drawer
@@ -140,15 +140,16 @@ import { defineProps, computed, ref } from 'vue';
 import moment from 'moment';
 import { formatDate } from '@/utils/date';
 
-import { MemberPermissions } from '@/modules/member/member-permissions';
 import { useMemberStore } from '@/modules/member/store/pinia';
 import { storeToRefs } from 'pinia';
 import { getAttributeSourceName } from '@/shared/helpers/attribute.helpers';
 import AppSvg from '@/shared/svg/svg.vue';
-import CrEnrichmentSneakPeak from '@/shared/modules/enrichment/components/enrichment-sneak-peak.vue';
-import CrEnrichmentSneakPeakContent from '@/shared/modules/enrichment/components/enrichment-sneak-peak-content.vue';
+import LfEnrichmentSneakPeak from '@/shared/modules/enrichment/components/enrichment-sneak-peak.vue';
+import LfEnrichmentSneakPeakContent from '@/shared/modules/enrichment/components/enrichment-sneak-peak-content.vue';
 import Plans from '@/security/plans';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import AppMemberManageAttributesDrawer from '../../member-manage-attributes-drawer.vue';
 import AppMemberCustomAttributesArrayRenderer from './_aside-custom-attributes-array-renderer.vue';
 
@@ -165,13 +166,11 @@ const { customAttributes } = storeToRefs(memberStore);
 const attributesDrawer = ref(false);
 
 const authStore = useAuthStore();
-const { tenant, user } = storeToRefs(authStore);
-const isEnrichmentEnabled = computed(() => tenant.value.plan !== Plans.values.essential);
+const { tenant } = storeToRefs(authStore);
 
-const isEditLockedForSampleData = computed(() => new MemberPermissions(
-  tenant.value,
-  user.value,
-).editLockedForSampleData);
+const { hasPermission } = usePermissions();
+
+const isEnrichmentEnabled = computed(() => tenant.value.plan !== Plans.values.essential);
 
 const hiddenAttributes = ref([
   {

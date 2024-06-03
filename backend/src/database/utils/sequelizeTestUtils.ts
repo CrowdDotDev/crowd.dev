@@ -6,7 +6,8 @@ import { SegmentStatus, TenantPlans } from '@crowd/types'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import moment from 'moment'
-import { API_CONFIG, REDIS_CONFIG, TEMPORAL_CONFIG } from '../../conf'
+import { getDbConnection } from '@crowd/data-access-layer/src/database'
+import { API_CONFIG, PRODUCT_DB_CONFIG, REDIS_CONFIG, TEMPORAL_CONFIG } from '../../conf'
 import Roles from '../../security/roles'
 import { IServiceOptions } from '../../services/IServiceOptions'
 import { databaseInit } from '../databaseConnection'
@@ -22,8 +23,6 @@ export default class SequelizeTestUtils {
     db = await this.getDatabase(db)
 
     const tables = [
-      '"organizationCacheIdentities"',
-      '"organizationCacheLinks"',
       '"organizationIdentities"',
       '"activityTasks"',
       '"automationExecutions"',
@@ -66,7 +65,6 @@ export default class SequelizeTestUtils {
       '"incomingWebhooks"',
       '"githubRepos"',
 
-      '"organizationCaches"',
       '"organizationsSyncRemote"',
       '"organizationSegments"',
       '"organizationToMerge"',
@@ -176,6 +174,7 @@ export default class SequelizeTestUtils {
       log,
       redis,
       temporal: await getTemporalClient(TEMPORAL_CONFIG),
+      productDb: await getDbConnection(PRODUCT_DB_CONFIG),
     } as IServiceOptions
   }
 
@@ -236,6 +235,7 @@ export default class SequelizeTestUtils {
       log,
       redis,
       temporal: await getTemporalClient(TEMPORAL_CONFIG),
+      productDb: await getDbConnection(PRODUCT_DB_CONFIG),
     } as IRepositoryOptions
   }
 

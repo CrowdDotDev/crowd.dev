@@ -1,13 +1,13 @@
 <template>
   <div class="flex items-center justify-center h-screen">
-    <cr-spinner size="5rem" />
+    <lf-spinner size="5rem" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import { Auth0Service } from '@/modules/auth/services/auth0.service';
-import CrSpinner from '@/ui-kit/spinner/Spinner.vue';
+import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { router } from '@/router';
 

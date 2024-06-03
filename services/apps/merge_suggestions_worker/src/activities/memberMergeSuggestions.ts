@@ -6,7 +6,12 @@ import {
   ISimilarMemberOpensearch,
 } from '../types'
 import { svc } from '../main'
-import { ILLMConsumableMember, IMemberMergeSuggestion, OpenSearchIndex } from '@crowd/types'
+import {
+  ILLMConsumableMember,
+  IMemberMergeSuggestion,
+  OpenSearchIndex,
+  MemberMergeSuggestionTable,
+} from '@crowd/types'
 import MemberMergeSuggestionsRepository from '@crowd/data-access-layer/src/old/apps/merge_suggestions_worker/memberMergeSuggestions.repo'
 import MemberSimilarityCalculator from '../memberSimilarityCalculator'
 
@@ -25,7 +30,6 @@ export async function getMemberMergeSuggestions(
   tenantId: string,
   member: IMemberPartialAggregatesOpensearch,
 ): Promise<IMemberMergeSuggestion[]> {
-  const SIMILARITY_CONFIDENCE_SCORE_THRESHOLD = 0.5
   const mergeSuggestions: IMemberMergeSuggestion[] = []
   const memberMergeSuggestionsRepo = new MemberMergeSuggestionsRepository(
     svc.postgres.writer.connection(),
@@ -123,7 +127,7 @@ export async function getMemberMergeSuggestions(
           identitiesPartialQuery.should[1].nested.query.bool.should.push({
             bool: {
               must: [
-                { term: { [`nested_identities.keyword_name`]: identity.keyword_value } },
+                { term: { [`nested_identities.keyword_value`]: identity.keyword_value } },
                 {
                   match: {
                     [`nested_identities.string_platform`]: identity.string_platform,
@@ -194,42 +198,45 @@ export async function getMemberMergeSuggestions(
       member,
       memberToMerge._source,
     )
-    if (similarityConfidenceScore > SIMILARITY_CONFIDENCE_SCORE_THRESHOLD) {
-      // decide the primary member using number of activities & number of identities
-      const membersSorted = [member, memberToMerge._source].sort((a, b) => {
-        if (
-          a.nested_identities.length > b.nested_identities.length ||
-          (a.nested_identities.length === b.nested_identities.length &&
-            a.int_activityCount > b.int_activityCount)
-        ) {
-          return -1
-        } else if (
-          a.nested_identities.length < b.nested_identities.length ||
-          (a.nested_identities.length === b.nested_identities.length &&
-            a.int_activityCount < b.int_activityCount)
-        ) {
-          return 1
-        }
-        return 0
-      })
-      mergeSuggestions.push({
-        similarity: similarityConfidenceScore,
-        activityEstimate:
-          (memberToMerge._source.int_activityCount || 0) + (member.int_activityCount || 0),
-        members: [membersSorted[0].uuid_memberId, membersSorted[1].uuid_memberId],
-      })
-    }
+    // decide the primary member using number of activities & number of identities
+    const membersSorted = [member, memberToMerge._source].sort((a, b) => {
+      if (
+        a.nested_identities.length > b.nested_identities.length ||
+        (a.nested_identities.length === b.nested_identities.length &&
+          a.int_activityCount > b.int_activityCount)
+      ) {
+        return -1
+      } else if (
+        a.nested_identities.length < b.nested_identities.length ||
+        (a.nested_identities.length === b.nested_identities.length &&
+          a.int_activityCount < b.int_activityCount)
+      ) {
+        return 1
+      }
+      return 0
+    })
+    mergeSuggestions.push({
+      similarity: similarityConfidenceScore,
+      activityEstimate:
+        (memberToMerge._source.int_activityCount || 0) + (member.int_activityCount || 0),
+      members: [membersSorted[0].uuid_memberId, membersSorted[1].uuid_memberId],
+    })
   }
 
   return mergeSuggestions
 }
 
-export async function addMemberToMerge(suggestions: IMemberMergeSuggestion[]): Promise<void> {
-  const memberMergeSuggestionsRepo = new MemberMergeSuggestionsRepository(
-    svc.postgres.writer.connection(),
-    svc.log,
-  )
-  await memberMergeSuggestionsRepo.addToMerge(suggestions)
+export async function addMemberToMerge(
+  suggestions: IMemberMergeSuggestion[],
+  table: MemberMergeSuggestionTable,
+): Promise<void> {
+  if (suggestions.length > 0) {
+    const memberMergeSuggestionsRepo = new MemberMergeSuggestionsRepository(
+      svc.postgres.writer.connection(),
+      svc.log,
+    )
+    await memberMergeSuggestionsRepo.addToMerge(suggestions, table)
+  }
 }
 
 export async function findTenantsLatestMemberSuggestionGeneratedAt(

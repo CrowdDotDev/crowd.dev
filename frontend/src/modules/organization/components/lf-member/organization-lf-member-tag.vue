@@ -1,0 +1,24 @@
+<template>
+  <el-tooltip v-if="!!organization.lfxMembership" content="Active member of the Linux Foundation." placement="top">
+    <div class="text-primary-500 flex items-center gap-1 flex-nowrap">
+      <i :class="`ri-bookmark-3-fill ${iconFontSize}`" />
+      <span v-if="!onlyShowIcon" class="font-semibold text-xs whitespace-nowrap">LF Member</span>
+    </div>
+  </el-tooltip>
+</template>
+
+<script setup lang="ts">
+import { Organization } from '../../types/Organization';
+
+withDefaults(
+  defineProps<{
+    organization: Organization;
+    onlyShowIcon?: boolean;
+    iconFontSize?: 'text-sm' | 'text-base';
+  }>(),
+  {
+    onlyShowIcon: false,
+    iconFontSize: 'text-base',
+  },
+);
+</script>

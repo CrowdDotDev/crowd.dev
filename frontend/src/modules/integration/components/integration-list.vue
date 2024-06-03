@@ -51,7 +51,11 @@ import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppIntegrationListItem from '@/modules/integration/components/integration-list-item.vue';
 import { useRoute } from 'vue-router';
 import AppIntegrationProgressWrapper from '@/modules/integration/components/integration-progress-wrapper.vue';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import { Platform } from '@/shared/modules/platform/types/Platform';
 
+const { trackEvent } = useProductTracking();
 const route = useRoute();
 const store = useStore();
 const props = defineProps({
@@ -104,6 +108,12 @@ onMounted(async () => {
     if (source === 'discord') {
       await store.dispatch('integration/doDiscordConnect', {
         guildId: params.get('guild_id'),
+      });
+
+      trackEvent({
+        key: FeatureEventKey.CONNECT_INTEGRATION,
+        type: EventType.FEATURE,
+        properties: { platform: Platform.DISCORD },
       });
     } else {
       showGithubDialog.value = true;

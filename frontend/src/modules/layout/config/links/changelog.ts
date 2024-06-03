@@ -6,7 +6,6 @@ const changelog: MenuLink = {
   icon: 'ri-megaphone-line',
   href: 'https://changelog.crowd.dev',
   display: () => true,
-  disable: () => false,
 };
 
 export default changelog;

@@ -1,6 +1,3 @@
-import {
-  scheduleOrganizationUpdate,
-  scheduleOrganizationCachesEnrichment,
-} from './schedules/organizationEnrichment'
+import { scheduleOrganizationsEnrichment } from './schedules/organizationEnrichment'
 
-export { scheduleOrganizationUpdate, scheduleOrganizationCachesEnrichment }
+export { scheduleOrganizationsEnrichment }

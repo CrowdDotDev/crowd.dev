@@ -101,6 +101,9 @@ import { CrowdIntegrations } from '@/integrations/integrations-config';
 import formChangeDetector from '@/shared/form/form-change';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
 import AppArrayInput from '@/shared/form/array-input.vue';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import { Platform } from '@/shared/modules/platform/types/Platform';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps({
@@ -113,6 +116,8 @@ const props = defineProps({
     default: false,
   },
 });
+
+const { trackEvent } = useProductTracking();
 
 const loading = ref(false);
 const form = reactive({
@@ -165,6 +170,8 @@ const cancel = () => {
 const connect = async () => {
   loading.value = true;
 
+  const isUpdate = !!props.integration?.settings;
+
   doGerritConnect({
     orgURL: form.orgURL,
     user: form.user,
@@ -174,6 +181,14 @@ const connect = async () => {
     enableGit: form.enableGit,
   })
     .then(() => {
+      trackEvent({
+        key: isUpdate ? FeatureEventKey.EDIT_INTEGRATION_SETTINGS : FeatureEventKey.CONNECT_INTEGRATION,
+        type: EventType.FEATURE,
+        properties: {
+          platform: Platform.GERRIT,
+        },
+      });
+
       isVisible.value = false;
     })
     .finally(() => {

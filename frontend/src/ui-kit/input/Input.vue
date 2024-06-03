@@ -52,6 +52,6 @@ const value = computed<string | number>({
 
 <script lang="ts">
 export default {
-  name: 'CrInput',
+  name: 'LfInput',
 };
 </script>

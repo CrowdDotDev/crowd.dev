@@ -29,6 +29,6 @@
 
 <script lang="ts">
 export default {
-  name: 'CrMenuSupportHelp',
+  name: 'LfMenuSupportHelp',
 };
 </script>

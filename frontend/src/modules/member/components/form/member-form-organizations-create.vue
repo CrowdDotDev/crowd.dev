@@ -167,6 +167,8 @@ import useVuelidate from '@vuelidate/core';
 import moment from 'moment';
 import { getSegmentName } from '@/utils/segments';
 import pluralize from 'pluralize';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { Member } from '../../types/Member';
 
 interface MemberOrganizationForm {
@@ -211,6 +213,8 @@ const rules = {
   },
 };
 
+const { trackEvent } = useProductTracking();
+
 const $v = useVuelidate(rules, form);
 
 const submit = () => {
@@ -228,8 +232,22 @@ const submit = () => {
     },
   } as Organization;
   if (isEdit.value) {
+    trackEvent({
+      key: FeatureEventKey.EDIT_WORK_EXPERIENCE,
+      type: EventType.FEATURE,
+      properties: {
+        organization: data,
+      },
+    });
     emit('edit', data);
   } else {
+    trackEvent({
+      key: FeatureEventKey.ADD_WORK_EXPERIENCE,
+      type: EventType.FEATURE,
+      properties: {
+        organization: data,
+      },
+    });
     emit('add', data);
   }
   isOpened.value = false;

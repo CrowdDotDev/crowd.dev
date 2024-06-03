@@ -25,6 +25,7 @@
           <div class="flex items-center">
             <el-tooltip placement="top" content="Edit view">
               <div
+                v-if="view.visibility !== 'tenant' || hasPermission(LfPermission.customViewsTenantManage)"
                 class="h-6 w-6 flex items-center justify-center ml-1 group cursor-pointer hover:bg-gray-100 rounded"
                 @click="edit(view)"
               >
@@ -41,6 +42,7 @@
             </el-tooltip>
             <el-tooltip placement="top" content="Delete view">
               <div
+                v-if="view.visibility !== 'tenant' || hasPermission(LfPermission.customViewsTenantManage)"
                 class="h-6 w-6 flex items-center justify-center ml-1 group cursor-pointer hover:bg-gray-100 rounded"
                 @click="remove(view)"
               >
@@ -61,6 +63,10 @@ import { computed } from 'vue';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { SavedViewsService } from '@/shared/modules/saved-views/services/saved-views.service';
 import Message from '@/shared/message/message';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 
 const props = defineProps<{
   config: SavedViewsConfig,
@@ -73,6 +79,10 @@ const emit = defineEmits<{(e: 'update:views', value: SavedView[]): any,
   (e: 'reload'): any,
 }>();
 
+const { trackEvent } = useProductTracking();
+
+const { hasPermission } = usePermissions();
+
 const views = computed<SavedView[]>({
   get() {
     return props.views;
@@ -83,6 +93,11 @@ const views = computed<SavedView[]>({
 });
 
 const onListChange = () => {
+  trackEvent({
+    key: FeatureEventKey.REORDER_CUSTOM_VIEW,
+    type: EventType.FEATURE,
+  });
+
   SavedViewsService.updateBulk(
     views.value.map(
       (view, viewIndex) => ({
@@ -116,6 +131,11 @@ const remove = (view: SavedView) => {
     confirmButtonText: isShared ? 'Delete shared view' : 'Delete view',
   } as any)
     .then(() => {
+      trackEvent({
+        key: FeatureEventKey.DELETE_CUSTOM_VIEW,
+        type: EventType.FEATURE,
+      });
+
       SavedViewsService.delete(view.id)
         .then(() => {
           (window as any).analytics.track('Custom view deleted', {
@@ -134,7 +154,7 @@ const remove = (view: SavedView) => {
 
 <script lang="ts">
 export default {
-  name: 'CrSavedViewsManagement',
+  name: 'LfSavedViewsManagement',
 };
 </script>
 

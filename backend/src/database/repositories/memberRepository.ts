@@ -889,7 +889,9 @@ class MemberRepository {
               } else if (
                 record[column] === null &&
                 data[column] !== null &&
-                data[column] !== undefined
+                data[column] !== undefined &&
+                // also ignore empty arrays
+                (!Array.isArray(data[column]) || data[column].length > 0)
               ) {
                 // column was null before now it's not anymore
                 changed = true
@@ -1031,7 +1033,7 @@ class MemberRepository {
         })
 
         if (data.length > 0 && data[0].memberId !== record.id) {
-          const memberSegment = (await seq.query(
+          let memberSegment = (await seq.query(
             `
             select distinct a."segmentId", a."memberId"
         from activities a where a."memberId" = :memberId
@@ -1045,6 +1047,29 @@ class MemberRepository {
               transaction,
             },
           )) as any[]
+
+          // if there's no activity for the member, check memberSegments table
+          if (memberSegment.length === 0) {
+            memberSegment = (await seq.query(
+              `
+              select distinct ms."segmentId", ms."memberId"
+              from "memberSegments" ms where ms."memberId" = :memberId
+              limit 1
+            `,
+              {
+                replacements: {
+                  memberId: data[0].memberId,
+                },
+                type: QueryTypes.SELECT,
+                transaction,
+              },
+            )) as any[]
+
+            // still not found, throw an error
+            if (!memberSegment) {
+              throw new Error('Member with same identity already exists!')
+            }
+          }
 
           const segmentInfo = (await seq.query(
             `

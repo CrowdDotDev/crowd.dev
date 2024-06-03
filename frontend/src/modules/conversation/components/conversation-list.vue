@@ -1,6 +1,6 @@
 <template>
   <div class="pt-3">
-    <cr-filter
+    <lf-filter
       v-model="filters"
       :config="conversationFilters"
       :search-config="conversationSearchFilter"
@@ -51,6 +51,7 @@
           :key="conversation?.id"
           :conversation="conversation"
           @details="conversationId = conversation.id"
+          @reload="reload()"
         />
 
         <!-- Load more button -->
@@ -73,7 +74,7 @@
 import { computed, ref } from 'vue';
 import AppConversationItem from '@/modules/conversation/components/conversation-item.vue';
 import AppConversationDrawer from '@/modules/conversation/components/conversation-drawer.vue';
-import CrFilter from '@/shared/modules/filters/components/Filter.vue';
+import LfFilter from '@/shared/modules/filters/components/Filter.vue';
 import { useConversationStore } from '@/modules/conversation/store';
 import { storeToRefs } from 'pinia';
 import { conversationFilters, conversationSearchFilter } from '@/modules/conversation/config/filters/main';
@@ -118,6 +119,17 @@ const onLoadMore = () => {
     offset: (pagination.value.page - 1) * pagination.value.perPage,
     limit: pagination.value.perPage,
     append: true,
+  });
+};
+
+const reload = () => {
+  pagination.value.page = 1;
+
+  fetch({
+    ...savedFilterBody.value,
+    offset: (pagination.value.page - 1) * pagination.value.perPage,
+    limit: pagination.value.perPage,
+    append: false,
   });
 };
 

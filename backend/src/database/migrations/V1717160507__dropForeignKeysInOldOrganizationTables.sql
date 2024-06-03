@@ -1,0 +1,1 @@
+ALTER TABLE "old_organizationCacheLinks" DROP CONSTRAINT IF EXISTS "organizationCacheLinks_organizationId_fkey";

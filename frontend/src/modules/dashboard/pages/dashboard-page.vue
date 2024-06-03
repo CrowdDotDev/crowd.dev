@@ -11,7 +11,7 @@
           >
             <app-lf-page-header
               :text-class="{
-                'leading-8 font-semibold transition-all duration-100 uppercase font-header': true,
+                'leading-8 font-semibold transition-all duration-100 uppercase font-secondary': true,
                 'text-xl': !scrolled,
                 'text-base': scrolled,
               }"
@@ -28,12 +28,7 @@
             <app-dashboard-filters class="block" />
           </div>
 
-          <div
-            v-if="!loadingCubeToken"
-            v-loading="!loadingCubeToken"
-            class="app-page-spinner h-16 !relative !min-h-5"
-          />
-          <div v-else>
+          <div>
             <app-dashboard-members class="mb-8" />
             <app-dashboard-organizations class="mb-8" />
             <app-dashboard-activities class="mb-8" />
@@ -45,7 +40,7 @@
       v-if="selectedProjectGroup"
       class="border-l border-gray-200 overflow-auto px-5 py-6 h-screen min-w-[15rem] max-w-[20rem]"
     >
-      <cr-dashboard-integrations class="mb-8" />
+      <lf-dashboard-integrations class="mb-8" />
       <app-dashboard-project-group />
     </aside>
   </div>
@@ -53,12 +48,8 @@
 
 <script setup>
 import {
-  onMounted, ref, watch, computed,
+  onMounted, ref,
 } from 'vue';
-import {
-  mapGetters,
-  mapActions,
-} from '@/shared/vuex/vuex.helpers';
 import AppDashboardActivities from '@/modules/dashboard/components/dashboard-activities.vue';
 import AppDashboardMembers from '@/modules/dashboard/components/dashboard-members.vue';
 import AppDashboardOrganizations from '@/modules/dashboard/components/dashboard-organizations.vue';
@@ -68,20 +59,15 @@ import AppDashboardProjectGroup from '@/modules/dashboard/components/dashboard-p
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
-import CrDashboardIntegrations from '@/modules/dashboard/components/dashboard-integrations.vue';
+import LfDashboardIntegrations from '@/modules/dashboard/components/dashboard-integrations.vue';
 
 const authStore = useAuthStore();
 const { tenant } = storeToRefs(authStore);
-const { cubejsApi } = mapGetters('widget');
-const { doFetch } = mapActions('report');
-const { getCubeToken } = mapActions('widget');
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const scrolled = ref(false);
-
-const loadingCubeToken = computed(() => !!cubejsApi.value);
 
 const handleScroll = (event) => {
   scrolled.value = event.target.scrollTop > 20;
@@ -89,19 +75,6 @@ const handleScroll = (event) => {
 
 onMounted(() => {
   window.analytics.page('Dashboard');
-
-  if (tenant.value) {
-    doFetch({});
-  }
-});
-
-watch(selectedProjectGroup, (updatedProjectGroup, previousProjectGroup) => {
-  if (updatedProjectGroup?.id !== previousProjectGroup?.id) {
-    getCubeToken();
-  }
-}, {
-  deep: true,
-  immediate: true,
 });
 </script>
 
