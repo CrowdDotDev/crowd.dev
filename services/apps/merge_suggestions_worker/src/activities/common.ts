@@ -32,31 +32,40 @@ export async function getAllTenants(): Promise<ITenant[]> {
 }
 
 export async function getLLMResult(
-  suggestions: ILLMConsumableMember[] | ILLMConsumableOrganization[],
+  suggestion: ILLMConsumableMember[] | ILLMConsumableOrganization[],
   modelId: string,
   prompt: string,
+  region: string,
+  modelSpecificArgs: any,
 ): Promise<string> {
-  if (suggestions.length !== 2) {
-    throw new Error('Exactly 2 suggestions are required for LLM comparison')
+  if (suggestion.length !== 2) {
+    console.log(suggestion)
+    throw new Error('Exactly 2 entities are required for LLM comparison')
   }
   const client = new BedrockRuntimeClient({
     credentials: {
       accessKeyId: process.env['CROWD_AWS_BEDROCK_ACCESS_KEY_ID'],
       secretAccessKey: process.env['CROWD_AWS_BEDROCK_SECRET_ACCESS_KEY'],
     },
-    region: process.env['CROWD_AWS_BEDROCK_REGION'],
+    region,
   })
-
-  const promptPrologue = `[INST] ${JSON.stringify(suggestions)} [/INST]`
-
-  console.log('Prompt:', promptPrologue)
 
   const command = new InvokeModelCommand({
     body: JSON.stringify({
-      prompt: `${promptPrologue} ${prompt}`,
-      max_gen_len: 512,
-      temperature: 0.5,
-      top_p: 0.9,
+      messages: [
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'text',
+              text: `Your task is to analyze the following two json documents. <json> ${JSON.stringify(
+                suggestion,
+              )} </json>. ${prompt}`,
+            },
+          ],
+        },
+      ],
+      ...modelSpecificArgs,
     }),
     modelId,
     accept: 'application/json',
