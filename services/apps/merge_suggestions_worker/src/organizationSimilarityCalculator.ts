@@ -38,7 +38,10 @@ class OrganizationSimilarityCalculator {
       }
 
       // check displayName match
-      if (similarOrganization.keyword_displayName === primaryOrganization.keyword_displayName) {
+      if (
+        similarOrganization.keyword_displayName.toLowerCase() ===
+        primaryOrganization.keyword_displayName.toLowerCase()
+      ) {
         return this.decideSimilarityUsingAdditionalChecks(primaryOrganization, similarOrganization)
       }
 
