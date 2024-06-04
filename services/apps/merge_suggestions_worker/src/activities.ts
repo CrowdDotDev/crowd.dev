@@ -31,4 +31,5 @@ export {
   addOrganizationToMerge,
   getLLMResult,
   getMembersForLLMConsumption,
+  getOrganizationsForLLMConsumption,
 }
