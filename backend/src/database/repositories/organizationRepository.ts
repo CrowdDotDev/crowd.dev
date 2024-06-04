@@ -21,7 +21,7 @@ import {
   SegmentProjectNestedData,
   SyncStatus,
 } from '@crowd/types'
-import lodash, { chunk } from 'lodash'
+import lodash, { chunk, uniq } from 'lodash'
 import Sequelize, { QueryTypes } from 'sequelize'
 import {
   captureApiChange,
@@ -30,6 +30,7 @@ import {
   organizationUpdateAction,
 } from '@crowd/audit-logs'
 import validator from 'validator'
+import { findManyLfxMemberships } from '@crowd/data-access-layer/src/lfx_memberships'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
@@ -1436,6 +1437,19 @@ class OrganizationRepository {
           similarity: o.similarity,
         }))
       }
+
+      const qx = SequelizeRepository.getQueryExecutor(options)
+      const organizationIds = uniq(result.map((r) => r.organizations[0].id))
+      const lfxMemberships = await findManyLfxMemberships(qx, {
+        organizationIds,
+        tenantId: options.currentTenant.id,
+        segmentIds,
+      })
+      result.forEach((r) => {
+        r.organizations.forEach((org) => {
+          org.lfxMembership = lfxMemberships.find((m) => m.organizationId === org.id)
+        })
+      })
 
       return { rows: result, count: orgs[0].total_count, limit: args.limit, offset: args.offset }
     }
