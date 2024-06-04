@@ -54,7 +54,7 @@ class OrganizationSimilarityCalculator {
       }
     }
 
-    // calculate similarity percentage
+    // calculate similarity percentage based on smallest edit distance
     const identityLength = similarPrimaryIdentity?.string_name.length || 0
 
     if (identityLength < smallestEditDistance) {
