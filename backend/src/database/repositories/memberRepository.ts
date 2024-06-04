@@ -2262,8 +2262,26 @@ class MemberRepository {
 
     const memberIds = translatedRows.map((r) => r.id)
     if (memberIds.length > 0) {
-      const seq = SequelizeRepository.getSequelize(options)
+      const qx = SequelizeRepository.getQueryExecutor(options)
+      const organizationIds = uniq(
+        translatedRows.reduce((acc, r) => {
+          acc.push(...r.organizations.map((o) => o.id))
+          return acc
+        }, []),
+      )
+      const lfxMemberships = await findManyLfxMemberships(qx, {
+        tenantId: options.currentTenant.id,
+        organizationIds,
+        segmentIds: segments,
+      })
 
+      for (const row of translatedRows) {
+        for (const o of row.organizations) {
+          o.lfxMembership = lfxMemberships.find((m) => m.organizationId === o.id)
+        }
+      }
+
+      const seq = SequelizeRepository.getSequelize(options)
       const lastActivities = await seq.query(
         `
             SELECT
