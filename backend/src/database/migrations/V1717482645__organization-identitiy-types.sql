@@ -275,6 +275,117 @@ where name is not null;
 
 -- endregion
 
+-- region migrate organization.website
+
+do
+$$
+    declare
+        org organizations%rowtype;
+    begin
+        for org in select * from organizations where website is not null
+            loop
+                insert into "organizationIdentities"("organizationId", "tenantId", platform, type, value, verified)
+                values (org.id, org."tenantId", 'custom', 'primary-domain', org.website, true);
+            end loop;
+    end;
+$$;
+
+-- endregion
+
+-- region move alternativeDomains
+
+do
+$$
+    declare
+        org    organizations%rowtype;
+        domain text;
+    begin
+        for org in select *
+                   from organizations
+                   where "alternativeDomains" is not null
+                     and cardinality("alternativeDomains") > 0
+            loop
+                for domain in (select distinct unnest_domains
+                               from (select unnest("alternativeDomains") as unnest_domains
+                                     from organizations
+                                     where id = org.id) as flattened_domains)
+                    loop
+                        insert into "organizationIdentities"("organizationId", "tenantId", platform, type, value, verified)
+                        values (org.id, org."tenantId", 'custom', 'alternative-domain', domain, false);
+                    end loop;
+            end loop;
+    end;
+$$;
+
+-- endregion
+
+-- region move affiliatedProfiles
+
+do
+$$
+    declare
+        org     organizations%rowtype;
+        profile text;
+    begin
+        for org in select *
+                   from organizations
+                   where "affiliatedProfiles" is not null
+                     and cardinality("affiliatedProfiles") > 0
+            loop
+                for profile in (select distinct unnest_profiles
+                                from (select unnest("affiliatedProfiles") as unnest_profiles
+                                      from organizations
+                                      where id = org.id) as flattened_profiles)
+                    loop
+                        insert into "organizationIdentities"("organizationId", "tenantId", platform, type, value, verified)
+                        values (org.id, org."tenantId", 'custom', 'affiliated-profile', profile, false);
+                    end loop;
+            end loop;
+    end;
+$$;
+
+-- endregion
+
+-- region move weakIdentities
+
+do
+$$
+    declare
+        org   organizations%rowtype;
+        e     jsonb;
+        clear boolean;
+    begin
+        for org in select *
+                   from organizations
+                   where "weakIdentities" is not null
+                     and jsonb_array_length("weakIdentities") > 0
+            loop
+                clear := false;
+                for e in select value from jsonb_array_elements(org."weakIdentities") as value
+                    loop
+                        if (e ->> 'platform') = 'twitter' then
+                            insert into "organizationIdentities"("organizationId", "tenantId", platform, type, value, verified)
+                            values (org.id, org."tenantId", 'custom', 'username', e ->> 'name', false);
+
+                            clear := true;
+                        end if;
+
+                        if (e ->> 'platform') = 'linkedin' then
+                            insert into "organizationIdentities"("organizationId", "tenantId", platform, type, value, verified)
+                            values (org.id, org."tenantId", 'custom', 'username', 'company:' || (e ->> 'name'), false);
+
+                            clear := true;
+                        end if;
+                    end loop;
+                if clear then
+                    update organizations set "weakIdentities" = jsonb_build_array() where id = org.id;
+                end if;
+            end loop;
+    end;
+$$;
+
+-- endregion
+
 -- region duplicate cleanup so that we can setup primary key
 
 do
@@ -341,5 +452,17 @@ alter table "organizationIdentities"
 
 alter table "organizationIdentities"
     add primary key ("organizationId", platform, type, value);
+
+alter table organizations
+    rename column website to old_website;
+
+alter table organizations
+    rename column "alternativeDomains" to "old_alternativeDomains";
+
+alter table organizations
+    rename column "affiliatedProfiles" to "old_affiliatedProfiles";
+
+alter table organizations
+    rename column "weakIdentities" to "old_weakIdentities";
 
 -- endregion
