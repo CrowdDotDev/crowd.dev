@@ -2404,10 +2404,18 @@ class OrganizationRepository {
       options,
     )
 
+    const qx = SequelizeRepository.getQueryExecutor(options)
+    const lfxMemberships = await findManyLfxMemberships(qx, {
+      tenantId: options.currentTenant.id,
+      organizationIds,
+      segmentIds: [originalSegment],
+    })
+
     return {
       rows: organizations.rows.map((o) => {
         o.activityCount = organizationMap[o.id].activityCount.value
         o.activeDaysCount = organizationMap[o.id].activeDaysCount.value
+        o.lfxMembership = lfxMemberships.find((m) => m.organizationId === o.id)
         return o
       }),
       count: organizations.count,
