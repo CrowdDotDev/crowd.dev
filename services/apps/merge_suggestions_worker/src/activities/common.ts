@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ITenant } from '@crowd/data-access-layer/src/old/apps/merge_suggestions_worker//types'
 import { svc } from '../main'
 import TenantRepository from '@crowd/data-access-layer/src/old/apps/merge_suggestions_worker/tenant.repo'
