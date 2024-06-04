@@ -25,6 +25,77 @@ create unique index "uix_organizationIdentities_plat_val_typ_tenantId_verified"
 
 -- endregion
 
+-- region migrate organization.website
+do
+$$
+    declare
+        org      organizations%rowtype;
+        verified boolean;
+    begin
+        for org in select * from organizations where website is not null
+            loop
+                -- determine if it's verified or not
+                verified := false;
+
+                if (select count(*) from "organizationIdentities" where "organizationId" = org.id) = 0 then
+                    verified := true;
+                elseif (select count(*)
+                        from "memberOrganizations"
+                        where "organizationId" = org.id
+                          and source in ('enrichment', 'ui')) > 0 then
+                    verified := true;
+                end if;
+
+                if verified then
+                    insert into "organizationIdentities"("organizationId", "tenantId", platform, type, value, verified)
+                    values (org.id, org."tenantId", 'custom', 'primary-domain', org.website, true);
+                else
+                    insert into "organizationIdentities"("organizationId", "tenantId", platform, type, value, verified)
+                    values (org.id, org."tenantId", 'custom', 'primary-domain', org.website, false);
+
+                    if org."lastEnrichedAt" is not null and not org."manuallyCreated" then
+                        update organizations
+                        set "phoneNumbers"                = null,
+                            tags                          = null,
+                            employees                     = null,
+                            "revenueRange"                = null,
+                            location                      = null,
+                            "employeeCountByCountry"      = null,
+                            type                          = null,
+                            "geoLocation"                 = null,
+                            size                          = null,
+                            ticker                        = null,
+                            headline                      = null,
+                            profiles                      = null,
+                            naics                         = null,
+                            address                       = null,
+                            industry                      = null,
+                            founded                       = null,
+                            "allSubsidiaries"             = null,
+                            "alternativeNames"            = null,
+                            "averageEmployeeTenure"       = null,
+                            "averageTenureByLevel"        = null,
+                            "averageTenureByRole"         = null,
+                            "directSubsidiaries"          = null,
+                            "employeeChurnRate"           = null,
+                            "employeeCountByMonth"        = null,
+                            "employeeGrowthRate"          = null,
+                            "employeeCountByMonthByLevel" = null,
+                            "employeeCountByMonthByRole"  = null,
+                            "gicsSector"                  = null,
+                            "grossAdditionsByMonth"       = null,
+                            "grossDeparturesByMonth"      = null,
+                            "ultimateParent"              = null,
+                            "immediateParent"             = null
+                        where id = org.id;
+                    end if;
+                end if;
+            end loop;
+    end;
+$$;
+
+-- endregion
+
 -- region emails
 
 -- migrate email identities to primary-domain identities
@@ -275,20 +346,48 @@ where name is not null;
 
 -- endregion
 
--- region migrate organization.website
+-- region move organizations.github
 
-do
-$$
-    declare
-        org organizations%rowtype;
-    begin
-        for org in select * from organizations where website is not null
-            loop
-                insert into "organizationIdentities"("organizationId", "tenantId", platform, type, value, verified)
-                values (org.id, org."tenantId", 'custom', 'primary-domain', org.website, true);
-            end loop;
-    end;
-$$;
+insert into "organizationIdentities"("organizationId", "tenantId", platform, type, value, verified)
+select id, "tenantId", 'github', 'username', github ->> 'handle', false
+from organizations o
+where (github ->> 'handle') is not null
+  and not exists (select 1
+                  from "organizationIdentities"
+                  where "organizationId" = o.id
+                    and platform = 'github'
+                    and type = 'username'
+                    and value = (o.github ->> 'handle'));
+
+-- endregion
+
+-- region move organizations.twitter
+
+insert into "organizationIdentities"("organizationId", "tenantId", platform, type, value, verified)
+select id, "tenantId", 'twitter', 'username', twitter ->> 'handle', false
+from organizations o
+where (twitter ->> 'handle') is not null
+  and not exists (select 1
+                  from "organizationIdentities"
+                  where "organizationId" = o.id
+                    and platform = 'twitter'
+                    and type = 'username'
+                    and value = (o.twitter ->> 'handle'));
+
+-- endregion
+
+-- region move organizations.crunchbase
+
+insert into "organizationIdentities"("organizationId", "tenantId", platform, type, value, verified)
+select id, "tenantId", 'crunchbase', 'username', crunchbase ->> 'handle', false
+from organizations o
+where (crunchbase ->> 'handle') is not null
+  and not exists (select 1
+                  from "organizationIdentities"
+                  where "organizationId" = o.id
+                    and platform = 'crunchbase'
+                    and type = 'username'
+                    and value = (o.crunchbase ->> 'handle'));
 
 -- endregion
 
@@ -311,7 +410,7 @@ $$
                                      where id = org.id) as flattened_domains)
                     loop
                         insert into "organizationIdentities"("organizationId", "tenantId", platform, type, value, verified)
-                        values (org.id, org."tenantId", 'custom', 'alternative-domain', domain, false);
+                        values (org.id, org."tenantId", 'enrichment', 'alternative-domain', domain, false);
                     end loop;
             end loop;
     end;
@@ -338,7 +437,7 @@ $$
                                       where id = org.id) as flattened_profiles)
                     loop
                         insert into "organizationIdentities"("organizationId", "tenantId", platform, type, value, verified)
-                        values (org.id, org."tenantId", 'custom', 'affiliated-profile', profile, false);
+                        values (org.id, org."tenantId", 'enrichment', 'affiliated-profile', profile, false);
                     end loop;
             end loop;
     end;
@@ -365,15 +464,14 @@ $$
                     loop
                         if (e ->> 'platform') = 'twitter' then
                             insert into "organizationIdentities"("organizationId", "tenantId", platform, type, value, verified)
-                            values (org.id, org."tenantId", 'custom', 'username', e ->> 'name', false);
+                            values (org.id, org."tenantId", 'enrichment', 'username', e ->> 'name', false);
 
                             clear := true;
                         end if;
 
                         if (e ->> 'platform') = 'linkedin' then
                             insert into "organizationIdentities"("organizationId", "tenantId", platform, type, value, verified)
-                            values (org.id, org."tenantId", 'custom', 'username', 'company:' || (e ->> 'name'), false);
-
+                            values (org.id, org."tenantId", 'enrichment', 'username', 'company:' || (e ->> 'name'), false);
                             clear := true;
                         end if;
                     end loop;
@@ -464,5 +562,9 @@ alter table organizations
 
 alter table organizations
     rename column "weakIdentities" to "old_weakIdentities";
+
+-- endregion
+
+-- region delete organizations that don't have website and no identities
 
 -- endregion
