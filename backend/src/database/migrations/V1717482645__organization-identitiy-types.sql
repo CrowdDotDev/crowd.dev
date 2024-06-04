@@ -1,9 +1,3 @@
--- TODO uros
--- alter table organizations
---     add column "searchSyncedAt" timestamptz null;
-
--- region migration script
-
 -- region first part of schema changes
 
 alter table organizations
@@ -16,7 +10,7 @@ alter table "organizationIdentities"
     add column type varchar(255) null;
 
 alter table "organizationIdentities"
-    add column value varchar(255) null;
+    add column value text null;
 
 -- organizationId, platform, name
 alter table "organizationIdentities"
@@ -24,6 +18,10 @@ alter table "organizationIdentities"
 
 alter table "organizationIdentities"
     alter column name drop not null;
+
+create unique index "uix_organizationIdentities_plat_val_typ_tenantId_verified"
+    on "organizationIdentities" (platform, value, type, "tenantId", verified)
+    where (verified = true and type = 'primary-domain');
 
 -- endregion
 
@@ -132,7 +130,54 @@ where platform = 'github'
 
 -- endregion
 
+-- region linkedin
+
+update "organizationIdentities"
+set value    = 'company:' || name,
+    name     = null,
+    verified = true,
+    type     = 'username',
+    url      = null
+where platform = 'linkedin'
+  and (
+    url ilike 'linkedin.com/company/%' or
+    url ilike 'https://linkedin.com/company/%' or
+    url ilike 'https://www.linkedin.com/company/%' or
+    url ilike 'www.linkedin.com/company/%'
+    );
+
+update "organizationIdentities"
+set value    = 'school:' || name,
+    name     = null,
+    verified = true,
+    type     = 'username',
+    url      = null
+where platform = 'linkedin'
+  and (
+    url ilike 'linkedin.com/school/%' or
+    url ilike 'https://linkedin.com/school/%' or
+    url ilike 'https://www.linkedin.com/school/%' or
+    url ilike 'www.linkedin.com/school/%'
+    );
+
+update "organizationIdentities"
+set value    = 'showcase:' || name,
+    name     = null,
+    verified = true,
+    type     = 'username',
+    url      = null
+where platform = 'linkedin'
+  and (
+    url ilike 'linkedin.com/showcase/%' or
+    url ilike 'https://linkedin.com/showcase/%' or
+    url ilike 'https://www.linkedin.com/showcase/%' or
+    url ilike 'www.linkedin.com/showcase/%'
+    );
+
+-- endregion
+
 -- region enrichment
+
 -- migrate platform=enrichment identities as they are just names
 with distinct_names as (select "organizationId",
                                array_agg(distinct name) as names
@@ -195,8 +240,22 @@ where platform = 'custom'
 
 -- endregion
 
--- region names
+-- region crunchbase
+
+update "organizationIdentities"
+set type     = 'username',
+    url      = null,
+    value    = name,
+    name     = null,
+    verified = true
+where platform = 'crunchbase';
+
+-- endregion
+
+-- region just names left
+
 -- migrate organizationIdentities.name to organization.names
+
 with distinct_names as (select "organizationId",
                                array_agg(distinct name) as names
                         from "organizationIdentities"
@@ -210,6 +269,63 @@ set names = (select array(
 from distinct_names dn
 where o.id = dn."organizationId";
 
+delete
+from "organizationIdentities"
+where name is not null;
+
+-- endregion
+
+-- region duplicate cleanup so that we can setup primary key
+
+do
+$$
+    declare
+        i     record;
+        count int;
+    begin
+        for i in select "organizationId", value, type, platform, count(*) as count
+                 from "organizationIdentities"
+                 group by "organizationId", value, type, platform
+                 having count(*) > 1
+            loop
+                -- try to delete the unverified duplicates first
+                with row_to_delete as (select ctid
+                                       from "organizationIdentities"
+                                       where "organizationId" = i."organizationId"
+                                         and platform = i.platform
+                                         and type = i.type
+                                         and value = i.value
+                                         and verified = false
+                                       limit i.count - 1)
+                delete
+                from "organizationIdentities"
+                where ctid in (select ctid from row_to_delete);
+
+                -- if we have still duplicates left then delete verified ones until there is only one left
+                select count(*)
+                into count
+                from "organizationIdentities"
+                where "organizationId" = i."organizationId"
+                  and platform = i.platform
+                  and type = i.type
+                  and value = i.value;
+                if count > 1 then
+                    with row_to_delete as (select ctid
+                                           from "organizationIdentities"
+                                           where "organizationId" = i."organizationId"
+                                             and platform = i.platform
+                                             and type = i.type
+                                             and value = i.value
+                                             and verified = true
+                                           limit count - 1)
+                    delete
+                    from "organizationIdentities"
+                    where ctid in (select ctid from row_to_delete);
+                end if;
+            end loop;
+    end;
+$$;
+
 -- endregion
 
 -- region final schema changes
@@ -218,15 +334,12 @@ alter table "organizationIdentities"
     drop column name;
 
 alter table "organizationIdentities"
-    alter column value set not null;
+    drop column url;
 
-create unique index "uix_organizationIdentities_plat_val_typ_tenantId_verified"
-    on "organizationIdentities" (platform, value, type, "tenantId", verified)
-    where (verified = true and type = 'primary-domain');
+alter table "organizationIdentities"
+    alter column value set not null;
 
 alter table "organizationIdentities"
     add primary key ("organizationId", platform, type, value);
 
--- endregion
-    
 -- endregion
