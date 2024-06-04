@@ -1,3 +1,5 @@
+import { Platform } from '@/shared/modules/platform/types/Platform';
+
 export interface OrganizationAttribute {
   default: string;
   sourceId?: any;
@@ -12,12 +14,22 @@ export enum OrganizationSource {
   UI = 'ui',
 }
 
+export enum OrganizationIdentityType {
+  USERNAME = 'username',
+  PRIMARY_DOMAIN = 'primary-domain',
+  ALTERNATIVE_DOMAIN = 'alternative-domain',
+  AFFILIATED_PROFILE = 'affiliated-profile',
+}
+
 export interface OrganizationIdentity {
-    name: string;
-    platform: string;
-    url: string | null;
-    username: string;
-    organizationId?: string;
+    organizationId: string;
+    platform: Platform;
+    type: OrganizationIdentityType;
+    value: string;
+    verified: boolean;
+    sourceId: string;
+    tenantId: string;
+    integrationId: string;
 }
 
 export interface Organization{

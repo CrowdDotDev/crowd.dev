@@ -1,6 +1,9 @@
 import { CrowdIntegrations } from '@/integrations/integrations-config';
-import { withHttp } from '@/utils/string';
-import { Organization } from '@/modules/organization/types/Organization';
+import {
+  Organization,
+  OrganizationIdentity,
+  OrganizationIdentityType,
+} from '@/modules/organization/types/Organization';
 import { Platform } from '@/shared/modules/platform/types/Platform';
 
 export default ({
@@ -10,26 +13,37 @@ export default ({
   organization: Partial<Organization>;
   order: Platform[];
 }) => {
-  const {
-    identities = [],
-    emails = [],
-    phoneNumbers = [],
-  } = organization || {};
+  const { identities = [], phoneNumbers = [] } = organization || {};
 
   const getIdentityHandles = (platform: string) => {
-    const parsedIdentities = identities?.length ? identities : [];
-
     if (platform === Platform.CUSTOM) {
-      const customPlatforms = parsedIdentities.filter(
-        (i) => (!order.includes(i.platform) || i.platform === Platform.CUSTOM)
-          && i.platform !== Platform.EMAIL
-          && i.platform !== Platform.EMAILS,
+      const mainPlatforms = (Object.values(Platform) as string[]).filter(
+        (p) => p !== Platform.CUSTOM,
       );
 
-      return customPlatforms;
+      return (identities || []).filter(
+        (i) => !mainPlatforms.includes(i.platform)
+          && [OrganizationIdentityType.USERNAME].includes(i.type),
+      );
     }
 
-    return parsedIdentities.filter((i) => i.platform === platform) || [];
+    return (identities || []).filter(
+      (i) => i.platform === platform
+        && [OrganizationIdentityType.USERNAME].includes(i.type),
+    );
+  };
+
+  const getIdentityLink = (
+    identity: OrganizationIdentity,
+    platform: string,
+  ) => {
+    if (!CrowdIntegrations.getConfig(platform)?.usernameLink) {
+      return null;
+    }
+
+    return CrowdIntegrations.getConfig(platform)?.usernameLink({
+      username: identity.value,
+    });
   };
 
   const getIdentities = (): {
@@ -37,85 +51,71 @@ export default ({
       handle: string;
       link: string;
     }[];
-  } => order.reduce((acc, p) => {
-    const handles = getIdentityHandles(p);
+  } => order.reduce((acc, platform) => {
+    const handles = getIdentityHandles(platform);
 
-    if (
-      (p === Platform.CUSTOM || p === Platform.PHONE_NUMBERS)
-        && handles.length
-    ) {
+    if (platform === Platform.CUSTOM && handles.length) {
       const sortedCustomIdentities = handles.sort((a, b) => {
         const platformComparison = a.platform.localeCompare(b.platform);
 
         if (platformComparison === 0) {
           // If platforms are equal, sort by name
-          return a.name.localeCompare(b.name);
+          return a.value.localeCompare(b.value);
         }
 
         return platformComparison; // Otherwise, sort by platform
       });
 
-      sortedCustomIdentities.forEach((i) => {
-        if (acc[i.platform]?.length) {
-          acc[i.platform].push({
-            handle: i.name,
-            link: i.url ? withHttp(i.url) : null,
+      sortedCustomIdentities.forEach((identity) => {
+        if (acc[identity.platform]?.length) {
+          acc[identity.platform].push({
+            handle: identity.value,
+            link: getIdentityLink(identity, platform),
+            verified: identity.verified,
           });
         } else {
-          acc[i.platform] = [
+          acc[identity.platform] = [
             {
-              handle: i.name,
-              link: i.url ? withHttp(i.url) : null,
+              handle: identity.value,
+              link: getIdentityLink(identity, platform),
+              verified: identity.verified,
             },
           ];
         }
       });
     } else {
-      const handlesValues = handles.map((i) => ({
-        handle:
-            CrowdIntegrations.getConfig(i.platform)?.organization?.handle(i)
-            ?? i.name
-            ?? CrowdIntegrations.getConfig(i.platform)?.name
-            ?? i.platform,
-        link: i.url ? withHttp(i.url) : null,
+      const platformHandlesValues = handles.map((identity) => ({
+        handle: identity.value,
+        link: getIdentityLink(identity, platform),
+        verified: identity.verified,
       }));
 
-      if (handlesValues.length) {
-        acc[p] = handlesValues;
+      if (platformHandlesValues.length) {
+        acc[platform] = platformHandlesValues;
       }
     }
 
     return acc;
-  }, {});
+  }, {} as Record<Platform, { handle: string; link: string; verified: boolean }[]>);
 
   const getEmails = (): {
     handle: string;
-    link: string;
+    link: string | null;
   }[] => {
     const parsedIdentities = identities?.length ? identities : [];
 
-    const rootEmails = (emails || [])
-      .filter((e) => !!e)
-      .map((e) => ({
-        link: `mailto:${e}`,
-        handle: e,
-      }));
-
     const identitiesEmails = parsedIdentities
-      .filter((i) => i.platform === 'emails')
-      .map((i) => ({
-        link: i.url ? `mailto:${i.url}` : null,
-        handle: i.name,
+      .filter((identity) => [
+        OrganizationIdentityType.PRIMARY_DOMAIN,
+        OrganizationIdentityType.ALTERNATIVE_DOMAIN,
+        OrganizationIdentityType.AFFILIATED_PROFILE,
+      ].includes(identity.type))
+      .map((identity) => ({
+        link: null,
+        handle: identity.value,
       }));
 
-    const identitiesEmail = parsedIdentities
-      .filter((i) => i.platform === 'email')
-      .map((i) => ({
-        link: i.url ? `mailto:${i.url}` : null,
-        handle: i.name,
-      }));
-
-    return [...rootEmails, ...identitiesEmails, ...identitiesEmail];
+    return identitiesEmails;
   };
 
   const getPhoneNumbers = (): {
