@@ -138,7 +138,7 @@ const lastSynced = computed(() => {
   if (props.integration.platform === 'git') {
     return {
       absolute: moment().subtract(1, 'hours').format('MMM DD, YYYY HH:mm'),
-      relative: 'Last data detected and synced 1 hour ago',
+      relative: 'Last checked 1 hour ago',
     };
   }
   return {
