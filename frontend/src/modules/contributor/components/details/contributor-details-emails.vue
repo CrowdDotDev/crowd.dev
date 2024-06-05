@@ -29,7 +29,7 @@
             target="_blank"
             rel="noopener noreferrer"
             class="text-medium cursor-pointer !text-black underline decoration-dashed
-             decoration-gray-400 underline-offset-4 hover:decoration-gray-900"
+             decoration-gray-400 underline-offset-4 hover:decoration-gray-900 max-w-52 truncate"
           >
             {{ email.value }}
           </a>
