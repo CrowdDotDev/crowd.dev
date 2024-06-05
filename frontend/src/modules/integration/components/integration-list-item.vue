@@ -89,7 +89,8 @@
                 >
                   <i class="ri-link-unlink !text-red-500" /><span
                     class="text-red-500"
-                  >Disconnect</span>
+                    >Disconnect</span
+                  >
                 </el-dropdown-item>
               </template>
             </el-dropdown>
@@ -101,20 +102,20 @@
 </template>
 
 <script setup>
-import { useStore } from 'vuex';
-import { computed, onMounted, ref } from 'vue';
-import AppIntegrationConnect from '@/modules/integration/components/integration-connect.vue';
-import { isCurrentDateAfterGivenWorkingDays } from '@/utils/date';
-import { ERROR_BANNER_WORKING_DAYS_DISPLAY } from '@/modules/integration/integration-store';
-import moment from 'moment';
-import LfButton from '@/ui-kit/button/Button.vue';
-import AppIntegrationStatus from '@/modules/integration/components/integration-status.vue';
-import AppIntegrationProgressBar from '@/modules/integration/components/integration-progress-bar.vue';
-import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { useStore } from "vuex";
+import { computed, onMounted, ref } from "vue";
+import AppIntegrationConnect from "@/modules/integration/components/integration-connect.vue";
+import { isCurrentDateAfterGivenWorkingDays } from "@/utils/date";
+import { ERROR_BANNER_WORKING_DAYS_DISPLAY } from "@/modules/integration/integration-store";
+import moment from "moment";
+import LfButton from "@/ui-kit/button/Button.vue";
+import AppIntegrationStatus from "@/modules/integration/components/integration-status.vue";
+import AppIntegrationProgressBar from "@/modules/integration/components/integration-progress-bar.vue";
+import useProductTracking from "@/shared/modules/monitoring/useProductTracking";
 import {
   EventType,
   FeatureEventKey,
-} from '@/shared/modules/monitoring/types/event';
+} from "@/shared/modules/monitoring/types/event";
 
 const store = useStore();
 const props = defineProps({
@@ -135,50 +136,53 @@ const props = defineProps({
 const { trackEvent } = useProductTracking();
 
 onMounted(() => {
-  moment.updateLocale('en', {
+  moment.updateLocale("en", {
     relativeTime: {
-      s: '1s',
-      ss: '%ds',
-      m: '1min',
-      mm: '%dmin',
-      h: '1h',
-      hh: '%dh',
-      d: '1d',
-      dd: '%dd',
+      s: "1s",
+      ss: "%ds",
+      m: "1min",
+      mm: "%dmin",
+      h: "1h",
+      hh: "%dh",
+      d: "1d",
+      dd: "%dd",
     },
   });
 });
 
 const computedClass = computed(() => ({
-  'integration-custom': props.integration.platform === 'custom',
+  "integration-custom": props.integration.platform === "custom",
 }));
 
-const selectedProgress = computed(() => (props.progress || []).find((p) => p.platform === props.integration.platform));
-
-const isDone = computed(
-  () => props.integration.status === 'done'
-    || (props.integration.status === 'error'
-      && !isCurrentDateAfterGivenWorkingDays(
-        props.integration.updatedAt,
-        ERROR_BANNER_WORKING_DAYS_DISPLAY,
-      )),
+const selectedProgress = computed(() =>
+  (props.progress || []).find((p) => p.platform === props.integration.platform)
 );
 
-const isInProgress = computed(() => props.integration.status === 'in-progress');
+const isDone = computed(
+  () =>
+    props.integration.status === "done" ||
+    (props.integration.status === "error" &&
+      !isCurrentDateAfterGivenWorkingDays(
+        props.integration.updatedAt,
+        ERROR_BANNER_WORKING_DAYS_DISPLAY
+      ))
+);
+
+const isInProgress = computed(() => props.integration.status === "in-progress");
 
 const lastSynced = computed(() => {
-  if (props.integration.platform === 'git') {
+  if (props.integration.platform === "git") {
     return {
-      absolute: moment().subtract(1, 'hours').format('MMM DD, YYYY HH:mm'),
-      relative: 'Last data checked 1 hour ago',
+      absolute: moment().subtract(1, "hours").format("MMM DD, YYYY HH:mm"),
+      relative: "Last data checked 1 hour ago",
     };
   }
   return {
     absolute: moment(props.integration.lastProcessedAt).format(
-      'MMM DD, YYYY HH:mm',
+      "MMM DD, YYYY HH:mm"
     ),
     relative: `Last data detected and synced ${moment(
-      props.integration.lastProcessedAt,
+      props.integration.lastProcessedAt
     ).fromNow()}`,
   };
 });
@@ -195,14 +199,14 @@ const handleDisconnect = async () => {
   });
 
   loadingDisconnect.value = true;
-  await store.dispatch('integration/doDestroy', props.integration.id);
+  await store.dispatch("integration/doDestroy", props.integration.id);
   loadingDisconnect.value = false;
 };
 </script>
 
 <script>
 export default {
-  name: 'AppIntegrationListItem',
+  name: "AppIntegrationListItem",
 };
 </script>
 
