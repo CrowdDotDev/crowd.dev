@@ -1,5 +1,5 @@
 <template>
-  <div v-if="jobTitle || organization" class="flex items-center gap-1.5 text-small text-gray-500">
+  <div v-if="jobTitle" class="flex items-center gap-1.5 text-small text-gray-500">
     <p class="max-w-42 truncate">
       {{ jobTitle }} <span v-if="organization">at</span>
     </p>
