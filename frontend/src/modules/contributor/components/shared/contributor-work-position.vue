@@ -3,7 +3,7 @@
     <p class="max-w-42 truncate">
       {{ jobTitle }} <span v-if="organization">at</span>
     </p>
-    <img v-if="organization" :src="organization.logo" :alt="organization.displayName" class="w-4 h-4 rounded border border-gray-200" />
+    <img v-if="organization?.logo" :src="organization.logo" :alt="organization.displayName" class="w-4 h-4 rounded border border-gray-200" />
     <router-link
       v-if="organization"
       :to="{

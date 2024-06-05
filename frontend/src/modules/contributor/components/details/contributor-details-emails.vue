@@ -46,7 +46,7 @@
         </p>
       </div>
     </article>
-    <div v-if="emails.length === 0" class="pt-2 flex flex-col items-center">
+    <div v-if="emails(props.contributor).length === 0" class="pt-2 flex flex-col items-center">
       <lf-icon name="mail-line" :size="40" class="text-gray-300" />
       <p class="text-center pt-3 text-medium text-gray-400">
         No emails
