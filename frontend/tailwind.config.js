@@ -723,7 +723,8 @@ module.exports = {
       screen: '100vh',
       min: 'min-content',
       max: 'max-content',
-      fit: 'fit-content'
+      fit: 'fit-content',
+      ...spacing,
     }),
     maxWidth: ({ theme, breakpoints }) => ({
       none: 'none',
@@ -758,14 +759,16 @@ module.exports = {
       screen: '100vh',
       min: 'min-content',
       max: 'max-content',
-      fit: 'fit-content'
+      fit: 'fit-content',
+      ...spacing,
     }),
     minWidth: {
       0: '0px',
       full: '100%',
       min: 'min-content',
       max: 'max-content',
-      fit: 'fit-content'
+      fit: 'fit-content',
+      ...spacing
     },
     objectPosition: {
       bottom: 'bottom',

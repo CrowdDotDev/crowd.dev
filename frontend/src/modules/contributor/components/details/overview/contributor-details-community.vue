@@ -9,18 +9,20 @@
           <p class="text-tiny text-secondary-300 mb-2">
             Engagement level
           </p>
+          <lf-contributor-engagement-level :contributor="{score: 5}" />
         </article>
         <article class="px-4 h-full w-1/4 border-l border-gray-200">
           <p class="text-tiny text-secondary-300 mb-2">
             Avg. sentiment
           </p>
+          <lf-contributor-sentiment :contributor="props.contributor" />
         </article>
         <article class="px-4 h-full w-1/4 border-l border-gray-200">
           <p class="text-tiny text-secondary-300 mb-2">
             # of activities
           </p>
           <p class="text-small">
-            2000
+            {{ props.contributor.activityCount || '-' }}
           </p>
         </article>
         <article class="px-4 h-full w-1/4 border-l border-gray-200">
@@ -28,7 +30,7 @@
             Joined date
           </p>
           <p class="text-small">
-            July 10, 2022
+            {{ moment(props.contributor.joinedAt).format('MMM DD, YYYY') }}
           </p>
         </article>
       </div>
@@ -37,8 +39,15 @@
 </template>
 
 <script setup lang="ts">
-
 import LfCard from '@/ui-kit/card/Card.vue';
+import { Contributor } from '@/modules/contributor/types/Contributor';
+import moment from 'moment';
+import LfContributorSentiment from '@/modules/contributor/components/shared/contributor-sentiment.vue';
+import LfContributorEngagementLevel from '@/modules/contributor/components/shared/contributor-engagement-level.vue';
+
+const props = defineProps<{
+  contributor: Contributor,
+}>();
 </script>
 <script lang="ts">
 export default {

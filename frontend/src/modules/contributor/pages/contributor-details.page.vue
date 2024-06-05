@@ -13,6 +13,7 @@
         <lf-contributor-details-header :contributor="contributor" />
       </div>
       <div class="flex items-center">
+        <lf-contributor-last-enrichment :contributor="contributor" class="mr-4" />
         <lf-contributor-details-actions :contributor="contributor" @reload="fetchMember()" />
       </div>
     </section>
@@ -80,12 +81,13 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfContributorDetailsHeader from '@/modules/contributor/components/details/contributor-details-header.vue';
 import LfContributorDetailsActions from '@/modules/contributor/components/details/contributor-details-actions.vue';
 import { useRoute } from 'vue-router';
-import { Member } from '@/modules/member/types/Member';
 import { ContributorApiService } from '@/modules/contributor/services/contributor.api.service';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import LfContributorDetailsEmails from '@/modules/contributor/components/details/contributor-details-emails.vue';
+import { Contributor } from '@/modules/contributor/types/Contributor';
+import LfContributorLastEnrichment from '@/modules/contributor/components/shared/contributor-last-enrichment.vue';
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
@@ -96,7 +98,7 @@ const tabs = ref('overview');
 
 const { id } = route.params;
 
-const contributor = ref<Member | null>(null);
+const contributor = ref<Contributor | null>(null);
 const loading = ref<boolean>(true);
 const fetchMember = () => {
   if (!contributor.value) {

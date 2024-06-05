@@ -43,7 +43,7 @@ export interface Contributor {
   activityCount: string;
   activityTypes:string[] | null;
   attributes: Record<string, ContributorAttribute>
-  averageSentiment: string | null;
+  averageSentiment: number | null;
   contributions: ContributorContribution[]
   createdAt: string;
   displayName: string;

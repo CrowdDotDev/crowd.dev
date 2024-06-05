@@ -1,7 +1,7 @@
 <template>
-  <lf-contributor-details-community class="mb-6" />
-  <lf-contributor-details-projects class="mb-10" />
-  <lf-contributor-details-attributes />
+  <lf-contributor-details-community :contributor="props.contributor" class="mb-6" />
+  <lf-contributor-details-projects :contributor="props.contributor" class="mb-10" />
+  <lf-contributor-details-attributes :contributor="props.contributor" />
 </template>
 
 <script setup lang="ts">

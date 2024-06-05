@@ -19,7 +19,7 @@ const props = withDefaults(defineProps<{
   type?: BadgeType,
 }>(), {
   size: 'medium',
-  type: 'default',
+  type: 'primary',
 });
 </script>
 
