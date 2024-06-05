@@ -21,6 +21,9 @@ const commonActivitiesProxy = proxyActivities<typeof commonActivities>({
 export async function llm(args: IProcessCheckSimilarityWithLLM): Promise<void> {
   console.log('llm workflow')
 
+  let totalInputTokenCount = 0
+  let promptCount = 0
+
   if (args.memberCouples && args.memberCouples.length > 0) {
     for (const memberCouple of args.memberCouples) {
       console.log(`Checking similarity between: ${memberCouple[0]} and ${memberCouple[1]}`)
@@ -36,6 +39,8 @@ export async function llm(args: IProcessCheckSimilarityWithLLM): Promise<void> {
       const result: ILLMResult = JSON.parse(res)
       console.log(`Raw res: `)
       console.log(result)
+      totalInputTokenCount += result.usage.input_tokens
+      promptCount += 1
     }
   }
 
@@ -57,6 +62,13 @@ export async function llm(args: IProcessCheckSimilarityWithLLM): Promise<void> {
       const result: ILLMResult = JSON.parse(res)
       console.log(`Raw res: `)
       console.log(result)
+      totalInputTokenCount += result.usage.input_tokens
+      promptCount += 1
     }
   }
+
+  console.log(`Total input token count: ${totalInputTokenCount}`)
+  console.log(
+    `Average input token count per prompt: ${Math.floor(totalInputTokenCount / promptCount)}`,
+  )
 }
