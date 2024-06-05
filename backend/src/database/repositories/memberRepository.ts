@@ -15,7 +15,7 @@ import {
   SegmentProjectNestedData,
   SyncStatus,
 } from '@crowd/types'
-import lodash, { chunk } from 'lodash'
+import lodash, { chunk, uniq } from 'lodash'
 import moment from 'moment'
 import Sequelize, { QueryTypes } from 'sequelize'
 
@@ -35,6 +35,7 @@ import {
   moveToNewMember,
 } from '@crowd/data-access-layer/src/member_identities'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
+import { findManyLfxMemberships } from '@crowd/data-access-layer/src/lfx_memberships'
 import { KUBE_MODE, SERVICE } from '@/conf'
 import { ServiceType } from '../../conf/configTypes'
 import isFeatureEnabled from '../../feature-flags/isFeatureEnabled'
@@ -1721,6 +1722,17 @@ class MemberRepository {
       })
     }
 
+    const qx = SequelizeRepository.getQueryExecutor(options)
+    const organizationIds = uniq(result.organizations.map((o) => o.id))
+    const lfxMemberships = await findManyLfxMemberships(qx, {
+      tenantId: options.currentTenant.id,
+      organizationIds,
+      segmentIds: segments,
+    })
+    result.organizations.forEach((o) => {
+      o.lfxMembership = lfxMemberships.find((m) => m.organizationId === o.id)
+    })
+
     const seq = SequelizeRepository.getSequelize(options)
     result.segments = await seq.query(
       `
@@ -2250,8 +2262,26 @@ class MemberRepository {
 
     const memberIds = translatedRows.map((r) => r.id)
     if (memberIds.length > 0) {
-      const seq = SequelizeRepository.getSequelize(options)
+      const qx = SequelizeRepository.getQueryExecutor(options)
+      const organizationIds = uniq(
+        translatedRows.reduce((acc, r) => {
+          acc.push(...r.organizations.map((o) => o.id))
+          return acc
+        }, []),
+      )
+      const lfxMemberships = await findManyLfxMemberships(qx, {
+        tenantId: options.currentTenant.id,
+        organizationIds,
+        segmentIds: segments,
+      })
 
+      for (const row of translatedRows) {
+        for (const o of row.organizations) {
+          o.lfxMembership = lfxMemberships.find((m) => m.organizationId === o.id)
+        }
+      }
+
+      const seq = SequelizeRepository.getSequelize(options)
       const lastActivities = await seq.query(
         `
             SELECT
