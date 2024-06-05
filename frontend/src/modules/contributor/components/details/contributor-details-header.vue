@@ -32,6 +32,9 @@
           •
         </p>
         <lf-contributor-work-position :contributor="props.contributor" />
+        {{hasHeaderIdentities}}
+        {{organization}}
+        {{jobTitle}}
         <p v-if="hasHeaderIdentities && (organization || jobTitle)" class="text-small text-gray-400">
           •
         </p>
