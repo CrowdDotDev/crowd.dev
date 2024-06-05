@@ -31,11 +31,13 @@ $$
     declare
         org      organizations%rowtype;
         verified boolean;
+        platform text;
     begin
         for org in select * from organizations where website is not null
             loop
                 -- determine if it's verified or not
                 verified := false;
+                platform := 'integrations';
 
                 if (select count(*) from "organizationIdentities" where "organizationId" = org.id) = 0 then
                     verified := true;
@@ -46,12 +48,16 @@ $$
                     verified := true;
                 end if;
 
+                if 'website' = any (org."manuallyChangedFields") then
+                    platform := 'custom';
+                end if;
+
                 if verified then
                     insert into "organizationIdentities"("organizationId", "tenantId", platform, type, value, verified)
-                    values (org.id, org."tenantId", 'custom', 'primary-domain', org.website, true);
+                    values (org.id, org."tenantId", platform, 'primary-domain', org.website, true);
                 else
                     insert into "organizationIdentities"("organizationId", "tenantId", platform, type, value, verified)
-                    values (org.id, org."tenantId", 'custom', 'primary-domain', org.website, false);
+                    values (org.id, org."tenantId", platform, 'primary-domain', org.website, false);
 
                     if org."lastEnrichedAt" is not null and not org."manuallyCreated" then
                         update organizations
@@ -91,7 +97,7 @@ $$
                     end if;
                 end if;
             end loop;
-    end;
+    end
 $$;
 
 -- endregion
