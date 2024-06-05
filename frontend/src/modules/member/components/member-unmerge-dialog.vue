@@ -39,7 +39,7 @@
               <template #header>
                 <div class="h-13 flex justify-between items-start">
                   <div
-                    class="bg-brand-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
+                    class="bg-primary-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
                   >
                     Current contributor
                   </div>
@@ -76,7 +76,7 @@
               <template #header>
                 <div class="h-13 flex justify-between items-start">
                   <div
-                    class="bg-brand-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
+                    class="bg-primary-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
                   >
                     Updated contributor
                   </div>
@@ -118,7 +118,7 @@
           <div class="w-1/2 px-3">
             <!-- Loading preview -->
             <div v-if="fetchingPreview" class="flex items-center justify-center pt-40 w-full">
-              <cr-spinner />
+              <lf-spinner />
             </div>
             <!-- Unmerge preview -->
             <div v-else-if="preview">
@@ -139,7 +139,7 @@
                         trigger="click"
                       >
                         <button
-                          class="btn btn--link !text-brand-500"
+                          class="btn btn--link !text-primary-500"
                           type="button"
                           @click.stop
                         >
@@ -247,12 +247,14 @@ import { computed, onMounted, ref } from 'vue';
 import { MemberService } from '@/modules/member/member-service';
 import Message from '@/shared/message/message';
 import AppDialog from '@/shared/dialog/dialog.vue';
-import CrSpinner from '@/ui-kit/spinner/Spinner.vue';
+import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppMemberOrganizationList from '@/modules/member/components/suggestions/member-organizations-list.vue';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import AppMemberSuggestionsDetails from './suggestions/member-merge-suggestions-details.vue';
 
 const props = defineProps({
@@ -268,6 +270,8 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['update:modelValue']);
+
+const { trackEvent } = useProductTracking();
 
 const { doFind } = mapActions('member');
 
@@ -320,6 +324,14 @@ const unmerge = () => {
   if (unmerging.value) {
     return;
   }
+
+  trackEvent({
+    key: FeatureEventKey.UNMERGE_CONTRIBUTOR_IDENTITY,
+    type: EventType.FEATURE,
+    properties: {
+      identity: selectedIdentity.value,
+    },
+  });
 
   unmerging.value = true;
 

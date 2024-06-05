@@ -3,12 +3,8 @@ import { svc } from '../main'
 import { ApiWebsocketMessage, TemporalWorkflowId } from '@crowd/types'
 import {
   deleteOrganizationById,
-  deleteOrganizationCacheLinks,
   deleteOrganizationSegments,
-  findOrganizationCacheIdFromIdentities,
-  findOrganizationIdentities,
   moveActivitiesToNewOrg,
-  linkOrganizationToCacheId,
 } from '@crowd/data-access-layer/src/old/apps/entity_merging_worker/orgs'
 import { SearchSyncApiClient } from '@crowd/opensearch'
 import {
@@ -18,7 +14,6 @@ import {
 import { WorkflowIdReusePolicy } from '@temporalio/workflow'
 
 export async function deleteOrganization(organizationId: string): Promise<void> {
-  await deleteOrganizationCacheLinks(svc.postgres.writer, organizationId)
   await deleteOrganizationSegments(svc.postgres.writer, organizationId)
   await deleteOrganizationById(svc.postgres.writer, organizationId)
 }
@@ -162,14 +157,4 @@ export async function notifyFrontendOrganizationMergeSuccessful(
       tenantId,
     ),
   )
-}
-
-export async function linkOrganizationToCache(organizationId: string): Promise<void> {
-  const identities = await findOrganizationIdentities(svc.postgres.writer, organizationId)
-
-  const cacheId = await findOrganizationCacheIdFromIdentities(svc.postgres.writer, identities)
-
-  if (cacheId) {
-    await linkOrganizationToCacheId(svc.postgres.writer, organizationId, cacheId)
-  }
 }

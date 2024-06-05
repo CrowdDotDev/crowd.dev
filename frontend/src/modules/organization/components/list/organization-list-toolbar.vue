@@ -23,7 +23,8 @@
 
         <el-tooltip
           v-if="selectedOrganizations.length === 2 && hasPermission(LfPermission.mergeOrganizations)"
-          content="Coming soon"
+          content="Active member organizations of the Linux Foundation can't be merged into other organizations."
+          :disabled="!(!!selectedOrganizations?.[0]?.lfxMembership && !!selectedOrganizations?.[1]?.lfxMembership)"
           placement="top"
         >
           <span>
@@ -32,7 +33,8 @@
                 action: 'mergeOrganizations',
               }"
               :disabled="
-                !hasPermission(LfPermission.organizationEdit)
+                (!!selectedOrganizations?.[0]?.lfxMembership && !!selectedOrganizations?.[1]?.lfxMembership)
+                  || !hasPermission(LfPermission.organizationEdit)
                   || !hasPermission(LfPermission.mergeOrganizations)
               "
             >
@@ -76,11 +78,12 @@
       </template>
     </el-dropdown>
   </div>
+  <app-organization-merge-dialog v-model="isMergeDialogOpen" :to-merge="organizationToMerge" />
 </template>
 
 <script setup>
 import pluralize from 'pluralize';
-import { computed } from 'vue';
+import { ref, computed } from 'vue';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import Message from '@/shared/message/message';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
@@ -92,7 +95,15 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { getExportMax } from '@/modules/member/member-export-limit';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import { useRoute } from 'vue-router';
+import AppOrganizationMergeDialog from '@/modules/organization/components/organization-merge-dialog.vue';
 import { OrganizationService } from '../../organization-service';
+
+const { trackEvent } = useProductTracking();
+
+const route = useRoute();
 
 const authStore = useAuthStore();
 const { tenant } = storeToRefs(authStore);
@@ -108,6 +119,9 @@ const {
 const { fetchOrganizations } = organizationStore;
 
 const { hasPermission } = usePermissions();
+
+const isMergeDialogOpen = ref(null);
+const organizationToMerge = ref(null);
 
 const markAsTeamOrganizationOptions = computed(() => {
   const isTeamView = filters.value.settings.teamOrganization === 'filter';
@@ -142,6 +156,15 @@ const handleDoDestroyAllWithConfirm = () => ConfirmDialog({
   icon: 'ri-delete-bin-line',
 })
   .then(() => {
+    trackEvent({
+      key: FeatureEventKey.DELETE_ORGANIZATION,
+      type: EventType.FEATURE,
+      properties: {
+        path: route.path,
+        bulk: true,
+      },
+    });
+
     const ids = selectedOrganizations.value.map((m) => m.id);
     return OrganizationService.destroyAll(ids);
   })
@@ -152,18 +175,10 @@ const handleMergeOrganizations = async () => {
 
   const { loadingMessage, apiErrorMessage } = useOrganizationMergeMessage;
 
-  OrganizationService.mergeOrganizations(firstOrganization.id, secondOrganization.id)
-    .then(() => {
-      organizationStore
-        .addMergedOrganizations(firstOrganization.id, secondOrganization.id);
+  const isLfMemberOrganization = !!firstOrganization.lfxMembership || !!secondOrganization.lfxMembership;
 
-      loadingMessage();
-
-      fetchOrganizations({ reload: true });
-    })
-    .catch((error) => {
-      apiErrorMessage({ error });
-    });
+  isMergeDialogOpen.value = firstOrganization;
+  organizationToMerge.value = secondOrganization;
 };
 
 const handleDoExport = async () => {
@@ -188,6 +203,15 @@ const handleDoExport = async () => {
       tenantCsvExportCount,
       planExportCountMax,
       badgeContent: pluralize('organization', selectedOrganizations.value.length, true),
+    });
+
+    trackEvent({
+      key: FeatureEventKey.EXPORT_ORGANIZATIONS,
+      type: EventType.FEATURE,
+      properties: {
+        path: route.path,
+        bulk: true,
+      },
     });
 
     await OrganizationService.export({
@@ -220,6 +244,15 @@ const handleCommand = async (command) => {
   } else if (command.action === 'mergeOrganizations') {
     await handleMergeOrganizations();
   } else if (command.action === 'markAsTeamOrganization') {
+    trackEvent({
+      key: FeatureEventKey.MARK_AS_TEAM_ORGANIZATION,
+      type: EventType.FEATURE,
+      properties: {
+        path: route.path,
+        bulk: true,
+      },
+    });
+
     Message.info(
       null,
       {

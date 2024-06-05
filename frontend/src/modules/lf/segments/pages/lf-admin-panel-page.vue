@@ -6,12 +6,17 @@
       </h4>
     </div>
 
-    <el-tabs v-model="computedActiveTab">
+    <el-tabs :model-value="activeTab" class="mb-6" @update:model-value="changeView">
       <el-tab-pane label="Project Groups" name="project-groups">
         <app-lf-project-groups-page
           v-if="activeTab === 'project-groups'"
         />
       </el-tab-pane>
+      <!--      <el-tab-pane v-if="isAdminUser" label="Organizations" name="organizations">-->
+      <!--        <app-organization-common-page-->
+      <!--          v-if="activeTab === 'organizations'"-->
+      <!--        />-->
+      <!--      </el-tab-pane>-->
       <el-tab-pane v-if="isAdminUser" label="Automations" name="automations">
         <app-automation-list
           v-if="activeTab === 'automations'"
@@ -28,7 +33,7 @@
         />
       </el-tab-pane>
       <el-tab-pane v-if="isDevMode" label="Dev" name="dev">
-        <cr-devmode v-if="isDevMode && activeTab === 'dev'" />
+        <lf-devmode v-if="isDevMode && activeTab === 'dev'" />
       </el-tab-pane>
     </el-tabs>
   </app-page-wrapper>
@@ -45,8 +50,9 @@ import AppAutomationList from '@/modules/automation/components/automation-list.v
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
 import AppLfAuditLogsPage from '@/modules/lf/segments/pages/lf-audit-logs-page.vue';
-import CrDevmode from '@/modules/lf/segments/components/dev/devmode.vue';
+import LfDevmode from '@/modules/lf/segments/components/dev/devmode.vue';
 import { LfRole } from '@/shared/modules/permissions/types/Roles';
+// import AppOrganizationCommonPage from '@/modules/organization/pages/organization-common-page.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -56,19 +62,12 @@ const activeTab = ref<string>();
 const authStore = useAuthStore();
 const { roles } = storeToRefs(authStore);
 
-const computedActiveTab = computed({
-  get() {
-    return activeTab.value;
-  },
-  set(v) {
-    activeTab.value = v;
-    router.push({
-      name: '',
-      hash: `#${v}`,
-      query: {},
-    });
-  },
-});
+const changeView = (view: string) => {
+  router.push({
+    hash: `#${view}`,
+    query: {},
+  });
+};
 
 const isAdminUser = computed(() => roles.value.includes(LfRole.admin));
 
@@ -84,9 +83,10 @@ onMounted(() => {
   }
 });
 
-watch(() => route.query.activeTab, (newActiveTab) => {
-  if (newActiveTab) {
-    activeTab.value = newActiveTab as string;
+watch(() => route.hash, (hash: string) => {
+  const view = hash.substring(1);
+  if (view.length > 0 && view !== activeTab.value) {
+    activeTab.value = view;
   }
-});
+}, { immediate: true });
 </script>

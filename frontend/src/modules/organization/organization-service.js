@@ -163,6 +163,7 @@ export class OrganizationService {
     query,
     limit,
     segments = null,
+    excludeLfMember = false,
     excludeSegments = false,
     grandParentSegment = false,
   }) {
@@ -174,6 +175,11 @@ export class OrganizationService {
               matchPhrasePrefix: query,
             },
           },
+          // ...(excludeLfMember ? [{
+          //   lfxMembership: {
+          //     ne: true,
+          //   },
+          // }] : []),
         ],
       },
       offset: 0,

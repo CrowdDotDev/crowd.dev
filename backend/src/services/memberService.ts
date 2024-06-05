@@ -1,6 +1,12 @@
 /* eslint-disable no-continue */
 
-import { SERVICE, Error400, isDomainExcluded, singleOrDefault } from '@crowd/common'
+import {
+  SERVICE,
+  Error400,
+  isDomainExcluded,
+  singleOrDefault,
+  getProperDisplayName,
+} from '@crowd/common'
 import { LoggerBase } from '@crowd/logging'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
 import {
@@ -258,7 +264,7 @@ export default class MemberService extends LoggerBase {
     }
 
     if (!data.displayName) {
-      data.displayName = data.username[data.platform][0].username
+      data.displayName = getProperDisplayName(data.username[data.platform][0].username)
     }
 
     if (!(data.platform in data.username)) {
@@ -624,6 +630,10 @@ export default class MemberService extends LoggerBase {
   ): Promise<void> {
     let tx
 
+    // this field is purely for rendering the preview, we'll set the secondary member roles using the payload.secondary.memberOrganizations field
+    // consequentially this field is checked in member.create - we'll instead handle roles manually after creation
+    delete payload.secondary.organizations
+
     try {
       const member = await MemberRepository.findById(memberId, this.options)
 
@@ -712,7 +722,13 @@ export default class MemberService extends LoggerBase {
 
       // move memberOrganizations
       if (payload.secondary.memberOrganizations.length > 0) {
-        for (const role of payload.secondary.memberOrganizations) {
+        const nonExistingOrganizationIds = await OrganizationRepository.findNonExistingIds(
+          payload.secondary.memberOrganizations.map((o) => o.organizationId),
+          repoOptions,
+        )
+        for (const role of payload.secondary.memberOrganizations.filter(
+          (r) => !nonExistingOrganizationIds.includes(r.organizationId),
+        )) {
           await MemberOrganizationRepository.addMemberRole(
             { ...role, memberId: secondaryMember.id },
             repoOptions,
@@ -847,7 +863,7 @@ export default class MemberService extends LoggerBase {
         // construct primary member with best effort
         for (const key of MemberService.MEMBER_MERGE_FIELDS) {
           // delay relationships for later
-          if (!(key in relationships) && !member.manuallyChangedFields.includes(key)) {
+          if (!(key in relationships) && !(member.manuallyChangedFields || []).includes(key)) {
             if (key === 'attributes') {
               // 1) if both primary and secondary backup have the attribute, check any platform specific value came from merge, if current member has it, revert it
               // 2) if primary backup doesn't have the attribute, and secondary backup does, check if current member has the same value, if yes revert it (it came through merge)
@@ -857,7 +873,7 @@ export default class MemberService extends LoggerBase {
 
               // loop through current member attributes
               for (const attributeKey of Object.keys(member.attributes)) {
-                if (!member.manuallyChangedFields.some((f) => f === `attributes.${key}`)) {
+                if (!(member.manuallyChangedFields || []).some((f) => f === `attributes.${key}`)) {
                   // both backups have the attribute
                   if (
                     primaryBackup.attributes[attributeKey] &&
@@ -1080,7 +1096,7 @@ export default class MemberService extends LoggerBase {
           id: randomUUID(),
           reach: { total: -1 },
           username: MemberRepository.getUsernameFromIdentities(secondaryIdentities),
-          displayName: identity.value,
+          displayName: getProperDisplayName(identity.value),
           identities: secondaryIdentities,
           memberOrganizations: [],
           organizations: [],
@@ -1527,6 +1543,10 @@ export default class MemberService extends LoggerBase {
         this.options,
       )
       transaction = repoOptions.transaction
+
+      if (data.displayName) {
+        data.displayName = getProperDisplayName(data.displayName)
+      }
 
       if (data.activities) {
         data.activities = await ActivityRepository.filterIdsInTenant(data.activities, repoOptions)

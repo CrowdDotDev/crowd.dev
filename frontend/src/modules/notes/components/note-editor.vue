@@ -93,6 +93,8 @@ import AppEditor from '@/shared/form/editor.vue';
 import AppAvatar from '@/shared/avatar/avatar.vue';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 
 const props = defineProps({
   properties: {
@@ -123,6 +125,8 @@ const noteText = ref('');
 const editor = ref('');
 const noteEditorFocused = ref(false);
 
+const { trackEvent } = useProductTracking();
+
 const authStore = useAuthStore();
 const { user } = storeToRefs(authStore);
 
@@ -152,6 +156,11 @@ const cancel = () => {
 
 const submit = () => {
   if (props.note) {
+    trackEvent({
+      key: FeatureEventKey.EDIT_NOTE,
+      type: EventType.FEATURE,
+    });
+
     NoteService.update(props.note.id, {
       members: props.note.members.map((m) => m.id),
       body: noteText.value,
@@ -159,6 +168,11 @@ const submit = () => {
       emit('updated');
     });
   } else {
+    trackEvent({
+      key: FeatureEventKey.ADD_NOTE,
+      type: EventType.FEATURE,
+    });
+
     NoteService.create({
       body: noteText.value,
       ...props.properties,

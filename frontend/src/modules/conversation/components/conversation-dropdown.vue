@@ -32,14 +32,19 @@ import Message from '@/shared/message/message';
 import { i18n } from '@/i18n';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { ConversationService } from '../conversation-service';
 
 const emit = defineEmits<{(e: 'conversation-destroyed'): void}>();
 const props = defineProps<{
   conversation: {
     id: string
+    platform: string;
   },
 }>();
+
+const { trackEvent } = useProductTracking();
 
 const { hasPermission } = usePermissions();
 
@@ -53,6 +58,14 @@ const onDeleteConversation = async () => {
       confirmButtonText: 'Confirm',
       cancelButtonText: 'Cancel',
       icon: 'ri-delete-bin-line',
+    });
+
+    trackEvent({
+      key: FeatureEventKey.DELETE_CONVERSATION,
+      type: EventType.FEATURE,
+      properties: {
+        conversationPlatform: props.conversation.platform,
+      },
     });
 
     await ConversationService.destroyAll([props.conversation.id]);

@@ -10,7 +10,6 @@
         query: filterQueryService().setQuery(allContacts.config),
       }"
       button-title="All contributors"
-      report-name="Members report"
     />
 
     <div class="flex -mx-5 pt-7">
@@ -255,7 +254,7 @@ const getPlatformDetails = (platform: string) => CrowdIntegrations.getConfig(pla
 
 <script lang="ts">
 export default {
-  name: 'CrDashboardMember',
+  name: 'LfDashboardMember',
 };
 </script>
 

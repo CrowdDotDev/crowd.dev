@@ -6,7 +6,7 @@
       @apply border-gray-200;
 
       &__original-radio:checked + .el-radio-button__inner {
-        @apply bg-brand-50 border-brand-500 text-gray-900;
+        @apply bg-primary-50 border-primary-500 text-gray-900;
         box-shadow: -1px 0 0 0 #003778;
       }
 
@@ -15,7 +15,7 @@
       }
 
       &:hover .el-radio-button__inner {
-        @apply text-brand-500;
+        @apply text-primary-500;
       }
     }
 
@@ -44,7 +44,7 @@
 
       &.is-active {
         .el-radio-button__inner {
-          @apply border border-l-brand-500 shadow-none border-brand-500 rounded-md font-medium text-black bg-brand-50;
+          @apply border border-l-primary-500 shadow-none border-primary-500 rounded-md font-medium text-black bg-primary-50;
         }
       }
     }
@@ -69,7 +69,7 @@
     }
 
     .el-radio__input.is-checked .el-radio__inner {
-      @apply bg-brand-500 border-brand-500;
+      @apply bg-primary-500 border-primary-500;
     }
   }
 }

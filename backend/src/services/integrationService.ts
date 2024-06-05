@@ -1710,6 +1710,20 @@ export default class IntegrationService {
     // user should update them every time thety change something
 
     try {
+      for (const group of integrationData.groups) {
+        const config: AxiosRequestConfig = {
+          method: 'get',
+          url: `https://groups.io/api/v1/getgroup?group_name=${encodeURIComponent(group.slug)}`,
+          headers: {
+            'Content-Type': 'application/json',
+            Cookie: integrationData.token,
+          },
+        }
+
+        const response = await axios(config)
+        group.id = response.data.id
+        group.name = response.data.nice_group_name
+      }
       this.options.log.info('Creating Groups.io integration!')
       const encryptedPassword = encryptData(integrationData.password)
       integration = await this.createOrUpdate(
@@ -1720,7 +1734,7 @@ export default class IntegrationService {
             token: integrationData.token,
             tokenExpiry: integrationData.tokenExpiry,
             password: encryptedPassword,
-            groups: integrationData.groupNames,
+            groups: integrationData.groups,
             updateMemberAttributes: true,
           },
           status: 'in-progress',

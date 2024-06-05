@@ -1,8 +1,8 @@
-import CrTable from './Table.vue';
+import LfTable from './Table.vue';
 
 export default {
-  title: 'Crowd.dev/Table',
-  component: CrTable,
+  title: 'LinuxFoundation/Table',
+  component: LfTable,
   tags: ['autodocs'],
   argTypes: {
   },

@@ -1,6 +1,7 @@
 import config from 'config'
 import { IRedisConfiguration } from '@crowd/redis'
 import { ISearchSyncApiConfig } from '@crowd/opensearch'
+import { IDatabaseConfig } from '@crowd/data-access-layer/src/database'
 import {
   SQSConfiguration,
   S3Configuration,
@@ -78,6 +79,8 @@ export const REDIS_CONFIG: IRedisConfiguration = config.get<IRedisConfiguration>
 export const S3_CONFIG: S3Configuration = config.get<S3Configuration>('s3')
 
 export const DB_CONFIG: DbConfiguration = config.get<DbConfiguration>('db')
+
+export const PRODUCT_DB_CONFIG: IDatabaseConfig = config.get<IDatabaseConfig>('productDb')
 
 export const SEGMENT_CONFIG: SegmentConfiguration = config.get<SegmentConfiguration>('segment')
 

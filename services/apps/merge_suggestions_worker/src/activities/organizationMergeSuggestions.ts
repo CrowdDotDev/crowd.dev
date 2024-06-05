@@ -1,4 +1,8 @@
-import { IOrganizationMergeSuggestion, OpenSearchIndex } from '@crowd/types'
+import {
+  IOrganizationMergeSuggestion,
+  OpenSearchIndex,
+  OrganizationMergeSuggestionTable,
+} from '@crowd/types'
 import { svc } from '../main'
 
 import {
@@ -8,8 +12,10 @@ import {
   ISimilarOrganizationOpensearch,
 } from '../types'
 import OrganizationMergeSuggestionsRepository from '@crowd/data-access-layer/src/old/apps/merge_suggestions_worker/organizationMergeSuggestions.repo'
+import { hasLfxMembership } from '@crowd/data-access-layer/src/lfx_memberships'
 import { prefixLength } from '../utils'
 import OrganizationSimilarityCalculator from '../organizationSimilarityCalculator'
+import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 
 export async function getOrganizations(
   tenantId: string,
@@ -116,7 +122,6 @@ export async function getOrganizationMergeSuggestions(
   tenantId: string,
   organization: IOrganizationPartialAggregatesOpensearch,
 ): Promise<IOrganizationMergeSuggestion[]> {
-  const SIMILARITY_CONFIDENCE_SCORE_THRESHOLD = 0.5
   const mergeSuggestions: IOrganizationMergeSuggestion[] = []
   const organizationMergeSuggestionsRepo = new OrganizationMergeSuggestionsRepository(
     svc.postgres.writer.connection(),
@@ -264,6 +269,12 @@ export async function getOrganizationMergeSuggestions(
     ],
   }
 
+  const qx = pgpQx(svc.postgres.reader.connection())
+  const primaryOrgWithLfxMembership = await hasLfxMembership(qx, {
+    tenantId,
+    organizationId: organization.uuid_organizationId,
+  })
+
   let organizationsToMerge: ISimilarOrganizationOpensearch[]
 
   try {
@@ -283,36 +294,44 @@ export async function getOrganizationMergeSuggestions(
   }
 
   for (const organizationToMerge of organizationsToMerge) {
+    const secondaryOrgWithLfxMembership = await hasLfxMembership(qx, {
+      tenantId,
+      organizationId: organizationToMerge._source.uuid_organizationId,
+    })
+
+    if (primaryOrgWithLfxMembership && secondaryOrgWithLfxMembership) {
+      continue
+    }
+
     const similarityConfidenceScore = OrganizationSimilarityCalculator.calculateSimilarity(
       organization,
       organizationToMerge._source,
     )
 
-    if (similarityConfidenceScore > SIMILARITY_CONFIDENCE_SCORE_THRESHOLD) {
-      const organizationsSorted = [organization, organizationToMerge._source].sort((a, b) => {
-        if (
-          a.nested_identities.length > b.nested_identities.length ||
-          (a.nested_identities.length === b.nested_identities.length &&
-            a.int_activityCount > b.int_activityCount)
-        ) {
-          return -1
-        } else if (
-          a.nested_identities.length < b.nested_identities.length ||
-          (a.nested_identities.length === b.nested_identities.length &&
-            a.int_activityCount < b.int_activityCount)
-        ) {
-          return 1
-        }
-        return 0
-      })
-      mergeSuggestions.push({
-        similarity: similarityConfidenceScore,
-        organizations: [
-          organizationsSorted[0].uuid_organizationId,
-          organizationsSorted[1].uuid_organizationId,
-        ],
-      })
-    }
+    const organizationsSorted = [organization, organizationToMerge._source].sort((a, b) => {
+      if (
+        a.nested_identities.length > b.nested_identities.length ||
+        (a.nested_identities.length === b.nested_identities.length &&
+          a.int_activityCount > b.int_activityCount)
+      ) {
+        return -1
+      } else if (
+        a.nested_identities.length < b.nested_identities.length ||
+        (a.nested_identities.length === b.nested_identities.length &&
+          a.int_activityCount < b.int_activityCount)
+      ) {
+        return 1
+      }
+      return 0
+    })
+
+    mergeSuggestions.push({
+      similarity: similarityConfidenceScore,
+      organizations: [
+        organizationsSorted[0].uuid_organizationId,
+        organizationsSorted[1].uuid_organizationId,
+      ],
+    })
   }
 
   return mergeSuggestions
@@ -320,10 +339,13 @@ export async function getOrganizationMergeSuggestions(
 
 export async function addOrganizationToMerge(
   suggestions: IOrganizationMergeSuggestion[],
+  table: OrganizationMergeSuggestionTable,
 ): Promise<void> {
-  const organizationMergeSuggestionsRepo = new OrganizationMergeSuggestionsRepository(
-    svc.postgres.writer.connection(),
-    svc.log,
-  )
-  await organizationMergeSuggestionsRepo.addToMerge(suggestions)
+  if (suggestions.length > 0) {
+    const organizationMergeSuggestionsRepo = new OrganizationMergeSuggestionsRepository(
+      svc.postgres.writer.connection(),
+      svc.log,
+    )
+    await organizationMergeSuggestionsRepo.addToMerge(suggestions, table)
+  }
 }

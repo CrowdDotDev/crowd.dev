@@ -1,0 +1,32 @@
+<template>
+  <div class="c-tab" :class="{ 'is-active': isActive }" @click="selectTab">
+    <slot />
+  </div>
+</template>
+
+<script lang="ts" setup>
+import { computed } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+
+const props = defineProps<{
+  name: string,
+}>();
+
+const router = useRouter();
+const route = useRoute();
+
+const isActive = computed<boolean>(() => route?.hash.substring(1) === props.name);
+
+const selectTab = () => {
+  router?.push({
+    hash: `#${props.name}`,
+    query: {},
+  });
+};
+</script>
+
+<script lang="ts">
+export default {
+  name: 'LfTab',
+};
+</script>

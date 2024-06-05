@@ -6,6 +6,6 @@
 
 <script lang="ts">
 export default {
-  name: 'CrCard',
+  name: 'LfCard',
 };
 </script>

@@ -32,6 +32,11 @@ export interface IMemberIdentity {
   verified: boolean
 }
 
+export interface IActivityIdentity {
+  username: string
+  platform: string
+}
+
 export interface IMemberData {
   displayName?: string
   identities: IMemberIdentity[]

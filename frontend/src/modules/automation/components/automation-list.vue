@@ -57,7 +57,7 @@
                 <div class="pl-2">
                   <h6 class="text-xs leading-5 font-medium mb-0.5 text-gray-900">
                     {{ automationType.name }}
-                    <sup v-if="plan(automationType)" class="text-brand-500">
+                    <sup v-if="plan(automationType)" class="text-primary-500">
                       {{ plan(automationType) }}
                     </sup>
                   </h6>

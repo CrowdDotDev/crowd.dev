@@ -27,30 +27,11 @@
         }"
       >
         <el-button
-          class="btn btn-link btn-link--sm btn-link--primary w-full leading-5 text-brand-500"
+          class="btn btn-link btn-link--sm btn-link--primary w-full leading-5 text-primary-500"
         >
           {{ props.buttonTitle }}
         </el-button>
       </router-link>
-      <div v-if="report(props.reportName)">
-        <router-link
-          :to="{
-            name: 'reportTemplate',
-            params: {
-              id: report(props.reportName).id,
-            },
-            query: { projectGroup: selectedProjectGroup?.id },
-          }"
-          class="ml-4"
-        >
-          <el-button class="btn btn--secondary">
-            <i
-              class="ri-bar-chart-line text-base text-brand-500 mr-2"
-            />
-            <span class="text-xs">View report</span>
-          </el-button>
-        </router-link>
-      </div>
     </div>
   </div>
 </template>
@@ -58,7 +39,6 @@
 <script setup>
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
 import { formatNumberToCompact } from '@/utils/number';
-import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
@@ -66,11 +46,6 @@ const props = defineProps({
   title: {
     type: String,
     required: true,
-  },
-  reportName: {
-    type: String,
-    required: false,
-    default: '',
   },
   totalLoading: {
     type: Boolean,
@@ -94,23 +69,8 @@ const props = defineProps({
   },
 });
 
-const { rows } = mapGetters('report');
-
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
-
-const report = (reportName) => {
-  if (!reportName) {
-    return null;
-  }
-  const report = rows.value.find(
-    (r) => r.isTemplate && r.name === reportName,
-  );
-  if (!report) {
-    return null;
-  }
-  return report;
-};
 </script>
 
 <script>

@@ -33,6 +33,10 @@
               class="text-gray-500 group-hover:decoration-gray-900
              transition text-xs underline decoration-dashed underline-offset-4 decoration-gray-400"
             >{{ activity.organization.displayName }}</span>
+            <lf-organization-lf-member-tag
+              :organization="activity.organization"
+              :only-show-icon="true"
+            />
           </div>
         </router-link>
       </div>
@@ -57,6 +61,7 @@ import AppActivitySentiment from '@/modules/activity/components/activity-sentime
 import { formatDateToTimeAgo } from '@/utils/date';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import LfOrganizationLfMemberTag from '@/modules/organization/components/lf-member/organization-lf-member-tag.vue';
 import { useActivityStore } from '../store/pinia';
 
 const props = defineProps({

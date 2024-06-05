@@ -48,7 +48,7 @@
           </div>
           <p
             v-if="hasPermission(LfPermission.activityEdit)"
-            class="text-sm leading-5 font-medium text-brand-500 cursor-pointer"
+            class="text-sm leading-5 font-medium text-primary-500 cursor-pointer"
             @click="isFormModalOpen = true"
           >
             + Add activity type

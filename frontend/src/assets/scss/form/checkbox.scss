@@ -32,7 +32,7 @@
     // Checked state
     &.is-checked .el-checkbox__inner,
     &.is-indeterminate .el-checkbox__inner {
-      @apply bg-brand-500 border-brand-500;
+      @apply bg-primary-500 border-primary-500;
     }
 
     // Disabled state

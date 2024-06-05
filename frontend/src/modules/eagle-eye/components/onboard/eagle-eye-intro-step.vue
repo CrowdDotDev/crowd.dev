@@ -13,7 +13,7 @@
       class="flex items-center"
     >
       <i
-        class="text-brand-500 text-lg"
+        class="text-primary-500 text-lg"
         :class="feature.icon"
       />
       <div class="ml-4 text-xs">
