@@ -29,7 +29,7 @@
 
       <div
         class="absolute w-58 top-full left-1/2 -translate-x-1/2 bg-white flex flex-col gap-1 p-1 shadow
-opacity-0 invisible transition group-hover:visible group-hover:opacity-100 z-10 rounded-md border border-gray-100 mt-2"
+opacity-0 invisible transition group-hover:visible group-hover:opacity-100 z-30 rounded-md border border-gray-100 mt-2"
       >
         <div class="absolute -top-2 h-2 w-full left-0" />
         <a

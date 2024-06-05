@@ -35,7 +35,7 @@
         />
       </section>
       <section class="overflow-auto h-full">
-        <div class="pt-5 pl-10 sticky top-0 bg-white z-50 pb-5">
+        <div class="pt-5 pl-10 sticky top-0 bg-white z-10 pb-5">
           <lf-tabs v-model="tabs">
             <lf-tab name="overview">
               Overview
