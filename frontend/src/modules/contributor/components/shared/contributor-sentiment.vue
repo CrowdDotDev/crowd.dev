@@ -1,19 +1,22 @@
 <template>
-  <div v-if="data" class="flex items-center gap-1.5" :class="data.class">
-    <lf-icon
-      :size="16"
-      :name="data.icon"
-    />
-    <p class="text-small font-semibold">
-      {{ data.label }}
-    </p>
-  </div>
+  <lf-tooltip v-if="data" :content="`Score: ${props.contributor.averageSentiment}`">
+    <div class="flex items-center gap-1.5" :class="data.class">
+      <lf-icon
+        :size="16"
+        :name="data.icon"
+      />
+      <p class="text-small font-semibold">
+        {{ data.label }}
+      </p>
+    </div>
+  </lf-tooltip>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { Contributor } from '@/modules/contributor/types/Contributor';
+import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
 
 const props = defineProps<{
   contributor: Contributor,

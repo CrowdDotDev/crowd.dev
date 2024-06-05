@@ -20,18 +20,20 @@
         :key="`${identity.platform}-${identity.value}`"
         class="flex items-center"
       >
-        <img
-          v-if="platform(identity.platform)"
-          :src="platform(identity.platform)?.image"
-          class="h-5 w-5"
-          :alt="identity.value"
-        />
-        <lf-icon
-          v-else
-          name="fingerprint-fill"
-          :size="20"
-          class="text-gray-600"
-        />
+        <lf-tooltip v-if="platform(identity.platform)" :content="platform(identity.platform).name">
+          <img
+            :src="platform(identity.platform)?.image"
+            class="h-5 w-5"
+            :alt="identity.value"
+          />
+        </lf-tooltip>
+        <lf-tooltip v-else content="Custom identity" placement="top-start">
+          <lf-icon
+            name="fingerprint-fill"
+            :size="20"
+            class="text-gray-600"
+          />
+        </lf-tooltip>
         <div class="pl-3 flex items-center">
           <p v-if="!identity.url" class="text-medium max-w-48 truncate">
             {{ identity.value }}
@@ -50,14 +52,20 @@
             {{ identity.platform }}
           </p>
         </div>
-
-        <lf-icon
-          v-if="identity.verified"
-          name="verified-badge-line"
-          :size="16"
-          class="ml-1 text-primary-500"
-        />
+        <lf-tooltip v-if="identity.verified" content="Verified identity">
+          <lf-icon
+            name="verified-badge-line"
+            :size="16"
+            class="ml-1 text-primary-500"
+          />
+        </lf-tooltip>
       </article>
+      <div v-if="identities.length === 0" class="pt-2 flex flex-col items-center">
+        <lf-icon name="fingerprint-fill" :size="40" class="text-gray-300" />
+        <p class="text-center pt-3 text-medium text-gray-400">
+          No identities
+        </p>
+      </div>
     </div>
 
     <lf-button
@@ -93,6 +101,7 @@ import useContributorHelpers from '@/modules/contributor/helpers/contributor.hel
 import AppMemberManageIdentitiesDrawer from '@/modules/member/components/member-manage-identities-drawer.vue';
 import { computed, ref } from 'vue';
 import AppMemberUnmergeDialog from '@/modules/member/components/member-unmerge-dialog.vue';
+import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
 
 const props = defineProps<{
   contributor: Contributor,

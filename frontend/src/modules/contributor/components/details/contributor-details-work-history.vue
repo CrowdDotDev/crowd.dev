@@ -24,7 +24,9 @@
             </p>
             <div v-if="org?.memberOrganizations?.title" class="text-small text-gray-500 mb-1.5 flex items-center gap-1.5">
               <lf-svg name="id-card" class="h-4 w-4 text-gray-400" />
-              <p class="line-clamp-1 truncate">{{ org?.memberOrganizations?.title }}</p>
+              <p class="line-clamp-1 truncate">
+                {{ org?.memberOrganizations?.title }}
+              </p>
             </div>
             <p class="text-small text-gray-500 mb-1.5 flex items-center">
               <lf-icon name="calendar-line" :size="16" class="mr-1.5 text-gray-400" />

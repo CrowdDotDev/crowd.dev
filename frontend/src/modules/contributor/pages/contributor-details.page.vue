@@ -2,7 +2,7 @@
   <div v-if="loading || !contributor" class="flex justify-center py-20">
     <lf-spinner />
   </div>
-  <div v-else class="contributor-details -mt-5">
+  <div v-else class="contributor-details -mt-3">
     <section class="w-full border-b border-gray-100 py-4 flex justify-between items-center">
       <div class="flex items-center">
         <lf-back :to="{ path: '/contributors' }" class="mr-2">

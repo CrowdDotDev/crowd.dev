@@ -18,7 +18,9 @@
       :key="email.value"
       class="flex items-start"
     >
-      <lf-icon name="mail-line mt-0.5" :size="20" />
+      <lf-tooltip content="Email">
+        <lf-icon name="mail-line mt-0.5" :size="20" />
+      </lf-tooltip>
       <div class="pl-3">
         <div class="flex items-center">
           <a
@@ -30,26 +32,25 @@
           >
             {{ email.value }}
           </a>
-          <lf-icon
-            v-if="email.verified"
-            name="verified-badge-line"
-            :size="16"
-            class="ml-1 text-primary-500"
-          />
-          <div v-if="CrowdIntegrations.getPlatformsLabel(email.platforms)" class="ml-2 flex items-center">
-            <el-tooltip placement="top">
-              <template #content>
-                <span class="font-semibold">Source:&nbsp;</span>{{ CrowdIntegrations.getPlatformsLabel(email.platforms) }}
-              </template>
-              <i class="ri-shining-line text-sm" :class="isEnrichment(email.platforms) ? 'text-purple-400' : 'text-gray-400'" />
-            </el-tooltip>
-          </div>
+          <lf-tooltip v-if="email.verified" content="Verified identity">
+            <lf-icon
+              name="verified-badge-line"
+              :size="16"
+              class="ml-1 text-primary-500"
+            />
+          </lf-tooltip>
         </div>
         <p class="text-tiny text-gray-400 pt-1.5">
           Source: {{ CrowdIntegrations.getPlatformsLabel(email.platforms) }}
         </p>
       </div>
     </article>
+    <div v-if="emails.length === 0" class="pt-2 flex flex-col items-center">
+      <lf-icon name="mail-line" :size="40" class="text-gray-300" />
+      <p class="text-center pt-3 text-medium text-gray-400">
+        No emails
+      </p>
+    </div>
   </div>
   <app-member-manage-emails-drawer
     v-if="edit"
@@ -67,6 +68,7 @@ import useContributorHelpers from '@/modules/contributor/helpers/contributor.hel
 import LfButton from '@/ui-kit/button/Button.vue';
 import { ref } from 'vue';
 import AppMemberManageEmailsDrawer from '@/modules/member/components/member-manage-emails-drawer.vue';
+import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
 
 const props = defineProps<{
   contributor: Contributor,

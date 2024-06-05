@@ -6,10 +6,18 @@
       </h6>
       <div class="flex -mx-4">
         <article class="px-4 h-full w-1/4">
-          <p class="text-tiny text-secondary-300 mb-2">
-            Engagement level
-          </p>
-          <lf-contributor-engagement-level :contributor="{score: 5}" />
+          <div class="flex items-center gap-1 mb-2">
+            <p class="text-tiny text-secondary-300">
+              Engagement level
+            </p>
+            <lf-tooltip
+              content="Calculated based on the recency and importance of a contributor's
+activities in comparison to all other contributors."
+            >
+              <lf-icon name="question-line" :size="14" class="text-secondary-200" />
+            </lf-tooltip>
+          </div>
+          <lf-contributor-engagement-level :contributor="{ score: 5 }" />
         </article>
         <article class="px-4 h-full w-1/4 border-l border-gray-200">
           <p class="text-tiny text-secondary-300 mb-2">
@@ -44,6 +52,8 @@ import { Contributor } from '@/modules/contributor/types/Contributor';
 import moment from 'moment';
 import LfContributorSentiment from '@/modules/contributor/components/shared/contributor-sentiment.vue';
 import LfContributorEngagementLevel from '@/modules/contributor/components/shared/contributor-engagement-level.vue';
+import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps<{
   contributor: Contributor,

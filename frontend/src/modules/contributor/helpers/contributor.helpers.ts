@@ -66,6 +66,45 @@ const useContributorHelpers = () => {
     }));
   };
 
+  const activeOrganization = (contributor: Contributor) => {
+    const { organizations } = contributor;
+
+    // No active organization
+    if (!organizations?.length) {
+      return null;
+    }
+
+    // Only one organization that doesn't have either start or end date
+    // We assume it's the active organization
+    if (organizations.length === 1
+      && !organizations[0].memberOrganizations?.dateStart
+      && !organizations[0].memberOrganizations?.dateEnd) {
+      return organizations[0];
+    }
+
+    // Get all organizations that have a start date but not an end date (present)
+    const completeOrganizations = organizations
+      .filter((organization) => !!organization.memberOrganizations?.dateStart && !organization.memberOrganizations?.dateEnd);
+
+    // Return the most recent organization, comparing the startDate
+    const mostRecent = completeOrganizations.reduce((mostRecent, organization) => {
+      const mostRecentStartDate = new Date(mostRecent.memberOrganizations?.dateStart);
+      const organizationStartDate = new Date(organization.memberOrganizations?.dateStart);
+
+      if (organizationStartDate > mostRecentStartDate) {
+        return organization;
+      }
+
+      return mostRecent;
+    }, completeOrganizations.length ? completeOrganizations[0] : null);
+
+    if (mostRecent) {
+      return mostRecent;
+    }
+
+    return organizations[0];
+  };
+
   return {
     avatar,
     isTeamContributor,
@@ -73,6 +112,7 @@ const useContributorHelpers = () => {
     isNew,
     identities,
     emails,
+    activeOrganization,
   };
 };
 

@@ -72,7 +72,7 @@ const props = defineProps<{
 const showMore = ref<boolean>(false);
 
 const lfStore = useLfSegmentsStore();
-const {selectedProjectGroup} = storeToRefs(lfStore)
+const { selectedProjectGroup } = storeToRefs(lfStore);
 
 const projects = computed(() => props.contributor.segments);
 </script>
