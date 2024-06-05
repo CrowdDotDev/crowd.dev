@@ -397,6 +397,55 @@ where (crunchbase ->> 'handle') is not null
 
 -- endregion
 
+-- region move organizations.linkedin
+do
+$$
+    declare
+        org record;
+    begin
+        for org in select *
+                   from organizations
+                   where linkedin is not null
+                     and (linkedin ->> 'url') is not null
+                     and (linkedin ->> 'handle') is not null
+            loop
+                if (org.linkedin ->> 'url') ilike '%linkedin.com/company/%' then
+                    if (select count(*)
+                        from "organizationIdentities"
+                        where "organizationId" = org.id
+                          and platform = 'linkedin'
+                          and type = 'username'
+                          and value = 'company' || (org.linkedin ->> 'handle')) = 0 then
+                        insert into "organizationIdentities"("organizationId", "tenantId", platform, type, value, verified)
+                        values (org.id, org."tenantId", 'linkedin', 'username', 'company:' || (org.linkedin ->> 'handle'), false);
+                    end if;
+                elseif (org.linkedin ->> 'url') ilike '%linkedin.com/school/%' then
+                    if (select count(*)
+                        from "organizationIdentities"
+                        where "organizationId" = org.id
+                          and platform = 'linkedin'
+                          and type = 'username'
+                          and value = 'school' || (org.linkedin ->> 'handle')) = 0 then
+                        insert into "organizationIdentities"("organizationId", "tenantId", platform, type, value, verified)
+                        values (org.id, org."tenantId", 'linkedin', 'username', 'school:' || (org.linkedin ->> 'handle'), false);
+                    end if;
+                elseif (org.linkedin ->> 'url') ilike '%linkedin.com/showcase/%' then
+                    if (select count(*)
+                        from "organizationIdentities"
+                        where "organizationId" = org.id
+                          and platform = 'linkedin'
+                          and type = 'username'
+                          and value = 'showcase' || (org.linkedin ->> 'handle')) = 0 then
+                        insert into "organizationIdentities"("organizationId", "tenantId", platform, type, value, verified)
+                        values (org.id, org."tenantId", 'linkedin', 'username', 'showcase:' || (org.linkedin ->> 'handle'), false);
+                    end if;
+                end if;
+            end loop;
+    end;
+$$;
+
+-- endregion
+
 -- region move alternativeDomains
 
 do
@@ -568,6 +617,18 @@ alter table organizations
 
 alter table organizations
     rename column "weakIdentities" to "old_weakIdentities";
+
+alter table organizations
+    rename column github to old_github;
+
+alter table organizations
+    rename column twitter to old_twitter;
+
+alter table organizations
+    rename column crunchbase to old_crunchbase;
+
+alter table organizations
+    rename column linkedin to old_linkedin;
 
 -- endregion
 
