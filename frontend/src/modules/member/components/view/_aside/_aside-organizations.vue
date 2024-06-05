@@ -77,7 +77,7 @@
                     placement="top"
                     trigger="hover"
                   >
-                    <app-svg name="source" class="h-3 w-3" />
+                    <lf-svg name="source" class="h-3 w-3" />
                   </el-tooltip>
                 </div>
                 <div v-if="hasValues(memberOrganizations)" class="text-gray-600 text-2xs">
@@ -117,7 +117,7 @@ import AppMemberFormOrganizationsDrawer from '@/modules/member/components/form/m
 import { Member } from '@/modules/member/types/Member';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import AppSvg from '@/shared/svg/svg.vue';
+import LfSvg from '@/shared/svg/svg.vue';
 import AppEntities from '@/shared/modules/entities/Entities.vue';
 import { Organization, OrganizationSource } from '@/modules/organization/types/Organization';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';

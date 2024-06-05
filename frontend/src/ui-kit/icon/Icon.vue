@@ -14,7 +14,10 @@ const sizeStyle = computed(() => {
   if (!props.size) {
     return undefined;
   }
-  return `${props.size / 16}rem`;
+  return {
+    fontSize: `${props.size / 16}rem`,
+    height: `${props.size / 16}rem`,
+  };
 });
 </script>
 

@@ -21,13 +21,16 @@
         <lf-contributor-details-work-history
           :contributor="contributor"
           class="mb-8"
+          @reload="fetchMember()"
         />
         <lf-contributor-details-identities
           :contributor="contributor"
-          class="pb-4"
+          class="mb-8"
+          @reload="fetchMember()"
         />
         <lf-contributor-details-emails
           :contributor="contributor"
+          @reload="fetchMember()"
         />
       </section>
       <section class="pt-5 pl-10 flex-grow">

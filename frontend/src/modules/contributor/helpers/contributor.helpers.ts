@@ -3,6 +3,7 @@ import moment from 'moment';
 import { computed } from 'vue';
 import { MemberIdentity } from '@/modules/member/types/Member';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
+import memberOrder from '@/shared/modules/identities/config/identitiesOrder/member';
 
 const useContributorHelpers = () => {
   const avatar = (contributor: Contributor) => contributor.attributes?.avatarUrl?.default;
@@ -19,7 +20,15 @@ const useContributorHelpers = () => {
       <= 14;
   };
 
-  const identities = (contributor: Contributor) => contributor.identities?.filter((i) => i.type !== 'email')
+  const identities = (contributor: Contributor, sort: string[] = memberOrder.list) => contributor.identities
+    ?.filter((i) => i.type !== 'email')
+    .sort((a, b) => {
+      const aIndex = sort.indexOf(a.platform);
+      const bIndex = sort.indexOf(b.platform);
+      const aOrder = aIndex !== -1 ? aIndex : sort.length;
+      const bOrder = bIndex !== -1 ? bIndex : sort.length;
+      return aOrder - bOrder;
+    })
     .map((i) => {
       const config = CrowdIntegrations.getConfig(i.platform);
 
