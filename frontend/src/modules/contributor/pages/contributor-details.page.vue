@@ -2,23 +2,23 @@
   <div v-if="loading || !contributor" class="flex justify-center py-20">
     <lf-spinner />
   </div>
-  <div v-else class="contributor-details -mt-3">
-    <section class="w-full border-b border-gray-100 py-4 flex justify-between items-center">
-      <div class="flex items-center">
-        <lf-back :to="{ path: '/contributors' }" class="mr-2">
-          <lf-button type="secondary-ghost" :icon-only="true">
-            <lf-icon name="arrow-left-s-line" />
-          </lf-button>
-        </lf-back>
-        <lf-contributor-details-header :contributor="contributor" />
-      </div>
-      <div class="flex items-center">
-        <lf-contributor-last-enrichment :contributor="contributor" class="mr-4" />
-        <lf-contributor-details-actions :contributor="contributor" @reload="fetchMember()" />
-      </div>
-    </section>
-    <div class="flex flex-nowrap">
-      <section class="w-80 shrink-0 border-r border-gray-100 pt-6 pr-8">
+  <div v-else class="-mt-3 -mb-5">
+    <div class="contributor-details  grid grid-cols-2 grid-rows-2">
+      <section class="w-full border-b border-gray-100 py-4 flex justify-between items-center col-span-2 h-min">
+        <div class="flex items-center">
+          <lf-back :to="{ path: '/contributors' }" class="mr-2">
+            <lf-button type="secondary-ghost" :icon-only="true">
+              <lf-icon name="arrow-left-s-line" />
+            </lf-button>
+          </lf-back>
+          <lf-contributor-details-header :contributor="contributor" />
+        </div>
+        <div class="flex items-center">
+          <lf-contributor-last-enrichment :contributor="contributor" class="mr-4" />
+          <lf-contributor-details-actions :contributor="contributor" @reload="fetchMember()" />
+        </div>
+      </section>
+      <section class="w-80 border-r border-gray-100 pt-6 pr-8 overflow-auto h-full pb-8">
         <lf-contributor-details-work-history
           :contributor="contributor"
           class="mb-8"
@@ -34,30 +34,34 @@
           @reload="fetchMember()"
         />
       </section>
-      <section class="pt-5 pl-10 flex-grow">
-        <lf-tabs v-model="tabs" class="mb-8">
-          <lf-tab name="overview">
-            Overview
-          </lf-tab>
-          <lf-tab name="activities">
-            Activities
-          </lf-tab>
-          <lf-tab name="notes">
-            Notes
-          </lf-tab>
-        </lf-tabs>
-        <lf-contributor-details-overview
-          v-if="tabs === 'overview'"
-          :contributor="contributor"
-        />
-        <lf-contributor-details-activities
-          v-else-if="tabs === 'activities'"
-          :contributor="contributor"
-        />
-        <lf-contributor-details-notes
-          v-else-if="tabs === 'notes'"
-          :contributor="contributor"
-        />
+      <section class="overflow-auto h-full">
+        <div class="pt-5 pl-10 sticky top-0 bg-white z-50 pb-5">
+          <lf-tabs v-model="tabs">
+            <lf-tab name="overview">
+              Overview
+            </lf-tab>
+            <lf-tab name="activities">
+              Activities
+            </lf-tab>
+            <lf-tab name="notes">
+              Notes
+            </lf-tab>
+          </lf-tabs>
+        </div>
+        <div class="pl-10 pt-3">
+          <lf-contributor-details-overview
+            v-if="tabs === 'overview'"
+            :contributor="contributor"
+          />
+          <lf-contributor-details-activities
+            v-else-if="tabs === 'activities'"
+            :contributor="contributor"
+          />
+          <lf-contributor-details-notes
+            v-else-if="tabs === 'notes'"
+            :contributor="contributor"
+          />
+        </div>
       </section>
     </div>
   </div>
@@ -128,6 +132,9 @@ export default {
 <style>
 .contributor-details{
   max-width: 67.5rem;
+  height: calc(100vh - 4.25rem);
+  grid-template-rows: min-content auto;
+  grid-template-columns: 20rem auto;
   @apply w-full mx-auto;
 }
 </style>

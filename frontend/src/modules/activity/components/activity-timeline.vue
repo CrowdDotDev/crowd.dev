@@ -1,6 +1,6 @@
 <template>
   <div class="activity-timeline">
-    <div class="my-6">
+    <div class="mb-6">
       <div class="flex gap-2">
         <el-input
           v-model="query"
