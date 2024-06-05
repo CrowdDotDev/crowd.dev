@@ -61,7 +61,6 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { Contributor } from '@/modules/contributor/types/Contributor';
 import { computed, ref } from 'vue';
 import { filterQueryService } from '@/shared/modules/filters/services/filter-query.service';
-import allContacts from '@/modules/member/config/saved-views/views/all-contacts';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';
 

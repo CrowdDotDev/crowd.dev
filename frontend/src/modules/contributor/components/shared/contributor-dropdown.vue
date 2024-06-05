@@ -15,15 +15,15 @@
     </router-link>
     <lf-dropdown-separator />
   </template>
-  <lf-dropdown-item :disabled="!!props.contributor.username?.github" @click="emit('findGithub')">
+  <lf-dropdown-item v-if="hasPermission(LfPermission.memberEdit)" :disabled="!!props.contributor.username?.github" @click="emit('findGithub')">
     <lf-icon name="github-fill" />
     Find GitHub
   </lf-dropdown-item>
-  <lf-dropdown-item @click="markTeamMember(!isTeamContributor(props.contributor))">
+  <lf-dropdown-item v-if="hasPermission(LfPermission.memberEdit)" @click="markTeamMember(!isTeamContributor(props.contributor))">
     <lf-icon name="team-line" />
     {{ isTeamContributor(props.contributor) ? 'Unmark' : 'Mark' }} as team contributor
   </lf-dropdown-item>
-  <lf-dropdown-item @click="markBot(!isBot(props.contributor))">
+  <lf-dropdown-item v-if="hasPermission(LfPermission.memberEdit)" @click="markBot(!isBot(props.contributor))">
     <lf-icon name="robot-line" />
     {{ isBot(props.contributor) ? 'Unmark' : 'Mark' }} as bot
   </lf-dropdown-item>

@@ -4,7 +4,13 @@
       <h6 class="text-h6">
         Work history
       </h6>
-      <lf-button type="secondary" size="small" :icon-only="true" @click="edit = true">
+      <lf-button
+        v-if="hasPermission(LfPermission.memberEdit)"
+        type="secondary"
+        size="small"
+        :icon-only="true"
+        @click="edit = true"
+      >
         <lf-icon name="pencil-line" />
       </lf-button>
     </div>
@@ -70,12 +76,16 @@ import { computed, ref } from 'vue';
 import AppMemberFormOrganizationsDrawer from '@/modules/member/components/form/member-form-organizations-drawer.vue';
 import LfSvg from '@/shared/svg/svg.vue';
 import moment from 'moment/moment';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 
 const props = defineProps<{
   contributor: Contributor,
 }>();
 
 const emit = defineEmits<{(e: 'reload'): any}>();
+
+const { hasPermission } = usePermissions();
 
 const showMore = ref<boolean>(false);
 const edit = ref<boolean>(false);

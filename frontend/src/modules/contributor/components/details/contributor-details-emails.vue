@@ -4,6 +4,7 @@
       Emails
     </h6>
     <lf-button
+      v-if="hasPermission(LfPermission.memberEdit)"
       type="secondary"
       size="small"
       :icon-only="true"
@@ -69,6 +70,8 @@ import LfButton from '@/ui-kit/button/Button.vue';
 import { ref } from 'vue';
 import AppMemberManageEmailsDrawer from '@/modules/member/components/member-manage-emails-drawer.vue';
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 
 const props = defineProps<{
   contributor: Contributor,
@@ -76,11 +79,11 @@ const props = defineProps<{
 
 const emit = defineEmits<{(e: 'reload'): any}>();
 
+const { hasPermission } = usePermissions();
+
 const { emails } = useContributorHelpers();
 
 const edit = ref<boolean>(false);
-
-const isEnrichment = (platforms:string[]) => platforms.includes('enrichment');
 </script>
 
 <script lang="ts">

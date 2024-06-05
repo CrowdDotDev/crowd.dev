@@ -1,6 +1,5 @@
 import { Contributor } from '@/modules/contributor/types/Contributor';
 import moment from 'moment';
-import { computed } from 'vue';
 import { MemberIdentity } from '@/modules/member/types/Member';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import memberOrder from '@/shared/modules/identities/config/identitiesOrder/member';

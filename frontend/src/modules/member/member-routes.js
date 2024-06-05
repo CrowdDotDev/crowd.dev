@@ -76,7 +76,7 @@ export default [
       {
         name: 'memberView',
         path: '/contributors/:id',
-        component: true ? ContributorViewPage : MemberViewPage,
+        component: ContributorViewPage,
         meta: {
           auth: true,
           title: 'Contributor',

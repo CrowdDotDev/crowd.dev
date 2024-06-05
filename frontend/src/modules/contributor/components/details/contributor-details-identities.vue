@@ -5,6 +5,7 @@
         Identities
       </h6>
       <lf-button
+        v-if="hasPermission(LfPermission.memberEdit)"
         type="secondary"
         size="small"
         :icon-only="true"
@@ -102,12 +103,16 @@ import AppMemberManageIdentitiesDrawer from '@/modules/member/components/member-
 import { computed, ref } from 'vue';
 import AppMemberUnmergeDialog from '@/modules/member/components/member-unmerge-dialog.vue';
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 
 const props = defineProps<{
   contributor: Contributor,
 }>();
 
 const emit = defineEmits<{(e: 'reload'): any}>();
+
+const { hasPermission } = usePermissions();
 
 const { identities } = useContributorHelpers();
 

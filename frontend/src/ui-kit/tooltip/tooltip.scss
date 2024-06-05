@@ -8,7 +8,7 @@
     background: var(--lf-tooltip-background);
     color: var(--lf-tooltip-text);
     border-radius: var(--lf-tooltip-border-radius);
-    @apply absolute max-w-100 whitespace-pre invisible opacity-0 transition duration-200 z-10 text-center;
+    @apply absolute max-w-100 w-max invisible opacity-0 transition duration-200 z-10 text-center;
   }
 
   &:hover{

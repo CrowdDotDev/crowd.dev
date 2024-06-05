@@ -4,8 +4,7 @@
       Last enrichment on {{ moment(props.contributor.lastEnriched).format('MMM DD, YYYY') }}
     </p>
     <lf-tooltip
-      content="Contributor data is enriched via GitHub identity or email.
-    Enrichment is processed every 3 months."
+      content="Contributor data is enriched via GitHub identity or email. Enrichment is processed every 3 months."
     >
       <lf-icon name="question-line" :size="16" class="text-gray-400" />
     </lf-tooltip>

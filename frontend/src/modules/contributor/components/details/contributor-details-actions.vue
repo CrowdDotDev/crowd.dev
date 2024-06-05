@@ -3,7 +3,7 @@
     <lf-button-group>
       <!-- Merge suggestions -->
       <lf-button
-        v-if="mergeSuggestionsCount > 0"
+        v-if="mergeSuggestionsCount > 0 && hasPermission(LfPermission.mergeMembers)"
         type="secondary"
         @click="isMergeSuggestionsDialogOpen = true"
       >
@@ -14,15 +14,19 @@
       </lf-button>
 
       <!-- Merge -->
-      <lf-button v-else type="secondary" @click="isMergeDialogOpen = props.contributor">
+      <lf-button v-else-if="hasPermission(LfPermission.mergeMembers)" type="secondary" @click="isMergeDialogOpen = props.contributor">
         <lf-icon name="p2p-line" />
         Merge contributor
       </lf-button>
 
       <!-- Actions -->
-      <lf-dropdown placement="bottom-end">
+      <lf-dropdown v-if="hasPermission(LfPermission.memberEdit) || hasPermission(LfPermission.memberDestroy)" placement="bottom-end">
         <template #trigger>
-          <lf-button type="secondary" :icon-only="true" class="!rounded-l-none -ml-px">
+          <lf-button
+            type="secondary"
+            :icon-only="true"
+            :class="hasPermission(LfPermission.mergeMembers) ? '!rounded-l-none -ml-px' : ''"
+          >
             <lf-icon name="more-fill" />
           </lf-button>
         </template>
@@ -66,12 +70,16 @@ import AppMemberMergeSuggestionsDialog from '@/modules/member/components/member-
 import AppMemberMergeDialog from '@/modules/member/components/member-merge-dialog.vue';
 import LfContributorDropdown from '@/modules/contributor/components/shared/contributor-dropdown.vue';
 import AppMemberFindGithubDrawer from '@/modules/member/components/member-find-github-drawer.vue';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 
 const props = defineProps<{
   contributor: Contributor,
 }>();
 
 const emit = defineEmits<{(e: 'reload'): any}>();
+
+const { hasPermission } = usePermissions();
 
 const isMergeSuggestionsDialogOpen = ref<boolean>(false);
 const isMergeDialogOpen = ref<Contributor | null>(null);

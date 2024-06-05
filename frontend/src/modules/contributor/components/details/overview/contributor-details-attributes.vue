@@ -4,7 +4,12 @@
       <h6>
         Contributor details
       </h6>
-      <lf-button type="secondary" size="small" @click="edit = true">
+      <lf-button
+        v-if="hasPermission(LfPermission.memberEdit)"
+        type="secondary"
+        size="small"
+        @click="edit = true"
+      >
         <lf-icon name="pencil-line" />
         Edit attributes
       </lf-button>
@@ -87,10 +92,14 @@ import AppMemberManageAttributesDrawer from '@/modules/member/components/member-
 import { Contributor } from '@/modules/contributor/types/Contributor';
 import { computed, ref } from 'vue';
 import LfBadge from '@/ui-kit/badge/Badge.vue';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 
 const props = defineProps<{
   contributor: Contributor,
 }>();
+
+const { hasPermission } = usePermissions();
 
 const edit = ref<boolean>(false);
 
