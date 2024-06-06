@@ -812,8 +812,13 @@ class MemberRepository {
     id,
     data,
     options: IRepositoryOptions,
-    doPopulateRelations = true,
-    manualChange = false,
+    {
+      doPopulateRelations = true,
+      manualChange = false,
+    }: {
+      doPopulateRelations?: boolean
+      manualChange?: boolean
+    } = {},
   ) {
     const currentUser = SequelizeRepository.getCurrentUser(options)
 

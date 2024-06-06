@@ -441,7 +441,7 @@ export default class MemberService extends LoggerBase {
         data.organizations = lodash.uniqBy(organizations, 'id')
       }
 
-      const fillRelations = false
+      const doPopulateRelations = false
 
       let record
       if (existing) {
@@ -462,7 +462,7 @@ export default class MemberService extends LoggerBase {
             ...this.options,
             transaction,
           },
-          fillRelations,
+          { doPopulateRelations },
         )
       } else {
         // It is important to call it with doPopulateRelations=false
@@ -477,7 +477,7 @@ export default class MemberService extends LoggerBase {
             ...this.options,
             transaction,
           },
-          fillRelations,
+          doPopulateRelations,
         )
 
         telemetryTrack(
@@ -770,7 +770,9 @@ export default class MemberService extends LoggerBase {
       delete payload.primary.affiliations
 
       // update rest of the primary member fields
-      await MemberRepository.update(memberId, payload.primary, repoOptions, false, false)
+      await MemberRepository.update(memberId, payload.primary, repoOptions, {
+        doPopulateRelations: false,
+      })
 
       // trigger entity-merging-worker to move activities in the background
       await SequelizeRepository.commitTransaction(tx)
@@ -1688,7 +1690,7 @@ export default class MemberService extends LoggerBase {
             )
           }
 
-          const record = await MemberRepository.update(id, data, repoOptions, true, manualChange)
+          const record = await MemberRepository.update(id, data, repoOptions, { manualChange })
 
           return record
         }),
