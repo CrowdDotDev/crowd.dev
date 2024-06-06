@@ -43,7 +43,6 @@ import {
 } from '@crowd/data-access-layer/src/member_identities'
 import { ActivityDisplayService } from '@crowd/integrations'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
-import { findManyLfxMemberships } from '@crowd/data-access-layer/src/lfx_memberships'
 import { KUBE_MODE, SERVICE } from '@/conf'
 import { ServiceType } from '../../conf/configTypes'
 import isFeatureEnabled from '../../feature-flags/isFeatureEnabled'
@@ -1742,8 +1741,8 @@ class MemberRepository {
     }
 
     const activeMemberResults = await getActiveMembers(options.qdb, {
-      timestampFrom: new Date(Date.parse(filter.activityTimestampFrom)),
-      timestampTo: new Date(Date.parse(filter.activityTimestampTo)),
+      timestampFrom: new Date(Date.parse(filter.activityTimestampFrom)).toString(),
+      timestampTo: new Date(Date.parse(filter.activityTimestampTo)).toString(),
       isContribution: filter.activityIsContribution === true ? true : undefined,
       platforms: filter.platforms ? filter.platforms : undefined,
       segmentIds: segments,

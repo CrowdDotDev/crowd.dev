@@ -520,6 +520,14 @@ export default class ConversationService extends LoggerBase {
       this.options.database.sequelize,
     )) as PageData<IQueryActivityResult>
 
+    // TODO questdb: properly add display as a property, in an extented type?
+    for (const activity of activities.rows) {
+      activity.display = ActivityDisplayService.getDisplayOptions(
+        activity,
+        SegmentRepository.getActivityTypes(this.options),
+      )
+    }
+
     for (const conversation of results.rows) {
       ;(conversation as any).activities = activities.rows
         .filter((a) => a.conversationId === conversation.id)

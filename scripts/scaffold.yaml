@@ -17,7 +17,7 @@ services:
       - crowd-bridge
 
   questdb:
-    image: questdb/questdb:7.4.0
+    image: questdb/questdb:8.0.0
     restart: unless-stopped
     ports:
       - 8812:8812

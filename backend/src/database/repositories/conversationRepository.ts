@@ -1,5 +1,6 @@
 import { Error404, single } from '@crowd/common'
 import {
+  DEFAULT_COLUMNS_TO_SELECT,
   IQueryActivityResult,
   deleteConversations,
   getConversationById,
@@ -8,13 +9,10 @@ import {
   updateConversation,
 } from '@crowd/data-access-layer'
 import { IDbConversation } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/conversation.data'
-import { ActivityDisplayService } from '@crowd/integrations'
 import { PageData, PlatformType } from '@crowd/types'
 import lodash from 'lodash'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import AuditLogRepository from './auditLogRepository'
-import MemberRepository from './memberRepository'
-import SegmentRepository from './segmentRepository'
 import SequelizeRepository from './sequelizeRepository'
 
 class ConversationRepository {
@@ -225,14 +223,22 @@ class ConversationRepository {
     const output: any = { ...conversation }
 
     if (lazyLoad.includes('activities')) {
-      const results = (await queryActivities(options.qdb, {
-        filter: {
-          and: [{ conversationId: { eq: conversation.id } }],
+      const results = (await queryActivities(
+        options.qdb,
+        {
+          filter: {
+            and: [{ conversationId: { eq: conversation.id } }],
+          },
+          noLimit: true,
+          tenantId: conversation.tenantId,
+          segmentIds: [conversation.segmentId],
+          populate: {
+            member: true,
+          },
         },
-        noLimit: true,
-        tenantId: conversation.tenantId,
-        segmentIds: [conversation.segmentId],
-      })) as PageData<IQueryActivityResult>
+        DEFAULT_COLUMNS_TO_SELECT,
+        options.database.sequelize,
+      )) as PageData<IQueryActivityResult>
 
       // find the first one
       const firstActivity = single(results.rows, (a) => a.parentId === null)
@@ -246,46 +252,10 @@ class ConversationRepository {
 
       output.activities = [firstActivity, ...remainingActivities]
 
-      const memberIds: string[] = []
-      for (const activity of output.activities) {
-        if (!memberIds.includes(activity.memberId)) {
-          memberIds.push(activity.memberId)
-        }
+      output.memberCount = results.rows
+        .map((row) => row.memberId)
+        .filter((item, index, arr) => arr.indexOf(item) === index).length
 
-        if (activity.objectMemberId && !memberIds.includes(activity.objectMemberId)) {
-          memberIds.push(activity.objectMemberId)
-        }
-
-        activity.display = ActivityDisplayService.getDisplayOptions(
-          activity,
-          SegmentRepository.getActivityTypes(options),
-        )
-      }
-
-      if (memberIds.length > 0) {
-        const memberResults = await MemberRepository.findAndCountAllOpensearch(
-          {
-            filter: {
-              and: [
-                {
-                  id: { in: memberIds },
-                },
-              ],
-            },
-            limit: memberIds.length,
-          },
-          options,
-        )
-
-        for (const activity of output.activities) {
-          activity.member = memberResults.rows.find((m) => m.id === activity.memberId)
-          if (activity.objectMemberId) {
-            activity.objectMember = memberResults.rows.find((m) => m.id === activity.objectMemberId)
-          }
-        }
-      }
-
-      output.memberCount = memberIds.length
       output.conversationStarter = output.activities[0] ?? null
       output.activityCount = output.activities.length
       output.platform = null

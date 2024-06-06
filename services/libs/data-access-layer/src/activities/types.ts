@@ -31,7 +31,7 @@ export interface IQueryActivityResult {
   updatedAt?: string
   updatedById?: string
   url?: string | null
-  relations: {
+  relations?: {
     member?: IDbMember
   }
 

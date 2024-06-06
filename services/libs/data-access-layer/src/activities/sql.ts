@@ -456,6 +456,13 @@ export async function queryActivities(
     delete arg.filter.member
   }
 
+  // Delete empty arrays filtering conversationId.
+  for (const f of arg.filter.and) {
+    if (f.conversationId && f.conversationId.in && f.conversationId.in.length === 0) {
+      delete f.conversationId
+    }
+  }
+
   const parsedOrderBys = []
 
   for (const orderByPart of arg.orderBy) {
@@ -544,7 +551,7 @@ export async function queryActivities(
     `
 
     if (arg.limit > 0) {
-      query += `limit $(lowerLimit)`
+      query += ` limit $(lowerLimit)`
 
       if (params.upperLimit) {
         query += `, $(upperLimit)`
@@ -552,8 +559,6 @@ export async function queryActivities(
     }
 
     query += ';'
-
-    console.log('query', query)
 
     const [results, countResults] = await Promise.all([
       qdbConn.any(query, params),
@@ -631,7 +636,7 @@ export async function queryActivities(
         },
       )
 
-      for (const result of activities) {
+      for (const result of results) {
         for (const memberFound of membersFound) {
           if (result.memberId === memberFound.id) {
             result.member = memberFound
@@ -644,7 +649,7 @@ export async function queryActivities(
 
   return {
     count,
-    rows: activities,
+    rows: results,
     limit: arg.limit,
     offset: arg.offset,
   }

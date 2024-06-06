@@ -34,10 +34,14 @@ export async function getConversationById(
     `
       select id,
              title,
-             slug, 
+             slug,
              published,
+             "createdAt",
+             "updatedAt",
              "tenantId",
-             "segmentId"
+             "segmentId",
+             "createdById",
+             "updatedById"
       from conversations
       where 
         id = $(id) and 
@@ -311,7 +315,7 @@ export async function setConversationToActivity(
     `
       update activities
       set "conversationId" = $(conversationId)
-      where id = $(activityId) and "tenantId" = $(tenantId) and "segmentId" = $(segmentId) and "deletedAt" is null
+      where id = $(activityId) and "tenantId" = $(tenantId) and "segmentId" = $(segmentId);
     `,
     {
       conversationId,
@@ -359,10 +363,12 @@ const CONVERSATION_QUERY_FILTER_COLUMN_MAP: Map<string, string> = new Map([
   ['title', 'c.title'],
   ['slug', 'c.slug'],
   ['published', 'c.published'],
-  ['channel', 'c.channel'],
+  ['platform', 'a.platform'],
+  ['channel', 'a.channel'],
   ['lastActive', 'a."lastActive"'],
   ['activityCount', 'a."activityCount"'],
 ])
+
 export async function queryConversations(
   qdbConn: DbConnOrTx,
   arg: IQueryConversationsParameters,
@@ -480,7 +486,7 @@ export async function queryConversations(
     order by ${orderByString}`
 
     if (arg.limit > 0) {
-      query += `limit $(lowerLimit)`
+      query += ` limit $(lowerLimit)`
 
       if (params.upperLimit) {
         query += `, $(upperLimit)`

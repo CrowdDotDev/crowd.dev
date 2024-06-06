@@ -5,15 +5,12 @@ import {
   queryActivities,
   updateActivity,
 } from '@crowd/data-access-layer'
-import { Error400, Error404 } from '@crowd/common'
-import { ActivityDisplayService } from '@crowd/integrations'
 import sanitizeHtml from 'sanitize-html'
-import lodash, { uniq } from 'lodash'
-import Sequelize, { QueryTypes } from 'sequelize'
+import lodash from 'lodash'
+import { QueryTypes } from 'sequelize'
 import { ActivityDisplayService } from '@crowd/integrations'
-import { Error400, Error404, RawQueryParser } from '@crowd/common'
+import { Error400, Error404 } from '@crowd/common'
 import { IIntegrationResult, IntegrationResultState } from '@crowd/types'
-import { findManyLfxMemberships } from '@crowd/data-access-layer/src/lfx_memberships'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import { IRepositoryOptions } from './IRepositoryOptions'
