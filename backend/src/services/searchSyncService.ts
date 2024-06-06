@@ -1,4 +1,4 @@
-import { LoggerBase } from '@crowd/logging'
+import { LoggerBase, logExecutionTimeV2 } from '@crowd/logging'
 import { SearchSyncApiClient } from '@crowd/opensearch'
 import { FeatureFlag, SyncMode } from '@crowd/types'
 import { SearchSyncWorkerEmitter } from '@crowd/common_services'
@@ -46,11 +46,22 @@ export default class SearchSyncService extends LoggerBase {
     throw new Error(`Unknown mode ${this.mode} !`)
   }
 
+  private async logExecutionTime<T>(process: () => Promise<T>, name: string): Promise<T> {
+    if (this.options.profileSql) {
+      return logExecutionTimeV2(process, this.options.log, name)
+    }
+
+    return process()
+  }
+
   async triggerMemberSync(tenantId: string, memberId: string) {
     const client = await this.getSearchSyncClient()
 
     if (client instanceof SearchSyncApiClient) {
-      await client.triggerMemberSync(memberId)
+      await this.logExecutionTime(
+        () => client.triggerMemberSync(memberId),
+        `triggerMemberSync: tenant:${tenantId}, member:${memberId}`,
+      )
     } else if (client instanceof SearchSyncWorkerEmitter) {
       await client.triggerMemberSync(tenantId, memberId, false)
     } else {
@@ -72,7 +83,10 @@ export default class SearchSyncService extends LoggerBase {
     const client = await this.getSearchSyncClient()
 
     if (client instanceof SearchSyncApiClient || client instanceof SearchSyncWorkerEmitter) {
-      await client.triggerOrganizationMembersSync(tenantId, organizationId, false)
+      await this.logExecutionTime(
+        () => client.triggerOrganizationMembersSync(tenantId, organizationId, false),
+        `triggerOrganizationMembersSync: tenant:${tenantId}, organization:${organizationId}`,
+      )
     } else {
       throw new Error('Unexpected search client type!')
     }
@@ -82,7 +96,10 @@ export default class SearchSyncService extends LoggerBase {
     const client = await this.getSearchSyncClient()
 
     if (client instanceof SearchSyncApiClient) {
-      await client.triggerRemoveMember(memberId)
+      await this.logExecutionTime(
+        () => client.triggerRemoveMember(memberId),
+        `triggerRemoveMember: tenant:${tenantId}, member:${memberId}`,
+      )
     } else if (client instanceof SearchSyncWorkerEmitter) {
       await client.triggerRemoveMember(tenantId, memberId, false)
     } else {
@@ -104,7 +121,10 @@ export default class SearchSyncService extends LoggerBase {
     const client = await this.getSearchSyncClient()
 
     if (client instanceof SearchSyncApiClient) {
-      await client.triggerActivitySync(activityId)
+      await this.logExecutionTime(
+        () => client.triggerActivitySync(activityId),
+        `triggerActivitySync: tenant:${tenantId}, activity:${activityId}`,
+      )
     } else if (client instanceof SearchSyncWorkerEmitter) {
       await client.triggerActivitySync(tenantId, activityId, false)
     } else {
@@ -158,7 +178,10 @@ export default class SearchSyncService extends LoggerBase {
     const client = await this.getSearchSyncClient()
 
     if (client instanceof SearchSyncApiClient) {
-      await client.triggerOrganizationSync(organizationId)
+      await this.logExecutionTime(
+        () => client.triggerOrganizationSync(organizationId),
+        `triggerOrganizationSync: tenant:${tenantId}, organization:${organizationId}`,
+      )
     } else if (client instanceof SearchSyncWorkerEmitter) {
       await client.triggerOrganizationSync(tenantId, organizationId, false)
     } else {
@@ -180,7 +203,10 @@ export default class SearchSyncService extends LoggerBase {
     const client = await this.getSearchSyncClient()
 
     if (client instanceof SearchSyncApiClient) {
-      await client.triggerRemoveOrganization(organizationId)
+      await this.logExecutionTime(
+        () => client.triggerRemoveOrganization(organizationId),
+        `triggerRemoveOrganization: tenant:${tenantId}, organization:${organizationId}`,
+      )
     } else if (client instanceof SearchSyncWorkerEmitter) {
       await client.triggerRemoveOrganization(tenantId, organizationId, false)
     } else {

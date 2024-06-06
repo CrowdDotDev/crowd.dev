@@ -97,6 +97,11 @@ setImmediate(async () => {
   )
 
   app.use((req, res, next) => {
+    req.profileSql = req.headers['x-profile-sql'] === 'true'
+    next()
+  })
+
+  app.use((req, res, next) => {
     res.setHeader('X-Hostname', os.hostname())
     next()
   })

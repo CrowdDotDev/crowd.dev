@@ -5,7 +5,7 @@ const log = getServiceLogger()
 
 export async function databaseMiddleware(req, res, next) {
   try {
-    const profileQueries = req.headers['x-profile-sql'] === 'true'
+    const profileQueries = !!req.profileSql
     const database = await databaseInit(undefined, undefined, undefined, profileQueries)
     req.database = database
   } catch (error) {
