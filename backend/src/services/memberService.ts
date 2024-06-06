@@ -1174,8 +1174,12 @@ export default class MemberService extends LoggerBase {
       await captureApiChange(
         this.options,
         memberMergeAction(originalId, async (captureOldState, captureNewState) => {
-          const original = await MemberRepository.findById(originalId, this.options)
-          const toMerge = await MemberRepository.findById(toMergeId, this.options)
+          const original = await MemberRepository.findById(originalId, this.options, {
+            doPopulateRelations: 'no-activity-aggregates',
+          })
+          const toMerge = await MemberRepository.findById(toMergeId, this.options, {
+            doPopulateRelations: 'no-activity-aggregates',
+          })
 
           captureOldState({
             primary: original,
