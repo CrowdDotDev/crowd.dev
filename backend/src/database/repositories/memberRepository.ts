@@ -1433,7 +1433,7 @@ class MemberRepository {
              "integrationId",
              "createdAt",
              "updatedAt"
-      from "memberIdentities" 
+      from "memberIdentities"
       where "memberId" in (:memberIds)
       order by "createdAt" asc;
     `
