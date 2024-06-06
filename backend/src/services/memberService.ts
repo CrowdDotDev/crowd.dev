@@ -1283,7 +1283,10 @@ export default class MemberService extends LoggerBase {
 
           // Update original member
           const txService = new MemberService(repoOptions as IServiceOptions)
-          await txService.update(originalId, captureNewState({ primary: toUpdate }), { syncToOpensearch: false })
+          await txService.update(originalId, captureNewState({ primary: toUpdate }), {
+            syncToOpensearch: false,
+            doPopulateRelations: false,
+          })
 
           // update members that belong to source organization to destination org
           const memberOrganizationService = new MemberOrganizationService(repoOptions)
@@ -1549,7 +1552,12 @@ export default class MemberService extends LoggerBase {
     {
       syncToOpensearch = true,
       manualChange = false,
-    }: { syncToOpensearch?: boolean; manualChange?: boolean } = {},
+      doPopulateRelations = true,
+    }: {
+      syncToOpensearch?: boolean
+      manualChange?: boolean
+      doPopulateRelations?: boolean
+    } = {},
   ) {
     let transaction
     const searchSyncService = new SearchSyncService(
@@ -1701,7 +1709,10 @@ export default class MemberService extends LoggerBase {
             )
           }
 
-          const record = await MemberRepository.update(id, data, repoOptions, { manualChange })
+          const record = await MemberRepository.update(id, data, repoOptions, {
+            manualChange,
+            doPopulateRelations,
+          })
 
           return record
         }),
