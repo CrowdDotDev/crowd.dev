@@ -7,6 +7,7 @@ import { svc } from '../main'
 
 import { IOrganizationPartialAggregatesOpensearch, ISimilarOrganizationOpensearch } from '../types'
 import OrganizationMergeSuggestionsRepository from '@crowd/data-access-layer/src/old/apps/merge_suggestions_worker/organizationMergeSuggestions.repo'
+import { hasLfxMembership } from '@crowd/data-access-layer/src/lfx_memberships'
 import { prefixLength } from '../utils'
 import OrganizationSimilarityCalculator from '../organizationSimilarityCalculator'
 import { findOrgsForMergeSuggestions } from '@crowd/data-access-layer'
@@ -222,6 +223,12 @@ export async function getOrganizationMergeSuggestions(
     ],
   }
 
+  const qx = pgpQx(svc.postgres.reader.connection())
+  const primaryOrgWithLfxMembership = await hasLfxMembership(qx, {
+    tenantId,
+    organizationId: organization.uuid_organizationId,
+  })
+
   let organizationsToMerge: ISimilarOrganizationOpensearch[]
 
   try {
@@ -241,6 +248,15 @@ export async function getOrganizationMergeSuggestions(
   }
 
   for (const organizationToMerge of organizationsToMerge) {
+    const secondaryOrgWithLfxMembership = await hasLfxMembership(qx, {
+      tenantId,
+      organizationId: organizationToMerge._source.uuid_organizationId,
+    })
+
+    if (primaryOrgWithLfxMembership && secondaryOrgWithLfxMembership) {
+      continue
+    }
+
     const similarityConfidenceScore = OrganizationSimilarityCalculator.calculateSimilarity(
       organization,
       organizationToMerge._source,
@@ -262,6 +278,7 @@ export async function getOrganizationMergeSuggestions(
       }
       return 0
     })
+
     mergeSuggestions.push({
       similarity: similarityConfidenceScore,
       organizations: [

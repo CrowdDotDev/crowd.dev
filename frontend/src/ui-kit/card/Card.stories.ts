@@ -32,7 +32,7 @@ export const Default = {
     },
   },
   render: () => ({
-    components: { CrCard },
+    components: { LfCard },
     template: '<div class="flex"><lf-card class="p-12">This is card content</lf-card></div>',
   }),
 };

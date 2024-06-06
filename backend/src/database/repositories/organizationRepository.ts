@@ -26,7 +26,7 @@ import {
   SegmentProjectGroupNestedData,
   SegmentProjectNestedData,
 } from '@crowd/types'
-import lodash, { chunk } from 'lodash'
+import lodash, { chunk, uniq } from 'lodash'
 import Sequelize, { QueryTypes } from 'sequelize'
 import validator from 'validator'
 import {
@@ -1508,6 +1508,19 @@ class OrganizationRepository {
         }))
       }
 
+      const qx = SequelizeRepository.getQueryExecutor(options)
+      const organizationIds = uniq(result.map((r) => r.organizations[0].id))
+      const lfxMemberships = await findManyLfxMemberships(qx, {
+        organizationIds,
+        tenantId: options.currentTenant.id,
+        segmentIds,
+      })
+      result.forEach((r) => {
+        r.organizations.forEach((org) => {
+          org.lfxMembership = lfxMemberships.find((m) => m.organizationId === org.id)
+        })
+      })
+
       return { rows: result, count: orgs[0].total_count, limit: args.limit, offset: args.offset }
     }
 
@@ -1978,7 +1991,7 @@ class OrganizationRepository {
     id: string,
     options: IRepositoryOptions,
     segmentId?: string,
-  ): Promise<PageData<any>> {
+  ): Promise<any> {
     const segments = segmentId ? [segmentId] : SequelizeRepository.getSegmentIds(options)
 
     const response = await this.findAndCountAllOpensearch(
@@ -2245,10 +2258,18 @@ class OrganizationRepository {
       options,
     )
 
+    const qx = SequelizeRepository.getQueryExecutor(options)
+    const lfxMemberships = await findManyLfxMemberships(qx, {
+      tenantId: options.currentTenant.id,
+      organizationIds,
+      segmentIds: [originalSegment],
+    })
+
     return {
       rows: organizations.rows.map((o) => {
         o.activityCount = organizationMap[o.id].activityCount.value
         o.activeDaysCount = organizationMap[o.id].activeDaysCount.value
+        o.lfxMembership = lfxMemberships.find((m) => m.organizationId === o.id)
         return o
       }),
       count: organizations.count,

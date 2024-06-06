@@ -1,9 +1,15 @@
 import authAxios from '@/shared/axios/auth-axios';
 import { AuthService } from '@/modules/auth/services/auth.service';
-import { store } from '@/store';
-import moment from 'moment';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import { getSegmentsFromProjectGroup } from '@/utils/segments';
 import { storeToRefs } from 'pinia';
+
+const getSelectedProjectGroup = () => {
+  const lsSegmentsStore = useLfSegmentsStore();
+  const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
+
+  return selectedProjectGroup.value;
+};
 
 export class ActivityService {
   static async update(id, data, segments) {
@@ -52,11 +58,20 @@ export class ActivityService {
   static async query(body, countOnly = false) {
     const tenantId = AuthService.getTenantId();
 
+    const segments = [
+      ...body?.segments ?? getSegmentsFromProjectGroup(getSelectedProjectGroup()),
+      getSelectedProjectGroup().id,
+    ];
+
     // If tenant is less than a month old, use old query
     // Else use new query
     const response = await authAxios.post(
       `/tenant/${tenantId}/activity/query`,
-      { ...body, countOnly },
+      {
+        ...body,
+        countOnly,
+        segments,
+      },
       {
         headers: {
           'x-crowd-api-version': '1',

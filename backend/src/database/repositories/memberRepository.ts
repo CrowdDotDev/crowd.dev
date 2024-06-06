@@ -43,6 +43,7 @@ import {
 } from '@crowd/data-access-layer/src/member_identities'
 import { ActivityDisplayService } from '@crowd/integrations'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
+import { findManyLfxMemberships } from '@crowd/data-access-layer/src/lfx_memberships'
 import { KUBE_MODE, SERVICE } from '@/conf'
 import { ServiceType } from '../../conf/configTypes'
 import isFeatureEnabled from '../../feature-flags/isFeatureEnabled'

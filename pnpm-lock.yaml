@@ -210,6 +210,9 @@ importers:
       crypto-js:
         specifier: ^4.1.1
         version: 4.2.0
+      csv-parse:
+        specifier: ^5.5.6
+        version: 5.5.6
       discord.js:
         specifier: ^14.7.1
         version: 14.14.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
@@ -5340,6 +5343,9 @@ packages:
   css-what@6.1.0:
     resolution: {integrity: sha512-HTUrgRJ7r4dsZKU6GjmpfRK1O76h97Z8MfS1G0FozR+oF2kG6Vfe8JE6zwrkbxigziPHinCJ+gCPjA9EaBDtRw==}
     engines: {node: '>= 6'}
+
+  csv-parse@5.5.6:
+    resolution: {integrity: sha512-uNpm30m/AGSkLxxy7d9yRXpJQFrZzVWLFBkS+6ngPcZkw/5k3L/jjFuj7tVnEpRn+QgmiXr21nDlhCiUK4ij2A==}
 
   culvert@0.1.2:
     resolution: {integrity: sha512-yi1x3EAWKjQTreYWeSd98431AV+IEE0qoDyOoaHJ7KJ21gv6HtBXHVLX74opVSGqcR8/AbjJBHAHpcOy2bj5Gg==}
@@ -13992,6 +13998,8 @@ snapshots:
       nth-check: 2.1.1
 
   css-what@6.1.0: {}
+
+  csv-parse@5.5.6: {}
 
   culvert@0.1.2: {}
 

@@ -1,0 +1,23 @@
+CREATE TABLE IF NOT EXISTS "lfxMemberships" (
+    "id" UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    "createdAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "tenantId" UUID NOT NULL REFERENCES "tenants" ("id") ON DELETE CASCADE,
+    "organizationId" UUID REFERENCES "organizations" ("id") ON DELETE CASCADE,
+    "segmentId" UUID REFERENCES "segments" ("id") ON DELETE CASCADE,
+    "accountName" TEXT NOT NULL,
+    "parentAccount" TEXT,
+    "project" TEXT,
+    "productName" TEXT NOT NULL,
+    "purchaseHistoryName" TEXT NOT NULL,
+    "installDate" DATE NOT NULL,
+    "usageEndDate" DATE NOT NULL,
+    "status" TEXT NOT NULL,
+    "priceCurrency" TEXT NOT NULL,
+    "price" INTEGER NOT NULL,
+    "productFamily" TEXT NOT NULL,
+    "tier" TEXT NOT NULL,
+    "accountDomain" TEXT NOT NULL,
+    "domainAlias" TEXT [],
+    UNIQUE ("tenantId", "segmentId", "accountName")
+);

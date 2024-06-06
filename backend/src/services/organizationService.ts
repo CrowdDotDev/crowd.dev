@@ -15,6 +15,11 @@ import {
 import { randomUUID } from 'crypto'
 import lodash from 'lodash'
 import { captureApiChange, organizationMergeAction } from '@crowd/audit-logs'
+import {
+  findLfxMembership,
+  findManyLfxMemberships,
+  hasLfxMembership,
+} from '@crowd/data-access-layer/src/lfx_memberships'
 import getObjectWithoutKey from '@/utils/getObjectWithoutKey'
 import { IActiveOrganizationFilter } from '@/database/repositories/types/organizationTypes'
 import MemberOrganizationRepository from '@/database/repositories/memberOrganizationRepository'
@@ -401,6 +406,8 @@ export default class OrganizationService extends LoggerBase {
       ])
 
     let tx
+    const qx = SequelizeRepository.getQueryExecutor(this.options)
+    const tenantId = this.options.currentTenant.id
 
     try {
       const { original, toMerge } = await captureApiChange(
@@ -409,6 +416,28 @@ export default class OrganizationService extends LoggerBase {
           this.log.info('[Merge Organizations] - Finding organizations! ')
           let original = await OrganizationRepository.findById(originalId, this.options)
           let toMerge = await OrganizationRepository.findById(toMergeId, this.options)
+
+          const originalWithLfxMembership = await hasLfxMembership(qx, {
+            tenantId,
+            organizationId: originalId,
+          })
+          const toMergeWithLfxMembership = await hasLfxMembership(qx, {
+            tenantId,
+            organizationId: toMergeId,
+          })
+
+          if (originalWithLfxMembership && toMergeWithLfxMembership) {
+            await OrganizationRepository.addNoMerge(originalId, toMergeId, this.options)
+            this.log.info(
+              { originalId, toMergeId },
+              '[Merge Organizations] - Skipping merge of two LFX membership orgs! ',
+            )
+
+            return {
+              status: 203,
+              mergedId: originalId,
+            }
+          }
 
           this.log.info({ originalId, toMergeId }, '[Merge Organizations] - Found organizations! ')
 
@@ -608,8 +637,8 @@ export default class OrganizationService extends LoggerBase {
 
       const searchSyncService = new SearchSyncService(this.options, SyncMode.ASYNCHRONOUS)
 
-      await searchSyncService.triggerOrganizationSync(this.options.currentTenant.id, originalId)
-      await searchSyncService.triggerRemoveOrganization(this.options.currentTenant.id, toMergeId)
+      await searchSyncService.triggerOrganizationSync(tenantId, originalId)
+      await searchSyncService.triggerRemoveOrganization(tenantId, toMergeId)
 
       // sync organization members
       await searchSyncService.triggerOrganizationMembersSync(
@@ -633,11 +662,11 @@ export default class OrganizationService extends LoggerBase {
           toMergeId,
           original.displayName,
           toMerge.displayName,
-          this.options.currentTenant.id,
+          tenantId,
           this.options.currentUser.id,
         ],
         searchAttributes: {
-          TenantId: [this.options.currentTenant.id],
+          TenantId: [tenantId],
         },
       })
 
@@ -1128,7 +1157,17 @@ export default class OrganizationService extends LoggerBase {
   }
 
   async findByIdOpensearch(id: string, segmentId?: string) {
-    return OrganizationRepository.findByIdOpensearch(id, this.options, segmentId)
+    const org = await OrganizationRepository.findByIdOpensearch(id, this.options, segmentId)
+
+    const qx = SequelizeRepository.getQueryExecutor(this.options)
+
+    org.lfxMembership = await findLfxMembership(qx, {
+      organizationId: id,
+      tenantId: this.options.currentTenant.id,
+      segmentId,
+    })
+
+    return org
   }
 
   async query(data) {
@@ -1162,6 +1201,21 @@ export default class OrganizationService extends LoggerBase {
       },
       this.options,
     )
+
+    const orgIds = pageData.rows.map((org) => org.id)
+
+    const qx = SequelizeRepository.getQueryExecutor(this.options)
+    const lfxMemberships = await findManyLfxMemberships(qx, {
+      organizationIds: orgIds,
+      tenantId: this.options.currentTenant.id,
+      segmentIds: data.segments,
+    })
+
+    pageData.rows.forEach((org) => {
+      org.lfxMembership = lfxMemberships.find((lm) => lm.organizationId === org.id)
+    })
+
+    return pageData
   }
 
   async destroyBulk(ids) {

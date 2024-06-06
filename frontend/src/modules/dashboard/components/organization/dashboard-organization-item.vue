@@ -30,11 +30,17 @@
           size="xxs"
           class="mr-4"
         />
-        <h6
-          class="text-xs leading-5 font-medium text-gray-900 hover:text-primary-500 transition"
-        >
-          {{ organization.displayName || organization.name }}
-        </h6>
+        <div class="flex items-center gap-1">
+          <h6
+            class="text-xs leading-5 font-medium text-gray-900 hover:text-primary-500 transition"
+          >
+            {{ organization.displayName || organization.name }}
+          </h6>
+          <lf-organization-lf-member-tag
+            :organization="organization"
+            :only-show-icon="true"
+          />
+        </div>
       </div>
       <div>
         <p class="text-2xs leading-4.5 !text-gray-400">
@@ -54,6 +60,7 @@ import AppLoading from '@/shared/loading/loading-placeholder.vue';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import LfOrganizationLfMemberTag from '@/modules/organization/components/lf-member/organization-lf-member-tag.vue';
 
 const props = defineProps({
   organization: {
