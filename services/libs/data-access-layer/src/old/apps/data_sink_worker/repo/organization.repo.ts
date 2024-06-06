@@ -14,7 +14,6 @@ import {
   IDbUpdateOrganizationData,
   getInsertOrganizationColumnSet,
 } from './organization.data'
-import { platform } from 'os'
 
 export class OrganizationRepository extends RepositoryBase<OrganizationRepository> {
   private readonly insertOrganizationColumnSet: DbColumnSet
@@ -41,7 +40,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     )
   }
 
-  public async findByIdentity(
+  public async findByVerifiedIdentity(
     tenantId: string,
     identity: IOrganizationIdentity,
   ): Promise<IDbOrganization> {

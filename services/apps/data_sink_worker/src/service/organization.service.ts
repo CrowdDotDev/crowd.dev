@@ -4,12 +4,7 @@ import IntegrationRepository from '@crowd/data-access-layer/src/old/apps/data_si
 import { OrganizationRepository } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/organization.repo'
 import { DbStore } from '@crowd/data-access-layer/src/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
-import {
-  IOrganization,
-  IOrganizationSocial,
-  OrganizationIdentityType,
-  PlatformType,
-} from '@crowd/types'
+import { IOrganization, OrganizationIdentityType, PlatformType } from '@crowd/types'
 import { websiteNormalizer } from '@crowd/common'
 
 export interface IOrganizationIdSource {
@@ -58,7 +53,7 @@ export class OrganizationService extends LoggerBase {
         // find existing org by sent verified identities
         if (!existing) {
           for (const identity of verifiedIdentities) {
-            existing = await txRepo.findByIdentity(tenantId, identity)
+            existing = await txRepo.findByVerifiedIdentity(tenantId, identity)
             if (existing) {
               break
             }
@@ -243,7 +238,7 @@ export class OrganizationService extends LoggerBase {
         if (!dbOrganization) {
           // try finding the organization using verified identities
           for (const i of verifiedIdentities) {
-            dbOrganization = await txRepo.findByIdentity(tenantId, i)
+            dbOrganization = await txRepo.findByVerifiedIdentity(tenantId, i)
             if (dbOrganization) {
               break
             }

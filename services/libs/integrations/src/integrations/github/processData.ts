@@ -183,6 +183,7 @@ const parseMember = (memberData: GithubPrepareMemberOutput): IMemberData => {
 
       if (orgs && company.length > 0) {
         const organizationPayload = {
+          names: [orgs.name],
           identities: [
             {
               platform: PlatformType.GITHUB,
@@ -194,9 +195,6 @@ const parseMember = (memberData: GithubPrepareMemberOutput): IMemberData => {
           description: orgs.description ?? null,
           location: orgs.location ?? null,
           logo: orgs.avatarUrl ?? null,
-          github: orgs.url ? orgs.url.replace('https://github.com/', '') : null,
-          twitter: orgs.twitterUsername ? orgs.twitterUsername : null,
-          website: orgs.websiteUrl ?? null,
           source: OrganizationSource.GITHUB,
         } as IOrganization
 
