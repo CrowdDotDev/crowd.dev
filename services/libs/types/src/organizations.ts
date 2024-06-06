@@ -4,6 +4,7 @@ import { OrganizationSource } from './enums/organizations'
 export interface IOrganization {
   // db fields
   id?: string
+  names: string[]
   description?: string
   emails?: string[]
   phoneNumbers?: number[]
@@ -11,9 +12,6 @@ export interface IOrganization {
   tags?: string[]
   url?: string
   avatarUrl?: string
-  twitter?: IOrganizationSocial
-  linkedin?: IOrganizationSocial
-  crunchbase?: IOrganizationSocial
   employees?: number
   revenueRange?: IOrganizationRevenueRange
   importHash?: string
@@ -24,8 +22,6 @@ export interface IOrganization {
   createdById?: string
   updatedById?: string
   location?: string
-  github?: IOrganizationSocial
-  website?: string
   isTeamOrganization?: boolean
   lastEnrichedAt?: string | Date
   employeeCountByCountry?: Record<string, number>
@@ -42,9 +38,7 @@ export interface IOrganization {
   attributes?: IAttributes
   searchSyncedAt?: string | Date
   manuallyCreated?: boolean
-  affiliatedProfiles?: string[]
   allSubsidiaries?: string[]
-  alternativeDomains?: string[]
   alternativeNames?: string[]
   averageEmployeeTenure?: number
   averageTenureByLevel?: Record<string, number>
@@ -60,7 +54,6 @@ export interface IOrganization {
   grossDeparturesByMonth?: Record<string, number>
   ultimateParent?: string
   immediateParent?: string
-  weakIdentities?: IOrganizationIdentity[]
   manuallyChangedFields?: string[]
   naics?: IOrganizationNaics[]
 
@@ -133,7 +126,6 @@ export interface IOrganizationCache {
   grossAdditionsByMonth?: Record<string, number>
   grossDeparturesByMonth?: Record<string, number>
   identities: IOrganizationIdentity[]
-  weakIdentities?: IOrganizationIdentity[]
   members?: string[]
   source?: OrganizationSource
   name?: string
@@ -174,13 +166,21 @@ export interface IOrganizationSyncRemoteData {
   lastSyncedAt?: string
 }
 
+export enum OrganizationIdentityType {
+  USERNAME = 'username',
+  PRIMARY_DOMAIN = 'primary-domain',
+  ALTERNATIVE_DOMAIN = 'alternative-domain',
+  AFFILIATED_PROFILE = 'affiliated-profile',
+}
+
 export interface IOrganizationIdentity {
   organizationId?: string
   integrationId?: string
   platform: string
-  name: string
+  value: string
+  type: OrganizationIdentityType
+  verified: boolean
   sourceId?: string
-  url?: string
 }
 
 export interface IEnrichableOrganization extends IOrganization {

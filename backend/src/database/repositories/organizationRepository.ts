@@ -1,10 +1,16 @@
+import {
+  captureApiChange,
+  organizationCreateAction,
+  organizationEditIdentitiesAction,
+  organizationUpdateAction,
+} from '@crowd/audit-logs'
 import { Error400, Error404, Error409, PageData } from '@crowd/common'
-import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import {
   addOrgIdentity,
   cleanUpOrgIdentities,
   fetchOrgIdentities,
 } from '@crowd/data-access-layer/src/org_identities'
+import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import {
   FeatureFlag,
   IEnrichableOrganization,
@@ -16,6 +22,7 @@ import {
   MergeActionState,
   MergeActionType,
   OpenSearchIndex,
+  OrganizationIdentityType,
   SegmentData,
   SegmentProjectGroupNestedData,
   SegmentProjectNestedData,
@@ -23,27 +30,21 @@ import {
 } from '@crowd/types'
 import lodash, { chunk } from 'lodash'
 import Sequelize, { QueryTypes } from 'sequelize'
-import {
-  captureApiChange,
-  organizationCreateAction,
-  organizationEditIdentitiesAction,
-  organizationUpdateAction,
-} from '@crowd/audit-logs'
 import validator from 'validator'
-import SequelizeRepository from './sequelizeRepository'
-import AuditLogRepository from './auditLogRepository'
-import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
-import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
-import { IRepositoryOptions } from './IRepositoryOptions'
-import QueryParser from './filters/queryParser'
-import { QueryOutput } from './filters/queryTypes'
-import OrganizationSyncRemoteRepository from './organizationSyncRemoteRepository'
-import SegmentRepository from './segmentRepository'
-import { IActiveOrganizationData, IActiveOrganizationFilter } from './types/organizationTypes'
 import {
   IFetchOrganizationMergeSuggestionArgs,
   SimilarityScoreRange,
 } from '@/types/mergeSuggestionTypes'
+import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
+import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
+import { IRepositoryOptions } from './IRepositoryOptions'
+import AuditLogRepository from './auditLogRepository'
+import QueryParser from './filters/queryParser'
+import { QueryOutput } from './filters/queryTypes'
+import OrganizationSyncRemoteRepository from './organizationSyncRemoteRepository'
+import SegmentRepository from './segmentRepository'
+import SequelizeRepository from './sequelizeRepository'
+import { IActiveOrganizationData, IActiveOrganizationFilter } from './types/organizationTypes'
 
 const { Op } = Sequelize
 
@@ -77,11 +78,11 @@ class OrganizationRepository {
                     group by oi."organizationId")
     select org.id,
           i.identities,
+          org.emails,
+          org.names,
           org."displayName",
           org."location",
-          org."website",
           org."lastEnrichedAt",
-          org."twitter",
           org."employees",
           org."size",
           org."founded",
@@ -94,16 +95,10 @@ class OrganizationRepository {
           org."address",
           org."geoLocation",
           org."employeeCountByCountry",
-          org."twitter",
-          org."linkedin",
-          org."crunchbase",
-          org."github",
           org."description",
           org."revenueRange",
           org."tags",
-          org."affiliatedProfiles",
           org."allSubsidiaries",
-          org."alternativeDomains",
           org."alternativeNames",
           org."averageEmployeeTenure",
           org."averageTenureByLevel",
@@ -125,7 +120,7 @@ class OrganizationRepository {
             join identities i on i."organizationId" = org.id
     where :tenantId = org."tenantId"
       and (org."lastEnrichedAt" is null or date_part('month', age(now(), org."lastEnrichedAt")) >= 6)
-    order by org."lastEnrichedAt" asc, org."website", activity."orgActivityCount" desc, org."createdAt" desc
+    order by org."lastEnrichedAt" asc, activity."orgActivityCount" desc, org."createdAt" desc
     limit :limit
     `
     const orgs: IEnrichableOrganization[] = await database.query(query, {
@@ -160,11 +155,11 @@ class OrganizationRepository {
                     group by oi."organizationId")
     select org.id,
           i.identities,
+          org.names,
+          org.emails,
           org."displayName",
           org."location",
-          org."website",
           org."lastEnrichedAt",
-          org."twitter",
           org."employees",
           org."size",
           org."founded",
@@ -177,16 +172,10 @@ class OrganizationRepository {
           org."address",
           org."geoLocation",
           org."employeeCountByCountry",
-          org."twitter",
-          org."linkedin",
-          org."crunchbase",
-          org."github",
           org."description",
           org."revenueRange",
           org."tags",
-          org."affiliatedProfiles",
           org."allSubsidiaries",
-          org."alternativeDomains",
           org."alternativeNames",
           org."averageEmployeeTenure",
           org."averageTenureByLevel",
@@ -207,7 +196,7 @@ class OrganizationRepository {
             join org_activities activity on activity."organizationId" = org."id"
             join identities i on i."organizationId" = org.id
     where :tenantId = org."tenantId"
-    order by org."lastEnrichedAt" asc, org."website", activity."orgActivityCount" desc, org."createdAt" desc
+    order by org."lastEnrichedAt" asc, activity."orgActivityCount" desc, org."createdAt" desc
     limit :limit
     `
     const orgs: IEnrichableOrganization[] = await database.query(query, {
@@ -235,16 +224,12 @@ class OrganizationRepository {
       ...lodash.pick(data, [
         'displayName',
         'description',
+        'names',
         'emails',
         'phoneNumbers',
         'logo',
         'tags',
-        'website',
         'location',
-        'github',
-        'twitter',
-        'linkedin',
-        'crunchbase',
         'employees',
         'revenueRange',
         'importHash',
@@ -260,9 +245,7 @@ class OrganizationRepository {
         'size',
         'lastEnrichedAt',
         'manuallyCreated',
-        'affiliatedProfiles',
         'allSubsidiaries',
-        'alternativeDomains',
         'alternativeNames',
         'averageEmployeeTenure',
         'averageTenureByLevel',
@@ -363,91 +346,6 @@ class OrganizationRepository {
     }
   }
 
-  static async checkIdentities(
-    data: IOrganization,
-    options: IRepositoryOptions,
-    organizationId?: string,
-  ): Promise<void> {
-    // convert non-existing weak identities to strong ones
-    if (data.weakIdentities && data.weakIdentities.length > 0) {
-      const strongNotOwnedIdentities = await OrganizationRepository.findIdentities(
-        data.weakIdentities,
-        options,
-        organizationId,
-      )
-
-      const strongIdentities = []
-
-      // find weak identities in the payload that doesn't exist as a strong identity yet
-      for (const weakIdentity of data.weakIdentities) {
-        if (!strongNotOwnedIdentities.has(`${weakIdentity.platform}:${weakIdentity.name}`)) {
-          strongIdentities.push(weakIdentity)
-        }
-      }
-
-      // exclude identities that are converted to a strong one from weakIdentities
-      if (strongIdentities.length > 0) {
-        data.weakIdentities = data.weakIdentities.filter(
-          (i) =>
-            strongIdentities.find((s) => s.platform === i.platform && s.name === i.name) ===
-            undefined,
-        )
-        // push new strong identities to the payload
-        for (const identity of strongIdentities) {
-          if (
-            data.identities.find(
-              (i) => i.platform === identity.platform && i.name === identity.name,
-            ) === undefined
-          ) {
-            data.identities.push(identity)
-          }
-        }
-      }
-    }
-
-    // convert already existing strong identities to weak ones
-    if (data.identities && data.identities.length > 0) {
-      const strongNotOwnedIdentities = await OrganizationRepository.findIdentities(
-        data.identities,
-        options,
-        organizationId,
-      )
-
-      const weakIdentities: IOrganizationIdentity[] = []
-
-      // find strong identities in payload that already exist in some other organization, and convert these to weak
-      for (const identity of data.identities) {
-        if (strongNotOwnedIdentities.has(`${identity.platform}:${identity.name}`)) {
-          weakIdentities.push(identity)
-        }
-      }
-
-      // exclude identities that are converted to a weak one from strong identities
-      if (weakIdentities.length > 0) {
-        data.identities = data.identities.filter(
-          (i) =>
-            weakIdentities.find((w) => w.platform === i.platform && w.name === i.name) ===
-            undefined,
-        )
-
-        // push new weak identities to the payload
-        for (const weakIdentity of weakIdentities) {
-          if (!data.weakIdentities) {
-            data.weakIdentities = []
-          }
-
-          if (
-            data.weakIdentities.find(
-              (w) => w.platform === weakIdentity.platform && w.name === weakIdentity.name,
-            ) === undefined
-          ) {
-            data.weakIdentities.push(weakIdentity)
-          }
-        }
-      }
-    }
-  }
-
   static async includeOrganizationToSegments(organizationId: string, options: IRepositoryOptions) {
     const seq = SequelizeRepository.getSequelize(options)
 
@@ -524,12 +422,7 @@ class OrganizationRepository {
     'phoneNumbers',
     'logo',
     'tags',
-    'website',
     'location',
-    'github',
-    'twitter',
-    'linkedin',
-    'crunchbase',
     'employees',
     'revenueRange',
     'importHash',
@@ -544,11 +437,8 @@ class OrganizationRepository {
     'founded',
     'size',
     'employees',
-    'twitter',
     'lastEnrichedAt',
-    'affiliatedProfiles',
     'allSubsidiaries',
-    'alternativeDomains',
     'alternativeNames',
     'averageEmployeeTenure',
     'averageTenureByLevel',
@@ -565,7 +455,6 @@ class OrganizationRepository {
     'ultimateParent',
     'immediateParent',
     'attributes',
-    'weakIdentities',
   ]
 
   static isEqual = {
@@ -574,11 +463,9 @@ class OrganizationRepository {
     emails: (a, b) => lodash.isEqual((a || []).sort(), (b || []).sort()),
     phoneNumbers: (a, b) => lodash.isEqual((a || []).sort(), (b || []).sort()),
     logo: (a, b) => a === b,
-    website: (a, b) => a === b,
     location: (a, b) => a === b,
     isTeamOrganization: (a, b) => a === b,
     attributes: (a, b) => lodash.isEqual(a, b),
-    weakIdentities: (a, b) => lodash.isEqual(a, b),
   }
 
   static async update(
@@ -593,6 +480,8 @@ class OrganizationRepository {
     const transaction = SequelizeRepository.getTransaction(options)
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
+
+    const seq = SequelizeRepository.getSequelize(options)
 
     const record = await captureApiChange(
       options,
@@ -611,19 +500,42 @@ class OrganizationRepository {
 
         captureOldState(record.get({ plain: true }))
 
-        // check if website already exists in another organization in the same tenant
-        if (data.website) {
-          const existingOrg = await options.database.organization.findOne({
-            where: {
-              website: data.website,
-              tenantId: currentTenant.id,
+        const primaryDomainIdentity = data.identities.find(
+          (i) => i.type === OrganizationIdentityType.PRIMARY_DOMAIN && i.verified,
+        )
+
+        // check if domain already exists in another organization in the same tenant
+        if (primaryDomainIdentity) {
+          const existingOrg = (await seq.query(
+            `
+          select "organizationId"
+          from "organizationIdentities" 
+          where 
+            "tenantId" = :tenantId and 
+            "organizationId" <> :id and
+            type = :type and 
+            value = :value and 
+            verified = true
+          `,
+            {
+              replacements: {
+                tenantId: currentTenant.id,
+                id: record.id,
+                type: OrganizationIdentityType.PRIMARY_DOMAIN,
+                value: primaryDomainIdentity.value,
+              },
+              type: QueryTypes.SELECT,
+              transaction,
             },
-            transaction,
-          })
+          )) as any[]
 
           // ensure that it's not the same organization
-          if (existingOrg && existingOrg.id !== record.id) {
-            throw new Error409(options.language, 'errors.alreadyExists', existingOrg.id)
+          if (existingOrg && existingOrg.length > 0) {
+            throw new Error409(
+              options.language,
+              'errors.alreadyExists',
+              existingOrg[0].organizationId,
+            )
           }
         }
 
@@ -724,15 +636,23 @@ class OrganizationRepository {
         const qx = SequelizeRepository.getQueryExecutor(options, transaction)
         const initialIdentities = await fetchOrgIdentities(qx, id)
 
-        function convertIdentitiesForAudit(identities) {
+        function convertIdentitiesForAudit(identities: IOrganizationIdentity[]) {
           return identities.reduce((acc, r) => {
             if (!acc[r.platform]) {
               acc[r.platform] = []
             }
 
-            acc[r.platform].push(r.name)
-            acc[r.platform] = lodash.uniq(acc[r.platform])
-            acc[r.platform] = acc[r.platform].sort()
+            acc[r.platform].push({
+              value: r.value,
+              type: r.type,
+              verified: r.verified,
+            })
+
+            acc[r.platform] = acc[r.platform].sort((a, b) =>
+              `${a.value}:${a.type}:${a.verified}`.localeCompare(
+                `${b.value}:${b.type}:${b.verified}`,
+              ),
+            )
 
             return acc
           }, {})
@@ -744,7 +664,12 @@ class OrganizationRepository {
           if (overrideIdentities) {
             captureNewState(
               convertIdentitiesForAudit(
-                data.identities.map((i) => ({ platform: i.platform, name: i.name })),
+                data.identities.map((i) => ({
+                  platform: i.platform,
+                  value: i.value,
+                  type: i.type,
+                  verified: i.verified,
+                })),
               ),
             )
             await this.setIdentities(id, data.identities, options)
@@ -884,10 +809,11 @@ class OrganizationRepository {
       organizationId,
       platform: identity.platform,
       sourceId: identity.sourceId || null,
-      url: identity.url || null,
+      value: identity.value,
+      type: identity.type,
+      verified: identity.verified,
       tenantId: currentTenant.id,
       integrationId: identity.integrationId || null,
-      name: identity.name,
     })
   }
 
@@ -901,7 +827,7 @@ class OrganizationRepository {
 
     const results = await sequelize.query(
       `
-      select "sourceId", "platform", "name", "integrationId", "organizationId" from "organizationIdentities"
+      select "sourceId", platform, value, type, verified, "integrationId", "organizationId" from "organizationIdentities"
       where "tenantId" = :tenantId and "organizationId" in (:organizationIds)
     `,
       {
@@ -937,7 +863,9 @@ class OrganizationRepository {
         "tenantId" = :tenantId and
         "organizationId" = :oldOrganizationId and
         platform = :platform and
-        name = :name;
+        value = :value and
+        type = :type and
+        verified = :verified;
     `
 
     for (const identity of identitiesToMove) {
@@ -948,7 +876,9 @@ class OrganizationRepository {
           oldOrganizationId: fromOrganizationId,
           newOrganizationId: toOrganizationId,
           platform: identity.platform,
-          name: identity.name,
+          name: identity.value,
+          type: identity.type,
+          verified: identity.verified,
         },
         type: QueryTypes.UPDATE,
         transaction,
@@ -1487,8 +1417,8 @@ class OrganizationRepository {
 
     const identityConditions = identities
       .map(
-        (identity, index) => `
-            (oi.platform = :platform${index} and oi.name = :name${index})
+        (_, index) => `
+            (oi.platform = :platform${index} and oi.value = :value${index} and oi.type = :type${index} and oi.verified = :verified${index})
         `,
       )
       .join(' or ')
@@ -1513,13 +1443,8 @@ class OrganizationRepository {
                   o.emails,
                   o.logo,
                   o.tags,
-                  o.github,
-                  o.twitter,
-                  o.linkedin,
-                  o.crunchbase,
                   o.employees,
                   o.location,
-                  o.website,
                   o.type,
                   o.size,
                   o.headline,
@@ -1539,7 +1464,9 @@ class OrganizationRepository {
             (acc, identity, index) => ({
               ...acc,
               [`platform${index}`]: identity.platform,
-              [`name${index}`]: identity.name,
+              [`value${index}`]: identity.value,
+              [`type${index}`]: identity.type,
+              [`verified${index}`]: identity.verified,
             }),
             {},
           ),
@@ -1574,20 +1501,18 @@ class OrganizationRepository {
               from "organizationIdentities" oi
               where
                     oi.platform = :platform
-                    and oi.name = :name
+                    and oi.value = :value
+                    and oi.type = :type
+                    and oi.verified = :verified
           )
           select o.id,
                   o.description,
+                  o.names,
                   o.emails,
                   o.logo,
                   o.tags,
-                  o.github,
-                  o.twitter,
-                  o.linkedin,
-                  o.crunchbase,
                   o.employees,
                   o.location,
-                  o.website,
                   o.type,
                   o.size,
                   o.headline,
@@ -1601,7 +1526,9 @@ class OrganizationRepository {
       {
         replacements: {
           tenantId: currentTenant.id,
-          name: identity.name,
+          name: identity.value,
+          type: identity.type,
+          verified: identity.verified,
           platform: identity.platform,
         },
         type: QueryTypes.SELECT,
@@ -1628,28 +1555,23 @@ class OrganizationRepository {
       SELECT
       o.id,
       o.description,
+      o.names,
       o.emails,
       o.logo,
       o.tags,
-      o.github,
-      o.twitter,
-      o.linkedin,
-      o.crunchbase,
       o.employees,
       o.location,
-      o.website,
       o.type,
       o.size,
       o.headline,
       o.industry,
       o.founded,
-      o.attributes,
-      o."weakIdentities"
+      o.attributes
     FROM
       organizations o
     WHERE
       o."tenantId" = :tenantId AND
-      o.website = :domain
+      exists (select 1 from "organizationIdentities" oi where oi."organizationId" = o.id and oi.type = '${OrganizationIdentityType.PRIMARY_DOMAIN} and oi.verified = true and oi.value = :domain')
       `,
       {
         replacements: {
@@ -1668,60 +1590,6 @@ class OrganizationRepository {
     const result = results[0] as IOrganization
 
     return result
-  }
-
-  static async findIdentities(
-    identities: IOrganizationIdentity[],
-    options: IRepositoryOptions,
-    organizationId?: string,
-  ): Promise<Map<string, string>> {
-    const transaction = SequelizeRepository.getTransaction(options)
-    const sequelize = SequelizeRepository.getSequelize(options)
-    const currentTenant = SequelizeRepository.getCurrentTenant(options)
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const params = {
-      tenantId: currentTenant.id,
-    } as any
-
-    const condition = organizationId ? 'and "organizationId" <> :organizationId' : ''
-
-    if (organizationId) {
-      params.organizationId = organizationId
-    }
-
-    const identityParams = identities
-      .map((identity, index) => `(:platform${index}, :name${index})`)
-      .join(', ')
-
-    identities.forEach((identity, index) => {
-      params[`platform${index}`] = identity.platform
-      params[`name${index}`] = identity.name
-    })
-
-    const results = (await sequelize.query(
-      `
-      with input_identities (platform, name) as (
-        values ${identityParams}
-      )
-      select "organizationId", i.platform, i.name
-      from "organizationIdentities" oi
-        inner join input_identities i on oi.platform = i.platform and oi.name = i.name
-      where oi."tenantId" = :tenantId ${condition}
-    `,
-      {
-        replacements: params,
-        type: QueryTypes.SELECT,
-        transaction,
-      },
-    )) as IOrganizationIdentity[]
-
-    const resultMap = new Map<string, string>()
-    results.forEach((row) => {
-      resultMap.set(`${row.platform}:${row.name}`, row.organizationId)
-    })
-
-    return resultMap
   }
 
   static async findById(id: string, options: IRepositoryOptions, segmentId?: string) {
@@ -1896,27 +1764,49 @@ class OrganizationRepository {
     return record.get({ plain: true })
   }
 
-  static async findOrCreateByDomain(domain, options: IRepositoryOptions) {
+  static async findOrCreateByDomain(domain: string, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
+    const seq = SequelizeRepository.getSequelize(options)
 
     // Check if organization exists
-    let organization = await options.database.organization.findOne({
-      attributes: ['id'],
-      where: {
-        website: domain,
-        tenantId: currentTenant.id,
+    const primaryDomainIdentity = data.identities.find(
+      (i) => i.type === OrganizationIdentityType.PRIMARY_DOMAIN && i.verified,
+    )
+
+    // check if domain already exists in another organization in the same tenant
+    const existingOrg = (await seq.query(
+      `
+    select "organizationId"
+    from "organizationIdentities" 
+    where 
+      "tenantId" = :tenantId and 
+      type = :type and 
+      value = :value and 
+      verified = true
+    `,
+      {
+        replacements: {
+          tenantId: currentTenant.id,
+          type: OrganizationIdentityType.PRIMARY_DOMAIN,
+          value: primaryDomainIdentity.value,
+        },
+        type: QueryTypes.SELECT,
+        transaction,
       },
-      transaction,
-    })
+    )) as any[]
+
+    let organization = existingOrg && existingOrg.length > 0 ? existingOrg[0] : null
 
     if (!organization) {
       const data = {
         displayName: domain,
-        website: domain,
+        names: [domain],
         identities: [
           {
-            name: domain,
+            value: domain,
+            type: OrganizationIdentityType.PRIMARY_DOMAIN,
+            verified: true,
             platform: 'email',
           },
         ],
@@ -2521,30 +2411,6 @@ class OrganizationRepository {
         })
       }
 
-      if (filter.twitter) {
-        advancedFilter.and.push({
-          twitter: {
-            textContains: filter.twitter,
-          },
-        })
-      }
-
-      if (filter.linkedin) {
-        advancedFilter.and.push({
-          linkedin: {
-            textContains: filter.linkedin,
-          },
-        })
-      }
-
-      if (filter.crunchbase) {
-        advancedFilter.and.push({
-          crunchbase: {
-            textContains: filter.crunchbase,
-          },
-        })
-      }
-
       if (filter.employeesRange) {
         const [start, end] = filter.employeesRange
 
@@ -2625,9 +2491,6 @@ class OrganizationRepository {
     const parser = new QueryParser(
       {
         nestedFields: {
-          twitter: 'twitter.handle',
-          linkedin: 'linkedin.handle',
-          crunchbase: 'crunchbase.handle',
           revenueMin: 'revenueRange.min',
           revenueMax: 'revenueRange.max',
           revenue: 'revenueRange.min',
@@ -2638,16 +2501,12 @@ class OrganizationRepository {
               'id',
               'displayName',
               'description',
+              'names',
               'emails',
               'phoneNumbers',
               'logo',
               'tags',
-              'website',
               'location',
-              'github',
-              'twitter',
-              'linkedin',
-              'crunchbase',
               'employees',
               'revenueRange',
               'importHash',
@@ -2723,16 +2582,12 @@ class OrganizationRepository {
             'id',
             'displayName',
             'description',
+            'names',
             'emails',
             'phoneNumbers',
             'logo',
             'tags',
-            'website',
             'location',
-            'github',
-            'twitter',
-            'linkedin',
-            'crunchbase',
             'employees',
             'revenueRange',
             'importHash',
@@ -2757,9 +2612,7 @@ class OrganizationRepository {
             'profiles',
             'attributes',
             'manuallyCreated',
-            'affiliatedProfiles',
             'allSubsidiaries',
-            'alternativeDomains',
             'alternativeNames',
             'averageEmployeeTenure',
             'averageTenureByLevel',
@@ -2972,14 +2825,16 @@ class OrganizationRepository {
     const seq = SequelizeRepository.getSequelize(options)
 
     const query = `
-      delete from "organizationIdentities" where "organizationId" = :organizationId and platform = :platform and name = :name;
+      delete from "organizationIdentities" where "organizationId" = :organizationId and platform = :platform and value = :value and type = :type and verified = :verified;
     `
 
     for (const identity of identities) {
       await seq.query(query, {
         replacements: {
           organizationId,
-          name: identity.name,
+          name: identity.value,
+          type: identity.type,
+          verified: identity.verified,
           platform: identity.platform,
         },
         type: QueryTypes.DELETE,

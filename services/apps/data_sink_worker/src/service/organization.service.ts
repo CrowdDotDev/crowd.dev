@@ -4,7 +4,12 @@ import IntegrationRepository from '@crowd/data-access-layer/src/old/apps/data_si
 import { OrganizationRepository } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/organization.repo'
 import { DbStore } from '@crowd/data-access-layer/src/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
-import { IOrganization, IOrganizationSocial, PlatformType } from '@crowd/types'
+import {
+  IOrganization,
+  IOrganizationSocial,
+  OrganizationIdentityType,
+  PlatformType,
+} from '@crowd/types'
 import { websiteNormalizer } from '@crowd/common'
 
 export interface IOrganizationIdSource {
@@ -27,12 +32,8 @@ export class OrganizationService extends LoggerBase {
     integrationId: string,
     data: IOrganization,
   ): Promise<string> {
-    if (
-      !data.identities ||
-      data.identities.length === 0 ||
-      !data.identities[0].name ||
-      !data.identities[0].platform
-    ) {
+    const verifiedIdentities = data.identities ? data.identities.filter((i) => i.verified) : []
+    if (verifiedIdentities.length === 0) {
       const message = `Missing organization identity while creating/updating organization!`
       this.log.error(data, message)
       throw new Error(message)
@@ -42,36 +43,26 @@ export class OrganizationService extends LoggerBase {
       const id = await this.store.transactionally(async (txStore) => {
         const txRepo = new OrganizationRepository(txStore, this.log)
 
-        const primaryIdentity = data.identities[0]
-
-        data = this.normalizeSocialFields(data) as IOrganization
-
-        // Normalize the website URL if it exists
-        if (data.website) {
-          data.website = websiteNormalizer(data.website, false)
+        // Normalize the website identities
+        for (const identity of data.identities.filter((i) =>
+          [
+            OrganizationIdentityType.PRIMARY_DOMAIN,
+            OrganizationIdentityType.ALTERNATIVE_DOMAIN,
+          ].includes(i.type),
+        )) {
+          identity.value = websiteNormalizer(identity.value, false)
         }
 
         let existing
 
-        // check organization exists by domain
-        if (data.website) {
-          existing = await txRepo.findByDomain(tenantId, data.website)
-
-          // also check domain in identities
-          if (!existing) {
-            const normalizedWebsite = websiteNormalizer(data.website, false)
-            if (normalizedWebsite !== undefined) {
-              existing = await txRepo.findByIdentity(tenantId, {
-                name: normalizedWebsite,
-                platform: 'email',
-              })
+        // find existing org by sent verified identities
+        if (!existing) {
+          for (const identity of verifiedIdentities) {
+            existing = await txRepo.findByIdentity(tenantId, identity)
+            if (existing) {
+              break
             }
           }
-        }
-
-        // if domain is not found, check existence by sent identities
-        if (!existing) {
-          existing = await txRepo.findByIdentity(tenantId, primaryIdentity)
         }
 
         let attributes = existing?.attributes
@@ -87,30 +78,24 @@ export class OrganizationService extends LoggerBase {
 
         if (existing) {
           this.log.trace(`Found existing organization, organization will be updated!`)
-          await this.checkForStrongWeakIdentities(txRepo, tenantId, data, existing.id)
 
           // if it does exists update it
           const updateData: Partial<IOrganization> = {}
           const fields = [
             'displayName',
             'description',
+            'names',
             'emails',
             'logo',
             'tags',
-            'github',
-            'twitter',
-            'linkedin',
-            'crunchbase',
             'employees',
             'location',
-            'website',
             'type',
             'size',
             'headline',
             'industry',
             'founded',
             'attributes',
-            'weakIdentities',
           ]
           fields.forEach((field) => {
             if (!existing[field] && data[field]) {
@@ -125,62 +110,70 @@ export class OrganizationService extends LoggerBase {
           }
 
           id = existing.id
+
+          const identities = await txRepo.getIdentities(id, tenantId)
+
+          const toCreate = []
+          const toUpdate = []
+
+          for (const i of data.identities) {
+            const existing = identities.find(
+              (i) => i.value === i.value && i.platform === i.platform && i.type === i.type,
+            )
+            if (!existing) {
+              toCreate.push(i)
+            } else if (existing && existing.verified !== i.verified) {
+              toUpdate.push(i)
+            }
+          }
+
+          if (toCreate.length > 0) {
+            for (const i of toCreate) {
+              // add the identity
+              await txRepo.addIdentity(id, tenantId, {
+                ...i,
+                integrationId,
+              })
+            }
+          }
+
+          if (toUpdate.length > 0) {
+            for (const i of toUpdate) {
+              // update the identity
+              await txRepo.updateIdentity(id, tenantId, i)
+            }
+          }
         } else {
           this.log.trace(`Organization wasn't found via website or identities.`)
-
-          await this.checkForStrongWeakIdentities(txRepo, tenantId, data)
+          const firstVerified = verifiedIdentities[0]
 
           const payload = {
-            displayName: primaryIdentity.name,
+            displayName: firstVerified.value,
             description: data.description,
+            names: data.names,
             emails: data.emails,
             logo: data.logo,
             tags: data.tags,
-            github: data.github,
-            twitter: data.twitter,
-            linkedin: data.linkedin,
-            crunchbase: data.crunchbase,
             employees: data.employees,
             location: data.location,
-            website: data.website,
             type: data.type,
             size: data.size,
             headline: data.headline,
             industry: data.industry,
             founded: data.founded,
             attributes,
-            weakIdentities: data.weakIdentities,
           }
 
           this.log.trace({ payload }, `Creating new organization!`)
 
           // if it doesn't exists create it
           id = await this.repo.insert(tenantId, payload)
-        }
 
-        const identities = await txRepo.getIdentities(id, tenantId)
-
-        // create identities with incoming website
-        if (data.website) {
-          const normalizedWebsite = websiteNormalizer(data.website, false)
-          if (normalizedWebsite !== undefined) {
-            data.identities.push({
-              name: normalizedWebsite,
-              platform: 'email',
-              integrationId,
-            })
-          }
-        }
-
-        for (const identity of data.identities) {
-          const identityExists = identities.find(
-            (i) => i.name === identity.name && i.platform === identity.platform,
-          )
-
-          if (!identityExists) {
+          // create identities
+          for (const i of data.identities) {
             // add the identity
             await txRepo.addIdentity(id, tenantId, {
-              ...identity,
+              ...i,
               integrationId,
             })
           }
@@ -194,81 +187,6 @@ export class OrganizationService extends LoggerBase {
       this.log.error(err, 'Error while upserting an organization!')
       throw err
     }
-  }
-
-  private async checkForStrongWeakIdentities(
-    repo: OrganizationRepository,
-    tenantId: string,
-    data: IOrganization,
-    organizationId?: string,
-  ): Promise<void> {
-    // convert non-existing weak identities to strong ones
-    if (data.weakIdentities && data.weakIdentities.length > 0) {
-      const strongNotOwnedIdentities = await repo.findIdentities(
-        tenantId,
-        data.weakIdentities,
-        organizationId,
-      )
-
-      const strongIdentities = []
-
-      // find weak identities in the payload that doesn't exist as a strong identity yet
-      for (const weakIdentity of data.weakIdentities) {
-        if (!strongNotOwnedIdentities.has(`${weakIdentity.platform}:${weakIdentity.name}`)) {
-          strongIdentities.push(weakIdentity)
-        }
-      }
-
-      // exclude identities that are converted to a strong one from weakIdentities
-      if (strongIdentities.length > 0) {
-        data.weakIdentities = data.weakIdentities.filter(
-          (i) =>
-            strongIdentities.find((s) => s.platform === i.platform && s.name === i.name) ===
-            undefined,
-        )
-
-        // push new strong identities to the payload
-        for (const identity of strongIdentities) {
-          if (
-            data.identities.find(
-              (i) => i.platform === identity.platform && i.name === identity.name,
-            ) === undefined
-          ) {
-            data.identities.push(identity)
-          }
-        }
-      }
-    }
-  }
-
-  private normalizeSocialFields(data: IOrganization): IOrganization {
-    if (typeof data.twitter === 'string') {
-      data.twitter = {
-        handle: data.twitter,
-      }
-    }
-
-    if (typeof data.linkedin === 'string') {
-      data.linkedin = {
-        handle: data.linkedin,
-        url: `linkedin.com/company/${data.linkedin}`,
-      }
-    }
-
-    if (typeof data.crunchbase === 'string') {
-      data.crunchbase = {
-        handle: data.crunchbase,
-        url: `crunchbase.com/organization/${data.crunchbase}`,
-      }
-    }
-
-    if (typeof data.github === 'string') {
-      data.github = {
-        handle: data.github,
-      } as IOrganizationSocial
-    }
-
-    return data
   }
 
   public async addToMember(
@@ -299,16 +217,14 @@ export class OrganizationService extends LoggerBase {
     try {
       this.log.debug('Processing organization enrich.')
 
-      if (
-        organization.identities.length === 0 ||
-        (!organization.identities[0].name && !organization.identities[0].sourceId)
-      ) {
-        const errorMessage = `Organization can't be enriched. It either doesn't have any identity or sent identities are missing name or sourceId fields.`
+      const verifiedIdentities = organization.identities.filter((i) => i.verified)
+      if (verifiedIdentities.length === 0) {
+        const errorMessage = `Organization can't be enriched. It doesn't have identities!`
         this.log.warn(errorMessage)
         return
       }
 
-      const primaryIdentity = organization.identities[0]
+      const primaryIdentity = verifiedIdentities[0]
 
       await this.store.transactionally(async (txStore) => {
         const txRepo = new OrganizationRepository(txStore, this.log)
@@ -324,9 +240,14 @@ export class OrganizationService extends LoggerBase {
           ? await txRepo.findBySourceId(tenantId, segmentId, platform, primaryIdentity.sourceId)
           : null
 
-        if (!dbOrganization && primaryIdentity.name) {
-          // try finding the organization using name
-          dbOrganization = await txRepo.findInIdentityNames(tenantId, primaryIdentity.name)
+        if (!dbOrganization) {
+          // try finding the organization using verified identities
+          for (const i of verifiedIdentities) {
+            dbOrganization = await txRepo.findByIdentity(tenantId, i)
+            if (dbOrganization) {
+              break
+            }
+          }
         }
 
         if (dbOrganization) {
@@ -345,15 +266,21 @@ export class OrganizationService extends LoggerBase {
           // check if sent primary identity already exists in the org
           const existingIdentities = await txRepo.getIdentities(dbOrganization.id, tenantId)
 
-          const primaryIdentityExists = existingIdentities.find(
-            (i) => i.name === primaryIdentity.name && i.platform === primaryIdentity.platform,
-          )
+          // merge existing and incoming identities
+          for (const i of existingIdentities) {
+            if (
+              organization.identities.find(
+                (oi) =>
+                  oi.type === i.type &&
+                  oi.value === i.value &&
+                  oi.platform === i.platform &&
+                  oi.verified === i.verified,
+              )
+            ) {
+              continue
+            }
 
-          // if it doesn't exist yet, append existing identities to the payload
-          // so that findOrCreate can find the organization to update
-          if (!primaryIdentityExists) {
-            // we add to the start of the array, because findOrCreate checks the first item in identities as primary identity
-            organization.identities.unshift(...existingIdentities)
+            organization.identities.push(i)
           }
 
           await txService.findOrCreate(tenantId, segmentId, integrationId, organization)

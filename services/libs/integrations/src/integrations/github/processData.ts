@@ -1,33 +1,34 @@
 /* eslint-disable  @typescript-eslint/no-explicit-any */
 // processStream.ts content
 // processData.ts content
-import { IProcessDataContext, ProcessDataHandler } from '../../types'
-import {
-  GithubApiData,
-  GithubWebhookData,
-  GithubActivityType,
-  GithubPrepareMemberOutput,
-  GithubPrepareOrgMemberOutput,
-  GithubActivitySubType,
-  GithubWehookEvent,
-  GithubPullRequest,
-  GithubIssue,
-  GithubPullRequestTimelineItem,
-  GithubIssueTimelineItem,
-  INDIRECT_FORK,
-} from './types'
 import {
   IActivityData,
-  IMemberData,
-  PlatformType,
-  MemberAttributeName,
   IActivityScoringGrid,
-  OrganizationSource,
+  IMemberData,
   IOrganization,
+  MemberAttributeName,
   MemberIdentityType,
+  OrganizationIdentityType,
+  OrganizationSource,
+  PlatformType,
 } from '@crowd/types'
-import { GITHUB_GRID } from './grid'
 import { generateSourceIdHash } from '../../helpers'
+import { IProcessDataContext, ProcessDataHandler } from '../../types'
+import { GITHUB_GRID } from './grid'
+import {
+  GithubActivitySubType,
+  GithubActivityType,
+  GithubApiData,
+  GithubIssue,
+  GithubIssueTimelineItem,
+  GithubPrepareMemberOutput,
+  GithubPrepareOrgMemberOutput,
+  GithubPullRequest,
+  GithubPullRequestTimelineItem,
+  GithubWebhookData,
+  GithubWehookEvent,
+  INDIRECT_FORK,
+} from './types'
 
 const IS_TEST_ENV: boolean = process.env.NODE_ENV === 'test'
 
@@ -165,7 +166,15 @@ const parseMember = (memberData: GithubPrepareMemberOutput): IMemberData => {
     if (IS_TEST_ENV) {
       member.organizations = [
         {
-          identities: [{ name: 'crowd.dev', platform: PlatformType.GITHUB }],
+          names: ['crowd.dev'],
+          identities: [
+            {
+              value: 'crowd.dev',
+              platform: PlatformType.GITHUB,
+              type: OrganizationIdentityType.USERNAME,
+              verified: true,
+            },
+          ],
           source: OrganizationSource.GITHUB,
         },
       ]
@@ -177,8 +186,9 @@ const parseMember = (memberData: GithubPrepareMemberOutput): IMemberData => {
           identities: [
             {
               platform: PlatformType.GITHUB,
-              name: orgs.name,
-              url: orgs.url ?? null,
+              type: OrganizationIdentityType.USERNAME,
+              value: orgs.name,
+              verified: true,
             },
           ],
           description: orgs.description ?? null,
@@ -191,13 +201,12 @@ const parseMember = (memberData: GithubPrepareMemberOutput): IMemberData => {
         } as IOrganization
 
         if (orgs.twitterUsername) {
-          organizationPayload.weakIdentities = [
-            {
-              platform: PlatformType.TWITTER,
-              name: orgs.twitterUsername,
-              url: `https://twitter.com/${orgs.twitterUsername}`,
-            },
-          ]
+          organizationPayload.identities.push({
+            platform: PlatformType.TWITTER,
+            type: OrganizationIdentityType.USERNAME,
+            value: orgs.twitterUsername,
+            verified: false,
+          })
         }
 
         member.organizations = [organizationPayload]
