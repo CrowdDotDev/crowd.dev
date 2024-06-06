@@ -56,7 +56,6 @@
     "@aws-sdk/s3-request-presigner": "^3.229.0",
     "@aws-sdk/url-parser": "^3.226.0",
     "@aws-sdk/util-format-url": "^3.226.0",
-    "@crowd/alerting": "workspace:*",
     "@crowd/audit-logs": "workspace:*",
     "@crowd/common": "workspace:*",
     "@crowd/common_services": "workspace:*",
