@@ -438,6 +438,9 @@ export default class OrganizationService extends LoggerBase {
               mergedId: originalId,
             }
           }
+          if (toMergeWithLfxMembership) {
+            throw new Error('Cannot merge LFX membership organization as a secondary one!')
+          }
 
           this.log.info({ originalId, toMergeId }, '[Merge Organizations] - Found organizations! ')
 
