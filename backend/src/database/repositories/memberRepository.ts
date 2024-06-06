@@ -610,20 +610,6 @@ class MemberRepository {
     await member.addNoMerge(toMergeMember, { transaction })
   }
 
-  static async removeNoMerge(id, toMergeId, options: IRepositoryOptions) {
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    const returnPlain = false
-
-    const member = await this.findById(id, options, returnPlain)
-
-    const toMergeMember = await this.findById(toMergeId, options, returnPlain)
-
-    await member.removeNoMerge(toMergeMember, { transaction })
-
-    return this.findById(id, options)
-  }
-
   static async memberExists(
     username,
     platform,
