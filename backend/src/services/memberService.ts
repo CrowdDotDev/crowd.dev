@@ -1808,14 +1808,11 @@ export default class MemberService extends LoggerBase {
   }
 
   async findById(id, returnPlain = true, doPopulateRelations = true, segmentId?: string) {
-    return MemberRepository.findById(
-      id,
-      this.options,
+    return MemberRepository.findById(id, this.options, {
       returnPlain,
       doPopulateRelations,
-      false,
       segmentId,
-    )
+    })
   }
 
   async findAllAutocomplete(data) {

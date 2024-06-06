@@ -190,7 +190,7 @@ class MemberRepository {
 
     await this._createAuditLog(AuditLogRepository.CREATE, record, data, options)
 
-    return this.findById(record.id, options, true, doPopulateRelations)
+    return this.findById(record.id, options, { doPopulateRelations })
   }
 
   static async includeMemberToSegments(memberId: string, options: IRepositoryOptions) {
@@ -1173,7 +1173,7 @@ class MemberRepository {
 
     await this._createAuditLog(AuditLogRepository.UPDATE, record, data, options)
 
-    return this.findById(record.id, options, true, doPopulateRelations)
+    return this.findById(record.id, options, { doPopulateRelations })
   }
 
   static async destroy(id, options: IRepositoryOptions, force = false) {
@@ -1182,7 +1182,7 @@ class MemberRepository {
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
     await MemberRepository.excludeMembersFromSegments([id], { ...options, transaction })
-    const member = await this.findById(id, options, true, false)
+    const member = await this.findById(id, options, { doPopulateRelations: false })
 
     // if member doesn't belong to any other segment anymore, remove it
     if (member.segments.length === 0) {
@@ -1496,11 +1496,19 @@ class MemberRepository {
   static async findById(
     id,
     options: IRepositoryOptions,
-    returnPlain = true,
-    doPopulateRelations = true,
-    ignoreTenant = false,
-    segmentId?: string,
-    newIdentities?: boolean,
+    {
+      returnPlain = true,
+      doPopulateRelations = true,
+      ignoreTenant = false,
+      segmentId,
+      newIdentities,
+    }: {
+      returnPlain?: boolean
+      doPopulateRelations?: boolean
+      ignoreTenant?: boolean
+      segmentId?: string
+      newIdentities?: boolean
+    } = {},
   ) {
     const transaction = SequelizeRepository.getTransaction(options)
 
