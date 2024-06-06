@@ -36,6 +36,7 @@ import {
 } from '@crowd/data-access-layer/src/member_identities'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import { findManyLfxMemberships } from '@crowd/data-access-layer/src/lfx_memberships'
+import { addMemberNoMerge, removeMemberToMerge } from '@crowd/data-access-layer/src/member_merge'
 import { KUBE_MODE, SERVICE } from '@/conf'
 import { ServiceType } from '../../conf/configTypes'
 import isFeatureEnabled from '../../feature-flags/isFeatureEnabled'
@@ -588,26 +589,16 @@ class MemberRepository {
 
   static async removeToMerge(id, toMergeId, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
+    const qx = SequelizeRepository.getQueryExecutor(options, transaction)
 
-    const returnPlain = false
-
-    const member = await this.findById(id, options, returnPlain)
-
-    const toMergeMember = await this.findById(toMergeId, options, returnPlain)
-
-    await member.removeToMerge(toMergeMember, { transaction })
+    await removeMemberToMerge(qx, id, toMergeId)
   }
 
   static async addNoMerge(id, toMergeId, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
+    const qx = SequelizeRepository.getQueryExecutor(options, transaction)
 
-    const returnPlain = false
-
-    const member = await this.findById(id, options, returnPlain)
-
-    const toMergeMember = await this.findById(toMergeId, options, returnPlain)
-
-    await member.addNoMerge(toMergeMember, { transaction })
+    await addMemberNoMerge(qx, id, toMergeId)
   }
 
   static async memberExists(
