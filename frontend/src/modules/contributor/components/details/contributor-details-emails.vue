@@ -24,15 +24,19 @@
       </lf-tooltip>
       <div class="pl-3">
         <div class="flex items-center">
-          <a
-            :href="`mailto:${email.value}`"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="text-medium cursor-pointer !text-black underline decoration-dashed
-             decoration-gray-400 underline-offset-4 hover:decoration-gray-900 max-w-52 truncate"
-          >
-            {{ email.value }}
-          </a>
+          <lf-tooltip class="flex" :content="email.value" :disabled="email.value.length <= 25">
+            <a
+              :href="`mailto:${email.value}`"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-medium cursor-pointer !text-black underline decoration-dashed
+             decoration-gray-400 underline-offset-4 hover:decoration-gray-900 truncate"
+              style="max-width: 25ch"
+            >
+              {{ email.value }}
+            </a>
+          </lf-tooltip>
+
           <lf-tooltip v-if="email.verified" content="Verified identity">
             <lf-icon
               name="verified-badge-line"
@@ -57,7 +61,7 @@
     v-if="edit"
     v-model="edit"
     :member="props.contributor"
-    @update:model-value="emit('reload')"
+    @reload="emit('reload')"
   />
 </template>
 

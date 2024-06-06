@@ -4,8 +4,8 @@
       <h6 class="text-h6 mb-4">
         Community snapshot
       </h6>
-      <div class="flex -mx-4">
-        <article class="px-4 h-full w-1/4">
+      <div class="flex flex-wrap gap-y-4 -mx-4">
+        <article class="px-4 h-full w-1/2 xl:w-1/4">
           <div class="flex items-center gap-1 mb-2">
             <p class="text-tiny text-secondary-300">
               Engagement level
@@ -19,25 +19,25 @@ activities in comparison to all other contributors."
           </div>
           <lf-contributor-engagement-level :contributor="{ score: 5 }" />
         </article>
-        <article class="px-4 h-full w-1/4 border-l border-gray-200">
+        <article class="px-4 h-full w-1/2 xl:w-1/4 border-l border-gray-200">
           <p class="text-tiny text-secondary-300 mb-2">
             Avg. sentiment
           </p>
           <lf-contributor-sentiment :contributor="props.contributor" />
         </article>
-        <article class="px-4 h-full w-1/4 border-l border-gray-200">
+        <article class="px-4 h-full w-1/2 xl:w-1/4 xl:border-l border-gray-200">
           <p class="text-tiny text-secondary-300 mb-2">
             # of activities
           </p>
-          <p class="text-small">
-            {{ props.contributor.activityCount || '-' }}
+          <p class="text-small text-gray-600">
+            {{ formatNumber(props.contributor.activityCount) || '-' }}
           </p>
         </article>
-        <article class="px-4 h-full w-1/4 border-l border-gray-200">
+        <article class="px-4 h-full w-1/2 xl:w-1/4 border-l border-gray-200">
           <p class="text-tiny text-secondary-300 mb-2">
             Joined date
           </p>
-          <p class="text-small">
+          <p class="text-small text-gray-600">
             {{ moment(props.contributor.joinedAt).format('MMM DD, YYYY') }}
           </p>
         </article>
@@ -54,6 +54,7 @@ import LfContributorSentiment from '@/modules/contributor/components/shared/cont
 import LfContributorEngagementLevel from '@/modules/contributor/components/shared/contributor-engagement-level.vue';
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import { formatNumber } from '@/utils/number';
 
 const props = defineProps<{
   contributor: Contributor,

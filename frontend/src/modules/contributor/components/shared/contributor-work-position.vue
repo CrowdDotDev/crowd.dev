@@ -1,9 +1,15 @@
 <template>
-  <div v-if="jobTitle" class="flex items-center gap-1.5 text-small text-gray-500">
+  <div v-if="jobTitle || organization" class="flex items-center gap-1.5 text-small text-gray-500">
     <p class="max-w-42 truncate">
-      {{ jobTitle }} <span v-if="organization">at</span>
+      {{ jobTitle }} <span v-if="organization && jobTitle">at</span>
     </p>
-    <img v-if="organization?.logo" :src="organization.logo" :alt="organization.displayName" class="w-4 h-4 rounded border border-gray-200" />
+    <lf-avatar :src="organization.logo" :name="organization.displayName" :size="18" class="!rounded border border-gray-200">
+      <template #placeholder>
+        <div class="w-full h-full bg-gray-50 flex items-center justify-center">
+          <lf-icon name="community-line" :size="14" class="text-gray-400" />
+        </div>
+      </template>
+    </lf-avatar>
     <router-link
       v-if="organization"
       :to="{
@@ -14,8 +20,8 @@
           segmentId: props.contributor.segmentId,
         },
       }"
-      class="cursor-pointer underline decoration-dashed text-gray-500
-             decoration-gray-400 underline-offset-4 hover:decoration-gray-900 hover:!text-black max-w-30 truncate"
+      class="cursor-pointer text-small leading-5 underline decoration-dashed text-gray-500
+             decoration-gray-500 underline-offset-4 hover:decoration-gray-900 hover:!text-black max-w-30 truncate"
     >
       {{ organization.displayName }}
     </router-link>
@@ -28,6 +34,8 @@ import useContributorHelpers from '@/modules/contributor/helpers/contributor.hel
 import { computed } from 'vue';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';
+import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps<{
   contributor: Contributor,

@@ -1,5 +1,6 @@
 <template>
   <router-link :to="routeLocation">
+    {{ backLink }}
     <slot />
   </router-link>
 </template>
@@ -8,6 +9,7 @@
 import { computed } from 'vue';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';
+import { useRoute } from 'vue-router';
 
 const props = withDefaults(defineProps<{
   to: Record<string, unknown>,
@@ -16,12 +18,18 @@ const props = withDefaults(defineProps<{
   projectGroup: true,
 });
 
+const route = useRoute();
+
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const backLink = computed(() => {
   const { back } = window.history.state;
   if (!back || back.includes('/auth')) {
+    return null;
+  }
+  const [path] = back.split('?');
+  if (path === route.path) {
     return null;
   }
   return window.history.state.back;

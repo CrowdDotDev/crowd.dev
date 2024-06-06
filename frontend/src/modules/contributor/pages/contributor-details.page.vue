@@ -18,7 +18,7 @@
           <lf-contributor-details-actions :contributor="contributor" @reload="fetchMember()" />
         </div>
       </section>
-      <section class="w-80 border-r border-gray-100 pt-6 pr-8 overflow-auto h-full pb-8">
+      <section class="w-80 border-r border-gray-100 pt-6 pr-8 overflow-y-auto overflow-x-visible h-full pb-10">
         <lf-contributor-details-work-history
           :contributor="contributor"
           class="mb-8"
@@ -34,21 +34,24 @@
           @reload="fetchMember()"
         />
       </section>
-      <section class="overflow-auto h-full">
-        <div class="pt-5 pl-10 sticky top-0 bg-white z-10 pb-5">
-          <lf-tabs v-model="tabs">
-            <lf-tab name="overview">
-              Overview
-            </lf-tab>
-            <lf-tab name="activities">
-              Activities
-            </lf-tab>
-            <lf-tab name="notes">
-              Notes
-            </lf-tab>
-          </lf-tabs>
+      <section class="overflow-auto h-full pb-10">
+        <div class="sticky top-0 z-10">
+          <div class="bg-white pt-5 pl-10 pb-3">
+            <lf-tabs v-model="tabs">
+              <lf-tab name="overview">
+                Overview
+              </lf-tab>
+              <lf-tab name="activities">
+                Activities
+              </lf-tab>
+              <lf-tab name="notes">
+                Notes
+              </lf-tab>
+            </lf-tabs>
+          </div>
+          <div class="w-full h-5 bg-gradient-to-b from-white to-transparent pl-10" />
         </div>
-        <div class="pl-10 pt-3">
+        <div class="pl-10">
           <lf-contributor-details-overview
             v-if="tabs === 'overview'"
             :contributor="contributor"

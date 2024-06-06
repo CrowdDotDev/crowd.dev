@@ -23,7 +23,13 @@
             :src="org.logo"
             :size="24"
             class="!rounded-md border border-gray-200"
-          />
+          >
+            <template #placeholder>
+              <div class="w-full h-full bg-gray-50 flex items-center justify-center">
+                <lf-icon name="community-line" :size="16" class="text-gray-400" />
+              </div>
+            </template>
+          </lf-avatar>
           <div class="flex-grow pl-3">
             <p class="font-semibold text-medium leading-6 mb-1 line-clamp-1 truncate">
               {{ org.displayName }}

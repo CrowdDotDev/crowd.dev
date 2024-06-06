@@ -21,7 +21,7 @@
         :key="`${identity.platform}-${identity.value}`"
         class="flex items-center"
       >
-        <lf-tooltip v-if="platform(identity.platform)" :content="platform(identity.platform).name">
+        <lf-tooltip v-if="platform(identity.platform)" placement="top-start" :content="platform(identity.platform).name">
           <img
             :src="platform(identity.platform)?.image"
             class="h-5 w-5"
@@ -84,7 +84,7 @@
     v-model="edit"
     :member="props.contributor"
     @unmerge="unmerge"
-    @update:model-value="emit('reload')"
+    @reload="emit('reload')"
   />
   <app-member-unmerge-dialog
     v-if="isUnmergeDialogOpen"
