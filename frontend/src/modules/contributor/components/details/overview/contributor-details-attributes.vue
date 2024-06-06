@@ -1,6 +1,6 @@
 <template>
   <section v-bind="$attrs">
-    <div class="flex items-center justify-between pb-8">
+    <div class="flex items-center justify-between pb-4">
       <h6>
         Contributor details
       </h6>
@@ -16,64 +16,175 @@
     </div>
     <div>
       <!-- Biography -->
-      <article v-if="bio" class="border-b border-gray-100 flex py-3">
+      <article v-if="bio?.default" class="border-b border-gray-100 flex py-4">
         <div class="w-5/12">
-          <div class="flex items-center">
-            <lf-icon name="file-list-2-line" :size="16" class="mr-1 text-gray-400" />
-            <span class="text-gray-500 text-medium">Biography</span>
-          </div>
+          <p class="text-small font-semibold mb-1">
+            Biography
+          </p>
+          <lf-contributor-attribute-source :values="bio" />
         </div>
         <div class="w-7/12">
-          <p class="text-medium">
-            {{ bio }}
-          </p>
-        </div>
-      </article>
-
-      <!-- Location -->
-      <article v-if="location" class="border-b border-gray-100 flex py-3">
-        <div class="w-5/12">
-          <div class="flex items-center">
-            <lf-icon name="map-pin-line" :size="16" class="mr-1 text-gray-400" />
-            <span class="text-gray-500 text-medium">Location</span>
-          </div>
-        </div>
-        <div class="w-7/12">
-          <p class="text-medium">
-            {{ location }}
-          </p>
+          <lf-contributor-attribute-string
+            :data="bio?.default"
+          />
         </div>
       </article>
 
       <!-- Tags -->
-      <article v-if="tags.length" class="border-b border-gray-100 flex py-3">
+      <article v-if="tags.length" class="border-b border-gray-100 flex py-4">
         <div class="w-5/12">
-          <div class="flex items-center">
-            <lf-icon name="price-tag-3-line" :size="16" class="mr-1 text-gray-400" />
-            <span class="text-gray-500 text-medium">Tags</span>
-          </div>
+          <p class="text-small font-semibold mb-1">
+            Tags
+          </p>
         </div>
         <div class="w-7/12">
-          <div class="flex flex-wrap gap-2">
-            <lf-badge v-for="tag of tags" :key="tag.id" type="secondary">
-              {{ tag.name }}
-            </lf-badge>
+          <lf-contributor-attribute-tags :data="tags.map((t) => t.name)" />
+        </div>
+      </article>
+
+      <!-- Reach -->
+      <article v-if="reach?.total > 0" class="border-b border-gray-100 flex py-4">
+        <div class="w-5/12">
+          <p class="text-small font-semibold mb-1">
+            Reach
+          </p>
+          <lf-contributor-attribute-source
+            :values="{
+              ...reach,
+              total: undefined,
+              default: reach.total,
+            }"
+          />
+        </div>
+        <div class="w-7/12">
+          <p class="text-medium">
+            {{ reach?.total }} Followers
+          </p>
+        </div>
+      </article>
+
+      <!-- Custom tags -->
+      <article v-for="(values, attr) of attributes" :key="attr" class="border-b border-gray-100 flex py-4">
+        <div class="w-5/12">
+          <p class="text-small font-semibold mb-1">
+            {{ attrInfo[attr]?.label || transformToLabel(attr) }}
+          </p>
+          <lf-contributor-attribute-source :values="values" />
+        </div>
+        <div class="w-7/12">
+          <lf-contributor-attribute-tags
+            v-if="attrInfo[attr]?.type === 'multiSelect'"
+            :data="values.default"
+          />
+          <lf-contributor-attribute-boolean
+            v-else-if="attrInfo[attr]?.type === 'boolean'"
+            :data="values.default"
+          />
+          <lf-contributor-attribute-string
+            v-else
+            :data="`${values.default}`"
+          />
+        </div>
+      </article>
+
+      <!-- Reach -->
+      <article v-if="workExperiences?.default?.length" class="border-b border-gray-100 flex py-4">
+        <div class="w-5/12">
+          <p class="text-small font-semibold mb-1">
+            Work experience
+          </p>
+          <lf-contributor-attribute-source
+            :values="workExperiences"
+          />
+        </div>
+        <div class="w-7/12">
+          <div class="-my-4">
+            <article v-for="exp of (workExperiences.default || [])" :key="exp.title" class="py-4 border-b last:border-b-0 border-gray-100">
+              <p class="text-medium mb-0.5">
+                {{ exp.title }}
+              </p>
+              <p class="text-small text-gray-500">
+                {{ exp.company }} • {{ exp.location }}
+              </p>
+              <p class="text-small text-gray-500 mt-0.5">
+                {{ moment(exp.startDate).isValid() ? moment(exp.startDate).format('MMMM YYYY') : exp.startDate }}
+                - {{ moment(exp.endDate).isValid() ? moment(exp.endDate).format('MMMM YYYY') : exp.endDate }}
+              </p>
+            </article>
           </div>
         </div>
       </article>
 
-      <!-- Custom -->
-      <article v-for="(value, attr) in customAttributes" :key="attr" class="border-b border-gray-100 flex py-3">
+      <!-- Reach -->
+      <article v-if="certifications?.default?.length" class="border-b border-gray-100 flex py-4">
         <div class="w-5/12">
-          <div class="flex items-center">
-            <lf-icon name="price-tag-3-line" :size="16" class="mr-1 text-gray-400" />
-            <span class="text-gray-500 text-medium">{{ transformToLabel(attr) }}</span>
-          </div>
+          <p class="text-small font-semibold mb-1">
+            Certifications
+          </p>
+          <lf-contributor-attribute-source
+            :values="certifications"
+          />
         </div>
         <div class="w-7/12">
-          <p class="text-medium">
-            {{ value.default }}
+          <div class="-my-4">
+            <article v-for="cert of (certifications.default || [])" :key="cert.title" class="py-4 border-b last:border-b-0 border-gray-100">
+              <p class="text-medium mb-0.5">
+                {{ cert.title }}
+              </p>
+              <p class="text-small text-gray-500">
+                {{ cert.description }}
+              </p>
+            </article>
+          </div>
+        </div>
+      </article>
+
+      <!-- Education -->
+      <article v-if="education?.default?.length" class="border-b border-gray-100 flex py-4">
+        <div class="w-5/12">
+          <p class="text-small font-semibold mb-1">
+            Education
           </p>
+          <lf-contributor-attribute-source
+            :values="education"
+          />
+        </div>
+        <div class="w-7/12">
+          <div class="-my-4">
+            <article v-for="edu of (education.default || [])" :key="edu.major" class="py-4 border-b last:border-b-0 border-gray-100">
+              <p class="text-medium mb-0.5">
+                {{ edu.major }} {{ edu.specialization }}
+              </p>
+              <p class="text-small text-gray-500">
+                {{ edu.campus }}
+              </p>
+              <p class="text-small text-gray-500 mt-0.5">
+                {{ moment(edu.startDate).isValid() ? moment(edu.startDate).format('MMMM YYYY') : edu.startDate }}
+                - {{ moment(edu.endDate).isValid() ? moment(edu.endDate).format('MMMM YYYY') : edu.endDate }}
+              </p>
+            </article>
+          </div>
+        </div>
+      </article>
+
+      <!-- Awards -->
+      <article v-if="awards?.default?.length" class="border-b border-gray-100 flex py-4">
+        <div class="w-5/12">
+          <p class="text-small font-semibold mb-1">
+            Awards
+          </p>
+          <lf-contributor-attribute-source
+            :values="awards"
+          />
+        </div>
+        <div class="w-7/12">
+          <div class="-my-4">
+            <article v-for="aw of (awards.default || [])" :key="aw" class="py-4 border-b last:border-b-0 border-gray-100">
+              <lf-contributor-attribute-string
+                :data="aw"
+              />
+            </article>
+          </div>
         </div>
       </article>
     </div>
@@ -91,9 +202,19 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 import AppMemberManageAttributesDrawer from '@/modules/member/components/member-manage-attributes-drawer.vue';
 import { Contributor } from '@/modules/contributor/types/Contributor';
 import { computed, ref } from 'vue';
-import LfBadge from '@/ui-kit/badge/Badge.vue';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import LfContributorAttributeTags
+  from '@/modules/contributor/components/details/attributes/contributor-attribute-tags.vue';
+import LfContributorAttributeBoolean
+  from '@/modules/contributor/components/details/attributes/contributor-attribute-boolean.vue';
+import LfContributorAttributeString
+  from '@/modules/contributor/components/details/attributes/contributor-attribute-string.vue';
+import LfContributorAttributeSource
+  from '@/modules/contributor/components/details/attributes/contributor-attribute-source.vue';
+import moment from 'moment';
+import { useMemberStore } from '@/modules/member/store/pinia';
+import { storeToRefs } from 'pinia';
 
 const props = defineProps<{
   contributor: Contributor,
@@ -103,15 +224,26 @@ const { hasPermission } = usePermissions();
 
 const edit = ref<boolean>(false);
 
-const bio = computed(() => props.contributor.attributes.bio?.default);
-const location = computed(() => props.contributor.attributes.location?.default);
+const memberStore = useMemberStore();
+const { customAttributes } = storeToRefs(memberStore);
+
+const bio = computed(() => props.contributor.attributes.bio);
+const reach = computed(() => props.contributor.reach);
 const tags = computed(() => props.contributor.tags);
+const workExperiences = computed(() => props.contributor.attributes.workExperiences);
+const certifications = computed(() => props.contributor.attributes.certifications);
+const education = computed(() => props.contributor.attributes.education);
+const awards = computed(() => props.contributor.attributes.awards);
+
+const attrInfo = computed<Record<string, any>>(() => customAttributes.value.reduce((info, attr) => ({
+  ...info,
+  [attr.name]: attr,
+}), {}));
 
 const eliminateAttributes = [
   'bio',
   'url',
   'avatarUrl',
-  'location',
   'emails',
   'jobTitle',
   'workExperiences',
@@ -120,7 +252,7 @@ const eliminateAttributes = [
   'awards',
 ];
 
-const customAttributes = computed(() => {
+const attributes = computed(() => {
   const attrs = { ...props.contributor.attributes };
   eliminateAttributes.forEach((attr) => {
     delete attrs[attr];
