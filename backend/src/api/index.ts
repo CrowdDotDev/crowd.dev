@@ -1,3 +1,4 @@
+import os from 'os'
 import { SERVICE } from '@crowd/common'
 import { getUnleashClient } from '@crowd/feature-flags'
 import { getServiceLogger } from '@crowd/logging'
@@ -94,6 +95,11 @@ setImmediate(async () => {
       level: 'trace',
     }),
   )
+
+  app.use((req, res, next) => {
+    res.setHeader('X-Hostname', os.hostname())
+    next()
+  })
 
   app.use((req, res, next) => {
     // this middleware fixes the issue with logging and datadog
