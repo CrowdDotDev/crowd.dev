@@ -16,33 +16,9 @@
           </p>
         </div>
         <div class="flex items-center">
-          <router-link
-            :to="{
-              name: 'activity',
-              query: filterQueryService().setQuery({
-                search: '',
-                relation: 'and',
-                order: {
-                  prop: 'timestamp',
-                  order: 'descending',
-                },
-                projectGroup: selectedProjectGroup?.id,
-                member: {
-                  include: true,
-                  value: [props.contributor.id],
-                },
-                projects: {
-                  include: true,
-                  value: [project.id],
-                },
-              }),
-            }"
-            class="text-sm leading-5 font-medium  hover:underline"
-          >
-            <lf-button type="primary-link" size="small">
-              View activity
-            </lf-button>
-          </router-link>
+          <lf-button type="primary-link" size="small" @click="viewActivity(project.id)">
+            View activity
+          </lf-button>
         </div>
       </article>
     </div>
@@ -60,20 +36,28 @@ import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { Contributor } from '@/modules/contributor/types/Contributor';
 import { computed, ref } from 'vue';
-import { filterQueryService } from '@/shared/modules/filters/services/filter-query.service';
-import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import { storeToRefs } from 'pinia';
+import { useRoute, useRouter } from 'vue-router';
 
 const props = defineProps<{
   contributor: Contributor,
 }>();
 
+const router = useRouter();
+const route = useRoute();
+
 const showMore = ref<boolean>(false);
 
-const lfStore = useLfSegmentsStore();
-const { selectedProjectGroup } = storeToRefs(lfStore);
-
 const projects = computed(() => props.contributor.segments);
+
+const viewActivity = (projectId: string) => {
+  router.replace({
+    hash: '#activities',
+    query: {
+      ...route.query,
+      subProjectId: projectId,
+    },
+  });
+};
 </script>
 
 <script lang="ts">
