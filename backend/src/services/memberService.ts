@@ -1807,7 +1807,18 @@ export default class MemberService extends LoggerBase {
     }
   }
 
-  async findById(id, returnPlain = true, doPopulateRelations = true, segmentId?: string) {
+  async findById(
+    id,
+    {
+      returnPlain = true,
+      doPopulateRelations = true,
+      segmentId,
+    }: {
+      returnPlain?: boolean
+      doPopulateRelations?: boolean
+      segmentId?: string
+    } = {},
+  ) {
     return MemberRepository.findById(id, this.options, {
       returnPlain,
       doPopulateRelations,
