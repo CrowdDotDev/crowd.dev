@@ -321,7 +321,7 @@ export default class MemberEnrichmentService extends LoggerBase {
             {
               displayName: `${enrichmentData.first_name} ${enrichmentData.last_name}`,
             },
-            false,
+            { syncToOpensearch: false },
           )
         }
       }
