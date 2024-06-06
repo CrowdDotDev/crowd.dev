@@ -635,7 +635,9 @@ export default class MemberService extends LoggerBase {
     delete payload.secondary.organizations
 
     try {
-      const member = await MemberRepository.findById(memberId, this.options)
+      const member = await MemberRepository.findById(memberId, this.options, {
+        doPopulateRelations: 'no-activity-aggregates',
+      })
 
       const repoOptions: IRepositoryOptions =
         await SequelizeRepository.createTransactionalRepositoryOptions(this.options)
@@ -822,7 +824,9 @@ export default class MemberService extends LoggerBase {
     const relationships = ['tags', 'notes', 'tasks', 'identities', 'affiliations']
 
     try {
-      const member = await MemberRepository.findById(memberId, this.options)
+      const member = await MemberRepository.findById(memberId, this.options, {
+        doPopulateRelations: 'no-activity-aggregates',
+      })
 
       member.memberOrganizations = await MemberOrganizationRepository.findMemberRoles(
         memberId,
@@ -1436,7 +1440,9 @@ export default class MemberService extends LoggerBase {
   }
 
   async findGithub(memberId) {
-    const memberIdentities = (await MemberRepository.findById(memberId, this.options)).username
+    const memberIdentities = (
+      await MemberRepository.findById(memberId, this.options, { doPopulateRelations: false })
+    ).username
     const axios = require('axios')
     // GitHub allows a maximum of 5 parameters
     const identities = Object.values(memberIdentities).flat().slice(0, 5)

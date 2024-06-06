@@ -1504,7 +1504,7 @@ class MemberRepository {
       newIdentities,
     }: {
       returnPlain?: boolean
-      doPopulateRelations?: boolean
+      doPopulateRelations?: boolean | 'no-activity-aggregates'
       ignoreTenant?: boolean
       segmentId?: string
       newIdentities?: boolean
@@ -1554,7 +1554,13 @@ class MemberRepository {
     }
 
     if (doPopulateRelations) {
-      return this._populateRelations(record, options, returnPlain, segmentId, newIdentities)
+      return this._populateRelations(record, options, {
+        returnPlain,
+        segmentId,
+        newIdentities,
+        withActivityAggregates:
+          doPopulateRelations && doPopulateRelations !== 'no-activity-aggregates',
+      })
     }
     const data = record.get({ plain: returnPlain })
 
@@ -3057,9 +3063,17 @@ class MemberRepository {
   static async _populateRelations(
     record,
     options: IRepositoryOptions,
-    returnPlain = true,
-    segmentId?: string,
-    newIdentities?: boolean,
+    {
+      returnPlain,
+      segmentId,
+      newIdentities,
+      withActivityAggregates,
+    }: {
+      returnPlain: boolean
+      segmentId: string
+      newIdentities: boolean
+      withActivityAggregates: boolean
+    },
   ) {
     if (!record) {
       return record
@@ -3075,17 +3089,19 @@ class MemberRepository {
 
     const transaction = SequelizeRepository.getTransaction(options)
 
-    const activityAggregates = await MemberRepository.getActivityAggregates(
-      output.id,
-      options,
-      segmentId,
-    )
+    if (withActivityAggregates) {
+      const activityAggregates = await MemberRepository.getActivityAggregates(
+        output.id,
+        options,
+        segmentId,
+      )
 
-    output.activeOn = activityAggregates?.activeOn || []
-    output.activityCount = activityAggregates?.activityCount || 0
-    output.activityTypes = activityAggregates?.activityTypes || []
-    output.activeDaysCount = activityAggregates?.activeDaysCount || 0
-    output.averageSentiment = activityAggregates?.averageSentiment || 0
+      output.activeOn = activityAggregates?.activeOn || []
+      output.activityCount = activityAggregates?.activityCount || 0
+      output.activityTypes = activityAggregates?.activityTypes || []
+      output.activeDaysCount = activityAggregates?.activeDaysCount || 0
+      output.averageSentiment = activityAggregates?.averageSentiment || 0
+    }
 
     output.lastActivity =
       (
