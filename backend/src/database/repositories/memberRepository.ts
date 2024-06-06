@@ -596,8 +596,6 @@ class MemberRepository {
     const toMergeMember = await this.findById(toMergeId, options, returnPlain)
 
     await member.removeToMerge(toMergeMember, { transaction })
-
-    return this.findById(id, options)
   }
 
   static async addNoMerge(id, toMergeId, options: IRepositoryOptions) {
@@ -610,8 +608,6 @@ class MemberRepository {
     const toMergeMember = await this.findById(toMergeId, options, returnPlain)
 
     await member.addNoMerge(toMergeMember, { transaction })
-
-    return this.findById(id, options)
   }
 
   static async removeNoMerge(id, toMergeId, options: IRepositoryOptions) {
