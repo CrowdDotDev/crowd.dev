@@ -2,8 +2,8 @@
   <div v-if="loading || !contributor" class="flex justify-center py-20">
     <lf-spinner />
   </div>
-  <div v-else class="-mt-3 -mb-5">
-    <div class="contributor-details  grid grid-cols-2 grid-rows-2">
+  <div v-else class="-mt-5 -mb-5">
+    <div class="contributor-details  grid grid-cols-2 grid-rows-2 px-3">
       <section class="w-full border-b border-gray-100 py-4 flex justify-between items-center col-span-2 h-min">
         <div class="flex items-center">
           <lf-back :to="{ path: '/contributors' }" class="mr-2">
@@ -18,21 +18,24 @@
           <lf-contributor-details-actions :contributor="contributor" @reload="fetchMember()" />
         </div>
       </section>
-      <section class="w-80 border-r border-gray-100 pt-6 pr-8 overflow-y-auto overflow-x-visible h-full pb-10">
-        <lf-contributor-details-work-history
-          :contributor="contributor"
-          class="mb-8"
-          @reload="fetchMember()"
-        />
-        <lf-contributor-details-identities
-          :contributor="contributor"
-          class="mb-8"
-          @reload="fetchMember()"
-        />
-        <lf-contributor-details-emails
-          :contributor="contributor"
-          @reload="fetchMember()"
-        />
+      <section class="w-80 border-r relative border-gray-100 overflow-y-auto overflow-x-visible h-full ">
+        <div class="sticky top-0 left-0 w-full h-6 bg-gradient-to-b from-white to-transparent" />
+        <div class="pr-8 pb-10">
+          <lf-contributor-details-work-history
+            :contributor="contributor"
+            class="mb-8"
+            @reload="fetchMember()"
+          />
+          <lf-contributor-details-identities
+            :contributor="contributor"
+            class="mb-8"
+            @reload="fetchMember()"
+          />
+          <lf-contributor-details-emails
+            :contributor="contributor"
+            @reload="fetchMember()"
+          />
+        </div>
       </section>
       <section class="overflow-auto h-full pb-10">
         <div class="sticky top-0 z-10">

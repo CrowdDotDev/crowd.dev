@@ -87,58 +87,6 @@
         </div>
       </article>
 
-      <!-- Reach -->
-      <article v-if="workExperiences?.default?.length" class="border-b border-gray-100 flex py-4">
-        <div class="w-5/12">
-          <p class="text-small font-semibold mb-1">
-            Work experience
-          </p>
-          <lf-contributor-attribute-source
-            :values="workExperiences"
-          />
-        </div>
-        <div class="w-7/12">
-          <div class="-my-4">
-            <article v-for="exp of (workExperiences.default || [])" :key="exp.title" class="py-4 border-b last:border-b-0 border-gray-100">
-              <p class="text-medium mb-0.5">
-                {{ exp.title }}
-              </p>
-              <p class="text-small text-gray-500">
-                {{ exp.company }} • {{ exp.location }}
-              </p>
-              <p class="text-small text-gray-500 mt-0.5">
-                {{ moment(exp.startDate).isValid() ? moment(exp.startDate).format('MMMM YYYY') : exp.startDate }}
-                - {{ moment(exp.endDate).isValid() ? moment(exp.endDate).format('MMMM YYYY') : exp.endDate }}
-              </p>
-            </article>
-          </div>
-        </div>
-      </article>
-
-      <!-- Reach -->
-      <article v-if="certifications?.default?.length" class="border-b border-gray-100 flex py-4">
-        <div class="w-5/12">
-          <p class="text-small font-semibold mb-1">
-            Certifications
-          </p>
-          <lf-contributor-attribute-source
-            :values="certifications"
-          />
-        </div>
-        <div class="w-7/12">
-          <div class="-my-4">
-            <article v-for="cert of (certifications.default || [])" :key="cert.title" class="py-4 border-b last:border-b-0 border-gray-100">
-              <p class="text-medium mb-0.5">
-                {{ cert.title }}
-              </p>
-              <p class="text-small text-gray-500">
-                {{ cert.description }}
-              </p>
-            </article>
-          </div>
-        </div>
-      </article>
-
       <!-- Education -->
       <article v-if="education?.default?.length" class="border-b border-gray-100 flex py-4">
         <div class="w-5/12">
@@ -160,7 +108,31 @@
               </p>
               <p class="text-small text-gray-500 mt-0.5">
                 {{ moment(edu.startDate).isValid() ? moment(edu.startDate).format('MMMM YYYY') : edu.startDate }}
-                - {{ moment(edu.endDate).isValid() ? moment(edu.endDate).format('MMMM YYYY') : edu.endDate }}
+                → {{ moment(edu.endDate).isValid() ? moment(edu.endDate).format('MMMM YYYY') : edu.endDate }}
+              </p>
+            </article>
+          </div>
+        </div>
+      </article>
+
+      <!-- Certifications -->
+      <article v-if="certifications?.default?.length" class="border-b border-gray-100 flex py-4">
+        <div class="w-5/12">
+          <p class="text-small font-semibold mb-1">
+            Certifications
+          </p>
+          <lf-contributor-attribute-source
+            :values="certifications"
+          />
+        </div>
+        <div class="w-7/12">
+          <div class="-my-4">
+            <article v-for="cert of (certifications.default || [])" :key="cert.title" class="py-4 border-b last:border-b-0 border-gray-100">
+              <p class="text-medium mb-0.5">
+                {{ cert.title }}
+              </p>
+              <p class="text-small text-gray-500">
+                {{ cert.description }}
               </p>
             </article>
           </div>
@@ -230,7 +202,6 @@ const { customAttributes } = storeToRefs(memberStore);
 const bio = computed(() => props.contributor.attributes.bio);
 const reach = computed(() => props.contributor.reach);
 const tags = computed(() => props.contributor.tags);
-const workExperiences = computed(() => props.contributor.attributes.workExperiences);
 const certifications = computed(() => props.contributor.attributes.certifications);
 const education = computed(() => props.contributor.attributes.education);
 const awards = computed(() => props.contributor.attributes.awards);

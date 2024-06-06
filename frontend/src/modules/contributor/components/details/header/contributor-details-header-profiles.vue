@@ -113,6 +113,6 @@ export default {
 
 <style scoped lang="scss">
 .platform-icon:not(:hover){
-  @apply text-gray-500 #{!important};
+  @apply text-gray-400 #{!important};
 }
 </style>

@@ -1,9 +1,6 @@
 <template>
   <div class="flex items-center">
-    <lf-tooltip
-      :content="`Joined on ${moment(props.contributor.joinedAt).format('MMM DD, YYYY')}`"
-      :disabled="!isNew(props.contributor)"
-    >
+    <div class="relative">
       <lf-avatar
         :size="48"
         :name="props.contributor.displayName"
@@ -16,7 +13,8 @@
       >
         New
       </div>
-    </lf-tooltip>
+    </div>
+
     <div class="pl-3">
       <h5 class="mb-1 max-w-80 truncate">
         {{ props.contributor.displayName }}
@@ -47,8 +45,6 @@
 import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
 import { Contributor } from '@/modules/contributor/types/Contributor';
 import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
-import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
-import moment from 'moment';
 import LfBadge from '@/ui-kit/badge/Badge.vue';
 import LfContributorWorkPosition from '@/modules/contributor/components/shared/contributor-work-position.vue';
 import LfContributorDetailsHeaderProfiles
