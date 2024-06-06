@@ -10,14 +10,15 @@
             <p class="text-tiny text-secondary-300">
               Engagement level
             </p>
-            <lf-tooltip
-              content="Calculated based on the recency and importance of a contributor's
-activities in comparison to all other contributors."
-            >
+            <lf-tooltip>
+              <template #content>
+                Calculated based on the recency and importance<br> of a contributor's
+                activities in comparison<br> to all other contributors.
+              </template>
               <lf-icon name="question-line" :size="14" class="text-secondary-200" />
             </lf-tooltip>
           </div>
-          <lf-contributor-engagement-level :contributor="{ score: 5 }" />
+          <lf-contributor-engagement-level :contributor="props.contributor" />
         </article>
         <article class="px-4 h-full w-1/2 xl:w-1/4 border-l border-gray-200">
           <p class="text-tiny text-secondary-300 mb-2">
