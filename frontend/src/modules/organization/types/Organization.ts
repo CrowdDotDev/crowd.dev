@@ -1,3 +1,5 @@
+import { Platform } from '@/shared/modules/platform/types/Platform';
+
 export interface OrganizationAttribute {
   default: string;
   sourceId?: any;
@@ -12,22 +14,32 @@ export enum OrganizationSource {
   UI = 'ui',
 }
 
-export interface OrganizationIdentity {
-    name: string;
-    platform: string;
-    url: string | null;
-    username: string;
-    organizationId?: string;
+export enum OrganizationIdentityType {
+  USERNAME = 'username',
+  PRIMARY_DOMAIN = 'primary-domain',
+  ALTERNATIVE_DOMAIN = 'alternative-domain',
+  AFFILIATED_PROFILE = 'affiliated-profile',
+  EMAIL = 'email',
 }
 
-export interface Organization{
+export interface OrganizationIdentity {
+    organizationId?: string;
+    platform: Platform;
+    type: OrganizationIdentityType;
+    value: string;
+    verified: boolean;
+    sourceId?: string;
+    tenantId?: string;
+    integrationId?: string;
+}
+
+export interface Organization {
   attributes: Record<string, OrganizationAttribute>,
   activeOn: string[];
   activityCount: number;
   address: Record<string, string>;
   createdAt: string;
   createdById: string;
-  crunchbase: Record<string, string> | null;
   deletedAt: string;
   description: string;
   displayName: string;
@@ -36,7 +48,6 @@ export interface Organization{
   employees: number | null;
   founded: string | null;
   geoLocation: string | null;
-  github: Record<string, string> | null;
   headline: string;
   id: string;
   identities: OrganizationIdentity[];
@@ -46,7 +57,6 @@ export interface Organization{
   joinedAt: string;
   lastActive: string;
   lastEnrichedAt: string;
-  linkedin: Record<string, string> | null;
   location: string;
   logo: string;
   memberCount: number;
@@ -59,12 +69,10 @@ export interface Organization{
   tags: string[] | null;
   tenantId: string;
   ticker: Record<string, string> | null;
-  twitter: Record<string, string> | null;
   type: string;
   updatedAt: string;
   updatedById: string;
   url: string;
-  website: string;
   memberOrganizations: {
     title: string;
     dateStart: string;
