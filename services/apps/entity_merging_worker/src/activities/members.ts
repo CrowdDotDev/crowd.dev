@@ -122,6 +122,13 @@ export async function syncMember(memberId: string, secondaryMemberId: string): P
   }
 }
 
+export async function syncRemoveMember(memberId: string): Promise<void> {
+  const syncApi = new SearchSyncApiClient({
+    baseUrl: process.env['CROWD_SEARCH_SYNC_API_URL'],
+  })
+  await syncApi.triggerRemoveMember(memberId)
+}
+
 export async function notifyFrontendMemberMergeSuccessful(
   primaryId: string,
   secondaryId: string,
