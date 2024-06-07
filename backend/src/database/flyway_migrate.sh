@@ -10,6 +10,7 @@ flyway \
     -password="$PGPASSWORD" \
     -connectRetries=60 \
     -outOfOrder=true \
-    -placeholderReplacement=false\
+    -placeholderReplacement=false \
     -schemas=public \
+    - X \
     migrate
