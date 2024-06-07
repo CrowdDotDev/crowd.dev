@@ -75,5 +75,8 @@ export async function getLLMResult(
 
   const res = await logExecutionTime(async () => client.send(command), svc.log, 'llm-invoke-model')
 
+  console.log(res.$metadata)
+  console.log(res.contentType)
+
   return res.body.transformToString()
 }
