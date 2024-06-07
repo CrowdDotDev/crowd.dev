@@ -122,6 +122,42 @@ export async function syncMember(memberId: string, secondaryMemberId: string): P
   }
 }
 
+export async function notifyFrontendMemberMergeSuccessful(
+  primaryId: string,
+  secondaryId: string,
+  primaryDisplayName: string,
+  secondaryDisplayName: string,
+  tenantId: string,
+  userId: string,
+): Promise<void> {
+  const emitter = new RedisPubSubEmitter(
+    'api-pubsub',
+    svc.redis,
+    (err) => {
+      svc.log.error({ err }, 'Error in api-ws emitter!')
+    },
+    svc.log,
+  )
+
+  emitter.emit(
+    'user',
+    new ApiWebsocketMessage(
+      'member-merge',
+      JSON.stringify({
+        success: true,
+        tenantId,
+        userId,
+        primaryId,
+        secondaryId,
+        primaryDisplayName,
+        secondaryDisplayName,
+      }),
+      undefined,
+      tenantId,
+    ),
+  )
+}
+
 export async function notifyFrontendMemberUnmergeSuccessful(
   primaryId: string,
   secondaryId: string,

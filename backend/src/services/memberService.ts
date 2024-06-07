@@ -1162,7 +1162,7 @@ export default class MemberService extends LoggerBase {
     let tx
 
     try {
-      await captureApiChange(
+      const { original, toMerge } = await captureApiChange(
         this.options,
         memberMergeAction(originalId, async (captureOldState, captureNewState) => {
           const original = await MemberRepository.findById(originalId, this.options, {
@@ -1297,7 +1297,7 @@ export default class MemberService extends LoggerBase {
           })
 
           await SequelizeRepository.commitTransaction(tx)
-          return null
+          return { original, toMerge }
         }),
       )
 
@@ -1307,7 +1307,14 @@ export default class MemberService extends LoggerBase {
         retry: {
           maximumAttempts: 10,
         },
-        args: [originalId, toMergeId, this.options.currentTenant.id],
+        args: [
+          originalId,
+          toMergeId,
+          original.displayName,
+          toMerge.displayName,
+          this.options.currentTenant.id,
+          this.options.currentUser.id,
+        ],
         searchAttributes: {
           TenantId: [this.options.currentTenant.id],
         },
