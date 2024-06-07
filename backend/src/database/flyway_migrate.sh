@@ -12,5 +12,5 @@ flyway \
     -outOfOrder=true \
     -placeholderReplacement=false \
     -schemas=public \
-    - X \
+    -X \
     migrate
