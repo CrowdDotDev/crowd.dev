@@ -4,7 +4,9 @@ export {
   moveActivitiesWithIdentityToAnotherMember,
   recalculateActivityAffiliationsOfMemberAsync,
   syncMember,
+  notifyFrontendMemberMergeSuccessful,
   notifyFrontendMemberUnmergeSuccessful,
+  syncRemoveMember,
 } from './activities/members'
 
 export {

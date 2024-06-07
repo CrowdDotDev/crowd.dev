@@ -453,7 +453,10 @@ class TenantRepository {
 
   static async getAvailablePlatforms(id, options: IRepositoryOptions) {
     const query = `
-        select distinct platform from "memberIdentities" where "tenantId" = :tenantId
+      SELECT platform
+      FROM "memberIdentities"
+      WHERE "tenantId" = :tenantId
+      GROUP BY 1
     `
     const parameters: any = {
       tenantId: id,

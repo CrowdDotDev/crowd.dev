@@ -122,6 +122,49 @@ export async function syncMember(memberId: string, secondaryMemberId: string): P
   }
 }
 
+export async function syncRemoveMember(memberId: string): Promise<void> {
+  const syncApi = new SearchSyncApiClient({
+    baseUrl: process.env['CROWD_SEARCH_SYNC_API_URL'],
+  })
+  await syncApi.triggerRemoveMember(memberId)
+}
+
+export async function notifyFrontendMemberMergeSuccessful(
+  primaryId: string,
+  secondaryId: string,
+  primaryDisplayName: string,
+  secondaryDisplayName: string,
+  tenantId: string,
+  userId: string,
+): Promise<void> {
+  const emitter = new RedisPubSubEmitter(
+    'api-pubsub',
+    svc.redis,
+    (err) => {
+      svc.log.error({ err }, 'Error in api-ws emitter!')
+    },
+    svc.log,
+  )
+
+  emitter.emit(
+    'user',
+    new ApiWebsocketMessage(
+      'member-merge',
+      JSON.stringify({
+        success: true,
+        tenantId,
+        userId,
+        primaryId,
+        secondaryId,
+        primaryDisplayName,
+        secondaryDisplayName,
+      }),
+      undefined,
+      tenantId,
+    ),
+  )
+}
+
 export async function notifyFrontendMemberUnmergeSuccessful(
   primaryId: string,
   secondaryId: string,

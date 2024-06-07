@@ -282,17 +282,19 @@ const merge = (suggestion: any) => {
   const secondaryMember = suggestion.members[1];
   sending.value = `${primaryMember.id}:${secondaryMember.id}`;
 
-  const { loadingMessage, successMessage } = useMemberMergeMessage;
+  const { loadingMessage } = useMemberMergeMessage;
 
   loadingMessage();
 
   MemberService.merge(primaryMember, secondaryMember)
     .then(() => {
-      successMessage({
-        primaryMember,
-        secondaryMember,
-        selectedProjectGroupId: selectedProjectGroup.value?.id as string,
-      });
+      Message.closeAll();
+      Message.info(
+        'We’re finalizing contributor merging. We will let you know once the process is completed.',
+        {
+          title: 'Contributors merging in progress',
+        },
+      );
     })
     .finally(() => {
       reload();
