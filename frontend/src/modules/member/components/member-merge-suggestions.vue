@@ -140,8 +140,6 @@ import {
 import Message from '@/shared/message/message';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
 import AppMemberMergeSuggestionsDetails from '@/modules/member/components/suggestions/member-merge-suggestions-details.vue';
-import { storeToRefs } from 'pinia';
-import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { merge } from 'lodash';
 import useMemberMergeMessage from '@/shared/modules/merge/config/useMemberMergeMessage';
 import LfButton from '@/ui-kit/button/Button.vue';
@@ -164,9 +162,6 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['reload']);
-
-const lsSegmentsStore = useLfSegmentsStore();
-const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const { trackEvent } = useProductTracking();
 
@@ -283,7 +278,7 @@ const mergeSuggestion = () => {
   const primaryMember = membersToMerge.value.members[primary.value];
   const secondaryMember = membersToMerge.value.members[(primary.value + 1) % 2];
 
-  const { loadingMessage, successMessage, apiErrorMessage } = useMemberMergeMessage;
+  const { loadingMessage, apiErrorMessage } = useMemberMergeMessage;
 
   loadingMessage();
 
@@ -297,13 +292,14 @@ const mergeSuggestion = () => {
 
   MemberService.merge(primaryMember, secondaryMember)
     .then(() => {
+      Message.closeAll();
+      Message.info(
+        'We’re finalizing contributor merging. We will let you know once the process is completed.',
+        {
+          title: 'Contributors merging in progress',
+        },
+      );
       primary.value = 0;
-
-      successMessage({
-        primaryMember,
-        secondaryMember,
-        selectedProjectGroupId: selectedProjectGroup.value?.id,
-      });
 
       const nextIndex = offset.value >= (count.value - 1) ? Math.max(count.value - 2, 0) : offset.value;
       fetch(nextIndex);
