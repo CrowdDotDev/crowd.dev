@@ -1,4 +1,10 @@
+import { captureApiChange, organizationMergeAction } from '@crowd/audit-logs'
 import { Error400, websiteNormalizer } from '@crowd/common'
+import {
+  findLfxMembership,
+  findManyLfxMemberships,
+  hasLfxMembership,
+} from '@crowd/data-access-layer/src/lfx_memberships'
 import { LoggerBase } from '@crowd/logging'
 import {
   IOrganization,
@@ -10,16 +16,11 @@ import {
   MemberRoleUnmergeStrategy,
   MergeActionState,
   MergeActionType,
+  OrganizationIdentityType,
   SyncMode,
 } from '@crowd/types'
 import { randomUUID } from 'crypto'
 import lodash from 'lodash'
-import { captureApiChange, organizationMergeAction } from '@crowd/audit-logs'
-import {
-  findLfxMembership,
-  findManyLfxMemberships,
-  hasLfxMembership,
-} from '@crowd/data-access-layer/src/lfx_memberships'
 import getObjectWithoutKey from '@/utils/getObjectWithoutKey'
 import { IActiveOrganizationFilter } from '@/database/repositories/types/organizationTypes'
 import MemberOrganizationRepository from '@/database/repositories/memberOrganizationRepository'
@@ -809,34 +810,46 @@ export default class OrganizationService extends LoggerBase {
   ) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
-    if ((data as any).name && (!data.identities || data.identities.length === 0)) {
+    if (!data.identities) {
+      data.identities = []
+    }
+
+    if ((data as any).name && data.identities.length === 0) {
       data.identities = [
         {
-          name: (data as any).name,
+          value: (data as any).name,
+          type: OrganizationIdentityType.USERNAME,
           platform: 'custom',
+          verified: true,
         },
       ]
       delete (data as any).name
     }
 
-    if (
-      !data.identities ||
-      data.identities.length === 0 ||
-      !data.identities[0].name ||
-      !data.identities[0].platform
-    ) {
+    const verifiedIdentities = data.identities.filter((i) => i.verified)
+
+    if (verifiedIdentities.length === 0) {
       const message = `Missing organization identity while creating/updating organization!`
       this.log.error(data, message)
       throw new Error(message)
     }
 
     try {
-      const primaryIdentity = data.identities[0]
-      const name = (data as any).name || primaryIdentity.name
+      const primaryIdentity = verifiedIdentities[0]
+      const name = primaryIdentity.value
 
-      // Normalize the website URL if it exists
-      if (data.website) {
-        data.website = websiteNormalizer(data.website)
+      if (!data.names) {
+        data.names = [name]
+      }
+
+      // Normalize the website identities
+      for (const i of data.identities.filter((i) =>
+        [
+          OrganizationIdentityType.PRIMARY_DOMAIN,
+          OrganizationIdentityType.ALTERNATIVE_DOMAIN,
+        ].includes(i.type),
+      )) {
+        i.value = websiteNormalizer(i.value)
       }
 
       if (data.members) {
@@ -847,31 +860,12 @@ export default class OrganizationService extends LoggerBase {
       }
 
       let record
-      let existing
-
-      // check if organization already exists using website or primary identity
-      if (data.website) {
-        existing = await OrganizationRepository.findByDomain(data.website, this.options)
-
-        // also check domain in identities
-        if (!existing) {
-          existing = await OrganizationRepository.findByIdentity(
-            {
-              name: websiteNormalizer(data.website),
-              platform: 'email',
-            },
-            this.options,
-          )
-        }
-      }
-
-      if (!existing) {
-        existing = await OrganizationRepository.findByIdentities(data.identities, this.options)
-      }
+      const existing = await OrganizationRepository.findByVerifiedIdentities(
+        verifiedIdentities,
+        this.options,
+      )
 
       if (existing) {
-        await OrganizationRepository.checkIdentities(data, this.options, existing.id)
-
         // Set displayName if it doesn't exist
         if (!existing.displayName) {
           data.displayName = name
@@ -882,23 +876,18 @@ export default class OrganizationService extends LoggerBase {
         const fields = [
           'displayName',
           'description',
+          'names',
           'emails',
           'logo',
           'tags',
-          'github',
-          'twitter',
-          'linkedin',
-          'crunchbase',
           'employees',
           'location',
-          'website',
           'type',
           'size',
           'headline',
           'industry',
           'founded',
           'attributes',
-          'weakIdentities',
         ]
         fields.forEach((field) => {
           if (!existing[field] && data[field]) {
@@ -914,9 +903,46 @@ export default class OrganizationService extends LoggerBase {
         } else {
           record = existing
         }
-      } else {
-        await OrganizationRepository.checkIdentities(data, this.options)
 
+        const existingIdentities = await OrganizationRepository.getIdentities(record.id, {
+          ...this.options,
+          transaction,
+        })
+
+        const toUpdate: IOrganizationIdentity[] = []
+        const toCreate: IOrganizationIdentity[] = []
+
+        for (const i of data.identities) {
+          const existing = existingIdentities.find(
+            (ei) => ei.value === i.value && ei.platform === i.platform && ei.type === i.type,
+          )
+          if (!existing) {
+            toCreate.push(i)
+          } else if (existing && existing.verified !== i.verified) {
+            toUpdate.push(i)
+          }
+        }
+
+        if (toCreate.length > 0) {
+          for (const i of toCreate) {
+            // add the identity
+            await OrganizationRepository.addIdentity(record.id, i, {
+              ...this.options,
+              transaction,
+            })
+          }
+        }
+
+        if (toUpdate.length > 0) {
+          for (const i of toUpdate) {
+            // update the identity
+            await OrganizationRepository.updateIdentity(record.id, i, {
+              ...this.options,
+              transaction,
+            })
+          }
+        }
+      } else {
         const organization = {
           ...data, // to keep uncacheable data (like identities, weakIdentities)
           displayName: name,
@@ -934,26 +960,12 @@ export default class OrganizationService extends LoggerBase {
           },
           this.options,
         )
-      }
 
-      const identities = await OrganizationRepository.getIdentities(record.id, {
-        ...this.options,
-        transaction,
-      })
-
-      if (data.identities && data.identities.length > 0) {
-        for (const identity of data.identities) {
-          const identityExists = identities.find(
-            (i) => i.name === identity.name && i.platform === identity.platform,
-          )
-
-          if (!identityExists) {
-            // add the identity
-            await OrganizationRepository.addIdentity(record.id, identity, {
-              ...this.options,
-              transaction,
-            })
-          }
+        for (const i of data.identities) {
+          await OrganizationRepository.addIdentity(record.id, i, {
+            ...this.options,
+            transaction,
+          })
         }
       }
 
@@ -997,32 +1009,61 @@ export default class OrganizationService extends LoggerBase {
         data.members = await MemberRepository.filterIdsInTenant(data.members, repoOptions)
       }
 
-      // Normalize the website URL if it exists
-      if (data.website) {
-        data.website = websiteNormalizer(data.website)
+      // Normalize the website identities
+      for (const i of data.identities.filter((i) =>
+        [
+          OrganizationIdentityType.PRIMARY_DOMAIN,
+          OrganizationIdentityType.ALTERNATIVE_DOMAIN,
+        ].includes(i.type),
+      )) {
+        i.value = websiteNormalizer(i.value)
       }
 
       if (data.identities) {
-        const originalIdentities = data.identities
+        const existingIdentities = await OrganizationRepository.getIdentities(id, repoOptions)
 
-        // check identities
-        await OrganizationRepository.checkIdentities(data, repoOptions, id)
+        const toUpdate: IOrganizationIdentity[] = []
+        const toCreate: IOrganizationIdentity[] = []
 
-        // if we found any strong identities sent already existing in another organization
-        // instead of making it a weak identity we throw an error here, because this function
-        // is mainly used for doing manual updates through UI and possibly
-        // we don't wanna do an auto-merge here or make strong identities sent by user as weak
-        if (originalIdentities.length !== data.identities.length) {
-          const alreadyExistingStrongIdentities = originalIdentities.filter(
-            (oi) =>
-              !data.identities.some((di) => di.platform === oi.platform && di.name === oi.name),
+        for (const i of data.identities) {
+          const existing = existingIdentities.find(
+            (ei) => ei.value === i.value && ei.platform === i.platform && ei.type === i.type,
           )
+          if (!existing) {
+            toCreate.push(i)
+          } else if (existing && existing.verified !== i.verified) {
+            toUpdate.push(i)
+          }
+        }
 
-          throw new Error(
-            `Organization identities ${JSON.stringify(
-              alreadyExistingStrongIdentities,
-            )} already exist in another organization!`,
+        const toUpdateVerified = toUpdate.filter((i) => i.verified)
+        const verified = toUpdateVerified.concat(toCreate)
+        if (verified.length > 0) {
+          const existing = await OrganizationRepository.findByVerifiedIdentities(
+            verified,
+            repoOptions,
           )
+          if (existing.id !== id) {
+            throw new Error(
+              `Organization identities ${JSON.stringify(
+                verified,
+              )} already exist in another organization!`,
+            )
+          }
+        }
+
+        if (toCreate.length > 0) {
+          for (const i of toCreate) {
+            // add the identity
+            await OrganizationRepository.addIdentity(id, i, repoOptions)
+          }
+        }
+
+        if (toUpdate.length > 0) {
+          for (const i of toUpdate) {
+            // update the identity
+            await OrganizationRepository.updateIdentity(id, i, repoOptions)
+          }
         }
       }
 

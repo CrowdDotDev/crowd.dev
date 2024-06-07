@@ -9,6 +9,7 @@ import {
   addOrgIdentity,
   cleanUpOrgIdentities,
   fetchOrgIdentities,
+  updateOrgIdentity,
 } from '@crowd/data-access-layer/src/org_identities'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import {
@@ -795,6 +796,26 @@ class OrganizationRepository {
     }
   }
 
+  static async updateIdentity(
+    organizationId: string,
+    identity: IOrganizationIdentity,
+    options: IRepositoryOptions,
+  ): Promise<void> {
+    const transaction = SequelizeRepository.getTransaction(options)
+    const currentTenant = SequelizeRepository.getCurrentTenant(options)
+
+    const qx = SequelizeRepository.getQueryExecutor(options, transaction)
+
+    await updateOrgIdentity(qx, {
+      organizationId,
+      tenantId: currentTenant.id,
+      platform: identity.platform,
+      value: identity.value,
+      type: identity.type,
+      verified: identity.verified,
+    })
+  }
+
   static async addIdentity(
     organizationId: string,
     identity: IOrganizationIdentity,
@@ -1407,7 +1428,7 @@ class OrganizationRepository {
     return segments
   }
 
-  static async findByIdentities(
+  static async findByVerifiedIdentities(
     identities: IOrganizationIdentity[],
     options: IRepositoryOptions,
   ): Promise<IOrganization> {
@@ -1418,7 +1439,7 @@ class OrganizationRepository {
     const identityConditions = identities
       .map(
         (_, index) => `
-            (oi.platform = :platform${index} and oi.value = :value${index} and oi.type = :type${index} and oi.verified = :verified${index})
+            (oi.platform = :platform${index} and oi.value = :value${index} and oi.type = :type${index} and oi.verified = true)
         `,
       )
       .join(' or ')
@@ -1466,117 +1487,9 @@ class OrganizationRepository {
               [`platform${index}`]: identity.platform,
               [`value${index}`]: identity.value,
               [`type${index}`]: identity.type,
-              [`verified${index}`]: identity.verified,
             }),
             {},
           ),
-        },
-        type: QueryTypes.SELECT,
-        transaction,
-      },
-    )
-
-    if (results.length === 0) {
-      return null
-    }
-
-    const result = results[0] as IOrganization
-
-    return result
-  }
-
-  static async findByIdentity(
-    identity: IOrganizationIdentity,
-    options: IRepositoryOptions,
-  ): Promise<IOrganization> {
-    const transaction = SequelizeRepository.getTransaction(options)
-    const sequelize = SequelizeRepository.getSequelize(options)
-    const currentTenant = SequelizeRepository.getCurrentTenant(options)
-
-    const results = await sequelize.query(
-      `
-      with
-          "organizationsWithIdentity" as (
-              select oi."organizationId"
-              from "organizationIdentities" oi
-              where
-                    oi.platform = :platform
-                    and oi.value = :value
-                    and oi.type = :type
-                    and oi.verified = :verified
-          )
-          select o.id,
-                  o.description,
-                  o.names,
-                  o.emails,
-                  o.logo,
-                  o.tags,
-                  o.employees,
-                  o.location,
-                  o.type,
-                  o.size,
-                  o.headline,
-                  o.industry,
-                  o.founded,
-                  o.attributes
-          from organizations o
-          where o."tenantId" = :tenantId
-          and o.id in (select "organizationId" from "organizationsWithIdentity");
-      `,
-      {
-        replacements: {
-          tenantId: currentTenant.id,
-          name: identity.value,
-          type: identity.type,
-          verified: identity.verified,
-          platform: identity.platform,
-        },
-        type: QueryTypes.SELECT,
-        transaction,
-      },
-    )
-
-    if (results.length === 0) {
-      return null
-    }
-
-    const result = results[0] as IOrganization
-
-    return result
-  }
-
-  static async findByDomain(domain: string, options: IRepositoryOptions): Promise<IOrganization> {
-    const transaction = SequelizeRepository.getTransaction(options)
-    const sequelize = SequelizeRepository.getSequelize(options)
-    const currentTenant = SequelizeRepository.getCurrentTenant(options)
-
-    const results = await sequelize.query(
-      `
-      SELECT
-      o.id,
-      o.description,
-      o.names,
-      o.emails,
-      o.logo,
-      o.tags,
-      o.employees,
-      o.location,
-      o.type,
-      o.size,
-      o.headline,
-      o.industry,
-      o.founded,
-      o.attributes
-    FROM
-      organizations o
-    WHERE
-      o."tenantId" = :tenantId AND
-      exists (select 1 from "organizationIdentities" oi where oi."organizationId" = o.id and oi.type = '${OrganizationIdentityType.PRIMARY_DOMAIN} and oi.verified = true and oi.value = :domain')
-      `,
-      {
-        replacements: {
-          tenantId: currentTenant.id,
-          domain,
         },
         type: QueryTypes.SELECT,
         transaction,

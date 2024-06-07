@@ -28,6 +28,26 @@ export async function cleanUpOrgIdentities(qx: QueryExecutor, { organizationId, 
   )
 }
 
+export async function updateOrgIdentity(
+  qx: QueryExecutor,
+  { organizationId, tenantId, platform, value, type, verified },
+): Promise<void> {
+  await qx.result(
+    `      
+    update "organizationIdentities" set verified = $(verified)
+    where "organizationId" = $(organizationId) and "tenantId" = $(tenantId) and platform = $(platform) and value = $(value) and type = $(type)
+    `,
+    {
+      organizationId,
+      tenantId,
+      platform,
+      value,
+      type,
+      verified,
+    },
+  )
+}
+
 export async function addOrgIdentity(
   qx: QueryExecutor,
   { organizationId, platform, value, type, verified, sourceId, tenantId, integrationId },

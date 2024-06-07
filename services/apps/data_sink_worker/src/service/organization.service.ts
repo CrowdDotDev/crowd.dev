@@ -104,14 +104,14 @@ export class OrganizationService extends LoggerBase {
 
           id = existing.id
 
-          const identities = await txRepo.getIdentities(id, tenantId)
+          const existingIdentities = await txRepo.getIdentities(id, tenantId)
 
           const toCreate = []
           const toUpdate = []
 
           for (const i of data.identities) {
-            const existing = identities.find(
-              (i) => i.value === i.value && i.platform === i.platform && i.type === i.type,
+            const existing = existingIdentities.find(
+              (ei) => ei.value === i.value && ei.platform === i.platform && ei.type === i.type,
             )
             if (!existing) {
               toCreate.push(i)

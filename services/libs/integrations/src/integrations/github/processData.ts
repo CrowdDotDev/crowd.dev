@@ -183,12 +183,13 @@ const parseMember = (memberData: GithubPrepareMemberOutput): IMemberData => {
 
       if (orgs && company.length > 0) {
         const organizationPayload = {
+          displayName: orgs.name,
           names: [orgs.name],
           identities: [
             {
               platform: PlatformType.GITHUB,
               type: OrganizationIdentityType.USERNAME,
-              value: orgs.name,
+              value: orgs.url.replace('https://github.com/', ''),
               verified: true,
             },
           ],
@@ -197,6 +198,15 @@ const parseMember = (memberData: GithubPrepareMemberOutput): IMemberData => {
           logo: orgs.avatarUrl ?? null,
           source: OrganizationSource.GITHUB,
         } as IOrganization
+
+        if (orgs.websiteUrl) {
+          organizationPayload.identities.push({
+            platform: PlatformType.GITHUB,
+            type: OrganizationIdentityType.PRIMARY_DOMAIN,
+            value: orgs.websiteUrl,
+            verified: false,
+          })
+        }
 
         if (orgs.twitterUsername) {
           organizationPayload.identities.push({
