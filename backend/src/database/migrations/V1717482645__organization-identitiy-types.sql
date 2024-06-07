@@ -33,7 +33,7 @@ $$
         verified boolean;
         platform text;
     begin
-        for org in select * from organizations where website is not null
+        for org in select * from organizations where website is not null and length(trim(website)) > 0
             loop
                 -- determine if it's verified or not
                 verified := false;
@@ -52,49 +52,45 @@ $$
                     platform := 'custom';
                 end if;
 
-                if verified then
-                    insert into "organizationIdentities"("organizationId", "tenantId", platform, type, value, verified)
-                    values (org.id, org."tenantId", platform, 'primary-domain', org.website, true);
-                else
-                    insert into "organizationIdentities"("organizationId", "tenantId", platform, type, value, verified)
-                    values (org.id, org."tenantId", platform, 'primary-domain', org.website, false);
+                insert into "organizationIdentities"("organizationId", "tenantId", platform, type, value, verified)
+                values (org.id, org."tenantId", platform, 'primary-domain', trim(org.website), verified);
 
-                    if org."lastEnrichedAt" is not null and not org."manuallyCreated" then
-                        update organizations
-                        set "phoneNumbers"                = null,
-                            tags                          = null,
-                            employees                     = null,
-                            "revenueRange"                = null,
-                            location                      = null,
-                            "employeeCountByCountry"      = null,
-                            type                          = null,
-                            "geoLocation"                 = null,
-                            size                          = null,
-                            ticker                        = null,
-                            headline                      = null,
-                            profiles                      = null,
-                            naics                         = null,
-                            address                       = null,
-                            industry                      = null,
-                            founded                       = null,
-                            "allSubsidiaries"             = null,
-                            "alternativeNames"            = null,
-                            "averageEmployeeTenure"       = null,
-                            "averageTenureByLevel"        = null,
-                            "averageTenureByRole"         = null,
-                            "directSubsidiaries"          = null,
-                            "employeeChurnRate"           = null,
-                            "employeeCountByMonth"        = null,
-                            "employeeGrowthRate"          = null,
-                            "employeeCountByMonthByLevel" = null,
-                            "employeeCountByMonthByRole"  = null,
-                            "gicsSector"                  = null,
-                            "grossAdditionsByMonth"       = null,
-                            "grossDeparturesByMonth"      = null,
-                            "ultimateParent"              = null,
-                            "immediateParent"             = null
-                        where id = org.id;
-                    end if;
+
+                if not verified and org."lastEnrichedAt" is not null and not org."manuallyCreated" then
+                    update organizations
+                    set "phoneNumbers"                = null,
+                        tags                          = null,
+                        employees                     = null,
+                        "revenueRange"                = null,
+                        location                      = null,
+                        "employeeCountByCountry"      = null,
+                        type                          = null,
+                        "geoLocation"                 = null,
+                        size                          = null,
+                        ticker                        = null,
+                        headline                      = null,
+                        profiles                      = null,
+                        naics                         = null,
+                        address                       = null,
+                        industry                      = null,
+                        founded                       = null,
+                        "allSubsidiaries"             = null,
+                        "alternativeNames"            = null,
+                        "averageEmployeeTenure"       = null,
+                        "averageTenureByLevel"        = null,
+                        "averageTenureByRole"         = null,
+                        "directSubsidiaries"          = null,
+                        "employeeChurnRate"           = null,
+                        "employeeCountByMonth"        = null,
+                        "employeeGrowthRate"          = null,
+                        "employeeCountByMonthByLevel" = null,
+                        "employeeCountByMonthByRole"  = null,
+                        "gicsSector"                  = null,
+                        "grossAdditionsByMonth"       = null,
+                        "grossDeparturesByMonth"      = null,
+                        "ultimateParent"              = null,
+                        "immediateParent"             = null
+                    where id = org.id;
                 end if;
             end loop;
     end
@@ -210,12 +206,14 @@ where platform = 'github'
 -- region linkedin
 
 update "organizationIdentities"
-set value    = 'company:' || name,
+set value    = 'company:' || trim(name),
     name     = null,
     verified = true,
     type     = 'username',
     url      = null
 where platform = 'linkedin'
+  and name is not null
+  and length(trim(name)) > 0
   and (
     url ilike 'linkedin.com/company/%' or
     url ilike 'https://linkedin.com/company/%' or
@@ -224,12 +222,14 @@ where platform = 'linkedin'
     );
 
 update "organizationIdentities"
-set value    = 'school:' || name,
+set value    = 'school:' || trim(name),
     name     = null,
     verified = true,
     type     = 'username',
     url      = null
 where platform = 'linkedin'
+  and name is not null
+  and length(trim(name)) > 0
   and (
     url ilike 'linkedin.com/school/%' or
     url ilike 'https://linkedin.com/school/%' or
@@ -238,18 +238,26 @@ where platform = 'linkedin'
     );
 
 update "organizationIdentities"
-set value    = 'showcase:' || name,
+set value    = 'showcase:' || trim(name),
     name     = null,
     verified = true,
     type     = 'username',
     url      = null
 where platform = 'linkedin'
+  and name is not null
+  and length(trim(name)) > 0
   and (
     url ilike 'linkedin.com/showcase/%' or
     url ilike 'https://linkedin.com/showcase/%' or
     url ilike 'https://www.linkedin.com/showcase/%' or
     url ilike 'www.linkedin.com/showcase/%'
     );
+
+delete
+from "organizationIdentities"
+where platform = 'linkedin'
+  and name is not null
+  and length(trim(name)) = 0;
 
 -- endregion
 
@@ -355,9 +363,10 @@ where name is not null;
 -- region move organizations.github
 
 insert into "organizationIdentities"("organizationId", "tenantId", platform, type, value, verified)
-select id, "tenantId", 'github', 'username', github ->> 'handle', false
+select id, "tenantId", 'github', 'username', trim(github ->> 'handle'), false
 from organizations o
 where (github ->> 'handle') is not null
+  and length(trim((github ->> 'handle'))) > 0
   and not exists (select 1
                   from "organizationIdentities"
                   where "organizationId" = o.id
@@ -370,9 +379,10 @@ where (github ->> 'handle') is not null
 -- region move organizations.twitter
 
 insert into "organizationIdentities"("organizationId", "tenantId", platform, type, value, verified)
-select id, "tenantId", 'twitter', 'username', twitter ->> 'handle', false
+select id, "tenantId", 'twitter', 'username', trim(twitter ->> 'handle'), false
 from organizations o
 where (twitter ->> 'handle') is not null
+  and length(trim((twitter ->> 'handle'))) > 0
   and not exists (select 1
                   from "organizationIdentities"
                   where "organizationId" = o.id
@@ -385,9 +395,10 @@ where (twitter ->> 'handle') is not null
 -- region move organizations.crunchbase
 
 insert into "organizationIdentities"("organizationId", "tenantId", platform, type, value, verified)
-select id, "tenantId", 'crunchbase', 'username', crunchbase ->> 'handle', false
+select id, "tenantId", 'crunchbase', 'username', trim(crunchbase ->> 'handle'), false
 from organizations o
 where (crunchbase ->> 'handle') is not null
+  and length(trim((crunchbase ->> 'handle'))) > 0
   and not exists (select 1
                   from "organizationIdentities"
                   where "organizationId" = o.id
@@ -408,6 +419,8 @@ $$
                    where linkedin is not null
                      and (linkedin ->> 'url') is not null
                      and (linkedin ->> 'handle') is not null
+                     and length(trim(linkedin ->> 'url')) > 0
+                     and length(trim(linkedin ->> 'handle')) > 0
             loop
                 if (org.linkedin ->> 'url') ilike '%linkedin.com/company/%' then
                     if (select count(*)
@@ -415,9 +428,9 @@ $$
                         where "organizationId" = org.id
                           and platform = 'linkedin'
                           and type = 'username'
-                          and value = 'company' || (org.linkedin ->> 'handle')) = 0 then
+                          and value = 'company' || trim((org.linkedin ->> 'handle'))) = 0 then
                         insert into "organizationIdentities"("organizationId", "tenantId", platform, type, value, verified)
-                        values (org.id, org."tenantId", 'linkedin', 'username', 'company:' || (org.linkedin ->> 'handle'), false);
+                        values (org.id, org."tenantId", 'linkedin', 'username', 'company:' || trim((org.linkedin ->> 'handle')), false);
                     end if;
                 elseif (org.linkedin ->> 'url') ilike '%linkedin.com/school/%' then
                     if (select count(*)
@@ -425,9 +438,9 @@ $$
                         where "organizationId" = org.id
                           and platform = 'linkedin'
                           and type = 'username'
-                          and value = 'school' || (org.linkedin ->> 'handle')) = 0 then
+                          and value = 'school' || trim((org.linkedin ->> 'handle'))) = 0 then
                         insert into "organizationIdentities"("organizationId", "tenantId", platform, type, value, verified)
-                        values (org.id, org."tenantId", 'linkedin', 'username', 'school:' || (org.linkedin ->> 'handle'), false);
+                        values (org.id, org."tenantId", 'linkedin', 'username', 'school:' || trim((org.linkedin ->> 'handle')), false);
                     end if;
                 elseif (org.linkedin ->> 'url') ilike '%linkedin.com/showcase/%' then
                     if (select count(*)
@@ -435,9 +448,9 @@ $$
                         where "organizationId" = org.id
                           and platform = 'linkedin'
                           and type = 'username'
-                          and value = 'showcase' || (org.linkedin ->> 'handle')) = 0 then
+                          and value = 'showcase' || trim((org.linkedin ->> 'handle'))) = 0 then
                         insert into "organizationIdentities"("organizationId", "tenantId", platform, type, value, verified)
-                        values (org.id, org."tenantId", 'linkedin', 'username', 'showcase:' || (org.linkedin ->> 'handle'), false);
+                        values (org.id, org."tenantId", 'linkedin', 'username', 'showcase:' || trim((org.linkedin ->> 'handle')), false);
                     end if;
                 end if;
             end loop;
@@ -464,8 +477,10 @@ $$
                                      from organizations
                                      where id = org.id) as flattened_domains)
                     loop
-                        insert into "organizationIdentities"("organizationId", "tenantId", platform, type, value, verified)
-                        values (org.id, org."tenantId", 'enrichment', 'alternative-domain', domain, false);
+                        if length(trim(domain)) > 0 then
+                            insert into "organizationIdentities"("organizationId", "tenantId", platform, type, value, verified)
+                            values (org.id, org."tenantId", 'enrichment', 'alternative-domain', trim(domain), false);
+                        end if;
                     end loop;
             end loop;
     end;
@@ -491,8 +506,10 @@ $$
                                       from organizations
                                       where id = org.id) as flattened_profiles)
                     loop
-                        insert into "organizationIdentities"("organizationId", "tenantId", platform, type, value, verified)
-                        values (org.id, org."tenantId", 'enrichment', 'affiliated-profile', profile, false);
+                        if length(trim(profile)) > 0 then
+                            insert into "organizationIdentities"("organizationId", "tenantId", platform, type, value, verified)
+                            values (org.id, org."tenantId", 'enrichment', 'affiliated-profile', trim(profile), false);
+                        end if;
                     end loop;
             end loop;
     end;
@@ -501,6 +518,9 @@ $$;
 -- endregion
 
 -- region move weakIdentities
+update organizations
+set "weakIdentities" = jsonb_build_array()
+where "weakIdentities" is not null and ("weakIdentities"::text) = '{}';
 
 do
 $$
@@ -517,17 +537,19 @@ $$
                 clear := false;
                 for e in select value from jsonb_array_elements(org."weakIdentities") as value
                     loop
-                        if (e ->> 'platform') = 'twitter' then
-                            insert into "organizationIdentities"("organizationId", "tenantId", platform, type, value, verified)
-                            values (org.id, org."tenantId", 'enrichment', 'username', e ->> 'name', false);
+                        if length(trim((e ->> 'name')::text)) > 0 then
+                            if (e ->> 'platform') = 'twitter' then
+                                insert into "organizationIdentities"("organizationId", "tenantId", platform, type, value, verified)
+                                values (org.id, org."tenantId", 'enrichment', 'username', trim(e ->> 'name'), false);
 
-                            clear := true;
-                        end if;
+                                clear := true;
+                            end if;
 
-                        if (e ->> 'platform') = 'linkedin' then
-                            insert into "organizationIdentities"("organizationId", "tenantId", platform, type, value, verified)
-                            values (org.id, org."tenantId", 'enrichment', 'username', 'company:' || (e ->> 'name'), false);
-                            clear := true;
+                            if (e ->> 'platform') = 'linkedin' then
+                                insert into "organizationIdentities"("organizationId", "tenantId", platform, type, value, verified)
+                                values (org.id, org."tenantId", 'enrichment', 'username', 'company:' || trim((e ->> 'name')), false);
+                                clear := true;
+                            end if;
                         end if;
                     end loop;
                 if clear then
