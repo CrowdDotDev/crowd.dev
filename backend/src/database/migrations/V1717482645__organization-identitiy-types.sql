@@ -19,10 +19,6 @@ alter table "organizationIdentities"
 alter table "organizationIdentities"
     alter column name drop not null;
 
-create unique index "uix_organizationIdentities_plat_val_typ_tenantId_verified"
-    on "organizationIdentities" (platform, value, type, "tenantId", verified)
-    where (verified = true and type = 'primary-domain');
-
 -- endregion
 
 -- region migrate organization.website
@@ -252,12 +248,6 @@ where platform = 'linkedin'
     url ilike 'https://www.linkedin.com/showcase/%' or
     url ilike 'www.linkedin.com/showcase/%'
     );
-
-delete
-from "organizationIdentities"
-where platform = 'linkedin'
-  and name is not null
-  and length(trim(name)) = 0;
 
 -- endregion
 
@@ -520,7 +510,8 @@ $$;
 -- region move weakIdentities
 update organizations
 set "weakIdentities" = jsonb_build_array()
-where "weakIdentities" is not null and ("weakIdentities"::text) = '{}';
+where "weakIdentities" is not null
+  and ("weakIdentities"::text) = '{}';
 
 do
 $$
@@ -561,7 +552,7 @@ $$;
 
 -- endregion
 
--- region duplicate cleanup so that we can setup primary key
+-- region duplicate cleanup within the same organization so that we can setup primary key
 
 do
 $$
@@ -614,6 +605,57 @@ $$;
 
 -- endregion
 
+-- region duplicate verified for the same tenant
+
+do
+$$
+    declare
+        row       record;
+        orgid     uuid;
+        duplicate record;
+        count     int;
+        newvalue  text;
+    begin
+        -- find all duplicates with verified=true for the same tenant
+        for row in select "tenantId", type, platform, value, count(*) as count
+                   from "organizationIdentities"
+                   where verified = true
+                   group by "tenantId", type, platform, value
+                   having count(*) > 1
+            loop
+                -- we gonna rename all except one and add a merge suggestion for them
+                count := 1;
+                for duplicate in select ctid, *
+                                 from "organizationIdentities"
+                                 where "tenantId" = row."tenantId"
+                                   and platform = row.platform
+                                   and value = row.value
+                                   and verified = true
+                    loop
+                        if count = 1 then
+                            orgid := duplicate."organizationId";
+                        else
+                            newvalue := duplicate.value || ' ' || count;
+                            update "organizationIdentities"
+                            set value = newvalue
+                            where ctid = duplicate.ctid;
+
+                            if (select count(*)
+                                from "organizationToMerge"
+                                where ("organizationId" = orgid and "toMergeId" = duplicate."organizationId")
+                                   or ("organizationId" = duplicate."organizationId" and "toMergeId" = orgid)) = 0 then
+                                insert into "organizationToMerge"("organizationId", "toMergeId", status, "createdAt", "updatedAt")
+                                values (orgid, duplicate."organizationId", 'ready', now(), now());
+                            end if;
+                        end if;
+
+                        count := count + 1;
+                    end loop;
+            end loop;
+    end;
+$$;
+-- endregion
+
 -- region final schema changes
 
 alter table "organizationIdentities"
@@ -627,6 +669,10 @@ alter table "organizationIdentities"
 
 alter table "organizationIdentities"
     add primary key ("organizationId", platform, type, value);
+
+create unique index "uix_organizationIdentities_plat_val_typ_tenantId_verified"
+    on "organizationIdentities" (platform, value, type, "tenantId", verified)
+    where (verified = true);
 
 alter table organizations
     rename column website to old_website;

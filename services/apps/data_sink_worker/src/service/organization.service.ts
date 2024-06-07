@@ -51,12 +51,10 @@ export class OrganizationService extends LoggerBase {
         let existing
 
         // find existing org by sent verified identities
-        if (!existing) {
-          for (const identity of verifiedIdentities) {
-            existing = await txRepo.findByVerifiedIdentity(tenantId, identity)
-            if (existing) {
-              break
-            }
+        for (const identity of verifiedIdentities) {
+          existing = await txRepo.findByVerifiedIdentity(tenantId, identity)
+          if (existing) {
+            break
           }
         }
 
