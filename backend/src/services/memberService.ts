@@ -16,7 +16,6 @@ import {
   IMemberUnmergeBackup,
   IMemberUnmergePreviewResult,
   IOrganization,
-  ISearchSyncOptions,
   IUnmergePreviewResult,
   MemberAttributeType,
   MemberIdentityType,
@@ -777,10 +776,6 @@ export default class MemberService extends LoggerBase {
       // trigger entity-merging-worker to move activities in the background
       await SequelizeRepository.commitTransaction(tx)
 
-      const searchSyncService = new SearchSyncService(this.options, SyncMode.SYNCHRONOUS)
-      await searchSyncService.triggerMemberSync(this.options.currentTenant.id, memberId)
-      await searchSyncService.triggerMemberSync(this.options.currentTenant.id, secondaryMember.id)
-
       // responsible for moving member's activities, syncing to opensearch afterwards, recalculating activity.organizationIds and notifying frontend via websockets
       await this.options.temporal.workflow.start('finishMemberUnmerging', {
         taskQueue: 'entity-merging',
@@ -1154,11 +1149,7 @@ export default class MemberService extends LoggerBase {
    * @param toMergeId ID of the member that will be merged into the original member and deleted.
    * @returns Success/Error message
    */
-  async merge(
-    originalId,
-    toMergeId,
-    syncOptions: ISearchSyncOptions = { doSync: true, mode: SyncMode.USE_FEATURE_FLAG },
-  ) {
+  async merge(originalId, toMergeId) {
     this.options.log.info({ originalId, toMergeId }, 'Merging members!')
 
     if (originalId === toMergeId) {
@@ -1321,36 +1312,6 @@ export default class MemberService extends LoggerBase {
           TenantId: [this.options.currentTenant.id],
         },
       })
-
-      if (syncOptions.doSync) {
-        let attempts = 0
-        const maxAttempts = 5
-        while (attempts < maxAttempts) {
-          try {
-            const searchSyncService = new SearchSyncService(this.options, syncOptions.mode)
-            await searchSyncService.triggerMemberSync(this.options.currentTenant.id, originalId)
-            await searchSyncService.triggerRemoveMember(this.options.currentTenant.id, toMergeId)
-            break
-          } catch (emitError) {
-            attempts++
-            if (attempts === maxAttempts) {
-              throw new Error('Failed to trigger member sync changes after 5 attempts')
-            }
-            this.log.error(
-              emitError,
-              {
-                tenantId: this.options.currentTenant.id,
-                originalId,
-                toMergeId,
-              },
-              'Error while triggering member sync changes!',
-            )
-            await new Promise((resolve) => {
-              setTimeout(resolve, 1000)
-            })
-          }
-        }
-      }
 
       this.options.log.info({ originalId, toMergeId }, 'Members merged!')
       return { status: 200, mergedId: originalId }
