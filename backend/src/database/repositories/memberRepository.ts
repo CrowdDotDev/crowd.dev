@@ -780,7 +780,6 @@ class MemberRepository {
     'contributions',
     'score',
     'reach',
-    'joinedAt',
     'importHash',
     'tags',
     'website',
@@ -831,7 +830,6 @@ class MemberRepository {
     contributions: (a, b) => lodash.isEqual(a, b),
     score: (a, b) => a === b,
     reach: (a, b) => lodash.isEqual(a, b),
-    joinedAt: (a, b) => dateEqualityChecker(a, b),
     importHash: (a, b) => a === b,
   }
 

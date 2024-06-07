@@ -1273,7 +1273,10 @@ export default class MemberService extends LoggerBase {
 
           // Update original member
           const txService = new MemberService(repoOptions as IServiceOptions)
-          await txService.update(originalId, captureNewState({ primary: toUpdate }), false)
+          
+          captureNewState({ primary: toUpdate })
+
+          await txService.update(originalId, toUpdate, false)
 
           // update members that belong to source organization to destination org
           const memberOrganizationService = new MemberOrganizationService(repoOptions)
