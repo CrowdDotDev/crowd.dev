@@ -1042,7 +1042,7 @@ export default class OrganizationService extends LoggerBase {
             verified,
             repoOptions,
           )
-          if (existing.id !== id) {
+          if (existing && existing.id !== id) {
             throw new Error(
               `Organization identities ${JSON.stringify(
                 verified,
