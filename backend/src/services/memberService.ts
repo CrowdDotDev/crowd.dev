@@ -25,6 +25,7 @@ import {
   SyncMode,
   TemporalWorkflowId,
   MemberRoleUnmergeStrategy,
+  OrganizationIdentityType,
 } from '@crowd/types'
 import { randomUUID } from 'crypto'
 import lodash from 'lodash'
@@ -415,11 +416,14 @@ export default class MemberService extends LoggerBase {
           if (domain) {
             const org = await organizationService.createOrUpdate(
               {
-                website: domain,
+                displayName: domain,
+                names: [domain],
                 identities: [
                   {
-                    name: domain,
+                    value: domain,
+                    type: OrganizationIdentityType.PRIMARY_DOMAIN,
                     platform: 'email',
+                    verified: true,
                   },
                 ],
               },

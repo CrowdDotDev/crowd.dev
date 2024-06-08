@@ -1682,11 +1682,6 @@ class OrganizationRepository {
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
     const seq = SequelizeRepository.getSequelize(options)
 
-    // Check if organization exists
-    const primaryDomainIdentity = data.identities.find(
-      (i) => i.type === OrganizationIdentityType.PRIMARY_DOMAIN && i.verified,
-    )
-
     // check if domain already exists in another organization in the same tenant
     const existingOrg = (await seq.query(
       `
@@ -1702,7 +1697,7 @@ class OrganizationRepository {
         replacements: {
           tenantId: currentTenant.id,
           type: OrganizationIdentityType.PRIMARY_DOMAIN,
-          value: primaryDomainIdentity.value,
+          value: domain,
         },
         type: QueryTypes.SELECT,
         transaction,
@@ -2738,7 +2733,7 @@ class OrganizationRepository {
     const seq = SequelizeRepository.getSequelize(options)
 
     const query = `
-      delete from "organizationIdentities" where "organizationId" = :organizationId and platform = :platform and value = :value and type = :type and verified = :verified;
+      delete from "organizationIdentities" where "organizationId" = :organizationId and platform = :platform and value = :value and type = :type;
     `
 
     for (const identity of identities) {
@@ -2747,7 +2742,6 @@ class OrganizationRepository {
           organizationId,
           name: identity.value,
           type: identity.type,
-          verified: identity.verified,
           platform: identity.platform,
         },
         type: QueryTypes.DELETE,

@@ -110,7 +110,15 @@ export default class OrganizationService extends LoggerBase {
 
       const identities = await OrganizationRepository.getIdentities([organizationId], this.options)
 
-      if (!identities.some((i) => i.platform === identity.platform && i.name === identity.name)) {
+      if (
+        !identities.some(
+          (i) =>
+            i.platform === identity.platform &&
+            i.value === identity.value &&
+            i.type === identity.type &&
+            i.verified === identity.verified,
+        )
+      ) {
         throw new Error(`Organization doesn't have the identity sent to be unmerged!`)
       }
 
@@ -133,13 +141,12 @@ export default class OrganizationService extends LoggerBase {
             if (
               key in
               [
+                'names',
                 'emails',
                 'phoneNumbers',
                 'tags',
                 'profiles',
-                'affiliatedProfiles',
                 'allSubsidiaries',
-                'alternativeDomains',
                 'alternativeNames',
                 'directSubsidiaries',
               ]
@@ -159,7 +166,13 @@ export default class OrganizationService extends LoggerBase {
         // identities
         organization.identities = organization.identities.filter(
           (i) =>
-            !secondaryBackup.identities.some((s) => s.platform === i.platform && s.name === i.name),
+            !secondaryBackup.identities.some(
+              (s) =>
+                s.platform === i.platform &&
+                s.value === i.value &&
+                s.type === i.type &&
+                s.verified === i.verified,
+            ),
         )
 
         return {
@@ -177,7 +190,14 @@ export default class OrganizationService extends LoggerBase {
       // merge action not found, preview an identity extraction instead
       const secondaryIdentities = [identity]
       const primaryIdentities = organization.identities.filter(
-        (i) => !secondaryIdentities.some((s) => s.platform === i.platform && s.name === i.name),
+        (i) =>
+          !secondaryIdentities.some(
+            (s) =>
+              s.platform === i.platform &&
+              s.value === i.value &&
+              s.type === i.type &&
+              s.verified === i.verified,
+          ),
       )
 
       if (primaryIdentities.length === 0) {
@@ -215,7 +235,8 @@ export default class OrganizationService extends LoggerBase {
         secondary: {
           id: randomUUID(),
           identities: secondaryIdentities,
-          displayName: identity.name,
+          names: [identity.value],
+          displayName: identity.value,
           description: null,
           activityCount: secondaryActivityCount,
           memberCount: secondaryMemberCount,
@@ -223,12 +244,8 @@ export default class OrganizationService extends LoggerBase {
           phoneNumbers: [],
           logo: null,
           tags: [],
-          twitter: null,
-          linkedin: null,
-          crunchbase: null,
           employees: null,
           location: null,
-          website: null,
           isTeamOrganization: false,
           employeeCountByCountry: null,
           geoLocation: null,
@@ -242,9 +259,7 @@ export default class OrganizationService extends LoggerBase {
           founded: null,
           attributes: {},
           searchSyncedAt: null,
-          affiliatedProfiles: [],
           allSubsidiaries: [],
-          alternativeDomains: [],
           alternativeNames: [],
           averageEmployeeTenure: null,
           averageTenureByLevel: null,
@@ -285,20 +300,31 @@ export default class OrganizationService extends LoggerBase {
         repoOptions,
       )
 
-      // check website before creating the secondary org
-      if (
-        payload.secondary.website &&
-        payload.secondary.website === organization.website &&
-        !payload.primary.website
-      ) {
-        // set primary website to null before creating the secondary org
-        await OrganizationRepository.update(
-          organizationId,
-          { website: null },
-          repoOptions,
-          false,
-          false,
-        )
+      // check domains before creating the secondary org
+      const orgDomains = organization.identities
+        .filter((i) => i.verified && i.type === OrganizationIdentityType.PRIMARY_DOMAIN)
+        .map((i) => i.value)
+
+      const primaryDomains = payload.primary.identities
+        .filter((i) => i.type === OrganizationIdentityType.PRIMARY_DOMAIN)
+        .map((i) => i.value)
+      const secondaryDomains = payload.secondary.identities
+        .filter((i) => i.type === OrganizationIdentityType.PRIMARY_DOMAIN)
+        .map((i) => i.value)
+
+      // check if any domain is set to the org and came from secondary and is not in primary
+      // because we need to remove it from org and create it to the unmerged org
+      for (const domain of secondaryDomains) {
+        if (orgDomains.include(domain) && !primaryDomains.includes(domain)) {
+          const identity = organization.identities.find(
+            (i) => i.type === OrganizationIdentityType.PRIMARY_DOMAIN && i.value === domain,
+          )
+          await OrganizationRepository.removeIdentitiesFromOrganization(
+            organizationId,
+            [identity],
+            repoOptions,
+          )
+        }
       }
 
       // create the secondary org
@@ -503,14 +529,20 @@ export default class OrganizationService extends LoggerBase {
 
           const originalIdentities = allIdentities.filter((i) => i.organizationId === originalId)
           const toMergeIdentities = allIdentities.filter((i) => i.organizationId === toMergeId)
-          const identitiesToMove = []
+          const identitiesToMove: IOrganizationIdentity[] = []
+          const identitiesToUpdate: IOrganizationIdentity[] = []
           for (const identity of toMergeIdentities) {
-            if (
-              !originalIdentities.find(
-                (i) => i.platform === identity.platform && i.name === identity.name,
-              )
-            ) {
+            const existing = originalIdentities.find(
+              (i) =>
+                i.platform === identity.platform &&
+                i.type === identity.type &&
+                i.value === identity.value,
+            )
+
+            if (!existing) {
               identitiesToMove.push(identity)
+            } else if (!existing.verified && identity.verified) {
+              identitiesToUpdate.push(identity)
             }
           }
 
@@ -519,6 +551,7 @@ export default class OrganizationService extends LoggerBase {
             '[Merge Organizations] - Moving identities between organizations! ',
           )
 
+          // move non existing identities
           await OrganizationRepository.moveIdentitiesBetweenOrganizations(
             toMergeId,
             originalId,
@@ -526,18 +559,9 @@ export default class OrganizationService extends LoggerBase {
             repoOptions,
           )
 
-          // if toMerge has website - also add it as an identity to the original org
-          // for identifying further organizations, and website information of toMerge is not lost
-          if (toMerge.website) {
-            await OrganizationRepository.addIdentity(
-              originalId,
-              {
-                name: toMerge.website,
-                platform: 'email',
-                integrationId: null,
-              },
-              repoOptions,
-            )
+          // verify existing unverified identities
+          for (const identity of identitiesToUpdate) {
+            await OrganizationRepository.updateIdentity(originalId, identity, repoOptions)
           }
 
           // remove aggregate fields and relationships
@@ -703,13 +727,11 @@ export default class OrganizationService extends LoggerBase {
     return merge(originalObject, toMergeObject, {
       description: keepPrimaryIfExists,
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      names: mergeUniqueStringArrayItems,
       emails: mergeUniqueStringArrayItems,
       phoneNumbers: mergeUniqueStringArrayItems,
       logo: keepPrimaryIfExists,
       tags: mergeUniqueStringArrayItems,
-      twitter: keepPrimaryIfExists,
-      linkedin: keepPrimaryIfExists,
-      crunchbase: keepPrimaryIfExists,
       employees: keepPrimaryIfExists,
       revenueRange: keepPrimaryIfExists,
       importHash: keepPrimary,
@@ -720,8 +742,6 @@ export default class OrganizationService extends LoggerBase {
       createdById: keepPrimary,
       updatedById: keepPrimary,
       location: keepPrimaryIfExists,
-      github: keepPrimaryIfExists,
-      website: keepPrimaryIfExists,
       isTeamOrganization: keepPrimaryIfExists,
       lastEnrichedAt: keepPrimary,
       employeeCountByCountry: keepPrimaryIfExists,
@@ -738,9 +758,7 @@ export default class OrganizationService extends LoggerBase {
       displayName: keepPrimary,
       attributes: keepPrimary,
       searchSyncedAt: keepPrimary,
-      affiliatedProfiles: mergeUniqueStringArrayItems,
       allSubsidiaries: mergeUniqueStringArrayItems,
-      alternativeDomains: mergeUniqueStringArrayItems,
       alternativeNames: mergeUniqueStringArrayItems,
       averageEmployeeTenure: keepPrimaryIfExists,
       averageTenureByLevel: keepPrimaryIfExists,
@@ -757,25 +775,6 @@ export default class OrganizationService extends LoggerBase {
       ultimateParent: keepPrimaryIfExists,
       immediateParent: keepPrimaryIfExists,
       manuallyCreated: keepPrimary,
-      weakIdentities: (
-        weakIdentitiesPrimary: IOrganizationIdentity[],
-        weakIdentitiesSecondary: IOrganizationIdentity[],
-      ): IOrganizationIdentity[] => {
-        const uniqueMap: { [key: string]: IOrganizationIdentity } = {}
-
-        const createKey = (identity: IOrganizationIdentity) =>
-          `${identity.platform}_${identity.name}`
-
-        ;[...weakIdentitiesPrimary, ...weakIdentitiesSecondary].forEach((identity) => {
-          const key = createKey(identity)
-
-          if (!uniqueMap[key]) {
-            uniqueMap[key] = identity
-          }
-        })
-
-        return Object.values(uniqueMap)
-      },
     })
   }
 

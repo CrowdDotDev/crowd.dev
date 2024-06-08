@@ -9,6 +9,7 @@ import {
   MemberIdentityType,
   MergeActionState,
   MergeActionType,
+  OrganizationIdentityType,
 } from '@crowd/types'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import SequelizeRepository from './sequelizeRepository'
@@ -208,20 +209,113 @@ class MergeActionsRepository {
           and exists(
                 select 1
                 from jsonb_array_elements(ma."unmergeBackup" -> 'secondary' -> 'identities') as identities
-                where identities ->> 'name' = :secondaryMemberIdentityName
-                  and identities ->> 'platform' = :secondaryMemberIdentityPlatform
+                where (identities ->> 'username' = :secondaryOrgIdentityValue or (identities ->> 'type' = :secondaryOrgIdentityType and identities ->> 'value' = :secondaryOrgIdentityValue))
+                  and identities ->> 'platform' = :secondaryOrgIdentityPlatform
             );
         `,
         {
           replacements: {
             primaryMemberId,
-            secondaryMemberIdentityName: organizationIdentity.name,
-            secondaryMemberIdentityPlatform: identity.platform,
+            secondaryOrgIdentityType: organizationIdentity.type,
+            secondaryOrgIdentityValue: organizationIdentity.value,
+            secondaryOrgIdentityPlatform: organizationIdentity.platform,
           },
           type: QueryTypes.SELECT,
           transaction,
         },
       )
+
+      // fix old identities to use the new format
+      for (const record of records) {
+        const data = record as IMergeAction
+
+        // fix old identities to use the new format
+        if (data.type === MergeActionType.ORG && data.unmergeBackup) {
+          const backup = data.unmergeBackup as IUnmergeBackup<IOrganizationUnmergeBackup>
+
+          if (backup.primary) {
+            for (const identity of backup.primary.identities) {
+              if ('name' in identity) {
+                identity.value = (identity as any).name
+                identity.type = OrganizationIdentityType.USERNAME
+                delete (identity as any).name
+              }
+            }
+
+            if ((backup.primary as any).website) {
+              backup.primary.identities.push({
+                type: OrganizationIdentityType.PRIMARY_DOMAIN,
+                value: (backup.primary as any).website,
+                platform: 'custom',
+                verified: true,
+              })
+            }
+
+            if ((backup.primary as any).alternativeDomains) {
+              for (const domain of (backup.primary as any).alternativeDomains) {
+                backup.primary.identities.push({
+                  type: OrganizationIdentityType.ALTERNATIVE_DOMAIN,
+                  value: domain,
+                  platform: 'enrichment',
+                  verified: false,
+                })
+              }
+            }
+
+            if ((backup.primary as any).affiliatedProfiles) {
+              for (const profile of (backup.primary as any).affiliatedProfiles) {
+                backup.primary.identities.push({
+                  type: OrganizationIdentityType.AFFILIATED_PROFILE,
+                  value: profile,
+                  platform: 'enrichment',
+                  verified: false,
+                })
+              }
+            }
+          }
+
+          if (backup.secondary) {
+            for (const identity of backup.secondary.identities) {
+              if ('name' in identity) {
+                identity.value = (identity as any).name
+                identity.type = OrganizationIdentityType.USERNAME
+                delete (identity as any).name
+              }
+            }
+
+            if ((backup.secondary as any).website) {
+              backup.secondary.identities.push({
+                type: OrganizationIdentityType.PRIMARY_DOMAIN,
+                value: (backup.secondary as any).website,
+                platform: 'custom',
+                verified: true,
+              })
+            }
+
+            if ((backup.secondary as any).alternativeDomains) {
+              for (const domain of (backup.secondary as any).alternativeDomains) {
+                backup.secondary.identities.push({
+                  type: OrganizationIdentityType.ALTERNATIVE_DOMAIN,
+                  value: domain,
+                  platform: 'enrichment',
+                  verified: false,
+                })
+              }
+            }
+
+            if ((backup.secondary as any).affiliatedProfiles) {
+              for (const profile of (backup.secondary as any).affiliatedProfiles) {
+                backup.secondary.identities.push({
+                  type: OrganizationIdentityType.AFFILIATED_PROFILE,
+                  value: profile,
+                  platform: 'enrichment',
+                  verified: false,
+                })
+              }
+            }
+          }
+        }
+      }
     }
 
     if (records.length === 0) {
