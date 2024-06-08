@@ -64,11 +64,15 @@ if (parameters.help || !parameters.originalId || !parameters.targetId) {
 
     const options = await SequelizeRepository.getDefaultIRepositoryOptions()
 
-    const originalMember = await MemberRepository.findById(originalId, options, true, true, true)
+    const originalMember = await MemberRepository.findById(originalId, options, {
+      ignoreTenant: true,
+    })
     options.currentTenant = { id: originalMember.tenantId }
 
     for (const targetId of targetIds) {
-      const targetMember = await MemberRepository.findById(targetId, options, true, true, true)
+      const targetMember = await MemberRepository.findById(targetId, options, {
+        ignoreTenant: true,
+      })
 
       if (originalMember.tenantId !== targetMember.tenantId) {
         log.error(

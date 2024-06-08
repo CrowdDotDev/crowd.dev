@@ -1,9 +1,16 @@
 <template>
-  <div class="border border-gray-200 rounded-lg flex flex-col overflow-hidden" :class="computedClass">
+  <div
+    class="border border-gray-200 rounded-lg flex flex-col overflow-hidden"
+    :class="computedClass"
+  >
     <div class="pt-5 px-5 pb-8">
       <div class="flex justify-between">
         <div>
-          <img :alt="integration.name" :src="integration.image" class="w-6 mb-3" />
+          <img
+            :alt="integration.name"
+            :src="integration.image"
+            class="w-6 mb-3"
+          />
         </div>
         <div>
           <app-integration-status :integration="integration" />
@@ -34,12 +41,22 @@
             <i class="ri-link" /> Connect
           </lf-button>
         </div>
-        <div v-else-if="isInProgress && !progressError" class="bg-gray-50 py-3 px-5 min-h-14">
+        <div
+          v-else-if="isInProgress && !progressError"
+          class="bg-gray-50 py-3 px-5 min-h-14"
+        >
           <app-integration-progress-bar :progress="selectedProgress" />
         </div>
-        <div v-else class="bg-gray-50 py-3 px-5 min-h-14 flex items-center justify-between">
+        <div
+          v-else
+          class="bg-gray-50 py-3 px-5 min-h-14 flex items-center justify-between"
+        >
           <div>
-            <component :is="settingsComponent" v-if="connected && settingsComponent" :integration="integration" />
+            <component
+              :is="settingsComponent"
+              v-if="connected && settingsComponent"
+              :integration="integration"
+            />
             <el-tooltip
               v-if="isDone"
               :content="lastSynced.absolute"
@@ -59,11 +76,20 @@
                 <i class="ri-more-fill" />
               </lf-button>
               <template #dropdown>
-                <el-dropdown-item v-if="hasSettings" class="cursor-pointer" @click="settings">
+                <el-dropdown-item
+                  v-if="hasSettings"
+                  class="cursor-pointer"
+                  @click="settings"
+                >
                   <i class="ri-settings-3-line" />Integration settings
                 </el-dropdown-item>
-                <el-dropdown-item class="cursor-pointer" @click="handleDisconnect">
-                  <i class="ri-link-unlink !text-red-500" /><span class="text-red-500">Disconnect</span>
+                <el-dropdown-item
+                  class="cursor-pointer"
+                  @click="handleDisconnect"
+                >
+                  <i class="ri-link-unlink !text-red-500" /><span
+                    class="text-red-500"
+                  >Disconnect</span>
                 </el-dropdown-item>
               </template>
             </el-dropdown>
@@ -85,7 +111,10 @@ import LfButton from '@/ui-kit/button/Button.vue';
 import AppIntegrationStatus from '@/modules/integration/components/integration-status.vue';
 import AppIntegrationProgressBar from '@/modules/integration/components/integration-progress-bar.vue';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
-import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import {
+  EventType,
+  FeatureEventKey,
+} from '@/shared/modules/monitoring/types/event';
 
 const store = useStore();
 const props = defineProps({
@@ -129,15 +158,30 @@ const selectedProgress = computed(() => (props.progress || []).find((p) => p.pla
 const isDone = computed(
   () => props.integration.status === 'done'
     || (props.integration.status === 'error'
-      && !isCurrentDateAfterGivenWorkingDays(props.integration.updatedAt, ERROR_BANNER_WORKING_DAYS_DISPLAY)),
+      && !isCurrentDateAfterGivenWorkingDays(
+        props.integration.updatedAt,
+        ERROR_BANNER_WORKING_DAYS_DISPLAY,
+      )),
 );
 
 const isInProgress = computed(() => props.integration.status === 'in-progress');
 
-const lastSynced = computed(() => ({
-  absolute: moment(props.integration.lastProcessedAt).format('MMM DD, YYYY HH:mm'),
-  relative: `Last data detected and synced ${moment(props.integration.lastProcessedAt).fromNow()}`,
-}));
+const lastSynced = computed(() => {
+  if (props.integration.platform === 'git') {
+    return {
+      absolute: moment().subtract(1, 'hours').format('MMM DD, YYYY HH:mm'),
+      relative: 'Last data check completed 1 hour ago',
+    };
+  }
+  return {
+    absolute: moment(props.integration.lastProcessedAt).format(
+      'MMM DD, YYYY HH:mm',
+    ),
+    relative: `Last data check completed ${moment(
+      props.integration.lastProcessedAt,
+    ).fromNow()} ago`,
+  };
+});
 
 const loadingDisconnect = ref(false);
 
@@ -166,7 +210,7 @@ export default {
 .integration-custom {
   background: linear-gradient(
       117.72deg,
-      #DBEBFE 0%,
+      #dbebfe 0%,
       rgba(253, 237, 234, 0) 100%
     ),
     #ffffff;
