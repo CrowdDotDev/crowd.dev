@@ -98,13 +98,13 @@
                         <template #dropdown>
                           <template
                             v-for="i of identities"
-                            :key="`${i.platform}:${i.value}`"
+                            :key="`${i.platform}:${i.value}:${i.type}:${i.verified}`"
                           >
                             <el-dropdown-item
-                              v-if="`${i.platform}:${i.value}` !== selectedIdentity"
-                              :value="`${i.platform}:${i.value}`"
+                              v-if="`${i.platform}:${i.value}:${i.type}:${i.verified}` !== selectedIdentity"
+                              :value="`${i.platform}:${i.value}:${i.type}:${i.verified}`"
                               :label="i.value"
-                              @click="fetchPreview(`${i.platform}:${i.value}`)"
+                              @click="fetchPreview(`${i.platform}:${i.value}:${i.type}:${i.verified}`)"
                             >
                               <img
                                 v-if="platformDetails(i.platform)"
@@ -138,8 +138,8 @@
                 >
                   <el-option
                     v-for="i of identities"
-                    :key="`${i.platform}:${i.value}`"
-                    :value="`${i.platform}:${i.value}`"
+                    :key="`${i.platform}:${i.value}:${i.type}:${i.verified}`"
+                    :value="`${i.platform}:${i.value}:${i.type}:${i.verified}`"
                     :label="i.value"
                   >
                     <img
@@ -222,8 +222,8 @@ const fetchPreview = (identity) => {
   selectedIdentity.value = identity;
   fetchingPreview.value = true;
 
-  const [platform, value] = identity.split(':');
-  OrganizationService.unmergePreview(props.modelValue?.id, platform, value)
+  const [platform, value, type, verified] = identity.split(':');
+  OrganizationService.unmergePreview(props.modelValue?.id, platform, value, type, verified === 'true' ?? false)
     .then((res) => {
       preview.value = res;
     })
@@ -270,7 +270,9 @@ const unmerge = () => {
 
 onMounted(() => {
   if (props.selectedIdentity) {
-    fetchPreview(`${props.selectedIdentity.platform}:${props.selectedIdentity.value}`);
+    fetchPreview(
+      `${props.selectedIdentity.platform}:${props.selectedIdentity.value}:${props.selectedIdentity.type}:${props.selectedIdentity.verified}`,
+    );
   }
 });
 

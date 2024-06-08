@@ -88,6 +88,8 @@
           @click="emit('unmerge', {
             platform: props.identity.platform as string,
             value: props.identity.value as string,
+            type: props.identity.type as string,
+            verified: props.identity.verified as boolean,
           })"
         >
           <i class="ri-link-unlink" />
@@ -142,7 +144,7 @@ import { Organization, OrganizationIdentity } from '@/modules/organization/types
 import AppSvg from '@/shared/svg/svg.vue';
 
 const emit = defineEmits<{(e: 'update', value: OrganizationIdentity): void,
-  (e: 'unmerge', value: { platform: string, value: string }): void,
+  (e: 'unmerge', value: { platform: string, value: string, type: string, verified: boolean }): void,
   (e: 'remove'): void,
   (e: 'clear'): void}>();
 
