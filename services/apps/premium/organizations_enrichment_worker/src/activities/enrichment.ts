@@ -1,4 +1,4 @@
-import { IS_DEV_ENV, IS_TEST_ENV, distinctBy, renameKeys } from '@crowd/common'
+import { IS_DEV_ENV, IS_TEST_ENV, renameKeys } from '@crowd/common'
 import {
   PriorityLevelContextRepository,
   QueuePriorityContextLoader,
@@ -8,10 +8,14 @@ import { OrganizationRepository } from '@crowd/data-access-layer/src/old/apps/pr
 import {
   ENRICHMENT_PLATFORM_PRIORITY,
   IEnrichableOrganizationData,
-  IOrganizationData,
 } from '@crowd/data-access-layer/src/old/apps/premium/organization_enrichment_worker/types'
 import { Logger, getChildLogger } from '@crowd/logging'
-import { IEnrichableOrganization, IOrganizationIdentity, PlatformType } from '@crowd/types'
+import {
+  IEnrichableOrganization,
+  IOrganizationIdentity,
+  OrganizationIdentityType,
+  PlatformType,
+} from '@crowd/types'
 import { svc } from '../main'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -105,10 +109,23 @@ export async function tryEnrichOrganization(organizationId: string): Promise<boo
     return false
   }
 
-  if (data.website === undefined || data.website === null || data.website.trim().length === 0) {
+  const verifiedIdentities = data.identities.filter((i) => i.verified)
+
+  const primaryDomainIdentities = verifiedIdentities.filter(
+    (i) => i.type === OrganizationIdentityType.PRIMARY_DOMAIN,
+  )
+
+  if (primaryDomainIdentities.length === 0) {
     log.warn('Organization does not have a website!')
     return false
   }
+
+  if (primaryDomainIdentities.length > 1) {
+    log.warn('Organization has multiple primary domains!')
+    return false
+  }
+
+  const primaryDomainIdentity = primaryDomainIdentities[0]
 
   const identityPlatforms = []
   for (const platform of ENRICHMENT_PLATFORM_PRIORITY) {
@@ -124,7 +141,7 @@ export async function tryEnrichOrganization(organizationId: string): Promise<boo
     const nameToUseForEnchment = identityPlatforms[0].name
     const enrichmentData = await getEnrichment(
       {
-        website: data.website,
+        website: primaryDomainIdentity.value,
         name: nameToUseForEnchment,
       },
       log,
@@ -134,25 +151,6 @@ export async function tryEnrichOrganization(organizationId: string): Promise<boo
       log.debug('Enrichment data found!')
 
       const finalData = convertEnrichedDataToOrg(enrichmentData, data.identities)
-      finalData.weakIdentities = data.weakIdentities
-      await prepareIdentities(data.tenantId, data.id, finalData, repo)
-
-      let checkIfWebsiteIsTaken = false
-      if (data.website && finalData.website && data.website !== finalData.website) {
-        log.debug('Website changed!')
-        checkIfWebsiteIsTaken = true
-      } else if (!data.website && finalData.website) {
-        log.debug('Website found!')
-        checkIfWebsiteIsTaken = true
-      }
-
-      if (
-        checkIfWebsiteIsTaken &&
-        repo.anyOtherOrganizationWithTheSameWebsite(data.id, data.tenantId, data.website)
-      ) {
-        log.debug('Website is already taken!')
-        finalData.website = undefined
-      }
 
       await repo.transactionally(async (t) => {
         await t.updateIdentities(data.id, data.tenantId, data.identities, finalData.identities)
@@ -214,40 +212,8 @@ async function getEnrichment({ name, website, locality }: any, log: Logger): Pro
   return data
 }
 
-async function prepareIdentities(
-  tenantId: string,
-  organizationId: string,
-  orgData: IOrganizationData,
-  repo: OrganizationRepository,
-): Promise<void> {
-  // find identities belonging to other orgs that match the ones in the orgData identities and weakIdentities
-  const allIdentities = orgData.identities.concat(orgData.weakIdentities)
-  let existingIdentities = await repo.findIdentities(tenantId, organizationId, allIdentities)
-  existingIdentities = distinctBy(existingIdentities, (i) => `${i.platform}:${i.name}`)
-
-  const weakIdentities: IOrganizationIdentity[] = []
-  const identities: IOrganizationIdentity[] = []
-
-  for (const identity of allIdentities) {
-    // check if any other org has this identity
-    if (
-      existingIdentities.find((i) => i.platform === identity.platform && i.name === identity.name)
-    ) {
-      // this identity should be a weak one because some other org has this identity as well
-      weakIdentities.push(identity)
-    } else {
-      // this identity should be a strong one because no other org has this identity
-      identities.push(identity)
-    }
-  }
-
-  // set it
-  orgData.identities = identities
-  orgData.weakIdentities = weakIdentities
-}
-
 function convertEnrichedDataToOrg(pdlData: any, existingIdentities: IOrganizationIdentity[]): any {
-  let enrichemntData = <IEnrichableOrganization>renameKeys(pdlData, {
+  let enriched = <IEnrichableOrganization>renameKeys(pdlData, {
     summary: 'description',
     employee_count_by_country: 'employeeCountByCountry',
     employee_count: 'employees',
@@ -255,9 +221,9 @@ function convertEnrichedDataToOrg(pdlData: any, existingIdentities: IOrganizatio
     tags: 'tags',
     ultimate_parent: 'ultimateParent',
     immediate_parent: 'immediateParent',
-    affiliated_profiles: 'affiliatedProfiles',
+    // affiliated_profiles: 'affiliatedProfiles',
     all_subsidiaries: 'allSubsidiaries',
-    alternative_domains: 'alternativeDomains',
+    // alternative_domains: 'alternativeDomains',
     alternative_names: 'alternativeNames',
     average_employee_tenure: 'averageEmployeeTenure',
     average_tenure_by_level: 'averageTenureByLevel',
@@ -273,61 +239,77 @@ function convertEnrichedDataToOrg(pdlData: any, existingIdentities: IOrganizatio
     gross_departures_by_month: 'grossDeparturesByMonth',
     inferred_revenue: 'inferredRevenue',
   })
-  enrichemntData = sanitize(enrichemntData)
+  enriched = sanitize(enriched)
 
-  enrichemntData = enrichSocialNetworks(enrichemntData, {
+  enriched.identities = existingIdentities
+  for (const domain of pdlData.alternative_domains || []) {
+    if (
+      enriched.identities.find(
+        (i) =>
+          i.type === OrganizationIdentityType.ALTERNATIVE_DOMAIN &&
+          i.platform === 'enrichment' &&
+          i.value === domain,
+      ) === undefined
+    ) {
+      enriched.identities.push({
+        type: OrganizationIdentityType.ALTERNATIVE_DOMAIN,
+        platform: 'enrichment',
+        value: domain,
+        verified: false,
+      })
+    }
+  }
+
+  if ((enriched as any).website) {
+    if (
+      enriched.identities.find(
+        (i) =>
+          i.type === OrganizationIdentityType.PRIMARY_DOMAIN &&
+          i.value === (enriched as any).website,
+      ) === undefined
+    ) {
+      enriched.identities.push({
+        type: OrganizationIdentityType.PRIMARY_DOMAIN,
+        platform: 'enrichment',
+        value: (enriched as any).website,
+        verified: false,
+      })
+    }
+  }
+
+  for (const profile of pdlData.affiliated_profiles || []) {
+    if (
+      enriched.identities.find(
+        (i) =>
+          i.type === OrganizationIdentityType.AFFILIATED_PROFILE &&
+          i.platform === 'enrichment' &&
+          i.value === profile,
+      ) === undefined
+    ) {
+      enriched.identities.push({
+        type: OrganizationIdentityType.AFFILIATED_PROFILE,
+        platform: 'enrichment',
+        value: profile,
+        verified: false,
+      })
+    }
+  }
+
+  enriched = enrichSocialNetworks(enriched, {
     profiles: pdlData.profiles,
     linkedin_id: pdlData.linkedin_id,
   })
 
   const data: any = {
-    ...enrichemntData,
-    identities: existingIdentities,
-  }
-
-  if (data.github && data.github.handle) {
-    const identityExists = data.identities.find(
-      (i) => i.platform === PlatformType.GITHUB && i.name === data.github.handle,
-    )
-    if (!identityExists) {
-      data.identities.push({
-        name: data.github.handle,
-        platform: PlatformType.GITHUB,
-        url: data.github.url || `https://github.com/${data.github.handle}`,
-      })
-    }
-  }
-
-  if (data.twitter && data.twitter.handle) {
-    const identityExists = data.identities.find(
-      (i) => i.platform === PlatformType.TWITTER && i.name === data.twitter.handle,
-    )
-    if (!identityExists) {
-      data.identities.push({
-        name: data.twitter.handle,
-        platform: PlatformType.TWITTER,
-        url: data.twitter.url || `https://twitter.com/${data.twitter.handle}`,
-      })
-    }
-  }
-
-  if (data.linkedin && data.linkedin.handle) {
-    const identityExists = data.identities.find(
-      (i) => i.platform === PlatformType.LINKEDIN && i.name === data.linkedin.handle,
-    )
-    if (!identityExists) {
-      data.identities.push({
-        name: data.linkedin.handle,
-        platform: PlatformType.LINKEDIN,
-        url: data.linkedin.url || `https://linkedin.com/company/${data.linkedin.handle}`,
-      })
-    }
+    ...enriched,
   }
 
   // Set displayName using the first identity or fallback to website
   if (!data.displayName) {
-    const identity = data.identities[0]
-    data.displayName = identity ? identity.name : data.website
+    const verifiedIdentities = data.identities.filter((i) => i.verified)
+    if (verifiedIdentities.length > 0) {
+      data.displayName = verifiedIdentities[0].value
+    }
   }
 
   return data
@@ -385,19 +367,33 @@ function enrichSocialNetworks(
     linkedin_id: any
   },
 ): IEnrichableOrganization {
-  const socials = socialNetworks.profiles.reduce((acc, social) => {
+  const identities: IOrganizationIdentity[] = data.identities || []
+
+  for (const social of socialNetworks.profiles) {
     const platform = social.split('.')[0]
     const handle = social.split('/').splice(-1)[0]
+
     if (
       Object.values(PlatformType).includes(platform as any) &&
-      handle !== socialNetworks.linkedin_id
+      handle !== socialNetworks.linkedin_id &&
+      identities.find(
+        (i) =>
+          i.platform === platform &&
+          i.value === handle &&
+          i.type === OrganizationIdentityType.USERNAME,
+      ) === undefined
     ) {
-      acc[platform] = {
-        handle,
-        [platform === PlatformType.TWITTER ? 'site' : 'url']: social,
-      }
+      identities.push({
+        platform,
+        value: handle,
+        type: OrganizationIdentityType.USERNAME,
+        verified: false,
+      })
     }
-    return acc
-  }, {})
-  return { ...data, ...socials }
+  }
+
+  return {
+    ...data,
+    identities,
+  }
 }

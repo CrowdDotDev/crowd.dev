@@ -370,7 +370,6 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
               json_build_object(
                       'id', o.id,
                       'logo', o.logo,
-                      'website', o.website,
                       'displayName', o."displayName",
                       'memberOrganizations', json_build_object(
                                     'dateStart', mo."dateStart",

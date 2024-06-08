@@ -240,7 +240,6 @@ setImmediate(async () => {
   require('./eventTracking').default(routes)
   require('./customViews').default(routes)
   require('./dashboard').default(routes)
-  require('./premium/enrichment').default(routes)
   require('./product').default(routes)
   // Loads the Tenant if the :tenantId param is passed
   routes.param('tenantId', tenantMiddleware)
