@@ -1,5 +1,15 @@
 import authAxios from '@/shared/axios/auth-axios';
 import { AuthService } from '@/modules/auth/services/auth.service';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import { getSegmentsFromProjectGroup } from '@/utils/segments';
+
+const getSelectedProjectGroup = () => {
+  const lsSegmentsStore = useLfSegmentsStore();
+  const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
+
+  return selectedProjectGroup.value;
+};
 
 export class MemberService {
   static async update(id, data, segments) {
@@ -98,14 +108,14 @@ export class MemberService {
     return response.data;
   }
 
-  static async find(id, segments) {
+  static async find(id) {
     const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/member/${id}`,
       {
         params: {
-          segments,
+          segments: [getSelectedProjectGroup().id],
         },
       },
     );
@@ -280,8 +290,13 @@ export class MemberService {
     return response.data;
   }
 
-  static async fetchMergeSuggestions(limit, offset, query, segments) {
+  static async fetchMergeSuggestions(limit, offset, query) {
     const tenantId = AuthService.getTenantId();
+
+    const segments = [
+      ...getSegmentsFromProjectGroup(getSelectedProjectGroup()),
+      getSelectedProjectGroup().id,
+    ];
 
     const data = {
       limit,

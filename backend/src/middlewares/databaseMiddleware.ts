@@ -5,7 +5,8 @@ const log = getServiceLogger()
 
 export async function databaseMiddleware(req, res, next) {
   try {
-    const database = await databaseInit()
+    const profileQueries = !!req.profileSql
+    const database = await databaseInit(undefined, undefined, undefined, profileQueries)
     req.database = database
   } catch (error) {
     log.error(error, 'Database connection error!')

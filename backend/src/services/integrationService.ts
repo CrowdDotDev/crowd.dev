@@ -685,7 +685,11 @@ export default class IntegrationService {
         transaction,
       })
 
-      member = await MemberRepository.findById(payload.memberId, { ...this.options, transaction })
+      member = await MemberRepository.findById(
+        payload.memberId,
+        { ...this.options, transaction },
+        { doPopulateRelations: false },
+      )
 
       const memberSyncRemoteRepo = new MemberSyncRemoteRepository({ ...this.options, transaction })
 
