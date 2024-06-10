@@ -191,6 +191,8 @@ import LfContributorAttributeSource
 import moment from 'moment';
 import { useMemberStore } from '@/modules/member/store/pinia';
 import { storeToRefs } from 'pinia';
+import LfContributorAttributeUrl
+  from '@/modules/contributor/components/details/attributes/contributor-attribute-url.vue';
 
 const props = defineProps<{
   contributor: Contributor,
