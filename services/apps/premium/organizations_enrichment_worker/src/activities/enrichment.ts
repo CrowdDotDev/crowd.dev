@@ -359,19 +359,47 @@ function sanitize(data: any): any {
 function enrichSocialNetworks(
   data: IEnrichableOrganization,
   socialNetworks: {
-    profiles: any
-    linkedin_id: any
+    profiles: string[]
+    linkedin_id: string
   },
 ): IEnrichableOrganization {
   const identities: IOrganizationIdentity[] = data.identities || []
 
   for (const social of socialNetworks.profiles) {
-    const platform = social.split('.')[0]
-    const handle = social.split('/').splice(-1)[0]
+    let handle = social.split('/').splice(-1)[0]
+
+    if (handle === socialNetworks.linkedin_id) {
+      continue
+    }
+
+    let platform: string | undefined
+    for (const p of [
+      PlatformType.TWITTER,
+      PlatformType.LINKEDIN,
+      PlatformType.GITHUB,
+      PlatformType.CRUNCHBASE,
+    ]) {
+      if (social.includes(platform)) {
+        platform = p
+        break
+      }
+    }
+
+    if (!platform) {
+      continue
+    }
+
+    if (platform === PlatformType.LINKEDIN) {
+      if (social.includes('company')) {
+        handle = `company:${handle}`
+      } else if (social.includes('school')) {
+        handle = `school:${handle}`
+      } else if (social.includes('showcase')) {
+        handle = `showcase:${handle}`
+      }
+    }
 
     if (
-      Object.values(PlatformType).includes(platform as any) &&
-      handle !== socialNetworks.linkedin_id &&
       identities.find(
         (i) =>
           i.platform === platform &&
