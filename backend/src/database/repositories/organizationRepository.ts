@@ -1513,7 +1513,6 @@ class OrganizationRepository {
       const lfxMemberships = await findManyLfxMemberships(qx, {
         organizationIds,
         tenantId: options.currentTenant.id,
-        segmentIds,
       })
       result.forEach((r) => {
         r.organizations.forEach((org) => {
@@ -2262,7 +2261,6 @@ class OrganizationRepository {
     const lfxMemberships = await findManyLfxMemberships(qx, {
       tenantId: options.currentTenant.id,
       organizationIds,
-      segmentIds: [originalSegment],
     })
 
     return {

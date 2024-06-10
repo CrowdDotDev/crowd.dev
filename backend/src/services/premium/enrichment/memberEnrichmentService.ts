@@ -237,7 +237,10 @@ export default class MemberEnrichmentService extends LoggerBase {
 
       // Create an instance of the MemberService and use it to look up the member
       const memberService = new MemberService(this.options)
-      const member = await memberService.findById(memberId, false, false)
+      const member = await memberService.findById(memberId, {
+        returnPlain: false,
+        doPopulateRelations: false,
+      })
 
       // If the member's GitHub handle or email address is not available, throw an error
       if (!member.username[PlatformType.GITHUB] && member.emails.length === 0) {
@@ -318,7 +321,7 @@ export default class MemberEnrichmentService extends LoggerBase {
             {
               displayName: `${enrichmentData.first_name} ${enrichmentData.last_name}`,
             },
-            false,
+            { syncToOpensearch: false },
           )
         }
       }

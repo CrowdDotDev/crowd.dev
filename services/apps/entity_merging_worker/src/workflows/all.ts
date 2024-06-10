@@ -16,7 +16,9 @@ const {
   setMergeActionState,
   syncMember,
   syncOrganization,
+  notifyFrontendMemberMergeSuccessful,
   notifyFrontendMemberUnmergeSuccessful,
+  syncRemoveMember,
 } = proxyActivities<typeof activities>({
   startToCloseTimeout: '15 minutes',
 })
@@ -24,13 +26,25 @@ const {
 export async function finishMemberMerging(
   primaryId: string,
   secondaryId: string,
+  primaryDisplayName: string,
+  secondaryDisplayName: string,
   tenantId: string,
+  userId: string,
 ): Promise<void> {
   await moveActivitiesBetweenMembers(primaryId, secondaryId, tenantId)
   await recalculateActivityAffiliationsOfMemberAsync(primaryId, tenantId)
   await syncMember(primaryId, secondaryId)
+  await syncRemoveMember(secondaryId)
   await deleteMember(secondaryId)
   await setMergeActionState(primaryId, secondaryId, tenantId, 'merged' as MergeActionState)
+  await notifyFrontendMemberMergeSuccessful(
+    primaryId,
+    secondaryId,
+    primaryDisplayName,
+    secondaryDisplayName,
+    tenantId,
+    userId,
+  )
 }
 
 export async function finishMemberUnmerging(

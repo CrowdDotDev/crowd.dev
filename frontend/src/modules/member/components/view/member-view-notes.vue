@@ -1,5 +1,5 @@
 <template>
-  <div v-if="hasPermission(LfPermission.noteCreate)" class="pt-8">
+  <div v-if="hasPermission(LfPermission.noteCreate)" class="pt-8" v-bind="$attrs">
     <app-note-editor
       :properties="{ members: [props.member.id] }"
       @created="fetchNotes()"

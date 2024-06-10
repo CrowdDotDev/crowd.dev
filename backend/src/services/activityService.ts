@@ -158,7 +158,9 @@ export default class ActivityService extends LoggerBase {
             // we have some custom platform types in db that are not in enum
             !Object.values(PlatformType).includes(data.platform))
         ) {
-          const { displayName } = await MemberRepository.findById(data.member, repositoryOptions)
+          const { displayName } = await MemberRepository.findById(data.member, repositoryOptions, {
+            doPopulateRelations: false,
+          })
           // Get the first key of the username object as a string
           data.username = displayName
         }
