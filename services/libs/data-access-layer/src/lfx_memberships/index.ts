@@ -71,42 +71,32 @@ export async function insertLfxMembership(qx: QueryExecutor, data: LfxMembership
 
 export async function findLfxMembership(
   qx: QueryExecutor,
-  {
-    tenantId,
-    segmentId,
-    organizationId,
-  }: { tenantId: string; segmentId: string; organizationId: string },
+  { tenantId, organizationId }: { tenantId: string; organizationId: string },
 ): Promise<LfxMembership | null> {
   return qx.selectOneOrNone(
     `
       SELECT *
       FROM "lfxMemberships"
       WHERE "tenantId" = $(tenantId)
-        AND "segmentId" = $(segmentId)
         AND "organizationId" = $(organizationId)
       LIMIT 1
     `,
-    { tenantId, segmentId, organizationId },
+    { tenantId, organizationId },
   )
 }
 
 export async function findManyLfxMemberships(
   qx: QueryExecutor,
-  {
-    tenantId,
-    segmentIds,
-    organizationIds,
-  }: { tenantId: string; segmentIds: string[]; organizationIds: string[] },
+  { tenantId, organizationIds }: { tenantId: string; organizationIds: string[] },
 ): Promise<LfxMembership[]> {
   return qx.select(
     `
       SELECT *
       FROM "lfxMemberships"
       WHERE "tenantId" = $(tenantId)
-        AND "segmentId" = ANY($(segmentIds)::UUID[])
         AND "organizationId" = ANY($(organizationIds)::UUID[])
     `,
-    { tenantId, segmentIds, organizationIds },
+    { tenantId, organizationIds },
   )
 }
 

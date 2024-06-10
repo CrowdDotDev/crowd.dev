@@ -129,7 +129,7 @@
               @click="unverifyIdentity(identityDropdown); identityDropdown = null"
             >
               <div class="flex items-center">
-                <app-svg name="unverify" class="text-gray-600 mr-3 !h-4 !w-4 min-w-[1rem]" />
+                <lf-svg name="unverify" class="text-gray-600 mr-3 !h-4 !w-4 min-w-[1rem]" />
                 <span>Unverify identity</span>
               </div>
             </button>
@@ -164,7 +164,7 @@ import {
   computed, onMounted, watch, ref,
 } from 'vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
-import AppSvg from '@/shared/svg/svg.vue';
+import LfSvg from '@/shared/svg/svg.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import { ClickOutside as vClickOutside } from 'element-plus';
 

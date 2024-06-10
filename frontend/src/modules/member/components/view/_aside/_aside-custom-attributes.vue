@@ -11,7 +11,7 @@
           placement="top"
           trigger="hover"
         >
-          <app-svg name="source" class="h-3 w-3" />
+          <lf-svg name="source" class="h-3 w-3" />
         </el-tooltip>
       </div>
 
@@ -58,7 +58,7 @@
                 <p class="title pr-2 !text-purple-400">
                   {{ attribute.label }}
                 </p>
-                <app-svg name="source" class="h-3 w-3" />
+                <lf-svg name="source" class="h-3 w-3" />
               </div>
               <div class="w-full mt-2">
                 <div class="blur-[6px] text-gray-900 text-xs select-none">
@@ -90,7 +90,7 @@
               placement="top"
               trigger="hover"
             >
-              <app-svg name="source" class="h-3 w-3" />
+              <lf-svg name="source" class="h-3 w-3" />
             </el-tooltip>
           </div>
           <div
@@ -143,7 +143,7 @@ import { formatDate } from '@/utils/date';
 import { useMemberStore } from '@/modules/member/store/pinia';
 import { storeToRefs } from 'pinia';
 import { getAttributeSourceName } from '@/shared/helpers/attribute.helpers';
-import AppSvg from '@/shared/svg/svg.vue';
+import LfSvg from '@/shared/svg/svg.vue';
 import LfEnrichmentSneakPeak from '@/shared/modules/enrichment/components/enrichment-sneak-peak.vue';
 import LfEnrichmentSneakPeakContent from '@/shared/modules/enrichment/components/enrichment-sneak-peak-content.vue';
 import Plans from '@/security/plans';

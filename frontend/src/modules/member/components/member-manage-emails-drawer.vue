@@ -60,7 +60,7 @@ const props = defineProps<{
   member: Member,
 }>();
 
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits(['update:modelValue', 'reload']);
 
 const { trackEvent } = useProductTracking();
 
@@ -110,6 +110,9 @@ const serverUpdate = () => {
   MemberService.update(props.member.id, {
     identities: identities.value.filter((i) => !!i.value),
   }, segments)
+    .then(() => {
+      emit('reload');
+    })
     .catch((err) => {
       Message.error(err.response.data);
     });

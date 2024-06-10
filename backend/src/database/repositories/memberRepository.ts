@@ -1717,7 +1717,6 @@ class MemberRepository {
     const lfxMemberships = await findManyLfxMemberships(qx, {
       tenantId: options.currentTenant.id,
       organizationIds,
-      segmentIds: segments,
     })
     result.organizations.forEach((o) => {
       o.lfxMembership = lfxMemberships.find((m) => m.organizationId === o.id)
@@ -2262,7 +2261,6 @@ class MemberRepository {
       const lfxMemberships = await findManyLfxMemberships(qx, {
         tenantId: options.currentTenant.id,
         organizationIds,
-        segmentIds: segments,
       })
 
       for (const row of translatedRows) {

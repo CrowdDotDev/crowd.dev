@@ -17,7 +17,7 @@
             >
               {{ attribute.label }}
             </div>
-            <app-svg name="source" class="h-3 w-3" />
+            <lf-svg name="source" class="h-3 w-3" />
           </div>
           <div class="w-full mt-2">
             <div class="blur-[6px] text-gray-900 text-xs select-none">
@@ -35,7 +35,7 @@
             {{ attribute.label }}
           </div>
           <el-tooltip content="Source: Enrichment" placement="top" trigger="hover" :disabled="!isEnrichmentEnabled">
-            <app-svg name="source" class="h-3 w-3" />
+            <lf-svg name="source" class="h-3 w-3" />
           </el-tooltip>
         </div>
         <component
@@ -71,7 +71,7 @@
 import { computed, defineProps } from 'vue';
 import enrichmentAttributes from '@/modules/organization/config/enrichment';
 import { AttributeType } from '@/modules/organization/types/Attributes';
-import AppSvg from '@/shared/svg/svg.vue';
+import LfSvg from '@/shared/svg/svg.vue';
 import LfEnrichmentSneakPeak from '@/shared/modules/enrichment/components/enrichment-sneak-peak.vue';
 import LfEnrichmentSneakPeakContent from '@/shared/modules/enrichment/components/enrichment-sneak-peak-content.vue';
 import Plans from '@/security/plans';

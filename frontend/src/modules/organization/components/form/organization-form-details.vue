@@ -19,7 +19,7 @@
           <div class="flex items-center gap-2">
             {{ fields.headline.label }}
             <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
-              <app-svg name="source" class="h-3 w-3" />
+              <lf-svg name="source" class="h-3 w-3" />
             </el-tooltip>
           </div>
         </template>
@@ -49,7 +49,7 @@
           <div class="flex gap-2 items-center">
             {{ fields.employees.label }}
             <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
-              <app-svg name="source" class="h-3 w-3" />
+              <lf-svg name="source" class="h-3 w-3" />
             </el-tooltip>
           </div>
         </template>
@@ -64,7 +64,7 @@
           <div class="flex gap-2 items-center">
             {{ fields.revenueRange.label }}
             <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
-              <app-svg name="source" class="h-3 w-3" />
+              <lf-svg name="source" class="h-3 w-3" />
             </el-tooltip>
           </div>
         </template>
@@ -86,7 +86,7 @@
 
 <script setup>
 import { defineEmits, defineProps, computed } from 'vue';
-import AppSvg from '@/shared/svg/svg.vue';
+import LfSvg from '@/shared/svg/svg.vue';
 import revenueRange from '@/modules/organization/config/enrichment/revenueRange';
 
 const emit = defineEmits(['update:modelValue']);

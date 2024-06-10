@@ -10,7 +10,7 @@
           {{ label }}
         </div>
         <el-tooltip v-if="isEnrichmentField" content="Source: Enrichment" placement="top" trigger="hover">
-          <app-svg name="source" class="h-3 w-3" />
+          <lf-svg name="source" class="h-3 w-3" />
         </el-tooltip>
       </div>
       <span
@@ -24,7 +24,7 @@
 </template>
 
 <script setup>
-import AppSvg from '@/shared/svg/svg.vue';
+import LfSvg from '@/shared/svg/svg.vue';
 
 defineProps({
   label: {
