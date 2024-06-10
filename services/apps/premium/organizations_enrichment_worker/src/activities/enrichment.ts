@@ -127,44 +127,40 @@ export async function tryEnrichOrganization(organizationId: string): Promise<boo
 
   const primaryDomainIdentity = primaryDomainIdentities[0]
 
-  const identityPlatforms = []
+  let nameToUseForEnrichment: string | undefined
   for (const platform of ENRICHMENT_PLATFORM_PRIORITY) {
-    if (data[platform] && data[platform].handle) {
-      identityPlatforms.push({
-        platform,
-        name: data[platform].handle,
-      })
+    const identities = verifiedIdentities.filter(
+      (i) => i.platform === platform && i.type === OrganizationIdentityType.USERNAME,
+    )
+    if (identities.length > 0) {
+      nameToUseForEnrichment = identities[0].value
+      break
     }
   }
 
-  if (identityPlatforms.length > 0) {
-    const nameToUseForEnchment = identityPlatforms[0].name
-    const enrichmentData = await getEnrichment(
-      {
-        website: primaryDomainIdentity.value,
-        name: nameToUseForEnchment,
-      },
-      log,
-    )
+  const enrichmentData = await getEnrichment(
+    {
+      website: primaryDomainIdentity.value,
+      name: nameToUseForEnrichment,
+    },
+    log,
+  )
 
-    if (enrichmentData) {
-      log.debug('Enrichment data found!')
+  if (enrichmentData) {
+    log.debug('Enrichment data found!')
 
-      const finalData = convertEnrichedDataToOrg(enrichmentData, data.identities)
+    const finalData = convertEnrichedDataToOrg(enrichmentData, data.identities)
 
-      await repo.transactionally(async (t) => {
-        await t.updateIdentities(data.id, data.tenantId, data.identities, finalData.identities)
-        await t.updateOrganizationWithEnrichedData(data, finalData)
-      })
+    await repo.transactionally(async (t) => {
+      await t.updateIdentities(data.id, data.tenantId, data.identities, finalData.identities)
+      await t.updateOrganizationWithEnrichedData(data, finalData)
+    })
 
-      log.debug('Enrichment done!')
-      return true
-    } else {
-      log.debug('No enrichment data found!')
-      await repo.markOrganizationEnriched(organizationId)
-    }
+    log.debug('Enrichment done!')
+    return true
   } else {
-    log.warn('Organization does not have a website and no identities with enrichment platforms!')
+    log.debug('No enrichment data found!')
+    await repo.markOrganizationEnriched(organizationId)
   }
 
   return false
