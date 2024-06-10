@@ -82,7 +82,7 @@ export async function updateMemberJoinedAt(
     `
       update members
       set "joinedAt" = $(joinedAt)
-      where id = $(memberId);
+      where id = $(memberId)
       and "tenantId" = $(tenantId);
     `,
     { memberId, tenantId, joinedAt },
