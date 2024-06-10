@@ -1169,7 +1169,6 @@ export default class OrganizationService extends LoggerBase {
     org.lfxMembership = await findLfxMembership(qx, {
       organizationId: id,
       tenantId: this.options.currentTenant.id,
-      segmentId,
     })
 
     return org
@@ -1191,7 +1190,6 @@ export default class OrganizationService extends LoggerBase {
     const lfxMemberships = await findManyLfxMemberships(qx, {
       organizationIds: orgIds,
       tenantId: this.options.currentTenant.id,
-      segmentIds: data.segments,
     })
 
     pageData.rows.forEach((org) => {
