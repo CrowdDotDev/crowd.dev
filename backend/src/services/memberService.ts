@@ -16,7 +16,6 @@ import {
   IMemberUnmergeBackup,
   IMemberUnmergePreviewResult,
   IOrganization,
-  ISearchSyncOptions,
   IUnmergePreviewResult,
   MemberAttributeType,
   MemberIdentityType,
@@ -445,7 +444,7 @@ export default class MemberService extends LoggerBase {
         data.organizations = lodash.uniqBy(organizations, 'id')
       }
 
-      const fillRelations = false
+      const doPopulateRelations = false
 
       let record
       if (existing) {
@@ -466,7 +465,7 @@ export default class MemberService extends LoggerBase {
             ...this.options,
             transaction,
           },
-          fillRelations,
+          { doPopulateRelations },
         )
       } else {
         // It is important to call it with doPopulateRelations=false
@@ -481,7 +480,7 @@ export default class MemberService extends LoggerBase {
             ...this.options,
             transaction,
           },
-          fillRelations,
+          doPopulateRelations,
         )
 
         telemetryTrack(
@@ -639,7 +638,9 @@ export default class MemberService extends LoggerBase {
     delete payload.secondary.organizations
 
     try {
-      const member = await MemberRepository.findById(memberId, this.options)
+      const member = await MemberRepository.findById(memberId, this.options, {
+        doPopulateRelations: 'no-activity-aggregates',
+      })
 
       const repoOptions: IRepositoryOptions =
         await SequelizeRepository.createTransactionalRepositoryOptions(this.options)
@@ -772,14 +773,12 @@ export default class MemberService extends LoggerBase {
       delete payload.primary.affiliations
 
       // update rest of the primary member fields
-      await MemberRepository.update(memberId, payload.primary, repoOptions, false, false)
+      await MemberRepository.update(memberId, payload.primary, repoOptions, {
+        doPopulateRelations: false,
+      })
 
       // trigger entity-merging-worker to move activities in the background
       await SequelizeRepository.commitTransaction(tx)
-
-      const searchSyncService = new SearchSyncService(this.options, SyncMode.SYNCHRONOUS)
-      await searchSyncService.triggerMemberSync(this.options.currentTenant.id, memberId)
-      await searchSyncService.triggerMemberSync(this.options.currentTenant.id, secondaryMember.id)
 
       // responsible for moving member's activities, syncing to opensearch afterwards, recalculating activity.organizationIds and notifying frontend via websockets
       await this.options.temporal.workflow.start('finishMemberUnmerging', {
@@ -826,7 +825,9 @@ export default class MemberService extends LoggerBase {
     const relationships = ['tags', 'notes', 'tasks', 'identities', 'affiliations']
 
     try {
-      const member = await MemberRepository.findById(memberId, this.options)
+      const member = await MemberRepository.findById(memberId, this.options, {
+        doPopulateRelations: 'no-activity-aggregates',
+      })
 
       member.memberOrganizations = await MemberOrganizationRepository.findMemberRoles(
         memberId,
@@ -1152,11 +1153,7 @@ export default class MemberService extends LoggerBase {
    * @param toMergeId ID of the member that will be merged into the original member and deleted.
    * @returns Success/Error message
    */
-  async merge(
-    originalId,
-    toMergeId,
-    syncOptions: ISearchSyncOptions = { doSync: true, mode: SyncMode.USE_FEATURE_FLAG },
-  ) {
+  async merge(originalId, toMergeId) {
     this.options.log.info({ originalId, toMergeId }, 'Merging members!')
 
     if (originalId === toMergeId) {
@@ -1169,11 +1166,15 @@ export default class MemberService extends LoggerBase {
     let tx
 
     try {
-      await captureApiChange(
+      const { original, toMerge } = await captureApiChange(
         this.options,
         memberMergeAction(originalId, async (captureOldState, captureNewState) => {
-          const original = await MemberRepository.findById(originalId, this.options)
-          const toMerge = await MemberRepository.findById(toMergeId, this.options)
+          const original = await MemberRepository.findById(originalId, this.options, {
+            doPopulateRelations: 'no-activity-aggregates',
+          })
+          const toMerge = await MemberRepository.findById(toMergeId, this.options, {
+            doPopulateRelations: 'no-activity-aggregates',
+          })
 
           captureOldState({
             primary: original,
@@ -1277,7 +1278,10 @@ export default class MemberService extends LoggerBase {
 
           // Update original member
           const txService = new MemberService(repoOptions as IServiceOptions)
-          await txService.update(originalId, captureNewState({ primary: toUpdate }), false)
+          await txService.update(originalId, captureNewState({ primary: toUpdate }), {
+            syncToOpensearch: false,
+            doPopulateRelations: false,
+          })
 
           // update members that belong to source organization to destination org
           const memberOrganizationService = new MemberOrganizationService(repoOptions)
@@ -1297,7 +1301,7 @@ export default class MemberService extends LoggerBase {
           })
 
           await SequelizeRepository.commitTransaction(tx)
-          return null
+          return { original, toMerge }
         }),
       )
 
@@ -1307,41 +1311,18 @@ export default class MemberService extends LoggerBase {
         retry: {
           maximumAttempts: 10,
         },
-        args: [originalId, toMergeId, this.options.currentTenant.id],
+        args: [
+          originalId,
+          toMergeId,
+          original.displayName,
+          toMerge.displayName,
+          this.options.currentTenant.id,
+          this.options.currentUser.id,
+        ],
         searchAttributes: {
           TenantId: [this.options.currentTenant.id],
         },
       })
-
-      if (syncOptions.doSync) {
-        let attempts = 0
-        const maxAttempts = 5
-        while (attempts < maxAttempts) {
-          try {
-            const searchSyncService = new SearchSyncService(this.options, syncOptions.mode)
-            await searchSyncService.triggerMemberSync(this.options.currentTenant.id, originalId)
-            await searchSyncService.triggerRemoveMember(this.options.currentTenant.id, toMergeId)
-            break
-          } catch (emitError) {
-            attempts++
-            if (attempts === maxAttempts) {
-              throw new Error('Failed to trigger member sync changes after 5 attempts')
-            }
-            this.log.error(
-              emitError,
-              {
-                tenantId: this.options.currentTenant.id,
-                originalId,
-                toMergeId,
-              },
-              'Error while triggering member sync changes!',
-            )
-            await new Promise((resolve) => {
-              setTimeout(resolve, 1000)
-            })
-          }
-        }
-      }
 
       this.options.log.info({ originalId, toMergeId }, 'Members merged!')
       return { status: 200, mergedId: originalId }
@@ -1440,7 +1421,9 @@ export default class MemberService extends LoggerBase {
   }
 
   async findGithub(memberId) {
-    const memberIdentities = (await MemberRepository.findById(memberId, this.options)).username
+    const memberIdentities = (
+      await MemberRepository.findById(memberId, this.options, { doPopulateRelations: false })
+    ).username
     const axios = require('axios')
     // GitHub allows a maximum of 5 parameters
     const identities = Object.values(memberIdentities).flat().slice(0, 5)
@@ -1535,7 +1518,19 @@ export default class MemberService extends LoggerBase {
     }
   }
 
-  async update(id, data, syncToOpensearch = true, manualChange = false) {
+  async update(
+    id,
+    data,
+    {
+      syncToOpensearch = true,
+      manualChange = false,
+      doPopulateRelations = true,
+    }: {
+      syncToOpensearch?: boolean
+      manualChange?: boolean
+      doPopulateRelations?: boolean
+    } = {},
+  ) {
     let transaction
     const searchSyncService = new SearchSyncService(
       this.options,
@@ -1686,7 +1681,10 @@ export default class MemberService extends LoggerBase {
             )
           }
 
-          const record = await MemberRepository.update(id, data, repoOptions, true, manualChange)
+          const record = await MemberRepository.update(id, data, repoOptions, {
+            manualChange,
+            doPopulateRelations,
+          })
 
           return record
         }),
@@ -1811,15 +1809,23 @@ export default class MemberService extends LoggerBase {
     }
   }
 
-  async findById(id, returnPlain = true, doPopulateRelations = true, segmentId?: string) {
-    return MemberRepository.findById(
-      id,
-      this.options,
+  async findById(
+    id,
+    {
+      returnPlain = true,
+      doPopulateRelations = true,
+      segmentId,
+    }: {
+      returnPlain?: boolean
+      doPopulateRelations?: boolean
+      segmentId?: string
+    } = {},
+  ) {
+    return MemberRepository.findById(id, this.options, {
       returnPlain,
       doPopulateRelations,
-      false,
       segmentId,
-    )
+    })
   }
 
   async findAllAutocomplete(data) {

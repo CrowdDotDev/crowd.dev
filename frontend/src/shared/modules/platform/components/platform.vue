@@ -67,6 +67,10 @@ const platformConfig = computed(
   () => CrowdIntegrations.getConfig(props.platform) || {},
 );
 const platformName = computed(() => {
+  if (props.platform === 'domains') {
+    return 'Domain';
+  }
+
   if (props.platform === 'emails') {
     return 'Email';
   }

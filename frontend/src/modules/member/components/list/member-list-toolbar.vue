@@ -97,7 +97,6 @@ import pluralize from 'pluralize';
 import { getExportMax, showExportDialog, showExportLimitDialog } from '@/modules/member/member-export-limit';
 import AppBulkEditAttributePopover from '@/modules/member/components/bulk/bulk-edit-attribute-popover.vue';
 import AppTagPopover from '@/modules/tag/components/tag-popover.vue';
-import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import useMemberMergeMessage from '@/shared/modules/merge/config/useMemberMergeMessage';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
@@ -117,9 +116,6 @@ const { getUser } = authStore;
 const memberStore = useMemberStore();
 const { selectedMembers, filters } = storeToRefs(memberStore);
 const { fetchMembers } = memberStore;
-
-const lsSegmentsStore = useLfSegmentsStore();
-const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const { hasPermission } = usePermissions();
 
@@ -152,19 +148,19 @@ const markAsTeamMemberOptions = computed(() => {
 const handleMergeMembers = async () => {
   const [firstMember, secondMember] = selectedMembers.value;
 
-  const { loadingMessage, successMessage, apiErrorMessage } = useMemberMergeMessage;
+  const { loadingMessage, apiErrorMessage } = useMemberMergeMessage;
 
   loadingMessage();
 
   return MemberService.merge(firstMember, secondMember)
     .then(() => {
-      successMessage({
-        primaryMember: firstMember,
-        secondaryMember: secondMember,
-        selectedProjectGroupId: selectedProjectGroup.value?.id,
-      });
-
-      fetchMembers({ reload: true });
+      Message.closeAll();
+      Message.info(
+        'We’re finalizing contributor merging. We will let you know once the process is completed.',
+        {
+          title: 'Contributors merging in progress',
+        },
+      );
     })
     .catch((error) => {
       apiErrorMessage({ error });

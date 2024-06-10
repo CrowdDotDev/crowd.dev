@@ -1,7 +1,5 @@
 import { AttributeType } from '@/modules/organization/types/Attributes';
-import affiliatedProfiles from './affiliatedProfiles';
 import allSubsidiaries from './allSubsidiaries';
-import alternativeDomains from './alternativeDomains';
 import alternativeNames from './alternativeNames';
 import averageEmployeeTenure from './averageEmployeeTenure';
 import averageTenureByLevel from './averageTenureByLevel';
@@ -47,9 +45,7 @@ const enrichmentConfig: OrganizationEnrichmentConfig[] = [
   headcount,
   typeAttribute,
   founded,
-  affiliatedProfiles,
   allSubsidiaries,
-  alternativeDomains,
   alternativeNames,
   averageEmployeeTenure,
   averageTenureByLevel,

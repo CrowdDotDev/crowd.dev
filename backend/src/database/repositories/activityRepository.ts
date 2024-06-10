@@ -1,9 +1,10 @@
 import sanitizeHtml from 'sanitize-html'
-import lodash from 'lodash'
+import lodash, { uniq } from 'lodash'
 import Sequelize, { QueryTypes } from 'sequelize'
 import { ActivityDisplayService } from '@crowd/integrations'
 import { Error400, Error404, RawQueryParser } from '@crowd/common'
 import { IIntegrationResult, IntegrationResultState } from '@crowd/types'
+import { findManyLfxMemberships } from '@crowd/data-access-layer/src/lfx_memberships'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
@@ -497,6 +498,23 @@ class ActivityRepository {
     })
 
     rows = await this._populateRelationsForRows(rows, false, options)
+
+    const organizationIds = uniq(rows.map((r) => r.organizationId))
+    const qx = SequelizeRepository.getQueryExecutor(options)
+    const lfxMemberships = await findManyLfxMemberships(qx, {
+      tenantId: tenant.id,
+      segmentIds,
+      organizationIds,
+    })
+
+    rows.forEach((r) => {
+      if (!r.organization) {
+        return
+      }
+      r.organization.lfxMembership = lfxMemberships.find(
+        (lm) => lm.organizationId === r.organizationId,
+      )
+    })
 
     return {
       rows,

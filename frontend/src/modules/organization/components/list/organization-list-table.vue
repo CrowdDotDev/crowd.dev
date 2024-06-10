@@ -152,14 +152,14 @@
                         class="text-sm h-full flex items-center"
                       >
                         <a
-                          v-if="scope.row.website"
+                          v-if="getOrganizationWebsite(scope.row)"
                           class="text-gray-900 text-sm line-clamp-1 font-medium underline decoration-dashed decoration-gray-400 underline-offset-4
           hover:decoration-gray-900 hover:cursor-pointer hover:!text-gray-900"
-                          :href="withHttp(scope.row.website)"
+                          :href="withHttp(getOrganizationWebsite(scope.row))"
                           target="_blank"
                           rel="noopener noreferrer"
                           @click.stop
-                        >{{ scope.row.website }}</a>
+                        >{{ getOrganizationWebsite(scope.row) }}</a>
                         <span
                           v-else
                           class="text-gray-500"
@@ -882,6 +882,7 @@ import usePermissions from '@/shared/modules/permissions/helpers/usePermissions'
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { getOrganizationWebsite } from '@/utils/organization';
 import AppOrganizationListToolbar from './organization-list-toolbar.vue';
 import AppOrganizationName from '../organization-name.vue';
 import AppOrganizationDropdownContent from '../organization-dropdown-content.vue';

@@ -61,7 +61,8 @@ import { computed } from 'vue';
 const props = defineProps<{
   emails: {
       handle: string;
-      link: string;
+      link: string | null;
+      verified: boolean;
   }[];
   xPadding?: number;
 }>();
