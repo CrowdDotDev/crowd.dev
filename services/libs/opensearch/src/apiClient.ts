@@ -76,6 +76,16 @@ export class SearchSyncApiClient {
     })
   }
 
+  public async triggerActivitiesSync(activityIds: string[]): Promise<void> {
+    if (!activityIds || activityIds.length === 0) {
+      throw new Error('activityIds are required!')
+    }
+
+    await this.searchSyncApi.post('/sync/activities', {
+      activityIds,
+    })
+  }
+
   public async triggerTenantActivitiesSync(tenantId: string): Promise<void> {
     if (!tenantId) {
       throw new Error('tenantId is required!')

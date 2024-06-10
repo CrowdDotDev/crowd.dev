@@ -9,6 +9,9 @@ export interface IFindAndMergeMembersWithSameIdentitiesDifferentCapitalizationIn
   afterHash?: number
 }
 
+export interface IFixActivitiesWithWrongMembersArgs {
+  tenantId: string
+}
 export interface IUnmergeWronglyMergedEmailIdentitiesArgs {
   tenantId: string
 }

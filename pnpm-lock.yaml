@@ -1205,6 +1205,9 @@ importers:
       '@crowd/archetype-worker':
         specifier: workspace:*
         version: link:../../archetypes/worker
+      '@crowd/common':
+        specifier: workspace:*
+        version: link:../../libs/common
       '@crowd/cubejs':
         specifier: workspace:*
         version: link:../../libs/cubejs
@@ -1217,6 +1220,9 @@ importers:
       '@crowd/logging':
         specifier: workspace:*
         version: link:../../libs/logging
+      '@crowd/opensearch':
+        specifier: workspace:*
+        version: link:../../libs/opensearch
       '@crowd/redis':
         specifier: workspace:*
         version: link:../../libs/redis

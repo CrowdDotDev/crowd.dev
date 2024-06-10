@@ -6,6 +6,12 @@ export interface ISimilarMember {
   hash: number
 }
 
+export interface IActivityPartial {
+  id: string
+  wrongMemberId: string
+  correctMemberId: string
+}
+
 export interface IFindMemberMergeActionReplacement {
   memberId: string
   startDate?: string
