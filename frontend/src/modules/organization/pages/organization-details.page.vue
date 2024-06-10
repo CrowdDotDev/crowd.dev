@@ -864,7 +864,7 @@ const testOrg = {
 };
 
 onMounted(() => {
-  // fetchOrganization();
+  fetchOrganization();
   organization.value = testOrg;
 });
 </script>
