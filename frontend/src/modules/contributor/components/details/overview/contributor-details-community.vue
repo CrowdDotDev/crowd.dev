@@ -39,7 +39,8 @@
             Joined date
           </p>
           <p class="text-small text-gray-600">
-            {{ moment(props.contributor.joinedAt).format('MMM DD, YYYY') }}
+            {{ moment(props.contributor.joinedAt).isAfter(moment('1970-01-01', 'year'))
+              ? moment(props.contributor.joinedAt).format('MMM DD, YYYY') : '-' }}
           </p>
         </article>
       </div>

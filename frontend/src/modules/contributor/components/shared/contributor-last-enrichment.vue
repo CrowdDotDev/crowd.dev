@@ -1,6 +1,6 @@
 <template>
   <div v-if="props.contributor.lastEnriched" class="flex items-center mr-4">
-    <p class="text-tiny text-gray-500 mr-2">
+    <p class="text-tiny text-gray-500 mr-2 text-right">
       Last enrichment on {{ moment(props.contributor.lastEnriched).format('MMM DD, YYYY') }}
     </p>
     <lf-tooltip
