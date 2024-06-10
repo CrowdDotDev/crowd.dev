@@ -62,7 +62,7 @@ const props = defineProps<{
   organization: Organization,
 }>();
 
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits(['update:modelValue', 'reload']);
 
 const { trackEvent } = useProductTracking();
 
@@ -95,6 +95,7 @@ const serverUpdate = () => {
   OrganizationService.update(props.organization.id, {
     emails: emails.value.filter((e) => !!e.trim()),
   }).then(() => {
+    emit('reload');
     Message.success('Organization email updated successfully');
   }).catch((err) => {
     Message.error(err.response.data);

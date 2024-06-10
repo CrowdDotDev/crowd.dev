@@ -77,7 +77,7 @@
           :disabled="model.username !== props.identity.username"
           @click="emit('unmerge', {
             platform: props.identity.platform as string,
-            username: props.identity.username as string,
+            username: props.identity.name as string,
           })"
         >
           <i class="ri-link-unlink" />

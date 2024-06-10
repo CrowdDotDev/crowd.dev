@@ -1,0 +1,92 @@
+<template>
+  <section v-bind="$attrs">
+    <div class="flex justify-between items-center pb-6">
+      <h6 class="text-h6">
+        Domains
+      </h6>
+      <lf-button
+        v-if="hasPermission(LfPermission.organizationEdit)"
+        type="secondary"
+        size="small"
+        :icon-only="true"
+        @click="edit = true"
+      >
+        <lf-icon name="pencil-line" />
+      </lf-button>
+    </div>
+
+    <div class="flex flex-wrap gap-2">
+      <lf-tooltip
+        v-for="domain of domainList.slice(0, showMore ? domainList.length : 10)"
+        :key="domain"
+        :content="domain"
+        :disabled="domain.length <= 30"
+      >
+        <lf-badge
+          type="secondary"
+          class="truncate"
+          style="max-width: 30ch"
+        >
+          {{ domain }}
+        </lf-badge>
+      </lf-tooltip>
+
+      <div v-if="domainList.length === 0" class="pt-2 flex flex-col items-center">
+        <lf-icon name="at-line" :size="40" class="text-gray-300" />
+        <p class="text-center pt-3 text-medium text-gray-400">
+          No email domains
+        </p>
+      </div>
+    </div>
+
+    <lf-button
+      v-if="domainList.length > 10"
+      type="primary-link"
+      size="medium"
+      class="mt-6"
+      @click="showMore = !showMore"
+    >
+      Show {{ showMore ? 'less' : 'more' }}
+    </lf-button>
+  </section>
+  <app-organization-manage-emails-drawer
+    v-if="edit"
+    v-model="edit"
+    :organization="props.organization"
+    @reload="emit('reload')"
+  />
+</template>
+
+<script setup lang="ts">
+import LfButton from '@/ui-kit/button/Button.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
+import { computed, ref } from 'vue';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import useOrganizationHelpers from '@/modules/organization/helpers/organization.helpers';
+import { Organization } from '@/modules/organization/types/Organization';
+import AppOrganizationManageEmailsDrawer from '@/modules/organization/components/organization-manage-emails-drawer.vue';
+import LfBadge from '@/ui-kit/badge/Badge.vue';
+import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
+
+const props = defineProps<{
+  organization: Organization,
+}>();
+
+const emit = defineEmits<{(e: 'reload'): any}>();
+
+const { hasPermission } = usePermissions();
+
+const { domains } = useOrganizationHelpers();
+
+const domainList = computed(() => domains(props.organization));
+
+const showMore = ref<boolean>(false);
+const edit = ref<boolean>(false);
+</script>
+
+<script lang="ts">
+export default {
+  name: 'LfOrganizationDetailsDomains',
+};
+</script>

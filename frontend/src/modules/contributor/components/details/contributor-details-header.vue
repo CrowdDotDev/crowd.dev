@@ -50,7 +50,7 @@ import LfContributorWorkPosition from '@/modules/contributor/components/shared/c
 import LfContributorDetailsHeaderProfiles
   from '@/modules/contributor/components/details/header/contributor-details-header-profiles.vue';
 import { computed } from 'vue';
-import { detailsHeaderProfilePlatforms } from '@/modules/contributor/config/details-header-profile-platforms';
+import { contributorDetailsHeaderProfilePlatforms } from '@/modules/contributor/config/details-header-profile-platforms';
 
 const props = defineProps<{
   contributor: Contributor,
@@ -60,7 +60,7 @@ const {
   avatar, isNew, isBot, isTeamContributor, activeOrganization,
 } = useContributorHelpers();
 
-const hasHeaderIdentities = computed(() => props.contributor.identities.some((i) => detailsHeaderProfilePlatforms.includes(i.platform)));
+const hasHeaderIdentities = computed(() => props.contributor.identities.some((i) => contributorDetailsHeaderProfilePlatforms.includes(i.platform)));
 
 const organization = computed(() => activeOrganization(props.contributor));
 const jobTitle = computed(() => props.contributor.attributes.jobTitle?.default

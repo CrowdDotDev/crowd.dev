@@ -61,7 +61,7 @@ opacity-0 invisible transition group-hover:visible group-hover:opacity-100 z-30 
               class="h-4 w-4"
             />
             <p class="pl-2 text-small">
-              {{ identity.value }}
+              {{ identity.name }}
             </p>
           </div>
           <lf-icon v-if="identity.url" name="external-link-line" :size="16" class="text-gray-300" />
@@ -72,25 +72,27 @@ opacity-0 invisible transition group-hover:visible group-hover:opacity-100 z-30 
 </template>
 
 <script setup lang="ts">
-import { Contributor } from '@/modules/contributor/types/Contributor';
-import { contributorDetailsHeaderProfilePlatforms } from '@/modules/contributor/config/details-header-profile-platforms';
 import { computed } from 'vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
-import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
+import useOrganizationHelpers from '@/modules/organization/helpers/organization.helpers';
+import {
+  organizationDetailsHeaderProfilePlatforms
+} from '@/modules/organization/config/details-header-profile-platforms';
+import { Organization } from '@/modules/organization/types/Organization';
 
 const props = defineProps<{
-  contributor: Contributor,
+  organization: Organization,
 }>();
 
-const { identities } = useContributorHelpers();
+const { identities } = useOrganizationHelpers();
 
 const platformIdentities = computed(() => {
   const data = {};
-  contributorDetailsHeaderProfilePlatforms.forEach((p) => { data[p] = []; });
-  identities(props.contributor).forEach((i) => {
-    if (detailsHeaderProfilePlatforms.includes(i.platform)) {
+  organizationDetailsHeaderProfilePlatforms.forEach((p) => { data[p] = []; });
+  identities(props.organization).forEach((i) => {
+    if (organizationDetailsHeaderProfilePlatforms.includes(i.platform)) {
       data[i.platform].push(i);
     }
   });
@@ -107,7 +109,7 @@ const platformData = (name: string) => CrowdIntegrations.getConfig(name);
 
 <script lang="ts">
 export default {
-  name: 'LfContributorDetailsHeaderProfiles',
+  name: 'LfOrganizationDetailsHeaderProfiles',
 };
 </script>
 

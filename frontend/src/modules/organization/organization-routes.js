@@ -10,6 +10,9 @@ const OrganizationListPage = () => import(
 const OrganizationViewPage = () => import(
   '@/modules/organization/pages/organization-view-page.vue'
 );
+const OrganizationDetailsPage = () => import(
+  '@/modules/organization/pages/organization-details.page.vue'
+);
 
 const OrganizationFormPage = () => import(
   '@/modules/organization/pages/organization-form-page.vue'
@@ -76,7 +79,7 @@ export default [
       {
         name: 'organizationView',
         path: '/organizations/:id',
-        component: OrganizationViewPage,
+        component: true ? OrganizationDetailsPage : OrganizationViewPage,
         meta: {
           title: 'Organization',
           auth: true,
