@@ -98,9 +98,12 @@ import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import LfContributorDetailsEmails from '@/modules/contributor/components/details/contributor-details-emails.vue';
 import { Contributor } from '@/modules/contributor/types/Contributor';
 import LfContributorLastEnrichment from '@/modules/contributor/components/shared/contributor-last-enrichment.vue';
+import { useMemberStore } from '@/modules/member/store/pinia';
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
+
+const { getMemberCustomAttributes } = useMemberStore();
 
 const route = useRoute();
 
@@ -126,6 +129,7 @@ const fetchMember = () => {
 
 onMounted(() => {
   fetchMember();
+  getMemberCustomAttributes();
 });
 </script>
 
