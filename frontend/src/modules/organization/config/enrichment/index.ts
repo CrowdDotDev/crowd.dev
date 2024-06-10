@@ -4,18 +4,18 @@ import allSubsidiaries from './allSubsidiaries';
 import alternativeDomains from './alternativeDomains';
 import alternativeNames from './alternativeNames';
 import averageEmployeeTenure from './averageEmployeeTenure';
-import averageTenureByLevel from './_averageTenureByLevel';
-import _averageTenureByRole from './_averageTenureByRole';
+import averageTenureByLevel from './averageTenureByLevel';
+import averageTenureByRole from './averageTenureByRole';
 import directSubsidiaries from './directSubsidiaries';
-import _employeeChurnRate from './_employeeChurnRate';
+import employeeChurnRate from './employeeChurnRate';
 import employeeCount from './employeeCount';
-import _employeeCountByCountry from './_employeeCountByCountry';
-import _employeeCountByMonth from './_employeeCountByMonth';
-import _employeeGrowthRate from './_employeeGrowthRate';
+import employeeCountByCountry from './employeeCountByCountry';
+import employeeCountByMonth from './employeeCountByMonth';
+import employeeGrowthRate from './employeeGrowthRate';
 import founded from './founded';
 import gicsSector from './gicsSector';
-import _grossAdditionsByMonth from './_grossAdditionsByMonth';
-import _grossDeparturesByMonth from './_grossDeparturesByMonth';
+import grossAdditionsByMonth from './grossAdditionsByMonth';
+import grossDeparturesByMonth from './grossDeparturesByMonth';
 import headcount from './headcount';
 import industry from './industry';
 import revenueRange from './revenueRange';
@@ -48,16 +48,16 @@ const enrichmentConfig: OrganizationEnrichmentConfig[] = [
   alternativeNames,
   averageEmployeeTenure,
   averageTenureByLevel,
-  _averageTenureByRole,
+  averageTenureByRole,
   directSubsidiaries,
-  _employeeChurnRate,
+  employeeChurnRate,
   employeeCount,
-  _employeeCountByCountry,
-  _employeeCountByMonth,
-  _employeeGrowthRate,
+  employeeCountByCountry,
+  employeeCountByMonth,
+  employeeGrowthRate,
   gicsSector,
-  _grossAdditionsByMonth,
-  _grossDeparturesByMonth,
+  grossAdditionsByMonth,
+  grossDeparturesByMonth,
   immediateParent,
   revenueRange,
   tags,

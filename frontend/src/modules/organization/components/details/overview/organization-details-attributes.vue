@@ -41,7 +41,7 @@
         class="border-b border-gray-100 flex py-4"
       >
         <div class="w-5/12">
-          <p class="text-small font-semibold">
+          <p class="text-small font-semibold mb-1">
             {{ attribute.label }}
           </p>
           <p class="text-tiny text-gray-400">
@@ -49,8 +49,14 @@
           </p>
         </div>
         <div class="w-7/12 pr-1">
+          <component
+            :is="attribute.component"
+            v-if="attribute.component"
+            :data="getValue(attribute)"
+            v-bind="attribute.attributes"
+          />
           <lf-organization-attribute-array
-            v-if="attribute.type === AttributeType.ARRAY"
+            v-else-if="attribute.type === AttributeType.ARRAY"
             :data="getValue(attribute)"
             v-bind="attribute.attributes"
           />
@@ -59,27 +65,6 @@
             :data="getValue(attribute)"
             v-bind="attribute.attributes"
           />
-
-          <!--          <component-->
-          <!--            :is="attribute.component"-->
-          <!--            v-if="attribute.component && attribute.type === AttributeType.ARRAY"-->
-          <!--            more-label=""-->
-          <!--            wrapper-class="flex flex-wrap -mx-1 mt-2 -mb-1"-->
-          <!--            item-class="border border-gray-200 px-1.5 text-xs rounded-md h-fit text-gray-900 m-1 inline-flex break-keep"-->
-          <!--            :title="attribute.label"-->
-          <!--            :value="organization[attribute.name]"-->
-          <!--            :slice-size="3"-->
-          <!--            :with-separators="false"-->
-          <!--            :is-link="attribute.isLink"-->
-          <!--          />-->
-          <!--          <component-->
-          <!--            :is="attribute.component"-->
-          <!--            v-else-if="attribute.component && attribute.type === AttributeType.JSON"-->
-          <!--            :attribute-value="organization[attribute.name]"-->
-          <!--            :key-parser="attribute.keyParser"-->
-          <!--            :value-parser="attribute.valueParser"-->
-          <!--            :filter-value="attribute.filterValue"-->
-          <!--                    />-->
           <lf-organization-attribute-string
             v-else
             :data="`${getValue(attribute)}`"
