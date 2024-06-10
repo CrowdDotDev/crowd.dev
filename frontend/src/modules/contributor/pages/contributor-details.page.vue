@@ -119,7 +119,6 @@ const fetchMember = () => {
   }
   ContributorApiService.find(id as string, [selectedProjectGroup.value?.id as string])
     .then((res) => {
-      console.log(res);
       contributor.value = res;
     })
     .finally(() => {
