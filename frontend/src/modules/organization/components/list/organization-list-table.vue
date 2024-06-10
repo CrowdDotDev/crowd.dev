@@ -178,7 +178,7 @@
                   <template #header>
                     <div class="flex items-center">
                       <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
-                        <app-svg name="source" class="h-3 w-3" />
+                        <lf-svg name="source" class="h-3 w-3" />
                       </el-tooltip>
                       <div class="ml-2 text-purple-800">
                         Headline
@@ -393,7 +393,7 @@
                   <template #header>
                     <div class="flex items-center">
                       <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
-                        <app-svg name="source" class="h-3 w-3" />
+                        <lf-svg name="source" class="h-3 w-3" />
                       </el-tooltip>
                       <div class="ml-2 text-purple-800">
                         Location
@@ -440,7 +440,7 @@
                       @mouseleave="closeEnrichmentPopover"
                     >
                       <el-tooltip content="Source: Enrichment" placement="top" trigger="hover" :disabled="!isEnrichEnabled">
-                        <app-svg name="source" class="h-3 w-3" />
+                        <lf-svg name="source" class="h-3 w-3" />
                       </el-tooltip>
                       <div class="ml-2 text-purple-800">
                         Industry
@@ -494,7 +494,7 @@
                       @mouseleave="closeEnrichmentPopover"
                     >
                       <el-tooltip content="Source: Enrichment" placement="top" trigger="hover" :disabled="!isEnrichEnabled">
-                        <app-svg name="source" class="h-3 w-3" />
+                        <lf-svg name="source" class="h-3 w-3" />
                       </el-tooltip>
                       <div class="ml-2 text-purple-800">
                         Headcount
@@ -548,7 +548,7 @@
                       @mouseleave="closeEnrichmentPopover"
                     >
                       <el-tooltip content="Source: Enrichment" placement="top" trigger="hover" :disabled="!isEnrichEnabled">
-                        <app-svg name="source" class="h-3 w-3" />
+                        <lf-svg name="source" class="h-3 w-3" />
                       </el-tooltip>
                       <div class="ml-2 text-purple-800">
                         Annual Revenue
@@ -604,7 +604,7 @@
                     >
                       <div class="flex items-center">
                         <el-tooltip content="Source: Enrichment" placement="top" trigger="hover" :disabled="!isEnrichEnabled">
-                          <app-svg name="source" class="h-3 w-3" />
+                          <lf-svg name="source" class="h-3 w-3" />
                         </el-tooltip>
                         <div class="ml-2 text-purple-800">
                           Founded
@@ -660,7 +660,7 @@
                       @mouseleave="closeEnrichmentPopover"
                     >
                       <el-tooltip content="Source: Enrichment" placement="top" trigger="hover" :disabled="!isEnrichEnabled">
-                        <app-svg name="source" class="h-3 w-3" />
+                        <lf-svg name="source" class="h-3 w-3" />
                       </el-tooltip>
                       <div class="ml-2 text-purple-800">
                         Ann. Employee Growth Rate
@@ -710,7 +710,7 @@
                       @mouseleave="closeEnrichmentPopover"
                     >
                       <el-tooltip content="Source: Enrichment" placement="top" trigger="hover" :disabled="!isEnrichEnabled">
-                        <app-svg name="source" class="h-3 w-3" />
+                        <lf-svg name="source" class="h-3 w-3" />
                       </el-tooltip>
                       <div class="ml-2 text-purple-800">
                         Smart Tags
@@ -871,7 +871,7 @@ import employeeGrowthRate from '@/modules/organization/config/enrichment/employe
 import revenueRange from '@/modules/organization/config/enrichment/revenueRange';
 import AppSharedTagList from '@/shared/tag/tag-list.vue';
 import { ClickOutside as vClickOutside } from 'element-plus';
-import AppSvg from '@/shared/svg/svg.vue';
+import LfSvg from '@/shared/svg/svg.vue';
 import LfEnrichmentSneakPeakContent from '@/shared/modules/enrichment/components/enrichment-sneak-peak-content.vue';
 import Plans from '@/security/plans';
 import AppIdentitiesHorizontalListOrganizations from '@/shared/modules/identities/components/identities-horizontal-list-organizations.vue';

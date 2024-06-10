@@ -1,6 +1,6 @@
 <template>
   <div class="activity-timeline">
-    <div class="my-6">
+    <div class="mb-6">
       <div class="flex gap-2">
         <el-input
           v-model="query"
@@ -291,6 +291,10 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  selectedSegment: {
+    type: String,
+    default: null,
+  },
 });
 
 const lsSegmentsStore = useLfSegmentsStore();
@@ -315,7 +319,7 @@ const activities = ref([]);
 const limit = ref(20);
 const offset = ref(0);
 const noMore = ref(false);
-const selectedSegment = ref(null);
+const selectedSegment = ref(props.selectedSegment || null);
 
 let filter = {};
 

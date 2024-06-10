@@ -111,7 +111,7 @@
           :disabled="!!props.identity.sourceId"
           @click="verify(false)"
         >
-          <app-svg name="unverify" class="!h-4 !w-4" />
+          <lf-svg name="unverify" class="!h-4 !w-4" />
           Unverify identity
         </lf-dropdown-item>
       </el-tooltip>
@@ -139,7 +139,7 @@ import LfButton from '@/ui-kit/button/Button.vue';
 import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import LfDropdownSeparator from '@/ui-kit/dropdown/DropdownSeparator.vue';
-import AppSvg from '@/shared/svg/svg.vue';
+import LfSvg from '@/shared/svg/svg.vue';
 
 const emit = defineEmits<{(e: 'update', value: MemberIdentity): void,
   (e: 'unmerge', value: { platform: string, username: string }): void,

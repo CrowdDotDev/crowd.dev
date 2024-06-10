@@ -5,9 +5,11 @@ export default {
   name: 'LinkedIn',
   backgroundColor: '#D4E1F0',
   borderColor: '#D4E1F0',
+  brandColor: '#2867B2',
   description:
     "Connect LinkedIn to sync comments and reactions from your organization's posts.",
   image: '/images/integrations/linkedin.png',
+  icon: 'linkedin-box-fill',
   connectComponent: LinkedInConnect,
   reactions: {
     like: 'Like',

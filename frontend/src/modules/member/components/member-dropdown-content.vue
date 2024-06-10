@@ -74,7 +74,7 @@
   <!--    })-->
   <!--    "-->
   <!--  >-->
-  <!--    <app-svg name="hubspot" class="h-4 w-4 text-current" />-->
+  <!--    <lf-svg name="hubspot" class="h-4 w-4 text-current" />-->
   <!--    <span-->
   <!--      class="text-xs pl-2"-->
   <!--    >Sync with HubSpot</span>-->
@@ -90,7 +90,7 @@
   <!--    })-->
   <!--    "-->
   <!--  >-->
-  <!--    <app-svg name="hubspot" class="h-4 w-4 text-current" />-->
+  <!--    <lf-svg name="hubspot" class="h-4 w-4 text-current" />-->
   <!--    <span-->
   <!--      class="text-xs pl-2"-->
   <!--    >Stop sync with HubSpot</span>-->

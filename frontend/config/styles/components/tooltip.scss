@@ -1,0 +1,13 @@
+:root {
+  /* ---------------------------------- *\
+           Tooltip style
+  \* ---------------------------------- */
+
+  --lf-tooltip-background: var(--lf-color-gray-900);
+  --lf-tooltip-text: var(--lf-color-white);
+  --lf-tooltip-padding: #{rem(2)} #{rem(6)};
+  --lf-tooltip-line-height: #{rem(16)};
+  --lf-tooltip-font-size: #{rem(12)};
+  --lf-tooltip-border-radius: #{rem(4)};
+  --lf-tooltip-spacing: #{rem(4)};
+}

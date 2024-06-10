@@ -2,7 +2,7 @@
   <app-dialog
     v-if="isModalOpen"
     v-model="isModalOpen"
-    title="Merge member"
+    title="Merge contributor"
     size="2extra-large"
   >
     <template #content>

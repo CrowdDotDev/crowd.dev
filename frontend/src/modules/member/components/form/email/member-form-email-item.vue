@@ -83,7 +83,7 @@
         <lf-dropdown-item
           @click="verify(false)"
         >
-          <app-svg name="unverify" class="!h-4 !w-4" />
+          <lf-svg name="unverify" class="!h-4 !w-4" />
           Unverify email
         </lf-dropdown-item>
       </el-tooltip>
@@ -107,7 +107,7 @@ import LfButton from '@/ui-kit/button/Button.vue';
 import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import LfDropdownSeparator from '@/ui-kit/dropdown/DropdownSeparator.vue';
-import AppSvg from '@/shared/svg/svg.vue';
+import LfSvg from '@/shared/svg/svg.vue';
 import useVuelidate from '@vuelidate/core';
 import { email } from '@vuelidate/validators';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
