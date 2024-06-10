@@ -14,7 +14,9 @@
     </template>
     <template #content>
       <div class="w-full flex flex-col mb-6">
-        <p class="text-[16px] font-semibold">Authentication</p>
+        <p class="text-[16px] font-semibold">
+          Authentication
+        </p>
         <div class="text-2xs text-gray-500 leading-normal mb-1">
           Connect a Jira endpoint. Provide a valid token if this jira endpoint
           requires it. (optional)
@@ -34,12 +36,11 @@
           <el-input v-model="form.jiraURL" @blur="onBlurJiraURL()" />
         </app-form-item>
 
-
-
         <el-divider />
         <div class="w-full flex flex-col mb-2">
           <div class="text-2xs text-gray-500">
-            Provide a valid personal access token or username/API token combination
+            Provide a valid personal access token or username/API token
+            combination
           </div>
         </div>
         <app-form-item class="mb-6" label="Personal Access Token">
@@ -54,7 +55,9 @@
           </el-input>
         </app-form-item>
 
-        <div class = "mb-6 font-semibold"> OR </div>
+        <div class="mb-6 font-semibold">
+          OR
+        </div>
 
         <app-form-item class="mb-1" label="Jira username/email">
           <el-input v-model="form.username" @blur="onBlurToken()">
@@ -82,7 +85,9 @@
 
         <el-divider />
         <div class="w-full flex flex-col mb-6">
-          <p class="text-[16px] font-semibold">Connect projects</p>
+          <p class="text-[16px] font-semibold">
+            Connect projects
+          </p>
           <div class="text-2xs text-gray-500 leading-normal mb-1">
             Select which projects you want to track. All tickets avaliable in
             each project will be monitored.
@@ -141,19 +146,21 @@
 </template>
 
 <script setup>
-import useVuelidate from "@vuelidate/core";
-import { computed, onMounted, reactive, ref } from "vue";
-import { CrowdIntegrations } from "@/integrations/integrations-config";
-import formChangeDetector from "@/shared/form/form-change";
-import { mapActions } from "@/shared/vuex/vuex.helpers";
-import AppArrayInput from "@/shared/form/array-input.vue";
+import useVuelidate from '@vuelidate/core';
+import {
+  computed, onMounted, reactive, ref,
+} from 'vue';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
+import formChangeDetector from '@/shared/form/form-change';
+import { mapActions } from '@/shared/vuex/vuex.helpers';
+import AppArrayInput from '@/shared/form/array-input.vue';
 
-import { required } from "@vuelidate/validators";
-import AppDrawer from "@/shared/drawer/drawer.vue";
-import AppFormItem from "@/shared/form/form-item.vue";
+import { required } from '@vuelidate/validators';
+import AppDrawer from '@/shared/drawer/drawer.vue';
+import AppFormItem from '@/shared/form/form-item.vue';
 // import elementChangeDetector from '@/shared/form/element-change';
 
-const emit = defineEmits(["update:modelValue"]);
+const emit = defineEmits(['update:modelValue']);
 const props = defineProps({
   integration: {
     type: Object,
@@ -167,10 +174,10 @@ const props = defineProps({
 
 const loading = ref(false);
 const form = reactive({
-  jiraURL: "",
-  apiToken: "",
-  username: "",
-  personalAccessToken: "",
+  jiraURL: '',
+  apiToken: '',
+  username: '',
+  personalAccessToken: '',
   projects: [],
 });
 
@@ -187,16 +194,16 @@ const isAPIConnectionValid = ref(false);
 const { hasFormChanged, formSnapshot } = formChangeDetector(form);
 const $v = useVuelidate(rules, form, { $stopPropagation: true });
 
-const { doJiraConnect } = mapActions("integration");
+const { doJiraConnect } = mapActions('integration');
 const isVisible = computed({
   get() {
     return props.modelValue;
   },
   set(value) {
-    emit("update:modelValue", value);
+    emit('update:modelValue', value);
   },
 });
-const logoUrl = computed(() => CrowdIntegrations.getConfig("jira").image);
+const logoUrl = computed(() => CrowdIntegrations.getConfig('jira').image);
 
 onMounted(() => {
   if (props.integration?.settings?.url) {
@@ -211,7 +218,7 @@ onMounted(() => {
 });
 
 const addProject = () => {
-  form.projects.push("");
+  form.projects.push('');
 };
 
 const removeProject = (index) => {
@@ -258,6 +265,6 @@ const connect = async () => {
 
 <script>
 export default {
-  name: "AppJiraConnectDrawer",
+  name: 'AppJiraConnectDrawer',
 };
 </script>
