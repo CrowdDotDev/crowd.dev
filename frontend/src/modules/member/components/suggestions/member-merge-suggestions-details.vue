@@ -78,7 +78,7 @@
                   'bg-gray-50': props.isPrimary,
                 }"
               >
-                <app-svg name="source" class="h-3 w-3" />
+                <lf-svg name="source" class="h-3 w-3" />
               </div>
             </el-tooltip>
           </div>
@@ -130,7 +130,7 @@
             trigger="hover"
           >
             <div class="ml-1">
-              <app-svg name="source" class="h-3 w-3" />
+              <lf-svg name="source" class="h-3 w-3" />
             </div>
           </el-tooltip>
         </div>
@@ -172,7 +172,7 @@
               placement="top"
               trigger="hover"
             >
-              <app-svg name="source" class="h-3 w-3" />
+              <lf-svg name="source" class="h-3 w-3" />
             </el-tooltip>
           </div>
           <p class="text-xs text-gray-900 whitespace-normal">
@@ -209,7 +209,7 @@
               placement="top"
               trigger="hover"
             >
-              <app-svg name="source" class="h-3 w-3" />
+              <lf-svg name="source" class="h-3 w-3" />
             </el-tooltip>
           </div>
           <p class="text-xs text-gray-900 whitespace-normal">
@@ -284,7 +284,7 @@ import memberOrder from '@/shared/modules/identities/config/identitiesOrder/memb
 import AppIdentitiesVerticalListMembers from '@/shared/modules/identities/components/identities-vertical-list-members.vue';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import AppSvg from '@/shared/svg/svg.vue';
+import LfSvg from '@/shared/svg/svg.vue';
 import { getAttributeSourceName } from '@/shared/helpers/attribute.helpers';
 
 const props = defineProps({

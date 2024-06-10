@@ -1,5 +1,5 @@
 <template>
-  <app-svg
+  <lf-svg
     :class="svgClass"
     color="#D1D5DB"
     :name="platform"
@@ -7,7 +7,7 @@
 </template>
 
 <script setup lang="ts">
-import AppSvg from '@/shared/svg/svg.vue';
+import LfSvg from '@/shared/svg/svg.vue';
 import { computed } from 'vue';
 
 const props = defineProps<{
