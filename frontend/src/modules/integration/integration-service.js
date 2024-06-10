@@ -467,14 +467,16 @@ export class IntegrationService {
     return response.data;
   }
 
-  static async jiraConnect(url, token, projects) {
+  static async jiraConnect(url, username, personalAccessToken, apiToken, projects) {
     const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/jira-connect`,
       {
         url,
-        token,
+        username,
+        personalAccessToken,
+        apiToken,
         projects,
         ...getSegments(),
       },

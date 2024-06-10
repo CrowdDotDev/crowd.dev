@@ -1044,10 +1044,10 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
     },
   },
   [PlatformType.JIRA]: {
-    [JiraActivityType.ISSUE_OPENED]: {
+    [JiraActivityType.ISSUE_CREATED]: {
       display: {
-        default: 'opened a jira issue in {channel}',
-        short: 'opened an issue',
+        default: 'created a jira issue in {channel}',
+        short: 'created an issue',
         channel: '{channel}',
         formatter: {
           channel: defaultJiraChannelFormatter,
@@ -1074,6 +1074,21 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
       },
       isContribution: true,
     },
+    [JiraActivityType.ISSUE_UPDATED]: {
+      display: {
+        default: 'a jira issue was updated in {channel}',
+        short: 'updated an issue',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultJiraChannelFormatter,
+          self: (activity) => {
+            const prNumberAndTitle = `#${activity.url.split('/')[6]} ${activity.parent?.title}`
+            return `<a href="${activity.url}" target="_blank">${prNumberAndTitle}</a>`
+          },
+        },
+      },
+      isContribution: true,
+    },
     [JiraActivityType.ISSUE_ASSIGNED]: {
       display: {
         default: 'a jira issue was assigned in {channel}',
@@ -1089,10 +1104,40 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
       },
       isContribution: true,
     },
-    [JiraActivityType.ISSUE_COMMENT]: {
+    [JiraActivityType.ISSUE_COMMENT_CREATED]: {
       display: {
-        default: 'commented on a jira issue in {channel}',
-        short: 'commented on an issue',
+        default: 'created a comment on a jira issue in {channel}',
+        short: 'created a comment on an issue',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultJiraChannelFormatter,
+          self: (activity) => {
+            const prNumberAndTitle = `#${activity.url.split('/')[6]} ${activity.parent?.title}`
+            return `<a href="${activity.url}" target="_blank">${prNumberAndTitle}</a>`
+          },
+        },
+      },
+      isContribution: true,
+    },
+    [JiraActivityType.ISSUE_COMMENT_UPDATED]: {
+      display: {
+        default: 'updated a comment on a jira issue in {channel}',
+        short: 'updated a comment on an issue',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultJiraChannelFormatter,
+          self: (activity) => {
+            const prNumberAndTitle = `#${activity.url.split('/')[6]} ${activity.parent?.title}`
+            return `<a href="${activity.url}" target="_blank">${prNumberAndTitle}</a>`
+          },
+        },
+      },
+      isContribution: true,
+    },
+    [JiraActivityType.ISSUE_ATTACHMENT_ADDED]: {
+      display: {
+        default: 'added an attachment on a jira issue in {channel}',
+        short: 'added an attachment on an issue',
         channel: '{channel}',
         formatter: {
           channel: defaultJiraChannelFormatter,

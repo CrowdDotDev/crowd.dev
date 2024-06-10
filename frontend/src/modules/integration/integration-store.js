@@ -671,14 +671,16 @@ export default {
     },
 
     async doJiraConnect({ commit }, {
-      url, token, projects, isUpdate,
+      url, username, personalAccessToken, apiToken, projects, isUpdate,
     }) {
       try {
         commit('CREATE_STARTED');
 
         const integration = await IntegrationService.jiraConnect(
           url,
-          token,
+          username,
+          personalAccessToken,
+          apiToken,
           projects,
         );
 

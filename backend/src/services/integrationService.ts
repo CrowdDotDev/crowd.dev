@@ -1845,7 +1845,11 @@ export default class IntegrationService {
           platform: PlatformType.JIRA,
           settings: {
             url: integrationData.url,
-            token: integrationData.token,
+            auth: {
+              username: integrationData.username,
+              personalAccessToken: integrationData.personalAccessToken,
+              apiToken: integrationData.apiToken,
+            },
             projects: integrationData.projects.map((project) => project.toUpperCase()),
           },
           status: 'done',
