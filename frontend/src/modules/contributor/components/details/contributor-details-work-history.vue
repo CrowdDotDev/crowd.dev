@@ -31,9 +31,22 @@
             </template>
           </lf-avatar>
           <div class="flex-grow pl-3">
-            <p class="font-semibold text-medium leading-6 mb-1 line-clamp-1 truncate">
-              {{ org.displayName }}
-            </p>
+            <router-link
+              :to="{
+                name: 'organizationView',
+                params: {
+                  id: org.id,
+                },
+                query: {
+                  projectGroup: selectedProjectGroup?.id,
+                },
+              }"
+            >
+              <p class="font-semibold text-medium leading-6 mb-1 line-clamp-1 truncate text-black hover:text-primary-500 transition">
+                {{ org.displayName }}
+              </p>
+            </router-link>
+
             <div v-if="org?.memberOrganizations?.title" class="text-small text-gray-500 mb-1.5 flex items-center gap-1.5">
               <lf-svg name="id-card" class="h-4 w-4 text-gray-400" />
               <p class="line-clamp-1 truncate">
@@ -84,12 +97,16 @@ import LfSvg from '@/shared/svg/svg.vue';
 import moment from 'moment/moment';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
 const props = defineProps<{
   contributor: Contributor,
 }>();
 
 const emit = defineEmits<{(e: 'reload'): any}>();
+
+const lfStore = useLfSegmentsStore();
+const { selectedProjectGroup } = lfStore;
 
 const { hasPermission } = usePermissions();
 

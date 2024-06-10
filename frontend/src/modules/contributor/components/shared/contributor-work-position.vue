@@ -1,7 +1,7 @@
 <template>
   <div v-if="jobTitle || organization" class="flex items-center gap-1.5 text-small text-gray-500">
     <p class="flex items-center">
-      <span class="max-w-42 inline-block truncate">{{ jobTitle }}</span> <span v-if="organization && jobTitle">at</span>
+      <span class="max-w-42 inline-block truncate">{{ jobTitle }}</span><span v-if="organization && jobTitle">&nbsp;at</span>
     </p>
     <lf-avatar :src="organization.logo" :name="organization.displayName" :size="18" class="!rounded border border-gray-200">
       <template #placeholder>

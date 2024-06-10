@@ -1,8 +1,11 @@
 <template>
   <div class="flex items-center gap-1.5 font-semibold text-small">
-    <p v-if="!data" class=" text-gray-400">
-      Computing
-    </p>
+    <div v-if="!data" class="flex items-center text-secondary-400">
+      <div class="animate-spin mr-1.5">
+        <lf-icon name="loader-4-fill" :size="16" class="text-secondary-400" />
+      </div>
+      Calculating
+    </div>
     <template v-else>
       <div class="text-white h-4 px-1 min-w-4 flex justify-center rounded" :class="`bg-${data.color}`">
         {{ props.contributor.score }}
@@ -17,6 +20,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { Contributor } from '@/modules/contributor/types/Contributor';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps<{
   contributor: Contributor,

@@ -80,6 +80,10 @@
             v-else-if="attrInfo[attr]?.type === 'boolean'"
             :data="values.default"
           />
+          <lf-contributor-attribute-url
+            v-else-if="attrInfo[attr]?.type === 'url'"
+            :data="`${values.default}`"
+          />
           <lf-contributor-attribute-string
             v-else
             :data="`${values.default}`"
