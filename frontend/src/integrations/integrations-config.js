@@ -101,6 +101,23 @@ class IntegrationsConfig {
       .filter((i) => !i.hideAsIntegration);
   }
 
+  getPlatformsLabel(platforms) {
+    return platforms
+      .filter((platform) => !['integration_or_enrichment'].includes(platform))
+      .map((platform) => {
+        if (platform === 'lfid') {
+          return 'LFID';
+        }
+        if (platform === 'integration') {
+          return 'Integration';
+        }
+        if (platform === 'enrichment') {
+          return 'Enrichment';
+        }
+        return this.getConfig(platform)?.name || platform;
+      }).join(', ');
+  }
+
   get customIntegrations() {
     return {
       lfx,

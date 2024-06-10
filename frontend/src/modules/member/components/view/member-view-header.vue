@@ -46,7 +46,7 @@
             placement="top"
             trigger="hover"
           >
-            <app-svg name="source" class="h-3 w-3" />
+            <lf-svg name="source" class="h-3 w-3" />
           </el-tooltip>
         </div>
 
@@ -85,7 +85,7 @@
                   trigger="hover"
                   :disabled="!enabled"
                 >
-                  <app-svg name="source" class="h-3 w-3" />
+                  <lf-svg name="source" class="h-3 w-3" />
                 </el-tooltip>
               </div>
               <p v-if="enabled" class="mt-1 text-gray-900 text-xs">
@@ -137,7 +137,7 @@ import AppMemberBadge from '@/modules/member/components/member-badge.vue';
 import AppTags from '@/modules/tag/components/tag-list.vue';
 import AppMemberBio from '@/modules/member/components/member-bio.vue';
 import AppTagPopover from '@/modules/tag/components/tag-popover.vue';
-import AppSvg from '@/shared/svg/svg.vue';
+import LfSvg from '@/shared/svg/svg.vue';
 import { getAttributeSourceName } from '@/shared/helpers/attribute.helpers';
 import LfEnrichmentSneakPeak from '@/shared/modules/enrichment/components/enrichment-sneak-peak.vue';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';

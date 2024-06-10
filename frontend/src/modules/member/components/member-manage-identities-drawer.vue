@@ -99,7 +99,7 @@ const props = withDefaults(defineProps<{
   modelValue: false,
 });
 
-const emit = defineEmits(['update:modelValue', 'unmerge']);
+const emit = defineEmits(['update:modelValue', 'unmerge', 'reload']);
 
 const { trackEvent } = useProductTracking();
 
@@ -136,6 +136,7 @@ const serverUpdate = () => {
   }, segments)
     .then(() => {
       Message.success('Identity successfully updated');
+      emit('reload');
     })
     .catch((error) => {
       if (error.response.status === 409) {

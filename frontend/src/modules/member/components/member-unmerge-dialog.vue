@@ -338,7 +338,7 @@ const unmerge = () => {
   MemberService.unmerge(props.modelValue?.id, preview.value)
     .then(() => {
       Message.info(
-        'We’re syncing all activities of the unmerged contributor. We will let you know once the process is completed.',
+        'We’re finalizing contributor unmerging. We will let you know once the process is completed.',
         {
           title: 'Contributors unmerging in progress',
         },

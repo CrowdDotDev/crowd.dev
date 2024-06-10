@@ -15,7 +15,7 @@
         placement="top"
         trigger="hover"
       >
-        <app-svg name="source" class="h-3 w-3" />
+        <lf-svg name="source" class="h-3 w-3" />
       </el-tooltip>
     </div>
 
@@ -53,7 +53,7 @@
         placement="top"
         trigger="hover"
       >
-        <app-svg name="source" class="h-3 w-3" />
+        <lf-svg name="source" class="h-3 w-3" />
       </el-tooltip>
     </div>
 
@@ -94,7 +94,7 @@
           placement="top"
           trigger="hover"
         >
-          <app-svg name="source" class="h-3 w-3" />
+          <lf-svg name="source" class="h-3 w-3" />
         </el-tooltip>
       </div>
       <app-member-custom-attributes-array-renderer
@@ -117,7 +117,7 @@
 <script setup>
 import { defineProps } from 'vue';
 import { getAttributeSourceName } from '@/shared/helpers/attribute.helpers';
-import AppSvg from '@/shared/svg/svg.vue';
+import LfSvg from '@/shared/svg/svg.vue';
 import AppMemberCustomAttributesArrayRenderer from './_aside-custom-attributes-array-renderer.vue';
 
 defineProps({
