@@ -107,7 +107,7 @@ const handleSubmit = async () => {
   OrganizationService.update(props.organization.id, {
     phoneNumbers: organizationModel.value.phoneNumbers.filter((p) => p.trim().length),
   }).then(() => {
-    emit('reload')
+    emit('reload');
     fetchOrganization(props.organization.id, [selectedProjectGroup.value?.id]).then(() => {
       Message.success('Organization phone numbers updated successfully');
     });

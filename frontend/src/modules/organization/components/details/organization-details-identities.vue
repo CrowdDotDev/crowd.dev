@@ -61,7 +61,7 @@
           />
         </lf-tooltip>
       </article>
-      <div v-if="identities.length === 0" class="pt-2 flex flex-col items-center">
+      <div v-if="identities.length === 0" class="pt-2 flex flex-col items-center w-full">
         <lf-icon name="fingerprint-fill" :size="40" class="text-gray-300" />
         <p class="text-center pt-3 text-medium text-gray-400">
           No identities
@@ -97,15 +97,12 @@
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
-import AppMemberManageIdentitiesDrawer from '@/modules/member/components/member-manage-identities-drawer.vue';
 import { computed, ref } from 'vue';
-import AppMemberUnmergeDialog from '@/modules/member/components/member-unmerge-dialog.vue';
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import useOrganizationHelpers from '@/modules/organization/helpers/organization.helpers';
 import { Organization } from '@/modules/organization/types/Organization';
-import AppOrganizationMergeDialog from '@/modules/organization/components/organization-merge-dialog.vue';
 import AppOrganizationManageIdentitiesDrawer
   from '@/modules/organization/components/organization-manage-identities-drawer.vue';
 import AppOrganizationUnmergeDialog from '@/modules/organization/components/organization-unmerge-dialog.vue';

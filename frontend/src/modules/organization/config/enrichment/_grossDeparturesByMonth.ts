@@ -1,11 +1,11 @@
 import { AttributeType } from '@/modules/organization/types/Attributes';
-import OrganizationAttributesJSONRenderer from '@/modules/organization/components/organization-attributes-json-renderer.vue';
 import { formatDate } from '@/utils/date';
 import { OrganizationEnrichmentConfig } from '@/modules/organization/config/enrichment/index';
+import OrganizationAttributesJSONRenderer from '@/modules/organization/components/details/overview/attributes/organization-attribute-json.vue';
 
-const employeeCountByMonth: OrganizationEnrichmentConfig = {
-  name: 'employeeCountByMonth',
-  label: 'Employee Count by Month',
+const _grossDeparturesByMonth: OrganizationEnrichmentConfig = {
+  name: 'grossDeparturesByMonth',
+  label: 'Gross Departures by Month',
   type: AttributeType.JSON,
   showInForm: true,
   showInAttributes: true,
@@ -16,4 +16,4 @@ const employeeCountByMonth: OrganizationEnrichmentConfig = {
   } as any),
 };
 
-export default employeeCountByMonth;
+export default _grossDeparturesByMonth;

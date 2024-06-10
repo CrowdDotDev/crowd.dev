@@ -7,7 +7,7 @@ const ultimateParent: OrganizationEnrichmentConfig = {
   type: AttributeType.STRING,
   showInForm: true,
   showInAttributes: true,
-  displayValue: (value: string) => value,
+  formatValue: (value: string) => value,
 };
 
 export default ultimateParent;

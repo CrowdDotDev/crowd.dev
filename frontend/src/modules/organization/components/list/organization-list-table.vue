@@ -682,7 +682,7 @@
                       >
                         <span v-if="scope.row.employeeGrowthRate?.['12_month']" class="text-gray-900">
                           {{
-                            employeeGrowthRate.valueParser(scope.row.employeeGrowthRate['12_month'])
+                            _employeeGrowthRate.valueParser(scope.row.employeeGrowthRate['12_month'])
                           }}
                         </span>
                         <span v-else class="text-gray-500">-</span>
@@ -867,7 +867,7 @@ import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import { storeToRefs } from 'pinia';
 import AppOrganizationMergeDialog from '@/modules/organization/components/organization-merge-dialog.vue';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import employeeGrowthRate from '@/modules/organization/config/enrichment/employeeGrowthRate';
+import _employeeGrowthRate from '@/modules/organization/config/enrichment/_employeeGrowthRate';
 import revenueRange from '@/modules/organization/config/enrichment/revenueRange';
 import AppSharedTagList from '@/shared/tag/tag-list.vue';
 import { ClickOutside as vClickOutside } from 'element-plus';

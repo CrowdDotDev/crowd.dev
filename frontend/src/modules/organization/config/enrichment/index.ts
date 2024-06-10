@@ -4,18 +4,18 @@ import allSubsidiaries from './allSubsidiaries';
 import alternativeDomains from './alternativeDomains';
 import alternativeNames from './alternativeNames';
 import averageEmployeeTenure from './averageEmployeeTenure';
-import averageTenureByLevel from './averageTenureByLevel';
-import averageTenureByRole from './averageTenureByRole';
+import averageTenureByLevel from './_averageTenureByLevel';
+import _averageTenureByRole from './_averageTenureByRole';
 import directSubsidiaries from './directSubsidiaries';
-import employeeChurnRate from './employeeChurnRate';
+import _employeeChurnRate from './_employeeChurnRate';
 import employeeCount from './employeeCount';
-import employeeCountByCountry from './employeeCountByCountry';
-import employeeCountByMonth from './employeeCountByMonth';
-import employeeGrowthRate from './employeeGrowthRate';
+import _employeeCountByCountry from './_employeeCountByCountry';
+import _employeeCountByMonth from './_employeeCountByMonth';
+import _employeeGrowthRate from './_employeeGrowthRate';
 import founded from './founded';
 import gicsSector from './gicsSector';
-import grossAdditionsByMonth from './grossAdditionsByMonth';
-import grossDeparturesByMonth from './grossDeparturesByMonth';
+import _grossAdditionsByMonth from './_grossAdditionsByMonth';
+import _grossDeparturesByMonth from './_grossDeparturesByMonth';
 import headcount from './headcount';
 import industry from './industry';
 import revenueRange from './revenueRange';
@@ -31,14 +31,9 @@ export interface OrganizationEnrichmentConfig {
   type: AttributeType; // Type of the attribute
   showInForm: boolean; // Display in Organization Form
   showInAttributes: boolean; // Display in Organization Profile
-  enrichmentSneakPeak?: boolean; // Display as a sneak peak attribute
-  enrichmentSneakPeakValue?: string; // Value to display in sneak peak
-  isLink?: boolean; // If attribute is a url
   component?: any; // Component that will render attribute in organization profile
-  displayValue?: (value: any) => string; // Formatter for displaying attribute value
-  keyParser?: (key: string) => string; // Formatter for keys of jsons if attribute is json
-  valueParser?: (value: any) => string; // Formatter for values of jsons if attribute is json
-  filterValue?: (value: any) => any; // Filter attributes values
+  formatValue: (value: any) => string; // Formatter for values
+  attributes?: any, // Custom attributes passed into displaying components
 }
 
 const enrichmentConfig: OrganizationEnrichmentConfig[] = [
@@ -53,16 +48,16 @@ const enrichmentConfig: OrganizationEnrichmentConfig[] = [
   alternativeNames,
   averageEmployeeTenure,
   averageTenureByLevel,
-  averageTenureByRole,
+  _averageTenureByRole,
   directSubsidiaries,
-  employeeChurnRate,
+  _employeeChurnRate,
   employeeCount,
-  employeeCountByCountry,
-  employeeCountByMonth,
-  employeeGrowthRate,
+  _employeeCountByCountry,
+  _employeeCountByMonth,
+  _employeeGrowthRate,
   gicsSector,
-  grossAdditionsByMonth,
-  grossDeparturesByMonth,
+  _grossAdditionsByMonth,
+  _grossDeparturesByMonth,
   immediateParent,
   revenueRange,
   tags,

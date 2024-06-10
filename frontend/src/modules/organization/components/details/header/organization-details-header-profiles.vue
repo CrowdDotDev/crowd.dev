@@ -78,7 +78,7 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
 import useOrganizationHelpers from '@/modules/organization/helpers/organization.helpers';
 import {
-  organizationDetailsHeaderProfilePlatforms
+  organizationDetailsHeaderProfilePlatforms,
 } from '@/modules/organization/config/details-header-profile-platforms';
 import { Organization } from '@/modules/organization/types/Organization';
 

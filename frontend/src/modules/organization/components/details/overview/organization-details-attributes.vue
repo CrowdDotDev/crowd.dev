@@ -6,230 +6,120 @@
       </h6>
     </div>
     <div>
-      <!-- Biography -->
-      <article v-if="bio?.default" class="border-b border-gray-100 flex py-4">
+      <!-- Description -->
+      <article v-if="description" class="border-b border-gray-100 flex py-4">
         <div class="w-5/12">
-          <p class="text-small font-semibold mb-1">
-            Biography
+          <p class="text-small font-semibold">
+            Description
           </p>
-          <lf-contributor-attribute-source :values="bio" />
         </div>
         <div class="w-7/12">
-          <lf-contributor-attribute-string
-            :data="bio?.default"
+          <lf-organization-attribute-string
+            :data="description"
           />
         </div>
       </article>
 
-      <!-- Tags -->
-      <article v-if="tags.length" class="border-b border-gray-100 flex py-4">
+      <!-- Location -->
+      <article v-if="location" class="border-b border-gray-100 flex py-4">
         <div class="w-5/12">
-          <p class="text-small font-semibold mb-1">
-            Tags
+          <p class="text-small font-semibold">
+            Location
           </p>
         </div>
         <div class="w-7/12">
-          <lf-contributor-attribute-tags :data="tags.map((t) => t.name)" />
+          <lf-organization-attribute-string
+            :data="location"
+          />
         </div>
       </article>
 
-      <!-- Reach -->
-      <article v-if="reach?.total > 0" class="border-b border-gray-100 flex py-4">
+      <!-- Enriched attributes -->
+      <article
+        v-for="attribute in visibleAttributes"
+        :key="attribute.name"
+        class="border-b border-gray-100 flex py-4"
+      >
         <div class="w-5/12">
-          <p class="text-small font-semibold mb-1">
-            Reach
+          <p class="text-small font-semibold">
+            {{ attribute.label }}
           </p>
-          <lf-contributor-attribute-source
-            :values="{
-              ...reach,
-              total: undefined,
-              default: reach.total,
-            }"
+          <p class="text-tiny text-gray-400">
+            Source: <span class="text-purple-500">Enrichment</span>
+          </p>
+        </div>
+        <div class="w-7/12 pr-1">
+          <lf-organization-attribute-array
+            v-if="attribute.type === AttributeType.ARRAY"
+            :data="getValue(attribute)"
+            v-bind="attribute.attributes"
           />
-        </div>
-        <div class="w-7/12">
-          <p class="text-medium">
-            {{ reach?.total }} Followers
-          </p>
-        </div>
-      </article>
+          <lf-organization-attribute-json
+            v-else-if="attribute.type === AttributeType.JSON"
+            :data="getValue(attribute)"
+            v-bind="attribute.attributes"
+          />
 
-      <!-- Custom tags -->
-      <article v-for="(values, attr) of attributes" :key="attr" class="border-b border-gray-100 flex py-4">
-        <div class="w-5/12">
-          <p class="text-small font-semibold mb-1">
-            {{ attrInfo[attr]?.label || transformToLabel(attr) }}
-          </p>
-          <lf-contributor-attribute-source :values="values" />
-        </div>
-        <div class="w-7/12">
-          <lf-contributor-attribute-tags
-            v-if="attrInfo[attr]?.type === 'multiSelect'"
-            :data="values.default"
-          />
-          <lf-contributor-attribute-boolean
-            v-else-if="attrInfo[attr]?.type === 'boolean'"
-            :data="values.default"
-          />
-          <lf-contributor-attribute-url
-            v-else-if="attrInfo[attr]?.type === 'url'"
-            :data="`${values.default}`"
-          />
-          <lf-contributor-attribute-string
+          <!--          <component-->
+          <!--            :is="attribute.component"-->
+          <!--            v-if="attribute.component && attribute.type === AttributeType.ARRAY"-->
+          <!--            more-label=""-->
+          <!--            wrapper-class="flex flex-wrap -mx-1 mt-2 -mb-1"-->
+          <!--            item-class="border border-gray-200 px-1.5 text-xs rounded-md h-fit text-gray-900 m-1 inline-flex break-keep"-->
+          <!--            :title="attribute.label"-->
+          <!--            :value="organization[attribute.name]"-->
+          <!--            :slice-size="3"-->
+          <!--            :with-separators="false"-->
+          <!--            :is-link="attribute.isLink"-->
+          <!--          />-->
+          <!--          <component-->
+          <!--            :is="attribute.component"-->
+          <!--            v-else-if="attribute.component && attribute.type === AttributeType.JSON"-->
+          <!--            :attribute-value="organization[attribute.name]"-->
+          <!--            :key-parser="attribute.keyParser"-->
+          <!--            :value-parser="attribute.valueParser"-->
+          <!--            :filter-value="attribute.filterValue"-->
+          <!--                    />-->
+          <lf-organization-attribute-string
             v-else
-            :data="`${values.default}`"
+            :data="`${getValue(attribute)}`"
           />
-        </div>
-      </article>
-
-      <!-- Education -->
-      <article v-if="education?.default?.length" class="border-b border-gray-100 flex py-4">
-        <div class="w-5/12">
-          <p class="text-small font-semibold mb-1">
-            Education
-          </p>
-          <lf-contributor-attribute-source
-            :values="education"
-          />
-        </div>
-        <div class="w-7/12">
-          <div class="-my-4">
-            <article v-for="edu of (education.default || [])" :key="edu.major" class="py-4 border-b last:border-b-0 border-gray-100">
-              <p class="text-medium mb-0.5">
-                {{ edu.major }} {{ edu.specialization }}
-              </p>
-              <p class="text-small text-gray-500">
-                {{ edu.campus }}
-              </p>
-              <p class="text-small text-gray-500 mt-0.5">
-                {{ moment(edu.startDate).isValid() ? moment(edu.startDate).format('MMMM YYYY') : edu.startDate }}
-                → {{ moment(edu.endDate).isValid() ? moment(edu.endDate).format('MMMM YYYY') : edu.endDate }}
-              </p>
-            </article>
-          </div>
-        </div>
-      </article>
-
-      <!-- Certifications -->
-      <article v-if="certifications?.default?.length" class="border-b border-gray-100 flex py-4">
-        <div class="w-5/12">
-          <p class="text-small font-semibold mb-1">
-            Certifications
-          </p>
-          <lf-contributor-attribute-source
-            :values="certifications"
-          />
-        </div>
-        <div class="w-7/12">
-          <div class="-my-4">
-            <article v-for="cert of (certifications.default || [])" :key="cert.title" class="py-4 border-b last:border-b-0 border-gray-100">
-              <p class="text-medium mb-0.5">
-                {{ cert.title }}
-              </p>
-              <p class="text-small text-gray-500">
-                {{ cert.description }}
-              </p>
-            </article>
-          </div>
-        </div>
-      </article>
-
-      <!-- Awards -->
-      <article v-if="awards?.default?.length" class="border-b border-gray-100 flex py-4">
-        <div class="w-5/12">
-          <p class="text-small font-semibold mb-1">
-            Awards
-          </p>
-          <lf-contributor-attribute-source
-            :values="awards"
-          />
-        </div>
-        <div class="w-7/12">
-          <div class="-my-4">
-            <article v-for="aw of (awards.default || [])" :key="aw" class="py-4 border-b last:border-b-0 border-gray-100">
-              <lf-contributor-attribute-string
-                :data="aw"
-              />
-            </article>
-          </div>
         </div>
       </article>
     </div>
   </section>
-  <app-member-manage-attributes-drawer
-    v-if="edit"
-    v-model="edit"
-    :member="props.contributor"
-  />
 </template>
 
 <script setup lang="ts">
-import LfButton from '@/ui-kit/button/Button.vue';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
-import AppMemberManageAttributesDrawer from '@/modules/member/components/member-manage-attributes-drawer.vue';
-import { computed, ref } from 'vue';
-import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
-import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
-import LfContributorAttributeTags
-  from '@/modules/contributor/components/details/attributes/contributor-attribute-tags.vue';
-import LfContributorAttributeBoolean
-  from '@/modules/contributor/components/details/attributes/contributor-attribute-boolean.vue';
-import LfContributorAttributeString
-  from '@/modules/contributor/components/details/attributes/contributor-attribute-string.vue';
-import LfContributorAttributeSource
-  from '@/modules/contributor/components/details/attributes/contributor-attribute-source.vue';
-import moment from 'moment';
-import { useMemberStore } from '@/modules/member/store/pinia';
-import { storeToRefs } from 'pinia';
-import LfContributorAttributeUrl
-  from '@/modules/contributor/components/details/attributes/contributor-attribute-url.vue';
+import { computed } from 'vue';
+import { Organization } from '@/modules/organization/types/Organization';
+import LfOrganizationAttributeString
+  from '@/modules/organization/components/details/overview/attributes/organization-attribute-string.vue';
+import enrichmentAttributes, { OrganizationEnrichmentConfig } from '@/modules/organization/config/enrichment';
+import { AttributeType } from '@/modules/organization/types/Attributes';
+import LfOrganizationAttributeArray
+  from '@/modules/organization/components/details/overview/attributes/organization-attribute-array.vue';
+import LfOrganizationAttributeJson
+  from '@/modules/organization/components/details/overview/attributes/organization-attribute-json.vue';
 
 const props = defineProps<{
   organization: Organization,
 }>();
 
-const { hasPermission } = usePermissions();
+const description = computed(() => props.organization.description);
+const location = computed(() => props.organization.location);
 
-const edit = ref<boolean>(false);
+const visibleAttributes = computed(() => enrichmentAttributes
+  .filter((a) => ((props.organization[a.name] && a.type !== AttributeType.ARRAY && a.type !== AttributeType.JSON)
+          || (a.type === AttributeType.ARRAY && props.organization[a.name]?.length)
+          || (a.type === AttributeType.JSON && props.organization[a.name] && Object.keys(props.organization[a.name]))) && a.showInAttributes));
 
-const memberStore = useMemberStore();
-const { customAttributes } = storeToRefs(memberStore);
-
-const bio = computed(() => props.contributor.attributes.bio);
-const reach = computed(() => props.contributor.reach);
-const tags = computed(() => props.contributor.tags);
-const certifications = computed(() => props.contributor.attributes.certifications);
-const education = computed(() => props.contributor.attributes.education);
-const awards = computed(() => props.contributor.attributes.awards);
-
-const attrInfo = computed<Record<string, any>>(() => customAttributes.value.reduce((info, attr) => ({
-  ...info,
-  [attr.name]: attr,
-}), {}));
-
-const eliminateAttributes = [
-  'bio',
-  'url',
-  'avatarUrl',
-  'emails',
-  'jobTitle',
-  'workExperiences',
-  'certifications',
-  'education',
-  'awards',
-];
-
-const attributes = computed(() => {
-  const attrs = { ...props.contributor.attributes };
-  eliminateAttributes.forEach((attr) => {
-    delete attrs[attr];
-  });
-  return attrs;
-});
-
-const transformToLabel = (property: string) => {
-  const label = property.replace(/([A-Z])/g, ' $1').toLowerCase();
-  return label.charAt(0).toUpperCase() + label.slice(1);
+const getValue = (attribute: OrganizationEnrichmentConfig) => {
+  const value = props.organization[attribute.name];
+  if (attribute.formatValue) {
+    return attribute.formatValue(value);
+  }
+  return value;
 };
 </script>
 

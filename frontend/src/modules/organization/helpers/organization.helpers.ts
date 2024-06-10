@@ -22,8 +22,8 @@ const useOrganizationHelpers = () => {
     });
 
   const domains = (organization: Organization) => [
-    ...organization.emails,
-    ...organization.identities
+    ...(organization.emails || []),
+    ...(organization.identities || [])
       .filter((i) => ['email'].includes(i.platform))
       .map((i) => i.name),
   ];

@@ -1,5 +1,4 @@
 import { AttributeType } from '@/modules/organization/types/Attributes';
-import OrganizationAttributesArrayRenderer from '@/modules/organization/components/organization-attributes-array-renderer.vue';
 import { OrganizationEnrichmentConfig } from '@/modules/organization/config/enrichment/index';
 
 const tags: OrganizationEnrichmentConfig = {
@@ -8,9 +7,6 @@ const tags: OrganizationEnrichmentConfig = {
   type: AttributeType.ARRAY,
   showInForm: true,
   showInAttributes: true,
-  enrichmentSneakPeak: true,
-  enrichmentSneakPeakValue: 'Software',
-  component: OrganizationAttributesArrayRenderer,
 };
 
 export default tags;

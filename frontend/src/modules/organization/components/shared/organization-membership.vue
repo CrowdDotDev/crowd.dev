@@ -27,6 +27,6 @@ const props = withDefaults(
 
 <script lang="ts">
 export default {
-  name: 'LfOrganizationMembership'
-}
+  name: 'LfOrganizationMembership',
+};
 </script>
