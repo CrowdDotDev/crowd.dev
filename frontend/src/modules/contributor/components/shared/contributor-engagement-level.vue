@@ -7,7 +7,7 @@
       Calculating
     </div>
     <template v-else>
-      <div class="text-white h-4 px-1 min-w-4 flex justify-center rounded" :class="`bg-${data.color}`">
+      <div class="text-white h-4 px-1 min-w-4 flex justify-center rounded" :class="data.bg">
         {{ props.contributor.score }}
       </div>
       <p :class="`text-${data.color}`">
@@ -29,6 +29,7 @@ const props = defineProps<{
 const data = computed<{
   label: string,
   color: string,
+  bg: string,
 } | null>(() => {
   const { score } = props.contributor;
   if (score < 0) {
@@ -37,31 +38,36 @@ const data = computed<{
   if (score <= 1) {
     return {
       label: 'Silent',
-      color: 'red-500',
+      color: 'text-red-500',
+      bg: 'bg-red-500',
     };
   }
   if (score <= 3) {
     return {
       label: 'Quiet',
-      color: 'yellow-500',
+      color: 'text-yellow-500',
+      bg: 'bg-yellow-500',
     };
   }
   if (score <= 6) {
     return {
       label: 'Engaged',
-      color: 'green-500',
+      color: 'text-green-500',
+      bg: 'bg-green-500',
     };
   }
   if (score <= 8) {
     return {
       label: 'Fan',
-      color: 'primary-500',
+      color: 'text-primary-500',
+      bg: 'bg-primary-500',
     };
   }
   if (score <= 10) {
     return {
       label: 'Ultra',
-      color: 'purple-500',
+      color: 'text-purple-500',
+      bg: 'bg-purple-500',
     };
   }
   return null;

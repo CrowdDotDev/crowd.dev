@@ -1,6 +1,6 @@
 <template>
   <p class="text-medium">
-    {{ props.data.substring(0, showMore ? props.data.length : 150) }}
+    {{ props.data.substring(0, showMore ? props.data.length : 150) || '-' }}
   </p>
   <lf-button
     v-if="props.data.length > 150"
