@@ -1,5 +1,4 @@
-import { proxyActivities } from '@temporalio/workflow'
-import { performance } from 'perf_hooks'
+import { proxyActivities, continueAsNew } from '@temporalio/workflow'
 
 import * as organizationActivities from '.pnpm/node_modules/@crowd/merge-suggestions-worker/src/activities/organizationMergeSuggestions'
 import * as commonActivities from '.pnpm/node_modules/@crowd/merge-suggestions-worker/src/activities/common'
@@ -23,7 +22,7 @@ export async function mergeOrganizationsWithLLM(
 ): Promise<void> {
   console.log('mergeOrganizationsWithLLM workflow')
 
-  const SUGGESTIONS_PER_RUN = 5
+  const SUGGESTIONS_PER_RUN = 10
   const REGION = 'us-west-2'
   const MODEL_ID = 'anthropic.claude-3-opus-20240229-v1:0'
   const MODEL_ARGS = {
@@ -38,6 +37,10 @@ export async function mergeOrganizationsWithLLM(
     SUGGESTIONS_PER_RUN,
     args.onlyLFXMembers,
   )
+
+  if (suggestions.length === 0) {
+    return
+  }
 
   for (const suggestion of suggestions) {
     const organizations = await organizationActivitiesProxy.getOrganizationsForLLMConsumption(
@@ -64,6 +67,8 @@ export async function mergeOrganizationsWithLLM(
       verdict: llmResult.body.content[0].text,
     })
   }
+
+  await continueAsNew<typeof mergeOrganizationsWithLLM>(args)
 
   // For each suggestion
   // 0. get orgs
