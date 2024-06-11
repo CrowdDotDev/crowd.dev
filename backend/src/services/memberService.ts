@@ -1274,7 +1274,7 @@ export default class MemberService extends LoggerBase {
 
           // Update original member
           const txService = new MemberService(repoOptions as IServiceOptions)
-          
+
           captureNewState({ primary: toUpdate })
 
           await txService.update(originalId, toUpdate, {
