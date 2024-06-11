@@ -9,5 +9,5 @@ CREATE TABLE IF NOT EXISTS "llmSuggestionVerdicts" (
     "inputTokenCount" INTEGER NOT NULL,
     "outputTokenCount" INTEGER NOT NULL,
     "responseTimeSeconds" INTEGER NOT NULL,
-    "createdAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "createdAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
