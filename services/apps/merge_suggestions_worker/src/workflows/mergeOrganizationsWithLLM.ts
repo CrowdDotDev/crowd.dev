@@ -1,6 +1,6 @@
 import { proxyActivities } from '@temporalio/workflow'
+import { performance } from 'perf_hooks'
 
-import * as memberActivities from '.pnpm/node_modules/@crowd/merge-suggestions-worker/src/activities/memberMergeSuggestions'
 import * as organizationActivities from '.pnpm/node_modules/@crowd/merge-suggestions-worker/src/activities/organizationMergeSuggestions'
 import * as commonActivities from '.pnpm/node_modules/@crowd/merge-suggestions-worker/src/activities/common'
 
@@ -9,10 +9,6 @@ import {
   IProcessMergeOrganizationSuggestionsWithLLM,
 } from '.pnpm/node_modules/@crowd/merge-suggestions-worker/src/types'
 import { LLMSuggestionVerdictType } from '@crowd/types'
-
-const memberActivitiesProxy = proxyActivities<typeof memberActivities>({
-  startToCloseTimeout: '1 minute',
-})
 
 const organizationActivitiesProxy = proxyActivities<typeof organizationActivities>({
   startToCloseTimeout: '1 minute',
