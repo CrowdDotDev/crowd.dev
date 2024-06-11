@@ -773,6 +773,9 @@ export default class MemberService extends LoggerBase {
         doPopulateRelations: false,
       })
 
+      // add primary and secondary to no merge so they don't get suggested again
+      await MemberRepository.addNoMerge(memberId, secondaryMember.id, repoOptions)
+
       // trigger entity-merging-worker to move activities in the background
       await SequelizeRepository.commitTransaction(tx)
 
