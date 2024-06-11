@@ -228,6 +228,16 @@ class MemberMergeSuggestionsRepository {
       throw new Error(err)
     }
   }
+
+  async getRawMemberSuggestions(
+    similarityFilter: { lte: string; gte: string },
+    limit: number,
+    onlyLFXMembers = false,
+  ): Promise<string[][]> {
+    console.log(onlyLFXMembers)
+    // TODO: finish this after orgs
+    return []
+  }
 }
 
 export default MemberMergeSuggestionsRepository

@@ -1,4 +1,4 @@
-import { getAllTenants, getLLMResult } from './activities/common'
+import { getAllTenants, getLLMResult, saveLLMVerdict } from './activities/common'
 import {
   getMemberMergeSuggestions,
   addMemberToMerge,
@@ -15,6 +15,7 @@ import {
   updateOrganizationMergeSuggestionsLastGeneratedAt,
   addOrganizationToMerge,
   getOrganizationsForLLMConsumption,
+  getRawOrganizationMergeSuggestions,
 } from './activities/organizationMergeSuggestions'
 
 export {
@@ -32,4 +33,6 @@ export {
   getLLMResult,
   getMembersForLLMConsumption,
   getOrganizationsForLLMConsumption,
+  getRawOrganizationMergeSuggestions,
+  saveLLMVerdict,
 }

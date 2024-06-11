@@ -11,6 +11,7 @@ import {
   IOrganizationPartialAggregatesOpensearchRawResult,
   IOrganizationQueryBody,
   ISimilarOrganizationOpensearch,
+  ISimilarityFilter,
 } from '../types'
 import OrganizationMergeSuggestionsRepository from '@crowd/data-access-layer/src/old/apps/merge_suggestions_worker/organizationMergeSuggestions.repo'
 import { hasLfxMembership } from '@crowd/data-access-layer/src/lfx_memberships'
@@ -354,9 +355,25 @@ export async function addOrganizationToMerge(
 export async function getOrganizationsForLLMConsumption(
   organizationIds: string[],
 ): Promise<ILLMConsumableOrganization[]> {
-  const memberMergeSuggestionsRepo = new OrganizationMergeSuggestionsRepository(
+  const organizationMergeSuggestionsRepo = new OrganizationMergeSuggestionsRepository(
     svc.postgres.writer.connection(),
     svc.log,
   )
-  return memberMergeSuggestionsRepo.getOrganizations(organizationIds)
+  return organizationMergeSuggestionsRepo.getOrganizations(organizationIds)
+}
+
+export async function getRawOrganizationMergeSuggestions(
+  similarityFilter: ISimilarityFilter,
+  limit: number,
+  onlyLFXMembers = false,
+): Promise<string[][]> {
+  const organizationMergeSuggestionsRepo = new OrganizationMergeSuggestionsRepository(
+    svc.postgres.writer.connection(),
+    svc.log,
+  )
+  return organizationMergeSuggestionsRepo.getRawOrganizationSuggestions(
+    similarityFilter,
+    limit,
+    onlyLFXMembers,
+  )
 }

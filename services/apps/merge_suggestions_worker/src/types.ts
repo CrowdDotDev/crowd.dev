@@ -183,6 +183,13 @@ export interface IOrganizationQueryBody {
 }
 
 export interface ILLMResult {
+  body: ILLMBody
+  prompt: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  modelSpecificArgs: any
+}
+
+export interface ILLMBody {
   id: string
   type: string
   role: string
@@ -217,4 +224,14 @@ export interface IProcessCheckSimilarityWithLLM {
   region: string
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   modelSpecificArgs: any
+}
+
+export interface ISimilarityFilter {
+  lte: number
+  gte: number
+}
+
+export interface IProcessMergeOrganizationSuggestionsWithLLM {
+  onlyLFXMembers?: boolean
+  similarity: ISimilarityFilter
 }

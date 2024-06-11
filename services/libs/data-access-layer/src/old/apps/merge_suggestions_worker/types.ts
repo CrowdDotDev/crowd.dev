@@ -28,3 +28,14 @@ export interface IOrganizationMergeSuggestionsLatestGeneratedAt {
 export interface IOrganizationId {
   id: string
 }
+
+export interface IFindRawOrganizationMergeSuggestionsReplacement {
+  similarityLTEFilter?: number
+  similarityGTEFilter?: number
+  limit: number
+}
+
+export interface IRawOrganizationMergeSuggestionResult {
+  organizationId: string
+  toMergeId: string
+}

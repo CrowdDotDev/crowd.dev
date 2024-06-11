@@ -8,10 +8,13 @@ import { spawnOrganizationMergeSuggestionsForAllTenants } from './workflows/spaw
 
 import { llm } from './workflows/llm'
 
+import { mergeOrganizationsWithLLM } from './workflows/mergeOrganizationsWithLLM'
+
 export {
   generateMemberMergeSuggestions,
   spawnMemberMergeSuggestionsForAllTenants,
   generateOrganizationMergeSuggestions,
   spawnOrganizationMergeSuggestionsForAllTenants,
   llm,
+  mergeOrganizationsWithLLM,
 }

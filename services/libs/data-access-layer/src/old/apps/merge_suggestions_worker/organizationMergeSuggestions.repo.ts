@@ -7,9 +7,11 @@ import {
   SuggestionType,
 } from '@crowd/types'
 import {
+  IFindRawOrganizationMergeSuggestionsReplacement,
   IOrganizationId,
   IOrganizationMergeSuggestionsLatestGeneratedAt,
   IOrganizationNoMerge,
+  IRawOrganizationMergeSuggestionResult,
 } from './types'
 import { removeDuplicateSuggestions, chunkArray } from './utils'
 
@@ -237,6 +239,58 @@ class OrganizationMergeSuggestionsRepository {
     } catch (err) {
       throw new Error(err)
     }
+  }
+
+  async getRawOrganizationSuggestions(
+    similarityFilter: { lte: number; gte: number },
+    limit: number,
+    onlyLFXMembers = false,
+  ): Promise<string[][]> {
+    const replacements: IFindRawOrganizationMergeSuggestionsReplacement = { limit }
+    let query: string
+    let similarityLTEFilter = ''
+    let similarityGTEFilter = ''
+
+    if (similarityFilter.lte) {
+      similarityLTEFilter = ` and otmr."similarity" <= $(similarityLTEFilter)`
+      replacements.similarityLTEFilter = similarityFilter.lte
+    }
+
+    if (similarityFilter.gte) {
+      similarityGTEFilter = ` and otmr."similarity" >= $(similarityGTEFilter)`
+      replacements.similarityGTEFilter = similarityFilter.gte
+    }
+    if (onlyLFXMembers) {
+      query = `with suggestions as (
+                        select lfm."organizationId", otmr."toMergeId"
+                        from "lfxMemberships" lfm
+                        join "organizationToMergeRaw" otmr on lfm."organizationId" = otmr."organizationId"
+                        where 1 = 1
+                        ${similarityLTEFilter}
+                        ${similarityGTEFilter}
+                     )
+                     select distinct s."organizationId", s."toMergeId"
+                     from suggestions s
+                     where not exists (select 1
+                                      from "lfxMemberships" lfm
+                                      where lfm."organizationId" = s."toMergeId")
+                     order by s."organizationId" desc
+                     limit $(limit);`
+    } else {
+      query = `select * from "organizationToMergeRaw" otmr
+                     where 1=1
+                     ${similarityLTEFilter}
+                     ${similarityGTEFilter}
+                     order by otmr."organizationId" desc
+                     limit $(limit);`
+    }
+
+    const results: IRawOrganizationMergeSuggestionResult[] = await this.connection.any(
+      query,
+      replacements,
+    )
+
+    return results.map((r) => [r.organizationId, r.toMergeId])
   }
 }
 

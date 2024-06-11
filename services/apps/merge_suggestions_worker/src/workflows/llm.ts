@@ -29,17 +29,16 @@ export async function llm(args: IProcessCheckSimilarityWithLLM): Promise<void> {
       console.log(`Checking similarity between: ${memberCouple[0]} and ${memberCouple[1]}`)
 
       const members = await memberActivitiesProxy.getMembersForLLMConsumption(memberCouple)
-      const res = await commonActivitiesProxy.getLLMResult(
+      const res: ILLMResult = await commonActivitiesProxy.getLLMResult(
         members,
         args.modelId,
         args.prompt,
         args.region,
         args.modelSpecificArgs,
       )
-      const result: ILLMResult = JSON.parse(res)
       console.log(`Raw res: `)
-      console.log(result)
-      totalInputTokenCount += result.usage.input_tokens
+      console.log(res.body)
+      totalInputTokenCount += res.body.usage.input_tokens
       promptCount += 1
     }
   }
@@ -59,10 +58,9 @@ export async function llm(args: IProcessCheckSimilarityWithLLM): Promise<void> {
         args.region,
         args.modelSpecificArgs,
       )
-      const result: ILLMResult = JSON.parse(res)
       console.log(`Raw res: `)
-      console.log(result)
-      totalInputTokenCount += result.usage.input_tokens
+      console.log(res.body)
+      totalInputTokenCount += res.body.usage.input_tokens
       promptCount += 1
     }
   }
