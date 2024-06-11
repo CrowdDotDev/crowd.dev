@@ -6,13 +6,13 @@
     :search-config="memberSearchFilter"
     :saved-views-config="memberSavedViews"
     :custom-config="customAttributesFilter"
-    hash="contacts"
+    hash="contributors"
     @fetch="onFilterChange($event)"
   />
   <div class="flex justify-between pb-5">
     <!-- Total number -->
     <p class="text-small text-gray-500">
-      {{ totalContacts }} contributors
+      {{ pluralize('contributor', totalContacts, true) }}
     </p>
 
     <!-- Sorting -->
@@ -35,6 +35,7 @@
       >
         <lf-dropdown-item
           v-if="sort !== key"
+          :class="sort === key ? 'bg-gray-100' : ''"
           @click="sort = key; fetch()"
         >
           {{ label }}
@@ -74,15 +75,25 @@
       </router-link>
       <div class="flex items-center gap-4">
         <p class="text-small text-gray-500">
-          {{ member.activityCount }} activities
+          {{ pluralize('activity', member.activityCount, true) }}
         </p>
         <lf-contributor-engagement-level :contributor="member" />
-        <div class="h-6 flex items-center px-2 border border-gray-200 rounded-md gap-1.5">
-          <lf-icon name="fingerprint-line" :size="16" />
-          <p class="text-small text-gray-600">
-            {{ identities(member).length }} identities
-          </p>
-        </div>
+
+        <app-identities-horizontal-list-members
+          :member="member"
+          :limit="0"
+        >
+          <template #badge>
+            <div class="py-1">
+              <div class="h-6 flex items-center px-2 border border-gray-200 rounded-md gap-1.5">
+                <lf-icon name="fingerprint-line" :size="16" />
+                <p class="text-small text-gray-600">
+                  {{ pluralize('identity', identities(member).length, true) }}
+                </p>
+              </div>
+            </div>
+          </template>
+        </app-identities-horizontal-list-members>
       </div>
     </article>
     <div v-if="pagination.total >= (pagination.page * pagination.perPage)" class="pt-6 pb-6 flex justify-center">
@@ -114,6 +125,9 @@ import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import LfButton from '@/ui-kit/button/Button.vue';
+import AppIdentitiesHorizontalListMembers
+  from '@/shared/modules/identities/components/identities-horizontal-list-members.vue';
+import pluralize from 'pluralize';
 
 const props = defineProps<{
   organization: Organization,
@@ -137,11 +151,12 @@ const savedBody = ref<any>({});
 const { avatar, isNew, identities } = useContributorHelpers();
 
 const sorters = {
-  activityCount_DESC: 'Most engaged',
-  joinedAt_DESC: 'New contributors',
+  score_DESC: 'Most engaged',
+  activityCount_DESC: 'Most activities',
+  displayName_ASC: 'Alphabetically',
 };
 
-const sort = ref<string>('activityCount_DESC');
+const sort = ref<string>('score_DESC');
 
 const filters = ref<Filter>({
   search: '',
@@ -229,6 +244,6 @@ onMounted(() => {
 
 <script lang="ts">
 export default {
-  name: 'LfOrganizationDetailsContacts',
+  name: 'LfOrganizationDetailsContributors',
 };
 </script>

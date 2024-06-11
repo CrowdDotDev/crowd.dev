@@ -44,8 +44,8 @@
               <lf-tab name="overview">
                 Overview
               </lf-tab>
-              <lf-tab name="contacts">
-                Contacts
+              <lf-tab name="contributors">
+                Contributors
               </lf-tab>
               <lf-tab name="activities">
                 Activities
@@ -56,7 +56,7 @@
         </div>
         <div class="pl-10">
           <lf-organization-details-overview v-if="tabs === 'overview'" :organization="organization" />
-          <lf-organization-details-contacts v-else-if="tabs === 'contacts'" :organization="organization" />
+          <lf-organization-details-contributors v-else-if="tabs === 'contributors'" :organization="organization" />
           <lf-organization-details-activities v-else-if="tabs === 'activities'" :organization="organization" />
         </div>
       </section>
@@ -81,7 +81,6 @@ import LfOrganizationDetailsHeader from '@/modules/organization/components/detai
 import LfOrganizationLastEnrichment from '@/modules/organization/components/shared/organization-last-enrichment.vue';
 import LfOrganizationDetailsActions from '@/modules/organization/components/details/organization-details-actions.vue';
 import LfOrganizationDetailsOverview from '@/modules/organization/components/details/organization-details-overview.vue';
-import LfOrganizationDetailsContacts from '@/modules/organization/components/details/organization-details-contacts.vue';
 import LfOrganizationDetailsActivities
   from '@/modules/organization/components/details/organization-details-activities.vue';
 import LfOrganizationDetailsIdentities
@@ -89,6 +88,8 @@ import LfOrganizationDetailsIdentities
 import LfOrganizationDetailsDomains from '@/modules/organization/components/details/organization-details-domains.vue';
 import LfOrganizationDetailsPhoneNumbers
   from '@/modules/organization/components/details/organization-details-phone-numbers.vue';
+import LfOrganizationDetailsContributors
+  from '@/modules/organization/components/details/organization-details-contributors.vue';
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);

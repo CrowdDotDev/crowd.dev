@@ -10,7 +10,7 @@
             Community size
           </p>
           <p class="text-small text-gray-600">
-            {{ formatNumber(props.organization.activityCount) }} contributors
+            {{ pluralize('contributor', props.organization.memberCount, true) }}
           </p>
         </article>
         <article class="px-4 h-full w-1/2 xl:w-1/3 border-l border-gray-200">
@@ -40,6 +40,7 @@ import LfCard from '@/ui-kit/card/Card.vue';
 import moment from 'moment';
 import { formatNumber } from '@/utils/number';
 import { Organization } from '@/modules/organization/types/Organization';
+import pluralize from 'pluralize';
 
 const props = defineProps<{
   organization: Organization,
