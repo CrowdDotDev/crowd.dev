@@ -15,6 +15,10 @@
     </router-link>
     <lf-dropdown-separator />
   </template>
+  <lf-dropdown-item v-if="identities.length > 1 && hasPermission(LfPermission.memberEdit)" @click="unmerge = props.contributor">
+    <lf-icon name="link-unlink" />
+    Unmerge contributor
+  </lf-dropdown-item>
   <lf-dropdown-item v-if="hasPermission(LfPermission.memberEdit)" :disabled="!!props.contributor.username?.github" @click="emit('findGithub')">
     <lf-icon name="github-fill" />
     Find GitHub
@@ -34,6 +38,11 @@
       Delete contributor
     </lf-dropdown-item>
   </template>
+
+  <app-member-unmerge-dialog
+    v-if="unmerge"
+    v-model="unmerge"
+  />
 </template>
 
 <script setup lang="ts">
@@ -50,6 +59,8 @@ import { MemberService } from '@/modules/member/member-service';
 import { doManualAction } from '@/shared/helpers/manualAction.helpers';
 import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
+import AppMemberUnmergeDialog from '@/modules/member/components/member-unmerge-dialog.vue';
+import { computed, ref } from 'vue';
 
 const props = defineProps<{
   contributor: Contributor,
@@ -62,6 +73,8 @@ const router = useRouter();
 const { hasPermission } = usePermissions();
 const { trackEvent } = useProductTracking();
 const { isTeamContributor, isBot } = useContributorHelpers();
+
+const unmerge = ref<Contributor | null>(null);
 
 const markTeamMember = (teamMember: boolean) => {
   trackEvent({
@@ -149,6 +162,8 @@ const deleteContributor = () => {
     });
   });
 };
+
+const identities = computed(() => (props.contributor.identities || []).filter((i) => i.type !== 'email'));
 </script>
 
 <script lang="ts">
