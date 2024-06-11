@@ -14,7 +14,11 @@ const organizationActivitiesProxy = proxyActivities<typeof organizationActivitie
 })
 
 const commonActivitiesProxy = proxyActivities<typeof commonActivities>({
-  startToCloseTimeout: '1 minute',
+  startToCloseTimeout: '5 minute',
+  retry: {
+    initialInterval: '10 seconds',
+    maximumAttempts: 3,
+  },
 })
 
 export async function mergeOrganizationsWithLLM(
