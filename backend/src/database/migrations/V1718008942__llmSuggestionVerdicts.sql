@@ -11,3 +11,5 @@ CREATE TABLE IF NOT EXISTS "llmSuggestionVerdicts" (
     "responseTimeSeconds" INTEGER NOT NULL,
     "createdAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+create index if not exists "ix_llmSuggestionVerdicts_type_primaryId_secondaryId" on "llmSuggestionVerdicts" ("type", "primaryId", "secondaryId");

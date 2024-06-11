@@ -3,6 +3,7 @@ import { Logger } from '@crowd/logging'
 import {
   ILLMConsumableOrganization,
   IOrganizationMergeSuggestion,
+  LLMSuggestionVerdictType,
   OrganizationMergeSuggestionTable,
   SuggestionType,
 } from '@crowd/types'
@@ -241,6 +242,16 @@ class OrganizationMergeSuggestionsRepository {
     }
   }
 
+  /**
+   * We get raw (unfiltered) suggestions from the database.
+   * When onlyLFXMembers is true it only returns suggestions for lfx member organizations.
+   * All returned suggestions are checked against the "llmSuggestionVerdicts" table to see if they have already been processed.
+   * Already processed suggestions will not be returned.
+   * @param similarityFilter
+   * @param limit
+   * @param onlyLFXMembers
+   * @returns
+   */
   async getRawOrganizationSuggestions(
     similarityFilter: { lte: number; gte: number },
     limit: number,
@@ -274,11 +285,40 @@ class OrganizationMergeSuggestionsRepository {
                      where not exists (select 1
                                       from "lfxMemberships" lfm
                                       where lfm."organizationId" = s."toMergeId")
+                     and not exists (
+                          select 1 from "llmSuggestionVerdicts" lsv 
+                          where (
+                              lsv."primaryId" = s."organizationId" and 
+                              lsv."secondaryId" = s."toMergeId" and 
+                              lsv.type = '${LLMSuggestionVerdictType.ORGANIZATION}'
+                            ) 
+                              or 
+                            (
+                              lsv."primaryId" = s."toMergeId" and
+                              lsv."secondaryId" = s."organizationId" and
+                              lsv.type = '${LLMSuggestionVerdictType.ORGANIZATION}'
+                            
+                            )
+                     )
                      order by s."organizationId" desc
                      limit $(limit);`
     } else {
       query = `select * from "organizationToMergeRaw" otmr
-                     where 1=1
+                     where 
+                     not exists (
+                          select 1 from "llmSuggestionVerdicts" lsv 
+                          where (
+                              lsv."primaryId" = otmr."organizationId" and 
+                              lsv."secondaryId" = otmr."toMergeId" and 
+                              lsv.type = '${LLMSuggestionVerdictType.ORGANIZATION}'
+                            ) 
+                              or 
+                            (
+                              lsv."primaryId" = otmr."toMergeId" and
+                              lsv."secondaryId" = otmr."organizationId" and
+                              lsv.type = '${LLMSuggestionVerdictType.ORGANIZATION}'
+                            )
+                     )
                      ${similarityLTEFilter}
                      ${similarityGTEFilter}
                      order by otmr."organizationId" desc
