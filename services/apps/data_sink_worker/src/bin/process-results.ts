@@ -15,6 +15,7 @@ import {
   QueuePriorityContextLoader,
   SearchSyncWorkerEmitter,
 } from '@crowd/common_services'
+import { getClientSQL } from '@crowd/questdb'
 
 const tracer = getServiceTracer()
 const log = getServiceLogger()
@@ -40,7 +41,9 @@ setImmediate(async () => {
   const sqsClient = getSqsClient(SQS_CONFIG())
   const redis = await getRedisClient(REDIS_CONFIG())
   const dbConnection = await getDbConnection(DB_CONFIG())
+  const qdbConnection = await getClientSQL()
   const store = new DbStore(log, dbConnection)
+  const qdbStore = new DbStore(log, qdbConnection)
 
   const priorityLevelRepo = new PriorityLevelContextRepository(new DbStore(log, dbConnection), log)
   const loader: QueuePriorityContextLoader = (tenantId: string) =>
@@ -78,6 +81,7 @@ setImmediate(async () => {
 
   const service = new DataSinkService(
     store,
+    qdbStore,
     nodejsWorkerEmitter,
     searchSyncWorkerEmitter,
     dataSinkWorkerEmitter,

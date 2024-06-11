@@ -1,6 +1,6 @@
+import { RawQueryParser, generateUUIDv1 as uuid } from '@crowd/common'
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
-import { generateUUIDv1 as uuid } from '@crowd/common'
 import {
   IOrganization,
   IOrganizationSyncRemoteData,
@@ -8,7 +8,6 @@ import {
   SyncStatus,
 } from '@crowd/types'
 import { IOrganizationIdWithAttributes } from './organization.data'
-import { RawQueryParser } from '@crowd/common'
 
 export class OrganizationRepository extends RepositoryBase<OrganizationRepository> {
   constructor(dbStore: DbStore, parentLog: Logger) {
@@ -182,7 +181,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     filter: unknown,
     limit: number,
     offset: number,
-  ) {
+  ): Promise<{ id: string }[]> {
     const params: unknown = {
       tenantId,
       segmentIds,
@@ -206,19 +205,8 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     }
 
     const query = `
-            with orgAggregates as (select memOrgs."organizationId",
-            count(actAgg.id)            as "memberCount",
-            SUM(actAgg."activityCount") as "activityCount"
-        from "memberActivityAggregatesMVs" actAgg
-              inner join "memberOrganizations" memOrgs
-                 on actAgg."id" = memOrgs."memberId"
-                 and memOrgs."deletedAt" is null
-        group by memOrgs."organizationId")
-        select org.*,
-        oa."activityCount",
-        oa."memberCount"
+        select org.*
         from organizations as org
-        inner join orgAggregates oa on oa."organizationId" = org.id
         where org."deletedAt" is null
         and coalesce((org.attributes -> 'syncRemote' -> '${platform}')::boolean, false) = false 
         and org."tenantId" = $(tenantId)
@@ -227,7 +215,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
         limit $(limit) offset $(offset);
     `
 
-    this.log.trace({ query }, 'Generated sql query from advanced filters!')
+    this.log.debug({ query }, 'Generated sql query from advanced filters!')
 
     const results = await this.db().any(query, params)
 

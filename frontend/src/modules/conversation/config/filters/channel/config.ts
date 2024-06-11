@@ -19,8 +19,11 @@ const channel: CustomFilterConfig = {
   },
   apiFilterRenderer({ value, include }:SelectFilterValue): any[] {
     const filter = {
-      channel: value,
+      channel: {
+        eq: value,
+      },
     };
+
     return [
       (include ? filter : { not: filter }),
     ];

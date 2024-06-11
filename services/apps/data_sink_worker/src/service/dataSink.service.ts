@@ -29,7 +29,8 @@ export default class DataSinkService extends LoggerBase {
   private readonly repo: DataSinkRepository
 
   constructor(
-    private readonly store: DbStore,
+    private readonly pgStore: DbStore,
+    private readonly qdbStore: DbStore,
     private readonly nodejsWorkerEmitter: NodejsWorkerEmitter,
     private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
     private readonly dataSinkWorkerEmitter: DataSinkWorkerEmitter,
@@ -40,7 +41,7 @@ export default class DataSinkService extends LoggerBase {
   ) {
     super(parentLog)
 
-    this.repo = new DataSinkRepository(store, this.log)
+    this.repo = new DataSinkRepository(pgStore, this.log)
   }
 
   private async triggerResultError(
@@ -154,7 +155,8 @@ export default class DataSinkService extends LoggerBase {
           switch (data.type) {
             case IntegrationResultType.ACTIVITY: {
               const service = new ActivityService(
-                this.store,
+                this.pgStore,
+                this.qdbStore,
                 this.nodejsWorkerEmitter,
                 this.searchSyncWorkerEmitter,
                 this.redisClient,
@@ -179,7 +181,7 @@ export default class DataSinkService extends LoggerBase {
 
             case IntegrationResultType.MEMBER_ENRICH: {
               const service = new MemberService(
-                this.store,
+                this.pgStore,
                 this.nodejsWorkerEmitter,
                 this.searchSyncWorkerEmitter,
                 this.unleash,
@@ -199,7 +201,7 @@ export default class DataSinkService extends LoggerBase {
             }
 
             case IntegrationResultType.ORGANIZATION_ENRICH: {
-              const service = new OrganizationService(this.store, this.log)
+              const service = new OrganizationService(this.pgStore, this.log)
               const organizationData = data.data as IOrganization
 
               await service.processOrganizationEnrich(
@@ -213,7 +215,7 @@ export default class DataSinkService extends LoggerBase {
 
             case IntegrationResultType.TWITTER_MEMBER_REACH: {
               const service = new MemberService(
-                this.store,
+                this.pgStore,
                 this.nodejsWorkerEmitter,
                 this.searchSyncWorkerEmitter,
                 this.unleash,

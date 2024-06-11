@@ -28,6 +28,7 @@ export interface IOrganization {
   website?: string
   isTeamOrganization?: boolean
   lastEnrichedAt?: string | Date
+  activityCount?: number
   employeeCountByCountry?: Record<string, number>
   type?: string
   geoLocation?: string
@@ -38,9 +39,9 @@ export interface IOrganization {
   address?: IOrganizationAddress
   industry?: string
   founded?: number
+  name?: string // Deprecated
   displayName?: string
   attributes?: IAttributes
-  searchSyncedAt?: string | Date
   manuallyCreated?: boolean
   affiliatedProfiles?: string[]
   allSubsidiaries?: string[]

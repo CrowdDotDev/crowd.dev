@@ -1,4 +1,4 @@
-import { AutomationTrigger, AutomationType, ExportableEntity } from '@crowd/types'
+import { AutomationTrigger, AutomationType } from '@crowd/types'
 
 export type BaseNodeMicroserviceMessage = {
   service: string
@@ -7,13 +7,6 @@ export type BaseNodeMicroserviceMessage = {
 
 export type AutomationMessage = BaseNodeMicroserviceMessage & {
   trigger: AutomationTrigger
-}
-
-export type CsvExportMessage = BaseNodeMicroserviceMessage & {
-  entity: ExportableEntity
-  user: string
-  segmentIds: string[]
-  criteria: any
 }
 
 export type EagleEyeEmailDigestMessage = BaseNodeMicroserviceMessage & {

@@ -14,7 +14,6 @@
   "dependencies": {
     "@crowd/archetype-standard": "workspace:*",
     "@crowd/archetype-worker": "workspace:*",
-    "@crowd/cubejs": "workspace:*",
     "@crowd/types": "workspace:*",
     "@crowd/redis": "workspace:*",
     "@crowd/logging": "workspace:*",

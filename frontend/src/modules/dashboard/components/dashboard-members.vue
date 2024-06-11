@@ -24,21 +24,21 @@
               New contributors
             </h6>
             <app-dashboard-count
-              :loading="!cube"
-              :current-total="cube?.newMembers.total"
-              :previous-total="cube?.newMembers.previousPeriodTotal"
+              :loading="!chartData"
+              :current-total="chartData?.newMembers.total"
+              :previous-total="chartData?.newMembers.previousPeriodTotal"
             />
           </div>
           <div class="w-7/12">
             <!-- Chart -->
             <div
-              v-if="!cube"
-              v-loading="!cube"
+              v-if="!chartData"
+              v-loading="!chartData"
               class="app-page-spinner !relative chart-loading"
             />
             <app-dashboard-widget-chart
               v-else
-              :data="cube?.newMembers.timeseries"
+              :data="chartData?.newMembers.timeseries"
               :datasets="datasets('new contributors')"
             />
           </div>
@@ -130,22 +130,22 @@
 
             <!-- info -->
             <app-dashboard-count
-              :loading="!cube"
-              :current-total="cube?.activeMembers.total"
-              :previous-total="cube?.activeMembers.previousPeriodTotal"
+              :loading="!chartData"
+              :current-total="chartData?.activeMembers.total"
+              :previous-total="chartData?.activeMembers.previousPeriodTotal"
             />
           </div>
           <div class="w-7/12 h-21">
             <!-- Chart -->
             <div
-              v-if="!cube"
-              v-loading="!cube"
+              v-if="!chartData"
+              v-loading="!chartData"
               class="app-page-spinner !relative chart-loading"
             />
             <app-dashboard-widget-chart
               v-else
               :datasets="datasets('active members')"
-              :data="cube?.activeMembers.timeseries"
+              :data="chartData?.activeMembers.timeseries"
             />
           </div>
         </div>
@@ -224,13 +224,10 @@ import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { computed } from 'vue';
 import moment from 'moment';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
-import { DashboardCubeData } from '@/modules/dashboard/types/DashboardCubeData';
 
 const {
-  cubeData, members, period, activeMembers, recentMembers,
+  chartData, members, period, activeMembers, recentMembers,
 } = mapGetters('dashboard');
-
-const cube = computed<DashboardCubeData>(() => cubeData.value);
 
 const periodRange = computed(() => [
   moment()

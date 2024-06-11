@@ -1,5 +1,5 @@
 import { Config } from '@crowd/archetype-standard'
-import { ServiceConsumer, Options } from '@crowd/archetype-consumer'
+import { Options, ServiceConsumer } from '@crowd/archetype-consumer'
 
 const config: Config = {
   producer: {
@@ -7,6 +7,9 @@ const config: Config = {
   },
   temporal: {
     enabled: true,
+  },
+  questdb: {
+    enabled: false,
   },
   redis: {
     enabled: false,

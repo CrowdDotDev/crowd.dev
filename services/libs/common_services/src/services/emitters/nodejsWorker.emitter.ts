@@ -9,9 +9,6 @@ import {
   BulkEnrichQueueMessage,
   EagleEyeEmailDigestQueueMessage,
   EnrichOrganizationQueueMessage,
-  ExportCSVQueueMessage,
-  ExportableEntity,
-  IntegrationDataCheckerQueueMessage,
   NewActivityAutomationQueueMessage,
   NewMemberAutomationQueueMessage,
   ProcessAutomationQueueMessage,
@@ -94,33 +91,11 @@ export class NodejsWorkerEmitter extends QueuePriorityService {
     )
   }
 
-  public async exportCSV(
-    tenantId: string,
-    user: string,
-    entity: ExportableEntity,
-    segmentIds: string[],
-    criteria: any,
-  ): Promise<void> {
-    await this.sendMessage(
-      tenantId,
-      generateUUIDv1(),
-      new ExportCSVQueueMessage(user, tenantId, entity, segmentIds, criteria),
-    )
-  }
-
   public async eagleEyeEmailDigest(tenantId: string, user: string): Promise<void> {
     await this.sendMessage(
       tenantId,
       generateUUIDv1(),
       new EagleEyeEmailDigestQueueMessage(tenantId, user),
-    )
-  }
-
-  public async integrationDataChecker(tenantId: string, integrationId: string): Promise<void> {
-    await this.sendMessage(
-      tenantId,
-      generateUUIDv1(),
-      new IntegrationDataCheckerQueueMessage(tenantId, integrationId),
     )
   }
 

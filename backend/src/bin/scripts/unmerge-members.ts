@@ -165,7 +165,6 @@ if (
                 "lastEnriched", 
                 "contributions", 
                 "enrichedBy", 
-                "searchSyncedAt", 
                 "manuallyCreated")
                 VALUES (
                   :id, 
@@ -185,7 +184,6 @@ if (
                   :lastEnriched,
                   :contributions,
                   :enrichedBy,
-                  :searchSyncedAt,
                   :manuallyCreated)`,
             {
               replacements: {

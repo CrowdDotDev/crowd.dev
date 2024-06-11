@@ -1,11 +1,17 @@
+import { Sender } from '@questdb/nodejs-client'
 import { Kafka, Producer as KafkaProducer } from 'kafkajs'
 
-import { IIntegrationDescriptor, INTEGRATION_SERVICES } from '@crowd/integrations'
-import { getServiceLogger, Logger } from '@crowd/logging'
-import { acquireLock, getRedisClient, RedisClient, releaseLock } from '@crowd/redis'
-import { getServiceTracer, Tracer } from '@crowd/tracing'
-import { getTemporalClient, Client as TemporalClient } from '@crowd/temporal'
+import pgpromise from 'pg-promise'
+
+import { getEnv } from '@crowd/common'
+import { getClientSQL } from '@crowd/questdb'
 import { Unleash as UnleashClient, getUnleashClient } from '@crowd/feature-flags'
+import { IIntegrationDescriptor, INTEGRATION_SERVICES } from '@crowd/integrations'
+import { Logger, getServiceLogger } from '@crowd/logging'
+import { RedisClient, acquireLock, getRedisClient, releaseLock } from '@crowd/redis'
+import { Client as TemporalClient, getTemporalClient } from '@crowd/temporal'
+import { Tracer, getServiceTracer } from '@crowd/tracing'
+import { DbConnection } from '@crowd/database'
 
 // Retrieve automatically configured tracer and logger.
 const tracer = getServiceTracer()
@@ -16,6 +22,15 @@ const envvars = {
   base: ['SERVICE'],
   producer: ['CROWD_KAFKA_BROKERS'],
   temporal: ['CROWD_TEMPORAL_SERVER_URL', 'CROWD_TEMPORAL_NAMESPACE'],
+  questdb: [
+    'CROWD_QUESTDB_READ_HOST',
+    'CROWD_QUESTDB_READ_PORT',
+    'CROWD_QUESTDB_READ_USERNAME',
+    'CROWD_QUESTDB_READ_PASSWORD',
+    'CROWD_QUESTDB_READ_DATABASE',
+    'CROWD_QUESTDB_WRITE_HOST',
+    'CROWD_QUESTDB_WRITE_PORT',
+  ],
   redis: ['CROWD_REDIS_HOST', 'CROWD_REDIS_PORT', 'CROWD_REDIS_USERNAME', 'CROWD_REDIS_PASSWORD'],
 }
 
@@ -42,6 +57,11 @@ export interface Config {
     enabled: boolean
   }
 
+  // Enable and configure the QuestDB client, if needed.
+  questdb: {
+    enabled: boolean
+  }
+
   // Enable and configure the Redis client, if needed.
   redis: {
     enabled: boolean
@@ -62,6 +82,9 @@ export class Service {
 
   protected _kafka: Kafka | null
   protected _temporal: TemporalClient | null
+
+  protected _questdbSQL: pgpromise.IDatabase<unknown>
+  protected _questdbILP: Sender
 
   protected _redisClient: RedisClient | null
 
@@ -113,6 +136,14 @@ export class Service {
     }
 
     return this._redisClient
+  }
+
+  get questdbSQL(): DbConnection | null {
+    if (!this.config.questdb.enabled) {
+      return null
+    }
+
+    return this._questdbSQL
   }
 
   // Redis utility to acquire a lock. Redis must be enabled in the service.
@@ -169,6 +200,19 @@ export class Service {
     // Only validate Temporal-related environment variables if enabled.
     if (this.config.temporal.enabled) {
       envvars.temporal.forEach((envvar) => {
+        if (!process.env[envvar]) {
+          missing.push(envvar)
+        }
+      })
+    }
+
+    // Only validate QuestDB-related environment variables if enabled.
+    if (this.config.questdb.enabled) {
+      if (getEnv() !== 'local') {
+        envvars.questdb.push('CROWD_QUESTDB_WRITE_KEY_ID', 'CROWD_QUESTDB_WRITE_PRIVATE_KEY')
+      }
+
+      envvars.questdb.forEach((envvar) => {
         if (!process.env[envvar]) {
           missing.push(envvar)
         }
@@ -233,6 +277,17 @@ export class Service {
       }
     }
 
+    // If QuestDB is enabled, use the PostgreSQL client for reading data and the
+    // Influx Line Protocol for data ingestion. This allows better/faster
+    // ingestion.
+    if (this.config.questdb?.enabled) {
+      try {
+        this._questdbSQL = await getClientSQL()
+      } catch (err) {
+        throw new Error(err)
+      }
+    }
+
     if (this.config.redis.enabled) {
       try {
         this._redisClient = await getRedisClient({
@@ -255,6 +310,11 @@ export class Service {
 
     if (this.config.temporal.enabled) {
       await this.temporal.connection.close()
+    }
+
+    if (this.config.questdb.enabled) {
+      await this._questdbILP.flush()
+      await this._questdbILP.close()
     }
 
     if (this._unleash) {

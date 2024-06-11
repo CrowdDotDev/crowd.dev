@@ -1,14 +1,17 @@
 import { DbConnection, DbStore } from '@crowd/data-access-layer/src/database'
 import { NextFunction, Request, RequestHandler, Response } from 'express'
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 export interface IDatabaseRequest {
-  dbStore: DbStore
+  pgStore: DbStore
+  qdbStore: DbStore
 }
 
-export const databaseMiddleware = (conn: DbConnection): RequestHandler => {
+export const databaseMiddleware = (pgConn: DbConnection, qdbConn: DbConnection): RequestHandler => {
   return (req: Request, _res: Response, next: NextFunction) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ;(req as any).dbStore = new DbStore(req.log, conn)
+    ;(req as any).pgStore = new DbStore(req.log, pgConn)
+    ;(req as any).qdbStore = new DbStore(req.log, qdbConn)
     next()
   }
 }

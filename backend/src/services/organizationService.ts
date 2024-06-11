@@ -240,7 +240,6 @@ export default class OrganizationService extends LoggerBase {
           industry: null,
           founded: null,
           attributes: {},
-          searchSyncedAt: null,
           affiliatedProfiles: [],
           allSubsidiaries: [],
           alternativeDomains: [],
@@ -645,10 +644,10 @@ export default class OrganizationService extends LoggerBase {
       await searchSyncService.triggerRemoveOrganization(tenantId, toMergeId)
 
       // sync organization members
-      await searchSyncService.triggerOrganizationMembersSync(tenantId, originalId)
-
-      // sync organization activities
-      await searchSyncService.triggerOrganizationActivitiesSync(tenantId, originalId)
+      await searchSyncService.triggerOrganizationMembersSync(
+        this.options.currentTenant.id,
+        originalId,
+      )
 
       this.log.info(
         { originalId, toMergeId },
@@ -739,7 +738,6 @@ export default class OrganizationService extends LoggerBase {
       founded: keepPrimaryIfExists,
       displayName: keepPrimary,
       attributes: keepPrimary,
-      searchSyncedAt: keepPrimary,
       affiliatedProfiles: mergeUniqueStringArrayItems,
       allSubsidiaries: mergeUniqueStringArrayItems,
       alternativeDomains: mergeUniqueStringArrayItems,
@@ -1175,12 +1173,34 @@ export default class OrganizationService extends LoggerBase {
   }
 
   async query(data) {
-    const advancedFilter = data.filter
-    const orderBy = data.orderBy
-    const limit = data.limit
-    const offset = data.offset
-    const pageData = await OrganizationRepository.findAndCountAllOpensearch(
-      { filter: advancedFilter, orderBy, limit, offset, segments: data.segments },
+    const { filter, orderBy, limit, offset, segments } = data
+    return OrganizationRepository.findAndCountAll(
+      {
+        filter,
+        orderBy,
+        limit,
+        offset,
+        segments,
+        fields: [
+          'id',
+          'segmentId',
+          'displayName',
+          'website',
+          'headline',
+          'identities',
+          'memberCount',
+          'activityCount',
+          'lastActive',
+          'joinedAt',
+          'location',
+          'industry',
+          'size',
+          'revenueRange',
+          'founded',
+          'employeeGrowthRate',
+          'tags',
+        ],
+      },
       this.options,
     )
 

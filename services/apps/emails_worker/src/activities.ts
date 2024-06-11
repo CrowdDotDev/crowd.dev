@@ -11,34 +11,35 @@ import {
 
 import { weeklyGetNextEmails, calculateTimes } from './activities/weekly-analytics/getNextEmails'
 import { weeklySendEmail } from './activities/weekly-analytics/sendEmail'
-import {
-  getTotalMembersThisWeek,
-  getTotalMembersPreviousWeek,
-  getActiveMembersThisWeek,
-  getActiveMembersPreviousWeek,
-  getNewMembersThisWeek,
-  getNewMembersPreviousWeek,
-  getTotalOrganizationsThisWeek,
-  getTotalOrganizationsPreviousWeek,
-  getActiveOrganizationsThisWeek,
-  getActiveOrganizationsPreviousWeek,
-  getNewOrganizationsThisWeek,
-  getNewOrganizationsPreviousWeek,
-  getTotalActivitiesThisWeek,
-  getTotalActivitiesPreviousWeek,
-  getNewActivitiesThisWeek,
-  getNewActivitiesPreviousWeek,
-} from './activities/weekly-analytics/buildEmailFromCube'
 
 import {
   getTenantUsers,
   getSegments,
-  getMostActiveMembers,
-  getMostActiveOrganizations,
+  getActiveTenantIntegrations,
+  getTotalMembersThisWeek,
+  getTotalMembersPreviousWeek,
+  getNewMembersThisWeek,
+  getNewMembersPreviousWeek,
+  getTotalOrganizationsThisWeek,
+  getTotalOrganizationsPreviousWeek,
+  getNewOrganizationsThisWeek,
+  getNewOrganizationsPreviousWeek,
+} from './activities/weekly-analytics/buildEmailFromPostgreSQL'
+
+import {
+  getTotalActivitiesThisWeek,
+  getTotalActivitiesPreviousWeek,
+  getNewActivitiesThisWeek,
+  getNewActivitiesPreviousWeek,
+  getMostActiveMembersThisWeek,
+  getMostActiveOrganizationsThisWeek,
   getTopActivityTypes,
   getConversations,
-  getActiveTenantIntegrations,
-} from './activities/weekly-analytics/buildEmailFromDatabase'
+  getActiveMembersThisWeek,
+  getActiveMembersPreviousWeek,
+  getActiveOrganizationsThisWeek,
+  getActiveOrganizationsPreviousWeek,
+} from './activities/weekly-analytics/buildEmailFromQuestDB'
 
 export {
   updateEmailHistory,
@@ -66,8 +67,8 @@ export {
   getNewActivitiesPreviousWeek,
   getTenantUsers,
   getSegments,
-  getMostActiveMembers,
-  getMostActiveOrganizations,
+  getMostActiveMembersThisWeek,
+  getMostActiveOrganizationsThisWeek,
   getTopActivityTypes,
   getConversations,
   getActiveTenantIntegrations,

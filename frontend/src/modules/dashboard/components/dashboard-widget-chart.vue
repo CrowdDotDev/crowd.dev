@@ -3,7 +3,7 @@
     v-if="props.data"
     class="chart"
     :datasets="props.datasets"
-    :result-set="data"
+    :chart-data="props.data"
     :chart-options="
       chartOptions('area', dashboardChartOptions)
     "
@@ -17,17 +17,12 @@
 <script setup lang="ts">
 import { chartOptions } from '@/modules/report/templates/template-chart-config';
 import { dashboardChartOptions } from '@/modules/dashboard/dashboard.chart';
-import { ResultSet } from '@cubejs-client/core';
-import { computed } from 'vue';
 import AppWidgetArea from '@/modules/widget/components/shared/widget-area.vue';
 
 const props = defineProps<{
   data: any,
   datasets: any
 }>();
-
-const data = computed(() => new ResultSet(props.data));
-
 </script>
 
 <script lang="ts">
@@ -42,7 +37,7 @@ export default {
     line-height: 112px !important;
     height: auto !important;
   }
-  .cube-widget-chart {
+  .widget-chart {
     padding: 0;
     min-height: 0;
   }

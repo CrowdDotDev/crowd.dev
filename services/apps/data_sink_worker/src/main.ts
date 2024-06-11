@@ -9,6 +9,7 @@ import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
 import { getSqsClient } from '@crowd/sqs'
+import { getClientSQL } from '@crowd/questdb'
 import {
   DB_CONFIG,
   SQS_CONFIG,
@@ -41,6 +42,7 @@ setImmediate(async () => {
   const sqsClient = getSqsClient(SQS_CONFIG())
 
   const dbConnection = await getDbConnection(DB_CONFIG(), MAX_CONCURRENT_PROCESSING)
+  const qdbConnection = await getClientSQL()
 
   const redisClient = await getRedisClient(REDIS_CONFIG())
 
@@ -79,6 +81,7 @@ setImmediate(async () => {
     WORKER_SETTINGS().queuePriorityLevel,
     sqsClient,
     dbConnection,
+    qdbConnection,
     nodejsWorkerEmitter,
     searchSyncWorkerEmitter,
     dataWorkerEmitter,

@@ -1,5 +1,5 @@
 import { Config } from '@crowd/archetype-standard'
-import { ServiceWorker, Options } from '@crowd/archetype-worker'
+import { Options, ServiceWorker } from '@crowd/archetype-worker'
 
 import { scheduleGenerateMemberMergeSuggestions } from './schedules/memberMergeSuggestions'
 import { scheduleGenerateOrganizationMergeSuggestions } from './schedules/organizationMergeSuggestions'
@@ -11,6 +11,9 @@ const config: Config = {
   },
   temporal: {
     enabled: true,
+  },
+  questdb: {
+    enabled: false,
   },
   redis: {
     enabled: false,

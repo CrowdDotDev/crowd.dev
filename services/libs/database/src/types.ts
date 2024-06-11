@@ -12,6 +12,7 @@ export type DbConnection = pgPromise.IDatabase<unknown>
 export type DbTransaction = pgPromise.ITask<unknown>
 export type DbInstance = pgPromise.IMain
 export type DbColumnSet = pgPromise.ColumnSet
+export type DbConnOrTx = DbConnection | DbTransaction
 
 export enum TableLockLevel {
   AccessShare = 'access share',

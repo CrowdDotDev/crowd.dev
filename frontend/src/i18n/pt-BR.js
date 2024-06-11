@@ -257,10 +257,6 @@ const ptBR = {
         'pull_request-comment': 'commented a pull request',
       },
     },
-
-    report: {
-      menu: 'Analytics',
-    },
   },
 
   auth: {

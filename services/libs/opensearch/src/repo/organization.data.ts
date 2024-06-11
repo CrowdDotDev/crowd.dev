@@ -3,7 +3,6 @@ import { IOrganizationIdentity } from '@crowd/types'
 export interface IDbOrganizationSyncData {
   // organization data
   organizationId: string
-  segmentId: string
   grandParentSegment: boolean
   tenantId: string
   address: unknown | null
@@ -63,26 +62,11 @@ export interface IDbOrganizationSyncData {
   manuallyChangedFields: string[] | null
 
   // aggregate data
-  joinedAt: string
-  lastActive: string
-  activeOn: string[]
-  activityCount: number
-  memberCount: number
   identities: IOrganizationIdentity[]
   memberIds?: string[]
-}
-
-export interface IOrganizationSegmentMatrixItem {
-  segmentId: string
-  processed: boolean
-  data: IDbOrganizationSyncData
-}
-
-export interface IOrganizationSegmentMatrix {
-  [key: string]: IOrganizationSegmentMatrixItem[]
-}
-
-export interface IOrganizationSegment {
-  organizationId: string
-  segmentId: string
+  memberCount: number
+  activityCount: number
+  activeOn: string[]
+  lastActive: string
+  joinedAt: string
 }

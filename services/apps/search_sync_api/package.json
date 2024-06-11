@@ -14,6 +14,7 @@
   "dependencies": {
     "@crowd/common": "workspace:*",
     "@crowd/opensearch": "workspace:*",
+    "@crowd/questdb": "workspace:*",
     "@crowd/data-access-layer": "workspace:*",
     "@crowd/redis": "workspace:*",
     "@crowd/logging": "workspace:*",

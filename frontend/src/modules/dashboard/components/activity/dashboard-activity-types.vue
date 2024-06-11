@@ -1,5 +1,5 @@
 <template>
-  <div v-if="!cubeData">
+  <div v-if="!activityData">
     <div
       v-for="i in 3"
       :key="i"
@@ -20,32 +20,32 @@
   </div>
   <div v-else>
     <article
-      v-for="{ total, plat, type } of activityTypes"
-      :key="`${plat}-${type}`"
+      v-for="{ count, platform, type } of activityData"
+      :key="`${platform}-${type}`"
       class="border-t border-gray-100 py-4 flex items-center justify-between first:border-none"
     >
       <div class="flex items-center">
         <img
-          v-if="getPlatformDetails(plat)"
+          v-if="getPlatformDetails(platform)"
           class="w-4 h-4 mr-3"
-          :src="getPlatformDetails(plat)?.image"
-          :alt="getPlatformDetails(plat)?.name"
+          :src="getPlatformDetails(platform)?.image"
+          :alt="getPlatformDetails(platform)?.name"
         />
         <i v-else class="ri-radar-line text-base text-gray-400 mr-3" />
-        <p v-if="typeNames?.[plat]?.[type]?.display" class="text-xs leading-5 activity-type">
-          {{ typeNames?.[plat]?.[type]?.display?.short }}
+        <p v-if="typeNames?.[platform]?.[type]?.display" class="text-xs leading-5 activity-type">
+          {{ typeNames?.[platform]?.[type]?.display?.short }}
         </p>
         <div v-else class="text-xs leading-5 activity-type">
           Conducted an activity
         </div>
       </div>
       <p class="text-2xs text-gray-400">
-        {{ pluralize('activity', total, true) }} ・
-        {{ Math.round((total / totalActivities) * 100) }}%
+        {{ pluralize('activity', count, true) }} ・
+        {{ Math.round((count / totalActivities) * 100) }}%
       </p>
     </article>
     <div
-      v-if="!cubeData.activity.byTypeAndPlatform || activityTypes.length === 0"
+      v-if="!activityData.length || activityData.length === 0"
       class="flex items-center justify-center pt-6 pb-5"
     >
       <div
@@ -60,48 +60,31 @@
   </div>
 </template>
 
-<script setup>
-import { CrowdIntegrations } from '@/integrations/integrations-config';
-import AppLoading from '@/shared/loading/loading-placeholder.vue';
-import { useActivityTypeStore } from '@/modules/activity/store/type';
-import { storeToRefs } from 'pinia';
+<script setup lang="ts">
 import { computed } from 'vue';
 import pluralize from 'pluralize';
 import merge from 'lodash/merge';
+import { useActivityTypeStore } from '@/modules/activity/store/type';
+import { storeToRefs } from 'pinia';
+import AppLoading from '@/shared/loading/loading-placeholder.vue';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
-import { ResultSet } from '@cubejs-client/core';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
 
-const {
-  cubeData,
-} = mapGetters('dashboard');
+const { chartData } = mapGetters('dashboard');
 
 const activityTypeStore = useActivityTypeStore();
 const { types } = storeToRefs(activityTypeStore);
 
 const typeNames = computed(() => (merge(types.value.default, types.value.custom)));
 
-const activityTypes = computed(() => {
-  if (!cubeData.value?.activity?.bySentimentMood) {
-    return [];
-  }
-  const data = new ResultSet(cubeData.value.activity.byTypeAndPlatform);
-  const pivot = data.chartPivot();
-  return pivot.map((el) => {
-    const [plat, type] = el.x.split(',');
-    return {
-      total: el['Activities.count'],
-      plat,
-      type,
-    };
-  });
-});
+const activityData = computed(() => chartData.value?.activity?.byTypeAndPlatform || []);
 
-const totalActivities = computed(() => activityTypes.value.reduce((a, b) => a + b.total, 0));
+const totalActivities = computed(() => activityData.value.reduce((a, b) => a + b.count, 0));
 
-const getPlatformDetails = (plat) => CrowdIntegrations.getConfig(plat);
+const getPlatformDetails = (plat: string) => CrowdIntegrations.getConfig(plat);
 </script>
 
-<script>
+<script lang="ts">
 export default {
   name: 'AppDashboardActivityTypes',
 };

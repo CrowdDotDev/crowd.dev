@@ -42,7 +42,6 @@ services:
     networks:
       - crowd-bridge
     volumes:
-      - ../../services/libs/alerting/src:/usr/crowd/app/services/libs/alerting/src
       - ../../services/libs/common/src:/usr/crowd/app/services/libs/common/src
       - ../../services/libs/common_services/src:/usr/crowd/app/services/libs/common_services/src
       - ../../services/libs/conversations/src:/usr/crowd/app/services/libs/conversations/src

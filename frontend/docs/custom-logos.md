@@ -114,7 +114,6 @@ BODY:
 }
 ```
 
-3. After creating the activity you will need to check if the custom logo is properly configured in 3 different places:
+3. After creating the activity you will need to check if the custom logo is properly configured in 2 different places:
    1. In "Activities" page search for the newly created activity. The logo should be rendered before the activity type.
    2. In "Members" page and Member's profile page, look for the member who has the associated custom activity. The custom platform should now be added as an identity with the custom logo.
-   3. In "Reports" page, access Members default report and in the last widget, "Leaderboard: Most active members" look for the member who has the associated custom activity. On the right of the number of active days, the member's platforms logos are shown using the `svg` format.

@@ -1,7 +1,7 @@
 import sendgrid from '@sendgrid/mail'
 
 import { Config } from '@crowd/archetype-standard'
-import { ServiceWorker, Options } from '@crowd/archetype-worker'
+import { Options, ServiceWorker } from '@crowd/archetype-worker'
 
 const config: Config = {
   envvars: [
@@ -15,6 +15,9 @@ const config: Config = {
   },
   temporal: {
     enabled: false,
+  },
+  questdb: {
+    enabled: true,
   },
   redis: {
     enabled: true,

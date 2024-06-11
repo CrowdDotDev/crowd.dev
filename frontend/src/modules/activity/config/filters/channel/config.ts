@@ -24,6 +24,7 @@ const channel: CustomFilterConfig = {
     const filter = {
       or: value.map((v) => ({ channel: { eq: v } })),
     };
+
     return [
       (include ? filter : { not: filter }),
     ];

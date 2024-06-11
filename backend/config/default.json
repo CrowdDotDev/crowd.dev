@@ -13,7 +13,6 @@
     "logging": false,
     "transactions": false
   },
-  "cubejs": {},
   "searchEngine": {},
   "segment": {},
   "comprehend": {

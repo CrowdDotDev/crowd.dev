@@ -1,5 +1,5 @@
 import { Config } from '@crowd/archetype-standard'
-import { ServiceWorker, Options } from '@crowd/archetype-worker'
+import { Options, ServiceWorker } from '@crowd/archetype-worker'
 
 const config: Config = {
   envvars: [],
@@ -7,6 +7,9 @@ const config: Config = {
     enabled: false,
   },
   temporal: {
+    enabled: true,
+  },
+  questdb: {
     enabled: true,
   },
   redis: {

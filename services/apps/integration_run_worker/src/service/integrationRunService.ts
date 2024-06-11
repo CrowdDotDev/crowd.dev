@@ -343,7 +343,6 @@ export default class IntegrationRunService extends LoggerBase {
           await txRepo.deleteSampleData(runInfo.tenantId)
         })
 
-        await this.searchSyncWorkerEmitter.triggerActivityCleanup(runInfo.tenantId)
         await this.searchSyncWorkerEmitter.triggerMemberCleanup(runInfo.tenantId)
       } catch (err) {
         this.log.error({ err }, 'Error while deleting sample data!')

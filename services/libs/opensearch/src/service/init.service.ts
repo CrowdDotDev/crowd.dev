@@ -1,13 +1,11 @@
-import { IDbActivitySyncData } from '../repo/activity.data'
 import { IDbMemberSyncData } from '../repo/member.data'
 import { IDbOrganizationSyncData } from '../repo/organization.data'
 import { OpenSearchIndex } from '../types'
 import { Logger, getChildLogger } from '@crowd/logging'
-import { ActivitySyncService } from './activity.sync.service'
 import { MemberSyncService } from './member.sync.service'
 import { OpenSearchService } from './opensearch.service'
 import { OrganizationSyncService } from './organization.sync.service'
-import { MemberIdentityType } from '@crowd/types'
+import { IMemberSegmentAggregates, MemberIdentityType } from '@crowd/types'
 
 export class InitService {
   public static FAKE_TENANT_ID = 'b0e82a13-566f-40e0-b0d0-11fcb6596b0f'
@@ -27,7 +25,6 @@ export class InitService {
     await this.openSearchService.initialize()
 
     await this.createFakeMember()
-    await this.createFakeActivity()
     await this.createFakeOrganization()
   }
 
@@ -35,7 +32,6 @@ export class InitService {
     const fakeOrg: IDbOrganizationSyncData = {
       organizationId: InitService.FAKE_ORGANIZATION_ID,
       tenantId: InitService.FAKE_TENANT_ID,
-      segmentId: InitService.FAKE_SEGMENT_ID,
       grandParentSegment: false,
       address: {
         name: 'paris, ile-de-france, france',
@@ -82,11 +78,6 @@ export class InitService {
       github: {},
       crunchbase: {},
       twitter: {},
-      joinedAt: new Date().toISOString(),
-      lastActive: new Date().toISOString(),
-      activeOn: ['devto'],
-      activityCount: 10,
-      memberCount: 10,
       identities: [
         {
           platform: 'devto',
@@ -143,6 +134,13 @@ export class InitService {
       grossAdditionsByMonth: { '2022-05': 7, '2022-06': 6, '2022-07': 1, '2022-08': 1 },
       grossDeparturesByMonth: { '2022-06': 2, '2022-07': 1, '2022-08': 2, '2022-09': 2 },
       directSubsidiaries: ['Fake direct subsidiary 1', 'Fake direct subsidiary 2'],
+
+      memberIds: [InitService.FAKE_MEMBER_ID],
+      joinedAt: new Date().toISOString(),
+      lastActive: new Date().toISOString(),
+      activeOn: ['devto'],
+      activityCount: 10,
+      memberCount: 10,
     }
 
     const prepared = OrganizationSyncService.prefixData(fakeOrg)
@@ -161,7 +159,6 @@ export class InitService {
     const fakeMember: IDbMemberSyncData = {
       id: InitService.FAKE_MEMBER_ID,
       tenantId: InitService.FAKE_TENANT_ID,
-      segmentId: InitService.FAKE_SEGMENT_ID,
       grandParentSegment: false,
       displayName: 'Test Member',
       score: 10,
@@ -172,14 +169,6 @@ export class InitService {
         total: 20,
       },
       numberOfOpenSourceContributions: 10,
-
-      activeOn: ['devto'],
-      activityCount: 10,
-      activityTypes: ['devto:comment'],
-      activeDaysCount: 20,
-      lastActive: new Date().toISOString(),
-      averageSentiment: 20.32,
-
       contributions: [
         {
           id: '112529472',
@@ -273,50 +262,21 @@ export class InitService {
       manuallyCreated: false,
     }
 
-    const prepared = MemberSyncService.prefixData(fakeMember, [])
+    const aggregates: IMemberSegmentAggregates = {
+      memberId: InitService.FAKE_MEMBER_ID,
+      segmentId: InitService.FAKE_SEGMENT_ID,
+      activeOn: ['devto'],
+      activityCount: 10,
+      activityTypes: ['devto:comment'],
+      activeDaysCount: 20,
+      lastActive: new Date().toISOString(),
+      averageSentiment: 20.32,
+    }
+
+    const prepared = MemberSyncService.prefixData(fakeMember, aggregates, [])
     await this.openSearchService.index(
       `${InitService.FAKE_MEMBER_ID}-${InitService.FAKE_SEGMENT_ID}`,
       OpenSearchIndex.MEMBERS,
-      prepared,
-    )
-  }
-
-  private async createFakeActivity(): Promise<void> {
-    // we need to create a fake activity to initialize the index with the proper data
-    // it will be created in a nonexisting tenant so no one will see it ever
-    // if we don't have anything in the index any search by any field will return an error
-
-    const fakeActivity: IDbActivitySyncData = {
-      id: InitService.FAKE_ACTIVITY_ID,
-      tenantId: InitService.FAKE_TENANT_ID,
-      segmentId: InitService.FAKE_SEGMENT_ID,
-      memberId: InitService.FAKE_MEMBER_ID,
-      type: 'comment',
-      timestamp: new Date().toISOString(),
-      platform: 'devto',
-      isContribution: true,
-      score: 10,
-      sourceId: '123',
-      sourceParentId: '456',
-      attributes: {},
-      channel: 'channel',
-      body: 'body',
-      title: 'title',
-      url: 'https://placehold.co/400',
-      sentiment: 10,
-      importHash: 'importHash',
-      conversationId: InitService.FAKE_CONVERSATION_ID,
-      parentId: '6952eace-e083-4c53-a65c-f99848c47c1c',
-      username: 'Test Member',
-      objectMemberId: '4ea4c0f7-fdf8-448c-99ff-e03d0df95358',
-      objectMemberUsername: 'Test Member2',
-      organizationId: '2badb0e5-e21b-4955-aba7-d52ef66bae59',
-    }
-
-    const prepared = ActivitySyncService.prefixData(fakeActivity)
-    await this.openSearchService.index(
-      InitService.FAKE_ACTIVITY_ID,
-      OpenSearchIndex.ACTIVITIES,
       prepared,
     )
   }

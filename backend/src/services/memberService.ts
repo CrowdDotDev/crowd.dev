@@ -1,5 +1,6 @@
 /* eslint-disable no-continue */
 
+import { captureApiChange, memberEditIdentitiesAction, memberMergeAction } from '@crowd/audit-logs'
 import {
   SERVICE,
   Error400,
@@ -10,27 +11,30 @@ import {
 import { LoggerBase } from '@crowd/logging'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
 import {
-  ExportableEntity,
   FeatureFlag,
   IMemberIdentity,
   IMemberUnmergeBackup,
   IMemberUnmergePreviewResult,
   IOrganization,
   IUnmergePreviewResult,
-  MemberAttributeType,
   MemberIdentityType,
+  MemberRoleUnmergeStrategy,
   MergeActionState,
   MergeActionType,
   SyncMode,
   TemporalWorkflowId,
-  MemberRoleUnmergeStrategy,
 } from '@crowd/types'
 import { randomUUID } from 'crypto'
 import lodash from 'lodash'
 import moment from 'moment-timezone'
 import validator from 'validator'
-import { captureApiChange, memberEditIdentitiesAction, memberMergeAction } from '@crowd/audit-logs'
+import { getActivityCountOfMemberIdentities } from '@crowd/data-access-layer'
+import OrganizationRepository from '@/database/repositories/organizationRepository'
+import { MergeActionsRepository } from '@/database/repositories/mergeActionsRepository'
+import MemberOrganizationRepository from '@/database/repositories/memberOrganizationRepository'
+import { ServiceType } from '@/conf/configTypes'
 import { TEMPORAL_CONFIG } from '@/conf'
+import { GITHUB_TOKEN_CONFIG } from '../conf'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
 import ActivityRepository from '../database/repositories/activityRepository'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
@@ -49,16 +53,10 @@ import telemetryTrack from '../segment/telemetryTrack'
 import { IServiceOptions } from './IServiceOptions'
 import merge from './helpers/merge'
 import MemberAttributeSettingsService from './memberAttributeSettingsService'
+import MemberOrganizationService from './memberOrganizationService'
 import OrganizationService from './organizationService'
 import SearchSyncService from './searchSyncService'
 import SettingsService from './settingsService'
-import { GITHUB_TOKEN_CONFIG } from '../conf'
-import { ServiceType } from '@/conf/configTypes'
-import { getNodejsWorkerEmitter } from '@/serverless/utils/serviceSQS'
-import MemberOrganizationService from './memberOrganizationService'
-import { MergeActionsRepository } from '@/database/repositories/mergeActionsRepository'
-import MemberOrganizationRepository from '@/database/repositories/memberOrganizationRepository'
-import OrganizationRepository from '@/database/repositories/organizationRepository'
 
 export default class MemberService extends LoggerBase {
   options: IServiceOptions
@@ -1018,15 +1016,15 @@ export default class MemberService extends LoggerBase {
         member.memberOrganizations = unmergedRoles
 
         // activity count
-        const secondaryActivityCount = await MemberRepository.getActivityCountOfMembersIdentities(
+        const secondaryActivityCount = await getActivityCountOfMemberIdentities(
+          this.options.qdb,
           member.id,
           secondaryBackup.identities,
-          this.options,
         )
-        const primaryActivityCount = await MemberRepository.getActivityCountOfMembersIdentities(
+        const primaryActivityCount = await getActivityCountOfMemberIdentities(
+          this.options.qdb,
           member.id,
           member.identities,
-          this.options,
         )
 
         return {
@@ -1065,16 +1063,16 @@ export default class MemberService extends LoggerBase {
         throw new Error(`Original member only has one identity, cannot extract it!`)
       }
 
-      const secondaryActivityCount = await MemberRepository.getActivityCountOfMembersIdentities(
+      const secondaryActivityCount = await getActivityCountOfMemberIdentities(
+        this.options.qdb,
         member.id,
         secondaryIdentities,
-        this.options,
       )
 
-      const primaryActivityCount = await MemberRepository.getActivityCountOfMembersIdentities(
+      const primaryActivityCount = await getActivityCountOfMemberIdentities(
+        this.options.qdb,
         member.id,
         primaryIdentities,
-        this.options,
       )
 
       const primaryMemberRoles = await MemberOrganizationRepository.findMemberRoles(
@@ -1864,21 +1862,11 @@ export default class MemberService extends LoggerBase {
     )
   }
 
-  async findAndCountAll(args) {
-    const memberAttributeSettings = (
-      await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
-    ).rows
-    return MemberRepository.findAndCountAll(
-      { ...args, attributesSettings: memberAttributeSettings },
-      this.options,
-    )
-  }
-
   async findByIdOpensearch(id: string, segmentId?: string) {
     return MemberRepository.findByIdOpensearch(id, this.options, segmentId)
   }
 
-  async queryV2(data) {
+  async query(data) {
     if (await isFeatureEnabled(FeatureFlag.SEGMENTS, this.options)) {
       if (data.segments.length !== 1) {
         throw new Error400(
@@ -1905,60 +1893,6 @@ export default class MemberService extends LoggerBase {
       },
       this.options,
     )
-  }
-
-  async query(data, exportMode = false) {
-    const memberAttributeSettings = (
-      await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
-    ).rows.filter((setting) => setting.type !== MemberAttributeType.SPECIAL)
-    const advancedFilter = data.filter
-    const orderBy = data.orderBy
-    const limit = data.limit
-    const offset = data.offset
-    return MemberRepository.findAndCountAll(
-      {
-        advancedFilter,
-        orderBy,
-        limit,
-        offset,
-        attributesSettings: memberAttributeSettings,
-        exportMode,
-      },
-      this.options,
-    )
-  }
-
-  async queryForCsv(data) {
-    data.limit = 10000000000000
-    const found = await this.query(data, true)
-
-    const relations = [
-      { relation: 'organizations', attributes: ['name'] },
-      { relation: 'notes', attributes: ['body'] },
-      { relation: 'tags', attributes: ['name'] },
-    ]
-    for (const relation of relations) {
-      for (const member of found.rows) {
-        member[relation.relation] = member[relation.relation]?.map((i) => ({
-          id: i.id,
-          ...lodash.pick(i, relation.attributes),
-        }))
-      }
-    }
-
-    return found
-  }
-
-  async export(data) {
-    const emitter = await getNodejsWorkerEmitter()
-    await emitter.exportCSV(
-      this.options.currentTenant.id,
-      this.options.currentUser.id,
-      ExportableEntity.MEMBERS,
-      SequelizeRepository.getSegmentIds(this.options),
-      data,
-    )
-    return {}
   }
 
   async findMembersWithMergeSuggestions(args) {

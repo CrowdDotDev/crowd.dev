@@ -2,9 +2,7 @@ import { CrowdJob } from '../../types/jobTypes'
 import integrationTicks from './integrationTicks'
 import memberScoreCoordinator from './memberScoreCoordinator'
 import refreshMaterializedViews from './refreshMaterializedViews'
-import refreshMaterializedViewsForCube from './refreshMaterializedViewsForCube'
 import downgradeExpiredPlans from './downgradeExpiredPlans'
-import integrationDataChecker from './integrationDataChecker'
 import refreshSampleData from './refreshSampleData'
 import cleanUp from './cleanUp'
 import checkStuckIntegrationRuns from './checkStuckIntegrationRuns'
@@ -15,9 +13,7 @@ const jobs: CrowdJob[] = [
   integrationTicks,
   memberScoreCoordinator,
   refreshMaterializedViews,
-  refreshMaterializedViewsForCube,
   downgradeExpiredPlans,
-  integrationDataChecker,
   refreshSampleData,
   cleanUp,
   checkStuckIntegrationRuns,

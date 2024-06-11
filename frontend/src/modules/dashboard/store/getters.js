@@ -4,8 +4,8 @@ export default {
   platform: (state) => state.filters.platform,
   segments: (state) => state.filters.segments,
 
-  // CubeData
-  cubeData: (state) => state.cubeData,
+  // ChartData
+  chartData: (state) => state.chartData,
 
   // Conversations
   recentConversations: (state) => state.conversations.recent,

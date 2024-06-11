@@ -3,17 +3,7 @@ import { proxyActivities } from '@temporalio/workflow'
 import { IProcessRefreshDashboardCacheArgs } from '@crowd/types'
 import * as activities from '../activities/dashboard-cache/refreshDashboardCache'
 
-import {
-  IActiveMembersTimeseriesResult,
-  IActiveOrganizationsTimeseriesResult,
-  IActivityBySentimentMoodResult,
-  IActivityByTypeAndPlatformResult,
-  IActivityTimeseriesResult,
-  IDashboardData,
-  INewMembersTimeseriesResult,
-  INewOrganizationsTimeseriesResult,
-  ITimeframe,
-} from '../types'
+import { IDashboardData, ITimeframe } from '../types'
 import moment from 'moment'
 import { DashboardTimeframe } from '../enums'
 
@@ -122,7 +112,7 @@ async function getDashboardCacheData(
     buildTimeframe(timeframe)
 
   // new members total
-  const newMembersTotal = await activity.getNewMembers<number>({
+  const newMembersTotal = await activity.getNewMembersNumber({
     tenantId,
     segmentIds,
     startDate,
@@ -131,7 +121,7 @@ async function getDashboardCacheData(
   })
 
   // new members previous period total
-  const newMembersPreviousPeriodTotal = await activity.getNewMembers<number>({
+  const newMembersPreviousPeriodTotal = await activity.getNewMembersNumber({
     tenantId,
     segmentIds,
     startDate: previousPeriodStartDate,
@@ -140,18 +130,16 @@ async function getDashboardCacheData(
   })
 
   // new members timeseries
-  const newMembersTimeseries = await activity.getNewMembers<INewMembersTimeseriesResult[]>({
+  const newMembersTimeseries = await activity.getNewMembersTimeseries({
     tenantId,
     segmentIds,
     startDate,
     endDate,
-    granularity: 'day',
     platform,
-    rawResult: true,
   })
 
   // active members total
-  const activeMembersTotal = await activity.getActiveMembers<number>({
+  const activeMembersTotal = await activity.getActiveMembersNumber({
     tenantId,
     segmentIds,
     startDate,
@@ -160,7 +148,7 @@ async function getDashboardCacheData(
   })
 
   // active members previous period total
-  const activeMembersPreviousPeriodTotal = await activity.getActiveMembers<number>({
+  const activeMembersPreviousPeriodTotal = await activity.getActiveMembersNumber({
     tenantId,
     segmentIds,
     startDate: previousPeriodStartDate,
@@ -169,20 +157,16 @@ async function getDashboardCacheData(
   })
 
   // active members timeseries
-  const activeMembersTimeseries = await activity.getActiveMembers<IActiveMembersTimeseriesResult[]>(
-    {
-      tenantId,
-      segmentIds,
-      startDate,
-      endDate,
-      granularity: 'day',
-      platform,
-      rawResult: true,
-    },
-  )
+  const activeMembersTimeseries = await activity.getActiveMembersTimeseries({
+    tenantId,
+    segmentIds,
+    startDate,
+    endDate,
+    platform,
+  })
 
   // new organizations total
-  const newOrganizationsTotal = await activity.getNewOrganizations<number>({
+  const newOrganizationsTotal = await activity.getNewOrganizationsNumber({
     tenantId,
     segmentIds,
     startDate,
@@ -191,7 +175,7 @@ async function getDashboardCacheData(
   })
 
   // new organizations previous period total
-  const newOrganizationsPreviousPeriodTotal = await activity.getNewOrganizations<number>({
+  const newOrganizationsPreviousPeriodTotal = await activity.getNewOrganizationsNumber({
     tenantId,
     segmentIds,
     startDate: previousPeriodStartDate,
@@ -200,20 +184,16 @@ async function getDashboardCacheData(
   })
 
   // new organizations timeseries
-  const newOrganizationsTimeseries = await activity.getNewOrganizations<
-    INewOrganizationsTimeseriesResult[]
-  >({
+  const newOrganizationsTimeseries = await activity.getNewOrganizationsTimeseries({
     tenantId,
     segmentIds,
     startDate,
     endDate,
-    granularity: 'day',
     platform,
-    rawResult: true,
   })
 
   // active organizations total
-  const activeOrganizationsTotal = await activity.getActiveOrganizations<number>({
+  const activeOrganizationsTotal = await activity.getActiveOrganizationsNumber({
     tenantId,
     segmentIds,
     startDate,
@@ -222,7 +202,7 @@ async function getDashboardCacheData(
   })
 
   // active organizations previous period total
-  const activeOrganizationsPreviousPeriodTotal = await activity.getActiveOrganizations<number>({
+  const activeOrganizationsPreviousPeriodTotal = await activity.getActiveOrganizationsNumber({
     tenantId,
     segmentIds,
     startDate: previousPeriodStartDate,
@@ -231,20 +211,16 @@ async function getDashboardCacheData(
   })
 
   // active organizations timeseries
-  const activeOrganizationsTimeseries = await activity.getActiveOrganizations<
-    IActiveOrganizationsTimeseriesResult[]
-  >({
+  const activeOrganizationsTimeseries = await activity.getActiveOrganizationsTimeseries({
     tenantId,
     segmentIds,
     startDate,
     endDate,
-    granularity: 'day',
     platform,
-    rawResult: true,
   })
 
   // activities total
-  const activitiesTotal = await activity.getActivities<number>({
+  const activitiesTotal = await activity.getActivitiesNumber({
     tenantId,
     segmentIds,
     startDate,
@@ -253,7 +229,7 @@ async function getDashboardCacheData(
   })
 
   // activities previous period total
-  const activitiesPreviousPeriodTotal = await activity.getActivities<number>({
+  const activitiesPreviousPeriodTotal = await activity.getActivitiesNumber({
     tenantId,
     segmentIds,
     startDate: previousPeriodStartDate,
@@ -262,39 +238,30 @@ async function getDashboardCacheData(
   })
 
   // activities timeseries
-  const activitiesTimeseries = await activity.getActivities<IActivityTimeseriesResult[]>({
+  const activitiesTimeseries = await activity.getActivitiesTimeseries({
     tenantId,
     segmentIds,
     startDate,
     endDate,
-    granularity: 'day',
     platform,
-    rawResult: true,
   })
 
   // activities by sentiment mood
-  const activitiesBySentimentMood = await activity.getActivities<IActivityBySentimentMoodResult[]>({
+  const activitiesBySentimentMood = await activity.getActivitiesBySentiment({
     tenantId,
     segmentIds,
     startDate,
     endDate,
-    dimensions: ['Activities.sentimentMood'],
     platform,
-    rawResult: true,
   })
 
   // activities by type and platform
-  const activitiesByTypeAndPlatform = await activity.getActivities<
-    IActivityByTypeAndPlatformResult[]
-  >({
+  const activitiesByTypeAndPlatform = await activity.getActivitiesByType({
     tenantId,
     segmentIds,
     startDate,
     endDate,
-    dimensions: ['Activities.platform', 'Activities.type'],
-    order: { 'Activities.count': 'desc' },
     platform,
-    rawResult: true,
   })
 
   return {
@@ -330,10 +297,10 @@ async function getDashboardCacheData(
 
 function buildTimeframe(timeframe: DashboardTimeframe): ITimeframe {
   if (timeframe === DashboardTimeframe.LAST_7_DAYS) {
-    const startDate = moment().subtract(6, 'days').startOf('day').toISOString()
-    const endDate = moment().endOf('day').toISOString()
-    const previousPeriodStartDate = moment().subtract(13, 'days').startOf('day').toISOString()
-    const previousPeriodEndDate = moment().subtract(7, 'days').endOf('day').toISOString()
+    const startDate = moment().subtract(6, 'days').startOf('day').toDate()
+    const endDate = moment().endOf('day').toDate()
+    const previousPeriodStartDate = moment().subtract(13, 'days').startOf('day').toDate()
+    const previousPeriodEndDate = moment().subtract(7, 'days').endOf('day').toDate()
 
     return {
       startDate,
@@ -344,10 +311,10 @@ function buildTimeframe(timeframe: DashboardTimeframe): ITimeframe {
   }
 
   if (timeframe === DashboardTimeframe.LAST_14_DAYS) {
-    const startDate = moment().subtract(13, 'days').startOf('day').toISOString()
-    const endDate = moment().endOf('day').toISOString()
-    const previousPeriodStartDate = moment().subtract(27, 'days').startOf('day').toISOString()
-    const previousPeriodEndDate = moment().subtract(14, 'days').endOf('day').toISOString()
+    const startDate = moment().subtract(13, 'days').startOf('day').toDate()
+    const endDate = moment().endOf('day').toDate()
+    const previousPeriodStartDate = moment().subtract(27, 'days').startOf('day').toDate()
+    const previousPeriodEndDate = moment().subtract(14, 'days').endOf('day').toDate()
 
     return {
       startDate,
@@ -358,10 +325,10 @@ function buildTimeframe(timeframe: DashboardTimeframe): ITimeframe {
   }
 
   if (timeframe === DashboardTimeframe.LAST_30_DAYS) {
-    const startDate = moment().subtract(29, 'days').startOf('day').toISOString()
-    const endDate = moment().endOf('day').toISOString()
-    const previousPeriodStartDate = moment().subtract(59, 'days').startOf('day').toISOString()
-    const previousPeriodEndDate = moment().subtract(30, 'days').endOf('day').toISOString()
+    const startDate = moment().subtract(29, 'days').startOf('day').toDate()
+    const endDate = moment().endOf('day').toDate()
+    const previousPeriodStartDate = moment().subtract(59, 'days').startOf('day').toDate()
+    const previousPeriodEndDate = moment().subtract(30, 'days').endOf('day').toDate()
 
     return {
       startDate,

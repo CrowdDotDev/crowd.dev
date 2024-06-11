@@ -1,5 +1,5 @@
 import { MemberSyncService, OpenSearchService } from '@crowd/opensearch'
-import { DB_CONFIG, OPENSEARCH_CONFIG, REDIS_CONFIG, SERVICE_CONFIG } from '../conf'
+import { DB_CONFIG, OPENSEARCH_CONFIG, REDIS_CONFIG } from '../conf'
 import { MemberRepository } from '@crowd/data-access-layer/src/old/apps/search_sync_worker/member.repo'
 import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { getServiceLogger } from '@crowd/logging'
@@ -7,6 +7,7 @@ import { getRedisClient } from '@crowd/redis'
 import { timeout } from '@crowd/common'
 import { IndexingRepository } from '@crowd/opensearch/src/repo/indexing.repo'
 import { IndexedEntityType } from '@crowd/opensearch/src/repo/indexing.data'
+import { getClientSQL } from '@crowd/questdb'
 
 const log = getServiceLogger()
 
@@ -30,8 +31,10 @@ setImmediate(async () => {
   const repo = new MemberRepository(store, log)
 
   const tenantIds = await repo.getTenantIds()
+  const qdbConn = await getClientSQL()
+  const qdbStore = new DbStore(log, qdbConn)
 
-  const service = new MemberSyncService(redis, store, openSearchService, log, SERVICE_CONFIG())
+  const service = new MemberSyncService(redis, store, qdbStore, openSearchService, log)
 
   let current = 0
   for (let i = 0; i < tenantIds.length; i++) {

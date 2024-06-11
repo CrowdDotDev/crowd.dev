@@ -1,11 +1,12 @@
 import { OrganizationSyncService, OpenSearchService } from '@crowd/opensearch'
-import { OPENSEARCH_CONFIG, SERVICE_CONFIG } from '../conf'
+import { OPENSEARCH_CONFIG } from '../conf'
 import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { getServiceLogger } from '@crowd/logging'
 import { OrganizationRepository } from '@crowd/data-access-layer/src/old/apps/search_sync_worker/organization.repo'
 import { timeout } from '@crowd/common'
 import { IndexingRepository } from '@crowd/opensearch/src/repo/indexing.repo'
 import { IndexedEntityType } from '@crowd/opensearch/src/repo/indexing.data'
+import { getClientSQL } from '@crowd/questdb'
 
 const log = getServiceLogger()
 
@@ -34,6 +35,9 @@ setImmediate(async () => {
     password: process.env.CROWD_DB_PASSWORD,
   })
 
+  const qdbConn = await getClientSQL()
+  const qdbStore = new DbStore(log, qdbConn)
+
   if (processArguments.includes('--clean')) {
     const indexingRepo = new IndexingRepository(writeStore, log)
     await indexingRepo.deleteIndexedEntities(IndexedEntityType.ORGANIZATION)
@@ -45,10 +49,10 @@ setImmediate(async () => {
   const tenantIds = await repo.getTenantIds()
 
   const service = new OrganizationSyncService(
+    qdbStore,
     writeStore,
     openSearchService,
     log,
-    SERVICE_CONFIG(),
     readStore,
   )
 
