@@ -71,7 +71,7 @@
           placement="top"
           trigger="hover"
         >
-          <app-svg name="source" class="h-3 w-3" />
+          <lf-svg name="source" class="h-3 w-3" />
         </el-tooltip>
       </div>
 
@@ -136,7 +136,7 @@
                 trigger="hover"
                 :disabled="!enabled"
               >
-                <app-svg name="source" class="h-3 w-3" />
+                <lf-svg name="source" class="h-3 w-3" />
               </el-tooltip>
             </div>
 
@@ -183,7 +183,7 @@
                 trigger="hover"
                 :disabled="!enabled"
               >
-                <app-svg name="source" class="h-3 w-3" />
+                <lf-svg name="source" class="h-3 w-3" />
               </el-tooltip>
             </div>
             <p v-if="enabled" class="mt-1 text-gray-900 text-xs">
@@ -232,7 +232,7 @@ import {
 import { withHttp } from '@/utils/string';
 import AppOrganizationBadge from '@/modules/organization/components/organization-badge.vue';
 import AppOrganizationHeadline from '@/modules/organization/components/organization-headline..vue';
-import AppSvg from '@/shared/svg/svg.vue';
+import LfSvg from '@/shared/svg/svg.vue';
 import LfOrganizationLfMemberTag from '@/modules/organization/components/lf-member/organization-lf-member-tag.vue';
 import LfEnrichmentSneakPeak from '@/shared/modules/enrichment/components/enrichment-sneak-peak.vue';
 import revenueRange from '../../config/enrichment/revenueRange';

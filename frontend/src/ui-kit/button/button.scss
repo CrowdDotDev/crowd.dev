@@ -293,4 +293,13 @@
   }
 }
 
+.c-btn-group{
+  @apply flex items-start;
 
+  &>.c-btn:not(:last-child){
+    @apply rounded-r-none;
+  }
+  &>.c-btn:not(:first-child){
+    @apply rounded-l-none -ml-px;
+  }
+}

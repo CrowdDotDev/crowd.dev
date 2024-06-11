@@ -9,9 +9,10 @@ export async function databaseInit(
   queryTimeoutMilliseconds: number = 60000,
   forceNewInstance: boolean = false,
   databaseHostnameOverride: string = null,
+  profileQueries: boolean = false,
 ) {
-  if (forceNewInstance) {
-    return models(queryTimeoutMilliseconds, databaseHostnameOverride)
+  if (profileQueries || forceNewInstance) {
+    return models(queryTimeoutMilliseconds, databaseHostnameOverride, profileQueries)
   }
 
   if (!cached) {

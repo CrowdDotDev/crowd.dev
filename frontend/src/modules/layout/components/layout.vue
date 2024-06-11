@@ -49,6 +49,7 @@ export default {
 
         if (updatedValue !== param) {
           this.$router.replace({
+            hash: this.$route.hash,
             query: { ...this.$route.query, menu: updatedValue },
           });
         }

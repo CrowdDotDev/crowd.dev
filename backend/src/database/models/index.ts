@@ -5,7 +5,7 @@ import pg from 'pg'
  * This module creates the Sequelize to the database and
  * exports all the models.
  */
-import { getServiceChildLogger } from '@crowd/logging'
+import { getServiceChildLogger, logExecutionTimeV2 } from '@crowd/logging'
 import { DB_CONFIG, SERVICE } from '../../conf'
 import * as configTypes from '../../conf/configTypes'
 
@@ -49,7 +49,11 @@ function getCredentials(): Credentials {
   }
 }
 
-function models(queryTimeoutMilliseconds: number, databaseHostnameOverride = null) {
+function models(
+  queryTimeoutMilliseconds: number,
+  databaseHostnameOverride = null,
+  profileQueries = false,
+) {
   const database = {} as any
 
   let readHost = SERVICE === configTypes.ServiceType.API ? DB_CONFIG.readHost : DB_CONFIG.writeHost
@@ -101,6 +105,20 @@ function models(queryTimeoutMilliseconds: number, databaseHostnameOverride = nul
         : false,
     },
   )
+
+  if (profileQueries) {
+    const oldQuery = sequelize.query
+    sequelize.query = async (query, options) => {
+      const { replacements } = options || {}
+      const result = await logExecutionTimeV2(
+        () => oldQuery.apply(sequelize, [query, options]),
+        log,
+        `DB Query:\n${query}\n${replacements ? `Params: ${JSON.stringify(replacements)}` : ''}`,
+      )
+
+      return result
+    }
+  }
 
   const modelClasses = [
     require('./activity').default,

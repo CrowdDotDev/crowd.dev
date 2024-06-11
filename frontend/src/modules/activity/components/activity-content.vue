@@ -78,7 +78,7 @@
               "
               v-html="
                 contentRenderEmojis(
-                  $sanitize($marked(`<div class='whitespace-pre-wrap'>${activity.body}</div>`)),
+                  $sanitize($marked(`<div class='whitespace-pre-wrap' style='word-break: break-word'>${activity.body}</div>`)),
                 )
               "
             />

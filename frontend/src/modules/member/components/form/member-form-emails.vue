@@ -20,7 +20,7 @@
                   <span class="text-black">Verify email</span>
                 </el-dropdown-item>
                 <el-dropdown-item v-else @click="unverifyEmail(ii)">
-                  <app-svg name="unverify" class="text-gray-600 mr-3 !h-4 !w-4 min-w-[1rem]" />
+                  <lf-svg name="unverify" class="text-gray-600 mr-3 !h-4 !w-4 min-w-[1rem]" />
                   <span class="text-black">Unverify email</span>
                 </el-dropdown-item>
                 <el-divider />
@@ -50,7 +50,7 @@ import {
 import AppMemberFormEmailsItem from '@/modules/member/components/form/member-form-emails-item.vue';
 import { MemberIdentity } from '@/modules/member/types/Member';
 import LfButton from '@/ui-kit/button/Button.vue';
-import AppSvg from '@/shared/svg/svg.vue';
+import LfSvg from '@/shared/svg/svg.vue';
 
 const emit = defineEmits(['update:modelValue']);
 

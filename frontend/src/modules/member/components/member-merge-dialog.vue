@@ -2,7 +2,7 @@
   <app-dialog
     v-if="isModalOpen"
     v-model="isModalOpen"
-    title="Merge member"
+    title="Merge contributor"
     size="2extra-large"
   >
     <template #content>
@@ -66,8 +66,8 @@
 import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { MemberService } from '@/modules/member/member-service';
+import Message from '@/shared/message/message';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
-import { useMemberStore } from '@/modules/member/store/pinia';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import useMemberMergeMessage from '@/shared/modules/merge/config/useMemberMergeMessage';
@@ -96,9 +96,6 @@ const router = useRouter();
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
-
-const memberStore = useMemberStore();
-const { fetchMembers } = memberStore;
 
 const { doFind } = mapActions('member');
 
@@ -140,7 +137,7 @@ const mergeSuggestion = () => {
   const primaryMember = originalMemberPrimary.value ? props.modelValue : memberToMerge.value;
   const secondaryMember = originalMemberPrimary.value ? memberToMerge.value : props.modelValue;
 
-  const { loadingMessage, successMessage, apiErrorMessage } = useMemberMergeMessage;
+  const { loadingMessage, apiErrorMessage } = useMemberMergeMessage;
 
   loadingMessage();
 
@@ -154,15 +151,16 @@ const mergeSuggestion = () => {
 
   MemberService.merge(primaryMember, secondaryMember)
     .then(() => {
+      Message.closeAll();
+      Message.info(
+        'We’re finalizing contributor merging. We will let you know once the process is completed.',
+        {
+          title: 'Contributors merging in progress',
+        },
+      );
       emit('update:modelValue', null);
 
       if (route.name === 'memberView') {
-        successMessage({
-          primaryMember,
-          secondaryMember,
-          selectedProjectGroupId: selectedProjectGroup.value?.id,
-        });
-
         doFind({
           id: primaryMember.id,
           segments: [selectedProjectGroup.value?.id],
@@ -173,14 +171,6 @@ const mergeSuggestion = () => {
             },
           });
         });
-      } else if (route.name === 'member') {
-        successMessage({
-          primaryMember,
-          secondaryMember,
-          selectedProjectGroupId: selectedProjectGroup.value?.id,
-        });
-
-        fetchMembers({ reload: true });
       }
       emit('update:modelValue', null);
     })

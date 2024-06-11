@@ -24,7 +24,10 @@ export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.memberEdit)
 
   const member = await new MemberService(req).findById(req.params.id)
-  const payload = await new MemberService(req).update(req.params.id, req.body, true, true)
+  const payload = await new MemberService(req).update(req.params.id, req.body, {
+    syncToOpensearch: true,
+    manualChange: true,
+  })
 
   const differentTagIds = lodash.difference(
     payload.tags.map((t) => t.id),

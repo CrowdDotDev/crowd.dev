@@ -155,7 +155,9 @@ async function check(): Promise<number> {
 
         const allMembers = []
         for (const id of data.all_ids) {
-          const member = await MemberRepository.findById(id, txOptions)
+          const member = await MemberRepository.findById(id, txOptions, {
+            doPopulateRelations: false,
+          })
           allMembers.push(member)
         }
 
