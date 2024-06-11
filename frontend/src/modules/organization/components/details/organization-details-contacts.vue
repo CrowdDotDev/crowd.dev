@@ -48,7 +48,7 @@
     <article
       v-for="member of contacts"
       :key="member.id"
-      class="border-b border-gray-200 py-2 flex items-center justify-between"
+      class="border-b border-gray-200 last:border-b-0 py-2 flex items-center justify-between"
     >
       <router-link
         :to="{
@@ -85,6 +85,11 @@
         </div>
       </div>
     </article>
+    <div v-if="pagination.total >= (pagination.page * pagination.perPage)" class="pt-6 pb-6 flex justify-center">
+      <lf-button type="primary-ghost" @click="loadMore">
+        <i class="ri-arrow-down-line" />Load more
+      </lf-button>
+    </div>
   </div>
 </template>
 
@@ -108,6 +113,7 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 const props = defineProps<{
   organization: Organization,
@@ -174,10 +180,9 @@ const doGetMembersCount = () => {
 };
 
 const fetch = () => {
-  if (!loading.value) {
+  if (pagination.value.page <= 1) {
     loading.value = true;
   }
-  pagination.value.page = 1;
   MemberService.listMembers({
     filter: {
       and: [
@@ -185,12 +190,16 @@ const fetch = () => {
         savedBody.value,
       ],
     },
-    offset: 0,
+    offset: (pagination.value.page - 1) * pagination.value.perPage,
     limit: pagination.value.perPage,
     orderBy: sort.value,
   })
     .then((data: Pagination<Member>) => {
-      contacts.value = data.rows;
+      if (pagination.value.page > 1) {
+        contacts.value = [...contacts.value, ...data.rows];
+      } else {
+        contacts.value = data.rows;
+      }
       pagination.value.total = data.count;
     })
     .catch((err) => {

@@ -1,8 +1,6 @@
 import { AttributeType } from '@/modules/organization/types/Attributes';
-import { snakeToSentenceCase, toSentenceCase } from '@/utils/string';
+import { toSentenceCase } from '@/utils/string';
 import { OrganizationEnrichmentConfig } from '@/modules/organization/config/enrichment/index';
-import OrganizationAttributesJSONRenderer from '@/modules/organization/components/details/overview/attributes/organization-attribute-json.vue';
-import { formatFloatToYears } from '@/utils/number';
 
 const employeeCountByCountry: OrganizationEnrichmentConfig = {
   name: 'employeeCountByCountry',

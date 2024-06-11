@@ -1,8 +1,7 @@
 import { AttributeType } from '@/modules/organization/types/Attributes';
-import { formatFloatToPercentage, formatFloatToYears } from '@/utils/number';
+import { formatFloatToPercentage } from '@/utils/number';
 import { snakeToSentenceCase } from '@/utils/string';
 import { OrganizationEnrichmentConfig } from '@/modules/organization/config/enrichment/index';
-import OrganizationAttributesJSONRenderer from '@/modules/organization/components/details/overview/attributes/organization-attribute-json.vue';
 
 const employeeChurnRate: OrganizationEnrichmentConfig = {
   name: 'employeeChurnRate',

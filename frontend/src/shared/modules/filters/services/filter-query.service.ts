@@ -24,7 +24,6 @@ export const filterQueryService = () => {
     Object.keys(object).forEach((key) => {
       if (key === 'settings' && savedViewsConfig) {
         Object.keys(object[key]).forEach((setting) => {
-          console.log(setting);
           object[key][setting] = savedViewsConfig.settings[setting].queryUrlParser(object[key][setting]);
         });
       } else if (key in config) {

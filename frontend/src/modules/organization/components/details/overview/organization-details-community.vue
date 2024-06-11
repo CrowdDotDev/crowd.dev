@@ -38,10 +38,6 @@
 <script setup lang="ts">
 import LfCard from '@/ui-kit/card/Card.vue';
 import moment from 'moment';
-import LfContributorSentiment from '@/modules/contributor/components/shared/contributor-sentiment.vue';
-import LfContributorEngagementLevel from '@/modules/contributor/components/shared/contributor-engagement-level.vue';
-import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { formatNumber } from '@/utils/number';
 import { Organization } from '@/modules/organization/types/Organization';
 
