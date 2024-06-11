@@ -185,6 +185,7 @@ export interface IOrganizationQueryBody {
 export interface ILLMResult {
   body: ILLMBody
   prompt: string
+  responseTimeSeconds: number
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   modelSpecificArgs: any
 }

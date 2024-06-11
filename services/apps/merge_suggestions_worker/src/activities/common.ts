@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { performance } from 'perf_hooks'
 import { ITenant } from '@crowd/data-access-layer/src/old/apps/merge_suggestions_worker//types'
 import { svc } from '../main'
 import TenantRepository from '@crowd/data-access-layer/src/old/apps/merge_suggestions_worker/tenant.repo'
@@ -58,6 +59,14 @@ export async function getLLMResult(
     region,
   })
 
+  const start = performance.now()
+
+  const end = () => {
+    const end = performance.now()
+    const duration = end - start
+    return Math.ceil(duration / 1000)
+  }
+
   const fullPrompt = `Your task is to analyze the following two json documents. <json> ${JSON.stringify(
     suggestion,
   )} </json>. ${prompt}`
@@ -82,7 +91,7 @@ export async function getLLMResult(
     contentType: 'application/json',
   })
 
-  const res = await logExecutionTime(async () => client.send(command), svc.log, 'llm-invoke-model')
+  const res = await client.send(command)
 
   console.log(res.$metadata)
   console.log(res.contentType)
@@ -91,6 +100,7 @@ export async function getLLMResult(
     body: JSON.parse(res.body.transformToString()),
     prompt: fullPrompt,
     modelSpecificArgs,
+    responseTimeSeconds: end(),
   }
 }
 

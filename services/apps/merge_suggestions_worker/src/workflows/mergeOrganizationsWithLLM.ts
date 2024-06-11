@@ -44,14 +44,6 @@ export async function mergeOrganizationsWithLLM(
       suggestion,
     )
 
-    const start = performance.now()
-
-    const end = () => {
-      const end = performance.now()
-      const duration = end - start
-      return Math.ceil(duration / 1000)
-    }
-
     const llmResult: ILLMResult = await commonActivitiesProxy.getLLMResult(
       organizations,
       MODEL_ID,
@@ -66,7 +58,7 @@ export async function mergeOrganizationsWithLLM(
       primaryId: suggestion[0],
       secondaryId: suggestion[1],
       prompt: llmResult.prompt,
-      responseTimeSeconds: end(),
+      responseTimeSeconds: llmResult.responseTimeSeconds,
       inputTokenCount: llmResult.body.usage.input_tokens,
       outputTokenCount: llmResult.body.usage.output_tokens,
       verdict: llmResult.body.content[0].text,
