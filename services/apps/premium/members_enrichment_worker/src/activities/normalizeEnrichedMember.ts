@@ -136,7 +136,7 @@ export async function updateOrganizations(input: EnrichingMember): Promise<strin
             },
           ]
 
-          // find exixting org by identity
+          // find existing org by identity
           let organizationId
           for (const i of identities) {
             organizationId = await findOrganizationByVerifiedIdentity(tx, input.member.tenantId, i)
