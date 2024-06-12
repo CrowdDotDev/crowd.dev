@@ -1,14 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { IGenerateStreamsContext, IProcessStreamContext } from '../../../../types'
-import axios, { AxiosRequestConfig } from 'axios'
-import { getNangoToken } from './../../../nango'
-import { IOrganization, PlatformType } from '@crowd/types'
 import { RequestThrottler } from '@crowd/common'
-import { getOrganizationDomain } from './utils/getOrganizationDomain'
+import { IOrganization, OrganizationIdentityType, PlatformType } from '@crowd/types'
+import axios, { AxiosRequestConfig } from 'axios'
+import { IGenerateStreamsContext, IProcessStreamContext } from '../../../../types'
 import { HubspotOrganizationFieldMapper } from '../field-mapper/organizationFieldMapper'
+import { getNangoToken } from './../../../nango'
 import { IBatchCreateOrganizationsResult } from './types'
-import { getCompanyById } from './companyById'
-import { batchUpdateOrganizations } from './batchUpdateOrganizations'
+import { getOrganizationDomain } from './utils/getOrganizationDomain'
 
 export const batchCreateOrganizations = async (
   nangoId: string,
@@ -30,12 +28,19 @@ export const batchCreateOrganizations = async (
     const hubspotCompanies = []
 
     for (const organization of organizations) {
-      if (!organization.website || !getOrganizationDomain(organization.website)) {
+      const verifiedPrimaryDomains = organization.identities.filter(
+        (i) => i.type === OrganizationIdentityType.PRIMARY_DOMAIN && i.verified,
+      )
+      const domains = verifiedPrimaryDomains
+        .map((i) => getOrganizationDomain(i.value))
+        .filter((i) => i !== null)
+
+      if (domains.length === 0) {
         ctx.log.info(
           `Organization ${organization.id} can't be created in hubspot! Organization doesn't have any associated website or domain can't be derived from existing website.`,
         )
       } else {
-        const organizationDomain = getOrganizationDomain(organization.website)
+        const organizationDomain = domains[0]
 
         const hubspotCompany = {
           properties: {
@@ -83,11 +88,13 @@ export const batchCreateOrganizations = async (
 
     // return hubspot ids back to sync worker for saving
     return result.data.results.reduce((acc, o) => {
-      const organization = organizations.find(
-        (crowdOrganization) =>
-          crowdOrganization.website &&
-          getOrganizationDomain(crowdOrganization.website) === o.properties.domain,
-      )
+      const organization = organizations.find((crowdOrganization) => {
+        const domains = crowdOrganization.identities
+          .filter((i) => i.type === OrganizationIdentityType.PRIMARY_DOMAIN && i.verified)
+          .map((i) => getOrganizationDomain(i.value))
+          .filter((i) => i !== null)
+        return domains.includes(o.properties.domain)
+      })
 
       const hubspotPayload = hubspotCompanies.find(
         (hubspotCompany) => hubspotCompany.properties.domain === o.properties.domain,
@@ -109,45 +116,46 @@ export const batchCreateOrganizations = async (
         { err },
         'Conflict while batch create companies in HubSpot. Trying to resolve the conflicts.',
       )
-      const match = err.response?.data?.message.match(/ID: (\d+)/)
-      const id = match ? match[1] : null
-      if (id) {
-        const organization = await getCompanyById(nangoId, id, organizationMapper, ctx, throttler)
+      // TODO uros fix this
+      // const match = err.response?.data?.message.match(/ID: (\d+)/)
+      // const id = match ? match[1] : null
+      // if (id) {
+      //   const organization = await getCompanyById(nangoId, id, organizationMapper, ctx, throttler)
 
-        if (organization) {
-          // exclude found organization from batch payload
-          const createOrganizations = organizations.filter(
-            (o) => !o.website.includes((organization.properties as any).domain),
-          )
+      //   if (organization) {
+      //     // exclude found organization from batch payload
+      //     const createOrganizations = organizations.filter(
+      //       (o) => !o.website.includes((organization.properties as any).domain),
+      //     )
 
-          const updateOrganizations = organizations
-            .filter((o) => o.website.includes((organization.properties as any).domain))
-            .map((o) => {
-              o.attributes = {
-                ...o.attributes,
-                sourceId: {
-                  hubspot: id,
-                },
-              }
-              return o
-            })
+      //     const updateOrganizations = organizations
+      //       .filter((o) => o.website.includes((organization.properties as any).domain))
+      //       .map((o) => {
+      //         o.attributes = {
+      //           ...o.attributes,
+      //           sourceId: {
+      //             hubspot: id,
+      //           },
+      //         }
+      //         return o
+      //       })
 
-          await batchUpdateOrganizations(
-            nangoId,
-            updateOrganizations,
-            organizationMapper,
-            ctx,
-            throttler,
-          )
-          return await batchCreateOrganizations(
-            nangoId,
-            createOrganizations,
-            organizationMapper,
-            ctx,
-            throttler,
-          )
-        }
-      }
+      //     await batchUpdateOrganizations(
+      //       nangoId,
+      //       updateOrganizations,
+      //       organizationMapper,
+      //       ctx,
+      //       throttler,
+      //     )
+      //     return await batchCreateOrganizations(
+      //       nangoId,
+      //       createOrganizations,
+      //       organizationMapper,
+      //       ctx,
+      //       throttler,
+      //     )
+      //   }
+      // }
     } else {
       ctx.log.error({ err }, 'Error while batch create companies to HubSpot')
       throw err

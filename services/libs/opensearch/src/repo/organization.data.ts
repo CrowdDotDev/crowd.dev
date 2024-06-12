@@ -3,6 +3,7 @@ import { IOrganizationIdentity } from '@crowd/types'
 export interface IDbOrganizationSyncData {
   // organization data
   organizationId: string
+  names: string[]
   segmentId: string
   grandParentSegment: boolean
   tenantId: string
@@ -32,16 +33,9 @@ export interface IDbOrganizationSyncData {
   size: string | null
   type: string | null
   url: string | null
-  website: string | null
-  linkedin: unknown | null
-  github: unknown | null
-  crunchbase: unknown | null
-  twitter: unknown | null
   immediateParent: string | null
   ultimateParent: string | null
-  affiliatedProfiles: string[] | null
   allSubsidiaries: string[] | null
-  alternativeDomains: string[] | null
   alternativeNames: string[] | null
   averageEmployeeTenure: number | null
   averageTenureByLevel: unknown | null
@@ -55,7 +49,6 @@ export interface IDbOrganizationSyncData {
   gicsSector: string | null
   grossAdditionsByMonth: unknown | null
   grossDeparturesByMonth: unknown | null
-  weakIdentities: IOrganizationIdentity[]
   employeeChurnRate12Month: number | null
   employeeGrowthRate12Month: number | null
   tags: string[] | null

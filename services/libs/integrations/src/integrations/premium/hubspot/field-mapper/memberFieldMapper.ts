@@ -9,6 +9,7 @@ import {
   ITagOpensearch,
   OrganizationSource,
   MemberIdentityType,
+  OrganizationIdentityType,
 } from '@crowd/types'
 import { HubspotPropertyType, IFieldProperty, IHubspotContact } from '../types'
 import { HubspotFieldMapper } from './hubspotFieldMapper'
@@ -204,12 +205,16 @@ export class HubspotMemberFieldMapper extends HubspotFieldMapper {
               })
             }
           } else if (crowdKey === 'organizationName') {
+            // TODO uros check if this is verified or not with anil
             member.organizations = [
               {
+                names: [contactProperties[hubspotPropertyName]],
                 identities: [
                   {
-                    name: contactProperties[hubspotPropertyName],
+                    value: contactProperties[hubspotPropertyName],
+                    type: OrganizationIdentityType.USERNAME,
                     platform: PlatformType.HUBSPOT,
+                    verified: true,
                   },
                 ],
                 source: OrganizationSource.HUBSPOT,

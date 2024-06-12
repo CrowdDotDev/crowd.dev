@@ -25,6 +25,7 @@ export default {
     }),
   },
   organization: {
-    handle: (identity) => (identity.url ? identity.url.split('/').at(-1) : identity.name),
+    identityHandle: ({ identityHandle }) => identityHandle,
+    identityLink: ({ identityHandle }) => `https://x.com/${identityHandle}`,
   },
 };

@@ -23,8 +23,11 @@ export default class OrganizationTranslator extends FieldTranslator {
 
     // identities
     this.translations.platform = 'string_platform'
-    this.translations.name = 'string_name'
-    this.translations.url = 'string_url'
+    this.translations.value = 'string_value'
+    this.translations.type = 'keyword_type'
+    this.translations.verified = 'bool_verified'
+    this.translations.sourceId = 'keyword_sourceId'
+    this.translations.integrationId = 'keyword_integrationId'
 
     this.setTranslationMaps()
   }

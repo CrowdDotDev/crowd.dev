@@ -5,6 +5,7 @@ import {
   IOrganization,
   IOrganizationIdSource,
   IOrganizationIdentity,
+  OrganizationIdentityType,
   SyncStatus,
 } from '@crowd/types'
 import {
@@ -29,7 +30,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
   ): Promise<IOrganizationIdentity[]> {
     return await this.db().any(
       `
-      select "sourceId", "platform", "name", "integrationId" from "organizationIdentities"
+      select "sourceId", platform, value, type, verified, "integrationId" from "organizationIdentities"
       where "organizationId" = $(organizationId) and "tenantId" = $(tenantId)
     `,
       {
@@ -39,87 +40,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     )
   }
 
-  public async findIdentities(
-    tenantId: string,
-    identities: IOrganizationIdentity[],
-    organizationId?: string,
-  ): Promise<Map<string, string>> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const params: any = {
-      tenantId,
-    }
-
-    let condition = ''
-    if (organizationId) {
-      condition = 'and "organizationId" <> $(organizationId)'
-      params.organizationId = organizationId
-    }
-
-    const identityParams = identities
-      .map((identity) => `('${identity.platform}', '${identity.name}')`)
-      .join(', ')
-
-    const result = await this.db().any(
-      `
-      with input_identities (platform, name) as (
-        values ${identityParams}
-      )
-      select "organizationId", i.platform, i.name
-      from "organizationIdentities" oi
-        inner join input_identities i on oi.platform = i.platform and oi.name = i.name
-      where oi."tenantId" = $(tenantId) ${condition}
-    `,
-      params,
-    )
-
-    const resultMap = new Map<string, string>()
-    result.forEach((row) => {
-      resultMap.set(`${row.platform}:${row.name}`, row.organizationId)
-    })
-
-    return resultMap
-  }
-
-  public async findInIdentityNames(tenantId: string, name: string): Promise<IDbOrganization> {
-    const result = await this.db().oneOrNone(
-      `
-      with
-          "organizationsWithIdentityName" as (
-              select oi."organizationId"
-              from "organizationIdentities" oi
-              where 
-                    oi.name = $(name)
-              limit 1
-          )
-          select o.id,
-                  o.description,
-                  o.emails,
-                  o.logo,
-                  o.tags,
-                  o.github,
-                  o.twitter,
-                  o.linkedin,
-                  o.crunchbase,
-                  o.employees,
-                  o.location,
-                  o.website,
-                  o.type,
-                  o.size,
-                  o.headline,
-                  o.industry,
-                  o.founded,
-                  o.attributes
-          from organizations o
-          where o."tenantId" = $(tenantId) 
-          and o.id in (select "organizationId" from "organizationsWithIdentityName");
-      `,
-      { tenantId, name },
-    )
-
-    return result
-  }
-
-  public async findByIdentity(
+  public async findByVerifiedIdentity(
     tenantId: string,
     identity: IOrganizationIdentity,
   ): Promise<IDbOrganization> {
@@ -130,21 +51,20 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
               select oi."organizationId"
               from "organizationIdentities" oi
               where 
-                    oi.platform = $(platform)
-                    and oi.name ilike $(name)
+                    oi."tenantId" = $(tenantId)
+                    and oi.platform = $(platform)
+                    and lower(oi.value) = lower($(value))
+                    and oi.type = $(type)
+                    and oi.verified = true
           )
           select o.id,
                   o.description,
+                  o.names,
                   o.emails,
                   o.logo,
                   o.tags,
-                  o.github,
-                  o.twitter,
-                  o.linkedin,
-                  o.crunchbase,
                   o.employees,
                   o.location,
-                  o.website,
                   o.type,
                   o.size,
                   o.headline,
@@ -156,7 +76,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
           and o.id in (select "organizationId" from "organizationsWithIdentity")
           limit 1;
       `,
-      { tenantId, name: identity.name, platform: identity.platform },
+      { tenantId, value: identity.value, platform: identity.platform, type: identity.type },
     )
 
     return result
@@ -184,16 +104,12 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
           )
       select  o.id,
               o.description,
+              o.names,
               o.emails,
               o.logo,
               o.tags,
-              o.github,
-              o.twitter,
-              o.linkedin,
-              o.crunchbase,
               o.employees,
               o.location,
-              o.website,
               o.type,
               o.size,
               o.headline,
@@ -219,28 +135,23 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
       SELECT
         o.id,
         o.description,
+        o.names,
         o.emails,
         o.logo,
         o.tags,
-        o.github,
-        o.twitter,
-        o.linkedin,
-        o.crunchbase,
         o.employees,
         o.location,
-        o.website,
         o.type,
         o.size,
         o.headline,
         o.industry,
         o.founded,
-        o.attributes,
-        o."weakIdentities"
+        o.attributes
       FROM
         organizations o
       WHERE
         o."tenantId" = $(tenantId) AND 
-        o.website = $(domain) AND
+        exists (select 1 from "organizationIdentities" where "organizationId" = o.id and type = '${OrganizationIdentityType.PRIMARY_DOMAIN}' and value = $(domain) and verified = true) AND
         o.id IN (
           SELECT os."organizationId"
           FROM "organizationSegments" os
@@ -257,11 +168,13 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     if (results.length === 0) {
       const data = {
         displayName: domain,
-        website: domain,
+        names: [domain],
         identities: [
           {
             platform: 'email',
-            name: domain,
+            type: OrganizationIdentityType.PRIMARY_DOMAIN,
+            verified: true,
+            value: domain,
           },
         ],
         url: null,
@@ -269,10 +182,6 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
         emails: null,
         logo: null,
         tags: null,
-        github: null,
-        twitter: null,
-        linkedin: null,
-        crunchbase: null,
         employees: null,
         location: null,
         type: null,
@@ -281,7 +190,6 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
         industry: null,
         founded: null,
         attributes: null,
-        weakIdentities: [],
       }
 
       const orgId = await this.insert(tenantId, data)
@@ -301,44 +209,6 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     return results[0]
   }
 
-  public async findByDomain(tenantId: string, domain: string): Promise<IOrganization> {
-    const result = await this.db().oneOrNone(
-      `
-      SELECT
-        o.id,
-        o.description,
-        o.emails,
-        o.logo,
-        o.tags,
-        o.github,
-        o.twitter,
-        o.linkedin,
-        o.crunchbase,
-        o.employees,
-        o.location,
-        o.website,
-        o.type,
-        o.size,
-        o.headline,
-        o.industry,
-        o.founded,
-        o.attributes,
-        o."weakIdentities"
-      FROM
-        organizations o
-      WHERE
-        o."tenantId" = $(tenantId) AND 
-        o.website = $(domain)
-      `,
-      {
-        tenantId,
-        domain,
-      },
-    )
-
-    return result
-  }
-
   public async insert(tenantId: string, data: IDbInsertOrganizationData): Promise<string> {
     const id = generateUUIDv1()
     const ts = new Date()
@@ -347,7 +217,6 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
         ...data,
         id,
         tenantId,
-        weakIdentities: JSON.stringify(data.weakIdentities || []),
         createdAt: ts,
         updatedAt: ts,
       },
@@ -391,10 +260,6 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     const prepared = RepositoryBase.prepare(
       {
         ...data,
-        ...(data?.weakIdentities &&
-          data?.weakIdentities?.length > 0 && {
-            weakIdentities: JSON.stringify(data.weakIdentities),
-          }),
         updatedAt,
       },
       dynamicColumnSet,
@@ -409,14 +274,34 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     await this.db().result(`${query} ${condition}`)
   }
 
+  public async updateIdentity(
+    organizationId: string,
+    tenantId: string,
+    identity: IOrganizationIdentity,
+  ): Promise<void> {
+    const query = `
+      update "organizationIdentities" set verified = $(verified)
+      where "organizationId" = $(organizationId) and "tenantId" = $(tenantId) and platform = $(platform) and value = $(value) and type = $(type)
+    `
+
+    await this.db().none(query, {
+      organizationId,
+      tenantId,
+      platform: identity.platform,
+      value: identity.value,
+      type: identity.type,
+      verified: identity.verified,
+    })
+  }
+
   public async addIdentity(
     organizationId: string,
     tenantId: string,
     identity: IOrganizationIdentity,
   ): Promise<void> {
     const query = `
-    insert into "organizationIdentities"("organizationId", "platform", "name", "url", "sourceId", "tenantId", "integrationId", "createdAt")
-    values ($(organizationId), $(platform), $(name), $(url), $(sourceId), $(tenantId), $(integrationId), now())
+    insert into "organizationIdentities"("organizationId", platform, value, type, verified, "sourceId", "tenantId", "integrationId", "createdAt")
+    values ($(organizationId), $(platform), $(value), $(type), $(verified), $(sourceId), $(tenantId), $(integrationId), now())
     on conflict do nothing;
     `
 
@@ -424,10 +309,11 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
       organizationId,
       platform: identity.platform,
       sourceId: identity.sourceId || null,
-      url: identity.url || null,
+      value: identity.value,
       tenantId,
       integrationId: identity.integrationId,
-      name: identity.name,
+      type: identity.type,
+      verified: identity.verified,
     })
   }
 
