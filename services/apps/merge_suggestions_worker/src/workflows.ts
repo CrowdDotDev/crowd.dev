@@ -10,6 +10,8 @@ import { llm } from './workflows/llm'
 
 import { mergeOrganizationsWithLLM } from './workflows/mergeOrganizationsWithLLM'
 
+import { mergeMembersWithLLM } from './workflows/mergeMembersWithLLM'
+
 export {
   generateMemberMergeSuggestions,
   spawnMemberMergeSuggestionsForAllTenants,
@@ -17,4 +19,5 @@ export {
   spawnOrganizationMergeSuggestionsForAllTenants,
   llm,
   mergeOrganizationsWithLLM,
+  mergeMembersWithLLM,
 }
