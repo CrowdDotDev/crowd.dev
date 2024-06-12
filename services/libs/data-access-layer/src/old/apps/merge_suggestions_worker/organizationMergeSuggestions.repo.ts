@@ -213,7 +213,6 @@ class OrganizationMergeSuggestionsRepository {
             o.logo,
             o.tags,
             o.location,
-            o.website,
             o.type,
             o."geoLocation",
             o.ticker,
@@ -221,8 +220,6 @@ class OrganizationMergeSuggestionsRepository {
             o.headline,
             o.industry,
             o.founded,
-            o."affiliatedProfiles",
-            o."alternativeDomains",
             o."alternativeNames",
             jsonb_agg(oi) as identities
         from

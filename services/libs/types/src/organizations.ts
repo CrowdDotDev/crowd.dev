@@ -229,7 +229,6 @@ export interface ILLMConsumableOrganization {
   logo: string
   tags: string[]
   location: string
-  website: string
   type: string
   geoLocation: string
   ticker: string
@@ -237,8 +236,6 @@ export interface ILLMConsumableOrganization {
   headline: string
   industry: string
   founded: number
-  affiliatedProfiles: string[]
-  alternativeDomains: string[]
   alternativeNames: string[]
   identities: IOrganizationIdentity[]
 }
