@@ -16,7 +16,7 @@ export function chunkArray<T>(array: T[], chunkSize: number): T[][] {
   return chunks
 }
 
-export const obfuscateEmail = (email: string): string => {
+export const obfuscate = (email: string): string => {
   // make email all lowercase
   email = email.toLowerCase()
   const obfuscatedArray: string[] = []
@@ -44,11 +44,9 @@ export const obfuscateEmail = (email: string): string => {
   return obfuscatedArray.join('')
 }
 
-export const obfuscateEmailIdentitiesOfMember = (
-  member: ILLMConsumableMember,
-): ILLMConsumableMember => {
-  for (const emailIdentity of member.identities.filter((identity) => identity.type === 'email')) {
-    emailIdentity.value = obfuscateEmail(emailIdentity.value)
+export const obfuscateIdentitiesOfMember = (member: ILLMConsumableMember): ILLMConsumableMember => {
+  for (const identity of member.identities) {
+    identity.value = obfuscate(identity.value)
   }
 
   return member

@@ -8,7 +8,7 @@ import {
   IProcessMergeOrganizationSuggestionsWithLLM,
 } from '.pnpm/node_modules/@crowd/merge-suggestions-worker/src/types'
 import { LLMSuggestionVerdictType } from '@crowd/types'
-import { obfuscateEmailIdentitiesOfMember } from '../utils'
+import { obfuscateIdentitiesOfMember } from '../utils'
 
 const memberActivitiesProxy = proxyActivities<typeof memberActivities>({
   startToCloseTimeout: '1 minute',
@@ -67,7 +67,7 @@ export async function mergeMembersWithLLM(
     const members = await memberActivitiesProxy.getMembersForLLMConsumption(suggestion)
 
     const llmResult: ILLMResult = await commonActivitiesProxy.getLLMResult(
-      members.map((member) => obfuscateEmailIdentitiesOfMember(member)),
+      members.map((member) => obfuscateIdentitiesOfMember(member)),
       MODEL_ID,
       PROMPT,
       REGION,
