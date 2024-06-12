@@ -55,6 +55,7 @@
     v-if="edit"
     v-model="edit"
     :organization="props.organization"
+    @update:model-value="emit('reload')"
     @reload="emit('reload')"
   />
 </template>

@@ -84,7 +84,6 @@ const serverUpdate = () => {
   });
   OrganizationService.update(props.organization.id, {
     emails: emails.value.filter((e) => !!e.trim()),
-    identities: props.organization.identities,
   }).then(() => {
     Message.success('Organization email updated successfully');
     emit('reload');

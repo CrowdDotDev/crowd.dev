@@ -1,6 +1,6 @@
 <template>
   <section v-bind="$attrs">
-    <div class="flex justify-between items-center pb-6">
+    <div class="flex justify-between items-center pb-5">
       <h6 class="text-h6">
         Domains
       </h6>
@@ -14,45 +14,37 @@
         <lf-icon name="pencil-line" />
       </lf-button>
     </div>
-
-    <div class="flex flex-wrap gap-2">
-      <lf-tooltip
-        v-for="domain of domainList.slice(0, showMore ? domainList.length : 10)"
-        :key="domain"
-        :content="domain"
-        :disabled="domain.length <= 30"
+    <div class="flex flex-col gap-6">
+      <lf-organization-details-domains-section
+        :domains="primaryDomains(props.organization)"
       >
-        <lf-badge
-          type="secondary"
-          class="truncate"
-          style="max-width: 30ch"
-        >
-          {{ domain }}
-        </lf-badge>
-      </lf-tooltip>
+        Primary domain
+      </lf-organization-details-domains-section>
 
-      <div v-if="domainList.length === 0" class="pt-2 flex flex-col items-center w-full">
-        <lf-icon name="at-line" :size="40" class="text-gray-300" />
-        <p class="text-center pt-3 text-medium text-gray-400">
-          No email domains
-        </p>
-      </div>
+      <lf-organization-details-domains-section
+        :domains="alternativeDomains(props.organization)"
+      >
+        Alternative domains
+      </lf-organization-details-domains-section>
+
+      <lf-organization-details-domains-section
+        :domains="affiliatedProfiles(props.organization)"
+      >
+        Affiliated domains
+      </lf-organization-details-domains-section>
     </div>
 
-    <lf-button
-      v-if="domainList.length > 10"
-      type="primary-link"
-      size="medium"
-      class="mt-6"
-      @click="showMore = !showMore"
-    >
-      Show {{ showMore ? 'less' : 'more' }}
-    </lf-button>
+    <div v-if="!domains(props.organization).length" class="pt-2 flex flex-col items-center w-full">
+      <lf-icon name="link" :size="40" class="text-gray-300" />
+      <p class="text-center pt-3 text-medium text-gray-400">
+        No domains
+      </p>
+    </div>
   </section>
-  <app-organization-manage-emails-drawer
+  <app-organization-manage-domains-drawer
     v-if="edit"
     v-model="edit"
-    :organization="props.organization"
+    :organization="organization"
     @reload="emit('reload')"
   />
 </template>
@@ -65,9 +57,10 @@ import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import useOrganizationHelpers from '@/modules/organization/helpers/organization.helpers';
 import { Organization } from '@/modules/organization/types/Organization';
-import AppOrganizationManageEmailsDrawer from '@/modules/organization/components/organization-manage-emails-drawer.vue';
-import LfBadge from '@/ui-kit/badge/Badge.vue';
-import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
+import LfOrganizationDetailsDomainsSection
+  from '@/modules/organization/components/details/domains/organization-details-domains-section.vue';
+import AppOrganizationManageDomainsDrawer
+  from '@/modules/organization/components/organization-manage-domains-drawer.vue';
 
 const props = defineProps<{
   organization: Organization,
@@ -77,7 +70,10 @@ const emit = defineEmits<{(e: 'reload'): any}>();
 
 const { hasPermission } = usePermissions();
 
-const { domains } = useOrganizationHelpers();
+const {
+  primaryDomains, alternativeDomains,
+  affiliatedProfiles, domains,
+} = useOrganizationHelpers();
 
 const domainList = computed(() => domains(props.organization));
 
