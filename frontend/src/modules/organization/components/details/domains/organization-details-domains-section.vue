@@ -1,10 +1,14 @@
 <template>
-  <section v-if="domains.length">
+  <section v-if="props.domains.length">
     <p class="text-small font-semibold pb-3">
       <slot />
     </p>
 
-    <article v-for="domain of domains" class="flex">
+    <article
+      v-for="domain of props.domains.slice(0, showMore ? props.domains.length : limit)"
+      :key="domain"
+      class="flex"
+    >
       <lf-icon name="link" :size="20" class="text-gray-500" />
       <div class="pl-2">
         <div class="flex items-center">
@@ -34,9 +38,9 @@
     </article>
 
     <lf-button
-      v-if="domains.length > 5"
+      v-if="domains.length > limit"
       type="primary-link"
-      size="medium"
+      size="small"
       class="mt-4"
       @click="showMore = !showMore"
     >
@@ -51,7 +55,6 @@ import LfButton from '@/ui-kit/button/Button.vue';
 import { ref } from 'vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { withHttp } from '@/utils/string';
-import { getOrganizationWebsite } from '@/utils/organization';
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 

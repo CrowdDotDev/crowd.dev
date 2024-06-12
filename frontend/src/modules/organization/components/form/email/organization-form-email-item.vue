@@ -78,15 +78,14 @@ const model = ref({
 
 const rules = {
   email: {
-    email
-  }
-}
+    email,
+  },
+};
 
 const $v = useVuelidate(rules, model);
 const update = () => {
   emit('update', model.value.email);
 };
-
 
 const clear = () => {
   model.value.email = props.email;

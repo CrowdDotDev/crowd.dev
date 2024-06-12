@@ -52,7 +52,7 @@
 <script setup lang="ts">
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
-import { computed, ref } from 'vue';
+import { ref } from 'vue';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import useOrganizationHelpers from '@/modules/organization/helpers/organization.helpers';
@@ -75,9 +75,6 @@ const {
   affiliatedProfiles, domains,
 } = useOrganizationHelpers();
 
-const domainList = computed(() => domains(props.organization));
-
-const showMore = ref<boolean>(false);
 const edit = ref<boolean>(false);
 </script>
 

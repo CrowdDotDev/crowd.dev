@@ -83,7 +83,6 @@ const { isNew, website } = useOrganizationHelpers();
 
 const websiteCom = computed(() => website(props.organization));
 
-
 const hasHeaderIdentities = computed(() => props.organization.identities.some((i) => organizationDetailsHeaderProfilePlatforms.includes(i.platform)));
 </script>
 

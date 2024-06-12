@@ -17,7 +17,7 @@
 
     <div class="flex flex-wrap gap-2">
       <lf-tooltip
-        v-for="email of emailList.slice(0, showMore ? emailList.length : 10)"
+        v-for="email of emailList.slice(0, showMore ? emailList.length : limit)"
         :key="email"
         :content="email"
         :disabled="email.length <= 30"
@@ -40,7 +40,7 @@
     </div>
 
     <lf-button
-      v-if="emailList.length > 10"
+      v-if="emailList.length > limit"
       type="primary-link"
       size="medium"
       class="mt-6"
@@ -72,6 +72,8 @@ import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
 const props = defineProps<{
   organization: Organization,
 }>();
+
+const limit = 10;
 
 const emit = defineEmits<{(e: 'reload'): any}>();
 

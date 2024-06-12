@@ -46,59 +46,72 @@
 
   <!-- Contact list -->
   <div>
-    <article
-      v-for="member of contacts"
-      :key="member.id"
-      class="border-b border-gray-200 last:border-b-0 py-2 flex items-center justify-between"
-    >
-      <router-link
-        :to="{
-          name: 'memberView',
-          params: { id: member.id },
-          query: { projectGroup: selectedProjectGroup?.id },
-        }"
-        class="flex items-center gap-2 group"
+    <div>
+      <article
+        v-for="contributor of contributors"
+        :key="contributor.id"
+        class="border-b border-gray-200 last:border-b-0 py-2 flex items-center justify-between"
       >
-        <div
-          class="border-2 rounded-full p-0.5"
-          :class="isNew(member) ? 'border-primary-500' : 'border-transparent'"
+        <router-link
+          :to="{
+            name: 'memberView',
+            params: { id: contributor.id },
+            query: { projectGroup: selectedProjectGroup?.id },
+          }"
+          class="flex items-center gap-2 group"
         >
-          <lf-avatar
-            :src="avatar(member)"
-            :name="member.displayName"
-            :size="32"
-          />
-        </div>
-        <p class="text-medium font-semibold text-black group-hover:text-primary-500 transition">
-          {{ member.displayName }}
-        </p>
-      </router-link>
-      <div class="flex items-center gap-4">
-        <p class="text-small text-gray-500">
-          {{ pluralize('activity', member.activityCount, true) }}
-        </p>
-        <lf-contributor-engagement-level :contributor="member" />
+          <div
+            class="border-2 rounded-full p-0.5"
+            :class="isNew(contributor) ? 'border-primary-500' : 'border-transparent'"
+          >
+            <lf-avatar
+              :src="avatar(contributor)"
+              :name="contributor.displayName"
+              :size="32"
+            />
+          </div>
+          <p class="text-medium font-semibold text-black group-hover:text-primary-500 transition">
+            {{ contributor.displayName }}
+          </p>
+        </router-link>
+        <div class="flex items-center gap-4">
+          <p class="text-small text-gray-500">
+            {{ pluralize('activity', contributor.activityCount, true) }}
+          </p>
+          <lf-contributor-engagement-level :contributor="contributor" />
 
-        <app-identities-horizontal-list-members
-          :member="member"
-          :limit="0"
-        >
-          <template #badge>
-            <div class="py-1">
-              <div class="h-6 flex items-center px-2 border border-gray-200 rounded-md gap-1.5">
-                <lf-icon name="fingerprint-line" :size="16" />
-                <p class="text-small text-gray-600">
-                  {{ pluralize('identity', identities(member).length, true) }}
-                </p>
+          <app-identities-horizontal-list-members
+            :member="contributor"
+            :limit="0"
+          >
+            <template #badge>
+              <div class="py-1">
+                <div class="h-6 flex items-center px-2 border border-gray-200 rounded-md gap-1.5">
+                  <lf-icon name="fingerprint-line" :size="16" />
+                  <p class="text-small text-gray-600">
+                    {{ pluralize('identity', identities(contributor).length, true) }}
+                  </p>
+                </div>
               </div>
-            </div>
-          </template>
-        </app-identities-horizontal-list-members>
-      </div>
-    </article>
-    <div v-if="pagination.total >= (pagination.page * pagination.perPage)" class="pt-6 pb-6 flex justify-center">
-      <lf-button type="primary-ghost" @click="loadMore">
-        <i class="ri-arrow-down-line" />Load more
+            </template>
+          </app-identities-horizontal-list-members>
+        </div>
+      </article>
+    </div>
+    <div
+      v-if="pagination.total > (pagination.page * pagination.perPage)"
+      class="pt-10 pb-6 gap-4 flex justify-center items-center"
+    >
+      <p class="text-small text-gray-400">
+        {{ contributors.length }} of {{ totalContacts }} contributors
+      </p>
+      <lf-button
+        type="primary-ghost"
+        loading-text="Loading contributors..."
+        :loading="loading"
+        @click="loadMore"
+      >
+        Load more
       </lf-button>
     </div>
   </div>
@@ -142,7 +155,7 @@ const { customAttributesFilter } = storeToRefs(memberStore);
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
-const contacts = ref<Member[]>([]);
+const contributors = ref<Member[]>([]);
 const totalContacts = ref<number>(0);
 const loading = ref<boolean>(false);
 
@@ -195,9 +208,7 @@ const doGetMembersCount = () => {
 };
 
 const fetch = () => {
-  if (pagination.value.page <= 1) {
-    loading.value = true;
-  }
+  loading.value = true;
   MemberService.listMembers({
     filter: {
       and: [
@@ -211,14 +222,14 @@ const fetch = () => {
   })
     .then((data: Pagination<Member>) => {
       if (pagination.value.page > 1) {
-        contacts.value = [...contacts.value, ...data.rows];
+        contributors.value = [...contributors.value, ...data.rows];
       } else {
-        contacts.value = data.rows;
+        contributors.value = data.rows;
       }
       pagination.value.total = data.count;
     })
     .catch((err) => {
-      contacts.value = [];
+      contributors.value = [];
       pagination.value.total = 0;
     })
     .finally(() => {
@@ -227,6 +238,9 @@ const fetch = () => {
 };
 
 const loadMore = () => {
+  if (pagination.value.total <= (pagination.value.page * pagination.value.perPage)) {
+    return;
+  }
   pagination.value.page += 1;
   fetch();
 };
@@ -237,8 +251,13 @@ const onFilterChange = (filterQuery: FilterQuery) => {
   pagination.value.total = 0;
   fetch();
 };
+
 onMounted(() => {
   doGetMembersCount();
+});
+
+defineExpose({
+  loadMore,
 });
 </script>
 
