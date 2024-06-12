@@ -53,7 +53,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
               where 
                     oi."tenantId" = $(tenantId)
                     and oi.platform = $(platform)
-                    and oi.value ilike $(value)
+                    and lower(oi.value) = lower($(value))
                     and oi.type = $(type)
                     and oi.verified = true
           )
