@@ -37,7 +37,7 @@
         </lf-tooltip>
         <div class="pl-3 flex items-center">
           <p v-if="!identity.url" class="text-medium max-w-48 truncate">
-            {{ identity.name }}
+            {{ identity.value }}
           </p>
           <a
             v-else
@@ -47,7 +47,7 @@
             class="text-medium cursor-pointer !text-black underline decoration-dashed
              decoration-gray-400 underline-offset-4 hover:decoration-gray-900 max-w-48 truncate"
           >
-            {{ identity.name }}
+            {{ identity.value }}
           </a>
           <p v-if="!platform(identity.platform)" class="text-medium text-gray-400 ml-1">
             {{ identity.platform }}

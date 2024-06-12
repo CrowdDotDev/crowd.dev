@@ -26,6 +26,11 @@
             class="mb-8"
             @reload="fetchOrganization()"
           />
+          <lf-organization-details-emails
+            :organization="organization"
+            class="mb-8"
+            @reload="fetchOrganization()"
+          />
           <lf-organization-details-domains
             :organization="organization"
             class="mb-8"
@@ -90,6 +95,7 @@ import LfOrganizationDetailsPhoneNumbers
   from '@/modules/organization/components/details/organization-details-phone-numbers.vue';
 import LfOrganizationDetailsContributors
   from '@/modules/organization/components/details/organization-details-contributors.vue';
+import LfOrganizationDetailsEmails from '@/modules/organization/components/details/organization-details-emails.vue';
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);

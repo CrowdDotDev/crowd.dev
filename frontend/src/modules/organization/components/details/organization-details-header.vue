@@ -40,18 +40,18 @@
           </p>
         </template>
         <a
-          v-if="!!props.organization.website"
-          :href="withHttp(props.organization.website)"
+          v-if="!!websiteCom"
+          :href="withHttp(websiteCom.value)"
           class="flex items-center gap-1 group"
           target="_blank"
           rel="noopener noreferrer"
         >
           <lf-icon name="link" :size="16" class="text-gray-400" />
           <div class="text-gray-500 text-small truncate group-hover:text-primary-500" style="max-width: 20ch">
-            {{ props.organization.website }}
+            {{ websiteCom.value }}
           </div>
         </a>
-        <p v-if="hasHeaderIdentities && !!props.organization.website" class="text-small text-gray-400">
+        <p v-if="hasHeaderIdentities && !!websiteCom" class="text-small text-gray-400">
           •
         </p>
         <lf-organization-details-header-profiles :organization="props.organization" />
@@ -79,7 +79,10 @@ const props = defineProps<{
   organization: Organization,
 }>();
 
-const { isNew } = useOrganizationHelpers();
+const { isNew, website } = useOrganizationHelpers();
+
+const websiteCom = computed(() => website(props.organization));
+
 
 const hasHeaderIdentities = computed(() => props.organization.identities.some((i) => organizationDetailsHeaderProfilePlatforms.includes(i.platform)));
 </script>
