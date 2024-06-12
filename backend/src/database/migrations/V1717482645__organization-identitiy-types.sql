@@ -43,9 +43,17 @@ alter table "organizationIdentities"
 alter table "organizationIdentities"
     add column value text null;
 
+-- create temp primary key
+alter table "organizationIdentities"
+    add column temp_id uuid default uuid_generate_v4() not null;
+
 -- organizationId, platform, name
 alter table "organizationIdentities"
     drop constraint "organizationIdentities_pkey";
+
+alter table "organizationIdentities"
+    add primary key (temp_id);
+
 
 alter table "organizationIdentities"
     alter column name drop not null;
@@ -699,7 +707,13 @@ alter table "organizationIdentities"
     alter column value set not null;
 
 alter table "organizationIdentities"
+    drop constraint "organizationIdentities_pkey";
+
+alter table "organizationIdentities"
     add primary key ("organizationId", platform, type, value);
+
+alter table "organizationIdentities"
+    drop column temp_id;
 
 create unique index "uix_organizationIdentities_plat_val_typ_tenantId_verified"
     on "organizationIdentities" (platform, value, type, "tenantId", verified)
