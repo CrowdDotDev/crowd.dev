@@ -64,7 +64,7 @@ $$
             loop
                 -- determine if it's verified or not
                 verified := false;
-                platform := 'integrations';
+                platform := 'integration';
 
                 if (select count(*) from "organizationIdentities" where "organizationId" = org.id) = 0 then
                     verified := true;
