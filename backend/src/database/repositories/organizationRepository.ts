@@ -900,7 +900,7 @@ class OrganizationRepository {
           oldOrganizationId: fromOrganizationId,
           newOrganizationId: toOrganizationId,
           platform: identity.platform,
-          name: identity.value,
+          value: identity.value,
           type: identity.type,
           verified: identity.verified,
         },
