@@ -502,14 +502,15 @@ class OrganizationRepository {
 
         captureOldState(record.get({ plain: true }))
 
-        const primaryDomainIdentity = data.identities.find(
-          (i) => i.type === OrganizationIdentityType.PRIMARY_DOMAIN && i.verified,
-        )
+        if (data.identities) {
+          const primaryDomainIdentity = data.identities.find(
+            (i) => i.type === OrganizationIdentityType.PRIMARY_DOMAIN && i.verified,
+          )
 
-        // check if domain already exists in another organization in the same tenant
-        if (primaryDomainIdentity) {
-          const existingOrg = (await seq.query(
-            `
+          // check if domain already exists in another organization in the same tenant
+          if (primaryDomainIdentity) {
+            const existingOrg = (await seq.query(
+              `
           select "organizationId"
           from "organizationIdentities" 
           where 
@@ -519,25 +520,26 @@ class OrganizationRepository {
             value = :value and 
             verified = true
           `,
-            {
-              replacements: {
-                tenantId: currentTenant.id,
-                id: record.id,
-                type: OrganizationIdentityType.PRIMARY_DOMAIN,
-                value: primaryDomainIdentity.value,
+              {
+                replacements: {
+                  tenantId: currentTenant.id,
+                  id: record.id,
+                  type: OrganizationIdentityType.PRIMARY_DOMAIN,
+                  value: primaryDomainIdentity.value,
+                },
+                type: QueryTypes.SELECT,
+                transaction,
               },
-              type: QueryTypes.SELECT,
-              transaction,
-            },
-          )) as any[]
+            )) as any[]
 
-          // ensure that it's not the same organization
-          if (existingOrg && existingOrg.length > 0) {
-            throw new Error409(
-              options.language,
-              'errors.alreadyExists',
-              existingOrg[0].organizationId,
-            )
+            // ensure that it's not the same organization
+            if (existingOrg && existingOrg.length > 0) {
+              throw new Error409(
+                options.language,
+                'errors.alreadyExists',
+                existingOrg[0].organizationId,
+              )
+            }
           }
         }
 

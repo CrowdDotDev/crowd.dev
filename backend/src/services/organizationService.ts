@@ -996,17 +996,17 @@ export default class OrganizationService extends LoggerBase {
         data.members = await MemberRepository.filterIdsInTenant(data.members, repoOptions)
       }
 
-      // Normalize the website identities
-      for (const i of data.identities.filter((i) =>
-        [
-          OrganizationIdentityType.PRIMARY_DOMAIN,
-          OrganizationIdentityType.ALTERNATIVE_DOMAIN,
-        ].includes(i.type),
-      )) {
-        i.value = websiteNormalizer(i.value)
-      }
-
       if (data.identities) {
+        // Normalize the website identities
+        for (const i of data.identities.filter((i) =>
+          [
+            OrganizationIdentityType.PRIMARY_DOMAIN,
+            OrganizationIdentityType.ALTERNATIVE_DOMAIN,
+          ].includes(i.type),
+        )) {
+          i.value = websiteNormalizer(i.value)
+        }
+
         const existingIdentities = await OrganizationRepository.getIdentities(id, repoOptions)
 
         const toUpdate: IOrganizationIdentity[] = []
