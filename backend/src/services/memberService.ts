@@ -649,7 +649,19 @@ export default class MemberService extends LoggerBase {
       // remove identities in secondary member from primary member
       await MemberRepository.removeIdentitiesFromMember(
         memberId,
-        payload.secondary.identities,
+        payload.secondary.identities.filter(
+          (i) =>
+            i.verified === undefined || // backwards compatibility for old identity backups
+            i.verified === true ||
+            (i.verified === false &&
+              !payload.primary.identities.some(
+                (pi) =>
+                  pi.verified === false &&
+                  pi.platform === i.platform &&
+                  pi.value === i.value &&
+                  pi.type === i.type,
+              )),
+        ),
         repoOptions,
       )
 

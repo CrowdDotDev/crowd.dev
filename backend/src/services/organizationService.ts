@@ -296,36 +296,21 @@ export default class OrganizationService extends LoggerBase {
       // remove identities in secondary organization from primary
       await OrganizationRepository.removeIdentitiesFromOrganization(
         organizationId,
-        payload.secondary.identities,
+        payload.secondary.identities.filter(
+          (i) =>
+            i.verified === undefined || // backwards compatibility for old identity backups
+            i.verified === true ||
+            (i.verified === false &&
+              !payload.primary.identities.some(
+                (pi) =>
+                  pi.verified === false &&
+                  pi.platform === i.platform &&
+                  pi.value === i.value &&
+                  pi.type === i.type,
+              )),
+        ),
         repoOptions,
       )
-
-      // check domains before creating the secondary org
-      const orgDomains = organization.identities
-        .filter((i) => i.verified && i.type === OrganizationIdentityType.PRIMARY_DOMAIN)
-        .map((i) => i.value)
-
-      const primaryDomains = payload.primary.identities
-        .filter((i) => i.type === OrganizationIdentityType.PRIMARY_DOMAIN)
-        .map((i) => i.value)
-      const secondaryDomains = payload.secondary.identities
-        .filter((i) => i.type === OrganizationIdentityType.PRIMARY_DOMAIN)
-        .map((i) => i.value)
-
-      // check if any domain is set to the org and came from secondary and is not in primary
-      // because we need to remove it from org and create it to the unmerged org
-      for (const domain of secondaryDomains) {
-        if (orgDomains.include(domain) && !primaryDomains.includes(domain)) {
-          const identity = organization.identities.find(
-            (i) => i.type === OrganizationIdentityType.PRIMARY_DOMAIN && i.value === domain,
-          )
-          await OrganizationRepository.removeIdentitiesFromOrganization(
-            organizationId,
-            [identity],
-            repoOptions,
-          )
-        }
-      }
 
       // create the secondary org
       const secondaryOrganization = await OrganizationRepository.create(
