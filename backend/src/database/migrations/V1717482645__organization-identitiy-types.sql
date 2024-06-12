@@ -1,3 +1,34 @@
+-- region backup
+
+create table organization_identities_backup (
+    "organizationId" uuid not null,
+    platform         text,
+    name             text,
+    "sourceId"       text,
+    url              text,
+    "tenantId"       uuid not null,
+    "integrationId"  uuid,
+    "createdAt"      timestamptz,
+    "updatedAt"      timestamptz,
+
+    primary key ("organizationId", platform, name),
+    unique (platform, name, "tenantId")
+);
+
+insert into organization_identities_backup("organizationId", platform, name, "sourceId", url, "tenantId", "integrationId", "createdAt", "updatedAt")
+select "organizationId",
+       platform,
+       name,
+       "sourceId",
+       url,
+       "tenantId",
+       "integrationId",
+       "createdAt",
+       "updatedAt"
+from "organizationIdentities";
+
+-- endregion
+
 -- region first part of schema changes
 
 alter table organizations
