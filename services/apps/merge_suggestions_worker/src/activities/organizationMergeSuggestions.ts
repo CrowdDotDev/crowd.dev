@@ -1,6 +1,7 @@
 import {
   IOrganizationMergeSuggestion,
   OpenSearchIndex,
+  OrganizationIdentityType,
   OrganizationMergeSuggestionTable,
 } from '@crowd/types'
 import { svc } from '../main'
@@ -35,13 +36,15 @@ export async function getOrganizations(
       keyword_displayName: org.displayName,
       nested_identities: org.identities.map((identity) => ({
         string_platform: identity.platform,
-        string_name: identity.name,
-        keyword_name: identity.name,
-        string_url: identity.url,
+        string_type: identity.type,
+        keyword_type: identity.type,
+        string_value: identity.value,
+        bool_verified: identity.verified,
       })),
       string_location: org.location,
       string_industry: org.industry,
-      string_website: org.website,
+      string_website:
+        org.identities.find((i) => i.type === OrganizationIdentityType.PRIMARY_DOMAIN)?.value || '',
       string_ticker: org.ticker,
       int_activityCount: org.activityCount,
     }))

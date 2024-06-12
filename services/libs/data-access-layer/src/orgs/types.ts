@@ -8,7 +8,6 @@ export interface IOrganizationPartialAggregatesRawResult {
 
   location: string
   industry: string
-  website: string
   ticker: string
   activityCount: number
 }

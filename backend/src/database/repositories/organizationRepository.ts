@@ -74,7 +74,6 @@ class OrganizationRepository {
 
     // basic fields for querying
     ['displayName', 'o."displayName"'],
-    ['website', 'o."website"'],
     ['revenueRange', 'o."revenueRange"'],
     ['employeeGrowthRate', 'o."employeeGrowthRate"'],
 
@@ -96,21 +95,14 @@ class OrganizationRepository {
 
     // org fields for display
     ['logo', 'o."logo"'],
-    ['twitter', 'o."twitter"'],
     ['naics', 'o."naics"'],
     ['profiles', 'o."profiles"'],
     ['ticker', 'o."ticker"'],
     ['address', 'o."address"'],
     ['geoLocation', 'o."geoLocation"'],
     ['employeeCountByCountry', 'o."employeeCountByCountry"'],
-    ['twitter', 'o."twitter"'],
-    ['linkedin', 'o."linkedin"'],
-    ['crunchbase', 'o."crunchbase"'],
-    ['github', 'o."github"'],
     ['description', 'o."description"'],
-    ['affiliatedProfiles', 'o."affiliatedProfiles"'],
     ['allSubsidiaries', 'o."allSubsidiaries"'],
-    ['alternativeDomains', 'o."alternativeDomains"'],
     ['alternativeNames', 'o."alternativeNames"'],
     ['averageEmployeeTenure', 'o."averageEmployeeTenure"'],
     ['averageTenureByLevel', 'o."averageTenureByLevel"'],
@@ -125,6 +117,7 @@ class OrganizationRepository {
     ['grossDeparturesByMonth', 'o."grossDeparturesByMonth"'],
     ['ultimateParent', 'o."ultimateParent"'],
     ['immediateParent', 'o."immediateParent"'],
+    ['names', 'o.names'],
   ])
 
   static async filterByPayingTenant(

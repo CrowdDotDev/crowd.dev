@@ -1212,7 +1212,6 @@ export default class OrganizationService extends LoggerBase {
           'id',
           'segmentId',
           'displayName',
-          'website',
           'headline',
           'identities',
           'memberCount',

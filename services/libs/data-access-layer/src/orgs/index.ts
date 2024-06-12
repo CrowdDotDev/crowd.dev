@@ -26,7 +26,6 @@ export async function findOrgsForMergeSuggestions(
         o."displayName",
         o.location,
         o.industry,
-        o.website,
         o.ticker,
         osa."activityCount"
       FROM organizations o
