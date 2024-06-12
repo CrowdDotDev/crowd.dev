@@ -302,7 +302,11 @@ export default class OrganizationService extends LoggerBase {
             i.verified === true ||
             (i.verified === false &&
               !payload.primary.identities.some(
-                (pi) => pi.verified === false && pi.platform === i.platform && pi.value === i.value,
+                (pi) =>
+                  pi.verified === false &&
+                  pi.platform === i.platform &&
+                  pi.value === i.value &&
+                  pi.type === i.type,
               )),
         ),
         repoOptions,
