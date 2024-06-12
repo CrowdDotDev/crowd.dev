@@ -22,7 +22,7 @@ export const websiteNormalizer = (website: string, throwError = true): string | 
 
   if (!isValid(parsed)) {
     if (throwError) {
-      throw new Error('Invalid website URL!')
+      throw new Error(`Invalid website URL '${website}' - clean '${cleanURL}'!`)
     }
     return undefined
   }
