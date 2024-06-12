@@ -5,8 +5,15 @@ import {
   IMemberMergeSuggestion,
   SuggestionType,
   MemberMergeSuggestionTable,
+  LLMSuggestionVerdictType,
 } from '@crowd/types'
-import { IMemberId, IMemberMergeSuggestionsLatestGeneratedAt, IMemberNoMerge } from './types'
+import {
+  IFindRawMemberMergeSuggestionsReplacement,
+  IMemberId,
+  IMemberMergeSuggestionsLatestGeneratedAt,
+  IMemberNoMerge,
+  IRawMemberMergeSuggestionResult,
+} from './types'
 import { removeDuplicateSuggestions, chunkArray } from './utils'
 
 class MemberMergeSuggestionsRepository {
@@ -230,13 +237,50 @@ class MemberMergeSuggestionsRepository {
   }
 
   async getRawMemberSuggestions(
-    similarityFilter: { lte: string; gte: string },
+    similarityFilter: { lte: number; gte: number },
     limit: number,
-    onlyLFXMembers = false,
   ): Promise<string[][]> {
-    console.log(onlyLFXMembers)
-    // TODO: finish this after orgs
-    return []
+    const replacements: IFindRawMemberMergeSuggestionsReplacement = { limit }
+    let similarityLTEFilter = ''
+    let similarityGTEFilter = ''
+
+    if (similarityFilter.lte) {
+      similarityLTEFilter = ` and mtmr."similarity" <= $(similarityLTEFilter)`
+      replacements.similarityLTEFilter = similarityFilter.lte
+    }
+
+    if (similarityFilter.gte) {
+      similarityGTEFilter = ` and mtmr."similarity" >= $(similarityGTEFilter)`
+      replacements.similarityGTEFilter = similarityFilter.gte
+    }
+
+    const query = `select * from "memberToMergeRaw" mtmr
+                     where 
+                     not exists (
+                          select 1 from "llmSuggestionVerdicts" lsv 
+                          where (
+                              lsv."primaryId" = mtmr."memberId" and 
+                              lsv."secondaryId" = mtmr."toMergeId" and 
+                              lsv.type = '${LLMSuggestionVerdictType.MEMBER}'
+                            ) 
+                              or 
+                            (
+                              lsv."primaryId" = mtmr."toMergeId" and
+                              lsv."secondaryId" = mtmr."memberId" and
+                              lsv.type = '${LLMSuggestionVerdictType.MEMBER}'
+                            )
+                     )
+                     ${similarityLTEFilter}
+                     ${similarityGTEFilter}
+                     order by mtmr."memberId" desc
+                     limit $(limit);`
+
+    const results: IRawMemberMergeSuggestionResult[] = await this.connection.any(
+      query,
+      replacements,
+    )
+
+    return results.map((r) => [r.memberId, r.toMergeId])
   }
 }
 

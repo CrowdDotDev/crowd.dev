@@ -6,6 +6,7 @@ import {
   findTenantsLatestMemberSuggestionGeneratedAt,
   updateMemberMergeSuggestionsLastGeneratedAt,
   getMembersForLLMConsumption,
+  getRawMemberMergeSuggestions,
 } from './activities/memberMergeSuggestions'
 
 import {
@@ -34,5 +35,6 @@ export {
   getMembersForLLMConsumption,
   getOrganizationsForLLMConsumption,
   getRawOrganizationMergeSuggestions,
+  getRawMemberMergeSuggestions,
   saveLLMVerdict,
 }

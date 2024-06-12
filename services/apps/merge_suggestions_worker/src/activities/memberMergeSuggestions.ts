@@ -4,6 +4,7 @@ import {
   IMemberPartialAggregatesOpensearchRawResult,
   IMemberQueryBody,
   ISimilarMemberOpensearch,
+  ISimilarityFilter,
 } from '../types'
 import { svc } from '../main'
 import {
@@ -341,4 +342,15 @@ export async function getMembersForLLMConsumption(
     svc.log,
   )
   return memberMergeSuggestionsRepo.getMembers(memberIds)
+}
+
+export async function getRawMemberMergeSuggestions(
+  similarityFilter: ISimilarityFilter,
+  limit: number,
+): Promise<string[][]> {
+  const memberMergeSuggestionsRepo = new MemberMergeSuggestionsRepository(
+    svc.postgres.writer.connection(),
+    svc.log,
+  )
+  return memberMergeSuggestionsRepo.getRawMemberSuggestions(similarityFilter, limit)
 }
