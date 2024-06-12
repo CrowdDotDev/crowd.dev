@@ -209,7 +209,7 @@ class MergeActionsRepository {
           and exists(
                 select 1
                 from jsonb_array_elements(ma."unmergeBackup" -> 'secondary' -> 'identities') as identities
-                where (identities ->> 'username' = :secondaryOrgIdentityValue or (identities ->> 'type' = :secondaryOrgIdentityType and identities ->> 'value' = :secondaryOrgIdentityValue))
+                where (identities ->> 'name' = :secondaryOrgIdentityValue or (identities ->> 'type' = :secondaryOrgIdentityType and identities ->> 'value' = :secondaryOrgIdentityValue))
                   and identities ->> 'platform' = :secondaryOrgIdentityPlatform
             );
         `,
