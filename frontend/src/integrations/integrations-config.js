@@ -19,6 +19,7 @@ import lfx from './custom/lfx';
 import groupsio from './groupsio';
 import confluence from './confluence';
 import gerrit from './gerrit';
+import jira from './jira';
 import cvent from './custom/cvent';
 import tnc from './custom/tnc';
 
@@ -45,6 +46,7 @@ class IntegrationsConfig {
       facebook,
       confluence,
       gerrit,
+      jira,
     };
   }
 
