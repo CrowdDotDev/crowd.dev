@@ -30,20 +30,20 @@
               <span class="text-gray-400">·</span>
             </div>
             <div
-              v-if="organization.website"
+              v-if="getOrganizationWebsite(organization)"
               class="flex items-center"
             >
               <i class="ri-link mr-1" />
               <a
-                :href="withHttp(organization.website)"
+                :href="withHttp(getOrganizationWebsite(organization))"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="text-gray-600"
-              >{{ organization.website }}</a>
+              >{{ getOrganizationWebsite(organization) }}</a>
             </div>
             <span
               v-if="
-                organization.website
+                getOrganizationWebsite(organization)
                   && organization.location
               "
               class="mx-2"
@@ -235,6 +235,7 @@ import AppOrganizationHeadline from '@/modules/organization/components/organizat
 import LfSvg from '@/shared/svg/svg.vue';
 import LfOrganizationLfMemberTag from '@/modules/organization/components/lf-member/organization-lf-member-tag.vue';
 import LfEnrichmentSneakPeak from '@/shared/modules/enrichment/components/enrichment-sneak-peak.vue';
+import { getOrganizationWebsite } from '@/utils/organization';
 import revenueRange from '../../config/enrichment/revenueRange';
 
 const props = defineProps({

@@ -23,6 +23,7 @@ import {
   TemporalWorkflowId,
   MemberIdentityType,
   Edition,
+  OrganizationIdentityType,
 } from '@crowd/types'
 import mergeWith from 'lodash.mergewith'
 import isEqual from 'lodash.isequal'
@@ -376,11 +377,13 @@ export default class MemberService extends LoggerBase {
     // Assign member to organization based on email domain
     for (const domain of emailDomains) {
       const orgId = await orgService.findOrCreate(tenantId, segmentId, integrationId, {
-        website: domain,
+        names: [domain],
         identities: [
           {
-            name: domain,
+            value: domain,
+            type: OrganizationIdentityType.PRIMARY_DOMAIN,
             platform: 'email',
+            verified: true,
           },
         ],
       })

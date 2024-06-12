@@ -1,11 +1,12 @@
-import { DbStore, DbTransaction } from '@crowd/database'
 import { generateUUIDv4 } from '@crowd/common'
+import { DbStore, DbTransaction } from '@crowd/database'
 import {
   IAttributes,
   IMember,
+  IMemberIdentity,
+  IOrganizationIdentity,
   MemberIdentityType,
   OrganizationSource,
-  IMemberIdentity,
 } from '@crowd/types'
 
 export async function fetchMembersForEnrichment(db: DbStore): Promise<IMember[]> {
@@ -214,86 +215,106 @@ export async function addMemberToMerge(tx: DbTransaction, memberId: string, toMe
   )
 }
 
-export async function upsertOrg(
+export async function findOrganizationIdentities(
   tx: DbTransaction,
-  tenantId: string,
-  company: string,
-  companyUrl: string,
-  companyLinkedInUrl: string,
-  location: string,
-) {
-  return tx.query(
-    `INSERT INTO organizations (id, "tenantId", "displayName", website, linkedin, location, "createdAt", "updatedAt")
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $7) ON CONFLICT (website,"tenantId")
-       WHERE website IS NOT NULL DO
-      UPDATE SET "displayName" = EXCLUDED."displayName"
-        RETURNING id;`,
-    [
-      generateUUIDv4(),
-      tenantId,
-      company,
-      companyUrl,
-      companyLinkedInUrl
-        ? {
-            url: companyLinkedInUrl,
-            handle: companyLinkedInUrl.split('/').pop(),
-          }
-        : null,
-      location,
-      new Date(Date.now()),
-    ],
+  organizationId: string,
+): Promise<IOrganizationIdentity[]> {
+  return tx.any(
+    `select * from "organizationIdentities" where "organizationId" = $(organizationId);`,
+    {
+      organizationId,
+    },
   )
 }
 
-export async function upsertOrganization(
+export async function findOrganizationByVerifiedIdentity(
   tx: DbTransaction,
-  orgId: string,
   tenantId: string,
-  displayName: string,
-  website: string,
-  linkedin: string,
+  identity: IOrganizationIdentity,
+): Promise<string | null> {
+  const result = await tx.oneOrNone(
+    `
+    select oi."organizationId"
+    from "organizationIdentities" oi
+    where 
+      oi."tenantId" = $(tenantId)
+      and oi.platform = $(platform)
+      and oi.value ilike $(value)
+      and oi.type = $(type)
+      and oi.verified = true
+    limit 1
+    `,
+    { tenantId, value: identity.value, platform: identity.platform, type: identity.type },
+  )
+
+  if (result) {
+    return result.organizationId
+  }
+
+  return null
+}
+
+export async function insertOrganization(
+  tx: DbTransaction,
+  tenantId: string,
+  company: string,
   location: string,
-) {
-  return await tx.query(
-    `INSERT INTO organizations (id, "tenantId", "displayName", website, linkedin, location, "createdAt", "updatedAt")
-              VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
-              ON CONFLICT (website, "tenantId")
-                WHERE website IS NOT NULL
-                DO UPDATE SET
-                  linkedin = EXCLUDED.linkedin,
-                  location = EXCLUDED.location,
-                  "updatedAt" = NOW()
-              RETURNING id;`,
-    [
-      orgId,
+): Promise<string> {
+  const id = generateUUIDv4()
+  await tx.none(
+    `INSERT INTO organizations (id, "tenantId", "displayName", names, location, "createdAt", "updatedAt")
+     VALUES ($(id), $(tenantId), $(displayName), $(names), $(location), now(), now()) ON CONFLICT ("tenantId")`,
+    {
+      id,
       tenantId,
-      displayName,
-      website,
-      linkedin
-        ? {
-            url: linkedin,
-            handle: linkedin.split('/').pop(),
-          }
-        : null,
+      displayName: company,
+      names: [company],
       location,
-    ],
+    },
+  )
+
+  return id
+}
+
+export async function updateOrgIdentity(
+  tx: DbTransaction,
+  organizationId: string,
+  tenantId: string,
+  identity: IOrganizationIdentity,
+): Promise<void> {
+  await tx.none(
+    `
+    update "organizationIdentities" set
+      verified = true
+    where "organizationId" = $(organizationId) and "tenantId" = $(tenantId) and platform = $(platform) and value = $(value) and type = $(type)
+  `,
+    {
+      organizationId,
+      tenantId,
+      platform: identity.platform,
+      value: identity.value,
+      type: identity.type,
+    },
   )
 }
 
 export async function insertOrgIdentity(
   tx: DbTransaction,
-  orgId: string,
+  organizationId: string,
   tenantId: string,
-  name: string,
-  platform: string,
-  url: string,
+  identity: IOrganizationIdentity,
 ) {
   await tx.query(
-    `INSERT INTO "organizationIdentities" ("organizationId", "tenantId", name, platform, url)
-            VALUES ($1, $2, $3, $4, $5)
-            ON CONFLICT ON CONSTRAINT "organizationIdentities_platform_name_tenantId_key"
-            DO UPDATE SET name = EXCLUDED.name, url = EXCLUDED.url;`,
-    [orgId, tenantId, name, platform, url],
+    `INSERT INTO "organizationIdentities" ("organizationId", "tenantId", value, type, verified, platform)
+            VALUES ($(organizationId), $(tenantId), $(value), $(type), $(verified), $(platform));`,
+    {
+      organizationId,
+      tenantId,
+      value: identity.value,
+      type: identity.type,
+      verified: identity.verified,
+      platform: identity.platform,
+    },
   )
 }
 

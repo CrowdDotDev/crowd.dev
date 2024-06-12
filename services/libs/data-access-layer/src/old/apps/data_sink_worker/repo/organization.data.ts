@@ -27,24 +27,19 @@ export interface IDbOrganization {
 
 export interface IDbInsertOrganizationData {
   displayName?: string
+  names: string[]
   description: string | null
   emails: string[] | null
   logo: string | null
   tags: string[] | null
-  github: IOrganizationSocial | null
-  twitter: IOrganizationSocial | null
-  linkedin: IOrganizationSocial | null
-  crunchbase: IOrganizationSocial | null
   employees: number | null
   location: string | null
-  website: string | null
   type: string | null
   size: string | null
   headline: string | null
   industry: string | null
   founded: number | null
   attributes?: IAttributes | null
-  weakIdentities: IOrganizationIdentity[]
 }
 
 let insertOrganizationColumnSet: DbColumnSet
@@ -58,15 +53,11 @@ export function getInsertOrganizationColumnSet(instance: DbInstance): DbColumnSe
       'displayName',
       'description',
       'emails',
+      'names',
       'logo',
       'tags',
-      'github',
-      'twitter',
-      'linkedin',
-      'crunchbase',
       'employees',
       'location',
-      'website',
       'type',
       'size',
       'headline',
@@ -88,16 +79,12 @@ export function getInsertOrganizationColumnSet(instance: DbInstance): DbColumnSe
 export interface IDbUpdateOrganizationData {
   url: string | null
   description: string | null
+  names: string[] | null
   emails: string[] | null
   logo: string | null
   tags: string[] | null
-  github: IOrganizationSocial | null
-  twitter: IOrganizationSocial | null
-  linkedin: IOrganizationSocial | null
-  crunchbase: IOrganizationSocial | null
   employees: number | null
   location: string | null
-  website: string | null
   type: string | null
   size: string | null
   headline: string | null
@@ -105,7 +92,6 @@ export interface IDbUpdateOrganizationData {
   founded: number | null
   displayName: string | null
   attributes: IAttributes | null
-  weakIdentities: IOrganizationIdentity[]
 }
 
 let updateOrganizationColumnSet: DbColumnSet
@@ -115,17 +101,13 @@ export function getUpdateOrganizationColumnSet(instance: DbInstance): DbColumnSe
   updateOrganizationColumnSet = new instance.helpers.ColumnSet(
     [
       'displayName',
+      'names',
       'description',
       'emails',
       'logo',
       'tags',
-      'github',
-      'twitter',
-      'linkedin',
-      'crunchbase',
       'employees',
       'location',
-      'website',
       'type',
       'size',
       'headline',
