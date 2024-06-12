@@ -1,7 +1,11 @@
 import { CrowdIntegrations } from '@/integrations/integrations-config';
-import { withHttp } from '@/utils/string';
-import { Organization } from '@/modules/organization/types/Organization';
+import {
+  Organization,
+  OrganizationIdentity,
+  OrganizationIdentityType,
+} from '@/modules/organization/types/Organization';
 import { Platform } from '@/shared/modules/platform/types/Platform';
+import { withHttp } from '@/utils/string';
 
 export default ({
   organization,
@@ -10,125 +14,192 @@ export default ({
   organization: Partial<Organization>;
   order: Platform[];
 }) => {
-  const {
-    identities = [],
-    emails = [],
-    phoneNumbers = [],
-  } = organization || {};
+  const { identities = [], phoneNumbers = [] } = organization || {};
 
-  const getIdentityHandles = (platform: string) => {
-    const parsedIdentities = identities?.length ? identities : [];
-
-    if (platform === Platform.CUSTOM) {
-      const customPlatforms = parsedIdentities.filter(
-        (i) => (!order.includes(i.platform) || i.platform === Platform.CUSTOM)
-          && i.platform !== Platform.EMAIL
-          && i.platform !== Platform.EMAILS,
+  const getIdentityHandles = (platform: Platform) => {
+    if ([Platform.CUSTOM, Platform.ENRICHMENT].includes(platform)) {
+      const mainPlatforms = (Object.values(Platform) as string[]).filter(
+        (p) => p !== Platform.CUSTOM && p !== Platform.ENRICHMENT,
       );
 
-      return customPlatforms;
+      return (identities || [])
+        .filter(
+          (i) => !mainPlatforms.includes(i.platform)
+            && [OrganizationIdentityType.USERNAME].includes(i.type),
+        )
+        .map((i) => ({
+          ...i,
+          value: CrowdIntegrations.getConfig(platform)?.organization
+            ?.identityHandle
+            ? CrowdIntegrations.getConfig(
+              platform,
+            )?.organization?.identityHandle({
+              identityHandle: i.value,
+            })
+            : i.value,
+        }));
     }
 
-    return parsedIdentities.filter((i) => i.platform === platform) || [];
+    return (identities || [])
+      .filter(
+        (i) => i.platform === platform
+          && [OrganizationIdentityType.USERNAME].includes(i.type),
+      )
+      .map((i) => ({
+        ...i,
+        value: CrowdIntegrations.getConfig(platform)?.organization
+          ?.identityHandle
+          ? CrowdIntegrations.getConfig(platform)?.organization?.identityHandle(
+            {
+              identityHandle: i.value,
+            },
+          )
+          : i.value,
+      }));
+  };
+
+  const getIdentityLink = (
+    identity: OrganizationIdentity,
+    platform: string,
+  ) => {
+    if (!CrowdIntegrations.getConfig(platform)?.organization?.identityLink) {
+      return null;
+    }
+
+    return CrowdIntegrations.getConfig(platform)?.organization?.identityLink({
+      identityHandle: identity.value,
+    });
   };
 
   const getIdentities = (): {
     [key: string]: {
       handle: string;
-      link: string;
+      link: string | null;
+      verified: boolean;
     }[];
-  } => order.reduce((acc, p) => {
-    const handles = getIdentityHandles(p);
+  } => order.reduce((acc, platform) => {
+    const handles = getIdentityHandles(platform);
 
-    if (
-      (p === Platform.CUSTOM || p === Platform.PHONE_NUMBERS)
-        && handles.length
-    ) {
+    if ([Platform.CUSTOM, Platform.ENRICHMENT].includes(platform) && handles.length) {
       const sortedCustomIdentities = handles.sort((a, b) => {
         const platformComparison = a.platform.localeCompare(b.platform);
 
         if (platformComparison === 0) {
           // If platforms are equal, sort by name
-          return a.name.localeCompare(b.name);
+          return a.value.localeCompare(b.value);
         }
 
         return platformComparison; // Otherwise, sort by platform
       });
 
-      sortedCustomIdentities.forEach((i) => {
-        if (acc[i.platform]?.length) {
-          acc[i.platform].push({
-            handle: i.name,
-            link: i.url ? withHttp(i.url) : null,
+      sortedCustomIdentities.forEach((identity) => {
+        if (acc[identity.platform]?.length) {
+          acc[identity.platform].push({
+            handle: identity.value,
+            link: getIdentityLink(identity, platform),
+            verified: identity.verified,
           });
         } else {
-          acc[i.platform] = [
+          acc[identity.platform] = [
             {
-              handle: i.name,
-              link: i.url ? withHttp(i.url) : null,
+              handle: identity.value,
+              link: getIdentityLink(identity, platform),
+              verified: identity.verified,
             },
           ];
         }
       });
     } else {
-      const handlesValues = handles.map((i) => ({
-        handle:
-            CrowdIntegrations.getConfig(i.platform)?.organization?.handle(i)
-            ?? i.name
-            ?? CrowdIntegrations.getConfig(i.platform)?.name
-            ?? i.platform,
-        link: i.url ? withHttp(i.url) : null,
+      const platformHandlesValues = handles.map((identity) => ({
+        handle: identity.value,
+        link: getIdentityLink(identity, platform),
+        verified: identity.verified,
       }));
 
-      if (handlesValues.length) {
-        acc[p] = handlesValues;
+      if (platformHandlesValues.length) {
+        acc[platform] = platformHandlesValues;
       }
     }
 
     return acc;
-  }, {});
+  }, {} as Record<Platform, { handle: string; link: string; verified: boolean }[]>);
 
-  const getEmails = (): {
+  const getAffiliatedProfiles = (): {
     handle: string;
-    link: string;
+    link: string | null;
+    verified: boolean;
   }[] => {
     const parsedIdentities = identities?.length ? identities : [];
 
-    const rootEmails = (emails || [])
-      .filter((e) => !!e)
-      .map((e) => ({
-        link: `mailto:${e}`,
-        handle: e,
+    const identitiesDomains = parsedIdentities
+      .filter((identity) => [
+        OrganizationIdentityType.AFFILIATED_PROFILE,
+      ].includes(identity.type))
+      .map((identity) => ({
+        link: null,
+        handle: identity.value,
+        verified: identity.verified,
       }));
 
-    const identitiesEmails = parsedIdentities
-      .filter((i) => i.platform === 'emails')
-      .map((i) => ({
-        link: i.url ? `mailto:${i.url}` : null,
-        handle: i.name,
+    return identitiesDomains;
+  };
+
+  const getDomains = (): {
+    handle: string;
+    link: string | null;
+    verified: boolean;
+  }[] => {
+    const parsedIdentities = identities?.length ? identities : [];
+
+    const identitiesDomains = parsedIdentities
+      .filter((identity) => [
+        OrganizationIdentityType.PRIMARY_DOMAIN,
+        OrganizationIdentityType.ALTERNATIVE_DOMAIN,
+      ].includes(identity.type))
+      .map((identity) => ({
+        link: withHttp(identity.value) as string | null,
+        handle: identity.value,
+        verified: identity.verified,
       }));
 
-    const identitiesEmail = parsedIdentities
-      .filter((i) => i.platform === 'email')
-      .map((i) => ({
-        link: i.url ? `mailto:${i.url}` : null,
-        handle: i.name,
+    return identitiesDomains;
+  };
+
+  const getEmails = (): {
+    handle: string;
+    link: string | null;
+    verified: boolean;
+  }[] => {
+    const parsedIdentities = identities?.length ? identities : [];
+
+    const identitiesDomains = parsedIdentities
+      .filter((identity) => [
+        OrganizationIdentityType.EMAIL,
+      ].includes(identity.type))
+      .map((identity) => ({
+        link: `mailto:${identity.value}`,
+        handle: identity.value,
+        verified: identity.verified,
       }));
 
-    return [...rootEmails, ...identitiesEmails, ...identitiesEmail];
+    return identitiesDomains;
   };
 
   const getPhoneNumbers = (): {
     handle: string;
-    link: string;
+    link: string | null;
+    verified: boolean;
   }[] => (phoneNumbers || []).map((p) => ({
     link: `tel:${p}`,
     handle: p,
+    verified: false,
   }));
 
   return {
     getIdentities,
+    getAffiliatedProfiles,
     getEmails,
+    getDomains,
     getPhoneNumbers,
   };
 };

@@ -13,6 +13,7 @@ export enum Platform {
     GIT = 'git',
     GROUPS_IO = 'groupsio',
     CUSTOM = 'custom',
+    ENRICHMENT = 'enrichment',
     EMAIL = 'email',
     EMAILS = 'emails',
     PHONE_NUMBERS = 'phoneNumbers',
