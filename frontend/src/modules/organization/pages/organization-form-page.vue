@@ -203,14 +203,9 @@ const formSchema = new FormSchema([
   fields.displayName,
   fields.headline,
   fields.description,
-  fields.website,
   fields.location,
   fields.employees,
   fields.revenueRange,
-  fields.github,
-  fields.twitter,
-  fields.linkedin,
-  fields.crunchbase,
   fields.emails,
   fields.identities,
   fields.phoneNumbers,
@@ -219,9 +214,7 @@ const formSchema = new FormSchema([
   fields.industry,
   fields.founded,
   fields.profiles,
-  fields.affiliatedProfiles,
   fields.allSubsidiaries,
-  fields.alternativeDomains,
   fields.alternativeNames,
   fields.averageEmployeeTenure,
   fields.averageTenureByLevel,
@@ -279,17 +272,10 @@ function getInitialModel(record) {
         joinedAt: record ? record.joinedAt : '',
         identities: record
           ? [
-            ...record.identities.map((i) => ({
-              ...i,
-              platform: i.platform,
-              name: i.name,
-              username: i.url ? i.url.split('/').at(-1) : null,
-              url: i.url,
-            })),
+            ...record.identities,
           ]
           : [],
         revenueRange: record ? record.revenueRange : {},
-        emails: record && record.emails?.length > 0 ? record.emails : [''],
         phoneNumbers:
           record && record.phoneNumbers?.length > 0
             ? record.phoneNumbers
@@ -449,19 +435,7 @@ async function onSubmit() {
     name: isEditPage.value === false ? formModel.value.displayName : undefined,
     displayName:
       isEditPage.value === true ? formModel.value.displayName : undefined,
-    emails: formModel.value.emails.reduce((acc, item) => {
-      if (item !== '') {
-        acc.push(item);
-      }
-      return acc;
-    }, []),
-    identities: formModel.value.identities
-      .map((i) => ({
-        ...i,
-        platform: i.platform,
-        url: i.url,
-        name: i.name,
-      })),
+    identities: formModel.value.identities,
     phoneNumbers: formModel.value.phoneNumbers.reduce(
       (acc, item) => {
         if (item !== '') {

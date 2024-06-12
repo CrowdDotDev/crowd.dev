@@ -1831,6 +1831,40 @@ export default class IntegrationService {
     }
   }
 
+  /**
+   * Adds/updates Jira integration
+   * @param integrationData  to create the integration object
+   * @returns integration object
+   */
+  async jiraConnectOrUpdate(integrationData) {
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+    let integration: any
+    try {
+      integration = await this.createOrUpdate(
+        {
+          platform: PlatformType.JIRA,
+          settings: {
+            url: integrationData.url,
+            auth: {
+              username: integrationData.username,
+              personalAccessToken: integrationData.personalAccessToken,
+              apiToken: integrationData.apiToken,
+            },
+            projects: integrationData.projects.map((project) => project.toUpperCase()),
+          },
+          status: 'done',
+        },
+        transaction,
+      )
+
+      await SequelizeRepository.commitTransaction(transaction)
+    } catch (err) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw err
+    }
+    return integration
+  }
+
   async getIntegrationProgress(integrationId: string): Promise<IntegrationProgress> {
     const integration = await this.findById(integrationId)
     const segments = SequelizeRepository.getCurrentSegments(this.options)

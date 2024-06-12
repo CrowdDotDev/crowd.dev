@@ -20,8 +20,8 @@
               class="flex flex-grow gap-2 pb-3 last:pb-0"
             >
               <el-input
-                v-model="model[ii].username"
-                :placeholder="identity.name.length ? identity.name : 'johndoe'"
+                v-model="model[ii].value"
+                :placeholder="identity.value.length ? identity.value : 'johndoe'"
               >
                 <template #prepend>
                   <span class="font-medium text-gray-500">{{ value.urlPrefix }}</span>
@@ -30,17 +30,17 @@
 
               <el-tooltip
                 v-if="props.showUnmerge && Object.entries(identitiesForm).length > 1 "
-                :disabled="!staticModel[ii]?.username || staticModel[ii]?.username === model[ii].username"
+                :disabled="!staticModel[ii]?.valye || staticModel[ii]?.valye === model[ii].valye"
                 content="Not possible to unmerge an unsaved identity"
                 placement="top"
               >
                 <div>
                   <el-button
                     class="btn btn--md btn--transparent block w-8 !h-8 p-0"
-                    :disabled="!staticModel[ii]?.username || staticModel[ii]?.username !== model[ii].username"
+                    :disabled="!staticModel[ii]?.valye || staticModel[ii]?.valye !== model[ii].valye"
                     @click="emit('unmerge', {
                       platform: key,
-                      username: staticModel[ii]?.name,
+                      valye: staticModel[ii]?.value,
                     })"
                   >
                     <i class="ri-link-unlink-m text-lg" />
@@ -64,9 +64,10 @@
 
 <script setup>
 import {
-  computed, reactive, ref, watch,
+  computed, ref, watch, reactive,
 } from 'vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
+import { OrganizationIdentityType } from '../../types/Organization';
 
 const emit = defineEmits(['update:modelValue', 'unmerge']);
 
@@ -107,18 +108,15 @@ watch(
   props.modelValue,
   (organization, previous) => {
     if (!previous) {
-      const identities = organization.identities.map((i) => ({
-        ...i,
-        username: i.url ? i.url.split('/').at(-1) : '',
-      }));
+      const { identities } = organization;
       const platforms = [...new Set(organization.identities.map((i) => i.platform))];
       const noIdentity = Object.keys(identitiesForm)
         .filter((platform) => !platforms.includes(platform))
         .map((platform) => (reactive({
-          name: '',
+          value: '',
+          type: OrganizationIdentityType.USERNAME,
+          verified: true,
           platform,
-          url: null,
-          username: '',
         })));
 
       model.value = [
@@ -130,30 +128,13 @@ watch(
   { deep: true, immediate: true },
 );
 
-const existingIdentities = computed(() => (props.record?.identities || []).map((i) => ({
-  ...i,
-  username: i.url ? i.url.split('/').at(-1) : '',
-})));
-
 watch(
   model,
   (value) => {
     // Parse username object
 
     const identities = value
-      .filter((i) => !Object.keys(identitiesForm).includes(i.platform) || !!i.username?.trim().length)
-      .map((i) => {
-        const existingOnes = existingIdentities.value.filter((id) => id.platform === i.platform);
-        const index = value
-          .filter((id) => id.platform === i.platform)
-          .findIndex((id) => id.username === i.username);
-        const existingOne = index >= 0 ? existingOnes[index] : null;
-        return {
-          ...i,
-          name: !existingOne || existingOne.username !== i.username ? i.username || i.name : i.name,
-          url: i.username?.length ? `https://${identitiesForm[i.platform]?.urlPrefix}${i.username}` : null,
-        };
-      });
+      .filter((i) => !Object.keys(identitiesForm).includes(i.platform) || !!i.value?.trim().length);
 
     // Emit updated member
     emit('update:modelValue', {
@@ -180,10 +161,7 @@ const removeUsername = (index) => {
   }
 };
 
-const staticModel = computed(() => props.record.identities.map((i) => ({
-  ...i,
-  username: i.url ? i.url.split('/').at(-1) : '',
-})));
+const staticModel = computed(() => props.record.identities);
 </script>
 
 <script>

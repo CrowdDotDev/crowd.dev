@@ -119,11 +119,7 @@ const fetchMember = () => {
   }
   ContributorApiService.find(id as string, [selectedProjectGroup.value?.id as string])
     .then((res) => {
-      contributor.value = {
-        ...res,
-        joinedAt:
-            '1970-01-01T00:00:00.000Z',
-      };
+      contributor.value = res;
     })
     .finally(() => {
       loading.value = false;

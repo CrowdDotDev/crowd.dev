@@ -17,7 +17,4 @@ export default {
     showLinkToUrl: true,
   },
   url: ({ attributes }) => attributes?.url?.discourse,
-  organization: {
-    handle: (identity) => (identity.url ? identity.url.split('/').at(-1) : identity.name),
-  },
 };

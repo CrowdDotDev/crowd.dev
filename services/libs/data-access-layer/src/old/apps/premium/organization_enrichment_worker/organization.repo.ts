@@ -1,7 +1,7 @@
 import { singleOrDefault } from '@crowd/common'
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
-import { IOrganizationIdentity } from '@crowd/types'
+import { IOrganizationIdentity, OrganizationIdentityType } from '@crowd/types'
 import {
   ENRICHMENT_PLATFORM_PRIORITY,
   IEnrichableOrganizationData,
@@ -53,27 +53,24 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
       with identities as (select oi."organizationId",
                                 json_agg(json_build_object(
                                         'platform', oi.platform,
-                                        'name', oi.name,
-                                        'url', oi.url
+                                        'value', oi.value,
+                                        'type', oi.type,
+                                        'verified', oi.verified
                                           )) as "identities"
                           from "organizationIdentities" oi
                           where oi."organizationId" = $(organizationId)
                           group by oi."organizationId")
       select o.id,
             o.description,
+            o.names,
             o.emails,
             o."phoneNumbers",
             o.logo,
             o.tags,
-            o.twitter,
-            o.linkedin,
-            o.crunchbase,
             o.employees,
             o."revenueRange",
             o."tenantId",
             o.location,
-            o.github,
-            o.website,
             o."employeeCountByCountry",
             o.type,
             o."geoLocation",
@@ -86,9 +83,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
             o.industry,
             o.founded,
             o."displayName",
-            o."affiliatedProfiles",
             o."allSubsidiaries",
-            o."alternativeDomains",
             o."alternativeNames",
             o."averageEmployeeTenure",
             o."averageTenureByLevel",
@@ -104,7 +99,6 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
             o."grossDeparturesByMonth",
             o."ultimateParent",
             o."immediateParent",
-            o."weakIdentities",
             o."manuallyChangedFields",
             coalesce(i.identities, json_build_array()) as identities
       from organizations o
@@ -144,12 +138,15 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     for (const newIdentity of newIdentities) {
       const existingIdentity = singleOrDefault(
         existingIdentities,
-        (i) => i.platform === newIdentity.platform && i.name === newIdentity.name,
+        (i) =>
+          i.platform === newIdentity.platform &&
+          i.value === newIdentity.value &&
+          i.type === newIdentity.type,
       )
 
       if (existingIdentity) {
-        // we are only updating the url if needed nothing else
-        if (existingIdentity.url !== newIdentity.url) {
+        // we need to update verified if it's not the same
+        if (existingIdentity.verified !== newIdentity.verified) {
           toUpdate.push(newIdentity)
         }
       } else {
@@ -163,21 +160,22 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
       // generate bulk update query
       const entries = toUpdate.map((i) => {
         return {
-          name: i.name,
+          value: i.value,
+          type: i.type,
+          verified: i.verified,
           platform: i.platform,
           organizationId,
           tenantId,
-          url: i.url,
         }
       })
 
       const query =
         this.dbInstance.helpers.update(
           entries,
-          ['?organizationId', '?tenantId', '?platform', '?name', 'url'],
+          ['?organizationId', '?tenantId', '?platform', '?value', '?type', 'verified'],
           'organizationIdentities',
         ) +
-        ' where t."organizationId" = v."organizationId"::uuid and t.platform = v.platform and t.name = v.name and t."tenantId" = v."tenantId"::uuid'
+        ' where t."organizationId" = v."organizationId"::uuid and t.platform = v.platform and t.value = v.value and t.type = v.type and t."tenantId" = v."tenantId"::uuid'
 
       queries.push(query)
     }
@@ -186,18 +184,19 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
       // generate bulk insert query
       const entries = toCreate.map((i) => {
         return {
-          name: i.name,
+          value: i.value,
+          type: i.type,
+          verified: i.verified,
           platform: i.platform,
           organizationId,
           tenantId,
-          url: i.url,
         }
       })
 
       const query =
         this.dbInstance.helpers.insert(
           entries,
-          ['organizationId', 'tenantId', 'platform', 'name', 'url'],
+          ['organizationId', 'tenantId', 'platform', 'value', 'type', 'verified'],
           'organizationIdentities',
         ) + ` on conflict do nothing`
 
@@ -224,19 +223,21 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
       .map(
         (identity) =>
           `(${this.dbInstance.as.text(identity.platform)}, ${this.dbInstance.as.text(
-            identity.name,
+            identity.value,
+          )}, ${this.dbInstance.as.text(identity.type)}, ${this.dbInstance.as.bool(
+            identity.verified,
           )})`,
       )
       .join(', ')
 
     const results = await this.db().any(
       `
-      with input_identities (platform, name) as (
+      with input_identities (platform, value, type, verified) as (
         values ${identityParams}
       )
-      select oi.url, i.platform, i.name
+      select oi.platform, oi.value, oi.type, oi.verified
       from "organizationIdentities" oi
-        inner join input_identities i on oi.platform = i.platform and oi.name = i.name
+        inner join input_identities i on oi.platform = i.platform and oi.value = i.value and oi.type = i.type and oi.verified = i.verified
       where oi."tenantId" = $(tenantId) and oi."organizationId" <> $(organizationId)
 `,
       params,
@@ -247,18 +248,14 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
 
   private static readonly ENRICHABLE_ORGANIZATION_FIELDS = [
     'description',
+    'names',
     'emails',
     'phoneNumbers',
     'logo',
     'tags',
-    'twitter',
-    'linkedin',
-    'crunchbase',
     'employees',
     'revenueRange',
     'location',
-    'github',
-    'website',
     'employeeCountByCountry',
     'type',
     'geoLocation',
@@ -270,9 +267,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     'address',
     'industry',
     'founded',
-    'affiliatedProfiles',
     'allSubsidiaries',
-    'alternativeDomains',
     'alternativeNames',
     'averageEmployeeTenure',
     'averageTenureByLevel',
@@ -372,14 +367,21 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     website: string,
   ): Promise<boolean> {
     const res = await this.db().oneOrNone(
-      `select 1 from organizations where 
-          "tenantId" = $(tenantId)
-          and id <> $(organizationId) 
-          and website = $(website)`,
+      `
+      select 1 from "organizationIdentities" 
+      where
+        "tenantId" = $(tenantId) and
+        "organizationId" <> $(organizationId) and
+        type = $(type) and
+        value = $(value) and
+        verified = true
+      limit 1
+      `,
       {
         tenantId,
         organizationId,
-        website,
+        type: OrganizationIdentityType.PRIMARY_DOMAIN,
+        value: website,
       },
     )
 

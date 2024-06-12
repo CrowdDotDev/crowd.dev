@@ -503,7 +503,6 @@ class ActivityRepository {
     const qx = SequelizeRepository.getQueryExecutor(options)
     const lfxMemberships = await findManyLfxMemberships(qx, {
       tenantId: tenant.id,
-      segmentIds,
       organizationIds,
     })
 

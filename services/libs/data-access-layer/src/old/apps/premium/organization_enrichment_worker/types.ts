@@ -20,18 +20,14 @@ export interface IOrganizationData {
   id: string
   tenantId: string
   description: string | null
+  names: string[]
   emails: string[] | null
   phoneNumbers: string[] | null
   logo: string | null
   tags: string[] | null
-  twitter: IOrganizationSocialData | null
-  linkedin: IOrganizationSocialData | null
-  crunchbase: unknown | null
   employees: number | null
   revenueRange: unknown | null
   location: string | null
-  github: IOrganizationSocialData | null
-  website: string | null
   employeeCountByCountry: unknown | null
   type: string | null
   geoLocation: string | null
@@ -40,9 +36,7 @@ export interface IOrganizationData {
   industry: string | null
   founded: number | null
   displayName: string | null
-  affiliatedProfiles: string[] | null
   allSubsidiaries: string[] | null
-  alternativeDomains: string[] | null
   alternativeNames: string[] | null
   averageEmployeeTenure: number | null
   averageTenureByLevel: unknown | null
@@ -60,5 +54,4 @@ export interface IOrganizationData {
   immediateParent: string | null
   manuallyChangedFields: string[]
   identities: IOrganizationIdentity[]
-  weakIdentities: IOrganizationIdentity[]
 }

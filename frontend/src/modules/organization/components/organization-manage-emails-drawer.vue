@@ -4,34 +4,37 @@
     size="480px"
     title="Edit emails"
     custom-class="emails-drawer"
+    :show-footer="false"
   >
     <template #content>
       <div class="-mt-8 z-10 pb-6">
         <div
           class="flex gap-2 text-xs text-primary-500 font-semibold items-center cursor-pointer"
-          @click="addEmail()"
+          @click="addIdentity()"
         >
           <i class="ri-add-line text-base" />Add email
         </div>
       </div>
       <div class="border-t border-gray-200 -mx-6 px-6">
         <div class="gap-4 flex flex-col pt-6 pb-10">
-          <template v-for="(email, ii) of emails" :key="ii">
-            <app-organization-form-email-item
-              :email="email"
-              :organization="props.organization"
-              @update="update(ii, $event)"
-              @remove="remove(ii)"
-            />
+          <template v-for="(identity, email) of distinctEmails" :key="email">
+            <template v-if="identity.type === 'email'">
+              <app-organization-form-email-item
+                :identity="identity"
+                :organization="props.organization"
+                @update="update(email, $event)"
+                @remove="remove(email)"
+              />
+            </template>
           </template>
 
-          <template v-for="(email, ai) of addEmails" :key="ai">
+          <template v-for="(identity, ai) of addIdentities" :key="ai">
             <app-organization-form-email-item
-              :email="email"
+              :identity="identity"
               :organization="props.organization"
               :actions-disabled="true"
               @update="create(ai, $event)"
-              @clear="addEmails.splice(ai, 1)"
+              @clear="addIdentities.splice(ai, 1)"
             />
           </template>
         </div>
@@ -41,35 +44,31 @@
 </template>
 
 <script setup lang="ts">
-import {
-  ref,
-  computed, onUnmounted,
-} from 'vue';
+import { computed, onUnmounted, ref } from 'vue';
 import Message from '@/shared/message/message';
-import { OrganizationService } from '@/modules/organization/organization-service';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';
-import { Organization } from '@/modules/organization/types/Organization';
+import { Organization, OrganizationIdentity, OrganizationIdentityType } from '@/modules/organization/types/Organization';
 import AppDrawer from '@/shared/drawer/drawer.vue';
 import AppOrganizationFormEmailItem
   from '@/modules/organization/components/form/email/organization-form-email-item.vue';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import { Platform } from '@/shared/modules/platform/types/Platform';
+import { OrganizationService } from '../organization-service';
 
 const props = defineProps<{
   modelValue: boolean,
   organization: Organization,
 }>();
 
-const emit = defineEmits(['update:modelValue', 'reload']);
+const emit = defineEmits(['update:modelValue']);
 
 const { trackEvent } = useProductTracking();
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
-
-const { fetchOrganization } = useOrganizationStore();
 
 const drawerModel = computed({
   get() {
@@ -80,50 +79,82 @@ const drawerModel = computed({
   },
 });
 
-const emails = ref<string[]>([...(props.organization.emails || [])]);
-const addEmails = ref<string[]>([]);
+const identities = ref<OrganizationIdentity[]>([...(props.organization.identities || [])]);
+const addIdentities = ref<OrganizationIdentity[]>([]);
+
+const distinctEmails = computed(() => identities.value
+  .filter((identity) => identity.type === 'email')
+  .reduce((obj: Record<string, any>, identity: any) => {
+    const emailObject = { ...obj };
+    if (!(identity.value in emailObject)) {
+      emailObject[identity.value] = {
+        ...identity,
+        platforms: [],
+      };
+    }
+    emailObject[identity.value].platforms.push(identity.platform);
+    emailObject[identity.value].verified = emailObject[identity.value].verified || identity.verified;
+
+    return emailObject;
+  }, {}));
 
 const serverUpdate = () => {
   trackEvent({
-    key: FeatureEventKey.EDIT_ORGANIZATION_EMAIL_DOMAIN,
+    key: FeatureEventKey.EDIT_CONTRIBUTOR_EMAIL,
     type: EventType.FEATURE,
     properties: {
-      emails: emails.value.filter((e) => !!e.trim()),
+      identities: identities.value.filter((i) => !!i.value),
     },
   });
 
   OrganizationService.update(props.organization.id, {
-    emails: emails.value.filter((e) => !!e.trim()),
-  }).then(() => {
-    emit('reload');
-    Message.success('Organization email updated successfully');
-  }).catch((err) => {
-    Message.error(err.response.data);
+    identities: identities.value.filter((i) => !!i.value),
+  })
+    .catch((err) => {
+      Message.error(err.response.data);
+    });
+};
+
+const update = (email: string, data: OrganizationIdentity) => {
+  identities.value = identities.value.map((i) => {
+    if (i.value === email) {
+      return {
+        ...i,
+        ...data,
+      };
+    }
+    return i;
+  });
+  serverUpdate();
+};
+
+const remove = (email: string) => {
+  identities.value = identities.value.filter((i) => i.value !== email);
+  serverUpdate();
+};
+
+const create = (index: number, data: OrganizationIdentity) => {
+  identities.value.push({
+    ...addIdentities.value[index],
+    ...data,
+  });
+  addIdentities.value.splice(index, 1);
+  serverUpdate();
+};
+
+const addIdentity = () => {
+  addIdentities.value.push({
+    platform: Platform.CUSTOM,
+    type: OrganizationIdentityType.EMAIL,
+    value: '',
+    verified: true,
   });
 };
 
-const update = (index: number, data: string) => {
-  emails.value[index] = data;
-  serverUpdate();
-};
-
-const remove = (index: number) => {
-  emails.value.splice(index, 1);
-  serverUpdate();
-};
-
-const create = (index: number, data: string) => {
-  emails.value.push(data);
-  addEmails.value.splice(index, 1);
-  serverUpdate();
-};
-
-const addEmail = () => {
-  addEmails.value.push('');
-};
-
 onUnmounted(() => {
-  fetchOrganization(props.organization.id, [selectedProjectGroup.value?.id]);
+  if (selectedProjectGroup.value?.id) {
+    useOrganizationStore().fetchOrganization(props.organization.id, [selectedProjectGroup.value.id]);
+  }
 });
 
 </script>

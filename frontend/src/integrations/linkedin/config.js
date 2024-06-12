@@ -35,6 +35,25 @@ export default {
     }),
   },
   organization: {
-    handle: (identity) => identity.name,
+    identityHandle: ({ identityHandle }) => {
+      const splittedIdentity = identityHandle?.split(':');
+
+      if (splittedIdentity.length < 2) {
+        return identityHandle;
+      }
+
+      return splittedIdentity[1];
+    },
+    identityLink: ({ identityHandle }) => {
+      const splittedIdentity = identityHandle?.split(':');
+
+      if (splittedIdentity.length < 2) {
+        return `https://linkedin.com/company/${identityHandle}`;
+      }
+
+      const link = splittedIdentity[0] === 'school' ? 'https://linkedin.com/school/' : 'https://linkedin.com/company/';
+
+      return `${link}/${splittedIdentity[1]}`;
+    },
   },
 };

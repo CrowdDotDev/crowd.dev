@@ -95,7 +95,8 @@ const props = defineProps<{
   identities: {
     [key: string]: {
       handle: string;
-      link: string;
+      link: string | null;
+      verified: boolean;
     }[];
   };
   xPadding?: number;
@@ -106,14 +107,16 @@ const displayMore = ref(false);
 
 const slicedIdentities = computed(() => {
   if (!displayMore.value && props.displayShowMore) {
-    return Object.fromEntries(Object.entries(props.identities).slice(0, 5));
+    return Object.fromEntries(Object.entries(props.identities).filter(([, v]) => v.length).slice(0, 5));
   }
 
-  return props.identities;
+  return Object.fromEntries(Object.entries(props.identities).filter(([, v]) => v.length));
 });
 
 const isCustomPlatform = (platform: string) => platform !== Platform.EMAILS
   && platform !== Platform.PHONE_NUMBERS
+  && platform !== 'domains'
+  && platform !== 'email'
   && !CrowdIntegrations.getConfig(platform)?.name;
 </script>
 
