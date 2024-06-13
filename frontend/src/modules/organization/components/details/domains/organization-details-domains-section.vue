@@ -4,41 +4,43 @@
       <slot />
     </p>
 
-    <article
-      v-for="domain of props.domains.slice(0, showMore ? props.domains.length : limit)"
-      :key="domain"
-      class="flex"
-    >
-      <lf-icon name="link" :size="20" class="text-gray-500" />
-      <div class="pl-2">
-        <div class="flex items-center">
-          <lf-tooltip
-            :content="domain.value"
-            :disabled="domain.value.length < 25"
-          >
-            <a
-              :href="withHttp(domain.value)"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="text-medium cursor-pointer !text-black underline decoration-dashed
-             decoration-gray-400 underline-offset-4 hover:decoration-gray-900 truncate"
-              style="max-width: 25ch"
+    <div class="flex flex-col gap-3">
+      <article
+        v-for="domain of props.domains.slice(0, showMore ? props.domains.length : limit)"
+        :key="domain"
+        class="flex"
+      >
+        <lf-icon name="link" :size="20" class="text-gray-500" />
+        <div class="pl-2">
+          <div class="flex items-center">
+            <lf-tooltip
+              :content="domain.value"
+              :disabled="domain.value.length < 25"
             >
-              {{ domain.value }}
-            </a>
-          </lf-tooltip>
-          <lf-tooltip v-if="!domain.verified" content="Verified domain" class="ml-1.5">
-            <lf-icon name="verified-badge-line" :size="16" class="text-primary-500" />
-          </lf-tooltip>
+              <a
+                :href="withHttp(domain.value)"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-medium cursor-pointer !text-black underline decoration-dashed
+             decoration-gray-400 underline-offset-4 hover:decoration-gray-900 truncate"
+                style="max-width: 25ch"
+              >
+                {{ domain.value }}
+              </a>
+            </lf-tooltip>
+            <lf-tooltip v-if="!domain.verified" content="Verified domain" class="ml-1.5">
+              <lf-icon name="verified-badge-line" :size="16" class="text-primary-500" />
+            </lf-tooltip>
+          </div>
+          <p class="mt-1.5 text-tiny text-gray-400">
+            Source: {{ platformLabel(domain.platform) }}
+          </p>
         </div>
-        <p class="mt-1.5 text-tiny text-gray-400">
-          Source: {{ platformLabel(domain.platform) }}
-        </p>
-      </div>
-    </article>
+      </article>
+    </div>
 
     <lf-button
-      v-if="domains.length > limit"
+      v-if="props.domains.length > limit"
       type="primary-link"
       size="small"
       class="mt-4"

@@ -125,7 +125,6 @@ const fetchOrganization = () => {
   }
   OrganizationApiService.find(id as string, [selectedProjectGroup.value?.id as string])
     .then((res) => {
-      console.log(res);
       organization.value = res;
     })
     .finally(() => {

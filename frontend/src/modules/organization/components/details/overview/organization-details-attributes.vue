@@ -97,7 +97,7 @@ const location = computed(() => props.organization.location);
 const visibleAttributes = computed(() => enrichmentAttributes
   .filter((a) => ((props.organization[a.name] && a.type !== AttributeType.ARRAY && a.type !== AttributeType.JSON)
           || (a.type === AttributeType.ARRAY && props.organization[a.name]?.length)
-          || (a.type === AttributeType.JSON && props.organization[a.name] && Object.keys(props.organization[a.name]))) && a.showInAttributes));
+          || (a.type === AttributeType.JSON && props.organization[a.name] && Object.keys(props.organization[a.name]).length)) && a.showInAttributes));
 
 const getValue = (attribute: OrganizationEnrichmentConfig) => {
   const value = props.organization[attribute.name];
