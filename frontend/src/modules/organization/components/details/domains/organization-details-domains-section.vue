@@ -1,12 +1,12 @@
 <template>
-  <section v-if="props.domains.length">
+  <section v-if="domainList.length">
     <p class="text-small font-semibold pb-3">
       <slot />
     </p>
 
     <div class="flex flex-col gap-3">
       <article
-        v-for="domain of props.domains.slice(0, showMore ? props.domains.length : limit)"
+        v-for="domain of domainList.slice(0, showMore ? domainList.length : limit)"
         :key="domain"
         class="flex"
       >
@@ -33,14 +33,14 @@
             </lf-tooltip>
           </div>
           <p class="mt-1.5 text-tiny text-gray-400">
-            Source: {{ platformLabel(domain.platform) }}
+            Source: {{ platformLabel(domain.platforms) }}
           </p>
         </div>
       </article>
     </div>
 
     <lf-button
-      v-if="props.domains.length > limit"
+      v-if="domainList.length > limit"
       type="primary-link"
       size="small"
       class="mt-4"
@@ -54,11 +54,12 @@
 <script setup lang="ts">
 import { OrganizationIdentity } from '@/modules/organization/types/Organization';
 import LfButton from '@/ui-kit/button/Button.vue';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { withHttp } from '@/utils/string';
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
+import { MemberIdentity } from '@/modules/member/types/Member';
 
 const props = defineProps<{
   domains: OrganizationIdentity[],
@@ -68,7 +69,28 @@ const limit = 5;
 
 const showMore = ref<boolean>(false);
 
-const platformLabel = (platform: string) => CrowdIntegrations.getPlatformsLabel([platform]);
+const platformLabel = (platforms: string[]) => CrowdIntegrations.getPlatformsLabel(platforms);
+
+const domainList = computed(() => {
+  const domainData = (props.domains || [])
+    .reduce((obj: Record<string, any>, identity: MemberIdentity) => {
+      const domainObject = { ...obj };
+      if (!(identity.value in domainObject)) {
+        domainObject[identity.value] = {
+          ...identity,
+          platforms: [],
+        };
+      }
+      domainObject[identity.value].platforms.push(identity.platform);
+      domainObject[identity.value].verified = domainObject[identity.value].verified || identity.verified;
+
+      return domainObject;
+    }, {});
+  return Object.keys(domainData).map((domain) => ({
+    value: domain,
+    ...domainData[domain],
+  }));
+});
 </script>
 
 <script lang="ts">
