@@ -96,9 +96,6 @@ export async function getLLMResult(
 
   const res = await client.send(command)
 
-  console.log(res.$metadata)
-  console.log(res.contentType)
-
   return {
     body: JSON.parse(res.body.transformToString()),
     prompt: fullPrompt,
