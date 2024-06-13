@@ -45,6 +45,7 @@ export const obfuscate = (email: string): string => {
 }
 
 export const obfuscateIdentitiesOfMember = (member: ILLMConsumableMember): ILLMConsumableMember => {
+  member.displayName = obfuscate(member.displayName)
   for (const identity of member.identities) {
     identity.value = obfuscate(identity.value)
   }
