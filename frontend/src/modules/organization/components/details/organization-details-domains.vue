@@ -16,22 +16,17 @@
     </div>
     <div class="flex flex-col gap-6">
       <lf-organization-details-domains-section
+        title="Primary domain"
         :domains="primaryDomains(props.organization)"
-      >
-        Primary domain
-      </lf-organization-details-domains-section>
-
+      />
       <lf-organization-details-domains-section
+        title="Alternative domain"
         :domains="alternativeDomains(props.organization)"
-      >
-        Alternative domains
-      </lf-organization-details-domains-section>
-
+      />
       <lf-organization-details-domains-section
+        title="Affiliated domain"
         :domains="affiliatedProfiles(props.organization)"
-      >
-        Affiliated domains
-      </lf-organization-details-domains-section>
+      />
     </div>
 
     <div v-if="!domains(props.organization).length" class="pt-2 flex flex-col items-center w-full">

@@ -1,7 +1,7 @@
 <template>
   <section v-if="domainList.length">
-    <p class="text-small font-semibold pb-3">
-      <slot />
+    <p v-if="props.title" class="text-small font-semibold pb-3">
+      {{ pluralize(props.title, domainList.length) }}
     </p>
 
     <div class="flex flex-col gap-3">
@@ -60,8 +60,10 @@ import { withHttp } from '@/utils/string';
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { MemberIdentity } from '@/modules/member/types/Member';
+import pluralize from 'pluralize';
 
 const props = defineProps<{
+  title?: string;
   domains: OrganizationIdentity[],
 }>();
 

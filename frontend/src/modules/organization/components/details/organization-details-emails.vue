@@ -15,22 +15,35 @@
       </lf-button>
     </div>
 
-    <div class="flex flex-wrap gap-2">
-      <lf-tooltip
+    <div class="flex flex-wrap gap-3">
+      <article
         v-for="email of emailList.slice(0, showMore ? emailList.length : limit)"
         :key="email"
-        :content="email"
-        :disabled="email.length <= 30"
+        class="flex"
       >
-        <lf-badge
-          type="secondary"
-          class="truncate"
-          style="max-width: 30ch"
-        >
-          {{ email }}
-        </lf-badge>
-      </lf-tooltip>
-
+        <lf-icon name="mail-line" :size="20" class="text-gray-500" />
+        <div class="pl-2">
+          <div class="flex items-center">
+            <lf-tooltip
+              :content="email"
+              :disabled="email.length < 25"
+            >
+              <a
+                :href="`mailto:${email}`"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-medium cursor-pointer !text-black underline decoration-dashed
+             decoration-gray-400 underline-offset-4 hover:decoration-gray-900 truncate"
+                style="max-width: 25ch"
+              >
+                {{ email }}
+              </a>
+            </lf-tooltip>
+          </div>
+        </div>
+      </article>
+    </div>
+    <div>
       <div v-if="emailList.length === 0" class="pt-2 flex flex-col items-center w-full">
         <lf-icon name="at-line" :size="40" class="text-gray-300" />
         <p class="text-center pt-3 text-medium text-gray-400">
@@ -66,7 +79,6 @@ import usePermissions from '@/shared/modules/permissions/helpers/usePermissions'
 import useOrganizationHelpers from '@/modules/organization/helpers/organization.helpers';
 import { Organization } from '@/modules/organization/types/Organization';
 import AppOrganizationManageEmailsDrawer from '@/modules/organization/components/organization-manage-emails-drawer.vue';
-import LfBadge from '@/ui-kit/badge/Badge.vue';
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
 
 const props = defineProps<{
