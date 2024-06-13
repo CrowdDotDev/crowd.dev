@@ -1,4 +1,4 @@
-import { ILLMConsumableMember } from '@crowd/types'
+import { ILLMConsumableMember, IMemberIdentity } from '@crowd/types'
 
 export const prefixLength = (string: string) => {
   if (string.length > 5 && string.length < 8) {
@@ -45,18 +45,16 @@ export const obfuscate = (email: string): string => {
 }
 
 export const obfuscateIdentitiesOfMember = (member: ILLMConsumableMember): ILLMConsumableMember => {
-  member.displayName = obfuscate(member.displayName)
+  // member.displayName = obfuscate(member.displayName)
+  const nonEmailIdentities: IMemberIdentity[] = []
   for (const identity of member.identities) {
-    identity.value = obfuscate(identity.value)
+    if (identity.value.indexOf('@') === -1) {
+      // remove found identity from member.identities
+      nonEmailIdentities.push(identity)
+    }
   }
 
-  if (member.attributes?.url?.github) {
-    member.attributes.url.github = obfuscate(member.attributes.url.github)
-  }
-
-  if (member.attributes?.url?.default) {
-    member.attributes.url.default = obfuscate(member.attributes.url.default)
-  }
+  member.identities = nonEmailIdentities
 
   return member
 }
