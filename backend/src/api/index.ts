@@ -208,7 +208,7 @@ setImmediate(async () => {
   authSocial(app, routes)
 
   // Enable product db only if it's configured
-  if (process.env.ENABLE_PRODUCT_DB){
+  if (PRODUCT_DB_CONFIG){
     const productDbClient = await getDbConnection(PRODUCT_DB_CONFIG)
     app.use(productDatabaseMiddleware(productDbClient))
     require('./product').default(routes)
