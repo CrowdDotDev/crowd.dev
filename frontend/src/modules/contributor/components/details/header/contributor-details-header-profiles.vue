@@ -90,7 +90,7 @@ const platformIdentities = computed(() => {
   const data = {};
   contributorDetailsHeaderProfilePlatforms.forEach((p) => { data[p] = []; });
   identities(props.contributor).forEach((i) => {
-    if (detailsHeaderProfilePlatforms.includes(i.platform)) {
+    if (contributorDetailsHeaderProfilePlatforms.includes(i.platform)) {
       data[i.platform].push(i);
     }
   });
