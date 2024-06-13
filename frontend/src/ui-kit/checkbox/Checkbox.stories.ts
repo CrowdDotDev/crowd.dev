@@ -1,9 +1,9 @@
 import { checkboxSizes } from '@/ui-kit/checkbox/types/CheckboxSize';
-import CrCheckbox from './Checkbox.vue';
+import LfCheckbox from './Checkbox.vue';
 
 export default {
-  title: 'Crowd.dev/Checkbox',
-  component: CrCheckbox,
+  title: 'LinuxFoundation/Checkbox',
+  component: LfCheckbox,
   tags: ['autodocs'],
   argTypes: {
     // Props

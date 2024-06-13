@@ -225,11 +225,13 @@ export async function addMemberToMerge(
   suggestions: IMemberMergeSuggestion[],
   table: MemberMergeSuggestionTable,
 ): Promise<void> {
-  const memberMergeSuggestionsRepo = new MemberMergeSuggestionsRepository(
-    svc.postgres.writer.connection(),
-    svc.log,
-  )
-  await memberMergeSuggestionsRepo.addToMerge(suggestions, table)
+  if (suggestions.length > 0) {
+    const memberMergeSuggestionsRepo = new MemberMergeSuggestionsRepository(
+      svc.postgres.writer.connection(),
+      svc.log,
+    )
+    await memberMergeSuggestionsRepo.addToMerge(suggestions, table)
+  }
 }
 
 export async function findTenantsLatestMemberSuggestionGeneratedAt(

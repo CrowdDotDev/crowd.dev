@@ -4,7 +4,14 @@ import {
   IDbMemberUpdateData,
 } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.data'
 import MemberRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.repo'
-import { isObjectEmpty, singleOrDefault, isDomainExcluded, isEmail, EDITION } from '@crowd/common'
+import {
+  isObjectEmpty,
+  singleOrDefault,
+  isDomainExcluded,
+  isEmail,
+  EDITION,
+  getProperDisplayName,
+} from '@crowd/common'
 import { DbStore } from '@crowd/data-access-layer/src/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import {
@@ -16,6 +23,7 @@ import {
   TemporalWorkflowId,
   MemberIdentityType,
   Edition,
+  OrganizationIdentityType,
 } from '@crowd/types'
 import mergeWith from 'lodash.mergewith'
 import isEqual from 'lodash.isequal'
@@ -84,7 +92,7 @@ export default class MemberService extends LoggerBase {
         data.identities = this.validateEmails(data.identities)
 
         const id = await txRepo.create(tenantId, {
-          displayName: data.displayName,
+          displayName: getProperDisplayName(data.displayName.split(' ')[0]),
           joinedAt: data.joinedAt.toISOString(),
           attributes,
           identities: data.identities,
@@ -226,6 +234,11 @@ export default class MemberService extends LoggerBase {
         // validate emails
         data.identities = this.validateEmails(data.identities)
 
+        // make sure displayName is proper
+        if (data.displayName) {
+          data.displayName = getProperDisplayName(data.displayName.split(' ')[0])
+        }
+
         const toUpdate = MemberService.mergeData(original, dbIdentities, data)
 
         if (toUpdate.attributes) {
@@ -364,11 +377,13 @@ export default class MemberService extends LoggerBase {
     // Assign member to organization based on email domain
     for (const domain of emailDomains) {
       const orgId = await orgService.findOrCreate(tenantId, segmentId, integrationId, {
-        website: domain,
+        names: [domain],
         identities: [
           {
-            name: domain,
+            value: domain,
+            type: OrganizationIdentityType.PRIMARY_DOMAIN,
             platform: 'email',
+            verified: true,
           },
         ],
       })

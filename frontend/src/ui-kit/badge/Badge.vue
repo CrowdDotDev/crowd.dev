@@ -19,12 +19,12 @@ const props = withDefaults(defineProps<{
   type?: BadgeType,
 }>(), {
   size: 'medium',
-  type: 'default',
+  type: 'primary',
 });
 </script>
 
 <script lang="ts">
 export default {
-  name: 'CrBadge',
+  name: 'LfBadge',
 };
 </script>

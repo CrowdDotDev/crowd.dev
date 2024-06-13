@@ -43,6 +43,6 @@ const sort = () => {
 
 <script lang="ts">
 export default {
-  name: 'CrTableHead',
+  name: 'LfTableHead',
 };
 </script>

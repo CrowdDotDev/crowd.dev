@@ -1,4 +1,10 @@
+import { captureApiChange, organizationMergeAction } from '@crowd/audit-logs'
 import { Error400, websiteNormalizer } from '@crowd/common'
+import {
+  findLfxMembership,
+  findManyLfxMemberships,
+  hasLfxMembership,
+} from '@crowd/data-access-layer/src/lfx_memberships'
 import { LoggerBase } from '@crowd/logging'
 import {
   IOrganization,
@@ -10,11 +16,11 @@ import {
   MemberRoleUnmergeStrategy,
   MergeActionState,
   MergeActionType,
+  OrganizationIdentityType,
   SyncMode,
 } from '@crowd/types'
 import { randomUUID } from 'crypto'
 import lodash from 'lodash'
-import { captureApiChange, organizationMergeAction } from '@crowd/audit-logs'
 import getObjectWithoutKey from '@/utils/getObjectWithoutKey'
 import { IActiveOrganizationFilter } from '@/database/repositories/types/organizationTypes'
 import MemberOrganizationRepository from '@/database/repositories/memberOrganizationRepository'
@@ -104,7 +110,15 @@ export default class OrganizationService extends LoggerBase {
 
       const identities = await OrganizationRepository.getIdentities([organizationId], this.options)
 
-      if (!identities.some((i) => i.platform === identity.platform && i.name === identity.name)) {
+      if (
+        !identities.some(
+          (i) =>
+            i.platform === identity.platform &&
+            i.value === identity.value &&
+            i.type === identity.type &&
+            i.verified === identity.verified,
+        )
+      ) {
         throw new Error(`Organization doesn't have the identity sent to be unmerged!`)
       }
 
@@ -127,13 +141,12 @@ export default class OrganizationService extends LoggerBase {
             if (
               key in
               [
+                'names',
                 'emails',
                 'phoneNumbers',
                 'tags',
                 'profiles',
-                'affiliatedProfiles',
                 'allSubsidiaries',
-                'alternativeDomains',
                 'alternativeNames',
                 'directSubsidiaries',
               ]
@@ -153,7 +166,13 @@ export default class OrganizationService extends LoggerBase {
         // identities
         organization.identities = organization.identities.filter(
           (i) =>
-            !secondaryBackup.identities.some((s) => s.platform === i.platform && s.name === i.name),
+            !secondaryBackup.identities.some(
+              (s) =>
+                s.platform === i.platform &&
+                s.value === i.value &&
+                s.type === i.type &&
+                s.verified === i.verified,
+            ),
         )
 
         return {
@@ -171,7 +190,14 @@ export default class OrganizationService extends LoggerBase {
       // merge action not found, preview an identity extraction instead
       const secondaryIdentities = [identity]
       const primaryIdentities = organization.identities.filter(
-        (i) => !secondaryIdentities.some((s) => s.platform === i.platform && s.name === i.name),
+        (i) =>
+          !secondaryIdentities.some(
+            (s) =>
+              s.platform === i.platform &&
+              s.value === i.value &&
+              s.type === i.type &&
+              s.verified === i.verified,
+          ),
       )
 
       if (primaryIdentities.length === 0) {
@@ -209,7 +235,8 @@ export default class OrganizationService extends LoggerBase {
         secondary: {
           id: randomUUID(),
           identities: secondaryIdentities,
-          displayName: identity.name,
+          names: [identity.value],
+          displayName: identity.value,
           description: null,
           activityCount: secondaryActivityCount,
           memberCount: secondaryMemberCount,
@@ -217,12 +244,8 @@ export default class OrganizationService extends LoggerBase {
           phoneNumbers: [],
           logo: null,
           tags: [],
-          twitter: null,
-          linkedin: null,
-          crunchbase: null,
           employees: null,
           location: null,
-          website: null,
           isTeamOrganization: false,
           employeeCountByCountry: null,
           geoLocation: null,
@@ -236,9 +259,7 @@ export default class OrganizationService extends LoggerBase {
           founded: null,
           attributes: {},
           searchSyncedAt: null,
-          affiliatedProfiles: [],
           allSubsidiaries: [],
-          alternativeDomains: [],
           alternativeNames: [],
           averageEmployeeTenure: null,
           averageTenureByLevel: null,
@@ -275,25 +296,21 @@ export default class OrganizationService extends LoggerBase {
       // remove identities in secondary organization from primary
       await OrganizationRepository.removeIdentitiesFromOrganization(
         organizationId,
-        payload.secondary.identities,
+        payload.secondary.identities.filter(
+          (i) =>
+            i.verified === undefined || // backwards compatibility for old identity backups
+            i.verified === true ||
+            (i.verified === false &&
+              !payload.primary.identities.some(
+                (pi) =>
+                  pi.verified === false &&
+                  pi.platform === i.platform &&
+                  pi.value === i.value &&
+                  pi.type === i.type,
+              )),
+        ),
         repoOptions,
       )
-
-      // check website before creating the secondary org
-      if (
-        payload.secondary.website &&
-        payload.secondary.website === organization.website &&
-        !payload.primary.website
-      ) {
-        // set primary website to null before creating the secondary org
-        await OrganizationRepository.update(
-          organizationId,
-          { website: null },
-          repoOptions,
-          false,
-          false,
-        )
-      }
 
       // create the secondary org
       const secondaryOrganization = await OrganizationRepository.create(
@@ -402,6 +419,8 @@ export default class OrganizationService extends LoggerBase {
       ])
 
     let tx
+    const qx = SequelizeRepository.getQueryExecutor(this.options)
+    const tenantId = this.options.currentTenant.id
 
     try {
       const { original, toMerge } = await captureApiChange(
@@ -410,6 +429,31 @@ export default class OrganizationService extends LoggerBase {
           this.log.info('[Merge Organizations] - Finding organizations! ')
           let original = await OrganizationRepository.findById(originalId, this.options)
           let toMerge = await OrganizationRepository.findById(toMergeId, this.options)
+
+          const originalWithLfxMembership = await hasLfxMembership(qx, {
+            tenantId,
+            organizationId: originalId,
+          })
+          const toMergeWithLfxMembership = await hasLfxMembership(qx, {
+            tenantId,
+            organizationId: toMergeId,
+          })
+
+          if (originalWithLfxMembership && toMergeWithLfxMembership) {
+            await OrganizationRepository.addNoMerge(originalId, toMergeId, this.options)
+            this.log.info(
+              { originalId, toMergeId },
+              '[Merge Organizations] - Skipping merge of two LFX membership orgs! ',
+            )
+
+            return {
+              status: 203,
+              mergedId: originalId,
+            }
+          }
+          if (toMergeWithLfxMembership) {
+            throw new Error('Cannot merge LFX membership organization as a secondary one!')
+          }
 
           this.log.info({ originalId, toMergeId }, '[Merge Organizations] - Found organizations! ')
 
@@ -473,14 +517,20 @@ export default class OrganizationService extends LoggerBase {
 
           const originalIdentities = allIdentities.filter((i) => i.organizationId === originalId)
           const toMergeIdentities = allIdentities.filter((i) => i.organizationId === toMergeId)
-          const identitiesToMove = []
+          const identitiesToMove: IOrganizationIdentity[] = []
+          const identitiesToUpdate: IOrganizationIdentity[] = []
           for (const identity of toMergeIdentities) {
-            if (
-              !originalIdentities.find(
-                (i) => i.platform === identity.platform && i.name === identity.name,
-              )
-            ) {
+            const existing = originalIdentities.find(
+              (i) =>
+                i.platform === identity.platform &&
+                i.type === identity.type &&
+                i.value === identity.value,
+            )
+
+            if (!existing) {
               identitiesToMove.push(identity)
+            } else if (!existing.verified && identity.verified) {
+              identitiesToUpdate.push(identity)
             }
           }
 
@@ -489,6 +539,7 @@ export default class OrganizationService extends LoggerBase {
             '[Merge Organizations] - Moving identities between organizations! ',
           )
 
+          // move non existing identities
           await OrganizationRepository.moveIdentitiesBetweenOrganizations(
             toMergeId,
             originalId,
@@ -496,18 +547,9 @@ export default class OrganizationService extends LoggerBase {
             repoOptions,
           )
 
-          // if toMerge has website - also add it as an identity to the original org
-          // for identifying further organizations, and website information of toMerge is not lost
-          if (toMerge.website) {
-            await OrganizationRepository.addIdentity(
-              originalId,
-              {
-                name: toMerge.website,
-                platform: 'email',
-                integrationId: null,
-              },
-              repoOptions,
-            )
+          // verify existing unverified identities
+          for (const identity of identitiesToUpdate) {
+            await OrganizationRepository.updateIdentity(originalId, identity, repoOptions)
           }
 
           // remove aggregate fields and relationships
@@ -609,20 +651,14 @@ export default class OrganizationService extends LoggerBase {
 
       const searchSyncService = new SearchSyncService(this.options, SyncMode.ASYNCHRONOUS)
 
-      await searchSyncService.triggerOrganizationSync(this.options.currentTenant.id, originalId)
-      await searchSyncService.triggerRemoveOrganization(this.options.currentTenant.id, toMergeId)
+      await searchSyncService.triggerOrganizationSync(tenantId, originalId)
+      await searchSyncService.triggerRemoveOrganization(tenantId, toMergeId)
 
       // sync organization members
-      await searchSyncService.triggerOrganizationMembersSync(
-        this.options.currentTenant.id,
-        originalId,
-      )
+      await searchSyncService.triggerOrganizationMembersSync(tenantId, originalId)
 
       // sync organization activities
-      await searchSyncService.triggerOrganizationActivitiesSync(
-        this.options.currentTenant.id,
-        originalId,
-      )
+      await searchSyncService.triggerOrganizationActivitiesSync(tenantId, originalId)
 
       this.log.info(
         { originalId, toMergeId },
@@ -640,11 +676,11 @@ export default class OrganizationService extends LoggerBase {
           toMergeId,
           original.displayName,
           toMerge.displayName,
-          this.options.currentTenant.id,
+          tenantId,
           this.options.currentUser.id,
         ],
         searchAttributes: {
-          TenantId: [this.options.currentTenant.id],
+          TenantId: [tenantId],
         },
       })
 
@@ -679,13 +715,11 @@ export default class OrganizationService extends LoggerBase {
     return merge(originalObject, toMergeObject, {
       description: keepPrimaryIfExists,
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      names: mergeUniqueStringArrayItems,
       emails: mergeUniqueStringArrayItems,
       phoneNumbers: mergeUniqueStringArrayItems,
       logo: keepPrimaryIfExists,
       tags: mergeUniqueStringArrayItems,
-      twitter: keepPrimaryIfExists,
-      linkedin: keepPrimaryIfExists,
-      crunchbase: keepPrimaryIfExists,
       employees: keepPrimaryIfExists,
       revenueRange: keepPrimaryIfExists,
       importHash: keepPrimary,
@@ -696,8 +730,6 @@ export default class OrganizationService extends LoggerBase {
       createdById: keepPrimary,
       updatedById: keepPrimary,
       location: keepPrimaryIfExists,
-      github: keepPrimaryIfExists,
-      website: keepPrimaryIfExists,
       isTeamOrganization: keepPrimaryIfExists,
       lastEnrichedAt: keepPrimary,
       employeeCountByCountry: keepPrimaryIfExists,
@@ -714,9 +746,7 @@ export default class OrganizationService extends LoggerBase {
       displayName: keepPrimary,
       attributes: keepPrimary,
       searchSyncedAt: keepPrimary,
-      affiliatedProfiles: mergeUniqueStringArrayItems,
       allSubsidiaries: mergeUniqueStringArrayItems,
-      alternativeDomains: mergeUniqueStringArrayItems,
       alternativeNames: mergeUniqueStringArrayItems,
       averageEmployeeTenure: keepPrimaryIfExists,
       averageTenureByLevel: keepPrimaryIfExists,
@@ -733,25 +763,6 @@ export default class OrganizationService extends LoggerBase {
       ultimateParent: keepPrimaryIfExists,
       immediateParent: keepPrimaryIfExists,
       manuallyCreated: keepPrimary,
-      weakIdentities: (
-        weakIdentitiesPrimary: IOrganizationIdentity[],
-        weakIdentitiesSecondary: IOrganizationIdentity[],
-      ): IOrganizationIdentity[] => {
-        const uniqueMap: { [key: string]: IOrganizationIdentity } = {}
-
-        const createKey = (identity: IOrganizationIdentity) =>
-          `${identity.platform}_${identity.name}`
-
-        ;[...weakIdentitiesPrimary, ...weakIdentitiesSecondary].forEach((identity) => {
-          const key = createKey(identity)
-
-          if (!uniqueMap[key]) {
-            uniqueMap[key] = identity
-          }
-        })
-
-        return Object.values(uniqueMap)
-      },
     })
   }
 
@@ -786,34 +797,46 @@ export default class OrganizationService extends LoggerBase {
   ) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
-    if ((data as any).name && (!data.identities || data.identities.length === 0)) {
+    if (!data.identities) {
+      data.identities = []
+    }
+
+    if ((data as any).name && data.identities.length === 0) {
       data.identities = [
         {
-          name: (data as any).name,
+          value: (data as any).name,
+          type: OrganizationIdentityType.USERNAME,
           platform: 'custom',
+          verified: true,
         },
       ]
       delete (data as any).name
     }
 
-    if (
-      !data.identities ||
-      data.identities.length === 0 ||
-      !data.identities[0].name ||
-      !data.identities[0].platform
-    ) {
+    const verifiedIdentities = data.identities.filter((i) => i.verified)
+
+    if (verifiedIdentities.length === 0) {
       const message = `Missing organization identity while creating/updating organization!`
       this.log.error(data, message)
       throw new Error(message)
     }
 
     try {
-      const primaryIdentity = data.identities[0]
-      const name = (data as any).name || primaryIdentity.name
+      const primaryIdentity = verifiedIdentities[0]
+      const name = primaryIdentity.value
 
-      // Normalize the website URL if it exists
-      if (data.website) {
-        data.website = websiteNormalizer(data.website)
+      if (!data.names) {
+        data.names = [name]
+      }
+
+      // Normalize the website identities
+      for (const i of data.identities.filter((i) =>
+        [
+          OrganizationIdentityType.PRIMARY_DOMAIN,
+          OrganizationIdentityType.ALTERNATIVE_DOMAIN,
+        ].includes(i.type),
+      )) {
+        i.value = websiteNormalizer(i.value)
       }
 
       if (data.members) {
@@ -824,31 +847,12 @@ export default class OrganizationService extends LoggerBase {
       }
 
       let record
-      let existing
-
-      // check if organization already exists using website or primary identity
-      if (data.website) {
-        existing = await OrganizationRepository.findByDomain(data.website, this.options)
-
-        // also check domain in identities
-        if (!existing) {
-          existing = await OrganizationRepository.findByIdentity(
-            {
-              name: websiteNormalizer(data.website),
-              platform: 'email',
-            },
-            this.options,
-          )
-        }
-      }
-
-      if (!existing) {
-        existing = await OrganizationRepository.findByIdentities(data.identities, this.options)
-      }
+      const existing = await OrganizationRepository.findByVerifiedIdentities(
+        verifiedIdentities,
+        this.options,
+      )
 
       if (existing) {
-        await OrganizationRepository.checkIdentities(data, this.options, existing.id)
-
         // Set displayName if it doesn't exist
         if (!existing.displayName) {
           data.displayName = name
@@ -859,23 +863,18 @@ export default class OrganizationService extends LoggerBase {
         const fields = [
           'displayName',
           'description',
+          'names',
           'emails',
           'logo',
           'tags',
-          'github',
-          'twitter',
-          'linkedin',
-          'crunchbase',
           'employees',
           'location',
-          'website',
           'type',
           'size',
           'headline',
           'industry',
           'founded',
           'attributes',
-          'weakIdentities',
         ]
         fields.forEach((field) => {
           if (!existing[field] && data[field]) {
@@ -891,9 +890,46 @@ export default class OrganizationService extends LoggerBase {
         } else {
           record = existing
         }
-      } else {
-        await OrganizationRepository.checkIdentities(data, this.options)
 
+        const existingIdentities = await OrganizationRepository.getIdentities(record.id, {
+          ...this.options,
+          transaction,
+        })
+
+        const toUpdate: IOrganizationIdentity[] = []
+        const toCreate: IOrganizationIdentity[] = []
+
+        for (const i of data.identities) {
+          const existing = existingIdentities.find(
+            (ei) => ei.value === i.value && ei.platform === i.platform && ei.type === i.type,
+          )
+          if (!existing) {
+            toCreate.push(i)
+          } else if (existing && existing.verified !== i.verified) {
+            toUpdate.push(i)
+          }
+        }
+
+        if (toCreate.length > 0) {
+          for (const i of toCreate) {
+            // add the identity
+            await OrganizationRepository.addIdentity(record.id, i, {
+              ...this.options,
+              transaction,
+            })
+          }
+        }
+
+        if (toUpdate.length > 0) {
+          for (const i of toUpdate) {
+            // update the identity
+            await OrganizationRepository.updateIdentity(record.id, i, {
+              ...this.options,
+              transaction,
+            })
+          }
+        }
+      } else {
         const organization = {
           ...data, // to keep uncacheable data (like identities, weakIdentities)
           displayName: name,
@@ -911,26 +947,12 @@ export default class OrganizationService extends LoggerBase {
           },
           this.options,
         )
-      }
 
-      const identities = await OrganizationRepository.getIdentities(record.id, {
-        ...this.options,
-        transaction,
-      })
-
-      if (data.identities && data.identities.length > 0) {
-        for (const identity of data.identities) {
-          const identityExists = identities.find(
-            (i) => i.name === identity.name && i.platform === identity.platform,
-          )
-
-          if (!identityExists) {
-            // add the identity
-            await OrganizationRepository.addIdentity(record.id, identity, {
-              ...this.options,
-              transaction,
-            })
-          }
+        for (const i of data.identities) {
+          await OrganizationRepository.addIdentity(record.id, i, {
+            ...this.options,
+            transaction,
+          })
         }
       }
 
@@ -974,32 +996,61 @@ export default class OrganizationService extends LoggerBase {
         data.members = await MemberRepository.filterIdsInTenant(data.members, repoOptions)
       }
 
-      // Normalize the website URL if it exists
-      if (data.website) {
-        data.website = websiteNormalizer(data.website)
-      }
-
       if (data.identities) {
-        const originalIdentities = data.identities
+        // Normalize the website identities
+        for (const i of data.identities.filter((i) =>
+          [
+            OrganizationIdentityType.PRIMARY_DOMAIN,
+            OrganizationIdentityType.ALTERNATIVE_DOMAIN,
+          ].includes(i.type),
+        )) {
+          i.value = websiteNormalizer(i.value)
+        }
 
-        // check identities
-        await OrganizationRepository.checkIdentities(data, repoOptions, id)
+        const existingIdentities = await OrganizationRepository.getIdentities(id, repoOptions)
 
-        // if we found any strong identities sent already existing in another organization
-        // instead of making it a weak identity we throw an error here, because this function
-        // is mainly used for doing manual updates through UI and possibly
-        // we don't wanna do an auto-merge here or make strong identities sent by user as weak
-        if (originalIdentities.length !== data.identities.length) {
-          const alreadyExistingStrongIdentities = originalIdentities.filter(
-            (oi) =>
-              !data.identities.some((di) => di.platform === oi.platform && di.name === oi.name),
+        const toUpdate: IOrganizationIdentity[] = []
+        const toCreate: IOrganizationIdentity[] = []
+
+        for (const i of data.identities) {
+          const existing = existingIdentities.find(
+            (ei) => ei.value === i.value && ei.platform === i.platform && ei.type === i.type,
           )
+          if (!existing) {
+            toCreate.push(i)
+          } else if (existing && existing.verified !== i.verified) {
+            toUpdate.push(i)
+          }
+        }
 
-          throw new Error(
-            `Organization identities ${JSON.stringify(
-              alreadyExistingStrongIdentities,
-            )} already exist in another organization!`,
+        const toUpdateVerified = toUpdate.filter((i) => i.verified)
+        const verified = toUpdateVerified.concat(toCreate)
+        if (verified.length > 0) {
+          const existing = await OrganizationRepository.findByVerifiedIdentities(
+            verified,
+            repoOptions,
           )
+          if (existing && existing.id !== id) {
+            throw new Error(
+              `Organization identities ${JSON.stringify(
+                verified,
+              )} already exist in another organization!`,
+            )
+          }
+        }
+
+        if (toCreate.length > 0) {
+          for (const i of toCreate) {
+            // add the identity
+            await OrganizationRepository.addIdentity(id, i, repoOptions)
+          }
+        }
+
+        if (toUpdate.length > 0) {
+          for (const i of toUpdate) {
+            // update the identity
+            await OrganizationRepository.updateIdentity(id, i, repoOptions)
+          }
         }
       }
 
@@ -1136,7 +1187,16 @@ export default class OrganizationService extends LoggerBase {
   }
 
   async findByIdOpensearch(id: string, segmentId?: string) {
-    return OrganizationRepository.findByIdOpensearch(id, this.options, segmentId)
+    const org = await OrganizationRepository.findByIdOpensearch(id, this.options, segmentId)
+
+    const qx = SequelizeRepository.getQueryExecutor(this.options)
+
+    org.lfxMembership = await findLfxMembership(qx, {
+      organizationId: id,
+      tenantId: this.options.currentTenant.id,
+    })
+
+    return org
   }
 
   async query(data) {
@@ -1144,10 +1204,24 @@ export default class OrganizationService extends LoggerBase {
     const orderBy = data.orderBy
     const limit = data.limit
     const offset = data.offset
-    return OrganizationRepository.findAndCountAllOpensearch(
+    const pageData = await OrganizationRepository.findAndCountAllOpensearch(
       { filter: advancedFilter, orderBy, limit, offset, segments: data.segments },
       this.options,
     )
+
+    const orgIds = pageData.rows.map((org) => org.id)
+
+    const qx = SequelizeRepository.getQueryExecutor(this.options)
+    const lfxMemberships = await findManyLfxMemberships(qx, {
+      organizationIds: orgIds,
+      tenantId: this.options.currentTenant.id,
+    })
+
+    pageData.rows.forEach((org) => {
+      org.lfxMembership = lfxMemberships.find((lm) => lm.organizationId === org.id)
+    })
+
+    return pageData
   }
 
   async destroyBulk(ids) {

@@ -1,12 +1,12 @@
 <template>
-  <cr-select-filter v-model="form" :config="props.config as SelectFilterConfig" :options="data.options || []" />
+  <lf-select-filter v-model="form" :config="props.config as SelectFilterConfig" :options="data.options || []" />
 </template>
 
 <script setup lang="ts">
 import {
   computed, watch,
 } from 'vue';
-import CrSelectFilter from '@/shared/modules/filters/components/filterTypes/SelectFilter.vue';
+import LfSelectFilter from '@/shared/modules/filters/components/filterTypes/SelectFilter.vue';
 import {
   SelectFilterConfig, SelectFilterOptionGroup,
 } from '@/shared/modules/filters/types/filterTypes/SelectFilterConfig';

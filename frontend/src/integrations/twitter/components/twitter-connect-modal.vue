@@ -25,7 +25,7 @@
         </a>
         <a href="https://docs.crowd.dev/docs/twitter-integration-via-zapier" target="_blank" rel="noopener noreferrer" class="block">
           <el-button class="btn btn--secondary btn--md w-full text-gray-600">
-            <span class="text-lg ri-book-open-line text-brand-500 mr-2" />
+            <span class="text-lg ri-book-open-line text-primary-500 mr-2" />
             Read our docs
           </el-button>
         </a>

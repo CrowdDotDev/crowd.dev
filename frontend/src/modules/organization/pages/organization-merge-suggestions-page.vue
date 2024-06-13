@@ -30,18 +30,18 @@
         v-if="page <= 1 && loading && mergeSuggestions.length === 0"
         class="flex justify-center pt-8"
       >
-        <cr-spinner />
+        <lf-spinner />
       </div>
 
-      <cr-table v-else-if="mergeSuggestions.length > 0" class="mt-6">
+      <lf-table v-else-if="mergeSuggestions.length > 0" class="mt-6">
         <thead>
           <tr>
-            <cr-table-head colspan="2">
+            <lf-table-head colspan="2">
               Organizations
-            </cr-table-head>
-            <cr-table-head v-model="sorting" property="similarity" @update:model-value="() => loadMergeSuggestions(true)">
+            </lf-table-head>
+            <lf-table-head v-model="sorting" property="similarity" @update:model-value="() => loadMergeSuggestions(true)">
               Confidence level
-            </cr-table-head>
+            </lf-table-head>
           </tr>
         </thead>
         <tbody>
@@ -55,7 +55,7 @@
                     query: { projectGroup: selectedProjectGroup?.id },
                   }"
                   target="_blank"
-                  class="text-black hover:text-brand-500"
+                  class="text-black hover:text-primary-500"
                 >
                   <div class="flex items-center gap-2">
                     <app-avatar
@@ -67,9 +67,16 @@
                       }"
                     />
 
-                    <p class="text-xs leading-5 font-semibold truncate max-w-3xs">
-                      {{ suggestion.organizations[0].displayName }}
-                    </p>
+                    <div class="flex items-center gap-1">
+                      <p class="text-xs leading-5 font-semibold truncate max-w-3xs">
+                        {{ suggestion.organizations[0].displayName }}
+                      </p>
+
+                      <lf-organization-lf-member-tag
+                        :organization="suggestion.organizations[0]"
+                        :only-show-icon="true"
+                      />
+                    </div>
                   </div>
                 </router-link>
               </div>
@@ -83,7 +90,7 @@
                     query: { projectGroup: selectedProjectGroup?.id },
                   }"
                   target="_blank"
-                  class="text-black hover:text-brand-500"
+                  class="text-black hover:text-primary-500"
                 >
                   <div class="flex items-center gap-2">
                     <i class="text-xl ri-subtract-line text-gray-300" />
@@ -95,9 +102,17 @@
                         displayName: (suggestion.organizations[1].displayName || suggestion.organizations[1].name)?.replace('@', ''),
                       }"
                     />
-                    <p class="text-xs leading-5 font-semibold truncate max-w-3xs">
-                      {{ suggestion.organizations[1].displayName }}
-                    </p>
+
+                    <div class="flex items-center gap-1">
+                      <p class="text-xs leading-5 font-semibold truncate max-w-3xs">
+                        {{ suggestion.organizations[1].displayName }}
+                      </p>
+
+                      <lf-organization-lf-member-tag
+                        :organization="suggestion.organizations[1]"
+                        :only-show-icon="true"
+                      />
+                    </div>
                   </div>
                 </router-link>
               </div>
@@ -107,34 +122,34 @@
             </td>
             <td class="w-48">
               <div class="flex justify-end items-center gap-3">
-                <cr-button size="small" type="tertiary" @click="openDetails(si)">
+                <lf-button size="small" type="primary-ghost" @click="openDetails(si)">
                   View suggestion
-                </cr-button>
-                <cr-dropdown placement="bottom-end" width="15rem">
+                </lf-button>
+                <lf-dropdown placement="bottom-end" width="15rem">
                   <template #trigger>
-                    <cr-button
+                    <lf-button
                       size="small"
-                      type="tertiary-light-gray"
+                      type="secondary-ghost-light"
                       :loading="sending === `${suggestion.organizations[0].id}:${suggestion.organizations[1].id}`"
                       :icon-only="true"
                     >
                       <i class="ri-more-fill" />
-                    </cr-button>
+                    </lf-button>
                   </template>
 
-                  <cr-dropdown-item @click="merge(suggestion)">
+                  <lf-dropdown-item @click="merge(suggestion)">
                     <i class="ri-shuffle-line" /> Merge suggestion
-                  </cr-dropdown-item>
+                  </lf-dropdown-item>
 
-                  <cr-dropdown-item @click="ignore(suggestion)">
+                  <lf-dropdown-item @click="ignore(suggestion)">
                     <i class="ri-close-circle-line" />Ignore suggestion
-                  </cr-dropdown-item>
-                </cr-dropdown>
+                  </lf-dropdown-item>
+                </lf-dropdown>
               </div>
             </td>
           </tr>
         </tbody>
-      </cr-table>
+      </lf-table>
       <div v-else class="py-20 flex flex-col items-center">
         <div
           class="ri-shuffle-line text-gray-200 text-10xl h-40 flex items-center mb-8"
@@ -148,9 +163,9 @@
       </div>
 
       <div v-if="total > mergeSuggestions.length" class="mt-6 flex justify-center">
-        <cr-button type="tertiary" size="small" :loading="loading" @click="loadMore()">
+        <lf-button type="primary-ghost" size="small" :loading="loading" @click="loadMore()">
           <i class="ri-arrow-down-line" />Load more
-        </cr-button>
+        </lf-button>
       </div>
     </div>
   </app-page-wrapper>
@@ -168,20 +183,21 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { onMounted, ref } from 'vue';
 import Message from '@/shared/message/message';
 import { OrganizationService } from '@/modules/organization/organization-service';
-import CrButton from '@/ui-kit/button/Button.vue';
-import CrDropdown from '@/ui-kit/dropdown/Dropdown.vue';
-import CrTable from '@/ui-kit/table/Table.vue';
-import CrDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
+import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
+import LfTable from '@/ui-kit/table/Table.vue';
+import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import AppMemberMergeSimilarity from '@/modules/member/components/suggestions/member-merge-similarity.vue';
 import AppAvatar from '@/shared/avatar/avatar.vue';
 import AppOrganizationMergeSuggestionsDialog
   from '@/modules/organization/components/organization-merge-suggestions-dialog.vue';
 import useOrganizationMergeMessage from '@/shared/modules/merge/config/useOrganizationMergeMessage';
-import CrSpinner from '@/ui-kit/spinner/Spinner.vue';
-import CrTableHead from '@/ui-kit/table/TableHead.vue';
+import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
+import LfTableHead from '@/ui-kit/table/TableHead.vue';
 import AppMergeSuggestionsFilters from '@/modules/member/components/suggestions/merge-suggestions-filters.vue';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import LfOrganizationLfMemberTag from '@/modules/organization/components/lf-member/organization-lf-member-tag.vue';
 
 const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
 

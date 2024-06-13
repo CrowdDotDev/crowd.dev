@@ -54,7 +54,7 @@
                   placement="top"
                   trigger="hover"
                 >
-                  <app-svg name="source" class="h-3 w-3" />
+                  <lf-svg name="source" class="h-3 w-3" />
                 </el-tooltip>
               </div>
               <span
@@ -176,7 +176,7 @@ import { mapActions } from '@/shared/vuex/vuex.helpers';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import Message from '@/shared/message/message';
 import { MemberService } from '@/modules/member/member-service';
-import AppSvg from '@/shared/svg/svg.vue';
+import LfSvg from '@/shared/svg/svg.vue';
 import { AttributeType } from '@/modules/organization/types/Attributes';
 import { getAttributeSourceName } from '@/shared/helpers/attribute.helpers';
 

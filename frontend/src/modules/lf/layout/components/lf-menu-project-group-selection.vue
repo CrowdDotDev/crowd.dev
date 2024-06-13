@@ -40,7 +40,7 @@
           :key="projectGroup.id"
           class="pr-8 pl-2 h-14 flex items-center hover:bg-gray-50 rounded cursor-pointer"
           :class="{
-            'bg-brand-50': projectGroup.id === selectedProjectGroup?.id,
+            'bg-primary-50': projectGroup.id === selectedProjectGroup?.id,
           }"
           @click="onOptionClick(projectGroup)"
         >

@@ -15,7 +15,7 @@ import {
   SegmentProjectNestedData,
   SyncStatus,
 } from '@crowd/types'
-import lodash, { chunk } from 'lodash'
+import lodash, { chunk, uniq } from 'lodash'
 import moment from 'moment'
 import Sequelize, { QueryTypes } from 'sequelize'
 
@@ -36,6 +36,8 @@ import {
   findAlreadyExistingVerifiedIdentities,
 } from '@crowd/data-access-layer/src/member_identities'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
+import { findManyLfxMemberships } from '@crowd/data-access-layer/src/lfx_memberships'
+import { addMemberNoMerge, removeMemberToMerge } from '@crowd/data-access-layer/src/member_merge'
 import { KUBE_MODE, SERVICE } from '@/conf'
 import { ServiceType } from '../../conf/configTypes'
 import isFeatureEnabled from '../../feature-flags/isFeatureEnabled'
@@ -189,7 +191,7 @@ class MemberRepository {
 
     await this._createAuditLog(AuditLogRepository.CREATE, record, data, options)
 
-    return this.findById(record.id, options, true, doPopulateRelations)
+    return this.findById(record.id, options, { doPopulateRelations })
   }
 
   static async includeMemberToSegments(memberId: string, options: IRepositoryOptions) {
@@ -588,44 +590,16 @@ class MemberRepository {
 
   static async removeToMerge(id, toMergeId, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
+    const qx = SequelizeRepository.getQueryExecutor(options, transaction)
 
-    const returnPlain = false
-
-    const member = await this.findById(id, options, returnPlain)
-
-    const toMergeMember = await this.findById(toMergeId, options, returnPlain)
-
-    await member.removeToMerge(toMergeMember, { transaction })
-
-    return this.findById(id, options)
+    await removeMemberToMerge(qx, id, toMergeId)
   }
 
   static async addNoMerge(id, toMergeId, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
+    const qx = SequelizeRepository.getQueryExecutor(options, transaction)
 
-    const returnPlain = false
-
-    const member = await this.findById(id, options, returnPlain)
-
-    const toMergeMember = await this.findById(toMergeId, options, returnPlain)
-
-    await member.addNoMerge(toMergeMember, { transaction })
-
-    return this.findById(id, options)
-  }
-
-  static async removeNoMerge(id, toMergeId, options: IRepositoryOptions) {
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    const returnPlain = false
-
-    const member = await this.findById(id, options, returnPlain)
-
-    const toMergeMember = await this.findById(toMergeId, options, returnPlain)
-
-    await member.removeNoMerge(toMergeMember, { transaction })
-
-    return this.findById(id, options)
+    await addMemberNoMerge(qx, id, toMergeId)
   }
 
   static async memberExists(
@@ -839,8 +813,13 @@ class MemberRepository {
     id,
     data,
     options: IRepositoryOptions,
-    doPopulateRelations = true,
-    manualChange = false,
+    {
+      doPopulateRelations = true,
+      manualChange = false,
+    }: {
+      doPopulateRelations?: boolean
+      manualChange?: boolean
+    } = {},
   ) {
     const currentUser = SequelizeRepository.getCurrentUser(options)
 
@@ -1200,7 +1179,7 @@ class MemberRepository {
 
     await this._createAuditLog(AuditLogRepository.UPDATE, record, data, options)
 
-    return this.findById(record.id, options, true, doPopulateRelations)
+    return this.findById(record.id, options, { doPopulateRelations })
   }
 
   static async destroy(id, options: IRepositoryOptions, force = false) {
@@ -1209,7 +1188,7 @@ class MemberRepository {
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
     await MemberRepository.excludeMembersFromSegments([id], { ...options, transaction })
-    const member = await this.findById(id, options, true, false)
+    const member = await this.findById(id, options, { doPopulateRelations: false })
 
     // if member doesn't belong to any other segment anymore, remove it
     if (member.segments.length === 0) {
@@ -1433,7 +1412,7 @@ class MemberRepository {
              "integrationId",
              "createdAt",
              "updatedAt"
-      from "memberIdentities" 
+      from "memberIdentities"
       where "memberId" in (:memberIds)
       order by "createdAt" asc;
     `
@@ -1523,11 +1502,19 @@ class MemberRepository {
   static async findById(
     id,
     options: IRepositoryOptions,
-    returnPlain = true,
-    doPopulateRelations = true,
-    ignoreTenant = false,
-    segmentId?: string,
-    newIdentities?: boolean,
+    {
+      returnPlain = true,
+      doPopulateRelations = true,
+      ignoreTenant = false,
+      segmentId,
+      newIdentities,
+    }: {
+      returnPlain?: boolean
+      doPopulateRelations?: boolean | 'no-activity-aggregates'
+      ignoreTenant?: boolean
+      segmentId?: string
+      newIdentities?: boolean
+    } = {},
   ) {
     const transaction = SequelizeRepository.getTransaction(options)
 
@@ -1573,7 +1560,13 @@ class MemberRepository {
     }
 
     if (doPopulateRelations) {
-      return this._populateRelations(record, options, returnPlain, segmentId, newIdentities)
+      return this._populateRelations(record, options, {
+        returnPlain,
+        segmentId,
+        newIdentities,
+        withActivityAggregates:
+          doPopulateRelations && doPopulateRelations !== 'no-activity-aggregates',
+      })
     }
     const data = record.get({ plain: returnPlain })
 
@@ -1721,6 +1714,16 @@ class MemberRepository {
         return new Date(dateStartB).getTime() - new Date(dateStartA).getTime()
       })
     }
+
+    const qx = SequelizeRepository.getQueryExecutor(options)
+    const organizationIds = uniq(result.organizations.map((o) => o.id))
+    const lfxMemberships = await findManyLfxMemberships(qx, {
+      tenantId: options.currentTenant.id,
+      organizationIds,
+    })
+    result.organizations.forEach((o) => {
+      o.lfxMembership = lfxMemberships.find((m) => m.organizationId === o.id)
+    })
 
     const seq = SequelizeRepository.getSequelize(options)
     result.segments = await seq.query(
@@ -2251,8 +2254,25 @@ class MemberRepository {
 
     const memberIds = translatedRows.map((r) => r.id)
     if (memberIds.length > 0) {
-      const seq = SequelizeRepository.getSequelize(options)
+      const qx = SequelizeRepository.getQueryExecutor(options)
+      const organizationIds = uniq(
+        translatedRows.reduce((acc, r) => {
+          acc.push(...r.organizations.map((o) => o.id))
+          return acc
+        }, []),
+      )
+      const lfxMemberships = await findManyLfxMemberships(qx, {
+        tenantId: options.currentTenant.id,
+        organizationIds,
+      })
 
+      for (const row of translatedRows) {
+        for (const o of row.organizations) {
+          o.lfxMembership = lfxMemberships.find((m) => m.organizationId === o.id)
+        }
+      }
+
+      const seq = SequelizeRepository.getSequelize(options)
       const lastActivities = await seq.query(
         `
             SELECT
@@ -3047,9 +3067,17 @@ class MemberRepository {
   static async _populateRelations(
     record,
     options: IRepositoryOptions,
-    returnPlain = true,
-    segmentId?: string,
-    newIdentities?: boolean,
+    {
+      returnPlain,
+      segmentId,
+      newIdentities,
+      withActivityAggregates,
+    }: {
+      returnPlain: boolean
+      segmentId: string
+      newIdentities: boolean
+      withActivityAggregates: boolean
+    },
   ) {
     if (!record) {
       return record
@@ -3065,17 +3093,19 @@ class MemberRepository {
 
     const transaction = SequelizeRepository.getTransaction(options)
 
-    const activityAggregates = await MemberRepository.getActivityAggregates(
-      output.id,
-      options,
-      segmentId,
-    )
+    if (withActivityAggregates) {
+      const activityAggregates = await MemberRepository.getActivityAggregates(
+        output.id,
+        options,
+        segmentId,
+      )
 
-    output.activeOn = activityAggregates?.activeOn || []
-    output.activityCount = activityAggregates?.activityCount || 0
-    output.activityTypes = activityAggregates?.activityTypes || []
-    output.activeDaysCount = activityAggregates?.activeDaysCount || 0
-    output.averageSentiment = activityAggregates?.averageSentiment || 0
+      output.activeOn = activityAggregates?.activeOn || []
+      output.activityCount = activityAggregates?.activityCount || 0
+      output.activityTypes = activityAggregates?.activityTypes || []
+      output.activeDaysCount = activityAggregates?.activeDaysCount || 0
+      output.averageSentiment = activityAggregates?.averageSentiment || 0
+    }
 
     output.lastActivity =
       (

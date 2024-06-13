@@ -34,7 +34,7 @@
         <el-dropdown-menu class="w-42">
           <!-- all platforms -->
           <el-dropdown-item
-            :class="{ 'bg-brand-50': platform === 'all' }"
+            :class="{ 'bg-primary-50': platform === 'all' }"
             @click="setPlatform('all')"
           >
             All platforms
@@ -47,7 +47,7 @@
             :key="integration"
             :divided="ii === 0"
             :class="{
-              'bg-brand-50': platform === integration,
+              'bg-primary-50': platform === integration,
             }"
             @click="setPlatform(integration)"
           >
@@ -152,6 +152,8 @@ export default {
       return CrowdIntegrations.getConfig(platform);
     },
     setPeriod(period) {
+      const { trackEvent } = useProductTracking();
+
       trackEvent({
         key: FeatureEventKey.FILTER_DASHBOARD,
         type: EventType.FEATURE,
@@ -167,6 +169,8 @@ export default {
       });
     },
     setPlatform(platform) {
+      const { trackEvent } = useProductTracking();
+
       trackEvent({
         key: FeatureEventKey.FILTER_DASHBOARD,
         type: EventType.FEATURE,

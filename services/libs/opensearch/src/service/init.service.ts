@@ -7,7 +7,7 @@ import { ActivitySyncService } from './activity.sync.service'
 import { MemberSyncService } from './member.sync.service'
 import { OpenSearchService } from './opensearch.service'
 import { OrganizationSyncService } from './organization.sync.service'
-import { MemberIdentityType } from '@crowd/types'
+import { MemberIdentityType, OrganizationIdentityType } from '@crowd/types'
 
 export class InitService {
   public static FAKE_TENANT_ID = 'b0e82a13-566f-40e0-b0d0-11fcb6596b0f'
@@ -52,6 +52,7 @@ export class InitService {
       employeeChurnRate12Month: 0.12,
       employeeGrowthRate12Month: 0.12,
       attributes: {},
+      names: ['Fake Org'],
       ticker: 'FAKE',
       manuallyChangedFields: [],
       createdAt: new Date().toISOString(),
@@ -77,11 +78,6 @@ export class InitService {
       size: '10-50',
       type: 'Fake type',
       url: 'https://placehold.co/400',
-      website: 'https://placehold.co/400',
-      linkedin: {},
-      github: {},
-      crunchbase: {},
-      twitter: {},
       joinedAt: new Date().toISOString(),
       lastActive: new Date().toISOString(),
       activeOn: ['devto'],
@@ -90,22 +86,15 @@ export class InitService {
       identities: [
         {
           platform: 'devto',
-          name: 'fakeorg',
-        },
-      ],
-      weakIdentities: [
-        {
-          name: 'fakeWeakIdentity',
-          platform: 'github',
-          url: 'https://fakeUrl.com',
+          value: 'fakeorg',
+          type: OrganizationIdentityType.USERNAME,
+          verified: true,
         },
       ],
       manuallyCreated: false,
       immediateParent: 'Fake parent',
       ultimateParent: 'Fake ultimate parent',
-      affiliatedProfiles: ['https://placehold.co/400'],
       allSubsidiaries: ['Fake subsidiary 1', 'Fake subsidiary 2'],
-      alternativeDomains: ['www.fake1.org', 'www.fake2.org'],
       alternativeNames: ['Fake name 1', 'Fake name 2'],
       averageEmployeeTenure: 2.8,
       averageTenureByLevel: { cxo: 2, manager: 1.5 },

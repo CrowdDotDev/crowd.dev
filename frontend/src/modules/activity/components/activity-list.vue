@@ -1,6 +1,6 @@
 <template>
   <div class="pt-3">
-    <cr-filter
+    <lf-filter
       v-model="filters"
       :config="activityFilters"
       :search-config="activitySearchFilter"
@@ -83,7 +83,7 @@ import {
 import AppActivityItem from '@/modules/activity/components/activity-item.vue';
 import AppConversationDrawer from '@/modules/conversation/components/conversation-drawer.vue';
 import AppPaginationSorter from '@/shared/pagination/pagination-sorter.vue';
-import CrFilter from '@/shared/modules/filters/components/Filter.vue';
+import LfFilter from '@/shared/modules/filters/components/Filter.vue';
 import { useActivityStore } from '@/modules/activity/store/pinia';
 import { storeToRefs } from 'pinia';
 import { activityFilters, activitySearchFilter } from '@/modules/activity/config/filters/main';

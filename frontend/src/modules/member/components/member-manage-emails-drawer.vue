@@ -9,7 +9,7 @@
     <template #content>
       <div class="-mt-8 z-10 pb-6">
         <div
-          class="flex gap-2 text-xs text-brand-500 font-semibold items-center cursor-pointer"
+          class="flex gap-2 text-xs text-primary-500 font-semibold items-center cursor-pointer"
           @click="addIdentity()"
         >
           <i class="ri-add-line text-base" />Add email
@@ -60,7 +60,7 @@ const props = defineProps<{
   member: Member,
 }>();
 
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits(['update:modelValue', 'reload']);
 
 const { trackEvent } = useProductTracking();
 
@@ -110,6 +110,9 @@ const serverUpdate = () => {
   MemberService.update(props.member.id, {
     identities: identities.value.filter((i) => !!i.value),
   }, segments)
+    .then(() => {
+      emit('reload');
+    })
     .catch((err) => {
       Message.error(err.response.data);
     });

@@ -18,7 +18,4 @@ export default {
   activityDisplay: {
     showLinkToUrl: true,
   },
-  organization: {
-    handle: (identity) => (identity.url ? identity.url.split('/').at(-1) : identity.name),
-  },
 };

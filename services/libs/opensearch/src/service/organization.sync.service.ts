@@ -493,7 +493,15 @@ export class OrganizationSyncService {
     // gather only uniques
     organization.activeOn = distinct(organization.activeOn)
     organization.identities = organization.identities.reduce((acc, identity) => {
-      if (!acc.find((i) => i.platform === identity.platform && i.name === identity.name)) {
+      if (
+        !acc.find(
+          (i) =>
+            i.platform === identity.platform &&
+            i.type === identity.type &&
+            i.value === identity.value &&
+            i.verified === identity.verified,
+        )
+      ) {
         acc.push(identity)
       }
       return acc
@@ -519,6 +527,7 @@ export class OrganizationSyncService {
     p.string_displayName = data.displayName
     p.keyword_displayName = data.displayName
     p.string_arr_emails = data.emails
+    p.string_arr_names = data.names
     p.obj_employeeCountByCountry = data.employeeCountByCountry
     p.int_employees = data.employees
     p.int_founded = data.founded
@@ -533,20 +542,13 @@ export class OrganizationSyncService {
     p.string_size = data.size
     p.string_type = data.type
     p.string_url = data.url
-    p.string_website = data.website
     p.date_lastEnrichedAt = data.lastEnrichedAt ? new Date(data.lastEnrichedAt).toISOString() : null
     p.bool_isTeamOrganization = data.isTeamOrganization ? data.isTeamOrganization : false
     p.bool_manuallyCreated = data.manuallyCreated ? data.manuallyCreated : false
     p.string_logo = data.logo || null
-    p.obj_linkedin = data.linkedin
-    p.obj_github = data.github
-    p.obj_crunchbase = data.crunchbase
-    p.obj_twitter = data.twitter
     p.string_immediateParent = data.immediateParent
     p.string_ultimateParent = data.ultimateParent
-    p.string_arr_affiliatedProfiles = data.affiliatedProfiles
     p.string_arr_allSubsidiaries = data.allSubsidiaries
-    p.string_arr_alternativeDomains = data.alternativeDomains
     p.string_arr_alternativeNames = data.alternativeNames
     p.float_averageEmployeeTenure = data.averageEmployeeTenure
     p.obj_averageTenureByLevel = data.averageTenureByLevel
@@ -570,24 +572,15 @@ export class OrganizationSyncService {
     for (const identity of data.identities) {
       p_identities.push({
         string_platform: identity.platform,
-        string_name: identity.name,
-        keyword_name: identity.name,
-        string_url: identity.url,
+        string_value: identity.value,
+        keyword_value: identity.value,
+        keyword_type: identity.type,
+        bool_verified: identity.verified,
+        keyword_sourceId: identity.sourceId,
+        keyword_integrationId: identity.integrationId,
       })
     }
     p.nested_identities = p_identities
-
-    // weak identities
-    const p_weakIdentities = []
-    for (const identity of data.weakIdentities) {
-      p_weakIdentities.push({
-        string_platform: identity.platform,
-        string_name: identity.name,
-        keyword_name: identity.name,
-        string_url: identity.url,
-      })
-    }
-    p.nested_weakIdentities = p_weakIdentities
 
     // aggregate data
     p.date_joinedAt = data.joinedAt ? new Date(data.joinedAt).toISOString() : null

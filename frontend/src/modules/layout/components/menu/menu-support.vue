@@ -38,9 +38,9 @@
         </p>
       </div>
       <div class="px-3 -mx-1 border-b border-gray-100 pb-4 mb-2">
-        <cr-menu-support-help />
+        <lf-menu-support-help />
       </div>
-      <cr-menu-links
+      <lf-menu-links
         :collapsed="false"
         :links="supportMenu"
         link-class="!p-3 !h-10 !mb-1 !text-xs"
@@ -51,17 +51,17 @@
     <el-divider class="!my-2 border-gray-100 w-full" />
 
     <div class="px-1">
-      <cr-system-status :check-status="isDropdownOpen" />
+      <lf-system-status :check-status="isDropdownOpen" />
     </div>
   </el-popover>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import CrMenuLinks from '@/modules/layout/components/menu/menu-links.vue';
+import LfMenuLinks from '@/modules/layout/components/menu/menu-links.vue';
 import { supportMenu } from '@/modules/layout/config/menu';
-import CrSystemStatus from '@/modules/layout/components/system-status/system-status.vue';
-import CrMenuSupportHelp from '@/modules/layout/components/menu/menu-support-help.vue';
+import LfSystemStatus from '@/modules/layout/components/system-status/system-status.vue';
+import LfMenuSupportHelp from '@/modules/layout/components/menu/menu-support-help.vue';
 
 const props = defineProps<{
   collapsed: boolean
@@ -72,6 +72,6 @@ const isDropdownOpen = ref<boolean>(false);
 
 <script lang="ts">
 export default {
-  name: 'CrMenuSupport',
+  name: 'LfMenuSupport',
 };
 </script>

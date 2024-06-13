@@ -106,6 +106,10 @@ authAxios.interceptors.request.use(
       setOptions.headers.Authorization = `Bearer ${token}`;
     }
 
+    if (localStorage.getItem('profile-sql') === '1') {
+      setOptions.headers['x-profile-sql'] = 'true';
+    }
+
     setOptions.headers['Accept-Language'] = getLanguageCode();
 
     return setOptions;

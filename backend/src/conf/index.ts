@@ -80,7 +80,7 @@ export const S3_CONFIG: S3Configuration = config.get<S3Configuration>('s3')
 
 export const DB_CONFIG: DbConfiguration = config.get<DbConfiguration>('db')
 
-export const PRODUCT_DB_CONFIG: IDatabaseConfig = config.get<IDatabaseConfig>('productDb')
+export const PRODUCT_DB_CONFIG: IDatabaseConfig = config.has('productDb') ? config.get<IDatabaseConfig>('productDb') : undefined
 
 export const SEGMENT_CONFIG: SegmentConfiguration = config.get<SegmentConfiguration>('segment')
 

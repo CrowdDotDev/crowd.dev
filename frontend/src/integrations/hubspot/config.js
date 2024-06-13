@@ -23,7 +23,4 @@ export default {
       number: conversation.activityCount - 1,
     }),
   },
-  organization: {
-    handle: (identity) => identity.name,
-  },
 };

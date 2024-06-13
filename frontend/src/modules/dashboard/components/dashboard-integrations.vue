@@ -2,11 +2,11 @@
   <app-integration-progress-wrapper :segments="segmentIds">
     <template #default="{ progress, progressError }">
       <div v-if="progress?.length || progressError" class="border border-gray-200 rounded-lg overflow-hidden w-full" v-bind="$attrs">
-        <div class="pt-4 px-4 pb-6 bg-gradient-to-b from-brand-25 to-white flex items-center">
+        <div class="pt-4 px-4 pb-6 bg-gradient-to-b from-primary-25 to-white flex items-center">
           <div class="h-5 w-5 flex items-center justify-center mr-1">
-            <cr-spinner size="1rem" class="!border-brand-800" />
+            <lf-spinner size="1rem" class="!border-primary-800" />
           </div>
-          <h6 class="text-base leading-5 font-semibold font-header">
+          <h6 class="text-base leading-5 font-semibold font-secondary">
             Connecting integrations...
           </h6>
         </div>
@@ -43,7 +43,7 @@
 
 <script lang="ts" setup>
 
-import CrSpinner from '@/ui-kit/spinner/Spinner.vue';
+import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppIntegrationProgressBar from '@/modules/integration/components/integration-progress-bar.vue';
 import AppIntegrationProgressWrapper from '@/modules/integration/components/integration-progress-wrapper.vue';
@@ -86,6 +86,6 @@ const getSegmentList = (progress: IntegrationProgress[]): SegmentIntegrations[] 
 
 <script lang="ts">
 export default {
-  name: 'CrDashboardIntegrations',
+  name: 'LfDashboardIntegrations',
 };
 </script>

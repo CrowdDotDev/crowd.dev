@@ -538,7 +538,7 @@ export default class UserRepository {
   static async findById(id, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
 
-    let record: any = await options.database.sequelize.query(
+    const records: any[] = await options.database.sequelize.query(
       `
         SELECT
           "id",
@@ -554,7 +554,11 @@ export default class UserRepository {
         mapToModel: true,
       },
     )
-    record = record[0]
+    if (records.length !== 1) {
+      throw new Error404()
+    }
+
+    let record = records[0]
 
     record = await this._populateRelations(record, options, {
       where: {
@@ -576,10 +580,6 @@ export default class UserRepository {
     delete record.passwordResetToken
     delete record.passwordResetTokenExpiresAt
     delete record.jwtTokenInvalidBefore
-
-    if (!record) {
-      throw new Error404()
-    }
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 

@@ -19,27 +19,27 @@
                   </el-tooltip>
                   <i
                     v-if="model.value && props.identity.verified"
-                    class="ri-verified-badge-fill text-brand-500 text-base leading-4"
+                    class="ri-verified-badge-fill text-primary-500 text-base leading-4"
                   />
                 </div>
               </div>
               <div v-else class="flex gap-1 -mr-1">
-                <cr-button
+                <lf-button
                   size="tiny"
                   :icon-only="true"
                   :disabled="model.value === props.identity.value || $v.$invalid || emailExists"
                   @click="update()"
                 >
                   <i class="ri-check-fill" />
-                </cr-button>
-                <cr-button
+                </lf-button>
+                <lf-button
                   size="tiny"
                   type="secondary"
                   :icon-only="true"
                   @click="clear()"
                 >
                   <i class="ri-close-line" />
-                </cr-button>
+                </lf-button>
               </div>
             </template>
           </el-input>
@@ -52,10 +52,10 @@
         </div>
       </div>
     </div>
-    <cr-dropdown placement="bottom-end" width="15rem" class="ml-3">
+    <lf-dropdown placement="bottom-end" width="15rem" class="ml-3">
       <template #trigger>
-        <cr-button
-          type="tertiary-light-gray"
+        <lf-button
+          type="secondary-ghost-light"
           size="small"
           :icon-only="true"
           class="relative"
@@ -64,36 +64,36 @@
           <i
             class="ri-more-fill"
           />
-        </cr-button>
+        </lf-button>
       </template>
 
-      <cr-dropdown-item
+      <lf-dropdown-item
         v-if="!props.identity.verified"
         @click="verify(true)"
       >
         <i class="ri-verified-badge-line" />
         Verify identity
-      </cr-dropdown-item>
+      </lf-dropdown-item>
       <el-tooltip
         v-else
         content="Emails tracked from Integrations can’t be unverified"
         placement="top-end"
         :disabled="!props.identity.sourceId"
       >
-        <cr-dropdown-item
+        <lf-dropdown-item
           @click="verify(false)"
         >
-          <app-svg name="unverify" class="!h-4 !w-4" />
+          <lf-svg name="unverify" class="!h-4 !w-4" />
           Unverify email
-        </cr-dropdown-item>
+        </lf-dropdown-item>
       </el-tooltip>
 
-      <cr-dropdown-separator />
-      <cr-dropdown-item type="danger" @click="emit('remove')">
+      <lf-dropdown-separator />
+      <lf-dropdown-item type="danger" @click="emit('remove')">
         <i class="ri-delete-bin-6-line" />
         Delete email
-      </cr-dropdown-item>
-    </cr-dropdown>
+      </lf-dropdown-item>
+    </lf-dropdown>
   </article>
 </template>
 
@@ -103,11 +103,11 @@ import {
   ref,
 } from 'vue';
 import { Member, MemberIdentity } from '@/modules/member/types/Member';
-import CrButton from '@/ui-kit/button/Button.vue';
-import CrDropdown from '@/ui-kit/dropdown/Dropdown.vue';
-import CrDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
-import CrDropdownSeparator from '@/ui-kit/dropdown/DropdownSeparator.vue';
-import AppSvg from '@/shared/svg/svg.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
+import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
+import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
+import LfDropdownSeparator from '@/ui-kit/dropdown/DropdownSeparator.vue';
+import LfSvg from '@/shared/svg/svg.vue';
 import useVuelidate from '@vuelidate/core';
 import { email } from '@vuelidate/validators';
 import { CrowdIntegrations } from '@/integrations/integrations-config';

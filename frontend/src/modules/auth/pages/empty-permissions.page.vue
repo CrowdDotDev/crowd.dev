@@ -7,16 +7,16 @@
       Wait for the admin to grant you privileges.
     </div>
     <div class="pt-10">
-      <cr-button size="large" @click="signout()">
+      <lf-button size="large" @click="signout()">
         Sign out
-      </cr-button>
+      </lf-button>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { useAuthStore } from '@/modules/auth/store/auth.store';
-import CrButton from '@/ui-kit/button/Button.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 
 const { signout } = useAuthStore();
 </script>

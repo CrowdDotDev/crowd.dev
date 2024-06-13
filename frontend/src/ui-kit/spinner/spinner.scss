@@ -1,6 +1,6 @@
 .c-spinner {
-  width: var(--cr-spinner-size);
-  border: calc(var(--cr-spinner-size) / 100 * var(--cr-spinner-border-percentage)) solid var(--cr-spinner-color);
+  width: var(--lf-spinner-size);
+  border: calc(var(--lf-spinner-size) / 100 * var(--lf-spinner-border-percentage)) solid var(--lf-spinner-color);
   max-width: rem(120);
   animation:
           spinner-anim-1 1s infinite linear alternate,

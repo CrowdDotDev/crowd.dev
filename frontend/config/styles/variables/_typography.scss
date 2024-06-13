@@ -1,0 +1,42 @@
+/* ---------------------------------- *\
+            Font
+\* ---------------------------------- */
+
+:root {
+  /* Text */
+  // extra tiny
+  --lf-text-xtiny-font-size:  #{rem(10)};
+  --lf-text-xtiny-line-height:  #{rem(12)};
+  // Tiny
+  --lf-text-tiny-font-size:  #{rem(12)};
+  --lf-text-tiny-line-height:  #{rem(16)};
+  // Small
+  --lf-text-small-font-size:  #{rem(13)};
+  --lf-text-small-line-height:  #{rem(16)};
+  // Medium
+  --lf-text-medium-font-size:  #{rem(14)};
+  --lf-text-medium-line-height:  #{rem(20)};
+  // Large
+  --lf-text-large-font-size:  #{rem(16)};
+  --lf-text-large-line-height:  #{rem(24)};
+
+  /* Heading */
+  // H1
+  --lf-heading-1-font-size:  #{rem(40)};
+  --lf-heading-1-line-height:  #{rem(50)};
+  // H2
+  --lf-heading-2-font-size:  #{rem(32)};
+  --lf-heading-2-line-height:  #{rem(40)};
+  // H3
+  --lf-heading-3-font-size:  #{rem(28)};
+  --lf-heading-3-line-height:  #{rem(35)};
+  // H4
+  --lf-heading-4-font-size:  #{rem(24)};
+  --lf-heading-4-line-height:  #{rem(30)};
+  // H5
+  --lf-heading-5-font-size:  #{rem(20)};
+  --lf-heading-5-line-height:  #{rem(25)};
+  // H6
+  --lf-heading-6-font-size:  #{rem(16)};
+  --lf-heading-6-line-height:  #{rem(20)};
+}

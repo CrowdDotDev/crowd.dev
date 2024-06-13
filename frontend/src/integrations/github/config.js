@@ -5,6 +5,7 @@ export default {
   name: 'GitHub',
   backgroundColor: '#E5E7EB',
   borderColor: '#E5E7EB',
+  brandColor: '#24292F',
   description:
     'Connect GitHub to sync profile information, stars, forks, pull requests, issues, and discussions.',
   onboard: {
@@ -15,6 +16,7 @@ export default {
   },
   image:
     'https://cdn-icons-png.flaticon.com/512/25/25231.png',
+  icon: 'github-fill',
   connectComponent: GithubConnect,
   url: ({ username }) => (username ? `https://github.com/${username}` : null),
   chartColor: '#111827',
@@ -50,6 +52,7 @@ export default {
     }),
   },
   organization: {
-    handle: (identity) => (identity.url ? identity.url.split('/').at(-1) : identity.name),
+    identityHandle: ({ identityHandle }) => identityHandle,
+    identityLink: ({ identityHandle }) => `https://github.com/${identityHandle}`,
   },
 };

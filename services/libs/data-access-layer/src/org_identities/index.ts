@@ -28,30 +28,52 @@ export async function cleanUpOrgIdentities(qx: QueryExecutor, { organizationId, 
   )
 }
 
+export async function updateOrgIdentity(
+  qx: QueryExecutor,
+  { organizationId, tenantId, platform, value, type, verified },
+): Promise<void> {
+  await qx.result(
+    `      
+    update "organizationIdentities" set verified = $(verified)
+    where "organizationId" = $(organizationId) and "tenantId" = $(tenantId) and platform = $(platform) and value = $(value) and type = $(type)
+    `,
+    {
+      organizationId,
+      tenantId,
+      platform,
+      value,
+      type,
+      verified,
+    },
+  )
+}
+
 export async function addOrgIdentity(
   qx: QueryExecutor,
-  { organizationId, platform, name, url, sourceId, tenantId, integrationId },
+  { organizationId, platform, value, type, verified, sourceId, tenantId, integrationId },
 ) {
   return qx.result(
     `
       INSERT INTO "organizationIdentities" (
         "organizationId",
-        "platform",
-        "name",
-        "url",
+        platform,
+        value,
+        type,
+        verified,
         "sourceId",
         "tenantId",
         "integrationId",
         "createdAt"
       )
-      VALUES ($(organizationId), $(platform), $(name), $(url), $(sourceId), $(tenantId), $(integrationId), NOW())
+      VALUES ($(organizationId), $(platform), $(value), $(type), $(verified), $(sourceId), $(tenantId), $(integrationId), NOW())
       ON CONFLICT DO NOTHING;
     `,
     {
       organizationId,
       platform,
-      name,
-      url,
+      value,
+      type,
+      verified,
       sourceId,
       tenantId,
       integrationId,

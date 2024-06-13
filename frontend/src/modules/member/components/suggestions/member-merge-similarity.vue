@@ -1,6 +1,6 @@
 <template>
   <div class="flex items-center gap-1" :class="style.color">
-    <app-svg :name="style.svg" class="h-5 w-5" />
+    <lf-svg :name="style.svg" class="h-5 w-5" />
     <p class="text-xs leading-5 whitespace-nowrap">
       {{ percentage }}% confidence
     </p>
@@ -9,7 +9,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import AppSvg from '@/shared/svg/svg.vue';
+import LfSvg from '@/shared/svg/svg.vue';
 
 const props = defineProps<{
   similarity: number
@@ -29,7 +29,7 @@ const style = computed<{
   }
   if (props.similarity >= 0.7) {
     return {
-      color: 'text-blue-500',
+      color: 'text-primary-500',
       svg: 'similarity-medium',
     };
   }
