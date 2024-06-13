@@ -52,7 +52,7 @@ setImmediate(async () => {
   const redis = await getRedisClient(REDIS_CONFIG, true)
 
   const opensearch = getOpensearchClient(OPENSEARCH_CONFIG)
-  
+
   const redisPubSubPair = await getRedisPubSubPair(REDIS_CONFIG)
   const userNamespace = await WebSockets.initialize(server)
 
@@ -208,12 +208,12 @@ setImmediate(async () => {
   authSocial(app, routes)
 
   // Enable product db only if it's configured
-  if (PRODUCT_DB_CONFIG){
+  if (PRODUCT_DB_CONFIG) {
     const productDbClient = await getDbConnection(PRODUCT_DB_CONFIG)
     app.use(productDatabaseMiddleware(productDbClient))
     require('./product').default(routes)
   }
- 
+
   require('./auditLog').default(routes)
   require('./auth').default(routes)
   require('./plan').default(routes)
