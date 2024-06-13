@@ -62,20 +62,4 @@ export interface IDbOrganizationSyncData {
   activityCount: number
   memberCount: number
   identities: IOrganizationIdentity[]
-  memberIds?: string[]
-}
-
-export interface IOrganizationSegmentMatrixItem {
-  segmentId: string
-  processed: boolean
-  data: IDbOrganizationSyncData
-}
-
-export interface IOrganizationSegmentMatrix {
-  [key: string]: IOrganizationSegmentMatrixItem[]
-}
-
-export interface IOrganizationSegment {
-  organizationId: string
-  segmentId: string
 }

@@ -1,6 +1,6 @@
 import { DbConnection, DbTransaction } from '@crowd/database'
 import { Logger } from '@crowd/logging'
-import { ISimilarMember } from './types'
+import { IFindMemberIdentitiesGroupedByPlatformResult, ISimilarMember } from './types'
 import { IMember } from '@crowd/types'
 
 class MemberRepository {
@@ -100,6 +100,37 @@ class MemberRepository {
       )
     } catch (err) {
       this.log.error('Error while finding members!', err)
+
+      throw new Error(err)
+    }
+
+    return rows
+  }
+
+  async findMemberIdentitiesGroupedByPlatform(
+    memberId: string,
+  ): Promise<IFindMemberIdentitiesGroupedByPlatformResult[]> {
+    let rows: IFindMemberIdentitiesGroupedByPlatformResult[] = []
+    try {
+      rows = await this.connection.query(
+        `
+        select 
+          array_agg(mi.platform) as platforms, 
+          array_agg(mi.type) as types,
+          array_agg(mi.verified) as verified,
+          max(mi."tenantId"::text) as "tenantId",
+          array_agg(mi.value) as values,
+          lower(mi.value) as "groupedByValue"
+        from "memberIdentities" mi
+        where mi."memberId" = $(memberId)
+        group by lower(mi.value);
+      `,
+        {
+          memberId,
+        },
+      )
+    } catch (err) {
+      this.log.error('Error while finding similar identities in a member!', err)
 
       throw new Error(err)
     }

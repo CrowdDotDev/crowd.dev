@@ -3,11 +3,15 @@ import {
   findMembersWithSamePlatformIdentitiesDifferentCapitalization,
 } from './activities/merge-members-with-similar-identities'
 
-import { findMemberMergeActions } from './activities/dissect-member'
+import {
+  findMemberMergeActions,
+  findMemberIdentitiesGroupedByPlatform,
+} from './activities/dissect-member'
 
 import {
   mergeMembers,
   unmergeMembers,
+  unmergeMembersPreview,
   waitForTemporalWorkflowExecutionFinish,
 } from './activities/common'
 
@@ -17,5 +21,7 @@ export {
   mergeMembers,
   findMemberMergeActions,
   unmergeMembers,
+  unmergeMembersPreview,
   waitForTemporalWorkflowExecutionFinish,
+  findMemberIdentitiesGroupedByPlatform,
 }
