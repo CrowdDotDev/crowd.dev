@@ -51,6 +51,9 @@ export async function getLLMResult(
     console.log(suggestion)
     throw new Error('Exactly 2 entities are required for LLM comparison')
   }
+  console.log("Logging suggestions:")
+  console.log(suggestion[0].identities)
+  console.log(suggestion[1].identities)
   const client = new BedrockRuntimeClient({
     credentials: {
       accessKeyId: process.env['CROWD_AWS_BEDROCK_ACCESS_KEY_ID'],
