@@ -33,6 +33,7 @@ import {
   updateVerifiedFlag,
   deleteMemberIdentitiesByCombinations,
   moveToNewMember,
+  findAlreadyExistingVerifiedIdentities,
 } from '@crowd/data-access-layer/src/member_identities'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import { findManyLfxMemberships } from '@crowd/data-access-layer/src/lfx_memberships'
@@ -3939,6 +3940,19 @@ class MemberRepository {
         platform: identity.platform,
       })
     }
+  }
+
+  static async findAlreadyExistingIdentities(
+    identities: IMemberIdentity[],
+    options: IRepositoryOptions,
+  ): Promise<IMemberIdentity[]> {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const qx = SequelizeRepository.getQueryExecutor(options, transaction)
+
+    const existingIdentities = await findAlreadyExistingVerifiedIdentities(qx, { identities })
+
+    return existingIdentities
   }
 }
 

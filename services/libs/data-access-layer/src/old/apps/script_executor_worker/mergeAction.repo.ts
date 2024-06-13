@@ -14,6 +14,7 @@ class MergeActionRepository {
     startDate?: string,
     endDate?: string,
     userId?: string,
+    limit?: number,
   ) {
     let rows: IMergeAction[] = []
     let query = `
@@ -43,6 +44,11 @@ class MergeActionRepository {
     }
 
     query += ' order by ma."createdAt" desc'
+
+    if (limit) {
+      query += ' limit $(limit)'
+      replacements.limit = limit
+    }
 
     try {
       rows = await this.connection.query(query, replacements)
