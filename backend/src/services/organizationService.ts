@@ -1201,7 +1201,7 @@ export default class OrganizationService extends LoggerBase {
 
   async query(data) {
     const { filter, orderBy, limit, offset, segments } = data
-    const result = await OrganizationRepository.findAndCountAll(
+    return OrganizationRepository.findAndCountAll(
       {
         filter,
         orderBy,
@@ -1213,7 +1213,6 @@ export default class OrganizationService extends LoggerBase {
           'segmentId',
           'displayName',
           'headline',
-          'identities',
           'memberCount',
           'activityCount',
           'lastActive',
@@ -1227,23 +1226,10 @@ export default class OrganizationService extends LoggerBase {
           'tags',
           'logo',
         ],
+        include: { identities: true, lfxMemberships: true },
       },
       this.options,
     )
-
-    const orgIds = result.rows.map((org) => org.id)
-
-    const qx = SequelizeRepository.getQueryExecutor(this.options)
-    const lfxMemberships = await findManyLfxMemberships(qx, {
-      organizationIds: orgIds,
-      tenantId: this.options.currentTenant.id,
-    })
-
-    result.rows.forEach((org) => {
-      org.lfxMembership = lfxMemberships.find((lm) => lm.organizationId === org.id)
-    })
-
-    return result
   }
 
   async destroyBulk(ids) {

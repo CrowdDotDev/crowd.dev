@@ -9,6 +9,7 @@ import {
   addOrgIdentity,
   cleanUpOrgIdentities,
   fetchOrgIdentities,
+  fetchManyOrgIdentities,
   updateOrgIdentity,
 } from '@crowd/data-access-layer/src/org_identities'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
@@ -89,9 +90,6 @@ class OrganizationRepository {
     ['activeOn', 'osa."activeOn"'],
     ['joinedAt', 'osa."joinedAt"'],
     ['lastActive', 'osa."lastActive"'],
-
-    // joined fields
-    ['identities', 'i."identities"'],
 
     // org fields for display
     ['logo', 'o."logo"'],
@@ -2173,6 +2171,10 @@ class OrganizationRepository {
       orderBy = 'joinedAt_DESC',
       segments = [] as string[],
       fields = [...OrganizationRepository.QUERY_FILTER_COLUMN_MAP.keys()],
+      include = {
+        identities: true,
+        lfxMemberships: true,
+      },
     },
     options: IRepositoryOptions,
   ) {
@@ -2226,20 +2228,10 @@ class OrganizationRepository {
 
     function createQuery(fields) {
       return `
-        WITH
-          identities AS (
-            SELECT
-              oi."organizationId",
-              jsonb_agg(oi) AS "identities"
-            FROM "organizationIdentities" oi
-            WHERE oi."tenantId" = $(tenantId)
-            GROUP BY oi."organizationId"
-          )
         SELECT
           ${fields}
         FROM organizations o
         JOIN "organizationSegmentsAgg" osa ON osa."organizationId" = o.id
-        LEFT JOIN identities i ON o.id = i."organizationId"
         WHERE osa."segmentId" = $(segmentId)
           AND o."tenantId" = $(tenantId)
           AND (${filterString})
@@ -2271,6 +2263,28 @@ class OrganizationRepository {
       ),
       qx.selectOne(createQuery('COUNT(*)'), params),
     ])
+
+    const orgIds = rows.map((org) => org.id)
+    if (include.lfxMemberships) {
+      const lfxMemberships = await findManyLfxMemberships(qx, {
+        organizationIds: orgIds,
+        tenantId: options.currentTenant.id,
+      })
+
+      rows.forEach((org) => {
+        org.lfxMembership = lfxMemberships.find((lm) => lm.organizationId === org.id)
+      })
+    }
+    if (include.identities) {
+      const identities = await fetchManyOrgIdentities(qx, {
+        organizationIds: orgIds,
+        tenantId: options.currentTenant.id,
+      })
+
+      rows.forEach((org) => {
+        org.identities = identities.find((i) => i.organizationId === org.id)?.identities
+      })
+    }
 
     return { rows, count: parseInt(count.count, 10), limit, offset }
   }
