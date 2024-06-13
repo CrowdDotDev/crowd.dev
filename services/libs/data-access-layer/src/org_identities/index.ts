@@ -21,7 +21,7 @@ export async function fetchManyOrgIdentities(
     `
       SELECT
           oi."organizationId",
-          JSONB_AGG(oi) AS "identities"
+          JSONB_AGG(oi ORDER BY oi."createdAt") AS "identities"
       FROM "organizationIdentities" oi
       WHERE oi."organizationId" IN ($(organizationIds:csv))
         AND oi."tenantId" = $(tenantId)
