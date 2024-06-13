@@ -1,6 +1,7 @@
 <template>
   <el-popover
     v-if="hasIdentities"
+    v-bind="$attrs"
     trigger="hover"
     placement="top"
     width="20rem"

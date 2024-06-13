@@ -71,6 +71,13 @@
           />
         </div>
       </article>
+
+      <div v-if="!description && !location && Object.keys(visibleAttributes).length === 0" class="pt-2 flex flex-col items-center w-full">
+        <lf-icon name="list-view" :size="80" class="text-gray-300" />
+        <p class="text-center pt-3 text-medium text-gray-400">
+          No organization details yet
+        </p>
+      </div>
     </div>
   </section>
 </template>
@@ -86,6 +93,7 @@ import LfOrganizationAttributeArray
   from '@/modules/organization/components/details/overview/attributes/organization-attribute-array.vue';
 import LfOrganizationAttributeJson
   from '@/modules/organization/components/details/overview/attributes/organization-attribute-json.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps<{
   organization: Organization,

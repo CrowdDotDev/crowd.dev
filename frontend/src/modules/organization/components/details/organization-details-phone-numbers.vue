@@ -22,15 +22,13 @@
         :content="number"
         :disabled="number.length <= 30"
       >
-        <a :href="`tel:${number}`">
-          <lf-badge
-            type="secondary"
-            class="truncate"
-            style="max-width: 30ch"
-          >
-            {{ number }}
-          </lf-badge>
-        </a>
+        <lf-badge
+          type="secondary"
+          class="truncate"
+          style="max-width: 30ch"
+        >
+          {{ number }}
+        </lf-badge>
       </lf-tooltip>
 
       <div v-if="phoneNumbersList.length === 0" class="pt-2 flex flex-col items-center w-full">

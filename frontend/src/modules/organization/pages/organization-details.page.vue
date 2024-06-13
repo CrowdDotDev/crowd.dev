@@ -46,13 +46,13 @@
         <div class="sticky top-0 z-10">
           <div class="bg-white pt-5 pl-10 pb-3">
             <lf-tabs v-model="tabs">
-              <lf-tab name="overview">
+              <lf-tab v-model="tabs" name="overview">
                 Overview
               </lf-tab>
-              <lf-tab name="contributors">
+              <lf-tab v-model="tabs" name="contributors">
                 Contributors
               </lf-tab>
-              <lf-tab name="activities">
+              <lf-tab v-model="tabs" name="activities">
                 Activities
               </lf-tab>
             </lf-tabs>

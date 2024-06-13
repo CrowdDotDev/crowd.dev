@@ -22,7 +22,6 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits<{(e: 'update:modelValue', value: string): void}>();
 
 const route = useRoute();
-const router = useRouter();
 const slots = useSlots();
 
 const tabList = ref<string[]>([]);
@@ -36,25 +35,12 @@ const tabsValue = computed({
   },
 });
 
-const setHash = (hash) => {
-  router?.push({
-    hash: `#${hash}`,
-    query: {},
-  });
-};
-
 const readHash = () => {
   const hash = route?.hash.replace('#', '');
   if (hash && hash !== tabsValue.value) {
     if (tabList.value.includes(hash)) {
       tabsValue.value = hash;
-    } else if (tabList.value.length > 0) {
-      setHash(tabList.value[0]);
-    } else {
-      setHash(tabsValue.value);
     }
-  } else {
-    setHash(tabsValue.value);
   }
 };
 
@@ -70,8 +56,12 @@ onBeforeMount(() => {
   }
 });
 
-watch(() => route.hash, (newHash) => {
+watch(() => route.hash, () => {
   readHash();
+});
+
+defineExpose({
+  tabsValue,
 });
 </script>
 

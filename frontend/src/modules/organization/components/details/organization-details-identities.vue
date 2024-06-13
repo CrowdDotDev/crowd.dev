@@ -24,7 +24,7 @@
         <lf-tooltip v-if="platform(identity.platform)" placement="top-start" :content="platform(identity.platform).name">
           <img
             :src="platform(identity.platform)?.image"
-            class="h-5 w-5"
+            class="h-5 w-5 object-contain"
             :alt="identity.value"
           />
         </lf-tooltip>

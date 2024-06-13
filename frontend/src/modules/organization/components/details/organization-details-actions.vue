@@ -10,7 +10,7 @@
         <div class="bg-primary-500 text-white text-medium leading-5 px-1.5 rounded font-semibold">
           {{ mergeSuggestionsCount }}
         </div>
-        Merge suggestions
+        {{ pluralize('Merge suggestion', mergeSuggestionsCount) }}
       </lf-button>
 
       <!-- Merge -->
@@ -72,6 +72,7 @@ import AppOrganizationMergeSuggestionsDialog
   from '@/modules/organization/components/organization-merge-suggestions-dialog.vue';
 import AppOrganizationMergeDialog from '@/modules/organization/components/organization-merge-dialog.vue';
 import LfOrganizationDropdown from '@/modules/organization/components/shared/organization-dropdown.vue';
+import pluralize from 'pluralize';
 
 const props = defineProps<{
   organization: Organization,

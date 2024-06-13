@@ -9,16 +9,16 @@
     hash="contributors"
     @fetch="onFilterChange($event)"
   />
-  <div class="flex justify-between pb-5">
+  <div class="flex justify-between items-center pb-3 -mt-2" v-if="contributors.length > 0">
     <!-- Total number -->
     <p class="text-small text-gray-500">
-      {{ pluralize('contributor', totalContacts, true) }}
+      {{ pluralize('contributor', pagination.total, true) }}
     </p>
 
     <!-- Sorting -->
-    <lf-dropdown placement="bottom-end">
+    <lf-dropdown placement="bottom-end" width="15rem">
       <template #trigger>
-        <div class="flex items-center gap-1">
+        <div class="flex items-center gap-1 py-2">
           <p class="text-small">
             <span class="font-semibold">
               Sort:
@@ -29,18 +29,21 @@
         </div>
       </template>
 
-      <template
+      <lf-dropdown-item
         v-for="(label, key) in sorters"
         :key="key"
+        :class="sort === key ? 'bg-primary-25' : ''"
+        class="flex justify-between w-full"
+        @click="sort = key; fetch()"
       >
-        <lf-dropdown-item
-          v-if="sort !== key"
-          :class="sort === key ? 'bg-gray-100' : ''"
-          @click="sort = key; fetch()"
-        >
-          {{ label }}
-        </lf-dropdown-item>
-      </template>
+        <span>{{ label }}</span>
+        <lf-icon
+          v-if="sort === key"
+          name="check-line"
+          :size="16"
+          class="text-primary-500"
+        />
+      </lf-dropdown-item>
     </lf-dropdown>
   </div>
 
@@ -78,14 +81,17 @@
           <p class="text-small text-gray-500 whitespace-nowrap">
             {{ pluralize('activity', contributor.activityCount, true) }}
           </p>
-          <lf-contributor-engagement-level :contributor="contributor" />
+          <lf-tooltip content="Engagement level" :disabled="contributor.score >= 0">
+            <lf-contributor-engagement-level :contributor="contributor" />
+          </lf-tooltip>
 
           <app-identities-horizontal-list-members
             :member="contributor"
             :limit="0"
+            placement="top-end"
           >
             <template #badge>
-              <div class="py-1">
+              <div class="py-3 -my-1">
                 <div class="h-6 flex items-center px-2 border border-gray-200 rounded-md gap-1.5 whitespace-nowrap">
                   <lf-icon name="fingerprint-line" :size="16" />
                   <p class="text-small text-gray-600 whitespace-nowrap">
@@ -97,6 +103,17 @@
           </app-identities-horizontal-list-members>
         </div>
       </article>
+    </div>
+    <div v-if="!loading && !contributors.length">
+      <div class="flex justify-center pb-8">
+        <lf-icon name="group-2-line" :size="80" class="text-gray-200" />
+      </div>
+      <h5 class="text-center text-h5">
+        No contributors found
+      </h5>
+      <p class="text-gray-600 text-small text-center mt-4">
+        We couldn't find any results that match your search criteria, please try a different query
+      </p>
     </div>
     <div
       v-if="pagination.total > (pagination.page * pagination.perPage)"
@@ -141,6 +158,7 @@ import LfButton from '@/ui-kit/button/Button.vue';
 import AppIdentitiesHorizontalListMembers
   from '@/shared/modules/identities/components/identities-horizontal-list-members.vue';
 import pluralize from 'pluralize';
+import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
 
 const props = defineProps<{
   organization: Organization,
