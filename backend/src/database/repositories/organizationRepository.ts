@@ -4,11 +4,12 @@ import {
   organizationEditIdentitiesAction,
   organizationUpdateAction,
 } from '@crowd/audit-logs'
-import { Error400, Error404, Error409, PageData } from '@crowd/common'
+import { Error400, Error404, Error409, PageData, RawQueryParser } from '@crowd/common'
 import {
   addOrgIdentity,
   cleanUpOrgIdentities,
   fetchOrgIdentities,
+  fetchManyOrgIdentities,
   updateOrgIdentity,
 } from '@crowd/data-access-layer/src/org_identities'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
@@ -27,7 +28,6 @@ import {
   SegmentData,
   SegmentProjectGroupNestedData,
   SegmentProjectNestedData,
-  SyncStatus,
 } from '@crowd/types'
 import lodash, { chunk, uniq } from 'lodash'
 import Sequelize, { QueryTypes } from 'sequelize'
@@ -38,12 +38,8 @@ import {
   SimilarityScoreRange,
 } from '@/types/mergeSuggestionTypes'
 import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
-import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import AuditLogRepository from './auditLogRepository'
-import QueryParser from './filters/queryParser'
-import { QueryOutput } from './filters/queryTypes'
-import OrganizationSyncRemoteRepository from './organizationSyncRemoteRepository'
 import SegmentRepository from './segmentRepository'
 import SequelizeRepository from './sequelizeRepository'
 import { IActiveOrganizationData, IActiveOrganizationFilter } from './types/organizationTypes'
@@ -60,6 +56,68 @@ interface IOrganizationNoMerge {
 }
 
 class OrganizationRepository {
+  public static QUERY_FILTER_COLUMN_MAP: Map<string, string> = new Map([
+    // id fields
+    ['id', 'o.id'],
+    ['segmentId', 'osa."segmentId"'],
+
+    // basic fields for filtering
+    ['size', 'o.size'],
+    ['industry', 'o.industry'],
+    ['employees', 'o."employees"'],
+    ['lastEnrichedAt', 'o."lastEnrichedAt"'],
+    ['founded', 'o."founded"'],
+    ['headline', 'o."headline"'],
+    ['location', 'o."location"'],
+    ['tags', 'o."tags"'],
+    ['type', 'o."type"'],
+    ['isTeamOrganization', 'o."isTeamOrganization"'],
+
+    // basic fields for querying
+    ['displayName', 'o."displayName"'],
+    ['revenueRange', 'o."revenueRange"'],
+    ['employeeGrowthRate', 'o."employeeGrowthRate"'],
+
+    // derived fields
+    ['employeeChurnRate12Month', `(o."employeeChurnRate"->>'12_month')::decimal`],
+    ['employeeGrowthRate12Month', `(o."employeeGrowthRate"->>'12_month')::decimal`],
+    ['revenueRangeMin', `(o."revenueRange"->>'min')::integer`],
+    ['revenueRangeMax', `(o."revenueRange"->>'max')::integer`],
+
+    // aggregated fields
+    ['activityCount', 'osa."activityCount"'],
+    ['memberCount', 'osa."memberCount"'],
+    ['activeOn', 'osa."activeOn"'],
+    ['joinedAt', 'osa."joinedAt"'],
+    ['lastActive', 'osa."lastActive"'],
+
+    // org fields for display
+    ['logo', 'o."logo"'],
+    ['naics', 'o."naics"'],
+    ['profiles', 'o."profiles"'],
+    ['ticker', 'o."ticker"'],
+    ['address', 'o."address"'],
+    ['geoLocation', 'o."geoLocation"'],
+    ['employeeCountByCountry', 'o."employeeCountByCountry"'],
+    ['description', 'o."description"'],
+    ['allSubsidiaries', 'o."allSubsidiaries"'],
+    ['alternativeNames', 'o."alternativeNames"'],
+    ['averageEmployeeTenure', 'o."averageEmployeeTenure"'],
+    ['averageTenureByLevel', 'o."averageTenureByLevel"'],
+    ['averageTenureByRole', 'o."averageTenureByRole"'],
+    ['directSubsidiaries', 'o."directSubsidiaries"'],
+    ['employeeChurnRate', 'o."employeeChurnRate"'],
+    ['employeeCountByMonth', 'o."employeeCountByMonth"'],
+    ['employeeCountByMonthByLevel', 'o."employeeCountByMonthByLevel"'],
+    ['employeeCountByMonthByRole', 'o."employeeCountByMonthByRole"'],
+    ['gicsSector', 'o."gicsSector"'],
+    ['grossAdditionsByMonth', 'o."grossAdditionsByMonth"'],
+    ['grossDeparturesByMonth', 'o."grossDeparturesByMonth"'],
+    ['ultimateParent', 'o."ultimateParent"'],
+    ['immediateParent', 'o."immediateParent"'],
+    ['names', 'o.names'],
+  ])
+
   static async filterByPayingTenant(
     tenantId: string,
     limit: number,
@@ -512,12 +570,12 @@ class OrganizationRepository {
             const existingOrg = (await seq.query(
               `
           select "organizationId"
-          from "organizationIdentities" 
-          where 
-            "tenantId" = :tenantId and 
+          from "organizationIdentities"
+          where
+            "tenantId" = :tenantId and
             "organizationId" <> :id and
-            type = :type and 
-            value = :value and 
+            type = :type and
+            value = :value and
             verified = true
           `,
               {
@@ -1521,129 +1579,17 @@ class OrganizationRepository {
   }
 
   static async findById(id: string, options: IRepositoryOptions, segmentId?: string) {
-    const transaction = SequelizeRepository.getTransaction(options)
-    const sequelize = SequelizeRepository.getSequelize(options)
-
-    const currentTenant = SequelizeRepository.getCurrentTenant(options)
-
-    const replacements: Record<string, unknown> = {
-      id,
-      tenantId: currentTenant.id,
-    }
-
-    // query for all leaf segment ids
-    let extraCTEs = `
-      leaf_segment_ids AS (
-        select id
-        from segments
-        where "tenantId" = :tenantId and "parentSlug" is not null and "grandparentSlug" is not null
-      ),
-    `
-
-    if (segmentId) {
-      // we load data for a specific segment (can be leaf, parent or grand parent id)
-      replacements.segmentId = segmentId
-      extraCTEs = `
-        leaf_segment_ids AS (
-          SELECT
-              s.id
-          FROM segments s
-          JOIN segments sp ON sp.slug = s."parentSlug"
-              AND sp."grandparentSlug" IS NULL
-              AND sp."parentSlug" IS NOT NULL
-              AND sp."tenantId" = s."tenantId"
-          JOIN segments sgp ON sgp.slug = sp."parentSlug"
-              AND sgp."parentSlug" IS NULL
-              AND sgp."grandparentSlug" IS NULL
-              AND sgp."tenantId" = s."tenantId"
-          WHERE s."parentSlug" IS NOT NULL
-            AND s."grandparentSlug" IS NOT NULL
-            AND s."tenantId" = :tenantId
-            AND (
-              s.id = :segmentId
-              OR sp.id = :segmentId
-              OR sgp.id = :segmentId
-            )
-        ),
-      `
-    }
-
-    const query = `
-      WITH
-        ${extraCTEs}
-        member_data AS (
-          select
-            a."organizationId",
-            count(distinct a."memberId")                                                        as "memberCount",
-            count(distinct a.id)                                                        as "activityCount",
-            case
-                when array_agg(distinct a.platform::TEXT) = array [null] then array []::text[]
-                else array_agg(distinct a.platform::TEXT) end                                 as "activeOn",
-            max(a.timestamp)                                                            as "lastActive",
-            min(a.timestamp) filter ( where a.timestamp <> '1970-01-01T00:00:00.000Z' ) as "joinedAt"
-          from leaf_segment_ids ls
-          join mv_activities_cube a on a."segmentId" = ls.id and a."organizationId" = :id
-          group by a."organizationId"
-        ),
-        organization_segments AS (
-          select "organizationId", array_agg("segmentId") as "segments"
-          from "organizationSegments"
-          where "organizationId" = :id
-          group by "organizationId"
-        ),
-        identities as (
-          SELECT oi."organizationId", jsonb_agg(oi) AS "identities"
-          FROM "organizationIdentities" oi
-          WHERE oi."organizationId" = :id
-          GROUP BY "organizationId"
-        )
-        select
-          o.*,
-          coalesce(md."activityCount", 0)::integer as "activityCount",
-          coalesce(md."memberCount", 0)::integer   as "memberCount",
-          coalesce(md."activeOn", '{}')            as "activeOn",
-          coalesce(i.identities, '{}')            as identities,
-          coalesce(os.segments, '{}')              as segments,
-          md."lastActive",
-          md."joinedAt"
-        from organizations o
-        left join member_data md on md."organizationId" = o.id
-        left join organization_segments os on os."organizationId" = o.id
-        left join identities i on i."organizationId" = o.id
-        where o.id = :id
-        and o."tenantId" = :tenantId;
-    `
-
-    const results = await sequelize.query(query, {
-      replacements,
-      type: QueryTypes.SELECT,
-      transaction,
-    })
-
-    if (results.length === 0) {
-      throw new Error404()
-    }
-
-    const result = results[0] as any
-
-    const manualSyncRemote = await new OrganizationSyncRemoteRepository(
+    const { rows } = await OrganizationRepository.findAndCountAll(
+      {
+        filter: { id: { eq: id } },
+        limit: 1,
+        offset: 0,
+        segments: [segmentId],
+      },
       options,
-    ).findOrganizationManualSync(result.id)
+    )
 
-    for (const syncRemote of manualSyncRemote) {
-      if (result.attributes?.syncRemote) {
-        result.attributes.syncRemote[syncRemote.platform] = syncRemote.status === SyncStatus.ACTIVE
-      } else {
-        result.attributes.syncRemote = {
-          [syncRemote.platform]: syncRemote.status === SyncStatus.ACTIVE,
-        }
-      }
-    }
-
-    // compatibility issue
-    delete result.searchSyncedAt
-
-    return result
+    return rows[0]
   }
 
   static async findByName(name, options: IRepositoryOptions) {
@@ -1701,11 +1647,11 @@ class OrganizationRepository {
     const existingOrg = (await seq.query(
       `
     select "organizationId"
-    from "organizationIdentities" 
-    where 
-      "tenantId" = :tenantId and 
-      type = :type and 
-      value = :value and 
+    from "organizationIdentities"
+    where
+      "tenantId" = :tenantId and
+      type = :type and
+      value = :value and
       verified = true
     `,
       {
@@ -1983,41 +1929,36 @@ class OrganizationRepository {
 
     const segmentsEnabled = await isFeatureEnabled(FeatureFlag.SEGMENTS, options)
 
-    let originalSegment
+    if (segments.length !== 1) {
+      throw new Error400(
+        `This operation can have exactly one segment. Found ${segments.length} segments.`,
+      )
+    }
 
-    if (segmentsEnabled) {
-      if (segments.length !== 1) {
-        throw new Error400(
-          `This operation can have exactly one segment. Found ${segments.length} segments.`,
-        )
+    const originalSegment = segments[0]
+
+    const segmentRepository = new SegmentRepository(options)
+
+    const segment = await segmentRepository.findById(originalSegment)
+
+    if (segment === null) {
+      return {
+        rows: [],
+        count: 0,
+        limit,
+        offset,
       }
-      originalSegment = segments[0]
+    }
 
-      const segmentRepository = new SegmentRepository(options)
-
-      const segment = await segmentRepository.findById(originalSegment)
-
-      if (segment === null) {
-        return {
-          rows: [],
-          count: 0,
-          limit,
-          offset,
-        }
-      }
-
-      if (SegmentRepository.isProjectGroup(segment)) {
-        segments = (segment as SegmentProjectGroupNestedData).projects.reduce((acc, p) => {
-          acc.push(...p.subprojects.map((sp) => sp.id))
-          return acc
-        }, [])
-      } else if (SegmentRepository.isProject(segment)) {
-        segments = (segment as SegmentProjectNestedData).subprojects.map((sp) => sp.id)
-      } else {
-        segments = [originalSegment]
-      }
+    if (SegmentRepository.isProjectGroup(segment)) {
+      segments = (segment as SegmentProjectGroupNestedData).projects.reduce((acc, p) => {
+        acc.push(...p.subprojects.map((sp) => sp.id))
+        return acc
+      }, [])
+    } else if (SegmentRepository.isProject(segment)) {
+      segments = (segment as SegmentProjectNestedData).subprojects.map((sp) => sp.id)
     } else {
-      originalSegment = (await new SegmentRepository(options).getDefaultSegment()).id
+      segments = [originalSegment]
     }
 
     const activityPageSize = 10000
@@ -2225,362 +2166,127 @@ class OrganizationRepository {
   static async findAndCountAll(
     {
       filter = {} as any,
-      advancedFilter = null as any,
-      limit = 0,
+      limit = 20,
       offset = 0,
-      orderBy = '',
-      includeOrganizationsWithoutMembers = true,
+      orderBy = 'joinedAt_DESC',
+      segments = [] as string[],
+      fields = [...OrganizationRepository.QUERY_FILTER_COLUMN_MAP.keys()],
+      include = {
+        identities: true,
+        lfxMemberships: true,
+      },
     },
     options: IRepositoryOptions,
   ) {
-    let customOrderBy: Array<any> = []
+    if (segments.length !== 1) {
+      throw new Error400(
+        options.language,
+        `This operation can have exactly one segment. Found ${segments.length} segments.`,
+      )
+    }
 
-    const include = [
-      {
-        model: options.database.member,
-        as: 'members',
-        required: !includeOrganizationsWithoutMembers,
-        attributes: [],
-        through: {
-          attributes: [],
-          where: {
-            deletedAt: null,
-          },
-        },
-        include: [
-          {
-            model: options.database.memberIdentity,
-            as: 'memberIdentities',
-            attributes: [],
-          },
-        ],
-      },
-      {
-        model: options.database.segment,
-        as: 'segments',
-        attributes: [],
-        through: {
-          attributes: [],
-        },
-      },
-    ]
+    const segment = await new SegmentRepository(options).findById(segments[0])
 
-    const activeOn = Sequelize.literal(`ARRAY[]::TEXT[]`)
-
-    // TODO: member identitites FIX
-    const identities = Sequelize.literal(`ARRAY[]::TEXT[]`)
-
-    const lastActive = Sequelize.literal(`NULL`)
-
-    const joinedAt = Sequelize.literal(`NULL`)
-
-    const memberCount = Sequelize.literal(`COUNT(DISTINCT "members".id)::integer`)
-
-    const activityCount = Sequelize.literal(`NULL`)
-
-    const segments = Sequelize.literal(
-      `ARRAY_AGG(DISTINCT "segments->organizationSegments"."segmentId")`,
-    )
-
-    // If the advanced filter is empty, we construct it from the query parameter filter
-    if (!advancedFilter) {
-      advancedFilter = { and: [] }
-
-      if (filter.id) {
-        advancedFilter.and.push({
-          id: filter.id,
-        })
-      }
-
-      if (filter.displayName) {
-        advancedFilter.and.push({
-          displayName: {
-            textContains: filter.displayName,
-          },
-        })
-      }
-
-      if (filter.description) {
-        advancedFilter.and.push({
-          description: {
-            textContains: filter.description,
-          },
-        })
-      }
-
-      if (filter.emails) {
-        if (typeof filter.emails === 'string') {
-          filter.emails = filter.emails.split(',')
-        }
-        advancedFilter.and.push({
-          emails: {
-            overlap: filter.emails,
-          },
-        })
-      }
-
-      if (filter.phoneNumbers) {
-        if (typeof filter.phoneNumbers === 'string') {
-          filter.phoneNumbers = filter.phoneNumbers.split(',')
-        }
-        advancedFilter.and.push({
-          phoneNumbers: {
-            overlap: filter.phoneNumbers,
-          },
-        })
-      }
-
-      if (filter.tags) {
-        if (typeof filter.tags === 'string') {
-          filter.tags = filter.tags.split(',')
-        }
-        advancedFilter.and.push({
-          tags: {
-            overlap: filter.tags,
-          },
-        })
-      }
-
-      if (filter.employeesRange) {
-        const [start, end] = filter.employeesRange
-
-        if (start !== undefined && start !== null && start !== '') {
-          advancedFilter.and.push({
-            employees: {
-              gte: start,
-            },
-          })
-        }
-
-        if (end !== undefined && end !== null && end !== '') {
-          advancedFilter.and.push({
-            employees: {
-              lte: end,
-            },
-          })
-        }
-      }
-
-      if (filter.revenueMin) {
-        advancedFilter.and.push({
-          revenueMin: {
-            gte: filter.revenueMin,
-          },
-        })
-      }
-
-      if (filter.revenueMax) {
-        advancedFilter.and.push({
-          revenueMax: {
-            lte: filter.revenueMax,
-          },
-        })
-      }
-
-      if (filter.members) {
-        advancedFilter.and.push({
-          members: filter.members,
-        })
-      }
-
-      if (filter.createdAtRange) {
-        const [start, end] = filter.createdAtRange
-
-        if (start !== undefined && start !== null && start !== '') {
-          advancedFilter.and.push({
-            createdAt: {
-              gte: start,
-            },
-          })
-        }
-
-        if (end !== undefined && end !== null && end !== '') {
-          advancedFilter.and.push({
-            createdAt: {
-              lte: end,
-            },
-          })
-        }
+    if (segment === null) {
+      options.log.info('No segment found for organization')
+      return {
+        rows: [],
+        count: 0,
+        limit,
+        offset,
       }
     }
 
-    customOrderBy = customOrderBy.concat(
-      SequelizeFilterUtils.customOrderByIfExists('lastActive', orderBy),
-    )
-    customOrderBy = customOrderBy.concat(
-      SequelizeFilterUtils.customOrderByIfExists('joinedAt', orderBy),
-    )
-    customOrderBy = customOrderBy.concat(
-      SequelizeFilterUtils.customOrderByIfExists('activityCount', orderBy),
-    )
-
-    customOrderBy = customOrderBy.concat(
-      SequelizeFilterUtils.customOrderByIfExists('memberCount', orderBy),
-    )
-
-    const parser = new QueryParser(
-      {
-        nestedFields: {
-          revenueMin: 'revenueRange.min',
-          revenueMax: 'revenueRange.max',
-          revenue: 'revenueRange.min',
-        },
-        aggregators: {
-          ...SequelizeFilterUtils.getNativeTableFieldAggregations(
-            [
-              'id',
-              'displayName',
-              'description',
-              'names',
-              'emails',
-              'phoneNumbers',
-              'logo',
-              'tags',
-              'location',
-              'employees',
-              'revenueRange',
-              'importHash',
-              'createdAt',
-              'updatedAt',
-              'deletedAt',
-              'tenantId',
-              'createdById',
-              'updatedById',
-              'isTeamOrganization',
-              'type',
-              'attributes',
-              'manuallyCreated',
-            ],
-            'organization',
-          ),
-          activeOn,
-          identities,
-          lastActive,
-          joinedAt,
-          memberCount,
-          activityCount,
-          segments,
-        },
-        manyToMany: {
-          members: {
-            table: 'organizations',
-            model: 'organization',
-            relationTable: {
-              name: 'memberOrganizations',
-              from: 'organizationId',
-              to: 'memberId',
-            },
-          },
-          segments: {
-            table: 'organizations',
-            model: 'organization',
-            relationTable: {
-              name: 'organizationSegments',
-              from: 'organizationId',
-              to: 'segmentId',
-            },
-          },
-        },
-      },
-      options,
-    )
-
-    const parsed: QueryOutput = parser.parse({
-      filter: advancedFilter,
-      orderBy: orderBy || ['createdAt_DESC'],
+    const params = {
       limit,
       offset,
-    })
-
-    let order = parsed.order
-
-    if (customOrderBy.length > 0) {
-      order = [customOrderBy]
-    } else if (orderBy) {
-      order = [orderBy.split('_')]
+      tenantId: options.currentTenant.id,
+      segmentId: segment.id,
     }
 
-    let {
-      rows,
-      count, // eslint-disable-line prefer-const
-    } = await options.database.organization.findAndCountAll({
-      ...(parsed.where ? { where: parsed.where } : {}),
-      ...(parsed.having ? { having: parsed.having } : {}),
-      attributes: [
-        ...SequelizeFilterUtils.getLiteralProjections(
-          [
-            'id',
-            'displayName',
-            'description',
-            'names',
-            'emails',
-            'phoneNumbers',
-            'logo',
-            'tags',
-            'location',
-            'employees',
-            'revenueRange',
-            'importHash',
-            'createdAt',
-            'updatedAt',
-            'deletedAt',
-            'tenantId',
-            'createdById',
-            'updatedById',
-            'isTeamOrganization',
-            'type',
-            'ticker',
-            'size',
-            'naics',
-            'lastEnrichedAt',
-            'industry',
-            'headline',
-            'geoLocation',
-            'founded',
-            'employeeCountByCountry',
-            'address',
-            'profiles',
-            'attributes',
-            'manuallyCreated',
-            'allSubsidiaries',
-            'alternativeNames',
-            'averageEmployeeTenure',
-            'averageTenureByLevel',
-            'averageTenureByRole',
-            'directSubsidiaries',
-            'employeeChurnRate',
-            'employeeCountByMonth',
-            'employeeGrowthRate',
-            'employeeCountByMonthByLevel',
-            'employeeCountByMonthByRole',
-            'gicsSector',
-            'grossAdditionsByMonth',
-            'grossDeparturesByMonth',
-            'ultimateParent',
-            'immediateParent',
-          ],
-          'organization',
-        ),
-        [activeOn, 'activeOn'],
-        [identities, 'identities'],
-        [lastActive, 'lastActive'],
-        [joinedAt, 'joinedAt'],
-        [memberCount, 'memberCount'],
-        [activityCount, 'activityCount'],
-        [segments, 'segmentIds'],
-      ],
-      order,
-      limit: parsed.limit,
-      offset: parsed.offset,
-      include,
-      subQuery: false,
-      group: ['organization.id'],
-      transaction: SequelizeRepository.getTransaction(options),
-    })
+    const filterString = RawQueryParser.parseFilters(
+      filter,
+      OrganizationRepository.QUERY_FILTER_COLUMN_MAP,
+      [],
+      params,
+      { pgPromiseFormat: true },
+    )
 
-    rows = await this._populateRelationsForRows(rows)
+    const order = (function prepareOrderBy(orderBy = 'lastActive_DESC') {
+      const orderSplit = orderBy.split('_')
 
-    return { rows, count: count.length, limit: parsed.limit, offset: parsed.offset }
+      const orderField = OrganizationRepository.QUERY_FILTER_COLUMN_MAP.get(orderSplit[0])
+      if (!orderField) {
+        return 'osa."lastActive" DESC'
+      }
+      const orderDirection = ['DESC', 'ASC'].includes(orderSplit[1]) ? orderSplit[1] : 'DESC'
+
+      return `${orderField} ${orderDirection}`
+    })(orderBy)
+
+    const qx = SequelizeRepository.getQueryExecutor(options)
+
+    function createQuery(fields) {
+      return `
+        SELECT
+          ${fields}
+        FROM organizations o
+        JOIN "organizationSegmentsAgg" osa ON osa."organizationId" = o.id
+        WHERE osa."segmentId" = $(segmentId)
+          AND o."tenantId" = $(tenantId)
+          AND (${filterString})
+      `
+    }
+
+    const [rows, count] = await Promise.all([
+      qx.select(
+        `
+          ${createQuery(
+            (function prepareFields(fields) {
+              return fields
+                .map((f) => {
+                  const mappedField = OrganizationRepository.QUERY_FILTER_COLUMN_MAP.get(f)
+                  if (!mappedField) {
+                    throw new Error400(options.language, `Invalid field: ${f}`)
+                  }
+
+                  return mappedField
+                })
+                .join(',\n')
+            })(fields),
+          )}
+          ORDER BY ${order}
+          LIMIT $(limit)
+          OFFSET $(offset)
+        `,
+        params,
+      ),
+      qx.selectOne(createQuery('COUNT(*)'), params),
+    ])
+
+    const orgIds = rows.map((org) => org.id)
+    if (include.lfxMemberships) {
+      const lfxMemberships = await findManyLfxMemberships(qx, {
+        organizationIds: orgIds,
+        tenantId: options.currentTenant.id,
+      })
+
+      rows.forEach((org) => {
+        org.lfxMembership = lfxMemberships.find((lm) => lm.organizationId === org.id)
+      })
+    }
+    if (include.identities) {
+      const identities = await fetchManyOrgIdentities(qx, {
+        organizationIds: orgIds,
+        tenantId: options.currentTenant.id,
+      })
+
+      rows.forEach((org) => {
+        org.identities = identities.find((i) => i.organizationId === org.id)?.identities
+      })
+    }
+
+    return { rows, count: parseInt(count.count, 10), limit, offset }
   }
 
   static async findAllAutocomplete(query, limit, options: IRepositoryOptions) {
@@ -2663,20 +2369,6 @@ class OrganizationRepository {
       },
       options,
     )
-  }
-
-  static async _populateRelationsForRows(rows) {
-    if (!rows) {
-      return rows
-    }
-
-    return rows.map((record) => {
-      const rec = record.get({ plain: true })
-      rec.activeOn = rec.activeOn ?? []
-      rec.segments = rec.segmentIds ?? []
-      delete rec.segmentIds
-      return rec
-    })
   }
 
   static calculateRenderFriendlyOrganizations(
