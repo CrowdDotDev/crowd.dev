@@ -27,5 +27,10 @@ export const websiteNormalizer = (website: string, throwError = true): string | 
     return undefined
   }
 
-  return parsed.domain?.toLowerCase()
+  const domain = parsed.domain?.toLowerCase()
+  const subdomain = parsed.subdomain ? `${parsed.subdomain.toLowerCase()}.` : ''
+
+  const normalized = `${subdomain}${domain}`
+
+  return normalized
 }
