@@ -75,7 +75,7 @@
           </p>
         </router-link>
         <div class="flex items-center gap-4">
-          <p class="text-small text-gray-500">
+          <p class="text-small text-gray-500 whitespace-nowrap">
             {{ pluralize('activity', contributor.activityCount, true) }}
           </p>
           <lf-contributor-engagement-level :contributor="contributor" />
@@ -86,9 +86,9 @@
           >
             <template #badge>
               <div class="py-1">
-                <div class="h-6 flex items-center px-2 border border-gray-200 rounded-md gap-1.5">
+                <div class="h-6 flex items-center px-2 border border-gray-200 rounded-md gap-1.5 whitespace-nowrap">
                   <lf-icon name="fingerprint-line" :size="16" />
-                  <p class="text-small text-gray-600">
+                  <p class="text-small text-gray-600 whitespace-nowrap">
                     {{ pluralize('identity', identities(contributor).length, true) }}
                   </p>
                 </div>
