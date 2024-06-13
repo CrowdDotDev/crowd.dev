@@ -50,5 +50,13 @@ export const obfuscateIdentitiesOfMember = (member: ILLMConsumableMember): ILLMC
     identity.value = obfuscate(identity.value)
   }
 
+  if (member.attributes.url.github) {
+    member.attributes.url.github = obfuscate(member.attributes.url.github)
+  }
+
+  if (member.attributes.url.default) {
+    member.attributes.url.default = obfuscate(member.attributes.url.default)
+  }
+
   return member
 }
