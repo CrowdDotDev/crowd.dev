@@ -13,6 +13,27 @@ export async function fetchOrgIdentities(qx: QueryExecutor, organizationId: stri
   )
 }
 
+export async function fetchManyOrgIdentities(
+  qx: QueryExecutor,
+  { organizationIds, tenantId }: { organizationIds: string[]; tenantId: string },
+) {
+  return qx.select(
+    `
+      SELECT
+          oi."organizationId",
+          JSONB_AGG(oi) AS "identities"
+      FROM "organizationIdentities" oi
+      WHERE oi."organizationId" IN ($(organizationIds:csv))
+        AND oi."tenantId" = $(tenantId)
+      GROUP BY oi."organizationId"
+    `,
+    {
+      organizationIds,
+      tenantId,
+    },
+  )
+}
+
 export async function cleanUpOrgIdentities(qx: QueryExecutor, { organizationId, tenantId }) {
   return qx.result(
     `
@@ -33,7 +54,7 @@ export async function updateOrgIdentity(
   { organizationId, tenantId, platform, value, type, verified },
 ): Promise<void> {
   await qx.result(
-    `      
+    `
     update "organizationIdentities" set verified = $(verified)
     where "organizationId" = $(organizationId) and "tenantId" = $(tenantId) and platform = $(platform) and value = $(value) and type = $(type)
     `,
