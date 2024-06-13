@@ -18,6 +18,13 @@
     </lf-dropdown-item>
   </router-link>
   <lf-dropdown-item
+    v-if="hasPermission(LfPermission.organizationEdit) && identities(props.organization).length > 1"
+    @click="unmerge = props.organization"
+  >
+    <lf-icon name="link-unlink-m" />
+    Unmerge identity
+  </lf-dropdown-item>
+  <lf-dropdown-item
     v-if="hasPermission(LfPermission.organizationEdit)"
     @click="markTeamOrganization(!props.organization.isTeamOrganization)"
   >
@@ -31,6 +38,11 @@
       Delete organization
     </lf-dropdown-item>
   </template>
+
+  <app-organization-unmerge-dialog
+    v-if="unmerge"
+    v-model="unmerge"
+  />
 </template>
 
 <script setup lang="ts">
@@ -48,6 +60,9 @@ import { Organization } from '@/modules/organization/types/Organization';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';
 import { OrganizationService } from '@/modules/organization/organization-service';
+import AppOrganizationUnmergeDialog from '@/modules/organization/components/organization-unmerge-dialog.vue';
+import { ref } from 'vue';
+import useOrganizationHelpers from '@/modules/organization/helpers/organization.helpers';
 
 const props = defineProps<{
   organization: Organization,
@@ -59,6 +74,9 @@ const route = useRoute();
 const router = useRouter();
 const { hasPermission } = usePermissions();
 const { trackEvent } = useProductTracking();
+const { identities } = useOrganizationHelpers();
+
+const unmerge = ref<Organization | null>(null);
 
 const lfStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lfStore);
