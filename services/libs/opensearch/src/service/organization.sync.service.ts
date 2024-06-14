@@ -306,31 +306,32 @@ export class OrganizationSyncService {
           throw e
         }
 
-        if (orgData.length > 0) {
-          try {
-            await this.orgRepo.transactionally(
-              async (txRepo) => {
-                const qx = repoQx(txRepo)
-                await logExecutionTimeV2(
-                  () => cleanupForOganization(qx, organizationId),
-                  this.log,
-                  'cleanupForOganization',
-                )
+        try {
+          await this.orgRepo.transactionally(
+            async (txRepo) => {
+              const qx = repoQx(txRepo)
+              await logExecutionTimeV2(
+                () => cleanupForOganization(qx, organizationId),
+                this.log,
+                'cleanupForOganization',
+              )
+
+              if (orgData.length > 0) {
                 await logExecutionTimeV2(
                   () => insertOrganizationSegments(qx, orgData as IOrganizationAggregateData[]),
                   this.log,
                   'insertOrganizationSegments',
                 )
-              },
-              undefined,
-              true,
-            )
-            organizationIdsToIndex.push(organizationId)
-            documentsIndexed += orgData.length
-          } catch (e) {
-            this.log.error(e, 'Failed to insert organization aggregates!')
-            throw e
-          }
+              }
+            },
+            undefined,
+            true,
+          )
+          organizationIdsToIndex.push(organizationId)
+          documentsIndexed += orgData.length
+        } catch (e) {
+          this.log.error(e, 'Failed to insert organization aggregates!')
+          throw e
         }
       }
 
