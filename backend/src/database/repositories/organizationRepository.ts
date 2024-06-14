@@ -2168,7 +2168,7 @@ class OrganizationRepository {
       filter = {} as any,
       limit = 20,
       offset = 0,
-      orderBy = 'joinedAt_DESC',
+      orderBy = undefined,
       segmentId = undefined,
       fields = [...OrganizationRepository.QUERY_FILTER_COLUMN_MAP.keys()],
       include = {
@@ -2180,11 +2180,10 @@ class OrganizationRepository {
   ) {
     const qx = SequelizeRepository.getQueryExecutor(options)
 
-    let rows: any[]
-    let count: number
-
-    if (segmentId) {
-      const segment = await new SegmentRepository(options).findById(segmentId)
+    const withAggregates = !!segmentId
+    let segment
+    if (withAggregates) {
+      segment = await new SegmentRepository(options).findById(segmentId)
 
       if (segment === null) {
         options.log.info('No segment found for organization')
@@ -2195,137 +2194,82 @@ class OrganizationRepository {
           offset,
         }
       }
-
-      const params = {
-        limit,
-        offset,
-        tenantId: options.currentTenant.id,
-        segmentId: segment.id,
-      }
-
-      const filterString = RawQueryParser.parseFilters(
-        filter,
-        OrganizationRepository.QUERY_FILTER_COLUMN_MAP,
-        [],
-        params,
-        { pgPromiseFormat: true },
-      )
-
-      const order = (function prepareOrderBy(orderBy = 'lastActive_DESC') {
-        const orderSplit = orderBy.split('_')
-
-        const orderField = OrganizationRepository.QUERY_FILTER_COLUMN_MAP.get(orderSplit[0])
-        if (!orderField) {
-          return 'osa."lastActive" DESC'
-        }
-        const orderDirection = ['DESC', 'ASC'].includes(orderSplit[1]) ? orderSplit[1] : 'DESC'
-
-        return `${orderField} ${orderDirection}`
-      })(orderBy)
-
-      const createQuery = (fields) => `
-          SELECT
-            ${fields}
-          FROM organizations o
-          JOIN "organizationSegmentsAgg" osa ON osa."organizationId" = o.id
-          WHERE osa."segmentId" = $(segmentId)
-            AND o."tenantId" = $(tenantId)
-            AND (${filterString})
-        `
-
-      const results = await Promise.all([
-        qx.select(
-          `
-            ${createQuery(
-              (function prepareFields(fields) {
-                return fields
-                  .map((f) => {
-                    const mappedField = OrganizationRepository.QUERY_FILTER_COLUMN_MAP.get(f)
-                    if (!mappedField) {
-                      throw new Error400(options.language, `Invalid field: ${f}`)
-                    }
-
-                    return mappedField
-                  })
-                  .join(',\n')
-              })(fields),
-            )}
-            ORDER BY ${order}
-            LIMIT $(limit)
-            OFFSET $(offset)
-          `,
-          params,
-        ),
-        qx.selectOne(createQuery('COUNT(*)'), params),
-      ])
-
-      rows = results[0]
-      count = parseInt(results[1].count, 10)
-    } else {
-      // no segments - don't return aggregate data
-      const params = {
-        limit,
-        offset,
-        tenantId: options.currentTenant.id,
-      }
-
-      const filterString = RawQueryParser.parseFilters(
-        filter,
-        OrganizationRepository.QUERY_FILTER_COLUMN_MAP,
-        [],
-        params,
-        { pgPromiseFormat: true },
-      )
-
-      const order = (function prepareOrderBy(orderBy = 'lastActive_DESC') {
-        const orderSplit = orderBy.split('_')
-
-        const orderField = OrganizationRepository.QUERY_FILTER_COLUMN_MAP.get(orderSplit[0])
-        if (!orderField) {
-          return 'o.id DESC'
-        }
-        const orderDirection = ['DESC', 'ASC'].includes(orderSplit[1]) ? orderSplit[1] : 'DESC'
-
-        return `${orderField} ${orderDirection}`
-      })(orderBy)
-
-      const createQuery = (fields) => `
-          SELECT
-            ${fields}
-          FROM organizations o
-          WHERE o."tenantId" = $(tenantId)
-            AND (${filterString})
-        `
-
-      const results = await Promise.all([
-        qx.select(
-          `
-            ${createQuery(
-              (function prepareFields(fields) {
-                return fields
-                  .map((f) => {
-                    const mappedField = OrganizationRepository.QUERY_FILTER_COLUMN_MAP.get(f)
-                    if (!mappedField) {
-                      throw new Error400(options.language, `Invalid field: ${f}`)
-                    }
-
-                    return mappedField
-                  })
-                  .join(',\n')
-              })(fields),
-            )}
-            ORDER BY ${order}
-            LIMIT $(limit)
-            OFFSET $(offset)
-          `,
-          params,
-        ),
-        qx.selectOne(createQuery('COUNT(*)'), params),
-      ])
-
-      rows = results[0]
-      count = parseInt(results[1].count, 10)
     }
+
+    const params = {
+      limit,
+      offset,
+      tenantId: options.currentTenant.id,
+      segmentId: segment?.id,
+    }
+
+    const filterString = RawQueryParser.parseFilters(
+      filter,
+      OrganizationRepository.QUERY_FILTER_COLUMN_MAP,
+      [],
+      params,
+      { pgPromiseFormat: true },
+    )
+
+    const order = (function prepareOrderBy(
+      orderBy = withAggregates ? 'lastActive_DESC' : 'id_DESC',
+    ) {
+      const orderSplit = orderBy.split('_')
+
+      const orderField = OrganizationRepository.QUERY_FILTER_COLUMN_MAP.get(orderSplit[0])
+      if (!orderField) {
+        return withAggregates ? 'osa."lastActive" DESC' : 'o.id DESC'
+      }
+      const orderDirection = ['DESC', 'ASC'].includes(orderSplit[1]) ? orderSplit[1] : 'DESC'
+
+      return `${orderField} ${orderDirection}`
+    })(orderBy)
+
+    const createQuery = (fields) => `
+      SELECT
+        ${fields}
+      FROM organizations o
+      ${withAggregates ? `JOIN "organizationSegmentsAgg" osa ON osa."organizationId" = o.id` : ''}
+      WHERE 1=1
+        ${withAggregates ? `AND osa."segmentId" = $(segmentId)` : ''}
+        AND o."tenantId" = $(tenantId)
+        AND (${filterString})
+    `
+
+    const results = await Promise.all([
+      qx.select(
+        `
+          ${createQuery(
+            (function prepareFields(fields) {
+              return fields
+                .map((f) => {
+                  const mappedField = OrganizationRepository.QUERY_FILTER_COLUMN_MAP.get(f)
+                  if (!mappedField) {
+                    throw new Error400(options.language, `Invalid field: ${f}`)
+                  }
+
+                  return mappedField
+                })
+                .filter((f) => {
+                  if (withAggregates) {
+                    return true
+                  }
+                  return !f.startsWith('osa.')
+                })
+                .join(',\n')
+            })(fields),
+          )}
+          ORDER BY ${order}
+          LIMIT $(limit)
+          OFFSET $(offset)
+        `,
+        params,
+      ),
+      qx.selectOne(createQuery('COUNT(*)'), params),
+    ])
+
+    const rows = results[0]
+    const count = parseInt(results[1].count, 10)
 
     const orgIds = rows.map((org) => org.id)
     if (orgIds.length > 0) {
