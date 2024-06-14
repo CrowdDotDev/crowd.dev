@@ -1589,7 +1589,7 @@ class OrganizationRepository {
   }
 
   static async findById(id: string, options: IRepositoryOptions, segmentId?: string) {
-    const { rows } = await OrganizationRepository.findAndCountAll(
+    const { rows, count } = await OrganizationRepository.findAndCountAll(
       {
         filter: { id: { eq: id } },
         limit: 1,
@@ -1598,6 +1598,10 @@ class OrganizationRepository {
       },
       options,
     )
+
+    if (count === 0) {
+      throw new Error404()
+    }
 
     return rows[0]
   }
@@ -2282,27 +2286,29 @@ class OrganizationRepository {
     const count = parseInt(results[1].count, 10)
 
     const orgIds = rows.map((org) => org.id)
-    if (orgIds.length > 0) {
-      if (include.lfxMemberships) {
-        const lfxMemberships = await findManyLfxMemberships(qx, {
-          organizationIds: orgIds,
-          tenantId: options.currentTenant.id,
-        })
+    if (orgIds.length === 0) {
+      return { rows: [], count: 0, limit, offset }
+    }
 
-        rows.forEach((org) => {
-          org.lfxMembership = lfxMemberships.find((lm) => lm.organizationId === org.id)
-        })
-      }
-      if (include.identities) {
-        const identities = await fetchManyOrgIdentities(qx, {
-          organizationIds: orgIds,
-          tenantId: options.currentTenant.id,
-        })
+    if (include.lfxMemberships) {
+      const lfxMemberships = await findManyLfxMemberships(qx, {
+        organizationIds: orgIds,
+        tenantId: options.currentTenant.id,
+      })
 
-        rows.forEach((org) => {
-          org.identities = identities.find((i) => i.organizationId === org.id)?.identities
-        })
-      }
+      rows.forEach((org) => {
+        org.lfxMembership = lfxMemberships.find((lm) => lm.organizationId === org.id)
+      })
+    }
+    if (include.identities) {
+      const identities = await fetchManyOrgIdentities(qx, {
+        organizationIds: orgIds,
+        tenantId: options.currentTenant.id,
+      })
+
+      rows.forEach((org) => {
+        org.identities = identities.find((i) => i.organizationId === org.id)?.identities
+      })
     }
 
     return { rows, count, limit, offset }
