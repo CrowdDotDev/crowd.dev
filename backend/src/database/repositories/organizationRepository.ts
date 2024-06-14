@@ -93,29 +93,7 @@ class OrganizationRepository {
 
     // org fields for display
     ['logo', 'o."logo"'],
-    ['naics', 'o."naics"'],
-    ['profiles', 'o."profiles"'],
-    ['ticker', 'o."ticker"'],
-    ['address', 'o."address"'],
-    ['geoLocation', 'o."geoLocation"'],
-    ['employeeCountByCountry', 'o."employeeCountByCountry"'],
     ['description', 'o."description"'],
-    ['allSubsidiaries', 'o."allSubsidiaries"'],
-    ['alternativeNames', 'o."alternativeNames"'],
-    ['averageEmployeeTenure', 'o."averageEmployeeTenure"'],
-    ['averageTenureByLevel', 'o."averageTenureByLevel"'],
-    ['averageTenureByRole', 'o."averageTenureByRole"'],
-    ['directSubsidiaries', 'o."directSubsidiaries"'],
-    ['employeeChurnRate', 'o."employeeChurnRate"'],
-    ['employeeCountByMonth', 'o."employeeCountByMonth"'],
-    ['employeeCountByMonthByLevel', 'o."employeeCountByMonthByLevel"'],
-    ['employeeCountByMonthByRole', 'o."employeeCountByMonthByRole"'],
-    ['gicsSector', 'o."gicsSector"'],
-    ['grossAdditionsByMonth', 'o."grossAdditionsByMonth"'],
-    ['grossDeparturesByMonth', 'o."grossDeparturesByMonth"'],
-    ['ultimateParent', 'o."ultimateParent"'],
-    ['immediateParent', 'o."immediateParent"'],
-    ['names', 'o.names'],
   ])
 
   static async filterByPayingTenant(
