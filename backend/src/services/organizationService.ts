@@ -1,10 +1,6 @@
 import { captureApiChange, organizationMergeAction } from '@crowd/audit-logs'
 import { Error400, websiteNormalizer } from '@crowd/common'
-import {
-  findLfxMembership,
-  findManyLfxMemberships,
-  hasLfxMembership,
-} from '@crowd/data-access-layer/src/lfx_memberships'
+import { findLfxMembership, hasLfxMembership } from '@crowd/data-access-layer/src/lfx_memberships'
 import { LoggerBase } from '@crowd/logging'
 import {
   IOrganization,
@@ -50,20 +46,16 @@ export default class OrganizationService extends LoggerBase {
 
   static ORGANIZATION_MERGE_FIELDS = [
     'description',
+    'names',
     'emails',
     'phoneNumbers',
     'logo',
     'tags',
     'type',
     'joinedAt',
-    'twitter',
-    'linkedin',
-    'crunchbase',
     'employees',
     'revenueRange',
     'location',
-    'github',
-    'website',
     'isTeamOrganization',
     'employeeCountByCountry',
     'geoLocation',
@@ -77,9 +69,7 @@ export default class OrganizationService extends LoggerBase {
     'founded',
     'displayName',
     'attributes',
-    'affiliatedProfiles',
     'allSubsidiaries',
-    'alternativeDomains',
     'alternativeNames',
     'averageEmployeeTenure',
     'averageTenureByLevel',
@@ -465,11 +455,7 @@ export default class OrganizationService extends LoggerBase {
           const backup = {
             primary: {
               ...lodash.pick(
-                await OrganizationRepository.findByIdOpensearch(
-                  originalId,
-                  this.options,
-                  segmentId,
-                ),
+                await OrganizationRepository.findById(originalId, this.options, segmentId),
                 OrganizationService.ORGANIZATION_MERGE_FIELDS,
               ),
               identities: await OrganizationRepository.getIdentities([originalId], this.options),
@@ -1215,7 +1201,7 @@ export default class OrganizationService extends LoggerBase {
         orderBy,
         limit,
         offset,
-        segments,
+        segmentId: segments.length > 0 ? segments[0] : undefined,
         fields: [
           'id',
           'segmentId',
