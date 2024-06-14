@@ -1339,7 +1339,9 @@ class OrganizationRepository {
           o1."displayName" as "primaryDisplayName",
           o1.logo as "primaryLogo",
           o2."displayName" as "secondaryDisplayName",
-          o2.logo as "secondaryLogo"
+          o2.logo as "secondaryLogo",
+          os1."segmentId" as "primarySegmentId",
+          os2."segmentId" as "secondarySegmentId"
         FROM organizations org
         JOIN "organizationToMerge" otm ON org.id = otm."organizationId"
         JOIN "organization_segments_mv" os1 ON os1."organizationId" = org.id
@@ -1376,7 +1378,9 @@ class OrganizationRepository {
           "secondaryDisplayName",
           "secondaryLogo",
           "createdAt",
-          "similarity"
+          "similarity",
+          "primarySegmentId",
+          "secondarySegmentId"
         FROM cte
         ORDER BY hash, id
       )
@@ -1388,6 +1392,8 @@ class OrganizationRepository {
         "organizationsToMerge"."primaryLogo",
         "organizationsToMerge"."secondaryDisplayName",
         "organizationsToMerge"."secondaryLogo",
+        "organizationsToMerge"."primarySegmentId",
+        "organizationsToMerge"."secondarySegmentId",
         count_cte."total_count",
         "organizationsToMerge"."similarity"
       FROM
@@ -1421,8 +1427,8 @@ class OrganizationRepository {
 
         for (const org of orgs) {
           options.log.info(`[DBG] Fetching organization details for ${org.id} and ${org.toMergeId}`)
-          organizationPromises.push(OrganizationRepository.findById(org.id, options, options.currentSegments[0].id))
-          toMergePromises.push(OrganizationRepository.findById(org.toMergeId, options, options.currentSegments[0].id))
+          organizationPromises.push(OrganizationRepository.findById(org.id, options, org.primarySegmentId))
+          toMergePromises.push(OrganizationRepository.findById(org.toMergeId, options, org.secondarySegmentId))
         }
 
         const organizationResults = await Promise.all(organizationPromises)
