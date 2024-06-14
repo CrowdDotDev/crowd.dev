@@ -1421,8 +1421,8 @@ class OrganizationRepository {
 
         for (const org of orgs) {
           options.log.info(`[DBG] Fetching organization details for ${org.id} and ${org.toMergeId}`)
-          organizationPromises.push(OrganizationRepository.findById(org.id, options))
-          toMergePromises.push(OrganizationRepository.findById(org.toMergeId, options))
+          organizationPromises.push(OrganizationRepository.findById(org.id, options, options.currentSegments[0].id))
+          toMergePromises.push(OrganizationRepository.findById(org.toMergeId, options, options.currentSegments[0].id))
         }
 
         const organizationResults = await Promise.all(organizationPromises)
