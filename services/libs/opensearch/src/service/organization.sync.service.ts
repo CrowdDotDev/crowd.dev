@@ -9,7 +9,7 @@ import {
 } from '@crowd/data-access-layer/src/org_segments'
 import { repoQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { DbStore } from '@crowd/database'
-import { Logger, getChildLogger, logExecutionTime, logExecutionTimeV2 } from '@crowd/logging'
+import { Logger, getChildLogger, logExecutionTime } from '@crowd/logging'
 import { IServiceConfig, OpenSearchIndex } from '@crowd/types'
 import { IndexedEntityType } from '../repo/indexing.data'
 import { IndexingRepository } from '../repo/indexing.repo'
@@ -296,11 +296,7 @@ export class OrganizationSyncService {
         let orgData: IOrganizationSegmentAggregates[]
         try {
           const qx = repoQx(this.orgRepo)
-          orgData = await logExecutionTimeV2(
-            () => getOrgAggregates(qx, organizationId),
-            this.log,
-            'getOrgAggregates',
-          )
+          orgData = await getOrgAggregates(qx, organizationId)
         } catch (e) {
           this.log.error(e, 'Failed to get organization aggregates!')
           throw e
@@ -310,18 +306,10 @@ export class OrganizationSyncService {
           await this.orgRepo.transactionally(
             async (txRepo) => {
               const qx = repoQx(txRepo)
-              await logExecutionTimeV2(
-                () => cleanupForOganization(qx, organizationId),
-                this.log,
-                'cleanupForOganization',
-              )
+              await cleanupForOganization(qx, organizationId)
 
               if (orgData.length > 0) {
-                await logExecutionTimeV2(
-                  () => insertOrganizationSegments(qx, orgData as IOrganizationAggregateData[]),
-                  this.log,
-                  'insertOrganizationSegments',
-                )
+                await insertOrganizationSegments(qx, orgData as IOrganizationAggregateData[])
               }
             },
             undefined,
