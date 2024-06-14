@@ -519,6 +519,7 @@ export default class OrganizationService extends LoggerBase {
           const toMergeIdentities = allIdentities.filter((i) => i.organizationId === toMergeId)
           const identitiesToMove: IOrganizationIdentity[] = []
           const identitiesToUpdate: IOrganizationIdentity[] = []
+
           for (const identity of toMergeIdentities) {
             const existing = originalIdentities.find(
               (i) =>
@@ -544,6 +545,13 @@ export default class OrganizationService extends LoggerBase {
             toMergeId,
             originalId,
             identitiesToMove,
+            repoOptions,
+          )
+
+          // remove identities from secondary that we gonna verify in primary
+          await OrganizationRepository.removeIdentitiesFromOrganization(
+            toMergeId,
+            identitiesToUpdate,
             repoOptions,
           )
 
