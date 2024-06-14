@@ -2460,7 +2460,7 @@ class OrganizationRepository {
       await seq.query(query, {
         replacements: {
           organizationId,
-          name: identity.value,
+          value: identity.value,
           type: identity.type,
           platform: identity.platform,
         },

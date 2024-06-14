@@ -427,8 +427,8 @@ export default class OrganizationService extends LoggerBase {
         this.options,
         organizationMergeAction(originalId, async (captureOldState, captureNewState) => {
           this.log.info('[Merge Organizations] - Finding organizations! ')
-          let original = await OrganizationRepository.findById(originalId, this.options)
-          let toMerge = await OrganizationRepository.findById(toMergeId, this.options)
+          let original = await OrganizationRepository.findById(originalId, this.options, segmentId)
+          let toMerge = await OrganizationRepository.findById(toMergeId, this.options, segmentId)
 
           const originalWithLfxMembership = await hasLfxMembership(qx, {
             tenantId,
@@ -519,6 +519,7 @@ export default class OrganizationService extends LoggerBase {
           const toMergeIdentities = allIdentities.filter((i) => i.organizationId === toMergeId)
           const identitiesToMove: IOrganizationIdentity[] = []
           const identitiesToUpdate: IOrganizationIdentity[] = []
+
           for (const identity of toMergeIdentities) {
             const existing = originalIdentities.find(
               (i) =>
@@ -544,6 +545,13 @@ export default class OrganizationService extends LoggerBase {
             toMergeId,
             originalId,
             identitiesToMove,
+            repoOptions,
+          )
+
+          // remove identities from secondary that we gonna verify in primary
+          await OrganizationRepository.removeIdentitiesFromOrganization(
+            toMergeId,
+            identitiesToUpdate,
             repoOptions,
           )
 
