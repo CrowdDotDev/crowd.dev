@@ -12,6 +12,7 @@ import {
   fetchManyOrgIdentities,
   updateOrgIdentity,
 } from '@crowd/data-access-layer/src/org_identities'
+import { findOrgAttributes } from '@crowd/data-access-layer/src/org_attributes'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import {
   FeatureFlag,
@@ -1250,7 +1251,26 @@ class OrganizationRepository {
       throw new Error404()
     }
 
-    return rows[0]
+    const organization = rows[0]
+
+    const qx = SequelizeRepository.getQueryExecutor(options)
+    const attributes = await findOrgAttributes(qx, id)
+    organization.attributes = attributes.reduce((acc, a) => {
+      if (!acc[a.name]) {
+        acc[a.name] = {}
+      }
+      if (!acc[a.name][a.source]) {
+        acc[a.name][a.source] = []
+      }
+
+      acc[a.name][a.source].push(a.value)
+      if (a.default) {
+        acc[a.name].default = a.value
+      }
+      return acc
+    }, {})
+
+    return organization
   }
 
   static async filterIdsInTenant(ids, options: IRepositoryOptions) {
