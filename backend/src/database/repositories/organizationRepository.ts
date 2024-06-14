@@ -1339,7 +1339,9 @@ class OrganizationRepository {
           o1."displayName" as "primaryDisplayName",
           o1.logo as "primaryLogo",
           o2."displayName" as "secondaryDisplayName",
-          o2.logo as "secondaryLogo"
+          o2.logo as "secondaryLogo",
+          os1."segmentId" as "primarySegmentId",
+          os2."segmentId" as "secondarySegmentId"
         FROM organizations org
         JOIN "organizationToMerge" otm ON org.id = otm."organizationId"
         JOIN "organization_segments_mv" os1 ON os1."organizationId" = org.id
@@ -1376,7 +1378,9 @@ class OrganizationRepository {
           "secondaryDisplayName",
           "secondaryLogo",
           "createdAt",
-          "similarity"
+          "similarity",
+          "primarySegmentId",
+          "secondarySegmentId"
         FROM cte
         ORDER BY hash, id
       )
@@ -1388,6 +1392,8 @@ class OrganizationRepository {
         "organizationsToMerge"."primaryLogo",
         "organizationsToMerge"."secondaryDisplayName",
         "organizationsToMerge"."secondaryLogo",
+        "organizationsToMerge"."primarySegmentId",
+        "organizationsToMerge"."secondarySegmentId",
         count_cte."total_count",
         "organizationsToMerge"."similarity"
       FROM
@@ -1420,8 +1426,12 @@ class OrganizationRepository {
         const toMergePromises = []
 
         for (const org of orgs) {
-          organizationPromises.push(OrganizationRepository.findById(org.id, options))
-          toMergePromises.push(OrganizationRepository.findById(org.toMergeId, options))
+          organizationPromises.push(
+            OrganizationRepository.findById(org.id, options, org.primarySegmentId),
+          )
+          toMergePromises.push(
+            OrganizationRepository.findById(org.toMergeId, options, org.secondarySegmentId),
+          )
         }
 
         const organizationResults = await Promise.all(organizationPromises)
@@ -1579,15 +1589,19 @@ class OrganizationRepository {
   }
 
   static async findById(id: string, options: IRepositoryOptions, segmentId?: string) {
-    const { rows } = await OrganizationRepository.findAndCountAll(
+    const { rows, count } = await OrganizationRepository.findAndCountAll(
       {
         filter: { id: { eq: id } },
         limit: 1,
         offset: 0,
-        segments: [segmentId],
+        segmentId,
       },
       options,
     )
+
+    if (count === 0) {
+      throw new Error404()
+    }
 
     return rows[0]
   }
@@ -2168,8 +2182,8 @@ class OrganizationRepository {
       filter = {} as any,
       limit = 20,
       offset = 0,
-      orderBy = 'joinedAt_DESC',
-      segments = [] as string[],
+      orderBy = undefined,
+      segmentId = undefined,
       fields = [...OrganizationRepository.QUERY_FILTER_COLUMN_MAP.keys()],
       include = {
         identities: true,
@@ -2178,22 +2192,21 @@ class OrganizationRepository {
     },
     options: IRepositoryOptions,
   ) {
-    if (segments.length !== 1) {
-      throw new Error400(
-        options.language,
-        `This operation can have exactly one segment. Found ${segments.length} segments.`,
-      )
-    }
+    const qx = SequelizeRepository.getQueryExecutor(options)
 
-    const segment = await new SegmentRepository(options).findById(segments[0])
+    const withAggregates = !!segmentId
+    let segment
+    if (withAggregates) {
+      segment = await new SegmentRepository(options).findById(segmentId)
 
-    if (segment === null) {
-      options.log.info('No segment found for organization')
-      return {
-        rows: [],
-        count: 0,
-        limit,
-        offset,
+      if (segment === null) {
+        options.log.info('No segment found for organization')
+        return {
+          rows: [],
+          count: 0,
+          limit,
+          offset,
+        }
       }
     }
 
@@ -2201,7 +2214,7 @@ class OrganizationRepository {
       limit,
       offset,
       tenantId: options.currentTenant.id,
-      segmentId: segment.id,
+      segmentId: segment?.id,
     }
 
     const filterString = RawQueryParser.parseFilters(
@@ -2212,33 +2225,32 @@ class OrganizationRepository {
       { pgPromiseFormat: true },
     )
 
-    const order = (function prepareOrderBy(orderBy = 'lastActive_DESC') {
+    const order = (function prepareOrderBy(
+      orderBy = withAggregates ? 'lastActive_DESC' : 'id_DESC',
+    ) {
       const orderSplit = orderBy.split('_')
 
       const orderField = OrganizationRepository.QUERY_FILTER_COLUMN_MAP.get(orderSplit[0])
       if (!orderField) {
-        return 'osa."lastActive" DESC'
+        return withAggregates ? 'osa."lastActive" DESC' : 'o.id DESC'
       }
       const orderDirection = ['DESC', 'ASC'].includes(orderSplit[1]) ? orderSplit[1] : 'DESC'
 
       return `${orderField} ${orderDirection}`
     })(orderBy)
 
-    const qx = SequelizeRepository.getQueryExecutor(options)
+    const createQuery = (fields) => `
+      SELECT
+        ${fields}
+      FROM organizations o
+      ${withAggregates ? `JOIN "organizationSegmentsAgg" osa ON osa."organizationId" = o.id` : ''}
+      WHERE 1=1
+        ${withAggregates ? `AND osa."segmentId" = $(segmentId)` : ''}
+        AND o."tenantId" = $(tenantId)
+        AND (${filterString})
+    `
 
-    function createQuery(fields) {
-      return `
-        SELECT
-          ${fields}
-        FROM organizations o
-        JOIN "organizationSegmentsAgg" osa ON osa."organizationId" = o.id
-        WHERE osa."segmentId" = $(segmentId)
-          AND o."tenantId" = $(tenantId)
-          AND (${filterString})
-      `
-    }
-
-    const [rows, count] = await Promise.all([
+    const results = await Promise.all([
       qx.select(
         `
           ${createQuery(
@@ -2252,6 +2264,12 @@ class OrganizationRepository {
 
                   return mappedField
                 })
+                .filter((f) => {
+                  if (withAggregates) {
+                    return true
+                  }
+                  return !f.startsWith('osa.')
+                })
                 .join(',\n')
             })(fields),
           )}
@@ -2264,7 +2282,14 @@ class OrganizationRepository {
       qx.selectOne(createQuery('COUNT(*)'), params),
     ])
 
+    const rows = results[0]
+    const count = parseInt(results[1].count, 10)
+
     const orgIds = rows.map((org) => org.id)
+    if (orgIds.length === 0) {
+      return { rows: [], count: 0, limit, offset }
+    }
+
     if (include.lfxMemberships) {
       const lfxMemberships = await findManyLfxMemberships(qx, {
         organizationIds: orgIds,
@@ -2286,7 +2311,7 @@ class OrganizationRepository {
       })
     }
 
-    return { rows, count: parseInt(count.count, 10), limit, offset }
+    return { rows, count, limit, offset }
   }
 
   static async findAllAutocomplete(query, limit, options: IRepositoryOptions) {
@@ -2454,7 +2479,7 @@ class OrganizationRepository {
       await seq.query(query, {
         replacements: {
           organizationId,
-          name: identity.value,
+          value: identity.value,
           type: identity.type,
           platform: identity.platform,
         },
