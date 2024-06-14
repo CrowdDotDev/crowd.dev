@@ -1585,7 +1585,7 @@ class OrganizationRepository {
         filter: { id: { eq: id } },
         limit: 1,
         offset: 0,
-        segments: [segmentId],
+        segments: segmentId ? [segmentId] : [],
       },
       options,
     )
