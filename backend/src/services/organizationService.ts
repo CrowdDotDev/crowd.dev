@@ -427,8 +427,8 @@ export default class OrganizationService extends LoggerBase {
         this.options,
         organizationMergeAction(originalId, async (captureOldState, captureNewState) => {
           this.log.info('[Merge Organizations] - Finding organizations! ')
-          let original = await OrganizationRepository.findById(originalId, this.options)
-          let toMerge = await OrganizationRepository.findById(toMergeId, this.options)
+          let original = await OrganizationRepository.findById(originalId, this.options, segmentId)
+          let toMerge = await OrganizationRepository.findById(toMergeId, this.options, segmentId)
 
           const originalWithLfxMembership = await hasLfxMembership(qx, {
             tenantId,
