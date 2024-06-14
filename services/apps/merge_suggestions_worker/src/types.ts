@@ -236,4 +236,10 @@ export interface ISimilarityFilter {
 export interface IProcessMergeOrganizationSuggestionsWithLLM {
   onlyLFXMembers?: boolean
   similarity: ISimilarityFilter
+  tenantId: string
+}
+
+export interface IProcessMergeMemberSuggestionsWithLLM {
+  similarity: ISimilarityFilter
+  tenantId: string
 }

@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { performance } from 'perf_hooks'
+import axios from 'axios'
 import { ITenant } from '@crowd/data-access-layer/src/old/apps/merge_suggestions_worker//types'
 import { svc } from '../main'
 import TenantRepository from '@crowd/data-access-layer/src/old/apps/merge_suggestions_worker/tenant.repo'
@@ -12,7 +13,6 @@ import {
   ILLMSuggestionVerdict,
 } from '@crowd/types'
 import { BedrockRuntimeClient, InvokeModelCommand } from '@aws-sdk/client-bedrock-runtime'
-import { logExecutionTime } from '@crowd/logging'
 import { ILLMResult } from '../types'
 
 export async function getAllTenants(): Promise<ITenant[]> {
@@ -51,9 +51,6 @@ export async function getLLMResult(
     console.log(suggestion)
     throw new Error('Exactly 2 entities are required for LLM comparison')
   }
-  // console.log("Logging suggestions:")
-  // console.log(suggestion[0].identities)
-  // console.log(suggestion[1].identities)
   const client = new BedrockRuntimeClient({
     credentials: {
       accessKeyId: process.env['CROWD_AWS_BEDROCK_ACCESS_KEY_ID'],
@@ -110,4 +107,52 @@ export async function saveLLMVerdict(verdict: ILLMSuggestionVerdict): Promise<st
     svc.log,
   )
   return llmVerdictRepository.saveLLMVerdict(verdict)
+}
+
+export async function mergeMembers(
+  primaryMemberId: string,
+  secondaryMemberId: string,
+  tenantId: string,
+): Promise<void> {
+  const url = `${process.env['CROWD_API_SERVICE_URL']}/tenant/${tenantId}/member/${primaryMemberId}/merge`
+  const requestOptions = {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${process.env['CROWD_API_SERVICE_USER_TOKEN']}`,
+      'Content-Type': 'application/json',
+    },
+    data: {
+      memberToMerge: secondaryMemberId,
+    },
+  }
+
+  try {
+    await axios(url, requestOptions)
+  } catch (error) {
+    console.log(`Failed merging member wit status [${error.response.status}]. Skipping!`)
+  }
+}
+
+export async function mergeOrganizations(
+  primaryOrganizationId: string,
+  secondaryOrganizationId: string,
+  tenantId: string,
+): Promise<void> {
+  const url = `${process.env['CROWD_API_SERVICE_URL']}/tenant/${tenantId}/organization/${primaryOrganizationId}/merge`
+  const requestOptions = {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${process.env['CROWD_API_SERVICE_USER_TOKEN']}`,
+      'Content-Type': 'application/json',
+    },
+    data: {
+      organizationToMerge: secondaryOrganizationId,
+    },
+  }
+
+  try {
+    await axios(url, requestOptions)
+  } catch (error) {
+    console.log(`Failed merging organization with status [${error.response.status}]. Skipping!`)
+  }
 }

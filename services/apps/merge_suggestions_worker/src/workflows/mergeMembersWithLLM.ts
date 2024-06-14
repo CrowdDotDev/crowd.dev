@@ -5,7 +5,7 @@ import * as commonActivities from '.pnpm/node_modules/@crowd/merge-suggestions-w
 
 import {
   ILLMResult,
-  IProcessMergeOrganizationSuggestionsWithLLM,
+  IProcessMergeMemberSuggestionsWithLLM,
 } from '.pnpm/node_modules/@crowd/merge-suggestions-worker/src/types'
 import { LLMSuggestionVerdictType } from '@crowd/types'
 import { obfuscateIdentitiesOfMember } from '../utils'
@@ -23,10 +23,8 @@ const commonActivitiesProxy = proxyActivities<typeof commonActivities>({
 })
 
 export async function mergeMembersWithLLM(
-  args: IProcessMergeOrganizationSuggestionsWithLLM,
+  args: IProcessMergeMemberSuggestionsWithLLM,
 ): Promise<void> {
-  console.log('mergeOrganizationsWithLLM workflow')
-
   const SUGGESTIONS_PER_RUN = 10
   const REGION = 'us-west-2'
   const MODEL_ID = 'anthropic.claude-3-opus-20240229-v1:0'
@@ -85,19 +83,11 @@ export async function mergeMembersWithLLM(
       outputTokenCount: llmResult.body.usage.output_tokens,
       verdict: llmResult.body.content[0].text,
     })
+
+    if (llmResult.body.content[0].text === 'true') {
+      await commonActivitiesProxy.mergeMembers(suggestion[0], suggestion[1], args.tenantId)
+    }
   }
 
   await continueAsNew<typeof mergeMembersWithLLM>(args)
-
-  // For each suggestion
-  // 0. get orgs
-  // 1. Get the LLM result
-  // 2. Parse the LLM result and save the verdict to the database
-  // 3. Act on verdict. Ie: if they're the same merge them
-  // 4. Contine as new (add another arg to input, so we can control total process for testing)
-
-  // console.log(`Total input token count: ${totalInputTokenCount}`)
-  // console.log(
-  //   `Average input token count per prompt: ${Math.floor(totalInputTokenCount / promptCount)}`,
-  // )
 }
