@@ -15,12 +15,10 @@ import {
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import {
   FeatureFlag,
-  IEnrichableOrganization,
   IMemberRenderFriendlyRole,
   IMemberRoleWithOrganization,
   IOrganization,
   IOrganizationIdentity,
-  IOrganizationMergeSuggestion,
   MergeActionState,
   MergeActionType,
   OpenSearchIndex,
@@ -29,7 +27,7 @@ import {
   SegmentProjectGroupNestedData,
   SegmentProjectNestedData,
 } from '@crowd/types'
-import lodash, { chunk, uniq } from 'lodash'
+import lodash, { uniq } from 'lodash'
 import Sequelize, { QueryTypes } from 'sequelize'
 import validator from 'validator'
 import { findManyLfxMemberships } from '@crowd/data-access-layer/src/lfx_memberships'
@@ -48,11 +46,6 @@ const { Op } = Sequelize
 
 interface IOrganizationId {
   id: string
-}
-
-interface IOrganizationNoMerge {
-  organizationId: string
-  noMergeId: string
 }
 
 class OrganizationRepository {
@@ -95,158 +88,6 @@ class OrganizationRepository {
     ['logo', 'o."logo"'],
     ['description', 'o."description"'],
   ])
-
-  static async filterByPayingTenant(
-    tenantId: string,
-    limit: number,
-    options: IRepositoryOptions,
-  ): Promise<IEnrichableOrganization[]> {
-    const database = SequelizeRepository.getSequelize(options)
-    const transaction = SequelizeRepository.getTransaction(options)
-    const query = `
-    with org_activities as (select a."organizationId", count(a.id) as "orgActivityCount"
-                        from activities a
-                        where a."tenantId" = :tenantId
-                          and a."deletedAt" is null
-                        group by a."organizationId"
-                        having count(id) > 0),
-     identities as (select oi."organizationId", jsonb_agg(oi) as "identities"
-                    from "organizationIdentities" oi
-                    where oi."tenantId" = :tenantId
-                    group by oi."organizationId")
-    select org.id,
-          i.identities,
-          org.emails,
-          org.names,
-          org."displayName",
-          org."location",
-          org."lastEnrichedAt",
-          org."employees",
-          org."size",
-          org."founded",
-          org."industry",
-          org."naics",
-          org."profiles",
-          org."headline",
-          org."ticker",
-          org."type",
-          org."address",
-          org."geoLocation",
-          org."employeeCountByCountry",
-          org."description",
-          org."revenueRange",
-          org."tags",
-          org."allSubsidiaries",
-          org."alternativeNames",
-          org."averageEmployeeTenure",
-          org."averageTenureByLevel",
-          org."averageTenureByRole",
-          org."directSubsidiaries",
-          org."employeeChurnRate",
-          org."employeeCountByMonth",
-          org."employeeGrowthRate",
-          org."employeeCountByMonthByLevel",
-          org."employeeCountByMonthByRole",
-          org."gicsSector",
-          org."grossAdditionsByMonth",
-          org."grossDeparturesByMonth",
-          org."ultimateParent",
-          org."immediateParent",
-          activity."orgActivityCount"
-    from "organizations" as org
-            join org_activities activity on activity."organizationId" = org."id"
-            join identities i on i."organizationId" = org.id
-    where :tenantId = org."tenantId"
-      and (org."lastEnrichedAt" is null or date_part('month', age(now(), org."lastEnrichedAt")) >= 6)
-    order by org."lastEnrichedAt" asc, activity."orgActivityCount" desc, org."createdAt" desc
-    limit :limit
-    `
-    const orgs: IEnrichableOrganization[] = await database.query(query, {
-      type: QueryTypes.SELECT,
-      transaction,
-      replacements: {
-        tenantId,
-        limit,
-      },
-    })
-    return orgs
-  }
-
-  static async filterByActiveLastYear(
-    tenantId: string,
-    limit: number,
-    options: IRepositoryOptions,
-  ): Promise<IEnrichableOrganization[]> {
-    const database = SequelizeRepository.getSequelize(options)
-    const transaction = SequelizeRepository.getTransaction(options)
-    const query = `
-    with org_activities as (select a."organizationId", count(a.id) as "orgActivityCount"
-                        from activities a
-                        where a."tenantId" = :tenantId
-                          and a."deletedAt" is null
-                          and a."createdAt" > (CURRENT_DATE - INTERVAL '1 year')
-                        group by a."organizationId"
-                        having count(id) > 0),
-     identities as (select oi."organizationId", jsonb_agg(oi) as "identities"
-                    from "organizationIdentities" oi
-                    where oi."tenantId" = :tenantId
-                    group by oi."organizationId")
-    select org.id,
-          i.identities,
-          org.names,
-          org.emails,
-          org."displayName",
-          org."location",
-          org."lastEnrichedAt",
-          org."employees",
-          org."size",
-          org."founded",
-          org."industry",
-          org."naics",
-          org."profiles",
-          org."headline",
-          org."ticker",
-          org."type",
-          org."address",
-          org."geoLocation",
-          org."employeeCountByCountry",
-          org."description",
-          org."revenueRange",
-          org."tags",
-          org."allSubsidiaries",
-          org."alternativeNames",
-          org."averageEmployeeTenure",
-          org."averageTenureByLevel",
-          org."averageTenureByRole",
-          org."directSubsidiaries",
-          org."employeeChurnRate",
-          org."employeeCountByMonth",
-          org."employeeGrowthRate",
-          org."employeeCountByMonthByLevel",
-          org."employeeCountByMonthByRole",
-          org."gicsSector",
-          org."grossAdditionsByMonth",
-          org."grossDeparturesByMonth",
-          org."ultimateParent",
-          org."immediateParent",
-          activity."orgActivityCount"
-    from "organizations" as org
-            join org_activities activity on activity."organizationId" = org."id"
-            join identities i on i."organizationId" = org.id
-    where :tenantId = org."tenantId"
-    order by org."lastEnrichedAt" asc, activity."orgActivityCount" desc, org."createdAt" desc
-    limit :limit
-    `
-    const orgs: IEnrichableOrganization[] = await database.query(query, {
-      type: QueryTypes.SELECT,
-      transaction,
-      replacements: {
-        tenantId,
-        limit,
-      },
-    })
-    return orgs
-  }
 
   static async create(data, options: IRepositoryOptions) {
     const currentUser = SequelizeRepository.getCurrentUser(options)
@@ -330,58 +171,6 @@ class OrganizationRepository {
     await this._createAuditLog(AuditLogRepository.CREATE, record, data, options)
 
     return this.findById(record.id, options)
-  }
-
-  static async bulkUpdate<T extends any[]>(
-    data: T,
-    fields: string[],
-    options: IRepositoryOptions,
-    isEnrichment: boolean = false,
-  ): Promise<T> {
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    // Ensure every organization has a non-undefine primary ID
-    const isValid = new Set(data.filter((org) => org.id).map((org) => org.id)).size !== data.length
-    if (isValid) return [] as T
-
-    if (isEnrichment) {
-      // Fetch existing organizations
-      const existingOrgs = await options.database.organization.findAll({
-        where: {
-          id: {
-            [options.database.Sequelize.Op.in]: data.map((org) => org.id),
-          },
-        },
-      })
-
-      // Append new tags to existing tags instead of overwriting
-      if (fields.includes('tags')) {
-        // @ts-ignore
-        data = data.map((org) => {
-          const existingOrg = existingOrgs.find((o) => o.id === org.id)
-          if (existingOrg && existingOrg.tags) {
-            // Merge existing and new tags without duplicates
-            const incomingTags = org.tags || []
-            org.tags = lodash.uniq([...existingOrg.tags, ...incomingTags])
-          }
-          return org
-        })
-      }
-    }
-
-    // Using bulk insert to update on duplicate primary ID
-    try {
-      const orgs = await options.database.organization.bulkCreate(data, {
-        fields: ['id', 'tenantId', ...fields],
-        updateOnDuplicate: fields,
-        returning: fields,
-        transaction,
-      })
-      return orgs
-    } catch (error) {
-      options.log.error('Error while bulk updating organizations!', error)
-      throw error
-    }
   }
 
   static async includeOrganizationToSegments(organizationId: string, options: IRepositoryOptions) {
@@ -1048,126 +837,6 @@ class OrganizationRepository {
     }
   }
 
-  static async findNoMergeIds(id: string, options: IRepositoryOptions): Promise<string[]> {
-    const transaction = SequelizeRepository.getTransaction(options)
-    const seq = SequelizeRepository.getSequelize(options)
-
-    const query = `select onm."organizationId", onm."noMergeId" from "organizationNoMerge" onm
-                  where onm."organizationId" = :id or onm."noMergeId" = :id;`
-
-    try {
-      const results: IOrganizationNoMerge[] = await seq.query(query, {
-        type: QueryTypes.SELECT,
-        replacements: {
-          id,
-        },
-        transaction,
-      })
-
-      return Array.from(
-        results.reduce((acc, r) => {
-          if (id === r.organizationId) {
-            acc.add(r.noMergeId)
-          } else if (id === r.noMergeId) {
-            acc.add(r.organizationId)
-          }
-          return acc
-        }, new Set<string>()),
-      )
-    } catch (error) {
-      options.log.error('error while getting non existing organizations from db', error)
-      throw error
-    }
-  }
-
-  static async addToMerge(
-    suggestions: IOrganizationMergeSuggestion[],
-    options: IRepositoryOptions,
-  ): Promise<void> {
-    const transaction = SequelizeRepository.getTransaction(options)
-    const seq = SequelizeRepository.getSequelize(options)
-
-    // Remove possible duplicates
-    suggestions = lodash.uniqWith(suggestions, (a, b) =>
-      lodash.isEqual(lodash.sortBy(a.organizations), lodash.sortBy(b.organizations)),
-    )
-
-    // check all suggestion ids exists in the db
-    const uniqueOrganizationIds = Array.from(
-      suggestions.reduce((acc, suggestion) => {
-        acc.add(suggestion.organizations[0])
-        acc.add(suggestion.organizations[1])
-        return acc
-      }, new Set<string>()),
-    )
-
-    // filter non existing org ids from suggestions
-    const nonExistingIds = await OrganizationRepository.findNonExistingIds(
-      uniqueOrganizationIds,
-      options,
-    )
-
-    suggestions = suggestions.filter(
-      (s) =>
-        !nonExistingIds.includes(s.organizations[0]) &&
-        !nonExistingIds.includes(s.organizations[1]),
-    )
-
-    // Process suggestions in chunks of 100 or less
-    const suggestionChunks: IOrganizationMergeSuggestion[][] = chunk(suggestions, 100)
-
-    const insertValues = (
-      organizationId: string,
-      toMergeId: string,
-      similarity: number | null,
-      index: number,
-    ) => {
-      const idPlaceholder = (key: string) => `${key}${index}`
-      return {
-        query: `(:${idPlaceholder('organizationId')}, :${idPlaceholder(
-          'toMergeId',
-        )}, :${idPlaceholder('similarity')}, NOW(), NOW())`,
-        replacements: {
-          [idPlaceholder('organizationId')]: organizationId,
-          [idPlaceholder('toMergeId')]: toMergeId,
-          [idPlaceholder('similarity')]: similarity === null ? null : similarity,
-        },
-      }
-    }
-
-    for (const suggestionChunk of suggestionChunks) {
-      const placeholders: string[] = []
-      let replacements: Record<string, unknown> = {}
-
-      suggestionChunk.forEach((suggestion, index) => {
-        const { query, replacements: chunkReplacements } = insertValues(
-          suggestion.organizations[0],
-          suggestion.organizations[1],
-          suggestion.similarity,
-          index,
-        )
-        placeholders.push(query)
-        replacements = { ...replacements, ...chunkReplacements }
-      })
-
-      const query = `
-        INSERT INTO "organizationToMerge" ("organizationId", "toMergeId", "similarity", "createdAt", "updatedAt")
-        VALUES ${placeholders.join(', ')}
-        on conflict do nothing;
-      `
-      try {
-        await seq.query(query, {
-          replacements,
-          type: QueryTypes.INSERT,
-          transaction,
-        })
-      } catch (error) {
-        options.log.error('error adding organizations to merge', error)
-        throw error
-      }
-    }
-  }
-
   static async countOrganizationMergeSuggestions(
     organizationFilter: string,
     similarityFilter: string,
@@ -1584,105 +1253,6 @@ class OrganizationRepository {
     return rows[0]
   }
 
-  static async findByName(name, options: IRepositoryOptions) {
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    const include = []
-
-    const currentTenant = SequelizeRepository.getCurrentTenant(options)
-
-    const record = await options.database.organization.findOne({
-      where: {
-        name,
-        tenantId: currentTenant.id,
-      },
-      include,
-      transaction,
-    })
-
-    if (!record) {
-      return null
-    }
-
-    return record.get({ plain: true })
-  }
-
-  static async findByUrl(url, options: IRepositoryOptions) {
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    const include = []
-
-    const currentTenant = SequelizeRepository.getCurrentTenant(options)
-
-    const record = await options.database.organization.findOne({
-      where: {
-        url,
-        tenantId: currentTenant.id,
-      },
-      include,
-      transaction,
-    })
-
-    if (!record) {
-      return null
-    }
-
-    return record.get({ plain: true })
-  }
-
-  static async findOrCreateByDomain(domain: string, options: IRepositoryOptions) {
-    const transaction = SequelizeRepository.getTransaction(options)
-    const currentTenant = SequelizeRepository.getCurrentTenant(options)
-    const seq = SequelizeRepository.getSequelize(options)
-
-    // check if domain already exists in another organization in the same tenant
-    const existingOrg = (await seq.query(
-      `
-    select "organizationId"
-    from "organizationIdentities"
-    where
-      "tenantId" = :tenantId and
-      type = :type and
-      value = :value and
-      verified = true
-    `,
-      {
-        replacements: {
-          tenantId: currentTenant.id,
-          type: OrganizationIdentityType.PRIMARY_DOMAIN,
-          value: domain,
-        },
-        type: QueryTypes.SELECT,
-        transaction,
-      },
-    )) as any[]
-
-    let organization = existingOrg && existingOrg.length > 0 ? existingOrg[0] : null
-
-    if (!organization) {
-      const data = {
-        displayName: domain,
-        names: [domain],
-        identities: [
-          {
-            value: domain,
-            type: OrganizationIdentityType.PRIMARY_DOMAIN,
-            verified: true,
-            platform: 'email',
-          },
-        ],
-        tenantId: currentTenant.id,
-      }
-      organization = await this.create(data, options)
-    }
-
-    return organization.id
-  }
-
-  static async filterIdInTenant(id, options: IRepositoryOptions) {
-    return lodash.get(await this.filterIdsInTenant([id], options), '[0]', null)
-  }
-
   static async filterIdsInTenant(ids, options: IRepositoryOptions) {
     if (!ids || !ids.length) {
       return []
@@ -1737,73 +1307,6 @@ class OrganizationRepository {
       },
       transaction,
     })
-  }
-
-  static async findOrganizationActivities(
-    organizationId: string,
-    limit: number,
-    offset: number,
-    options: IRepositoryOptions,
-  ): Promise<any[]> {
-    const seq = SequelizeRepository.getSequelize(options)
-
-    const results = await seq.query(
-      `select "id", "organizationId"
-        from "activities"
-        where "organizationId" = :organizationId
-        order by "createdAt"
-        limit :limit offset :offset`,
-      {
-        replacements: {
-          organizationId,
-          limit,
-          offset,
-        },
-        type: QueryTypes.SELECT,
-      },
-    )
-
-    return results
-  }
-
-  static async findByIdOpensearch(
-    id: string,
-    options: IRepositoryOptions,
-    segmentId?: string,
-  ): Promise<any> {
-    const segments = segmentId ? [segmentId] : SequelizeRepository.getSegmentIds(options)
-
-    const response = await this.findAndCountAllOpensearch(
-      {
-        filter: {
-          and: [
-            {
-              id: {
-                eq: id,
-              },
-            },
-          ],
-        },
-        isProfileQuery: true,
-        limit: 1,
-        offset: 0,
-        segments,
-      },
-      options,
-    )
-
-    if (response.count === 0) {
-      throw new Error404()
-    }
-
-    const result = response.rows[0]
-
-    // Parse attributes that are indexed as strings
-    if (result.attributes) {
-      result.attributes = JSON.parse(result.attributes)
-    }
-
-    return result
   }
 
   static async findAndCountAllOpensearch(

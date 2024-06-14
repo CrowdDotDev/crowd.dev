@@ -1164,27 +1164,6 @@ export default class OrganizationService extends LoggerBase {
     )
   }
 
-  async findByUrl(url) {
-    return OrganizationRepository.findByUrl(url, this.options)
-  }
-
-  async findOrCreateByDomain(domain) {
-    return OrganizationRepository.findOrCreateByDomain(domain, this.options)
-  }
-
-  async findByIdOpensearch(id: string, segmentId?: string) {
-    const org = await OrganizationRepository.findByIdOpensearch(id, this.options, segmentId)
-
-    const qx = SequelizeRepository.getQueryExecutor(this.options)
-
-    org.lfxMembership = await findLfxMembership(qx, {
-      organizationId: id,
-      tenantId: this.options.currentTenant.id,
-    })
-
-    return org
-  }
-
   async query(data) {
     const { filter, orderBy, limit, offset, segments } = data
     return OrganizationRepository.findAndCountAll(
