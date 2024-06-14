@@ -1,15 +1,3 @@
-import { IDbOrganizationSyncData } from '../repo/organization.data'
-import { OrganizationRepository } from '../repo/organization.repo'
-import { SegmentRepository } from '../repo/segment.repo'
-import { DbStore } from '@crowd/database'
-import { Logger, getChildLogger, logExecutionTime, logExecutionTimeV2 } from '@crowd/logging'
-import { OpenSearchIndex } from '@crowd/types'
-import { IPagedSearchResponse, ISearchHit } from './opensearch.data'
-import { OpenSearchService } from './opensearch.service'
-import { IOrganizationSyncResult } from './organization.sync.data'
-import { IServiceConfig } from '@crowd/types'
-import { IndexingRepository } from '../repo/indexing.repo'
-import { IndexedEntityType } from '../repo/indexing.data'
 import {
   IOrganizationSegmentAggregates,
   getOrgAggregates,
@@ -20,6 +8,17 @@ import {
   insertOrganizationSegments,
 } from '@crowd/data-access-layer/src/org_segments'
 import { repoQx } from '@crowd/data-access-layer/src/queryExecutor'
+import { DbStore } from '@crowd/database'
+import { Logger, getChildLogger, logExecutionTime, logExecutionTimeV2 } from '@crowd/logging'
+import { IServiceConfig, OpenSearchIndex } from '@crowd/types'
+import { IndexedEntityType } from '../repo/indexing.data'
+import { IndexingRepository } from '../repo/indexing.repo'
+import { IDbOrganizationSyncData } from '../repo/organization.data'
+import { OrganizationRepository } from '../repo/organization.repo'
+import { SegmentRepository } from '../repo/segment.repo'
+import { IPagedSearchResponse, ISearchHit } from './opensearch.data'
+import { OpenSearchService } from './opensearch.service'
+import { IOrganizationSyncResult } from './organization.sync.data'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -292,6 +291,7 @@ export class OrganizationSyncService {
   public async syncOrganizations(organizationIds: string[]): Promise<IOrganizationSyncResult> {
     const syncOrgAggregates = async (organizationIds) => {
       let documentsIndexed = 0
+      const organizationIdsToIndex = []
       for (const organizationId of organizationIds) {
         let orgData: IOrganizationSegmentAggregates[]
         try {
@@ -302,40 +302,42 @@ export class OrganizationSyncService {
             'getOrgAggregates',
           )
         } catch (e) {
-          console.error(e)
+          this.log.error(e, 'Failed to get organization aggregates!')
           throw e
         }
 
-        try {
-          await this.orgRepo.transactionally(
-            async (txRepo) => {
-              const qx = repoQx(txRepo)
-              console.log('qx', qx)
-              await logExecutionTimeV2(
-                () => cleanupForOganization(qx, organizationId),
-                this.log,
-                'cleanupForOganization',
-              )
-              await logExecutionTimeV2(
-                () => insertOrganizationSegments(qx, orgData as IOrganizationAggregateData[]),
-                this.log,
-                'insertOrganizationSegments',
-              )
-            },
-            undefined,
-            true,
-          )
-
-          documentsIndexed += orgData.length
-        } catch (e) {
-          console.error(e)
-          throw e
+        if (orgData.length > 0) {
+          try {
+            await this.orgRepo.transactionally(
+              async (txRepo) => {
+                const qx = repoQx(txRepo)
+                await logExecutionTimeV2(
+                  () => cleanupForOganization(qx, organizationId),
+                  this.log,
+                  'cleanupForOganization',
+                )
+                await logExecutionTimeV2(
+                  () => insertOrganizationSegments(qx, orgData as IOrganizationAggregateData[]),
+                  this.log,
+                  'insertOrganizationSegments',
+                )
+              },
+              undefined,
+              true,
+            )
+            organizationIdsToIndex.push(organizationId)
+            documentsIndexed += orgData.length
+          } catch (e) {
+            this.log.error(e, 'Failed to insert organization aggregates!')
+            throw e
+          }
         }
       }
 
       return {
         organizationsSynced: organizationIds.length,
         documentsIndexed,
+        organizationIdsToIndex,
       }
     }
 
@@ -352,7 +354,7 @@ export class OrganizationSyncService {
         await this.openSearchService.index(orgId, OpenSearchIndex.ORGANIZATIONS, prefixed)
       }
     }
-    await syncOrgsToOpensearchForMergeSuggestions(organizationIds)
+    await syncOrgsToOpensearchForMergeSuggestions(syncResults.organizationIdsToIndex)
 
     return syncResults
   }

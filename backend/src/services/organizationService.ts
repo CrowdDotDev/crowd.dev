@@ -1,10 +1,6 @@
 import { captureApiChange, organizationMergeAction } from '@crowd/audit-logs'
 import { Error400, websiteNormalizer } from '@crowd/common'
-import {
-  findLfxMembership,
-  findManyLfxMemberships,
-  hasLfxMembership,
-} from '@crowd/data-access-layer/src/lfx_memberships'
+import { findLfxMembership, hasLfxMembership } from '@crowd/data-access-layer/src/lfx_memberships'
 import { LoggerBase } from '@crowd/logging'
 import {
   IOrganization,
@@ -1215,7 +1211,7 @@ export default class OrganizationService extends LoggerBase {
         orderBy,
         limit,
         offset,
-        segments,
+        segmentId: segments.length > 0 ? segments[0] : undefined,
         fields: [
           'id',
           'segmentId',

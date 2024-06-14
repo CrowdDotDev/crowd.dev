@@ -37,7 +37,6 @@ export async function insertOrganizationSegments(
           'organizationId',
           'segmentId',
           'tenantId',
-
           'joinedAt',
           'lastActive',
           'activeOn',
