@@ -46,20 +46,16 @@ export default class OrganizationService extends LoggerBase {
 
   static ORGANIZATION_MERGE_FIELDS = [
     'description',
+    'names',
     'emails',
     'phoneNumbers',
     'logo',
     'tags',
     'type',
     'joinedAt',
-    'twitter',
-    'linkedin',
-    'crunchbase',
     'employees',
     'revenueRange',
     'location',
-    'github',
-    'website',
     'isTeamOrganization',
     'employeeCountByCountry',
     'geoLocation',
@@ -73,9 +69,7 @@ export default class OrganizationService extends LoggerBase {
     'founded',
     'displayName',
     'attributes',
-    'affiliatedProfiles',
     'allSubsidiaries',
-    'alternativeDomains',
     'alternativeNames',
     'averageEmployeeTenure',
     'averageTenureByLevel',
@@ -461,11 +455,7 @@ export default class OrganizationService extends LoggerBase {
           const backup = {
             primary: {
               ...lodash.pick(
-                await OrganizationRepository.findByIdOpensearch(
-                  originalId,
-                  this.options,
-                  segmentId,
-                ),
+                await OrganizationRepository.findById(originalId, this.options, segmentId),
                 OrganizationService.ORGANIZATION_MERGE_FIELDS,
               ),
               identities: await OrganizationRepository.getIdentities([originalId], this.options),
