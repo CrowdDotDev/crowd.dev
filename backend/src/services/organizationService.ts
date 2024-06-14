@@ -1,10 +1,6 @@
 import { captureApiChange, organizationMergeAction } from '@crowd/audit-logs'
 import { Error400, websiteNormalizer } from '@crowd/common'
-import {
-  findLfxMembership,
-  findManyLfxMemberships,
-  hasLfxMembership,
-} from '@crowd/data-access-layer/src/lfx_memberships'
+import { findLfxMembership, hasLfxMembership } from '@crowd/data-access-layer/src/lfx_memberships'
 import { LoggerBase } from '@crowd/logging'
 import {
   IOrganization,
@@ -50,20 +46,16 @@ export default class OrganizationService extends LoggerBase {
 
   static ORGANIZATION_MERGE_FIELDS = [
     'description',
+    'names',
     'emails',
     'phoneNumbers',
     'logo',
     'tags',
     'type',
     'joinedAt',
-    'twitter',
-    'linkedin',
-    'crunchbase',
     'employees',
     'revenueRange',
     'location',
-    'github',
-    'website',
     'isTeamOrganization',
     'employeeCountByCountry',
     'geoLocation',
@@ -77,9 +69,7 @@ export default class OrganizationService extends LoggerBase {
     'founded',
     'displayName',
     'attributes',
-    'affiliatedProfiles',
     'allSubsidiaries',
-    'alternativeDomains',
     'alternativeNames',
     'averageEmployeeTenure',
     'averageTenureByLevel',
@@ -430,8 +420,8 @@ export default class OrganizationService extends LoggerBase {
         this.options,
         organizationMergeAction(originalId, async (captureOldState, captureNewState) => {
           this.log.info('[Merge Organizations] - Finding organizations! ')
-          let original = await OrganizationRepository.findById(originalId, this.options)
-          let toMerge = await OrganizationRepository.findById(toMergeId, this.options)
+          let original = await OrganizationRepository.findById(originalId, this.options, segmentId)
+          let toMerge = await OrganizationRepository.findById(toMergeId, this.options, segmentId)
 
           const originalWithLfxMembership = await hasLfxMembership(qx, {
             tenantId,
@@ -468,11 +458,7 @@ export default class OrganizationService extends LoggerBase {
           const backup = {
             primary: {
               ...lodash.pick(
-                await OrganizationRepository.findByIdOpensearch(
-                  originalId,
-                  this.options,
-                  segmentId,
-                ),
+                await OrganizationRepository.findById(originalId, this.options, segmentId),
                 OrganizationService.ORGANIZATION_MERGE_FIELDS,
               ),
               identities: await OrganizationRepository.getIdentities([originalId], this.options),
@@ -522,6 +508,7 @@ export default class OrganizationService extends LoggerBase {
           const toMergeIdentities = allIdentities.filter((i) => i.organizationId === toMergeId)
           const identitiesToMove: IOrganizationIdentity[] = []
           const identitiesToUpdate: IOrganizationIdentity[] = []
+
           for (const identity of toMergeIdentities) {
             const existing = originalIdentities.find(
               (i) =>
@@ -547,6 +534,13 @@ export default class OrganizationService extends LoggerBase {
             toMergeId,
             originalId,
             identitiesToMove,
+            repoOptions,
+          )
+
+          // remove identities from secondary that we gonna verify in primary
+          await OrganizationRepository.removeIdentitiesFromOrganization(
+            toMergeId,
+            identitiesToUpdate,
             repoOptions,
           )
 
@@ -999,17 +993,17 @@ export default class OrganizationService extends LoggerBase {
         data.members = await MemberRepository.filterIdsInTenant(data.members, repoOptions)
       }
 
-      // Normalize the website identities
-      for (const i of data.identities.filter((i) =>
-        [
-          OrganizationIdentityType.PRIMARY_DOMAIN,
-          OrganizationIdentityType.ALTERNATIVE_DOMAIN,
-        ].includes(i.type),
-      )) {
-        i.value = websiteNormalizer(i.value)
-      }
-
       if (data.identities) {
+        // Normalize the website identities
+        for (const i of data.identities.filter((i) =>
+          [
+            OrganizationIdentityType.PRIMARY_DOMAIN,
+            OrganizationIdentityType.ALTERNATIVE_DOMAIN,
+          ].includes(i.type),
+        )) {
+          i.value = websiteNormalizer(i.value)
+        }
+
         const existingIdentities = await OrganizationRepository.getIdentities(id, repoOptions)
 
         const toUpdate: IOrganizationIdentity[] = []
@@ -1126,13 +1120,8 @@ export default class OrganizationService extends LoggerBase {
   }
 
   async findAllAutocomplete(data) {
-    const advancedFilter = data.filter
-    const orderBy = data.orderBy
-    const limit = data.limit
-    const offset = data.offset
-
-    const res = await OrganizationRepository.findAndCountAllOpensearch(
-      { filter: advancedFilter, orderBy, limit, offset, segments: data.segments },
+    const res = await OrganizationRepository.findAndCountAll(
+      { ...data, segmentId: data.segments[0] },
       this.options,
     )
 
@@ -1203,28 +1192,36 @@ export default class OrganizationService extends LoggerBase {
   }
 
   async query(data) {
-    const advancedFilter = data.filter
-    const orderBy = data.orderBy
-    const limit = data.limit
-    const offset = data.offset
-    const pageData = await OrganizationRepository.findAndCountAllOpensearch(
-      { filter: advancedFilter, orderBy, limit, offset, segments: data.segments },
+    const { filter, orderBy, limit, offset, segments } = data
+    return OrganizationRepository.findAndCountAll(
+      {
+        filter,
+        orderBy,
+        limit,
+        offset,
+        segmentId: segments.length > 0 ? segments[0] : undefined,
+        fields: [
+          'id',
+          'segmentId',
+          'displayName',
+          'headline',
+          'memberCount',
+          'activityCount',
+          'lastActive',
+          'joinedAt',
+          'location',
+          'industry',
+          'size',
+          'revenueRange',
+          'founded',
+          'employeeGrowthRate',
+          'tags',
+          'logo',
+        ],
+        include: { identities: true, lfxMemberships: true },
+      },
       this.options,
     )
-
-    const orgIds = pageData.rows.map((org) => org.id)
-
-    const qx = SequelizeRepository.getQueryExecutor(this.options)
-    const lfxMemberships = await findManyLfxMemberships(qx, {
-      organizationIds: orgIds,
-      tenantId: this.options.currentTenant.id,
-    })
-
-    pageData.rows.forEach((org) => {
-      org.lfxMembership = lfxMemberships.find((lm) => lm.organizationId === org.id)
-    })
-
-    return pageData
   }
 
   async destroyBulk(ids) {

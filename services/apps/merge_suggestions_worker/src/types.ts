@@ -128,9 +128,10 @@ export interface ISimilarMemberOpensearch {
 
 export interface IOrganizationIdentityOpensearch {
   string_platform: string
-  string_name: string
-  keyword_name: string
-  string_url: string
+  string_type: string
+  keyword_type: string
+  string_value: string
+  bool_verified: boolean
 }
 
 export interface IOrganizationPartialAggregatesOpensearch {
