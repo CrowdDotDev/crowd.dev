@@ -175,7 +175,6 @@ export class OrganizationService {
     segments = null,
     excludeLfMember = false,
     excludeSegments = false,
-    grandParentSegment = false,
   }) {
     const payload = {
       filter: {
@@ -203,13 +202,6 @@ export class OrganizationService {
       }),
     };
 
-    if (grandParentSegment) {
-      payload.filter.and.push({
-        grandParentSegment: {
-          eq: grandParentSegment,
-        },
-      });
-    }
     const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.post(

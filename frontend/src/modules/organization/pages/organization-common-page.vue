@@ -90,11 +90,6 @@ const fetch = ({
   if (!loading.value) {
     loading.value = true;
   }
-  filter.and.push({
-    grandParentSegment: {
-      eq: true,
-    },
-  });
   getOrganizations({
     ...body,
     filter,
