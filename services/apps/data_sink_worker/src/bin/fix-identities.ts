@@ -8,6 +8,36 @@ import { OrganizationIdentityType } from '@crowd/types'
 const log = getServiceLogger()
 
 const stats = new Map<string, number>()
+const domainToNameMap = new Map<string, string>([
+  ['mit.edu', 'Massachusetts Institute of Technology'],
+  ['shell.com', 'Shell International Exploration & Production, Inc.'],
+  ['allianz.com', 'Allianz Group'],
+  ['tencent.com', 'Tencent Technology (Shenzhen) Co., Ltd.'],
+  ['alibaba-inc.com', 'ALIBABA.COM, INC.'],
+  ['ibm.com', 'International Business Machines Corporation'],
+])
+const nameToLogoMap = new Map<string, string>([
+  [
+    'Massachusetts Institute of Technology',
+    'https://lf-master-organization-logos-prod.s3.us-east-2.amazonaws.com/massachusettsinstituteoftechnologymit.svg',
+  ],
+  [
+    'Shell International Exploration & Production, Inc.',
+    'https://lf-platform-documents-prod.s3.amazonaws.com/shell%20%282%29.svg',
+  ],
+  [
+    'Allianz Group',
+    'https://lf-master-organization-logos-prod.s3.us-east-2.amazonaws.com/AllianzGroup.svg',
+  ],
+  [
+    'Tencent Technology (Shenzhen) Co., Ltd.',
+    'https://lf-master-organization-logos-prod.s3.us-east-2.amazonaws.com/tencent-holdings-limited.svg',
+  ],
+  [
+    'International Business Machines Corporation',
+    'https://lf-master-organization-logos-prod.s3.us-east-2.amazonaws.com/international-business-machines-corporation.svg',
+  ],
+])
 
 setImmediate(async () => {
   log.info('Loading data from csv file...')
@@ -22,23 +52,28 @@ setImmediate(async () => {
   const dbConnection = await getDbConnection(DB_CONFIG())
 
   for (const record of records) {
-    const accountName = record['ACCOUNT_NAME']
+    const accountName = record['ACCOUNT_NAME'].trim()
+    const domain = record['ACCOUNT_DOMAIN'].trim()
+    const logo = record['LOGO_URL']
+
     log.info({ accountName }, 'Processing record...')
 
     await dbConnection.tx(async (conn) => {
       const organizationId = await findOrganizationId(conn, accountName)
 
       if (organizationId) {
-        log.info({ accountName, organizationId }, 'Organization found!')
         stats.set(Stat.ORG_FOUND, (stats.get(Stat.ORG_FOUND) || 0) + 1)
 
         const orgData = await getOrganizationData(conn, organizationId)
 
-        if (orgData.displayName.trim() !== accountName) {
+        if (orgData.displayName !== accountName) {
+          // TODO update the organization displayName
           stats.set(Stat.ORG_NAME_UPDATED, (stats.get(Stat.ORG_NAME_UPDATED) || 0) + 1)
         }
 
-        const domain = record['ACCOUNT_DOMAIN']
+        if (domain === 'mit.edu') {
+          log.info({ accountName, domain, organizationId }, 'MIT FOUND')
+        }
         if (domain) {
           // only use this domain as primary identity and set the others to be alternative
           const existing = orgData.identities.find(
@@ -95,17 +130,22 @@ setImmediate(async () => {
                 toMove.push(identity)
               }
             }
+
+            // TODO process toRemove
+            // TODO process toMove
+            // TODO process toUpdate
           }
         }
 
-        const logo = record['LOGO_URL']
         if (logo && (!orgData.logo || orgData.logo.trim() !== logo.trim())) {
-          // update the logo url
+          // TODO update logo
           stats.set(Stat.ORG_LOGO_UPDATED, (stats.get(Stat.ORG_LOGO_UPDATED) || 0) + 1)
         }
       } else {
-        log.warn({ accountName }, 'Organization not found!')
         stats.set(Stat.ORG_NOT_FOUND, (stats.get(Stat.ORG_FOUND) || 0) + 1)
+        if (domain === 'mit.edu') {
+          log.info({ accountName, domain }, 'MIT NOT FOUND FOUND')
+        }
       }
     })
   }
