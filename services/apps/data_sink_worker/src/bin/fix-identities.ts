@@ -6,6 +6,8 @@ import { DB_CONFIG } from '../conf'
 
 const log = getServiceLogger()
 
+const stats = new Map<string, number>()
+
 setImmediate(async () => {
   log.info('Loading data from csv file...')
   const data = await fs.readFileSync('data.csv', 'utf8')
@@ -27,10 +29,16 @@ setImmediate(async () => {
 
       if (organizationId) {
         log.info({ accountName, organizationId }, 'Organization found!')
+        stats.set(Stat.ORG_FOUND, (stats.get(Stat.ORG_FOUND) || 0) + 1)
       } else {
         log.warn({ accountName }, 'Organization not found!')
+        stats.set(Stat.ORG_NOT_FOUND, (stats.get(Stat.ORG_FOUND) || 0) + 1)
       }
     })
+  }
+
+  for (const [stat, count] of stats) {
+    log.info({ stat, count }, 'Summary')
   }
 
   process.exit(0)
@@ -54,4 +62,9 @@ const findOrganizationId = async (
   }
 
   return result.organizationId
+}
+
+enum Stat {
+  ORG_FOUND = 'ORG_FOUND',
+  ORG_NOT_FOUND = 'ORG_NOT_FOUND',
 }
