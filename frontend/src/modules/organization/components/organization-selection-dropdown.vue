@@ -62,6 +62,10 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  primaryOrganization: {
+    type: Object,
+    required: true,
+  },
   id: {
     type: String,
     required: true,
@@ -109,8 +113,7 @@ onMounted(() => {
   segments.value = route.query.segmentId ? [route.query.segmentId] : [route.query.projectGroup];
 });
 
-const disableOption = (option) => !!option.lfxMembership;
-
+const disableOption = (option) => !!option.lfxMembership && !!props.primaryOrganization.lfxMembership;
 </script>
 
 <script>
