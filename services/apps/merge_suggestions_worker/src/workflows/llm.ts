@@ -5,7 +5,7 @@ import * as organizationActivities from '../activities/organizationMergeSuggesti
 import * as commonActivities from '../activities/common'
 
 import { ILLMResult, IProcessCheckSimilarityWithLLM } from '../types'
-import { obfuscateIdentitiesOfMember } from '../utils'
+import { removeEmailLikeIdentitiesFromMember } from '../utils'
 
 const memberActivitiesProxy = proxyActivities<typeof memberActivities>({
   startToCloseTimeout: '1 minute',
@@ -31,7 +31,7 @@ export async function llm(args: IProcessCheckSimilarityWithLLM): Promise<void> {
 
       const members = await memberActivitiesProxy.getMembersForLLMConsumption(memberCouple)
       const res: ILLMResult = await commonActivitiesProxy.getLLMResult(
-        members.map((member) => obfuscateIdentitiesOfMember(member)),
+        members.map((member) => removeEmailLikeIdentitiesFromMember(member)),
         args.modelId,
         args.prompt,
         args.region,
@@ -49,9 +49,8 @@ export async function llm(args: IProcessCheckSimilarityWithLLM): Promise<void> {
       console.log(
         `Checking similarity between: ${organizationCouple[0]} and ${organizationCouple[1]}`,
       )
-      const organizations = await organizationActivitiesProxy.getOrganizationsForLLMConsumption(
-        organizationCouple,
-      )
+      const organizations =
+        await organizationActivitiesProxy.getOrganizationsForLLMConsumption(organizationCouple)
       const res = await commonActivitiesProxy.getLLMResult(
         organizations,
         args.modelId,

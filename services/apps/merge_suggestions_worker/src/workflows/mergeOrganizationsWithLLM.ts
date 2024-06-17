@@ -1,12 +1,9 @@
 import { proxyActivities, continueAsNew } from '@temporalio/workflow'
 
-import * as organizationActivities from '.pnpm/node_modules/@crowd/merge-suggestions-worker/src/activities/organizationMergeSuggestions'
-import * as commonActivities from '.pnpm/node_modules/@crowd/merge-suggestions-worker/src/activities/common'
+import * as organizationActivities from '../activities/organizationMergeSuggestions'
+import * as commonActivities from '../activities/common'
 
-import {
-  ILLMResult,
-  IProcessMergeOrganizationSuggestionsWithLLM,
-} from '.pnpm/node_modules/@crowd/merge-suggestions-worker/src/types'
+import { ILLMResult, IProcessMergeOrganizationSuggestionsWithLLM } from '../types'
 import { LLMSuggestionVerdictType } from '@crowd/types'
 
 const organizationActivitiesProxy = proxyActivities<typeof organizationActivities>({

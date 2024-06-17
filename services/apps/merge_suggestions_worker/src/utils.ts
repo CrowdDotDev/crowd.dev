@@ -44,8 +44,9 @@ export const obfuscate = (email: string): string => {
   return obfuscatedArray.join('')
 }
 
-export const obfuscateIdentitiesOfMember = (member: ILLMConsumableMember): ILLMConsumableMember => {
-  // member.displayName = obfuscate(member.displayName)
+export const removeEmailLikeIdentitiesFromMember = (
+  member: ILLMConsumableMember,
+): ILLMConsumableMember => {
   const nonEmailIdentities: IMemberIdentity[] = []
   for (const identity of member.identities) {
     if (identity.value.indexOf('@') === -1) {

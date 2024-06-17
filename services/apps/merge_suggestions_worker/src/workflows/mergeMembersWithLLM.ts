@@ -1,14 +1,11 @@
 import { proxyActivities, continueAsNew } from '@temporalio/workflow'
 
 import * as memberActivities from '../activities/memberMergeSuggestions'
-import * as commonActivities from '.pnpm/node_modules/@crowd/merge-suggestions-worker/src/activities/common'
+import * as commonActivities from '../activities/common'
 
-import {
-  ILLMResult,
-  IProcessMergeMemberSuggestionsWithLLM,
-} from '.pnpm/node_modules/@crowd/merge-suggestions-worker/src/types'
+import { ILLMResult, IProcessMergeMemberSuggestionsWithLLM } from '../types'
 import { LLMSuggestionVerdictType } from '@crowd/types'
-import { obfuscateIdentitiesOfMember } from '../utils'
+import { removeEmailLikeIdentitiesFromMember } from '../utils'
 
 const memberActivitiesProxy = proxyActivities<typeof memberActivities>({
   startToCloseTimeout: '1 minute',
@@ -65,7 +62,7 @@ export async function mergeMembersWithLLM(
     const members = await memberActivitiesProxy.getMembersForLLMConsumption(suggestion)
 
     const llmResult: ILLMResult = await commonActivitiesProxy.getLLMResult(
-      members.map((member) => obfuscateIdentitiesOfMember(member)),
+      members.map((member) => removeEmailLikeIdentitiesFromMember(member)),
       MODEL_ID,
       PROMPT,
       REGION,
