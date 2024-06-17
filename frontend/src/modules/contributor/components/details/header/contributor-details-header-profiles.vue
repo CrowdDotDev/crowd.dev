@@ -73,7 +73,7 @@ opacity-0 invisible transition group-hover:visible group-hover:opacity-100 z-30 
 
 <script setup lang="ts">
 import { Contributor } from '@/modules/contributor/types/Contributor';
-import { detailsHeaderProfilePlatforms } from '@/modules/contributor/config/details-header-profile-platforms';
+import { contributorDetailsHeaderProfilePlatforms } from '@/modules/contributor/config/details-header-profile-platforms';
 import { computed } from 'vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
@@ -88,9 +88,9 @@ const { identities } = useContributorHelpers();
 
 const platformIdentities = computed(() => {
   const data = {};
-  detailsHeaderProfilePlatforms.forEach((p) => { data[p] = []; });
+  contributorDetailsHeaderProfilePlatforms.forEach((p) => { data[p] = []; });
   identities(props.contributor).forEach((i) => {
-    if (detailsHeaderProfilePlatforms.includes(i.platform)) {
+    if (contributorDetailsHeaderProfilePlatforms.includes(i.platform)) {
       data[i.platform].push(i);
     }
   });

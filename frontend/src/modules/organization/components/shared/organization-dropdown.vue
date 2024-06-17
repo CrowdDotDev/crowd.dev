@@ -1,0 +1,144 @@
+<template>
+  <router-link
+    v-if="hasPermission(LfPermission.organizationEdit)"
+    :to="{
+      name: 'organizationEdit',
+      params: {
+        id: props.organization.id,
+      },
+      query: {
+        projectGroup: selectedProjectGroup?.id,
+        segmentId: organization.segmentId || selectedProjectGroup?.id,
+      },
+    }"
+  >
+    <lf-dropdown-item>
+      <lf-icon name="pencil-line" />
+      Edit organization
+    </lf-dropdown-item>
+  </router-link>
+  <lf-dropdown-item
+    v-if="hasPermission(LfPermission.organizationEdit) && identities(props.organization).length > 1"
+    @click="unmerge = props.organization"
+  >
+    <lf-icon name="link-unlink-m" />
+    Unmerge identity
+  </lf-dropdown-item>
+  <lf-dropdown-item
+    v-if="hasPermission(LfPermission.organizationEdit)"
+    @click="markTeamOrganization(!props.organization.isTeamOrganization)"
+  >
+    <lf-icon name="team-line" />
+    {{ props.organization.isTeamOrganization ? 'Unmark' : 'Mark' }} as team organization
+  </lf-dropdown-item>
+  <template v-if="hasPermission(LfPermission.organizationDestroy)">
+    <lf-dropdown-separator />
+    <lf-dropdown-item type="danger" @click="deleteOrganization()">
+      <lf-icon name="delete-bin-6-line" />
+      Delete organization
+    </lf-dropdown-item>
+  </template>
+
+  <app-organization-unmerge-dialog
+    v-if="unmerge"
+    v-model="unmerge"
+  />
+</template>
+
+<script setup lang="ts">
+import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
+import LfDropdownSeparator from '@/ui-kit/dropdown/DropdownSeparator.vue';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import { useRoute, useRouter } from 'vue-router';
+import { doManualAction } from '@/shared/helpers/manualAction.helpers';
+import ConfirmDialog from '@/shared/dialog/confirm-dialog';
+import { Organization } from '@/modules/organization/types/Organization';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import { storeToRefs } from 'pinia';
+import { OrganizationService } from '@/modules/organization/organization-service';
+import AppOrganizationUnmergeDialog from '@/modules/organization/components/organization-unmerge-dialog.vue';
+import { ref } from 'vue';
+import useOrganizationHelpers from '@/modules/organization/helpers/organization.helpers';
+
+const props = defineProps<{
+  organization: Organization,
+}>();
+
+const emit = defineEmits<{(e: 'reload'): any}>();
+
+const route = useRoute();
+const router = useRouter();
+const { hasPermission } = usePermissions();
+const { trackEvent } = useProductTracking();
+const { identities } = useOrganizationHelpers();
+
+const unmerge = ref<Organization | null>(null);
+
+const lfStore = useLfSegmentsStore();
+const { selectedProjectGroup } = storeToRefs(lfStore);
+
+const markTeamOrganization = (teamOrganization: boolean) => {
+  trackEvent({
+    key: FeatureEventKey.MARK_AS_TEAM_ORGANIZATION,
+    type: EventType.FEATURE,
+    properties: {
+      path: route.path,
+      teamOrganization,
+    },
+  });
+
+  doManualAction({
+    loadingMessage: 'Organization is being updated',
+    successMessage: 'Organization updated successfully',
+    errorMessage: 'Something went wrong',
+    actionFn: OrganizationService.update(props.organization.id, {
+      isTeamOrganization: teamOrganization,
+    }, props.organization.segments),
+  }).then(() => {
+    emit('reload');
+  });
+};
+
+const deleteOrganization = () => {
+  ConfirmDialog({
+    type: 'danger',
+    title: 'Delete organization',
+    message: "Are you sure you want to proceed? You can't undo this action",
+    confirmButtonText: 'Confirm',
+    cancelButtonText: 'Cancel',
+    icon: 'ri-delete-bin-line',
+  }).then(() => {
+    trackEvent({
+      key: FeatureEventKey.DELETE_ORGANIZATION,
+      type: EventType.FEATURE,
+      properties: {
+        path: route.path,
+      },
+    });
+
+    doManualAction({
+      loadingMessage: 'Organization is being deleted',
+      successMessage: 'Organization successfully deleted',
+      errorMessage: 'Something went wrong',
+      actionFn: OrganizationService.destroyAll([props.organization.id]),
+    }).then(() => {
+      router.push({
+        path: '/organizations',
+        query: {
+          projectGroup: route.query.projectGroup,
+        },
+      });
+    });
+  });
+};
+</script>
+
+<script lang="ts">
+export default {
+  name: 'LfOrganizationDropdown',
+};
+</script>

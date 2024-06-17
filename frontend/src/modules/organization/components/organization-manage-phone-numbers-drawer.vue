@@ -47,10 +47,7 @@ import Message from '@/shared/message/message';
 import cloneDeep from 'lodash/cloneDeep';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import useVuelidate from '@vuelidate/core';
-import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import AppOrganizationFormPhoneNumber from '@/modules/organization/components/form/organization-form-phone-number.vue';
-import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import { storeToRefs } from 'pinia';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 
@@ -64,13 +61,7 @@ const props = defineProps({
     default: () => {},
   },
 });
-const emit = defineEmits(['update:modelValue']);
-
-const organizationStore = useOrganizationStore();
-const { fetchOrganization } = organizationStore;
-
-const lsSegmentsStore = useLfSegmentsStore();
-const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
+const emit = defineEmits(['update:modelValue', 'reload']);
 
 const { trackEvent } = useProductTracking();
 
@@ -107,9 +98,7 @@ const handleSubmit = async () => {
   OrganizationService.update(props.organization.id, {
     phoneNumbers: organizationModel.value.phoneNumbers.filter((p) => p.trim().length),
   }).then(() => {
-    fetchOrganization(props.organization.id, [selectedProjectGroup.value?.id]).then(() => {
-      Message.success('Organization phone numbers updated successfully');
-    });
+    emit('reload');
   }).catch((err) => {
     Message.error(err.response.data);
   }).finally(() => {

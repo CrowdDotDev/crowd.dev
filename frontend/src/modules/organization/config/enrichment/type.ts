@@ -8,7 +8,7 @@ const type: OrganizationEnrichmentConfig = {
   type: AttributeType.STRING,
   showInForm: true,
   showInAttributes: true,
-  displayValue: (value) => toSentenceCase(value),
+  formatValue: (value) => toSentenceCase(value),
 };
 
 export default type;

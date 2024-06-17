@@ -10,12 +10,13 @@ import { useRoute, useRouter } from 'vue-router';
 
 const props = defineProps<{
   name: string,
+  modelValue: string;
 }>();
 
 const router = useRouter();
 const route = useRoute();
 
-const isActive = computed<boolean>(() => route?.hash.substring(1) === props.name);
+const isActive = computed<boolean>(() => (route?.hash.substring(1) || props.modelValue) === props.name);
 
 const selectTab = () => {
   router?.push({
