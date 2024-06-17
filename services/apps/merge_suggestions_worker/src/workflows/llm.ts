@@ -30,6 +30,12 @@ export async function llm(args: IProcessCheckSimilarityWithLLM): Promise<void> {
       console.log(`Checking similarity between: ${memberCouple[0]} and ${memberCouple[1]}`)
 
       const members = await memberActivitiesProxy.getMembersForLLMConsumption(memberCouple)
+
+      if (members.length !== 2) {
+        console.log(`Failed getting members data in suggestion. Skipping suggestion: ${suggestion}`)
+        continue
+      }
+
       const res: ILLMResult = await commonActivitiesProxy.getLLMResult(
         members.map((member) => removeEmailLikeIdentitiesFromMember(member)),
         args.modelId,
@@ -52,6 +58,14 @@ export async function llm(args: IProcessCheckSimilarityWithLLM): Promise<void> {
       const organizations = await organizationActivitiesProxy.getOrganizationsForLLMConsumption(
         organizationCouple,
       )
+
+      if (organizations.length !== 2) {
+        console.log(
+          `Failed getting organization data in suggestion. Skipping suggestion: ${suggestion}`,
+        )
+        continue
+      }
+
       const res = await commonActivitiesProxy.getLLMResult(
         organizations,
         args.modelId,

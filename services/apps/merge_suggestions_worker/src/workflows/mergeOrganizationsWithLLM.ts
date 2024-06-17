@@ -45,7 +45,6 @@ export async function mergeOrganizationsWithLLM(
     const organizations = await organizationActivitiesProxy.getOrganizationsForLLMConsumption(
       suggestion,
     )
-    console.log(organizations)
 
     if (organizations.length !== 2) {
       console.log(
