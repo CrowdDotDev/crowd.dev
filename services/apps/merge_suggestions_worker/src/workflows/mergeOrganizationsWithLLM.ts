@@ -21,7 +21,7 @@ const commonActivitiesProxy = proxyActivities<typeof commonActivities>({
 export async function mergeOrganizationsWithLLM(
   args: IProcessMergeOrganizationSuggestionsWithLLM,
 ): Promise<void> {
-  const SUGGESTIONS_PER_RUN = 10
+  const SUGGESTIONS_PER_RUN = 3
   const REGION = 'us-west-2'
   const MODEL_ID = 'anthropic.claude-3-opus-20240229-v1:0'
   const MODEL_ARGS = {
@@ -78,5 +78,5 @@ export async function mergeOrganizationsWithLLM(
     }
   }
 
-  await continueAsNew<typeof mergeOrganizationsWithLLM>(args)
+  // await continueAsNew<typeof mergeOrganizationsWithLLM>(args)
 }
