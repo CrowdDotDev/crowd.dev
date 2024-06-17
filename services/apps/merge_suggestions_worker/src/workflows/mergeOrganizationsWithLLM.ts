@@ -46,6 +46,13 @@ export async function mergeOrganizationsWithLLM(
       suggestion,
     )
 
+    if (organizations.length !== 2) {
+      console.log(
+        `Failed getting organization data in suggestion. Skipping suggestion: ${suggestion}`,
+      )
+      continue
+    }
+
     const llmResult: ILLMResult = await commonActivitiesProxy.getLLMResult(
       organizations,
       MODEL_ID,

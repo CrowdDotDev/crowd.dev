@@ -61,6 +61,11 @@ export async function mergeMembersWithLLM(
   for (const suggestion of suggestions) {
     const members = await memberActivitiesProxy.getMembersForLLMConsumption(suggestion)
 
+    if (members.length !== 2) {
+      console.log(`Failed getting members data in suggestion. Skipping suggestion: ${suggestion}`)
+      continue
+    }
+
     const llmResult: ILLMResult = await commonActivitiesProxy.getLLMResult(
       members.map((member) => removeEmailLikeIdentitiesFromMember(member)),
       MODEL_ID,

@@ -343,8 +343,10 @@ export async function getMembersForLLMConsumption(
   )
   const [primaryMember, secondaryMember] = await memberMergeSuggestionsRepo.getMembers(memberIds)
 
-  const result: ILLMConsumableMember[] = [
-    {
+  const result: ILLMConsumableMember[] = []
+
+  if (primaryMember) {
+    result.push({
       displayName: primaryMember.displayName,
       joinedAt: primaryMember.joinedAt,
       attributes: primaryMember.attributes,
@@ -356,8 +358,11 @@ export async function getMembersForLLMConsumption(
         dateEnd: o.dateEnd,
         dateStart: o.dateStart,
       })),
-    },
-    {
+    })
+  }
+
+  if (secondaryMember) {
+    result.push({
       joinedAt: secondaryMember.joinedAt,
       displayName: secondaryMember.displayName,
       attributes: secondaryMember.attributes,
@@ -369,8 +374,8 @@ export async function getMembersForLLMConsumption(
         dateEnd: o.dateEnd,
         dateStart: o.dateStart,
       })),
-    },
-  ]
+    })
+  }
 
   return result
 }

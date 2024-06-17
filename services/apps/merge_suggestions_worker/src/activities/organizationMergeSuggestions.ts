@@ -323,8 +323,10 @@ export async function getOrganizationsForLLMConsumption(
   const [primaryOrganization, secondaryOrganization] =
     await organizationMergeSuggestionsRepo.getOrganizations(organizationIds)
 
-  const result: ILLMConsumableOrganization[] = [
-    {
+  const result: ILLMConsumableOrganization[] = []
+
+  if (primaryOrganization) {
+    result.push({
       displayName: primaryOrganization.displayName,
       description: primaryOrganization.description,
       phoneNumbers: primaryOrganization.phoneNumbers,
@@ -343,8 +345,11 @@ export async function getOrganizationsForLLMConsumption(
         platform: i.platform,
         value: i.value,
       })),
-    },
-    {
+    })
+  }
+
+  if (secondaryOrganization) {
+    result.push({
       displayName: secondaryOrganization.displayName,
       description: secondaryOrganization.description,
       phoneNumbers: secondaryOrganization.phoneNumbers,
@@ -363,8 +368,9 @@ export async function getOrganizationsForLLMConsumption(
         platform: i.platform,
         value: i.value,
       })),
-    },
-  ]
+    })
+  }
+
   return result
 }
 
