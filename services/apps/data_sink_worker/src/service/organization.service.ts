@@ -90,7 +90,7 @@ export class OrganizationService extends LoggerBase {
             'attributes',
           ]
 
-          if (!existing.displayName || data.displayName.trim().length === 0) {
+          if (!existing.displayName || existing.displayName.trim().length === 0) {
             fields.push('displayName')
           }
 
