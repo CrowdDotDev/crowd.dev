@@ -82,60 +82,70 @@ setImmediate(async () => {
               i.verified &&
               i.value.trim() === domain.trim(),
           )
+          // remove identity from db because alternative domain one already exists
+          const toRemove: OrgIdentity[] = []
+          // move identity to be alternative domain identity
+          const toMove: OrgIdentity[] = []
+          // update alternative domain identity to be verified instead
+          const toUpdate: OrgIdentity[] = []
+          // create primary identity verified identity if one does not exists already
+          const toCreate: OrgIdentity[] = []
 
           if (!existing) {
             stats.set(
               Stat.ORG_PRIMARY_DOMAIN_NOT_FOUND,
               (stats.get(Stat.ORG_PRIMARY_DOMAIN_NOT_FOUND) || 0) + 1,
             )
-          } else {
-            const otherPrimaryDomainIdentities = orgData.identities.filter(
+            const identity = {
+              type: OrganizationIdentityType.PRIMARY_DOMAIN,
+              value: domain,
+              platform: 'custom',
+              verified: true,
+            }
+            orgData.identities.push(identity)
+            toCreate.push(identity)
+          }
+
+          const otherPrimaryDomainIdentities = orgData.identities.filter(
+            (i) =>
+              i.type === OrganizationIdentityType.PRIMARY_DOMAIN &&
+              i.value.trim() !== domain.trim(),
+          )
+
+          for (const identity of otherPrimaryDomainIdentities) {
+            const alternative = orgData.identities.find(
               (i) =>
-                i.type === OrganizationIdentityType.PRIMARY_DOMAIN &&
-                i.value.trim() !== domain.trim(),
+                i.type === OrganizationIdentityType.ALTERNATIVE_DOMAIN &&
+                i.value.trim() === identity.value.trim(),
             )
-
-            // remove identity from db because alternative domain one already exists
-            const toRemove: OrgIdentity[] = []
-            // move identity to be alternative domain identity
-            const toMove: OrgIdentity[] = []
-            // update alternative domain identity to be verified instead
-            const toUpdate: OrgIdentity[] = []
-
-            for (const identity of otherPrimaryDomainIdentities) {
-              const alternative = orgData.identities.find(
-                (i) =>
-                  i.type === OrganizationIdentityType.ALTERNATIVE_DOMAIN &&
-                  i.value.trim() === identity.value.trim(),
-              )
-              if (alternative) {
-                if (!alternative.verified && identity.verified) {
-                  stats.set(
-                    Stat.ORG_IDENTITY_UPDATED,
-                    (stats.get(Stat.ORG_IDENTITY_UPDATED) || 0) + 1,
-                  )
-                  toUpdate.push(identity)
-                } else {
-                  stats.set(
-                    Stat.ORG_IDENTITY_REMOVED,
-                    (stats.get(Stat.ORG_PRIMARY_DOMAIN_NOT_FOUND) || 0) + 1,
-                  )
-                  toRemove.push(identity)
-                }
+            if (alternative) {
+              if (!alternative.verified && identity.verified) {
+                stats.set(
+                  Stat.ORG_IDENTITY_UPDATED,
+                  (stats.get(Stat.ORG_IDENTITY_UPDATED) || 0) + 1,
+                )
+                toUpdate.push(identity)
               } else {
                 stats.set(
-                  Stat.ORG_IDENTITY_MOVED,
+                  Stat.ORG_IDENTITY_REMOVED,
                   (stats.get(Stat.ORG_PRIMARY_DOMAIN_NOT_FOUND) || 0) + 1,
                 )
-                toMove.push(identity)
+                toRemove.push(identity)
               }
+            } else {
+              stats.set(
+                Stat.ORG_IDENTITY_MOVED,
+                (stats.get(Stat.ORG_PRIMARY_DOMAIN_NOT_FOUND) || 0) + 1,
+              )
+              toMove.push(identity)
             }
-
-            // TODO process toRemove
-            // TODO process toMove
-            // TODO process toUpdate
           }
         }
+
+        // TODO process toRemove
+        // TODO process toMove
+        // TODO process toUpdate
+        // TODO process toCreate
 
         if (logo && (!orgData.logo || orgData.logo.trim() !== logo.trim())) {
           // TODO update logo
