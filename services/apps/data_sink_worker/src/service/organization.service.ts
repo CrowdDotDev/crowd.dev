@@ -75,7 +75,6 @@ export class OrganizationService extends LoggerBase {
           // if it does exists update it
           const updateData: Partial<IOrganization> = {}
           const fields = [
-            'displayName',
             'description',
             'names',
             'emails',
@@ -90,6 +89,11 @@ export class OrganizationService extends LoggerBase {
             'founded',
             'attributes',
           ]
+
+          if (!existing.displayName || existing.displayName.trim().length === 0) {
+            fields.push('displayName')
+          }
+
           fields.forEach((field) => {
             if (!existing[field] && data[field]) {
               updateData[field] = data[field]
