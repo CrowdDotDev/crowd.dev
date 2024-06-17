@@ -10,7 +10,7 @@
         <div class="bg-primary-500 text-white text-medium leading-5 px-1.5 rounded font-semibold">
           {{ mergeSuggestionsCount }}
         </div>
-        Merge suggestions
+        {{ pluralize('Merge suggestion', mergeSuggestionsCount) }}
       </lf-button>
 
       <!-- Merge -->

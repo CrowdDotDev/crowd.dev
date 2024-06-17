@@ -574,7 +574,7 @@
                       >
                         <span v-if="scope.row.revenueRange" class="text-gray-900">
                           {{
-                            revenueRange.displayValue(scope.row.revenueRange)
+                            revenueRange.formatValue(scope.row.revenueRange)
                           }}
                         </span>
                         <span v-else class="text-gray-500">-</span>

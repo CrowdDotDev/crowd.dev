@@ -8,7 +8,7 @@ const averageEmployeeTenure: OrganizationEnrichmentConfig = {
   type: AttributeType.NUMBER,
   showInForm: true,
   showInAttributes: true,
-  displayValue: (value) => formatFloatToYears(value),
+  formatValue: (value) => formatFloatToYears(value),
 };
 
 export default averageEmployeeTenure;
