@@ -147,6 +147,7 @@ export async function mergeOrganizations(
     },
     data: {
       organizationToMerge: secondaryOrganizationId,
+      segments: [],
     },
   }
 
