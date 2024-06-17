@@ -61,7 +61,7 @@ opacity-0 invisible transition group-hover:visible group-hover:opacity-100 z-30 
               class="h-4 w-4"
             />
             <p class="pl-2 text-small">
-              {{ identity.name }}
+              {{ identity.value }}
             </p>
           </div>
           <lf-icon v-if="identity.url" name="external-link-line" :size="16" class="text-gray-300" />

@@ -34,7 +34,7 @@
         :key="key"
         :class="sort === key ? 'bg-primary-25' : ''"
         class="flex justify-between w-full"
-        @click="sort = key; fetch()"
+        @click="onSortChange(key)"
       >
         <span>{{ label }}</span>
         <lf-icon
@@ -49,7 +49,10 @@
 
   <!-- Contact list -->
   <div>
-    <div>
+    <div v-if="loading && contributors.length === 0" class="flex justify-center pt-6">
+      <lf-spinner />
+    </div>
+    <div v-else>
       <article
         v-for="contributor of contributors"
         :key="contributor.id"
@@ -159,6 +162,7 @@ import AppIdentitiesHorizontalListMembers
   from '@/shared/modules/identities/components/identities-horizontal-list-members.vue';
 import pluralize from 'pluralize';
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
+import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 
 const props = defineProps<{
   organization: Organization,
@@ -205,7 +209,7 @@ const filters = ref<Filter>({
 
 const pagination = ref({
   page: 1,
-  perPage: 20,
+  perPage: 1,
   total: 0,
 });
 
@@ -267,6 +271,12 @@ const onFilterChange = (filterQuery: FilterQuery) => {
   savedBody.value = filterQuery.filter;
   pagination.value.page = 1;
   pagination.value.total = 0;
+  fetch();
+};
+
+const onSortChange = (sortingValue: string) => {
+  sort.value = sortingValue;
+  pagination.value.page = 1;
   fetch();
 };
 
