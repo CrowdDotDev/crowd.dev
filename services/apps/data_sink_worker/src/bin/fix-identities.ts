@@ -52,6 +52,7 @@ setImmediate(async () => {
   const dbConnection = await getDbConnection(DB_CONFIG())
 
   const alreadyProcessedOrgIds = new Set<string>()
+  const alreadyProcessedDomains = new Set<string>()
 
   for (const record of records) {
     const accountName = record['ACCOUNT_NAME'].trim()
@@ -143,6 +144,10 @@ setImmediate(async () => {
 
         alreadyProcessedOrgIds.add(organizationId)
       } else {
+        if (alreadyProcessedDomains.has(domain)) {
+          return
+        }
+        alreadyProcessedDomains.add(domain)
         stats.set(Stat.ORG_NOT_FOUND, (stats.get(Stat.ORG_FOUND) || 0) + 1)
       }
     })
