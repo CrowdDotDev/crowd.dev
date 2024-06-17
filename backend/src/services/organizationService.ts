@@ -1117,10 +1117,7 @@ export default class OrganizationService extends LoggerBase {
   }
 
   async findAllAutocomplete(data) {
-    const res = await OrganizationRepository.findAndCountAll(
-      { ...data, segmentId: data.segments[0] },
-      this.options,
-    )
+    const res = await OrganizationRepository.findAndCountAll(data, this.options)
 
     // group orgs by id to avoid duplicates and store segmentId in a segments array
     const grouped = res.rows.reduce((acc, org) => {

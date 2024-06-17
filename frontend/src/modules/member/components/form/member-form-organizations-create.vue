@@ -259,7 +259,6 @@ const fetchOrganizationsFn = async ({ query } : {
   query,
   limit: 40,
   excludeSegments: true,
-  grandParentSegment: true,
 })
   .then((options: Organization[]) => options.filter((m) => m.id !== props.modelValue.id));
 
