@@ -341,7 +341,38 @@ export async function getMembersForLLMConsumption(
     svc.postgres.writer.connection(),
     svc.log,
   )
-  return memberMergeSuggestionsRepo.getMembers(memberIds)
+  const [primaryMember, secondaryMember] = await memberMergeSuggestionsRepo.getMembers(memberIds)
+
+  const result: ILLMConsumableMember[] = [
+    {
+      displayName: primaryMember.displayName,
+      joinedAt: primaryMember.joinedAt,
+      attributes: primaryMember.attributes,
+      identities: primaryMember.identities.map((i) => ({ platform: i.platform, value: i.value })),
+      organizations: primaryMember.organizations.map((o) => ({
+        title: o.title,
+        logo: o.logo,
+        displayName: o.displayName,
+        dateEnd: o.dateEnd,
+        dateStart: o.dateStart,
+      })),
+    },
+    {
+      joinedAt: secondaryMember.joinedAt,
+      displayName: secondaryMember.displayName,
+      attributes: secondaryMember.attributes,
+      identities: secondaryMember.identities.map((i) => ({ platform: i.platform, value: i.value })),
+      organizations: secondaryMember.organizations.map((o) => ({
+        title: o.title,
+        logo: o.logo,
+        displayName: o.displayName,
+        dateEnd: o.dateEnd,
+        dateStart: o.dateStart,
+      })),
+    },
+  ]
+
+  return result
 }
 
 export async function getRawMemberMergeSuggestions(

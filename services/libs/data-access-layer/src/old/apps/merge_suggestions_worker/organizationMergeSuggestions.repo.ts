@@ -1,7 +1,7 @@
 import { DbConnection, DbTransaction } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import {
-  ILLMConsumableOrganization,
+  ILLMConsumableOrganizationDbResult,
   IOrganizationMergeSuggestion,
   LLMSuggestionVerdictType,
   OrganizationMergeSuggestionTable,
@@ -202,9 +202,9 @@ class OrganizationMergeSuggestionsRepository {
     }
   }
 
-  async getOrganizations(organizationIds: string[]): Promise<ILLMConsumableOrganization[]> {
+  async getOrganizations(organizationIds: string[]): Promise<ILLMConsumableOrganizationDbResult[]> {
     try {
-      const result: ILLMConsumableOrganization[] = await this.connection.manyOrNone(
+      const result: ILLMConsumableOrganizationDbResult[] = await this.connection.manyOrNone(
         `
         select
             o."displayName",

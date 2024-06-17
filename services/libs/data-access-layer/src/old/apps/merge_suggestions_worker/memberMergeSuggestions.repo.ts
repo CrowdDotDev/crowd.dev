@@ -1,11 +1,11 @@
 import { DbConnection, DbTransaction } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import {
-  ILLMConsumableMember,
   IMemberMergeSuggestion,
   SuggestionType,
   MemberMergeSuggestionTable,
   LLMSuggestionVerdictType,
+  ILLMConsumableMemberDbResult,
 } from '@crowd/types'
 import {
   IFindRawMemberMergeSuggestionsReplacement,
@@ -206,9 +206,9 @@ class MemberMergeSuggestionsRepository {
     }
   }
 
-  async getMembers(memberIds: string[]): Promise<ILLMConsumableMember[]> {
+  async getMembers(memberIds: string[]): Promise<ILLMConsumableMemberDbResult[]> {
     try {
-      const result: ILLMConsumableMember[] = await this.connection.manyOrNone(
+      const result: ILLMConsumableMemberDbResult[] = await this.connection.manyOrNone(
         `
         select 
           mem.attributes,

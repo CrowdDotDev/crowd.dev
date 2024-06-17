@@ -137,7 +137,7 @@ export interface IMemberRenderFriendlyRole {
   memberOrganizations: IMemberOrganization
 }
 
-export interface ILLMConsumableMember {
+export interface ILLMConsumableMemberDbResult {
   displayName: string
   attributes: IAttributes
   joinedAt: string
@@ -149,5 +149,22 @@ export interface ILLMConsumableMember {
     dateStart: string
     dateEnd: string
     memberId: string
+  }[]
+}
+
+export interface ILLMConsumableMember {
+  displayName: string
+  attributes: IAttributes
+  joinedAt: string
+  identities: {
+    platform: string
+    value: string
+  }[]
+  organizations: {
+    logo: string
+    displayName: string
+    title: string
+    dateStart: string
+    dateEnd: string
   }[]
 }

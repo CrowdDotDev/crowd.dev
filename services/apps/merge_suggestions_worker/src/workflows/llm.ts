@@ -49,8 +49,9 @@ export async function llm(args: IProcessCheckSimilarityWithLLM): Promise<void> {
       console.log(
         `Checking similarity between: ${organizationCouple[0]} and ${organizationCouple[1]}`,
       )
-      const organizations =
-        await organizationActivitiesProxy.getOrganizationsForLLMConsumption(organizationCouple)
+      const organizations = await organizationActivitiesProxy.getOrganizationsForLLMConsumption(
+        organizationCouple,
+      )
       const res = await commonActivitiesProxy.getLLMResult(
         organizations,
         args.modelId,
