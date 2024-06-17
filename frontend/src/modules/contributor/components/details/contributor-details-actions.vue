@@ -51,6 +51,7 @@
   <app-member-merge-dialog
     v-if="isMergeDialogOpen"
     v-model="isMergeDialogOpen"
+    :to-merge="contributorToMerge"
   />
   <app-member-find-github-drawer
     v-if="isFindGithubDrawerOpen"
@@ -64,7 +65,7 @@ import LfButton from '@/ui-kit/button/Button.vue';
 import LfButtonGroup from '@/ui-kit/button/ButtonGroup.vue';
 import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
 import { Contributor } from '@/modules/contributor/types/Contributor';
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import { ContributorApiService } from '@/modules/contributor/services/contributor.api.service';
 import AppMemberMergeSuggestionsDialog from '@/modules/member/components/member-merge-suggestions-dialog.vue';
 import AppMemberMergeDialog from '@/modules/member/components/member-merge-dialog.vue';
@@ -72,6 +73,9 @@ import LfContributorDropdown from '@/modules/contributor/components/shared/contr
 import AppMemberFindGithubDrawer from '@/modules/member/components/member-find-github-drawer.vue';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { useMemberStore } from '@/modules/member/store/pinia';
+import { storeToRefs } from 'pinia';
+import { MemberService } from '@/modules/member/member-service';
 
 const props = defineProps<{
   contributor: Contributor,
@@ -85,6 +89,23 @@ const isMergeSuggestionsDialogOpen = ref<boolean>(false);
 const isMergeDialogOpen = ref<Contributor | null>(null);
 const isFindGithubDrawerOpen = ref<Contributor | null>(null);
 const mergeSuggestionsCount = ref<number>(0);
+
+const memberStore = useMemberStore();
+const { toMergeMember } = storeToRefs(memberStore);
+const contributorToMerge = ref<Contributor | null>(null);
+
+watch(toMergeMember, (updatedValue) => {
+  if (updatedValue) {
+    MemberService.find(updatedValue.id, [updatedValue.segmentId]).then((response) => {
+      isMergeDialogOpen.value = props.contributor;
+      contributorToMerge.value = response;
+
+      memberStore.removeToMergeMember();
+    });
+  }
+}, {
+  deep: true,
+});
 
 const fetchMergeSuggestions = () => {
   ContributorApiService.mergeSuggestions(0, 0, {
