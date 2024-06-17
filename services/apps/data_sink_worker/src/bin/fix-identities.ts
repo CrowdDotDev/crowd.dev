@@ -51,15 +51,20 @@ setImmediate(async () => {
 
   const dbConnection = await getDbConnection(DB_CONFIG())
 
+  const alreadyProcessedOrgIds = new Set<string>()
+
   for (const record of records) {
     const accountName = record['ACCOUNT_NAME'].trim()
     const domain = record['ACCOUNT_DOMAIN'].trim()
     const logo = record['LOGO_URL']
 
     await dbConnection.tx(async (conn) => {
-      const organizationId = await findOrganizationId(conn, accountName)
+      const organizationId = await findOrganizationId(conn, domain)
 
       if (organizationId) {
+        if (alreadyProcessedOrgIds.has(organizationId)) {
+          return
+        }
         stats.set(Stat.ORG_FOUND, (stats.get(Stat.ORG_FOUND) || 0) + 1)
 
         const orgData = await getOrganizationData(conn, organizationId)
@@ -67,10 +72,6 @@ setImmediate(async () => {
         if (orgData.displayName !== accountName) {
           // TODO update the organization displayName
           stats.set(Stat.ORG_NAME_UPDATED, (stats.get(Stat.ORG_NAME_UPDATED) || 0) + 1)
-        }
-
-        if (domain === 'mit.edu') {
-          log.info({ accountName, domain, organizationId }, 'MIT FOUND')
         }
         if (domain) {
           // only use this domain as primary identity and set the others to be alternative
@@ -139,11 +140,10 @@ setImmediate(async () => {
           // TODO update logo
           stats.set(Stat.ORG_LOGO_UPDATED, (stats.get(Stat.ORG_LOGO_UPDATED) || 0) + 1)
         }
+
+        alreadyProcessedOrgIds.add(organizationId)
       } else {
         stats.set(Stat.ORG_NOT_FOUND, (stats.get(Stat.ORG_FOUND) || 0) + 1)
-        if (domain === 'mit.edu') {
-          log.info({ accountName, domain }, 'MIT NOT FOUND FOUND')
-        }
       }
     })
   }
@@ -173,6 +173,7 @@ const getOrganizationData = async (
 
   return {
     id: org.id,
+    logo: org.logo,
     displayName: org.displayName,
     identities,
   }
@@ -180,16 +181,16 @@ const getOrganizationData = async (
 
 const findOrganizationId = async (
   conn: DbTransaction,
-  accountName: string,
+  accountDomain: string,
 ): Promise<string | null> => {
   const query = `
     select "organizationId"
     from "lfxMemberships"
-    where "accountName" = $(accountName)
+    where "accountDomain" = $(accountDomain)
     limit 1
   `
 
-  const result = await conn.oneOrNone(query, { accountName })
+  const result = await conn.oneOrNone(query, { accountDomain })
 
   if (!result) {
     return null
@@ -200,6 +201,7 @@ const findOrganizationId = async (
 
 enum Stat {
   ORG_FOUND = 'ORG_FOUND',
+  ORG_DUPLICATED = 'ORG_DUPLICATED',
   ORG_NOT_FOUND = 'ORG_NOT_FOUND',
 
   ORG_NAME_UPDATED = 'ORG_NAME_UPDATED',
