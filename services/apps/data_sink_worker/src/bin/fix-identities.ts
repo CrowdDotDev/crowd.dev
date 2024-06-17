@@ -3,6 +3,7 @@ import { getServiceLogger } from '@crowd/logging'
 import { parse } from 'csv-parse/sync'
 import fs from 'fs'
 import { DB_CONFIG } from '../conf'
+import { OrganizationIdentityType } from '@crowd/types'
 
 const log = getServiceLogger()
 
@@ -30,6 +31,67 @@ setImmediate(async () => {
       if (organizationId) {
         log.info({ accountName, organizationId }, 'Organization found!')
         stats.set(Stat.ORG_FOUND, (stats.get(Stat.ORG_FOUND) || 0) + 1)
+
+        const orgData = await getOrganizationData(conn, organizationId)
+
+        if (orgData.displayName.trim() !== accountName) {
+          stats.set(Stat.ORG_NAME_UPDATED, (stats.get(Stat.ORG_NAME_UPDATED) || 0) + 1)
+        }
+
+        const domain = record['ACCOUNT_DOMAIN']
+        if (domain) {
+          // only use this domain as primary identity and set the others to be alternative
+          const existing = orgData.identities.find(
+            (i) =>
+              i.type === OrganizationIdentityType.PRIMARY_DOMAIN &&
+              i.verified &&
+              i.value.trim() === domain.trim(),
+          )
+
+          if (!existing) {
+            stats.set(
+              Stat.ORG_PRIMARY_DOMAIN_NOT_FOUND,
+              (stats.get(Stat.ORG_PRIMARY_DOMAIN_NOT_FOUND) || 0) + 1,
+            )
+          } else {
+            const otherPrimaryDomainIdentities = orgData.identities.filter(
+              (i) =>
+                i.type === OrganizationIdentityType.PRIMARY_DOMAIN &&
+                i.value.trim() !== domain.trim(),
+            )
+
+            const toRemove: OrgIdentity[] = []
+            const toUpdate: OrgIdentity[] = []
+
+            for (const identity of otherPrimaryDomainIdentities) {
+              if (
+                orgData.identities.find(
+                  (i) =>
+                    i.type === OrganizationIdentityType.ALTERNATIVE_DOMAIN &&
+                    i.value.trim() === identity.value.trim(),
+                )
+              ) {
+                stats.set(
+                  Stat.ORG_IDENTITY_REMOVED,
+                  (stats.get(Stat.ORG_PRIMARY_DOMAIN_NOT_FOUND) || 0) + 1,
+                )
+                toRemove.push(identity)
+              } else {
+                stats.set(
+                  Stat.ORG_IDENTITY_UPDATED,
+                  (stats.get(Stat.ORG_PRIMARY_DOMAIN_NOT_FOUND) || 0) + 1,
+                )
+                toUpdate.push(identity)
+              }
+            }
+          }
+        }
+
+        const logo = record['LOGO_URL']
+        if (logo && (!orgData.logo || orgData.logo.trim() !== logo.trim())) {
+          // update the logo url
+          stats.set(Stat.ORG_LOGO_UPDATED, (stats.get(Stat.ORG_LOGO_UPDATED) || 0) + 1)
+        }
       } else {
         log.warn({ accountName }, 'Organization not found!')
         stats.set(Stat.ORG_NOT_FOUND, (stats.get(Stat.ORG_FOUND) || 0) + 1)
@@ -43,6 +105,29 @@ setImmediate(async () => {
 
   process.exit(0)
 })
+
+const getOrganizationData = async (
+  conn: DbTransaction,
+  organizationId: string,
+): Promise<OrgData> => {
+  const results = await Promise.all([
+    conn.one(`select id, "displayName", logo from organizations where id = $(organizationId)`, {
+      organizationId,
+    }),
+    conn.any(
+      `select type, value, platform, verified from "organizationIdentities" where "organizationId" = $(organizationId)`,
+      { organizationId },
+    ),
+  ])
+
+  const [org, identities] = results
+
+  return {
+    id: org.id,
+    displayName: org.displayName,
+    identities,
+  }
+}
 
 const findOrganizationId = async (
   conn: DbTransaction,
@@ -67,4 +152,23 @@ const findOrganizationId = async (
 enum Stat {
   ORG_FOUND = 'ORG_FOUND',
   ORG_NOT_FOUND = 'ORG_NOT_FOUND',
+
+  ORG_NAME_UPDATED = 'ORG_NAME_UPDATED',
+  ORG_PRIMARY_DOMAIN_NOT_FOUND = 'ORG_PRIMARY_DOMAIN_NOT_FOUND',
+  ORG_IDENTITY_UPDATED = 'ORG_IDENTITY_UPDATED',
+  ORG_IDENTITY_REMOVED = 'ORG_IDENTITY_REMOVED',
+  ORG_LOGO_UPDATED = 'ORG_LOGO_UPDATED',
+}
+
+interface OrgIdentity {
+  type: OrganizationIdentityType
+  value: string
+  platform: string
+  verified: boolean
+}
+interface OrgData {
+  id: string
+  logo: string
+  displayName: string
+  identities: OrgIdentity[]
 }
