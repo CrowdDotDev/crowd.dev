@@ -5,6 +5,8 @@ import fs from 'fs'
 import { DB_CONFIG } from '../conf'
 import { OrganizationIdentityType } from '@crowd/types'
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 const log = getServiceLogger()
 
 const stats = new Map<string, number>()
@@ -55,9 +57,17 @@ setImmediate(async () => {
   const alreadyProcessedDomains = new Set<string>()
 
   for (const record of records) {
-    const accountName = record['ACCOUNT_NAME'].trim()
     const domain = record['ACCOUNT_DOMAIN'].trim()
-    const logo = record['LOGO_URL']
+    let accountName = record['ACCOUNT_NAME'].trim()
+    let logo = record['LOGO_URL']
+
+    if (domainToNameMap.has(domain)) {
+      accountName = domainToNameMap.get(domain)
+    }
+
+    if (nameToLogoMap.has(accountName)) {
+      logo = nameToLogoMap.get(accountName)
+    }
 
     await dbConnection.tx(async (conn) => {
       const organizationId = await findOrganizationId(conn, domain)
@@ -66,14 +76,27 @@ setImmediate(async () => {
         if (alreadyProcessedOrgIds.has(organizationId)) {
           return
         }
+
+        const data: any = {}
+
         stats.set(Stat.ORG_FOUND, (stats.get(Stat.ORG_FOUND) || 0) + 1)
 
         const orgData = await getOrganizationData(conn, organizationId)
 
         if (orgData.displayName !== accountName) {
-          // TODO update the organization displayName
+          data.displayName = accountName
           stats.set(Stat.ORG_NAME_UPDATED, (stats.get(Stat.ORG_NAME_UPDATED) || 0) + 1)
         }
+
+        // remove identity from db because alternative domain one already exists
+        const toRemove: OrgIdentity[] = []
+        // move identity to be alternative domain identity
+        const toMove: OrgIdentity[] = []
+        // update alternative domain identity to be verified instead
+        const toUpdate: OrgIdentity[] = []
+        // create primary identity verified identity if one does not exists already
+        const toCreate: OrgIdentity[] = []
+
         if (domain) {
           // only use this domain as primary identity and set the others to be alternative
           const existing = orgData.identities.find(
@@ -82,14 +105,6 @@ setImmediate(async () => {
               i.verified &&
               i.value.trim() === domain.trim(),
           )
-          // remove identity from db because alternative domain one already exists
-          const toRemove: OrgIdentity[] = []
-          // move identity to be alternative domain identity
-          const toMove: OrgIdentity[] = []
-          // update alternative domain identity to be verified instead
-          const toUpdate: OrgIdentity[] = []
-          // create primary identity verified identity if one does not exists already
-          const toCreate: OrgIdentity[] = []
 
           if (!existing) {
             stats.set(
@@ -142,15 +157,21 @@ setImmediate(async () => {
           }
         }
 
-        // TODO process toRemove
-        // TODO process toMove
-        // TODO process toUpdate
-        // TODO process toCreate
-
         if (logo && (!orgData.logo || orgData.logo.trim() !== logo.trim())) {
-          // TODO update logo
+          data.logo = logo
           stats.set(Stat.ORG_LOGO_UPDATED, (stats.get(Stat.ORG_LOGO_UPDATED) || 0) + 1)
         }
+
+        await updateOrganization(conn, organizationId, data)
+        await updateIdentities(
+          conn,
+          organizationId,
+          orgData.tenantId,
+          toMove,
+          toRemove,
+          toUpdate,
+          toCreate,
+        )
 
         alreadyProcessedOrgIds.add(organizationId)
       } else {
@@ -170,14 +191,118 @@ setImmediate(async () => {
   process.exit(0)
 })
 
+const updateIdentities = async (
+  conn: DbTransaction,
+  organizationId: string,
+  tenantId: string,
+  toMove: OrgIdentity[],
+  toDelete: OrgIdentity[],
+  toUpdate: OrgIdentity[],
+  toCreate: OrgIdentity[],
+) => {
+  for (const i of toCreate) {
+    await conn.none(
+      `
+        insert into "organizationIdentities" ("organizationId", "tenantId", type, value, platform, verified)
+        values ($(organizationId), $(tenantId), $(type), $(value), $(platform), $(verified))
+      `,
+      {
+        organizationId,
+        tenantId,
+        type: OrganizationIdentityType.PRIMARY_DOMAIN,
+        platform: 'custom',
+        verified: true,
+        value: i.value,
+      },
+    )
+  }
+  for (const i of toDelete) {
+    await conn.none(
+      `
+        delete from "organizationIdentities"
+        where "organizationId" = $(organizationId) and type = $(type) and value = $(value)
+      `,
+      {
+        organizationId,
+        type: OrganizationIdentityType.PRIMARY_DOMAIN,
+        value: i.value,
+      },
+    )
+  }
+  for (const i of toMove) {
+    await conn.none(
+      `
+        update "organizationIdentities"
+        set type = $(newType)
+        where "organizationId" = $(organizationId) and type = $(type) and value = $(value)
+      `,
+      {
+        organizationId,
+        newType: OrganizationIdentityType.ALTERNATIVE_DOMAIN,
+        type: OrganizationIdentityType.PRIMARY_DOMAIN,
+        value: i.value,
+      },
+    )
+  }
+  for (const i of toUpdate) {
+    await conn.none(
+      `
+        update "organizationIdentities"
+        set verified = $(verified)
+        where "organizationId" = $(organizationId) and type = $(type) and value = $(value)
+      `,
+      {
+        organizationId,
+        verified: true,
+        type: OrganizationIdentityType.ALTERNATIVE_DOMAIN,
+        value: i.value,
+      },
+    )
+  }
+}
+
+const updateOrganization = async (conn: DbTransaction, organizationId: string, data: any) => {
+  if (Object.keys(data).length === 0) {
+    return
+  }
+
+  const params = {
+    organizationId,
+    ...data,
+  }
+
+  const toSet = []
+  if (data.displayName) {
+    toSet.push(`"displayName" = $(displayName)`)
+  }
+
+  if (data.logo) {
+    toSet.push(`logo = $(logo)`)
+  }
+
+  await conn.none(
+    `
+      update organizations
+      set ${toSet.join(', ')}
+      where id = $(organizationId)
+    `,
+    {
+      params,
+    },
+  )
+}
+
 const getOrganizationData = async (
   conn: DbTransaction,
   organizationId: string,
 ): Promise<OrgData> => {
   const results = await Promise.all([
-    conn.one(`select id, "displayName", logo from organizations where id = $(organizationId)`, {
-      organizationId,
-    }),
+    conn.one(
+      `select id, "tenantId", "displayName", logo from organizations where id = $(organizationId)`,
+      {
+        organizationId,
+      },
+    ),
     conn.any(
       `select type, value, platform, verified from "organizationIdentities" where "organizationId" = $(organizationId)`,
       { organizationId },
@@ -188,6 +313,7 @@ const getOrganizationData = async (
 
   return {
     id: org.id,
+    tenantId: org.tenantId,
     logo: org.logo,
     displayName: org.displayName,
     identities,
@@ -235,6 +361,7 @@ interface OrgIdentity {
 }
 interface OrgData {
   id: string
+  tenantId: string
   logo: string
   displayName: string
   identities: OrgIdentity[]
