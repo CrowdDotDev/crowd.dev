@@ -60,28 +60,39 @@ setImmediate(async () => {
                 i.value.trim() !== domain.trim(),
             )
 
+            // remove identity from db because alternative domain one already exists
             const toRemove: OrgIdentity[] = []
+            // move identity to be alternative domain identity
+            const toMove: OrgIdentity[] = []
+            // update alternative domain identity to be verified instead
             const toUpdate: OrgIdentity[] = []
 
             for (const identity of otherPrimaryDomainIdentities) {
-              if (
-                orgData.identities.find(
-                  (i) =>
-                    i.type === OrganizationIdentityType.ALTERNATIVE_DOMAIN &&
-                    i.value.trim() === identity.value.trim(),
-                )
-              ) {
-                stats.set(
-                  Stat.ORG_IDENTITY_REMOVED,
-                  (stats.get(Stat.ORG_PRIMARY_DOMAIN_NOT_FOUND) || 0) + 1,
-                )
-                toRemove.push(identity)
+              const alternative = orgData.identities.find(
+                (i) =>
+                  i.type === OrganizationIdentityType.ALTERNATIVE_DOMAIN &&
+                  i.value.trim() === identity.value.trim(),
+              )
+              if (alternative) {
+                if (!alternative.verified && identity.verified) {
+                  stats.set(
+                    Stat.ORG_IDENTITY_UPDATED,
+                    (stats.get(Stat.ORG_IDENTITY_UPDATED) || 0) + 1,
+                  )
+                  toUpdate.push(identity)
+                } else {
+                  stats.set(
+                    Stat.ORG_IDENTITY_REMOVED,
+                    (stats.get(Stat.ORG_PRIMARY_DOMAIN_NOT_FOUND) || 0) + 1,
+                  )
+                  toRemove.push(identity)
+                }
               } else {
                 stats.set(
-                  Stat.ORG_IDENTITY_UPDATED,
+                  Stat.ORG_IDENTITY_MOVED,
                   (stats.get(Stat.ORG_PRIMARY_DOMAIN_NOT_FOUND) || 0) + 1,
                 )
-                toUpdate.push(identity)
+                toMove.push(identity)
               }
             }
           }
@@ -155,6 +166,7 @@ enum Stat {
 
   ORG_NAME_UPDATED = 'ORG_NAME_UPDATED',
   ORG_PRIMARY_DOMAIN_NOT_FOUND = 'ORG_PRIMARY_DOMAIN_NOT_FOUND',
+  ORG_IDENTITY_MOVED = 'ORG_IDENTITY_MOVED',
   ORG_IDENTITY_UPDATED = 'ORG_IDENTITY_UPDATED',
   ORG_IDENTITY_REMOVED = 'ORG_IDENTITY_REMOVED',
   ORG_LOGO_UPDATED = 'ORG_LOGO_UPDATED',
