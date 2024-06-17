@@ -8,7 +8,7 @@
 import {
   computed, onBeforeMount, onMounted, ref, useSlots, watch,
 } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { useRoute } from 'vue-router';
 import { TabsSize } from '@/ui-kit/tabs/types/TabsSize';
 
 const props = withDefaults(defineProps<{

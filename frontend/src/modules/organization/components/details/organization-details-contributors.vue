@@ -9,7 +9,7 @@
     hash="contributors"
     @fetch="onFilterChange($event)"
   />
-  <div class="flex justify-between items-center pb-3 -mt-2" v-if="contributors.length > 0">
+  <div v-if="contributors.length > 0" class="flex justify-between items-center pb-3 -mt-2">
     <!-- Total number -->
     <p class="text-small text-gray-500">
       {{ pluralize('contributor', pagination.total, true) }}

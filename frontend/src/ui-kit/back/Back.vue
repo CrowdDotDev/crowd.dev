@@ -28,7 +28,7 @@ const backLink = computed(() => {
     return null;
   }
   const [path, query] = back.split('?');
-  const backUrl = new URL(path + (query ? '?' + query : ''), window.location.origin);
+  const backUrl = new URL(path + (query ? `?${query}` : ''), window.location.origin);
   const currentUrl = new URL(route.fullPath, window.location.origin);
   if (backUrl.pathname === currentUrl.pathname && backUrl.hash === currentUrl.hash) {
     return null;
