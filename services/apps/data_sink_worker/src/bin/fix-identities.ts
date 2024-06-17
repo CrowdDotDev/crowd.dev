@@ -56,8 +56,6 @@ setImmediate(async () => {
     const domain = record['ACCOUNT_DOMAIN'].trim()
     const logo = record['LOGO_URL']
 
-    log.info({ accountName }, 'Processing record...')
-
     await dbConnection.tx(async (conn) => {
       const organizationId = await findOrganizationId(conn, accountName)
 
