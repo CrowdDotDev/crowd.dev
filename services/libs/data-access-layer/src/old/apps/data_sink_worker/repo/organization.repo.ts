@@ -58,6 +58,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
                     and oi.verified = true
           )
           select o.id,
+                  o."displayName",
                   o.description,
                   o.names,
                   o.emails,
@@ -103,6 +104,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
               limit 1
           )
       select  o.id,
+              o."displayName",
               o.description,
               o.names,
               o.emails,
@@ -134,6 +136,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
       `
       SELECT
         o.id,
+        o."displayName",
         o.description,
         o.names,
         o.emails,
