@@ -32,7 +32,9 @@ export async function llm(args: IProcessCheckSimilarityWithLLM): Promise<void> {
       const members = await memberActivitiesProxy.getMembersForLLMConsumption(memberCouple)
 
       if (members.length !== 2) {
-        console.log(`Failed getting members data in suggestion. Skipping suggestion: ${suggestion}`)
+        console.log(
+          `Failed getting members data in suggestion. Skipping suggestion: ${memberCouple}`,
+        )
         continue
       }
 
@@ -61,7 +63,7 @@ export async function llm(args: IProcessCheckSimilarityWithLLM): Promise<void> {
 
       if (organizations.length !== 2) {
         console.log(
-          `Failed getting organization data in suggestion. Skipping suggestion: ${suggestion}`,
+          `Failed getting organization data in suggestion. Skipping suggestion: ${organizationCouple}`,
         )
         continue
       }
