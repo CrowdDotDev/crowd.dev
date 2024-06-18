@@ -81,5 +81,5 @@ export async function mergeOrganizationsWithLLM(
     }
   }
 
-  // await continueAsNew<typeof mergeOrganizationsWithLLM>(args)
+  await continueAsNew<typeof mergeOrganizationsWithLLM>(args)
 }
