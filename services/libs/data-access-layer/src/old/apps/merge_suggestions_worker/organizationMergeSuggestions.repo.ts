@@ -221,10 +221,10 @@ class OrganizationMergeSuggestionsRepository {
             o.industry,
             o.founded,
             o."alternativeNames",
-            jsonb_agg(oi) as identities
+            coalesce(jsonb_agg(oi) filter (where oi."organizationId" is not null), '[]'::jsonb) as identities
         from
             organizations o
-        join "organizationIdentities" oi on o.id = oi."organizationId"
+        left join "organizationIdentities" oi on o.id = oi."organizationId"
         where
             o.id in ($(organizationIds:csv))
         group by o.id;`,
