@@ -32,6 +32,7 @@ export interface IOrganizationId {
 export interface IFindRawOrganizationMergeSuggestionsReplacement {
   similarityLTEFilter?: number
   similarityGTEFilter?: number
+  organizationIds?: string[]
   limit: number
 }
 

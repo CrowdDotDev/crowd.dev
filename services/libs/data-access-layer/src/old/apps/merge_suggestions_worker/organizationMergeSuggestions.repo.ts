@@ -253,9 +253,12 @@ class OrganizationMergeSuggestionsRepository {
     similarityFilter: { lte: number; gte: number },
     limit: number,
     onlyLFXMembers = false,
+    organizationIds = [],
   ): Promise<string[][]> {
     const replacements: IFindRawOrganizationMergeSuggestionsReplacement = { limit }
+
     let query: string
+    let organizationIdFilter = ''
     let similarityLTEFilter = ''
     let similarityGTEFilter = ''
 
@@ -268,6 +271,11 @@ class OrganizationMergeSuggestionsRepository {
       similarityGTEFilter = ` and otmr."similarity" >= $(similarityGTEFilter)`
       replacements.similarityGTEFilter = similarityFilter.gte
     }
+
+    if (organizationIds.length > 0) {
+      organizationIdFilter = ` and otmr."organizationId" in ($(organizationIds:csv))`
+      replacements.organizationIds = organizationIds
+    }
     if (onlyLFXMembers) {
       query = `with suggestions as (
                         select lfm."organizationId", otmr."toMergeId"
@@ -276,6 +284,7 @@ class OrganizationMergeSuggestionsRepository {
                         where 1 = 1
                         ${similarityLTEFilter}
                         ${similarityGTEFilter}
+                        ${organizationIdFilter}
                      )
                      select distinct s."organizationId", s."toMergeId"
                      from suggestions s
