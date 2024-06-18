@@ -219,20 +219,53 @@ const updateIdentities = async (
   toInsert: OrgIdentity[],
 ) => {
   for (const i of toInsert) {
-    await conn.none(
+    // check first if some other org in the same tenant has this identity verified
+    const result = await conn.oneOrNone(
       `
-        insert into "organizationIdentities" ("organizationId", "tenantId", type, value, platform, verified)
-        values ($(organizationId), $(tenantId), $(type), $(value), $(platform), $(verified))
-      `,
+      select "organizationId" from "organizationIdentities"
+      where
+        "tenantId" = $(tenantId) and
+        "organizationId" <> $(organizationId) and
+        type = $(type) and
+        value = $(value) and
+        platform = $(platform) and
+        verified = true
+        `,
       {
-        organizationId,
         tenantId,
-        type: OrganizationIdentityType.PRIMARY_DOMAIN,
-        platform: 'custom',
-        verified: true,
+        organizationId,
+        type: i.type,
+        platform: i.platform,
         value: i.value,
       },
     )
+    if (result) {
+      log.warn(
+        {
+          organizationId,
+          type: i.type,
+          platform: i.platform,
+          value: i.value,
+          otherOrgId: result.organizationId,
+        },
+        'Some other org already has this identity verified!',
+      )
+    } else {
+      await conn.none(
+        `
+          insert into "organizationIdentities" ("organizationId", "tenantId", type, value, platform, verified)
+          values ($(organizationId), $(tenantId), $(type), $(value), $(platform), $(verified))
+        `,
+        {
+          organizationId,
+          tenantId,
+          type: OrganizationIdentityType.PRIMARY_DOMAIN,
+          platform: 'custom',
+          verified: true,
+          value: i.value,
+        },
+      )
+    }
   }
   for (const i of toDelete) {
     await conn.none(
