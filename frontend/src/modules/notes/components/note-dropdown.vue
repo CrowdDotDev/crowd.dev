@@ -33,7 +33,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { NoteService } from '@/modules/notes/note-service';
 import Message from '@/shared/message/message';
@@ -46,15 +46,13 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import LfDropdownSeparator from '@/ui-kit/dropdown/DropdownSeparator.vue';
+import { Note } from '@/modules/notes/types/Note';
 
-const emit = defineEmits(['edit', 'reload']);
+const props = defineProps<{
+  note: Note
+}>();
 
-const props = defineProps({
-  note: {
-    type: Object,
-    required: true,
-  },
-});
+const emit = defineEmits<{(e: 'edit'): any, (e: 'reload'): any,}>();
 
 const { trackEvent } = useProductTracking();
 const { hasPermission } = usePermissions();
@@ -84,8 +82,8 @@ const doDestroyWithConfirm = () => {
 };
 </script>
 
-<script>
+<script lang="ts">
 export default {
-  name: 'AppNoteDropdown',
+  name: 'LfNoteDropdown',
 };
 </script>

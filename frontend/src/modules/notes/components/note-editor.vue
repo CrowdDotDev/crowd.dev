@@ -47,7 +47,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import {
   ref,
   onMounted,
@@ -57,35 +57,22 @@ import AppEditor from '@/shared/form/editor.vue';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import LfButton from '@/ui-kit/button/Button.vue';
+import { Note } from '@/modules/notes/types/Note';
 
-const props = defineProps({
-  properties: {
-    type: Object,
-    required: false,
-    default: () => ({}),
-  },
-  note: {
-    type: Object,
-    required: false,
-    default: null,
-  },
-  hideAvatar: {
-    type: Boolean,
-    required: false,
-    default: false,
-  },
-  hideSuggestion: {
-    type: Boolean,
-    required: false,
-    default: false,
-  },
-});
+const props = defineProps<{
+  properties?: any,
+  note?: Note,
+  hideSuggestion?: boolean,
+}>();
 
-const emit = defineEmits(['created', 'updated', 'cancel']);
+const emit = defineEmits<{(e: 'created'): any,
+  (e: 'updated'): any,
+  (e: 'cancel'): any,
+}>();
 
-const noteText = ref('');
-const editor = ref('');
-const noteEditorFocused = ref(false);
+const noteText = ref<string>('');
+const editor = ref<any>(null);
+const noteEditorFocused = ref<boolean>(false);
 
 const { trackEvent } = useProductTracking();
 
@@ -150,8 +137,8 @@ defineExpose({
 });
 </script>
 
-<script>
+<script lang="ts">
 export default {
-  name: 'AppNoteEditor',
+  name: 'LfNoteEditor',
 };
 </script>

@@ -13,7 +13,7 @@
           {{ timeAgo(props.note.createdAt) }}
         </p>
       </div>
-      <app-note-dropdown
+      <lf-note-dropdown
         v-if="props.note.createdById === user.id && hasPermission(LfPermission.noteEdit)"
         :note="props.note"
         @edit="edit()"
@@ -27,10 +27,9 @@
       class="c-content text-medium"
       v-html="$sanitize(props.note.body)"
     />
-    <app-note-editor
+    <lf-note-editor
       v-else-if="hasPermission(LfPermission.noteEdit)"
       ref="editor"
-      :hide-avatar="true"
       :hide-suggestion="true"
       :note="props.note"
       @updated="updated()"
@@ -39,28 +38,26 @@
   </article>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import {
   ref,
   nextTick,
 } from 'vue';
 import { formatDateToTimeAgo } from '@/utils/date';
-import AppNoteDropdown from '@/modules/notes/components/note-dropdown.vue';
-import AppNoteEditor from '@/modules/notes/components/note-editor.vue';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
+import { Note } from '@/modules/notes/types/Note';
+import LfNoteDropdown from '@/modules/notes/components/note-dropdown.vue';
+import LfNoteEditor from '@/modules/notes/components/note-editor.vue';
 
-const props = defineProps({
-  note: {
-    type: Object,
-    required: true,
-  },
-});
+const props = defineProps<{
+  note: Note,
+}>();
 
-const emit = defineEmits(['reload']);
+const emit = defineEmits<{(e: 'reload'): any}>();
 
 const authStore = useAuthStore();
 const { user } = storeToRefs(authStore);
@@ -68,8 +65,8 @@ const { user } = storeToRefs(authStore);
 const { hasPermission } = usePermissions();
 
 const timeAgo = formatDateToTimeAgo;
-const editor = ref(null);
-const editing = ref(false);
+const editor = ref<any | null>(null);
+const editing = ref<boolean>(false);
 
 const edit = () => {
   editing.value = true;
@@ -86,8 +83,8 @@ const updated = () => {
 defineExpose({ editor });
 </script>
 
-<script>
+<script lang="ts">
 export default {
-  name: 'AppNoteItem',
+  name: 'LfNoteItem',
 };
 </script>

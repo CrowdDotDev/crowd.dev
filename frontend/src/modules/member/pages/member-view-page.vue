@@ -43,9 +43,6 @@
                 :show-affiliations="true"
               />
             </el-tab-pane>
-            <el-tab-pane label="Notes" name="notes">
-              <app-member-view-notes :member="member" />
-            </el-tab-pane>
           </el-tabs>
         </div>
       </div>
@@ -69,7 +66,6 @@ import {
 import AppActivityTimeline from '@/modules/activity/components/activity-timeline.vue';
 import AppMemberViewHeader from '@/modules/member/components/view/member-view-header.vue';
 import AppMemberViewAside from '@/modules/member/components/view/member-view-aside.vue';
-import AppMemberViewNotes from '@/modules/member/components/view/member-view-notes.vue';
 import AppMemberActions from '@/modules/member/components/member-actions.vue';
 import { useMemberStore } from '@/modules/member/store/pinia';
 import { storeToRefs } from 'pinia';

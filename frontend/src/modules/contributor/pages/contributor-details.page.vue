@@ -37,7 +37,7 @@
           />
         </div>
       </section>
-      <section class="overflow-auto h-full pb-10">
+      <section class="overflow-auto h-full pb-10" @scroll="controlScroll">
         <div class="sticky top-0 z-10">
           <div class="bg-white pt-5 pl-10 pb-3">
             <lf-tabs v-model="tabs">
@@ -65,6 +65,7 @@
           />
           <lf-contributor-details-notes
             v-else-if="tabs === 'notes'"
+            ref="notes"
             :contributor="contributor"
           />
         </div>
@@ -109,10 +110,13 @@ const route = useRoute();
 
 const tabs = ref('overview');
 
+const notes = ref<any>(null);
+
 const { id } = route.params;
 
 const contributor = ref<Contributor | null>(null);
 const loading = ref<boolean>(true);
+
 const fetchMember = () => {
   if (!contributor.value) {
     loading.value = true;
@@ -124,6 +128,14 @@ const fetchMember = () => {
     .finally(() => {
       loading.value = false;
     });
+};
+
+const controlScroll = (e) => {
+  if (e.target.scrollTop + e.target.clientHeight >= e.target.scrollHeight - 10) {
+    if (tabs.value === 'notes') {
+      notes.value.loadMore();
+    }
+  }
 };
 
 onMounted(() => {
