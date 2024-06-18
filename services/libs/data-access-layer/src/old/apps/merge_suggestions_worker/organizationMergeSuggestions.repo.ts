@@ -259,12 +259,12 @@ class OrganizationMergeSuggestionsRepository {
     let similarityLTEFilter = ''
     let similarityGTEFilter = ''
 
-    if (similarityFilter.lte) {
+    if (similarityFilter && similarityFilter.lte) {
       similarityLTEFilter = ` and otmr."similarity" <= $(similarityLTEFilter)`
       replacements.similarityLTEFilter = similarityFilter.lte
     }
 
-    if (similarityFilter.gte) {
+    if (similarityFilter && similarityFilter.gte) {
       similarityGTEFilter = ` and otmr."similarity" >= $(similarityGTEFilter)`
       replacements.similarityGTEFilter = similarityFilter.gte
     }
