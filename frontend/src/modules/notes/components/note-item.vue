@@ -1,13 +1,14 @@
 <template>
-  <article class="border-t border-gray-200 py-4">
-    <div class="flex items-center justify-between pb-4">
+  <article class="border-t border-gray-200 first:border-0 py-5">
+    <!-- Header -->
+    <div class="flex items-center justify-between pb-2">
       <div class="flex items-center">
-        <app-avatar
-          :entity="entity"
-          size="xxs"
-          class="h-6 w-6 mr-2"
+        <lf-avatar
+          :src="props.note.createdBy.avatarUrl"
+          :name="props.note.createdBy.fullName"
+          :size="24"
         />
-        <p class="text-2xs leading-5 text-gray-500">
+        <p class="pl-2 text-small text-gray-400">
           {{ props.note.createdBy.fullName }} ・
           {{ timeAgo(props.note.createdAt) }}
         </p>
@@ -19,9 +20,11 @@
         @reload="emit('reload')"
       />
     </div>
+
+    <!-- Content -->
     <div
       v-if="!editing"
-      class="c-content text-sm leading-5"
+      class="c-content text-medium"
       v-html="$sanitize(props.note.body)"
     />
     <app-note-editor
@@ -40,16 +43,15 @@
 import {
   ref,
   nextTick,
-  computed,
 } from 'vue';
 import { formatDateToTimeAgo } from '@/utils/date';
-import AppAvatar from '@/shared/avatar/avatar.vue';
 import AppNoteDropdown from '@/modules/notes/components/note-dropdown.vue';
 import AppNoteEditor from '@/modules/notes/components/note-editor.vue';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
 
 const props = defineProps({
   note: {
@@ -68,11 +70,6 @@ const { hasPermission } = usePermissions();
 const timeAgo = formatDateToTimeAgo;
 const editor = ref(null);
 const editing = ref(false);
-
-const entity = computed(() => ({
-  avatar: props.note.createdBy.avatarUrl,
-  displayName: props.note.createdBy.fullName,
-}));
 
 const edit = () => {
   editing.value = true;

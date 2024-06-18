@@ -1,44 +1,39 @@
 <template>
   <div>
-    <el-dropdown
+    <lf-dropdown
       v-if="hasPermission(LfPermission.noteEdit) || hasPermission(LfPermission.noteDestroy)"
       placement="bottom-end"
-      trigger="click"
-      @command="handleCommand"
-      @visible-change="dropdownVisible = $event"
+      width="14.5rem"
     >
-      <button
-        class="el-dropdown-link btn p-1.5 rounder-md hover:bg-gray-200 text-gray-600"
-        type="button"
-        @click.stop
-      >
-        <i class="text-xl ri-more-fill" />
-      </button>
-      <template #dropdown>
-        <el-dropdown-item
-          v-if="hasPermission(LfPermission.noteEdit)"
-          command="noteEdit"
+      <template #trigger>
+        <lf-button
+          type="secondary-ghost"
+          size="small"
+          :icon-only="true"
         >
-          <i class="ri-pencil-line text-gray-400 mr-1" />
-          <span>Edit note</span>
-        </el-dropdown-item>
-        <el-dropdown-item
-          v-if="hasPermission(LfPermission.noteDestroy)"
-          command="noteDelete"
-          divided="divided"
-        >
-          <i class="ri-delete-bin-line text-red-500 mr-1" />
-          <span class="text-red-500">Delete note</span>
-        </el-dropdown-item>
+          <lf-icon name="more-fill" />
+        </lf-button>
       </template>
-    </el-dropdown>
+
+      <lf-dropdown-item
+        v-if="hasPermission(LfPermission.noteEdit)"
+        @click="emit('edit')"
+      >
+        <lf-icon name="pencil-line" />Edit note
+      </lf-dropdown-item>
+      <lf-dropdown-separator />
+      <lf-dropdown-item
+        v-if="hasPermission(LfPermission.noteDestroy)"
+        type="danger"
+        @click="doDestroyWithConfirm"
+      >
+        <lf-icon name="delete-bin-6-line" />Delete note
+      </lf-dropdown-item>
+    </lf-dropdown>
   </div>
 </template>
 
 <script setup>
-import {
-  ref,
-} from 'vue';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { NoteService } from '@/modules/notes/note-service';
 import Message from '@/shared/message/message';
@@ -46,6 +41,11 @@ import usePermissions from '@/shared/modules/permissions/helpers/usePermissions'
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import LfButton from '@/ui-kit/button/Button.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
+import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
+import LfDropdownSeparator from '@/ui-kit/dropdown/DropdownSeparator.vue';
 
 const emit = defineEmits(['edit', 'reload']);
 
@@ -58,8 +58,6 @@ const props = defineProps({
 
 const { trackEvent } = useProductTracking();
 const { hasPermission } = usePermissions();
-
-const dropdownVisible = ref(false);
 
 const doDestroyWithConfirm = () => {
   ConfirmDialog({
@@ -77,21 +75,12 @@ const doDestroyWithConfirm = () => {
         type: EventType.FEATURE,
       });
 
-      NoteService.destroyAll([props.note.id]);
+      return NoteService.destroyAll([props.note.id]);
     })
     .then(() => {
       Message.success('Note successfully deleted!');
       emit('reload');
     });
-};
-
-const handleCommand = (command) => {
-  if (command === 'noteDelete') {
-    return doDestroyWithConfirm();
-  } if (command === 'noteEdit') {
-    emit('edit');
-  }
-  return null;
 };
 </script>
 
