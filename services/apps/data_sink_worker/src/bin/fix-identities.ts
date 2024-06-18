@@ -300,9 +300,7 @@ const updateOrganization = async (conn: DbTransaction, organizationId: string, d
       set ${toSet.join(', ')}
       where id = $(organizationId)
     `,
-    {
-      params,
-    },
+    params,
   )
 }
 
