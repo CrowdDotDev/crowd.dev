@@ -83,30 +83,31 @@ setImmediate(async () => {
 
         const orgData = await getOrganizationData(conn, organizationId)
 
+        // update the name if it is different
         if (orgData.displayName !== accountName) {
           data.displayName = accountName
           stats.set(Stat.ORG_NAME_UPDATED, (stats.get(Stat.ORG_NAME_UPDATED) || 0) + 1)
         }
 
         // remove identity from db because alternative domain one already exists
-        const toRemove: OrgIdentity[] = []
+        const toDelete: OrgIdentity[] = []
         // move identity to be alternative domain identity
-        const toMove: OrgIdentity[] = []
-        // update alternative domain identity to be verified instead
-        const toUpdate: OrgIdentity[] = []
+        const toAlternativeDomain: OrgIdentity[] = []
+        // update identity to be verified instead
+        const toVerify: OrgIdentity[] = []
         // create primary identity verified identity if one does not exists already
-        const toCreate: OrgIdentity[] = []
+        const toInsert: OrgIdentity[] = []
 
         if (domain) {
           // only use this domain as primary identity and set the others to be alternative
           const existing = orgData.identities.find(
             (i) =>
               i.type === OrganizationIdentityType.PRIMARY_DOMAIN &&
-              i.verified &&
               i.value.trim() === domain.trim(),
           )
 
           if (!existing) {
+            // create primary identity if one does not already exists
             stats.set(
               Stat.ORG_PRIMARY_DOMAIN_NOT_FOUND,
               (stats.get(Stat.ORG_PRIMARY_DOMAIN_NOT_FOUND) || 0) + 1,
@@ -118,9 +119,14 @@ setImmediate(async () => {
               verified: true,
             }
             orgData.identities.push(identity)
-            toCreate.push(identity)
+            toInsert.push(identity)
+          } else if (!existing.verified) {
+            // just verify the existing primary identity
+            stats.set(Stat.ORG_IDENTITY_VERIFIED, (stats.get(Stat.ORG_IDENTITY_VERIFIED) || 0) + 1)
+            toVerify.push(existing)
           }
 
+          // we have to take care of the other primary identities so that only one is left
           const otherPrimaryDomainIdentities = orgData.identities.filter(
             (i) =>
               i.type === OrganizationIdentityType.PRIMARY_DOMAIN &&
@@ -128,6 +134,7 @@ setImmediate(async () => {
           )
 
           for (const identity of otherPrimaryDomainIdentities) {
+            // find existing alternative domain identity with the same value
             const alternative = orgData.identities.find(
               (i) =>
                 i.type === OrganizationIdentityType.ALTERNATIVE_DOMAIN &&
@@ -135,28 +142,37 @@ setImmediate(async () => {
             )
             if (alternative) {
               if (!alternative.verified && identity.verified) {
-                stats.set(
-                  Stat.ORG_IDENTITY_UPDATED,
-                  (stats.get(Stat.ORG_IDENTITY_UPDATED) || 0) + 1,
-                )
-                toUpdate.push(identity)
-              } else {
+                // an existing unverified alternative identity exists, update it to be verified and remove the primary one
                 stats.set(
                   Stat.ORG_IDENTITY_REMOVED,
                   (stats.get(Stat.ORG_PRIMARY_DOMAIN_NOT_FOUND) || 0) + 1,
                 )
-                toRemove.push(identity)
+                stats.set(
+                  Stat.ORG_IDENTITY_VERIFIED,
+                  (stats.get(Stat.ORG_IDENTITY_VERIFIED) || 0) + 1,
+                )
+                toDelete.push(identity)
+                toVerify.push(alternative)
+              } else {
+                // an existing verified alternative identity exists, just remove the primary one
+                stats.set(
+                  Stat.ORG_IDENTITY_REMOVED,
+                  (stats.get(Stat.ORG_PRIMARY_DOMAIN_NOT_FOUND) || 0) + 1,
+                )
+                toDelete.push(identity)
               }
             } else {
+              // an alternative identity does not exist, move the primary one to be alternative
               stats.set(
-                Stat.ORG_IDENTITY_MOVED,
+                Stat.ORG_IDENTITY_TO_ALTERNATIVE,
                 (stats.get(Stat.ORG_PRIMARY_DOMAIN_NOT_FOUND) || 0) + 1,
               )
-              toMove.push(identity)
+              toAlternativeDomain.push(identity)
             }
           }
         }
 
+        // update the logo if it is different
         if (logo && (!orgData.logo || orgData.logo.trim() !== logo.trim())) {
           data.logo = logo
           stats.set(Stat.ORG_LOGO_UPDATED, (stats.get(Stat.ORG_LOGO_UPDATED) || 0) + 1)
@@ -167,10 +183,10 @@ setImmediate(async () => {
           conn,
           organizationId,
           orgData.tenantId,
-          toMove,
-          toRemove,
-          toUpdate,
-          toCreate,
+          toAlternativeDomain,
+          toDelete,
+          toVerify,
+          toInsert,
         )
 
         alreadyProcessedOrgIds.add(organizationId)
@@ -195,12 +211,12 @@ const updateIdentities = async (
   conn: DbTransaction,
   organizationId: string,
   tenantId: string,
-  toMove: OrgIdentity[],
+  toAlternativeDomain: OrgIdentity[],
   toDelete: OrgIdentity[],
-  toUpdate: OrgIdentity[],
-  toCreate: OrgIdentity[],
+  toVerify: OrgIdentity[],
+  toInsert: OrgIdentity[],
 ) => {
-  for (const i of toCreate) {
+  for (const i of toInsert) {
     await conn.none(
       `
         insert into "organizationIdentities" ("organizationId", "tenantId", type, value, platform, verified)
@@ -229,32 +245,30 @@ const updateIdentities = async (
       },
     )
   }
-  for (const i of toMove) {
+  for (const i of toAlternativeDomain) {
     await conn.none(
       `
         update "organizationIdentities"
-        set type = $(newType)
+        set type = '${OrganizationIdentityType.ALTERNATIVE_DOMAIN}'
         where "organizationId" = $(organizationId) and type = $(type) and value = $(value)
       `,
       {
         organizationId,
-        newType: OrganizationIdentityType.ALTERNATIVE_DOMAIN,
         type: OrganizationIdentityType.PRIMARY_DOMAIN,
         value: i.value,
       },
     )
   }
-  for (const i of toUpdate) {
+  for (const i of toVerify) {
     await conn.none(
       `
         update "organizationIdentities"
-        set verified = $(verified)
+        set verified = true
         where "organizationId" = $(organizationId) and type = $(type) and value = $(value)
       `,
       {
         organizationId,
-        verified: true,
-        type: OrganizationIdentityType.ALTERNATIVE_DOMAIN,
+        type: i.type,
         value: i.value,
       },
     )
@@ -347,8 +361,8 @@ enum Stat {
 
   ORG_NAME_UPDATED = 'ORG_NAME_UPDATED',
   ORG_PRIMARY_DOMAIN_NOT_FOUND = 'ORG_PRIMARY_DOMAIN_NOT_FOUND',
-  ORG_IDENTITY_MOVED = 'ORG_IDENTITY_MOVED',
-  ORG_IDENTITY_UPDATED = 'ORG_IDENTITY_UPDATED',
+  ORG_IDENTITY_TO_ALTERNATIVE = 'ORG_IDENTITY_TO_ALTERNATIVE',
+  ORG_IDENTITY_VERIFIED = 'ORG_IDENTITY_VERIFIED',
   ORG_IDENTITY_REMOVED = 'ORG_IDENTITY_REMOVED',
   ORG_LOGO_UPDATED = 'ORG_LOGO_UPDATED',
 }
