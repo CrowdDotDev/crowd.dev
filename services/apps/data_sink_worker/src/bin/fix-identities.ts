@@ -77,6 +77,8 @@ setImmediate(async () => {
           return
         }
 
+        log.info({ domain, accountName, organizationId }, 'Processing...')
+
         const data: any = {}
 
         stats.set(Stat.ORG_FOUND, (stats.get(Stat.ORG_FOUND) || 0) + 1)
@@ -260,18 +262,51 @@ const updateIdentities = async (
     )
   }
   for (const i of toVerify) {
-    await conn.none(
+    // check first if some other org in the same tenant has this identity verified
+    const result = await conn.oneOrNone(
       `
-        update "organizationIdentities"
-        set verified = true
-        where "organizationId" = $(organizationId) and type = $(type) and value = $(value)
-      `,
+      select "organizationId" from "organizationIdentities"
+      where
+        "tenantId" = $(tenantId) and
+        "organizationId" <> $(organizationId) and
+        type = $(type) and
+        value = $(value) and
+        platform = $(platform) and
+        verified = true
+        `,
       {
+        tenantId,
         organizationId,
         type: i.type,
+        platform: i.platform,
         value: i.value,
       },
     )
+    if (result) {
+      log.warn(
+        {
+          organizationId,
+          type: i.type,
+          platform: i.platform,
+          value: i.value,
+          otherOrgId: result.organizationId,
+        },
+        'Some other org already has this identity verified!',
+      )
+    } else {
+      await conn.none(
+        `
+          update "organizationIdentities"
+          set verified = true
+          where "organizationId" = $(organizationId) and type = $(type) and value = $(value)
+        `,
+        {
+          organizationId,
+          type: i.type,
+          value: i.value,
+        },
+      )
+    }
   }
 }
 
