@@ -279,6 +279,11 @@ export class RawQueryParser {
       params[paramName] = value
     }
 
+    if (operator === Operator.MATCH_PHRASE_PREFIX) {
+      params[paramName] = `${value}%`
+      return `(${column} ilike ${ph(paramName, options)})`
+    }
+
     return `(${column} ${actualOperator} ${ph(paramName, options)})`
   }
 
@@ -337,6 +342,8 @@ export class RawQueryParser {
         return 'between'
       case Operator.NOT_BETWEEN:
         return 'not between'
+      case Operator.MATCH_PHRASE_PREFIX:
+        return 'matchPhrasePrefix'
       case Operator.OVERLAP:
         if (json) {
           return '?|'

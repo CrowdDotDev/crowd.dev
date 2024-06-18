@@ -2307,7 +2307,7 @@ class OrganizationRepository {
       })
 
       rows.forEach((org) => {
-        org.identities = identities.find((i) => i.organizationId === org.id)?.identities
+        org.identities = identities.find((i) => i.organizationId === org.id)?.identities || []
       })
     }
 

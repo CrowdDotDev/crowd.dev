@@ -205,7 +205,7 @@
             Annual Revenue
           </p>
           <p class="text-xs text-gray-900 whitespace-normal">
-            {{ revenueRange.displayValue(
+            {{ revenueRange.formatValue(
               props.organization.revenueRange,
             ) || '-' }}
           </p>

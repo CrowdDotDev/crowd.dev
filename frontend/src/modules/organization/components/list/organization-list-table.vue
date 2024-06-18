@@ -574,7 +574,7 @@
                       >
                         <span v-if="scope.row.revenueRange" class="text-gray-900">
                           {{
-                            revenueRange.displayValue(scope.row.revenueRange)
+                            revenueRange.formatValue(scope.row.revenueRange)
                           }}
                         </span>
                         <span v-else class="text-gray-500">-</span>
@@ -682,7 +682,7 @@
                       >
                         <span v-if="scope.row.employeeGrowthRate?.['12_month']" class="text-gray-900">
                           {{
-                            employeeGrowthRate.valueParser(scope.row.employeeGrowthRate['12_month'])
+                            Object.values(employeeGrowthRate.formatValue(scope.row.employeeGrowthRate))?.[0]
                           }}
                         </span>
                         <span v-else class="text-gray-500">-</span>

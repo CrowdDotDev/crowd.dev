@@ -1,5 +1,5 @@
 .c-tooltip{
-  @apply relative w-fit;
+  @apply relative w-fit h-fit flex;
 
   &__content{
     font-size: var(--lf-tooltip-font-size);

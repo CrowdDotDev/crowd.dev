@@ -10,7 +10,7 @@
       <div class="text-white h-4 px-1 min-w-4 flex justify-center rounded" :class="data.bg">
         {{ props.contributor.score }}
       </div>
-      <p :class="`text-${data.color}`">
+      <p :class="data.color">
         {{ data.label }}
       </p>
     </template>

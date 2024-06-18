@@ -1,6 +1,5 @@
 <template>
   <router-link :to="routeLocation">
-    {{ backLink }}
     <slot />
   </router-link>
 </template>
@@ -28,8 +27,10 @@ const backLink = computed(() => {
   if (!back || back.includes('/auth')) {
     return null;
   }
-  const [path] = back.split('?');
-  if (path === route.path) {
+  const [path, query] = back.split('?');
+  const backUrl = new URL(path + (query ? `?${query}` : ''), window.location.origin);
+  const currentUrl = new URL(route.fullPath, window.location.origin);
+  if (backUrl.pathname === currentUrl.pathname && backUrl.hash === currentUrl.hash) {
     return null;
   }
   return window.history.state.back;

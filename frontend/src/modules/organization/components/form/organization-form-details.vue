@@ -73,7 +73,7 @@
         >
           <el-option
             :value="model[fields.revenueRange.name]"
-            :label="revenueRange.displayValue(model[fields.revenueRange.name])"
+            :label="revenueRange.formatValue(model[fields.revenueRange.name])"
           />
         </el-select>
       </el-form-item>

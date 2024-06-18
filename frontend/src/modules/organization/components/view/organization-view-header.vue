@@ -188,7 +188,7 @@
             </div>
             <p v-if="enabled" class="mt-1 text-gray-900 text-xs">
               {{
-                revenueRange.displayValue(
+                revenueRange.formatValue(
                   organization.revenueRange,
                 )
               }}

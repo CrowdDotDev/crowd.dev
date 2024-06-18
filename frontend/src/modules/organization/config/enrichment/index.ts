@@ -29,14 +29,9 @@ export interface OrganizationEnrichmentConfig {
   type: AttributeType; // Type of the attribute
   showInForm: boolean; // Display in Organization Form
   showInAttributes: boolean; // Display in Organization Profile
-  enrichmentSneakPeak?: boolean; // Display as a sneak peak attribute
-  enrichmentSneakPeakValue?: string; // Value to display in sneak peak
-  isLink?: boolean; // If attribute is a url
   component?: any; // Component that will render attribute in organization profile
-  displayValue?: (value: any) => string; // Formatter for displaying attribute value
-  keyParser?: (key: string) => string; // Formatter for keys of jsons if attribute is json
-  valueParser?: (value: any) => string; // Formatter for values of jsons if attribute is json
-  filterValue?: (value: any) => any; // Filter attributes values
+  formatValue: (value: any) => string; // Formatter for values
+  attributes?: any, // Custom attributes passed into displaying components
 }
 
 const enrichmentConfig: OrganizationEnrichmentConfig[] = [

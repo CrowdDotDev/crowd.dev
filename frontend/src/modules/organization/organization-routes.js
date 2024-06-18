@@ -7,8 +7,9 @@ import { PageEventKey } from '@/shared/modules/monitoring/types/event';
 const OrganizationListPage = () => import(
   '@/modules/organization/pages/organization-list-page.vue'
 );
-const OrganizationViewPage = () => import(
-  '@/modules/organization/pages/organization-view-page.vue'
+
+const OrganizationDetailsPage = () => import(
+  '@/modules/organization/pages/organization-details.page.vue'
 );
 
 const OrganizationFormPage = () => import(
@@ -76,7 +77,7 @@ export default [
       {
         name: 'organizationView',
         path: '/organizations/:id',
-        component: OrganizationViewPage,
+        component: OrganizationDetailsPage,
         meta: {
           title: 'Organization',
           auth: true,

@@ -104,7 +104,7 @@ const props = withDefaults(defineProps<{
   modelValue: false,
 });
 
-const emit = defineEmits(['update:modelValue', 'unmerge']);
+const emit = defineEmits(['update:modelValue', 'unmerge', 'reload']);
 
 const { trackEvent } = useProductTracking();
 
@@ -159,6 +159,7 @@ const serverUpdate = () => {
     identities: identityList,
   }).then(() => {
     Message.success('Identity updated successfully');
+    emit('reload');
   }).catch((err) => {
     Message.error(err.response.data);
   });
