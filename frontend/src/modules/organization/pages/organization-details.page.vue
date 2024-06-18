@@ -42,10 +42,10 @@
           />
         </div>
       </section>
-      <section class="overflow-auto h-full pb-10" @scroll="controlScroll">
+      <section ref="scrollContainer" class="overflow-auto h-full pb-10" @scroll="controlScroll">
         <div class="sticky top-0 z-10">
           <div class="bg-white pt-5 pl-10 pb-3">
-            <lf-tabs v-model="tabs">
+            <lf-tabs v-model="tabs" @update:model-value="handleTabChange">
               <lf-tab v-model="tabs" name="overview">
                 Overview
               </lf-tab>
@@ -114,6 +114,7 @@ const route = useRoute();
 
 const tabs = ref('overview');
 const contributors = ref('overview');
+const scrollContainer = ref(null);
 
 const { id } = route.params;
 
@@ -137,6 +138,12 @@ const controlScroll = (e) => {
     if (tabs.value === 'contributors') {
       contributors.value.loadMore();
     }
+  }
+};
+
+const handleTabChange = () => {
+  if (scrollContainer.value) {
+    scrollContainer.value.scrollTop = 0;
   }
 };
 
