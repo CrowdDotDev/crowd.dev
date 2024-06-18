@@ -378,6 +378,7 @@ export async function getRawOrganizationMergeSuggestions(
   similarityFilter: ISimilarityFilter,
   limit: number,
   onlyLFXMembers = false,
+  organizationIds: string[] = [],
 ): Promise<string[][]> {
   const organizationMergeSuggestionsRepo = new OrganizationMergeSuggestionsRepository(
     svc.postgres.writer.connection(),
@@ -387,5 +388,6 @@ export async function getRawOrganizationMergeSuggestions(
     similarityFilter,
     limit,
     onlyLFXMembers,
+    organizationIds,
   )
 }

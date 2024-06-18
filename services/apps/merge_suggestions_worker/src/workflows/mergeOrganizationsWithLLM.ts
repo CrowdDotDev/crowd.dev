@@ -35,6 +35,7 @@ export async function mergeOrganizationsWithLLM(
     args.similarity,
     SUGGESTIONS_PER_RUN,
     args.onlyLFXMembers,
+    args.organizationIds,
   )
 
   if (suggestions.length === 0) {
