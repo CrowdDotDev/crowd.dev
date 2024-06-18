@@ -2192,7 +2192,9 @@ class OrganizationRepository {
     },
     options: IRepositoryOptions,
   ) {
-    const qx = SequelizeRepository.getQueryExecutor(options)
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const qx = SequelizeRepository.getQueryExecutor(options, transaction)
 
     const withAggregates = !!segmentId
     let segment
