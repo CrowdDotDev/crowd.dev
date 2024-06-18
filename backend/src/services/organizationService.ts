@@ -406,6 +406,7 @@ export default class OrganizationService extends LoggerBase {
         'segments',
         'lastActive',
         'joinedAt',
+        'identities',
       ])
 
     let tx
