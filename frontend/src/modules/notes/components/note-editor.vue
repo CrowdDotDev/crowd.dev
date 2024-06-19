@@ -1,138 +1,80 @@
 <template>
-  <div class="flex">
-    <div v-if="!hideAvatar" class="pt-2 pr-3">
-      <app-avatar
-        size="xxs"
-        class="h-6 w-6"
-        :entity="computedAvatarEntity"
+  <div>
+    <div class="relative w-full">
+      <app-editor
+        ref="editor"
+        v-model="noteText"
+        :placeholder="
+          props.note ? 'Note...' : 'Add note...'
+        "
+        class="border rounded-md pt-2 px-3 pb-10"
+        :class="{
+          'border-gray-600': noteEditorFocused,
+          'border-gray-300': !noteEditorFocused,
+          'hover:border-gray-400': !noteEditorFocused,
+        }"
+        @focus="noteEditorFocused = true"
+        @blur="noteEditorFocused = false"
+        @keydown.enter="keydownSubmit($event)"
+        @keydown.esc="cancel()"
       />
-    </div>
-    <div class="flex-grow">
-      <div class="relative">
-        <app-editor
-          ref="editor"
-          v-model="noteText"
-          :placeholder="
-            props.note ? 'Note...' : 'Add note...'
-          "
-          class="border rounded-md pt-2 px-3 pb-10"
-          :class="{
-            'border-gray-600': noteEditorFocused,
-            'border-gray-300': !noteEditorFocused,
-            'hover:border-gray-400': !noteEditorFocused,
-          }"
-          @focus="noteEditorFocused = true"
-          @blur="noteEditorFocused = false"
-          @keydown.enter="keydownSubmit($event)"
-          @keydown.esc="cancel()"
-        />
-        <div
-          class="absolute right-3 transition-all transition-200"
-          :class="
-            noteEditorFocused || note?.length
-              ? 'bottom-3 opacity-1'
-              : 'bottom-0 opacity-0'
-          "
-        >
-          <div class="flex">
-            <el-tooltip
-              effect="dark"
-              content="Cancel"
-              placement="top"
-            >
-              <div
-                class="ri-close-circle-fill text-2xl text-gray-300 flex items-center h-8 mr-2 transition hover:text-gray-400 cursor-pointer"
-                @click="cancel()"
-              />
-            </el-tooltip>
-            <el-tooltip
-              effect="dark"
-              :content="props.note ? 'Save' : 'Add note'"
-              placement="top"
-              :disabled="note?.length === 0"
-            >
-              <div
-                class="text-2xl flex items-center h-8 transition"
-                :class="[
-                  note?.length > 0
-                    ? 'text-gray-900 hover:text-gray-600 cursor-pointer'
-                    : 'text-gray-400 cursor-not-allowed',
-                  props.note
-                    ? 'ri-checkbox-circle-fill'
-                    : 'ri-arrow-up-circle-fill',
-                ]"
-                @click="submit()"
-              />
-            </el-tooltip>
-          </div>
+      <div
+        class="absolute right-3 transition-all transition-200 bottom-3"
+      >
+        <div class="flex gap-3">
+          <lf-button v-if="noteText?.length > 0" type="secondary-ghost-light" @click="cancel()">
+            Cancel
+          </lf-button>
+
+          <lf-button type="secondary" :disabled="noteText?.length === 0" @click="submit()">
+            {{ props.note ? 'Update' : 'Add note' }}
+          </lf-button>
         </div>
       </div>
-      <div
-        v-if="!hideSuggestion"
-        class="pt-2 text-2xs leading-5 text-gray-500 overflow-hidden transition-all"
-        :class="
-          noteEditorFocused
-            ? 'h-7 opacity-1'
-            : 'h-0 opacity-0'
-        "
-      >
-        <span class="font-semibold">Suggestion:</span> use
-        Markdown syntax to format your note
-      </div>
+    </div>
+    <div
+      v-if="!hideSuggestion"
+      class="pt-2 text-tiny text-gray-500 overflow-hidden transition-all"
+      :class="
+        noteEditorFocused
+          ? 'h-7 opacity-1'
+          : 'h-0 opacity-0'
+      "
+    >
+      <span class="font-semibold">Suggestion:</span> use
+      Markdown syntax to format your note
     </div>
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import {
   ref,
-  onMounted, computed,
+  onMounted,
 } from 'vue';
 import { NoteService } from '@/modules/notes/note-service';
 import AppEditor from '@/shared/form/editor.vue';
-import AppAvatar from '@/shared/avatar/avatar.vue';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { storeToRefs } from 'pinia';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import LfButton from '@/ui-kit/button/Button.vue';
+import { Note } from '@/modules/notes/types/Note';
 
-const props = defineProps({
-  properties: {
-    type: Object,
-    required: false,
-    default: () => ({}),
-  },
-  note: {
-    type: Object,
-    required: false,
-    default: null,
-  },
-  hideAvatar: {
-    type: Boolean,
-    required: false,
-    default: false,
-  },
-  hideSuggestion: {
-    type: Boolean,
-    required: false,
-    default: false,
-  },
-});
+const props = defineProps<{
+  properties?: any,
+  note?: Note,
+  hideSuggestion?: boolean,
+}>();
 
-const emit = defineEmits(['created', 'updated', 'cancel']);
+const emit = defineEmits<{(e: 'created'): any,
+  (e: 'updated'): any,
+  (e: 'cancel'): any,
+}>();
 
-const noteText = ref('');
-const editor = ref('');
-const noteEditorFocused = ref(false);
+const noteText = ref<string>('');
+const editor = ref<any>(null);
+const noteEditorFocused = ref<boolean>(false);
 
 const { trackEvent } = useProductTracking();
-
-const authStore = useAuthStore();
-const { user } = storeToRefs(authStore);
-
-const computedAvatarEntity = computed(() => ({
-  displayName: user.value.fullName,
-}));
 
 onMounted(() => {
   if (props.note) {
@@ -195,8 +137,8 @@ defineExpose({
 });
 </script>
 
-<script>
+<script lang="ts">
 export default {
-  name: 'AppNoteEditor',
+  name: 'LfNoteEditor',
 };
 </script>
