@@ -10,6 +10,10 @@ export async function checkIfMemberExists(db: DbConnection, memberId: string): P
   return true
 }
 
+export async function deleteMemberActivities(db: DbConnection, memberId: string): Promise<void> {
+  await db.none(`delete from "activities" where "memberId" = $(memberId)`, { memberId })
+}
+
 export async function deleteMemberSegments(db: DbConnection, memberId: string): Promise<void> {
   await db.none(`delete from "memberSegments" where "memberId" = $(memberId)`, { memberId })
 }

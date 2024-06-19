@@ -6,6 +6,7 @@ import {
   checkIfMemberExists,
   deleteMemberSegments,
   deleteMember,
+  deleteMemberActivities,
 } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/scripts/delete-members'
 import { getSqsClient } from '@crowd/sqs'
 import {
@@ -67,6 +68,8 @@ setImmediate(async () => {
       log.info(`Member not found: ${memberId}`)
       continue
     }
+
+    await deleteMemberActivities(dbClient, memberId)
 
     await deleteMemberSegments(dbClient, memberId)
 
