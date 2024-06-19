@@ -1124,6 +1124,9 @@ export default class OrganizationService extends LoggerBase {
       {
         ...data,
         segmentId,
+        include: {
+          segments: true,
+        },
       },
       this.options,
     )

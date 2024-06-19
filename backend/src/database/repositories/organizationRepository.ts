@@ -43,6 +43,7 @@ import AuditLogRepository from './auditLogRepository'
 import SegmentRepository from './segmentRepository'
 import SequelizeRepository from './sequelizeRepository'
 import { IActiveOrganizationData, IActiveOrganizationFilter } from './types/organizationTypes'
+import { fetchManyOrgSegments } from '@crowd/data-access-layer/src/org_segments'
 
 const { Op } = Sequelize
 
@@ -2188,6 +2189,7 @@ class OrganizationRepository {
       include = {
         identities: true,
         lfxMemberships: true,
+        segments: false,
       },
     },
     options: IRepositoryOptions,
@@ -2308,6 +2310,13 @@ class OrganizationRepository {
 
       rows.forEach((org) => {
         org.identities = identities.find((i) => i.organizationId === org.id)?.identities || []
+      })
+    }
+    if (include.segments) {
+      const orgSegments = await fetchManyOrgSegments(qx, orgIds)
+
+      rows.forEach((org) => {
+        org.segments = orgSegments.find((i) => i.organizationId === org.id)?.segments || []
       })
     }
 
