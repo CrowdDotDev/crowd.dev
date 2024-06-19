@@ -1,4 +1,4 @@
-import { ILLMConsumableMember, IMemberIdentity } from '@crowd/types'
+import { ILLMConsumableMember } from '@crowd/types'
 
 export const prefixLength = (string: string) => {
   if (string.length > 5 && string.length < 8) {
@@ -47,7 +47,7 @@ export const obfuscate = (email: string): string => {
 export const removeEmailLikeIdentitiesFromMember = (
   member: ILLMConsumableMember,
 ): ILLMConsumableMember => {
-  const nonEmailIdentities: IMemberIdentity[] = []
+  const nonEmailIdentities: { platform: string; value: string }[] = []
   for (const identity of member.identities) {
     if (identity.value.indexOf('@') === -1) {
       // remove found identity from member.identities
