@@ -278,20 +278,19 @@ class OrganizationMergeSuggestionsRepository {
     }
     if (onlyLFXMembers) {
       query = `with suggestions as (
-                        select lfm."organizationId", otmr."toMergeId"
-                        from "lfxMemberships" lfm
-                        join "organizationToMergeRaw" otmr on lfm."organizationId" = otmr."organizationId"
-                        where 1 = 1
+                        select otmr."organizationId", otmr."toMergeId" from "organizationToMergeRaw" otmr
+                        where exists(
+                            select 1 from "lfxMemberships" lfm
+                            where otmr."organizationId" = lfm."organizationId" or
+                                  otmr."toMergeId" = lfm."organizationId"
+                        ) 
                         ${similarityLTEFilter}
                         ${similarityGTEFilter}
                         ${organizationIdFilter}
                      )
                      select distinct s."organizationId", s."toMergeId"
                      from suggestions s
-                     where not exists (select 1
-                                      from "lfxMemberships" lfm
-                                      where lfm."organizationId" = s."toMergeId")
-                     and not exists (
+                     where not exists (
                           select 1 from "llmSuggestionVerdicts" lsv 
                           where (
                               lsv."primaryId" = s."organizationId" and 
