@@ -273,7 +273,7 @@ class OrganizationMergeSuggestionsRepository {
     }
 
     if (organizationIds.length > 0) {
-      organizationIdFilter = ` and otmr."organizationId" in ($(organizationIds:csv))`
+      organizationIdFilter = ` and (otmr."organizationId" in ($(organizationIds:csv)) or otmr."toMergeId" in ($(organizationIds:csv)))`
       replacements.organizationIds = organizationIds
     }
     if (onlyLFXMembers) {
