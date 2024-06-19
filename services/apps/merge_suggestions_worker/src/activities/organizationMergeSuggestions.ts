@@ -374,6 +374,7 @@ export async function getOrganizationsForLLMConsumption(
 }
 
 export async function getRawOrganizationMergeSuggestions(
+  tenantId: string,
   similarityFilter: ISimilarityFilter,
   limit: number,
   onlyLFXMembers = false,
@@ -383,10 +384,27 @@ export async function getRawOrganizationMergeSuggestions(
     svc.postgres.writer.connection(),
     svc.log,
   )
-  return organizationMergeSuggestionsRepo.getRawOrganizationSuggestions(
+
+  const suggestions = await organizationMergeSuggestionsRepo.getRawOrganizationSuggestions(
     similarityFilter,
     limit,
     onlyLFXMembers,
     organizationIds,
   )
+
+  if (onlyLFXMembers) {
+    // make sure primary is lfx member
+    for (let suggestion of suggestions) {
+      const qx = pgpQx(svc.postgres.reader.connection())
+      const isPrimaryOrgInSuggestionLFXMember = await hasLfxMembership(qx, {
+        tenantId,
+        organizationId: suggestion[0],
+      })
+
+      if (!isPrimaryOrgInSuggestionLFXMember) {
+        suggestion = [suggestion[1], suggestion[0]]
+      }
+    }
+  }
+  return suggestions
 }
