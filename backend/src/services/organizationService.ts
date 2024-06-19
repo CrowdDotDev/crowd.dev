@@ -365,6 +365,9 @@ export default class OrganizationService extends LoggerBase {
         false,
       )
 
+      // add primary and secondary to no merge so they don't get suggested again
+      await OrganizationRepository.addNoMerge(organizationId, secondaryOrganization.id, repoOptions)
+
       // trigger entity-merging-worker to move activities in the background
       await SequelizeRepository.commitTransaction(tx)
 

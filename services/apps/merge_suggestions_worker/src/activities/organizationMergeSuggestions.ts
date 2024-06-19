@@ -1,4 +1,5 @@
 import {
+  ILLMConsumableOrganization,
   IOrganizationMergeSuggestion,
   OpenSearchIndex,
   OrganizationIdentityType,
@@ -6,7 +7,11 @@ import {
 } from '@crowd/types'
 import { svc } from '../main'
 
-import { IOrganizationPartialAggregatesOpensearch, ISimilarOrganizationOpensearch } from '../types'
+import {
+  IOrganizationPartialAggregatesOpensearch,
+  ISimilarOrganizationOpensearch,
+  ISimilarityFilter,
+} from '../types'
 import OrganizationMergeSuggestionsRepository from '@crowd/data-access-layer/src/old/apps/merge_suggestions_worker/organizationMergeSuggestions.repo'
 import { hasLfxMembership } from '@crowd/data-access-layer/src/lfx_memberships'
 import { prefixLength } from '../utils'
@@ -304,4 +309,102 @@ export async function addOrganizationToMerge(
     )
     await organizationMergeSuggestionsRepo.addToMerge(suggestions, table)
   }
+}
+
+export async function getOrganizationsForLLMConsumption(
+  organizationIds: string[],
+): Promise<ILLMConsumableOrganization[]> {
+  const organizationMergeSuggestionsRepo = new OrganizationMergeSuggestionsRepository(
+    svc.postgres.writer.connection(),
+    svc.log,
+  )
+
+  const [primaryOrganization, secondaryOrganization] =
+    await organizationMergeSuggestionsRepo.getOrganizations(organizationIds)
+
+  const result: ILLMConsumableOrganization[] = []
+
+  if (primaryOrganization) {
+    result.push({
+      displayName: primaryOrganization.displayName,
+      description: primaryOrganization.description,
+      phoneNumbers: primaryOrganization.phoneNumbers,
+      logo: primaryOrganization.logo,
+      tags: primaryOrganization.tags,
+      location: primaryOrganization.location,
+      type: primaryOrganization.type,
+      geoLocation: primaryOrganization.geoLocation,
+      ticker: primaryOrganization.ticker,
+      profiles: primaryOrganization.profiles,
+      headline: primaryOrganization.headline,
+      industry: primaryOrganization.industry,
+      founded: primaryOrganization.founded,
+      alternativeNames: primaryOrganization.alternativeNames,
+      identities: primaryOrganization.identities.map((i) => ({
+        platform: i.platform,
+        value: i.value,
+      })),
+    })
+  }
+
+  if (secondaryOrganization) {
+    result.push({
+      displayName: secondaryOrganization.displayName,
+      description: secondaryOrganization.description,
+      phoneNumbers: secondaryOrganization.phoneNumbers,
+      logo: secondaryOrganization.logo,
+      tags: secondaryOrganization.tags,
+      location: secondaryOrganization.location,
+      type: secondaryOrganization.type,
+      geoLocation: secondaryOrganization.geoLocation,
+      ticker: secondaryOrganization.ticker,
+      profiles: secondaryOrganization.profiles,
+      headline: secondaryOrganization.headline,
+      industry: secondaryOrganization.industry,
+      founded: secondaryOrganization.founded,
+      alternativeNames: secondaryOrganization.alternativeNames,
+      identities: secondaryOrganization.identities.map((i) => ({
+        platform: i.platform,
+        value: i.value,
+      })),
+    })
+  }
+
+  return result
+}
+
+export async function getRawOrganizationMergeSuggestions(
+  tenantId: string,
+  similarityFilter: ISimilarityFilter,
+  limit: number,
+  onlyLFXMembers = false,
+  organizationIds: string[] = [],
+): Promise<string[][]> {
+  const organizationMergeSuggestionsRepo = new OrganizationMergeSuggestionsRepository(
+    svc.postgres.writer.connection(),
+    svc.log,
+  )
+
+  const suggestions = await organizationMergeSuggestionsRepo.getRawOrganizationSuggestions(
+    similarityFilter,
+    limit,
+    onlyLFXMembers,
+    organizationIds,
+  )
+  if (onlyLFXMembers) {
+    // make sure primary is lfx member
+    for (let i = 0; i < suggestions.length; i++) {
+      const qx = pgpQx(svc.postgres.reader.connection())
+      const isPrimaryOrgInSuggestionLFXMember = await hasLfxMembership(qx, {
+        tenantId,
+        organizationId: suggestions[i][0],
+      })
+
+      if (!isPrimaryOrgInSuggestionLFXMember) {
+        suggestions[i] = [suggestions[i][1], suggestions[i][0]]
+      }
+    }
+  }
+
+  return suggestions
 }

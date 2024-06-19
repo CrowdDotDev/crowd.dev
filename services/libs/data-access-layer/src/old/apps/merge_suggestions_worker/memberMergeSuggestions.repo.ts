@@ -1,7 +1,19 @@
 import { DbConnection, DbTransaction } from '@crowd/database'
 import { Logger } from '@crowd/logging'
-import { IMemberMergeSuggestion, MemberMergeSuggestionTable, SuggestionType } from '@crowd/types'
-import { IMemberId, IMemberMergeSuggestionsLatestGeneratedAt, IMemberNoMerge } from './types'
+import {
+  IMemberMergeSuggestion,
+  SuggestionType,
+  MemberMergeSuggestionTable,
+  LLMSuggestionVerdictType,
+  ILLMConsumableMemberDbResult,
+} from '@crowd/types'
+import {
+  IFindRawMemberMergeSuggestionsReplacement,
+  IMemberId,
+  IMemberMergeSuggestionsLatestGeneratedAt,
+  IMemberNoMerge,
+  IRawMemberMergeSuggestionResult,
+} from './types'
 import { removeDuplicateSuggestions, chunkArray } from './utils'
 
 class MemberMergeSuggestionsRepository {
@@ -192,6 +204,83 @@ class MemberMergeSuggestionsRepository {
       this.log.error('Error while getting non existing members from db', error)
       throw error
     }
+  }
+
+  async getMembers(memberIds: string[]): Promise<ILLMConsumableMemberDbResult[]> {
+    try {
+      const result: ILLMConsumableMemberDbResult[] = await this.connection.manyOrNone(
+        `
+        select 
+          mem.attributes,
+          mem."displayName",
+          mem."joinedAt",
+          jsonb_agg(distinct mI)            as identities,
+          coalesce(jsonb_agg(distinct organizations)  filter (where organizations is not null), '[]'::jsonb) as organizations
+        from members mem
+          join "memberIdentities" mI on mem.id = mI."memberId"
+          left join "memberOrganizations" mo on mem.id = mo."memberId"
+          left join (select o."displayName", o.logo, mox."dateStart", mox."dateEnd", mox.title, mox."memberId"
+                from "memberOrganizations" mox
+                         join organizations o on mox."organizationId" = o.id) as organizations
+               on organizations."memberId" = mo."memberId"
+        where mem.id in ($(memberIds:csv))
+        group by mI."memberId", mem.attributes, mem."displayName", mem."joinedAt"`,
+        {
+          memberIds,
+        },
+      )
+
+      return result || []
+    } catch (err) {
+      throw new Error(err)
+    }
+  }
+
+  async getRawMemberSuggestions(
+    similarityFilter: { lte: number; gte: number },
+    limit: number,
+  ): Promise<string[][]> {
+    const replacements: IFindRawMemberMergeSuggestionsReplacement = { limit }
+    let similarityLTEFilter = ''
+    let similarityGTEFilter = ''
+
+    if (similarityFilter.lte) {
+      similarityLTEFilter = ` and mtmr."similarity" <= $(similarityLTEFilter)`
+      replacements.similarityLTEFilter = similarityFilter.lte
+    }
+
+    if (similarityFilter.gte) {
+      similarityGTEFilter = ` and mtmr."similarity" >= $(similarityGTEFilter)`
+      replacements.similarityGTEFilter = similarityFilter.gte
+    }
+
+    const query = `select * from "memberToMergeRaw" mtmr
+                     where 
+                     not exists (
+                          select 1 from "llmSuggestionVerdicts" lsv 
+                          where (
+                              lsv."primaryId" = mtmr."memberId" and 
+                              lsv."secondaryId" = mtmr."toMergeId" and 
+                              lsv.type = '${LLMSuggestionVerdictType.MEMBER}'
+                            ) 
+                              or 
+                            (
+                              lsv."primaryId" = mtmr."toMergeId" and
+                              lsv."secondaryId" = mtmr."memberId" and
+                              lsv.type = '${LLMSuggestionVerdictType.MEMBER}'
+                            )
+                     )
+                     ${similarityLTEFilter}
+                     ${similarityGTEFilter}
+                     order by mtmr."memberId" desc
+                     limit $(limit);`
+
+    const results: IRawMemberMergeSuggestionResult[] = await this.connection.any(
+      query,
+      replacements,
+    )
+
+    return results.map((r) => [r.memberId, r.toMergeId])
   }
 }
 
