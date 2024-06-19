@@ -113,7 +113,7 @@ onMounted(() => {
   segments.value = route.query.segmentId ? [route.query.segmentId] : [route.query.projectGroup];
 });
 
-const disableOption = (option) => !!option.lfxMembership && !!props.primaryOrganization.lfxMembership;
+const disableOption = (option) => !!option.lfxMembership && !!props.primaryOrganization?.lfxMembership;
 </script>
 
 <script>

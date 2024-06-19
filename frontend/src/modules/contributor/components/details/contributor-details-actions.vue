@@ -76,6 +76,7 @@ import usePermissions from '@/shared/modules/permissions/helpers/usePermissions'
 import { useMemberStore } from '@/modules/member/store/pinia';
 import { storeToRefs } from 'pinia';
 import { MemberService } from '@/modules/member/member-service';
+import pluralize from 'pluralize';
 
 const props = defineProps<{
   contributor: Contributor,
@@ -116,7 +117,7 @@ const fetchMergeSuggestions = () => {
     countOnly: true,
   }, [])
     .then(({ count }) => {
-      mergeSuggestionsCount.value = count;
+      mergeSuggestionsCount.value = +count;
     });
 };
 
