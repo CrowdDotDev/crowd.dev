@@ -25,13 +25,12 @@ const log = getServiceLogger()
 
 const processArguments = process.argv.slice(2)
 
-if (processArguments.length !== 2) {
+if (processArguments.length !== 1) {
   log.error('Expected 1 argument: memberIds')
   process.exit(1)
 }
 
-const tenantId = processArguments[0]
-const memberIds = processArguments[1].split(',')
+const memberIds = processArguments[0].split(',')
 
 setImmediate(async () => {
   const dbClient = await getDbConnection(DB_CONFIG())
@@ -74,8 +73,6 @@ setImmediate(async () => {
     await deleteMemberSegments(dbClient, memberId)
 
     await deleteMember(dbClient, memberId)
-
-    await searchSyncWorkerEmitter.triggerRemoveMember(tenantId, memberId, false)
 
     processedMembers += 1
 
