@@ -26,8 +26,8 @@ setImmediate(async () => {
 
   const writeStore = new DbStore(log, writeHost)
 
-  const readHost = await getDbConnection({
-    host: process.env.CROWD_DB_READ_HOST,
+  const writeHost = await getDbConnection({
+    host: process.env.CROWD_DB_WRITE_HOST,
     port: parseInt(process.env.CROWD_DB_PORT),
     database: process.env.CROWD_DB_DATABASE,
     user: process.env.CROWD_DB_USERNAME,
@@ -39,7 +39,7 @@ setImmediate(async () => {
     await indexingRepo.deleteIndexedEntities(IndexedEntityType.ORGANIZATION)
   }
 
-  const readStore = new DbStore(log, readHost)
+  const readStore = new DbStore(log, writeHost)
   const repo = new OrganizationRepository(readStore, log)
 
   const tenantIds = await repo.getTenantIds()
