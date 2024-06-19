@@ -1,8 +1,8 @@
-import { OrganizationSyncService, OpenSearchService } from '@crowd/opensearch'
-import { DB_CONFIG, OPENSEARCH_CONFIG, SERVICE_CONFIG } from '../conf'
-import { OrganizationRepository } from '@crowd/data-access-layer/src/old/apps/search_sync_worker/organization.repo'
 import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
+import { OrganizationRepository } from '@crowd/data-access-layer/src/old/apps/search_sync_worker/organization.repo'
 import { getServiceLogger } from '@crowd/logging'
+import { OpenSearchService, OrganizationSyncService } from '@crowd/opensearch'
+import { DB_CONFIG, OPENSEARCH_CONFIG } from '../conf'
 
 const log = getServiceLogger()
 
@@ -23,7 +23,7 @@ setImmediate(async () => {
 
   const repo = new OrganizationRepository(store, log)
 
-  const service = new OrganizationSyncService(store, openSearchService, log, SERVICE_CONFIG())
+  const service = new OrganizationSyncService(store, openSearchService, log)
 
   const results = await repo.checkOrganizationsExists([organizationId])
 

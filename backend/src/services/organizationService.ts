@@ -1,6 +1,6 @@
 import { captureApiChange, organizationMergeAction } from '@crowd/audit-logs'
 import { Error400, websiteNormalizer } from '@crowd/common'
-import { findLfxMembership, hasLfxMembership } from '@crowd/data-access-layer/src/lfx_memberships'
+import { hasLfxMembership } from '@crowd/data-access-layer/src/lfx_memberships'
 import { LoggerBase } from '@crowd/logging'
 import {
   IOrganization,

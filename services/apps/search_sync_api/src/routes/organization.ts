@@ -2,10 +2,8 @@ import express from 'express'
 import { OrganizationSyncService } from '@crowd/opensearch'
 import { ApiRequest } from '../middleware'
 import { asyncWrap } from '../middleware/error'
-import { SERVICE_CONFIG } from '../conf'
 
 const router = express.Router()
-const serviceConfig = SERVICE_CONFIG()
 
 router.post(
   '/sync/organizations',
@@ -14,7 +12,6 @@ router.post(
       req.dbStore,
       req.opensearch,
       req.log,
-      serviceConfig,
     )
     const { organizationIds } = req.body
     try {
@@ -34,7 +31,6 @@ router.post(
       req.dbStore,
       req.opensearch,
       req.log,
-      serviceConfig,
     )
 
     const { tenantId } = req.body
@@ -57,7 +53,6 @@ router.post(
       req.dbStore,
       req.opensearch,
       req.log,
-      serviceConfig,
     )
 
     const { tenantId } = req.body
@@ -80,7 +75,6 @@ router.post(
       req.dbStore,
       req.opensearch,
       req.log,
-      serviceConfig,
     )
 
     const { organizationId } = req.body

@@ -1,14 +1,25 @@
 import pgp from 'pg-promise'
 
-export function prepareBulkInsert(table: string, columns: string[], objects: object[]) {
+export function prepareBulkInsert(
+  table: string,
+  columns: string[],
+  objects: object[],
+  onConflict?: string,
+) {
   const preparedObjects = objects.map((_, r) => {
     return `(${columns.map((_, c) => `$(rows.r${r}_c${c})`).join(',')})`
   })
+
+  let onConflictClause = ''
+  if (onConflict) {
+    onConflictClause = `ON CONFLICT ${onConflict}`
+  }
 
   return pgp.as.format(
     `
       INSERT INTO $(table:name) (${columns.map((_, i) => `$(columns.col${i}:name)`).join(',')})
       VALUES ${preparedObjects.join(',')}
+      ${onConflictClause}
     `,
     {
       table,

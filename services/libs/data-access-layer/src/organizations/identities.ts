@@ -1,6 +1,10 @@
 import { QueryExecutor } from '../queryExecutor'
+import { IOrgIdentity, IOrgIdentityInsertInput, IOrgIdentityUpdateInput } from './types'
 
-export async function fetchOrgIdentities(qx: QueryExecutor, organizationId: string) {
+export async function fetchOrgIdentities(
+  qx: QueryExecutor,
+  organizationId: string,
+): Promise<IOrgIdentity[]> {
   return qx.select(
     `
       SELECT *
@@ -15,8 +19,9 @@ export async function fetchOrgIdentities(qx: QueryExecutor, organizationId: stri
 
 export async function fetchManyOrgIdentities(
   qx: QueryExecutor,
-  { organizationIds, tenantId }: { organizationIds: string[]; tenantId: string },
-) {
+  organizationIds: string[],
+  tenantId: string,
+): Promise<{ organizationId: string; identities: IOrgIdentity[] }[]> {
   return qx.select(
     `
       SELECT
@@ -34,7 +39,11 @@ export async function fetchManyOrgIdentities(
   )
 }
 
-export async function cleanUpOrgIdentities(qx: QueryExecutor, { organizationId, tenantId }) {
+export async function cleanUpOrgIdentities(
+  qx: QueryExecutor,
+  organizationId: string,
+  tenantId: string,
+) {
   return qx.result(
     `
       DELETE
@@ -51,28 +60,18 @@ export async function cleanUpOrgIdentities(qx: QueryExecutor, { organizationId, 
 
 export async function updateOrgIdentity(
   qx: QueryExecutor,
-  { organizationId, tenantId, platform, value, type, verified },
+  identity: IOrgIdentityUpdateInput,
 ): Promise<void> {
   await qx.result(
     `
     update "organizationIdentities" set verified = $(verified)
     where "organizationId" = $(organizationId) and "tenantId" = $(tenantId) and platform = $(platform) and value = $(value) and type = $(type)
     `,
-    {
-      organizationId,
-      tenantId,
-      platform,
-      value,
-      type,
-      verified,
-    },
+    identity,
   )
 }
 
-export async function addOrgIdentity(
-  qx: QueryExecutor,
-  { organizationId, platform, value, type, verified, sourceId, tenantId, integrationId },
-) {
+export async function addOrgIdentity(qx: QueryExecutor, identity: IOrgIdentityInsertInput) {
   return qx.result(
     `
       INSERT INTO "organizationIdentities" (
@@ -89,15 +88,6 @@ export async function addOrgIdentity(
       VALUES ($(organizationId), $(platform), $(value), $(type), $(verified), $(sourceId), $(tenantId), $(integrationId), NOW())
       ON CONFLICT DO NOTHING;
     `,
-    {
-      organizationId,
-      platform,
-      value,
-      type,
-      verified,
-      sourceId,
-      tenantId,
-      integrationId,
-    },
+    identity,
   )
 }

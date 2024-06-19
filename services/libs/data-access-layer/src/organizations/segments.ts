@@ -1,17 +1,9 @@
+import { getServiceChildLogger } from '@crowd/logging'
 import { QueryExecutor } from '../queryExecutor'
 import { prepareBulkInsert } from '../utils'
+import { IOrganizationAggregateData } from './types'
 
-export interface IOrganizationAggregateData {
-  organizationId: string
-  segmentId: string
-  tenantId: string
-
-  joinedAt: string
-  lastActive: string
-  activeOn: string[]
-  activityCount: number
-  memberCount: number
-}
+const log = getServiceChildLogger('organizations/segments')
 
 export async function cleanupForOganization(qx: QueryExecutor, organizationId: string) {
   return qx.result(
@@ -47,7 +39,7 @@ export async function insertOrganizationSegments(
       ),
     )
   } catch (e) {
-    console.error(e)
+    log.error(e, 'Error while inserting organization segments!')
     throw e
   }
 }

@@ -66,7 +66,7 @@ function parseDomains(domains: string) {
   )
 }
 
-async function findOrg(qx, tenantId, record) {
+async function findOrgId(qx, tenantId, record) {
   let org = await findOrgByWebsite(qx, tenantId, [record['Account Domain']])
   if (org) {
     return org
@@ -115,10 +115,10 @@ if (parameters.help || !parameters.file || !parameters.tenantId) {
         tenantId,
         name: record['Project'],
       })
-      const org = await findOrg(qx, tenantId, record)
+      const orgId = await findOrgId(qx, tenantId, record)
       const row = {
         tenantId: parameters.tenantId,
-        organizationId: org?.id,
+        organizationId: orgId,
         segmentId: segment?.id,
         accountName: orgName,
         parentAccount: record['Parent Account'],

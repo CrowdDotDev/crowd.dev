@@ -6,16 +6,15 @@ import {
   IOrganizationAggregateData,
   cleanupForOganization,
   insertOrganizationSegments,
-} from '@crowd/data-access-layer/src/org_segments'
+} from '@crowd/data-access-layer/src/organizations'
 import { repoQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { DbStore } from '@crowd/database'
 import { Logger, getChildLogger, logExecutionTime } from '@crowd/logging'
-import { IServiceConfig, OpenSearchIndex } from '@crowd/types'
+import { OpenSearchIndex } from '@crowd/types'
 import { IndexedEntityType } from '../repo/indexing.data'
 import { IndexingRepository } from '../repo/indexing.repo'
 import { IDbOrganizationSyncData } from '../repo/organization.data'
 import { OrganizationRepository } from '../repo/organization.repo'
-import { SegmentRepository } from '../repo/segment.repo'
 import { IPagedSearchResponse, ISearchHit } from './opensearch.data'
 import { OpenSearchService } from './opensearch.service'
 import { IOrganizationSyncResult } from './organization.sync.data'
@@ -25,23 +24,18 @@ import { IOrganizationSyncResult } from './organization.sync.data'
 export class OrganizationSyncService {
   private log: Logger
   private readonly orgRepo: OrganizationRepository
-  private readonly segmentRepo: SegmentRepository
-  private readonly serviceConfig: IServiceConfig
   private readonly indexingRepo: IndexingRepository
 
   constructor(
     writeStore: DbStore,
     private readonly openSearchService: OpenSearchService,
     parentLog: Logger,
-    serviceConfig: IServiceConfig,
     readStore?: DbStore,
   ) {
     this.log = getChildLogger('organization-sync-service', parentLog)
-    this.serviceConfig = serviceConfig
 
     const store = readStore || writeStore
     this.orgRepo = new OrganizationRepository(store, this.log)
-    this.segmentRepo = new SegmentRepository(store, this.log)
     this.indexingRepo = new IndexingRepository(writeStore, this.log)
   }
 

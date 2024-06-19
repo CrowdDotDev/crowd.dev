@@ -11,8 +11,8 @@ import {
   fetchOrgIdentities,
   fetchManyOrgIdentities,
   updateOrgIdentity,
-} from '@crowd/data-access-layer/src/org_identities'
-import { findOrgAttributes } from '@crowd/data-access-layer/src/org_attributes'
+  findOrgAttributes,
+} from '@crowd/data-access-layer/src/organizations'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import {
   FeatureFlag,
@@ -610,7 +610,7 @@ class OrganizationRepository {
 
     const qx = SequelizeRepository.getQueryExecutor(options, transaction)
 
-    await cleanUpOrgIdentities(qx, { organizationId, tenantId: currentTenant.id })
+    await cleanUpOrgIdentities(qx, organizationId, currentTenant.id)
 
     await OrganizationRepository.addIdentities(organizationId, identities, options)
   }
@@ -1802,10 +1802,7 @@ class OrganizationRepository {
       })
     }
     if (include.identities) {
-      const identities = await fetchManyOrgIdentities(qx, {
-        organizationIds: orgIds,
-        tenantId: options.currentTenant.id,
-      })
+      const identities = await fetchManyOrgIdentities(qx, orgIds, options.currentTenant.id)
 
       rows.forEach((org) => {
         org.identities = identities.find((i) => i.organizationId === org.id)?.identities || []

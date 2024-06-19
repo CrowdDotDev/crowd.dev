@@ -8,14 +8,10 @@ import { OrganizationRepository } from '@crowd/data-access-layer/src/old/apps/pr
 import {
   ENRICHMENT_PLATFORM_PRIORITY,
   IEnrichableOrganizationData,
+  IOrganizationData,
 } from '@crowd/data-access-layer/src/old/apps/premium/organization_enrichment_worker/types'
 import { Logger, getChildLogger } from '@crowd/logging'
-import {
-  IEnrichableOrganization,
-  IOrganizationIdentity,
-  OrganizationIdentityType,
-  PlatformType,
-} from '@crowd/types'
+import { IOrganizationIdentity, OrganizationIdentityType, PlatformType } from '@crowd/types'
 import { svc } from '../main'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -209,7 +205,7 @@ async function getEnrichment({ name, website, locality }: any, log: Logger): Pro
 }
 
 function convertEnrichedDataToOrg(pdlData: any, existingIdentities: IOrganizationIdentity[]): any {
-  let enriched = <IEnrichableOrganization>renameKeys(pdlData, {
+  let enriched = renameKeys<IOrganizationData>(pdlData, {
     summary: 'description',
     employee_count_by_country: 'employeeCountByCountry',
     employee_count: 'employees',
@@ -355,12 +351,12 @@ function sanitize(data: any): any {
 }
 
 function enrichSocialNetworks(
-  data: IEnrichableOrganization,
+  data: IOrganizationData,
   socialNetworks: {
     profiles: string[]
     linkedin_id: string
   },
-): IEnrichableOrganization {
+): IOrganizationData {
   const identities: IOrganizationIdentity[] = data.identities || []
 
   for (const social of socialNetworks.profiles) {
