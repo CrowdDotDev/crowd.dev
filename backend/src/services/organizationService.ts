@@ -406,6 +406,7 @@ export default class OrganizationService extends LoggerBase {
         'segments',
         'lastActive',
         'joinedAt',
+        'identities',
       ])
 
     let tx
@@ -1117,25 +1118,15 @@ export default class OrganizationService extends LoggerBase {
   }
 
   async findAllAutocomplete(data) {
-    const res = await OrganizationRepository.findAndCountAll(data, this.options)
+    const segmentId = data.segments && data.segments.length > 0 ? data.segments[0] : undefined
 
-    // group orgs by id to avoid duplicates and store segmentId in a segments array
-    const grouped = res.rows.reduce((acc, org) => {
-      if (!acc[org.id]) {
-        acc[org.id] = { ...org, segments: [org.segmentId] }
-      } else {
-        acc[org.id].segments.push(org.segmentId)
-      }
-
-      // drop unnecessary fields
-      delete acc[org.id].grandParentSegment
-      delete acc[org.id].segmentId
-
-      return acc
-    }, {})
-
-    res.rows = Object.values(grouped)
-
+    const res = await OrganizationRepository.findAndCountAll(
+      {
+        ...data,
+        segmentId,
+      },
+      this.options,
+    )
     return res
   }
 
