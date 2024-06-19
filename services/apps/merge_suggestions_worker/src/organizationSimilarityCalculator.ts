@@ -56,7 +56,6 @@ class OrganizationSimilarityCalculator {
       }
     }
 
-
     // calculate similarity percentage
     const identityLength = similarPrimaryIdentity?.string_value.length || 0
 
