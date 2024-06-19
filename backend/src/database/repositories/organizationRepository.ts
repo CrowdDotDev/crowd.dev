@@ -33,6 +33,7 @@ import lodash, { chunk, uniq } from 'lodash'
 import Sequelize, { QueryTypes } from 'sequelize'
 import validator from 'validator'
 import { findManyLfxMemberships } from '@crowd/data-access-layer/src/lfx_memberships'
+import { fetchManyOrgSegments } from '@crowd/data-access-layer/src/org_segments'
 import {
   IFetchOrganizationMergeSuggestionArgs,
   SimilarityScoreRange,
@@ -43,7 +44,6 @@ import AuditLogRepository from './auditLogRepository'
 import SegmentRepository from './segmentRepository'
 import SequelizeRepository from './sequelizeRepository'
 import { IActiveOrganizationData, IActiveOrganizationFilter } from './types/organizationTypes'
-import { fetchManyOrgSegments } from '@crowd/data-access-layer/src/org_segments'
 
 const { Op } = Sequelize
 
