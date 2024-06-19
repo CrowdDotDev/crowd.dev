@@ -6,7 +6,7 @@ import { generateOrganizationMergeSuggestions } from './workflows/generateOrgani
 
 import { spawnOrganizationMergeSuggestionsForAllTenants } from './workflows/spawnOrganizationMergeSuggestionsForAllTenants'
 
-import { llm } from './workflows/llm'
+import { testMergingEntitiesWithLLM } from './workflows/testMergingEntitiesWithLLM'
 
 import { mergeOrganizationsWithLLM } from './workflows/mergeOrganizationsWithLLM'
 
@@ -17,7 +17,7 @@ export {
   spawnMemberMergeSuggestionsForAllTenants,
   generateOrganizationMergeSuggestions,
   spawnOrganizationMergeSuggestionsForAllTenants,
-  llm,
+  testMergingEntitiesWithLLM,
   mergeOrganizationsWithLLM,
   mergeMembersWithLLM,
 }

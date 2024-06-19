@@ -23,6 +23,7 @@ setImmediate(async () => {
     user: process.env.CROWD_DB_USERNAME,
     password: process.env.CROWD_DB_PASSWORD,
   })
+
   const writeStore = new DbStore(log, writeHost)
 
   const readHost = await getDbConnection({

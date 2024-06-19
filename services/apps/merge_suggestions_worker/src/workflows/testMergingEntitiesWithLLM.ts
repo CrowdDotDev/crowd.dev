@@ -19,7 +19,9 @@ const commonActivitiesProxy = proxyActivities<typeof commonActivities>({
   startToCloseTimeout: '1 minute',
 })
 
-export async function llm(args: IProcessCheckSimilarityWithLLM): Promise<void> {
+export async function testMergingEntitiesWithLLM(
+  args: IProcessCheckSimilarityWithLLM,
+): Promise<void> {
   console.log('llm workflow')
 
   let totalInputTokenCount = 0
