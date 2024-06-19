@@ -40,7 +40,7 @@ export class OrganizationSyncService {
     this.serviceConfig = serviceConfig
 
     const store = readStore || writeStore
-    this.orgRepo = new OrganizationRepository(store, this.log)
+    this.orgRepo = new OrganizationRepository(writeStore, this.log)
     this.segmentRepo = new SegmentRepository(store, this.log)
     this.indexingRepo = new IndexingRepository(writeStore, this.log)
   }
