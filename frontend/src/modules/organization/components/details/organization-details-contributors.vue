@@ -49,7 +49,7 @@
 
   <!-- Contact list -->
   <div>
-    <div v-if="loading && contributors.length === 0" class="flex justify-center pt-6">
+    <div v-if="loading && pagination.page <= 1" class="flex justify-center pt-6">
       <lf-spinner />
     </div>
     <div v-else>
@@ -94,7 +94,7 @@
             placement="top-end"
           >
             <template #badge>
-              <div class="py-3 -my-1">
+              <div>
                 <div class="h-6 flex items-center px-2 border border-gray-200 rounded-md gap-1.5 whitespace-nowrap">
                   <lf-icon name="fingerprint-line" :size="16" />
                   <p class="text-small text-gray-600 whitespace-nowrap">

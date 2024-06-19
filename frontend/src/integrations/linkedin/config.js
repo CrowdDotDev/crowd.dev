@@ -39,12 +39,10 @@ export default {
       const splittedIdentity = identityHandle?.split(':');
 
       if (splittedIdentity.length < 2) {
-        return `company:${identityHandle}`;
+        return identityHandle;
       }
 
-      const type = splittedIdentity[0] || 'company';
-
-      return `${type}:${splittedIdentity[1]}`;
+      return splittedIdentity[1];
     },
     identityLink: ({ identityHandle }) => {
       const splittedIdentity = identityHandle?.split(':');

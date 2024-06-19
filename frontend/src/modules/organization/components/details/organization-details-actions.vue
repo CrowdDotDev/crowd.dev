@@ -47,7 +47,7 @@
     v-model="isMergeSuggestionsDialogOpen"
     :query="{
       filter: {
-        memberId: props.organization?.id,
+        organizationId: props.organization?.id,
       },
     }"
   />
