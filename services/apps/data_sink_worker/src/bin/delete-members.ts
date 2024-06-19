@@ -25,7 +25,7 @@ const log = getServiceLogger()
 
 const processArguments = process.argv.slice(2)
 
-if (processArguments.length !== 1) {
+if (processArguments.length !== 2) {
   log.error('Expected 1 argument: memberIds')
   process.exit(1)
 }
