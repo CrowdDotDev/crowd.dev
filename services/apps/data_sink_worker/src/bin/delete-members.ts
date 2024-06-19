@@ -60,7 +60,7 @@ setImmediate(async () => {
 
   await searchSyncWorkerEmitter.init()
 
-  while (totalMemberIds > 0) {
+  while (processedMembers < totalMemberIds) {
     const memberId = memberIds.shift()
 
     if (!checkIfMemberExists(dbClient, memberId)) {
