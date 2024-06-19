@@ -391,20 +391,20 @@ export async function getRawOrganizationMergeSuggestions(
     onlyLFXMembers,
     organizationIds,
   )
-
   if (onlyLFXMembers) {
     // make sure primary is lfx member
-    for (let suggestion of suggestions) {
+    for (let i = 0; i < suggestions.length; i++) {
       const qx = pgpQx(svc.postgres.reader.connection())
       const isPrimaryOrgInSuggestionLFXMember = await hasLfxMembership(qx, {
         tenantId,
-        organizationId: suggestion[0],
+        organizationId: suggestions[i][0],
       })
 
       if (!isPrimaryOrgInSuggestionLFXMember) {
-        suggestion = [suggestion[1], suggestion[0]]
+        suggestions[i] = [suggestions[i][1], suggestions[i][0]]
       }
     }
   }
+
   return suggestions
 }
