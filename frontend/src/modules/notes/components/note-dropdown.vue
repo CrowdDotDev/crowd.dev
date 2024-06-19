@@ -21,14 +21,15 @@
       >
         <lf-icon name="pencil-line" />Edit note
       </lf-dropdown-item>
-      <lf-dropdown-separator />
-      <lf-dropdown-item
-        v-if="hasPermission(LfPermission.noteDestroy)"
-        type="danger"
-        @click="doDestroyWithConfirm"
-      >
-        <lf-icon name="delete-bin-6-line" />Delete note
-      </lf-dropdown-item>
+      <template v-if="hasPermission(LfPermission.noteDestroy)">
+        <lf-dropdown-separator />
+        <lf-dropdown-item
+          type="danger"
+          @click="doDestroyWithConfirm"
+        >
+          <lf-icon name="delete-bin-6-line" />Delete note
+        </lf-dropdown-item>
+      </template>
     </lf-dropdown>
   </div>
 </template>

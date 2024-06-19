@@ -31,6 +31,14 @@
         Load more
       </lf-button>
     </div>
+    <div v-if="notesCount === 0" class="pt-14">
+      <div class="flex justify-center pb-4">
+        <lf-icon name="draft-line" :size="80" class="text-gray-300" />
+      </div>
+      <p class="text-medium text-gray-400 text-center">
+        No contributor notes yet
+      </p>
+    </div>
   </div>
 </template>
 
@@ -43,6 +51,7 @@ import { NoteService } from '@/modules/notes/note-service';
 import LfNoteEditor from '@/modules/notes/components/note-editor.vue';
 import LfNoteItem from '@/modules/notes/components/note-item.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps<{
   contributor: Contributor,
