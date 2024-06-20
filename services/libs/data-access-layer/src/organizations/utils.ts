@@ -16,7 +16,7 @@ export interface IPrepareOrgResult {
 
 interface OrgAttributeDef {
   name: string
-  incomingType: OrganizationAttributeType | 'string_array'
+  incomingType: OrganizationAttributeType | 'string_array' | 'object_array'
   type: OrganizationAttributeType
   defaultColumn?: string
 }
@@ -126,14 +126,33 @@ export function prepareOrganizationData(
         throw new Error(`Expected ${attDef.name} to be an array`)
       }
 
+      if (data.length === 0) {
+        continue
+      }
+
       // generate attribute for each value in the array
       values.push(...data)
+    } else if (attDef.incomingType === 'object_array') {
+      if (!Array.isArray(data)) {
+        throw new Error(`Expected ${attDef.name} to be an array`)
+      }
+
+      if (data.length === 0) {
+        continue
+      }
+
+      // stringify the value
+      values.push(JSON.stringify(data))
     } else if (attDef.incomingType === OrganizationAttributeType.OBJECT) {
       // stringify the value
       values.push(JSON.stringify(data))
     } else {
       // primitive value
       values.push(String(data))
+    }
+
+    if (values.length === 0) {
+      continue
     }
 
     const existing = (existingAttributes || []).filter(
