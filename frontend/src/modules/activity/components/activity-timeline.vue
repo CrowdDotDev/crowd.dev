@@ -1,6 +1,6 @@
 <template>
   <div class="activity-timeline">
-    <div class="my-6">
+    <div class="mb-6">
       <div class="flex gap-2">
         <el-input
           v-model="query"
@@ -204,19 +204,12 @@
           </el-timeline-item>
         </template>
 
-        <div
+        <app-empty-state-cta
           v-if="!activities.length && !loading"
-          class="flex items-center justify-center pt-6 pb-5"
-        >
-          <div
-            class="ri-list-check-2 text-3xl text-gray-300 mr-4 h-10 flex items-center"
-          />
-          <p
-            class="text-xs leading-5 text-center italic text-gray-400"
-          >
-            This contributor has no activities in {{ getPlatformDetails(platform)?.name || 'custom platforms' }}
-          </p>
-        </div>
+          icon="ri-list-check-2"
+          title="No activities found"
+          description="We couldn't find any results that match your search criteria, please try a different query"
+        />
       </el-timeline>
       <div
         v-if="loading"
@@ -291,6 +284,10 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  selectedSegment: {
+    type: String,
+    default: null,
+  },
 });
 
 const lsSegmentsStore = useLfSegmentsStore();
@@ -315,7 +312,7 @@ const activities = ref([]);
 const limit = ref(20);
 const offset = ref(0);
 const noMore = ref(false);
-const selectedSegment = ref(null);
+const selectedSegment = ref(props.selectedSegment || null);
 
 let filter = {};
 

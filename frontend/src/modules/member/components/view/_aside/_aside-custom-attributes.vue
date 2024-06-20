@@ -11,7 +11,7 @@
           placement="top"
           trigger="hover"
         >
-          <app-svg name="source" class="h-3 w-3" />
+          <lf-svg name="source" class="h-3 w-3" />
         </el-tooltip>
       </div>
 
@@ -51,14 +51,14 @@
         class="attribute"
       >
         <!-- Enrichment sneak peak attributes -->
-        <cr-enrichment-sneak-peak v-if="!isEnrichmentEnabled && hiddenAttributeNames.includes(attribute.name)" type="contact">
+        <lf-enrichment-sneak-peak v-if="!isEnrichmentEnabled && hiddenAttributeNames.includes(attribute.name)" type="contact">
           <template #default>
             <div>
               <div class="flex items-center">
                 <p class="title pr-2 !text-purple-400">
                   {{ attribute.label }}
                 </p>
-                <app-svg name="source" class="h-3 w-3" />
+                <lf-svg name="source" class="h-3 w-3" />
               </div>
               <div class="w-full mt-2">
                 <div class="blur-[6px] text-gray-900 text-xs select-none">
@@ -67,7 +67,7 @@
               </div>
             </div>
           </template>
-        </cr-enrichment-sneak-peak>
+        </lf-enrichment-sneak-peak>
 
         <!-- Remaining attributes that are not hidden -->
         <div v-else>
@@ -90,7 +90,7 @@
               placement="top"
               trigger="hover"
             >
-              <app-svg name="source" class="h-3 w-3" />
+              <lf-svg name="source" class="h-3 w-3" />
             </el-tooltip>
           </div>
           <div
@@ -124,7 +124,7 @@
 
     <!-- CTA widget -->
     <div class="-mx-2 pt-2">
-      <cr-enrichment-sneak-peak-content type="contact" :dark="true" />
+      <lf-enrichment-sneak-peak-content type="contact" :dark="true" />
     </div>
 
     <app-member-manage-attributes-drawer
@@ -143,9 +143,9 @@ import { formatDate } from '@/utils/date';
 import { useMemberStore } from '@/modules/member/store/pinia';
 import { storeToRefs } from 'pinia';
 import { getAttributeSourceName } from '@/shared/helpers/attribute.helpers';
-import AppSvg from '@/shared/svg/svg.vue';
-import CrEnrichmentSneakPeak from '@/shared/modules/enrichment/components/enrichment-sneak-peak.vue';
-import CrEnrichmentSneakPeakContent from '@/shared/modules/enrichment/components/enrichment-sneak-peak-content.vue';
+import LfSvg from '@/shared/svg/svg.vue';
+import LfEnrichmentSneakPeak from '@/shared/modules/enrichment/components/enrichment-sneak-peak.vue';
+import LfEnrichmentSneakPeakContent from '@/shared/modules/enrichment/components/enrichment-sneak-peak-content.vue';
 import Plans from '@/security/plans';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';

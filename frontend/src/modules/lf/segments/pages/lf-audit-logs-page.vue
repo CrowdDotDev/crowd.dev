@@ -1,6 +1,6 @@
 <template>
   <div class="pt-6">
-    <cr-filter
+    <lf-filter
       ref="memberFilter"
       v-model="filters"
       :config="auditLogsFilters"
@@ -95,9 +95,9 @@
       >
         <template #default="{ row }">
           <div class="py-4 flex items-center h-full">
-            <cr-button type="secondary" size="small" @click="() => openLogDetailsDrawer(row)">
+            <lf-button type="secondary" size="small" @click="() => openLogDetailsDrawer(row)">
               View details
-            </cr-button>
+            </lf-button>
           </div>
         </template>
       </el-table-column>
@@ -105,9 +105,9 @@
   </div>
 
   <div v-if="pagination.total >= (pagination.page * pagination.perPage)" class="pt-6 pb-6 flex justify-center">
-    <cr-button type="tertiary" @click="loadMore">
+    <lf-button type="secondary-ghost" @click="loadMore">
       <i class="ri-arrow-down-line" />Load more
-    </cr-button>
+    </lf-button>
   </div>
 
   <app-lf-audit-logs-drawer
@@ -116,14 +116,14 @@
 </template>
 
 <script setup lang="ts">
-import CrFilter from '@/shared/modules/filters/components/Filter.vue';
+import LfFilter from '@/shared/modules/filters/components/Filter.vue';
 import { auditLogsFilters } from '@/modules/lf/config/audit-logs/filters/main';
 import { FilterQuery } from '@/shared/modules/filters/types/FilterQuery';
 import { reactive, ref } from 'vue';
 import { Filter } from '@/shared/modules/filters/types/FilterConfig';
 import AppLfAuditLogsDrawer from '@/modules/lf/segments/components/logs/log.drawer.vue';
 import { AuditLog } from '@/modules/lf/segments/types/AuditLog';
-import CrButton from '@/ui-kit/button/Button.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 import moment from 'moment';
 import { LfService } from '@/modules/lf/segments/lf-segments-service';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';

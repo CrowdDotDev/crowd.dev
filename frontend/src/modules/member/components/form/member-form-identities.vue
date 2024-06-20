@@ -40,14 +40,14 @@
                     <template #suffix>
                       <i
                         v-if="identity.value && identity.verified"
-                        class="ri-verified-badge-fill text-brand-500 text-base leading-4"
+                        class="ri-verified-badge-fill text-primary-500 text-base leading-4"
                       />
                     </template>
                   </el-input>
-                  <cr-button
+                  <lf-button
                     :id="`identityRef-${ii}`"
                     :ref="(el) => setActionBtnsRef(el, ii)"
-                    type="tertiary-light-gray"
+                    type="secondary-ghost-light"
                     size="small"
                     :icon-only="true"
                     class="relative"
@@ -57,7 +57,7 @@
                       :id="`identityRefIcon-${ii}`"
                       class="ri-more-fill"
                     />
-                  </cr-button>
+                  </lf-button>
                 </article>
               </template>
             </template>
@@ -129,7 +129,7 @@
               @click="unverifyIdentity(identityDropdown); identityDropdown = null"
             >
               <div class="flex items-center">
-                <app-svg name="unverify" class="text-gray-600 mr-3 !h-4 !w-4 min-w-[1rem]" />
+                <lf-svg name="unverify" class="text-gray-600 mr-3 !h-4 !w-4 min-w-[1rem]" />
                 <span>Unverify identity</span>
               </div>
             </button>
@@ -164,8 +164,8 @@ import {
   computed, onMounted, watch, ref,
 } from 'vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
-import AppSvg from '@/shared/svg/svg.vue';
-import CrButton from '@/ui-kit/button/Button.vue';
+import LfSvg from '@/shared/svg/svg.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 import { ClickOutside as vClickOutside } from 'element-plus';
 
 const emit = defineEmits(['update:modelValue', 'unmerge']);

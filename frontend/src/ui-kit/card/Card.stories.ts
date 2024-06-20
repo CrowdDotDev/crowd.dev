@@ -1,8 +1,8 @@
-import CrCard from './Card.vue';
+import LfCard from './Card.vue';
 
 export default {
-  title: 'Crowd.dev/Card',
-  component: CrCard,
+  title: 'LinuxFoundation/Card',
+  component: LfCard,
   tags: ['autodocs'],
   argTypes: {
     // Slots
@@ -22,17 +22,17 @@ export const Default = {
   },
   parameters: {
     backgrounds: {
-      default: 'crowd-background',
+      default: 'lf-background',
       values: [
         {
-          name: 'crowd-background',
+          name: 'lf-background',
           value: '#f8f8f8',
         },
       ],
     },
   },
   render: () => ({
-    components: { CrCard },
-    template: '<div class="flex"><cr-card class="p-12">This is card content</cr-card></div>',
+    components: { LfCard },
+    template: '<div class="flex"><lf-card class="p-12">This is card content</lf-card></div>',
   }),
 };

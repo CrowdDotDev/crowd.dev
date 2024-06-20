@@ -1,10 +1,10 @@
 import { badgeSize } from '@/ui-kit/badge/types/BadgeSize';
 import { badgeType } from '@/ui-kit/badge/types/BadgeType';
-import CrBadge from './Badge.vue';
+import LfBadge from './Badge.vue';
 
 export default {
-  title: 'Crowd.dev/Badge',
-  component: CrBadge,
+  title: 'LinuxFoundation/Badge',
+  component: LfBadge,
   tags: ['autodocs'],
   argTypes: {
     // Props
@@ -23,7 +23,7 @@ export default {
 
     // Slots
     default: {
-      description: 'Text or html content of the radio',
+      description: 'Text or html content of the badge',
       control: {
         type: null,
       },
@@ -47,10 +47,10 @@ export const White = {
   },
 };
 
-export const Brand = {
+export const Primary = {
   args: {
     size: 'medium',
-    type: 'brand',
+    type: 'primary',
     default: 'Badge',
   },
 };

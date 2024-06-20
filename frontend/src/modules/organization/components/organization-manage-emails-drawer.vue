@@ -8,7 +8,7 @@
     <template #content>
       <div class="-mt-8 z-10 pb-6">
         <div
-          class="flex gap-2 text-xs text-brand-500 font-semibold items-center cursor-pointer"
+          class="flex gap-2 text-xs text-brand-500 font-semibold items-center cursor-pointer text-primary-500"
           @click="addEmail()"
         >
           <i class="ri-add-line text-base" />Add email
@@ -24,7 +24,6 @@
               @remove="remove(ii)"
             />
           </template>
-
           <template v-for="(email, ai) of addEmails" :key="ai">
             <app-organization-form-email-item
               :email="email"
@@ -39,7 +38,6 @@
     </template>
   </app-drawer>
 </template>
-
 <script setup lang="ts">
 import {
   ref,
@@ -61,16 +59,11 @@ const props = defineProps<{
   modelValue: boolean,
   organization: Organization,
 }>();
-
-const emit = defineEmits(['update:modelValue']);
-
+const emit = defineEmits(['update:modelValue', 'reload']);
 const { trackEvent } = useProductTracking();
-
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
-
 const { fetchOrganization } = useOrganizationStore();
-
 const drawerModel = computed({
   get() {
     return props.modelValue;
@@ -79,10 +72,8 @@ const drawerModel = computed({
     emit('update:modelValue', value);
   },
 });
-
 const emails = ref<string[]>([...(props.organization.emails || [])]);
 const addEmails = ref<string[]>([]);
-
 const serverUpdate = () => {
   trackEvent({
     key: FeatureEventKey.EDIT_ORGANIZATION_EMAIL_DOMAIN,
@@ -91,42 +82,35 @@ const serverUpdate = () => {
       emails: emails.value.filter((e) => !!e.trim()),
     },
   });
-
   OrganizationService.update(props.organization.id, {
     emails: emails.value.filter((e) => !!e.trim()),
   }).then(() => {
     Message.success('Organization email updated successfully');
+    emit('reload');
   }).catch((err) => {
     Message.error(err.response.data);
   });
 };
-
 const update = (index: number, data: string) => {
   emails.value[index] = data;
   serverUpdate();
 };
-
 const remove = (index: number) => {
   emails.value.splice(index, 1);
   serverUpdate();
 };
-
 const create = (index: number, data: string) => {
   emails.value.push(data);
   addEmails.value.splice(index, 1);
   serverUpdate();
 };
-
 const addEmail = () => {
   addEmails.value.push('');
 };
-
 onUnmounted(() => {
   fetchOrganization(props.organization.id, [selectedProjectGroup.value?.id]);
 });
-
 </script>
-
 <script lang="ts">
 export default {
   name: 'AppOrganizationManageEmailsDrawer',

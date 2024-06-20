@@ -8,9 +8,7 @@ const industry: OrganizationEnrichmentConfig = {
   type: AttributeType.STRING,
   showInForm: true,
   showInAttributes: true,
-  enrichmentSneakPeak: true,
-  enrichmentSneakPeakValue: 'Software',
-  displayValue: (value) => toSentenceCase(value),
+  formatValue: (value) => toSentenceCase(value),
 };
 
 export default industry;

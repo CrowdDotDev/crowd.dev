@@ -2,7 +2,7 @@
   <div v-if="displayContent" class="p-4 rounded-md" :class="props.dark ? 'bg-purple-50' : 'bg-white'">
     <div class="flex items-center mb-3">
       <div class="w-5 h-5 rounded-full p-1 mr-2" :class="props.dark ? 'bg-purple-400' : 'bg-purple-100'">
-        <app-svg name="enrichment-star" :class="props.dark ? 'text-purple-50' : 'text-purple-400'" />
+        <lf-svg name="enrichment-star" :class="props.dark ? 'text-purple-50' : 'text-purple-400'" />
       </div>
       <p class="text-xs font-semibold text-gray-900">
         {{ popover.title }}
@@ -37,7 +37,7 @@
 
 <script lang="ts" setup>
 import { computed } from 'vue';
-import AppSvg from '@/shared/svg/svg.vue';
+import LfSvg from '@/shared/svg/svg.vue';
 import { EnrichSneakPeakPopoverType, EnrichSneakPeakPopoverContent } from '@/shared/modules/enrichment/types/SneakPeakPopover';
 import { popoverContent } from '@/shared/modules/enrichment/constants/sneak-peak-popover';
 import Plans from '@/security/plans';
@@ -58,7 +58,7 @@ const popover = computed<EnrichSneakPeakPopoverContent>(() => popoverContent[pro
 
 <script lang="ts">
 export default {
-  name: 'CrEnrichmentSneakPeakContent',
+  name: 'LfEnrichmentSneakPeakContent',
 };
 </script>
 

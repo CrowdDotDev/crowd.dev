@@ -4,7 +4,7 @@
     <header class="flex items-center justify-between px-6 py-5 border-b">
       <div class="flex items-center gap-4">
         <div class="flex items-center gap-2">
-          <cr-button
+          <lf-button
             type="secondary"
             size="small"
             :disabled="loading || offset <= 0 || count === 0"
@@ -12,8 +12,8 @@
             @click="fetch(offset - 1)"
           >
             <i class="ri-arrow-left-s-line" />
-          </cr-button>
-          <cr-button
+          </lf-button>
+          <lf-button
             type="secondary"
             size="small"
             :disabled="loading || offset >= count - 1 || count === 0"
@@ -21,7 +21,7 @@
             @click="fetch(offset + 1)"
           >
             <i class="ri-arrow-right-s-line" />
-          </cr-button>
+          </lf-button>
         </div>
 
         <app-loading v-if="loading" height="16px" width="128px" radius="3px" />
@@ -46,22 +46,22 @@
       </div>
       <div class="flex items-center gap-4">
         <app-member-merge-similarity v-if="!loading && membersToMerge.similarity" :similarity="membersToMerge.similarity" />
-        <cr-button
+        <lf-button
           type="secondary"
           :disabled="loading || isEditLockedForSampleData || count === 0"
           :loading="sendingIgnore"
           @click="ignoreSuggestion()"
         >
           Ignore suggestion
-        </cr-button>
-        <cr-button
+        </lf-button>
+        <lf-button
           type="primary"
           :disabled="loading || isEditLockedForSampleData || count === 0"
           :loading="sendingMerge"
           @click="mergeSuggestion()"
         >
           Merge contributors
-        </cr-button>
+        </lf-button>
         <slot name="actions" />
       </div>
     </header>
@@ -83,7 +83,7 @@
             :loading="true"
           />
         </div>
-        <div class="w-1/3 ml-8 rounded-lg bg-brand-25">
+        <div class="w-1/3 ml-8 rounded-lg bg-primary-25">
           <app-member-merge-suggestions-details
             :member="null"
             :loading="true"
@@ -113,7 +113,7 @@
           <app-member-merge-suggestions-details
             :member="preview"
             :is-preview="true"
-            class="rounded-lg bg-brand-25"
+            class="rounded-lg bg-primary-25"
           />
         </div>
       </div>
@@ -140,11 +140,9 @@ import {
 import Message from '@/shared/message/message';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
 import AppMemberMergeSuggestionsDetails from '@/modules/member/components/suggestions/member-merge-suggestions-details.vue';
-import { storeToRefs } from 'pinia';
-import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { merge } from 'lodash';
 import useMemberMergeMessage from '@/shared/modules/merge/config/useMemberMergeMessage';
-import CrButton from '@/ui-kit/button/Button.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
 import AppMemberMergeSimilarity from '@/modules/member/components/suggestions/member-merge-similarity.vue';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
@@ -164,9 +162,6 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['reload']);
-
-const lsSegmentsStore = useLfSegmentsStore();
-const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const { trackEvent } = useProductTracking();
 
@@ -283,7 +278,7 @@ const mergeSuggestion = () => {
   const primaryMember = membersToMerge.value.members[primary.value];
   const secondaryMember = membersToMerge.value.members[(primary.value + 1) % 2];
 
-  const { loadingMessage, successMessage, apiErrorMessage } = useMemberMergeMessage;
+  const { loadingMessage, apiErrorMessage } = useMemberMergeMessage;
 
   loadingMessage();
 
@@ -297,13 +292,14 @@ const mergeSuggestion = () => {
 
   MemberService.merge(primaryMember, secondaryMember)
     .then(() => {
+      Message.closeAll();
+      Message.info(
+        'We’re finalizing contributor merging. We will let you know once the process is completed.',
+        {
+          title: 'Contributors merging in progress',
+        },
+      );
       primary.value = 0;
-
-      successMessage({
-        primaryMember,
-        secondaryMember,
-        selectedProjectGroupId: selectedProjectGroup.value?.id,
-      });
 
       const nextIndex = offset.value >= (count.value - 1) ? Math.max(count.value - 2, 0) : offset.value;
       fetch(nextIndex);

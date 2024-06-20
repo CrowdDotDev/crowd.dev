@@ -98,7 +98,7 @@
             <div class="grid gap-x-12 grid-cols-4">
               <div>
                 <h6>
-                  Identities <span class="text-brand-500">*</span>
+                  Identities <span class="text-primary-500">*</span>
                 </h6>
                 <p class="text-gray-500 text-2xs leading-normal mt-1">
                   Connect with contributors' external data sources or
@@ -573,7 +573,7 @@ async function onSubmit() {
       .catch((error) => {
         if (error.response.status === 409) {
           leaveWithoutConfirmation.value = true;
-          Message.error(
+          Message.success(
             h(
               'div',
               {
@@ -596,7 +596,7 @@ async function onSubmit() {
               ],
             ),
             {
-              title: 'Member was not updated because the identity already exists in another member.',
+              title: 'Contributor was not updated because the identity already exists in another contributor, but you can merge the contributors',
             },
           );
 

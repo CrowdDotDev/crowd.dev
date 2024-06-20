@@ -8,7 +8,7 @@ const lastEnrichedAt: OrganizationEnrichmentConfig = {
   type: AttributeType.DATE,
   showInForm: false,
   showInAttributes: true,
-  displayValue: (value) => (formatDate({
+  formatValue: (value) => (formatDate({
     timestamp: value,
     subtractDays: null,
     subtractMonths: null,

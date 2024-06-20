@@ -1,6 +1,6 @@
 <template>
   <div class="pt-8">
-    <cr-filter
+    <lf-filter
       ref="organizationFilter"
       v-model="filters"
       :config="organizationFilters"
@@ -31,7 +31,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
-import CrFilter from '@/shared/modules/filters/components/Filter.vue';
+import LfFilter from '@/shared/modules/filters/components/Filter.vue';
 import { organizationFilters, organizationSearchFilter } from '@/modules/organization/config/filters/main';
 import { commonOrganizationSavedViews } from '@/modules/organization/config/saved-views/main';
 import { FilterQuery } from '@/shared/modules/filters/types/FilterQuery';
@@ -90,11 +90,6 @@ const fetch = ({
   if (!loading.value) {
     loading.value = true;
   }
-  filter.and.push({
-    grandParentSegment: {
-      eq: true,
-    },
-  });
   getOrganizations({
     ...body,
     filter,

@@ -41,7 +41,7 @@ export default {
         case 'warning':
           return 'bg-yellow-50 border-yellow-100';
         default:
-          return 'bg-blue-50 border-blue-100';
+          return 'bg-primary-50 border-primary-100';
       }
     },
     iconClass() {
@@ -49,7 +49,7 @@ export default {
         case 'warning':
           return 'text-yellow-500 ri-alert-fill';
         default:
-          return 'text-blue-500 ri-information-fill';
+          return 'text-primary-500 ri-information-fill';
       }
     },
   },

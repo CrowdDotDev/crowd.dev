@@ -37,6 +37,6 @@ const emit = defineEmits<{(e: 'toggle-menu'): any}>();
 
 <script lang="ts">
 export default {
-  name: 'CrMenuHeader',
+  name: 'LfMenuHeader',
 };
 </script>

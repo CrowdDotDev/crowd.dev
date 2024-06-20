@@ -278,13 +278,13 @@
                           class="flex flex-wrap items-center"
                         >
                           <i
-                            class="ri-check-line text-brand-500"
+                            class="ri-check-line text-primary-500"
                           />
                           <span
                             class="text-xs ml-1 text-gray-600"
                           >Copied to clipboard.
                             <span
-                              class="font-semibold cursor-pointer text-brand-500"
+                              class="font-semibold cursor-pointer text-primary-500"
                               @click="onCardClickFromDialog"
                             >
                               Go to post.
@@ -331,7 +331,7 @@
             <div
               class="h-8 w-8 flex items-center justify-center rounded-full hover:bg-gray-200 group"
               :class="{
-                'bg-blue-100 hover:bg-blue-100':
+                'bg-primary-100 hover:bg-primary-100':
                   isBookmarked,
                 'pointer-events-none': isBookmarkedByTeam,
               }"
@@ -347,9 +347,9 @@
                 :class="{
                   'ri-bookmark-line text-gray-400':
                     !isBookmarked && !isBookmarkedByTeam,
-                  'ri-bookmark-fill text-blue-600 group-hover:text-blue-600':
+                  'ri-bookmark-fill text-primary-600 group-hover:text-primary-600':
                     isBookmarked && !isBookmarkedByTeam,
-                  'ri-bookmark-fill text-blue-300':
+                  'ri-bookmark-fill text-primary-300':
                     isBookmarkedByTeam,
                 }"
               />

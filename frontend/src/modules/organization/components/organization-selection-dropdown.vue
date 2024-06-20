@@ -14,6 +14,7 @@
           id="searchOrganizations"
           v-model="computedOrganizationToMerge"
           :fetch-fn="fetchFn"
+          :disable-option="disableOption"
           placeholder="Type to search organizations"
           input-class="w-full"
         >
@@ -37,6 +38,9 @@
         </app-autocomplete-one-input>
       </div>
     </div>
+    <div class="flex justify-center mt-4 text-gray-500 text-2xs">
+      <span class="font-semibold pr-1">Note:</span>Active member organizations of the Linux Foundation can't be merged into other organizations.
+    </div>
   </div>
 </template>
 
@@ -55,6 +59,10 @@ import { useRoute } from 'vue-router';
 const emit = defineEmits('update:modelValue');
 const props = defineProps({
   modelValue: {
+    type: Object,
+    required: true,
+  },
+  primaryOrganization: {
     type: Object,
     required: true,
   },
@@ -86,6 +94,7 @@ const fetchFn = async ({ query, limit }) => {
   const options = await OrganizationService.listOrganizationsAutocomplete({
     query,
     limit,
+    excludeLfMember: true,
     segments: segments.value,
   });
 
@@ -104,6 +113,7 @@ onMounted(() => {
   segments.value = route.query.segmentId ? [route.query.segmentId] : [route.query.projectGroup];
 });
 
+const disableOption = (option) => !!option.lfxMembership && !!props.primaryOrganization?.lfxMembership;
 </script>
 
 <script>

@@ -19,6 +19,7 @@ import lfx from './custom/lfx';
 import groupsio from './groupsio';
 import confluence from './confluence';
 import gerrit from './gerrit';
+import jira from './jira';
 import cvent from './custom/cvent';
 import tnc from './custom/tnc';
 
@@ -45,6 +46,7 @@ class IntegrationsConfig {
       facebook,
       confluence,
       gerrit,
+      jira,
     };
   }
 
@@ -97,6 +99,23 @@ class IntegrationsConfig {
     return this.enabledConfigs
       .map((i) => this.mapper(i, store))
       .filter((i) => !i.hideAsIntegration);
+  }
+
+  getPlatformsLabel(platforms) {
+    return platforms
+      .filter((platform) => !['integration_or_enrichment'].includes(platform))
+      .map((platform) => {
+        if (platform === 'lfid') {
+          return 'LFID';
+        }
+        if (platform === 'integration') {
+          return 'Integration';
+        }
+        if (platform === 'enrichment') {
+          return 'Enrichment';
+        }
+        return this.getConfig(platform)?.name || platform;
+      }).join(', ');
   }
 
   get customIntegrations() {

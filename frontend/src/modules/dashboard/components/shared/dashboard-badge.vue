@@ -32,7 +32,7 @@ const typeClass = computed(() => {
   } if (props.type === 'danger') {
     return 'bg-red-50 text-red-700';
   }
-  return 'bg-blue-100 text-blue-700';
+  return 'bg-primary-100 text-primary-700';
 });
 </script>
 

@@ -46,7 +46,7 @@
             placement="top"
             trigger="hover"
           >
-            <app-svg name="source" class="h-3 w-3" />
+            <lf-svg name="source" class="h-3 w-3" />
           </el-tooltip>
         </div>
 
@@ -65,7 +65,7 @@
         </p>
       </div>
       <div>
-        <cr-enrichment-sneak-peak type="contact">
+        <lf-enrichment-sneak-peak type="contact">
           <template #default="{ enabled }">
             <div>
               <div class="flex items-center gap-1">
@@ -85,7 +85,7 @@
                   trigger="hover"
                   :disabled="!enabled"
                 >
-                  <app-svg name="source" class="h-3 w-3" />
+                  <lf-svg name="source" class="h-3 w-3" />
                 </el-tooltip>
               </div>
               <p v-if="enabled" class="mt-1 text-gray-900 text-xs">
@@ -98,7 +98,7 @@
               </div>
             </div>
           </template>
-        </cr-enrichment-sneak-peak>
+        </lf-enrichment-sneak-peak>
       </div>
       <div>
         <p class="text-gray-400 font-medium text-2xs">
@@ -137,9 +137,9 @@ import AppMemberBadge from '@/modules/member/components/member-badge.vue';
 import AppTags from '@/modules/tag/components/tag-list.vue';
 import AppMemberBio from '@/modules/member/components/member-bio.vue';
 import AppTagPopover from '@/modules/tag/components/tag-popover.vue';
-import AppSvg from '@/shared/svg/svg.vue';
+import LfSvg from '@/shared/svg/svg.vue';
 import { getAttributeSourceName } from '@/shared/helpers/attribute.helpers';
-import CrEnrichmentSneakPeak from '@/shared/modules/enrichment/components/enrichment-sneak-peak.vue';
+import LfEnrichmentSneakPeak from '@/shared/modules/enrichment/components/enrichment-sneak-peak.vue';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 

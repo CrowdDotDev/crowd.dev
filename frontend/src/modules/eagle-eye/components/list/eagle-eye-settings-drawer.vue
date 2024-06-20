@@ -36,7 +36,7 @@
             </app-eagle-eye-settings-include>
             <div class="flex">
               <p
-                class="text-sm leading-5 text-brand-500 cursor-pointer hover:underline"
+                class="text-sm leading-5 text-primary-500 cursor-pointer hover:underline"
                 @click="addInclude()"
               >
                 + Add keyword
@@ -73,7 +73,7 @@
             </article>
             <div class="flex">
               <p
-                class="text-sm leading-5 text-brand-500 cursor-pointer hover:underline"
+                class="text-sm leading-5 text-primary-500 cursor-pointer hover:underline"
                 @click="addExclude()"
               >
                 + Add keyword

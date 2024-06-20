@@ -116,9 +116,9 @@ export default {
   }
 
   &--fan {
-    @apply text-blue-600;
+    @apply text-primary-600;
     .member-engagement-level-value {
-      @apply bg-blue-500;
+      @apply bg-primary-500;
     }
   }
 

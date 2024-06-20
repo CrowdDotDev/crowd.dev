@@ -17,7 +17,7 @@
 import moment from 'moment';
 
 export default {
-  name: 'AppSvg',
+  name: 'LfSvg',
   props: {
     name: {
       type: String,

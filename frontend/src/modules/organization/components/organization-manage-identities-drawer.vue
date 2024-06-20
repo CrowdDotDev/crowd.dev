@@ -8,25 +8,25 @@
   >
     <template #content>
       <div class="-mt-8 z-10 pb-6">
-        <cr-dropdown width="260px">
+        <lf-dropdown width="260px">
           <template #trigger>
-            <div class="flex gap-2 text-xs text-brand-500 font-semibold items-center cursor-pointer">
+            <div class="flex gap-2 text-xs text-primary-500 font-semibold items-center cursor-pointer">
               <i class="ri-add-line text-base" />Add identity
             </div>
           </template>
           <div class="max-h-64 overflow-auto">
-            <cr-dropdown-item v-for="platform of platforms" :key="platform.platform" @click="addIdentity(platform.platform)">
+            <lf-dropdown-item v-for="platform of platforms" :key="platform.platform" @click="addIdentity(platform.platform)">
               <img :src="platform.image" :alt="platform.name" class="h-4 w-4" />
               <span>{{ platform.name }}</span>
-            </cr-dropdown-item>
+            </lf-dropdown-item>
           </div>
-        </cr-dropdown>
+        </lf-dropdown>
       </div>
       <div class="border-t border-gray-200 -mx-6 px-6">
         <div class="gap-4 flex flex-col pt-6 pb-10">
           <template v-for="platform of platformsKeys" :key="platform">
             <template v-for="(identity, ii) of identities" :key="ii">
-              <template v-if="identity.platform === platform">
+              <template v-if="identity.platform === platform && [OrganizationIdentityType.USERNAME].includes(identity.type)">
                 <app-organization-form-identity-item
                   :identity="identity"
                   :organization="props.organization"
@@ -55,7 +55,11 @@
         </p>
         <div class="flex flex-col gap-3">
           <template v-for="(identity, ii) of identities" :key="ii">
-            <template v-if="!platformsKeys.includes(identity.platform) && identity.platform !== 'email'">
+            <template
+              v-if="
+                !platformsKeys.includes(identity.platform)
+                  && [OrganizationIdentityType.USERNAME].includes(identity.type)"
+            >
               <app-organization-form-identity-item
                 :identity="identity"
                 :organization="props.organization"
@@ -83,14 +87,15 @@ import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';
 import AppDrawer from '@/shared/drawer/drawer.vue';
-import { Organization, OrganizationIdentity } from '@/modules/organization/types/Organization';
+import { Organization, OrganizationIdentity, OrganizationIdentityType } from '@/modules/organization/types/Organization';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
-import CrDropdown from '@/ui-kit/dropdown/Dropdown.vue';
-import CrDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
+import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
+import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import AppOrganizationFormIdentityItem
   from '@/modules/organization/components/form/identity/organization-form-identity-item.vue';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import { Platform } from '@/shared/modules/platform/types/Platform';
 
 const props = withDefaults(defineProps<{
   modelValue?: boolean,
@@ -99,12 +104,11 @@ const props = withDefaults(defineProps<{
   modelValue: false,
 });
 
-const emit = defineEmits(['update:modelValue', 'unmerge']);
+const emit = defineEmits(['update:modelValue', 'unmerge', 'reload']);
 
 const { trackEvent } = useProductTracking();
 
 const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
-const { fetchOrganization } = useOrganizationStore();
 
 const drawerModel = computed<boolean>({
   get() {
@@ -115,10 +119,7 @@ const drawerModel = computed<boolean>({
   },
 });
 
-const existingIdentities = computed(() => (props.organization?.identities || []).map((i) => ({
-  ...i,
-  username: i.url ? i.url.split('/').at(-1) : '',
-})));
+const existingIdentities = computed(() => (props.organization?.identities || []));
 
 const identities = ref<OrganizationIdentity[]>([...existingIdentities.value] as OrganizationIdentity[]);
 const addIdentities = ref<OrganizationIdentity[]>([]);
@@ -135,24 +136,16 @@ const platforms = platformsKeys.map((key) => ({
   ...CrowdIntegrations.getConfig(key),
   platform: key,
 }));
+
 const hasCustomIdentities = computed(() => identities.value
-  .some((i) => !platformsKeys.includes(i.platform) && i.platform !== 'email'));
+  .some((i) => !platformsKeys.includes(i.platform)
+    && [
+      OrganizationIdentityType.USERNAME,
+    ].includes(i.type)));
 
 const serverUpdate = () => {
   const identityList = identities.value
-    .filter((i) => !platformsKeys.includes(i.platform) || !!i.username?.trim().length)
-    .map((i) => {
-      const existingOnes = existingIdentities.value.filter((id) => id.platform === i.platform);
-      const index = identities.value
-        .filter((id) => id.platform === i.platform)
-        .findIndex((id) => id.username === i.username);
-      const existingOne = index >= 0 ? existingOnes[index] : null;
-      return {
-        ...i,
-        name: !existingOne || existingOne.username !== i.username ? i.username || i.name : i.name,
-        url: i.username?.length ? `https://${prefixes[i.platform]}${i.username}` : null,
-      };
-    });
+    .filter((i) => !!i.value?.trim().length);
 
   trackEvent({
     key: FeatureEventKey.EDIT_ORGANIZATION_IDENTITY,
@@ -166,6 +159,7 @@ const serverUpdate = () => {
     identities: identityList,
   }).then(() => {
     Message.success('Identity updated successfully');
+    emit('reload');
   }).catch((err) => {
     Message.error(err.response.data);
   });
@@ -187,16 +181,18 @@ const create = (index: number, data: OrganizationIdentity) => {
   serverUpdate();
 };
 
-const addIdentity = (platform: string) => {
+const addIdentity = (platform: Platform) => {
   addIdentities.value.push({
     platform,
-    url: '',
-    username: '',
-    name: '',
+    value: '',
+    type: OrganizationIdentityType.USERNAME,
+    verified: true,
   });
 };
 onUnmounted(() => {
-  fetchOrganization(props.organization.id, [selectedProjectGroup.value?.id]);
+  if (selectedProjectGroup.value?.id) {
+    useOrganizationStore().fetchOrganization(props.organization.id, [selectedProjectGroup.value.id]);
+  }
 });
 </script>
 

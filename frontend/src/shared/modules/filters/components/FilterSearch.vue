@@ -3,14 +3,14 @@
     v-model="model"
     clearable
     :placeholder="props.placeholder"
-    class="input-with-select"
+    class="input-with-select !h-9"
     data-qa="filter-search"
     @input="changeValue($event)"
   >
     <template #prefix>
       <i class="ri-search-line text-gray-400" />
     </template>
-    <template #append>
+    <template v-if="$slots.append" #append>
       <slot name="append" />
     </template>
   </el-input>
@@ -73,6 +73,6 @@ const changeValue = debounce((search: string) => {
 
 <script lang="ts">
 export default {
-  name: 'CrFilterSearch',
+  name: 'LfFilterSearch',
 };
 </script>

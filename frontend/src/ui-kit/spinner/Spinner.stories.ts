@@ -1,8 +1,8 @@
-import CrSpinner from './Spinner.vue';
+import LfSpinner from './Spinner.vue';
 
 export default {
-  title: 'Crowd.dev/Spinner',
-  component: CrSpinner,
+  title: 'LinuxFoundation/Spinner',
+  component: LfSpinner,
   tags: ['autodocs'],
   argTypes: {
     // Props

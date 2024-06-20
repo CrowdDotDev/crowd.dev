@@ -1,7 +1,6 @@
 import io from 'socket.io-client';
 import pluralize from 'pluralize';
 import config from '@/config';
-import { store } from '@/store';
 import Message from '@/shared/message/message';
 import {
   showEnrichmentSuccessMessage,
@@ -24,6 +23,7 @@ const SocketEvents = {
   tenantPlanUpgraded: 'tenant-plan-upgraded',
   bulkEnrichment: 'bulk-enrichment',
   orgMerge: 'org-merge',
+  memberMerge: 'member-merge',
   memberUnmerge: 'member-unmerge',
   organizationUnmerge: 'organization-unmerge',
 };
@@ -61,10 +61,67 @@ export const connectSocket = (token) => {
 
   socketIoClient.on(SocketEvents.integrationCompleted, (data) => {
     console.info('Integration onboarding done', data);
-    store.dispatch(
-      'integration/doFind',
-      JSON.parse(data).integrationId,
+    // store.dispatch(
+    //   'integration/doFind',
+    //   JSON.parse(data).integrationId,
+    // );
+  });
+
+  socketIoClient.on(SocketEvents.memberMerge, (data) => {
+    console.info('Member merge done', data);
+    const parsedData = JSON.parse(data);
+    if (!parsedData.success) {
+      return;
+    }
+    const lsSegmentsStore = useLfSegmentsStore();
+    const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
+    const {
+      primaryDisplayName,
+      secondaryDisplayName,
+      primaryId,
+      secondaryId,
+      tenantId,
+      userId,
+    } = parsedData;
+
+    if (tenant.value?.id !== tenantId || user.value?.id !== userId) {
+      return;
+    }
+
+    const primaryMember = h(
+      'a',
+      {
+        href: `${window.location.origin}/contributors/${primaryId}?projectGroup=${selectedProjectGroup.value?.id}`,
+        class: 'underline text-gray-600',
+      },
+      primaryDisplayName,
     );
+    const secondaryMember = h(
+      'a',
+      {
+        href: `${window.location.origin}/contributors/${secondaryId}?projectGroup=${selectedProjectGroup.value?.id}`,
+        class: 'underline text-gray-600',
+      },
+      secondaryDisplayName,
+    );
+    const between = h(
+      'span',
+      {},
+      ' merged into ',
+    );
+    const after = h(
+      'span',
+      {},
+      '. Finalizing contributor merging might take some time to complete.',
+    );
+    Message.closeAll();
+    Message.success(h(
+      'div',
+      {},
+      [secondaryMember, between, primaryMember, after],
+    ), {
+      title: 'Contributors merged successfully',
+    });
   });
 
   socketIoClient.on(SocketEvents.memberUnmerge, (data) => {
@@ -112,7 +169,7 @@ export const connectSocket = (token) => {
     const after = h(
       'span',
       {},
-      '. Syncing contributor activities might take some time to complete.',
+      '. Finalizing contributor unmerging might take some time to complete.',
     );
     Message.closeAll();
     Message.success(h(

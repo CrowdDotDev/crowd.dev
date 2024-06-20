@@ -23,15 +23,17 @@ class OrganizationSimilarityCalculator {
     }
 
     // find the smallest edit distance between both identity arrays
-    for (const primaryIdentity of primaryOrganization.nested_identities) {
-      // similar organization has a weakIdentity as one of primary organization's strong identity, return score 95
+    for (const primaryIdentity of primaryOrganization.nested_identities.filter(
+      (i) => i.bool_verified,
+    )) {
+      // similar organization has an unverified identity as one of primary organization's strong identity, return score 95
       if (
-        similarOrganization.nested_weakIdentities &&
-        similarOrganization.nested_weakIdentities.length > 0 &&
-        similarOrganization.nested_weakIdentities.some(
-          (weakIdentity) =>
-            weakIdentity.string_name === primaryIdentity.string_name &&
-            weakIdentity.string_platform === primaryIdentity.string_platform,
+        similarOrganization.nested_identities.some(
+          (wi) =>
+            !wi.bool_verified &&
+            wi.string_value === primaryIdentity.string_value &&
+            wi.keyword_type === primaryIdentity.keyword_type &&
+            wi.string_platform === primaryIdentity.string_platform,
         )
       ) {
         return 0.95
@@ -47,8 +49,8 @@ class OrganizationSimilarityCalculator {
 
       for (const secondaryIdentity of similarOrganization.nested_identities) {
         const currentLevenstheinDistance = getLevenshteinDistance(
-          primaryIdentity.string_name,
-          secondaryIdentity.string_name,
+          primaryIdentity.string_value,
+          secondaryIdentity.string_value,
         )
         if (smallestEditDistance === null || smallestEditDistance > currentLevenstheinDistance) {
           smallestEditDistance = currentLevenstheinDistance
@@ -58,7 +60,7 @@ class OrganizationSimilarityCalculator {
     }
 
     // calculate similarity percentage
-    const identityLength = similarPrimaryIdentity?.string_name.length || 0
+    const identityLength = similarPrimaryIdentity?.string_value.length || 0
 
     if (identityLength < smallestEditDistance) {
       return this.LOW_CONFIDENCE_SCORE
@@ -96,11 +98,6 @@ class OrganizationSimilarityCalculator {
       confidenceScore = this.bumpConfidenceScore(confidenceScore, bumpFactor)
     }
 
-    if (this.hasSameWebsite(organization, similarOrganization)) {
-      isHighConfidence = true
-      confidenceScore = this.bumpConfidenceScore(confidenceScore, bumpFactor)
-    }
-
     if (!isHighConfidence) {
       return this.MEDIUM_CONFIDENCE_SCORE
     }
@@ -116,17 +113,19 @@ class OrganizationSimilarityCalculator {
     organization: IOrganizationPartialAggregatesOpensearch,
     similarOrganization: ISimilarOrganization,
   ): boolean {
-    if (organization.nested_identities && organization.nested_identities.length > 0) {
-      for (const identity of organization.nested_identities) {
-        if (
-          similarOrganization.nested_identities.some(
-            (i) =>
-              i.string_platform === identity.string_platform &&
-              i.keyword_name !== identity.keyword_name,
-          )
-        ) {
-          return true
-        }
+    const verifiedIdentities = organization.nested_identities.filter((i) => i.bool_verified)
+
+    for (const identity of verifiedIdentities) {
+      if (
+        similarOrganization.nested_identities.some(
+          (i) =>
+            i.bool_verified &&
+            i.string_platform === identity.string_platform &&
+            i.keyword_type === identity.keyword_type &&
+            i.string_value !== identity.string_value,
+        )
+      ) {
+        return true
       }
     }
 

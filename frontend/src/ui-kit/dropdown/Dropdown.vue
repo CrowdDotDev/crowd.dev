@@ -55,6 +55,6 @@ onUnmounted(() => {
 
 <script lang="ts">
 export default {
-  name: 'CrDropdown',
+  name: 'LfDropdown',
 };
 </script>

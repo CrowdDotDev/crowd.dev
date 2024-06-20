@@ -35,7 +35,7 @@
               placement="top"
               trigger="hover"
             >
-              <app-svg name="source" class="h-3 w-3" />
+              <lf-svg name="source" class="h-3 w-3" />
             </el-tooltip>
           </div>
         </template>
@@ -52,7 +52,7 @@
               placement="top"
               trigger="hover"
             >
-              <app-svg name="source" class="h-3 w-3" />
+              <lf-svg name="source" class="h-3 w-3" />
             </el-tooltip>
           </div>
         </template>
@@ -73,7 +73,7 @@
               placement="top"
               trigger="hover"
             >
-              <app-svg name="source" class="h-3 w-3" />
+              <lf-svg name="source" class="h-3 w-3" />
             </el-tooltip>
           </div>
         </template>
@@ -99,7 +99,7 @@ import {
 } from 'vue';
 import AppTagAutocompleteInput from '@/modules/tag/components/tag-autocomplete-input.vue';
 import { getAttributeSourceName } from '@/shared/helpers/attribute.helpers';
-import AppSvg from '@/shared/svg/svg.vue';
+import LfSvg from '@/shared/svg/svg.vue';
 
 const CalendarIcon = h(
   'i', // type

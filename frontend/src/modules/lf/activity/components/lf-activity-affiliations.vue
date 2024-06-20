@@ -9,27 +9,27 @@
         :key="organization.id"
         class="h-10 !px-3 !mb-0 flex justify-between"
         :class="{
-          'bg-brand-50': organization.id === activity.organizationId,
+          'bg-primary-50': organization.id === activity.organizationId,
         }"
         :command="() => editActivity(organization.id)"
       >
         <span class="text-xs">{{ organization.displayName }}</span>
         <i
           v-if="organization.id === activity.organizationId"
-          class="ri-check-line !text-brand-600"
+          class="ri-check-line !text-primary-600"
         />
       </el-dropdown-item>
       <el-dropdown-item
         class="h-10 !px-3 !mb-0 flex gap-4 justify-between"
         :class="{
-          'bg-brand-50': !activity.organizationId,
+          'bg-primary-50': !activity.organizationId,
         }"
         :command="() => editActivity(null)"
       >
         <span class="text-xs">Individual / No affiliation</span>
         <i
           v-if="!activity.organizationId"
-          class="ri-check-line !text-brand-600"
+          class="ri-check-line !text-primary-600"
         />
       </el-dropdown-item>
     </div>

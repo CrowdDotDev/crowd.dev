@@ -1,4 +1,3 @@
-import config from '@/config';
 import ConfluenceConnect from './components/confluence-connect.vue';
 
 export default {
@@ -32,8 +31,5 @@ export default {
       insertions: attributes.insertions,
       deletions: attributes.deletions,
     }),
-  },
-  organization: {
-    handle: (identity) => (identity.url ? identity.url.split('/').at(-1) : identity.name),
   },
 };

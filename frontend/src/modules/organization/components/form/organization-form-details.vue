@@ -19,7 +19,7 @@
           <div class="flex items-center gap-2">
             {{ fields.headline.label }}
             <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
-              <app-svg name="source" class="h-3 w-3" />
+              <lf-svg name="source" class="h-3 w-3" />
             </el-tooltip>
           </div>
         </template>
@@ -35,9 +35,6 @@
           type="textarea"
         />
       </el-form-item>
-      <el-form-item :label="fields.website.label">
-        <el-input v-model="model[fields.website.name]" />
-      </el-form-item>
       <el-form-item
         :label="fields.location.label"
         class="w-1/2"
@@ -49,7 +46,7 @@
           <div class="flex gap-2 items-center">
             {{ fields.employees.label }}
             <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
-              <app-svg name="source" class="h-3 w-3" />
+              <lf-svg name="source" class="h-3 w-3" />
             </el-tooltip>
           </div>
         </template>
@@ -64,7 +61,7 @@
           <div class="flex gap-2 items-center">
             {{ fields.revenueRange.label }}
             <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
-              <app-svg name="source" class="h-3 w-3" />
+              <lf-svg name="source" class="h-3 w-3" />
             </el-tooltip>
           </div>
         </template>
@@ -76,7 +73,7 @@
         >
           <el-option
             :value="model[fields.revenueRange.name]"
-            :label="revenueRange.displayValue(model[fields.revenueRange.name])"
+            :label="revenueRange.formatValue(model[fields.revenueRange.name])"
           />
         </el-select>
       </el-form-item>
@@ -86,7 +83,7 @@
 
 <script setup>
 import { defineEmits, defineProps, computed } from 'vue';
-import AppSvg from '@/shared/svg/svg.vue';
+import LfSvg from '@/shared/svg/svg.vue';
 import revenueRange from '@/modules/organization/config/enrichment/revenueRange';
 
 const emit = defineEmits(['update:modelValue']);

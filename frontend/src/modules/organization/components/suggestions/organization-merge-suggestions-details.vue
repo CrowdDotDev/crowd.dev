@@ -28,25 +28,34 @@
         <div class="h-13 flex justify-between items-start">
           <div
             v-if="props.isPreview"
-            class="bg-brand-800 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
+            class="bg-primary-800 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
           >
             Preview
           </div>
           <div
             v-else-if="props.isPrimary"
-            class="bg-brand-100 rounded-full py-0.5 px-2 text-brand-800 inline-block text-xs leading-5 font-medium"
+            class="bg-primary-100 rounded-full py-0.5 px-2 text-primary-800 inline-block text-xs leading-5 font-medium"
           >
             Primary organization
           </div>
-          <button
+          <el-tooltip
             v-else
-            type="button"
-            class="btn btn--bordered btn--sm leading-5 !px-4 !py-1"
-            @click="emit('makePrimary')"
+            content="Linux Foundation's member organization must be the primary organization."
+            :disabled="!props.compareOrganization.lfxMembership"
+            placement="top"
           >
-            <span class="ri-arrow-left-right-fill text-base text-gray-600 mr-2" />
-            <span>Make primary</span>
-          </button>
+            <span>
+              <button
+                type="button"
+                class="btn btn--bordered btn--sm leading-5 !px-4 !py-1"
+                :disabled="!!props.compareOrganization.lfxMembership"
+                @click="emit('makePrimary')"
+              >
+                <span class="ri-arrow-left-right-fill text-base text-gray-600 mr-2" />
+                <span>Make primary</span>
+              </button>
+            </span>
+          </el-tooltip>
           <slot name="action" />
         </div>
       </slot>
@@ -93,16 +102,27 @@
             }"
             target="_blank"
           >
+            <div class="flex items-center gap-1">
+              <h6
+                class="text-base text-black font-semibold hover:text-primary-500 leading-6"
+                v-html="$sanitize(props.organization.displayName || props.organization.name)"
+              />
+              <lf-organization-lf-member-tag
+                :organization="props.organization"
+                :only-show-icon="true"
+              />
+            </div>
+          </router-link>
+          <div v-else class="flex items-center gap-1">
             <h6
-              class="text-base text-black font-semibold hover:text-brand-500 leading-6"
+              class="text-base text-black font-semibold hover:text-primary-500 leading-6"
               v-html="$sanitize(props.organization.displayName || props.organization.name)"
             />
-          </router-link>
-          <h6
-            v-else
-            class="text-base text-black font-semibold leading-6"
-            v-html="$sanitize(props.organization.displayName || props.organization.name)"
-          />
+            <lf-organization-lf-member-tag
+              :organization="props.organization"
+              :only-show-icon="true"
+            />
+          </div>
           <div
             v-if="props.organization.description"
             ref="bio"
@@ -119,7 +139,7 @@
 
           <div
             v-if="displayShowMore"
-            class="text-sm text-brand-500 mt-2 cursor-pointer"
+            class="text-sm text-primary-500 mt-2 cursor-pointer"
             :class="{ invisible: !props.organization.description }"
             @click.stop="more = !more"
           >
@@ -131,8 +151,8 @@
       <div>
         <article
           v-if="
-            props.organization.website
-              || props.compareOrganization?.website
+            getOrganizationWebsite(organization)
+              || getOrganizationWebsite(compareOrganization)
           "
           class="pb-4"
         >
@@ -140,11 +160,11 @@
             Website
           </p>
           <a
-            :href="withHttp(props.organization.website)"
+            :href="withHttp(getOrganizationWebsite(organization))"
             target="_blank"
             rel="noopener noreferrer"
             class="text-xs text-gray-900 whitespace-normal inline-block leading"
-          >{{ props.organization.website || '-' }}</a>
+          >{{ getOrganizationWebsite(organization) || '-' }}</a>
         </article>
         <article
           v-if="
@@ -185,7 +205,7 @@
             Annual Revenue
           </p>
           <p class="text-xs text-gray-900 whitespace-normal">
-            {{ revenueRange.displayValue(
+            {{ revenueRange.formatValue(
               props.organization.revenueRange,
             ) || '-' }}
           </p>
@@ -282,6 +302,7 @@
         <app-identities-vertical-list-organizations
           :organization="organization"
           :include-emails="true"
+          :include-domains="true"
           :include-phone-numbers="true"
           :order="organizationOrder.suggestions"
         />
@@ -303,6 +324,8 @@ import AppIdentitiesVerticalListOrganizations from '@/shared/modules/identities/
 import organizationOrder from '@/shared/modules/identities/config/identitiesOrder/organization';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import LfOrganizationLfMemberTag from '@/modules/organization/components/lf-member/organization-lf-member-tag.vue';
+import { getOrganizationWebsite } from '@/utils/organization';
 
 const props = defineProps({
   organization: {

@@ -49,7 +49,7 @@
           >
             <template #defaultFilters>
               <div>・</div>
-              <cr-default-filters
+              <lf-default-filters
                 :config="memberSavedViews"
                 :settings="filters.settings"
               />
@@ -149,7 +149,7 @@
                 <template #header>
                   <div class="flex items-center">
                     <el-tooltip content="Source: Enrichment & GitHub" placement="top" trigger="hover">
-                      <app-svg name="source" class="h-3 w-3" />
+                      <lf-svg name="source" class="h-3 w-3" />
                     </el-tooltip>
                     <div class="ml-2 text-purple-800">
                       Organization
@@ -180,7 +180,7 @@
                 <template #header>
                   <div class="flex items-center">
                     <el-tooltip content="Source: Enrichment & GitHub" placement="top" trigger="hover">
-                      <app-svg name="source" class="h-3 w-3" />
+                      <lf-svg name="source" class="h-3 w-3" />
                     </el-tooltip>
                     <div class="ml-2 text-purple-800">
                       Job Title
@@ -362,7 +362,7 @@
                 <template #header>
                   <div class="flex items-center">
                     <el-tooltip content="Source: Enrichment & GitHub" placement="top" trigger="hover">
-                      <app-svg name="source" class="h-3 w-3" />
+                      <lf-svg name="source" class="h-3 w-3" />
                     </el-tooltip>
                     <div class="ml-2 text-purple-800">
                       Location
@@ -406,7 +406,7 @@
                   >
                     <div class="inline-flex items-center ml-1 gap-2">
                       <el-tooltip content="Source: GitHub" placement="top" trigger="hover" :disabled="!isEnrichEnabled">
-                        <app-svg name="source" class="h-3 w-3" />
+                        <lf-svg name="source" class="h-3 w-3" />
                       </el-tooltip>
                       <el-tooltip placement="top">
                         <template #content>
@@ -466,7 +466,7 @@
                       trigger="hover"
                       :disabled="!isEnrichEnabled"
                     >
-                      <app-svg name="source" class="h-3 w-3" />
+                      <lf-svg name="source" class="h-3 w-3" />
                     </el-tooltip>
                     <div class="ml-2 text-purple-800">
                       Seniority Level
@@ -520,7 +520,7 @@
                       trigger="hover"
                       :disabled="!isEnrichEnabled"
                     >
-                      <app-svg name="source" class="h-3 w-3" />
+                      <lf-svg name="source" class="h-3 w-3" />
                     </el-tooltip>
                     <div class="ml-2 text-purple-800">
                       Programming Languages
@@ -578,7 +578,7 @@
                       trigger="hover"
                       :disabled="!isEnrichEnabled"
                     >
-                      <app-svg name="source" class="h-3 w-3" />
+                      <lf-svg name="source" class="h-3 w-3" />
                     </el-tooltip>
                     <div class="ml-2 text-purple-800">
                       Skills
@@ -728,7 +728,7 @@
       virtual-triggering
       @hide="onHide"
     >
-      <cr-enrichment-sneak-peak-content id="popover-content" type="contact" @mouseleave="closeEnrichmentPopover" />
+      <lf-enrichment-sneak-peak-content id="popover-content" type="contact" @mouseleave="closeEnrichmentPopover" />
     </el-popover>
 
     <app-member-find-github-drawer
@@ -761,12 +761,12 @@ import AppTagPopover from '@/modules/tag/components/tag-popover.vue';
 import AppPagination from '@/shared/pagination/pagination.vue';
 import AppMemberFindGithubDrawer from '@/modules/member/components/member-find-github-drawer.vue';
 import AppSharedTagList from '@/shared/tag/tag-list.vue';
-import AppSvg from '@/shared/svg/svg.vue';
-import CrEnrichmentSneakPeakContent from '@/shared/modules/enrichment/components/enrichment-sneak-peak-content.vue';
+import LfSvg from '@/shared/svg/svg.vue';
+import LfEnrichmentSneakPeakContent from '@/shared/modules/enrichment/components/enrichment-sneak-peak-content.vue';
 import Plans from '@/security/plans';
 import AppIdentitiesHorizontalListMembers from '@/shared/modules/identities/components/identities-horizontal-list-members.vue';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
-import CrDefaultFilters from '@/shared/modules/default-filters/components/default-filters.vue';
+import LfDefaultFilters from '@/shared/modules/default-filters/components/default-filters.vue';
 import AppMemberListEmails from '@/modules/member/components/list/columns/member-list-emails.vue';
 import { getSegmentsFromProjectGroup } from '@/utils/segments';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';

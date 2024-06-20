@@ -1,6 +1,14 @@
 import authAxios from '@/shared/axios/auth-axios';
-import { AuthService } from '@/modules/auth/services/auth.service';
-import { router } from '@/router';
+import { AuthService } from '@/modules/auth/services/auth.service'; import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import { getSegmentsFromProjectGroup } from '@/utils/segments';
+
+const getSelectedProjectGroup = () => {
+  const lsSegmentsStore = useLfSegmentsStore();
+  const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
+
+  return selectedProjectGroup.value;
+};
 
 export class OrganizationService {
   static async update(id, data, segments) {
@@ -42,7 +50,7 @@ export class OrganizationService {
       `/tenant/${tenantId}/organization/${organizationToKeepId}/merge`,
       {
         organizationToMerge: organizationToMergeId,
-        segments: [router.currentRoute.value.query.projectGroup],
+        segments: [getSelectedProjectGroup().id],
       },
     );
 
@@ -60,14 +68,16 @@ export class OrganizationService {
     return response.data;
   }
 
-  static async unmergePreview(orgId, platform, name) {
+  static async unmergePreview(orgId, platform, value, type, verified) {
     const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/organization/${orgId}/unmerge/preview`,
       {
         platform,
-        name,
+        value,
+        type,
+        verified,
       },
     );
 
@@ -163,8 +173,8 @@ export class OrganizationService {
     query,
     limit,
     segments = null,
+    excludeLfMember = false,
     excludeSegments = false,
-    grandParentSegment = false,
   }) {
     const payload = {
       filter: {
@@ -174,6 +184,11 @@ export class OrganizationService {
               matchPhrasePrefix: query,
             },
           },
+          // ...(excludeLfMember ? [{
+          //   lfxMembership: {
+          //     ne: true,
+          //   },
+          // }] : []),
         ],
       },
       offset: 0,
@@ -187,13 +202,6 @@ export class OrganizationService {
       }),
     };
 
-    if (grandParentSegment) {
-      payload.filter.and.push({
-        grandParentSegment: {
-          eq: grandParentSegment,
-        },
-      });
-    }
     const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.post(
@@ -212,9 +220,15 @@ export class OrganizationService {
   static async fetchMergeSuggestions(limit, offset, query) {
     const tenantId = AuthService.getTenantId();
 
+    const segments = [
+      ...getSegmentsFromProjectGroup(getSelectedProjectGroup()),
+      getSelectedProjectGroup().id,
+    ];
+
     const data = {
       limit,
       offset,
+      segments,
       detail: true,
       ...query,
     };

@@ -23,21 +23,27 @@
           <div
             class="text-sm text-gray-600 flex items-center"
           >
+            <div v-if="true" class="flex items-center gap-2 mr-2">
+              <lf-organization-lf-member-tag
+                :organization="organization"
+              />
+              <span class="text-gray-400">·</span>
+            </div>
             <div
-              v-if="organization.website"
+              v-if="getOrganizationWebsite(organization)"
               class="flex items-center"
             >
               <i class="ri-link mr-1" />
               <a
-                :href="withHttp(organization.website)"
+                :href="withHttp(getOrganizationWebsite(organization))"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="text-gray-600"
-              >{{ organization.website }}</a>
+              >{{ getOrganizationWebsite(organization) }}</a>
             </div>
             <span
               v-if="
-                organization.website
+                getOrganizationWebsite(organization)
                   && organization.location
               "
               class="mx-2"
@@ -65,7 +71,7 @@
           placement="top"
           trigger="hover"
         >
-          <app-svg name="source" class="h-3 w-3" />
+          <lf-svg name="source" class="h-3 w-3" />
         </el-tooltip>
       </div>
 
@@ -80,7 +86,7 @@
       <!-- show more/less button -->
       <div
         v-if="displayShowMore"
-        class="text-2xs text-brand-500 mt-3 cursor-pointer"
+        class="text-2xs text-primary-500 mt-3 cursor-pointer"
         @click.stop="toggleContent"
       >
         Show {{ showMore ? 'less' : 'more' }}
@@ -116,7 +122,7 @@
           }}
         </p>
       </div>
-      <cr-enrichment-sneak-peak type="contact">
+      <lf-enrichment-sneak-peak type="contact">
         <template #default="{ enabled }">
           <div>
             <div class="flex items-center">
@@ -130,7 +136,7 @@
                 trigger="hover"
                 :disabled="!enabled"
               >
-                <app-svg name="source" class="h-3 w-3" />
+                <lf-svg name="source" class="h-3 w-3" />
               </el-tooltip>
             </div>
 
@@ -149,7 +155,7 @@
             </div>
           </div>
         </template>
-      </cr-enrichment-sneak-peak>
+      </lf-enrichment-sneak-peak>
       <div>
         <p class="text-gray-400 font-medium text-2xs">
           Joined date
@@ -163,7 +169,7 @@
           }}
         </p>
       </div>
-      <cr-enrichment-sneak-peak type="contact">
+      <lf-enrichment-sneak-peak type="contact">
         <template #default="{ enabled }">
           <div>
             <div class="flex items-center">
@@ -177,12 +183,12 @@
                 trigger="hover"
                 :disabled="!enabled"
               >
-                <app-svg name="source" class="h-3 w-3" />
+                <lf-svg name="source" class="h-3 w-3" />
               </el-tooltip>
             </div>
             <p v-if="enabled" class="mt-1 text-gray-900 text-xs">
               {{
-                revenueRange.displayValue(
+                revenueRange.formatValue(
                   organization.revenueRange,
                 )
               }}
@@ -194,7 +200,7 @@
             </div>
           </div>
         </template>
-      </cr-enrichment-sneak-peak>
+      </lf-enrichment-sneak-peak>
       <div>
         <p class="text-gray-400 font-medium text-2xs">
           Last active
@@ -226,8 +232,10 @@ import {
 import { withHttp } from '@/utils/string';
 import AppOrganizationBadge from '@/modules/organization/components/organization-badge.vue';
 import AppOrganizationHeadline from '@/modules/organization/components/organization-headline..vue';
-import AppSvg from '@/shared/svg/svg.vue';
-import CrEnrichmentSneakPeak from '@/shared/modules/enrichment/components/enrichment-sneak-peak.vue';
+import LfSvg from '@/shared/svg/svg.vue';
+import LfOrganizationLfMemberTag from '@/modules/organization/components/lf-member/organization-lf-member-tag.vue';
+import LfEnrichmentSneakPeak from '@/shared/modules/enrichment/components/enrichment-sneak-peak.vue';
+import { getOrganizationWebsite } from '@/utils/organization';
 import revenueRange from '../../config/enrichment/revenueRange';
 
 const props = defineProps({

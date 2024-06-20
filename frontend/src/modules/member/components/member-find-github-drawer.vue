@@ -183,7 +183,7 @@ export default {
 }
 
 .selected {
-  @apply bg-brand-50 border-brand-400 hover:bg-brand-50 hover:border-brand-400
+  @apply bg-primary-50 border-primary-400 hover:bg-primary-50 hover:border-primary-400
 }
 
 </style>

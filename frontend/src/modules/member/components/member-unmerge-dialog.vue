@@ -39,7 +39,7 @@
               <template #header>
                 <div class="h-13 flex justify-between items-start">
                   <div
-                    class="bg-brand-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
+                    class="bg-primary-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
                   >
                     Current contributor
                   </div>
@@ -76,7 +76,7 @@
               <template #header>
                 <div class="h-13 flex justify-between items-start">
                   <div
-                    class="bg-brand-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
+                    class="bg-primary-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
                   >
                     Updated contributor
                   </div>
@@ -118,7 +118,7 @@
           <div class="w-1/2 px-3">
             <!-- Loading preview -->
             <div v-if="fetchingPreview" class="flex items-center justify-center pt-40 w-full">
-              <cr-spinner />
+              <lf-spinner />
             </div>
             <!-- Unmerge preview -->
             <div v-else-if="preview">
@@ -139,7 +139,7 @@
                         trigger="click"
                       >
                         <button
-                          class="btn btn--link !text-brand-500"
+                          class="btn btn--link !text-primary-500"
                           type="button"
                           @click.stop
                         >
@@ -247,7 +247,7 @@ import { computed, onMounted, ref } from 'vue';
 import { MemberService } from '@/modules/member/member-service';
 import Message from '@/shared/message/message';
 import AppDialog from '@/shared/dialog/dialog.vue';
-import CrSpinner from '@/ui-kit/spinner/Spinner.vue';
+import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppMemberOrganizationList from '@/modules/member/components/suggestions/member-organizations-list.vue';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
@@ -338,7 +338,7 @@ const unmerge = () => {
   MemberService.unmerge(props.modelValue?.id, preview.value)
     .then(() => {
       Message.info(
-        'We’re syncing all activities of the unmerged contributor. We will let you know once the process is completed.',
+        'We’re finalizing contributor unmerging. We will let you know once the process is completed.',
         {
           title: 'Contributors unmerging in progress',
         },

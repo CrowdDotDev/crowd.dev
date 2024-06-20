@@ -1,7 +1,7 @@
 export const badgeType = [
-  'default',
-  'white',
-  'brand',
+  'primary',
+  'secondary',
+  'tertiary',
 ] as const;
 
 export type BadgeType = typeof badgeType[number];

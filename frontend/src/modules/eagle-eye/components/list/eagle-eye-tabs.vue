@@ -107,10 +107,10 @@ const sorterOptions = computed(() => {
   }
 
   &.selected {
-    @apply bg-brand-50;
+    @apply bg-primary-50;
 
     .icon {
-      @apply text-brand-500;
+      @apply text-primary-500;
     }
 
     .text {

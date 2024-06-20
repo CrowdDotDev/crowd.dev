@@ -88,7 +88,7 @@
           >
             <el-option
               :value="null"
-              class="px-3 py-2.5 text-brand-500 text-xs leading-5 transition hover:bg-gray-50 cursor-pointer"
+              class="px-3 py-2.5 text-primary-500 text-xs leading-5 transition hover:bg-gray-50 cursor-pointer"
               @click="emit('add-activity-type')"
             >
               + Add activity type

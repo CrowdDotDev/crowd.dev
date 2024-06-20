@@ -16,10 +16,6 @@ export default (sequelize) => {
           notEmpty: true,
         },
       },
-      website: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-      },
       location: {
         type: DataTypes.TEXT,
         allowNull: true,
@@ -42,6 +38,11 @@ export default (sequelize) => {
         allowNull: true,
         default: [],
       },
+      names: {
+        type: DataTypes.ARRAY(DataTypes.TEXT),
+        allowNull: true,
+        default: [],
+      },
       phoneNumbers: {
         type: DataTypes.ARRAY(DataTypes.TEXT),
         allowNull: true,
@@ -55,22 +56,6 @@ export default (sequelize) => {
         type: DataTypes.ARRAY(DataTypes.TEXT),
         allowNull: true,
         default: [],
-      },
-      github: {
-        type: DataTypes.JSONB,
-        default: {},
-      },
-      twitter: {
-        type: DataTypes.JSONB,
-        default: {},
-      },
-      linkedin: {
-        type: DataTypes.JSONB,
-        default: {},
-      },
-      crunchbase: {
-        type: DataTypes.JSONB,
-        default: {},
       },
       employees: {
         type: DataTypes.INTEGER,
@@ -157,15 +142,7 @@ export default (sequelize) => {
         type: DataTypes.JSONB,
         defaultValue: {},
       },
-      affiliatedProfiles: {
-        type: DataTypes.ARRAY(DataTypes.TEXT),
-        allowNull: true,
-      },
       allSubsidiaries: {
-        type: DataTypes.ARRAY(DataTypes.TEXT),
-        allowNull: true,
-      },
-      alternativeDomains: {
         type: DataTypes.ARRAY(DataTypes.TEXT),
         allowNull: true,
       },

@@ -1,8 +1,8 @@
-import CrInput from './Input.vue';
+import LfInput from './Input.vue';
 
 export default {
-  title: 'Crowd.dev/Input',
-  component: CrInput,
+  title: 'LinuxFoundation/Input',
+  component: LfInput,
   tags: ['autodocs'],
   argTypes: {
     modelValue: {

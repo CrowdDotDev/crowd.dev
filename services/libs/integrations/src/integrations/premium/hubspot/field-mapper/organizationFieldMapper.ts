@@ -3,8 +3,9 @@
 import {
   IOrganization,
   OrganizationAttributeName,
-  PlatformType,
+  OrganizationIdentityType,
   OrganizationSource,
+  PlatformType,
 } from '@crowd/types'
 import { HubspotPropertyType, IFieldProperty, IHubspotObject } from '../types'
 import { HubspotFieldMapper } from './hubspotFieldMapper'
@@ -27,6 +28,11 @@ export class HubspotOrganizationFieldMapper extends HubspotFieldMapper {
       readonly: true,
       serialize: serializeArray,
     },
+    names: {
+      hubspotType: HubspotPropertyType.STRING,
+      readonly: true,
+      serialize: serializeArray,
+    },
     logo: {
       hubspotType: HubspotPropertyType.STRING,
     },
@@ -34,34 +40,6 @@ export class HubspotOrganizationFieldMapper extends HubspotFieldMapper {
       hubspotType: HubspotPropertyType.STRING,
       readonly: true,
       serialize: serializeArray,
-    },
-    github: {
-      hubspotType: HubspotPropertyType.STRING,
-      readonly: true,
-      serialize: (github: any) => {
-        return github.handle
-      },
-    },
-    twitter: {
-      hubspotType: HubspotPropertyType.STRING,
-      readonly: true,
-      serialize: (twitter: any) => {
-        return twitter.handle
-      },
-    },
-    linkedin: {
-      hubspotType: HubspotPropertyType.STRING,
-      readonly: true,
-      serialize: (linkedin: any) => {
-        return linkedin?.handle ? linkedin.handle : undefined
-      },
-    },
-    crunchbase: {
-      hubspotType: HubspotPropertyType.STRING,
-      readonly: true,
-      serialize: (crunchbase: any) => {
-        return crunchbase.handle
-      },
     },
     // revenueRange: {
     //   hubspotType: HubspotPropertyType.STRING,
@@ -91,9 +69,6 @@ export class HubspotOrganizationFieldMapper extends HubspotFieldMapper {
     location: {
       hubspotType: HubspotPropertyType.STRING,
     },
-    website: {
-      hubspotType: HubspotPropertyType.STRING,
-    },
     type: {
       hubspotType: HubspotPropertyType.ENUMERATION,
     },
@@ -117,17 +92,7 @@ export class HubspotOrganizationFieldMapper extends HubspotFieldMapper {
       hubspotType: HubspotPropertyType.NUMBER,
       readonly: true,
     },
-    affiliatedProfiles: {
-      hubspotType: HubspotPropertyType.STRING,
-      readonly: true,
-      serialize: serializeArray,
-    },
     allSubsidiaries: {
-      hubspotType: HubspotPropertyType.STRING,
-      readonly: true,
-      serialize: serializeArray,
-    },
-    alternativeDomains: {
       hubspotType: HubspotPropertyType.STRING,
       readonly: true,
       serialize: serializeArray,
@@ -269,13 +234,16 @@ export class HubspotOrganizationFieldMapper extends HubspotFieldMapper {
       )
     }
 
+    // TODO uros check if this is verified or not with anil
     const organization: IOrganization = {
+      names: [organizationProperties.name],
       identities: [
         {
-          name: organizationProperties.name,
+          value: `${this.hubspotId}:${hubspotOrganization.id}`,
           platform: PlatformType.HUBSPOT,
           sourceId: hubspotOrganization.id,
-          url: `https://app.hubspot.com/contacts/${this.hubspotId}/company/${hubspotOrganization.id}`,
+          type: OrganizationIdentityType.USERNAME,
+          verified: true,
         },
       ],
       attributes: {
@@ -316,11 +284,13 @@ export class HubspotOrganizationFieldMapper extends HubspotFieldMapper {
               organization[crowdKey] = linkedinHandle
             }
 
+            // TODO uros - check if this is verified or not with anil
             organization.identities.push({
-              name: organization[crowdKey],
+              value: organization[crowdKey],
+              type: OrganizationIdentityType.USERNAME,
               platform: crowdKey,
-              url: this.getSocialUrl(crowdKey, organization[crowdKey]),
               sourceId: null,
+              verified: false,
             })
           }
         }

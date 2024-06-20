@@ -109,7 +109,7 @@ watch(() => props.modelValue, (value) => {
 
 <script lang="ts">
 export default {
-  name: 'CrFilterItem',
+  name: 'LfFilterItem',
 };
 </script>
 

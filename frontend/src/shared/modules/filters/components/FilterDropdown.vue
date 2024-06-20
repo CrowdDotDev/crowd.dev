@@ -1,14 +1,10 @@
 <template>
   <el-popover v-model:visible="open" :placement="$attrs.placement || 'bottom-end'" size="large" width="20rem" popper-class="!p-0" trigger="click">
     <template #reference>
-      <el-button
-        class="filter-dropdown-trigger"
-        data-qa="filter-dropdown"
-        :class="$attrs.class"
-      >
-        <i class="ri-lg ri-filter-3-line mr-2" />
+      <lf-button type="secondary">
+        <lf-icon name="filter-3-line" />
         Filters
-      </el-button>
+      </lf-button>
     </template>
 
     <div class="border-b border-gray-100 p-2">
@@ -73,6 +69,8 @@ import {
 } from 'vue';
 import { FilterConfig } from '@/shared/modules/filters/types/FilterConfig';
 import { FeatureFlag } from '@/utils/featureFlag';
+import LfButton from '@/ui-kit/button/Button.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps<{
   config: Record<string, FilterConfig>,
@@ -120,6 +118,6 @@ const add = (key: string) => {
 
 <script lang="ts">
 export default {
-  name: 'CrFilterDropdown',
+  name: 'LfFilterDropdown',
 };
 </script>

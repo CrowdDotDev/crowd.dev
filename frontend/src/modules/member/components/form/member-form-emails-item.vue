@@ -17,7 +17,7 @@
           @blur="$v.$touch()"
         >
           <template #suffix>
-            <i v-if="props.verified" class="ri-verified-badge-fill text-brand-500 text-base leading-4" />
+            <i v-if="props.verified" class="ri-verified-badge-fill text-primary-500 text-base leading-4" />
           </template>
         </el-input>
         <slot name="actions" />

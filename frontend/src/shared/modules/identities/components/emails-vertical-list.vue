@@ -42,7 +42,7 @@
               </div>
               <div v-if="identity.verified" class="pl-1">
                 <el-tooltip placement="top" content="Verified identity">
-                  <i class="ri-verified-badge-fill text-brand-500" />
+                  <i class="ri-verified-badge-fill text-primary-500" />
                 </el-tooltip>
               </div>
             </div>
@@ -61,7 +61,8 @@ import { computed } from 'vue';
 const props = defineProps<{
   emails: {
       handle: string;
-      link: string;
+      link: string | null;
+      verified: boolean;
   }[];
   xPadding?: number;
 }>();
