@@ -1,5 +1,5 @@
 import { IAttributes } from './attributes'
-import { OrganizationSource } from './enums/organizations'
+import { OrganizationIdentityType, OrganizationSource } from './enums/organizations'
 
 export interface IOrganization {
   // db fields
@@ -87,50 +87,6 @@ export interface IMemberRoleWithOrganization extends IMemberOrganization {
   organizationLogo: string
 }
 
-export interface IOrganizationCache {
-  id?: string
-  url?: string
-  description?: string
-  emails?: string[]
-  logo?: string
-  tags?: string[]
-  github?: IOrganizationSocial
-  twitter?: IOrganizationSocial
-  linkedin?: IOrganizationSocial
-  crunchbase?: IOrganizationSocial
-  employees?: number
-  location?: string
-  website?: string
-  type?: string
-  size?: string
-  headline?: string
-  industry?: string
-  founded?: number
-  attributes?: IAttributes
-  immediateParent?: string
-  ultimateParent?: string
-  affiliatedProfiles?: string[]
-  allSubsidiaries?: string[]
-  alternativeDomains?: string[]
-  alternativeNames?: string[]
-  averageEmployeeTenure?: number
-  averageTenureByLevel?: Record<string, number>
-  averageTenureByRole?: Record<string, number>
-  employeeChurnRate?: Record<string, number>
-  employeeCountByMonth?: Record<string, number>
-  employeeGrowthRate?: Record<string, number>
-  employeeCountByMonthByLevel?: Record<string, number>
-  employeeCountByMonthByRole?: Record<string, number>
-  directSubsidiaries?: string[]
-  gicsSector?: string
-  grossAdditionsByMonth?: Record<string, number>
-  grossDeparturesByMonth?: Record<string, number>
-  identities: IOrganizationIdentity[]
-  members?: string[]
-  source?: OrganizationSource
-  name?: string
-}
-
 export interface IExecutiveChange {
   joined_date?: string
   pdl_id?: string
@@ -164,13 +120,6 @@ export interface IOrganizationSyncRemoteData {
   syncFrom: string
   metaData: string
   lastSyncedAt?: string
-}
-
-export enum OrganizationIdentityType {
-  USERNAME = 'username',
-  PRIMARY_DOMAIN = 'primary-domain',
-  ALTERNATIVE_DOMAIN = 'alternative-domain',
-  AFFILIATED_PROFILE = 'affiliated-profile',
 }
 
 export interface IOrganizationIdentity {

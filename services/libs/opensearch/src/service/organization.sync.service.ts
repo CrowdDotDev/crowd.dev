@@ -3,7 +3,7 @@ import {
   getOrgAggregates,
 } from '@crowd/data-access-layer/src/activities'
 import {
-  IOrganizationAggregateData,
+  IDbOrganizationAggregateData,
   cleanupForOganization,
   insertOrganizationSegments,
 } from '@crowd/data-access-layer/src/organizations'
@@ -303,7 +303,7 @@ export class OrganizationSyncService {
               await cleanupForOganization(qx, organizationId)
 
               if (orgData.length > 0) {
-                await insertOrganizationSegments(qx, orgData as IOrganizationAggregateData[])
+                await insertOrganizationSegments(qx, orgData as IDbOrganizationAggregateData[])
               }
             },
             undefined,

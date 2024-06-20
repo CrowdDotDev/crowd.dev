@@ -1,11 +1,14 @@
+import { getServiceChildLogger } from '@crowd/logging'
 import { QueryExecutor } from '../queryExecutor'
 import { prepareBulkInsert } from '../utils'
-import { IOrgAttribute, IOrgAttributeInput } from './types'
+import { IDbOrgAttribute, IDbOrgAttributeInput } from './types'
+
+const log = getServiceChildLogger('organizations/attributes')
 
 export async function findOrgAttributes(
   qx: QueryExecutor,
   organizationId: string,
-): Promise<IOrgAttribute[]> {
+): Promise<IDbOrgAttribute[]> {
   return qx.select(
     `
     SELECT
@@ -19,11 +22,15 @@ export async function findOrgAttributes(
   )
 }
 
-export async function upsertOrgAttributes(
+export const upsertOrgAttributes = async (
   qx: QueryExecutor,
   organizationId: string,
-  attributes: IOrgAttributeInput[],
-): Promise<void> {
+  attributes: IDbOrgAttributeInput[],
+): Promise<void> => {
+  if (attributes.length === 0) {
+    return
+  }
+
   const objects = attributes.map((a) => {
     return {
       organizationId,
@@ -31,12 +38,16 @@ export async function upsertOrgAttributes(
     }
   })
 
-  await qx.result(
-    prepareBulkInsert(
+  try {
+    const prepared = prepareBulkInsert(
       'orgAttributes',
       ['organizationId', 'type', 'name', 'source', 'default', 'value'],
       objects,
-      'DO UPDATE SET value = EXCLUDED.value, default = EXCLUDED.default',
-    ),
-  )
+      '("organizationId", name, "default") where "default" do update set value = excluded.value, "default" = excluded.default',
+    )
+    await qx.result(prepared)
+  } catch (err) {
+    log.error(err, 'Failed to upsert organization attributes!')
+    throw err
+  }
 }

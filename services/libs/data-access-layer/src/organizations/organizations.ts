@@ -1,6 +1,32 @@
+import { IOrganizationIdSource, SyncStatus } from '@crowd/types'
 import { QueryExecutor } from '../queryExecutor'
+import { prepareSelectColumns } from '../utils'
+import { IDbOrgIdentity, IDbOrganization, IDbOrganizationInput } from './types'
+import { generateUUIDv1 } from '@crowd/common'
 
-export async function findOrgByDisplayName(
+const ORG_SELECT_COLUMNS = [
+  'id',
+  'tenantId',
+  'description',
+  'displayName',
+  'logo',
+  'tags',
+  'employees',
+  'revenueRange',
+  'importHash',
+  'location',
+  'isTeamOrganization',
+  'type',
+  'size',
+  'headline',
+  'industry',
+  'founded',
+  'employeeChurnRate',
+  'employeeGrowthRate',
+  'manuallyCreated',
+]
+
+export async function findOrgIdByDisplayName(
   qx: QueryExecutor,
   {
     tenantId,
@@ -38,7 +64,7 @@ export async function findOrgByDisplayName(
   return null
 }
 
-export async function findOrgByWebsite(
+export async function findOrgIdByWebsite(
   qx: QueryExecutor,
   tenantId: string,
   websites: string[],
@@ -63,4 +89,241 @@ export async function findOrgByWebsite(
   }
 
   return null
+}
+
+export async function findOrgBySourceId(
+  qx: QueryExecutor,
+  tenantId: string,
+  segmentId: string,
+  platform: string,
+  sourceId: string,
+): Promise<IDbOrganization | null> {
+  const result = await qx.selectOneOrNone(
+    `
+    with
+        "organizationsWithSourceIdAndSegment" as (
+            select oi."organizationId"
+            from "organizationIdentities" oi
+            join "organizationSegments" os on oi."organizationId" = os."organizationId"
+            where 
+                  oi.platform = $(platform)
+                  and oi."sourceId" = $(sourceId)
+                  and os."segmentId" =  $(segmentId)
+            order by oi."updatedAt" desc
+            limit 1
+        )
+    select ${prepareSelectColumns(ORG_SELECT_COLUMNS, 'o')}
+    from organizations o
+    where o."tenantId" = $(tenantId) 
+    and o.id in (select distinct "organizationId" from "organizationsWithSourceIdAndSegment");`,
+    { tenantId, sourceId, segmentId, platform },
+  )
+
+  return result
+}
+
+export async function findOrgByVerifiedIdentity(
+  qx: QueryExecutor,
+  tenantId: string,
+  identity: IDbOrgIdentity,
+): Promise<IDbOrganization | null> {
+  const result = await qx.selectOneOrNone(
+    `
+    with "organizationsWithIdentity" as (
+              select oi."organizationId"
+              from "organizationIdentities" oi
+              where 
+                    oi."tenantId" = $(tenantId)
+                    and oi.platform = $(platform)
+                    and lower(oi.value) = lower($(value))
+                    and oi.type = $(type)
+                    and oi.verified = true
+          )
+          select  ${prepareSelectColumns(ORG_SELECT_COLUMNS, 'o')}
+          from organizations o
+          where o."tenantId" = $(tenantId) 
+          and o.id in (select distinct "organizationId" from "organizationsWithIdentity")
+          limit 1;
+    `,
+    {
+      tenantId,
+      value: identity.value,
+      platform: identity.platform,
+      type: identity.type,
+    },
+  )
+
+  return result
+}
+
+export async function getOrgIdentities(
+  qx: QueryExecutor,
+  organizationId: string,
+  tenantId: string,
+): Promise<IDbOrgIdentity[]> {
+  return await qx.select(
+    `
+      select platform,
+             type,
+             value,
+             verified,
+             "sourceId",
+             "integrationId"
+      from "organizationIdentities"
+      where "organizationId" = $(organizationId) and
+            "tenantId" = $(tenantId)
+    `,
+    {
+      organizationId,
+      tenantId,
+    },
+  )
+}
+
+export async function addOrgsToSegments(
+  qe: QueryExecutor,
+  tenantId: string,
+  segmentId: string,
+  orgIds: string[],
+): Promise<void> {
+  const parameters: Record<string, unknown> = {
+    tenantId,
+    segmentId,
+  }
+
+  const valueStrings = []
+  for (let i = 0; i < orgIds.length; i++) {
+    const orgId = orgIds[i]
+    parameters[`orgId_${i}`] = orgId
+    valueStrings.push(`($(tenantId), $(segmentId), $(orgId_${i}), now())`)
+  }
+
+  const valueString = valueStrings.join(',')
+
+  const query = `
+  insert into "organizationSegments"("tenantId", "segmentId", "organizationId", "createdAt")
+  values ${valueString}
+  on conflict do nothing;
+  `
+
+  await qe.selectNone(query, parameters)
+}
+
+export async function addOrgsToMember(
+  qe: QueryExecutor,
+  memberId: string,
+  orgs: IOrganizationIdSource[],
+): Promise<void> {
+  const parameters: Record<string, unknown> = {
+    memberId,
+  }
+
+  const valueStrings = []
+  for (let i = 0; i < orgs.length; i++) {
+    const org = orgs[i]
+    parameters[`orgId_${i}`] = org.id
+    parameters[`source_${i}`] = org.source
+    valueStrings.push(`($(orgId_${i}), $(memberId), now(), now(), $(source_${i}))`)
+  }
+
+  const valueString = valueStrings.join(',')
+
+  const query = `
+  insert into "memberOrganizations"("organizationId", "memberId", "createdAt", "updatedAt", "source")
+  values ${valueString}
+  on conflict do nothing;
+  `
+
+  await qe.selectNone(query, parameters)
+}
+
+export async function addOrgToSyncRemote(
+  qe: QueryExecutor,
+  organizationId: string,
+  integrationId: string,
+  sourceId: string,
+): Promise<void> {
+  await qe.selectNone(
+    `insert into "organizationsSyncRemote" ("id", "organizationId", "sourceId", "integrationId", "syncFrom", "metaData", "lastSyncedAt", "status")
+    values
+        ($(id), $(organizationId), $(sourceId), $(integrationId), $(syncFrom), $(metaData), $(lastSyncedAt), $(status))
+        on conflict do nothing`,
+    {
+      id: generateUUIDv1(),
+      organizationId,
+      sourceId,
+      integrationId,
+      syncFrom: 'enrich',
+      metaData: null,
+      lastSyncedAt: null,
+      status: SyncStatus.NEVER,
+    },
+  )
+}
+
+export async function insertOrganization(
+  qe: QueryExecutor,
+  tenantId: string,
+  data: IDbOrganizationInput,
+): Promise<string> {
+  const columns = Object.keys(data)
+
+  if (columns.length === 0) {
+    throw new Error('No data to insert')
+  }
+
+  const id = generateUUIDv1()
+  const now = new Date()
+
+  columns.push('id')
+  columns.push('tenantId')
+  columns.push('createdAt')
+  columns.push('updatedAt')
+
+  const query = `
+    insert into organizations(${columns.map((c) => `"${c}"`).join(', ')})
+    values(${columns.map((c) => `$(${c})`).join(', ')})
+  `
+
+  const result = await qe.result(query, {
+    ...data,
+    id,
+    tenantId,
+    createdAt: now,
+    updatedAt: now,
+  })
+
+  if (result.rowCount !== 1) {
+    throw new Error('Failed to insert organization')
+  }
+
+  return id
+}
+
+export async function updateOrganization(
+  qe: QueryExecutor,
+  organizationId: string,
+  data: IDbOrganizationInput,
+): Promise<void> {
+  const columns = Object.keys(data)
+  if (columns.length === 0) {
+    return
+  }
+
+  const updatedAt = new Date()
+  const oneMinuteAgo = new Date(updatedAt.getTime() - 60 * 1000)
+  columns.push('updatedAt')
+
+  const query = `
+    update organizations set
+      ${columns.map((c) => `"${c}" = $(${c})`).join(',\n')}
+    where id = $(organizationId) and "updatedAt" <= $(oneMinuteAgo)
+  `
+
+  await qe.selectNone(query, {
+    ...data,
+    organizationId,
+    updatedAt,
+    oneMinuteAgo,
+  })
 }

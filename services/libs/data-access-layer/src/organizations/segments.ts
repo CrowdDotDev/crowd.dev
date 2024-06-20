@@ -1,7 +1,7 @@
 import { getServiceChildLogger } from '@crowd/logging'
 import { QueryExecutor } from '../queryExecutor'
 import { prepareBulkInsert } from '../utils'
-import { IOrganizationAggregateData } from './types'
+import { IDbOrganizationAggregateData } from './types'
 
 const log = getServiceChildLogger('organizations/segments')
 
@@ -19,7 +19,7 @@ export async function cleanupForOganization(qx: QueryExecutor, organizationId: s
 
 export async function insertOrganizationSegments(
   qx: QueryExecutor,
-  data: IOrganizationAggregateData[],
+  data: IDbOrganizationAggregateData[],
 ) {
   try {
     return qx.result(

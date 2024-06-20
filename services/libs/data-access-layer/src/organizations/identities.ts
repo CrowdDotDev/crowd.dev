@@ -1,10 +1,10 @@
 import { QueryExecutor } from '../queryExecutor'
-import { IOrgIdentity, IOrgIdentityInsertInput, IOrgIdentityUpdateInput } from './types'
+import { IDbOrgIdentity, IDbOrgIdentityInsertInput, IDbOrgIdentityUpdateInput } from './types'
 
 export async function fetchOrgIdentities(
   qx: QueryExecutor,
   organizationId: string,
-): Promise<IOrgIdentity[]> {
+): Promise<IDbOrgIdentity[]> {
   return qx.select(
     `
       SELECT *
@@ -21,7 +21,7 @@ export async function fetchManyOrgIdentities(
   qx: QueryExecutor,
   organizationIds: string[],
   tenantId: string,
-): Promise<{ organizationId: string; identities: IOrgIdentity[] }[]> {
+): Promise<{ organizationId: string; identities: IDbOrgIdentity[] }[]> {
   return qx.select(
     `
       SELECT
@@ -58,9 +58,9 @@ export async function cleanUpOrgIdentities(
   )
 }
 
-export async function updateOrgIdentity(
+export async function updateOrgIdentityVerifiedFlag(
   qx: QueryExecutor,
-  identity: IOrgIdentityUpdateInput,
+  identity: IDbOrgIdentityUpdateInput,
 ): Promise<void> {
   await qx.result(
     `
@@ -71,7 +71,7 @@ export async function updateOrgIdentity(
   )
 }
 
-export async function addOrgIdentity(qx: QueryExecutor, identity: IOrgIdentityInsertInput) {
+export async function addOrgIdentity(qx: QueryExecutor, identity: IDbOrgIdentityInsertInput) {
   return qx.result(
     `
       INSERT INTO "organizationIdentities" (

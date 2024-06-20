@@ -1,6 +1,11 @@
-import { OrganizationIdentityType } from '@crowd/types'
+import {
+  IOrganizationRevenueRange,
+  OrganizationAttributeSource,
+  OrganizationAttributeType,
+  OrganizationIdentityType,
+} from '@crowd/types'
 
-export interface IOrganization {
+export interface IDbOrganization {
   id: string
   tenantId: string
   description?: string
@@ -8,7 +13,7 @@ export interface IOrganization {
   logo?: string
   tags?: string[]
   employees?: number
-  revenueRange?: unknown
+  revenueRange?: IOrganizationRevenueRange
   importHash?: string
   location?: string
   isTeamOrganization: boolean
@@ -20,36 +25,46 @@ export interface IOrganization {
   employeeChurnRate?: unknown
   employeeGrowthRate?: unknown
   manuallyCreated: boolean
-
-  attributes: IOrgAttribute[]
 }
 
-export enum OrgAttributeType {
-  STRING = 'string',
-  BOOLEAN = 'boolean',
-  INTEGER = 'integer',
-  DECIMAL = 'decimal',
-  OBJECT = 'object',
+export interface IDbOrganizationInput {
+  description?: string
+  displayName?: string
+  logo?: string
+  tags?: string[]
+  employees?: number
+  revenueRange?: IOrganizationRevenueRange
+  importHash?: string
+  location?: string
+  isTeamOrganization: boolean
+  type?: string
+  size?: string
+  headline?: string
+  industry?: string
+  founded?: number
+  employeeChurnRate?: unknown
+  employeeGrowthRate?: unknown
+  manuallyCreated: boolean
 }
 
-export interface IOrgAttribute {
+export interface IDbOrgAttribute {
   id?: string
-  type: OrgAttributeType
+  type: OrganizationAttributeType
+  name: string
+  source: OrganizationAttributeSource
+  default: boolean
+  value?: string
+}
+
+export interface IDbOrgAttributeInput {
+  type: OrganizationAttributeType
   name: string
   source: string
   default: boolean
   value?: string
 }
 
-export interface IOrgAttributeInput {
-  type: OrgAttributeType
-  name: string
-  source: string
-  default: boolean
-  value?: string
-}
-
-export interface IOrganizationAggregateData {
+export interface IDbOrganizationAggregateData {
   organizationId: string
   segmentId: string
   tenantId: string
@@ -61,7 +76,7 @@ export interface IOrganizationAggregateData {
   memberCount: number
 }
 
-export interface IOrgIdentity {
+export interface IDbOrgIdentity {
   platform: string
   type: OrganizationIdentityType
   value: string
@@ -70,7 +85,7 @@ export interface IOrgIdentity {
   integrationId?: string
 }
 
-export interface IOrgIdentityInsertInput {
+export interface IDbOrgIdentityInsertInput {
   organizationId: string
   tenantId: string
   platform: string
@@ -81,7 +96,7 @@ export interface IOrgIdentityInsertInput {
   integrationId?: string
 }
 
-export interface IOrgIdentityUpdateInput {
+export interface IDbOrgIdentityUpdateInput {
   organizationId: string
   tenantId: string
   platform: string

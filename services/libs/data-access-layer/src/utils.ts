@@ -36,3 +36,11 @@ export function prepareBulkInsert(
     },
   )
 }
+
+export function prepareSelectColumns(columns: string[], alias?: string) {
+  return columns
+    .map((c) => {
+      return alias ? `${alias}."${c}"` : `"${c}"`
+    })
+    .join(',\n')
+}

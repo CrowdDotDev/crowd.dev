@@ -13,7 +13,10 @@ import moment from 'moment'
 
 import { findProjectGroupByName } from '@crowd/data-access-layer/src/segments'
 import { insertLfxMembership, LfxMembership } from '@crowd/data-access-layer/src/lfx_memberships'
-import { findOrgByDisplayName, findOrgByWebsite } from '@crowd/data-access-layer/src/organizations'
+import {
+  findOrgIdByDisplayName,
+  findOrgIdByWebsite,
+} from '@crowd/data-access-layer/src/organizations'
 import { databaseInit } from '@/database/databaseConnection'
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
@@ -67,22 +70,26 @@ function parseDomains(domains: string) {
 }
 
 async function findOrgId(qx, tenantId, record) {
-  let org = await findOrgByWebsite(qx, tenantId, [record['Account Domain']])
+  let org = await findOrgIdByWebsite(qx, tenantId, [record['Account Domain']])
   if (org) {
     return org
   }
 
-  org = await findOrgByWebsite(qx, tenantId, record['Domain Alias'])
+  org = await findOrgIdByWebsite(qx, tenantId, record['Domain Alias'])
   if (org) {
     return org
   }
 
-  org = await findOrgByDisplayName(qx, { tenantId, orgName: record['Account Name'], exact: true })
+  org = await findOrgIdByDisplayName(qx, { tenantId, orgName: record['Account Name'], exact: true })
   if (org) {
     return org
   }
 
-  org = await findOrgByDisplayName(qx, { tenantId, orgName: record['Account Name'], exact: false })
+  org = await findOrgIdByDisplayName(qx, {
+    tenantId,
+    orgName: record['Account Name'],
+    exact: false,
+  })
   return org
 }
 

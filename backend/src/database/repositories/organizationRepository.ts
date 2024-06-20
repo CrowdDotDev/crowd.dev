@@ -10,7 +10,7 @@ import {
   cleanUpOrgIdentities,
   fetchOrgIdentities,
   fetchManyOrgIdentities,
-  updateOrgIdentity,
+  updateOrgIdentityVerifiedFlag,
   findOrgAttributes,
 } from '@crowd/data-access-layer/src/organizations'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
@@ -635,7 +635,7 @@ class OrganizationRepository {
 
     const qx = SequelizeRepository.getQueryExecutor(options, transaction)
 
-    await updateOrgIdentity(qx, {
+    await updateOrgIdentityVerifiedFlag(qx, {
       organizationId,
       tenantId: currentTenant.id,
       platform: identity.platform,
