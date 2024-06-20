@@ -115,7 +115,7 @@ const processTopicStream: ProcessStreamHandler = async (ctx) => {
       // we need to create a fake member object
       member = {
         user_id: userId,
-        full_name: message.name || 'Anonymous User',
+        full_name: 'Anonymous User',
         email: 'anonymous+fake+email@groups.io',
         group_id: message.group_id,
       } as MemberInfoMinimal
@@ -126,7 +126,7 @@ const processTopicStream: ProcessStreamHandler = async (ctx) => {
       )
     }
 
-    await ctx.publishData<GroupsioPublishData<GroupsioMessageData>>({
+    await ctx.processData<GroupsioPublishData<GroupsioMessageData>>({
       type: GroupsioPublishDataType.MESSAGE,
       data: {
         message,
@@ -155,7 +155,7 @@ const processGroupMembersStream: ProcessStreamHandler = async (ctx) => {
     // caching member
     await cacheMember(ctx, member)
     // publishing member
-    await ctx.publishData<GroupsioPublishData<GroupsioMemberJoinData>>({
+    await ctx.processData<GroupsioPublishData<GroupsioMemberJoinData>>({
       type: GroupsioPublishDataType.MEMBER_JOIN,
       data: {
         member,

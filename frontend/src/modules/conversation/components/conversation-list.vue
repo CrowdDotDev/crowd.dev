@@ -32,9 +32,9 @@
             :total="totalConversations"
             :current-page="pagination.page"
             :has-page-counter="false"
+            :sorter="false"
             module="conversation"
             position="top"
-            @change-sorter="doChangeFilter"
           />
         </div>
 
@@ -89,22 +89,13 @@ const { fetchConversation } = conversationStore;
 
 const loading = ref(false);
 
-const sorterFilter = computed(() => (filters.value.order.prop === 'activityCount'
-  ? 'trending'
-  : 'recentActivity'));
+const sorterFilter = ref('recentActivity');
 
 const emptyState = computed(() => ({
   title: 'No conversations found',
   description:
         "We couldn't find any results that match your search criteria, please try a different query",
 }));
-
-const doChangeFilter = (filter) => {
-  filters.value.order = {
-    prop: filter === 'recentActivity' ? 'lastActive' : 'activityCount',
-    order: 'descending',
-  };
-};
 
 const isLoadMoreVisible = computed(() => (
   pagination.value.page

@@ -1,0 +1,34 @@
+:root {
+  /* ---------------------------------- *\
+            Badge sizes
+  \* ---------------------------------- */
+
+
+  /* Small */
+  --cr-badge-small-font-size: #{rem(12)};
+  --cr-badge-small-height: #{rem(22)};
+
+
+  /* Medium */
+  --cr-badge-medium-font-size: #{rem(13)};
+  --cr-badge-medium-height: #{rem(26)};
+
+  /* ---------------------------------- *\
+            Badge styles
+  \* ---------------------------------- */
+
+  /* Default */
+  --cr-badge-default-background: var(--color-gray-100);
+  --cr-badge-default-border: var(--color-gray-200);
+  --cr-badge-default-text: var(--color-gray-900);
+
+  /* White */
+  --cr-badge-white-background: var(--color-white);
+  --cr-badge-white-border: var(--color-gray-200);
+  --cr-badge-white-text: var(--color-gray-900);
+
+  /* Brand */
+  --cr-badge-brand-background: var(--color-brand-50);
+  --cr-badge-brand-border: var(--color-brand-100);
+  --cr-badge-brand-text: var(--color-brand-600);
+}

@@ -1,7 +1,9 @@
 <template>
   <div>
+    <el-divider v-if="member.attributes.education" class="!my-8 border-gray-200" />
+
     <!-- Education -->
-    <div v-if="member.attributes.education" class="flex items-center mb-4 mt-10">
+    <div v-if="member.attributes.education" class="flex items-center mb-4">
       <div
         class="font-medium text-black mr-2"
       >
@@ -36,8 +38,10 @@
       </template>
     </app-member-custom-attributes-array-renderer>
 
+    <el-divider v-if="member.attributes.certifications" class="!my-8 border-gray-200" />
+
     <!-- Certifications -->
-    <div v-if="member.attributes.certifications" class="flex items-center mb-4 mt-10">
+    <div v-if="member.attributes.certifications" class="flex items-center mb-4">
       <div
         class="font-medium text-black mr-2"
       >
@@ -73,9 +77,11 @@
     </app-member-custom-attributes-array-renderer>
 
     <!-- Awards -->
+    <el-divider v-if="member.attributes.awards" class="!my-8 border-gray-200" />
+
     <div v-if="member.attributes.awards">
       <div
-        class="flex items-center mb-4 mt-10"
+        class="flex items-center mb-4"
       >
         <div
           class="font-medium text-black mr-2"

@@ -3,7 +3,7 @@ import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG, UNLEASH_CONFIG, WEBHOOK_API_CONFIG
 import express from 'express'
 import { loggingMiddleware } from './middleware/logging'
 import { getSqsClient } from '@crowd/sqs'
-import { DbStore, getDbConnection } from '@crowd/database'
+import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { databaseMiddleware } from './middleware/database'
 import { errorMiddleware } from './middleware/error'
 import { sqsMiddleware } from './middleware/sqs'

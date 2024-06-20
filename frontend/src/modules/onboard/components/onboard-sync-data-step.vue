@@ -18,7 +18,6 @@
         <app-onboard-integration-item
           :integration="highlightedIntegration"
           @allow-redirect="onConnect"
-          @invite-colleagues="emit('inviteColleagues')"
         />
       </div>
       <div class="panel !p-0">
@@ -58,7 +57,7 @@ import AppOnboardIntegrationItem from '@/modules/onboard/components/onboard-inte
 import { minValue } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 
-const emit = defineEmits(['allowRedirect', 'inviteColleagues']);
+const emit = defineEmits(['allowRedirect']);
 const props = defineProps({
   modelValue: {
     type: Object,
@@ -71,9 +70,9 @@ const store = useStore();
 const loading = computed(
   () => store.getters['integration/loadingFetch'],
 );
-const integrationsArray = computed(() => CrowdIntegrations.mappedConfigs(store)
+const integrationsArray = computed(() => CrowdIntegrations.mappedEnabledConfigs(store)
   .filter((i) => !i.onboard?.highlight && !!i.onboard));
-const highlightedIntegrationsArray = computed(() => CrowdIntegrations.mappedConfigs(store)
+const highlightedIntegrationsArray = computed(() => CrowdIntegrations.mappedEnabledConfigs(store)
   .filter((i) => i.onboard?.highlight && !!i.onboard));
 const showGithubDialog = ref(false);
 

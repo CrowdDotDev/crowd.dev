@@ -150,6 +150,7 @@ export class MemberService {
       }),
       'filter[isOrganization]': false,
       'filter[isBot]': false,
+      'filter[isDeleted]': false,
       'filter[activityTimestampFrom]':
         activityTimestampFrom,
       'filter[activityTimestampTo]': activityTimestampTo,
@@ -205,6 +206,31 @@ export class MemberService {
     return response.data;
   }
 
+  static async unmerge(memberId, preview) {
+    const tenantId = AuthCurrentTenant.get();
+
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/member/${memberId}/unmerge`,
+      preview,
+    );
+
+    return response.data;
+  }
+
+  static async unmergePreview(memberId, platform, username) {
+    const tenantId = AuthCurrentTenant.get();
+
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/member/${memberId}/unmerge/preview`,
+      {
+        platform,
+        username,
+      },
+    );
+
+    return response.data;
+  }
+
   static async addToNoMerge(memberA, memberB) {
     const tenantId = AuthCurrentTenant.get();
 
@@ -218,13 +244,14 @@ export class MemberService {
     return response.data;
   }
 
-  static async fetchMergeSuggestions(limit, offset) {
+  static async fetchMergeSuggestions(limit, offset, query) {
     const sampleTenant = AuthCurrentTenant.getSampleTenantData();
     const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
 
     const params = {
       limit,
       offset,
+      ...query,
     };
 
     return authAxios.get(

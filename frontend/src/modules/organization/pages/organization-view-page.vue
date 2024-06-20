@@ -6,12 +6,19 @@
       class="app-page-spinner"
     />
     <div v-else-if="organization">
-      <router-link
-        class="text-gray-600 btn-link--md btn-link--secondary p-0 inline-flex items-center"
-        :to="{ path: '/organizations' }"
-      >
-        <i class="ri-arrow-left-s-line mr-2" />Organizations
-      </router-link>
+      <div class="flex items-center justify-between">
+        <router-link
+          class="text-gray-600 btn-link--md btn-link--secondary p-0 inline-flex items-center"
+          :to="{ path: '/organizations' }"
+        >
+          <i class="ri-arrow-left-s-line mr-2" />Organizations
+        </router-link>
+        <app-organization-actions
+          :organization="organization"
+          @unmerge="unmerge"
+        />
+      </div>
+
       <div class="grid grid-cols-3 gap-6 mt-4">
         <app-organization-view-header
           :organization="organization"
@@ -20,6 +27,7 @@
         <div class="row-span-4">
           <app-organization-view-aside
             :organization="organization"
+            @unmerge="unmerge"
           />
         </div>
         <div class="panel w-full col-span-2">
@@ -59,6 +67,12 @@
       </div>
     </div>
   </app-page-wrapper>
+  <app-organization-unmerge-dialog
+    v-if="isUnmergeDialogOpen"
+    v-model="isUnmergeDialogOpen"
+    :selected-identity="selectedIdentity"
+    @update:model-value="selectedIdentity = null"
+  />
 </template>
 
 <script setup>
@@ -71,6 +85,8 @@ import AppOrganizationViewMembers from '@/modules/organization/components/view/o
 import Message from '@/shared/message/message';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import { storeToRefs } from 'pinia';
+import AppOrganizationActions from '@/modules/organization/components/organization-actions.vue';
+import AppOrganizationUnmergeDialog from '@/modules/organization/components/organization-unmerge-dialog.vue';
 
 const props = defineProps({
   id: {
@@ -85,6 +101,16 @@ const { fetchOrganization } = organizationStore;
 
 const loading = ref(true);
 const tab = ref('contacts');
+
+// Unmerge
+const isUnmergeDialogOpen = ref(null);
+const selectedIdentity = ref(null);
+const unmerge = (identity) => {
+  if (identity) {
+    selectedIdentity.value = identity;
+  }
+  isUnmergeDialogOpen.value = organization.value;
+};
 
 onMounted(() => {
   try {

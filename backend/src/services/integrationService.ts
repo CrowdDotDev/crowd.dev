@@ -1,10 +1,11 @@
+/* eslint-disable no-promise-executor-return */
 import { createAppAuth } from '@octokit/auth-app'
 import { request } from '@octokit/request'
 import moment from 'moment'
 import lodash from 'lodash'
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
-import { PlatformType } from '@crowd/types'
-import { Error400, Error404, Error542 } from '@crowd/common'
+import { PlatformType, Edition } from '@crowd/types'
+import { Error400, Error404, Error542, EDITION } from '@crowd/common'
 import {
   HubspotFieldMapperFactory,
   getHubspotProperties,
@@ -18,6 +19,7 @@ import {
   getHubspotLists,
   IProcessStreamContext,
 } from '@crowd/integrations'
+import { RedisCache } from '@crowd/redis'
 import { ILinkedInOrganization } from '../serverless/integrations/types/linkedinTypes'
 import { DISCORD_CONFIG, GITHUB_CONFIG, IS_TEST_ENV, KUBE_MODE, NANGO_CONFIG } from '../conf/index'
 import { IServiceOptions } from './IServiceOptions'
@@ -25,6 +27,10 @@ import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import IntegrationRepository from '../database/repositories/integrationRepository'
 import track from '../segment/track'
 import { getInstalledRepositories } from '../serverless/integrations/usecases/github/rest/getInstalledRepositories'
+import {
+  GitHubStats,
+  getGitHubRemoteStats,
+} from '../serverless/integrations/usecases/github/rest/getRemoteStats'
 import telemetryTrack from '../segment/telemetryTrack'
 import getToken from '../serverless/integrations/usecases/nango/getToken'
 import { getOrganizations } from '../serverless/integrations/usecases/linkedin/getOrganizations'
@@ -46,6 +52,9 @@ import {
   GroupsioVerifyGroup,
 } from '@/serverless/integrations/usecases/groupsio/types'
 import SearchSyncService from './searchSyncService'
+import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
+import IntegrationProgressRepository from '@/database/repositories/integrationProgressRepository'
+import { IntegrationProgress } from '@/serverless/integrations/types/regularTypes'
 
 const discordToken = DISCORD_CONFIG.token || DISCORD_CONFIG.token2
 
@@ -153,11 +162,69 @@ export default class IntegrationService {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
-      for (const id of ids) {
-        await IntegrationRepository.destroy(id, {
-          ...this.options,
-          transaction,
-        })
+      if (EDITION === Edition.LFX) {
+        for (const id of ids) {
+          let integration
+          try {
+            integration = await this.findById(id)
+          } catch (err) {
+            throw new Error404()
+          }
+          // remove github remotes from git integration
+          if (integration.platform === PlatformType.GITHUB) {
+            let shouldUpdateGit: boolean
+            const mapping = await this.getGithubRepos(id)
+            const repos: Record<string, string[]> = mapping.reduce((acc, { url, segment }) => {
+              if (!acc[segment.id]) {
+                acc[segment.id] = []
+              }
+              acc[segment.id].push(url)
+              return acc
+            }, {})
+
+            for (const [segmentId, urls] of Object.entries(repos)) {
+              const segmentOptions: IRepositoryOptions = {
+                ...this.options,
+                currentSegments: [
+                  {
+                    ...this.options.currentSegments[0],
+                    id: segmentId as string,
+                  },
+                ],
+              }
+
+              try {
+                await IntegrationRepository.findByPlatform(PlatformType.GIT, segmentOptions)
+                shouldUpdateGit = true
+              } catch (err) {
+                shouldUpdateGit = false
+              }
+
+              if (shouldUpdateGit) {
+                const gitInfo = await this.gitGetRemotes(segmentOptions)
+                const gitRemotes = gitInfo[segmentId].remotes
+                await this.gitConnectOrUpdate(
+                  {
+                    remotes: gitRemotes.filter((remote) => !urls.includes(remote)),
+                  },
+                  segmentOptions,
+                )
+              }
+            }
+          }
+
+          await IntegrationRepository.destroy(id, {
+            ...this.options,
+            transaction,
+          })
+        }
+      } else {
+        for (const id of ids) {
+          await IntegrationRepository.destroy(id, {
+            ...this.options,
+            transaction,
+          })
+        }
       }
 
       await SequelizeRepository.commitTransaction(transaction)
@@ -320,21 +387,6 @@ export default class IntegrationService {
       const repos = await getInstalledRepositories(installToken)
       const githubOwner = IntegrationService.extractOwner(repos, this.options)
 
-      // TODO: I will do this later. For now they can add it manually.
-      // // If the git integration is configured, we add the repos to the git config
-      // let isGitintegrationConfigured
-      // try {
-      //   await this.findByPlatform(PlatformType.GIT)
-      //   isGitintegrationConfigured = true
-      // } catch (err) {
-      //   isGitintegrationConfigured = false
-      // }
-      // if (isGitintegrationConfigured) {
-      //   const gitRemotes = await this.gitGetRemotes()
-      //   await this.gitConnectOrUpdate({
-      //     remotes: [...gitRemotes, ...repos.map((repo) => repo.cloneUrl)],
-      //   })
-      // }
       let orgAvatar
       try {
         const response = await request('GET /users/{user}', {
@@ -389,6 +441,57 @@ export default class IntegrationService {
     try {
       await GithubReposRepository.updateMapping(integrationId, mapping, txOptions)
 
+      // add the repos to the git integration
+      if (EDITION === Edition.LFX) {
+        const repos: Record<string, string[]> = Object.entries(mapping).reduce(
+          (acc, [url, segmentId]) => {
+            if (!acc[segmentId as string]) {
+              acc[segmentId as string] = []
+            }
+            acc[segmentId as string].push(url)
+            return acc
+          },
+          {},
+        )
+
+        for (const [segmentId, urls] of Object.entries(repos)) {
+          let isGitintegrationConfigured
+          const segmentOptions: IRepositoryOptions = {
+            ...this.options,
+            currentSegments: [
+              {
+                ...this.options.currentSegments[0],
+                id: segmentId as string,
+              },
+            ],
+          }
+          try {
+            await IntegrationRepository.findByPlatform(PlatformType.GIT, segmentOptions)
+            isGitintegrationConfigured = true
+          } catch (err) {
+            isGitintegrationConfigured = false
+          }
+
+          if (isGitintegrationConfigured) {
+            const gitInfo = await this.gitGetRemotes(segmentOptions)
+            const gitRemotes = gitInfo[segmentId as string].remotes
+            await this.gitConnectOrUpdate(
+              {
+                remotes: Array.from(new Set([...gitRemotes, ...urls])),
+              },
+              segmentOptions,
+            )
+          } else {
+            await this.gitConnectOrUpdate(
+              {
+                remotes: urls,
+              },
+              segmentOptions,
+            )
+          }
+        }
+      }
+
       const integration = await IntegrationRepository.update(
         integrationId,
         { status: 'in-progress' },
@@ -414,7 +517,7 @@ export default class IntegrationService {
     }
   }
 
-  async getGithubRepos(integrationId) {
+  async getGithubRepos(integrationId): Promise<any[]> {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     const txOptions = {
@@ -1197,8 +1300,8 @@ export default class IntegrationService {
    * @param integrationData  to create the integration object
    * @returns integration object
    */
-  async gitConnectOrUpdate(integrationData) {
-    const transaction = await SequelizeRepository.createTransaction(this.options)
+  async gitConnectOrUpdate(integrationData, options?: IRepositoryOptions) {
+    const transaction = await SequelizeRepository.createTransaction(options || this.options)
     let integration
     const stripGit = (url: string) => {
       if (url.endsWith('.git')) {
@@ -1230,9 +1333,14 @@ export default class IntegrationService {
    * Get all remotes for the Git integration, by segment
    * @returns Remotes for the Git integration
    */
-  async gitGetRemotes() {
+  async gitGetRemotes(options?: IRepositoryOptions): Promise<{
+    [segmentId: string]: { remotes: string[]; integrationId: string }
+  }> {
     try {
-      const integrations = await this.findAllByPlatform(PlatformType.GIT)
+      const integrations = await IntegrationRepository.findAllByPlatform(
+        PlatformType.GIT,
+        options || this.options,
+      )
       return integrations.reduce((acc, integration) => {
         const {
           id,
@@ -1585,5 +1693,238 @@ export default class IntegrationService {
     } catch (err) {
       throw new Error400(this.options.language, 'errors.groupsio.invalidGroup')
     }
+  }
+
+  async getIntegrationProgress(integrationId: string): Promise<IntegrationProgress> {
+    const integration = await this.findById(integrationId)
+    const segments = SequelizeRepository.getCurrentSegments(this.options)
+
+    // special case for github
+    if (integration.platform === PlatformType.GITHUB) {
+      if (integration.status !== 'in-progress') {
+        return {
+          type: 'github',
+          segmentId: integration.segmentId,
+          segmentName: segments.find((s) => s.id === integration.segmentId)?.name,
+          platform: integration.platform,
+          reportStatus: 'integration-is-not-in-progress',
+        }
+      }
+
+      const githubToken = await IntegrationService.getInstallToken(
+        integration.integrationIdentifier,
+      )
+
+      const repos = await getInstalledRepositories(githubToken)
+      const cacheRemote = new RedisCache(
+        'github-progress-remote',
+        this.options.redis,
+        this.options.log,
+      )
+      const cacheDb = new RedisCache('github-progress-db', this.options.redis, this.options.log)
+
+      const getRemoteCachedStats = async (key: string) => {
+        let cachedStats
+        cachedStats = await cacheRemote.get(key)
+        if (!cachedStats) {
+          cachedStats = await getGitHubRemoteStats(githubToken, repos)
+          // cache for 2 hours
+          await cacheRemote.set(key, JSON.stringify(cachedStats), 2 * 60 * 60)
+        } else {
+          cachedStats = JSON.parse(cachedStats)
+        }
+        return cachedStats as GitHubStats
+      }
+
+      const getRemoteStatsOrExitEarly = async (
+        key: string,
+        maxSeconds = 1,
+      ): Promise<GitHubStats | undefined> => {
+        const result = await Promise.race([
+          getRemoteCachedStats(key),
+          new Promise((resolve) => setTimeout(() => resolve(-1), maxSeconds * 1000)),
+        ])
+
+        if (result === -1) {
+          return undefined
+        }
+        return result as GitHubStats
+      }
+
+      const getDbCachedStats = async (key: string) => {
+        let cachedStats
+        cachedStats = await cacheDb.get(key)
+        if (!cachedStats) {
+          cachedStats = await IntegrationProgressRepository.getDbStatsForGithub(
+            integration.tenantId,
+            repos,
+            this.options,
+          )
+          // cache for 1 minute
+          await cacheDb.set(key, JSON.stringify(cachedStats), 60)
+        } else {
+          cachedStats = JSON.parse(cachedStats)
+        }
+        return cachedStats as GitHubStats
+      }
+
+      const getDbStatsOrExitEarly = async (
+        key: string,
+        maxSeconds = 1,
+      ): Promise<GitHubStats | undefined> => {
+        const result = await Promise.race([
+          getDbCachedStats(key),
+          new Promise((resolve) => setTimeout(() => resolve(-1), maxSeconds * 1000)),
+        ])
+
+        if (result === -1) {
+          return undefined
+        }
+
+        return result as GitHubStats
+      }
+
+      const [remoteStats, dbStats] = await Promise.all([
+        getRemoteStatsOrExitEarly(integrationId),
+        getDbStatsOrExitEarly(integrationId),
+      ])
+
+      // this to prevent too long waiting time
+      if (remoteStats === undefined || dbStats === undefined) {
+        return {
+          type: 'github',
+          segmentId: integration.segmentId,
+          segmentName: segments.find((s) => s.id === integration.segmentId)?.name,
+          platform: integration.platform,
+          reportStatus: 'calculating',
+        }
+      }
+
+      const normailzeStats = (db: number, remote: number) => {
+        if (remote === 0) return 100
+        return Math.max(Math.min(Math.round((db / remote) * 100), 100), 0)
+      }
+
+      const calculateStatus = (db: number, remote: number) => {
+        if (remote === 0) return 'ok'
+        if (db >= remote) return 'ok'
+        if (Math.abs(db - remote) / remote <= 0.02) return 'ok'
+        return 'in-progress'
+      }
+
+      const calculateMessage = (db: number, remote: number, entity: string) => {
+        if (remote === 0) return `0 ${entity} synced`
+        if (db >= remote) return `${remote.toLocaleString()} ${entity} synced`
+        if (Math.abs(db - remote) / remote <= 0.02) return `${db.toLocaleString()} ${entity} synced`
+        return `${db.toLocaleString()} out of ${remote.toLocaleString()} ${entity} synced`
+      }
+
+      const remainingStreamsCount = await IntegrationProgressRepository.getPendingStreamsCount(
+        integrationId,
+        this.options,
+      )
+
+      const progress: IntegrationProgress = {
+        type: 'github',
+        segmentId: integration.segmentId,
+        segmentName: segments.find((s) => s.id === integration.segmentId)?.name,
+        platform: integration.platform,
+        reportStatus: 'ok',
+        data: {
+          forks: {
+            db: dbStats.forks,
+            remote: remoteStats.forks,
+            status: calculateStatus(dbStats.forks, remoteStats.forks),
+            message: calculateMessage(dbStats.forks, remoteStats.forks, 'forks'),
+            percentage: normailzeStats(dbStats.forks, remoteStats.forks),
+          },
+          pullRequests: {
+            db: dbStats.totalPRs,
+            remote: remoteStats.totalPRs,
+            status: calculateStatus(dbStats.totalPRs, remoteStats.totalPRs),
+            message: calculateMessage(dbStats.totalPRs, remoteStats.totalPRs, 'pull requests'),
+            percentage: normailzeStats(dbStats.totalPRs, remoteStats.totalPRs),
+          },
+          issues: {
+            db: dbStats.totalIssues,
+            remote: remoteStats.totalIssues,
+            status: calculateStatus(dbStats.totalIssues, remoteStats.totalIssues),
+            message: calculateMessage(dbStats.totalIssues, remoteStats.totalIssues, 'issues'),
+            percentage: normailzeStats(dbStats.totalIssues, remoteStats.totalIssues),
+          },
+          stars: {
+            db: dbStats.stars,
+            remote: remoteStats.stars,
+            status: calculateStatus(dbStats.stars, remoteStats.stars),
+            message: calculateMessage(dbStats.stars, remoteStats.stars, 'stars'),
+            percentage: normailzeStats(dbStats.stars, remoteStats.stars),
+          },
+          other: {
+            db: remainingStreamsCount,
+            status: remainingStreamsCount > 0 ? 'in-progress' : 'ok',
+            message:
+              remainingStreamsCount > 0
+                ? `${remainingStreamsCount} data streams are being processed...`
+                : 'All data streams are processed',
+          },
+        },
+      }
+
+      return progress
+    }
+
+    if (integration.status !== 'in-progress') {
+      return {
+        type: 'github',
+        segmentId: integration.segmentId,
+        segmentName: segments.find((s) => s.id === integration.segmentId)?.name,
+        platform: integration.platform,
+        reportStatus: 'integration-is-not-in-progress',
+      }
+    }
+
+    const remainingStreamsCount = await IntegrationProgressRepository.getPendingStreamsCount(
+      integrationId,
+      this.options,
+    )
+    const progress: IntegrationProgress = {
+      type: 'other',
+      platform: integration.platform,
+      reportStatus: 'ok',
+      segmentId: integration.segmentId,
+      segmentName: segments.find((s) => s.id === integration.segmentId)?.name,
+      data: {
+        other: {
+          db: remainingStreamsCount,
+          status: remainingStreamsCount > 0 ? 'in-progress' : 'ok',
+          message:
+            remainingStreamsCount > 0
+              ? `${remainingStreamsCount} data streams are being processed...`
+              : 'All data streams are processed',
+        },
+      },
+    }
+
+    return progress
+  }
+
+  async getIntegrationProgressList(): Promise<IntegrationProgress[]> {
+    const currentTenant = SequelizeRepository.getCurrentTenant(this.options)
+    const currentSegments = SequelizeRepository.getCurrentSegments(this.options)
+
+    if (currentSegments.length === 1) {
+      const integrationIds =
+        await IntegrationProgressRepository.getAllIntegrationsInProgressForSegment(
+          currentTenant.id,
+          this.options,
+        )
+      return Promise.all(integrationIds.map((id) => this.getIntegrationProgress(id)))
+    }
+    const integrationIds =
+      await IntegrationProgressRepository.getAllIntegrationsInProgressForMultipleSegments(
+        currentTenant.id,
+        this.options,
+      )
+    return Promise.all(integrationIds.map((id) => this.getIntegrationProgress(id)))
   }
 }

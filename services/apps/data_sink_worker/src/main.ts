@@ -5,13 +5,12 @@ import {
   SearchSyncWorkerEmitter,
   NodejsWorkerEmitter,
 } from '@crowd/common_services'
-import { DbStore, getDbConnection } from '@crowd/database'
+import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
 import { getSqsClient } from '@crowd/sqs'
 import {
   DB_CONFIG,
-  SENTIMENT_CONFIG,
   SQS_CONFIG,
   REDIS_CONFIG,
   UNLEASH_CONFIG,
@@ -19,9 +18,7 @@ import {
   WORKER_SETTINGS,
 } from './conf'
 import { WorkerQueueReceiver } from './queue'
-import { initializeSentimentAnalysis } from '@crowd/sentiment'
 import { getRedisClient } from '@crowd/redis'
-import { processOldResultsJob } from './jobs/processOldResults'
 import { getUnleashClient } from '@crowd/feature-flags'
 import { Client as TemporalClient, getTemporalClient } from '@crowd/temporal'
 
@@ -29,7 +26,6 @@ const tracer = getServiceTracer()
 const log = getServiceLogger()
 
 const MAX_CONCURRENT_PROCESSING = 5
-const PROCESSING_INTERVAL_MINUTES = 4
 
 setImmediate(async () => {
   log.info('Starting data sink worker...')
@@ -47,10 +43,6 @@ setImmediate(async () => {
   const dbConnection = await getDbConnection(DB_CONFIG(), MAX_CONCURRENT_PROCESSING)
 
   const redisClient = await getRedisClient(REDIS_CONFIG())
-
-  if (SENTIMENT_CONFIG()) {
-    initializeSentimentAnalysis(SENTIMENT_CONFIG())
-  }
 
   const priorityLevelRepo = new PriorityLevelContextRepository(new DbStore(log, dbConnection), log)
   const loader: QueuePriorityContextLoader = (tenantId: string) =>
@@ -95,7 +87,6 @@ setImmediate(async () => {
     temporal,
     tracer,
     log,
-    MAX_CONCURRENT_PROCESSING,
   )
 
   try {
@@ -103,30 +94,6 @@ setImmediate(async () => {
     await searchSyncWorkerEmitter.init()
     await dataWorkerEmitter.init()
 
-    let processing = false
-    setInterval(async () => {
-      try {
-        log.info('Checking for old results to process...')
-        if (!processing) {
-          processing = true
-          log.info('Processing old results...')
-          await processOldResultsJob(
-            dbConnection,
-            redisClient,
-            nodejsWorkerEmitter,
-            searchSyncWorkerEmitter,
-            dataWorkerEmitter,
-            unleash,
-            temporal,
-            log,
-          )
-        }
-      } catch (err) {
-        log.error(err, 'Failed to process old results!')
-      } finally {
-        processing = false
-      }
-    }, PROCESSING_INTERVAL_MINUTES * 60 * 1000)
     await queue.start()
   } catch (err) {
     log.error({ err }, 'Failed to start queues!')

@@ -189,7 +189,6 @@ setImmediate(async () => {
   require('./integration').default(routes)
   require('./microservice').default(routes)
   require('./conversation').default(routes)
-  require('./eagleEyeContent').default(routes)
   require('./automation').default(routes)
   require('./task').default(routes)
   require('./note').default(routes)
@@ -200,7 +199,12 @@ setImmediate(async () => {
   require('./systemStatus').default(routes)
   require('./eventTracking').default(routes)
   require('./customViews').default(routes)
+  require('./dashboard').default(routes)
   require('./premium/enrichment').default(routes)
+  // EagleEye is disabled for community edition
+  if (API_CONFIG.edition !== Edition.COMMUNITY) {
+    require('./eagleEyeContent').default(routes)
+  }
   // Loads the Tenant if the :tenantId param is passed
   routes.param('tenantId', tenantMiddleware)
   routes.param('tenantId', segmentMiddleware)
@@ -244,11 +248,7 @@ setImmediate(async () => {
 
   app.use('/webhooks', webhookRoutes)
 
-  const io = require('@pm2/io')
-
   app.use(errorMiddleware)
-
-  app.use(io.expressErrorHandler())
 })
 
 export default server

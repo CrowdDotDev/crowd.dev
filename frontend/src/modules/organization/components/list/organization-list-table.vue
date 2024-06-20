@@ -35,10 +35,19 @@
               :total="totalOrganizations"
               :current-page="pagination.page"
               :has-page-counter="false"
+              :export="doExport"
               module="organization"
               position="top"
               @change-sorter="doChangePaginationPageSize"
-            />
+            >
+              <template #defaultFilters>
+                <div>・</div>
+                <cr-default-filters
+                  :config="organizationSavedViews"
+                  :settings="filters.settings"
+                />
+              </template>
+            </app-pagination-sorter>
           </div>
 
           <!-- Organizations list -->
@@ -195,7 +204,7 @@
                 <!-- Identities -->
                 <el-table-column
                   label="Identities"
-                  width="240"
+                  width="280"
                 >
                   <template #header>
                     <span>Identities</span>
@@ -216,14 +225,10 @@
                       class="block"
                     >
                       <div class="h-full flex items-center">
-                        <app-organization-identities
-                          v-if="scope.row.identities.length > 0"
+                        <app-identities-horizontal-list-organizations
                           :organization="scope.row"
+                          :limit="5"
                         />
-                        <span
-                          v-else
-                          class="text-gray-900"
-                        >-</span>
                       </div>
                     </router-link>
                   </template>
@@ -752,6 +757,7 @@
         <app-organization-dropdown-content
           v-if="selectedActionOrganization"
           :organization="selectedActionOrganization"
+          :hide-unmerge="true"
           @merge="isMergeDialogOpen = selectedActionOrganization"
           @close-dropdown="closeDropdown"
         />
@@ -798,10 +804,13 @@ import AppSvg from '@/shared/svg/svg.vue';
 import CrEnrichmentSneakPeakContent from '@/shared/modules/enrichment/components/enrichment-sneak-peak-content.vue';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import Plans from '@/security/plans';
-import AppOrganizationIdentities from '../organization-identities.vue';
+import AppIdentitiesHorizontalListOrganizations from '@/shared/modules/identities/components/identities-horizontal-list-organizations.vue';
+import { OrganizationService } from '@/modules/organization/organization-service';
+import CrDefaultFilters from '@/shared/modules/default-filters/components/default-filters.vue';
 import AppOrganizationListToolbar from './organization-list-toolbar.vue';
 import AppOrganizationName from '../organization-name.vue';
 import AppOrganizationDropdownContent from '../organization-dropdown-content.vue';
+import { organizationSavedViews } from '../../config/saved-views/main';
 
 const router = useRouter();
 
@@ -827,7 +836,7 @@ const emit = defineEmits(['update:pagination']);
 
 const organizationStore = useOrganizationStore();
 const {
-  organizations, selectedOrganizations, filters, totalOrganizations,
+  organizations, selectedOrganizations, filters, totalOrganizations, savedFilterBody,
 } = storeToRefs(organizationStore);
 
 const isMergeDialogOpen = ref(null);
@@ -1036,6 +1045,13 @@ const onTableMouseLeft = () => {
   isTableHovered.value = false;
   isScrollbarVisible.value = isCursorDown.value;
 };
+
+const doExport = () => OrganizationService.export({
+  filter: savedFilterBody.value.filter,
+  orderBy: savedFilterBody.value.orderBy,
+  limit: totalOrganizations.value,
+  offset: null,
+});
 
 watch(table, (newValue) => {
   // Add scroll events to table, it's not possible to access it from 'el-table'

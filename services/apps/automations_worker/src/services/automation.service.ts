@@ -1,4 +1,4 @@
-import { DbStore } from '@crowd/database'
+import { DbStore } from '@crowd/data-access-layer/src/database'
 import { Logger, getChildLogger } from '@crowd/logging'
 import { RedisCache, RedisClient } from '@crowd/redis'
 import {
@@ -10,12 +10,18 @@ import {
   NewMemberSettings,
   WebhookSettings,
 } from '@crowd/types'
-import { AutomationRepository, IRelevantAutomationData } from '../repos/automation.repo'
+import {
+  AutomationRepository,
+  IRelevantAutomationData,
+} from '@crowd/data-access-layer/src/old/apps/automations_worker/automation.repo'
 import request from 'superagent'
 import { newMemberBlocks } from './slack/newMemberBlocks'
 import { newActivityBlocks } from './slack/newActivityBlocks'
-import { IMemberData, IActivityData } from '../repos/types'
-import { DataRepository } from '../repos/data.repo'
+import {
+  IMemberData,
+  IActivityData,
+} from '@crowd/data-access-layer/src/old/apps/automations_worker/types'
+import { DataRepository } from '@crowd/data-access-layer/src/old/apps/automations_worker/data.repo'
 
 export class AutomationService {
   private readonly log: Logger

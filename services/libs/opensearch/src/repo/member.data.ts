@@ -25,11 +25,13 @@ export interface IDbMemberTaskData {
 export interface IDbMemberOrganization {
   id: string
   logo: string | null
+  website: string | null
   displayName: string | null
   memberOrganizations: {
     title: string
     dateStart: string
     dateEnd: string
+    source?: string
   }
 }
 
@@ -99,4 +101,9 @@ export interface IMemberSegmentMatrixItem {
 
 export interface IMemberSegmentMatrix {
   [key: string]: IMemberSegmentMatrixItem[]
+}
+
+export interface IMemberSegment {
+  memberId: string
+  segmentId: string
 }

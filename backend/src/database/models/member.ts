@@ -62,6 +62,11 @@ export default (sequelize) => {
         allowNull: false,
         defaultValue: false,
       },
+      manuallyChangedFields: {
+        type: DataTypes.ARRAY(DataTypes.TEXT),
+        allowNull: true,
+        default: [],
+      },
     },
     {
       indexes: [

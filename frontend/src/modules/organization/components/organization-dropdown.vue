@@ -1,11 +1,11 @@
 <template>
-  <div>
-    <el-dropdown
-      v-if="!isReadOnly && organization"
-      ref="dropdown"
-      trigger="click"
-      placement="bottom-end"
-    >
+  <el-dropdown
+    v-if="!isReadOnly && organization"
+    ref="dropdown"
+    trigger="click"
+    placement="bottom-end"
+  >
+    <slot name="trigger">
       <button
         class="el-dropdown-link btn p-1.5 rounder-md hover:bg-gray-200 text-gray-600"
         type="button"
@@ -13,15 +13,18 @@
       >
         <i class="text-xl ri-more-fill" />
       </button>
-      <template #dropdown>
-        <app-organization-dropdown-content
-          :organization="organization"
-          @merge="emit('merge')"
-          @close-dropdown="onDropdownClose"
-        />
-      </template>
-    </el-dropdown>
-  </div>
+    </slot>
+    <template #dropdown>
+      <app-organization-dropdown-content
+        :organization="organization"
+        :hide-edit="hideEdit"
+        :hide-merge="hideMerge"
+        @merge="emit('merge')"
+        @close-dropdown="onDropdownClose"
+        @unmerge="emit('unmerge')"
+      />
+    </template>
+  </el-dropdown>
 </template>
 
 <script setup>
@@ -37,10 +40,19 @@ defineProps({
     type: Object,
     default: () => {},
   },
+  hideEdit: {
+    type: Boolean,
+    default: false,
+  },
+  hideMerge: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const emit = defineEmits([
   'merge',
+  'unmerge',
   'closeDropdown',
 ]);
 

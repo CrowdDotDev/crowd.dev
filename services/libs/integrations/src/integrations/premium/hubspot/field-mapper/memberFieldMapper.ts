@@ -45,6 +45,12 @@ export class HubspotMemberFieldMapper extends HubspotFieldMapper {
     reach: {
       hubspotType: HubspotPropertyType.NUMBER,
       readonly: true,
+      serialize: (reach) => {
+        if (reach?.total) {
+          return reach.total
+        }
+        return 0
+      },
     },
     numberOfOpensourceContributions: {
       hubspotType: HubspotPropertyType.NUMBER,
@@ -174,6 +180,7 @@ export class HubspotMemberFieldMapper extends HubspotFieldMapper {
           [PlatformType.HUBSPOT]: `https://app.hubspot.com/contacts/${this.hubspotId}/contact/${hubspotContact.id}`,
         },
       },
+      weakIdentities: [],
     }
 
     // loop through member properties
@@ -198,7 +205,7 @@ export class HubspotMemberFieldMapper extends HubspotFieldMapper {
             const identityPlatform = crowdKey.split('.')[1] || null
 
             if (identityPlatform) {
-              member.identities.push({
+              member.weakIdentities.push({
                 username: contactProperties[hubspotPropertyName],
                 platform: identityPlatform,
               })

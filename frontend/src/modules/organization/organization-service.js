@@ -43,6 +43,31 @@ export class OrganizationService {
     return response.data;
   }
 
+  static async unmerge(orgId, preview) {
+    const tenantId = AuthCurrentTenant.get();
+
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/organization/${orgId}/unmerge`,
+      preview,
+    );
+
+    return response.data;
+  }
+
+  static async unmergePreview(orgId, platform, name) {
+    const tenantId = AuthCurrentTenant.get();
+
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/organization/${orgId}/unmerge/preview`,
+      {
+        platform,
+        name,
+      },
+    );
+
+    return response.data;
+  }
+
   static async addToNoMerge(organizationA, organizationB) {
     const tenantId = AuthCurrentTenant.get();
 
@@ -133,13 +158,14 @@ export class OrganizationService {
     return response.data;
   }
 
-  static async fetchMergeSuggestions(limit, offset) {
+  static async fetchMergeSuggestions(limit, offset, query) {
     const sampleTenant = AuthCurrentTenant.getSampleTenantData();
     const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
 
     const params = {
       limit,
       offset,
+      ...query,
     };
 
     return authAxios.get(
@@ -152,5 +178,70 @@ export class OrganizationService {
       },
     )
       .then(({ data }) => Promise.resolve(data));
+  }
+
+  static async listActive({
+    platform,
+    isTeamOrganization,
+    activityTimestampFrom,
+    activityTimestampTo,
+    orderBy,
+    offset,
+    limit,
+  }) {
+    const params = {
+      ...(platform.length && {
+        'filter[platforms]': platform
+          .map((p) => p.value)
+          .join(','),
+      }),
+      ...(isTeamOrganization === false && {
+        'filter[isTeamOrganization]': isTeamOrganization,
+      }),
+      'filter[activityTimestampFrom]':
+        activityTimestampFrom,
+      'filter[activityTimestampTo]': activityTimestampTo,
+      orderBy,
+      offset,
+      limit,
+    };
+
+    const sampleTenant = AuthCurrentTenant.getSampleTenantData();
+    const tenantId = sampleTenant?.id || AuthCurrentTenant.get();
+
+    const response = await authAxios.get(
+      `/tenant/${tenantId}/organization/active`,
+      {
+        params,
+        headers: {
+          Authorization: sampleTenant?.token,
+        },
+      },
+    );
+
+    return response.data;
+  }
+
+  static async export({
+    filter,
+    orderBy,
+    limit,
+    offset,
+  }) {
+    const body = {
+      filter,
+      orderBy,
+      limit,
+      offset,
+    };
+
+    const tenantId = AuthCurrentTenant.get();
+
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/organization/export`,
+      body,
+    );
+
+    return response.data;
   }
 }

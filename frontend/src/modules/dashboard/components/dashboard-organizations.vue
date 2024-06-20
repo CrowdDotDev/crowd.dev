@@ -24,21 +24,22 @@
               New organizations
             </h6>
             <app-dashboard-count
-              :loading="organizations.loadingRecent"
-              :query="newOrganizationCount"
+              :loading="!cube"
+              :current-total="cube?.newOrganizations.total"
+              :previous-total="cube?.newOrganizations.previousPeriodTotal"
             />
           </div>
           <div class="w-7/12">
             <!-- Chart -->
             <div
-              v-if="organizations.loadingRecent"
-              v-loading="organizations.loadingRecent"
+              v-if="!cube"
+              v-loading="!cube"
               class="app-page-spinner !relative chart-loading"
             />
             <app-dashboard-widget-chart
               v-else
+              :data="cube?.newOrganizations.timeseries"
               :datasets="datasets('new organizations')"
-              :query="newOrganizationChart"
             />
           </div>
         </div>
@@ -114,21 +115,22 @@
             </div>
             <!-- info -->
             <app-dashboard-count
-              :loading="organizations.loadingActive"
-              :query="activeOrganizationCount"
+              :loading="!cube"
+              :current-total="cube?.activeOrganizations.total"
+              :previous-total="cube?.activeOrganizations.previousPeriodTotal"
             />
           </div>
           <div class="w-7/12">
             <!-- Chart -->
             <div
-              v-if="organizations.loadingActive"
-              v-loading="organizations.loadingActive"
+              v-if="!cube"
+              v-loading="!cube"
               class="app-page-spinner !relative chart-loading"
             />
             <app-dashboard-widget-chart
               v-else
+              :data="cube?.activeOrganizations.timeseries"
               :datasets="datasets('active organizations')"
-              :query="activeOrganizationChart"
             />
           </div>
         </div>
@@ -187,74 +189,47 @@
   </div>
 </template>
 
-<script>
-import { mapGetters } from 'vuex';
+<script lang="ts" setup>
 import moment from 'moment';
-import {
-  newOrganizationChart,
-  activeOrganizationChart,
-  newOrganizationCount,
-  activeOrganizationCount,
-} from '@/modules/dashboard/dashboard.cube';
 import AppDashboardOrganizationItem from '@/modules/dashboard/components/organization/dashboard-organization-item.vue';
 import AppDashboardCount from '@/modules/dashboard/components/dashboard-count.vue';
-import { DAILY_GRANULARITY_FILTER } from '@/modules/widget/widget-constants';
 import AppDashboardEmptyState from '@/modules/dashboard/components/dashboard-empty-state.vue';
 import AppDashboardWidgetHeader from '@/modules/dashboard/components/dashboard-widget-header.vue';
 import AppDashboardWidgetChart from '@/modules/dashboard/components/dashboard-widget-chart.vue';
 import allOrganizations from '@/modules/organization/config/saved-views/views/all-organizations';
 import { filterQueryService } from '@/shared/modules/filters/services/filter-query.service';
+import { computed } from 'vue';
+import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import { DashboardCubeData } from '@/modules/dashboard/types/DashboardCubeData';
 
+const {
+  cubeData, organizations, period, activeOrganizations, recentOrganizations,
+} = mapGetters('dashboard');
+
+const cube = computed<DashboardCubeData>(() => cubeData.value);
+
+const periodRange = computed(() => [
+  moment()
+    .utc()
+    .subtract(period.value.value - 1, 'day')
+    .format('YYYY-MM-DD'),
+  moment()
+    .utc()
+    .format('YYYY-MM-DD'),
+]);
+
+const datasets = (name: string) => [{
+  name,
+  borderColor: '#E94F2E',
+  measure: 'Organizations.count',
+  granularity: 'day',
+}];
+
+</script>
+
+<script lang="ts">
 export default {
   name: 'AppDashboardOrganizations',
-  components: {
-    AppDashboardWidgetChart,
-    AppDashboardWidgetHeader,
-    AppDashboardEmptyState,
-    AppDashboardCount,
-    AppDashboardOrganizationItem,
-  },
-  data() {
-    return {
-      newOrganizationChart,
-      activeOrganizationChart,
-      newOrganizationCount,
-      activeOrganizationCount,
-      filterQueryService,
-      allOrganizations,
-    };
-  },
-  computed: {
-    ...mapGetters('dashboard', [
-      'activeOrganizations',
-      'recentOrganizations',
-      'organizations',
-      'period',
-    ]),
-    periodRange() {
-      return [
-        moment()
-          .utc()
-          .subtract(this.period.value - 1, 'day')
-          .format('YYYY-MM-DD'),
-        moment()
-          .utc()
-          .format('YYYY-MM-DD'),
-      ];
-    },
-  },
-  methods: {
-    datasets(name) {
-      return [
-        {
-          name,
-          borderColor: '#E94F2E',
-          measure: 'Organizations.count',
-          granularity: DAILY_GRANULARITY_FILTER.value,
-        },
-      ];
-    },
-  },
 };
 </script>
 

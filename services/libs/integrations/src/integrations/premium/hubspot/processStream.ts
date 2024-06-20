@@ -15,7 +15,7 @@ import { getAllCompanies } from './api/companies'
 import { RequestThrottler } from '@crowd/common'
 
 const processRootStream: ProcessStreamHandler = async (ctx) => {
-  const throttler = new RequestThrottler(99, 11000, ctx.log)
+  const throttler = new RequestThrottler(90, 15000, ctx.log)
 
   const settings = ctx.integration.settings as IHubspotIntegrationSettings
 
@@ -63,7 +63,7 @@ const processRootStream: ProcessStreamHandler = async (ctx) => {
 
       while (contacts.length > 0) {
         const contact = contacts.shift()
-        await ctx.publishData<IHubspotData>({
+        await ctx.processData<IHubspotData>({
           type: HubspotStream.MEMBERS,
           element: contact as IHubspotContact,
         })
@@ -95,7 +95,7 @@ const processRootStream: ProcessStreamHandler = async (ctx) => {
 
       while (companies.length > 0) {
         const company = companies.shift()
-        await ctx.publishData<IHubspotData>({
+        await ctx.processData<IHubspotData>({
           type: HubspotStream.ORGANIZATIONS,
           element: company as IHubspotObject,
         })

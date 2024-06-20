@@ -1,6 +1,23 @@
 <template>
+  <!-- Unmerge -->
+  <template v-if="organization.identities.length > 1 && !hideUnmerge">
+    <button
+      class="h-10 el-dropdown-menu__item w-full"
+      :disabled="isEditLockedForSampleData"
+      type="button"
+      @click="handleCommand({
+        action: Actions.UNMERGE_IDENTITY,
+        organization,
+      })"
+    >
+      <i class="ri-link-unlink-m text-base mr-2" /><span class="text-xs">Unmerge identity</span>
+    </button>
+    <el-divider class="border-gray-200 my-2" />
+  </template>
+
   <!-- Edit -->
   <router-link
+    v-if="!hideEdit"
     :to="{
       name: 'organizationEdit',
       params: {
@@ -22,6 +39,7 @@
 
   <!-- Merge organization -->
   <button
+    v-if="!hideMerge"
     class="h-10 el-dropdown-menu__item w-full"
     type="button"
     :disabled="isEditLockedForSampleData"
@@ -172,6 +190,7 @@ import { Organization } from '../types/Organization';
 enum Actions {
   DELETE_ORGANIZATION = 'deleteOrganization',
   MERGE_ORGANIZATION = 'mergeOrganization',
+  UNMERGE_IDENTITY = 'unmergeIdentity',
   SYNC_HUBSPOT = 'syncHubspot',
   STOP_SYNC_HUBSPOT = 'stopSyncHubspot',
   MARK_ORGANIZATION_AS_TEAM_ORGANIZATION = 'markOrganizationAsTeamOrganization',
@@ -179,9 +198,12 @@ enum Actions {
 
 const router = useRouter();
 
-const emit = defineEmits<{(e: 'merge'): void, (e: 'closeDropdown'): void }>();
+const emit = defineEmits<{(e: 'merge'): void, (e: 'unmerge'): void, (e: 'closeDropdown'): void }>();
 defineProps<{
   organization: Organization;
+  hideMerge?: boolean;
+  hideUnmerge?: boolean;
+  hideEdit?: boolean;
 }>();
 
 const store = useStore();
@@ -286,6 +308,14 @@ const handleCommand = (command: {
     return;
   }
 
+  // Unmerge identity
+  if (command.action === Actions.UNMERGE_IDENTITY) {
+    emit('closeDropdown');
+    emit('unmerge');
+
+    return;
+  }
+
   // Sync with hubspot
   if (
     command.action === Actions.SYNC_HUBSPOT
@@ -341,6 +371,7 @@ const handleCommand = (command: {
 
   emit('closeDropdown');
 };
+
 </script>
 
 <style lang="scss" scoped>

@@ -1,12 +1,12 @@
 import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG, UNLEASH_CONFIG } from '../conf'
 import IntegrationStreamService from '../service/integrationStreamService'
-import { DbStore, getDbConnection } from '@crowd/database'
+import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
 import { getRedisClient } from '@crowd/redis'
 import { getSqsClient } from '@crowd/sqs'
 import {
-  IntegrationDataWorkerEmitter,
+  DataSinkWorkerEmitter,
   IntegrationRunWorkerEmitter,
   IntegrationStreamWorkerEmitter,
   PriorityLevelContextRepository,
@@ -44,7 +44,7 @@ setImmediate(async () => {
     loader,
     log,
   )
-  const dataWorkerEmitter = new IntegrationDataWorkerEmitter(
+  const streamWorkerEmitter = new IntegrationStreamWorkerEmitter(
     sqsClient,
     redisClient,
     tracer,
@@ -52,7 +52,7 @@ setImmediate(async () => {
     loader,
     log,
   )
-  const streamWorkerEmitter = new IntegrationStreamWorkerEmitter(
+  const dataSinkWorkerEmitter = new DataSinkWorkerEmitter(
     sqsClient,
     redisClient,
     tracer,
@@ -62,14 +62,14 @@ setImmediate(async () => {
   )
 
   await runWorkerEmiiter.init()
-  await dataWorkerEmitter.init()
   await streamWorkerEmitter.init()
+  await dataSinkWorkerEmitter.init()
 
   const service = new IntegrationStreamService(
     redisClient,
     runWorkerEmiiter,
-    dataWorkerEmitter,
     streamWorkerEmitter,
+    dataSinkWorkerEmitter,
     store,
     log,
   )

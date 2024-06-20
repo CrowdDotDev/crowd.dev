@@ -1,7 +1,9 @@
+import config from '@/config';
 import TwitterConnect from './components/twitter-connect.vue';
 
 export default {
-  enabled: true,
+  enabled: config.isTwitterIntegrationEnabled,
+  hideAsIntegration: !config.isTwitterIntegrationEnabled,
   name: 'X/Twitter',
   backgroundColor: '#d2ebfc',
   borderColor: '#d2ebfc',

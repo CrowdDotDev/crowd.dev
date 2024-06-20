@@ -1,6 +1,6 @@
-import { ITenant } from 'types'
+import { ITenant } from '@crowd/data-access-layer/src/old/apps/merge_suggestions_worker//types'
 import { svc } from '../main'
-import TenantRepository from 'repo/tenant.repo'
+import TenantRepository from '@crowd/data-access-layer/src/old/apps/merge_suggestions_worker/tenant.repo'
 import { isFeatureEnabled } from '@crowd/feature-flags'
 import { FeatureFlag } from '@crowd/types'
 

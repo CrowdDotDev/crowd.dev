@@ -14,4 +14,9 @@ export const DEFAULT_MEMBER_FILTERS = [
       not: true,
     },
   },
+  {
+    isDeleted: {
+      not: true,
+    },
+  },
 ];

@@ -1,7 +1,9 @@
+import config from '@/config';
 import DevtoConnect from './components/devto-connect.vue';
 
 export default {
-  enabled: true,
+  enabled: config.isDevtoIntegrationEnabled,
+  hideAsIntegration: !config.isDevtoIntegrationEnabled,
   name: 'DEV',
   backgroundColor: '#E5E7EB',
   borderColor: '#E5E7EB',

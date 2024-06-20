@@ -7,12 +7,14 @@ import {
   GithubWebhookData,
   GithubActivityType,
   GithubPrepareMemberOutput,
+  GithubPrepareOrgMemberOutput,
   GithubActivitySubType,
   GithubWehookEvent,
   GithubPullRequest,
   GithubIssue,
   GithubPullRequestTimelineItem,
   GithubIssueTimelineItem,
+  INDIRECT_FORK,
 } from './types'
 import {
   IActivityData,
@@ -28,14 +30,84 @@ import { generateSourceIdHash } from '../../helpers'
 
 const IS_TEST_ENV: boolean = process.env.NODE_ENV === 'test'
 
+const parseBotMember = (memberData: GithubPrepareMemberOutput): IMemberData => {
+  const member: IMemberData = {
+    identities: [
+      {
+        platform: PlatformType.GITHUB,
+        username: memberData.memberFromApi.login,
+      },
+    ],
+    displayName: memberData.memberFromApi.login,
+    attributes: {
+      [MemberAttributeName.URL]: {
+        [PlatformType.GITHUB]: memberData.memberFromApi?.url || '',
+      },
+      [MemberAttributeName.AVATAR_URL]: {
+        [PlatformType.GITHUB]: memberData.memberFromApi?.avatarUrl || '',
+      },
+      [MemberAttributeName.SOURCE_ID]: {
+        [PlatformType.GITHUB]: memberData.memberFromApi?.id?.toString() || '',
+      },
+      [MemberAttributeName.IS_BOT]: {
+        [PlatformType.GITHUB]: true,
+      },
+    },
+  }
+
+  return member
+}
+
+const parseDeletedMember = (memberData: GithubPrepareMemberOutput): IMemberData => {
+  const member: IMemberData = {
+    identities: [
+      {
+        platform: PlatformType.GITHUB,
+        username: memberData.memberFromApi.login,
+      },
+    ],
+    displayName: 'Deleted User',
+    attributes: {
+      [MemberAttributeName.URL]: {
+        [PlatformType.GITHUB]: memberData.memberFromApi?.url || '',
+      },
+      [MemberAttributeName.AVATAR_URL]: {
+        [PlatformType.GITHUB]: memberData.memberFromApi?.avatarUrl || '',
+      },
+      [MemberAttributeName.IS_DELETED]: {
+        [PlatformType.GITHUB]: true,
+      },
+      [MemberAttributeName.BIO]: {
+        [PlatformType.GITHUB]:
+          "Hi, I'm @ghost! I take the place of user accounts that have been deleted. :ghost:",
+      },
+    },
+  }
+
+  return member
+}
+
 const parseMember = (memberData: GithubPrepareMemberOutput): IMemberData => {
   const { email, orgs, memberFromApi } = memberData
+
+  if (memberFromApi.isBot && memberFromApi.isDeleted) {
+    throw new Error('Member cannot be both bot and deleted')
+  }
+
+  if (memberFromApi.isBot) {
+    return parseBotMember(memberData)
+  }
+
+  if (memberFromApi.isDeleted) {
+    return parseDeletedMember(memberData)
+  }
 
   const member: IMemberData = {
     identities: [
       {
         platform: PlatformType.GITHUB,
         username: memberFromApi.login,
+        sourceId: memberFromApi.id.toString(),
       },
     ],
     ...(memberFromApi?.twitterUsername && {
@@ -136,6 +208,56 @@ const parseMember = (memberData: GithubPrepareMemberOutput): IMemberData => {
   return member
 }
 
+const parseOrgMember = (memberData: GithubPrepareOrgMemberOutput): IMemberData => {
+  const { orgFromApi } = memberData
+
+  const member: IMemberData = {
+    identities: [
+      {
+        platform: PlatformType.GITHUB,
+        username: orgFromApi.login,
+      },
+    ],
+    ...(orgFromApi?.twitterUsername && {
+      weakIdentities: [
+        {
+          platform: PlatformType.TWITTER,
+          username: orgFromApi.twitterUsername,
+        },
+      ],
+    }),
+    displayName: orgFromApi?.name?.trim() || orgFromApi.login,
+    attributes: {
+      [MemberAttributeName.URL]: {
+        [PlatformType.GITHUB]: orgFromApi.url,
+      },
+      [MemberAttributeName.BIO]: {
+        [PlatformType.GITHUB]: orgFromApi.description || '',
+      },
+      [MemberAttributeName.LOCATION]: {
+        [PlatformType.GITHUB]: orgFromApi.location || '',
+      },
+      [MemberAttributeName.AVATAR_URL]: {
+        [PlatformType.GITHUB]: orgFromApi.avatarUrl || '',
+      },
+    },
+    emails: orgFromApi.email ? [orgFromApi.email] : [],
+  }
+
+  if (orgFromApi.websiteUrl) {
+    member.attributes[MemberAttributeName.WEBSITE_URL] = {
+      [PlatformType.GITHUB]: orgFromApi.websiteUrl,
+    }
+  }
+
+  // mark as organization
+  member.attributes[MemberAttributeName.IS_ORGANIZATION] = {
+    [PlatformType.GITHUB]: true,
+  }
+
+  return member
+}
+
 const parseStar: ProcessDataHandler = async (ctx) => {
   const apiData = ctx.data as GithubApiData
   const data = apiData.data
@@ -164,10 +286,42 @@ const parseStar: ProcessDataHandler = async (ctx) => {
 
 const parseFork: ProcessDataHandler = async (ctx) => {
   const apiData = ctx.data as GithubApiData
+
+  if (apiData.orgMember && !apiData.member) {
+    await parseForkByOrg(ctx)
+    return
+  } else if (apiData.member && apiData.orgMember) {
+    throw new Error('Both member and orgMember are present')
+  } else if (!apiData.member && !apiData.orgMember) {
+    throw new Error('Both member and orgMember are missing')
+  }
+
   const data = apiData.data
+  const relatedData = apiData.relatedData
   const memberData = apiData.member
+  const subType = apiData.subType
 
   const member = parseMember(memberData)
+
+  if (subType && subType === INDIRECT_FORK) {
+    const activity: IActivityData = {
+      type: GithubActivityType.FORK,
+      sourceId: data.id,
+      sourceParentId: '',
+      timestamp: new Date(data.createdAt).toISOString(),
+      channel: apiData.repo.url,
+      member,
+      score: GITHUB_GRID.fork.score,
+      isContribution: GITHUB_GRID.fork.isContribution,
+      attributes: {
+        isIndirectFork: true,
+        directParent: relatedData.url,
+      },
+    }
+
+    await ctx.publishActivity(activity)
+    return
+  }
 
   const activity: IActivityData = {
     type: GithubActivityType.FORK,
@@ -178,6 +332,53 @@ const parseFork: ProcessDataHandler = async (ctx) => {
     member,
     score: GITHUB_GRID.fork.score,
     isContribution: GITHUB_GRID.fork.isContribution,
+  }
+
+  await ctx.publishActivity(activity)
+}
+
+const parseForkByOrg: ProcessDataHandler = async (ctx) => {
+  const apiData = ctx.data as GithubApiData
+  const data = apiData.data
+  const relatedData = apiData.relatedData
+  const memberData = apiData.orgMember
+  const subType = apiData.subType
+
+  const member = parseOrgMember(memberData)
+
+  if (subType && subType === INDIRECT_FORK) {
+    const activity: IActivityData = {
+      type: GithubActivityType.FORK,
+      sourceId: data.id,
+      sourceParentId: '',
+      timestamp: new Date(data.createdAt).toISOString(),
+      channel: apiData.repo.url,
+      member,
+      score: GITHUB_GRID.fork.score,
+      isContribution: GITHUB_GRID.fork.isContribution,
+      attributes: {
+        isIndirectFork: true,
+        directParent: relatedData.url,
+        isForkByOrg: true,
+      },
+    }
+
+    await ctx.publishActivity(activity)
+    return
+  }
+
+  const activity: IActivityData = {
+    type: GithubActivityType.FORK,
+    sourceId: data.id,
+    sourceParentId: '',
+    timestamp: new Date(data.createdAt).toISOString(),
+    channel: apiData.repo.url,
+    member,
+    score: GITHUB_GRID.fork.score,
+    isContribution: GITHUB_GRID.fork.isContribution,
+    attributes: {
+      isForkByOrg: true,
+    },
   }
 
   await ctx.publishActivity(activity)
@@ -825,7 +1026,7 @@ const parseWebhookPullRequest = async (ctx: IProcessDataContext) => {
       timestamp = payload.pull_request.merged_at
       sourceParentId = payload.pull_request.node_id.toString()
       sourceId = `gen-ME_${payload.pull_request.node_id.toString()}_${
-        payload.pull_request.merged_by.login
+        payload.pull_request.merged_by?.login || member.identities[0].username
       }_${new Date(payload.pull_request.merged_at).toISOString()}`
       break
     }
@@ -991,23 +1192,45 @@ const parseWebhookStar = async (ctx: IProcessDataContext) => {
 const parseWebhookFork = async (ctx: IProcessDataContext) => {
   const data = ctx.data as GithubWebhookData
   const payload = data.data
-  const memberData = data.member
 
-  const member = parseMember(memberData)
+  // this is org member
+  if (data.orgMember && !data.member) {
+    const orgMember = parseOrgMember(data.orgMember)
+    if (orgMember) {
+      const activity: IActivityData = {
+        member: orgMember,
+        type: GithubActivityType.FORK,
+        timestamp: new Date(payload.forkee.created_at).toISOString(),
+        sourceId: payload.forkee.node_id.toString(),
+        sourceParentId: null,
+        channel: payload.repository.html_url,
+        score: GITHUB_GRID.fork.score,
+        isContribution: GITHUB_GRID.fork.isContribution,
+      }
 
-  if (member) {
-    const activity: IActivityData = {
-      member,
-      type: GithubActivityType.FORK,
-      timestamp: new Date(payload.forkee.created_at).toISOString(),
-      sourceId: payload.forkee.node_id.toString(),
-      sourceParentId: null,
-      channel: payload.repository.html_url,
-      score: GITHUB_GRID.fork.score,
-      isContribution: GITHUB_GRID.fork.isContribution,
+      await ctx.publishActivity(activity)
     }
+    // this is member
+  } else if (data.member && !data.orgMember) {
+    const member = parseMember(data.member)
+    if (member) {
+      const activity: IActivityData = {
+        member,
+        type: GithubActivityType.FORK,
+        timestamp: new Date(payload.forkee.created_at).toISOString(),
+        sourceId: payload.forkee.node_id.toString(),
+        sourceParentId: null,
+        channel: payload.repository.html_url,
+        score: GITHUB_GRID.fork.score,
+        isContribution: GITHUB_GRID.fork.isContribution,
+      }
 
-    await ctx.publishActivity(activity)
+      await ctx.publishActivity(activity)
+    } else if (data.member && data.orgMember) {
+      throw new Error('Both member and orgMember are present in webhook fork data')
+    } else if (!data.member && !data.orgMember) {
+      throw new Error('Both member and orgMember are missing in webhook fork data')
+    }
   }
 }
 

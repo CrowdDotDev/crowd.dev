@@ -1,6 +1,6 @@
-import { DbStore } from '@crowd/database'
+import { DbStore } from '@crowd/data-access-layer/src/database'
 import { Logger, LoggerBase } from '@crowd/logging'
-import MemberAffiliationRepository from '../repo/memberAffiliation.repo'
+import MemberAffiliationRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/memberAffiliation.repo'
 
 export default class MemberAffiliationService extends LoggerBase {
   private readonly repo: MemberAffiliationRepository

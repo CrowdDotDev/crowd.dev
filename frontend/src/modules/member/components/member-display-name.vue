@@ -1,5 +1,5 @@
 <template>
-  <div class="flex">
+  <div class="flex flex-wrap">
     <component
       :is="customComponent"
       :class="`member-display-name ${customClass}`"

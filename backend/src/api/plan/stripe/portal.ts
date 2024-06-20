@@ -1,6 +1,6 @@
 import { Error400, Error403 } from '@crowd/common'
+import { TenantPlans } from '@crowd/types'
 import { PLANS_CONFIG } from '../../../conf'
-import Plans from '../../../security/plans'
 import TenantService from '../../../services/tenantService'
 import { tenantSubdomain } from '../../../services/tenantSubdomain'
 
@@ -19,7 +19,7 @@ export default async (req, res) => {
   }
 
   if (
-    currentTenant.plan !== Plans.values.essential &&
+    currentTenant.plan !== TenantPlans.Essential &&
     currentTenant.planStatus !== 'cancel_at_period_end' &&
     currentTenant.planUserId !== currentUser.id
   ) {

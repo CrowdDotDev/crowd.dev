@@ -54,7 +54,6 @@
         :is="stepConfig.component"
         v-model="form"
         @allow-redirect="onConnect"
-        @invite-colleagues="onInviteColleagues"
       />
     </main>
     <div v-if="stepConfig.sideInfo?.length" class="flex-1 pr-8 sticky top-21 h-full pt-10">
@@ -179,6 +178,19 @@ watch(activeIntegrations, (integrations) => {
   }
 });
 
+watch(form, (updatedForm) => {
+  if (currentStep.value === 3) {
+    const parsedIntegrations = updatedForm.invitedUsers.map((u) => (u.emails.some((e) => !e) ? ({
+      ...u,
+      emails: [],
+    }) : u));
+
+    form.invitedUsers = parsedIntegrations;
+  }
+}, {
+  deep: true,
+});
+
 const $v = useVuelidate({}, form);
 
 // Steps Submit action
@@ -209,10 +221,6 @@ const onStepClick = (index: number) => {
 
 const onConnect = (val: boolean) => {
   allowRedirect.value = val;
-};
-
-const onInviteColleagues = () => {
-  currentStep.value = 3;
 };
 </script>
 

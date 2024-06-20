@@ -458,7 +458,8 @@ const en = {
       Members: {
         count: '[Contacts] Count',
         cumulativeCount: '[Contacts] Cumulative Count',
-        score: '[Contacts] Engagement Level',
+        score: '[Contacts] Engagement Level Score',
+        engagementLevel: '[Contacts] Engagement Level',
         location: '[Contacts] Location',
         organization: '[Contacts] Organization',
         joinedAt: '[Contacts] Joined Date',
@@ -516,6 +517,7 @@ const en = {
         'auth-invalid-provider':
           'This email is already registered to another provider.',
         'auth-no-email': 'The email associated with this account is private or inexistent.',
+        'auth-user-no-exist': 'User or account not found',
       },
     },
     signinWithAnotherAccount:

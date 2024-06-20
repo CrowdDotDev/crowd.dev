@@ -100,6 +100,8 @@ const period = ref(
 const granularity = computed(() => getTimeGranularityFromPeriod(period.value));
 
 const widgetChartOptions = chartOptions('area', {
+  xMaxTicksLimit: 5,
+  xMaxRotation: 0,
   legendPlugin: false,
   xTicksCallback: (value) => parseAxisLabel(value, granularity.value),
 });

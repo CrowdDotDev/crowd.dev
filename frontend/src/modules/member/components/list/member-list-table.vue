@@ -48,7 +48,15 @@
             module="contact"
             position="top"
             @change-sorter="doChangePaginationPageSize"
-          />
+          >
+            <template #defaultFilters>
+              <div>・</div>
+              <cr-default-filters
+                :config="memberSavedViews"
+                :settings="filters.settings"
+              />
+            </template>
+          </app-pagination-sorter>
         </div>
 
         <!-- Members list -->
@@ -161,7 +169,7 @@
               </el-table-column>
 
               <!-- Identities -->
-              <el-table-column label="Identities" width="260">
+              <el-table-column label="Identities" width="280">
                 <template #header>
                   <span>Identities</span>
                   <el-tooltip placement="top">
@@ -180,7 +188,10 @@
                     }"
                     class="block"
                   >
-                    <app-member-identities :username="scope.row.username" :member="scope.row" />
+                    <app-identities-horizontal-list-members
+                      :member="scope.row"
+                      :limit="5"
+                    />
                   </router-link>
                 </template>
               </el-table-column>
@@ -196,11 +207,11 @@
                     class="block"
                   >
                     <div
-                      v-if="scope.row.emails?.length && scope.row.emails?.some((e) => !!e)"
+                      v-if="scope.row.emails.filter((e) => !!e)?.length && scope.row.emails.filter((e) => !!e)?.some((e) => !!e)"
                       class="text-sm cursor-auto flex flex-wrap gap-1"
                     >
                       <el-tooltip
-                        v-for="email of scope.row.emails.slice(0, 3)"
+                        v-for="email of scope.row.emails.filter((e) => !!e).slice(0, 3)"
                         :key="email"
                         :disabled="!email"
                         popper-class="custom-identity-tooltip"
@@ -224,7 +235,7 @@
                         </div>
                       </el-tooltip>
                       <el-popover
-                        v-if="scope.row.emails?.length > 3"
+                        v-if="scope.row.emails.filter((e) => !!e)?.length > 3"
                         placement="top"
                         :width="400"
                         trigger="hover"
@@ -233,11 +244,11 @@
                         <template #reference>
                           <span
                             class="badge--interactive hover:text-gray-900"
-                          >+{{ scope.row.emails.length - 3 }}</span>
+                          >+{{ scope.row.emails.filter((e) => !!e).length - 3 }}</span>
                         </template>
                         <div class="flex flex-wrap gap-3 my-1">
                           <el-tooltip
-                            v-for="email of scope.row.emails.slice(3)"
+                            v-for="email of scope.row.emails.filter((e) => !!e).slice(3)"
                             :key="email"
                             :disabled="!email"
                             popper-class="custom-identity-tooltip flex "
@@ -700,6 +711,7 @@
         <app-member-dropdown-content
           v-if="selectedActionMember"
           :member="selectedActionMember"
+          :hide-unmerge="true"
           @find-github="isFindGithubDrawerOpen = selectedActionMember"
           @merge="isMergeDialogOpen = selectedActionMember"
           @close-dropdown="closeDropdown"
@@ -755,13 +767,15 @@ import AppSvg from '@/shared/svg/svg.vue';
 import CrEnrichmentSneakPeakContent from '@/shared/modules/enrichment/components/enrichment-sneak-peak-content.vue';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import Plans from '@/security/plans';
+import AppIdentitiesHorizontalListMembers from '@/shared/modules/identities/components/identities-horizontal-list-members.vue';
+import CrDefaultFilters from '@/shared/modules/default-filters/components/default-filters.vue';
 import AppMemberBadge from '../member-badge.vue';
 import AppMemberDropdownContent from '../member-dropdown-content.vue';
-import AppMemberIdentities from '../member-identities.vue';
 import AppMemberReach from '../member-reach.vue';
 import AppMemberEngagementLevel from '../member-engagement-level.vue';
 import AppMemberLastActivity from '../member-last-activity.vue';
 import AppMemberSentiment from '../member-sentiment.vue';
+import { memberSavedViews } from '../../config/saved-views/main';
 
 const store = useStore();
 const router = useRouter();
@@ -1076,7 +1090,7 @@ watch(table, (newValue) => {
 const doExport = () => MemberService.export({
   filter: savedFilterBody.value.filter,
   orderBy: savedFilterBody.value.orderBy,
-  limit: 0,
+  limit: totalMembers.value,
   offset: null,
 });
 

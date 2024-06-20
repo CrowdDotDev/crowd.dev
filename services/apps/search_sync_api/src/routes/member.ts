@@ -1,8 +1,8 @@
 import express from 'express'
 import { MemberSyncService } from '@crowd/opensearch'
-import { ApiRequest } from 'middleware'
-import { asyncWrap } from 'middleware/error'
-import { SERVICE_CONFIG } from 'conf'
+import { ApiRequest } from '../middleware'
+import { asyncWrap } from '../middleware/error'
+import { SERVICE_CONFIG } from '../conf'
 
 const router = express.Router()
 const serviceConfig = SERVICE_CONFIG()
@@ -18,10 +18,10 @@ router.post(
       serviceConfig,
     )
 
-    const { memberIds } = req.body
+    const { memberIds, segmentIds } = req.body
     try {
       req.log.trace(`Calling memberSyncService.syncMembers for ${memberIds}`)
-      await memberSyncService.syncMembers(memberIds)
+      await memberSyncService.syncMembers(memberIds, segmentIds)
       res.sendStatus(200)
     } catch (error) {
       res.status(500).send(error.message)

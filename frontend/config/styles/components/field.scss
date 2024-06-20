@@ -1,0 +1,16 @@
+:root {
+  /* ---------------------------------- *\
+           Field style
+  \* ---------------------------------- */
+
+  // Field label
+  --cr-field-label-font-size: #{rem(14)};
+  --cr-field-label-font-weight: var(--font-medium);
+  --cr-field-label-color: var(--color-gray-900);
+
+  // Required sign
+  --cr-field-required-color: var(--color-brand-500);
+
+  // Spacing
+  --cr-field-spacing: #{rem(4)};
+}

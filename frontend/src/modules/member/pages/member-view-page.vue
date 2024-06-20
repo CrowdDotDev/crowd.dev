@@ -6,19 +6,25 @@
       class="app-page-spinner"
     />
     <div v-else>
-      <router-link
-        class="text-gray-600 btn-link--md btn-link--secondary p-0 inline-flex items-center"
-        :to="{ path: '/contacts' }"
-      >
-        <i class="ri-arrow-left-s-line mr-2" />Contacts
-      </router-link>
+      <div class="flex justify-between">
+        <router-link
+          class="text-gray-600 btn-link--md btn-link--secondary p-0 inline-flex items-center"
+          :to="{ path: '/contacts' }"
+        >
+          <i class="ri-arrow-left-s-line mr-2" />Contacts
+        </router-link>
+        <app-member-actions :member="member" @unmerge="unmerge" />
+      </div>
       <div class="grid grid-cols-3 gap-6 mt-4">
         <app-member-view-header
           :member="member"
           class="col-span-2"
         />
         <div class="row-span-4">
-          <app-member-view-aside :member="member" />
+          <app-member-view-aside
+            :member="member"
+            @unmerge="unmerge"
+          />
         </div>
         <app-member-view-contributions-cta
           v-if="!isEnrichmentEnabled"
@@ -59,6 +65,11 @@
       </div>
     </div>
   </app-page-wrapper>
+  <app-member-unmerge-dialog
+    v-if="isUnmergeDialogOpen"
+    v-model="isUnmergeDialogOpen"
+    :selected-identity="selectedIdentity"
+  />
 </template>
 
 <script setup>
@@ -83,6 +94,8 @@ import AppMemberViewTasks from '@/modules/member/components/view/member-view-tas
 import { useMemberStore } from '@/modules/member/store/pinia';
 import { storeToRefs } from 'pinia';
 import Plans from '@/security/plans';
+import AppMemberActions from '@/modules/member/components/member-actions.vue';
+import AppMemberUnmergeDialog from '@/modules/member/components/member-unmerge-dialog.vue';
 
 const store = useStore();
 const props = defineProps({
@@ -113,6 +126,17 @@ const hasPermissionToTask = computed(
     currentUser.value,
   ).read,
 );
+
+// Unmerge
+const isUnmergeDialogOpen = ref(null);
+const selectedIdentity = ref(null);
+
+const unmerge = (identity) => {
+  if (identity) {
+    selectedIdentity.value = identity;
+  }
+  isUnmergeDialogOpen.value = member.value;
+};
 
 const tasksTab = ref(null);
 

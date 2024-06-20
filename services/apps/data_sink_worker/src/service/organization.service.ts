@@ -1,9 +1,12 @@
 import mergeWith from 'lodash.mergewith'
 import isEqual from 'lodash.isequal'
-import IntegrationRepository from '../repo/integration.repo'
-import { IDbInsertOrganizationCacheData } from '../repo/organization.data'
-import { OrganizationRepository } from '../repo/organization.repo'
-import { DbStore } from '@crowd/database'
+import IntegrationRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/integration.repo'
+import {
+  IDbCacheOrganization,
+  IDbInsertOrganizationCacheData,
+} from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/organization.data'
+import { OrganizationRepository } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/organization.repo'
+import { DbStore } from '@crowd/data-access-layer/src/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { IOrganization, IOrganizationSocial, PlatformType } from '@crowd/types'
 import { websiteNormalizer } from '@crowd/common'
@@ -49,13 +52,25 @@ export class OrganizationService extends LoggerBase {
 
         // Normalize the website URL if it exists
         if (data.website) {
-          data.website = websiteNormalizer(data.website)
+          data.website = websiteNormalizer(data.website, false)
         }
 
         this.log.trace(`Checking organization exists in cache..`)
 
-        // find from cache by primary identity
-        let cached = await txRepo.findCacheByName(primaryIdentity.name)
+        // find from cache by website if we have one
+        let cached: IDbCacheOrganization | null = null
+        let createCacheIdentity = false
+        if (data.website) {
+          cached = await txRepo.findCacheByWebsite(data.website)
+
+          if (cached && !cached.names.includes(primaryIdentity.name)) {
+            createCacheIdentity = true
+          }
+        }
+
+        if (!cached) {
+          cached = await txRepo.findCacheByName(primaryIdentity.name)
+        }
 
         if (cached) {
           this.log.trace({ cached }, `Organization exists in cache!`)
@@ -88,7 +103,11 @@ export class OrganizationService extends LoggerBase {
             }
           })
           if (Object.keys(updateData).length > 0) {
-            await this.repo.updateCache(cached.id, updateData)
+            await this.repo.updateCache(
+              cached.id,
+              updateData,
+              createCacheIdentity ? primaryIdentity.name : undefined,
+            )
             cached = { ...cached, ...updateData } // Update the cached data with the new data
           }
         } else {
@@ -125,7 +144,7 @@ export class OrganizationService extends LoggerBase {
             enriched: false,
             ...insertData,
             attributes: {},
-            weakIdentities: data.weakIdentities,
+            names: [primaryIdentity.name],
           }
         }
 
@@ -137,10 +156,13 @@ export class OrganizationService extends LoggerBase {
 
           // also check domain in identities
           if (!existing) {
-            existing = await txRepo.findByIdentity(tenantId, {
-              name: websiteNormalizer(cached.website),
-              platform: 'email',
-            })
+            const normalizedWebsite = websiteNormalizer(cached.website, false)
+            if (normalizedWebsite !== undefined) {
+              existing = await txRepo.findByIdentity(tenantId, {
+                name: normalizedWebsite,
+                platform: 'email',
+              })
+            }
           }
         }
 
@@ -206,7 +228,7 @@ export class OrganizationService extends LoggerBase {
           await this.checkForStrongWeakIdentities(txRepo, tenantId, data)
 
           const payload = {
-            displayName: cached.name,
+            displayName: primaryIdentity.name,
             description: cached.description,
             emails: cached.emails,
             logo: cached.logo,
@@ -224,7 +246,7 @@ export class OrganizationService extends LoggerBase {
             industry: cached.industry,
             founded: cached.founded,
             attributes,
-            weakIdentities: cached.weakIdentities,
+            weakIdentities: data.weakIdentities,
           }
 
           this.log.trace({ payload }, `Creating new organization!`)
@@ -237,11 +259,14 @@ export class OrganizationService extends LoggerBase {
 
         // create identities with incoming website
         if (data.website) {
-          data.identities.push({
-            name: websiteNormalizer(data.website),
-            platform: 'email',
-            integrationId,
-          })
+          const normalizedWebsite = websiteNormalizer(data.website, false)
+          if (normalizedWebsite !== undefined) {
+            data.identities.push({
+              name: normalizedWebsite,
+              platform: 'email',
+              integrationId,
+            })
+          }
         }
 
         for (const identity of data.identities) {
@@ -254,6 +279,8 @@ export class OrganizationService extends LoggerBase {
             await txRepo.addIdentity(id, tenantId, { ...identity, integrationId })
           }
         }
+
+        await txRepo.linkCacheAndOrganization(cached.id, id)
 
         return id
       })

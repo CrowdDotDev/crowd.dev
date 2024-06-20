@@ -13,6 +13,7 @@ export interface IActiveMemberFilter {
   isBot?: boolean
   isTeamMember?: boolean
   isOrganization?: boolean
+  isDeleted?: boolean
   activityIsContribution?: boolean
   activityTimestampFrom: string
   activityTimestampTo: string
@@ -23,7 +24,7 @@ export interface IMemberIdentity {
   username: string
   integrationId?: string
   sourceId?: string
-  createdAt: string
+  createdAt?: string
 }
 
 export const mapSingleUsernameToIdentity = (usernameOrIdentity: any): any => {

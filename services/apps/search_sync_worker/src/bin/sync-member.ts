@@ -1,7 +1,7 @@
 import { MemberSyncService, OpenSearchService } from '@crowd/opensearch'
 import { DB_CONFIG, OPENSEARCH_CONFIG, REDIS_CONFIG, SERVICE_CONFIG } from '../conf'
-import { MemberRepository } from '../repo/member.repo'
-import { DbStore, getDbConnection } from '@crowd/database'
+import { MemberRepository } from '@crowd/data-access-layer/src/old/apps/search_sync_worker/member.repo'
+import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { getServiceLogger } from '@crowd/logging'
 import { getRedisClient } from '@crowd/redis'
 
@@ -24,7 +24,7 @@ setImmediate(async () => {
   const dbConnection = await getDbConnection(DB_CONFIG())
   const store = new DbStore(log, dbConnection)
 
-  const repo = new MemberRepository(redis, store, log)
+  const repo = new MemberRepository(store, log)
   const service = new MemberSyncService(redis, store, openSearchService, log, SERVICE_CONFIG())
 
   const results = await repo.checkMembersExist([memberId])

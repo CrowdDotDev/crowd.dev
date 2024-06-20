@@ -1,0 +1,22 @@
+{
+  "name": "@crowd/data-access-layer",
+  "main": "src/index.ts",
+  "scripts": {
+    "lint": "npx eslint --ext .ts src --max-warnings=0",
+    "format": "npx prettier --write \"src/**/*.ts\"",
+    "format-check": "npx prettier --check .",
+    "tsc-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "uuid": "^9.0.1",
+    "@crowd/common": "workspace:*",
+    "@crowd/logging": "workspace:*",
+    "@crowd/types": "workspace:*",
+    "@crowd/database": "workspace:*",
+    "@crowd/redis": "workspace:*",
+    "@crowd/integrations": "workspace:*",
+    "@crowd/sentiment": "workspace:*",
+    "lodash.clonedeep": "^4.5.0",
+    "lodash.merge": "^4.6.2"
+  }
+}

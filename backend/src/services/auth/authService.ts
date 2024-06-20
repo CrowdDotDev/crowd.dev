@@ -475,7 +475,11 @@ class AuthService {
 
     try {
       email = email.toLowerCase()
-      let user = await UserRepository.findByEmail(email, options)
+      const user = await UserRepository.findByEmail(email, options)
+
+      if (!user) {
+        throw new Error('auth-user-no-exist')
+      }
       if (user) {
         identify(user)
         track(
@@ -506,28 +510,6 @@ class AuthService {
         throw new Error('auth-invalid-provider')
       }
 
-      if (!user) {
-        user = await UserRepository.createFromSocial(
-          provider,
-          providerId,
-          email,
-          emailVerified,
-          firstName,
-          lastName,
-          fullName,
-          options,
-        )
-        identify(user)
-        track(
-          'Signed up',
-          {
-            [provider]: true,
-            email: user.email,
-          },
-          options,
-          user.id,
-        )
-      }
       const token = jwt.sign({ id: user.id }, API_CONFIG.jwtSecret, {
         expiresIn: API_CONFIG.jwtExpiresIn,
       })

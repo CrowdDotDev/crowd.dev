@@ -2,13 +2,14 @@ import { ScheduleAlreadyRunning, ScheduleOverlapPolicy } from '@temporalio/clien
 
 import { svc } from '../main'
 import { getMembersToEnrich } from '../workflows'
+import { IS_DEV_ENV, IS_TEST_ENV } from '@crowd/common'
 
 export const scheduleMembersEnrichment = async () => {
   try {
     await svc.temporal.schedule.create({
       scheduleId: 'members-enrichment',
       spec: {
-        cronExpressions: ['*/30 * * * *'],
+        cronExpressions: IS_DEV_ENV || IS_TEST_ENV ? ['*/2 * * * *'] : ['*/30 * * * *'],
       },
       policies: {
         overlap: ScheduleOverlapPolicy.BUFFER_ONE,
