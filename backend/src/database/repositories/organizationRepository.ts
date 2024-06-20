@@ -2190,7 +2190,7 @@ class OrganizationRepository {
         identities: true,
         lfxMemberships: true,
         segments: false,
-      },
+      } as { identities?: boolean; lfxMemberships?: boolean; segments?: boolean },
     },
     options: IRepositoryOptions,
   ) {
