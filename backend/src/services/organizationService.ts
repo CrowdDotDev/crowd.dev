@@ -126,7 +126,7 @@ export default class OrganizationService extends LoggerBase {
         const secondaryBackup = mergeAction.unmergeBackup.secondary as IOrganizationUnmergeBackup
 
         for (const key of OrganizationService.ORGANIZATION_MERGE_FIELDS) {
-          if (!organization.manuallyChangedFields.includes(key)) {
+          if (!(organization.manuallyChangedFields || []).includes(key)) {
             // handle string arrays
             if (
               key in
@@ -1209,7 +1209,7 @@ export default class OrganizationService extends LoggerBase {
           'tags',
           'logo',
         ],
-        include: { identities: true, lfxMemberships: true },
+        include: { identities: true, lfxMemberships: true, segments: true },
       },
       this.options,
     )
