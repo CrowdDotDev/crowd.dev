@@ -2,17 +2,16 @@ import { proxyActivities, continueAsNew } from '@temporalio/workflow'
 import * as activities from '../activities/organizationMergeSuggestions'
 
 import {
-  IOrganizationMergeSuggestion,
-  IProcessGenerateMemberMergeSuggestionsArgs,
-  OrganizationMergeSuggestionTable,
-} from '@crowd/types'
-import { IOrganizationPartialAggregatesOpensearch } from '../types'
+  IOrganizationPartialAggregatesOpensearch,
+  IProcessGenerateOrganizationMergeSuggestionsArgs,
+} from '../types'
+import { IOrganizationMergeSuggestion, OrganizationMergeSuggestionTable } from '@crowd/types'
 import { chunkArray } from '../utils'
 
 const activity = proxyActivities<typeof activities>({ startToCloseTimeout: '1 minute' })
 
 export async function generateOrganizationMergeSuggestions(
-  args: IProcessGenerateMemberMergeSuggestionsArgs,
+  args: IProcessGenerateOrganizationMergeSuggestionsArgs,
 ): Promise<void> {
   const PAGE_SIZE = 500
   const PARALLEL_SUGGESTION_PROCESSING = 250

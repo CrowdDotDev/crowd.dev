@@ -207,10 +207,7 @@ export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
           case SearchSyncWorkerQueueMessageType.SYNC_ORGANIZATION:
             if (data.organizationId) {
               // await this.organizationBatchProcessor.addToBatch(data.organizationId)
-              await this.initOrganizationService().syncOrganizations(
-                [data.organizationId],
-                data.segmentId ? [data.segmentId] : undefined,
-              )
+              await this.initOrganizationService().syncOrganizations([data.organizationId])
             }
             break
           case SearchSyncWorkerQueueMessageType.SYNC_TENANT_ORGANIZATIONS:

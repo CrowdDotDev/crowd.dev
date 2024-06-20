@@ -61,8 +61,9 @@ export const getDbConnection = async (
   maxPoolSize?: number,
   idleTimeoutMillis?: number,
 ): Promise<DbConnection> => {
-  if (dbConnection[config.host]) {
-    return dbConnection[config.host]
+  const cacheKey = `${config.host}:${config.database}`
+  if (dbConnection[cacheKey]) {
+    return dbConnection[cacheKey]
   }
 
   log.info(
@@ -72,7 +73,7 @@ export const getDbConnection = async (
 
   const dbInstance = getDbInstance()
 
-  dbConnection[config.host] = dbInstance({
+  dbConnection[cacheKey] = dbInstance({
     ...config,
     max: maxPoolSize || 20,
     idleTimeoutMillis: idleTimeoutMillis !== undefined ? idleTimeoutMillis : 10000,
@@ -80,7 +81,7 @@ export const getDbConnection = async (
     application_name: process.env.SERVICE || 'unknown-app',
   })
 
-  await dbConnection[config.host].connect()
+  await dbConnection[cacheKey].connect()
 
-  return dbConnection[config.host]
+  return dbConnection[cacheKey]
 }

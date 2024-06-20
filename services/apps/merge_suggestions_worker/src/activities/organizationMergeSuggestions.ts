@@ -1,4 +1,5 @@
 import {
+  ILLMConsumableOrganization,
   IOrganizationMergeSuggestion,
   OpenSearchIndex,
   OrganizationIdentityType,
@@ -6,7 +7,11 @@ import {
 } from '@crowd/types'
 import { svc } from '../main'
 
-import { IOrganizationPartialAggregatesOpensearch, ISimilarOrganizationOpensearch } from '../types'
+import {
+  IOrganizationPartialAggregatesOpensearch,
+  ISimilarOrganizationOpensearch,
+  ISimilarityFilter,
+} from '../types'
 import OrganizationMergeSuggestionsRepository from '@crowd/data-access-layer/src/old/apps/merge_suggestions_worker/organizationMergeSuggestions.repo'
 import { hasLfxMembership } from '@crowd/data-access-layer/src/lfx_memberships'
 import { prefixLength } from '../utils'
@@ -89,6 +94,7 @@ export async function getOrganizationMergeSuggestions(
     return []
   }
 
+  const identitiesShould = []
   const identitiesPartialQuery = {
     should: [
       {
@@ -98,23 +104,10 @@ export async function getOrganizationMergeSuggestions(
       },
       {
         nested: {
-          path: 'nested_weakIdentities',
-          query: {
-            bool: {
-              should: [],
-              boost: 1000,
-              minimum_should_match: 1,
-            },
-          },
-        },
-      },
-      {
-        nested: {
           path: 'nested_identities',
           query: {
             bool: {
-              should: [],
-              boost: 1,
+              should: identitiesShould,
               minimum_should_match: 1,
             },
           },
@@ -140,46 +133,57 @@ export async function getOrganizationMergeSuggestions(
   let hasFuzzySearch = false
 
   for (const identity of organization.nested_identities) {
-    if (identity.string_name.length > 0) {
+    if (identity.keyword_type.length > 0) {
       // weak identity search
-      identitiesPartialQuery.should[1].nested.query.bool.should.push({
+      identitiesShould.push({
         bool: {
           must: [
-            { match: { [`nested_weakIdentities.keyword_name`]: identity.string_name } },
-            {
-              match: {
-                [`nested_weakIdentities.string_platform`]: identity.string_platform,
-              },
-            },
+            { match: { [`nested_identities.string_value`]: identity.string_value } },
+            { match: { [`nested_identities.string_platform`]: identity.string_platform } },
+            { term: { [`nested_identities.bool_verified`]: false } },
           ],
         },
       })
 
       // some identities have https? in the beginning, resulting in false positive suggestions
       // remove these when making fuzzy, wildcard and prefix searches
-      const cleanedIdentityName = identity.string_name.replace(/^https?:\/\//, '')
+      const cleanedIdentityName = identity.string_value.replace(/^https?:\/\//, '')
 
       // only do fuzzy/wildcard/partial search when identity name is not all numbers (like linkedin organization profiles)
-      if (Number.isNaN(Number(identity.string_name))) {
+      if (Number.isNaN(Number(identity.string_value))) {
         hasFuzzySearch = true
         // fuzzy search for identities
-        identitiesPartialQuery.should[2].nested.query.bool.should.push({
-          match: {
-            [`nested_identities.keyword_name`]: {
-              query: cleanedIdentityName,
-              prefix_length: 1,
-              fuzziness: 'auto',
-            },
+        identitiesShould.push({
+          bool: {
+            must: [
+              {
+                match: {
+                  [`nested_identities.string_value`]: {
+                    query: cleanedIdentityName,
+                    prefix_length: 1,
+                    fuzziness: 'auto',
+                  },
+                },
+              },
+              { term: { [`nested_identities.bool_verified`]: true } },
+            ],
           },
         })
 
         // also check for prefix for identities that has more than 5 characters and no whitespace
-        if (identity.string_name.length > 5 && identity.string_name.indexOf(' ') === -1) {
-          identitiesPartialQuery.should[2].nested.query.bool.should.push({
-            prefix: {
-              [`nested_identities.keyword_name`]: {
-                value: cleanedIdentityName.slice(0, prefixLength(cleanedIdentityName)),
-              },
+        if (identity.string_value.length > 5 && identity.string_value.indexOf(' ') === -1) {
+          identitiesShould.push({
+            bool: {
+              must: [
+                {
+                  prefix: {
+                    [`nested_identities.string_value`]: {
+                      value: cleanedIdentityName.slice(0, prefixLength(cleanedIdentityName)),
+                    },
+                  },
+                },
+                { term: { [`nested_identities.bool_verified`]: true } },
+              ],
             },
           })
         }
@@ -305,4 +309,102 @@ export async function addOrganizationToMerge(
     )
     await organizationMergeSuggestionsRepo.addToMerge(suggestions, table)
   }
+}
+
+export async function getOrganizationsForLLMConsumption(
+  organizationIds: string[],
+): Promise<ILLMConsumableOrganization[]> {
+  const organizationMergeSuggestionsRepo = new OrganizationMergeSuggestionsRepository(
+    svc.postgres.writer.connection(),
+    svc.log,
+  )
+
+  const [primaryOrganization, secondaryOrganization] =
+    await organizationMergeSuggestionsRepo.getOrganizations(organizationIds)
+
+  const result: ILLMConsumableOrganization[] = []
+
+  if (primaryOrganization) {
+    result.push({
+      displayName: primaryOrganization.displayName,
+      description: primaryOrganization.description,
+      phoneNumbers: primaryOrganization.phoneNumbers,
+      logo: primaryOrganization.logo,
+      tags: primaryOrganization.tags,
+      location: primaryOrganization.location,
+      type: primaryOrganization.type,
+      geoLocation: primaryOrganization.geoLocation,
+      ticker: primaryOrganization.ticker,
+      profiles: primaryOrganization.profiles,
+      headline: primaryOrganization.headline,
+      industry: primaryOrganization.industry,
+      founded: primaryOrganization.founded,
+      alternativeNames: primaryOrganization.alternativeNames,
+      identities: primaryOrganization.identities.map((i) => ({
+        platform: i.platform,
+        value: i.value,
+      })),
+    })
+  }
+
+  if (secondaryOrganization) {
+    result.push({
+      displayName: secondaryOrganization.displayName,
+      description: secondaryOrganization.description,
+      phoneNumbers: secondaryOrganization.phoneNumbers,
+      logo: secondaryOrganization.logo,
+      tags: secondaryOrganization.tags,
+      location: secondaryOrganization.location,
+      type: secondaryOrganization.type,
+      geoLocation: secondaryOrganization.geoLocation,
+      ticker: secondaryOrganization.ticker,
+      profiles: secondaryOrganization.profiles,
+      headline: secondaryOrganization.headline,
+      industry: secondaryOrganization.industry,
+      founded: secondaryOrganization.founded,
+      alternativeNames: secondaryOrganization.alternativeNames,
+      identities: secondaryOrganization.identities.map((i) => ({
+        platform: i.platform,
+        value: i.value,
+      })),
+    })
+  }
+
+  return result
+}
+
+export async function getRawOrganizationMergeSuggestions(
+  tenantId: string,
+  similarityFilter: ISimilarityFilter,
+  limit: number,
+  onlyLFXMembers = false,
+  organizationIds: string[] = [],
+): Promise<string[][]> {
+  const organizationMergeSuggestionsRepo = new OrganizationMergeSuggestionsRepository(
+    svc.postgres.writer.connection(),
+    svc.log,
+  )
+
+  const suggestions = await organizationMergeSuggestionsRepo.getRawOrganizationSuggestions(
+    similarityFilter,
+    limit,
+    onlyLFXMembers,
+    organizationIds,
+  )
+  if (onlyLFXMembers) {
+    // make sure primary is lfx member
+    for (let i = 0; i < suggestions.length; i++) {
+      const qx = pgpQx(svc.postgres.reader.connection())
+      const isPrimaryOrgInSuggestionLFXMember = await hasLfxMembership(qx, {
+        tenantId,
+        organizationId: suggestions[i][0],
+      })
+
+      if (!isPrimaryOrgInSuggestionLFXMember) {
+        suggestions[i] = [suggestions[i][1], suggestions[i][0]]
+      }
+    }
+  }
+
+  return suggestions
 }

@@ -365,6 +365,9 @@ export default class OrganizationService extends LoggerBase {
         false,
       )
 
+      // add primary and secondary to no merge so they don't get suggested again
+      await OrganizationRepository.addNoMerge(organizationId, secondaryOrganization.id, repoOptions)
+
       // trigger entity-merging-worker to move activities in the background
       await SequelizeRepository.commitTransaction(tx)
 
@@ -1118,25 +1121,18 @@ export default class OrganizationService extends LoggerBase {
   }
 
   async findAllAutocomplete(data) {
-    const res = await OrganizationRepository.findAndCountAll(data, this.options)
+    const segmentId = data.segments && data.segments.length > 0 ? data.segments[0] : undefined
 
-    // group orgs by id to avoid duplicates and store segmentId in a segments array
-    const grouped = res.rows.reduce((acc, org) => {
-      if (!acc[org.id]) {
-        acc[org.id] = { ...org, segments: [org.segmentId] }
-      } else {
-        acc[org.id].segments.push(org.segmentId)
-      }
-
-      // drop unnecessary fields
-      delete acc[org.id].grandParentSegment
-      delete acc[org.id].segmentId
-
-      return acc
-    }, {})
-
-    res.rows = Object.values(grouped)
-
+    const res = await OrganizationRepository.findAndCountAll(
+      {
+        ...data,
+        segmentId,
+        include: {
+          segments: true,
+        },
+      },
+      this.options,
+    )
     return res
   }
 

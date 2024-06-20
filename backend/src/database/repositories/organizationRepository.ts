@@ -33,6 +33,7 @@ import lodash, { chunk, uniq } from 'lodash'
 import Sequelize, { QueryTypes } from 'sequelize'
 import validator from 'validator'
 import { findManyLfxMemberships } from '@crowd/data-access-layer/src/lfx_memberships'
+import { fetchManyOrgSegments } from '@crowd/data-access-layer/src/org_segments'
 import {
   IFetchOrganizationMergeSuggestionArgs,
   SimilarityScoreRange,
@@ -2188,6 +2189,7 @@ class OrganizationRepository {
       include = {
         identities: true,
         lfxMemberships: true,
+        segments: false,
       },
     },
     options: IRepositoryOptions,
@@ -2308,6 +2310,13 @@ class OrganizationRepository {
 
       rows.forEach((org) => {
         org.identities = identities.find((i) => i.organizationId === org.id)?.identities || []
+      })
+    }
+    if (include.segments) {
+      const orgSegments = await fetchManyOrgSegments(qx, orgIds)
+
+      rows.forEach((org) => {
+        org.segments = orgSegments.find((i) => i.organizationId === org.id)?.segments || []
       })
     }
 

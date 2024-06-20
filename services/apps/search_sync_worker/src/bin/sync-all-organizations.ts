@@ -49,7 +49,7 @@ setImmediate(async () => {
     openSearchService,
     log,
     SERVICE_CONFIG(),
-    readStore,
+    // readStore,
   )
 
   let current = 0
