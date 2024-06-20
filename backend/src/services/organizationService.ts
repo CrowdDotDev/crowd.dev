@@ -1209,7 +1209,7 @@ export default class OrganizationService extends LoggerBase {
           'tags',
           'logo',
         ],
-        include: { identities: true, lfxMemberships: true, segments: true },
+        include: { identities: true, lfxMemberships: true },
       },
       this.options,
     )
