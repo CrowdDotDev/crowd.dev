@@ -16,6 +16,8 @@ export class OrganizationApiService {
       {
         params: {
           segmentId,
+          // The parameter id on this one is sematically different, so we are excluding the logic to add segments as an array
+          excludeSegments: true,
         },
       },
     );
