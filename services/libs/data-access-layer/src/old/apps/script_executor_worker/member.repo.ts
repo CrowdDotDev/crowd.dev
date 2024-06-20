@@ -1,6 +1,7 @@
 import { DbConnection, DbTransaction } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { IFindMemberIdentitiesGroupedByPlatformResult, ISimilarMember } from './types'
+import { IMember } from '@crowd/types'
 
 class MemberRepository {
   constructor(
@@ -135,6 +136,27 @@ class MemberRepository {
     }
 
     return rows
+  }
+
+  async findMemberById(memberId: string): Promise<IMember | null> {
+    let member: IMember
+
+    try {
+      member = await this.connection.oneOrNone(
+        `
+        select * from "members" where id = $(memberId)
+      `,
+        {
+          memberId,
+        },
+      )
+    } catch (err) {
+      this.log.error('Error while finding member!', err)
+
+      throw new Error(err)
+    }
+
+    return member
   }
 }
 

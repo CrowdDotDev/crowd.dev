@@ -6,6 +6,7 @@ import {
 import {
   findMemberMergeActions,
   findMemberIdentitiesGroupedByPlatform,
+  findMemberById,
 } from './activities/dissect-member'
 
 import {
@@ -24,4 +25,5 @@ export {
   unmergeMembersPreview,
   waitForTemporalWorkflowExecutionFinish,
   findMemberIdentitiesGroupedByPlatform,
+  findMemberById,
 }
