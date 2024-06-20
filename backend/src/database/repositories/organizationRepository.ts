@@ -2245,9 +2245,12 @@ class OrganizationRepository {
       SELECT
         ${fields}
       FROM organizations o
-      ${withAggregates ? `JOIN "organizationSegmentsAgg" osa ON osa."organizationId" = o.id` : ''}
+      ${
+        withAggregates
+          ? `LEFT JOIN "organizationSegmentsAgg" osa ON osa."organizationId" = o.id AND osa."segmentId" = $(segmentId)`
+          : ''
+      }
       WHERE 1=1
-        ${withAggregates ? `AND osa."segmentId" = $(segmentId)` : ''}
         AND o."tenantId" = $(tenantId)
         AND (${filterString})
     `
