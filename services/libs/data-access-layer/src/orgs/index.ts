@@ -21,22 +21,22 @@ export async function findOrgsForMergeSuggestions(
     `
       SELECT
         o.id,
-        json_agg(oi) as identities,
+        json_agg(distinct oi) as identities,
         ARRAY_AGG(DISTINCT onm."noMergeId") AS "noMergeIds",
         o."displayName",
         o.location,
         o.industry,
         o.ticker,
-        osa."activityCount"
+        max(osa."activityCount") as "activityCount"
       FROM organizations o
       JOIN "organizationSegmentsAgg" osa ON o.id = osa."organizationId"
       JOIN "organizationNoMerge" onm ON onm."organizationId" = o.id
       JOIN "organizationIdentities" oi ON o.id = oi."organizationId"
       WHERE o."tenantId" = $(tenantId)
         ${filter}
-      GROUP BY o.id, osa.id
+      GROUP BY o.id
       ORDER BY o.id
-      LIMIT $(batchSize)
+      LIMIT $(batchSize);
     `,
     {
       tenantId,
