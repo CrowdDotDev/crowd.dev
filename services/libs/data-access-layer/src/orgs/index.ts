@@ -20,6 +20,8 @@ export async function findOrgsForMergeSuggestions(
 
   if (organizationIds && organizationIds.length > 0) {
     filter += ` AND o.id in ($(organizationIds:csv))`
+  } else if (organizationIds && organizationIds.length === 0) {
+    return []
   }
 
   return qx.select(

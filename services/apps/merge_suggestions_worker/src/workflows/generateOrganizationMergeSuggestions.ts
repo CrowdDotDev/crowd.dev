@@ -29,6 +29,7 @@ export async function generateOrganizationMergeSuggestions(
     PAGE_SIZE,
     lastUuid,
     lastGeneratedAt,
+    args.organizationIds,
   )
 
   if (result.length === 0) {
