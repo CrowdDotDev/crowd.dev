@@ -10,7 +10,7 @@
             Community size
           </p>
           <p class="text-small text-gray-600">
-            {{ pluralize('contributor', props.organization.memberCount, true) }}
+            {{ pluralize('contributor', props.organization.memberCount || 0, true) }}
           </p>
         </article>
         <article class="px-4 h-full w-1/2 xl:w-1/3 border-l border-gray-200">
@@ -18,7 +18,7 @@
             # of activities
           </p>
           <p class="text-small text-gray-600">
-            {{ formatNumber(props.organization.activityCount) || '-' }}
+            {{ props.organization.activityCount && formatNumber(props.organization.activityCount) || '-' }}
           </p>
         </article>
         <article class="px-4 h-full w-1/2 xl:w-1/3 xl:border-l border-gray-200">

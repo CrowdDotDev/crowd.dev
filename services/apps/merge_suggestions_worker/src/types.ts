@@ -216,6 +216,7 @@ export interface IProcessGenerateMemberMergeSuggestionsArgs {
 export interface IProcessGenerateOrganizationMergeSuggestionsArgs {
   tenantId: string
   lastUuid?: string
+  organizationIds?: string[]
 }
 
 export interface IProcessCheckSimilarityWithLLM {
