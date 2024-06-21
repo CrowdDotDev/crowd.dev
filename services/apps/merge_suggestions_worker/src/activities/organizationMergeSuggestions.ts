@@ -141,7 +141,7 @@ export async function getOrganizationMergeSuggestions(
       identitiesShould.push({
         bool: {
           must: [
-            { term: { [`nested_identities.keyword_value`]: identity.string_value } },
+            { match: { [`nested_identities.string_value`]: identity.string_value } },
             { match: { [`nested_identities.string_platform`]: identity.string_platform } },
             { term: { [`nested_identities.bool_verified`]: false } },
           ],
