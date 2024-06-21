@@ -15,15 +15,18 @@ import { findOrgNoMergeIds } from '@crowd/data-access-layer/src/org_merge'
 import { fetchOrgAggregates } from '@crowd/data-access-layer/src/organizations/segments'
 import { DbStore } from '@crowd/database'
 import { Logger, getChildLogger, logExecutionTime } from '@crowd/logging'
-import { IOrganizationOpensearch, OpenSearchIndex, OrganizationIdentityType } from '@crowd/types'
+import { OpenSearchIndex, OrganizationIdentityType } from '@crowd/types'
 import { IndexedEntityType } from '../repo/indexing.data'
 import { IndexingRepository } from '../repo/indexing.repo'
-import { IDbOrganizationSyncData, IOrganizationBaseForMergeSuggestions, IOrganizationForMergeSuggestionsOpensearch, IOrganizationFullAggregatesOpensearch } from '../repo/organization.data'
+import {
+  IOrganizationBaseForMergeSuggestions,
+  IOrganizationForMergeSuggestionsOpensearch,
+  IOrganizationFullAggregatesOpensearch,
+} from '../repo/organization.data'
 import { OrganizationRepository } from '../repo/organization.repo'
 import { IPagedSearchResponse, ISearchHit } from './opensearch.data'
 import { OpenSearchService } from './opensearch.service'
 import { IOrganizationSyncResult } from './organization.sync.data'
-
 
 export async function buildFullOrgForMergeSuggestions(
   qx: QueryExecutor,
@@ -354,12 +357,7 @@ export class OrganizationSyncService {
     const syncOrgsToOpensearchForMergeSuggestions = async (organizationIds) => {
       for (const orgId of organizationIds) {
         const qx = repoQx(this.orgRepo)
-        cosnt data = base
-        if (!data) {
-          this.log.error('Organization not found in database!', { orgId, data })
-          throw new Error('Organization not found in database!')
-        }
-        const prefixed = OrganizationSyncService.prefixData(data)
+        const prefixed = OrganizationSyncService.prefixData(qx, orgId)
         await this.openSearchService.index(orgId, OpenSearchIndex.ORGANIZATIONS, prefixed)
       }
     }
@@ -368,36 +366,39 @@ export class OrganizationSyncService {
     return syncResults
   }
 
-  public static async prefixData(qx: QueryExecutor, id: string): Promise<IOrganizationForMergeSuggestionsOpensearch> {
-    const base = await findOrgById(qx, id, { fields: [
-      OrganizationField.ID,
-      OrganizationField.TENANT_ID,
-      OrganizationField.DISPLAY_NAME,
-      OrganizationField.LOCATION,
-      OrganizationField.INDUSTRY,
-    ]})
+  public static async prefixData(
+    qx: QueryExecutor,
+    id: string,
+  ): Promise<IOrganizationForMergeSuggestionsOpensearch> {
+    const base = await findOrgById(qx, id, {
+      fields: [
+        OrganizationField.ID,
+        OrganizationField.TENANT_ID,
+        OrganizationField.DISPLAY_NAME,
+        OrganizationField.LOCATION,
+        OrganizationField.INDUSTRY,
+      ],
+    })
     const data = await buildFullOrgForMergeSuggestions(qx, base)
 
-    p.uuid_organizationId = data.id
-    p.uuid_tenantId = data.tenantId
-    p.string_location = data.location
-    p.string_industry = data.industry
-    p.string_ticker = data.ticker
-    p.keyword_displayName = data.displayName
-    p.string_website = data.website
+    return {
+      uuid_organizationId: data.id,
+      uuid_tenantId: data.tenantId,
+      string_location: data.location,
+      string_industry: data.industry,
+      string_ticker: data.ticker,
+      keyword_displayName: data.displayName,
+      string_website: data.website,
 
-    p.nested_identities = data.identities.map((identity) => ({
-      string_platform: identity.platform,
-      string_value: identity.value,
-      keyword_value: identity.value,
-      keyword_type: identity.type,
-      bool_verified: identity.verified,
-      keyword_sourceId: identity.sourceId,
-      keyword_integrationId: identity.integrationId,
-    }))
+      nested_identities: data.identities.map((identity) => ({
+        string_platform: identity.platform,
+        string_value: identity.value,
+        keyword_type: identity.type,
+        string_type: identity.type,
+        bool_verified: identity.verified,
+      })),
 
-    p.int_activityCount = data.activityCount
-
-    return p
+      int_activityCount: data.activityCount,
+    }
   }
 }

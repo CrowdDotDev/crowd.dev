@@ -48,7 +48,6 @@ export interface IOrganizationForMergeSuggestionsOpensearch {
   uuid_tenantId?: string
   keyword_displayName: string
   nested_identities: IOrganizationIdentityOpensearch[]
-  nested_weakIdentities: IOrganizationIdentityOpensearch[]
   string_location: string
   string_industry: string
   string_website: string
