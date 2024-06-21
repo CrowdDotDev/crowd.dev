@@ -6,6 +6,10 @@
   >
     <img v-if="props.src" :alt="props.name" :src="props.src" />
     <slot v-else-if="$slots.placeholder" name="placeholder" />
+    <slot v-if="$slots.default" />
+    <div v-if="$slots.overlay" class="c-avatar__overlay">
+      <slot name="overlay" />
+    </div>
   </div>
 </template>
 

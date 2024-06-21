@@ -4,7 +4,7 @@
   </div>
   <div v-else class="-mt-5 -mb-5">
     <div class="contributor-details  grid grid-cols-2 grid-rows-2 px-3">
-      <section class="w-full border-b border-gray-100 py-4 flex justify-between items-center col-span-2 h-min">
+      <section class="w-full border-b border-gray-100 py-4 flex justify-between items-center col-span-2 h-min group">
         <div class="flex items-center">
           <lf-back :to="{ path: '/contributors' }" class="mr-2">
             <lf-button type="secondary-ghost" :icon-only="true">
@@ -92,19 +92,18 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfContributorDetailsHeader from '@/modules/contributor/components/details/contributor-details-header.vue';
 import LfContributorDetailsActions from '@/modules/contributor/components/details/contributor-details-actions.vue';
 import { useRoute } from 'vue-router';
-import { ContributorApiService } from '@/modules/contributor/services/contributor.api.service';
-import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import LfContributorDetailsEmails from '@/modules/contributor/components/details/contributor-details-emails.vue';
-import { Contributor } from '@/modules/contributor/types/Contributor';
 import LfContributorLastEnrichment from '@/modules/contributor/components/shared/contributor-last-enrichment.vue';
 import { useMemberStore } from '@/modules/member/store/pinia';
-
-const lsSegmentsStore = useLfSegmentsStore();
-const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
+import { useContributorStore } from '@/modules/contributor/store/contributor.store';
 
 const { getMemberCustomAttributes } = useMemberStore();
+
+const contributorStore = useContributorStore();
+const { getContributor } = contributorStore;
+const { contributor } = storeToRefs(contributorStore);
 
 const route = useRoute();
 
@@ -114,17 +113,13 @@ const notes = ref<any>(null);
 
 const { id } = route.params;
 
-const contributor = ref<Contributor | null>(null);
 const loading = ref<boolean>(true);
 
 const fetchMember = () => {
   if (!contributor.value) {
     loading.value = true;
   }
-  ContributorApiService.find(id as string, [selectedProjectGroup.value?.id as string])
-    .then((res) => {
-      contributor.value = res;
-    })
+  getContributor(id)
     .finally(() => {
       loading.value = false;
     });
