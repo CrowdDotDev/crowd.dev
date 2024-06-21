@@ -1,11 +1,16 @@
+import { groupBy } from '@crowd/common'
 import { OrganizationAttributeSource, OrganizationAttributeType } from '@crowd/types'
+import {
+  ORG_DB_ATTRIBUTES,
+  ORG_DB_ATTRIBUTE_SOURCE_PRIORITY,
+  ORG_DB_FIELDS,
+} from './attributesConfig'
 import {
   IDbOrgAttribute,
   IDbOrgAttributeInput,
   IDbOrganization,
   IDbOrganizationInput,
 } from './types'
-import { groupBy } from '@crowd/common'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -14,65 +19,6 @@ export interface IPrepareOrgResult {
   attributes: IDbOrgAttributeInput[]
 }
 
-interface OrgAttributeDef {
-  name: string
-  incomingType: OrganizationAttributeType | 'string_array' | 'object_array'
-  type: OrganizationAttributeType
-  defaultColumn?: string
-}
-
-const ORG_FIELDS = [
-  'description',
-  'displayName',
-  'logo',
-  'tags',
-  'employees',
-  'revenueRange',
-  'importHash',
-  'location',
-  'isTeamOrganization',
-  'type',
-  'size',
-  'headline',
-  'industry',
-  'founded',
-  'employeeChurnRate',
-  'employeeGrowthRate',
-]
-const ORG_ATTRIBUTES: OrgAttributeDef[] = [
-  {
-    name: 'names',
-    incomingType: 'string_array',
-    type: OrganizationAttributeType.STRING,
-    defaultColumn: 'displayName',
-  },
-  {
-    name: 'description',
-    incomingType: OrganizationAttributeType.STRING,
-    type: OrganizationAttributeType.STRING,
-    defaultColumn: 'description',
-  },
-  {
-    name: 'logo',
-    incomingType: OrganizationAttributeType.STRING,
-    type: OrganizationAttributeType.STRING,
-    defaultColumn: 'logo',
-  },
-  {
-    name: 'location',
-    incomingType: OrganizationAttributeType.STRING,
-    type: OrganizationAttributeType.STRING,
-    defaultColumn: 'location',
-  },
-]
-
-const ORG_ATTRIBUTE_SOURCE_PRIORITY = [
-  OrganizationAttributeSource.CUSTOM,
-  OrganizationAttributeSource.PDL,
-  OrganizationAttributeSource.EMAIL,
-  OrganizationAttributeSource.GITHUB,
-]
-
 export function prepareOrganizationData(
   incoming: any,
   source: string,
@@ -80,9 +26,9 @@ export function prepareOrganizationData(
   existingAttributes?: IDbOrgAttribute[],
 ) {
   // validate source
-  if (!ORG_ATTRIBUTE_SOURCE_PRIORITY.includes(source as OrganizationAttributeSource)) {
+  if (!ORG_DB_ATTRIBUTE_SOURCE_PRIORITY.includes(source as OrganizationAttributeSource)) {
     throw new Error(
-      `Invalid attribute source: ${source} - must be one of ${ORG_ATTRIBUTE_SOURCE_PRIORITY.join(
+      `Invalid attribute source: ${source} - must be one of ${ORG_DB_ATTRIBUTE_SOURCE_PRIORITY.join(
         ', ',
       )}`,
     )
@@ -98,7 +44,7 @@ export function prepareOrganizationData(
   // process regular fields
   // default attribute fields will also be processed here
   // but will possibly be overriden later with default values calculated by priority
-  for (const field of incomingFields.filter((k) => ORG_FIELDS.includes(k))) {
+  for (const field of incomingFields.filter((k) => ORG_DB_FIELDS.includes(k))) {
     // set the field only if it's not already set
     if (
       incoming[field] !== undefined &&
@@ -110,8 +56,8 @@ export function prepareOrganizationData(
 
   // generate attributes
   for (const attDef of incomingFields
-    .filter((k) => ORG_ATTRIBUTES.some((a) => a.name === k))
-    .map((k) => ORG_ATTRIBUTES.find((a) => a.name === k))) {
+    .filter((k) => ORG_DB_ATTRIBUTES.some((a) => a.name === k))
+    .map((k) => ORG_DB_ATTRIBUTES.find((a) => a.name === k))) {
     const data = incoming[attDef.name]
     if (data === undefined || data === null) {
       continue
@@ -151,6 +97,7 @@ export function prepareOrganizationData(
       values.push(String(data))
     }
 
+    // sometimes an attribute value can be just an empty array
     if (values.length === 0) {
       continue
     }
@@ -167,7 +114,7 @@ export function prepareOrganizationData(
       >
 
       // lets find the default source that we should use to set the default value
-      for (const prioritySource of ORG_ATTRIBUTE_SOURCE_PRIORITY) {
+      for (const prioritySource of ORG_DB_ATTRIBUTE_SOURCE_PRIORITY) {
         if (prioritySource === attributeSource) {
           defaultSource = attributeSource
           break
@@ -182,7 +129,7 @@ export function prepareOrganizationData(
       // we should always have defaultSource calculated
       if (!defaultSource) {
         throw new Error(
-          `Could not find default source! Is ${attributeSource} not in the priority list? [${ORG_ATTRIBUTE_SOURCE_PRIORITY.join(
+          `Could not find default source! Is ${attributeSource} not in the priority list? [${ORG_DB_ATTRIBUTE_SOURCE_PRIORITY.join(
             ', ',
           )}]`,
         )
@@ -244,7 +191,18 @@ export function prepareOrganizationData(
             existingOrg[attDef.defaultColumn] === null ||
             existingOrg[attDef.defaultColumn] !== att.value)
         ) {
-          orgRes[attDef.defaultColumn] = att.value
+          if (attDef.type === OrganizationAttributeType.OBJECT) {
+            orgRes[attDef.defaultColumn] = JSON.parse(att.value)
+          } else if (
+            attDef.type === OrganizationAttributeType.DECIMAL ||
+            attDef.type === OrganizationAttributeType.INTEGER
+          ) {
+            orgRes[attDef.defaultColumn] = Number(att.value)
+          } else if (attDef.type === OrganizationAttributeType.BOOLEAN) {
+            orgRes[attDef.defaultColumn] = att.value === 'true'
+          } else {
+            orgRes[attDef.defaultColumn] = att.value
+          }
         }
       } else {
         att.default = false

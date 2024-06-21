@@ -43,7 +43,7 @@ export const upsertOrgAttributes = async (
       'orgAttributes',
       ['organizationId', 'type', 'name', 'source', 'default', 'value'],
       objects,
-      '("organizationId", name, "default") where "default" do update set value = excluded.value, "default" = excluded.default',
+      '("organizationId", name, "default") where "default" do update set type = excluded.type, value = excluded.value, "default" = excluded.default',
     )
     await qx.result(prepared)
   } catch (err) {
