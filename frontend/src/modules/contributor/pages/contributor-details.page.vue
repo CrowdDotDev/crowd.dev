@@ -15,7 +15,7 @@
         </div>
         <div class="flex items-center">
           <lf-contributor-last-enrichment :contributor="contributor" class="mr-4" />
-          <lf-contributor-details-actions :contributor="contributor" @reload="fetchMember()" />
+          <lf-contributor-details-actions :contributor="contributor" @reload="fetchContributor()" />
         </div>
       </section>
       <section class="w-80 border-r relative border-gray-100 overflow-y-auto overflow-x-visible h-full ">
@@ -24,16 +24,16 @@
           <lf-contributor-details-work-history
             :contributor="contributor"
             class="mb-8"
-            @reload="fetchMember()"
+            @reload="fetchContributor()"
           />
           <lf-contributor-details-identities
             :contributor="contributor"
             class="mb-8"
-            @reload="fetchMember()"
+            @reload="fetchContributor()"
           />
           <lf-contributor-details-emails
             :contributor="contributor"
-            @reload="fetchMember()"
+            @reload="fetchContributor()"
           />
         </div>
       </section>
@@ -115,7 +115,7 @@ const { id } = route.params;
 
 const loading = ref<boolean>(true);
 
-const fetchMember = () => {
+const fetchContributor = () => {
   if (!contributor.value) {
     loading.value = true;
   }
@@ -134,7 +134,8 @@ const controlScroll = (e) => {
 };
 
 onMounted(() => {
-  fetchMember();
+  contributor.value = null;
+  fetchContributor();
   getMemberCustomAttributes();
 });
 </script>
