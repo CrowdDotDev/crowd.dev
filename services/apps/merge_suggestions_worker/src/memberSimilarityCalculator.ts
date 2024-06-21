@@ -35,22 +35,6 @@ class MemberSimilarityCalculator {
       return this.decideMemberSimilarityUsingAdditionalChecks(primaryMember, similarMember)
     }
 
-    // We check if there are any verified<->unverified email matches between primary & similar members
-    if (
-      (similarMember.string_arr_unverifiedEmails &&
-        similarMember.string_arr_unverifiedEmails.length > 0 &&
-        similarMember.string_arr_unverifiedEmails.some((email) =>
-          primaryMember.string_arr_verifiedEmails.includes(email),
-        )) ||
-      (similarMember.string_arr_verifiedEmails &&
-        similarMember.string_arr_verifiedEmails.length > 0 &&
-        similarMember.string_arr_verifiedEmails.some((email) =>
-          primaryMember.string_arr_unverifiedEmails.includes(email),
-        ))
-    ) {
-      return 0.98
-    }
-
     // check primary unverified identity <-> secondary verified identity exact match
     for (const primaryIdentity of primaryMember.nested_identities.filter((i) => !i.bool_verified)) {
       if (
@@ -59,9 +43,9 @@ class MemberSimilarityCalculator {
         similarMember.nested_identities.some(
           (verifiedIdentity) =>
             verifiedIdentity.bool_verified &&
-            verifiedIdentity.string_value === primaryIdentity.string_value &&
-            verifiedIdentity.keyword_type === primaryIdentity.keyword_type &&
-            verifiedIdentity.string_platform === primaryIdentity.string_platform,
+            verifiedIdentity.string_value.toLowerCase() ===
+              primaryIdentity.string_value.toLowerCase() &&
+            verifiedIdentity.keyword_type === primaryIdentity.keyword_type,
         )
       ) {
         return 0.98
@@ -76,9 +60,9 @@ class MemberSimilarityCalculator {
         similarMember.nested_identities.some(
           (unverifiedIdentity) =>
             unverifiedIdentity.bool_verified === false &&
-            unverifiedIdentity.string_value === primaryIdentity.string_value &&
-            unverifiedIdentity.keyword_type === primaryIdentity.keyword_type &&
-            unverifiedIdentity.string_platform === primaryIdentity.string_platform,
+            unverifiedIdentity.string_value.toLowerCase() ===
+              primaryIdentity.string_value.toLowerCase() &&
+            unverifiedIdentity.keyword_type === primaryIdentity.keyword_type,
         )
       ) {
         return 0.95
@@ -215,7 +199,8 @@ class MemberSimilarityCalculator {
     for (const memberRoles of member.nested_organizations) {
       if (
         similarMember.nested_organizations.some(
-          (o) => memberRoles.string_displayName === o.string_displayName,
+          (o) =>
+            memberRoles.string_displayName.toLowerCase() === o.string_displayName.toLowerCase(),
         )
       ) {
         return true
