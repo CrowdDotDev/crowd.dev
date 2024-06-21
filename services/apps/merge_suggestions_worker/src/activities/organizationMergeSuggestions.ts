@@ -86,7 +86,7 @@ export async function getOrganizationMergeSuggestions(
   tenantId: string,
   organization: IOrganizationPartialAggregatesOpensearch,
 ): Promise<IOrganizationMergeSuggestion[]> {
-  svc.log.info(`Getting merge suggestions for ${organization.uuid_organizationId}!`)
+  svc.log.debug(`Getting merge suggestions for ${organization.uuid_organizationId}!`)
   const mergeSuggestions: IOrganizationMergeSuggestion[] = []
   const organizationMergeSuggestionsRepo = new OrganizationMergeSuggestionsRepository(
     svc.postgres.writer.connection(),
