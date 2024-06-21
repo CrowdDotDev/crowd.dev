@@ -1,7 +1,12 @@
-import { IOrganizationIdSource, SyncStatus } from '@crowd/types'
+import { IOrganizationIdSource, OrganizationIdentityType, SyncStatus } from '@crowd/types'
 import { QueryExecutor } from '../queryExecutor'
 import { prepareSelectColumns } from '../utils'
-import { IDbOrgIdentity, IDbOrganization, IDbOrganizationInput } from './types'
+import {
+  IDbOrgIdentity,
+  IDbOrganization,
+  IDbOrganizationInput,
+  IEnrichableOrganizationData,
+} from './types'
 import { generateUUIDv1 } from '@crowd/common'
 
 const ORG_SELECT_COLUMNS = [
@@ -122,6 +127,23 @@ export async function findOrgBySourceId(
   return result
 }
 
+export async function findOrgById(
+  qe: QueryExecutor,
+  organizationId: string,
+): Promise<IDbOrganization | null> {
+  const result = await qe.selectOneOrNone(
+    `
+    select  ${prepareSelectColumns(ORG_SELECT_COLUMNS, 'o')}
+    from organizations o
+    `,
+    {
+      organizationId,
+    },
+  )
+
+  return result
+}
+
 export async function findOrgByVerifiedIdentity(
   qx: QueryExecutor,
   tenantId: string,
@@ -176,6 +198,59 @@ export async function getOrgIdentities(
     {
       organizationId,
       tenantId,
+    },
+  )
+}
+
+export async function getOrgIdsToEnrich(
+  qe: QueryExecutor,
+  perPage: number,
+  page: number,
+): Promise<IEnrichableOrganizationData[]> {
+  const conditions: string[] = [
+    'o."deletedAt" is null',
+    `(o."lastEnrichedAt" is null or o."lastEnrichedAt" < now() - interval '3 months')`,
+    'ad."activityCount" >= 3',
+  ]
+
+  const query = `
+  with activity_data as (select "organizationId",
+                                count(id)      as "activityCount",
+                                max(timestamp) as "lastActive"
+                        from activities
+                        where "deletedAt" is null
+                        group by "organizationId"),
+        identities as (select "organizationId", platform, type, value, verified 
+                        from "organizationIdentities"
+                        where type = '${OrganizationIdentityType.PRIMARY_DOMAIN}'
+                              and verified = true
+                        group by "organizationId")
+  select o.id as "organizationId", 
+         o."tenantId"
+  from organizations o
+          inner join activity_data ad on ad."organizationId" = o.id
+          inner join identities i on i."organizationId" = o.id
+  where ${conditions.join(' and ')}
+  order by ad."activityCount" desc
+  limit ${perPage} offset ${(page - 1) * perPage};
+  `
+
+  const results = await qe.select(query)
+  return results
+}
+
+export async function markOrganizationEnriched(
+  qe: QueryExecutor,
+  organizationId: string,
+): Promise<void> {
+  await qe.selectNone(
+    `
+    update organizations
+    set "lastEnrichedAt" = now()
+    where id = $(organizationId)
+    `,
+    {
+      organizationId,
     },
   )
 }

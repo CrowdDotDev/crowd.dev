@@ -17,6 +17,7 @@ import {
 } from '@crowd/types'
 import { randomUUID } from 'crypto'
 import lodash from 'lodash'
+import { upsertOrgIdentities } from '@crowd/data-access-layer/src/organizations'
 import getObjectWithoutKey from '@/utils/getObjectWithoutKey'
 import { IActiveOrganizationFilter } from '@/database/repositories/types/organizationTypes'
 import MemberOrganizationRepository from '@/database/repositories/memberOrganizationRepository'
@@ -230,7 +231,6 @@ export default class OrganizationService extends LoggerBase {
           description: null,
           activityCount: secondaryActivityCount,
           memberCount: secondaryMemberCount,
-          emails: [],
           phoneNumbers: [],
           logo: null,
           tags: [],
@@ -247,7 +247,6 @@ export default class OrganizationService extends LoggerBase {
           address: null,
           industry: null,
           founded: null,
-          attributes: {},
           searchSyncedAt: null,
           allSubsidiaries: [],
           alternativeNames: [],
@@ -886,44 +885,9 @@ export default class OrganizationService extends LoggerBase {
           record = existing
         }
 
-        const existingIdentities = await OrganizationRepository.getIdentities(record.id, {
-          ...this.options,
-          transaction,
-        })
+        const qe = SequelizeRepository.getQueryExecutor(this.options, transaction)
 
-        const toUpdate: IOrganizationIdentity[] = []
-        const toCreate: IOrganizationIdentity[] = []
-
-        for (const i of data.identities) {
-          const existing = existingIdentities.find(
-            (ei) => ei.value === i.value && ei.platform === i.platform && ei.type === i.type,
-          )
-          if (!existing) {
-            toCreate.push(i)
-          } else if (existing && existing.verified !== i.verified) {
-            toUpdate.push(i)
-          }
-        }
-
-        if (toCreate.length > 0) {
-          for (const i of toCreate) {
-            // add the identity
-            await OrganizationRepository.addIdentity(record.id, i, {
-              ...this.options,
-              transaction,
-            })
-          }
-        }
-
-        if (toUpdate.length > 0) {
-          for (const i of toUpdate) {
-            // update the identity
-            await OrganizationRepository.updateIdentity(record.id, i, {
-              ...this.options,
-              transaction,
-            })
-          }
-        }
+        await upsertOrgIdentities(qe, record.id, record.tenantId, data.identities)
       } else {
         const organization = {
           ...data, // to keep uncacheable data (like identities, weakIdentities)

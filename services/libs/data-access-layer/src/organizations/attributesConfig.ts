@@ -106,11 +106,6 @@ export const ORG_DB_ATTRIBUTES: OrgAttributeDef[] = [
     defaultColumn: 'employeeGrowthRate',
   },
   {
-    name: 'emails',
-    incomingType: 'string_array',
-    type: OrganizationAttributeType.STRING,
-  },
-  {
     name: 'phoneNumbers',
     incomingType: 'string_array',
     type: OrganizationAttributeType.STRING,
@@ -167,6 +162,11 @@ export const ORG_DB_ATTRIBUTES: OrgAttributeDef[] = [
   },
   {
     name: 'employeeCountByMonth',
+    incomingType: OrganizationAttributeType.OBJECT,
+    type: OrganizationAttributeType.OBJECT,
+  },
+  {
+    name: 'employeeCountByCountry',
     incomingType: OrganizationAttributeType.OBJECT,
     type: OrganizationAttributeType.OBJECT,
   },

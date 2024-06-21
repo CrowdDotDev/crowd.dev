@@ -2,12 +2,12 @@ import { proxyActivities, continueAsNew } from '@temporalio/workflow'
 import * as activities from '../activities/organizationMergeSuggestions'
 
 import {
+  IOrganizationBaseForMergeSuggestions,
   IOrganizationMergeSuggestion,
   IProcessGenerateMemberMergeSuggestionsArgs,
   OrganizationMergeSuggestionTable,
 } from '@crowd/types'
 import { chunkArray } from '../utils'
-import { IOrganizationBaseForMergeSuggestions } from '@crowd/opensearch/src/repo/organization.data'
 
 const activity = proxyActivities<typeof activities>({ startToCloseTimeout: '1 minute' })
 

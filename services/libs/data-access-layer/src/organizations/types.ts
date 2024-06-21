@@ -3,6 +3,7 @@ import {
   OrganizationAttributeSource,
   OrganizationAttributeType,
   OrganizationIdentityType,
+  PlatformType,
 } from '@crowd/types'
 
 export interface IDbOrganization {
@@ -103,4 +104,15 @@ export interface IDbOrgIdentityUpdateInput {
   value: string
   type: OrganizationIdentityType
   verified: boolean
+}
+
+export const ENRICHMENT_PLATFORM_PRIORITY = [
+  PlatformType.GITHUB,
+  PlatformType.LINKEDIN,
+  PlatformType.TWITTER,
+]
+
+export interface IEnrichableOrganizationData {
+  organizationId: string
+  tenantId: string
 }

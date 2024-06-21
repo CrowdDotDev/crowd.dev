@@ -1,4 +1,5 @@
 import { QueryExecutor } from '../queryExecutor'
+import { getOrgIdentities } from './organizations'
 import { IDbOrgIdentity, IDbOrgIdentityInsertInput, IDbOrgIdentityUpdateInput } from './types'
 
 export async function fetchOrgIdentities(
@@ -90,4 +91,57 @@ export async function addOrgIdentity(qx: QueryExecutor, identity: IDbOrgIdentity
     `,
     identity,
   )
+}
+
+export async function upsertOrgIdentities(
+  qe: QueryExecutor,
+  organizationId: string,
+  tenantId: string,
+  identities: IDbOrgIdentity[],
+  integrationId?: string,
+): Promise<void> {
+  const existingIdentities = await getOrgIdentities(qe, organizationId, tenantId)
+  const toCreate = []
+  const toUpdate = []
+
+  for (const i of identities) {
+    const existing = existingIdentities.find(
+      (ei) => ei.value === i.value && ei.platform === i.platform && ei.type === i.type,
+    )
+    if (!existing) {
+      toCreate.push(i)
+    } else if (existing && existing.verified !== i.verified) {
+      toUpdate.push(i)
+    }
+  }
+
+  if (toCreate.length > 0) {
+    for (const i of toCreate) {
+      // add the identity
+      await addOrgIdentity(qe, {
+        organizationId,
+        tenantId,
+        platform: i.platform,
+        type: i.type,
+        value: i.value,
+        verified: i.verified,
+        sourceId: i.sourceId,
+        integrationId,
+      })
+    }
+  }
+
+  if (toUpdate.length > 0) {
+    for (const i of toUpdate) {
+      // update the identity
+      await updateOrgIdentityVerifiedFlag(qe, {
+        organizationId,
+        tenantId,
+        platform: i.platform,
+        type: i.type,
+        value: i.value,
+        verified: i.verified,
+      })
+    }
+  }
 }

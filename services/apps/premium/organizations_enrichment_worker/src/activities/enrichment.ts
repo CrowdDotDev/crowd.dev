@@ -4,14 +4,28 @@ import {
   QueuePriorityContextLoader,
   SearchSyncWorkerEmitter,
 } from '@crowd/common_services'
-import { OrganizationRepository } from '@crowd/data-access-layer/src/old/apps/premium/organization_enrichment_worker/organization.repo'
 import {
   ENRICHMENT_PLATFORM_PRIORITY,
+  IDbOrgIdentity,
   IEnrichableOrganizationData,
-  IOrganizationData,
-} from '@crowd/data-access-layer/src/old/apps/premium/organization_enrichment_worker/types'
+  findOrgAttributes,
+  findOrgById,
+  getOrgIdentities,
+  getOrgIdsToEnrich,
+  markOrganizationEnriched,
+  prepareOrganizationData,
+  updateOrganization,
+  upsertOrgAttributes,
+  upsertOrgIdentities,
+} from '@crowd/data-access-layer/src/organizations'
+import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { Logger, getChildLogger } from '@crowd/logging'
-import { IOrganizationIdentity, OrganizationIdentityType, PlatformType } from '@crowd/types'
+import {
+  IOrganizationIdentity,
+  OrganizationAttributeSource,
+  OrganizationIdentityType,
+  PlatformType,
+} from '@crowd/types'
 import { svc } from '../main'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -75,9 +89,7 @@ export async function getOrganizationsToEnrich(
     page,
   })
 
-  const repo = new OrganizationRepository(svc.postgres.reader, log)
-
-  const orgs = await repo.getOrganizationsToEnrich(perPage, page)
+  const orgs = await getOrgIdsToEnrich(dbStoreQx(svc.postgres.reader), perPage, page)
 
   log.info({ nrOrgs: orgs.length }, 'Fetched organizations to enrich!')
 
@@ -97,15 +109,18 @@ export async function tryEnrichOrganization(organizationId: string): Promise<boo
 
   log.debug('Trying to enrich an organization!')
 
-  const repo = new OrganizationRepository(svc.postgres.writer, log)
-  const data = await repo.getOrganizationData(organizationId)
+  const qe = dbStoreQx(svc.postgres.reader)
+
+  const data = await findOrgById(qe, organizationId)
 
   if (!data) {
     log.warn('Organization not found!')
     return false
   }
 
-  const verifiedIdentities = data.identities.filter((i) => i.verified)
+  const identities = await getOrgIdentities(qe, organizationId, data.tenantId)
+
+  const verifiedIdentities = identities.filter((i) => i.verified)
 
   const primaryDomainIdentities = verifiedIdentities.filter(
     (i) => i.type === OrganizationIdentityType.PRIMARY_DOMAIN,
@@ -145,18 +160,27 @@ export async function tryEnrichOrganization(organizationId: string): Promise<boo
   if (enrichmentData) {
     log.debug('Enrichment data found!')
 
-    const finalData = convertEnrichedDataToOrg(enrichmentData, data.identities)
+    const finalData = convertEnrichedDataToOrg(enrichmentData, identities)
+    const attributes = await findOrgAttributes(qe, organizationId)
+    const prepared = prepareOrganizationData(
+      finalData,
+      OrganizationAttributeSource.PDL,
+      data,
+      attributes,
+    )
 
-    await repo.transactionally(async (t) => {
-      await t.updateIdentities(data.id, data.tenantId, data.identities, finalData.identities)
-      await t.updateOrganizationWithEnrichedData(data, finalData)
+    await svc.postgres.writer.transactionally(async (t) => {
+      const txQe = dbStoreQx(t)
+      await updateOrganization(txQe, organizationId, prepared.organization)
+      await upsertOrgAttributes(txQe, organizationId, prepared.attributes)
+      await upsertOrgIdentities(txQe, organizationId, data.tenantId, finalData.identities)
     })
 
     log.debug('Enrichment done!')
     return true
   } else {
     log.debug('No enrichment data found!')
-    await repo.markOrganizationEnriched(organizationId)
+    await markOrganizationEnriched(qe, organizationId)
   }
 
   return false
@@ -205,7 +229,7 @@ async function getEnrichment({ name, website, locality }: any, log: Logger): Pro
 }
 
 function convertEnrichedDataToOrg(pdlData: any, existingIdentities: IOrganizationIdentity[]): any {
-  let enriched = renameKeys<IOrganizationData>(pdlData, {
+  let enriched = renameKeys(pdlData, {
     summary: 'description',
     employee_count_by_country: 'employeeCountByCountry',
     employee_count: 'employees',
@@ -285,7 +309,7 @@ function convertEnrichedDataToOrg(pdlData: any, existingIdentities: IOrganizatio
     }
   }
 
-  enriched = enrichSocialNetworks(enriched, {
+  enriched.identities = enrichSocialNetworks(enriched.identities, {
     profiles: pdlData.profiles,
     linkedin_id: pdlData.linkedin_id,
   })
@@ -351,14 +375,12 @@ function sanitize(data: any): any {
 }
 
 function enrichSocialNetworks(
-  data: IOrganizationData,
+  identities: IDbOrgIdentity[],
   socialNetworks: {
     profiles: string[]
     linkedin_id: string
   },
-): IOrganizationData {
-  const identities: IOrganizationIdentity[] = data.identities || []
-
+): IDbOrgIdentity[] {
   for (const social of socialNetworks.profiles) {
     let handle = social.split('/').splice(-1)[0]
 
@@ -410,8 +432,5 @@ function enrichSocialNetworks(
     }
   }
 
-  return {
-    ...data,
-    identities,
-  }
+  return identities
 }

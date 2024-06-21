@@ -1,7 +1,6 @@
-import { IOrganizationPartialAggregatesRawResult } from './types'
-import { QueryExecutor } from '../queryExecutor'
-import { IOrganization } from '@crowd/types'
 import { RawQueryParser } from '@crowd/common'
+import { QueryExecutor } from '../queryExecutor'
+import { IOrganizationPartialAggregatesRawResult } from './types'
 
 export enum OrganizationField {
   // meta

@@ -1,6 +1,5 @@
 import { get as getLevenshteinDistance } from 'fast-levenshtein'
-import { IOrganizationFullAggregatesOpensearch } from './types'
-import { IOrganizationIdentity } from '@crowd/types'
+import { IOrganizationFullAggregatesOpensearch, IOrganizationIdentity } from '@crowd/types'
 
 class OrganizationSimilarityCalculator {
   static HIGH_CONFIDENCE_SCORE = 0.9

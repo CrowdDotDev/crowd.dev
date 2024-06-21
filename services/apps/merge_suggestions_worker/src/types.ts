@@ -1,9 +1,8 @@
-import { IOrganizationIdentity } from '@crowd/types'
-import { MemberAttributeOpensearch } from './enums'
 import {
   IOrganizationBaseForMergeSuggestions,
   IOrganizationForMergeSuggestionsOpensearch,
-} from '@crowd/opensearch/src/repo/organization.data'
+} from '@crowd/types'
+import { MemberAttributeOpensearch } from './enums'
 
 interface ITermFilter {
   term: {

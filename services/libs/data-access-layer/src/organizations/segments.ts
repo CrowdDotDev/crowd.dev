@@ -47,7 +47,7 @@ export async function insertOrganizationSegments(
 export async function fetchOrgAggregates(
   qx: QueryExecutor,
   organizationId: string,
-): Promise<IOrganizationAggregateData> {
+): Promise<IDbOrganizationAggregateData> {
   return qx.selectOneOrNone(
     `
       SELECT

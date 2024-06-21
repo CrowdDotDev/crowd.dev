@@ -12,9 +12,9 @@ import {
   getOrgIdentities,
   insertOrganization,
   prepareOrganizationData,
-  updateOrgIdentityVerifiedFlag,
   updateOrganization,
   upsertOrgAttributes,
+  upsertOrgIdentities,
 } from '@crowd/data-access-layer/src/organizations'
 import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
@@ -82,56 +82,10 @@ export class OrganizationService extends LoggerBase {
             this.log.info({ orgId: existing.id }, `Updating organization!`)
             await updateOrganization(qe, existing.id, processed.organization)
           }
-
+          await upsertOrgIdentities(qe, existing.id, tenantId, data.identities, integrationId)
           await upsertOrgAttributes(qe, existing.id, processed.attributes)
 
           id = existing.id
-
-          const existingIdentities = await getOrgIdentities(qe, id, tenantId)
-
-          const toCreate = []
-          const toUpdate = []
-
-          for (const i of data.identities) {
-            const existing = existingIdentities.find(
-              (ei) => ei.value === i.value && ei.platform === i.platform && ei.type === i.type,
-            )
-            if (!existing) {
-              toCreate.push(i)
-            } else if (existing && existing.verified !== i.verified) {
-              toUpdate.push(i)
-            }
-          }
-
-          if (toCreate.length > 0) {
-            for (const i of toCreate) {
-              // add the identity
-              await addOrgIdentity(qe, {
-                organizationId: id,
-                tenantId,
-                platform: i.platform,
-                type: i.type,
-                value: i.value,
-                verified: i.verified,
-                sourceId: i.sourceId,
-                integrationId,
-              })
-            }
-          }
-
-          if (toUpdate.length > 0) {
-            for (const i of toUpdate) {
-              // update the identity
-              await updateOrgIdentityVerifiedFlag(qe, {
-                organizationId: id,
-                tenantId,
-                platform: i.platform,
-                type: i.type,
-                value: i.value,
-                verified: i.verified,
-              })
-            }
-          }
         } else {
           this.log.trace(`Organization wasn't found via website or identities.`)
           const firstVerified = verifiedIdentities[0]
@@ -139,8 +93,6 @@ export class OrganizationService extends LoggerBase {
           const payload = {
             displayName: firstVerified.value,
             description: data.description,
-            names: data.names,
-            emails: data.emails,
             logo: data.logo,
             tags: data.tags,
             employees: data.employees,

@@ -15,14 +15,15 @@ import { findOrgNoMergeIds } from '@crowd/data-access-layer/src/org_merge'
 import { fetchOrgAggregates } from '@crowd/data-access-layer/src/organizations/segments'
 import { DbStore } from '@crowd/database'
 import { Logger, getChildLogger, logExecutionTime } from '@crowd/logging'
-import { OpenSearchIndex, OrganizationIdentityType } from '@crowd/types'
-import { IndexedEntityType } from '../repo/indexing.data'
-import { IndexingRepository } from '../repo/indexing.repo'
 import {
   IOrganizationBaseForMergeSuggestions,
   IOrganizationForMergeSuggestionsOpensearch,
   IOrganizationFullAggregatesOpensearch,
-} from '../repo/organization.data'
+  OpenSearchIndex,
+  OrganizationIdentityType,
+} from '@crowd/types'
+import { IndexedEntityType } from '../repo/indexing.data'
+import { IndexingRepository } from '../repo/indexing.repo'
 import { OrganizationRepository } from '../repo/organization.repo'
 import { IPagedSearchResponse, ISearchHit } from './opensearch.data'
 import { OpenSearchService } from './opensearch.service'
@@ -357,7 +358,17 @@ export class OrganizationSyncService {
     const syncOrgsToOpensearchForMergeSuggestions = async (organizationIds) => {
       for (const orgId of organizationIds) {
         const qx = repoQx(this.orgRepo)
-        const prefixed = OrganizationSyncService.prefixData(qx, orgId)
+        const base = await findOrgById(qx, orgId, {
+          fields: [
+            OrganizationField.ID,
+            OrganizationField.TENANT_ID,
+            OrganizationField.DISPLAY_NAME,
+            OrganizationField.LOCATION,
+            OrganizationField.INDUSTRY,
+          ],
+        })
+        const data = await buildFullOrgForMergeSuggestions(qx, base)
+        const prefixed = OrganizationSyncService.prefixData(data)
         await this.openSearchService.index(orgId, OpenSearchIndex.ORGANIZATIONS, prefixed)
       }
     }
@@ -367,20 +378,8 @@ export class OrganizationSyncService {
   }
 
   public static async prefixData(
-    qx: QueryExecutor,
-    id: string,
+    data: IOrganizationFullAggregatesOpensearch,
   ): Promise<IOrganizationForMergeSuggestionsOpensearch> {
-    const base = await findOrgById(qx, id, {
-      fields: [
-        OrganizationField.ID,
-        OrganizationField.TENANT_ID,
-        OrganizationField.DISPLAY_NAME,
-        OrganizationField.LOCATION,
-        OrganizationField.INDUSTRY,
-      ],
-    })
-    const data = await buildFullOrgForMergeSuggestions(qx, base)
-
     return {
       uuid_organizationId: data.id,
       uuid_tenantId: data.tenantId,

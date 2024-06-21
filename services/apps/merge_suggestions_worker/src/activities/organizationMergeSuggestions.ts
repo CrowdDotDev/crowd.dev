@@ -1,4 +1,7 @@
 import {
+  IOrganizationBaseForMergeSuggestions,
+  IOrganizationForMergeSuggestionsOpensearch,
+  IOrganizationFullAggregatesOpensearch,
   IOrganizationMergeSuggestion,
   OpenSearchIndex,
   OrganizationIdentityType,
@@ -14,11 +17,6 @@ import OrganizationSimilarityCalculator from '../organizationSimilarityCalculato
 import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 
 import { queryOrgs, OrganizationField } from '@crowd/data-access-layer/src/orgs'
-import {
-  IOrganizationBaseForMergeSuggestions,
-  IOrganizationForMergeSuggestionsOpensearch,
-  IOrganizationFullAggregatesOpensearch,
-} from '@crowd/opensearch/src/repo/organization.data'
 import { buildFullOrgForMergeSuggestions } from '@crowd/opensearch'
 
 export async function getOrganizations(
