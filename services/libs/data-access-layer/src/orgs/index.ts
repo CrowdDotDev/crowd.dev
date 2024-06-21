@@ -1,6 +1,6 @@
 import { RawQueryParser } from '@crowd/common'
 import { QueryExecutor } from '../queryExecutor'
-import { IOrganizationPartialAggregatesRawResult } from './types'
+import { QueryOptions } from '../utils'
 
 export enum OrganizationField {
   // meta
@@ -33,31 +33,22 @@ export enum OrganizationField {
   EMPLOYEE_GROWTH_RATE = 'employeeGrowthRate',
 }
 
-export type IPlainOrg = Map<OrganizationField, any> // eslint-disable-line @typescript-eslint/no-explicit-any
-
 export async function queryOrgs<T extends OrganizationField[]>(
   qx: QueryExecutor,
-  {
-    filter,
-    fields,
-    limit,
-    offset,
-  }: {
-    filter?: any // eslint-disable-line @typescript-eslint/no-explicit-any
-    fields?: T
-    limit?: number
-    offset?: number
-  } = {
-    filter: {},
-    fields: Object.values(OrganizationField) as T,
-    limit: 10,
-    offset: 0,
-  },
-): Promise<[{ [K in T[number]]: string }]> {
+  { filter, fields, limit, offset }: QueryOptions<T> = {},
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+): Promise<{ [K in T[number]]: any }[]> {
   const params = {
-    limit,
-    offset,
+    limit: limit || 10,
+    offset: offset || 0,
   }
+  if (!fields) {
+    fields = Object.values(OrganizationField) as T
+  }
+  if (!filter) {
+    filter = {}
+  }
+
   const where = RawQueryParser.parseFilters(
     filter,
     new Map<string, string>(Object.values(OrganizationField).map((field) => [field, field])),
@@ -89,7 +80,8 @@ export async function findOrgById<T extends OrganizationField[]>(
   } = {
     fields: Object.values(OrganizationField) as T,
   },
-): Promise<{ [K in T[number]]: string }> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+): Promise<{ [K in T[number]]: any }> {
   const rows = await queryOrgs(qx, {
     fields,
     filter: {

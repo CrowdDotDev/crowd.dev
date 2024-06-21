@@ -860,8 +860,6 @@ export default class OrganizationService extends LoggerBase {
         const fields = [
           'displayName',
           'description',
-          'names',
-          'emails',
           'logo',
           'tags',
           'employees',
@@ -871,7 +869,6 @@ export default class OrganizationService extends LoggerBase {
           'headline',
           'industry',
           'founded',
-          'attributes',
         ]
         fields.forEach((field) => {
           if (!existing[field] && data[field]) {

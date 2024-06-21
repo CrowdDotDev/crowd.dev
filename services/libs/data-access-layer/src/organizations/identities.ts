@@ -1,4 +1,6 @@
+import { RawQueryParser } from '@crowd/common'
 import { QueryExecutor } from '../queryExecutor'
+import { QueryOptions } from '../utils'
 import { getOrgIdentities } from './organizations'
 import { IDbOrgIdentity, IDbOrgIdentityInsertInput, IDbOrgIdentityUpdateInput } from './types'
 
@@ -144,4 +146,53 @@ export async function upsertOrgIdentities(
       })
     }
   }
+}
+
+export enum OrgIdentityField {
+  ORGANIZATION_ID = 'organizationId',
+  PLATFORM = 'platform',
+  SOURCE_ID = 'sourceId',
+  TENANT_ID = 'tenantId',
+  INTEGRATION_ID = 'integrationId',
+  CREATED_AT = 'createdAt',
+  UPDATED_AT = 'updatedAt',
+  VERIFIED = 'verified',
+  TYPE = 'type',
+  VALUE = 'value',
+}
+
+export async function queryOrgIdentities<T extends OrgIdentityField[]>(
+  qx: QueryExecutor,
+  opts: QueryOptions<T> = {},
+): Promise<{ [K in T[number]]: string }[]> {
+  const params = {
+    limit: opts.limit || 10,
+    offset: opts.offset || 0,
+  }
+  if (!opts.fields) {
+    opts.fields = Object.values(OrgIdentityField) as T
+  }
+  if (!opts.filter) {
+    opts.filter = {}
+  }
+
+  const where = RawQueryParser.parseFilters(
+    opts.filter,
+    new Map<string, string>(Object.values(OrgIdentityField).map((field) => [field, field])),
+    [],
+    params,
+    { pgPromiseFormat: true },
+  )
+
+  return qx.select(
+    `
+      SELECT
+        ${opts.fields.join(',\n')}
+      FROM "organizationIdentities"
+      WHERE ${where}
+      LIMIT $(limit)
+      OFFSET $(offset)
+    `,
+    params,
+  )
 }

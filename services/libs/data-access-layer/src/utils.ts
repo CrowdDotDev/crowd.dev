@@ -1,4 +1,5 @@
 import pgp from 'pg-promise'
+import { QueryFilter } from './query'
 
 export function prepareBulkInsert(
   table: string,
@@ -43,4 +44,11 @@ export function prepareSelectColumns(columns: string[], alias?: string) {
       return alias ? `${alias}."${c}"` : `"${c}"`
     })
     .join(',\n')
+}
+
+export interface QueryOptions<T> {
+  limit?: number
+  offset?: number
+  fields?: T
+  filter?: QueryFilter
 }

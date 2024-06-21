@@ -12,6 +12,8 @@ import {
   fetchManyOrgIdentities,
   updateOrgIdentityVerifiedFlag,
   findOrgAttributes,
+  queryOrgIdentities,
+  OrgIdentityField,
 } from '@crowd/data-access-layer/src/organizations'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import {
@@ -43,6 +45,7 @@ import AuditLogRepository from './auditLogRepository'
 import SegmentRepository from './segmentRepository'
 import SequelizeRepository from './sequelizeRepository'
 import { IActiveOrganizationData, IActiveOrganizationFilter } from './types/organizationTypes'
+import { OrganizationField, findOrgById } from '@crowd/data-access-layer/src/orgs'
 
 const { Op } = Sequelize
 
@@ -1163,76 +1166,53 @@ class OrganizationRepository {
   static async findByVerifiedIdentities(
     identities: IOrganizationIdentity[],
     options: IRepositoryOptions,
-  ): Promise<IOrganization> {
+  ): Promise<IOrganization | null> {
     const transaction = SequelizeRepository.getTransaction(options)
-    const sequelize = SequelizeRepository.getSequelize(options)
-    const currentTenant = SequelizeRepository.getCurrentTenant(options)
+    const qx = SequelizeRepository.getQueryExecutor(options, transaction)
 
-    const identityConditions = identities
-      .map(
-        (_, index) => `
-            (oi.platform = :platform${index} and oi.value = :value${index} and oi.type = :type${index} and oi.verified = true)
-        `,
-      )
-      .join(' or ')
-
-    const results = await sequelize.query(
-      `
-      with
-          "organizationsWithIdentity" as (
-              select oi."organizationId"
-              from "organizationIdentities" oi
-              where ${identityConditions}
-          ),
-          "organizationsWithCounts" as (
-            select o.id, count(oi."organizationId") as total_counts
-            from organizations o
-            join "organizationIdentities" oi on o.id = oi."organizationId"
-            where o.id in (select "organizationId" from "organizationsWithIdentity")
-            group by o.id
-          )
-          select o.id,
-                  o.description,
-                  o.emails,
-                  o.logo,
-                  o.tags,
-                  o.employees,
-                  o.location,
-                  o.type,
-                  o.size,
-                  o.headline,
-                  o.industry,
-                  o.founded,
-                  o.attributes
-          from organizations o
-          inner join "organizationsWithCounts" oc on o.id = oc.id
-          where o."tenantId" = :tenantId
-          order by oc.total_counts desc
-          limit 1;
-      `,
-      {
-        replacements: {
-          tenantId: currentTenant.id,
-          ...identities.reduce(
-            (acc, identity, index) => ({
-              ...acc,
-              [`platform${index}`]: identity.platform,
-              [`value${index}`]: identity.value,
-              [`type${index}`]: identity.type,
-            }),
-            {},
-          ),
-        },
-        type: QueryTypes.SELECT,
-        transaction,
+    const foundOrgs = await queryOrgIdentities(qx, {
+      fields: [OrgIdentityField.ORGANIZATION_ID],
+      filter: {
+        or: identities.map((identity) => ({
+          and: [
+            { platform: { eq: identity.platform } },
+            { value: { eq: identity.value } },
+            { type: { eq: identity.type } },
+            { verified: { eq: true } },
+          ],
+        })),
       },
-    )
+    })
 
-    if (results.length === 0) {
+    if (foundOrgs.length === 0) {
       return null
     }
 
-    const result = results[0] as IOrganization
+    const foundOrgsIdentities = await fetchManyOrgIdentities(
+      qx,
+      foundOrgs.map((o) => o.organizationId),
+      options.currentTenant.id,
+    )
+
+    const orgIdWithMostIdentities = foundOrgsIdentities.sort(
+      (a, b) => b.identities.length - a.identities.length,
+    )[0].organizationId
+
+    const result = await findOrgById(qx, orgIdWithMostIdentities, {
+      fields: [
+        OrganizationField.ID,
+        OrganizationField.DESCRIPTION,
+        OrganizationField.LOGO,
+        OrganizationField.TAGS,
+        OrganizationField.EMPLOYEES,
+        OrganizationField.LOCATION,
+        OrganizationField.TYPE,
+        OrganizationField.SIZE,
+        OrganizationField.HEADLINE,
+        OrganizationField.INDUSTRY,
+        OrganizationField.FOUNDED,
+      ],
+    })
 
     return result
   }

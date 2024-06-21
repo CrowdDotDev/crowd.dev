@@ -27,7 +27,7 @@ export interface IOrganization {
   employeeGrowthRate12Month?: number
 
   // relations
-  identities: IOrganizationIdentity[]
+  identities?: IOrganizationIdentity[]
   members?: string[]
 
   // attributes
@@ -168,7 +168,7 @@ export interface IOrganizationAddress {
 export interface ILLMConsumableOrganizationDbResult {
   displayName: string
   description: string
-  phoneNumbers: number[]
+  phoneNumbers: string[]
   logo: string
   tags: string[]
   location: string
@@ -186,7 +186,7 @@ export interface ILLMConsumableOrganizationDbResult {
 export interface ILLMConsumableOrganization {
   displayName: string
   description: string
-  phoneNumbers: number[]
+  phoneNumbers: string[]
   logo: string
   tags: string[]
   location: string

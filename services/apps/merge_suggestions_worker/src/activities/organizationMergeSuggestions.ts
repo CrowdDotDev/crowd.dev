@@ -15,10 +15,15 @@ import OrganizationMergeSuggestionsRepository from '@crowd/data-access-layer/src
 import { hasLfxMembership } from '@crowd/data-access-layer/src/lfx_memberships'
 import { prefixLength } from '../utils'
 import OrganizationSimilarityCalculator from '../organizationSimilarityCalculator'
-import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
+import { QueryExecutor, pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 
-import { queryOrgs, OrganizationField } from '@crowd/data-access-layer/src/orgs'
+import { queryOrgs, OrganizationField, findOrgById } from '@crowd/data-access-layer/src/orgs'
 import { buildFullOrgForMergeSuggestions } from '@crowd/opensearch'
+import {
+  fetchManyOrgIdentities,
+  fetchOrgIdentities,
+  findOrgAttributes,
+} from '@crowd/data-access-layer/src/organizations'
 
 export async function getOrganizations(
   tenantId: string,
@@ -333,64 +338,60 @@ export async function addOrganizationToMerge(
   }
 }
 
+async function prepareOrg(
+  qx: QueryExecutor,
+  organizationId: string,
+): Promise<ILLMConsumableOrganization> {
+  const [base, identities, attributes] = await Promise.all([
+    findOrgById(qx, organizationId, {
+      fields: [
+        OrganizationField.ID,
+        OrganizationField.DISPLAY_NAME,
+        OrganizationField.DESCRIPTION,
+        OrganizationField.LOGO,
+        OrganizationField.TAGS,
+        OrganizationField.LOCATION,
+        OrganizationField.TYPE,
+        OrganizationField.HEADLINE,
+        OrganizationField.INDUSTRY,
+        OrganizationField.FOUNDED,
+      ],
+    }),
+    fetchOrgIdentities(qx, organizationId),
+    findOrgAttributes(qx, organizationId),
+  ])
+
+  return {
+    displayName: base.displayName,
+    description: base.description,
+    phoneNumbers: attributes.filter((a) => a.name === 'phoneNumber').map((a) => a.value),
+    logo: base.logo,
+    tags: base.tags,
+    location: base.location,
+    type: base.type,
+    geoLocation: attributes.find((a) => a.name === 'geoLocation')?.value || '',
+    ticker: attributes.find((a) => a.name === 'ticker')?.value || '',
+    profiles: attributes.filter((a) => a.name === 'profile').map((a) => a.value),
+    headline: base.headline,
+    industry: base.industry,
+    founded: base.founded,
+    alternativeNames: attributes.filter((a) => a.name === 'alternativeName').map((a) => a.value),
+    identities: identities.map((i) => ({
+      platform: i.platform,
+      value: i.value,
+    })),
+  }
+}
+
 export async function getOrganizationsForLLMConsumption(
   organizationIds: string[],
 ): Promise<ILLMConsumableOrganization[]> {
-  const organizationMergeSuggestionsRepo = new OrganizationMergeSuggestionsRepository(
-    svc.postgres.writer.connection(),
-    svc.log,
+  const qx = pgpQx(svc.postgres.reader.connection())
+  const result = await Promise.all(
+    organizationIds.map((orgId) => {
+      return prepareOrg(qx, orgId)
+    }),
   )
-
-  const [primaryOrganization, secondaryOrganization] =
-    await organizationMergeSuggestionsRepo.getOrganizations(organizationIds)
-
-  const result: ILLMConsumableOrganization[] = []
-
-  if (primaryOrganization) {
-    result.push({
-      displayName: primaryOrganization.displayName,
-      description: primaryOrganization.description,
-      phoneNumbers: primaryOrganization.phoneNumbers,
-      logo: primaryOrganization.logo,
-      tags: primaryOrganization.tags,
-      location: primaryOrganization.location,
-      type: primaryOrganization.type,
-      geoLocation: primaryOrganization.geoLocation,
-      ticker: primaryOrganization.ticker,
-      profiles: primaryOrganization.profiles,
-      headline: primaryOrganization.headline,
-      industry: primaryOrganization.industry,
-      founded: primaryOrganization.founded,
-      alternativeNames: primaryOrganization.alternativeNames,
-      identities: primaryOrganization.identities.map((i) => ({
-        platform: i.platform,
-        value: i.value,
-      })),
-    })
-  }
-
-  if (secondaryOrganization) {
-    result.push({
-      displayName: secondaryOrganization.displayName,
-      description: secondaryOrganization.description,
-      phoneNumbers: secondaryOrganization.phoneNumbers,
-      logo: secondaryOrganization.logo,
-      tags: secondaryOrganization.tags,
-      location: secondaryOrganization.location,
-      type: secondaryOrganization.type,
-      geoLocation: secondaryOrganization.geoLocation,
-      ticker: secondaryOrganization.ticker,
-      profiles: secondaryOrganization.profiles,
-      headline: secondaryOrganization.headline,
-      industry: secondaryOrganization.industry,
-      founded: secondaryOrganization.founded,
-      alternativeNames: secondaryOrganization.alternativeNames,
-      identities: secondaryOrganization.identities.map((i) => ({
-        platform: i.platform,
-        value: i.value,
-      })),
-    })
-  }
 
   return result
 }
