@@ -2,7 +2,7 @@
   <lf-conteneditable
     v-model="form.name"
     class="px-1 py-px font-secondary text-h5 rounded-md font-semibold transition mb-1
-    border border-transparent truncate w-min
+    border border-transparent edit-name w-min
     hover:!bg-gray-200 group-hover:bg-gray-100
     focus:!bg-white focus:border-gray-900"
     style="max-width: 30ch"
@@ -58,3 +58,11 @@ export default {
   name: 'LfOrganizationEditName',
 };
 </script>
+
+<style lang="scss">
+.edit-name {
+  &:not(:focus){
+    @apply truncate;
+  }
+}
+</style>

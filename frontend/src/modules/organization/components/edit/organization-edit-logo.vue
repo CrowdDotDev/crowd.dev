@@ -50,7 +50,13 @@
         <lf-button type="secondary-ghost" @click="close">
           Cancel
         </lf-button>
-        <lf-button type="primary" :disabled="$v.$invalid || props.organization.logo === form.logo" @click="update()">
+        <lf-button
+          type="primary"
+          :disabled="$v.$invalid || props.organization.logo === form.logo"
+          :loading="sending"
+
+          @click="update()"
+        >
           Update logo
         </lf-button>
       </div>
@@ -61,7 +67,7 @@
 <script setup lang="ts">
 import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
 import LfModal from '@/ui-kit/modal/Modal.vue';
-import { computed, reactive } from 'vue';
+import { computed, reactive, ref } from 'vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import { url } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
@@ -95,13 +101,19 @@ const rules = {
 
 const $v = useVuelidate(rules, form);
 
+const sending = ref<boolean>(false);
 const update = () => {
+  sending.value = true;
   updateOrganization(props.organization.id, {
     logo: form.logo,
-  }).then(() => {
-    Message.success('Organization logo updated successfully!');
-    isModalOpen.value = false;
-  });
+  })
+    .then(() => {
+      Message.success('Organization logo updated successfully!');
+      isModalOpen.value = false;
+    })
+    .finally(() => {
+      sending.value = false;
+    });
 };
 
 const isModalOpen = computed<boolean>({

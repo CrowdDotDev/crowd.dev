@@ -43,7 +43,12 @@
         <lf-button type="secondary-ghost" @click="close">
           Cancel
         </lf-button>
-        <lf-button type="primary" :disabled="$v.$invalid || defaultAvatar === form.profilePhoto" @click="update()">
+        <lf-button
+          type="primary"
+          :disabled="$v.$invalid || defaultAvatar === form.profilePhoto"
+          :loading="sending"
+          @click="update()"
+        >
           Update avatar
         </lf-button>
       </div>
@@ -56,7 +61,7 @@ import { Contributor } from '@/modules/contributor/types/Contributor';
 import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
 import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
 import LfModal from '@/ui-kit/modal/Modal.vue';
-import { computed, reactive } from 'vue';
+import { computed, reactive, ref } from 'vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import { url } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
@@ -89,10 +94,12 @@ const rules = {
     url,
   },
 };
-
 const $v = useVuelidate(rules, form);
 
+const sending = ref<boolean>(false);
+
 const update = () => {
+  sending.value = true;
   updateContributor(props.contributor.id, {
     attributes: {
       ...props.contributor.attributes,
@@ -100,10 +107,14 @@ const update = () => {
         default: form.profilePhoto,
       },
     },
-  }).then(() => {
-    Message.success('Contributor avatar updated successfully!');
-    isModalOpen.value = false;
-  });
+  })
+    .then(() => {
+      Message.success('Contributor avatar updated successfully!');
+      isModalOpen.value = false;
+    })
+    .finally(() => {
+      sending.value = false;
+    });
 };
 
 const isModalOpen = computed<boolean>({
