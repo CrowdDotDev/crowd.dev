@@ -43,3 +43,21 @@ export async function insertOrganizationSegments(
     throw e
   }
 }
+
+export async function fetchOrgAggregates(
+  qx: QueryExecutor,
+  organizationId: string,
+): Promise<IOrganizationAggregateData> {
+  return qx.selectOneOrNone(
+    `
+      SELECT
+        *
+      FROM "organizationSegmentsAgg"
+      WHERE "organizationId" = ($(organizationIds)
+      LIMIT 1
+    `,
+    {
+      organizationId,
+    },
+  )
+}

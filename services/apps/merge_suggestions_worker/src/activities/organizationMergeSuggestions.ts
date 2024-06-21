@@ -6,48 +6,48 @@ import {
 } from '@crowd/types'
 import { svc } from '../main'
 
-import { IOrganizationPartialAggregatesOpensearch, ISimilarOrganizationOpensearch } from '../types'
+import { ISimilarOrganizationOpensearch } from '../types'
 import OrganizationMergeSuggestionsRepository from '@crowd/data-access-layer/src/old/apps/merge_suggestions_worker/organizationMergeSuggestions.repo'
 import { hasLfxMembership } from '@crowd/data-access-layer/src/lfx_memberships'
 import { prefixLength } from '../utils'
 import OrganizationSimilarityCalculator from '../organizationSimilarityCalculator'
 import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
-import { findOrgsForMergeSuggestions } from '@crowd/data-access-layer/src/orgs'
+
+import { queryOrgs, OrganizationField } from '@crowd/data-access-layer/src/orgs'
+import {
+  IOrganizationBaseForMergeSuggestions,
+  IOrganizationForMergeSuggestionsOpensearch,
+  IOrganizationFullAggregatesOpensearch,
+} from '@crowd/opensearch/src/repo/organization.data'
+import { buildFullOrgForMergeSuggestions } from '@crowd/opensearch'
 
 export async function getOrganizations(
   tenantId: string,
   batchSize: number,
   afterOrganizationId?: string,
   lastGeneratedAt?: string,
-): Promise<IOrganizationPartialAggregatesOpensearch[]> {
+): Promise<IOrganizationBaseForMergeSuggestions[]> {
   try {
     const qx = pgpQx(svc.postgres.reader.connection())
-    const rows = await findOrgsForMergeSuggestions(
-      qx,
-      tenantId,
-      batchSize,
-      afterOrganizationId,
-      lastGeneratedAt,
-    )
+    const rows = await queryOrgs(qx, {
+      filter: {
+        and: [
+          { [OrganizationField.TENANT_ID]: { eq: tenantId } },
+          afterOrganizationId ? { [OrganizationField.ID]: { gt: afterOrganizationId } } : null,
+          lastGeneratedAt ? { [OrganizationField.CREATED_AT]: { gt: lastGeneratedAt } } : null,
+        ],
+      },
+      fields: [
+        OrganizationField.ID,
+        OrganizationField.TENANT_ID,
+        OrganizationField.DISPLAY_NAME,
+        OrganizationField.LOCATION,
+        OrganizationField.INDUSTRY,
+      ],
+      limit: batchSize,
+    })
 
-    return rows.map((org) => ({
-      uuid_organizationId: org.id,
-      uuid_arr_noMergeIds: org.noMergeIds,
-      keyword_displayName: org.displayName,
-      nested_identities: org.identities.map((identity) => ({
-        string_platform: identity.platform,
-        string_type: identity.type,
-        keyword_type: identity.type,
-        string_value: identity.value,
-        bool_verified: identity.verified,
-      })),
-      string_location: org.location,
-      string_industry: org.industry,
-      string_website:
-        org.identities.find((i) => i.type === OrganizationIdentityType.PRIMARY_DOMAIN)?.value || '',
-      string_ticker: org.ticker,
-      int_activityCount: org.activityCount,
-    }))
+    return rows
   } catch (err) {
     throw new Error(err)
   }
@@ -77,15 +77,40 @@ export async function updateOrganizationMergeSuggestionsLastGeneratedAt(
 
 export async function getOrganizationMergeSuggestions(
   tenantId: string,
-  organization: IOrganizationPartialAggregatesOpensearch,
+  organization: IOrganizationBaseForMergeSuggestions,
 ): Promise<IOrganizationMergeSuggestion[]> {
+  function opensearchToFullOrg(
+    organization: IOrganizationForMergeSuggestionsOpensearch,
+  ): IOrganizationFullAggregatesOpensearch {
+    return {
+      id: organization.uuid_organizationId,
+      tenantId: organization.uuid_tenantId,
+      displayName: organization.keyword_displayName,
+      location: organization.string_location,
+      industry: organization.string_industry,
+      ticker: organization.string_ticker,
+      identities: organization.nested_identities.map((identity) => ({
+        platform: identity.string_platform,
+        type: identity.string_type as OrganizationIdentityType,
+        value: identity.string_value,
+        verified: identity.bool_verified,
+      })),
+      website: organization.string_website,
+      activityCount: organization.int_activityCount,
+      noMergeIds: [],
+    }
+  }
+
   const mergeSuggestions: IOrganizationMergeSuggestion[] = []
   const organizationMergeSuggestionsRepo = new OrganizationMergeSuggestionsRepository(
     svc.postgres.writer.connection(),
     svc.log,
   )
 
-  if (organization.nested_identities.length === 0) {
+  const qx = pgpQx(svc.postgres.reader.connection())
+  const fullOrg = await buildFullOrgForMergeSuggestions(qx, organization)
+
+  if (fullOrg.identities.length === 0) {
     return []
   }
 
@@ -94,7 +119,7 @@ export async function getOrganizationMergeSuggestions(
     should: [
       {
         term: {
-          [`keyword_displayName`]: organization.keyword_displayName,
+          [`keyword_displayName`]: fullOrg.displayName,
         },
       },
       {
@@ -113,7 +138,7 @@ export async function getOrganizationMergeSuggestions(
     must_not: [
       {
         term: {
-          uuid_organizationId: organization.uuid_organizationId,
+          uuid_organizationId: fullOrg.id,
         },
       },
     ],
@@ -127,14 +152,14 @@ export async function getOrganizationMergeSuggestions(
   }
   let hasFuzzySearch = false
 
-  for (const identity of organization.nested_identities) {
-    if (identity.keyword_type.length > 0) {
+  for (const identity of fullOrg.identities) {
+    if (identity.value.length > 0) {
       // weak identity search
       identitiesShould.push({
         bool: {
           must: [
-            { match: { [`nested_identities.string_value`]: identity.string_value } },
-            { match: { [`nested_identities.string_platform`]: identity.string_platform } },
+            { match: { [`nested_identities.string_value`]: identity.value } },
+            { match: { [`nested_identities.string_platform`]: identity.platform } },
             { term: { [`nested_identities.bool_verified`]: false } },
           ],
         },
@@ -142,10 +167,10 @@ export async function getOrganizationMergeSuggestions(
 
       // some identities have https? in the beginning, resulting in false positive suggestions
       // remove these when making fuzzy, wildcard and prefix searches
-      const cleanedIdentityName = identity.string_value.replace(/^https?:\/\//, '')
+      const cleanedIdentityName = identity.value.replace(/^https?:\/\//, '')
 
       // only do fuzzy/wildcard/partial search when identity name is not all numbers (like linkedin organization profiles)
-      if (Number.isNaN(Number(identity.string_value))) {
+      if (Number.isNaN(Number(identity.value))) {
         hasFuzzySearch = true
         // fuzzy search for identities
         identitiesShould.push({
@@ -166,7 +191,7 @@ export async function getOrganizationMergeSuggestions(
         })
 
         // also check for prefix for identities that has more than 5 characters and no whitespace
-        if (identity.string_value.length > 5 && identity.string_value.indexOf(' ') === -1) {
+        if (identity.value.length > 5 && identity.value.indexOf(' ') === -1) {
           identitiesShould.push({
             bool: {
               must: [
@@ -191,9 +216,7 @@ export async function getOrganizationMergeSuggestions(
     identitiesPartialQuery.should.pop()
   }
 
-  const noMergeIds = await organizationMergeSuggestionsRepo.findNoMergeIds(
-    organization.uuid_organizationId,
-  )
+  const noMergeIds = await organizationMergeSuggestionsRepo.findNoMergeIds(fullOrg.id)
 
   if (noMergeIds && noMergeIds.length > 0) {
     for (const noMergeId of noMergeIds) {
@@ -214,6 +237,7 @@ export async function getOrganizationMergeSuggestions(
     },
     _source: [
       'uuid_organizationId',
+      'uuid_tenantId',
       'nested_identities',
       'nested_weakIdentities',
       'keyword_displayName',
@@ -225,10 +249,9 @@ export async function getOrganizationMergeSuggestions(
     ],
   }
 
-  const qx = pgpQx(svc.postgres.reader.connection())
   const primaryOrgWithLfxMembership = await hasLfxMembership(qx, {
     tenantId,
-    organizationId: organization.uuid_organizationId,
+    organizationId: fullOrg.id,
   })
 
   let organizationsToMerge: ISimilarOrganizationOpensearch[]
@@ -260,33 +283,30 @@ export async function getOrganizationMergeSuggestions(
     }
 
     const similarityConfidenceScore = OrganizationSimilarityCalculator.calculateSimilarity(
-      organization,
-      organizationToMerge._source,
+      fullOrg,
+      opensearchToFullOrg(organizationToMerge._source),
     )
 
-    const organizationsSorted = [organization, organizationToMerge._source].sort((a, b) => {
-      if (
-        a.nested_identities.length > b.nested_identities.length ||
-        (a.nested_identities.length === b.nested_identities.length &&
-          a.int_activityCount > b.int_activityCount)
-      ) {
-        return -1
-      } else if (
-        a.nested_identities.length < b.nested_identities.length ||
-        (a.nested_identities.length === b.nested_identities.length &&
-          a.int_activityCount < b.int_activityCount)
-      ) {
-        return 1
-      }
-      return 0
-    })
+    const organizationsSorted = [fullOrg, opensearchToFullOrg(organizationToMerge._source)].sort(
+      (a, b) => {
+        if (
+          a.identities.length > b.identities.length ||
+          (a.identities.length === b.identities.length && a.activityCount > b.activityCount)
+        ) {
+          return -1
+        } else if (
+          a.identities.length < b.identities.length ||
+          (a.identities.length === b.identities.length && a.activityCount < b.activityCount)
+        ) {
+          return 1
+        }
+        return 0
+      },
+    )
 
     mergeSuggestions.push({
       similarity: similarityConfidenceScore,
-      organizations: [
-        organizationsSorted[0].uuid_organizationId,
-        organizationsSorted[1].uuid_organizationId,
-      ],
+      organizations: [organizationsSorted[0].id, organizationsSorted[1].id],
     })
   }
 

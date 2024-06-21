@@ -6,8 +6,8 @@ import {
   IProcessGenerateMemberMergeSuggestionsArgs,
   OrganizationMergeSuggestionTable,
 } from '@crowd/types'
-import { IOrganizationPartialAggregatesOpensearch } from '../types'
 import { chunkArray } from '../utils'
+import { IOrganizationBaseForMergeSuggestions } from '@crowd/opensearch/src/repo/organization.data'
 
 const activity = proxyActivities<typeof activities>({ startToCloseTimeout: '1 minute' })
 
@@ -25,7 +25,7 @@ export async function generateOrganizationMergeSuggestions(
     args.tenantId,
   )
 
-  const result: IOrganizationPartialAggregatesOpensearch[] = await activity.getOrganizations(
+  const result: IOrganizationBaseForMergeSuggestions[] = await activity.getOrganizations(
     args.tenantId,
     PAGE_SIZE,
     lastUuid,
@@ -37,7 +37,7 @@ export async function generateOrganizationMergeSuggestions(
     return
   }
 
-  lastUuid = result.length > 0 ? result[result.length - 1]?.uuid_organizationId : null
+  lastUuid = result.length > 0 ? result[result.length - 1]?.id : null
 
   const allMergeSuggestions: IOrganizationMergeSuggestion[] = []
 

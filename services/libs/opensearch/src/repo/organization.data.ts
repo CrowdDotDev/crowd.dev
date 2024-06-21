@@ -1,65 +1,57 @@
 import { IOrganizationIdentity } from '@crowd/types'
 
 export interface IDbOrganizationSyncData {
-  // organization data
+  // base
   organizationId: string
-  names: string[]
-  segmentId: string
-  grandParentSegment: boolean
   tenantId: string
-  address: unknown | null
-  attributes: unknown
-  createdAt: string
-  manuallyCreated: boolean
-  description: string | null
   displayName: string
-  emails: string[]
-  employeeCountByCountry: unknown | null
-  employees: number | null
-  founded: number | null
-  geoLocation: string | null
-  headline: string | null
-  importHash: string | null
-  industry: string | null
-  isTeamOrganization: boolean
-  lastEnrichedAt: string | null
-  location: string | null
-  logo: string | null
-  naics: unknown[] | null
-  name: string
-  phoneNumbers: string[] | null
-  profiles: string[] | null
-  revenueRange: { min?: number; max?: number } | null
-  size: string | null
-  type: string | null
-  url: string | null
-  immediateParent: string | null
-  ultimateParent: string | null
-  allSubsidiaries: string[] | null
-  alternativeNames: string[] | null
-  averageEmployeeTenure: number | null
-  averageTenureByLevel: unknown | null
-  averageTenureByRole: unknown | null
-  directSubsidiaries: string[] | null
-  employeeChurnRate: unknown | null
-  employeeCountByMonth: unknown | null
-  employeeGrowthRate: unknown | null
-  employeeCountByMonthByLevel: unknown | null
-  employeeCountByMonthByRole: unknown | null
-  gicsSector: string | null
-  grossAdditionsByMonth: unknown | null
-  grossDeparturesByMonth: unknown | null
-  employeeChurnRate12Month: number | null
-  employeeGrowthRate12Month: number | null
-  tags: string[] | null
-  ticker: string | null
-  manuallyChangedFields: string[] | null
 
-  // aggregate data
-  joinedAt: string
-  lastActive: string
-  activeOn: string[]
+  ticker: string | null
+  industry: string | null
+  location: string | null
+
+  // identity
+  website: string
+
   activityCount: number
-  memberCount: number
+
   identities: IOrganizationIdentity[]
+}
+
+export interface IOrganizationBaseForMergeSuggestions {
+  id: string
+  tenantId: string
+  displayName: string
+  location: string
+  industry: string
+}
+
+export interface IOrganizationFullAggregatesOpensearch
+  extends IOrganizationBaseForMergeSuggestions {
+  ticker: string
+  identities: IOrganizationIdentity[]
+  activityCount: number
+  noMergeIds: string[]
+  website: string
+}
+
+export interface IOrganizationIdentityOpensearch {
+  string_platform: string
+  string_type: string
+  keyword_type: string
+  string_value: string
+  bool_verified: boolean
+}
+
+export interface IOrganizationForMergeSuggestionsOpensearch {
+  uuid_organizationId: string
+  uuid_tenantId?: string
+  keyword_displayName: string
+  nested_identities: IOrganizationIdentityOpensearch[]
+  nested_weakIdentities: IOrganizationIdentityOpensearch[]
+  string_location: string
+  string_industry: string
+  string_website: string
+  string_ticker: string
+  int_activityCount: number
 }

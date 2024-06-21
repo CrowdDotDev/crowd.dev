@@ -4,10 +4,7 @@ import { OrganizationIdentityType, OrganizationSource } from './enums/organizati
 export interface IOrganization {
   // db fields
   id?: string
-  names: string[]
   description?: string
-  emails?: string[]
-  phoneNumbers?: number[]
   logo?: string
   tags?: string[]
   url?: string
@@ -24,38 +21,16 @@ export interface IOrganization {
   location?: string
   isTeamOrganization?: boolean
   lastEnrichedAt?: string | Date
-  employeeCountByCountry?: Record<string, number>
   type?: string
-  geoLocation?: string
   size?: string
-  ticker?: string
   headline?: string
-  profiles?: string[]
-  address?: IOrganizationAddress
   industry?: string
   founded?: number
   displayName?: string
-  attributes?: IAttributes
   searchSyncedAt?: string | Date
   manuallyCreated?: boolean
-  allSubsidiaries?: string[]
-  alternativeNames?: string[]
-  averageEmployeeTenure?: number
-  averageTenureByLevel?: Record<string, number>
-  averageTenureByRole?: Record<string, number>
-  directSubsidiaries?: string[]
   employeeChurnRate?: Record<string, number>
-  employeeCountByMonth?: Record<string, number>
   employeeGrowthRate?: Record<string, number>
-  employeeCountByMonthByLevel?: Record<string, number>
-  employeeCountByMonthByRole?: Record<string, number>
-  gicsSector?: string
-  grossAdditionsByMonth?: Record<string, number>
-  grossDeparturesByMonth?: Record<string, number>
-  ultimateParent?: string
-  immediateParent?: string
-  manuallyChangedFields?: string[]
-  naics?: IOrganizationNaics[]
 
   // calculated fields
   revenueRangeMin?: number
