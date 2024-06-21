@@ -1,7 +1,7 @@
 import { singleOrDefault } from '@crowd/common'
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
-import { IOrganizationIdentity, OrganizationIdentityType } from '@crowd/types'
+import { IOrganizationIdentity } from '@crowd/types'
 import {
   ENRICHMENT_PLATFORM_PRIORITY,
   IEnrichableOrganizationData,
@@ -208,44 +208,6 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     }
   }
 
-  public async findIdentities(
-    tenantId: string,
-    organizationId: string,
-    identities: IOrganizationIdentity[],
-  ): Promise<IOrganizationIdentity[]> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const params: any = {
-      tenantId,
-      organizationId,
-    }
-
-    const identityParams = identities
-      .map(
-        (identity) =>
-          `(${this.dbInstance.as.text(identity.platform)}, ${this.dbInstance.as.text(
-            identity.value,
-          )}, ${this.dbInstance.as.text(identity.type)}, ${this.dbInstance.as.bool(
-            identity.verified,
-          )})`,
-      )
-      .join(', ')
-
-    const results = await this.db().any(
-      `
-      with input_identities (platform, value, type, verified) as (
-        values ${identityParams}
-      )
-      select oi.platform, oi.value, oi.type, oi.verified
-      from "organizationIdentities" oi
-        inner join input_identities i on oi.platform = i.platform and oi.value = i.value and oi.type = i.type and oi.verified = i.verified
-      where oi."tenantId" = $(tenantId) and oi."organizationId" <> $(organizationId)
-`,
-      params,
-    )
-
-    return results
-  }
-
   private static readonly ENRICHABLE_ORGANIZATION_FIELDS = [
     'description',
     'names',
@@ -359,36 +321,5 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
     } else {
       await this.markOrganizationEnriched(originalData.id)
     }
-  }
-
-  public async anyOtherOrganizationWithTheSameWebsite(
-    organizationId: string,
-    tenantId: string,
-    website: string,
-  ): Promise<boolean> {
-    const res = await this.db().oneOrNone(
-      `
-      select 1 from "organizationIdentities" 
-      where
-        "tenantId" = $(tenantId) and
-        "organizationId" <> $(organizationId) and
-        type = $(type) and
-        value = $(value) and
-        verified = true
-      limit 1
-      `,
-      {
-        tenantId,
-        organizationId,
-        type: OrganizationIdentityType.PRIMARY_DOMAIN,
-        value: website,
-      },
-    )
-
-    if (res) {
-      return true
-    }
-
-    return false
   }
 }
