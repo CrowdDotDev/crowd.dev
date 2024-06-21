@@ -29,7 +29,7 @@ export async function findOrgsForMergeSuggestions(
       SELECT
         o.id,
         json_agg(distinct oi) as identities,
-        ARRAY_AGG(DISTINCT onm."noMergeId") AS "noMergeIds",
+        COALESCE(ARRAY_AGG(DISTINCT onm."noMergeId") FILTER (where onm."noMergeId" is not null), ARRAY[]::uuid[])  AS "noMergeIds",
         o."displayName",
         o.location,
         o.industry,
@@ -37,7 +37,7 @@ export async function findOrgsForMergeSuggestions(
         max(osa."activityCount") as "activityCount"
       FROM organizations o
       JOIN "organizationSegmentsAgg" osa ON o.id = osa."organizationId"
-      JOIN "organizationNoMerge" onm ON onm."organizationId" = o.id
+      LEFT JOIN "organizationNoMerge" onm ON onm."organizationId" = o.id
       JOIN "organizationIdentities" oi ON o.id = oi."organizationId"
       WHERE o."tenantId" = $(tenantId)
         ${filter}
