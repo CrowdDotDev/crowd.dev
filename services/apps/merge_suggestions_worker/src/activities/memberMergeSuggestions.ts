@@ -4,9 +4,15 @@ import {
   IMemberPartialAggregatesOpensearchRawResult,
   IMemberQueryBody,
   ISimilarMemberOpensearch,
+  ISimilarityFilter,
 } from '../types'
 import { svc } from '../main'
-import { IMemberMergeSuggestion, OpenSearchIndex, MemberMergeSuggestionTable } from '@crowd/types'
+import {
+  ILLMConsumableMember,
+  IMemberMergeSuggestion,
+  OpenSearchIndex,
+  MemberMergeSuggestionTable,
+} from '@crowd/types'
 import MemberMergeSuggestionsRepository from '@crowd/data-access-layer/src/old/apps/merge_suggestions_worker/memberMergeSuggestions.repo'
 import MemberSimilarityCalculator from '../memberSimilarityCalculator'
 
@@ -326,4 +332,61 @@ export async function getMembers(
   } catch (err) {
     throw new Error(err)
   }
+}
+
+export async function getMembersForLLMConsumption(
+  memberIds: string[],
+): Promise<ILLMConsumableMember[]> {
+  const memberMergeSuggestionsRepo = new MemberMergeSuggestionsRepository(
+    svc.postgres.writer.connection(),
+    svc.log,
+  )
+  const [primaryMember, secondaryMember] = await memberMergeSuggestionsRepo.getMembers(memberIds)
+
+  const result: ILLMConsumableMember[] = []
+
+  if (primaryMember) {
+    result.push({
+      displayName: primaryMember.displayName,
+      joinedAt: primaryMember.joinedAt,
+      attributes: primaryMember.attributes,
+      identities: primaryMember.identities.map((i) => ({ platform: i.platform, value: i.value })),
+      organizations: primaryMember.organizations.map((o) => ({
+        title: o.title,
+        logo: o.logo,
+        displayName: o.displayName,
+        dateEnd: o.dateEnd,
+        dateStart: o.dateStart,
+      })),
+    })
+  }
+
+  if (secondaryMember) {
+    result.push({
+      joinedAt: secondaryMember.joinedAt,
+      displayName: secondaryMember.displayName,
+      attributes: secondaryMember.attributes,
+      identities: secondaryMember.identities.map((i) => ({ platform: i.platform, value: i.value })),
+      organizations: secondaryMember.organizations.map((o) => ({
+        title: o.title,
+        logo: o.logo,
+        displayName: o.displayName,
+        dateEnd: o.dateEnd,
+        dateStart: o.dateStart,
+      })),
+    })
+  }
+
+  return result
+}
+
+export async function getRawMemberMergeSuggestions(
+  similarityFilter: ISimilarityFilter,
+  limit: number,
+): Promise<string[][]> {
+  const memberMergeSuggestionsRepo = new MemberMergeSuggestionsRepository(
+    svc.postgres.writer.connection(),
+    svc.log,
+  )
+  return memberMergeSuggestionsRepo.getRawMemberSuggestions(similarityFilter, limit)
 }

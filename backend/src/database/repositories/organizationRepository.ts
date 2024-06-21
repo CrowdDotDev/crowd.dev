@@ -32,6 +32,7 @@ import lodash, { uniq } from 'lodash'
 import Sequelize, { QueryTypes } from 'sequelize'
 import validator from 'validator'
 import { findManyLfxMemberships } from '@crowd/data-access-layer/src/lfx_memberships'
+import { fetchManyOrgSegments } from '@crowd/data-access-layer/src/org_segments'
 import {
   IFetchOrganizationMergeSuggestionArgs,
   SimilarityScoreRange,
@@ -1689,11 +1690,14 @@ class OrganizationRepository {
       include = {
         identities: true,
         lfxMemberships: true,
-      },
+        segments: false,
+      } as { identities?: boolean; lfxMemberships?: boolean; segments?: boolean },
     },
     options: IRepositoryOptions,
   ) {
-    const qx = SequelizeRepository.getQueryExecutor(options)
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const qx = SequelizeRepository.getQueryExecutor(options, transaction)
 
     const withAggregates = !!segmentId
     let segment
@@ -1744,9 +1748,12 @@ class OrganizationRepository {
       SELECT
         ${fields}
       FROM organizations o
-      ${withAggregates ? `JOIN "organizationSegmentsAgg" osa ON osa."organizationId" = o.id` : ''}
+      ${
+        withAggregates
+          ? `LEFT JOIN "organizationSegmentsAgg" osa ON osa."organizationId" = o.id AND osa."segmentId" = $(segmentId)`
+          : ''
+      }
       WHERE 1=1
-        ${withAggregates ? `AND osa."segmentId" = $(segmentId)` : ''}
         AND o."tenantId" = $(tenantId)
         AND (${filterString})
     `
@@ -1806,6 +1813,13 @@ class OrganizationRepository {
 
       rows.forEach((org) => {
         org.identities = identities.find((i) => i.organizationId === org.id)?.identities || []
+      })
+    }
+    if (include.segments) {
+      const orgSegments = await fetchManyOrgSegments(qx, orgIds)
+
+      rows.forEach((org) => {
+        org.segments = orgSegments.find((i) => i.organizationId === org.id)?.segments || []
       })
     }
 

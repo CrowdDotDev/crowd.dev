@@ -806,6 +806,9 @@ export default class MemberService extends LoggerBase {
         doPopulateRelations: false,
       })
 
+      // add primary and secondary to no merge so they don't get suggested again
+      await MemberRepository.addNoMerge(memberId, secondaryMember.id, repoOptions)
+
       // trigger entity-merging-worker to move activities in the background
       await SequelizeRepository.commitTransaction(tx)
 
@@ -1517,7 +1520,6 @@ export default class MemberService extends LoggerBase {
    */
   async addToNoMerge(memberOneId, memberTwoId) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
-    const searchSyncService = new SearchSyncService(this.options)
 
     try {
       await MemberRepository.addNoMerge(memberOneId, memberTwoId, {
@@ -1538,9 +1540,6 @@ export default class MemberService extends LoggerBase {
       })
 
       await SequelizeRepository.commitTransaction(transaction)
-
-      await searchSyncService.triggerMemberSync(this.options.currentTenant.id, memberOneId)
-      await searchSyncService.triggerMemberSync(this.options.currentTenant.id, memberTwoId)
 
       return { status: 200 }
     } catch (error) {

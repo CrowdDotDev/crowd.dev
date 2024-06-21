@@ -5,6 +5,11 @@ import { IDbOrganizationAggregateData } from './types'
 
 const log = getServiceChildLogger('organizations/segments')
 
+export interface IOrganizationSegments {
+  organizationId: string
+  segments: string[]
+}
+
 export async function cleanupForOganization(qx: QueryExecutor, organizationId: string) {
   return qx.result(
     `
@@ -42,6 +47,25 @@ export async function insertOrganizationSegments(
     log.error(e, 'Error while inserting organization segments!')
     throw e
   }
+}
+
+export async function fetchManyOrgSegments(
+  qx: QueryExecutor,
+  organizationIds: string[],
+): Promise<IOrganizationSegments[]> {
+  return qx.select(
+    `
+      SELECT
+        "organizationId",
+        ARRAY_AGG("segmentId") AS segments
+      FROM "organizationSegmentsAgg"
+      WHERE "organizationId" = ANY($(organizationIds)::UUID[])
+      GROUP BY "organizationId"
+    `,
+    {
+      organizationIds,
+    },
+  )
 }
 
 export async function fetchOrgAggregates(

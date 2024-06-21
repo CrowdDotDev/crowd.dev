@@ -1,10 +1,18 @@
-import { getAllTenants } from './activities/common'
+import {
+  getAllTenants,
+  getLLMResult,
+  saveLLMVerdict,
+  mergeMembers,
+  mergeOrganizations,
+} from './activities/common'
 import {
   getMemberMergeSuggestions,
   addMemberToMerge,
   getMembers,
   findTenantsLatestMemberSuggestionGeneratedAt,
   updateMemberMergeSuggestionsLastGeneratedAt,
+  getMembersForLLMConsumption,
+  getRawMemberMergeSuggestions,
 } from './activities/memberMergeSuggestions'
 
 import {
@@ -13,6 +21,8 @@ import {
   findTenantsLatestOrganizationSuggestionGeneratedAt,
   updateOrganizationMergeSuggestionsLastGeneratedAt,
   addOrganizationToMerge,
+  getOrganizationsForLLMConsumption,
+  getRawOrganizationMergeSuggestions,
 } from './activities/organizationMergeSuggestions'
 
 export {
@@ -27,4 +37,12 @@ export {
   findTenantsLatestOrganizationSuggestionGeneratedAt,
   updateOrganizationMergeSuggestionsLastGeneratedAt,
   addOrganizationToMerge,
+  getLLMResult,
+  getMembersForLLMConsumption,
+  getOrganizationsForLLMConsumption,
+  getRawOrganizationMergeSuggestions,
+  getRawMemberMergeSuggestions,
+  saveLLMVerdict,
+  mergeMembers,
+  mergeOrganizations,
 }

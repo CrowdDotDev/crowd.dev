@@ -25,6 +25,14 @@ const common = proxyActivities<typeof commonActivities>({
 export async function dissectMember(args: IDissectMemberArgs): Promise<void> {
   const info = workflowInfo()
 
+  // check if memberId exist in db before unmerging
+  const member = await activity.findMemberById(args.memberId)
+
+  if (!member) {
+    console.log(`memberId ${args.memberId} not found!`)
+    return
+  }
+
   const DEFAULT_MERGE_ACTIONS_PAGE_SIZE = 10
 
   const mergeActionPageSize = args.undoActionPerWorkflow || DEFAULT_MERGE_ACTIONS_PAGE_SIZE
