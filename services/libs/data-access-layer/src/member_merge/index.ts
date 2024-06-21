@@ -25,12 +25,13 @@ export async function addMemberNoMerge(
 ): Promise<void> {
   await qx.result(
     `
-      INSERT INTO "memberNoMerge" ("memberId", "noMergeId")
-      VALUES ($(memberId), $(noMergeId))
+      INSERT INTO "memberNoMerge" ("memberId", "noMergeId", "createdAt")
+      VALUES ($(memberId), $(noMergeId), $(createdAt))
     `,
     {
       memberId,
       noMergeId,
+      createdAt: new Date(),
     },
   )
 }
