@@ -7,6 +7,7 @@ export async function findOrgsForMergeSuggestions(
   batchSize: number,
   afterOrganizationId?: string,
   lastGeneratedAt?: string,
+  organizationIds?: string[],
 ): Promise<IOrganizationPartialAggregatesRawResult[]> {
   let filter = ''
   if (afterOrganizationId) {
@@ -15,6 +16,10 @@ export async function findOrgsForMergeSuggestions(
 
   if (lastGeneratedAt) {
     filter += 'AND o."createdAt" > $(lastGeneratedAt)'
+  }
+
+  if (organizationIds && organizationIds.length > 0) {
+    filter += ` AND o.id in ($(organizationIds:csv))`
   }
 
   return qx.select(
@@ -43,6 +48,7 @@ export async function findOrgsForMergeSuggestions(
       batchSize,
       afterOrganizationId,
       lastGeneratedAt,
+      organizationIds,
     },
   )
 }

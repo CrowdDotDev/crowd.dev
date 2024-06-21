@@ -24,6 +24,7 @@ export async function getOrganizations(
   batchSize: number,
   afterOrganizationId?: string,
   lastGeneratedAt?: string,
+  organizationIds?: string[],
 ): Promise<IOrganizationPartialAggregatesOpensearch[]> {
   try {
     const qx = pgpQx(svc.postgres.reader.connection())
@@ -33,6 +34,7 @@ export async function getOrganizations(
       batchSize,
       afterOrganizationId,
       lastGeneratedAt,
+      organizationIds,
     )
 
     return rows.map((org) => ({
@@ -84,6 +86,7 @@ export async function getOrganizationMergeSuggestions(
   tenantId: string,
   organization: IOrganizationPartialAggregatesOpensearch,
 ): Promise<IOrganizationMergeSuggestion[]> {
+  svc.log.info(`Getting merge suggestions for ${organization.uuid_organizationId}!`)
   const mergeSuggestions: IOrganizationMergeSuggestion[] = []
   const organizationMergeSuggestionsRepo = new OrganizationMergeSuggestionsRepository(
     svc.postgres.writer.connection(),
@@ -253,6 +256,9 @@ export async function getOrganizationMergeSuggestions(
     )
     throw e
   }
+
+  svc.log.info(`Found ${organizationsToMerge.length} similar organizations!`)
+  svc.log.info({ organizationsToMerge })
 
   for (const organizationToMerge of organizationsToMerge) {
     const secondaryOrgWithLfxMembership = await hasLfxMembership(qx, {

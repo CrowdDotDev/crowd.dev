@@ -69,5 +69,10 @@ export async function generateOrganizationMergeSuggestions(
   await continueAsNew<typeof generateOrganizationMergeSuggestions>({
     tenantId: args.tenantId,
     lastUuid,
+    organizationIds: args.organizationIds
+      ? args.organizationIds.filter(
+          (organizationId) => !result.map((r) => r.uuid_organizationId).includes(organizationId),
+        )
+      : undefined,
   })
 }
