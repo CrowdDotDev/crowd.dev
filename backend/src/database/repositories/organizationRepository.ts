@@ -14,6 +14,7 @@ import {
   findOrgAttributes,
   queryOrgIdentities,
   OrgIdentityField,
+  findManyOrgAttributes,
 } from '@crowd/data-access-layer/src/organizations'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import {
@@ -1224,6 +1225,11 @@ class OrganizationRepository {
         limit: 1,
         offset: 0,
         segmentId,
+        include: {
+          attributes: true,
+          lfxMemberships: true,
+          identities: true,
+        },
       },
       options,
     )
@@ -1671,7 +1677,13 @@ class OrganizationRepository {
         identities: true,
         lfxMemberships: true,
         segments: false,
-      } as { identities?: boolean; lfxMemberships?: boolean; segments?: boolean },
+        attributes: false,
+      } as {
+        identities?: boolean
+        lfxMemberships?: boolean
+        segments?: boolean
+        attributes?: boolean
+      },
     },
     options: IRepositoryOptions,
   ) {
@@ -1800,6 +1812,13 @@ class OrganizationRepository {
 
       rows.forEach((org) => {
         org.segments = orgSegments.find((i) => i.organizationId === org.id)?.segments || []
+      })
+    }
+    if (include.attributes) {
+      const attributes = await findManyOrgAttributes(qx, orgIds)
+
+      rows.forEach((org) => {
+        org.attributes = attributes.find((a) => a.organizationId === org.id)?.attributes || []
       })
     }
 

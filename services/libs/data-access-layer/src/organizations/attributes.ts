@@ -22,6 +22,25 @@ export async function findOrgAttributes(
   )
 }
 
+export async function findManyOrgAttributes(
+  qx: QueryExecutor,
+  organizationIds: string[],
+): Promise<{ organizationId: string; attributes: IDbOrgAttribute[] }[]> {
+  return qx.select(
+    `
+      SELECT
+        oa."organizationId",
+        JSONB_AGG(oa ORDER BY oa."createdAt") AS "attributes"
+      FROM "orgAttributes" oa
+      WHERE oa."organizationId" IN ($(organizationIds:csv))
+      GROUP BY oa."organizationId"
+    `,
+    {
+      organizationIds,
+    },
+  )
+}
+
 export const upsertOrgAttributes = async (
   qx: QueryExecutor,
   organizationId: string,
