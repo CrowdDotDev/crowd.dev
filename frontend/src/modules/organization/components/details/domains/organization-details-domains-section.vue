@@ -28,7 +28,7 @@
                 {{ domain.value }}
               </a>
             </lf-tooltip>
-            <lf-tooltip v-if="!domain.verified" content="Verified domain" class="ml-1.5">
+            <lf-tooltip v-if="domain.verified" content="Verified domain" class="ml-1.5">
               <lf-icon name="verified-badge-line" :size="16" class="text-primary-500" />
             </lf-tooltip>
           </div>
