@@ -104,7 +104,9 @@ const update = () => {
     attributes: {
       ...props.contributor.attributes,
       avatarUrl: {
+        ...props.contributor.attributes.avatarUrl,
         default: form.profilePhoto,
+        custom: form.profilePhoto,
       },
     },
   })
