@@ -35,7 +35,8 @@ import lodash, { uniq } from 'lodash'
 import Sequelize, { QueryTypes } from 'sequelize'
 import validator from 'validator'
 import { findManyLfxMemberships } from '@crowd/data-access-layer/src/lfx_memberships'
-import { fetchManyOrgSegments } from '@crowd/data-access-layer/src/org_segments'
+import { fetchManyOrgSegments } from '@crowd/data-access-layer/src/organizations/segments'
+import { OrganizationField, findOrgById } from '@crowd/data-access-layer/src/orgs'
 import {
   IFetchOrganizationMergeSuggestionArgs,
   SimilarityScoreRange,
@@ -46,7 +47,6 @@ import AuditLogRepository from './auditLogRepository'
 import SegmentRepository from './segmentRepository'
 import SequelizeRepository from './sequelizeRepository'
 import { IActiveOrganizationData, IActiveOrganizationFilter } from './types/organizationTypes'
-import { OrganizationField, findOrgById } from '@crowd/data-access-layer/src/orgs'
 
 const { Op } = Sequelize
 
@@ -249,45 +249,26 @@ class OrganizationRepository {
   }
 
   static ORGANIZATION_UPDATE_COLUMNS = [
+    'importHash',
+    'isTeamOrganization',
+    'headline',
+    'lastEnrichedAt',
+
+    // default attributes
+    'type',
+    'industry',
+    'founded',
+    'size',
+    'employees',
     'displayName',
     'description',
-    'emails',
-    'phoneNumbers',
     'logo',
     'tags',
     'location',
     'employees',
     'revenueRange',
-    'importHash',
-    'isTeamOrganization',
-    'employeeCountByCountry',
-    'type',
-    'ticker',
-    'headline',
-    'profiles',
-    'naics',
-    'industry',
-    'founded',
-    'size',
-    'employees',
-    'lastEnrichedAt',
-    'allSubsidiaries',
-    'alternativeNames',
-    'averageEmployeeTenure',
-    'averageTenureByLevel',
-    'averageTenureByRole',
-    'directSubsidiaries',
     'employeeChurnRate',
-    'employeeCountByMonth',
     'employeeGrowthRate',
-    'employeeCountByMonthByLevel',
-    'employeeCountByMonthByRole',
-    'gicsSector',
-    'grossAdditionsByMonth',
-    'grossDeparturesByMonth',
-    'ultimateParent',
-    'immediateParent',
-    'attributes',
   ]
 
   static isEqual = {
