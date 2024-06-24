@@ -22,7 +22,8 @@
             :name="org.displayName"
             :src="org.logo"
             :size="24"
-            class="!rounded-md border border-gray-200"
+            class="!rounded-md border border-gray-200 min-w-6"
+            img-class="!object-contain"
           >
             <template #placeholder>
               <div class="w-full h-full bg-gray-50 flex items-center justify-center">
@@ -30,6 +31,7 @@
               </div>
             </template>
           </lf-avatar>
+
           <div class="flex-grow pl-3">
             <router-link
               :to="{

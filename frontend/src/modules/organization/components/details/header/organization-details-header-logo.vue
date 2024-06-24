@@ -5,6 +5,7 @@
       :name="props.organization.displayName"
       :src="props.organization.logo"
       class="!rounded-md border border-gray-300 cursor-pointer"
+      img-class="!object-contain"
       @click="isEditModalOpen = true"
     >
       <template #placeholder>
