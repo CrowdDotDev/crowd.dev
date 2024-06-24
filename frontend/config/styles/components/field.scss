@@ -5,7 +5,8 @@
 
   // Field label
   --lf-field-label-font-size: #{rem(14)};
-  --lf-field-label-font-weight: var(--font-medium);
+  --lf-field-label-line-height: #{rem(21)};
+  --lf-field-label-font-weight: 600;
   --lf-field-label-color: var(--lf-color-gray-900);
 
   // Required sign

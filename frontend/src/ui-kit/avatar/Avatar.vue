@@ -4,13 +4,18 @@
     :style="{ '--lf-avatar-size': `${props.size / 16}rem` }"
     :data-initials="!!$slots.placeholder ? '' : initials"
   >
-    <img v-if="props.src" :alt="props.name" :src="props.src" :class="imgClass" />
-    <slot v-else-if="$slots.placeholder" name="placeholder" />
+    <lf-img v-if="props.src" :alt="props.name" :src="props.src" :class="imgClass" />
+    <slot v-if="$slots.placeholder" name="placeholder" />
+    <slot v-if="$slots.default" />
+    <div v-if="$slots.overlay" class="c-avatar__overlay">
+      <slot name="overlay" />
+    </div>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { computed } from 'vue';
+import LfImg from '@/ui-kit/img/Img.vue';
 
 const props = withDefaults(defineProps<{
   size?: number,

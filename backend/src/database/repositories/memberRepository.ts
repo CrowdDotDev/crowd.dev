@@ -1728,7 +1728,8 @@ class MemberRepository {
       `
       SELECT
           s.id,
-          s.name
+          s.name,
+          COUNT(a.id) as activityCount
       FROM mv_activities_cube a
       JOIN segments s ON s.id = a."segmentId"
       WHERE a."memberId" = :id
