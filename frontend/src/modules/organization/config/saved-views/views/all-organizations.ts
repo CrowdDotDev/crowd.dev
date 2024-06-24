@@ -14,7 +14,6 @@ const allOrganizations: SavedView = {
     },
     settings: {
       teamOrganization: 'exclude',
-      hasActivities: 'true',
     },
   },
 };
