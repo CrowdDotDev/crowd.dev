@@ -6,6 +6,7 @@
         :name="props.organization.displayName"
         :src="props.organization.logo"
         class="!rounded-md border border-gray-300"
+        img-class="!object-contain"
       >
         <template #placeholder>
           <div class="w-full h-full bg-gray-50 flex items-center justify-center">

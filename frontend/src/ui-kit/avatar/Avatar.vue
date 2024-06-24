@@ -4,7 +4,7 @@
     :style="{ '--lf-avatar-size': `${props.size / 16}rem` }"
     :data-initials="!!$slots.placeholder ? '' : initials"
   >
-    <img v-if="props.src" :alt="props.name" :src="props.src" />
+    <img v-if="props.src" :alt="props.name" :src="props.src" :class="imgClass" />
     <slot v-else-if="$slots.placeholder" name="placeholder" />
   </div>
 </template>
@@ -16,10 +16,12 @@ const props = withDefaults(defineProps<{
   size?: number,
   name?: string,
   src?: string,
+  imgClass?: string,
 }>(), {
   size: 48,
   name: '',
   src: '',
+  imgClass: '',
 });
 
 const initials = computed(() => props.name.match(/\b\w/g)?.join('').substring(0, 2) || '');
