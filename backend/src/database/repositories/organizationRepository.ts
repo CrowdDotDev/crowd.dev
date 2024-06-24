@@ -2240,7 +2240,7 @@ class OrganizationRepository {
       }
       const orderDirection = ['DESC', 'ASC'].includes(orderSplit[1]) ? orderSplit[1] : 'DESC'
 
-      if (orderField === 'activityCount') {
+      if (orderSplit[0] === 'activityCount') {
         return `COALESCE(${orderField}, 0) ${orderDirection}, ${orderField} IS NULL`
       }
 
