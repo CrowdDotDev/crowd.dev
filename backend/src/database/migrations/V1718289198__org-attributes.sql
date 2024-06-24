@@ -22,7 +22,7 @@ DECLARE
     _value TEXT;
 BEGIN
     -- types: string | decimal | integer | boolean | object | array
-    FOR _org IN SELECT * FROM organizations WHERE id = 'ce2853ea-6b2b-4a3d-a995-6e7cd3042b59' LOOP
+    FOR _org IN SELECT * FROM organizations LOOP
         INSERT INTO "orgAttributes" ("organizationId", "type", "name", "source", "default", "value")
         VALUES
             (_org.id, 'string', 'description', 'peopledatalabs', TRUE, _org.description),
