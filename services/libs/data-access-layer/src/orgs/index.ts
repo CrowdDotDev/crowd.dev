@@ -7,6 +7,7 @@ export async function findOrgsForMergeSuggestions(
   batchSize: number,
   afterOrganizationId?: string,
   lastGeneratedAt?: string,
+  organizationIds?: string[],
 ): Promise<IOrganizationPartialAggregatesRawResult[]> {
   let filter = ''
   if (afterOrganizationId) {
@@ -17,32 +18,39 @@ export async function findOrgsForMergeSuggestions(
     filter += 'AND o."createdAt" > $(lastGeneratedAt)'
   }
 
+  if (organizationIds && organizationIds.length > 0) {
+    filter += ` AND o.id in ($(organizationIds:csv))`
+  } else if (organizationIds && organizationIds.length === 0) {
+    return []
+  }
+
   return qx.select(
     `
       SELECT
         o.id,
-        json_agg(oi) as identities,
-        ARRAY_AGG(DISTINCT onm."noMergeId") AS "noMergeIds",
+        json_agg(distinct oi) as identities,
+        COALESCE(ARRAY_AGG(DISTINCT onm."noMergeId") FILTER (where onm."noMergeId" is not null), ARRAY[]::uuid[])  AS "noMergeIds",
         o."displayName",
         o.location,
         o.industry,
         o.ticker,
-        osa."activityCount"
+        max(osa."activityCount") as "activityCount"
       FROM organizations o
       JOIN "organizationSegmentsAgg" osa ON o.id = osa."organizationId"
-      JOIN "organizationNoMerge" onm ON onm."organizationId" = o.id
+      LEFT JOIN "organizationNoMerge" onm ON onm."organizationId" = o.id
       JOIN "organizationIdentities" oi ON o.id = oi."organizationId"
       WHERE o."tenantId" = $(tenantId)
         ${filter}
-      GROUP BY o.id, osa.id
+      GROUP BY o.id
       ORDER BY o.id
-      LIMIT $(batchSize)
+      LIMIT $(batchSize);
     `,
     {
       tenantId,
       batchSize,
       afterOrganizationId,
       lastGeneratedAt,
+      organizationIds,
     },
   )
 }

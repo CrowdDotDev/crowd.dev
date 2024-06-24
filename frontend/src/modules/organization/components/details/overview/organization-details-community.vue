@@ -9,8 +9,8 @@
           <p class="text-tiny text-secondary-300 mb-2">
             Community size
           </p>
-          <p class="text-small text-gray-600">
-            {{ pluralize('contributor', props.organization.memberCount, true) }}
+          <p v-if="!loadingMemberCount" class="text-small text-gray-600">
+            {{ pluralize('contributor', memberCount || 0, true) }}
           </p>
         </article>
         <article class="px-4 h-full w-1/2 xl:w-1/3 border-l border-gray-200">
@@ -18,7 +18,7 @@
             # of activities
           </p>
           <p class="text-small text-gray-600">
-            {{ formatNumber(props.organization.activityCount) || '-' }}
+            {{ props.organization.activityCount && formatNumber(props.organization.activityCount) || '-' }}
           </p>
         </article>
         <article class="px-4 h-full w-1/2 xl:w-1/3 xl:border-l border-gray-200">
@@ -41,10 +41,38 @@ import moment from 'moment';
 import { formatNumber } from '@/utils/number';
 import { Organization } from '@/modules/organization/types/Organization';
 import pluralize from 'pluralize';
+import { onMounted, ref } from 'vue';
+import { MemberService } from '@/modules/member/member-service';
 
 const props = defineProps<{
   organization: Organization,
 }>();
+
+const memberCount = ref<number>(0);
+const loadingMemberCount = ref<boolean>(true);
+const orgFilter = { organizations: { eq: props.organization.id } };
+
+const doGetMembersCount = () => {
+  loadingMemberCount.value = true;
+  MemberService.listMembers(
+    {
+      limit: 1,
+      offset: 0,
+      filter: orgFilter,
+    },
+    true,
+  )
+    .then(({ count }) => {
+      memberCount.value = count;
+    })
+    .finally(() => {
+      loadingMemberCount.value = false;
+    });
+};
+
+onMounted(() => {
+  doGetMembersCount();
+});
 </script>
 <script lang="ts">
 export default {
