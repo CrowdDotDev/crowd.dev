@@ -34,22 +34,20 @@ const useOrganizationHelpers = () => {
   const emails = (organization: Organization) => (organization.emails || []);
 
   const primaryDomains = (organization: Organization) => organization.identities
-    .filter((i) => OrganizationIdentityType.PRIMARY_DOMAIN === i.type);
+    .filter((i) => OrganizationIdentityType.PRIMARY_DOMAIN === i.type && !['email'].includes(i.platform));
 
   const alternativeDomains = (organization: Organization) => organization.identities
-    .filter((i) => OrganizationIdentityType.ALTERNATIVE_DOMAIN === i.type);
+    .filter((i) => OrganizationIdentityType.ALTERNATIVE_DOMAIN === i.type && !['email'].includes(i.platform));
 
-  const domains = (organization: Organization) => organization.identities
-    .filter((i) => [
-      OrganizationIdentityType.PRIMARY_DOMAIN,
-      OrganizationIdentityType.ALTERNATIVE_DOMAIN,
-      OrganizationIdentityType.AFFILIATED_PROFILE,
-    ].includes(i.type));
+  const domains = (organization: Organization) => [
+    ...primaryDomains(organization),
+    ...alternativeDomains(organization),
+  ];
 
   const website = (organization: Organization) => primaryDomains(organization)?.[0];
 
   const affiliatedProfiles = (organization: Organization) => organization.identities
-    .filter((i) => OrganizationIdentityType.EMAIL === i.type);
+    .filter((i) => OrganizationIdentityType.EMAIL === i.type && !['email'].includes(i.platform));
 
   const phoneNumbers = (organization: Organization) => organization.phoneNumbers || [];
 
