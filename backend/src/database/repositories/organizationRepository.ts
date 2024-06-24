@@ -2240,7 +2240,7 @@ class OrganizationRepository {
       }
       const orderDirection = ['DESC', 'ASC'].includes(orderSplit[1]) ? orderSplit[1] : 'DESC'
 
-      return `${orderField} ${orderDirection}`
+      return `${orderField} ${orderDirection} NULLS LAST`
     })(orderBy)
 
     const createQuery = (fields) => `
