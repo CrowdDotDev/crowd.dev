@@ -33,7 +33,7 @@
                 url: 'This URL address is not valid',
               }"
             />
-            <lf-field-message v-if="!$v.profilePhoto.$invalid" type="hint">
+            <lf-field-message type="hint">
               Choose a 1:1 aspect ratio (square) to better fit your image.
             </lf-field-message>
           </lf-field>
@@ -111,6 +111,9 @@ const update = () => {
     .then(() => {
       Message.success('Contributor avatar updated successfully!');
       isModalOpen.value = false;
+    })
+    .catch(() => {
+      Message.error('There was an error updating organization');
     })
     .finally(() => {
       sending.value = false;

@@ -6,6 +6,7 @@
     hover:!bg-gray-200 group-hover:bg-gray-100
     focus:!bg-white focus:border-gray-900"
     style="max-width: 30ch"
+    :class="form.name.length <= 30 ? 'focus:whitespace-nowrap' : 'focus:whitespace-normal'"
     @blur="update"
   />
 </template>
@@ -47,9 +48,13 @@ const update = () => {
   }
   updateContributor(props.contributor.id, {
     displayName: form.name,
-  }).then(() => {
-    Message.success('Contributor name updated successfully!');
-  });
+  })
+    .then(() => {
+      Message.success('Contributor name updated successfully!');
+    })
+    .catch(() => {
+      Message.error('There was an error updating organization');
+    });
 };
 </script>
 

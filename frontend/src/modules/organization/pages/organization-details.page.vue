@@ -4,8 +4,8 @@
   </div>
   <div v-else class="-mt-5 -mb-5">
     <div class="organization-details  grid grid-cols-2 grid-rows-2 px-3">
-      <section class="w-full border-b border-gray-100 py-4 flex justify-between items-center col-span-2 h-min group">
-        <div class="flex items-center">
+      <section class="w-full border-b border-gray-100 py-4 flex justify-between items-center col-span-2 h-min">
+        <div class="flex items-center flex-grow">
           <lf-back :to="{ path: '/organizations' }" class="mr-2">
             <lf-button type="secondary-ghost" :icon-only="true">
               <lf-icon name="arrow-left-s-line" />

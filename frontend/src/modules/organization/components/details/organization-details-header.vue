@@ -1,7 +1,7 @@
 <template>
-  <div class="flex items-center">
+  <div class="flex items-center flex-grow">
     <lf-organization-details-header-logo :organization="props.organization" />
-    <div class="pl-3">
+    <div class="pl-3 w-full group">
       <lf-organization-edit-name :organization="props.organization" />
       <div class="flex items-center gap-1.5">
         <lf-organization-membership :organization="props.organization" />

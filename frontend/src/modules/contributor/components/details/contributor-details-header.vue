@@ -1,8 +1,8 @@
 <template>
-  <div class="flex items-center">
+  <div class="flex items-center flex-grow">
     <lf-contributor-details-header-profile-photo :contributor="props.contributor" />
 
-    <div class="pl-3">
+    <div class="pl-3 group w-full">
       <lf-contributor-edit-name :contributor="props.contributor" />
       <div class="flex items-center gap-1.5">
         <lf-badge v-if="isTeamContributor(props.contributor)" size="small">
