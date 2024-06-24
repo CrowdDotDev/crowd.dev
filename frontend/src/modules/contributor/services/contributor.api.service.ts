@@ -35,4 +35,16 @@ export class ContributorApiService {
     )
       .then(({ data }) => Promise.resolve(data));
   }
+
+  static async update(id: string, data: Partial<Contributor>, segments: []) {
+    const tenantId = AuthService.getTenantId();
+
+    return authAxios.put(
+      `/tenant/${tenantId}/member/${id}`,
+      {
+        ...data,
+        segments,
+      },
+    ).then(({ data }) => Promise.resolve(data));
+  }
 }

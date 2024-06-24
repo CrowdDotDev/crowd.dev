@@ -2,6 +2,8 @@ import { Pagination } from '@/shared/types/Pagination';
 import { OrganizationState } from '@/modules/organization/store/pinia/state';
 import { Organization } from '@/modules/organization/types/Organization';
 import { OrganizationService } from '@/modules/organization/organization-service';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
 export default {
   fetchOrganizations(this: OrganizationState, { body = {}, reload = false } :{ body?: any, reload?: boolean }): Promise<Pagination<Organization>> {
@@ -20,14 +22,22 @@ export default {
         return Promise.reject(err);
       });
   },
-  fetchOrganization(this: OrganizationState, id: string, segments: string[]): Promise<Organization> {
-    return OrganizationService.find(id, segments)
+  fetchOrganization(id: string): Promise<Organization> {
+    const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
+    return OrganizationService.find(id, [selectedProjectGroup.value?.id as string])
       .then((organization: Organization) => {
         this.organization = organization;
         return Promise.resolve(organization);
       });
   },
-
+  updateOrganization(id: string, data: Partial<Organization>): Promise<Organization> {
+    const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
+    return OrganizationService.update(id, data, [selectedProjectGroup.value?.id as string])
+      .then((organization: Organization) => {
+        this.organization = organization;
+        return this.fetchOrganization(id);
+      });
+  },
   addMergedOrganizations(this: OrganizationState, primaryId: string, secondaryId: string) {
     this.mergedOrganizations[primaryId] = secondaryId;
   },

@@ -20,4 +20,12 @@
   img{
     @apply relative object-cover w-full h-full bg-white;
   }
+
+  &__overlay{
+    @apply invisible opacity-0 transition;
+  }
+
+  &:hover &__overlay{
+    @apply visible opacity-100;
+  }
 }

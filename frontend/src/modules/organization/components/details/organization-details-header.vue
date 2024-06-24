@@ -1,31 +1,8 @@
 <template>
-  <div class="flex items-center">
-    <div class="relative">
-      <lf-avatar
-        :size="48"
-        :name="props.organization.displayName"
-        :src="props.organization.logo"
-        class="!rounded-md border border-gray-300"
-      >
-        <template #placeholder>
-          <div class="w-full h-full bg-gray-50 flex items-center justify-center">
-            <lf-icon name="community-line" :size="32" class="text-gray-300" />
-          </div>
-        </template>
-      </lf-avatar>
-      <div
-        v-if="isNew(props.organization)"
-        class="absolute -top-1.5 left-1/2 border-2 border-white bg-primary-500
-      text-xtiny rounded-md px-0.5 text-white font-semibold transform -translate-x-1/2 "
-      >
-        New
-      </div>
-    </div>
-
-    <div class="pl-3">
-      <h5 class="mb-1 truncate" style="max-width: 30ch">
-        {{ props.organization.displayName }}
-      </h5>
+  <div class="flex items-center flex-grow">
+    <lf-organization-details-header-logo :organization="props.organization" />
+    <div class="pl-3 w-full group">
+      <lf-organization-edit-name :organization="props.organization" />
       <div class="flex items-center gap-1.5">
         <lf-organization-membership :organization="props.organization" />
         <p v-if="!!props.organization.lfxMembership" class="text-small text-gray-400">
@@ -42,12 +19,12 @@
         <a
           v-if="!!websiteCom"
           :href="withHttp(websiteCom.value)"
-          class="flex items-center gap-1 group"
+          class="flex items-center gap-1"
           target="_blank"
           rel="noopener noreferrer"
         >
           <lf-icon name="link" :size="16" class="text-gray-400" />
-          <div class="text-gray-500 text-small truncate group-hover:text-primary-500" style="max-width: 20ch">
+          <div class="text-gray-500 text-small truncate hover:text-primary-500" style="max-width: 20ch">
             {{ websiteCom.value }}
           </div>
         </a>
@@ -61,7 +38,6 @@
 </template>
 
 <script setup lang="ts">
-import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
 import LfBadge from '@/ui-kit/badge/Badge.vue';
 import { Organization } from '@/modules/organization/types/Organization';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
@@ -74,12 +50,15 @@ import { computed } from 'vue';
 import {
   organizationDetailsHeaderProfilePlatforms,
 } from '@/modules/organization/config/details-header-profile-platforms';
+import LfOrganizationEditName from '@/modules/organization/components/edit/organization-edit-name.vue';
+import LfOrganizationDetailsHeaderLogo
+  from '@/modules/organization/components/details/header/organization-details-header-logo.vue';
 
 const props = defineProps<{
   organization: Organization,
 }>();
 
-const { isNew, website } = useOrganizationHelpers();
+const { website } = useOrganizationHelpers();
 
 const websiteCom = computed(() => website(props.organization));
 

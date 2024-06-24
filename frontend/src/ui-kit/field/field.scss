@@ -2,6 +2,7 @@
   // Field label
   &__label{
     font-size: var(--lf-field-label-font-size);
+    line-height: var(--lf-field-label-line-height);
     font-weight: var(--lf-field-label-font-weight);
     color: var(--lf-field-label-color);
   }
