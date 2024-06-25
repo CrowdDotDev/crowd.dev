@@ -14,91 +14,100 @@ CREATE TABLE "orgAttributes" (
 CREATE UNIQUE INDEX "orgAttributes_organizationId_name_default" ON "orgAttributes" ("organizationId", "name", "default") WHERE "default";
 
 -- make sure there are no duplicate values for the same attribute and the same source
-CREATE UNIQUE INDEX "orgAttributes_organizationId_name_source_value" ON "orgAttributes" ("organizationId", "name", "source", "value");
+-- MD5 is needed because descriptions and *ByMonth fields can be too long for an index
+CREATE UNIQUE INDEX "orgAttributes_organizationId_name_source_value" ON "orgAttributes" ("organizationId", "name", "source", MD5("value"));
 
 DO $$
 DECLARE
     _org RECORD;
     _value TEXT;
+    _source TEXT;
 BEGIN
     -- types: string | decimal | integer | boolean | object | array
     FOR _org IN SELECT * FROM organizations LOOP
+        _source := CASE
+             WHEN _org."lastEnrichedAt" is null and NOT _org."manuallyCreated" THEN 'integration'
+             WHEN _org."lastEnrichedAt" is null and _org."manuallyCreated" THEN 'custom'
+             WHEN _org."lastEnrichedAt" is not null THEN 'peopledatalabs'
+             ELSE 'unknown'
+         END;
+
         INSERT INTO "orgAttributes" ("organizationId", "type", "name", "source", "default", "value")
         VALUES
-            (_org.id, 'string', 'description', 'peopledatalabs', TRUE, _org.description),
-            (_org.id, 'string', 'logo', 'peopledatalabs', TRUE, _org.logo),
-            (_org.id, 'string', 'location', 'peopledatalabs', TRUE, _org.location),
-            (_org.id, 'string', 'type', 'peopledatalabs', TRUE, _org.type),
-            (_org.id, 'string', 'geoLocation', 'peopledatalabs', TRUE, _org."geoLocation"),
-            (_org.id, 'string', 'size', 'peopledatalabs', TRUE, _org.size),
-            (_org.id, 'string', 'ticker', 'peopledatalabs', TRUE, _org.ticker),
-            (_org.id, 'string', 'headline', 'peopledatalabs', TRUE, _org.headline),
-            (_org.id, 'string', 'industry', 'peopledatalabs', TRUE, _org.industry),
-            (_org.id, 'string', 'gicsSector', 'peopledatalabs', TRUE, _org."gicsSector"),
-            (_org.id, 'string', 'ultimateParent', 'peopledatalabs', TRUE, _org."ultimateParent"),
-            (_org.id, 'string', 'immediateParent', 'peopledatalabs', TRUE, _org."immediateParent"),
+            (_org.id, 'string', 'description', _source, TRUE, _org.description),
+            (_org.id, 'string', 'logo', _source, TRUE, _org.logo),
+            (_org.id, 'string', 'location', _source, TRUE, _org.location),
+            (_org.id, 'string', 'type', _source, TRUE, _org.type),
+            (_org.id, 'string', 'geoLocation', _source, TRUE, _org."geoLocation"),
+            (_org.id, 'string', 'size', _source, TRUE, _org.size),
+            (_org.id, 'string', 'ticker', _source, TRUE, _org.ticker),
+            (_org.id, 'string', 'headline', _source, TRUE, _org.headline),
+            (_org.id, 'string', 'industry', _source, TRUE, _org.industry),
+            (_org.id, 'string', 'gicsSector', _source, TRUE, _org."gicsSector"),
+            (_org.id, 'string', 'ultimateParent', _source, TRUE, _org."ultimateParent"),
+            (_org.id, 'string', 'immediateParent', _source, TRUE, _org."immediateParent"),
 
-            (_org.id, 'integer', 'employees', 'peopledatalabs', TRUE, _org.employees),
-            (_org.id, 'integer', 'founded', 'peopledatalabs', TRUE, _org.founded),
+            (_org.id, 'integer', 'employees', _source, TRUE, _org.employees),
+            (_org.id, 'integer', 'founded', _source, TRUE, _org.founded),
 
-            (_org.id, 'decimal', 'averageEmployeeTenure', 'peopledatalabs', TRUE, _org."averageEmployeeTenure"),
+            (_org.id, 'decimal', 'averageEmployeeTenure', _source, TRUE, _org."averageEmployeeTenure"),
 
-            (_org.id, 'object', 'revenueRange', 'peopledatalabs', TRUE, _org."revenueRange"),
-            (_org.id, 'object', 'employeeCountByCountry', 'peopledatalabs', TRUE, _org."employeeCountByCountry"),
-            (_org.id, 'object', 'address', 'peopledatalabs', TRUE, _org.address),
-            (_org.id, 'object', 'averageTenureByLevel', 'peopledatalabs', TRUE, _org."averageTenureByLevel"),
-            (_org.id, 'object', 'averageTenureByRole', 'peopledatalabs', TRUE, _org."averageTenureByRole"),
-            (_org.id, 'object', 'employeeChurnRate', 'peopledatalabs', TRUE, _org."employeeChurnRate"),
-            (_org.id, 'object', 'employeeCountByMonth', 'peopledatalabs', TRUE, _org."employeeCountByMonth"),
-            (_org.id, 'object', 'employeeGrowthRate', 'peopledatalabs', TRUE, _org."employeeGrowthRate"),
-            (_org.id, 'object', 'employeeCountByMonthByLevel', 'peopledatalabs', TRUE, _org."employeeCountByMonthByLevel"),
-            (_org.id, 'object', 'employeeCountByMonthByRole', 'peopledatalabs', TRUE, _org."employeeCountByMonthByRole"),
-            (_org.id, 'object', 'grossAdditionsByMonth', 'peopledatalabs', TRUE, _org."grossAdditionsByMonth"),
-            (_org.id, 'object', 'grossDeparturesByMonth', 'peopledatalabs', TRUE, _org."grossDeparturesByMonth"),
-            (_org.id, 'object', 'naics', 'peopledatalabs', TRUE, _org.naics)
+            (_org.id, 'object', 'revenueRange', _source, TRUE, _org."revenueRange"),
+            (_org.id, 'object', 'employeeCountByCountry', _source, TRUE, _org."employeeCountByCountry"),
+            (_org.id, 'object', 'address', _source, TRUE, _org.address),
+            (_org.id, 'object', 'averageTenureByLevel', _source, TRUE, _org."averageTenureByLevel"),
+            (_org.id, 'object', 'averageTenureByRole', _source, TRUE, _org."averageTenureByRole"),
+            (_org.id, 'object', 'employeeChurnRate', _source, TRUE, _org."employeeChurnRate"),
+            (_org.id, 'object', 'employeeCountByMonth', _source, TRUE, _org."employeeCountByMonth"),
+            (_org.id, 'object', 'employeeGrowthRate', _source, TRUE, _org."employeeGrowthRate"),
+            (_org.id, 'object', 'employeeCountByMonthByLevel', _source, TRUE, _org."employeeCountByMonthByLevel"),
+            (_org.id, 'object', 'employeeCountByMonthByRole', _source, TRUE, _org."employeeCountByMonthByRole"),
+            (_org.id, 'object', 'grossAdditionsByMonth', _source, TRUE, _org."grossAdditionsByMonth"),
+            (_org.id, 'object', 'grossDeparturesByMonth', _source, TRUE, _org."grossDeparturesByMonth"),
+            (_org.id, 'object', 'naics', _source, TRUE, _org.naics)
         ON CONFLICT DO NOTHING;
 
         FOR _value IN SELECT UNNEST(_org."emails") AS value LOOP
             INSERT INTO "orgAttributes" ("organizationId", "type", "name", "source", "default", "value")
-            VALUES (_org.id, 'string', 'email', 'peopledatalabs', FALSE, _value)
+            VALUES (_org.id, 'string', 'email', _source, FALSE, _value)
             ON CONFLICT DO NOTHING;
         END LOOP;
         FOR _value IN SELECT UNNEST(_org."names") AS value LOOP
             INSERT INTO "orgAttributes" ("organizationId", "type", "name", "source", "default", "value")
-            VALUES (_org.id, 'string', 'name', 'peopledatalabs', FALSE, _value)
+            VALUES (_org.id, 'string', 'name', _source, FALSE, _value)
             ON CONFLICT DO NOTHING;
         END LOOP;
         INSERT INTO "orgAttributes" ("organizationId", "type", "name", "source", "default", "value")
-        VALUES (_org.id, 'string', 'name', 'peopledatalabs', TRUE, _org."displayName")
+        VALUES (_org.id, 'string', 'name', _source, TRUE, _org."displayName")
         ON CONFLICT DO NOTHING;
         FOR _value IN SELECT UNNEST(_org."phoneNumbers") AS value LOOP
             INSERT INTO "orgAttributes" ("organizationId", "type", "name", "source", "default", "value")
-            VALUES (_org.id, 'string', 'phoneNumber', 'peopledatalabs', FALSE, _value)
+            VALUES (_org.id, 'string', 'phoneNumber', _source, FALSE, _value)
             ON CONFLICT DO NOTHING;
         END LOOP;
         FOR _value IN SELECT UNNEST(_org."tags") AS value LOOP
             INSERT INTO "orgAttributes" ("organizationId", "type", "name", "source", "default", "value")
-            VALUES (_org.id, 'string', 'tag', 'peopledatalabs', FALSE, _value)
+            VALUES (_org.id, 'string', 'tag', _source, FALSE, _value)
             ON CONFLICT DO NOTHING;
         END LOOP;
         FOR _value IN SELECT UNNEST(_org."profiles") AS value LOOP
             INSERT INTO "orgAttributes" ("organizationId", "type", "name", "source", "default", "value")
-            VALUES (_org.id, 'string', 'profile', 'peopledatalabs', FALSE, _value)
+            VALUES (_org.id, 'string', 'profile', _source, FALSE, _value)
             ON CONFLICT DO NOTHING;
         END LOOP;
         FOR _value IN SELECT UNNEST(_org."allSubsidiaries") AS value LOOP
             INSERT INTO "orgAttributes" ("organizationId", "type", "name", "source", "default", "value")
-            VALUES (_org.id, 'string', 'subsidiary', 'peopledatalabs', FALSE, _value)
+            VALUES (_org.id, 'string', 'subsidiary', _source, FALSE, _value)
             ON CONFLICT DO NOTHING;
         END LOOP;
         FOR _value IN SELECT UNNEST(_org."alternativeNames") AS value LOOP
             INSERT INTO "orgAttributes" ("organizationId", "type", "name", "source", "default", "value")
-            VALUES (_org.id, 'string', 'alternativeName', 'peopledatalabs', FALSE, _value)
+            VALUES (_org.id, 'string', 'alternativeName', _source, FALSE, _value)
             ON CONFLICT DO NOTHING;
         END LOOP;
         FOR _value IN SELECT UNNEST(_org."directSubsidiaries") AS value LOOP
             INSERT INTO "orgAttributes" ("organizationId", "type", "name", "source", "default", "value")
-            VALUES (_org.id, 'string', 'directSubsidiary', 'peopledatalabs', FALSE, _value)
+            VALUES (_org.id, 'string', 'directSubsidiary', _source, FALSE, _value)
             ON CONFLICT DO NOTHING;
         END LOOP;
     END LOOP;
