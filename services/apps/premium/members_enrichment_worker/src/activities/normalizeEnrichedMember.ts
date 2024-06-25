@@ -5,6 +5,7 @@ import {
   IMember,
   IOrganizationIdentity,
   MemberIdentityType,
+  OrganizationIdentityType,
   OrganizationSource,
   PlatformType,
 } from '@crowd/types'
@@ -16,7 +17,10 @@ import {
   findMemberOrgs,
   insertOrgIdentity,
   insertWorkExperience,
-  upsertOrg,
+  insertOrganization,
+  findOrganizationByVerifiedIdentity,
+  findOrganizationIdentities,
+  updateOrgIdentity,
 } from '@crowd/data-access-layer/src/old/apps/premium/members_enrichment_worker'
 import { svc } from '../main'
 import { EnrichingMember } from '../types/enrichment'
@@ -117,41 +121,51 @@ export async function updateOrganizations(input: EnrichingMember): Promise<strin
     try {
       await svc.postgres.writer.connection().tx(async (tx) => {
         for (const workExperience of input.enrichment.work_experiences) {
-          const org = await upsertOrg(
-            tx,
-            input.member.tenantId,
-            workExperience.company,
-            workExperience.companyUrl,
-            workExperience.companyLinkedInUrl,
-            workExperience.location,
-          )
-
-          organizations.push(org[0].id)
-
-          const organizationIdentities: IOrganizationIdentity[] = [
+          const identities: IOrganizationIdentity[] = [
             {
-              name: workExperience.company,
-              platform: PlatformType.ENRICHMENT,
+              platform: PlatformType.LINKEDIN,
+              value: workExperience.companyUrl,
+              type: OrganizationIdentityType.PRIMARY_DOMAIN,
+              verified: true,
+            },
+            {
+              platform: PlatformType.LINKEDIN,
+              value: `company:${workExperience.companyLinkedInUrl.split('/').pop()}`,
+              type: OrganizationIdentityType.USERNAME,
+              verified: true,
             },
           ]
 
-          if (workExperience.companyLinkedInUrl) {
-            organizationIdentities.push({
-              name: workExperience.companyLinkedInUrl.split('/').pop(),
-              platform: PlatformType.LINKEDIN,
-              url: workExperience.companyLinkedInUrl,
-            })
+          // find existing org by identity
+          let organizationId
+          for (const i of identities) {
+            organizationId = await findOrganizationByVerifiedIdentity(tx, input.member.tenantId, i)
           }
 
-          for (const orgIdentity of organizationIdentities) {
-            await insertOrgIdentity(
+          if (!organizationId) {
+            organizationId = await insertOrganization(
               tx,
-              org[0].id,
               input.member.tenantId,
-              orgIdentity.name,
-              orgIdentity.platform,
-              orgIdentity.url,
+              workExperience.company,
+              workExperience.location,
             )
+          }
+
+          organizations.push(organizationId)
+
+          // find existing identities
+          const existingIdentities = await findOrganizationIdentities(tx, organizationId)
+
+          for (const i of identities) {
+            const existing = existingIdentities.find(
+              (oi) => oi.platform === i.platform && oi.type === i.type && oi.value === i.value,
+            )
+
+            if (!existing) {
+              await insertOrgIdentity(tx, organizationId, input.member.tenantId, i)
+            } else if (existing.verified != i.verified) {
+              await updateOrgIdentity(tx, organizationId, input.member.tenantId, i)
+            }
           }
 
           const dateEnd = workExperience.endDate
@@ -160,7 +174,7 @@ export async function updateOrganizations(input: EnrichingMember): Promise<strin
 
           const data = {
             memberId: input.member.id,
-            organizationId: org[0].id,
+            organizationId,
             title: workExperience.title,
             dateStart: workExperience.startDate,
             dateEnd,
@@ -169,9 +183,9 @@ export async function updateOrganizations(input: EnrichingMember): Promise<strin
 
           // Clean up organizations without dates if we're getting ones with dates.
           if (data.dateStart) {
-            await deleteMemberOrg(tx, input.member.id, org[0].id)
+            await deleteMemberOrg(tx, input.member.id, organizationId)
           } else {
-            const rows = await findMemberOrgs(svc.postgres.reader, input.member.id, org[0].id)
+            const rows = await findMemberOrgs(svc.postgres.reader, input.member.id, organizationId)
             const row = rows[0]
 
             // If we're getting organization without dates, but there's already
@@ -184,7 +198,7 @@ export async function updateOrganizations(input: EnrichingMember): Promise<strin
           await insertWorkExperience(
             tx,
             input.member.id,
-            org[0].id,
+            organizationId,
             data.title,
             data.dateStart,
             data.dateEnd,

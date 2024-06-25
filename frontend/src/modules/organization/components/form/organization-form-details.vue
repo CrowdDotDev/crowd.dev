@@ -35,9 +35,6 @@
           type="textarea"
         />
       </el-form-item>
-      <el-form-item :label="fields.website.label">
-        <el-input v-model="model[fields.website.name]" />
-      </el-form-item>
       <el-form-item
         :label="fields.location.label"
         class="w-1/2"
@@ -76,7 +73,7 @@
         >
           <el-option
             :value="model[fields.revenueRange.name]"
-            :label="revenueRange.displayValue(model[fields.revenueRange.name])"
+            :label="revenueRange.formatValue(model[fields.revenueRange.name])"
           />
         </el-select>
       </el-form-item>

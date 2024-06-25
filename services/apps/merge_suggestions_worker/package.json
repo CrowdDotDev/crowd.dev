@@ -12,18 +12,20 @@
     "tsc-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.572.0",
     "@crowd/archetype-standard": "workspace:*",
     "@crowd/archetype-worker": "workspace:*",
     "@crowd/common": "workspace:*",
     "@crowd/data-access-layer": "workspace:*",
+    "@crowd/feature-flags": "workspace:*",
     "@crowd/logging": "workspace:*",
     "@crowd/types": "workspace:*",
-    "@crowd/feature-flags": "workspace:*",
     "@temporalio/client": "~1.8.6",
     "@temporalio/workflow": "~1.8.6",
     "fast-levenshtein": "^3.0.0",
     "tsx": "^4.7.1",
-    "typescript": "^5.2.2"
+    "typescript": "^5.2.2",
+    "axios": "^1.6.8"
   },
   "devDependencies": {
     "@types/node": "^20.8.2",

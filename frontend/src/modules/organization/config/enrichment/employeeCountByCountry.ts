@@ -1,5 +1,4 @@
 import { AttributeType } from '@/modules/organization/types/Attributes';
-import OrganizationAttributesJSONRenderer from '@/modules/organization/components/organization-attributes-json-renderer.vue';
 import { toSentenceCase } from '@/utils/string';
 import { OrganizationEnrichmentConfig } from '@/modules/organization/config/enrichment/index';
 
@@ -9,8 +8,10 @@ const employeeCountByCountry: OrganizationEnrichmentConfig = {
   type: AttributeType.JSON,
   showInForm: true,
   showInAttributes: true,
-  component: OrganizationAttributesJSONRenderer,
-  keyParser: (key) => toSentenceCase(key),
+  formatValue: (val) => Object.entries(val).reduce((final, [key, value]) => ({
+    ...final,
+    [toSentenceCase(key)]: value,
+  }), {}),
 };
 
 export default employeeCountByCountry;

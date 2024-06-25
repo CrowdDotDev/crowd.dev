@@ -151,8 +151,8 @@
       <div>
         <article
           v-if="
-            props.organization.website
-              || props.compareOrganization?.website
+            getOrganizationWebsite(organization)
+              || getOrganizationWebsite(compareOrganization)
           "
           class="pb-4"
         >
@@ -160,11 +160,11 @@
             Website
           </p>
           <a
-            :href="withHttp(props.organization.website)"
+            :href="withHttp(getOrganizationWebsite(organization))"
             target="_blank"
             rel="noopener noreferrer"
             class="text-xs text-gray-900 whitespace-normal inline-block leading"
-          >{{ props.organization.website || '-' }}</a>
+          >{{ getOrganizationWebsite(organization) || '-' }}</a>
         </article>
         <article
           v-if="
@@ -205,7 +205,7 @@
             Annual Revenue
           </p>
           <p class="text-xs text-gray-900 whitespace-normal">
-            {{ revenueRange.displayValue(
+            {{ revenueRange.formatValue(
               props.organization.revenueRange,
             ) || '-' }}
           </p>
@@ -302,6 +302,7 @@
         <app-identities-vertical-list-organizations
           :organization="organization"
           :include-emails="true"
+          :include-domains="true"
           :include-phone-numbers="true"
           :order="organizationOrder.suggestions"
         />
@@ -324,6 +325,7 @@ import organizationOrder from '@/shared/modules/identities/config/identitiesOrde
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import LfOrganizationLfMemberTag from '@/modules/organization/components/lf-member/organization-lf-member-tag.vue';
+import { getOrganizationWebsite } from '@/utils/organization';
 
 const props = defineProps({
   organization: {

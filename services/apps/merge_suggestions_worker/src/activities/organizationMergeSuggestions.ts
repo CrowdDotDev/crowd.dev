@@ -1,96 +1,60 @@
 import {
+  ILLMConsumableOrganization,
   IOrganizationMergeSuggestion,
   OpenSearchIndex,
+  OrganizationIdentityType,
   OrganizationMergeSuggestionTable,
 } from '@crowd/types'
 import { svc } from '../main'
 
 import {
   IOrganizationPartialAggregatesOpensearch,
-  IOrganizationPartialAggregatesOpensearchRawResult,
-  IOrganizationQueryBody,
   ISimilarOrganizationOpensearch,
+  ISimilarityFilter,
 } from '../types'
 import OrganizationMergeSuggestionsRepository from '@crowd/data-access-layer/src/old/apps/merge_suggestions_worker/organizationMergeSuggestions.repo'
 import { hasLfxMembership } from '@crowd/data-access-layer/src/lfx_memberships'
 import { prefixLength } from '../utils'
 import OrganizationSimilarityCalculator from '../organizationSimilarityCalculator'
 import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
+import { findOrgsForMergeSuggestions } from '@crowd/data-access-layer/src/orgs'
 
 export async function getOrganizations(
   tenantId: string,
   batchSize: number,
   afterOrganizationId?: string,
   lastGeneratedAt?: string,
+  organizationIds?: string[],
 ): Promise<IOrganizationPartialAggregatesOpensearch[]> {
   try {
-    const queryBody: IOrganizationQueryBody = {
-      from: 0,
-      size: batchSize,
-      query: {
-        bool: {
-          filter: [
-            {
-              term: {
-                uuid_tenantId: tenantId,
-              },
-            },
-            {
-              exists: {
-                field: 'keyword_displayName',
-              },
-            },
-          ],
-        },
-      },
-      sort: {
-        [`uuid_organizationId`]: 'asc',
-      },
-      collapse: {
-        field: 'uuid_organizationId',
-      },
-      _source: [
-        'uuid_organizationId',
-        'nested_identities',
-        'uuid_arr_noMergeIds',
-        'keyword_displayName',
-        'string_location',
-        'string_industry',
-        'string_website',
-        'string_ticker',
-        'int_activityCount',
-      ],
-    }
+    const qx = pgpQx(svc.postgres.reader.connection())
+    const rows = await findOrgsForMergeSuggestions(
+      qx,
+      tenantId,
+      batchSize,
+      afterOrganizationId,
+      lastGeneratedAt,
+      organizationIds,
+    )
 
-    if (afterOrganizationId) {
-      queryBody.query.bool.filter.push({
-        range: {
-          uuid_organizationId: {
-            gt: afterOrganizationId,
-          },
-        },
-      })
-    }
-
-    if (lastGeneratedAt) {
-      queryBody.query.bool.filter.push({
-        range: {
-          date_createdAt: {
-            gt: new Date(lastGeneratedAt).toISOString(),
-          },
-        },
-      })
-    }
-
-    const organizations: IOrganizationPartialAggregatesOpensearchRawResult[] =
-      (
-        await svc.opensearch.client.search({
-          index: OpenSearchIndex.ORGANIZATIONS,
-          body: queryBody,
-        })
-      ).body?.hits?.hits || []
-
-    return organizations.map((organization) => organization._source)
+    return rows.map((org) => ({
+      uuid_organizationId: org.id,
+      uuid_arr_noMergeIds: org.noMergeIds,
+      keyword_displayName: org.displayName,
+      nested_identities: org.identities.map((identity) => ({
+        string_platform: identity.platform,
+        string_type: identity.type,
+        keyword_type: identity.type,
+        string_value: identity.value,
+        bool_verified: identity.verified,
+      })),
+      string_location: org.location,
+      string_industry: org.industry,
+      string_website:
+        org.identities.find((i) => i.type === OrganizationIdentityType.PRIMARY_DOMAIN)?.value || '',
+      string_ticker: org.ticker,
+      int_activityCount: org.activityCount,
+    }))
   } catch (err) {
     throw new Error(err)
   }
@@ -122,6 +86,7 @@ export async function getOrganizationMergeSuggestions(
   tenantId: string,
   organization: IOrganizationPartialAggregatesOpensearch,
 ): Promise<IOrganizationMergeSuggestion[]> {
+  svc.log.debug(`Getting merge suggestions for ${organization.uuid_organizationId}!`)
   const mergeSuggestions: IOrganizationMergeSuggestion[] = []
   const organizationMergeSuggestionsRepo = new OrganizationMergeSuggestionsRepository(
     svc.postgres.writer.connection(),
@@ -132,6 +97,7 @@ export async function getOrganizationMergeSuggestions(
     return []
   }
 
+  const identitiesShould = []
   const identitiesPartialQuery = {
     should: [
       {
@@ -141,23 +107,10 @@ export async function getOrganizationMergeSuggestions(
       },
       {
         nested: {
-          path: 'nested_weakIdentities',
-          query: {
-            bool: {
-              should: [],
-              boost: 1000,
-              minimum_should_match: 1,
-            },
-          },
-        },
-      },
-      {
-        nested: {
           path: 'nested_identities',
           query: {
             bool: {
-              should: [],
-              boost: 1,
+              should: identitiesShould,
               minimum_should_match: 1,
             },
           },
@@ -183,46 +136,57 @@ export async function getOrganizationMergeSuggestions(
   let hasFuzzySearch = false
 
   for (const identity of organization.nested_identities) {
-    if (identity.string_name.length > 0) {
+    if (identity.keyword_type.length > 0) {
       // weak identity search
-      identitiesPartialQuery.should[1].nested.query.bool.should.push({
+      identitiesShould.push({
         bool: {
           must: [
-            { match: { [`nested_weakIdentities.keyword_name`]: identity.string_name } },
-            {
-              match: {
-                [`nested_weakIdentities.string_platform`]: identity.string_platform,
-              },
-            },
+            { match: { [`nested_identities.string_value`]: identity.string_value } },
+            { match: { [`nested_identities.string_platform`]: identity.string_platform } },
+            { term: { [`nested_identities.bool_verified`]: false } },
           ],
         },
       })
 
       // some identities have https? in the beginning, resulting in false positive suggestions
       // remove these when making fuzzy, wildcard and prefix searches
-      const cleanedIdentityName = identity.string_name.replace(/^https?:\/\//, '')
+      const cleanedIdentityName = identity.string_value.replace(/^https?:\/\//, '')
 
       // only do fuzzy/wildcard/partial search when identity name is not all numbers (like linkedin organization profiles)
-      if (Number.isNaN(Number(identity.string_name))) {
+      if (Number.isNaN(Number(identity.string_value))) {
         hasFuzzySearch = true
         // fuzzy search for identities
-        identitiesPartialQuery.should[2].nested.query.bool.should.push({
-          match: {
-            [`nested_identities.keyword_name`]: {
-              query: cleanedIdentityName,
-              prefix_length: 1,
-              fuzziness: 'auto',
-            },
+        identitiesShould.push({
+          bool: {
+            must: [
+              {
+                match: {
+                  [`nested_identities.string_value`]: {
+                    query: cleanedIdentityName,
+                    prefix_length: 1,
+                    fuzziness: 'auto',
+                  },
+                },
+              },
+              { term: { [`nested_identities.bool_verified`]: true } },
+            ],
           },
         })
 
         // also check for prefix for identities that has more than 5 characters and no whitespace
-        if (identity.string_name.length > 5 && identity.string_name.indexOf(' ') === -1) {
-          identitiesPartialQuery.should[2].nested.query.bool.should.push({
-            prefix: {
-              [`nested_identities.keyword_name`]: {
-                value: cleanedIdentityName.slice(0, prefixLength(cleanedIdentityName)),
-              },
+        if (identity.string_value.length > 5 && identity.string_value.indexOf(' ') === -1) {
+          identitiesShould.push({
+            bool: {
+              must: [
+                {
+                  prefix: {
+                    [`nested_identities.string_value`]: {
+                      value: cleanedIdentityName.slice(0, prefixLength(cleanedIdentityName)),
+                    },
+                  },
+                },
+                { term: { [`nested_identities.bool_verified`]: true } },
+              ],
             },
           })
         }
@@ -293,6 +257,9 @@ export async function getOrganizationMergeSuggestions(
     throw e
   }
 
+  svc.log.debug(`Found ${organizationsToMerge.length} similar organizations!`)
+  svc.log.debug({ organizationsToMerge })
+
   for (const organizationToMerge of organizationsToMerge) {
     const secondaryOrgWithLfxMembership = await hasLfxMembership(qx, {
       tenantId,
@@ -348,4 +315,102 @@ export async function addOrganizationToMerge(
     )
     await organizationMergeSuggestionsRepo.addToMerge(suggestions, table)
   }
+}
+
+export async function getOrganizationsForLLMConsumption(
+  organizationIds: string[],
+): Promise<ILLMConsumableOrganization[]> {
+  const organizationMergeSuggestionsRepo = new OrganizationMergeSuggestionsRepository(
+    svc.postgres.writer.connection(),
+    svc.log,
+  )
+
+  const [primaryOrganization, secondaryOrganization] =
+    await organizationMergeSuggestionsRepo.getOrganizations(organizationIds)
+
+  const result: ILLMConsumableOrganization[] = []
+
+  if (primaryOrganization) {
+    result.push({
+      displayName: primaryOrganization.displayName,
+      description: primaryOrganization.description,
+      phoneNumbers: primaryOrganization.phoneNumbers,
+      logo: primaryOrganization.logo,
+      tags: primaryOrganization.tags,
+      location: primaryOrganization.location,
+      type: primaryOrganization.type,
+      geoLocation: primaryOrganization.geoLocation,
+      ticker: primaryOrganization.ticker,
+      profiles: primaryOrganization.profiles,
+      headline: primaryOrganization.headline,
+      industry: primaryOrganization.industry,
+      founded: primaryOrganization.founded,
+      alternativeNames: primaryOrganization.alternativeNames,
+      identities: primaryOrganization.identities.map((i) => ({
+        platform: i.platform,
+        value: i.value,
+      })),
+    })
+  }
+
+  if (secondaryOrganization) {
+    result.push({
+      displayName: secondaryOrganization.displayName,
+      description: secondaryOrganization.description,
+      phoneNumbers: secondaryOrganization.phoneNumbers,
+      logo: secondaryOrganization.logo,
+      tags: secondaryOrganization.tags,
+      location: secondaryOrganization.location,
+      type: secondaryOrganization.type,
+      geoLocation: secondaryOrganization.geoLocation,
+      ticker: secondaryOrganization.ticker,
+      profiles: secondaryOrganization.profiles,
+      headline: secondaryOrganization.headline,
+      industry: secondaryOrganization.industry,
+      founded: secondaryOrganization.founded,
+      alternativeNames: secondaryOrganization.alternativeNames,
+      identities: secondaryOrganization.identities.map((i) => ({
+        platform: i.platform,
+        value: i.value,
+      })),
+    })
+  }
+
+  return result
+}
+
+export async function getRawOrganizationMergeSuggestions(
+  tenantId: string,
+  similarityFilter: ISimilarityFilter,
+  limit: number,
+  onlyLFXMembers = false,
+  organizationIds: string[] = [],
+): Promise<string[][]> {
+  const organizationMergeSuggestionsRepo = new OrganizationMergeSuggestionsRepository(
+    svc.postgres.writer.connection(),
+    svc.log,
+  )
+
+  const suggestions = await organizationMergeSuggestionsRepo.getRawOrganizationSuggestions(
+    similarityFilter,
+    limit,
+    onlyLFXMembers,
+    organizationIds,
+  )
+  if (onlyLFXMembers) {
+    // make sure primary is lfx member
+    for (let i = 0; i < suggestions.length; i++) {
+      const qx = pgpQx(svc.postgres.reader.connection())
+      const isPrimaryOrgInSuggestionLFXMember = await hasLfxMembership(qx, {
+        tenantId,
+        organizationId: suggestions[i][0],
+      })
+
+      if (!isPrimaryOrgInSuggestionLFXMember) {
+        suggestions[i] = [suggestions[i][1], suggestions[i][0]]
+      }
+    }
+  }
+
+  return suggestions
 }

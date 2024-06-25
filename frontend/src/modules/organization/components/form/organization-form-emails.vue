@@ -5,7 +5,7 @@
       <app-organization-form-emails-item
         v-for="(_, ei) of model"
         :key="ei"
-        v-model="model[ei]"
+        v-model="model[ei].value"
         class="pb-3"
       >
         <template #actions>
@@ -26,30 +26,33 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import {
   ref, watch,
 } from 'vue';
 import AppOrganizationFormEmailsItem from '@/modules/organization/components/form/organization-form-emails-item.vue';
+import { Platform } from '@/shared/modules/platform/types/Platform';
+import { Organization, OrganizationIdentityType, OrganizationIdentity } from '../../types/Organization';
 
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits<{(e: 'update:modelValue', value: Organization): void }>();
 
-const props = defineProps({
-  modelValue: {
-    type: Object,
-    default: () => {},
-  },
-});
+const props = defineProps<{
+  modelValue: Organization;
 
-const model = ref([]);
+}>();
+
+const model = ref<OrganizationIdentity[]>([]);
 
 watch(
   props.modelValue,
   (organization, previous) => {
     if (!previous) {
-      model.value = organization.emails?.length > 0
-        ? organization.emails
-        : [''];
+      model.value = organization.identities.filter((i) => [OrganizationIdentityType.EMAIL].includes(i.type)) || [{
+        value: '',
+        platform: Platform.CUSTOM,
+        type: OrganizationIdentityType.EMAIL,
+        verified: true,
+      }];
     }
   },
   { deep: true, immediate: true },
@@ -58,28 +61,40 @@ watch(
 watch(
   model,
   (value) => {
+    const otherIdentities = props.modelValue.identities.filter((i) => ![OrganizationIdentityType.EMAIL].includes(i.type));
+
     // Emit updated organization
     emit('update:modelValue', {
       ...props.modelValue,
-      emails: value.length ? value : [''],
+      identities: [...otherIdentities, ...value],
     });
   },
   { deep: true },
 );
 
 const addEmail = () => {
-  model.value.push('');
+  model.value.push({
+    value: '',
+    platform: Platform.CUSTOM,
+    type: OrganizationIdentityType.EMAIL,
+    verified: true,
+  });
 };
-const removeEmail = (index) => {
+const removeEmail = (index: number) => {
   if (model.value.length > 1) {
     model.value.splice(index, 1);
   } else if (model.value.length > 0) {
-    model.value[0] = '';
+    model.value[0] = {
+      value: '',
+      platform: Platform.CUSTOM,
+      type: OrganizationIdentityType.EMAIL,
+      verified: true,
+    };
   }
 };
 </script>
 
-<script>
+<script lang="ts">
 export default {
   name: 'AppOrganizationFormEmails',
 };

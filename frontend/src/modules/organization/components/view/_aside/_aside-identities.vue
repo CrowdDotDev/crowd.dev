@@ -51,8 +51,11 @@
 
           <app-aside-identities-extra
             :emails="identities.getEmails()"
+            :domains="identities.getDomains()"
+            :affiliated-profiles="identities.getAffiliatedProfiles()"
             :phone-numbers="identities.getPhoneNumbers()"
-            @edit-email="emailsDrawer = true"
+            @edit-emails="emailsDrawer = true"
+            @edit-domains="domainsDrawer = true"
             @edit-phone-number="phoneNumberDrawer = true"
           />
         </template>
@@ -68,6 +71,11 @@
   <app-organization-manage-emails-drawer
     v-if="emailsDrawer"
     v-model="emailsDrawer"
+    :organization="organization"
+  />
+  <app-organization-manage-domains-drawer
+    v-if="domainsDrawer"
+    v-model="domainsDrawer"
     :organization="organization"
   />
   <app-organization-manage-phone-numbers-drawer
@@ -94,6 +102,7 @@ import AppOrganizationManagePhoneNumbersDrawer
   from '@/modules/organization/components/organization-manage-phone-numbers-drawer.vue';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import AppOrganizationManageDomainsDrawer from '@/modules/organization/components/organization-manage-domains-drawer.vue';
 import AppAsideIdentitiesExtra from './_aside-identities-extra.vue';
 
 defineProps<{
@@ -111,5 +120,6 @@ const route = useRoute();
 
 const identitiesDrawer = ref<boolean>(false);
 const emailsDrawer = ref<boolean>(false);
+const domainsDrawer = ref<boolean>(false);
 const phoneNumberDrawer = ref<boolean>(false);
 </script>

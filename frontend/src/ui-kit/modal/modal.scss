@@ -1,0 +1,26 @@
+.c-modal{
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 30, 51, 0.1);
+  z-index: 1000;
+  visibility: visible;
+  opacity: 1;
+
+  overflow: auto;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+
+  &__content{
+    width: 100%;
+    max-width: rem(600);
+    background-color: var(--lf-color-white);
+    box-shadow: 0 2px 10px 0 rgba(0, 0, 0, 0.1);
+    border: solid var(--lf-color-gray-200) rem(1);
+    border-radius: rem(8);
+  }
+}

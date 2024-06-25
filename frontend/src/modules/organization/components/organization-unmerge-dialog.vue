@@ -98,21 +98,21 @@
                         <template #dropdown>
                           <template
                             v-for="i of identities"
-                            :key="`${i.platform}:${i.name}`"
+                            :key="`${i.platform}:${i.value}:${i.type}:${i.verified}`"
                           >
                             <el-dropdown-item
-                              v-if="`${i.platform}:${i.name}` !== selectedIdentity"
-                              :value="`${i.platform}:${i.name}`"
-                              :label="i.username"
-                              @click="fetchPreview(`${i.platform}:${i.name}`)"
+                              v-if="`${i.platform}:${i.value}:${i.type}:${i.verified}` !== selectedIdentity"
+                              :value="`${i.platform}:${i.value}:${i.type}:${i.verified}`"
+                              :label="i.value"
+                              @click="fetchPreview(`${i.platform}:${i.value}:${i.type}:${i.verified}`)"
                             >
                               <img
                                 v-if="platformDetails(i.platform)"
                                 class="h-5 w-5 mr-2"
-                                :alt="platformDetails(i.platform)?.name"
+                                :alt="platformDetails(i.platform)?.value"
                                 :src="platformDetails(i.platform)?.image"
                               />
-                              <span>{{ i.name }}</span>
+                              <span>{{ i.value }}</span>
                             </el-dropdown-item>
                           </template>
                         </template>
@@ -138,17 +138,17 @@
                 >
                   <el-option
                     v-for="i of identities"
-                    :key="`${i.platform}:${i.name}`"
-                    :value="`${i.platform}:${i.name}`"
-                    :label="i.name"
+                    :key="`${i.platform}:${i.value}:${i.type}:${i.verified}`"
+                    :value="`${i.platform}:${i.value}:${i.type}:${i.verified}`"
+                    :label="i.value"
                   >
                     <img
                       v-if="platformDetails(i.platform)"
                       class="h-5 w-5 mr-2"
-                      :alt="platformDetails(i.platform)?.name"
+                      :alt="platformDetails(i.platform)?.value"
                       :src="platformDetails(i.platform)?.image"
                     />
-                    {{ i.name }}
+                    {{ i.value }}
                   </el-option>
                 </el-select>
               </div>
@@ -222,8 +222,8 @@ const fetchPreview = (identity) => {
   selectedIdentity.value = identity;
   fetchingPreview.value = true;
 
-  const [platform, name] = identity.split(':');
-  OrganizationService.unmergePreview(props.modelValue?.id, platform, name)
+  const [platform, value, type, verified] = identity.split(':');
+  OrganizationService.unmergePreview(props.modelValue?.id, platform, value, type, verified === 'true' ?? false)
     .then((res) => {
       preview.value = res;
     })
@@ -270,7 +270,9 @@ const unmerge = () => {
 
 onMounted(() => {
   if (props.selectedIdentity) {
-    fetchPreview(`${props.selectedIdentity.platform}:${props.selectedIdentity.username}`);
+    fetchPreview(
+      `${props.selectedIdentity.platform}:${props.selectedIdentity.value}:${props.selectedIdentity.type}:${props.selectedIdentity.verified}`,
+    );
   }
 });
 

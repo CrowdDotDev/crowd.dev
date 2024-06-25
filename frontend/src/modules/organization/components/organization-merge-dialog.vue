@@ -22,7 +22,9 @@
               v-if="!organizationToMerge"
               :id="props.modelValue?.id"
               v-model="organizationToMerge"
+              :primary-organization="props.modelValue"
               style="margin-right: 5px"
+              @update:model-value="checkPrimaryOrganization"
             />
             <app-organization-merge-suggestions-details
               v-else
@@ -119,6 +121,12 @@ watch(() => props.toMerge, (toMerge) => {
 const changeOrganization = () => {
   organizationToMerge.value = null;
   originalOrganizationPrimary.value = true;
+};
+
+const checkPrimaryOrganization = (orgToMerge) => {
+  if (orgToMerge.lfxMembership) {
+    originalOrganizationPrimary.value = false;
+  }
 };
 
 const mergeSuggestion = () => {

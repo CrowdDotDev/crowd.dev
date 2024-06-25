@@ -7,7 +7,7 @@ const immediateParent: OrganizationEnrichmentConfig = {
   type: AttributeType.STRING,
   showInForm: true,
   showInAttributes: true,
-  displayValue: (value) => value,
+  formatValue: (value) => value,
 };
 
 export default immediateParent;

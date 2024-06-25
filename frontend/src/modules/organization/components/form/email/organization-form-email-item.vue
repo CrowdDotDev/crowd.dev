@@ -11,7 +11,7 @@
             <lf-button
               size="tiny"
               :icon-only="true"
-              :disabled="model.email === props.email"
+              :disabled="model.email === props.email || $v.$invalid"
               @click="update()"
             >
               <i class="ri-check-fill" />
@@ -31,7 +31,7 @@
     <lf-dropdown placement="bottom-end" width="15rem" class="ml-3">
       <template #trigger>
         <lf-button
-          type="secondary-ghost-light"
+          type="tertiary-light-gray"
           size="small"
           :icon-only="true"
           class="relative"
@@ -42,7 +42,6 @@
           />
         </lf-button>
       </template>
-
       <lf-dropdown-item type="danger" @click="emit('remove')">
         <i class="ri-delete-bin-6-line" />
         Delete email
@@ -50,7 +49,6 @@
     </lf-dropdown>
   </article>
 </template>
-
 <script setup lang="ts">
 import {
   ref,
@@ -59,6 +57,8 @@ import LfButton from '@/ui-kit/button/Button.vue';
 import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import { Organization } from '@/modules/organization/types/Organization';
+import { email } from '@vuelidate/validators';
+import useVuelidate from '@vuelidate/core';
 
 const emit = defineEmits<{(e: 'update', value: string): void,
   (e: 'remove'): void,
@@ -76,6 +76,13 @@ const model = ref({
   email: props.email,
 });
 
+const rules = {
+  email: {
+    email,
+  },
+};
+
+const $v = useVuelidate(rules, model);
 const update = () => {
   emit('update', model.value.email);
 };
@@ -85,7 +92,6 @@ const clear = () => {
   emit('clear');
 };
 </script>
-
 <script lang="ts">
 export default {
   name: 'AppOrganizationFormEmailItem',

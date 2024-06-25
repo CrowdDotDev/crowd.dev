@@ -33,6 +33,7 @@ import {
   updateVerifiedFlag,
   deleteMemberIdentitiesByCombinations,
   moveToNewMember,
+  findAlreadyExistingVerifiedIdentities,
 } from '@crowd/data-access-layer/src/member_identities'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import { findManyLfxMemberships } from '@crowd/data-access-layer/src/lfx_memberships'
@@ -753,7 +754,6 @@ class MemberRepository {
     'contributions',
     'score',
     'reach',
-    'joinedAt',
     'importHash',
     'tags',
     'website',
@@ -804,7 +804,6 @@ class MemberRepository {
     contributions: (a, b) => lodash.isEqual(a, b),
     score: (a, b) => a === b,
     reach: (a, b) => lodash.isEqual(a, b),
-    joinedAt: (a, b) => dateEqualityChecker(a, b),
     importHash: (a, b) => a === b,
   }
 
@@ -1729,7 +1728,8 @@ class MemberRepository {
       `
       SELECT
           s.id,
-          s.name
+          s.name,
+          COUNT(a.id) as activityCount
       FROM mv_activities_cube a
       JOIN segments s ON s.id = a."segmentId"
       WHERE a."memberId" = :id
@@ -3941,6 +3941,19 @@ class MemberRepository {
         platform: identity.platform,
       })
     }
+  }
+
+  static async findAlreadyExistingIdentities(
+    identities: IMemberIdentity[],
+    options: IRepositoryOptions,
+  ): Promise<IMemberIdentity[]> {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const qx = SequelizeRepository.getQueryExecutor(options, transaction)
+
+    const existingIdentities = await findAlreadyExistingVerifiedIdentities(qx, { identities })
+
+    return existingIdentities
   }
 }
 

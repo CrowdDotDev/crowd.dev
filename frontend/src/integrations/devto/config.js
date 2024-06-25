@@ -26,7 +26,4 @@ export default {
       number: conversation.activityCount - 1,
     }),
   },
-  organization: {
-    handle: (identity) => (identity.url ? identity.url.split('/').at(-1) : identity.name),
-  },
 };

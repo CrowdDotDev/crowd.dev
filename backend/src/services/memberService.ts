@@ -24,6 +24,7 @@ import {
   SyncMode,
   TemporalWorkflowId,
   MemberRoleUnmergeStrategy,
+  OrganizationIdentityType,
 } from '@crowd/types'
 import { randomUUID } from 'crypto'
 import lodash from 'lodash'
@@ -414,11 +415,14 @@ export default class MemberService extends LoggerBase {
           if (domain) {
             const org = await organizationService.createOrUpdate(
               {
-                website: domain,
+                displayName: domain,
+                names: [domain],
                 identities: [
                   {
-                    name: domain,
+                    value: domain,
+                    type: OrganizationIdentityType.PRIMARY_DOMAIN,
                     platform: 'email',
+                    verified: true,
                   },
                 ],
               },
@@ -645,8 +649,37 @@ export default class MemberService extends LoggerBase {
       // remove identities in secondary member from primary member
       await MemberRepository.removeIdentitiesFromMember(
         memberId,
-        payload.secondary.identities,
+        payload.secondary.identities.filter(
+          (i) =>
+            i.verified === undefined || // backwards compatibility for old identity backups
+            i.verified === true ||
+            (i.verified === false &&
+              !payload.primary.identities.some(
+                (pi) =>
+                  pi.verified === false &&
+                  pi.platform === i.platform &&
+                  pi.value === i.value &&
+                  pi.type === i.type,
+              )),
+        ),
         repoOptions,
+      )
+
+      // we need to exclude identities in secondary that still exists in some other member
+      const identitiesToExclude = await MemberRepository.findAlreadyExistingIdentities(
+        payload.secondary.identities.filter((i) => i.verified),
+        repoOptions,
+      )
+
+      payload.secondary.identities = payload.secondary.identities.filter(
+        (i) =>
+          !identitiesToExclude.some(
+            (ie) =>
+              ie.platform === i.platform &&
+              ie.value === i.value &&
+              ie.type === i.type &&
+              ie.verified,
+          ),
       )
 
       // create the secondary member
@@ -772,6 +805,9 @@ export default class MemberService extends LoggerBase {
       await MemberRepository.update(memberId, payload.primary, repoOptions, {
         doPopulateRelations: false,
       })
+
+      // add primary and secondary to no merge so they don't get suggested again
+      await MemberRepository.addNoMerge(memberId, secondaryMember.id, repoOptions)
 
       // trigger entity-merging-worker to move activities in the background
       await SequelizeRepository.commitTransaction(tx)
@@ -1274,7 +1310,10 @@ export default class MemberService extends LoggerBase {
 
           // Update original member
           const txService = new MemberService(repoOptions as IServiceOptions)
-          await txService.update(originalId, captureNewState({ primary: toUpdate }), {
+
+          captureNewState({ primary: toUpdate })
+
+          await txService.update(originalId, toUpdate, {
             syncToOpensearch: false,
             doPopulateRelations: false,
           })
@@ -1481,7 +1520,6 @@ export default class MemberService extends LoggerBase {
    */
   async addToNoMerge(memberOneId, memberTwoId) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
-    const searchSyncService = new SearchSyncService(this.options)
 
     try {
       await MemberRepository.addNoMerge(memberOneId, memberTwoId, {
@@ -1502,9 +1540,6 @@ export default class MemberService extends LoggerBase {
       })
 
       await SequelizeRepository.commitTransaction(transaction)
-
-      await searchSyncService.triggerMemberSync(this.options.currentTenant.id, memberOneId)
-      await searchSyncService.triggerMemberSync(this.options.currentTenant.id, memberTwoId)
 
       return { status: 200 }
     } catch (error) {

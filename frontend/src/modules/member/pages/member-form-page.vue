@@ -573,7 +573,7 @@ async function onSubmit() {
       .catch((error) => {
         if (error.response.status === 409) {
           leaveWithoutConfirmation.value = true;
-          Message.error(
+          Message.success(
             h(
               'div',
               {
@@ -596,7 +596,7 @@ async function onSubmit() {
               ],
             ),
             {
-              title: 'Member was not updated because the identity already exists in another member.',
+              title: 'Contributor was not updated because the identity already exists in another contributor, but you can merge the contributors',
             },
           );
 

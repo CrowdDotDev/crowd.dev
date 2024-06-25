@@ -13,6 +13,27 @@ export async function fetchOrgIdentities(qx: QueryExecutor, organizationId: stri
   )
 }
 
+export async function fetchManyOrgIdentities(
+  qx: QueryExecutor,
+  { organizationIds, tenantId }: { organizationIds: string[]; tenantId: string },
+) {
+  return qx.select(
+    `
+      SELECT
+          oi."organizationId",
+          JSONB_AGG(oi ORDER BY oi."createdAt") AS "identities"
+      FROM "organizationIdentities" oi
+      WHERE oi."organizationId" IN ($(organizationIds:csv))
+        AND oi."tenantId" = $(tenantId)
+      GROUP BY oi."organizationId"
+    `,
+    {
+      organizationIds,
+      tenantId,
+    },
+  )
+}
+
 export async function cleanUpOrgIdentities(qx: QueryExecutor, { organizationId, tenantId }) {
   return qx.result(
     `
@@ -28,30 +49,52 @@ export async function cleanUpOrgIdentities(qx: QueryExecutor, { organizationId, 
   )
 }
 
+export async function updateOrgIdentity(
+  qx: QueryExecutor,
+  { organizationId, tenantId, platform, value, type, verified },
+): Promise<void> {
+  await qx.result(
+    `
+    update "organizationIdentities" set verified = $(verified)
+    where "organizationId" = $(organizationId) and "tenantId" = $(tenantId) and platform = $(platform) and value = $(value) and type = $(type)
+    `,
+    {
+      organizationId,
+      tenantId,
+      platform,
+      value,
+      type,
+      verified,
+    },
+  )
+}
+
 export async function addOrgIdentity(
   qx: QueryExecutor,
-  { organizationId, platform, name, url, sourceId, tenantId, integrationId },
+  { organizationId, platform, value, type, verified, sourceId, tenantId, integrationId },
 ) {
   return qx.result(
     `
       INSERT INTO "organizationIdentities" (
         "organizationId",
-        "platform",
-        "name",
-        "url",
+        platform,
+        value,
+        type,
+        verified,
         "sourceId",
         "tenantId",
         "integrationId",
         "createdAt"
       )
-      VALUES ($(organizationId), $(platform), $(name), $(url), $(sourceId), $(tenantId), $(integrationId), NOW())
+      VALUES ($(organizationId), $(platform), $(value), $(type), $(verified), $(sourceId), $(tenantId), $(integrationId), NOW())
       ON CONFLICT DO NOTHING;
     `,
     {
       organizationId,
       platform,
-      name,
-      url,
+      value,
+      type,
+      verified,
       sourceId,
       tenantId,
       integrationId,

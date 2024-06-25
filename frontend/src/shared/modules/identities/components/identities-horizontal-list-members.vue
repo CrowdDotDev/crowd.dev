@@ -3,7 +3,12 @@
     :identities="identities.getIdentities()"
     :limit="limit"
     :as-svg="asSvg"
-  />
+    v-bind="$attrs"
+  >
+    <template v-if="$slots.badge" #badge>
+      <slot name="badge" />
+    </template>
+  </app-identities-horizontal-list>
 </template>
 
 <script setup lang="ts">

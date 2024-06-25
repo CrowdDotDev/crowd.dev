@@ -5,8 +5,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import {
+  computed, onBeforeMount, onMounted, ref, useSlots, watch,
+} from 'vue';
+import { useRoute } from 'vue-router';
 import { TabsSize } from '@/ui-kit/tabs/types/TabsSize';
 
 const props = withDefaults(defineProps<{
@@ -20,7 +22,9 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits<{(e: 'update:modelValue', value: string): void}>();
 
 const route = useRoute();
-const router = useRouter();
+const slots = useSlots();
+
+const tabList = ref<string[]>([]);
 
 const tabsValue = computed({
   get() {
@@ -34,12 +38,9 @@ const tabsValue = computed({
 const readHash = () => {
   const hash = route?.hash.replace('#', '');
   if (hash && hash !== tabsValue.value) {
-    tabsValue.value = hash;
-  } else {
-    router?.push({
-      hash: `#${tabsValue.value}`,
-      query: {},
-    });
+    if (tabList.value.includes(hash)) {
+      tabsValue.value = hash;
+    }
   }
 };
 
@@ -47,8 +48,20 @@ onMounted(() => {
   readHash();
 });
 
-watch(() => route.hash, (newHash) => {
+onBeforeMount(() => {
+  if (slots.default) {
+    tabList.value = slots.default()
+      .filter((child) => child.type.name === 'LfTab')
+      .map((tab) => tab.props.name);
+  }
+});
+
+watch(() => route.hash, () => {
   readHash();
+});
+
+defineExpose({
+  tabsValue,
 });
 </script>
 
