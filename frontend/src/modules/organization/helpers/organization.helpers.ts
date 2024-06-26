@@ -31,7 +31,27 @@ const useOrganizationHelpers = () => {
       }) || '',
     }));
 
-  const emails = (organization: Organization) => (organization.emails || []);
+  const emails = (organization: Organization) => {
+    const emailData: Record<string, any> = organization.identities
+      .filter((i) => OrganizationIdentityType.EMAIL === i.type)
+      .reduce((obj, identity) => {
+        const emailObject: Record<string, any> = { ...obj };
+        if (!(identity.value in emailObject)) {
+          emailObject[identity.value] = {
+            ...identity,
+            platforms: [],
+          };
+        }
+        emailObject[identity.value].platforms.push(identity.platform);
+        emailObject[identity.value].verified = emailObject[identity.value].verified || identity.verified;
+
+        return emailObject;
+      }, {});
+    return Object.keys(emailData).map((email) => ({
+      value: email,
+      ...emailData[email],
+    }));
+  };
 
   const primaryDomains = (organization: Organization) => organization.identities
     .filter((i) => OrganizationIdentityType.PRIMARY_DOMAIN === i.type);

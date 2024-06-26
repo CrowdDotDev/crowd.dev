@@ -37,7 +37,41 @@
                     />
                   </lf-button>
                 </template>
-
+                <lf-dropdown-item
+                  @click="emit('unmerge', identity)"
+                >
+                  <i class="ri-link-unlink" />
+                  Unmerge domain
+                </lf-dropdown-item>
+                <el-tooltip
+                  v-if="!identity.verified"
+                  content="Identities tracked from Integrations can’t be verified"
+                  placement="top-end"
+                  :disabled="!isVerifyDisabled(identity)"
+                >
+                  <lf-dropdown-item
+                    :disabled="isVerifyDisabled(identity)"
+                    @click="verify(identity.value, true)"
+                  >
+                    <i class="ri-verified-badge-line" />
+                    Verify domain
+                  </lf-dropdown-item>
+                </el-tooltip>
+                <el-tooltip
+                  v-else
+                  content="Identities tracked from Integrations can’t be unverified"
+                  placement="top-end"
+                  :disabled="!isVerifyDisabled(identity)"
+                >
+                  <lf-dropdown-item
+                    :disabled="isVerifyDisabled(identity)"
+                    @click="verify(identity.value, false)"
+                  >
+                    <app-svg name="unverify" class="!h-4 !w-4" />
+                    Unverify domain
+                  </lf-dropdown-item>
+                </el-tooltip>
+                <lf-dropdown-separator />
                 <lf-dropdown-item type="danger" @click="remove(identity.value)">
                   <i class="ri-delete-bin-6-line" />
                   Delete domain
@@ -60,7 +94,11 @@ import Message from '@/shared/message/message';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';
-import { Organization, OrganizationIdentityType } from '@/modules/organization/types/Organization';
+import {
+  Organization,
+  OrganizationIdentity,
+  OrganizationIdentityType,
+} from '@/modules/organization/types/Organization';
 import AppDrawer from '@/shared/drawer/drawer.vue';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
@@ -71,13 +109,15 @@ import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import useOrganizationHelpers from '@/modules/organization/helpers/organization.helpers';
 import { MemberIdentity } from '@/modules/member/types/Member';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
+import LfDropdownSeparator from '@/ui-kit/dropdown/DropdownSeparator.vue';
+import AppSvg from '@/shared/svg/svg.vue';
 
 const props = defineProps<{
   modelValue: boolean,
   organization: Organization,
 }>();
 
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits(['update:modelValue', 'unmerge']);
 
 const { trackEvent } = useProductTracking();
 
@@ -97,6 +137,8 @@ const drawerModel = computed({
 });
 
 const platformLabel = (platforms: string[]) => CrowdIntegrations.getPlatformsLabel(platforms);
+
+const isVerifyDisabled = (identity: OrganizationIdentity) => !!identity.sourceId || ['integration', 'lfid'].includes(identity.platform);
 
 const domainsIdentities = ref(domains(props.organization) || []);
 
@@ -147,6 +189,18 @@ const serverUpdate = () => {
 
 const remove = (name: string) => {
   domainsIdentities.value = domainsIdentities.value.filter((i) => i.value !== name);
+  serverUpdate();
+};
+const verify = (name: string, verified: boolean) => {
+  domainsIdentities.value = domainsIdentities.value.map((i) => {
+    if (i.value === name) {
+      return {
+        ...i,
+        verified,
+      };
+    }
+    return i;
+  });
   serverUpdate();
 };
 

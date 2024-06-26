@@ -7,11 +7,28 @@
         class="!h-8"
       >
         <template #suffix>
-          <div v-if="model.email !== props.email || !props.email" class="flex gap-1 -mr-1">
+          <div v-if="model.email === props.email.value && props.email.value">
+            <div class="flex items-center gap-2">
+              <el-tooltip v-if="platformLabel(props.email.platforms)" placement="top-end">
+                <template #content>
+                  <span class="font-semibold">Source:&nbsp;</span>{{ platformLabel(props.email.platforms) }}
+                </template>
+                <i class="ri-shining-fill text-sm" :class="isEnrichment(props.email.platforms) ? 'text-purple-400' : 'text-gray-300'" />
+              </el-tooltip>
+              <div v-if="model.email === props.email.value && props.email.value">
+                <i
+                  v-if="model.email && props.email.verified"
+                  class="ri-verified-badge-fill text-primary-500 text-base leading-4"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div v-if="model.email !== props.email.value || !props.email.value" class="flex gap-1 -mr-1">
             <lf-button
               size="tiny"
               :icon-only="true"
-              :disabled="model.email === props.email || $v.$invalid"
+              :disabled="model.email === props.email.value"
               @click="update()"
             >
               <i class="ri-check-fill" />
@@ -28,6 +45,7 @@
         </template>
       </el-input>
     </div>
+
     <lf-dropdown placement="bottom-end" width="15rem" class="ml-3">
       <template #trigger>
         <lf-button
@@ -42,6 +60,53 @@
           />
         </lf-button>
       </template>
+      <el-tooltip
+        content="Not possible to unmerge an unsaved identity"
+        placement="top-end"
+        :disabled="model.email === props.email.value"
+      >
+        <lf-dropdown-item
+          :disabled="model.email !== props.email.value"
+          @click="emit('unmerge', {
+            platform: props.email.platform as Platform,
+            value: props.email.value as string,
+            type: props.email.type as OrganizationIdentityType,
+            verified: props.email.verified as boolean,
+          })"
+        >
+          <i class="ri-link-unlink" />
+          Unmerge identity
+        </lf-dropdown-item>
+      </el-tooltip>
+      <el-tooltip
+        v-if="!props.email.verified"
+        content="Identities tracked from Integrations can’t be verified"
+        placement="top-end"
+        :disabled="!isVerifyDisabled"
+      >
+        <lf-dropdown-item
+          :disabled="isVerifyDisabled"
+          @click="verify(true)"
+        >
+          <i class="ri-verified-badge-line" />
+          Verify email
+        </lf-dropdown-item>
+      </el-tooltip>
+      <el-tooltip
+        v-else
+        content="Identities tracked from Integrations can’t be unverified"
+        placement="top-end"
+        :disabled="!isVerifyDisabled"
+      >
+        <lf-dropdown-item
+          :disabled="isVerifyDisabled"
+          @click="verify(false)"
+        >
+          <app-svg name="unverify" class="!h-4 !w-4" />
+          Unverify email
+        </lf-dropdown-item>
+      </el-tooltip>
+      <lf-dropdown-separator />
       <lf-dropdown-item type="danger" @click="emit('remove')">
         <i class="ri-delete-bin-6-line" />
         Delete email
@@ -50,22 +115,27 @@
   </article>
 </template>
 <script setup lang="ts">
-import {
-  ref,
-} from 'vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
-import { Organization } from '@/modules/organization/types/Organization';
-import { email } from '@vuelidate/validators';
-import useVuelidate from '@vuelidate/core';
+import {
+  Organization,
+  OrganizationIdentity,
+  OrganizationIdentityType,
+} from '@/modules/organization/types/Organization';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
+import LfDropdownSeparator from '@/ui-kit/dropdown/DropdownSeparator.vue';
+import AppSvg from '@/shared/svg/svg.vue';
+import { computed, ref } from 'vue';
+import { Platform } from '@/shared/modules/platform/types/Platform';
 
-const emit = defineEmits<{(e: 'update', value: string): void,
+const emit = defineEmits<{(e: 'update', value: Partial<OrganizationIdentity>): void,
+  (e: 'unmerge', value: Partial<OrganizationIdentity>): void,
   (e: 'remove'): void,
   (e: 'clear'): void}>();
 
 const props = withDefaults(defineProps<{
-  email: string,
+  email: OrganizationIdentity,
   organization: Organization,
   actionsDisabled?: boolean,
 }>(), {
@@ -73,22 +143,29 @@ const props = withDefaults(defineProps<{
 });
 
 const model = ref({
-  email: props.email,
+  email: props.email.value,
 });
 
-const rules = {
-  email: {
-    email,
-  },
+const platformLabel = (platforms: string[]) => CrowdIntegrations.getPlatformsLabel(platforms);
+const isEnrichment = (platforms?: string[]) => (platforms || []).includes('enrichment');
+
+const isVerifyDisabled = computed(
+  () => !!props.email.sourceId || ['integration', 'lfid'].includes(props.email.platform),
+);
+const verify = (verified: boolean) => {
+  emit('update', {
+    verified,
+  });
 };
 
-const $v = useVuelidate(rules, model);
 const update = () => {
-  emit('update', model.value.email);
+  emit('update', {
+    value: model.value.email,
+  });
 };
 
 const clear = () => {
-  model.value.email = props.email;
+  model.value.email = props.email.value;
   emit('clear');
 };
 </script>

@@ -40,7 +40,13 @@
     v-if="edit"
     v-model="edit"
     :organization="organization"
+    @unmerge="unmerge"
     @reload="emit('reload')"
+  />
+  <app-organization-unmerge-dialog
+    v-if="isUnmergeDialogOpen"
+    v-model="isUnmergeDialogOpen"
+    :selected-identity="selectedIdentity"
   />
 </template>
 
@@ -56,6 +62,7 @@ import LfOrganizationDetailsDomainsSection
   from '@/modules/organization/components/details/domains/organization-details-domains-section.vue';
 import AppOrganizationManageDomainsDrawer
   from '@/modules/organization/components/organization-manage-domains-drawer.vue';
+import AppOrganizationUnmergeDialog from '@/modules/organization/components/organization-unmerge-dialog.vue';
 
 const props = defineProps<{
   organization: Organization,
@@ -71,6 +78,15 @@ const {
 } = useOrganizationHelpers();
 
 const edit = ref<boolean>(false);
+const isUnmergeDialogOpen = ref(null);
+const selectedIdentity = ref(null);
+
+const unmerge = (identity: any) => {
+  if (identity) {
+    selectedIdentity.value = identity;
+  }
+  isUnmergeDialogOpen.value = props.organization as any;
+};
 </script>
 
 <script lang="ts">
