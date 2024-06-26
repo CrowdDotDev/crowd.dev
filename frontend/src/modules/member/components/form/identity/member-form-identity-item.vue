@@ -190,7 +190,7 @@ const editingDisabled = computed(() => {
 });
 
 const isVerifyDisabled = computed(
-  () => !!props.identity.sourceId || props.identity.platform === 'integration',
+  () => !!props.identity.sourceId || ['integration', 'lfid'].includes(props.identity.platform),
 );
 
 const update = () => {

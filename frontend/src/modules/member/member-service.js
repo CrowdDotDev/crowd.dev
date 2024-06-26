@@ -262,15 +262,12 @@ export class MemberService {
     return response.data;
   }
 
-  static async unmergePreview(memberId, platform, username) {
+  static async unmergePreview(memberId, identity) {
     const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/member/${memberId}/unmerge/preview`,
-      {
-        platform,
-        username,
-      },
+      identity,
     );
 
     return response.data;

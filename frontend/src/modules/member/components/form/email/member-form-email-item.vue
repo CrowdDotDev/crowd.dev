@@ -165,7 +165,8 @@ const rules = {
 const $v = useVuelidate(rules, model);
 
 const isVerifyDisabled = computed(
-  () => !!props.identity.sourceId || props.identity.platforms?.includes('integration'),
+  () => !!props.identity.sourceId
+      || props.identity.platforms?.some((platform) => ['integration', 'lfid'].includes(platform)),
 );
 
 const update = () => {

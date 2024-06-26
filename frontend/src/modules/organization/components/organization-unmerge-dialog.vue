@@ -98,16 +98,21 @@
                         <template #dropdown>
                           <template
                             v-for="i of identities"
-                            :key="`${i.platform}:${i.value}:${i.type}:${i.verified}`"
+                            :key="`${i.platform}:${i.value}:${i.type}`"
                           >
                             <el-dropdown-item
-                              v-if="`${i.platform}:${i.value}:${i.type}:${i.verified}` !== selectedIdentity"
-                              :value="`${i.platform}:${i.value}:${i.type}:${i.verified}`"
+                              v-if="`${i.platform}:${i.value}:${i.type}` !== selectedIdentity"
+                              :value="`${i.platform}:${i.value}:${i.type}`"
                               :label="i.value"
-                              @click="fetchPreview(`${i.platform}:${i.value}:${i.type}:${i.verified}`)"
+                              @click="fetchPreview(`${i.platform}:${i.value}:${i.type}`)"
                             >
+                              <i v-if="i.type === 'email'" class="text-gray-900 text-lg leading-5 mr-2 ri-mail-line" />
+                              <i
+                                v-else-if="['primary-domain', 'alternative-domain', 'affiliated-profile'].includes(i.type)"
+                                class="text-gray-900 text-lg leading-5 mr-2 ri-window-line"
+                              />
                               <img
-                                v-if="platformDetails(i.platform)"
+                                v-else-if="platformDetails(i.platform)"
                                 class="h-5 w-5 mr-2"
                                 :alt="platformDetails(i.platform)?.value"
                                 :src="platformDetails(i.platform)?.image"
@@ -138,12 +143,17 @@
                 >
                   <el-option
                     v-for="i of identities"
-                    :key="`${i.platform}:${i.value}:${i.type}:${i.verified}`"
-                    :value="`${i.platform}:${i.value}:${i.type}:${i.verified}`"
+                    :key="`${i.platform}:${i.value}:${i.type}`"
+                    :value="`${i.platform}:${i.value}:${i.type}`"
                     :label="i.value"
                   >
+                    <i v-if="i.type === 'email'" class="text-gray-900 text-lg leading-5 mr-2 ri-mail-line" />
+                    <i
+                      v-else-if="['primary-domain', 'alternative-domain', 'affiliated-profile'].includes(i.type)"
+                      class="text-gray-900 text-lg leading-5 mr-2 ri-window-line"
+                    />
                     <img
-                      v-if="platformDetails(i.platform)"
+                      v-else-if="platformDetails(i.platform)"
                       class="h-5 w-5 mr-2"
                       :alt="platformDetails(i.platform)?.value"
                       :src="platformDetails(i.platform)?.image"
@@ -205,11 +215,26 @@ const isModalOpen = computed({
   },
 });
 
+const identityOrder = [
+  'username',
+  'primary-domain',
+  'alternative-domain',
+  'affiliated-profile',
+  'email',
+];
+
 const identities = computed(() => {
   if (!props.modelValue?.identities) {
     return [];
   }
-  return props.modelValue.identities;
+  return (props.modelValue.identities || [])
+    .sort((a, b) => {
+      const aIndex = identityOrder.indexOf(a.type);
+      const bIndex = identityOrder.indexOf(b.type);
+      const aOrder = aIndex !== -1 ? aIndex : identityOrder.length;
+      const bOrder = bIndex !== -1 ? bIndex : identityOrder.length;
+      return aOrder - bOrder;
+    });
 });
 
 const platformDetails = (platform) => CrowdIntegrations.getConfig(platform);
@@ -222,8 +247,9 @@ const fetchPreview = (identity) => {
   selectedIdentity.value = identity;
   fetchingPreview.value = true;
 
-  const [platform, value, type, verified] = identity.split(':');
-  OrganizationService.unmergePreview(props.modelValue?.id, platform, value, type, verified === 'true' ?? false)
+  const [platform, value, type] = identity.split(':');
+  const foundIdentity = identities.value.find((i) => i.platform === platform && i.value === value && i.type === type);
+  OrganizationService.unmergePreview(props.modelValue?.id, foundIdentity)
     .then((res) => {
       preview.value = res;
     })
