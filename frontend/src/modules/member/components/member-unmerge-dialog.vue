@@ -297,7 +297,8 @@ const isModalOpen = computed({
 
 const platformDetails = (platform) => CrowdIntegrations.getConfig(platform);
 
-const identities = computed(() => props.modelValue.identities.filter((i) => i.type !== 'email'));
+const identities = computed(() => props.modelValue.identities);
+// const identities = computed(() => props.modelValue.identities.filter((i) => i.type !== 'email'));
 
 const fetchPreview = (identity) => {
   if (fetchingPreview.value) {

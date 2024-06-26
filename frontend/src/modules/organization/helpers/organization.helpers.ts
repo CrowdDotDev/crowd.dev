@@ -34,10 +34,10 @@ const useOrganizationHelpers = () => {
   const emails = (organization: Organization) => (organization.emails || []);
 
   const primaryDomains = (organization: Organization) => organization.identities
-    .filter((i) => OrganizationIdentityType.PRIMARY_DOMAIN === i.type && !['email'].includes(i.platform));
+    .filter((i) => OrganizationIdentityType.PRIMARY_DOMAIN === i.type);
 
   const alternativeDomains = (organization: Organization) => organization.identities
-    .filter((i) => OrganizationIdentityType.ALTERNATIVE_DOMAIN === i.type && !['email'].includes(i.platform));
+    .filter((i) => OrganizationIdentityType.ALTERNATIVE_DOMAIN === i.type);
 
   const domains = (organization: Organization) => [
     ...primaryDomains(organization),

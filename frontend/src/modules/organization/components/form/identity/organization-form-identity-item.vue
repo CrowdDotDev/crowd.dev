@@ -96,22 +96,28 @@
           Unmerge identity
         </lf-dropdown-item>
       </el-tooltip>
-      <lf-dropdown-item
+      <el-tooltip
         v-if="!props.identity.verified"
-        @click="verify(true)"
+        content="Identities tracked from Integrations can’t be verified"
+        placement="top-end"
+        :disabled="!isVerifyDisabled"
       >
-        <i class="ri-verified-badge-line" />
-        Verify identity
-      </lf-dropdown-item>
-
+        <lf-dropdown-item
+          :disabled="isVerifyDisabled"
+          @click="verify(true)"
+        >
+          <i class="ri-verified-badge-line" />
+          Verify identity
+        </lf-dropdown-item>
+      </el-tooltip>
       <el-tooltip
         v-else
         content="Identities tracked from Integrations can’t be unverified"
         placement="top-end"
-        :disabled="!props.identity.sourceId"
+        :disabled="!isVerifyDisabled"
       >
         <lf-dropdown-item
-          :disabled="!!props.identity.sourceId"
+          :disabled="isVerifyDisabled"
           @click="verify(false)"
         >
           <app-svg name="unverify" class="!h-4 !w-4" />
@@ -168,6 +174,10 @@ const prefixes: Record<string, string> = {
   twitter: 'twitter.com/',
   crunchbase: 'crunchbase.com/organization/',
 };
+
+const isVerifyDisabled = computed(
+  () => !!props.identity.sourceId || props.identity.platform === 'integration',
+);
 
 const update = () => {
   emit('update', {

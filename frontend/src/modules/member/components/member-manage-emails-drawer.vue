@@ -24,6 +24,7 @@
                 :member="props.member"
                 @update="update(email, $event)"
                 @remove="remove(email)"
+                @unmerge="emit('unmerge', $event)"
               />
             </template>
           </template>
@@ -60,7 +61,7 @@ const props = defineProps<{
   member: Member,
 }>();
 
-const emit = defineEmits(['update:modelValue', 'reload']);
+const emit = defineEmits(['update:modelValue', 'unmerge', 'reload']);
 
 const { trackEvent } = useProductTracking();
 

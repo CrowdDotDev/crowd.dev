@@ -15,7 +15,7 @@
     </router-link>
     <lf-dropdown-separator />
   </template>
-  <lf-dropdown-item v-if="identities.length > 1 && hasPermission(LfPermission.memberEdit)" @click="unmerge = props.contributor">
+  <lf-dropdown-item v-if="props.contributor.identities.length > 1 && hasPermission(LfPermission.memberEdit)" @click="unmerge = props.contributor">
     <lf-icon name="link-unlink" />
     Unmerge contributor
   </lf-dropdown-item>
@@ -60,7 +60,7 @@ import { doManualAction } from '@/shared/helpers/manualAction.helpers';
 import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import AppMemberUnmergeDialog from '@/modules/member/components/member-unmerge-dialog.vue';
-import { computed, ref } from 'vue';
+import { ref } from 'vue';
 
 const props = defineProps<{
   contributor: Contributor,
@@ -163,7 +163,6 @@ const deleteContributor = () => {
   });
 };
 
-const identities = computed(() => (props.contributor.identities || []).filter((i) => i.type !== 'email'));
 </script>
 
 <script lang="ts">

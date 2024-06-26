@@ -67,20 +67,45 @@
         </lf-button>
       </template>
 
-      <lf-dropdown-item
-        v-if="!props.identity.verified"
-        @click="verify(true)"
+      <el-tooltip
+        content="Not possible to unmerge an unsaved email"
+        placement="top-end"
+        :disabled="model.value === props.identity.value"
       >
-        <i class="ri-verified-badge-line" />
-        Verify identity
-      </lf-dropdown-item>
+        <lf-dropdown-item
+          :disabled="model.value !== props.identity.value"
+          @click="emit('unmerge', {
+            platform: props.identity.platform,
+            username: props.identity.value,
+          })"
+        >
+          <i class="ri-link-unlink" />
+          Unmerge email
+        </lf-dropdown-item>
+      </el-tooltip>
+      <el-tooltip
+        v-if="!props.identity.verified"
+        content="Emails tracked from Integrations can’t be verified"
+        placement="top-end"
+        :disabled="!isVerifyDisabled"
+      >
+        <lf-dropdown-item
+          v-if="!props.identity.verified"
+          :disabled="isVerifyDisabled"
+          @click="verify(true)"
+        >
+          <i class="ri-verified-badge-line" />
+          Verify email
+        </lf-dropdown-item>
+      </el-tooltip>
       <el-tooltip
         v-else
         content="Emails tracked from Integrations can’t be unverified"
         placement="top-end"
-        :disabled="!props.identity.sourceId"
+        :disabled="!isVerifyDisabled"
       >
         <lf-dropdown-item
+          :disabled="isVerifyDisabled"
           @click="verify(false)"
         >
           <lf-svg name="unverify" class="!h-4 !w-4" />
@@ -113,6 +138,7 @@ import { email } from '@vuelidate/validators';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 
 const emit = defineEmits<{(e: 'update', value: Partial<MemberIdentity>): void,
+  (e: 'unmerge', value: { platform: string, username: string }): void,
   (e: 'remove'): void,
   (e: 'clear'): void}>();
 
@@ -138,6 +164,10 @@ const rules = {
 
 const $v = useVuelidate(rules, model);
 
+const isVerifyDisabled = computed(
+  () => !!props.identity.sourceId || props.identity.platforms?.includes('integration'),
+);
+
 const update = () => {
   emit('update', {
     value: model.value.value,
@@ -150,6 +180,9 @@ const clear = () => {
 };
 
 const verify = (verified: boolean) => {
+  if (isVerifyDisabled.value) {
+    return;
+  }
   emit('update', {
     verified,
   });

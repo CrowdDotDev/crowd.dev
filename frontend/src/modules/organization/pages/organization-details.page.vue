@@ -147,7 +147,7 @@ const handleTabChange = () => {
 };
 
 onMounted(() => {
-  // organization.value = null;
+  organization.value = null;
   getOrganization();
 });
 </script>
