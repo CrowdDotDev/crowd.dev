@@ -247,7 +247,7 @@ const fetchPreview = (identity) => {
   const {
     platform, value, type, verified,
   } = identity;
-  OrganizationService.unmergePreview(props.modelValue?.id, platform, value, type, verified === 'true' ?? false)
+  OrganizationService.unmergePreview(props.modelValue?.id, platform, value, type, verified)
     .then((res) => {
       preview.value = res;
     })
