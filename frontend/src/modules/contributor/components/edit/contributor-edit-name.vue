@@ -6,7 +6,7 @@
     hover:!bg-gray-200 group-hover:bg-gray-100
     focus:!bg-white focus:border-gray-900"
     style="max-width: 30ch"
-    :class="form.name.length <= 30 ? 'focus:whitespace-nowrap' : 'focus:whitespace-normal'"
+    :class="form.name.length <= 30 ? 'focus:whitespace-nowrap' : 'focus:whitespace-normal focus:w-full'"
     @blur="update"
   />
 </template>
