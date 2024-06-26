@@ -73,7 +73,7 @@ setImmediate(async () => {
     fixableMembers = result.rows
 
     for (const member of fixableMembers) {
-      const displayName = getProperDisplayName(member.displayName.split(' ')[0])
+      const displayName = getProperDisplayName(member.displayName)
       await updateMemberDisplayName(dbClient, member.id, displayName)
 
       searchSyncWorkerEmitter.triggerMemberSync(tenantId, member.id, false)
