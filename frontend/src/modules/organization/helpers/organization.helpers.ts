@@ -47,7 +47,7 @@ const useOrganizationHelpers = () => {
   const website = (organization: Organization) => primaryDomains(organization)?.[0];
 
   const affiliatedProfiles = (organization: Organization) => organization.identities
-    .filter((i) => OrganizationIdentityType.EMAIL === i.type && !['email'].includes(i.platform));
+    .filter((i) => OrganizationIdentityType.AFFILIATED_PROFILE === i.type);
 
   const phoneNumbers = (organization: Organization) => organization.phoneNumbers || [];
 
