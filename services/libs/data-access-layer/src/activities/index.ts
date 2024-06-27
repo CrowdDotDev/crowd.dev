@@ -57,7 +57,8 @@ export async function getOrgAggregates(
           MAX(a.timestamp) AS "lastActive",
           ARRAY_AGG(DISTINCT a.platform) AS "activeOn",
           COUNT(DISTINCT a.id) AS "activityCount",
-          COUNT(DISTINCT a."memberId") AS "memberCount"
+          COUNT(DISTINCT a."memberId") AS "memberCount",
+          ROUND(AVG(a.score)) AS "avgContributorEngagement"
       FROM activities a
       JOIN organizations o ON o."id" = a."organizationId"
       JOIN segments_with_children s ON s.subproject = a."segmentId"
