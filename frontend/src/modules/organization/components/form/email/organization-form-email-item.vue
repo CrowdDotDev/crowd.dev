@@ -116,13 +116,11 @@ import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import {
   Organization,
   OrganizationIdentity,
-  OrganizationIdentityType,
 } from '@/modules/organization/types/Organization';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import LfDropdownSeparator from '@/ui-kit/dropdown/DropdownSeparator.vue';
 import AppSvg from '@/shared/svg/svg.vue';
 import { computed, ref } from 'vue';
-import { Platform } from '@/shared/modules/platform/types/Platform';
 
 const emit = defineEmits<{(e: 'update', value: Partial<OrganizationIdentity>): void,
   (e: 'unmerge', value: Partial<OrganizationIdentity>): void,

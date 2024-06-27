@@ -269,7 +269,7 @@ const identities = computed(() => {
       const bOrder = bIndex !== -1 ? bIndex : identityOrder.length;
       return aOrder - bOrder;
     })
-      .map((i) => parseIdentityValues(i));
+    .map((i) => parseIdentityValues(i));
 });
 
 const platformDetails = (platform) => CrowdIntegrations.getConfig(platform);
