@@ -98,13 +98,13 @@
                         <template #dropdown>
                           <template
                             v-for="i of identities"
-                            :key="`${i.platform}:${i.value}:${i.type}`"
+                            :key="i.id"
                           >
                             <el-dropdown-item
-                              v-if="`${i.platform}:${i.value}:${i.type}` !== selectedIdentity"
-                              :value="`${i.platform}:${i.value}:${i.type}`"
-                              :label="i.value"
-                              @click="fetchPreview(`${i.platform}:${i.value}:${i.type}`)"
+                              v-if="i.id !== selectedIdentity.id"
+                              :value="i"
+                              :label="i.displayValue"
+                              @click="fetchPreview(i)"
                             >
                               <i v-if="i.type === 'email'" class="text-gray-900 text-lg leading-5 mr-2 ri-mail-line" />
                               <i
@@ -123,7 +123,7 @@
                                 :size="20"
                                 class="text-gray-600 mr-2"
                               />
-                              <span>{{ i.value }}</span>
+                              <span>{{ i.displayValue }}</span>
                             </el-dropdown-item>
                           </template>
                         </template>
@@ -145,13 +145,14 @@
                 <el-select
                   placeholder="Select identity"
                   class="w-full"
+                  value-key="id"
                   @update:model-value="fetchPreview($event)"
                 >
                   <el-option
                     v-for="i of identities"
-                    :key="`${i.platform}:${i.value}:${i.type}`"
-                    :value="`${i.platform}:${i.value}:${i.type}`"
-                    :label="i.value"
+                    :key="i.id"
+                    :value="i"
+                    :label="i.displayValue"
                   >
                     <i v-if="i.type === 'email'" class="text-gray-900 text-lg leading-5 mr-2 ri-mail-line" />
                     <i
@@ -170,7 +171,7 @@
                       :size="20"
                       class="text-gray-600 mr-2"
                     />
-                    {{ i.value }}
+                    {{ i.displayValue }}
                   </el-option>
                 </el-select>
               </div>
@@ -193,6 +194,7 @@ import AppOrganizationMergeSuggestionsDetails
   from '@/modules/organization/components/suggestions/organization-merge-suggestions-details.vue';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import { Platform } from '@/shared/modules/platform/types/Platform';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps({
@@ -215,6 +217,25 @@ const unmerging = ref(false);
 const fetchingPreview = ref(false);
 const preview = ref(null);
 const selectedIdentity = ref(null);
+
+const parseIdentityValues = (identity) => {
+  const splittedIdentity = identity.value?.split(':');
+
+  if (identity.platform === Platform.LINKEDIN && splittedIdentity.length === 2) {
+    return {
+      ...identity,
+      id: `${identity.platform}:${identity.value}:${identity.type}:${identity.verified}`,
+      value: identity.value,
+      displayValue: splittedIdentity[1],
+    };
+  }
+
+  return {
+    ...identity,
+    id: `${identity.platform}:${identity.value}:${identity.type}:${identity.verified}`,
+    displayValue: identity.value,
+  };
+};
 
 const isModalOpen = computed({
   get() {
@@ -247,7 +268,8 @@ const identities = computed(() => {
       const aOrder = aIndex !== -1 ? aIndex : identityOrder.length;
       const bOrder = bIndex !== -1 ? bIndex : identityOrder.length;
       return aOrder - bOrder;
-    });
+    })
+      .map((i) => parseIdentityValues(i));
 });
 
 const platformDetails = (platform) => CrowdIntegrations.getConfig(platform);
@@ -260,13 +282,15 @@ const fetchPreview = (identity) => {
   selectedIdentity.value = identity;
   fetchingPreview.value = true;
 
-  const [platform, value, type] = identity.split(':');
+  const {
+    platform, value, type, verified,
+  } = identity;
   const foundIdentity = identities.value.find((i) => i.platform === platform && i.value === value && i.type === type);
   OrganizationService.unmergePreview(props.modelValue?.id, foundIdentity)
     .then((res) => {
       preview.value = res;
     })
-    .catch((error) => {
+    .catch(() => {
       Message.error('There was an error fetching unmerge preview');
     })
     .finally(() => {
@@ -309,9 +333,9 @@ const unmerge = () => {
 
 onMounted(() => {
   if (props.selectedIdentity) {
-    fetchPreview(
-      `${props.selectedIdentity.platform}:${props.selectedIdentity.value}:${props.selectedIdentity.type}:${props.selectedIdentity.verified}`,
-    );
+    const identity = parseIdentityValues(props.selectedIdentity);
+
+    fetchPreview(identity);
   }
 });
 

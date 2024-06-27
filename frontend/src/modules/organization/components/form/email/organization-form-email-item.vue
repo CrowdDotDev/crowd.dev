@@ -67,12 +67,7 @@
       >
         <lf-dropdown-item
           :disabled="model.email !== props.email.value"
-          @click="emit('unmerge', {
-            platform: props.email.platform as Platform,
-            value: props.email.value as string,
-            type: props.email.type as OrganizationIdentityType,
-            verified: props.email.verified as boolean,
-          })"
+          @click="emit('unmerge', props.email)"
         >
           <i class="ri-link-unlink" />
           Unmerge identity
