@@ -156,8 +156,9 @@
                               :label="i.value"
                               @click="fetchPreview(`${i.type}:${i.platform}:${i.value}`)"
                             >
+                              <i v-if="i.type === 'email'" class="text-gray-900 text-lg leading-5 mr-2 ri-mail-line" />
                               <img
-                                v-if="platformDetails(i.platform)"
+                                v-else-if="platformDetails(i.platform)"
                                 class="h-5 w-5 mr-2"
                                 :alt="platformDetails(i.platform)?.name"
                                 :src="platformDetails(i.platform)?.image"
