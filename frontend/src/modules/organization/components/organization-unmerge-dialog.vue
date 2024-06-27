@@ -117,6 +117,12 @@
                                 :alt="platformDetails(i.platform)?.value"
                                 :src="platformDetails(i.platform)?.image"
                               />
+                              <lf-icon
+                                v-else
+                                name="fingerprint-fill"
+                                :size="20"
+                                class="text-gray-600 mr-2"
+                              />
                               <span>{{ i.value }}</span>
                             </el-dropdown-item>
                           </template>
@@ -158,6 +164,12 @@
                       :alt="platformDetails(i.platform)?.value"
                       :src="platformDetails(i.platform)?.image"
                     />
+                    <lf-icon
+                      v-else
+                      name="fingerprint-fill"
+                      :size="20"
+                      class="text-gray-600 mr-2"
+                    />
                     {{ i.value }}
                   </el-option>
                 </el-select>
@@ -181,6 +193,7 @@ import AppOrganizationMergeSuggestionsDetails
   from '@/modules/organization/components/suggestions/organization-merge-suggestions-details.vue';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps({
   modelValue: {

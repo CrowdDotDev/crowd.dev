@@ -75,6 +75,7 @@
         <lf-dropdown-item
           :disabled="model.value !== props.identity.value"
           @click="emit('unmerge', {
+            type: props.identity.type,
             platform: props.identity.platform,
             username: props.identity.value,
           })"
@@ -138,7 +139,7 @@ import { email } from '@vuelidate/validators';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 
 const emit = defineEmits<{(e: 'update', value: Partial<MemberIdentity>): void,
-  (e: 'unmerge', value: { platform: string, username: string }): void,
+  (e: 'unmerge', value: { platform: string, username: string, type: string }): void,
   (e: 'remove'): void,
   (e: 'clear'): void}>();
 

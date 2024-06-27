@@ -5,7 +5,8 @@
         Domains
       </h6>
       <lf-button
-        v-if="hasPermission(LfPermission.organizationEdit)"
+        v-if="hasPermission(LfPermission.organizationEdit)
+          && (domains(props.organization).length > 0 || affiliatedProfiles(props.organization).length > 0)"
         type="secondary"
         size="small"
         :icon-only="true"

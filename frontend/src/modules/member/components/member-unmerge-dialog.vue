@@ -162,6 +162,12 @@
                                 :alt="platformDetails(i.platform)?.name"
                                 :src="platformDetails(i.platform)?.image"
                               />
+                              <lf-icon
+                                v-else
+                                name="fingerprint-fill"
+                                :size="20"
+                                class="text-gray-600 mr-2"
+                              />
                               <span>{{ i.value }}</span>
                             </el-dropdown-item>
                           </template>
@@ -230,6 +236,12 @@
                       :alt="platformDetails(i.platform)?.name"
                       :src="platformDetails(i.platform)?.image"
                     />
+                    <lf-icon
+                      v-else
+                      name="fingerprint-fill"
+                      :size="20"
+                      class="text-gray-600 mr-2"
+                    />
                     {{ i.value }}
                   </el-option>
                 </el-select>
@@ -256,6 +268,7 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import AppMemberSuggestionsDetails from './suggestions/member-merge-suggestions-details.vue';
 
 const props = defineProps({
@@ -378,7 +391,7 @@ const unmerge = () => {
 
 onMounted(() => {
   if (props.selectedIdentity) {
-    fetchPreview(`${props.selectedIdentity.platform}:${props.selectedIdentity.username}`);
+    fetchPreview(`${props.selectedIdentity.type}:${props.selectedIdentity.platform}:${props.selectedIdentity.username}`);
   }
 });
 
