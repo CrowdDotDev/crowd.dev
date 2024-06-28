@@ -29,18 +29,6 @@
           type="textarea"
         />
       </el-form-item>
-      <el-form-item :label="fields.description.label">
-        <el-input
-          v-model="model[fields.description.name]"
-          type="textarea"
-        />
-      </el-form-item>
-      <el-form-item
-        :label="fields.location.label"
-        class="w-1/2"
-      >
-        <el-input v-model="model[fields.location.name]" />
-      </el-form-item>
       <el-form-item class="w-1/2">
         <template #label>
           <div class="flex gap-2 items-center">
