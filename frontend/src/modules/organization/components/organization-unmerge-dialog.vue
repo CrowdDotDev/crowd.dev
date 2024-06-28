@@ -106,11 +106,22 @@
                               :label="i.displayValue"
                               @click="fetchPreview(i)"
                             >
+                              <i v-if="i.type === 'email'" class="text-gray-900 text-lg leading-5 mr-2 ri-mail-line" />
+                              <i
+                                v-else-if="['primary-domain', 'alternative-domain', 'affiliated-profile'].includes(i.type)"
+                                class="text-gray-900 text-lg leading-5 mr-2 ri-window-line"
+                              />
                               <img
-                                v-if="platformDetails(i.platform)"
+                                v-else-if="platformDetails(i.platform)"
                                 class="h-5 w-5 mr-2"
                                 :alt="platformDetails(i.platform)?.value"
                                 :src="platformDetails(i.platform)?.image"
+                              />
+                              <lf-icon
+                                v-else
+                                name="fingerprint-fill"
+                                :size="20"
+                                class="text-gray-600 mr-2"
                               />
                               <span>{{ i.displayValue }}</span>
                             </el-dropdown-item>
@@ -143,11 +154,22 @@
                     :value="i"
                     :label="i.displayValue"
                   >
+                    <i v-if="i.type === 'email'" class="text-gray-900 text-lg leading-5 mr-2 ri-mail-line" />
+                    <i
+                      v-else-if="['primary-domain', 'alternative-domain', 'affiliated-profile'].includes(i.type)"
+                      class="text-gray-900 text-lg leading-5 mr-2 ri-window-line"
+                    />
                     <img
-                      v-if="platformDetails(i.platform)"
+                      v-else-if="platformDetails(i.platform)"
                       class="h-5 w-5 mr-2"
                       :alt="platformDetails(i.platform)?.value"
                       :src="platformDetails(i.platform)?.image"
+                    />
+                    <lf-icon
+                      v-else
+                      name="fingerprint-fill"
+                      :size="20"
+                      class="text-gray-600 mr-2"
                     />
                     {{ i.displayValue }}
                   </el-option>
@@ -173,6 +195,7 @@ import AppOrganizationMergeSuggestionsDetails
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { Platform } from '@/shared/modules/platform/types/Platform';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps({
   modelValue: {
@@ -226,12 +249,27 @@ const isModalOpen = computed({
   },
 });
 
+const identityOrder = [
+  'username',
+  'primary-domain',
+  'alternative-domain',
+  'affiliated-profile',
+  'email',
+];
+
 const identities = computed(() => {
   if (!props.modelValue?.identities) {
     return [];
   }
-
-  return props.modelValue.identities.map((i) => parseIdentityValues(i));
+  return (props.modelValue.identities || [])
+    .sort((a, b) => {
+      const aIndex = identityOrder.indexOf(a.type);
+      const bIndex = identityOrder.indexOf(b.type);
+      const aOrder = aIndex !== -1 ? aIndex : identityOrder.length;
+      const bOrder = bIndex !== -1 ? bIndex : identityOrder.length;
+      return aOrder - bOrder;
+    })
+    .map((i) => parseIdentityValues(i));
 });
 
 const platformDetails = (platform) => CrowdIntegrations.getConfig(platform);
@@ -247,7 +285,8 @@ const fetchPreview = (identity) => {
   const {
     platform, value, type, verified,
   } = identity;
-  OrganizationService.unmergePreview(props.modelValue?.id, platform, value, type, verified)
+  const foundIdentity = identities.value.find((i) => i.platform === platform && i.value === value && i.type === type);
+  OrganizationService.unmergePreview(props.modelValue?.id, foundIdentity)
     .then((res) => {
       preview.value = res;
     })

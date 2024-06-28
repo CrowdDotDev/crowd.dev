@@ -18,7 +18,7 @@
     </lf-dropdown-item>
   </router-link>
   <lf-dropdown-item
-    v-if="hasPermission(LfPermission.organizationEdit) && identities(props.organization).length > 1"
+    v-if="hasPermission(LfPermission.organizationEdit) && props.organization.identities.length > 1"
     @click="unmerge = props.organization"
   >
     <lf-icon name="link-unlink-m" />
@@ -62,7 +62,6 @@ import { storeToRefs } from 'pinia';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import AppOrganizationUnmergeDialog from '@/modules/organization/components/organization-unmerge-dialog.vue';
 import { ref } from 'vue';
-import useOrganizationHelpers from '@/modules/organization/helpers/organization.helpers';
 
 const props = defineProps<{
   organization: Organization,
@@ -74,7 +73,6 @@ const route = useRoute();
 const router = useRouter();
 const { hasPermission } = usePermissions();
 const { trackEvent } = useProductTracking();
-const { identities } = useOrganizationHelpers();
 
 const unmerge = ref<Organization | null>(null);
 
