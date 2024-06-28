@@ -6,6 +6,7 @@ export enum Platform {
     TWITTER = 'twitter',
     SLACK = 'slack',
     DEVTO = 'devto',
+    INTEGRATION = 'integration',
     REDDIT = 'reddit',
     STACK_OVERFLOW = 'stackOverflow',
     DISCOURSE = 'discourse',

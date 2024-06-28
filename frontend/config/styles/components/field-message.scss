@@ -4,8 +4,8 @@
   \* ---------------------------------- */
 
   // Message
-  --lf-field-message-font-size: #{rem(13)};
-  --lf-field-message-line-height: #{rem(17)};
+  --lf-field-message-font-size: #{rem(12)};
+  --lf-field-message-line-height: #{rem(16)};
   --lf-field-message-spacing: #{rem(4)};
 
   // Icon
@@ -22,5 +22,5 @@
   --lf-field-message-warning-color: var(--lf-color-yellow-600);
 
   // Hint
-  --lf-field-message-hint-color: var(--lf-color-gray-400);
+  --lf-field-message-hint-color: var(--lf-color-gray-500);
 }

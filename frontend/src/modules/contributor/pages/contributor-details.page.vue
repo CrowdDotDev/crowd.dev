@@ -15,7 +15,7 @@
         </div>
         <div class="flex items-center">
           <lf-contributor-last-enrichment :contributor="contributor" class="mr-4" />
-          <lf-contributor-details-actions :contributor="contributor" @reload="fetchMember()" />
+          <lf-contributor-details-actions :contributor="contributor" @reload="fetchContributor()" />
         </div>
       </section>
       <section class="w-80 border-r relative border-gray-100 overflow-y-auto overflow-x-visible h-full ">
@@ -24,16 +24,16 @@
           <lf-contributor-details-work-history
             :contributor="contributor"
             class="mb-8"
-            @reload="fetchMember()"
+            @reload="fetchContributor()"
           />
           <lf-contributor-details-identities
             :contributor="contributor"
             class="mb-8"
-            @reload="fetchMember()"
+            @reload="fetchContributor()"
           />
           <lf-contributor-details-emails
             :contributor="contributor"
-            @reload="fetchMember()"
+            @reload="fetchContributor()"
           />
         </div>
       </section>
@@ -92,19 +92,18 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfContributorDetailsHeader from '@/modules/contributor/components/details/contributor-details-header.vue';
 import LfContributorDetailsActions from '@/modules/contributor/components/details/contributor-details-actions.vue';
 import { useRoute } from 'vue-router';
-import { ContributorApiService } from '@/modules/contributor/services/contributor.api.service';
-import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import { storeToRefs } from 'pinia';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import LfContributorDetailsEmails from '@/modules/contributor/components/details/contributor-details-emails.vue';
-import { Contributor } from '@/modules/contributor/types/Contributor';
 import LfContributorLastEnrichment from '@/modules/contributor/components/shared/contributor-last-enrichment.vue';
 import { useMemberStore } from '@/modules/member/store/pinia';
-
-const lsSegmentsStore = useLfSegmentsStore();
-const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
+import { useContributorStore } from '@/modules/contributor/store/contributor.store';
+import { storeToRefs } from 'pinia';
 
 const { getMemberCustomAttributes } = useMemberStore();
+
+const contributorStore = useContributorStore();
+const { getContributor } = contributorStore;
+const { contributor } = storeToRefs(contributorStore);
 
 const route = useRoute();
 
@@ -114,17 +113,13 @@ const notes = ref<any>(null);
 
 const { id } = route.params;
 
-const contributor = ref<Contributor | null>(null);
 const loading = ref<boolean>(true);
 
-const fetchMember = () => {
+const fetchContributor = () => {
   if (!contributor.value) {
     loading.value = true;
   }
-  ContributorApiService.find(id as string, [selectedProjectGroup.value?.id as string])
-    .then((res) => {
-      contributor.value = res;
-    })
+  getContributor(id)
     .finally(() => {
       loading.value = false;
     });
@@ -139,7 +134,8 @@ const controlScroll = (e) => {
 };
 
 onMounted(() => {
-  fetchMember();
+  contributor.value = null;
+  fetchContributor();
   getMemberCustomAttributes();
 });
 </script>

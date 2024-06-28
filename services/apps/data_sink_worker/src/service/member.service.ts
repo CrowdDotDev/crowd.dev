@@ -94,7 +94,7 @@ export default class MemberService extends LoggerBase {
         data.identities = this.validateEmails(data.identities)
 
         const id = await txRepo.create(tenantId, {
-          displayName: getProperDisplayName(data.displayName.split(' ')[0]),
+          displayName: getProperDisplayName(data.displayName),
           joinedAt: data.joinedAt.toISOString(),
           attributes,
           identities: data.identities,
@@ -239,7 +239,7 @@ export default class MemberService extends LoggerBase {
 
         // make sure displayName is proper
         if (data.displayName) {
-          data.displayName = getProperDisplayName(data.displayName.split(' ')[0])
+          data.displayName = getProperDisplayName(data.displayName)
         }
 
         const toUpdate = MemberService.mergeData(original, dbIdentities, data)

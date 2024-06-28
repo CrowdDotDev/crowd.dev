@@ -98,21 +98,32 @@
                         <template #dropdown>
                           <template
                             v-for="i of identities"
-                            :key="`${i.platform}:${i.value}:${i.type}:${i.verified}`"
+                            :key="i.id"
                           >
                             <el-dropdown-item
-                              v-if="`${i.platform}:${i.value}:${i.type}:${i.verified}` !== selectedIdentity"
-                              :value="`${i.platform}:${i.value}:${i.type}:${i.verified}`"
-                              :label="i.value"
-                              @click="fetchPreview(`${i.platform}:${i.value}:${i.type}:${i.verified}`)"
+                              v-if="i.id !== selectedIdentity.id"
+                              :value="i"
+                              :label="i.displayValue"
+                              @click="fetchPreview(i)"
                             >
+                              <i v-if="i.type === 'email'" class="text-gray-900 text-lg leading-5 mr-2 ri-mail-line" />
+                              <i
+                                v-else-if="['primary-domain', 'alternative-domain', 'affiliated-profile'].includes(i.type)"
+                                class="text-gray-900 text-lg leading-5 mr-2 ri-window-line"
+                              />
                               <img
-                                v-if="platformDetails(i.platform)"
+                                v-else-if="platformDetails(i.platform)"
                                 class="h-5 w-5 mr-2"
                                 :alt="platformDetails(i.platform)?.value"
                                 :src="platformDetails(i.platform)?.image"
                               />
-                              <span>{{ i.value }}</span>
+                              <lf-icon
+                                v-else
+                                name="fingerprint-fill"
+                                :size="20"
+                                class="text-gray-600 mr-2"
+                              />
+                              <span>{{ i.displayValue }}</span>
                             </el-dropdown-item>
                           </template>
                         </template>
@@ -134,21 +145,33 @@
                 <el-select
                   placeholder="Select identity"
                   class="w-full"
+                  value-key="id"
                   @update:model-value="fetchPreview($event)"
                 >
                   <el-option
                     v-for="i of identities"
-                    :key="`${i.platform}:${i.value}:${i.type}:${i.verified}`"
-                    :value="`${i.platform}:${i.value}:${i.type}:${i.verified}`"
-                    :label="i.value"
+                    :key="i.id"
+                    :value="i"
+                    :label="i.displayValue"
                   >
+                    <i v-if="i.type === 'email'" class="text-gray-900 text-lg leading-5 mr-2 ri-mail-line" />
+                    <i
+                      v-else-if="['primary-domain', 'alternative-domain', 'affiliated-profile'].includes(i.type)"
+                      class="text-gray-900 text-lg leading-5 mr-2 ri-window-line"
+                    />
                     <img
-                      v-if="platformDetails(i.platform)"
+                      v-else-if="platformDetails(i.platform)"
                       class="h-5 w-5 mr-2"
                       :alt="platformDetails(i.platform)?.value"
                       :src="platformDetails(i.platform)?.image"
                     />
-                    {{ i.value }}
+                    <lf-icon
+                      v-else
+                      name="fingerprint-fill"
+                      :size="20"
+                      class="text-gray-600 mr-2"
+                    />
+                    {{ i.displayValue }}
                   </el-option>
                 </el-select>
               </div>
@@ -171,6 +194,8 @@ import AppOrganizationMergeSuggestionsDetails
   from '@/modules/organization/components/suggestions/organization-merge-suggestions-details.vue';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import { Platform } from '@/shared/modules/platform/types/Platform';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps({
   modelValue: {
@@ -193,6 +218,25 @@ const fetchingPreview = ref(false);
 const preview = ref(null);
 const selectedIdentity = ref(null);
 
+const parseIdentityValues = (identity) => {
+  const splittedIdentity = identity.value?.split(':');
+
+  if (identity.platform === Platform.LINKEDIN && splittedIdentity.length === 2) {
+    return {
+      ...identity,
+      id: `${identity.platform}:${identity.value}:${identity.type}:${identity.verified}`,
+      value: identity.value,
+      displayValue: splittedIdentity[1],
+    };
+  }
+
+  return {
+    ...identity,
+    id: `${identity.platform}:${identity.value}:${identity.type}:${identity.verified}`,
+    displayValue: identity.value,
+  };
+};
+
 const isModalOpen = computed({
   get() {
     return props.modelValue !== null;
@@ -205,11 +249,27 @@ const isModalOpen = computed({
   },
 });
 
+const identityOrder = [
+  'username',
+  'primary-domain',
+  'alternative-domain',
+  'affiliated-profile',
+  'email',
+];
+
 const identities = computed(() => {
   if (!props.modelValue?.identities) {
     return [];
   }
-  return props.modelValue.identities;
+  return (props.modelValue.identities || [])
+    .sort((a, b) => {
+      const aIndex = identityOrder.indexOf(a.type);
+      const bIndex = identityOrder.indexOf(b.type);
+      const aOrder = aIndex !== -1 ? aIndex : identityOrder.length;
+      const bOrder = bIndex !== -1 ? bIndex : identityOrder.length;
+      return aOrder - bOrder;
+    })
+    .map((i) => parseIdentityValues(i));
 });
 
 const platformDetails = (platform) => CrowdIntegrations.getConfig(platform);
@@ -222,12 +282,15 @@ const fetchPreview = (identity) => {
   selectedIdentity.value = identity;
   fetchingPreview.value = true;
 
-  const [platform, value, type, verified] = identity.split(':');
-  OrganizationService.unmergePreview(props.modelValue?.id, platform, value, type, verified === 'true' ?? false)
+  const {
+    platform, value, type, verified,
+  } = identity;
+  const foundIdentity = identities.value.find((i) => i.platform === platform && i.value === value && i.type === type);
+  OrganizationService.unmergePreview(props.modelValue?.id, foundIdentity)
     .then((res) => {
       preview.value = res;
     })
-    .catch((error) => {
+    .catch(() => {
       Message.error('There was an error fetching unmerge preview');
     })
     .finally(() => {
@@ -270,9 +333,9 @@ const unmerge = () => {
 
 onMounted(() => {
   if (props.selectedIdentity) {
-    fetchPreview(
-      `${props.selectedIdentity.platform}:${props.selectedIdentity.value}:${props.selectedIdentity.type}:${props.selectedIdentity.verified}`,
-    );
+    const identity = parseIdentityValues(props.selectedIdentity);
+
+    fetchPreview(identity);
   }
 });
 

@@ -5,7 +5,7 @@
   <div v-else class="-mt-5 -mb-5">
     <div class="organization-details  grid grid-cols-2 grid-rows-2 px-3">
       <section class="w-full border-b border-gray-100 py-4 flex justify-between items-center col-span-2 h-min">
-        <div class="flex items-center">
+        <div class="flex items-center flex-grow">
           <lf-back :to="{ path: '/organizations' }" class="mr-2">
             <lf-button type="secondary-ghost" :icon-only="true">
               <lf-icon name="arrow-left-s-line" />
@@ -26,12 +26,12 @@
             class="mb-8"
             @reload="fetchOrganization()"
           />
-          <lf-organization-details-emails
+          <lf-organization-details-domains
             :organization="organization"
             class="mb-8"
             @reload="fetchOrganization()"
           />
-          <lf-organization-details-domains
+          <lf-organization-details-emails
             :organization="organization"
             class="mb-8"
             @reload="fetchOrganization()"
@@ -90,8 +90,6 @@ import { useRoute } from 'vue-router';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
-import { Organization } from '@/modules/organization/types/Organization';
-import { OrganizationApiService } from '@/modules/organization/services/organization.api.service';
 import LfOrganizationDetailsHeader from '@/modules/organization/components/details/organization-details-header.vue';
 import LfOrganizationLastEnrichment from '@/modules/organization/components/shared/organization-last-enrichment.vue';
 import LfOrganizationDetailsActions from '@/modules/organization/components/details/organization-details-actions.vue';
@@ -106,6 +104,7 @@ import LfOrganizationDetailsPhoneNumbers
 import LfOrganizationDetailsContributors
   from '@/modules/organization/components/details/organization-details-contributors.vue';
 import LfOrganizationDetailsEmails from '@/modules/organization/components/details/organization-details-emails.vue';
+import { useOrganizationStore } from '@/modules/organization/store/pinia';
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
@@ -118,22 +117,22 @@ const scrollContainer = ref(null);
 
 const { id } = route.params;
 
-const organization = ref<Organization | null>(null);
+const organizationStore = useOrganizationStore();
+const { organization } = storeToRefs(organizationStore);
+const { fetchOrganization } = organizationStore;
+
 const loading = ref<boolean>(false);
-const fetchOrganization = () => {
+const getOrganization = () => {
   if (!organization.value) {
     loading.value = true;
   }
-  OrganizationApiService.find(id as string, [selectedProjectGroup.value?.id as string])
-    .then((res) => {
-      organization.value = res;
-    })
+  fetchOrganization(id as string, [selectedProjectGroup.value?.id as string])
     .finally(() => {
       loading.value = false;
     });
 };
 
-const controlScroll = (e) => {
+const controlScroll = (e: any) => {
   if (e.target.scrollTop + e.target.clientHeight >= e.target.scrollHeight - 10) {
     if (tabs.value === 'contributors') {
       contributors.value.loadMore();
@@ -148,7 +147,8 @@ const handleTabChange = () => {
 };
 
 onMounted(() => {
-  fetchOrganization();
+  organization.value = null;
+  getOrganization();
 });
 </script>
 

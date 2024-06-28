@@ -46,6 +46,7 @@
     v-if="emailDrawer"
     v-model="emailDrawer"
     :member="member"
+    @unmerge="emit('unmerge', $event)"
   />
 </template>
 
