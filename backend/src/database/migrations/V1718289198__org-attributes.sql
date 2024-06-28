@@ -116,7 +116,7 @@ BEGIN
 END;
 $$;
 
-DROP FUNCTION add_org_attribute(UUID, TEXT, TEXT, TEXT, BOOLEAN, TEXT);
+DROP FUNCTION add_org_attribute(UUID, TEXT, TEXT, TEXT, BOOLEAN, anyelement);
 
 ALTER TABLE organizations RENAME COLUMN "emails" TO "old_emails";
 ALTER TABLE organizations RENAME COLUMN "phoneNumbers" TO "old_phoneNumbers";
