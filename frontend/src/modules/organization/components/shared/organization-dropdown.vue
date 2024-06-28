@@ -1,22 +1,4 @@
 <template>
-  <router-link
-    v-if="hasPermission(LfPermission.organizationEdit)"
-    :to="{
-      name: 'organizationEdit',
-      params: {
-        id: props.organization.id,
-      },
-      query: {
-        projectGroup: selectedProjectGroup?.id,
-        segmentId: organization.segmentId || selectedProjectGroup?.id,
-      },
-    }"
-  >
-    <lf-dropdown-item>
-      <lf-icon name="pencil-line" />
-      Edit organization
-    </lf-dropdown-item>
-  </router-link>
   <lf-dropdown-item
     v-if="hasPermission(LfPermission.organizationEdit) && props.organization.identities.length > 1"
     @click="unmerge = props.organization"
