@@ -201,7 +201,6 @@ const { fields } = OrganizationModel;
 const formSchema = new FormSchema([
   fields.name,
   fields.displayName,
-  fields.headline,
   fields.description,
   fields.location,
   fields.employees,
@@ -213,13 +212,9 @@ const formSchema = new FormSchema([
   fields.size,
   fields.industry,
   fields.founded,
-  fields.profiles,
-  fields.allSubsidiaries,
-  fields.alternativeNames,
   fields.averageEmployeeTenure,
   fields.averageTenureByLevel,
   fields.averageTenureByRole,
-  fields.directSubsidiaries,
   fields.employeeChurnRate,
   fields.employeeCountByCountry,
   fields.employeeCountByMonth,
@@ -228,7 +223,6 @@ const formSchema = new FormSchema([
   fields.grossAdditionsByMonth,
   fields.grossDeparturesByMonth,
   fields.immediateParent,
-  fields.tags,
   fields.ultimateParent,
 ]);
 
@@ -267,15 +261,12 @@ function getInitialModel(record) {
         ...(record || {}),
         name: record ? record.name : '',
         displayName: record ? record.displayName || record.name : '',
-        headline: record ? record.headline : '',
-        description: record ? record.description : '',
         joinedAt: record ? record.joinedAt : '',
         identities: record
           ? [
             ...record.identities,
           ]
           : [],
-        revenueRange: record ? record.revenueRange : {},
         phoneNumbers:
           record && record.phoneNumbers?.length > 0
             ? record.phoneNumbers
@@ -429,22 +420,30 @@ function onCancel() {
 async function onSubmit() {
   isFormSubmitting.value = true;
 
+  const { emails, phoneNumbers, ...rest } = formModel.value;
+
+  const phoneNumber = phoneNumbers.reduce(
+    (acc, item) => {
+      if (item !== '') {
+        acc.push(item);
+      }
+      return acc;
+    },
+    [],
+  );
+
   const data = {
     manuallyCreated: true,
-    ...formModel.value,
+    ...rest,
+    attributes: {
+      phoneNumber: {
+        default: phoneNumber,
+        custom: phoneNumber,
+      },
+    },
     name: isEditPage.value === false ? formModel.value.displayName : undefined,
     displayName:
       isEditPage.value === true ? formModel.value.displayName : undefined,
-    identities: formModel.value.identities,
-    phoneNumbers: formModel.value.phoneNumbers.reduce(
-      (acc, item) => {
-        if (item !== '') {
-          acc.push(item);
-        }
-        return acc;
-      },
-      [],
-    ),
   };
 
   const payload = isEditPage.value

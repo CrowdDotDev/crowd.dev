@@ -39,8 +39,6 @@ import { useRoute, useRouter } from 'vue-router';
 import { doManualAction } from '@/shared/helpers/manualAction.helpers';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { Organization } from '@/modules/organization/types/Organization';
-import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import { storeToRefs } from 'pinia';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import AppOrganizationUnmergeDialog from '@/modules/organization/components/organization-unmerge-dialog.vue';
 import { ref } from 'vue';
@@ -57,9 +55,6 @@ const { hasPermission } = usePermissions();
 const { trackEvent } = useProductTracking();
 
 const unmerge = ref<Organization | null>(null);
-
-const lfStore = useLfSegmentsStore();
-const { selectedProjectGroup } = storeToRefs(lfStore);
 
 const markTeamOrganization = (teamOrganization: boolean) => {
   trackEvent({
