@@ -1,1 +1,0 @@
-ALTER TABLE "organizationSegmentsAgg" DROP COLUMN "avgContributorEngagement";
