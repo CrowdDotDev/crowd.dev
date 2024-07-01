@@ -27,8 +27,7 @@ export class OrganizationRepository extends RepositoryBase<OrganizationRepositor
                     SUM(osa."activityCount") AS "activityCount",
                     ARRAY_AGG(DISTINCT ao."activeOn") AS "activeOn",
                     MAX(osa."lastActive") AS "lastActive",
-                    MIN(osa."joinedAt") AS "joinedAt",
-                    ROUND(AVG(osa."avgContributorEngagement")) AS "avgContributorEngagement"
+                    MIN(osa."joinedAt") AS "joinedAt"
                 FROM "organizationSegmentsAgg" osa
                 CROSS JOIN LATERAL UNNEST(osa."activeOn") as ao("activeOn")
                 WHERE osa."organizationId" = $(organizationId)

@@ -91,7 +91,6 @@ class OrganizationRepository {
     ['activeOn', 'osa."activeOn"'],
     ['joinedAt', 'osa."joinedAt"'],
     ['lastActive', 'osa."lastActive"'],
-    ['avgContributorEngagement', 'osa."avgContributorEngagement"'],
 
     // org fields for display
     ['logo', 'o."logo"'],
