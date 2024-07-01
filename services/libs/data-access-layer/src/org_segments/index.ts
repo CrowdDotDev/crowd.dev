@@ -11,6 +11,7 @@ export interface IOrganizationAggregateData {
   activeOn: string[]
   activityCount: number
   memberCount: number
+  avgContributorEngagement: number
 }
 
 export interface IOrganizationSegments {
@@ -47,6 +48,7 @@ export async function insertOrganizationSegments(
           'activeOn',
           'activityCount',
           'memberCount',
+          'avgContributorEngagement',
         ],
         data,
       ),
