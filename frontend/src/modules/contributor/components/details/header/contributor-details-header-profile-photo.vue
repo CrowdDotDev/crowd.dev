@@ -15,7 +15,7 @@
       </template>
     </lf-avatar>
     <div
-      v-if="!isNew(props.contributor)"
+      v-if="isNew(props.contributor)"
       class="absolute -top-1.5 left-1/2 border-2 border-white bg-primary-500
       text-xtiny rounded-md px-0.5 text-white font-semibold transform -translate-x-1/2 "
     >

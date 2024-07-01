@@ -31,7 +31,27 @@ const useOrganizationHelpers = () => {
       }) || '',
     }));
 
-  const emails = (organization: Organization) => (organization.emails || []);
+  const emails = (organization: Organization) => {
+    const emailData: Record<string, any> = organization.identities
+      .filter((i) => OrganizationIdentityType.EMAIL === i.type)
+      .reduce((obj, identity) => {
+        const emailObject: Record<string, any> = { ...obj };
+        if (!(identity.value in emailObject)) {
+          emailObject[identity.value] = {
+            ...identity,
+            platforms: [],
+          };
+        }
+        emailObject[identity.value].platforms.push(identity.platform);
+        emailObject[identity.value].verified = emailObject[identity.value].verified || identity.verified;
+
+        return emailObject;
+      }, {});
+    return Object.keys(emailData).map((email) => ({
+      value: email,
+      ...emailData[email],
+    }));
+  };
 
   const primaryDomains = (organization: Organization) => organization.identities
     .filter((i) => OrganizationIdentityType.PRIMARY_DOMAIN === i.type);
@@ -39,17 +59,15 @@ const useOrganizationHelpers = () => {
   const alternativeDomains = (organization: Organization) => organization.identities
     .filter((i) => OrganizationIdentityType.ALTERNATIVE_DOMAIN === i.type);
 
-  const domains = (organization: Organization) => organization.identities
-    .filter((i) => [
-      OrganizationIdentityType.PRIMARY_DOMAIN,
-      OrganizationIdentityType.ALTERNATIVE_DOMAIN,
-      OrganizationIdentityType.AFFILIATED_PROFILE,
-    ].includes(i.type));
+  const domains = (organization: Organization) => [
+    ...primaryDomains(organization),
+    ...alternativeDomains(organization),
+  ];
 
   const website = (organization: Organization) => primaryDomains(organization)?.[0];
 
   const affiliatedProfiles = (organization: Organization) => organization.identities
-    .filter((i) => OrganizationIdentityType.EMAIL === i.type);
+    .filter((i) => OrganizationIdentityType.AFFILIATED_PROFILE === i.type);
 
   const phoneNumbers = (organization: Organization) => organization.phoneNumbers || [];
 

@@ -3,7 +3,7 @@
     <div
       v-for="(idents, platform) of platformIdentities"
       :key="platform"
-      class="group cursor-pointer relative"
+      class="platform-wrapper cursor-pointer relative"
     >
       <lf-tooltip :disabled="idents.length > 1 || !idents[0].url">
         <template #content>
@@ -40,8 +40,8 @@
 
       <div
         v-if="idents.length > 1"
-        class="absolute w-58 top-full left-1/2 -translate-x-1/2 bg-white flex flex-col gap-1 p-1 shadow
-opacity-0 invisible transition group-hover:visible group-hover:opacity-100 z-30 rounded-md border border-gray-100 mt-2"
+        class="absolute w-58 top-full left-1/2 -translate-x-1/2 bg-white flex flex-col gap-1 p-1 shadow platform-popover
+         transition z-30 rounded-md border border-gray-100 mt-2"
       >
         <div class="absolute -top-2 h-2 w-full left-0" />
         <a
@@ -116,5 +116,17 @@ export default {
 <style scoped lang="scss">
 .platform-icon:not(:hover){
   @apply text-gray-400 #{!important};
+}
+
+.platform-wrapper{
+  .platform-popover{
+    @apply opacity-0 invisible;
+  }
+
+  &:hover{
+    .platform-popover{
+      @apply opacity-100 visible;
+    }
+  }
 }
 </style>

@@ -26,12 +26,12 @@
             class="mb-8"
             @reload="fetchOrganization()"
           />
-          <lf-organization-details-emails
+          <lf-organization-details-domains
             :organization="organization"
             class="mb-8"
             @reload="fetchOrganization()"
           />
-          <lf-organization-details-domains
+          <lf-organization-details-emails
             :organization="organization"
             class="mb-8"
             @reload="fetchOrganization()"
