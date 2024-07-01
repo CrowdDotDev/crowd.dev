@@ -5,7 +5,8 @@
         Domains
       </h6>
       <lf-button
-        v-if="hasPermission(LfPermission.organizationEdit)"
+        v-if="hasPermission(LfPermission.organizationEdit)
+          && (domains(props.organization).length > 0 || affiliatedProfiles(props.organization).length > 0)"
         type="secondary"
         size="small"
         :icon-only="true"
@@ -29,7 +30,7 @@
       />
     </div>
 
-    <div v-if="!domains(props.organization).length" class="pt-2 flex flex-col items-center w-full">
+    <div v-if="!domains(props.organization).length && !affiliatedProfiles(props.organization).length" class="pt-2 flex flex-col items-center w-full">
       <lf-icon name="link" :size="40" class="text-gray-300" />
       <p class="text-center pt-3 text-medium text-gray-400">
         No domains
@@ -40,7 +41,13 @@
     v-if="edit"
     v-model="edit"
     :organization="organization"
+    @unmerge="unmerge"
     @reload="emit('reload')"
+  />
+  <app-organization-unmerge-dialog
+    v-if="isUnmergeDialogOpen"
+    v-model="isUnmergeDialogOpen"
+    :selected-identity="selectedIdentity"
   />
 </template>
 
@@ -56,6 +63,7 @@ import LfOrganizationDetailsDomainsSection
   from '@/modules/organization/components/details/domains/organization-details-domains-section.vue';
 import AppOrganizationManageDomainsDrawer
   from '@/modules/organization/components/organization-manage-domains-drawer.vue';
+import AppOrganizationUnmergeDialog from '@/modules/organization/components/organization-unmerge-dialog.vue';
 
 const props = defineProps<{
   organization: Organization,
@@ -71,6 +79,15 @@ const {
 } = useOrganizationHelpers();
 
 const edit = ref<boolean>(false);
+const isUnmergeDialogOpen = ref(null);
+const selectedIdentity = ref(null);
+
+const unmerge = (identity: any) => {
+  if (identity) {
+    selectedIdentity.value = identity;
+  }
+  isUnmergeDialogOpen.value = props.organization as any;
+};
 </script>
 
 <script lang="ts">

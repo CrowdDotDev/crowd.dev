@@ -92,12 +92,12 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfContributorDetailsHeader from '@/modules/contributor/components/details/contributor-details-header.vue';
 import LfContributorDetailsActions from '@/modules/contributor/components/details/contributor-details-actions.vue';
 import { useRoute } from 'vue-router';
-import { storeToRefs } from 'pinia';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import LfContributorDetailsEmails from '@/modules/contributor/components/details/contributor-details-emails.vue';
 import LfContributorLastEnrichment from '@/modules/contributor/components/shared/contributor-last-enrichment.vue';
 import { useMemberStore } from '@/modules/member/store/pinia';
 import { useContributorStore } from '@/modules/contributor/store/contributor.store';
+import { storeToRefs } from 'pinia';
 
 const { getMemberCustomAttributes } = useMemberStore();
 

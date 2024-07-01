@@ -5,7 +5,7 @@
         Emails
       </h6>
       <lf-button
-        v-if="hasPermission(LfPermission.organizationEdit)"
+        v-if="hasPermission(LfPermission.organizationEdit) && emailList.length > 0"
         type="secondary"
         size="small"
         :icon-only="true"
@@ -18,28 +18,39 @@
     <div class="flex flex-wrap gap-3">
       <article
         v-for="email of emailList.slice(0, showMore ? emailList.length : limit)"
-        :key="email"
+        :key="email.value"
         class="flex"
       >
         <lf-icon name="mail-line" :size="20" class="text-gray-500" />
         <div class="pl-2">
           <div class="flex items-center">
             <lf-tooltip
-              :content="email"
-              :disabled="email.length < 25"
+              :content="email.value"
+              :disabled="email.value.length < 25"
             >
               <a
-                :href="`mailto:${email}`"
+                :href="`mailto:${email.value}`"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="text-medium cursor-pointer !text-black underline decoration-dashed
              decoration-gray-400 underline-offset-4 hover:decoration-gray-900 truncate"
                 style="max-width: 25ch"
               >
-                {{ email }}
+                {{ email.value }}
               </a>
             </lf-tooltip>
+            <lf-tooltip v-if="email.verified" content="Verified identity">
+              <lf-icon
+                name="verified-badge-line"
+                :size="16"
+                class="ml-1 text-primary-500"
+              />
+            </lf-tooltip>
           </div>
+
+          <p v-if="platformLabel(email.platforms)" class="mt-1.5 text-tiny text-gray-400">
+            Source: {{ platformLabel(email.platforms) }}
+          </p>
         </div>
       </article>
     </div>
@@ -66,7 +77,13 @@
     v-if="edit"
     v-model="edit"
     :organization="props.organization"
+    @unmerge="unmerge"
     @reload="emit('reload')"
+  />
+  <app-organization-unmerge-dialog
+    v-if="isUnmergeDialogOpen"
+    v-model="isUnmergeDialogOpen"
+    :selected-identity="selectedIdentity"
   />
 </template>
 
@@ -80,6 +97,8 @@ import useOrganizationHelpers from '@/modules/organization/helpers/organization.
 import { Organization } from '@/modules/organization/types/Organization';
 import AppOrganizationManageEmailsDrawer from '@/modules/organization/components/organization-manage-emails-drawer.vue';
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
+import AppOrganizationUnmergeDialog from '@/modules/organization/components/organization-unmerge-dialog.vue';
 
 const props = defineProps<{
   organization: Organization,
@@ -97,6 +116,16 @@ const emailList = computed(() => emails(props.organization));
 
 const showMore = ref<boolean>(false);
 const edit = ref<boolean>(false);
+const isUnmergeDialogOpen = ref(null);
+const selectedIdentity = ref(null);
+const platformLabel = (platforms: string[]) => CrowdIntegrations.getPlatformsLabel(platforms);
+
+const unmerge = (identity: any) => {
+  if (identity) {
+    selectedIdentity.value = identity;
+  }
+  isUnmergeDialogOpen.value = props.organization as any;
+};
 </script>
 
 <script lang="ts">

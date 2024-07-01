@@ -45,7 +45,7 @@
             />
           </lf-tooltip>
         </div>
-        <p class="text-tiny text-gray-400 pt-1.5">
+        <p v-if="CrowdIntegrations.getPlatformsLabel(email.platforms)" class="text-tiny text-gray-400 pt-1.5">
           Source: {{ CrowdIntegrations.getPlatformsLabel(email.platforms) }}
         </p>
       </div>
@@ -61,7 +61,13 @@
     v-if="edit"
     v-model="edit"
     :member="props.contributor"
+    @unmerge="unmerge"
     @reload="emit('reload')"
+  />
+  <app-member-unmerge-dialog
+    v-if="isUnmergeDialogOpen"
+    v-model="isUnmergeDialogOpen"
+    :selected-identity="selectedIdentity"
   />
 </template>
 
@@ -76,6 +82,7 @@ import AppMemberManageEmailsDrawer from '@/modules/member/components/member-mana
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import AppMemberUnmergeDialog from '@/modules/member/components/member-unmerge-dialog.vue';
 
 const props = defineProps<{
   contributor: Contributor,
@@ -88,6 +95,16 @@ const { hasPermission } = usePermissions();
 const { emails } = useContributorHelpers();
 
 const edit = ref<boolean>(false);
+
+const isUnmergeDialogOpen = ref(null);
+const selectedIdentity = ref(null);
+
+const unmerge = (identity: any) => {
+  if (identity) {
+    selectedIdentity.value = identity;
+  }
+  isUnmergeDialogOpen.value = props.contributor as any;
+};
 </script>
 
 <script lang="ts">
