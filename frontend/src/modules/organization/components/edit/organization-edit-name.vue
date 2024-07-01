@@ -50,9 +50,7 @@ const update = () => {
   }
   updateOrganization(props.organization.id, {
     attributes: {
-      ...props.organization.attributes,
       name: {
-        ...props.organization.attributes.logo,
         default: form.name,
         custom: [form.name],
       },

@@ -109,9 +109,7 @@ const update = () => {
   sending.value = true;
   updateOrganization(props.organization.id, {
     attributes: {
-      ...props.organization.attributes,
       logo: {
-        ...props.organization.attributes.logo,
         default: form.logo,
         custom: [form.logo],
       },
