@@ -187,7 +187,7 @@ export async function queryOrgIdentities<T extends OrgIdentityField[]>(
   return qx.select(
     `
       SELECT
-        ${opts.fields.join(',\n')}
+        ${opts.fields.map((f) => `"${f}"`).join(',\n')}
       FROM "organizationIdentities"
       WHERE ${where}
       LIMIT $(limit)

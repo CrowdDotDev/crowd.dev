@@ -15,6 +15,7 @@ import {
   queryOrgIdentities,
   OrgIdentityField,
   findManyOrgAttributes,
+  upsertOrgAttributes,
 } from '@crowd/data-access-layer/src/organizations'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import {
@@ -47,6 +48,7 @@ import AuditLogRepository from './auditLogRepository'
 import SegmentRepository from './segmentRepository'
 import SequelizeRepository from './sequelizeRepository'
 import { IActiveOrganizationData, IActiveOrganizationFilter } from './types/organizationTypes'
+import { findAttribute } from '@crowd/data-access-layer/src/organizations/attributesConfig'
 
 const { Op } = Sequelize
 
@@ -355,65 +357,37 @@ class OrganizationRepository {
           }
         }
 
-        // exclude syncRemote attributes, since these are populated from organizationSyncRemote table
-        if (data.attributes?.syncRemote) {
-          delete data.attributes.syncRemote
-        }
+        if (data.attributes) {
+          const qx = SequelizeRepository.getQueryExecutor(options, transaction)
 
-        if (manualChange) {
-          const manuallyChangedFields: string[] = record.manuallyChangedFields || []
+          const orgAttributes = []
 
-          for (const column of this.ORGANIZATION_UPDATE_COLUMNS) {
-            let changed = false
+          for (const [name, attribute] of Object.entries(data.attributes)) {
+            const attributeDefinition = findAttribute(name)
 
-            // only check fields that are in the data object that will be updated
-            if (column in data) {
-              if (
-                record[column] !== null &&
-                column in data &&
-                (data[column] === null || data[column] === undefined)
-              ) {
-                // column was removed in the update -> will be set to null by sequelize
-                changed = true
-              } else if (
-                record[column] === null &&
-                data[column] !== null &&
-                data[column] !== undefined &&
-                // also ignore empty arrays
-                (!Array.isArray(data[column]) || data[column].length > 0)
-              ) {
-                // column was null before now it's not anymore
-                changed = true
-              } else if (
-                this.isEqual[column] &&
-                this.isEqual[column](record[column], data[column]) === false
-              ) {
-                // column value has changed
-                changed = true
+            for (const value of (attribute as any).custom) {
+              const isDefault = value === (attribute as any).default
+
+              orgAttributes.push({
+                type: attributeDefinition.type,
+                name,
+                source: 'custom',
+                default: isDefault,
+                value,
+              })
+
+              if (isDefault && attributeDefinition.defaultColumn) {
+                data[attributeDefinition.defaultColumn] = value
               }
             }
-
-            if (changed && !manuallyChangedFields.includes(column)) {
-              manuallyChangedFields.push(column)
-            }
           }
 
-          data.manuallyChangedFields = manuallyChangedFields
-        } else {
-          // ignore columns that were manually changed
-          // by rewriting them with db data
-          const manuallyChangedFields: string[] = record.manuallyChangedFields || []
-          for (const manuallyChangedColumn of manuallyChangedFields) {
-            data[manuallyChangedColumn] = record[manuallyChangedColumn]
-          }
-
-          data.manuallyChangedFields = manuallyChangedFields
+          await upsertOrgAttributes(qx, record.id, orgAttributes)
         }
 
         const updatedData = {
           ...lodash.pick(data, this.ORGANIZATION_UPDATE_COLUMNS),
           updatedById: currentUser.id,
-          manuallyChangedFields: data.manuallyChangedFields,
         }
         captureNewState(updatedData)
         await options.database.organization.update(updatedData, {

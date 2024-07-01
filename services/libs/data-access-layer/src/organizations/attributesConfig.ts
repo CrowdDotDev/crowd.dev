@@ -28,7 +28,7 @@ export const ORG_DB_FIELDS = [
 
 export const ORG_DB_ATTRIBUTES: OrgAttributeDef[] = [
   {
-    name: 'names',
+    name: 'name',
     incomingType: 'string_array',
     type: OrganizationAttributeType.STRING,
     defaultColumn: 'displayName',
@@ -106,7 +106,7 @@ export const ORG_DB_ATTRIBUTES: OrgAttributeDef[] = [
     defaultColumn: 'employeeGrowthRate',
   },
   {
-    name: 'phoneNumbers',
+    name: 'phoneNumber',
     incomingType: 'string_array',
     type: OrganizationAttributeType.STRING,
   },
@@ -121,7 +121,7 @@ export const ORG_DB_ATTRIBUTES: OrgAttributeDef[] = [
     type: OrganizationAttributeType.STRING,
   },
   {
-    name: 'profiles',
+    name: 'profile',
     incomingType: 'string_array',
     type: OrganizationAttributeType.STRING,
   },
@@ -131,12 +131,12 @@ export const ORG_DB_ATTRIBUTES: OrgAttributeDef[] = [
     type: OrganizationAttributeType.OBJECT,
   },
   {
-    name: 'allSubsidiaries',
+    name: 'subsidiary',
     incomingType: 'string_array',
     type: OrganizationAttributeType.STRING,
   },
   {
-    name: 'alternativeNames',
+    name: 'alternativeName',
     incomingType: 'string_array',
     type: OrganizationAttributeType.STRING,
   },
@@ -156,7 +156,7 @@ export const ORG_DB_ATTRIBUTES: OrgAttributeDef[] = [
     type: OrganizationAttributeType.OBJECT,
   },
   {
-    name: 'directSubsidiaries',
+    name: 'directSubsidiary',
     incomingType: 'string_array',
     type: OrganizationAttributeType.STRING,
   },
@@ -211,6 +211,15 @@ export const ORG_DB_ATTRIBUTES: OrgAttributeDef[] = [
     type: OrganizationAttributeType.OBJECT,
   },
 ]
+
+export function findAttribute(name: string): OrgAttributeDef {
+  const attrDef = ORG_DB_ATTRIBUTES.find((a) => a.name === name)
+  if (!attrDef) {
+    throw new Error(`Unknown attribute name: ${name}`)
+  }
+
+  return attrDef
+}
 
 export const ORG_DB_ATTRIBUTE_SOURCE_PRIORITY = [
   OrganizationAttributeSource.CUSTOM,

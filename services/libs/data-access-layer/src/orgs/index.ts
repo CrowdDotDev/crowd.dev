@@ -60,7 +60,7 @@ export async function queryOrgs<T extends OrganizationField[]>(
   return qx.select(
     `
       SELECT
-        ${fields.join(',\n')}
+        ${fields.map((f) => `"${f}"`).join(',\n')}
       FROM organizations
       WHERE ${where}
       LIMIT $(limit)
