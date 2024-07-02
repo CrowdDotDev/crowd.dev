@@ -16,6 +16,7 @@ export default {
   url: ({ username }) => (username ? `https://dev.to/${username}` : null),
   chartColor: '#9CA3AF',
   showProfileLink: true,
+  urlPrefix: 'dev.to/',
   activityDisplay: {
     showLinkToUrl: true,
   },

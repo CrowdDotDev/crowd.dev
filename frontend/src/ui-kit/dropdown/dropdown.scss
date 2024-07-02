@@ -33,7 +33,7 @@
 
 
   &__item{
-    @apply cursor-pointer transition-all flex items-center gap-3;
+    @apply cursor-pointer transition-all flex items-center gap-2;
     @apply p-2 text-sm leading-4 rounded-lg text-gray-900;
 
     &:hover{

@@ -15,6 +15,7 @@ export default {
   url: ({ username }) => (username ? `https://news.ycombinator.com/user?id=${username}` : null),
   chartColor: '#FF712E',
   showProfileLink: true,
+  urlPrefix: 'news.ycombinator.com/user?id=',
   activityDisplay: {
     showLinkToUrl: true,
   },

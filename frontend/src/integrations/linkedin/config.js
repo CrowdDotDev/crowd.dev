@@ -24,6 +24,7 @@ export default {
   url: ({ username }) => (!username?.includes('private-') ? `https://linkedin.com/in/${username}` : null),
   chartColor: '#2867B2',
   showProfileLink: true,
+  urlPrefix: 'linkedin.com/in/',
   activityDisplay: {
     showLinkToUrl: true,
   },

@@ -14,6 +14,7 @@ export default {
   scale: true,
   chartColor: '#1D9BF0',
   showProfileLink: true,
+  urlPrefix: 'twitter.com/',
   activityDisplay: {
     showLinkToUrl: true,
   },

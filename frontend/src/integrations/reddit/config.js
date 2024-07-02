@@ -15,6 +15,7 @@ export default {
   url: ({ username }) => (username ? `https://reddit.com/user/${username}` : null),
   chartColor: '#FF4500',
   showProfileLink: true,
+  urlPrefix: 'reddit.com/user/',
   activityDisplay: {
     showLinkToUrl: true,
   },

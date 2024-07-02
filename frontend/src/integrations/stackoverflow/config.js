@@ -16,6 +16,7 @@ export default {
   url: ({ attributes }) => attributes?.url?.stackoverflow,
   chartColor: '#FF9845',
   showProfileLink: true,
+  urlPrefix: 'stackoverflow.com/users/',
   activityDisplay: {
     showLinkToUrl: true,
   },
