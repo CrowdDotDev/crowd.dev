@@ -19,11 +19,7 @@ import { QueryExecutor, pgpQx } from '@crowd/data-access-layer/src/queryExecutor
 
 import { queryOrgs, OrganizationField, findOrgById } from '@crowd/data-access-layer/src/orgs'
 import { buildFullOrgForMergeSuggestions } from '@crowd/opensearch'
-import {
-  fetchManyOrgIdentities,
-  fetchOrgIdentities,
-  findOrgAttributes,
-} from '@crowd/data-access-layer/src/organizations'
+import { fetchOrgIdentities, findOrgAttributes } from '@crowd/data-access-layer/src/organizations'
 
 export async function getOrganizations(
   tenantId: string,

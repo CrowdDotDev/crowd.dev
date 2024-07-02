@@ -20,10 +20,10 @@ enum Operator {
 
 type ANY_LITERAL = string | number | boolean
 
-type GT = { [Operator.GT]: number }
-type GTE = { [Operator.GTE]: number }
-type LT = { [Operator.LT]: number }
-type LTE = { [Operator.LTE]: number }
+type GT = { [Operator.GT]: ANY_LITERAL }
+type GTE = { [Operator.GTE]: ANY_LITERAL }
+type LT = { [Operator.LT]: ANY_LITERAL }
+type LTE = { [Operator.LTE]: ANY_LITERAL }
 type EQ = { [Operator.EQ]: ANY_LITERAL }
 type NE = { [Operator.NE]: ANY_LITERAL }
 type LIKE = { [Operator.LIKE]: string }
@@ -38,7 +38,7 @@ type NOT = { [Operator.NOT]: ANY_CLAUSE }
 type AND = { [Operator.AND]: ANY_CLAUSE[] }
 type OR = { [Operator.OR]: ANY_CLAUSE[] }
 
-type ANY_CLAUSE = AND | OR | FIELD
+type ANY_CLAUSE = AND | OR | FIELD | null
 
 type EMPTY = Record<string, never>
 export type QueryFilter = ANY_CLAUSE | EMPTY

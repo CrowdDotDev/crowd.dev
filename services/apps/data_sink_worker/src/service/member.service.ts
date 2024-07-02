@@ -384,7 +384,11 @@ export default class MemberService extends LoggerBase {
         OrganizationAttributeSource.EMAIL,
         integrationId,
         {
-          names: [domain],
+          attributes: {
+            name: {
+              integration: [domain],
+            },
+          },
           identities: [
             {
               value: domain,

@@ -723,13 +723,6 @@ export default class OrganizationService extends LoggerBase {
     }
 
     try {
-      const primaryIdentity = verifiedIdentities[0]
-      const name = primaryIdentity.value
-
-      if (!data.names) {
-        data.names = [name]
-      }
-
       // Normalize the website identities
       for (const i of data.identities.filter((i) =>
         [

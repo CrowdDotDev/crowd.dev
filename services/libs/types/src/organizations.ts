@@ -32,6 +32,7 @@ export interface IOrganization {
   tags?: string[]
   description?: string
   logo?: string
+  headline?: string
   employees?: number
   revenueRange?: IOrganizationRevenueRange
   location?: string

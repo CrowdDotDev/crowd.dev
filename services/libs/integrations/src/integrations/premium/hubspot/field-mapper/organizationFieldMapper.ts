@@ -235,7 +235,7 @@ export class HubspotOrganizationFieldMapper extends HubspotFieldMapper {
 
     // TODO uros check if this is verified or not with anil
     const organization: IOrganization = {
-      names: [organizationProperties.name],
+      // names: [organizationProperties.name], // TODO migrate to attributes
       identities: [
         {
           value: `${this.hubspotId}:${hubspotOrganization.id}`,

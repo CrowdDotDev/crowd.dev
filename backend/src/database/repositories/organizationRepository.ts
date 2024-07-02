@@ -259,7 +259,7 @@ class OrganizationRepository {
       const attributeDefinition = findAttribute(name)
 
       if (!(attribute as any).custom) {
-        continue
+        continue // eslint-disable-line no-continue
       }
 
       for (const value of (attribute as any).custom) {

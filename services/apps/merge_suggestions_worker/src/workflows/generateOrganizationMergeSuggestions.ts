@@ -73,7 +73,7 @@ export async function generateOrganizationMergeSuggestions(
     lastUuid,
     organizationIds: args.organizationIds
       ? args.organizationIds.filter(
-          (organizationId) => !result.map((r) => r.uuid_organizationId).includes(organizationId),
+          (organizationId) => !result.map((r) => r.id).includes(organizationId),
         )
       : undefined,
   })
