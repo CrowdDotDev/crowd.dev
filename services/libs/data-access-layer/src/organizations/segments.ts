@@ -78,7 +78,7 @@ export async function fetchOrgAggregates(
       SELECT
         *
       FROM "organizationSegmentsAgg"
-      WHERE "organizationId" = ($(organizationIds)
+      WHERE "organizationId" = $(organizationId)
       LIMIT 1
     `,
     {

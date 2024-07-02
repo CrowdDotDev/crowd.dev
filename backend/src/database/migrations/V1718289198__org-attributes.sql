@@ -13,10 +13,6 @@ CREATE TABLE "orgAttributes" (
 -- make sure there is only one default attribute
 CREATE UNIQUE INDEX "orgAttributes_organizationId_name_default" ON "orgAttributes" ("organizationId", "name", "default") WHERE "default";
 
--- make sure there are no duplicate values for the same attribute and the same source
--- MD5 is needed because descriptions and *ByMonth fields can be too long for an index
-CREATE UNIQUE INDEX "orgAttributes_organizationId_name_source_value" ON "orgAttributes" ("organizationId", "name", "source", MD5("value"));
-
 CREATE OR REPLACE FUNCTION add_org_attribute(
    _org_id UUID,
    _type TEXT,

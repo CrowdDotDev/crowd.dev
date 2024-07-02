@@ -19,6 +19,7 @@ router.post(
       await organizationSyncService.syncOrganizations(organizationIds)
       res.sendStatus(200)
     } catch (error) {
+      req.log.error(error, 'Error while syncing organizations')
       res.status(500).send(error.message)
     }
   }),

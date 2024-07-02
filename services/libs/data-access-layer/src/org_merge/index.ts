@@ -8,7 +8,7 @@ export async function findOrgNoMergeIds(
     `
       SELECT
         "noMergeId"
-      JOIN "organizationNoMerge"
+      FROM "organizationNoMerge"
       WHERE "organizationId" = $(organizationId)
     `,
     {

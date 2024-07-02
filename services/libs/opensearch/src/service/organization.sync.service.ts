@@ -42,7 +42,7 @@ export async function buildFullOrgForMergeSuggestions(
     ...organization,
     ticker: attributes.find((a) => a.name === 'ticker' && a.default)?.value,
     identities,
-    activityCount: aggregates.activityCount,
+    activityCount: aggregates?.activityCount || 0,
     noMergeIds,
     website: identities.find((i) => i.type === OrganizationIdentityType.PRIMARY_DOMAIN)?.value,
   }
