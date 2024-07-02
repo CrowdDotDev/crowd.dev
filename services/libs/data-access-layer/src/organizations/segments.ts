@@ -39,6 +39,7 @@ export async function insertOrganizationSegments(
           'activeOn',
           'activityCount',
           'memberCount',
+          'avgContributorEngagement',
         ],
         data,
       ),
