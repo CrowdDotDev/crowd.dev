@@ -4,9 +4,9 @@ import organizationOrder from '@/shared/modules/identities/config/identitiesOrde
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 
 const useOrganizationHelpers = () => {
-  const displayName = (organization: Organization) => organization.attributes.name?.default || organization.displayName;
+  const displayName = (organization: Organization) => organization.attributes?.name?.default || organization.displayName;
 
-  const logo = (organization: Organization) => organization.attributes.logo?.default || organization.logo;
+  const logo = (organization: Organization) => organization.attributes?.logo?.default || organization.logo;
 
   const isNew = (organization: Organization) => {
     if (!organization.joinedAt) {
