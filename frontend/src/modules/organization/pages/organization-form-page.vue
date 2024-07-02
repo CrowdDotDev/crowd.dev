@@ -123,14 +123,6 @@
             <el-divider
               class="!mb-6 !mt-8 !border-gray-200"
             />
-            <div class="grid gap-x-12 grid-cols-3">
-              <h6>Phone numbers</h6>
-              <div class="col-span-2">
-                <app-organization-form-phone-number
-                  v-model="formModel"
-                />
-              </div>
-            </div>
             <div v-if="shouldShowAttributes">
               <el-divider class="!mb-6 !mt-8 !border-gray-200" />
               <app-organization-form-attributes
@@ -170,7 +162,6 @@ import { i18n } from '@/i18n';
 import enrichmentAttributes from '@/modules/organization/config/enrichment';
 import { AttributeType } from '@/modules/organization/types/Attributes';
 import AppOrganizationFormEmails from '@/modules/organization/components/form/organization-form-emails.vue';
-import AppOrganizationFormPhoneNumber from '@/modules/organization/components/form/organization-form-phone-number.vue';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { useOrganizationStore } from '../store/pinia';
@@ -207,7 +198,6 @@ const formSchema = new FormSchema([
   fields.revenueRange,
   fields.emails,
   fields.identities,
-  fields.phoneNumbers,
   fields.type,
   fields.size,
   fields.industry,
@@ -267,10 +257,6 @@ function getInitialModel(record) {
             ...record.identities,
           ]
           : [],
-        phoneNumbers:
-          record && record.phoneNumbers?.length > 0
-            ? record.phoneNumbers
-            : [''],
       }),
     ),
   );
@@ -420,30 +406,19 @@ function onCancel() {
 async function onSubmit() {
   isFormSubmitting.value = true;
 
-  const { emails, phoneNumbers, ...rest } = formModel.value;
+  const { emails, ...rest } = formModel.value;
 
-  const phoneNumber = phoneNumbers.reduce(
-    (acc, item) => {
-      if (item !== '') {
-        acc.push(item);
-      }
-      return acc;
-    },
-    [],
-  );
+  const name = isEditPage.value === false ? formModel.value.displayName : undefined;
 
   const data = {
     manuallyCreated: true,
     ...rest,
     attributes: {
-      phoneNumber: {
-        default: phoneNumber,
-        custom: phoneNumber,
+      names: {
+        default: name,
+        custom: [name],
       },
     },
-    name: isEditPage.value === false ? formModel.value.displayName : undefined,
-    displayName:
-      isEditPage.value === true ? formModel.value.displayName : undefined,
   };
 
   const payload = isEditPage.value
