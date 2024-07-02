@@ -6,34 +6,6 @@
       </h6>
     </div>
     <div>
-      <!-- Description -->
-      <article v-if="description" class="border-b border-gray-100 flex py-4">
-        <div class="w-5/12">
-          <p class="text-small font-semibold">
-            Description
-          </p>
-        </div>
-        <div class="w-7/12">
-          <lf-organization-attribute-string
-            :data="description"
-          />
-        </div>
-      </article>
-
-      <!-- Location -->
-      <article v-if="location" class="border-b border-gray-100 flex py-4">
-        <div class="w-5/12">
-          <p class="text-small font-semibold">
-            Location
-          </p>
-        </div>
-        <div class="w-7/12">
-          <lf-organization-attribute-string
-            :data="location"
-          />
-        </div>
-      </article>
-
       <!-- Enriched attributes -->
       <article
         v-for="attribute in visibleAttributes"
@@ -44,9 +16,7 @@
           <p class="text-small font-semibold mb-1">
             {{ attribute.label }}
           </p>
-          <p class="text-tiny text-gray-400">
-            Source: <span class="text-purple-500">Enrichment</span>
-          </p>
+          <lf-organization-attribute-source :values="props.organization.attributes[attribute.name]" />
         </div>
         <div class="w-7/12 pr-1">
           <component
@@ -72,7 +42,7 @@
         </div>
       </article>
 
-      <div v-if="!description && !location && Object.keys(visibleAttributes).length === 0" class="pt-2 flex flex-col items-center w-full">
+      <div v-if="Object.keys(visibleAttributes).length === 0" class="pt-2 flex flex-col items-center w-full">
         <lf-icon name="list-view" :size="80" class="text-gray-300" />
         <p class="text-center pt-3 text-medium text-gray-400">
           No organization details yet
@@ -94,21 +64,24 @@ import LfOrganizationAttributeArray
 import LfOrganizationAttributeJson
   from '@/modules/organization/components/details/overview/attributes/organization-attribute-json.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfOrganizationAttributeSource
+  from '@/modules/organization/components/details/overview/attributes/organization-attribute-source.vue';
 
 const props = defineProps<{
   organization: Organization,
 }>();
 
-const description = computed(() => props.organization.description);
-const location = computed(() => props.organization.location);
-
 const visibleAttributes = computed(() => enrichmentAttributes
-  .filter((a) => ((props.organization[a.name] && a.type !== AttributeType.ARRAY && a.type !== AttributeType.JSON)
-          || (a.type === AttributeType.ARRAY && props.organization[a.name]?.length)
-          || (a.type === AttributeType.JSON && props.organization[a.name] && Object.keys(props.organization[a.name]).length)) && a.showInAttributes));
+  .filter((a) => ((props.organization.attributes[a.name]?.default && a.type !== AttributeType.ARRAY && a.type !== AttributeType.JSON)
+          || (a.type === AttributeType.ARRAY && props.organization.attributes[a.name]?.default?.length)
+          || (a.type === AttributeType.JSON && props.organization.attributes[a.name]?.default
+          && Object.keys(props.organization.attributes[a.name]?.default).length)) && a.showInAttributes));
 
 const getValue = (attribute: OrganizationEnrichmentConfig) => {
-  const value = props.organization[attribute.name];
+  let value = props.organization.attributes[attribute.name]?.default;
+  if (attribute.type === AttributeType.JSON) {
+    value = JSON.parse(value);
+  }
   if (attribute.formatValue) {
     return attribute.formatValue(value);
   }

@@ -1,56 +1,98 @@
-import { IOrganizationPartialAggregatesRawResult } from './types'
+import { RawQueryParser } from '@crowd/common'
 import { QueryExecutor } from '../queryExecutor'
+import { QueryOptions } from '../utils'
 
-export async function findOrgsForMergeSuggestions(
+export enum OrganizationField {
+  // meta
+  ID = 'id',
+  CREATED_AT = 'createdAt',
+  UPDATED_AT = 'updatedAt',
+  DELETED_AT = 'deletedAt',
+  CREATED_BY_ID = 'createdById',
+  UPDATED_BY_ID = 'updatedById',
+  TENANT_ID = 'tenantId',
+
+  IMPORT_HASH = 'importHash',
+  LAST_ENRICHED_AT = 'lastEnrichedAt',
+  MANUALLY_CREATED = 'manuallyCreated',
+
+  DESCRIPTION = 'description',
+  LOGO = 'logo',
+  TAGS = 'tags',
+  EMPLOYEES = 'employees',
+  REVENUE_RANGE = 'revenueRange',
+  LOCATION = 'location',
+  IS_TEAM_ORGANIZATION = 'isTeamOrganization',
+  TYPE = 'type',
+  SIZE = 'size',
+  HEADLINE = 'headline',
+  INDUSTRY = 'industry',
+  FOUNDED = 'founded',
+  DISPLAY_NAME = 'displayName',
+  EMPLOYEE_CHURN_RATE = 'employeeChurnRate',
+  EMPLOYEE_GROWTH_RATE = 'employeeGrowthRate',
+}
+
+export async function queryOrgs<T extends OrganizationField[]>(
   qx: QueryExecutor,
-  tenantId: string,
-  batchSize: number,
-  afterOrganizationId?: string,
-  lastGeneratedAt?: string,
-  organizationIds?: string[],
-): Promise<IOrganizationPartialAggregatesRawResult[]> {
-  let filter = ''
-  if (afterOrganizationId) {
-    filter += `AND o.id > $(afterOrganizationId)`
+  { filter, fields, limit, offset }: QueryOptions<T> = {},
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+): Promise<{ [K in T[number]]: any }[]> {
+  const params = {
+    limit: limit || 10,
+    offset: offset || 0,
+  }
+  if (!fields) {
+    fields = Object.values(OrganizationField) as T
+  }
+  if (!filter) {
+    filter = {}
   }
 
-  if (lastGeneratedAt) {
-    filter += 'AND o."createdAt" > $(lastGeneratedAt)'
-  }
-
-  if (organizationIds && organizationIds.length > 0) {
-    filter += ` AND o.id in ($(organizationIds:csv))`
-  } else if (organizationIds && organizationIds.length === 0) {
-    return []
-  }
+  const where = RawQueryParser.parseFilters(
+    filter,
+    new Map<string, string>(Object.values(OrganizationField).map((field) => [field, field])),
+    [],
+    params,
+    { pgPromiseFormat: true },
+  )
 
   return qx.select(
     `
       SELECT
-        o.id,
-        json_agg(distinct oi) as identities,
-        COALESCE(ARRAY_AGG(DISTINCT onm."noMergeId") FILTER (where onm."noMergeId" is not null), ARRAY[]::uuid[])  AS "noMergeIds",
-        o."displayName",
-        o.location,
-        o.industry,
-        o.ticker,
-        max(osa."activityCount") as "activityCount"
-      FROM organizations o
-      JOIN "organizationSegmentsAgg" osa ON o.id = osa."organizationId"
-      LEFT JOIN "organizationNoMerge" onm ON onm."organizationId" = o.id
-      JOIN "organizationIdentities" oi ON o.id = oi."organizationId"
-      WHERE o."tenantId" = $(tenantId)
-        ${filter}
-      GROUP BY o.id
-      ORDER BY o.id
-      LIMIT $(batchSize);
+        ${fields.map((f) => `"${f}"`).join(',\n')}
+      FROM organizations
+      WHERE ${where}
+      LIMIT $(limit)
+      OFFSET $(offset)
     `,
-    {
-      tenantId,
-      batchSize,
-      afterOrganizationId,
-      lastGeneratedAt,
-      organizationIds,
-    },
+    params,
   )
+}
+
+export async function findOrgById<T extends OrganizationField[]>(
+  qx: QueryExecutor,
+  organizationId: string,
+  {
+    fields,
+  }: {
+    fields?: T
+  } = {
+    fields: Object.values(OrganizationField) as T,
+  },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+): Promise<{ [K in T[number]]: any }> {
+  const rows = await queryOrgs(qx, {
+    fields,
+    filter: {
+      [OrganizationField.ID]: { eq: organizationId },
+    },
+    limit: 1,
+  })
+
+  if (rows.length > 0) {
+    return rows[0]
+  }
+
+  return null
 }

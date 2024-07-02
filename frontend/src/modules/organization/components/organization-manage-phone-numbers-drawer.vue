@@ -74,7 +74,10 @@ const drawerModel = computed({
   },
 });
 
-const organizationModel = ref(cloneDeep(props.organization));
+const organizationModel = ref(cloneDeep({
+  ...props.organization,
+  phoneNumbers: props.organization.attributes.phoneNumber?.default || [],
+}));
 const loading = ref(false);
 
 const $v = useVuelidate({}, organizationModel);
@@ -96,7 +99,14 @@ const handleSubmit = async () => {
 
   loading.value = true;
   OrganizationService.update(props.organization.id, {
-    phoneNumbers: organizationModel.value.phoneNumbers.filter((p) => p.trim().length),
+    attributes: {
+      ...props.organization.attributes,
+      phoneNumber: {
+        ...props.organization.attributes.logo,
+        default: organizationModel.value.phoneNumbers.filter((p) => p.trim().length),
+        custom: [organizationModel.value.phoneNumbers.filter((p) => p.trim().length)],
+      },
+    },
   }).then(() => {
     emit('reload');
   }).catch((err) => {

@@ -34,7 +34,7 @@ setImmediate(async () => {
     MAX_CONCURRENT_PROCESSING,
   )
 
-  const initService = new InitService(openSearchService, log)
+  const initService = new InitService(openSearchService)
 
   try {
     await initService.initialize()
