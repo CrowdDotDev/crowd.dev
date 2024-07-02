@@ -226,7 +226,8 @@ export default class OrganizationService extends LoggerBase {
           id: randomUUID(),
           identities: secondaryIdentities,
           names: [identity.value],
-          displayName: identity.value,
+          displayName:
+            identity.platform === 'linkedin' ? identity.value.split(':').pop() : identity.value,
           description: null,
           activityCount: secondaryActivityCount,
           memberCount: secondaryMemberCount,
