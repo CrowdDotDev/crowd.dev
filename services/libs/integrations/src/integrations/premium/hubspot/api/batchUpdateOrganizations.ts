@@ -28,7 +28,8 @@ export const batchUpdateOrganizations = async (
 
     for (const organization of organizations) {
       if (organization) {
-        const hubspotSourceId = organization.attributes?.sourceId?.hubspot
+        // const hubspotSourceId = organization.attributes?.sourceId?.hubspot
+        const hubspotSourceId = undefined
 
         if (!hubspotSourceId) {
           ctx.log.warn(
@@ -74,23 +75,25 @@ export const batchUpdateOrganizations = async (
 
     config.headers.Authorization = `Bearer ${accessToken}`
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const result = await throttler.throttle(() => axios(config))
 
-    return result.data.results.reduce((acc, o) => {
-      const organization = organizations.find(
-        (crowdOrganization) => crowdOrganization.attributes?.sourceId?.hubspot === o.id,
-      )
+    // return result.data.results.reduce((acc, o) => {
+    //   const organization = organizations.find(
+    //     (crowdOrganization) => crowdOrganization.attributes?.sourceId?.hubspot === o.id,
+    //   )
 
-      const hubspotPayload = hubspotCompanies.find((hubspotCompany) => hubspotCompany.id === o.id)
+    //   const hubspotPayload = hubspotCompanies.find((hubspotCompany) => hubspotCompany.id === o.id)
 
-      acc.push({
-        organizationId: organization.id,
-        sourceId: o.id,
-        lastSyncedPayload: hubspotPayload,
-      })
+    //   acc.push({
+    //     organizationId: organization.id,
+    //     sourceId: o.id,
+    //     lastSyncedPayload: hubspotPayload,
+    //   })
 
-      return acc
-    }, [])
+    //   return acc
+    // }, [])
+    return []
   } catch (err) {
     ctx.log.error({ err }, 'Error while batch update companies in HubSpot')
     throw err

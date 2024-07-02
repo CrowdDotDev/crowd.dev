@@ -1,9 +1,7 @@
 import { Platform } from '@/shared/modules/platform/types/Platform';
 
-export interface OrganizationAttribute {
-  default: string;
-  sourceId?: any;
-  hubspot?: any;
+export interface OrganizationAttribute extends Record<string, any[]>{
+  default: any;
 }
 
 export enum OrganizationSource {

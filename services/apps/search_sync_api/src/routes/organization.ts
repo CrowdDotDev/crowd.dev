@@ -2,10 +2,8 @@ import express from 'express'
 import { OrganizationSyncService } from '@crowd/opensearch'
 import { ApiRequest } from '../middleware'
 import { asyncWrap } from '../middleware/error'
-import { SERVICE_CONFIG } from '../conf'
 
 const router = express.Router()
-const serviceConfig = SERVICE_CONFIG()
 
 router.post(
   '/sync/organizations',
@@ -14,7 +12,6 @@ router.post(
       req.dbStore,
       req.opensearch,
       req.log,
-      serviceConfig,
     )
     const { organizationIds } = req.body
     try {
@@ -22,6 +19,7 @@ router.post(
       await organizationSyncService.syncOrganizations(organizationIds)
       res.sendStatus(200)
     } catch (error) {
+      req.log.error(error, 'Error while syncing organizations')
       res.status(500).send(error.message)
     }
   }),
@@ -34,7 +32,6 @@ router.post(
       req.dbStore,
       req.opensearch,
       req.log,
-      serviceConfig,
     )
 
     const { tenantId } = req.body
@@ -57,7 +54,6 @@ router.post(
       req.dbStore,
       req.opensearch,
       req.log,
-      serviceConfig,
     )
 
     const { tenantId } = req.body
@@ -80,7 +76,6 @@ router.post(
       req.dbStore,
       req.opensearch,
       req.log,
-      serviceConfig,
     )
 
     const { organizationId } = req.body

@@ -2,13 +2,7 @@ import { distinct, distinctBy, trimUtf8ToMaxByteLength } from '@crowd/common'
 import { DbStore } from '@crowd/database'
 import { Logger, getChildLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
-import {
-  Edition,
-  IMemberAttribute,
-  IServiceConfig,
-  MemberAttributeType,
-  MemberIdentityType,
-} from '@crowd/types'
+import { IMemberAttribute, MemberAttributeType, MemberIdentityType } from '@crowd/types'
 import { IndexedEntityType } from '../repo/indexing.data'
 import { IndexingRepository } from '../repo/indexing.repo'
 import { IDbMemberSyncData, IMemberSegmentMatrix } from '../repo/member.data'
@@ -25,7 +19,6 @@ export class MemberSyncService {
   private log: Logger
   private readonly memberRepo: MemberRepository
   private readonly segmentRepo: SegmentRepository
-  private readonly serviceConfig: IServiceConfig
   private readonly indexingRepo: IndexingRepository
 
   constructor(
@@ -33,10 +26,8 @@ export class MemberSyncService {
     store: DbStore,
     private readonly openSearchService: OpenSearchService,
     parentLog: Logger,
-    serviceConfig: IServiceConfig,
   ) {
     this.log = getChildLogger('member-sync-service', parentLog)
-    this.serviceConfig = serviceConfig
 
     this.memberRepo = new MemberRepository(redisClient, store, this.log)
     this.segmentRepo = new SegmentRepository(store, this.log)
@@ -342,47 +333,43 @@ export class MemberSyncService {
             }),
           )
 
-          const isMultiSegment = this.serviceConfig.edition === Edition.LFX
+          // also calculate and push for parent and grandparent segments
+          const childSegmentIds: string[] = distinct(memberSegments.map((m) => m.segmentId))
+          const segmentInfos = await this.segmentRepo.getParentSegmentIds(childSegmentIds)
 
-          if (isMultiSegment) {
-            // also calculate and push for parent and grandparent segments
-            const childSegmentIds: string[] = distinct(memberSegments.map((m) => m.segmentId))
-            const segmentInfos = await this.segmentRepo.getParentSegmentIds(childSegmentIds)
+          const parentIds: string[] = distinct(segmentInfos.map((s) => s.parentId))
+          for (const parentId of parentIds) {
+            const aggregated = MemberSyncService.aggregateData(
+              memberSegmentCouples[memberId].map((s) => s.data),
+              segmentInfos,
+              parentId,
+            )
+            const prepared = MemberSyncService.prefixData(aggregated, attributes)
+            syncStream.push({
+              id: `${memberId}-${parentId}`,
+              body: prepared,
+            })
+          }
 
-            const parentIds: string[] = distinct(segmentInfos.map((s) => s.parentId))
-            for (const parentId of parentIds) {
-              const aggregated = MemberSyncService.aggregateData(
-                memberSegmentCouples[memberId].map((s) => s.data),
-                segmentInfos,
-                parentId,
-              )
-              const prepared = MemberSyncService.prefixData(aggregated, attributes)
-              syncStream.push({
-                id: `${memberId}-${parentId}`,
-                body: prepared,
-              })
-            }
-
-            const grandParentIds = distinct(segmentInfos.map((s) => s.grandParentId))
-            for (const grandParentId of grandParentIds) {
-              const aggregated = MemberSyncService.aggregateData(
-                memberSegmentCouples[memberId].map((s) => s.data),
-                segmentInfos,
-                undefined,
-                grandParentId,
-              )
-              const prepared = MemberSyncService.prefixData(
-                {
-                  ...aggregated,
-                  grandParentSegment: true,
-                },
-                attributes,
-              )
-              syncStream.push({
-                id: `${memberId}-${grandParentId}`,
-                body: prepared,
-              })
-            }
+          const grandParentIds = distinct(segmentInfos.map((s) => s.grandParentId))
+          for (const grandParentId of grandParentIds) {
+            const aggregated = MemberSyncService.aggregateData(
+              memberSegmentCouples[memberId].map((s) => s.data),
+              segmentInfos,
+              undefined,
+              grandParentId,
+            )
+            const prepared = MemberSyncService.prefixData(
+              {
+                ...aggregated,
+                grandParentSegment: true,
+              },
+              attributes,
+            )
+            syncStream.push({
+              id: `${memberId}-${grandParentId}`,
+              body: prepared,
+            })
           }
 
           // delete the memberId from matrix, we already created syncStreams for indexing to opensearch

@@ -22,6 +22,8 @@ import tags from './tags';
 import typeAttribute from './type';
 import immediateParent from './immediateParent';
 import ultimateParent from './ultimateParent';
+import description from './description';
+import location from './location';
 
 export interface OrganizationEnrichmentConfig {
   name: string; // id of the enrichment attribute
@@ -35,6 +37,8 @@ export interface OrganizationEnrichmentConfig {
 }
 
 const enrichmentConfig: OrganizationEnrichmentConfig[] = [
+  description,
+  location,
   lastEnrichedAt,
   industry,
   headcount,

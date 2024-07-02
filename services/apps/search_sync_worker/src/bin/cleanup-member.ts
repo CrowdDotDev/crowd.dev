@@ -1,8 +1,8 @@
-import { DB_CONFIG, OPENSEARCH_CONFIG, REDIS_CONFIG, SERVICE_CONFIG } from '../conf'
-import { OpenSearchService, MemberSyncService } from '@crowd/opensearch'
 import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { getServiceLogger } from '@crowd/logging'
+import { MemberSyncService, OpenSearchService } from '@crowd/opensearch'
 import { getRedisClient } from '@crowd/redis'
+import { DB_CONFIG, OPENSEARCH_CONFIG, REDIS_CONFIG } from '../conf'
 
 const log = getServiceLogger()
 
@@ -23,7 +23,7 @@ setImmediate(async () => {
   const dbConnection = await getDbConnection(DB_CONFIG())
   const store = new DbStore(log, dbConnection)
 
-  const service = new MemberSyncService(redis, store, openSearchService, log, SERVICE_CONFIG())
+  const service = new MemberSyncService(redis, store, openSearchService, log)
 
   for (const memberId of memberIds) {
     await service.removeMember(memberId)

@@ -565,6 +565,7 @@ export default class ActivityService extends LoggerBase {
                   reach: member.reach,
                 },
                 dbMember,
+                platform,
                 false,
               )
 
@@ -602,6 +603,7 @@ export default class ActivityService extends LoggerBase {
                   reach: member.reach,
                 },
                 dbMember,
+                platform,
                 false,
               )
 
@@ -674,6 +676,7 @@ export default class ActivityService extends LoggerBase {
                       reach: member.reach,
                     },
                     dbObjectMember,
+                    platform,
                     false,
                   )
 
@@ -711,6 +714,7 @@ export default class ActivityService extends LoggerBase {
                       reach: member.reach,
                     },
                     dbObjectMember,
+                    platform,
                     false,
                   )
 
@@ -809,6 +813,7 @@ export default class ActivityService extends LoggerBase {
                   reach: member.reach,
                 },
                 dbMember,
+                platform,
                 false,
               )
               memberId = dbMember.id
@@ -831,6 +836,7 @@ export default class ActivityService extends LoggerBase {
                   organizations: member.organizations,
                   reach: member.reach,
                 },
+                platform,
                 false,
               )
             }
@@ -866,6 +872,7 @@ export default class ActivityService extends LoggerBase {
                     reach: member.reach,
                   },
                   dbObjectMember,
+                  platform,
                   false,
                 )
                 objectMemberId = dbObjectMember.id
@@ -888,6 +895,7 @@ export default class ActivityService extends LoggerBase {
                     organizations: objectMember.organizations,
                     reach: member.reach,
                   },
+                  platform,
                   false,
                 )
               }

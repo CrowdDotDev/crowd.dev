@@ -1,22 +1,4 @@
 <template>
-  <router-link
-    v-if="hasPermission(LfPermission.organizationEdit)"
-    :to="{
-      name: 'organizationEdit',
-      params: {
-        id: props.organization.id,
-      },
-      query: {
-        projectGroup: selectedProjectGroup?.id,
-        segmentId: organization.segmentId || selectedProjectGroup?.id,
-      },
-    }"
-  >
-    <lf-dropdown-item>
-      <lf-icon name="pencil-line" />
-      Edit organization
-    </lf-dropdown-item>
-  </router-link>
   <lf-dropdown-item
     v-if="hasPermission(LfPermission.organizationEdit) && props.organization.identities.length > 1"
     @click="unmerge = props.organization"
@@ -57,8 +39,6 @@ import { useRoute, useRouter } from 'vue-router';
 import { doManualAction } from '@/shared/helpers/manualAction.helpers';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { Organization } from '@/modules/organization/types/Organization';
-import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import { storeToRefs } from 'pinia';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import AppOrganizationUnmergeDialog from '@/modules/organization/components/organization-unmerge-dialog.vue';
 import { ref } from 'vue';
@@ -75,9 +55,6 @@ const { hasPermission } = usePermissions();
 const { trackEvent } = useProductTracking();
 
 const unmerge = ref<Organization | null>(null);
-
-const lfStore = useLfSegmentsStore();
-const { selectedProjectGroup } = storeToRefs(lfStore);
 
 const markTeamOrganization = (teamOrganization: boolean) => {
   trackEvent({

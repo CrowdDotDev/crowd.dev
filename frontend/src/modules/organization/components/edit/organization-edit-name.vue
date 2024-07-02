@@ -19,15 +19,17 @@ import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 import { Organization } from '@/modules/organization/types/Organization';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
+import useOrganizationHelpers from '@/modules/organization/helpers/organization.helpers';
 
 const props = defineProps<{
   organization: Organization,
 }>();
 
 const { updateOrganization } = useOrganizationStore();
+const { displayName } = useOrganizationHelpers();
 
 const form = reactive({
-  name: props.organization.displayName,
+  name: displayName(props.organization),
 });
 
 const rules = {
@@ -39,15 +41,20 @@ const rules = {
 const $v = useVuelidate(rules, form);
 
 const update = () => {
-  if (form.name === props.organization.displayName) {
+  if (form.name === displayName(props.organization)) {
     return;
   }
   if ($v.value.$invalid) {
-    form.name = props.organization.displayName;
+    form.name = displayName(props.organization);
     return;
   }
   updateOrganization(props.organization.id, {
-    displayName: form.name,
+    attributes: {
+      name: {
+        default: form.name,
+        custom: [form.name],
+      },
+    },
   })
     .then(() => {
       Message.success('Organization name updated successfully!');

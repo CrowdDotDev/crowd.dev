@@ -15,7 +15,6 @@ import {
   MemberSyncService,
   OrganizationSyncService,
 } from '@crowd/opensearch'
-import { SERVICE_CONFIG } from '../conf'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
@@ -97,7 +96,6 @@ export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
       new DbStore(this.log, this.dbConn),
       this.openSearchService,
       this.log,
-      SERVICE_CONFIG(),
     )
   }
 
@@ -114,7 +112,6 @@ export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
       new DbStore(this.log, this.dbConn),
       this.openSearchService,
       this.log,
-      SERVICE_CONFIG(),
     )
   }
 

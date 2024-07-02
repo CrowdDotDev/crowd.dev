@@ -1,7 +1,6 @@
 import { DbConnection, DbTransaction } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import {
-  ILLMConsumableOrganizationDbResult,
   IOrganizationMergeSuggestion,
   LLMSuggestionVerdictType,
   OrganizationMergeSuggestionTable,
@@ -156,7 +155,7 @@ class OrganizationMergeSuggestionsRepository {
         where not exists (
           select 1
           from "${table}"
-          where ("organizationId" = new_vals."organizationId"::uuid AND "toMergeId" = new_vals."toMergeId"::uuid) 
+          where ("organizationId" = new_vals."organizationId"::uuid AND "toMergeId" = new_vals."toMergeId"::uuid)
           or ("organizationId" = new_vals."toMergeId"::uuid AND "toMergeId" = new_vals."organizationId"::uuid)
         );
       `
@@ -199,43 +198,6 @@ class OrganizationMergeSuggestionsRepository {
     } catch (error) {
       this.log.error('Error while getting non existing organizations from db', error)
       throw error
-    }
-  }
-
-  async getOrganizations(organizationIds: string[]): Promise<ILLMConsumableOrganizationDbResult[]> {
-    try {
-      const result: ILLMConsumableOrganizationDbResult[] = await this.connection.manyOrNone(
-        `
-        select
-            o."displayName",
-            o.description,
-            o."phoneNumbers",
-            o.logo,
-            o.tags,
-            o.location,
-            o.type,
-            o."geoLocation",
-            o.ticker,
-            o.profiles,
-            o.headline,
-            o.industry,
-            o.founded,
-            o."alternativeNames",
-            coalesce(jsonb_agg(oi) filter (where oi."organizationId" is not null), '[]'::jsonb) as identities
-        from
-            organizations o
-        left join "organizationIdentities" oi on o.id = oi."organizationId"
-        where
-            o.id in ($(organizationIds:csv))
-        group by o.id;`,
-        {
-          organizationIds,
-        },
-      )
-
-      return result || []
-    } catch (err) {
-      throw new Error(err)
     }
   }
 
@@ -283,7 +245,7 @@ class OrganizationMergeSuggestionsRepository {
                             select 1 from "lfxMemberships" lfm
                             where otmr."organizationId" = lfm."organizationId" or
                                   otmr."toMergeId" = lfm."organizationId"
-                        ) 
+                        )
                         ${similarityLTEFilter}
                         ${similarityGTEFilter}
                         ${organizationIdFilter}
@@ -291,33 +253,33 @@ class OrganizationMergeSuggestionsRepository {
                      select distinct s."organizationId", s."toMergeId"
                      from suggestions s
                      where not exists (
-                          select 1 from "llmSuggestionVerdicts" lsv 
+                          select 1 from "llmSuggestionVerdicts" lsv
                           where (
-                              lsv."primaryId" = s."organizationId" and 
-                              lsv."secondaryId" = s."toMergeId" and 
+                              lsv."primaryId" = s."organizationId" and
+                              lsv."secondaryId" = s."toMergeId" and
                               lsv.type = '${LLMSuggestionVerdictType.ORGANIZATION}'
-                            ) 
-                              or 
+                            )
+                              or
                             (
                               lsv."primaryId" = s."toMergeId" and
                               lsv."secondaryId" = s."organizationId" and
                               lsv.type = '${LLMSuggestionVerdictType.ORGANIZATION}'
-                            
+
                             )
                      )
                      order by s."organizationId" desc
                      limit $(limit);`
     } else {
       query = `select * from "organizationToMergeRaw" otmr
-                     where 
+                     where
                      not exists (
-                          select 1 from "llmSuggestionVerdicts" lsv 
+                          select 1 from "llmSuggestionVerdicts" lsv
                           where (
-                              lsv."primaryId" = otmr."organizationId" and 
-                              lsv."secondaryId" = otmr."toMergeId" and 
+                              lsv."primaryId" = otmr."organizationId" and
+                              lsv."secondaryId" = otmr."toMergeId" and
                               lsv.type = '${LLMSuggestionVerdictType.ORGANIZATION}'
-                            ) 
-                              or 
+                            )
+                              or
                             (
                               lsv."primaryId" = otmr."toMergeId" and
                               lsv."secondaryId" = otmr."organizationId" and

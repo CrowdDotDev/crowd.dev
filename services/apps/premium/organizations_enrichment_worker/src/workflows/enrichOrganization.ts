@@ -1,6 +1,6 @@
 import { proxyActivities } from '@temporalio/workflow'
 import * as activities from '../activities/enrichment'
-import { IEnrichableOrganizationData } from '@crowd/data-access-layer/src/old/apps/premium/organization_enrichment_worker/types'
+import { IEnrichableOrganizationData } from '@crowd/data-access-layer/src/organizations'
 
 const aCtx = proxyActivities<typeof activities>({
   startToCloseTimeout: '75 seconds',

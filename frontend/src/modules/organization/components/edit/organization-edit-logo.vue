@@ -5,7 +5,7 @@
         <div class="pr-5">
           <lf-avatar
             :size="80"
-            :name="props.organization.displayName"
+            :name="displayName(props.organization)"
             :src="form.logo"
             class="border border-gray-300 !rounded-md"
           >
@@ -52,7 +52,7 @@
         </lf-button>
         <lf-button
           type="primary"
-          :disabled="$v.$invalid || props.organization.logo === form.logo"
+          :disabled="$v.$invalid || logo(props.organization) === form.logo"
           :loading="sending"
 
           @click="update()"
@@ -79,6 +79,7 @@ import Message from '@/shared/message/message';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { Organization } from '@/modules/organization/types/Organization';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
+import useOrganizationHelpers from '@/modules/organization/helpers/organization.helpers';
 
 const props = defineProps<{
   modelValue: boolean,
@@ -89,8 +90,10 @@ const emit = defineEmits<{(e: 'update:modelValue', value: boolean): any}>();
 
 const { updateOrganization } = useOrganizationStore();
 
+const { displayName, logo } = useOrganizationHelpers();
+
 const form = reactive({
-  logo: props.organization.logo,
+  logo: logo(props.organization),
 });
 
 const rules = {
@@ -105,7 +108,12 @@ const sending = ref<boolean>(false);
 const update = () => {
   sending.value = true;
   updateOrganization(props.organization.id, {
-    logo: form.logo,
+    attributes: {
+      logo: {
+        default: form.logo,
+        custom: [form.logo],
+      },
+    },
   })
     .then(() => {
       Message.success('Organization logo updated successfully!');
