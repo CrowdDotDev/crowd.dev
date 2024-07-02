@@ -30,7 +30,7 @@ export enum LfPermission {
   integrationRead = 'integrationRead',
   integrationAutocomplete = 'integrationAutocomplete',
 
-  // Contributors
+  // Members
   memberImport = 'memberImport',
   memberCreate = 'memberCreate',
   memberEdit = 'memberEdit',

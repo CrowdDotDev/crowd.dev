@@ -5,13 +5,13 @@
     <div class="pl-3 group w-full">
       <lf-contributor-edit-name :contributor="props.contributor" />
       <div class="flex items-center gap-1.5">
-        <lf-badge v-if="isTeamContributor(props.contributor)" size="small">
+        <lf-badge v-if="isTeamMember(props.contributor)" size="small">
           Team
         </lf-badge>
         <lf-badge v-if="isBot(props.contributor)" type="tertiary" size="small">
           Bot
         </lf-badge>
-        <p v-if="isBot(props.contributor) || isTeamContributor(props.contributor)" class="text-small text-gray-400">
+        <p v-if="isBot(props.contributor) || isTeamMember(props.contributor)" class="text-small text-gray-400">
           •
         </p>
         <lf-contributor-work-position :contributor="props.contributor" />
@@ -27,24 +27,24 @@
 </template>
 
 <script setup lang="ts">
+import LfBadge from '@/ui-kit/badge/Badge.vue';
+import { computed } from 'vue';
+import { contributorDetailsHeaderProfilePlatforms } from '@/modules/contributor/config/details-header-profile-platforms';
+import LfContributorEditName from '@/modules/contributor/components/edit/contributor-edit-name.vue';
 import { Contributor } from '@/modules/contributor/types/Contributor';
 import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
-import LfBadge from '@/ui-kit/badge/Badge.vue';
 import LfContributorWorkPosition from '@/modules/contributor/components/shared/contributor-work-position.vue';
 import LfContributorDetailsHeaderProfiles
   from '@/modules/contributor/components/details/header/contributor-details-header-profiles.vue';
-import { computed } from 'vue';
-import { contributorDetailsHeaderProfilePlatforms } from '@/modules/contributor/config/details-header-profile-platforms';
 import LfContributorDetailsHeaderProfilePhoto
   from '@/modules/contributor/components/details/header/contributor-details-header-profile-photo.vue';
-import LfContributorEditName from '@/modules/contributor/components/edit/contributor-edit-name.vue';
 
 const props = defineProps<{
   contributor: Contributor,
 }>();
 
 const {
-  isBot, isTeamContributor, activeOrganization,
+  isBot, isTeamMember, activeOrganization,
 } = useContributorHelpers();
 
 const hasHeaderIdentities = computed(() => props.contributor.identities.some((i) => contributorDetailsHeaderProfilePlatforms.includes(i.platform)));

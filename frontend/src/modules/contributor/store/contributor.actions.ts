@@ -1,6 +1,6 @@
-import { ContributorApiService } from '@/modules/contributor/services/contributor.api.service';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';
+import { ContributorApiService } from '@/modules/contributor/services/contributor.api.service';
 import { Contributor } from '@/modules/contributor/types/Contributor';
 
 export default {

@@ -15,8 +15,8 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
-import { Contributor } from '@/modules/contributor/types/Contributor';
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
+import { Contributor } from '@/modules/contributor/types/Contributor';
 
 const props = defineProps<{
   contributor: Contributor,

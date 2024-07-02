@@ -3,7 +3,7 @@
     <div v-if="showHeader">
       <h6>Custom attributes</h6>
       <p class="text-gray-500 text-2xs leading-normal mt-1">
-        Add custom data points to enhance the contributor profile
+        Add custom data points to enhance the person profile
       </p>
       <el-button
         class="btn btn-link btn-link--sm btn-link--primary mt-3"
@@ -36,7 +36,7 @@
             "
             class="text-xs text-gray-400 font-medium mt-4 mb-2"
           >
-            Hidden in contributor
+            Hidden in person
           </div>
           <div class="flex gap-3">
             <div

@@ -184,7 +184,7 @@ const handleSubmit = async () => {
   loading.value = true;
 
   trackEvent({
-    key: FeatureEventKey.EDIT_CONTRIBUTOR_ATTRIBUTES,
+    key: FeatureEventKey.EDIT_MEMBER_ATTRIBUTES,
     type: EventType.FEATURE,
     properties: {
       path: route.path,

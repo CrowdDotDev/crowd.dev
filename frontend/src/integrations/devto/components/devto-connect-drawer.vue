@@ -105,7 +105,7 @@
             class="text-2xs font-light mb-2 text-gray-600"
           >
             Monitor articles from individual users, such as
-            team contributors or community advocates
+            team members or community advocates
           </span>
           <el-form-item
             v-for="user in users"

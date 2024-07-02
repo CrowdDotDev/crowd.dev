@@ -4,7 +4,7 @@ export default () => {
   Message.info(
     null,
     {
-      title: 'Contributors are being merged',
+      title: 'People are being merged',
     },
   );
 };

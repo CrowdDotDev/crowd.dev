@@ -68,7 +68,7 @@ export default {
       await MemberService.merge(memberToKeep, memberToMerge);
 
       Message.success(i18n('entities.member.merge.success'));
-      router.push(`/contributors/${memberToKeep.id}`);
+      router.push(`/people/${memberToKeep.id}`);
     } catch (error) {
       Errors.handle(error);
     }

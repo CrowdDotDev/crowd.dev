@@ -74,22 +74,22 @@
           placement="right"
           raw-content
           popper-class="custom-menu-tooltip"
-          content="Contributors"
+          content="People"
         >
           <router-link
             id="menu-members"
             :to="{
-              path: '/contributors',
+              path: '/people',
               query: { projectGroup: selectedProjectGroup?.id },
             }"
             class="el-menu-item"
-            :class="classFor('/contributors', false, !selectedProjectGroup)"
+            :class="classFor('/people', false, !selectedProjectGroup)"
             :disabled="!selectedProjectGroup"
-            @click="onContributorsClick"
+            @click="onMembersClick"
           >
             <i class="ri-group-2-line" />
             <span v-if="!isCollapsed">
-              Contributors
+              People
             </span>
           </router-link>
         </el-tooltip>
@@ -232,7 +232,7 @@ import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { useStore } from 'vuex';
 import { useActivityStore } from '@/modules/activity/store/pinia';
 import { useMemberStore } from '@/modules/member/store/pinia';
-import allContacts from '@/modules/member/config/saved-views/views/all-contacts';
+import allMembers from '@/modules/member/config/saved-views/views/all-members';
 import allOrganizations from '@/modules/organization/config/saved-views/views/all-organizations';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
@@ -256,8 +256,8 @@ const { filters: organizationFilters } = storeToRefs(organizationStore);
 
 const { hasPermission } = usePermissions();
 
-const onContributorsClick = () => {
-  membersFilters.value = allContacts.config;
+const onMembersClick = () => {
+  membersFilters.value = allMembers.config;
 };
 
 const onOrganizationsClick = () => {

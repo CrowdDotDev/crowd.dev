@@ -274,7 +274,7 @@
           class="pb-4"
         >
           <p class="text-2xs font-medium text-gray-500 pb-1">
-            # of contributors
+            # of people
           </p>
           <p class="text-xs text-gray-900 whitespace-normal">
             {{ props.organization.memberCount || '-' }}

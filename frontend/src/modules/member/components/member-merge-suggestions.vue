@@ -60,7 +60,7 @@
           :loading="sendingMerge"
           @click="mergeSuggestion()"
         >
-          Merge contributors
+          Merge people
         </lf-button>
         <slot name="actions" />
       </div>
@@ -127,7 +127,7 @@
         No merge suggestions
       </h5>
       <p class="text-sm text-center text-gray-600 leading-5">
-        We couldn’t find any duplicated contributors
+        We couldn’t find any duplicated people
       </p>
     </div>
   </div>
@@ -207,7 +207,7 @@ const fetch = (page) => {
   }
 
   trackEvent({
-    key: FeatureEventKey.NAVIGATE_CONTRIBUTORS_MERGE_SUGGESTIONS,
+    key: FeatureEventKey.NAVIGATE_MEMBERS_MERGE_SUGGESTIONS,
     type: EventType.FEATURE,
   });
 
@@ -237,7 +237,7 @@ const ignoreSuggestion = () => {
   }
 
   trackEvent({
-    key: FeatureEventKey.IGNORE_CONTRIBUTOR_MERGE_SUGGESTION,
+    key: FeatureEventKey.IGNORE_MEMBER_MERGE_SUGGESTION,
     type: EventType.FEATURE,
     properties: {
       similarity: membersToMerge.value.similarity,
@@ -283,7 +283,7 @@ const mergeSuggestion = () => {
   loadingMessage();
 
   trackEvent({
-    key: FeatureEventKey.MERGE_CONTRIBUTOR_MERGE_SUGGESTION,
+    key: FeatureEventKey.MERGE_MEMBERS_MERGE_SUGGESTION,
     type: EventType.FEATURE,
     properties: {
       similarity: membersToMerge.value.similarity,
@@ -294,9 +294,9 @@ const mergeSuggestion = () => {
     .then(() => {
       Message.closeAll();
       Message.info(
-        'We’re finalizing contributor merging. We will let you know once the process is completed.',
+        'We’re finalizing person merging. We will let you know once the process is completed.',
         {
-          title: 'Contributors merging in progress',
+          title: 'People merging in progress',
         },
       );
       primary.value = 0;

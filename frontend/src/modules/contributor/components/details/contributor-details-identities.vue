@@ -96,15 +96,15 @@
 <script setup lang="ts">
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
-import { Contributor } from '@/modules/contributor/types/Contributor';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
-import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
-import AppMemberManageIdentitiesDrawer from '@/modules/member/components/member-manage-identities-drawer.vue';
 import { computed, ref } from 'vue';
 import AppMemberUnmergeDialog from '@/modules/member/components/member-unmerge-dialog.vue';
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
+import { Contributor } from '@/modules/contributor/types/Contributor';
+import AppMemberManageIdentitiesDrawer from '@/modules/member/components/member-manage-identities-drawer.vue';
 
 const props = defineProps<{
   contributor: Contributor,

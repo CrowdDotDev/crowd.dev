@@ -49,8 +49,8 @@
               <lf-tab v-model="tabs" name="overview">
                 Overview
               </lf-tab>
-              <lf-tab v-model="tabs" name="contributors">
-                Contributors
+              <lf-tab v-model="tabs" name="people">
+                People
               </lf-tab>
               <lf-tab v-model="tabs" name="activities">
                 Activities
@@ -65,7 +65,7 @@
             :organization="organization"
           />
           <lf-organization-details-contributors
-            v-else-if="tabs === 'contributors'"
+            v-else-if="tabs === 'people'"
             ref="contributors"
             :organization="organization"
           />
@@ -101,10 +101,10 @@ import LfOrganizationDetailsIdentities
 import LfOrganizationDetailsDomains from '@/modules/organization/components/details/organization-details-domains.vue';
 import LfOrganizationDetailsPhoneNumbers
   from '@/modules/organization/components/details/organization-details-phone-numbers.vue';
-import LfOrganizationDetailsContributors
-  from '@/modules/organization/components/details/organization-details-contributors.vue';
 import LfOrganizationDetailsEmails from '@/modules/organization/components/details/organization-details-emails.vue';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
+import LfOrganizationDetailsContributors
+  from '@/modules/organization/components/details/organization-details-contributors.vue';
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
@@ -134,7 +134,7 @@ const getOrganization = () => {
 
 const controlScroll = (e: any) => {
   if (e.target.scrollTop + e.target.clientHeight >= e.target.scrollHeight - 10) {
-    if (tabs.value === 'contributors') {
+    if (tabs.value === 'people') {
       contributors.value.loadMore();
     }
   }

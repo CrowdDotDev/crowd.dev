@@ -15,7 +15,7 @@
           v-if="!hasOrganizations"
           icon="ri-community-line"
           title="No organizations yet"
-          description="We couldn't track any organizations related to your contributors."
+          description="We couldn't track any organizations related to your people."
           cta-btn="Add organization"
           @cta-click="onCtaClick"
         />
@@ -251,7 +251,7 @@
 
                 <!-- Number of members -->
                 <el-table-column
-                  label="# of Contributors"
+                  label="# of People"
                   width="220"
                   prop="memberCount"
                   sortable

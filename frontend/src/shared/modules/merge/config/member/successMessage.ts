@@ -34,13 +34,13 @@ export default ({ primaryMember, secondaryMember, selectedProjectGroupId }: Succ
               Message.closeAll();
             },
           },
-          'View contributor',
+          'View person',
         ),
       ],
     ),
     {
       title:
-        'Contributors merged successfully',
+        'People merged successfully',
     },
   );
 };

@@ -158,7 +158,7 @@ watch(() => filters.value, (value: Filter) => {
   const { name: routeName, hash: routeHash } = router.currentRoute.value;
 
   if (routeName === 'member') {
-    key = FeatureEventKey.FILTER_CONTRIBUTORS;
+    key = FeatureEventKey.FILTER_MEMBERS;
   } else if (routeName === 'organization') {
     key = FeatureEventKey.FILTER_ORGANIZATIONS;
   } else if (routeName === 'activity' && routeHash === '#activity') {

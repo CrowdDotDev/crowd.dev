@@ -4,7 +4,7 @@
       <div class="mb-10">
         <app-lf-page-header text-class="text-sm text-primary-600 mb-2.5" />
         <div class="flex items-center justify-between">
-          <h4>Contributors</h4>
+          <h4>People</h4>
           <div class="flex items-center">
             <router-link
               v-if="membersToMergeCount > 0 && hasPermission(LfPermission.mergeMembers)"
@@ -35,12 +35,12 @@
               class="btn btn--primary btn--md"
               @click="onAddMember"
             >
-              Add contributor
+              Add person
             </el-button>
           </div>
         </div>
         <div class="text-xs text-gray-500">
-          Overview of all contributors that interacted with your product or community
+          Overview of all people that interacted with your product or community
         </div>
       </div>
 
@@ -78,7 +78,7 @@
   <app-lf-sub-projects-list-modal
     v-if="isSubProjectSelectionOpen"
     v-model="isSubProjectSelectionOpen"
-    title="Add contributor"
+    title="Add person"
     @on-submit="onSubProjectSelection"
   />
 </template>

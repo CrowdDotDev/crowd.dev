@@ -29,13 +29,13 @@
 </template>
 
 <script setup lang="ts">
-import { Contributor } from '@/modules/contributor/types/Contributor';
-import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
 import { computed } from 'vue';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';
 import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
+import { Contributor } from '@/modules/contributor/types/Contributor';
 
 const props = defineProps<{
   contributor: Contributor,

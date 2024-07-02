@@ -20,7 +20,7 @@ const formatDateRange = (dateStart, dateEnd) => {
 };
 
 const membersEditOrganizations: LogRenderingConfig = {
-  label: 'Contributor work experience updated',
+  label: 'Person work experience updated',
   changes: async (log) => {
     const changes = {
       removals: [],
@@ -76,7 +76,7 @@ const membersEditOrganizations: LogRenderingConfig = {
   },
   description: (log) => `ID: ${log.entityId}`,
   properties: (log) => [{
-    label: 'Contributor',
+    label: 'Person',
     value: `<span>ID: ${log.entityId}</span>`,
   }],
 };

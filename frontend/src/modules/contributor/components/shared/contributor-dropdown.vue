@@ -10,22 +10,22 @@
     >
       <lf-dropdown-item>
         <lf-icon name="pencil-line" />
-        Edit contributor
+        Edit person
       </lf-dropdown-item>
     </router-link>
     <lf-dropdown-separator />
   </template>
   <lf-dropdown-item v-if="props.contributor.identities.length > 1 && hasPermission(LfPermission.memberEdit)" @click="unmerge = props.contributor">
     <lf-icon name="link-unlink" />
-    Unmerge contributor
+    Unmerge person
   </lf-dropdown-item>
   <lf-dropdown-item v-if="hasPermission(LfPermission.memberEdit)" :disabled="!!props.contributor.username?.github" @click="emit('findGithub')">
     <lf-icon name="github-fill" />
     Find GitHub
   </lf-dropdown-item>
-  <lf-dropdown-item v-if="hasPermission(LfPermission.memberEdit)" @click="markTeamMember(!isTeamContributor(props.contributor))">
+  <lf-dropdown-item v-if="hasPermission(LfPermission.memberEdit)" @click="markTeamMember(!isTeamMember(props.contributor))">
     <lf-icon name="team-line" />
-    {{ isTeamContributor(props.contributor) ? 'Unmark' : 'Mark' }} as team contributor
+    {{ isTeamMember(props.contributor) ? 'Unmark' : 'Mark' }} as team member
   </lf-dropdown-item>
   <lf-dropdown-item v-if="hasPermission(LfPermission.memberEdit)" @click="markBot(!isBot(props.contributor))">
     <lf-icon name="robot-line" />
@@ -35,7 +35,7 @@
     <lf-dropdown-separator />
     <lf-dropdown-item type="danger" @click="deleteContributor()">
       <lf-icon name="delete-bin-6-line" />
-      Delete contributor
+      Delete person
     </lf-dropdown-item>
   </template>
 
@@ -49,7 +49,6 @@
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import LfDropdownSeparator from '@/ui-kit/dropdown/DropdownSeparator.vue';
-import { Contributor } from '@/modules/contributor/types/Contributor';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
@@ -57,10 +56,11 @@ import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { useRoute, useRouter } from 'vue-router';
 import { MemberService } from '@/modules/member/member-service';
 import { doManualAction } from '@/shared/helpers/manualAction.helpers';
-import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import AppMemberUnmergeDialog from '@/modules/member/components/member-unmerge-dialog.vue';
 import { ref } from 'vue';
+import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
+import { Contributor } from '@/modules/contributor/types/Contributor';
 
 const props = defineProps<{
   contributor: Contributor,
@@ -72,13 +72,13 @@ const route = useRoute();
 const router = useRouter();
 const { hasPermission } = usePermissions();
 const { trackEvent } = useProductTracking();
-const { isTeamContributor, isBot } = useContributorHelpers();
+const { isTeamMember, isBot } = useContributorHelpers();
 
 const unmerge = ref<Contributor | null>(null);
 
 const markTeamMember = (teamMember: boolean) => {
   trackEvent({
-    key: FeatureEventKey.MARK_AS_TEAM_CONTRIBUTOR,
+    key: FeatureEventKey.MARK_AS_TEAM_MEMBER,
     type: EventType.FEATURE,
     properties: {
       path: route.path,
@@ -87,8 +87,8 @@ const markTeamMember = (teamMember: boolean) => {
   });
 
   doManualAction({
-    loadingMessage: 'Contributor is being updated',
-    successMessage: 'Contributor updated successfully',
+    loadingMessage: 'Person is being updated',
+    successMessage: 'Person updated successfully',
     errorMessage: 'Something went wrong',
     actionFn: MemberService.update(props.contributor.id, {
       attributes: {
@@ -113,8 +113,8 @@ const markBot = (bot: boolean) => {
   });
 
   doManualAction({
-    loadingMessage: 'Contributor is being updated',
-    successMessage: 'Contributor updated successfully',
+    loadingMessage: 'Person is being updated',
+    successMessage: 'Person updated successfully',
     errorMessage: 'Something went wrong',
     actionFn: MemberService.update(props.contributor.id, {
       attributes: {
@@ -132,14 +132,14 @@ const markBot = (bot: boolean) => {
 const deleteContributor = () => {
   ConfirmDialog({
     type: 'danger',
-    title: 'Delete contributor',
+    title: 'Delete person',
     message: "Are you sure you want to proceed? You can't undo this action",
     confirmButtonText: 'Confirm',
     cancelButtonText: 'Cancel',
     icon: 'ri-delete-bin-line',
   }).then(() => {
     trackEvent({
-      key: FeatureEventKey.DELETE_CONTRIBUTOR,
+      key: FeatureEventKey.DELETE_MEMBER,
       type: EventType.FEATURE,
       properties: {
         path: route.path,
@@ -147,13 +147,13 @@ const deleteContributor = () => {
     });
 
     doManualAction({
-      loadingMessage: 'Contributor is being deleted',
-      successMessage: 'Contributor successfully deleted',
+      loadingMessage: 'Person is being deleted',
+      successMessage: 'Person successfully deleted',
       errorMessage: 'Something went wrong',
       actionFn: MemberService.destroyAll([props.contributor.id]),
     }).then(() => {
       router.push({
-        path: '/contributors',
+        path: '/people',
         query: {
           projectGroup: route.query.projectGroup,
         },

@@ -13,12 +13,12 @@
             class="text-gray-600 btn-link--md btn-link--secondary p-0"
             @click="onCancel"
           >
-            Contributors
+            People
           </el-button>
           <div class="flex justify-between">
             <div class="flex items-center gap-4 mt-4 mb-6">
               <h4>
-                {{ isEditPage ? 'Edit contributor' : 'New contributor' }}
+                {{ isEditPage ? 'Edit person' : 'New person' }}
               </h4>
               <div
                 v-if="!isEditPage && selectedSegments.project && selectedSegments.subproject"
@@ -57,7 +57,7 @@
                   @click="onSubmit"
                 >
                   {{
-                    isEditPage ? 'Update contributor' : 'Add contributor'
+                    isEditPage ? 'Update person' : 'Add person'
                   }}
                 </el-button>
               </div>
@@ -101,7 +101,7 @@
                   Identities <span class="text-primary-500">*</span>
                 </h6>
                 <p class="text-gray-500 text-2xs leading-normal mt-1">
-                  Connect with contributors' external data sources or
+                  Connect with people' external data sources or
                   profiles
                 </p>
               </div>
@@ -560,7 +560,7 @@ async function onSubmit() {
     isFormSubmitting.value = true;
 
     trackEvent({
-      key: FeatureEventKey.EDIT_CONTRIBUTOR,
+      key: FeatureEventKey.EDIT_MEMBER,
       type: EventType.FEATURE,
       properties: {
         ...data,
@@ -596,7 +596,7 @@ async function onSubmit() {
               ],
             ),
             {
-              title: 'Contributor was not updated because the identity already exists in another contributor, but you can merge the contributors',
+              title: 'Person was not updated because the identity already exists in another person, but you can merge the people',
             },
           );
 
@@ -616,7 +616,7 @@ async function onSubmit() {
     isFormSubmitting.value = true;
 
     trackEvent({
-      key: FeatureEventKey.ADD_CONTRIBUTOR,
+      key: FeatureEventKey.ADD_MEMBER,
       type: EventType.FEATURE,
       properties: {
         ...data,

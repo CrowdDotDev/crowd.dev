@@ -3,20 +3,20 @@ import { DefaultFiltersSettings } from '@/shared/modules/saved-views/types/Saved
 
 export const memberDefaultFilterRenderer = ({ teamMember, bot }: DefaultFiltersSettings) => {
   if (teamMember === IncludeEnum.EXCLUDE && bot === IncludeEnum.EXCLUDE) {
-    return 'Excl. team and bot contributors';
+    return 'Excl. team members and bots';
   }
 
   if (teamMember === IncludeEnum.EXCLUDE && bot === IncludeEnum.INCLUDE) {
-    return 'Incl. bot contributors and excl. team contributors';
+    return 'Incl. bots and excl. team members';
   }
 
   if (teamMember === IncludeEnum.INCLUDE && bot === IncludeEnum.EXCLUDE) {
-    return 'Incl. team contributors and excl. bot contributors';
+    return 'Incl. team members and excl. bots';
   }
 
   if (teamMember === IncludeEnum.FILTER) {
-    return 'Team contributors only';
+    return 'Team members only';
   }
 
-  return 'Incl. team and bot contributors';
+  return 'Incl. team members and bots';
 };

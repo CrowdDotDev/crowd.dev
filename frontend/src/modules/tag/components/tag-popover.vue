@@ -151,7 +151,7 @@ export default {
         : getSegmentsFromProjectGroup(this.selectedProjectGroup);
 
       trackEvent({
-        key: FeatureEventKey.EDIT_CONTRIBUTOR_TAGS,
+        key: FeatureEventKey.EDIT_MEMBER_TAGS,
         type: EventType.FEATURE,
       });
 
