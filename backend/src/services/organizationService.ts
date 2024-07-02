@@ -18,6 +18,7 @@ import {
 import { randomUUID } from 'crypto'
 import lodash from 'lodash'
 import {
+  findOrgAttributes,
   upsertOrgAttributes,
   upsertOrgIdentities,
 } from '@crowd/data-access-layer/src/organizations'
@@ -71,6 +72,11 @@ export default class OrganizationService extends LoggerBase {
 
       const identities = await OrganizationRepository.getIdentities([organizationId], this.options)
 
+      const qx = SequelizeRepository.getQueryExecutor(this.options)
+      const attributes = OrganizationRepository.convertOrgAttributesForDisplay(
+        await findOrgAttributes(qx, organization.id),
+      )
+
       if (
         !identities.some(
           (i) =>
@@ -113,6 +119,7 @@ export default class OrganizationService extends LoggerBase {
           primary: {
             ...lodash.pick(organization, OrganizationService.ORGANIZATION_MERGE_FIELDS),
             identities: organization.identities,
+            attributes,
             activityCount: primaryBackup.activityCount,
             memberCount: primaryBackup.memberCount,
           },
@@ -162,6 +169,7 @@ export default class OrganizationService extends LoggerBase {
         primary: {
           ...lodash.pick(organization, OrganizationService.ORGANIZATION_MERGE_FIELDS),
           identities: primaryIdentities,
+          attributes,
           memberCount: organization.memberCount - secondaryMemberCount,
           activityCount: organization.activityCount - secondaryActivityCount,
         },
@@ -750,7 +758,7 @@ export default class OrganizationService extends LoggerBase {
         record = existing
 
         if (record.attributes) {
-          const attributes = OrganizationRepository.convertOrgAttributes(record)
+          const attributes = OrganizationRepository.convertOrgAttributesForInsert(record)
 
           await upsertOrgAttributes(qx, record.id, attributes)
         }
@@ -778,7 +786,7 @@ export default class OrganizationService extends LoggerBase {
         }
 
         if (record.attributes) {
-          const attributes = OrganizationRepository.convertOrgAttributes(record)
+          const attributes = OrganizationRepository.convertOrgAttributesForInsert(record)
           await upsertOrgAttributes(qx, record.id, attributes)
         }
       }

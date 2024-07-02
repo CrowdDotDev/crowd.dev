@@ -16,6 +16,7 @@ import {
   OrgIdentityField,
   findManyOrgAttributes,
   upsertOrgAttributes,
+  IDbOrgAttribute,
 } from '@crowd/data-access-layer/src/organizations'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import {
@@ -250,7 +251,7 @@ class OrganizationRepository {
     attributes: (a, b) => lodash.isEqual(a, b),
   }
 
-  static convertOrgAttributes(data: any) {
+  static convertOrgAttributesForInsert(data: any) {
     const orgAttributes = []
 
     for (const [name, attribute] of Object.entries(data.attributes)) {
@@ -274,6 +275,23 @@ class OrganizationRepository {
     }
 
     return orgAttributes
+  }
+
+  static convertOrgAttributesForDisplay(attributes: IDbOrgAttribute[]) {
+    return attributes.reduce((acc, a) => {
+      if (!acc[a.name]) {
+        acc[a.name] = {}
+      }
+      if (!acc[a.name][a.source]) {
+        acc[a.name][a.source] = []
+      }
+
+      acc[a.name][a.source].push(a.value)
+      if (a.default) {
+        acc[a.name].default = a.value
+      }
+      return acc
+    }, {})
   }
 
   static async update(
@@ -352,7 +370,7 @@ class OrganizationRepository {
         if (data.attributes) {
           const qx = SequelizeRepository.getQueryExecutor(options, transaction)
 
-          const orgAttributes = OrganizationRepository.convertOrgAttributes(data)
+          const orgAttributes = OrganizationRepository.convertOrgAttributesForInsert(data)
 
           await upsertOrgAttributes(qx, record.id, orgAttributes)
         }
@@ -1169,20 +1187,7 @@ class OrganizationRepository {
 
     const qx = SequelizeRepository.getQueryExecutor(options)
     const attributes = await findOrgAttributes(qx, id)
-    organization.attributes = attributes.reduce((acc, a) => {
-      if (!acc[a.name]) {
-        acc[a.name] = {}
-      }
-      if (!acc[a.name][a.source]) {
-        acc[a.name][a.source] = []
-      }
-
-      acc[a.name][a.source].push(a.value)
-      if (a.default) {
-        acc[a.name].default = a.value
-      }
-      return acc
-    }, {})
+    organization.attributes = OrganizationRepository.convertOrgAttributesForDisplay(attributes)
 
     return organization
   }
