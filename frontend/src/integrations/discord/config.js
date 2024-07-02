@@ -16,6 +16,7 @@ export default {
   url: ({ username }) => (username ? `https://discord.com/${username}` : null),
   chartColor: '#6875FF',
   showProfileLink: false,
+  urlPrefix: 'discord.com/',
   activityDisplay: {
     showLinkToUrl: true,
   },

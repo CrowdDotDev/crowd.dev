@@ -61,6 +61,7 @@ const useContributorHelpers = () => {
       }, {});
     return Object.keys(emailsdata).map((email) => ({
       value: email,
+      url: `mailto:${email}`,
       ...emailsdata[email],
     }));
   };
