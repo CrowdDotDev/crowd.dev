@@ -9,12 +9,12 @@
       <div class="flex justify-between">
         <app-back-link
           :default-route="{
-            path: '/contributors',
+            path: '/people',
             query: { projectGroup: selectedProjectGroup?.id },
           }"
         >
           <template #default>
-            Contributors
+            People
           </template>
         </app-back-link>
 

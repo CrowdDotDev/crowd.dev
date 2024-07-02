@@ -101,7 +101,7 @@ const serverUpdate = () => {
   const segments = props.member.segments.map((s) => s.id);
 
   trackEvent({
-    key: FeatureEventKey.EDIT_CONTRIBUTOR_EMAIL,
+    key: FeatureEventKey.EDIT_MEMBER_EMAIL,
     type: EventType.FEATURE,
     properties: {
       identities: identities.value.filter((i) => !!i.value),

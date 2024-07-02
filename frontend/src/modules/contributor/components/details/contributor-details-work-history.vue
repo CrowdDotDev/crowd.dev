@@ -92,14 +92,14 @@
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
-import { Contributor } from '@/modules/contributor/types/Contributor';
 import { computed, ref } from 'vue';
-import AppMemberFormOrganizationsDrawer from '@/modules/member/components/form/member-form-organizations-drawer.vue';
 import LfSvg from '@/shared/svg/svg.vue';
 import moment from 'moment/moment';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import AppMemberFormOrganizationsDrawer from '@/modules/member/components/form/member-form-organizations-drawer.vue';
+import { Contributor } from '@/modules/contributor/types/Contributor';
 
 const props = defineProps<{
   contributor: Contributor,

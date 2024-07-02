@@ -16,7 +16,7 @@ export const organizationSavedViews: SavedViewsConfig = {
   },
   sorting: {
     displayName: 'Organization',
-    memberCount: '# contributors',
+    memberCount: '# people',
     activityCount: '# activities',
     joinedAt: 'Joined date',
     founded: 'Founded',

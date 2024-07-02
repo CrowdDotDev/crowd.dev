@@ -62,7 +62,6 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfButtonGroup from '@/ui-kit/button/ButtonGroup.vue';
 import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
-import { Contributor } from '@/modules/contributor/types/Contributor';
 import { onMounted, ref } from 'vue';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
@@ -73,6 +72,7 @@ import AppOrganizationMergeSuggestionsDialog
 import AppOrganizationMergeDialog from '@/modules/organization/components/organization-merge-dialog.vue';
 import LfOrganizationDropdown from '@/modules/organization/components/shared/organization-dropdown.vue';
 import pluralize from 'pluralize';
+import { Contributor } from '@/modules/contributor/types/Contributor';
 
 const props = defineProps<{
   organization: Organization,

@@ -34,9 +34,9 @@
 import LfCard from '@/ui-kit/card/Card.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
-import { Contributor } from '@/modules/contributor/types/Contributor';
 import { computed, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { Contributor } from '@/modules/contributor/types/Contributor';
 
 const props = defineProps<{
   contributor: Contributor,

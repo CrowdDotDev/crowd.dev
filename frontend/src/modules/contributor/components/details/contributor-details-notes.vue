@@ -36,14 +36,13 @@
         <lf-icon name="draft-line" :size="80" class="text-gray-300" />
       </div>
       <p class="text-medium text-gray-400 text-center">
-        No contributor notes yet
+        No person notes yet
       </p>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { Contributor } from '@/modules/contributor/types/Contributor';
 import { onMounted, ref } from 'vue';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
@@ -52,6 +51,7 @@ import LfNoteEditor from '@/modules/notes/components/note-editor.vue';
 import LfNoteItem from '@/modules/notes/components/note-item.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import { Contributor } from '@/modules/contributor/types/Contributor';
 
 const props = defineProps<{
   contributor: Contributor,

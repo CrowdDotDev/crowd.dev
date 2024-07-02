@@ -13,24 +13,24 @@
       <app-empty-state-cta
         v-if="!hasIntegrations && !hasMembers"
         icon="ri-contacts-line"
-        title="No contributors yet"
+        title="No people yet"
         description="Please connect with one of our available data sources in order to start pulling data from a certain platform"
-        secondary-btn="Add contributor"
+        secondary-btn="Add person"
         @secondary-click="onSecondaryBtnClick"
       />
 
       <app-empty-state-cta
         v-else-if="hasIntegrations && !hasMembers"
         icon="ri-contacts-line"
-        title="No contributors yet"
-        description="Please consider that the first contributors may take a couple of minutes to be displayed"
+        title="No people yet"
+        description="Please consider that the first people may take a couple of minutes to be displayed"
         :has-warning-icon="true"
       />
 
       <app-empty-state-cta
         v-else-if="hasMembers && !totalMembers"
         icon="ri-contacts-line"
-        title="No contributors found"
+        title="No people found"
         description="We couldn't find any results that match your search criteria, please try a different query"
       />
 
@@ -109,7 +109,7 @@
 
               <!-- Contacts -->
               <el-table-column
-                label="Contributor"
+                label="Person"
                 prop="displayName"
                 width="300"
                 fixed
@@ -261,8 +261,8 @@
                   <el-tooltip placement="top">
                     <template #content>
                       Calculated based on the recency and importance of the activities<br>
-                      a contributor has performed in relation to all other contributors.
-                      <br>E.g. a higher engagement level will be given to a contributor who has written
+                      a person has performed in relation to all other people.
+                      <br>E.g. a higher engagement level will be given to a person who has written
                       <br>in your Slack yesterday vs. someone who did so three weeks ago.
                     </template>
                     <span class="underline decoration-dashed decoration-gray-400 underline-offset-4">Engagement Level</span>
@@ -968,7 +968,7 @@ function handleEditTagsDialog(member) {
 
 function doChangeSort(sorter) {
   trackEvent({
-    key: FeatureEventKey.SORT_CONTRIBUTORS,
+    key: FeatureEventKey.SORT_MEMBERS,
     type: EventType.FEATURE,
     properties: {
       sortBy: sorter.prop,

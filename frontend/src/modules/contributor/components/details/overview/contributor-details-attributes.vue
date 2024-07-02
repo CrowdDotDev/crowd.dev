@@ -2,7 +2,7 @@
   <section v-bind="$attrs">
     <div class="flex items-center justify-between pb-4">
       <h6>
-        Contributor details
+        Person details
       </h6>
       <lf-button
         v-if="hasPermission(LfPermission.memberEdit)"
@@ -176,7 +176,7 @@
     >
       <lf-icon name="list-view" :size="80" class="text-gray-300" />
       <p class="text-center pt-3 text-medium text-gray-400">
-        No contributor details yet
+        No person details yet
       </p>
     </div>
   </section>
@@ -191,10 +191,12 @@
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import AppMemberManageAttributesDrawer from '@/modules/member/components/member-manage-attributes-drawer.vue';
-import { Contributor } from '@/modules/contributor/types/Contributor';
 import { computed, ref } from 'vue';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import moment from 'moment';
+import { useMemberStore } from '@/modules/member/store/pinia';
+import { storeToRefs } from 'pinia';
 import LfContributorAttributeTags
   from '@/modules/contributor/components/details/attributes/contributor-attribute-tags.vue';
 import LfContributorAttributeBoolean
@@ -203,11 +205,9 @@ import LfContributorAttributeString
   from '@/modules/contributor/components/details/attributes/contributor-attribute-string.vue';
 import LfContributorAttributeSource
   from '@/modules/contributor/components/details/attributes/contributor-attribute-source.vue';
-import moment from 'moment';
-import { useMemberStore } from '@/modules/member/store/pinia';
-import { storeToRefs } from 'pinia';
 import LfContributorAttributeUrl
   from '@/modules/contributor/components/details/attributes/contributor-attribute-url.vue';
+import { Contributor } from '@/modules/contributor/types/Contributor';
 
 const props = defineProps<{
   contributor: Contributor,
