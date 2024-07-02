@@ -17,6 +17,7 @@ import {
   findManyOrgAttributes,
   upsertOrgAttributes,
   IDbOrgAttribute,
+  deleteOrgAttributes,
 } from '@crowd/data-access-layer/src/organizations'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import {
@@ -375,7 +376,17 @@ class OrganizationRepository {
           const qx = SequelizeRepository.getQueryExecutor(options, transaction)
 
           const orgAttributes = OrganizationRepository.convertOrgAttributesForInsert(data)
+          const existingAttributes = await findOrgAttributes(qx, record.id)
 
+          await deleteOrgAttributes(
+            qx,
+            existingAttributes
+              .filter((attr) =>
+                // remove those we want to upsert
+                orgAttributes.find((a) => a.name === attr.name && a.source === attr.source),
+              )
+              .map((a) => a.id),
+          )
           await upsertOrgAttributes(qx, record.id, orgAttributes)
         }
 

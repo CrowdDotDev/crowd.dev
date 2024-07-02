@@ -1,3 +1,4 @@
+import { uniq } from 'lodash'
 import { getServiceChildLogger } from '@crowd/logging'
 import { QueryExecutor } from '../queryExecutor'
 import { prepareBulkInsert } from '../utils'
@@ -50,7 +51,7 @@ export const upsertOrgAttributes = async (
     return
   }
 
-  const objects = attributes.map((a) => {
+  const objects = uniq(attributes).map((a) => {
     return {
       organizationId,
       ...a,
@@ -75,4 +76,14 @@ export const upsertOrgAttributes = async (
     log.error(err, 'Failed to upsert organization attributes!')
     throw err
   }
+}
+
+export async function deleteOrgAttributes(qx: QueryExecutor, ids: string[]): Promise<void> {
+  await qx.result(
+    `
+    DELETE FROM "orgAttributes"
+    WHERE id IN ($(ids:csv))
+  `,
+    { ids },
+  )
 }
