@@ -757,6 +757,9 @@ export default class ActivityService extends LoggerBase {
                 false,
               )
 
+              // cache the organization for aggregate recomputation
+              await this.redisClient.sAdd('computeOrgAgg', organizationId)
+
               activityId = dbActivity.id
             }
 
@@ -926,6 +929,9 @@ export default class ActivityService extends LoggerBase {
               onboarding,
               false,
             )
+
+            // cache the organization for aggregate recomputation
+            await this.redisClient.sAdd('computeOrgAgg', organizationId)
           }
         } finally {
           // release locks matter what
