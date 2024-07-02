@@ -110,45 +110,10 @@ class OrganizationRepository {
     }
     const toInsert = {
       ...lodash.pick(data, [
-        'displayName',
-        'description',
-        'names',
-        'emails',
-        'phoneNumbers',
-        'logo',
-        'tags',
-        'location',
-        'employees',
-        'revenueRange',
         'importHash',
         'isTeamOrganization',
-        'employeeCountByCountry',
-        'type',
-        'ticker',
-        'headline',
-        'profiles',
-        'naics',
-        'industry',
-        'founded',
-        'size',
         'lastEnrichedAt',
         'manuallyCreated',
-        'allSubsidiaries',
-        'alternativeNames',
-        'averageEmployeeTenure',
-        'averageTenureByLevel',
-        'averageTenureByRole',
-        'directSubsidiaries',
-        'employeeChurnRate',
-        'employeeCountByMonth',
-        'employeeGrowthRate',
-        'employeeCountByMonthByLevel',
-        'employeeCountByMonthByRole',
-        'gicsSector',
-        'grossAdditionsByMonth',
-        'grossDeparturesByMonth',
-        'ultimateParent',
-        'immediateParent',
       ]),
 
       tenantId: tenant.id,
@@ -285,6 +250,32 @@ class OrganizationRepository {
     attributes: (a, b) => lodash.isEqual(a, b),
   }
 
+  static convertOrgAttributes(data: any) {
+    const orgAttributes = []
+
+    for (const [name, attribute] of Object.entries(data.attributes)) {
+      const attributeDefinition = findAttribute(name)
+
+      for (const value of (attribute as any).custom) {
+        const isDefault = value === (attribute as any).default
+
+        orgAttributes.push({
+          type: attributeDefinition.type,
+          name,
+          source: 'custom',
+          default: isDefault,
+          value,
+        })
+
+        if (isDefault && attributeDefinition.defaultColumn) {
+          data[attributeDefinition.defaultColumn] = value
+        }
+      }
+    }
+
+    return orgAttributes
+  }
+
   static async update(
     id,
     data,
@@ -361,27 +352,7 @@ class OrganizationRepository {
         if (data.attributes) {
           const qx = SequelizeRepository.getQueryExecutor(options, transaction)
 
-          const orgAttributes = []
-
-          for (const [name, attribute] of Object.entries(data.attributes)) {
-            const attributeDefinition = findAttribute(name)
-
-            for (const value of (attribute as any).custom) {
-              const isDefault = value === (attribute as any).default
-
-              orgAttributes.push({
-                type: attributeDefinition.type,
-                name,
-                source: 'custom',
-                default: isDefault,
-                value,
-              })
-
-              if (isDefault && attributeDefinition.defaultColumn) {
-                data[attributeDefinition.defaultColumn] = value
-              }
-            }
-          }
+          const orgAttributes = OrganizationRepository.convertOrgAttributes(data)
 
           await upsertOrgAttributes(qx, record.id, orgAttributes)
         }

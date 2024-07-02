@@ -3,7 +3,6 @@ import { OrganizationIdentityType, OrganizationSource } from './enums/organizati
 export interface IOrganization {
   // db fields
   id?: string
-  tags?: string[]
   url?: string
   avatarUrl?: string
   importHash?: string
@@ -15,7 +14,6 @@ export interface IOrganization {
   updatedById?: string
   isTeamOrganization?: boolean
   lastEnrichedAt?: string | Date
-  displayName?: string
   searchSyncedAt?: string | Date
   manuallyCreated?: boolean
 
@@ -31,40 +29,21 @@ export interface IOrganization {
   members?: string[]
 
   // attributes
-  names?: string[]
+  tags?: string[]
   description?: string
   logo?: string
-  location?: string
-  type?: string
   employees?: number
   revenueRange?: IOrganizationRevenueRange
+  location?: string
+  type?: string
   size?: string
-  headline?: string
   industry?: string
   founded?: number
+  displayName?: string
   employeeChurnRate?: Record<string, number>
   employeeGrowthRate?: Record<string, number>
-  phoneNumbers?: string[]
-  geoLocation?: string
-  ticker?: string
-  profiles?: string[]
-  address?: IOrganizationAddress
-  allSubsidiaries?: string[]
-  alternativeNames?: string[]
-  averageEmployeeTenure?: number
-  averageTenureByLevel?: unknown
-  averageTenureByRole?: unknown
-  directSubsidiaries?: string[]
-  employeeCountByMonth?: unknown
-  employeeCountByCountry?: unknown
-  employeeCountByMonthByLevel?: unknown
-  employeeCountByMonthByRole?: unknown
-  gicsSector?: string
-  grossAdditionsByMonth?: unknown
-  grossDeparturesByMonth?: unknown
-  ultimateParent?: string
-  immediateParent?: string
-  naics?: IOrganizationNaics
+
+  attributes?: any // eslint-disable-line @typescript-eslint/no-explicit-any
 }
 
 export interface IMemberOrganization {

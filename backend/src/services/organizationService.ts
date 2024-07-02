@@ -17,7 +17,10 @@ import {
 } from '@crowd/types'
 import { randomUUID } from 'crypto'
 import lodash from 'lodash'
-import { upsertOrgIdentities } from '@crowd/data-access-layer/src/organizations'
+import {
+  upsertOrgAttributes,
+  upsertOrgIdentities,
+} from '@crowd/data-access-layer/src/organizations'
 import getObjectWithoutKey from '@/utils/getObjectWithoutKey'
 import { IActiveOrganizationFilter } from '@/database/repositories/types/organizationTypes'
 import MemberOrganizationRepository from '@/database/repositories/memberOrganizationRepository'
@@ -46,48 +49,15 @@ export default class OrganizationService extends LoggerBase {
   }
 
   static ORGANIZATION_MERGE_FIELDS = [
-    'description',
-    'names',
-    'emails',
-    'phoneNumbers',
-    'logo',
-    'tags',
-    'type',
-    'joinedAt',
-    'employees',
-    'revenueRange',
-    'location',
-    'isTeamOrganization',
-    'employeeCountByCountry',
-    'geoLocation',
-    'size',
-    'ticker',
-    'headline',
-    'profiles',
-    'naics',
-    'address',
-    'industry',
-    'founded',
     'displayName',
-    'attributes',
-    'allSubsidiaries',
-    'alternativeNames',
-    'averageEmployeeTenure',
-    'averageTenureByLevel',
-    'averageTenureByRole',
-    'directSubsidiaries',
-    'employeeChurnRate',
-    'employeeCountByMonth',
-    'employeeGrowthRate',
-    'employeeCountByMonthByLevel',
-    'employeeCountByMonthByRole',
-    'gicsSector',
-    'grossAdditionsByMonth',
-    'grossDeparturesByMonth',
-    'ultimateParent',
-    'immediateParent',
+    'description',
+    'logo',
+    'headline',
+
+    'joinedAt',
+    'isTeamOrganization',
     'manuallyCreated',
-    'manuallyChangedFields',
+
     'activityCount',
     'memberCount',
   ]
@@ -125,34 +95,6 @@ export default class OrganizationService extends LoggerBase {
       if (mergeAction) {
         const primaryBackup = mergeAction.unmergeBackup.primary as IOrganizationUnmergeBackup
         const secondaryBackup = mergeAction.unmergeBackup.secondary as IOrganizationUnmergeBackup
-
-        for (const key of OrganizationService.ORGANIZATION_MERGE_FIELDS) {
-          if (!(organization.manuallyChangedFields || []).includes(key)) {
-            // handle string arrays
-            if (
-              key in
-              [
-                'names',
-                'emails',
-                'phoneNumbers',
-                'tags',
-                'profiles',
-                'allSubsidiaries',
-                'alternativeNames',
-                'directSubsidiaries',
-              ]
-            ) {
-              organization[key] = organization[key].filter(
-                (k) => !secondaryBackup[key].some((f) => f === k),
-              )
-            } else if (
-              primaryBackup[key] !== organization[key] &&
-              secondaryBackup[key] === organization[key]
-            ) {
-              organization[key] = null
-            }
-          }
-        }
 
         // identities
         organization.identities = organization.identities.filter(
@@ -226,41 +168,17 @@ export default class OrganizationService extends LoggerBase {
         secondary: {
           id: randomUUID(),
           identities: secondaryIdentities,
-          names: [identity.value],
           displayName: identity.value,
-          description: null,
+          attributes: {
+            name: {
+              default: identity.value,
+              custom: [identity.value],
+            },
+          },
           activityCount: secondaryActivityCount,
           memberCount: secondaryMemberCount,
-          phoneNumbers: [],
-          logo: null,
-          tags: [],
-          employees: null,
-          location: null,
           isTeamOrganization: false,
-          employeeCountByCountry: null,
-          geoLocation: null,
-          size: null,
-          ticker: null,
-          headline: null,
-          profiles: [],
-          naics: null,
-          address: null,
-          industry: null,
-          founded: null,
           searchSyncedAt: null,
-          allSubsidiaries: [],
-          alternativeNames: [],
-          averageEmployeeTenure: null,
-          averageTenureByLevel: null,
-          averageTenureByRole: null,
-          directSubsidiaries: [],
-          employeeChurnRate: null,
-          employeeCountByMonth: {},
-          employeeGrowthRate: null,
-          employeeCountByMonthByLevel: {},
-          employeeCountByMonthByRole: {},
-          gicsSector: null,
-          grossAdditionsByMonth: {},
         },
       }
     } catch (err) {
@@ -826,52 +744,20 @@ export default class OrganizationService extends LoggerBase {
         this.options,
       )
 
+      const qx = SequelizeRepository.getQueryExecutor(this.options, transaction)
+
       if (existing) {
-        // Set displayName if it doesn't exist
-        if (!existing.displayName) {
-          data.displayName = name
+        record = existing
+
+        if (record.attributes) {
+          const attributes = OrganizationRepository.convertOrgAttributes(record)
+
+          await upsertOrgAttributes(qx, record.id, attributes)
         }
 
-        // if it does exists update it
-        const updateData: Partial<IOrganization> = {}
-        const fields = [
-          'displayName',
-          'description',
-          'logo',
-          'tags',
-          'employees',
-          'location',
-          'type',
-          'size',
-          'headline',
-          'industry',
-          'founded',
-        ]
-        fields.forEach((field) => {
-          if (!existing[field] && data[field]) {
-            updateData[field] = data[field]
-          }
-        })
-
-        if (Object.keys(updateData).length > 0) {
-          record = await OrganizationRepository.update(existing.id, updateData, {
-            ...this.options,
-            transaction,
-          })
-        } else {
-          record = existing
-        }
-
-        const qe = SequelizeRepository.getQueryExecutor(this.options, transaction)
-
-        await upsertOrgIdentities(qe, record.id, record.tenantId, data.identities)
+        await upsertOrgIdentities(qx, record.id, record.tenantId, data.identities)
       } else {
-        const organization = {
-          ...data, // to keep uncacheable data (like identities, weakIdentities)
-          displayName: name,
-        }
-
-        record = await OrganizationRepository.create(organization, {
+        record = await OrganizationRepository.create(data, {
           ...this.options,
           transaction,
         })
@@ -889,6 +775,11 @@ export default class OrganizationService extends LoggerBase {
             ...this.options,
             transaction,
           })
+        }
+
+        if (record.attributes) {
+          const attributes = OrganizationRepository.convertOrgAttributes(record)
+          await upsertOrgAttributes(qx, record.id, attributes)
         }
       }
 
