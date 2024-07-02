@@ -176,7 +176,13 @@ export async function getOrganizationMergeSuggestions(
 
       // some identities have https? in the beginning, resulting in false positive suggestions
       // remove these when making fuzzy, wildcard and prefix searches
-      const cleanedIdentityName = identity.value.replace(/^https?:\/\//, '')
+      let cleanedIdentityName = identity.value.replace(/^https?:\/\//, '')
+
+      // linkedin identities now have prefixes in them, like `school:` or `company:`
+      // we should remove these prefixes when searching for similar identities
+      if (identity.platform === 'linkedin') {
+        cleanedIdentityName = cleanedIdentityName.split(':').pop()
+      }
 
       // only do fuzzy/wildcard/partial search when identity name is not all numbers (like linkedin organization profiles)
       if (Number.isNaN(Number(identity.value))) {
