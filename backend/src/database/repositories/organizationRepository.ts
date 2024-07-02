@@ -39,6 +39,7 @@ import validator from 'validator'
 import { findManyLfxMemberships } from '@crowd/data-access-layer/src/lfx_memberships'
 import { fetchManyOrgSegments } from '@crowd/data-access-layer/src/organizations/segments'
 import { OrganizationField, findOrgById } from '@crowd/data-access-layer/src/orgs'
+import { findAttribute } from '@crowd/data-access-layer/src/organizations/attributesConfig'
 import {
   IFetchOrganizationMergeSuggestionArgs,
   SimilarityScoreRange,
@@ -49,7 +50,6 @@ import AuditLogRepository from './auditLogRepository'
 import SegmentRepository from './segmentRepository'
 import SequelizeRepository from './sequelizeRepository'
 import { IActiveOrganizationData, IActiveOrganizationFilter } from './types/organizationTypes'
-import { findAttribute } from '@crowd/data-access-layer/src/organizations/attributesConfig'
 
 const { Op } = Sequelize
 
@@ -256,6 +256,10 @@ class OrganizationRepository {
 
     for (const [name, attribute] of Object.entries(data.attributes)) {
       const attributeDefinition = findAttribute(name)
+
+      if (!(attribute as any).custom) {
+        continue
+      }
 
       for (const value of (attribute as any).custom) {
         const isDefault = value === (attribute as any).default
