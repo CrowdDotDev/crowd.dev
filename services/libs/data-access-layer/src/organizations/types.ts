@@ -75,6 +75,7 @@ export interface IDbOrganizationAggregateData {
   activeOn: string[]
   activityCount: number
   memberCount: number
+  avgContributorEngagement: number
 }
 
 export interface IDbOrgIdentity {
