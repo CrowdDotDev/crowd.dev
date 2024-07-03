@@ -4,6 +4,7 @@ import {
   getOrgAggregates,
 } from '@crowd/data-access-layer/src/activities'
 import { updateOrganizationSegments } from '@crowd/data-access-layer/src/org_segments'
+import { findOrgById } from '@crowd/data-access-layer/src/organizations'
 import { PgPromiseQueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
 
 export async function getOrgIdsFromRedis(): Promise<string[]> {
@@ -36,4 +37,17 @@ export async function storeOrgAggsInDb(orgData: IOrganizationSegmentAggregates):
     this.log.error(e, 'Failed to store organization aggregate!')
     throw e
   }
+}
+
+export async function checkOrgExists(orgId: string): Promise<boolean> {
+  let exists = false
+
+  try {
+    const qx = new PgPromiseQueryExecutor(svc.postgres.reader.connection())
+    exists = !!(await findOrgById(qx, orgId))
+  } catch (e) {
+    this.log.error(e, 'Failed to check if organization exists!')
+  }
+
+  return exists
 }
