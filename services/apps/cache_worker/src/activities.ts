@@ -23,8 +23,8 @@ import {
 import {
   getOrgIdsFromRedis,
   dropOrgIdFromRedis,
-  storeOrgAggsInDb,
-  getOrgAggs,
+  checkOrganizationExists,
+  syncOrganization,
 } from './activities/computeAggs/organization'
 
 export {
@@ -46,6 +46,6 @@ export {
   isSegmentsEnabled,
   getOrgIdsFromRedis,
   dropOrgIdFromRedis,
-  storeOrgAggsInDb,
-  getOrgAggs,
+  checkOrganizationExists,
+  syncOrganization,
 }

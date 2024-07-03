@@ -7,18 +7,12 @@ const activity = proxyActivities<typeof activities>({ startToCloseTimeout: '1 mi
 export async function computeOrgAggsAndUpdate(args: IProcessComputeOrgAggs): Promise<void> {
   const orgId = args.organizationId
 
-  const orgExists = await activity.checkOrgExists(orgId)
+  const orgExists = await activity.checkOrganizationExists(orgId)
 
   if (!orgExists) {
     console.log(`organizationId ${orgId} does not exist!`)
     return
   }
 
-  const results = await activity.getOrgAggs(orgId)
-
-  for (const orgData of results) {
-    await activity.storeOrgAggsInDb(orgData)
-  }
-
-  await activity.dropOrgIdFromRedis(orgId)
+  await activity.syncOrganization(orgId)
 }

@@ -59,30 +59,6 @@ export async function insertOrganizationSegments(
   }
 }
 
-export async function updateOrganizationSegments(
-  qx: QueryExecutor,
-  data: IOrganizationAggregateData,
-) {
-  try {
-    return qx.result(
-      `UPDATE "organizationSegmentsAgg" SET
-        "joinedAt" = $(joinedAt),
-        "lastActive" = $(lastActive),
-        "activeOn" = $(activeOn),
-        "activityCount" = $(activityCount),
-        "memberCount" = $(memberCount),
-        "avgContributorEngagement" = $(avgContributorEngagement)
-        WHERE "organizationId" = $(organizationId) AND "segmentId" = $(segmentId)`,
-      {
-        ...data,
-      },
-    )
-  } catch (e) {
-    console.error(e)
-    throw e
-  }
-}
-
 export async function fetchManyOrgSegments(
   qx: QueryExecutor,
   organizationIds: string[],
