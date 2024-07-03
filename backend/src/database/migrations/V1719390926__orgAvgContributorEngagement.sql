@@ -15,4 +15,7 @@ FROM avg_engagement ae
 WHERE osa."organizationId" = ae."organizationId"
 AND osa."segmentId" = ae."segmentId";
 
+-- set null to 0 for existings records
+UPDATE "organizationSegmentsAgg" SET "avgContributorEngagement" = 0 WHERE "avgContributorEngagement" IS NULL;
+
 ALTER TABLE "organizationSegmentsAgg" ALTER COLUMN "avgContributorEngagement" SET NOT NULL;

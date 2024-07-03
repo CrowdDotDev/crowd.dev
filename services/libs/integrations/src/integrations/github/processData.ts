@@ -166,7 +166,11 @@ const parseMember = (memberData: GithubPrepareMemberOutput): IMemberData => {
     if (IS_TEST_ENV) {
       member.organizations = [
         {
-          names: ['crowd.dev'],
+          attributes: {
+            name: {
+              integration: ['crowd.dev'],
+            },
+          },
           identities: [
             {
               value: 'crowd.dev',

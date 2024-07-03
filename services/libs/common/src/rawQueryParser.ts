@@ -31,6 +31,9 @@ export class RawQueryParser {
       if (this.isOperator(key)) {
         const operands = []
         for (const operand of filters[key]) {
+          if (!operand) {
+            continue
+          }
           operands.push(this.parseFilters(operand, columnMap, jsonColumnInfos, params, options))
         }
 

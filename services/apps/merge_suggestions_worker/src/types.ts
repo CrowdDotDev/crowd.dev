@@ -1,3 +1,7 @@
+import {
+  IOrganizationBaseForMergeSuggestions,
+  IOrganizationForMergeSuggestionsOpensearch,
+} from '@crowd/types'
 import { MemberAttributeOpensearch } from './enums'
 
 interface ITermFilter {
@@ -126,44 +130,12 @@ export interface ISimilarMemberOpensearch {
 
 // organizations
 
-export interface IOrganizationIdentityOpensearch {
-  string_platform: string
-  string_type: string
-  keyword_type: string
-  string_value: string
-  bool_verified: boolean
-}
-
-export interface IOrganizationPartialAggregatesOpensearch {
-  uuid_organizationId: string
-  uuid_arr_noMergeIds: string[]
-  keyword_displayName: string
-  nested_identities: IOrganizationIdentityOpensearch[]
-  string_location: string
-  string_industry: string
-  string_website: string
-  string_ticker: string
-  int_activityCount: number
-}
-
-export interface ISimilarOrganization {
-  uuid_organizationId: string
-  keyword_displayName: string
-  nested_identities: IOrganizationIdentityOpensearch[]
-  nested_weakIdentities: IOrganizationIdentityOpensearch[]
-  string_location: string
-  string_industry: string
-  string_website: string
-  string_ticker: string
-  int_activityCount: number
-}
-
 export interface ISimilarOrganizationOpensearch {
-  _source: ISimilarOrganization
+  _source: IOrganizationForMergeSuggestionsOpensearch
 }
 
 export interface IOrganizationPartialAggregatesOpensearchRawResult {
-  _source: IOrganizationPartialAggregatesOpensearch
+  _source: IOrganizationBaseForMergeSuggestions
 }
 
 export interface IOrganizationQueryBody {
