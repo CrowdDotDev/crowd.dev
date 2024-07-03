@@ -79,6 +79,10 @@ export const upsertOrgAttributes = async (
 }
 
 export async function deleteOrgAttributes(qx: QueryExecutor, ids: string[]): Promise<void> {
+  if (ids.length === 0) {
+    return
+  }
+
   await qx.result(
     `
     DELETE FROM "orgAttributes"
