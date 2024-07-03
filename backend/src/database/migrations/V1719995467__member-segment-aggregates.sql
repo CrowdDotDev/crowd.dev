@@ -7,7 +7,7 @@ CREATE TABLE "memberSegmentsAgg" (
     "lastActive" TIMESTAMP WITH TIME ZONE NOT NULL,
     "activityTypes" TEXT[] NOT NULL,
     "activeOn" TEXT[] NOT NULL,
-    "averageSentiment" INTEGER NOT NULL,
+    "averageSentiment" INTEGER,
     UNIQUE ("memberId", "segmentId")
 );
 
