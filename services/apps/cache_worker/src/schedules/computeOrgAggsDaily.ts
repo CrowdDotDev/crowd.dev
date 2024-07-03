@@ -8,7 +8,7 @@ export const scheduleComputeOrgAggsDaily = async () => {
     await svc.temporal.schedule.create({
       scheduleId: 'compute-org-aggs-daily',
       spec: {
-        cronExpressions: ['0 8 * * MON'],
+        cronExpressions: ['0 8 * * *'],
       },
       policies: {
         overlap: ScheduleOverlapPolicy.BUFFER_ONE,
