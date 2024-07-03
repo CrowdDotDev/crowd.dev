@@ -28,7 +28,7 @@ const options: Options = {
     enabled: true,
   },
   opensearch: {
-    enabled: false,
+    enabled: true,
   },
 }
 

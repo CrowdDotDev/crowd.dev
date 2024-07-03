@@ -15,4 +15,6 @@ export async function computeOrgAggsAndUpdate(args: IProcessComputeOrgAggs): Pro
   }
 
   await activity.syncOrganization(orgId)
+
+  await activity.dropOrgIdFromRedis(orgId)
 }
