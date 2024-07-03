@@ -4,7 +4,8 @@ import {
   getOrgAggregates,
 } from '@crowd/data-access-layer/src/activities'
 import { updateOrganizationSegments } from '@crowd/data-access-layer/src/org_segments'
-import { findOrgById } from '@crowd/data-access-layer/src/organizations'
+import { OrganizationRepository } from '@crowd/data-access-layer/src/old/apps/search_sync_worker/organization.repo'
+
 import { PgPromiseQueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
 
 export async function getOrgIdsFromRedis(): Promise<string[]> {
@@ -43,8 +44,8 @@ export async function checkOrgExists(orgId: string): Promise<boolean> {
   let exists = false
 
   try {
-    const qx = new PgPromiseQueryExecutor(svc.postgres.reader.connection())
-    exists = !!(await findOrgById(qx, orgId))
+    const repo = new OrganizationRepository(svc.postgres.writer, svc.log)
+    exists = !!(await repo.checkOrganizationsExists([orgId]))
   } catch (e) {
     this.log.error(e, 'Failed to check if organization exists!')
   }

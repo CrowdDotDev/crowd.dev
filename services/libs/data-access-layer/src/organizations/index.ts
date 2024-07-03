@@ -1,4 +1,3 @@
-import { IOrganization } from '@crowd/types'
 import { QueryExecutor } from '../queryExecutor'
 
 export async function findOrgByDisplayName(
@@ -50,23 +49,6 @@ export async function findOrgByWebsite(
     {
       websites,
       tenantId,
-    },
-  )
-}
-
-export async function findOrgById(
-  qx: QueryExecutor,
-  organizationId: string,
-): Promise<IOrganization> {
-  return await qx.selectOneOrNone(
-    `
-      SELECT *
-      FROM organizations
-      WHERE id = $(organizationId)
-        AND "deletedAt" IS NULL
-    `,
-    {
-      organizationId,
     },
   )
 }
