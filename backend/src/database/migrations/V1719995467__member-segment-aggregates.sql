@@ -7,12 +7,11 @@ CREATE TABLE "memberSegmentsAgg" (
     "lastActive" TIMESTAMP WITH TIME ZONE NOT NULL,
     "activityTypes" TEXT[] NOT NULL,
     "activeOn" TEXT[] NOT NULL,
-    "averageSentiment" FLOAT NOT NULL,
+    "averageSentiment" INTEGER NOT NULL,
     UNIQUE ("memberId", "segmentId")
 );
 
 
--- TODO to adjust
 INSERT INTO "memberSegmentsAgg"
 WITH
     segments_with_children AS (
@@ -47,17 +46,22 @@ WITH
     )
 SELECT
     gen_random_uuid(),
-    o."id",
+    m."id",
     s.segment_id,
-    o."tenantId",
-    COALESCE(MIN(a.timestamp), '1970-01-01') AS "joinedAt",
-    MAX(a.timestamp) AS "lastActive",
-    ARRAY_AGG(DISTINCT a.platform) AS "activeOn",
+    m."tenantId",
     COUNT(DISTINCT a.id) AS "activityCount",
-    COUNT(DISTINCT a."memberId") AS "memberCount"
+    MAX(a.timestamp) AS "lastActive",
+    ARRAY_AGG(DISTINCT CONCAT(a.platform, ':', a.type)) FILTER (WHERE a.platform IS NOT NULL) AS "activityTypes",
+    ARRAY_AGG(DISTINCT a.platform) FILTER (WHERE a.platform IS NOT NULL) AS "activeOn",
+    ROUND(AVG(
+            CASE
+                WHEN (a.sentiment ->> 'sentiment'::text) IS NOT NULL
+                    THEN (a.sentiment ->> 'sentiment'::text)::double precision
+                ELSE null::double precision
+                END)::numeric, 2) AS "averageSentiment"
+
 FROM activities a
-JOIN organizations o ON o."id" = a."organizationId"
+JOIN members m ON m."id" = a."memberId"
 JOIN segments_with_children s ON s.subproject = a."segmentId"
-GROUP BY o."id", s.segment_id, o."tenantId"
-ON CONFLICT DO NOTHING
-;
+GROUP BY m."id", s.segment_id, m."tenantId"
+ON CONFLICT DO NOTHING;
