@@ -39,9 +39,6 @@ export async function dailyGetAndComputeOrgAggs(): Promise<void> {
             organizationId,
           },
         ],
-        searchAttributes: {
-          organizationId: [organizationId],
-        },
       })
     }),
   )

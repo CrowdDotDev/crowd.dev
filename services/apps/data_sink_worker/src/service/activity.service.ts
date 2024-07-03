@@ -449,6 +449,7 @@ export default class ActivityService extends LoggerBase {
       let objectMemberId: string | undefined
       let activityId: string
       let segmentId: string
+      let organizationId: string
 
       await this.store.transactionally(async (txStore) => {
         try {
@@ -720,7 +721,7 @@ export default class ActivityService extends LoggerBase {
             }
 
             if (!createActivity) {
-              const organizationId = await txMemberAffiliationService.findAffiliation(
+              organizationId = await txMemberAffiliationService.findAffiliation(
                 dbActivity.memberId,
                 segmentId,
                 dbActivity.timestamp,
@@ -756,9 +757,6 @@ export default class ActivityService extends LoggerBase {
                 dbActivity,
                 false,
               )
-
-              // cache the organization for aggregate recomputation
-              await this.redisClient.sAdd('computeOrgAgg', organizationId)
 
               activityId = dbActivity.id
             }
@@ -898,7 +896,7 @@ export default class ActivityService extends LoggerBase {
           }
 
           if (createActivity) {
-            const organizationId = await txMemberAffiliationService.findAffiliation(
+            organizationId = await txMemberAffiliationService.findAffiliation(
               memberId,
               segmentId,
               activity.timestamp,
@@ -929,9 +927,6 @@ export default class ActivityService extends LoggerBase {
               onboarding,
               false,
             )
-
-            // cache the organization for aggregate recomputation
-            await this.redisClient.sAdd('computeOrgAgg', organizationId)
           }
         } finally {
           // release locks matter what
@@ -956,6 +951,10 @@ export default class ActivityService extends LoggerBase {
       }
       if (activityId) {
         await this.searchSyncWorkerEmitter.triggerActivitySync(tenantId, activityId, onboarding)
+      }
+      if (organizationId) {
+        this.log.info({ organizationId }, 'Caching organization for aggregate recomputation!')
+        await this.redisClient.sAdd('computeOrgAggs', organizationId)
       }
     } catch (err) {
       this.log.error(err, 'Error while processing an activity!')

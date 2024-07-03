@@ -21,7 +21,7 @@ export async function getOrgAggs(orgId: string): Promise<IOrganizationSegmentAgg
     const qx = new PgPromiseQueryExecutor(svc.postgres.writer.connection())
     orgData = await getOrgAggregates(qx, orgId)
   } catch (e) {
-    this.log.error(e, 'Failed to get organization aggregates!')
+    this.log.error(e, 'Failed to get organization aggregate!')
     throw e
   }
 
@@ -33,7 +33,7 @@ export async function storeOrgAggsInDb(orgData: IOrganizationSegmentAggregates):
     const qx = new PgPromiseQueryExecutor(svc.postgres.writer.connection())
     await updateOrganizationSegments(qx, orgData as IOrganizationSegmentAggregates)
   } catch (e) {
-    this.log.error(e, 'Failed to store organization aggregates!')
+    this.log.error(e, 'Failed to store organization aggregate!')
     throw e
   }
 }
