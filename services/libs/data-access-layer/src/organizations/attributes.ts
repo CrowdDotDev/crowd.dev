@@ -51,29 +51,65 @@ export const upsertOrgAttributes = async (
     return
   }
 
-  const objects = uniq(attributes).map((a) => {
-    return {
-      organizationId,
-      ...a,
-    }
-  })
+  const objects = uniq(
+    attributes.map((a) => {
+      return {
+        organizationId,
+        ...a,
+        default: false,
+      }
+    }),
+  )
 
   try {
     const prepared = prepareBulkInsert(
       'orgAttributes',
-      ['organizationId', 'type', 'name', 'source', 'default', 'value'],
+      ['organizationId', 'name', 'source', 'default', 'value'],
       objects,
-      `
-        ("organizationId", name, "default") where "default" do update set
-           type = excluded.type,
-           value = excluded.value,
-           "default" = excluded.default,
-           "source" = excluded.source
-      `,
+      `("organizationId", name, source, MD5(value)) DO NOTHING`,
     )
     await qx.result(prepared)
   } catch (err) {
-    log.error(err, 'Failed to upsert organization attributes!')
+    console.error(err)
+    log.error('Failed to upsert organization attributes!', err)
+    throw err
+  }
+}
+
+export async function markOrgAttributeDefault(
+  qx: QueryExecutor,
+  organizationId: string,
+  {
+    name,
+    source,
+    value,
+  }: {
+    name: string
+    source: string
+    value: string
+  },
+): Promise<void> {
+  try {
+    await qx.result(
+      `
+        UPDATE "orgAttributes"
+        SET "default" = CASE
+          WHEN source = $(source) AND value = $(value) THEN true
+          ELSE false
+        END
+        WHERE "organizationId" = $(organizationId)
+          AND name = $(name)
+      `,
+      {
+        organizationId,
+        name,
+        source,
+        value,
+      },
+    )
+  } catch (err) {
+    console.error(err)
+    log.error('Failed to upsert organization attributes!', err)
     throw err
   }
 }
