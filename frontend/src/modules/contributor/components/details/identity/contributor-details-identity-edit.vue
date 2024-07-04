@@ -3,7 +3,7 @@
     <template #default="{ close }">
       <div class="px-6 pt-4 pb-10">
         <div class="flex items-center justify-between pb-6">
-          <h5>{{ isEdit ? 'Update' : 'Add' }} identity</h5>
+          <h5>Update identity</h5>
           <lf-button type="secondary-ghost-light" :icon-only="true" @click="close">
             <lf-icon name="close-line" />
           </lf-button>
@@ -45,8 +45,12 @@
         <lf-button type="secondary-ghost" @click="close">
           Cancel
         </lf-button>
-        <lf-button type="primary" @click="close">
-          {{ isEdit ? 'Update' : 'Add' }} identity
+        <lf-button
+          type="primary"
+          :disabled="$v.$invalid || !hasFormChanged"
+          @click="updateIdentity()"
+        >
+          Update identity
         </lf-button>
       </div>
     </template>
@@ -56,44 +60,78 @@
 <script setup lang="ts">
 import LfModal from '@/ui-kit/modal/Modal.vue';
 import { computed, reactive } from 'vue';
-import { ContributorIdentity } from '@/modules/contributor/types/Contributor';
+import { Contributor, ContributorIdentity } from '@/modules/contributor/types/Contributor';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfInput from '@/ui-kit/input/Input.vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import LfCheckbox from '@/ui-kit/checkbox/Checkbox.vue';
+import { useContributorStore } from '@/modules/contributor/store/contributor.store';
+import Message from '@/shared/message/message';
+import { required } from '@vuelidate/validators';
+import useVuelidate from '@vuelidate/core';
 
 const props = defineProps<{
-  modelValue: boolean,
-  identity: Partial<ContributorIdentity> | null,
+  modelValue: ContributorIdentity | null,
+  contributor: Contributor,
 }>();
 
-const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void}>();
+const emit = defineEmits<{(e: 'update:modelValue', value: ContributorIdentity | null): void}>();
 
-const defaultForm: Partial<ContributorIdentity> = {
+const { updateContributor } = useContributorStore();
+
+const defaultForm: ContributorIdentity = {
   value: '',
   verified: true,
   platform: 'custom',
   type: 'username',
+  sourceId: null,
 };
 
-const form = reactive<Partial<ContributorIdentity>>({
+const form = reactive<ContributorIdentity>({
   ...defaultForm,
-  ...props.identity,
+  ...props.modelValue,
 });
+
+const rules = {
+  form: {
+    value: {
+      required,
+    },
+  },
+};
+
+const $v = useVuelidate(rules, { form });
+
+const hasFormChanged = computed(() => form.value !== props.modelValue?.value || form.verified !== props.modelValue?.verified);
 
 const isModalOpen = computed<boolean>({
   get() {
-    return props.modelValue;
+    return props.modelValue !== null;
   },
   set(value: boolean) {
-    emit('update:modelValue', value);
+    emit('update:modelValue', value ? props.modelValue : null);
   },
 });
 
 const platform = computed(() => CrowdIntegrations.getConfig(form.platform));
 
-const isEdit = computed(() => !!props.identity?.value);
+const updateIdentity = () => {
+  const identities = props.contributor.identities.map((i: ContributorIdentity) => {
+    if (i.platform === props.modelValue?.platform && i.value === props.modelValue?.value) {
+      return form as ContributorIdentity;
+    }
+    return i;
+  });
+
+  updateContributor(props.contributor.id, {
+    identities,
+  })
+    .then(() => {
+      Message.success('Identity updated successfully');
+      isModalOpen.value = false;
+    });
+};
 </script>
 
 <script lang="ts">

@@ -7,7 +7,7 @@
       <lf-contributor-details-identity-add-dropdown
         v-if="hasPermission(LfPermission.memberEdit)"
         placement="bottom-end"
-        @add="edit = true; editIdentity = $event"
+        @add="addIdentity = true; addIdentityTemplate = $event"
       >
         <lf-tooltip content="Add identity">
           <lf-button
@@ -27,8 +27,9 @@
         v-for="identity of identityList.slice(0, showMore ? identityList.length : 10)"
         :key="`${identity.platform}-${identity.value}`"
         :identity="identity"
+        :contributor="props.contributor"
         class="flex items-center"
-        @edit="edit = true; editIdentity = identity"
+        @edit="editIdentity = identity"
       />
 
       <div v-if="identities.length === 0" class="pt-2 flex flex-col items-center">
@@ -49,10 +50,16 @@
       Show {{ showMore ? 'less' : 'more' }}
     </lf-button>
   </section>
+  <lf-contributor-details-identity-add
+    v-if="addIdentity && addIdentityTemplate !== null"
+    v-model="addIdentity"
+    :identities="[addIdentityTemplate]"
+    :contributor="props.contributor"
+  />
   <lf-contributor-details-identity-edit
-    v-if="edit"
-    v-model="edit"
-    :identity="editIdentity"
+    v-if="editIdentity !== null"
+    v-model="editIdentity"
+    :contributor="props.contributor"
   />
   <app-member-unmerge-dialog
     v-if="isUnmergeDialogOpen"
@@ -77,6 +84,8 @@ import LfContributorDetailsIdentityAddDropdown
   from '@/modules/contributor/components/details/identity/contributor-details-identity-add-dropdown.vue';
 import LfContributorDetailsIdentityEdit
   from '@/modules/contributor/components/details/identity/contributor-details-identity-edit.vue';
+import LfContributorDetailsIdentityAdd
+  from '@/modules/contributor/components/details/identity/contributor-details-identity-add.vue';
 
 const props = defineProps<{
   contributor: Contributor,
@@ -95,7 +104,8 @@ const showMore = ref<boolean>(false);
 const isUnmergeDialogOpen = ref(null);
 const selectedIdentity = ref(null);
 
-const edit = ref<boolean>(false);
+const addIdentity = ref<boolean>(false);
+const addIdentityTemplate = ref<Partial<ContributorIdentity> | null>(null);
 const editIdentity = ref<Partial<ContributorIdentity> | null>(null);
 // const platform = (name: string) => CrowdIntegrations.getConfig(name);
 

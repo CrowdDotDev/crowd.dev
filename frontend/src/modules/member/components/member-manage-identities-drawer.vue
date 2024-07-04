@@ -53,7 +53,8 @@
         <p v-if="hasCustomIdentities" class="text-2xs leading-4.5 tracking-1 text-gray-400 font-semibold pb-4">
           CUSTOM PLATFORMS
         </p>
-        <div class="flex flex-col gap-3">
+        <div class="flex flex-col ga
+        p-3">
           <template v-for="(identity, ii) of identities" :key="ii">
             <template v-if="identity.type === 'username' && !platformsKeys.includes(identity.platform)">
               <app-member-form-identity-item

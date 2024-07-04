@@ -59,16 +59,22 @@
           <lf-icon name="more-fill" />
         </lf-button>
       </template>
+      <!-- Edit identity -->
       <lf-dropdown-item @click="emit('edit')">
         <lf-icon name="pencil-line" />Edit identity
       </lf-dropdown-item>
       <lf-dropdown-separator />
-      <lf-dropdown-item>
-        <lf-icon name="verified-badge-line" />Unverify identity
+      <!-- Verified -->
+      <lf-dropdown-item v-if="props.identity.verified" @click="verifyIdentity(false)">
+        <lf-svg name="unverify" class="!h-4 !w-4 text-gray-600" />Unverify identity
+      </lf-dropdown-item>
+      <lf-dropdown-item v-else @click="verifyIdentity(true)">
+        <lf-icon name="verified-badge-line" />Verify identity
       </lf-dropdown-item>
       <lf-dropdown-item @click="emit('unmerge')">
         <lf-icon name="link-unlink" />Unmerge identity
       </lf-dropdown-item>
+
       <lf-dropdown-separator />
       <lf-dropdown-item type="danger">
         <lf-icon name="delete-bin-6-line" />Delete identity
@@ -79,21 +85,46 @@
 
 <script setup lang="ts">
 import LfIcon from '@/ui-kit/icon/Icon.vue';
-import { ContributorIdentity } from '@/modules/contributor/types/Contributor';
+import { Contributor, ContributorIdentity } from '@/modules/contributor/types/Contributor';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import LfDropdownSeparator from '@/ui-kit/dropdown/DropdownSeparator.vue';
+import Message from '@/shared/message/message';
+import { useContributorStore } from '@/modules/contributor/store/contributor.store';
+import LfSvg from '@/shared/svg/svg.vue';
 
 const props = defineProps<{
   identity: ContributorIdentity,
+  contributor: Contributor
 }>();
 
 const emit = defineEmits<{(e: 'edit'): void, (e: 'unmerge'): void }>();
 
+const { updateContributor } = useContributorStore();
+
 const platform = (name: string) => CrowdIntegrations.getConfig(name);
+
+const verifyIdentity = (verified: boolean) => {
+  const identities = props.contributor.identities.map((i: ContributorIdentity) => {
+    if (i.platform === props.identity?.platform && i.value === props.identity?.value) {
+      return {
+        ...i,
+        verified,
+      };
+    }
+    return i;
+  });
+
+  updateContributor(props.contributor.id, {
+    identities,
+  })
+    .then(() => {
+      Message.success('Identity updated successfully');
+    });
+};
 </script>
 
 <script lang="ts">
