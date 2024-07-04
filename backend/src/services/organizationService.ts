@@ -17,11 +17,7 @@ import {
 } from '@crowd/types'
 import { randomUUID } from 'crypto'
 import lodash from 'lodash'
-import {
-  findOrgAttributes,
-  upsertOrgAttributes,
-  upsertOrgIdentities,
-} from '@crowd/data-access-layer/src/organizations'
+import { findOrgAttributes, upsertOrgIdentities } from '@crowd/data-access-layer/src/organizations'
 import getObjectWithoutKey from '@/utils/getObjectWithoutKey'
 import { IActiveOrganizationFilter } from '@/database/repositories/types/organizationTypes'
 import MemberOrganizationRepository from '@/database/repositories/memberOrganizationRepository'
@@ -752,9 +748,18 @@ export default class OrganizationService extends LoggerBase {
         record = existing
 
         if (record.attributes) {
-          const attributes = OrganizationRepository.convertOrgAttributesForInsert(record)
+          const defaultColumns = await OrganizationRepository.updateOrgAttributes(
+            record.id,
+            record,
+            this.options,
+          )
 
-          await upsertOrgAttributes(qx, record.id, attributes)
+          if (Object.keys(defaultColumns).length > 0) {
+            record = await OrganizationRepository.update(existing.id, defaultColumns, {
+              ...this.options,
+              transaction,
+            })
+          }
         }
 
         await upsertOrgIdentities(qx, record.id, record.tenantId, data.identities)
@@ -780,8 +785,18 @@ export default class OrganizationService extends LoggerBase {
         }
 
         if (record.attributes) {
-          const attributes = OrganizationRepository.convertOrgAttributesForInsert(record)
-          await upsertOrgAttributes(qx, record.id, attributes)
+          const defaultColumns = await OrganizationRepository.updateOrgAttributes(
+            record.id,
+            record,
+            this.options,
+          )
+
+          if (Object.keys(defaultColumns).length > 0) {
+            record = await OrganizationRepository.update(existing.id, defaultColumns, {
+              ...this.options,
+              transaction,
+            })
+          }
         }
       }
 
