@@ -22,14 +22,15 @@
       </lf-contributor-details-identity-add-dropdown>
     </div>
 
-    <div class="flex flex-col gap-4">
+    <div class="flex flex-col gap-3">
       <lf-contributor-details-identity-item
         v-for="identity of identityList.slice(0, showMore ? identityList.length : 10)"
         :key="`${identity.platform}-${identity.value}`"
         :identity="identity"
         :contributor="props.contributor"
-        class="flex items-center"
+        class="min-h-7"
         @edit="editIdentity = identity"
+        @unmerge="unmerge(identity)"
       />
 
       <div v-if="identities.length === 0" class="pt-2 flex flex-col items-center">
@@ -109,12 +110,12 @@ const addIdentityTemplate = ref<Partial<ContributorIdentity> | null>(null);
 const editIdentity = ref<Partial<ContributorIdentity> | null>(null);
 // const platform = (name: string) => CrowdIntegrations.getConfig(name);
 
-// const unmerge = (identity: any) => {
-//   if (identity) {
-//     selectedIdentity.value = identity;
-//   }
-//   isUnmergeDialogOpen.value = props.contributor as any;
-// };
+const unmerge = (identity: ContributorIdentity) => {
+  if (identity) {
+    selectedIdentity.value = identity;
+  }
+  isUnmergeDialogOpen.value = props.contributor as any;
+};
 </script>
 
 <script lang="ts">

@@ -59,7 +59,11 @@
         <lf-button type="secondary-ghost" @click="close">
           Cancel
         </lf-button>
-        <lf-button type="primary" @click="addIdentities()">
+        <lf-button
+          type="primary"
+          :disabled="$v.$invalid"
+          @click="addIdentities()"
+        >
           Add {{ pluralize('identity', form.length) }}
         </lf-button>
       </div>
@@ -78,11 +82,11 @@ import { CrowdIntegrations } from '@/integrations/integrations-config';
 import LfCheckbox from '@/ui-kit/checkbox/Checkbox.vue';
 import { useContributorStore } from '@/modules/contributor/store/contributor.store';
 import Message from '@/shared/message/message';
-import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
-import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
 import LfContributorDetailsIdentityAddDropdown
   from '@/modules/contributor/components/details/identity/contributor-details-identity-add-dropdown.vue';
 import pluralize from 'pluralize';
+import { helpers, required } from '@vuelidate/validators';
+import useVuelidate from '@vuelidate/core';
 
 const props = defineProps<{
   modelValue: boolean,
@@ -103,6 +107,18 @@ const defaultForm: ContributorIdentity = {
 };
 
 const form = reactive<ContributorIdentity[]>(props.identities.map((i) => ({ ...defaultForm, ...i })));
+
+const rules = {
+  form: {
+    $each: helpers.forEach({
+      value: {
+        required,
+      },
+    }),
+  },
+};
+
+const $v = useVuelidate(rules, { form });
 
 const isModalOpen = computed<boolean>({
   get() {

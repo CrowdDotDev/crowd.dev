@@ -1,24 +1,27 @@
 <template>
   <article
-    class="flex"
+    class="flex items-start"
   >
-    <lf-tooltip v-if="props.identity.type === 'email'" content="Email" placement="top-start">
-      <lf-icon name="mail-line" :size="20" />
-    </lf-tooltip>
-    <lf-tooltip v-else-if="platform(props.identity.platform)" placement="top-start" :content="platform(props.identity.platform).name">
-      <img
-        :src="platform(props.identity.platform)?.image"
-        class="h-5 w-5"
-        :alt="props.identity.value"
-      />
-    </lf-tooltip>
-    <lf-tooltip v-else content="Custom identity" placement="top-start">
-      <lf-icon
-        name="fingerprint-fill"
-        :size="20"
-        class="text-gray-600"
-      />
-    </lf-tooltip>
+    <div class="mt-0.5">
+      <lf-tooltip v-if="props.identity.type === 'email'" content="Email" placement="top-start">
+        <lf-icon name="mail-line" :size="20" />
+      </lf-tooltip>
+      <lf-tooltip v-else-if="platform(props.identity.platform)" placement="top-start" :content="platform(props.identity.platform).name">
+        <img
+          :src="platform(props.identity.platform)?.image"
+          class="h-5 w-5"
+          :alt="props.identity.value"
+        />
+      </lf-tooltip>
+      <lf-tooltip v-else content="Custom identity" placement="top-start">
+        <lf-icon
+          name="fingerprint-fill"
+          :size="20"
+          class="text-gray-600"
+        />
+      </lf-tooltip>
+    </div>
+
     <div class="pl-3 flex-grow">
       <div class="flex items-center">
         <div class=" flex items-center">
@@ -35,7 +38,7 @@
           >
             {{ props.identity.value }}
           </a>
-          <p v-if="!platform(props.identity.platform)" class="text-medium text-gray-400 ml-1">
+          <p v-if="!platform(props.identity.platform) && !props.identity.platforms" class="text-medium text-gray-400 ml-1">
             {{ props.identity.platform }}
           </p>
         </div>
@@ -53,30 +56,61 @@
     </div>
 
     <!-- Dropdown -->
-    <lf-dropdown placement="bottom-end" width="232px">
+    <lf-dropdown v-if="hasPermission(LfPermission.memberEdit)" placement="bottom-end" width="232px">
       <template #trigger>
         <lf-button type="secondary-ghost" size="small" :icon-only="true">
           <lf-icon name="more-fill" />
         </lf-button>
       </template>
       <!-- Edit identity -->
-      <lf-dropdown-item @click="emit('edit')">
+      <lf-dropdown-item
+        :disabled="editingDisabled"
+        @click="emit('edit')"
+      >
         <lf-icon name="pencil-line" />Edit identity
       </lf-dropdown-item>
       <lf-dropdown-separator />
+
       <!-- Verified -->
-      <lf-dropdown-item v-if="props.identity.verified" @click="verifyIdentity(false)">
-        <lf-svg name="unverify" class="!h-4 !w-4 text-gray-600" />Unverify identity
-      </lf-dropdown-item>
-      <lf-dropdown-item v-else @click="verifyIdentity(true)">
-        <lf-icon name="verified-badge-line" />Verify identity
-      </lf-dropdown-item>
+      <el-tooltip
+        v-if="props.identity.verified"
+        content="Identities tracked from Integrations can’t be unverified"
+        placement="top-end"
+        :disabled="!isVerifyDisabled"
+      >
+        <lf-dropdown-item
+          v-if="props.identity.verified"
+          :disabled="isVerifyDisabled"
+          @click="verifyIdentity(false)"
+        >
+          <lf-svg name="unverify" class="!h-4 !w-4 text-gray-600" />Unverify identity
+        </lf-dropdown-item>
+      </el-tooltip>
+      <el-tooltip
+        v-else
+        content="Identities tracked from Integrations can’t be verified"
+        placement="top-end"
+        :disabled="!isVerifyDisabled"
+      >
+        <lf-dropdown-item
+          :disabled="isVerifyDisabled"
+          @click="verifyIdentity(true)"
+        >
+          <lf-icon name="verified-badge-line" />Verify identity
+        </lf-dropdown-item>
+      </el-tooltip>
+
+      <!-- Unmerge -->
       <lf-dropdown-item @click="emit('unmerge')">
         <lf-icon name="link-unlink" />Unmerge identity
       </lf-dropdown-item>
 
       <lf-dropdown-separator />
-      <lf-dropdown-item type="danger">
+      <lf-dropdown-item
+        type="danger"
+        :disabled="editingDisabled"
+        @click="removeIdentity"
+      >
         <lf-icon name="delete-bin-6-line" />Delete identity
       </lf-dropdown-item>
     </lf-dropdown>
@@ -95,6 +129,9 @@ import LfDropdownSeparator from '@/ui-kit/dropdown/DropdownSeparator.vue';
 import Message from '@/shared/message/message';
 import { useContributorStore } from '@/modules/contributor/store/contributor.store';
 import LfSvg from '@/shared/svg/svg.vue';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import { computed } from 'vue';
 
 const props = defineProps<{
   identity: ContributorIdentity,
@@ -103,9 +140,24 @@ const props = defineProps<{
 
 const emit = defineEmits<{(e: 'edit'): void, (e: 'unmerge'): void }>();
 
+const { hasPermission } = usePermissions();
+
 const { updateContributor } = useContributorStore();
 
 const platform = (name: string) => CrowdIntegrations.getConfig(name);
+
+const isVerifyDisabled = computed(
+  () => !!props.identity.sourceId || ['integration', 'lfid'].includes(props.identity.platform),
+);
+
+const editingDisabled = computed(() => {
+  if (['git'].includes(props.identity.platform)) {
+    return false;
+  }
+  return props.contributor
+    ? props.contributor.activeOn?.includes(props.identity.platform)
+    : false;
+});
 
 const verifyIdentity = (verified: boolean) => {
   const identities = props.contributor.identities.map((i: ContributorIdentity) => {
@@ -117,6 +169,18 @@ const verifyIdentity = (verified: boolean) => {
     }
     return i;
   });
+
+  updateContributor(props.contributor.id, {
+    identities,
+  })
+    .then(() => {
+      Message.success('Identity updated successfully');
+    });
+};
+
+const removeIdentity = () => {
+  const identities = props.contributor.identities
+    .filter((i: ContributorIdentity) => !(i.platform === props.identity?.platform && i.value === props.identity?.value));
 
   updateContributor(props.contributor.id, {
     identities,
