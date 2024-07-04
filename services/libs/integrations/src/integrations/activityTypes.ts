@@ -43,6 +43,51 @@ const defaultGithubChannelFormatter = (channel) => {
   return `<a href="${githubUrl}/${organization}/${repo}" target="_blank">/${repo}</a>`
 }
 
+const defaultGitChannelFormatter = (channel) => {
+  // Helper function to create links
+  const createLink = (href, text) => `<a href="${href}" target="_blank">${text}</a>`
+
+  // Extract domain and path from the channel URL
+  const url = new URL(channel)
+  const domain = url.hostname
+  const path = url.pathname.replace(/^\//, '').replace(/\.git$/, '')
+
+  // special case, this is gerrit
+  if (domain.startsWith('git.opendaylight')) {
+    let repoName = path.split('/').pop()
+    // remove .git from repoName from the end if its there
+    repoName = repoName.replace(/\.git$/, '')
+
+    const gitwebUrl = `https://${domain}/gerrit/gitweb?p=${repoName}.git`
+    return createLink(gitwebUrl, `/${repoName}`)
+  }
+
+  // Git Like
+  if (domain.startsWith('git.')) {
+    return createLink(channel, `/${path}`)
+  }
+
+  // Gerrit like
+  if (domain.startsWith('gerrit.')) {
+    let repoName = path.split('/').pop()
+    // remove .git from repoName from the end if its there
+    repoName = repoName.replace(/\.git$/, '')
+    const gitwebUrl = `https://${domain}/r/gitweb?p=${repoName}.git`
+    return createLink(gitwebUrl, `/${repoName}`)
+  }
+
+  // GitHub
+  if (domain === 'github.com') {
+    let repoName = path.split('/').pop()
+    // remove .git from repoName from the end if its there
+    repoName = repoName.replace(/\.git$/, '')
+    return createLink(channel, `/${repoName}`)
+  }
+
+  // Default case: just return the channel as a link
+  return createLink(channel, channel)
+}
+
 const defaultConfluenceChannelFormatter = (channel) => {
   return `<a href="${channel}" target="_blank">${channel}</a>`
 }
@@ -425,7 +470,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         author: 'authored by',
         channel: '{channel}',
         formatter: {
-          channel: defaultGithubChannelFormatter,
+          channel: defaultGitChannelFormatter,
         },
       },
       isContribution: true,
@@ -437,7 +482,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         author: 'reviewed by',
         channel: '{channel}',
         formatter: {
-          channel: defaultGithubChannelFormatter,
+          channel: defaultGitChannelFormatter,
         },
       },
       isContribution: true,
@@ -449,7 +494,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         author: 'tested by',
         channel: '{channel}',
         formatter: {
-          channel: defaultGithubChannelFormatter,
+          channel: defaultGitChannelFormatter,
         },
       },
       isContribution: true,
@@ -461,7 +506,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         author: 'co-authored by',
         channel: '{channel}',
         formatter: {
-          channel: defaultGithubChannelFormatter,
+          channel: defaultGitChannelFormatter,
         },
       },
       isContribution: true,
@@ -473,7 +518,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         author: 'informed by',
         channel: '{channel}',
         formatter: {
-          channel: defaultGithubChannelFormatter,
+          channel: defaultGitChannelFormatter,
         },
       },
       isContribution: true,
@@ -485,7 +530,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         author: 'influenced by',
         channel: '{channel}',
         formatter: {
-          channel: defaultGithubChannelFormatter,
+          channel: defaultGitChannelFormatter,
         },
       },
       isContribution: true,
@@ -497,7 +542,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         author: 'approved by',
         channel: '{channel}',
         formatter: {
-          channel: defaultGithubChannelFormatter,
+          channel: defaultGitChannelFormatter,
         },
       },
       isContribution: true,
@@ -509,7 +554,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         author: 'committed by',
         channel: '{channel}',
         formatter: {
-          channel: defaultGithubChannelFormatter,
+          channel: defaultGitChannelFormatter,
         },
       },
       isContribution: true,
@@ -521,7 +566,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         author: 'reported by',
         channel: '{channel}',
         formatter: {
-          channel: defaultGithubChannelFormatter,
+          channel: defaultGitChannelFormatter,
         },
       },
       isContribution: true,
@@ -533,7 +578,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         author: 'resolved by',
         channel: '{channel}',
         formatter: {
-          channel: defaultGithubChannelFormatter,
+          channel: defaultGitChannelFormatter,
         },
       },
       isContribution: true,
@@ -545,7 +590,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         author: 'signed off by',
         channel: '{channel}',
         formatter: {
-          channel: defaultGithubChannelFormatter,
+          channel: defaultGitChannelFormatter,
         },
       },
       isContribution: true,
