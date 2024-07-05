@@ -118,7 +118,7 @@ export async function syncMember(memberId: string, secondaryMemberId: string): P
     // mark member as manually created
     await markMemberAsManuallyCreated(svc.postgres.writer, memberId)
     // member doesn't have any activity to deduce segmentIds for syncing, use the secondary member's activity segments
-    await syncApi.triggerMemberSync(memberId, secondaryResult.segmentIds)
+    await syncApi.triggerMemberSync(memberId)
   }
 }
 

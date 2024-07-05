@@ -12,14 +12,13 @@ export class SearchSyncApiClient {
     })
   }
 
-  public async triggerMemberSync(memberId: string, segmentIds?: string[]): Promise<void> {
+  public async triggerMemberSync(memberId: string): Promise<void> {
     if (!memberId) {
       throw new Error('memberId is required!')
     }
 
     await this.searchSyncApi.post('/sync/members', {
-      memberIds: [memberId],
-      segmentIds,
+      memberId,
     })
   }
 

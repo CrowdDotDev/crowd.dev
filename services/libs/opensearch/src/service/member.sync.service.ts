@@ -215,10 +215,12 @@ export class MemberSyncService {
     let memberIds = await this.memberRepo.getTenantMembersForSync(tenantId, batchSize)
 
     while (memberIds.length > 0) {
-      const { membersSynced, documentsIndexed } = await this.syncMembers(memberIds)
+      for (const memberId of memberIds) {
+        const { membersSynced, documentsIndexed } = await this.syncMembers(memberId)
 
-      docCount += documentsIndexed
-      memberCount += membersSynced
+        docCount += documentsIndexed
+        memberCount += membersSynced
+      }
 
       const diffInSeconds = (new Date().getTime() - now.getTime()) / 1000
       this.log.info(
@@ -257,10 +259,12 @@ export class MemberSyncService {
     let memberIds = await this.memberRepo.getOrganizationMembersForSync(organizationId, batchSize)
 
     while (memberIds.length > 0) {
-      const { membersSynced, documentsIndexed } = await this.syncMembers(memberIds)
+      for (const memberId of memberIds) {
+        const { membersSynced, documentsIndexed } = await this.syncMembers(memberId)
 
-      docCount += documentsIndexed
-      memberCount += membersSynced
+        docCount += documentsIndexed
+        memberCount += membersSynced
+      }
 
       const diffInSeconds = (new Date().getTime() - now.getTime()) / 1000
       this.log.info(
@@ -282,13 +286,13 @@ export class MemberSyncService {
     )
   }
 
-  public async syncMembers(memberIds: string[], segmentIds?: string[]): Promise<IMemberSyncResult> {
+  public async syncMembers(memberId: string): Promise<IMemberSyncResult> {
     const CONCURRENT_DATABASE_QUERIES = 10
     const BULK_INDEX_DOCUMENT_BATCH_SIZE = 100
 
     // get all memberId-segmentId couples
     const memberSegmentCouples: IMemberSegmentMatrix =
-      await this.memberRepo.getMemberSegmentCouples(memberIds, segmentIds)
+      await this.memberRepo.getMemberSegmentCouples([memberId])
     let databaseStream = []
     let syncStream = []
     let documentsIndexed = 0
@@ -419,7 +423,7 @@ export class MemberSyncService {
     }
 
     return {
-      membersSynced: memberIds.length,
+      membersSynced: 1,
       documentsIndexed,
     }
   }

@@ -10,7 +10,7 @@ const syncOrganizations = new OrganizationSyncService(svc.postgres.writer, svc.o
 syncMembersToOpensearch is a Temporal activity that sync a newly enriched member
 in database to OpenSearch.
 */
-export async function syncMembersToOpensearch(input: string[]): Promise<void> {
+export async function syncMembersToOpensearch(input: string): Promise<void> {
   try {
     syncMembers.syncMembers(input)
   } catch (err) {
