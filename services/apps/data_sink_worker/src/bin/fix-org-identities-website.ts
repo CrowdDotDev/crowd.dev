@@ -29,15 +29,20 @@ async function getOrgsWithWrongWebsite(db: DbConnection, options: { countOnly?: 
   return result
 }
 
-async function updateOrgWebsite(db: DbConnection, orgId: string, website: string) {
+async function updateOrgWebsite(
+  db: DbConnection,
+  orgId: string,
+  website: string,
+  platform: string,
+) {
   await db.none(
     `
         UPDATE "organizationIdentities"
         SET value = $(website)
         WHERE "organizationId" = $(orgId)
-        AND platform = 'github'
+        AND platform = $(platform)
     `,
-    { orgId, website },
+    { orgId, website, platform },
   )
 }
 
@@ -75,7 +80,7 @@ setImmediate(async () => {
     const orgs = await getOrgsWithWrongWebsite(dbClient, {})
     for (const org of orgs) {
       const website = websiteNormalizer(org.value)
-      const existingOrg = await findOrgByIdentityAndPlatform(dbClient, website, 'github')
+      const existingOrg = await findOrgByIdentityAndPlatform(dbClient, website, org.platform)
 
       // If the normalized website belongs to a different org, skip the update
       if (existingOrg.length > 0 && existingOrg[0].organizationId !== org.organizationId) {
@@ -85,7 +90,7 @@ setImmediate(async () => {
         continue
       }
 
-      await updateOrgWebsite(dbClient, org.organizationId, website)
+      await updateOrgWebsite(dbClient, org.organizationId, website, org.platform)
 
       processedOrgs++
 
