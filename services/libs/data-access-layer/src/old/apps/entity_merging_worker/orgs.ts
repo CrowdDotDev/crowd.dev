@@ -8,6 +8,15 @@ export async function deleteOrganizationSegments(db: DbStore, organizationId: st
     `,
     [organizationId],
   )
+
+  // Delete organization segments aggregation
+  await db.connection().query(
+    `
+      DELETE FROM "organizationSegmentsAgg"
+      WHERE "organizationId" = $1
+    `,
+    [organizationId],
+  )
 }
 
 export async function deleteOrganizationById(db: DbStore, organizationId: string) {

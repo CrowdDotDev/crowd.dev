@@ -8,6 +8,7 @@
             :name="displayName(props.organization)"
             :src="form.logo"
             class="border border-gray-300 !rounded-md"
+            img-class="!object-contain"
           >
             <template #placeholder>
               <div class="w-full h-full bg-gray-50 flex items-center justify-center">
