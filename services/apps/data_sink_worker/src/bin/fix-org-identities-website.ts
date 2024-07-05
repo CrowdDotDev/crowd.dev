@@ -22,7 +22,7 @@ async function getOrgsWithWrongWebsite(db: DbConnection, options: { countOnly?: 
   const result = await db.any(`
    SELECT *
     FROM "organizationIdentities"
-    WHERE value LIKE '%www%' AND (type = 'alternative-domain' OR type = 'primary-domain');
+    WHERE value LIKE '%www%' AND (type = 'alternative-domain' OR type = 'primary-domain')
     LIMIT 100;
   `)
 
