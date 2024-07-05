@@ -13,7 +13,7 @@ async function getOrgsWithWrongWebsite(db: DbConnection, options: { countOnly?: 
     const result = await db.one(`
       SELECT COUNT(*)
       FROM "organizationIdentities"
-      WHERE value LIKE '%www%';
+      WHERE value LIKE '%www%' AND type = 'alternative-domain' OR type = 'primary-domain';
     `)
 
     return result.count
@@ -22,7 +22,8 @@ async function getOrgsWithWrongWebsite(db: DbConnection, options: { countOnly?: 
   const result = await db.any(`
    SELECT *
     FROM "organizationIdentities"
-    WHERE value LIKE '%www%' limit 100;
+    WHERE value LIKE '%www%' AND type = 'alternative-domain' OR type = 'primary-domain'
+    LIMIT 100;
   `)
 
   return result
@@ -40,6 +41,7 @@ async function updateOrgWebsite(
         SET value = $(website)
         WHERE "organizationId" = $(orgId)
         AND platform = $(platform)
+        AND type IN ('alternative-domain', 'primary-domain');
     `,
     { orgId, website, platform },
   )
@@ -52,6 +54,7 @@ async function findOrgByIdentityAndPlatform(db: DbConnection, identity: string, 
         FROM "organizationIdentities"
         WHERE value = $(identity)
         AND platform = $(platform)
+        AND type IN ('alternative-domain', 'primary-domain');
       `,
     { identity, platform },
   )
@@ -81,7 +84,7 @@ setImmediate(async () => {
       const website = websiteNormalizer(org.value)
       const existingOrg = await findOrgByIdentityAndPlatform(dbClient, website, org.platform)
 
-      // If the normalized website belongs to a different org, skip the update
+      // If the normalized website belongs to a org, skip the update
       if (existingOrg.length > 0) {
         continue
       }
