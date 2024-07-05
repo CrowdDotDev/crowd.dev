@@ -19,9 +19,13 @@ import {
   markMemberAsManuallyCreated,
   getIdentitiesWithActivity,
 } from '@crowd/data-access-layer/src/old/apps/entity_merging_worker'
+import { cleanupMemberAggregates } from '@crowd/data-access-layer/src/members/segments'
+import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
 
 export async function deleteMember(memberId: string): Promise<void> {
   await deleteMemberSegments(svc.postgres.writer, memberId)
+  const qx = dbStoreQx(svc.postgres.writer)
+  await cleanupMemberAggregates(qx, memberId)
   await cleanupMember(svc.postgres.writer, memberId)
 }
 
