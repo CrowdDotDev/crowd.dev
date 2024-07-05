@@ -82,10 +82,7 @@ setImmediate(async () => {
       const existingOrg = await findOrgByIdentityAndPlatform(dbClient, website, org.platform)
 
       // If the normalized website belongs to a different org, skip the update
-      if (existingOrg.length > 0 && existingOrg[0].organizationId !== org.organizationId) {
-        log.warn(
-          `Website ${website} already belongs to org ${existingOrg[0].organizationId}, skipping!`,
-        )
+      if (existingOrg.length > 0) {
         continue
       }
 
