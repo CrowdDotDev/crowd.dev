@@ -120,7 +120,7 @@
                 Active people
                 <el-tooltip
                   placement="top"
-                  content="Contacts for whom at least one activity was tracked in the selected time period."
+                  content="People for whom at least one activity was tracked in the selected time period."
                   popper-class="max-w-[260px]"
                 >
                   <i class="ri-information-line text-sm ml-1 font-normal" />

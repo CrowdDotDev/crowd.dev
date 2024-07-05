@@ -99,7 +99,7 @@
   <template v-if="hasPermission(LfPermission.memberEdit)">
     <el-tooltip
       placement="top"
-      content="Mark as team contact if they belong to your own organization"
+      content="Mark as team member if they belong to your own organization"
       popper-class="max-w-[260px]"
     >
       <span>
