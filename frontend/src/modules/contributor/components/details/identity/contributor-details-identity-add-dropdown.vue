@@ -5,14 +5,14 @@
     </template>
     <div class="max-h-60 overflow-auto -m-2 p-2">
       <lf-dropdown-item
-        v-for="platform of platforms"
+        v-for="platform of platformList"
         :key="platform.platform"
         @click="emit('add', {
-          platform: platform.platform,
+          platform: platform.platform || platform.key,
         })"
       >
         <div class="w-full flex items-center gap-2">
-          <img :src="platform.image" :alt="platform.platform" class="h-4 w-4" /> {{ platform.name }}
+          <img :src="platform.image" :alt="platform.platform" class="h-4 w-4" /> {{ platform.name || platform.key }}
         </div>
       </lf-dropdown-item>
       <lf-dropdown-separator />
@@ -37,10 +37,28 @@ import { CrowdIntegrations } from '@/integrations/integrations-config';
 import LfDropdownSeparator from '@/ui-kit/dropdown/DropdownSeparator.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { ContributorIdentity } from '@/modules/contributor/types/Contributor';
-
-const platforms = CrowdIntegrations.enabledConfigs;
+import { onMounted, ref } from 'vue';
+import { ActivityTypeService } from '@/modules/activity/services/activity-type-service';
 
 const emit = defineEmits<{(e: 'add', value: Partial<ContributorIdentity>): void}>();
+
+const platformList = ref<any[]>([]);
+
+const fetchActivityTypes = () => {
+  ActivityTypeService.get()
+    .then((res) => {
+      platformList.value = [...Object.keys(res.default), ...Object.keys(res.custom)]
+        .map((platform) => ({
+          ...CrowdIntegrations.getConfig(platform),
+          key: platform,
+        }))
+        .filter((data) => !!data);
+    });
+};
+
+onMounted(() => {
+  fetchActivityTypes();
+});
 </script>
 
 <script lang="ts">

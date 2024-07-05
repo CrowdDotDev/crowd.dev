@@ -11,7 +11,7 @@
 
         <div class="flex flex-col gap-3 items-start">
           <article v-for="(identity, ii) of form" :key="ii" class="flex items-center w-full">
-            <lf-input v-model="identity.value" class="!rounded-r-none h-10 flex-grow">
+            <lf-input v-model="identity.value" class="!rounded-r-none h-10 flex-grow" placeholder="...">
               <template #prefix>
                 <div class="flex items-center flex-nowrap whitespace-nowrap">
                   <div class="min-w-5">
@@ -29,20 +29,33 @@
                       class="text-gray-600"
                     />
                   </div>
-                  <p v-if="identity.type !== 'email' && platform(identity.platform)?.urlPrefix" class="-mr-2 text-black pl-2">
+                  <p
+                    v-if="identity.type !== 'email' && platform(identity.platform)?.urlPrefix"
+                    class="-mr-2 pl-2"
+                    :class="identity.value?.length ? 'text-black' : 'text-gray-400'"
+                  >
                     {{ platform(identity.platform)?.urlPrefix }}
                   </p>
                 </div>
               </template>
             </lf-input>
             <label class="border border-gray-200 h-10 py-2.5 px-3 border-l-0 cursor-pointer rounded-r-lg">
-              <lf-checkbox v-model="identity.verified">
+              <lf-checkbox v-model="identity.verified" class="!flex-nowrap">
                 Verified
               </lf-checkbox>
             </label>
+            <lf-button
+              v-if="form.length > 1"
+              class="ml-3"
+              type="secondary-ghost-light"
+              :icon-only="true"
+              @click="form.splice(ii, 1)"
+            >
+              <lf-icon name="delete-bin-6-line" />
+            </lf-button>
           </article>
           <lf-contributor-details-identity-add-dropdown
-            placement="bottom-end"
+            placement="bottom-start"
             @add="form.push({
               ...defaultForm,
               ...$event,
@@ -85,7 +98,7 @@ import Message from '@/shared/message/message';
 import LfContributorDetailsIdentityAddDropdown
   from '@/modules/contributor/components/details/identity/contributor-details-identity-add-dropdown.vue';
 import pluralize from 'pluralize';
-import { helpers, required } from '@vuelidate/validators';
+import { email, helpers, required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 
 const props = defineProps<{
@@ -108,15 +121,14 @@ const defaultForm: ContributorIdentity = {
 
 const form = reactive<ContributorIdentity[]>(props.identities.map((i) => ({ ...defaultForm, ...i })));
 
-const rules = {
-  form: {
-    $each: helpers.forEach({
-      value: {
-        required,
-      },
-    }),
-  },
-};
+const rules = computed(() => ({
+  form: form.map((item) => ({
+    value: {
+      required,
+      email: item.type === 'email' ? email : helpers.withParams({ type: 'undefined' }, () => true),
+    },
+  })),
+}));
 
 const $v = useVuelidate(rules, { form });
 

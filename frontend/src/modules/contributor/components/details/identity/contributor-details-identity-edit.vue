@@ -10,7 +10,7 @@
         </div>
 
         <div class="flex items-center">
-          <lf-input v-model="form.value" class="!rounded-r-none h-10 flex-grow">
+          <lf-input v-model="form.value" class="!rounded-r-none h-10 flex-grow" placeholder="...">
             <template #prefix>
               <div class="flex items-center flex-nowrap whitespace-nowrap">
                 <div class="min-w-5">
@@ -28,7 +28,11 @@
                     class="text-gray-600"
                   />
                 </div>
-                <p v-if="form.type !== 'email' && platform?.urlPrefix" class="-mr-2 text-black pl-2">
+                <p
+                  v-if="form.type !== 'email' && platform?.urlPrefix"
+                  class="-mr-2 pl-2"
+                  :class="form.value?.length ? 'text-black' : 'text-gray-400'"
+                >
                   {{ platform?.urlPrefix }}
                 </p>
               </div>
@@ -68,7 +72,7 @@ import { CrowdIntegrations } from '@/integrations/integrations-config';
 import LfCheckbox from '@/ui-kit/checkbox/Checkbox.vue';
 import { useContributorStore } from '@/modules/contributor/store/contributor.store';
 import Message from '@/shared/message/message';
-import { required } from '@vuelidate/validators';
+import { email, required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 
 const props = defineProps<{
@@ -97,6 +101,7 @@ const rules = {
   form: {
     value: {
       required,
+      email: props.modelValue?.type === 'email' ? email : undefined,
     },
   },
 };

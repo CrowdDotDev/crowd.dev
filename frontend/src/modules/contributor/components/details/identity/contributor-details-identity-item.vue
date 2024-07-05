@@ -63,23 +63,32 @@
         </lf-button>
       </template>
       <!-- Edit identity -->
-      <lf-dropdown-item
-        :disabled="editingDisabled"
-        @click="emit('edit')"
+      <el-tooltip
+        placement="top"
+        :disabled="!editingDisabled"
+        :content="`Identity can't be edited because the contributor is active on
+        ${platform(props.identity.platform)?.name || props.identity.platform}`"
       >
-        <lf-icon name="pencil-line" />Edit identity
-      </lf-dropdown-item>
+        <lf-dropdown-item
+          :disabled="editingDisabled"
+          @click="emit('edit')"
+        >
+          <lf-icon name="pencil-line" />Edit identity
+        </lf-dropdown-item>
+      </el-tooltip>
+
       <lf-dropdown-separator />
 
       <!-- Verified -->
       <el-tooltip
         v-if="props.identity.verified"
+        placement="top"
         content="Identities tracked from Integrations can’t be unverified"
-        placement="top-end"
         :disabled="!isVerifyDisabled"
       >
         <lf-dropdown-item
           v-if="props.identity.verified"
+          placement="top"
           :disabled="isVerifyDisabled"
           @click="verifyIdentity(false)"
         >
@@ -88,8 +97,8 @@
       </el-tooltip>
       <el-tooltip
         v-else
+        placement="top"
         content="Identities tracked from Integrations can’t be verified"
-        placement="top-end"
         :disabled="!isVerifyDisabled"
       >
         <lf-dropdown-item
@@ -106,13 +115,20 @@
       </lf-dropdown-item>
 
       <lf-dropdown-separator />
-      <lf-dropdown-item
-        type="danger"
-        :disabled="editingDisabled"
-        @click="removeIdentity"
+      <el-tooltip
+        placement="top"
+        :disabled="!editingDisabled"
+        :content="`Identity can't be deleted because the contributor is active on
+        ${platform(props.identity.platform)?.name || props.identity.platform}`"
       >
-        <lf-icon name="delete-bin-6-line" />Delete identity
-      </lf-dropdown-item>
+        <lf-dropdown-item
+          type="danger"
+          :disabled="editingDisabled"
+          @click="removeIdentity"
+        >
+          <lf-icon name="delete-bin-6-line" />Delete identity
+        </lf-dropdown-item>
+      </el-tooltip>
     </lf-dropdown>
   </article>
 </template>
