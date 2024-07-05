@@ -13,7 +13,7 @@ async function getOrgsWithWrongWebsite(db: DbConnection, options: { countOnly?: 
     const result = await db.one(`
       SELECT COUNT(*)
       FROM "organizationIdentities"
-      WHERE value LIKE '%www%' AND type = 'alternative-domain' OR type = 'primary-domain';
+      WHERE value LIKE '%www%' AND (type = 'alternative-domain' OR type = 'primary-domain');
     `)
 
     return result.count
@@ -22,7 +22,7 @@ async function getOrgsWithWrongWebsite(db: DbConnection, options: { countOnly?: 
   const result = await db.any(`
    SELECT *
     FROM "organizationIdentities"
-    WHERE value LIKE '%www%' AND type = 'alternative-domain' OR type = 'primary-domain'
+    WHERE value LIKE '%www%' AND (type = 'alternative-domain' OR type = 'primary-domain');
     LIMIT 100;
   `)
 
@@ -34,6 +34,7 @@ async function updateOrgWebsite(
   orgId: string,
   website: string,
   platform: string,
+  type: string,
 ) {
   await db.none(
     `
@@ -41,22 +42,27 @@ async function updateOrgWebsite(
         SET value = $(website)
         WHERE "organizationId" = $(orgId)
         AND platform = $(platform)
-        AND type IN ('alternative-domain', 'primary-domain');
+        AND type = $(type);
     `,
-    { orgId, website, platform },
+    { orgId, website, platform, type },
   )
 }
 
-async function findOrgByIdentityAndPlatform(db: DbConnection, identity: string, platform: string) {
+async function findOrgByIdentityAndPlatform(
+  db: DbConnection,
+  identity: string,
+  platform: string,
+  type: string,
+) {
   const result = await db.any(
     `
         SELECT *
         FROM "organizationIdentities"
         WHERE value = $(identity)
         AND platform = $(platform)
-        AND type IN ('alternative-domain', 'primary-domain');
+        AND type = $(type);
       `,
-    { identity, platform },
+    { identity, platform, type },
   )
 
   return result
@@ -82,14 +88,19 @@ setImmediate(async () => {
     const orgs = await getOrgsWithWrongWebsite(dbClient, {})
     for (const org of orgs) {
       const website = websiteNormalizer(org.value)
-      const existingOrg = await findOrgByIdentityAndPlatform(dbClient, website, org.platform)
+      const existingOrg = await findOrgByIdentityAndPlatform(
+        dbClient,
+        website,
+        org.platform,
+        org.type,
+      )
 
       // If the normalized website belongs to a org, skip the update
       if (existingOrg.length > 0) {
         continue
       }
 
-      await updateOrgWebsite(dbClient, org.organizationId, website, org.platform)
+      await updateOrgWebsite(dbClient, org.organizationId, website, org.platform, org.type)
 
       processedOrgs++
 
