@@ -50,6 +50,7 @@ async function updateOrgWebsite(
 
 async function findOrgByIdentityAndPlatform(
   db: DbConnection,
+  orgId: string,
   identity: string,
   platform: string,
   type: string,
@@ -59,10 +60,11 @@ async function findOrgByIdentityAndPlatform(
         SELECT *
         FROM "organizationIdentities"
         WHERE value = $(identity)
+        AND organizationId = $(orgId)
         AND platform = $(platform)
         AND type = $(type);
       `,
-    { identity, platform, type },
+    { identity, platform, type, orgId },
   )
 
   return result
@@ -93,10 +95,11 @@ setImmediate(async () => {
         website,
         org.platform,
         org.type,
+        org.organizationId,
       )
 
-      // If the normalized website belongs to a org, skip the update
       if (existingOrg.length > 0) {
+        log.info(`Organization with website ${website} already exists!`)
         continue
       }
 
