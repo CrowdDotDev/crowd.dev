@@ -1,21 +1,10 @@
+import { IDbOrganizationAggregateData } from '../organizations'
 import { QueryExecutor } from '../queryExecutor'
-
-export interface IOrganizationSegmentAggregates {
-  organizationId: string
-  segmentId: string
-  tenantId: string
-
-  joinedAt: string
-  lastActive: string
-  activeOn: string[]
-  activityCount: number
-  memberCount: number
-}
 
 export async function getOrgAggregates(
   qx: QueryExecutor,
   organizationId: string,
-): Promise<IOrganizationSegmentAggregates[]> {
+): Promise<IDbOrganizationAggregateData[]> {
   return qx.select(
     `
       WITH
