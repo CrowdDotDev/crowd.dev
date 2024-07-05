@@ -60,7 +60,7 @@ async function findOrgByIdentityAndPlatform(
         SELECT *
         FROM "organizationIdentities"
         WHERE value = $(identity)
-        AND organizationId = $(orgId)
+        AND "organizationId" = $(orgId)
         AND platform = $(platform)
         AND type = $(type);
       `,
