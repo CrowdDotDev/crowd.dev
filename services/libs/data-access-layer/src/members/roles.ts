@@ -7,9 +7,8 @@ export async function fetchMemberOrganizations(
 ): Promise<IMemberOrganization[]> {
   return qx.select(
     `
-      SELECT mo.*, o."displayName"
-      FROM "memberOrganizations" mo
-      JOIN organizations o ON  o."id" = mo."organizationId"
+      SELECT *
+      FROM "memberOrganizations"
       WHERE "memberId" = $(memberId)
     `,
     {

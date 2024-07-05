@@ -6,6 +6,7 @@ import {
   IMemberAttribute,
   IMemberBaseForMergeSuggestions,
   IMemberOpensearch,
+  IMemberOrganization,
   IMemberWithAggregatesForMergeSuggestions,
   MemberAttributeType,
 } from '@crowd/types'
@@ -31,6 +32,7 @@ import {
   insertMemberSegments,
 } from '@crowd/data-access-layer/src/members/segments'
 import { IMemberSegmentAggregates } from '@crowd/data-access-layer/src/members/types'
+import { OrganizationField, findOrgById } from '@crowd/data-access-layer/src/orgs'
 
 export async function buildFullMemberForMergeSuggestions(
   qx: QueryExecutor,
@@ -38,13 +40,26 @@ export async function buildFullMemberForMergeSuggestions(
 ): Promise<IMemberWithAggregatesForMergeSuggestions> {
   const identities = await fetchMemberIdentities(qx, member.id)
   const aggregates = await fetchMemberAggregates(qx, member.id)
-  const organizations = await fetchMemberOrganizations(qx, member.id)
+  const roles = await fetchMemberOrganizations(qx, member.id)
+
+  const rolesWithDisplayName: IMemberOrganization[] = []
+
+  for (const role of roles) {
+    const organization = await findOrgById(qx, role.organizationId, {
+      fields: [OrganizationField.ID, OrganizationField.DISPLAY_NAME],
+    })
+
+    rolesWithDisplayName.push({
+      ...role,
+      displayName: organization.displayName,
+    })
+  }
 
   return {
     ...member,
     identities,
     activityCount: aggregates?.activityCount || 0,
-    organizations,
+    organizations: rolesWithDisplayName,
   }
 }
 export class MemberSyncService {
