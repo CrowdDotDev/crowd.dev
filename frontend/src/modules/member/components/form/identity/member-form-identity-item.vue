@@ -94,21 +94,29 @@
           Unmerge identity
         </lf-dropdown-item>
       </el-tooltip>
-      <lf-dropdown-item
+      <el-tooltip
         v-if="!props.identity.verified"
-        @click="verify(true)"
+        content="Identities tracked from Integrations can’t be verified"
+        placement="top-end"
+        :disabled="!isVerifyDisabled"
       >
-        <i class="ri-verified-badge-line" />
-        Verify identity
-      </lf-dropdown-item>
+        <lf-dropdown-item
+          v-if="!props.identity.verified"
+          :disabled="isVerifyDisabled"
+          @click="verify(true)"
+        >
+          <i class="ri-verified-badge-line" />
+          Verify identity
+        </lf-dropdown-item>
+      </el-tooltip>
       <el-tooltip
         v-else
         content="Identities tracked from Integrations can’t be unverified"
         placement="top-end"
-        :disabled="!props.identity.sourceId"
+        :disabled="!isVerifyDisabled"
       >
         <lf-dropdown-item
-          :disabled="!!props.identity.sourceId"
+          :disabled="isVerifyDisabled"
           @click="verify(false)"
         >
           <lf-svg name="unverify" class="!h-4 !w-4" />
@@ -181,7 +189,14 @@ const editingDisabled = computed(() => {
     : false;
 });
 
+const isVerifyDisabled = computed(
+  () => !!props.identity.sourceId || ['integration', 'lfid'].includes(props.identity.platform),
+);
+
 const update = () => {
+  if (isVerifyDisabled.value) {
+    return;
+  }
   emit('update', {
     ...props.identity,
     value: model.value.value,

@@ -164,6 +164,21 @@
         </div>
       </article>
     </div>
+    <div
+      v-if="!bio?.default
+        && !tags.length
+        && reach?.total <= 0
+        && !education?.default?.length
+        && !certifications?.default?.length
+        && !awards?.default?.length
+        && Object.keys(attributes).length === 0"
+      class="pt-2 flex flex-col items-center w-full"
+    >
+      <lf-icon name="list-view" :size="80" class="text-gray-300" />
+      <p class="text-center pt-3 text-medium text-gray-400">
+        No contributor details yet
+      </p>
+    </div>
   </section>
   <app-member-manage-attributes-drawer
     v-if="edit"

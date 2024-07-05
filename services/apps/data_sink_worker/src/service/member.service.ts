@@ -24,6 +24,7 @@ import {
   MemberIdentityType,
   Edition,
   OrganizationIdentityType,
+  OrganizationAttributeSource,
 } from '@crowd/types'
 import mergeWith from 'lodash.mergewith'
 import isEqual from 'lodash.isequal'
@@ -57,6 +58,7 @@ export default class MemberService extends LoggerBase {
     segmentId: string,
     integrationId: string,
     data: IMemberCreateData,
+    source: string,
     fireSync = true,
     releaseMemberLock?: () => Promise<void>,
   ): Promise<string> {
@@ -92,7 +94,7 @@ export default class MemberService extends LoggerBase {
         data.identities = this.validateEmails(data.identities)
 
         const id = await txRepo.create(tenantId, {
-          displayName: getProperDisplayName(data.displayName.split(' ')[0]),
+          displayName: getProperDisplayName(data.displayName),
           joinedAt: data.joinedAt.toISOString(),
           attributes,
           identities: data.identities,
@@ -111,7 +113,7 @@ export default class MemberService extends LoggerBase {
         const orgService = new OrganizationService(txStore, this.log)
         if (data.organizations) {
           for (const org of data.organizations) {
-            const id = await orgService.findOrCreate(tenantId, segmentId, integrationId, org)
+            const id = await orgService.findOrCreate(tenantId, source, integrationId, org)
             organizations.push({
               id,
               source: org.source,
@@ -208,6 +210,7 @@ export default class MemberService extends LoggerBase {
     integrationId: string,
     data: IMemberUpdateData,
     original: IDbMember,
+    source: string,
     fireSync = true,
     releaseMemberLock?: () => Promise<void>,
   ): Promise<void> {
@@ -236,7 +239,7 @@ export default class MemberService extends LoggerBase {
 
         // make sure displayName is proper
         if (data.displayName) {
-          data.displayName = getProperDisplayName(data.displayName.split(' ')[0])
+          data.displayName = getProperDisplayName(data.displayName)
         }
 
         const toUpdate = MemberService.mergeData(original, dbIdentities, data)
@@ -295,7 +298,7 @@ export default class MemberService extends LoggerBase {
         const orgService = new OrganizationService(txStore, this.log)
         if (data.organizations) {
           for (const org of data.organizations) {
-            const id = await orgService.findOrCreate(tenantId, segmentId, integrationId, org)
+            const id = await orgService.findOrCreate(tenantId, source, integrationId, org)
             organizations.push({
               id,
               source: data.source,
@@ -376,17 +379,26 @@ export default class MemberService extends LoggerBase {
 
     // Assign member to organization based on email domain
     for (const domain of emailDomains) {
-      const orgId = await orgService.findOrCreate(tenantId, segmentId, integrationId, {
-        names: [domain],
-        identities: [
-          {
-            value: domain,
-            type: OrganizationIdentityType.PRIMARY_DOMAIN,
-            platform: 'email',
-            verified: true,
+      const orgId = await orgService.findOrCreate(
+        tenantId,
+        OrganizationAttributeSource.EMAIL,
+        integrationId,
+        {
+          attributes: {
+            name: {
+              integration: [domain],
+            },
           },
-        ],
-      })
+          identities: [
+            {
+              value: domain,
+              type: OrganizationIdentityType.PRIMARY_DOMAIN,
+              platform: 'email',
+              verified: true,
+            },
+          ],
+        },
+      )
       if (orgId) {
         organizations.push({
           id: orgId,
@@ -487,6 +499,7 @@ export default class MemberService extends LoggerBase {
               displayName: member.displayName || undefined,
             },
             dbMember,
+            platform,
             false,
           )
         } else {
@@ -565,6 +578,7 @@ export default class MemberService extends LoggerBase {
               reach: member.reach || undefined,
             },
             dbMember,
+            platform,
             false,
           )
         } else {

@@ -62,19 +62,6 @@ export default [
         ],
       },
       {
-        name: 'organizationEdit',
-        path: '/organizations/:id/edit',
-        component: OrganizationFormPage,
-        meta: {
-          auth: true,
-          eventKey: PageEventKey.EDIT_ORGANIZATION,
-        },
-        props: true,
-        beforeEnter: [
-          PermissionGuard(LfPermission.organizationEdit),
-        ],
-      },
-      {
         name: 'organizationView',
         path: '/organizations/:id',
         component: OrganizationDetailsPage,

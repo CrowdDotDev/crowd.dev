@@ -123,14 +123,6 @@
             <el-divider
               class="!mb-6 !mt-8 !border-gray-200"
             />
-            <div class="grid gap-x-12 grid-cols-3">
-              <h6>Phone numbers</h6>
-              <div class="col-span-2">
-                <app-organization-form-phone-number
-                  v-model="formModel"
-                />
-              </div>
-            </div>
             <div v-if="shouldShowAttributes">
               <el-divider class="!mb-6 !mt-8 !border-gray-200" />
               <app-organization-form-attributes
@@ -170,7 +162,6 @@ import { i18n } from '@/i18n';
 import enrichmentAttributes from '@/modules/organization/config/enrichment';
 import { AttributeType } from '@/modules/organization/types/Attributes';
 import AppOrganizationFormEmails from '@/modules/organization/components/form/organization-form-emails.vue';
-import AppOrganizationFormPhoneNumber from '@/modules/organization/components/form/organization-form-phone-number.vue';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { useOrganizationStore } from '../store/pinia';
@@ -201,25 +192,19 @@ const { fields } = OrganizationModel;
 const formSchema = new FormSchema([
   fields.name,
   fields.displayName,
-  fields.headline,
   fields.description,
   fields.location,
   fields.employees,
   fields.revenueRange,
   fields.emails,
   fields.identities,
-  fields.phoneNumbers,
   fields.type,
   fields.size,
   fields.industry,
   fields.founded,
-  fields.profiles,
-  fields.allSubsidiaries,
-  fields.alternativeNames,
   fields.averageEmployeeTenure,
   fields.averageTenureByLevel,
   fields.averageTenureByRole,
-  fields.directSubsidiaries,
   fields.employeeChurnRate,
   fields.employeeCountByCountry,
   fields.employeeCountByMonth,
@@ -228,7 +213,6 @@ const formSchema = new FormSchema([
   fields.grossAdditionsByMonth,
   fields.grossDeparturesByMonth,
   fields.immediateParent,
-  fields.tags,
   fields.ultimateParent,
 ]);
 
@@ -267,19 +251,12 @@ function getInitialModel(record) {
         ...(record || {}),
         name: record ? record.name : '',
         displayName: record ? record.displayName || record.name : '',
-        headline: record ? record.headline : '',
-        description: record ? record.description : '',
         joinedAt: record ? record.joinedAt : '',
         identities: record
           ? [
             ...record.identities,
           ]
           : [],
-        revenueRange: record ? record.revenueRange : {},
-        phoneNumbers:
-          record && record.phoneNumbers?.length > 0
-            ? record.phoneNumbers
-            : [''],
       }),
     ),
   );
@@ -429,22 +406,19 @@ function onCancel() {
 async function onSubmit() {
   isFormSubmitting.value = true;
 
+  const { emails, ...rest } = formModel.value;
+
+  const name = isEditPage.value === false ? formModel.value.displayName : undefined;
+
   const data = {
     manuallyCreated: true,
-    ...formModel.value,
-    name: isEditPage.value === false ? formModel.value.displayName : undefined,
-    displayName:
-      isEditPage.value === true ? formModel.value.displayName : undefined,
-    identities: formModel.value.identities,
-    phoneNumbers: formModel.value.phoneNumbers.reduce(
-      (acc, item) => {
-        if (item !== '') {
-          acc.push(item);
-        }
-        return acc;
+    ...rest,
+    attributes: {
+      names: {
+        default: name,
+        custom: [name],
       },
-      [],
-    ),
+    },
   };
 
   const payload = isEditPage.value

@@ -12,10 +12,16 @@ const EMAIL_REGEXP = new RegExp(
   "[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?",
 )
 
+const PARTIAL_EMAIL_REGEXP = new RegExp("^[a-z0-9!#$%&'*+/=?^_`{|}~-]+@[a-z0-9-]+\\.?$")
+
 export const isUrl = (value: string): boolean => {
   return URL_REGEXP.test(value)
 }
 
 export const isEmail = (value: string): boolean => {
   return EMAIL_REGEXP.test(value)
+}
+
+export const isPartialEmail = (value: string): boolean => {
+  return PARTIAL_EMAIL_REGEXP.test(value)
 }

@@ -1,17 +1,9 @@
+import { getServiceChildLogger } from '@crowd/logging'
 import { QueryExecutor } from '../queryExecutor'
 import { prepareBulkInsert } from '../utils'
+import { IDbOrganizationAggregateData } from './types'
 
-export interface IOrganizationAggregateData {
-  organizationId: string
-  segmentId: string
-  tenantId: string
-
-  joinedAt: string
-  lastActive: string
-  activeOn: string[]
-  activityCount: number
-  memberCount: number
-}
+const log = getServiceChildLogger('organizations/segments')
 
 export interface IOrganizationSegments {
   organizationId: string
@@ -32,7 +24,7 @@ export async function cleanupForOganization(qx: QueryExecutor, organizationId: s
 
 export async function insertOrganizationSegments(
   qx: QueryExecutor,
-  data: IOrganizationAggregateData[],
+  data: IDbOrganizationAggregateData[],
 ) {
   try {
     return qx.result(
@@ -47,12 +39,13 @@ export async function insertOrganizationSegments(
           'activeOn',
           'activityCount',
           'memberCount',
+          'avgContributorEngagement',
         ],
         data,
       ),
     )
   } catch (e) {
-    console.error(e)
+    log.error(e, 'Error while inserting organization segments!')
     throw e
   }
 }
@@ -72,6 +65,24 @@ export async function fetchManyOrgSegments(
     `,
     {
       organizationIds,
+    },
+  )
+}
+
+export async function fetchOrgAggregates(
+  qx: QueryExecutor,
+  organizationId: string,
+): Promise<IDbOrganizationAggregateData> {
+  return qx.selectOneOrNone(
+    `
+      SELECT
+        *
+      FROM "organizationSegmentsAgg"
+      WHERE "organizationId" = $(organizationId)
+      LIMIT 1
+    `,
+    {
+      organizationId,
     },
   )
 }

@@ -68,16 +68,13 @@ export class OrganizationService {
     return response.data;
   }
 
-  static async unmergePreview(orgId, platform, value, type, verified) {
+  static async unmergePreview(orgId, identity) {
     const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/organization/${orgId}/unmerge/preview`,
       {
-        platform,
-        value,
-        type,
-        verified,
+        ...identity,
       },
     );
 

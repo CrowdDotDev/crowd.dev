@@ -15,6 +15,7 @@
     "@crowd/redis": "workspace:*",
     "@crowd/sentiment": "workspace:*",
     "@crowd/types": "workspace:*",
+    "lodash": "^4.17.21",
     "lodash.clonedeep": "^4.5.0",
     "lodash.merge": "^4.6.2",
     "pg-promise": "^11.4.3",
@@ -22,8 +23,8 @@
     "validator": "^13.7.0"
   },
   "devDependencies": {
-    "sequelize": "6.21.2",
     "@types/node": "^18.16.3",
+    "sequelize": "6.21.2",
     "typescript": "^5.0.4"
   }
 }

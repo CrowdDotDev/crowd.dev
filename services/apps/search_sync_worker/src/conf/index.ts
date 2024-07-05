@@ -12,7 +12,6 @@ export interface IOpenSearchConfig {
 }
 
 export interface IServiceConfig {
-  edition: string
   queuePriorityLevel: QueuePriorityLevel
 }
 

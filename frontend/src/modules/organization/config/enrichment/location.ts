@@ -1,12 +1,13 @@
 import { AttributeType } from '@/modules/organization/types/Attributes';
 import { OrganizationEnrichmentConfig } from '@/modules/organization/config/enrichment/index';
 
-const tags: OrganizationEnrichmentConfig = {
-  name: 'tags',
-  label: 'Tags',
-  type: AttributeType.ARRAY,
+const location: OrganizationEnrichmentConfig = {
+  name: 'location',
+  label: 'Location',
+  type: AttributeType.STRING,
   showInForm: true,
   showInAttributes: true,
+  formatValue: (value) => value,
 };
 
-export default tags;
+export default location;
