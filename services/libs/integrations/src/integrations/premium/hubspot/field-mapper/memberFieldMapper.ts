@@ -208,7 +208,7 @@ export class HubspotMemberFieldMapper extends HubspotFieldMapper {
             // TODO uros check if this is verified or not with anil
             member.organizations = [
               {
-                names: [contactProperties[hubspotPropertyName]],
+                // names: [contactProperties[hubspotPropertyName]], // TODO migrate to attributes
                 identities: [
                   {
                     value: contactProperties[hubspotPropertyName],

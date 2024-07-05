@@ -416,7 +416,12 @@ export default class MemberService extends LoggerBase {
             const org = await organizationService.createOrUpdate(
               {
                 displayName: domain,
-                names: [domain],
+                attributes: {
+                  name: {
+                    default: domain,
+                    custom: [domain],
+                  },
+                },
                 identities: [
                   {
                     value: domain,

@@ -2,8 +2,8 @@
   <div class="relative">
     <lf-avatar
       :size="48"
-      :name="props.organization.displayName"
-      :src="props.organization.logo"
+      :name="displayName(props.organization)"
+      :src="logo(props.organization)"
       class="!rounded-md border border-gray-300 cursor-pointer"
       img-class="!object-contain"
       @click="isEditModalOpen = true"
@@ -47,7 +47,7 @@ const props = defineProps<{
   organization: Organization,
 }>();
 
-const { isNew } = useOrganizationHelpers();
+const { isNew, logo, displayName } = useOrganizationHelpers();
 
 const isEditModalOpen = ref<boolean>(false);
 </script>

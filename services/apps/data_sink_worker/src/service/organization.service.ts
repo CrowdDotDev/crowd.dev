@@ -1,29 +1,39 @@
-import mergeWith from 'lodash.mergewith'
-import isEqual from 'lodash.isequal'
-import IntegrationRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/integration.repo'
-import { OrganizationRepository } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/organization.repo'
-import { DbStore } from '@crowd/data-access-layer/src/database'
-import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
-import { IOrganization, OrganizationIdentityType, PlatformType } from '@crowd/types'
 import { websiteNormalizer } from '@crowd/common'
-
-export interface IOrganizationIdSource {
-  id: string
-  source: string
-}
+import { DbStore } from '@crowd/data-access-layer/src/database'
+import IntegrationRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/integration.repo'
+import {
+  addOrgIdentity,
+  addOrgToSyncRemote,
+  addOrgsToMember,
+  addOrgsToSegments,
+  findOrgAttributes,
+  findOrgBySourceId,
+  findOrgByVerifiedIdentity,
+  getOrgIdentities,
+  insertOrganization,
+  markOrgAttributeDefault,
+  prepareOrganizationData,
+  updateOrganization,
+  upsertOrgAttributes,
+  upsertOrgIdentities,
+} from '@crowd/data-access-layer/src/organizations'
+import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
+import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
+import {
+  IOrganization,
+  IOrganizationIdSource,
+  OrganizationIdentityType,
+  PlatformType,
+} from '@crowd/types'
 
 export class OrganizationService extends LoggerBase {
-  private readonly repo: OrganizationRepository
-
   constructor(private readonly store: DbStore, parentLog: Logger) {
     super(parentLog)
-
-    this.repo = new OrganizationRepository(store, this.log)
   }
 
   public async findOrCreate(
     tenantId: string,
-    segmentId: string,
+    source: string,
     integrationId: string,
     data: IOrganization,
   ): Promise<string> {
@@ -36,7 +46,7 @@ export class OrganizationService extends LoggerBase {
 
     try {
       const id = await this.store.transactionally(async (txStore) => {
-        const txRepo = new OrganizationRepository(txStore, this.log)
+        const qe = dbStoreQx(txStore)
 
         // Normalize the website identities
         for (const identity of data.identities.filter((i) =>
@@ -52,18 +62,9 @@ export class OrganizationService extends LoggerBase {
 
         // find existing org by sent verified identities
         for (const identity of verifiedIdentities) {
-          existing = await txRepo.findByVerifiedIdentity(tenantId, identity)
+          existing = await findOrgByVerifiedIdentity(qe, tenantId, identity)
           if (existing) {
             break
-          }
-        }
-
-        let attributes = existing?.attributes
-
-        if (data?.attributes) {
-          const temp = mergeWith({}, existing?.attributes, data?.attributes)
-          if (!isEqual(temp, existing?.attributes)) {
-            attributes = temp
           }
         }
 
@@ -72,74 +73,25 @@ export class OrganizationService extends LoggerBase {
         if (existing) {
           this.log.trace(`Found existing organization, organization will be updated!`)
 
-          // if it does exists update it
-          const updateData: Partial<IOrganization> = {}
-          const fields = [
-            'description',
-            'names',
-            'emails',
-            'logo',
-            'tags',
-            'employees',
-            'location',
-            'type',
-            'size',
-            'headline',
-            'industry',
-            'founded',
-            'attributes',
-          ]
+          const existingAttributes = await findOrgAttributes(qe, existing.id)
 
-          if (!existing.displayName || existing.displayName.trim().length === 0) {
-            fields.push('displayName')
+          const processed = prepareOrganizationData(data, source, existing, existingAttributes)
+
+          this.log.trace({ updateData: processed.organization }, `Updating organization!`)
+
+          if (Object.keys(processed.organization).length > 0) {
+            this.log.info({ orgId: existing.id }, `Updating organization!`)
+            await updateOrganization(qe, existing.id, processed.organization)
           }
-
-          fields.forEach((field) => {
-            if (!existing[field] && data[field]) {
-              updateData[field] = data[field]
+          await upsertOrgIdentities(qe, existing.id, tenantId, data.identities, integrationId)
+          await upsertOrgAttributes(qe, existing.id, processed.attributes)
+          for (const attr of processed.attributes) {
+            if (attr.default) {
+              await markOrgAttributeDefault(qe, existing.id, attr)
             }
-          })
-
-          this.log.trace({ updateData }, `Updating organization!`)
-
-          if (Object.keys(updateData).length > 0) {
-            await this.repo.update(existing.id, updateData)
           }
 
           id = existing.id
-
-          const existingIdentities = await txRepo.getIdentities(id, tenantId)
-
-          const toCreate = []
-          const toUpdate = []
-
-          for (const i of data.identities) {
-            const existing = existingIdentities.find(
-              (ei) => ei.value === i.value && ei.platform === i.platform && ei.type === i.type,
-            )
-            if (!existing) {
-              toCreate.push(i)
-            } else if (existing && existing.verified !== i.verified) {
-              toUpdate.push(i)
-            }
-          }
-
-          if (toCreate.length > 0) {
-            for (const i of toCreate) {
-              // add the identity
-              await txRepo.addIdentity(id, tenantId, {
-                ...i,
-                integrationId,
-              })
-            }
-          }
-
-          if (toUpdate.length > 0) {
-            for (const i of toUpdate) {
-              // update the identity
-              await txRepo.updateIdentity(id, tenantId, i)
-            }
-          }
         } else {
           this.log.trace(`Organization wasn't found via website or identities.`)
           const firstVerified = verifiedIdentities[0]
@@ -147,8 +99,6 @@ export class OrganizationService extends LoggerBase {
           const payload = {
             displayName: firstVerified.value,
             description: data.description,
-            names: data.names,
-            emails: data.emails,
             logo: data.logo,
             tags: data.tags,
             employees: data.employees,
@@ -158,19 +108,33 @@ export class OrganizationService extends LoggerBase {
             headline: data.headline,
             industry: data.industry,
             founded: data.founded,
-            attributes,
           }
 
-          this.log.trace({ payload }, `Creating new organization!`)
+          const processed = prepareOrganizationData(payload, source)
+
+          this.log.trace({ payload: processed }, `Creating new organization!`)
 
           // if it doesn't exists create it
-          id = await this.repo.insert(tenantId, payload)
+          id = await insertOrganization(qe, tenantId, processed.organization)
+
+          await upsertOrgAttributes(qe, id, processed.attributes)
+          for (const attr of processed.attributes) {
+            if (attr.default) {
+              await markOrgAttributeDefault(qe, existing.id, attr)
+            }
+          }
 
           // create identities
           for (const i of data.identities) {
             // add the identity
-            await txRepo.addIdentity(id, tenantId, {
-              ...i,
+            await addOrgIdentity(qe, {
+              organizationId: id,
+              tenantId,
+              platform: i.platform,
+              type: i.type,
+              value: i.value,
+              verified: i.verified,
+              sourceId: i.sourceId,
               integrationId,
             })
           }
@@ -192,12 +156,16 @@ export class OrganizationService extends LoggerBase {
     memberId: string,
     orgs: IOrganizationIdSource[],
   ): Promise<void> {
-    await this.repo.addToSegments(
+    const qe = dbStoreQx(this.store)
+
+    await addOrgsToSegments(
+      qe,
       tenantId,
       segmentId,
       orgs.map((org) => org.id),
     )
-    await this.repo.addToMember(memberId, orgs)
+
+    await addOrgsToMember(qe, memberId, orgs)
   }
 
   public async processOrganizationEnrich(
@@ -224,7 +192,7 @@ export class OrganizationService extends LoggerBase {
       const primaryIdentity = verifiedIdentities[0]
 
       await this.store.transactionally(async (txStore) => {
-        const txRepo = new OrganizationRepository(txStore, this.log)
+        const qe = dbStoreQx(txStore)
         const txIntegrationRepo = new IntegrationRepository(txStore, this.log)
 
         const txService = new OrganizationService(txStore, this.log)
@@ -234,13 +202,13 @@ export class OrganizationService extends LoggerBase {
 
         // first try finding the organization using the remote sourceId
         let dbOrganization = primaryIdentity.sourceId
-          ? await txRepo.findBySourceId(tenantId, segmentId, platform, primaryIdentity.sourceId)
+          ? await findOrgBySourceId(qe, tenantId, segmentId, platform, primaryIdentity.sourceId)
           : null
 
         if (!dbOrganization) {
           // try finding the organization using verified identities
           for (const i of verifiedIdentities) {
-            dbOrganization = await txRepo.findByVerifiedIdentity(tenantId, i)
+            dbOrganization = await findOrgByVerifiedIdentity(qe, tenantId, i)
             if (dbOrganization) {
               break
             }
@@ -253,7 +221,8 @@ export class OrganizationService extends LoggerBase {
           // set a record in organizationsSyncRemote to save the sourceId
           // we can't use organization.attributes because of segments
           if (primaryIdentity.sourceId) {
-            await txRepo.addToSyncRemote(
+            await addOrgToSyncRemote(
+              qe,
               dbOrganization.id,
               dbIntegration.id,
               primaryIdentity.sourceId,
@@ -261,7 +230,7 @@ export class OrganizationService extends LoggerBase {
           }
 
           // check if sent primary identity already exists in the org
-          const existingIdentities = await txRepo.getIdentities(dbOrganization.id, tenantId)
+          const existingIdentities = await getOrgIdentities(qe, dbOrganization.id, tenantId)
 
           // merge existing and incoming identities
           for (const i of existingIdentities) {

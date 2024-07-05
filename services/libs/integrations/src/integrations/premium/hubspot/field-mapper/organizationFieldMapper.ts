@@ -2,7 +2,6 @@
 
 import {
   IOrganization,
-  OrganizationAttributeName,
   OrganizationIdentityType,
   OrganizationSource,
   PlatformType,
@@ -236,7 +235,7 @@ export class HubspotOrganizationFieldMapper extends HubspotFieldMapper {
 
     // TODO uros check if this is verified or not with anil
     const organization: IOrganization = {
-      names: [organizationProperties.name],
+      // names: [organizationProperties.name], // TODO migrate to attributes
       identities: [
         {
           value: `${this.hubspotId}:${hubspotOrganization.id}`,
@@ -246,17 +245,17 @@ export class HubspotOrganizationFieldMapper extends HubspotFieldMapper {
           verified: true,
         },
       ],
-      attributes: {
-        [OrganizationAttributeName.SOURCE_ID]: {
-          [PlatformType.HUBSPOT]: hubspotOrganization.id,
-        },
-        [OrganizationAttributeName.URL]: {
-          [PlatformType.HUBSPOT]: `https://app.hubspot.com/contacts/${this.hubspotId}/company/${hubspotOrganization.id}`,
-        },
-        [OrganizationAttributeName.DOMAIN]: {
-          [PlatformType.HUBSPOT]: organizationProperties.domain,
-        },
-      },
+      // attributes: {
+      //   [OrganizationAttributeName.SOURCE_ID]: {
+      //     [PlatformType.HUBSPOT]: hubspotOrganization.id,
+      //   },
+      //   [OrganizationAttributeName.URL]: {
+      //     [PlatformType.HUBSPOT]: `https://app.hubspot.com/contacts/${this.hubspotId}/company/${hubspotOrganization.id}`,
+      //   },
+      //   [OrganizationAttributeName.DOMAIN]: {
+      //     [PlatformType.HUBSPOT]: organizationProperties.domain,
+      //   },
+      // },
       source: OrganizationSource.HUBSPOT,
     }
 
