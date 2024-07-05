@@ -69,6 +69,6 @@ export interface Contributor {
   segments: {
     id: string;
     name: string;
-    activitycount: string;
+    activityCount: string;
   }[]
 }

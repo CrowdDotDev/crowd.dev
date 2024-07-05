@@ -16,8 +16,8 @@
           </p>
         </div>
         <div class="flex items-center">
-          <p v-if="project.activitycount" class="mr-1 text-gray-500 text-small">
-            {{ pluralize('activity', +project.activitycount, true) }} <span class="px-1">•</span>
+          <p v-if="project.activityCount" class="mr-1 text-gray-500 text-small">
+            {{ pluralize('activity', +project.activityCount, true) }} <span class="px-1">•</span>
           </p>
           <lf-button type="primary-link" size="small" @click="viewActivity(project.id)">
             View activity
