@@ -1,7 +1,7 @@
 import {
   ILLMConsumableOrganization,
   IOrganizationBaseForMergeSuggestions,
-  IOrganizationForMergeSuggestionsOpensearch,
+  IOrganizationOpensearch,
   IOrganizationFullAggregatesOpensearch,
   IOrganizationMergeSuggestion,
   OpenSearchIndex,
@@ -10,7 +10,7 @@ import {
 } from '@crowd/types'
 import { svc } from '../main'
 
-import { ISimilarOrganizationOpensearch, ISimilarityFilter } from '../types'
+import { ISimilarityFilter, ISimilarOrganizationOpensearchResult } from '../types'
 import OrganizationMergeSuggestionsRepository from '@crowd/data-access-layer/src/old/apps/merge_suggestions_worker/organizationMergeSuggestions.repo'
 import { hasLfxMembership } from '@crowd/data-access-layer/src/lfx_memberships'
 import { prefixLength } from '../utils'
@@ -85,7 +85,7 @@ export async function getOrganizationMergeSuggestions(
   svc.log.debug(`Getting merge suggestions for ${organization.id}!`)
 
   function opensearchToFullOrg(
-    organization: IOrganizationForMergeSuggestionsOpensearch,
+    organization: IOrganizationOpensearch,
   ): IOrganizationFullAggregatesOpensearch {
     return {
       id: organization.uuid_organizationId,
@@ -265,7 +265,7 @@ export async function getOrganizationMergeSuggestions(
     organizationId: fullOrg.id,
   })
 
-  let organizationsToMerge: ISimilarOrganizationOpensearch[]
+  let organizationsToMerge: ISimilarOrganizationOpensearchResult[]
 
   try {
     organizationsToMerge =
