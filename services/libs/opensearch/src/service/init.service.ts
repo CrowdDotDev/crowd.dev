@@ -5,7 +5,6 @@ import {
   OrganizationIdentityType,
 } from '@crowd/types'
 import { IDbActivitySyncData } from '../repo/activity.data'
-import { IDbMemberSyncData } from '../repo/member.data'
 import { OpenSearchIndex } from '../types'
 import { ActivitySyncService } from './activity.sync.service'
 import { MemberSyncService } from './member.sync.service'
