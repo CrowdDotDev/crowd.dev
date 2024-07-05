@@ -35,6 +35,7 @@ async function updateOrgWebsite(
   website: string,
   platform: string,
   type: string,
+  verified: boolean,
 ) {
   await db.none(
     `
@@ -42,9 +43,10 @@ async function updateOrgWebsite(
         SET value = $(website)
         WHERE "organizationId" = $(orgId)
         AND platform = $(platform)
-        AND type = $(type);
+        AND type = $(type)
+        AND verified = $(verified);
     `,
-    { orgId, website, platform, type },
+    { orgId, website, platform, type, verified },
   )
 }
 
@@ -54,6 +56,7 @@ async function findOrgByIdentityAndPlatform(
   platform: string,
   type: string,
   organizationId: string,
+  verified: boolean,
 ) {
   const result = await db.any(
     `
@@ -62,9 +65,10 @@ async function findOrgByIdentityAndPlatform(
         WHERE value = $(value)
         AND "organizationId" = $(organizationId)
         AND platform = $(platform)
-        AND type = $(type);
+        AND type = $(type)
+        AND verified = $(verified);
       `,
-    { value, organizationId, platform, type },
+    { value, organizationId, platform, type, verified },
   )
 
   return result
@@ -96,6 +100,7 @@ setImmediate(async () => {
         org.platform,
         org.type,
         org.organizationId,
+        org.verified,
       )
 
       if (existingOrg.length > 0) {
@@ -103,7 +108,14 @@ setImmediate(async () => {
         continue
       }
 
-      await updateOrgWebsite(dbClient, org.organizationId, website, org.platform, org.type)
+      await updateOrgWebsite(
+        dbClient,
+        org.organizationId,
+        website,
+        org.platform,
+        org.type,
+        org.verified,
+      )
 
       processedOrgs++
 
