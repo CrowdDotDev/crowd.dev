@@ -13,8 +13,7 @@ async function getOrgsWithWrongWebsite(db: DbConnection, options: { countOnly?: 
     const result = await db.one(`
       SELECT COUNT(*)
       FROM "organizationIdentities"
-      WHERE type = 'WEBSITE'
-      AND value NOT LIKE '%www%';
+      WHERE value LIKE '%www%';
     `)
 
     return result.count
