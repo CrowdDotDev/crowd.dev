@@ -98,7 +98,7 @@ export async function enrichMember(input: IMember): Promise<EnrichingMember> {
   }
 
   try {
-    await syncMembersToOpensearch([input.id])
+    await syncMembersToOpensearch(input.id)
   } catch (err) {
     throw new Error(err)
   }

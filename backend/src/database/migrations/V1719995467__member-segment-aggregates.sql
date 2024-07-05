@@ -7,7 +7,7 @@ CREATE TABLE "memberSegmentsAgg" (
     "lastActive" TIMESTAMP WITH TIME ZONE NOT NULL,
     "activityTypes" TEXT[] NOT NULL,
     "activeOn" TEXT[] NOT NULL,
-    "averageSentiment" INTEGER,
+    "averageSentiment" NUMERIC(5, 2), -- 5 digits in total, 2 of them after the decimal point. To account for 100.00
     UNIQUE ("memberId", "segmentId")
 );
 
@@ -53,13 +53,7 @@ SELECT
     MAX(a.timestamp) AS "lastActive",
     ARRAY_AGG(DISTINCT CONCAT(a.platform, ':', a.type)) FILTER (WHERE a.platform IS NOT NULL) AS "activityTypes",
     ARRAY_AGG(DISTINCT a.platform) FILTER (WHERE a.platform IS NOT NULL) AS "activeOn",
-    ROUND(AVG(
-            CASE
-                WHEN (a.sentiment ->> 'sentiment'::text) IS NOT NULL
-                    THEN (a.sentiment ->> 'sentiment'::text)::double precision
-                ELSE null::double precision
-                END)::numeric, 2) AS "averageSentiment"
-
+    ROUND(AVG((a.sentiment ->> 'sentiment')::NUMERIC(5, 2)), 2) AS "averageSentiment"
 FROM activities a
 JOIN members m ON m."id" = a."memberId"
 JOIN segments_with_children s ON s.subproject = a."segmentId"

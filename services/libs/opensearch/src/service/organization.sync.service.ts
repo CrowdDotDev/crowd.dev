@@ -1,7 +1,4 @@
-import {
-  IOrganizationSegmentAggregates,
-  getOrgAggregates,
-} from '@crowd/data-access-layer/src/activities'
+import { getOrgAggregates } from '@crowd/data-access-layer/src/activities'
 import {
   IDbOrganizationAggregateData,
   cleanupForOganization,
@@ -316,7 +313,7 @@ export class OrganizationSyncService {
       let documentsIndexed = 0
       const organizationIdsToIndex = []
       for (const organizationId of organizationIds) {
-        let orgData: IOrganizationSegmentAggregates[]
+        let orgData: IDbOrganizationAggregateData[]
         try {
           const qx = repoQx(this.orgRepo)
           orgData = await getOrgAggregates(qx, organizationId)
@@ -332,7 +329,7 @@ export class OrganizationSyncService {
               await cleanupForOganization(qx, organizationId)
 
               if (orgData.length > 0) {
-                await insertOrganizationSegments(qx, orgData as IDbOrganizationAggregateData[])
+                await insertOrganizationSegments(qx, orgData)
               }
             },
             undefined,
