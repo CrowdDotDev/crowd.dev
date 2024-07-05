@@ -211,7 +211,9 @@ export type IMemberAttributesOpensearch = {
 
 export interface IMemberOpensearch {
   uuid_memberId: string
+  uuid_tenantId: string
   keyword_displayName: string
+  string_displayName: string
   int_activityCount: number
 
   nested_identities: IMemberIdentityOpensearch[]

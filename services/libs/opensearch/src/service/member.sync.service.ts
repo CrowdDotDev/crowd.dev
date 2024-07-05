@@ -1,16 +1,16 @@
-import { distinct, trimUtf8ToMaxByteLength } from '@crowd/common'
+import { trimUtf8ToMaxByteLength } from '@crowd/common'
 import { DbStore } from '@crowd/database'
 import { Logger, getChildLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
 import {
   IMemberAttribute,
   IMemberBaseForMergeSuggestions,
+  IMemberOpensearch,
   IMemberWithAggregatesForMergeSuggestions,
   MemberAttributeType,
 } from '@crowd/types'
 import { IndexedEntityType } from '../repo/indexing.data'
 import { IndexingRepository } from '../repo/indexing.repo'
-import { IDbMemberSyncData } from '../repo/member.data'
 import { MemberRepository } from '../repo/member.repo'
 import { SegmentRepository } from '../repo/segment.repo'
 import { OpenSearchIndex } from '../types'
@@ -382,8 +382,8 @@ export class MemberSyncService {
   public static prefixData(
     data: IMemberWithAggregatesForMergeSuggestions,
     attributes: IMemberAttribute[],
-  ): any {
-    const p: Record<string, unknown> = {}
+  ): IMemberOpensearch {
+    let p: IMemberOpensearch
 
     p.uuid_memberId = data.id
     p.uuid_tenantId = data.tenantId
