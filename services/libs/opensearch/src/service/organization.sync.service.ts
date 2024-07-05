@@ -14,7 +14,7 @@ import { DbStore } from '@crowd/database'
 import { Logger, getChildLogger, logExecutionTime } from '@crowd/logging'
 import {
   IOrganizationBaseForMergeSuggestions,
-  IOrganizationForMergeSuggestionsOpensearch,
+  IOrganizationOpensearch,
   IOrganizationFullAggregatesOpensearch,
   OpenSearchIndex,
   OrganizationIdentityType,
@@ -376,7 +376,7 @@ export class OrganizationSyncService {
 
   public static async prefixData(
     data: IOrganizationFullAggregatesOpensearch,
-  ): Promise<IOrganizationForMergeSuggestionsOpensearch> {
+  ): Promise<IOrganizationOpensearch> {
     return {
       uuid_organizationId: data.id,
       uuid_tenantId: data.tenantId,

@@ -1,6 +1,7 @@
 import {
+  IMemberOpensearch,
   IOrganizationBaseForMergeSuggestions,
-  IOrganizationForMergeSuggestionsOpensearch,
+  IOrganizationOpensearch,
 } from '@crowd/types'
 import { MemberAttributeOpensearch } from './enums'
 
@@ -62,80 +63,6 @@ export interface IMemberQueryBody {
     field: string
   }
   _source: string[]
-}
-
-export interface IMemberIdentityOpensearch {
-  keyword_type: string
-  string_platform: string
-  keyword_value: string
-  string_value: string
-  bool_verified: boolean
-}
-
-export interface IMemberOrganizationOpensearch {
-  uuid_id: string
-  string_logo: string
-  string_displayName: string
-  obj_memberOrganizations: {
-    string_title: string
-    date_dateStart: string
-    date_dateEnd: string
-    string_source: string
-  }
-}
-
-export type IMemberAttributesOpensearch = {
-  [key in MemberAttributeOpensearch]?: {
-    string_default?: string
-    string_arr_default?: string[]
-  }
-}
-
-export interface IMemberPartialAggregatesOpensearch {
-  uuid_memberId: string
-  uuid_arr_noMergeIds: string[]
-  keyword_displayName: string
-  int_activityCount: number
-
-  string_arr_verifiedEmails: string[]
-  string_arr_unverifiedEmails: string[]
-  string_arr_verifiedUsernames: string[]
-  string_arr_unverifiedUsernames: string[]
-  nested_identities: IMemberIdentityOpensearch[]
-  nested_organizations: IMemberOrganizationOpensearch[]
-  obj_attributes: IMemberAttributesOpensearch
-}
-
-export interface IMemberPartialAggregatesOpensearchRawResult {
-  _source: IMemberPartialAggregatesOpensearch
-}
-
-export interface ISimilarMember {
-  uuid_memberId: string
-  keyword_displayName: string
-  int_activityCount: number
-
-  string_arr_verifiedEmails: string[]
-  string_arr_unverifiedEmails: string[]
-  string_arr_verifiedUsernames: string[]
-  string_arr_unverifiedUsernames: string[]
-  nested_identities: IMemberIdentityOpensearch[]
-  nested_organizations: IMemberOrganizationOpensearch[]
-  obj_attributes: IMemberAttributesOpensearch
-}
-
-export interface ISimilarMemberOpensearch {
-  _source: ISimilarMember
-}
-
-// organizations
-
-export interface ISimilarOrganizationOpensearch {
-  _source: IOrganizationForMergeSuggestionsOpensearch
-}
-
-export interface IOrganizationPartialAggregatesOpensearchRawResult {
-  _source: IOrganizationBaseForMergeSuggestions
 }
 
 export interface IOrganizationQueryBody {
@@ -216,4 +143,12 @@ export interface IProcessMergeOrganizationSuggestionsWithLLM {
 export interface IProcessMergeMemberSuggestionsWithLLM {
   similarity: ISimilarityFilter
   tenantId: string
+}
+
+export interface ISimilarMemberOpensearchResult {
+  _source: IMemberOpensearch
+}
+
+export interface ISimilarOrganizationOpensearchResult {
+  _source: IOrganizationOpensearch
 }
