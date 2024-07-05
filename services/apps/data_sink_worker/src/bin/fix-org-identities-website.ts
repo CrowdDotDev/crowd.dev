@@ -55,7 +55,6 @@ async function findOrgByIdentityAndPlatform(
   value: string,
   platform: string,
   type: string,
-  organizationId: string,
   verified: boolean,
 ) {
   const result = await db.any(
@@ -63,12 +62,11 @@ async function findOrgByIdentityAndPlatform(
         SELECT *
         FROM "organizationIdentities"
         WHERE value = $(value)
-        AND "organizationId" = $(organizationId)
         AND platform = $(platform)
         AND type = $(type)
         AND verified = $(verified);
       `,
-    { value, organizationId, platform, type, verified },
+    { value, platform, type, verified },
   )
 
   return result
@@ -99,7 +97,6 @@ setImmediate(async () => {
         website,
         org.platform,
         org.type,
-        org.organizationId,
         org.verified,
       )
 
