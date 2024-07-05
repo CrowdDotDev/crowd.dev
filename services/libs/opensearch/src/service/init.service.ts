@@ -1,4 +1,5 @@
 import {
+  IMemberWithAggregatesForMergeSuggestions,
   IOrganizationFullAggregatesOpensearch,
   MemberIdentityType,
   OrganizationIdentityType,
@@ -63,55 +64,12 @@ export class InitService {
     // it will be created in a nonexisting tenant so no one will see it ever
     // if we don't have anything in the index any search by any field will return an error
 
-    const fakeMember: IDbMemberSyncData = {
+    const fakeMember: IMemberWithAggregatesForMergeSuggestions = {
       id: InitService.FAKE_MEMBER_ID,
       tenantId: InitService.FAKE_TENANT_ID,
-      segmentId: InitService.FAKE_SEGMENT_ID,
-      grandParentSegment: false,
       displayName: 'Test Member',
-      score: 10,
-      lastEnriched: new Date().toISOString(),
-      joinedAt: new Date().toISOString(),
-      createdAt: new Date().toISOString(),
-      reach: {
-        total: 20,
-      },
-      numberOfOpenSourceContributions: 10,
 
-      activeOn: ['devto'],
       activityCount: 10,
-      activityTypes: ['devto:comment'],
-      activeDaysCount: 20,
-      lastActive: new Date().toISOString(),
-      averageSentiment: 20.32,
-
-      contributions: [
-        {
-          id: '112529472',
-          url: 'https://github.com/bachman/pied-piper',
-          topics: ['compression', 'data', 'middle-out', 'Java'],
-          summary: 'Pied Piper: 10 commits in 1 day',
-          numberCommits: 10,
-          lastCommitDate: '2023-03-10',
-          firstCommitDate: '2023-03-01',
-        },
-      ],
-
-      affiliations: [
-        {
-          id: '0dfaa9a0-d95a-4397-958e-4727189e3ef8',
-          segmentId: 'ce36b0b0-1fc4-4637-955d-afb8a6b58e48',
-          segmentSlug: 'test-segment',
-          segmentName: 'Test Segment',
-          segmentParentName: 'Test Parent Segment',
-          organizationId: 'b176d053-c53e-42d2-88d2-6fbc3e34184c',
-          organizationName: 'Test Organization',
-          organizationLogo: 'https://placehold.co/400',
-          dateStart: new Date().toISOString(),
-          dateEnd: new Date().toISOString(),
-        },
-      ],
-
       identities: [
         {
           platform: 'devto',
@@ -141,46 +99,20 @@ export class InitService {
       organizations: [
         {
           id: '0dfaa9a0-d95a-4397-958e-4727189e3ef8',
-          logo: 'https://placehold.co/400',
+          memberId: InitService.FAKE_MEMBER_ID,
+          organizationId: 'b176d053-c53e-42d2-88d2-6fbc3e34184c',
           displayName: 'Test Organization',
-          memberOrganizations: {
-            title: 'blabla',
-            dateStart: new Date().toISOString(),
-            dateEnd: new Date().toISOString(),
-          },
-        },
-      ],
-      tags: [
-        {
-          id: 'bced635d-acf7-4b68-a95d-872729e09d58',
-          name: 'fake tag',
-        },
-      ],
-      toMergeIds: ['3690742c-c5de-4d9a-aef8-1e3eaf57233d'],
-      noMergeIds: ['b176d053-c53e-42d2-88d2-6fbc3e34184c'],
-      notes: [
-        {
-          id: 'b176d053-c53e-42d2-88d2-6fbc3e34184c',
-          body: 'This is a fake note 1',
-        },
-      ],
-      tasks: [
-        {
-          id: 'b176d053-c53e-42d2-88d2-6fbc3e34184c',
-          name: 'Fake Task 1',
-          body: 'This is a fake task 1',
-          status: 'completed',
-          dueDate: new Date().toISOString(),
-          type: 'type1',
+          title: 'blabla',
+          dateStart: new Date().toISOString(),
+          dateEnd: new Date().toISOString(),
         },
       ],
       attributes: {},
-      manuallyCreated: false,
     }
 
     const prepared = MemberSyncService.prefixData(fakeMember, [])
     await this.openSearchService.index(
-      `${InitService.FAKE_MEMBER_ID}-${InitService.FAKE_SEGMENT_ID}`,
+      `${InitService.FAKE_MEMBER_ID}`,
       OpenSearchIndex.MEMBERS,
       prepared,
     )
