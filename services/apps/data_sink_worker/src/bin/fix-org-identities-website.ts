@@ -50,21 +50,21 @@ async function updateOrgWebsite(
 
 async function findOrgByIdentityAndPlatform(
   db: DbConnection,
-  orgId: string,
-  identity: string,
+  value: string,
   platform: string,
   type: string,
+  organizationId: string,
 ) {
   const result = await db.any(
     `
         SELECT *
         FROM "organizationIdentities"
-        WHERE value = $(identity)
-        AND "organizationId" = $(orgId)
+        WHERE value = $(value)
+        AND "organizationId" = $(organizationId)
         AND platform = $(platform)
         AND type = $(type);
       `,
-    { identity, platform, type, orgId },
+    { value, organizationId, platform, type },
   )
 
   return result
