@@ -1,9 +1,4 @@
-import {
-  IMemberOpensearch,
-  IOrganizationBaseForMergeSuggestions,
-  IOrganizationOpensearch,
-} from '@crowd/types'
-import { MemberAttributeOpensearch } from './enums'
+import { IMemberOpensearch, IOrganizationOpensearch } from '@crowd/types'
 
 interface ITermFilter {
   term: {
