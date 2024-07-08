@@ -116,7 +116,7 @@ export default class SegmentService extends LoggerBase {
 
     try {
       // create project
-      const project = await segmentRepository.create({...data, parentId: parent.id})
+      const project = await segmentRepository.create({ ...data, parentId: parent.id })
 
       // create subproject counterpart
       await segmentRepository.create({
@@ -171,7 +171,11 @@ export default class SegmentService extends LoggerBase {
         throw new Error(`Project group ${data.parentSlug} does not exist.`)
       }
 
-      const subproject = await segmentRepository.create({...data, parentId: parent.id, grandparentId: grandparent.id})
+      const subproject = await segmentRepository.create({
+        ...data,
+        parentId: parent.id,
+        grandparentId: grandparent.id,
+      })
 
       // create default report for the tenant
       await ReportRepository.create(
