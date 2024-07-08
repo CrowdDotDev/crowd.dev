@@ -13,17 +13,7 @@ class Auth0ServiceClass {
     this.webAuth = new Auth0Client({
       domain: config.auth0.domain,
       clientId: config.auth0.clientId,
-      authorizationParams: {
-        redirect_uri: authCallback,
-        scope,
-      },
-      useCookiesForTransactions: true,
-      useRefreshTokens: true,
-      useRefreshTokensFallback: true,
-    });
-    console.log('init', {
-      domain: config.auth0.domain,
-      clientId: config.auth0.clientId,
+      scope,
       authorizationParams: {
         redirect_uri: authCallback,
         scope,
@@ -37,12 +27,12 @@ class Auth0ServiceClass {
   loginWithRedirect(params?: any) {
     const loginParams = {
       ...params,
+      scope,
       authorizationParams: {
         ...(params?.authorizationParams || {}),
         scope: params?.authorizationParams?.scope?.replace('offline_access', '').trim() || scope,
       },
     };
-    console.log('login', loginParams);
     return this.webAuth.loginWithRedirect(loginParams);
   }
 
@@ -55,12 +45,8 @@ class Auth0ServiceClass {
   }
 
   getTokenSilently() {
-    console.log('silently', {
-      authorizationParams: {
-        scope,
-      },
-    });
     return this.webAuth.getTokenSilently({
+      scope,
       authorizationParams: {
         scope,
       },
