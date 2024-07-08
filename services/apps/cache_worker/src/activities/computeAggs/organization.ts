@@ -25,9 +25,7 @@ export async function checkOrganizationExists(orgId: string): Promise<boolean> {
 }
 
 export async function syncOrganization(orgId: string): Promise<void> {
-  const service = new OrganizationSyncService(svc.postgres.writer, svc.opensearch, svc.log, {
-    edition: process.env['CROWD_EDITION'],
-  })
+  const service = new OrganizationSyncService(svc.postgres.writer, svc.opensearch, svc.log)
 
   await service.syncOrganizations([orgId])
 }
