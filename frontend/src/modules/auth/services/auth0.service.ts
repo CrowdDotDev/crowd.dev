@@ -13,6 +13,7 @@ class Auth0ServiceClass {
       clientId: config.auth0.clientId,
       authorizationParams: {
         redirect_uri: authCallback,
+        scope: 'openid profile email',
       },
       useCookiesForTransactions: true,
       useRefreshTokens: true,
