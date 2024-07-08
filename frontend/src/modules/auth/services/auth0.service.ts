@@ -14,7 +14,6 @@ class Auth0ServiceClass {
       domain: config.auth0.domain,
       clientId: config.auth0.clientId,
       authorizationParams: {
-        audience: '',
         redirect_uri: authCallback,
         scope,
       },
@@ -25,7 +24,12 @@ class Auth0ServiceClass {
   }
 
   loginWithRedirect(params?: any) {
-    return this.webAuth.loginWithRedirect(params);
+    return this.webAuth.loginWithRedirect({
+      ...params,
+      authorizationParams: {
+        scope,
+      },
+    });
   }
 
   handleAuth() {
@@ -37,7 +41,11 @@ class Auth0ServiceClass {
   }
 
   getTokenSilently() {
-    return this.webAuth.getTokenSilently();
+    return this.webAuth.getTokenSilently({
+      authorizationParams: {
+        scope,
+      },
+    });
   }
 
   authData() {
@@ -57,7 +65,11 @@ class Auth0ServiceClass {
   }
 
   public checkSession() {
-    return this.webAuth.checkSession();
+    return this.webAuth.checkSession({
+      authorizationParams: {
+        scope,
+      },
+    });
   }
 
   public getUser() {
