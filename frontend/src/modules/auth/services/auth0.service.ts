@@ -21,16 +21,29 @@ class Auth0ServiceClass {
       useRefreshTokens: true,
       useRefreshTokensFallback: true,
     });
+    console.log('init', {
+      domain: config.auth0.domain,
+      clientId: config.auth0.clientId,
+      authorizationParams: {
+        redirect_uri: authCallback,
+        scope,
+      },
+      useCookiesForTransactions: true,
+      useRefreshTokens: true,
+      useRefreshTokensFallback: true,
+    });
   }
 
   loginWithRedirect(params?: any) {
-    return this.webAuth.loginWithRedirect({
+    const loginParams = {
       ...params,
       authorizationParams: {
         ...(params?.authorizationParams || {}),
-        scope,
+        scope: params?.authorizationParams?.scope?.replace('offline_access', '').trim() || scope,
       },
-    });
+    };
+    console.log('login', loginParams);
+    return this.webAuth.loginWithRedirect(loginParams);
   }
 
   handleAuth() {
@@ -42,6 +55,11 @@ class Auth0ServiceClass {
   }
 
   getTokenSilently() {
+    console.log('silently', {
+      authorizationParams: {
+        scope,
+      },
+    });
     return this.webAuth.getTokenSilently({
       authorizationParams: {
         scope,
