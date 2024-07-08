@@ -10,6 +10,7 @@ export interface IOrganizationSegmentAggregates {
   activeOn: string[]
   activityCount: number
   memberCount: number
+  avgContributorEngagement: number
 }
 
 export async function getOrgAggregates(
