@@ -4,7 +4,7 @@ import { Auth0Client } from '@auth0/auth0-spa-js';
 const baseUrl = `${config.frontendUrl.protocol}://${config.frontendUrl.host}`;
 const authCallback = `${baseUrl}/auth/callback`;
 
-const scope = 'access:api profile email';
+const scope: string = 'profile email';
 
 class Auth0ServiceClass {
   private readonly webAuth: Auth0Client;
@@ -41,11 +41,7 @@ class Auth0ServiceClass {
   }
 
   getTokenSilently() {
-    return this.webAuth.getTokenSilently({
-      authorizationParams: {
-        scope,
-      },
-    });
+    return this.webAuth.getTokenSilently();
   }
 
   authData() {
@@ -62,14 +58,6 @@ class Auth0ServiceClass {
 
   public logout() {
     return this.webAuth.logout();
-  }
-
-  public checkSession() {
-    return this.webAuth.checkSession({
-      authorizationParams: {
-        scope,
-      },
-    });
   }
 
   public getUser() {
