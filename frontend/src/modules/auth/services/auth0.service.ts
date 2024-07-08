@@ -4,6 +4,8 @@ import { Auth0Client } from '@auth0/auth0-spa-js';
 const baseUrl = `${config.frontendUrl.protocol}://${config.frontendUrl.host}`;
 const authCallback = `${baseUrl}/auth/callback`;
 
+const scope = 'openid profile email';
+
 class Auth0ServiceClass {
   private readonly webAuth: Auth0Client;
 
@@ -11,8 +13,10 @@ class Auth0ServiceClass {
     this.webAuth = new Auth0Client({
       domain: config.auth0.domain,
       clientId: config.auth0.clientId,
+      scope,
       authorizationParams: {
         redirect_uri: authCallback,
+        scope,
       },
       useCookiesForTransactions: true,
       useRefreshTokens: true,
@@ -21,7 +25,15 @@ class Auth0ServiceClass {
   }
 
   loginWithRedirect(params?: any) {
-    return this.webAuth.loginWithRedirect(params);
+    const loginParams = {
+      ...params,
+      scope,
+      authorizationParams: {
+        ...(params?.authorizationParams || {}),
+        scope: params?.authorizationParams?.scope?.replace('offline_access', '').trim() || scope,
+      },
+    };
+    return this.webAuth.loginWithRedirect(loginParams);
   }
 
   handleAuth() {
@@ -33,7 +45,12 @@ class Auth0ServiceClass {
   }
 
   getTokenSilently() {
-    return this.webAuth.getTokenSilently();
+    return this.webAuth.getTokenSilently({
+      scope,
+      authorizationParams: {
+        scope,
+      },
+    });
   }
 
   authData() {
