@@ -189,6 +189,9 @@ const verifyIdentity = (verified: boolean) => {
   updateContributor(props.contributor.id, {
     identities,
   })
+    .catch(() => {
+      Message.error('Something went wrong while updating an identity');
+    })
     .then(() => {
       Message.success('Identity updated successfully');
     });
@@ -201,6 +204,9 @@ const removeIdentity = () => {
   updateContributor(props.contributor.id, {
     identities,
   })
+    .catch(() => {
+      Message.error('Something went wrong while deleting an identity');
+    })
     .then(() => {
       Message.success('Identity updated successfully');
     });

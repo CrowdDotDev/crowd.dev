@@ -141,6 +141,9 @@ const updateIdentity = () => {
       Message.success('Identity updated successfully');
       isModalOpen.value = false;
     })
+    .catch(() => {
+      Message.error('Something went wrong while editing an identity');
+    })
     .finally(() => {
       sending.value = false;
     });

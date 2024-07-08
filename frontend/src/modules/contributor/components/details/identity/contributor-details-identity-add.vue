@@ -158,6 +158,9 @@ const addIdentities = () => {
       Message.success('Identities successfully added');
       isModalOpen.value = false;
     })
+    .catch(() => {
+      Message.error('Something went wrong while adding a new identity');
+    })
     .finally(() => {
       sending.value = false;
     });
