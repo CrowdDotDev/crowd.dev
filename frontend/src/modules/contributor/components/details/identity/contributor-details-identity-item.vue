@@ -9,7 +9,7 @@
       <lf-tooltip v-else-if="platform(props.identity.platform)" placement="top-start" :content="platform(props.identity.platform).name">
         <img
           :src="platform(props.identity.platform)?.image"
-          class="h-5 w-5"
+          class="h-5 w-5 object-contain"
           :alt="props.identity.value"
         />
       </lf-tooltip>

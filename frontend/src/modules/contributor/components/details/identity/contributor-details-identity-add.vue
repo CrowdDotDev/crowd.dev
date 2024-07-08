@@ -74,7 +74,8 @@
         </lf-button>
         <lf-button
           type="primary"
-          :disabled="$v.$invalid"
+          :loading="sending"
+          :disabled="$v.$invalid || sending"
           @click="addIdentities()"
         >
           Add {{ pluralize('identity', form.length) }}
@@ -86,7 +87,7 @@
 
 <script setup lang="ts">
 import LfModal from '@/ui-kit/modal/Modal.vue';
-import { computed, reactive } from 'vue';
+import { computed, reactive, ref } from 'vue';
 import { Contributor, ContributorIdentity } from '@/modules/contributor/types/Contributor';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
@@ -110,6 +111,8 @@ const props = defineProps<{
 const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void}>();
 
 const { updateContributor } = useContributorStore();
+
+const sending = ref<boolean>(false);
 
 const defaultForm: ContributorIdentity = {
   value: '',
@@ -144,6 +147,7 @@ const isModalOpen = computed<boolean>({
 const platform = (platform: string) => CrowdIntegrations.getConfig(platform);
 
 const addIdentities = () => {
+  sending.value = true;
   updateContributor(props.contributor.id, {
     identities: [
       ...props.contributor.identities,
@@ -153,6 +157,9 @@ const addIdentities = () => {
     .then(() => {
       Message.success('Identities successfully added');
       isModalOpen.value = false;
+    })
+    .finally(() => {
+      sending.value = false;
     });
 };
 </script>
