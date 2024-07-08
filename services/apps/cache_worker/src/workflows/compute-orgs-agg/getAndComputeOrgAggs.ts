@@ -20,6 +20,10 @@ dailyGetAndComputeOrgAggs is a Temporal workflow that:
 */
 export async function dailyGetAndComputeOrgAggs(): Promise<void> {
   const organizationIds = await activity.getOrgIdsFromRedis()
+
+  // If no orgIds found, return early
+  if (!organizationIds) return
+
   const info = workflowInfo()
   const BATCH_SIZE = 10
 
