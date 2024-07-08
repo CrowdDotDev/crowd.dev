@@ -9,7 +9,6 @@ ALTER TABLE "segments" ADD COLUMN "type" TEXT GENERATED ALWAYS AS (
     ) STORED;
 
 
-BEGIN;
 DO
 $$
     DECLARE
