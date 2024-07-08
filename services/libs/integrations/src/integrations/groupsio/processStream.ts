@@ -152,7 +152,7 @@ const processGroupStream: ProcessStreamHandler = async (ctx) => {
   const totalCount = response.total_count
   const thisPageCount = 10 // the default page size for groupsio is 10
   const pageNumber = data.groupsioPageNumber
-  const isLastPage = (pageNumber * thisPageCount) >= totalCount ? true : false
+  const isLastPage = pageNumber * thisPageCount >= totalCount ? true : false
 
   const onboarding = ctx.onboarding
   let lastGroupSyncTS = await getGroupLastSyncFromCache(ctx, data.group)
@@ -199,8 +199,8 @@ const processGroupStream: ProcessStreamHandler = async (ctx) => {
 
   // processing next page stream
   if (onboarding || (!onboarding && !reachedLastSync)) {
-    if (!isLastPage){
-    // if (response?.next_page_token) {
+    if (!isLastPage) {
+      // if (response?.next_page_token) {
       await ctx.publishStream<GroupsioGroupStreamMetadata>(
         `${GroupsioStreamType.GROUP}:${data.group}-${response.next_page_token}`,
         {

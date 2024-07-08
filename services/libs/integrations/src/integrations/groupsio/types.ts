@@ -44,7 +44,7 @@ export interface GroupsioMemberLeftData {
 export interface GroupsioGroupStreamMetadata {
   group: GroupName
   page: string | null
-  groupsioPageNumber: number 
+  groupsioPageNumber: number
 }
 
 export interface GroupsioGroupMembersStreamMetadata {
