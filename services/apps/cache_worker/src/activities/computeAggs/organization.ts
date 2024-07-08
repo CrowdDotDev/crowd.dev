@@ -3,11 +3,11 @@ import { OrganizationRepository } from '@crowd/data-access-layer/src/old/apps/se
 import { OrganizationSyncService } from '@crowd/opensearch'
 
 export async function getOrgIdsFromRedis(): Promise<string[]> {
-  return await svc.redis.sMembers('computeOrgAggs')
+  return await svc.redis.sMembers('organizationIdsForAggComputation')
 }
 
 export async function dropOrgIdFromRedis(orgId: string): Promise<void> {
-  await svc.redis.sRem('computeOrgAggs', orgId)
+  await svc.redis.sRem('organizationIdsForAggComputation', orgId)
 }
 
 export async function checkOrganizationExists(orgId: string): Promise<boolean> {

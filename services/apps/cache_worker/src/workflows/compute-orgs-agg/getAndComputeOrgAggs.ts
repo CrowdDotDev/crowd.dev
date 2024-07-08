@@ -14,32 +14,31 @@ const activity = proxyActivities<typeof activities>({ startToCloseTimeout: '1 mi
 /*
 dailyGetAndComputeOrgAggs is a Temporal workflow that:
   - [Activity]: Get organization IDs from Redis.
-  - [Child Workflow]: Re-compute and update aggregates for each organization.
-    previous activity. Child workflows are completely "detached" from the parent
-    workflow, meaning they will continue to run and not be cancelled even if this
-    one is.
+  - [Child Workflow]: Re-compute and update aggregates for each organization 
+    in batches of 10. Child workflows run independently and won't be 
+    cancelled if the parent workflow stops.
 */
 export async function dailyGetAndComputeOrgAggs(): Promise<void> {
   const organizationIds = await activity.getOrgIdsFromRedis()
   const info = workflowInfo()
+  const BATCH_SIZE = 10
 
-  await Promise.all(
-    organizationIds.map((organizationId) => {
-      return startChild(computeOrgAggsAndUpdate, {
-        workflowId: `${info.workflowId}/${organizationId}`,
-        cancellationType: ChildWorkflowCancellationType.ABANDON,
-        parentClosePolicy: ParentClosePolicy.PARENT_CLOSE_POLICY_ABANDON,
-        retry: {
-          backoffCoefficient: 2,
-          initialInterval: 2 * 1000,
-          maximumInterval: 30 * 1000,
-        },
-        args: [
-          {
-            organizationId,
+  for (let i = 0; i < organizationIds.length; i += BATCH_SIZE) {
+    const batch = organizationIds.slice(i, i + BATCH_SIZE)
+    await Promise.all(
+      batch.map((organizationId) => {
+        return startChild(computeOrgAggsAndUpdate, {
+          workflowId: `${info.workflowId}/${organizationId}`,
+          cancellationType: ChildWorkflowCancellationType.ABANDON,
+          parentClosePolicy: ParentClosePolicy.PARENT_CLOSE_POLICY_ABANDON,
+          retry: {
+            backoffCoefficient: 2,
+            initialInterval: 2 * 1000,
+            maximumInterval: 30 * 1000,
           },
-        ],
-      })
-    }),
-  )
+          args: [{ organizationId }],
+        })
+      }),
+    )
+  }
 }

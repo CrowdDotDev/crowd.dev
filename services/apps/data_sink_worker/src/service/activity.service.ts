@@ -953,8 +953,7 @@ export default class ActivityService extends LoggerBase {
         await this.searchSyncWorkerEmitter.triggerActivitySync(tenantId, activityId, onboarding)
       }
       if (organizationId) {
-        this.log.info({ organizationId }, 'Caching organization for aggregate recomputation!')
-        await this.redisClient.sAdd('computeOrgAggs', organizationId)
+        await this.redisClient.sAdd('organizationIdsForAggComputation', organizationId)
       }
     } catch (err) {
       this.log.error(err, 'Error while processing an activity!')
