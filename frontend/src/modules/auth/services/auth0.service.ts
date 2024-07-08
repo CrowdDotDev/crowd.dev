@@ -24,11 +24,13 @@ class Auth0ServiceClass {
   }
 
   loginWithRedirect(params?: any) {
-    const loginParams = {
+    return this.webAuth.loginWithRedirect({
       ...params,
-      scope,
-    };
-    return this.webAuth.loginWithRedirect(loginParams);
+      authorizationParams: {
+        ...(params?.authorizationParams || {}),
+        scope,
+      },
+    });
   }
 
   handleAuth() {
