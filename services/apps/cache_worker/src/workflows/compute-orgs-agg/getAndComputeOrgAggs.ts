@@ -1,9 +1,9 @@
 import {
   proxyActivities,
-  startChild,
   ParentClosePolicy,
   ChildWorkflowCancellationType,
   workflowInfo,
+  executeChild,
 } from '@temporalio/workflow'
 
 import * as activities from '../../activities/computeAggs/organization'
@@ -27,7 +27,7 @@ export async function dailyGetAndComputeOrgAggs(): Promise<void> {
     const batch = organizationIds.slice(i, i + BATCH_SIZE)
     await Promise.all(
       batch.map((organizationId) => {
-        return startChild(computeOrgAggsAndUpdate, {
+        return executeChild(computeOrgAggsAndUpdate, {
           workflowId: `${info.workflowId}/${organizationId}`,
           cancellationType: ChildWorkflowCancellationType.ABANDON,
           parentClosePolicy: ParentClosePolicy.PARENT_CLOSE_POLICY_ABANDON,
