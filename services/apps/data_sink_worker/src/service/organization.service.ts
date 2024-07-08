@@ -11,6 +11,7 @@ import {
   findOrgByVerifiedIdentity,
   getOrgIdentities,
   insertOrganization,
+  markOrgAttributeDefault,
   prepareOrganizationData,
   updateOrganization,
   upsertOrgAttributes,
@@ -84,6 +85,11 @@ export class OrganizationService extends LoggerBase {
           }
           await upsertOrgIdentities(qe, existing.id, tenantId, data.identities, integrationId)
           await upsertOrgAttributes(qe, existing.id, processed.attributes)
+          for (const attr of processed.attributes) {
+            if (attr.default) {
+              await markOrgAttributeDefault(qe, existing.id, attr)
+            }
+          }
 
           id = existing.id
         } else {
@@ -112,6 +118,11 @@ export class OrganizationService extends LoggerBase {
           id = await insertOrganization(qe, tenantId, processed.organization)
 
           await upsertOrgAttributes(qe, id, processed.attributes)
+          for (const attr of processed.attributes) {
+            if (attr.default) {
+              await markOrgAttributeDefault(qe, existing.id, attr)
+            }
+          }
 
           // create identities
           for (const i of data.identities) {

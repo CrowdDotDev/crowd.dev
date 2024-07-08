@@ -24,7 +24,7 @@ export function prepareOrganizationData(
   source: string,
   existingOrg?: IDbOrganization,
   existingAttributes?: IDbOrgAttribute[],
-) {
+): IPrepareOrgResult {
   // validate source
   if (!ORG_DB_ATTRIBUTE_SOURCE_PRIORITY.includes(source as OrganizationAttributeSource)) {
     throw new Error(
@@ -103,7 +103,7 @@ export function prepareOrganizationData(
     }
 
     const existing = (existingAttributes || []).filter(
-      (a) => a.type === attDef.type && a.name === attDef.name && a.source !== attributeSource,
+      (a) => a.name === attDef.name && a.source !== attributeSource,
     )
 
     if (existing.length > 0) {
