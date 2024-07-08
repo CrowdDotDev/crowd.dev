@@ -14,77 +14,12 @@
           </div>
         </template>
       </el-form-item>
-      <el-form-item>
-        <template #label>
-          <div class="flex items-center gap-2">
-            {{ fields.headline.label }}
-            <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
-              <lf-svg name="source" class="h-3 w-3" />
-            </el-tooltip>
-          </div>
-        </template>
-        <el-input
-          v-model="model[fields.headline.name]"
-          disabled
-          type="textarea"
-        />
-      </el-form-item>
-      <el-form-item :label="fields.description.label">
-        <el-input
-          v-model="model[fields.description.name]"
-          type="textarea"
-        />
-      </el-form-item>
-      <el-form-item
-        :label="fields.location.label"
-        class="w-1/2"
-      >
-        <el-input v-model="model[fields.location.name]" />
-      </el-form-item>
-      <el-form-item class="w-1/2">
-        <template #label>
-          <div class="flex gap-2 items-center">
-            {{ fields.employees.label }}
-            <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
-              <lf-svg name="source" class="h-3 w-3" />
-            </el-tooltip>
-          </div>
-        </template>
-        <el-input
-          v-model="model[fields.employees.name]"
-          type="number"
-          disabled
-        />
-      </el-form-item>
-      <el-form-item class="w-1/2">
-        <template #label>
-          <div class="flex gap-2 items-center">
-            {{ fields.revenueRange.label }}
-            <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
-              <lf-svg name="source" class="h-3 w-3" />
-            </el-tooltip>
-          </div>
-        </template>
-        <el-select
-          v-model="model[fields.revenueRange.name]"
-          value-key="max"
-          disabled
-          placeholder=" "
-        >
-          <el-option
-            :value="model[fields.revenueRange.name]"
-            :label="revenueRange.formatValue(model[fields.revenueRange.name])"
-          />
-        </el-select>
-      </el-form-item>
     </div>
   </div>
 </template>
 
 <script setup>
 import { defineEmits, defineProps, computed } from 'vue';
-import LfSvg from '@/shared/svg/svg.vue';
-import revenueRange from '@/modules/organization/config/enrichment/revenueRange';
 
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps({

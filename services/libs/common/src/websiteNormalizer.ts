@@ -16,8 +16,8 @@ const isValid = (parsed: ParsedResult) => {
 }
 
 export const websiteNormalizer = (website: string, throwError = true): string | undefined => {
-  // remove http:// or https:// and trailing slash
-  const cleanURL = website.replace(/^(?:https?:\/\/)?([^/]+)(?:\/.*)?$/, '$1')
+  // remove http://, https://, www, and trailing slash
+  const cleanURL = website.replace(/^(?:https?:\/\/)?(?:www\.)?([^/]+)(?:\/.*)?$/, '$1')
   const parsed = parse(cleanURL)
 
   if (!isValid(parsed)) {

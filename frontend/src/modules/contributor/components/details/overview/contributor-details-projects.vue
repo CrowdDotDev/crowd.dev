@@ -16,6 +16,9 @@
           </p>
         </div>
         <div class="flex items-center">
+          <p v-if="project.activityCount" class="mr-1 text-gray-500 text-small">
+            {{ pluralize('activity', +project.activityCount, true) }} <span class="px-1">•</span>
+          </p>
           <lf-button type="primary-link" size="small" @click="viewActivity(project.id)">
             View activity
           </lf-button>
@@ -37,6 +40,7 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { Contributor } from '@/modules/contributor/types/Contributor';
 import { computed, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import pluralize from 'pluralize';
 
 const props = defineProps<{
   contributor: Contributor,

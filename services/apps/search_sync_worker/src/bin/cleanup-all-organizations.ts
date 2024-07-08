@@ -1,7 +1,7 @@
-import { OpenSearchService, OrganizationSyncService, InitService } from '@crowd/opensearch'
-import { DB_CONFIG, OPENSEARCH_CONFIG, SERVICE_CONFIG } from '../conf'
 import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { getServiceLogger } from '@crowd/logging'
+import { InitService, OpenSearchService, OrganizationSyncService } from '@crowd/opensearch'
+import { DB_CONFIG, OPENSEARCH_CONFIG } from '../conf'
 
 const log = getServiceLogger()
 
@@ -11,7 +11,7 @@ setImmediate(async () => {
   const dbConnection = await getDbConnection(DB_CONFIG())
   const store = new DbStore(log, dbConnection)
 
-  const service = new OrganizationSyncService(store, openSearchService, log, SERVICE_CONFIG())
+  const service = new OrganizationSyncService(store, openSearchService, log)
 
   const pageSize = 100
   let results = await service.getAllIndexedTenantIds(pageSize)

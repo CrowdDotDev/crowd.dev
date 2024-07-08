@@ -1,11 +1,11 @@
-import { OrganizationSyncService, OpenSearchService } from '@crowd/opensearch'
-import { OPENSEARCH_CONFIG, SERVICE_CONFIG } from '../conf'
-import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
-import { getServiceLogger } from '@crowd/logging'
-import { OrganizationRepository } from '@crowd/data-access-layer/src/old/apps/search_sync_worker/organization.repo'
 import { timeout } from '@crowd/common'
-import { IndexingRepository } from '@crowd/opensearch/src/repo/indexing.repo'
+import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
+import { OrganizationRepository } from '@crowd/data-access-layer/src/old/apps/search_sync_worker/organization.repo'
+import { getServiceLogger } from '@crowd/logging'
+import { OpenSearchService, OrganizationSyncService } from '@crowd/opensearch'
 import { IndexedEntityType } from '@crowd/opensearch/src/repo/indexing.data'
+import { IndexingRepository } from '@crowd/opensearch/src/repo/indexing.repo'
+import { OPENSEARCH_CONFIG } from '../conf'
 
 const log = getServiceLogger()
 
@@ -44,13 +44,7 @@ setImmediate(async () => {
 
   const tenantIds = await repo.getTenantIds()
 
-  const service = new OrganizationSyncService(
-    writeStore,
-    openSearchService,
-    log,
-    SERVICE_CONFIG(),
-    // readStore,
-  )
+  const service = new OrganizationSyncService(writeStore, openSearchService, log, readStore)
 
   let current = 0
   for (let i = 0; i < tenantIds.length; i++) {
