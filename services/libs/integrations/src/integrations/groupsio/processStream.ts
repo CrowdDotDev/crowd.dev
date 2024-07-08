@@ -149,6 +149,11 @@ const processGroupStream: ProcessStreamHandler = async (ctx) => {
     data.page,
   )) as ListTopics
 
+  const totalCount = response.total_count
+  const thisPageCount = 10 // the default page size for groupsio is 10
+  const pageNumber = data.groupsioPageNumber
+  const isLastPage = (pageNumber * thisPageCount) >= totalCount ? true : false
+
   const onboarding = ctx.onboarding
   let lastGroupSyncTS = await getGroupLastSyncFromCache(ctx, data.group)
   if (lastGroupSyncTS === undefined) {
@@ -159,7 +164,7 @@ const processGroupStream: ProcessStreamHandler = async (ctx) => {
 
   if (response.data !== null) {
     // get the updated date for the latest item in the response
-    if (response.start_item == 1) {
+    if (pageNumber == 1) {
       const latestLastUpdatedForCache = new Date(response.data[0].updated)
       await cacheLatestGroupLastSync(ctx, data.group, latestLastUpdatedForCache.toISOString())
     }
@@ -179,7 +184,8 @@ const processGroupStream: ProcessStreamHandler = async (ctx) => {
 
       if (
         (topicUpdatedTS.getDate() < lastGroupSyncTS.getDate() && !onboarding) ||
-        !response?.next_page_token
+        isLastPage
+        // !response?.next_page_token
       ) {
         reachedLastSync = true
         const latestLastGroupSyncTS = await getLatestGroupLastSyncFromCache(ctx, data.group)
@@ -193,12 +199,14 @@ const processGroupStream: ProcessStreamHandler = async (ctx) => {
 
   // processing next page stream
   if (onboarding || (!onboarding && !reachedLastSync)) {
-    if (response?.next_page_token) {
+    if (!isLastPage){
+    // if (response?.next_page_token) {
       await ctx.publishStream<GroupsioGroupStreamMetadata>(
         `${GroupsioStreamType.GROUP}:${data.group}-${response.next_page_token}`,
         {
           group: data.group,
           page: response.next_page_token.toString(),
+          groupsioPageNumber: pageNumber + 1,
         },
       )
     }
@@ -364,6 +372,7 @@ const processGroupMembersStream: ProcessStreamHandler = async (ctx) => {
       {
         group: data.group,
         page: null,
+        groupsioPageNumber: 1,
       },
     )
   }
