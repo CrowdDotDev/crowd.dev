@@ -1,6 +1,5 @@
-import { RawQueryParser } from '@crowd/common'
 import { QueryExecutor } from '../queryExecutor'
-import { QueryOptions } from '../utils'
+import { QueryOptions, QueryResult, queryTable, queryTableById } from '../utils'
 
 export enum MemberField {
   // meta
@@ -29,66 +28,17 @@ export enum MemberField {
   MANUALLY_CHANGED_FIELDS = 'manuallyChangedFields',
 }
 
-export async function queryMembers<T extends MemberField[]>(
+export async function queryMembers<T extends MemberField>(
   qx: QueryExecutor,
-  { filter, fields, limit, offset }: QueryOptions<T> = {},
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-): Promise<{ [K in T[number]]: any }[]> {
-  const params = {
-    limit: limit || 10,
-    offset: offset || 0,
-  }
-  if (!fields) {
-    fields = Object.values(MemberField) as T
-  }
-  if (!filter) {
-    filter = {}
-  }
-
-  const where = RawQueryParser.parseFilters(
-    filter,
-    new Map<string, string>(Object.values(MemberField).map((field) => [field, field])),
-    [],
-    params,
-    { pgPromiseFormat: true },
-  )
-
-  return qx.select(
-    `
-      SELECT
-        ${fields.map((f) => `"${f}"`).join(',\n')}
-      FROM members
-      WHERE ${where}
-      LIMIT $(limit)
-      OFFSET $(offset)
-    `,
-    params,
-  )
+  opts: QueryOptions<T>,
+): Promise<QueryResult<T>[]> {
+  return queryTable(qx, 'members', Object.values(MemberField), opts)
 }
 
-export async function findMemberById<T extends MemberField[]>(
+export async function findMemberById<T extends MemberField>(
   qx: QueryExecutor,
   memberId: string,
-  {
-    fields,
-  }: {
-    fields?: T
-  } = {
-    fields: Object.values(MemberField) as T,
-  },
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-): Promise<{ [K in T[number]]: any }> {
-  const rows = await queryMembers(qx, {
-    fields,
-    filter: {
-      [MemberField.ID]: { eq: memberId },
-    },
-    limit: 1,
-  })
-
-  if (rows.length > 0) {
-    return rows[0]
-  }
-
-  return null
+  fields: T[],
+): Promise<QueryResult<T>> {
+  return queryTableById(qx, 'members', Object.values(MemberField), memberId, fields)
 }
