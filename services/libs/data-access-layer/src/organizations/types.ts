@@ -1,7 +1,6 @@
 import {
   IOrganizationRevenueRange,
   OrganizationAttributeSource,
-  OrganizationAttributeType,
   OrganizationIdentityType,
   PlatformType,
 } from '@crowd/types'
@@ -50,19 +49,17 @@ export interface IDbOrganizationInput {
 
 export interface IDbOrgAttribute {
   id?: string
-  type: OrganizationAttributeType
   name: string
   source: OrganizationAttributeSource
   default: boolean
-  value?: string
+  value: string
 }
 
 export interface IDbOrgAttributeInput {
-  type: OrganizationAttributeType
   name: string
   source: string
   default: boolean
-  value?: string
+  value: string
 }
 
 export interface IDbOrganizationAggregateData {
