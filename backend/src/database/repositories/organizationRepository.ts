@@ -1173,21 +1173,19 @@ class OrganizationRepository {
       (a, b) => b.identities.length - a.identities.length,
     )[0].organizationId
 
-    const result = await findOrgById(qx, orgIdWithMostIdentities, {
-      fields: [
-        OrganizationField.ID,
-        OrganizationField.DESCRIPTION,
-        OrganizationField.LOGO,
-        OrganizationField.TAGS,
-        OrganizationField.EMPLOYEES,
-        OrganizationField.LOCATION,
-        OrganizationField.TYPE,
-        OrganizationField.SIZE,
-        OrganizationField.HEADLINE,
-        OrganizationField.INDUSTRY,
-        OrganizationField.FOUNDED,
-      ],
-    })
+    const result = await findOrgById(qx, orgIdWithMostIdentities, [
+      OrganizationField.ID,
+      OrganizationField.DESCRIPTION,
+      OrganizationField.LOGO,
+      OrganizationField.TAGS,
+      OrganizationField.EMPLOYEES,
+      OrganizationField.LOCATION,
+      OrganizationField.TYPE,
+      OrganizationField.SIZE,
+      OrganizationField.HEADLINE,
+      OrganizationField.INDUSTRY,
+      OrganizationField.FOUNDED,
+    ])
 
     return result
   }
