@@ -1,6 +1,6 @@
 import { AttributeType } from '@/modules/organization/types/Attributes';
+import naics from '@/modules/organization/config/enrichment/naics';
 import allSubsidiaries from './allSubsidiaries';
-import alternativeNames from './alternativeNames';
 import averageEmployeeTenure from './averageEmployeeTenure';
 import averageTenureByLevel from './averageTenureByLevel';
 import averageTenureByRole from './averageTenureByRole';
@@ -18,7 +18,6 @@ import headcount from './headcount';
 import industry from './industry';
 import revenueRange from './revenueRange';
 import lastEnrichedAt from './lastEnrichedAt';
-import tags from './tags';
 import typeAttribute from './type';
 import immediateParent from './immediateParent';
 import ultimateParent from './ultimateParent';
@@ -45,7 +44,6 @@ const enrichmentConfig: OrganizationEnrichmentConfig[] = [
   typeAttribute,
   founded,
   allSubsidiaries,
-  alternativeNames,
   averageEmployeeTenure,
   averageTenureByLevel,
   averageTenureByRole,
@@ -60,8 +58,8 @@ const enrichmentConfig: OrganizationEnrichmentConfig[] = [
   grossDeparturesByMonth,
   immediateParent,
   revenueRange,
-  tags,
   ultimateParent,
+  naics,
 ];
 
 export default enrichmentConfig;

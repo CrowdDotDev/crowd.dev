@@ -17,7 +17,7 @@ import {
   findManyOrgAttributes,
   upsertOrgAttributes,
   IDbOrgAttribute,
-  deleteOrgAttributes,
+  markOrgAttributeDefault,
 } from '@crowd/data-access-layer/src/organizations'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import {
@@ -254,6 +254,7 @@ class OrganizationRepository {
 
   static convertOrgAttributesForInsert(data: any) {
     const orgAttributes = []
+    const defaultColumns = {}
 
     for (const [name, attribute] of Object.entries(data.attributes)) {
       const attributeDefinition = findAttribute(name)
@@ -274,12 +275,15 @@ class OrganizationRepository {
         })
 
         if (isDefault && attributeDefinition.defaultColumn) {
-          data[attributeDefinition.defaultColumn] = value
+          defaultColumns[attributeDefinition.defaultColumn] = value
         }
       }
     }
 
-    return orgAttributes
+    return {
+      orgAttributes,
+      defaultColumns,
+    }
   }
 
   static convertOrgAttributesForDisplay(attributes: IDbOrgAttribute[]) {
@@ -297,6 +301,23 @@ class OrganizationRepository {
       }
       return acc
     }, {})
+  }
+
+  static async updateOrgAttributes(organizationId: string, data: any, options: IRepositoryOptions) {
+    const transaction = SequelizeRepository.getTransaction(options)
+    const qx = SequelizeRepository.getQueryExecutor(options, transaction)
+
+    const { orgAttributes, defaultColumns } =
+      OrganizationRepository.convertOrgAttributesForInsert(data)
+
+    await upsertOrgAttributes(qx, organizationId, orgAttributes)
+    for (const attr of orgAttributes) {
+      if (attr.default) {
+        await markOrgAttributeDefault(qx, organizationId, attr)
+      }
+    }
+
+    return defaultColumns
   }
 
   static async update(
@@ -373,21 +394,14 @@ class OrganizationRepository {
         }
 
         if (data.attributes) {
-          const qx = SequelizeRepository.getQueryExecutor(options, transaction)
-
-          const orgAttributes = OrganizationRepository.convertOrgAttributesForInsert(data)
-          const existingAttributes = await findOrgAttributes(qx, record.id)
-
-          await deleteOrgAttributes(
-            qx,
-            existingAttributes
-              .filter((attr) =>
-                // remove those we want to upsert
-                orgAttributes.find((a) => a.name === attr.name && a.source === attr.source),
-              )
-              .map((a) => a.id),
+          const defaultColumns = await OrganizationRepository.updateOrgAttributes(
+            record.id,
+            data,
+            options,
           )
-          await upsertOrgAttributes(qx, record.id, orgAttributes)
+          for (const col of Object.keys(defaultColumns)) {
+            data[col] = defaultColumns[col]
+          }
         }
 
         const updatedData = {

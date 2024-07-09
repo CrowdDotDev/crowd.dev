@@ -8,7 +8,7 @@
     <div>
       <!-- Enriched attributes -->
       <article
-        v-for="attribute in visibleAttributes"
+        v-for="attribute in [...visibleAttributes, ...nonConfigAttributes]"
         :key="attribute.name"
         class="border-b border-gray-100 flex py-4"
       >
@@ -71,11 +71,60 @@ const props = defineProps<{
   organization: Organization,
 }>();
 
+const ignoreAttributes = [
+  'logo',
+  'name',
+  'email',
+  'phoneNumber',
+];
+
+const camelCaseToLabel = (attribute: string) => {
+  console.log(attribute);
+  return attribute
+    ?.replace(/([A-Z])/g, ' $1')
+    ?.replace(/^./, (str) => str.toUpperCase()) || attribute;
+};
+
+const getAttributeType = (attribute: Record<string, any>) => {
+  if (attribute.default?.constructor === Array || (!attribute.default && Object.values(attribute)?.[0].constructor === Array)) {
+    return AttributeType.ARRAY;
+  }
+
+  // Check if its a json object
+  if (attribute.default.charAt(0) === '{' && attribute.default.charAt(-1) === '}') {
+    return AttributeType.JSON;
+  }
+
+  return AttributeType.STRING;
+};
+
+const getAttributeValue = (attribute: Record<string, any>, type: AttributeType) => {
+  if (type === AttributeType.ARRAY) {
+    return attribute.default || [...new Set(Object.values(attribute).reduce((arr, val) => [...arr, ...val], []))];
+  }
+
+  return attribute.default;
+};
+
 const visibleAttributes = computed(() => enrichmentAttributes
   .filter((a) => ((props.organization.attributes[a.name]?.default && a.type !== AttributeType.ARRAY && a.type !== AttributeType.JSON)
           || (a.type === AttributeType.ARRAY && props.organization.attributes[a.name]?.default?.length)
           || (a.type === AttributeType.JSON && props.organization.attributes[a.name]?.default
           && Object.keys(props.organization.attributes[a.name]?.default).length)) && a.showInAttributes));
+
+const nonConfigAttributes = computed(() => Object.keys(props.organization.attributes)
+  .filter((a: string) => !enrichmentAttributes.find((ea) => ea.name === a) && !ignoreAttributes.includes(a))
+  .map((a: string): OrganizationEnrichmentConfig => {
+    const type = getAttributeType(props.organization.attributes[a]);
+    return {
+      name: a,
+      label: camelCaseToLabel(a),
+      type,
+      showInAttributes: true,
+      showInForm: false,
+      formatValue: () => getAttributeValue(props.organization.attributes[a], type),
+    };
+  }));
 
 const getValue = (attribute: OrganizationEnrichmentConfig) => {
   let value = props.organization.attributes[attribute.name]?.default;
@@ -87,6 +136,7 @@ const getValue = (attribute: OrganizationEnrichmentConfig) => {
   }
   return value;
 };
+
 </script>
 
 <script lang="ts">

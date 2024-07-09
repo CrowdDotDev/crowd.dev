@@ -7,6 +7,7 @@ const allSubsidiaries: OrganizationEnrichmentConfig = {
   type: AttributeType.ARRAY,
   showInForm: true,
   showInAttributes: true,
+  formatValue: (value) => value,
 };
 
 export default allSubsidiaries;
