@@ -20,8 +20,7 @@
     "script:map-member-to-org": "SERVICE=script tsx src/bin/map-member-to-org.ts",
     "script:fix-activity-obj-member-data": "SERVICE=script tsx src/bin/fix-activity-obj-member-data.ts",
     "script:fix-member-displayName": "SERVICE=script tsx src/bin/fix-member-displayName.ts",
-    "script:fix-members-joinedAt": "SERVICE=script tsx src/bin/fix-members-joinedAt.ts",
-    "script:fix-org-identities-website": "SERVICE=script tsx src/bin/fix-org-identities-website.ts"
+    "script:fix-members-joinedAt": "SERVICE=script tsx src/bin/fix-members-joinedAt.ts"
   },
   "dependencies": {
     "@crowd/common": "workspace:*",

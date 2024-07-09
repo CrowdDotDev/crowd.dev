@@ -83,6 +83,29 @@ export async function unmergeMembersPreview(
   }
 }
 
+export async function mergeOrganizations(
+  primaryOrgId: string,
+  secondaryOrgId: string,
+): Promise<void> {
+  const url = `${process.env['CROWD_API_SERVICE_URL']}/organization/${primaryOrgId}/merge`
+  const requestOptions = {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${process.env['CROWD_API_SERVICE_USER_TOKEN']}`,
+      'Content-Type': 'application/json',
+    },
+    data: {
+      organizationToMerge: secondaryOrgId,
+    },
+  }
+
+  try {
+    await axios(url, requestOptions)
+  } catch (error) {
+    console.log(`Failed merging organization with status [${error.response.status}]. Skipping!`)
+  }
+}
+
 export async function waitForTemporalWorkflowExecutionFinish(workflowId: string): Promise<void> {
   const handle = svc.temporal.workflow.getHandle(workflowId)
 
