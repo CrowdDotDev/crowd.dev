@@ -1,10 +1,15 @@
 import { QueryTypes } from 'sequelize'
 import { Logger, getChildLogger, getServiceLogger } from '@crowd/logging'
 import { generateUUIDv1, timeout } from '@crowd/common'
-import { MemberIdentityType } from '@crowd/types'
+import { IMemberUsername, MemberIdentityType } from '@crowd/types'
 import MemberRepository from '../../database/repositories/memberRepository'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 import MemberService from '../../services/memberService'
+import {
+  MemberField,
+  fetchMemberIdentities,
+  findMemberById,
+} from '@crowd/data-access-layer/src/members'
 
 /* eslint-disable no-continue */
 /* eslint-disable @typescript-eslint/no-loop-func */
@@ -152,13 +157,17 @@ async function check(): Promise<number> {
       try {
         transaction = await SequelizeRepository.createTransaction(options)
         const txOptions = { ...options, transaction }
+        const qx = SequelizeRepository.getQueryExecutor(txOptions, transaction)
 
-        const allMembers = []
+        const allMembers: { id: string; joinedAt: string; username: IMemberUsername }[] = []
         for (const id of data.all_ids) {
-          const member = await MemberRepository.findById(id, txOptions, {
-            doPopulateRelations: false,
+          const member = await findMemberById(qx, id, [MemberField.ID, MemberField.JOINED_AT])
+          const identities = await fetchMemberIdentities(qx, id)
+          const username = MemberRepository.getUsernameFromIdentities(identities)
+          allMembers.push({
+            ...member,
+            username,
           })
-          allMembers.push(member)
         }
 
         // sort so the oldest members by joinedAt are first

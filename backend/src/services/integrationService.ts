@@ -56,6 +56,7 @@ import SearchSyncService from './searchSyncService'
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import IntegrationProgressRepository from '@/database/repositories/integrationProgressRepository'
 import { IntegrationProgress } from '@/serverless/integrations/types/regularTypes'
+import { findMemberById, MemberField } from '@crowd/data-access-layer/src/members'
 
 const discordToken = DISCORD_CONFIG.token || DISCORD_CONFIG.token2
 
@@ -650,9 +651,8 @@ export default class IntegrationService {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
-      const memberService = new MemberService(this.options)
-
-      const member = await memberService.findById(payload.memberId)
+      const qx = SequelizeRepository.getQueryExecutor(this.options, transaction)
+      const member = await findMemberById(qx, payload.memberId, [MemberField.ID])
 
       const memberSyncRemoteRepository = new MemberSyncRemoteRepository({
         ...this.options,
@@ -676,7 +676,7 @@ export default class IntegrationService {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     let integration
-    let member
+    let member: { id: string }
     let memberSyncRemote
 
     try {
@@ -685,11 +685,8 @@ export default class IntegrationService {
         transaction,
       })
 
-      member = await MemberRepository.findById(
-        payload.memberId,
-        { ...this.options, transaction },
-        { doPopulateRelations: false },
-      )
+      const qx = SequelizeRepository.getQueryExecutor(this.options, transaction)
+      member = await findMemberById(qx, payload.memberId, [MemberField.ID])
 
       const memberSyncRemoteRepo = new MemberSyncRemoteRepository({ ...this.options, transaction })
 
