@@ -26,7 +26,7 @@ export async function fixOrgIdentitiesWithWrongUrls(
   )
 
   if (!organizations.length) {
-    console.log(`No organizations found with invalid urls`)
+    console.log(`No organizations found with invalid urls!`)
     return
   }
 
@@ -34,8 +34,8 @@ export async function fixOrgIdentitiesWithWrongUrls(
     const normalizedUrl = activities.normalizeUrl(org.value)
     // Normalize the url and check if it already exists
     const existingOrg = await activity.findOrganizationIdentity(
-      normalizedUrl,
       org.platform,
+      normalizedUrl,
       org.type,
       org.verified,
       args.tenantId,
@@ -62,8 +62,8 @@ export async function fixOrgIdentitiesWithWrongUrls(
         // 3. Directly update the organization identity if there's no conflict
         await activity.updateOrganizationIdentity(
           org.organizationId,
-          normalizedUrl,
           org.platform,
+          normalizedUrl,
           org.type,
           org.verified,
           tenantId,

@@ -25,8 +25,8 @@ class OrganizationRepository {
   }
 
   async findOrganizationIdentity(
-    value: string,
     platform: string,
+    value: string,
     type: string,
     verified: boolean,
     tenantId: string,
@@ -47,10 +47,10 @@ class OrganizationRepository {
     return result
   }
 
-  async updateOrgIdentity(
+  async updateOrganizationIdentity(
     orgId: string,
-    website: string,
     platform: string,
+    value: string,
     type: string,
     verified: boolean,
     tenantId: string,
@@ -58,18 +58,18 @@ class OrganizationRepository {
     await this.connection.none(
       `
           UPDATE "organizationIdentities"
-          SET value = $(website)
+          SET value = $(value)
           WHERE "organizationId" = $(orgId)
           AND platform = $(platform)
           AND type = $(type)
           AND verified = $(verified)
           AND "tenantId" = $(tenantId);
       `,
-      { orgId, website, platform, type, verified, tenantId },
+      { orgId, platform, value, type, verified, tenantId },
     )
   }
 
-  async deleteOrgIdentity(
+  async deleteOrganizationIdentity(
     orgId: string,
     platform: string,
     type: string,

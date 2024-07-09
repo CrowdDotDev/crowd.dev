@@ -1,7 +1,7 @@
 import OrganizationRepo from '@crowd/data-access-layer/src/old/apps/script_executor_worker/organization.repo'
 import { svc } from '../../main'
 import { IOrganizationIdentity } from '@crowd/types'
-import { websiteNormalizer } from '../../../../../libs/common/src'
+import { websiteNormalizer } from '@crowd/common'
 
 export async function getOrgIdentitiesWithInvalidUrls(
   tenantId: string,
@@ -20,8 +20,8 @@ export async function getOrgIdentitiesWithInvalidUrls(
 }
 
 export async function findOrganizationIdentity(
-  value: string,
   platform: string,
+  value: string,
   type: string,
   verified: boolean,
   tenantId: string,
@@ -30,7 +30,7 @@ export async function findOrganizationIdentity(
 
   try {
     const repo = new OrganizationRepo(svc.postgres.reader.connection(), svc.log)
-    orgIdentity = await repo.findOrganizationIdentity(value, platform, type, verified, tenantId)
+    orgIdentity = await repo.findOrganizationIdentity(platform, value, type, verified, tenantId)
   } catch (err) {
     throw new Error(err)
   }
@@ -40,22 +40,6 @@ export async function findOrganizationIdentity(
 
 export async function updateOrganizationIdentity(
   orgId: string,
-  website: string,
-  platform: string,
-  type: string,
-  verified: boolean,
-  tenantId: string,
-): Promise<void> {
-  try {
-    const repo = new OrganizationRepo(svc.postgres.writer.connection(), svc.log)
-    await repo.updateOrgIdentity(orgId, website, platform, type, verified, tenantId)
-  } catch (err) {
-    throw new Error(err)
-  }
-}
-
-export async function deleteOrganizationIdentity(
-  orgId: string,
   platform: string,
   value: string,
   type: string,
@@ -64,7 +48,23 @@ export async function deleteOrganizationIdentity(
 ): Promise<void> {
   try {
     const repo = new OrganizationRepo(svc.postgres.writer.connection(), svc.log)
-    await repo.deleteOrgIdentity(orgId, platform, type, value, verified, tenantId)
+    await repo.updateOrganizationIdentity(orgId, platform, value, type, verified, tenantId)
+  } catch (err) {
+    throw new Error(err)
+  }
+}
+
+export async function deleteOrganizationIdentity(
+  orgId: string,
+  platform: string,
+  type: string,
+  value: string,
+  verified: boolean,
+  tenantId: string,
+): Promise<void> {
+  try {
+    const repo = new OrganizationRepo(svc.postgres.writer.connection(), svc.log)
+    await repo.deleteOrganizationIdentity(orgId, platform, type, value, verified, tenantId)
   } catch (err) {
     throw new Error(err)
   }

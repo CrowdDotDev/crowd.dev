@@ -12,6 +12,7 @@
     "tsc-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@crowd/common": "workspace:*",
     "@crowd/archetype-standard": "workspace:*",
     "@crowd/archetype-worker": "workspace:*",
     "@crowd/cubejs": "workspace:*",
