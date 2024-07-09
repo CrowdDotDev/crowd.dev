@@ -53,3 +53,12 @@ $$;
 COMMIT;
 
 
+create index "segments_parent_id"
+    on public.segments ("parentId");
+
+
+create index "segments_grandparent_id"
+    on public.segments ("grandparentId");
+
+create index "segments_type"
+    on public.segments ("type");
