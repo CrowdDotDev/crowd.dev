@@ -25,7 +25,7 @@ export async function getOrgAggregates(
               UNNEST(ARRAY["id", "parentId", "grandparentId"]) AS segment_id,
               s.id AS subproject
           FROM segments s
-          WHERE type = 'subproject';
+          WHERE type = 'subproject'
         )
       SELECT
           o."id" AS "organizationId",
