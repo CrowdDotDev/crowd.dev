@@ -168,37 +168,45 @@ setImmediate(async () => {
         tenantId,
       )
 
-      // check if org with website already exists
-      // if (existingOrg.length > 0) {
-      //   log.info(`Organization with website ${website} already exists!`)
-      //   const toUpdateId = existingOrg[0].organizationId
-
-      //   log.info(`Moving activities from ${org.organizationId} to ${toUpdateId}`)
-
-      //   await updateActivitiesOrgId(dbClient, org.organizationId, toUpdateId, tenantId)
-      //   await deleteOrgIdentity(
-      //     dbClient,
-      //     org.organizationId,
-      //     org.platform,
-      //     org.type,
-      //     org.value,
-      //     org.verified,
-      //     tenantId,
-      //   )
-      // } else {
-      //   await updateOrgIdentity(
-      //     dbClient,
-      //     org.organizationId,
-      //     website,
-      //     org.platform,
-      //     org.type,
-      //     org.verified,
-      //     tenantId,
-      //   )
-      // }
-
       if (existingOrg.length > 0) {
-        console.log('found existing org identity', JSON.stringify(existingOrg))
+        const toUpdateId = existingOrg[0].organizationId
+        // Ensure it's not the same organization
+        if (toUpdateId !== org.organizationId) {
+          log.info(
+            `Organization with website ${website} already exists! Moving activities from ${org.organizationId} to ${toUpdateId}`,
+          )
+          await updateActivitiesOrgId(dbClient, org.organizationId, toUpdateId, tenantId)
+          await deleteOrgIdentity(
+            dbClient,
+            org.organizationId,
+            org.platform,
+            org.type,
+            org.value,
+            org.verified,
+            tenantId,
+          )
+        } else {
+          log.info(`Deleting duplicate identity for organization ${org.organizationId}`)
+          await deleteOrgIdentity(
+            dbClient,
+            org.organizationId,
+            org.platform,
+            org.type,
+            org.value,
+            org.verified,
+            tenantId,
+          )
+        }
+      } else {
+        await updateOrgIdentity(
+          dbClient,
+          org.organizationId,
+          website,
+          org.platform,
+          org.type,
+          org.verified,
+          tenantId,
+        )
       }
 
       processedOrgs++
