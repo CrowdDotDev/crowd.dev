@@ -41,7 +41,7 @@ const handler: GenerateStreamsHandler = async (ctx) => {
     // also parse past group members but only when onboarding is true
     if (onboarding) {
       await ctx.publishStream<GroupsioPastGroupMembersStreamMetadata>(
-        `${GroupsioStreamType.PAST_GROUP_MEMBERS}:${group}`,
+        `${GroupsioStreamType.PAST_GROUP_MEMBERS}:${group.slug}`,
         {
           group: group.slug,
           page: null,
