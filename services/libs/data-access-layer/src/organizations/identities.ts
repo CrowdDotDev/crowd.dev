@@ -1,4 +1,3 @@
-import { RawQueryParser } from '@crowd/common'
 import { QueryExecutor } from '../queryExecutor'
 import { QueryOptions, QueryResult, queryTable } from '../utils'
 import { getOrgIdentities } from './organizations'

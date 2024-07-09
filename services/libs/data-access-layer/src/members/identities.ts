@@ -16,3 +16,22 @@ export async function fetchMemberIdentities(
     },
   )
 }
+
+export async function fetchManyMemberIdentities(
+  qx: QueryExecutor,
+  memberIds: string[],
+): Promise<{ memberId: string; identities: IMemberIdentity[] }[]> {
+  return qx.select(
+    `
+      SELECT
+          mi."memberId",
+          JSONB_AGG(mi ORDER BY mi."createdAt") AS "identities"
+      FROM "memberIdentities" mi
+      WHERE mi."memberId" IN ($(memberIds:csv))
+      GROUP BY mi."memberId"
+    `,
+    {
+      memberIds,
+    },
+  )
+}

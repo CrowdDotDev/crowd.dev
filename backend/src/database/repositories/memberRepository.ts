@@ -46,6 +46,7 @@ import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch
 import { findManyLfxMemberships } from '@crowd/data-access-layer/src/lfx_memberships'
 import { addMemberNoMerge, removeMemberToMerge } from '@crowd/data-access-layer/src/member_merge'
 import {
+  fetchManyMemberIdentities,
   fetchManyMemberSegments,
   fetchMemberAggregates,
   fetchMemberIdentities,
@@ -2374,13 +2375,13 @@ class MemberRepository {
         }
       })
     }
-    // if (include.identities) {
-    //   const identities = await fetchManyOrgIdentities(qx, orgIds, options.currentTenant.id)
+    if (include.identities) {
+      const identities = await fetchManyMemberIdentities(qx, memberIds)
 
-    //   rows.forEach((org) => {
-    //     org.identities = identities.find((i) => i.organizationId === org.id)?.identities || []
-    //   })
-    // }
+      rows.forEach((member) => {
+        member.identities = identities.find((i) => i.memberId === member.id)?.identities || []
+      })
+    }
     if (include.segments) {
       const memberSegments = await fetchManyMemberSegments(qx, memberIds)
 
