@@ -449,6 +449,7 @@ export default class ActivityService extends LoggerBase {
       let objectMemberId: string | undefined
       let activityId: string
       let segmentId: string
+      let organizationId: string
 
       await this.store.transactionally(async (txStore) => {
         try {
@@ -724,7 +725,7 @@ export default class ActivityService extends LoggerBase {
             }
 
             if (!createActivity) {
-              const organizationId = await txMemberAffiliationService.findAffiliation(
+              organizationId = await txMemberAffiliationService.findAffiliation(
                 dbActivity.memberId,
                 segmentId,
                 dbActivity.timestamp,
@@ -903,7 +904,7 @@ export default class ActivityService extends LoggerBase {
           }
 
           if (createActivity) {
-            const organizationId = await txMemberAffiliationService.findAffiliation(
+            organizationId = await txMemberAffiliationService.findAffiliation(
               memberId,
               segmentId,
               activity.timestamp,
@@ -958,6 +959,9 @@ export default class ActivityService extends LoggerBase {
       }
       if (activityId) {
         await this.searchSyncWorkerEmitter.triggerActivitySync(tenantId, activityId, onboarding)
+      }
+      if (organizationId) {
+        await this.redisClient.sAdd('organizationIdsForAggComputation', organizationId)
       }
     } catch (err) {
       this.log.error(err, 'Error while processing an activity!')
