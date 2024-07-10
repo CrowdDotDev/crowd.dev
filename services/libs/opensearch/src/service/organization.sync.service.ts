@@ -9,7 +9,7 @@ import { repoQx, QueryExecutor } from '@crowd/data-access-layer/src/queryExecuto
 import { fetchOrgIdentities } from '@crowd/data-access-layer/src/organizations/identities'
 import { findOrgAttributes } from '@crowd/data-access-layer/src/organizations/attributes'
 import { findOrgNoMergeIds } from '@crowd/data-access-layer/src/org_merge'
-import { fetchOrgAggregates } from '@crowd/data-access-layer/src/organizations/segments'
+import { fetchTotalActivityCount } from '@crowd/data-access-layer/src/organizations/segments'
 import { DbStore } from '@crowd/database'
 import { Logger, getChildLogger, logExecutionTime } from '@crowd/logging'
 import {
@@ -32,14 +32,14 @@ export async function buildFullOrgForMergeSuggestions(
 ): Promise<IOrganizationFullAggregatesOpensearch> {
   const identities = await fetchOrgIdentities(qx, organization.id)
   const attributes = await findOrgAttributes(qx, organization.id)
-  const aggregates = await fetchOrgAggregates(qx, organization.id)
+  const totalActivityCount = await fetchTotalActivityCount(qx, organization.id)
   const noMergeIds = await findOrgNoMergeIds(qx, organization.id)
 
   return {
     ...organization,
     ticker: attributes.find((a) => a.name === 'ticker' && a.default)?.value,
     identities,
-    activityCount: aggregates?.activityCount || 0,
+    activityCount: totalActivityCount,
     noMergeIds,
     website: identities.find((i) => i.type === OrganizationIdentityType.PRIMARY_DOMAIN)?.value,
   }

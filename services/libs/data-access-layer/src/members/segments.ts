@@ -66,20 +66,20 @@ export async function fetchManyMemberSegments(
   )
 }
 
-export async function fetchMemberAggregates(
+export async function fetchTotalActivityCount(
   qx: QueryExecutor,
   memberId: string,
-): Promise<IMemberSegmentAggregates> {
-  return qx.selectOneOrNone(
+): Promise<number> {
+  const res: { activityCount: number } = await qx.selectOneOrNone(
     `
-      SELECT
-        *
+      SELECT SUM("activityCount") as "activityCount"
       FROM "memberSegmentsAgg"
-      WHERE "memberId" = $(memberId)
-      LIMIT 1
+      WHERE "memberId" = $(memberId);
     `,
     {
       memberId,
     },
   )
+
+  return res?.activityCount || 0
 }
