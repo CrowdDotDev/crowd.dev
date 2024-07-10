@@ -522,14 +522,15 @@ export default class ConversationService extends LoggerBase {
 
     // TODO questdb: properly add display as a property, in an extented type?
     for (const activity of activities.rows) {
-      activity.display = ActivityDisplayService.getDisplayOptions(
+      ;(activity as any).display = ActivityDisplayService.getDisplayOptions(
         activity,
         SegmentRepository.getActivityTypes(this.options),
       )
     }
 
     for (const conversation of results.rows) {
-      ;(conversation as any).activities = activities.rows
+      const data = conversation as any
+      data.activities = activities.rows
         .filter((a) => a.conversationId === conversation.id)
         .sort(
           (a, b) =>
@@ -539,8 +540,8 @@ export default class ConversationService extends LoggerBase {
 
       // TODO questdb: This should not be needed. Front-end must be updated to
       // only get activities array.
-      conversation.conversationStarter = conversation.activities[0]
-      conversation.lastReplies = conversation.activities.slice(1)
+      data.conversationStarter = data.activities[0]
+      data.lastReplies = data.activities.slice(1)
     }
 
     return results

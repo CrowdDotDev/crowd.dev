@@ -13,7 +13,6 @@ import IntegrationRepository from '@crowd/data-access-layer/src/old/apps/cache_w
 import ActivityRepository from '@crowd/data-access-layer/src/old/apps/cache_worker/activity.repo'
 import {
   IActiveMembersTimeseriesResult,
-  IActiveOrganizationsTimeseriesResult,
   IActivityBySentimentMoodResult,
   IActivityByTypeAndPlatformResult,
   IActivityTimeseriesResult,
@@ -22,14 +21,17 @@ import {
   activitiesTimeseries,
   countMembersWithActivities,
   countOrganizationsWithActivities,
-  getNumberOfActiveOrganizations,
   getNumberOfNewMembers,
-  getNumberOfNewOrganizations,
   getTimeseriesOfActiveMembers,
-  getTimeseriesOfActiveOrganizations,
   queryActivities,
 } from '@crowd/data-access-layer'
 import { DbStore } from '@crowd/data-access-layer/src/database'
+import {
+  getNumberOfActiveOrganizations,
+  getNumberOfNewOrganizations,
+  getTimeseriesOfActiveOrganizations,
+  IActiveOrganizationsTimeseriesResult,
+} from '@crowd/data-access-layer/src/organizations'
 
 const qdb = new DbStore(svc.log, svc.questdbSQL)
 

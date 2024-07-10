@@ -27,6 +27,13 @@ import {
   updateMemberMergeSuggestionsLastGeneratedAt,
 } from './activities/dashboard-cache/refreshDashboardCache'
 
+import {
+  getOrgIdsFromRedis,
+  dropOrgIdFromRedis,
+  checkOrganizationExists,
+  syncOrganization,
+} from './activities/computeAggs/organization'
+
 export {
   getAllTenants,
   getAllSegments,
@@ -51,4 +58,8 @@ export {
   findNewActivityPlatforms,
   updateMemberMergeSuggestionsLastGeneratedAt,
   isSegmentsEnabled,
+  getOrgIdsFromRedis,
+  dropOrgIdFromRedis,
+  checkOrganizationExists,
+  syncOrganization,
 }

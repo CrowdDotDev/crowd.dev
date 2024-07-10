@@ -4,6 +4,8 @@ import { Auth0Client } from '@auth0/auth0-spa-js';
 const baseUrl = `${config.frontendUrl.protocol}://${config.frontendUrl.host}`;
 const authCallback = `${baseUrl}/auth/callback`;
 
+const scope: string = 'profile email';
+
 class Auth0ServiceClass {
   private readonly webAuth: Auth0Client;
 
@@ -13,15 +15,20 @@ class Auth0ServiceClass {
       clientId: config.auth0.clientId,
       authorizationParams: {
         redirect_uri: authCallback,
+        scope,
       },
       useCookiesForTransactions: true,
-      useRefreshTokens: true,
-      useRefreshTokensFallback: true,
+      useRefreshTokens: false,
     });
   }
 
   loginWithRedirect(params?: any) {
-    return this.webAuth.loginWithRedirect(params);
+    return this.webAuth.loginWithRedirect({
+      ...params,
+      authorizationParams: {
+        scope,
+      },
+    });
   }
 
   handleAuth() {
@@ -50,10 +57,6 @@ class Auth0ServiceClass {
 
   public logout() {
     return this.webAuth.logout();
-  }
-
-  public checkSession() {
-    return this.webAuth.checkSession();
   }
 
   public getUser() {

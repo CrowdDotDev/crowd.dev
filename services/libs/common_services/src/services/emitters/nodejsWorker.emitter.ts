@@ -5,7 +5,6 @@ import { RedisClient } from '@crowd/redis'
 import { CrowdQueue, NODEJS_WORKER_QUEUE_SETTINGS, SqsClient } from '@crowd/sqs'
 import { Tracer } from '@crowd/tracing'
 import {
-  AutomationType,
   EagleEyeEmailDigestQueueMessage,
   QueuePriorityLevel,
   RefreshSampleDataQueueMessage,

@@ -114,3 +114,32 @@ export interface IEnrichableOrganizationData {
   organizationId: string
   tenantId: string
 }
+
+export interface IQueryNumberOfNewOrganizations {
+  tenantId: string
+  segmentIds?: string[]
+  after?: Date
+  before?: Date
+  platform?: string
+}
+
+export interface IQueryTimeseriesOfNewOrganizations {
+  tenantId: string
+  segmentIds?: string[]
+  after: Date
+  before: Date
+  platform?: string
+}
+
+export interface IQueryNumberOfActiveOrganizations {
+  tenantId: string
+  segmentIds?: string[]
+  after: Date
+  before: Date
+  platform?: string
+}
+
+export interface IActiveOrganizationsTimeseriesResult {
+  date: string
+  count: number
+}

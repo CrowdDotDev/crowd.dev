@@ -6,8 +6,8 @@ import { ITenant } from '@crowd/types'
 import { pgpQx } from '../../../queryExecutor'
 import { findMemberAffiliations } from '../../../member_segment_affiliations'
 
-export async function runMemberAffiliationsUpdate(db: DbStore, memberId: string) {
-  const qx = pgpQx(db.connection())
+export async function runMemberAffiliationsUpdate(pgDb: DbStore, qDb: DbStore, memberId: string) {
+  const qx = pgpQx(pgDb.connection())
   const tsBetween = (start: string, end: string) => {
     return `timestamp BETWEEN '${start}' AND '${end}'`
   }

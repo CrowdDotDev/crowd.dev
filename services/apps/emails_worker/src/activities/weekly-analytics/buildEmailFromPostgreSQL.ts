@@ -10,7 +10,8 @@ import {
   fetchTenantUsers,
   fetchActiveIntegrations,
 } from '@crowd/data-access-layer/src/old/apps/emails_worker/tenants'
-import { getNumberOfNewMembers, getNumberOfNewOrganizations } from '@crowd/data-access-layer'
+import { getNumberOfNewMembers } from '@crowd/data-access-layer'
+import { getNumberOfNewOrganizations } from '@crowd/data-access-layer/src/organizations'
 
 const db = svc.postgres.reader
 

@@ -3,6 +3,7 @@ import {
   IActivityByTypeAndPlatformResult,
   IActivityTimeseriesResult,
 } from '@crowd/data-access-layer'
+import { IActiveOrganizationsTimeseriesResult } from '@crowd/data-access-layer/src/organizations'
 
 export interface IActiveMembersTimeseriesResult {
   date: string
@@ -15,11 +16,6 @@ export interface INewMembersTimeseriesResult {
 }
 
 export interface INewOrganizationsTimeseriesResult {
-  date: string
-  count: number
-}
-
-export interface IActiveOrganizationsTimeseriesResult {
   date: string
   count: number
 }
@@ -68,4 +64,8 @@ export interface IGraphQueryParams {
   endDate: Date
   platform?: string
   groupBy?: string
+}
+
+export interface IProcessComputeOrgAggs {
+  organizationId: string
 }

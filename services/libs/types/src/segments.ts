@@ -14,12 +14,15 @@ export interface SegmentBase {
   url: string
   parentName: string
   grandparentName: string
+  parentId: string
+  grandparentId: string
   slug: string
   parentSlug: string
   grandparentSlug: string
   status: SegmentStatus
   sourceId: string
   sourceParentId: string
+  type: SegmentType
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -54,6 +57,8 @@ export interface SegmentUpdateData {
   slug?: string
   parentSlug?: string
   grandparentSlug?: string
+  parentId?: string
+  grandparentId?: string
   status?: SegmentStatus
   parentName?: string
   grandparentName?: string
@@ -75,6 +80,12 @@ export enum SegmentLevel {
   PROJECT_GROUP,
   PROJECT,
   SUB_PROJECT,
+}
+
+export enum SegmentType {
+  PROJECT_GROUP = 'projectGroup',
+  PROJECT = 'project',
+  SUB_PROJECT = 'subproject',
 }
 
 export interface SegmentCriteria extends SearchCriteria {

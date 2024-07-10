@@ -66,7 +66,12 @@ export default class SegmentService extends LoggerBase {
       const projectGroup = await segmentRepository.create(data)
 
       // create project counterpart
-      await segmentRepository.create({ ...data, parentSlug: data.slug, parentName: data.name })
+      const project = await segmentRepository.create({
+        ...data,
+        parentSlug: data.slug,
+        parentName: data.name,
+        parentId: projectGroup.id,
+      })
 
       // create subproject counterpart
       await segmentRepository.create({
@@ -75,6 +80,8 @@ export default class SegmentService extends LoggerBase {
         grandparentSlug: data.slug,
         parentName: data.name,
         grandparentName: data.name,
+        parentId: project.id,
+        grandparentId: projectGroup.id,
       })
 
       await SequelizeRepository.commitTransaction(transaction)
@@ -107,7 +114,7 @@ export default class SegmentService extends LoggerBase {
 
     try {
       // create project
-      const project = await segmentRepository.create(data)
+      const project = await segmentRepository.create({ ...data, parentId: parent.id })
 
       // create subproject counterpart
       await segmentRepository.create({
@@ -117,6 +124,8 @@ export default class SegmentService extends LoggerBase {
         name: data.name,
         parentName: data.name,
         grandparentName: parent.name,
+        parentId: project.id,
+        grandparentId: parent.id,
       })
 
       await SequelizeRepository.commitTransaction(transaction)
@@ -160,7 +169,11 @@ export default class SegmentService extends LoggerBase {
         throw new Error(`Project group ${data.parentSlug} does not exist.`)
       }
 
-      const subproject = await segmentRepository.create(data)
+      const subproject = await segmentRepository.create({
+        ...data,
+        parentId: parent.id,
+        grandparentId: grandparent.id,
+      })
 
       await SequelizeRepository.commitTransaction(transaction)
 

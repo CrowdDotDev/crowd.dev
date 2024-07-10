@@ -548,12 +548,18 @@ importers:
       '@crowd/logging':
         specifier: workspace:*
         version: link:../../libs/logging
+      '@crowd/opensearch':
+        specifier: workspace:*
+        version: link:../../libs/opensearch
       '@crowd/redis':
         specifier: workspace:*
         version: link:../../libs/redis
       '@crowd/types':
         specifier: workspace:*
         version: link:../../libs/types
+      '@temporalio/client':
+        specifier: ~1.8.6
+        version: 1.8.6
       '@temporalio/workflow':
         specifier: ~1.8.6
         version: 1.8.6

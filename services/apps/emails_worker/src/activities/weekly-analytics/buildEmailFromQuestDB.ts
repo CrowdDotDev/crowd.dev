@@ -1,9 +1,6 @@
 import { IMember, IOrganization, PageData } from '@crowd/types'
-
 import { svc } from '../../main'
-
 import { InputAnalyticsWithSegments, InputAnalyticsWithTimes } from '../../types/analytics'
-
 import {
   IQueryActivityResult,
   findTopActivityTypes,
@@ -16,8 +13,11 @@ import {
   INumberOfActivitiesPerOrganization,
   INumberOfActivitiesPerMember,
   getMemberById,
-  getOrganizationById,
+  findOrgById,
 } from '@crowd/data-access-layer'
+import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 const db = svc.postgres.reader
 const qdb = svc.questdbSQL
@@ -219,14 +219,16 @@ export async function getMostActiveOrganizationsThisWeek(
 
   const orgs: IOrganization[] = []
   for (const row of rows) {
-    const org = await getOrganizationById(db, row.organizationId)
-    org.activityCount = rows.filter((row) => row.organizationId === org.id)[0].count
+    const org = await findOrgById(dbStoreQx(db), row.organizationId)
+
+    const data = org as any
+    data.activityCount = rows.filter((row) => row.organizationId === org.id)[0].count
 
     // Backward compatibility since the Sendgrid dynamic email template use "name"
     // and not "displayName".
-    org.name = org.displayName
+    data.name = org.displayName
 
-    orgs.push(org)
+    orgs.push(data)
   }
 
   return orgs

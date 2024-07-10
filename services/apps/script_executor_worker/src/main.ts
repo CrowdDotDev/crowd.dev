@@ -15,9 +15,6 @@ const config: Config = {
   redis: {
     enabled: true,
   },
-  questdb: {
-    enabled: false,
-  },
 }
 
 const options: Options = {

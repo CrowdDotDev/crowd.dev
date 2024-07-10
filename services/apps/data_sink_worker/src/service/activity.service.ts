@@ -540,9 +540,12 @@ export default class ActivityService extends LoggerBase {
         }
       }
 
+      let objectMemberId: string | undefined
       let memberId: string
       let memberIsBot = false
       let memberIsTeamMember = false
+      let segmentId: string
+      let organizationId: string
 
       const memberAttValue = (attName: MemberAttributeName, dbMember?: IDbMember): unknown => {
         let result: unknown
@@ -569,9 +572,6 @@ export default class ActivityService extends LoggerBase {
 
         return result
       }
-
-      let objectMemberId: string | undefined
-      let segmentId: string
 
       await this.pgStore.transactionally(async (txStore) => {
         try {
@@ -848,7 +848,7 @@ export default class ActivityService extends LoggerBase {
             }
 
             if (!createActivity) {
-              const organizationId = await txMemberAffiliationService.findAffiliation(
+              organizationId = await txMemberAffiliationService.findAffiliation(
                 dbActivity.memberId,
                 segmentId,
                 dbActivity.timestamp,
@@ -1038,7 +1038,7 @@ export default class ActivityService extends LoggerBase {
           }
 
           if (createActivity) {
-            const organizationId = await txMemberAffiliationService.findAffiliation(
+            organizationId = await txMemberAffiliationService.findAffiliation(
               memberId,
               segmentId,
               activity.timestamp,
@@ -1094,6 +1094,10 @@ export default class ActivityService extends LoggerBase {
           onboarding,
           segmentId,
         )
+      }
+
+      if (organizationId) {
+        await this.redisClient.sAdd('organizationIdsForAggComputation', organizationId)
       }
     } catch (err) {
       this.log.error(err, 'Error while processing an activity!')

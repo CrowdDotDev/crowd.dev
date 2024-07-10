@@ -1,5 +1,6 @@
 import { Config } from '@crowd/archetype-standard'
-import { Options, ServiceWorker } from '@crowd/archetype-worker'
+import { ServiceWorker, Options } from '@crowd/archetype-worker'
+import { scheduleComputeOrgAggsDaily } from './schedules'
 
 const config: Config = {
   envvars: [],
@@ -30,7 +31,7 @@ const options: Options = {
     enabled: true,
   },
   opensearch: {
-    enabled: false,
+    enabled: true,
   },
 }
 
@@ -38,5 +39,8 @@ export const svc = new ServiceWorker(config, options)
 
 setImmediate(async () => {
   await svc.init()
+
+  await scheduleComputeOrgAggsDaily()
+
   await svc.start()
 })
