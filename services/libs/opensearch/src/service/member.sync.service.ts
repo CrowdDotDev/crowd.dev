@@ -28,7 +28,7 @@ import {
 import { getMemberAggregates } from '@crowd/data-access-layer/src/activities'
 import {
   cleanupMemberAggregates,
-  fetchMemberAggregates,
+  fetchAbsoluteMemberAggregates,
   insertMemberSegments,
 } from '@crowd/data-access-layer/src/members/segments'
 import { IMemberSegmentAggregates } from '@crowd/data-access-layer/src/members/types'
@@ -39,7 +39,7 @@ export async function buildFullMemberForMergeSuggestions(
   member: IMemberBaseForMergeSuggestions,
 ): Promise<IMemberWithAggregatesForMergeSuggestions> {
   const identities = await fetchMemberIdentities(qx, member.id)
-  const aggregates = await fetchMemberAggregates(qx, member.id)
+  const absoluteAggregates = await fetchAbsoluteMemberAggregates(qx, member.id)
   const roles = await fetchMemberOrganizations(qx, member.id)
 
   const rolesWithDisplayName: IMemberOrganization[] = []
@@ -58,7 +58,7 @@ export async function buildFullMemberForMergeSuggestions(
   return {
     ...member,
     identities,
-    activityCount: aggregates?.activityCount || 0,
+    activityCount: absoluteAggregates.activityCount,
     organizations: rolesWithDisplayName,
   }
 }
