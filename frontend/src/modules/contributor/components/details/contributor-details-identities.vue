@@ -84,9 +84,9 @@ import LfContributorDetailsIdentityItem
 import LfContributorDetailsIdentityAddDropdown
   from '@/modules/contributor/components/details/identity/contributor-details-identity-add-dropdown.vue';
 import LfContributorDetailsIdentityEdit
-  from '@/modules/contributor/components/details/identity/contributor-details-identity-edit.vue';
+  from '@/modules/contributor/components/edit/identity/contributor-identity-edit.vue';
 import LfContributorDetailsIdentityAdd
-  from '@/modules/contributor/components/details/identity/contributor-details-identity-add.vue';
+  from '@/modules/contributor/components/edit/identity/contributor-identity-add.vue';
 
 const props = defineProps<{
   contributor: Contributor,
