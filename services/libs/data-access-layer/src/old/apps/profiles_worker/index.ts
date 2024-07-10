@@ -85,6 +85,8 @@ export async function runMemberAffiliationsUpdate(db: DbStore, memberId: string)
     .head()
     .value()
 
+  // TODO questdb misha check please
+
   const fullCase = `
     CASE
       ${orgCases.map(condition).join('\n')}

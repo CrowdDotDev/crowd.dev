@@ -20,13 +20,13 @@ import {
   markOrgAttributeDefault,
   findOrgById,
   IDbOrganization,
+  fetchManyOrgSegments,
 } from '@crowd/data-access-layer/src/organizations'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import {
   FeatureFlag,
   IMemberRenderFriendlyRole,
   IMemberRoleWithOrganization,
-  IOrganization,
   IOrganizationIdentity,
   MergeActionState,
   MergeActionType,
@@ -41,6 +41,11 @@ import Sequelize, { QueryTypes } from 'sequelize'
 import validator from 'validator'
 import { findManyLfxMemberships } from '@crowd/data-access-layer/src/lfx_memberships'
 import { findAttribute } from '@crowd/data-access-layer/src/organizations/attributesConfig'
+import {
+  countMembersWithActivities,
+  getActiveOrganizations,
+  queryActivities,
+} from '@crowd/data-access-layer'
 import {
   IFetchOrganizationMergeSuggestionArgs,
   SimilarityScoreRange,

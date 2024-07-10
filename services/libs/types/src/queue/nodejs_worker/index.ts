@@ -1,4 +1,3 @@
-import { AutomationTrigger, AutomationType } from '../../automations'
 import { IQueueMessage } from '../'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -10,56 +9,6 @@ export enum NodejsWorkerQueueMessageType {
 export enum ExportableEntity {
   MEMBERS = 'members',
   ORGANIZATIONS = 'organizations',
-}
-
-export class NewActivityAutomationQueueMessage implements IQueueMessage {
-  public readonly type: string = NodejsWorkerQueueMessageType.NODE_MICROSERVICE
-  public readonly trigger = AutomationTrigger.NEW_ACTIVITY
-  public readonly service = 'automation'
-
-  constructor(
-    public readonly tenant: string,
-    public readonly activityId: string,
-    public readonly segmentId: string,
-  ) {}
-}
-
-export class NewMemberAutomationQueueMessage implements IQueueMessage {
-  public readonly type: string = NodejsWorkerQueueMessageType.NODE_MICROSERVICE
-  public readonly trigger = AutomationTrigger.NEW_MEMBER
-  public readonly service = 'automation'
-
-  constructor(
-    public readonly tenant: string,
-    public readonly memberId: string,
-    public readonly segmentId: string,
-  ) {}
-}
-
-export class ProcessAutomationQueueMessage implements IQueueMessage {
-  public readonly type: string = NodejsWorkerQueueMessageType.NODE_MICROSERVICE
-  public readonly service = 'automation-process'
-
-  constructor(
-    public readonly tenant: string,
-    public readonly automationType: AutomationType,
-    public readonly automation: any,
-    public readonly eventId: string,
-    public readonly payload: any,
-  ) {}
-}
-
-export class BulkEnrichQueueMessage implements IQueueMessage {
-  public readonly type: string = NodejsWorkerQueueMessageType.NODE_MICROSERVICE
-  public readonly service = 'bulk-enrich'
-
-  constructor(
-    public readonly tenant: string,
-    public readonly memberIds: string[],
-    public readonly segmentIds: string[],
-    public readonly notifyFrontend: boolean,
-    public readonly skipCredits: boolean,
-  ) {}
 }
 
 export class EagleEyeEmailDigestQueueMessage implements IQueueMessage {
@@ -93,11 +42,4 @@ export class SendgridWebhookQueueMessage implements IQueueMessage {
 export class RefreshSampleDataQueueMessage implements IQueueMessage {
   public readonly type: string = NodejsWorkerQueueMessageType.NODE_MICROSERVICE
   public readonly service = 'refresh-sample-data'
-}
-
-export class EnrichOrganizationQueueMessage implements IQueueMessage {
-  public readonly type: string = NodejsWorkerQueueMessageType.NODE_MICROSERVICE
-  public readonly service = 'enrich-organizations'
-
-  constructor(public readonly tenantId: string, public readonly maxEnrichLimit: number) {}
 }

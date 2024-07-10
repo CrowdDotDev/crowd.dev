@@ -9,7 +9,7 @@ export interface IDbOrganization {
   id: string
   tenantId: string
   description?: string
-  displayName?: string
+  displayName: string
   logo?: string
   tags?: string[]
   employees?: number

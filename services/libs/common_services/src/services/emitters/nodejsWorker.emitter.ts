@@ -6,12 +6,7 @@ import { CrowdQueue, NODEJS_WORKER_QUEUE_SETTINGS, SqsClient } from '@crowd/sqs'
 import { Tracer } from '@crowd/tracing'
 import {
   AutomationType,
-  BulkEnrichQueueMessage,
   EagleEyeEmailDigestQueueMessage,
-  EnrichOrganizationQueueMessage,
-  NewActivityAutomationQueueMessage,
-  NewMemberAutomationQueueMessage,
-  ProcessAutomationQueueMessage,
   QueuePriorityLevel,
   RefreshSampleDataQueueMessage,
   SendgridWebhookQueueMessage,
@@ -43,73 +38,11 @@ export class NodejsWorkerEmitter extends QueuePriorityService {
     )
   }
 
-  public async processAutomationForNewActivity(
-    tenantId: string,
-    activityId: string,
-    segmentId: string,
-    onboarding: boolean,
-  ): Promise<void> {
-    await this.sendMessage(
-      tenantId,
-      `${activityId}--${segmentId}`,
-      new NewActivityAutomationQueueMessage(tenantId, activityId, segmentId),
-      `${activityId}--${segmentId}`,
-      {
-        onboarding,
-      },
-    )
-  }
-
-  public async processAutomationForNewMember(
-    tenantId: string,
-    memberId: string,
-    segmentId: string,
-    onboarding: boolean,
-  ): Promise<void> {
-    await this.sendMessage(
-      tenantId,
-      memberId,
-      new NewMemberAutomationQueueMessage(tenantId, memberId, segmentId),
-      memberId,
-      {
-        onboarding,
-      },
-    )
-  }
-
-  public async bulkEnrich(
-    tenantId: string,
-    memberIds: string[],
-    segmentIds: string[],
-    notifyFrontend = true,
-    skipCredits = false,
-  ): Promise<void> {
-    await this.sendMessage(
-      tenantId,
-      generateUUIDv1(),
-      new BulkEnrichQueueMessage(tenantId, memberIds, segmentIds, notifyFrontend, skipCredits),
-    )
-  }
-
   public async eagleEyeEmailDigest(tenantId: string, user: string): Promise<void> {
     await this.sendMessage(
       tenantId,
       generateUUIDv1(),
       new EagleEyeEmailDigestQueueMessage(tenantId, user),
-    )
-  }
-
-  public async processAutomation(
-    tenantId: string,
-    type: AutomationType,
-    automation: any,
-    eventId: string,
-    payload: any,
-  ): Promise<void> {
-    await this.sendMessage(
-      tenantId,
-      generateUUIDv1(),
-      new ProcessAutomationQueueMessage(tenantId, type, automation, eventId, payload),
     )
   }
 
@@ -151,14 +84,6 @@ export class NodejsWorkerEmitter extends QueuePriorityService {
       undefined,
       undefined,
       QueuePriorityLevel.SYSTEM,
-    )
-  }
-
-  public async enrichOrganizations(tenantId: string, maxEnrichLimit = 0): Promise<void> {
-    await this.sendMessage(
-      tenantId,
-      tenantId,
-      new EnrichOrganizationQueueMessage(tenantId, maxEnrichLimit),
     )
   }
 }

@@ -18,6 +18,7 @@ import OrganizationSimilarityCalculator from '../organizationSimilarityCalculato
 import { QueryExecutor, pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { buildFullOrgForMergeSuggestions } from '@crowd/opensearch'
 import { fetchOrgIdentities, findOrgAttributes } from '@crowd/data-access-layer/src/organizations'
+import { OrganizationField, findOrgById, queryOrgs } from '@crowd/data-access-layer'
 
 export async function getOrganizations(
   tenantId: string,
@@ -343,20 +344,7 @@ async function prepareOrg(
   organizationId: string,
 ): Promise<ILLMConsumableOrganization> {
   const [base, identities, attributes] = await Promise.all([
-    findOrgById(qx, organizationId, {
-      fields: [
-        OrganizationField.ID,
-        OrganizationField.DISPLAY_NAME,
-        OrganizationField.DESCRIPTION,
-        OrganizationField.LOGO,
-        OrganizationField.TAGS,
-        OrganizationField.LOCATION,
-        OrganizationField.TYPE,
-        OrganizationField.HEADLINE,
-        OrganizationField.INDUSTRY,
-        OrganizationField.FOUNDED,
-      ],
-    }),
+    findOrgById(qx, organizationId),
     fetchOrgIdentities(qx, organizationId),
     findOrgAttributes(qx, organizationId),
   ])

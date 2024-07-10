@@ -215,21 +215,14 @@ export async function getOrgIdsToEnrich(
 
   const query = `
   with activity_data as (select "organizationId",
-                                count(id)      as "activityCount",
-                                max(timestamp) as "lastActive"
-                        from activities
-                        where "deletedAt" is null
-                        group by "organizationId"),
-        identities as (select "organizationId", platform, type, value, verified 
-                        from "organizationIdentities"
-                        where type = '${OrganizationIdentityType.PRIMARY_DOMAIN}'
-                              and verified = true
+                                sum("activityCount")  as "activityCount",
+                                max("lastActive")     as "lastActive"
+                        from "organizationSegmentsAgg"
                         group by "organizationId")
   select o.id as "organizationId", 
          o."tenantId"
   from organizations o
           inner join activity_data ad on ad."organizationId" = o.id
-          inner join identities i on i."organizationId" = o.id
   where ${conditions.join(' and ')}
   order by ad."activityCount" desc
   limit ${perPage} offset ${(page - 1) * perPage};

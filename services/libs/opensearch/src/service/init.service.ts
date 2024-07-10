@@ -1,4 +1,5 @@
 import {
+  IMemberSegmentAggregates,
   IOrganizationFullAggregatesOpensearch,
   MemberIdentityType,
   OrganizationIdentityType,

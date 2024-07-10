@@ -6,7 +6,7 @@ WITH avg_engagement AS (
         a."organizationId",
         a."segmentId",
         COALESCE(ROUND(AVG(a.score)), 0) AS "avgContributorEngagement"
-    FROM activities a
+    FROM old_activities a
     GROUP BY a."organizationId", a."segmentId", a."tenantId"
 )
 UPDATE "organizationSegmentsAgg" osa

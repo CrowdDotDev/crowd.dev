@@ -18,7 +18,6 @@ import {
   IOrganization,
   IUnmergePreviewResult,
   MemberIdentityType,
-  MemberRoleUnmergeStrategy,
   MergeActionState,
   MergeActionType,
   SyncMode,

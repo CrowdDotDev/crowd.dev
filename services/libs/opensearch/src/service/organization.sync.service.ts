@@ -319,8 +319,7 @@ export class OrganizationSyncService {
       for (const organizationId of organizationIds) {
         let orgData: IOrganizationSegmentAggregates[]
         try {
-          const qx = repoQx(this.orgRepo)
-          orgData = await getOrgAggregates(qx, organizationId)
+          orgData = await getOrgAggregates(this.qdbStore.connection(), organizationId)
         } catch (e) {
           this.log.error(e, 'Failed to get organization aggregates!')
           throw e
@@ -375,7 +374,6 @@ export class OrganizationSyncService {
 
       return {
         organizationsSynced: organizationIds.length,
-        documentsIndexed,
       }
     }
     await syncOrgsToOpensearchForMergeSuggestions(syncResults.organizationIdsToIndex)

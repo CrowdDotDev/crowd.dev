@@ -502,7 +502,7 @@ export async function queryActivities(
     ACTIVITY_QUERY_FILTER_COLUMN_MAP,
     [],
     params,
-    true,
+    { pgPromiseFormat: true },
   )
 
   if (filterString.trim().length === 0) {

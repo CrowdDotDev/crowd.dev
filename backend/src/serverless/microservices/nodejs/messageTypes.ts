@@ -13,11 +13,6 @@ export type EagleEyeEmailDigestMessage = BaseNodeMicroserviceMessage & {
   user: string
 }
 
-export type IntegrationDataCheckerMessage = BaseNodeMicroserviceMessage & {
-  integrationId: string
-  tenantId: string
-}
-
 export type ActivityAutomationData = {
   activityId: string
 }

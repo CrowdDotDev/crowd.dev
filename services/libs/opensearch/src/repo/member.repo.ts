@@ -232,6 +232,7 @@ export class MemberRepository extends RepositoryBase<MemberRepository> {
     coalesce(nmd.no_merge_ids, array []::text[])       as "noMergeIds"
   from members m
     inner join identities i on m.id = i."memberId"
+    left join activity_data ad on m.id = ad."memberId"
     left join to_merge_data tmd on m.id = tmd."memberId"
     left join no_merge_data nmd on m.id = nmd."memberId"
     left join member_tags mt on m.id = mt."memberId"
