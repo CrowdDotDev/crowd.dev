@@ -9,3 +9,8 @@ export interface IMemberSegmentAggregates {
   activeOn: string[]
   averageSentiment: number
 }
+
+export interface IMemberAbsoluteAggregates {
+  activityCount: number
+  lastActive: string
+}

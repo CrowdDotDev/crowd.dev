@@ -1,7 +1,7 @@
 import { getServiceChildLogger } from '@crowd/logging'
 import { QueryExecutor } from '../queryExecutor'
 import { prepareBulkInsert } from '../utils'
-import { IMemberSegmentAggregates } from './types'
+import { IMemberAbsoluteAggregates, IMemberSegmentAggregates } from './types'
 
 const log = getServiceChildLogger('organizations/segments')
 
@@ -66,13 +66,14 @@ export async function fetchManyMemberSegments(
   )
 }
 
-export async function fetchTotalActivityCount(
+export async function fetchAbsoluteMemberAggregates(
   qx: QueryExecutor,
   memberId: string,
-): Promise<number> {
-  const res: { activityCount: number } = await qx.selectOneOrNone(
+): Promise<IMemberAbsoluteAggregates> {
+  return qx.selectOneOrNone(
     `
-      SELECT SUM("activityCount") as "activityCount"
+      SELECT SUM("activityCount") as "activityCount", 
+             MAX("lastActive") as "lastActive"
       FROM "memberSegmentsAgg"
       WHERE "memberId" = $(memberId);
     `,
@@ -80,6 +81,4 @@ export async function fetchTotalActivityCount(
       memberId,
     },
   )
-
-  return res?.activityCount || 0
 }
