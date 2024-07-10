@@ -10,49 +10,66 @@
         </div>
 
         <div class="flex flex-col gap-3 items-start">
-          <article v-for="(identity, ii) of form" :key="ii" class="flex items-center w-full">
-            <lf-input v-model="identity.value" class="!rounded-r-none h-10 flex-grow" placeholder="...">
-              <template #prefix>
-                <div class="flex items-center flex-nowrap whitespace-nowrap">
-                  <div class="min-w-5">
-                    <lf-icon v-if="identity.type === 'email'" name="mail-line" class="text-black" :size="20" />
-                    <img
-                      v-else-if="platform(identity.platform)"
-                      :src="platform(identity.platform)?.image"
-                      class="h-5 w-5 object-contain"
-                      :alt="identity.value"
-                    />
-                    <lf-icon
-                      v-else
-                      name="fingerprint-fill"
-                      :size="20"
-                      class="text-gray-600"
-                    />
-                  </div>
-                  <p
-                    v-if="identity.type !== 'email' && platform(identity.platform)?.urlPrefix"
-                    class="-mr-2 pl-2"
-                    :class="identity.value?.length ? 'text-black' : 'text-gray-400'"
-                  >
-                    {{ platform(identity.platform)?.urlPrefix }}
-                  </p>
-                </div>
-              </template>
-            </lf-input>
-            <label class="border border-gray-200 h-10 py-2.5 px-3 border-l-0 cursor-pointer rounded-r-lg">
-              <lf-checkbox v-model="identity.verified" class="!flex-nowrap">
-                Verified
-              </lf-checkbox>
-            </label>
-            <lf-button
-              v-if="form.length > 1"
-              class="ml-3"
-              type="secondary-ghost-light"
-              :icon-only="true"
-              @click="form.splice(ii, 1)"
-            >
-              <lf-icon name="delete-bin-6-line" />
-            </lf-button>
+          <article v-for="(identity, ii) of form" :key="ii" class="w-full">
+            <lf-field class="w-full">
+              <div class="flex items-center w-full">
+                <lf-input
+                  v-model="identity.value"
+                  class="!rounded-r-none h-10 flex-grow"
+                  placeholder="..."
+                  :invalid="$v.form[ii].value.$invalid && $v.form[ii].value.$dirty"
+                  @blur="$v.form[ii].value.$touch()"
+                >
+                  <template #prefix>
+                    <div class="flex items-center flex-nowrap whitespace-nowrap">
+                      <div class="min-w-5">
+                        <lf-icon v-if="identity.type === 'email'" name="mail-line" class="text-black" :size="20" />
+                        <img
+                          v-else-if="platform(identity.platform)"
+                          :src="platform(identity.platform)?.image"
+                          class="h-5 w-5 object-contain"
+                          :alt="identity.value"
+                        />
+                        <lf-icon
+                          v-else
+                          name="fingerprint-fill"
+                          :size="20"
+                          class="text-gray-600"
+                        />
+                      </div>
+                      <p
+                        v-if="identity.type !== 'email' && platform(identity.platform)?.urlPrefix"
+                        class="-mr-2 pl-2"
+                        :class="identity.value?.length ? 'text-black' : 'text-gray-400'"
+                      >
+                        {{ platform(identity.platform)?.urlPrefix }}
+                      </p>
+                    </div>
+                  </template>
+                </lf-input>
+                <label class="border border-gray-200 h-10 py-2.5 px-3 border-l-0 cursor-pointer rounded-r-lg">
+                  <lf-checkbox v-model="identity.verified" class="!flex-nowrap">
+                    Verified
+                  </lf-checkbox>
+                </label>
+                <lf-button
+                  v-if="form.length > 1"
+                  class="ml-3"
+                  type="secondary-ghost-light"
+                  :icon-only="true"
+                  @click="form.splice(ii, 1)"
+                >
+                  <lf-icon name="delete-bin-6-line" />
+                </lf-button>
+              </div>
+              <lf-field-messages
+                :validation="$v.form[ii].value"
+                :error-messages="{
+                  required: 'This field is required',
+                  email: 'This email address is not valid',
+                }"
+              />
+            </lf-field>
           </article>
           <lf-contributor-details-identity-add-dropdown
             placement="bottom-start"
@@ -101,6 +118,8 @@ import LfContributorDetailsIdentityAddDropdown
 import pluralize from 'pluralize';
 import { email, helpers, required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
+import LfField from '@/ui-kit/field/Field.vue';
+import LfFieldMessages from '@/ui-kit/field-messages/FieldMessages.vue';
 
 const props = defineProps<{
   modelValue: boolean,

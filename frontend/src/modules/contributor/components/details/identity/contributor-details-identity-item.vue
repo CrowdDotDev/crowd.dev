@@ -1,6 +1,8 @@
 <template>
   <article
-    class="flex items-start"
+    class="flex items-start contributor-identity-item"
+    @mouseover="hovered = true"
+    @mouseleave="hovered = false"
   >
     <div class="mt-0.5">
       <lf-tooltip v-if="props.identity.type === 'email'" content="Email" placement="top-start">
@@ -56,58 +58,70 @@
     </div>
 
     <!-- Dropdown -->
-    <lf-dropdown v-if="hasPermission(LfPermission.memberEdit)" placement="bottom-end" width="232px">
+    <lf-dropdown v-if="hovered && hasPermission(LfPermission.memberEdit)" placement="bottom-end" width="232px">
       <template #trigger>
         <lf-button type="secondary-ghost" size="small" :icon-only="true">
           <lf-icon name="more-fill" />
         </lf-button>
       </template>
       <!-- Edit identity -->
-      <el-tooltip
+      <lf-tooltip
         placement="top"
         :disabled="!editingDisabled"
-        :content="`Identity can't be edited because the contributor is active on
-        ${platform(props.identity.platform)?.name || props.identity.platform}`"
+        class="!w-full"
       >
+        <template #content>
+          Identity can't be edited because the <br>contributor is active on
+          {{ platform(props.identity.platform)?.name || props.identity.platform }}
+        </template>
         <lf-dropdown-item
           :disabled="editingDisabled"
+          class="w-full"
           @click="emit('edit')"
         >
           <lf-icon name="pencil-line" />Edit identity
         </lf-dropdown-item>
-      </el-tooltip>
+      </lf-tooltip>
 
       <lf-dropdown-separator />
 
       <!-- Verified -->
-      <el-tooltip
+      <lf-tooltip
         v-if="props.identity.verified"
         placement="top"
-        content="Identities tracked from Integrations can’t be unverified"
         :disabled="!isVerifyDisabled"
+        class="!w-full"
       >
+        <template #content>
+          Identities tracked from an Integrations<br> can’t be unverified
+        </template>
         <lf-dropdown-item
           v-if="props.identity.verified"
           placement="top"
           :disabled="isVerifyDisabled"
+          class="w-full"
           @click="verifyIdentity(false)"
         >
           <lf-svg name="unverify" class="!h-4 !w-4 text-gray-600" />Unverify identity
         </lf-dropdown-item>
-      </el-tooltip>
-      <el-tooltip
+      </lf-tooltip>
+      <lf-tooltip
         v-else
         placement="top"
-        content="Identities tracked from Integrations can’t be verified"
         :disabled="!isVerifyDisabled"
+        class="!w-full"
       >
+        <template #content>
+          Identities tracked from an Integrations<br> can’t be verified
+        </template>
         <lf-dropdown-item
           :disabled="isVerifyDisabled"
+          class="w-full"
           @click="verifyIdentity(true)"
         >
           <lf-icon name="verified-badge-line" />Verify identity
         </lf-dropdown-item>
-      </el-tooltip>
+      </lf-tooltip>
 
       <!-- Unmerge -->
       <lf-dropdown-item @click="emit('unmerge')">
@@ -115,20 +129,24 @@
       </lf-dropdown-item>
 
       <lf-dropdown-separator />
-      <el-tooltip
+      <lf-tooltip
         placement="top"
         :disabled="!editingDisabled"
-        :content="`Identity can't be deleted because the contributor is active on
-        ${platform(props.identity.platform)?.name || props.identity.platform}`"
+        class="!w-full"
       >
+        <template #content>
+          Identity can't be deleted because the <br>contributor is active on
+          {{ platform(props.identity.platform)?.name || props.identity.platform }}
+        </template>
         <lf-dropdown-item
           type="danger"
           :disabled="editingDisabled"
+          class="w-full"
           @click="removeIdentity"
         >
           <lf-icon name="delete-bin-6-line" />Delete identity
         </lf-dropdown-item>
-      </el-tooltip>
+      </lf-tooltip>
     </lf-dropdown>
   </article>
 </template>
@@ -147,7 +165,7 @@ import { useContributorStore } from '@/modules/contributor/store/contributor.sto
 import LfSvg from '@/shared/svg/svg.vue';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 
 const props = defineProps<{
   identity: ContributorIdentity,
@@ -159,6 +177,8 @@ const emit = defineEmits<{(e: 'edit'): void, (e: 'unmerge'): void }>();
 const { hasPermission } = usePermissions();
 
 const { updateContributor } = useContributorStore();
+
+const hovered = ref(false);
 
 const platform = (name: string) => CrowdIntegrations.getConfig(name);
 
