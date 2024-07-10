@@ -3,7 +3,7 @@
     class="c-tooltip"
     :class="[`c-tooltip--${placement}`, props.disabled ? 'c-tooltip--disabled' : '']"
   >
-    <div class="c-tooltip__content">
+    <div class="c-tooltip__content" :class="props.contentClass">
       <slot name="content">
         {{ props.content }}
       </slot>
@@ -19,10 +19,12 @@ const props = withDefaults(defineProps<{
   placement?: TooltipPlacement,
   content?: string,
   disabled?: boolean,
+  contentClass?: string,
 }>(), {
   placement: 'top',
   content: '',
   disabled: false,
+  contentClass: '',
 });
 </script>
 

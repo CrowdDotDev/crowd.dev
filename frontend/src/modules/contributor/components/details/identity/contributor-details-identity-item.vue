@@ -224,11 +224,11 @@ const removeIdentity = () => {
   updateContributor(props.contributor.id, {
     identities,
   })
+    .then(() => {
+      Message.success('Identity deleted successfully');
+    })
     .catch(() => {
       Message.error('Something went wrong while deleting an identity');
-    })
-    .then(() => {
-      Message.success('Identity updated successfully');
     });
 };
 </script>
