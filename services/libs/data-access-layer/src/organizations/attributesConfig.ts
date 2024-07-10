@@ -111,6 +111,11 @@ export const ORG_DB_ATTRIBUTES: OrgAttributeDef[] = [
     type: OrganizationAttributeType.STRING,
   },
   {
+    name: 'tag',
+    incomingType: 'string_array',
+    type: OrganizationAttributeType.STRING,
+  },
+  {
     name: 'geoLocation',
     incomingType: OrganizationAttributeType.STRING,
     type: OrganizationAttributeType.STRING,

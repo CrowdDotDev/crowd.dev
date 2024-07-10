@@ -43,9 +43,9 @@ class SegmentRepository extends RepositoryBase<
     const transaction = this.transaction
 
     const segmentInsertResult = await this.options.database.sequelize.query(
-      `INSERT INTO "segments" ("id", "url", "name", "slug", "parentSlug", "grandparentSlug", "status", "parentName", "sourceId", "sourceParentId", "tenantId", "grandparentName")
+      `INSERT INTO "segments" ("id", "url", "name", "slug", "parentSlug", "grandparentSlug", "status", "parentName", "sourceId", "sourceParentId", "tenantId", "grandparentName", "parentId", "grandparentId")
           VALUES
-              (:id, :url, :name, :slug, :parentSlug, :grandparentSlug, :status, :parentName, :sourceId, :sourceParentId, :tenantId, :grandparentName)
+              (:id, :url, :name, :slug, :parentSlug, :grandparentSlug, :status, :parentName, :sourceId, :sourceParentId, :tenantId, :grandparentName, :parentId, :grandparentId)
           RETURNING "id"
         `,
       {
@@ -62,6 +62,8 @@ class SegmentRepository extends RepositoryBase<
           sourceId: data.sourceId || null,
           sourceParentId: data.sourceParentId || null,
           tenantId: this.options.currentTenant.id,
+          parentId: data.parentId || null,
+          grandparentId: data.grandparentId || null,
         },
         type: QueryTypes.INSERT,
         transaction,
@@ -129,6 +131,8 @@ class SegmentRepository extends RepositoryBase<
           'slug',
           'parentSlug',
           'grandparentSlug',
+          'parentId',
+          'grandparentId',
           'status',
           'parentName',
           'sourceId',
