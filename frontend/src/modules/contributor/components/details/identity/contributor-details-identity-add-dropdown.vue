@@ -3,13 +3,23 @@
     <template #trigger>
       <slot />
     </template>
-    <div class="max-h-60 overflow-auto -m-2 p-2">
-      <div class="-mt-2 -mx-2 border-b border-gray-100 mb-2" @click.stop>
+    <div class="max-h-60 overflow-y-scroll -m-2 p-2 pt-0">
+      <div class="-mx-2 border-b border-gray-100 mb-2 sticky top-0" @click.stop>
         <lf-input
           v-model="search"
           class="!border-0 !shadow-none h-12"
           placeholder="Search..."
-        />
+        >
+          <template #suffix>
+            <lf-icon
+              v-if="search.length"
+              name="close-circle-line"
+              :size="16"
+              class="text-gray-400 cursor-pointer"
+              @click="search = ''"
+            />
+          </template>
+        </lf-input>
       </div>
       <lf-dropdown-item
         v-for="platform in platforms"
@@ -55,12 +65,12 @@ import { computed, ref } from 'vue';
 const emit = defineEmits<{(e: 'add', value: Partial<ContributorIdentity>): void}>();
 
 const platformList = Object.entries({
-  ...CrowdIntegrations.integrations,
-  ...CrowdIntegrations.customIntegrations,
-}).map(([key, config]) => ({
-  ...config,
-  key,
-}));
+  ...CrowdIntegrations.memberIdentities,
+})
+  .map(([key, config]) => ({
+    ...config,
+    key,
+  }));
 
 const search = ref<string>('');
 
