@@ -46,34 +46,11 @@ export async function getMemberAggregates(
     `
       WITH
           segments_with_children AS (
-              SELECT
-                  pg.id AS segment_id,
-                  'project-group' AS segment_type,
-                  sp.id AS subproject
-              FROM segments pg
-              JOIN segments p ON p."parentSlug" = pg.slug AND p."grandparentSlug" IS NULL
-              JOIN segments sp ON sp."parentSlug" = p.slug AND sp."grandparentSlug" = p."parentSlug"
-              WHERE pg."parentSlug" IS NULL
-                AND pg."grandparentSlug" IS NULL
-
-              UNION ALL
-
-              SELECT
-                  p.id AS segment_id,
-                  'project' AS segment_type,
-                  sp.id AS subproject
-              FROM segments p
-              JOIN segments sp ON sp."parentSlug" = p.slug AND sp."grandparentSlug" = p."parentSlug"
-              WHERE p."grandparentSlug" IS NULL
-
-              UNION ALL
-
-              SELECT
-                  sp.id AS segment_id,
-                  'subproject' AS segment_type,
-                  sp.id AS subproject
-              FROM segments sp
-              WHERE sp."parentSlug" IS NOT NULL AND sp."grandparentSlug" IS NOT NULL
+            SELECT
+              UNNEST(ARRAY["id", "parentId", "grandparentId"]) AS segment_id,
+              s.id AS subproject
+            FROM segments s
+            WHERE type = 'subproject'
           )
       SELECT
           m."id" AS "memberId",
