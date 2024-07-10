@@ -2,7 +2,7 @@
   @apply relative inline-block cursor-pointer;
 
   &__menu{
-    @apply absolute z-10 w-max transition-all overflow-hidden invisible opacity-0;
+    @apply absolute z-10 w-max transition-all overflow-visible invisible opacity-0;
     @apply border border-gray-100 shadow-md p-2 flex flex-col gap-1 rounded-xl bg-white;
 
     &.is-open {
@@ -33,7 +33,7 @@
 
 
   &__item{
-    @apply cursor-pointer transition-all flex items-center gap-3;
+    @apply cursor-pointer transition-all flex items-center gap-2;
     @apply p-2 text-sm leading-4 rounded-lg text-gray-900;
 
     &:hover{
