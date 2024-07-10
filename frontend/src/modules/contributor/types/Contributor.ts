@@ -35,6 +35,9 @@ export interface ContributorIdentity {
   value: string;
   verified: boolean;
   sourceId: string | null;
+  // Computed properties
+  platforms?: string[];
+  url?: string;
 }
 
 export interface Contributor {

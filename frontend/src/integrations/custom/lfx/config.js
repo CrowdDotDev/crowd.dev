@@ -1,5 +1,5 @@
 export default {
-  name: 'LFX',
+  name: 'Linux Foundation ID',
   image: '/images/integrations/custom/lfx.png',
   enabled: true,
   chartColor: '#003764',
