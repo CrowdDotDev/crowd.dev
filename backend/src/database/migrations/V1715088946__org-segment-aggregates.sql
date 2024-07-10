@@ -6,8 +6,8 @@ CREATE TABLE "organizationSegmentsAgg" (
     "joinedAt" TIMESTAMP WITH TIME ZONE NOT NULL,
     "lastActive" TIMESTAMP WITH TIME ZONE NOT NULL,
     "activeOn" TEXT[] NOT NULL,
-    "activityCount" INTEGER NOT NULL,
-    "memberCount" INTEGER NOT NULL,
+    "activityCount" BIGINT NOT NULL,
+    "memberCount" BIGINT NOT NULL,
     UNIQUE ("organizationId", "segmentId")
 );
 
@@ -62,7 +62,7 @@ SELECT
     o."id",
     s.segment_id,
     o."tenantId",
-    MIN(md."joinedAt") AS "joinedAt",
+    COALESCE(MIN(md."joinedAt"), '1970-01-01') AS "joinedAt",
     MAX(md."lastActive") AS "lastActive",
     ARRAY_AGG(DISTINCT active_on.item) AS "activeOn",
     SUM(md."activityCount") AS "activityCount",

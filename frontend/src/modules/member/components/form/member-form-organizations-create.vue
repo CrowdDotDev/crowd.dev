@@ -55,33 +55,7 @@
                   {{ item.label }}
                 </div>
 
-                <div v-if="item.segments.length">
-                  <el-popover
-                    trigger="hover"
-                    placement="top"
-                    popper-class="!w-[260px] !max-w-[260px] !max-h-[400px] overflow-auto"
-                    :disabled="item.segments.length === 1"
-                  >
-                    <template #reference>
-                      <el-tag type="info" size="small">
-                        {{ item.segments.length > 1 ? pluralize('project group', item.segments.length, true) : getSegmentName(item.segments[0]) }}
-                      </el-tag>
-                    </template>
-
-                    <div>
-                      <div class="mb-2 text-gray-400 text-2xs">
-                        Project groups
-                      </div>
-                      <div class="flex flex-wrap items-center gap-1">
-                        <div v-for="segmentId in item.segments" :key="segmentId">
-                          <el-tag type="info" size="small">
-                            {{ getSegmentName(segmentId) }}
-                          </el-tag>
-                        </div>
-                      </div>
-                    </div>
-                  </el-popover>
-                </div>
+                <lf-project-groups-tags :segments="item.segments" />
               </div>
             </template>
           </app-autocomplete-one-input>
@@ -165,10 +139,9 @@ import AppAutocompleteOneInput from '@/shared/form/autocomplete-one-input.vue';
 import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 import moment from 'moment';
-import { getSegmentName } from '@/utils/segments';
-import pluralize from 'pluralize';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import LfProjectGroupsTags from '@/shared/modules/project-groups/components/project-groups-tags.vue';
 import { Member } from '../../types/Member';
 
 interface MemberOrganizationForm {
@@ -259,7 +232,6 @@ const fetchOrganizationsFn = async ({ query } : {
   query,
   limit: 40,
   excludeSegments: true,
-  grandParentSegment: true,
 })
   .then((options: Organization[]) => options.filter((m) => m.id !== props.modelValue.id));
 

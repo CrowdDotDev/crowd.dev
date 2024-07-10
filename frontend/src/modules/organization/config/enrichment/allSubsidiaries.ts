@@ -1,5 +1,4 @@
 import { AttributeType } from '@/modules/organization/types/Attributes';
-import OrganizationAttributesArrayRenderer from '@/modules/organization/components/organization-attributes-array-renderer.vue';
 import { OrganizationEnrichmentConfig } from '@/modules/organization/config/enrichment/index';
 
 const allSubsidiaries: OrganizationEnrichmentConfig = {
@@ -8,7 +7,7 @@ const allSubsidiaries: OrganizationEnrichmentConfig = {
   type: AttributeType.ARRAY,
   showInForm: true,
   showInAttributes: true,
-  component: OrganizationAttributesArrayRenderer,
+  formatValue: (value) => value,
 };
 
 export default allSubsidiaries;

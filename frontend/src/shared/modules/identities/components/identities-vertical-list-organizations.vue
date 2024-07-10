@@ -2,7 +2,7 @@
   <div
     v-if="Object.keys({
       ...identities.getIdentities(),
-      ...(includeEmails ? { emails: identities.getEmails() } : {}),
+      ...(includeDomains ? { domains: identities.getDomains() } : {}),
       ...(includePhoneNumbers ? { phoneNumbers: identities.getPhoneNumbers() } : {}),
     }).length"
   >
@@ -10,6 +10,7 @@
       :identities="{
         ...identities.getIdentities(),
         ...(includeEmails ? { emails: identities.getEmails() } : {}),
+        ...(includeDomains ? { domains: identities.getDomains() } : {}),
         ...(includePhoneNumbers ? { phoneNumbers: identities.getPhoneNumbers() } : {}),
       }"
       :x-padding="xPadding"
@@ -36,6 +37,7 @@ const props = defineProps<{
   xPadding?: number;
   displayShowMore?: boolean;
   includeEmails?: boolean;
+  includeDomains?: boolean;
   includePhoneNumbers?: boolean;
 }>();
 

@@ -53,8 +53,6 @@ setImmediate(async () => {
 
   const opensearch = getOpensearchClient(OPENSEARCH_CONFIG)
 
-  const productDbClient = await getDbConnection(PRODUCT_DB_CONFIG)
-
   const redisPubSubPair = await getRedisPubSubPair(REDIS_CONFIG)
   const userNamespace = await WebSockets.initialize(server)
 
@@ -119,9 +117,6 @@ setImmediate(async () => {
 
   // Initializes and adds the database middleware.
   app.use(databaseMiddleware)
-
-  // Bind product db
-  app.use(productDatabaseMiddleware(productDbClient))
 
   // Bind redis to request
   app.use(redisMiddleware(redis))
@@ -212,6 +207,13 @@ setImmediate(async () => {
   // Enable Passport for Social Sign-in
   authSocial(app, routes)
 
+  // Enable product db only if it's configured
+  if (PRODUCT_DB_CONFIG) {
+    const productDbClient = await getDbConnection(PRODUCT_DB_CONFIG)
+    app.use(productDatabaseMiddleware(productDbClient))
+    require('./product').default(routes)
+  }
+
   require('./auditLog').default(routes)
   require('./auth').default(routes)
   require('./plan').default(routes)
@@ -236,8 +238,6 @@ setImmediate(async () => {
   require('./eventTracking').default(routes)
   require('./customViews').default(routes)
   require('./dashboard').default(routes)
-  require('./premium/enrichment').default(routes)
-  require('./product').default(routes)
   // Loads the Tenant if the :tenantId param is passed
   routes.param('tenantId', tenantMiddleware)
   routes.param('tenantId', segmentMiddleware)

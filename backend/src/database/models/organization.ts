@@ -9,79 +9,6 @@ export default (sequelize) => {
         defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
       },
-      displayName: {
-        type: DataTypes.TEXT,
-        allowNull: false,
-        validate: {
-          notEmpty: true,
-        },
-      },
-      website: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-      },
-      location: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-      },
-      description: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-        comment: 'A detailed description of the company',
-      },
-      immediateParent: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-      },
-      ultimateParent: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-      },
-      emails: {
-        type: DataTypes.ARRAY(DataTypes.TEXT),
-        allowNull: true,
-        default: [],
-      },
-      phoneNumbers: {
-        type: DataTypes.ARRAY(DataTypes.TEXT),
-        allowNull: true,
-        default: [],
-      },
-      logo: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-      },
-      tags: {
-        type: DataTypes.ARRAY(DataTypes.TEXT),
-        allowNull: true,
-        default: [],
-      },
-      github: {
-        type: DataTypes.JSONB,
-        default: {},
-      },
-      twitter: {
-        type: DataTypes.JSONB,
-        default: {},
-      },
-      linkedin: {
-        type: DataTypes.JSONB,
-        default: {},
-      },
-      crunchbase: {
-        type: DataTypes.JSONB,
-        default: {},
-      },
-      employees: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-        comment: 'total employee count of the company',
-      },
-      revenueRange: {
-        type: DataTypes.JSONB,
-        allowNull: true,
-        comment: 'inferred revenue range of the company',
-      },
       importHash: {
         type: DataTypes.STRING(255),
         allowNull: true,
@@ -94,56 +21,7 @@ export default (sequelize) => {
         defaultValue: false,
         allowNull: false,
       },
-      founded: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-      },
-      industry: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-      },
-      size: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-        comment: 'A range representing the size of the company.',
-      },
-      naics: {
-        type: DataTypes.JSONB,
-        allowNull: true,
-        comment: 'industry classifications for a company according to NAICS',
-      },
-      headline: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-        comment: 'A brief description of the company',
-      },
-      ticker: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-        comment: "the company's stock symbol",
-      },
-      geoLocation: {
-        type: DataTypes.STRING,
-        allowNull: true,
-      },
-      type: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-        comment: "The company's type. For example NGO",
-      },
-      employeeCountByCountry: {
-        type: DataTypes.JSONB,
-        allowNull: true,
-      },
-      address: {
-        type: DataTypes.JSONB,
-        allowNull: true,
-        comment: "granular information about the location of the company's current headquarters.",
-      },
-      profiles: {
-        type: DataTypes.ARRAY(DataTypes.TEXT),
-        allowNull: true,
-      },
+
       lastEnrichedAt: {
         type: DataTypes.DATE,
         allowNull: true,
@@ -152,79 +30,6 @@ export default (sequelize) => {
         type: DataTypes.BOOLEAN,
         allowNull: false,
         defaultValue: false,
-      },
-      attributes: {
-        type: DataTypes.JSONB,
-        defaultValue: {},
-      },
-      affiliatedProfiles: {
-        type: DataTypes.ARRAY(DataTypes.TEXT),
-        allowNull: true,
-      },
-      allSubsidiaries: {
-        type: DataTypes.ARRAY(DataTypes.TEXT),
-        allowNull: true,
-      },
-      alternativeDomains: {
-        type: DataTypes.ARRAY(DataTypes.TEXT),
-        allowNull: true,
-      },
-      alternativeNames: {
-        type: DataTypes.ARRAY(DataTypes.TEXT),
-        allowNull: true,
-      },
-      averageEmployeeTenure: {
-        type: DataTypes.FLOAT,
-        allowNull: true,
-      },
-      averageTenureByLevel: {
-        type: DataTypes.JSONB,
-        allowNull: true,
-      },
-      averageTenureByRole: {
-        type: DataTypes.JSONB,
-        allowNull: true,
-      },
-      directSubsidiaries: {
-        type: DataTypes.ARRAY(DataTypes.TEXT),
-        allowNull: true,
-      },
-      employeeChurnRate: {
-        type: DataTypes.JSONB,
-        allowNull: true,
-      },
-      employeeCountByMonth: {
-        type: DataTypes.JSONB,
-        allowNull: true,
-      },
-      employeeGrowthRate: {
-        type: DataTypes.JSONB,
-        allowNull: true,
-      },
-      employeeCountByMonthByLevel: {
-        type: DataTypes.JSONB,
-        allowNull: true,
-      },
-      employeeCountByMonthByRole: {
-        type: DataTypes.JSONB,
-        allowNull: true,
-      },
-      gicsSector: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-      },
-      grossAdditionsByMonth: {
-        type: DataTypes.JSONB,
-        allowNull: true,
-      },
-      grossDeparturesByMonth: {
-        type: DataTypes.JSONB,
-        allowNull: true,
-      },
-      manuallyChangedFields: {
-        type: DataTypes.ARRAY(DataTypes.TEXT),
-        allowNull: true,
-        default: [],
       },
     },
     {

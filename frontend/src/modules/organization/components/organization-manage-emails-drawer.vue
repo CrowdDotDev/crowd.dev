@@ -6,32 +6,15 @@
     custom-class="emails-drawer"
   >
     <template #content>
-      <div class="-mt-8 z-10 pb-6">
-        <div
-          class="flex gap-2 text-xs text-primary-500 font-semibold items-center cursor-pointer"
-          @click="addEmail()"
-        >
-          <i class="ri-add-line text-base" />Add email
-        </div>
-      </div>
-      <div class="border-t border-gray-200 -mx-6 px-6">
+      <div class="-mt-4 border-t border-gray-200 -mx-6 px-6">
         <div class="gap-4 flex flex-col pt-6 pb-10">
-          <template v-for="(email, ii) of emails" :key="ii">
+          <template v-for="(identity, ii) of emailList" :key="ii">
             <app-organization-form-email-item
-              :email="email"
+              :email="identity"
               :organization="props.organization"
-              @update="update(ii, $event)"
-              @remove="remove(ii)"
-            />
-          </template>
-
-          <template v-for="(email, ai) of addEmails" :key="ai">
-            <app-organization-form-email-item
-              :email="email"
-              :organization="props.organization"
-              :actions-disabled="true"
-              @update="create(ai, $event)"
-              @clear="addEmails.splice(ai, 1)"
+              @update="update(identity.value, $event)"
+              @unmerge="emit('unmerge', $event)"
+              @remove="remove(identity.value)"
             />
           </template>
         </div>
@@ -39,38 +22,33 @@
     </template>
   </app-drawer>
 </template>
-
 <script setup lang="ts">
 import {
-  ref,
-  computed, onUnmounted,
+  computed, onUnmounted, ref,
 } from 'vue';
-import Message from '@/shared/message/message';
-import { OrganizationService } from '@/modules/organization/organization-service';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';
-import { Organization } from '@/modules/organization/types/Organization';
+import { Organization, OrganizationIdentity } from '@/modules/organization/types/Organization';
 import AppDrawer from '@/shared/drawer/drawer.vue';
 import AppOrganizationFormEmailItem
   from '@/modules/organization/components/form/email/organization-form-email-item.vue';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import useOrganizationHelpers from '@/modules/organization/helpers/organization.helpers';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import { OrganizationService } from '@/modules/organization/organization-service';
+import Message from '@/shared/message/message';
 
 const props = defineProps<{
   modelValue: boolean,
   organization: Organization,
 }>();
-
-const emit = defineEmits(['update:modelValue']);
-
+const emit = defineEmits(['update:modelValue', 'unmerge', 'reload']);
 const { trackEvent } = useProductTracking();
-
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
-
 const { fetchOrganization } = useOrganizationStore();
-
+const { emails } = useOrganizationHelpers();
 const drawerModel = computed({
   get() {
     return props.modelValue;
@@ -80,53 +58,46 @@ const drawerModel = computed({
   },
 });
 
-const emails = ref<string[]>([...(props.organization.emails || [])]);
-const addEmails = ref<string[]>([]);
+const emailList = computed(() => emails(props.organization));
+const identities = ref<OrganizationIdentity[]>(props.organization.identities);
 
 const serverUpdate = () => {
   trackEvent({
     key: FeatureEventKey.EDIT_ORGANIZATION_EMAIL_DOMAIN,
     type: EventType.FEATURE,
     properties: {
-      emails: emails.value.filter((e) => !!e.trim()),
+      identities: identities.value,
     },
   });
-
   OrganizationService.update(props.organization.id, {
-    emails: emails.value.filter((e) => !!e.trim()),
+    identities: identities.value,
   }).then(() => {
     Message.success('Organization email updated successfully');
+    emit('reload');
   }).catch((err) => {
     Message.error(err.response.data);
   });
 };
-
-const update = (index: number, data: string) => {
-  emails.value[index] = data;
+const update = (email: string, data: Partial<OrganizationIdentity>) => {
+  identities.value = identities.value.map((i) => {
+    if (i.value === email) {
+      return {
+        ...i,
+        ...data,
+      };
+    }
+    return i;
+  });
   serverUpdate();
 };
-
-const remove = (index: number) => {
-  emails.value.splice(index, 1);
+const remove = (email: string) => {
+  identities.value = identities.value.filter((i) => !(i.type === 'email' && i.value === email));
   serverUpdate();
 };
-
-const create = (index: number, data: string) => {
-  emails.value.push(data);
-  addEmails.value.splice(index, 1);
-  serverUpdate();
-};
-
-const addEmail = () => {
-  addEmails.value.push('');
-};
-
 onUnmounted(() => {
   fetchOrganization(props.organization.id, [selectedProjectGroup.value?.id]);
 });
-
 </script>
-
 <script lang="ts">
 export default {
   name: 'AppOrganizationManageEmailsDrawer',

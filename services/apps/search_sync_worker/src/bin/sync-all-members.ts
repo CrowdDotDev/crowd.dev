@@ -1,13 +1,13 @@
-import { MemberSyncService, OpenSearchService } from '@crowd/opensearch'
-import { DB_CONFIG, OPENSEARCH_CONFIG, REDIS_CONFIG } from '../conf'
-import { MemberRepository } from '@crowd/data-access-layer/src/old/apps/search_sync_worker/member.repo'
-import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
-import { getServiceLogger } from '@crowd/logging'
-import { getRedisClient } from '@crowd/redis'
 import { timeout } from '@crowd/common'
-import { IndexingRepository } from '@crowd/opensearch/src/repo/indexing.repo'
+import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
+import { MemberRepository } from '@crowd/data-access-layer/src/old/apps/search_sync_worker/member.repo'
+import { getServiceLogger } from '@crowd/logging'
+import { MemberSyncService, OpenSearchService } from '@crowd/opensearch'
 import { IndexedEntityType } from '@crowd/opensearch/src/repo/indexing.data'
 import { getClientSQL } from '@crowd/questdb'
+import { IndexingRepository } from '@crowd/opensearch/src/repo/indexing.repo'
+import { getRedisClient } from '@crowd/redis'
+import { DB_CONFIG, OPENSEARCH_CONFIG, REDIS_CONFIG } from '../conf'
 
 const log = getServiceLogger()
 

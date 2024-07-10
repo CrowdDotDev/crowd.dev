@@ -1,5 +1,4 @@
 import { AttributeType } from '@/modules/organization/types/Attributes';
-import OrganizationAttributesJSONRenderer from '@/modules/organization/components/organization-attributes-json-renderer.vue';
 import { formatDate } from '@/utils/date';
 import { OrganizationEnrichmentConfig } from '@/modules/organization/config/enrichment/index';
 
@@ -9,11 +8,13 @@ const employeeCountByMonth: OrganizationEnrichmentConfig = {
   type: AttributeType.JSON,
   showInForm: true,
   showInAttributes: true,
-  component: OrganizationAttributesJSONRenderer,
-  keyParser: (key) => formatDate({
-    timestamp: key,
-    format: 'MMMM YYYY',
-  } as any),
+  formatValue: (val) => Object.entries(val).reduce((final, [key, value]) => ({
+    ...final,
+    [formatDate({
+      timestamp: key,
+      format: 'MMMM YYYY',
+    } as any)]: value,
+  }), {}),
 };
 
 export default employeeCountByMonth;

@@ -68,14 +68,13 @@ export class OrganizationService {
     return response.data;
   }
 
-  static async unmergePreview(orgId, platform, name) {
+  static async unmergePreview(orgId, identity) {
     const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/organization/${orgId}/unmerge/preview`,
       {
-        platform,
-        name,
+        ...identity,
       },
     );
 
@@ -173,7 +172,6 @@ export class OrganizationService {
     segments = null,
     excludeLfMember = false,
     excludeSegments = false,
-    grandParentSegment = false,
   }) {
     const payload = {
       filter: {
@@ -201,13 +199,6 @@ export class OrganizationService {
       }),
     };
 
-    if (grandParentSegment) {
-      payload.filter.and.push({
-        grandParentSegment: {
-          eq: grandParentSegment,
-        },
-      });
-    }
     const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.post(

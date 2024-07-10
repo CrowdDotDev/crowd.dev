@@ -16,16 +16,21 @@ const isValid = (parsed: ParsedResult) => {
 }
 
 export const websiteNormalizer = (website: string, throwError = true): string | undefined => {
-  // remove http:// or https:// and trailing slash
-  const cleanURL = website.replace(/^(?:https?:\/\/)?([^/]+)(?:\/.*)?$/, '$1')
+  // remove http://, https://, www, and trailing slash
+  const cleanURL = website.replace(/^(?:https?:\/\/)?(?:www\.)?([^/]+)(?:\/.*)?$/, '$1')
   const parsed = parse(cleanURL)
 
   if (!isValid(parsed)) {
     if (throwError) {
-      throw new Error('Invalid website URL!')
+      throw new Error(`Invalid website URL '${website}' - clean '${cleanURL}'!`)
     }
     return undefined
   }
 
-  return parsed.domain?.toLowerCase()
+  const domain = parsed.domain?.toLowerCase()
+  const subdomain = parsed.subdomain ? `${parsed.subdomain.toLowerCase()}.` : ''
+
+  const normalized = `${subdomain}${domain}`
+
+  return normalized
 }

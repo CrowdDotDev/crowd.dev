@@ -12,9 +12,19 @@ import {
   markOrganizationAsManuallyCreated,
 } from '@crowd/data-access-layer/src/old/apps/entity_merging_worker'
 import { WorkflowIdReusePolicy } from '@temporalio/workflow'
+import {
+  cleanupForOganization,
+  deleteOrgAttributesByOrganizationId,
+} from '@crowd/data-access-layer/src/organizations'
+import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
 
 export async function deleteOrganization(organizationId: string): Promise<void> {
   await deleteOrganizationSegments(svc.postgres.writer, organizationId)
+
+  const qx = dbStoreQx(svc.postgres.writer)
+  await deleteOrgAttributesByOrganizationId(qx, organizationId)
+  await cleanupForOganization(qx, organizationId)
+
   await deleteOrganizationById(svc.postgres.writer, organizationId)
 }
 

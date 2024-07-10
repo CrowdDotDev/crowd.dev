@@ -1,13 +1,14 @@
 /* eslint-disable no-case-declarations */
-import {
-  NodeMicroserviceMessage,
-  BulkEnrichMessage,
-  OrganizationBulkEnrichMessage,
-} from './messageTypes'
-import { processStripeWebhook } from '../../integrations/workers/stripeWebhookWorker'
 import { processSendgridWebhook } from '../../integrations/workers/sendgridWebhookWorker'
-import { bulkEnrichmentWorker } from './bulk-enrichment/bulkEnrichmentWorker'
-import { BulkorganizationEnrichmentWorker } from './bulk-enrichment/bulkOrganizationEnrichmentWorker'
+import { processStripeWebhook } from '../../integrations/workers/stripeWebhookWorker'
+import { csvExportWorker } from './csv-export/csvExportWorker'
+import { integrationDataCheckerWorker } from './integration-data-checker/integrationDataCheckerWorker'
+import { refreshSampleDataWorker } from './integration-data-checker/refreshSampleDataWorker'
+import {
+  CsvExportMessage,
+  IntegrationDataCheckerMessage,
+  NodeMicroserviceMessage,
+} from './messageTypes'
 
 /**
  * Worker factory for spawning different microservices
@@ -24,22 +25,25 @@ async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
     case 'sendgrid-webhooks':
       return processSendgridWebhook(event)
 
-    case 'bulk-enrich':
-      const bulkEnrichMessage = event as BulkEnrichMessage
-      return bulkEnrichmentWorker(
-        bulkEnrichMessage.tenant,
-        bulkEnrichMessage.memberIds,
-        bulkEnrichMessage.segmentIds,
-        bulkEnrichMessage.notifyFrontend,
-        bulkEnrichMessage.skipCredits,
+    case 'integration-data-checker':
+      const integrationDataCheckerMessage = event as IntegrationDataCheckerMessage
+      return integrationDataCheckerWorker(
+        integrationDataCheckerMessage.integrationId,
+        integrationDataCheckerMessage.tenantId,
       )
-    case 'enrich-organizations': {
-      const bulkEnrichMessage = event as OrganizationBulkEnrichMessage
-      return BulkorganizationEnrichmentWorker(
-        bulkEnrichMessage.tenantId,
-        bulkEnrichMessage.maxEnrichLimit,
+
+    case 'refresh-sample-data':
+      return refreshSampleDataWorker()
+
+    case 'csv-export':
+      const csvExportMessage = event as CsvExportMessage
+      return csvExportWorker(
+        csvExportMessage.entity,
+        csvExportMessage.user,
+        tenant,
+        csvExportMessage.segmentIds,
+        csvExportMessage.criteria,
       )
-    }
 
     default:
       throw new Error(`Invalid microservice ${service}`)

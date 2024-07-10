@@ -1,4 +1,5 @@
 import { Organization } from '@/modules/organization/types/Organization';
+import { Platform } from '@/shared/modules/platform/types/Platform';
 
 export interface MemberAttribute {
   default: string;
@@ -30,7 +31,7 @@ export interface MemberTag {
 }
 
 export interface MemberIdentity {
-  platform: string;
+  platform: Platform;
   type: string;
   value: string;
   verified: boolean;

@@ -3,13 +3,22 @@ import { MemberAttributeType } from '@crowd/types'
 import { JsonColumnInfo, Operator, ParsedJsonColumn } from '@crowd/types'
 import { singleOrDefault } from './array'
 
+// ph for placeholder
+function ph(field: string, { pgPromiseFormat }: { pgPromiseFormat: boolean }): string {
+  return pgPromiseFormat ? `$(${field})` : `:${field}`
+}
+
 export class RawQueryParser {
   public static parseFilters(
     filters: any,
     columnMap: Map<string, string>,
     jsonColumnInfos: JsonColumnInfo[],
     params: any,
-    pgPromiseParams = false,
+    options: {
+      pgPromiseFormat: boolean
+    } = {
+      pgPromiseFormat: false,
+    },
   ): string {
     const keys = Object.keys(filters)
     if (keys.length === 0) {
@@ -22,15 +31,22 @@ export class RawQueryParser {
       if (this.isOperator(key)) {
         const operands = []
         for (const operand of filters[key]) {
-          operands.push(
-            this.parseFilters(operand, columnMap, jsonColumnInfos, params, pgPromiseParams),
-          )
+          if (!operand) {
+            continue
+          }
+          operands.push(this.parseFilters(operand, columnMap, jsonColumnInfos, params, options))
         }
 
         const condition = operands.join(` ${key} `)
         results.push(`(${condition})`)
       } else if (key === Operator.NOT) {
-        const condition = this.parseFilters(filters[key], columnMap, jsonColumnInfos, params)
+        const condition = this.parseFilters(
+          filters[key],
+          columnMap,
+          jsonColumnInfos,
+          params,
+          options,
+        )
         results.push(`(not ${condition})`)
       } else {
         const jsonColumnInfo = this.getJsonColumnInfo(key, jsonColumnInfos)
@@ -40,18 +56,10 @@ export class RawQueryParser {
         }
 
         if (jsonColumnInfo) {
-          results.push(
-            this.parseJsonColumnCondition(jsonColumnInfo, filters[key], params, pgPromiseParams),
-          )
+          results.push(this.parseJsonColumnCondition(jsonColumnInfo, filters[key], params, options))
         } else {
           results.push(
-            this.parseColumnCondition(
-              key,
-              columnMap.get(key),
-              filters[key],
-              params,
-              pgPromiseParams,
-            ),
+            this.parseColumnCondition(key, columnMap.get(key), filters[key], params, options),
           )
         }
       }
@@ -64,7 +72,9 @@ export class RawQueryParser {
     property: ParsedJsonColumn,
     filters: any,
     params: any,
-    pgPromiseParams: boolean,
+    options: {
+      pgPromiseFormat: boolean
+    },
   ): string {
     const parts = property.parts.slice(1)
 
@@ -130,11 +140,17 @@ export class RawQueryParser {
       const secondParamName = this.getJsonParamName(property.info.property, parts, params)
       params[secondParamName] = value[1]
 
-      if (pgPromiseParams) {
-        return `(${jsonColumn} ${actualOperator} $(${firstParamName}) and $(${secondParamName}))`
-      } else {
-        return `(${jsonColumn} ${actualOperator} :${firstParamName} and :${secondParamName})`
-      }
+      return [
+        '(',
+        jsonColumn,
+        ' ',
+        actualOperator,
+        ' ',
+        ph(firstParamName, options),
+        ' and ',
+        ph(secondParamName, options),
+        ')',
+      ].join('')
     }
     if (operator === Operator.CONTAINS || operator === Operator.OVERLAP) {
       // we need an array of values
@@ -143,11 +159,7 @@ export class RawQueryParser {
       for (const val of value) {
         const paramName = this.getJsonParamName(property.info.property, parts, params)
         params[paramName] = val
-        if (pgPromiseParams) {
-          paramNames.push(`$(${paramName})`)
-        } else {
-          paramNames.push(`:${paramName}`)
-        }
+        paramNames.push(ph(paramName, options))
       }
 
       const paramNamesString = paramNames.join(', ')
@@ -160,11 +172,7 @@ export class RawQueryParser {
       for (const val of value) {
         const paramName = this.getJsonParamName(property.info.property, parts, params)
         params[paramName] = val
-        if (pgPromiseParams) {
-          paramNames.push(`$(${paramName})`)
-        } else {
-          paramNames.push(`:${paramName}`)
-        }
+        paramNames.push(ph(paramName, options))
       }
 
       const paramNamesString = paramNames.join(', ')
@@ -177,11 +185,7 @@ export class RawQueryParser {
       params[paramName] = value
     }
 
-    if (pgPromiseParams) {
-      return `(${jsonColumn} ${actualOperator} $(${paramName}))`
-    } else {
-      return `(${jsonColumn} ${actualOperator} :${paramName})`
-    }
+    return `(${jsonColumn} ${actualOperator} ${ph(paramName, options)})`
   }
 
   private static parseColumnCondition(
@@ -189,7 +193,9 @@ export class RawQueryParser {
     column: string,
     filters: any,
     params: any,
-    pgPromiseParams: boolean,
+    options: {
+      pgPromiseFormat: boolean
+    },
   ): string {
     const conditionKeys = Object.keys(filters)
     if (conditionKeys.length !== 1) {
@@ -208,11 +214,17 @@ export class RawQueryParser {
       const secondParamName = this.getParamName(key, params)
       params[secondParamName] = value[1]
 
-      if (pgPromiseParams) {
-        return `(${column} ${actualOperator} $(${firstParamName}) and $(${secondParamName}))`
-      } else {
-        return `(${column} ${actualOperator} :${firstParamName} and :${secondParamName})`
-      }
+      return [
+        '(',
+        column,
+        ' ',
+        actualOperator,
+        ' ',
+        ph(firstParamName, options),
+        ' and ',
+        ph(secondParamName, options),
+        ')',
+      ].join('')
     }
     if (operator === Operator.CONTAINS || operator === Operator.OVERLAP) {
       // we need an array of values
@@ -221,11 +233,7 @@ export class RawQueryParser {
       for (const val of value) {
         const paramName = this.getParamName(key, params)
         params[paramName] = val
-        if (pgPromiseParams) {
-          paramNames.push(`$(${paramName})`)
-        } else {
-          paramNames.push(`:${paramName}`)
-        }
+        paramNames.push(ph(paramName, options))
       }
 
       const paramNamesString = paramNames.join(', ')
@@ -238,11 +246,7 @@ export class RawQueryParser {
       for (const val of value) {
         const paramName = this.getParamName(key, params)
         params[paramName] = val
-        if (pgPromiseParams) {
-          paramNames.push(`$(${paramName})`)
-        } else {
-          paramNames.push(`:${paramName}`)
-        }
+        paramNames.push(ph(paramName, options))
       }
 
       const paramNamesString = paramNames.join(', ')
@@ -256,11 +260,7 @@ export class RawQueryParser {
       (value === null || (typeof value === 'string' && value.toLowerCase() === 'null'))
     ) {
       params[paramName] = null
-      if (pgPromiseParams) {
-        return `(${column} is $(${paramName}))`
-      } else {
-        return `(${column} is :${paramName})`
-      }
+      return `(${column} is ${ph(paramName, options)})`
     }
 
     if (
@@ -268,11 +268,7 @@ export class RawQueryParser {
       (value === null || (typeof value === 'string' && value.toLowerCase() === 'null'))
     ) {
       params[paramName] = null
-      if (pgPromiseParams) {
-        return `(${column} is not $(${paramName}))`
-      } else {
-        return `(${column} is not :${paramName})`
-      }
+      return `(${column} is not ${ph(paramName, options)})`
     }
 
     if (
@@ -286,11 +282,12 @@ export class RawQueryParser {
       params[paramName] = value
     }
 
-    if (pgPromiseParams) {
-      return `(${column} ${actualOperator} $(${paramName}))`
-    } else {
-      return `(${column} ${actualOperator} :${paramName})`
+    if (operator === Operator.MATCH_PHRASE_PREFIX) {
+      params[paramName] = `${value}%`
+      return `(${column} ilike ${ph(paramName, options)})`
     }
+
+    return `(${column} ${actualOperator} ${ph(paramName, options)})`
   }
 
   private static getJsonColumnInfo(
@@ -348,6 +345,8 @@ export class RawQueryParser {
         return 'between'
       case Operator.NOT_BETWEEN:
         return 'not between'
+      case Operator.MATCH_PHRASE_PREFIX:
+        return 'matchPhrasePrefix'
       case Operator.OVERLAP:
         if (json) {
           return '?|'

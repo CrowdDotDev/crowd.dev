@@ -1,20 +1,52 @@
-import { IOrganizationSegmentAggregates, getOrgAggregates } from '@crowd/data-access-layer'
 import {
-  IOrganizationAggregateData,
+  IOrganizationSegmentAggregates,
+  getOrgAggregates,
+} from '@crowd/data-access-layer/src/activities'
+import {
+  IDbOrganizationAggregateData,
   cleanupForOganization,
   insertOrganizationSegments,
-} from '@crowd/data-access-layer/src/org_segments'
-import { repoQx } from '@crowd/data-access-layer/src/queryExecutor'
+} from '@crowd/data-access-layer/src/organizations'
+import { OrganizationField, findOrgById } from '@crowd/data-access-layer/src/orgs'
+import { repoQx, QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
+import { fetchOrgIdentities } from '@crowd/data-access-layer/src/organizations/identities'
+import { findOrgAttributes } from '@crowd/data-access-layer/src/organizations/attributes'
+import { findOrgNoMergeIds } from '@crowd/data-access-layer/src/org_merge'
+import { fetchOrgAggregates } from '@crowd/data-access-layer/src/organizations/segments'
 import { DbStore } from '@crowd/database'
-import { Logger, getChildLogger, logExecutionTime, logExecutionTimeV2 } from '@crowd/logging'
-import { OpenSearchIndex } from '@crowd/types'
+import { Logger, getChildLogger, logExecutionTime } from '@crowd/logging'
+import {
+  IOrganizationBaseForMergeSuggestions,
+  IOrganizationForMergeSuggestionsOpensearch,
+  IOrganizationFullAggregatesOpensearch,
+  OpenSearchIndex,
+  OrganizationIdentityType,
+} from '@crowd/types'
 import { IndexedEntityType } from '../repo/indexing.data'
 import { IndexingRepository } from '../repo/indexing.repo'
-import { IDbOrganizationSyncData } from '../repo/organization.data'
 import { OrganizationRepository } from '../repo/organization.repo'
 import { IPagedSearchResponse, ISearchHit } from './opensearch.data'
 import { OpenSearchService } from './opensearch.service'
 import { IOrganizationSyncResult } from './organization.sync.data'
+
+export async function buildFullOrgForMergeSuggestions(
+  qx: QueryExecutor,
+  organization: IOrganizationBaseForMergeSuggestions,
+): Promise<IOrganizationFullAggregatesOpensearch> {
+  const identities = await fetchOrgIdentities(qx, organization.id)
+  const attributes = await findOrgAttributes(qx, organization.id)
+  const aggregates = await fetchOrgAggregates(qx, organization.id)
+  const noMergeIds = await findOrgNoMergeIds(qx, organization.id)
+
+  return {
+    ...organization,
+    ticker: attributes.find((a) => a.name === 'ticker' && a.default)?.value,
+    identities,
+    activityCount: aggregates?.activityCount || 0,
+    noMergeIds,
+    website: identities.find((i) => i.type === OrganizationIdentityType.PRIMARY_DOMAIN)?.value,
+  }
+}
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -283,23 +315,14 @@ export class OrganizationSyncService {
   public async syncOrganizations(organizationIds: string[]): Promise<IOrganizationSyncResult> {
     const syncOrgAggregates = async (organizationIds) => {
       let documentsIndexed = 0
+      const organizationIdsToIndex = []
       for (const organizationId of organizationIds) {
         let orgData: IOrganizationSegmentAggregates[]
         try {
-          orgData = await logExecutionTimeV2(
-            () => getOrgAggregates(this.qdbStore.connection(), organizationId),
-            this.log,
-            'getOrgAggregates',
-          )
-
-          for (const row of orgData) {
-            if (!row.segmentId || !row.tenantId || !row.organizationId) {
-              console.error('row', row)
-              throw new Error('Missing segmentId, tenantId or organizationId in orgData')
-            }
-          }
+          const qx = repoQx(this.orgRepo)
+          orgData = await getOrgAggregates(qx, organizationId)
         } catch (e) {
-          console.error(e)
+          this.log.error(e, 'Failed to get organization aggregates!')
           throw e
         }
 
@@ -307,25 +330,19 @@ export class OrganizationSyncService {
           await this.orgRepo.transactionally(
             async (txRepo) => {
               const qx = repoQx(txRepo)
-              console.log('qx', qx)
-              await logExecutionTimeV2(
-                () => cleanupForOganization(qx, organizationId),
-                this.log,
-                'cleanupForOganization',
-              )
-              await logExecutionTimeV2(
-                () => insertOrganizationSegments(qx, orgData as IOrganizationAggregateData[]),
-                this.log,
-                'insertOrganizationSegments',
-              )
+              await cleanupForOganization(qx, organizationId)
+
+              if (orgData.length > 0) {
+                await insertOrganizationSegments(qx, orgData as IDbOrganizationAggregateData[])
+              }
             },
             undefined,
             true,
           )
-
+          organizationIdsToIndex.push(organizationId)
           documentsIndexed += orgData.length
         } catch (e) {
-          console.error(e)
+          this.log.error(e, 'Failed to insert organization aggregates!')
           throw e
         }
       }
@@ -333,6 +350,7 @@ export class OrganizationSyncService {
       return {
         organizationsSynced: organizationIds.length,
         documentsIndexed,
+        organizationIdsToIndex,
       }
     }
 
@@ -340,111 +358,52 @@ export class OrganizationSyncService {
 
     const syncOrgsToOpensearchForMergeSuggestions = async (organizationIds) => {
       for (const orgId of organizationIds) {
-        const data = await this.orgRepo.getOrganizationData(orgId)
-        if (!data) {
-          this.log.error('Organization not found in database!', { orgId, data })
-          throw new Error('Organization not found in database!')
-        }
+        const qx = repoQx(this.orgRepo)
+        const base = await findOrgById(qx, orgId, {
+          fields: [
+            OrganizationField.ID,
+            OrganizationField.TENANT_ID,
+            OrganizationField.DISPLAY_NAME,
+            OrganizationField.LOCATION,
+            OrganizationField.INDUSTRY,
+          ],
+        })
+        const data = await buildFullOrgForMergeSuggestions(qx, base)
         const prefixed = OrganizationSyncService.prefixData(data)
         await this.openSearchService.index(orgId, OpenSearchIndex.ORGANIZATIONS, prefixed)
       }
+
+      return {
+        organizationsSynced: organizationIds.length,
+        documentsIndexed,
+      }
     }
-    await syncOrgsToOpensearchForMergeSuggestions(organizationIds)
+    await syncOrgsToOpensearchForMergeSuggestions(syncResults.organizationIdsToIndex)
 
     return syncResults
   }
 
-  public static prefixData(data: IDbOrganizationSyncData): any {
-    const p: Record<string, unknown> = {}
+  public static async prefixData(
+    data: IOrganizationFullAggregatesOpensearch,
+  ): Promise<IOrganizationForMergeSuggestionsOpensearch> {
+    return {
+      uuid_organizationId: data.id,
+      uuid_tenantId: data.tenantId,
+      string_location: data.location,
+      string_industry: data.industry,
+      string_ticker: data.ticker,
+      keyword_displayName: data.displayName,
+      string_website: data.website,
 
-    p.uuid_organizationId = data.organizationId
-    p.bool_grandParentSegment = data.grandParentSegment ? data.grandParentSegment : false
-    p.uuid_tenantId = data.tenantId
-    p.obj_address = data.address
-    p.string_address = data.address ? JSON.stringify(data.address) : null
-    p.string_attributes = data.attributes ? JSON.stringify(data.attributes) : '{}'
-    p.date_createdAt = data.createdAt ? new Date(data.createdAt).toISOString() : null
-    p.string_description = data.description
-    p.string_displayName = data.displayName
-    p.keyword_displayName = data.displayName
-    p.string_arr_emails = data.emails
-    p.obj_employeeCountByCountry = data.employeeCountByCountry
-    p.int_employees = data.employees
-    p.int_founded = data.founded
-    p.string_geoLocation = data.geoLocation
-    p.string_location = data.location
-    p.string_headline = data.headline
-    p.keyword_importHash = data.importHash
-    p.string_industry = data.industry
-    p.string_arr_phoneNumbers = data.phoneNumbers
-    p.string_arr_profiles = data.profiles
-    p.obj_revenueRange = data.revenueRange
-    p.string_size = data.size
-    p.string_type = data.type
-    p.string_url = data.url
-    p.string_website = data.website
-    p.date_lastEnrichedAt = data.lastEnrichedAt ? new Date(data.lastEnrichedAt).toISOString() : null
-    p.bool_isTeamOrganization = data.isTeamOrganization ? data.isTeamOrganization : false
-    p.bool_manuallyCreated = data.manuallyCreated ? data.manuallyCreated : false
-    p.string_logo = data.logo || null
-    p.obj_linkedin = data.linkedin
-    p.obj_github = data.github
-    p.obj_crunchbase = data.crunchbase
-    p.obj_twitter = data.twitter
-    p.string_immediateParent = data.immediateParent
-    p.string_ultimateParent = data.ultimateParent
-    p.string_arr_affiliatedProfiles = data.affiliatedProfiles
-    p.string_arr_allSubsidiaries = data.allSubsidiaries
-    p.string_arr_alternativeDomains = data.alternativeDomains
-    p.string_arr_alternativeNames = data.alternativeNames
-    p.float_averageEmployeeTenure = data.averageEmployeeTenure
-    p.obj_averageTenureByLevel = data.averageTenureByLevel
-    p.obj_averageTenureByRole = data.averageTenureByRole
-    p.string_arr_directSubsidiaries = data.directSubsidiaries
-    p.obj_employeeChurnRate = data.employeeChurnRate
-    p.obj_employeeCountByMonth = data.employeeCountByMonth
-    p.obj_employeeGrowthRate = data.employeeGrowthRate
-    p.obj_employeeCountByMonthByLevel = data.employeeCountByMonthByLevel
-    p.obj_employeeCountByMonthByRole = data.employeeCountByMonthByRole
-    p.string_gicsSector = data.gicsSector
-    p.obj_grossAdditionsByMonth = data.grossAdditionsByMonth
-    p.obj_grossDeparturesByMonth = data.grossDeparturesByMonth
-    p.obj_naics = data.naics
-    p.string_ticker = data.ticker
-    p.string_arr_tags = data.tags
-    p.string_arr_manuallyChangedFields = data.manuallyChangedFields
-
-    // identities
-    const p_identities = []
-    for (const identity of data.identities) {
-      p_identities.push({
+      nested_identities: data.identities.map((identity) => ({
         string_platform: identity.platform,
-        string_name: identity.name,
-        keyword_name: identity.name,
-        string_url: identity.url,
-      })
+        string_value: identity.value,
+        keyword_type: identity.type,
+        string_type: identity.type,
+        bool_verified: identity.verified,
+      })),
+
+      int_activityCount: data.activityCount,
     }
-    p.nested_identities = p_identities
-
-    // weak identities
-    const p_weakIdentities = []
-    for (const identity of data.weakIdentities) {
-      p_weakIdentities.push({
-        string_platform: identity.platform,
-        string_name: identity.name,
-        keyword_name: identity.name,
-        string_url: identity.url,
-      })
-    }
-    p.nested_weakIdentities = p_weakIdentities
-
-    // aggregate data
-    p.date_joinedAt = data.joinedAt ? new Date(data.joinedAt).toISOString() : null
-    p.date_lastActive = data.lastActive ? new Date(data.lastActive).toISOString() : null
-    p.string_arr_activeOn = data.activeOn
-    p.int_activityCount = data.activityCount
-    p.int_memberCount = data.memberCount
-
-    return p
   }
 }

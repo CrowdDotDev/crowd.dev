@@ -1,7 +1,7 @@
-import { OpenSearchService, OrganizationSyncService, InitService } from '@crowd/opensearch'
-import { DB_CONFIG, OPENSEARCH_CONFIG } from '../conf'
 import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { getServiceLogger } from '@crowd/logging'
+import { InitService, OpenSearchService, OrganizationSyncService } from '@crowd/opensearch'
+import { DB_CONFIG, OPENSEARCH_CONFIG } from '../conf'
 import { getClientSQL } from '@crowd/questdb'
 
 const log = getServiceLogger()
@@ -14,7 +14,7 @@ setImmediate(async () => {
   const qdbConn = await getClientSQL()
   const qdbStore = new DbStore(log, qdbConn)
 
-  const service = new OrganizationSyncService(store, qdbStore, openSearchService, log)
+  const service = new OrganizationSyncService(qdbStore, store, openSearchService, log)
 
   const pageSize = 100
   let results = await service.getAllIndexedTenantIds(pageSize)

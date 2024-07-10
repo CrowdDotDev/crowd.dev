@@ -40,6 +40,7 @@ import {
   deleteMemberIdentitiesByCombinations,
   moveToNewMember,
   updateVerifiedFlag,
+  findAlreadyExistingVerifiedIdentities,
 } from '@crowd/data-access-layer/src/member_identities'
 import { addMemberNoMerge, removeMemberToMerge } from '@crowd/data-access-layer/src/member_merge'
 import { ActivityDisplayService } from '@crowd/integrations'
@@ -758,7 +759,6 @@ class MemberRepository {
     'contributions',
     'score',
     'reach',
-    'joinedAt',
     'importHash',
     'tags',
     'website',
@@ -809,7 +809,6 @@ class MemberRepository {
     contributions: (a, b) => lodash.isEqual(a, b),
     score: (a, b) => a === b,
     reach: (a, b) => lodash.isEqual(a, b),
-    joinedAt: (a, b) => dateEqualityChecker(a, b),
     importHash: (a, b) => a === b,
   }
 
@@ -1669,21 +1668,18 @@ class MemberRepository {
       o.lfxMembership = lfxMemberships.find((m) => m.organizationId === o.id)
     })
 
+    // TODO questdb uros load from questdb
+
     const segmentsFound = await options.qdb.query(
       `
-      SELECT segmentId FROM activities
-      WHERE memberId = $(memberId)
-      AND deletedAt IS NULL
-      GROUP BY segmentId;`,
-      {
-        memberId: id,
-      },
-    )
-
-    result.segments = await options.database(
-      `
-      SELECT id, name FROM segments
-      WHERE id IN ($(segmentIds:csv));
+      SELECT
+          s.id,
+          s.name,
+          COUNT(a.id) as "activityCount"
+      FROM mv_activities_cube a
+      JOIN segments s ON s.id = a."segmentId"
+      WHERE a."memberId" = :id
+      GROUP BY s.id
       `,
       {
         segmentIds: segmentsFound.map((row) => row.segmentId),
@@ -3194,6 +3190,19 @@ class MemberRepository {
         platform: identity.platform,
       })
     }
+  }
+
+  static async findAlreadyExistingIdentities(
+    identities: IMemberIdentity[],
+    options: IRepositoryOptions,
+  ): Promise<IMemberIdentity[]> {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const qx = SequelizeRepository.getQueryExecutor(options, transaction)
+
+    const existingIdentities = await findAlreadyExistingVerifiedIdentities(qx, { identities })
+
+    return existingIdentities
   }
 }
 

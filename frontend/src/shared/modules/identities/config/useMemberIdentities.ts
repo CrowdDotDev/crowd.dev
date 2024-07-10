@@ -28,7 +28,7 @@ export default ({
     return (identities || [])
       .filter((i) => i.platform === platform && i.type !== 'email')
       .map((i) => ({
-        platform,
+        platform: i.platform,
         url: null,
         name: i.value,
         verified: i.verified,
@@ -36,9 +36,10 @@ export default ({
   };
 
   const getIdentityLink = (identity: {
-    platform: string;
-    url: string;
+    platform: Platform;
+    url: string | null;
     name: string;
+    verified: boolean;
   }, platform: string) => {
     if (!CrowdIntegrations.getConfig(platform)?.showProfileLink) {
       return null;
@@ -50,14 +51,16 @@ export default ({
         username: identity.name,
         attributes,
       })
-      ?? attributes?.url?.[platform]
+      ?? attributes?.url?.[platform as keyof typeof attributes.url]
+      ?? null
     );
   };
 
   const getIdentities = (): {
     [key: string]: {
       handle: string;
-      link: string;
+      link: string | null;
+      verified: boolean;
     }[];
   } => order.reduce((acc, platform) => {
     const handles = getIdentityHandles(platform);
@@ -104,11 +107,12 @@ export default ({
     }
 
     return acc;
-  }, {});
+  }, {} as Record<Platform, { handle: string; link: string | null; verified: boolean }[]>);
 
   const getEmails = (): {
     handle: string;
-    link: string;
+    link: string | null;
+    verified: boolean;
   }[] => (identities || [])
     .filter((i) => i.type === 'email')
     .map((i) => ({

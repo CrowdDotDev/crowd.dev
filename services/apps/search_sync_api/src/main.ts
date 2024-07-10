@@ -36,7 +36,7 @@ setImmediate(async () => {
   app.use(opensearchMiddleware(opensearch))
 
   // init opensearch service
-  const initService = new InitService(opensearch, log)
+  const initService = new InitService(opensearch)
   await initService.initialize()
 
   // add routes

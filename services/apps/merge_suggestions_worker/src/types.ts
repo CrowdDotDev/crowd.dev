@@ -1,3 +1,7 @@
+import {
+  IOrganizationBaseForMergeSuggestions,
+  IOrganizationForMergeSuggestionsOpensearch,
+} from '@crowd/types'
 import { MemberAttributeOpensearch } from './enums'
 
 interface ITermFilter {
@@ -126,43 +130,12 @@ export interface ISimilarMemberOpensearch {
 
 // organizations
 
-export interface IOrganizationIdentityOpensearch {
-  string_platform: string
-  string_name: string
-  keyword_name: string
-  string_url: string
-}
-
-export interface IOrganizationPartialAggregatesOpensearch {
-  uuid_organizationId: string
-  uuid_arr_noMergeIds: string[]
-  keyword_displayName: string
-  nested_identities: IOrganizationIdentityOpensearch[]
-  string_location: string
-  string_industry: string
-  string_website: string
-  string_ticker: string
-  int_activityCount: number
-}
-
-export interface ISimilarOrganization {
-  uuid_organizationId: string
-  keyword_displayName: string
-  nested_identities: IOrganizationIdentityOpensearch[]
-  nested_weakIdentities: IOrganizationIdentityOpensearch[]
-  string_location: string
-  string_industry: string
-  string_website: string
-  string_ticker: string
-  int_activityCount: number
-}
-
 export interface ISimilarOrganizationOpensearch {
-  _source: ISimilarOrganization
+  _source: IOrganizationForMergeSuggestionsOpensearch
 }
 
 export interface IOrganizationPartialAggregatesOpensearchRawResult {
-  _source: IOrganizationPartialAggregatesOpensearch
+  _source: IOrganizationBaseForMergeSuggestions
 }
 
 export interface IOrganizationQueryBody {
@@ -180,4 +153,67 @@ export interface IOrganizationQueryBody {
     field: string
   }
   _source: string[]
+}
+
+export interface ILLMResult {
+  body: ILLMBody
+  prompt: string
+  responseTimeSeconds: number
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  modelSpecificArgs: any
+}
+
+export interface ILLMBody {
+  id: string
+  type: string
+  role: string
+  model: string
+  content: {
+    type: string
+    text: string
+  }[]
+  stop_reason: string
+  stop_sequence: string
+  usage: {
+    input_tokens: number
+    output_tokens: number
+  }
+}
+
+export interface IProcessGenerateMemberMergeSuggestionsArgs {
+  tenantId: string
+  lastUuid?: string
+}
+
+export interface IProcessGenerateOrganizationMergeSuggestionsArgs {
+  tenantId: string
+  lastUuid?: string
+  organizationIds?: string[]
+}
+
+export interface IProcessCheckSimilarityWithLLM {
+  prompt: string
+  modelId: string
+  memberCouples?: string[][]
+  organizationCouples?: string[][]
+  region: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  modelSpecificArgs: any
+}
+
+export interface ISimilarityFilter {
+  lte: number
+  gte: number
+}
+
+export interface IProcessMergeOrganizationSuggestionsWithLLM {
+  onlyLFXMembers?: boolean
+  organizationIds?: string[]
+  similarity: ISimilarityFilter
+  tenantId: string
+}
+
+export interface IProcessMergeMemberSuggestionsWithLLM {
+  similarity: ISimilarityFilter
+  tenantId: string
 }

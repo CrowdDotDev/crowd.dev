@@ -1,8 +1,6 @@
 import { AttributeType } from '@/modules/organization/types/Attributes';
-import affiliatedProfiles from './affiliatedProfiles';
+import naics from '@/modules/organization/config/enrichment/naics';
 import allSubsidiaries from './allSubsidiaries';
-import alternativeDomains from './alternativeDomains';
-import alternativeNames from './alternativeNames';
 import averageEmployeeTenure from './averageEmployeeTenure';
 import averageTenureByLevel from './averageTenureByLevel';
 import averageTenureByRole from './averageTenureByRole';
@@ -20,10 +18,11 @@ import headcount from './headcount';
 import industry from './industry';
 import revenueRange from './revenueRange';
 import lastEnrichedAt from './lastEnrichedAt';
-import tags from './tags';
 import typeAttribute from './type';
 import immediateParent from './immediateParent';
 import ultimateParent from './ultimateParent';
+import description from './description';
+import location from './location';
 
 export interface OrganizationEnrichmentConfig {
   name: string; // id of the enrichment attribute
@@ -31,26 +30,20 @@ export interface OrganizationEnrichmentConfig {
   type: AttributeType; // Type of the attribute
   showInForm: boolean; // Display in Organization Form
   showInAttributes: boolean; // Display in Organization Profile
-  enrichmentSneakPeak?: boolean; // Display as a sneak peak attribute
-  enrichmentSneakPeakValue?: string; // Value to display in sneak peak
-  isLink?: boolean; // If attribute is a url
   component?: any; // Component that will render attribute in organization profile
-  displayValue?: (value: any) => string; // Formatter for displaying attribute value
-  keyParser?: (key: string) => string; // Formatter for keys of jsons if attribute is json
-  valueParser?: (value: any) => string; // Formatter for values of jsons if attribute is json
-  filterValue?: (value: any) => any; // Filter attributes values
+  formatValue: (value: any) => string; // Formatter for values
+  attributes?: any, // Custom attributes passed into displaying components
 }
 
 const enrichmentConfig: OrganizationEnrichmentConfig[] = [
+  description,
+  location,
   lastEnrichedAt,
   industry,
   headcount,
   typeAttribute,
   founded,
-  affiliatedProfiles,
   allSubsidiaries,
-  alternativeDomains,
-  alternativeNames,
   averageEmployeeTenure,
   averageTenureByLevel,
   averageTenureByRole,
@@ -65,8 +58,8 @@ const enrichmentConfig: OrganizationEnrichmentConfig[] = [
   grossDeparturesByMonth,
   immediateParent,
   revenueRange,
-  tags,
   ultimateParent,
+  naics,
 ];
 
 export default enrichmentConfig;

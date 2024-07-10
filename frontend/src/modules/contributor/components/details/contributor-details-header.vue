@@ -1,24 +1,9 @@
 <template>
-  <div class="flex items-center">
-    <div class="relative">
-      <lf-avatar
-        :size="48"
-        :name="props.contributor.displayName"
-        :src="avatar(props.contributor)"
-      />
-      <div
-        v-if="isNew(props.contributor)"
-        class="absolute -top-1.5 left-1/2 border-2 border-white bg-primary-500
-      text-xtiny rounded-md px-0.5 text-white font-semibold transform -translate-x-1/2 "
-      >
-        New
-      </div>
-    </div>
+  <div class="flex items-center flex-grow">
+    <lf-contributor-details-header-profile-photo :contributor="props.contributor" />
 
-    <div class="pl-3">
-      <h5 class="mb-1 max-w-80 truncate">
-        {{ props.contributor.displayName }}
-      </h5>
+    <div class="pl-3 group w-full">
+      <lf-contributor-edit-name :contributor="props.contributor" />
       <div class="flex items-center gap-1.5">
         <lf-badge v-if="isTeamContributor(props.contributor)" size="small">
           Team
@@ -42,7 +27,6 @@
 </template>
 
 <script setup lang="ts">
-import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
 import { Contributor } from '@/modules/contributor/types/Contributor';
 import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
 import LfBadge from '@/ui-kit/badge/Badge.vue';
@@ -50,17 +34,20 @@ import LfContributorWorkPosition from '@/modules/contributor/components/shared/c
 import LfContributorDetailsHeaderProfiles
   from '@/modules/contributor/components/details/header/contributor-details-header-profiles.vue';
 import { computed } from 'vue';
-import { detailsHeaderProfilePlatforms } from '@/modules/contributor/config/details-header-profile-platforms';
+import { contributorDetailsHeaderProfilePlatforms } from '@/modules/contributor/config/details-header-profile-platforms';
+import LfContributorDetailsHeaderProfilePhoto
+  from '@/modules/contributor/components/details/header/contributor-details-header-profile-photo.vue';
+import LfContributorEditName from '@/modules/contributor/components/edit/contributor-edit-name.vue';
 
 const props = defineProps<{
   contributor: Contributor,
 }>();
 
 const {
-  avatar, isNew, isBot, isTeamContributor, activeOrganization,
+  isBot, isTeamContributor, activeOrganization,
 } = useContributorHelpers();
 
-const hasHeaderIdentities = computed(() => props.contributor.identities.some((i) => detailsHeaderProfilePlatforms.includes(i.platform)));
+const hasHeaderIdentities = computed(() => props.contributor.identities.some((i) => contributorDetailsHeaderProfilePlatforms.includes(i.platform)));
 
 const organization = computed(() => activeOrganization(props.contributor));
 const jobTitle = computed(() => props.contributor.attributes.jobTitle?.default

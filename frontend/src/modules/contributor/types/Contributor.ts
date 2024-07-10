@@ -49,7 +49,7 @@ export interface Contributor {
   displayName: string;
   emails: string[]
   id: string;
-  identities: ContributorIdentity[] | null;
+  identities: ContributorIdentity[];
   importHash: string | null;
   joinedAt: string;
   lastActive: string | null;
@@ -69,5 +69,6 @@ export interface Contributor {
   segments: {
     id: string;
     name: string;
+    activityCount: string;
   }[]
 }

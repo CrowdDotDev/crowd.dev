@@ -1,66 +1,109 @@
-import { DbConnection, DbStore } from '@crowd/database'
+import _ from 'lodash'
+
+import { DbStore } from '@crowd/database'
 import { IAffiliationsLastCheckedAt, IMemberId } from './types'
 import { ITenant } from '@crowd/types'
+import { pgpQx } from '../../../queryExecutor'
+import { findMemberAffiliations } from '../../../member_segment_affiliations'
 
-export async function runMemberAffiliationsUpdate(
-  db: DbStore,
-  qdb: DbConnection,
-  memberId: string,
-) {
-  // this 000000 magic is to differentiate between nothing to LEFT JOIN with and real individial affiliation
-  // we want to keep NULL in 'organizationId' if there is an affiliation configured,
-  // but if there is no manual affiliation, we know this by 'msa.id' being NULL, and then using 000000 as a marker,
-  // which we remove afterwards
-  const queryPostgreSQL = `
-    SELECT
-      msa."dateStart", msa."dateEnd", msa."memberId", msa."segmentId",
-      (ARRAY_REMOVE(ARRAY_AGG(CASE WHEN msa.id IS NULL THEN '00000000-0000-0000-0000-000000000000' ELSE msa."organizationId" END), '00000000-0000-0000-0000-000000000000')
-        || ARRAY_REMOVE(ARRAY_AGG(mo."organizationId" ORDER BY mo."dateStart" DESC, mo.id), NULL)
-        || ARRAY_REMOVE(ARRAY_AGG(mo1."organizationId" ORDER BY mo1."createdAt" DESC, mo1.id), NULL)
-        || ARRAY_REMOVE(ARRAY_AGG(mo2."organizationId" ORDER BY mo2."createdAt", mo2.id), NULL)
-      )[1] AS "organizationId"
-    FROM "memberSegmentAffiliations" msa
-    LEFT JOIN "memberOrganizations" mo
-      ON mo."memberId" = msa."memberId"
-      AND mo."deletedAt" IS NULL
-    LEFT JOIN "memberOrganizations" mo1
-      ON mo1."memberId" = msa."memberId"
-      AND mo1."dateStart" IS NULL AND mo1."dateEnd" IS NULL
-      AND mo1."deletedAt" IS NULL
-    LEFT JOIN "memberOrganizations" mo2
-      ON mo2."memberId" = msa."memberId"
-      AND mo2."dateStart" IS NULL AND mo2."dateEnd" IS NULL
-      AND mo2."deletedAt" IS NULL
-    WHERE msa."memberId" = $(memberId)
-    GROUP BY msa."dateStart", msa."dateEnd", msa."memberId", msa."segmentId";
+export async function runMemberAffiliationsUpdate(db: DbStore, memberId: string) {
+  const qx = pgpQx(db.connection())
+  const tsBetween = (start: string, end: string) => {
+    return `timestamp BETWEEN '${start}' AND '${end}'`
+  }
+  const tsAfter = (start: string) => {
+    return `timestamp >= '${start}'`
+  }
+
+  const tsBetweenOrOpenEnd = (start: string, end: string) => {
+    if (end) {
+      return tsBetween(start, end)
+    }
+    return tsAfter(start)
+  }
+
+  type Condition = { when: string[]; then: string }
+
+  const condition = ({ when, then }: Condition) => {
+    return `WHEN ${when.join(' AND ')} THEN ${then}`
+  }
+
+  const nullableOrg = (orgId: string) => (orgId ? `'${orgId}'` : 'NULL')
+
+  const manualAffiliations = await findMemberAffiliations(qx, memberId)
+
+  const memberOrganizations = await qx.select(
+    `
+      SELECT
+        "organizationId",
+        "dateStart",
+        "dateEnd",
+        "createdAt"
+      FROM "memberOrganizations"
+      WHERE "memberId" = $(memberId)
+        AND "deletedAt" IS NULL
+      ORDER BY "dateStart" DESC
+    `,
+    { memberId },
+  )
+
+  const orgCases: Condition[] = [
+    ..._.chain(manualAffiliations)
+      .sortBy('dateStart')
+      .reverse()
+      .map((row) => ({
+        when: [`"segmentId" = '${row.segmentId}'`, tsBetweenOrOpenEnd(row.dateStart, row.dateEnd)],
+        then: nullableOrg(row.organizationId),
+      }))
+      .value(),
+
+    ..._.chain(memberOrganizations)
+      .filter((row) => !!row.dateStart)
+      .sortBy('dateStart')
+      .reverse()
+      .map((row) => ({
+        when: [tsBetweenOrOpenEnd(row.dateStart, row.dateEnd)],
+        then: nullableOrg(row.organizationId),
+      }))
+      .value(),
+
+    ..._.chain(memberOrganizations)
+      .filter((row) => !row.dateStart && !row.dateEnd)
+      .sortBy('createdAt')
+      .reverse()
+      .map((row) => ({
+        when: [tsAfter(row.createdAt)],
+        then: nullableOrg(row.organizationId),
+      }))
+      .value(),
+  ]
+
+  const fallbackOrganizationId = _.chain(memberOrganizations)
+    .filter((row) => !row.dateStart && !row.dateEnd)
+    .sortBy('createdAt')
+    .map((row) => row.organizationId)
+    .head()
+    .value()
+
+  const fullCase = `
+    CASE
+      ${orgCases.map(condition).join('\n')}
+      ELSE ${nullableOrg(fallbackOrganizationId)}
+    END::UUID
   `
 
-  const rows = await db.connection().query(queryPostgreSQL, {
-    memberId,
-  })
-
-  // Update activities in QuestDB
-  for (const row of rows) {
-    let queryQuestDB = `
-      UPDATE activities SET "organizationId" = $(organizationId)
-      WHERE "memberId" = $(memberId)
-      AND "segmentId" = $(segmentId)
+  await qx.result(
     `
-
-    if (row.dateEnd) {
-      queryQuestDB += ` AND "timestamp" BETWEEN $(after) AND $(before);`
-    } else {
-      queryQuestDB += ` AND "timestamp" > $(after);`
-    }
-
-    await qdb.query(queryQuestDB, {
-      memberId: row.memberId,
-      organizationId: row.organizationId,
-      segmentId: row.segmentId,
-      after: row.dateStart,
-      before: row.dateEnd,
-    })
-  }
+      UPDATE activities
+      SET "organizationId" = ${fullCase}
+      WHERE "memberId" = $(memberId)
+        AND COALESCE("organizationId", '00000000-0000-0000-0000-000000000000') != COALESCE(
+          ${fullCase},
+          '00000000-0000-0000-0000-000000000000'
+        )
+    `,
+    { memberId },
+  )
 }
 
 export async function getAffiliationsLastCheckedAt(db: DbStore, tenantId: string) {
@@ -118,11 +161,11 @@ export async function getMemberIdsWithRecentRoleChanges(
       `
       select distinct mo."memberId" as id from "memberOrganizations" mo
       join "members" m on mo."memberId" = m."id"
-      where 
+      where
             m."tenantId" = $(tenantId)
             and (
-            mo."createdAt" > $(affiliationsLastChecked) or 
-            mo."updatedAt" > $(affiliationsLastChecked) or 
+            mo."createdAt" > $(affiliationsLastChecked) or
+            mo."updatedAt" > $(affiliationsLastChecked) or
             mo."deletedAt" > $(affiliationsLastChecked)
             )
       order by mo."memberId" asc
@@ -165,8 +208,8 @@ export async function getAllTenants(db: DbStore): Promise<ITenant[]> {
   let rows: ITenant[] = []
   try {
     rows = await db.connection().query(`
-      select 
-        id as "tenantId", 
+      select
+        id as "tenantId",
         plan
       from tenants
       where "deletedAt" is null

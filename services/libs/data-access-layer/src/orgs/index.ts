@@ -1,190 +1,98 @@
-import { getEnv } from '@crowd/common'
-import { DbStore } from '@crowd/database'
-import { IOrganization } from '@crowd/types'
-import {
-  IOrganizationPartialAggregatesRawResult,
-  IQueryNumberOfActiveOrganizations,
-  IQueryNumberOfNewOrganizations,
-  IQueryTimeseriesOfNewOrganizations,
-} from './types'
+import { RawQueryParser } from '@crowd/common'
 import { QueryExecutor } from '../queryExecutor'
+import { QueryOptions } from '../utils'
 
-const s3Url = `https://${
-  process.env['CROWD_S3_MICROSERVICES_ASSETS_BUCKET']
-}-${getEnv()}.s3.eu-central-1.amazonaws.com`
+export enum OrganizationField {
+  // meta
+  ID = 'id',
+  CREATED_AT = 'createdAt',
+  UPDATED_AT = 'updatedAt',
+  DELETED_AT = 'deletedAt',
+  CREATED_BY_ID = 'createdById',
+  UPDATED_BY_ID = 'updatedById',
+  TENANT_ID = 'tenantId',
 
-export async function getOrganizationById(db: DbStore, id: string): Promise<IOrganization> {
-  const query = `
-    SELECT
-      "id", "tenantId", "displayName",
-      "logo" AS "avatarUrl",
-      "createdAt"
-    FROM organizations
-    WHERE "id" = $(id)
-    AND "deletedAt" IS NULL;
-  `
+  IMPORT_HASH = 'importHash',
+  LAST_ENRICHED_AT = 'lastEnrichedAt',
+  MANUALLY_CREATED = 'manuallyCreated',
 
-  const rows: IOrganization[] = await db.connection().query(query, {
-    id,
-  })
-
-  rows.map((row) => {
-    if (!row.avatarUrl) {
-      row.avatarUrl = `${s3Url}/email/organization-placeholder.png`
-    }
-
-    return row
-  })
-
-  return rows[0]
+  DESCRIPTION = 'description',
+  LOGO = 'logo',
+  TAGS = 'tags',
+  EMPLOYEES = 'employees',
+  REVENUE_RANGE = 'revenueRange',
+  LOCATION = 'location',
+  IS_TEAM_ORGANIZATION = 'isTeamOrganization',
+  TYPE = 'type',
+  SIZE = 'size',
+  HEADLINE = 'headline',
+  INDUSTRY = 'industry',
+  FOUNDED = 'founded',
+  DISPLAY_NAME = 'displayName',
+  EMPLOYEE_CHURN_RATE = 'employeeChurnRate',
+  EMPLOYEE_GROWTH_RATE = 'employeeGrowthRate',
 }
 
-export async function getNumberOfNewOrganizations(
-  db: DbStore,
-  arg: IQueryNumberOfNewOrganizations,
-): Promise<number> {
-  const query = `
-    SELECT DISTINCT COUNT(id)
-    FROM organizations
-    WHERE "tenantId" = $(tenantId)
-    AND "createdAt" BETWEEN $(after) AND $(before)
-    AND "deletedAt" IS NULL;
-  `
-
-  const rows: { count: number }[] = await db.connection().query(query, {
-    tenantId: arg.tenantId,
-    after: arg.after,
-    before: arg.before,
-  })
-
-  return Number(rows[0].count || 0)
-}
-
-export async function getNumberOfActiveOrganizations(
-  db: DbStore,
-  arg: IQueryNumberOfActiveOrganizations,
-): Promise<number> {
-  let query = `
-    SELECT COUNT_DISTINCT("organizationId")
-    FROM activities
-    WHERE "tenantId" = $(tenantId)
-    AND "organizationId" IS NOT NULL
-    AND "deletedAt" IS NULL`
-
-  if (arg.before && arg.after) {
-    query += ' AND timestamp BETWEEN $(after) AND $(before)'
-  }
-
-  if (arg.platform) {
-    query += ` AND "platform" = $(platform)`
-  }
-
-  if (arg.segmentIds) {
-    query += ` AND "segmentId" IN ($(segmentIds:csv))`
-  }
-
-  query += ';'
-
-  const rows: { count: number }[] = await db.connection().query(query, {
-    tenantId: arg.tenantId,
-    segmentIds: arg.segmentIds,
-    after: arg.after,
-    before: arg.before,
-    platform: arg.platform,
-  })
-
-  return Number(rows[0].count || 0)
-}
-
-export interface IActiveOrganizationsTimeseriesResult {
-  date: string
-  count: number
-}
-
-export async function getTimeseriesOfActiveOrganizations(
-  db: DbStore,
-  arg: IQueryTimeseriesOfNewOrganizations,
-): Promise<IActiveOrganizationsTimeseriesResult[]> {
-  let query = `
-    SELECT COUNT_DISTINCT("organizationId") AS count, timestamp
-    FROM activities
-    WHERE tenantId = $(tenantId)
-    AND "organizationId" IS NOT NULL
-    AND timestamp BETWEEN $(after) AND $(before)
-  `
-
-  if (arg.segmentIds) {
-    query += ` AND "segmentId" IN ($(segmentIds:csv))`
-  }
-
-  if (arg.platform) {
-    query += ` AND "platform" = $(platform)`
-  }
-
-  query += ' SAMPLE BY 1d FILL(0) ALIGN TO CALENDAR ORDER BY timestamp DESC;'
-
-  const rows = await db.connection().query(query, {
-    tenantId: arg.tenantId,
-    segmentIds: arg.segmentIds,
-    after: arg.after,
-    before: arg.before,
-    platform: arg.platform,
-  })
-
-  const results: IActiveOrganizationsTimeseriesResult[] = []
-  rows.forEach((row) => {
-    results.push({
-      date: row.timestamp,
-      count: Number(row.count),
-    })
-  })
-
-  return results
-}
-
-export async function findOrgsForMergeSuggestions(
+export async function queryOrgs<T extends OrganizationField[]>(
   qx: QueryExecutor,
-  tenantId: string,
-  batchSize: number,
-  afterOrganizationId?: string,
-  lastGeneratedAt?: string,
-): Promise<IOrganizationPartialAggregatesRawResult[]> {
-  let filter = ''
-  if (afterOrganizationId) {
-    filter += `AND o.id > $(afterOrganizationId)`
+  { filter, fields, limit, offset }: QueryOptions<T> = {},
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+): Promise<{ [K in T[number]]: any }[]> {
+  const params = {
+    limit: limit || 10,
+    offset: offset || 0,
+  }
+  if (!fields) {
+    fields = Object.values(OrganizationField) as T
+  }
+  if (!filter) {
+    filter = {}
   }
 
-  if (lastGeneratedAt) {
-    filter += 'AND o."createdAt" > $(lastGeneratedAt)'
-  }
+  const where = RawQueryParser.parseFilters(
+    filter,
+    new Map<string, string>(Object.values(OrganizationField).map((field) => [field, field])),
+    [],
+    params,
+    { pgPromiseFormat: true },
+  )
 
   return qx.select(
     `
       SELECT
-        o.id,
-        json_agg(oi) as identities,
-        ARRAY_AGG(DISTINCT onm."noMergeId") AS "noMergeIds",
-        o."displayName",
-        o.location,
-        o.industry,
-        o.website,
-        o.ticker,
-        osa."activityCount"
-      FROM organizations o
-      JOIN "organizationSegmentsAgg" osa ON o.id = osa."organizationId"
-      JOIN "organizationNoMerge" onm ON onm."organizationId" = o.id
-      JOIN "organizationIdentities" oi ON o.id = oi."organizationId"
-      WHERE o."tenantId" = $(tenantId)
-        ${filter}
-      GROUP BY o.id, osa.id
-      ORDER BY o.id
-      LIMIT $(batchSize)
+        ${fields.map((f) => `"${f}"`).join(',\n')}
+      FROM organizations
+      WHERE ${where}
+      LIMIT $(limit)
+      OFFSET $(offset)
     `,
-    {
-      tenantId,
-      batchSize,
-      afterOrganizationId,
-      lastGeneratedAt,
-    },
+    params,
   )
+}
+
+export async function findOrgById<T extends OrganizationField[]>(
+  qx: QueryExecutor,
+  organizationId: string,
+  {
+    fields,
+  }: {
+    fields?: T
+  } = {
+    fields: Object.values(OrganizationField) as T,
+  },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+): Promise<{ [K in T[number]]: any }> {
+  const rows = await queryOrgs(qx, {
+    fields,
+    filter: {
+      [OrganizationField.ID]: { eq: organizationId },
+    },
+    limit: 1,
+  })
+
+  if (rows.length > 0) {
+    return rows[0]
+  }
+
+  return null
 }

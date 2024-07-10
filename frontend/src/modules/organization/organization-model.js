@@ -30,7 +30,6 @@ const fields = {
     'description',
     label('description'),
   ),
-  website: new StringField('website', label('website')),
   location: new StringField('location', label('location'), { filterable: true }),
   createdAt: new DateTimeField(
     'createdAt',
@@ -75,13 +74,6 @@ const fields = {
     'Active on',
     { filterable: true },
   ),
-  github: new JsonField('github', label('github')),
-  twitter: new JsonField('twitter', label('twitter')),
-  linkedin: new JsonField('linkedin', label('linkedin')),
-  crunchbase: new JsonField(
-    'crunchbase',
-    label('crunchbase'),
-  ),
   identities: new JsonField(
     'identities',
     'Identities',
@@ -104,9 +96,7 @@ const fields = {
   lastEnrichedAt: new BooleanField('lastEnrichedAt', 'Enriched organization', {
     filterable: true,
   }),
-  affiliatedProfiles: new StringArrayField('affiliatedProfiles', 'Affiliated Profiles'),
   allSubsidiaries: new StringArrayField('allSubsidiaries', 'All Subsidiaries'),
-  alternativeDomains: new StringArrayField('alternativeDomains', 'Alternative Domains'),
   alternativeNames: new StringArrayField('alternativeNames', 'Alternative Names'),
   averageEmployeeTenure: new GenericField('averageEmployeeTenure', 'Average Employee Tenure'),
   averageTenureByLevel: new JsonField('averageTenureByLevel', 'Average Tenure by Level'),

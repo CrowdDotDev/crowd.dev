@@ -7,12 +7,7 @@ import {
 import { DbStore } from '@crowd/database'
 import { Logger, getChildLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
-import {
-  IMemberAttribute,
-  IMemberSegmentAggregates,
-  MemberAttributeType,
-  MemberIdentityType,
-} from '@crowd/types'
+import { IMemberAttribute, IMemberSegmentAggregates, MemberAttributeType, MemberIdentityType } from '@crowd/types'
 import { IndexedEntityType } from '../repo/indexing.data'
 import { IndexingRepository } from '../repo/indexing.repo'
 import { IDbMemberSyncData, IMemberSegmentMatrix } from '../repo/member.data'
@@ -385,13 +380,6 @@ export class MemberSyncService {
                 continue
               }
 
-              syncStream.push({
-                id: `${value.data.id}-${value.aggregates.segmentId}`,
-                body: MemberSyncService.prefixData(value.data, value.aggregates, attributes),
-              })
-            }
-          }
-
           // also calculate and push for parent and grandparent segments
           const childSegmentIds: string[] = distinct(memberSegments.map((m) => m.segmentId))
           const segmentInfos = await this.segmentRepo.getParentSegmentIds(childSegmentIds)
@@ -399,15 +387,11 @@ export class MemberSyncService {
           const parentIds: string[] = distinct(segmentInfos.map((s) => s.parentId))
           for (const parentId of parentIds) {
             const aggregated = MemberSyncService.aggregateData(
-              memberSegmentCouples[memberId].map((s) => s.aggregates),
+              memberSegmentCouples[memberId].map((s) => s.data),
               segmentInfos,
               parentId,
             )
-            const prepared = MemberSyncService.prefixData(
-              memberSegmentCouples[memberId][0].data,
-              aggregated,
-              attributes,
-            )
+            const prepared = MemberSyncService.prefixData(aggregated, attributes)
             syncStream.push({
               id: `${memberId}-${parentId}`,
               body: prepared,
@@ -417,17 +401,16 @@ export class MemberSyncService {
           const grandParentIds = distinct(segmentInfos.map((s) => s.grandParentId))
           for (const grandParentId of grandParentIds) {
             const aggregated = MemberSyncService.aggregateData(
-              memberSegmentCouples[memberId].map((s) => s.aggregates),
+              memberSegmentCouples[memberId].map((s) => s.data),
               segmentInfos,
               undefined,
               grandParentId,
             )
             const prepared = MemberSyncService.prefixData(
               {
-                ...memberSegmentCouples[memberId][0].data,
+                ...aggregated,
                 grandParentSegment: true,
               },
-              aggregated,
               attributes,
             )
             syncStream.push({
