@@ -1,7 +1,6 @@
 import OrganizationRepo from '@crowd/data-access-layer/src/old/apps/script_executor_worker/organization.repo'
 import { svc } from '../../main'
 import { IOrganizationIdentity } from '@crowd/types'
-import { websiteNormalizer } from '@crowd/common'
 
 export async function getOrgIdentitiesWithInvalidUrls(
   tenantId: string,
@@ -68,16 +67,4 @@ export async function deleteOrganizationIdentity(
   } catch (err) {
     throw new Error(err)
   }
-}
-
-export function normalizeUrl(url: string): string {
-  let normalizedUrl: string
-
-  try {
-    normalizedUrl = websiteNormalizer(url, true)
-  } catch (err) {
-    throw new Error(err)
-  }
-
-  return normalizedUrl
 }

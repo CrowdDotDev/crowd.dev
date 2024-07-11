@@ -31,8 +31,8 @@ export async function fixOrgIdentitiesWithWrongUrls(
   }
 
   for (const org of organizations) {
-    const normalizedUrl = activities.normalizeUrl(org.value)
     // Normalize the url and check if it already exists
+    const normalizedUrl = org.value.replace(/^(?:https?:\/\/)?(?:www\.)?([^/]+)(?:\/.*)?$/, '$1')
     const existingOrg = await activity.findOrganizationIdentity(
       org.platform,
       normalizedUrl,
