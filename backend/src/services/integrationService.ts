@@ -20,6 +20,7 @@ import {
   IProcessStreamContext,
 } from '@crowd/integrations'
 import { RedisCache } from '@crowd/redis'
+import { findMemberById, MemberField } from '@crowd/data-access-layer/src/members'
 import { encryptData } from '../utils/crypto'
 import { ILinkedInOrganization } from '../serverless/integrations/types/linkedinTypes'
 import { DISCORD_CONFIG, GITHUB_CONFIG, IS_TEST_ENV, KUBE_MODE, NANGO_CONFIG } from '../conf/index'
@@ -42,11 +43,9 @@ import {
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
 import TenantRepository from '../database/repositories/tenantRepository'
 import GithubReposRepository from '../database/repositories/githubReposRepository'
-import MemberService from './memberService'
 import OrganizationService from './organizationService'
 import MemberSyncRemoteRepository from '@/database/repositories/memberSyncRemoteRepository'
 import OrganizationSyncRemoteRepository from '@/database/repositories/organizationSyncRemoteRepository'
-import MemberRepository from '@/database/repositories/memberRepository'
 import {
   GroupsioGetToken,
   GroupsioIntegrationData,
@@ -56,7 +55,6 @@ import SearchSyncService from './searchSyncService'
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import IntegrationProgressRepository from '@/database/repositories/integrationProgressRepository'
 import { IntegrationProgress } from '@/serverless/integrations/types/regularTypes'
-import { findMemberById, MemberField } from '@crowd/data-access-layer/src/members'
 
 const discordToken = DISCORD_CONFIG.token || DISCORD_CONFIG.token2
 

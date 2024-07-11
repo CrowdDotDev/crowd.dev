@@ -45,9 +45,10 @@ export async function buildFullMemberForMergeSuggestions(
   const rolesWithDisplayName: IMemberOrganization[] = []
 
   for (const role of roles) {
-    const organization = await findOrgById(qx, role.organizationId, {
-      fields: [OrganizationField.ID, OrganizationField.DISPLAY_NAME],
-    })
+    const organization = await findOrgById(qx, role.organizationId, [
+      OrganizationField.ID,
+      OrganizationField.DISPLAY_NAME,
+    ])
 
     rolesWithDisplayName.push({
       ...role,
@@ -375,14 +376,12 @@ export class MemberSyncService {
 
     const syncMembersToOpensearchForMergeSuggestions = async (memberId) => {
       const qx = repoQx(this.memberRepo)
-      const base = await findMemberById(qx, memberId, {
-        fields: [
-          MemberField.ID,
-          MemberField.TENANT_ID,
-          MemberField.DISPLAY_NAME,
-          MemberField.ATTRIBUTES,
-        ],
-      })
+      const base = await findMemberById(qx, memberId, [
+        MemberField.ID,
+        MemberField.TENANT_ID,
+        MemberField.DISPLAY_NAME,
+        MemberField.ATTRIBUTES,
+      ])
       const attributes = await this.memberRepo.getTenantMemberAttributes(base.tenantId)
       const data = await buildFullMemberForMergeSuggestions(qx, base)
       const prefixed = MemberSyncService.prefixData(data, attributes)

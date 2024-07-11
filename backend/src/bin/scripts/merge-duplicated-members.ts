@@ -2,14 +2,14 @@ import { QueryTypes } from 'sequelize'
 import { Logger, getChildLogger, getServiceLogger } from '@crowd/logging'
 import { generateUUIDv1, timeout } from '@crowd/common'
 import { IMemberUsername, MemberIdentityType } from '@crowd/types'
-import MemberRepository from '../../database/repositories/memberRepository'
-import SequelizeRepository from '../../database/repositories/sequelizeRepository'
-import MemberService from '../../services/memberService'
 import {
   MemberField,
   fetchMemberIdentities,
   findMemberById,
 } from '@crowd/data-access-layer/src/members'
+import MemberRepository from '../../database/repositories/memberRepository'
+import SequelizeRepository from '../../database/repositories/sequelizeRepository'
+import MemberService from '../../services/memberService'
 
 /* eslint-disable no-continue */
 /* eslint-disable @typescript-eslint/no-loop-func */

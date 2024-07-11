@@ -3,10 +3,9 @@ import commandLineUsage from 'command-line-usage'
 import * as fs from 'fs'
 import path from 'path'
 import { getServiceLogger } from '@crowd/logging'
-import MemberRepository from '../../database/repositories/memberRepository'
+import { MemberField, findMemberById } from '@crowd/data-access-layer/src/members'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 import MemberService from '../../services/memberService'
-import { MemberField, findMemberById } from '@crowd/data-access-layer/src/members'
 
 /* eslint-disable no-console */
 
@@ -66,16 +65,18 @@ if (parameters.help || !parameters.originalId || !parameters.targetId) {
     const options = await SequelizeRepository.getDefaultIRepositoryOptions()
     const qx = SequelizeRepository.getQueryExecutor(options)
 
-    const originalMember = await findMemberById(qx, originalId, {
-      fields: [MemberField.ID, MemberField.TENANT_ID],
-    })
+    const originalMember = await findMemberById(qx, originalId, [
+      MemberField.ID,
+      MemberField.TENANT_ID,
+    ])
 
     options.currentTenant = { id: originalMember.tenantId }
 
     for (const targetId of targetIds) {
-      const targetMember = await findMemberById(qx, targetId, {
-        fields: [MemberField.ID, MemberField.TENANT_ID],
-      })
+      const targetMember = await findMemberById(qx, targetId, [
+        MemberField.ID,
+        MemberField.TENANT_ID,
+      ])
 
       if (originalMember.tenantId !== targetMember.tenantId) {
         log.error(

@@ -48,12 +48,12 @@ import { addMemberNoMerge, removeMemberToMerge } from '@crowd/data-access-layer/
 import {
   fetchManyMemberIdentities,
   fetchManyMemberSegments,
-  fetchMemberAggregates,
   fetchMemberIdentities,
   fetchMemberOrganizations,
   findMemberById,
   MemberField,
 } from '@crowd/data-access-layer/src/members'
+import { fetchAbsoluteMemberAggregates } from '@crowd/data-access-layer/src/members/segments'
 import { OrganizationField, queryOrgs } from '@crowd/data-access-layer/src/orgs'
 import { KUBE_MODE, SERVICE } from '@/conf'
 import { ServiceType } from '../../conf/configTypes'
@@ -446,7 +446,7 @@ class MemberRepository {
               MemberField.JOINED_AT,
             ]),
             fetchMemberIdentities(qx, memberId),
-            fetchMemberAggregates(qx, memberId),
+            fetchAbsoluteMemberAggregates(qx, memberId),
             fetchMemberOrganizations(qx, memberId),
           ])
 
@@ -1210,7 +1210,7 @@ class MemberRepository {
 
     await MemberRepository.excludeMembersFromSegments([id], { ...options, transaction })
     const qx = SequelizeRepository.getQueryExecutor(options, transaction)
-    const memberSegments = await fetchMemberAggregates(qx, id)
+    const memberSegments = await fetchAbsoluteMemberAggregates(qx, id)
 
     // if member doesn't belong to any other segment anymore, remove it
     if (!memberSegments) {

@@ -8,6 +8,7 @@ import {
   IMemberIdentity,
   IntegrationResultType,
 } from '@crowd/types'
+import { findMemberById, MemberField } from '@crowd/data-access-layer/src/members'
 import { Blob } from 'buffer'
 import vader from 'crowd-sentiment'
 import { Transaction } from 'sequelize/types'
@@ -31,7 +32,6 @@ import MemberAffiliationService from './memberAffiliationService'
 import SearchSyncService from './searchSyncService'
 import SegmentService from './segmentService'
 import { getDataSinkWorkerEmitter } from '@/serverless/utils/serviceSQS'
-import { findMemberById, MemberField } from '@crowd/data-access-layer/src/members'
 
 const IS_GITHUB_COMMIT_DATA_ENABLED = GITHUB_CONFIG.isCommitDataEnabled === 'true'
 

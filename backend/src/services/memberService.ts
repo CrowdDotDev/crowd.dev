@@ -1346,7 +1346,6 @@ export default class MemberService extends LoggerBase {
 
           await txService.update(originalId, toUpdate, {
             syncToOpensearch: false,
-            doPopulateRelations: false,
           })
 
           // update members that belong to source organization to destination org
@@ -1587,11 +1586,9 @@ export default class MemberService extends LoggerBase {
     {
       syncToOpensearch = true,
       manualChange = false,
-      doPopulateRelations = true,
     }: {
       syncToOpensearch?: boolean
       manualChange?: boolean
-      doPopulateRelations?: boolean
     } = {},
   ) {
     let transaction

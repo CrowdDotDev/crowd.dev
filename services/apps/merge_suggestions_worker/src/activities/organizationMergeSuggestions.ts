@@ -345,20 +345,18 @@ async function prepareOrg(
   organizationId: string,
 ): Promise<ILLMConsumableOrganization> {
   const [base, identities, attributes] = await Promise.all([
-    findOrgById(qx, organizationId, {
-      fields: [
-        OrganizationField.ID,
-        OrganizationField.DISPLAY_NAME,
-        OrganizationField.DESCRIPTION,
-        OrganizationField.LOGO,
-        OrganizationField.TAGS,
-        OrganizationField.LOCATION,
-        OrganizationField.TYPE,
-        OrganizationField.HEADLINE,
-        OrganizationField.INDUSTRY,
-        OrganizationField.FOUNDED,
-      ],
-    }),
+    findOrgById(qx, organizationId, [
+      OrganizationField.ID,
+      OrganizationField.DISPLAY_NAME,
+      OrganizationField.DESCRIPTION,
+      OrganizationField.LOGO,
+      OrganizationField.TAGS,
+      OrganizationField.LOCATION,
+      OrganizationField.TYPE,
+      OrganizationField.HEADLINE,
+      OrganizationField.INDUSTRY,
+      OrganizationField.FOUNDED,
+    ]),
     fetchOrgIdentities(qx, organizationId),
     findOrgAttributes(qx, organizationId),
   ])

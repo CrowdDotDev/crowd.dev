@@ -355,15 +355,13 @@ export class OrganizationSyncService {
     const syncOrgsToOpensearchForMergeSuggestions = async (organizationIds) => {
       for (const orgId of organizationIds) {
         const qx = repoQx(this.orgRepo)
-        const base = await findOrgById(qx, orgId, {
-          fields: [
-            OrganizationField.ID,
-            OrganizationField.TENANT_ID,
-            OrganizationField.DISPLAY_NAME,
-            OrganizationField.LOCATION,
-            OrganizationField.INDUSTRY,
-          ],
-        })
+        const base = await findOrgById(qx, orgId, [
+          OrganizationField.ID,
+          OrganizationField.TENANT_ID,
+          OrganizationField.DISPLAY_NAME,
+          OrganizationField.LOCATION,
+          OrganizationField.INDUSTRY,
+        ])
         const data = await buildFullOrgForMergeSuggestions(qx, base)
         const prefixed = OrganizationSyncService.prefixData(data)
         await this.openSearchService.index(orgId, OpenSearchIndex.ORGANIZATIONS, prefixed)

@@ -46,7 +46,6 @@ export interface IMemberUnmergeBackup {
   reach: IMemberReach
   tasks: ITask[]
   notes: INote[]
-  emails: string[]
   joinedAt: string
   tenantId: string
   username: IMemberUsername
