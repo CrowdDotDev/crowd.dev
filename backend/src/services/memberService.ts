@@ -898,7 +898,6 @@ export default class MemberService extends LoggerBase {
         tags: tags.map((t) => ({ id: t.tagId })),
         notes: notes.map((n) => ({ id: n.noteId })),
         tasks: tasks.map((t) => ({ id: t.taskId })),
-        emails: [], // I don't think we can unmerge these after moving to them attributes
       }
 
       if (
@@ -991,10 +990,6 @@ export default class MemberService extends LoggerBase {
                   }
                 }
               }
-            } else if (key === 'emails') {
-              member.emails = member.emails.filter(
-                (e) => !secondaryBackup.emails.some((s) => s === e),
-              )
             } else if (key === 'reach') {
               // only act on reach if current member has some data
               for (const reachKey of Object.keys(member.reach)) {
@@ -1168,7 +1163,6 @@ export default class MemberService extends LoggerBase {
           tags: [],
           notes: [],
           tasks: [],
-          emails: [],
           attributes: {},
           joinedAt: new Date().toISOString(),
           tenantId: member.tenantId,

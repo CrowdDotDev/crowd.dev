@@ -66,7 +66,6 @@ export interface IMemberUnmergePreviewResult {
   notes: INote[]
   reach: IMemberReach
   tasks: ITask[]
-  emails: string[]
   joinedAt: string
   tenantId: string
   username: IMemberUsername

@@ -1296,7 +1296,7 @@ class MemberRepository {
     if (segmentId) {
       // we load data for a specific segment (can be leaf, parent or grand parent id)
 
-      const dataFromOpensearch = (
+      const member = (
         await this.findAndCountAll(
           {
             filter: { and: [{ id: { eq: memberId } }] },
@@ -1316,12 +1316,12 @@ class MemberRepository {
       ).rows[0]
 
       return {
-        activeDaysCount: dataFromOpensearch?.activeDaysCount || 0,
-        activityCount: dataFromOpensearch?.activityCount || 0,
-        activityTypes: dataFromOpensearch?.activityTypes || [],
-        activeOn: dataFromOpensearch?.activeOn || [],
-        averageSentiment: dataFromOpensearch?.averageSentiment || 0,
-        lastActive: dataFromOpensearch?.lastActive || null,
+        activeDaysCount: member?.activeDaysCount || 0,
+        activityCount: member?.activityCount || 0,
+        activityTypes: member?.activityTypes || [],
+        activeOn: member?.activeOn || [],
+        averageSentiment: member?.averageSentiment || 0,
+        lastActive: member?.lastActive || null,
         memberId,
         segmentId,
       }
@@ -2298,8 +2298,7 @@ class MemberRepository {
           ? `LEFT JOIN "memberOrganizations" mo ON mo."memberId" = m.id`
           : ''
       }
-      WHERE 1=1
-        AND m."tenantId" = $(tenantId)
+      WHERE m."tenantId" = $(tenantId)
         AND (${filterString})
     `
 
