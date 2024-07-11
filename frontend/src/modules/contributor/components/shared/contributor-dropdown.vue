@@ -10,14 +10,14 @@
     >
       <lf-dropdown-item>
         <lf-icon name="pencil-line" />
-        Edit person
+        Edit profile
       </lf-dropdown-item>
     </router-link>
     <lf-dropdown-separator />
   </template>
   <lf-dropdown-item v-if="props.contributor.identities.length > 1 && hasPermission(LfPermission.memberEdit)" @click="unmerge = props.contributor">
     <lf-icon name="link-unlink" />
-    Unmerge person
+    Unmerge profile
   </lf-dropdown-item>
   <lf-dropdown-item v-if="hasPermission(LfPermission.memberEdit)" :disabled="!!props.contributor.username?.github" @click="emit('findGithub')">
     <lf-icon name="github-fill" />
@@ -35,7 +35,7 @@
     <lf-dropdown-separator />
     <lf-dropdown-item type="danger" @click="deleteContributor()">
       <lf-icon name="delete-bin-6-line" />
-      Delete person
+      Delete profile
     </lf-dropdown-item>
   </template>
 
@@ -132,7 +132,7 @@ const markBot = (bot: boolean) => {
 const deleteContributor = () => {
   ConfirmDialog({
     type: 'danger',
-    title: 'Delete person',
+    title: 'Delete profile',
     message: "Are you sure you want to proceed? You can't undo this action",
     confirmButtonText: 'Confirm',
     cancelButtonText: 'Cancel',

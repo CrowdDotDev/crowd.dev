@@ -2,7 +2,7 @@
   <section v-bind="$attrs">
     <div class="flex items-center justify-between pb-4">
       <h6>
-        Person details
+        Profile details
       </h6>
       <lf-button
         v-if="hasPermission(LfPermission.memberEdit)"
@@ -176,7 +176,7 @@
     >
       <lf-icon name="list-view" :size="80" class="text-gray-300" />
       <p class="text-center pt-3 text-medium text-gray-400">
-        No person details yet
+        No profile details yet
       </p>
     </div>
   </section>

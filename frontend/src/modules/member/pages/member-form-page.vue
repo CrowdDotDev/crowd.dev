@@ -18,7 +18,7 @@
           <div class="flex justify-between">
             <div class="flex items-center gap-4 mt-4 mb-6">
               <h4>
-                {{ isEditPage ? 'Edit person' : 'New person' }}
+                {{ isEditPage ? 'Edit profile' : 'New person' }}
               </h4>
               <div
                 v-if="!isEditPage && selectedSegments.project && selectedSegments.subproject"

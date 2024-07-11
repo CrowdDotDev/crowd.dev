@@ -2,7 +2,7 @@
   <app-dialog
     v-if="isModalOpen"
     v-model="isModalOpen"
-    title="Merge person"
+    title="Merge profile"
     size="2extra-large"
   >
     <template #content>
@@ -54,7 +54,7 @@
             :loading="sendingMerge"
             @click="mergeSuggestion()"
           >
-            Merge people
+            Merge profile
           </el-button>
         </div>
       </div>

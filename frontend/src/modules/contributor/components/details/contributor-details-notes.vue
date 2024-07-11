@@ -36,7 +36,7 @@
         <lf-icon name="draft-line" :size="80" class="text-gray-300" />
       </div>
       <p class="text-medium text-gray-400 text-center">
-        No person notes yet
+        No notes yet
       </p>
     </div>
   </div>

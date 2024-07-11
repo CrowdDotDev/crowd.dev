@@ -261,7 +261,7 @@
                   <el-tooltip placement="top">
                     <template #content>
                       Calculated based on the recency and importance of the activities<br>
-                      a person has performed in relation to all other people.
+                      a person has performed in relation to the community.
                       <br>E.g. a higher engagement level will be given to a person who has written
                       <br>in your Slack yesterday vs. someone who did so three weeks ago.
                     </template>

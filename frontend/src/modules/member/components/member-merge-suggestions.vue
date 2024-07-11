@@ -60,7 +60,7 @@
           :loading="sendingMerge"
           @click="mergeSuggestion()"
         >
-          Merge people
+          Merge profile
         </lf-button>
         <slot name="actions" />
       </div>

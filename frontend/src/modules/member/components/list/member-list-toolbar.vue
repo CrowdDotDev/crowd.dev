@@ -27,7 +27,7 @@
               :disabled="!hasPermission(LfPermission.mergeMembers)"
             >
               <i class="ri-lg ri-group-line mr-1" />
-              Merge people
+              Merge profile
             </el-dropdown-item>
           </span>
         </el-tooltip>
@@ -169,7 +169,7 @@ const handleMergeMembers = async () => {
 
 const doDestroyAllWithConfirm = () => ConfirmDialog({
   type: 'danger',
-  title: 'Delete people',
+  title: 'Delete profile',
   message:
         "Are you sure you want to proceed? You can't undo this action",
   confirmButtonText: 'Confirm',

@@ -165,10 +165,10 @@ const en = {
         success: 'People successfully deleted',
       },
       edit: {
-        title: 'Edit Person',
+        title: 'Edit profile',
       },
       merge: {
-        title: 'Merge Person',
+        title: 'Merge profile',
         success: 'People merged successfully',
       },
       attributes: {
@@ -206,7 +206,7 @@ const en = {
         noMerge: 'NoMerge',
         crowdInfo: 'CrowdInfo',
         reach: 'Reach',
-        joinedAt: 'Person since',
+        joinedAt: 'Joined date',
         createdAt: 'Created at',
         updatedAt: 'Updated at',
         createdAtRange: 'Created at',

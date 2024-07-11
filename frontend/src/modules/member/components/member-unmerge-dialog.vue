@@ -100,7 +100,7 @@
                   <div class="border border-gray-200 bg-gray-100 py-px px-1.5 text-gray-600 text-xs leading-5 rounded-md mr-1">
                     Unknown
                   </div>
-                  <el-tooltip content="Calculated after person is unmerged" placement="top">
+                  <el-tooltip content="Calculated after profile is unmerged" placement="top">
                     <div class="ri-question-line text-base text-gray-400" />
                   </el-tooltip>
                 </div>
@@ -182,7 +182,7 @@
                     <div class="border border-gray-200 bg-gray-100 py-px px-1.5 text-gray-600 text-xs leading-5 rounded-md mr-1">
                       Unknown
                     </div>
-                    <el-tooltip content="Calculated after person is unmerged" placement="top">
+                    <el-tooltip content="Calculated after profile is unmerged" placement="top">
                       <div class="ri-question-line text-base text-gray-400" />
                     </el-tooltip>
                   </div>
@@ -216,7 +216,7 @@
                 <div class="ri-fingerprint-line text-5xl text-gray-200" />
               </div>
               <p class="text-center text-xs leading-5 text-gray-500">
-                Select the person identity you want to unmerge
+                Select the profile identity you want to unmerge
               </p>
               <div class="pt-4">
                 <el-select

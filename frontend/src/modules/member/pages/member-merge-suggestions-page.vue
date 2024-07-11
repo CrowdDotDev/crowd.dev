@@ -18,7 +18,7 @@
         </h4>
         <el-tooltip
           placement="top"
-          content="LFX is constantly checking your community for duplicate people. Here you can check all the merging suggestions."
+          content="LFX is constantly checking your community for duplicate profiles. Here you can check all the merging suggestions."
         >
           <i class="ri-question-line text-lg text-gray-400 flex items-center ml-2 h-5" />
         </el-tooltip>

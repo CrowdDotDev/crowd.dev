@@ -13,7 +13,7 @@
             <lf-tooltip>
               <template #content>
                 Calculated based on the recency and importance<br> of a person's
-                activities in comparison<br> to all other people.
+                activities in comparison<br> to the community.
               </template>
               <lf-icon name="question-line" :size="14" class="text-secondary-200" />
             </lf-tooltip>

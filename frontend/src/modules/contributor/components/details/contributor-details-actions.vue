@@ -16,7 +16,7 @@
       <!-- Merge -->
       <lf-button v-else-if="hasPermission(LfPermission.mergeMembers)" type="secondary" @click="isMergeDialogOpen = props.contributor">
         <lf-icon name="p2p-line" />
-        Merge person
+        Merge profile
       </lf-button>
 
       <!-- Actions -->

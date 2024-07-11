@@ -6,7 +6,7 @@
       />
     </div>
     <div class="text-gray-600 text-sm text-center py-4">
-      Select the person you want to merge with
+      Select the profile you want to merge with
     </div>
     <div class="flex justify-center">
       <div class="flex w-4/5">
@@ -14,7 +14,7 @@
           id="searchMembers"
           v-model="computedMemberToMerge"
           :fetch-fn="fetchFn"
-          placeholder="Type to search people"
+          placeholder="Search people"
           input-class="w-full"
         >
           <template #option="{ item }">

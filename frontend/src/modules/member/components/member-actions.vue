@@ -3,7 +3,7 @@
     <el-button-group class="ml-4">
       <!-- Edit person -->
       <el-button v-if="hasPermission(LfPermission.memberEdit)" class="btn btn--bordered btn--sm !h-8" @click="edit()">
-        <span class="ri-pencil-line text-base mr-2" />Edit person
+        <span class="ri-pencil-line text-base mr-2" />Edit profile
       </el-button>
       <el-button
         v-if="mergeSuggestionsCount > 0 && hasPermission(LfPermission.mergeMembers)"

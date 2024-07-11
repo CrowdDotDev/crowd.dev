@@ -40,7 +40,7 @@
           </div>
         </div>
         <div class="text-xs text-gray-500">
-          Overview of all people that interacted with your product or community
+          List of all the people who interacted with {{ selectedProjectGroup?.name }} projects
         </div>
       </div>
 
