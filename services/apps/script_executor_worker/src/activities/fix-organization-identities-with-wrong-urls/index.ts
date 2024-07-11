@@ -40,14 +40,23 @@ export async function findOrganizationIdentity(
 export async function updateOrganizationIdentity(
   orgId: string,
   platform: string,
-  value: string,
+  newValue: string,
+  oldValue: string,
   type: string,
   verified: boolean,
   tenantId: string,
 ): Promise<void> {
   try {
     const repo = new OrganizationRepo(svc.postgres.writer.connection(), svc.log)
-    await repo.updateOrganizationIdentity(orgId, platform, value, type, verified, tenantId)
+    await repo.updateOrganizationIdentity(
+      orgId,
+      platform,
+      newValue,
+      oldValue,
+      type,
+      verified,
+      tenantId,
+    )
   } catch (err) {
     throw new Error(err)
   }

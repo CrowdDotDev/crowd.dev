@@ -20,6 +20,10 @@ export async function fixOrgIdentitiesWithWrongUrls(
   const tenantId = args.tenantId
   const PROCESS_ORGANIZATIONS_PER_RUN = args.testRun ? 10 : 100
 
+  if (args.testRun) {
+    console.log(`Running in test mode with limit 10!`)
+  }
+
   const organizations = await activity.getOrgIdentitiesWithInvalidUrls(
     tenantId,
     PROCESS_ORGANIZATIONS_PER_RUN,
@@ -44,10 +48,15 @@ export async function fixOrgIdentitiesWithWrongUrls(
     if (existingOrg) {
       // 1. Merge the organizations if they are different
       if (existingOrg.organizationId !== org.organizationId) {
-        console.log(
-          `Organization with website ${org.value} already exists! Merging both ${org.organizationId} and ${existingOrg.organizationId}`,
-        )
-        await common.mergeOrganizations(existingOrg.organizationId, org.organizationId)
+        console.log(`Organization with same identity already exists!`, {
+          platform: existingOrg.platform,
+          type: existingOrg.type,
+          verified: existingOrg.verified,
+          value: existingOrg.value,
+        })
+
+        console.log(`Merging both ${org.organizationId} and ${existingOrg.organizationId}`)
+        await common.mergeOrganizations(tenantId, existingOrg.organizationId, org.organizationId)
       } else if (existingOrg.organizationId === org.organizationId) {
         // 2. Simply delete the organization identity if it's the same organization
         await activity.deleteOrganizationIdentity(
@@ -58,17 +67,19 @@ export async function fixOrgIdentitiesWithWrongUrls(
           org.verified,
           tenantId,
         )
-      } else {
-        // 3. Directly update the organization identity if there's no conflict
-        await activity.updateOrganizationIdentity(
-          org.organizationId,
-          org.platform,
-          normalizedUrl,
-          org.type,
-          org.verified,
-          tenantId,
-        )
+        console.log(`Deleted ${org.organizationId} organization identity with invalid url!`)
       }
+    } else {
+      // 3. Directly update the organization identity if there's no conflict
+      await activity.updateOrganizationIdentity(
+        org.organizationId,
+        org.platform,
+        normalizedUrl,
+        org.value,
+        org.type,
+        org.verified,
+        tenantId,
+      )
     }
   }
 

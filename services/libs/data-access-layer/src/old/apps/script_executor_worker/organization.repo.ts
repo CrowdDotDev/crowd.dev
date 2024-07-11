@@ -50,7 +50,8 @@ class OrganizationRepository {
   async updateOrganizationIdentity(
     orgId: string,
     platform: string,
-    value: string,
+    newValue: string,
+    oldValue: string,
     type: string,
     verified: boolean,
     tenantId: string,
@@ -58,14 +59,15 @@ class OrganizationRepository {
     await this.connection.none(
       `
           UPDATE "organizationIdentities"
-          SET value = $(value)
+          SET value = $(newValue)
           WHERE "organizationId" = $(orgId)
           AND platform = $(platform)
+          AND value = $(oldValue)
           AND type = $(type)
           AND verified = $(verified)
           AND "tenantId" = $(tenantId);
       `,
-      { orgId, platform, value, type, verified, tenantId },
+      { orgId, platform, newValue, oldValue, type, verified, tenantId },
     )
   }
 

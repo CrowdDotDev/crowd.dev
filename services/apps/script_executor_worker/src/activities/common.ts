@@ -84,10 +84,11 @@ export async function unmergeMembersPreview(
 }
 
 export async function mergeOrganizations(
+  tenantId: string,
   primaryOrgId: string,
   secondaryOrgId: string,
 ): Promise<void> {
-  const url = `${process.env['CROWD_API_SERVICE_URL']}/organization/${primaryOrgId}/merge`
+  const url = `${process.env['CROWD_API_SERVICE_URL']}/tenant/${tenantId}/organization/${primaryOrgId}/merge`
   const requestOptions = {
     method: 'PUT',
     headers: {
