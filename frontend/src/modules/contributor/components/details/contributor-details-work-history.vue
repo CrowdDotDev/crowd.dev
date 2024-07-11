@@ -46,12 +46,6 @@
       Show {{ showMore ? 'less' : 'more' }}
     </lf-button>
   </section>
-  <!--  <app-member-form-organizations-drawer-->
-  <!--    v-if="isEditModalOpen"-->
-  <!--    v-model="isEditModalOpen"-->
-  <!--    :member="props.contributor"-->
-  <!--    @update:model-value="emit('reload')"-->
-  <!--  />-->
 
   <lf-contributor-edit-work-history
     v-if="isEditModalOpen"
