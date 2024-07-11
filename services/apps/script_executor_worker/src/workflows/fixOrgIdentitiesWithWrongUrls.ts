@@ -48,14 +48,7 @@ export async function fixOrgIdentitiesWithWrongUrls(
     if (existingOrg) {
       // 1. Merge the organizations if they are different
       if (existingOrg.organizationId !== org.organizationId) {
-        console.log(`Organization with same identity already exists!`, {
-          platform: existingOrg.platform,
-          type: existingOrg.type,
-          verified: existingOrg.verified,
-          value: existingOrg.value,
-        })
-
-        console.log(`Merging both ${org.organizationId} and ${existingOrg.organizationId}`)
+        console.log(`Merging organization ${org.organizationId} into ${existingOrg.organizationId}`)
         await common.mergeOrganizations(tenantId, existingOrg.organizationId, org.organizationId)
       } else if (existingOrg.organizationId === org.organizationId) {
         // 2. Simply delete the organization identity if it's the same organization
@@ -67,7 +60,7 @@ export async function fixOrgIdentitiesWithWrongUrls(
           org.verified,
           tenantId,
         )
-        console.log(`Deleted ${org.organizationId} organization identity with invalid url!`)
+        console.log(`Deleted ${org.organizationId} organization identity ${org.value}!`)
       }
     } else {
       // 3. Directly update the organization identity if there's no conflict
