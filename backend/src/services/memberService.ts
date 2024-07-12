@@ -1912,9 +1912,18 @@ export default class MemberService extends LoggerBase {
     const memberAttributeSettings = (
       await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
     ).rows.filter((setting) => setting.type !== MemberAttributeType.SPECIAL)
+
+    const segmentId = (data.segments || [])[0]
+    console.log('segmentId', segmentId)
+
+    if (!segmentId) {
+      throw new Error400(this.options.language, 'member.segmentsRequired')
+    }
+
     return MemberRepository.findAndCountAll(
       {
         ...data,
+        segmentId,
         attributesSettings: memberAttributeSettings,
         include: {
           memberOrganizations: true,
