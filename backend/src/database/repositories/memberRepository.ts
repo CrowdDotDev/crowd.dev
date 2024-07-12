@@ -2382,6 +2382,10 @@ class MemberRepository {
     //   })
     // }
 
+    rows.forEach((row) => {
+      row.tags = []
+    })
+
     return { rows, count, limit, offset }
   }
 
