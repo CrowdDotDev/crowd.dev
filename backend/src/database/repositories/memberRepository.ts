@@ -1,5 +1,6 @@
 import {
   ActivityDisplayVariant,
+  ALL_PLATFORM_TYPES,
   FeatureFlag,
   IMemberIdentity,
   IMemberOrganization,
@@ -2234,7 +2235,27 @@ class MemberRepository {
           name,
         ]),
       ),
-      [],
+      [
+        {
+          property: 'attributes',
+          column: 'm.attributes',
+          attributeInfos: [
+            ...attributesSettings,
+            {
+              name: 'jobTitle',
+              type: MemberAttributeType.STRING,
+            },
+          ],
+        },
+        {
+          property: 'username',
+          column: 'aggs.username',
+          attributeInfos: ALL_PLATFORM_TYPES.map((p) => ({
+            name: p,
+            type: MemberAttributeType.STRING,
+          })),
+        },
+      ],
       params,
       { pgPromiseFormat: true },
     )
