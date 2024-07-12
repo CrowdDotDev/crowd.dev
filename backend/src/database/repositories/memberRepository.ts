@@ -2425,6 +2425,45 @@ class MemberRepository {
       row.tags = []
     })
 
+    if (memberIds.length > 0) {
+      const seq = SequelizeRepository.getSequelize(options)
+      const lastActivities = await seq.query(
+        `
+              SELECT
+                  a.*
+              FROM (
+                  VALUES
+                    ${memberIds.map((id) => `('${id}')`).join(',')}
+              ) m ("memberId")
+              JOIN activities a ON (a.id = (
+                  SELECT id
+                  FROM mv_activities_cube
+                  WHERE "memberId" = m."memberId"::uuid
+                  ORDER BY timestamp DESC
+                  LIMIT 1
+              ))
+              WHERE a."tenantId" = :tenantId
+          `,
+        {
+          replacements: {
+            tenantId: options.currentTenant.id,
+          },
+          type: QueryTypes.SELECT,
+        },
+      )
+
+      rows.forEach((r) => {
+        r.lastActivity = lastActivities.find((a) => (a as any).memberId === r.id)
+        if (r.lastActivity) {
+          r.lastActivity.display = ActivityDisplayService.getDisplayOptions(
+            r.lastActivity,
+            SegmentRepository.getActivityTypes(options),
+            [ActivityDisplayVariant.SHORT, ActivityDisplayVariant.CHANNEL],
+          )
+        }
+      })
+    }
+
     return { rows, count, limit, offset }
   }
 
