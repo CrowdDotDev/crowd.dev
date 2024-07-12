@@ -1914,7 +1914,6 @@ export default class MemberService extends LoggerBase {
     ).rows.filter((setting) => setting.type !== MemberAttributeType.SPECIAL)
 
     const segmentId = (data.segments || [])[0]
-    console.log('segmentId', segmentId)
 
     if (!segmentId) {
       throw new Error400(this.options.language, 'member.segmentsRequired')
@@ -1927,6 +1926,7 @@ export default class MemberService extends LoggerBase {
         attributesSettings: memberAttributeSettings,
         include: {
           memberOrganizations: true,
+          identities: true,
         },
         exportMode,
       },

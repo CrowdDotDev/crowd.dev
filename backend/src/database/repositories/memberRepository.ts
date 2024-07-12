@@ -2236,8 +2236,6 @@ class MemberRepository {
       return `${orderField} ${orderDirection}`
     })(orderBy)
 
-    console.log('withAggregates', withAggregates)
-
     const createQuery = (fields) => `
       SELECT
         ${fields}
