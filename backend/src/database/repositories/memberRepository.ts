@@ -2129,7 +2129,7 @@ class MemberRepository {
 
     // member fields
     ['displayName', 'm."displayName"'],
-    ['reach', "(m.reach ->> 'total')::integer"],
+    ['reach', 'm.reach'],
     // ['tags', 'm."tags"'], // ignore, not used
     ['joinedAt', 'm."joinedAt"'],
     ['jobTitle', `m.attributes -> 'jobTitle' ->> 'default'`],
