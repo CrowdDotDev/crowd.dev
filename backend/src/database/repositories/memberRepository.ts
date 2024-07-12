@@ -2250,7 +2250,7 @@ class MemberRepository {
       }
       ${
         include.memberOrganizations || include.lfxMemberships
-          ? `LEFT JOIN "memberOrganizations" mo ON mo."memberId" = m.id`
+          ? `LEFT JOIN "memberOrganizations" mo ON mo."memberId" = m.id AND mo."deletedAt" IS NULL`
           : ''
       }
       WHERE m."tenantId" = $(tenantId)

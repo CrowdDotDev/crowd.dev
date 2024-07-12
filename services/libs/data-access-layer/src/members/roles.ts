@@ -28,6 +28,7 @@ export async function fetchManyMemberOrgs(
         JSONB_AGG(mo ORDER BY mo."createdAt") AS "organizations"
       FROM "memberOrganizations" mo
       WHERE mo."memberId" IN ($(memberIds:csv))
+        AND mo."deletedAt" IS NULL
       GROUP BY mo."memberId"
     `,
     {
