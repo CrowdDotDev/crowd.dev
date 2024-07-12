@@ -31,7 +31,7 @@
             # of activities
           </p>
           <p class="text-small text-gray-600">
-            {{ formatNumber(props.contributor.activityCount) || '-' }}
+            {{ props.contributor.activityCount && formatNumber(props.contributor.activityCount) || '-' }}
           </p>
         </article>
         <article class="px-4 h-full w-1/2 xl:w-1/4 border-l border-gray-200">
