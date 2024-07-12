@@ -1234,10 +1234,11 @@ export default class MemberService extends LoggerBase {
         MemberField.MANUALLY_CHANGED_FIELDS,
       ])
 
-      const [tags, notes, tasks] = await Promise.all([
+      const [tags, notes, tasks, identities] = await Promise.all([
         findMemberTags(qx, memberId),
         findMemberNotes(qx, memberId),
         findMemberTasks(qx, memberId),
+        fetchMemberIdentities(qx, memberId),
       ])
 
       return {
@@ -1245,6 +1246,7 @@ export default class MemberService extends LoggerBase {
         tags: tags.map((t) => ({ id: t.tagId })),
         notes: notes.map((n) => ({ id: n.noteId })),
         tasks: tasks.map((t) => ({ id: t.taskId })),
+        username: MemberRepository.getUsernameFromIdentities(identities),
       }
     }
 
