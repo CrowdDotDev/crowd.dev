@@ -2127,41 +2127,48 @@ class MemberRepository {
     return { rows: translatedRows, count: countResponse.body.count, limit, offset }
   }
 
-  public static QUERY_FILTER_COLUMN_MAP: Map<string, string> = new Map([
-    // id fields
-    ['id', 'm.id'],
-    ['segmentId', 'msa."segmentId"'],
+  public static QUERY_FILTER_COLUMN_MAP: Map<string, { name: string; queryable?: boolean }> =
+    new Map([
+      // id fields
+      ['id', { name: 'm.id' }],
+      ['segmentId', { name: 'msa."segmentId"' }],
 
-    // member fields
-    ['displayName', 'm."displayName"'],
-    ['reach', 'm.reach'],
-    // ['tags', 'm."tags"'], // ignore, not used
-    ['joinedAt', 'm."joinedAt"'],
-    ['jobTitle', `m.attributes -> 'jobTitle' ->> 'default'`],
-    ['numberOfOpenSourceContributions', 'coalesce(jsonb_array_length(m.contributions), 0)'],
-    ['isBot', `COALESCE((m.attributes -> 'isBot' ->> 'default')::BOOLEAN, FALSE)`],
-    ['isTeamMember', `COALESCE((m.attributes -> 'isTeamMember' ->> 'default')::BOOLEAN, FALSE)`],
-    [
-      'isOrganization',
-      `COALESCE((m.attributes -> 'isOrganization' ->> 'default')::BOOLEAN, FALSE)`,
-    ],
+      // member fields
+      ['displayName', { name: 'm."displayName"' }],
+      ['reach', { name: 'm.reach' }],
+      // ['tags', {name: 'm."tags"'}], // ignore, not used
+      ['joinedAt', { name: 'm."joinedAt"' }],
+      ['jobTitle', { name: `m.attributes -> 'jobTitle' ->> 'default'` }],
+      [
+        'numberOfOpenSourceContributions',
+        { name: 'coalesce(jsonb_array_length(m.contributions), 0)' },
+      ],
+      ['isBot', { name: `COALESCE((m.attributes -> 'isBot' ->> 'default')::BOOLEAN, FALSE)` }],
+      [
+        'isTeamMember',
+        { name: `COALESCE((m.attributes -> 'isTeamMember' ->> 'default')::BOOLEAN, FALSE)` },
+      ],
+      [
+        'isOrganization',
+        { name: `COALESCE((m.attributes -> 'isOrganization' ->> 'default')::BOOLEAN, FALSE)` },
+      ],
 
-    // member agg fields
-    ['lastActive', 'msa."lastActive"'],
-    ['identityPlatforms', 'msa."activeOn"'],
-    ['lastEnriched', 'm."lastEnriched"'],
-    ['score', 'm.score'],
-    ['averageSentiment', 'msa."averageSentiment"'],
-    ['activityTypes', 'msa."activityTypes"'],
-    ['activeOn', 'msa."activeOn"'],
-    ['activityCount', 'msa."activityCount"'],
+      // member agg fields
+      ['lastActive', { name: 'msa."lastActive"' }],
+      ['identityPlatforms', { name: 'msa."activeOn"' }],
+      ['lastEnriched', { name: 'm."lastEnriched"' }],
+      ['score', { name: 'm.score' }],
+      ['averageSentiment', { name: 'msa."averageSentiment"' }],
+      ['activityTypes', { name: 'msa."activityTypes"' }],
+      ['activeOn', { name: 'msa."activeOn"' }],
+      ['activityCount', { name: 'msa."activityCount"' }],
 
-    // others
-    ['organizations', 'mo."organizationId"', false],
+      // others
+      ['organizations', { name: 'mo."organizationId"', queryable: false }],
 
-    // fields for querying
-    ['attributes', 'm.attributes'],
-  ])
+      // fields for querying
+      ['attributes', { name: 'm.attributes' }],
+    ])
 
   static async findAndCountAll(
     {
@@ -2221,7 +2228,12 @@ class MemberRepository {
 
     const filterString = RawQueryParser.parseFilters(
       filter,
-      MemberRepository.QUERY_FILTER_COLUMN_MAP,
+      new Map(
+        [...MemberRepository.QUERY_FILTER_COLUMN_MAP.entries()].map(([key, { name }]) => [
+          key,
+          name,
+        ]),
+      ),
       [],
       params,
       { pgPromiseFormat: true },
@@ -2232,7 +2244,7 @@ class MemberRepository {
     ) {
       const orderSplit = orderBy.split('_')
 
-      const orderField = MemberRepository.QUERY_FILTER_COLUMN_MAP.get(orderSplit[0])
+      const orderField = MemberRepository.QUERY_FILTER_COLUMN_MAP.get(orderSplit[0])?.name
       if (!orderField) {
         return withAggregates ? 'msa."activityCount" DESC' : 'm.id DESC'
       }
@@ -2273,27 +2285,30 @@ class MemberRepository {
         `
           ${createQuery(
             (function prepareFields(fields) {
-              return fields
+              return `DISTINCT ${fields
                 .map((f) => {
                   const mappedField = MemberRepository.QUERY_FILTER_COLUMN_MAP.get(f)
                   if (!mappedField) {
                     throw new Error400(options.language, `Invalid field: ${f}`)
                   }
 
-                  return [f, mappedField]
+                  return {
+                    alias: f,
+                    ...mappedField,
+                  }
                 })
-                .filter(([, mappedField]) => {
-                  if (!withAggregates && mappedField.includes('msa.')) {
+                .filter((mappedField) => mappedField.queryable !== false)
+                .filter((mappedField) => {
+                  if (!withAggregates && mappedField.name.includes('msa.')) {
                     return false
                   }
-                  if (!include.memberOrganizations && mappedField.includes('mo.')) {
+                  if (!include.memberOrganizations && mappedField.name.includes('mo.')) {
                     return false
                   }
                   return true
                 })
-                .map(([f, mappedField]) => `${mappedField} AS "${f}"`)
-                .filter(([, , queryable]) => queryable)
-                .join(',\n')
+                .map((mappedField) => `${mappedField.name} AS "${mappedField.alias}"`)
+                .join(',\n')}`
             })(fields),
           )}
           ORDER BY ${order}
