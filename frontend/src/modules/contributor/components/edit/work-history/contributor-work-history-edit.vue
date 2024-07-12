@@ -21,7 +21,7 @@
             <lf-field-messages
               :validation="$v.organization"
               :error-messages="{
-                required: 'Please select organization',
+                required: 'This field is required',
               }"
             />
           </lf-field>
@@ -36,7 +36,7 @@
                 placeholder="From"
                 class="!w-auto custom-date-range-picker date-from -mr-px"
                 popper-class="date-picker-popper"
-                :class="$v.dateStart.$invalid ? 'is-error' : ''"
+                :class="$v.dateStart.$invalid && $v.dateStart.$dirty ? 'is-error' : ''"
                 format="MMM YYYY"
                 @blur="$v.dateStart.$touch"
                 @change="$v.dateStart.$touch"
@@ -44,11 +44,11 @@
               <el-date-picker
                 :model-value="form.currentlyWorking ? '' : form.dateEnd"
                 type="month"
-                :placeholder="form.currentlyWorking ? 'Present' : 'To'"
+                :placeholder="!form.dateStart ? 'To' : 'Present'"
                 :disabled="form.currentlyWorking"
                 class="!w-auto custom-date-range-picker date-to"
                 popper-class="date-picker-popper"
-                :class="$v.dateStart.$invalid ? 'is-error' : ''"
+                :class="$v.dateStart.$invalid && $v.dateStart.$dirty ? 'is-error' : ''"
                 format="MMM YYYY"
                 @update:model-value="form.dateEnd = $event"
                 @blur="$v.dateStart.$touch"
@@ -58,7 +58,7 @@
             <lf-field-messages
               :validation="$v.dateStart"
               :error-messages="{
-                minDate: 'Invalid date range',
+                minDate: 'This date range is not valid',
               }"
             />
           </lf-field>
@@ -137,12 +137,22 @@ const form = reactive<ConrtibutorWorkHistoryForm>({
   currentlyWorking: false,
 });
 
+const minDate = (value: string, rest: ConrtibutorWorkHistoryForm) => {
+  const { dateEnd, currentlyWorking } = rest;
+  return (
+    (!value && !dateEnd)
+      || (value && !dateEnd && currentlyWorking)
+      || (value && dateEnd && moment(value).isBefore(moment(dateEnd)))
+      || (!value && !dateEnd)
+  );
+};
+
 const rules = {
   organization: {
     required,
   },
   dateStart: {
-    minDate: (value, rest) => !form.dateEnd || (!!form.dateStart && moment(value).isBefore(moment(rest.dateEnd))),
+    minDate,
   },
 };
 
@@ -212,11 +222,11 @@ const updateWorkExperience = () => {
     })),
   })
     .then(() => {
-      Message.success('Work history updated successfully');
+      Message.success(`Work experience ${isEdit.value ? 'updated' : 'added'} successfully`);
       isModalOpen.value = false;
     })
     .catch(() => {
-      Message.error(`Something went wrong while ${isEdit.value ? 'updating' : 'adding'} a work history`);
+      Message.error(`Something went wrong while ${isEdit.value ? 'updating' : 'adding'} a work experience`);
     })
     .finally(() => {
       sending.value = false;
