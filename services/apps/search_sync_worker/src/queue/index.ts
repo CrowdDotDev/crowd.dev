@@ -81,8 +81,8 @@ export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
 
   private initOrganizationService(): OrganizationSyncService {
     return new OrganizationSyncService(
-      new DbStore(this.log, this.pgConn),
       new DbStore(this.log, this.qdbConn),
+      new DbStore(this.log, this.pgConn),
       this.openSearchService,
       this.log,
     )

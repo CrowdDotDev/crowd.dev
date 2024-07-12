@@ -5,15 +5,13 @@ import { asyncWrap } from '../middleware/error'
 
 const router = express.Router()
 
+const syncService = (req: ApiRequest): OrganizationSyncService =>
+  new OrganizationSyncService(req.qdbStore, req.pgStore, req.opensearch, req.log)
+
 router.post(
   '/sync/organizations',
   asyncWrap(async (req: ApiRequest, res) => {
-    const organizationSyncService = new OrganizationSyncService(
-      req.pgStore,
-      req.qdbStore,
-      req.opensearch,
-      req.log,
-    )
+    const organizationSyncService = syncService(req)
     const { organizationIds } = req.body
     try {
       req.log.trace(`Calling organizationSyncService.syncOrganizations for ${organizationIds}`)
@@ -29,12 +27,7 @@ router.post(
 router.post(
   '/sync/tenant/organizations',
   asyncWrap(async (req: ApiRequest, res) => {
-    const organizationSyncService = new OrganizationSyncService(
-      req.pgStore,
-      req.qdbStore,
-      req.opensearch,
-      req.log,
-    )
+    const organizationSyncService = syncService(req)
 
     const { tenantId } = req.body
     try {
@@ -52,12 +45,7 @@ router.post(
 router.post(
   '/cleanup/tenant/organizations',
   asyncWrap(async (req: ApiRequest, res) => {
-    const organizationSyncService = new OrganizationSyncService(
-      req.pgStore,
-      req.qdbStore,
-      req.opensearch,
-      req.log,
-    )
+    const organizationSyncService = syncService(req)
 
     const { tenantId } = req.body
     try {
@@ -75,12 +63,7 @@ router.post(
 router.post(
   '/cleanup/organization',
   asyncWrap(async (req: ApiRequest, res) => {
-    const organizationSyncService = new OrganizationSyncService(
-      req.pgStore,
-      req.qdbStore,
-      req.opensearch,
-      req.log,
-    )
+    const organizationSyncService = syncService(req)
 
     const { organizationId } = req.body
     try {
