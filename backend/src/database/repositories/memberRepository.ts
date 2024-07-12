@@ -2332,7 +2332,7 @@ class MemberRepository {
                 .join(',\n')}`
             })(fields),
           )}
-          ORDER BY ${order}
+          ORDER BY ${order} NULLS LAST
           LIMIT $(limit)
           OFFSET $(offset)
         `,
