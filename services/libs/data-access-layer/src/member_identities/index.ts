@@ -29,6 +29,7 @@ export async function insertManyMemberIdentities(
         'verified',
       ],
       identities,
+      'DO NOTHING',
     ),
   )
 }
@@ -128,7 +129,7 @@ export async function updateVerifiedFlag(
     `
       update "memberIdentities"
       set verified = $(verified)
-      where 
+      where
         "memberId" = $(memberId) and
         "tenantId" = $(tenantId) and
         platform = $(platform) and

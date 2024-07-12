@@ -397,7 +397,7 @@ export class MemberSyncService {
     data: IMemberWithAggregatesForMergeSuggestions,
     attributes: IMemberAttribute[],
   ): IMemberOpensearch {
-    let p: IMemberOpensearch
+    const p: IMemberOpensearch = {} as IMemberOpensearch
 
     p.uuid_memberId = data.id
     p.uuid_tenantId = data.tenantId
