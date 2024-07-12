@@ -47,6 +47,7 @@ import { findManyLfxMemberships } from '@crowd/data-access-layer/src/lfx_members
 import { addMemberNoMerge, removeMemberToMerge } from '@crowd/data-access-layer/src/member_merge'
 import {
   fetchManyMemberIdentities,
+  fetchManyMemberOrgs,
   fetchManyMemberSegments,
   fetchMemberIdentities,
   fetchMemberOrganizations,
@@ -2154,7 +2155,7 @@ class MemberRepository {
     ['activityCount', 'msa."activityCount"'],
 
     // others
-    ['organizations', 'mo."organizationId"'],
+    ['organizations', 'mo."organizationId"', false],
 
     // fields for querying
     ['attributes', 'm.attributes'],
@@ -2248,7 +2249,7 @@ class MemberRepository {
           : ''
       }
       ${
-        include.memberOrganizations
+        include.memberOrganizations || include.lfxMemberships
           ? `LEFT JOIN "memberOrganizations" mo ON mo."memberId" = m.id`
           : ''
       }
@@ -2289,6 +2290,7 @@ class MemberRepository {
                   return true
                 })
                 .map(([f, mappedField]) => `${mappedField} AS "${f}"`)
+                .filter(([, , queryable]) => queryable)
                 .join(',\n')
             })(fields),
           )}
@@ -2309,14 +2311,44 @@ class MemberRepository {
       return { rows: [], count, limit, offset }
     }
 
-    if (include.lfxMemberships) {
-      const lfxMemberships = await findManyLfxMemberships(qx, {
-        organizationIds: rows.reduce((acc, r) => {
-          if (r.organizations) {
-            acc.push(...r.organizations.map((o) => o.id))
-          }
+    if (include.memberOrganizations) {
+      const memberOrganizations = await fetchManyMemberOrgs(qx, memberIds)
+      const orgIds = uniq(
+        memberOrganizations.reduce((acc, mo) => {
+          acc.push(...mo.organizations.map((o) => o.id))
           return acc
         }, []),
+      )
+      const orgDisplayNames = orgIds.length
+        ? await queryOrgs(qx, {
+            filter: {
+              [OrganizationField.ID]: {
+                in: orgIds,
+              },
+            },
+            fields: [OrganizationField.ID, OrganizationField.DISPLAY_NAME],
+          })
+        : []
+
+      rows.forEach((member) => {
+        member.organizations =
+          memberOrganizations.find((o) => o.memberId === member.id)?.organizations || []
+
+        member.organizations.forEach((o) => {
+          o.displayName = orgDisplayNames.find((odn) => odn.id === o.id)?.displayName
+        })
+      })
+    }
+    if (include.lfxMemberships) {
+      const lfxMemberships = await findManyLfxMemberships(qx, {
+        organizationIds: uniq(
+          rows.reduce((acc, r) => {
+            if (r.organizations) {
+              acc.push(...r.organizations.map((o) => o.id))
+            }
+            return acc
+          }, []),
+        ),
         tenantId: options.currentTenant.id,
       })
 

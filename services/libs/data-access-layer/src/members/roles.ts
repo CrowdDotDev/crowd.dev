@@ -16,3 +16,22 @@ export async function fetchMemberOrganizations(
     },
   )
 }
+
+export async function fetchManyMemberOrgs(
+  qx: QueryExecutor,
+  memberIds: string[],
+): Promise<{ memberId: string; organizations: IMemberOrganization[] }[]> {
+  return qx.select(
+    `
+      SELECT
+        mo."memberId",
+        JSONB_AGG(mo ORDER BY mo."createdAt") AS "organizations"
+      FROM "memberOrganizations" mo
+      WHERE mo."memberId" IN ($(memberIds:csv))
+      GROUP BY mo."memberId"
+    `,
+    {
+      memberIds,
+    },
+  )
+}
