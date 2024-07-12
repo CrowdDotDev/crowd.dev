@@ -1537,6 +1537,8 @@ class MemberRepository {
         offset: 0,
         segmentId,
         include: {
+          memberOrganizations: true,
+          lfxMemberships: true,
           identities: true,
         },
       },
