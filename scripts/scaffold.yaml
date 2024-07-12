@@ -26,6 +26,7 @@ services:
       - 9009:9009
     environment:
       - QDB_PG_NET_CONNECTION_TIMEOUT=0
+      - RUN_AS_ROOT=true
     volumes:
       - questdb-dev:/var/lib/questdb
     networks:
