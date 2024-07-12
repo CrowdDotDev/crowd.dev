@@ -1,66 +1,38 @@
 <template>
   <section v-bind="$attrs">
-    <div class="flex justify-between items-center pb-6">
+    <div class="flex justify-between items-center pb-5">
       <h6 class="text-h6">
         Identities
       </h6>
-      <lf-button
+      <lf-contributor-details-identity-add-dropdown
         v-if="hasPermission(LfPermission.memberEdit)"
-        type="secondary"
-        size="small"
-        :icon-only="true"
-        @click="edit = true"
+        placement="bottom-end"
+        @add="addIdentity = true; addIdentityTemplate = $event"
       >
-        <lf-icon name="pencil-line" />
-      </lf-button>
+        <lf-tooltip content="Add identity">
+          <lf-button
+            type="secondary"
+            size="small"
+            :icon-only="true"
+            class="my-1"
+          >
+            <lf-icon name="add-fill" />
+          </lf-button>
+        </lf-tooltip>
+      </lf-contributor-details-identity-add-dropdown>
     </div>
 
-    <div class="flex flex-col gap-4">
-      <article
+    <div class="flex flex-col gap-3">
+      <lf-contributor-details-identity-item
         v-for="identity of identityList.slice(0, showMore ? identityList.length : 10)"
         :key="`${identity.platform}-${identity.value}`"
-        class="flex items-center"
-      >
-        <lf-tooltip v-if="platform(identity.platform)" placement="top-start" :content="platform(identity.platform).name">
-          <img
-            :src="platform(identity.platform)?.image"
-            class="h-5 w-5"
-            :alt="identity.value"
-          />
-        </lf-tooltip>
-        <lf-tooltip v-else content="Custom identity" placement="top-start">
-          <lf-icon
-            name="fingerprint-fill"
-            :size="20"
-            class="text-gray-600"
-          />
-        </lf-tooltip>
-        <div class="pl-3 flex items-center">
-          <p v-if="!identity.url" class="text-medium max-w-48 truncate">
-            {{ identity.value }}
-          </p>
-          <a
-            v-else
-            :href="identity.url"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="text-medium cursor-pointer !text-black underline decoration-dashed
-             decoration-gray-400 underline-offset-4 hover:decoration-gray-900 max-w-48 truncate"
-          >
-            {{ identity.value }}
-          </a>
-          <p v-if="!platform(identity.platform)" class="text-medium text-gray-400 ml-1">
-            {{ identity.platform }}
-          </p>
-        </div>
-        <lf-tooltip v-if="identity.verified" content="Verified identity">
-          <lf-icon
-            name="verified-badge-line"
-            :size="16"
-            class="ml-1 text-primary-500"
-          />
-        </lf-tooltip>
-      </article>
+        :identity="identity"
+        :contributor="props.contributor"
+        class="min-h-7"
+        @edit="editIdentity = identity"
+        @unmerge="unmerge(identity)"
+      />
+
       <div v-if="identities.length === 0" class="pt-2 flex flex-col items-center">
         <lf-icon name="fingerprint-fill" :size="40" class="text-gray-300" />
         <p class="text-center pt-3 text-medium text-gray-400">
@@ -79,12 +51,16 @@
       Show {{ showMore ? 'less' : 'more' }}
     </lf-button>
   </section>
-  <app-member-manage-identities-drawer
-    v-if="edit"
-    v-model="edit"
-    :member="props.contributor"
-    @unmerge="unmerge"
-    @reload="emit('reload')"
+  <lf-contributor-identity-add
+    v-if="addIdentity && addIdentityTemplate !== null"
+    v-model="addIdentity"
+    :identities="[addIdentityTemplate]"
+    :contributor="props.contributor"
+  />
+  <lf-contributor-identity-edit
+    v-if="editIdentity !== null"
+    v-model="editIdentity"
+    :contributor="props.contributor"
   />
   <app-member-unmerge-dialog
     v-if="isUnmergeDialogOpen"
@@ -96,35 +72,45 @@
 <script setup lang="ts">
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
-import { Contributor } from '@/modules/contributor/types/Contributor';
-import { CrowdIntegrations } from '@/integrations/integrations-config';
+import { Contributor, ContributorIdentity } from '@/modules/contributor/types/Contributor';
 import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
-import AppMemberManageIdentitiesDrawer from '@/modules/member/components/member-manage-identities-drawer.vue';
 import { computed, ref } from 'vue';
 import AppMemberUnmergeDialog from '@/modules/member/components/member-unmerge-dialog.vue';
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import LfContributorDetailsIdentityItem
+  from '@/modules/contributor/components/details/identity/contributor-details-identity-item.vue';
+import LfContributorDetailsIdentityAddDropdown
+  from '@/modules/contributor/components/details/identity/contributor-details-identity-add-dropdown.vue';
+import LfContributorIdentityEdit
+  from '@/modules/contributor/components/edit/identity/contributor-identity-edit.vue';
+import LfContributorIdentityAdd
+  from '@/modules/contributor/components/edit/identity/contributor-identity-add.vue';
 
 const props = defineProps<{
   contributor: Contributor,
 }>();
 
-const emit = defineEmits<{(e: 'reload'): any}>();
-
 const { hasPermission } = usePermissions();
 
-const { identities } = useContributorHelpers();
+const { identities, emails } = useContributorHelpers();
 
-const identityList = computed(() => identities(props.contributor));
+const identityList = computed(() => [
+  ...identities(props.contributor),
+  ...emails(props.contributor),
+]);
 
 const showMore = ref<boolean>(false);
-const edit = ref<boolean>(false);
 const isUnmergeDialogOpen = ref(null);
 const selectedIdentity = ref(null);
-const platform = (name: string) => CrowdIntegrations.getConfig(name);
 
-const unmerge = (identity: any) => {
+const addIdentity = ref<boolean>(false);
+const addIdentityTemplate = ref<Partial<ContributorIdentity> | null>(null);
+const editIdentity = ref<Partial<ContributorIdentity> | null>(null);
+// const platform = (name: string) => CrowdIntegrations.getConfig(name);
+
+const unmerge = (identity: ContributorIdentity) => {
   if (identity) {
     selectedIdentity.value = identity;
   }

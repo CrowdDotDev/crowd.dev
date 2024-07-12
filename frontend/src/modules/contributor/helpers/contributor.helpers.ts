@@ -31,10 +31,10 @@ const useContributorHelpers = () => {
     .map((i) => {
       const config = CrowdIntegrations.getConfig(i.platform);
 
-      const link = config?.url({
+      const link = config?.url ? config?.url({
         username: i.value,
         attributes: contributor.attributes,
-      });
+      }) : null;
       return {
         ...i,
         url: config?.showProfileLink ? link : null,
@@ -61,6 +61,7 @@ const useContributorHelpers = () => {
       }, {});
     return Object.keys(emailsdata).map((email) => ({
       value: email,
+      url: `mailto:${email}`,
       ...emailsdata[email],
     }));
   };
