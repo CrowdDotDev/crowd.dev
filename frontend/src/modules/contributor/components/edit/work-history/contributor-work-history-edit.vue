@@ -140,7 +140,7 @@ const form = reactive<ConrtibutorWorkHistoryForm>({
 const minDate = (value: string, rest: ConrtibutorWorkHistoryForm) => {
   const { dateEnd, currentlyWorking } = rest;
   return (
-    (!value && !dateEnd)
+    (!value && !dateEnd && !currentlyWorking)
       || (value && !dateEnd && currentlyWorking)
       || (value && dateEnd && moment(value).isBefore(moment(dateEnd)))
       || (!value && !dateEnd)
