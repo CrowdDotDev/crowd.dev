@@ -5,16 +5,13 @@ import { asyncWrap } from '../middleware/error'
 
 const router = express.Router()
 
+const syncService = (req: ApiRequest): MemberSyncService =>
+  new MemberSyncService(req.redisClient, req.pgStore, req.qdbStore, req.opensearch, req.log)
+
 router.post(
   '/sync/members',
   asyncWrap(async (req: ApiRequest, res) => {
-    const memberSyncService = new MemberSyncService(
-      req.redisClient,
-      req.pgStore,
-      req.qdbStore,
-      req.opensearch,
-      req.log,
-    )
+    const memberSyncService = syncService(req)
 
     const { memberIds, segmentIds } = req.body
     try {
@@ -30,13 +27,7 @@ router.post(
 router.post(
   '/sync/tenant/members',
   asyncWrap(async (req: ApiRequest, res) => {
-    const memberSyncService = new MemberSyncService(
-      req.redisClient,
-      req.pgStore,
-      req.qdbStore,
-      req.opensearch,
-      req.log,
-    )
+    const memberSyncService = syncService(req)
 
     const { tenantId } = req.body
     try {
@@ -52,13 +43,7 @@ router.post(
 router.post(
   '/sync/organization/members',
   asyncWrap(async (req: ApiRequest, res) => {
-    const memberSyncService = new MemberSyncService(
-      req.redisClient,
-      req.pgStore,
-      req.qdbStore,
-      req.opensearch,
-      req.log,
-    )
+    const memberSyncService = syncService(req)
 
     const { organizationId } = req.body
     try {
@@ -76,13 +61,7 @@ router.post(
 router.post(
   '/cleanup/tenant/members',
   asyncWrap(async (req: ApiRequest, res) => {
-    const memberSyncService = new MemberSyncService(
-      req.redisClient,
-      req.pgStore,
-      req.qdbStore,
-      req.opensearch,
-      req.log,
-    )
+    const memberSyncService = syncService(req)
 
     const { tenantId } = req.body
     try {
@@ -98,13 +77,7 @@ router.post(
 router.post(
   '/cleanup/member',
   asyncWrap(async (req: ApiRequest, res) => {
-    const memberSyncService = new MemberSyncService(
-      req.redisClient,
-      req.pgStore,
-      req.qdbStore,
-      req.opensearch,
-      req.log,
-    )
+    const memberSyncService = syncService(req)
 
     const { memberId } = req.body
     try {
