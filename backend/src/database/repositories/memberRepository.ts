@@ -1918,68 +1918,20 @@ class MemberRepository {
     }, {})
   }
 
-  static async countMembers(
-    options: IRepositoryOptions,
-    segmentIds: string[],
-    filterString: string = '1=1',
-    params: any = {},
-  ) {
+  static async countMembers(options: IRepositoryOptions, segmentIds: string[]) {
     const countQuery = `
-        WITH
-            member_tags AS (
-                SELECT
-                    mt."memberId",
-                    JSONB_AGG(t.id) AS all_ids
-                FROM "memberTags" mt
-                INNER JOIN members m ON mt."memberId" = m.id
-                JOIN "memberSegments" ms ON ms."memberId" = m.id
-                INNER JOIN tags t ON mt."tagId" = t.id
-                WHERE m."tenantId" = :tenantId
-                  AND m."deletedAt" IS NULL
-                  AND ms."segmentId" IN (:segmentIds)
-                  AND t."tenantId" = :tenantId
-                  AND t."deletedAt" IS NULL
-                GROUP BY mt."memberId"
-            ),
-            member_organizations AS (
-                SELECT
-                    mo."memberId",
-                    JSONB_AGG(o.id) AS all_ids
-                FROM "memberOrganizations" mo
-                INNER JOIN members m ON mo."memberId" = m.id
-                INNER JOIN organizations o ON mo."organizationId" = o.id
-                JOIN "memberSegments" ms ON ms."memberId" = m.id
-                JOIN "organizationSegments" os ON o.id = os."organizationId"
-                WHERE m."tenantId" = :tenantId
-                  AND m."deletedAt" IS NULL
-                  AND ms."segmentId" IN (:segmentIds)
-                  AND o."tenantId" = :tenantId
-                  AND o."deletedAt" IS NULL
-                  AND os."segmentId" IN (:segmentIds)
-                  AND mo."deletedAt" IS NULL
-                GROUP BY mo."memberId"
-            )
         SELECT
-            COUNT(m.id) AS "totalCount",
-            ms."segmentId"
-        FROM members m
-        JOIN "memberSegments" ms ON ms."memberId" = m.id
-        INNER JOIN "memberActivityAggregatesMVs" aggs ON aggs.id = m.id AND aggs."segmentId" = ms."segmentId"
-        LEFT JOIN member_tags mt ON m.id = mt."memberId"
-        LEFT JOIN member_organizations mo ON m.id = mo."memberId"
-        WHERE m."deletedAt" IS NULL
-          AND m."tenantId" = :tenantId
-          AND ms."segmentId" IN (:segmentIds)
-          AND ${filterString}
-        GROUP BY ms."segmentId";
+            COUNT(DISTINCT msa."memberId") AS "totalCount",
+            msa."segmentId"
+        FROM "memberSegmentsAgg" msa
+        WHERE msa."segmentId" IN (:segmentIds)
+        GROUP BY msa."segmentId";
     `
 
     const seq = SequelizeRepository.getSequelize(options)
     return seq.query(countQuery, {
       replacements: {
-        tenantId: options.currentTenant.id,
         segmentIds,
-        ...params,
       },
       type: QueryTypes.SELECT,
     })
