@@ -1535,7 +1535,9 @@ class MemberRepository {
         limit: 1,
         offset: 0,
         segmentId,
-        include: {},
+        include: {
+          identities: true,
+        },
       },
       options,
     )
