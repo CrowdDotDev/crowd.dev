@@ -2317,7 +2317,7 @@ class MemberRepository {
       const memberOrganizations = await fetchManyMemberOrgs(qx, memberIds)
       const orgIds = uniq(
         memberOrganizations.reduce((acc, mo) => {
-          acc.push(...mo.organizations.map((o) => o.id))
+          acc.push(...mo.organizations.map((o) => o.organizationId))
           return acc
         }, []),
       )
@@ -2333,12 +2333,13 @@ class MemberRepository {
         : []
 
       rows.forEach((member) => {
-        member.organizations =
+        member.organizations = (
           memberOrganizations.find((o) => o.memberId === member.id)?.organizations || []
-
-        member.organizations.forEach((o) => {
-          o.displayName = orgDisplayNames.find((odn) => odn.id === o.id)?.displayName
-        })
+        ).map((o) => ({
+          id: o.organizationId,
+          displayName: orgDisplayNames.find((odn) => odn.id === o.organizationId)?.displayName,
+          memberOrganizations: o,
+        }))
       })
     }
     if (include.lfxMemberships) {
@@ -2346,7 +2347,7 @@ class MemberRepository {
         organizationIds: uniq(
           rows.reduce((acc, r) => {
             if (r.organizations) {
-              acc.push(...r.organizations.map((o) => o.id))
+              acc.push(...r.organizations.map((o) => o.organizationId))
             }
             return acc
           }, []),
