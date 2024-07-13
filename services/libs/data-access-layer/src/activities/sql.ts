@@ -768,7 +768,7 @@ export async function getOrgAggregates(
   qdbConn: DbConnOrTx,
   organizationId: string,
 ): Promise<IOrganizationSegmentAggregates[]> {
-  const result = await qdbConn.many(
+  const result = await qdbConn.any(
     `
       WITH
         platforms AS (
@@ -782,8 +782,8 @@ export async function getOrgAggregates(
         ),
         platforms_agg AS (
           SELECT
-            p.organizationId,
-            p.segmentId,
+            p."organizationId",
+            p."segmentId",
             STRING_AGG(p.platform, ':') AS "activeOn"
           FROM platforms p
         ),
@@ -792,24 +792,26 @@ export async function getOrgAggregates(
             a."organizationId",
             a."tenantId",
             a."segmentId",
-            count_distinct(a."memberId")  AS "memberCount",
-            count_distinct(a.id)          AS "activityCount",
-            max(a.timestamp)              AS "lastActive",
-            min(a.timestamp)              AS "joinedAt"
+            count_distinct(a."memberId")      AS "memberCount",
+            count_distinct(a.id)              AS "activityCount",
+            max(a.timestamp)                  AS "lastActive",
+            min(a.timestamp)                  AS "joinedAt",
+            coalesce(round(avg(a.score)), 0)  AS "avgContributorEngagement"
           FROM activities a
           WHERE a."organizationId" = $(organizationId)
             AND a."deletedAt" IS NULL
-          GROUP BY a.organizationId, a.tenantId, a.segmentId
+          GROUP BY a."organizationId", a."tenantId", a."segmentId"
         )
       SELECT
-        a.organizationId,
-        a.tenantId,
-        a.segmentId,
+        a."organizationId",
+        a."tenantId",
+        a."segmentId",
         -- <option1>
-        MIN(a.memberCount) AS memberCount,
-        MIN(a.activityCount) AS activityCount,
-        MIN(a.lastActive) AS lastActive,
-        MIN(a.joinedAt) AS joinedAt,
+        MIN(a."memberCount") AS "memberCount",
+        MIN(a."activityCount") AS "activityCount",
+        MIN(a."lastActive") AS "lastActive",
+        MIN(a."joinedAt") AS "joinedAt",
+        MIN(a."avgContributorEngagement") AS "avgContributorEngagement",
         STRING_AGG(p.platform, ':') AS "activeOn"
         -- </option1>
 
@@ -823,8 +825,8 @@ export async function getOrgAggregates(
       FROM activites_agg a
 
       -- <option1>
-      JOIN platforms p ON p.organizationId = a.organizationId AND p.segmentId = a.segmentId
-      GROUP BY a.organizationId, a.tenantId, a.segmentId
+      JOIN platforms p ON p."organizationId" = a."organizationId" AND p."segmentId" = a."segmentId"
+      GROUP BY a."organizationId", a."tenantId", a."segmentId"
       -- </option1>
 
       -- -- <option2>
@@ -846,6 +848,7 @@ export async function getOrgAggregates(
     activeOn: r.activeOn.split(':'),
     lastActive: r.lastActive,
     joinedAt: r.joinedAt,
+    avgContributorEngagement: r.avgContributorEngagement,
   }))
 }
 

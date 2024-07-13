@@ -66,7 +66,6 @@ export interface IDbOrganizationAggregateData {
   organizationId: string
   segmentId: string
   tenantId: string
-
   joinedAt: string
   lastActive: string
   activeOn: string[]

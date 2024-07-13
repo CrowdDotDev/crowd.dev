@@ -5,12 +5,12 @@ export interface IOrganizationAggregateData {
   organizationId: string
   segmentId: string
   tenantId: string
-
   joinedAt: string
   lastActive: string
   activeOn: string[]
   activityCount: number
   memberCount: number
+  avgContributorEngagement: number
 }
 
 export async function cleanupForOganization(qx: QueryExecutor, organizationId: string) {
@@ -37,12 +37,12 @@ export async function insertOrganizationSegments(
           'organizationId',
           'segmentId',
           'tenantId',
-
           'joinedAt',
           'lastActive',
           'activeOn',
           'activityCount',
           'memberCount',
+          'avgContributorEngagement',
         ],
         data,
       ),

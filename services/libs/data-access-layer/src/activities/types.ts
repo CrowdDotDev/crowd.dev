@@ -127,6 +127,7 @@ export interface IOrganizationSegmentAggregates {
   activeOn: string[]
   lastActive: string
   joinedAt: string
+  avgContributorEngagement: number
 }
 
 export interface IActiveMemberData {

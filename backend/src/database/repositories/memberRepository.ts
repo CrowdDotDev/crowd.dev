@@ -1743,8 +1743,8 @@ class MemberRepository {
     }
 
     const activeMemberResults = await getActiveMembers(options.qdb, {
-      timestampFrom: new Date(Date.parse(filter.activityTimestampFrom)).toString(),
-      timestampTo: new Date(Date.parse(filter.activityTimestampTo)).toString(),
+      timestampFrom: new Date(Date.parse(filter.activityTimestampFrom)).toISOString(),
+      timestampTo: new Date(Date.parse(filter.activityTimestampTo)).toISOString(),
       isContribution: filter.activityIsContribution === true ? true : undefined,
       platforms: filter.platforms ? filter.platforms : undefined,
       segmentIds: segments,
