@@ -66,11 +66,8 @@ import {
   MemberSegmentAffiliationJoined,
 } from '../../types/memberSegmentAffiliationTypes'
 import { AttributeData } from '../attributes/attribute'
-import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import AuditLogRepository from './auditLogRepository'
-import QueryParser from './filters/queryParser'
-import { QueryOutput } from './filters/queryTypes'
 import MemberAttributeSettingsRepository from './memberAttributeSettingsRepository'
 import MemberSegmentAffiliationRepository from './memberSegmentAffiliationRepository'
 import MemberSyncRemoteRepository from './memberSyncRemoteRepository'
