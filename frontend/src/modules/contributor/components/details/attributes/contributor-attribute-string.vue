@@ -1,7 +1,8 @@
 <template>
-  <p class="text-medium">
-    {{ props.data.substring(0, showMore ? props.data.length : 150) || '-' }}
-  </p>
+  <div
+    class="text-medium"
+    v-html="props.data.substring(0, showMore ? props.data.length : 150) || '-'"
+  />
   <lf-button
     v-if="props.data.length > 150"
     type="primary-link"

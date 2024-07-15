@@ -18,8 +18,7 @@ class Auth0ServiceClass {
         scope,
       },
       useCookiesForTransactions: true,
-      useRefreshTokens: true,
-      useRefreshTokensFallback: true,
+      useRefreshTokens: false,
     });
   }
 

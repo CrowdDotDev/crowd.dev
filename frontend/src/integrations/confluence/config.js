@@ -11,7 +11,7 @@ export default {
     description: 'Sync documentation activities from your repos.',
   },
   image:
-    '/images/integrations/conf.jpg',
+    '/images/integrations/confluence.svg',
   connectComponent: ConfluenceConnect,
   url: () => null,
   showProfileLink: false,
