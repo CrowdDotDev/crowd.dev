@@ -1,20 +1,24 @@
 <template>
-  <lf-conteneditable
-    v-model="form.name"
-    class="px-1 py-px font-secondary text-h5 rounded-md font-semibold transition mb-1
-    border border-transparent w-min edit-name
-    hover:!bg-gray-200 group-hover:bg-gray-100
-    focus:!bg-white focus:border-gray-900"
-    style="max-width: 30ch"
-    :class="form.name.length <= 30 ? 'focus:whitespace-nowrap' : 'focus:whitespace-normal focus:w-full'"
-    @blur="update"
-  />
+  <div ref="nameEdit">
+    <lf-conteneditable
+      ref="editor"
+      v-model="form.name"
+      class="edit-name px-1 py-px font-secondary text-h5 rounded-md font-semibold transition mb-1
+        border border-transparent w-min
+        hover:!bg-gray-200 whitespace-nowrap
+        focus:!bg-white focus:border-gray-900 focus:!max-w-80 focus:overflow-auto"
+      style="max-width: 30ch"
+      :class="form.name.length <= 30 ? '' : 'focus:w-full'"
+      @blur="update"
+      @keydown.enter.prevent
+    />
+  </div>
 </template>
 
 <script setup lang="ts">
 import { Contributor } from '@/modules/contributor/types/Contributor';
 import LfConteneditable from '@/ui-kit/contenteditable/Contenteditable.vue';
-import { reactive } from 'vue';
+import { reactive, ref } from 'vue';
 import Message from '@/shared/message/message';
 import { useContributorStore } from '@/modules/contributor/store/contributor.store';
 import { required } from '@vuelidate/validators';
@@ -25,6 +29,8 @@ const props = defineProps<{
 }>();
 
 const { updateContributor } = useContributorStore();
+
+const nameEdit = ref(null);
 
 const form = reactive({
   name: props.contributor.displayName,
@@ -39,6 +45,12 @@ const rules = {
 const $v = useVuelidate(rules, form);
 
 const update = () => {
+  if (nameEdit.value) {
+    const scrollElement = nameEdit.value.querySelector('[contenteditable]');
+    if (scrollElement) {
+      scrollElement.scrollLeft = 0;
+    }
+  }
   if (form.name === props.contributor.displayName) {
     return;
   }
@@ -68,6 +80,19 @@ export default {
 .edit-name {
   &:not(:focus){
     @apply truncate;
+  }
+}
+
+.is-hovered .edit-name {
+  @apply bg-gray-100;
+}
+
+.edit-name{
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+
+  &::-webkit-scrollbar {
+    display: none;
   }
 }
 </style>

@@ -4,9 +4,14 @@
   </div>
   <div v-else class="-mt-5 -mb-5">
     <div class="organization-details  grid grid-cols-2 grid-rows-2 px-3">
-      <section class="w-full border-b border-gray-100 py-4 flex justify-between items-center col-span-2 h-min">
+      <section
+        class="w-full border-b border-gray-100 py-4 flex justify-between items-center col-span-2 h-min"
+        :class="hovered ? 'is-hovered' : ''"
+        @mouseover="hovered = true"
+        @mouseout="hovered = false"
+      >
         <div class="flex items-center flex-grow">
-          <lf-back :to="{ path: '/organizations' }" class="mr-2">
+          <lf-back :to="{ path: '/organizations' }" class="mr-2" @mouseover.stop @mouseout.stop>
             <lf-button type="secondary-ghost" :icon-only="true">
               <lf-icon name="arrow-left-s-line" />
             </lf-button>
@@ -15,7 +20,9 @@
         </div>
         <div class="flex items-center">
           <lf-organization-last-enrichment :organization="organization" class="mr-4" />
-          <lf-organization-details-actions :organization="organization" @reload="fetchOrganization()" />
+          <div @mouseover.stop @mouseout.stop>
+            <lf-organization-details-actions :organization="organization" @reload="fetchOrganization()" />
+          </div>
         </div>
       </section>
       <section class="w-80 border-r relative border-gray-100 overflow-y-auto overflow-x-visible h-full ">
@@ -120,6 +127,8 @@ const { id } = route.params;
 const organizationStore = useOrganizationStore();
 const { organization } = storeToRefs(organizationStore);
 const { fetchOrganization } = organizationStore;
+
+const hovered = ref<boolean>(false);
 
 const loading = ref<boolean>(false);
 const getOrganization = () => {
