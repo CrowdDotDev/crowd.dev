@@ -1,0 +1,2 @@
+export const ALSO_USE_EMAIL_IDENTITIES_FOR_ENRICHMENT = false
+export const ENRICH_EMAIL_IDENTITIES = false
