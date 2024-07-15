@@ -84,11 +84,6 @@ export async function queryTable<T extends string>(
     { pgPromiseFormat: true },
   )
 
-  console.log('field map:')
-  console.log(new Map<string, string>(data))
-  console.log('filter generated: ')
-  console.log(where)
-
   return qx.select(
     `
       SELECT
