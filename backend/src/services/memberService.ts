@@ -1246,7 +1246,7 @@ export default class MemberService extends LoggerBase {
         tags: tags.map((t) => ({ id: t.tagId })),
         notes: notes.map((n) => ({ id: n.noteId })),
         tasks: tasks.map((t) => ({ id: t.taskId })),
-        affiliations,
+        affiliations: affiliations.map((a) => ({ id: a.id })),
       }
     }
 
