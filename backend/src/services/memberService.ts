@@ -1057,14 +1057,7 @@ export default class MemberService extends LoggerBase {
 
         // affiliations: Remove affiliations coming from secondary backup
         member.affiliations = member.affiliations.filter(
-          (a) =>
-            !secondaryBackup.affiliations.some(
-              (s) =>
-                s.segmentId === a.segmentId &&
-                s.organizationId === a.organizationId &&
-                s.dateStart === a.dateStart &&
-                s.dateEnd === a.dateEnd,
-            ),
+          (a) => !secondaryBackup.affiliations.some((s) => s.id === a.id),
         )
 
         // member organizations
