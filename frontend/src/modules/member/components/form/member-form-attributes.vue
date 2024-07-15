@@ -36,7 +36,7 @@
             "
             class="text-xs text-gray-400 font-medium mt-4 mb-2"
           >
-            Hidden in person
+            Hidden in profile
           </div>
           <div class="flex gap-3">
             <div

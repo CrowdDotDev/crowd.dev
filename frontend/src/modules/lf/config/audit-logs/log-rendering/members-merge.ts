@@ -1,7 +1,7 @@
 import { LogRenderingConfig } from '@/modules/lf/config/audit-logs/log-rendering/index';
 
 const membersMerge: LogRenderingConfig = {
-  label: 'People merged',
+  label: 'Profiles merged',
   changes: (log) => {
     const primary = log.oldState?.primary;
     const secondary = log.oldState?.secondary;
@@ -31,7 +31,7 @@ const membersMerge: LogRenderingConfig = {
 
     if (member) {
       return [{
-        label: 'Person',
+        label: 'Profile',
         value: `${member}<br><span>ID: ${log.entityId}</span>`,
       }];
     }

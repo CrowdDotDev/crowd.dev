@@ -131,7 +131,7 @@
           No merge suggestions
         </h5>
         <p class="text-sm text-center text-gray-600 leading-5">
-          We couldn’t find any duplicated people
+          We couldn't find any duplicated profiles
         </p>
       </div>
 
@@ -290,9 +290,9 @@ const merge = (suggestion: any) => {
     .then(() => {
       Message.closeAll();
       Message.info(
-        'We’re finalizing person merging. We will let you know once the process is completed.',
+        "We're finalizing profiles merging. We will let you know once the process is completed.",
         {
-          title: 'People merging in progress',
+          title: 'Profiles merging in progress',
         },
       );
     })
@@ -320,7 +320,7 @@ const ignore = (suggestion: any) => {
   sending.value = `${primaryMember.id}:${secondaryMember.id}`;
   MemberService.addToNoMerge(...suggestion.members)
     .then(() => {
-      Message.success('Merging suggestion ignored successfuly');
+      Message.success('Merging suggestion ignored successfully');
       reload();
     })
     .finally(() => {

@@ -111,7 +111,7 @@ const update = () => {
     },
   })
     .then(() => {
-      Message.success('Person avatar updated successfully!');
+      Message.success('Avatar updated successfully!');
       isModalOpen.value = false;
     })
     .catch(() => {

@@ -58,7 +58,7 @@ export const checkEnrichmentLimit = (
         planEnrichmentCountMax,
       )} enrichments per month on your current plan`,
       message:
-        'Upgrade your plan in order to increase your quota of available person enrichments.',
+        'Upgrade your plan in order to increase your quota of available profile enrichments.',
       icon: 'ri-error-warning-line',
       confirmButtonText: 'Upgrade plan',
       showCancelButton: false,
@@ -87,7 +87,7 @@ export const checkEnrichmentPlan = ({
         planEnrichmentCountMax,
       )} enrichments available in your current plan`,
       message:
-        'Upgrade your plan in order to increase your quota of available person enrichments.',
+        'Upgrade your plan in order to increase your quota of available profile enrichments.',
       icon: 'ri-error-warning-line',
       confirmButtonText: 'Upgrade plan',
       showCancelButton: false,
@@ -138,7 +138,7 @@ export const showEnrichmentSuccessMessage = ({
   Message.closeAll();
   Message.success(message, {
     title: `Successfully enriched ${pluralize(
-      'person',
+      'profile',
       enrichedMembers,
       isBulk,
     )}`,
@@ -152,7 +152,7 @@ export const showEnrichmentLoadingMessage = ({
     "We'll let you know when the process is done.",
     {
       title: `${
-        isBulk ? 'People are' : 'Person is'
+        isBulk ? 'Profiles are' : 'Profile is'
       } being enriched`,
     },
   );

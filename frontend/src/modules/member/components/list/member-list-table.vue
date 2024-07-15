@@ -13,7 +13,7 @@
       <app-empty-state-cta
         v-if="!hasIntegrations && !hasMembers"
         icon="ri-contacts-line"
-        title="No people yet"
+        title="No people in your community yet"
         description="Please connect with one of our available data sources in order to start pulling data from a certain platform"
         secondary-btn="Add person"
         @secondary-click="onSecondaryBtnClick"
@@ -22,7 +22,7 @@
       <app-empty-state-cta
         v-else-if="hasIntegrations && !hasMembers"
         icon="ri-contacts-line"
-        title="No people yet"
+        title="No people in your community yet"
         description="Please consider that the first people may take a couple of minutes to be displayed"
         :has-warning-icon="true"
       />

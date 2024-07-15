@@ -127,7 +127,7 @@
         No merge suggestions
       </h5>
       <p class="text-sm text-center text-gray-600 leading-5">
-        We couldn’t find any duplicated people
+        We couldn't find any duplicated profiles
       </p>
     </div>
   </div>
@@ -247,7 +247,7 @@ const ignoreSuggestion = () => {
   sendingIgnore.value = true;
   MemberService.addToNoMerge(...membersToMerge.value.members)
     .then(() => {
-      Message.success('Merging suggestion ignored successfuly');
+      Message.success('Merging suggestion ignored successfully');
 
       const nextIndex = offset.value >= (count.value - 1) ? Math.max(count.value - 2, 0) : offset.value;
       fetch(nextIndex);
@@ -294,9 +294,9 @@ const mergeSuggestion = () => {
     .then(() => {
       Message.closeAll();
       Message.info(
-        'We’re finalizing person merging. We will let you know once the process is completed.',
+        "We're finalizing profiles merging. We will let you know once the process is completed.",
         {
-          title: 'People merging in progress',
+          title: 'Profiles merging in progress',
         },
       );
       primary.value = 0;

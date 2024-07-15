@@ -1,7 +1,7 @@
 import { LogRenderingConfig } from '@/modules/lf/config/audit-logs/log-rendering/index';
 
 const membersCreate: LogRenderingConfig = {
-  label: 'Person created',
+  label: 'Profile created',
   changes: () => null,
   description: (log) => {
     const member = log.newState?.displayName;
@@ -17,7 +17,7 @@ const membersCreate: LogRenderingConfig = {
 
     if (member) {
       return [{
-        label: 'Person',
+        label: 'Profile',
         value: `${member}<br><span>ID: ${log.entityId}</span>`,
       }];
     }

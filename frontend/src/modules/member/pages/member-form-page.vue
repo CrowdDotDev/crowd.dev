@@ -101,7 +101,7 @@
                   Identities <span class="text-primary-500">*</span>
                 </h6>
                 <p class="text-gray-500 text-2xs leading-normal mt-1">
-                  Connect with people' external data sources or
+                  Connect with people's external data sources or
                   profiles
                 </p>
               </div>
@@ -324,7 +324,7 @@ const formModel = ref(getInitialModel());
 
 const isPageLoading = ref(true);
 const isFormSubmitting = ref(false);
-const wasFormSubmittedSuccessfuly = ref(false);
+const wasFormSubmittedSuccessfully = ref(false);
 const isDrawerOpen = ref(false);
 
 const rules = reactive(formSchema.value.rules());
@@ -371,7 +371,7 @@ onBeforeRouteLeave((to) => {
   if (
     !isLeaving.value
     && hasFormChanged.value
-    && !wasFormSubmittedSuccessfuly.value
+    && !wasFormSubmittedSuccessfully.value
     && to.fullPath !== '/500'
     && !leaveWithoutConfirmation.value
   ) {
@@ -419,11 +419,11 @@ onUnmounted(() => {
   );
 });
 
-// Once form is submitted successfuly, update route
+// Once form is submitted successfully, update route
 watch(
-  wasFormSubmittedSuccessfuly,
-  (isFormSubmittedSuccessfuly) => {
-    if (isFormSubmittedSuccessfuly) {
+  wasFormSubmittedSuccessfully,
+  (isFormSubmittedSuccessfully) => {
+    if (isFormSubmittedSuccessfully) {
       if (isEditPage.value) {
         return router.push({
           name: 'memberView',
@@ -596,7 +596,7 @@ async function onSubmit() {
               ],
             ),
             {
-              title: 'Person was not updated because the identity already exists in another person, but you can merge the people',
+              title: 'Profile was not updated because the identity already exists in another profile, but you can merge the profiles.',
             },
           );
 
@@ -631,7 +631,7 @@ async function onSubmit() {
   isFormSubmitting.value = false;
 
   if (isRequestSuccessful) {
-    wasFormSubmittedSuccessfuly.value = true;
+    wasFormSubmittedSuccessfully.value = true;
   }
 }
 

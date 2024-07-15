@@ -50,7 +50,7 @@ const update = () => {
     displayName: form.name,
   })
     .then(() => {
-      Message.success('Person name updated successfully!');
+      Message.success('Name updated successfully!');
     })
     .catch(() => {
       Message.error('There was an error updating organization');

@@ -112,7 +112,7 @@ export const connectSocket = (token) => {
     const after = h(
       'span',
       {},
-      '. Finalizing person merging might take some time to complete.',
+      '. Finalizing profile merging might take some time to complete.',
     );
     Message.closeAll();
     Message.success(h(
@@ -120,7 +120,7 @@ export const connectSocket = (token) => {
       {},
       [secondaryMember, between, primaryMember, after],
     ), {
-      title: 'People merged successfully',
+      title: 'Profiles merged successfully',
     });
   });
 
@@ -169,7 +169,7 @@ export const connectSocket = (token) => {
     const after = h(
       'span',
       {},
-      '. Finalizing person unmerging might take some time to complete.',
+      '. Finalizing profile unmerging might take some time to complete.',
     );
     Message.closeAll();
     Message.success(h(
@@ -177,7 +177,7 @@ export const connectSocket = (token) => {
       {},
       [secondaryMember, between, primaryMember, after],
     ), {
-      title: 'People unmerged successfully',
+      title: 'Profiles unmerged successfully',
     });
   });
 

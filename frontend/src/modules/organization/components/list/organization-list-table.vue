@@ -15,7 +15,7 @@
           v-if="!hasOrganizations"
           icon="ri-community-line"
           title="No organizations yet"
-          description="We couldn't track any organizations related to your people."
+          :description="`We couldn't track any organizations related to all the people who interacted with ${selectedProjectGroup.name} projects.`"
           cta-btn="Add organization"
           @cta-click="onCtaClick"
         />

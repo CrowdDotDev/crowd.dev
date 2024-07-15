@@ -163,7 +163,7 @@ const serverUpdate = () => {
             ],
           ),
           {
-            title: 'Person was not updated because the identity already exists in another person, but you can merge the people',
+            title: 'Profile was not updated because the identity already exists in another profile, but you can merge the profiles',
           },
         );
       } else {

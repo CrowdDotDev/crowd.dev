@@ -5,27 +5,27 @@ const options: SelectFilterOptionGroup[] = [
     label: 'Person',
     options: [
       {
-        label: 'People merged',
+        label: 'Profiles merged',
         value: 'contributors-merged',
       },
       {
-        label: 'Person identities updated',
+        label: 'Profile identities updated',
         value: 'contributor-identities-updated',
       },
       {
-        label: 'Person work experience updated',
+        label: 'Profile work experience updated',
         value: 'contributor-work-experience-updated',
       },
       {
-        label: 'Person affiliation updated',
+        label: 'Profile affiliation updated',
         value: 'contributor-affiliation-updated',
       },
       {
-        label: 'Person profile updated',
+        label: 'Profile updated',
         value: 'contributor-profile-updated',
       },
       {
-        label: 'Person created',
+        label: 'Profile created',
         value: 'contributor-created',
       },
     ],

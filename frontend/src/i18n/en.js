@@ -71,7 +71,7 @@ const en = {
         activities: 'Activities',
         members: 'People',
         latestMetrics: 'LatestMetrics',
-        membersToMerge: 'People To Merge',
+        membersToMerge: 'Profiles To Merge',
         benchmarkRepos: 'BenchmarkRepos',
         createdAt: 'Created at',
         updatedAt: 'Updated at',
@@ -150,30 +150,30 @@ const en = {
         title: 'People',
       },
       create: {
-        success: 'Person successfully saved',
-        error: 'There was an error creating the person',
-        message: 'View person',
+        success: 'Profile successfully saved',
+        error: 'There was an error creating the profile',
+        message: 'View profile',
       },
       update: {
-        success: 'Person edited successfully',
+        success: 'Profile edited successfully',
         error: 'There was an error updating the person',
       },
       destroy: {
-        success: 'Person successfully deleted',
+        success: 'Profile successfully deleted',
       },
       destroyAll: {
-        success: 'People successfully deleted',
+        success: 'Profiles successfully deleted',
       },
       edit: {
         title: 'Edit profile',
       },
       merge: {
         title: 'Merge profile',
-        success: 'People merged successfully',
+        success: 'Profiles merged successfully',
       },
       attributes: {
         error: 'Custom Attributes could not be created',
-        success: 'Custom Attributes successfuly updated',
+        success: 'Custom Attributes successfully updated',
       },
       fields: {
         id: 'Id',
@@ -220,7 +220,7 @@ const en = {
         title: 'New Person',
       },
       view: {
-        title: 'View Person',
+        title: 'View Profile',
       },
     },
 

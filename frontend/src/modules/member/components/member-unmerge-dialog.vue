@@ -41,7 +41,7 @@
                   <div
                     class="bg-primary-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
                   >
-                    Current person
+                    Current profile
                   </div>
                 </div>
               </template>
@@ -78,7 +78,7 @@
                   <div
                     class="bg-primary-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
                   >
-                    Updated person
+                    Updated profile
                   </div>
                 </div>
               </template>
@@ -132,7 +132,7 @@
                       <div
                         class="bg-gray-100 rounded-full py-0.5 px-2 text-gray-600 inline-block text-xs leading-5 font-medium"
                       >
-                        <i class="ri-link-unlink-m mr-1" />Unmerged person
+                        <i class="ri-link-unlink-m mr-1" />Unmerged profile
                       </div>
                       <el-dropdown
                         placement="bottom-end"
@@ -365,9 +365,9 @@ const unmerge = () => {
   MemberService.unmerge(props.modelValue?.id, preview.value)
     .then(() => {
       Message.info(
-        'We’re finalizing person unmerging. We will let you know once the process is completed.',
+        "We're finalizing profiles merging. We will let you know once the process is completed.",
         {
-          title: 'People unmerging in progress',
+          title: 'Profiles merging in progress',
         },
       );
       doFind({
@@ -383,7 +383,7 @@ const unmerge = () => {
       emit('update:modelValue', null);
     })
     .catch((error) => {
-      Message.error('There was an error unmerging person');
+      Message.error('There was an error unmerging profile');
     })
     .finally(() => {
       unmerging.value = false;

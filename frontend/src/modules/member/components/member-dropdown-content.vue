@@ -318,8 +318,8 @@ const handleCommand = async (command: {
       });
 
       doManualAction({
-        loadingMessage: 'Person is being deleted',
-        successMessage: 'Person successfully deleted',
+        loadingMessage: 'Profile is being deleted',
+        successMessage: 'Profile successfully deleted',
         errorMessage: 'Something went wrong',
         actionFn: MemberService.destroyAll([command.member.id]),
       }).then(() => {
@@ -339,11 +339,11 @@ const handleCommand = async (command: {
 
     doManualAction({
       loadingMessage: isSyncing
-        ? 'Person is being synced with Hubspot'
-        : 'Person syncing with Hubspot is being stopped',
+        ? 'Profile is being synced with Hubspot'
+        : 'Profile syncing with Hubspot is being stopped',
       successMessage: isSyncing
-        ? 'Person is now syncing with HubSpot'
-        : 'Person syncing stopped',
+        ? 'Profile is now syncing with HubSpot'
+        : 'Profile syncing stopped',
       errorMessage: 'Something went wrong',
       actionFn: isSyncing
         ? HubspotApiService.syncMember(command.member.id)
@@ -373,8 +373,8 @@ const handleCommand = async (command: {
     });
 
     doManualAction({
-      loadingMessage: 'Person is being updated',
-      successMessage: 'Person updated successfully',
+      loadingMessage: 'Profile is being updated',
+      successMessage: 'Profile updated successfully',
       errorMessage: 'Something went wrong',
       actionFn: MemberService.update(command.member.id, {
         attributes: {
@@ -412,8 +412,8 @@ const handleCommand = async (command: {
     });
 
     doManualAction({
-      loadingMessage: 'Person is being updated',
-      successMessage: 'Person updated successfully',
+      loadingMessage: 'Profile is being updated',
+      successMessage: 'Profile updated successfully',
       errorMessage: 'Something went wrong',
       actionFn: MemberService.update(command.member.id, {
         attributes: {

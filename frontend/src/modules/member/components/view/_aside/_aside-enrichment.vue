@@ -3,7 +3,7 @@
     <div class="flex pb-3">
       <lf-svg name="enriched" class="h-5 w-5" />
       <p class="pl-2 text-xs">
-        <span class="font-semibold">Person enrichment</span> requires a GitHub profile or Email address.
+        <span class="font-semibold">Profile enrichment</span> requires a GitHub profile or Email address.
       </p>
     </div>
     <button type="button" class="btn btn--primary btn--sm w-full" @click="emit('edit')">

@@ -20,7 +20,7 @@ function flattenObject(obj) {
 }
 
 const membersEditProfile: LogRenderingConfig = {
-  label: 'Person profile updated',
+  label: 'Profile updated',
   changes: (log) => {
     const additions: any[] = [];
     const removals: any[] = [];
@@ -59,7 +59,7 @@ const membersEditProfile: LogRenderingConfig = {
   },
   description: (log) => `ID: ${log.entityId}`,
   properties: (log) => [{
-    label: 'Person',
+    label: 'Profile',
     value: `<span>ID: ${log.entityId}</span>`,
   }],
 };

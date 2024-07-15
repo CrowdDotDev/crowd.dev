@@ -87,8 +87,8 @@ const markTeamMember = (teamMember: boolean) => {
   });
 
   doManualAction({
-    loadingMessage: 'Person is being updated',
-    successMessage: 'Person updated successfully',
+    loadingMessage: 'Profile is being updated',
+    successMessage: 'Profile updated successfully',
     errorMessage: 'Something went wrong',
     actionFn: MemberService.update(props.contributor.id, {
       attributes: {
@@ -113,8 +113,8 @@ const markBot = (bot: boolean) => {
   });
 
   doManualAction({
-    loadingMessage: 'Person is being updated',
-    successMessage: 'Person updated successfully',
+    loadingMessage: 'Profile is being updated',
+    successMessage: 'Profile updated successfully',
     errorMessage: 'Something went wrong',
     actionFn: MemberService.update(props.contributor.id, {
       attributes: {
@@ -147,8 +147,8 @@ const deleteContributor = () => {
     });
 
     doManualAction({
-      loadingMessage: 'Person is being deleted',
-      successMessage: 'Person successfully deleted',
+      loadingMessage: 'Profile is being deleted',
+      successMessage: 'Profile successfully deleted',
       errorMessage: 'Something went wrong',
       actionFn: MemberService.destroyAll([props.contributor.id]),
     }).then(() => {

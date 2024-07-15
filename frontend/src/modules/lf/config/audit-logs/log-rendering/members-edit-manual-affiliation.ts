@@ -16,7 +16,7 @@ const formatDateRange = (dateStart, dateEnd) => {
 };
 
 const membersEditManualAffiliation: LogRenderingConfig = {
-  label: 'Person affiliation updated',
+  label: 'Profile affiliation updated',
   changes: async (log) => {
     const changes = {
       removals: [],
@@ -93,7 +93,7 @@ const membersEditManualAffiliation: LogRenderingConfig = {
   },
   description: (log) => `ID: ${log.entityId}`,
   properties: (log) => [{
-    label: 'Person',
+    label: 'Profile',
     value: `<span>ID: ${log.entityId}</span>`,
   }],
 };

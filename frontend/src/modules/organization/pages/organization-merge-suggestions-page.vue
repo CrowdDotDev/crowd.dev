@@ -342,7 +342,7 @@ const ignore = (suggestion: any) => {
   sending.value = `${primaryMember.id}:${secondaryMember.id}`;
   OrganizationService.addToNoMerge(...suggestion.members)
     .then(() => {
-      Message.success('Merging suggestion ignored successfuly');
+      Message.success('Merging suggestion ignored successfully');
       reload();
     })
     .finally(() => {

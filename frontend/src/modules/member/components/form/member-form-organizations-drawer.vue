@@ -130,7 +130,7 @@ const save = () => {
       ),
     },
     messageOptions: {
-      title: 'Person\'s organizations were updated successfully',
+      title: 'Work experience was updated successfully.',
       message: 'Activities will soon be affiliated to organizations in the background.',
     },
   });

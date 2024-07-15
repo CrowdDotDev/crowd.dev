@@ -32,10 +32,10 @@
                 People
               </h5>
               <p class="text-2xs text-gray-500 leading-4.5">
-                <span class="font-semibold">Data-in</span>: Existing people will automatically be enriched with data
+                <span class="font-semibold">Data-in</span>: Existing profiles will automatically be enriched with data
                 points
-                from HubSpot people every 8 hours.
-                <span class="font-semibold">Data-out</span>: To send people to HubSpot, use Automations or select
+                from HubSpot every 8 hours.
+                <span class="font-semibold">Data-out</span>: To send data to HubSpot, use Automations or select
                 people manually.
               </p>
             </div>

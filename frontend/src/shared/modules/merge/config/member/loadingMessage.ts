@@ -4,7 +4,7 @@ export default () => {
   Message.info(
     null,
     {
-      title: 'People are being merged',
+      title: 'Profiles are being merged',
     },
   );
 };
