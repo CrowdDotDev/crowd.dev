@@ -39,7 +39,8 @@ export default class RawQueryParser {
           results.push(this.parseJsonColumnCondition(jsonColumnInfo, filters[key], params))
         } else {
           // handle column maps without quotes/alias to handle postgres camelCase columns
-          const column = columnMap.get(key).indexOf('"') === -1 ? `"${columnMap.get(key)}"` : columnMap.get(key)
+          const column =
+            columnMap.get(key).indexOf('"') === -1 ? `"${columnMap.get(key)}"` : columnMap.get(key)
           results.push(this.parseColumnCondition(key, column, filters[key], params))
         }
       }
