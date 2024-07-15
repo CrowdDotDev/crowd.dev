@@ -21,6 +21,7 @@ router.post(
       await memberSyncService.syncMembers(memberId)
       res.sendStatus(200)
     } catch (error) {
+      req.log.error(error)
       res.status(500).send(error.message)
     }
   }),
@@ -42,6 +43,7 @@ router.post(
       await memberSyncService.syncTenantMembers(tenantId)
       res.sendStatus(200)
     } catch (error) {
+      req.log.error(error)
       res.status(500).send(error.message)
     }
   }),
@@ -65,6 +67,7 @@ router.post(
       await memberSyncService.syncOrganizationMembers(organizationId)
       res.sendStatus(200)
     } catch (error) {
+      req.log.error(error)
       res.status(500).send(error.message)
     }
   }),
@@ -86,6 +89,7 @@ router.post(
       await memberSyncService.cleanupMemberIndex(tenantId)
       res.sendStatus(200)
     } catch (error) {
+      req.log.error(error)
       res.status(500).send(error.message)
     }
   }),
@@ -107,6 +111,7 @@ router.post(
       await memberSyncService.removeMember(memberId)
       res.sendStatus(200)
     } catch (error) {
+      req.log.error(error)
       res.status(500).send(error.message)
     }
   }),

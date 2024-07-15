@@ -15,6 +15,7 @@ router.post(
       await activitySyncService.syncActivities(activityIds)
       res.sendStatus(200)
     } catch (error) {
+      req.log.error(error)
       res.status(500).send(error.message)
     }
   }),
@@ -31,6 +32,7 @@ router.post(
       await activitySyncService.syncTenantActivities(tenantId)
       res.sendStatus(200)
     } catch (error) {
+      req.log.error(error)
       res.status(500).send(error.message)
     }
   }),
@@ -49,6 +51,7 @@ router.post(
       await activitySyncService.syncOrganizationActivities(organizationId)
       res.sendStatus(200)
     } catch (error) {
+      req.log.error(error)
       res.status(500).send(error.message)
     }
   }),
@@ -65,6 +68,7 @@ router.post(
       await activitySyncService.cleanupActivityIndex(tenantId)
       res.sendStatus(200)
     } catch (error) {
+      req.log.error(error)
       res.status(500).send(error.message)
     }
   }),
@@ -81,6 +85,7 @@ router.post(
       await activitySyncService.removeActivity(activityId)
       res.sendStatus(200)
     } catch (error) {
+      req.log.error(error)
       res.status(500).send(error.message)
     }
   }),
