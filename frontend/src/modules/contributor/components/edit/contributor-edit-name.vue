@@ -65,7 +65,7 @@ const update = () => {
       Message.success('Contributor name updated successfully!');
     })
     .catch(() => {
-      Message.error('There was an error updating organization');
+      Message.error('There was an error updating contributor');
     });
 };
 </script>
