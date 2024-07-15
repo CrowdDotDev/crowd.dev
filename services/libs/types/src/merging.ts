@@ -1,6 +1,5 @@
 import {
   IAttributes,
-  IMemberAffiliation,
   IMemberAffiliationMergeBackup,
   IMemberContribution,
   IMemberIdentity,
@@ -71,7 +70,7 @@ export interface IMemberUnmergePreviewResult {
   username: IMemberUsername
   attributes: IAttributes
   displayName: string
-  affiliations: IMemberAffiliation[]
+  affiliations: IMemberAffiliationMergeBackup[]
   contributions: IMemberContribution[]
   manuallyCreated: boolean
   manuallyChangedFields: string[]

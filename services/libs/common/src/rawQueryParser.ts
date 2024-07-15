@@ -61,13 +61,8 @@ export class RawQueryParser {
           // handle column maps without quotes/alias to handle postgres camelCase columns
           // no double quotes, add for support of camelCase columns
           let column = columnMap.get(key)
-          if (column.indexOf('"') === -1) {
-            if (column.indexOf('.') === -1) {
-              column = `"${column}"`
-            } else {
-              const [alias, columnName] = column.split('.')
-              column = `${alias}."${columnName}"`
-            }
+          if (column.match(/^[a-zA-Z0-9_]+$/)) {
+            column = `"${column}"`
           }
           results.push(this.parseColumnCondition(key, column, filters[key], params, options))
         }
