@@ -20,7 +20,7 @@
       </lf-button>
 
       <!-- Actions -->
-      <lf-dropdown v-if="hasPermission(LfPermission.memberEdit) || hasPermission(LfPermission.memberDestroy)" class="z-50" placement="bottom-end">
+      <lf-dropdown v-if="hasPermission(LfPermission.memberEdit) || hasPermission(LfPermission.memberDestroy)" class="z-20" placement="bottom-end">
         <template #trigger>
           <lf-button
             type="secondary"

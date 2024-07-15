@@ -22,7 +22,7 @@
       <!-- Actions -->
       <lf-dropdown
         v-if="hasPermission(LfPermission.organizationEdit) || hasPermission(LfPermission.organizationDestroy)"
-        class="z-50"
+        class="z-20"
         placement="bottom-end"
       >
         <template #trigger>

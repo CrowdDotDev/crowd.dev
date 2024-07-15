@@ -392,7 +392,7 @@ const unmerge = () => {
 
 onMounted(() => {
   if (props.selectedIdentity) {
-    fetchPreview(`${props.selectedIdentity.type}:${props.selectedIdentity.platform}:${props.selectedIdentity.username}`);
+    fetchPreview(`${props.selectedIdentity.type}:${props.selectedIdentity.platform}:${props.selectedIdentity.value}`);
   }
 });
 

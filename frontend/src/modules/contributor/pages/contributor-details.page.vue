@@ -31,10 +31,6 @@
             class="mb-8"
             @reload="fetchContributor()"
           />
-          <lf-contributor-details-emails
-            :contributor="contributor"
-            @reload="fetchContributor()"
-          />
         </div>
       </section>
       <section class="overflow-auto h-full pb-10" @scroll="controlScroll">
@@ -95,7 +91,6 @@ import LfContributorDetailsIdentities
   from '@/modules/contributor/components/details/contributor-details-identities.vue';
 import LfContributorDetailsHeader from '@/modules/contributor/components/details/contributor-details-header.vue';
 import LfContributorDetailsActions from '@/modules/contributor/components/details/contributor-details-actions.vue';
-import LfContributorDetailsEmails from '@/modules/contributor/components/details/contributor-details-emails.vue';
 import LfContributorLastEnrichment from '@/modules/contributor/components/shared/contributor-last-enrichment.vue';
 import { useContributorStore } from '@/modules/contributor/store/contributor.store';
 

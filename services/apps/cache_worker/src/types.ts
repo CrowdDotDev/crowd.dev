@@ -88,3 +88,7 @@ export interface ICubeQueryParams {
   dimensions?: CubeDimension[] | string[]
   order?: ICubeOrder
 }
+
+export interface IProcessComputeOrgAggs {
+  organizationId: string
+}
