@@ -1,6 +1,7 @@
 import {
   IAttributes,
   IMemberAffiliation,
+  IMemberAffiliationMergeBackup,
   IMemberContribution,
   IMemberIdentity,
   IMemberOrganization,
@@ -52,7 +53,7 @@ export interface IMemberUnmergeBackup {
   attributes: IAttributes
   identities: IMemberIdentity[]
   displayName: string
-  affiliations: IMemberAffiliation[]
+  affiliations: IMemberAffiliationMergeBackup[]
   manuallyCreated: boolean
   manuallyChangedFields: string[]
   memberOrganizations: IMemberRoleWithOrganization[]

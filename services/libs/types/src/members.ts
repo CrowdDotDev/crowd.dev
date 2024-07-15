@@ -120,6 +120,10 @@ export interface IMemberAffiliation {
   segmentParentName: string
 }
 
+export interface IMemberAffiliationMergeBackup {
+  id: string
+}
+
 export interface IMemberContribution {
   id: number
   url: string
