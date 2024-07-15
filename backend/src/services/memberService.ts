@@ -1234,11 +1234,10 @@ export default class MemberService extends LoggerBase {
         MemberField.MANUALLY_CHANGED_FIELDS,
       ])
 
-      const [tags, notes, tasks, identities] = await Promise.all([
+      const [tags, notes, tasks] = await Promise.all([
         findMemberTags(qx, memberId),
         findMemberNotes(qx, memberId),
         findMemberTasks(qx, memberId),
-        fetchMemberIdentities(qx, memberId),
       ])
 
       return {
@@ -1246,7 +1245,6 @@ export default class MemberService extends LoggerBase {
         tags: tags.map((t) => ({ id: t.tagId })),
         notes: notes.map((n) => ({ id: n.noteId })),
         tasks: tasks.map((t) => ({ id: t.taskId })),
-        username: MemberRepository.getUsernameFromIdentities(identities),
       }
     }
 
@@ -1442,45 +1440,6 @@ export default class MemberService extends LoggerBase {
         newEmails.forEach((email) => emailSet.add(email))
 
         return Array.from(emailSet)
-      },
-      username: (oldUsernames, newUsernames) => {
-        // we want to keep just the usernames that are not already in the oldUsernames
-        const toKeep: any = {}
-
-        const actualOld = mapUsernameToIdentities(oldUsernames)
-        const actualNew = mapUsernameToIdentities(newUsernames)
-
-        for (const [platform, identities] of Object.entries(actualNew)) {
-          const oldIdentities = actualOld[platform]
-
-          if (oldIdentities) {
-            const identitiesToKeep = []
-            for (const newIdentity of identities as any[]) {
-              let keep = true
-              for (const oldIdentity of oldIdentities) {
-                if (
-                  oldIdentity.value === newIdentity.value &&
-                  oldIdentity.type === newIdentity.type
-                ) {
-                  keep = false
-                  break
-                }
-              }
-
-              if (keep) {
-                identitiesToKeep.push(newIdentity)
-              }
-            }
-
-            if (identitiesToKeep.length > 0) {
-              toKeep[platform] = identitiesToKeep
-            }
-          } else {
-            toKeep[platform] = identities
-          }
-        }
-
-        return toKeep
       },
       attributes: (oldAttributes, newAttributes) =>
         MemberService.safeMerge(oldAttributes, newAttributes),
