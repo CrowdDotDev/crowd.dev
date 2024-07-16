@@ -84,6 +84,7 @@ import {
   mapUsernameToIdentities,
 } from './types/memberTypes'
 import { IFetchMemberMergeSuggestionArgs, SimilarityScoreRange } from '@/types/mergeSuggestionTypes'
+import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
 
 const { Op } = Sequelize
 
@@ -1546,6 +1547,7 @@ class MemberRepository {
           memberOrganizations: true,
           lfxMemberships: true,
           identities: true,
+          segments: true,
         },
       },
       options,
@@ -2417,18 +2419,24 @@ class MemberRepository {
     }
     if (include.segments) {
       const memberSegments = await fetchManyMemberSegments(qx, memberIds)
+      const segmentIds = uniq(
+        memberSegments.reduce((acc, ms) => {
+          acc.push(...ms.segments.map((s) => s.segmentId))
+          return acc
+        }, []),
+      )
+      const segmentsInfo = await fetchManySegments(qx, segmentIds)
 
       rows.forEach((member) => {
-        member.segments = memberSegments.find((i) => i.memberId === member.id)?.segments || []
+        member.segments = (
+          memberSegments.find((i) => i.memberId === member.id)?.segments || []
+        ).map((segment) => ({
+          id: segment.segmentId,
+          name: segmentsInfo.find((s) => s.id === segment.segmentId)?.name,
+          activityCount: segment.activityCount,
+        }))
       })
     }
-    // if (include.attributes) {
-    //   const attributes = await findManyOrgAttributes(qx, orgIds)
-
-    //   rows.forEach((org) => {
-    //     org.attributes = attributes.find((a) => a.organizationId === org.id)?.attributes || []
-    //   })
-    // }
 
     rows.forEach((row) => {
       row.tags = []

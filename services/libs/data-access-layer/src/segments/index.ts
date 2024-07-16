@@ -17,3 +17,14 @@ export async function findProjectGroupByName(
     { name, tenantId },
   )
 }
+
+export async function fetchManySegments(qx, segmentIds: string[]): Promise<SegmentData[]> {
+  return qx.select(
+    `
+      SELECT *
+      FROM segments
+      WHERE id = ANY($(segmentIds)::UUID[])
+    `,
+    { segmentIds },
+  )
+}

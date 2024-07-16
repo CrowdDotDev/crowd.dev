@@ -5,11 +5,6 @@ import { IMemberAbsoluteAggregates, IMemberSegmentAggregates } from './types'
 
 const log = getServiceChildLogger('organizations/segments')
 
-export interface IMemberSegments {
-  memberId: string
-  segments: string[]
-}
-
 export async function cleanupMemberAggregates(qx: QueryExecutor, memberId: string) {
   return qx.result(
     `
@@ -50,13 +45,13 @@ export async function insertMemberSegments(qx: QueryExecutor, data: IMemberSegme
 export async function fetchManyMemberSegments(
   qx: QueryExecutor,
   memberIds: string[],
-): Promise<IMemberSegments[]> {
+): Promise<{ memberId: string; segments: IMemberSegmentAggregates[] }[]> {
   return qx.select(
     `
       SELECT
         "memberId",
-        ARRAY_AGG("segmentId") AS segments
-      FROM "memberSegmentsAgg"
+        JSONB_AGG(msa) AS segments
+      FROM "memberSegmentsAgg" msa
       WHERE "memberId" = ANY($(memberIds)::UUID[])
       GROUP BY "memberId"
     `,
@@ -72,7 +67,7 @@ export async function fetchAbsoluteMemberAggregates(
 ): Promise<IMemberAbsoluteAggregates> {
   return qx.selectOneOrNone(
     `
-      SELECT SUM("activityCount") as "activityCount", 
+      SELECT SUM("activityCount") as "activityCount",
              MAX("lastActive") as "lastActive"
       FROM "memberSegmentsAgg"
       WHERE "memberId" = $(memberId);
