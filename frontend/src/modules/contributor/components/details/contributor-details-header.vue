@@ -18,13 +18,17 @@
         <p v-if="isBot(props.contributor) || isTeamContributor(props.contributor)" class="text-small text-gray-400">
           •
         </p>
-        <lf-contributor-work-position :contributor="props.contributor" />
+        <div @mouseover.stop @mouseout.stop>
+          <lf-contributor-work-position :contributor="props.contributor" />
+        </div>
         <p v-if="hasHeaderIdentities && (jobTitle || organization)" class="text-small text-gray-400">
           •
         </p>
-        <lf-contributor-details-header-profiles
-          :contributor="props.contributor"
-        />
+        <div @mouseover.stop @mouseout.stop>
+          <lf-contributor-details-header-profiles
+            :contributor="props.contributor"
+          />
+        </div>
       </div>
     </div>
   </div>
