@@ -56,6 +56,7 @@ import {
   findMemberTags,
   MemberField,
 } from '@crowd/data-access-layer/src/members'
+import { findTags } from '@crowd/data-access-layer/src/others'
 import { fetchAbsoluteMemberAggregates } from '@crowd/data-access-layer/src/members/segments'
 import { OrganizationField, queryOrgs } from '@crowd/data-access-layer/src/orgs'
 import { KUBE_MODE, SERVICE } from '@/conf'
@@ -451,7 +452,7 @@ class MemberRepository {
             findMemberTags(qx, memberId),
           ])
 
-          const [orgExtraInfo, lfxMemberships] = await Promise.all([
+          const [orgExtraInfo, lfxMemberships, tagExtraInfo] = await Promise.all([
             queryOrgs(qx, {
               filter: {
                 [OrganizationField.ID]: { in: memberOrgs.map((o) => o.organizationId) },
@@ -466,6 +467,10 @@ class MemberRepository {
               tenantId: options.currentTenant.id,
               organizationIds: memberOrgs.map((o) => o.organizationId),
             }),
+            findTags(
+              qx,
+              tags.map((t) => t.tagId),
+            ),
           ])
 
           return {
@@ -474,7 +479,7 @@ class MemberRepository {
             ...{
               activityCount: aggregates?.activityCount,
               lastActive: aggregates?.lastActive,
-              tags,
+              tags: tagExtraInfo.map((t) => ({ id: t.id, name: t.name })),
             },
             organizations: memberOrgs.map((o) => ({
               ...orgExtraInfo.find((oei) => oei.id === o.organizationId),
