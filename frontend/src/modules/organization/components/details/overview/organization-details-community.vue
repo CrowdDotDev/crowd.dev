@@ -50,7 +50,7 @@ const props = defineProps<{
 
 const memberCount = ref<number>(0);
 const loadingMemberCount = ref<boolean>(true);
-const orgFilter = { organizations: { eq: props.organization.id } };
+const orgFilter = { organizations: { contains: [props.organization.id] } };
 
 const doGetMembersCount = () => {
   loadingMemberCount.value = true;
