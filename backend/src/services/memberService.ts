@@ -1882,6 +1882,7 @@ export default class MemberService extends LoggerBase {
         attributesSettings: memberAttributeSettings,
         include: {
           memberOrganizations: true,
+          lfxMemberships: true,
           identities: true,
         },
         exportMode,

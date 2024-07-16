@@ -2392,7 +2392,7 @@ class MemberRepository {
         organizationIds: uniq(
           rows.reduce((acc, r) => {
             if (r.organizations) {
-              acc.push(...r.organizations.map((o) => o.organizationId))
+              acc.push(...r.organizations.map((o) => o.id))
             }
             return acc
           }, []),
