@@ -20,6 +20,10 @@ export async function insertActivities(activities: IDbActivityCreateData[]): Pro
       .symbol('tenantId', activity.tenantId)
       .symbol('segmentId', activity.segmentId)
       .symbol('platform', activity.platform)
+      .stringColumn('id', id)
+      .timestampColumn('createdAt', now, 'ms')
+      .timestampColumn('updatedAt', now, 'ms')
+      .stringColumn('attributes', objectToBytes(activity.attributes))
       .booleanColumn('member_isTeamMember', activity.isTeamMemberActivity || false)
       .booleanColumn('member_isBot', activity.isBotActivity || false)
 
@@ -41,15 +45,21 @@ export async function insertActivities(activities: IDbActivityCreateData[]): Pro
       }
     }
 
-    row
-      .stringColumn('id', id)
-      .stringColumn('type', activity.type)
-      .booleanColumn('isContribution', activity.isContribution)
-      .stringColumn('sourceId', activity.sourceId)
-      .timestampColumn('createdAt', now, 'ms')
-      .timestampColumn('updatedAt', now, 'ms')
-      .stringColumn('attributes', objectToBytes(activity.attributes))
-      .stringColumn('username', activity.username)
+    if (activity.type) {
+      row.stringColumn('type', activity.type)
+    }
+
+    if (activity.isContribution) {
+      row.booleanColumn('isContribution', activity.isContribution)
+    }
+
+    if (activity.sourceId) {
+      row.stringColumn('sourceId', activity.sourceId)
+    }
+
+    if (activity.username) {
+      row.stringColumn('username', activity.username)
+    }
 
     if (activity.score) {
       row.intColumn('score', activity.score)
@@ -144,7 +154,11 @@ export async function insertActivities(activities: IDbActivityCreateData[]): Pro
     await row.at(activity.timestamp ? new Date(activity.timestamp).getTime() : now, 'ms')
   }
 
-  await ilp.flush()
+  try {
+    await ilp.flush()
+  } catch (err) {
+    throw err
+  }
 
   return ids
 }
