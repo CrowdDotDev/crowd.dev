@@ -50,7 +50,7 @@ export async function insertActivities(activities: IDbActivityCreateData[]): Pro
         row.stringColumn('type', activity.type)
       }
 
-      if (typeof activity.isContribution === "boolean") {
+      if (typeof activity.isContribution === 'boolean') {
         row.booleanColumn('isContribution', activity.isContribution)
       }
 
