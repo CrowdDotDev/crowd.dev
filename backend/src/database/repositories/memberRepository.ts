@@ -2366,14 +2366,14 @@ class MemberRepository {
           return acc
         }, []),
       )
-      const orgDisplayNames = orgIds.length
+      const orgExtra = orgIds.length
         ? await queryOrgs(qx, {
             filter: {
               [OrganizationField.ID]: {
                 in: orgIds,
               },
             },
-            fields: [OrganizationField.ID, OrganizationField.DISPLAY_NAME],
+            fields: [OrganizationField.ID, OrganizationField.DISPLAY_NAME, OrganizationField.LOGO],
           })
         : []
 
@@ -2382,7 +2382,7 @@ class MemberRepository {
           memberOrganizations.find((o) => o.memberId === member.id)?.organizations || []
         ).map((o) => ({
           id: o.organizationId,
-          displayName: orgDisplayNames.find((odn) => odn.id === o.organizationId)?.displayName,
+          ...orgExtra.find((odn) => odn.id === o.organizationId),
           memberOrganizations: o,
         }))
       })
