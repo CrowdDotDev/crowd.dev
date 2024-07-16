@@ -213,7 +213,7 @@ const pagination = ref({
   total: 0,
 });
 
-const orgFilter = { organizations: { eq: props.organization.id } };
+const orgFilter = { organizations: { contains: [props.organization.id] } };
 
 const doGetMembersCount = () => {
   MemberService.listMembers(
