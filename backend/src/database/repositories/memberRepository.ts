@@ -2272,19 +2272,23 @@ class MemberRepository {
     })(orderBy)
 
     const createQuery = (fields) => `
+      WITH member_orgs AS (
+        SELECT
+          "memberId",
+          ARRAY_AGG("organizationId")::TEXT[] AS "organizationId"
+        FROM "memberOrganizations"
+        WHERE "deletedAt" IS NULL
+        GROUP BY 1
+      )
       SELECT
         ${fields}
       FROM members m
       ${
         withAggregates
-          ? `LEFT JOIN "memberSegmentsAgg" msa ON msa."memberId" = m.id AND msa."segmentId" = $(segmentId)`
+          ? ` JOIN "memberSegmentsAgg" msa ON msa."memberId" = m.id AND msa."segmentId" = $(segmentId)`
           : ''
       }
-      ${
-        include.memberOrganizations || include.lfxMemberships
-          ? `LEFT JOIN "memberOrganizations" mo ON mo."memberId" = m.id AND mo."deletedAt" IS NULL`
-          : ''
-      }
+      LEFT JOIN member_orgs mo ON mo."memberId" = m.id
       WHERE m."tenantId" = $(tenantId)
         AND (${filterString})
     `
@@ -2303,7 +2307,7 @@ class MemberRepository {
         `
           ${createQuery(
             (function prepareFields(fields) {
-              return `DISTINCT ${fields
+              return `${fields
                 .map((f) => {
                   const mappedField = MemberRepository.QUERY_FILTER_COLUMN_MAP.get(f)
                   if (!mappedField) {
