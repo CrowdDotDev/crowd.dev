@@ -9,12 +9,12 @@ import { apiFilterRendererByType } from '@/shared/modules/filters/config/apiFilt
 
 const noOfMembers: NumberFilterConfig = {
   id: 'noOfMembers',
-  label: '# of contributors',
+  label: '# of people',
   iconClass: 'ri-group-2-line',
   type: FilterConfigType.NUMBER,
   options: {},
   itemLabelRenderer(value: NumberFilterValue, options: NumberFilterOptions): string {
-    return itemLabelRendererByType[FilterConfigType.NUMBER]('# of contributors', value, options);
+    return itemLabelRendererByType[FilterConfigType.NUMBER]('# of people', value, options);
   },
   apiFilterRenderer(value: NumberFilterValue): any[] {
     return apiFilterRendererByType[FilterConfigType.NUMBER]('memberCount', value);

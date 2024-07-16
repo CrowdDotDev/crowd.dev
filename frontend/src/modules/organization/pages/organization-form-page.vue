@@ -268,7 +268,7 @@ const formModel = ref(getInitialModel());
 
 const isPageLoading = ref(true);
 const isFormSubmitting = ref(false);
-const wasFormSubmittedSuccessfuly = ref(false);
+const wasFormSubmittedSuccessfully = ref(false);
 
 const rules = reactive(formSchema.rules());
 
@@ -316,7 +316,7 @@ const shouldShowAttributes = computed(() => enrichmentAttributes.some((a) => {
 onBeforeRouteLeave((to) => {
   if (
     hasFormChanged.value
-    && !wasFormSubmittedSuccessfuly.value
+    && !wasFormSubmittedSuccessfully.value
     && to.fullPath !== '/500'
   ) {
     return ConfirmDialog({})
@@ -361,9 +361,9 @@ onUnmounted(() => {
   window.removeEventListener('beforeunload', preventWindowReload);
 });
 
-// Once form is submitted successfuly, update route
-watch(wasFormSubmittedSuccessfuly, (isFormSubmittedSuccessfuly) => {
-  if (isFormSubmittedSuccessfuly) {
+// Once form is submitted successfully, update route
+watch(wasFormSubmittedSuccessfully, (isFormSubmittedSuccessfully) => {
+  if (isFormSubmittedSuccessfully) {
     if (isEditPage.value) {
       const { segmentId, projectGroup } = route.query;
 
@@ -495,7 +495,7 @@ async function onSubmit() {
     }
   }
   isFormSubmitting.value = false;
-  wasFormSubmittedSuccessfuly.value = true;
+  wasFormSubmittedSuccessfully.value = true;
 }
 
 const onChange = ({ subprojectId }) => {

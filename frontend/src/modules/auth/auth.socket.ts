@@ -91,7 +91,7 @@ export const connectSocket = (token) => {
     const primaryMember = h(
       'a',
       {
-        href: `${window.location.origin}/contributors/${primaryId}?projectGroup=${selectedProjectGroup.value?.id}`,
+        href: `${window.location.origin}/people/${primaryId}?projectGroup=${selectedProjectGroup.value?.id}`,
         class: 'underline text-gray-600',
       },
       primaryDisplayName,
@@ -99,7 +99,7 @@ export const connectSocket = (token) => {
     const secondaryMember = h(
       'a',
       {
-        href: `${window.location.origin}/contributors/${secondaryId}?projectGroup=${selectedProjectGroup.value?.id}`,
+        href: `${window.location.origin}/people/${secondaryId}?projectGroup=${selectedProjectGroup.value?.id}`,
         class: 'underline text-gray-600',
       },
       secondaryDisplayName,
@@ -112,7 +112,7 @@ export const connectSocket = (token) => {
     const after = h(
       'span',
       {},
-      '. Finalizing contributor merging might take some time to complete.',
+      '. Finalizing profile merging might take some time to complete.',
     );
     Message.closeAll();
     Message.success(h(
@@ -120,7 +120,7 @@ export const connectSocket = (token) => {
       {},
       [secondaryMember, between, primaryMember, after],
     ), {
-      title: 'Contributors merged successfully',
+      title: 'Profiles merged successfully',
     });
   });
 
@@ -148,7 +148,7 @@ export const connectSocket = (token) => {
     const primaryMember = h(
       'a',
       {
-        href: `${window.location.origin}/contributors/${primaryId}?projectGroup=${selectedProjectGroup.value?.id}`,
+        href: `${window.location.origin}/people/${primaryId}?projectGroup=${selectedProjectGroup.value?.id}`,
         class: 'underline text-gray-600',
       },
       primaryDisplayName,
@@ -156,7 +156,7 @@ export const connectSocket = (token) => {
     const secondaryMember = h(
       'a',
       {
-        href: `${window.location.origin}/contributors/${secondaryId}?projectGroup=${selectedProjectGroup.value?.id}`,
+        href: `${window.location.origin}/people/${secondaryId}?projectGroup=${selectedProjectGroup.value?.id}`,
         class: 'underline text-gray-600',
       },
       secondaryDisplayName,
@@ -169,7 +169,7 @@ export const connectSocket = (token) => {
     const after = h(
       'span',
       {},
-      '. Finalizing contributor unmerging might take some time to complete.',
+      '. Finalizing profile unmerging might take some time to complete.',
     );
     Message.closeAll();
     Message.success(h(
@@ -177,7 +177,7 @@ export const connectSocket = (token) => {
       {},
       [secondaryMember, between, primaryMember, after],
     ), {
-      title: 'Contributors unmerged successfully',
+      title: 'Profiles unmerged successfully',
     });
   });
 
@@ -269,7 +269,7 @@ export const connectSocket = (token) => {
       Message.closeAll();
       Message.error(
         `Failed to enrich ${pluralize(
-          'contributor',
+          'person',
           parsed.failedEnrichedMembers,
           true,
         )}.`,

@@ -258,7 +258,7 @@ const ignoreSuggestion = () => {
   sendingIgnore.value = true;
   OrganizationService.addToNoMerge(...organizationsToMerge.value.organizations)
     .then(() => {
-      Message.success('Merging suggestion ignored successfuly');
+      Message.success('Merging suggestion ignored successfully');
 
       const nextIndex = offset.value >= (count.value - 1) ? Math.max(count.value - 2, 0) : offset.value;
       fetch(nextIndex);

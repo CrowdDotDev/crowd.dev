@@ -12,13 +12,13 @@
 </template>
 
 <script setup lang="ts">
-import { Contributor } from '@/modules/contributor/types/Contributor';
 import LfConteneditable from '@/ui-kit/contenteditable/Contenteditable.vue';
 import { reactive } from 'vue';
 import Message from '@/shared/message/message';
-import { useContributorStore } from '@/modules/contributor/store/contributor.store';
 import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
+import { useContributorStore } from '@/modules/contributor/store/contributor.store';
+import { Contributor } from '@/modules/contributor/types/Contributor';
 
 const props = defineProps<{
   contributor: Contributor,
@@ -50,7 +50,7 @@ const update = () => {
     displayName: form.name,
   })
     .then(() => {
-      Message.success('Contributor name updated successfully!');
+      Message.success('Name updated successfully!');
     })
     .catch(() => {
       Message.error('There was an error updating organization');

@@ -37,12 +37,12 @@
         <div class="panel w-full col-span-2">
           <el-tabs v-model="tab">
             <el-tab-pane
-              label="Current contributors"
+              label="Current people"
               name="members"
             >
               <template #label>
                 <span class="flex gap-2">
-                  <span>Current contributors</span>
+                  <span>Current people</span>
                   <el-tooltip
                     content="Members that are currently a part of this organization."
                     placement="top"

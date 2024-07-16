@@ -16,7 +16,7 @@
       <!-- Merge -->
       <lf-button v-else-if="hasPermission(LfPermission.mergeMembers)" type="secondary" @click="isMergeDialogOpen = props.contributor">
         <lf-icon name="p2p-line" />
-        Merge contributor
+        Merge profile
       </lf-button>
 
       <!-- Actions -->
@@ -64,12 +64,9 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfButtonGroup from '@/ui-kit/button/ButtonGroup.vue';
 import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
-import { Contributor } from '@/modules/contributor/types/Contributor';
 import { onMounted, ref, watch } from 'vue';
-import { ContributorApiService } from '@/modules/contributor/services/contributor.api.service';
 import AppMemberMergeSuggestionsDialog from '@/modules/member/components/member-merge-suggestions-dialog.vue';
 import AppMemberMergeDialog from '@/modules/member/components/member-merge-dialog.vue';
-import LfContributorDropdown from '@/modules/contributor/components/shared/contributor-dropdown.vue';
 import AppMemberFindGithubDrawer from '@/modules/member/components/member-find-github-drawer.vue';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
@@ -77,6 +74,9 @@ import { useMemberStore } from '@/modules/member/store/pinia';
 import { storeToRefs } from 'pinia';
 import { MemberService } from '@/modules/member/member-service';
 import pluralize from 'pluralize';
+import LfContributorDropdown from '@/modules/contributor/components/shared/contributor-dropdown.vue';
+import { ContributorApiService } from '@/modules/contributor/services/contributor.api.service';
+import { Contributor } from '@/modules/contributor/types/Contributor';
 
 const props = defineProps<{
   contributor: Contributor,

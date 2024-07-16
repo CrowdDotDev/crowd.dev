@@ -57,21 +57,21 @@
 </template>
 
 <script setup lang="ts">
-import { Contributor } from '@/modules/contributor/types/Contributor';
 import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
-import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
 import LfModal from '@/ui-kit/modal/Modal.vue';
 import { computed, reactive, ref } from 'vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import { url } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 import LfInput from '@/ui-kit/input/Input.vue';
-import { useContributorStore } from '@/modules/contributor/store/contributor.store';
 import LfField from '@/ui-kit/field/Field.vue';
 import LfFieldMessage from '@/ui-kit/field-message/FieldMessage.vue';
 import LfFieldMessages from '@/ui-kit/field-messages/FieldMessages.vue';
 import Message from '@/shared/message/message';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import { useContributorStore } from '@/modules/contributor/store/contributor.store';
+import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
+import { Contributor } from '@/modules/contributor/types/Contributor';
 
 const props = defineProps<{
   modelValue: boolean,
@@ -111,7 +111,7 @@ const update = () => {
     },
   })
     .then(() => {
-      Message.success('Contributor avatar updated successfully!');
+      Message.success('Avatar updated successfully!');
       isModalOpen.value = false;
     })
     .catch(() => {

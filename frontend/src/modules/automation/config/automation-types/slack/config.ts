@@ -13,7 +13,7 @@ export const slack: AutomationTypeConfig = {
   icon: 'https://cdn-icons-png.flaticon.com/512/3800/3800024.png',
   emptyScreen: {
     title: 'No Slack notifications yet',
-    body: 'Send Slack notifications when a new activity happens, or a new contributor joins your community',
+    body: 'Send Slack notifications when a new activity happens, or a new person joins your community',
   },
   triggerText: 'Define the event that triggers your Slack notification.',
   actionText: 'Receive a notification in your Slack workspace every time the event is triggered.',
