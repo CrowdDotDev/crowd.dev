@@ -11,7 +11,7 @@
         @mouseout="hovered = false"
       >
         <div class="flex items-center">
-          <lf-back :to="{ path: '/contributors' }" class="mr-2" @mouseover.stop @mouseout.stop>
+          <lf-back :to="{ path: '/people' }" class="mr-2" @mouseover.stop @mouseout.stop>
             <lf-button type="secondary-ghost" :icon-only="true">
               <lf-icon name="arrow-left-s-line" />
             </lf-button>
@@ -81,6 +81,13 @@
 import LfTabs from '@/ui-kit/tabs/Tabs.vue';
 import LfTab from '@/ui-kit/tabs/Tab.vue';
 import { onMounted, ref } from 'vue';
+import LfBack from '@/ui-kit/back/Back.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
+import { useRoute } from 'vue-router';
+import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
+import { useMemberStore } from '@/modules/member/store/pinia';
+import { storeToRefs } from 'pinia';
 import LfContributorDetailsOverview from '@/modules/contributor/components/details/contributor-details-overview.vue';
 import LfContributorDetailsActivities
   from '@/modules/contributor/components/details/contributor-details-activities.vue';
@@ -89,17 +96,10 @@ import LfContributorDetailsWorkHistory
   from '@/modules/contributor/components/details/contributor-details-work-history.vue';
 import LfContributorDetailsIdentities
   from '@/modules/contributor/components/details/contributor-details-identities.vue';
-import LfBack from '@/ui-kit/back/Back.vue';
-import LfButton from '@/ui-kit/button/Button.vue';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfContributorDetailsHeader from '@/modules/contributor/components/details/contributor-details-header.vue';
 import LfContributorDetailsActions from '@/modules/contributor/components/details/contributor-details-actions.vue';
-import { useRoute } from 'vue-router';
-import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import LfContributorLastEnrichment from '@/modules/contributor/components/shared/contributor-last-enrichment.vue';
-import { useMemberStore } from '@/modules/member/store/pinia';
 import { useContributorStore } from '@/modules/contributor/store/contributor.store';
-import { storeToRefs } from 'pinia';
 
 const { getMemberCustomAttributes } = useMemberStore();
 

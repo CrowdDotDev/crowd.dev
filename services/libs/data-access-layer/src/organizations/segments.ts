@@ -69,20 +69,20 @@ export async function fetchManyOrgSegments(
   )
 }
 
-export async function fetchOrgAggregates(
+export async function fetchTotalActivityCount(
   qx: QueryExecutor,
   organizationId: string,
-): Promise<IDbOrganizationAggregateData> {
-  return qx.selectOneOrNone(
+): Promise<number> {
+  const res: { activityCount: number } = await qx.selectOneOrNone(
     `
-      SELECT
-        *
+      SELECT SUM("activityCount") as "activityCount"
       FROM "organizationSegmentsAgg"
-      WHERE "organizationId" = $(organizationId)
-      LIMIT 1
+      WHERE "organizationId" = $(organizationId);
     `,
     {
       organizationId,
     },
   )
+
+  return res?.activityCount || 0
 }

@@ -63,7 +63,7 @@ const organizations: CustomFilterConfig = {
   },
   apiFilterRenderer({ value, include }: MultiSelectAsyncFilterValue): any[] {
     const filter = {
-      or: value.map((id) => ({ organizations: { eq: id } })),
+      or: value.map((id) => ({ organizations: { contains: [id] } })),
     };
     return [
       (include ? filter : { not: filter }),

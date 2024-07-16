@@ -74,7 +74,7 @@
         form.teamMemberActivities
       "
       class="text-gray-900"
-      label="Include activities from team contributors"
+      label="Include activities from team members"
     />
   </div>
 </template>

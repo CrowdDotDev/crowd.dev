@@ -4,7 +4,7 @@
       Last enrichment on {{ moment(props.contributor.lastEnriched).format('MMM DD, YYYY') }}
     </p>
     <lf-tooltip
-      content="Contributor data is enriched via GitHub identity or email. Enrichment is processed every 3 months."
+      content="Profile is enriched via GitHub identity or email. Enrichment is processed every 3 months."
     >
       <lf-icon name="question-line" :size="16" class="text-gray-400" />
     </lf-tooltip>
@@ -12,10 +12,10 @@
 </template>
 
 <script setup lang="ts">
-import { Contributor } from '@/modules/contributor/types/Contributor';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import moment from 'moment';
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
+import { Contributor } from '@/modules/contributor/types/Contributor';
 
 const props = defineProps<{
   contributor: Contributor,

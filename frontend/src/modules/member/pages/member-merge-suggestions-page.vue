@@ -3,13 +3,13 @@
     <div>
       <app-back-link
         :default-route="{
-          path: '/contributors',
+          path: '/people',
           query: { projectGroup: selectedProjectGroup?.id },
         }"
         class="font-semibold"
       >
         <template #default>
-          Contributors
+          People
         </template>
       </app-back-link>
       <div class="flex items-center pb-6">
@@ -18,12 +18,12 @@
         </h4>
         <el-tooltip
           placement="top"
-          content="LFX is constantly checking your community for duplicate contributors. Here you can check all the merging suggestions."
+          content="LFX is constantly checking your community for duplicate profiles. Here you can check all the merging suggestions."
         >
           <i class="ri-question-line text-lg text-gray-400 flex items-center ml-2 h-5" />
         </el-tooltip>
       </div>
-      <app-merge-suggestions-filters placeholder="Search contributors" @search="search" />
+      <app-merge-suggestions-filters placeholder="Search people" @search="search" />
       <div
         v-if="page <= 1 && loading && mergeSuggestions.length === 0"
         class="flex justify-center pt-8"
@@ -34,7 +34,7 @@
         <thead>
           <tr>
             <lf-table-head colspan="2">
-              Contributors
+              People
             </lf-table-head>
             <lf-table-head v-model="sorting" property="similarity" @update:model-value="() => loadMergeSuggestions(true)">
               Confidence level
@@ -131,7 +131,7 @@
           No merge suggestions
         </h5>
         <p class="text-sm text-center text-gray-600 leading-5">
-          We couldn’t find any duplicated contributors
+          We couldn't find any duplicated profiles
         </p>
       </div>
 
@@ -194,7 +194,7 @@ const { trackEvent } = useProductTracking();
 const loadMergeSuggestions = (sort: boolean = false) => {
   if (sort) {
     trackEvent({
-      key: FeatureEventKey.SORT_CONTRIBUTORS_MERGE_SUGGESTIONS,
+      key: FeatureEventKey.SORT_MEMBERS_MERGE_SUGGESTIONS,
       type: EventType.FEATURE,
       properties: {
         orderBy: [sorting.value, 'activityCount_DESC'],
@@ -235,7 +235,7 @@ const detailsOffset = ref<number>(0);
 
 const openDetails = (index: number) => {
   trackEvent({
-    key: FeatureEventKey.VIEW_CONTRIBUTOR_MERGE_SUGGESTION,
+    key: FeatureEventKey.VIEW_MEMBER_MERGE_SUGGESTION,
     type: EventType.FEATURE,
     properties: {
       similarity: mergeSuggestions.value[index].similarity,
@@ -271,7 +271,7 @@ const merge = (suggestion: any) => {
   }
 
   trackEvent({
-    key: FeatureEventKey.MERGE_CONTRIBUTOR_MERGE_SUGGESTION,
+    key: FeatureEventKey.MERGE_MEMBER_MERGE_SUGGESTION,
     type: EventType.FEATURE,
     properties: {
       similarity: suggestion.similarity,
@@ -290,9 +290,9 @@ const merge = (suggestion: any) => {
     .then(() => {
       Message.closeAll();
       Message.info(
-        'We’re finalizing contributor merging. We will let you know once the process is completed.',
+        "We're finalizing profiles merging. We will let you know once the process is completed.",
         {
-          title: 'Contributors merging in progress',
+          title: 'Profiles merging in progress',
         },
       );
     })
@@ -308,7 +308,7 @@ const ignore = (suggestion: any) => {
   }
 
   trackEvent({
-    key: FeatureEventKey.IGNORE_CONTRIBUTOR_MERGE_SUGGESTION,
+    key: FeatureEventKey.IGNORE_MEMBER_MERGE_SUGGESTION,
     type: EventType.FEATURE,
     properties: {
       similarity: suggestion.similarity,
@@ -320,7 +320,7 @@ const ignore = (suggestion: any) => {
   sending.value = `${primaryMember.id}:${secondaryMember.id}`;
   MemberService.addToNoMerge(...suggestion.members)
     .then(() => {
-      Message.success('Merging suggestion ignored successfuly');
+      Message.success('Merging suggestion ignored successfully');
       reload();
     })
     .finally(() => {

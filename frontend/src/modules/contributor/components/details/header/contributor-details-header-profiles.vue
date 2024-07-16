@@ -72,13 +72,13 @@ opacity-0 invisible transition group-hover:visible group-hover:opacity-100 z-30 
 </template>
 
 <script setup lang="ts">
-import { Contributor } from '@/modules/contributor/types/Contributor';
-import { contributorDetailsHeaderProfilePlatforms } from '@/modules/contributor/config/details-header-profile-platforms';
 import { computed } from 'vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
-import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
+import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
+import { contributorDetailsHeaderProfilePlatforms } from '@/modules/contributor/config/details-header-profile-platforms';
+import { Contributor } from '@/modules/contributor/types/Contributor';
 
 const props = defineProps<{
   contributor: Contributor,

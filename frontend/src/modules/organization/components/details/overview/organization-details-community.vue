@@ -10,7 +10,7 @@
             Community size
           </p>
           <p v-if="!loadingMemberCount" class="text-small text-gray-600">
-            {{ pluralize('contributor', memberCount || 0, true) }}
+            {{ pluralize('person', memberCount || 0, true) }}
           </p>
         </article>
         <article class="px-4 h-full w-1/2 xl:w-1/3 border-l border-gray-200">

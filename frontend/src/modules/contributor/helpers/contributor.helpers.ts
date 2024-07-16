@@ -1,13 +1,13 @@
-import { Contributor } from '@/modules/contributor/types/Contributor';
 import moment from 'moment';
 import { MemberIdentity } from '@/modules/member/types/Member';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import memberOrder from '@/shared/modules/identities/config/identitiesOrder/member';
+import { Contributor } from '@/modules/contributor/types/Contributor';
 
 const useContributorHelpers = () => {
   const avatar = (contributor: Contributor) => contributor.attributes?.avatarUrl?.default;
 
-  const isTeamContributor = (contributor: Contributor) => !!contributor.attributes?.isTeamMember?.default;
+  const isTeamMember = (contributor: Contributor) => !!contributor.attributes?.isTeamMember?.default;
 
   const isBot = (contributor: Contributor) => !!contributor.attributes.isBot?.default;
 
@@ -107,7 +107,7 @@ const useContributorHelpers = () => {
 
   return {
     avatar,
-    isTeamContributor,
+    isTeamMember,
     isBot,
     isNew,
     identities,
