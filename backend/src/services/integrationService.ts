@@ -20,6 +20,7 @@ import {
   IProcessStreamContext,
 } from '@crowd/integrations'
 import { RedisCache } from '@crowd/redis'
+import { findMemberById, MemberField } from '@crowd/data-access-layer/src/members'
 import { encryptData } from '../utils/crypto'
 import { ILinkedInOrganization } from '../serverless/integrations/types/linkedinTypes'
 import { DISCORD_CONFIG, GITHUB_CONFIG, IS_TEST_ENV, KUBE_MODE, NANGO_CONFIG } from '../conf/index'
@@ -42,11 +43,9 @@ import {
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
 import TenantRepository from '../database/repositories/tenantRepository'
 import GithubReposRepository from '../database/repositories/githubReposRepository'
-import MemberService from './memberService'
 import OrganizationService from './organizationService'
 import MemberSyncRemoteRepository from '@/database/repositories/memberSyncRemoteRepository'
 import OrganizationSyncRemoteRepository from '@/database/repositories/organizationSyncRemoteRepository'
-import MemberRepository from '@/database/repositories/memberRepository'
 import {
   GroupsioGetToken,
   GroupsioIntegrationData,
@@ -650,9 +649,8 @@ export default class IntegrationService {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
-      const memberService = new MemberService(this.options)
-
-      const member = await memberService.findById(payload.memberId)
+      const qx = SequelizeRepository.getQueryExecutor(this.options, transaction)
+      const member = await findMemberById(qx, payload.memberId, [MemberField.ID])
 
       const memberSyncRemoteRepository = new MemberSyncRemoteRepository({
         ...this.options,
@@ -676,7 +674,7 @@ export default class IntegrationService {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     let integration
-    let member
+    let member: { id: string }
     let memberSyncRemote
 
     try {
@@ -685,11 +683,8 @@ export default class IntegrationService {
         transaction,
       })
 
-      member = await MemberRepository.findById(
-        payload.memberId,
-        { ...this.options, transaction },
-        { doPopulateRelations: false },
-      )
+      const qx = SequelizeRepository.getQueryExecutor(this.options, transaction)
+      member = await findMemberById(qx, payload.memberId, [MemberField.ID])
 
       const memberSyncRemoteRepo = new MemberSyncRemoteRepository({ ...this.options, transaction })
 

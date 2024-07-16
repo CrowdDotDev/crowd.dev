@@ -1,12 +1,14 @@
 import { get as getLevenshteinDistance } from 'fast-levenshtein'
 
-import { MemberIdentityType } from '@crowd/types'
 import {
-  IMemberIdentityOpensearch,
+  IMemberIdentity,
+  IMemberOrganization,
+  IMemberWithAggregatesForMergeSuggestions,
+  MemberAttributeName,
+  MemberIdentityType,
   IMemberOrganizationOpensearch,
-  IMemberPartialAggregatesOpensearch,
-  ISimilarMember,
-} from './types'
+  IMemberOpensearch,
+} from '@crowd/types'
 import { MemberAttributeOpensearch } from './enums'
 
 class MemberSimilarityCalculator {
@@ -14,12 +16,28 @@ class MemberSimilarityCalculator {
   static LOW_CONFIDENCE_SCORE = 0.2
 
   static calculateSimilarity(
-    primaryMember: IMemberPartialAggregatesOpensearch,
-    similarMember: ISimilarMember,
+    primaryMember: IMemberWithAggregatesForMergeSuggestions,
+    similarMember: IMemberOpensearch,
   ): number {
     let smallestEditDistance: number = null
 
-    let similarPrimaryIdentity: IMemberIdentityOpensearch = null
+    let similarPrimaryIdentity: IMemberIdentity = null
+
+    const primaryMemberVerifiedEmails = primaryMember.identities
+      .filter((i) => i.verified && i.type === MemberIdentityType.EMAIL)
+      .map((i) => i.value)
+
+    const primaryMemberUnverifiedEmails = primaryMember.identities
+      .filter((i) => !i.verified && i.type === MemberIdentityType.EMAIL)
+      .map((i) => i.value)
+
+    const similarMemberVerifiedEmails = similarMember.nested_identities
+      .filter((i) => i.bool_verified && i.keyword_type === MemberIdentityType.EMAIL)
+      .map((i) => i.string_value)
+
+    const similarMemberUnverifiedEmails = similarMember.nested_identities
+      .filter((i) => !i.bool_verified && i.keyword_type === MemberIdentityType.EMAIL)
+      .map((i) => i.string_value)
 
     // return a small confidence score when there's clashing identities
     // clashing identities are username identities in same platform and different values
@@ -29,46 +47,43 @@ class MemberSimilarityCalculator {
 
     // check displayName match
     if (
-      similarMember.keyword_displayName.toLowerCase() ===
-      primaryMember.keyword_displayName.toLowerCase()
+      similarMember.keyword_displayName.toLowerCase() === primaryMember.displayName.toLowerCase()
     ) {
       return this.decideMemberSimilarityUsingAdditionalChecks(primaryMember, similarMember)
     }
 
     // We check if there are any verified<->unverified email matches between primary & similar members
     if (
-      (similarMember.string_arr_unverifiedEmails &&
-        similarMember.string_arr_unverifiedEmails.length > 0 &&
-        similarMember.string_arr_unverifiedEmails.some((email) =>
-          primaryMember.string_arr_verifiedEmails.includes(email),
+      (similarMemberUnverifiedEmails &&
+        similarMemberUnverifiedEmails.length > 0 &&
+        similarMemberUnverifiedEmails.some((email) =>
+          primaryMemberVerifiedEmails.includes(email),
         )) ||
-      (similarMember.string_arr_verifiedEmails &&
-        similarMember.string_arr_verifiedEmails.length > 0 &&
-        similarMember.string_arr_verifiedEmails.some((email) =>
-          primaryMember.string_arr_unverifiedEmails.includes(email),
-        ))
+      (similarMemberVerifiedEmails &&
+        similarMemberVerifiedEmails.length > 0 &&
+        similarMemberVerifiedEmails.some((email) => primaryMemberUnverifiedEmails.includes(email)))
     ) {
       return 0.98
     }
 
     // check primary unverified identity <-> secondary verified identity exact match
-    for (const primaryIdentity of primaryMember.nested_identities.filter((i) => !i.bool_verified)) {
+    for (const primaryIdentity of primaryMember.identities.filter((i) => !i.verified)) {
       if (
         similarMember.nested_identities &&
         similarMember.nested_identities.length > 0 &&
         similarMember.nested_identities.some(
           (verifiedIdentity) =>
             verifiedIdentity.bool_verified &&
-            verifiedIdentity.string_value === primaryIdentity.string_value &&
-            verifiedIdentity.keyword_type === primaryIdentity.keyword_type &&
-            verifiedIdentity.string_platform === primaryIdentity.string_platform,
+            verifiedIdentity.string_value === primaryIdentity.value &&
+            verifiedIdentity.keyword_type === primaryIdentity.type &&
+            verifiedIdentity.string_platform === primaryIdentity.platform,
         )
       ) {
         return 0.98
       }
     }
 
-    for (const primaryIdentity of primaryMember.nested_identities.filter((i) => i.bool_verified)) {
+    for (const primaryIdentity of primaryMember.identities.filter((i) => i.verified)) {
       // similar member has an unverified identity as one of primary members's verified identity, return score 95
       if (
         similarMember.nested_identities &&
@@ -76,9 +91,9 @@ class MemberSimilarityCalculator {
         similarMember.nested_identities.some(
           (unverifiedIdentity) =>
             unverifiedIdentity.bool_verified === false &&
-            unverifiedIdentity.string_value === primaryIdentity.string_value &&
-            unverifiedIdentity.keyword_type === primaryIdentity.keyword_type &&
-            unverifiedIdentity.string_platform === primaryIdentity.string_platform,
+            unverifiedIdentity.string_value === primaryIdentity.value &&
+            unverifiedIdentity.keyword_type === primaryIdentity.type &&
+            unverifiedIdentity.string_platform === primaryIdentity.platform,
         )
       ) {
         return 0.95
@@ -88,7 +103,7 @@ class MemberSimilarityCalculator {
         (i) => i.bool_verified,
       )) {
         const currentLevenstheinDistance = getLevenshteinDistance(
-          `${primaryIdentity.string_value}`,
+          `${primaryIdentity.value}`,
           `${secondaryIdentity.string_value}`,
         )
         if (smallestEditDistance === null || smallestEditDistance > currentLevenstheinDistance) {
@@ -99,7 +114,7 @@ class MemberSimilarityCalculator {
     }
 
     // calculate similarity percentage
-    const identityLength = similarPrimaryIdentity?.string_value.length || 0
+    const identityLength = similarPrimaryIdentity?.value.length || 0
 
     if (identityLength < smallestEditDistance) {
       return this.LOW_CONFIDENCE_SCORE
@@ -113,17 +128,17 @@ class MemberSimilarityCalculator {
   }
 
   static hasClashingMemberIdentities(
-    member: IMemberPartialAggregatesOpensearch,
-    similarMember: ISimilarMember,
+    member: IMemberWithAggregatesForMergeSuggestions,
+    similarMember: IMemberOpensearch,
   ): boolean {
-    if (member.nested_identities && member.nested_identities.length > 0) {
-      for (const identity of member.nested_identities) {
+    if (member.identities && member.identities.length > 0) {
+      for (const identity of member.identities) {
         if (
           similarMember.nested_identities.some(
             (i) =>
               i.keyword_type === MemberIdentityType.USERNAME &&
-              i.string_platform === identity.string_platform &&
-              i.keyword_value !== identity.keyword_value,
+              i.string_platform === identity.platform &&
+              i.keyword_value !== identity.value,
           )
         ) {
           return true
@@ -135,8 +150,8 @@ class MemberSimilarityCalculator {
   }
 
   static hasSameLocation(
-    member: IMemberPartialAggregatesOpensearch,
-    similarMember: ISimilarMember,
+    member: IMemberWithAggregatesForMergeSuggestions,
+    similarMember: IMemberOpensearch,
   ): boolean {
     const primaryMemberLocation = this.getLocation(member)
     const similarMemberLocation = this.getLocation(similarMember)
@@ -149,8 +164,8 @@ class MemberSimilarityCalculator {
   }
 
   static hasSameAvatarUrl(
-    member: IMemberPartialAggregatesOpensearch,
-    similarMember: ISimilarMember,
+    member: IMemberWithAggregatesForMergeSuggestions,
+    similarMember: IMemberOpensearch,
   ): boolean {
     const primaryMemberAvatar = this.getAvatarUrl(member)
     const similarMemberAvatar = this.getAvatarUrl(similarMember)
@@ -163,8 +178,8 @@ class MemberSimilarityCalculator {
   }
 
   static hasSameTimezone(
-    member: IMemberPartialAggregatesOpensearch,
-    similarMember: ISimilarMember,
+    member: IMemberWithAggregatesForMergeSuggestions,
+    similarMember: IMemberOpensearch,
   ): boolean {
     const primaryMemberTimezone = this.getTimezone(member)
     const similarMemberTimezone = this.getTimezone(similarMember)
@@ -177,8 +192,8 @@ class MemberSimilarityCalculator {
   }
 
   static hasIntersectingLanguages(
-    member: IMemberPartialAggregatesOpensearch,
-    similarMember: ISimilarMember,
+    member: IMemberWithAggregatesForMergeSuggestions,
+    similarMember: IMemberOpensearch,
   ): boolean {
     const primaryMemberLanguages = this.getLanguages(member).filter((l) => l !== 'English')
     const similarMemberLanguages = this.getLanguages(similarMember).filter((l) => l !== 'English')
@@ -193,8 +208,8 @@ class MemberSimilarityCalculator {
   }
 
   static hasIntersectingProgrammingLanguages(
-    member: IMemberPartialAggregatesOpensearch,
-    similarMember: ISimilarMember,
+    member: IMemberWithAggregatesForMergeSuggestions,
+    similarMember: IMemberOpensearch,
   ): boolean {
     const primaryMemberProgrammingLanguages = this.getProgrammingLanguages(member)
     const similarMemberProgrammingLanguages = this.getProgrammingLanguages(similarMember)
@@ -209,13 +224,13 @@ class MemberSimilarityCalculator {
   }
 
   static hasRolesInSameOrganization(
-    member: IMemberPartialAggregatesOpensearch,
-    similarMember: ISimilarMember,
+    member: IMemberWithAggregatesForMergeSuggestions,
+    similarMember: IMemberOpensearch,
   ): boolean {
-    for (const memberRoles of member.nested_organizations) {
+    for (const memberRoles of member.organizations) {
       if (
         similarMember.nested_organizations.some(
-          (o) => memberRoles.string_displayName === o.string_displayName,
+          (o) => memberRoles.displayName === o.string_displayName,
         )
       ) {
         return true
@@ -225,8 +240,8 @@ class MemberSimilarityCalculator {
   }
 
   static decideMemberSimilarityUsingAdditionalChecks(
-    member: IMemberPartialAggregatesOpensearch,
-    similarMember: ISimilarMember,
+    member: IMemberWithAggregatesForMergeSuggestions,
+    similarMember: IMemberOpensearch,
     startingScore?: number,
   ): number {
     let isHighConfidence = false
@@ -270,32 +285,83 @@ class MemberSimilarityCalculator {
     return Math.min(1, confidenceScore + bump)
   }
 
-  static getLocation(member: ISimilarMember | IMemberPartialAggregatesOpensearch): string {
-    return member.obj_attributes[MemberAttributeOpensearch.LOCATION]?.string_default || null
+  static getLocation(member: IMemberOpensearch | IMemberWithAggregatesForMergeSuggestions): string {
+    if (this.isSimilarMemberFromOpensearch(member)) {
+      return member.obj_attributes[MemberAttributeOpensearch.LOCATION]?.string_default || null
+    } else if (this.isFullMemberFromDb(member)) {
+      return member.attributes[MemberAttributeName.LOCATION]?.default || null
+    }
+    return null
   }
 
-  static getAvatarUrl(member: ISimilarMember | IMemberPartialAggregatesOpensearch): string {
-    return member.obj_attributes[MemberAttributeOpensearch.AVATAR_URL]?.string_default || null
+  static getAvatarUrl(
+    member: IMemberOpensearch | IMemberWithAggregatesForMergeSuggestions,
+  ): string {
+    if (this.isSimilarMemberFromOpensearch(member)) {
+      return member.obj_attributes[MemberAttributeOpensearch.AVATAR_URL]?.string_default || null
+    } else if (this.isFullMemberFromDb(member)) {
+      return member.attributes[MemberAttributeName.AVATAR_URL]?.default || null
+    }
+    return null
   }
 
-  static getLanguages(member: ISimilarMember | IMemberPartialAggregatesOpensearch): string[] {
-    return member.obj_attributes[MemberAttributeOpensearch.AVATAR_URL]?.string_arr_default || []
+  static getLanguages(
+    member: IMemberOpensearch | IMemberWithAggregatesForMergeSuggestions,
+  ): string[] {
+    if (this.isSimilarMemberFromOpensearch(member)) {
+      return member.obj_attributes[MemberAttributeOpensearch.LANGUAGES]?.string_arr_default || []
+    } else if (this.isFullMemberFromDb(member)) {
+      return member.attributes[MemberAttributeName.LANGUAGES]?.default || []
+    }
+    return []
   }
 
-  static getTimezone(member: ISimilarMember | IMemberPartialAggregatesOpensearch): string {
-    return member.obj_attributes[MemberAttributeOpensearch.AVATAR_URL]?.string_default || null
+  static getTimezone(member: IMemberOpensearch | IMemberWithAggregatesForMergeSuggestions): string {
+    if (this.isSimilarMemberFromOpensearch(member)) {
+      return member.obj_attributes[MemberAttributeOpensearch.TIMEZONE]?.string_default || null
+    } else if (this.isFullMemberFromDb(member)) {
+      return member.attributes[MemberAttributeName.TIMEZONE]?.default || null
+    }
+    return null
   }
 
   static getProgrammingLanguages(
-    member: ISimilarMember | IMemberPartialAggregatesOpensearch,
+    member: IMemberOpensearch | IMemberWithAggregatesForMergeSuggestions,
   ): string[] {
-    return member.obj_attributes[MemberAttributeOpensearch.AVATAR_URL]?.string_arr_default || []
+    if (this.isSimilarMemberFromOpensearch(member)) {
+      return (
+        member.obj_attributes[MemberAttributeOpensearch.PROGRAMMING_LANGUAGES]
+          ?.string_arr_default || []
+      )
+    } else if (this.isFullMemberFromDb(member)) {
+      return member.attributes[MemberAttributeName.PROGRAMMING_LANGUAGES]?.default || []
+    }
+    return []
   }
 
   static getOrganizations(
-    member: ISimilarMember | IMemberPartialAggregatesOpensearch,
-  ): IMemberOrganizationOpensearch[] {
-    return member.nested_organizations || null
+    member: IMemberOpensearch | IMemberWithAggregatesForMergeSuggestions,
+  ): IMemberOrganizationOpensearch[] | IMemberOrganization[] {
+    if (this.isSimilarMemberFromOpensearch(member)) {
+      return member.nested_organizations || null
+    } else if (this.isFullMemberFromDb(member)) {
+      return member.organizations || null
+    }
+    return null
+  }
+
+  // Type guard for IMemberOpensearch
+  static isSimilarMemberFromOpensearch(
+    member: IMemberOpensearch | IMemberWithAggregatesForMergeSuggestions,
+  ): member is IMemberOpensearch {
+    return (member as IMemberOpensearch).uuid_memberId !== undefined
+  }
+
+  // Type guard for IMemberWithAggregatesForMergeSuggestions
+  static isFullMemberFromDb(
+    member: IMemberOpensearch | IMemberWithAggregatesForMergeSuggestions,
+  ): member is IMemberWithAggregatesForMergeSuggestions {
+    return (member as IMemberWithAggregatesForMergeSuggestions).id !== undefined
   }
 }
 
