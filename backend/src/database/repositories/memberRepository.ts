@@ -53,6 +53,7 @@ import {
   fetchMemberIdentities,
   fetchMemberOrganizations,
   findMemberById,
+  findMemberTags,
   MemberField,
 } from '@crowd/data-access-layer/src/members'
 import { fetchAbsoluteMemberAggregates } from '@crowd/data-access-layer/src/members/segments'
@@ -437,7 +438,7 @@ class MemberRepository {
         const findMemberInfo = async (memberId: string) => {
           const qx = SequelizeRepository.getQueryExecutor(options)
 
-          const [member, identities, aggregates, memberOrgs] = await Promise.all([
+          const [member, identities, aggregates, memberOrgs, tags] = await Promise.all([
             findMemberById(qx, memberId, [
               MemberField.ID,
               MemberField.DISPLAY_NAME,
@@ -447,6 +448,7 @@ class MemberRepository {
             fetchMemberIdentities(qx, memberId),
             fetchAbsoluteMemberAggregates(qx, memberId),
             fetchMemberOrganizations(qx, memberId),
+            findMemberTags(qx, memberId),
           ])
 
           const [orgExtraInfo, lfxMemberships] = await Promise.all([
@@ -472,6 +474,7 @@ class MemberRepository {
             ...{
               activityCount: aggregates?.activityCount,
               lastActive: aggregates?.lastActive,
+              tags,
             },
             organizations: memberOrgs.map((o) => ({
               ...orgExtraInfo.find((oei) => oei.id === o.organizationId),
