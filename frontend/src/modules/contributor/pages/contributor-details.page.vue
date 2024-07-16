@@ -4,9 +4,14 @@
   </div>
   <div v-else class="-mt-5 -mb-5">
     <div class="contributor-details  grid grid-cols-2 grid-rows-2 px-3">
-      <section class="w-full border-b border-gray-100 py-4 flex justify-between items-center col-span-2 h-min">
+      <section
+        class="w-full border-b border-gray-100 py-4 flex justify-between items-center col-span-2 h-min"
+        :class="hovered ? 'is-hovered' : ''"
+        @mouseover="hovered = true"
+        @mouseout="hovered = false"
+      >
         <div class="flex items-center">
-          <lf-back :to="{ path: '/people' }" class="mr-2">
+          <lf-back :to="{ path: '/people' }" class="mr-2" @mouseover.stop @mouseout.stop>
             <lf-button type="secondary-ghost" :icon-only="true">
               <lf-icon name="arrow-left-s-line" />
             </lf-button>
@@ -15,7 +20,9 @@
         </div>
         <div class="flex items-center">
           <lf-contributor-last-enrichment :contributor="contributor" class="mr-4" />
-          <lf-contributor-details-actions :contributor="contributor" @reload="fetchContributor()" />
+          <div @mouseover.stop @mouseout.stop>
+            <lf-contributor-details-actions :contributor="contributor" @reload="fetchContributor()" />
+          </div>
         </div>
       </section>
       <section class="w-80 border-r relative border-gray-100 overflow-y-auto overflow-x-visible h-full ">
@@ -109,6 +116,8 @@ const notes = ref<any>(null);
 const { id } = route.params;
 
 const loading = ref<boolean>(true);
+
+const hovered = ref<boolean>(false);
 
 const fetchContributor = () => {
   if (!contributor.value) {

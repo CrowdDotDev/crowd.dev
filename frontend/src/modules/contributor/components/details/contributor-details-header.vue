@@ -1,8 +1,12 @@
 <template>
-  <div class="flex items-center flex-grow">
-    <lf-contributor-details-header-profile-photo :contributor="props.contributor" />
+  <div
+    class="flex items-center flex-grow"
+  >
+    <div @mouseover.stop @mouseout.stop>
+      <lf-contributor-details-header-profile-photo :contributor="props.contributor" />
+    </div>
 
-    <div class="pl-3 group w-full">
+    <div class="pl-3 w-full">
       <lf-contributor-edit-name :contributor="props.contributor" />
       <div class="flex items-center gap-1.5">
         <lf-badge v-if="isTeamMember(props.contributor)" size="small">
@@ -14,13 +18,17 @@
         <p v-if="isBot(props.contributor) || isTeamMember(props.contributor)" class="text-small text-gray-400">
           •
         </p>
-        <lf-contributor-work-position :contributor="props.contributor" />
+        <div @mouseover.stop @mouseout.stop>
+          <lf-contributor-work-position :contributor="props.contributor" />
+        </div>
         <p v-if="hasHeaderIdentities && (jobTitle || organization)" class="text-small text-gray-400">
           •
         </p>
-        <lf-contributor-details-header-profiles
-          :contributor="props.contributor"
-        />
+        <div @mouseover.stop @mouseout.stop>
+          <lf-contributor-details-header-profiles
+            :contributor="props.contributor"
+          />
+        </div>
       </div>
     </div>
   </div>
