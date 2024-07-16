@@ -18,7 +18,7 @@
     </section>
 
     <!-- Form -->
-    <section class="px-6 py-5 max-h-120 overflow-auto">
+    <section class="px-6 py-5 max-h-120 overflow-auto contributor-form">
       <!-- Contributor name -->
       <article class="mb-5">
         <lf-field label-text="Name" :required="true">
@@ -28,7 +28,7 @@
 
       <!-- Contributor email -->
       <article class="mb-5">
-        <lf-field label-text="Email" :required="true">
+        <lf-field label-text="Email address" :required="true">
           <lf-input v-model="form.email[0]" />
         </lf-field>
         <lf-button type="primary-link" size="small" class="mt-3">
@@ -41,7 +41,7 @@
         <lf-field label-text="Identities">
           <div class="flex flex-col gap-2">
             <div v-for="(identity) of form.identities" :key="identity.platform">
-              <lf-input v-model="identity.value" placeholder="...">
+              <lf-input v-model="identity.value" placeholder="..." class="h-10">
                 <template #prefix>
                   <div class="flex items-center flex-nowrap whitespace-nowrap">
                     <div class="min-w-5">
@@ -63,7 +63,7 @@
       </article>
     </section>
 
-    <section class="border-t border-gray-100 py-4 px-6 gap-4 flex justify-end contributor-add-footer">
+    <section class="border-t border-gray-100 py-4 px-6 gap-4 flex justify-end  z-40">
       <lf-button type="secondary-ghost" @click="isModalOpen = false">
         Cancel
       </lf-button>
@@ -134,7 +134,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.contributor-add-footer{
-  box-shadow: 0px -4px 8px 0px #0000000D;
+.contributor-form{
+  box-shadow: inset 0px -4px 8px 0px #0000000D;
 }
 </style>
