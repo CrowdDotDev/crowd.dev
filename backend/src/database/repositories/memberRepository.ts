@@ -2173,11 +2173,7 @@ class MemberRepository {
 
       // others
       ['organizations', { name: 'mo."organizationId"', queryable: false }],
-      ['identities', { name: 'mi."identities"', queryable: false }],
-      ['verifiedEmails', { name: 'mi."verifiedEmails"', queryable: false }],
-      ['unverifiedEmails', { name: 'mi."unverifiedEmails"', queryable: false }],
 
-      
       // fields for querying
       ['attributes', { name: 'm.attributes' }],
     ])
@@ -2185,6 +2181,7 @@ class MemberRepository {
   static async findAndCountAll(
     {
       filter = {} as any,
+      search = null,
       limit = 20,
       offset = 0,
       orderBy = 'joinedAt_DESC',
@@ -2285,6 +2282,27 @@ class MemberRepository {
       return `${orderField} ${orderDirection}`
     })(orderBy)
 
+    const withSearch = !!search
+    let searchCTE = ''
+    let searchJoin = ''
+
+    if (withSearch) {
+      search = search.toLowerCase()
+      searchCTE = `
+      ,  
+      member_search AS (
+          SELECT
+            "memberId"
+          FROM "memberIdentities" mi
+          join members m on m.id = mi."memberId"
+          where (verified and type = '${MemberIdentityType.EMAIL}' and lower("value") ilike '${search}%') or m."displayName" like '${search}%'
+          GROUP BY 1
+        )
+      `
+      searchJoin = ` JOIN member_search mi ON mi."memberId" = m.id `
+    }
+
+
     const createQuery = (fields) => `
       WITH member_orgs AS (
         SELECT
@@ -2293,16 +2311,8 @@ class MemberRepository {
         FROM "memberOrganizations"
         WHERE "deletedAt" IS NULL
         GROUP BY 1
-      ),
-      member_identities AS (
-        SELECT
-          "memberId",
-          ARRAY_AGG("value")::TEXT[] AS "identities",
-          ARRAY_AGG("value") FILTER (WHERE verified and type = '${MemberIdentityType.EMAIL}')::TEXT[] AS "verifiedEmails",
-          ARRAY_AGG("value") FILTER (WHERE not verified and type = '${MemberIdentityType.EMAIL}')::TEXT[] AS "unverifiedEmails"
-        FROM "memberIdentities"
-        GROUP BY 1
       )
+      ${searchCTE}
       SELECT
         ${fields}
       FROM members m
@@ -2312,7 +2322,7 @@ class MemberRepository {
           : ''
       }
       LEFT JOIN member_orgs mo ON mo."memberId" = m.id
-      LEFT JOIN member_identities mi ON mi."memberId" = m.id
+      ${searchJoin}
       WHERE m."tenantId" = $(tenantId)
         AND (${filterString})
     `
