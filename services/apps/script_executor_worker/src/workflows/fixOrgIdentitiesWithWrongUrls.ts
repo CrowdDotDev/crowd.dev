@@ -24,20 +24,20 @@ export async function fixOrgIdentitiesWithWrongUrls(
     console.log(`Running in test mode with limit 10!`)
   }
 
-  const organizations = await activity.getOrgIdentitiesWithInvalidUrls(
+  const orgIdentities = await activity.getOrgIdentitiesWithInvalidUrls(
     tenantId,
     PROCESS_ORGANIZATIONS_PER_RUN,
   )
 
-  if (!organizations.length) {
+  if (!orgIdentities.length) {
     console.log(`No organizations found with invalid urls!`)
     return
   }
 
-  for (const org of organizations) {
+  for (const org of orgIdentities) {
     // Normalize the url and check if it already exists
     const normalizedUrl = org.value.replace(/^(?:https?:\/\/)?(?:www\.)?([^/]+)(?:\/.*)?$/, '$1')
-    const existingOrg = await activity.findOrganizationIdentity(
+    const existingOrgIdentity = await activity.findOrganizationIdentity(
       org.platform,
       normalizedUrl,
       org.type,
@@ -45,12 +45,18 @@ export async function fixOrgIdentitiesWithWrongUrls(
       args.tenantId,
     )
 
-    if (existingOrg) {
+    if (existingOrgIdentity) {
       // 1. Merge the organizations if they are different
-      if (existingOrg.organizationId !== org.organizationId) {
-        console.log(`Merging organization ${org.organizationId} into ${existingOrg.organizationId}`)
-        await common.mergeOrganizations(tenantId, existingOrg.organizationId, org.organizationId)
-      } else if (existingOrg.organizationId === org.organizationId) {
+      if (existingOrgIdentity.organizationId !== org.organizationId) {
+        console.log(
+          `Merging organization ${org.organizationId} into ${existingOrgIdentity.organizationId}`,
+        )
+        await common.mergeOrganizations(
+          tenantId,
+          existingOrgIdentity.organizationId,
+          org.organizationId,
+        )
+      } else if (existingOrgIdentity.organizationId === org.organizationId) {
         // 2. Simply delete the organization identity if it's the same organization
         await activity.deleteOrganizationIdentity(
           org.organizationId,

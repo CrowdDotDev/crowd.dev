@@ -7,6 +7,7 @@ import {
 } from '@crowd/types'
 import axios from 'axios'
 import { svc } from '../main'
+import { findOrganizationSegments } from '@crowd/data-access-layer/src/old/apps/entity_merging_worker'
 
 export async function mergeMembers(
   primaryMemberId: string,
@@ -87,7 +88,14 @@ export async function mergeOrganizations(
   tenantId: string,
   primaryOrgId: string,
   secondaryOrgId: string,
+  segmentId?: string,
 ): Promise<void> {
+  // if segmentId doesn't exist we can get just one segment org belongs to and use that
+  if (!segmentId) {
+    const result = await findOrganizationSegments(svc.postgres.writer, primaryOrgId)
+    segmentId = result.segmentIds[0]
+  }
+
   const url = `${process.env['CROWD_API_SERVICE_URL']}/tenant/${tenantId}/organization/${primaryOrgId}/merge`
   const requestOptions = {
     method: 'PUT',
@@ -97,6 +105,7 @@ export async function mergeOrganizations(
     },
     data: {
       organizationToMerge: secondaryOrgId,
+      segments: [segmentId],
     },
   }
 
