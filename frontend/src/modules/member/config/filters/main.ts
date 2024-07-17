@@ -1,6 +1,5 @@
 import { FilterConfig } from '@/shared/modules/filters/types/FilterConfig';
 import { SearchFilterConfig } from '@/shared/modules/filters/types/filterTypes/SearchFilterConfig';
-import { trimAndReduceSpaces } from '@/utils/string';
 import noOfActivities from './noOfActivities/config';
 import noOfOSSContributions from './noOfOSSContributions/config';
 import activeOn from './activeOn/config';
@@ -39,16 +38,7 @@ export const memberFilters: Record<string, FilterConfig> = {
 
 export const memberSearchFilter: SearchFilterConfig = {
   placeholder: 'Search people',
-  apiFilterRenderer(value: string): any[] {
-    const trimmedValue = trimAndReduceSpaces(value);
-    return [
-      {
-        or: [
-          { displayName: { textContains: trimmedValue } },
-          { verifiedEmails: { contains: [trimmedValue] } },
-          { unverifiedEmails: { contains: [trimmedValue] } },
-        ],
-      },
-    ];
+  apiFilterRenderer(): any[] {
+    return [];
   },
 };
