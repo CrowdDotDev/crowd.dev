@@ -59,6 +59,7 @@ import {
 import { findTags } from '@crowd/data-access-layer/src/others'
 import { fetchAbsoluteMemberAggregates } from '@crowd/data-access-layer/src/members/segments'
 import { OrganizationField, queryOrgs } from '@crowd/data-access-layer/src/orgs'
+import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
 import { KUBE_MODE, SERVICE } from '@/conf'
 import { ServiceType } from '../../conf/configTypes'
 import isFeatureEnabled from '../../feature-flags/isFeatureEnabled'
@@ -84,7 +85,6 @@ import {
   mapUsernameToIdentities,
 } from './types/memberTypes'
 import { IFetchMemberMergeSuggestionArgs, SimilarityScoreRange } from '@/types/mergeSuggestionTypes'
-import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
 
 const { Op } = Sequelize
 
@@ -2181,6 +2181,7 @@ class MemberRepository {
   static async findAndCountAll(
     {
       filter = {} as any,
+      search = null,
       limit = 20,
       offset = 0,
       orderBy = 'joinedAt_DESC',
@@ -2281,6 +2282,26 @@ class MemberRepository {
       return `${orderField} ${orderDirection}`
     })(orderBy)
 
+    const withSearch = !!search
+    let searchCTE = ''
+    let searchJoin = ''
+
+    if (withSearch) {
+      search = search.toLowerCase()
+      searchCTE = `
+      ,  
+      member_search AS (
+          SELECT
+            "memberId"
+          FROM "memberIdentities" mi
+          join members m on m.id = mi."memberId"
+          where (verified and type = '${MemberIdentityType.EMAIL}' and lower("value") ilike '%${search}%') or m."displayName" like '%${search}%'
+          GROUP BY 1
+        )
+      `
+      searchJoin = ` JOIN member_search ms ON ms."memberId" = m.id `
+    }
+
     const createQuery = (fields) => `
       WITH member_orgs AS (
         SELECT
@@ -2290,6 +2311,7 @@ class MemberRepository {
         WHERE "deletedAt" IS NULL
         GROUP BY 1
       )
+      ${searchCTE}
       SELECT
         ${fields}
       FROM members m
@@ -2299,6 +2321,7 @@ class MemberRepository {
           : ''
       }
       LEFT JOIN member_orgs mo ON mo."memberId" = m.id
+      ${searchJoin}
       WHERE m."tenantId" = $(tenantId)
         AND (${filterString})
     `
