@@ -2299,7 +2299,7 @@ class MemberRepository {
           GROUP BY 1
         )
       `
-      searchJoin = ` JOIN member_search mi ON mi."memberId" = m.id `
+      searchJoin = ` JOIN member_search ms ON ms."memberId" = m.id `
     }
 
 
