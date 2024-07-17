@@ -34,6 +34,7 @@ export async function insertOrganizationSegments(
           'organizationId',
           'segmentId',
           'tenantId',
+
           'joinedAt',
           'lastActive',
           'activeOn',
@@ -42,6 +43,12 @@ export async function insertOrganizationSegments(
           'avgContributorEngagement',
         ],
         data,
+        `DO UPDATE SET "joinedAt" = EXCLUDED."joinedAt",
+                       "lastActive" = EXCLUDED."lastActive",
+                       "activeOn" = EXCLUDED."activeOn",
+                       "activityCount" = EXCLUDED."activityCount",
+                       "memberCount" = EXCLUDED."memberCount",
+                       "avgContributorEngagement" = EXCLUDED."avgContributorEngagement"`,
       ),
     )
   } catch (e) {
