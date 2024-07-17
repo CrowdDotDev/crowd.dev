@@ -170,15 +170,17 @@ const showLoading = (filter: any, body: any): boolean => {
 };
 
 const fetch = ({
-  filter, orderBy, body,
+  search, filter, orderBy, body,
 }: FilterQuery) => {
   if (!loading.value) {
     loading.value = showLoading(filter, body);
   }
+
   pagination.value.page = 1;
   fetchMembers({
     body: {
       ...body,
+      search,
       filter,
       offset: 0,
       limit: pagination.value.perPage,
