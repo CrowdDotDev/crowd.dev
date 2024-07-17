@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS 'activities' (
   platform SYMBOL CAPACITY 30,
   isContribution BOOLEAN,
   score INT,
+  importHash VARCHAR,
   sourceId VARCHAR,
   createdAt TIMESTAMP,
   updatedAt TIMESTAMP,

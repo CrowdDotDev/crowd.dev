@@ -12,10 +12,13 @@ export const getClientILP = (): Sender => {
     return client
   }
 
-  log.trace('Creating QuestDB client (ILP) instance!')
+  const host = process.env['CROWD_QUESTDB_WRITE_HOST']
+  const port = process.env['CROWD_QUESTDB_WRITE_PORT']
+
+  log.trace({ host, port }, 'Creating QuestDB client (ILP) instance!')
 
   // TODO questdb: Handle connection for staging/production.
-  const conn = `http::addr=${process.env['CROWD_QUESTDB_WRITE_HOST']}:${process.env['CROWD_QUESTDB_WRITE_PORT']}`
+  const conn = `http::addr=${host}:${port}`
   if (getEnv() === 'local') {
     client = Sender.fromConfig(conn)
   } else {

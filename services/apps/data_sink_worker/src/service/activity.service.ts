@@ -1,7 +1,7 @@
 import { EDITION, escapeNullByte, isObjectEmpty, singleOrDefault } from '@crowd/common'
 import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/common_services'
 import { ConversationService } from '@crowd/conversations'
-import { IQueryActivityResult, insertActivities, updateActivity } from '@crowd/data-access-layer'
+import { IQueryActivityResult, insertActivity, updateActivity } from '@crowd/data-access-layer'
 import { DbStore, arePrimitivesDbEqual } from '@crowd/data-access-layer/src/database'
 import {
   IDbActivity,
@@ -10,6 +10,7 @@ import {
 import ActivityRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/activity.repo'
 import GithubReposRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/githubRepos.repo'
 import IntegrationRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/integration.repo'
+import { IDbMember } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.data'
 import MemberRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.repo'
 import SettingsRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/settings.repo'
 import { Unleash } from '@crowd/feature-flags'
@@ -31,7 +32,6 @@ import { TEMPORAL_CONFIG } from '../conf'
 import { IActivityCreateData, IActivityUpdateData } from './activity.data'
 import MemberService from './member.service'
 import MemberAffiliationService from './memberAffiliation.service'
-import { IDbMember } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.data'
 
 export default class ActivityService extends LoggerBase {
   private readonly conversationService: ConversationService
@@ -107,33 +107,31 @@ export default class ActivityService extends LoggerBase {
         })
 
         this.log.debug('Creating an activity in QuestDB!')
-        await insertActivities([
-          {
-            id,
-            timestamp: activity.timestamp.toISOString(),
-            platform: activity.platform,
-            type: activity.type,
-            isContribution: activity.isContribution,
-            score: activity.score,
-            sourceId: activity.sourceId,
-            sourceParentId: activity.sourceParentId,
-            memberId: activity.memberId,
-            tenantId: tenantId,
-            attributes: activity.attributes,
-            sentiment: sentiment,
-            title: activity.title,
-            body: escapeNullByte(activity.body),
-            channel: activity.channel,
-            url: activity.url,
-            username: activity.username,
-            objectMemberId: activity.objectMemberId,
-            objectMemberUsername: activity.objectMemberUsername,
-            segmentId: segmentId,
-            organizationId: activity.organizationId,
-            isBotActivity: memberInfo.isBot,
-            isTeamMemberActivity: memberInfo.isTeamMember,
-          },
-        ])
+        await insertActivity(this.qdbStore.connection(), id, {
+          id,
+          timestamp: activity.timestamp.toISOString(),
+          platform: activity.platform,
+          type: activity.type,
+          isContribution: activity.isContribution,
+          score: activity.score,
+          sourceId: activity.sourceId,
+          sourceParentId: activity.sourceParentId,
+          memberId: activity.memberId,
+          tenantId: tenantId,
+          attributes: activity.attributes,
+          sentiment: sentiment,
+          title: activity.title,
+          body: escapeNullByte(activity.body),
+          channel: activity.channel,
+          url: activity.url,
+          username: activity.username,
+          objectMemberId: activity.objectMemberId,
+          objectMemberUsername: activity.objectMemberUsername,
+          segmentId: segmentId,
+          organizationId: activity.organizationId,
+          isBotActivity: memberInfo.isBot,
+          isTeamMemberActivity: memberInfo.isTeamMember,
+        })
 
         return id
       })

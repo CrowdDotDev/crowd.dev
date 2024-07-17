@@ -155,7 +155,10 @@ export async function insertActivities(activities: IDbActivityCreateData[]): Pro
       await row.at(activity.timestamp ? new Date(activity.timestamp).getTime() : now, 'ms')
     }
 
-    await ilp.flush()
+    const flushed = await ilp.flush()
+    if (!flushed) {
+      throw new Error('Failed to flush activities to ILP')
+    }
   }
 
   return ids
