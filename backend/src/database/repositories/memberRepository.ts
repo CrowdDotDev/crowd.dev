@@ -2295,13 +2295,12 @@ class MemberRepository {
             "memberId"
           FROM "memberIdentities" mi
           join members m on m.id = mi."memberId"
-          where (verified and type = '${MemberIdentityType.EMAIL}' and lower("value") ilike '${search}%') or m."displayName" like '${search}%'
+          where (verified and type = '${MemberIdentityType.EMAIL}' and lower("value") ilike '%${search}%') or m."displayName" like '%${search}%'
           GROUP BY 1
         )
       `
       searchJoin = ` JOIN member_search ms ON ms."memberId" = m.id `
     }
-
 
     const createQuery = (fields) => `
       WITH member_orgs AS (
