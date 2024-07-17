@@ -54,19 +54,24 @@ export async function fetchManyOrgSegments(
   qx: QueryExecutor,
   organizationIds: string[],
 ): Promise<IOrganizationSegments[]> {
-  return qx.select(
-    `
-      SELECT
-        "organizationId",
-        ARRAY_AGG("segmentId") AS segments
-      FROM "organizationSegmentsAgg"
-      WHERE "organizationId" = ANY($(organizationIds)::UUID[])
-      GROUP BY "organizationId"
-    `,
-    {
-      organizationIds,
-    },
+  const result = await Promise.all(
+    organizationIds.map((organizationId) =>
+      qx.selectOneOrNone(
+        `
+          SELECT
+            "organizationId",
+            ARRAY_AGG("segmentId") AS segments
+          FROM "organizationSegmentsAgg"
+          WHERE "organizationId" = $(organizationId)
+        `,
+        {
+          organizationId,
+        },
+      ),
+    ),
   )
+
+  return result.filter((row) => !!row)
 }
 
 export async function fetchTotalActivityCount(
