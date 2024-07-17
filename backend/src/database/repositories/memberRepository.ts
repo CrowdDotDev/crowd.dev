@@ -2299,7 +2299,7 @@ class MemberRepository {
           "memberId",
           ARRAY_AGG("value")::TEXT[] AS "identities",
           ARRAY_AGG("value")::TEXT[] FILTER (WHERE verified and type = '${MemberIdentityType.EMAIL}') AS "verifiedEmails",
-          ARRAY_AGG("value")::TEXT[] FILTER (WHERE not verified and type = '${MemberIdentityType.EMAIL}') AS "unverifiedEmails",
+          ARRAY_AGG("value")::TEXT[] FILTER (WHERE not verified and type = '${MemberIdentityType.EMAIL}') AS "unverifiedEmails"
         FROM "memberIdentities"
         GROUP BY 1
       )
