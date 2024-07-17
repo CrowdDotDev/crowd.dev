@@ -179,7 +179,7 @@ const lastSynced = computed(() => {
     ),
     relative: `Last data check completed ${moment(
       props.integration.lastProcessedAt,
-    ).fromNow()} ago`,
+    ).fromNow()}`,
   };
 });
 
