@@ -4,7 +4,7 @@
     class="app-list-table-bulk-actions"
   >
     <span class="block text-sm font-semibold mr-4">
-      {{ pluralize('contributor', selectedMembers.length, true) }}
+      {{ pluralize('person', selectedMembers.length, true) }}
       selected</span>
     <el-dropdown trigger="click" @command="handleCommand">
       <button type="button" class="btn btn--secondary btn--sm">
@@ -27,7 +27,7 @@
               :disabled="!hasPermission(LfPermission.mergeMembers)"
             >
               <i class="ri-lg ri-group-line mr-1" />
-              Merge contributors
+              Merge profile
             </el-dropdown-item>
           </span>
         </el-tooltip>
@@ -125,7 +125,7 @@ const bulkAttributesUpdateVisible = ref(false);
 const markAsTeamMemberOptions = computed(() => {
   const isTeamView = filters.value.settings.teamMember === 'filter';
   const membersCopy = pluralize(
-    'contributor',
+    'person',
     selectedMembers.value.length,
     false,
   );
@@ -156,9 +156,9 @@ const handleMergeMembers = async () => {
     .then(() => {
       Message.closeAll();
       Message.info(
-        'We’re finalizing contributor merging. We will let you know once the process is completed.',
+        "We're finalizing profiles merging. We will let you know once the process is completed.",
         {
-          title: 'Contributors merging in progress',
+          title: 'Profiles merging in progress',
         },
       );
     })
@@ -169,7 +169,7 @@ const handleMergeMembers = async () => {
 
 const doDestroyAllWithConfirm = () => ConfirmDialog({
   type: 'danger',
-  title: 'Delete contributors',
+  title: 'Delete profile',
   message:
         "Are you sure you want to proceed? You can't undo this action",
   confirmButtonText: 'Confirm',
@@ -178,7 +178,7 @@ const doDestroyAllWithConfirm = () => ConfirmDialog({
 })
   .then(() => {
     trackEvent({
-      key: FeatureEventKey.DELETE_CONTRIBUTOR,
+      key: FeatureEventKey.DELETE_MEMBER,
       type: EventType.FEATURE,
       properties: {
         path: route.path,
@@ -209,11 +209,11 @@ const handleDoExport = async () => {
     await showExportDialog({
       tenantCsvExportCount,
       planExportCountMax,
-      badgeContent: pluralize('contributor', selectedMembers.value.length, true),
+      badgeContent: pluralize('person', selectedMembers.value.length, true),
     });
 
     trackEvent({
-      key: FeatureEventKey.EXPORT_CONTRIBUTORS,
+      key: FeatureEventKey.EXPORT_MEMBERS,
       type: EventType.FEATURE,
       properties: {
         path: route.path,
@@ -265,7 +265,7 @@ const doMarkAsTeamMember = async (value) => {
   Message.info(
     null,
     {
-      title: 'Contributors are being updated',
+      title: 'People are being updated',
     },
   );
 
@@ -279,24 +279,21 @@ const doMarkAsTeamMember = async (value) => {
   }, member.segmentIds)))
     .then(() => {
       Message.closeAll();
-      Message.success(
-        `Contributor${
-          selectedMembers.value.length > 1 ? 's' : ''
-        } updated successfully`,
-      );
+      Message.success(`${
+        pluralize('Person', selectedMembers.value.length, true)} updated successfully`);
 
       fetchMembers({ reload: true });
     })
     .catch(() => {
       Message.closeAll();
-      Message.error('Error updating contributors');
+      Message.error('Error updating people');
     });
 };
 
 const handleCommand = async (command) => {
   if (command.action === 'markAsTeamMember') {
     trackEvent({
-      key: FeatureEventKey.MARK_AS_TEAM_CONTRIBUTOR,
+      key: FeatureEventKey.MARK_AS_TEAM_MEMBER,
       type: EventType.FEATURE,
       properties: {
         path: route.path,

@@ -127,7 +127,7 @@ const serverUpdate = () => {
   const segments = props.member.segments.map((s) => s.id);
 
   trackEvent({
-    key: FeatureEventKey.EDIT_CONTRIBUTOR_IDENTITY,
+    key: FeatureEventKey.EDIT_MEMBER_IDENTITY,
     type: EventType.FEATURE,
     properties: {
       identities: identities.value,
@@ -166,7 +166,7 @@ const serverUpdate = () => {
             ],
           ),
           {
-            title: 'Contributor was not updated because the identity already exists in another contributor, but you can merge the contributors',
+            title: 'Profile was not updated because the identity already exists in another profile, but you can merge the profiles',
           },
         );
       } else {

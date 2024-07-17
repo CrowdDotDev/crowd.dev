@@ -27,7 +27,7 @@
       type="button"
     >
       <i class="ri-pencil-line text-base mr-2" />
-      <span class="text-xs">Edit contributor</span>
+      <span class="text-xs">Edit profile</span>
     </button>
   </router-link>
   <button
@@ -59,7 +59,7 @@
       })
     "
   >
-    <i class="ri-group-line text-base mr-2" /><span class="text-xs">Merge contributor</span>
+    <i class="ri-group-line text-base mr-2" /><span class="text-xs">Merge profile</span>
   </button>
 
   <!-- Hubspot -->
@@ -99,7 +99,7 @@
   <template v-if="hasPermission(LfPermission.memberEdit)">
     <el-tooltip
       placement="top"
-      content="Mark as team contact if they belong to your own organization"
+      content="Mark as team member if they belong to your own organization"
       popper-class="max-w-[260px]"
     >
       <span>
@@ -115,7 +115,7 @@
             })
           "
         >
-          <i class="ri-bookmark-line text-base mr-2" /><span class="text-xs">Mark as team contributor</span>
+          <i class="ri-bookmark-line text-base mr-2" /><span class="text-xs">Mark as team member</span>
         </button>
       </span>
     </el-tooltip>
@@ -131,7 +131,7 @@
         })
       "
     >
-      <i class="ri-bookmark-2-line text-base mr-2" /><span class="text-xs">Unmark as team contributor</span>
+      <i class="ri-bookmark-2-line text-base mr-2" /><span class="text-xs">Unmark as team member</span>
     </button>
     <button
       v-if="!member.attributes.isBot?.default"
@@ -176,7 +176,7 @@
         class="ri-delete-bin-line text-base mr-2 text-red-500"
       /><span
         class="text-xs text-red-500"
-      >Delete contributor</span>
+      >Delete profile</span>
     </button>
   </template>
 </template>
@@ -303,14 +303,14 @@ const handleCommand = async (command: {
   if (command.action === Actions.DELETE_CONTACT) {
     ConfirmDialog({
       type: 'danger',
-      title: 'Delete contributor',
+      title: 'Delete profile',
       message: "Are you sure you want to proceed? You can't undo this action",
       confirmButtonText: 'Confirm',
       cancelButtonText: 'Cancel',
       icon: 'ri-delete-bin-line',
     }).then(() => {
       trackEvent({
-        key: FeatureEventKey.DELETE_CONTRIBUTOR,
+        key: FeatureEventKey.DELETE_MEMBER,
         type: EventType.FEATURE,
         properties: {
           path: route.path,
@@ -318,8 +318,8 @@ const handleCommand = async (command: {
       });
 
       doManualAction({
-        loadingMessage: 'Contributor is being deleted',
-        successMessage: 'Contributor successfully deleted',
+        loadingMessage: 'Profile is being deleted',
+        successMessage: 'Profile successfully deleted',
         errorMessage: 'Something went wrong',
         actionFn: MemberService.destroyAll([command.member.id]),
       }).then(() => {
@@ -339,11 +339,11 @@ const handleCommand = async (command: {
 
     doManualAction({
       loadingMessage: isSyncing
-        ? 'Contributor is being synced with Hubspot'
-        : 'Contributor syncing with Hubspot is being stopped',
+        ? 'Profile is being synced with Hubspot'
+        : 'Profile syncing with Hubspot is being stopped',
       successMessage: isSyncing
-        ? 'Contributor is now syncing with HubSpot'
-        : 'Contributor syncing stopped',
+        ? 'Profile is now syncing with HubSpot'
+        : 'Profile syncing stopped',
       errorMessage: 'Something went wrong',
       actionFn: isSyncing
         ? HubspotApiService.syncMember(command.member.id)
@@ -365,7 +365,7 @@ const handleCommand = async (command: {
   // Mark as team contact
   if (command.action === Actions.MARK_CONTACT_AS_TEAM_CONTACT) {
     trackEvent({
-      key: FeatureEventKey.MARK_AS_TEAM_CONTRIBUTOR,
+      key: FeatureEventKey.MARK_AS_TEAM_MEMBER,
       type: EventType.FEATURE,
       properties: {
         path: route.path,
@@ -373,8 +373,8 @@ const handleCommand = async (command: {
     });
 
     doManualAction({
-      loadingMessage: 'Contributor is being updated',
-      successMessage: 'Contributor updated successfully',
+      loadingMessage: 'Profile is being updated',
+      successMessage: 'Profile updated successfully',
       errorMessage: 'Something went wrong',
       actionFn: MemberService.update(command.member.id, {
         attributes: {
@@ -412,8 +412,8 @@ const handleCommand = async (command: {
     });
 
     doManualAction({
-      loadingMessage: 'Contributor is being updated',
-      successMessage: 'Contributor updated successfully',
+      loadingMessage: 'Profile is being updated',
+      successMessage: 'Profile updated successfully',
       errorMessage: 'Something went wrong',
       actionFn: MemberService.update(command.member.id, {
         attributes: {

@@ -53,8 +53,10 @@ import {
   fetchMemberIdentities,
   fetchMemberOrganizations,
   findMemberById,
+  findMemberTags,
   MemberField,
 } from '@crowd/data-access-layer/src/members'
+import { findTags } from '@crowd/data-access-layer/src/others'
 import { fetchAbsoluteMemberAggregates } from '@crowd/data-access-layer/src/members/segments'
 import { OrganizationField, queryOrgs } from '@crowd/data-access-layer/src/orgs'
 import { KUBE_MODE, SERVICE } from '@/conf'
@@ -82,6 +84,7 @@ import {
   mapUsernameToIdentities,
 } from './types/memberTypes'
 import { IFetchMemberMergeSuggestionArgs, SimilarityScoreRange } from '@/types/mergeSuggestionTypes'
+import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
 
 const { Op } = Sequelize
 
@@ -437,7 +440,7 @@ class MemberRepository {
         const findMemberInfo = async (memberId: string) => {
           const qx = SequelizeRepository.getQueryExecutor(options)
 
-          const [member, identities, aggregates, memberOrgs] = await Promise.all([
+          const [member, identities, aggregates, memberOrgs, tags] = await Promise.all([
             findMemberById(qx, memberId, [
               MemberField.ID,
               MemberField.DISPLAY_NAME,
@@ -447,9 +450,10 @@ class MemberRepository {
             fetchMemberIdentities(qx, memberId),
             fetchAbsoluteMemberAggregates(qx, memberId),
             fetchMemberOrganizations(qx, memberId),
+            findMemberTags(qx, memberId),
           ])
 
-          const [orgExtraInfo, lfxMemberships] = await Promise.all([
+          const [orgExtraInfo, lfxMemberships, tagExtraInfo] = await Promise.all([
             queryOrgs(qx, {
               filter: {
                 [OrganizationField.ID]: { in: memberOrgs.map((o) => o.organizationId) },
@@ -464,6 +468,10 @@ class MemberRepository {
               tenantId: options.currentTenant.id,
               organizationIds: memberOrgs.map((o) => o.organizationId),
             }),
+            findTags(
+              qx,
+              tags.map((t) => t.tagId),
+            ),
           ])
 
           return {
@@ -472,6 +480,7 @@ class MemberRepository {
             ...{
               activityCount: aggregates?.activityCount,
               lastActive: aggregates?.lastActive,
+              tags: tagExtraInfo.map((t) => ({ id: t.id, name: t.name })),
             },
             organizations: memberOrgs.map((o) => ({
               ...orgExtraInfo.find((oei) => oei.id === o.organizationId),
@@ -1538,6 +1547,7 @@ class MemberRepository {
           memberOrganizations: true,
           lfxMemberships: true,
           identities: true,
+          segments: true,
         },
       },
       options,
@@ -2272,19 +2282,23 @@ class MemberRepository {
     })(orderBy)
 
     const createQuery = (fields) => `
+      WITH member_orgs AS (
+        SELECT
+          "memberId",
+          ARRAY_AGG("organizationId")::TEXT[] AS "organizationId"
+        FROM "memberOrganizations"
+        WHERE "deletedAt" IS NULL
+        GROUP BY 1
+      )
       SELECT
         ${fields}
       FROM members m
       ${
         withAggregates
-          ? `LEFT JOIN "memberSegmentsAgg" msa ON msa."memberId" = m.id AND msa."segmentId" = $(segmentId)`
+          ? ` JOIN "memberSegmentsAgg" msa ON msa."memberId" = m.id AND msa."segmentId" = $(segmentId)`
           : ''
       }
-      ${
-        include.memberOrganizations || include.lfxMemberships
-          ? `LEFT JOIN "memberOrganizations" mo ON mo."memberId" = m.id AND mo."deletedAt" IS NULL`
-          : ''
-      }
+      LEFT JOIN member_orgs mo ON mo."memberId" = m.id
       WHERE m."tenantId" = $(tenantId)
         AND (${filterString})
     `
@@ -2303,7 +2317,7 @@ class MemberRepository {
         `
           ${createQuery(
             (function prepareFields(fields) {
-              return `DISTINCT ${fields
+              return `${fields
                 .map((f) => {
                   const mappedField = MemberRepository.QUERY_FILTER_COLUMN_MAP.get(f)
                   if (!mappedField) {
@@ -2354,14 +2368,14 @@ class MemberRepository {
           return acc
         }, []),
       )
-      const orgDisplayNames = orgIds.length
+      const orgExtra = orgIds.length
         ? await queryOrgs(qx, {
             filter: {
               [OrganizationField.ID]: {
                 in: orgIds,
               },
             },
-            fields: [OrganizationField.ID, OrganizationField.DISPLAY_NAME],
+            fields: [OrganizationField.ID, OrganizationField.DISPLAY_NAME, OrganizationField.LOGO],
           })
         : []
 
@@ -2370,7 +2384,7 @@ class MemberRepository {
           memberOrganizations.find((o) => o.memberId === member.id)?.organizations || []
         ).map((o) => ({
           id: o.organizationId,
-          displayName: orgDisplayNames.find((odn) => odn.id === o.organizationId)?.displayName,
+          ...orgExtra.find((odn) => odn.id === o.organizationId),
           memberOrganizations: o,
         }))
       })
@@ -2380,7 +2394,7 @@ class MemberRepository {
         organizationIds: uniq(
           rows.reduce((acc, r) => {
             if (r.organizations) {
-              acc.push(...r.organizations.map((o) => o.organizationId))
+              acc.push(...r.organizations.map((o) => o.id))
             }
             return acc
           }, []),
@@ -2405,18 +2419,24 @@ class MemberRepository {
     }
     if (include.segments) {
       const memberSegments = await fetchManyMemberSegments(qx, memberIds)
+      const segmentIds = uniq(
+        memberSegments.reduce((acc, ms) => {
+          acc.push(...ms.segments.map((s) => s.segmentId))
+          return acc
+        }, []),
+      )
+      const segmentsInfo = await fetchManySegments(qx, segmentIds)
 
       rows.forEach((member) => {
-        member.segments = memberSegments.find((i) => i.memberId === member.id)?.segments || []
+        member.segments = (
+          memberSegments.find((i) => i.memberId === member.id)?.segments || []
+        ).map((segment) => ({
+          id: segment.segmentId,
+          name: segmentsInfo.find((s) => s.id === segment.segmentId)?.name,
+          activityCount: segment.activityCount,
+        }))
       })
     }
-    // if (include.attributes) {
-    //   const attributes = await findManyOrgAttributes(qx, orgIds)
-
-    //   rows.forEach((org) => {
-    //     org.attributes = attributes.find((a) => a.organizationId === org.id)?.attributes || []
-    //   })
-    // }
 
     rows.forEach((row) => {
       row.tags = []

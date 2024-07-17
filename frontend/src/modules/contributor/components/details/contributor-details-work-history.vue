@@ -58,10 +58,10 @@
 <script setup lang="ts">
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
-import { Contributor } from '@/modules/contributor/types/Contributor';
 import { computed, ref } from 'vue';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import { Contributor } from '@/modules/contributor/types/Contributor';
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
 import LfContributorEditWorkHistory
   from '@/modules/contributor/components/edit/work-history/contributor-work-history-edit.vue';

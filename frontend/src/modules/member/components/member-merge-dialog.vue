@@ -2,7 +2,7 @@
   <app-dialog
     v-if="isModalOpen"
     v-model="isModalOpen"
-    title="Merge contributor"
+    title="Merge profile"
     size="2extra-large"
   >
     <template #content>
@@ -38,7 +38,7 @@
                   @click="changeMember()"
                 >
                   <span class="ri-refresh-line text-base text-primary-500 mr-2" />
-                  <span class="text-primary-500">Change contributor</span>
+                  <span class="text-primary-500">Change person</span>
                 </button>
               </template>
             </app-member-suggestions-details>
@@ -54,7 +54,7 @@
             :loading="sendingMerge"
             @click="mergeSuggestion()"
           >
-            Merge contributors
+            Merge profile
           </el-button>
         </div>
       </div>
@@ -142,7 +142,7 @@ const mergeSuggestion = () => {
   loadingMessage();
 
   trackEvent({
-    key: FeatureEventKey.MERGE_CONTRIBUTOR,
+    key: FeatureEventKey.MERGE_MEMBER,
     type: EventType.FEATURE,
     properties: {
       path: route.path,
@@ -153,9 +153,9 @@ const mergeSuggestion = () => {
     .then(() => {
       Message.closeAll();
       Message.info(
-        'We’re finalizing contributor merging. We will let you know once the process is completed.',
+        "We're finalizing profiles merging. We will let you know once the process is completed.",
         {
-          title: 'Contributors merging in progress',
+          title: 'Profiles merging in progress',
         },
       );
       emit('update:modelValue', null);

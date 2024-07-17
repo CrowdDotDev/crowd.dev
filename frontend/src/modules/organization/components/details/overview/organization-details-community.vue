@@ -10,7 +10,7 @@
             Community size
           </p>
           <p v-if="!loadingMemberCount" class="text-small text-gray-600">
-            {{ pluralize('contributor', memberCount || 0, true) }}
+            {{ pluralize('person', memberCount || 0, true) }}
           </p>
         </article>
         <article class="px-4 h-full w-1/2 xl:w-1/3 border-l border-gray-200">
@@ -50,7 +50,7 @@ const props = defineProps<{
 
 const memberCount = ref<number>(0);
 const loadingMemberCount = ref<boolean>(true);
-const orgFilter = { organizations: { eq: props.organization.id } };
+const orgFilter = { organizations: { contains: [props.organization.id] } };
 
 const doGetMembersCount = () => {
   loadingMemberCount.value = true;
