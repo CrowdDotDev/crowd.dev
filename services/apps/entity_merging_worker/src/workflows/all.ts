@@ -85,7 +85,7 @@ export async function finishOrganizationMerging(
     movedSomething = await moveActivitiesBetweenOrgs(primaryId, secondaryId, tenantId)
   } while (movedSomething)
 
-  await syncOrganization(primaryId, secondaryId)
+  await syncOrganization(primaryId)
   await deleteOrganization(secondaryId)
   await setMergeActionState(primaryId, secondaryId, tenantId, 'merged' as MergeActionState)
   await notifyFrontendOrganizationMergeSuccessful(
@@ -108,8 +108,8 @@ export async function finishOrganizationUnmerging(
 ): Promise<void> {
   await recalculateActivityAffiliationsOfOrganizationSynchronous(primaryId, tenantId)
   await recalculateActivityAffiliationsOfOrganizationSynchronous(secondaryId, tenantId)
-  await syncOrganization(primaryId, secondaryId)
-  await syncOrganization(secondaryId, primaryId)
+  await syncOrganization(primaryId)
+  await syncOrganization(secondaryId)
   await setMergeActionState(primaryId, secondaryId, tenantId, 'unmerged' as MergeActionState)
   await notifyFrontendOrganizationUnmergeSuccessful(
     primaryId,
