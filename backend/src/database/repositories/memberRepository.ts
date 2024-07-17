@@ -2173,7 +2173,11 @@ class MemberRepository {
 
       // others
       ['organizations', { name: 'mo."organizationId"', queryable: false }],
+      ['identities', { name: 'mi."identities"', queryable: false }],
+      ['verifiedEmails', { name: 'mi."verifiedEmails"', queryable: false }],
+      ['unverifiedEmails', { name: 'mi."unverifiedEmails"', queryable: false }],
 
+      
       // fields for querying
       ['attributes', { name: 'm.attributes' }],
     ])
@@ -2289,6 +2293,15 @@ class MemberRepository {
         FROM "memberOrganizations"
         WHERE "deletedAt" IS NULL
         GROUP BY 1
+      ),
+      member_identities AS (
+        SELECT
+          "memberId",
+          ARRAY_AGG("value")::TEXT[] AS "identities",
+          ARRAY_AGG("value")::TEXT[] FILTER (WHERE verified and type = '${MemberIdentityType.EMAIL}') AS "verifiedEmails",
+          ARRAY_AGG("value")::TEXT[] FILTER (WHERE not verified and type = '${MemberIdentityType.EMAIL}') AS "unverifiedEmails",
+        FROM "memberIdentities"
+        GROUP BY 1
       )
       SELECT
         ${fields}
@@ -2299,6 +2312,7 @@ class MemberRepository {
           : ''
       }
       LEFT JOIN member_orgs mo ON mo."memberId" = m.id
+      LEFT JOIN member_identities mi ON mi."memberId" = m.id
       WHERE m."tenantId" = $(tenantId)
         AND (${filterString})
     `
