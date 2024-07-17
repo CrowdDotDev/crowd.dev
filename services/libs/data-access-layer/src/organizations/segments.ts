@@ -70,6 +70,7 @@ export async function fetchManyOrgSegments(
             ARRAY_AGG("segmentId") AS segments
           FROM "organizationSegmentsAgg"
           WHERE "organizationId" = $(organizationId)
+          GROUP BY "organizationId"
         `,
         {
           organizationId,
