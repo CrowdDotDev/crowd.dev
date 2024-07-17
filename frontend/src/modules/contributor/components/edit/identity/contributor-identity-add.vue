@@ -16,7 +16,7 @@
                 <lf-input
                   v-model="identity.value"
                   class="!rounded-r-none h-10 flex-grow"
-                  placeholder="..."
+                  :placeholder="`${platform(identity.platform)?.placeholder || ''}...`"
                   :invalid="$v.form[ii].value.$invalid && $v.form[ii].value.$dirty"
                   @blur="$v.form[ii].value.$touch()"
                 >
