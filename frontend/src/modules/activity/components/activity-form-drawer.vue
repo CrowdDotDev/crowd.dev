@@ -8,7 +8,7 @@
       <div class="-mt-4">
         <app-form-item
           class="mb-4"
-          label="Contributor"
+          label="Person"
           :validation="$v.member"
           :required="true"
           :error-messages="{

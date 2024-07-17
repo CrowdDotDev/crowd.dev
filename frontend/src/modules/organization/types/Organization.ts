@@ -73,8 +73,8 @@ export interface Organization {
   url: string;
   memberOrganizations: {
     title: string;
-    dateStart: string;
-    dateEnd: string;
+    dateStart?: string;
+    dateEnd?: string;
     source: OrganizationSource;
   }
   lfxMembership?: {

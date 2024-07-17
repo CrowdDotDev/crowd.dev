@@ -1,5 +1,6 @@
 import {
   ActivityDisplayVariant,
+  ALL_PLATFORM_TYPES,
   FeatureFlag,
   IMemberIdentity,
   IMemberOrganization,
@@ -19,7 +20,14 @@ import lodash, { chunk, uniq } from 'lodash'
 import moment from 'moment'
 import Sequelize, { QueryTypes } from 'sequelize'
 
-import { Error400, Error404, Error409, dateEqualityChecker, distinct } from '@crowd/common'
+import {
+  Error400,
+  Error404,
+  Error409,
+  RawQueryParser,
+  dateEqualityChecker,
+  distinct,
+} from '@crowd/common'
 import { ActivityDisplayService } from '@crowd/integrations'
 import {
   captureApiChange,
@@ -38,6 +46,19 @@ import {
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import { findManyLfxMemberships } from '@crowd/data-access-layer/src/lfx_memberships'
 import { addMemberNoMerge, removeMemberToMerge } from '@crowd/data-access-layer/src/member_merge'
+import {
+  fetchManyMemberIdentities,
+  fetchManyMemberOrgs,
+  fetchManyMemberSegments,
+  fetchMemberIdentities,
+  fetchMemberOrganizations,
+  findMemberById,
+  findMemberTags,
+  MemberField,
+} from '@crowd/data-access-layer/src/members'
+import { findTags } from '@crowd/data-access-layer/src/others'
+import { fetchAbsoluteMemberAggregates } from '@crowd/data-access-layer/src/members/segments'
+import { OrganizationField, queryOrgs } from '@crowd/data-access-layer/src/orgs'
 import { KUBE_MODE, SERVICE } from '@/conf'
 import { ServiceType } from '../../conf/configTypes'
 import isFeatureEnabled from '../../feature-flags/isFeatureEnabled'
@@ -47,11 +68,8 @@ import {
   MemberSegmentAffiliationJoined,
 } from '../../types/memberSegmentAffiliationTypes'
 import { AttributeData } from '../attributes/attribute'
-import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import AuditLogRepository from './auditLogRepository'
-import QueryParser from './filters/queryParser'
-import { QueryOutput } from './filters/queryTypes'
 import MemberAttributeSettingsRepository from './memberAttributeSettingsRepository'
 import MemberSegmentAffiliationRepository from './memberSegmentAffiliationRepository'
 import MemberSyncRemoteRepository from './memberSyncRemoteRepository'
@@ -66,6 +84,7 @@ import {
   mapUsernameToIdentities,
 } from './types/memberTypes'
 import { IFetchMemberMergeSuggestionArgs, SimilarityScoreRange } from '@/types/mergeSuggestionTypes'
+import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
 
 const { Op } = Sequelize
 
@@ -83,7 +102,7 @@ interface ActivityAggregates {
 }
 
 class MemberRepository {
-  static async create(data, options: IRepositoryOptions, doPopulateRelations = true) {
+  static async create(data, options: IRepositoryOptions) {
     if (!data.username && !data.identities) {
       throw new Error('Username not set when creating member!')
     }
@@ -191,7 +210,7 @@ class MemberRepository {
 
     await this._createAuditLog(AuditLogRepository.CREATE, record, data, options)
 
-    return this.findById(record.id, options, { doPopulateRelations })
+    return this.findById(record.id, options)
   }
 
   static async includeMemberToSegments(memberId: string, options: IRepositoryOptions) {
@@ -418,12 +437,65 @@ class MemberRepository {
         const memberPromises = []
         const toMergePromises = []
 
-        for (const mem of mems) {
-          memberPromises.push(MemberRepository.findByIdOpensearch(mem.id, options))
-          toMergePromises.push(MemberRepository.findByIdOpensearch(mem.toMergeId, options))
+        const findMemberInfo = async (memberId: string) => {
+          const qx = SequelizeRepository.getQueryExecutor(options)
+
+          const [member, identities, aggregates, memberOrgs, tags] = await Promise.all([
+            findMemberById(qx, memberId, [
+              MemberField.ID,
+              MemberField.DISPLAY_NAME,
+              MemberField.ATTRIBUTES,
+              MemberField.JOINED_AT,
+            ]),
+            fetchMemberIdentities(qx, memberId),
+            fetchAbsoluteMemberAggregates(qx, memberId),
+            fetchMemberOrganizations(qx, memberId),
+            findMemberTags(qx, memberId),
+          ])
+
+          const [orgExtraInfo, lfxMemberships, tagExtraInfo] = await Promise.all([
+            queryOrgs(qx, {
+              filter: {
+                [OrganizationField.ID]: { in: memberOrgs.map((o) => o.organizationId) },
+              },
+              fields: [
+                OrganizationField.ID,
+                OrganizationField.DISPLAY_NAME,
+                OrganizationField.LOGO,
+              ],
+            }),
+            findManyLfxMemberships(qx, {
+              tenantId: options.currentTenant.id,
+              organizationIds: memberOrgs.map((o) => o.organizationId),
+            }),
+            findTags(
+              qx,
+              tags.map((t) => t.tagId),
+            ),
+          ])
+
+          return {
+            ...member,
+            identities,
+            ...{
+              activityCount: aggregates?.activityCount,
+              lastActive: aggregates?.lastActive,
+              tags: tagExtraInfo.map((t) => ({ id: t.id, name: t.name })),
+            },
+            organizations: memberOrgs.map((o) => ({
+              ...orgExtraInfo.find((oei) => oei.id === o.organizationId),
+              lfxMembership: lfxMemberships.find((lm) => lm.organizationId === o.organizationId),
+              memberOrganizations: o,
+            })),
+          }
         }
 
-        const memberResults = await Promise.all(memberPromises)
+        for (const mem of mems) {
+          memberPromises.push(findMemberInfo(mem.id))
+          toMergePromises.push(findMemberInfo(mem.toMergeId))
+        }
+
+        const memberResults: { id: string }[] = await Promise.all(memberPromises)
         const memberToMergeResults = await Promise.all(toMergePromises)
 
         result = memberResults.map((i, idx) => ({
@@ -755,45 +827,6 @@ class MemberRepository {
     'score',
     'reach',
     'importHash',
-    'tags',
-    'website',
-    'location',
-    'github',
-    'twitter',
-    'linkedin',
-    'crunchbase',
-    'employees',
-    'revenueRange',
-    'isTeamOrganization',
-    'employeeCountByCountry',
-    'type',
-    'ticker',
-    'headline',
-    'profiles',
-    'naics',
-    'industry',
-    'founded',
-    'size',
-    'lastEnrichedAt',
-    'affiliatedProfiles',
-    'allSubsidiaries',
-    'alternativeDomains',
-    'alternativeNames',
-    'averageEmployeeTenure',
-    'averageTenureByLevel',
-    'averageTenureByRole',
-    'directSubsidiaries',
-    'employeeChurnRate',
-    'employeeCountByMonth',
-    'employeeGrowthRate',
-    'employeeCountByMonthByLevel',
-    'employeeCountByMonthByRole',
-    'gicsSector',
-    'grossAdditionsByMonth',
-    'grossDeparturesByMonth',
-    'ultimateParent',
-    'immediateParent',
-    'attributes',
   ]
 
   static isEqual = {
@@ -812,10 +845,8 @@ class MemberRepository {
     data,
     options: IRepositoryOptions,
     {
-      doPopulateRelations = true,
       manualChange = false,
     }: {
-      doPopulateRelations?: boolean
       manualChange?: boolean
     } = {},
   ) {
@@ -1177,7 +1208,7 @@ class MemberRepository {
 
     await this._createAuditLog(AuditLogRepository.UPDATE, record, data, options)
 
-    return this.findById(record.id, options, { doPopulateRelations })
+    return this.findById(record.id, options)
   }
 
   static async destroy(id, options: IRepositoryOptions, force = false) {
@@ -1186,10 +1217,11 @@ class MemberRepository {
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
     await MemberRepository.excludeMembersFromSegments([id], { ...options, transaction })
-    const member = await this.findById(id, options, { doPopulateRelations: false })
+    const qx = SequelizeRepository.getQueryExecutor(options, transaction)
+    const memberSegments = await fetchAbsoluteMemberAggregates(qx, id)
 
     // if member doesn't belong to any other segment anymore, remove it
-    if (member.segments.length === 0) {
+    if (!memberSegments) {
       const record = await options.database.member.findOne({
         where: {
           id,
@@ -1272,33 +1304,32 @@ class MemberRepository {
     if (segmentId) {
       // we load data for a specific segment (can be leaf, parent or grand parent id)
 
-      const dataFromOpensearch = (
-        await this.findAndCountAllOpensearch(
+      const member = (
+        await this.findAndCountAll(
           {
-            filter: {
-              and: [
-                {
-                  id: {
-                    eq: memberId,
-                  },
-                },
-              ],
-            },
+            filter: { and: [{ id: { eq: memberId } }] },
             limit: 1,
             offset: 0,
-            segments: [segmentId],
+            fields: [
+              'activityCount',
+              'activityTypes',
+              'activeOn',
+              'averageSentiment',
+              'lastActive',
+            ],
+            segmentId,
           },
           options,
         )
       ).rows[0]
 
       return {
-        activeDaysCount: dataFromOpensearch?.activeDaysCount || 0,
-        activityCount: dataFromOpensearch?.activityCount || 0,
-        activityTypes: dataFromOpensearch?.activityTypes || [],
-        activeOn: dataFromOpensearch?.activeOn || [],
-        averageSentiment: dataFromOpensearch?.averageSentiment || 0,
-        lastActive: dataFromOpensearch?.lastActive || null,
+        activeDaysCount: member?.activeDaysCount || 0,
+        activityCount: member?.activityCount || 0,
+        activityTypes: member?.activityTypes || [],
+        activeOn: member?.activeOn || [],
+        averageSentiment: member?.averageSentiment || 0,
+        lastActive: member?.lastActive || null,
         memberId,
         segmentId,
       }
@@ -1501,82 +1532,32 @@ class MemberRepository {
     id,
     options: IRepositoryOptions,
     {
-      returnPlain = true,
-      doPopulateRelations = true,
-      ignoreTenant = false,
       segmentId,
-      newIdentities,
     }: {
-      returnPlain?: boolean
-      doPopulateRelations?: boolean | 'no-activity-aggregates'
-      ignoreTenant?: boolean
       segmentId?: string
-      newIdentities?: boolean
     } = {},
   ) {
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    const include = [
+    const { rows, count } = await MemberRepository.findAndCountAll(
       {
-        model: options.database.organization,
-        attributes: ['id', 'displayName'],
-        as: 'organizations',
-        order: [['createdAt', 'ASC']],
-        through: {
-          attributes: ['memberId', 'organizationId', 'dateStart', 'dateEnd', 'title', 'source'],
-          where: {
-            deletedAt: null,
-          },
+        filter: { id: { eq: id } },
+        limit: 1,
+        offset: 0,
+        segmentId,
+        include: {
+          memberOrganizations: true,
+          lfxMemberships: true,
+          identities: true,
+          segments: true,
         },
       },
-      {
-        model: options.database.segment,
-        as: 'segments',
-        through: {
-          attributes: [],
-        },
-      },
-    ]
+      options,
+    )
 
-    const where: any = {
-      id,
-    }
-
-    if (!ignoreTenant) {
-      const currentTenant = SequelizeRepository.getCurrentTenant(options)
-      where.tenantId = currentTenant.id
-    }
-
-    const record = await options.database.member.findOne({
-      where,
-      include,
-      transaction,
-    })
-
-    if (!record) {
+    if (count === 0) {
       throw new Error404()
     }
 
-    if (doPopulateRelations) {
-      return this._populateRelations(record, options, {
-        returnPlain,
-        segmentId,
-        newIdentities,
-        withActivityAggregates:
-          doPopulateRelations && doPopulateRelations !== 'no-activity-aggregates',
-      })
-    }
-    const data = record.get({ plain: returnPlain })
-
-    MemberRepository.sortOrganizations(data.organizations)
-
-    const identities = (await this.getIdentities([data.id], options)).get(data.id)
-
-    data.username = MemberRepository.getUsernameFromIdentities(identities)
-
-    data.affiliations = await MemberRepository.getAffiliations(id, options)
-
-    return data
+    return rows[0]
   }
 
   static getUsernameFromIdentities(identities: IMemberIdentity[]): IMemberUsername {
@@ -1633,117 +1614,6 @@ class MemberRepository {
       },
       transaction,
     })
-  }
-
-  static async findByIdOpensearch(id, options: IRepositoryOptions, segmentId?: string) {
-    const segments = segmentId ? [segmentId] : SequelizeRepository.getSegmentIds(options)
-
-    const memberAttributeSettings = (
-      await MemberAttributeSettingsRepository.findAndCountAll({}, options)
-    ).rows
-
-    const memberSearchQuery = {
-      filter: {
-        and: [
-          {
-            id: {
-              eq: id,
-            },
-          },
-        ],
-      },
-      limit: 1,
-      offset: 0,
-      attributesSettings: memberAttributeSettings,
-    }
-
-    let response = await this.findAndCountAllOpensearch(
-      {
-        ...memberSearchQuery,
-        segments,
-      },
-      options,
-    )
-
-    // if not found, try to find it in all segments and return the first one
-    if (response.count === 0) {
-      response = await this.findAndCountAllOpensearch(memberSearchQuery, options)
-
-      // still not found, throw 404
-      if (response.count === 0) {
-        throw new Error404()
-      }
-    }
-
-    const result = response.rows[0]
-
-    // Get special attributes from memberAttributeSettings
-    const specialAttributes = memberAttributeSettings
-      .filter((setting) => setting.type === 'special')
-      .map((setting) => setting.name)
-
-    // Parse special attributes that are indexed as strings
-    if (result.attributes) {
-      specialAttributes.forEach((attr) => {
-        if (result.attributes[attr]) {
-          result.attributes[attr] = JSON.parse(result.attributes[attr])
-        }
-      })
-    }
-
-    // Sort the organizations based on dateStart
-    if (result.organizations) {
-      result.organizations.sort((a, b) => {
-        const dateStartA = a.memberOrganizations.dateStart
-        const dateStartB = b.memberOrganizations.dateStart
-
-        if (!dateStartA && !dateStartB) {
-          return 0
-        }
-
-        if (!dateStartA) {
-          return 1
-        }
-
-        if (!dateStartB) {
-          return -1
-        }
-
-        return new Date(dateStartB).getTime() - new Date(dateStartA).getTime()
-      })
-    }
-
-    const qx = SequelizeRepository.getQueryExecutor(options)
-    const organizationIds = uniq(result.organizations.map((o) => o.id))
-    const lfxMemberships = await findManyLfxMemberships(qx, {
-      tenantId: options.currentTenant.id,
-      organizationIds,
-    })
-    result.organizations.forEach((o) => {
-      o.lfxMembership = lfxMemberships.find((m) => m.organizationId === o.id)
-    })
-
-    const seq = SequelizeRepository.getSequelize(options)
-    result.segments = await seq.query(
-      `
-      SELECT
-          s.id,
-          s.name,
-          COUNT(a.id) as "activityCount"
-      FROM mv_activities_cube a
-      JOIN segments s ON s.id = a."segmentId"
-      WHERE a."memberId" = :id
-      GROUP BY s.id
-      `,
-      {
-        replacements: {
-          id,
-        },
-        type: QueryTypes.SELECT,
-      },
-    )
-
-    return result
   }
 
   static async findAndCountActiveOpensearch(
@@ -2061,68 +1931,20 @@ class MemberRepository {
     }, {})
   }
 
-  static async countMembers(
-    options: IRepositoryOptions,
-    segmentIds: string[],
-    filterString: string = '1=1',
-    params: any = {},
-  ) {
+  static async countMembers(options: IRepositoryOptions, segmentIds: string[]) {
     const countQuery = `
-        WITH
-            member_tags AS (
-                SELECT
-                    mt."memberId",
-                    JSONB_AGG(t.id) AS all_ids
-                FROM "memberTags" mt
-                INNER JOIN members m ON mt."memberId" = m.id
-                JOIN "memberSegments" ms ON ms."memberId" = m.id
-                INNER JOIN tags t ON mt."tagId" = t.id
-                WHERE m."tenantId" = :tenantId
-                  AND m."deletedAt" IS NULL
-                  AND ms."segmentId" IN (:segmentIds)
-                  AND t."tenantId" = :tenantId
-                  AND t."deletedAt" IS NULL
-                GROUP BY mt."memberId"
-            ),
-            member_organizations AS (
-                SELECT
-                    mo."memberId",
-                    JSONB_AGG(o.id) AS all_ids
-                FROM "memberOrganizations" mo
-                INNER JOIN members m ON mo."memberId" = m.id
-                INNER JOIN organizations o ON mo."organizationId" = o.id
-                JOIN "memberSegments" ms ON ms."memberId" = m.id
-                JOIN "organizationSegments" os ON o.id = os."organizationId"
-                WHERE m."tenantId" = :tenantId
-                  AND m."deletedAt" IS NULL
-                  AND ms."segmentId" IN (:segmentIds)
-                  AND o."tenantId" = :tenantId
-                  AND o."deletedAt" IS NULL
-                  AND os."segmentId" IN (:segmentIds)
-                  AND mo."deletedAt" IS NULL
-                GROUP BY mo."memberId"
-            )
         SELECT
-            COUNT(m.id) AS "totalCount",
-            ms."segmentId"
-        FROM members m
-        JOIN "memberSegments" ms ON ms."memberId" = m.id
-        INNER JOIN "memberActivityAggregatesMVs" aggs ON aggs.id = m.id AND aggs."segmentId" = ms."segmentId"
-        LEFT JOIN member_tags mt ON m.id = mt."memberId"
-        LEFT JOIN member_organizations mo ON m.id = mo."memberId"
-        WHERE m."deletedAt" IS NULL
-          AND m."tenantId" = :tenantId
-          AND ms."segmentId" IN (:segmentIds)
-          AND ${filterString}
-        GROUP BY ms."segmentId";
+            COUNT(DISTINCT msa."memberId") AS "totalCount",
+            msa."segmentId"
+        FROM "memberSegmentsAgg" msa
+        WHERE msa."segmentId" IN (:segmentIds)
+        GROUP BY msa."segmentId";
     `
 
     const seq = SequelizeRepository.getSequelize(options)
     return seq.query(countQuery, {
       replacements: {
-        tenantId: options.currentTenant.id,
         segmentIds,
-        ...params,
       },
       type: QueryTypes.SELECT,
     })
@@ -2313,481 +2135,353 @@ class MemberRepository {
     return { rows: translatedRows, count: countResponse.body.count, limit, offset }
   }
 
+  public static QUERY_FILTER_COLUMN_MAP: Map<string, { name: string; queryable?: boolean }> =
+    new Map([
+      // id fields
+      ['id', { name: 'm.id' }],
+      ['segmentId', { name: 'msa."segmentId"' }],
+
+      // member fields
+      ['displayName', { name: 'm."displayName"' }],
+      ['reach', { name: 'm.reach' }],
+      // ['tags', {name: 'm."tags"'}], // ignore, not used
+      ['joinedAt', { name: 'm."joinedAt"' }],
+      ['jobTitle', { name: `m.attributes -> 'jobTitle' ->> 'default'` }],
+      [
+        'numberOfOpenSourceContributions',
+        { name: 'coalesce(jsonb_array_length(m.contributions), 0)' },
+      ],
+      ['isBot', { name: `COALESCE((m.attributes -> 'isBot' ->> 'default')::BOOLEAN, FALSE)` }],
+      [
+        'isTeamMember',
+        { name: `COALESCE((m.attributes -> 'isTeamMember' ->> 'default')::BOOLEAN, FALSE)` },
+      ],
+      [
+        'isOrganization',
+        { name: `COALESCE((m.attributes -> 'isOrganization' ->> 'default')::BOOLEAN, FALSE)` },
+      ],
+
+      // member agg fields
+      ['lastActive', { name: 'msa."lastActive"' }],
+      ['identityPlatforms', { name: 'msa."activeOn"' }],
+      ['lastEnriched', { name: 'm."lastEnriched"' }],
+      ['score', { name: 'm.score' }],
+      ['averageSentiment', { name: 'msa."averageSentiment"' }],
+      ['activityTypes', { name: 'msa."activityTypes"' }],
+      ['activeOn', { name: 'msa."activeOn"' }],
+      ['activityCount', { name: 'msa."activityCount"' }],
+
+      // others
+      ['organizations', { name: 'mo."organizationId"', queryable: false }],
+
+      // fields for querying
+      ['attributes', { name: 'm.attributes' }],
+    ])
+
   static async findAndCountAll(
     {
       filter = {} as any,
-      advancedFilter = null as any,
-      limit = 0,
+      limit = 20,
       offset = 0,
-      orderBy = '',
+      orderBy = 'joinedAt_DESC',
+      segmentId = undefined,
+      countOnly = false,
+      fields = [...MemberRepository.QUERY_FILTER_COLUMN_MAP.keys()],
+      include = {
+        identities: true,
+        segments: false,
+        lfxMemberships: false,
+        memberOrganizations: false,
+      } as {
+        identities?: boolean
+        segments?: boolean
+        lfxMemberships?: boolean
+        memberOrganizations?: boolean
+      },
       attributesSettings = [] as AttributeData[],
-      exportMode = false,
     },
-
     options: IRepositoryOptions,
   ) {
-    let customOrderBy: Array<any> = []
-    const include = [
-      {
-        model: options.database.memberActivityAggregatesMV,
-        attributes: [],
-        required: true,
-        as: 'memberActivityAggregatesMVs',
-      },
-      {
-        model: options.database.member,
-        as: 'toMerge',
-        attributes: [],
-        through: {
-          attributes: [],
-        },
-      },
-      {
-        model: options.database.member,
-        as: 'noMerge',
-        attributes: [],
-        through: {
-          attributes: [],
-        },
-      },
-    ]
+    const transaction = SequelizeRepository.getTransaction(options)
 
-    customOrderBy = customOrderBy.concat(
-      SequelizeFilterUtils.customOrderByIfExists('activityCount', orderBy),
-    )
-
-    customOrderBy = customOrderBy.concat(
-      SequelizeFilterUtils.customOrderByIfExists('activeDaysCount', orderBy),
-    )
-
-    customOrderBy = customOrderBy.concat(
-      SequelizeFilterUtils.customOrderByIfExists('lastActive', orderBy),
-    )
-
-    customOrderBy = customOrderBy.concat(
-      SequelizeFilterUtils.customOrderByIfExists('averageSentiment', orderBy),
-    )
-
-    customOrderBy = customOrderBy.concat(
-      SequelizeFilterUtils.customOrderByIfExists('numberOfOpenSourceContributions', orderBy),
-    )
-
-    if (orderBy.includes('reach')) {
-      customOrderBy = customOrderBy.concat([
-        Sequelize.literal(`("member".reach->'total')::int`),
-        orderBy.split('_')[1],
-      ])
+    if (!attributesSettings) {
+      attributesSettings = (await MemberAttributeSettingsRepository.findAndCountAll({}, options))
+        .rows
     }
 
-    if (!advancedFilter) {
-      advancedFilter = { and: [] }
+    const qx = SequelizeRepository.getQueryExecutor(options, transaction)
 
-      if (filter) {
-        if (filter.id) {
-          advancedFilter.and.push({ id: filter.id })
-        }
+    const withAggregates = !!segmentId
+    let segment
+    if (withAggregates) {
+      segment = await new SegmentRepository(options).findById(segmentId)
 
-        if (filter.platform) {
-          advancedFilter.and.push({
-            platform: {
-              jsonContains: filter.platform,
-            },
-          })
-        }
-
-        if (filter.tags) {
-          advancedFilter.and.push({
-            tags: filter.tags,
-          })
-        }
-
-        if (filter.organizations) {
-          advancedFilter.and.push({
-            organizations: filter.organizations,
-          })
-        }
-
-        // TODO: member identitites FIX
-        if (filter.username) {
-          advancedFilter.and.push({ username: { jsonContains: filter.username } })
-        }
-
-        if (filter.displayName) {
-          advancedFilter.and.push({
-            displayName: {
-              textContains: filter.displayName,
-            },
-          })
-        }
-
-        if (filter.emails) {
-          advancedFilter.and.push({
-            emails: {
-              contains: filter.emails,
-            },
-          })
-        }
-
-        if (filter.scoreRange) {
-          const [start, end] = filter.scoreRange
-          if (start !== undefined && start !== null && start !== '') {
-            advancedFilter.and.push({
-              score: {
-                gte: start,
-              },
-            })
-          }
-
-          if (end !== undefined && end !== null && end !== '') {
-            advancedFilter.and.push({
-              score: {
-                lte: end,
-              },
-            })
-          }
-        }
-
-        if (filter.createdAtRange) {
-          const [start, end] = filter.createdAtRange
-          if (start !== undefined && start !== null && start !== '') {
-            advancedFilter.and.push({
-              createdAt: {
-                gte: start,
-              },
-            })
-          }
-
-          if (end !== undefined && end !== null && end !== '') {
-            advancedFilter.and.push({
-              createdAt: {
-                lte: end,
-              },
-            })
-          }
-        }
-
-        if (filter.reachRange) {
-          const [start, end] = filter.reachRange
-          if (start !== undefined && start !== null && start !== '') {
-            advancedFilter.and.push({
-              reach: {
-                gte: start,
-              },
-            })
-          }
-
-          if (end !== undefined && end !== null && end !== '') {
-            advancedFilter.and.push({
-              reach: {
-                lte: end,
-              },
-            })
-          }
-        }
-
-        if (filter.activityCountRange) {
-          const [start, end] = filter.activityCountRange
-          if (start !== undefined && start !== null && start !== '') {
-            advancedFilter.and.push({
-              activityCount: {
-                gte: start,
-              },
-            })
-          }
-
-          if (end !== undefined && end !== null && end !== '') {
-            advancedFilter.and.push({
-              activityCount: {
-                lte: end,
-              },
-            })
-          }
-        }
-
-        if (filter.activityTypes) {
-          advancedFilter.and.push({
-            activityTypes: {
-              overlap: filter.activityTypes.split(','),
-            },
-          })
-        }
-        if (filter.activeDaysCountRange) {
-          const [start, end] = filter.activeDaysCountRange
-          if (start !== undefined && start !== null && start !== '') {
-            advancedFilter.and.push({
-              activeDaysCount: {
-                gte: start,
-              },
-            })
-          }
-
-          if (end !== undefined && end !== null && end !== '') {
-            advancedFilter.and.push({
-              activeDaysCount: {
-                lte: end,
-              },
-            })
-          }
-        }
-
-        if (filter.joinedAtRange) {
-          const [start, end] = filter.joinedAtRange
-          if (start !== undefined && start !== null && start !== '') {
-            advancedFilter.and.push({
-              joinedAt: {
-                gte: start,
-              },
-            })
-          }
-
-          if (end !== undefined && end !== null && end !== '') {
-            advancedFilter.and.push({
-              joinedAt: {
-                lte: end,
-              },
-            })
-          }
-        }
-
-        if (filter.lastActiveRange) {
-          const [start, end] = filter.lastActiveRange
-          if (start !== undefined && start !== null && start !== '') {
-            advancedFilter.and.push({
-              lastActive: {
-                gte: start,
-              },
-            })
-          }
-
-          if (end !== undefined && end !== null && end !== '') {
-            advancedFilter.and.push({
-              lastActive: {
-                lte: end,
-              },
-            })
-          }
-        }
-
-        if (filter.averageSentimentRange) {
-          const [start, end] = filter.averageSentimentRange
-          if (start !== undefined && start !== null && start !== '') {
-            advancedFilter.and.push({
-              averageSentiment: {
-                gte: start,
-              },
-            })
-          }
-
-          if (end !== undefined && end !== null && end !== '') {
-            advancedFilter.and.push({
-              averageSentiment: {
-                lte: end,
-              },
-            })
-          }
-        }
-
-        if (filter.numberOfOpenSourceContributionsRange) {
-          const [start, end] = filter.numberOfOpenSourceContributionsRange
-          if (start !== undefined && start !== null && start !== '') {
-            advancedFilter.and.push({
-              numberOfOpenSourceContributions: {
-                gte: start,
-              },
-            })
-          }
-
-          if (end !== undefined && end !== null && end !== '') {
-            advancedFilter.and.push({
-              numberOfOpenSourceContributions: {
-                lte: end,
-              },
-            })
-          }
+      if (segment === null) {
+        options.log.info('No segment found for member query. Returning empty result.')
+        return {
+          rows: [],
+          count: 0,
+          limit,
+          offset,
         }
       }
     }
 
-    const {
-      dynamicAttributesDefaultNestedFields,
-      dynamicAttributesPlatformNestedFields,
-      dynamicAttributesProjection,
-    } = await MemberRepository.getDynamicAttributesLiterals(attributesSettings, options)
-
-    const activityCount = Sequelize.literal(`"memberActivityAggregatesMVs"."activityCount"`)
-    const activityTypes = Sequelize.literal(`"memberActivityAggregatesMVs"."activityTypes"`)
-    const activeDaysCount = Sequelize.literal(`"memberActivityAggregatesMVs"."activeDaysCount"`)
-    const lastActive = Sequelize.literal(`"memberActivityAggregatesMVs"."lastActive"`)
-    const activeOn = Sequelize.literal(`"memberActivityAggregatesMVs"."activeOn"`)
-
-    const averageSentiment = Sequelize.literal(`"memberActivityAggregatesMVs"."averageSentiment"`)
-    const identities = Sequelize.literal(`"memberActivityAggregatesMVs"."identities"`)
-    const username = Sequelize.literal(`"memberActivityAggregatesMVs"."username"`)
-
-    const toMergeArray = Sequelize.literal(`STRING_AGG( distinct "toMerge"."id"::text, ',')`)
-    const noMergeArray = Sequelize.literal(`STRING_AGG( distinct "noMerge"."id"::text, ',')`)
-
-    const numberOfOpenSourceContributions = Sequelize.literal(
-      `COALESCE(jsonb_array_length("member"."contributions"), 0)`,
-    )
-
-    const parser = new QueryParser(
-      {
-        nestedFields: {
-          ...dynamicAttributesDefaultNestedFields,
-          reach: 'reach.total',
-          username: 'username.asString',
-        },
-        aggregators: {
-          activityCount,
-          activityTypes,
-          activeDaysCount,
-          lastActive,
-          averageSentiment,
-          activeOn,
-          identities,
-          username,
-          numberOfOpenSourceContributions,
-          ...dynamicAttributesPlatformNestedFields,
-          'reach.total': Sequelize.literal(`("member".reach->'total')::int`),
-          'username.asString': Sequelize.literal(
-            `CAST("memberActivityAggregatesMVs"."username" AS TEXT)`,
-          ),
-          ...SequelizeFilterUtils.getNativeTableFieldAggregations(
-            [
-              'id',
-              'attributes',
-              'displayName',
-              'score',
-              'lastEnriched',
-              'enrichedBy',
-              'contributions',
-              'joinedAt',
-              'importHash',
-              'reach',
-              'createdAt',
-              'updatedAt',
-              'createdById',
-              'updatedById',
-            ],
-            'member',
-          ),
-        },
-        manyToMany: {
-          tags: {
-            table: 'members',
-            model: 'member',
-            relationTable: {
-              name: 'memberTags',
-              from: 'memberId',
-              to: 'tagId',
-            },
-          },
-          organizations: {
-            table: 'members',
-            model: 'member',
-            relationTable: {
-              name: 'memberOrganizations',
-              from: 'memberId',
-              to: 'organizationId',
-            },
-          },
-          segments: {
-            table: 'members',
-            model: 'member',
-            relationTable: {
-              name: 'memberSegments',
-              from: 'memberId',
-              to: 'segmentId',
-            },
-          },
-        },
-        exportMode,
-      },
-      options,
-    )
-
-    const parsed: QueryOutput = parser.parse({
-      filter: advancedFilter,
-      orderBy: orderBy || ['joinedAt_DESC'],
+    const params = {
       limit,
       offset,
-    })
-
-    let order = parsed.order
-
-    if (customOrderBy.length > 0) {
-      order = [customOrderBy]
+      tenantId: options.currentTenant.id,
+      segmentId: segment?.id,
     }
 
-    let {
-      rows,
-      count, // eslint-disable-line prefer-const
-    } = await options.database.member.findAndCountAll({
-      where: parsed.where ? parsed.where : {},
-      having: parsed.having ? parsed.having : {},
-      include,
-      attributes: [
-        ...SequelizeFilterUtils.getLiteralProjections(
-          [
-            'id',
-            'attributes',
-            'displayName',
-            'tenantId',
-            'score',
-            'lastEnriched',
-            'enrichedBy',
-            'contributions',
-            'joinedAt',
-            'importHash',
-            'createdAt',
-            'updatedAt',
-            'createdById',
-            'updatedById',
-            'reach',
+    const filterString = RawQueryParser.parseFilters(
+      filter,
+      new Map(
+        [...MemberRepository.QUERY_FILTER_COLUMN_MAP.entries()].map(([key, { name }]) => [
+          key,
+          name,
+        ]),
+      ),
+      [
+        {
+          property: 'attributes',
+          column: 'm.attributes',
+          attributeInfos: [
+            ...attributesSettings,
+            {
+              name: 'jobTitle',
+              type: MemberAttributeType.STRING,
+            },
           ],
-          'member',
+        },
+        {
+          property: 'username',
+          column: 'aggs.username',
+          attributeInfos: ALL_PLATFORM_TYPES.map((p) => ({
+            name: p,
+            type: MemberAttributeType.STRING,
+          })),
+        },
+      ],
+      params,
+      { pgPromiseFormat: true },
+    )
+
+    const order = (function prepareOrderBy(
+      orderBy = withAggregates ? 'activityCount_DESC' : 'id_DESC',
+    ) {
+      const orderSplit = orderBy.split('_')
+
+      const orderField = MemberRepository.QUERY_FILTER_COLUMN_MAP.get(orderSplit[0])?.name
+      if (!orderField) {
+        return withAggregates ? 'msa."activityCount" DESC' : 'm.id DESC'
+      }
+      const orderDirection = ['DESC', 'ASC'].includes(orderSplit[1]) ? orderSplit[1] : 'DESC'
+
+      return `${orderField} ${orderDirection}`
+    })(orderBy)
+
+    const createQuery = (fields) => `
+      WITH member_orgs AS (
+        SELECT
+          "memberId",
+          ARRAY_AGG("organizationId")::TEXT[] AS "organizationId"
+        FROM "memberOrganizations"
+        WHERE "deletedAt" IS NULL
+        GROUP BY 1
+      )
+      SELECT
+        ${fields}
+      FROM members m
+      ${
+        withAggregates
+          ? ` JOIN "memberSegmentsAgg" msa ON msa."memberId" = m.id AND msa."segmentId" = $(segmentId)`
+          : ''
+      }
+      LEFT JOIN member_orgs mo ON mo."memberId" = m.id
+      WHERE m."tenantId" = $(tenantId)
+        AND (${filterString})
+    `
+
+    if (countOnly) {
+      return {
+        rows: [],
+        count: parseInt((await qx.selectOne(createQuery('COUNT(*)'), params)).count, 10),
+        limit,
+        offset,
+      }
+    }
+
+    const results = await Promise.all([
+      qx.select(
+        `
+          ${createQuery(
+            (function prepareFields(fields) {
+              return `${fields
+                .map((f) => {
+                  const mappedField = MemberRepository.QUERY_FILTER_COLUMN_MAP.get(f)
+                  if (!mappedField) {
+                    throw new Error400(options.language, `Invalid field: ${f}`)
+                  }
+
+                  return {
+                    alias: f,
+                    ...mappedField,
+                  }
+                })
+                .filter((mappedField) => mappedField.queryable !== false)
+                .filter((mappedField) => {
+                  if (!withAggregates && mappedField.name.includes('msa.')) {
+                    return false
+                  }
+                  if (!include.memberOrganizations && mappedField.name.includes('mo.')) {
+                    return false
+                  }
+                  return true
+                })
+                .map((mappedField) => `${mappedField.name} AS "${mappedField.alias}"`)
+                .join(',\n')}`
+            })(fields),
+          )}
+          ORDER BY ${order} NULLS LAST
+          LIMIT $(limit)
+          OFFSET $(offset)
+        `,
+        params,
+      ),
+      qx.selectOne(createQuery('COUNT(*)'), params),
+    ])
+
+    const rows = results[0]
+    const count = parseInt(results[1].count, 10)
+
+    const memberIds = rows.map((org) => org.id)
+    if (memberIds.length === 0) {
+      return { rows: [], count, limit, offset }
+    }
+
+    if (include.memberOrganizations) {
+      const memberOrganizations = await fetchManyMemberOrgs(qx, memberIds)
+      const orgIds = uniq(
+        memberOrganizations.reduce((acc, mo) => {
+          acc.push(...mo.organizations.map((o) => o.organizationId))
+          return acc
+        }, []),
+      )
+      const orgExtra = orgIds.length
+        ? await queryOrgs(qx, {
+            filter: {
+              [OrganizationField.ID]: {
+                in: orgIds,
+              },
+            },
+            fields: [OrganizationField.ID, OrganizationField.DISPLAY_NAME, OrganizationField.LOGO],
+          })
+        : []
+
+      rows.forEach((member) => {
+        member.organizations = (
+          memberOrganizations.find((o) => o.memberId === member.id)?.organizations || []
+        ).map((o) => ({
+          id: o.organizationId,
+          ...orgExtra.find((odn) => odn.id === o.organizationId),
+          memberOrganizations: o,
+        }))
+      })
+    }
+    if (include.lfxMemberships) {
+      const lfxMemberships = await findManyLfxMemberships(qx, {
+        organizationIds: uniq(
+          rows.reduce((acc, r) => {
+            if (r.organizations) {
+              acc.push(...r.organizations.map((o) => o.id))
+            }
+            return acc
+          }, []),
         ),
-        [activeOn, 'activeOn'],
-        [identities, 'identities'],
-        [username, 'username'],
-        [activityCount, 'activityCount'],
-        [activityTypes, 'activityTypes'],
-        [activeDaysCount, 'activeDaysCount'],
-        [lastActive, 'lastActive'],
-        [averageSentiment, 'averageSentiment'],
-        [toMergeArray, 'toMergeIds'],
-        [noMergeArray, 'noMergeIds'],
-        [numberOfOpenSourceContributions, 'numberOfOpenSourceContributions'],
-        ...dynamicAttributesProjection,
-      ],
-      limit: parsed.limit || 50,
-      offset: offset ? Number(offset) : 0,
-      order,
-      subQuery: false,
-      group: [
-        'member.id',
-        'memberActivityAggregatesMVs.activeOn',
-        'memberActivityAggregatesMVs.activityCount',
-        'memberActivityAggregatesMVs.activityTypes',
-        'memberActivityAggregatesMVs.activeDaysCount',
-        'memberActivityAggregatesMVs.lastActive',
-        'memberActivityAggregatesMVs.averageSentiment',
-        'memberActivityAggregatesMVs.username',
-        'memberActivityAggregatesMVs.identities',
-        'toMerge.id',
-      ],
-      distinct: true,
+        tenantId: options.currentTenant.id,
+      })
+
+      rows.forEach((member) => {
+        if (member.organizations) {
+          member.organizations.forEach((o) => {
+            o.lfxMembership = lfxMemberships.find((m) => m.organizationId === o.id)
+          })
+        }
+      })
+    }
+    if (include.identities) {
+      const identities = await fetchManyMemberIdentities(qx, memberIds)
+
+      rows.forEach((member) => {
+        member.identities = identities.find((i) => i.memberId === member.id)?.identities || []
+      })
+    }
+    if (include.segments) {
+      const memberSegments = await fetchManyMemberSegments(qx, memberIds)
+      const segmentIds = uniq(
+        memberSegments.reduce((acc, ms) => {
+          acc.push(...ms.segments.map((s) => s.segmentId))
+          return acc
+        }, []),
+      )
+      const segmentsInfo = await fetchManySegments(qx, segmentIds)
+
+      rows.forEach((member) => {
+        member.segments = (
+          memberSegments.find((i) => i.memberId === member.id)?.segments || []
+        ).map((segment) => ({
+          id: segment.segmentId,
+          name: segmentsInfo.find((s) => s.id === segment.segmentId)?.name,
+          activityCount: segment.activityCount,
+        }))
+      })
+    }
+
+    rows.forEach((row) => {
+      row.tags = []
     })
 
-    rows = await this._populateRelationsForRows(rows, attributesSettings, exportMode)
+    if (memberIds.length > 0) {
+      const seq = SequelizeRepository.getSequelize(options)
+      const lastActivities = await seq.query(
+        `
+              SELECT
+                  a.*
+              FROM (
+                  VALUES
+                    ${memberIds.map((id) => `('${id}')`).join(',')}
+              ) m ("memberId")
+              JOIN activities a ON (a.id = (
+                  SELECT id
+                  FROM mv_activities_cube
+                  WHERE "memberId" = m."memberId"::uuid
+                  ORDER BY timestamp DESC
+                  LIMIT 1
+              ))
+              WHERE a."tenantId" = :tenantId
+          `,
+        {
+          replacements: {
+            tenantId: options.currentTenant.id,
+          },
+          type: QueryTypes.SELECT,
+        },
+      )
 
-    return {
-      rows,
-      count: count.length,
-      limit: limit ? Number(limit) : 50,
-      offset: offset ? Number(offset) : 0,
+      rows.forEach((r) => {
+        r.lastActivity = lastActivities.find((a) => (a as any).memberId === r.id)
+        if (r.lastActivity) {
+          r.lastActivity.display = ActivityDisplayService.getDisplayOptions(
+            r.lastActivity,
+            SegmentRepository.getActivityTypes(options),
+            [ActivityDisplayVariant.SHORT, ActivityDisplayVariant.CHANNEL],
+          )
+        }
+      })
     }
+
+    return { rows, count, limit, offset }
   }
 
   /**
@@ -3774,154 +3468,6 @@ class MemberRepository {
       type: QueryTypes.UPDATE,
       transaction,
     })
-  }
-
-  static async addTagsToMember(
-    memberId: string,
-    tagIds: string[],
-    options: IRepositoryOptions,
-  ): Promise<void> {
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    const seq = SequelizeRepository.getSequelize(options)
-
-    const query = `
-      insert into "memberTags" ("memberId", "tagId", "createdAt", "updatedAt") values (:memberId, :tagId, now(), now());
-    `
-    for (const tagId of tagIds) {
-      await seq.query(query, {
-        replacements: {
-          memberId,
-          tagId,
-        },
-        type: QueryTypes.INSERT,
-        transaction,
-      })
-    }
-  }
-
-  static async removeTagsFromMember(
-    memberId: string,
-    tagIds: string[],
-    options: IRepositoryOptions,
-  ): Promise<void> {
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    const seq = SequelizeRepository.getSequelize(options)
-
-    const query = `
-      delete from "memberTags" where "memberId" = :memberId and "tagId" = :tagId;
-    `
-    for (const tagId of tagIds) {
-      await seq.query(query, {
-        replacements: {
-          memberId,
-          tagId,
-        },
-        type: QueryTypes.DELETE,
-        transaction,
-      })
-    }
-  }
-
-  static async addNotesToMember(
-    memberId: string,
-    noteIds: string[],
-    options: IRepositoryOptions,
-  ): Promise<void> {
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    const seq = SequelizeRepository.getSequelize(options)
-
-    const query = `
-      insert into "memberNotes" ("memberId", "noteId", "createdAt", "updatedAt") values (:memberId, :noteId, now(), now());
-    `
-
-    for (const noteId of noteIds) {
-      await seq.query(query, {
-        replacements: {
-          memberId,
-          noteId,
-        },
-        type: QueryTypes.INSERT,
-        transaction,
-      })
-    }
-  }
-
-  static async removeNotesFromMember(
-    memberId: string,
-    noteIds: string[],
-    options: IRepositoryOptions,
-  ): Promise<void> {
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    const seq = SequelizeRepository.getSequelize(options)
-
-    const query = `
-      delete from "memberNotes" where "memberId" = :memberId and "noteId" = :noteId;
-    `
-
-    for (const noteId of noteIds) {
-      await seq.query(query, {
-        replacements: {
-          memberId,
-          noteId,
-        },
-        type: QueryTypes.DELETE,
-        transaction,
-      })
-    }
-  }
-
-  static async addTasksToMember(
-    memberId: string,
-    taskIds: string[],
-    options: IRepositoryOptions,
-  ): Promise<void> {
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    const seq = SequelizeRepository.getSequelize(options)
-
-    const query = `
-      insert into "memberTasks" ("memberId", "taskId", "createdAt", "updatedAt") values (:memberId, :taskId, now(), now());
-    `
-
-    for (const taskId of taskIds) {
-      await seq.query(query, {
-        replacements: {
-          memberId,
-          taskId,
-        },
-        type: QueryTypes.INSERT,
-        transaction,
-      })
-    }
-  }
-
-  static async removeTasksFromMember(
-    memberId: string,
-    taskIds: string[],
-    options: IRepositoryOptions,
-  ): Promise<void> {
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    const seq = SequelizeRepository.getSequelize(options)
-
-    const query = `
-      delete from "memberTasks" where "memberId" = :memberId and "taskId" = :taskId;
-    `
-
-    for (const taskId of taskIds) {
-      await seq.query(query, {
-        replacements: {
-          memberId,
-          taskId,
-        },
-        type: QueryTypes.DELETE,
-        transaction,
-      })
-    }
   }
 
   static async removeIdentitiesFromMember(

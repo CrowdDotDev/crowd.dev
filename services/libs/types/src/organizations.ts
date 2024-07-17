@@ -58,6 +58,7 @@ export interface IMemberOrganization {
   createdAt?: string
   source?: string
   deletedAt?: string
+  displayName?: string
 }
 
 export interface IMemberRoleWithOrganization extends IMemberOrganization {
@@ -82,12 +83,6 @@ export interface IExecutiveChange {
 export interface IOrganizationSocial {
   handle: string
   url?: string
-}
-
-export interface IOrganizationOpensearch {
-  id: string
-  logo: string
-  displayName: string
 }
 
 export interface IOrganizationSyncRemoteData {
@@ -184,7 +179,7 @@ export interface ILLMConsumableOrganization {
   }[]
 }
 
-export interface IOrganizationForMergeSuggestionsOpensearch {
+export interface IOrganizationOpensearch {
   uuid_organizationId: string
   uuid_tenantId?: string
   keyword_displayName: string

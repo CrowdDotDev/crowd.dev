@@ -9,7 +9,16 @@ import {
   OrganizationSource,
 } from '@crowd/types'
 
-export async function fetchMembersForEnrichment(db: DbStore): Promise<IMember[]> {
+export async function fetchMembersForEnrichment(
+  db: DbStore,
+  alsoUseEmailIdentitiesForEnrichment: boolean,
+): Promise<IMember[]> {
+  let identityFilter = ` AND mi.platform = 'github' `
+
+  if (alsoUseEmailIdentitiesForEnrichment) {
+    identityFilter = ` AND ( mi.platform = 'github' or mi.type = '${MemberIdentityType.EMAIL}' )`
+  }
+
   return db.connection().query(
     `SELECT
          members."id",
@@ -33,9 +42,7 @@ export async function fetchMembersForEnrichment(db: DbStore): Promise<IMember[]>
          members."lastEnriched" < NOW() - INTERVAL '90 days'
              OR members."lastEnriched" IS NULL
          )
-       AND (
-         mi.platform = 'github' or mi.type = '${MemberIdentityType.EMAIL}'
-         )
+       ${identityFilter}
        AND tenants."deletedAt" IS NULL
        AND members."deletedAt" IS NULL
      GROUP BY members.id

@@ -5,6 +5,7 @@ import { EnrichmentAPIMember } from '@crowd/types/src/premium'
 
 import * as activities from '../activities'
 import { EnrichingMember } from '../types/enrichment'
+import { ALSO_USE_EMAIL_IDENTITIES_FOR_ENRICHMENT } from '../utils/config'
 
 // Configure timeouts and retry policies to enrich members via third-party
 // services.
@@ -51,13 +52,15 @@ export async function enrichMember(input: IMember): Promise<EnrichingMember> {
     }
   }
 
-  // Otherwise try with email address.
-  const emails = input.identities.filter((i) => i.verified && i.type === MemberIdentityType.EMAIL)
-  if (!enriched && emails.length) {
-    try {
-      enriched = await enrichMemberUsingEmailAddress(emails[0].value)
-    } catch (err) {
-      throw new Error(err)
+  if (ALSO_USE_EMAIL_IDENTITIES_FOR_ENRICHMENT) {
+    // Otherwise try with email address.
+    const emails = input.identities.filter((i) => i.verified && i.type === MemberIdentityType.EMAIL)
+    if (!enriched && emails.length) {
+      try {
+        enriched = await enrichMemberUsingEmailAddress(emails[0].value)
+      } catch (err) {
+        throw new Error(err)
+      }
     }
   }
 
@@ -98,7 +101,7 @@ export async function enrichMember(input: IMember): Promise<EnrichingMember> {
   }
 
   try {
-    await syncMembersToOpensearch([input.id])
+    await syncMembersToOpensearch(input.id)
   } catch (err) {
     throw new Error(err)
   }

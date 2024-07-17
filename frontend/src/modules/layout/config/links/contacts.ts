@@ -4,7 +4,7 @@ import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 
 const contacts: MenuLink = {
   id: 'contacts',
-  label: 'Contributors',
+  label: 'People',
   icon: 'ri-group-2-line',
   routeName: 'member',
   display: () => {
