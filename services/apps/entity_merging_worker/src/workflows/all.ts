@@ -85,6 +85,7 @@ export async function finishOrganizationMerging(
     movedSomething = await moveActivitiesBetweenOrgs(primaryId, secondaryId, tenantId)
   } while (movedSomething)
 
+  await syncOrganization(primaryId, secondaryId)
   await deleteOrganization(secondaryId)
   await setMergeActionState(primaryId, secondaryId, tenantId, 'merged' as MergeActionState)
   await notifyFrontendOrganizationMergeSuccessful(
