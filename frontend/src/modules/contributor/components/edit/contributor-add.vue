@@ -20,73 +20,75 @@
     <!-- Form -->
     <section class="relative">
       <div v-if="!form.subproject" class="absolute left-0 top-0 w-full h-full bg-white opacity-50 z-20" />
-      <div class="px-6 py-5 max-h-120 overflow-auto contributor-form relative">
-        <!-- Contributor name -->
-        <article class="mb-5">
-          <lf-field label-text="Name" :required="true">
-            <lf-input
-              v-model="form.name"
-              class="h-10"
-              :invalid="$v.name.$invalid && $v.name.$dirty"
-              @blur="$v.name.$touch()"
-              @change="$v.name.$touch()"
-            />
-            <lf-field-messages :validation="$v.name" :error-messages="{ required: 'This field is required' }" />
-          </lf-field>
-        </article>
+      <lf-scroll-shadow class="max-h-120">
+        <div class="px-6 py-5">
+          <!-- Contributor name -->
+          <article class="mb-5">
+            <lf-field label-text="Name" :required="true">
+              <lf-input
+                v-model="form.name"
+                class="h-10"
+                :invalid="$v.name.$invalid && $v.name.$dirty"
+                @blur="$v.name.$touch()"
+                @change="$v.name.$touch()"
+              />
+              <lf-field-messages :validation="$v.name" :error-messages="{ required: 'This field is required' }" />
+            </lf-field>
+          </article>
 
-        <!-- Contributor email -->
-        <article class="mb-5">
-          <lf-field label-text="Email address" :required="true">
-            <div class="flex flex-col items-start gap-3">
-              <lf-contributor-add-email-item
-                v-for="(_, ei) of form.email"
-                :key="`email:${ei}`"
-                v-model="form.email[ei]"
-                @blur="$v.email.$touch()"
-              >
-                <div v-if="form.email.length > 1">
-                  <lf-button type="secondary-ghost-light" size="large" class="ml-2" :icon-only="true" @click="form.email.splice(ei, 1)">
-                    <lf-icon name="delete-bin-6-line" />
-                  </lf-button>
-                </div>
-              </lf-contributor-add-email-item>
-            </div>
-            <lf-field-messages :validation="$v.email" :error-messages="{ required: 'Enter at least one email', $each: '' }" />
-          </lf-field>
-          <lf-button type="primary-link" size="small" class="mt-3" @click="form.email.push('')">
-            <lf-icon name="add-line" />
-            Add another email
-          </lf-button>
-        </article>
-
-        <article>
-          <lf-field label-text="Identities">
-            <div class="flex flex-col gap-3">
-              <div v-for="(identity) of form.identities" :key="identity.platform">
-                <lf-input v-model="identity.value" :placeholder="`${identity.placeholder || ''}...`" class="h-10">
-                  <template #prefix>
-                    <div class="flex items-center flex-nowrap whitespace-nowrap">
-                      <div class="min-w-5">
-                        <lf-tooltip :content="identity.platform">
-                          <img :src="identity.image" class="h-5 w-5" :alt="identity.platform" />
-                        </lf-tooltip>
-                      </div>
-                      <p
-                        v-if="identity.prefix"
-                        class="-mr-2 pl-2"
-                        :class="identity.value?.length ? 'text-black' : 'text-gray-400'"
-                      >
-                        {{ identity.prefix }}
-                      </p>
-                    </div>
-                  </template>
-                </lf-input>
+          <!-- Contributor email -->
+          <article class="mb-5">
+            <lf-field label-text="Email address" :required="true">
+              <div class="flex flex-col items-start gap-3">
+                <lf-contributor-add-email-item
+                  v-for="(_, ei) of form.email"
+                  :key="`email:${ei}`"
+                  v-model="form.email[ei]"
+                  @blur="$v.email.$touch()"
+                >
+                  <div v-if="form.email.length > 1">
+                    <lf-button type="secondary-ghost-light" size="large" class="ml-2" :icon-only="true" @click="form.email.splice(ei, 1)">
+                      <lf-icon name="delete-bin-6-line" />
+                    </lf-button>
+                  </div>
+                </lf-contributor-add-email-item>
               </div>
-            </div>
-          </lf-field>
-        </article>
-      </div>
+              <lf-field-messages :validation="$v.email" :error-messages="{ required: 'Enter at least one email', $each: '' }" />
+            </lf-field>
+            <lf-button type="primary-link" size="small" class="mt-3" @click="form.email.push('')">
+              <lf-icon name="add-line" />
+              Add another email
+            </lf-button>
+          </article>
+
+          <article>
+            <lf-field label-text="Identities">
+              <div class="flex flex-col gap-3">
+                <div v-for="(identity) of form.identities" :key="identity.platform">
+                  <lf-input v-model="identity.value" :placeholder="`${identity.placeholder || ''}...`" class="h-10">
+                    <template #prefix>
+                      <div class="flex items-center flex-nowrap whitespace-nowrap">
+                        <div class="min-w-5">
+                          <lf-tooltip :content="identity.platform">
+                            <img :src="identity.image" class="h-5 w-5" :alt="identity.platform" />
+                          </lf-tooltip>
+                        </div>
+                        <p
+                          v-if="identity.prefix"
+                          class="-mr-2 pl-2"
+                          :class="identity.value?.length ? 'text-black' : 'text-gray-400'"
+                        >
+                          {{ identity.prefix }}
+                        </p>
+                      </div>
+                    </template>
+                  </lf-input>
+                </div>
+              </div>
+            </lf-field>
+          </article>
+        </div>
+      </lf-scroll-shadow>
     </section>
 
     <section class="border-t border-gray-100 py-4 px-6 gap-4 flex justify-end  z-40">
@@ -115,6 +117,7 @@ import useVuelidate from '@vuelidate/core';
 import { required } from '@vuelidate/validators';
 import LfFieldMessages from '@/ui-kit/field-messages/FieldMessages.vue';
 import LfContributorAddEmailItem from '@/modules/contributor/components/edit/add/contributor-add-email-item.vue';
+import LfScrollShadow from '@/ui-kit/scrollshadow/ScrollShadow.vue';
 
 const props = defineProps<{
   modelValue: boolean,
@@ -182,9 +185,3 @@ export default {
   name: 'LfContributorAdd',
 };
 </script>
-
-<style lang="scss" scoped>
-.contributor-form{
-  box-shadow: inset 0px -4px 8px 0px #0000000D;
-}
-</style>
