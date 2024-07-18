@@ -36,18 +36,6 @@ export default [
         ],
       },
       {
-        name: 'memberCreate',
-        path: '/people/new',
-        component: MemberCreatePage,
-        meta: {
-          auth: true,
-          eventKey: PageEventKey.NEW_MEMBER,
-        },
-        beforeEnter: [
-          PermissionGuard(LfPermission.memberCreate),
-        ],
-      },
-      {
         name: 'memberEdit',
         path: '/people/:id/edit',
         component: MemberCreatePage,

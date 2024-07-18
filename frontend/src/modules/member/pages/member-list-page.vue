@@ -108,7 +108,7 @@ const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const membersCount = ref(0);
 const membersToMergeCount = ref(0);
-const memberCreate = ref(true);
+const memberCreate = ref(false);
 
 const { listByPlatform } = mapGetters('integration');
 

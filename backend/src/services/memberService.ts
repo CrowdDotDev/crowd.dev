@@ -496,7 +496,7 @@ export default class MemberService extends LoggerBase {
             id: record.id,
             createdAt: record.createdAt,
             sample: record.attributes.sample?.crowd,
-            identities: Object.keys(record.username),
+            identities: record.identities,
           },
           this.options,
         )

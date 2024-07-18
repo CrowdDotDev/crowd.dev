@@ -47,13 +47,22 @@
                   @blur="$v.email.$touch()"
                 >
                   <div v-if="form.email.length > 1">
-                    <lf-button type="secondary-ghost-light" size="large" class="ml-2" :icon-only="true" @click="form.email.splice(ei, 1)">
+                    <lf-button
+                      type="secondary-ghost-light"
+                      size="large"
+                      class="ml-2"
+                      :icon-only="true"
+                      @click="form.email.splice(ei, 1)"
+                    >
                       <lf-icon name="delete-bin-6-line" />
                     </lf-button>
                   </div>
                 </lf-contributor-add-email-item>
               </div>
-              <lf-field-messages :validation="$v.email" :error-messages="{ required: 'Enter at least one email', $each: '' }" />
+              <lf-field-messages
+                :validation="$v.email"
+                :error-messages="{ required: 'Enter at least one email', $each: '' }"
+              />
             </lf-field>
             <lf-button type="primary-link" size="small" class="mt-3" @click="form.email.push('')">
               <lf-icon name="add-line" />
@@ -95,7 +104,12 @@
       <lf-button type="secondary-ghost" @click="isModalOpen = false">
         Cancel
       </lf-button>
-      <lf-button type="primary" :disabled="$v.$invalid">
+      <lf-button
+        type="primary"
+        :disabled="$v.$invalid"
+        :loading="sending"
+        @click="createContributor"
+      >
         Add person
       </lf-button>
     </section>
@@ -104,31 +118,40 @@
 
 <script setup lang="ts">
 import LfModal from '@/ui-kit/modal/Modal.vue';
-import { computed, reactive } from 'vue';
+import { computed, reactive, ref } from 'vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import AppLfSubProjectsListDropdown from '@/modules/lf/segments/components/lf-sub-projects-list-dropdown.vue';
 import LfInput from '@/ui-kit/input/Input.vue';
 import LfField from '@/ui-kit/field/Field.vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
-import { ContributorIdentity } from '@/modules/contributor/types/Contributor';
+import { Contributor, ContributorIdentity } from '@/modules/contributor/types/Contributor';
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
 import useVuelidate from '@vuelidate/core';
 import { required } from '@vuelidate/validators';
 import LfFieldMessages from '@/ui-kit/field-messages/FieldMessages.vue';
 import LfContributorAddEmailItem from '@/modules/contributor/components/edit/add/contributor-add-email-item.vue';
 import LfScrollShadow from '@/ui-kit/scrollshadow/ScrollShadow.vue';
+import { ContributorApiService } from '@/modules/contributor/services/contributor.api.service';
+import { useRouter } from 'vue-router';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import Message from '@/shared/message/message';
 
 const props = defineProps<{
   modelValue: boolean,
 }>();
 
-const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void}>();
+const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void }>();
 
 const isModalOpen = computed({
   get: () => props.modelValue,
   set: (value) => emit('update:modelValue', value),
 });
+
+const router = useRouter();
+
+const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
 
 type ContributorAddIdentity = ContributorIdentity & {
   image: string,
@@ -178,6 +201,60 @@ const rules = {
 };
 
 const $v = useVuelidate(rules, form);
+
+const sending = ref<boolean>(false);
+const createContributor = () => {
+  if ($v.value.$invalid) {
+    return;
+  }
+
+  const data: Partial<Contributor> = {
+    displayName: form.name,
+    identities: [
+      ...form.identities
+        .filter((i) => !!i.value)
+        .map((i) => ({
+          type: 'username',
+          platform: i.platform,
+          value: i.value,
+          verified: true,
+          sourceId: null,
+        })),
+      ...form.email
+        .filter((email) => !!email)
+        .map((email) => ({
+          type: 'email',
+          platform: 'custom',
+          value: email,
+          verified: true,
+          sourceId: null,
+        })),
+    ],
+    username: {},
+  };
+
+  sending.value = true;
+
+  ContributorApiService.create(data, [form.subproject])
+    .then((newMember) => {
+      router.push({
+        name: 'memberView',
+        params: {
+          id: newMember.id,
+        },
+        query: {
+          projectGroup: selectedProjectGroup.value?.id,
+        },
+      });
+      isModalOpen.value = false;
+    })
+    .catch(() => {
+      Message.error('There was an error creating a person');
+    })
+    .finally(() => {
+      sending.value = false;
+    });
+};
 </script>
 
 <script lang="ts">
