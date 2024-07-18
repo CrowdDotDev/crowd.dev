@@ -5,7 +5,6 @@
     :create-fn="createOrganization"
     placeholder="Select  organization"
     input-class="organization-input"
-    store-key="memberOrganizations"
     :create-if-not-found="true"
     :in-memory-filter="false"
     :clearable="false"
