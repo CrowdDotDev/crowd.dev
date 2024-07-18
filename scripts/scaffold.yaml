@@ -17,7 +17,7 @@ services:
       - crowd-bridge
 
   questdb:
-    image: questdb/questdb:8.0.1
+    image: questdb/questdb:8.0.3
     restart: unless-stopped
     ulimits:
       memlock:
