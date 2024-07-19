@@ -671,7 +671,15 @@ export default class OrganizationService extends LoggerBase {
         ...this.options,
         transaction,
       })
+      await OrganizationRepository.addNoMerge(noMergeId, organizationId, {
+        ...this.options,
+        transaction,
+      })
       await OrganizationRepository.removeToMerge(organizationId, noMergeId, {
+        ...this.options,
+        transaction,
+      })
+      await OrganizationRepository.removeToMerge(noMergeId, organizationId, {
         ...this.options,
         transaction,
       })
