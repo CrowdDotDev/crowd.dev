@@ -56,14 +56,18 @@ export async function fixOrgIdentitiesWithWrongUrls(
     if (existingOrgIdentity) {
       // 1. Merge the organizations if they are different
       if (existingOrgIdentity.organizationId !== org.organizationId) {
-        console.log(
-          `Merging organization ${org.organizationId} into ${existingOrgIdentity.organizationId}`,
-        )
-        await common.mergeOrganizations(
-          tenantId,
-          existingOrgIdentity.organizationId,
-          org.organizationId,
-        )
+        let primaryOrgId = existingOrgIdentity.organizationId
+        let secondaryOrgId = org.organizationId
+
+        const lfxMember = await activity.isLfxMember(org.organizationId, tenantId)
+        if (lfxMember) {
+          primaryOrgId = org.organizationId
+          secondaryOrgId = existingOrgIdentity.organizationId
+          console.log('Secondary organization is an LFX member!')
+        }
+
+        console.log(`Merging organization ${secondaryOrgId} into ${primaryOrgId}`)
+        await common.mergeOrganizations(tenantId, primaryOrgId, secondaryOrgId)
       } else if (existingOrgIdentity.organizationId === org.organizationId) {
         // 2. Simply delete the organization identity if it's the same organization
         await activity.deleteOrganizationIdentity(

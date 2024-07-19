@@ -1,6 +1,8 @@
 import OrganizationRepo from '@crowd/data-access-layer/src/old/apps/script_executor_worker/organization.repo'
+import { hasLfxMembership } from '@crowd/data-access-layer/src/lfx_memberships'
 import { svc } from '../../main'
 import { IOrganizationIdentity } from '@crowd/types'
+import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
 
 export async function getOrgIdentitiesWithInvalidUrls(
   tenantId: string,
@@ -76,4 +78,17 @@ export async function deleteOrganizationIdentity(
   } catch (err) {
     throw new Error(err)
   }
+}
+
+export async function isLfxMember(organizationId: string, tenantId: string): Promise<boolean> {
+  let hasMembership: boolean
+
+  try {
+    const qx = pgpQx(svc.postgres.reader.connection())
+    hasMembership = await hasLfxMembership(qx, { organizationId, tenantId })
+  } catch (err) {
+    throw new Error(err)
+  }
+
+  return hasMembership
 }
