@@ -59,9 +59,6 @@ export interface IQueryActivitiesParameters {
   offset?: number
   countOnly?: boolean
   groupBy?: string
-  populate?: {
-    member?: boolean
-  }
 }
 
 export interface IQueryGroupedActivitiesParameters {

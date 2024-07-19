@@ -10,7 +10,8 @@ import {
   PlatformType,
 } from '@crowd/types'
 
-import { RawQueryParser, getEnv } from '@crowd/common'
+import { RawQueryParser, distinct, getEnv, timeout } from '@crowd/common'
+import { ActivityDisplayService } from '@crowd/integrations'
 import {
   IDbActivityCreateData,
   IDbActivityUpdateData,
@@ -19,8 +20,12 @@ import {
   ActivityType,
   IActiveMemberData,
   IActiveOrganizationData,
+  IActivityBySentimentMoodResult,
+  IActivityByTypeAndPlatformResult,
   IActivitySentiment,
+  IActivityTimeseriesResult,
   IMemberSegment,
+  INewActivityPlatforms,
   INumberOfActivitiesPerMember,
   INumberOfActivitiesPerOrganization,
   IOrganizationSegmentAggregates,
@@ -29,21 +34,16 @@ import {
   IQueryActivitiesParameters,
   IQueryActivityResult,
   IQueryDistinctParameters,
-  IQueryNumberOfActiveOrganizationsParameters,
-  IQueryNumberOfActiveMembersParameters,
-  IQueryTopActivitiesParameters,
   IQueryGroupedActivitiesParameters,
-  IActivityByTypeAndPlatformResult,
-  IActivityBySentimentMoodResult,
-  IActivityTimeseriesResult,
-  INewActivityPlatforms,
+  IQueryNumberOfActiveMembersParameters,
+  IQueryNumberOfActiveOrganizationsParameters,
+  IQueryTopActivitiesParameters,
 } from './types'
-import { ActivityDisplayService } from '@crowd/integrations'
 
 import merge from 'lodash.merge'
-import { checkUpdateRowCount } from '../utils'
-import { IPlatforms } from '../old/apps/cache_worker/types'
 import { QueryTypes } from 'sequelize'
+import { IPlatforms } from '../old/apps/cache_worker/types'
+import { checkUpdateRowCount } from '../utils'
 
 const s3Url = `https://${
   process.env['CROWD_S3_MICROSERVICES_ASSETS_BUCKET']
@@ -196,13 +196,7 @@ export async function insertActivity(
   const result = await conn.result(query, toInsert)
   console.log('activity insert result', result.rowCount)
   checkUpdateRowCount(result.rowCount, 1)
-
   await updateActivityParentIds(conn, id, data)
-
-  const test = await conn.oneOrNone(`select * from activities where id = $(id)`, { id })
-  if (!test) {
-    throw new Error('Activity not created!')
-  }
 }
 
 const ACTIVITY_UPDATABLE_COLUMNS: ActivityColumn[] = [
@@ -510,7 +504,6 @@ export async function queryActivities(
   qdbConn: DbConnOrTx,
   arg: IQueryActivitiesParameters,
   columns: ActivityColumn[] = DEFAULT_COLUMNS_TO_SELECT,
-  pgdbConn?: DbConnOrTx, // Required if arg.populate is set.
 ): Promise<PageData<IQueryActivityResult | any>> {
   if (arg.tenantId === undefined || arg.segmentIds === undefined || arg.segmentIds.length === 0) {
     throw new Error('tenantId and segmentIds are required to query activities!')
@@ -703,44 +696,6 @@ export async function queryActivities(
     }
 
     results.push(data)
-  }
-
-  const memberIds: string[] = []
-  if (activities.length > 0 && arg.populate) {
-    if (arg.populate.member) {
-      activities.forEach((row) => {
-        if (memberIds.indexOf(row.memberId) === -1) {
-          memberIds.push(row.memberId)
-        }
-      })
-
-      // TODO questdb: This is using Sequelize methods because back-end code still
-      // relies on it.
-      const membersFound = await pgdbConn.query(
-        `
-        SELECT *
-        FROM members
-        WHERE "tenantId" = :tenantId
-        AND id IN (:memberIds)
-        `,
-        {
-          replacements: {
-            tenantId: arg.tenantId,
-            memberIds,
-          },
-          type: QueryTypes.SELECT,
-        },
-      )
-
-      for (const result of results) {
-        for (const memberFound of membersFound) {
-          if (result.memberId === memberFound.id) {
-            result.member = memberFound
-            break
-          }
-        }
-      }
-    }
   }
 
   return {

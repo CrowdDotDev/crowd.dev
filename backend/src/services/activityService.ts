@@ -695,7 +695,7 @@ export default class ActivityService extends LoggerBase {
 
   async query(data) {
     const filter = data.filter
-    // const orderBy = Array.isArray(data.orderBy) ? data.orderBy : [data.orderBy]
+    const orderBy = Array.isArray(data.orderBy) ? data.orderBy : [data.orderBy]
     const limit = data.limit
     const offset = data.offset
     const countOnly = data.countOnly ?? false
@@ -709,16 +709,12 @@ export default class ActivityService extends LoggerBase {
         tenantId,
         segmentIds,
         filter,
-        // orderBy,
+        orderBy,
         limit,
         offset,
         countOnly,
-        populate: {
-          member: true,
-        },
       },
       DEFAULT_COLUMNS_TO_SELECT,
-      this.options.database.sequelize,
     )
 
     const parentIds: string[] = []
@@ -750,12 +746,13 @@ export default class ActivityService extends LoggerBase {
     const promises = []
     if (organizationIds.length > 0) {
       promises.push(
-        OrganizationRepository.findAndCountAllOpensearch(
+        OrganizationRepository.findAndCountAll(
           {
             filter: {
               and: [{ id: { in: organizationIds } }],
             },
             limit: organizationIds.length,
+            include: { identities: true, lfxMemberships: true },
           },
           this.options,
         ).then((organizations) => {
@@ -768,7 +765,6 @@ export default class ActivityService extends LoggerBase {
         }),
       )
     }
-
     if (parentIds.length > 0) {
       promises.push(
         queryActivities(this.options.qdb, {
