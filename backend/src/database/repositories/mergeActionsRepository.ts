@@ -104,42 +104,6 @@ class MergeActionsRepository {
     return rowCount > 0
   }
 
-  static async setStep(
-    type: MergeActionType,
-    primaryId: string,
-    secondaryId: string,
-    step: MergeActionStep,
-    options: IRepositoryOptions,
-  ) {
-    const transaction = SequelizeRepository.getTransaction(options)
-    const tenantId = options.currentTenant.id
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [_, rowCount] = await options.database.sequelize.query(
-      `
-        UPDATE "mergeActions"
-        SET step = :step
-        WHERE "tenantId" = :tenantId
-          AND type = :type
-          AND "primaryId" = :primaryId
-          AND "secondaryId" = :secondaryId
-      `,
-      {
-        replacements: {
-          tenantId,
-          type,
-          primaryId,
-          secondaryId,
-          step,
-        },
-        type: QueryTypes.UPDATE,
-        transaction,
-      },
-    )
-
-    return rowCount > 0
-  }
-
   static async findById(id: string, options: IRepositoryOptions): Promise<IMergeAction> {
     const transaction = SequelizeRepository.getTransaction(options)
 
