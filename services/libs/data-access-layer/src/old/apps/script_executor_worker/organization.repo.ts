@@ -31,7 +31,7 @@ class OrganizationRepository {
     verified: boolean,
     tenantId: string,
   ) {
-    const result = await this.connection.oneOrNone(
+    const result = await this.connection.any(
       `
           SELECT *
           FROM "organizationIdentities"
@@ -44,7 +44,7 @@ class OrganizationRepository {
       { value, platform, type, verified, tenantId },
     )
 
-    return result
+    return result ? result[0] : null
   }
 
   async updateOrganizationIdentity(
