@@ -12,6 +12,7 @@ import {
 import {
   getOrgIdentitiesWithInvalidUrls,
   findOrganizationIdentity,
+  deleteOrganizationIdentity,
 } from './activities/fix-organization-identities-with-wrong-urls'
 
 import {
@@ -35,4 +36,5 @@ export {
   mergeOrganizations,
   getOrgIdentitiesWithInvalidUrls,
   findOrganizationIdentity,
+  deleteOrganizationIdentity,
 }
