@@ -51,13 +51,13 @@
       Show {{ showMore ? 'less' : 'more' }}
     </lf-button>
   </section>
-  <lf-contributor-details-identity-add
+  <lf-contributor-identity-add
     v-if="addIdentity && addIdentityTemplate !== null"
     v-model="addIdentity"
     :identities="[addIdentityTemplate]"
     :contributor="props.contributor"
   />
-  <lf-contributor-details-identity-edit
+  <lf-contributor-identity-edit
     v-if="editIdentity !== null"
     v-model="editIdentity"
     :contributor="props.contributor"
@@ -83,10 +83,10 @@ import LfContributorDetailsIdentityItem
   from '@/modules/contributor/components/details/identity/contributor-details-identity-item.vue';
 import LfContributorDetailsIdentityAddDropdown
   from '@/modules/contributor/components/details/identity/contributor-details-identity-add-dropdown.vue';
-import LfContributorDetailsIdentityEdit
-  from '@/modules/contributor/components/details/identity/contributor-details-identity-edit.vue';
-import LfContributorDetailsIdentityAdd
-  from '@/modules/contributor/components/details/identity/contributor-details-identity-add.vue';
+import LfContributorIdentityEdit
+  from '@/modules/contributor/components/edit/identity/contributor-identity-edit.vue';
+import LfContributorIdentityAdd
+  from '@/modules/contributor/components/edit/identity/contributor-identity-add.vue';
 
 const props = defineProps<{
   contributor: Contributor,

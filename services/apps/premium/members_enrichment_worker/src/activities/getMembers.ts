@@ -11,12 +11,12 @@ have been enriched in the past 90 days, and must be part of tenant with a plan
 allowing this feature. We limit to 50 members per workflow to not overload
 external APIs.
 */
-export async function getMembers(): Promise<IMember[]> {
+export async function getMembers(alsoUseEmailIdentitiesForEnrichment: boolean): Promise<IMember[]> {
   let rows: IMember[] = []
 
   try {
     const db = svc.postgres.reader
-    rows = await fetchMembersForEnrichment(db)
+    rows = await fetchMembersForEnrichment(db, alsoUseEmailIdentitiesForEnrichment)
   } catch (err) {
     throw new Error(err)
   }

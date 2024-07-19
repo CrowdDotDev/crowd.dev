@@ -152,6 +152,6 @@ const updateIdentity = () => {
 
 <script lang="ts">
 export default {
-  name: 'LfContributorDetailsIdentityEdit',
+  name: 'LfContributorIdentityEdit',
 };
 </script>

@@ -1,5 +1,7 @@
 import pgp from 'pg-promise'
 import { QueryFilter } from './query'
+import { QueryExecutor } from './queryExecutor'
+import { RawQueryParser } from '@crowd/common'
 
 export function prepareBulkInsert(
   table: string,
@@ -49,6 +51,70 @@ export function prepareSelectColumns(columns: string[], alias?: string) {
 export interface QueryOptions<T> {
   limit?: number
   offset?: number
-  fields?: T
+  fields?: T[]
   filter?: QueryFilter
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type QueryResult<T extends string | number | symbol> = { [K in T]: any }
+
+export async function queryTable<T extends string>(
+  qx: QueryExecutor,
+  table: string,
+  allFields: string[],
+  opts: QueryOptions<T>,
+): Promise<QueryResult<T>[]> {
+  const params = {
+    limit: opts.limit,
+    offset: opts.offset,
+    table,
+  }
+
+  if (!opts.filter) {
+    opts.filter = {}
+  }
+
+  const data = allFields.map((field) => [field, field] as [string, string])
+
+  const where = RawQueryParser.parseFilters(
+    opts.filter,
+    new Map<string, string>(data),
+    [],
+    params,
+    { pgPromiseFormat: true },
+  )
+
+  return qx.select(
+    `
+      SELECT
+        ${opts.fields.map((f) => `"${f}"`).join(',\n')}
+      FROM $(table:name)
+      WHERE ${where}
+      ${opts.limit ? 'LIMIT $(limit)' : ''}
+      ${opts.offset ? 'OFFSET $(offset)' : ''}
+    `,
+    params,
+  )
+}
+
+export async function queryTableById<T extends string>(
+  qx: QueryExecutor,
+  table: string,
+  allFields: string[],
+  id: string,
+  fields: T[],
+): Promise<{ [K in T]: unknown }> {
+  const rows = await queryTable(qx, table, allFields, {
+    fields,
+    filter: {
+      id: { eq: id },
+    },
+    limit: 1,
+  })
+
+  if (rows.length > 0) {
+    return rows[0]
+  }
+
+  return null
 }

@@ -445,7 +445,7 @@ const isBookmarkedByTeam = computed(() => isBookmarked.value && !isBookmarkedByU
 
 const bookmarkTooltip = computed(() => {
   if (isBookmarked.value && !isBookmarkedByUser.value) {
-    return 'Bookmarked by team contributor';
+    return 'Bookmarked by team member';
   }
 
   return isBookmarked.value ? 'Unbookmark' : 'Bookmark';

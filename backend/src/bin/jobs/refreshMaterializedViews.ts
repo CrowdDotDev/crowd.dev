@@ -61,9 +61,6 @@ const job: CrowdJob = {
     const database = await databaseInit(1000 * 60 * 15, true)
     const log = getServiceChildLogger('RefreshMVJob')
 
-    if (process.env.CROWD_REFRESH_MEMBER_ACTIVITY_AGGREGATES_MV) {
-      await refreshMaterializedView('memberActivityAggregatesMVs', database, log)
-    }
     await refreshMaterializedView('member_segments_mv', database, log)
     await refreshMaterializedView('organization_segments_mv', database, log)
   },

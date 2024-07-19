@@ -1,6 +1,7 @@
 import { v4 as uuid } from 'uuid'
 import { QueryExecutor } from '../queryExecutor'
 import { prepareBulkInsert } from '../utils'
+import { IManualAffiliationData } from '../old/apps/data_sink_worker/repo/memberAffiliation.data'
 
 export async function deleteMemberAffiliations(qx: QueryExecutor, memberId: string) {
   await qx.result(
@@ -12,7 +13,10 @@ export async function deleteMemberAffiliations(qx: QueryExecutor, memberId: stri
   )
 }
 
-export async function findMemberAffiliations(qx: QueryExecutor, memberId: string) {
+export async function findMemberAffiliations(
+  qx: QueryExecutor,
+  memberId: string,
+): Promise<IManualAffiliationData[]> {
   return qx.select(
     `
       SELECT *

@@ -188,6 +188,6 @@ const addIdentities = () => {
 
 <script lang="ts">
 export default {
-  name: 'LfContributorDetailsIdentityAdd',
+  name: 'LfContributorIdentityAdd',
 };
 </script>

@@ -1,17 +1,17 @@
 <template>
   <article>
     <p class="text-xs font-semibold leading-5 mb-3">
-      Team contributors visibility
+      Team members visibility
     </p>
     <el-radio-group v-model="value">
       <el-radio :label="IncludeEnum.EXCLUDE" class="!h-5">
-        <span class="text-xs">Exclude team contributors</span>
+        <span class="text-xs">Exclude team members</span>
       </el-radio>
       <el-radio :label="IncludeEnum.INCLUDE" class="!h-5">
-        <span class="text-xs">Include team contributors</span>
+        <span class="text-xs">Include team members</span>
       </el-radio>
       <el-radio :label="IncludeEnum.FILTER" class="!h-5">
-        <span class="text-xs">Team contributors only</span>
+        <span class="text-xs">Team members only</span>
       </el-radio>
     </el-radio-group>
   </article>

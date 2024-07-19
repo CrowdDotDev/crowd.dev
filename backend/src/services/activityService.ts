@@ -8,6 +8,7 @@ import {
   IMemberIdentity,
   IntegrationResultType,
 } from '@crowd/types'
+import { findMemberById, MemberField } from '@crowd/data-access-layer/src/members'
 import { Blob } from 'buffer'
 import vader from 'crowd-sentiment'
 import { Transaction } from 'sequelize/types'
@@ -144,9 +145,8 @@ export default class ActivityService extends LoggerBase {
             // we have some custom platform types in db that are not in enum
             !Object.values(PlatformType).includes(data.platform))
         ) {
-          const { displayName } = await MemberRepository.findById(data.member, repositoryOptions, {
-            doPopulateRelations: false,
-          })
+          const qx = SequelizeRepository.getQueryExecutor(repositoryOptions, transaction)
+          const { displayName } = await findMemberById(qx, data.member, [MemberField.DISPLAY_NAME])
           // Get the first key of the username object as a string
           data.username = displayName
         }

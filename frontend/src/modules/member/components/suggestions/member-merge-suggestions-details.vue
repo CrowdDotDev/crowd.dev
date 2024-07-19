@@ -36,7 +36,7 @@
             v-else-if="props.isPrimary"
             class="bg-primary-100 rounded-full py-0.5 px-2 text-primary-800 inline-block text-xs leading-5 font-medium"
           >
-            Primary contributor
+            Primary profile
           </div>
           <button
             v-else
@@ -221,7 +221,7 @@
           class="pb-4"
         >
           <p class="text-2xs font-medium text-gray-500 pb-1">
-            Contributor since
+            Joined date
           </p>
           <p class="text-xs text-gray-900 whitespace-normal">
             {{ moment(member.joinedAt).format('YYYY-MM-DD') }}

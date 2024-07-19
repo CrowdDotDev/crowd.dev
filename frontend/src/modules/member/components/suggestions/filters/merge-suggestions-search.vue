@@ -37,7 +37,7 @@ const search = (val: string) => {
       const { name: routeName } = router.currentRoute.value;
 
       if (routeName === 'memberMergeSuggestions') {
-        key = FeatureEventKey.SEARCH_CONTRIBUTORS_MERGE_SUGGESTIONS;
+        key = FeatureEventKey.SEARCH_MEMBERS_MERGE_SUGGESTIONS;
       } else if (routeName === 'organizationMergeSuggestions') {
         key = FeatureEventKey.SEARCH_ORGANIZATIONS_MERGE_SUGGESTIONS;
       }
