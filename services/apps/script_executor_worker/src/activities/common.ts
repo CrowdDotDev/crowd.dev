@@ -93,7 +93,7 @@ export async function mergeOrganizations(
   // if segmentId doesn't exist we can get just one segment org belongs to and use that
   if (!segmentId) {
     const result = await findOrganizationSegments(svc.postgres.writer, primaryOrgId)
-    segmentId = result.segmentIds[0]
+    segmentId = result?.segmentIds?.[0] ?? undefined
   }
 
   const url = `${process.env['CROWD_API_SERVICE_URL']}/tenant/${tenantId}/organization/${primaryOrgId}/merge`
@@ -105,7 +105,7 @@ export async function mergeOrganizations(
     },
     data: {
       organizationToMerge: secondaryOrgId,
-      segments: [segmentId],
+      segments: segmentId ? [segmentId] : [],
     },
   }
 
