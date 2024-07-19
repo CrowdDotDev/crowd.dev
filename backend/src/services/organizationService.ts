@@ -684,7 +684,7 @@ export default class OrganizationService extends LoggerBase {
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
 
-      throw error
+      throw new Error('Error while adding to no merge!')
     }
   }
 
