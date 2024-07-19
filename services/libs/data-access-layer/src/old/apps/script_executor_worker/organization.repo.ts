@@ -31,7 +31,7 @@ class OrganizationRepository {
     verified: boolean,
     tenantId: string,
   ) {
-    const result = await this.connection.any(
+    let result = await this.connection.any(
       `
           SELECT *
           FROM "organizationIdentities"
@@ -43,6 +43,21 @@ class OrganizationRepository {
         `,
       { value, platform, type, verified, tenantId },
     )
+
+    // Try to find the identity without the verified flag
+    if (!result.length && !verified) {
+      result = await this.connection.any(
+        `
+            SELECT *
+            FROM "organizationIdentities"
+            WHERE value = $(value)
+            AND platform = $(platform)
+            AND type = $(type)
+            AND "tenantId" = $(tenantId);
+          `,
+        { value, platform, type, tenantId },
+      )
+    }
 
     return result ? result[0] : null
   }
