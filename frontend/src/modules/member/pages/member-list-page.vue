@@ -75,7 +75,7 @@
     </div>
   </app-page-wrapper>
 
-  <lf-contributor-add v-model="memberCreate" />
+  <lf-contributor-add v-if="memberCreate" v-model="memberCreate" />
 </template>
 
 <script setup lang="ts">

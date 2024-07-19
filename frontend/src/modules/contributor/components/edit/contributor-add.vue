@@ -118,7 +118,9 @@
 
 <script setup lang="ts">
 import LfModal from '@/ui-kit/modal/Modal.vue';
-import { computed, reactive, ref } from 'vue';
+import {
+  computed, reactive, ref,
+} from 'vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import AppLfSubProjectsListDropdown from '@/modules/lf/segments/components/lf-sub-projects-list-dropdown.vue';
@@ -137,6 +139,7 @@ import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import Message from '@/shared/message/message';
+import Errors from '@/shared/error/errors';
 
 const props = defineProps<{
   modelValue: boolean,
@@ -202,6 +205,14 @@ const rules = {
 
 const $v = useVuelidate(rules, form);
 
+const resetForm = () => {
+  form.subproject = '';
+  form.name = '';
+  form.email = [''];
+  form.identities = platformList;
+  $v.value.$reset();
+};
+
 const sending = ref<boolean>(false);
 const createContributor = () => {
   if ($v.value.$invalid) {
@@ -247,9 +258,14 @@ const createContributor = () => {
         },
       });
       isModalOpen.value = false;
+      resetForm();
     })
-    .catch(() => {
-      Message.error('There was an error creating a person');
+    .catch((error) => {
+      if (error.response.status === 409) {
+        Message.error('Person was not created because the identity already exists in another profile');
+      } else {
+        Errors.handle(error);
+      }
     })
     .finally(() => {
       sending.value = false;
