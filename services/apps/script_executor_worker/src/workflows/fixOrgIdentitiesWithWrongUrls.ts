@@ -37,13 +37,21 @@ export async function fixOrgIdentitiesWithWrongUrls(
   for (const org of orgIdentities) {
     // Normalize the url and check if it already exists
     const normalizedUrl = org.value.replace(/^(?:https?:\/\/)?(?:www\.)?([^/]+)(?:\/.*)?$/, '$1')
-    const existingOrgIdentity = await activity.findOrganizationIdentity(
+    const existingOrgIdentities = await activity.findOrganizationIdentity(
       org.platform,
       normalizedUrl,
       org.type,
       org.verified,
       args.tenantId,
     )
+
+    const filteredIdentities = existingOrgIdentities.filter(
+      (identity) => identity.organizationId === org.organizationId,
+    )
+
+    const existingOrgIdentity = filteredIdentities.length
+      ? filteredIdentities[0]
+      : existingOrgIdentities[0]
 
     if (existingOrgIdentity) {
       // 1. Merge the organizations if they are different

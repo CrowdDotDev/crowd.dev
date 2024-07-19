@@ -31,7 +31,7 @@ class OrganizationRepository {
     verified: boolean,
     tenantId: string,
   ) {
-    let result = await this.connection.any(
+    let results = await this.connection.any(
       `
           SELECT *
           FROM "organizationIdentities"
@@ -45,8 +45,8 @@ class OrganizationRepository {
     )
 
     // Try to find the identity without the verified flag
-    if (!result.length && !verified) {
-      result = await this.connection.any(
+    if (!results.length && !verified) {
+      results = await this.connection.any(
         `
             SELECT *
             FROM "organizationIdentities"
@@ -59,7 +59,7 @@ class OrganizationRepository {
       )
     }
 
-    return result ? result[0] : null
+    return results
   }
 
   async updateOrganizationIdentity(

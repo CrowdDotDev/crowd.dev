@@ -24,8 +24,8 @@ export async function findOrganizationIdentity(
   type: string,
   verified: boolean,
   tenantId: string,
-): Promise<IOrganizationIdentity> {
-  let orgIdentity: IOrganizationIdentity
+): Promise<IOrganizationIdentity[]> {
+  let orgIdentity: IOrganizationIdentity[]
 
   try {
     const repo = new OrganizationRepo(svc.postgres.reader.connection(), svc.log)
