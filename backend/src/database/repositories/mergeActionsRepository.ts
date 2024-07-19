@@ -8,6 +8,7 @@ import {
   IUnmergeBackup,
   MemberIdentityType,
   MergeActionState,
+  MergeActionStep,
   MergeActionType,
   OrganizationIdentityType,
 } from '@crowd/types'
@@ -20,6 +21,7 @@ class MergeActionsRepository {
     primaryId: string,
     secondaryId: string,
     options: IRepositoryOptions,
+    step: MergeActionStep,
     state: MergeActionState = MergeActionState.PENDING,
     backup: IUnmergeBackup<IMemberUnmergeBackup | IOrganizationUnmergeBackup> = undefined,
   ) {
@@ -29,8 +31,8 @@ class MergeActionsRepository {
 
     await options.database.sequelize.query(
       `
-        INSERT INTO "mergeActions" ("tenantId", "type", "primaryId", "secondaryId", state, "unmergeBackup", "actionBy")
-        VALUES (:tenantId, :type, :primaryId, :secondaryId, :state, :backup, :userId)
+        INSERT INTO "mergeActions" ("tenantId", "type", "primaryId", "secondaryId", state, step, "unmergeBackup", "actionBy")
+        VALUES (:tenantId, :type, :primaryId, :secondaryId, :state, :step, :backup, :userId)
         ON CONFLICT ("tenantId", "type", "primaryId", "secondaryId")
         DO UPDATE SET state = :state, "unmergeBackup" = :backup
       `,
@@ -40,6 +42,7 @@ class MergeActionsRepository {
           type,
           primaryId,
           secondaryId,
+          step,
           state,
           backup: backup ? JSON.stringify(backup) : null,
           userId,
@@ -50,11 +53,62 @@ class MergeActionsRepository {
     )
   }
 
-  static async setState(
+  static async setMergeAction(
     type: MergeActionType,
     primaryId: string,
     secondaryId: string,
-    state: MergeActionState,
+    options: IRepositoryOptions,
+    data: {
+      step?: MergeActionStep,
+      state?: MergeActionState,
+    }
+  ) {
+    const transaction = SequelizeRepository.getTransaction(options)
+    const tenantId = options.currentTenant.id
+
+    const setClauses = []
+    const replacements: any = {
+      tenantId,
+      type,
+      primaryId,
+      secondaryId,
+    }
+
+    if (data.step) {
+      setClauses.push(`step = :step`)
+      replacements.step = data.step
+    }
+
+    if (data.state) {
+      setClauses.push(`state = :state`)
+      replacements.state = data.state
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [_, rowCount] = await options.database.sequelize.query(
+      `
+        UPDATE "mergeActions"
+        SET ${setClauses.join(', ')}
+        WHERE "tenantId" = :tenantId
+          AND type = :type
+          AND "primaryId" = :primaryId
+          AND "secondaryId" = :secondaryId
+      `,
+      {
+        replacements,
+        type: QueryTypes.UPDATE,
+        transaction,
+      },
+    )
+
+    return rowCount > 0
+  }
+
+  static async setStep(
+    type: MergeActionType,
+    primaryId: string,
+    secondaryId: string,
+    step: MergeActionStep,
     options: IRepositoryOptions,
   ) {
     const transaction = SequelizeRepository.getTransaction(options)
@@ -64,12 +118,11 @@ class MergeActionsRepository {
     const [_, rowCount] = await options.database.sequelize.query(
       `
         UPDATE "mergeActions"
-        SET state = :state
+        SET step = :step
         WHERE "tenantId" = :tenantId
           AND type = :type
           AND "primaryId" = :primaryId
           AND "secondaryId" = :secondaryId
-          AND state != :state
       `,
       {
         replacements: {
@@ -77,7 +130,7 @@ class MergeActionsRepository {
           type,
           primaryId,
           secondaryId,
-          state,
+          step,
         },
         type: QueryTypes.UPDATE,
         transaction,

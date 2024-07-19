@@ -14,6 +14,7 @@ import {
   ITask,
   LLMSuggestionVerdictType,
   MergeActionState,
+  MergeActionStep,
   MergeActionType,
 } from '.'
 
@@ -36,6 +37,7 @@ export interface IMergeAction {
   secondaryId: string
   createdAt: string
   updatedAt: string
+  step: MergeActionStep
   state: MergeActionState
   unmergeBackup: IUnmergeBackup<IMemberUnmergeBackup | IOrganizationUnmergeBackup>
 }

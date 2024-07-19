@@ -11,6 +11,7 @@ import {
   IUnmergePreviewResult,
   MemberRoleUnmergeStrategy,
   MergeActionState,
+  MergeActionStep,
   MergeActionType,
   OrganizationIdentityType,
   SyncMode,
@@ -240,6 +241,15 @@ export default class OrganizationService extends LoggerBase {
         repoOptions,
       )
 
+      await MergeActionsRepository.add(
+        MergeActionType.ORG,
+        organizationId,
+        secondaryOrganization.id,
+        this.options,
+        MergeActionStep.UNMERGE_STARTED,
+        MergeActionState.IN_PROGRESS,
+      )
+
       if (payload.mergeActionId) {
         const mergeAction = await MergeActionsRepository.findById(
           payload.mergeActionId,
@@ -302,6 +312,16 @@ export default class OrganizationService extends LoggerBase {
 
       // trigger entity-merging-worker to move activities in the background
       await SequelizeRepository.commitTransaction(tx)
+
+      await MergeActionsRepository.setMergeAction(
+        MergeActionType.ORG,
+        organizationId,
+        secondaryOrganization.id,
+        this.options,
+        {
+          step: MergeActionStep.UNMERGE_SYNC_DONE,
+        }
+      )
 
       // responsible for moving organization's activities, syncing to opensearch afterwards, recalculating activity.organizationIds and notifying frontend via websockets
       await this.options.temporal.workflow.start('finishOrganizationUnmerging', {
@@ -421,6 +441,7 @@ export default class OrganizationService extends LoggerBase {
             // not using transaction here on purpose,
             // so this change is visible until we finish
             this.options,
+            MergeActionStep.MERGE_STARTED,
             MergeActionState.IN_PROGRESS,
             backup,
           )
@@ -559,12 +580,14 @@ export default class OrganizationService extends LoggerBase {
 
           this.log.info({ originalId, toMergeId }, '[Merge Organizations] - Transaction commited! ')
 
-          await MergeActionsRepository.setState(
+          await MergeActionsRepository.setMergeAction(
             MergeActionType.ORG,
             originalId,
             toMergeId,
-            MergeActionState.FINISHING,
             this.options,
+            {
+              step: MergeActionStep.MERGE_SYNC_DONE,
+            }
           )
 
           return { original, toMerge }
@@ -601,12 +624,14 @@ export default class OrganizationService extends LoggerBase {
         toMergeId,
       })
 
-      await MergeActionsRepository.setState(
+      await MergeActionsRepository.setMergeAction(
         MergeActionType.ORG,
         originalId,
         toMergeId,
-        MergeActionState.ERROR,
         this.options,
+        {
+          state: MergeActionState.ERROR,
+        }
       )
 
       if (tx) {
