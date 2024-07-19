@@ -677,10 +677,10 @@ export default class OrganizationService extends LoggerBase {
         transaction,
       })
 
-      await SequelizeRepository.commitTransaction(transaction)
-
       await searchSyncService.triggerOrganizationSync(this.options.currentTenant.id, organizationId)
       await searchSyncService.triggerOrganizationSync(this.options.currentTenant.id, noMergeId)
+
+      await SequelizeRepository.commitTransaction(transaction)
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
 
