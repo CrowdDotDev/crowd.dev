@@ -1,7 +1,7 @@
 import { proxyActivities } from '@temporalio/workflow'
 
 import * as activities from '../activities'
-import { IMemberIdentity, MergeActionState } from '@crowd/types'
+import { IMemberIdentity, MergeActionState, MergeActionStep } from '@crowd/types'
 
 const {
   deleteMember,
@@ -13,7 +13,7 @@ const {
   moveActivitiesWithIdentityToAnotherMember,
   recalculateActivityAffiliationsOfMemberAsync,
   recalculateActivityAffiliationsOfOrganizationSynchronous,
-  setMergeActionState,
+  setMergeAction,
   syncMember,
   syncOrganization,
   notifyFrontendMemberMergeSuccessful,
@@ -31,12 +31,18 @@ export async function finishMemberMerging(
   tenantId: string,
   userId: string,
 ): Promise<void> {
+  await setMergeAction(primaryId, secondaryId, tenantId, {
+    step: MergeActionStep.MERGE_ASYNC_STARTED,
+  })
   await moveActivitiesBetweenMembers(primaryId, secondaryId, tenantId)
   await recalculateActivityAffiliationsOfMemberAsync(primaryId, tenantId)
   await syncMember(primaryId)
   await syncRemoveMember(secondaryId)
   await deleteMember(secondaryId)
-  await setMergeActionState(primaryId, secondaryId, tenantId, 'merged' as MergeActionState)
+  await setMergeAction(primaryId, secondaryId, tenantId, {
+    state: 'merged' as MergeActionState,
+    step: MergeActionStep.MERGE_DONE,
+  })
   await notifyFrontendMemberMergeSuccessful(
     primaryId,
     secondaryId,
@@ -56,12 +62,18 @@ export async function finishMemberUnmerging(
   tenantId: string,
   userId: string,
 ): Promise<void> {
+  await setMergeAction(primaryId, secondaryId, tenantId, {
+    step: MergeActionStep.UNMERGE_ASYNC_STARTED,
+  })
   await moveActivitiesWithIdentityToAnotherMember(primaryId, secondaryId, identities, tenantId)
   await syncMember(primaryId)
   await syncMember(secondaryId)
   await recalculateActivityAffiliationsOfMemberAsync(primaryId, tenantId)
   await recalculateActivityAffiliationsOfMemberAsync(secondaryId, tenantId)
-  await setMergeActionState(primaryId, secondaryId, tenantId, 'unmerged' as MergeActionState)
+  await setMergeAction(primaryId, secondaryId, tenantId, {
+    state: 'unmerged' as MergeActionState,
+    step: MergeActionStep.UNMERGE_DONE,
+  })
   await notifyFrontendMemberUnmergeSuccessful(
     primaryId,
     secondaryId,
@@ -80,13 +92,20 @@ export async function finishOrganizationMerging(
   tenantId: string,
   userId: string,
 ): Promise<void> {
+  await setMergeAction(primaryId, secondaryId, tenantId, {
+    step: MergeActionStep.MERGE_ASYNC_STARTED,
+  })
+
   let movedSomething = true
   do {
     movedSomething = await moveActivitiesBetweenOrgs(primaryId, secondaryId, tenantId)
   } while (movedSomething)
 
   await deleteOrganization(secondaryId)
-  await setMergeActionState(primaryId, secondaryId, tenantId, 'merged' as MergeActionState)
+  await setMergeAction(primaryId, secondaryId, tenantId, {
+    state: 'merged' as MergeActionState,
+    step: MergeActionStep.MERGE_DONE,
+  })
   await notifyFrontendOrganizationMergeSuccessful(
     primaryId,
     secondaryId,
@@ -105,11 +124,17 @@ export async function finishOrganizationUnmerging(
   tenantId: string,
   userId: string,
 ): Promise<void> {
+  await setMergeAction(primaryId, secondaryId, tenantId, {
+    step: MergeActionStep.UNMERGE_ASYNC_STARTED,
+  })
   await recalculateActivityAffiliationsOfOrganizationSynchronous(primaryId, tenantId)
   await recalculateActivityAffiliationsOfOrganizationSynchronous(secondaryId, tenantId)
   await syncOrganization(primaryId, secondaryId)
   await syncOrganization(secondaryId, primaryId)
-  await setMergeActionState(primaryId, secondaryId, tenantId, 'unmerged' as MergeActionState)
+  await setMergeAction(primaryId, secondaryId, tenantId, {
+    state: 'unmerged' as MergeActionState,
+    step: MergeActionStep.UNMERGE_DONE,
+  })
   await notifyFrontendOrganizationUnmergeSuccessful(
     primaryId,
     secondaryId,
