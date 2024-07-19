@@ -31,6 +31,70 @@ export default (sequelize) => {
         allowNull: false,
         defaultValue: false,
       },
+
+      displayName: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
+      location: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
+      description: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+        comment: 'A detailed description of the company',
+      },
+      logo: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
+      tags: {
+        type: DataTypes.ARRAY(DataTypes.TEXT),
+        allowNull: true,
+        default: [],
+      },
+      employees: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        comment: 'total employee count of the company',
+      },
+      revenueRange: {
+        type: DataTypes.JSONB,
+        allowNull: true,
+        comment: 'inferred revenue range of the company',
+      },
+      founded: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
+      industry: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
+      size: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+        comment: 'A range representing the size of the company.',
+      },
+      headline: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+        comment: 'A brief description of the company',
+      },
+      type: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+        comment: "The company's type. For example NGO",
+      },
+      employeeChurnRate: {
+        type: DataTypes.JSONB,
+        allowNull: true,
+      },
+      employeeGrowthRate: {
+        type: DataTypes.JSONB,
+        allowNull: true,
+      },
     },
     {
       indexes: [

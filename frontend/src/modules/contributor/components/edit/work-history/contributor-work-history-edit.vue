@@ -244,7 +244,10 @@ const isModalOpen = computed<boolean>({
 
 onMounted(() => {
   if (props.organization) {
-    form.organization = props.organization;
+    form.organization = {
+      ...props.organization,
+      label: props.organization.displayName,
+    };
     form.title = props.organization.memberOrganizations?.title || '';
     form.dateStart = props.organization.memberOrganizations?.dateStart || '';
     form.dateEnd = props.organization.memberOrganizations?.dateEnd || '';
