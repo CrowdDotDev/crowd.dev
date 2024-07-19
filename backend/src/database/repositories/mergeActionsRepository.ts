@@ -59,9 +59,9 @@ class MergeActionsRepository {
     secondaryId: string,
     options: IRepositoryOptions,
     data: {
-      step?: MergeActionStep,
-      state?: MergeActionState,
-    }
+      step?: MergeActionStep
+      state?: MergeActionState
+    },
   ) {
     const transaction = SequelizeRepository.getTransaction(options)
     const tenantId = options.currentTenant.id

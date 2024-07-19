@@ -320,7 +320,7 @@ export default class OrganizationService extends LoggerBase {
         this.options,
         {
           step: MergeActionStep.UNMERGE_SYNC_DONE,
-        }
+        },
       )
 
       // responsible for moving organization's activities, syncing to opensearch afterwards, recalculating activity.organizationIds and notifying frontend via websockets
@@ -587,7 +587,7 @@ export default class OrganizationService extends LoggerBase {
             this.options,
             {
               step: MergeActionStep.MERGE_SYNC_DONE,
-            }
+            },
           )
 
           return { original, toMerge }
@@ -631,7 +631,7 @@ export default class OrganizationService extends LoggerBase {
         this.options,
         {
           state: MergeActionState.ERROR,
-        }
+        },
       )
 
       if (tx) {
