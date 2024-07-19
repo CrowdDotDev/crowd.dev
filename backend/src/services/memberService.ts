@@ -40,6 +40,7 @@ import {
   findMemberNotes,
   findMemberTags,
   findMemberTasks,
+  insertMemberSegments,
   MemberField,
   removeMemberNotes,
   removeMemberTags,
@@ -73,6 +74,8 @@ import MemberOrganizationService from './memberOrganizationService'
 import { MergeActionsRepository } from '@/database/repositories/mergeActionsRepository'
 import MemberOrganizationRepository from '@/database/repositories/memberOrganizationRepository'
 import OrganizationRepository from '@/database/repositories/organizationRepository'
+import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
+import { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
 
 export default class MemberService extends LoggerBase {
   options: IServiceOptions
@@ -501,6 +504,40 @@ export default class MemberService extends LoggerBase {
           this.options,
         )
       }
+
+      const qx = SequelizeRepository.getQueryExecutor(this.options, transaction)
+      await (async function includeMemberInSegments(
+        qx: QueryExecutor,
+        tenantId: string,
+        memberId: string,
+        segmentIds: string[],
+      ) {
+        const segments = await fetchManySegments(qx, segmentIds)
+        const data = segments.reduce((acc, s) => {
+          for (const segmentId of [s.id, s.parentId, s.grandparentId]) {
+            acc.push({
+              memberId,
+              segmentId,
+              tenantId,
+
+              activityCount: 0,
+              lastActive: '1970-01-01',
+              activityTypes: [],
+              activeOn: [],
+              averageSentiment: null,
+            })
+          }
+
+          return acc
+        }, [])
+
+        await insertMemberSegments(qx, data)
+      })(
+        qx,
+        this.options.currentTenant.id,
+        record.id,
+        this.options.currentSegments.map((s) => s.id),
+      )
 
       await SequelizeRepository.commitTransaction(transaction)
 
