@@ -706,7 +706,7 @@ export default class MemberService extends LoggerBase {
         secondaryMember.id,
         repoOptions,
         MergeActionStep.UNMERGE_STARTED,
-        MergeActionState.IN_PROGRESS
+        MergeActionState.IN_PROGRESS,
       )
 
       // move affiliations
@@ -842,7 +842,7 @@ export default class MemberService extends LoggerBase {
         repoOptions,
         {
           step: MergeActionStep.UNMERGE_SYNC_DONE,
-        }
+        },
       )
 
       // responsible for moving member's activities, syncing to opensearch afterwards, recalculating activity.organizationIds and notifying frontend via websockets
@@ -1395,7 +1395,7 @@ export default class MemberService extends LoggerBase {
         this.options,
         {
           step: MergeActionStep.MERGE_SYNC_DONE,
-        }
+        },
       )
 
       await this.options.temporal.workflow.start('finishMemberMerging', {

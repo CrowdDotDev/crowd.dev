@@ -145,7 +145,7 @@ if (parameters.help || (!parameters.tenant && !parameters.allTenants)) {
                 row.organizationId,
                 row.toMergeId,
                 userContext,
-                undefined
+                undefined,
               )
               await orgService.mergeSync(row.organizationId, row.toMergeId, null)
             } catch (err) {
@@ -157,7 +157,7 @@ if (parameters.help || (!parameters.tenant && !parameters.allTenants)) {
                 userContext,
                 {
                   state: MergeActionState.ERROR,
-                }
+                },
               )
             }
 
