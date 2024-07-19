@@ -54,21 +54,20 @@ export async function fixOrgIdentitiesWithWrongUrls(
       : existingOrgIdentities[0]
 
     if (existingOrgIdentity) {
+      let primaryOrgId = existingOrgIdentity.organizationId
+      let secondaryOrgId = org.organizationId
       // 1. Merge the organizations if they are different
-      if (existingOrgIdentity.organizationId !== org.organizationId) {
-        let primaryOrgId = existingOrgIdentity.organizationId
-        let secondaryOrgId = org.organizationId
-
+      if (primaryOrgId !== secondaryOrgId) {
         const lfxMember = await activity.isLfxMember(org.organizationId, tenantId)
         if (lfxMember) {
+          console.log(`Secondary organization ${org.organizationId} is an LFX member!`)
           primaryOrgId = org.organizationId
           secondaryOrgId = existingOrgIdentity.organizationId
-          console.log('Secondary organization is an LFX member!')
         }
 
         console.log(`Merging organization ${secondaryOrgId} into ${primaryOrgId}`)
         await common.mergeOrganizations(tenantId, primaryOrgId, secondaryOrgId)
-      } else if (existingOrgIdentity.organizationId === org.organizationId) {
+      } else if (primaryOrgId === secondaryOrgId) {
         // 2. Simply delete the organization identity if it's the same organization
         await activity.deleteOrganizationIdentity(
           org.organizationId,
@@ -78,7 +77,7 @@ export async function fixOrgIdentitiesWithWrongUrls(
           org.verified,
           tenantId,
         )
-        console.log(`Deleted ${org.organizationId} organization identity ${org.value}!`)
+        console.log(`Deleted ${org.organizationId} organization identity ${org.value}`)
       }
     } else {
       // 3. Directly update the organization identity if there's no conflict
