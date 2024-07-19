@@ -37,7 +37,7 @@ setImmediate(async () => {
     process.exit(1)
   } else {
     log.info(`Member ${memberId} found! Triggering sync!`)
-    await service.syncMembers([memberId])
+    await service.syncMembers(memberId)
     process.exit(0)
   }
 })

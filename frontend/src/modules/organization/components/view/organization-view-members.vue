@@ -3,7 +3,7 @@
     <div class="my-6">
       <el-input
         v-model="query"
-        placeholder="Search contributors"
+        placeholder="Search people"
         :prefix-icon="SearchIcon"
         clearable
         class="organization-view-members-search"
@@ -19,7 +19,7 @@
       <p
         class="text-sm leading-5 text-center italic text-gray-400 pl-6"
       >
-        No contributors are currently working in this organization.
+        No people are currently working in this organization.
       </p>
     </div>
     <div v-else-if="!!members.length && !loading">

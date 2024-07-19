@@ -2,14 +2,14 @@
   <div class="panel !p-6">
     <!-- header -->
     <app-dashboard-widget-header
-      title="Contributors"
+      title="People"
       :total-loading="members.loadingRecent"
       :total="members.total"
       :route="{
         name: 'member',
-        query: filterQueryService().setQuery(allContacts.config),
+        query: filterQueryService().setQuery(allMembers.config),
       }"
-      button-title="All contributors"
+      button-title="All people"
     />
 
     <div class="flex -mx-5 pt-7">
@@ -21,7 +21,7 @@
             <h6
               class="text-sm leading-5 font-semibold mb-1"
             >
-              New contributors
+              New people
             </h6>
             <app-dashboard-count
               :loading="!chartData"
@@ -39,7 +39,7 @@
             <app-dashboard-widget-chart
               v-else
               :data="chartData?.newMembers.timeseries"
-              :datasets="datasets('new contributors')"
+              :datasets="datasets('new people')"
             />
           </div>
         </div>
@@ -82,7 +82,7 @@
               icon-class="ri-group-2-line"
               class="pt-6 pb-5"
             >
-              No new contributors during this period
+              No new people during this period
             </app-dashboard-empty-state>
             <div
               v-if="recentMembers.length >= 5"
@@ -92,7 +92,7 @@
                 :to="{
                   name: 'member',
                   query: filterQueryService().setQuery({
-                    ...allContacts.config,
+                    ...allMembers.config,
                     joinedDate: {
                       value: periodRange,
                       operator: 'between',
@@ -117,10 +117,10 @@
               <h6
                 class="text-sm leading-5 font-semibold"
               >
-                Active contributors
+                Active people
                 <el-tooltip
                   placement="top"
-                  content="Contacts for whom at least one activity was tracked in the selected time period."
+                  content="People for whom at least one activity was tracked in the selected time period."
                   popper-class="max-w-[260px]"
                 >
                   <i class="ri-information-line text-sm ml-1 font-normal" />
@@ -182,7 +182,7 @@
               icon-class="ri-group-2-line"
               class="pt-6 pb-5"
             >
-              No active contributors during this period
+              No active people during this period
             </app-dashboard-empty-state>
             <div
               v-if="activeMembers.length >= 5"
@@ -192,7 +192,7 @@
                 :to="{
                   name: 'member',
                   query: filterQueryService().setQuery({
-                    ...allContacts.config,
+                    ...allMembers.config,
                     lastActivityDate: {
                       value: periodRange,
                       operator: 'between',
@@ -212,6 +212,8 @@
 </template>
 
 <script lang="ts" setup>
+import { computed } from 'vue';
+import moment from 'moment';
 import { formatDateToTimeAgo } from '@/utils/date';
 import AppDashboardEmptyState from '@/modules/dashboard/components/dashboard-empty-state.vue';
 import AppDashboardWidgetHeader from '@/modules/dashboard/components/dashboard-widget-header.vue';
@@ -219,10 +221,8 @@ import AppDashboardWidgetChart from '@/modules/dashboard/components/dashboard-wi
 import AppDashboardMemberItem from '@/modules/dashboard/components/member/dashboard-member-item.vue';
 import AppDashboardCount from '@/modules/dashboard/components/dashboard-count.vue';
 import { filterQueryService } from '@/shared/modules/filters/services/filter-query.service';
-import allContacts from '@/modules/member/config/saved-views/views/all-contacts';
+import allMembers from '@/modules/member/config/saved-views/views/all-members';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
-import { computed } from 'vue';
-import moment from 'moment';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 
 const {

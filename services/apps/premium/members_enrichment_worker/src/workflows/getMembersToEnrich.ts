@@ -7,6 +7,7 @@ import {
 
 import * as activities from '../activities/getMembers'
 import { enrichMember } from './enrichMember'
+import { ALSO_USE_EMAIL_IDENTITIES_FOR_ENRICHMENT } from '../utils/config'
 
 // Configure timeouts and retry policies to retrieve members to enrich from the
 // database.
@@ -23,7 +24,7 @@ getMembersToEnrich is a Temporal workflow that:
     to run and not be cancelled even if this one is.
 */
 export async function getMembersToEnrich(): Promise<void> {
-  const members = await getMembers()
+  const members = await getMembers(ALSO_USE_EMAIL_IDENTITIES_FOR_ENRICHMENT)
 
   await Promise.all(
     members.map((member) => {

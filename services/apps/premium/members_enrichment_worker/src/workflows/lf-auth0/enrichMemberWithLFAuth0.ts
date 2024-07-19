@@ -213,7 +213,7 @@ export async function enrichMemberWithLFAuth0(member: IMember): Promise<void> {
       normalized.attributes,
     )
 
-    await syncMembersToOpensearch([member.id])
+    await syncMembersToOpensearch(member.id)
 
     const memberIdsToBeMerged: string[] = [
       ...new Set(identitiesExistInOtherMembers.map((item) => item.memberId)),

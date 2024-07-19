@@ -13,12 +13,13 @@ router.post(
   asyncWrap(async (req: ApiRequest, res) => {
     const memberSyncService = syncService(req)
 
-    const { memberIds, segmentIds } = req.body
+    const { memberId } = req.body
     try {
-      req.log.trace(`Calling memberSyncService.syncMembers for ${memberIds}`)
-      await memberSyncService.syncMembers(memberIds, segmentIds)
+      req.log.trace(`Calling memberSyncService.syncMembers for ${memberId}`)
+      await memberSyncService.syncMembers(memberId)
       res.sendStatus(200)
     } catch (error) {
+      req.log.error(error)
       res.status(500).send(error.message)
     }
   }),
@@ -35,6 +36,7 @@ router.post(
       await memberSyncService.syncTenantMembers(tenantId)
       res.sendStatus(200)
     } catch (error) {
+      req.log.error(error)
       res.status(500).send(error.message)
     }
   }),
@@ -53,6 +55,7 @@ router.post(
       await memberSyncService.syncOrganizationMembers(organizationId)
       res.sendStatus(200)
     } catch (error) {
+      req.log.error(error)
       res.status(500).send(error.message)
     }
   }),
@@ -69,6 +72,7 @@ router.post(
       await memberSyncService.cleanupMemberIndex(tenantId)
       res.sendStatus(200)
     } catch (error) {
+      req.log.error(error)
       res.status(500).send(error.message)
     }
   }),
@@ -85,6 +89,7 @@ router.post(
       await memberSyncService.removeMember(memberId)
       res.sendStatus(200)
     } catch (error) {
+      req.log.error(error)
       res.status(500).send(error.message)
     }
   }),

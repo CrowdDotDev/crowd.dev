@@ -33,7 +33,7 @@ export async function finishMemberMerging(
 ): Promise<void> {
   await moveActivitiesBetweenMembers(primaryId, secondaryId, tenantId)
   await recalculateActivityAffiliationsOfMemberAsync(primaryId, tenantId)
-  await syncMember(primaryId, secondaryId)
+  await syncMember(primaryId)
   await syncRemoveMember(secondaryId)
   await deleteMember(secondaryId)
   await setMergeActionState(primaryId, secondaryId, tenantId, 'merged' as MergeActionState)
@@ -57,8 +57,8 @@ export async function finishMemberUnmerging(
   userId: string,
 ): Promise<void> {
   await moveActivitiesWithIdentityToAnotherMember(primaryId, secondaryId, identities, tenantId)
-  await syncMember(primaryId, secondaryId)
-  await syncMember(secondaryId, primaryId)
+  await syncMember(primaryId)
+  await syncMember(secondaryId)
   await recalculateActivityAffiliationsOfMemberAsync(primaryId, tenantId)
   await recalculateActivityAffiliationsOfMemberAsync(secondaryId, tenantId)
   await setMergeActionState(primaryId, secondaryId, tenantId, 'unmerged' as MergeActionState)

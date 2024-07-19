@@ -44,9 +44,7 @@
       </div>
       <div>
         <p class="text-2xs leading-4.5 !text-gray-400">
-          {{ organization.memberCount }} contributor{{
-            organization.memberCount > 1 ? 's' : ''
-          }}
+          {{ pluralize('person', organization.memberCount, true) }}
         </p>
       </div>
     </router-link>
@@ -61,6 +59,7 @@ import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import LfOrganizationLfMemberTag from '@/modules/organization/components/lf-member/organization-lf-member-tag.vue';
+import pluralize from 'pluralize';
 
 const props = defineProps({
   organization: {

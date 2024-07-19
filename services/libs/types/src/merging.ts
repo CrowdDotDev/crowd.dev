@@ -1,6 +1,6 @@
 import {
   IAttributes,
-  IMemberAffiliation,
+  IMemberAffiliationMergeBackup,
   IMemberContribution,
   IMemberIdentity,
   IMemberOrganization,
@@ -46,14 +46,13 @@ export interface IMemberUnmergeBackup {
   reach: IMemberReach
   tasks: ITask[]
   notes: INote[]
-  emails: string[]
   joinedAt: string
   tenantId: string
   username: IMemberUsername
   attributes: IAttributes
   identities: IMemberIdentity[]
   displayName: string
-  affiliations: IMemberAffiliation[]
+  affiliations: IMemberAffiliationMergeBackup[]
   manuallyCreated: boolean
   manuallyChangedFields: string[]
   memberOrganizations: IMemberRoleWithOrganization[]
@@ -66,13 +65,12 @@ export interface IMemberUnmergePreviewResult {
   notes: INote[]
   reach: IMemberReach
   tasks: ITask[]
-  emails: string[]
   joinedAt: string
   tenantId: string
   username: IMemberUsername
   attributes: IAttributes
   displayName: string
-  affiliations: IMemberAffiliation[]
+  affiliations: IMemberAffiliationMergeBackup[]
   contributions: IMemberContribution[]
   manuallyCreated: boolean
   manuallyChangedFields: string[]

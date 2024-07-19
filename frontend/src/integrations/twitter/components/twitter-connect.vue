@@ -44,7 +44,7 @@ onMounted(() => {
 
   if (isConnectionSuccessful) {
     router.replace({ query: null });
-    Message.success('Integration updated successfuly');
+    Message.success('Integration updated successfully');
   }
 });
 

@@ -1,20 +1,18 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import {
-  IMemberPartialAggregatesOpensearch,
-  IMemberPartialAggregatesOpensearchRawResult,
-  IMemberQueryBody,
-  ISimilarMemberOpensearch,
-  ISimilarityFilter,
-} from '../types'
+import { ISimilarityFilter, ISimilarMemberOpensearchResult } from '../types'
+import { buildFullMemberForMergeSuggestions } from '@crowd/opensearch'
 import { svc } from '../main'
 import {
   ILLMConsumableMember,
   IMemberMergeSuggestion,
   OpenSearchIndex,
   MemberMergeSuggestionTable,
+  IMemberBaseForMergeSuggestions,
 } from '@crowd/types'
 import MemberMergeSuggestionsRepository from '@crowd/data-access-layer/src/old/apps/merge_suggestions_worker/memberMergeSuggestions.repo'
 import MemberSimilarityCalculator from '../memberSimilarityCalculator'
+import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
+import { queryMembers, MemberField } from '@crowd/data-access-layer/src/members'
 
 /**
  * Finds similar members of given member in a tenant
@@ -29,18 +27,22 @@ import MemberSimilarityCalculator from '../memberSimilarityCalculator'
  */
 export async function getMemberMergeSuggestions(
   tenantId: string,
-  member: IMemberPartialAggregatesOpensearch,
+  member: IMemberBaseForMergeSuggestions,
 ): Promise<IMemberMergeSuggestion[]> {
   const mergeSuggestions: IMemberMergeSuggestion[] = []
   const memberMergeSuggestionsRepo = new MemberMergeSuggestionsRepository(
     svc.postgres.writer.connection(),
     svc.log,
   )
+
+  const qx = pgpQx(svc.postgres.reader.connection())
+  const fullMember = await buildFullMemberForMergeSuggestions(qx, member)
+
   const identitiesPartialQuery: any = {
     should: [
       {
         term: {
-          [`keyword_displayName`]: member.keyword_displayName,
+          [`keyword_displayName`]: fullMember.displayName,
         },
       },
     ],
@@ -48,7 +50,7 @@ export async function getMemberMergeSuggestions(
     must_not: [
       {
         term: {
-          uuid_memberId: member.uuid_memberId,
+          uuid_memberId: fullMember.id,
         },
       },
     ],
@@ -61,7 +63,7 @@ export async function getMemberMergeSuggestions(
     ],
   }
 
-  if (member.nested_identities && member.nested_identities.length > 0) {
+  if (fullMember.identities && fullMember.identities.length > 0) {
     // push nested search scaffold for strong identities
     identitiesPartialQuery.should.push({
       nested: {
@@ -77,19 +79,19 @@ export async function getMemberMergeSuggestions(
     })
 
     // prevent processing more than 200 identities because of opensearch limits
-    for (const identity of member.nested_identities.slice(0, 200)) {
-      if (identity.keyword_value && identity.keyword_value.length > 0) {
+    for (const identity of fullMember.identities.slice(0, 200)) {
+      if (identity.value && identity.value.length > 0) {
         // For verified identities (either email or username)
         // 1. Exact search the identity in other unverified identities
         // 2. Fuzzy search the identity in other verified identities
-        if (identity.bool_verified) {
+        if (identity.verified) {
           identitiesPartialQuery.should[1].nested.query.bool.should.push({
             bool: {
               must: [
-                { term: { [`nested_identities.keyword_value`]: identity.keyword_value } },
+                { term: { [`nested_identities.keyword_value`]: identity.value } },
                 {
                   match: {
-                    [`nested_identities.string_platform`]: identity.string_platform,
+                    [`nested_identities.string_platform`]: identity.platform,
                   },
                 },
                 {
@@ -103,9 +105,9 @@ export async function getMemberMergeSuggestions(
 
           // some identities have https? in the beginning, resulting in false positive suggestions
           // remove these when making fuzzy and wildcard searches
-          const cleanedIdentityName = identity.string_value.replace(/^https?:\/\//, '')
+          const cleanedIdentityName = identity.value.replace(/^https?:\/\//, '')
 
-          if (Number.isNaN(Number(identity.string_value))) {
+          if (Number.isNaN(Number(identity.value))) {
             // fuzzy search for identities
             identitiesPartialQuery.should[1].nested.query.bool.should.push({
               bool: {
@@ -128,10 +130,10 @@ export async function getMemberMergeSuggestions(
           identitiesPartialQuery.should[1].nested.query.bool.should.push({
             bool: {
               must: [
-                { term: { [`nested_identities.keyword_value`]: identity.keyword_value } },
+                { term: { [`nested_identities.keyword_value`]: identity.value } },
                 {
                   match: {
-                    [`nested_identities.string_platform`]: identity.string_platform,
+                    [`nested_identities.string_platform`]: identity.platform,
                   },
                 },
                 {
@@ -147,7 +149,7 @@ export async function getMemberMergeSuggestions(
     }
   }
 
-  const noMergeIds = await memberMergeSuggestionsRepo.findNoMergeIds(member.uuid_memberId)
+  const noMergeIds = await memberMergeSuggestionsRepo.findNoMergeIds(member.id)
 
   if (noMergeIds && noMergeIds.length > 0) {
     for (const noMergeId of noMergeIds) {
@@ -176,7 +178,7 @@ export async function getMemberMergeSuggestions(
     ],
   }
 
-  let membersToMerge: ISimilarMemberOpensearch[]
+  let membersToMerge: ISimilarMemberOpensearchResult[]
 
   try {
     membersToMerge =
@@ -196,21 +198,26 @@ export async function getMemberMergeSuggestions(
 
   for (const memberToMerge of membersToMerge) {
     const similarityConfidenceScore = MemberSimilarityCalculator.calculateSimilarity(
-      member,
+      fullMember,
       memberToMerge._source,
     )
     // decide the primary member using number of activities & number of identities
-    const membersSorted = [member, memberToMerge._source].sort((a, b) => {
+    const membersSorted = [
+      fullMember,
+      {
+        id: memberToMerge._source.uuid_memberId,
+        activityCount: memberToMerge._source.int_activityCount,
+        identities: memberToMerge._source.nested_identities,
+      },
+    ].sort((a, b) => {
       if (
-        a.nested_identities.length > b.nested_identities.length ||
-        (a.nested_identities.length === b.nested_identities.length &&
-          a.int_activityCount > b.int_activityCount)
+        a.identities.length > b.identities.length ||
+        (a.identities.length === b.identities.length && a.activityCount > b.activityCount)
       ) {
         return -1
       } else if (
-        a.nested_identities.length < b.nested_identities.length ||
-        (a.nested_identities.length === b.nested_identities.length &&
-          a.int_activityCount < b.int_activityCount)
+        a.identities.length < b.identities.length ||
+        (a.identities.length === b.identities.length && a.activityCount < b.activityCount)
       ) {
         return 1
       }
@@ -219,8 +226,8 @@ export async function getMemberMergeSuggestions(
     mergeSuggestions.push({
       similarity: similarityConfidenceScore,
       activityEstimate:
-        (memberToMerge._source.int_activityCount || 0) + (member.int_activityCount || 0),
-      members: [membersSorted[0].uuid_memberId, membersSorted[1].uuid_memberId],
+        (membersSorted[0].activityCount || 0) + (membersSorted[1].activityCount || 0),
+      members: [membersSorted[0].id, membersSorted[1].id],
     })
   }
 
@@ -263,72 +270,27 @@ export async function getMembers(
   batchSize: number,
   afterMemberId?: string,
   lastGeneratedAt?: string,
-): Promise<IMemberPartialAggregatesOpensearch[]> {
+): Promise<IMemberBaseForMergeSuggestions[]> {
   try {
-    const queryBody: IMemberQueryBody = {
-      from: 0,
-      size: batchSize,
-      query: {
-        bool: {
-          filter: [
-            {
-              term: {
-                uuid_tenantId: tenantId,
-              },
-            },
-          ],
-        },
+    const qx = pgpQx(svc.postgres.reader.connection())
+    const rows = await queryMembers(qx, {
+      filter: {
+        and: [
+          { [MemberField.TENANT_ID]: { eq: tenantId } },
+          afterMemberId ? { [MemberField.ID]: { gt: afterMemberId } } : null,
+          lastGeneratedAt ? { [MemberField.CREATED_AT]: { gt: lastGeneratedAt } } : null,
+        ],
       },
-      sort: {
-        [`uuid_memberId`]: 'asc',
-      },
-      collapse: {
-        field: 'uuid_memberId',
-      },
-      _source: [
-        'uuid_memberId',
-        'uuid_arr_noMergeIds',
-        'keyword_displayName',
-        'int_activityCount',
-        'string_arr_verifiedEmails',
-        'string_arr_unverifiedEmails',
-        'string_arr_verifiedUsernames',
-        'string_arr_unverifiedUsernames',
-        'nested_identities',
-        'obj_attributes',
-        'nested_organizations',
+      fields: [
+        MemberField.ID,
+        MemberField.TENANT_ID,
+        MemberField.DISPLAY_NAME,
+        MemberField.ATTRIBUTES,
       ],
-    }
+      limit: batchSize,
+    })
 
-    if (afterMemberId) {
-      queryBody.query.bool.filter.push({
-        range: {
-          uuid_memberId: {
-            gt: afterMemberId,
-          },
-        },
-      })
-    }
-
-    if (lastGeneratedAt) {
-      queryBody.query.bool.filter.push({
-        range: {
-          date_createdAt: {
-            gt: new Date(lastGeneratedAt).toISOString(),
-          },
-        },
-      })
-    }
-
-    const members: IMemberPartialAggregatesOpensearchRawResult[] =
-      (
-        await svc.opensearch.client.search({
-          index: OpenSearchIndex.MEMBERS,
-          body: queryBody,
-        })
-      ).body?.hits?.hits || []
-
-    return members.map((member) => member._source)
+    return rows
   } catch (err) {
     throw new Error(err)
   }

@@ -91,14 +91,14 @@ const headerContent = computed(() => {
   };
 });
 
-const wasFormSubmittedSuccessfuly = ref(false);
+const wasFormSubmittedSuccessfully = ref(false);
 const storeUnsubscribe = ref(() => {});
 
 // Prevent lost data on route change
 onBeforeRouteLeave((to) => {
   if (
     step.value > 1
-    && !wasFormSubmittedSuccessfuly.value
+    && !wasFormSubmittedSuccessfully.value
     && to.fullPath !== '/500'
     && to.fullPath !== '/403'
   ) {
@@ -116,7 +116,7 @@ onMounted(() => {
       mutation.type
       === 'eagleEye/UPDATE_EAGLE_EYE_SETTINGS_SUCCESS'
     ) {
-      wasFormSubmittedSuccessfuly.value = true;
+      wasFormSubmittedSuccessfully.value = true;
       router.go(0);
     }
   });

@@ -1,7 +1,4 @@
-import {
-  IOrganizationSegmentAggregates,
-  getOrgAggregates,
-} from '@crowd/data-access-layer/src/activities'
+import { getOrgAggregates } from '@crowd/data-access-layer/src/activities'
 import {
   IDbOrganizationAggregateData,
   cleanupForOganization,
@@ -12,12 +9,12 @@ import { repoQx, QueryExecutor } from '@crowd/data-access-layer/src/queryExecuto
 import { fetchOrgIdentities } from '@crowd/data-access-layer/src/organizations/identities'
 import { findOrgAttributes } from '@crowd/data-access-layer/src/organizations/attributes'
 import { findOrgNoMergeIds } from '@crowd/data-access-layer/src/org_merge'
-import { fetchOrgAggregates } from '@crowd/data-access-layer/src/organizations/segments'
+import { fetchTotalActivityCount } from '@crowd/data-access-layer/src/organizations/segments'
 import { DbStore } from '@crowd/database'
 import { Logger, getChildLogger, logExecutionTime } from '@crowd/logging'
 import {
   IOrganizationBaseForMergeSuggestions,
-  IOrganizationForMergeSuggestionsOpensearch,
+  IOrganizationOpensearch,
   IOrganizationFullAggregatesOpensearch,
   OpenSearchIndex,
   OrganizationIdentityType,
@@ -35,14 +32,14 @@ export async function buildFullOrgForMergeSuggestions(
 ): Promise<IOrganizationFullAggregatesOpensearch> {
   const identities = await fetchOrgIdentities(qx, organization.id)
   const attributes = await findOrgAttributes(qx, organization.id)
-  const aggregates = await fetchOrgAggregates(qx, organization.id)
+  const totalActivityCount = await fetchTotalActivityCount(qx, organization.id)
   const noMergeIds = await findOrgNoMergeIds(qx, organization.id)
 
   return {
     ...organization,
     ticker: attributes.find((a) => a.name === 'ticker' && a.default)?.value,
     identities,
-    activityCount: aggregates?.activityCount || 0,
+    activityCount: totalActivityCount,
     noMergeIds,
     website: identities.find((i) => i.type === OrganizationIdentityType.PRIMARY_DOMAIN)?.value,
   }
@@ -317,7 +314,7 @@ export class OrganizationSyncService {
       let documentsIndexed = 0
       const organizationIdsToIndex = []
       for (const organizationId of organizationIds) {
-        let orgData: IOrganizationSegmentAggregates[]
+        let orgData: IDbOrganizationAggregateData[]
         try {
           orgData = await getOrgAggregates(this.qdbStore.connection(), organizationId)
         } catch (e) {
@@ -332,7 +329,7 @@ export class OrganizationSyncService {
               await cleanupForOganization(qx, organizationId)
 
               if (orgData.length > 0) {
-                await insertOrganizationSegments(qx, orgData as IDbOrganizationAggregateData[])
+                await insertOrganizationSegments(qx, orgData)
               }
             },
             undefined,
@@ -358,15 +355,13 @@ export class OrganizationSyncService {
     const syncOrgsToOpensearchForMergeSuggestions = async (organizationIds) => {
       for (const orgId of organizationIds) {
         const qx = repoQx(this.orgRepo)
-        const base = await findOrgById(qx, orgId, {
-          fields: [
-            OrganizationField.ID,
-            OrganizationField.TENANT_ID,
-            OrganizationField.DISPLAY_NAME,
-            OrganizationField.LOCATION,
-            OrganizationField.INDUSTRY,
-          ],
-        })
+        const base = await findOrgById(qx, orgId, [
+          OrganizationField.ID,
+          OrganizationField.TENANT_ID,
+          OrganizationField.DISPLAY_NAME,
+          OrganizationField.LOCATION,
+          OrganizationField.INDUSTRY,
+        ])
         const data = await buildFullOrgForMergeSuggestions(qx, base)
         const prefixed = OrganizationSyncService.prefixData(data)
         await this.openSearchService.index(orgId, OpenSearchIndex.ORGANIZATIONS, prefixed)
@@ -383,7 +378,7 @@ export class OrganizationSyncService {
 
   public static async prefixData(
     data: IOrganizationFullAggregatesOpensearch,
-  ): Promise<IOrganizationForMergeSuggestionsOpensearch> {
+  ): Promise<IOrganizationOpensearch> {
     return {
       uuid_organizationId: data.id,
       uuid_tenantId: data.tenantId,

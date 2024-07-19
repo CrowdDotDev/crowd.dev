@@ -2,30 +2,30 @@ import { SelectFilterOptionGroup } from '@/shared/modules/filters/types/filterTy
 
 const options: SelectFilterOptionGroup[] = [
   {
-    label: 'Contributor',
+    label: 'Person',
     options: [
       {
-        label: 'Contributors merged',
+        label: 'Profiles merged',
         value: 'contributors-merged',
       },
       {
-        label: 'Contributor identities updated',
+        label: 'Profile identities updated',
         value: 'contributor-identities-updated',
       },
       {
-        label: 'Contributor work experience updated',
+        label: 'Profile work experience updated',
         value: 'contributor-work-experience-updated',
       },
       {
-        label: 'Contributor affiliation updated',
+        label: 'Profile affiliation updated',
         value: 'contributor-affiliation-updated',
       },
       {
-        label: 'Contributor profile updated',
+        label: 'Profile updated',
         value: 'contributor-profile-updated',
       },
       {
-        label: 'Contributor created',
+        label: 'Profile created',
         value: 'contributor-created',
       },
     ],

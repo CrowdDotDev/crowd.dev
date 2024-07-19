@@ -154,7 +154,7 @@ const computedOptions = computed(() => {
   ];
 });
 
-const computedLabel = computed(() => pluralize(props.module === 'member' ? 'contributor' : props.module, props.total, true));
+const computedLabel = computed(() => pluralize(props.module === 'member' ? 'person' : props.module, props.total, true));
 
 const count = computed(() => ({
   minimum:
@@ -198,11 +198,11 @@ const doExport = async () => {
     await showExportDialog({
       tenantCsvExportCount,
       planExportCountMax,
-      badgeContent: pluralize(props.module === 'member' ? 'contributor' : props.module, props.total, true),
+      badgeContent: pluralize(props.module === 'member' ? 'person' : props.module, props.total, true),
     });
 
     trackEvent({
-      key: props.module === 'member' ? FeatureEventKey.EXPORT_CONTRIBUTORS : FeatureEventKey.EXPORT_ORGANIZATIONS,
+      key: props.module === 'member' ? FeatureEventKey.EXPORT_MEMBERS : FeatureEventKey.EXPORT_ORGANIZATIONS,
       type: EventType.FEATURE,
       properties: {
         path: route.path,

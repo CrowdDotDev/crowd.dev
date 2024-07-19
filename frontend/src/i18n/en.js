@@ -69,9 +69,9 @@ const en = {
         integrations: 'Integrations',
         info: 'Custom Attributes',
         activities: 'Activities',
-        members: 'Contributors',
+        members: 'People',
         latestMetrics: 'LatestMetrics',
-        membersToMerge: 'Contributors To Merge',
+        membersToMerge: 'Profiles To Merge',
         benchmarkRepos: 'BenchmarkRepos',
         createdAt: 'Created at',
         updatedAt: 'Updated at',
@@ -142,45 +142,45 @@ const en = {
     },
     member: {
       name: 'member',
-      label: 'Contributors',
-      menu: 'Contributors',
+      label: 'People',
+      menu: 'People',
       exporterFileName: 'member_export',
       list: {
-        menu: 'Contributors',
-        title: 'Contributors',
+        menu: 'People',
+        title: 'People',
       },
       create: {
-        success: 'Contributor successfully saved',
-        error: 'There was an error creating the contributor',
-        message: 'View contributor',
+        success: 'Profile successfully saved',
+        error: 'There was an error creating the profile',
+        message: 'View profile',
       },
       update: {
-        success: 'Contributor edited successfully',
-        error: 'There was an error updating the contributor',
+        success: 'Profile edited successfully',
+        error: 'There was an error updating the person',
       },
       destroy: {
-        success: 'Contributor successfully deleted',
+        success: 'Profile successfully deleted',
       },
       destroyAll: {
-        success: 'Contributor(s) successfully deleted',
+        success: 'Profiles successfully deleted',
       },
       edit: {
-        title: 'Edit Contributor',
+        title: 'Edit profile',
       },
       merge: {
-        title: 'Merge Contributor',
-        success: 'Contributors merged successfully',
+        title: 'Merge profile',
+        success: 'Profiles merged successfully',
       },
       attributes: {
         error: 'Custom Attributes could not be created',
-        success: 'Custom Attributes successfuly updated',
+        success: 'Custom Attributes successfully updated',
       },
       fields: {
         id: 'Id',
         fullName: 'Full Name',
         jobTitle: 'Job title',
         company: 'Company',
-        member: 'Contributor',
+        member: 'Person',
         score: 'Score',
         estimatedReach: 'Estimated Reach',
         numberActivities: '# of Activities',
@@ -206,7 +206,7 @@ const en = {
         noMerge: 'NoMerge',
         crowdInfo: 'CrowdInfo',
         reach: 'Reach',
-        joinedAt: 'Contributor since',
+        joinedAt: 'Joined date',
         createdAt: 'Created at',
         updatedAt: 'Updated at',
         createdAtRange: 'Created at',
@@ -217,10 +217,10 @@ const en = {
       placeholders: {},
       hints: {},
       new: {
-        title: 'New Contributor',
+        title: 'New Person',
       },
       view: {
-        title: 'View Contributor',
+        title: 'View Profile',
       },
     },
 
@@ -237,13 +237,11 @@ const en = {
       menu: 'Organizations',
       create: {
         success: 'Organization successfully saved',
-        error:
-          'There was an error creating the organization',
+        error: 'There was an error creating the organization',
       },
       update: {
         success: 'Organization successfully saved',
-        error:
-          'There was an error updating the organization',
+        error: 'There was an error updating the organization',
       },
       destroy: {
         success: 'Organization successfully deleted',
@@ -301,7 +299,7 @@ const en = {
         platform: 'Platform',
         project: 'Project',
         info: 'Custom Attributes',
-        member: 'Contributor',
+        member: 'Person',
         isContribution: 'Key Action',
         crowdInfo: 'CrowdInfo',
         createdAt: 'Created at',
@@ -347,11 +345,11 @@ const en = {
         status: 'Status',
       },
       triggers: {
-        new_activity:
-          'New activity happened in your community',
-        new_member: 'New contributor joined your community',
-        member_attributes_match: 'Contributor attributes match condition(s)',
-        organization_attributes_match: 'Organization attributes match condition(s)',
+        new_activity: 'New activity happened in your community',
+        new_member: 'New person joined your community',
+        member_attributes_match: 'Person attributes match condition(s)',
+        organization_attributes_match:
+          'Organization attributes match condition(s)',
       },
     },
 
@@ -408,23 +406,23 @@ const en = {
     signin: 'Sign in',
     signup: 'Sign up',
     signout: 'Sign out',
-    alreadyHaveAnAccount:
-      'Already have an account? Sign in.',
+    alreadyHaveAnAccount: 'Already have an account? Sign in.',
     social: {
       errors: {
         'auth-invalid-provider':
           'This email is already registered to another provider.',
-        'auth-no-email': 'The email associated with this account is private or inexistent.',
+        'auth-no-email':
+          'The email associated with this account is private or inexistent.',
       },
     },
-    signinWithAnotherAccount:
-      'Sign in with another account',
+    signinWithAnotherAccount: 'Sign in with another account',
     emailUnverified: {
       message: 'Please confirm your email at <strong>{0}</strong> to continue.',
       submit: 'Resend email verification',
     },
     emptyPermissions: {
-      message: 'You have no permissions yet. Wait for the admin to grant you privileges.',
+      message:
+        'You have no permissions yet. Wait for the admin to grant you privileges.',
     },
     passwordResetEmail: {
       message: 'Send password reset e-mail',
@@ -446,8 +444,7 @@ const en = {
     passwordResetSuccess: 'Password successfully changed',
     verifyEmail: {
       success: 'Email successfully verified.',
-      message:
-        'Just a moment, your email is being verified...',
+      message: 'Just a moment, your email is being verified...',
     },
   },
 
@@ -507,10 +504,9 @@ const en = {
       activity: 'Activity',
     },
     errors: {
-      userAlreadyExists:
-        'User with this email already exists',
+      userAlreadyExists: 'User with this email already exists',
       userNotFound: 'User not found',
-      revokingOwnPermission: 'You can\'t revoke your own admin permission',
+      revokingOwnPermission: "You can't revoke your own admin permission",
     },
   },
 
@@ -588,8 +584,7 @@ const en = {
     current: 'Current Plan',
     subscribe: 'Subscribe',
     manage: 'Manage Subscription',
-    cancelAtPeriodEnd:
-      'This plan will be canceled at the end of the period.',
+    cancelAtPeriodEnd: 'This plan will be canceled at the end of the period.',
     somethingWrong:
       'There is something wrong with your subscription. Please go to manage subscription for more details.',
     notPlanUser: 'You are not the manager of this subscription.',
@@ -599,8 +594,7 @@ const en = {
     menu: 'Audit Logs',
     title: 'Audit Logs',
     exporterFileName: 'audit_log_export',
-    entityNamesHint:
-      'Separate multiple entities using the comma character.',
+    entityNamesHint: 'Separate multiple entities using the comma character.',
     fields: {
       id: 'Id',
       timestampRange: 'Period',
@@ -648,8 +642,9 @@ const en = {
   },
   dashboard: {
     menu: 'Home',
-    message: 'This page uses fake data for demonstration purposes only. You can edit it at '
-      + 'frontend/src/modules/dashboard/components/dashboard-page.vue.',
+    message:
+      'This page uses fake data for demonstration purposes only. You can edit it at ' +
+      'frontend/src/modules/dashboard/components/dashboard-page.vue.',
     charts: {
       day: 'Day',
       red: 'Red',
@@ -679,7 +674,7 @@ const en = {
   },
   errors: {
     backToHome: 'Back to home',
-    403: 'Sorry, you don\'t have access to this page',
+    403: "Sorry, you don't have access to this page",
     404: 'Sorry, the page you visited does not exist',
     500: 'Sorry, the server is reporting an error',
     429: 'Too many requests. Please try again later.',
@@ -693,8 +688,7 @@ const en = {
   },
 
   preview: {
-    error:
-      'Sorry, this operation is not allowed in preview mode.',
+    error: 'Sorry, this operation is not allowed in preview mode.',
   },
 
   // See https://github.com/jquense/yup#using-a-custom-locale-dictionary
@@ -703,27 +697,23 @@ const en = {
     mixed: {
       default: '{path} is invalid',
       required: 'This field is required',
-      oneOf:
-        '{path} must be one of the following values: ${values}',
-      notOneOf:
-        '{path} must not be one of the following values: ${values}',
+      oneOf: '{path} must be one of the following values: ${values}',
+      notOneOf: '{path} must not be one of the following values: ${values}',
       notType: ({ path, type, value, originalValue }) => {
-        return `${path} must be a ${type}`
-      }
+        return `${path} must be a ${type}`;
+      },
     },
     string: {
-      length:
-        '{path} must be exactly ${length} characters',
+      length: '{path} must be exactly ${length} characters',
       min: '{path} must be at least ${min} characters',
       max: '{path} must be at most ${max} characters',
-      matches:
-        '{path} must match the following: "${regex}"',
+      matches: '{path} must match the following: "${regex}"',
       email: '{path} must be a valid email',
       url: '{path} must be a valid URL',
       trim: '{path} must be a trimmed string',
       lowercase: '{path} must be a lowercase string',
       uppercase: '{path} must be a upper case string',
-      selected: '{path} must be selected'
+      selected: '{path} must be selected',
     },
     number: {
       min: '{path} must be greater than or equal to ${min}',
@@ -734,42 +724,42 @@ const en = {
       positive: '{path} must be a positive number',
       negative: '{path} must be a negative number',
       integer: '{path} must be an integer',
-      invalid: '{path} must be a number'
+      invalid: '{path} must be a number',
     },
     date: {
       min: '{path} field must be later than ${min}',
-      max: '{path} field must be at earlier than ${max}'
+      max: '{path} field must be at earlier than ${max}',
     },
     boolean: {},
     object: {
       noUnknown:
-        '{path} field cannot have keys not specified in the object shape'
+        '{path} field cannot have keys not specified in the object shape',
     },
     array: {
       min: '{path} field must have at least ${min} items',
-      max: '{path} field must have less than or equal to ${max} items'
-    }
+      max: '{path} field must have less than or equal to ${max} items',
+    },
   },
   /* eslint-disable */
   fileUploader: {
     upload: 'Upload',
     image: 'You must upload an image',
     size: 'File is too big. Max allowed size is {0}',
-    formats: `Invalid format. Must be one of: {0}.`
+    formats: `Invalid format. Must be one of: {0}.`,
   },
 
   autocomplete: {
-    loading: 'Loading...'
+    loading: 'Loading...',
   },
 
   imagesViewer: {
-    noImage: 'No image'
+    noImage: 'No image',
   },
 
   external: {
     docs: 'Documentation',
-    community: 'Community'
-  }
-}
+    community: 'Community',
+  },
+};
 
-export default en
+export default en;

@@ -44,6 +44,7 @@ import { findAttribute } from '@crowd/data-access-layer/src/organizations/attrib
 import {
   countMembersWithActivities,
   getActiveOrganizations,
+  OrganizationField,
   queryActivities,
 } from '@crowd/data-access-layer'
 import {
@@ -1178,7 +1179,19 @@ class OrganizationRepository {
       (a, b) => b.identities.length - a.identities.length,
     )[0].organizationId
 
-    const result = await findOrgById(qx, orgIdWithMostIdentities)
+    const result = await findOrgById(qx, orgIdWithMostIdentities, [
+      OrganizationField.ID,
+      OrganizationField.DESCRIPTION,
+      OrganizationField.LOGO,
+      OrganizationField.TAGS,
+      OrganizationField.EMPLOYEES,
+      OrganizationField.LOCATION,
+      OrganizationField.TYPE,
+      OrganizationField.SIZE,
+      OrganizationField.HEADLINE,
+      OrganizationField.INDUSTRY,
+      OrganizationField.FOUNDED,
+    ])
 
     return result
   }

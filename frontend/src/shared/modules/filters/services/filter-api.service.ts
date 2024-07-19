@@ -95,6 +95,7 @@ export const filterApiService = () => {
     const orderBy = `${order.prop}_${order.order === 'descending' ? 'DESC' : 'ASC'}`;
 
     return {
+      search,
       filter,
       orderBy,
       body,

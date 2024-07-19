@@ -101,10 +101,7 @@ export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
           case SearchSyncWorkerQueueMessageType.SYNC_MEMBER:
             if (data.memberId) {
               // await this.memberBatchProcessor.addToBatch(data.memberId)
-              await this.initMemberService().syncMembers(
-                [data.memberId],
-                data.segmentId ? [data.segmentId] : undefined,
-              )
+              await this.initMemberService().syncMembers(data.memberId)
             }
 
             break

@@ -106,7 +106,7 @@
                 Active <span>organizations</span>
                 <el-tooltip
                   placement="top"
-                  content="Organizations whose contributors engaged in at least one activity during the selected time period."
+                  content="Organizations whose people engaged in at least one activity during the selected time period."
                   popper-class="max-w-[260px]"
                 >
                   <i class="ri-information-line text-sm ml-1 font-normal" />

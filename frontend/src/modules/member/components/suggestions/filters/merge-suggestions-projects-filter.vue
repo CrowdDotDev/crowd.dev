@@ -195,7 +195,7 @@ const apply = () => {
   const { name: routeName } = router.currentRoute.value;
 
   if (routeName === 'memberMergeSuggestions') {
-    key = FeatureEventKey.FILTER_CONTRIBUTORS_MERGE_SUGGESTIONS;
+    key = FeatureEventKey.FILTER_MEMBERS_MERGE_SUGGESTIONS;
   } else if (routeName === 'organizationMergeSuggestions') {
     key = FeatureEventKey.FILTER_ORGANIZATIONS_MERGE_SUGGESTIONS;
   }

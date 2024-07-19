@@ -1,11 +1,12 @@
 import { proxyActivities, continueAsNew } from '@temporalio/workflow'
 import * as activities from '../activities/memberMergeSuggestions'
 
+import { IProcessGenerateMemberMergeSuggestionsArgs } from '../types'
 import {
-  IMemberPartialAggregatesOpensearch,
-  IProcessGenerateMemberMergeSuggestionsArgs,
-} from '../types'
-import { IMemberMergeSuggestion, MemberMergeSuggestionTable } from '@crowd/types'
+  IMemberBaseForMergeSuggestions,
+  IMemberMergeSuggestion,
+  MemberMergeSuggestionTable,
+} from '@crowd/types'
 import { chunkArray } from '../utils'
 
 const activity = proxyActivities<typeof activities>({ startToCloseTimeout: '1 minute' })
@@ -22,7 +23,7 @@ export async function generateMemberMergeSuggestions(
   // get the latest generation time of tenant's member suggestions, we'll only get members created after that for new suggestions
   const lastGeneratedAt = await activity.findTenantsLatestMemberSuggestionGeneratedAt(args.tenantId)
 
-  const result: IMemberPartialAggregatesOpensearch[] = await activity.getMembers(
+  const result: IMemberBaseForMergeSuggestions[] = await activity.getMembers(
     args.tenantId,
     PAGE_SIZE,
     lastUuid,
@@ -34,7 +35,7 @@ export async function generateMemberMergeSuggestions(
     return
   }
 
-  lastUuid = result.length > 0 ? result[result.length - 1]?.uuid_memberId : null
+  lastUuid = result.length > 0 ? result[result.length - 1]?.id : null
 
   const allMergeSuggestions: IMemberMergeSuggestion[] = []
 

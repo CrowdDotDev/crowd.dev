@@ -3,7 +3,7 @@ import {
   FilterConfig,
 } from '@/shared/modules/filters/types/FilterConfig';
 import { Member } from '@/modules/member/types/Member';
-import allContacts from '@/modules/member/config/saved-views/views/all-contacts';
+import allMembers from '@/modules/member/config/saved-views/views/all-members';
 import { FilterCustomAttribute } from '@/shared/modules/filters/types/FilterCustomAttribute';
 
 export interface MemberState {
@@ -22,7 +22,7 @@ export interface MemberState {
 
 const state: MemberState = {
   filters: {
-    ...allContacts.config,
+    ...allMembers.config,
   },
   savedFilterBody: {},
   customAttributes: [],

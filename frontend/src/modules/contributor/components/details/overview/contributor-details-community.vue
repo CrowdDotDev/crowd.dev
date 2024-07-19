@@ -12,8 +12,8 @@
             </p>
             <lf-tooltip>
               <template #content>
-                Calculated based on the recency and importance<br> of a contributor's
-                activities in comparison<br> to all other contributors.
+                Calculated based on the recency and importance<br> of a person's
+                activities in comparison<br> to the community.
               </template>
               <lf-icon name="question-line" :size="14" class="text-secondary-200" />
             </lf-tooltip>
@@ -50,13 +50,13 @@
 
 <script setup lang="ts">
 import LfCard from '@/ui-kit/card/Card.vue';
-import { Contributor } from '@/modules/contributor/types/Contributor';
 import moment from 'moment';
-import LfContributorSentiment from '@/modules/contributor/components/shared/contributor-sentiment.vue';
-import LfContributorEngagementLevel from '@/modules/contributor/components/shared/contributor-engagement-level.vue';
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { formatNumber } from '@/utils/number';
+import LfContributorEngagementLevel from '@/modules/contributor/components/shared/contributor-engagement-level.vue';
+import LfContributorSentiment from '@/modules/contributor/components/shared/contributor-sentiment.vue';
+import { Contributor } from '@/modules/contributor/types/Contributor';
 
 const props = defineProps<{
   contributor: Contributor,

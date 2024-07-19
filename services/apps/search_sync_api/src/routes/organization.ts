@@ -18,7 +18,7 @@ router.post(
       await organizationSyncService.syncOrganizations(organizationIds)
       res.sendStatus(200)
     } catch (error) {
-      req.log.error(error, 'Error while syncing organizations')
+      req.log.error(error)
       res.status(500).send(error.message)
     }
   }),
@@ -37,6 +37,7 @@ router.post(
       await organizationSyncService.syncTenantOrganizations(tenantId)
       res.sendStatus(200)
     } catch (error) {
+      req.log.error(error)
       res.status(500).send(error.message)
     }
   }),
@@ -55,6 +56,7 @@ router.post(
       await organizationSyncService.cleanupOrganizationIndex(tenantId)
       res.sendStatus(200)
     } catch (error) {
+      req.log.error(error)
       res.status(500).send(error.message)
     }
   }),
@@ -73,6 +75,7 @@ router.post(
       await organizationSyncService.removeOrganization(organizationId)
       res.sendStatus(200)
     } catch (error) {
+      req.log.error(error)
       res.status(500).send(error.message)
     }
   }),

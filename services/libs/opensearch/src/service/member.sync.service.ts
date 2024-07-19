@@ -9,22 +9,69 @@ import { Logger, getChildLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
 import {
   IMemberAttribute,
-  IMemberSegmentAggregates,
   MemberAttributeType,
   MemberIdentityType,
+  IMemberBaseForMergeSuggestions,
+  IMemberOpensearch,
+  IMemberOrganization,
+  IMemberWithAggregatesForMergeSuggestions,
+  MemberAttributeType,
 } from '@crowd/types'
 import { IndexedEntityType } from '../repo/indexing.data'
 import { IndexingRepository } from '../repo/indexing.repo'
-import { IDbMemberSyncData, IMemberSegmentMatrix } from '../repo/member.data'
 import { MemberRepository } from '../repo/member.repo'
-import { IDbSegmentInfo } from '../repo/segment.data'
 import { SegmentRepository } from '../repo/segment.repo'
 import { OpenSearchIndex } from '../types'
 import { IMemberSyncResult } from './member.sync.data'
 import { IPagedSearchResponse, ISearchHit } from './opensearch.data'
 import { OpenSearchService } from './opensearch.service'
+import { repoQx, QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
+import {
+  MemberField,
+  fetchMemberIdentities,
+  fetchMemberOrganizations,
+  findMemberById,
+} from '@crowd/data-access-layer/src/members'
+import { getMemberAggregates } from '@crowd/data-access-layer/src/activities'
+import {
+  cleanupMemberAggregates,
+  fetchAbsoluteMemberAggregates,
+  insertMemberSegments,
+} from '@crowd/data-access-layer/src/members/segments'
+import { IMemberSegmentAggregates } from '@crowd/data-access-layer/src/members/types'
+import { OrganizationField, findOrgById } from '@crowd/data-access-layer/src/orgs'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
+export async function buildFullMemberForMergeSuggestions(
+  qx: QueryExecutor,
+  member: IMemberBaseForMergeSuggestions,
+): Promise<IMemberWithAggregatesForMergeSuggestions> {
+  const identities = await fetchMemberIdentities(qx, member.id)
+  const absoluteAggregates = await fetchAbsoluteMemberAggregates(qx, member.id)
+  const roles = await fetchMemberOrganizations(qx, member.id)
+
+  const rolesWithDisplayName: IMemberOrganization[] = []
+
+  for (const role of roles) {
+    const organization = await findOrgById(qx, role.organizationId, [
+      OrganizationField.ID,
+      OrganizationField.DISPLAY_NAME,
+    ])
+
+    rolesWithDisplayName.push({
+      ...role,
+      displayName: organization.displayName,
+    })
+  }
+
+  return {
+    ...member,
+    identities,
+    activityCount: absoluteAggregates.activityCount,
+    organizations: rolesWithDisplayName,
+  }
+}
 
 export class MemberSyncService {
   private static MAX_BYTE_LENGTH = 25000
@@ -237,10 +284,12 @@ export class MemberSyncService {
     let memberIds = await this.memberRepo.getTenantMembersForSync(tenantId, batchSize)
 
     while (memberIds.length > 0) {
-      const { membersSynced, documentsIndexed } = await this.syncMembers(memberIds)
+      for (const memberId of memberIds) {
+        const { membersSynced, documentsIndexed } = await this.syncMembers(memberId)
 
-      docCount += documentsIndexed
-      memberCount += membersSynced
+        docCount += documentsIndexed
+        memberCount += membersSynced
+      }
 
       const diffInSeconds = (new Date().getTime() - now.getTime()) / 1000
       this.log.info(
@@ -296,10 +345,12 @@ export class MemberSyncService {
     let memberIds: string[] = await loadNextPage()
 
     while (memberIds.length > 0) {
-      const { membersSynced, documentsIndexed } = await this.syncMembers(memberIds)
+      for (const memberId of memberIds) {
+        const { membersSynced, documentsIndexed } = await this.syncMembers(memberId)
 
-      docCount += documentsIndexed
-      memberCount += membersSynced
+        docCount += documentsIndexed
+        memberCount += membersSynced
+      }
 
       const diffInSeconds = (new Date().getTime() - now.getTime()) / 1000
       this.log.info(
@@ -317,267 +368,72 @@ export class MemberSyncService {
     )
   }
 
-  public async syncMembers(memberIds: string[], segmentIds?: string[]): Promise<IMemberSyncResult> {
-    const CONCURRENT_DATABASE_QUERIES = 10
-    const BULK_INDEX_DOCUMENT_BATCH_SIZE = 100
+  public async syncMembers(memberId: string): Promise<IMemberSyncResult> {
+    const syncMemberAggregates = async (memberId) => {
+      let documentsIndexed = 0
+      let memberData: IMemberSegmentAggregates[]
+      try {
+        const qx = repoQx(this.memberRepo)
+        memberData = await getMemberAggregates(qx, memberId)
+      } catch (e) {
+        this.log.error(e, 'Failed to get organization aggregates!')
+        throw e
+      }
 
-    // get all memberId-segmentId couples
-    let memberSegmentCouples: IMemberSegmentMatrix
-    if (segmentIds && segmentIds.length > 0) {
-      // we have segmentIds as parameters so we don't need to find all that member is in from db
-      memberSegmentCouples = await this.memberRepo.getMemberSegmentCouples(
-        memberIds,
-        [],
-        segmentIds,
-      )
-    } else {
-      // first we fetch member - segment couples from activities table in questdb
-      const memberSegments = await getMemberSegmentCouples(this.qdbStore.connection(), memberIds)
+      try {
+        await this.memberRepo.transactionally(
+          async (txRepo) => {
+            const qx = repoQx(txRepo)
+            await cleanupMemberAggregates(qx, memberId)
 
-      // then we further process it to include members without activities (like manual members)
-      memberSegmentCouples = await this.memberRepo.getMemberSegmentCouples(
-        memberIds,
-        memberSegments,
-      )
-    }
-
-    let databaseStream = []
-    let syncStream = []
-    let documentsIndexed = 0
-    const allMemberIds = Object.keys(memberSegmentCouples)
-    const totalMemberIds = allMemberIds.length
-
-    const successfullySyncedMembers = []
-
-    const processSegmentsStream = async (databaseStream): Promise<void> => {
-      const results = await Promise.all(databaseStream.map((s) => s.memberDataPromise))
-
-      let index = 0
-
-      while (results.length > 0) {
-        const result = results.shift()
-
-        if (!result) {
-          index += 1
-          continue
-        }
-
-        const { memberId, segmentId, aggregatesPromise } = databaseStream[index]
-        const memberSegments = memberSegmentCouples[memberId]
-
-        // Find the correct segment and mark it as processed and add the data
-        const targetSegment = memberSegments.find((s) => s.segmentId === segmentId)
-        targetSegment.processed = true
-        targetSegment.data = result
-        targetSegment.aggregates = await aggregatesPromise
-
-        // Check if all segments for the member have been processed
-        const allSegmentsOfMemberIsProcessed = memberSegments.every((s) => s.processed)
-        if (allSegmentsOfMemberIsProcessed) {
-          const attributes = await this.memberRepo.getTenantMemberAttributes(result.tenantId)
-
-          // All segments processed, push the segment related docs into syncStream
-          for (const memberId of Object.keys(memberSegmentCouples)) {
-            const values = memberSegmentCouples[memberId]
-            for (const value of values) {
-              if (value.aggregates.activityCount === 0 && !value.data.manuallyCreated) {
-                // if there are no activities for the member in the segment, we don't sync it
-                continue
-              }
-
-              syncStream.push({
-                id: `${value.data.id}-${value.aggregates.segmentId}`,
-                body: MemberSyncService.prefixData(value.data, value.aggregates, attributes),
-              })
+            if (memberData.length > 0) {
+              await insertMemberSegments(qx, memberData)
             }
-          }
+          },
+          undefined,
+          true,
+        )
+        documentsIndexed += memberData.length
+      } catch (e) {
+        this.log.error(e, 'Failed to insert member aggregates!')
+        throw e
+      }
 
-          // also calculate and push for parent and grandparent segments
-          const childSegmentIds: string[] = distinct(memberSegments.map((m) => m.segmentId))
-          const segmentInfos = await this.segmentRepo.getParentSegmentIds(childSegmentIds)
-
-          const parentIds: string[] = distinct(segmentInfos.map((s) => s.parentId))
-          for (const parentId of parentIds) {
-            const aggregated = MemberSyncService.aggregateData(
-              memberSegmentCouples[memberId].map((s) => s.aggregates),
-              segmentInfos,
-              parentId,
-            )
-            const prepared = MemberSyncService.prefixData(
-              memberSegmentCouples[memberId][0].data,
-              aggregated,
-              attributes,
-            )
-            syncStream.push({
-              id: `${memberId}-${parentId}`,
-              body: prepared,
-            })
-          }
-
-          const grandParentIds = distinct(segmentInfos.map((s) => s.grandParentId))
-          for (const grandParentId of grandParentIds) {
-            const aggregated = MemberSyncService.aggregateData(
-              memberSegmentCouples[memberId].map((s) => s.aggregates),
-              segmentInfos,
-              undefined,
-              grandParentId,
-            )
-            const prepared = MemberSyncService.prefixData(
-              {
-                ...memberSegmentCouples[memberId][0].data,
-                grandParentSegment: true,
-              },
-              aggregated,
-              attributes,
-            )
-            syncStream.push({
-              id: `${memberId}-${grandParentId}`,
-              body: prepared,
-            })
-          }
-
-          // delete the memberId from matrix, we already created syncStreams for indexing to opensearch
-          delete memberSegmentCouples[memberId]
-        }
-
-        index += 1
+      return {
+        membersSynced: 1,
+        documentsIndexed,
       }
     }
 
-    for (let i = 0; i < totalMemberIds; i++) {
-      const memberId = allMemberIds[i]
-      const totalSegments = memberSegmentCouples[memberId].length
+    const syncResults = await syncMemberAggregates(memberId)
 
-      for (let j = 0; j < totalSegments; j++) {
-        const segment = memberSegmentCouples[memberId][j]
-        databaseStream.push({
-          memberId: memberId,
-          segmentId: segment.segmentId,
-          memberDataPromise: this.memberRepo.getMemberData(memberId),
-          aggregatesPromise: getMemberAggregates(this.qdbStore.connection(), memberId, [
-            segment.segmentId,
-          ]),
-        })
-
-        // databaseStreams will create syncStreams items in processSegmentsStream, which'll later be used to sync to opensearch in bulk
-        const isLastSegment = i === totalMemberIds - 1 && j === totalSegments - 1
-
-        if (isLastSegment || databaseStream.length >= CONCURRENT_DATABASE_QUERIES) {
-          await processSegmentsStream(databaseStream)
-          databaseStream = []
-        }
-
-        while (syncStream.length >= BULK_INDEX_DOCUMENT_BATCH_SIZE) {
-          await this.openSearchService.bulkIndex(
-            OpenSearchIndex.MEMBERS,
-            syncStream.slice(0, BULK_INDEX_DOCUMENT_BATCH_SIZE),
-          )
-          documentsIndexed += syncStream.slice(0, BULK_INDEX_DOCUMENT_BATCH_SIZE).length
-          syncStream = syncStream.slice(BULK_INDEX_DOCUMENT_BATCH_SIZE)
-        }
-
-        // check if there are remaining syncStreams to process
-        if (isLastSegment && syncStream.length > 0) {
-          await this.openSearchService.bulkIndex(OpenSearchIndex.MEMBERS, syncStream)
-          documentsIndexed += syncStream.length
-        }
-        successfullySyncedMembers.push(memberId)
-      }
+    const syncMembersToOpensearchForMergeSuggestions = async (memberId) => {
+      const qx = repoQx(this.memberRepo)
+      const base = await findMemberById(qx, memberId, [
+        MemberField.ID,
+        MemberField.TENANT_ID,
+        MemberField.DISPLAY_NAME,
+        MemberField.ATTRIBUTES,
+      ])
+      const attributes = await this.memberRepo.getTenantMemberAttributes(base.tenantId)
+      const data = await buildFullMemberForMergeSuggestions(qx, base)
+      const prefixed = MemberSyncService.prefixData(data, attributes)
+      await this.openSearchService.index(memberId, OpenSearchIndex.MEMBERS, prefixed)
     }
+    await syncMembersToOpensearchForMergeSuggestions(memberId)
 
-    return {
-      membersSynced: memberIds.length,
-      documentsIndexed,
-    }
+    return syncResults
   }
 
-  private static aggregateData(
-    aggregates: IMemberSegmentAggregates[],
-    segmentInfos: IDbSegmentInfo[],
-    parentId?: string,
-    grandParentId?: string,
-  ): IMemberSegmentAggregates | undefined {
-    if (!parentId && !grandParentId) {
-      throw new Error('Either parentId or grandParentId must be provided!')
-    }
-
-    const relevantSubchildIds: string[] = []
-    for (const si of segmentInfos) {
-      if (parentId && si.parentId === parentId) {
-        relevantSubchildIds.push(si.id)
-      } else if (grandParentId && si.grandParentId === grandParentId) {
-        relevantSubchildIds.push(si.id)
-      }
-    }
-
-    const relevantAggregates = aggregates.filter((m) => relevantSubchildIds.includes(m.segmentId))
-
-    if (relevantAggregates.length === 0) {
-      throw new Error('No members found for given parent or grandParent segment id!')
-    }
-
-    // aggregate data
-    const data: IMemberSegmentAggregates = {
-      memberId: relevantAggregates[0].memberId,
-      segmentId: parentId !== undefined ? parentId : grandParentId,
-      activeOn: [],
-      activityCount: 0,
-      activityTypes: [],
-      activeDaysCount: 0,
-      lastActive: undefined,
-      averageSentiment: null,
-    }
-
-    for (const agg of relevantAggregates) {
-      data.activeOn.push(...(agg.activeOn || []))
-      data.activityCount += agg.activityCount
-      data.activityTypes.push(...(agg.activityTypes || []))
-      data.activeDaysCount += agg.activeDaysCount
-      if (!data.lastActive) {
-        data.lastActive = agg.lastActive
-      } else if (agg.lastActive) {
-        const d1 = new Date(data.lastActive)
-        const d2 = new Date(agg.lastActive)
-
-        if (d1 < d2) {
-          data.lastActive = agg.lastActive
-        }
-      }
-      if (!data.averageSentiment) {
-        data.averageSentiment = agg.averageSentiment
-      } else if (agg.averageSentiment) {
-        data.averageSentiment += agg.averageSentiment
-      }
-    }
-
-    // average sentiment with the total number of members that have sentiment set
-    if (data.averageSentiment) {
-      data.averageSentiment = Number(
-        (
-          data.averageSentiment /
-          relevantAggregates.filter((m) => m.averageSentiment !== null).length
-        ).toFixed(2),
-      )
-    }
-
-    // gather only uniques
-    data.activeOn = distinct(data.activeOn)
-    data.activityTypes = distinct(data.activityTypes)
-
-    return data
-  }
-
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public static prefixData(
-    data: IDbMemberSyncData,
-    aggregates: IMemberSegmentAggregates,
+    data: IMemberWithAggregatesForMergeSuggestions,
     attributes: IMemberAttribute[],
-  ): any {
-    const p: Record<string, unknown> = {}
+  ): IMemberOpensearch {
+    const p: IMemberOpensearch = {} as IMemberOpensearch
 
     p.uuid_memberId = data.id
     p.uuid_tenantId = data.tenantId
-    p.uuid_segmentId = aggregates.segmentId
-    p.bool_grandParentSegment = data.grandParentSegment ? data.grandParentSegment : false
     p.string_displayName = data.displayName
     p.keyword_displayName = data.displayName
     const p_attributes = {}
@@ -609,23 +465,8 @@ export class MemberSyncService {
       }
     }
 
-    // If the 'reach' data from the database is a number instead of an object,
-    // we convert it into an object with a 'total' property holding the original number.
-    p.obj_reach = typeof data.reach === 'object' ? data.reach : { total: data.reach }
-
     p.obj_attributes = p_attributes
-    p.int_score = data.score
-    p.date_lastEnriched = data.lastEnriched ? new Date(data.lastEnriched).toISOString() : null
-    p.date_joinedAt = new Date(data.joinedAt).toISOString()
-    p.date_createdAt = new Date(data.createdAt).toISOString()
-    p.bool_manuallyCreated = data.manuallyCreated ? data.manuallyCreated : false
-    p.int_numberOfOpenSourceContributions = data.numberOfOpenSourceContributions
-    p.string_arr_activeOn = aggregates.activeOn
-    p.int_activityCount = aggregates.activityCount
-    p.string_arr_activityTypes = aggregates.activityTypes
-    p.int_activeDaysCount = aggregates.activeDaysCount
-    p.date_lastActive = aggregates.lastActive ? new Date(aggregates.lastActive).toISOString() : null
-    p.float_averageSentiment = aggregates.averageSentiment
+    p.int_activityCount = data.activityCount
 
     const p_identities = []
     for (const identity of data.identities) {
@@ -641,122 +482,20 @@ export class MemberSyncService {
     }
     p.nested_identities = p_identities
 
-    p.string_arr_verifiedEmails = distinct(
-      data.identities
-        .filter((i) => i.verified && i.type === MemberIdentityType.EMAIL)
-        .map((i) => i.value),
-    )
-    p.keyword_verifiedEmails = p.string_arr_verifiedEmails
-
-    p.string_arr_unverifiedEmails = distinct(
-      data.identities
-        .filter((i) => !i.verified && i.type === MemberIdentityType.EMAIL)
-        .map((i) => i.value),
-    )
-    p.keyword_unverifiedEmails = p.string_arr_unverifiedEmails
-
-    p.string_arr_verifiedUsernames = distinct(
-      data.identities
-        .filter((i) => i.verified && i.type === MemberIdentityType.USERNAME)
-        .map((i) => i.value),
-    )
-    p.keyword_verifiedUsernames = p.string_arr_verifiedUsernames
-
-    p.string_arr_unverifiedUsernames = distinct(
-      data.identities
-        .filter((i) => !i.verified && i.type === MemberIdentityType.USERNAME)
-        .map((i) => i.value),
-    )
-    p.keyword_unverifiedUsernames = p.string_arr_unverifiedUsernames
-
-    p.string_arr_identityPlatforms = distinct(
-      data.identities.filter((i) => i.verified).map((i) => i.platform),
-    )
-
-    const p_contributions = []
-    if (data.contributions) {
-      for (const contribution of data.contributions) {
-        p_contributions.push({
-          uuid_id: contribution.id,
-          string_url: contribution.url,
-          string_summary: contribution.summary,
-          int_numberCommits: contribution.numberCommits,
-          date_lastCommitDate: new Date(contribution.lastCommitDate).toISOString(),
-          date_firstCommitDate: new Date(contribution.firstCommitDate).toISOString(),
-        })
-      }
-    }
-
-    const p_affiliations = []
-    for (const affiliation of data.affiliations) {
-      p_affiliations.push({
-        uuid_id: affiliation.id,
-        string_segmentId: affiliation.segmentId,
-        string_segmentSlug: affiliation.segmentSlug,
-        string_segmentName: affiliation.segmentName,
-        string_segmentParentName: affiliation.segmentParentName,
-        string_organizationId: affiliation.organizationId,
-        string_organizationName: affiliation.organizationName,
-        string_organizationLogo: affiliation.organizationLogo,
-        date_dateStart: affiliation.dateStart
-          ? new Date(affiliation.dateStart).toISOString()
-          : null,
-        date_dateEnd: affiliation.dateEnd ? new Date(affiliation.dateEnd).toISOString() : null,
-      })
-    }
-
     const p_organizations = []
     for (const organization of data.organizations) {
       p_organizations.push({
         uuid_id: organization.id,
-        string_logo: organization.logo,
         string_displayName: organization.displayName,
         obj_memberOrganizations: {
-          string_title: organization.memberOrganizations?.title || null,
-          date_dateStart: organization.memberOrganizations?.dateStart || null,
-          date_dateEnd: organization.memberOrganizations?.dateEnd || null,
-          string_source: organization.memberOrganizations?.source || null,
+          string_title: organization?.title || null,
+          date_dateStart: organization?.dateStart || null,
+          date_dateEnd: organization?.dateEnd || null,
+          string_source: organization?.source || null,
         },
       })
     }
     p.nested_organizations = p_organizations
-
-    const p_tags = []
-    for (const tag of data.tags) {
-      p_tags.push({
-        uuid_id: tag.id,
-        string_name: tag.name,
-      })
-    }
-
-    const p_notes = []
-    for (const note of data.notes) {
-      p_notes.push({
-        uuid_id: note.id,
-        string_body: note.body,
-      })
-    }
-
-    const p_tasks = []
-    for (const task of data.tasks) {
-      p_tasks.push({
-        uuid_id: task.id,
-        string_name: task.name,
-        string_body: task.body,
-        string_status: task.status,
-        date_dueDate: task.dueDate,
-        string_type: task.type,
-      })
-    }
-
-    p.nested_contributions = p_contributions
-    p.nested_affiliations = p_affiliations
-    p.nested_tags = p_tags
-    p.nested_notes = p_notes
-    p.nested_tasks = p_tasks
-
-    p.uuid_arr_toMergeIds = data.toMergeIds
-    p.uuid_arr_noMergeIds = data.noMergeIds
 
     return p
   }

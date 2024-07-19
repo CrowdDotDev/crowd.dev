@@ -5,7 +5,7 @@ const options: SelectFilterOptionGroup[] = [
   {
     options: [
       {
-        label: 'Contributor',
+        label: 'Person',
         value: 'contributor',
       },
       {
