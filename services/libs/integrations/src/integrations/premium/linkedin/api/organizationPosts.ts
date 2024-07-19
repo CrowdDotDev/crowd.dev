@@ -24,7 +24,7 @@ export const getOrganizationPosts = async (
       start,
     },
     headers: {
-      'LinkedIn-Version': 202305,
+      'LinkedIn-Version': 202406,
       Authorization: `Bearer ${accessToken}`,
     },
   }
