@@ -242,6 +242,7 @@ const createContributor = () => {
         })),
     ],
     username: {},
+    manuallyCreated: true,
   };
 
   sending.value = true;
