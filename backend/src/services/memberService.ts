@@ -47,6 +47,8 @@ import {
   removeMemberTasks,
 } from '@crowd/data-access-layer/src/members'
 import { findMemberAffiliations } from '@crowd/data-access-layer/src/member_segment_affiliations'
+import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
+import { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
 import { TEMPORAL_CONFIG } from '@/conf'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
 import ActivityRepository from '../database/repositories/activityRepository'
@@ -74,8 +76,6 @@ import MemberOrganizationService from './memberOrganizationService'
 import { MergeActionsRepository } from '@/database/repositories/mergeActionsRepository'
 import MemberOrganizationRepository from '@/database/repositories/memberOrganizationRepository'
 import OrganizationRepository from '@/database/repositories/organizationRepository'
-import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
-import { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
 
 export default class MemberService extends LoggerBase {
   options: IServiceOptions
