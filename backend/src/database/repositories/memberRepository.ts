@@ -453,6 +453,8 @@ class MemberRepository {
             findMemberTags(qx, memberId),
           ])
 
+          options.log.info('debug log one!')
+
           const [orgExtraInfo, lfxMemberships, tagExtraInfo] = await Promise.all([
             queryOrgs(qx, {
               filter: {
@@ -473,6 +475,8 @@ class MemberRepository {
               tags.map((t) => t.tagId),
             ),
           ])
+
+          options.log.info('debug log two!')
 
           return {
             ...member,
