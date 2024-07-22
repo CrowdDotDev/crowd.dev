@@ -453,12 +453,13 @@ class MemberRepository {
             findMemberTags(qx, memberId),
           ])
 
-          options.log.info('debug log one!')
+
+          const orgIds = memberOrgs.map((o) => o.organizationId)
 
           const [orgExtraInfo, lfxMemberships, tagExtraInfo] = await Promise.all([
             queryOrgs(qx, {
               filter: {
-                [OrganizationField.ID]: { in: memberOrgs.map((o) => o.organizationId) },
+                [OrganizationField.ID]: { in: orgIds },
               },
               fields: [
                 OrganizationField.ID,
@@ -468,15 +469,13 @@ class MemberRepository {
             }),
             findManyLfxMemberships(qx, {
               tenantId: options.currentTenant.id,
-              organizationIds: memberOrgs.map((o) => o.organizationId),
+              organizationIds: orgIds,
             }),
             findTags(
               qx,
               tags.map((t) => t.tagId),
             ),
           ])
-
-          options.log.info('debug log two!')
 
           return {
             ...member,

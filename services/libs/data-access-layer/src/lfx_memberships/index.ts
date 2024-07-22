@@ -89,6 +89,10 @@ export async function findManyLfxMemberships(
   qx: QueryExecutor,
   { tenantId, organizationIds }: { tenantId: string; organizationIds: string[] },
 ): Promise<LfxMembership[]> {
+  if (organizationIds.length === 0) {
+    return []
+  }
+
   return qx.select(
     `
       SELECT *
