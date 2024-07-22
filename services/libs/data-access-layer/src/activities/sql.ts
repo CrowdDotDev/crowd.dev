@@ -4,13 +4,12 @@ import { DbConnOrTx } from '@crowd/database'
 import {
   ActivityDisplayVariant,
   IMemberIdentity,
-  IMemberSegmentAggregates,
   MemberIdentityType,
   PageData,
   PlatformType,
 } from '@crowd/types'
 
-import { RawQueryParser, distinct, getEnv, timeout } from '@crowd/common'
+import { RawQueryParser, getEnv } from '@crowd/common'
 import { ActivityDisplayService } from '@crowd/integrations'
 import {
   IDbActivityCreateData,
@@ -28,7 +27,6 @@ import {
   INewActivityPlatforms,
   INumberOfActivitiesPerMember,
   INumberOfActivitiesPerOrganization,
-  IOrganizationSegmentAggregates,
   IQueryActiveMembersParameters,
   IQueryActiveOrganizationsParameters,
   IQueryActivitiesParameters,
@@ -41,9 +39,10 @@ import {
 } from './types'
 
 import merge from 'lodash.merge'
-import { QueryTypes } from 'sequelize'
 import { IPlatforms } from '../old/apps/cache_worker/types'
 import { checkUpdateRowCount } from '../utils'
+import { IDbOrganizationAggregateData } from '../organizations'
+import { IMemberSegmentAggregates } from '../members/types'
 
 const s3Url = `https://${
   process.env['CROWD_S3_MICROSERVICES_ASSETS_BUCKET']
@@ -818,7 +817,7 @@ export async function getMostActiveMembers(
 export async function getOrgAggregates(
   qdbConn: DbConnOrTx,
   organizationId: string,
-): Promise<IOrganizationSegmentAggregates[]> {
+): Promise<IDbOrganizationAggregateData[]> {
   const result = await qdbConn.any(
     `
       WITH
@@ -906,14 +905,18 @@ export async function getOrgAggregates(
 export async function getMemberAggregates(
   qdbConn: DbConnOrTx,
   memberId: string,
-  segmentIds: string[],
+  segmentIds?: string[],
 ): Promise<IMemberSegmentAggregates[]> {
   const results = await qdbConn.any(
     `
     with relevant_activities as (select id, platform, type, timestamp, "sentimentScore", "memberId", "segmentId"
                                 from activities
                                 where "memberId" = $(memberId)
-                                  and "segmentId" in ($(segmentIds:csv))
+                                  ${
+                                    segmentIds && segmentIds.length > 0
+                                      ? `and "segmentId" in ($(segmentIds:csv))`
+                                      : ''
+                                  }
                                   and "deletedAt" is null),
         activity_types as (select distinct "memberId", "segmentId", type, platform
                             from relevant_activities
@@ -924,13 +927,15 @@ export async function getMemberAggregates(
                               from relevant_activities
                               where "sentimentScore" is not null)
     select a."memberId",
-          a."segmentId",
-          count(a.id)                                      as "activityCount",
-          max(a.timestamp)                                 as "lastActive",
-          string_agg(p.platform, ':')                      as "activeOn",
-          string_agg(concat(t.platform, ':', t.type), '|') as "activityTypes",
-          count_distinct(date_trunc('day', a.timestamp))   as "activeDaysCount",
-          s."averageSentiment"
+           a."segmentId",
+           a."tenantId",
+
+           count_distinct(a.id)                             as "activityCount",
+           max(a.timestamp)                                 as "lastActive",
+           string_agg(p.platform, ':')                      as "activeOn",
+           string_agg(concat(t.platform, ':', t.type), '|') as "activityTypes"
+           count_distinct(date_trunc('day', a.timestamp))   as "activeDaysCount",
+           s."averageSentiment"
     from relevant_activities a
             inner join activity_types t on a."memberId" = t."memberId" and a."segmentId" = t."segmentId"
             inner join distinct_platforms p on a."memberId" = p."memberId" and a."segmentId" = p."segmentId"
@@ -947,12 +952,13 @@ export async function getMemberAggregates(
     return {
       memberId: result.memberId,
       segmentId: result.segmentId,
+      tenantId: result.tenantId,
       activityCount: result.activityCount,
       lastActive: result.lastActive,
       activeOn: result.activeOn.split(':'),
       activityTypes: result.activityTypes.split('|'),
-      activeDaysCount: result.activeDaysCount,
       averageSentiment: result.averageSentiment,
+      activeDaysCount: result.activeDaysCount,
     }
   })
 }

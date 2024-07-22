@@ -13,9 +13,9 @@ import {
   INumberOfActivitiesPerOrganization,
   INumberOfActivitiesPerMember,
   getMemberById,
-  findOrgById,
 } from '@crowd/data-access-layer'
 import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
+import { findOrgById } from '@crowd/data-access-layer/src/organizations'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 

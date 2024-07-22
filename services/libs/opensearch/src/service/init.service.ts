@@ -1,5 +1,4 @@
 import {
-  IMemberSegmentAggregates,
   IMemberWithAggregatesForMergeSuggestions,
   IOrganizationFullAggregatesOpensearch,
   MemberIdentityType,
@@ -107,18 +106,7 @@ export class InitService {
       attributes: {},
     }
 
-    const aggregates: IMemberSegmentAggregates = {
-      memberId: InitService.FAKE_MEMBER_ID,
-      segmentId: InitService.FAKE_SEGMENT_ID,
-      activeOn: ['devto'],
-      activityCount: 10,
-      activityTypes: ['devto:comment'],
-      activeDaysCount: 20,
-      lastActive: new Date().toISOString(),
-      averageSentiment: 20.32,
-    }
-
-    const prepared = MemberSyncService.prefixData(fakeMember, aggregates, [])
+    const prepared = MemberSyncService.prefixData(fakeMember, [])
     await this.openSearchService.index(
       `${InitService.FAKE_MEMBER_ID}`,
       OpenSearchIndex.MEMBERS,

@@ -1,26 +1,31 @@
-import lodash from 'lodash'
-import { v4 as uuid } from 'uuid'
-import { QueryTypes } from 'sequelize'
-import { DEFAULT_ACTIVITY_TYPE_SETTINGS } from '@crowd/integrations'
+import { Error404 } from '@crowd/common'
+import {
+  buildSegmentActivityTypes,
+  getSegmentActivityTypes,
+  isSegmentProject,
+  isSegmentProjectGroup,
+  populateSegmentRelations,
+} from '@crowd/data-access-layer/src/segments'
 import {
   ActivityTypeSettings,
+  PageData,
+  QueryData,
   SegmentCreateData,
   SegmentData,
   SegmentLevel,
   SegmentProjectGroupNestedData,
   SegmentProjectNestedData,
-  SegmentRawData,
   SegmentStatus,
   SegmentUpdateChildrenPartialData,
   SegmentUpdateData,
-  PageData,
-  QueryData,
 } from '@crowd/types'
-import { Error404 } from '@crowd/common'
-import { IRepositoryOptions } from './IRepositoryOptions'
-import { RepositoryBase } from './repositoryBase'
+import lodash from 'lodash'
+import { QueryTypes } from 'sequelize'
+import { v4 as uuid } from 'uuid'
 import removeFieldsFromObject from '../../utils/getObjectWithoutKey'
 import IntegrationRepository from './integrationRepository'
+import { IRepositoryOptions } from './IRepositoryOptions'
+import { RepositoryBase } from './repositoryBase'
 import SequelizeRepository from './sequelizeRepository'
 
 class SegmentRepository extends RepositoryBase<
@@ -86,7 +91,7 @@ class SegmentRepository extends RepositoryBase<
     segment: SegmentData,
     data: SegmentUpdateChildrenPartialData,
   ): Promise<SegmentData> {
-    if (SegmentRepository.isProjectGroup(segment)) {
+    if (isSegmentProjectGroup(segment)) {
       // update projects
       await this.updateBulk(
         (segment as SegmentProjectGroupNestedData).projects.map((p) => p.id),
@@ -105,7 +110,7 @@ class SegmentRepository extends RepositoryBase<
         grandparentSlug: data.slug,
         grandparentName: data.name,
       })
-    } else if (SegmentRepository.isProject(segment)) {
+    } else if (isSegmentProject(segment)) {
       // update subprojects
       await this.updateBulk(
         (segment as SegmentProjectNestedData).subprojects.map((sp) => sp.id),
@@ -353,31 +358,6 @@ class SegmentRepository extends RepositoryBase<
     }, {})
   }
 
-  async getChildrenOfProjectGroups(segment: SegmentData) {
-    const transaction = this.transaction
-
-    const records = await this.options.database.sequelize.query(
-      `
-          SELECT *
-          FROM segments s
-          WHERE (s."grandparentSlug" = :slug OR
-                 (s."parentSlug" = :slug AND s."grandparentSlug" IS NULL))
-            AND s."tenantId" = :tenantId
-          ORDER BY "grandparentSlug" DESC, "parentSlug" DESC, slug DESC;
-      `,
-      {
-        replacements: {
-          slug: segment.slug,
-          tenantId: this.options.currentTenant.id,
-        },
-        type: QueryTypes.SELECT,
-        transaction,
-      },
-    )
-
-    return records
-  }
-
   async getChildrenOfProjects(segment: SegmentData) {
     const records = await this.options.database.sequelize.query(
       `
@@ -454,77 +434,7 @@ class SegmentRepository extends RepositoryBase<
       },
     )
 
-    return records.map((sr) => SegmentRepository.populateRelations(sr))
-  }
-
-  static populateRelations(record: SegmentRawData): SegmentData {
-    const segmentData: SegmentData = {
-      ...record,
-      activityTypes: null,
-    }
-
-    if (SegmentRepository.isSubproject(record)) {
-      segmentData.activityTypes = SegmentRepository.buildActivityTypes(record)
-    }
-
-    return segmentData
-  }
-
-  async findById(id: string): Promise<SegmentProjectGroupNestedData | SegmentProjectNestedData> {
-    const transaction = this.transaction
-
-    const records = await this.options.database.sequelize.query(
-      `
-        SELECT
-          s.*
-        FROM segments s
-        WHERE s.id = :id
-        AND s."tenantId" = :tenantId
-        GROUP BY s.id;
-      `,
-      {
-        replacements: {
-          id,
-          tenantId: this.options.currentTenant.id,
-        },
-        type: QueryTypes.SELECT,
-        transaction,
-      },
-    )
-
-    if (records.length === 0) {
-      return null
-    }
-
-    const record = records[0]
-
-    if (SegmentRepository.isProjectGroup(record)) {
-      // find projects
-      // TODO: Check sorting - parent should come first
-      const children = await this.getChildrenOfProjectGroups(record)
-
-      const projects = children.reduce((acc, child) => {
-        if (SegmentRepository.isProject(child)) {
-          acc.push(child)
-        } else if (SegmentRepository.isSubproject(child)) {
-          // find project index
-          const projectIndex = acc.findIndex((project) => project.slug === child.parentSlug)
-          if (!acc[projectIndex].subprojects) {
-            acc[projectIndex].subprojects = [child]
-          } else {
-            acc[projectIndex].subprojects.push(child)
-          }
-        }
-        return acc
-      }, [])
-
-      record.projects = projects
-    } else if (SegmentRepository.isProject(record)) {
-      const children = await this.getChildrenOfProjects(record)
-      record.subprojects = children
-    }
-
-    return SegmentRepository.populateRelations(record)
+    return records.map((sr) => populateSegmentRelations(sr))
   }
 
   async findByIds(ids: string[]) {
@@ -545,18 +455,6 @@ class SegmentRepository extends RepositoryBase<
     )
 
     return records
-  }
-
-  static isProjectGroup(segment: SegmentData | SegmentRawData): boolean {
-    return segment.slug && segment.parentSlug === null && segment.grandparentSlug === null
-  }
-
-  static isProject(segment: SegmentData | SegmentRawData): boolean {
-    return segment.slug && segment.parentSlug && segment.grandparentSlug === null
-  }
-
-  static isSubproject(segment: SegmentData | SegmentRawData): boolean {
-    return segment.slug != null && segment.parentSlug != null && segment.grandparentSlug != null
   }
 
   /**
@@ -774,7 +672,7 @@ class SegmentRepository extends RepositoryBase<
 
     return {
       count: 1,
-      rows: rows.map((sr) => SegmentRepository.populateRelations(sr)),
+      rows: rows.map((sr) => populateSegmentRelations(sr)),
       limit: criteria.limit,
       offset: criteria.offset,
     }
@@ -804,28 +702,8 @@ class SegmentRepository extends RepositoryBase<
     return lodash.groupBy(integrations, 'segmentId')
   }
 
-  /**
-   * Builds activity types object with both default and custom activity types
-   * @param record
-   * @returns
-   */
-  static buildActivityTypes(record: SegmentRawData): ActivityTypeSettings {
-    const activityTypes = {} as ActivityTypeSettings
-
-    activityTypes.default = lodash.cloneDeep(DEFAULT_ACTIVITY_TYPE_SETTINGS)
-    activityTypes.custom = {}
-
-    const customActivityTypes = record.customActivityTypes || {}
-
-    if (Object.keys(customActivityTypes).length > 0) {
-      activityTypes.custom = customActivityTypes
-    }
-
-    return activityTypes
-  }
-
   static getActivityTypes(options: IRepositoryOptions): ActivityTypeSettings {
-    return options.currentSegments.reduce((acc, s) => lodash.merge(acc, s.activityTypes), {})
+    return getSegmentActivityTypes(options.currentSegments)
   }
 
   static async fetchTenantActivityTypes(options: IRepositoryOptions) {
@@ -850,7 +728,7 @@ class SegmentRepository extends RepositoryBase<
       },
     )
 
-    return SegmentRepository.buildActivityTypes(record)
+    return buildSegmentActivityTypes(record)
   }
 
   static activityTypeExists(platform: string, key: string, options: IRepositoryOptions): boolean {

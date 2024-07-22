@@ -1,4 +1,5 @@
-import { IMemberSegmentAggregates, MemberIdentityType } from '@crowd/types'
+import { IMemberSegmentAggregates } from '@crowd/data-access-layer/src/members/types'
+import { MemberIdentityType } from '@crowd/types'
 
 export interface IDbMemberIdentityData {
   platform: string

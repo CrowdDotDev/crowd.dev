@@ -6,22 +6,29 @@ import {
 } from '@crowd/audit-logs'
 import { Error400, Error404, Error409, PageData, RawQueryParser } from '@crowd/common'
 import {
+  countMembersWithActivities,
+  getActiveOrganizations,
+  queryActivities,
+} from '@crowd/data-access-layer'
+import { findManyLfxMemberships } from '@crowd/data-access-layer/src/lfx_memberships'
+import {
   addOrgIdentity,
   cleanUpOrgIdentities,
-  fetchOrgIdentities,
   fetchManyOrgIdentities,
-  updateOrgIdentityVerifiedFlag,
-  findOrgAttributes,
-  queryOrgIdentities,
-  OrgIdentityField,
+  fetchManyOrgSegments,
+  fetchOrgIdentities,
   findManyOrgAttributes,
-  upsertOrgAttributes,
-  IDbOrgAttribute,
-  markOrgAttributeDefault,
+  findOrgAttributes,
   findOrgById,
   IDbOrganization,
-  fetchManyOrgSegments,
+  IDbOrgAttribute,
+  markOrgAttributeDefault,
+  OrgIdentityField,
+  queryOrgIdentities,
+  updateOrgIdentityVerifiedFlag,
+  upsertOrgAttributes,
 } from '@crowd/data-access-layer/src/organizations'
+import { findAttribute } from '@crowd/data-access-layer/src/organizations/attributesConfig'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import {
   FeatureFlag,
@@ -39,14 +46,7 @@ import {
 import lodash, { uniq } from 'lodash'
 import Sequelize, { QueryTypes } from 'sequelize'
 import validator from 'validator'
-import { findManyLfxMemberships } from '@crowd/data-access-layer/src/lfx_memberships'
-import { findAttribute } from '@crowd/data-access-layer/src/organizations/attributesConfig'
-import {
-  countMembersWithActivities,
-  getActiveOrganizations,
-  OrganizationField,
-  queryActivities,
-} from '@crowd/data-access-layer'
+import { isSegmentProject, isSegmentProjectGroup } from '@crowd/data-access-layer/src/segments'
 import {
   IFetchOrganizationMergeSuggestionArgs,
   SimilarityScoreRange,
@@ -1179,19 +1179,7 @@ class OrganizationRepository {
       (a, b) => b.identities.length - a.identities.length,
     )[0].organizationId
 
-    const result = await findOrgById(qx, orgIdWithMostIdentities, [
-      OrganizationField.ID,
-      OrganizationField.DESCRIPTION,
-      OrganizationField.LOGO,
-      OrganizationField.TAGS,
-      OrganizationField.EMPLOYEES,
-      OrganizationField.LOCATION,
-      OrganizationField.TYPE,
-      OrganizationField.SIZE,
-      OrganizationField.HEADLINE,
-      OrganizationField.INDUSTRY,
-      OrganizationField.FOUNDED,
-    ])
+    const result = await findOrgById(qx, orgIdWithMostIdentities)
 
     return result
   }
@@ -1421,12 +1409,12 @@ class OrganizationRepository {
       }
     }
 
-    if (SegmentRepository.isProjectGroup(segment)) {
+    if (isSegmentProjectGroup(segment)) {
       segments = (segment as SegmentProjectGroupNestedData).projects.reduce((acc, p) => {
         acc.push(...p.subprojects.map((sp) => sp.id))
         return acc
       }, [])
-    } else if (SegmentRepository.isProject(segment)) {
+    } else if (isSegmentProject(segment)) {
       segments = (segment as SegmentProjectNestedData).subprojects.map((sp) => sp.id)
     } else {
       segments = [originalSegment]

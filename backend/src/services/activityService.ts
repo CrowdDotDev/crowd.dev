@@ -1,4 +1,4 @@
-import { Error400, singleOrDefault } from '@crowd/common'
+import { Error400, distinct, singleOrDefault } from '@crowd/common'
 import {
   DEFAULT_COLUMNS_TO_SELECT,
   addActivityToConversation,
@@ -7,20 +7,26 @@ import {
   queryActivities,
   updateActivity,
 } from '@crowd/data-access-layer'
+import {
+  MemberField,
+  findMemberById,
+  queryMembersAdvanced,
+} from '@crowd/data-access-layer/src/members'
 import { ActivityDisplayService } from '@crowd/integrations'
 import { LoggerBase, logExecutionTime } from '@crowd/logging'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
 import {
-  PlatformType,
-  TemporalWorkflowId,
-  SegmentData,
   IMemberIdentity,
   IntegrationResultType,
+  PlatformType,
+  SegmentData,
+  TemporalWorkflowId,
 } from '@crowd/types'
-import { findMemberById, MemberField } from '@crowd/data-access-layer/src/members'
 import { Blob } from 'buffer'
 import vader from 'crowd-sentiment'
 import { Transaction } from 'sequelize/types'
+import { seqQx } from '@crowd/data-access-layer/src/queryExecutor'
+import { getDataSinkWorkerEmitter } from '@/serverless/utils/serviceSQS'
 import OrganizationRepository from '@/database/repositories/organizationRepository'
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import { GITHUB_CONFIG, IS_DEV_ENV, IS_TEST_ENV, TEMPORAL_CONFIG } from '../conf'
@@ -40,7 +46,6 @@ import merge from './helpers/merge'
 import MemberAffiliationService from './memberAffiliationService'
 import SearchSyncService from './searchSyncService'
 import SegmentService from './segmentService'
-import { getDataSinkWorkerEmitter } from '@/serverless/utils/serviceSQS'
 
 const IS_GITHUB_COMMIT_DATA_ENABLED = GITHUB_CONFIG.isCommitDataEnabled === 'true'
 
@@ -199,11 +204,29 @@ export default class ActivityService extends LoggerBase {
               tenantId: record.tenantId,
               segmentIds: [record.segmentId],
               filter: { and: [{ sourceParentId: { eq: data.sourceId } }] },
-              populate: { member: true },
             },
             DEFAULT_COLUMNS_TO_SELECT,
-            this.options.database.sequelize,
           )
+
+          const memberIds = distinct(children.rows.map((c) => c.memberId))
+          if (memberIds.length > 0) {
+            const memberResults = await queryMembersAdvanced(
+              seqQx(SequelizeRepository.getSequelize(repositoryOptions)),
+              repositoryOptions.redis,
+              repositoryOptions.currentTenant.id,
+              {
+                filter: { and: [{ id: { in: memberIds } }] },
+                limit: memberIds.length,
+              },
+            )
+
+            for (const activity of children.rows) {
+              const member = singleOrDefault(memberResults.rows, (m) => m.id === activity.memberId)
+              if (member) {
+                activity.member = member
+              }
+            }
+          }
 
           for (const child of children.rows) {
             // update children with newly created parentId

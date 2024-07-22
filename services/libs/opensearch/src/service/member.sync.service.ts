@@ -1,16 +1,16 @@
-import { distinct, trimUtf8ToMaxByteLength } from '@crowd/common'
+import { trimUtf8ToMaxByteLength } from '@crowd/common'
 import {
+  fetchMemberIdentities,
+  fetchMemberOrganizations,
   filterMembersWithActivities,
-  getMemberAggregates,
-  getMemberSegmentCouples,
+  findMemberById,
+  MemberField,
 } from '@crowd/data-access-layer'
 import { DbStore } from '@crowd/database'
 import { Logger, getChildLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
 import {
   IMemberAttribute,
-  MemberAttributeType,
-  MemberIdentityType,
   IMemberBaseForMergeSuggestions,
   IMemberOpensearch,
   IMemberOrganization,
@@ -20,26 +20,19 @@ import {
 import { IndexedEntityType } from '../repo/indexing.data'
 import { IndexingRepository } from '../repo/indexing.repo'
 import { MemberRepository } from '../repo/member.repo'
-import { SegmentRepository } from '../repo/segment.repo'
 import { OpenSearchIndex } from '../types'
 import { IMemberSyncResult } from './member.sync.data'
 import { IPagedSearchResponse, ISearchHit } from './opensearch.data'
 import { OpenSearchService } from './opensearch.service'
 import { repoQx, QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
-import {
-  MemberField,
-  fetchMemberIdentities,
-  fetchMemberOrganizations,
-  findMemberById,
-} from '@crowd/data-access-layer/src/members'
 import { getMemberAggregates } from '@crowd/data-access-layer/src/activities'
 import {
   cleanupMemberAggregates,
   fetchAbsoluteMemberAggregates,
   insertMemberSegments,
 } from '@crowd/data-access-layer/src/members/segments'
-import { IMemberSegmentAggregates } from '@crowd/data-access-layer/src/members/types'
 import { OrganizationField, findOrgById } from '@crowd/data-access-layer/src/orgs'
+import { IMemberSegmentAggregates } from '@crowd/data-access-layer/src/members/types'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -77,7 +70,6 @@ export class MemberSyncService {
   private static MAX_BYTE_LENGTH = 25000
   private log: Logger
   private readonly memberRepo: MemberRepository
-  private readonly segmentRepo: SegmentRepository
   private readonly indexingRepo: IndexingRepository
 
   constructor(
@@ -90,7 +82,6 @@ export class MemberSyncService {
     this.log = getChildLogger('member-sync-service', parentLog)
 
     this.memberRepo = new MemberRepository(redisClient, pgStore, this.log)
-    this.segmentRepo = new SegmentRepository(pgStore, this.log)
     this.indexingRepo = new IndexingRepository(pgStore, this.log)
   }
 
@@ -373,8 +364,7 @@ export class MemberSyncService {
       let documentsIndexed = 0
       let memberData: IMemberSegmentAggregates[]
       try {
-        const qx = repoQx(this.memberRepo)
-        memberData = await getMemberAggregates(qx, memberId)
+        memberData = await getMemberAggregates(this.qdbStore.connection(), memberId)
       } catch (e) {
         this.log.error(e, 'Failed to get organization aggregates!')
         throw e

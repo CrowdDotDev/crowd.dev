@@ -1,6 +1,4 @@
-import { getCleanString, Error403, distinct, singleOrDefault, single } from '@crowd/common'
-import { LoggerBase } from '@crowd/logging'
-import { PageData, PlatformType } from '@crowd/types'
+import { Error403, distinct, getCleanString, single, singleOrDefault } from '@crowd/common'
 import {
   DEFAULT_COLUMNS_TO_SELECT,
   IQueryActivityResult,
@@ -8,11 +6,17 @@ import {
   insertConversation,
   queryActivities,
   queryConversations,
+  queryMembersAdvanced,
 } from '@crowd/data-access-layer'
+import { seqQx } from '@crowd/data-access-layer/src/queryExecutor'
+import { ActivityDisplayService } from '@crowd/integrations'
+import { LoggerBase } from '@crowd/logging'
+import { PageData, PlatformType } from '@crowd/types'
 import emoji from 'emoji-dictionary'
 import { convert as convertHtmlToText } from 'html-to-text'
 import fetch from 'node-fetch'
-import { ActivityDisplayService } from '@crowd/integrations'
+import SegmentRepository from '@/database/repositories/segmentRepository'
+import OrganizationRepository from '@/database/repositories/organizationRepository'
 import { S3_CONFIG } from '../conf/index'
 import ConversationRepository from '../database/repositories/conversationRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
@@ -24,9 +28,6 @@ import getStage from './helpers/getStage'
 import IntegrationService from './integrationService'
 import SettingsService from './settingsService'
 import TenantService from './tenantService'
-import MemberRepository from '@/database/repositories/memberRepository'
-import OrganizationRepository from '@/database/repositories/organizationRepository'
-import SegmentRepository from '@/database/repositories/segmentRepository'
 
 export default class ConversationService extends LoggerBase {
   static readonly MAX_SLUG_WORD_LENGTH = 10
@@ -390,14 +391,16 @@ export default class ConversationService extends LoggerBase {
     const promises = []
     if (memberIds.length > 0) {
       promises.push(
-        MemberRepository.findAndCountAllOpensearch(
+        queryMembersAdvanced(
+          seqQx(SequelizeRepository.getSequelize(this.options)),
+          this.options.redis,
+          this.options.currentTenant.id,
           {
             filter: {
               and: [{ id: { in: memberIds } }],
             },
             limit: memberIds.length,
           },
-          this.options,
         ).then((members) => {
           for (const row of activities.rows) {
             ;(row as any).member = singleOrDefault(members.rows, (m) => m.id === row.memberId)
@@ -414,7 +417,7 @@ export default class ConversationService extends LoggerBase {
 
     if (organizationIds.length > 0) {
       promises.push(
-        OrganizationRepository.findAndCountAllOpensearch(
+        OrganizationRepository.findAndCountAll(
           {
             filter: {
               and: [{ id: { in: organizationIds } }],
@@ -511,16 +514,28 @@ export default class ConversationService extends LoggerBase {
         },
         tenantId,
         segmentIds,
-        populate: {
-          member: true,
-        },
         noLimit: true,
       },
       DEFAULT_COLUMNS_TO_SELECT,
-      this.options.database.sequelize,
     )) as PageData<IQueryActivityResult>
 
-    // TODO questdb: properly add display as a property, in an extented type?
+    const memberIds = distinct(activities.rows.map((a) => a.memberId))
+    if (memberIds.length > 0) {
+      const memberResults = await queryMembersAdvanced(
+        seqQx(SequelizeRepository.getSequelize(this.options)),
+        this.options.redis,
+        this.options.currentTenant.id,
+        { filter: { and: [{ id: { in: memberIds } }] }, limit: memberIds.length },
+      )
+
+      for (const activity of activities.rows) {
+        ;(activity as any).member = singleOrDefault(
+          memberResults.rows,
+          (m) => m.id === activity.memberId,
+        )
+      }
+    }
+
     for (const activity of activities.rows) {
       ;(activity as any).display = ActivityDisplayService.getDisplayOptions(
         activity,

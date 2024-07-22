@@ -9,6 +9,10 @@ import {
 } from '@crowd/types'
 import { Error400 } from '@crowd/common'
 import { LoggerBase } from '@crowd/logging'
+import {
+  buildSegmentActivityTypes,
+  isSegmentSubproject,
+} from '@crowd/data-access-layer/src/segments'
 import SegmentRepository from '../database/repositories/segmentRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import { IServiceOptions } from './IServiceOptions'
@@ -38,7 +42,7 @@ export default class SegmentService extends LoggerBase {
       await segmentRepository.update(id, data)
 
       // update relation fields of parent objects
-      if (!SegmentRepository.isSubproject(segment) && (data.name || data.slug)) {
+      if (!isSegmentSubproject(segment) && (data.name || data.slug)) {
         await segmentRepository.updateChildrenBulk(segment, { name: data.name, slug: data.slug })
       }
 
@@ -384,7 +388,7 @@ export default class SegmentService extends LoggerBase {
       return { custom: {}, default: {} }
     }
     return subprojects.reduce((acc: any, subproject) => {
-      const activityTypes = SegmentRepository.buildActivityTypes(subproject)
+      const activityTypes = buildSegmentActivityTypes(subproject)
 
       return {
         custom: {

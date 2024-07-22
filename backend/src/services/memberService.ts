@@ -1,38 +1,13 @@
-/* eslint-disable no-continue */
-
 import { captureApiChange, memberEditIdentitiesAction, memberMergeAction } from '@crowd/audit-logs'
 import {
-  SERVICE,
   Error400,
-  isDomainExcluded,
-  singleOrDefault,
   getProperDisplayName,
+  isDomainExcluded,
+  SERVICE,
+  singleOrDefault,
 } from '@crowd/common'
-import { LoggerBase } from '@crowd/logging'
-import { WorkflowIdReusePolicy } from '@crowd/temporal'
-import {
-  FeatureFlag,
-  ExportableEntity,
-  IMemberIdentity,
-  IMemberUnmergeBackup,
-  IMemberUnmergePreviewResult,
-  IOrganization,
-  IUnmergePreviewResult,
-  MemberIdentityType,
-  MergeActionState,
-  MergeActionType,
-  SyncMode,
-  TemporalWorkflowId,
-  MemberRoleUnmergeStrategy,
-  OrganizationIdentityType,
-  IMemberRoleWithOrganization,
-  MemberAttributeType,
-} from '@crowd/types'
-import { randomUUID } from 'crypto'
-import lodash from 'lodash'
-import moment from 'moment-timezone'
-import validator from 'validator'
 import { getActivityCountOfMemberIdentities } from '@crowd/data-access-layer'
+import { findMemberAffiliations } from '@crowd/data-access-layer/src/member_segment_affiliations'
 import {
   addMemberNotes,
   addMemberTags,
@@ -43,11 +18,34 @@ import {
   findMemberTags,
   findMemberTasks,
   MemberField,
+  queryMembersAdvanced,
   removeMemberNotes,
   removeMemberTags,
   removeMemberTasks,
 } from '@crowd/data-access-layer/src/members'
-import { findMemberAffiliations } from '@crowd/data-access-layer/src/member_segment_affiliations'
+import { LoggerBase } from '@crowd/logging'
+import { WorkflowIdReusePolicy } from '@crowd/temporal'
+import {
+  IMemberIdentity,
+  IMemberRoleWithOrganization,
+  IMemberUnmergeBackup,
+  IMemberUnmergePreviewResult,
+  IOrganization,
+  IUnmergePreviewResult,
+  MemberAttributeType,
+  MemberIdentityType,
+  MemberRoleUnmergeStrategy,
+  MergeActionState,
+  MergeActionType,
+  OrganizationIdentityType,
+  SyncMode,
+  TemporalWorkflowId,
+} from '@crowd/types'
+import { randomUUID } from 'crypto'
+import lodash from 'lodash'
+import moment from 'moment-timezone'
+import validator from 'validator'
+import { seqQx } from '@crowd/data-access-layer/src/queryExecutor'
 import OrganizationRepository from '@/database/repositories/organizationRepository'
 import { MergeActionsRepository } from '@/database/repositories/mergeActionsRepository'
 import MemberOrganizationRepository from '@/database/repositories/memberOrganizationRepository'
@@ -74,6 +72,8 @@ import MemberOrganizationService from './memberOrganizationService'
 import OrganizationService from './organizationService'
 import SearchSyncService from './searchSyncService'
 import SettingsService from './settingsService'
+
+/* eslint-disable no-continue */
 
 export default class MemberService extends LoggerBase {
   options: IServiceOptions
@@ -1828,7 +1828,10 @@ export default class MemberService extends LoggerBase {
   }
 
   async findAllAutocomplete(data) {
-    return MemberRepository.findAndCountAll(
+    return queryMembersAdvanced(
+      seqQx(SequelizeRepository.getSequelize(this.options)),
+      this.options.redis,
+      this.options.currentTenant.id,
       {
         filter: data.filter,
         offset: data.offset,
@@ -1839,7 +1842,6 @@ export default class MemberService extends LoggerBase {
           segments: true,
         },
       },
-      this.options,
     )
   }
 
@@ -1876,7 +1878,10 @@ export default class MemberService extends LoggerBase {
       throw new Error400(this.options.language, 'member.segmentsRequired')
     }
 
-    return MemberRepository.findAndCountAll(
+    return queryMembersAdvanced(
+      seqQx(SequelizeRepository.getSequelize(this.options)),
+      this.options.redis,
+      this.options.currentTenant.id,
       {
         ...data,
         segmentId,
@@ -1888,41 +1893,7 @@ export default class MemberService extends LoggerBase {
         },
         exportMode,
       },
-      this.options,
     )
-  }
-
-  async queryForCsv(data) {
-    data.limit = 10000000000000
-    const found = await this.query(data, true)
-
-    const relations = [
-      { relation: 'organizations', attributes: ['name'] },
-      { relation: 'notes', attributes: ['body'] },
-      { relation: 'tags', attributes: ['name'] },
-    ]
-    for (const relation of relations) {
-      for (const member of found.rows) {
-        member[relation.relation] = member[relation.relation]?.map((i) => ({
-          id: i.id,
-          ...lodash.pick(i, relation.attributes),
-        }))
-      }
-    }
-
-    return found
-  }
-
-  async export(data) {
-    const emitter = await getNodejsWorkerEmitter()
-    await emitter.exportCSV(
-      this.options.currentTenant.id,
-      this.options.currentUser.id,
-      ExportableEntity.MEMBERS,
-      SequelizeRepository.getSegmentIds(this.options),
-      data,
-    )
-    return {}
   }
 
   async findMembersWithMergeSuggestions(args) {
