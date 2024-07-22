@@ -461,6 +461,9 @@ class MemberRepository {
           let lfxMemberships = [] 
           let tagExtraInfo = []
 
+          options.log.info('check orgIds', orgIds)
+          options.log.info('check tagIds', tagIds)
+
           if (orgIds.length > 0) {
             orgExtraInfo = await queryOrgs(qx, {
               filter: {
@@ -472,6 +475,7 @@ class MemberRepository {
                 OrganizationField.LOGO,
               ],
             })
+
             lfxMemberships = await findManyLfxMemberships(qx, {
               tenantId: options.currentTenant.id,
               organizationIds: orgIds,
