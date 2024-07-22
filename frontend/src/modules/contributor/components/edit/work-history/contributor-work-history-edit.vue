@@ -67,6 +67,16 @@
           </lf-checkbox>
         </div>
       </div>
+      <div class="px-6 pb-10 flex">
+        <div class="mt-0.5">
+          <lf-icon name="information-line" :size="16" class="text-gray-600" />
+        </div>
+        <div class="flex-grow pl-2 text-xs text-gray-500">
+          <span class="font-semibold">Activities affiliation</span> with a certain organization is automatically defined
+          by the work experience period. Any work history updates won’t override
+          manual changes to activities affiliation, both individually or per project over a specific time period.
+        </div>
+      </div>
       <div class="py-4 px-6 border-t border-gray-100 flex items-center justify-end gap-4">
         <lf-button type="secondary-ghost" @click="close">
           Cancel

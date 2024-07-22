@@ -1,7 +1,13 @@
 <template>
   <lf-card>
-    <div class="p-5">
+    <div class="px-5 py-4 flex justify-between items-center">
       <h6>Projects</h6>
+      <lf-tooltip content="Manage activities affiliation per project" placement="top-end">
+        <lf-button type="secondary" size="small">
+          <lf-icon name="settings-4-line" />
+          Activities affiliation
+        </lf-button>
+      </lf-tooltip>
     </div>
     <div>
       <article
@@ -41,6 +47,7 @@ import { computed, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { Contributor } from '@/modules/contributor/types/Contributor';
 import pluralize from 'pluralize';
+import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
 
 const props = defineProps<{
   contributor: Contributor,
