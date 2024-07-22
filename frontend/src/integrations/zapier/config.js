@@ -7,7 +7,7 @@ export default {
   borderColor: '#FFFFFF',
   description: 'Use Zapier to connect LFX with 5,000+ apps.',
   image:
-    'https://www.seekpng.com/png/full/67-672759_zapiers-new-cli-tool-for-creating-apps-zapier.png',
+    'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRjwkLT9PbSES0VK7HH2KbXxWdH8oc7k7oIJA&s',
   connectComponent: ZapierConnect,
   url: () => null,
   chartColor: '#FF9676',
