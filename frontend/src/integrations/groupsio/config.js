@@ -15,6 +15,7 @@ export default {
   url: ({ username }) => null,
   chartColor: '#111827',
   showProfileLink: true,
+  placeholder: 'Groups.io email address',
   activityDisplay: {
     showLinkToUrl: true,
   },

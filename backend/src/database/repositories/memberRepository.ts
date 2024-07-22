@@ -61,7 +61,7 @@ import { fetchAbsoluteMemberAggregates } from '@crowd/data-access-layer/src/memb
 import { OrganizationField, queryOrgs } from '@crowd/data-access-layer/src/orgs'
 import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
 import { KUBE_MODE, SERVICE } from '@/conf'
-import { ServiceType } from '../../conf/configTypes'
+import { ServiceType } from '@/conf/configTypes'
 import isFeatureEnabled from '../../feature-flags/isFeatureEnabled'
 import { PlatformIdentities } from '../../serverless/integrations/types/messageTypes'
 import {
