@@ -33,7 +33,7 @@
                   && (hasIntegrations || membersCount > 0)
               "
               class="btn btn--primary btn--md"
-              @click="onAddMember"
+              @click="memberCreate = true"
             >
               Add person
             </el-button>
@@ -70,22 +70,16 @@
         :is-page-loading="loading"
         :is-table-loading="tableLoading"
         @update:pagination="onPaginationChange"
-        @on-add-member="isSubProjectSelectionOpen = true"
+        @on-add-member="memberCreate = true"
       />
     </div>
   </app-page-wrapper>
 
-  <app-lf-sub-projects-list-modal
-    v-if="isSubProjectSelectionOpen"
-    v-model="isSubProjectSelectionOpen"
-    title="Add person"
-    @on-submit="onSubProjectSelection"
-  />
+  <lf-contributor-add v-if="memberCreate" v-model="memberCreate" />
 </template>
 
 <script setup lang="ts">
 import AppLfPageHeader from '@/modules/lf/layout/components/lf-page-header.vue';
-import AppLfSubProjectsListModal from '@/modules/lf/segments/components/lf-sub-projects-list-modal.vue';
 import AppPageWrapper from '@/shared/layout/page-wrapper.vue';
 import LfFilter from '@/shared/modules/filters/components/Filter.vue';
 import { useMemberStore } from '@/modules/member/store/pinia';
@@ -98,14 +92,12 @@ import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { FilterQuery } from '@/shared/modules/filters/types/FilterQuery';
 import LfSavedViews from '@/shared/modules/saved-views/components/SavedViews.vue';
 import AppMemberListTable from '@/modules/member/components/list/member-list-table.vue';
-import { useRouter } from 'vue-router';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import LfContributorAdd from '@/modules/contributor/components/edit/contributor-add.vue';
 import { memberFilters, memberSearchFilter } from '../config/filters/main';
 import { memberSavedViews, memberStaticViews } from '../config/saved-views/main';
-
-const router = useRouter();
 
 const memberStore = useMemberStore();
 const { getMemberCustomAttributes, fetchMembers } = memberStore;
@@ -116,7 +108,7 @@ const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const membersCount = ref(0);
 const membersToMergeCount = ref(0);
-const isSubProjectSelectionOpen = ref(false);
+const memberCreate = ref(false);
 
 const { listByPlatform } = mapGetters('integration');
 
@@ -202,20 +194,6 @@ const onPaginationChange = ({
     },
   }).finally(() => {
     tableLoading.value = false;
-  });
-};
-
-const onAddMember = () => {
-  isSubProjectSelectionOpen.value = true;
-};
-
-const onSubProjectSelection = (subprojectId) => {
-  isSubProjectSelectionOpen.value = false;
-  router.push({
-    name: 'memberCreate',
-    query: {
-      subprojectId,
-    },
   });
 };
 

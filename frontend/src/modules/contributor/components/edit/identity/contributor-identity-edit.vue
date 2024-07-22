@@ -10,7 +10,7 @@
         </div>
 
         <div class="flex items-center">
-          <lf-input v-model="form.value" class="!rounded-r-none h-10 flex-grow" placeholder="...">
+          <lf-input v-model="form.value" class="!rounded-r-none h-10 flex-grow" :placeholder="`${platform?.placeholder || ''}...`">
             <template #prefix>
               <div class="flex items-center flex-nowrap whitespace-nowrap">
                 <div class="min-w-5">
