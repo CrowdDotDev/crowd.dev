@@ -1,6 +1,7 @@
 import { Error404 } from '@crowd/common'
 import {
   buildSegmentActivityTypes,
+  findSegmentById,
   getSegmentActivityTypes,
   isSegmentProject,
   isSegmentProjectGroup,
@@ -22,6 +23,7 @@ import {
 import lodash from 'lodash'
 import { QueryTypes } from 'sequelize'
 import { v4 as uuid } from 'uuid'
+import { repoQx, seqQx } from '@crowd/data-access-layer/src/queryExecutor'
 import removeFieldsFromObject from '../../utils/getObjectWithoutKey'
 import IntegrationRepository from './integrationRepository'
 import { IRepositoryOptions } from './IRepositoryOptions'
@@ -47,15 +49,16 @@ class SegmentRepository extends RepositoryBase<
   async create(data: SegmentCreateData): Promise<SegmentData> {
     const transaction = this.transaction
 
-    const segmentInsertResult = await this.options.database.sequelize.query(
+    const id = uuid()
+
+    await this.options.database.sequelize.query(
       `INSERT INTO "segments" ("id", "url", "name", "slug", "parentSlug", "grandparentSlug", "status", "parentName", "sourceId", "sourceParentId", "tenantId", "grandparentName", "parentId", "grandparentId")
           VALUES
               (:id, :url, :name, :slug, :parentSlug, :grandparentSlug, :status, :parentName, :sourceId, :sourceParentId, :tenantId, :grandparentName, :parentId, :grandparentId)
-          RETURNING "id"
         `,
       {
         replacements: {
-          id: uuid(),
+          id,
           url: data.url || null,
           name: data.name,
           parentName: data.parentName || null,
@@ -75,8 +78,12 @@ class SegmentRepository extends RepositoryBase<
       },
     )
 
-    const segment = await this.findById(segmentInsertResult[0][0].id)
+    const segment = await this.findById(id)
     return segment
+  }
+
+  public async findById(id: string): Promise<SegmentData> {
+    return findSegmentById(this.queryExecutor, id)
   }
 
   /**

@@ -74,6 +74,8 @@ export async function findSegmentById(
     const children = await getSegmentChildrenOfProjectGroups(qx, record)
     record.subprojects = children
   }
+
+  return record
 }
 
 export async function getSegmentChildrenOfProjectGroups(
@@ -82,11 +84,11 @@ export async function getSegmentChildrenOfProjectGroups(
 ): Promise<SegmentRawData[]> {
   const records = await qx.select(
     `
-    select * from segments
+    select * from segments s
     where (s."grandparentSlug" = $(slug) or
                  (s."parentSlug" = $(slug) and s."grandparentSlug" is null))
             and s."tenantId" = $(tenantId)
-          order by "grandparentSlug" desc, "parentSlug" desc, slug desc;
+          order by s."grandparentSlug" desc, s."parentSlug" desc, s.slug desc;
     `,
     {
       slug: segment.slug,
