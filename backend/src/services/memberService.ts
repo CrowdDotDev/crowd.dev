@@ -24,6 +24,8 @@ import {
   removeMemberTags,
   removeMemberTasks,
 } from '@crowd/data-access-layer/src/members'
+import { optionsQx, QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
+import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
 import { LoggerBase } from '@crowd/logging'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
 import {
@@ -46,8 +48,6 @@ import { randomUUID } from 'crypto'
 import lodash from 'lodash'
 import moment from 'moment-timezone'
 import validator from 'validator'
-import { QueryExecutor, seqQx } from '@crowd/data-access-layer/src/queryExecutor'
-import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
 import OrganizationRepository from '@/database/repositories/organizationRepository'
 import { MergeActionsRepository } from '@/database/repositories/mergeActionsRepository'
 import MemberOrganizationRepository from '@/database/repositories/memberOrganizationRepository'
@@ -1865,7 +1865,7 @@ export default class MemberService extends LoggerBase {
 
   async findAllAutocomplete(data) {
     return queryMembersAdvanced(
-      seqQx(SequelizeRepository.getSequelize(this.options)),
+      optionsQx(this.options),
       this.options.redis,
       this.options.currentTenant.id,
       {
@@ -1915,7 +1915,7 @@ export default class MemberService extends LoggerBase {
     }
 
     return queryMembersAdvanced(
-      seqQx(SequelizeRepository.getSequelize(this.options)),
+      optionsQx(this.options),
       this.options.redis,
       this.options.currentTenant.id,
       {

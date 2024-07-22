@@ -8,7 +8,7 @@ import {
   queryConversations,
   queryMembersAdvanced,
 } from '@crowd/data-access-layer'
-import { seqQx } from '@crowd/data-access-layer/src/queryExecutor'
+import { optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { ActivityDisplayService } from '@crowd/integrations'
 import { LoggerBase } from '@crowd/logging'
 import { PageData, PlatformType } from '@crowd/types'
@@ -392,7 +392,7 @@ export default class ConversationService extends LoggerBase {
     if (memberIds.length > 0) {
       promises.push(
         queryMembersAdvanced(
-          seqQx(SequelizeRepository.getSequelize(this.options)),
+          optionsQx(this.options),
           this.options.redis,
           this.options.currentTenant.id,
           {
@@ -522,7 +522,7 @@ export default class ConversationService extends LoggerBase {
     const memberIds = distinct(activities.rows.map((a) => a.memberId))
     if (memberIds.length > 0) {
       const memberResults = await queryMembersAdvanced(
-        seqQx(SequelizeRepository.getSequelize(this.options)),
+        optionsQx(this.options),
         this.options.redis,
         this.options.currentTenant.id,
         { filter: { and: [{ id: { in: memberIds } }] }, limit: memberIds.length },

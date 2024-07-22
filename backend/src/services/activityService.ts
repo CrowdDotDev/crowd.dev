@@ -12,6 +12,7 @@ import {
   findMemberById,
   queryMembersAdvanced,
 } from '@crowd/data-access-layer/src/members'
+import { optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { ActivityDisplayService } from '@crowd/integrations'
 import { LoggerBase, logExecutionTime } from '@crowd/logging'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
@@ -25,7 +26,6 @@ import {
 import { Blob } from 'buffer'
 import vader from 'crowd-sentiment'
 import { Transaction } from 'sequelize/types'
-import { seqQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { getDataSinkWorkerEmitter } from '@/serverless/utils/serviceSQS'
 import OrganizationRepository from '@/database/repositories/organizationRepository'
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
@@ -211,7 +211,7 @@ export default class ActivityService extends LoggerBase {
           const memberIds = distinct(children.rows.map((c) => c.memberId))
           if (memberIds.length > 0) {
             const memberResults = await queryMembersAdvanced(
-              seqQx(SequelizeRepository.getSequelize(repositoryOptions)),
+              optionsQx(repositoryOptions),
               repositoryOptions.redis,
               repositoryOptions.currentTenant.id,
               {

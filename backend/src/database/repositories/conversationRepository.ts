@@ -1,18 +1,18 @@
 import { distinct, Error404, single } from '@crowd/common'
 import {
   DEFAULT_COLUMNS_TO_SELECT,
-  IQueryActivityResult,
   deleteConversations,
   getConversationById,
   insertConversation,
+  IQueryActivityResult,
   queryActivities,
   queryMembersAdvanced,
   updateConversation,
 } from '@crowd/data-access-layer'
 import { IDbConversation } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/conversation.data'
+import { optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { PageData, PlatformType } from '@crowd/types'
 import lodash from 'lodash'
-import { seqQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import AuditLogRepository from './auditLogRepository'
 import SequelizeRepository from './sequelizeRepository'
@@ -242,7 +242,7 @@ class ConversationRepository {
       const memberIds = distinct(results.rows.map((a) => a.memberId))
       if (memberIds.length > 0) {
         const memberResults = await queryMembersAdvanced(
-          seqQx(SequelizeRepository.getSequelize(options)),
+          optionsQx(options),
           options.redis,
           options.currentTenant.id,
           {

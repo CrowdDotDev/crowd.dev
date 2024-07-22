@@ -2,6 +2,7 @@
 import { Sequelize } from 'sequelize'
 import { PageData, SearchCriteria } from '@crowd/types'
 import {
+  optionsQx,
   QueryExecutor,
   SequelizeQueryExecutor,
   TransactionalSequelizeQueryExecutor,
@@ -39,11 +40,7 @@ export abstract class RepositoryBase<
   }
 
   protected get queryExecutor(): QueryExecutor {
-    if (this.transaction) {
-      return new TransactionalSequelizeQueryExecutor(this.seq, this.transaction)
-    }
-
-    return new SequelizeQueryExecutor(this.seq)
+    return optionsQx(this.options)
   }
 
   protected get database(): any {

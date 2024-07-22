@@ -23,7 +23,6 @@ import {
 import lodash from 'lodash'
 import { QueryTypes } from 'sequelize'
 import { v4 as uuid } from 'uuid'
-import { repoQx, seqQx } from '@crowd/data-access-layer/src/queryExecutor'
 import removeFieldsFromObject from '../../utils/getObjectWithoutKey'
 import IntegrationRepository from './integrationRepository'
 import { IRepositoryOptions } from './IRepositoryOptions'

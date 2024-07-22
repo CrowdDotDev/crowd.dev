@@ -138,6 +138,11 @@ export function connQx(conn: DbConnOrTx): QueryExecutor {
   return pgpQx(conn)
 }
 
-export function seqQx(seq: Sequelize): QueryExecutor {
+export function optionsQx(options: any): QueryExecutor {
+  const seq = options.database.sequelize
+  if (options.transaction) {
+    return new TransactionalSequelizeQueryExecutor(seq, options.transaction)
+  }
+
   return new SequelizeQueryExecutor(seq)
 }
