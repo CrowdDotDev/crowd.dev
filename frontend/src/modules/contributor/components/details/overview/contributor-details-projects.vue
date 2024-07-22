@@ -1,9 +1,9 @@
 <template>
-  <lf-card>
+  <lf-card v-bind="$attrs">
     <div class="px-5 py-4 flex justify-between items-center">
       <h6>Projects</h6>
       <lf-tooltip content="Manage activities affiliation per project" placement="top-end">
-        <lf-button type="secondary" size="small">
+        <lf-button type="secondary" size="small" @click="isAffilationEditOpen = true">
           <lf-icon name="settings-4-line" />
           Activities affiliation
         </lf-button>
@@ -37,6 +37,7 @@
       </lf-button>
     </div>
   </lf-card>
+  <lf-contributor-edit-affilations v-model="isAffilationEditOpen" :contributor="props.contributor" />
 </template>
 
 <script setup lang="ts">
@@ -48,6 +49,8 @@ import { useRoute, useRouter } from 'vue-router';
 import { Contributor } from '@/modules/contributor/types/Contributor';
 import pluralize from 'pluralize';
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
+import LfContributorEditAffilations
+  from '@/modules/contributor/components/edit/affilations/contributor-affilations-edit.vue';
 
 const props = defineProps<{
   contributor: Contributor,
@@ -57,6 +60,7 @@ const router = useRouter();
 const route = useRoute();
 
 const showMore = ref<boolean>(false);
+const isAffilationEditOpen = ref<boolean>(false);
 
 const projects = computed(() => props.contributor.segments);
 
