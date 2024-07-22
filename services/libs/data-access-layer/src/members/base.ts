@@ -229,18 +229,18 @@ export async function queryMembersAdvanced(
         AND (${filterString})
     `
 
+  const countQuery = createQuery('COUNT(*)')
+
   if (countOnly) {
     return {
       rows: [],
-      count: parseInt((await qx.selectOne(createQuery('COUNT(*)'), params)).count, 10),
+      count: parseInt((await qx.selectOne(countQuery, params)).count, 10),
       limit,
       offset,
     }
   }
 
-  const results = await Promise.all([
-    qx.select(
-      `
+  const query = `
           ${createQuery(
             (function prepareFields(fields) {
               return `${fields
@@ -272,11 +272,9 @@ export async function queryMembersAdvanced(
           ORDER BY ${order} NULLS LAST
           LIMIT $(limit)
           OFFSET $(offset)
-        `,
-      params,
-    ),
-    qx.selectOne(createQuery('COUNT(*)'), params),
-  ])
+        `
+
+  const results = await Promise.all([qx.select(query, params), qx.selectOne(countQuery, params)])
 
   const rows = results[0]
   const count = parseInt(results[1].count, 10)

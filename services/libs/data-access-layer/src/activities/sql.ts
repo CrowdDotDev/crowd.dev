@@ -928,12 +928,10 @@ export async function getMemberAggregates(
                               where "sentimentScore" is not null)
     select a."memberId",
            a."segmentId",
-           a."tenantId",
-
            count_distinct(a.id)                             as "activityCount",
            max(a.timestamp)                                 as "lastActive",
            string_agg(p.platform, ':')                      as "activeOn",
-           string_agg(concat(t.platform, ':', t.type), '|') as "activityTypes"
+           string_agg(concat(t.platform, ':', t.type), '|') as "activityTypes",
            count_distinct(date_trunc('day', a.timestamp))   as "activeDaysCount",
            s."averageSentiment"
     from relevant_activities a

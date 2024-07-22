@@ -19,7 +19,6 @@ export interface IQueryTimeseriesOfNewMembers {
 export interface IMemberSegmentAggregates {
   memberId: string
   segmentId: string
-  tenantId: string
 
   activityCount: number
   lastActive: string
