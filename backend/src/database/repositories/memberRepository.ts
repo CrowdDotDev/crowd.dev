@@ -4,7 +4,6 @@ import {
   memberEditOrganizationsAction,
   memberEditProfileAction,
 } from '@crowd/audit-logs'
-import { dateEqualityChecker, Error400, Error404, Error409 } from '@crowd/common'
 import {
   countMembersWithActivities,
   getActiveMembers,
@@ -12,32 +11,17 @@ import {
   getMemberAggregates,
   setMemberDataToActivities,
 } from '@crowd/data-access-layer'
-import { findManyLfxMemberships } from '@crowd/data-access-layer/src/lfx_memberships'
 import {
-  createMemberIdentity,
-  deleteMemberIdentities,
-  deleteMemberIdentitiesByCombinations,
-  findAlreadyExistingVerifiedIdentities,
-  moveToNewMember,
-  updateVerifiedFlag,
-} from '@crowd/data-access-layer/src/member_identities'
-import { addMemberNoMerge, removeMemberToMerge } from '@crowd/data-access-layer/src/member_merge'
-import {
+  queryMembersAdvanced,
   fetchMemberIdentities,
   fetchMemberOrganizations,
   findMemberById,
   findMemberTags,
   MemberField,
-  queryMembersAdvanced,
 } from '@crowd/data-access-layer/src/members'
-import { fetchAbsoluteMemberAggregates } from '@crowd/data-access-layer/src/members/segments'
 import { IDbMemberData } from '@crowd/data-access-layer/src/members/types'
-import { OrganizationField, queryOrgs } from '@crowd/data-access-layer/src/orgs'
-import { findTags } from '@crowd/data-access-layer/src/others'
 import { seqQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { isSegmentProject, isSegmentProjectGroup } from '@crowd/data-access-layer/src/segments'
-import { ActivityDisplayService } from '@crowd/integrations'
-import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import {
   ActivityDisplayVariant,
   FeatureFlag,
@@ -58,6 +42,22 @@ import {
 import lodash, { chunk, uniq } from 'lodash'
 import moment from 'moment'
 import Sequelize, { QueryTypes } from 'sequelize'
+import { Error400, Error404, Error409, dateEqualityChecker } from '@crowd/common'
+import { ActivityDisplayService } from '@crowd/integrations'
+import {
+  createMemberIdentity,
+  deleteMemberIdentities,
+  updateVerifiedFlag,
+  deleteMemberIdentitiesByCombinations,
+  moveToNewMember,
+  findAlreadyExistingVerifiedIdentities,
+} from '@crowd/data-access-layer/src/member_identities'
+import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
+import { findManyLfxMemberships } from '@crowd/data-access-layer/src/lfx_memberships'
+import { addMemberNoMerge, removeMemberToMerge } from '@crowd/data-access-layer/src/member_merge'
+import { findTags } from '@crowd/data-access-layer/src/others'
+import { fetchAbsoluteMemberAggregates } from '@crowd/data-access-layer/src/members/segments'
+import { OrganizationField, queryOrgs } from '@crowd/data-access-layer/src/orgs'
 import { IFetchMemberMergeSuggestionArgs, SimilarityScoreRange } from '@/types/mergeSuggestionTypes'
 import isFeatureEnabled from '../../feature-flags/isFeatureEnabled'
 import { PlatformIdentities } from '../../serverless/integrations/types/messageTypes'

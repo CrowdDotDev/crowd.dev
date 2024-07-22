@@ -17,6 +17,7 @@ import {
   findMemberNotes,
   findMemberTags,
   findMemberTasks,
+  insertMemberSegments,
   MemberField,
   queryMembersAdvanced,
   removeMemberNotes,
@@ -45,7 +46,8 @@ import { randomUUID } from 'crypto'
 import lodash from 'lodash'
 import moment from 'moment-timezone'
 import validator from 'validator'
-import { seqQx } from '@crowd/data-access-layer/src/queryExecutor'
+import { QueryExecutor, seqQx } from '@crowd/data-access-layer/src/queryExecutor'
+import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
 import OrganizationRepository from '@/database/repositories/organizationRepository'
 import { MergeActionsRepository } from '@/database/repositories/mergeActionsRepository'
 import MemberOrganizationRepository from '@/database/repositories/memberOrganizationRepository'
@@ -497,11 +499,45 @@ export default class MemberService extends LoggerBase {
             id: record.id,
             createdAt: record.createdAt,
             sample: record.attributes.sample?.crowd,
-            identities: Object.keys(record.username),
+            identities: record.identities,
           },
           this.options,
         )
       }
+
+      const qx = SequelizeRepository.getQueryExecutor(this.options, transaction)
+      await (async function includeMemberInSegments(
+        qx: QueryExecutor,
+        tenantId: string,
+        memberId: string,
+        segmentIds: string[],
+      ) {
+        const segments = await fetchManySegments(qx, segmentIds)
+        const data = segments.reduce((acc, s) => {
+          for (const segmentId of [s.id, s.parentId, s.grandparentId]) {
+            acc.push({
+              memberId,
+              segmentId,
+              tenantId,
+
+              activityCount: 0,
+              lastActive: '1970-01-01',
+              activityTypes: [],
+              activeOn: [],
+              averageSentiment: null,
+            })
+          }
+
+          return acc
+        }, [])
+
+        await insertMemberSegments(qx, data)
+      })(
+        qx,
+        this.options.currentTenant.id,
+        record.id,
+        this.options.currentSegments.map((s) => s.id),
+      )
 
       await SequelizeRepository.commitTransaction(transaction)
 
@@ -597,7 +633,7 @@ export default class MemberService extends LoggerBase {
           if (username[platform].length === 0) {
             throw new Error400(this.options.language, 'activity.platformAndUsernameNotMatching')
           } else if (typeof username[platform] === 'string') {
-            usernames.push(...username[platform])
+            usernames.push(...(username[platform] as string[]))
           } else if (typeof username[platform][0] === 'object') {
             usernames.push(...username[platform].map((u) => u.username))
           }

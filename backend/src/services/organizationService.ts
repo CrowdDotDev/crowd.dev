@@ -664,10 +664,13 @@ export default class OrganizationService extends LoggerBase {
 
   async addToNoMerge(organizationId: string, noMergeId: string): Promise<void> {
     const transaction = await SequelizeRepository.createTransaction(this.options)
-    const searchSyncService = new SearchSyncService(this.options)
 
     try {
       await OrganizationRepository.addNoMerge(organizationId, noMergeId, {
+        ...this.options,
+        transaction,
+      })
+      await OrganizationRepository.addNoMerge(noMergeId, organizationId, {
         ...this.options,
         transaction,
       })
@@ -675,11 +678,12 @@ export default class OrganizationService extends LoggerBase {
         ...this.options,
         transaction,
       })
+      await OrganizationRepository.removeToMerge(noMergeId, organizationId, {
+        ...this.options,
+        transaction,
+      })
 
       await SequelizeRepository.commitTransaction(transaction)
-
-      await searchSyncService.triggerOrganizationSync(this.options.currentTenant.id, organizationId)
-      await searchSyncService.triggerOrganizationSync(this.options.currentTenant.id, noMergeId)
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
 

@@ -374,9 +374,8 @@ export class MemberSyncService {
         await this.memberRepo.transactionally(
           async (txRepo) => {
             const qx = repoQx(txRepo)
-            await cleanupMemberAggregates(qx, memberId)
-
             if (memberData.length > 0) {
+              await cleanupMemberAggregates(qx, memberId)
               await insertMemberSegments(qx, memberData)
             }
           },
