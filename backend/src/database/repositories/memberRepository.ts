@@ -453,12 +453,11 @@ class MemberRepository {
             findMemberTags(qx, memberId),
           ])
 
-
           const orgIds = memberOrgs.map((o) => o.organizationId)
           const tagIds = tags.map((t) => t.tagId)
-      
-          let orgExtraInfo = [] 
-          let lfxMemberships = [] 
+
+          let orgExtraInfo = []
+          let lfxMemberships = []
           let tagExtraInfo = []
 
           if (orgIds.length > 0) {
@@ -480,10 +479,7 @@ class MemberRepository {
           }
 
           if (tagIds.length > 0) {
-            tagExtraInfo = await findTags(
-              qx,
-              tagIds,
-            )
+            tagExtraInfo = await findTags(qx, tagIds)
           }
 
           return {
