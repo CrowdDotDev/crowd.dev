@@ -1,7 +1,7 @@
 <template>
-  <div v-if="props.organization.lastEnriched" class="flex items-center mr-4">
+  <div v-if="props.organization.lastEnrichedAt" class="flex items-center mr-4">
     <p class="text-tiny text-gray-500 mr-2 text-right">
-      Last enrichment on {{ moment(props.organization.lastEnriched).format('MMM DD, YYYY') }}
+      Last enrichment on {{ moment(props.organization.lastEnrichedAt).format('MMM DD, YYYY') }}
     </p>
     <lf-tooltip
       content="Organization data is enriched via GitHub identity. Enrichment is processed every 3 months."
