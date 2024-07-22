@@ -10,9 +10,8 @@
             <template #content>
               Work experiences are mostly obtained<br> via enrichment but can also be added <br>manually.
             </template>
-            <lf-icon name="question-line" :size="16" class="text-gray-400"></lf-icon>
+            <lf-icon name="question-line" :size="16" class="text-gray-400" />
           </lf-tooltip>
-
         </div>
       </div>
       <lf-tooltip

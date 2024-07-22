@@ -37,7 +37,11 @@
       </lf-button>
     </div>
   </lf-card>
-  <lf-contributor-edit-affilations v-model="isAffilationEditOpen" :contributor="props.contributor" />
+  <lf-contributor-edit-affilations
+    v-if="isAffilationEditOpen"
+    v-model="isAffilationEditOpen"
+    :contributor="props.contributor"
+  />
 </template>
 
 <script setup lang="ts">

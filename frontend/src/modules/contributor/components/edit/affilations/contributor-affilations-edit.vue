@@ -5,7 +5,7 @@
         <h5>
           Activities affiliation
         </h5>
-        <lf-button type="secondary-ghost-light" :icon-only="true">
+        <lf-button type="secondary-ghost-light" :icon-only="true" @click="isModalOpen = false">
           <lf-icon name="close-line" />
         </lf-button>
       </div>
@@ -18,8 +18,8 @@
         activities affiliations.
       </p>
     </section>
-    <section class="px-6 pt-6 pb-10">
-      <div class="flex">
+    <section class="px-6 pt-6">
+      <div class="flex border-b border-gray-100">
         <div class="w-1/3 py-2">
           <p class="text-medium font-semibold text-gray-400">
             Project
@@ -31,25 +31,61 @@
           </p>
         </div>
       </div>
-      <article class="flex items-center border-t border-gray-100 py-4">
-        <div class="w-1/3 py-2">
-          <p class="text-medium font-semibold">
-            Open Review Initiative
-          </p>
+
+      <lf-scroll-shadow class="max-h-120">
+        <div class="pb-10">
+          <article
+            v-for="subproject of props.contributor.segments"
+            :key="subproject.id"
+            class="flex items-center border-t border-gray-100 first:border-none py-4"
+          >
+            <div class="w-1/3 py-2">
+              <p class="text-medium font-semibold">
+                {{ subproject.name }}
+              </p>
+            </div>
+            <div class="w-2/3 py-2">
+              <div class="flex flex-col gap-3 items-start">
+                <template
+                  v-for="(affiliation, ai) of form"
+                  :key="`${subproject.id}-${ai}`"
+                >
+                  <template v-if="affiliation.segmentId === subproject.id">
+                    <lf-contributor-edit-affilations-item
+                      v-model="form[ai]"
+                      :contributor="props.contributor"
+                    >
+                      <lf-button
+                        type="secondary-ghost"
+                        class="ml-2"
+                        :icon-only="true"
+                        @click="form.splice(ai, 1)"
+                      >
+                        <lf-icon name="delete-bin-6-line" />
+                      </lf-button>
+                    </lf-contributor-edit-affilations-item>
+                  </template>
+                </template>
+
+                <lf-button
+                  type="primary-link"
+                  size="small"
+                  @click="addAffiliation(subproject.id)"
+                >
+                  <lf-icon name="add-line" />
+                  Add affiliation
+                </lf-button>
+              </div>
+            </div>
+          </article>
         </div>
-        <div class="w-2/3 py-2">
-          <lf-button type="primary-link" size="small">
-            <lf-icon name="add-line" />
-            Add affiliation
-          </lf-button>
-        </div>
-      </article>
+      </lf-scroll-shadow>
     </section>
     <footer class="border-t border-gray-100 px-6 py-4 flex justify-end gap-4">
-      <lf-button type="secondary-ghost">
+      <lf-button type="secondary-ghost" @click="isModalOpen = false">
         Cancel
       </lf-button>
-      <lf-button type="primary">
+      <lf-button type="primary" :disabled="$v.$invalid" @click="submit()">
         Update activities affiliation
       </lf-button>
     </footer>
@@ -60,10 +96,14 @@
 import LfModal from '@/ui-kit/modal/Modal.vue';
 import { useContributorStore } from '@/modules/contributor/store/contributor.store';
 import { Contributor } from '@/modules/contributor/types/Contributor';
-import { computed } from 'vue';
-import LfTable from '@/ui-kit/table/Table.vue';
+import { computed, onMounted, ref } from 'vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfContributorEditAffilationsItem
+, { AffilationForm } from '@/modules/contributor/components/edit/affilations/contributor-affilations-edit-item.vue';
+import LfScrollShadow from '@/ui-kit/scrollshadow/ScrollShadow.vue';
+import useVuelidate from '@vuelidate/core';
+import Message from '@/shared/message/message';
 
 const props = defineProps<{
   modelValue: boolean,
@@ -83,6 +123,60 @@ const isModalOpen = computed<boolean>({
   },
 });
 
+const form = ref<AffilationForm[]>([]);
+
+const $v = useVuelidate();
+
+const addAffiliation = (subprojectId: string) => {
+  form.value.push({
+    segmentId: subprojectId,
+    organization: null,
+    dateStart: '',
+    dateEnd: '',
+    currentlyWorking: false,
+  });
+};
+
+const sending = ref<boolean>(false);
+
+const submit = () => {
+  if ($v.value.$invalid) {
+    return;
+  }
+  const data = {
+    affiliations: form.value.map((affiliation) => ({
+      memberId: props.contributor.id,
+      segmentId: affiliation.segmentId,
+      organizationId: affiliation.organization,
+      dateStart: affiliation.dateStart,
+      dateEnd: affiliation.dateEnd,
+    })),
+  };
+
+  sending.value = true;
+
+  updateContributor(props.contributor.id, data)
+    .then(() => {
+      Message.success('Activities affiliation updated successfully');
+      isModalOpen.value = false;
+    })
+    .catch(() => {
+      Message.error('Failed to update activities affiliation');
+    })
+    .finally(() => {
+      sending.value = false;
+    });
+};
+
+onMounted(() => {
+  form.value = props.contributor.affiliations.map((affiliation) => ({
+    segmentId: affiliation.segmentId || '',
+    organization: affiliation.organizationId || null,
+    dateStart: affiliation.dateStart || '',
+    dateEnd: affiliation.dateEnd || '',
+    currentlyWorking: !affiliation.dateEnd && !!affiliation.dateStart,
+  }));
+});
 </script>
 
 <script lang="ts">
