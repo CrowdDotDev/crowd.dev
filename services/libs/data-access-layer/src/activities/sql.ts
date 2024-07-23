@@ -909,7 +909,7 @@ export async function getMemberAggregates(
 ): Promise<IMemberSegmentAggregates[]> {
   const results = await qdbConn.any(
     `
-    with relevant_activities as (select id, platform, type, timestamp, "sentimentScore", "memberId", "segmentId"
+    with relevant_activities as (select id, platform, type, timestamp, "sentimentScore", "memberId", "segmentId", "tenantId"
                                 from activities
                                 where "memberId" = $(memberId)
                                   ${
@@ -928,6 +928,7 @@ export async function getMemberAggregates(
                               where "sentimentScore" is not null)
     select a."memberId",
            a."segmentId",
+           a."tenantId",
            count_distinct(a.id)                             as "activityCount",
            max(a.timestamp)                                 as "lastActive",
            string_agg(p.platform, ':')                      as "activeOn",
@@ -938,7 +939,7 @@ export async function getMemberAggregates(
             inner join activity_types t on a."memberId" = t."memberId" and a."segmentId" = t."segmentId"
             inner join distinct_platforms p on a."memberId" = p."memberId" and a."segmentId" = p."segmentId"
             left join average_sentiment s on a."memberId" = s."memberId" and a."segmentId" = s."segmentId"
-    group by a."memberId", a."segmentId", s."averageSentiment";
+    group by a."memberId", a."segmentId", a."tenantId", s."averageSentiment";
     `,
     {
       memberId,

@@ -7,7 +7,7 @@ import {
   MemberField,
 } from '@crowd/data-access-layer'
 import { DbStore } from '@crowd/database'
-import { Logger, getChildLogger } from '@crowd/logging'
+import { Logger, getChildLogger, logExecutionTimeV2 } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
 import {
   IMemberAttribute,
@@ -364,25 +364,39 @@ export class MemberSyncService {
       let documentsIndexed = 0
       let memberData: IMemberSegmentAggregates[]
       try {
-        memberData = await getMemberAggregates(this.qdbStore.connection(), memberId)
+        memberData = await logExecutionTimeV2(
+          async () => getMemberAggregates(this.qdbStore.connection(), memberId),
+          this.log,
+          'getMemberAggregates',
+        )
       } catch (e) {
         this.log.error(e, 'Failed to get organization aggregates!')
         throw e
       }
 
       try {
-        await this.memberRepo.transactionally(
-          async (txRepo) => {
-            const qx = repoQx(txRepo)
-            if (memberData.length > 0) {
-              await cleanupMemberAggregates(qx, memberId)
-              await insertMemberSegments(qx, memberData)
-            }
-          },
-          undefined,
-          true,
+        await logExecutionTimeV2(
+          async () =>
+            this.memberRepo.transactionally(
+              async (txRepo) => {
+                const qx = repoQx(txRepo)
+                if (memberData.length > 0) {
+                  await cleanupMemberAggregates(qx, memberId)
+                  await insertMemberSegments(qx, memberData)
+                }
+              },
+              undefined,
+              true,
+            ),
+          this.log,
+          'insertMemberSegments',
         )
+
         documentsIndexed += memberData.length
+        this.log.info(
+          { memberId, total: documentsIndexed },
+          `Synced ${memberData.length} member aggregates!`,
+        )
       } catch (e) {
         this.log.error(e, 'Failed to insert member aggregates!')
         throw e
@@ -409,7 +423,11 @@ export class MemberSyncService {
       const prefixed = MemberSyncService.prefixData(data, attributes)
       await this.openSearchService.index(memberId, OpenSearchIndex.MEMBERS, prefixed)
     }
-    await syncMembersToOpensearchForMergeSuggestions(memberId)
+    await logExecutionTimeV2(
+      async () => syncMembersToOpensearchForMergeSuggestions(memberId),
+      this.log,
+      'syncMembersToOpensearchForMergeSuggestions',
+    )
 
     return syncResults
   }

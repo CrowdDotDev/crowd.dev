@@ -11,7 +11,7 @@ import { findOrgAttributes } from '@crowd/data-access-layer/src/organizations/at
 import { findOrgNoMergeIds } from '@crowd/data-access-layer/src/org_merge'
 import { fetchTotalActivityCount } from '@crowd/data-access-layer/src/organizations/segments'
 import { DbStore } from '@crowd/database'
-import { Logger, getChildLogger, logExecutionTime } from '@crowd/logging'
+import { Logger, getChildLogger, logExecutionTime, logExecutionTimeV2 } from '@crowd/logging'
 import {
   IOrganizationBaseForMergeSuggestions,
   IOrganizationOpensearch,
@@ -316,27 +316,41 @@ export class OrganizationSyncService {
       for (const organizationId of organizationIds) {
         let orgData: IDbOrganizationAggregateData[]
         try {
-          orgData = await getOrgAggregates(this.qdbStore.connection(), organizationId)
+          orgData = await logExecutionTimeV2(
+            async () => getOrgAggregates(this.qdbStore.connection(), organizationId),
+            this.log,
+            'getOrgAggregates',
+          )
         } catch (e) {
           this.log.error(e, 'Failed to get organization aggregates!')
           throw e
         }
 
         try {
-          await this.orgRepo.transactionally(
-            async (txRepo) => {
-              const qx = repoQx(txRepo)
-              await cleanupForOganization(qx, organizationId)
+          await logExecutionTimeV2(
+            async () =>
+              this.orgRepo.transactionally(
+                async (txRepo) => {
+                  const qx = repoQx(txRepo)
+                  await cleanupForOganization(qx, organizationId)
 
-              if (orgData.length > 0) {
-                await insertOrganizationSegments(qx, orgData)
-              }
-            },
-            undefined,
-            true,
+                  if (orgData.length > 0) {
+                    await insertOrganizationSegments(qx, orgData)
+                  }
+                },
+                undefined,
+                true,
+              ),
+            this.log,
+            'insertOrganizationSegments',
           )
+
           organizationIdsToIndex.push(organizationId)
           documentsIndexed += orgData.length
+          this.log.info(
+            { organizationId, total: documentsIndexed },
+            `Synced ${orgData.length} org aggregates!`,
+          )
         } catch (e) {
           this.log.error(e, 'Failed to insert organization aggregates!')
           throw e
@@ -371,7 +385,11 @@ export class OrganizationSyncService {
         organizationsSynced: organizationIds.length,
       }
     }
-    await syncOrgsToOpensearchForMergeSuggestions(syncResults.organizationIdsToIndex)
+    await logExecutionTimeV2(
+      async () => syncOrgsToOpensearchForMergeSuggestions(syncResults.organizationIdsToIndex),
+      this.log,
+      'syncOrgsToOpensearchForMergeSuggestions',
+    )
 
     return syncResults
   }
