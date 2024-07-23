@@ -85,8 +85,7 @@ export async function runMemberAffiliationsUpdate(pgDb: DbStore, qDb: DbStore, m
     .head()
     .value()
 
-  // TODO questdb misha check please
-
+  const qdbQx = pgpQx(qDb.connection())
   const fullCase = `
     CASE
       ${orgCases.map(condition).join('\n')}
@@ -94,7 +93,7 @@ export async function runMemberAffiliationsUpdate(pgDb: DbStore, qDb: DbStore, m
     END::UUID
   `
 
-  await qx.result(
+  await qdbQx.result(
     `
       UPDATE activities
       SET "organizationId" = ${fullCase}
