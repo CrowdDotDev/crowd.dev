@@ -2243,15 +2243,6 @@ class MemberRepository {
       segmentId: segment?.id,
     }
 
-    // Extract identities platform filter if it exists
-    const identitiesFilter = filter?.and?.find((f) => f.platforms)
-    const identitiesPlatforms = identitiesFilter?.platforms?.filter(p => ALL_PLATFORM_TYPES.includes(p)) || []
-
-    // Remove identities from main filter
-    if (identitiesFilter) {
-      filter.and = filter.and.filter((f) => !f.platforms)
-    }
-
     const filterString = RawQueryParser.parseFilters(
       filter,
       new Map(
@@ -2306,14 +2297,6 @@ class MemberRepository {
     if (withSearch) {
       search = search.toLowerCase()
 
-      const platformCondition = identitiesPlatforms.length
-      ? `AND mi.platform IN ('${identitiesPlatforms.join("','")}')`
-      : ''
-
-      const searchWhere = identitiesFilter
-      ? `verified AND lower("value") LIKE '%${search}%' ${platformCondition}`
-      : `(verified AND type = '${MemberIdentityType.EMAIL}' AND lower("value") LIKE '%${search}%') OR lower(m."displayName") LIKE '%${search}%'`
-
       searchCTE = `
       ,  
       member_search AS (
@@ -2321,12 +2304,11 @@ class MemberRepository {
             "memberId"
           FROM "memberIdentities" mi
           join members m on m.id = mi."memberId"
-          WHERE ${searchWhere}
+          where (verified and lower("value") like '%${search}%') or 
+          lower(m."displayName") like '%${search}%' 
           GROUP BY 1
         )
       `
-
-      options.log.info('searchCTE', searchCTE)
 
       searchJoin = ` JOIN member_search ms ON ms."memberId" = m.id `
     }
