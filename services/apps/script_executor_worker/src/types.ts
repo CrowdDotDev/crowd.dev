@@ -21,3 +21,8 @@ export interface IDissectMemberArgs {
   undoActionPerWorkflow?: number
   forceSplitAllIdentities?: boolean
 }
+
+export interface IFixOrgIdentitiesWithWrongUrlsArgs {
+  tenantId: string
+  testRun?: boolean
+}
