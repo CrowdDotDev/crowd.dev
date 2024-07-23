@@ -447,26 +447,34 @@ class MemberRepository {
             findMemberTags(qx, memberId),
           ])
 
-          const [orgExtraInfo, lfxMemberships, tagExtraInfo] = await Promise.all([
-            queryOrgs(qx, {
+          const orgIds = memberOrgs.map((o) => o.organizationId)
+          const tagIds = tags.map((t) => t.tagId)
+
+          let orgExtraInfo = []
+          let lfxMemberships = []
+          let tagExtraInfo = []
+
+          if (orgIds.length > 0) {
+            orgExtraInfo = await queryOrgs(qx, {
               filter: {
-                [OrganizationField.ID]: { in: memberOrgs.map((o) => o.organizationId) },
+                [OrganizationField.ID]: { in: orgIds },
               },
               fields: [
                 OrganizationField.ID,
                 OrganizationField.DISPLAY_NAME,
                 OrganizationField.LOGO,
               ],
-            }),
-            findManyLfxMemberships(qx, {
+            })
+
+            lfxMemberships = await findManyLfxMemberships(qx, {
               tenantId: options.currentTenant.id,
-              organizationIds: memberOrgs.map((o) => o.organizationId),
-            }),
-            findTags(
-              qx,
-              tags.map((t) => t.tagId),
-            ),
-          ])
+              organizationIds: orgIds,
+            })
+          }
+
+          if (tagIds.length > 0) {
+            tagExtraInfo = await findTags(qx, tagIds)
+          }
 
           return {
             ...member,
