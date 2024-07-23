@@ -510,7 +510,9 @@ export async function queryActivities(
 
   // set defaults
   arg.filter = arg.filter || {}
-  arg.orderBy = arg.orderBy || ['timestamp_DESC']
+  arg.orderBy =
+    arg.orderBy && arg.orderBy.length > 0 ? arg.orderBy.filter((o) => o.trim().length > 0) : []
+  arg.orderBy = arg.orderBy.length > 0 ? arg.orderBy : ['timestamp_DESC']
   if (!(arg.noLimit === true)) {
     arg.limit = arg.limit || 20
   }

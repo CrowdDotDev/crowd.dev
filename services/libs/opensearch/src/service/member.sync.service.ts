@@ -1,4 +1,4 @@
-import { trimUtf8ToMaxByteLength } from '@crowd/common'
+import { distinct, sumBy, trimUtf8ToMaxByteLength } from '@crowd/common'
 import {
   fetchMemberIdentities,
   fetchMemberOrganizations,
@@ -16,6 +16,7 @@ import {
   IMemberOrganization,
   IMemberWithAggregatesForMergeSuggestions,
   MemberAttributeType,
+  SegmentData,
 } from '@crowd/types'
 import { IndexedEntityType } from '../repo/indexing.data'
 import { IndexingRepository } from '../repo/indexing.repo'
@@ -33,6 +34,7 @@ import {
 } from '@crowd/data-access-layer/src/members/segments'
 import { OrganizationField, findOrgById } from '@crowd/data-access-layer/src/orgs'
 import { IMemberSegmentAggregates } from '@crowd/data-access-layer/src/members/types'
+import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -360,46 +362,87 @@ export class MemberSyncService {
   }
 
   public async syncMembers(memberId: string): Promise<IMemberSyncResult> {
+    const qx = repoQx(this.memberRepo)
+
     const syncMemberAggregates = async (memberId) => {
       let documentsIndexed = 0
       let memberData: IMemberSegmentAggregates[]
+
       try {
         memberData = await logExecutionTimeV2(
           async () => getMemberAggregates(this.qdbStore.connection(), memberId),
           this.log,
           'getMemberAggregates',
         )
+
+        if (memberData.length === 0) {
+          return
+        }
+
+        // get segment data to aggregate for projects and project groups
+        const subprojectSegmentIds = memberData.map((m) => m.segmentId)
+        const segmentData = await fetchManySegments(qx, subprojectSegmentIds)
+
+        if (segmentData.find((s) => s.type !== 'subproject')) {
+          throw new Error('Only subprojects should be set to activities.segmentId!')
+        }
+
+        // aggregate data for projects
+        const projectSegmentIds = distinct(segmentData.map((s) => s.parentId))
+        for (const projectSegmentId of projectSegmentIds) {
+          const subprojects = segmentData.filter((s) => s.parentId === projectSegmentId)
+          const filtered: IMemberSegmentAggregates[] = []
+          for (const subproject of subprojects) {
+            filtered.push(...memberData.filter((m) => m.segmentId === subproject.id))
+          }
+
+          const aggregated = MemberSyncService.aggregateData(projectSegmentId, filtered)
+          memberData.push(aggregated)
+        }
+
+        // aggregate data for project groups
+        const projectGroupSegmentIds = distinct(segmentData.map((s) => s.grandparentId))
+        for (const projectGroupSegmentId of projectGroupSegmentIds) {
+          const subprojects = segmentData.filter((s) => s.grandparentId === projectGroupSegmentId)
+          const filtered: IMemberSegmentAggregates[] = []
+          for (const subproject of subprojects) {
+            filtered.push(...memberData.filter((m) => m.segmentId === subproject.id))
+          }
+
+          const aggregated = MemberSyncService.aggregateData(projectGroupSegmentId, filtered)
+          memberData.push(aggregated)
+        }
       } catch (e) {
         this.log.error(e, 'Failed to get organization aggregates!')
         throw e
       }
 
-      try {
-        await logExecutionTimeV2(
-          async () =>
-            this.memberRepo.transactionally(
-              async (txRepo) => {
-                const qx = repoQx(txRepo)
-                if (memberData.length > 0) {
+      if (memberData.length > 0) {
+        try {
+          await logExecutionTimeV2(
+            async () =>
+              this.memberRepo.transactionally(
+                async (txRepo) => {
+                  const qx = repoQx(txRepo)
                   await cleanupMemberAggregates(qx, memberId)
                   await insertMemberSegments(qx, memberData)
-                }
-              },
-              undefined,
-              true,
-            ),
-          this.log,
-          'insertMemberSegments',
-        )
+                },
+                undefined,
+                true,
+              ),
+            this.log,
+            'insertMemberSegments',
+          )
 
-        documentsIndexed += memberData.length
-        this.log.info(
-          { memberId, total: documentsIndexed },
-          `Synced ${memberData.length} member aggregates!`,
-        )
-      } catch (e) {
-        this.log.error(e, 'Failed to insert member aggregates!')
-        throw e
+          documentsIndexed += memberData.length
+          this.log.info(
+            { memberId, total: documentsIndexed },
+            `Synced ${memberData.length} member aggregates!`,
+          )
+        } catch (e) {
+          this.log.error(e, 'Failed to insert member aggregates!')
+          throw e
+        }
       }
 
       return {
@@ -535,6 +578,49 @@ export class MemberSyncService {
         return 'string'
       default:
         throw new Error(`Could not map attribute type: ${type} to OpenSearch type!`)
+    }
+  }
+
+  private static aggregateData(
+    segmentId: string,
+    input: IMemberSegmentAggregates[],
+  ): IMemberSegmentAggregates {
+    let activityCount = 0
+    let activityTypes: string[] = []
+    let activeOn: string[] = []
+    let averageSentiment = 0
+    let lastActive = input[0].lastActive
+
+    // TODO questdb this will not be accurate for projects and project groups for now
+    let activeDaysCount = 0
+
+    for (const data of input) {
+      activityCount += data.activityCount
+      activityTypes = distinct(activityTypes.concat(data.activityTypes))
+      activeOn = distinct(activeOn.concat(data.activeOn))
+      averageSentiment += data.averageSentiment
+
+      // let's just pick the biggest one for now
+      if (data.activeDaysCount > activeDaysCount) {
+        activeDaysCount = data.activeDaysCount
+      }
+
+      if (new Date(data.lastActive) > new Date(lastActive)) {
+        lastActive = data.lastActive
+      }
+    }
+
+    return {
+      segmentId,
+      memberId: input[0].memberId,
+      tenantId: input[0].tenantId,
+
+      activityCount,
+      lastActive,
+      activityTypes,
+      activeOn,
+      averageSentiment: Math.round(averageSentiment / input.length),
+      activeDaysCount,
     }
   }
 }

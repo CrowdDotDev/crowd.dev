@@ -1,3 +1,4 @@
+import { optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
 import {
   captureApiChange,
   organizationCreateAction,
@@ -46,7 +47,11 @@ import {
 import lodash, { uniq } from 'lodash'
 import Sequelize, { QueryTypes } from 'sequelize'
 import validator from 'validator'
-import { isSegmentProject, isSegmentProjectGroup } from '@crowd/data-access-layer/src/segments'
+import {
+  findSegmentById,
+  isSegmentProject,
+  isSegmentProjectGroup,
+} from '@crowd/data-access-layer/src/segments'
 import {
   IFetchOrganizationMergeSuggestionArgs,
   SimilarityScoreRange,
@@ -1552,9 +1557,8 @@ class OrganizationRepository {
     const qx = SequelizeRepository.getQueryExecutor(options, transaction)
 
     const withAggregates = !!segmentId
-    let segment
     if (withAggregates) {
-      segment = await new SegmentRepository(options).findById(segmentId)
+      const segment = (await findSegmentById(optionsQx(options), segmentId)) as any
 
       if (segment === null) {
         options.log.info('No segment found for organization')
@@ -1565,13 +1569,15 @@ class OrganizationRepository {
           offset,
         }
       }
+
+      segmentId = segment.id
     }
 
     const params = {
       limit,
       offset,
       tenantId: options.currentTenant.id,
-      segmentId: segment?.id,
+      segmentId,
     }
 
     const filterString = RawQueryParser.parseFilters(

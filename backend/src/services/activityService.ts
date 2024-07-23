@@ -815,13 +815,14 @@ export default class ActivityService extends LoggerBase {
             limit: memberIds.length,
           },
         ).then((members) => {
-          for (const row of page.rows.filter((r) => r.memberId)) {
-            ;(row as any).member = singleOrDefault(
-              members.rows,
-              (m) => m.id === row.memberId,
-            )
+          for (const row of page.rows) {
+            row.member = singleOrDefault(members.rows, (m) => m.id === row.memberId)
+
+            if (row.objectMemberId) {
+              row.objectMember = singleOrDefault(members.rows, (m) => m.id === row.objectMemberId)
+            }
           }
-        })
+        }),
       )
     }
 

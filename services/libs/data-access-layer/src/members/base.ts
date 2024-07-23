@@ -1,4 +1,4 @@
-import { Error400, RawQueryParser } from '@crowd/common'
+import { distinct, Error400, RawQueryParser } from '@crowd/common'
 import { getServiceChildLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
 import {
@@ -121,9 +121,8 @@ export async function queryMembersAdvanced(
   }
 
   const withAggregates = !!segmentId
-  let segment
   if (withAggregates) {
-    segment = await findSegmentById(qx, segmentId)
+    const segment = (await findSegmentById(qx, segmentId)) as any
 
     if (segment === null) {
       log.info('No segment found for member query. Returning empty result.')
@@ -134,13 +133,15 @@ export async function queryMembersAdvanced(
         offset,
       }
     }
+
+    segmentId = segment.id
   }
 
   const params = {
     limit,
     offset,
     tenantId,
-    segmentId: segment?.id,
+    segmentId,
   }
 
   const filterString = RawQueryParser.parseFilters(
