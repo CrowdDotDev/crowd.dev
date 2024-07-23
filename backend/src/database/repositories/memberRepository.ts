@@ -2276,8 +2276,6 @@ class MemberRepository {
       { pgPromiseFormat: true },
     )
 
-    options.log.info(`Member filter: ${filterString}`)
-
     const order = (function prepareOrderBy(
       orderBy = withAggregates ? 'activityCount_DESC' : 'id_DESC',
     ) {
@@ -2297,7 +2295,7 @@ class MemberRepository {
     let searchJoin = ''
 
     // check if we have a filter for identities flag
-    const identitiesFilter = filter.and?.find((f) => f.platforms)
+    const identitiesFilter = filter?.and?.find((f) => f.platforms)
     const identitiesPlatforms = identitiesFilter?.platforms || []
 
     if (withSearch) {
