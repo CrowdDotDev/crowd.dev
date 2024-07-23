@@ -1,12 +1,16 @@
 import _ from 'lodash'
 
-import { DbStore } from '@crowd/database'
+import { DbConnOrTx, DbStore } from '@crowd/database'
 import { IAffiliationsLastCheckedAt, IMemberId } from './types'
 import { ITenant } from '@crowd/types'
 import { pgpQx } from '../../../queryExecutor'
 import { findMemberAffiliations } from '../../../member_segment_affiliations'
 
-export async function runMemberAffiliationsUpdate(pgDb: DbStore, qDb: DbStore, memberId: string) {
+export async function runMemberAffiliationsUpdate(
+  pgDb: DbStore,
+  qDb: DbConnOrTx,
+  memberId: string,
+) {
   const qx = pgpQx(pgDb.connection())
   const tsBetween = (start: string, end: string) => {
     return `timestamp BETWEEN '${start}' AND '${end}'`
@@ -85,26 +89,29 @@ export async function runMemberAffiliationsUpdate(pgDb: DbStore, qDb: DbStore, m
     .head()
     .value()
 
-  const qdbQx = pgpQx(qDb.connection())
-  const fullCase = `
-    CASE
-      ${orgCases.map(condition).join('\n')}
-      ELSE ${nullableOrg(fallbackOrganizationId)}
-    END::UUID
-  `
+  if (orgCases.length === 0) {
+    return
+  }
 
-  await qdbQx.result(
-    `
+  const qdbQx = pgpQx(qDb)
+  const fullCase = `
+      CASE
+        ${orgCases.map(condition).join('\n')}
+        ELSE ${nullableOrg(fallbackOrganizationId)}
+      END::UUID
+      `
+
+  const query = `
       UPDATE activities
       SET "organizationId" = ${fullCase}
       WHERE "memberId" = $(memberId)
-        AND COALESCE("organizationId", '00000000-0000-0000-0000-000000000000') != COALESCE(
+        AND COALESCE("organizationId", '00000000-0000-0000-0000-000000000000'::uuid) != COALESCE(
           ${fullCase},
-          '00000000-0000-0000-0000-000000000000'
+          '00000000-0000-0000-0000-000000000000::uuid'
         )
-    `,
-    { memberId },
-  )
+    `
+
+  await qdbQx.result(query, { memberId })
 }
 
 export async function getAffiliationsLastCheckedAt(db: DbStore, tenantId: string) {
