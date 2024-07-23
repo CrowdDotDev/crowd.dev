@@ -2296,7 +2296,6 @@ class MemberRepository {
 
     if (withSearch) {
       search = search.toLowerCase()
-
       searchCTE = `
       ,  
       member_search AS (
@@ -2309,7 +2308,6 @@ class MemberRepository {
           GROUP BY 1
         )
       `
-
       searchJoin = ` JOIN member_search ms ON ms."memberId" = m.id `
     }
 
