@@ -1,4 +1,6 @@
-import { distinct, Error400, RawQueryParser } from '@crowd/common'
+import { Error400, RawQueryParser } from '@crowd/common'
+import { DbConnOrTx } from '@crowd/database'
+import { ActivityDisplayService } from '@crowd/integrations'
 import { getServiceChildLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
 import {
@@ -10,14 +12,14 @@ import {
 } from '@crowd/types'
 import { uniq } from 'lodash'
 import { fetchManyMemberIdentities, fetchManyMemberOrgs, fetchManyMemberSegments } from '.'
+import { getLastActivitiesForMembers } from '../activities'
+import { findManyLfxMemberships } from '../lfx_memberships'
+import { OrganizationField, queryOrgs } from '../orgs'
 import { QueryExecutor } from '../queryExecutor'
 import { fetchManySegments, findSegmentById, getSegmentActivityTypes } from '../segments'
 import { QueryOptions, QueryResult, queryTable, queryTableById } from '../utils'
 import { getMemberAttributeSettings } from './attributeSettings'
 import { IDbMemberAttributeSetting, IDbMemberData } from './types'
-import { OrganizationField, queryOrgs } from '../orgs'
-import { findManyLfxMemberships } from '../lfx_memberships'
-import { ActivityDisplayService } from '@crowd/integrations'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -115,14 +117,16 @@ export async function queryMembersAdvanced(
     },
     attributeSettings = [] as IDbMemberAttributeSetting[],
   },
+  qdbConn?: DbConnOrTx,
 ): Promise<PageData<IDbMemberData>> {
   if (!attributeSettings) {
     attributeSettings = await getMemberAttributeSettings(qx, redis, tenantId)
   }
 
   const withAggregates = !!segmentId
+  let segment
   if (withAggregates) {
-    const segment = (await findSegmentById(qx, segmentId)) as any
+    segment = (await findSegmentById(qx, segmentId)) as any
 
     if (segment === null) {
       log.info('No segment found for member query. Returning empty result.')
@@ -367,34 +371,8 @@ export async function queryMembersAdvanced(
     row.tags = []
   })
 
-  if (memberIds.length > 0) {
-    // const lastActivities = await seq.query(
-    //   `
-    //           SELECT
-    //               a.*
-    //           FROM (
-    //               VALUES
-    //                 ${memberIds.map((id) => `('${id}')`).join(',')}
-    //           ) m ("memberId")
-    //           JOIN activities a ON (a.id = (
-    //               SELECT id
-    //               FROM mv_activities_cube
-    //               WHERE "memberId" = m."memberId"::uuid
-    //               ORDER BY timestamp DESC
-    //               LIMIT 1
-    //           ))
-    //           WHERE a."tenantId" = :tenantId
-    //       `,
-    //   {
-    //     replacements: {
-    //       tenantId: options.currentTenant.id,
-    //     },
-    //     type: QueryTypes.SELECT,
-    //   },
-    // )
-
-    // TODO questdb fix above query to questdb activities table
-    const lastActivities = []
+  if (memberIds.length > 0 && qdbConn) {
+    const lastActivities = await getLastActivitiesForMembers(qdbConn, memberIds)
     rows.forEach((r) => {
       r.lastActivity = lastActivities.find((a) => (a as any).memberId === r.id)
       if (r.lastActivity) {

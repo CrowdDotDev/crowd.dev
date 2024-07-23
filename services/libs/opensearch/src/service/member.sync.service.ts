@@ -1,11 +1,21 @@
-import { distinct, sumBy, trimUtf8ToMaxByteLength } from '@crowd/common'
+import { distinct, trimUtf8ToMaxByteLength } from '@crowd/common'
 import {
+  MemberField,
   fetchMemberIdentities,
   fetchMemberOrganizations,
   filterMembersWithActivities,
   findMemberById,
-  MemberField,
 } from '@crowd/data-access-layer'
+import { getMemberAggregates } from '@crowd/data-access-layer/src/activities'
+import {
+  cleanupMemberAggregates,
+  fetchAbsoluteMemberAggregates,
+  insertMemberSegments,
+} from '@crowd/data-access-layer/src/members/segments'
+import { IMemberSegmentAggregates } from '@crowd/data-access-layer/src/members/types'
+import { OrganizationField, findOrgById } from '@crowd/data-access-layer/src/orgs'
+import { QueryExecutor, repoQx } from '@crowd/data-access-layer/src/queryExecutor'
+import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
 import { DbStore } from '@crowd/database'
 import { Logger, getChildLogger, logExecutionTimeV2 } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
@@ -16,7 +26,6 @@ import {
   IMemberOrganization,
   IMemberWithAggregatesForMergeSuggestions,
   MemberAttributeType,
-  SegmentData,
 } from '@crowd/types'
 import { IndexedEntityType } from '../repo/indexing.data'
 import { IndexingRepository } from '../repo/indexing.repo'
@@ -25,16 +34,6 @@ import { OpenSearchIndex } from '../types'
 import { IMemberSyncResult } from './member.sync.data'
 import { IPagedSearchResponse, ISearchHit } from './opensearch.data'
 import { OpenSearchService } from './opensearch.service'
-import { repoQx, QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
-import { getMemberAggregates } from '@crowd/data-access-layer/src/activities'
-import {
-  cleanupMemberAggregates,
-  fetchAbsoluteMemberAggregates,
-  insertMemberSegments,
-} from '@crowd/data-access-layer/src/members/segments'
-import { OrganizationField, findOrgById } from '@crowd/data-access-layer/src/orgs'
-import { IMemberSegmentAggregates } from '@crowd/data-access-layer/src/members/types'
-import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 

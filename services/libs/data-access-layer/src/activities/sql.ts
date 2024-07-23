@@ -56,60 +56,12 @@ export async function getActivitiesById(
     return []
   }
 
-  const columnString = DEFAULT_COLUMNS_TO_SELECT.map((c) => `a.${c}`).join(', ')
+  const data = await queryActivities(conn, {
+    filter: { and: [{ id: { in: ids } }] },
+    limit: ids.length,
+  })
 
-  const activities = await conn.any(
-    `select
-      ${columnString}
-    from activities a
-    where a."id" in ($(ids:csv))
-    and "deletedAt" is null
-  `,
-    {
-      ids,
-    },
-  )
-
-  const results: IQueryActivityResult[] = []
-  for (const a of activities) {
-    const sentiment: IActivitySentiment | null =
-      a.sentimentLabel &&
-      a.sentimentScore &&
-      a.sentimentScoreMixed &&
-      a.sentimentScoreNeutral &&
-      a.sentimentScoreNegative &&
-      a.sentimentScorePositive
-        ? {
-            label: a.sentimentLabel,
-            sentiment: a.sentimentScore,
-            mixed: a.sentimentScoreMixed,
-            neutral: a.sentimentScoreNeutral,
-            negative: a.sentimentScoreNegative,
-            positive: a.sentimentScorePositive,
-          }
-        : null
-
-    const data: any = {}
-    for (const column of DEFAULT_COLUMNS_TO_SELECT) {
-      if (column.startsWith('sentiment')) {
-        continue
-      }
-
-      if (column === 'attributes') {
-        data[column] = JSON.parse(a[column])
-      } else {
-        data[column] = a[column]
-      }
-    }
-
-    if (sentiment) {
-      data.sentiment = sentiment
-    }
-
-    results.push(data)
-  }
-
-  return results
+  return data.rows
 }
 
 export async function insertActivity(
@@ -602,8 +554,12 @@ export async function queryActivities(
   let baseQuery = `
     from activities a
     where
-      a."tenantId" = $(tenantId) and
-      a."segmentId" in ($(segmentIds:csv)) and
+      ${arg.tenantId ? 'a."tenantId" = $(tenantId) and' : ''}
+      ${
+        arg.segmentIds && arg.segmentIds.length > 0
+          ? 'a."segmentId" in ($(segmentIds:csv)) and'
+          : ''
+      }
       a."deletedAt" is null and ${filterString}
   `
   if (arg.groupBy) {
@@ -1349,39 +1305,6 @@ export async function getActiveMembers(
   return results
 }
 
-export async function getLastActivitiesForMembers(
-  qdbConn: DbConnOrTx,
-  tenantId: string,
-  memberIds: string[],
-): Promise<IQueryActivityResult[]> {
-  if (memberIds.length === 0) {
-    return []
-  }
-
-  const results = await qdbConn.any(
-    `
-    with data as (
-      select a.id, row_number() over (partition by a."memberId" order by timestamp desc) as row_number
-      from activities a
-      where a."tenantId" = $(tenantId) and a."deletedAt" is null and a."memberId" in ($(memberIds:csv))
-    )
-    select d.id from data d where d.row_number = 1;
-    `,
-    {
-      tenantId,
-      memberIds,
-    },
-  )
-
-  const ids = results.map((r) => r.id)
-
-  if (ids.length > 0) {
-    return getActivitiesById(qdbConn, ids)
-  }
-
-  return []
-}
-
 export async function getNewActivityPlatforms(
   qdbConn: DbConnOrTx,
   arg: INewActivityPlatforms,
@@ -1404,4 +1327,24 @@ export async function getNewActivityPlatforms(
   })
 
   return results
+}
+
+export async function getLastActivitiesForMembers(
+  qdbConn: DbConnOrTx,
+  memberIds: string[],
+): Promise<IQueryActivityResult[]> {
+  const query = `
+  select id from activities where "deletedAt" is null and "memberId" in ($(memberIds:csv))
+  latest on timestamp partition by "memberId";
+  `
+  const results = await qdbConn.any(query, { memberIds })
+
+  if (results.length === 0) {
+    return []
+  }
+
+  return getActivitiesById(
+    qdbConn,
+    results.map((r) => r.id),
+  )
 }

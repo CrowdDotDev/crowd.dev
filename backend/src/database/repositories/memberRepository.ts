@@ -1894,7 +1894,7 @@ class MemberRepository {
         }
       }
 
-      const lastActivities = await getLastActivitiesForMembers(options.qdb, tenant.id, memberIds)
+      const lastActivities = await getLastActivitiesForMembers(options.qdb, memberIds)
 
       for (const row of translatedRows) {
         const r = row as any
