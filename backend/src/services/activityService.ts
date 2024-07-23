@@ -804,6 +804,26 @@ export default class ActivityService extends LoggerBase {
         }),
       )
     }
+    if (memberIds.length > 0) {
+      promises.push(
+        queryMembersAdvanced(
+          optionsQx(this.options),
+          this.options.redis,
+          this.options.currentTenant.id,
+          {
+            filter: { and: [{ id: { in: memberIds } }] },
+            limit: memberIds.length,
+          },
+        ).then((members) => {
+          for (const row of page.rows.filter((r) => r.memberId)) {
+            ;(row as any).member = singleOrDefault(
+              members.rows,
+              (m) => m.id === row.memberId,
+            )
+          }
+        })
+      )
+    }
 
     await Promise.all(promises)
 
