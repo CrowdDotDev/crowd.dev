@@ -104,7 +104,9 @@
 
 <script setup lang="ts">
 import LfModal from '@/ui-kit/modal/Modal.vue';
-import { computed, reactive, ref } from 'vue';
+import {
+  computed, reactive, ref, h,
+} from 'vue';
 import { Contributor, ContributorIdentity } from '@/modules/contributor/types/Contributor';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
@@ -120,6 +122,7 @@ import { email, helpers, required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 import LfField from '@/ui-kit/field/Field.vue';
 import LfFieldMessages from '@/ui-kit/field-messages/FieldMessages.vue';
+import { useMemberStore } from '@/modules/member/store/pinia';
 
 const props = defineProps<{
   modelValue: boolean,
@@ -129,6 +132,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void}>();
 
+const memberStore = useMemberStore();
 const { updateContributor } = useContributorStore();
 
 const sending = ref<boolean>(false);
@@ -177,8 +181,38 @@ const addIdentities = () => {
       Message.success('Identities successfully added');
       isModalOpen.value = false;
     })
-    .catch(() => {
-      Message.error('Something went wrong while adding a new identity');
+    .catch((error) => {
+      if (error.response.status === 409) {
+        isModalOpen.value = false;
+        Message.success(
+          h(
+            'div',
+            {
+              class: 'flex flex-col gap-2',
+            },
+            [
+              h(
+                'el-button',
+                {
+                  class: 'btn btn--xs btn--secondary !h-6 !w-fit',
+                  onClick: () => {
+                    const { memberId, grandParentId } = error.response.data;
+
+                    memberStore.addToMergeMember(memberId, grandParentId);
+                    Message.closeAll();
+                  },
+                },
+                'Merge profiles',
+              ),
+            ],
+          ),
+          {
+            title: 'Profile was not updated because the identity already exists in another profile, but you can merge the profiles.',
+          },
+        );
+      } else {
+        Message.error('Something went wrong while adding a new identity');
+      }
     })
     .finally(() => {
       sending.value = false;
