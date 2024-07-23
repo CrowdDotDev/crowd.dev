@@ -2302,10 +2302,13 @@ class MemberRepository {
       search = search.toLowerCase()
 
       // search for identity platforms and if not specified, search for all
-      const identitiesPlatformsToSearch = identitiesPlatforms.length ? `AND platform IN ('${identitiesPlatforms.join("','")}')` : ''
+      const searchWhere = identitiesFilter
+      ? `verified AND lower("value") LIKE '%${search}%'`
+      : `(verified AND type = '${MemberIdentityType.EMAIL}' AND lower("value") LIKE '%${search}%') OR lower(m."displayName") LIKE '%${search}%'`
 
-      // build the search where clause
-      const searchWhere = identitiesFilter ? `verified AND lower("value") LIKE '%${search}%' ${identitiesPlatformsToSearch}` : `(verified AND type = '${MemberIdentityType.EMAIL}' AND lower("value") LIKE '%${search}%') OR lower(m."displayName") LIKE '%${search}%'`
+      const platformCondition = identitiesPlatforms.length
+        ? `AND mi.platform IN ('${identitiesPlatforms.join("','")}')`
+        : ''
 
       searchCTE = `
       ,  
@@ -2314,7 +2317,8 @@ class MemberRepository {
             "memberId"
           FROM "memberIdentities" mi
           join members m on m.id = mi."memberId"
-          where ${searchWhere}'
+          WHERE ${searchWhere}
+          ${platformCondition}
           GROUP BY 1
         )
       `
