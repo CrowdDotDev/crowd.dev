@@ -59,7 +59,7 @@ const QUERY_FILTER_COLUMN_MAP: Map<string, { name: string; queryable?: boolean }
 
   // member fields
   ['displayName', { name: 'm."displayName"' }],
-  ['reach', { name: 'm.reach' }],
+  ['reach', { name: `COALESCE((m.reach -> 'total' ->> 'default')::INTEGER, 0)` }],
   // ['tags', {name: 'm."tags"'}], // ignore, not used
   ['joinedAt', { name: 'm."joinedAt"' }],
   ['jobTitle', { name: `m.attributes -> 'jobTitle' ->> 'default'` }],
