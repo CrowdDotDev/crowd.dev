@@ -1,3 +1,4 @@
+import { getEnv } from '@crowd/common'
 import { getServiceChildLogger } from '@crowd/logging'
 
 import pgpromise from 'pg-promise'
@@ -39,6 +40,7 @@ export const getClientSQL = async (): Promise<pgpromise.IDatabase<unknown>> => {
     password: process.env['CROWD_QUESTDB_READ_PASSWORD'],
     database: process.env['CROWD_QUESTDB_READ_DATABASE'],
     application_name: process.env.SERVICE || 'unknown-app',
+    ssl: getEnv() !== 'local' ? true : false,
   })
 
   await client.connect()
