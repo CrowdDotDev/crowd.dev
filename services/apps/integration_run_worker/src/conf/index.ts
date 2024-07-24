@@ -2,8 +2,8 @@ import { SERVICE } from '@crowd/common'
 import { IDatabaseConfig } from '@crowd/data-access-layer/src/database'
 import { IUnleashConfig } from '@crowd/feature-flags'
 import { ISearchSyncApiConfig } from '@crowd/opensearch'
+import { IQueueEnvironment } from '@crowd/queue'
 import { IRedisConfiguration } from '@crowd/redis'
-import { ISqsClientConfig } from '@crowd/sqs'
 import { QueuePriorityLevel } from '@crowd/types'
 import config from 'config'
 
@@ -20,12 +20,12 @@ export interface ILokiDbConfig {
   token: string
 }
 
-let sqsConfig: ISqsClientConfig
-export const SQS_CONFIG = (): ISqsClientConfig => {
-  if (sqsConfig) return sqsConfig
+let queueConfig: IQueueEnvironment
+export const QUEUE_CONFIG = (): IQueueEnvironment => {
+  if (queueConfig) return queueConfig
 
-  sqsConfig = config.get<ISqsClientConfig>('sqs')
-  return sqsConfig
+  queueConfig = config.get<IQueueEnvironment>('queue')
+  return queueConfig
 }
 
 let dbConfig: IDatabaseConfig
