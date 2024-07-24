@@ -3,7 +3,6 @@ import { Kafka, Producer as KafkaProducer } from 'kafkajs'
 
 import pgpromise from 'pg-promise'
 
-import { getEnv } from '@crowd/common'
 import { getClientSQL } from '@crowd/questdb'
 import { Unleash as UnleashClient, getUnleashClient } from '@crowd/feature-flags'
 import { IIntegrationDescriptor, INTEGRATION_SERVICES } from '@crowd/integrations'
@@ -208,10 +207,6 @@ export class Service {
 
     // Only validate QuestDB-related environment variables if enabled.
     if (this.config.questdb.enabled) {
-      if (getEnv() !== 'local') {
-        envvars.questdb.push('CROWD_QUESTDB_WRITE_KEY_ID', 'CROWD_QUESTDB_WRITE_PRIVATE_KEY')
-      }
-
       envvars.questdb.forEach((envvar) => {
         if (!process.env[envvar]) {
           missing.push(envvar)
