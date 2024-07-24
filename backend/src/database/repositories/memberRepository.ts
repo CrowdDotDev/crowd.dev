@@ -2976,7 +2976,7 @@ class MemberRepository {
               !organizations.find(
                 (newOrg) =>
                   originalOrg.organizationId === newOrg.id &&
-                  originalOrg.title === (newOrg.title || null) &&
+                  (originalOrg.title === (newOrg.title || null) || (!originalOrg.title && newOrg.title)) &&
                   iso(originalOrg.dateStart) === iso(newOrg.startDate || null) &&
                   iso(originalOrg.dateEnd) === iso(newOrg.endDate || null),
               ),
@@ -2996,6 +2996,7 @@ class MemberRepository {
             !originalOrgs.some(
               (w) =>
                 w.organizationId === item.id &&
+                w.title === (item.title || null) &&
                 w.dateStart === (item.startDate || null) &&
                 w.dateEnd === (item.endDate || null),
             )
@@ -3033,6 +3034,7 @@ class MemberRepository {
           UPDATE "memberOrganizations"
           SET "deletedAt" = NOW()
           WHERE "memberId" = :memberId
+          AND "title" = :title
           AND "organizationId" = :organizationId
           AND "dateStart" IS NULL
           AND "dateEnd" IS NULL
@@ -3040,6 +3042,7 @@ class MemberRepository {
         {
           replacements: {
             memberId,
+            title,
             organizationId,
           },
           type: QueryTypes.UPDATE,
@@ -3051,6 +3054,7 @@ class MemberRepository {
         `
           SELECT COUNT(*) AS count FROM "memberOrganizations"
           WHERE "memberId" = :memberId
+          AND "title" = :title
           AND "organizationId" = :organizationId
           AND "dateStart" IS NOT NULL
           AND "deletedAt" IS NULL
@@ -3058,6 +3062,7 @@ class MemberRepository {
         {
           replacements: {
             memberId,
+            title,
             organizationId,
           },
           type: QueryTypes.SELECT,
