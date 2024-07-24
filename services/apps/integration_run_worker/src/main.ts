@@ -1,8 +1,8 @@
 import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
-import { getSqsClient } from '@crowd/sqs'
-import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG, UNLEASH_CONFIG, WORKER_CONFIG } from './conf'
+import { QueueFactory } from '@crowd/queue'
+import { DB_CONFIG, REDIS_CONFIG, UNLEASH_CONFIG, WORKER_CONFIG, QUEUE_CONFIG } from './conf'
 import { WorkerQueueReceiver } from './queue'
 import { ApiPubSubEmitter, getRedisClient } from '@crowd/redis'
 import {
@@ -24,7 +24,7 @@ setImmediate(async () => {
   log.info('Starting integration run worker...')
   const unleash = await getUnleashClient(UNLEASH_CONFIG())
 
-  const sqsClient = getSqsClient(SQS_CONFIG())
+  const queueClient = QueueFactory.createQueueService(QUEUE_CONFIG())
 
   const dbConnection = await getDbConnection(DB_CONFIG(), MAX_CONCURRENT_PROCESSING)
   const redis = await getRedisClient(REDIS_CONFIG(), true)
@@ -34,7 +34,7 @@ setImmediate(async () => {
     priorityLevelRepo.loadPriorityLevelContext(tenantId)
 
   const runWorkerEmitter = new IntegrationRunWorkerEmitter(
-    sqsClient,
+    queueClient,
     redis,
     tracer,
     unleash,
@@ -42,7 +42,7 @@ setImmediate(async () => {
     log,
   )
   const streamWorkerEmitter = new IntegrationStreamWorkerEmitter(
-    sqsClient,
+    queueClient,
     redis,
     tracer,
     unleash,
@@ -50,7 +50,7 @@ setImmediate(async () => {
     log,
   )
   const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(
-    sqsClient,
+    queueClient,
     redis,
     tracer,
     unleash,
@@ -58,7 +58,7 @@ setImmediate(async () => {
     log,
   )
   const integrationSyncWorkerEmitter = new IntegrationSyncWorkerEmitter(
-    sqsClient,
+    queueClient,
     redis,
     tracer,
     unleash,
@@ -70,7 +70,7 @@ setImmediate(async () => {
 
   const queue = new WorkerQueueReceiver(
     WORKER_CONFIG().queuePriorityLevel,
-    sqsClient,
+    queueClient,
     redis,
     dbConnection,
     streamWorkerEmitter,

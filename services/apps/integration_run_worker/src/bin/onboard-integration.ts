@@ -1,8 +1,7 @@
-import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG, UNLEASH_CONFIG } from '../conf'
+import { DB_CONFIG, REDIS_CONFIG, QUEUE_CONFIG, UNLEASH_CONFIG } from '../conf'
 import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
-import { getSqsClient } from '@crowd/sqs'
 import IntegrationRunRepository from '@crowd/data-access-layer/src/old/apps/integration_run_worker/integrationRun.repo'
 import { IntegrationState } from '@crowd/types'
 import {
@@ -12,6 +11,7 @@ import {
 } from '@crowd/common_services'
 import { getUnleashClient } from '@crowd/feature-flags'
 import { getRedisClient } from '@crowd/redis'
+import { QueueFactory } from '@crowd/queue'
 
 const tracer = getServiceTracer()
 const log = getServiceLogger()
@@ -31,8 +31,8 @@ setImmediate(async () => {
   const loader: QueuePriorityContextLoader = (tenantId: string) =>
     priorityLevelRepo.loadPriorityLevelContext(tenantId)
 
-  const sqsClient = getSqsClient(SQS_CONFIG())
-  const emitter = new IntegrationRunWorkerEmitter(sqsClient, redis, tracer, unleash, loader, log)
+  const queueClient = QueueFactory.createQueueService(QUEUE_CONFIG())
+  const emitter = new IntegrationRunWorkerEmitter(queueClient, redis, tracer, unleash, loader, log)
   await emitter.init()
 
   const repo = new IntegrationRunRepository(store, log)
