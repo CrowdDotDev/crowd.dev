@@ -1,4 +1,4 @@
-import { getNodejsWorkerEmitter } from '@/serverless/utils/serviceSQS'
+import { getNodejsWorkerEmitter } from '@/serverless/utils/queueService'
 import { CrowdJob } from '../../types/jobTypes'
 
 const job: CrowdJob = {

@@ -19,16 +19,6 @@ export interface AwsCredentials {
   region: string
 }
 
-export interface SQSConfiguration {
-  host?: string
-  port?: number
-  nodejsWorkerQueue: string
-  nodejsWorkerPriorityQueue: string
-  integrationRunWorkerQueue: string
-  pythonWorkerQueue: string
-  aws: AwsCredentials
-}
-
 export interface S3Configuration {
   host?: string
   port?: number

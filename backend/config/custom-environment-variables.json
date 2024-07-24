@@ -13,18 +13,23 @@
     "host": "CROWD_REDIS_HOST",
     "port": "CROWD_REDIS_PORT"
   },
-  "sqs": {
-    "host": "CROWD_SQS_HOST",
-    "port": "CROWD_SQS_PORT",
+  "queue": {
+    "vendor": "CROWD_QUEUE_VENDOR",
     "nodejsWorkerQueue": "CROWD_SQS_NODEJS_WORKER_QUEUE",
-    "nodejsWorkerPriorityQueue": "CROWD_SQS_NODEJS_WORKER_PRIORITY_QUEUE",
-    "integrationRunWorkerQueue": "CROWD_SQS_INTEGRATION_RUN_WORKER_QUEUE",
-    "pythonWorkerQueue": "CROWD_SQS_PYTHON_WORKER_QUEUE",
-    "aws": {
-      "accountId": "CROWD_SQS_AWS_ACCOUNT_ID",
-      "accessKeyId": "CROWD_SQS_AWS_ACCESS_KEY_ID",
-      "secretAccessKey": "CROWD_SQS_AWS_SECRET_ACCESS_KEY",
-      "region": "CROWD_SQS_AWS_REGION"
+    "nodejsWorkerPriorityQueue": "CROWD_NODEJS_WORKER_PRIORITY_QUEUE",
+    "integrationRunWorkerQueue": "CROWD_INTEGRATION_RUN_WORKER_QUEUE",
+    "sqs": {
+      "host": "CROWD_SQS_HOST",
+      "port": "CROWD_SQS_PORT",
+      "aws": {
+        "accountId": "CROWD_SQS_AWS_ACCOUNT_ID",
+        "accessKeyId": "CROWD_SQS_AWS_ACCESS_KEY_ID",
+        "secretAccessKey": "CROWD_SQS_AWS_SECRET_ACCESS_KEY",
+        "region": "CROWD_SQS_AWS_REGION"
+      }
+    },
+    "kafka": {
+      "brokers": "CROWD_KAFKA_BROKERS"
     }
   },
   "s3": {
