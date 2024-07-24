@@ -3,11 +3,11 @@ import { IDatabaseConfig } from '@crowd/data-access-layer/src/database'
 import { IUnleashConfig } from '@crowd/feature-flags'
 import { IRedisConfiguration } from '@crowd/redis'
 import { ISentimentClientConfig } from '@crowd/sentiment'
-import { ISqsClientConfig } from '@crowd/sqs'
 import { ITemporalConfig } from '@crowd/temporal'
 import config from 'config'
 import { ISearchSyncApiConfig } from '@crowd/opensearch'
 import { QueuePriorityLevel } from '@crowd/types'
+import { IQueueClientConfig, IQueueConfig, IQueueEnvironment } from '@crowd/queue'
 export interface ISlackAlertingConfig {
   url: string
 }
@@ -33,12 +33,12 @@ export const REDIS_CONFIG = (): IRedisConfiguration => {
   return redisConfig
 }
 
-let sqsConfig: ISqsClientConfig
-export const SQS_CONFIG = (): ISqsClientConfig => {
-  if (sqsConfig) return sqsConfig
+let queueConfig: IQueueEnvironment
+export const QUEUE_CONFIG = (): IQueueEnvironment => {
+  if (queueConfig) return queueConfig
 
-  sqsConfig = config.get<ISqsClientConfig>('sqs')
-  return sqsConfig
+  queueConfig = config.get<IQueueEnvironment>('queue')
+  return queueConfig
 }
 
 let dbConfig: IDatabaseConfig
