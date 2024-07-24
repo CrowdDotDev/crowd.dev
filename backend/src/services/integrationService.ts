@@ -39,7 +39,7 @@ import { getOrganizations } from '../serverless/integrations/usecases/linkedin/g
 import {
   getIntegrationRunWorkerEmitter,
   getIntegrationSyncWorkerEmitter,
-} from '../serverless/utils/serviceSQS'
+} from '../serverless/utils/queueService'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
 import TenantRepository from '../database/repositories/tenantRepository'
 import GithubReposRepository from '../database/repositories/githubReposRepository'

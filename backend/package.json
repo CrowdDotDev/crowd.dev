@@ -64,6 +64,7 @@
     "@crowd/opensearch": "workspace:*",
     "@crowd/redis": "workspace:*",
     "@crowd/sqs": "workspace:*",
+    "@crowd/queue": "workspace:*",
     "@crowd/telemetry": "workspace:*",
     "@crowd/temporal": "workspace:*",
     "@crowd/tracing": "workspace:*",

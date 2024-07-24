@@ -1,6 +1,6 @@
 import { getServiceLogger } from '@crowd/logging'
 import cronGenerator from 'cron-time-generator'
-import { getNodejsWorkerEmitter } from '@/serverless/utils/serviceSQS'
+import { getNodejsWorkerEmitter } from '@/serverless/utils/queueService'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 import TenantRepository from '../../database/repositories/tenantRepository'
 import { CrowdJob } from '../../types/jobTypes'

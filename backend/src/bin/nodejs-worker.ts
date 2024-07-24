@@ -1,20 +1,14 @@
 import { timeout } from '@crowd/common'
 import { Logger, getChildLogger, getServiceLogger } from '@crowd/logging'
 import { RedisClient, getRedisClient } from '@crowd/redis'
-import {
-  SqsDeleteMessageRequest,
-  SqsMessage,
-  SqsReceiveMessageRequest,
-  deleteMessage,
-  receiveMessage,
-} from '@crowd/sqs'
 import fs from 'fs'
 import path from 'path'
 import { QueryTypes, Sequelize } from 'sequelize'
 import telemetry from '@crowd/telemetry'
-import { SQS_CLIENT, getNodejsWorkerEmitter } from '@/serverless/utils/serviceSQS'
+import { IQueueReceiveResponse } from '@crowd/queue'
+import { QUEUE_CLIENT, getNodejsWorkerEmitter } from '@/serverless/utils/queueService'
 import { databaseInit } from '@/database/databaseConnection'
-import { REDIS_CONFIG, SQS_CONFIG } from '../conf'
+import { REDIS_CONFIG, QUEUE_CONFIG } from '../conf'
 import { processDbOperationsMessage } from '../serverless/dbOperations/workDispatcher'
 import { processNodeMicroserviceMessage } from '../serverless/microservices/nodejs/workDispatcher'
 import { NodeWorkerMessageType } from '../serverless/types/workerTypes'
@@ -33,12 +27,12 @@ process.on('SIGTERM', async () => {
   exiting = true
 })
 
-const receive = async (queue: string): Promise<SqsMessage | undefined> => {
-  const params: SqsReceiveMessageRequest = {
-    QueueUrl: queue,
-  }
+const receive = async (queue: string): Promise<IQueueReceiveResponse | undefined> => {
+  const client = QUEUE_CLIENT()
 
-  const messages = await receiveMessage(SQS_CLIENT(), params)
+  const messages = await client.receive({
+    name: queue,
+  })
 
   if (messages && messages.length === 1) {
     return messages[0]
@@ -48,25 +42,34 @@ const receive = async (queue: string): Promise<SqsMessage | undefined> => {
 }
 
 const removeFromQueue = (queue: string, receiptHandle: string): Promise<void> => {
-  const params: SqsDeleteMessageRequest = {
-    QueueUrl: queue,
-    ReceiptHandle: receiptHandle,
-  }
+  const client = QUEUE_CLIENT()
 
-  return deleteMessage(SQS_CLIENT(), params)
+  return client.delete(
+    {
+      name: queue,
+    },
+    {
+      receiptHandle,
+    },
+  )
 }
 
 async function handleMessages(queue: string) {
+  const client = QUEUE_CLIENT()
+
   const handlerLogger = getChildLogger('messages', serviceLogger, {
     queue,
   })
   handlerLogger.info('Listening for messages!')
 
-  const processSingleMessage = async (message: SqsMessage): Promise<void> => {
-    const msg: NodeWorkerMessageBase = JSON.parse(message.Body)
+  const processSingleMessage = async (message: IQueueReceiveResponse): Promise<void> => {
+    const msg: NodeWorkerMessageBase = client.getMessageBody(message) as NodeWorkerMessageBase
+
+    const messageId = client.getMessageId(message)
+    const messageReceiptHandle = client.getReceiptHandle(message)
 
     const messageLogger = getChildLogger('messageHandler', serviceLogger, {
-      messageId: message.MessageId,
+      messageId: client.getMessageId(message),
       type: msg.type,
     })
 
@@ -78,7 +81,7 @@ async function handleMessages(queue: string) {
         messageLogger.warn(
           'Skipping enrich_member_organizations message! Purging the queue because they are not needed anymore!',
         )
-        await removeFromQueue(queue, message.ReceiptHandle)
+        await removeFromQueue(queue, messageReceiptHandle)
         return
       }
 
@@ -103,14 +106,14 @@ async function handleMessages(queue: string) {
           'nodejs_worker.process_message',
           async () => {
             // remove the message from the queue as it's about to be processed
-            await removeFromQueue(queue, message.ReceiptHandle)
-            messagesInProgress.set(message.MessageId, msg)
+            await removeFromQueue(queue, messageReceiptHandle)
+            messagesInProgress.set(messageId, msg)
             try {
               await processFunction(msg, messageLogger)
             } catch (err) {
               messageLogger.error(err, 'Error while processing queue message!')
             } finally {
-              messagesInProgress.delete(message.MessageId)
+              messagesInProgress.delete(messageId)
             }
           },
           {
@@ -184,8 +187,8 @@ setImmediate(async () => {
 
   await getNodejsWorkerEmitter()
   await Promise.all([
-    handleMessages(SQS_CONFIG.nodejsWorkerQueue),
-    handleMessages(SQS_CONFIG.nodejsWorkerPriorityQueue),
+    handleMessages(QUEUE_CONFIG.nodejsWorkerQueue),
+    handleMessages(QUEUE_CONFIG.nodejsWorkerPriorityQueue),
   ])
 })
 
