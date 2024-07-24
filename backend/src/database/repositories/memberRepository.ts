@@ -2976,7 +2976,8 @@ class MemberRepository {
               !organizations.find(
                 (newOrg) =>
                   originalOrg.organizationId === newOrg.id &&
-                  (originalOrg.title === (newOrg.title || null) || (!originalOrg.title && newOrg.title)) &&
+                  (originalOrg.title === (newOrg.title || null) ||
+                    (!originalOrg.title && newOrg.title)) &&
                   iso(originalOrg.dateStart) === iso(newOrg.startDate || null) &&
                   iso(originalOrg.dateEnd) === iso(newOrg.endDate || null),
               ),
