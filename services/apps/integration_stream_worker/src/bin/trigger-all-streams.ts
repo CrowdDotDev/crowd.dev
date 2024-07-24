@@ -1,8 +1,7 @@
-import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG, UNLEASH_CONFIG } from '../conf'
+import { DB_CONFIG, REDIS_CONFIG, QUEUE_CONFIG, UNLEASH_CONFIG } from '../conf'
 import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
-import { getSqsClient } from '@crowd/sqs'
 import {
   PriorityLevelContextRepository,
   QueuePriorityContextLoader,
@@ -10,6 +9,7 @@ import {
 } from '@crowd/common_services'
 import { getUnleashClient } from '@crowd/feature-flags'
 import { getRedisClient } from '@crowd/redis'
+import { QueueFactory } from '@crowd/queue'
 
 const BATCH_SIZE = 100
 
@@ -17,7 +17,7 @@ const tracer = getServiceTracer()
 const log = getServiceLogger()
 
 setImmediate(async () => {
-  const sqsClient = getSqsClient(SQS_CONFIG())
+  const queueClient = QueueFactory.createQueueService(QUEUE_CONFIG())
   const dbConnection = await getDbConnection(DB_CONFIG())
   const unleash = await getUnleashClient(UNLEASH_CONFIG())
   const redisClient = await getRedisClient(REDIS_CONFIG(), true)
@@ -26,7 +26,7 @@ setImmediate(async () => {
     priorityLevelRepo.loadPriorityLevelContext(tenantId)
 
   const emitter = new IntegrationStreamWorkerEmitter(
-    sqsClient,
+    queueClient,
     redisClient,
     tracer,
     unleash,

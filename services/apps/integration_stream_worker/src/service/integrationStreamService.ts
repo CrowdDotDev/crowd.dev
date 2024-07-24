@@ -509,7 +509,7 @@ export default class IntegrationStreamService extends LoggerBase {
       },
       setMessageVisibilityTimeout: async (newTimeout: number) => {
         if (!receiptHandle) {
-          // this stream was triggerd manually (not from SQS), skipping visibility change
+          // this stream was triggerd manually (not from queue), skipping visibility change
           this.log.trace('No receipt handle provided, cannot change message visibility!')
           return
         }

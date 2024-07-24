@@ -1,9 +1,8 @@
-import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG, UNLEASH_CONFIG } from '../conf'
+import { DB_CONFIG, REDIS_CONFIG, QUEUE_CONFIG, UNLEASH_CONFIG } from '../conf'
 import IncomingWebhookRepository from '@crowd/data-access-layer/src/old/apps/integration_stream_worker/incomingWebhook.repo'
 import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
-import { getSqsClient } from '@crowd/sqs'
 import { WebhookState, WebhookType } from '@crowd/types'
 import {
   IntegrationStreamWorkerEmitter,
@@ -12,6 +11,7 @@ import {
 } from '@crowd/common_services'
 import { getUnleashClient } from '@crowd/feature-flags'
 import { getRedisClient } from '@crowd/redis'
+import { QueueFactory } from '@crowd/queue'
 
 const tracer = getServiceTracer()
 const log = getServiceLogger()
@@ -36,9 +36,9 @@ setImmediate(async () => {
   const loader: QueuePriorityContextLoader = (tenantId: string) =>
     priorityLevelRepo.loadPriorityLevelContext(tenantId)
 
-  const sqsClient = getSqsClient(SQS_CONFIG())
+  const queueClient = QueueFactory.createQueueService(QUEUE_CONFIG())
   const emitter = new IntegrationStreamWorkerEmitter(
-    sqsClient,
+    queueClient,
     redisClient,
     tracer,
     unleash,

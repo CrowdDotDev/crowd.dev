@@ -1,9 +1,8 @@
 import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
-import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG, UNLEASH_CONFIG, WORKER_SETTINGS } from './conf'
+import { DB_CONFIG, REDIS_CONFIG, UNLEASH_CONFIG, WORKER_SETTINGS, QUEUE_CONFIG } from './conf'
 import { getRedisClient } from '@crowd/redis'
 import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
-import { getSqsClient } from '@crowd/sqs'
 import { WorkerQueueReceiver } from './queue'
 import {
   DataSinkWorkerEmitter,
@@ -13,6 +12,7 @@ import {
   QueuePriorityContextLoader,
 } from '@crowd/common_services'
 import { getUnleashClient } from '@crowd/feature-flags'
+import { QueueFactory } from '@crowd/queue'
 
 const tracer = getServiceTracer()
 const log = getServiceLogger()
@@ -24,7 +24,7 @@ setImmediate(async () => {
 
   const unleash = await getUnleashClient(UNLEASH_CONFIG())
 
-  const sqsClient = getSqsClient(SQS_CONFIG())
+  const queueClient = QueueFactory.createQueueService(QUEUE_CONFIG())
 
   const dbConnection = await getDbConnection(DB_CONFIG(), MAX_CONCURRENT_PROCESSING)
   const redisClient = await getRedisClient(REDIS_CONFIG(), true)
@@ -34,7 +34,7 @@ setImmediate(async () => {
     priorityLevelRepo.loadPriorityLevelContext(tenantId)
 
   const runWorkerEmiiter = new IntegrationRunWorkerEmitter(
-    sqsClient,
+    queueClient,
     redisClient,
     tracer,
     unleash,
@@ -42,7 +42,7 @@ setImmediate(async () => {
     log,
   )
   const streamWorkerEmitter = new IntegrationStreamWorkerEmitter(
-    sqsClient,
+    queueClient,
     redisClient,
     tracer,
     unleash,
@@ -50,7 +50,7 @@ setImmediate(async () => {
     log,
   )
   const dataSinkWorkerEmitter = new DataSinkWorkerEmitter(
-    sqsClient,
+    queueClient,
     redisClient,
     tracer,
     unleash,
@@ -60,7 +60,7 @@ setImmediate(async () => {
 
   const queue = new WorkerQueueReceiver(
     WORKER_SETTINGS().queuePriorityLevel,
-    sqsClient,
+    queueClient,
     redisClient,
     dbConnection,
     runWorkerEmiiter,
