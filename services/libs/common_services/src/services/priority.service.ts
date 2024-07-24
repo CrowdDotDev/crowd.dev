@@ -2,7 +2,8 @@ import { EDITION, IS_DEV_ENV, IS_STAGING_ENV, IS_TEST_ENV, groupBy } from '@crow
 import { UnleashClient, isFeatureEnabled } from '@crowd/feature-flags'
 import { Logger, getChildLogger } from '@crowd/logging'
 import { RedisCache, RedisClient } from '@crowd/redis'
-import { CrowdQueue, ISqsQueueConfig, SqsClient, SqsPrioritizedQueueEmitter } from '@crowd/sqs'
+import { IQueueConfig, IQueue, PrioritizedQueueEmitter, CrowdQueue } from '@crowd/queue'
+
 import { Tracer } from '@crowd/tracing'
 import {
   FeatureFlag,
@@ -21,12 +22,12 @@ export class QueuePriorityService {
   private readonly log: Logger
   private readonly cache: RedisCache
 
-  private readonly emitter: SqsPrioritizedQueueEmitter
+  private readonly emitter: PrioritizedQueueEmitter
 
   public constructor(
     public readonly queue: CrowdQueue,
-    private readonly queueConfig: ISqsQueueConfig,
-    private readonly sqsClient: SqsClient,
+    private readonly queueConfig: IQueueConfig,
+    private readonly client: IQueue,
     private readonly redis: RedisClient,
     private readonly tracer: Tracer,
     private readonly unleash: UnleashClient | undefined,
@@ -35,12 +36,7 @@ export class QueuePriorityService {
   ) {
     this.log = getChildLogger(this.constructor.name, parentLog)
     this.cache = new RedisCache('queue-priority', redis, this.log)
-    this.emitter = new SqsPrioritizedQueueEmitter(
-      this.sqsClient,
-      this.queueConfig,
-      this.tracer,
-      this.log,
-    )
+    this.emitter = new PrioritizedQueueEmitter(this.client, this.queueConfig, this.tracer, this.log)
   }
 
   public isInitialized(): boolean {
