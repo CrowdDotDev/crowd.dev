@@ -1,4 +1,4 @@
-import { CrowdQueue, INTEGRATION_RUN_WORKER_QUEUE_SETTINGS, SqsClient } from '@crowd/sqs'
+import { CrowdQueue, IQueue } from '@crowd/queue'
 import { QueuePriorityContextLoader, QueuePriorityService } from '../priority.service'
 import { RedisClient } from '@crowd/redis'
 import { Tracer } from '@crowd/tracing'
@@ -14,7 +14,7 @@ import {
 
 export class IntegrationRunWorkerEmitter extends QueuePriorityService {
   public constructor(
-    sqsClient: SqsClient,
+    client: IQueue,
     redis: RedisClient,
     tracer: Tracer,
     unleash: UnleashClient | undefined,
@@ -23,8 +23,8 @@ export class IntegrationRunWorkerEmitter extends QueuePriorityService {
   ) {
     super(
       CrowdQueue.INTEGRATION_RUN_WORKER,
-      INTEGRATION_RUN_WORKER_QUEUE_SETTINGS,
-      sqsClient,
+      client.getQueueConfig(CrowdQueue.INTEGRATION_RUN_WORKER),
+      client,
       redis,
       tracer,
       unleash,

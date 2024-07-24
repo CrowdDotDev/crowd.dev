@@ -2,7 +2,7 @@ import { generateUUIDv1 } from '@crowd/common'
 import { UnleashClient } from '@crowd/feature-flags'
 import { Logger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
-import { CrowdQueue, NODEJS_WORKER_QUEUE_SETTINGS, SqsClient } from '@crowd/sqs'
+import { CrowdQueue, IQueue } from '@crowd/queue'
 import { Tracer } from '@crowd/tracing'
 import {
   AutomationType,
@@ -27,7 +27,7 @@ import { QueuePriorityContextLoader, QueuePriorityService } from '../priority.se
 
 export class NodejsWorkerEmitter extends QueuePriorityService {
   public constructor(
-    sqsClient: SqsClient,
+    client: IQueue,
     redis: RedisClient,
     tracer: Tracer,
     unleash: UnleashClient | undefined,
@@ -36,8 +36,8 @@ export class NodejsWorkerEmitter extends QueuePriorityService {
   ) {
     super(
       CrowdQueue.NODEJS_WORKER,
-      NODEJS_WORKER_QUEUE_SETTINGS,
-      sqsClient,
+      client.getQueueConfig(CrowdQueue.NODEJS_WORKER),
+      client,
       redis,
       tracer,
       unleash,
