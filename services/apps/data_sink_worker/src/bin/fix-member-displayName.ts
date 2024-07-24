@@ -1,13 +1,12 @@
 import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { getServiceLogger } from '@crowd/logging'
-import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG, UNLEASH_CONFIG } from '../conf'
+import { DB_CONFIG, REDIS_CONFIG, QUEUE_CONFIG, UNLEASH_CONFIG } from '../conf'
 
 import {
   getMembersWithWrongDisplayName,
   updateMemberDisplayName,
 } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/scripts/fix-member-displayName'
 import { getProperDisplayName } from '@crowd/common'
-import { getSqsClient } from '@crowd/sqs'
 import {
   PriorityLevelContextRepository,
   QueuePriorityContextLoader,
@@ -16,6 +15,7 @@ import {
 import { getUnleashClient } from '@crowd/feature-flags'
 import { getRedisClient } from '@crowd/redis'
 import { getServiceTracer } from '@crowd/tracing'
+import { QueueFactory } from '@crowd/queue'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -33,7 +33,7 @@ const tenantId = processArguments[0]
 
 setImmediate(async () => {
   const dbClient = await getDbConnection(DB_CONFIG())
-  const sqsClient = getSqsClient(SQS_CONFIG())
+  const queueClient = QueueFactory.createQueueService(QUEUE_CONFIG())
   const unleash = await getUnleashClient(UNLEASH_CONFIG())
   const redis = await getRedisClient(REDIS_CONFIG())
 
@@ -59,7 +59,7 @@ setImmediate(async () => {
   log.info(`Found ${totalWrongMembers} members!`)
 
   const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(
-    sqsClient,
+    queueClient,
     redis,
     tracer,
     unleash,

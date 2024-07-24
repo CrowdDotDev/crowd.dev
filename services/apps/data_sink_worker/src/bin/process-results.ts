@@ -1,11 +1,10 @@
-import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG, TEMPORAL_CONFIG, UNLEASH_CONFIG } from '../conf'
+import { DB_CONFIG, REDIS_CONFIG, TEMPORAL_CONFIG, UNLEASH_CONFIG, QUEUE_CONFIG } from '../conf'
 import DataSinkRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/dataSink.repo'
 import DataSinkService from '../service/dataSink.service'
 import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
 import { getRedisClient } from '@crowd/redis'
-import { getSqsClient } from '@crowd/sqs'
 import { getUnleashClient } from '@crowd/feature-flags'
 import { Client as TemporalClient, getTemporalClient } from '@crowd/temporal'
 import {
@@ -15,6 +14,7 @@ import {
   QueuePriorityContextLoader,
   SearchSyncWorkerEmitter,
 } from '@crowd/common_services'
+import { QueueFactory } from '@crowd/queue'
 
 const tracer = getServiceTracer()
 const log = getServiceLogger()
@@ -37,7 +37,7 @@ setImmediate(async () => {
     temporal = await getTemporalClient(TEMPORAL_CONFIG())
   }
 
-  const sqsClient = getSqsClient(SQS_CONFIG())
+  const queueClient = QueueFactory.createQueueService(QUEUE_CONFIG())
   const redis = await getRedisClient(REDIS_CONFIG())
   const dbConnection = await getDbConnection(DB_CONFIG())
   const store = new DbStore(log, dbConnection)
@@ -47,7 +47,7 @@ setImmediate(async () => {
     priorityLevelRepo.loadPriorityLevelContext(tenantId)
 
   const nodejsWorkerEmitter = new NodejsWorkerEmitter(
-    sqsClient,
+    queueClient,
     redis,
     tracer,
     unleash,
@@ -57,7 +57,7 @@ setImmediate(async () => {
   await nodejsWorkerEmitter.init()
 
   const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(
-    sqsClient,
+    queueClient,
     redis,
     tracer,
     unleash,
@@ -67,7 +67,7 @@ setImmediate(async () => {
   await searchSyncWorkerEmitter.init()
 
   const dataSinkWorkerEmitter = new DataSinkWorkerEmitter(
-    sqsClient,
+    queueClient,
     redis,
     tracer,
     unleash,

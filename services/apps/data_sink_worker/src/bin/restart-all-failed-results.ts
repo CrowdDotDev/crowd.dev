@@ -1,10 +1,9 @@
-import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG, UNLEASH_CONFIG } from '../conf'
+import { DB_CONFIG, REDIS_CONFIG, UNLEASH_CONFIG, QUEUE_CONFIG } from '../conf'
 import DataSinkRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/dataSink.repo'
 import { partition } from '@crowd/common'
 import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
-import { getSqsClient } from '@crowd/sqs'
 import { ProcessIntegrationResultQueueMessage } from '@crowd/types'
 import {
   DataSinkWorkerEmitter,
@@ -13,6 +12,7 @@ import {
 } from '@crowd/common_services'
 import { getUnleashClient } from '@crowd/feature-flags'
 import { getRedisClient } from '@crowd/redis'
+import { QueueFactory } from '@crowd/queue'
 
 const batchSize = 500
 
@@ -29,9 +29,9 @@ setImmediate(async () => {
   const loader: QueuePriorityContextLoader = (tenantId: string) =>
     priorityLevelRepo.loadPriorityLevelContext(tenantId)
 
-  const sqsClient = getSqsClient(SQS_CONFIG())
+  const queueClient = QueueFactory.createQueueService(QUEUE_CONFIG())
 
-  const emitter = new DataSinkWorkerEmitter(sqsClient, redis, tracer, unleash, loader, log)
+  const emitter = new DataSinkWorkerEmitter(queueClient, redis, tracer, unleash, loader, log)
   await emitter.init()
 
   const repo = new DataSinkRepository(store, log)
