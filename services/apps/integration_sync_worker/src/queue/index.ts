@@ -1,10 +1,5 @@
 import { DbConnection, DbStore } from '@crowd/data-access-layer/src/database'
 import { Logger } from '@crowd/logging'
-import {
-  INTEGRATION_SYNC_WORKER_QUEUE_SETTINGS,
-  SqsClient,
-  SqsPrioritizedQueueReciever,
-} from '@crowd/sqs'
 import { Span, SpanStatusCode, Tracer } from '@crowd/tracing'
 import {
   AutomationSyncTrigger,
@@ -16,11 +11,12 @@ import { Client } from '@opensearch-project/opensearch'
 import { MemberSyncService } from '../service/member.sync.service'
 import { OpenSearchService } from '../service/opensearch.service'
 import { OrganizationSyncService } from '../service/organization.sync.service'
+import { IQueue, PrioritizedQueueReciever, CrowdQueue } from '@crowd/queue'
 
-export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
+export class WorkerQueueReceiver extends PrioritizedQueueReciever {
   constructor(
     level: QueuePriorityLevel,
-    client: SqsClient,
+    client: IQueue,
     private readonly dbConn: DbConnection,
     private readonly openSearchClient: Client,
     tracer: Tracer,
@@ -30,7 +26,7 @@ export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
     super(
       level,
       client,
-      INTEGRATION_SYNC_WORKER_QUEUE_SETTINGS,
+      client.getQueueConfig(CrowdQueue.INTEGRATION_SYNC_WORKER),
       maxConcurrentProcessing,
       tracer,
       parentLog,
