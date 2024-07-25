@@ -3,7 +3,7 @@
     "queuePriorityLevel": "normal"
   },
   "db": {},
-  "sqs": {},
+  "queue": {},
   "redis": {},
   "opensearch": {}
 }

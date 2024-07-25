@@ -42,6 +42,7 @@
     "@crowd/logging": "workspace:*",
     "@crowd/redis": "workspace:*",
     "@crowd/sqs": "workspace:*",
+    "@crowd/queue": "workspace:*",
     "@crowd/tracing": "workspace:*",
     "@crowd/types": "workspace:*",
     "@crowd/opensearch": "workspace:*",
