@@ -1,5 +1,5 @@
 <template>
-  <slot :connect="connect" :settings="settings" :has-settings="hasSettings" />
+  <slot :connect="connect" :settings="settings" :has-settings="hasSettings" :settings-component="GitSettings" />
   <app-git-connect-drawer
     v-model="drawerVisible"
     :integration="integration"
@@ -9,6 +9,7 @@
 <script setup>
 import { computed, defineProps, ref } from 'vue';
 import AppGitConnectDrawer from '@/integrations/git/components/git-connect-drawer.vue';
+import GitSettings from './git-settings.vue';
 
 const props = defineProps({
   integration: {
