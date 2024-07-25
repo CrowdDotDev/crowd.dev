@@ -398,14 +398,16 @@ export default class IntegrationService {
         this.options.log.warn(err, 'Error while fetching GitHub user!')
       }
 
-      integration = await this.createOrUpdate(
+      // Create a separate function to handle the creation/update of the integration
+      await this.createOrUpdateGithubIntegration(
         {
           platform: PlatformType.GITHUB,
           token,
-          settings: { repos, updateMemberAttributes: true, orgAvatar },
+          settings: { updateMemberAttributes: true, orgAvatar },
           integrationIdentifier: installId,
           status: 'mapping',
         },
+        repos,
         transaction,
       )
 
@@ -413,6 +415,35 @@ export default class IntegrationService {
     } catch (err) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw err
+    }
+
+    return integration
+  }
+
+  /**
+   * Creates or updates a GitHub integration, handling large repos data
+   * @param integrationData The integration data to create or update
+   * @param repos The repositories data
+   * @param transaction The database transaction
+   */
+  private async createOrUpdateGithubIntegration(integrationData, repos, transaction) {
+    // First, create or update the integration without the repos data
+    const integration = await this.createOrUpdate(integrationData, transaction)
+
+    // Then, update the repos data in chunks to avoid query timeout
+    const chunkSize = 100 // Adjust this value based on your specific needs
+    for (let i = 0; i < repos.length; i += chunkSize) {
+      const reposChunk = repos.slice(i, i + chunkSize)
+      await this.update(
+        integration.id,
+        {
+          settings: {
+            ...integration.settings,
+            repos: reposChunk,
+          },
+        },
+        transaction,
+      )
     }
 
     return integration
