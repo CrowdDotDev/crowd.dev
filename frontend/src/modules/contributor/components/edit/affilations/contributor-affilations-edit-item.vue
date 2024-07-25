@@ -62,10 +62,10 @@
           @change="$v.dateStart.$touch"
         />
         <el-date-picker
-          :model-value="form.currentlyWorking ? '' : form.dateEnd"
+          :model-value="form.currentlyAffiliated ? '' : form.dateEnd"
           type="month"
           :placeholder="!form.dateStart ? 'To' : 'Present'"
-          :disabled="form.currentlyWorking"
+          :disabled="form.currentlyAffiliated"
           class="!w-auto custom-date-range-picker date-to"
           popper-class="date-picker-popper"
           :class="$v.dateStart.$invalid && $v.dateStart.$dirty ? 'is-error' : ''"
@@ -78,12 +78,17 @@
           <slot />
         </div>
       </div>
+
       <lf-field-messages
         :validation="$v.dateStart"
         :error-messages="{
           minDate: 'This date range is not valid',
         }"
       />
+
+      <lf-checkbox v-model="form.currentlyAffiliated" size="small" class="mt-2">
+        <span class="text-gray-500">Currently affiliated with this organization</span>
+      </lf-checkbox>
     </div>
   </div>
 </template>
@@ -97,13 +102,14 @@ import useOrganizationHelpers from '@/modules/organization/helpers/organization.
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
 import LfFieldMessages from '@/ui-kit/field-messages/FieldMessages.vue';
+import LfCheckbox from '@/ui-kit/checkbox/Checkbox.vue';
 
 export interface AffilationForm {
   segmentId: string;
   organization: string | null,
   dateStart: string;
   dateEnd: string;
-  currentlyWorking: boolean;
+  currentlyAffiliated: boolean;
 }
 
 const props = defineProps<{
@@ -138,10 +144,10 @@ const form = computed<AffilationForm>({
 });
 
 const minDate = (value: string, rest: AffilationForm) => {
-  const { dateEnd, currentlyWorking } = rest;
+  const { dateEnd, currentlyAffiliated } = rest;
   return (
-    (!value && !dateEnd && !currentlyWorking)
-      || (value && !dateEnd && currentlyWorking)
+    (!value && !dateEnd && !currentlyAffiliated)
+      || (value && !dateEnd && currentlyAffiliated)
       || (value && dateEnd && moment(value).isBefore(moment(dateEnd)))
       || (!value && !dateEnd)
   );

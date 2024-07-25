@@ -32,7 +32,7 @@
         </div>
       </div>
 
-      <lf-scroll-shadow class="max-h-120">
+      <lf-scroll-shadow class="max-h-120 -mx-6 px-6">
         <div class="pb-10">
           <article
             v-for="subproject of props.contributor.segments"
@@ -45,7 +45,7 @@
               </p>
             </div>
             <div class="w-2/3 py-2">
-              <div class="flex flex-col gap-3 items-start">
+              <div class="flex flex-col gap-4 items-start">
                 <template
                   v-for="(affiliation, ai) of form"
                   :key="`${subproject.id}-${ai}`"
@@ -70,6 +70,7 @@
                 <lf-button
                   type="primary-link"
                   size="small"
+                  :disabled="isProjectInvalid(subproject.id)"
                   @click="addAffiliation(subproject.id)"
                 >
                   <lf-icon name="add-line" />
@@ -104,6 +105,7 @@ import LfContributorEditAffilationsItem
 import LfScrollShadow from '@/ui-kit/scrollshadow/ScrollShadow.vue';
 import useVuelidate from '@vuelidate/core';
 import Message from '@/shared/message/message';
+import moment from 'moment';
 
 const props = defineProps<{
   modelValue: boolean,
@@ -125,7 +127,7 @@ const isModalOpen = computed<boolean>({
 
 const form = ref<AffilationForm[]>([]);
 
-const $v = useVuelidate();
+const $v = useVuelidate({}, form);
 
 const addAffiliation = (subprojectId: string) => {
   form.value.push({
@@ -133,7 +135,7 @@ const addAffiliation = (subprojectId: string) => {
     organization: null,
     dateStart: '',
     dateEnd: '',
-    currentlyWorking: false,
+    currentlyAffiliated: false,
   });
 };
 
@@ -148,8 +150,12 @@ const submit = () => {
       memberId: props.contributor.id,
       segmentId: affiliation.segmentId,
       organizationId: affiliation.organization,
-      dateStart: affiliation.dateStart,
-      dateEnd: affiliation.dateEnd,
+      dateStart: affiliation.dateStart
+        ? moment(affiliation.dateStart).startOf('month').format('YYYY-MM-DDTHH:mm:ss.SSS[Z]')
+        : undefined,
+      dateEnd: !affiliation.currentlyAffiliated && affiliation.dateEnd
+        ? moment(affiliation.dateEnd).startOf('month').format('YYYY-MM-DDTHH:mm:ss.SSS[Z]')
+        : undefined,
     })),
   };
 
@@ -168,13 +174,16 @@ const submit = () => {
     });
 };
 
+const isProjectInvalid = (projectId: string) => form.value.some((affiliation) => affiliation.segmentId === projectId
+  && (!affiliation.dateStart || (!affiliation.currentlyAffiliated && !affiliation.dateEnd)));
+
 onMounted(() => {
   form.value = props.contributor.affiliations.map((affiliation) => ({
     segmentId: affiliation.segmentId || '',
     organization: affiliation.organizationId || null,
     dateStart: affiliation.dateStart || '',
     dateEnd: affiliation.dateEnd || '',
-    currentlyWorking: !affiliation.dateEnd && !!affiliation.dateStart,
+    currentlyAffiliated: !affiliation.dateEnd && !!affiliation.dateStart,
   }));
 });
 </script>
