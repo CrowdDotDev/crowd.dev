@@ -2,7 +2,7 @@ import { IS_PROD_ENV, IS_STAGING_ENV } from '@crowd/common'
 import { Logger, LoggerBase } from '@crowd/logging'
 import { IQueue, IQueueChannel, IQueueConfig } from './types'
 import { Tracer } from '@crowd/tracing'
-import { IQueueMessage } from '@crowd/types'
+import { IQueueMessage, IQueueMessageBulk } from '@crowd/types'
 export abstract class QueueBase extends LoggerBase {
   private readonly channelName: string
   private channelUrl: string | undefined
@@ -96,22 +96,18 @@ export class QueueEmitter extends QueueBase {
     message: T,
     deduplicationId?: string,
   ): Promise<void> {
-    await this.queue.send(this.getChannel(), message, {
-      groupId,
+    await this.queue.send(this.getChannel(), message, groupId, {
       deduplicationId,
     })
   }
 
   public async sendMessages<T extends IQueueMessage>(
-    messages: { payload: T; groupId: string; deduplicationId?: string; id?: string }[],
+    messages: IQueueMessageBulk<T>[],
   ): Promise<void> {
     if (messages.length > 10) {
       throw new Error('Maximum number of messages to send is 10!')
     }
-    this.queue.sendBulk(
-      this.getChannel(),
-      messages.map((m) => m.payload),
-    )
+    this.queue.sendBulk(this.getChannel(), messages)
   }
 
   public async setMessageVisibilityTimeout(

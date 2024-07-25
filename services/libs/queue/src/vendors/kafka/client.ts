@@ -9,7 +9,7 @@ import {
 } from '../../types'
 import { IKafkaConfig } from './types'
 import { Logger, LoggerBase } from '@crowd/logging'
-import { IQueueMessage } from '@crowd/types'
+import { IQueueMessage, IQueueMessageBulk } from '@crowd/types'
 import { createHash } from 'crypto'
 import { configMap } from './config'
 
@@ -26,7 +26,11 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
     this.started = false
   }
 
-  public async send(channel: IQueueChannel, message: IQueueMessage): Promise<void> {
+  public async send(
+    channel: IQueueChannel,
+    message: IQueueMessage,
+    groupId: string,
+  ): Promise<void> {
     // send message to kafka
     const producer = this.client.producer()
     await producer.connect()
@@ -34,6 +38,7 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
       topic: channel.name,
       messages: [
         {
+          key: groupId,
           value: JSON.stringify(message),
         },
       ],
@@ -116,12 +121,18 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
     // do nothing
   }
 
-  public async sendBulk(channel: IQueueChannel, messages: IQueueMessage[]): Promise<void> {
+  public async sendBulk(
+    channel: IQueueChannel,
+    messages: IQueueMessageBulk<IQueueMessage>[],
+  ): Promise<void> {
     const producer = this.client.producer()
     await producer.connect()
     await producer.send({
       topic: channel.name,
-      messages: messages.map((m) => ({ value: JSON.stringify(m) })),
+      messages: messages.map((m) => ({
+        value: JSON.stringify(m.payload),
+        key: m.groupId ?? undefined,
+      })),
     })
 
     this.log.info({ messages, topic: channel.name }, 'Messages sent to Kafka topic!')

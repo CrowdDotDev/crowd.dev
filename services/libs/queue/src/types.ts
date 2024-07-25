@@ -1,7 +1,7 @@
 import { Kafka, KafkaMessage } from 'kafkajs'
 import { IKafkaClientConfig } from './vendors/kafka/types'
 import { ISqsClientConfig } from './vendors/sqs/types'
-import { IQueueMessage } from '@crowd/types'
+import { IQueueMessage, IQueueMessageBulk } from '@crowd/types'
 
 export type IQueueClient = Kafka
 
@@ -38,8 +38,17 @@ export interface IQueue {
     queueConf: IQueueConfig,
   ): Promise<void>
   stop(): void
-  send(channel: IQueueChannel, message: IQueueMessage, options?: unknown): Promise<void>
-  sendBulk(channel: IQueueChannel, messages: IQueueMessage[], options?: unknown): Promise<void>
+  send(
+    channel: IQueueChannel,
+    message: IQueueMessage,
+    groupId: string,
+    options?: unknown,
+  ): Promise<void>
+  sendBulk(
+    channel: IQueueChannel,
+    messages: IQueueMessageBulk<IQueueMessage>[],
+    options?: unknown,
+  ): Promise<void>
   receive(channel: IQueueChannel, options?: unknown): Promise<IQueueReceiveResponse[]>
   delete(channel: IQueueChannel, options?: unknown): Promise<void>
   getMessageBody(message: IQueueReceiveResponse): IQueueMessage
