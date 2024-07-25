@@ -1,6 +1,6 @@
 <template>
   <lf-modal v-model="isModalOpen" width="60rem">
-    <section class="px-6 pt-4">
+    <section class="px-6 pt-4 sticky top-0 z-10 bg-white">
       <div class="flex items-center justify-between pb-1.5">
         <h5>
           Activities affiliation
@@ -17,9 +17,7 @@
         <span class="font-semibold">Important note:</span> Work history updates won’t override manual changes to
         activities affiliations.
       </p>
-    </section>
-    <section class="px-6 pt-6">
-      <div class="flex border-b border-gray-100">
+      <div class="flex border-b border-gray-100 pt-6">
         <div class="w-1/3 py-2">
           <p class="text-medium font-semibold text-gray-400">
             Project
@@ -31,16 +29,17 @@
           </p>
         </div>
       </div>
-
-      <lf-scroll-shadow class="max-h-120 -mx-6 px-6">
+    </section>
+    <section class="px-6">
+      <div>
         <div class="pb-10">
           <article
             v-for="subproject of props.contributor.segments"
             :key="subproject.id"
-            class="flex items-center border-t border-gray-100 first:border-none py-4"
+            class="flex border-t border-gray-100 first:border-none py-4"
           >
-            <div class="w-1/3 py-2">
-              <p class="text-medium font-semibold">
+            <div class="w-1/3 py-2 h-10">
+              <p class="text-medium font-semibold py-2.5">
                 {{ subproject.name }}
               </p>
             </div>
@@ -80,9 +79,9 @@
             </div>
           </article>
         </div>
-      </lf-scroll-shadow>
+      </div>
     </section>
-    <footer class="border-t border-gray-100 px-6 py-4 flex justify-end gap-4">
+    <footer class="border-t border-gray-100 px-6 py-4 flex justify-end gap-4 sticky bottom-0 bg-white">
       <lf-button type="secondary-ghost" @click="isModalOpen = false">
         Cancel
       </lf-button>
@@ -102,7 +101,6 @@ import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfContributorEditAffilationsItem
 , { AffilationForm } from '@/modules/contributor/components/edit/affilations/contributor-affilations-edit-item.vue';
-import LfScrollShadow from '@/ui-kit/scrollshadow/ScrollShadow.vue';
 import useVuelidate from '@vuelidate/core';
 import Message from '@/shared/message/message';
 import moment from 'moment';
@@ -175,7 +173,7 @@ const submit = () => {
 };
 
 const isProjectInvalid = (projectId: string) => form.value.some((affiliation) => affiliation.segmentId === projectId
-  && (!affiliation.dateStart || (!affiliation.currentlyAffiliated && !affiliation.dateEnd)));
+  && (!affiliation.organization || !affiliation.dateStart || (!affiliation.currentlyAffiliated && !affiliation.dateEnd)));
 
 onMounted(() => {
   form.value = props.contributor.affiliations.map((affiliation) => ({

@@ -5,6 +5,7 @@
         v-model="form.organization"
         filterable
         class="w-full grow"
+        placeholder="Select organization"
       >
         <template v-if="form && (form.organization)" #prefix="{}">
           <div class="flex items-center">
@@ -51,21 +52,23 @@
     <div class="w-1/2">
       <div class="flex items-center">
         <el-date-picker
-          v-model="form.dateStart"
+          :model-value="!form.organization ? '' : form.dateStart"
           type="month"
           placeholder="From"
           class="!w-auto custom-date-range-picker date-from -mr-px"
           popper-class="date-picker-popper"
           :class="$v.dateStart.$invalid && $v.dateStart.$dirty ? 'is-error' : ''"
           format="MMM YYYY"
+          :disabled="!form.organization"
+          @update:model-value="form.dateStart = $event"
           @blur="$v.dateStart.$touch"
           @change="$v.dateStart.$touch"
         />
         <el-date-picker
-          :model-value="form.currentlyAffiliated ? '' : form.dateEnd"
+          :model-value="!form.organization || form.currentlyAffiliated ? '' : form.dateEnd"
           type="month"
-          :placeholder="!form.dateStart ? 'To' : 'Present'"
-          :disabled="form.currentlyAffiliated"
+          :placeholder="!form.currentlyAffiliated ? 'To' : 'Present'"
+          :disabled="form.currentlyAffiliated || !form.organization"
           class="!w-auto custom-date-range-picker date-to"
           popper-class="date-picker-popper"
           :class="$v.dateStart.$invalid && $v.dateStart.$dirty ? 'is-error' : ''"
@@ -82,11 +85,17 @@
       <lf-field-messages
         :validation="$v.dateStart"
         :error-messages="{
+          required: 'This field is required',
           minDate: 'This date range is not valid',
         }"
       />
 
-      <lf-checkbox v-model="form.currentlyAffiliated" size="small" class="mt-2">
+      <lf-checkbox
+        v-model="form.currentlyAffiliated"
+        size="small"
+        class="mt-2"
+        :disabled="!form.organization"
+      >
         <span class="text-gray-500">Currently affiliated with this organization</span>
       </lf-checkbox>
     </div>
@@ -103,6 +112,7 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
 import LfFieldMessages from '@/ui-kit/field-messages/FieldMessages.vue';
 import LfCheckbox from '@/ui-kit/checkbox/Checkbox.vue';
+import { required } from '@vuelidate/validators';
 
 export interface AffilationForm {
   segmentId: string;
@@ -122,11 +132,6 @@ const emit = defineEmits<{(e: 'update:modelValue', value: AffilationForm): void 
 const { displayName, logo } = useOrganizationHelpers();
 
 const availableOrganizations = computed(() => [
-  {
-    id: null,
-    name: 'Individual (no affiliation)',
-    logo: null,
-  },
   ...props.contributor.organizations.map((organization) => ({
     id: organization.id,
     name: displayName(organization),
@@ -154,7 +159,11 @@ const minDate = (value: string, rest: AffilationForm) => {
 };
 
 const rules = {
+  organization: {
+    required,
+  },
   dateStart: {
+    required,
     minDate,
   },
 };

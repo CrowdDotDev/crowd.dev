@@ -21,7 +21,7 @@ export interface ContributorContribution {
 export interface ContributorAffiliation {
   dateStart: string | null;
   dateEnd: string | null;
-  organizationId: string | null;
+  organizationId: string;
   memberId: string;
   segmentId: string;
 }
