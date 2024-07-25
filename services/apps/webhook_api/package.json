@@ -17,6 +17,7 @@
     "@crowd/logging": "workspace:*",
     "@crowd/tracing": "workspace:*",
     "@crowd/sqs": "workspace:*",
+    "@crowd/queue": "workspace:*",
     "@crowd/types": "workspace:*",
     "@crowd/telemetry": "workspace:*",
     "@crowd/feature-flags": "workspace:*",

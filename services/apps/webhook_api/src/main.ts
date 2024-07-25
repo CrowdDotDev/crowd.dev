@@ -1,12 +1,11 @@
 import { getServiceLogger } from '@crowd/logging'
-import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG, UNLEASH_CONFIG, WEBHOOK_API_CONFIG } from './conf'
+import { DB_CONFIG, REDIS_CONFIG, QUEUE_CONFIG, UNLEASH_CONFIG, WEBHOOK_API_CONFIG } from './conf'
 import express from 'express'
 import { loggingMiddleware } from './middleware/logging'
-import { getSqsClient } from '@crowd/sqs'
 import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { databaseMiddleware } from './middleware/database'
 import { errorMiddleware } from './middleware/error'
-import { sqsMiddleware } from './middleware/sqs'
+import { queueMiddleware } from './middleware/queue'
 import { installGithubRoutes } from './routes/github'
 import { installGroupsIoRoutes } from './routes/groupsio'
 import { installDiscourseRoutes } from './routes/discourse'
@@ -21,6 +20,7 @@ import {
 } from '@crowd/common_services'
 import { getServiceTracer } from '@crowd/tracing'
 import { emittersMiddleware } from './middleware/emitters'
+import { QueueFactory } from '../../../libs/queue/src'
 
 const tracer = getServiceTracer()
 const log = getServiceLogger()
@@ -33,7 +33,7 @@ setImmediate(async () => {
 
   const redisClient = await getRedisClient(REDIS_CONFIG())
 
-  const sqsClient = getSqsClient(SQS_CONFIG())
+  const queueClient = QueueFactory.createQueueService(QUEUE_CONFIG())
 
   const dbConnection = await getDbConnection(DB_CONFIG(), 3, 0)
 
@@ -42,7 +42,7 @@ setImmediate(async () => {
     priorityLevelRepo.loadPriorityLevelContext(tenantId)
 
   const integrationStreamWorkerEmitter = new IntegrationStreamWorkerEmitter(
-    sqsClient,
+    queueClient,
     redisClient,
     tracer,
     unleash,
@@ -86,7 +86,7 @@ setImmediate(async () => {
   app.use(express.urlencoded({ extended: true, limit: '5mb' }))
   app.use(loggingMiddleware(log))
   app.use(databaseMiddleware(dbConnection))
-  app.use(sqsMiddleware(sqsClient))
+  app.use(queueMiddleware(queueClient))
 
   // add routes
   installGithubRoutes(app)

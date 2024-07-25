@@ -1,14 +1,14 @@
-import { SqsClient } from '@crowd/sqs'
+import { IQueue } from '@crowd/queue'
 import { NextFunction, Request, RequestHandler, Response } from 'express'
 
-export interface ISqsRequest {
-  sqs: SqsClient
+export interface IQueueRequest {
+  queue: IQueue
 }
 
-export const sqsMiddleware = (sqs: SqsClient): RequestHandler => {
+export const queueMiddleware = (queue: IQueue): RequestHandler => {
   return (req: Request, _res: Response, next: NextFunction) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ;(req as any).sqs = sqs
+    ;(req as any).queue = queue
     next()
   }
 }

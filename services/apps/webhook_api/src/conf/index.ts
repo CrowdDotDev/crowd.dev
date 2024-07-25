@@ -1,9 +1,9 @@
 import { IDatabaseConfig } from '@crowd/data-access-layer/src/database'
-import { ISqsClientConfig } from '@crowd/sqs'
 import config from 'config'
 import { IUnleashConfig } from '@crowd/feature-flags'
 import { SERVICE } from '@crowd/common'
 import { IRedisConfiguration } from '@crowd/redis'
+import { IQueueEnvironment } from '../../../../libs/queue/src'
 export interface IWebhookApiServiceConfig {
   port: number
 }
@@ -16,12 +16,12 @@ export const WEBHOOK_API_CONFIG = (): IWebhookApiServiceConfig => {
   return webhookApiConfig
 }
 
-let sqsConfig: ISqsClientConfig
-export const SQS_CONFIG = (): ISqsClientConfig => {
-  if (sqsConfig) return sqsConfig
+let queueConfig: IQueueEnvironment
+export const QUEUE_CONFIG = (): IQueueEnvironment => {
+  if (queueConfig) return queueConfig
 
-  sqsConfig = config.get<ISqsClientConfig>('sqs')
-  return sqsConfig
+  queueConfig = config.get<IQueueEnvironment>('queue')
+  return queueConfig
 }
 
 let dbConfig: IDatabaseConfig
