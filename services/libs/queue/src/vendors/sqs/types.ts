@@ -16,6 +16,7 @@ import {
   SendMessageBatchRequest,
   SendMessageRequest,
 } from '@aws-sdk/client-sqs'
+import { IQueueConfig } from '../../types'
 
 export type SqsClient = SQSClient
 export type SqsMessage = Message
@@ -39,17 +40,7 @@ export enum SqsFifoThroughputLimitType {
   PER_MESSAGE_GROUP_ID = 'perMessageGroupId',
 }
 
-export enum CrowdQueue {
-  INTEGRATION_RUN_WORKER = 'integration-run-worker',
-  INTEGRATION_STREAM_WORKER = 'integration-stream-worker',
-  DATA_SINK_WORKER = 'data-sink-worker',
-  NODEJS_WORKER = 'nodejs-worker',
-  SEARCH_SYNC_WORKER = 'search-sync-worker',
-  INTEGRATION_SYNC_WORKER = 'integration-sync-worker',
-}
-
-export interface ISqsQueueConfig {
-  name: string
+export interface ISqsConfig extends IQueueConfig {
   type: SqsQueueType
   waitTimeSeconds: number
   visibilityTimeout: number
@@ -57,4 +48,31 @@ export interface ISqsQueueConfig {
   deliveryDelay: number
   deduplicationScope?: SqsQueueDeduplicationType
   fifoThroughputLimit?: SqsFifoThroughputLimitType
+}
+
+export interface ISqsQueueSendOptions {
+  config: ISqsConfig
+  deduplicationId?: string
+  retry?: number
+}
+
+export interface ISqsQueueReceiveOptions {
+  deleteMessageImmediately: boolean
+  visibilityTimeoutSeconds: number
+  receiveMessageCount: number
+}
+
+export interface ISqsQueueStartOptions {
+  deleteMessageImmediately: boolean
+  visibilityTimeoutSeconds: number
+  receiveMessageCount: number
+}
+
+export interface ISqsQueueDeleteOptions {
+  receiptHandle: string
+  retry?: number
+}
+
+export interface ISqsQueueSetMessageVisibilityOptions {
+  retry?: number
 }

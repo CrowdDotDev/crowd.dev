@@ -1,20 +1,28 @@
-import { Kafka, KafkaMessage } from 'kafkajs'
+import { Kafka, KafkaMessage, RecordMetadata } from 'kafkajs'
 import { IKafkaClientConfig } from './vendors/kafka/types'
-import { ISqsClientConfig } from './vendors/sqs/types'
+import { ISqsClientConfig, SqsMessage } from './vendors/sqs/types'
 import { IQueueMessage, IQueueMessageBulk } from '@crowd/types'
+import { SendMessageBatchCommandOutput, SendMessageResult, SQSClient } from '@aws-sdk/client-sqs'
 
-export type IQueueClient = Kafka
+export type IQueueClient = Kafka | SQSClient
 
 // export type IQueueConfig = IKafkaConfig
 export interface IQueueConfig {
   name: string
 }
 
+export type IQueueSendResult = RecordMetadata[] | SendMessageResult
+
+export type IQueueSendBulkResult = RecordMetadata[] | SendMessageBatchCommandOutput
+
 export type IQueueClientConfig = IKafkaClientConfig | ISqsClientConfig
 
-export type IQueueReceiveResponse = KafkaMessage
+export type IQueueReceiveResponse = KafkaMessage | SqsMessage
 
-export type IQueueProcessMessageHandler = (message: IQueueMessage) => Promise<void>
+export type IQueueProcessMessageHandler = (
+  message: IQueueMessage,
+  options?: unknown,
+) => Promise<void>
 
 export interface IQueueChannel {
   name: string
@@ -30,7 +38,7 @@ export type IQueueEnvironment = {
 export interface IQueue {
   client: IQueueClient
   getClient(): IQueueClient
-  init(config: IQueueConfig): Promise<void>
+  init(config: IQueueConfig): Promise<string>
   getQueueConfig(queue: CrowdQueue): IQueueConfig
   start(
     processMessageFunction: IQueueProcessMessageHandler,
@@ -44,18 +52,23 @@ export interface IQueue {
     message: IQueueMessage,
     groupId: string,
     options?: unknown,
-  ): Promise<void>
+  ): Promise<IQueueSendResult>
   sendBulk(
     channel: IQueueChannel,
     messages: IQueueMessageBulk<IQueueMessage>[],
     options?: unknown,
-  ): Promise<void>
+  ): Promise<IQueueSendBulkResult>
   receive(channel: IQueueChannel, options?: unknown): Promise<IQueueReceiveResponse[]>
   delete(channel: IQueueChannel, options?: unknown): Promise<void>
   getMessageBody(message: IQueueReceiveResponse): IQueueMessage
   getMessageId(message: IQueueReceiveResponse): string
   getReceiptHandle(message: IQueueReceiveResponse): string
-  setMessageVisibilityTimeout(handle: string, newTimeout: number): Promise<void>
+  setMessageVisibilityTimeout(
+    channel: IQueueChannel,
+    handle: string,
+    newTimeout: number,
+    options?: unknown,
+  ): Promise<unknown>
 }
 
 export enum CrowdQueue {

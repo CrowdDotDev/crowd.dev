@@ -6,6 +6,8 @@ import {
   IQueueChannel,
   IQueueProcessMessageHandler,
   IQueueReceiveResponse,
+  IQueueSendBulkResult,
+  IQueueSendResult,
 } from '../../types'
 import { IKafkaConfig } from './types'
 import { Logger, LoggerBase } from '@crowd/logging'
@@ -30,11 +32,11 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
     channel: IQueueChannel,
     message: IQueueMessage,
     groupId: string,
-  ): Promise<void> {
+  ): Promise<IQueueSendResult> {
     // send message to kafka
     const producer = this.client.producer()
     await producer.connect()
-    await producer.send({
+    const result = await producer.send({
       topic: channel.name,
       messages: [
         {
@@ -47,6 +49,7 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
     this.log.info({ message: message, topic: channel.name }, 'Message sent to Kafka topic!')
 
     await producer.disconnect()
+    return result
   }
 
   async receive(channel: IQueueChannel): Promise<KafkaMessage[]> {
@@ -75,7 +78,7 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
     return this.client
   }
 
-  public async init(config: IKafkaConfig): Promise<void> {
+  public async init(config: IKafkaConfig): Promise<string> {
     this.log.trace({ config }, 'Initializing queue!')
 
     const admin = this.client.admin()
@@ -94,6 +97,10 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
         })
         this.log.info(`Topic "${config.name}" created with ${config.partitionCount} partitions.`)
       }
+
+      // Init function should return the channel url, but in kafka
+      // there is no such thing as a channel/topic url, so we just return the topic name here
+      return config.name
     } catch (error) {
       this.log.error(`Failed to create topic "${config.name}":`, error)
     } finally {
@@ -117,17 +124,21 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
     // do nothing
   }
 
-  public async setMessageVisibilityTimeout(handle: string, newTimeout: number): Promise<void> {
+  public async setMessageVisibilityTimeout(
+    channel: IQueueChannel,
+    handle: string,
+    newTimeout: number,
+  ): Promise<void> {
     // do nothing
   }
 
   public async sendBulk(
     channel: IQueueChannel,
     messages: IQueueMessageBulk<IQueueMessage>[],
-  ): Promise<void> {
+  ): Promise<IQueueSendBulkResult> {
     const producer = this.client.producer()
     await producer.connect()
-    await producer.send({
+    const result = await producer.send({
       topic: channel.name,
       messages: messages.map((m) => ({
         value: JSON.stringify(m.payload),
@@ -138,6 +149,7 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
     this.log.info({ messages, topic: channel.name }, 'Messages sent to Kafka topic!')
 
     await producer.disconnect()
+    return result
   }
   public async start(
     processMessage: IQueueProcessMessageHandler,
@@ -194,14 +206,14 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
     this.started = false
   }
 
-  public getMessageBody(message: IQueueReceiveResponse): IQueueMessage {
+  public getMessageBody(message: KafkaMessage): IQueueMessage {
     return JSON.parse(message.value.toString())
   }
 
   /**
    * There are no actual message ids in Kafka, we'll create one based on the message content.
    **/
-  public getMessageId(message: IQueueReceiveResponse): string {
+  public getMessageId(message: KafkaMessage): string {
     const jsonString = JSON.stringify(message.value)
 
     const hash = createHash('md5').update(jsonString).digest('hex')
@@ -212,7 +224,7 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
   /**
    * There are no receipt handles in Kafka, we'll create one based on the message offset.
    **/
-  public getReceiptHandle(message: IQueueReceiveResponse): string {
+  public getReceiptHandle(message: KafkaMessage): string {
     return message.offset.toString()
   }
 

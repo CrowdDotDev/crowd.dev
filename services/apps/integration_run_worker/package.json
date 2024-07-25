@@ -25,7 +25,6 @@
     "@crowd/logging": "workspace:*",
     "@crowd/opensearch": "workspace:*",
     "@crowd/redis": "workspace:*",
-    "@crowd/sqs": "workspace:*",
     "@crowd/queue": "workspace:*",
     "@crowd/tracing": "workspace:*",
     "@crowd/types": "workspace:*",

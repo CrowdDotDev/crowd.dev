@@ -108,9 +108,6 @@ importers:
       '@crowd/redis':
         specifier: workspace:*
         version: link:../services/libs/redis
-      '@crowd/sqs':
-        specifier: workspace:*
-        version: link:../services/libs/sqs
       '@crowd/telemetry':
         specifier: workspace:*
         version: link:../services/libs/telemetry
@@ -624,9 +621,6 @@ importers:
       '@crowd/sentiment':
         specifier: workspace:*
         version: link:../../libs/sentiment
-      '@crowd/sqs':
-        specifier: workspace:*
-        version: link:../../libs/sqs
       '@crowd/telemetry':
         specifier: workspace:*
         version: link:../../libs/telemetry
@@ -874,9 +868,6 @@ importers:
       '@crowd/redis':
         specifier: workspace:*
         version: link:../../libs/redis
-      '@crowd/sqs':
-        specifier: workspace:*
-        version: link:../../libs/sqs
       '@crowd/tracing':
         specifier: workspace:*
         version: link:../../libs/tracing
@@ -932,9 +923,6 @@ importers:
       '@crowd/redis':
         specifier: workspace:*
         version: link:../../libs/redis
-      '@crowd/sqs':
-        specifier: workspace:*
-        version: link:../../libs/sqs
       '@crowd/tracing':
         specifier: workspace:*
         version: link:../../libs/tracing
@@ -981,9 +969,6 @@ importers:
       '@crowd/queue':
         specifier: workspace:*
         version: link:../../libs/queue
-      '@crowd/sqs':
-        specifier: workspace:*
-        version: link:../../libs/sqs
       '@crowd/tracing':
         specifier: workspace:*
         version: link:../../libs/tracing
@@ -1348,9 +1333,6 @@ importers:
       '@crowd/redis':
         specifier: workspace:*
         version: link:../../libs/redis
-      '@crowd/sqs':
-        specifier: workspace:*
-        version: link:../../libs/sqs
       '@crowd/tracing':
         specifier: workspace:*
         version: link:../../libs/tracing
@@ -1478,9 +1460,6 @@ importers:
       '@crowd/redis':
         specifier: workspace:*
         version: link:../../libs/redis
-      '@crowd/sqs':
-        specifier: workspace:*
-        version: link:../../libs/sqs
       '@crowd/telemetry':
         specifier: workspace:*
         version: link:../../libs/telemetry
@@ -1592,9 +1571,6 @@ importers:
       '@crowd/queue':
         specifier: workspace:*
         version: link:../../libs/queue
-      '@crowd/sqs':
-        specifier: workspace:*
-        version: link:../../libs/sqs
       '@crowd/temporal':
         specifier: workspace:*
         version: link:../../libs/temporal
@@ -1686,9 +1662,6 @@ importers:
       '@crowd/redis':
         specifier: workspace:*
         version: link:../redis
-      '@crowd/sqs':
-        specifier: workspace:*
-        version: link:../sqs
       '@crowd/tracing':
         specifier: workspace:*
         version: link:../tracing
@@ -2046,37 +2019,6 @@ importers:
         specifier: ^1.1.7
         version: 1.1.7
     devDependencies:
-      '@types/node':
-        specifier: ^18.16.3
-        version: 18.19.31
-      typescript:
-        specifier: ^5.0.4
-        version: 5.4.5
-
-  services/libs/sqs:
-    dependencies:
-      '@aws-sdk/client-sqs':
-        specifier: ^3.332.0
-        version: 3.564.0
-      '@crowd/common':
-        specifier: workspace:*
-        version: link:../common
-      '@crowd/logging':
-        specifier: workspace:*
-        version: link:../logging
-      '@crowd/tracing':
-        specifier: workspace:*
-        version: link:../tracing
-      '@crowd/types':
-        specifier: workspace:*
-        version: link:../types
-      '@smithy/util-retry':
-        specifier: ^2.0.1
-        version: 2.2.0
-    devDependencies:
-      '@aws-sdk/types':
-        specifier: ^3.329.0
-        version: 3.535.0
       '@types/node':
         specifier: ^18.16.3
         version: 18.19.31

@@ -57,7 +57,8 @@ export abstract class QueueBase extends LoggerBase {
   }
 
   public async init() {
-    this.queue.init(this.queueConf)
+    const url = await this.queue.init(this.queueConf)
+    this.channelUrl = url
   }
 }
 
@@ -87,6 +88,14 @@ export abstract class QueueReceiver extends QueueBase {
     this.queue.stop()
   }
 
+  public receive(channel: IQueueChannel) {
+    return this.queue.receive(channel, {
+      deleteMessageImmediately: this.deleteMessageImmediately,
+      visibilityTimeoutSeconds: this.visibilityTimeoutSeconds,
+      receiveMessageCount: this.receiveMessageCount,
+    })
+  }
+
   protected abstract processMessage(data: IQueueMessage, receiptHandle?: string): Promise<void>
 }
 
@@ -102,6 +111,7 @@ export class QueueEmitter extends QueueBase {
   ): Promise<void> {
     await this.queue.send(this.getChannel(), message, groupId, {
       deduplicationId,
+      config: this.queueConf,
     })
   }
 
@@ -118,6 +128,6 @@ export class QueueEmitter extends QueueBase {
     receiptHandle: string,
     newVisibility: number,
   ): Promise<void> {
-    await this.queue.setMessageVisibilityTimeout(receiptHandle, newVisibility)
+    await this.queue.setMessageVisibilityTimeout(this.getChannel(), receiptHandle, newVisibility)
   }
 }

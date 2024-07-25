@@ -19,7 +19,6 @@
     "@crowd/feature-flags": "workspace:*",
     "@crowd/redis": "workspace:*",
     "@crowd/tracing": "workspace:*",
-    "@crowd/sqs": "workspace:*",
     "@crowd/queue": "workspace:*"
   }
 }
