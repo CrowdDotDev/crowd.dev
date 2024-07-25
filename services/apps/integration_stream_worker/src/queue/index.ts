@@ -6,11 +6,7 @@ import {
 import { DbConnection, DbStore } from '@crowd/data-access-layer/src/database'
 import { Logger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
-import {
-  CrowdQueue,
-  IQueue,
-  PrioritizedQueueReciever,
-} from '@crowd/queue'
+import { CrowdQueue, IQueue, PrioritizedQueueReciever } from '@crowd/queue'
 import { Span, SpanStatusCode, Tracer } from '@crowd/tracing'
 import {
   ContinueProcessingRunStreamsQueueMessage,
