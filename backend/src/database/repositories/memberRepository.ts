@@ -2303,7 +2303,8 @@ class MemberRepository {
             "memberId"
           FROM "memberIdentities" mi
           join members m on m.id = mi."memberId"
-          where (verified and type = '${MemberIdentityType.EMAIL}' and lower("value") ilike '%${search}%') or m."displayName" ilike '%${search}%'
+          where (verified and lower("value") like '%${search}%') or 
+          lower(m."displayName") like '%${search}%' 
           GROUP BY 1
         )
       `
