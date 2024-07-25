@@ -45,7 +45,7 @@
             />
 
             <span class="text-gray-900 text-[13px] max-w-3xs truncate">{{
-              space?.name ?? space?.key ?? ""
+              space?.name || space?.key || "Unnamed space"
             }}</span>
           </article>
         </div>
