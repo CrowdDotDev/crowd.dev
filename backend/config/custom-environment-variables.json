@@ -15,8 +15,6 @@
   },
   "queue": {
     "vendor": "CROWD_QUEUE_VENDOR",
-    "nodejsWorkerQueue": "CROWD_SQS_NODEJS_WORKER_QUEUE",
-    "nodejsWorkerPriorityQueue": "CROWD_NODEJS_WORKER_PRIORITY_QUEUE",
     "integrationRunWorkerQueue": "CROWD_INTEGRATION_RUN_WORKER_QUEUE",
     "sqs": {
       "host": "CROWD_SQS_HOST",
@@ -52,8 +50,6 @@
     "password": "CROWD_DB_PASSWORD",
     "apiUsername": "CROWD_DB_API_USERNAME",
     "apiPassword": "CROWD_DB_API_PASSWORD",
-    "nodejsWorkerUsername": "CROWD_DB_NODEJS_WORKER_USERNAME",
-    "nodejsWorkerPassword": "CROWD_DB_NODEJS_WORKER_PASSWORD",
     "jobGeneratorUsername": "CROWD_DB_JOB_GENERATOR_USERNAME",
     "jobGeneratorPassword": "CROWD_DB_JOB_GENERATOR_PASSWORD",
     "database": "CROWD_DB_DATABASE",

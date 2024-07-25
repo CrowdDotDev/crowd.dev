@@ -13,11 +13,7 @@ import DataSinkService from '../service/dataSink.service'
 import { RedisClient } from '@crowd/redis'
 import { Unleash } from '@crowd/feature-flags'
 import { Client as TemporalClient } from '@crowd/temporal'
-import {
-  DataSinkWorkerEmitter,
-  NodejsWorkerEmitter,
-  SearchSyncWorkerEmitter,
-} from '@crowd/common_services'
+import { DataSinkWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/common_services'
 import { performance } from 'perf_hooks'
 
 export class WorkerQueueReceiver extends PrioritizedQueueReciever {
@@ -27,7 +23,6 @@ export class WorkerQueueReceiver extends PrioritizedQueueReciever {
     level: QueuePriorityLevel,
     client: IQueue,
     private readonly dbConn: DbConnection,
-    private readonly nodejsWorkerEmitter: NodejsWorkerEmitter,
     private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
     private readonly dataSinkWorkerEmitter: DataSinkWorkerEmitter,
     private readonly redisClient: RedisClient,
@@ -57,7 +52,6 @@ export class WorkerQueueReceiver extends PrioritizedQueueReciever {
 
       const service = new DataSinkService(
         new DbStore(this.log, this.dbConn, undefined, false),
-        this.nodejsWorkerEmitter,
         this.searchSyncWorkerEmitter,
         this.dataSinkWorkerEmitter,
         this.redisClient,

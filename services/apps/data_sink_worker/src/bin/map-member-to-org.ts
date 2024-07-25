@@ -11,7 +11,6 @@ import { Client as TemporalClient, getTemporalClient } from '@crowd/temporal'
 import { getRedisClient } from '@crowd/redis'
 import {
   DataSinkWorkerEmitter,
-  NodejsWorkerEmitter,
   PriorityLevelContextRepository,
   QueuePriorityContextLoader,
   SearchSyncWorkerEmitter,
@@ -56,16 +55,6 @@ setImmediate(async () => {
   const dataSinkRepo = new DataSinkRepository(store, log)
   const memberRepo = new MemberRepository(store, log)
 
-  const nodejsWorkerEmitter = new NodejsWorkerEmitter(
-    queueClient,
-    redis,
-    tracer,
-    unleash,
-    loader,
-    log,
-  )
-  await nodejsWorkerEmitter.init()
-
   const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(
     queueClient,
     redis,
@@ -78,7 +67,6 @@ setImmediate(async () => {
 
   const memberService = new MemberService(
     store,
-    nodejsWorkerEmitter,
     searchSyncWorkerEmitter,
     unleash,
     temporal,

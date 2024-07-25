@@ -39,11 +39,6 @@ function getCredentials(): Credentials {
         username: DB_CONFIG.jobGeneratorUsername,
         password: DB_CONFIG.jobGeneratorPassword,
       }
-    case configTypes.ServiceType.NODEJS_WORKER:
-      return {
-        username: DB_CONFIG.nodejsWorkerUsername,
-        password: DB_CONFIG.nodejsWorkerPassword,
-      }
     default:
       throw new Error('Incorrectly configured database connection settings!')
   }

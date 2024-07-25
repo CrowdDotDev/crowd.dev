@@ -9,7 +9,6 @@ import { getUnleashClient } from '@crowd/feature-flags'
 import { Client as TemporalClient, getTemporalClient } from '@crowd/temporal'
 import {
   DataSinkWorkerEmitter,
-  NodejsWorkerEmitter,
   PriorityLevelContextRepository,
   QueuePriorityContextLoader,
   SearchSyncWorkerEmitter,
@@ -46,16 +45,6 @@ setImmediate(async () => {
   const loader: QueuePriorityContextLoader = (tenantId: string) =>
     priorityLevelRepo.loadPriorityLevelContext(tenantId)
 
-  const nodejsWorkerEmitter = new NodejsWorkerEmitter(
-    queueClient,
-    redis,
-    tracer,
-    unleash,
-    loader,
-    log,
-  )
-  await nodejsWorkerEmitter.init()
-
   const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(
     queueClient,
     redis,
@@ -78,7 +67,6 @@ setImmediate(async () => {
 
   const service = new DataSinkService(
     store,
-    nodejsWorkerEmitter,
     searchSyncWorkerEmitter,
     dataSinkWorkerEmitter,
     redis,

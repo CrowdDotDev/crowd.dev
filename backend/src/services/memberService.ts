@@ -1,7 +1,6 @@
 /* eslint-disable no-continue */
 
 import {
-  SERVICE,
   Error400,
   isDomainExcluded,
   singleOrDefault,
@@ -10,7 +9,6 @@ import {
 import { LoggerBase } from '@crowd/logging'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
 import {
-  ExportableEntity,
   IMemberIdentity,
   IMemberUnmergeBackup,
   IMemberUnmergePreviewResult,
@@ -67,8 +65,6 @@ import OrganizationService from './organizationService'
 import SearchSyncService from './searchSyncService'
 import SettingsService from './settingsService'
 import { GITHUB_TOKEN_CONFIG } from '../conf'
-import { ServiceType } from '@/conf/configTypes'
-import { getNodejsWorkerEmitter } from '@/serverless/utils/queueService'
 import MemberOrganizationService from './memberOrganizationService'
 import { MergeActionsRepository } from '@/database/repositories/mergeActionsRepository'
 import MemberOrganizationRepository from '@/database/repositories/memberOrganizationRepository'
@@ -240,7 +236,6 @@ export default class MemberService extends LoggerBase {
     const logger = this.options.log
     const searchSyncService = new SearchSyncService(
       this.options,
-      SERVICE === ServiceType.NODEJS_WORKER ? SyncMode.ASYNCHRONOUS : undefined,
     )
 
     const errorDetails: any = {}
@@ -1550,7 +1545,6 @@ export default class MemberService extends LoggerBase {
     let transaction
     const searchSyncService = new SearchSyncService(
       this.options,
-      SERVICE === ServiceType.NODEJS_WORKER ? SyncMode.ASYNCHRONOUS : undefined,
     )
 
     try {
@@ -1910,18 +1904,6 @@ export default class MemberService extends LoggerBase {
     }
 
     return found
-  }
-
-  async export(data) {
-    const emitter = await getNodejsWorkerEmitter()
-    await emitter.exportCSV(
-      this.options.currentTenant.id,
-      this.options.currentUser.id,
-      ExportableEntity.MEMBERS,
-      SequelizeRepository.getSegmentIds(this.options),
-      data,
-    )
-    return {}
   }
 
   async findMembersWithMergeSuggestions(args) {

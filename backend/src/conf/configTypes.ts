@@ -2,7 +2,6 @@ import { ITemporalConfig } from '@crowd/temporal'
 
 export enum ServiceType {
   API = 'api',
-  NODEJS_WORKER = 'nodejs-worker',
   JOB_GENERATOR = 'job-generator',
 }
 
@@ -44,8 +43,6 @@ export interface DbConfiguration {
   password?: string
   apiUsername?: string
   apiPassword?: string
-  nodejsWorkerUsername?: string
-  nodejsWorkerPassword?: string
   jobGeneratorUsername?: string
   jobGeneratorPassword?: string
 

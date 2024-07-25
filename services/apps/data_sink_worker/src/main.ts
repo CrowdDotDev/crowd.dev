@@ -3,7 +3,6 @@ import {
   DataSinkWorkerEmitter,
   QueuePriorityContextLoader,
   SearchSyncWorkerEmitter,
-  NodejsWorkerEmitter,
 } from '@crowd/common_services'
 import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { getServiceTracer } from '@crowd/tracing'
@@ -48,15 +47,6 @@ setImmediate(async () => {
   const loader: QueuePriorityContextLoader = (tenantId: string) =>
     priorityLevelRepo.loadPriorityLevelContext(tenantId)
 
-  const nodejsWorkerEmitter = new NodejsWorkerEmitter(
-    queueClient,
-    redisClient,
-    tracer,
-    unleash,
-    loader,
-    log,
-  )
-
   const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(
     queueClient,
     redisClient,
@@ -79,7 +69,6 @@ setImmediate(async () => {
     WORKER_SETTINGS().queuePriorityLevel,
     queueClient,
     dbConnection,
-    nodejsWorkerEmitter,
     searchSyncWorkerEmitter,
     dataWorkerEmitter,
     redisClient,
@@ -90,7 +79,6 @@ setImmediate(async () => {
   )
 
   try {
-    await nodejsWorkerEmitter.init()
     await searchSyncWorkerEmitter.init()
     await dataWorkerEmitter.init()
 

@@ -18,11 +18,7 @@ import { Client as TemporalClient } from '@crowd/temporal'
 import { IResultData } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/dataSink.data'
 import { addSeconds } from '@crowd/common'
 import { WORKER_SETTINGS } from '../conf'
-import {
-  DataSinkWorkerEmitter,
-  NodejsWorkerEmitter,
-  SearchSyncWorkerEmitter,
-} from '@crowd/common_services'
+import { DataSinkWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/common_services'
 import telemetry from '@crowd/telemetry'
 
 export default class DataSinkService extends LoggerBase {
@@ -30,7 +26,6 @@ export default class DataSinkService extends LoggerBase {
 
   constructor(
     private readonly store: DbStore,
-    private readonly nodejsWorkerEmitter: NodejsWorkerEmitter,
     private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
     private readonly dataSinkWorkerEmitter: DataSinkWorkerEmitter,
     private readonly redisClient: RedisClient,
@@ -155,7 +150,6 @@ export default class DataSinkService extends LoggerBase {
             case IntegrationResultType.ACTIVITY: {
               const service = new ActivityService(
                 this.store,
-                this.nodejsWorkerEmitter,
                 this.searchSyncWorkerEmitter,
                 this.redisClient,
                 this.unleash,
@@ -180,7 +174,6 @@ export default class DataSinkService extends LoggerBase {
             case IntegrationResultType.MEMBER_ENRICH: {
               const service = new MemberService(
                 this.store,
-                this.nodejsWorkerEmitter,
                 this.searchSyncWorkerEmitter,
                 this.unleash,
                 this.temporal,
@@ -214,7 +207,6 @@ export default class DataSinkService extends LoggerBase {
             case IntegrationResultType.TWITTER_MEMBER_REACH: {
               const service = new MemberService(
                 this.store,
-                this.nodejsWorkerEmitter,
                 this.searchSyncWorkerEmitter,
                 this.unleash,
                 this.temporal,

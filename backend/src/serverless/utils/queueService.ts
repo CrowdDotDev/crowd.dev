@@ -7,7 +7,6 @@ import {
   SearchSyncWorkerEmitter,
   IntegrationSyncWorkerEmitter,
   QueuePriorityContextLoader,
-  NodejsWorkerEmitter,
 } from '@crowd/common_services'
 import { UnleashClient, getUnleashClient } from '@crowd/feature-flags'
 import { RedisClient, getRedisClient } from '@crowd/redis'
@@ -147,20 +146,4 @@ export const getDataSinkWorkerEmitter = async (): Promise<DataSinkWorkerEmitter>
   )
   await dataSinkWorkerEmitter.init()
   return dataSinkWorkerEmitter
-}
-
-let nodejsWorkerEmitter: NodejsWorkerEmitter
-export const getNodejsWorkerEmitter = async (): Promise<NodejsWorkerEmitter> => {
-  if (nodejsWorkerEmitter) return nodejsWorkerEmitter
-
-  nodejsWorkerEmitter = new NodejsWorkerEmitter(
-    QUEUE_CLIENT(),
-    await REDIS_CLIENT(),
-    tracer,
-    await UNLEASH_CLIENT(),
-    await QUEUE_PRIORITY_LOADER(),
-    log,
-  )
-  await nodejsWorkerEmitter.init()
-  return nodejsWorkerEmitter
 }
