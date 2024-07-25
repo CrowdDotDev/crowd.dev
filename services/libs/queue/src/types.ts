@@ -36,6 +36,7 @@ export interface IQueue {
     processMessageFunction: IQueueProcessMessageHandler,
     maxConcurrentMessageProcessing: number,
     queueConf: IQueueConfig,
+    options?: unknown,
   ): Promise<void>
   stop(): void
   send(
