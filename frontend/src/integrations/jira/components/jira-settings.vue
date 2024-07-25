@@ -7,27 +7,29 @@
             class="text-gray-600 text-2xs flex items-center leading-5 font-medium"
           >
             <i
-              class="ri-question-answer-line text-base !text-gray-600 mr-1 h-4 flex items-center"
+              class="ri-folders-line text-base !text-gray-600 mr-1 h-4 flex items-center"
             />
-            {{ groups.length }}
-            {{ groups.length !== 1 ? "groups" : "group" }}
+            {{ projects.length }}
+            {{ projects.length !== 1 ? "projects" : "project" }}
           </div>
         </template>
 
         <p class="text-gray-400 text-[13px] font-semibold mb-4">
-          Groups.io groups
+          Jira projects
         </p>
         <div class="max-h-44 overflow-auto -my-1 px-1">
           <article
-            v-for="group of groups"
-            :key="group.id"
+            v-for="project of projects"
+            :key="project"
             class="flex items-center flex-nowrap mb-4 last:mb-0"
           >
             <div
-              class="ri-question-answer-line text-[16px] mr-1 h-4 flex items-center"
+              class="ri-folder-line text-[16px] mr-1 h-4 flex items-center"
             />
 
-            <span class="text-gray-900 text-[13px] max-w-3xs truncate">{{ group.name }}</span>
+            <span class="text-gray-900 text-[13px] max-w-3xs truncate">{{
+              project
+            }}</span>
           </article>
         </div>
       </el-popover>
@@ -45,7 +47,9 @@ const props = defineProps({
   },
 });
 
-const groups = computed<any[]>(() => props.integration.settings.groups);
+const projects = computed<string[]>(
+  () => props.integration.settings.projects,
+);
 </script>
 
 <script lang="ts">

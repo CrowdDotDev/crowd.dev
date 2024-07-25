@@ -1,0 +1,100 @@
+<template>
+  <div>
+    <div class="flex items-center gap-1">
+      <el-popover trigger="hover" placement="top" popper-class="!w-72">
+        <template #reference>
+          <div class="flex flex-row gap-1">
+            <div
+              class="text-gray-600 text-2xs flex items-center leading-5 font-medium"
+            >
+              <i
+                class="ri-seo-line text-base !text-gray-600 mr-1 h-4 flex items-center"
+              />
+              {{ keywords.length }}
+              {{ keywords.length !== 1 ? "keywords" : "keyword" }}
+            </div>
+            •
+            <div
+              class="text-gray-600 text-2xs flex items-center leading-5 font-medium"
+            >
+              {{ urls.length }}
+              {{ urls.length !== 1 ? "urls" : "url" }}
+            </div>
+          </div>
+        </template>
+
+        <div class="max-h-44 overflow-auto -my-1 px-1">
+          <p class="text-gray-400 text-[13px] font-semibold mb-4">
+            Hacker News keywords
+          </p>
+          <article
+            v-for="keyword of keywords"
+            :key="keyword"
+            class="flex items-center flex-nowrap mb-4 last:mb-0"
+          >
+            <div
+              class="ri-seo-line text-[16px] mr-1 h-4 flex items-center"
+            />
+
+            <span class="text-gray-900 text-[13px] max-w-3xs truncate">{{
+              keyword
+            }}</span>
+          </article>
+
+          <p class="text-gray-400 text-[13px] font-semibold mb-4 mt-4">
+            Hacker News urls
+          </p>
+
+          <article
+            v-for="url of urls"
+            :key="url"
+            class="flex items-center flex-nowrap mb-4 last:mb-0"
+          >
+            <div class="ri-links-line text-[16px] mr-1 h-4 flex items-center" />
+
+            <span class="text-gray-900 text-[13px] max-w-3xs truncate">{{
+              url
+            }}</span>
+          </article>
+        </div>
+      </el-popover>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { computed } from 'vue';
+
+const props = defineProps({
+  integration: {
+    type: Object,
+    default: () => {},
+  },
+});
+
+const urls = computed<string[]>(() => props.integration.settings.urls);
+const keywords = computed<string[]>(() => props.integration.settings.keywords);
+</script>
+
+<script lang="ts">
+export default {
+  name: 'AppGithubSettings',
+};
+</script>
+
+<style scoped>
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #9ca3af;
+  /* text-gray-400 */
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: #f3f4f6;
+  /* A light gray background for the track */
+}
+</style>

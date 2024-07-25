@@ -3,31 +3,25 @@
     <div class="flex items-center gap-1">
       <el-popover trigger="hover" placement="top" popper-class="!w-72">
         <template #reference>
-          <div
-            class="text-gray-600 text-2xs flex items-center leading-5 font-medium"
-          >
-            <i
-              class="ri-question-answer-line text-base !text-gray-600 mr-1 h-4 flex items-center"
-            />
-            {{ groups.length }}
-            {{ groups.length !== 1 ? "groups" : "group" }}
+          <div class="text-gray-600 text-2xs flex items-center leading-5 font-medium">
+            <i class="ri-hashtag text-base !text-gray-600 mr-1 h-4 flex items-center" />
+            {{ hashtags.length }}
+            {{ hashtags.length !== 1 ? "hashtags" : "hashtag" }}
           </div>
         </template>
 
         <p class="text-gray-400 text-[13px] font-semibold mb-4">
-          Groups.io groups
+          X/Twitter hashtags
         </p>
         <div class="max-h-44 overflow-auto -my-1 px-1">
           <article
-            v-for="group of groups"
-            :key="group.id"
+            v-for="hashtag of hashtags"
+            :key="hashtag"
             class="flex items-center flex-nowrap mb-4 last:mb-0"
           >
-            <div
-              class="ri-question-answer-line text-[16px] mr-1 h-4 flex items-center"
-            />
+            <div class="ri-hashtag text-[16px] mr-1 h-4 flex items-center" />
 
-            <span class="text-gray-900 text-[13px] max-w-3xs truncate">{{ group.name }}</span>
+            <span class="text-gray-900 text-[13px] max-w-3xs truncate">{{ hashtag }}</span>
           </article>
         </div>
       </el-popover>
@@ -41,11 +35,11 @@ import { computed } from 'vue';
 const props = defineProps({
   integration: {
     type: Object,
-    default: () => {},
+    default: () => { },
   },
 });
 
-const groups = computed<any[]>(() => props.integration.settings.groups);
+const hashtags = computed<string[]>(() => props.integration.settings.hashtags);
 </script>
 
 <script lang="ts">
