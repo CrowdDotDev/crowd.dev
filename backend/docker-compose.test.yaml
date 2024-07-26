@@ -11,6 +11,16 @@ services:
     networks:
       - crowd-bridge-test
 
+  product-db-test:
+    image: postgres:13.6-alpine
+    environment:
+      POSTGRES_PASSWORD: example
+      POSTGRES_DB: product-db
+    ports:
+      - 5435:5432
+    networks:
+      - crowd-bridge-test
+
   sqs:
     build:
       context: ../scripts/scaffold/sqs
