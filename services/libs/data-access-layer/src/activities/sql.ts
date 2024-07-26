@@ -1072,7 +1072,7 @@ export async function activitiesTimeseries(
 
   query += `
     SAMPLE BY 1d FILL(0) ALIGN TO CALENDAR
-    ORDER BY timestamp DESC;
+    ORDER BY date DESC;
   `
 
   const rows: IActivityTimeseriesResult[] = await qdbConn.query(query, {
