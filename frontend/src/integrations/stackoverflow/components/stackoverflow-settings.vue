@@ -13,7 +13,9 @@
               {{ tags.length }}
               {{ tags.length !== 1 ? "tags" : "tag" }}
             </div>
-            •
+            <template v-if="tags.length > 0 && keywords.length > 0">
+              •
+            </template>
             <div
               class="text-gray-600 text-2xs flex items-center leading-5 font-medium"
             >
@@ -24,38 +26,45 @@
         </template>
 
         <div class="max-h-44 overflow-auto -my-1 px-1">
-          <p class="text-gray-400 text-[13px] font-semibold mb-4">
-            Stack Overflow tags
-          </p>
-          <article
-            v-for="tag of tags"
-            :key="tag"
-            class="flex items-center flex-nowrap mb-4 last:mb-0"
-          >
-            <div
-              class="ri-price-tag-3-line text-[16px] mr-1 h-4 flex items-center"
-            />
+          <template v-if="tags.length > 0">
+            <p class="text-gray-400 text-[13px] font-semibold mb-4">
+              Stack Overflow tags
+            </p>
+            <article
+              v-for="tag of tags"
+              :key="tag"
+              class="flex items-center flex-nowrap mb-4 last:mb-0"
+            >
+              <div
+                class="ri-price-tag-3-line text-[16px] mr-1 h-4 flex items-center"
+              />
 
-            <span class="text-gray-900 text-[13px] max-w-3xs truncate">{{
-              tag
-            }}</span>
-          </article>
+              <span class="text-gray-900 text-[13px] max-w-3xs truncate">{{
+                tag
+              }}</span>
+            </article>
+          </template>
 
-          <p class="text-gray-400 text-[13px] font-semibold mb-4 mt-4">
-            Stack Overflow keywords
-          </p>
+          <template v-if="keywords.length > 0">
+            <p
+              class="text-gray-400 text-[13px] font-semibold mb-4"
+              :class="{ 'mt-4': tags.length > 0 }"
+            >
+              Stack Overflow keywords
+            </p>
 
-          <article
-            v-for="keyword of keywords"
-            :key="keyword"
-            class="flex items-center flex-nowrap mb-4 last:mb-0"
-          >
-            <div class="ri-seo-line text-[16px] mr-1 h-4 flex items-center" />
+            <article
+              v-for="keyword of keywords"
+              :key="keyword"
+              class="flex items-center flex-nowrap mb-4 last:mb-0"
+            >
+              <div class="ri-seo-line text-[16px] mr-1 h-4 flex items-center" />
 
-            <span class="text-gray-900 text-[13px] max-w-3xs truncate">{{
-              keyword
-            }}</span>
-          </article>
+              <span class="text-gray-900 text-[13px] max-w-3xs truncate">{{
+                keyword
+              }}</span>
+            </article>
+          </template>
         </div>
       </el-popover>
     </div>

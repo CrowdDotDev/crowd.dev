@@ -18,32 +18,36 @@
         </template>
 
         <div class="max-h-44 overflow-auto -my-1 px-1">
-          <p class="text-gray-400 text-[13px] font-semibold mb-4">
-            DEV organizations
-          </p>
-          <article
-            v-for="organization of organizations"
-            :key="organization"
-            class="flex items-center flex-nowrap mb-4 last:mb-0"
-          >
-            <div class="ri-community-line text-[16px] mr-1 h-4 flex items-center" />
+          <template v-if="organizations.length > 0">
+            <p class="text-gray-400 text-[13px] font-semibold mb-4">
+              DEV organizations
+            </p>
+            <article
+              v-for="organization of organizations"
+              :key="organization"
+              class="flex items-center flex-nowrap mb-4 last:mb-0"
+            >
+              <div class="ri-community-line text-[16px] mr-1 h-4 flex items-center" />
 
-            <span class="text-gray-900 text-[13px] max-w-3xs truncate">{{
-              organization
-            }}</span>
-          </article>
+              <span class="text-gray-900 text-[13px] max-w-3xs truncate">{{
+                organization
+              }}</span>
+            </article>
+          </template>
 
-          <p class="text-gray-400 text-[13px] font-semibold mb-4 mt-4">
-            DEV users
-          </p>
+          <template v-if="users.length > 0">
+            <p class="text-gray-400 text-[13px] font-semibold mb-4" :class="{ 'mt-4': organizations.length > 0 }">
+              DEV users
+            </p>
 
-          <article v-for="user of users" :key="user" class="flex items-center flex-nowrap mb-4 last:mb-0">
-            <div class="ri-user-line text-[16px] mr-1 h-4 flex items-center" />
+            <article v-for="user of users" :key="user" class="flex items-center flex-nowrap mb-4 last:mb-0">
+              <div class="ri-user-line text-[16px] mr-1 h-4 flex items-center" />
 
-            <span class="text-gray-900 text-[13px] max-w-3xs truncate">{{
-              user
-            }}</span>
-          </article>
+              <span class="text-gray-900 text-[13px] max-w-3xs truncate">{{
+                user
+              }}</span>
+            </article>
+          </template>
         </div>
       </el-popover>
     </div>

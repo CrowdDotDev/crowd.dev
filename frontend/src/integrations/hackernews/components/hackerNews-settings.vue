@@ -24,38 +24,42 @@
         </template>
 
         <div class="max-h-44 overflow-auto -my-1 px-1">
-          <p class="text-gray-400 text-[13px] font-semibold mb-4">
-            Hacker News keywords
-          </p>
-          <article
-            v-for="keyword of keywords"
-            :key="keyword"
-            class="flex items-center flex-nowrap mb-4 last:mb-0"
-          >
-            <div
-              class="ri-seo-line text-[16px] mr-1 h-4 flex items-center"
-            />
+          <template v-if="keywords.length > 0">
+            <p class="text-gray-400 text-[13px] font-semibold mb-4">
+              Hacker News keywords
+            </p>
+            <article
+              v-for="keyword of keywords"
+              :key="keyword"
+              class="flex items-center flex-nowrap mb-4 last:mb-0"
+            >
+              <div
+                class="ri-seo-line text-[16px] mr-1 h-4 flex items-center"
+              />
 
-            <span class="text-gray-900 text-[13px] max-w-3xs truncate">{{
-              keyword
-            }}</span>
-          </article>
+              <span class="text-gray-900 text-[13px] max-w-3xs truncate">{{
+                keyword
+              }}</span>
+            </article>
+          </template>
 
-          <p class="text-gray-400 text-[13px] font-semibold mb-4 mt-4">
-            Hacker News urls
-          </p>
+          <template v-if="urls.length > 0">
+            <p class="text-gray-400 text-[13px] font-semibold mb-4" :class="{ 'mt-4': keywords.length > 0 }">
+              Hacker News urls
+            </p>
 
-          <article
-            v-for="url of urls"
-            :key="url"
-            class="flex items-center flex-nowrap mb-4 last:mb-0"
-          >
-            <div class="ri-links-line text-[16px] mr-1 h-4 flex items-center" />
+            <article
+              v-for="url of urls"
+              :key="url"
+              class="flex items-center flex-nowrap mb-4 last:mb-0"
+            >
+              <div class="ri-links-line text-[16px] mr-1 h-4 flex items-center" />
 
-            <span class="text-gray-900 text-[13px] max-w-3xs truncate">{{
-              url
-            }}</span>
-          </article>
+              <span class="text-gray-900 text-[13px] max-w-3xs truncate">{{
+                url
+              }}</span>
+            </article>
+          </template>
         </div>
       </el-popover>
     </div>
