@@ -111,7 +111,9 @@ describe('RawQueryParser', () => {
       params,
     )
 
-    expect(result).toEqual(`((\"aggs.identities\" @> array[:identities_1, :identities_2]) and (1=1))`)
+    expect(result).toEqual(
+      `((\"aggs.identities\" @> array[:identities_1, :identities_2]) and (1=1))`,
+    )
     expect(params.identities_1).toEqual('github')
     expect(params.identities_2).toEqual('slack')
   })
@@ -137,7 +139,9 @@ describe('RawQueryParser', () => {
       params,
     )
 
-    expect(result).toEqual(`((\"aggs.identities\" && array[:identities_1, :identities_2]) and (1=1))`)
+    expect(result).toEqual(
+      `((\"aggs.identities\" && array[:identities_1, :identities_2]) and (1=1))`,
+    )
     expect(params.identities_1).toEqual('github')
     expect(params.identities_2).toEqual('slack')
   })
