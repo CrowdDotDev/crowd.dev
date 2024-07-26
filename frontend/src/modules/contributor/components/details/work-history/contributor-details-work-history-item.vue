@@ -18,7 +18,7 @@
         </template>
       </lf-avatar>
 
-      <div class="pl-3 flex flex-auto	flex-col overflow-hidden">
+      <div class="pl-3 flex flex-auto flex-col overflow-hidden">
         <router-link
           :to="{
             name: 'organizationView',
