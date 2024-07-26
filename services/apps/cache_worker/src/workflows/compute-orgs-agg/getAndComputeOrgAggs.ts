@@ -17,8 +17,7 @@ dailyGetAndComputeOrgAggs is a Temporal workflow that:
   - [Activity]: Get organization IDs from Redis.
   - [Child Workflow]: Re-compute and update aggregates for each organization 
     in batches of 10. Child workflows run independently and won't be 
-    cancelled if the parent workflow stops. If there are more than 10 organizations, 
-    continue as new with the remaining organization IDs.
+    cancelled if the parent workflow stops.
 */
 export async function dailyGetAndComputeOrgAggs(): Promise<void> {
   const organizationIds = await activity.getOrgIdsFromRedis()
@@ -46,9 +45,5 @@ export async function dailyGetAndComputeOrgAggs(): Promise<void> {
     }),
   )
 
-  if (organizationIds.length > BATCH_SIZE) {
-    await continueAsNew(dailyGetAndComputeOrgAggs, {
-      args: [organizationIds.slice(BATCH_SIZE)],
-    })
-  }
+  await continueAsNew()
 }
