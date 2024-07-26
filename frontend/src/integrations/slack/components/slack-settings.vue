@@ -1,7 +1,13 @@
 <template>
   <div>
     <div class="flex items-center gap-1">
-      <el-popover trigger="hover" placement="top" popper-class="!w-72">
+      <template v-if="channels.length === 0">
+        <div class="text-gray-600 text-2xs flex items-center leading-5 font-medium">
+          <i class="ri-chat-thread-line text-base !text-gray-600 mr-1 h-4 flex items-center" />
+          All channels
+        </div>
+      </template>
+      <el-popover v-else trigger="hover" placement="top" popper-class="!w-72">
         <template #reference>
           <div
             class="text-gray-600 text-2xs flex items-center leading-5 font-medium"
