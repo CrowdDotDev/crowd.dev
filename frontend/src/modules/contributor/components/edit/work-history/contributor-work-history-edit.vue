@@ -116,7 +116,6 @@ import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 import LfFieldMessages from '@/ui-kit/field-messages/FieldMessages.vue';
 import LfFieldMessage from '@/ui-kit/field-message/FieldMessage.vue';
-import { has } from 'lodash';
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
 
 const props = defineProps<{
