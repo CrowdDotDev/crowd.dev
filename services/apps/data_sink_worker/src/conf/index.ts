@@ -7,7 +7,7 @@ import { ITemporalConfig } from '@crowd/temporal'
 import config from 'config'
 import { ISearchSyncApiConfig } from '@crowd/opensearch'
 import { QueuePriorityLevel } from '@crowd/types'
-import { IQueueClientConfig, IQueueConfig, IQueueEnvironment } from '@crowd/queue'
+import { IQueueEnvironment } from '@crowd/queue'
 export interface ISlackAlertingConfig {
   url: string
 }
