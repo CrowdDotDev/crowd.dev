@@ -35,7 +35,7 @@
               :key="tag"
               class="flex items-center flex-nowrap mb-4 last:mb-0"
             >
-              <div
+              <i
                 class="ri-price-tag-3-line text-[16px] mr-1 h-4 flex items-center"
               />
 

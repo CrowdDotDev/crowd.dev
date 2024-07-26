@@ -21,7 +21,7 @@
         </p>
         <div class="-my-1 px-1 max-h-44 overflow-auto">
           <article v-for="mapping of mappings" :key="mapping.url" class="py-2 flex items-center flex-nowrap">
-            <div class="ri-git-repository-line text-base mr-2 h-4 flex items-center" />
+            <i class="ri-git-repository-line text-base mr-2 h-4 flex items-center" />
             <a :href="mapping.url" target="_blank" rel="noopener noreferrer" class="text-xs leading-5 max-w-3xs truncate hover:underline">
               /{{ repoNameFromUrl(mapping.url) }}
             </a>
