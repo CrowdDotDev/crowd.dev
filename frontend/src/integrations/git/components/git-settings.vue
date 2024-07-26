@@ -9,7 +9,7 @@
             <i
               class="ri-git-repository-line text-base !text-gray-600 mr-1 h-4 flex items-center"
             />
-            {{ pluralize('remote URL', repositories.length, true) }}
+            {{ pluralize("remote URL", repositories.length, true) }}
           </div>
         </template>
 
@@ -83,20 +83,3 @@ export default {
   name: 'AppGithubSettings',
 };
 </script>
-
-<style scoped>
-::-webkit-scrollbar {
-  width: 6px;
-}
-
-::-webkit-scrollbar-thumb {
-  background-color: #9ca3af;
-  /* text-gray-400 */
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-track {
-  background-color: #f3f4f6;
-  /* A light gray background for the track */
-}
-</style>
