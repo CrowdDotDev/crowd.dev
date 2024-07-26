@@ -334,88 +334,70 @@ export default class IntegrationService {
    * @returns integration object
    */
   async connectGithub(code, installId, setupAction = 'install') {
-    const transaction = await SequelizeRepository.createTransaction(this.options)
-
-    let integration
-    try {
-      if (setupAction === 'request') {
-        return await this.createOrUpdate(
-          {
-            platform: PlatformType.GITHUB,
-            status: 'waiting-approval',
-          },
-          transaction,
-        )
-      }
-
-      const GITHUB_AUTH_ACCESSTOKEN_URL = 'https://github.com/login/oauth/access_token'
-      // Getting the GitHub client ID and secret from the .env file.
-      const CLIENT_ID = GITHUB_CONFIG.clientId
-      const CLIENT_SECRET = GITHUB_CONFIG.clientSecret
-      // Post to GitHub to get token
-      const tokenResponse = await axios({
-        method: 'post',
-        url: GITHUB_AUTH_ACCESSTOKEN_URL,
-        data: {
-          client_id: CLIENT_ID,
-          client_secret: CLIENT_SECRET,
-          code,
-        },
-      })
-
-      // Doing some processing on the token
-      let token = tokenResponse.data
-      token = token.slice(token.search('=') + 1, token.search('&'))
-
-      try {
-        const requestWithAuth = request.defaults({
-          headers: {
-            authorization: `token ${token}`,
-          },
-        })
-        await requestWithAuth('GET /user')
-      } catch {
-        throw new Error542(
-          `Invalid token for GitHub integration. Code: ${code}, setupAction: ${setupAction}. Token: ${token}`,
-        )
-      }
-
-      // Using try/catch since we want to return an error if the installation is not validated properly
-      // Fetch install token from GitHub, this will allow us to get the
-      // repos that the user gave us access to
-      const installToken = await IntegrationService.getInstallToken(installId)
-
-      const repos = await getInstalledRepositories(installToken)
-      const githubOwner = IntegrationService.extractOwner(repos, this.options)
-
-      let orgAvatar
-      try {
-        const response = await request('GET /users/{user}', {
-          user: githubOwner,
-        })
-        orgAvatar = response.data.avatar_url
-      } catch (err) {
-        this.options.log.warn(err, 'Error while fetching GitHub user!')
-      }
-
-      // Create a separate function to handle the creation/update of the integration
-      await this.createOrUpdateGithubIntegration(
+    if (setupAction === 'request') {
+      return this.createOrUpdate(
         {
           platform: PlatformType.GITHUB,
-          token,
-          settings: { updateMemberAttributes: true, orgAvatar },
-          integrationIdentifier: installId,
-          status: 'mapping',
+          status: 'waiting-approval',
         },
-        repos,
-        transaction,
+        await SequelizeRepository.createTransaction(this.options),
       )
-
-      await SequelizeRepository.commitTransaction(transaction)
-    } catch (err) {
-      await SequelizeRepository.rollbackTransaction(transaction)
-      throw err
     }
+
+    const GITHUB_AUTH_ACCESSTOKEN_URL = 'https://github.com/login/oauth/access_token'
+    const CLIENT_ID = GITHUB_CONFIG.clientId
+    const CLIENT_SECRET = GITHUB_CONFIG.clientSecret
+
+    const tokenResponse = await axios({
+      method: 'post',
+      url: GITHUB_AUTH_ACCESSTOKEN_URL,
+      data: {
+        client_id: CLIENT_ID,
+        client_secret: CLIENT_SECRET,
+        code,
+      },
+    })
+
+    let token = tokenResponse.data
+    token = token.slice(token.search('=') + 1, token.search('&'))
+
+    try {
+      const requestWithAuth = request.defaults({
+        headers: {
+          authorization: `token ${token}`,
+        },
+      })
+      await requestWithAuth('GET /user')
+    } catch {
+      throw new Error542(
+        `Invalid token for GitHub integration. Code: ${code}, setupAction: ${setupAction}. Token: ${token}`,
+      )
+    }
+
+    const installToken = await IntegrationService.getInstallToken(installId)
+    const repos = await getInstalledRepositories(installToken)
+    const githubOwner = IntegrationService.extractOwner(repos, this.options)
+
+    let orgAvatar
+    try {
+      const response = await request('GET /users/{user}', {
+        user: githubOwner,
+      })
+      orgAvatar = response.data.avatar_url
+    } catch (err) {
+      this.options.log.warn(err, 'Error while fetching GitHub user!')
+    }
+
+    const integration = await this.createOrUpdateGithubIntegration(
+      {
+        platform: PlatformType.GITHUB,
+        token,
+        settings: { updateMemberAttributes: true, orgAvatar },
+        integrationIdentifier: installId,
+        status: 'mapping',
+      },
+      repos,
+    )
 
     return integration
   }
@@ -424,29 +406,60 @@ export default class IntegrationService {
    * Creates or updates a GitHub integration, handling large repos data
    * @param integrationData The integration data to create or update
    * @param repos The repositories data
-   * @param transaction The database transaction
    */
-  private async createOrUpdateGithubIntegration(integrationData, repos, transaction) {
-    // First, create or update the integration without the repos data
-    const integration = await this.createOrUpdate(integrationData, transaction)
+  private async createOrUpdateGithubIntegration(integrationData, repos) {
+    let integration
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+
+    this.options.log.error(repos.length)
+
+    try {
+      // First, create or update the integration without the repos data
+      integration = await this.createOrUpdate(integrationData, transaction)
+
+      await SequelizeRepository.commitTransaction(transaction)
+    } catch (err) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw err
+    }
 
     // Then, update the repos data in chunks to avoid query timeout
     const chunkSize = 100 // Adjust this value based on your specific needs
     for (let i = 0; i < repos.length; i += chunkSize) {
       const reposChunk = repos.slice(i, i + chunkSize)
-      await this.update(
-        integration.id,
-        {
-          settings: {
-            ...integration.settings,
-            repos: reposChunk,
-          },
-        },
-        transaction,
-      )
+      await this.upsertGitHubRepos(integration.id, reposChunk)
     }
 
     return integration
+  }
+
+  private async upsertGitHubRepos(integrationId, repos) {
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+    const sequelize = SequelizeRepository.getSequelize(this.options)
+
+    try {
+      const query = `
+        UPDATE integrations
+        SET settings = jsonb_set(
+          COALESCE(settings, '{}'::jsonb),
+          '{repos}',
+          COALESCE(settings->'repos', '[]'::jsonb) || ?::jsonb
+        )
+        WHERE id = ?
+      `
+
+      const values = [JSON.stringify(repos), integrationId]
+
+      await sequelize.query(query, {
+        replacements: values,
+        transaction,
+      })
+
+      await SequelizeRepository.commitTransaction(transaction)
+    } catch (error) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw error
+    }
   }
 
   static extractOwner(repos, options) {
