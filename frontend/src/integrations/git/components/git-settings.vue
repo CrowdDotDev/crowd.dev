@@ -3,8 +3,12 @@
     <div class="flex items-center gap-1">
       <el-popover trigger="hover" placement="top" popper-class="!w-72">
         <template #reference>
-          <div class="text-gray-600 text-2xs flex items-center leading-5 font-medium">
-            <i class="ri-git-repository-line text-base !text-gray-600 mr-1 h-4 flex items-center" />
+          <div
+            class="text-gray-600 text-2xs flex items-center leading-5 font-medium"
+          >
+            <i
+              class="ri-git-repository-line text-base !text-gray-600 mr-1 h-4 flex items-center"
+            />
             {{ repositories.length }}
             {{ repositories.length !== 1 ? "remote URLs" : "remote URL" }}
           </div>
@@ -19,11 +23,18 @@
             :key="repository"
             class="flex items-center flex-nowrap mb-4 last:mb-0"
           >
-            <div class="ri-git-repository-line text-[16px] mr-1 h-4 flex items-center" />
+            <div
+              class="ri-git-repository-line text-[16px] mr-1 h-4 flex items-center"
+            />
 
-            <span class="text-gray-900 text-[13px] max-w-3xs truncate">{{
-              repository
-            }}</span>
+            <a
+              :href="repository"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-gray-900 text-[13px] max-w-3xs truncate hover:underline"
+            >
+              {{ removeProtocolAndDomain(repository) }}
+            </a>
           </article>
         </div>
       </el-popover>
@@ -37,13 +48,34 @@ import { computed } from 'vue';
 const props = defineProps({
   integration: {
     type: Object,
-    default: () => { },
+    default: () => {},
   },
 });
 
 const repositories = computed<string[]>(
   () => props.integration.settings?.remotes,
 );
+
+const removeProtocolAndDomain = (url: string) => {
+  try {
+    const parsedUrl = new URL(url);
+    let path = parsedUrl.pathname;
+
+    // Remove leading slash and trailing .git if present
+    path = path.replace(/^\//, '').replace(/\.git$/, '');
+
+    // For SSH URLs (git@github.com:user/repo.git)
+    if (parsedUrl.protocol === 'ssh:') {
+      const sshParts = url.split(':');
+      path = sshParts[1].replace(/\.git$/, '');
+    }
+
+    return path;
+  } catch (error) {
+    // If URL parsing fails, return the original string
+    return url.replace(/^(https?:\/\/|git@)/, '').replace(/\.git$/, '');
+  }
+};
 </script>
 
 <script lang="ts">
@@ -54,17 +86,17 @@ export default {
 
 <style scoped>
 ::-webkit-scrollbar {
-    width: 6px;
+  width: 6px;
 }
 
 ::-webkit-scrollbar-thumb {
-    background-color: #9ca3af;
-    /* text-gray-400 */
-    border-radius: 3px;
+  background-color: #9ca3af;
+  /* text-gray-400 */
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-track {
-    background-color: #f3f4f6;
-    /* A light gray background for the track */
+  background-color: #f3f4f6;
+  /* A light gray background for the track */
 }
 </style>
