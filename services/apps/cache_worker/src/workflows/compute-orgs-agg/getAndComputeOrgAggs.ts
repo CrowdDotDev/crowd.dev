@@ -4,6 +4,7 @@ import {
   ChildWorkflowCancellationType,
   workflowInfo,
   executeChild,
+  continueAsNew,
 } from '@temporalio/workflow'
 
 import * as activities from '../../activities/computeAggs/organization'
@@ -16,7 +17,8 @@ dailyGetAndComputeOrgAggs is a Temporal workflow that:
   - [Activity]: Get organization IDs from Redis.
   - [Child Workflow]: Re-compute and update aggregates for each organization 
     in batches of 10. Child workflows run independently and won't be 
-    cancelled if the parent workflow stops.
+    cancelled if the parent workflow stops. If there are more than 10 organizations, 
+    continue as new with the remaining organization IDs.
 */
 export async function dailyGetAndComputeOrgAggs(): Promise<void> {
   const organizationIds = await activity.getOrgIdsFromRedis()
@@ -27,22 +29,26 @@ export async function dailyGetAndComputeOrgAggs(): Promise<void> {
   const info = workflowInfo()
   const BATCH_SIZE = 10
 
-  for (let i = 0; i < organizationIds.length; i += BATCH_SIZE) {
-    const batch = organizationIds.slice(i, i + BATCH_SIZE)
-    await Promise.all(
-      batch.map((organizationId) => {
-        return executeChild(computeOrgAggsAndUpdate, {
-          workflowId: `${info.workflowId}/${organizationId}`,
-          cancellationType: ChildWorkflowCancellationType.ABANDON,
-          parentClosePolicy: ParentClosePolicy.PARENT_CLOSE_POLICY_ABANDON,
-          retry: {
-            backoffCoefficient: 2,
-            initialInterval: 2 * 1000,
-            maximumInterval: 30 * 1000,
-          },
-          args: [{ organizationId }],
-        })
-      }),
-    )
+  const batch = organizationIds.slice(0, BATCH_SIZE)
+  await Promise.all(
+    batch.map((organizationId) => {
+      return executeChild(computeOrgAggsAndUpdate, {
+        workflowId: `${info.workflowId}/${organizationId}`,
+        cancellationType: ChildWorkflowCancellationType.ABANDON,
+        parentClosePolicy: ParentClosePolicy.PARENT_CLOSE_POLICY_ABANDON,
+        retry: {
+          backoffCoefficient: 2,
+          initialInterval: 2 * 1000,
+          maximumInterval: 30 * 1000,
+        },
+        args: [{ organizationId }],
+      })
+    }),
+  )
+
+  if (organizationIds.length > BATCH_SIZE) {
+    await continueAsNew(dailyGetAndComputeOrgAggs, {
+      args: [organizationIds.slice(BATCH_SIZE)],
+    })
   }
 }
