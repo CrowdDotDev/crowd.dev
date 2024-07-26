@@ -1,11 +1,6 @@
 /* eslint-disable no-continue */
 
-import {
-  Error400,
-  isDomainExcluded,
-  singleOrDefault,
-  getProperDisplayName,
-} from '@crowd/common'
+import { Error400, isDomainExcluded, singleOrDefault, getProperDisplayName } from '@crowd/common'
 import { LoggerBase } from '@crowd/logging'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
 import {
@@ -234,9 +229,7 @@ export default class MemberService extends LoggerBase {
     syncToOpensearch = true,
   ) {
     const logger = this.options.log
-    const searchSyncService = new SearchSyncService(
-      this.options,
-    )
+    const searchSyncService = new SearchSyncService(this.options)
 
     const errorDetails: any = {}
 
@@ -591,7 +584,7 @@ export default class MemberService extends LoggerBase {
           if (username[platform].length === 0) {
             throw new Error400(this.options.language, 'activity.platformAndUsernameNotMatching')
           } else if (typeof username[platform] === 'string') {
-            usernames.push(...username[platform])
+            usernames.push(username[platform])
           } else if (typeof username[platform][0] === 'object') {
             usernames.push(...username[platform].map((u) => u.username))
           }
@@ -1543,9 +1536,7 @@ export default class MemberService extends LoggerBase {
     } = {},
   ) {
     let transaction
-    const searchSyncService = new SearchSyncService(
-      this.options,
-    )
+    const searchSyncService = new SearchSyncService(this.options)
 
     try {
       const repoOptions = await SequelizeRepository.createTransactionalRepositoryOptions(
