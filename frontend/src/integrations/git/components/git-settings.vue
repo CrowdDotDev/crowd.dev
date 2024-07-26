@@ -9,11 +9,12 @@
             <i
               class="ri-git-repository-line text-base !text-gray-600 mr-1 h-4 flex items-center"
             />
-            {{ pluralize("remote URL", repositories.length, true) }}
+            {{ repositories.length }}
+            {{ repositories.length !== 1 ? "remote URLs" : "remote URL" }}
           </div>
         </template>
 
-        <p class="text-gray-400 text-sm font-semibold mb-4">
+        <p class="text-gray-400 text-[13px] font-semibold mb-4">
           Git Remote URLs
         </p>
         <div class="max-h-44 overflow-auto -my-1 px-1">
@@ -30,7 +31,7 @@
               :href="repository"
               target="_blank"
               rel="noopener noreferrer"
-              class="text-gray-900 text-sm max-w-3xs truncate hover:underline"
+              class="text-gray-900 text-[13px] max-w-3xs truncate hover:underline"
             >
               {{ removeProtocolAndDomain(repository) }}
             </a>
@@ -43,7 +44,6 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import pluralize from 'pluralize';
 
 const props = defineProps({
   integration: {
