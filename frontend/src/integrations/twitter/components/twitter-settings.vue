@@ -3,10 +3,13 @@
     <div class="flex items-center gap-1">
       <el-popover trigger="hover" placement="top" popper-class="!w-72">
         <template #reference>
-          <div class="text-gray-600 text-2xs flex items-center leading-5 font-medium">
-            <i class="ri-hashtag text-base !text-gray-600 mr-1 h-4 flex items-center" />
-            {{ hashtags.length }}
-            {{ hashtags.length !== 1 ? "hashtags" : "hashtag" }}
+          <div
+            class="text-gray-600 text-2xs flex items-center leading-5 font-medium"
+          >
+            <i
+              class="ri-hashtag text-base !text-gray-600 mr-1 h-4 flex items-center"
+            />
+            {{ pluralize("hashtag", hashtags.length, true) }}
           </div>
         </template>
 
@@ -21,7 +24,9 @@
           >
             <i class="ri-hashtag text-[16px] mr-1 h-4 flex items-center" />
 
-            <span class="text-gray-900 text-[13px] max-w-3xs truncate">{{ hashtag }}</span>
+            <span class="text-gray-900 text-[13px] max-w-3xs truncate">{{
+              hashtag
+            }}</span>
           </article>
         </div>
       </el-popover>
@@ -31,11 +36,12 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import pluralize from 'pluralize';
 
 const props = defineProps({
   integration: {
     type: Object,
-    default: () => { },
+    default: () => {},
   },
 });
 

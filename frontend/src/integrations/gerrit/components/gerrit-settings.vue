@@ -5,8 +5,7 @@
         <template #reference>
           <div class="text-gray-600 text-2xs flex items-center leading-5 font-medium">
             <i class="ri-git-repository-line text-base !text-gray-600 mr-1 h-4 flex items-center" />
-            {{ repositories.length }}
-            {{ repositories.length !== 1 ? "repositories" : "repository" }}
+            {{ pluralize('repository', repositories.length, true) }}
           </div>
         </template>
 
@@ -33,6 +32,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import pluralize from 'pluralize';
 
 const props = defineProps({
   integration: {

@@ -10,8 +10,7 @@
               <i
                 class="ri-price-tag-3-line text-base !text-gray-600 mr-1 h-4 flex items-center"
               />
-              {{ tags.length }}
-              {{ tags.length !== 1 ? "tags" : "tag" }}
+              {{ pluralize('tag', tags.length, true) }}
             </div>
             <template v-if="tags.length > 0 && keywords.length > 0">
               •
@@ -19,8 +18,7 @@
             <div
               class="text-gray-600 text-2xs flex items-center leading-5 font-medium"
             >
-              {{ keywords.length }}
-              {{ keywords.length !== 1 ? "keywords" : "keyword" }}
+              {{ pluralize('keyword', keywords.length, true) }}
             </div>
           </div>
         </template>
@@ -73,6 +71,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import pluralize from 'pluralize';
 
 const props = defineProps({
   integration: {

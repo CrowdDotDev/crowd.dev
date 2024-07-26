@@ -2,8 +2,12 @@
   <div>
     <div class="flex items-center gap-1">
       <template v-if="channels.length === 0">
-        <div class="text-gray-600 text-2xs flex items-center leading-5 font-medium">
-          <i class="ri-chat-thread-line text-base !text-gray-600 mr-1 h-4 flex items-center" />
+        <div
+          class="text-gray-600 text-2xs flex items-center leading-5 font-medium"
+        >
+          <i
+            class="ri-chat-thread-line text-base !text-gray-600 mr-1 h-4 flex items-center"
+          />
           All channels
         </div>
       </template>
@@ -15,8 +19,8 @@
             <i
               class="ri-chat-thread-line text-base !text-gray-600 mr-1 h-4 flex items-center"
             />
-            {{ channels.length }}
-            {{ channels.length !== 1 ? "channels" : "channel" }}
+
+            {{ pluralize("channel", channels.length, true) }}
           </div>
         </template>
 
@@ -45,6 +49,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import pluralize from 'pluralize';
 
 const props = defineProps({
   integration: {

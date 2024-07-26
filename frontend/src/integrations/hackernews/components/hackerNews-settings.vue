@@ -10,15 +10,14 @@
               <i
                 class="ri-seo-line text-base !text-gray-600 mr-1 h-4 flex items-center"
               />
-              {{ keywords.length }}
-              {{ keywords.length !== 1 ? "keywords" : "keyword" }}
+
+              {{ pluralize("keyword", keywords.length, true) }}
             </div>
             •
             <div
               class="text-gray-600 text-2xs flex items-center leading-5 font-medium"
             >
-              {{ urls.length }}
-              {{ urls.length !== 1 ? "urls" : "url" }}
+              {{ pluralize("url", urls.length, true) }}
             </div>
           </div>
         </template>
@@ -33,9 +32,7 @@
               :key="keyword"
               class="flex items-center flex-nowrap mb-4 last:mb-0"
             >
-              <i
-                class="ri-seo-line text-[16px] mr-1 h-4 flex items-center"
-              />
+              <i class="ri-seo-line text-[16px] mr-1 h-4 flex items-center" />
 
               <span class="text-gray-900 text-[13px] max-w-3xs truncate">{{
                 keyword
@@ -44,7 +41,10 @@
           </template>
 
           <template v-if="urls.length > 0">
-            <p class="text-gray-400 text-[13px] font-semibold mb-4" :class="{ 'mt-4': keywords.length > 0 }">
+            <p
+              class="text-gray-400 text-[13px] font-semibold mb-4"
+              :class="{ 'mt-4': keywords.length > 0 }"
+            >
               Hacker News urls
             </p>
 
@@ -53,7 +53,9 @@
               :key="url"
               class="flex items-center flex-nowrap mb-4 last:mb-0"
             >
-              <div class="ri-links-line text-[16px] mr-1 h-4 flex items-center" />
+              <div
+                class="ri-links-line text-[16px] mr-1 h-4 flex items-center"
+              />
 
               <span class="text-gray-900 text-[13px] max-w-3xs truncate">{{
                 url
@@ -68,6 +70,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import pluralize from 'pluralize';
 
 const props = defineProps({
   integration: {

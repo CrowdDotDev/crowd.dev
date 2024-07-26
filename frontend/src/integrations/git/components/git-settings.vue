@@ -9,8 +9,7 @@
             <i
               class="ri-git-repository-line text-base !text-gray-600 mr-1 h-4 flex items-center"
             />
-            {{ repositories.length }}
-            {{ repositories.length !== 1 ? "remote URLs" : "remote URL" }}
+            {{ pluralize('remote URL', repositories.length, true) }}
           </div>
         </template>
 
@@ -44,6 +43,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import pluralize from 'pluralize';
 
 const props = defineProps({
   integration: {

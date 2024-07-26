@@ -9,8 +9,7 @@
             <i
               class="ri-question-answer-line text-base !text-gray-600 mr-1 h-4 flex items-center"
             />
-            {{ groups.length }}
-            {{ groups.length !== 1 ? "groups" : "group" }}
+            {{ pluralize('group', groups.length, true) }}
           </div>
         </template>
 
@@ -37,6 +36,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import pluralize from 'pluralize';
 
 const props = defineProps({
   integration: {

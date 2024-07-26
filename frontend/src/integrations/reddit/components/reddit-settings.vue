@@ -9,8 +9,7 @@
             <i
               class="ri-reddit-line text-base !text-gray-600 mr-1 h-4 flex items-center"
             />
-            {{ subreddits.length }}
-            {{ subreddits.length !== 1 ? "subreddits" : "subreddit" }}
+            {{ pluralize('subreddit', subreddits.length, true) }}
           </div>
         </template>
 
@@ -39,6 +38,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import pluralize from 'pluralize';
 
 const props = defineProps({
   integration: {
