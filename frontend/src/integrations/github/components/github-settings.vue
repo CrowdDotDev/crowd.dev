@@ -18,7 +18,7 @@
             <i
               class="ri-git-repository-line text-base !text-gray-600 mr-1 h-4 flex items-center"
             />
-            {{ (pluralize("repository", Object.keys(mappings).length), true) }}
+            {{ pluralize("repository", Object.keys(mappings).length, true) }}
           </div>
         </template>
 
