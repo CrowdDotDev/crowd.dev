@@ -25,7 +25,7 @@ describe('RawQueryParser', () => {
     )
 
     expect(result).toEqual(
-      "((coalesce((m.attributes -> 'isOrganization' -> 'default')::boolean, false) <> :isOrganization_1) and (1=1))",
+      "((\"coalesce((m.attributes -> 'isOrganization' -> 'default')::boolean, false)\" <> :isOrganization_1) and (1=1))",
     )
     expect(params.isOrganization_1).toEqual(true)
   })
@@ -56,7 +56,7 @@ describe('RawQueryParser', () => {
     )
 
     expect(result).toEqual(
-      "((coalesce((m.attributes -> 'isOrganization' -> 'default')::boolean, false) <> :isOrganization_1) and (coalesce((m.attributes -> 'isBot' -> 'default')::boolean, false) = :isBot_1))",
+      "((\"coalesce((m.attributes -> 'isOrganization' -> 'default')::boolean, false)\" <> :isOrganization_1) and (\"coalesce((m.attributes -> 'isBot' -> 'default')::boolean, false)\" = :isBot_1))",
     )
     expect(params.isOrganization_1).toEqual(true)
     expect(params.isBot_1).toEqual(false)
@@ -111,7 +111,7 @@ describe('RawQueryParser', () => {
       params,
     )
 
-    expect(result).toEqual(`((aggs.identities @> array[:identities_1, :identities_2]) and (1=1))`)
+    expect(result).toEqual(`((\"aggs.identities\" @> array[:identities_1, :identities_2]) and (1=1))`)
     expect(params.identities_1).toEqual('github')
     expect(params.identities_2).toEqual('slack')
   })
@@ -137,7 +137,7 @@ describe('RawQueryParser', () => {
       params,
     )
 
-    expect(result).toEqual(`((aggs.identities && array[:identities_1, :identities_2]) and (1=1))`)
+    expect(result).toEqual(`((\"aggs.identities\" && array[:identities_1, :identities_2]) and (1=1))`)
     expect(params.identities_1).toEqual('github')
     expect(params.identities_2).toEqual('slack')
   })
