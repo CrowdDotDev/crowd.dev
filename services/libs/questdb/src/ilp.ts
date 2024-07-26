@@ -12,10 +12,10 @@ export const getClientILP = (): Sender => {
     return client
   }
 
-  const host = process.env['CROWD_QUESTDB_WRITE_HOST']
-  const port = process.env['CROWD_QUESTDB_WRITE_PORT']
-  const username = process.env['CROWD_QUESTDB_WRITE_USERNAME']
-  const password = process.env['CROWD_QUESTDB_WRITE_PASSWORD']
+  const host = process.env['CROWD_QUESTDB_ILP_HOST']
+  const port = process.env['CROWD_QUESTDB_ILP_PORT']
+  const username = process.env['CROWD_QUESTDB_ILP_USERNAME']
+  const password = process.env['CROWD_QUESTDB_ILP_PASSWORD']
 
   log.trace({ host, port }, 'Creating QuestDB client (ILP) instance!')
 

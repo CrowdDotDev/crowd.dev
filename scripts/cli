@@ -529,10 +529,10 @@ function migrate_env() {
         -e PGDATABASE=$CROWD_DB_DATABASE \
         crowd_flyway
 
-    say "Applying QuestDB migrations to $CROWD_QUESTDB_READ_HOST!"
+    say "Applying QuestDB migrations to $CROWD_QUESTDB_SQL_HOST!"
     docker run --rm --network "${PROJECT_NAME}-bridge" \
         -v $CLI_HOME/../services/migrations/questdb/:/tmp/migrations \
-        postgres psql postgresql://$CROWD_QUESTDB_READ_USERNAME:$CROWD_QUESTDB_READ_PASSWORD@$CROWD_QUESTDB_READ_HOST:$CROWD_QUESTDB_READ_PORT/qdb \
+        postgres psql postgresql://$CROWD_QUESTDB_SQL_USERNAME:$CROWD_QUESTDB_SQL_PASSWORD@$CROWD_QUESTDB_SQL_HOST:$CROWD_QUESTDB_SQL_PORT/qdb \
         -f /tmp/migrations/V1716382997__init-questdb.sql
 }
 
