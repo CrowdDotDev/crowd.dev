@@ -18,12 +18,17 @@
               @blur="$v.organization.$touch"
               @change="$v.organization.$touch"
             />
+
             <lf-field-messages
               :validation="$v.organization"
               :error-messages="{
                 required: 'This field is required',
               }"
             />
+            <lf-field-message v-if="!isEdit && hasSameOrganization" type="warning" class="!mt-2">
+              There is already a work experience associated with this organization.
+              Please ensure that either the Job title or Period is different before adding this work experience.
+            </lf-field-message>
           </lf-field>
           <lf-field label-text="Job title" class="mb-5">
             <lf-input v-model="form.title" />
@@ -71,14 +76,19 @@
         <lf-button type="secondary-ghost" @click="close">
           Cancel
         </lf-button>
-        <lf-button
-          type="primary"
-          :loading="sending"
-          :disabled="$v.$invalid || sending"
-          @click="updateWorkExperience()"
+        <lf-tooltip
+          :disabled="!(hasSameOrgDetails && !isEdit)"
+          content="Please enter a different Job title or Period, as there is already a work experience associated with the selected organization."
         >
-          {{ isEdit ? 'Update' : 'Add' }} work experience
-        </lf-button>
+          <lf-button
+            type="primary"
+            :loading="sending"
+            :disabled="$v.$invalid || sending || (hasSameOrgDetails && !isEdit)"
+            @click="updateWorkExperience()"
+          >
+            {{ isEdit ? 'Update' : 'Add' }} work experience
+          </lf-button>
+        </lf-tooltip>
       </div>
     </template>
   </lf-modal>
@@ -105,6 +115,9 @@ import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 import LfFieldMessages from '@/ui-kit/field-messages/FieldMessages.vue';
+import LfFieldMessage from '@/ui-kit/field-message/FieldMessage.vue';
+import { has } from 'lodash';
+import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
 
 const props = defineProps<{
   modelValue: boolean,
@@ -241,6 +254,24 @@ const isModalOpen = computed<boolean>({
     emit('update:modelValue', value);
   },
 });
+
+const hasSameOrganization = computed(() => props.contributor.organizations.some((o: Organization) => o.id === form.organization?.id));
+const hasSameOrgDetails = computed(() => props.contributor.organizations
+  .some((o: Organization) => {
+    if (o.id !== form.organization?.id) {
+      return false;
+    }
+    if (form.title === o.memberOrganizations.title) {
+      return true;
+    }
+    const start = form.dateStart && o.memberOrganizations.dateStart
+      ? moment(form.dateStart).startOf('month').isSame(moment(o.memberOrganizations.dateStart), 'day')
+      : false;
+    const end = !form.currentlyWorking && form.dateEnd && o.memberOrganizations.dateEnd
+      ? moment(form.dateEnd).startOf('month').isSame(moment(o.memberOrganizations.dateEnd), 'day')
+      : false;
+    return start && end;
+  }));
 
 onMounted(() => {
   if (props.organization) {
