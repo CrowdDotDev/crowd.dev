@@ -24,7 +24,7 @@
 
         <div class="max-h-44 overflow-auto -my-1 px-1">
           <template v-if="organizations.length > 0">
-            <p class="text-gray-400 text-[13px] font-semibold mb-4">
+            <p class="text-gray-400 text-sm font-semibold mb-4">
               DEV organizations
             </p>
             <article
@@ -36,7 +36,7 @@
                 class="ri-community-line text-[16px] mr-1 h-4 flex items-center"
               />
 
-              <span class="text-gray-900 text-[13px] max-w-3xs truncate">{{
+              <span class="text-gray-900 text-sm max-w-3xs truncate">{{
                 organization
               }}</span>
             </article>
@@ -44,7 +44,7 @@
 
           <template v-if="users.length > 0">
             <p
-              class="text-gray-400 text-[13px] font-semibold mb-4"
+              class="text-gray-400 text-sm font-semibold mb-4"
               :class="{ 'mt-4': organizations.length > 0 }"
             >
               DEV users
@@ -59,7 +59,7 @@
                 class="ri-user-line text-[16px] mr-1 h-4 flex items-center"
               />
 
-              <span class="text-gray-900 text-[13px] max-w-3xs truncate">{{
+              <span class="text-gray-900 text-sm max-w-3xs truncate">{{
                 user
               }}</span>
             </article>

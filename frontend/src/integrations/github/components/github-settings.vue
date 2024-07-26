@@ -22,7 +22,7 @@
           </div>
         </template>
 
-        <p class="text-gray-400 text-[13px] font-semibold mb-4">
+        <p class="text-gray-400 text-sm font-semibold mb-4">
           GitHub repositories
         </p>
         <div class="-my-1 px-1 max-h-44 overflow-auto">

@@ -22,7 +22,7 @@
         </template>
 
         <div class="max-h-44 overflow-auto -my-1 px-1">
-          <p class="text-gray-400 text-[13px] font-semibold mb-4">
+          <p class="text-gray-400 text-sm font-semibold mb-4">
             Confluence organizations
           </p>
           <article class="flex items-center flex-nowrap mb-4 last:mb-0">
@@ -30,12 +30,12 @@
               class="ri-community-line text-[16px] mr-1 h-4 flex items-center"
             />
 
-            <span class="text-gray-900 text-[13px] max-w-3xs truncate">{{
+            <span class="text-gray-900 text-sm max-w-3xs truncate">{{
               url
             }}</span>
           </article>
 
-          <p class="text-gray-400 text-[13px] font-semibold mb-4 mt-4">
+          <p class="text-gray-400 text-sm font-semibold mb-4 mt-4">
             Confluence spaces
           </p>
 
@@ -44,7 +44,7 @@
               class="ri-folder-line text-[16px] mr-1 h-4 flex items-center"
             />
 
-            <span class="text-gray-900 text-[13px] max-w-3xs truncate">{{
+            <span class="text-gray-900 text-sm max-w-3xs truncate">{{
               space?.name || space?.key || "Unnamed space"
             }}</span>
           </article>

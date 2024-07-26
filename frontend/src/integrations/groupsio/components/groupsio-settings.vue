@@ -13,7 +13,7 @@
           </div>
         </template>
 
-        <p class="text-gray-400 text-[13px] font-semibold mb-4">
+        <p class="text-gray-400 text-sm font-semibold mb-4">
           Groups.io groups
         </p>
         <div class="max-h-44 overflow-auto -my-1 px-1">
@@ -26,7 +26,7 @@
               class="ri-question-answer-line text-[16px] mr-1 h-4 flex items-center"
             />
 
-            <span class="text-gray-900 text-[13px] max-w-3xs truncate">{{ group.name }}</span>
+            <span class="text-gray-900 text-sm max-w-3xs truncate">{{ group.name }}</span>
           </article>
         </div>
       </el-popover>

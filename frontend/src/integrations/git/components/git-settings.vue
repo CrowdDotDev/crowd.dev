@@ -13,7 +13,7 @@
           </div>
         </template>
 
-        <p class="text-gray-400 text-[13px] font-semibold mb-4">
+        <p class="text-gray-400 text-sm font-semibold mb-4">
           Git Remote URLs
         </p>
         <div class="max-h-44 overflow-auto -my-1 px-1">
@@ -30,7 +30,7 @@
               :href="repository"
               target="_blank"
               rel="noopener noreferrer"
-              class="text-gray-900 text-[13px] max-w-3xs truncate hover:underline"
+              class="text-gray-900 text-sm max-w-3xs truncate hover:underline"
             >
               {{ removeProtocolAndDomain(repository) }}
             </a>

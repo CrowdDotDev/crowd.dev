@@ -24,7 +24,7 @@
           </div>
         </template>
 
-        <p class="text-gray-400 text-[13px] font-semibold mb-4">
+        <p class="text-gray-400 text-sm font-semibold mb-4">
           Slack channels
         </p>
         <div class="max-h-44 overflow-auto -my-1 px-1">
@@ -37,7 +37,7 @@
               class="ri-chat-thread-line text-[16px] mr-1 h-4 flex items-center"
             />
 
-            <span class="text-gray-900 text-[13px] max-w-3xs truncate">{{
+            <span class="text-gray-900 text-sm max-w-3xs truncate">{{
               channel.name
             }}</span>
           </article>
