@@ -227,7 +227,7 @@ export class ServiceWorker extends Service {
             secretAccessKey: process.env['CROWD_SQS_AWS_SECRET_ACCESS_KEY'],
           },
           kafka: {
-            brokers: process.env['CROWD_KAFKA_BROKERS'].split(','),
+            brokers: process.env['CROWD_KAFKA_BROKERS'],
             clientId: 'crowd-temporal-worker', //TODO:: make this configurable
           },
         })

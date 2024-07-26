@@ -11,8 +11,6 @@ export class QueueFactory {
     const log = getServiceChildLogger('queue-service-factory')
     switch (config.vendor) {
       case QueueVendor.KAFKA:
-        console.log('config:')
-        console.log(config)
         const kafkaConfig = config[config.vendor] as IKafkaClientConfig
         const kafkaClient = new Kafka({
           clientId: kafkaConfig.clientId,
@@ -24,7 +22,7 @@ export class QueueFactory {
         })
         return new KafkaQueueService(kafkaClient, log)
       default:
-        throw new Error('Unsupported queue type')
+        throw new Error('Unsupported queue type!')
     }
   }
 }
