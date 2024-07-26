@@ -41,6 +41,7 @@ export const getClientSQL = async (): Promise<pgpromise.IDatabase<unknown>> => {
     database: process.env['CROWD_QUESTDB_READ_DATABASE'],
     application_name: process.env.SERVICE || 'unknown-app',
     ssl: getEnv() !== 'local' ? true : false,
+    idleTimeoutMillis: 280000,
   })
 
   await client.connect()
