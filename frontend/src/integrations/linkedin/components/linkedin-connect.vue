@@ -4,6 +4,7 @@
     :settings="settings"
     :has-settings="hasSettings"
     :has-integration="isLinkedinEnabled"
+    :settings-component="LinkedinSettings"
   />
   <app-linkedin-settings-drawer
     v-if="integration.status"
@@ -28,6 +29,7 @@ import config from '@/config';
 import { AuthService } from '@/modules/auth/services/auth.service';
 import { FeatureFlag } from '@/utils/featureFlag';
 import AppLinkedinSettingsDrawer from '@/integrations/linkedin/components/linkedin-settings-drawer.vue';
+import LinkedinSettings from './linkedin-settings.vue';
 
 const store = useStore();
 const router = useRouter();

@@ -1,16 +1,25 @@
 <template>
-  <slot :connect="connect" :settings="settings" :has-settings="hasSettings" />
-  <app-groupsio-connect-drawer v-model="drawerVisible" :integration="integration" />
+  <slot
+    :connect="connect"
+    :settings="settings"
+    :has-settings="hasSettings"
+    :settings-component="GroupsioSettings"
+  />
+  <app-groupsio-connect-drawer
+    v-model="drawerVisible"
+    :integration="integration"
+  />
 </template>
 
 <script setup>
 import { computed, ref } from 'vue';
 import AppGroupsioConnectDrawer from '@/integrations/groupsio/components/groupsio-connect-drawer.vue';
+import GroupsioSettings from './groupsio-settings.vue';
 
 const props = defineProps({
   integration: {
     type: Object,
-    default: () => { },
+    default: () => {},
   },
 });
 const drawerVisible = ref(false);
@@ -18,9 +27,7 @@ const connect = () => {
   drawerVisible.value = true;
 };
 // eslint-disable-next-line no-undef
-const hasSettings = computed(
-  () => props.integration.settings?.email,
-);
+const hasSettings = computed(() => props.integration.settings?.email);
 const settings = () => {
   drawerVisible.value = true;
 };
