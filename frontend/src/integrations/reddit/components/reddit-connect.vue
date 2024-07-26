@@ -3,6 +3,7 @@
     :connect="connect"
     :settings="settings"
     :has-settings="hasSettings"
+    :settings-component="RedditSettings"
   />
   <app-reddit-connect-drawer
     v-model="drawerVisible"
@@ -13,6 +14,7 @@
 <script setup>
 import { computed, defineProps, ref } from 'vue';
 import AppRedditConnectDrawer from '@/integrations/reddit/components/reddit-connect-drawer.vue';
+import RedditSettings from './reddit-settings.vue';
 
 const props = defineProps({
   integration: {

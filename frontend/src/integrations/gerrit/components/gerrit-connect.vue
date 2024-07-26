@@ -1,5 +1,5 @@
 <template>
-  <slot :connect="connect" :settings="settings" :has-settings="hasSettings" />
+  <slot :connect="connect" :settings="settings" :has-settings="hasSettings" :settings-component="GerritSettings" />
   <app-gerrit-connect-drawer
     v-model="drawerVisible"
     :integration="integration"
@@ -9,6 +9,7 @@
 <script setup>
 import { computed, defineProps, ref } from 'vue';
 import AppGerritConnectDrawer from '@/integrations/gerrit/components/gerrit-connect-drawer.vue';
+import GerritSettings from './gerrit-settings.vue';
 
 const props = defineProps({
   integration: {

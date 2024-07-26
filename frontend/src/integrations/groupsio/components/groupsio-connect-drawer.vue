@@ -97,7 +97,7 @@
 
           <div v-if="accountVerificationFailed" class="mt-1">
             <i class="ri-error-warning-line text-red-500 w-[14px] mr-2" />
-            <span class="text-red-500 text-[13px]">Authentication failed</span>
+            <span class="text-red-500 text-sm">Authentication failed</span>
           </div>
         </div>
       </el-form>
