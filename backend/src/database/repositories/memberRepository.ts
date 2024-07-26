@@ -2706,9 +2706,7 @@ class MemberRepository {
 
     // No need for lazyloading tags for integrations or microservices
     if (
-      (KUBE_MODE &&
-        (SERVICE === ServiceType.JOB_GENERATOR) &&
-        !exportMode) ||
+      (KUBE_MODE && SERVICE === ServiceType.JOB_GENERATOR && !exportMode) ||
       process.env.SERVICE === 'integrations' ||
       process.env.SERVICE === 'microservices-nodejs'
     ) {
