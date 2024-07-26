@@ -5,6 +5,10 @@ export interface IKafkaConfig extends IQueueConfig {
 }
 
 export interface IKafkaClientConfig {
-  brokers: string[]
+  brokers: string
   clientId: string
+}
+
+export interface IKafkaQueueStartOptions {
+  retry?: number
 }

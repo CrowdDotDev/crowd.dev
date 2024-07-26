@@ -1,22 +1,22 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Consumer, EachMessagePayload, Kafka, KafkaMessage } from 'kafkajs'
+import { Admin, Consumer, EachMessagePayload, Kafka, KafkaMessage } from 'kafkajs'
 import {
   CrowdQueue,
   IQueue,
   IQueueChannel,
   IQueueProcessMessageHandler,
-  IQueueReceiveResponse,
   IQueueSendBulkResult,
   IQueueSendResult,
 } from '../../types'
-import { IKafkaConfig } from './types'
+import { IKafkaConfig, IKafkaQueueStartOptions } from './types'
 import { Logger, LoggerBase } from '@crowd/logging'
 import { IQueueMessage, IQueueMessageBulk } from '@crowd/types'
 import { createHash } from 'crypto'
 import { configMap } from './config'
+import { timeout } from '@crowd/common'
 
 export class KafkaQueueService extends LoggerBase implements IQueue {
-  private consumer: Consumer
+  private consumers: Map<string, Consumer>
   private processingMessages: number
   private started: boolean
 
@@ -26,6 +26,7 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
     })
     this.processingMessages = 0
     this.started = false
+    this.consumers = new Map<string, Consumer>()
   }
 
   public async send(
@@ -60,18 +61,19 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
         eachMessage: async ({ message }: EachMessagePayload) => {
           resolve([message])
           await consumer.disconnect()
-          this.consumer = null
+          this.consumers.delete(channel.name)
         },
       })
     })
   }
 
   private async getConsumer(groupId: string): Promise<Consumer> {
-    if (!this.consumer) {
-      this.consumer = this.client.consumer({ groupId })
-      await this.consumer.connect()
+    if (!this.consumers.get(groupId)) {
+      const consumer = this.client.consumer({ groupId })
+      this.consumers.set(groupId, consumer)
+      await consumer.connect()
     }
-    return this.consumer
+    return this.consumers.get(groupId)
   }
 
   public getClient() {
@@ -92,11 +94,15 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
             {
               topic: config.name,
               numPartitions: config.partitionCount,
+              replicationFactor: 1,
             },
           ],
+          waitForLeaders: false,
         })
         this.log.info(`Topic "${config.name}" created with ${config.partitionCount} partitions.`)
       }
+
+      await this.waitForTopicAvailability(admin, config.name)
 
       // Init function should return the channel url, but in kafka
       // there is no such thing as a channel/topic url, so we just return the topic name here
@@ -104,8 +110,27 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
     } catch (error) {
       this.log.error(`Failed to create topic "${config.name}":`, error)
     } finally {
+      this.log.info(`Queue initialized succesfully  for "${config.name}"!`)
       await admin.disconnect()
     }
+  }
+
+  private async waitForTopicAvailability(
+    admin: Admin,
+    topic: string,
+    retries = 5,
+    delay = 1000,
+  ): Promise<void> {
+    for (let i = 0; i < retries; i++) {
+      const metadata = await admin.fetchTopicMetadata({ topics: [topic] })
+      if (metadata.topics.length > 0 && metadata.topics[0].partitions.length > 0) {
+        this.log.info(`Topic "${topic}" is now available.`)
+        return
+      }
+      this.log.info(`Waiting for topic "${topic}" to become available... (${i + 1}/${retries})`)
+      await new Promise((resolve) => setTimeout(resolve, delay))
+    }
+    throw new Error(`Topic "${topic}" did not become available within the expected time.`)
   }
 
   private isAvailable(maxConcurrentMessageProcessing): boolean {
@@ -155,48 +180,71 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
     processMessage: IQueueProcessMessageHandler,
     maxConcurrentMessageProcessing,
     queueConf: IKafkaConfig,
+    options?: IKafkaQueueStartOptions,
   ): Promise<void> {
-    await this.init(queueConf)
+    const MAX_RETRY_FOR_CONNECTING_CONSUMER = 5
+    const RETRY_DELAY = 2000
+    let retries = options?.retry || 0
 
-    this.started = true
-    this.log.info({ topic: queueConf.name }, 'Starting listening to Kafka topic...')
+    try {
+      await this.init(queueConf)
 
-    const consumer = await this.getConsumer(queueConf.name)
-    await consumer.connect()
-    await consumer.subscribe({ topic: queueConf.name, fromBeginning: true })
+      this.started = true
+      this.log.info({ topic: queueConf.name }, 'Starting listening to Kafka topic...')
 
-    await consumer.run({
-      eachMessage: async ({ message }: EachMessagePayload) => {
-        if (this.isAvailable(maxConcurrentMessageProcessing)) {
-          const now = performance.now()
+      const consumer = await this.getConsumer(queueConf.name)
+      await consumer.connect()
+      await consumer.subscribe({ topic: queueConf.name, fromBeginning: true })
 
-          this.log.trace(
-            { message: message.value.toString() },
-            'Received message from Kafka topic!',
-          )
-          this.addJob()
+      this.log.trace({ topic: queueConf.name }, 'Subscribed to topic! Starting the consmer...')
+      await consumer.run({
+        eachMessage: async ({ message }: EachMessagePayload) => {
+          if (this.isAvailable(maxConcurrentMessageProcessing)) {
+            const now = performance.now()
 
-          try {
-            await processMessage(JSON.parse(message.value.toString()))
+            this.log.trace(
+              { message: message.value.toString() },
+              'Received message from Kafka topic!',
+            )
+            this.addJob()
 
-            const duration = performance.now() - now
-            this.log.debug(`Message processed successfully in ${duration.toFixed(2)}ms!`)
-          } catch (err) {
-            this.log.error(err, 'Error processing message!')
-            const duration = performance.now() - now
-            this.log.debug(`Message processed unsuccessfully in ${duration.toFixed(2)}ms!`)
-          } finally {
-            this.removeJob()
+            try {
+              await processMessage(JSON.parse(message.value.toString()))
+
+              const duration = performance.now() - now
+              this.log.debug(`Message processed successfully in ${duration.toFixed(2)}ms!`)
+            } catch (err) {
+              this.log.error(err, 'Error processing message!')
+              const duration = performance.now() - now
+              this.log.debug(`Message processed unsuccessfully in ${duration.toFixed(2)}ms!`)
+            } finally {
+              this.removeJob()
+            }
+          } else {
+            this.log.debug('Processor is busy, skipping message...')
           }
-        } else {
-          this.log.debug('Processor is busy, skipping message...')
-        }
-      },
-    })
+        },
+      })
+    } catch (e) {
+      this.log.trace({ topic: queueConf.name, error: e }, 'Failed to start the queue!')
+      if (retries < MAX_RETRY_FOR_CONNECTING_CONSUMER) {
+        retries++
+        this.log.trace({ topic: queueConf.name, retries }, 'Retrying to start the queue...')
+        await timeout(RETRY_DELAY)
+        await this.start(processMessage, maxConcurrentMessageProcessing, queueConf, {
+          ...options,
+          retry: retries,
+        })
+      } else {
+        throw new Error(
+          `Failed to start Kafka consumer after ${MAX_RETRY_FOR_CONNECTING_CONSUMER} retries`,
+        )
+      }
+    }
 
     process.on('SIGINT', async () => {
       this.started = false
-      await consumer.disconnect()
+      await this.consumers.forEach((c) => c.disconnect())
       this.log.info('Kafka consumer disconnected')
       process.exit(0)
     })
