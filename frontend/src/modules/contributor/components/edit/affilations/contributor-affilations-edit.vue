@@ -38,7 +38,7 @@
             :key="subproject.id"
             class="flex border-t border-gray-100 first:border-none py-4"
           >
-            <div class="w-1/3 py-2 h-10">
+            <div class="w-1/3 h-10">
               <p class="text-medium font-semibold py-2.5">
                 {{ subproject.name }}
               </p>
@@ -70,6 +70,7 @@
                   type="primary-link"
                   size="small"
                   :disabled="isProjectInvalid(subproject.id)"
+                  class="mt-1"
                   @click="addAffiliation(subproject.id)"
                 >
                   <lf-icon name="add-line" />
@@ -85,7 +86,7 @@
       <lf-button type="secondary-ghost" @click="isModalOpen = false">
         Cancel
       </lf-button>
-      <lf-button type="primary" :disabled="$v.$invalid" @click="submit()">
+      <lf-button type="primary" :disabled="$v.$invalid || !hasFormChanged" @click="submit()">
         Update activities affiliation
       </lf-button>
     </footer>
@@ -124,6 +125,7 @@ const isModalOpen = computed<boolean>({
 });
 
 const form = ref<AffilationForm[]>([]);
+const initialForm = ref<AffilationForm[]>([]);
 
 const $v = useVuelidate({}, form);
 
@@ -175,6 +177,8 @@ const submit = () => {
 const isProjectInvalid = (projectId: string) => form.value.some((affiliation) => affiliation.segmentId === projectId
   && (!affiliation.organization || !affiliation.dateStart || (!affiliation.currentlyAffiliated && !affiliation.dateEnd)));
 
+const hasFormChanged = computed(() => JSON.stringify(form.value) !== JSON.stringify(initialForm.value));
+
 onMounted(() => {
   form.value = props.contributor.affiliations.map((affiliation) => ({
     segmentId: affiliation.segmentId || '',
@@ -183,6 +187,7 @@ onMounted(() => {
     dateEnd: affiliation.dateEnd || '',
     currentlyAffiliated: !affiliation.dateEnd && !!affiliation.dateStart,
   }));
+  initialForm.value = [...form.value];
 });
 </script>
 

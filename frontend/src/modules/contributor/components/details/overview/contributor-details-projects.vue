@@ -107,7 +107,7 @@ const isAffilationEditOpen = ref<boolean>(false);
 
 const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
 
-const getAffiliations = (projectId: string) => props.contributor.affiliations.filter((affiliation) => affiliation.segmentId === projectId)
+const getAffiliations = (projectId: string) => (props.contributor.affiliations || []).filter((affiliation) => affiliation.segmentId === projectId)
   .reduce((obj: Record<string, ContributorAffiliation[]>, aff: ContributorAffiliation) => {
     if (!obj[aff.organizationId]) {
       return {
