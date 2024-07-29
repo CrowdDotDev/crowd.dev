@@ -18,5 +18,5 @@ export interface IRepositoryOptions {
   opensearch?: any
   unleash?: Unleash
   temporal: TemporalClient
-  productDb: DbConnection
+  productDb?: DbConnection
 }
