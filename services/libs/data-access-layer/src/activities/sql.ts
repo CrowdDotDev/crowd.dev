@@ -499,9 +499,11 @@ export async function queryActivities(
   }
 
   // Delete empty arrays filtering conversationId.
-  for (const f of arg.filter.and) {
-    if (f.conversationId && f.conversationId.in && f.conversationId.in.length === 0) {
-      delete f.conversationId
+  if (arg.filter.and) {
+    for (const f of arg.filter.and) {
+      if (f.conversationId && f.conversationId.in && f.conversationId.in.length === 0) {
+        delete f.conversationId
+      }
     }
   }
 
@@ -531,7 +533,7 @@ export async function queryActivities(
     }
   }
 
-  const orderByString = parsedOrderBys.map((o) => `${o.column} ${o.direction}`).join(',')
+  const orderByString = parsedOrderBys.map((o) => `"${o.column}" ${o.direction}`).join(',')
 
   const params: any = {
     tenantId: arg.tenantId,
