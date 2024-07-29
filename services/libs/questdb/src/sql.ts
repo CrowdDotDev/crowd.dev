@@ -44,7 +44,5 @@ export const getClientSQL = async (): Promise<pgpromise.IDatabase<unknown>> => {
     idleTimeoutMillis: 280000,
   })
 
-  await client.connect()
-
   return client
 }
