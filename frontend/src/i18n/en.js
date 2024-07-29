@@ -643,8 +643,8 @@ const en = {
   dashboard: {
     menu: 'Home',
     message:
-      'This page uses fake data for demonstration purposes only. You can edit it at ' +
-      'frontend/src/modules/dashboard/components/dashboard-page.vue.',
+      'This page uses fake data for demonstration purposes only. You can edit it at '
+      + 'frontend/src/modules/dashboard/components/dashboard-page.vue.',
     charts: {
       day: 'Day',
       red: 'Red',
