@@ -586,14 +586,14 @@ export async function queryActivities(
       offset: arg.offset,
     }
   } else {
-    const columnString = columns.map((c) => `a.${c}`).join(', ')
+    const columnString = columns.map((c) => `a."${c}"`).join(', ')
     let query = `
       select  ${columnString}
       ${baseQuery}
     `
 
     query += `
-      order by ${orderByString}
+      order by "${orderByString}"
     `
 
     if (arg.limit > 0) {
@@ -671,11 +671,11 @@ export async function findTopActivityTypes(
 
   const query = `
     SELECT
-      a.type, COUNT(id) as count,
-      a.platform
+      a."type", COUNT(id) as count,
+      a."platform"
     FROM activities a
     WHERE a."tenantId" = $(tenantId)
-    AND a.timestamp BETWEEN $(after) AND $(before)
+    AND a."timestamp" BETWEEN $(after) AND $(before)
     GROUP BY a.type, a.platform
     ORDER BY COUNT(*) DESC
     LIMIT $(limit);
@@ -723,8 +723,8 @@ export async function getMostActiveOrganizations(
     FROM activities
     WHERE tenantId = $(tenantId)
     AND organizationId IS NOT NULL
-    AND timestamp BETWEEN $(after) AND $(before)
-    ORDER BY count DESC;
+    AND "timestamp" BETWEEN $(after) AND $(before)
+    ORDER BY "count" DESC;
   `
 
   if (arg.limit) {
@@ -752,8 +752,8 @@ export async function getMostActiveMembers(
     FROM activities
     WHERE tenantId = $(tenantId)
     AND memberId IS NOT NULL
-    AND timestamp BETWEEN $(after) AND $(before)
-    ORDER BY count DESC;
+    AND "timestamp" BETWEEN $(after) AND $(before)
+    ORDER BY "count" DESC;
   `
 
   if (arg.limit) {
@@ -968,7 +968,7 @@ export async function countMembersWithActivities(
   arg: IQueryNumberOfActiveMembersParameters,
 ): Promise<{ count: number; segmentId: string; date?: string }[]> {
   let query = `
-    SELECT COUNT(id) AS count, "segmentId", timestamp AS date
+    SELECT COUNT(id) AS count, "segmentId", "timestamp" AS date
     FROM activities
     WHERE "deletedAt" IS NULL
     AND "tenantId" = $(tenantId)
@@ -996,7 +996,7 @@ export async function countMembersWithActivities(
   }
 
   query += ' GROUP BY "segmentId", date'
-  query += ' ORDER BY date DESC;'
+  query += ' ORDER BY "date" DESC;'
 
   return await qdbConn.any(query, {
     tenantId: arg.tenantId,
@@ -1013,7 +1013,7 @@ export async function countOrganizationsWithActivities(
   arg: IQueryNumberOfActiveOrganizationsParameters,
 ): Promise<{ count: number; segmentId: string; date?: string }[]> {
   let query = `
-    SELECT COUNT(id) AS count, "segmentId", timestamp AS date
+    SELECT COUNT(id) AS count, "segmentId", "timestamp" AS date
     FROM activities
     WHERE "deletedAt" IS NULL
     AND "tenantId" = $(tenantId)
@@ -1036,7 +1036,7 @@ export async function countOrganizationsWithActivities(
     query += ' SAMPLE BY 1d FILL(0) ALIGN TO CALENDAR'
   }
 
-  query += ' GROUP BY "segmentId", timestamp ORDER BY date DESC;'
+  query += ' GROUP BY "segmentId", timestamp ORDER BY "date" DESC;'
 
   return await qdbConn.any(query, {
     tenantId: arg.tenantId,
@@ -1052,7 +1052,7 @@ export async function activitiesTimeseries(
   arg: IQueryGroupedActivitiesParameters,
 ): Promise<IActivityTimeseriesResult[]> {
   let query = `
-    SELECT COUNT_DISTINCT(id) AS count, timestamp AS date
+    SELECT COUNT_DISTINCT(id) AS count, "timestamp" AS date
     FROM activities
     WHERE "tenantId" = $(tenantId)
     AND "deletedAt" IS NULL
@@ -1072,7 +1072,7 @@ export async function activitiesTimeseries(
 
   query += `
     SAMPLE BY 1d FILL(0) ALIGN TO CALENDAR
-    ORDER BY date DESC;
+    ORDER BY "date" DESC;
   `
 
   const rows: IActivityTimeseriesResult[] = await qdbConn.query(query, {
