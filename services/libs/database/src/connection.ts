@@ -81,7 +81,5 @@ export const getDbConnection = async (
     application_name: process.env.SERVICE || 'unknown-app',
   })
 
-  await dbConnection[cacheKey].connect()
-
   return dbConnection[cacheKey]
 }

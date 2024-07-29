@@ -32,12 +32,19 @@ import {
   MemberField,
   queryMembersAdvanced,
 } from '@crowd/data-access-layer/src/members'
-import { fetchAbsoluteMemberAggregates, fetchManyMemberSegments } from '@crowd/data-access-layer/src/members/segments'
+import {
+  fetchAbsoluteMemberAggregates,
+  fetchManyMemberSegments,
+} from '@crowd/data-access-layer/src/members/segments'
 import { IDbMemberData } from '@crowd/data-access-layer/src/members/types'
 import { OrganizationField, queryOrgs } from '@crowd/data-access-layer/src/orgs'
 import { findTags } from '@crowd/data-access-layer/src/others'
 import { optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
-import { fetchManySegments, isSegmentProject, isSegmentProjectGroup } from '@crowd/data-access-layer/src/segments'
+import {
+  fetchManySegments,
+  isSegmentProject,
+  isSegmentProjectGroup,
+} from '@crowd/data-access-layer/src/segments'
 import { ActivityDisplayService } from '@crowd/integrations'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import {
