@@ -593,7 +593,7 @@ export async function queryActivities(
     `
 
     query += `
-      order by "${orderByString}"
+      order by ${orderByString}
     `
 
     if (arg.limit > 0) {
