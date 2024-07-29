@@ -4,7 +4,7 @@ import {
   memberEditOrganizationsAction,
   memberEditProfileAction,
 } from '@crowd/audit-logs'
-import { dateEqualityChecker, Error400, Error404, Error409 } from '@crowd/common'
+import { dateEqualityChecker, Error400, Error404, Error409, RawQueryParser } from '@crowd/common'
 import {
   countMembersWithActivities,
   getActiveMembers,
@@ -23,6 +23,8 @@ import {
 } from '@crowd/data-access-layer/src/member_identities'
 import { addMemberNoMerge, removeMemberToMerge } from '@crowd/data-access-layer/src/member_merge'
 import {
+  fetchManyMemberIdentities,
+  fetchManyMemberOrgs,
   fetchMemberIdentities,
   fetchMemberOrganizations,
   findMemberById,
@@ -30,15 +32,16 @@ import {
   MemberField,
   queryMembersAdvanced,
 } from '@crowd/data-access-layer/src/members'
-import { fetchAbsoluteMemberAggregates } from '@crowd/data-access-layer/src/members/segments'
+import { fetchAbsoluteMemberAggregates, fetchManyMemberSegments } from '@crowd/data-access-layer/src/members/segments'
 import { IDbMemberData } from '@crowd/data-access-layer/src/members/types'
 import { OrganizationField, queryOrgs } from '@crowd/data-access-layer/src/orgs'
 import { findTags } from '@crowd/data-access-layer/src/others'
 import { optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
-import { isSegmentProject, isSegmentProjectGroup } from '@crowd/data-access-layer/src/segments'
+import { fetchManySegments, isSegmentProject, isSegmentProjectGroup } from '@crowd/data-access-layer/src/segments'
 import { ActivityDisplayService } from '@crowd/integrations'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import {
+  ALL_PLATFORM_TYPES,
   ActivityDisplayVariant,
   FeatureFlag,
   IMemberIdentity,
@@ -79,6 +82,7 @@ import {
   IMemberMergeSuggestion,
   mapUsernameToIdentities,
 } from './types/memberTypes'
+import MemberAttributeSettingsRepository from './memberAttributeSettingsRepository'
 
 const { Op } = Sequelize
 
@@ -1912,6 +1916,379 @@ class MemberRepository {
     return { rows: translatedRows, count: countResponse.body.count, limit, offset }
   }
 
+  public static QUERY_FILTER_COLUMN_MAP: Map<string, { name: string; queryable?: boolean }> =
+    new Map([
+      // id fields
+      ['id', { name: 'm.id' }],
+      ['segmentId', { name: 'msa."segmentId"' }],
+
+      // member fields
+      ['displayName', { name: 'm."displayName"' }],
+      ['reach', { name: 'm.reach' }],
+      // ['tags', {name: 'm."tags"'}], // ignore, not used
+      ['joinedAt', { name: 'm."joinedAt"' }],
+      ['jobTitle', { name: `m.attributes -> 'jobTitle' ->> 'default'` }],
+      [
+        'numberOfOpenSourceContributions',
+        { name: 'coalesce(jsonb_array_length(m.contributions), 0)' },
+      ],
+      ['isBot', { name: `COALESCE((m.attributes -> 'isBot' ->> 'default')::BOOLEAN, FALSE)` }],
+      [
+        'isTeamMember',
+        { name: `COALESCE((m.attributes -> 'isTeamMember' ->> 'default')::BOOLEAN, FALSE)` },
+      ],
+      [
+        'isOrganization',
+        { name: `COALESCE((m.attributes -> 'isOrganization' ->> 'default')::BOOLEAN, FALSE)` },
+      ],
+
+      // member agg fields
+      ['lastActive', { name: 'msa."lastActive"' }],
+      ['identityPlatforms', { name: 'msa."activeOn"' }],
+      ['lastEnriched', { name: 'm."lastEnriched"' }],
+      ['score', { name: 'm.score' }],
+      ['averageSentiment', { name: 'msa."averageSentiment"' }],
+      ['activityTypes', { name: 'msa."activityTypes"' }],
+      ['activeOn', { name: 'msa."activeOn"' }],
+      ['activityCount', { name: 'msa."activityCount"' }],
+
+      // others
+      ['organizations', { name: 'mo."organizationId"', queryable: false }],
+
+      // fields for querying
+      ['attributes', { name: 'm.attributes' }],
+    ])
+
+  static async findAndCountAll(
+    {
+      filter = {} as any,
+      search = null,
+      limit = 20,
+      offset = 0,
+      orderBy = 'joinedAt_DESC',
+      segmentId = undefined,
+      countOnly = false,
+      fields = [...MemberRepository.QUERY_FILTER_COLUMN_MAP.keys()],
+      include = {
+        identities: true,
+        segments: false,
+        lfxMemberships: false,
+        memberOrganizations: false,
+      } as {
+        identities?: boolean
+        segments?: boolean
+        lfxMemberships?: boolean
+        memberOrganizations?: boolean
+      },
+      attributesSettings = [] as AttributeData[],
+    },
+    options: IRepositoryOptions,
+  ) {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    if (!attributesSettings) {
+      attributesSettings = (await MemberAttributeSettingsRepository.findAndCountAll({}, options))
+        .rows
+    }
+
+    const qx = SequelizeRepository.getQueryExecutor(options, transaction)
+
+    const withAggregates = !!segmentId
+    let segment
+    if (withAggregates) {
+      segment = await new SegmentRepository(options).findById(segmentId)
+
+      if (segment === null) {
+        options.log.info('No segment found for member query. Returning empty result.')
+        return {
+          rows: [],
+          count: 0,
+          limit,
+          offset,
+        }
+      }
+    }
+
+    const params = {
+      limit,
+      offset,
+      tenantId: options.currentTenant.id,
+      segmentId: segment?.id,
+    }
+
+    const filterString = RawQueryParser.parseFilters(
+      filter,
+      new Map(
+        [...MemberRepository.QUERY_FILTER_COLUMN_MAP.entries()].map(([key, { name }]) => [
+          key,
+          name,
+        ]),
+      ),
+      [
+        {
+          property: 'attributes',
+          column: 'm.attributes',
+          attributeInfos: [
+            ...attributesSettings,
+            {
+              name: 'jobTitle',
+              type: MemberAttributeType.STRING,
+            },
+          ],
+        },
+        {
+          property: 'username',
+          column: 'aggs.username',
+          attributeInfos: ALL_PLATFORM_TYPES.map((p) => ({
+            name: p,
+            type: MemberAttributeType.STRING,
+          })),
+        },
+      ],
+      params,
+      { pgPromiseFormat: true },
+    )
+
+    const order = (function prepareOrderBy(
+      orderBy = withAggregates ? 'activityCount_DESC' : 'id_DESC',
+    ) {
+      const orderSplit = orderBy.split('_')
+
+      const orderField = MemberRepository.QUERY_FILTER_COLUMN_MAP.get(orderSplit[0])?.name
+      if (!orderField) {
+        return withAggregates ? 'msa."activityCount" DESC' : 'm.id DESC'
+      }
+      const orderDirection = ['DESC', 'ASC'].includes(orderSplit[1]) ? orderSplit[1] : 'DESC'
+
+      return `${orderField} ${orderDirection}`
+    })(orderBy)
+
+    const withSearch = !!search
+    let searchCTE = ''
+    let searchJoin = ''
+
+    if (withSearch) {
+      search = search.toLowerCase()
+      searchCTE = `
+      ,  
+      member_search AS (
+          SELECT
+            "memberId"
+          FROM "memberIdentities" mi
+          join members m on m.id = mi."memberId"
+          where (verified and lower("value") like '%${search}%') or 
+          lower(m."displayName") like '%${search}%' 
+          GROUP BY 1
+        )
+      `
+      searchJoin = ` JOIN member_search ms ON ms."memberId" = m.id `
+    }
+
+    const createQuery = (fields) => `
+      WITH member_orgs AS (
+        SELECT
+          "memberId",
+          ARRAY_AGG("organizationId")::TEXT[] AS "organizationId"
+        FROM "memberOrganizations"
+        WHERE "deletedAt" IS NULL
+        GROUP BY 1
+      )
+      ${searchCTE}
+      SELECT
+        ${fields}
+      FROM members m
+      ${
+        withAggregates
+          ? ` JOIN "memberSegmentsAgg" msa ON msa."memberId" = m.id AND msa."segmentId" = $(segmentId)`
+          : ''
+      }
+      LEFT JOIN member_orgs mo ON mo."memberId" = m.id
+      ${searchJoin}
+      WHERE m."tenantId" = $(tenantId)
+        AND (${filterString})
+    `
+
+    if (countOnly) {
+      return {
+        rows: [],
+        count: parseInt((await qx.selectOne(createQuery('COUNT(*)'), params)).count, 10),
+        limit,
+        offset,
+      }
+    }
+
+    const results = await Promise.all([
+      qx.select(
+        `
+          ${createQuery(
+            (function prepareFields(fields) {
+              return `${fields
+                .map((f) => {
+                  const mappedField = MemberRepository.QUERY_FILTER_COLUMN_MAP.get(f)
+                  if (!mappedField) {
+                    throw new Error400(options.language, `Invalid field: ${f}`)
+                  }
+
+                  return {
+                    alias: f,
+                    ...mappedField,
+                  }
+                })
+                .filter((mappedField) => mappedField.queryable !== false)
+                .filter((mappedField) => {
+                  if (!withAggregates && mappedField.name.includes('msa.')) {
+                    return false
+                  }
+                  if (!include.memberOrganizations && mappedField.name.includes('mo.')) {
+                    return false
+                  }
+                  return true
+                })
+                .map((mappedField) => `${mappedField.name} AS "${mappedField.alias}"`)
+                .join(',\n')}`
+            })(fields),
+          )}
+          ORDER BY ${order} NULLS LAST
+          LIMIT $(limit)
+          OFFSET $(offset)
+        `,
+        params,
+      ),
+      qx.selectOne(createQuery('COUNT(*)'), params),
+    ])
+
+    const rows = results[0]
+    const count = parseInt(results[1].count, 10)
+
+    const memberIds = rows.map((org) => org.id)
+    if (memberIds.length === 0) {
+      return { rows: [], count, limit, offset }
+    }
+
+    if (include.memberOrganizations) {
+      const memberOrganizations = await fetchManyMemberOrgs(qx, memberIds)
+      const orgIds = uniq(
+        memberOrganizations.reduce((acc, mo) => {
+          acc.push(...mo.organizations.map((o) => o.organizationId))
+          return acc
+        }, []),
+      )
+      const orgExtra = orgIds.length
+        ? await queryOrgs(qx, {
+            filter: {
+              [OrganizationField.ID]: {
+                in: orgIds,
+              },
+            },
+            fields: [OrganizationField.ID, OrganizationField.DISPLAY_NAME, OrganizationField.LOGO],
+          })
+        : []
+
+      rows.forEach((member) => {
+        member.organizations = (
+          memberOrganizations.find((o) => o.memberId === member.id)?.organizations || []
+        ).map((o) => ({
+          id: o.organizationId,
+          ...orgExtra.find((odn) => odn.id === o.organizationId),
+          memberOrganizations: o,
+        }))
+      })
+    }
+    if (include.lfxMemberships) {
+      const lfxMemberships = await findManyLfxMemberships(qx, {
+        organizationIds: uniq(
+          rows.reduce((acc, r) => {
+            if (r.organizations) {
+              acc.push(...r.organizations.map((o) => o.id))
+            }
+            return acc
+          }, []),
+        ),
+        tenantId: options.currentTenant.id,
+      })
+
+      rows.forEach((member) => {
+        if (member.organizations) {
+          member.organizations.forEach((o) => {
+            o.lfxMembership = lfxMemberships.find((m) => m.organizationId === o.id)
+          })
+        }
+      })
+    }
+    if (include.identities) {
+      const identities = await fetchManyMemberIdentities(qx, memberIds)
+
+      rows.forEach((member) => {
+        member.identities = identities.find((i) => i.memberId === member.id)?.identities || []
+      })
+    }
+    if (include.segments) {
+      const memberSegments = await fetchManyMemberSegments(qx, memberIds)
+      const segmentIds = uniq(
+        memberSegments.reduce((acc, ms) => {
+          acc.push(...ms.segments.map((s) => s.segmentId))
+          return acc
+        }, []),
+      )
+      const segmentsInfo = await fetchManySegments(qx, segmentIds)
+
+      rows.forEach((member) => {
+        member.segments = (
+          memberSegments.find((i) => i.memberId === member.id)?.segments || []
+        ).map((segment) => ({
+          id: segment.segmentId,
+          name: segmentsInfo.find((s) => s.id === segment.segmentId)?.name,
+          activityCount: segment.activityCount,
+        }))
+      })
+    }
+
+    rows.forEach((row) => {
+      row.tags = []
+    })
+
+    if (memberIds.length > 0) {
+      const seq = SequelizeRepository.getSequelize(options)
+      const lastActivities = await seq.query(
+        `
+              SELECT
+                  a.*
+              FROM (
+                  VALUES
+                    ${memberIds.map((id) => `('${id}')`).join(',')}
+              ) m ("memberId")
+              JOIN activities a ON (a.id = (
+                  SELECT id
+                  FROM mv_activities_cube
+                  WHERE "memberId" = m."memberId"::uuid
+                  ORDER BY timestamp DESC
+                  LIMIT 1
+              ))
+              WHERE a."tenantId" = :tenantId
+          `,
+        {
+          replacements: {
+            tenantId: options.currentTenant.id,
+          },
+          type: QueryTypes.SELECT,
+        },
+      )
+
+      rows.forEach((r) => {
+        r.lastActivity = lastActivities.find((a) => (a as any).memberId === r.id)
+        if (r.lastActivity) {
+          r.lastActivity.display = ActivityDisplayService.getDisplayOptions(
+            r.lastActivity,
+            SegmentRepository.getActivityTypes(options),
+            [ActivityDisplayVariant.SHORT, ActivityDisplayVariant.CHANNEL],
+          )
+        }
+      })
+    }
+
+    return { rows, count, limit, offset }
+  }
+
   /**
    * Returns sequelize literals for dynamic member attributes.
    * @param memberAttributeSettings
@@ -2132,7 +2509,8 @@ class MemberRepository {
               !organizations.find(
                 (newOrg) =>
                   originalOrg.organizationId === newOrg.id &&
-                  originalOrg.title === (newOrg.title || null) &&
+                  (originalOrg.title === (newOrg.title || null) ||
+                    (!originalOrg.title && newOrg.title)) &&
                   iso(originalOrg.dateStart) === iso(newOrg.startDate || null) &&
                   iso(originalOrg.dateEnd) === iso(newOrg.endDate || null),
               ),
@@ -2152,6 +2530,7 @@ class MemberRepository {
             !originalOrgs.some(
               (w) =>
                 w.organizationId === item.id &&
+                w.title === (item.title || null) &&
                 w.dateStart === (item.startDate || null) &&
                 w.dateEnd === (item.endDate || null),
             )
@@ -2189,6 +2568,7 @@ class MemberRepository {
           UPDATE "memberOrganizations"
           SET "deletedAt" = NOW()
           WHERE "memberId" = :memberId
+          AND "title" = :title
           AND "organizationId" = :organizationId
           AND "dateStart" IS NULL
           AND "dateEnd" IS NULL
@@ -2196,6 +2576,7 @@ class MemberRepository {
         {
           replacements: {
             memberId,
+            title,
             organizationId,
           },
           type: QueryTypes.UPDATE,
@@ -2207,6 +2588,7 @@ class MemberRepository {
         `
           SELECT COUNT(*) AS count FROM "memberOrganizations"
           WHERE "memberId" = :memberId
+          AND "title" = :title
           AND "organizationId" = :organizationId
           AND "dateStart" IS NOT NULL
           AND "deletedAt" IS NULL
@@ -2214,6 +2596,7 @@ class MemberRepository {
         {
           replacements: {
             memberId,
+            title,
             organizationId,
           },
           type: QueryTypes.SELECT,

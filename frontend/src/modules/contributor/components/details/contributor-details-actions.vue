@@ -97,7 +97,7 @@ const contributorToMerge = ref<Contributor | null>(null);
 
 watch(toMergeMember, (updatedValue) => {
   if (updatedValue) {
-    MemberService.find(updatedValue.id, [updatedValue.segmentId]).then((response) => {
+    MemberService.find(updatedValue.id, updatedValue.segmentId).then((response) => {
       isMergeDialogOpen.value = props.contributor;
       contributorToMerge.value = response;
 

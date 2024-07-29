@@ -1,11 +1,12 @@
 <template>
-  <slot :connect="connect" :settings="settings" :has-settings="hasSettings" />
+  <slot :connect="connect" :settings="settings" :has-settings="hasSettings" :settings-component="JiraSettings" />
   <app-jira-connect-drawer v-model="drawerVisible" :integration="integration" />
 </template>
 
 <script setup>
 import { computed, defineProps, ref } from 'vue';
 import AppJiraConnectDrawer from '@/integrations/jira/components/jira-connect-drawer.vue';
+import JiraSettings from './jira-settings.vue';
 
 const props = defineProps({
   integration: {
