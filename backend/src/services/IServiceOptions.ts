@@ -16,6 +16,6 @@ export interface IServiceOptions {
   transaction?: any
   unleash?: Unleash
   temporal: TemporalClient
-  productDb: DbConnection
+  productDb?: DbConnection
   profileSql?: boolean
 }
