@@ -25,7 +25,7 @@
                 required: 'This field is required',
               }"
             />
-            <lf-field-message v-if="!isEdit && hasSameOrganization" type="warning" class="!mt-2">
+            <lf-field-message v-if="hasSameOrganization" type="warning" class="!mt-2">
               There is already a work experience associated with this organization.
               Please ensure that either the Job title or Period is different before adding this work experience.
             </lf-field-message>
@@ -77,13 +77,13 @@
           Cancel
         </lf-button>
         <lf-tooltip
-          :disabled="!(hasSameOrgDetails && !isEdit)"
+          :disabled="!hasSameOrgDetails"
           content="Please enter a different Job title or Period, as there is already a work experience associated with the selected organization."
         >
           <lf-button
             type="primary"
             :loading="sending"
-            :disabled="$v.$invalid || sending || (hasSameOrgDetails && !isEdit)"
+            :disabled="$v.$invalid || sending || hasSameOrgDetails"
             @click="updateWorkExperience()"
           >
             {{ isEdit ? 'Update' : 'Add' }} work experience
@@ -136,16 +136,16 @@ const sending = ref<boolean>(false);
 interface ConrtibutorWorkHistoryForm {
   organization: Organization | null,
   title: string;
-  dateStart: string;
-  dateEnd: string;
+  dateStart: string | null;
+  dateEnd: string | null;
   currentlyWorking: boolean,
 }
 
 const form = reactive<ConrtibutorWorkHistoryForm>({
   organization: null,
   title: '',
-  dateStart: '',
-  dateEnd: '',
+  dateStart: null,
+  dateEnd: null,
   currentlyWorking: false,
 });
 
@@ -254,7 +254,9 @@ const isModalOpen = computed<boolean>({
   },
 });
 
-const hasSameOrganization = computed(() => props.contributor.organizations.some((o: Organization) => o.id === form.organization?.id));
+const hasSameOrganization = computed(() => props.contributor.organizations.some((o: Organization) => o.id === form.organization?.id)
+    && (!isEdit.value || form.organization?.id !== props.organization?.id));
+
 const hasSameOrgDetails = computed(() => props.contributor.organizations
   .some((o: Organization) => {
     if (o.id !== form.organization?.id) {
@@ -263,12 +265,13 @@ const hasSameOrgDetails = computed(() => props.contributor.organizations
     if (form.title === o.memberOrganizations.title) {
       return true;
     }
+    console.log(form.dateStart, o.memberOrganizations.dateStart);
     const start = form.dateStart && o.memberOrganizations.dateStart
       ? moment(form.dateStart).startOf('month').isSame(moment(o.memberOrganizations.dateStart), 'day')
-      : false;
+      : form.dateStart === o.memberOrganizations.dateStart;
     const end = !form.currentlyWorking && form.dateEnd && o.memberOrganizations.dateEnd
       ? moment(form.dateEnd).startOf('month').isSame(moment(o.memberOrganizations.dateEnd), 'day')
-      : false;
+      : form.dateEnd === o.memberOrganizations.dateEnd;
     return start && end;
   }));
 
