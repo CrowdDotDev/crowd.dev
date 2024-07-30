@@ -98,7 +98,14 @@ export default class OrganizationService extends LoggerBase {
         const primaryBackup = mergeAction.unmergeBackup.primary as IOrganizationUnmergeBackup
         const secondaryBackup = mergeAction.unmergeBackup.secondary as IOrganizationUnmergeBackup
 
-        // identities
+        // Construct primary organization with best effort
+        for (const key of OrganizationService.ORGANIZATION_MERGE_FIELDS) {
+          if (primaryBackup[key] !== organization[key] && secondaryBackup[key] === organization[key]) {
+            organization[key] = primaryBackup[key] || null
+          }
+        }
+
+        // Remove identities coming from secondary backup
         organization.identities = organization.identities.filter(
           (i) =>
             !secondaryBackup.identities.some(
@@ -381,7 +388,7 @@ export default class OrganizationService extends LoggerBase {
           const backup = {
             primary: {
               ...lodash.pick(
-                await OrganizationRepository.findById(originalId, this.options, segmentId),
+                original,
                 OrganizationService.ORGANIZATION_MERGE_FIELDS,
               ),
               identities: await OrganizationRepository.getIdentities([originalId], this.options),
