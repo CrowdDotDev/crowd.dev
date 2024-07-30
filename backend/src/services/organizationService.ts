@@ -100,7 +100,10 @@ export default class OrganizationService extends LoggerBase {
 
         // Construct primary organization with best effort
         for (const key of OrganizationService.ORGANIZATION_MERGE_FIELDS) {
-          if (primaryBackup[key] !== organization[key] && secondaryBackup[key] === organization[key]) {
+          if (
+            primaryBackup[key] !== organization[key] &&
+            secondaryBackup[key] === organization[key]
+          ) {
             organization[key] = primaryBackup[key] || null
           }
         }
@@ -387,10 +390,7 @@ export default class OrganizationService extends LoggerBase {
 
           const backup = {
             primary: {
-              ...lodash.pick(
-                original,
-                OrganizationService.ORGANIZATION_MERGE_FIELDS,
-              ),
+              ...lodash.pick(original, OrganizationService.ORGANIZATION_MERGE_FIELDS),
               identities: await OrganizationRepository.getIdentities([originalId], this.options),
               memberOrganizations: await MemberOrganizationRepository.findRolesInOrganization(
                 originalId,
