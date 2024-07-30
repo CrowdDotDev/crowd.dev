@@ -15,7 +15,7 @@
     </router-link>
     <lf-dropdown-separator />
   </template>
-  <lf-dropdown-item v-if="props.contributor.identities.length > 1 && hasPermission(LfPermission.memberEdit)" @click="unmerge = props.contributor">
+  <lf-dropdown-item v-if="(props.contributor.identities || []).length > 1 && hasPermission(LfPermission.memberEdit)" @click="unmerge = props.contributor">
     <lf-icon name="link-unlink" />
     Unmerge profile
   </lf-dropdown-item>

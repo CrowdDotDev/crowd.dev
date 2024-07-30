@@ -1554,7 +1554,7 @@ class MemberRepository {
         include: {
           memberOrganizations: true,
           lfxMemberships: true,
-          identities: true,
+          identities: false,
           segments: true,
         },
       },
