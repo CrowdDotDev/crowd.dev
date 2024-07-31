@@ -2,7 +2,7 @@
   <app-form-item
     class="mb-0"
     :validation="$v.subprojectId"
-    label="Select sub-project"
+    label="Sub-project"
     :required="true"
     :error-messages="{
       required: 'Sub-project is required',

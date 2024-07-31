@@ -101,6 +101,7 @@ export async function finishOrganizationMerging(
     movedSomething = await moveActivitiesBetweenOrgs(primaryId, secondaryId, tenantId)
   } while (movedSomething)
 
+  await syncOrganization(primaryId)
   await deleteOrganization(secondaryId)
   await setMergeAction(primaryId, secondaryId, tenantId, {
     state: 'merged' as MergeActionState,
@@ -129,8 +130,8 @@ export async function finishOrganizationUnmerging(
   })
   await recalculateActivityAffiliationsOfOrganizationSynchronous(primaryId, tenantId)
   await recalculateActivityAffiliationsOfOrganizationSynchronous(secondaryId, tenantId)
-  await syncOrganization(primaryId, secondaryId)
-  await syncOrganization(secondaryId, primaryId)
+  await syncOrganization(primaryId)
+  await syncOrganization(secondaryId)
   await setMergeAction(primaryId, secondaryId, tenantId, {
     state: 'unmerged' as MergeActionState,
     step: MergeActionStep.UNMERGE_DONE,

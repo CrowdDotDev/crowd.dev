@@ -22,7 +22,7 @@ export const getCommentComments = async (
       start,
     },
     headers: {
-      'LinkedIn-Version': '202305',
+      'LinkedIn-Version': '202306',
       Authorization: `Bearer ${accessToken}`,
     },
   }

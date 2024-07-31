@@ -41,12 +41,15 @@ import {
   findMemberNotes,
   findMemberTags,
   findMemberTasks,
+  insertMemberSegments,
   MemberField,
   removeMemberNotes,
   removeMemberTags,
   removeMemberTasks,
 } from '@crowd/data-access-layer/src/members'
 import { findMemberAffiliations } from '@crowd/data-access-layer/src/member_segment_affiliations'
+import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
+import { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
 import { TEMPORAL_CONFIG } from '@/conf'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
 import ActivityRepository from '../database/repositories/activityRepository'
@@ -497,11 +500,45 @@ export default class MemberService extends LoggerBase {
             id: record.id,
             createdAt: record.createdAt,
             sample: record.attributes.sample?.crowd,
-            identities: Object.keys(record.username),
+            identities: record.identities,
           },
           this.options,
         )
       }
+
+      const qx = SequelizeRepository.getQueryExecutor(this.options, transaction)
+      await (async function includeMemberInSegments(
+        qx: QueryExecutor,
+        tenantId: string,
+        memberId: string,
+        segmentIds: string[],
+      ) {
+        const segments = await fetchManySegments(qx, segmentIds)
+        const data = segments.reduce((acc, s) => {
+          for (const segmentId of [s.id, s.parentId, s.grandparentId]) {
+            acc.push({
+              memberId,
+              segmentId,
+              tenantId,
+
+              activityCount: 0,
+              lastActive: '1970-01-01',
+              activityTypes: [],
+              activeOn: [],
+              averageSentiment: null,
+            })
+          }
+
+          return acc
+        }, [])
+
+        await insertMemberSegments(qx, data)
+      })(
+        qx,
+        this.options.currentTenant.id,
+        record.id,
+        this.options.currentSegments.map((s) => s.id),
+      )
 
       await SequelizeRepository.commitTransaction(transaction)
 

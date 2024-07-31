@@ -3,6 +3,7 @@
     :connect="connect"
     :settings="settings"
     :has-settings="hasSettings"
+    :settings-component="StackOverflowSettings"
   />
   <app-stack-overflow-connect-drawer
     v-model="drawerVisible"
@@ -13,6 +14,7 @@
 <script setup>
 import { computed, defineProps, ref } from 'vue';
 import AppStackOverflowConnectDrawer from '@/integrations/stackoverflow/components/stackoverflow-connect-drawer.vue';
+import StackOverflowSettings from './stackoverflow-settings.vue';
 
 const props = defineProps({
   integration: {

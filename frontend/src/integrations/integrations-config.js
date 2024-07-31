@@ -139,8 +139,6 @@ class IntegrationsConfig {
       reddit,
       stackoverflow,
       discourse,
-      zapier,
-      n8n,
       git,
       groupsio,
       // make,

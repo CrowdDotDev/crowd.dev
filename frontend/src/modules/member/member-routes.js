@@ -8,8 +8,6 @@ const MemberMergeSuggestionsPage = () => import(
   '@/modules/member/pages/member-merge-suggestions-page.vue'
 );
 const PersonViewPage = () => import('@/modules/contributor/pages/contributor-details.page.vue');
-const MemberCreatePage = () => import('@/modules/member/pages/member-form-page.vue');
-
 export default [
   {
     name: '',
@@ -33,31 +31,6 @@ export default [
         },
         beforeEnter: [
           PermissionGuard(LfPermission.memberRead),
-        ],
-      },
-      {
-        name: 'memberCreate',
-        path: '/people/new',
-        component: MemberCreatePage,
-        meta: {
-          auth: true,
-          eventKey: PageEventKey.NEW_MEMBER,
-        },
-        beforeEnter: [
-          PermissionGuard(LfPermission.memberCreate),
-        ],
-      },
-      {
-        name: 'memberEdit',
-        path: '/people/:id/edit',
-        component: MemberCreatePage,
-        meta: {
-          auth: true,
-          eventKey: PageEventKey.EDIT_MEMBER,
-        },
-        props: true,
-        beforeEnter: [
-          PermissionGuard(LfPermission.memberEdit),
         ],
       },
       {
@@ -110,13 +83,6 @@ export default [
         path: '/contributors/new',
         redirect: (to) => ({
           path: '/people/new',
-          query: to.query,
-        }),
-      },
-      {
-        path: '/contributors/:id/edit',
-        redirect: (to) => ({
-          path: `/people/${to.params.id}/edit`,
           query: to.query,
         }),
       },

@@ -146,6 +146,8 @@ class MergeActionsRepository {
           }
         }
       }
+
+      return data
     }
 
     return null
