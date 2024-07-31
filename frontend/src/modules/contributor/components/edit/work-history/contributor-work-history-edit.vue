@@ -259,13 +259,22 @@ const hasSameOrganization = computed(() => props.contributor.organizations.some(
 
 const hasSameOrgDetails = computed(() => props.contributor.organizations
   .some((o: Organization) => {
+    // Check for the same organization
     if (o.id !== form.organization?.id) {
       return false;
     }
+
+    //  Check for empty info
+    if (!form.title && !form.dateStart && !form.dateEnd) {
+      return true;
+    }
+
+    // Check if titles matching
     if (form.title === o.memberOrganizations.title) {
       return true;
     }
-    console.log(form.dateStart, o.memberOrganizations.dateStart);
+
+    // Check if dates matching
     const start = form.dateStart && o.memberOrganizations.dateStart
       ? moment(form.dateStart).startOf('month').isSame(moment(o.memberOrganizations.dateStart), 'day')
       : form.dateStart === o.memberOrganizations.dateStart;
