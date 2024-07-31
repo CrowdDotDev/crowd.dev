@@ -706,17 +706,44 @@ class SegmentRepository extends RepositoryBase<
 
     const subprojects = projects.map((p) => p.subprojects).flat()
     const integrationsBySegments = await this.queryIntegrationsForSubprojects(subprojects)
+    const mappedGithubReposBySegments = (
+      await Promise.all(
+        subprojects.map(async (s) => ({
+          segmentId: s.id,
+          hasMappedRepo: await this.hasMappedRepos(s.id),
+        })),
+      )
+    ).reduce((acc, { segmentId, hasMappedRepo }) => {
+      if (hasMappedRepo) {
+        acc[segmentId] = true
+      }
+      return acc
+    }, {})
 
     const count = projects.length > 0 ? Number.parseInt(projects[0].totalCount, 10) : 0
 
     const rows = projects.map((i) => removeFieldsFromObject(i, 'totalCount'))
 
     // assign integrations to subprojects
-    rows.forEach((row) => {
-      row.subprojects.forEach((subproject) => {
-        subproject.integrations = integrationsBySegments[subproject.id] || []
-      })
-    })
+    await Promise.all(rows.map(async (row) => {
+      await Promise.all(row.subprojects.map(async (subproject) => {
+        const integrations = integrationsBySegments[subproject.id] || []
+        const githubIntegration = integrations.find(i => i.platform === 'github')
+        
+        if (githubIntegration) {
+          githubIntegration.type = 'primary'
+        } else if (mappedGithubReposBySegments[subproject.id]) {
+          integrations.push({
+            platform: 'github',
+            segmentId: subproject.id,
+            type: 'mapped',
+            mappedWith: await this.mappedWith(subproject.id),
+          })
+        }
+        
+        subproject.integrations = integrations
+      }))
+    }))
 
     return { count, rows, limit: criteria.limit, offset: criteria.offset }
   }
@@ -892,6 +919,65 @@ class SegmentRepository extends RepositoryBase<
     )
 
     return segments.map((i: any) => i.id)
+  }
+
+  async hasMappedRepos(segmentId: string) {
+    const transaction = SequelizeRepository.getTransaction(this.options)
+    const tenantId = this.options.currentTenant.id
+
+    const result = await this.options.database.sequelize.query(
+      `
+        SELECT EXISTS (
+          SELECT 1
+          FROM "githubRepos" r
+          LEFT JOIN "integrations" i ON r."integrationId" = i.id
+          WHERE r."segmentId" = :segmentId
+          AND r."tenantId" = :tenantId
+          AND (i.id IS NULL OR i."segmentId" != :segmentId)
+          LIMIT 1
+        ) as has_repos
+      `,
+      {
+        replacements: {
+          segmentId,
+          tenantId,
+        },
+        type: QueryTypes.SELECT,
+        transaction,
+      },
+    )
+
+    return !!result[0].has_repos
+  }
+
+  async mappedWith(segmentId: string) {
+    const transaction = SequelizeRepository.getTransaction(this.options)
+    const tenantId = this.options.currentTenant.id
+
+    const result = await this.options.database.sequelize.query(
+      `
+       select
+         s.name as segment_name
+       from
+        "githubRepos" r
+       left join "integrations" i on r."integrationId" = i.id
+       left join "segments" s on i."segmentId" = s.id
+       where r."segmentId" = :segmentId
+       and r."tenantId" = :tenantId
+       and (i.id is null or i."segmentId" != :segmentId)
+       limit 1
+      `,
+      {
+        replacements: {
+          segmentId,
+          tenantId,
+        },
+        type: QueryTypes.SELECT,
+        transaction,
+      },
+    )
+
+    return result[0].segment_name as string
   }
 }
 
