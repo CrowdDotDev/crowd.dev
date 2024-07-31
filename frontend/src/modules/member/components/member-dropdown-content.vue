@@ -16,7 +16,7 @@
   <router-link
     v-if="!props.hideEdit && hasPermission(LfPermission.memberEdit)"
     :to="{
-      name: 'memberEdit',
+      name: 'memberView',
       params: {
         id: member.id,
       },
