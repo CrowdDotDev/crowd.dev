@@ -36,4 +36,3 @@ export default {
   name: 'AppRedditSettings',
 };
 </script>
-
