@@ -1565,7 +1565,13 @@ class MemberRepository {
       throw new Error404()
     }
 
-    return rows[0]
+    const [data] = rows
+    const affiliations = await MemberRepository.getAffiliations(id, options)
+
+    return {
+      ...data,
+      affiliations,
+    }
   }
 
   static getUsernameFromIdentities(identities: IMemberIdentity[]): IMemberUsername {
