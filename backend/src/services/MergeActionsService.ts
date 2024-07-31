@@ -19,7 +19,7 @@ export default class MergeActionsService extends LoggerBase {
 
     const results = await MergeActionsRepository.query(args, this.options)
 
-    return results.map(result => ({
+    return results.map((result) => ({
       primaryId: result.primaryId,
       secondaryId: result.secondaryId,
       state: result.state,
@@ -31,7 +31,7 @@ export default class MergeActionsService extends LoggerBase {
   static getOperationType(step) {
     if (step.startsWith('merge')) {
       return 'merge'
-    } 
+    }
 
     return 'unmerge'
   }
