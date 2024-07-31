@@ -2,7 +2,6 @@
 
 import { LoggerBase } from '@crowd/logging'
 import { IMemberIdentity } from '@crowd/types'
-import { checkIdentityExistance } from '@crowd/data-access-layer/src/members'
 import { IServiceOptions } from '../IServiceOptions'
 import MemberIdentityRepository from '@/database/repositories/member/memberIdentityRepository'
 
@@ -25,9 +24,6 @@ export default class MemberIdentityService extends LoggerBase {
     memberId: string,
     data: Partial<IMemberIdentity>,
   ): Promise<IMemberIdentity[]> {
-    if (await checkIdentityExistance(data.value, data.platform, this.options)) {
-      throw new Error('Identity already exists')
-    }
     return MemberIdentityRepository.create(tenantId, memberId, data, this.options)
   }
 

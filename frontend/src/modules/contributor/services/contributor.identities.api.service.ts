@@ -1,6 +1,6 @@
 import authAxios from '@/shared/axios/auth-axios';
 import { AuthService } from '@/modules/auth/services/auth.service';
-import { Contributor, ContributorIdentity } from '@/modules/contributor/types/Contributor';
+import { ContributorIdentity } from '@/modules/contributor/types/Contributor';
 
 export class ContributorIdentitiesApiService {
   static async list(memberId: string, segments: string[]) {
