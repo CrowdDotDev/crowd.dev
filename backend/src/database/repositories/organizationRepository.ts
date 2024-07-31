@@ -1241,7 +1241,7 @@ class OrganizationRepository {
         options,
       )
 
-      if (orgResponse.count === 0) { 
+      if (orgResponse.count === 0) {
         throw new Error404()
       }
 
