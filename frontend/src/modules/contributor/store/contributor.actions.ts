@@ -42,8 +42,8 @@ export default {
     return ContributorIdentitiesApiService.list(id, [selectedProjectGroup.value?.id as string])
       .then(this.setIdentities);
   },
-  createContributorIdentity(memberId: string, identity: ContributorIdentity): Promise<ContributorIdentity[]> {
-    return ContributorIdentitiesApiService.create(memberId, identity)
+  createContributorIdentities(memberId: string, identities: ContributorIdentity[]): Promise<ContributorIdentity[]> {
+    return ContributorIdentitiesApiService.createMultiple(memberId, identities)
       .then(this.setIdentities);
   },
   updateContributorIdentity(memberId: string, id: string, identity: Partial<ContributorIdentity>): Promise<ContributorIdentity[]> {

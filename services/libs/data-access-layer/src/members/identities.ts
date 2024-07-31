@@ -38,16 +38,18 @@ export async function fetchManyMemberIdentities(
 
 export async function createMemberIdentity(
   qx: QueryExecutor,
+  tenantId: string,
   memberId: string,
   data: Partial<IMemberIdentity>,
 ): Promise<void> {
   return qx.select(
     `
-        INSERT INTO "memberIdentities"("memberId", platform, type, value, verified)
-        VALUES($(memberId), $(platform), $(type), $(value), $(verified))
+        INSERT INTO "memberIdentities"("tenantId", "memberId", platform, type, value, verified)
+        VALUES($(tenantId), $(memberId), $(platform), $(type), $(value), $(verified))
         ON CONFLICT DO NOTHING;
     `,
     {
+      tenantId,
       memberId,
       platform: data.platform,
       type: data.type,
@@ -56,6 +58,26 @@ export async function createMemberIdentity(
     },
   )
 }
+
+export async function findMemberIdentityById(
+  qx: QueryExecutor,
+  memberId: string,
+  id: string,
+): Promise<IMemberIdentity> {
+  const res = await qx.select(
+    `
+        SELECT id, platform, "sourceId", type, value, verified
+        FROM "memberIdentities"
+        WHERE "id" = $(id) AND "memberId" = $(memberId);
+    `,
+    {
+      id,
+      memberId,
+    },
+  )
+  return res.length > 0 ? res[0] : null
+}
+
 export async function updateMemberIdentity(
   qx: QueryExecutor,
   memberId: string,

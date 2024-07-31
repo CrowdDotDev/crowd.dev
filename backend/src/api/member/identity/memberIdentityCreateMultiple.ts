@@ -17,11 +17,15 @@ import MemberIdentityService from '@/services/member/memberIdentityService'
  * @response 429 - Too many requests
  */
 export default async (req, res) => {
-  new PermissionChecker(req).validateHas(Permissions.values.memberRead)
+  new PermissionChecker(req).validateHas(Permissions.values.memberEdit)
 
   const memberIdentityService = new MemberIdentityService(req)
 
-  const payload = await memberIdentityService.update(req.params.id, req.params.memberId, req.body)
+  const payload = await memberIdentityService.createMultiple(
+    req.params.tenantId,
+    req.params.memberId,
+    req.body.identities,
+  )
 
   await req.responseHandler.success(req, res, payload)
 }

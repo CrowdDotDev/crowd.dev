@@ -1,6 +1,6 @@
 import Permissions from '../../../security/permissions'
 import PermissionChecker from '../../../services/user/permissionChecker'
-import MemberIdentityService from "@/services/member/memberIdentityService";
+import MemberIdentityService from '@/services/member/memberIdentityService'
 
 /**
  * GET /tenant/{tenantId}/member/:memberId/identity
@@ -21,7 +21,7 @@ export default async (req, res) => {
 
   const memberIdentityService = new MemberIdentityService(req)
 
-  const payload = await memberIdentityService.list(req.params.memberId, req.query.segments[0])
+  const payload = await memberIdentityService.list(req.params.memberId)
 
   await req.responseHandler.success(req, res, payload)
 }

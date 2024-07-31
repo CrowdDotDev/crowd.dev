@@ -176,7 +176,7 @@ const emit = defineEmits<{(e: 'edit'): void, (e: 'unmerge'): void }>();
 
 const { hasPermission } = usePermissions();
 
-const { updateContributor } = useContributorStore();
+const { updateContributorIdentity, deleteContributorIdentity } = useContributorStore();
 
 const hovered = ref(false);
 
@@ -196,18 +196,9 @@ const editingDisabled = computed(() => {
 });
 
 const verifyIdentity = (verified: boolean) => {
-  const identities = props.contributor.identities.map((i: ContributorIdentity) => {
-    if (i.platform === props.identity?.platform && i.value === props.identity?.value) {
-      return {
-        ...i,
-        verified,
-      };
-    }
-    return i;
-  });
-
-  updateContributor(props.contributor.id, {
-    identities,
+  updateContributorIdentity(props.contributor.id, props.identity.id, {
+    ...props.identity,
+    verified,
   })
     .catch(() => {
       Message.error('Something went wrong while updating an identity');
@@ -218,12 +209,7 @@ const verifyIdentity = (verified: boolean) => {
 };
 
 const removeIdentity = () => {
-  const identities = props.contributor.identities
-    .filter((i: ContributorIdentity) => !(i.platform === props.identity?.platform && i.value === props.identity?.value));
-
-  updateContributor(props.contributor.id, {
-    identities,
-  })
+  deleteContributorIdentity(props.contributor.id, props.identity.id)
     .then(() => {
       Message.success('Identity deleted successfully');
     })

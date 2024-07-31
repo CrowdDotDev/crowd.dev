@@ -30,6 +30,7 @@ export interface ContributorTag {
 }
 
 export interface ContributorIdentity {
+  id: string;
   platform: string;
   type: string;
   value: string;

@@ -16,12 +16,14 @@ export class ContributorIdentitiesApiService {
     ).then(({ data }) => Promise.resolve(data));
   }
 
-  static async create(memberId: string, identity: ContributorIdentity) {
+  static async createMultiple(memberId: string, identities: ContributorIdentity[]) {
     const tenantId = AuthService.getTenantId();
 
-    return authAxios.post(
+    return authAxios.put(
       `/tenant/${tenantId}/member/${memberId}/identity`,
-      identity,
+      {
+        identities,
+      },
     ).then(({ data }) => Promise.resolve(data));
   }
 

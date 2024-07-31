@@ -20,6 +20,7 @@ export interface IMemberAttributeData extends IMemberAttribute {
 }
 
 export interface IMemberIdentity {
+  id: string
   sourceId?: string
   platform: string
   value: string

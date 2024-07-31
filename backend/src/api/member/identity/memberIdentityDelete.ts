@@ -1,6 +1,6 @@
 import Permissions from '../../../security/permissions'
 import PermissionChecker from '../../../services/user/permissionChecker'
-import MemberIdentityService from "@/services/member/memberIdentityService";
+import MemberIdentityService from '@/services/member/memberIdentityService'
 
 /**
  * GET /tenant/{tenantId}/member/:memberId/identity

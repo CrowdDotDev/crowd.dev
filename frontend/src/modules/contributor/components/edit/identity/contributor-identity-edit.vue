@@ -77,17 +77,18 @@ import { email, required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 
 const props = defineProps<{
-  modelValue: ContributorIdentity | null,
+  modelValue: ContributorIdentity,
   contributor: Contributor,
 }>();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: ContributorIdentity | null): void}>();
 
-const { updateContributor } = useContributorStore();
+const { updateContributorIdentity } = useContributorStore();
 
 const sending = ref<boolean>(false);
 
 const defaultForm: ContributorIdentity = {
+  id: '',
   value: '',
   verified: true,
   platform: 'custom',
@@ -125,18 +126,9 @@ const isModalOpen = computed<boolean>({
 const platform = computed(() => CrowdIntegrations.getConfig(form.platform));
 
 const updateIdentity = () => {
-  const identities = props.contributor.identities.map((i: ContributorIdentity) => {
-    if (i.platform === props.modelValue?.platform && i.value === props.modelValue?.value) {
-      return form as ContributorIdentity;
-    }
-    return i;
-  });
-
   sending.value = true;
 
-  updateContributor(props.contributor.id, {
-    identities,
-  })
+  updateContributorIdentity(props.contributor.id, props.modelValue.id, form)
     .then(() => {
       Message.success('Identity updated successfully');
       isModalOpen.value = false;
