@@ -1,5 +1,5 @@
 <template>
-  <slot :connect="connect" :settings="settings" :has-settings="hasSettings" />
+  <slot :connect="connect" :settings="settings" :has-settings="hasSettings" :settings-component="ConfluenceSettings" />
   <app-confluence-connect-drawer
     v-model="drawerVisible"
     :integration="integration"
@@ -9,6 +9,7 @@
 <script setup>
 import { computed, defineProps, ref } from 'vue';
 import AppConfluenceConnectDrawer from '@/integrations/confluence/components/confluence-connect-drawer.vue';
+import ConfluenceSettings from './confluence-settings.vue';
 
 const props = defineProps({
   integration: {

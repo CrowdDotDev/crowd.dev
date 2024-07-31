@@ -43,7 +43,7 @@ export async function insertOrganizationSegments(
           'avgContributorEngagement',
         ],
         data,
-        `DO UPDATE SET "joinedAt" = EXCLUDED."joinedAt",
+        `("organizationId", "segmentId") DO UPDATE SET "joinedAt" = EXCLUDED."joinedAt",
                        "lastActive" = EXCLUDED."lastActive",
                        "activeOn" = EXCLUDED."activeOn",
                        "activityCount" = EXCLUDED."activityCount",

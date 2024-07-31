@@ -1,5 +1,5 @@
 <template>
-  <slot :connect="connect" />
+  <slot :connect="connect" :settings-component="DevtoSettings" />
   <app-devto-connect-drawer
     v-model="drawerVisible"
     :integration="integration"
@@ -9,6 +9,7 @@
 <script setup>
 import { defineProps, ref } from 'vue';
 import AppDevtoConnectDrawer from '@/integrations/devto/components/devto-connect-drawer.vue';
+import DevtoSettings from './devto-settings.vue';
 
 defineProps({
   integration: {

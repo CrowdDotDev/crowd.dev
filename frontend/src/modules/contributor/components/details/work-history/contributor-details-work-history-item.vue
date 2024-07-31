@@ -18,40 +18,21 @@
         </template>
       </lf-avatar>
 
-      <div class="flex-grow pl-3">
-        <div class="flex justify-between">
-          <router-link
-            :to="{
-              name: 'organizationView',
-              params: {
-                id: props.organization.id,
-              },
-              query: {
-                projectGroup: selectedProjectGroup?.id,
-              },
-            }"
-          >
-            <p class="font-semibold text-medium leading-6 mb-1 line-clamp-1 truncate text-black hover:text-primary-500 transition">
-              {{ props.organization.displayName }}
-            </p>
-          </router-link>
-
-          <lf-dropdown v-if="hovered" placement="bottom-end" width="14.5rem">
-            <template #trigger>
-              <lf-button type="secondary-ghost" size="small" :icon-only="true">
-                <lf-icon name="more-fill" />
-              </lf-button>
-            </template>
-
-            <lf-dropdown-item @click="emit('edit')">
-              <lf-icon name="pencil-line" />Edit work experience
-            </lf-dropdown-item>
-            <lf-dropdown-separator />
-            <lf-dropdown-item type="danger" @click="removeWorkHistory">
-              <lf-icon name="delete-bin-6-line" />Delete work experience
-            </lf-dropdown-item>
-          </lf-dropdown>
-        </div>
+      <div class="pl-3 flex flex-auto flex-col overflow-hidden">
+        <router-link
+          :to="{
+            name: 'organizationView',
+            params: {
+              id: props.organization.id,
+            },
+            query: {
+              projectGroup: selectedProjectGroup?.id,
+            },
+          }"
+          class="font-semibold text-medium leading-6 mb-1 truncate text-black hover:text-primary-500 transition block w-full overflow-hidden"
+        >
+          {{ props.organization.displayName }}
+        </router-link>
 
         <div v-if="props.organization?.memberOrganizations?.title" class="text-small text-gray-500 mb-1.5 flex items-center gap-1.5">
           <lf-svg name="id-card" class="h-4 w-4 text-gray-400" />
@@ -64,6 +45,22 @@
           {{ getDateRange(props.organization?.memberOrganizations?.dateStart, props.organization?.memberOrganizations?.dateEnd) }}
         </p>
       </div>
+
+      <lf-dropdown v-if="hovered" placement="bottom-end" width="14.5rem">
+        <template #trigger>
+          <lf-button type="secondary-ghost" size="small" :icon-only="true">
+            <lf-icon name="more-fill" />
+          </lf-button>
+        </template>
+
+        <lf-dropdown-item @click="emit('edit')">
+          <lf-icon name="pencil-line" />Edit work experience
+        </lf-dropdown-item>
+        <lf-dropdown-separator />
+        <lf-dropdown-item type="danger" @click="removeWorkHistory">
+          <lf-icon name="delete-bin-6-line" />Delete work experience
+        </lf-dropdown-item>
+      </lf-dropdown>
     </div>
   </article>
 </template>
