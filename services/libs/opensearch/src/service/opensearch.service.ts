@@ -8,7 +8,6 @@ import { IS_DEV_ENV } from '@crowd/common'
 import { Logger, LoggerBase } from '@crowd/logging'
 import { Client } from '@opensearch-project/opensearch'
 import { IIndexRequest, ISearchHit } from './opensearch.data'
-import { AwsSigv4Signer } from '@opensearch-project/opensearch/aws'
 import { IOpenSearchConfig } from '@crowd/types'
 import telemetry from '@crowd/telemetry'
 
@@ -27,19 +26,20 @@ export class OpenSearchService extends LoggerBase {
       this.indexVersionMap.set(name, `${name}_v${version}`)
     })
 
-    if (this.config.region) {
+    if (this.config.username) {
       this.client = new Client({
         node: this.config.node,
-        ...AwsSigv4Signer({
-          region: this.config.region,
-          service: 'es',
-          getCredentials: async () => {
-            return {
-              accessKeyId: this.config.accessKeyId,
-              secretAccessKey: this.config.secretAccessKey,
-            }
-          },
-        }),
+        auth: {
+          username: this.config.username,
+          password: this.config.password,
+        },
+        ssl: {
+          rejectUnauthorized: false,
+        },
+        maxRetries: 5,
+        requestTimeout: 60000,
+        sniffOnStart: true,
+        sniffInterval: 60000,
       })
     } else {
       this.client = new Client({

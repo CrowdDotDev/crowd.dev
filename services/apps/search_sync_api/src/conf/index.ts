@@ -3,9 +3,8 @@ import { IDatabaseConfig } from '@crowd/data-access-layer/src/database'
 import { IRedisConfiguration } from '@crowd/redis'
 export interface IOpenSearchConfig {
   node: string
-  region?: string
-  accessKeyId?: string
-  secretAccessKey?: string
+  username: string
+  password: string
 }
 
 let openSearchConfig: IOpenSearchConfig
