@@ -274,14 +274,14 @@ const hasSameOrgDetails = computed(() => props.contributor.organizations
       return false;
     }
 
-    // Check if titles matching
-    if (form.title !== o.memberOrganizations.title) {
-      return false;
-    }
-
     //  Check for empty info
     if (!form.title && !form.dateStart && !form.dateEnd) {
       return true;
+    }
+
+    // Check if titles matching
+    if (form.title !== o.memberOrganizations.title) {
+      return false;
     }
 
     // Check if dates matching
