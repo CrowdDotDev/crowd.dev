@@ -11,7 +11,7 @@ import {
   SequelizeQueryExecutor,
   TransactionalSequelizeQueryExecutor,
 } from '@crowd/data-access-layer/src/queryExecutor'
-import { getDbConnection } from '@crowd/data-access-layer/src/database'
+import { DbConnection, getDbConnection } from '@crowd/data-access-layer/src/database'
 import {
   API_CONFIG,
   IS_TEST_ENV,
@@ -60,6 +60,11 @@ export default class SequelizeRepository {
       temporal = await getTemporalClient(TEMPORAL_CONFIG)
     }
 
+    let productDb: DbConnection | undefined
+    if (PRODUCT_DB_CONFIG) {
+      productDb = await getDbConnection(PRODUCT_DB_CONFIG)
+    }
+
     return {
       log: getServiceLogger(),
       database: await databaseInit(),
@@ -71,7 +76,7 @@ export default class SequelizeRepository {
       redis: await getRedisClient(REDIS_CONFIG, true),
       unleash,
       temporal,
-      productDb: await getDbConnection(PRODUCT_DB_CONFIG),
+      productDb,
     }
   }
 

@@ -98,7 +98,17 @@ export default class OrganizationService extends LoggerBase {
         const primaryBackup = mergeAction.unmergeBackup.primary as IOrganizationUnmergeBackup
         const secondaryBackup = mergeAction.unmergeBackup.secondary as IOrganizationUnmergeBackup
 
-        // identities
+        // Construct primary organization with best effort
+        for (const key of OrganizationService.ORGANIZATION_MERGE_FIELDS) {
+          if (
+            primaryBackup[key] !== organization[key] &&
+            secondaryBackup[key] === organization[key]
+          ) {
+            organization[key] = primaryBackup[key] || null
+          }
+        }
+
+        // Remove identities coming from secondary backup
         organization.identities = organization.identities.filter(
           (i) =>
             !secondaryBackup.identities.some(
@@ -380,10 +390,7 @@ export default class OrganizationService extends LoggerBase {
 
           const backup = {
             primary: {
-              ...lodash.pick(
-                await OrganizationRepository.findById(originalId, this.options, segmentId),
-                OrganizationService.ORGANIZATION_MERGE_FIELDS,
-              ),
+              ...lodash.pick(original, OrganizationService.ORGANIZATION_MERGE_FIELDS),
               identities: await OrganizationRepository.getIdentities([originalId], this.options),
               memberOrganizations: await MemberOrganizationRepository.findRolesInOrganization(
                 originalId,
@@ -644,10 +651,13 @@ export default class OrganizationService extends LoggerBase {
 
   async addToNoMerge(organizationId: string, noMergeId: string): Promise<void> {
     const transaction = await SequelizeRepository.createTransaction(this.options)
-    const searchSyncService = new SearchSyncService(this.options)
 
     try {
       await OrganizationRepository.addNoMerge(organizationId, noMergeId, {
+        ...this.options,
+        transaction,
+      })
+      await OrganizationRepository.addNoMerge(noMergeId, organizationId, {
         ...this.options,
         transaction,
       })
@@ -655,11 +665,12 @@ export default class OrganizationService extends LoggerBase {
         ...this.options,
         transaction,
       })
+      await OrganizationRepository.removeToMerge(noMergeId, organizationId, {
+        ...this.options,
+        transaction,
+      })
 
       await SequelizeRepository.commitTransaction(transaction)
-
-      await searchSyncService.triggerOrganizationSync(this.options.currentTenant.id, organizationId)
-      await searchSyncService.triggerOrganizationSync(this.options.currentTenant.id, noMergeId)
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
 
@@ -672,6 +683,7 @@ export default class OrganizationService extends LoggerBase {
     syncOptions: ISearchSyncOptions = { doSync: true, mode: SyncMode.USE_FEATURE_FLAG },
   ) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
+    const txOptions = { ...this.options, transaction }
 
     if (!data.identities) {
       data.identities = []
@@ -709,19 +721,16 @@ export default class OrganizationService extends LoggerBase {
       }
 
       if (data.members) {
-        data.members = await MemberRepository.filterIdsInTenant(data.members, {
-          ...this.options,
-          transaction,
-        })
+        data.members = await MemberRepository.filterIdsInTenant(data.members, txOptions)
       }
 
       let record
       const existing = await OrganizationRepository.findByVerifiedIdentities(
         verifiedIdentities,
-        this.options,
+        txOptions,
       )
 
-      const qx = SequelizeRepository.getQueryExecutor(this.options, transaction)
+      const qx = SequelizeRepository.getQueryExecutor(txOptions, transaction)
 
       if (existing) {
         record = existing
@@ -730,51 +739,39 @@ export default class OrganizationService extends LoggerBase {
           const defaultColumns = await OrganizationRepository.updateOrgAttributes(
             record.id,
             record,
-            this.options,
+            txOptions,
           )
 
           if (Object.keys(defaultColumns).length > 0) {
-            record = await OrganizationRepository.update(existing.id, defaultColumns, {
-              ...this.options,
-              transaction,
-            })
+            record = await OrganizationRepository.update(existing.id, defaultColumns, txOptions)
           }
         }
 
         await upsertOrgIdentities(qx, record.id, record.tenantId, data.identities)
       } else {
-        record = await OrganizationRepository.create(data, {
-          ...this.options,
-          transaction,
-        })
+        record = await OrganizationRepository.create(data, txOptions)
         telemetryTrack(
           'Organization created',
           {
             id: record.id,
             createdAt: record.createdAt,
           },
-          this.options,
+          txOptions,
         )
 
         for (const i of data.identities) {
-          await OrganizationRepository.addIdentity(record.id, i, {
-            ...this.options,
-            transaction,
-          })
+          await OrganizationRepository.addIdentity(record.id, i, txOptions)
         }
 
-        if (record.attributes) {
+        if (data.attributes) {
           const defaultColumns = await OrganizationRepository.updateOrgAttributes(
             record.id,
-            record,
-            this.options,
+            data,
+            txOptions,
           )
 
           if (Object.keys(defaultColumns).length > 0) {
-            record = await OrganizationRepository.update(existing.id, defaultColumns, {
-              ...this.options,
-              transaction,
-            })
+            record = await OrganizationRepository.update(record.id, defaultColumns, txOptions)
           }
         }
       }

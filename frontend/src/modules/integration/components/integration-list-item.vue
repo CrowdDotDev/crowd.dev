@@ -104,7 +104,7 @@
 import { useStore } from 'vuex';
 import { computed, onMounted, ref } from 'vue';
 import AppIntegrationConnect from '@/modules/integration/components/integration-connect.vue';
-import { isCurrentDateAfterGivenWorkingDays } from '@/utils/date';
+import { isCurrentDateAfterGivenWorkingDays, formatDateToTimeAgoForIntegrations } from '@/utils/date';
 import { ERROR_BANNER_WORKING_DAYS_DISPLAY } from '@/modules/integration/integration-store';
 import moment from 'moment';
 import LfButton from '@/ui-kit/button/Button.vue';
@@ -173,13 +173,14 @@ const lastSynced = computed(() => {
       relative: 'Last data check completed 1 hour ago',
     };
   }
+
   return {
     absolute: moment(props.integration.lastProcessedAt).format(
       'MMM DD, YYYY HH:mm',
     ),
-    relative: `Last data check completed ${moment(
+    relative: `Last data check completed ${formatDateToTimeAgoForIntegrations(
       props.integration.lastProcessedAt,
-    ).fromNow()}`,
+    )}`,
   };
 });
 

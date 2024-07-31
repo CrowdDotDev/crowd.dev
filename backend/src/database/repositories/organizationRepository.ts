@@ -112,6 +112,10 @@ class OrganizationRepository {
     }
     const toInsert = {
       ...lodash.pick(data, [
+        'displayName',
+        'description',
+        'headline',
+        'logo',
         'importHash',
         'isTeamOrganization',
         'lastEnrichedAt',
@@ -126,6 +130,18 @@ class OrganizationRepository {
     const record = await options.database.organization.create(toInsert, {
       transaction,
     })
+
+    // prepare attributes object
+    const attributes = {} as any
+
+    if (data.logo) {
+      attributes.logo = {
+        custom: [data.logo],
+        default: data.logo,
+      }
+    }
+
+    await this.updateOrgAttributes(record.id, { attributes }, options)
 
     await captureApiChange(
       options,

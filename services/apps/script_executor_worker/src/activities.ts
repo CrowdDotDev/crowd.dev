@@ -10,9 +10,18 @@ import {
 } from './activities/dissect-member'
 
 import {
+  getOrgIdentitiesWithInvalidUrls,
+  findOrganizationIdentity,
+  updateOrganizationIdentity,
+  deleteOrganizationIdentity,
+  isLfxMember,
+} from './activities/fix-organization-identities-with-wrong-urls'
+
+import {
   mergeMembers,
   unmergeMembers,
   unmergeMembersPreview,
+  mergeOrganizations,
   waitForTemporalWorkflowExecutionFinish,
 } from './activities/common'
 
@@ -26,4 +35,10 @@ export {
   waitForTemporalWorkflowExecutionFinish,
   findMemberIdentitiesGroupedByPlatform,
   findMemberById,
+  mergeOrganizations,
+  getOrgIdentitiesWithInvalidUrls,
+  findOrganizationIdentity,
+  updateOrganizationIdentity,
+  deleteOrganizationIdentity,
+  isLfxMember,
 }

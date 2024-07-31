@@ -1,9 +1,19 @@
 <template>
   <section v-bind="$attrs">
     <div class="flex justify-between items-center pb-6">
-      <h6 class="text-h6">
-        Work history
-      </h6>
+      <div class="flex items-center">
+        <h6 class="text-h6">
+          Work history
+        </h6>
+        <div class="pl-1">
+          <lf-tooltip placement="bottom">
+            <template #content>
+              Work experiences are mostly obtained<br> via enrichment but can also be added <br>manually.
+            </template>
+            <lf-icon name="question-line" :size="16" class="text-gray-400" />
+          </lf-tooltip>
+        </div>
+      </div>
       <lf-tooltip
         v-if="hasPermission(LfPermission.memberEdit)"
         content="Add work experience"
