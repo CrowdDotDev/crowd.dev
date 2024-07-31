@@ -3,17 +3,16 @@ import PermissionChecker from '../../../services/user/permissionChecker'
 import MemberIdentityService from '@/services/member/memberIdentityService'
 
 /**
- * GET /tenant/{tenantId}/member/:memberId/identity
- * @summary Query member identities
+ * PUT /tenant/{tenantId}/member/:memberId/identity
+ * @summary Create member identities
  * @tag Members
  * @security Bearer
- * @description Query member identities.
+ * @description Create multiple member identity.
  * @pathParam {string} tenantId - Your workspace/tenant ID | {string} memberId - member ID
  * @response 200 - Ok
  * @responseContent {MemberList} 200.application/json
- * @responseExample {MemberList} 200.application/json.Member
+ * @responseExample {MemberList} 200.application/json.MemberIdentity
  * @response 401 - Unauthorized
- * @response 404 - Not found
  * @response 429 - Too many requests
  */
 export default async (req, res) => {

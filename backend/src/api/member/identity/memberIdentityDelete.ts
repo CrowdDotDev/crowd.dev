@@ -3,21 +3,21 @@ import PermissionChecker from '../../../services/user/permissionChecker'
 import MemberIdentityService from '@/services/member/memberIdentityService'
 
 /**
- * GET /tenant/{tenantId}/member/:memberId/identity
- * @summary Query member identities
+ * DELETE /tenant/{tenantId}/member/:memberId/identity/:identityId
+ * @summary Remove member identity
  * @tag Members
  * @security Bearer
- * @description Query member identities.
- * @pathParam {string} tenantId - Your workspace/tenant ID | {string} memberId - member ID
+ * @description Remove member identity.
+ * @pathParam {string} tenantId - Your workspace/tenant ID | {string} memberId - member ID | {string} identityId - member identity ID
  * @response 200 - Ok
  * @responseContent {MemberList} 200.application/json
- * @responseExample {MemberList} 200.application/json.Member
+ * @responseExample {MemberList} 200.application/json.MemberIdentity
  * @response 401 - Unauthorized
  * @response 404 - Not found
  * @response 429 - Too many requests
  */
 export default async (req, res) => {
-  new PermissionChecker(req).validateHas(Permissions.values.memberRead)
+  new PermissionChecker(req).validateHas(Permissions.values.memberEdit)
 
   const memberIdentityService = new MemberIdentityService(req)
 
