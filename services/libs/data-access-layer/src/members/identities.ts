@@ -36,6 +36,25 @@ export async function fetchManyMemberIdentities(
   )
 }
 
+export async function checkIdentityExistance(
+  qx: QueryExecutor,
+  value: string,
+  platform: string,
+): Promise<IMemberIdentity[]> {
+  return await qx.select(
+    `
+        SELECT id, "memberId"
+        FROM "memberIdentities"
+        WHERE "value" = $(value)
+        AND "platform" = $(platform);
+    `,
+    {
+      value,
+      platform,
+    },
+  )
+}
+
 export async function createMemberIdentity(
   qx: QueryExecutor,
   tenantId: string,
