@@ -154,7 +154,7 @@ class MergeActionsRepository {
   static async query(
     { limit = 20, offset = 0, filter },
     options: IRepositoryOptions,
-  ): Promise<{ rows: IMergeAction[]; count: number }> {
+  ): Promise<IMergeAction[]> {
     const transaction = SequelizeRepository.getTransaction(options)
 
     let where = ''
@@ -167,13 +167,17 @@ class MergeActionsRepository {
       where += ` AND ma.type = :type`
     }
 
+    if (filter?.state) {
+      where += ` AND ma.state IN (:state)`
+    }
+
     const records = await options.database.sequelize.query(
       `
       SELECT
         ma."primaryId",
         ma."secondaryId",
         ma."state",
-        ma."step",
+        ma.step
       FROM "mergeActions" ma
       WHERE 1 = 1
         ${where}
@@ -186,6 +190,7 @@ class MergeActionsRepository {
           offset,
           type: filter?.type,
           entityId: filter?.entityId,
+          state: filter?.state,
         },
         type: QueryTypes.SELECT,
         transaction,
