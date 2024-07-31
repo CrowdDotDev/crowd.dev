@@ -1,5 +1,7 @@
 import moment from 'moment';
 import config from '@/config';
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
 
 /**
  * Time ago utility
@@ -13,6 +15,26 @@ import config from '@/config';
 export const formatDateToTimeAgo = (timestamp) => (moment.utc(timestamp).year() < 2000
   ? 'some time ago'
   : moment.utc(timestamp).fromNow());
+
+export const formatDateToTimeAgoForIntegrations = (timestamp) => {
+  dayjs.extend(relativeTime, {
+    thresholds: [
+      { l: 's', r: 1 },
+      { l: 'm', r: 1 },
+      { l: 'mm', r: 59, d: 'minute' },
+      { l: 'h', r: 1 },
+      { l: 'hh', r: 23, d: 'hour' },
+      { l: 'd', r: 1 },
+      { l: 'dd', r: 29, d: 'day' },
+      { l: 'M', r: 1 },
+      { l: 'MM', r: 11, d: 'month' },
+      { l: 'y', r: 1 },
+      { l: 'yy', d: 'year' },
+    ],
+  });
+
+  return dayjs().to(dayjs(timestamp));
+};
 
 /**
  *

@@ -1,5 +1,5 @@
 <template>
-  <slot :connect="connect" />
+  <slot :connect="connect" :settings-component="SlackSettings" />
 </template>
 
 <script setup>
@@ -13,6 +13,7 @@ import { AuthService } from '@/modules/auth/services/auth.service';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { Platform } from '@/shared/modules/platform/types/Platform';
+import SlackSettings from './slack-settings.vue';
 
 const { trackEvent } = useProductTracking();
 const route = useRoute();

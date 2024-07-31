@@ -16,6 +16,7 @@ export default {
   connectComponent: JiraConnect,
   url: () => null,
   showProfileLink: false,
+  placeholder: 'Jira username or email address',
   chartColor: '#E5512C',
   activityDisplay: {
     showContentDetails: false,

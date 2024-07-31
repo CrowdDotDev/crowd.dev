@@ -61,7 +61,7 @@ import { fetchAbsoluteMemberAggregates } from '@crowd/data-access-layer/src/memb
 import { OrganizationField, queryOrgs } from '@crowd/data-access-layer/src/orgs'
 import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
 import { KUBE_MODE, SERVICE } from '@/conf'
-import { ServiceType } from '../../conf/configTypes'
+import { ServiceType } from '@/conf/configTypes'
 import isFeatureEnabled from '../../feature-flags/isFeatureEnabled'
 import { PlatformIdentities } from '../../serverless/integrations/types/messageTypes'
 import {
@@ -453,26 +453,34 @@ class MemberRepository {
             findMemberTags(qx, memberId),
           ])
 
-          const [orgExtraInfo, lfxMemberships, tagExtraInfo] = await Promise.all([
-            queryOrgs(qx, {
+          const orgIds = memberOrgs.map((o) => o.organizationId)
+          const tagIds = tags.map((t) => t.tagId)
+
+          let orgExtraInfo = []
+          let lfxMemberships = []
+          let tagExtraInfo = []
+
+          if (orgIds.length > 0) {
+            orgExtraInfo = await queryOrgs(qx, {
               filter: {
-                [OrganizationField.ID]: { in: memberOrgs.map((o) => o.organizationId) },
+                [OrganizationField.ID]: { in: orgIds },
               },
               fields: [
                 OrganizationField.ID,
                 OrganizationField.DISPLAY_NAME,
                 OrganizationField.LOGO,
               ],
-            }),
-            findManyLfxMemberships(qx, {
+            })
+
+            lfxMemberships = await findManyLfxMemberships(qx, {
               tenantId: options.currentTenant.id,
-              organizationIds: memberOrgs.map((o) => o.organizationId),
-            }),
-            findTags(
-              qx,
-              tags.map((t) => t.tagId),
-            ),
-          ])
+              organizationIds: orgIds,
+            })
+          }
+
+          if (tagIds.length > 0) {
+            tagExtraInfo = await findTags(qx, tagIds)
+          }
 
           return {
             ...member,
@@ -1557,7 +1565,13 @@ class MemberRepository {
       throw new Error404()
     }
 
-    return rows[0]
+    const [data] = rows
+    const affiliations = await MemberRepository.getAffiliations(id, options)
+
+    return {
+      ...data,
+      affiliations,
+    }
   }
 
   static getUsernameFromIdentities(identities: IMemberIdentity[]): IMemberUsername {
@@ -2181,6 +2195,7 @@ class MemberRepository {
   static async findAndCountAll(
     {
       filter = {} as any,
+      search = null,
       limit = 20,
       offset = 0,
       orderBy = 'joinedAt_DESC',
@@ -2281,6 +2296,27 @@ class MemberRepository {
       return `${orderField} ${orderDirection}`
     })(orderBy)
 
+    const withSearch = !!search
+    let searchCTE = ''
+    let searchJoin = ''
+
+    if (withSearch) {
+      search = search.toLowerCase()
+      searchCTE = `
+      ,  
+      member_search AS (
+          SELECT
+            "memberId"
+          FROM "memberIdentities" mi
+          join members m on m.id = mi."memberId"
+          where (verified and lower("value") like '%${search}%') or 
+          lower(m."displayName") like '%${search}%' 
+          GROUP BY 1
+        )
+      `
+      searchJoin = ` JOIN member_search ms ON ms."memberId" = m.id `
+    }
+
     const createQuery = (fields) => `
       WITH member_orgs AS (
         SELECT
@@ -2290,6 +2326,7 @@ class MemberRepository {
         WHERE "deletedAt" IS NULL
         GROUP BY 1
       )
+      ${searchCTE}
       SELECT
         ${fields}
       FROM members m
@@ -2299,6 +2336,7 @@ class MemberRepository {
           : ''
       }
       LEFT JOIN member_orgs mo ON mo."memberId" = m.id
+      ${searchJoin}
       WHERE m."tenantId" = $(tenantId)
         AND (${filterString})
     `
@@ -2944,7 +2982,8 @@ class MemberRepository {
               !organizations.find(
                 (newOrg) =>
                   originalOrg.organizationId === newOrg.id &&
-                  originalOrg.title === (newOrg.title || null) &&
+                  (originalOrg.title === (newOrg.title || null) ||
+                    (!originalOrg.title && newOrg.title)) &&
                   iso(originalOrg.dateStart) === iso(newOrg.startDate || null) &&
                   iso(originalOrg.dateEnd) === iso(newOrg.endDate || null),
               ),
@@ -2964,6 +3003,7 @@ class MemberRepository {
             !originalOrgs.some(
               (w) =>
                 w.organizationId === item.id &&
+                w.title === (item.title || null) &&
                 w.dateStart === (item.startDate || null) &&
                 w.dateEnd === (item.endDate || null),
             )
@@ -3001,6 +3041,7 @@ class MemberRepository {
           UPDATE "memberOrganizations"
           SET "deletedAt" = NOW()
           WHERE "memberId" = :memberId
+          AND "title" = :title
           AND "organizationId" = :organizationId
           AND "dateStart" IS NULL
           AND "dateEnd" IS NULL
@@ -3008,6 +3049,7 @@ class MemberRepository {
         {
           replacements: {
             memberId,
+            title,
             organizationId,
           },
           type: QueryTypes.UPDATE,
@@ -3019,6 +3061,7 @@ class MemberRepository {
         `
           SELECT COUNT(*) AS count FROM "memberOrganizations"
           WHERE "memberId" = :memberId
+          AND "title" = :title
           AND "organizationId" = :organizationId
           AND "dateStart" IS NOT NULL
           AND "deletedAt" IS NULL
@@ -3026,6 +3069,7 @@ class MemberRepository {
         {
           replacements: {
             memberId,
+            title,
             organizationId,
           },
           type: QueryTypes.SELECT,

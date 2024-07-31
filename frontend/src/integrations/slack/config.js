@@ -16,6 +16,7 @@ export default {
   url: ({ username }) => (username ? `https://slack.com/${username}` : null),
   chartColor: '#E41756',
   showProfileLink: false,
+  placeholder: 'Slack username or email address',
   activityDisplay: {
     showLinkToUrl: true,
   },

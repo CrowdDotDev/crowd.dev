@@ -67,7 +67,7 @@ const changeValue = debounce((search: string) => {
   }
 
   emit('update:modelValue', search);
-}, 300);
+}, 400);
 
 </script>
 

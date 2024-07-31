@@ -47,4 +47,18 @@ export class ContributorApiService {
       },
     ).then(({ data }) => Promise.resolve(data));
   }
+
+  static async create(data: Partial<Contributor>, segments: string[]) {
+    const tenantId = AuthService.getTenantId();
+
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/member`,
+      {
+        ...data,
+        segments,
+      },
+    );
+
+    return response.data;
+  }
 }

@@ -17,6 +17,7 @@ export default {
   connectComponent: GitConnect,
   url: () => null,
   showProfileLink: false,
+  placeholder: 'Git email address',
   chartColor: '#E5512C',
   activityDisplay: {
     showContentDetails: true,

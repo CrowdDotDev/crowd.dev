@@ -1,0 +1,22 @@
+.c-scrollshadow{
+  @apply relative overflow-y-auto;
+
+  &__top, &__bottom {
+    @apply absolute left-0 w-full h-2.5 opacity-0 invisible transition duration-200;
+
+    &.is-visible {
+      @apply opacity-100 visible;
+    }
+  }
+
+
+  &__top {
+    @apply top-0;
+    box-shadow: inset 0 0.25rem 0.5rem 0 #0000000D;
+  }
+
+  &__bottom {
+    @apply bottom-0;
+    box-shadow: inset 0 -0.25rem 0.5rem 0 #0000000D;
+  }
+}

@@ -1,5 +1,10 @@
 <template>
-  <slot :connect="connect" :settings="settings" :has-settings="hasSettings" />
+  <slot
+    :connect="connect"
+    :settings="settings"
+    :has-settings="hasSettings"
+    :settings-component="DiscourseSettings"
+  />
   <app-discourse-connect-drawer
     v-model="drawerVisible"
     :integration="integration"
@@ -9,6 +14,7 @@
 <script setup>
 import { computed, defineProps, ref } from 'vue';
 import AppDiscourseConnectDrawer from '@/integrations/discourse/components/discourse-connect-drawer.vue';
+import DiscourseSettings from './discourse-settings.vue';
 
 const props = defineProps({
   integration: {
@@ -24,9 +30,7 @@ const connect = () => {
 };
 
 // eslint-disable-next-line no-undef
-const hasSettings = computed(
-  () => props.integration.settings?.forumHostname,
-);
+const hasSettings = computed(() => props.integration.settings?.forumHostname);
 const settings = () => {
   drawerVisible.value = true;
 };

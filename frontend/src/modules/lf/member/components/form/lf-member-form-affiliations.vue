@@ -161,8 +161,8 @@ const props = defineProps({
 
 const isSubProjectsModalOpen = ref(false);
 
-const availableSubprojects = computed(() => props.record.segments.filter(
-  (segment) => !affiliationsList.value.some((affiliation) => affiliation.segmentId === segment.id),
+const availableSubprojects = computed(() => (props.record.segments || [])?.filter(
+  (segment) => !(affiliationsList.value || []).some((affiliation) => affiliation.segmentId === segment.id),
 ));
 
 const affiliationsList = computed({
@@ -177,7 +177,7 @@ const affiliationsList = computed({
   },
 });
 
-const uniqueProjects = computed(() => affiliationsList.value.filter(
+const uniqueProjects = computed(() => affiliationsList.value?.filter(
   (value, index, self) => self.findIndex((v) => v.segmentId === value.segmentId) === index,
 ));
 

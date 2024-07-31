@@ -414,7 +414,7 @@ async function onSubmit() {
     manuallyCreated: true,
     ...rest,
     attributes: {
-      names: {
+      name: {
         default: name,
         custom: [name],
       },
