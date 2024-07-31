@@ -120,7 +120,7 @@ export class OrganizationService extends LoggerBase {
           await upsertOrgAttributes(qe, id, processed.attributes)
           for (const attr of processed.attributes) {
             if (attr.default) {
-              await markOrgAttributeDefault(qe, existing.id, attr)
+              await markOrgAttributeDefault(qe, id, attr)
             }
           }
 
