@@ -1,5 +1,5 @@
 CREATE OR REPLACE AGGREGATE array_accum (ANYARRAY) (
-    SFUNC = array_append,
+    SFUNC = array_cat,
     STYPE = ANYARRAY,
     INITCOND = '{}'
-);
+    );
