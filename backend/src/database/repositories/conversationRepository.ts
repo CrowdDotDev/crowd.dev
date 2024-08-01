@@ -16,6 +16,8 @@ import lodash from 'lodash'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import AuditLogRepository from './auditLogRepository'
 import SequelizeRepository from './sequelizeRepository'
+import { ActivityDisplayService } from '@crowd/integrations'
+import SegmentRepository from './segmentRepository'
 
 class ConversationRepository {
   static async create(data, options: IRepositoryOptions) {
@@ -253,6 +255,10 @@ class ConversationRepository {
 
         for (const activity of results.rows) {
           ;(activity as any).member = memberResults.rows.find((m) => m.id === activity.memberId)
+          ;(activity as any).display = ActivityDisplayService.getDisplayOptions(
+            activity,
+            SegmentRepository.getActivityTypes(options),
+          )
         }
       }
 
