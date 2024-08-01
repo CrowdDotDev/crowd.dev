@@ -82,5 +82,6 @@ export interface Contributor {
     id: string;
     name: string;
     activityCount: string;
-  }[]
+  }[],
+  activitySycning: string;
 }

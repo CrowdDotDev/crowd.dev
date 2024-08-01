@@ -19,7 +19,8 @@
           <lf-contributor-details-header :contributor="contributor" />
         </div>
         <div class="flex items-center">
-          <lf-contributor-last-enrichment :contributor="contributor" class="mr-4" />
+          <lf-contributor-syncing-activities v-if="contributor.activitySycning" :contributor="contributor" />
+          <lf-contributor-last-enrichment v-else :contributor="contributor" class="mr-4" />
           <div @mouseover.stop @mouseout.stop>
             <lf-contributor-details-actions :contributor="contributor" @reload="fetchContributor()" />
           </div>
@@ -100,6 +101,7 @@ import LfContributorDetailsHeader from '@/modules/contributor/components/details
 import LfContributorDetailsActions from '@/modules/contributor/components/details/contributor-details-actions.vue';
 import LfContributorLastEnrichment from '@/modules/contributor/components/shared/contributor-last-enrichment.vue';
 import { useContributorStore } from '@/modules/contributor/store/contributor.store';
+import LfContributorSyncingActivities from '@/modules/contributor/components/shared/contributor-syncing-activities.vue';
 
 const { getMemberCustomAttributes } = useMemberStore();
 
