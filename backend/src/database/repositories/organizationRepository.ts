@@ -1207,7 +1207,9 @@ class OrganizationRepository {
   }
 
   static async findById(id: string, options: IRepositoryOptions, segmentId?: string) {
-    const { rows, count } = await OrganizationRepository.findAndCountAll(
+    let orgResponse = null
+
+    orgResponse = await OrganizationRepository.findAndCountAll(
       {
         filter: { id: { eq: id } },
         limit: 1,
@@ -1222,11 +1224,36 @@ class OrganizationRepository {
       options,
     )
 
-    if (count === 0) {
-      throw new Error404()
+    if (orgResponse.count === 0) {
+      // try it again without segment information (no aggregates)
+      // for orgs without activities
+      orgResponse = await OrganizationRepository.findAndCountAll(
+        {
+          filter: { id: { eq: id } },
+          limit: 1,
+          offset: 0,
+          include: {
+            attributes: true,
+            lfxMemberships: true,
+            identities: true,
+          },
+        },
+        options,
+      )
+
+      if (orgResponse.count === 0) {
+        throw new Error404()
+      }
+
+      orgResponse.rows[0].joinedAt = null
+      orgResponse.rows[0].lastActive = null
+      orgResponse.rows[0].activityCount = 0
+      orgResponse.rows[0].memberCount = 0
+      orgResponse.rows[0].avgContributorEngagement = null
+      orgResponse.rows[0].activeOn = null
     }
 
-    const organization = rows[0]
+    const organization = orgResponse.rows[0]
 
     const qx = SequelizeRepository.getQueryExecutor(options)
     const attributes = await findOrgAttributes(qx, id)
@@ -1717,7 +1744,7 @@ class OrganizationRepository {
       FROM organizations o
       ${
         withAggregates
-          ? `LEFT JOIN "organizationSegmentsAgg" osa ON osa."organizationId" = o.id AND osa."segmentId" = $(segmentId)`
+          ? ` JOIN "organizationSegmentsAgg" osa ON osa."organizationId" = o.id AND osa."segmentId" = $(segmentId)`
           : ''
       }
       WHERE 1=1
