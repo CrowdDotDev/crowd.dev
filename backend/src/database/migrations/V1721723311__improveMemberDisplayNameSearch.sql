@@ -1,0 +1,1 @@
+create index if not exists idx_lower_displayName on members (lower("displayName"));

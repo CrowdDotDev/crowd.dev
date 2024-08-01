@@ -150,15 +150,15 @@
           <div v-if="isWebhookVerifying == null" />
           <div v-else-if="isWebhookVerifying">
             <i class="ri-loader-4-line animate-spin text-gray-900 w-[14px] mr-2" />
-            <span class="text-gray-900 text-[13px]">Verifying</span>
+            <span class="text-gray-900 text-sm">Verifying</span>
           </div>
           <div v-else-if="isWebhookValid">
             <i class="ri-check-line text-green-500 w-[14px] mr-2" />
-            <span class="text-green-500 text-[13px]">Succesfully verified</span>
+            <span class="text-green-500 text-sm">Succesfully verified</span>
           </div>
           <div v-else>
             <i class="ri-error-warning-line text-red-500 w-[14px] mr-2" />
-            <span class="text-red-500 text-[13px]">No webhooks received yet</span>
+            <span class="text-red-500 text-sm">No webhooks received yet</span>
           </div>
         </div>
         <div

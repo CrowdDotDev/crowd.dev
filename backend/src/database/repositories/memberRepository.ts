@@ -61,7 +61,7 @@ import { fetchAbsoluteMemberAggregates } from '@crowd/data-access-layer/src/memb
 import { OrganizationField, queryOrgs } from '@crowd/data-access-layer/src/orgs'
 import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
 import { KUBE_MODE, SERVICE } from '@/conf'
-import { ServiceType } from '../../conf/configTypes'
+import { ServiceType } from '@/conf/configTypes'
 import isFeatureEnabled from '../../feature-flags/isFeatureEnabled'
 import { PlatformIdentities } from '../../serverless/integrations/types/messageTypes'
 import {
@@ -453,26 +453,34 @@ class MemberRepository {
             findMemberTags(qx, memberId),
           ])
 
-          const [orgExtraInfo, lfxMemberships, tagExtraInfo] = await Promise.all([
-            queryOrgs(qx, {
+          const orgIds = memberOrgs.map((o) => o.organizationId)
+          const tagIds = tags.map((t) => t.tagId)
+
+          let orgExtraInfo = []
+          let lfxMemberships = []
+          let tagExtraInfo = []
+
+          if (orgIds.length > 0) {
+            orgExtraInfo = await queryOrgs(qx, {
               filter: {
-                [OrganizationField.ID]: { in: memberOrgs.map((o) => o.organizationId) },
+                [OrganizationField.ID]: { in: orgIds },
               },
               fields: [
                 OrganizationField.ID,
                 OrganizationField.DISPLAY_NAME,
                 OrganizationField.LOGO,
               ],
-            }),
-            findManyLfxMemberships(qx, {
+            })
+
+            lfxMemberships = await findManyLfxMemberships(qx, {
               tenantId: options.currentTenant.id,
-              organizationIds: memberOrgs.map((o) => o.organizationId),
-            }),
-            findTags(
-              qx,
-              tags.map((t) => t.tagId),
-            ),
-          ])
+              organizationIds: orgIds,
+            })
+          }
+
+          if (tagIds.length > 0) {
+            tagExtraInfo = await findTags(qx, tagIds)
+          }
 
           return {
             ...member,
@@ -2295,7 +2303,8 @@ class MemberRepository {
             "memberId"
           FROM "memberIdentities" mi
           join members m on m.id = mi."memberId"
-          where (verified and type = '${MemberIdentityType.EMAIL}' and lower("value") ilike '%${search}%') or m."displayName" ilike '%${search}%'
+          where (verified and lower("value") like '%${search}%') or 
+          lower(m."displayName") like '%${search}%' 
           GROUP BY 1
         )
       `
@@ -2965,7 +2974,8 @@ class MemberRepository {
               !organizations.find(
                 (newOrg) =>
                   originalOrg.organizationId === newOrg.id &&
-                  originalOrg.title === (newOrg.title || null) &&
+                  (originalOrg.title === (newOrg.title || null) ||
+                    (!originalOrg.title && newOrg.title)) &&
                   iso(originalOrg.dateStart) === iso(newOrg.startDate || null) &&
                   iso(originalOrg.dateEnd) === iso(newOrg.endDate || null),
               ),
@@ -2985,6 +2995,7 @@ class MemberRepository {
             !originalOrgs.some(
               (w) =>
                 w.organizationId === item.id &&
+                w.title === (item.title || null) &&
                 w.dateStart === (item.startDate || null) &&
                 w.dateEnd === (item.endDate || null),
             )
@@ -3022,6 +3033,7 @@ class MemberRepository {
           UPDATE "memberOrganizations"
           SET "deletedAt" = NOW()
           WHERE "memberId" = :memberId
+          AND "title" = :title
           AND "organizationId" = :organizationId
           AND "dateStart" IS NULL
           AND "dateEnd" IS NULL
@@ -3029,6 +3041,7 @@ class MemberRepository {
         {
           replacements: {
             memberId,
+            title,
             organizationId,
           },
           type: QueryTypes.UPDATE,
@@ -3040,6 +3053,7 @@ class MemberRepository {
         `
           SELECT COUNT(*) AS count FROM "memberOrganizations"
           WHERE "memberId" = :memberId
+          AND "title" = :title
           AND "organizationId" = :organizationId
           AND "dateStart" IS NOT NULL
           AND "deletedAt" IS NULL
@@ -3047,6 +3061,7 @@ class MemberRepository {
         {
           replacements: {
             memberId,
+            title,
             organizationId,
           },
           type: QueryTypes.SELECT,

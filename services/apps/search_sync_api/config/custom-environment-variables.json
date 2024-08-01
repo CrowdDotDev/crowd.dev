@@ -24,8 +24,7 @@
   },
   "opensearch": {
     "node": "CROWD_OPENSEARCH_NODE",
-    "region": "CROWD_OPENSEARCH_AWS_REGION",
-    "accessKeyId": "CROWD_OPENSEARCH_AWS_ACCESS_KEY_ID",
-    "secretAccessKey": "CROWD_OPENSEARCH_AWS_SECRET_ACCESS_KEY"
+    "username": "CROWD_OPENSEARCH_USERNAME",
+    "password": "CROWD_OPENSEARCH_PASSWORD"
   }
 }

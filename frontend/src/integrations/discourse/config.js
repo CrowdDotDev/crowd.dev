@@ -13,6 +13,7 @@ export default {
   },
   image: '/images/integrations/discourse.png',
   connectComponent: DiscourseConnect,
+  urlPrefix: 'https://meta.discourse.org/u/',
   activityDisplay: {
     showLinkToUrl: true,
   },

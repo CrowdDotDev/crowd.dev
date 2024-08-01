@@ -227,9 +227,8 @@ export interface WeeklyEmailsConfiguration {
 
 export interface IOpenSearchConfig {
   node: string
-  region?: string
-  accessKeyId?: string
-  secretAccessKey?: string
+  username: string
+  password: string
 }
 
 export interface CrowdAnalyticsConfiguration {

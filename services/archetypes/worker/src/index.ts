@@ -30,12 +30,7 @@ const envvars = {
   opensearch:
     IS_DEV_ENV || IS_TEST_ENV
       ? ['CROWD_OPENSEARCH_NODE']
-      : [
-          'CROWD_OPENSEARCH_AWS_REGION',
-          'CROWD_OPENSEARCH_AWS_ACCESS_KEY_ID',
-          'CROWD_OPENSEARCH_AWS_SECRET_ACCESS_KEY',
-          'CROWD_OPENSEARCH_NODE',
-        ],
+      : ['CROWD_OPENSEARCH_USERNAME', 'CROWD_OPENSEARCH_PASSWORD', 'CROWD_OPENSEARCH_NODE'],
   queue:
     IS_DEV_ENV || IS_TEST_ENV
       ? [
@@ -205,9 +200,8 @@ export class ServiceWorker extends Service {
     if (this.options.opensearch?.enabled) {
       try {
         this._opensearchService = new OpenSearchService(this.log, {
-          region: process.env['CROWD_OPENSEARCH_AWS_REGION'],
-          accessKeyId: process.env['CROWD_OPENSEARCH_AWS_ACCESS_KEY_ID'],
-          secretAccessKey: process.env['CROWD_OPENSEARCH_AWS_SECRET_ACCESS_KEY'],
+          username: process.env['CROWD_OPENSEARCH_USERNAME'],
+          password: process.env['CROWD_OPENSEARCH_PASSWORD'],
           node: process.env['CROWD_OPENSEARCH_NODE'],
         })
       } catch (err) {

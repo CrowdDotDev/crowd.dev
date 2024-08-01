@@ -16,6 +16,7 @@ export default {
   connectComponent: GerritConnect,
   url: () => null,
   showProfileLink: false,
+  placeholder: 'Gerrit username or email address',
   chartColor: '#E5512C',
   activityDisplay: {
     showContentDetails: false,
