@@ -666,6 +666,7 @@ export default class ActivityService extends LoggerBase {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
+      await deleteActivities(this.options.qdb, ids)
       for (const id of ids) {
         await ActivityRepository.destroy(id, {
           ...this.options,
@@ -673,7 +674,6 @@ export default class ActivityService extends LoggerBase {
         })
       }
 
-      await deleteActivities(this.options.qdb, ids)
       await SequelizeRepository.commitTransaction(transaction)
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)

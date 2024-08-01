@@ -335,6 +335,7 @@ export default class ConversationService extends LoggerBase {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
+      await deleteConversations(this.options.qdb, ids)
       for (const id of ids) {
         await ConversationRepository.destroy(id, {
           ...this.options,
@@ -342,7 +343,6 @@ export default class ConversationService extends LoggerBase {
         })
       }
 
-      await deleteConversations(this.options.qdb, ids)
       await SequelizeRepository.commitTransaction(transaction)
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)

@@ -98,16 +98,16 @@ export async function runMemberAffiliationsUpdate(
       CASE
         ${orgCases.map(condition).join('\n')}
         ELSE ${nullableOrg(fallbackOrganizationId)}
-      END::UUID
+      END
       `
 
   const query = `
       UPDATE activities
       SET "organizationId" = ${fullCase}
       WHERE "memberId" = $(memberId)
-        AND COALESCE("organizationId", '00000000-0000-0000-0000-000000000000'::uuid) != COALESCE(
+        AND COALESCE("organizationId", '00000000-0000-0000-0000-000000000000') != COALESCE(
           ${fullCase},
-          '00000000-0000-0000-0000-000000000000::uuid'
+          '00000000-0000-0000-0000-000000000000'
         )
     `
 
