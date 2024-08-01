@@ -257,9 +257,9 @@ class ConversationRepository {
       }
 
       // find the first one
-      const firstActivity = single(results.rows, (a) => a.parentId === null)
+      const firstActivity = single(results.rows, (a) => a.sourceParentId === null)
       const remainingActivities = results.rows
-        .filter((a) => a.parentId !== null)
+        .filter((a) => a.sourceParentId !== null)
         .sort(
           (a, b) =>
             // from oldest to newest
