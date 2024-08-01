@@ -4,7 +4,7 @@ import SequelizeRepository from '../../database/repositories/sequelizeRepository
 import IncomingWebhookRepository from '../../database/repositories/incomingWebhookRepository'
 import { WebhookType } from '../../types/webhooks'
 import { verifyWebhookSignature } from '../../utils/crypto'
-import { getIntegrationStreamWorkerEmitter } from '@/serverless/utils/serviceSQS'
+import { getIntegrationStreamWorkerEmitter } from '@/serverless/utils/queueService'
 
 export default async (req, res) => {
   const signature = req.headers['x-discourse-event-signature']

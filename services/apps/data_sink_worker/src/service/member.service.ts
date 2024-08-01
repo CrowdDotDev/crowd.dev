@@ -37,12 +37,11 @@ import uniqby from 'lodash.uniqby'
 import { Unleash } from '@crowd/feature-flags'
 import { TEMPORAL_CONFIG } from '../conf'
 import { RedisClient } from '@crowd/redis'
-import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/common_services'
+import { SearchSyncWorkerEmitter } from '@crowd/common_services'
 
 export default class MemberService extends LoggerBase {
   constructor(
     private readonly store: DbStore,
-    private readonly nodejsWorkerEmitter: NodejsWorkerEmitter,
     private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
     private readonly unleash: Unleash | undefined,
     private readonly temporal: TemporalClient,
@@ -438,7 +437,6 @@ export default class MemberService extends LoggerBase {
         const txIntegrationRepo = new IntegrationRepository(txStore, this.log)
         const txService = new MemberService(
           txStore,
-          this.nodejsWorkerEmitter,
           this.searchSyncWorkerEmitter,
           this.unleash,
           this.temporal,
@@ -537,7 +535,6 @@ export default class MemberService extends LoggerBase {
         const txIntegrationRepo = new IntegrationRepository(txStore, this.log)
         const txService = new MemberService(
           txStore,
-          this.nodejsWorkerEmitter,
           this.searchSyncWorkerEmitter,
           this.unleash,
           this.temporal,

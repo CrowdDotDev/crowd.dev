@@ -1,7 +1,7 @@
 import { Tracer } from '@crowd/tracing'
 import { Logger } from '@crowd/logging'
 import { DbConnection, DbStore } from '@crowd/data-access-layer/src/database'
-import { DATA_SINK_WORKER_QUEUE_SETTINGS, SqsClient, SqsPrioritizedQueueReciever } from '@crowd/sqs'
+import { CrowdQueue, IQueue, PrioritizedQueueReciever } from '@crowd/queue'
 import {
   CreateAndProcessActivityResultQueueMessage,
   DataSinkWorkerQueueMessageType,
@@ -13,21 +13,16 @@ import DataSinkService from '../service/dataSink.service'
 import { RedisClient } from '@crowd/redis'
 import { Unleash } from '@crowd/feature-flags'
 import { Client as TemporalClient } from '@crowd/temporal'
-import {
-  DataSinkWorkerEmitter,
-  NodejsWorkerEmitter,
-  SearchSyncWorkerEmitter,
-} from '@crowd/common_services'
+import { DataSinkWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/common_services'
 import { performance } from 'perf_hooks'
 
-export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
+export class WorkerQueueReceiver extends PrioritizedQueueReciever {
   private readonly timingMap = new Map<string, { count: number; time: number }>()
 
   constructor(
     level: QueuePriorityLevel,
-    client: SqsClient,
+    client: IQueue,
     private readonly dbConn: DbConnection,
-    private readonly nodejsWorkerEmitter: NodejsWorkerEmitter,
     private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
     private readonly dataSinkWorkerEmitter: DataSinkWorkerEmitter,
     private readonly redisClient: RedisClient,
@@ -39,7 +34,7 @@ export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
     super(
       level,
       client,
-      DATA_SINK_WORKER_QUEUE_SETTINGS,
+      client.getQueueConfig(CrowdQueue.DATA_SINK_WORKER),
       20,
       tracer,
       parentLog,
@@ -57,7 +52,6 @@ export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
 
       const service = new DataSinkService(
         new DbStore(this.log, this.dbConn, undefined, false),
-        this.nodejsWorkerEmitter,
         this.searchSyncWorkerEmitter,
         this.dataSinkWorkerEmitter,
         this.redisClient,

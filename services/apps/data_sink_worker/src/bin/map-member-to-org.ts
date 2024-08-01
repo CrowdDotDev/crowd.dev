@@ -1,8 +1,7 @@
-import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG, TEMPORAL_CONFIG, UNLEASH_CONFIG } from '../conf'
+import { DB_CONFIG, REDIS_CONFIG, TEMPORAL_CONFIG, UNLEASH_CONFIG, QUEUE_CONFIG } from '../conf'
 import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
-import { getSqsClient } from '@crowd/sqs'
 import MemberRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.repo'
 import MemberService from '../service/member.service'
 import DataSinkRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/dataSink.repo'
@@ -12,12 +11,12 @@ import { Client as TemporalClient, getTemporalClient } from '@crowd/temporal'
 import { getRedisClient } from '@crowd/redis'
 import {
   DataSinkWorkerEmitter,
-  NodejsWorkerEmitter,
   PriorityLevelContextRepository,
   QueuePriorityContextLoader,
   SearchSyncWorkerEmitter,
 } from '@crowd/common_services'
 import { MemberIdentityType } from '@crowd/types'
+import { QueueFactory } from '@crowd/queue'
 
 const tracer = getServiceTracer()
 const log = getServiceLogger()
@@ -49,25 +48,15 @@ setImmediate(async () => {
   const loader: QueuePriorityContextLoader = (tenantId: string) =>
     priorityLevelRepo.loadPriorityLevelContext(tenantId)
 
-  const sqsClient = getSqsClient(SQS_CONFIG())
-  const emitter = new DataSinkWorkerEmitter(sqsClient, redis, tracer, unleash, loader, log)
+  const queueClient = QueueFactory.createQueueService(QUEUE_CONFIG())
+  const emitter = new DataSinkWorkerEmitter(queueClient, redis, tracer, unleash, loader, log)
   await emitter.init()
 
   const dataSinkRepo = new DataSinkRepository(store, log)
   const memberRepo = new MemberRepository(store, log)
 
-  const nodejsWorkerEmitter = new NodejsWorkerEmitter(
-    sqsClient,
-    redis,
-    tracer,
-    unleash,
-    loader,
-    log,
-  )
-  await nodejsWorkerEmitter.init()
-
   const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(
-    sqsClient,
+    queueClient,
     redis,
     tracer,
     unleash,
@@ -78,7 +67,6 @@ setImmediate(async () => {
 
   const memberService = new MemberService(
     store,
-    nodejsWorkerEmitter,
     searchSyncWorkerEmitter,
     unleash,
     temporal,

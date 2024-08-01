@@ -3,19 +3,18 @@ import {
   DataSinkWorkerEmitter,
   QueuePriorityContextLoader,
   SearchSyncWorkerEmitter,
-  NodejsWorkerEmitter,
 } from '@crowd/common_services'
 import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
-import { getSqsClient } from '@crowd/sqs'
+import { QueueFactory } from '@crowd/queue'
 import {
   DB_CONFIG,
-  SQS_CONFIG,
   REDIS_CONFIG,
   UNLEASH_CONFIG,
   TEMPORAL_CONFIG,
   WORKER_SETTINGS,
+  QUEUE_CONFIG,
 } from './conf'
 import { WorkerQueueReceiver } from './queue'
 import { getRedisClient } from '@crowd/redis'
@@ -38,7 +37,7 @@ setImmediate(async () => {
     temporal = await getTemporalClient(TEMPORAL_CONFIG())
   }
 
-  const sqsClient = getSqsClient(SQS_CONFIG())
+  const queueClient = QueueFactory.createQueueService(QUEUE_CONFIG())
 
   const dbConnection = await getDbConnection(DB_CONFIG(), MAX_CONCURRENT_PROCESSING)
 
@@ -48,17 +47,8 @@ setImmediate(async () => {
   const loader: QueuePriorityContextLoader = (tenantId: string) =>
     priorityLevelRepo.loadPriorityLevelContext(tenantId)
 
-  const nodejsWorkerEmitter = new NodejsWorkerEmitter(
-    sqsClient,
-    redisClient,
-    tracer,
-    unleash,
-    loader,
-    log,
-  )
-
   const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(
-    sqsClient,
+    queueClient,
     redisClient,
     tracer,
     unleash,
@@ -67,7 +57,7 @@ setImmediate(async () => {
   )
 
   const dataWorkerEmitter = new DataSinkWorkerEmitter(
-    sqsClient,
+    queueClient,
     redisClient,
     tracer,
     unleash,
@@ -77,9 +67,8 @@ setImmediate(async () => {
 
   const queue = new WorkerQueueReceiver(
     WORKER_SETTINGS().queuePriorityLevel,
-    sqsClient,
+    queueClient,
     dbConnection,
-    nodejsWorkerEmitter,
     searchSyncWorkerEmitter,
     dataWorkerEmitter,
     redisClient,
@@ -90,7 +79,6 @@ setImmediate(async () => {
   )
 
   try {
-    await nodejsWorkerEmitter.init()
     await searchSyncWorkerEmitter.init()
     await dataWorkerEmitter.init()
 

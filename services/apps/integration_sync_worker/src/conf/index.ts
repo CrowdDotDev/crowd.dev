@@ -1,5 +1,5 @@
 import { IDatabaseConfig } from '@crowd/data-access-layer/src/database'
-import { ISqsClientConfig } from '@crowd/sqs'
+import { IQueueEnvironment } from '@crowd/queue'
 import { IOpenSearchConfig, QueuePriorityLevel } from '@crowd/types'
 import config from 'config'
 
@@ -20,12 +20,12 @@ export const SERVICE_CONFIG = (): IServiceConfig => {
   return serviceConfig
 }
 
-let sqsConfig: ISqsClientConfig
-export const SQS_CONFIG = (): ISqsClientConfig => {
-  if (sqsConfig) return sqsConfig
+let queueConfig: IQueueEnvironment
+export const QUEUE_CONFIG = (): IQueueEnvironment => {
+  if (queueConfig) return queueConfig
 
-  sqsConfig = config.get<ISqsClientConfig>('sqs')
-  return sqsConfig
+  queueConfig = config.get<IQueueEnvironment>('queue')
+  return queueConfig
 }
 
 let dbConfig: IDatabaseConfig

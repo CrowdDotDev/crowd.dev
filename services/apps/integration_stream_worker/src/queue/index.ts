@@ -6,11 +6,7 @@ import {
 import { DbConnection, DbStore } from '@crowd/data-access-layer/src/database'
 import { Logger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
-import {
-  INTEGRATION_STREAM_WORKER_QUEUE_SETTINGS,
-  SqsClient,
-  SqsPrioritizedQueueReciever,
-} from '@crowd/sqs'
+import { CrowdQueue, IQueue, PrioritizedQueueReciever } from '@crowd/queue'
 import { Span, SpanStatusCode, Tracer } from '@crowd/tracing'
 import {
   ContinueProcessingRunStreamsQueueMessage,
@@ -22,10 +18,10 @@ import {
 } from '@crowd/types'
 import IntegrationStreamService from '../service/integrationStreamService'
 
-export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
+export class WorkerQueueReceiver extends PrioritizedQueueReciever {
   constructor(
     level: QueuePriorityLevel,
-    client: SqsClient,
+    client: IQueue,
     private readonly redisClient: RedisClient,
     private readonly dbConn: DbConnection,
     private readonly runWorkerEmitter: IntegrationRunWorkerEmitter,
@@ -38,7 +34,7 @@ export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
     super(
       level,
       client,
-      INTEGRATION_STREAM_WORKER_QUEUE_SETTINGS,
+      client.getQueueConfig(CrowdQueue.INTEGRATION_STREAM_WORKER),
       maxConcurrentProcessing,
       tracer,
       parentLog,

@@ -1,4 +1,4 @@
-import { CrowdQueue, DATA_SINK_WORKER_QUEUE_SETTINGS, SqsClient } from '@crowd/sqs'
+import { CrowdQueue, IQueue } from '@crowd/queue'
 import { QueuePriorityContextLoader, QueuePriorityService } from '../priority.service'
 import { RedisClient } from '@crowd/redis'
 import { UnleashClient } from '@crowd/feature-flags'
@@ -16,7 +16,7 @@ import { generateUUIDv1 } from '@crowd/common'
 
 export class DataSinkWorkerEmitter extends QueuePriorityService {
   public constructor(
-    sqsClient: SqsClient,
+    queueClient: IQueue,
     redis: RedisClient,
     tracer: Tracer,
     unleash: UnleashClient | undefined,
@@ -25,8 +25,8 @@ export class DataSinkWorkerEmitter extends QueuePriorityService {
   ) {
     super(
       CrowdQueue.DATA_SINK_WORKER,
-      DATA_SINK_WORKER_QUEUE_SETTINGS,
-      sqsClient,
+      queueClient.getQueueConfig(CrowdQueue.DATA_SINK_WORKER),
+      queueClient,
       redis,
       tracer,
       unleash,

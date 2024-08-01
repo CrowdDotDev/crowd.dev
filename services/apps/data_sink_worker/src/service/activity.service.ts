@@ -1,5 +1,5 @@
 import { EDITION, escapeNullByte, isObjectEmpty, singleOrDefault } from '@crowd/common'
-import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/common_services'
+import { SearchSyncWorkerEmitter } from '@crowd/common_services'
 import { ConversationService } from '@crowd/conversations'
 import { DbStore, arePrimitivesDbEqual } from '@crowd/data-access-layer/src/database'
 import {
@@ -35,7 +35,6 @@ export default class ActivityService extends LoggerBase {
 
   constructor(
     private readonly store: DbStore,
-    private readonly nodejsWorkerEmitter: NodejsWorkerEmitter,
     private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
     private readonly redisClient: RedisClient,
     private readonly unleash: Unleash | undefined,
@@ -457,7 +456,6 @@ export default class ActivityService extends LoggerBase {
           const txMemberRepo = new MemberRepository(txStore, this.log)
           const txMemberService = new MemberService(
             txStore,
-            this.nodejsWorkerEmitter,
             this.searchSyncWorkerEmitter,
             this.unleash,
             this.temporal,
@@ -466,7 +464,6 @@ export default class ActivityService extends LoggerBase {
           )
           const txActivityService = new ActivityService(
             txStore,
-            this.nodejsWorkerEmitter,
             this.searchSyncWorkerEmitter,
             this.redisClient,
             this.unleash,

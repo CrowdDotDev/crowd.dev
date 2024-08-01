@@ -6,12 +6,18 @@
     "user": "CROWD_DB_USERNAME",
     "password": "CROWD_DB_PASSWORD"
   },
-  "sqs": {
-    "region": "CROWD_SQS_AWS_REGION",
-    "host": "CROWD_SQS_HOST",
-    "port": "CROWD_SQS_PORT",
-    "accessKeyId": "CROWD_SQS_AWS_ACCESS_KEY_ID",
-    "secretAccessKey": "CROWD_SQS_AWS_SECRET_ACCESS_KEY"
+  "queue": {
+    "vendor": "CROWD_QUEUE_VENDOR",
+    "sqs": {
+      "region": "CROWD_SQS_AWS_REGION",
+      "host": "CROWD_SQS_HOST",
+      "port": "CROWD_SQS_PORT",
+      "accessKeyId": "CROWD_SQS_AWS_ACCESS_KEY_ID",
+      "secretAccessKey": "CROWD_SQS_AWS_SECRET_ACCESS_KEY"
+    },
+    "kafka": {
+      "brokers": "CROWD_KAFKA_BROKERS"
+    }
   },
   "redis": {
     "username": "CROWD_REDIS_USERNAME",

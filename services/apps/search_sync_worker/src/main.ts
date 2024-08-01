@@ -3,9 +3,9 @@ import { getDbConnection } from '@crowd/data-access-layer/src/database'
 import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
 import { getRedisClient } from '@crowd/redis'
-import { getSqsClient } from '@crowd/sqs'
-import { DB_CONFIG, OPENSEARCH_CONFIG, REDIS_CONFIG, SERVICE_CONFIG, SQS_CONFIG } from './conf'
+import { DB_CONFIG, OPENSEARCH_CONFIG, REDIS_CONFIG, SERVICE_CONFIG, QUEUE_CONFIG } from './conf'
 import { WorkerQueueReceiver } from './queue'
+import { QueueFactory } from '@crowd/queue'
 
 const tracer = getServiceTracer()
 const log = getServiceLogger()
@@ -19,14 +19,14 @@ setImmediate(async () => {
 
   const redis = await getRedisClient(REDIS_CONFIG())
 
-  const sqsClient = getSqsClient(SQS_CONFIG())
+  const queueClient = QueueFactory.createQueueService(QUEUE_CONFIG())
 
   const dbConnection = await getDbConnection(DB_CONFIG(), MAX_CONCURRENT_PROCESSING)
 
   const worker = new WorkerQueueReceiver(
     SERVICE_CONFIG().queuePriorityLevel,
     redis,
-    sqsClient,
+    queueClient,
     dbConnection,
     openSearchService,
     tracer,

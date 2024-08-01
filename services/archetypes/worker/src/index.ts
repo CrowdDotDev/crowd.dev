@@ -7,7 +7,7 @@ import { getDbConnection, DbStore } from '@crowd/database'
 import { OpenSearchService } from '@crowd/opensearch'
 import { getDataConverter } from '@crowd/temporal'
 import { IS_DEV_ENV, IS_TEST_ENV } from '@crowd/common'
-import { SqsClient, getSqsClient } from '@crowd/sqs'
+import { IQueue, QueueFactory, QueueVendor } from '@crowd/queue'
 
 // List all required environment variables, grouped per "component".
 // They are in addition to the ones required by the "standard" archetype.
@@ -31,16 +31,24 @@ const envvars = {
     IS_DEV_ENV || IS_TEST_ENV
       ? ['CROWD_OPENSEARCH_NODE']
       : ['CROWD_OPENSEARCH_USERNAME', 'CROWD_OPENSEARCH_PASSWORD', 'CROWD_OPENSEARCH_NODE'],
-  sqs:
+  queue:
     IS_DEV_ENV || IS_TEST_ENV
       ? [
+          'CROWD_QUEUE_VENDOR',
           'CROWD_SQS_AWS_REGION',
           'CROWD_SQS_HOST',
           'CROWD_SQS_PORT',
           'CROWD_SQS_AWS_ACCESS_KEY_ID',
           'CROWD_SQS_AWS_SECRET_ACCESS_KEY',
+          'CROWD_KAFKA_BROKERS',
         ]
-      : ['CROWD_SQS_AWS_REGION', 'CROWD_SQS_AWS_ACCESS_KEY_ID', 'CROWD_SQS_AWS_SECRET_ACCESS_KEY'],
+      : [
+          'CROWD_SQS_AWS_REGION',
+          'CROWD_SQS_AWS_ACCESS_KEY_ID',
+          'CROWD_SQS_AWS_SECRET_ACCESS_KEY',
+          'CROWD_KAFKA_BROKERS',
+          'CROWD_QUEUE_VENDOR',
+        ],
 }
 
 /*
@@ -55,7 +63,7 @@ export interface Options {
   opensearch?: {
     enabled: boolean
   }
-  sqs?: {
+  queue?: {
     enabled: boolean
   }
 }
@@ -73,7 +81,7 @@ export class ServiceWorker extends Service {
 
   protected _opensearchService: OpenSearchService
 
-  protected _sqsClient: SqsClient
+  protected _queueClient: IQueue
 
   constructor(config: Config, opts: Options) {
     super(config)
@@ -100,12 +108,12 @@ export class ServiceWorker extends Service {
     return this._opensearchService
   }
 
-  get sqs(): SqsClient {
-    if (!this.options.sqs?.enabled) {
+  get queue(): IQueue {
+    if (!this.options.queue?.enabled) {
       return null
     }
 
-    return this._sqsClient
+    return this._queueClient
   }
 
   // We first need to ensure a standard service can be initialized given the config
@@ -145,9 +153,9 @@ export class ServiceWorker extends Service {
       })
     }
 
-    // Only validate Sqs related environment variables if enabled
-    if (this.options.sqs?.enabled) {
-      envvars.sqs.forEach((envvar) => {
+    // Only validate queue related environment variables if enabled
+    if (this.options.queue?.enabled) {
+      envvars.queue.forEach((envvar) => {
         if (!process.env[envvar]) {
           missing.push(envvar)
         }
@@ -201,14 +209,21 @@ export class ServiceWorker extends Service {
       }
     }
 
-    if (this.options.sqs?.enabled) {
+    if (this.options.queue?.enabled) {
       try {
-        this._sqsClient = getSqsClient({
-          region: process.env['CROWD_SQS_AWS_REGION'],
-          host: process.env['CROWD_SQS_HOST'] ? process.env['CROWD_SQS_HOST'] : undefined,
-          port: process.env['CROWD_SQS_PORT'] ? Number(process.env['CROWD_SQS_PORT']) : undefined,
-          accessKeyId: process.env['CROWD_SQS_AWS_ACCESS_KEY_ID'],
-          secretAccessKey: process.env['CROWD_SQS_AWS_SECRET_ACCESS_KEY'],
+        this._queueClient = QueueFactory.createQueueService({
+          vendor: process.env['CROWD_QUEUE_VENDOR'] as QueueVendor,
+          sqs: {
+            region: process.env['CROWD_SQS_AWS_REGION'],
+            host: process.env['CROWD_SQS_HOST'] ? process.env['CROWD_SQS_HOST'] : undefined,
+            port: process.env['CROWD_SQS_PORT'] ? Number(process.env['CROWD_SQS_PORT']) : undefined,
+            accessKeyId: process.env['CROWD_SQS_AWS_ACCESS_KEY_ID'],
+            secretAccessKey: process.env['CROWD_SQS_AWS_SECRET_ACCESS_KEY'],
+          },
+          kafka: {
+            brokers: process.env['CROWD_KAFKA_BROKERS'],
+            clientId: 'crowd-temporal-worker', //TODO:: make this configurable
+          },
         })
       } catch (err) {
         throw new Error(err)

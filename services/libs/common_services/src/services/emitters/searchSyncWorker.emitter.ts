@@ -1,14 +1,14 @@
 import { UnleashClient } from '@crowd/feature-flags'
 import { Logger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
-import { CrowdQueue, SEARCH_SYNC_WORKER_QUEUE_SETTINGS, SqsClient } from '@crowd/sqs'
 import { Tracer } from '@crowd/tracing'
+import { IQueue, CrowdQueue } from '@crowd/queue'
 import { QueuePriorityContextLoader, QueuePriorityService } from '../priority.service'
 import { SearchSyncWorkerQueueMessageType } from '@crowd/types'
 
 export class SearchSyncWorkerEmitter extends QueuePriorityService {
   public constructor(
-    sqsClient: SqsClient,
+    client: IQueue,
     redis: RedisClient,
     tracer: Tracer,
     unleash: UnleashClient | undefined,
@@ -17,8 +17,8 @@ export class SearchSyncWorkerEmitter extends QueuePriorityService {
   ) {
     super(
       CrowdQueue.SEARCH_SYNC_WORKER,
-      SEARCH_SYNC_WORKER_QUEUE_SETTINGS,
-      sqsClient,
+      client.getQueueConfig(CrowdQueue.SEARCH_SYNC_WORKER),
+      client,
       redis,
       tracer,
       unleash,

@@ -2,11 +2,6 @@ import { BatchProcessor } from '@crowd/common'
 import { DbConnection, DbStore } from '@crowd/data-access-layer/src/database'
 import { Logger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
-import {
-  SEARCH_SYNC_WORKER_QUEUE_SETTINGS,
-  SqsClient,
-  SqsPrioritizedQueueReciever,
-} from '@crowd/sqs'
 import { Span, SpanStatusCode, Tracer } from '@crowd/tracing'
 import { IQueueMessage, QueuePriorityLevel, SearchSyncWorkerQueueMessageType } from '@crowd/types'
 import {
@@ -15,9 +10,10 @@ import {
   MemberSyncService,
   OrganizationSyncService,
 } from '@crowd/opensearch'
+import { CrowdQueue, IQueue, PrioritizedQueueReciever } from '@crowd/queue'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
+export class WorkerQueueReceiver extends PrioritizedQueueReciever {
   // private readonly memberBatchProcessor: BatchProcessor<string>
   private readonly activityBatchProcessor: BatchProcessor<string>
   // private readonly organizationBatchProcessor: BatchProcessor<string>
@@ -25,7 +21,7 @@ export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
   constructor(
     level: QueuePriorityLevel,
     private readonly redisClient: RedisClient,
-    client: SqsClient,
+    client: IQueue,
     private readonly dbConn: DbConnection,
     private readonly openSearchService: OpenSearchService,
     tracer: Tracer,
@@ -35,7 +31,7 @@ export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
     super(
       level,
       client,
-      SEARCH_SYNC_WORKER_QUEUE_SETTINGS,
+      client.getQueueConfig(CrowdQueue.SEARCH_SYNC_WORKER),
       maxConcurrentProcessing,
       tracer,
       parentLog,
