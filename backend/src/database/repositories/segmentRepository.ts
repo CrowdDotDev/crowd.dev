@@ -725,25 +725,29 @@ class SegmentRepository extends RepositoryBase<
     const rows = projects.map((i) => removeFieldsFromObject(i, 'totalCount'))
 
     // assign integrations to subprojects
-    await Promise.all(rows.map(async (row) => {
-      await Promise.all(row.subprojects.map(async (subproject) => {
-        const integrations = integrationsBySegments[subproject.id] || []
-        const githubIntegration = integrations.find(i => i.platform === 'github')
-        
-        if (githubIntegration) {
-          githubIntegration.type = 'primary'
-        } else if (mappedGithubReposBySegments[subproject.id]) {
-          integrations.push({
-            platform: 'github',
-            segmentId: subproject.id,
-            type: 'mapped',
-            mappedWith: await this.mappedWith(subproject.id),
-          })
-        }
-        
-        subproject.integrations = integrations
-      }))
-    }))
+    await Promise.all(
+      rows.map(async (row) => {
+        await Promise.all(
+          row.subprojects.map(async (subproject) => {
+            const integrations = integrationsBySegments[subproject.id] || []
+            const githubIntegration = integrations.find((i) => i.platform === 'github')
+
+            if (githubIntegration) {
+              githubIntegration.type = 'primary'
+            } else if (mappedGithubReposBySegments[subproject.id]) {
+              integrations.push({
+                platform: 'github',
+                segmentId: subproject.id,
+                type: 'mapped',
+                mappedWith: await this.mappedWith(subproject.id),
+              })
+            }
+
+            subproject.integrations = integrations
+          }),
+        )
+      }),
+    )
 
     return { count, rows, limit: criteria.limit, offset: criteria.offset }
   }
