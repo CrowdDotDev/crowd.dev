@@ -153,55 +153,6 @@ class MergeActionsRepository {
     return null
   }
 
-  static async query(
-    { limit = 20, offset = 0, filter },
-    options: IRepositoryOptions,
-  ): Promise<IMergeAction[]> {
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    let where = ''
-
-    if (filter?.entityId) {
-      where += ` AND (ma."primaryId" = :entityId OR ma."secondaryId" = :entityId)`
-    }
-
-    if (filter?.type) {
-      where += ` AND ma.type = :type`
-    }
-
-    if (filter?.state) {
-      where += ` AND ma.state IN (:state)`
-    }
-
-    const records = await options.database.sequelize.query(
-      `
-      SELECT
-        ma."primaryId",
-        ma."secondaryId",
-        ma."state",
-        ma.step
-      FROM "mergeActions" ma
-      WHERE 1 = 1
-        ${where}
-      LIMIT :limit
-      OFFSET :offset;
-      `,
-      {
-        replacements: {
-          limit,
-          offset,
-          type: filter?.type,
-          entityId: filter?.entityId,
-          state: filter?.state,
-        },
-        type: QueryTypes.SELECT,
-        transaction,
-      },
-    )
-
-    return records
-  }
-
   static async findMergeBackup(
     primaryMemberId: string,
     type: MergeActionType,
