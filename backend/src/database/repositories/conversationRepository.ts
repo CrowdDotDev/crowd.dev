@@ -1,4 +1,4 @@
-import { distinct, Error404, single } from '@crowd/common'
+import { distinct, Error404 } from '@crowd/common'
 import {
   DEFAULT_COLUMNS_TO_SELECT,
   deleteConversations,
@@ -256,17 +256,9 @@ class ConversationRepository {
         }
       }
 
-      // find the first one
-      const firstActivity = single(results.rows, (a) => a.sourceParentId === null)
-      const remainingActivities = results.rows
-        .filter((a) => a.sourceParentId !== null)
-        .sort(
-          (a, b) =>
-            // from oldest to newest
-            new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
-        )
-
-      output.activities = [firstActivity, ...remainingActivities]
+      output.activities = [...results.rows].sort(
+        (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+      )
 
       output.memberCount = results.rows
         .map((row) => row.memberId)
