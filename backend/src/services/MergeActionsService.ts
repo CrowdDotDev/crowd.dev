@@ -1,6 +1,7 @@
 import { LoggerBase } from '@crowd/logging'
+import { queryMergeActions } from '@crowd/data-access-layer/src/mergeActions/repo'
 import { IServiceOptions } from './IServiceOptions'
-import { MergeActionsRepository } from '@/database/repositories/mergeActionsRepository'
+import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 
 export default class MergeActionsService extends LoggerBase {
   options: IServiceOptions
@@ -11,20 +12,15 @@ export default class MergeActionsService extends LoggerBase {
   }
 
   async query(args) {
-    // filter merge actions that are in progress or error
-    args.filter = {
-      ...args.filter,
-      state: ['in-progress', 'error'],
-    }
-
-    const results = await MergeActionsRepository.query(args, this.options)
+    const qx = SequelizeRepository.getQueryExecutor(this.options)
+    const results = await queryMergeActions(qx, args)
 
     return results.map((result) => ({
       primaryId: result.primaryId,
       secondaryId: result.secondaryId,
       state: result.state,
       // derive operation type from step and if step is null, default to merge
-      'operation-type': result.step ? MergeActionsService.getOperationType(result.step) : 'merge',
+      operationType: result.step ? MergeActionsService.getOperationType(result.step) : 'merge',
     }))
   }
 
