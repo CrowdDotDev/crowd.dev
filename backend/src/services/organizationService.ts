@@ -18,6 +18,7 @@ import {
 import { randomUUID } from 'crypto'
 import lodash from 'lodash'
 import { findOrgAttributes, upsertOrgIdentities } from '@crowd/data-access-layer/src/organizations'
+import { getActiveOrganizations } from '@crowd/data-access-layer'
 import getObjectWithoutKey from '@/utils/getObjectWithoutKey'
 import { IActiveOrganizationFilter } from '@/database/repositories/types/organizationTypes'
 import MemberOrganizationRepository from '@/database/repositories/memberOrganizationRepository'
@@ -986,14 +987,17 @@ export default class OrganizationService extends LoggerBase {
     orderBy: string,
     segments: string[],
   ) {
-    return OrganizationRepository.findAndCountActiveOpensearch(
-      filters,
+    return getActiveOrganizations(this.options.qdb, {
+      tenantId: this.options.currentTenant.id,
+      segmentIds: segments,
+      timestampFrom: new Date(filters.activityTimestampFrom),
+      timestampTo: new Date(filters.activityTimestampTo),
+      platforms: filters.platforms,
+      orderBy: "activityCount",
+      orderByDirection: "desc",
       limit,
       offset,
-      orderBy,
-      this.options,
-      segments,
-    )
+    })
   }
 
   async query(data) {

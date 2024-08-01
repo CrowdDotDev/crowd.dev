@@ -6,7 +6,7 @@ import {
   SERVICE,
   singleOrDefault,
 } from '@crowd/common'
-import { getActivityCountOfMemberIdentities } from '@crowd/data-access-layer'
+import { getActiveMembers, getActivityCountOfMemberIdentities } from '@crowd/data-access-layer'
 import { findMemberAffiliations } from '@crowd/data-access-layer/src/member_segment_affiliations'
 import {
   addMemberNotes,
@@ -1888,19 +1888,17 @@ export default class MemberService extends LoggerBase {
     orderBy: string,
     segments: string[],
   ) {
-    const memberAttributeSettings = (
-      await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
-    ).rows
-
-    return MemberRepository.findAndCountActiveOpensearch(
-      filters,
+    return getActiveMembers(this.options.qdb, {
+      tenantId: this.options.currentTenant.id,
+      segmentIds: segments,
+      timestampFrom: filters.activityTimestampFrom,
+      timestampTo: filters.activityTimestampTo,
+      platforms: filters.platforms,
+      orderBy: "activityCount",
+      orderByDirection: "desc",
       limit,
       offset,
-      orderBy,
-      this.options,
-      memberAttributeSettings,
-      segments,
-    )
+    })
   }
 
   async query(data, exportMode = false) {

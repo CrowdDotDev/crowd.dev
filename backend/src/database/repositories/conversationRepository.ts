@@ -13,10 +13,10 @@ import { IDbConversation } from '@crowd/data-access-layer/src/old/apps/data_sink
 import { optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { PageData, PlatformType } from '@crowd/types'
 import lodash from 'lodash'
+import { ActivityDisplayService } from '@crowd/integrations'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import AuditLogRepository from './auditLogRepository'
 import SequelizeRepository from './sequelizeRepository'
-import { ActivityDisplayService } from '@crowd/integrations'
 import SegmentRepository from './segmentRepository'
 
 class ConversationRepository {
