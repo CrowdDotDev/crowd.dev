@@ -79,12 +79,22 @@
                     class="flex gap-3 items-center"
                   >
                     <div
-                      v-for="{ id, platform, status } in subproject.integrations"
+                      v-for="{
+                        id,
+                        platform,
+                        status,
+                        type,
+                      } in subproject.integrations"
                       :key="id"
                       class="relative w-6 h-6 flex items-center justify-center"
                     >
                       <app-platform-svg
                         :platform="platform"
+                        :color="
+                          platform === 'github' && type === 'mapped'
+                            ? 'gray'
+                            : 'black'
+                        "
                       />
                       <i
                         v-if="status === 'no-data'"
@@ -141,7 +151,10 @@ import { LfService } from '@/modules/lf/segments/lf-segments-service';
 import pluralize from 'pluralize';
 import AppPlatformSvg from '@/shared/modules/platform/components/platform-svg.vue';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
-import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import {
+  EventType,
+  FeatureEventKey,
+} from '@/shared/modules/monitoring/types/event';
 
 const emit = defineEmits(['update:isVisible']);
 const props = defineProps({
@@ -181,7 +194,8 @@ const offset = computed(() => {
 });
 
 const isLoadMoreVisible = computed(
-  () => pagination.value.currentPage * pagination.value.pageSize < pagination.value.count || loading.value,
+  () => pagination.value.currentPage * pagination.value.pageSize
+      < pagination.value.count || loading.value,
 );
 
 const { trackEvent } = useProductTracking();
