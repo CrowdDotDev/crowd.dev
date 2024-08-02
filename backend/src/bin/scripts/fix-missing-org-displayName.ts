@@ -42,7 +42,7 @@ const parameters = commandLineArgs(options)
 function getOrgsWithoutDisplayName(
   qx: QueryExecutor,
   tenantId: string,
-  { limit = 50, offset = 0, countOnly = false },
+  { limit = 50, countOnly = false },
 ) {
   return qx.select(
     `
@@ -51,9 +51,9 @@ function getOrgsWithoutDisplayName(
         FROM organizations o
         WHERE o."tenantId" = $(tenantId)
         AND o."displayName" IS NULL
-        ${countOnly ? '' : 'LIMIT $(limit) OFFSET $(offset)'}
+        ${countOnly ? '' : 'LIMIT $(limit)'}
     `,
-    { tenantId, limit, offset },
+    { tenantId, limit },
   )
 }
 
@@ -107,14 +107,13 @@ if (parameters.help || !parameters.tenantId) {
     const options = await SequelizeRepository.getDefaultIRepositoryOptions()
 
     const BATCH_SIZE = 50
-    let offset = 0
     let processed = 0
 
     const totalOrgs = await getOrgsWithoutDisplayName(qx, tenantId, { countOnly: true })
 
     console.log(`Total organizations without displayName: ${totalOrgs[0].count}`)
 
-    let orgs = await getOrgsWithoutDisplayName(qx, tenantId, { limit: BATCH_SIZE, offset })
+    let orgs = await getOrgsWithoutDisplayName(qx, tenantId, { limit: BATCH_SIZE })
 
     while (totalOrgs[0].count > processed) {
       for (const org of orgs) {
@@ -147,9 +146,9 @@ if (parameters.help || !parameters.tenantId) {
               },
               options,
             )
-          } 
+          }
         } else {
-            console.log(`Organization ${org.id} does not have displayName`)
+          console.log(`Organization ${org.id} does not have displayName`)
         }
 
         processed++
@@ -157,8 +156,7 @@ if (parameters.help || !parameters.tenantId) {
 
       console.log(`Processed ${processed}/${totalOrgs[0].count} organizations`)
 
-      offset += BATCH_SIZE
-      orgs = await getOrgsWithoutDisplayName(qx, tenantId, { limit: BATCH_SIZE, offset })
+      orgs = await getOrgsWithoutDisplayName(qx, tenantId, { limit: BATCH_SIZE })
     }
 
     process.exit(0)
