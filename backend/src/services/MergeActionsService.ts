@@ -27,8 +27,10 @@ export default class MergeActionsService extends LoggerBase {
   static getOperationType(step) {
     if (step.startsWith('merge')) {
       return 'merge'
-    }
-
-    return 'unmerge'
+    } if (step.startsWith('unmerge')) {
+      return 'unmerge'
+    } 
+      
+    throw new Error(`Unrecognized merge action step: ${step}`)
   }
 }
