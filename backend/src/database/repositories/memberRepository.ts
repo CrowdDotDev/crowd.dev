@@ -1544,6 +1544,7 @@ class MemberRepository {
     }: {
       segmentId?: string
     } = {},
+    include: Record<string, string> = {},
   ) {
     const { rows, count } = await MemberRepository.findAndCountAll(
       {
@@ -1554,8 +1555,9 @@ class MemberRepository {
         include: {
           memberOrganizations: true,
           lfxMemberships: true,
-          identities: true,
+          identities: false,
           segments: true,
+          ...include,
         },
       },
       options,

@@ -7,6 +7,7 @@ import { ContributorIdentitiesApiService } from '@/modules/contributor/services/
 export default {
   getContributor(id: string): Promise<Contributor> {
     const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
+    this.getContributorIdentities(id);
     return ContributorApiService.find(id, [selectedProjectGroup.value?.id as string])
       .then((contributor) => {
         this.contributor = {
@@ -35,6 +36,11 @@ export default {
       identities,
     };
     return Promise.resolve(identities);
+  },
+  getContributorIdentities(id: string) {
+    const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
+    return ContributorIdentitiesApiService.list(id, [selectedProjectGroup.value?.id as string])
+      .then(this.setIdentities);
   },
   createContributorIdentities(memberId: string, identities: ContributorIdentity[]): Promise<ContributorIdentity[]> {
     return ContributorIdentitiesApiService.createMultiple(memberId, identities)

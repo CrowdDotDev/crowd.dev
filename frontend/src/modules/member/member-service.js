@@ -116,6 +116,9 @@ export class MemberService {
       {
         params: {
           segments: [segmentId ?? getSelectedProjectGroup().id],
+          include: {
+            identities: true,
+          },
         },
       },
     );
