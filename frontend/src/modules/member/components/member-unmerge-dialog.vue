@@ -270,6 +270,7 @@ import { storeToRefs } from 'pinia';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import { useContributorStore } from '@/modules/contributor/store/contributor.store';
 import AppMemberSuggestionsDetails from './suggestions/member-merge-suggestions-details.vue';
 
 const props = defineProps({
@@ -292,6 +293,7 @@ const { doFind } = mapActions('member');
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
+const { getContributorMergeActions } = useContributorStore();
 
 const unmerging = ref(false);
 const fetchingPreview = ref(false);
@@ -364,6 +366,7 @@ const unmerge = () => {
 
   MemberService.unmerge(props.modelValue?.id, preview.value)
     .then(() => {
+      getContributorMergeActions(props.modelValue?.id);
       Message.info(
         "We're finalizing profiles merging. We will let you know once the process is completed.",
         {

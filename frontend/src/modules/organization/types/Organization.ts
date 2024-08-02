@@ -1,4 +1,5 @@
 import { Platform } from '@/shared/modules/platform/types/Platform';
+import { MergeAction } from '@/shared/modules/merge/types/MemberActions';
 
 export interface OrganizationAttribute extends Record<string, any[]>{
   default: any;
@@ -99,4 +100,5 @@ export interface Organization {
     updatedAt: string;
     usageEndDate: string;
   }
+  activitySycning: MergeAction | null;
 }

@@ -1,4 +1,5 @@
 import { Organization } from '@/modules/organization/types/Organization';
+import { MergeAction } from '@/shared/modules/merge/types/MemberActions';
 
 export interface ContributorAttribute {
   default: string;
@@ -83,5 +84,5 @@ export interface Contributor {
     name: string;
     activityCount: string;
   }[],
-  activitySycning: string;
+  activitySycning: MergeAction | null;
 }
