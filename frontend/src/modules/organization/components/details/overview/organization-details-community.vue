@@ -17,7 +17,14 @@
           <p class="text-tiny text-secondary-300 mb-2">
             # of activities
           </p>
-          <p class="text-small text-gray-600">
+          <lf-loading
+            v-if="props.organization.activitySycning?.state === MergeActionState.IN_PROGRESS"
+            :count="1"
+            height="1rem"
+            width="4rem"
+            class="rounded"
+          />
+          <p v-else class="text-small text-gray-600">
             {{ props.organization.activityCount && formatNumber(props.organization.activityCount) || '-' }}
           </p>
         </article>
@@ -43,6 +50,8 @@ import { Organization } from '@/modules/organization/types/Organization';
 import pluralize from 'pluralize';
 import { onMounted, ref } from 'vue';
 import { MemberService } from '@/modules/member/member-service';
+import { MergeActionState } from '@/shared/modules/merge/types/MemberActions';
+import LfLoading from '@/ui-kit/loading/Loading.vue';
 
 const props = defineProps<{
   organization: Organization,

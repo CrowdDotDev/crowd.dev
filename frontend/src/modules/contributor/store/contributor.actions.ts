@@ -19,12 +19,10 @@ export default {
   getContributorMergeActions(id: string): Promise<MergeAction[]> {
     return MergeActionsService.list(id)
       .then((mergeActions) => {
-        const inProgress = mergeActions.some((action) => action.state === 'in-progress');
-        const error = mergeActions.some((action) => action.state === 'error');
         this.contributor = {
           ...this.contributor,
           // eslint-disable-next-line no-nested-ternary
-          activitySycning: inProgress ? 'in-progress' : (error ? 'error' : ''),
+          activitySycning: mergeActions.length > 0 ? mergeActions[0] : null,
         };
         return Promise.resolve(mergeActions);
       });

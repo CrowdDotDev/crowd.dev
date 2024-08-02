@@ -31,7 +31,7 @@
             # of activities
           </p>
           <lf-loading
-            v-if="props.contributor.activitySycning === MergeActionState.IN_PROGRESS"
+            v-if="props.contributor.activitySycning?.state === MergeActionState.IN_PROGRESS"
             :count="1"
             height="1rem"
             width="4rem"
