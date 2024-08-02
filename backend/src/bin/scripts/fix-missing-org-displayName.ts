@@ -139,7 +139,7 @@ if (parameters.help || !parameters.tenantId) {
               org.id,
               {
                 attributes: {
-                  displayName: {
+                  name: {
                     custom: [displayName],
                     default: displayName,
                   },
@@ -155,7 +155,7 @@ if (parameters.help || !parameters.tenantId) {
         processed++
       }
 
-      console.log(`Processed ${processed}/${totalOrgs} organizations`)
+      console.log(`Processed ${processed}/${totalOrgs[0].count} organizations`)
 
       offset += BATCH_SIZE
       orgs = await getOrgsWithoutDisplayName(qx, tenantId, { limit: BATCH_SIZE, offset })
