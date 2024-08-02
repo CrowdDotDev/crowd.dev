@@ -684,6 +684,7 @@ export default class OrganizationService extends LoggerBase {
   ) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
     const txOptions = { ...this.options, transaction }
+    const tenantId = this.options.currentTenant.id
 
     if (!data.identities) {
       data.identities = []
@@ -747,7 +748,7 @@ export default class OrganizationService extends LoggerBase {
           }
         }
 
-        await upsertOrgIdentities(qx, record.id, record.tenantId, data.identities)
+        await upsertOrgIdentities(qx, record.id, tenantId, data.identities)
       } else {
         record = await OrganizationRepository.create(data, txOptions)
         telemetryTrack(
