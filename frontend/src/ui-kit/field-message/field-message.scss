@@ -3,7 +3,7 @@
   line-height: var(--lf-field-message-line-height);
   margin-top: var(--lf-field-message-spacing);
   color: var(--lf-field-message-color);
-  @apply flex items-center;
+  @apply flex;
 
   &__icon{
     font-size: var(--lf-field-message-icon-size);

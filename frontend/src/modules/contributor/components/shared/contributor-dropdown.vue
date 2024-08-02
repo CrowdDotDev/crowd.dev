@@ -1,20 +1,4 @@
 <template>
-  <template v-if="hasPermission(LfPermission.memberEdit)">
-    <router-link
-      :to="{
-        name: 'memberEdit',
-        params: {
-          id: props.contributor.id,
-        },
-      }"
-    >
-      <lf-dropdown-item>
-        <lf-icon name="pencil-line" />
-        Edit profile
-      </lf-dropdown-item>
-    </router-link>
-    <lf-dropdown-separator />
-  </template>
   <lf-dropdown-item
     v-if="(props.contributor.identities || []).length > 1
       && hasPermission(LfPermission.memberEdit)"

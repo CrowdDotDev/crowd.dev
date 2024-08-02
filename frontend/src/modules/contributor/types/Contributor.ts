@@ -18,6 +18,14 @@ export interface ContributorContribution {
   url: string;
 }
 
+export interface ContributorAffiliation {
+  dateStart: string | null;
+  dateEnd: string | null;
+  organizationId: string;
+  memberId: string;
+  segmentId: string;
+}
+
 export interface ContributorReach {
   total: number;
   github: number;
@@ -70,6 +78,7 @@ export interface Contributor {
   username: Record<string, string[]>
   verifiedEmails: string[];
   unverifiedEmails: string[];
+  affiliations: ContributorAffiliation[];
   segments: {
     id: string;
     name: string;

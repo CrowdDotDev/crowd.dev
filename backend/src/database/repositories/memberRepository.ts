@@ -1546,7 +1546,8 @@ class MemberRepository {
     } = {},
     include: Record<string, string> = {},
   ) {
-    const { rows, count } = await MemberRepository.findAndCountAll(
+    let memberResponse = null
+    memberResponse = await MemberRepository.findAndCountAll(
       {
         filter: { id: { eq: id } },
         limit: 1,
@@ -1563,11 +1564,42 @@ class MemberRepository {
       options,
     )
 
-    if (count === 0) {
-      throw new Error404()
+    if (memberResponse.count === 0) {
+      // try it again without segment information (no aggregates)
+      // for members without activities
+      memberResponse = await MemberRepository.findAndCountAll(
+        {
+          filter: { id: { eq: id } },
+          limit: 1,
+          offset: 0,
+          include: {
+            memberOrganizations: true,
+            lfxMemberships: true,
+            identities: true,
+            segments: true,
+          },
+        },
+        options,
+      )
+
+      if (memberResponse.count === 0) {
+        throw new Error404()
+      }
+
+      memberResponse.rows[0].activityCount = 0
+      memberResponse.rows[0].lastActive = null
+      memberResponse.rows[0].activityTypes = []
+      memberResponse.rows[0].activeOn = []
+      memberResponse.rows[0].averageSentiment = null
     }
 
-    return rows[0]
+    const [data] = memberResponse.rows
+    const affiliations = await MemberRepository.getAffiliations(id, options)
+
+    return {
+      ...data,
+      affiliations,
+    }
   }
 
   static getUsernameFromIdentities(identities: IMemberIdentity[]): IMemberUsername {

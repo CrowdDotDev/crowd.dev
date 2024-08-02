@@ -16,7 +16,9 @@
       <template #header>
         <div>
           <span class="pt-1.5 pb-3 block">Project</span>
-          <div class="text-base font-semibold text-gray-900 normal-case flex items-center h-8 mb-4">
+          <div
+            class="text-base font-semibold text-gray-900 normal-case flex items-center h-8 mb-4"
+          >
             {{ project.name }}
           </div>
         </div>
@@ -27,10 +29,7 @@
     </el-table-column>
 
     <!-- Connected Integrations -->
-    <el-table-column
-      width="250"
-      class-name="table-columns !py-0 !bg-white"
-    >
+    <el-table-column width="250" class-name="table-columns !py-0 !bg-white">
       <template #header>
         <div>
           <span class="pt-1.5 pb-3 block">Connected Integrations</span>
@@ -42,21 +41,27 @@
       <template #default="{ row }">
         <div
           v-if="row.integrations?.length"
-          class="flex gap-1 items-center py-2"
+          class="flex gap-1 items-center py-2 overflow-x-auto"
+          style="max-width: 100%; scrollbar-width: thin"
         >
-          <div
-            v-for="integration in row.integrations"
-            :key="integration.id"
-          >
+          <div v-for="integration in row.integrations" :key="integration.id">
             <el-popover
-              :disabled="integration.status !== 'in-progress' || (!getProgress(row.id, integration.platform) && !progressError)"
+              :disabled="
+                integration.status !== 'in-progress'
+                  && integration.type !== 'mapped'
+                  && !getProgress(row.id, integration.platform)
+                  && !progressError
+              "
               :width="290"
               placement="top"
             >
               <template #reference>
-                <div class="relative w-6 h-6 flex items-center justify-center">
+                <div
+                  class="relative w-6 h-6 flex-shrink-0 flex items-center justify-center"
+                >
                   <app-platform-svg
                     :platform="integration.platform"
+                    :color="integration.platform === 'github' && integration?.type === 'mapped' ? 'gray' : 'black'"
                   />
 
                   <i
@@ -76,19 +81,36 @@
                 </div>
               </template>
               <div class="px-1">
-                <app-integration-progress
-                  v-if="!progressError"
-                  :progress="getProgress(row.id, integration.platform)"
-                  :show-bar="true"
-                  :show-parts="true"
-                >
-                  <h6 class="text-xs text-black leading-5 pb-3">
-                    Connecting {{ CrowdIntegrations.getConfig(integration.platform)?.name }} integration
-                  </h6>
-                </app-integration-progress>
-                <div v-if="progressError" class="text-xs text-gray-500">
-                  <i class="ri-alert-line text-yellow-600" /> Error loading progress
-                </div>
+                <template v-if="integration.type === 'mapped'">
+                  <p class="text-xs text-black leading-5">
+                    Syncing
+                    {{
+                      CrowdIntegrations.getConfig(integration.platform)?.name
+                    }}
+                    data since this sub-project is mapped with
+                    <b>{{ integration.mappedWith }}</b> sub-project
+                  </p>
+                </template>
+                <template v-else>
+                  <app-integration-progress
+                    v-if="!progressError"
+                    :progress="getProgress(row.id, integration.platform)"
+                    :show-bar="true"
+                    :show-parts="true"
+                  >
+                    <h6 class="text-xs text-black leading-5 pb-3">
+                      Connecting
+                      {{
+                        CrowdIntegrations.getConfig(integration.platform)?.name
+                      }}
+                      integration
+                    </h6>
+                  </app-integration-progress>
+                  <div v-if="progressError" class="text-xs text-gray-500">
+                    <i class="ri-alert-line text-yellow-600" /> Error loading
+                    progress
+                  </div>
+                </template>
               </div>
             </el-popover>
           </div>
@@ -98,10 +120,7 @@
     </el-table-column>
 
     <!-- Status -->
-    <el-table-column
-      width="150"
-      class-name="table-columns !bg-white"
-    >
+    <el-table-column width="150" class-name="table-columns !bg-white">
       <template #header>
         <div>
           <span class="pt-1.5 pb-3 block">Status</span>
@@ -135,7 +154,11 @@
       </template>
     </el-table-column>
 
-    <el-table-column fixed="right" width="288" class-name="table-columns !bg-white">
+    <el-table-column
+      fixed="right"
+      width="288"
+      class-name="table-columns !bg-white"
+    >
       <template #header>
         <span class="h-10 block" />
         <div class="flex justify-end mb-4">
@@ -147,7 +170,10 @@
         </div>
       </template>
       <template #default="{ row }">
-        <div v-if="hasAccessToSegmentId(row.id)" class="h-10 items-center flex justify-end gap-3">
+        <div
+          v-if="hasAccessToSegmentId(row.id)"
+          class="h-10 items-center flex justify-end gap-3"
+        >
           <router-link
             :to="{
               name: 'integration',
@@ -169,17 +195,36 @@
       </template>
     </el-table-column>
 
-    <template v-if="project.subprojects?.length && (hasPermission(LfPermission.subProjectCreate) && hasAccessToSegmentId(project.id))" #append>
+    <template
+      v-if="
+        project.subprojects?.length
+          && hasPermission(LfPermission.subProjectCreate)
+          && hasAccessToSegmentId(project.id)
+      "
+      #append
+    >
       <div class="w-full flex justify-start p-6">
-        <el-button class="btn btn-link btn-link--primary" @click="emit('onAddSubProject', project)">
+        <el-button
+          class="btn btn-link btn-link--primary"
+          @click="emit('onAddSubProject', project)"
+        >
           + Add sub-project
         </el-button>
       </div>
     </template>
 
-    <template v-if="(hasPermission(LfPermission.subProjectCreate) && hasAccessToSegmentId(project.id))" #empty>
+    <template
+      v-if="
+        hasPermission(LfPermission.subProjectCreate)
+          && hasAccessToSegmentId(project.id)
+      "
+      #empty
+    >
       <div class="w-full flex justify-start p-6">
-        <el-button class="btn btn-link btn-link--primary" @click="emit('onAddSubProject', project)">
+        <el-button
+          class="btn btn-link btn-link--primary"
+          @click="emit('onAddSubProject', project)"
+        >
           + Add sub-project
         </el-button>
       </div>
@@ -201,7 +246,11 @@ import { CrowdIntegrations } from '@/integrations/integrations-config';
 
 const route = useRoute();
 
-const emit = defineEmits(['onEditProject', 'onEditSubProject', 'onAddSubProject']);
+const emit = defineEmits([
+  'onEditProject',
+  'onEditSubProject',
+  'onAddSubProject',
+]);
 const props = defineProps({
   project: {
     type: Object,
@@ -210,7 +259,7 @@ const props = defineProps({
   progress: {
     type: Array,
     required: false,
-    default: () => ([]),
+    default: () => [],
   },
   progressError: {
     type: Boolean,
@@ -222,7 +271,9 @@ const { hasPermission, hasAccessToSegmentId } = usePermissions();
 
 const statusDisplay = (status) => statusOptions.find((s) => s.value === status);
 
-const getProgress = (segmentId, platform) => (props.progress || []).find((p) => p.segmentId === segmentId && p.platform === platform);
+const getProgress = (segmentId, platform) => (props.progress || []).find(
+  (p) => p.segmentId === segmentId && p.platform === platform,
+);
 </script>
 
 <script>
@@ -234,7 +285,7 @@ export default {
 <style lang="scss">
 #projects-table {
   @apply rounded-md shadow;
-  border: 1px solid #E5E7EB;
+  border: 1px solid #e5e7eb;
 
   thead .table-columns {
     @apply align-top h-auto px-6;
@@ -245,7 +296,7 @@ export default {
   }
 
   tbody {
-    tr td:last-child{
+    tr td:last-child {
       @apply px-6;
     }
 
@@ -253,8 +304,8 @@ export default {
       @apply align-middle h-14 px-6;
 
       &.el-table-fixed-column--right .cell {
-          @apply justify-end;
-        }
+        @apply justify-end;
+      }
     }
 
     .cell {
@@ -265,7 +316,7 @@ export default {
   }
 
   .el-table__empty-text {
-    @apply w-full
+    @apply w-full;
   }
 
   .el-table__append-wrapper {
