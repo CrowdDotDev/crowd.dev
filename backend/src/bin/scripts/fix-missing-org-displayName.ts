@@ -113,11 +113,11 @@ if (parameters.help || !parameters.tenantId) {
 
     const totalOrgs = await getOrgsWithoutDisplayName(qx, tenantId, { countOnly: true })
 
-    console.log(`Total organizations without displayName: ${totalOrgs}`)
+    console.log(`Total organizations without displayName: ${totalOrgs.count}`)
 
     let orgs = await getOrgsWithoutDisplayName(qx, tenantId, { limit: BATCH_SIZE, offset })
 
-    while (totalOrgs > processed) {
+    while (totalOrgs.count > processed) {
       for (const org of orgs) {
         let displayName
         let updateAttributes = false
