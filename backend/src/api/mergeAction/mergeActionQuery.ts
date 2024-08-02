@@ -11,7 +11,6 @@ import PermissionChecker from '../../services/user/permissionChecker'
  * @pathParam {string} tenantId - Your workspace/tenant ID
  * @queryParam {string} entityId - ID of the entity
  * @queryParam {string} type - type of the entity (e.g., org or member)
- * @queryParam {array} state - state of the merge action (e.g., in-progress, error)
  * @queryParam {number} [limit] - number of records to return (optional, default to 20)
  * @queryParam {number} [offset] - number of records to skip (optional, default to 0)
  * @response 200 - Ok
