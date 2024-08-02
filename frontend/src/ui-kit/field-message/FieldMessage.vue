@@ -1,5 +1,5 @@
 <template>
-  <div class="c-field-message" :class="`c-field-message--${props.type}`">
+  <div class="c-field-message" :class="`c-field-message--${props.type}`" v-bind="$attrs">
     <span v-if="$slots.icon || iconClass" class="c-field-message__icon">
       <slot name="icon">
         <span
