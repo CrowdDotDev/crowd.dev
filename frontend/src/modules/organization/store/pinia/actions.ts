@@ -34,7 +34,7 @@ export default {
       });
   },
   getOrganizationMergeActions(id: string): Promise<MergeAction[]> {
-    return MergeActionsService.list(id, 'organization')
+    return MergeActionsService.list(id, 'org')
       .then((mergeActions) => {
         this.organization = {
           ...this.organization,
