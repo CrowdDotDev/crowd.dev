@@ -18,4 +18,4 @@ export {
   recalculateActivityAffiliationsOfOrganizationSynchronous,
 } from './activities/organizations'
 
-export { setMergeActionState } from './activities/common'
+export { setMergeAction } from './activities/common'

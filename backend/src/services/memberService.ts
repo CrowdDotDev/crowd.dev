@@ -25,6 +25,7 @@ import {
   MemberRoleUnmergeStrategy,
   OrganizationIdentityType,
   IMemberRoleWithOrganization,
+  MergeActionStep,
 } from '@crowd/types'
 import { randomUUID } from 'crypto'
 import lodash from 'lodash'
@@ -734,6 +735,17 @@ export default class MemberService extends LoggerBase {
 
       // create the secondary member
       const secondaryMember = await MemberRepository.create(payload.secondary, repoOptions)
+
+      // track merge action
+      await MergeActionsRepository.add(
+        MergeActionType.MEMBER,
+        member.id,
+        secondaryMember.id,
+        repoOptions,
+        MergeActionStep.UNMERGE_STARTED,
+        MergeActionState.IN_PROGRESS,
+      )
+
       // move affiliations
       if (payload.secondary.affiliations.length > 0) {
         await MemberRepository.moveSelectedAffiliationsBetweenMembers(
@@ -859,6 +871,16 @@ export default class MemberService extends LoggerBase {
 
       // trigger entity-merging-worker to move activities in the background
       await SequelizeRepository.commitTransaction(tx)
+
+      await MergeActionsRepository.setMergeAction(
+        MergeActionType.MEMBER,
+        member.id,
+        secondaryMember.id,
+        repoOptions,
+        {
+          step: MergeActionStep.UNMERGE_SYNC_DONE,
+        },
+      )
 
       // responsible for moving member's activities, syncing to opensearch afterwards, recalculating activity.organizationIds and notifying frontend via websockets
       await this.options.temporal.workflow.start('finishMemberUnmerging', {
@@ -1324,6 +1346,7 @@ export default class MemberService extends LoggerBase {
             originalId,
             toMergeId,
             this.options,
+            MergeActionStep.MERGE_STARTED,
             MergeActionState.IN_PROGRESS,
             backup,
           )
@@ -1400,6 +1423,16 @@ export default class MemberService extends LoggerBase {
           await SequelizeRepository.commitTransaction(tx)
           return { original, toMerge }
         }),
+      )
+
+      await MergeActionsRepository.setMergeAction(
+        MergeActionType.MEMBER,
+        originalId,
+        toMergeId,
+        this.options,
+        {
+          step: MergeActionStep.MERGE_SYNC_DONE,
+        },
       )
 
       await this.options.temporal.workflow.start('finishMemberMerging', {
