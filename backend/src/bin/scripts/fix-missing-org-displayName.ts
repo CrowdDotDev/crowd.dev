@@ -70,17 +70,16 @@ async function getOrgIdentities(qx: QueryExecutor, orgId: string, tenantId: stri
   )
 }
 
-async function getOrgAttributes(qx: QueryExecutor, orgId: string, tenantId: string) {
+async function getOrgAttributes(qx: QueryExecutor, orgId: string) {
   return qx.select(
     `
       SELECT value
-      FROM "organizationAttributes"
+      FROM "orgAttributes"
       WHERE "organizationId" = $(orgId)
-      AND "tenantId" = $(tenantId)
       AND name = 'name'
       LIMIT 1
     `,
-    { orgId, tenantId },
+    { orgId },
   )
 }
 
@@ -122,7 +121,7 @@ if (parameters.help || !parameters.tenantId) {
         let displayName
         let updateAttributes = false
 
-        const attributes = await getOrgAttributes(qx, org.id, tenantId)
+        const attributes = await getOrgAttributes(qx, org.id)
 
         if (attributes.length > 0) {
           displayName = attributes[0]?.value
