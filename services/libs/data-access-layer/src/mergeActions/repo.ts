@@ -19,7 +19,7 @@ export async function queryMergeActions(
     where += ` AND ma.type = $(type)`
   }
 
-  if (state) {
+  if (state.length) {
     where += ` AND ma.state IN ($(state:csv))`
   }
 
@@ -33,6 +33,7 @@ export async function queryMergeActions(
       FROM "mergeActions" ma
       WHERE 1 = 1
         ${where}
+      ORDER BY ma."createdAt" DESC
       LIMIT $(limit)
       OFFSET $(offset)
     `,
