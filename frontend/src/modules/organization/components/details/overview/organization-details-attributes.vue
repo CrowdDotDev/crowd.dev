@@ -82,8 +82,6 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfOrganizationAttributeSource
   from '@/modules/organization/components/details/overview/attributes/organization-attribute-source.vue';
 import useOrganizationHelpers from '@/modules/organization/helpers/organization.helpers';
-import LfOrganizationDetailsDomainsSection
-  from '@/modules/organization/components/details/domains/organization-details-domains-section.vue';
 
 const props = defineProps<{
   organization: Organization,
