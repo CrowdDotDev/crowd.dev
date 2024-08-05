@@ -1,5 +1,5 @@
 <template>
-  <lf-dropdown placement="bottom-end" v-bind="$attrs">
+  <lf-dropdown placement="bottom-end" v-bind="$attrs" width="14.5rem">
     <template #trigger>
       <slot />
     </template>
