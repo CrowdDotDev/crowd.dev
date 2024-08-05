@@ -1042,6 +1042,22 @@ export default class OrganizationService extends LoggerBase {
     )
   }
 
+  async listOrganizationsAcrossAllSegments(args) {
+    const { filter, orderBy, limit, offset } = args
+    return OrganizationRepository.findAndCountAll(
+      {
+        filter,
+        orderBy,
+        limit,
+        offset,
+        segmentId: undefined,
+        fields: ['id', 'displayName', 'isTeamOrganization'],
+        include: { identities: true, segments: true, lfxMemberships: true },
+      },
+      this.options,
+    )
+  }
+
   async destroyBulk(ids) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
