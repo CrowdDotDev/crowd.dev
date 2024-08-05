@@ -26,8 +26,14 @@
                   </template>
                 </lf-input>
                 <label v-if="showVerified" class="border border-gray-200 h-10 py-2.5 px-3 border-l-0 cursor-pointer rounded-r-lg">
-                  <lf-checkbox v-model="domain.verified" class="!flex-nowrap">
-                    Verified
+                  <lf-checkbox
+                    v-model="domain.verified"
+                    :disabled="verifiedDisabled && !domain.verified"
+                    class="!flex-nowrap"
+                  >
+                    <span :class="verifiedDisabled && !domain.verified ? 'text-gray-400' : 'text-black'">
+                      Verified
+                    </span>
                   </lf-checkbox>
                 </label>
                 <lf-button
@@ -146,6 +152,8 @@ const isModalOpen = computed<boolean>({
 
 const showVerified = computed(() => props.modelValue?.type !== OrganizationIdentityType.PRIMARY_DOMAIN
       || !props.organization.identities.some((i) => i.verified && i.type === OrganizationIdentityType.PRIMARY_DOMAIN));
+
+const verifiedDisabled = computed(() => form.some((i) => i.verified && i.type === OrganizationIdentityType.PRIMARY_DOMAIN));
 
 const addDomains = () => {
   sending.value = true;
