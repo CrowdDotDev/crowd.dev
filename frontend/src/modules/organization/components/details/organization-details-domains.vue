@@ -4,29 +4,40 @@
       <h6 class="text-h6">
         Domains
       </h6>
-      <lf-button
-        v-if="hasPermission(LfPermission.organizationEdit)
-          && (domains(props.organization).length > 0 || affiliatedProfiles(props.organization).length > 0)"
-        type="secondary"
-        size="small"
-        :icon-only="true"
-        @click="edit = true"
-      >
-        <lf-icon name="pencil-line" />
-      </lf-button>
+      <lf-organization-details-domains-add-dropdown @add="add = $event">
+        <lf-tooltip content="Add domain">
+          <lf-button
+            v-if="hasPermission(LfPermission.organizationEdit)"
+            type="secondary"
+            size="small"
+            :icon-only="true"
+          >
+            <lf-icon name="add-fill" />
+          </lf-button>
+        </lf-tooltip>
+      </lf-organization-details-domains-add-dropdown>
     </div>
     <div class="flex flex-col gap-6">
       <lf-organization-details-domains-section
         title="Primary domain"
         :domains="primaryDomains(props.organization)"
+        :organization="props.organization"
+        @edit="edit = $event"
+        @unmerge="unmerge"
       />
       <lf-organization-details-domains-section
         title="Alternative domain"
         :domains="alternativeDomains(props.organization)"
+        :organization="props.organization"
+        @edit="edit = $event"
+        @unmerge="unmerge"
       />
       <lf-organization-details-domains-section
         title="Affiliated domain"
         :domains="affiliatedProfiles(props.organization)"
+        :organization="props.organization"
+        @edit="edit = $event"
+        @unmerge="unmerge"
       />
     </div>
 
@@ -37,18 +48,18 @@
       </p>
     </div>
   </section>
-  <app-organization-manage-domains-drawer
-    v-if="edit"
-    v-model="edit"
-    :organization="organization"
-    @unmerge="unmerge"
-    @reload="emit('reload')"
-  />
   <app-organization-unmerge-dialog
     v-if="isUnmergeDialogOpen"
     v-model="isUnmergeDialogOpen"
     :selected-identity="selectedIdentity"
   />
+  <lf-organization-domain-add
+    v-if="add"
+    v-model="add"
+    :organization="props.organization"
+    @update:model-value="add = null"
+  />
+  <lf-organization-domain-edit v-if="edit" v-model="edit" :organization="props.organization" />
 </template>
 
 <script setup lang="ts">
@@ -58,18 +69,19 @@ import { ref } from 'vue';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import useOrganizationHelpers from '@/modules/organization/helpers/organization.helpers';
-import { Organization } from '@/modules/organization/types/Organization';
+import { Organization, OrganizationIdentity } from '@/modules/organization/types/Organization';
 import LfOrganizationDetailsDomainsSection
   from '@/modules/organization/components/details/domains/organization-details-domains-section.vue';
-import AppOrganizationManageDomainsDrawer
-  from '@/modules/organization/components/organization-manage-domains-drawer.vue';
 import AppOrganizationUnmergeDialog from '@/modules/organization/components/organization-unmerge-dialog.vue';
+import LfOrganizationDomainEdit from '@/modules/organization/components/edit/domain/organization-domain-edit.vue';
+import LfOrganizationDetailsDomainsAddDropdown
+  from '@/modules/organization/components/details/domains/organization-details-domains-add-dropdown.vue';
+import LfOrganizationDomainAdd from '@/modules/organization/components/edit/domain/organization-domain-add.vue';
+import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
 
 const props = defineProps<{
   organization: Organization,
 }>();
-
-const emit = defineEmits<{(e: 'reload'): any}>();
 
 const { hasPermission } = usePermissions();
 
@@ -78,7 +90,8 @@ const {
   affiliatedProfiles, domains,
 } = useOrganizationHelpers();
 
-const edit = ref<boolean>(false);
+const add = ref<Partial<OrganizationIdentity> | null>(null);
+const edit = ref<OrganizationIdentity | null>(null);
 const isUnmergeDialogOpen = ref(null);
 const selectedIdentity = ref(null);
 
