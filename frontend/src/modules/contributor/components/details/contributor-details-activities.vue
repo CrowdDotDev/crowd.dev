@@ -5,7 +5,7 @@
       Syncing activities...
     </h6>
     <p class="text-center text-medium text-gray-500">
-      Re-syncing all the activities as this organization was recently
+      Re-syncing all the activities as this person was recently
       {{ props.contributor.activitySycning?.operationType === 'merge' ? 'merged' : 'unmerged' }}.<br>
       This process may take some minutes.
     </p>
@@ -13,10 +13,11 @@
   <div v-else-if="props.contributor.activitySycning?.state === MergeActionState.ERROR" class="pt-12 flex flex-col items-center">
     <lf-icon name="error-warning-line" :size="40" class="text-gray-300" />
     <h6 class="text-center py-3">
-      Error loading activities
+      Error syncing activities
     </h6>
     <p class="text-center text-medium text-gray-500">
-      An error occurred while syncing this profile activities. Please reach out to our team.
+      An error occurred while syncing this profile activities.<br>
+      Please contact our support team.
     </p>
   </div>
   <app-activity-timeline
