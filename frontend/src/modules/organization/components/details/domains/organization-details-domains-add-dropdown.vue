@@ -23,7 +23,6 @@ const emit = defineEmits<{(e: 'add', value: Partial<OrganizationIdentity>): void
 const domainTypes: OrganizationIdentityType[] = [
   OrganizationIdentityType.PRIMARY_DOMAIN,
   OrganizationIdentityType.ALTERNATIVE_DOMAIN,
-  OrganizationIdentityType.AFFILIATED_PROFILE,
 ];
 
 </script>

@@ -25,7 +25,12 @@
           <lf-icon name="verified-badge-line" :size="16" class="text-primary-500" />
         </lf-tooltip>
       </div>
-      <lf-dropdown v-if="hovered && hasPermission(LfPermission.memberEdit)" placement="bottom-end" width="232px">
+      <lf-dropdown
+        v-if="props.domain.type !== OrganizationIdentityType.AFFILIATED_PROFILE
+          && hovered && hasPermission(LfPermission.memberEdit)"
+        placement="bottom-end"
+        width="232px"
+      >
         <template #trigger>
           <lf-button type="secondary-ghost" size="small" :icon-only="true">
             <lf-icon name="more-fill" />
@@ -60,7 +65,7 @@
           </lf-dropdown-item>
         </lf-tooltip>
         <lf-tooltip
-          v-else
+          v-else-if="showVerified"
           placement="top"
           :disabled="!isVerifyDisabled"
           class="!w-full"
@@ -102,7 +107,11 @@
 </template>
 
 <script setup lang="ts">
-import { Organization, OrganizationIdentity } from '@/modules/organization/types/Organization';
+import {
+  Organization,
+  OrganizationIdentity,
+  OrganizationIdentityType,
+} from '@/modules/organization/types/Organization';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { withHttp } from '@/utils/string';
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
@@ -134,6 +143,9 @@ const hovered = ref(false);
 const isVerifyDisabled = computed(
   () => !!props.domain.sourceId || ['integration', 'lfid'].includes(props.domain.platform),
 );
+
+const showVerified = computed(() => props.domain.type !== OrganizationIdentityType.PRIMARY_DOMAIN
+    || !props.organization.identities.some((i) => i.verified && i.type === OrganizationIdentityType.PRIMARY_DOMAIN));
 
 const verifyDomain = (verified: boolean) => {
   const identities = props.organization.identities.map((i: OrganizationIdentity) => {

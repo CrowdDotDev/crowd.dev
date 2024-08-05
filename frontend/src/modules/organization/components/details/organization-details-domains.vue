@@ -32,16 +32,9 @@
         @edit="edit = $event"
         @unmerge="unmerge"
       />
-      <lf-organization-details-domains-section
-        title="Affiliated domain"
-        :domains="affiliatedProfiles(props.organization)"
-        :organization="props.organization"
-        @edit="edit = $event"
-        @unmerge="unmerge"
-      />
     </div>
 
-    <div v-if="!domains(props.organization).length && !affiliatedProfiles(props.organization).length" class="pt-2 flex flex-col items-center w-full">
+    <div v-if="!domains(props.organization).length" class="pt-2 flex flex-col items-center w-full">
       <lf-icon name="link" :size="40" class="text-gray-300" />
       <p class="text-center pt-3 text-medium text-gray-400">
         No domains
@@ -87,7 +80,7 @@ const { hasPermission } = usePermissions();
 
 const {
   primaryDomains, alternativeDomains,
-  affiliatedProfiles, domains,
+  domains,
 } = useOrganizationHelpers();
 
 const add = ref<Partial<OrganizationIdentity> | null>(null);

@@ -10,7 +10,12 @@
     </div>
     <div class="pt-2 pb-10 px-6 w-full">
       <div class="flex items-center w-full">
-        <lf-input v-model="form.value" class="!rounded-r-none h-10 flex-grow" placeholder="Enter URL">
+        <lf-input
+          v-model="form.value"
+          class="!rounded-r-none h-10 flex-grow"
+          :class="showVerified ? '!rounded-r-none' : ''"
+          placeholder="Enter URL"
+        >
           <template #prefix>
             <div class="flex items-center flex-nowrap whitespace-nowrap">
               <div class="min-w-5">
@@ -19,7 +24,7 @@
             </div>
           </template>
         </lf-input>
-        <label class="border border-gray-200 h-10 py-2.5 px-3 border-l-0 cursor-pointer rounded-r-lg">
+        <label v-if="showVerified" class="border border-gray-200 h-10 py-2.5 px-3 border-l-0 cursor-pointer rounded-r-lg">
           <lf-checkbox v-model="form.verified">
             Verified
           </lf-checkbox>
@@ -104,6 +109,9 @@ const isModalOpen = computed<boolean>({
     }
   },
 });
+
+const showVerified = computed(() => props.modelValue?.type !== OrganizationIdentityType.PRIMARY_DOMAIN
+    || props.modelValue?.verified);
 
 const updateDomain = () => {
   const identities = props.organization.identities.map((i: OrganizationIdentity) => {
