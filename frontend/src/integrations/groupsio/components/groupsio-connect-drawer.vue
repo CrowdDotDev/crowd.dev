@@ -108,7 +108,7 @@
         </p>
         <div class="text-2xs text-gray-500 leading-normal mb-1">
           Select which groups you want to track. All topics avaliable in each group will be monitored. <a
-            href="https://docs.crowd.dev/docs/discourse-integration#webhooks"
+            href="https://docs.linuxfoundation.org/lfx/community-management/integrations/groups.io"
             target="_blank"
             rel="noopener noreferrer"
             class="hover:underline"
