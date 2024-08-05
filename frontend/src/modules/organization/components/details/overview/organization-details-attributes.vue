@@ -51,9 +51,8 @@
           </p>
         </div>
         <div class="w-7/12 pr-1">
-          <lf-organization-details-domains-section
-            :organization="props.organization"
-            :domains="affiliated"
+          <lf-organization-attribute-array
+            :data="affiliated.map((a) => a.value)"
           />
         </div>
       </article>
