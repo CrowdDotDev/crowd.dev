@@ -27,7 +27,7 @@ export interface OrganizationIdentity {
     type: OrganizationIdentityType;
     value: string;
     verified: boolean;
-    sourceId?: string;
+    sourceId?: string | null;
     tenantId?: string;
     integrationId?: string;
 }
