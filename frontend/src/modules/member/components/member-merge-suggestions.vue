@@ -146,6 +146,7 @@ import LfButton from '@/ui-kit/button/Button.vue';
 import AppMemberMergeSimilarity from '@/modules/member/components/suggestions/member-merge-similarity.vue';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import { useContributorStore } from '@/modules/contributor/store/contributor.store';
 import { MemberService } from '../member-service';
 
 const props = defineProps({
@@ -164,6 +165,7 @@ const props = defineProps({
 const emit = defineEmits(['reload']);
 
 const { trackEvent } = useProductTracking();
+const { getContributorMergeActions } = useContributorStore();
 
 const membersToMerge = ref([]);
 const primary = ref(0);
@@ -248,7 +250,7 @@ const ignoreSuggestion = () => {
   MemberService.addToNoMerge(...membersToMerge.value.members)
     .then(() => {
       Message.success('Merging suggestion ignored successfully');
-
+      getContributorMergeActions();
       const nextIndex = offset.value >= (count.value - 1) ? Math.max(count.value - 2, 0) : offset.value;
       fetch(nextIndex);
       changed.value = true;
