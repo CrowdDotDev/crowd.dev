@@ -61,7 +61,7 @@ export async function createMemberIdentity(
   memberId: string,
   data: Partial<IMemberIdentity>,
 ): Promise<void> {
-  return qx.select(
+  return qx.result(
     `
         INSERT INTO "memberIdentities"("tenantId", "memberId", platform, type, value, verified)
         VALUES($(tenantId), $(memberId), $(platform), $(type), $(value), $(verified))
@@ -103,7 +103,7 @@ export async function updateMemberIdentity(
   id: string,
   data: Partial<IMemberIdentity>,
 ): Promise<void> {
-  return qx.select(
+  return qx.result(
     `
           UPDATE "memberIdentities"
           SET
@@ -129,7 +129,7 @@ export async function deleteMemberIdentity(
   memberId: string,
   id: string,
 ): Promise<void> {
-  return qx.select(
+  return qx.result(
     `
         DELETE FROM "memberIdentities"
         WHERE "memberId" = $(memberId) AND "id" = $(id);
