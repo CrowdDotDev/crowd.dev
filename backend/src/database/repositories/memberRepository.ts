@@ -1559,7 +1559,7 @@ class MemberRepository {
           lfxMemberships: true,
           identities: false,
           segments: true,
-          onlySubProjects: true,
+          OnlySubProjects: true,
           ...include,
         },
       },
@@ -2235,13 +2235,13 @@ class MemberRepository {
       include = {
         identities: true,
         segments: false,
-        onlySubProjects: false,
+        OnlySubProjects: false,
         lfxMemberships: false,
         memberOrganizations: false,
       } as {
         identities?: boolean
         segments?: boolean
-        onlySubProjects?: boolean
+        OnlySubProjects?: boolean
         lfxMemberships?: boolean
         memberOrganizations?: boolean
       },
@@ -2495,18 +2495,25 @@ class MemberRepository {
           return acc
         }, []),
       )
-
-      // include only subprojects
-      const segmentsInfo = await fetchManySegments(qx, segmentIds, include.onlySubProjects)
+      const segmentsInfo = await fetchManySegments(qx, segmentIds)
 
       rows.forEach((member) => {
-        member.segments = (
-          memberSegments.find((i) => i.memberId === member.id)?.segments || []
-        ).map((segment) => ({
-          id: segment.segmentId,
-          name: segmentsInfo.find((s) => s.id === segment.segmentId)?.name,
-          activityCount: segment.activityCount,
-        }))
+        member.segments = (memberSegments.find((i) => i.memberId === member.id)?.segments || [])
+          .map((segment) => {
+            const segmentInfo = segmentsInfo.find((s) => s.id === segment.segmentId)
+
+            // include only subprojects if flag is set
+            if (include.OnlySubProjects && segmentInfo?.type !== SegmentType.SUB_PROJECT) {
+              return null
+            }
+
+            return {
+              id: segment.segmentId,
+              name: segmentInfo?.name,
+              activityCount: segment.activityCount,
+            }
+          })
+          .filter(Boolean)
       })
     }
 

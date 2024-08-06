@@ -18,17 +18,12 @@ export async function findProjectGroupByName(
   )
 }
 
-export async function fetchManySegments(
-  qx,
-  segmentIds: string[],
-  includeOnlySubProjects?: boolean,
-): Promise<SegmentData[]> {
+export async function fetchManySegments(qx, segmentIds: string[]): Promise<SegmentData[]> {
   return qx.select(
     `
       SELECT *
       FROM segments
       WHERE id = ANY($(segmentIds)::UUID[])
-      ${includeOnlySubProjects ? `AND type = 'subproject'` : ''}
     `,
     { segmentIds },
   )
