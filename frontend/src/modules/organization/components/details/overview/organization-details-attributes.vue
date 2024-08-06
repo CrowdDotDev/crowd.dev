@@ -41,6 +41,21 @@
           />
         </div>
       </article>
+      <article
+        v-if="affiliated.length > 0"
+        class="border-b border-gray-100 flex py-4"
+      >
+        <div class="w-5/12">
+          <p class="text-small font-semibold mb-1">
+            Affiliated profiles
+          </p>
+        </div>
+        <div class="w-7/12 pr-1">
+          <lf-organization-attribute-array
+            :data="affiliated.map((a) => a.value)"
+          />
+        </div>
+      </article>
 
       <div v-if="Object.keys(visibleAttributes).length === 0" class="pt-2 flex flex-col items-center w-full">
         <lf-icon name="list-view" :size="80" class="text-gray-300" />
@@ -66,6 +81,7 @@ import LfOrganizationAttributeJson
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfOrganizationAttributeSource
   from '@/modules/organization/components/details/overview/attributes/organization-attribute-source.vue';
+import useOrganizationHelpers from '@/modules/organization/helpers/organization.helpers';
 
 const props = defineProps<{
   organization: Organization,
@@ -78,12 +94,11 @@ const ignoreAttributes = [
   'phoneNumber',
 ];
 
-const camelCaseToLabel = (attribute: string) => {
-  console.log(attribute);
-  return attribute
-    ?.replace(/([A-Z])/g, ' $1')
-    ?.replace(/^./, (str) => str.toUpperCase()) || attribute;
-};
+const { affiliatedProfiles } = useOrganizationHelpers();
+
+const camelCaseToLabel = (attribute: string) => attribute
+  ?.replace(/([A-Z])/g, ' $1')
+  ?.replace(/^./, (str) => str.toUpperCase()) || attribute;
 
 const getAttributeType = (attribute: Record<string, any>) => {
   if (attribute.default?.constructor === Array || (!attribute.default && Object.values(attribute)?.[0].constructor === Array)) {
@@ -137,6 +152,7 @@ const getValue = (attribute: OrganizationEnrichmentConfig) => {
   return value;
 };
 
+const affiliated = computed(() => affiliatedProfiles(props.organization));
 </script>
 
 <script lang="ts">

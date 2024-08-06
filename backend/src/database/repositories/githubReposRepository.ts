@@ -82,4 +82,31 @@ export default class GithubReposRepository {
 
     return results
   }
+
+  static async hasMappedRepos(segmentId: string, options: IRepositoryOptions) {
+    const transaction = SequelizeRepository.getTransaction(options)
+    const tenantId = options.currentTenant.id
+
+    const result = await options.database.sequelize.query(
+      `
+        SELECT EXISTS (
+          SELECT 1
+          FROM "githubRepos" r
+          WHERE r."segmentId" = :segmentId
+          AND r."tenantId" = :tenantId
+          LIMIT 1
+        ) as has_repos
+      `,
+      {
+        replacements: {
+          segmentId,
+          tenantId,
+        },
+        type: QueryTypes.SELECT,
+        transaction,
+      },
+    )
+
+    return result[0].has_repos
+  }
 }

@@ -55,7 +55,9 @@ const {
   isBot, isTeamMember, activeOrganization,
 } = useContributorHelpers();
 
-const hasHeaderIdentities = computed(() => props.contributor.identities.some((i) => contributorDetailsHeaderProfilePlatforms.includes(i.platform)));
+const hasHeaderIdentities = computed(
+  () => (props.contributor.identities || []).some((i) => contributorDetailsHeaderProfilePlatforms.includes(i.platform)),
+);
 
 const organization = computed(() => activeOrganization(props.contributor));
 const jobTitle = computed(() => props.contributor.attributes.jobTitle?.default

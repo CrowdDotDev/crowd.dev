@@ -1,5 +1,5 @@
 import { DbStore } from '@crowd/database'
-import { IActivityIdentity, IMemberIdentity, MergeActionState } from '@crowd/types'
+import { IActivityIdentity, IMemberIdentity, MergeActionState, MergeActionStep } from '@crowd/types'
 import { ISegmentIds } from './types'
 
 export async function deleteMemberSegments(db: DbStore, memberId: string) {
@@ -56,18 +56,30 @@ export async function updateMergeActionState(
   primaryId: string,
   secondaryId: string,
   tenantId: string,
-  state: MergeActionState,
+  data: { step?: MergeActionStep; state?: MergeActionState },
 ) {
+  const setClauses = []
+  const replacements = [primaryId, secondaryId, tenantId]
+
+  if (data.step) {
+    setClauses.push(`step = $${replacements.length + 1}`)
+    replacements.push(data.step)
+  }
+
+  if (data.state) {
+    setClauses.push(`state = $${replacements.length + 1}`)
+    replacements.push(data.state)
+  }
+
   return db.connection().query(
     `
-            UPDATE "mergeActions"
-            SET state = $4
-            WHERE "tenantId" = $3
-              AND "primaryId" = $1
-              AND "secondaryId" = $2
-              AND state != $4
-        `,
-    [primaryId, secondaryId, tenantId, state],
+      UPDATE "mergeActions"
+      SET ${setClauses.join(', ')}
+      WHERE "primaryId" = $1
+        AND "secondaryId" = $2
+        AND "tenantId" = $3
+    `,
+    replacements,
   )
 }
 

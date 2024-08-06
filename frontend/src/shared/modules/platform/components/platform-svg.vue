@@ -1,7 +1,7 @@
 <template>
   <lf-svg
     :class="svgClass"
-    color="#D1D5DB"
+    :color="color"
     :name="platform"
   />
 </template>
@@ -12,8 +12,11 @@ import { computed } from 'vue';
 
 const props = defineProps<{
     platform: string;
-    size: string;
+    size?: string;
+    color?: string;
 }>();
+
+const color = computed(() => props.color || undefined);
 
 const svgClass = computed(() => {
   if (props.size === 'large') {

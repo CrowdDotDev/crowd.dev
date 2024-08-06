@@ -1,13 +1,36 @@
-import { captureApiChange, memberEditIdentitiesAction, memberMergeAction } from '@crowd/audit-logs'
+/* eslint-disable no-continue */
+
 import {
-  Error400,
-  getProperDisplayName,
-  isDomainExcluded,
   SERVICE,
+  Error400,
+  isDomainExcluded,
   singleOrDefault,
+  getProperDisplayName,
 } from '@crowd/common'
-import { getActivityCountOfMemberIdentities } from '@crowd/data-access-layer'
-import { findMemberAffiliations } from '@crowd/data-access-layer/src/member_segment_affiliations'
+import { LoggerBase } from '@crowd/logging'
+import { WorkflowIdReusePolicy } from '@crowd/temporal'
+import {
+  IMemberIdentity,
+  IMemberUnmergeBackup,
+  IMemberUnmergePreviewResult,
+  IOrganization,
+  IUnmergePreviewResult,
+  MemberAttributeType,
+  MemberIdentityType,
+  MergeActionState,
+  MergeActionType,
+  SyncMode,
+  TemporalWorkflowId,
+  MemberRoleUnmergeStrategy,
+  OrganizationIdentityType,
+  IMemberRoleWithOrganization,
+  MergeActionStep,
+} from '@crowd/types'
+import { randomUUID } from 'crypto'
+import lodash from 'lodash'
+import moment from 'moment-timezone'
+import validator from 'validator'
+import { captureApiChange, memberEditIdentitiesAction, memberMergeAction } from '@crowd/audit-logs'
 import {
   addMemberNotes,
   addMemberTags,
@@ -24,36 +47,11 @@ import {
   removeMemberTags,
   removeMemberTasks,
 } from '@crowd/data-access-layer/src/members'
-import { optionsQx, QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
+import { findMemberAffiliations } from '@crowd/data-access-layer/src/member_segment_affiliations'
+import { getActivityCountOfMemberIdentities } from '@crowd/data-access-layer'
 import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
-import { LoggerBase } from '@crowd/logging'
-import { WorkflowIdReusePolicy } from '@crowd/temporal'
-import {
-  IMemberIdentity,
-  IMemberRoleWithOrganization,
-  IMemberUnmergeBackup,
-  IMemberUnmergePreviewResult,
-  IOrganization,
-  IUnmergePreviewResult,
-  MemberAttributeType,
-  MemberIdentityType,
-  MemberRoleUnmergeStrategy,
-  MergeActionState,
-  MergeActionType,
-  OrganizationIdentityType,
-  SyncMode,
-  TemporalWorkflowId,
-} from '@crowd/types'
-import { randomUUID } from 'crypto'
-import lodash from 'lodash'
-import moment from 'moment-timezone'
-import validator from 'validator'
-import OrganizationRepository from '@/database/repositories/organizationRepository'
-import { MergeActionsRepository } from '@/database/repositories/mergeActionsRepository'
-import MemberOrganizationRepository from '@/database/repositories/memberOrganizationRepository'
-import { ServiceType } from '@/conf/configTypes'
+import { QueryExecutor, optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { TEMPORAL_CONFIG } from '@/conf'
-import { GITHUB_TOKEN_CONFIG } from '../conf'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
 import ActivityRepository from '../database/repositories/activityRepository'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
@@ -70,12 +68,16 @@ import telemetryTrack from '../segment/telemetryTrack'
 import { IServiceOptions } from './IServiceOptions'
 import merge from './helpers/merge'
 import MemberAttributeSettingsService from './memberAttributeSettingsService'
-import MemberOrganizationService from './memberOrganizationService'
 import OrganizationService from './organizationService'
 import SearchSyncService from './searchSyncService'
 import SettingsService from './settingsService'
-
-/* eslint-disable no-continue */
+import { GITHUB_TOKEN_CONFIG } from '../conf'
+import { ServiceType } from '@/conf/configTypes'
+import MemberOrganizationService from './memberOrganizationService'
+import { MergeActionsRepository } from '@/database/repositories/mergeActionsRepository'
+import MemberOrganizationRepository from '@/database/repositories/memberOrganizationRepository'
+import OrganizationRepository from '@/database/repositories/organizationRepository'
+import MemberIdentityRepository from '@/database/repositories/member/memberIdentityRepository'
 
 export default class MemberService extends LoggerBase {
   options: IServiceOptions
@@ -734,6 +736,17 @@ export default class MemberService extends LoggerBase {
 
       // create the secondary member
       const secondaryMember = await MemberRepository.create(payload.secondary, repoOptions)
+
+      // track merge action
+      await MergeActionsRepository.add(
+        MergeActionType.MEMBER,
+        member.id,
+        secondaryMember.id,
+        repoOptions,
+        MergeActionStep.UNMERGE_STARTED,
+        MergeActionState.IN_PROGRESS,
+      )
+
       // move affiliations
       if (payload.secondary.affiliations.length > 0) {
         await MemberRepository.moveSelectedAffiliationsBetweenMembers(
@@ -860,6 +873,16 @@ export default class MemberService extends LoggerBase {
       // trigger entity-merging-worker to move activities in the background
       await SequelizeRepository.commitTransaction(tx)
 
+      await MergeActionsRepository.setMergeAction(
+        MergeActionType.MEMBER,
+        member.id,
+        secondaryMember.id,
+        repoOptions,
+        {
+          step: MergeActionStep.UNMERGE_SYNC_DONE,
+        },
+      )
+
       // responsible for moving member's activities, syncing to opensearch afterwards, recalculating activity.organizationIds and notifying frontend via websockets
       await this.options.temporal.workflow.start('finishMemberUnmerging', {
         taskQueue: 'entity-merging',
@@ -896,11 +919,11 @@ export default class MemberService extends LoggerBase {
    * This will only return a preview, users will be able to edit the preview and confirm the payload
    * Unmerge will be done in /unmerge endpoint with the confirmed payload from the user.
    * @param memberId member for identity extraction/unmerge
-   * @param identity identity to be extracted/unmerged
+   * @param identityId identity to be extracted/unmerged
    */
   async unmergePreview(
     memberId: string,
-    identity: IMemberIdentity,
+    identityId: string,
   ): Promise<IUnmergePreviewResult<IMemberUnmergePreviewResult>> {
     const relationships = ['tags', 'notes', 'tasks', 'identities', 'affiliations']
 
@@ -937,14 +960,8 @@ export default class MemberService extends LoggerBase {
         tasks: tasks.map((t) => ({ id: t.taskId })),
       }
 
-      if (
-        !member.identities.some(
-          (i) =>
-            i.platform === identity.platform &&
-            i.type === identity.type &&
-            i.value === identity.value,
-        )
-      ) {
+      const identity = await MemberIdentityRepository.findById(memberId, identityId, this.options)
+      if (!identity) {
         throw new Error(`Member doesn't have the identity sent to be unmerged!`)
       }
 
@@ -1324,6 +1341,7 @@ export default class MemberService extends LoggerBase {
             originalId,
             toMergeId,
             this.options,
+            MergeActionStep.MERGE_STARTED,
             MergeActionState.IN_PROGRESS,
             backup,
           )
@@ -1400,6 +1418,16 @@ export default class MemberService extends LoggerBase {
           await SequelizeRepository.commitTransaction(tx)
           return { original, toMerge }
         }),
+      )
+
+      await MergeActionsRepository.setMergeAction(
+        MergeActionType.MEMBER,
+        originalId,
+        toMergeId,
+        this.options,
+        {
+          step: MergeActionStep.MERGE_SYNC_DONE,
+        },
       )
 
       await this.options.temporal.workflow.start('finishMemberMerging', {
@@ -1857,10 +1885,15 @@ export default class MemberService extends LoggerBase {
     }
   }
 
-  async findById(id, segmentId?: string) {
-    return MemberRepository.findById(id, this.options, {
-      segmentId,
-    })
+  async findById(id, segmentId?: string, include: Record<string, string> = {}) {
+    return MemberRepository.findById(
+      id,
+      this.options,
+      {
+        segmentId,
+      },
+      include,
+    )
   }
 
   async findAllAutocomplete(data) {

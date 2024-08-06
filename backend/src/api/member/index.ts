@@ -43,4 +43,6 @@ export default (app) => {
     safeWrap(require('./memberNotMerge').default),
   )
   app.patch(`/tenant/:tenantId/member`, safeWrap(require('./memberUpdateBulk').default))
+
+  require('./identity').default(app)
 }

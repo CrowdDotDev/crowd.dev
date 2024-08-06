@@ -1,12 +1,12 @@
-import { MergeActionState } from '@crowd/types'
+import { MergeActionState, MergeActionStep } from '@crowd/types'
 import { svc } from '../main'
 import { updateMergeActionState } from '@crowd/data-access-layer/src/old/apps/entity_merging_worker'
 
-export async function setMergeActionState(
+export async function setMergeAction(
   primaryId: string,
   secondaryId: string,
   tenantId: string,
-  state: MergeActionState,
+  data: { state?: MergeActionState; step?: MergeActionStep },
 ): Promise<void> {
-  await updateMergeActionState(svc.postgres.writer, primaryId, secondaryId, tenantId, state)
+  await updateMergeActionState(svc.postgres.writer, primaryId, secondaryId, tenantId, data)
 }

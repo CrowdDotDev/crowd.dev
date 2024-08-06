@@ -19,7 +19,8 @@
           <lf-contributor-details-header :contributor="contributor" />
         </div>
         <div class="flex items-center">
-          <lf-contributor-last-enrichment :contributor="contributor" class="mr-4" />
+          <lf-contributor-syncing-activities v-if="contributor.activitySycning?.state === MergeActionState.IN_PROGRESS" :contributor="contributor" />
+          <lf-contributor-last-enrichment v-else :contributor="contributor" class="mr-4" />
           <div @mouseover.stop @mouseout.stop>
             <lf-contributor-details-actions :contributor="contributor" @reload="fetchContributor()" />
           </div>
@@ -48,7 +49,15 @@
                 Overview
               </lf-tab>
               <lf-tab v-model="tabs" name="activities">
-                Activities
+                <div class="flex items-center gap-1">
+                  Activities
+                  <lf-icon
+                    v-if="contributor.activitySycning?.state === MergeActionState.ERROR"
+                    name="error-warning-line"
+                    :size="16"
+                    class="text-red-500"
+                  />
+                </div>
               </lf-tab>
               <lf-tab v-model="tabs" name="notes">
                 Notes
@@ -100,6 +109,8 @@ import LfContributorDetailsHeader from '@/modules/contributor/components/details
 import LfContributorDetailsActions from '@/modules/contributor/components/details/contributor-details-actions.vue';
 import LfContributorLastEnrichment from '@/modules/contributor/components/shared/contributor-last-enrichment.vue';
 import { useContributorStore } from '@/modules/contributor/store/contributor.store';
+import LfContributorSyncingActivities from '@/modules/contributor/components/shared/contributor-syncing-activities.vue';
+import { MergeActionState } from '@/shared/modules/merge/types/MemberActions';
 
 const { getMemberCustomAttributes } = useMemberStore();
 

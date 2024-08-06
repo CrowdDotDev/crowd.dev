@@ -1057,6 +1057,17 @@ class Permissions {
           TenantPlans.Scale,
         ],
       },
+      mergeActionRead: {
+        id: 'mergeActionRead',
+        allowedRoles: [roles.admin, roles.projectAdmin, roles.readonly],
+        allowedPlans: [
+          TenantPlans.Essential,
+          TenantPlans.Growth,
+          TenantPlans.EagleEye,
+          TenantPlans.Enterprise,
+          TenantPlans.Scale,
+        ],
+      },
     }
   }
 

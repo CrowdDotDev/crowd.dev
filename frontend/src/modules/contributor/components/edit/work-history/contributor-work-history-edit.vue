@@ -18,12 +18,17 @@
               @blur="$v.organization.$touch"
               @change="$v.organization.$touch"
             />
+
             <lf-field-messages
               :validation="$v.organization"
               :error-messages="{
                 required: 'This field is required',
               }"
             />
+            <lf-field-message v-if="hasSameOrganization" type="warning" class="!mt-2">
+              There is already a work experience associated with this organization.
+              Please ensure that either the Job title or Period is different before adding this work experience.
+            </lf-field-message>
           </lf-field>
           <lf-field label-text="Job title" class="mb-5">
             <lf-input v-model="form.title" />
@@ -67,18 +72,33 @@
           </lf-checkbox>
         </div>
       </div>
+      <div class="px-6 pb-10 flex">
+        <div class="mt-0.5">
+          <lf-icon name="information-line" :size="16" class="text-gray-600" />
+        </div>
+        <div class="flex-grow pl-2 text-xs text-gray-500">
+          <span class="font-semibold">Activities affiliation</span> with a certain organization is automatically defined
+          by the work experience period. Any work history updates won’t override
+          manual changes to activities affiliation, both individually or per project over a specific time period.
+        </div>
+      </div>
       <div class="py-4 px-6 border-t border-gray-100 flex items-center justify-end gap-4">
         <lf-button type="secondary-ghost" @click="close">
           Cancel
         </lf-button>
-        <lf-button
-          type="primary"
-          :loading="sending"
-          :disabled="$v.$invalid || sending"
-          @click="updateWorkExperience()"
+        <lf-tooltip
+          :disabled="!hasSameOrgDetails"
+          content="Please enter a different Job title or Period, as there is already a work experience associated with the selected organization."
         >
-          {{ isEdit ? 'Update' : 'Add' }} work experience
-        </lf-button>
+          <lf-button
+            type="primary"
+            :loading="sending"
+            :disabled="$v.$invalid || sending || hasSameOrgDetails"
+            @click="updateWorkExperience()"
+          >
+            {{ isEdit ? 'Update' : 'Add' }} work experience
+          </lf-button>
+        </lf-tooltip>
       </div>
     </template>
   </lf-modal>
@@ -105,6 +125,8 @@ import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 import LfFieldMessages from '@/ui-kit/field-messages/FieldMessages.vue';
+import LfFieldMessage from '@/ui-kit/field-message/FieldMessage.vue';
+import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
 
 const props = defineProps<{
   modelValue: boolean,
@@ -124,16 +146,16 @@ const sending = ref<boolean>(false);
 interface ConrtibutorWorkHistoryForm {
   organization: Organization | null,
   title: string;
-  dateStart: string;
-  dateEnd: string;
+  dateStart: string | null;
+  dateEnd: string | null;
   currentlyWorking: boolean,
 }
 
 const form = reactive<ConrtibutorWorkHistoryForm>({
   organization: null,
   title: '',
-  dateStart: '',
-  dateEnd: '',
+  dateStart: null,
+  dateEnd: null,
   currentlyWorking: false,
 });
 
@@ -241,6 +263,36 @@ const isModalOpen = computed<boolean>({
     emit('update:modelValue', value);
   },
 });
+
+const hasSameOrganization = computed(() => props.contributor.organizations.some((o: Organization) => o.id === form.organization?.id)
+    && (!isEdit.value || form.organization?.id !== props.organization?.id));
+
+const hasSameOrgDetails = computed(() => props.contributor.organizations
+  .some((o: Organization) => {
+    // Check for the same organization
+    if (o.id !== form.organization?.id) {
+      return false;
+    }
+
+    //  Check for empty info
+    if (!form.title && !form.dateStart && !form.dateEnd) {
+      return true;
+    }
+
+    // Check if titles matching
+    if (form.title !== o.memberOrganizations.title) {
+      return false;
+    }
+
+    // Check if dates matching
+    const start = form.dateStart && o.memberOrganizations.dateStart
+      ? moment(form.dateStart).startOf('month').isSame(moment(o.memberOrganizations.dateStart), 'day')
+      : form.dateStart === o.memberOrganizations.dateStart;
+    const end = !form.currentlyWorking && form.dateEnd && o.memberOrganizations.dateEnd
+      ? moment(form.dateEnd).startOf('month').isSame(moment(o.memberOrganizations.dateEnd), 'day')
+      : form.dateEnd === o.memberOrganizations.dateEnd;
+    return start && end;
+  }));
 
 onMounted(() => {
   if (props.organization) {

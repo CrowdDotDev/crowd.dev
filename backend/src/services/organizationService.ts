@@ -11,6 +11,7 @@ import {
   IUnmergePreviewResult,
   MemberRoleUnmergeStrategy,
   MergeActionState,
+  MergeActionStep,
   MergeActionType,
   OrganizationIdentityType,
   SyncMode,
@@ -98,7 +99,17 @@ export default class OrganizationService extends LoggerBase {
         const primaryBackup = mergeAction.unmergeBackup.primary as IOrganizationUnmergeBackup
         const secondaryBackup = mergeAction.unmergeBackup.secondary as IOrganizationUnmergeBackup
 
-        // identities
+        // Construct primary organization with best effort
+        for (const key of OrganizationService.ORGANIZATION_MERGE_FIELDS) {
+          if (
+            primaryBackup[key] !== organization[key] &&
+            secondaryBackup[key] === organization[key]
+          ) {
+            organization[key] = primaryBackup[key] || null
+          }
+        }
+
+        // Remove identities coming from secondary backup
         organization.identities = organization.identities.filter(
           (i) =>
             !secondaryBackup.identities.some(
@@ -229,6 +240,15 @@ export default class OrganizationService extends LoggerBase {
         repoOptions,
       )
 
+      await MergeActionsRepository.add(
+        MergeActionType.ORG,
+        organizationId,
+        secondaryOrganization.id,
+        this.options,
+        MergeActionStep.UNMERGE_STARTED,
+        MergeActionState.IN_PROGRESS,
+      )
+
       if (payload.mergeActionId) {
         const mergeAction = await MergeActionsRepository.findById(
           payload.mergeActionId,
@@ -291,6 +311,16 @@ export default class OrganizationService extends LoggerBase {
 
       // trigger entity-merging-worker to move activities in the background
       await SequelizeRepository.commitTransaction(tx)
+
+      await MergeActionsRepository.setMergeAction(
+        MergeActionType.ORG,
+        organizationId,
+        secondaryOrganization.id,
+        this.options,
+        {
+          step: MergeActionStep.UNMERGE_SYNC_DONE,
+        },
+      )
 
       // responsible for moving organization's activities, syncing to opensearch afterwards, recalculating activity.organizationIds and notifying frontend via websockets
       await this.options.temporal.workflow.start('finishOrganizationUnmerging', {
@@ -379,10 +409,7 @@ export default class OrganizationService extends LoggerBase {
 
           const backup = {
             primary: {
-              ...lodash.pick(
-                await OrganizationRepository.findById(originalId, this.options, segmentId),
-                OrganizationService.ORGANIZATION_MERGE_FIELDS,
-              ),
+              ...lodash.pick(original, OrganizationService.ORGANIZATION_MERGE_FIELDS),
               identities: await OrganizationRepository.getIdentities([originalId], this.options),
               memberOrganizations: await MemberOrganizationRepository.findRolesInOrganization(
                 originalId,
@@ -413,6 +440,7 @@ export default class OrganizationService extends LoggerBase {
             // not using transaction here on purpose,
             // so this change is visible until we finish
             this.options,
+            MergeActionStep.MERGE_STARTED,
             MergeActionState.IN_PROGRESS,
             backup,
           )
@@ -551,37 +579,18 @@ export default class OrganizationService extends LoggerBase {
 
           this.log.info({ originalId, toMergeId }, '[Merge Organizations] - Transaction commited! ')
 
-          await MergeActionsRepository.setState(
+          await MergeActionsRepository.setMergeAction(
             MergeActionType.ORG,
             originalId,
             toMergeId,
-            MergeActionState.FINISHING,
             this.options,
+            {
+              step: MergeActionStep.MERGE_SYNC_DONE,
+            },
           )
 
           return { original, toMerge }
         }),
-      )
-
-      this.log.info(
-        { originalId, toMergeId },
-        '[Merge Organizations] - Sending refresh opensearch messages! ',
-      )
-
-      const searchSyncService = new SearchSyncService(this.options, SyncMode.ASYNCHRONOUS)
-
-      await searchSyncService.triggerOrganizationSync(tenantId, originalId)
-      await searchSyncService.triggerRemoveOrganization(tenantId, toMergeId)
-
-      // sync organization members
-      await searchSyncService.triggerOrganizationMembersSync(
-        this.options.currentTenant.id,
-        originalId,
-      )
-
-      this.log.info(
-        { originalId, toMergeId },
-        '[Merge Organizations] - Sending refresh opensearch messages done! ',
       )
 
       await this.options.temporal.workflow.start('finishOrganizationMerging', {
@@ -614,12 +623,14 @@ export default class OrganizationService extends LoggerBase {
         toMergeId,
       })
 
-      await MergeActionsRepository.setState(
+      await MergeActionsRepository.setMergeAction(
         MergeActionType.ORG,
         originalId,
         toMergeId,
-        MergeActionState.ERROR,
         this.options,
+        {
+          state: MergeActionState.ERROR,
+        },
       )
 
       if (tx) {
@@ -697,6 +708,7 @@ export default class OrganizationService extends LoggerBase {
   ) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
     const txOptions = { ...this.options, transaction }
+    const tenantId = this.options.currentTenant.id
 
     if (!data.identities) {
       data.identities = []
@@ -760,7 +772,7 @@ export default class OrganizationService extends LoggerBase {
           }
         }
 
-        await upsertOrgIdentities(qx, record.id, record.tenantId, data.identities)
+        await upsertOrgIdentities(qx, record.id, tenantId, data.identities)
       } else {
         record = await OrganizationRepository.create(data, txOptions)
         telemetryTrack(
