@@ -77,6 +77,7 @@ import MemberOrganizationService from './memberOrganizationService'
 import { MergeActionsRepository } from '@/database/repositories/mergeActionsRepository'
 import MemberOrganizationRepository from '@/database/repositories/memberOrganizationRepository'
 import OrganizationRepository from '@/database/repositories/organizationRepository'
+import MemberIdentityRepository from '@/database/repositories/member/memberIdentityRepository'
 
 export default class MemberService extends LoggerBase {
   options: IServiceOptions
@@ -918,11 +919,11 @@ export default class MemberService extends LoggerBase {
    * This will only return a preview, users will be able to edit the preview and confirm the payload
    * Unmerge will be done in /unmerge endpoint with the confirmed payload from the user.
    * @param memberId member for identity extraction/unmerge
-   * @param identity identity to be extracted/unmerged
+   * @param identityId identity to be extracted/unmerged
    */
   async unmergePreview(
     memberId: string,
-    identity: IMemberIdentity,
+    identityId: string,
   ): Promise<IUnmergePreviewResult<IMemberUnmergePreviewResult>> {
     const relationships = ['tags', 'notes', 'tasks', 'identities', 'affiliations']
 
@@ -959,14 +960,8 @@ export default class MemberService extends LoggerBase {
         tasks: tasks.map((t) => ({ id: t.taskId })),
       }
 
-      if (
-        !member.identities.some(
-          (i) =>
-            i.platform === identity.platform &&
-            i.type === identity.type &&
-            i.value === identity.value,
-        )
-      ) {
+      const identity = await MemberIdentityRepository.findById(memberId, identityId, this.options)
+      if (!identity) {
         throw new Error(`Member doesn't have the identity sent to be unmerged!`)
       }
 
@@ -1890,10 +1885,15 @@ export default class MemberService extends LoggerBase {
     }
   }
 
-  async findById(id, segmentId?: string) {
-    return MemberRepository.findById(id, this.options, {
-      segmentId,
-    })
+  async findById(id, segmentId?: string, include: Record<string, string> = {}) {
+    return MemberRepository.findById(
+      id,
+      this.options,
+      {
+        segmentId,
+      },
+      include,
+    )
   }
 
   async findAllAutocomplete(data) {

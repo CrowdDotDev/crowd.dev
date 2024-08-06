@@ -116,6 +116,9 @@ export class MemberService {
       {
         params: {
           segments: [segmentId ?? getSelectedProjectGroup().id],
+          include: {
+            identities: true,
+          },
         },
       },
     );
@@ -267,7 +270,9 @@ export class MemberService {
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/member/${memberId}/unmerge/preview`,
-      identity,
+      {
+        identity,
+      },
     );
 
     return response.data;

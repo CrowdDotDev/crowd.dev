@@ -148,13 +148,13 @@
                         <template #dropdown>
                           <template
                             v-for="i of identities"
-                            :key="`${i.type}:${i.platform}:${i.value}`"
+                            :key="i.id"
                           >
                             <el-dropdown-item
-                              v-if="`${i.type}:${i.platform}:${i.value}` !== selectedIdentity"
-                              :value="`${i.type}:${i.platform}:${i.value}`"
+                              v-if="i.id !== selectedIdentity"
+                              :value="i.id"
                               :label="i.value"
-                              @click="fetchPreview(`${i.type}:${i.platform}:${i.value}`)"
+                              @click="fetchPreview(i.id)"
                             >
                               <i v-if="i.type === 'email'" class="text-gray-900 text-lg leading-5 mr-2 ri-mail-line" />
                               <img
@@ -226,8 +226,8 @@
                 >
                   <el-option
                     v-for="i of identities"
-                    :key="`${i.type}:${i.platform}:${i.value}`"
-                    :value="`${i.type}:${i.platform}:${i.value}`"
+                    :key="i.id"
+                    :value="i.id"
                     :label="i.value"
                   >
                     <i v-if="i.type === 'email'" class="text-gray-900 text-lg leading-5 mr-2 ri-mail-line" />
@@ -279,7 +279,7 @@ const props = defineProps({
     required: true,
   },
   selectedIdentity: {
-    type: Object,
+    type: String,
     required: false,
     default: () => null,
   },
@@ -325,19 +325,15 @@ const identities = computed(() => (props.modelValue.identities || [])
     return aOrder - bOrder;
   }));
 
-const fetchPreview = (identity) => {
+const fetchPreview = (identityId) => {
   if (fetchingPreview.value) {
     return;
   }
 
-  selectedIdentity.value = identity;
+  selectedIdentity.value = identityId;
   fetchingPreview.value = true;
 
-  const [type, platform, username] = identity.split(':');
-  const foundIdentity = props.modelValue.identities.find(
-    (i) => i.platform === platform && i.value === username && i.type === type,
-  );
-  MemberService.unmergePreview(props.modelValue?.id, foundIdentity)
+  MemberService.unmergePreview(props.modelValue?.id, identityId)
     .then((res) => {
       preview.value = res;
     })
@@ -395,10 +391,9 @@ const unmerge = () => {
 
 onMounted(() => {
   if (props.selectedIdentity) {
-    fetchPreview(`${props.selectedIdentity.type}:${props.selectedIdentity.platform}:${props.selectedIdentity.value}`);
+    fetchPreview(props.selectedIdentity);
   }
 });
-
 </script>
 
 <script>
