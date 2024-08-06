@@ -68,6 +68,8 @@ class IntegrationRepository {
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
+    console.log(id, currentTenant.id, SequelizeRepository.getSegmentIds(options))
+
     let record = await options.database.integration.findOne({
       where: {
         id,
