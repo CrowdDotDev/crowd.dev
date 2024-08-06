@@ -7,6 +7,7 @@ export interface IKafkaConfig extends IQueueConfig {
 export interface IKafkaClientConfig {
   brokers: string
   clientId: string
+  extra?: string
 }
 
 export interface IKafkaQueueStartOptions {
