@@ -1559,6 +1559,7 @@ class MemberRepository {
           lfxMemberships: true,
           identities: false,
           segments: true,
+          onlySubProjects: true,
           ...include,
         },
       },
@@ -2234,11 +2235,13 @@ class MemberRepository {
       include = {
         identities: true,
         segments: false,
+        onlySubProjects: false,
         lfxMemberships: false,
         memberOrganizations: false,
       } as {
         identities?: boolean
         segments?: boolean
+        onlySubProjects?: boolean
         lfxMemberships?: boolean
         memberOrganizations?: boolean
       },
@@ -2494,7 +2497,7 @@ class MemberRepository {
       )
 
       // include only subprojects
-      const segmentsInfo = await fetchManySegments(qx, segmentIds, true)
+      const segmentsInfo = await fetchManySegments(qx, segmentIds, include.onlySubProjects)
 
       rows.forEach((member) => {
         member.segments = (
