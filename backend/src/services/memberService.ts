@@ -1885,15 +1885,10 @@ export default class MemberService extends LoggerBase {
     }
   }
 
-  async findById(id, segmentId?: string, include: Record<string, string> = {}) {
-    return MemberRepository.findById(
-      id,
-      this.options,
-      {
-        segmentId,
-      },
-      include,
-    )
+  async findById(id, segmentId?: string) {
+    return MemberRepository.findById(id, this.options, {
+      segmentId,
+    })
   }
 
   async findAllAutocomplete(data) {
