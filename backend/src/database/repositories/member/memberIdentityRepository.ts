@@ -13,8 +13,9 @@ import SequelizeRepository from '../sequelizeRepository'
 
 class MemberIdentityRepository {
   static async list(memberId: string, options: IRepositoryOptions) {
-    const transaction = SequelizeRepository.createTransaction(options)
-    const qx = SequelizeRepository.getQueryExecutor(options, transaction)
+    const transaction = await SequelizeRepository.createTransaction(options)
+    const txOptions = { ...options, transaction }
+    const qx = SequelizeRepository.getQueryExecutor(txOptions, transaction)
 
     // List all member identities
     return fetchMemberIdentities(qx, memberId)
@@ -26,8 +27,9 @@ class MemberIdentityRepository {
     data: Partial<IMemberIdentity>,
     options: IRepositoryOptions,
   ) {
-    const transaction = SequelizeRepository.createTransaction(options)
-    const qx = SequelizeRepository.getQueryExecutor(options, transaction)
+    const transaction = await SequelizeRepository.createTransaction(options)
+    const txOptions = { ...options, transaction }
+    const qx = SequelizeRepository.getQueryExecutor(txOptions, transaction)
 
     // Check if identity already exists
     const existingIdentities = await checkIdentityExistance(qx, data.value, data.platform)
@@ -50,8 +52,9 @@ class MemberIdentityRepository {
   }
 
   static async findById(memberId: string, id: string, options: IRepositoryOptions) {
-    const transaction = SequelizeRepository.createTransaction(options)
-    const qx = SequelizeRepository.getQueryExecutor(options, transaction)
+    const transaction = await SequelizeRepository.createTransaction(options)
+    const txOptions = { ...options, transaction }
+    const qx = SequelizeRepository.getQueryExecutor(txOptions, transaction)
 
     // Create member identity
     return findMemberIdentityById(qx, memberId, id)
@@ -63,8 +66,9 @@ class MemberIdentityRepository {
     data: Partial<IMemberIdentity>[],
     options: IRepositoryOptions,
   ) {
-    const transaction = SequelizeRepository.createTransaction(options)
-    const qx = SequelizeRepository.getQueryExecutor(options, transaction)
+    const transaction = await SequelizeRepository.createTransaction(options)
+    const txOptions = { ...options, transaction }
+    const qx = SequelizeRepository.getQueryExecutor(txOptions, transaction)
 
     // Check if any of the identities already exist
     for (const identity of data) {
@@ -97,8 +101,9 @@ class MemberIdentityRepository {
     data: Partial<IMemberIdentity>,
     options: IRepositoryOptions,
   ) {
-    const transaction = SequelizeRepository.createTransaction(options)
-    const qx = SequelizeRepository.getQueryExecutor(options, transaction)
+    const transaction = await SequelizeRepository.createTransaction(options)
+    const txOptions = { ...options, transaction }
+    const qx = SequelizeRepository.getQueryExecutor(txOptions, transaction)
 
     // Check if identity already exists
     const existingIdentities = await checkIdentityExistance(qx, data.value, data.platform)
@@ -122,8 +127,9 @@ class MemberIdentityRepository {
   }
 
   static async delete(id: string, memberId: string, options: IRepositoryOptions) {
-    const transaction = SequelizeRepository.createTransaction(options)
-    const qx = SequelizeRepository.getQueryExecutor(options, transaction)
+    const transaction = await SequelizeRepository.createTransaction(options)
+    const txOptions = { ...options, transaction }
+    const qx = SequelizeRepository.getQueryExecutor(txOptions, transaction)
 
     // Delete member identity
     await deleteMemberIdentity(qx, memberId, id)
