@@ -176,7 +176,8 @@ export interface IActivityTimeseriesResult {
 }
 
 export interface IActivityBySentimentMoodResult {
-  sentiment: string
+  sentimentLabel: string
+  count: number
 }
 
 export interface IActivityByTypeAndPlatformResult {

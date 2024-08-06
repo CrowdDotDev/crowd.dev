@@ -102,7 +102,7 @@ export async function getNewMembersTimeseries(
       if (!mapped[row.date]) {
         mapped[row.date] = {
           date: row.date,
-          count: row.count,
+          count: Number(row.count),
         }
       } else {
         mapped[row.date]['count'] = Number(mapped[row.date]['count']) + Number(row.count)
@@ -194,7 +194,7 @@ export async function getNewOrganizationsTimeseries(
       if (!mapped[row.date]) {
         mapped[row.date] = {
           date: row.date,
-          count: row.count,
+          count: Number(row.count),
         }
       } else {
         mapped[row.date]['count'] = Number(mapped[row.date]['count']) + Number(row.count)

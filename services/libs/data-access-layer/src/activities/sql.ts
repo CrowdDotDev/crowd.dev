@@ -583,7 +583,7 @@ export async function queryActivities(
     const countResults = rows[0] ? rows[0].count : 0
     return {
       rows: [],
-      count: countResults,
+      count: Number(countResults),
       limit: arg.limit,
       offset: arg.offset,
     }
@@ -658,7 +658,7 @@ export async function queryActivities(
   }
 
   return {
-    count,
+    count: Number(count),
     rows: results,
     limit: arg.limit,
     offset: arg.offset,
@@ -1085,6 +1085,10 @@ export async function activitiesTimeseries(
     before: arg.before,
   })
 
+  rows.forEach((row) => {
+    row.count = Number(row.count)
+  })
+
   return rows
 }
 
@@ -1122,6 +1126,10 @@ export async function activitiesBySentiment(
     before: arg.before,
   })
 
+  rows.forEach((row) => {
+    row.count = Number(row.count)
+  })
+
   return rows
 }
 
@@ -1156,6 +1164,10 @@ export async function activitiesByTypeAndPlatform(
     platform: arg.platform,
     after: arg.after,
     before: arg.before,
+  })
+
+  rows.forEach((row) => {
+    row.count = Number(row.count)
   })
 
   return rows

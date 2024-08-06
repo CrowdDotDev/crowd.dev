@@ -419,7 +419,7 @@ export async function getNumberOfNewOrganizations(
     before: arg.before,
   })
 
-  return rows[0].count || 0
+  return Number(rows[0].count) || 0
 }
 
 export async function getNumberOfActiveOrganizations(
@@ -452,7 +452,7 @@ export async function getNumberOfActiveOrganizations(
     platform: arg.platform,
   })
 
-  return rows[0].count || 0
+  return Number(rows[0].count) || 0
 }
 
 export async function getTimeseriesOfActiveOrganizations(
