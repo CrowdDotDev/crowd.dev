@@ -14,6 +14,7 @@ import {
   SegmentData,
   SegmentProjectGroupNestedData,
   SegmentProjectNestedData,
+  SegmentType,
   SyncStatus,
 } from '@crowd/types'
 import lodash, { chunk, uniq } from 'lodash'
@@ -2491,7 +2492,9 @@ class MemberRepository {
           return acc
         }, []),
       )
-      const segmentsInfo = await fetchManySegments(qx, segmentIds)
+
+      // include only subprojects
+      const segmentsInfo = await fetchManySegments(qx, segmentIds, true)
 
       rows.forEach((member) => {
         member.segments = (
