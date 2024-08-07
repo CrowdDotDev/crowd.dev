@@ -1559,7 +1559,7 @@ class MemberRepository {
           lfxMemberships: true,
           identities: false,
           segments: true,
-          OnlySubProjects: true,
+          onlySubProjects: true,
           ...include,
         },
       },
@@ -2235,13 +2235,13 @@ class MemberRepository {
       include = {
         identities: true,
         segments: false,
-        OnlySubProjects: false,
+        onlySubProjects: false,
         lfxMemberships: false,
         memberOrganizations: false,
       } as {
         identities?: boolean
         segments?: boolean
-        OnlySubProjects?: boolean
+        onlySubProjects?: boolean
         lfxMemberships?: boolean
         memberOrganizations?: boolean
       },
@@ -2503,7 +2503,7 @@ class MemberRepository {
             const segmentInfo = segmentsInfo.find((s) => s.id === segment.segmentId)
 
             // include only subprojects if flag is set
-            if (include.OnlySubProjects && segmentInfo?.type !== SegmentType.SUB_PROJECT) {
+            if (include.onlySubProjects && segmentInfo?.type !== SegmentType.SUB_PROJECT) {
               return null
             }
 
