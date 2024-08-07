@@ -1776,7 +1776,9 @@ export default class MemberService extends LoggerBase {
         },
         args: [
           {
-            memberId: id,
+            member: {
+              id,
+            },
             memberOrganizationIds: (data.organizations || []).map((o) => o.id),
             syncToOpensearch,
           },

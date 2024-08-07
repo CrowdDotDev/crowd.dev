@@ -88,7 +88,9 @@ export async function recalculateActivityAffiliationsOfMemberAsync(
     },
     args: [
       {
-        memberId,
+        member: {
+          id: memberId,
+        },
       },
     ],
     searchAttributes: {

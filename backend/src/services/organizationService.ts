@@ -920,7 +920,9 @@ export default class OrganizationService extends LoggerBase {
         },
         args: [
           {
-            organizationId: record.id,
+            organization: {
+              id: record.id,
+            },
             syncToOpensearch,
           },
         ],

@@ -13,7 +13,7 @@ export async function updateOrganizationAffiliations(
   input: IOrganizationAffiliationUpdateInput,
 ): Promise<void> {
   try {
-    const memberIds = await findMemberIdsInOrganization(svc.postgres.writer, input.organizationId)
+    const memberIds = await findMemberIdsInOrganization(svc.postgres.writer, input.organization.id)
     for (const memberId of memberIds) {
       await svc.temporal.workflow.execute('memberUpdate', {
         taskQueue: 'profiles',
@@ -24,7 +24,9 @@ export async function updateOrganizationAffiliations(
         },
         args: [
           {
-            memberId,
+            member: {
+              id: memberId,
+            },
           },
         ],
         searchAttributes: {

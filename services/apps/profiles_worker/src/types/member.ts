@@ -1,5 +1,7 @@
 export interface MemberUpdateInput {
-  memberId: string
+  member: {
+    id: string
+  }
   memberOrganizationIds?: string[]
   syncToOpensearch?: boolean
 }

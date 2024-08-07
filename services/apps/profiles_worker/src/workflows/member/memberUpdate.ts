@@ -17,13 +17,17 @@ export async function memberUpdate(input: MemberUpdateInput): Promise<void> {
   try {
     await updateMemberAffiliations(input)
     if (input.syncToOpensearch) {
+      console.log('started member sync in profiles worker...')
       // sync member
-      await activities.syncMember(input.memberId)
+      await activities.syncMember(input.member.id)
+      console.log('synced member in profiles worker...')
       // sync all member organizations
       const organizationIds = input.memberOrganizationIds || []
       for (const orgId of organizationIds) {
         await activities.syncOrganization(orgId)
+        console.log(`synced member organization ${orgId} in profiles worker...`)
       }
+      console.log('finished member syncing...')
     }
   } catch (err) {
     throw new Error(err)

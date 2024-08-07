@@ -66,7 +66,9 @@ export async function recalculateAffiliationsForNewRoles(
         },
         args: [
           {
-            memberId: id,
+            member: {
+              id,
+            },
           },
         ],
         searchAttributes: {

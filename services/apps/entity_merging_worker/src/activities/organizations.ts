@@ -48,7 +48,9 @@ export async function recalculateActivityAffiliationsOfOrganizationSynchronous(
     args: [
       {
         tenantId,
-        organizationId,
+        organization: {
+          id: organizationId,
+        },
         syncToOpensearch: true,
       },
     ],

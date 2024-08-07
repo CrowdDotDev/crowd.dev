@@ -19,8 +19,10 @@ export async function organizationUpdate(
   try {
     await updateOrganizationAffiliations(input)
     if (input.syncToOpensearch) {
+      console.log('started organizationUpdate sync in profiles worker...')
       // sync organization
-      await activities.syncOrganization(input.organizationId)
+      await activities.syncOrganization(input.organization.id)
+      console.log('finished organization sync in profiles worker...')
     }
   } catch (err) {
     throw new Error(err)
