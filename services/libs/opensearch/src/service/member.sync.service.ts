@@ -336,7 +336,10 @@ export class MemberSyncService {
     )
   }
 
-  public async syncMembers(memberId: string): Promise<IMemberSyncResult> {
+  public async syncMembers(
+    memberId: string,
+    opts: { withAggs?: boolean } = {},
+  ): Promise<IMemberSyncResult> {
     const syncMemberAggregates = async (memberId) => {
       let documentsIndexed = 0
       let memberData: IMemberSegmentAggregates[] = []
@@ -374,7 +377,12 @@ export class MemberSyncService {
       }
     }
 
-    const syncResults = await syncMemberAggregates(memberId)
+    const syncResults = opts.withAggs
+      ? await syncMemberAggregates(memberId)
+      : {
+          membersSynced: 0,
+          documentsIndexed: 0,
+        }
 
     const syncMembersToOpensearchForMergeSuggestions = async (memberId) => {
       const qx = repoQx(this.memberRepo)
