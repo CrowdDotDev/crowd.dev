@@ -18,6 +18,7 @@ import {
   IOrganizationFullAggregatesOpensearch,
   OpenSearchIndex,
   OrganizationIdentityType,
+  SegmentType,
 } from '@crowd/types'
 import { IndexedEntityType } from '../repo/indexing.data'
 import { IndexingRepository } from '../repo/indexing.repo'
@@ -313,10 +314,12 @@ export class OrganizationSyncService {
       let documentsIndexed = 0
       const organizationIdsToIndex = []
       for (const organizationId of organizationIds) {
-        let orgData: IDbOrganizationAggregateData[]
+        let orgData: IDbOrganizationAggregateData[] = []
         try {
           const qx = repoQx(this.orgRepo)
-          orgData = await getOrgAggregates(qx, organizationId)
+          for (const type of Object.values(SegmentType)) {
+            orgData = orgData.concat(await getOrgAggregates(qx, organizationId, type))
+          }
         } catch (e) {
           this.log.error(e, 'Failed to get organization aggregates!')
           throw e
