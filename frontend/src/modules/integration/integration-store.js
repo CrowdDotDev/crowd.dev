@@ -709,5 +709,23 @@ export default {
         commit('CREATE_ERROR');
       }
     },
+
+    async doGitlabConnect({ commit }, { code, state }) {
+      try {
+        commit('CREATE_STARTED');
+        const integration = await IntegrationService.gitlabConnect(code, state);
+        commit('CREATE_SUCCESS', integration);
+        showIntegrationProgressNotification('gitlab', integration.segmentId);
+        router.push({
+          name: 'integration',
+          params: {
+            id: integration.segmentId,
+          },
+        });
+      } catch (error) {
+        Errors.handle(error);
+        commit('CREATE_ERROR');
+      }
+    },
   },
 };

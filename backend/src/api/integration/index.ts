@@ -189,6 +189,12 @@ export default (app) => {
     safeWrap(require('./helpers/jiraConnectOrUpdate').default),
   )
 
+  app.put(
+    '/authenticate/:tenantId/gitlab/:code',
+    safeWrap(require('./helpers/gitlabAuthenticate').default),
+  )
+  app.get('/gitlab/callback', safeWrap(require('./helpers/gitlabAuthenticateCallback').default))
+
   if (TWITTER_CONFIG.clientId) {
     /**
      * Using the passport.authenticate this endpoint forces a

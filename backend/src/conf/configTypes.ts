@@ -264,3 +264,9 @@ export interface EncryptionConfiguration {
 export interface IOpenStatusApiConfig {
   baseUrl: string
 }
+
+export interface GitlabConfiguration {
+  clientId: string
+  clientSecret: string
+  callbackUrl: string
+}

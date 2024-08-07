@@ -76,7 +76,10 @@ export class IntegrationService {
 
     const tenantId = AuthService.getTenantId();
 
-    const response = await authAxios.post(`/tenant/${tenantId}/integration/query`, body);
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/integration/query`,
+      body,
+    );
 
     return response.data;
   }
@@ -318,8 +321,7 @@ export class IntegrationService {
     // Calling the authenticate function in the backend.
     const response = await authAxios.post(
       `/tenant/${tenantId}/hubspot-connect`,
-      {
-      },
+      {},
     );
 
     return response.data;
@@ -338,10 +340,13 @@ export class IntegrationService {
 
   static async confluenceConnect(settings) {
     const tenantId = AuthService.getTenantId();
-    const response = await authAxios.put(`/tenant/${tenantId}/confluence-connect`, {
-      settings,
-      ...getSegments(),
-    });
+    const response = await authAxios.put(
+      `/tenant/${tenantId}/confluence-connect`,
+      {
+        settings,
+        ...getSegments(),
+      },
+    );
 
     return response.data;
   }
@@ -467,20 +472,23 @@ export class IntegrationService {
     return response.data;
   }
 
-  static async jiraConnect(url, username, personalAccessToken, apiToken, projects) {
+  static async jiraConnect(
+    url,
+    username,
+    personalAccessToken,
+    apiToken,
+    projects,
+  ) {
     const tenantId = AuthService.getTenantId();
 
-    const response = await authAxios.post(
-      `/tenant/${tenantId}/jira-connect`,
-      {
-        url,
-        username,
-        personalAccessToken,
-        apiToken,
-        projects,
-        ...getSegments(),
-      },
-    );
+    const response = await authAxios.post(`/tenant/${tenantId}/jira-connect`, {
+      url,
+      username,
+      personalAccessToken,
+      apiToken,
+      projects,
+      ...getSegments(),
+    });
 
     return response.data;
   }
@@ -495,6 +503,18 @@ export class IntegrationService {
       },
     );
 
+    return response.data;
+  }
+
+  static async gitlabConnect(code, state) {
+    const tenantId = AuthService.getTenantId();
+    const response = await authAxios.put(
+      `/authenticate/${tenantId}/gitlab/${code}`,
+      {
+        state,
+        ...getSegments(),
+      },
+    );
     return response.data;
   }
 }

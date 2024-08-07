@@ -63,5 +63,6 @@
   },
   "searchSyncApi": {},
   "encryption": {},
-  "openStatusApi": {}
+  "openStatusApi": {},
+  "gitlab": {}
 }
