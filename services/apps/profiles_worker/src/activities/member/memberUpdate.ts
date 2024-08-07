@@ -1,7 +1,7 @@
-import { SearchSyncApiClient } from '../../../../../libs/opensearch/src'
 import { svc } from '../../main'
 import { MemberUpdateInput } from '../../types/member'
 import { runMemberAffiliationsUpdate } from '@crowd/data-access-layer/src/old/apps/profiles_worker'
+import { SearchSyncApiClient } from '@crowd/opensearch'
 
 /*
 updateMemberAffiliations is a Temporal activity that updates all affiliations for
