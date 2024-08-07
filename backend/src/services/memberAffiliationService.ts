@@ -63,9 +63,7 @@ export default class MemberAffiliationService extends LoggerBase {
       },
       args: [
         {
-          member: {
-            id: memberId,
-          },
+          memberId,
         },
       ],
       searchAttributes: {

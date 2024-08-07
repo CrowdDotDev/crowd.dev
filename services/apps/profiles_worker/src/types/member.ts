@@ -1,7 +1,7 @@
-export interface MemberWithIDOnly {
-  member: {
-    id: string
-  }
+export interface MemberUpdateInput {
+  memberId: string
+  memberOrganizationIds?: string[]
+  syncToOpensearch?: boolean
 }
 
 export interface IRecalculateAffiliationsForNewRolesInput {

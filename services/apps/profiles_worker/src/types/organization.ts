@@ -1,6 +1,5 @@
 export interface IOrganizationAffiliationUpdateInput {
   tenantId: string
-  organization: {
-    id: string
-  }
+  organizationId: string
+  syncToOpensearch?: boolean
 }
