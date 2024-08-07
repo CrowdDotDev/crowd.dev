@@ -3,16 +3,13 @@ import Permissions from '../../security/permissions'
 import OrganizationService from '@/services/organizationService'
 
 /**
- * GET /tenant/{tenantId}/organizations
+ * POST /tenant/{tenantId}/organization/list
  * @summary List organizations across all segments
  * @tag Organizations
  * @security Bearer
  * @description List organizations across all segments. It accepts filters, sorting options and pagination.
  * @pathParam {string} tenantId - Your workspace/tenant ID
- * @queryParam {string} [filter] - Filter criteria
- * @queryParam {string} [orderBy] - Sorting options
- * @queryParam {number} [limit] - Maximum number of organizations to return
- * @queryParam {number} [offset] - Number of organizations to skip before
+ * @bodyContent {OrganizationQuery} application/json
  * @response 200 - Ok
  * @responseContent {OrganizationList} 200.application/json
  * @responseExample {OrganizationList} 200.application/json.Organization
@@ -24,7 +21,7 @@ export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.organizationRead)
 
   const orgService = new OrganizationService(req)
-  const payload = await orgService.listOrganizationsAcrossAllSegments(req.query)
+  const payload = await orgService.listOrganizationsAcrossAllSegments(req.body)
 
   await req.responseHandler.success(req, res, payload)
 }

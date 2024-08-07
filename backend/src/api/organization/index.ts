@@ -50,5 +50,5 @@ export default (app) => {
   app.post(`/tenant/:tenantId/organization/id`, safeWrap(require('./organizationByIds').default))
 
   // list organizations across all segments
-  app.get(`/tenant/:tenantId/organizations`, safeWrap(require('./organizationList').default))
+  app.post(`/tenant/:tenantId/organization/list`, safeWrap(require('./organizationList').default))
 }
