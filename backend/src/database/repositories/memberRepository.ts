@@ -1,4 +1,28 @@
 import {
+  ActivityDisplayVariant,
+  ALL_PLATFORM_TYPES,
+  FeatureFlag,
+  IMemberIdentity,
+  IMemberOrganization,
+  IMemberUsername,
+  MemberAttributeName,
+  MemberAttributeType,
+  MemberIdentityType,
+  OpenSearchIndex,
+  OrganizationSource,
+  PageData,
+  PlatformType,
+  SegmentData,
+  SegmentProjectGroupNestedData,
+  SegmentProjectNestedData,
+  SegmentType,
+} from '@crowd/types'
+import lodash, { chunk, uniq } from 'lodash'
+import moment from 'moment'
+import Sequelize, { QueryTypes } from 'sequelize'
+
+import { IFetchMemberMergeSuggestionArgs, SimilarityScoreRange } from '@/types/mergeSuggestionTypes'
+import {
   captureApiChange,
   memberCreateAction,
   memberEditOrganizationsAction,
@@ -47,28 +71,6 @@ import {
 } from '@crowd/data-access-layer/src/segments'
 import { ActivityDisplayService } from '@crowd/integrations'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
-import {
-  ALL_PLATFORM_TYPES,
-  ActivityDisplayVariant,
-  FeatureFlag,
-  IMemberIdentity,
-  IMemberOrganization,
-  IMemberUsername,
-  MemberAttributeName,
-  MemberAttributeType,
-  MemberIdentityType,
-  OpenSearchIndex,
-  OrganizationSource,
-  PageData,
-  PlatformType,
-  SegmentData,
-  SegmentProjectGroupNestedData,
-  SegmentProjectNestedData,
-} from '@crowd/types'
-import lodash, { chunk, uniq } from 'lodash'
-import moment from 'moment'
-import Sequelize, { QueryTypes } from 'sequelize'
-import { IFetchMemberMergeSuggestionArgs, SimilarityScoreRange } from '@/types/mergeSuggestionTypes'
 import isFeatureEnabled from '../../feature-flags/isFeatureEnabled'
 import { PlatformIdentities } from '../../serverless/integrations/types/messageTypes'
 import {
@@ -78,6 +80,7 @@ import {
 import { AttributeData } from '../attributes/attribute'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import AuditLogRepository from './auditLogRepository'
+import MemberAttributeSettingsRepository from './memberAttributeSettingsRepository'
 import MemberSegmentAffiliationRepository from './memberSegmentAffiliationRepository'
 import OrganizationRepository from './organizationRepository'
 import SegmentRepository from './segmentRepository'
@@ -89,7 +92,6 @@ import {
   IMemberMergeSuggestion,
   mapUsernameToIdentities,
 } from './types/memberTypes'
-import MemberAttributeSettingsRepository from './memberAttributeSettingsRepository'
 
 const { Op } = Sequelize
 
@@ -1480,6 +1482,7 @@ class MemberRepository {
     }: {
       segmentId?: string
     } = {},
+    include: Record<string, boolean> = {},
   ) {
     const { rows, count } = await queryMembersAdvanced(
       optionsQx(options),
@@ -1493,10 +1496,13 @@ class MemberRepository {
         include: {
           memberOrganizations: true,
           lfxMemberships: true,
-          identities: true,
+          identities: false,
           segments: true,
+          onlySubProjects: true,
+          ...include,
         },
       },
+      options,
     )
 
     if (count === 0) {
@@ -1979,11 +1985,13 @@ class MemberRepository {
       include = {
         identities: true,
         segments: false,
+        onlySubProjects: false,
         lfxMemberships: false,
         memberOrganizations: false,
       } as {
         identities?: boolean
         segments?: boolean
+        onlySubProjects?: boolean
         lfxMemberships?: boolean
         memberOrganizations?: boolean
       },
@@ -2077,14 +2085,14 @@ class MemberRepository {
     if (withSearch) {
       search = search.toLowerCase()
       searchCTE = `
-      ,  
+      ,
       member_search AS (
           SELECT
             "memberId"
           FROM "memberIdentities" mi
           join members m on m.id = mi."memberId"
-          where (verified and lower("value") like '%${search}%') or 
-          lower(m."displayName") like '%${search}%' 
+          where (verified and lower("value") like '%${search}%') or
+          lower(m."displayName") like '%${search}%'
           GROUP BY 1
         )
       `
@@ -2240,13 +2248,22 @@ class MemberRepository {
       const segmentsInfo = await fetchManySegments(qx, segmentIds)
 
       rows.forEach((member) => {
-        member.segments = (
-          memberSegments.find((i) => i.memberId === member.id)?.segments || []
-        ).map((segment) => ({
-          id: segment.segmentId,
-          name: segmentsInfo.find((s) => s.id === segment.segmentId)?.name,
-          activityCount: segment.activityCount,
-        }))
+        member.segments = (memberSegments.find((i) => i.memberId === member.id)?.segments || [])
+          .map((segment) => {
+            const segmentInfo = segmentsInfo.find((s) => s.id === segment.segmentId)
+
+            // include only subprojects if flag is set
+            if (include.onlySubProjects && segmentInfo?.type !== SegmentType.SUB_PROJECT) {
+              return null
+            }
+
+            return {
+              id: segment.segmentId,
+              name: segmentInfo?.name,
+              activityCount: segment.activityCount,
+            }
+          })
+          .filter(Boolean)
       })
     }
 

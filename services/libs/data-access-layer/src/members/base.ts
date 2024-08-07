@@ -9,6 +9,7 @@ import {
   MemberAttributeType,
   MemberIdentityType,
   PageData,
+  SegmentType,
 } from '@crowd/types'
 import { uniq } from 'lodash'
 import { fetchManyMemberIdentities, fetchManyMemberOrgs, fetchManyMemberSegments } from '.'
@@ -109,11 +110,13 @@ export async function queryMembersAdvanced(
       segments: false,
       lfxMemberships: false,
       memberOrganizations: false,
+      onlySubProjects: false,
     } as {
       identities?: boolean
       segments?: boolean
       lfxMemberships?: boolean
       memberOrganizations?: boolean
+      onlySubProjects?: boolean
     },
     attributeSettings = [] as IDbMemberAttributeSetting[],
   },
@@ -197,7 +200,7 @@ export async function queryMembersAdvanced(
   if (withSearch) {
     search = search.toLowerCase()
     searchCTE = `
-      ,  
+      ,
       member_search AS (
           SELECT
             "memberId"
@@ -357,13 +360,22 @@ export async function queryMembersAdvanced(
     const segmentsInfo = await fetchManySegments(qx, segmentIds)
 
     rows.forEach((member) => {
-      member.segments = (memberSegments.find((i) => i.memberId === member.id)?.segments || []).map(
-        (segment) => ({
-          id: segment.segmentId,
-          name: segmentsInfo.find((s) => s.id === segment.segmentId)?.name,
-          activityCount: segment.activityCount,
-        }),
-      )
+      member.segments = (memberSegments.find((i) => i.memberId === member.id)?.segments || [])
+        .map((segment) => {
+          const segmentInfo = segmentsInfo.find((s) => s.id === segment.segmentId)
+
+          // include only subprojects if flag is set
+          if (include.onlySubProjects && segmentInfo?.type !== SegmentType.SUB_PROJECT) {
+            return null
+          }
+
+          return {
+            id: segment.segmentId,
+            name: segmentInfo?.name,
+            activityCount: segment.activityCount,
+          }
+        })
+        .filter(Boolean)
     })
   }
 
