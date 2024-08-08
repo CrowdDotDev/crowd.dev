@@ -153,30 +153,104 @@ export const deployStep = async (): Promise<void> => {
     })
   }
 
-  const env = {
-    AWS_ACCESS_KEY_ID: deployInput.awsAccessKeyId,
-    AWS_SECRET_ACCESS_KEY: deployInput.awsSecretAccessKey,
-    AWS_REGION: deployInput.awsRegion,
-  }
+  let exitCode: number
 
-  let exitCode = await exec.exec(
-    'aws',
-    [
-      'eks',
-      'update-kubeconfig',
-      '--name',
-      deployInput.eksClusterName,
-      '--role-arn',
-      deployInput.awsRoleArn,
-    ],
-    {
-      env,
-    },
-  )
+  if (deployInput.aws) {
+    const env = {
+      AWS_ACCESS_KEY_ID: deployInput.aws.awsAccessKeyId,
+      AWS_SECRET_ACCESS_KEY: deployInput.aws.awsSecretAccessKey,
+      AWS_REGION: deployInput.aws.awsRegion,
+    }
 
-  if (exitCode !== 0) {
-    core.error('Failed to update kubeconfig!')
-    throw new Error('Failed to update kubeconfig!')
+    exitCode = await exec.exec(
+      'aws',
+      [
+        'eks',
+        'update-kubeconfig',
+        '--name',
+        deployInput.aws.eksClusterName,
+        '--role-arn',
+        deployInput.aws.awsRoleArn,
+      ],
+      {
+        env,
+      },
+    )
+
+    if (exitCode !== 0) {
+      core.error('Failed to update kubeconfig!')
+      throw new Error('Failed to update kubeconfig!')
+    }
+  } else if (deployInput.oracle) {
+    // prepare oracle config
+    let config = `
+    [DEFAULT]
+    user=${deployInput.oracle.user}
+    fingerprint=${deployInput.oracle.fingerprint}
+    key_file=~/.oci/oci_api_key.pem
+    tenancy=${deployInput.oracle.tenant}
+    region=${deployInput.oracle.region}
+    `
+
+    // create the ~/.oci folder if it doesn't exists
+    exitCode = await exec.exec('mkdir', ['-p', '~/.oci'])
+    if (exitCode !== 0) {
+      core.error('Failed to create ~/.oci folder!')
+      throw new Error('Failed to create ~/.oci folder!')
+    }
+    // write config to ~/.oci/config
+    exitCode = await exec.exec('echo', [config, '>', '~/.oci/config'])
+    if (exitCode !== 0) {
+      core.error('Failed to write oci config!')
+      throw new Error('Failed to write oci config!')
+    }
+    // write private key to ~/.oci/oci_api_key.pem
+    exitCode = await exec.exec('echo', [deployInput.oracle.key, '>', '~/.oci/oci_api_key.pem'])
+    if (exitCode !== 0) {
+      core.error('Failed to write oci key!')
+      throw new Error('Failed to write oci key!')
+    }
+    // chmod 600 to key and config
+    exitCode = await exec.exec('chmod', ['600', '~/.oci/config'])
+    if (exitCode !== 0) {
+      core.error('Failed to chmod oci config!')
+      throw new Error('Failed to chmod oci config!')
+    }
+    exitCode = await exec.exec('chmod', ['600', '~/.oci/oci_api_key.pem'])
+    if (exitCode !== 0) {
+      core.error('Failed to chmod oci key!')
+      throw new Error('Failed to chmod oci key!')
+    }
+
+    // get kubernetes context
+    exitCode = await exec.exec('mkdir', ['-p', '~/.kube'])
+    if (exitCode !== 0) {
+      core.error('Failed to create ~/.kube folder!')
+      throw new Error('Failed to create ~/.kube folder!')
+    }
+
+    exitCode = await exec.exec('oci', [
+      'ce',
+      'cluster',
+      'create-kubeconfig',
+      '--cluster-id',
+      deployInput.oracle.cluster,
+      '--file',
+      '~/.kube/config',
+      '--region',
+      deployInput.oracle.region,
+      '--token-version',
+      '2.0.0',
+      '--kube-endpoint',
+      'PUBLIC_ENDPOINT',
+    ])
+    if (exitCode !== 0) {
+      core.error('Failed to create kubeconfig!')
+      throw new Error('Failed to create kubeconfig')
+    }
+  } else {
+    core.error('No cloud provider specified!')
+    throw new Error('No cloud provider specified!')
   }
 
   let failed = []
