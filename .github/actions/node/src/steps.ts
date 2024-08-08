@@ -209,9 +209,6 @@ export const deployStep = async (): Promise<void> => {
     // write private key to ~/.oci/oci_api_key.pem
     await fs.writeFileSync(keyPath, deployInput.oracle.key, 'utf8')
 
-    // TODO remove
-    await exec.exec('ls', ['-la', ociDir])
-
     // chmod 600 to key and config
     await fs.chmodSync(configPath, 0o600)
     await fs.chmodSync(keyPath, 0o600)
