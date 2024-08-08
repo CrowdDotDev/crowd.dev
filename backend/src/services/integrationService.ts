@@ -23,7 +23,14 @@ import { RedisCache } from '@crowd/redis'
 import { findMemberById, MemberField } from '@crowd/data-access-layer/src/members'
 import { encryptData } from '../utils/crypto'
 import { ILinkedInOrganization } from '../serverless/integrations/types/linkedinTypes'
-import { DISCORD_CONFIG, GITHUB_CONFIG, IS_TEST_ENV, KUBE_MODE, NANGO_CONFIG } from '../conf/index'
+import {
+  DISCORD_CONFIG,
+  GITHUB_CONFIG,
+  IS_TEST_ENV,
+  KUBE_MODE,
+  NANGO_CONFIG,
+  GITLAB_CONFIG,
+} from '../conf/index'
 import { IServiceOptions } from './IServiceOptions'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import IntegrationRepository from '../database/repositories/integrationRepository'
@@ -43,6 +50,7 @@ import {
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
 import TenantRepository from '../database/repositories/tenantRepository'
 import GithubReposRepository from '../database/repositories/githubReposRepository'
+import GitlabReposRepository from '@/database/repositories/gitlabReposRepository'
 import OrganizationService from './organizationService'
 import MemberSyncRemoteRepository from '@/database/repositories/memberSyncRemoteRepository'
 import OrganizationSyncRemoteRepository from '@/database/repositories/organizationSyncRemoteRepository'
@@ -2135,5 +2143,182 @@ export default class IntegrationService {
         this.options,
       )
     return Promise.all(integrationIds.map((id) => this.getIntegrationProgress(id)))
+  }
+
+  async gitlabConnect(code: string) {
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+    let integration
+
+    try {
+      // Exchange the code for access token and refresh token
+      const tokenResponse = await axios.post('https://gitlab.com/oauth/token', {
+        client_id: GITLAB_CONFIG.clientId,
+        client_secret: GITLAB_CONFIG.clientSecret,
+        code,
+        grant_type: 'authorization_code',
+        redirect_uri: GITLAB_CONFIG.callbackUrl,
+      })
+
+      const { access_token: accessToken, refresh_token: refreshToken } = tokenResponse.data
+
+      // Fetch user information to get the user ID
+      const userResponse = await axios.get('https://gitlab.com/api/v4/user', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      })
+
+      const userId = userResponse.data.id
+
+      // Fetch groups
+      const groupsResponse = await axios.get('https://gitlab.com/api/v4/groups', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      })
+
+      const groups = groupsResponse.data.map((group) => ({
+        id: group.id,
+        name: group.name,
+        path: group.path,
+      }))
+
+      // Fetch projects (repositories)
+      const projectsResponse = await axios.get('https://gitlab.com/api/v4/projects', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      })
+
+      const projects = projectsResponse.data.map((project) => ({
+        id: project.id,
+        name: project.name,
+        path_with_namespace: project.path_with_namespace,
+      }))
+
+      integration = await this.createOrUpdate(
+        {
+          platform: PlatformType.GITLAB,
+          integrationIdentifier: userId.toString(),
+          token: accessToken,
+          refreshToken,
+          status: 'mapping',
+          settings: {
+            groups,
+            projects,
+            updateMemberAttributes: true,
+          },
+        },
+        transaction,
+      )
+
+      await SequelizeRepository.commitTransaction(transaction)
+    } catch (err) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw err
+    }
+
+    return integration
+  }
+
+  async mapGitlabRepos(integrationId, mapping) {
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+
+    const txOptions = {
+      ...this.options,
+      transaction,
+    }
+
+    try {
+      await GitlabReposRepository.updateMapping(integrationId, mapping, txOptions)
+
+      // add the repos to the git integration
+      if (EDITION === Edition.LFX) {
+        const repos: Record<string, string[]> = Object.entries(mapping).reduce(
+          (acc, [url, segmentId]) => {
+            if (!acc[segmentId as string]) {
+              acc[segmentId as string] = []
+            }
+            acc[segmentId as string].push(url)
+            return acc
+          },
+          {},
+        )
+
+        for (const [segmentId, urls] of Object.entries(repos)) {
+          let isGitintegrationConfigured
+          const segmentOptions: IRepositoryOptions = {
+            ...this.options,
+            currentSegments: [
+              {
+                ...this.options.currentSegments[0],
+                id: segmentId as string,
+              },
+            ],
+          }
+          try {
+            await IntegrationRepository.findByPlatform(PlatformType.GIT, segmentOptions)
+
+            isGitintegrationConfigured = true
+          } catch (err) {
+            isGitintegrationConfigured = false
+          }
+
+          if (isGitintegrationConfigured) {
+            const gitInfo = await this.gitGetRemotes(segmentOptions)
+            const gitRemotes = gitInfo[segmentId as string].remotes
+            await this.gitConnectOrUpdate(
+              {
+                remotes: Array.from(new Set([...gitRemotes, ...urls])),
+              },
+              segmentOptions,
+            )
+          } else {
+            await this.gitConnectOrUpdate(
+              {
+                remotes: urls,
+              },
+              segmentOptions,
+            )
+          }
+        }
+      }
+
+      const integration = await IntegrationRepository.update(
+        integrationId,
+        { status: 'in-progress' },
+        txOptions,
+      )
+
+      this.options.log.info(
+        { tenantId: integration.tenantId },
+        'Sending GitLab message to int-run-worker!',
+      )
+      const emitter = await getIntegrationRunWorkerEmitter()
+      await emitter.triggerIntegrationRun(
+        integration.tenantId,
+        integration.platform,
+        integration.id,
+        true,
+      )
+
+      await SequelizeRepository.commitTransaction(transaction)
+    } catch (err) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw err
+    }
+  }
+
+  async getGitlabRepos(integrationId): Promise<any[]> {
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+
+    const txOptions = {
+      ...this.options,
+      transaction,
+    }
+
+    try {
+      const mapping = await GitlabReposRepository.getMapping(integrationId, txOptions)
+
+      await SequelizeRepository.commitTransaction(transaction)
+      return mapping
+    } catch (err) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw err
+    }
   }
 }

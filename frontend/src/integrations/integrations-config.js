@@ -22,6 +22,7 @@ import gerrit from './gerrit';
 import jira from './jira';
 import cvent from './custom/cvent';
 import tnc from './custom/tnc';
+import gitlab from './gitlab';
 
 class IntegrationsConfig {
   get integrations() {
@@ -47,6 +48,7 @@ class IntegrationsConfig {
       confluence,
       gerrit,
       jira,
+      gitlab,
     };
   }
 
@@ -148,6 +150,7 @@ class IntegrationsConfig {
       cvent,
       lfx,
       tnc,
+      gitlab,
     };
   }
 }

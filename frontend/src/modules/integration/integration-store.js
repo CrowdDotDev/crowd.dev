@@ -322,7 +322,10 @@ export default {
 
         commit('CREATE_SUCCESS', integration);
         if (integration.settings?.organizations.length === 1) {
-          showIntegrationProgressNotification('linkedin', integration.segmentId);
+          showIntegrationProgressNotification(
+            'linkedin',
+            integration.segmentId,
+          );
         }
         router.push({
           name: 'integration',
@@ -426,7 +429,10 @@ export default {
 
         commit('CREATE_SUCCESS', integration);
 
-        showIntegrationProgressNotification('hackernews', integration.segmentId);
+        showIntegrationProgressNotification(
+          'hackernews',
+          integration.segmentId,
+        );
 
         router.push({
           name: 'integration',
@@ -453,7 +459,10 @@ export default {
 
         commit('CREATE_SUCCESS', integration);
 
-        showIntegrationProgressNotification('stackoverflow', integration.segmentId);
+        showIntegrationProgressNotification(
+          'stackoverflow',
+          integration.segmentId,
+        );
 
         router.push({
           name: 'integration',
@@ -670,9 +679,12 @@ export default {
       }
     },
 
-    async doJiraConnect({ commit }, {
-      url, username, personalAccessToken, apiToken, projects, isUpdate,
-    }) {
+    async doJiraConnect(
+      { commit },
+      {
+        url, username, personalAccessToken, apiToken, projects, isUpdate,
+      },
+    ) {
       try {
         commit('CREATE_STARTED');
 
@@ -710,21 +722,34 @@ export default {
       }
     },
 
-    async doGitlabConnect({ commit }, { code, state }) {
+    async doGitlabConnect({ commit, dispatch }, { code, state }) {
       try {
         commit('CREATE_STARTED');
         const integration = await IntegrationService.gitlabConnect(code, state);
         commit('CREATE_SUCCESS', integration);
-        showIntegrationProgressNotification('gitlab', integration.segmentId);
+        dispatch('doFetch');
+
         router.push({
           name: 'integration',
           params: {
             id: integration.segmentId,
           },
         });
+
+        dispatch('doFetch', [integration.segmentId]);
       } catch (error) {
         Errors.handle(error);
         commit('CREATE_ERROR');
+      }
+    },
+    async mapGitlabRepos(integrationId, mapping) {
+      try {
+        await IntegrationService.mapGitlabRepos(integrationId, mapping);
+        await this.find(integrationId);
+        Message.success('GitLab repositories mapped successfully');
+      } catch (error) {
+        console.error('Error mapping GitLab repositories:', error);
+        Message.error('Failed to map GitLab repositories');
       }
     },
   },

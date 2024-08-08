@@ -172,6 +172,19 @@ export class IntegrationService {
     return response.data;
   }
 
+  static async fetchGitLabMappings(integration) {
+    const tenantId = AuthService.getTenantId();
+    const response = await authAxios.get(
+      `/tenant/${tenantId}/integration/${integration.id}/gitlab/repos`,
+      {
+        params: {
+          segments: [integration.segmentId],
+        },
+      },
+    );
+    return response.data;
+  }
+
   static async redditOnboard(subreddits) {
     // Ask backend to connect to GitHub through Oauth.
     // Install_id is the GitHub app installation id.
@@ -514,6 +527,14 @@ export class IntegrationService {
         state,
         ...getSegments(),
       },
+    );
+    return response.data;
+  }
+
+  static async mapGitlabRepos(integrationId, mapping) {
+    const response = await authAxios.post(
+      `/tenant/${AuthService.getTenant()}/integration/${integrationId}/gitlab/map`,
+      { mapping },
     );
     return response.data;
   }

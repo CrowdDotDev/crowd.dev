@@ -1,12 +1,9 @@
 import crypto from 'crypto'
-import { PlatformType } from '@crowd/types'
 import { Response } from 'express'
-import { RedisCache } from '@crowd/redis'
 import { generateUUIDv4 as uuid } from '@crowd/common'
 import { GITLAB_CONFIG } from '../../../conf'
 import Permissions from '../../../security/permissions'
 import PermissionChecker from '../../../services/user/permissionChecker'
-import SequelizeRepository from '../../../database/repositories/sequelizeRepository'
 
 /// credits to lucia-auth library for these functions
 
@@ -62,16 +59,6 @@ const encodeBase64 = (data: string | ArrayLike<number> | ArrayBufferLike) => {
 const encodeBase64Url = (data: string | ArrayLike<number> | ArrayBufferLike) =>
   encodeBase64(data).replaceAll('=', '').replaceAll('+', '-').replaceAll('/', '_')
 
-const generatePKCECodeChallenge = (method: 'S256', verifier: string) => {
-  if (method === 'S256') {
-    const hash = crypto.createHash('sha256')
-    hash.update(verifier)
-    const challengeBuffer = hash.digest()
-    return encodeBase64Url(challengeBuffer)
-  }
-  throw new TypeError('Invalid PKCE code challenge method')
-}
-
 /// end credits
 
 export default async (req, res: Response) => {
@@ -101,7 +88,7 @@ export default async (req, res: Response) => {
     handle,
   }
 
-  const scopes = ['api']
+  const scopes = ['read_api', 'read_user', 'read_repository', 'profile', 'email']
 
   // Build the authorization URL
   const authUrl = createUrl('https://gitlab.com/oauth/authorize', {
