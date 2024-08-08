@@ -185,20 +185,21 @@ export const deployStep = async (): Promise<void> => {
       throw new Error('Failed to update kubeconfig!')
     }
   } else if (deployInput.oracle) {
-    // prepare oracle config
-    let config = `
-    [DEFAULT]
-    user=${deployInput.oracle.user}
-    fingerprint=${deployInput.oracle.fingerprint}
-    key_file=~/.oci/oci_api_key.pem
-    tenancy=${deployInput.oracle.tenant}
-    region=${deployInput.oracle.region}
-    `
     const homeDir = os.homedir()
     const kubeDir = path.join(homeDir, '.kube')
     const ociDir = path.join(homeDir, '.oci')
     const configPath = path.join(ociDir, 'config')
     const keyPath = path.join(ociDir, 'oci_api_key.pem')
+
+    // prepare oracle config
+    let config = `
+[DEFAULT]
+user=${deployInput.oracle.user}
+fingerprint=${deployInput.oracle.fingerprint}
+key_file=${keyPath}
+tenancy=${deployInput.oracle.tenant}
+region=${deployInput.oracle.region}
+`
 
     // create the ~/.oci folder if it doesn't exists
     await fs.mkdirSync(ociDir, { recursive: true })
@@ -230,6 +231,9 @@ export const deployStep = async (): Promise<void> => {
       '2.0.0',
       '--kube-endpoint',
       'PUBLIC_ENDPOINT',
+      '--config-file',
+      configPath,
+      '--debug',
     ])
     if (exitCode !== 0) {
       core.error('Failed to create kubeconfig!')
