@@ -41,7 +41,7 @@
                   <div
                     class="bg-primary-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
                   >
-                    Current contributor
+                    Current profile
                   </div>
                 </div>
               </template>
@@ -78,7 +78,7 @@
                   <div
                     class="bg-primary-500 rounded-full py-0.5 px-2 text-white inline-block text-xs leading-5 font-medium"
                   >
-                    Updated contributor
+                    Updated profile
                   </div>
                 </div>
               </template>
@@ -100,7 +100,7 @@
                   <div class="border border-gray-200 bg-gray-100 py-px px-1.5 text-gray-600 text-xs leading-5 rounded-md mr-1">
                     Unknown
                   </div>
-                  <el-tooltip content="Calculated after contributor is unmerged" placement="top">
+                  <el-tooltip content="Calculated after profile is unmerged" placement="top">
                     <div class="ri-question-line text-base text-gray-400" />
                   </el-tooltip>
                 </div>
@@ -132,7 +132,7 @@
                       <div
                         class="bg-gray-100 rounded-full py-0.5 px-2 text-gray-600 inline-block text-xs leading-5 font-medium"
                       >
-                        <i class="ri-link-unlink-m mr-1" />Unmerged contributor
+                        <i class="ri-link-unlink-m mr-1" />Unmerged profile
                       </div>
                       <el-dropdown
                         placement="bottom-end"
@@ -148,13 +148,13 @@
                         <template #dropdown>
                           <template
                             v-for="i of identities"
-                            :key="`${i.type}:${i.platform}:${i.value}`"
+                            :key="i.id"
                           >
                             <el-dropdown-item
-                              v-if="`${i.type}:${i.platform}:${i.value}` !== selectedIdentity"
-                              :value="`${i.type}:${i.platform}:${i.value}`"
+                              v-if="i.id !== selectedIdentity"
+                              :value="i.id"
                               :label="i.value"
-                              @click="fetchPreview(`${i.type}:${i.platform}:${i.value}`)"
+                              @click="fetchPreview(i.id)"
                             >
                               <i v-if="i.type === 'email'" class="text-gray-900 text-lg leading-5 mr-2 ri-mail-line" />
                               <img
@@ -182,7 +182,7 @@
                     <div class="border border-gray-200 bg-gray-100 py-px px-1.5 text-gray-600 text-xs leading-5 rounded-md mr-1">
                       Unknown
                     </div>
-                    <el-tooltip content="Calculated after contributor is unmerged" placement="top">
+                    <el-tooltip content="Calculated after profile is unmerged" placement="top">
                       <div class="ri-question-line text-base text-gray-400" />
                     </el-tooltip>
                   </div>
@@ -216,7 +216,7 @@
                 <div class="ri-fingerprint-line text-5xl text-gray-200" />
               </div>
               <p class="text-center text-xs leading-5 text-gray-500">
-                Select the contributor identity you want to unmerge
+                Select the profile identity you want to unmerge
               </p>
               <div class="pt-4">
                 <el-select
@@ -226,8 +226,8 @@
                 >
                   <el-option
                     v-for="i of identities"
-                    :key="`${i.type}:${i.platform}:${i.value}`"
-                    :value="`${i.type}:${i.platform}:${i.value}`"
+                    :key="i.id"
+                    :value="i.id"
                     :label="i.value"
                   >
                     <i v-if="i.type === 'email'" class="text-gray-900 text-lg leading-5 mr-2 ri-mail-line" />
@@ -270,6 +270,7 @@ import { storeToRefs } from 'pinia';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import { useContributorStore } from '@/modules/contributor/store/contributor.store';
 import AppMemberSuggestionsDetails from './suggestions/member-merge-suggestions-details.vue';
 
 const props = defineProps({
@@ -278,7 +279,7 @@ const props = defineProps({
     required: true,
   },
   selectedIdentity: {
-    type: Object,
+    type: String,
     required: false,
     default: () => null,
   },
@@ -292,6 +293,7 @@ const { doFind } = mapActions('member');
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
+const { getContributorMergeActions } = useContributorStore();
 
 const unmerging = ref(false);
 const fetchingPreview = ref(false);
@@ -323,19 +325,15 @@ const identities = computed(() => (props.modelValue.identities || [])
     return aOrder - bOrder;
   }));
 
-const fetchPreview = (identity) => {
+const fetchPreview = (identityId) => {
   if (fetchingPreview.value) {
     return;
   }
 
-  selectedIdentity.value = identity;
+  selectedIdentity.value = identityId;
   fetchingPreview.value = true;
 
-  const [type, platform, username] = identity.split(':');
-  const foundIdentity = props.modelValue.identities.find(
-    (i) => i.platform === platform && i.value === username && i.type === type,
-  );
-  MemberService.unmergePreview(props.modelValue?.id, foundIdentity)
+  MemberService.unmergePreview(props.modelValue?.id, identityId)
     .then((res) => {
       preview.value = res;
     })
@@ -353,7 +351,7 @@ const unmerge = () => {
   }
 
   trackEvent({
-    key: FeatureEventKey.UNMERGE_CONTRIBUTOR_IDENTITY,
+    key: FeatureEventKey.UNMERGE_MEMBER_IDENTITY,
     type: EventType.FEATURE,
     properties: {
       identity: selectedIdentity.value,
@@ -364,10 +362,11 @@ const unmerge = () => {
 
   MemberService.unmerge(props.modelValue?.id, preview.value)
     .then(() => {
+      getContributorMergeActions(props.modelValue?.id);
       Message.info(
-        'We’re finalizing contributor unmerging. We will let you know once the process is completed.',
+        "We're finalizing profiles merging. We will let you know once the process is completed.",
         {
-          title: 'Contributors unmerging in progress',
+          title: 'Profiles merging in progress',
         },
       );
       doFind({
@@ -383,7 +382,7 @@ const unmerge = () => {
       emit('update:modelValue', null);
     })
     .catch((error) => {
-      Message.error('There was an error unmerging contributor');
+      Message.error('There was an error unmerging profile');
     })
     .finally(() => {
       unmerging.value = false;
@@ -392,10 +391,9 @@ const unmerge = () => {
 
 onMounted(() => {
   if (props.selectedIdentity) {
-    fetchPreview(`${props.selectedIdentity.type}:${props.selectedIdentity.platform}:${props.selectedIdentity.username}`);
+    fetchPreview(props.selectedIdentity);
   }
 });
-
 </script>
 
 <script>

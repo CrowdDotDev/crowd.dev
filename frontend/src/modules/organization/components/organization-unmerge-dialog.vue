@@ -196,6 +196,7 @@ import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import { useOrganizationStore } from '@/modules/organization/store/pinia';
 
 const props = defineProps({
   modelValue: {
@@ -217,6 +218,8 @@ const unmerging = ref(false);
 const fetchingPreview = ref(false);
 const preview = ref(null);
 const selectedIdentity = ref(null);
+
+const { getOrganizationMergeActions } = useOrganizationStore();
 
 const parseIdentityValues = (identity) => {
   const splittedIdentity = identity.value?.split(':');
@@ -315,6 +318,7 @@ const unmerge = () => {
 
   OrganizationService.unmerge(props.modelValue?.id, preview.value)
     .then(() => {
+      getOrganizationMergeActions(props.modelValue?.id);
       Message.info(
         'We’re syncing all activities of the unmerged organization. We will let you know once the process is completed.',
         {

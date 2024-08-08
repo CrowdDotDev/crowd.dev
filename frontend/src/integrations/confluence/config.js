@@ -11,10 +11,11 @@ export default {
     description: 'Sync documentation activities from your repos.',
   },
   image:
-    '/images/integrations/conf.jpg',
+    '/images/integrations/confluence.svg',
   connectComponent: ConfluenceConnect,
   url: () => null,
   showProfileLink: false,
+  placeholder: 'Confluence username or email address',
   chartColor: '#E5512C',
   activityDisplay: {
     showContentDetails: false,

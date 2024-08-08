@@ -120,8 +120,33 @@ class IntegrationsConfig {
 
   get customIntegrations() {
     return {
-      lfx,
       cvent,
+      lfx,
+      tnc,
+    };
+  }
+
+  get memberIdentities() {
+    return {
+      github,
+      discord,
+      hackernews,
+      linkedin,
+      twitter,
+      // hubspot,
+      slack,
+      devto,
+      reddit,
+      stackoverflow,
+      discourse,
+      git,
+      groupsio,
+      // make,
+      confluence,
+      gerrit,
+      jira,
+      cvent,
+      lfx,
       tnc,
     };
   }

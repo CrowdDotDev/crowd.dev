@@ -4,6 +4,8 @@ import { Organization } from '@/modules/organization/types/Organization';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import { MergeActionsService } from '@/shared/modules/merge/services/merge-actions.service';
+import { MergeAction } from '@/shared/modules/merge/types/MemberActions';
 
 export default {
   fetchOrganizations(this: OrganizationState, { body = {}, reload = false } :{ body?: any, reload?: boolean }): Promise<Pagination<Organization>> {
@@ -27,7 +29,19 @@ export default {
     return OrganizationService.find(id, [selectedProjectGroup.value?.id as string])
       .then((organization: Organization) => {
         this.organization = organization;
+        this.getOrganizationMergeActions(id);
         return Promise.resolve(organization);
+      });
+  },
+  getOrganizationMergeActions(id: string): Promise<MergeAction[]> {
+    return MergeActionsService.list(id, 'org')
+      .then((mergeActions) => {
+        this.organization = {
+          ...this.organization,
+          // eslint-disable-next-line no-nested-ternary
+          activitySycning: mergeActions.length > 0 ? mergeActions[0] : null,
+        };
+        return Promise.resolve(mergeActions);
       });
   },
   updateOrganization(id: string, data: Partial<Organization>): Promise<Organization> {

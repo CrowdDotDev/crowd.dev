@@ -1,4 +1,5 @@
 import { Organization } from '@/modules/organization/types/Organization';
+import { MergeAction } from '@/shared/modules/merge/types/MemberActions';
 
 export interface ContributorAttribute {
   default: string;
@@ -18,6 +19,14 @@ export interface ContributorContribution {
   url: string;
 }
 
+export interface ContributorAffiliation {
+  dateStart: string | null;
+  dateEnd: string | null;
+  organizationId: string;
+  memberId: string;
+  segmentId: string;
+}
+
 export interface ContributorReach {
   total: number;
   github: number;
@@ -30,11 +39,15 @@ export interface ContributorTag {
 }
 
 export interface ContributorIdentity {
+  id: string;
   platform: string;
   type: string;
   value: string;
   verified: boolean;
   sourceId: string | null;
+  // Computed properties
+  platforms?: string[];
+  url?: string;
 }
 
 export interface Contributor {
@@ -66,9 +79,11 @@ export interface Contributor {
   username: Record<string, string[]>
   verifiedEmails: string[];
   unverifiedEmails: string[];
+  affiliations: ContributorAffiliation[];
   segments: {
     id: string;
     name: string;
     activityCount: string;
-  }[]
+  }[],
+  activitySycning: MergeAction | null;
 }

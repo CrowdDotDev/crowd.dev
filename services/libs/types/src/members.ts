@@ -1,5 +1,5 @@
 import { IAttributes } from './attributes'
-import { MemberAttributeType, MemberIdentityType } from './enums/members'
+import { MemberAttributeOpensearch, MemberAttributeType, MemberIdentityType } from './enums/members'
 import { IMemberOrganization, IOrganization, IOrganizationOpensearch } from './organizations'
 import { ITagOpensearch } from './tags'
 import { PlatformType } from './enums/platforms'
@@ -20,6 +20,7 @@ export interface IMemberAttributeData extends IMemberAttribute {
 }
 
 export interface IMemberIdentity {
+  id?: string
   sourceId?: string
   platform: string
   value: string
@@ -120,6 +121,10 @@ export interface IMemberAffiliation {
   segmentParentName: string
 }
 
+export interface IMemberAffiliationMergeBackup {
+  id: string
+}
+
 export interface IMemberContribution {
   id: number
   url: string
@@ -167,4 +172,56 @@ export interface ILLMConsumableMember {
     dateStart: string
     dateEnd: string
   }[]
+}
+
+export interface IMemberBaseForMergeSuggestions {
+  id: string
+  tenantId: string
+  displayName: string
+  attributes: IAttributes
+}
+
+export interface IMemberWithAggregatesForMergeSuggestions extends IMemberBaseForMergeSuggestions {
+  identities: IMemberIdentity[]
+  activityCount: number
+  organizations: IMemberOrganization[]
+}
+
+export interface IMemberIdentityOpensearch {
+  keyword_type: string
+  string_platform: string
+  keyword_value: string
+  string_value: string
+  bool_verified: boolean
+}
+
+export interface IMemberOrganizationOpensearch {
+  uuid_id: string
+  string_logo: string
+  string_displayName: string
+  obj_memberOrganizations: {
+    string_title: string
+    date_dateStart: string
+    date_dateEnd: string
+    string_source: string
+  }
+}
+
+export type IMemberAttributesOpensearch = {
+  [key in MemberAttributeOpensearch]?: {
+    string_default?: string
+    string_arr_default?: string[]
+  }
+}
+
+export interface IMemberOpensearch {
+  uuid_memberId: string
+  uuid_tenantId: string
+  keyword_displayName: string
+  string_displayName: string
+  int_activityCount: number
+
+  nested_identities: IMemberIdentityOpensearch[]
+  nested_organizations: IMemberOrganizationOpensearch[]
+  obj_attributes: IMemberAttributesOpensearch
 }

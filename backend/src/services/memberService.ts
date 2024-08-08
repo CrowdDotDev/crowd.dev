@@ -11,7 +11,6 @@ import { LoggerBase } from '@crowd/logging'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
 import {
   ExportableEntity,
-  FeatureFlag,
   IMemberIdentity,
   IMemberUnmergeBackup,
   IMemberUnmergePreviewResult,
@@ -25,18 +24,37 @@ import {
   TemporalWorkflowId,
   MemberRoleUnmergeStrategy,
   OrganizationIdentityType,
+  IMemberRoleWithOrganization,
+  MergeActionStep,
 } from '@crowd/types'
 import { randomUUID } from 'crypto'
 import lodash from 'lodash'
 import moment from 'moment-timezone'
 import validator from 'validator'
 import { captureApiChange, memberEditIdentitiesAction, memberMergeAction } from '@crowd/audit-logs'
+import {
+  addMemberNotes,
+  addMemberTags,
+  addMemberTasks,
+  fetchMemberIdentities,
+  findMemberById,
+  findMemberNotes,
+  findMemberTags,
+  findMemberTasks,
+  insertMemberSegments,
+  MemberField,
+  removeMemberNotes,
+  removeMemberTags,
+  removeMemberTasks,
+} from '@crowd/data-access-layer/src/members'
+import { findMemberAffiliations } from '@crowd/data-access-layer/src/member_segment_affiliations'
+import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
+import { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
 import { TEMPORAL_CONFIG } from '@/conf'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
 import ActivityRepository from '../database/repositories/activityRepository'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
 import MemberRepository from '../database/repositories/memberRepository'
-import SegmentRepository from '../database/repositories/segmentRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import TagRepository from '../database/repositories/tagRepository'
 import {
@@ -45,7 +63,6 @@ import {
   IMemberMergeSuggestion,
   mapUsernameToIdentities,
 } from '../database/repositories/types/memberTypes'
-import isFeatureEnabled from '../feature-flags/isFeatureEnabled'
 import telemetryTrack from '../segment/telemetryTrack'
 import { IServiceOptions } from './IServiceOptions'
 import merge from './helpers/merge'
@@ -60,6 +77,7 @@ import MemberOrganizationService from './memberOrganizationService'
 import { MergeActionsRepository } from '@/database/repositories/mergeActionsRepository'
 import MemberOrganizationRepository from '@/database/repositories/memberOrganizationRepository'
 import OrganizationRepository from '@/database/repositories/organizationRepository'
+import MemberIdentityRepository from '@/database/repositories/member/memberIdentityRepository'
 
 export default class MemberService extends LoggerBase {
   options: IServiceOptions
@@ -449,8 +467,6 @@ export default class MemberService extends LoggerBase {
         data.organizations = lodash.uniqBy(organizations, 'id')
       }
 
-      const doPopulateRelations = false
-
       let record
       if (existing) {
         const { id } = existing
@@ -463,15 +479,10 @@ export default class MemberService extends LoggerBase {
 
         // It is important to call it with doPopulateRelations=false
         // because otherwise the performance is greatly decreased in integrations
-        record = await MemberRepository.update(
-          id,
-          toUpdate,
-          {
-            ...this.options,
-            transaction,
-          },
-          { doPopulateRelations },
-        )
+        record = await MemberRepository.update(id, toUpdate, {
+          ...this.options,
+          transaction,
+        })
       } else {
         // It is important to call it with doPopulateRelations=false
         // because otherwise the performance is greatly decreased in integrations
@@ -479,14 +490,10 @@ export default class MemberService extends LoggerBase {
           data.attributes = await this.setAttributesDefaultValues(data.attributes)
         }
 
-        record = await MemberRepository.create(
-          data,
-          {
-            ...this.options,
-            transaction,
-          },
-          doPopulateRelations,
-        )
+        record = await MemberRepository.create(data, {
+          ...this.options,
+          transaction,
+        })
 
         telemetryTrack(
           'Member created',
@@ -494,11 +501,45 @@ export default class MemberService extends LoggerBase {
             id: record.id,
             createdAt: record.createdAt,
             sample: record.attributes.sample?.crowd,
-            identities: Object.keys(record.username),
+            identities: record.identities,
           },
           this.options,
         )
       }
+
+      const qx = SequelizeRepository.getQueryExecutor(this.options, transaction)
+      await (async function includeMemberInSegments(
+        qx: QueryExecutor,
+        tenantId: string,
+        memberId: string,
+        segmentIds: string[],
+      ) {
+        const segments = await fetchManySegments(qx, segmentIds)
+        const data = segments.reduce((acc, s) => {
+          for (const segmentId of [s.id, s.parentId, s.grandparentId]) {
+            acc.push({
+              memberId,
+              segmentId,
+              tenantId,
+
+              activityCount: 0,
+              lastActive: '1970-01-01',
+              activityTypes: [],
+              activeOn: [],
+              averageSentiment: null,
+            })
+          }
+
+          return acc
+        }, [])
+
+        await insertMemberSegments(qx, data)
+      })(
+        qx,
+        this.options.currentTenant.id,
+        record.id,
+        this.options.currentSegments.map((s) => s.id),
+      )
 
       await SequelizeRepository.commitTransaction(transaction)
 
@@ -643,13 +684,19 @@ export default class MemberService extends LoggerBase {
     delete payload.secondary.organizations
 
     try {
-      const member = await MemberRepository.findById(memberId, this.options, {
-        doPopulateRelations: 'no-activity-aggregates',
-      })
+      const qx = SequelizeRepository.getQueryExecutor(this.options)
+      const member = await findMemberById(qx, memberId, [MemberField.ID, MemberField.DISPLAY_NAME])
+      const [memberTasks, memberTags, memberNotes] = await Promise.all([
+        (await findMemberTasks(qx, memberId)).map((t) => ({ id: t.taskId })),
+        (await findMemberTags(qx, memberId)).map((t) => ({ id: t.tagId })),
+        (await findMemberNotes(qx, memberId)).map((t) => ({ id: t.noteId })),
+      ])
 
       const repoOptions: IRepositoryOptions =
         await SequelizeRepository.createTransactionalRepositoryOptions(this.options)
       tx = repoOptions.transaction
+
+      const txqx = SequelizeRepository.getQueryExecutor(repoOptions, tx)
 
       // remove identities in secondary member from primary member
       await MemberRepository.removeIdentitiesFromMember(
@@ -689,6 +736,17 @@ export default class MemberService extends LoggerBase {
 
       // create the secondary member
       const secondaryMember = await MemberRepository.create(payload.secondary, repoOptions)
+
+      // track merge action
+      await MergeActionsRepository.add(
+        MergeActionType.MEMBER,
+        member.id,
+        secondaryMember.id,
+        repoOptions,
+        MergeActionStep.UNMERGE_STARTED,
+        MergeActionState.IN_PROGRESS,
+      )
+
       // move affiliations
       if (payload.secondary.affiliations.length > 0) {
         await MemberRepository.moveSelectedAffiliationsBetweenMembers(
@@ -701,60 +759,60 @@ export default class MemberService extends LoggerBase {
 
       // move tags
       if (payload.secondary.tags.length > 0) {
-        await MemberRepository.addTagsToMember(
+        await addMemberTags(
+          txqx,
           secondaryMember.id,
           payload.secondary.tags.map((t) => t.id),
-          repoOptions,
         )
         // check if anything to delete in primary
-        const tagsToDelete = member.tags.filter(
+        const tagsToDelete = memberTags.filter(
           (t) => !payload.primary.tags.some((pt) => pt.id === t.id),
         )
         if (tagsToDelete.length > 0) {
-          await MemberRepository.removeTagsFromMember(
+          await removeMemberTags(
+            txqx,
             memberId,
             tagsToDelete.map((t) => t.id),
-            repoOptions,
           )
         }
       }
 
       // move tasks
       if (payload.secondary.tasks.length > 0) {
-        await MemberRepository.addTasksToMember(
+        await addMemberTasks(
+          txqx,
           secondaryMember.id,
           payload.secondary.tasks.map((t) => t.id),
-          repoOptions,
         )
         // check if anything to delete in primary
-        const tasksToDelete = member.tasks.filter(
+        const tasksToDelete = memberTasks.filter(
           (t) => !payload.primary.tasks.some((pt) => pt.id === t.id),
         )
         if (tasksToDelete.length > 0) {
-          await MemberRepository.removeTasksFromMember(
+          await removeMemberTasks(
+            txqx,
             memberId,
             tasksToDelete.map((t) => t.id),
-            repoOptions,
           )
         }
       }
 
       // move notes
       if (payload.secondary.notes.length > 0) {
-        await MemberRepository.addNotesToMember(
+        await addMemberNotes(
+          txqx,
           secondaryMember.id,
           payload.secondary.notes.map((n) => n.id),
-          repoOptions,
         )
         // check if anything to delete in primary
-        const notesToDelete = member.notes.filter(
+        const notesToDelete = memberNotes.filter(
           (n) => !payload.primary.notes.some((pn) => pn.id === n.id),
         )
         if (notesToDelete.length > 0) {
-          await MemberRepository.removeNotesFromMember(
+          await removeMemberNotes(
+            txqx,
             memberId,
             notesToDelete.map((n) => n.id),
-            repoOptions,
           )
         }
       }
@@ -807,15 +865,23 @@ export default class MemberService extends LoggerBase {
       delete payload.primary.affiliations
 
       // update rest of the primary member fields
-      await MemberRepository.update(memberId, payload.primary, repoOptions, {
-        doPopulateRelations: false,
-      })
+      await MemberRepository.update(memberId, payload.primary, repoOptions)
 
       // add primary and secondary to no merge so they don't get suggested again
       await MemberRepository.addNoMerge(memberId, secondaryMember.id, repoOptions)
 
       // trigger entity-merging-worker to move activities in the background
       await SequelizeRepository.commitTransaction(tx)
+
+      await MergeActionsRepository.setMergeAction(
+        MergeActionType.MEMBER,
+        member.id,
+        secondaryMember.id,
+        repoOptions,
+        {
+          step: MergeActionStep.UNMERGE_SYNC_DONE,
+        },
+      )
 
       // responsible for moving member's activities, syncing to opensearch afterwards, recalculating activity.organizationIds and notifying frontend via websockets
       await this.options.temporal.workflow.start('finishMemberUnmerging', {
@@ -853,41 +919,51 @@ export default class MemberService extends LoggerBase {
    * This will only return a preview, users will be able to edit the preview and confirm the payload
    * Unmerge will be done in /unmerge endpoint with the confirmed payload from the user.
    * @param memberId member for identity extraction/unmerge
-   * @param identity identity to be extracted/unmerged
+   * @param identityId identity to be extracted/unmerged
    */
   async unmergePreview(
     memberId: string,
-    identity: IMemberIdentity,
+    identityId: string,
   ): Promise<IUnmergePreviewResult<IMemberUnmergePreviewResult>> {
     const relationships = ['tags', 'notes', 'tasks', 'identities', 'affiliations']
 
     try {
-      const member = await MemberRepository.findById(memberId, this.options, {
-        doPopulateRelations: 'no-activity-aggregates',
-      })
+      const qx = SequelizeRepository.getQueryExecutor(this.options)
+      const memberById = await findMemberById(qx, memberId, [
+        MemberField.ID,
+        MemberField.TENANT_ID,
+        MemberField.DISPLAY_NAME,
+        MemberField.ATTRIBUTES,
+        MemberField.REACH,
+        MemberField.CONTRIBUTIONS,
+        MemberField.MANUALLY_CHANGED_FIELDS,
+      ])
 
-      member.memberOrganizations = await MemberOrganizationRepository.findMemberRoles(
-        memberId,
-        this.options,
+      const [memberOrganizations, identities, tags, notes, tasks, affiliations] = await Promise.all(
+        [
+          MemberOrganizationRepository.findMemberRoles(memberId, this.options),
+          fetchMemberIdentities(qx, memberId),
+          findMemberTags(qx, memberId),
+          findMemberNotes(qx, memberId),
+          findMemberTasks(qx, memberId),
+          findMemberAffiliations(qx, memberId),
+        ],
       )
 
-      // check member has the sent identity
-      const memberIdentities = (await MemberRepository.getIdentities([memberId], this.options)).get(
-        memberId,
-      )
-
-      if (
-        !memberIdentities.some(
-          (i) =>
-            i.platform === identity.platform &&
-            i.type === identity.type &&
-            i.value === identity.value,
-        )
-      ) {
-        throw new Error(`Member doesn't have the identity sent to be unmerged!`)
+      const member = {
+        ...memberById,
+        memberOrganizations,
+        identities,
+        affiliations,
+        tags: tags.map((t) => ({ id: t.tagId })),
+        notes: notes.map((n) => ({ id: n.noteId })),
+        tasks: tasks.map((t) => ({ id: t.taskId })),
       }
 
-      member.identities = memberIdentities
+      const identity = await MemberIdentityRepository.findById(memberId, identityId, this.options)
+      if (!identity) {
+        throw new Error(`Member doesn't have the identity sent to be unmerged!`)
+      }
 
       const mergeAction = await MergeActionsRepository.findMergeBackup(
         memberId,
@@ -968,10 +1044,6 @@ export default class MemberService extends LoggerBase {
                   }
                 }
               }
-            } else if (key === 'emails') {
-              member.emails = member.emails.filter(
-                (e) => !secondaryBackup.emails.some((s) => s === e),
-              )
             } else if (key === 'reach') {
               // only act on reach if current member has some data
               for (const reachKey of Object.keys(member.reach)) {
@@ -1039,14 +1111,7 @@ export default class MemberService extends LoggerBase {
 
         // affiliations: Remove affiliations coming from secondary backup
         member.affiliations = member.affiliations.filter(
-          (a) =>
-            !secondaryBackup.affiliations.some(
-              (s) =>
-                s.segmentId === a.segmentId &&
-                s.organizationId === a.organizationId &&
-                s.dateStart === a.dateStart &&
-                s.dateEnd === a.dateEnd,
-            ),
+          (a) => !secondaryBackup.affiliations.some((s) => s.id === a.id),
         )
 
         // member organizations
@@ -1056,7 +1121,7 @@ export default class MemberService extends LoggerBase {
           secondaryBackup.memberOrganizations,
           MemberRoleUnmergeStrategy.SAME_MEMBER,
         )
-        member.memberOrganizations = unmergedRoles
+        member.memberOrganizations = unmergedRoles as IMemberRoleWithOrganization[]
 
         // activity count
         const secondaryActivityCount = await MemberRepository.getActivityCountOfMembersIdentities(
@@ -1145,7 +1210,6 @@ export default class MemberService extends LoggerBase {
           tags: [],
           notes: [],
           tasks: [],
-          emails: [],
           attributes: {},
           joinedAt: new Date().toISOString(),
           tenantId: member.tenantId,
@@ -1202,16 +1266,43 @@ export default class MemberService extends LoggerBase {
 
     let tx
 
+    const getMemberById = async (memberId: string) => {
+      const qx = SequelizeRepository.getQueryExecutor(this.options)
+      const member = await findMemberById(qx, memberId, [
+        MemberField.ID,
+        MemberField.DISPLAY_NAME,
+        MemberField.JOINED_AT,
+        MemberField.TENANT_ID,
+        MemberField.REACH,
+        MemberField.SCORE,
+        MemberField.CONTRIBUTIONS,
+        MemberField.ATTRIBUTES,
+        MemberField.MANUALLY_CREATED,
+        MemberField.MANUALLY_CHANGED_FIELDS,
+      ])
+
+      const [tags, notes, tasks, affiliations] = await Promise.all([
+        findMemberTags(qx, memberId),
+        findMemberNotes(qx, memberId),
+        findMemberTasks(qx, memberId),
+        findMemberAffiliations(qx, memberId),
+      ])
+
+      return {
+        ...member,
+        tags: tags.map((t) => ({ id: t.tagId })),
+        notes: notes.map((n) => ({ id: n.noteId })),
+        tasks: tasks.map((t) => ({ id: t.taskId })),
+        affiliations: affiliations.map((a) => ({ id: a.id })),
+      }
+    }
+
     try {
       const { original, toMerge } = await captureApiChange(
         this.options,
         memberMergeAction(originalId, async (captureOldState, captureNewState) => {
-          const original = await MemberRepository.findById(originalId, this.options, {
-            doPopulateRelations: 'no-activity-aggregates',
-          })
-          const toMerge = await MemberRepository.findById(toMergeId, this.options, {
-            doPopulateRelations: 'no-activity-aggregates',
-          })
+          const original = await getMemberById(originalId)
+          const toMerge = await getMemberById(toMergeId)
 
           captureOldState({
             primary: original,
@@ -1250,6 +1341,7 @@ export default class MemberService extends LoggerBase {
             originalId,
             toMergeId,
             this.options,
+            MergeActionStep.MERGE_STARTED,
             MergeActionState.IN_PROGRESS,
             backup,
           )
@@ -1294,24 +1386,8 @@ export default class MemberService extends LoggerBase {
           // Update member affiliations
           await MemberRepository.moveAffiliationsBetweenMembers(toMergeId, originalId, repoOptions)
 
-          // Get tags as array of ids (findById returns them as models)
-          original.tags = original.tags.map((i) => i.get({ plain: true }).id)
-          toMerge.tags = toMerge.tags.map((i) => i.get({ plain: true }).id)
-
-          // leave member activities alone - we will update them with a single query later
-          delete original.activities
-          delete toMerge.activities
-
           // Performs a merge and returns the fields that were changed so we can update
           const toUpdate: any = await MemberService.membersMerge(original, toMerge)
-
-          // we will handle activities later manually
-          delete toUpdate.activities
-          // we already handled identities
-          delete toUpdate.username
-          delete toUpdate.identities
-          // we merge them manually
-          delete toUpdate.organizations
 
           // Update original member
           const txService = new MemberService(repoOptions as IServiceOptions)
@@ -1320,7 +1396,6 @@ export default class MemberService extends LoggerBase {
 
           await txService.update(originalId, toUpdate, {
             syncToOpensearch: false,
-            doPopulateRelations: false,
           })
 
           // update members that belong to source organization to destination org
@@ -1343,6 +1418,16 @@ export default class MemberService extends LoggerBase {
           await SequelizeRepository.commitTransaction(tx)
           return { original, toMerge }
         }),
+      )
+
+      await MergeActionsRepository.setMergeAction(
+        MergeActionType.MEMBER,
+        originalId,
+        toMergeId,
+        this.options,
+        {
+          step: MergeActionStep.MERGE_SYNC_DONE,
+        },
       )
 
       await this.options.temporal.workflow.start('finishMemberMerging', {
@@ -1416,54 +1501,16 @@ export default class MemberService extends LoggerBase {
 
         return Array.from(emailSet)
       },
-      username: (oldUsernames, newUsernames) => {
-        // we want to keep just the usernames that are not already in the oldUsernames
-        const toKeep: any = {}
-
-        const actualOld = mapUsernameToIdentities(oldUsernames)
-        const actualNew = mapUsernameToIdentities(newUsernames)
-
-        for (const [platform, identities] of Object.entries(actualNew)) {
-          const oldIdentities = actualOld[platform]
-
-          if (oldIdentities) {
-            const identitiesToKeep = []
-            for (const newIdentity of identities as any[]) {
-              let keep = true
-              for (const oldIdentity of oldIdentities) {
-                if (
-                  oldIdentity.value === newIdentity.value &&
-                  oldIdentity.type === newIdentity.type
-                ) {
-                  keep = false
-                  break
-                }
-              }
-
-              if (keep) {
-                identitiesToKeep.push(newIdentity)
-              }
-            }
-
-            if (identitiesToKeep.length > 0) {
-              toKeep[platform] = identitiesToKeep
-            }
-          } else {
-            toKeep[platform] = identities
-          }
-        }
-
-        return toKeep
-      },
       attributes: (oldAttributes, newAttributes) =>
         MemberService.safeMerge(oldAttributes, newAttributes),
     })
   }
 
-  async findGithub(memberId) {
-    const memberIdentities = (
-      await MemberRepository.findById(memberId, this.options, { doPopulateRelations: false })
-    ).username
+  async findGithub(memberId: string) {
+    const qx = SequelizeRepository.getQueryExecutor(this.options)
+    const memberIdentities = MemberRepository.getUsernameFromIdentities(
+      await fetchMemberIdentities(qx, memberId),
+    )
     const axios = require('axios')
     // GitHub allows a maximum of 5 parameters
     const identities = Object.values(memberIdentities).flat().slice(0, 5)
@@ -1560,11 +1607,9 @@ export default class MemberService extends LoggerBase {
     {
       syncToOpensearch = true,
       manualChange = false,
-      doPopulateRelations = true,
     }: {
       syncToOpensearch?: boolean
       manualChange?: boolean
-      doPopulateRelations?: boolean
     } = {},
   ) {
     let transaction
@@ -1719,7 +1764,6 @@ export default class MemberService extends LoggerBase {
 
           const record = await MemberRepository.update(id, data, repoOptions, {
             manualChange,
-            doPopulateRelations,
           })
 
           return record
@@ -1755,10 +1799,6 @@ export default class MemberService extends LoggerBase {
               await searchSyncService.triggerOrganizationSync(this.options.currentTenant.id, org.id)
             }
           }
-
-          // return updated record from OpenSearch instead of db
-          // quick hack to ensure tests that use this method don't fail if OpenSearch is disabled
-          return await MemberRepository.findByIdOpensearch(record.id, this.options)
         } catch (emitErr) {
           this.log.error(
             emitErr,
@@ -1845,38 +1885,28 @@ export default class MemberService extends LoggerBase {
     }
   }
 
-  async findById(
-    id,
-    {
-      returnPlain = true,
-      doPopulateRelations = true,
-      segmentId,
-    }: {
-      returnPlain?: boolean
-      doPopulateRelations?: boolean
-      segmentId?: string
-    } = {},
-  ) {
-    return MemberRepository.findById(id, this.options, {
-      returnPlain,
-      doPopulateRelations,
-      segmentId,
-    })
+  async findById(id, segmentId?: string, include: Record<string, string> = {}) {
+    return MemberRepository.findById(
+      id,
+      this.options,
+      {
+        segmentId,
+      },
+      include,
+    )
   }
 
   async findAllAutocomplete(data) {
-    const memberAttributeSettings = (
-      await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
-    ).rows
-
-    return MemberRepository.findAndCountAllOpensearch(
+    return MemberRepository.findAndCountAll(
       {
         filter: data.filter,
         offset: data.offset,
         orderBy: data.orderBy,
         limit: data.limit,
-        segments: data.segments,
-        attributesSettings: memberAttributeSettings,
+        segmentId: data.segments[0],
+        include: {
+          segments: true,
+        },
       },
       this.options,
     )
@@ -1904,64 +1934,27 @@ export default class MemberService extends LoggerBase {
     )
   }
 
-  async findAndCountAll(args) {
-    const memberAttributeSettings = (
-      await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
-    ).rows
-    return MemberRepository.findAndCountAll(
-      { ...args, attributesSettings: memberAttributeSettings },
-      this.options,
-    )
-  }
-
-  async findByIdOpensearch(id: string, segmentId?: string) {
-    return MemberRepository.findByIdOpensearch(id, this.options, segmentId)
-  }
-
-  async queryV2(data) {
-    if (await isFeatureEnabled(FeatureFlag.SEGMENTS, this.options)) {
-      if (data.segments.length !== 1) {
-        throw new Error400(
-          `This operation can have exactly one segment. Found ${data.segments.length} segments.`,
-        )
-      }
-    } else {
-      data.segments = [(await new SegmentRepository(this.options).getDefaultSegment()).id]
-    }
-
-    const memberAttributeSettings = (
-      await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
-    ).rows
-
-    return MemberRepository.findAndCountAllOpensearch(
-      {
-        limit: data.limit,
-        offset: data.offset,
-        filter: data.filter,
-        orderBy: data.orderBy || undefined,
-        countOnly: data.countOnly || false,
-        attributesSettings: memberAttributeSettings,
-        segments: data.segments,
-      },
-      this.options,
-    )
-  }
-
   async query(data, exportMode = false) {
     const memberAttributeSettings = (
       await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
     ).rows.filter((setting) => setting.type !== MemberAttributeType.SPECIAL)
-    const advancedFilter = data.filter
-    const orderBy = data.orderBy
-    const limit = data.limit
-    const offset = data.offset
+
+    const segmentId = (data.segments || [])[0]
+
+    if (!segmentId) {
+      throw new Error400(this.options.language, 'member.segmentsRequired')
+    }
+
     return MemberRepository.findAndCountAll(
       {
-        advancedFilter,
-        orderBy,
-        limit,
-        offset,
+        ...data,
+        segmentId,
         attributesSettings: memberAttributeSettings,
+        include: {
+          memberOrganizations: true,
+          lfxMemberships: true,
+          identities: true,
+        },
         exportMode,
       },
       this.options,
@@ -2019,7 +2012,7 @@ export default class MemberService extends LoggerBase {
       importHash,
     }
 
-    return this.upsert(dataToCreate)
+    await this.upsert(dataToCreate)
   }
 
   async _isImportHashExistent(importHash) {

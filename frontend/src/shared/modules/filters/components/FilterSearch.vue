@@ -48,7 +48,7 @@ const changeValue = debounce((search: string) => {
   const { name: routeName, hash: routeHash } = router.currentRoute.value;
 
   if (routeName === 'member') {
-    key = FeatureEventKey.SEARCH_CONTRIBUTORS;
+    key = FeatureEventKey.SEARCH_MEMBERS;
   } else if (routeName === 'organization') {
     key = FeatureEventKey.SEARCH_ORGANIZATIONS;
   } else if (routeName === 'activity' && routeHash === '#activity') {
@@ -67,7 +67,7 @@ const changeValue = debounce((search: string) => {
   }
 
   emit('update:modelValue', search);
-}, 300);
+}, 400);
 
 </script>
 

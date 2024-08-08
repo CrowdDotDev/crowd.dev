@@ -1,5 +1,5 @@
 <template>
-  <div
+  <label
     class="c-input"
     :class="{
       'is-disabled': props.disabled,
@@ -19,7 +19,7 @@
     <div v-if="$slots.suffix" class="c-input__suffix">
       <slot name="suffix" />
     </div>
-  </div>
+  </label>
 </template>
 
 <script setup lang="ts">

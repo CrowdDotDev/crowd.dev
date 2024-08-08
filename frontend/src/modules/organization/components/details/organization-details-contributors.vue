@@ -6,13 +6,13 @@
     :search-config="memberSearchFilter"
     :saved-views-config="memberSavedViews"
     :custom-config="customAttributesFilter"
-    hash="contributors"
+    hash="people"
     @fetch="onFilterChange($event)"
   />
   <div v-if="contributors.length > 0" class="flex justify-between items-center pb-3 -mt-2">
     <!-- Total number -->
     <p class="text-small text-gray-500">
-      {{ pluralize('contributor', pagination.total, true) }}
+      {{ pluralize('person', pagination.total, true) }}
     </p>
 
     <!-- Sorting -->
@@ -112,7 +112,7 @@
         <lf-icon name="group-2-line" :size="80" class="text-gray-200" />
       </div>
       <h5 class="text-center text-h5">
-        No contributors found
+        No people found
       </h5>
       <p class="text-gray-600 text-small text-center mt-4">
         We couldn't find any results that match your search criteria, please try a different query
@@ -123,11 +123,11 @@
       class="pt-10 pb-6 gap-4 flex justify-center items-center"
     >
       <p class="text-small text-gray-400">
-        {{ contributors.length }} of {{ totalContacts }} contributors
+        {{ contributors.length }} of {{ totalContacts }} people
       </p>
       <lf-button
         type="primary-ghost"
-        loading-text="Loading contributors..."
+        loading-text="Loading people..."
         :loading="loading"
         @click="loadMore"
       >
@@ -151,8 +151,6 @@ import { Filter } from '@/shared/modules/filters/types/FilterConfig';
 import { Pagination } from '@/shared/types/Pagination';
 import { Member } from '@/modules/member/types/Member';
 import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
-import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
-import LfContributorEngagementLevel from '@/modules/contributor/components/shared/contributor-engagement-level.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
@@ -163,6 +161,8 @@ import AppIdentitiesHorizontalListMembers
 import pluralize from 'pluralize';
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
+import LfContributorEngagementLevel from '@/modules/contributor/components/shared/contributor-engagement-level.vue';
+import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
 
 const props = defineProps<{
   organization: Organization,
@@ -213,7 +213,7 @@ const pagination = ref({
   total: 0,
 });
 
-const orgFilter = { organizations: { eq: props.organization.id } };
+const orgFilter = { organizations: { contains: [props.organization.id] } };
 
 const doGetMembersCount = () => {
   MemberService.listMembers(

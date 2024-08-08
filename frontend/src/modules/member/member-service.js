@@ -108,14 +108,17 @@ export class MemberService {
     return response.data;
   }
 
-  static async find(id) {
+  static async find(id, segmentId) {
     const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/member/${id}`,
       {
         params: {
-          segments: [getSelectedProjectGroup().id],
+          segments: [segmentId ?? getSelectedProjectGroup().id],
+          include: {
+            identities: true,
+          },
         },
       },
     );
@@ -267,7 +270,9 @@ export class MemberService {
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/member/${memberId}/unmerge/preview`,
-      identity,
+      {
+        identity,
+      },
     );
 
     return response.data;

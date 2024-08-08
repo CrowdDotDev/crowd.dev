@@ -50,7 +50,7 @@
           </div>
         </div>
         <div class="text-xs text-gray-500">
-          Overview of all organizations that relate to your product or community
+          List of all the organizations that relate to {{ selectedProjectGroup?.name }} projects
         </div>
       </div>
 

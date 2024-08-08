@@ -1,7 +1,9 @@
 <template>
   <div class="flex items-center flex-grow">
-    <lf-organization-details-header-logo :organization="props.organization" />
-    <div class="pl-3 w-full group">
+    <div @mouseover.stop @mouseout.stop>
+      <lf-organization-details-header-logo :organization="props.organization" />
+    </div>
+    <div class="pl-3 w-full">
       <lf-organization-edit-name :organization="props.organization" />
       <div class="flex items-center gap-1.5">
         <lf-organization-membership :organization="props.organization" />

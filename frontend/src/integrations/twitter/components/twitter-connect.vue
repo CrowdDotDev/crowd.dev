@@ -10,6 +10,7 @@
     :settings="settings"
     :has-settings="true"
     :has-integration="isTwitterEnabled"
+    :settings-component="TwitterSettings"
   />
 </template>
 
@@ -26,6 +27,7 @@ import { FeatureFlag } from '@/utils/featureFlag';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
 import { AuthService } from '@/modules/auth/services/auth.service';
+import TwitterSettings from './twitter-settings.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -44,14 +46,12 @@ onMounted(() => {
 
   if (isConnectionSuccessful) {
     router.replace({ query: null });
-    Message.success('Integration updated successfuly');
+    Message.success('Integration updated successfully');
   }
 });
 
 onMounted(async () => {
-  isTwitterEnabled.value = FeatureFlag.isFlagEnabled(
-    FeatureFlag.flags.twitter,
-  );
+  isTwitterEnabled.value = FeatureFlag.isFlagEnabled(FeatureFlag.flags.twitter);
 });
 
 // Only render twitter drawer and settings button, if integration has settings
@@ -69,7 +69,9 @@ const connectUrl = computed(() => {
 
   return `${config.backendUrl}/twitter/${
     tenant.value.id
-  }/connect?redirectUrl=${redirectUrl}&crowdToken=${AuthService.getToken()}&segments[]=${route.params.id}`;
+  }/connect?redirectUrl=${redirectUrl}&crowdToken=${AuthService.getToken()}&segments[]=${
+    route.params.id
+  }`;
 });
 
 const connect = () => {

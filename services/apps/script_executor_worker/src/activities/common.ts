@@ -7,6 +7,7 @@ import {
 } from '@crowd/types'
 import axios from 'axios'
 import { svc } from '../main'
+import { findOrganizationSegments } from '@crowd/data-access-layer/src/old/apps/entity_merging_worker'
 
 export async function mergeMembers(
   primaryMemberId: string,
@@ -80,6 +81,38 @@ export async function unmergeMembersPreview(
     return result.data
   } catch (error) {
     console.log(`Failed unmerging member with status [${error.response.status}]. Skipping!`)
+  }
+}
+
+export async function mergeOrganizations(
+  tenantId: string,
+  primaryOrgId: string,
+  secondaryOrgId: string,
+  segmentId?: string,
+): Promise<void> {
+  // if segmentId doesn't exist we can get just one segment org belongs to and use that
+  if (!segmentId) {
+    const result = await findOrganizationSegments(svc.postgres.writer, primaryOrgId)
+    segmentId = result?.segmentIds?.[0] ?? undefined
+  }
+
+  const url = `${process.env['CROWD_API_SERVICE_URL']}/tenant/${tenantId}/organization/${primaryOrgId}/merge`
+  const requestOptions = {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${process.env['CROWD_API_SERVICE_USER_TOKEN']}`,
+      'Content-Type': 'application/json',
+    },
+    data: {
+      organizationToMerge: secondaryOrgId,
+      segments: segmentId ? [segmentId] : [],
+    },
+  }
+
+  try {
+    await axios(url, requestOptions)
+  } catch (error) {
+    console.log(`Failed merging organization with status [${error.response.status}]. Skipping!`)
   }
 }
 

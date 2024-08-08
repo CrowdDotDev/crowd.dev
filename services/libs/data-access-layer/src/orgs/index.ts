@@ -1,6 +1,5 @@
-import { RawQueryParser } from '@crowd/common'
 import { QueryExecutor } from '../queryExecutor'
-import { QueryOptions } from '../utils'
+import { QueryOptions, QueryResult, queryTable, queryTableById } from '../utils'
 
 export enum OrganizationField {
   // meta
@@ -33,66 +32,17 @@ export enum OrganizationField {
   EMPLOYEE_GROWTH_RATE = 'employeeGrowthRate',
 }
 
-export async function queryOrgs<T extends OrganizationField[]>(
+export async function queryOrgs<T extends OrganizationField>(
   qx: QueryExecutor,
-  { filter, fields, limit, offset }: QueryOptions<T> = {},
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-): Promise<{ [K in T[number]]: any }[]> {
-  const params = {
-    limit: limit || 10,
-    offset: offset || 0,
-  }
-  if (!fields) {
-    fields = Object.values(OrganizationField) as T
-  }
-  if (!filter) {
-    filter = {}
-  }
-
-  const where = RawQueryParser.parseFilters(
-    filter,
-    new Map<string, string>(Object.values(OrganizationField).map((field) => [field, field])),
-    [],
-    params,
-    { pgPromiseFormat: true },
-  )
-
-  return qx.select(
-    `
-      SELECT
-        ${fields.map((f) => `"${f}"`).join(',\n')}
-      FROM organizations
-      WHERE ${where}
-      LIMIT $(limit)
-      OFFSET $(offset)
-    `,
-    params,
-  )
+  opts: QueryOptions<T>,
+): Promise<QueryResult<T>[]> {
+  return queryTable(qx, 'organizations', Object.values(OrganizationField), opts)
 }
 
-export async function findOrgById<T extends OrganizationField[]>(
+export async function findOrgById<T extends OrganizationField>(
   qx: QueryExecutor,
-  organizationId: string,
-  {
-    fields,
-  }: {
-    fields?: T
-  } = {
-    fields: Object.values(OrganizationField) as T,
-  },
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-): Promise<{ [K in T[number]]: any }> {
-  const rows = await queryOrgs(qx, {
-    fields,
-    filter: {
-      [OrganizationField.ID]: { eq: organizationId },
-    },
-    limit: 1,
-  })
-
-  if (rows.length > 0) {
-    return rows[0]
-  }
-
-  return null
+  orgId: string,
+  fields: T[],
+): Promise<QueryResult<T>> {
+  return queryTableById(qx, 'organizations', Object.values(OrganizationField), orgId, fields)
 }

@@ -4,9 +4,14 @@
   </div>
   <div v-else class="-mt-5 -mb-5">
     <div class="contributor-details  grid grid-cols-2 grid-rows-2 px-3">
-      <section class="w-full border-b border-gray-100 py-4 flex justify-between items-center col-span-2 h-min">
+      <section
+        class="w-full border-b border-gray-100 py-4 flex justify-between items-center col-span-2 h-min"
+        :class="hovered ? 'is-hovered' : ''"
+        @mouseover="hovered = true"
+        @mouseout="hovered = false"
+      >
         <div class="flex items-center">
-          <lf-back :to="{ path: '/contributors' }" class="mr-2">
+          <lf-back :to="{ path: '/people' }" class="mr-2" @mouseover.stop @mouseout.stop>
             <lf-button type="secondary-ghost" :icon-only="true">
               <lf-icon name="arrow-left-s-line" />
             </lf-button>
@@ -14,8 +19,11 @@
           <lf-contributor-details-header :contributor="contributor" />
         </div>
         <div class="flex items-center">
-          <lf-contributor-last-enrichment :contributor="contributor" class="mr-4" />
-          <lf-contributor-details-actions :contributor="contributor" @reload="fetchContributor()" />
+          <lf-contributor-syncing-activities v-if="contributor.activitySycning?.state === MergeActionState.IN_PROGRESS" :contributor="contributor" />
+          <lf-contributor-last-enrichment v-else :contributor="contributor" class="mr-4" />
+          <div @mouseover.stop @mouseout.stop>
+            <lf-contributor-details-actions :contributor="contributor" @reload="fetchContributor()" />
+          </div>
         </div>
       </section>
       <section class="w-80 border-r relative border-gray-100 overflow-y-auto overflow-x-visible h-full ">
@@ -31,10 +39,6 @@
             class="mb-8"
             @reload="fetchContributor()"
           />
-          <lf-contributor-details-emails
-            :contributor="contributor"
-            @reload="fetchContributor()"
-          />
         </div>
       </section>
       <section class="overflow-auto h-full pb-10" @scroll="controlScroll">
@@ -45,7 +49,15 @@
                 Overview
               </lf-tab>
               <lf-tab v-model="tabs" name="activities">
-                Activities
+                <div class="flex items-center gap-1">
+                  Activities
+                  <lf-icon
+                    v-if="contributor.activitySycning?.state === MergeActionState.ERROR"
+                    name="error-warning-line"
+                    :size="16"
+                    class="text-red-500"
+                  />
+                </div>
               </lf-tab>
               <lf-tab v-model="tabs" name="notes">
                 Notes
@@ -78,6 +90,13 @@
 import LfTabs from '@/ui-kit/tabs/Tabs.vue';
 import LfTab from '@/ui-kit/tabs/Tab.vue';
 import { onMounted, ref } from 'vue';
+import LfBack from '@/ui-kit/back/Back.vue';
+import LfButton from '@/ui-kit/button/Button.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
+import { useRoute } from 'vue-router';
+import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
+import { useMemberStore } from '@/modules/member/store/pinia';
+import { storeToRefs } from 'pinia';
 import LfContributorDetailsOverview from '@/modules/contributor/components/details/contributor-details-overview.vue';
 import LfContributorDetailsActivities
   from '@/modules/contributor/components/details/contributor-details-activities.vue';
@@ -86,18 +105,12 @@ import LfContributorDetailsWorkHistory
   from '@/modules/contributor/components/details/contributor-details-work-history.vue';
 import LfContributorDetailsIdentities
   from '@/modules/contributor/components/details/contributor-details-identities.vue';
-import LfBack from '@/ui-kit/back/Back.vue';
-import LfButton from '@/ui-kit/button/Button.vue';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfContributorDetailsHeader from '@/modules/contributor/components/details/contributor-details-header.vue';
 import LfContributorDetailsActions from '@/modules/contributor/components/details/contributor-details-actions.vue';
-import { useRoute } from 'vue-router';
-import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
-import LfContributorDetailsEmails from '@/modules/contributor/components/details/contributor-details-emails.vue';
 import LfContributorLastEnrichment from '@/modules/contributor/components/shared/contributor-last-enrichment.vue';
-import { useMemberStore } from '@/modules/member/store/pinia';
 import { useContributorStore } from '@/modules/contributor/store/contributor.store';
-import { storeToRefs } from 'pinia';
+import LfContributorSyncingActivities from '@/modules/contributor/components/shared/contributor-syncing-activities.vue';
+import { MergeActionState } from '@/shared/modules/merge/types/MemberActions';
 
 const { getMemberCustomAttributes } = useMemberStore();
 
@@ -114,6 +127,8 @@ const notes = ref<any>(null);
 const { id } = route.params;
 
 const loading = ref<boolean>(true);
+
+const hovered = ref<boolean>(false);
 
 const fetchContributor = () => {
   if (!contributor.value) {

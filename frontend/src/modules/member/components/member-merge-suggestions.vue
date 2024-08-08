@@ -60,7 +60,7 @@
           :loading="sendingMerge"
           @click="mergeSuggestion()"
         >
-          Merge contributors
+          Merge profile
         </lf-button>
         <slot name="actions" />
       </div>
@@ -127,7 +127,7 @@
         No merge suggestions
       </h5>
       <p class="text-sm text-center text-gray-600 leading-5">
-        We couldn’t find any duplicated contributors
+        We couldn't find any duplicated profiles
       </p>
     </div>
   </div>
@@ -146,6 +146,7 @@ import LfButton from '@/ui-kit/button/Button.vue';
 import AppMemberMergeSimilarity from '@/modules/member/components/suggestions/member-merge-similarity.vue';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import { useContributorStore } from '@/modules/contributor/store/contributor.store';
 import { MemberService } from '../member-service';
 
 const props = defineProps({
@@ -164,6 +165,7 @@ const props = defineProps({
 const emit = defineEmits(['reload']);
 
 const { trackEvent } = useProductTracking();
+const { getContributorMergeActions } = useContributorStore();
 
 const membersToMerge = ref([]);
 const primary = ref(0);
@@ -207,7 +209,7 @@ const fetch = (page) => {
   }
 
   trackEvent({
-    key: FeatureEventKey.NAVIGATE_CONTRIBUTORS_MERGE_SUGGESTIONS,
+    key: FeatureEventKey.NAVIGATE_MEMBERS_MERGE_SUGGESTIONS,
     type: EventType.FEATURE,
   });
 
@@ -237,7 +239,7 @@ const ignoreSuggestion = () => {
   }
 
   trackEvent({
-    key: FeatureEventKey.IGNORE_CONTRIBUTOR_MERGE_SUGGESTION,
+    key: FeatureEventKey.IGNORE_MEMBER_MERGE_SUGGESTION,
     type: EventType.FEATURE,
     properties: {
       similarity: membersToMerge.value.similarity,
@@ -247,8 +249,8 @@ const ignoreSuggestion = () => {
   sendingIgnore.value = true;
   MemberService.addToNoMerge(...membersToMerge.value.members)
     .then(() => {
-      Message.success('Merging suggestion ignored successfuly');
-
+      Message.success('Merging suggestion ignored successfully');
+      getContributorMergeActions();
       const nextIndex = offset.value >= (count.value - 1) ? Math.max(count.value - 2, 0) : offset.value;
       fetch(nextIndex);
       changed.value = true;
@@ -283,7 +285,7 @@ const mergeSuggestion = () => {
   loadingMessage();
 
   trackEvent({
-    key: FeatureEventKey.MERGE_CONTRIBUTOR_MERGE_SUGGESTION,
+    key: FeatureEventKey.MERGE_MEMBERS_MERGE_SUGGESTION,
     type: EventType.FEATURE,
     properties: {
       similarity: membersToMerge.value.similarity,
@@ -294,9 +296,9 @@ const mergeSuggestion = () => {
     .then(() => {
       Message.closeAll();
       Message.info(
-        'We’re finalizing contributor merging. We will let you know once the process is completed.',
+        "We're finalizing profiles merging. We will let you know once the process is completed.",
         {
-          title: 'Contributors merging in progress',
+          title: 'Profiles merging in progress',
         },
       );
       primary.value = 0;

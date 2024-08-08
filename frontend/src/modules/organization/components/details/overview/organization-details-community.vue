@@ -10,14 +10,21 @@
             Community size
           </p>
           <p v-if="!loadingMemberCount" class="text-small text-gray-600">
-            {{ pluralize('contributor', memberCount || 0, true) }}
+            {{ pluralize('person', memberCount || 0, true) }}
           </p>
         </article>
         <article class="px-4 h-full w-1/2 xl:w-1/3 border-l border-gray-200">
           <p class="text-tiny text-secondary-300 mb-2">
             # of activities
           </p>
-          <p class="text-small text-gray-600">
+          <lf-loading
+            v-if="props.organization.activitySycning?.state === MergeActionState.IN_PROGRESS"
+            :count="1"
+            height="1rem"
+            width="4rem"
+            class="rounded"
+          />
+          <p v-else class="text-small text-gray-600">
             {{ props.organization.activityCount && formatNumber(props.organization.activityCount) || '-' }}
           </p>
         </article>
@@ -43,6 +50,8 @@ import { Organization } from '@/modules/organization/types/Organization';
 import pluralize from 'pluralize';
 import { onMounted, ref } from 'vue';
 import { MemberService } from '@/modules/member/member-service';
+import { MergeActionState } from '@/shared/modules/merge/types/MemberActions';
+import LfLoading from '@/ui-kit/loading/Loading.vue';
 
 const props = defineProps<{
   organization: Organization,
@@ -50,7 +59,7 @@ const props = defineProps<{
 
 const memberCount = ref<number>(0);
 const loadingMemberCount = ref<boolean>(true);
-const orgFilter = { organizations: { eq: props.organization.id } };
+const orgFilter = { organizations: { contains: [props.organization.id] } };
 
 const doGetMembersCount = () => {
   loadingMemberCount.value = true;

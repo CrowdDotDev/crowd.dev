@@ -20,7 +20,7 @@ export const getOrganization = async (
     },
     headers: {
       'X-Restli-Protocol-Version': '2.0.0',
-      'LinkedIn-Version': '202305',
+      'LinkedIn-Version': '202306',
     },
   }
 

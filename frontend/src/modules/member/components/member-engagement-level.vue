@@ -22,7 +22,7 @@
       >
         <template #content>
           Calculated based on the recency and importance of the activities<br>
-          a contributor has performed in relation to all other contributors.
+          a person has performed in relation to the community.
         </template>
 
         <div

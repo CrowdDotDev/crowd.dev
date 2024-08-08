@@ -34,6 +34,7 @@ export async function insertOrganizationSegments(
           'organizationId',
           'segmentId',
           'tenantId',
+
           'joinedAt',
           'lastActive',
           'activeOn',
@@ -42,6 +43,12 @@ export async function insertOrganizationSegments(
           'avgContributorEngagement',
         ],
         data,
+        `("organizationId", "segmentId") DO UPDATE SET "joinedAt" = EXCLUDED."joinedAt",
+                       "lastActive" = EXCLUDED."lastActive",
+                       "activeOn" = EXCLUDED."activeOn",
+                       "activityCount" = EXCLUDED."activityCount",
+                       "memberCount" = EXCLUDED."memberCount",
+                       "avgContributorEngagement" = EXCLUDED."avgContributorEngagement"`,
       ),
     )
   } catch (e) {
@@ -54,35 +61,41 @@ export async function fetchManyOrgSegments(
   qx: QueryExecutor,
   organizationIds: string[],
 ): Promise<IOrganizationSegments[]> {
-  return qx.select(
-    `
-      SELECT
-        "organizationId",
-        ARRAY_AGG("segmentId") AS segments
-      FROM "organizationSegmentsAgg"
-      WHERE "organizationId" = ANY($(organizationIds)::UUID[])
-      GROUP BY "organizationId"
-    `,
-    {
-      organizationIds,
-    },
+  const result = await Promise.all(
+    organizationIds.map((organizationId) =>
+      qx.selectOneOrNone(
+        `
+          SELECT
+            "organizationId",
+            ARRAY_AGG("segmentId") AS segments
+          FROM "organizationSegmentsAgg"
+          WHERE "organizationId" = $(organizationId)
+          GROUP BY "organizationId"
+        `,
+        {
+          organizationId,
+        },
+      ),
+    ),
   )
+
+  return result.filter((row) => !!row)
 }
 
-export async function fetchOrgAggregates(
+export async function fetchTotalActivityCount(
   qx: QueryExecutor,
   organizationId: string,
-): Promise<IDbOrganizationAggregateData> {
-  return qx.selectOneOrNone(
+): Promise<number> {
+  const res: { activityCount: number } = await qx.selectOneOrNone(
     `
-      SELECT
-        *
+      SELECT SUM("activityCount") as "activityCount"
       FROM "organizationSegmentsAgg"
-      WHERE "organizationId" = $(organizationId)
-      LIMIT 1
+      WHERE "organizationId" = $(organizationId);
     `,
     {
       organizationId,
     },
   )
+
+  return res?.activityCount || 0
 }

@@ -7,10 +7,7 @@ const MemberListPage = () => import('@/modules/member/pages/member-list-page.vue
 const MemberMergeSuggestionsPage = () => import(
   '@/modules/member/pages/member-merge-suggestions-page.vue'
 );
-const MemberViewPage = () => import('@/modules/member/pages/member-view-page.vue');
-const ContributorViewPage = () => import('@/modules/contributor/pages/contributor-details.page.vue');
-const MemberCreatePage = () => import('@/modules/member/pages/member-form-page.vue');
-
+const PersonViewPage = () => import('@/modules/contributor/pages/contributor-details.page.vue');
 export default [
   {
     name: '',
@@ -18,7 +15,7 @@ export default [
     component: Layout,
     meta: {
       auth: true,
-      title: 'Contributors',
+      title: 'People',
       segments: {
         requireSelectedProjectGroup: true,
       },
@@ -26,48 +23,23 @@ export default [
     children: [
       {
         name: 'member',
-        path: '/contributors',
+        path: '/people',
         component: MemberListPage,
         meta: {
           auth: true,
-          eventKey: PageEventKey.CONTRIBUTORS,
+          eventKey: PageEventKey.MEMBERS,
         },
         beforeEnter: [
           PermissionGuard(LfPermission.memberRead),
         ],
       },
       {
-        name: 'memberCreate',
-        path: '/contributors/new',
-        component: MemberCreatePage,
-        meta: {
-          auth: true,
-          eventKey: PageEventKey.NEW_CONTRIBUTOR,
-        },
-        beforeEnter: [
-          PermissionGuard(LfPermission.memberCreate),
-        ],
-      },
-      {
-        name: 'memberEdit',
-        path: '/contributors/:id/edit',
-        component: MemberCreatePage,
-        meta: {
-          auth: true,
-          eventKey: PageEventKey.EDIT_CONTRIBUTOR,
-        },
-        props: true,
-        beforeEnter: [
-          PermissionGuard(LfPermission.memberEdit),
-        ],
-      },
-      {
         name: 'memberMergeSuggestions',
-        path: '/contributors/merge-suggestions',
+        path: '/people/merge-suggestions',
         component: MemberMergeSuggestionsPage,
         meta: {
           auth: true,
-          eventKey: PageEventKey.CONTRIBUTORS_MERGE_SUGGESTIONS,
+          eventKey: PageEventKey.MEMBERS_MERGE_SUGGESTIONS,
         },
         beforeEnter: [
           PermissionGuard(LfPermission.mergeMembers),
@@ -75,12 +47,12 @@ export default [
       },
       {
         name: 'memberView',
-        path: '/contributors/:id',
-        component: ContributorViewPage,
+        path: '/people/:id',
+        component: PersonViewPage,
         meta: {
           auth: true,
-          title: 'Contributor',
-          eventKey: PageEventKey.CONTRIBUTOR_PROFILE,
+          title: 'Person profile',
+          eventKey: PageEventKey.MEMBER_PROFILE,
         },
         props: true,
         beforeEnter: [
@@ -89,16 +61,51 @@ export default [
       },
       {
         name: 'memberMerge',
-        path: '/contributors/:id/merge',
+        path: '/people/:id/merge',
         component: MemberMergeSuggestionsPage,
         meta: {
           auth: true,
-          eventKey: PageEventKey.CONTRIBUTORS_MERGE_SUGGESTIONS,
+          eventKey: PageEventKey.MEMBERS_MERGE_SUGGESTIONS,
         },
         props: true,
         beforeEnter: [
           PermissionGuard(LfPermission.memberEdit),
         ],
+      },
+      {
+        path: '/contributors',
+        redirect: (to) => ({
+          path: '/people',
+          query: to.query,
+        }),
+      },
+      {
+        path: '/contributors/new',
+        redirect: (to) => ({
+          path: '/people/new',
+          query: to.query,
+        }),
+      },
+      {
+        path: '/contributors/merge-suggestions',
+        redirect: (to) => ({
+          path: '/people/merge-suggestions',
+          query: to.query,
+        }),
+      },
+      {
+        path: '/contributors/:id',
+        redirect: (to) => ({
+          path: `/people/${to.params.id}`,
+          query: to.query,
+        }),
+      },
+      {
+        path: '/contributors/:id/merge',
+        redirect: (to) => ({
+          path: `/people/${to.params.id}/merge`,
+          query: to.query,
+        }),
       },
     ],
   },
