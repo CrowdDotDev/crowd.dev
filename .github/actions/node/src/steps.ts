@@ -233,7 +233,6 @@ region=${deployInput.oracle.region}
       'PUBLIC_ENDPOINT',
       '--config-file',
       configPath,
-      '--debug',
     ])
     if (exitCode !== 0) {
       core.error('Failed to create kubeconfig!')
@@ -260,11 +259,13 @@ region=${deployInput.oracle.region}
           )
           break
         }
+        case CloudEnvironment.LF_ORACLE_PRODUCTION:
         case CloudEnvironment.LF_PRODUCTION: {
           servicesToUpdate.push(...[`${service}-system`, `${service}-normal`, `${service}-high`])
           break
         }
 
+        case CloudEnvironment.LF_ORACLE_STAGING:
         case CloudEnvironment.LF_STAGING:
         case CloudEnvironment.STAGING: {
           servicesToUpdate.push(`${service}-normal`)

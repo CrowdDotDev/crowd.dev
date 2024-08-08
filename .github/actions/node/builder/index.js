@@ -26408,7 +26408,8 @@ const getDeployIUputs = () => {
     }
     let aws;
     let oracle;
-    if (cloudEnvironment === types_1.CloudEnvironment.LF_ORACLE_PRODUCTION) {
+    if (cloudEnvironment === types_1.CloudEnvironment.LF_ORACLE_PRODUCTION ||
+        cloudEnvironment === types_1.CloudEnvironment.LF_ORACLE_STAGING) {
         const user = process.env.ORACLE_USER;
         if (!user) {
             core.error('No ORACLE_USER environment variable found!');
@@ -26823,7 +26824,6 @@ region=${deployInput.oracle.region}
             'PUBLIC_ENDPOINT',
             '--config-file',
             configPath,
-            '--debug',
         ]);
         if (exitCode !== 0) {
             core.error('Failed to create kubeconfig!');
@@ -26846,10 +26846,12 @@ region=${deployInput.oracle.region}
                     servicesToUpdate.push(...[`${service}-system`, `${service}-normal`, `${service}-high`, `${service}-urgent`]);
                     break;
                 }
+                case types_1.CloudEnvironment.LF_ORACLE_PRODUCTION:
                 case types_1.CloudEnvironment.LF_PRODUCTION: {
                     servicesToUpdate.push(...[`${service}-system`, `${service}-normal`, `${service}-high`]);
                     break;
                 }
+                case types_1.CloudEnvironment.LF_ORACLE_STAGING:
                 case types_1.CloudEnvironment.LF_STAGING:
                 case types_1.CloudEnvironment.STAGING: {
                     servicesToUpdate.push(`${service}-normal`);
@@ -26908,6 +26910,7 @@ var CloudEnvironment;
     CloudEnvironment["STAGING"] = "staging";
     CloudEnvironment["LF_PRODUCTION"] = "lf-production";
     CloudEnvironment["LF_ORACLE_PRODUCTION"] = "lf-oracle-production";
+    CloudEnvironment["LF_ORACLE_STAGING"] = "lf-oracle-staging";
     CloudEnvironment["LF_STAGING"] = "lf-staging";
 })(CloudEnvironment || (exports.CloudEnvironment = CloudEnvironment = {}));
 

@@ -9,6 +9,7 @@ export enum CloudEnvironment {
   STAGING = 'staging',
   LF_PRODUCTION = 'lf-production',
   LF_ORACLE_PRODUCTION = 'lf-oracle-production',
+  LF_ORACLE_STAGING = 'lf-oracle-staging',
   LF_STAGING = 'lf-staging',
 }
 
