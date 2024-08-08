@@ -210,6 +210,10 @@ export const deployStep = async (): Promise<void> => {
       core.error('Failed to write oci key!')
       throw new Error('Failed to write oci key!')
     }
+
+    // TODO remove
+    await exec.exec('ls', ['-la', '~/.oci'])
+
     // chmod 600 to key and config
     exitCode = await exec.exec('chmod', ['600', '~/.oci/config'])
     if (exitCode !== 0) {
