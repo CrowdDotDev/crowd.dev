@@ -51,7 +51,10 @@ const getDeployIUputs = (): IDeployInput => {
   let aws: IAwsDeployInput | undefined
   let oracle: IOracleDeployInput | undefined
 
-  if (cloudEnvironment === CloudEnvironment.LF_ORACLE_PRODUCTION) {
+  if (
+    cloudEnvironment === CloudEnvironment.LF_ORACLE_PRODUCTION ||
+    cloudEnvironment === CloudEnvironment.LF_ORACLE_STAGING
+  ) {
     const user = process.env.ORACLE_USER
     if (!user) {
       core.error('No ORACLE_USER environment variable found!')

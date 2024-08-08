@@ -33,9 +33,6 @@ jobs:
       
       - name: Update PATH
         run: echo "${{ env.OCI_CLI_DIR }}" >> $GITHUB_PATH
-      
-      - name: Verify OCI CLI installation
-        run: oci --version
 
       - uses: ./.github/actions/node/builder
         with:
