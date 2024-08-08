@@ -26626,6 +26626,9 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.deployStep = exports.pushStep = exports.buildStep = void 0;
 const inputs_1 = __nccwpck_require__(2117);
@@ -26633,6 +26636,9 @@ const types_1 = __nccwpck_require__(2106);
 const core = __importStar(__nccwpck_require__(3949));
 const exec = __importStar(__nccwpck_require__(7912));
 const utils_1 = __nccwpck_require__(7407);
+const fs_1 = __importDefault(__nccwpck_require__(7147));
+const os_1 = __importDefault(__nccwpck_require__(2037));
+const path_1 = __importDefault(__nccwpck_require__(1017));
 const imageTagMap = new Map();
 const buildStep = async () => {
     const inputs = await (0, inputs_1.getInputs)();
@@ -26785,43 +26791,24 @@ const deployStep = async () => {
     tenancy=${deployInput.oracle.tenant}
     region=${deployInput.oracle.region}
     `;
+        const homeDir = os_1.default.homedir();
+        const kubeDir = path_1.default.join(homeDir, '.kube');
+        const ociDir = path_1.default.join(homeDir, '.oci');
+        const configPath = path_1.default.join(ociDir, 'config');
+        const keyPath = path_1.default.join(ociDir, 'oci_api_key.pem');
         // create the ~/.oci folder if it doesn't exists
-        exitCode = await exec.exec('mkdir', ['-p', '~/.oci']);
-        if (exitCode !== 0) {
-            core.error('Failed to create ~/.oci folder!');
-            throw new Error('Failed to create ~/.oci folder!');
-        }
+        await fs_1.default.mkdirSync(ociDir, { recursive: true });
         // write config to ~/.oci/config
-        exitCode = await exec.exec('echo', [config, '>', '~/.oci/config']);
-        if (exitCode !== 0) {
-            core.error('Failed to write oci config!');
-            throw new Error('Failed to write oci config!');
-        }
+        await fs_1.default.writeFileSync(configPath, config, 'utf8');
         // write private key to ~/.oci/oci_api_key.pem
-        exitCode = await exec.exec('echo', [deployInput.oracle.key, '>', '~/.oci/oci_api_key.pem']);
-        if (exitCode !== 0) {
-            core.error('Failed to write oci key!');
-            throw new Error('Failed to write oci key!');
-        }
+        await fs_1.default.writeFileSync(keyPath, deployInput.oracle.key, 'utf8');
         // TODO remove
         await exec.exec('ls', ['-la', '~/.oci']);
         // chmod 600 to key and config
-        exitCode = await exec.exec('chmod', ['600', '~/.oci/config']);
-        if (exitCode !== 0) {
-            core.error('Failed to chmod oci config!');
-            throw new Error('Failed to chmod oci config!');
-        }
-        exitCode = await exec.exec('chmod', ['600', '~/.oci/oci_api_key.pem']);
-        if (exitCode !== 0) {
-            core.error('Failed to chmod oci key!');
-            throw new Error('Failed to chmod oci key!');
-        }
+        await fs_1.default.chmodSync(configPath, 0o600);
+        await fs_1.default.chmodSync(keyPath, 0o600);
         // get kubernetes context
-        exitCode = await exec.exec('mkdir', ['-p', '~/.kube']);
-        if (exitCode !== 0) {
-            core.error('Failed to create ~/.kube folder!');
-            throw new Error('Failed to create ~/.kube folder!');
-        }
+        await fs_1.default.mkdirSync(kubeDir, { recursive: true });
         exitCode = await exec.exec('oci', [
             'ce',
             'cluster',
