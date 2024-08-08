@@ -3,6 +3,9 @@ import { ActionStep, CloudEnvironment, IBuilderDefinition } from './types'
 import * as core from '@actions/core'
 import * as exec from '@actions/exec'
 import { getBuilderDefinitions } from './utils'
+import fs from 'fs'
+import os from 'os'
+import path from 'path'
 
 const imageTagMap = new Map<string, string>()
 
@@ -191,47 +194,30 @@ export const deployStep = async (): Promise<void> => {
     tenancy=${deployInput.oracle.tenant}
     region=${deployInput.oracle.region}
     `
+    const homeDir = os.homedir()
+    const kubeDir = path.join(homeDir, '.kube')
+    const ociDir = path.join(homeDir, '.oci')
+    const configPath = path.join(ociDir, 'config')
+    const keyPath = path.join(ociDir, 'oci_api_key.pem')
 
     // create the ~/.oci folder if it doesn't exists
-    exitCode = await exec.exec('mkdir', ['-p', '~/.oci'])
-    if (exitCode !== 0) {
-      core.error('Failed to create ~/.oci folder!')
-      throw new Error('Failed to create ~/.oci folder!')
-    }
+    await fs.mkdirSync(ociDir, { recursive: true })
+
     // write config to ~/.oci/config
-    exitCode = await exec.exec('echo', [config, '>', '~/.oci/config'])
-    if (exitCode !== 0) {
-      core.error('Failed to write oci config!')
-      throw new Error('Failed to write oci config!')
-    }
+    await fs.writeFileSync(configPath, config, 'utf8')
+
     // write private key to ~/.oci/oci_api_key.pem
-    exitCode = await exec.exec('echo', [deployInput.oracle.key, '>', '~/.oci/oci_api_key.pem'])
-    if (exitCode !== 0) {
-      core.error('Failed to write oci key!')
-      throw new Error('Failed to write oci key!')
-    }
+    await fs.writeFileSync(keyPath, deployInput.oracle.key, 'utf8')
 
     // TODO remove
     await exec.exec('ls', ['-la', '~/.oci'])
 
     // chmod 600 to key and config
-    exitCode = await exec.exec('chmod', ['600', '~/.oci/config'])
-    if (exitCode !== 0) {
-      core.error('Failed to chmod oci config!')
-      throw new Error('Failed to chmod oci config!')
-    }
-    exitCode = await exec.exec('chmod', ['600', '~/.oci/oci_api_key.pem'])
-    if (exitCode !== 0) {
-      core.error('Failed to chmod oci key!')
-      throw new Error('Failed to chmod oci key!')
-    }
+    await fs.chmodSync(configPath, 0o600)
+    await fs.chmodSync(keyPath, 0o600)
 
     // get kubernetes context
-    exitCode = await exec.exec('mkdir', ['-p', '~/.kube'])
-    if (exitCode !== 0) {
-      core.error('Failed to create ~/.kube folder!')
-      throw new Error('Failed to create ~/.kube folder!')
-    }
+    await fs.mkdirSync(kubeDir, { recursive: true })
 
     exitCode = await exec.exec('oci', [
       'ce',
