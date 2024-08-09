@@ -3,6 +3,9 @@ import { ActionStep, CloudEnvironment, IBuilderDefinition } from './types'
 import * as core from '@actions/core'
 import * as exec from '@actions/exec'
 import { getBuilderDefinitions } from './utils'
+import fs from 'fs'
+import os from 'os'
+import path from 'path'
 
 const imageTagMap = new Map<string, string>()
 
@@ -153,30 +156,91 @@ export const deployStep = async (): Promise<void> => {
     })
   }
 
-  const env = {
-    AWS_ACCESS_KEY_ID: deployInput.awsAccessKeyId,
-    AWS_SECRET_ACCESS_KEY: deployInput.awsSecretAccessKey,
-    AWS_REGION: deployInput.awsRegion,
-  }
+  let exitCode: number
 
-  let exitCode = await exec.exec(
-    'aws',
-    [
-      'eks',
-      'update-kubeconfig',
-      '--name',
-      deployInput.eksClusterName,
-      '--role-arn',
-      deployInput.awsRoleArn,
-    ],
-    {
-      env,
-    },
-  )
+  if (deployInput.aws) {
+    const env = {
+      AWS_ACCESS_KEY_ID: deployInput.aws.awsAccessKeyId,
+      AWS_SECRET_ACCESS_KEY: deployInput.aws.awsSecretAccessKey,
+      AWS_REGION: deployInput.aws.awsRegion,
+    }
 
-  if (exitCode !== 0) {
-    core.error('Failed to update kubeconfig!')
-    throw new Error('Failed to update kubeconfig!')
+    exitCode = await exec.exec(
+      'aws',
+      [
+        'eks',
+        'update-kubeconfig',
+        '--name',
+        deployInput.aws.eksClusterName,
+        '--role-arn',
+        deployInput.aws.awsRoleArn,
+      ],
+      {
+        env,
+      },
+    )
+
+    if (exitCode !== 0) {
+      core.error('Failed to update kubeconfig!')
+      throw new Error('Failed to update kubeconfig!')
+    }
+  } else if (deployInput.oracle) {
+    const homeDir = os.homedir()
+    const kubeDir = path.join(homeDir, '.kube')
+    const ociDir = path.join(homeDir, '.oci')
+    const configPath = path.join(ociDir, 'config')
+    const keyPath = path.join(ociDir, 'oci_api_key.pem')
+
+    // prepare oracle config
+    let config = `
+[DEFAULT]
+user=${deployInput.oracle.user}
+fingerprint=${deployInput.oracle.fingerprint}
+key_file=${keyPath}
+tenancy=${deployInput.oracle.tenant}
+region=${deployInput.oracle.region}
+`
+
+    // create the ~/.oci folder if it doesn't exists
+    await fs.mkdirSync(ociDir, { recursive: true })
+
+    // write config to ~/.oci/config
+    await fs.writeFileSync(configPath, config, 'utf8')
+
+    // write private key to ~/.oci/oci_api_key.pem
+    await fs.writeFileSync(keyPath, deployInput.oracle.key, 'utf8')
+
+    // chmod 600 to key and config
+    await fs.chmodSync(configPath, 0o600)
+    await fs.chmodSync(keyPath, 0o600)
+
+    // get kubernetes context
+    await fs.mkdirSync(kubeDir, { recursive: true })
+
+    exitCode = await exec.exec('oci', [
+      'ce',
+      'cluster',
+      'create-kubeconfig',
+      '--cluster-id',
+      deployInput.oracle.cluster,
+      '--file',
+      '~/.kube/config',
+      '--region',
+      deployInput.oracle.region,
+      '--token-version',
+      '2.0.0',
+      '--kube-endpoint',
+      'PUBLIC_ENDPOINT',
+      '--config-file',
+      configPath,
+    ])
+    if (exitCode !== 0) {
+      core.error('Failed to create kubeconfig!')
+      throw new Error('Failed to create kubeconfig')
+    }
+  } else {
+    core.error('No cloud provider specified!')
+    throw new Error('No cloud provider specified!')
   }
 
   let failed = []
@@ -195,11 +259,13 @@ export const deployStep = async (): Promise<void> => {
           )
           break
         }
+        case CloudEnvironment.LF_ORACLE_PRODUCTION:
         case CloudEnvironment.LF_PRODUCTION: {
           servicesToUpdate.push(...[`${service}-system`, `${service}-normal`, `${service}-high`])
           break
         }
 
+        case CloudEnvironment.LF_ORACLE_STAGING:
         case CloudEnvironment.LF_STAGING:
         case CloudEnvironment.STAGING: {
           servicesToUpdate.push(`${service}-normal`)
