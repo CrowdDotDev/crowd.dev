@@ -22,6 +22,7 @@ export class QueueFactory {
             initialRetryTime: 100,
             retries: 8,
           },
+          ...(kafkaConfig.extra ? JSON.parse(kafkaConfig.extra) : {}),
         })
         return new KafkaQueueService(kafkaClient, log)
       default:
