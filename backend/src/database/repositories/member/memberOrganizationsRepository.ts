@@ -70,24 +70,13 @@ class MemberOrganizationsRepository {
     data: Partial<IMemberOrganization>,
     options: IRepositoryOptions,
   ) {
-    const transaction = await SequelizeRepository.createTransaction(options)
-    try {
-      const txOptions = { ...options, transaction }
-      const qx = SequelizeRepository.getQueryExecutor(txOptions, transaction)
+    const qx = SequelizeRepository.getQueryExecutor(options)
 
-      // Create member organization
-      await createMemberOrganization(qx, memberId, data)
+    // Create member organization
+    await createMemberOrganization(qx, memberId, data)
 
-      await SequelizeRepository.commitTransaction(transaction)
-
-      // List all member organizations
-      return await this.list(memberId, options)
-    } catch (err) {
-      if (transaction) {
-        await SequelizeRepository.rollbackTransaction(transaction)
-      }
-      throw err
-    }
+    // List all member organizations
+    return this.list(memberId, options)
   }
 
   static async update(
@@ -96,45 +85,23 @@ class MemberOrganizationsRepository {
     data: Partial<IMemberOrganization>,
     options: IRepositoryOptions,
   ) {
-    const transaction = await SequelizeRepository.createTransaction(options)
-    try {
-      const txOptions = { ...options, transaction }
-      const qx = SequelizeRepository.getQueryExecutor(txOptions, transaction)
+    const qx = SequelizeRepository.getQueryExecutor(options)
 
-      // Update member organization
-      await updateMemberOrganization(qx, memberId, id, data)
+    // Update member organization
+    await updateMemberOrganization(qx, memberId, id, data)
 
-      await SequelizeRepository.commitTransaction(transaction)
-
-      // List all member organizations
-      return await this.list(memberId, options)
-    } catch (err) {
-      if (transaction) {
-        await SequelizeRepository.rollbackTransaction(transaction)
-      }
-      throw err
-    }
+    // List all member organizations
+    return this.list(memberId, options)
   }
 
   static async delete(id: string, memberId: string, options: IRepositoryOptions) {
-    const transaction = await SequelizeRepository.createTransaction(options)
-    try {
-      const txOptions = { ...options, transaction }
-      const qx = SequelizeRepository.getQueryExecutor(txOptions, transaction)
+    const qx = SequelizeRepository.getQueryExecutor(options)
 
-      // Delete organization
-      await deleteMemberOrganization(qx, memberId, id)
+    // Delete organization
+    await deleteMemberOrganization(qx, memberId, id)
 
-      await SequelizeRepository.commitTransaction(transaction)
-
-      // List all member organizations
-      return await this.list(memberId, options)
-    } catch (err) {
-      if (transaction) {
-        await SequelizeRepository.rollbackTransaction(transaction)
-      }
-      throw err
-    }
+    // List all member organizations
+    return this.list(memberId, options)
   }
 }
 

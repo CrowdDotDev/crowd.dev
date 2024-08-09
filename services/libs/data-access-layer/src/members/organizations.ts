@@ -7,7 +7,7 @@ export async function fetchMemberOrganizations(
 ): Promise<IMemberOrganization[]> {
   return qx.select(
     `
-      SELECT *
+      SELECT "id", "organizationId", "dateStart", "dateEnd", "title", "memberId", "source"
       FROM "memberOrganizations"
       WHERE "memberId" = $(memberId)
     `,
@@ -44,8 +44,8 @@ export async function createMemberOrganization(
 ): Promise<void> {
   return qx.result(
     `
-        INSERT INTO "memberOrganizations"("memberId", "organizationId", "dateStart", "dateEnd", "title")
-        VALUES($(memberId), $(organizationId), $(dateStart), $("dateStart"), $(title))
+        INSERT INTO "memberOrganizations"("memberId", "organizationId", "dateStart", "dateEnd", "title", "source", "createdAt", "updatedAt")
+        VALUES($(memberId), $(organizationId), $(dateStart), $(dateEnd), $(title), $(source), $(date), $(date))
         ON CONFLICT DO NOTHING;
     `,
     {
@@ -54,6 +54,8 @@ export async function createMemberOrganization(
       dateStart: data.dateStart,
       dateEnd: data.dateEnd,
       title: data.title,
+      source: data.source,
+      date: new Date().toISOString(),
     },
   )
 }
@@ -71,7 +73,9 @@ export async function updateMemberOrganization(
             "organizationId" = $(organizationId),
             "dateStart" = $(dateStart),
             "dateEnd" = $(dateEnd),
-            title = $(title)
+            title = $(title),
+            source = $(source),
+            "updatedAt" = $(updatedAt)
           WHERE "memberId" = $(memberId) AND "id" = $(id);
       `,
     {
@@ -81,6 +85,8 @@ export async function updateMemberOrganization(
       dateStart: data.dateStart,
       dateEnd: data.dateEnd,
       title: data.title,
+      source: data.source,
+      updatedAt: new Date().toISOString(),
     },
   )
 }
