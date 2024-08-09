@@ -4,7 +4,9 @@ import * as activities from '../../activities'
 import { MemberUpdateInput } from '../../types/member'
 
 // Configure timeouts and retry policies to update a member in the database.
-const { updateMemberAffiliations } = proxyActivities<typeof activities>({
+const { updateMemberAffiliations, syncOrganization, syncMember } = proxyActivities<
+  typeof activities
+>({
   startToCloseTimeout: '60 seconds',
 })
 
@@ -17,15 +19,12 @@ export async function memberUpdate(input: MemberUpdateInput): Promise<void> {
   try {
     await updateMemberAffiliations(input)
     if (input.syncToOpensearch) {
-      console.log('started member sync in profiles worker...')
       // sync member
-      await activities.syncMember(input.member.id)
-      console.log('synced member in profiles worker...')
+      await syncMember(input.member.id)
       // sync all member organizations
       const organizationIds = input.memberOrganizationIds || []
       for (const orgId of organizationIds) {
-        await activities.syncOrganization(orgId)
-        console.log(`synced member organization ${orgId} in profiles worker...`)
+        await syncOrganization(orgId)
       }
       console.log('finished member syncing...')
     }

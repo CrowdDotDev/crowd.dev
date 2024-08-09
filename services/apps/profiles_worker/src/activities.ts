@@ -1,8 +1,10 @@
 import { updateMemberAffiliations, syncMember } from './activities/member/memberUpdate'
+
 import {
   updateOrganizationAffiliations,
   syncOrganization,
 } from './activities/organization/organizationUpdate'
+
 import {
   getAffiliationsLastCheckedAtOfTenant,
   getMemberIdsForAffiliationUpdates,
