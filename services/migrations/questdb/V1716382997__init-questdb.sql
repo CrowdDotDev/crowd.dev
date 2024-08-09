@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS 'activities' (
   gitIsIndirectFork BOOLEAN,
   gitInsertions INT,
   gitDeletions INT
-) TIMESTAMP (timestamp) PARTITION BY DAY WAL;
+) TIMESTAMP (timestamp) PARTITION BY MONTH WAL;
 
 CREATE TABLE IF NOT EXISTS 'conversations' (
   id UUID,
@@ -57,4 +57,4 @@ CREATE TABLE IF NOT EXISTS 'conversations' (
   segmentId SYMBOL,
   createdById UUID,
   updatedById UUID
-) TIMESTAMP (timestamp) PARTITION BY DAY WAL;
+) TIMESTAMP (timestamp) PARTITION BY MONTH WAL;
