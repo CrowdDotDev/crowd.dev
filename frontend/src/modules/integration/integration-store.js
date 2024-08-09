@@ -725,9 +725,7 @@ export default {
     async doGitlabConnect({ commit, dispatch }, { code, state }) {
       try {
         commit('CREATE_STARTED');
-        console.log('doGitlabConnect', code, state);
         const integration = await IntegrationService.gitlabConnect(code, state);
-        console.log('integration', integration);
         commit('CREATE_SUCCESS', integration);
         dispatch('doFetch');
 

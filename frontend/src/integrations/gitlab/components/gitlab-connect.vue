@@ -17,7 +17,7 @@ import Message from '@/shared/message/message';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
 import { AuthService } from '@/modules/auth/services/auth.service';
-import GitlabSettings from './gitlab-settings.vue';
+import GitlabSettings from '@/integrations/gitlab/components/gitlab-settings.vue';
 
 const route = useRoute();
 const router = useRouter();

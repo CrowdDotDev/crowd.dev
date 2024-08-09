@@ -41,6 +41,12 @@
       <el-tooltip content="Only public repositories will be tracked." placement="top">
         <i class="ri-information-line text-xs text-gray-600" />
       </el-tooltip>
+
+      <app-gitlab-settings-drawer
+        v-if="settingsDrawerOpen"
+        v-model="settingsDrawerOpen"
+        :integration="props.integration"
+      />
     </div>
   </div>
 </template>
@@ -49,6 +55,7 @@
 import { onMounted, ref } from 'vue';
 import { IntegrationService } from '@/modules/integration/integration-service';
 import pluralize from 'pluralize';
+import AppGitlabSettingsDrawer from './gitlab-settings-drawer.vue';
 
 const props = defineProps({
   integration: {

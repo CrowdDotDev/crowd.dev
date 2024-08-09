@@ -63,6 +63,11 @@ import SearchSyncService from './searchSyncService'
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import IntegrationProgressRepository from '@/database/repositories/integrationProgressRepository'
 import { IntegrationProgress } from '@/serverless/integrations/types/regularTypes'
+import {
+  fetchGitlabUserProjects,
+  fetchGitlabGroupProjects,
+  fetchAllGitlabGroups,
+} from '@/serverless/integrations/usecases/gitlab/getProjects'
 
 const discordToken = DISCORD_CONFIG.token || DISCORD_CONFIG.token2
 
@@ -2168,27 +2173,14 @@ export default class IntegrationService {
 
       const userId = userResponse.data.id
 
-      // Fetch groups
-      const groupsResponse = await axios.get('https://gitlab.com/api/v4/groups', {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      })
+      // Fetch all groups
+      const groups = await fetchAllGitlabGroups(accessToken)
 
-      const groups = groupsResponse.data.map((group) => ({
-        id: group.id,
-        name: group.name,
-        path: group.path,
-      }))
+      // Fetch projects in each group
+      const groupProjects = await fetchGitlabGroupProjects(accessToken, groups)
 
-      // Fetch projects (repositories)
-      const projectsResponse = await axios.get('https://gitlab.com/api/v4/projects', {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      })
-
-      const projects = projectsResponse.data.map((project) => ({
-        id: project.id,
-        name: project.name,
-        path_with_namespace: project.path_with_namespace,
-      }))
+      // Fetch projects for the current user
+      const userProjects = await fetchGitlabUserProjects(accessToken, userId)
 
       integration = await this.createOrUpdate(
         {
@@ -2199,7 +2191,9 @@ export default class IntegrationService {
           status: 'mapping',
           settings: {
             groups,
-            projects,
+            groupProjects,
+            userProjects,
+            user: userResponse.data,
             updateMemberAttributes: true,
           },
         },
