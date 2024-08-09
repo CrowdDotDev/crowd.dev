@@ -93,10 +93,8 @@ export async function runMemberAffiliationsUpdate(db: DbStore, memberId: string)
             ELSE ${nullableOrg(fallbackOrganizationId)}
           END::UUID
         `
-  } else if (fallbackOrganizationId) {
-    fullCase = `'${fallbackOrganizationId}'::UUID`
   } else {
-    fullCase = 'NULL::UUID'
+    fullCase = `${nullableOrg(fallbackOrganizationId)}::UUID`
   }
 
   await qx.result(
