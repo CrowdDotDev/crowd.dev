@@ -9,6 +9,9 @@ import { IKafkaClientConfig } from './vendors/kafka/types'
 export class QueueFactory {
   static createQueueService(config: IQueueEnvironment): IQueue {
     const log = getServiceChildLogger('queue-service-factory')
+
+    log.info({ config }, 'Creating queue service...')
+
     switch (config.vendor) {
       case QueueVendor.KAFKA:
         const kafkaConfig = config[config.vendor] as IKafkaClientConfig
