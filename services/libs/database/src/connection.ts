@@ -76,7 +76,11 @@ export const getDbConnection = async (
 
   dbConnection[cacheKey] = dbInstance({
     ...config,
-    ssl: IS_CLOUD_ENV ? true : false,
+    ssl: IS_CLOUD_ENV
+      ? {
+          rejectUnauthorized: false,
+        }
+      : false,
     max: maxPoolSize || 20,
     idleTimeoutMillis: idleTimeoutMillis !== undefined ? idleTimeoutMillis : 10000,
     // query_timeout: 30000,
