@@ -102,7 +102,7 @@ if (parameters.help || !parameters.file || !parameters.tenantId) {
       database: prodDb,
     } as IRepositoryOptions)
 
-    await qx.result(`TRUNCATE "lfxMemberships"`)
+    await qx.result(`DELETE FROM "lfxMemberships"`)
 
     console.log('All records deleted')
 

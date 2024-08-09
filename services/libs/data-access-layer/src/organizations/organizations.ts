@@ -69,33 +69,6 @@ export async function findOrgIdByDisplayName(
   return null
 }
 
-export async function findOrgIdByDomain(
-  qx: QueryExecutor,
-  tenantId: string,
-  domains: string[],
-): Promise<string | null> {
-  const result = await qx.selectOneOrNone(
-    `
-      SELECT "organizationId"
-      FROM "organizationIdentities"
-      WHERE "value" = ANY($(domains))
-        AND "tenantId" = $(tenantId)
-        AND "type" IN ('${OrganizationIdentityType.PRIMARY_DOMAIN}', '${OrganizationIdentityType.ALTERNATIVE_DOMAIN}')
-      LIMIT 1;
-    `,
-    {
-      domains,
-      tenantId,
-    },
-  )
-
-  if (result) {
-    return result.id
-  }
-
-  return null
-}
-
 export async function findOrgBySourceId(
   qx: QueryExecutor,
   tenantId: string,
