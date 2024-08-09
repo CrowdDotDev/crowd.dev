@@ -133,8 +133,7 @@ onMounted(async () => {
       showGitlabDialog.value = true;
       await store.dispatch('integration/doGitlabConnect', {
         code,
-        installId,
-        setupAction,
+        state: params.get('state'),
       });
       showGitlabDialog.value = false;
     } else {

@@ -5,10 +5,9 @@ import PermissionChecker from '../../../services/user/permissionChecker'
 export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.integrationEdit)
 
-  const { code } = req.query
-  const { redirectUrl } = JSON.parse(Buffer.from(req.query.state, 'base64').toString())
+  const code = req.query.code
 
-  const integration = await new IntegrationService(req).gitlabCallback(code)
+  const integration = await new IntegrationService(req).gitlabConnect(code)
 
-  res.redirect(redirectUrl)
+  await req.responseHandler.success(req, res, integration)
 }

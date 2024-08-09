@@ -521,20 +521,20 @@ export class IntegrationService {
 
   static async gitlabConnect(code, state) {
     const tenantId = AuthService.getTenantId();
-    const response = await authAxios.put(
-      `/authenticate/${tenantId}/gitlab/${code}`,
-      {
+    const response = await authAxios.get(`/gitlab/${tenantId}/callback`, {
+      params: {
+        code,
         state,
         ...getSegments(),
       },
-    );
+    });
     return response.data;
   }
 
-  static async mapGitlabRepos(integrationId, mapping) {
+  static async mapGitlabRepos(integrationId, mapping, segments) {
     const response = await authAxios.post(
       `/tenant/${AuthService.getTenant()}/integration/${integrationId}/gitlab/map`,
-      { mapping },
+      { mapping, segments },
     );
     return response.data;
   }
