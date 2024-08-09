@@ -26,7 +26,6 @@ export async function memberUpdate(input: MemberUpdateInput): Promise<void> {
       for (const orgId of organizationIds) {
         await syncOrganization(orgId)
       }
-      console.log('finished member syncing...')
     }
   } catch (err) {
     throw new Error(err)
