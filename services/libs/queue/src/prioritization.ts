@@ -1,21 +1,18 @@
 import { groupBy } from '@crowd/common'
 import { Logger, getChildLogger } from '@crowd/logging'
-import { Tracer } from '@crowd/tracing'
 import { IQueueMessage, QueuePriorityLevel } from '@crowd/types'
-import { QueueReceiver, QueueEmitter } from './queue'
+import { QueueEmitter, QueueReceiver } from './queue'
 import { IQueue, IQueueConfig } from './types'
 
 export abstract class PrioritizedQueueReciever {
   protected readonly log: Logger
   private readonly levelReceiver: QueueReceiver
-  private readonly defaultReceiver: QueueReceiver
 
   public constructor(
     level: QueuePriorityLevel,
     queue: IQueue,
     queueConf: IQueueConfig,
     maxConcurrentMessageProcessing: number,
-    protected readonly tracer: Tracer,
     parentLog: Logger,
     deleteMessageImmediately = false,
     visibilityTimeoutSeconds?: number,
@@ -27,25 +24,6 @@ export abstract class PrioritizedQueueReciever {
 
     const processFunc = this.processMessage.bind(this)
 
-    this.defaultReceiver = new (class extends QueueReceiver {
-      constructor() {
-        super(
-          queue,
-          queueConf,
-          maxConcurrentMessageProcessing,
-          tracer,
-          parentLog,
-          deleteMessageImmediately,
-          visibilityTimeoutSeconds,
-          receiveMessageCount,
-        )
-      }
-
-      public async processMessage(data: IQueueMessage, receiptHandle?: string): Promise<void> {
-        return processFunc(data, receiptHandle)
-      }
-    })()
-
     const config = { ...queueConf, name: `${queueConf.name}-${level}` }
     this.levelReceiver = new (class extends QueueReceiver {
       constructor() {
@@ -53,7 +31,6 @@ export abstract class PrioritizedQueueReciever {
           queue,
           config,
           maxConcurrentMessageProcessing,
-          tracer,
           parentLog,
           deleteMessageImmediately,
           visibilityTimeoutSeconds,
@@ -68,14 +45,10 @@ export abstract class PrioritizedQueueReciever {
   }
 
   public async start(): Promise<void> {
-    await Promise.all([
-      this.defaultReceiver.start(this.defaultReceiver.queueConf),
-      this.levelReceiver.start(this.levelReceiver.queueConf),
-    ])
+    await this.levelReceiver.start(this.levelReceiver.queueConf)
   }
 
   public stop(): void {
-    this.defaultReceiver.stop()
     this.levelReceiver.stop()
   }
 
@@ -84,13 +57,11 @@ export abstract class PrioritizedQueueReciever {
 
 export class PrioritizedQueueEmitter {
   private readonly emittersMap: Map<QueuePriorityLevel, QueueEmitter> = new Map()
-  private readonly defaultEmitter: QueueEmitter
 
-  public constructor(queue: IQueue, queueConf: IQueueConfig, tracer: Tracer, parentLog: Logger) {
-    this.defaultEmitter = new QueueEmitter(queue, queueConf, tracer, parentLog)
+  public constructor(queue: IQueue, queueConf: IQueueConfig, parentLog: Logger) {
     for (const level of Object.values(QueuePriorityLevel)) {
       const config = { ...queueConf, name: `${queueConf.name}-${level}` }
-      this.emittersMap.set(level, new QueueEmitter(queue, config, tracer, parentLog))
+      this.emittersMap.set(level, new QueueEmitter(queue, config, parentLog))
     }
   }
 
@@ -98,48 +69,36 @@ export class PrioritizedQueueEmitter {
     const allInitialized =
       Array.from(this.emittersMap.values()).find((e) => !e.isInitialized()) === undefined
 
-    return allInitialized && this.defaultEmitter.isInitialized()
+    return allInitialized
   }
 
   public async init(): Promise<void> {
-    await Promise.all(
-      Array.from(this.emittersMap.values())
-        .map((e) => e.queue.init(e.queueConf))
-        .concat(this.defaultEmitter.queue.init(this.defaultEmitter.queueConf)),
-    )
+    await Promise.all(Array.from(this.emittersMap.values()).map((e) => e.queue.init(e.queueConf)))
   }
 
   public async setMessageVisibilityTimeout(
     receiptHandle: string,
     newVisibility: number,
-    priorityLevel?: QueuePriorityLevel,
+    priorityLevel: QueuePriorityLevel,
   ): Promise<void> {
-    if (priorityLevel) {
-      const emitter = this.emittersMap.get(priorityLevel)
-      if (!emitter) {
-        throw new Error(`Unknown priority level: ${priorityLevel}`)
-      }
-      return emitter.setMessageVisibilityTimeout(receiptHandle, newVisibility)
-    } else {
-      return this.defaultEmitter.setMessageVisibilityTimeout(receiptHandle, newVisibility)
+    const emitter = this.emittersMap.get(priorityLevel)
+    if (!emitter) {
+      throw new Error(`Unknown priority level: ${priorityLevel}`)
     }
+    return emitter.setMessageVisibilityTimeout(receiptHandle, newVisibility)
   }
 
   public async sendMessage<T extends IQueueMessage>(
     groupId: string,
     message: T,
+    priorityLevel: QueuePriorityLevel,
     deduplicationId?: string,
-    priorityLevel?: QueuePriorityLevel,
   ): Promise<void> {
-    if (priorityLevel) {
-      const emitter = this.emittersMap.get(priorityLevel)
-      if (!emitter) {
-        throw new Error(`Unknown priority level: ${priorityLevel}`)
-      }
-      return emitter.sendMessage(groupId, message, deduplicationId)
-    } else {
-      return this.defaultEmitter.sendMessage(groupId, message, deduplicationId)
+    const emitter = this.emittersMap.get(priorityLevel)
+    if (!emitter) {
+      throw new Error(`Unknown priority level: ${priorityLevel}`)
     }
+    return emitter.sendMessage(groupId, message, deduplicationId)
   }
 
   public async sendMessages<T extends IQueueMessage>(
@@ -148,7 +107,7 @@ export class PrioritizedQueueEmitter {
       groupId: string
       deduplicationId?: string
       id?: string
-      priorityLevel?: QueuePriorityLevel
+      priorityLevel: QueuePriorityLevel
     }[],
   ): Promise<void> {
     const grouped = groupBy(
@@ -166,11 +125,6 @@ export class PrioritizedQueueEmitter {
       if (messages.length > 0) {
         await emitter.sendMessages(messages)
       }
-    }
-
-    const noPriorityLevel = messages.filter((m) => m.priorityLevel === undefined)
-    if (noPriorityLevel.length > 0) {
-      await this.defaultEmitter.sendMessages(noPriorityLevel)
     }
   }
 }

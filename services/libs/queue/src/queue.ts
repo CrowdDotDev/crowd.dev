@@ -1,24 +1,19 @@
 import { IS_PROD_ENV, IS_STAGING_ENV } from '@crowd/common'
 import { Logger, LoggerBase } from '@crowd/logging'
-import { IQueue, IQueueChannel, IQueueConfig } from './types'
-import { Tracer } from '@crowd/tracing'
 import { IQueueMessage, IQueueMessageBulk } from '@crowd/types'
+import { IQueue, IQueueChannel, IQueueConfig } from './types'
 export abstract class QueueBase extends LoggerBase {
   private readonly channelName: string
   private channelUrl: string | undefined
-  tracer: Tracer
 
   constructor(
     public readonly queue: IQueue,
     public readonly queueConf: IQueueConfig,
-    tracer: Tracer,
     parentLog: Logger,
   ) {
     super(parentLog, {
       queueName: queueConf.name,
     })
-
-    this.tracer = tracer
 
     let env = ''
     if (IS_STAGING_ENV) {
@@ -67,13 +62,12 @@ export abstract class QueueReceiver extends QueueBase {
     queue: IQueue,
     queueConf: IQueueConfig,
     private readonly maxConcurrentMessageProcessing: number,
-    tracer: Tracer,
     parentLog: Logger,
     private readonly deleteMessageImmediately = false,
     private readonly visibilityTimeoutSeconds?: number,
     private readonly receiveMessageCount?: number,
   ) {
-    super(queue, queueConf, tracer, parentLog)
+    super(queue, queueConf, parentLog)
   }
 
   public async start(queueConf: IQueueConfig): Promise<void> {
@@ -100,8 +94,8 @@ export abstract class QueueReceiver extends QueueBase {
 }
 
 export class QueueEmitter extends QueueBase {
-  constructor(queue: IQueue, queueConf: IQueueConfig, tracer: Tracer, parentLog: Logger) {
-    super(queue, queueConf, tracer, parentLog)
+  constructor(queue: IQueue, queueConf: IQueueConfig, parentLog: Logger) {
+    super(queue, queueConf, parentLog)
   }
 
   public async sendMessage<T extends IQueueMessage>(

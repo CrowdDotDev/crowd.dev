@@ -1,13 +1,11 @@
-import { OpenSearchService, InitService, getOpensearchClient } from '@crowd/opensearch'
 import { getDbConnection } from '@crowd/data-access-layer/src/database'
-import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
-import { getRedisClient } from '@crowd/redis'
-import { DB_CONFIG, OPENSEARCH_CONFIG, REDIS_CONFIG, SERVICE_CONFIG, QUEUE_CONFIG } from './conf'
-import { WorkerQueueReceiver } from './queue'
+import { InitService, OpenSearchService, getOpensearchClient } from '@crowd/opensearch'
 import { QueueFactory } from '@crowd/queue'
+import { getRedisClient } from '@crowd/redis'
+import { DB_CONFIG, OPENSEARCH_CONFIG, QUEUE_CONFIG, REDIS_CONFIG, SERVICE_CONFIG } from './conf'
+import { WorkerQueueReceiver } from './queue'
 
-const tracer = getServiceTracer()
 const log = getServiceLogger()
 
 const MAX_CONCURRENT_PROCESSING = 5
@@ -30,7 +28,6 @@ setImmediate(async () => {
     queueClient,
     dbConnection,
     openSearchService,
-    tracer,
     log,
     MAX_CONCURRENT_PROCESSING,
   )

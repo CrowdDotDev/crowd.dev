@@ -1,35 +1,30 @@
-import { getServiceLogger } from '@crowd/logging'
-import { DB_CONFIG, REDIS_CONFIG, QUEUE_CONFIG, UNLEASH_CONFIG, WEBHOOK_API_CONFIG } from './conf'
-import express from 'express'
-import { loggingMiddleware } from './middleware/logging'
-import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
-import { databaseMiddleware } from './middleware/database'
-import { errorMiddleware } from './middleware/error'
-import { queueMiddleware } from './middleware/queue'
-import { installGithubRoutes } from './routes/github'
-import { installGroupsIoRoutes } from './routes/groupsio'
-import { installDiscourseRoutes } from './routes/discourse'
-import cors from 'cors'
-import { telemetryExpressMiddleware } from '@crowd/telemetry'
-import { getUnleashClient } from '@crowd/feature-flags'
-import { getRedisClient } from '@crowd/redis'
 import {
   IntegrationStreamWorkerEmitter,
   PriorityLevelContextRepository,
   QueuePriorityContextLoader,
 } from '@crowd/common_services'
-import { getServiceTracer } from '@crowd/tracing'
-import { emittersMiddleware } from './middleware/emitters'
+import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
+import { getServiceLogger } from '@crowd/logging'
+import { getRedisClient } from '@crowd/redis'
+import { telemetryExpressMiddleware } from '@crowd/telemetry'
+import cors from 'cors'
+import express from 'express'
 import { QueueFactory } from '../../../libs/queue/src'
+import { DB_CONFIG, QUEUE_CONFIG, REDIS_CONFIG, WEBHOOK_API_CONFIG } from './conf'
+import { databaseMiddleware } from './middleware/database'
+import { emittersMiddleware } from './middleware/emitters'
+import { errorMiddleware } from './middleware/error'
+import { loggingMiddleware } from './middleware/logging'
+import { queueMiddleware } from './middleware/queue'
+import { installDiscourseRoutes } from './routes/discourse'
+import { installGithubRoutes } from './routes/github'
+import { installGroupsIoRoutes } from './routes/groupsio'
 
-const tracer = getServiceTracer()
 const log = getServiceLogger()
 const config = WEBHOOK_API_CONFIG()
 
 setImmediate(async () => {
   const app = express()
-
-  const unleash = await getUnleashClient(UNLEASH_CONFIG())
 
   const redisClient = await getRedisClient(REDIS_CONFIG())
 
@@ -44,8 +39,6 @@ setImmediate(async () => {
   const integrationStreamWorkerEmitter = new IntegrationStreamWorkerEmitter(
     queueClient,
     redisClient,
-    tracer,
-    unleash,
     loader,
     log,
   )

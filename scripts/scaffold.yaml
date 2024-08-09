@@ -23,7 +23,7 @@ services:
       - crowd-bridge
 
   db:
-    image: postgres:13.6-alpine
+    image: postgres:14-alpine
     restart: unless-stopped
     environment:
       - POSTGRES_PASSWORD=example
@@ -37,7 +37,7 @@ services:
       - crowd-bridge
 
   product:
-    image: postgres:13.6-alpine
+    image: postgres:14-alpine
     restart: unless-stopped
     environment:
       - POSTGRES_PASSWORD=example

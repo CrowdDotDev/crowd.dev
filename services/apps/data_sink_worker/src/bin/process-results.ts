@@ -1,21 +1,18 @@
-import { DB_CONFIG, REDIS_CONFIG, TEMPORAL_CONFIG, UNLEASH_CONFIG, QUEUE_CONFIG } from '../conf'
-import DataSinkRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/dataSink.repo'
-import DataSinkService from '../service/dataSink.service'
-import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
-import { getServiceTracer } from '@crowd/tracing'
-import { getServiceLogger } from '@crowd/logging'
-import { getRedisClient } from '@crowd/redis'
-import { getUnleashClient } from '@crowd/feature-flags'
-import { Client as TemporalClient, getTemporalClient } from '@crowd/temporal'
 import {
   DataSinkWorkerEmitter,
   PriorityLevelContextRepository,
   QueuePriorityContextLoader,
   SearchSyncWorkerEmitter,
 } from '@crowd/common_services'
+import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
+import DataSinkRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/dataSink.repo'
+import { getServiceLogger } from '@crowd/logging'
 import { QueueFactory } from '@crowd/queue'
+import { getRedisClient } from '@crowd/redis'
+import { Client as TemporalClient, getTemporalClient } from '@crowd/temporal'
+import { DB_CONFIG, QUEUE_CONFIG, REDIS_CONFIG, TEMPORAL_CONFIG } from '../conf'
+import DataSinkService from '../service/dataSink.service'
 
-const tracer = getServiceTracer()
 const log = getServiceLogger()
 
 const processArguments = process.argv.slice(2)
@@ -28,8 +25,6 @@ if (processArguments.length !== 1) {
 const resultIds = processArguments[0].split(',')
 
 setImmediate(async () => {
-  const unleash = await getUnleashClient(UNLEASH_CONFIG())
-
   let temporal: TemporalClient | undefined
   // temp for production
   if (TEMPORAL_CONFIG().serverUrl) {
@@ -45,24 +40,10 @@ setImmediate(async () => {
   const loader: QueuePriorityContextLoader = (tenantId: string) =>
     priorityLevelRepo.loadPriorityLevelContext(tenantId)
 
-  const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(
-    queueClient,
-    redis,
-    tracer,
-    unleash,
-    loader,
-    log,
-  )
+  const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(queueClient, redis, loader, log)
   await searchSyncWorkerEmitter.init()
 
-  const dataSinkWorkerEmitter = new DataSinkWorkerEmitter(
-    queueClient,
-    redis,
-    tracer,
-    unleash,
-    loader,
-    log,
-  )
+  const dataSinkWorkerEmitter = new DataSinkWorkerEmitter(queueClient, redis, loader, log)
   await dataSinkWorkerEmitter.init()
 
   const service = new DataSinkService(
@@ -70,7 +51,6 @@ setImmediate(async () => {
     searchSyncWorkerEmitter,
     dataSinkWorkerEmitter,
     redis,
-    unleash,
     temporal,
     log,
   )

@@ -1,18 +1,9 @@
-import { EDITION, IS_DEV_ENV, IS_STAGING_ENV, IS_TEST_ENV, groupBy } from '@crowd/common'
-import { UnleashClient, isFeatureEnabled } from '@crowd/feature-flags'
+import { IS_DEV_ENV, IS_STAGING_ENV, IS_TEST_ENV, groupBy } from '@crowd/common'
 import { Logger, getChildLogger } from '@crowd/logging'
+import { CrowdQueue, IQueue, IQueueConfig, PrioritizedQueueEmitter } from '@crowd/queue'
 import { RedisCache, RedisClient } from '@crowd/redis'
-import { IQueueConfig, IQueue, PrioritizedQueueEmitter, CrowdQueue } from '@crowd/queue'
 
-import { Tracer } from '@crowd/tracing'
-import {
-  FeatureFlag,
-  IQueuePriorityCalculationContext,
-  IQueueMessage,
-  QueuePriorityLevel,
-  TenantPlans,
-  Edition,
-} from '@crowd/types'
+import { IQueueMessage, IQueuePriorityCalculationContext, QueuePriorityLevel } from '@crowd/types'
 
 export type QueuePriorityContextLoader = (
   tenantId: string,
@@ -28,15 +19,13 @@ export class QueuePriorityService {
     public readonly queue: CrowdQueue,
     private readonly queueConfig: IQueueConfig,
     private readonly client: IQueue,
-    private readonly redis: RedisClient,
-    private readonly tracer: Tracer,
-    private readonly unleash: UnleashClient | undefined,
+    redis: RedisClient,
     private readonly priorityLevelCalculationContextLoader: QueuePriorityContextLoader,
     parentLog: Logger,
   ) {
     this.log = getChildLogger(this.constructor.name, parentLog)
     this.cache = new RedisCache('queue-priority', redis, this.log)
-    this.emitter = new PrioritizedQueueEmitter(this.client, this.queueConfig, this.tracer, this.log)
+    this.emitter = new PrioritizedQueueEmitter(this.client, this.queueConfig, this.log)
   }
 
   public isInitialized(): boolean {
@@ -52,30 +41,12 @@ export class QueuePriorityService {
     receiptHandle: string,
     newVisibility: number,
   ): Promise<void> {
-    // feature flag will be cached for 5 minutes
-    if (
-      isFeatureEnabled(
-        FeatureFlag.PRIORITIZED_QUEUES,
-        async () => {
-          return {
-            tenantId,
-          }
-        },
-        this.unleash,
-        this.redis,
-        5 * 60,
-        tenantId,
-      )
-    ) {
-      const priorityLevel = await this.getPriorityLevel(
-        tenantId,
-        this.priorityLevelCalculationContextLoader,
-      )
+    const priorityLevel = await this.getPriorityLevel(
+      tenantId,
+      this.priorityLevelCalculationContextLoader,
+    )
 
-      return this.emitter.setMessageVisibilityTimeout(receiptHandle, newVisibility, priorityLevel)
-    } else {
-      return this.emitter.setMessageVisibilityTimeout(receiptHandle, newVisibility)
-    }
+    return this.emitter.setMessageVisibilityTimeout(receiptHandle, newVisibility, priorityLevel)
   }
 
   public async sendMessages<T extends IQueueMessage>(
@@ -90,34 +61,16 @@ export class QueuePriorityService {
     const grouped = groupBy(messages, (m) => m.tenantId)
 
     for (const tenantId of Array.from(grouped.keys())) {
-      // feature flag will be cached for 5 minutes
-      if (
-        isFeatureEnabled(
-          FeatureFlag.PRIORITIZED_QUEUES,
-          async () => {
-            return {
-              tenantId,
-            }
-          },
-          this.unleash,
-          this.redis,
-          5 * 60,
-          tenantId,
-        )
-      ) {
-        const priorityLevel = await this.getPriorityLevel(
-          tenantId,
-          this.priorityLevelCalculationContextLoader,
-        )
+      const priorityLevel = await this.getPriorityLevel(
+        tenantId,
+        this.priorityLevelCalculationContextLoader,
+      )
 
-        return this.emitter.sendMessages(
-          messages.map((m) => {
-            return { ...m, priorityLevel }
-          }),
-        )
-      } else {
-        return this.emitter.sendMessages(messages)
-      }
+      return this.emitter.sendMessages(
+        grouped.get(tenantId).map((m) => {
+          return { ...m, priorityLevel }
+        }),
+      )
     }
   }
 
@@ -129,36 +82,18 @@ export class QueuePriorityService {
     priorityLevelContextOverride?: unknown,
     priorityLevelOverride?: QueuePriorityLevel,
   ): Promise<void> {
-    // feature flag will be cached for 5 minutes
-    if (
-      isFeatureEnabled(
-        FeatureFlag.PRIORITIZED_QUEUES,
-        async () => {
-          return {
-            tenantId,
-          }
-        },
-        this.unleash,
-        this.redis,
-        5 * 60,
+    let priorityLevel = priorityLevelOverride
+    if (!priorityLevel) {
+      priorityLevel = await this.getPriorityLevel(
         tenantId,
+        this.priorityLevelCalculationContextLoader,
+        priorityLevelContextOverride,
       )
-    ) {
-      let priorityLevel = priorityLevelOverride
-      if (!priorityLevel) {
-        priorityLevel = await this.getPriorityLevel(
-          tenantId,
-          this.priorityLevelCalculationContextLoader,
-          priorityLevelContextOverride,
-        )
-      } else if (IS_DEV_ENV || IS_TEST_ENV || IS_STAGING_ENV) {
-        priorityLevel = QueuePriorityLevel.NORMAL
-      }
-
-      return this.emitter.sendMessage(groupId, message, deduplicationId, priorityLevel)
-    } else {
-      return this.emitter.sendMessage(groupId, message, deduplicationId)
+    } else if (IS_DEV_ENV || IS_TEST_ENV || IS_STAGING_ENV) {
+      priorityLevel = QueuePriorityLevel.NORMAL
     }
+
+    return this.emitter.sendMessage(groupId, message, priorityLevel, deduplicationId)
   }
 
   private async getPriorityLevel(
@@ -194,26 +129,10 @@ export class QueuePriorityService {
       return ctx.dbPriority
     }
 
-    if (EDITION === Edition.LFX) {
-      if (ctx.onboarding) {
-        return QueuePriorityLevel.HIGH
-      }
-
-      return QueuePriorityLevel.NORMAL
-    }
-
-    if (ctx.plan === TenantPlans.Essential) {
-      if (ctx.onboarding) {
-        return QueuePriorityLevel.HIGH
-      }
-
-      return QueuePriorityLevel.NORMAL
-    } else {
-      if (ctx.onboarding) {
-        return QueuePriorityLevel.URGENT
-      }
-
+    if (ctx.onboarding) {
       return QueuePriorityLevel.HIGH
     }
+
+    return QueuePriorityLevel.NORMAL
   }
 }

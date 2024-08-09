@@ -1,33 +1,29 @@
-import { DB_CONFIG, REDIS_CONFIG, QUEUE_CONFIG, UNLEASH_CONFIG } from '../conf'
-import IntegrationRunRepository from '@crowd/data-access-layer/src/old/apps/integration_run_worker/integrationRun.repo'
 import { singleOrDefault, timeout } from '@crowd/common'
-import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
-import { INTEGRATION_SERVICES } from '@crowd/integrations'
-import { getServiceTracer } from '@crowd/tracing'
-import { getServiceLogger } from '@crowd/logging'
 import {
   IntegrationRunWorkerEmitter,
   PriorityLevelContextRepository,
   QueuePriorityContextLoader,
 } from '@crowd/common_services'
-import { getUnleashClient } from '@crowd/feature-flags'
-import { getRedisClient } from '@crowd/redis'
+import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
+import IntegrationRunRepository from '@crowd/data-access-layer/src/old/apps/integration_run_worker/integrationRun.repo'
+import { INTEGRATION_SERVICES } from '@crowd/integrations'
+import { getServiceLogger } from '@crowd/logging'
 import { QueueFactory } from '@crowd/queue'
+import { getRedisClient } from '@crowd/redis'
+import { DB_CONFIG, QUEUE_CONFIG, REDIS_CONFIG } from '../conf'
 
-const tracer = getServiceTracer()
 const log = getServiceLogger()
 
 setImmediate(async () => {
   const dbConnection = await getDbConnection(DB_CONFIG())
   const store = new DbStore(log, dbConnection)
-  const unleash = await getUnleashClient(UNLEASH_CONFIG())
   const redis = await getRedisClient(REDIS_CONFIG())
   const priorityLevelRepo = new PriorityLevelContextRepository(store, log)
   const loader: QueuePriorityContextLoader = (tenantId: string) =>
     priorityLevelRepo.loadPriorityLevelContext(tenantId)
 
   const queueClient = QueueFactory.createQueueService(QUEUE_CONFIG())
-  const emitter = new IntegrationRunWorkerEmitter(queueClient, redis, tracer, unleash, loader, log)
+  const emitter = new IntegrationRunWorkerEmitter(queueClient, redis, loader, log)
   await emitter.init()
 
   const repo = new IntegrationRunRepository(store, log)

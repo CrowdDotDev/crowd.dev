@@ -2,7 +2,7 @@ version: '3.1'
 
 services:
   db-test:
-    image: postgres:13.6-alpine
+    image: postgres:14-alpine
     environment:
       POSTGRES_PASSWORD: example
       POSTGRES_DB: crowd-web
@@ -12,7 +12,7 @@ services:
       - crowd-bridge-test
 
   product-db-test:
-    image: postgres:13.6-alpine
+    image: postgres:14-alpine
     environment:
       POSTGRES_PASSWORD: example
       POSTGRES_DB: product-db

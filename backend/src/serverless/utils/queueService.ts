@@ -1,21 +1,18 @@
-import { getServiceChildLogger } from '@crowd/logging'
-import { getServiceTracer } from '@crowd/tracing'
 import {
   DataSinkWorkerEmitter,
   IntegrationRunWorkerEmitter,
   IntegrationStreamWorkerEmitter,
-  SearchSyncWorkerEmitter,
   IntegrationSyncWorkerEmitter,
   QueuePriorityContextLoader,
+  SearchSyncWorkerEmitter,
 } from '@crowd/common_services'
-import { UnleashClient, getUnleashClient } from '@crowd/feature-flags'
-import { RedisClient, getRedisClient } from '@crowd/redis'
+import { getServiceChildLogger } from '@crowd/logging'
 import { IQueue, QueueFactory } from '@crowd/queue'
-import { REDIS_CONFIG, SERVICE, UNLEASH_CONFIG, QUEUE_CONFIG } from '../../conf'
+import { RedisClient, getRedisClient } from '@crowd/redis'
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 import { PriorityLevelContextRepository } from '@/database/repositories/priorityLevelContextRepository'
+import { QUEUE_CONFIG, REDIS_CONFIG } from '../../conf'
 
-const tracer = getServiceTracer()
 const log = getServiceChildLogger('service.queue')
 
 let queueClient: IQueue
@@ -25,22 +22,6 @@ export const QUEUE_CLIENT = (): IQueue => {
   // TODO: will be bound to an environment variable
   queueClient = QueueFactory.createQueueService(QUEUE_CONFIG)
   return queueClient
-}
-
-let unleashClient: UnleashClient | undefined
-let unleashClientInitialized = false
-const UNLEASH_CLIENT = async (): Promise<UnleashClient> => {
-  if (unleashClientInitialized) {
-    return unleashClient
-  }
-
-  unleashClient = await getUnleashClient({
-    url: UNLEASH_CONFIG.url,
-    apiKey: UNLEASH_CONFIG.backendApiKey,
-    appName: SERVICE,
-  })
-  unleashClientInitialized = true
-  return unleashClient
 }
 
 let redisClient: RedisClient
@@ -74,8 +55,6 @@ export const getIntegrationRunWorkerEmitter = async (): Promise<IntegrationRunWo
   runWorkerEmitter = new IntegrationRunWorkerEmitter(
     QUEUE_CLIENT(),
     await REDIS_CLIENT(),
-    tracer,
-    await UNLEASH_CLIENT(),
     await QUEUE_PRIORITY_LOADER(),
     log,
   )
@@ -91,8 +70,6 @@ export const getIntegrationStreamWorkerEmitter =
     streamWorkerEmitter = new IntegrationStreamWorkerEmitter(
       QUEUE_CLIENT(),
       await REDIS_CLIENT(),
-      tracer,
-      await UNLEASH_CLIENT(),
       await QUEUE_PRIORITY_LOADER(),
       log,
     )
@@ -107,8 +84,6 @@ export const getSearchSyncWorkerEmitter = async (): Promise<SearchSyncWorkerEmit
   searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(
     QUEUE_CLIENT(),
     await REDIS_CLIENT(),
-    tracer,
-    await UNLEASH_CLIENT(),
     await QUEUE_PRIORITY_LOADER(),
     log,
   )
@@ -123,8 +98,6 @@ export const getIntegrationSyncWorkerEmitter = async (): Promise<IntegrationSync
   integrationSyncWorkerEmitter = new IntegrationSyncWorkerEmitter(
     QUEUE_CLIENT(),
     await REDIS_CLIENT(),
-    tracer,
-    await UNLEASH_CLIENT(),
     await QUEUE_PRIORITY_LOADER(),
     log,
   )
@@ -139,8 +112,6 @@ export const getDataSinkWorkerEmitter = async (): Promise<DataSinkWorkerEmitter>
   dataSinkWorkerEmitter = new DataSinkWorkerEmitter(
     QUEUE_CLIENT(),
     await REDIS_CLIENT(),
-    tracer,
-    await UNLEASH_CLIENT(),
     await QUEUE_PRIORITY_LOADER(),
     log,
   )

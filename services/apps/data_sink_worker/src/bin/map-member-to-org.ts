@@ -1,24 +1,21 @@
-import { DB_CONFIG, REDIS_CONFIG, TEMPORAL_CONFIG, UNLEASH_CONFIG, QUEUE_CONFIG } from '../conf'
-import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
-import { getServiceTracer } from '@crowd/tracing'
-import { getServiceLogger } from '@crowd/logging'
-import MemberRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.repo'
-import MemberService from '../service/member.service'
-import DataSinkRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/dataSink.repo'
-import { OrganizationService } from '../service/organization.service'
-import { getUnleashClient } from '@crowd/feature-flags'
-import { Client as TemporalClient, getTemporalClient } from '@crowd/temporal'
-import { getRedisClient } from '@crowd/redis'
 import {
   DataSinkWorkerEmitter,
   PriorityLevelContextRepository,
   QueuePriorityContextLoader,
   SearchSyncWorkerEmitter,
 } from '@crowd/common_services'
-import { MemberIdentityType } from '@crowd/types'
+import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
+import DataSinkRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/dataSink.repo'
+import MemberRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.repo'
+import { getServiceLogger } from '@crowd/logging'
 import { QueueFactory } from '@crowd/queue'
+import { getRedisClient } from '@crowd/redis'
+import { Client as TemporalClient, getTemporalClient } from '@crowd/temporal'
+import { MemberIdentityType } from '@crowd/types'
+import { DB_CONFIG, QUEUE_CONFIG, REDIS_CONFIG, TEMPORAL_CONFIG } from '../conf'
+import MemberService from '../service/member.service'
+import { OrganizationService } from '../service/organization.service'
 
-const tracer = getServiceTracer()
 const log = getServiceLogger()
 
 const processArguments = process.argv.slice(2)
@@ -31,8 +28,6 @@ if (processArguments.length !== 1) {
 const memberId = processArguments[0]
 
 setImmediate(async () => {
-  const unleash = await getUnleashClient(UNLEASH_CONFIG())
-
   let temporal: TemporalClient | undefined
   // temp for production
   if (TEMPORAL_CONFIG().serverUrl) {
@@ -49,30 +44,16 @@ setImmediate(async () => {
     priorityLevelRepo.loadPriorityLevelContext(tenantId)
 
   const queueClient = QueueFactory.createQueueService(QUEUE_CONFIG())
-  const emitter = new DataSinkWorkerEmitter(queueClient, redis, tracer, unleash, loader, log)
+  const emitter = new DataSinkWorkerEmitter(queueClient, redis, loader, log)
   await emitter.init()
 
   const dataSinkRepo = new DataSinkRepository(store, log)
   const memberRepo = new MemberRepository(store, log)
 
-  const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(
-    queueClient,
-    redis,
-    tracer,
-    unleash,
-    loader,
-    log,
-  )
+  const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(queueClient, redis, loader, log)
   await searchSyncWorkerEmitter.init()
 
-  const memberService = new MemberService(
-    store,
-    searchSyncWorkerEmitter,
-    unleash,
-    temporal,
-    redis,
-    log,
-  )
+  const memberService = new MemberService(store, searchSyncWorkerEmitter, temporal, redis, log)
   const orgService = new OrganizationService(store, log)
 
   try {

@@ -34,7 +34,6 @@ import MemberAttributeService from './memberAttribute.service'
 import IntegrationRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/integration.repo'
 import { OrganizationService } from './organization.service'
 import uniqby from 'lodash.uniqby'
-import { Unleash } from '@crowd/feature-flags'
 import { TEMPORAL_CONFIG } from '../conf'
 import { RedisClient } from '@crowd/redis'
 import { SearchSyncWorkerEmitter } from '@crowd/common_services'
@@ -43,7 +42,6 @@ export default class MemberService extends LoggerBase {
   constructor(
     private readonly store: DbStore,
     private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
-    private readonly unleash: Unleash | undefined,
     private readonly temporal: TemporalClient,
     private readonly redisClient: RedisClient,
     parentLog: Logger,
@@ -438,7 +436,6 @@ export default class MemberService extends LoggerBase {
         const txService = new MemberService(
           txStore,
           this.searchSyncWorkerEmitter,
-          this.unleash,
           this.temporal,
           this.redisClient,
           this.log,
@@ -536,7 +533,6 @@ export default class MemberService extends LoggerBase {
         const txService = new MemberService(
           txStore,
           this.searchSyncWorkerEmitter,
-          this.unleash,
           this.temporal,
           this.redisClient,
           this.log,

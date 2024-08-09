@@ -4,7 +4,6 @@ export enum QueuePriorityLevel {
   SYSTEM = 'system',
   NORMAL = 'normal',
   HIGH = 'high',
-  URGENT = 'urgent',
 }
 
 export interface IQueuePriorityCalculationContext {

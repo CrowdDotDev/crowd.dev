@@ -11,7 +11,6 @@ import GithubReposRepository from '@crowd/data-access-layer/src/old/apps/data_si
 import IntegrationRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/integration.repo'
 import MemberRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.repo'
 import SettingsRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/settings.repo'
-import { Unleash } from '@crowd/feature-flags'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
 import { ISentimentAnalysisResult, getSentiment } from '@crowd/sentiment'
@@ -37,7 +36,6 @@ export default class ActivityService extends LoggerBase {
     private readonly store: DbStore,
     private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
     private readonly redisClient: RedisClient,
-    private readonly unleash: Unleash | undefined,
     private readonly temporal: TemporalClient,
     parentLog: Logger,
   ) {
@@ -457,7 +455,6 @@ export default class ActivityService extends LoggerBase {
           const txMemberService = new MemberService(
             txStore,
             this.searchSyncWorkerEmitter,
-            this.unleash,
             this.temporal,
             this.redisClient,
             this.log,
@@ -466,7 +463,6 @@ export default class ActivityService extends LoggerBase {
             txStore,
             this.searchSyncWorkerEmitter,
             this.redisClient,
-            this.unleash,
             this.temporal,
             this.log,
           )

@@ -1,9 +1,7 @@
-import { UnleashClient } from '@crowd/feature-flags'
+import { generateUUIDv1 } from '@crowd/common'
 import { Logger } from '@crowd/logging'
-import { RedisClient } from '@crowd/redis'
 import { CrowdQueue, IQueue } from '@crowd/queue'
-import { Tracer } from '@crowd/tracing'
-import { QueuePriorityContextLoader, QueuePriorityService } from '../priority.service'
+import { RedisClient } from '@crowd/redis'
 import {
   CheckStreamsQueueMessage,
   ContinueProcessingRunStreamsQueueMessage,
@@ -11,14 +9,12 @@ import {
   ProcessWebhookStreamQueueMessage,
   QueuePriorityLevel,
 } from '@crowd/types'
-import { generateUUIDv1 } from '@crowd/common'
+import { QueuePriorityContextLoader, QueuePriorityService } from '../priority.service'
 
 export class IntegrationStreamWorkerEmitter extends QueuePriorityService {
   public constructor(
     client: IQueue,
     redis: RedisClient,
-    tracer: Tracer,
-    unleash: UnleashClient | undefined,
     priorityLevelCalculationContextLoader: QueuePriorityContextLoader,
     parentLog: Logger,
   ) {
@@ -27,8 +23,6 @@ export class IntegrationStreamWorkerEmitter extends QueuePriorityService {
       client.getQueueConfig(CrowdQueue.INTEGRATION_STREAM_WORKER),
       client,
       redis,
-      tracer,
-      unleash,
       priorityLevelCalculationContextLoader,
       parentLog,
     )

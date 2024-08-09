@@ -1,7 +1,9 @@
-import { Tracer } from '@crowd/tracing'
-import { Logger } from '@crowd/logging'
+import { DataSinkWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/common_services'
 import { DbConnection, DbStore } from '@crowd/data-access-layer/src/database'
+import { Logger } from '@crowd/logging'
 import { CrowdQueue, IQueue, PrioritizedQueueReciever } from '@crowd/queue'
+import { RedisClient } from '@crowd/redis'
+import { Client as TemporalClient } from '@crowd/temporal'
 import {
   CreateAndProcessActivityResultQueueMessage,
   DataSinkWorkerQueueMessageType,
@@ -9,12 +11,8 @@ import {
   ProcessIntegrationResultQueueMessage,
   QueuePriorityLevel,
 } from '@crowd/types'
-import DataSinkService from '../service/dataSink.service'
-import { RedisClient } from '@crowd/redis'
-import { Unleash } from '@crowd/feature-flags'
-import { Client as TemporalClient } from '@crowd/temporal'
-import { DataSinkWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/common_services'
 import { performance } from 'perf_hooks'
+import DataSinkService from '../service/dataSink.service'
 
 export class WorkerQueueReceiver extends PrioritizedQueueReciever {
   private readonly timingMap = new Map<string, { count: number; time: number }>()
@@ -26,9 +24,7 @@ export class WorkerQueueReceiver extends PrioritizedQueueReciever {
     private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
     private readonly dataSinkWorkerEmitter: DataSinkWorkerEmitter,
     private readonly redisClient: RedisClient,
-    private readonly unleash: Unleash | undefined,
     private readonly temporal: TemporalClient,
-    tracer: Tracer,
     parentLog: Logger,
   ) {
     super(
@@ -36,7 +32,6 @@ export class WorkerQueueReceiver extends PrioritizedQueueReciever {
       client,
       client.getQueueConfig(CrowdQueue.DATA_SINK_WORKER),
       20,
-      tracer,
       parentLog,
       undefined,
       undefined,
@@ -55,7 +50,6 @@ export class WorkerQueueReceiver extends PrioritizedQueueReciever {
         this.searchSyncWorkerEmitter,
         this.dataSinkWorkerEmitter,
         this.redisClient,
-        this.unleash,
         this.temporal,
         this.log,
       )

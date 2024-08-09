@@ -1,9 +1,6 @@
-import { CrowdQueue, IQueue } from '@crowd/queue'
-import { QueuePriorityContextLoader, QueuePriorityService } from '../priority.service'
-import { RedisClient } from '@crowd/redis'
-import { Tracer } from '@crowd/tracing'
-import { UnleashClient } from '@crowd/feature-flags'
 import { Logger } from '@crowd/logging'
+import { CrowdQueue, IQueue } from '@crowd/queue'
+import { RedisClient } from '@crowd/redis'
 import {
   CheckRunsQueueMessage,
   GenerateRunStreamsQueueMessage,
@@ -11,13 +8,12 @@ import {
   StartIntegrationRunQueueMessage,
   StreamProcessedQueueMessage,
 } from '@crowd/types'
+import { QueuePriorityContextLoader, QueuePriorityService } from '../priority.service'
 
 export class IntegrationRunWorkerEmitter extends QueuePriorityService {
   public constructor(
     client: IQueue,
     redis: RedisClient,
-    tracer: Tracer,
-    unleash: UnleashClient | undefined,
     priorityLevelCalculationContextLoader: QueuePriorityContextLoader,
     parentLog: Logger,
   ) {
@@ -26,8 +22,6 @@ export class IntegrationRunWorkerEmitter extends QueuePriorityService {
       client.getQueueConfig(CrowdQueue.INTEGRATION_RUN_WORKER),
       client,
       redis,
-      tracer,
-      unleash,
       priorityLevelCalculationContextLoader,
       parentLog,
     )

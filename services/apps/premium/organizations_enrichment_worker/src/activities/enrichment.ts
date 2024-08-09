@@ -50,14 +50,7 @@ async function getSearchSyncWorkerEmitter(): Promise<SearchSyncWorkerEmitter> {
   const loader: QueuePriorityContextLoader = (tenantId: string) =>
     repo.loadPriorityLevelContext(tenantId)
 
-  searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(
-    svc.queue,
-    svc.redis,
-    svc.tracer,
-    svc.unleash,
-    loader,
-    svc.log,
-  )
+  searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(svc.queue, svc.redis, loader, svc.log)
 
   await searchSyncWorkerEmitter.init()
 

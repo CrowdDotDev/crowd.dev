@@ -1,20 +1,17 @@
-import { DB_CONFIG, REDIS_CONFIG, QUEUE_CONFIG, UNLEASH_CONFIG } from '../conf'
-import IncomingWebhookRepository from '@crowd/data-access-layer/src/old/apps/integration_stream_worker/incomingWebhook.repo'
-import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
-import { getServiceTracer } from '@crowd/tracing'
-import { getServiceLogger } from '@crowd/logging'
 import {
+  IntegrationStreamWorkerEmitter,
   PriorityLevelContextRepository,
   QueuePriorityContextLoader,
-  IntegrationStreamWorkerEmitter,
 } from '@crowd/common_services'
-import { getUnleashClient } from '@crowd/feature-flags'
-import { getRedisClient } from '@crowd/redis'
+import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
+import IncomingWebhookRepository from '@crowd/data-access-layer/src/old/apps/integration_stream_worker/incomingWebhook.repo'
+import { getServiceLogger } from '@crowd/logging'
 import { QueueFactory } from '@crowd/queue'
+import { getRedisClient } from '@crowd/redis'
+import { DB_CONFIG, QUEUE_CONFIG, REDIS_CONFIG } from '../conf'
 
 const batchSize = 500
 
-const tracer = getServiceTracer()
 const log = getServiceLogger()
 
 setImmediate(async () => {
@@ -22,19 +19,11 @@ setImmediate(async () => {
   const dbConnection = await getDbConnection(DB_CONFIG())
   const store = new DbStore(log, dbConnection)
 
-  const unleash = await getUnleashClient(UNLEASH_CONFIG())
   const redisClient = await getRedisClient(REDIS_CONFIG(), true)
   const priorityLevelRepo = new PriorityLevelContextRepository(store, log)
   const loader: QueuePriorityContextLoader = (tenantId: string) =>
     priorityLevelRepo.loadPriorityLevelContext(tenantId)
-  const emitter = new IntegrationStreamWorkerEmitter(
-    queueClient,
-    redisClient,
-    tracer,
-    unleash,
-    loader,
-    log,
-  )
+  const emitter = new IntegrationStreamWorkerEmitter(queueClient, redisClient, loader, log)
   await emitter.init()
 
   const repo = new IncomingWebhookRepository(store, log)
