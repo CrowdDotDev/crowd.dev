@@ -117,6 +117,7 @@ class MemberOrganizationsRepository {
       const txOptions = {...options, transaction}
       const qx = SequelizeRepository.getQueryExecutor(txOptions, transaction)
 
+      // Delete organization
       await deleteMemberOrganization(qx, memberId, id)
 
       await SequelizeRepository.commitTransaction(transaction)

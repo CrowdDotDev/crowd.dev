@@ -11,7 +11,7 @@ import MemberOrganizationsService from "@/services/member/memberOrganizationsSer
  * @pathParam {string} tenantId - Your workspace/tenant ID | {string} memberId - member ID
  * @response 200 - Ok
  * @responseContent {MemberList} 200.application/json
- * @responseExample {MemberList} 200.application/json.MemberOrganization
+ * @responseExample {MemberList} 200.application/json.Organization
  * @response 401 - Unauthorized
  * @response 429 - Too many requests
  */
