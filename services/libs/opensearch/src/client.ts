@@ -25,10 +25,11 @@ export const getOpensearchClient = async (config: IOpenSearchConfig): Promise<Cl
         sniffOnStart: true,
         sniffInterval: 60000,
       })
+    } else {
+      client = new Client({
+        node: config.node,
+      })
     }
-    client = new Client({
-      node: config.node,
-    })
   }
 
   if (!client) {
