@@ -309,9 +309,6 @@ export default class OrganizationService extends LoggerBase {
       // add primary and secondary to no merge so they don't get suggested again
       await OrganizationRepository.addNoMerge(organizationId, secondaryOrganization.id, repoOptions)
 
-      // trigger entity-merging-worker to move activities in the background
-      await SequelizeRepository.commitTransaction(tx)
-
       await MergeActionsRepository.setMergeAction(
         MergeActionType.ORG,
         organizationId,
@@ -321,6 +318,9 @@ export default class OrganizationService extends LoggerBase {
           step: MergeActionStep.UNMERGE_SYNC_DONE,
         },
       )
+
+      // trigger entity-merging-worker to move activities in the background
+      await SequelizeRepository.commitTransaction(tx)
 
       // responsible for moving organization's activities, syncing to opensearch afterwards, recalculating activity.organizationIds and notifying frontend via websockets
       await this.options.temporal.workflow.start('finishOrganizationUnmerging', {
