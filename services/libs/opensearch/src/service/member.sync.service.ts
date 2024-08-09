@@ -360,7 +360,10 @@ export class MemberSyncService {
     )
   }
 
-  public async syncMembers(memberId: string): Promise<IMemberSyncResult> {
+  public async syncMembers(
+    memberId: string,
+    opts: { withAggs?: boolean } = {},
+  ): Promise<IMemberSyncResult> {
     const qx = repoQx(this.memberRepo)
 
     const syncMemberAggregates = async (memberId) => {
@@ -450,7 +453,12 @@ export class MemberSyncService {
       }
     }
 
-    const syncResults = await syncMemberAggregates(memberId)
+    const syncResults = opts.withAggs
+      ? await syncMemberAggregates(memberId)
+      : {
+          membersSynced: 0,
+          documentsIndexed: 0,
+        }
 
     const syncMembersToOpensearchForMergeSuggestions = async (memberId) => {
       const qx = repoQx(this.memberRepo)

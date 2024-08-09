@@ -1,3 +1,6 @@
+import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
+import OrganizationRepository from '@/database/repositories/organizationRepository'
+import { getDataSinkWorkerEmitter } from '@/serverless/utils/serviceSQS'
 import { Error400, distinct, singleOrDefault } from '@crowd/common'
 import {
   DEFAULT_COLUMNS_TO_SELECT,
@@ -26,9 +29,6 @@ import {
 import { Blob } from 'buffer'
 import vader from 'crowd-sentiment'
 import { Transaction } from 'sequelize/types'
-import { getDataSinkWorkerEmitter } from '@/serverless/utils/serviceSQS'
-import OrganizationRepository from '@/database/repositories/organizationRepository'
-import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import { GITHUB_CONFIG, IS_DEV_ENV, IS_TEST_ENV, TEMPORAL_CONFIG } from '../conf'
 import ActivityRepository from '../database/repositories/activityRepository'
 import MemberRepository from '../database/repositories/memberRepository'
@@ -242,7 +242,9 @@ export default class ActivityService extends LoggerBase {
       await SequelizeRepository.commitTransaction(transaction)
 
       if (fireSync) {
-        await searchSyncService.triggerMemberSync(this.options.currentTenant.id, record.memberId)
+        await searchSyncService.triggerMemberSync(this.options.currentTenant.id, record.memberId, {
+          withAggs: true,
+        })
       }
 
       if (!existing && fireCrowdWebhooks) {
@@ -639,7 +641,9 @@ export default class ActivityService extends LoggerBase {
 
       await SequelizeRepository.commitTransaction(transaction)
 
-      await searchSyncService.triggerMemberSync(this.options.currentTenant.id, record.memberId)
+      await searchSyncService.triggerMemberSync(this.options.currentTenant.id, record.memberId, {
+        withAggs: true,
+      })
       return record
     } catch (error) {
       if (error.name && error.name.includes('Sequelize')) {

@@ -2081,6 +2081,7 @@ class MemberRepository {
     const withSearch = !!search
     let searchCTE = ''
     let searchJoin = ''
+    let searchFilter = '1=1'
 
     if (withSearch) {
       search = search.toLowerCase()
@@ -2088,15 +2089,19 @@ class MemberRepository {
       ,
       member_search AS (
           SELECT
-            "memberId"
+            DISTINCT "memberId"
           FROM "memberIdentities" mi
           join members m on m.id = mi."memberId"
           where (verified and lower("value") like '%${search}%') or
           lower(m."displayName") like '%${search}%'
           GROUP BY 1
+          where (verified and lower("value") like '%${search}%')
         )
       `
-      searchJoin = ` JOIN member_search ms ON ms."memberId" = m.id `
+      searchJoin = ` LEFT JOIN member_search ms ON ms."memberId" = m.id `
+      searchFilter = `
+        (ms."memberId" IS NOT NULL OR lower(m."displayName") like '%${search}%')
+       `
     }
 
     const createQuery = (fields) => `
@@ -2121,6 +2126,7 @@ class MemberRepository {
       ${searchJoin}
       WHERE m."tenantId" = $(tenantId)
         AND (${filterString})
+        AND (${searchFilter})
     `
 
     if (countOnly) {

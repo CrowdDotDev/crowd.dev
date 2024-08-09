@@ -318,7 +318,7 @@ export class OrganizationSyncService {
       let documentsIndexed = 0
       const organizationIdsToIndex = []
       for (const organizationId of organizationIds) {
-        let orgData: IDbOrganizationAggregateData[]
+        let orgData: IDbOrganizationAggregateData[] = []
         try {
           orgData = await logExecutionTimeV2(
             async () => getOrgAggregates(this.qdbStore.connection(), organizationId),
