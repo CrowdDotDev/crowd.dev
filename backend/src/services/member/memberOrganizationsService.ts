@@ -1,9 +1,9 @@
 /* eslint-disable no-continue */
 
 import { LoggerBase } from '@crowd/logging'
-import {IMemberOrganization, IOrganization} from '@crowd/types'
+import { IMemberOrganization, IOrganization } from '@crowd/types'
 import { IServiceOptions } from '../IServiceOptions'
-import MemberOrganizationsRepository from "@/database/repositories/member/memberOrganizationsRepository";
+import MemberOrganizationsRepository from '@/database/repositories/member/memberOrganizationsRepository'
 
 export default class MemberOrganizationsService extends LoggerBase {
   options: IServiceOptions
@@ -19,10 +19,7 @@ export default class MemberOrganizationsService extends LoggerBase {
   }
 
   // Member organization creation
-  async create(
-    memberId: string,
-    data: Partial<IMemberOrganization>,
-  ): Promise<IOrganization[]> {
+  async create(memberId: string, data: Partial<IMemberOrganization>): Promise<IOrganization[]> {
     return MemberOrganizationsRepository.create(memberId, data, this.options)
   }
 

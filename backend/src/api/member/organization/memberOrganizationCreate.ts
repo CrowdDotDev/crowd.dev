@@ -1,6 +1,6 @@
 import Permissions from '../../../security/permissions'
 import PermissionChecker from '../../../services/user/permissionChecker'
-import MemberOrganizationsService from "@/services/member/memberOrganizationsService";
+import MemberOrganizationsService from '@/services/member/memberOrganizationsService'
 
 /**
  * POST /tenant/{tenantId}/member/:memberId/organization
@@ -20,10 +20,7 @@ export default async (req, res) => {
 
   const memberOrganizationsService = new MemberOrganizationsService(req)
 
-  const payload = await memberOrganizationsService.create(
-    req.params.memberId,
-    req.body,
-  )
+  const payload = await memberOrganizationsService.create(req.params.memberId, req.body)
 
   await req.responseHandler.success(req, res, payload)
 }

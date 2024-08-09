@@ -1,6 +1,6 @@
 import Permissions from '../../../security/permissions'
 import PermissionChecker from '../../../services/user/permissionChecker'
-import MemberOrganizationsService from "@/services/member/memberOrganizationsService";
+import MemberOrganizationsService from '@/services/member/memberOrganizationsService'
 
 /**
  * DELETE /tenant/{tenantId}/member/:memberId/organization/:memberOrganizationId
