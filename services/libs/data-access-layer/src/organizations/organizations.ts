@@ -69,22 +69,22 @@ export async function findOrgIdByDisplayName(
   return null
 }
 
-export async function findOrgIdByWebsite(
+export async function findOrgIdByDomain(
   qx: QueryExecutor,
   tenantId: string,
-  websites: string[],
+  domains: string[],
 ): Promise<string | null> {
   const result = await qx.selectOneOrNone(
     `
-      SELECT id
-      FROM organizations
-      WHERE "website" = ANY($(websites))
+      SELECT "organizationId"
+      FROM "organizationIdentities"
+      WHERE "value" = ANY($(domains))
         AND "tenantId" = $(tenantId)
-        AND "deletedAt" IS NULL
+        AND "type" IN ('${OrganizationIdentityType.PRIMARY_DOMAIN}', '${OrganizationIdentityType.ALTERNATIVE_DOMAIN}')
       LIMIT 1;
     `,
     {
-      websites,
+      domains,
       tenantId,
     },
   )

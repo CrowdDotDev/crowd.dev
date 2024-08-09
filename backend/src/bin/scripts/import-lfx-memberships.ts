@@ -15,7 +15,7 @@ import { findProjectGroupByName } from '@crowd/data-access-layer/src/segments'
 import { insertLfxMembership, LfxMembership } from '@crowd/data-access-layer/src/lfx_memberships'
 import {
   findOrgIdByDisplayName,
-  findOrgIdByWebsite,
+  findOrgIdByDomain,
 } from '@crowd/data-access-layer/src/organizations'
 import { databaseInit } from '@/database/databaseConnection'
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
@@ -70,12 +70,12 @@ function parseDomains(domains: string) {
 }
 
 async function findOrgId(qx, tenantId, record) {
-  let org = await findOrgIdByWebsite(qx, tenantId, [record['Account Domain']])
+  let org = await findOrgIdByDomain(qx, tenantId, [record['Account Domain']])
   if (org) {
     return org
   }
 
-  org = await findOrgIdByWebsite(qx, tenantId, record['Domain Alias'])
+  org = await findOrgIdByDomain(qx, tenantId, record['Domain Alias'])
   if (org) {
     return org
   }
@@ -101,6 +101,11 @@ if (parameters.help || !parameters.file || !parameters.tenantId) {
     const qx = SequelizeRepository.getQueryExecutor({
       database: prodDb,
     } as IRepositoryOptions)
+
+    await qx.result(`TRUNCATE "lfxMemberships"`)
+
+    console.log('All records deleted')
+
     const tenantId = parameters.tenantId
 
     const fileData = fs.readFileSync(path.resolve(parameters.file), 'latin1')
@@ -110,7 +115,7 @@ if (parameters.help || !parameters.file || !parameters.tenantId) {
       skip_empty_lines: true,
     })
 
-    console.log('Records:', records.length)
+    console.log('New records:', records.length)
 
     for (let i = 0; i < records.length; i++) {
       const record = records[i]
