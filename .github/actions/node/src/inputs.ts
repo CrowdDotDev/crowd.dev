@@ -1,12 +1,14 @@
+import * as core from '@actions/core'
 import {
   ActionStep,
   CloudEnvironment,
   IActionInputs,
+  IAwsDeployInput,
   IBuildInput,
   IDeployInput,
+  IOracleDeployInput,
   IPushInput,
 } from './types'
-import * as core from '@actions/core'
 import { getBuilderDefinitions } from './utils'
 
 const getBuildInputs = (): IBuildInput => {
@@ -46,44 +48,102 @@ const getDeployIUputs = (): IDeployInput => {
     throw new Error('No CLOUD_ENV environment variable found!')
   }
 
-  const eksClusterName = process.env.CROWD_CLUSTER
-  if (!eksClusterName) {
-    core.error('No CROWD_CLUSTER environment variable found!')
-    throw new Error('No CROWD_CLUSTER environment variable found!')
-  }
+  let aws: IAwsDeployInput | undefined
+  let oracle: IOracleDeployInput | undefined
 
-  const awsRoleArn = process.env.CROWD_ROLE_ARN
-  if (!awsRoleArn) {
-    core.error('No CROWD_ROLE_ARN environment variable found!')
-    throw new Error('No CROWD_ROLE_ARN environment variable found!')
-  }
+  if (
+    cloudEnvironment === CloudEnvironment.LF_ORACLE_PRODUCTION ||
+    cloudEnvironment === CloudEnvironment.LF_ORACLE_STAGING
+  ) {
+    const user = process.env.ORACLE_USER
+    if (!user) {
+      core.error('No ORACLE_USER environment variable found!')
+      throw new Error('No ORACLE_USER environment variable found!')
+    }
 
-  const awsAccessKeyId = process.env.AWS_ACCESS_KEY_ID
-  if (!awsAccessKeyId) {
-    core.error('No AWS_ACCESS_KEY_ID environment variable found!')
-    throw new Error('No AWS_ACCESS_KEY_ID environment variable found!')
-  }
+    const tenant = process.env.ORACLE_TENANT
+    if (!tenant) {
+      core.error('No ORACLE_TENANT environment variable found!')
+      throw new Error('No ORACLE_TENANT environment variable found!')
+    }
 
-  const awsSecretAccessKey = process.env.AWS_SECRET_ACCESS_KEY
-  if (!awsSecretAccessKey) {
-    core.error('No AWS_SECRET_ACCESS_KEY environment variable found!')
-    throw new Error('No AWS_SECRET_ACCESS_KEY environment variable found!')
-  }
+    const region = process.env.ORACLE_REGION
+    if (!region) {
+      core.error('No ORACLE_REGION environment variable found!')
+      throw new Error('No ORACLE_REGION environment variable found!')
+    }
 
-  const awsRegion = process.env.AWS_REGION
-  if (!awsRegion) {
-    core.error('No AWS_REGION environment variable found!')
-    throw new Error('No AWS_REGION environment variable found!')
+    const fingerprint = process.env.ORACLE_FINGERPRINT
+    if (!fingerprint) {
+      core.error('No ORACLE_FINGERPRINT environment variable found!')
+      throw new Error('No ORACLE_FINGERPRINT environment variable found!')
+    }
+
+    const key = process.env.ORACLE_KEY
+    if (!key) {
+      core.error('No ORACLE_KEY environment variable found!')
+      throw new Error('No ORACLE_KEY environment variable found!')
+    }
+
+    const cluster = process.env.ORACLE_CLUSTER
+    if (!cluster) {
+      core.error('No ORACLE_CLUSTER environment variable found!')
+      throw new Error('No ORACLE_CLUSTER environment variable found!')
+    }
+
+    oracle = {
+      user,
+      tenant,
+      region,
+      fingerprint,
+      key,
+      cluster,
+    }
+  } else {
+    const eksClusterName = process.env.CROWD_CLUSTER
+    if (!eksClusterName) {
+      core.error('No CROWD_CLUSTER environment variable found!')
+      throw new Error('No CROWD_CLUSTER environment variable found!')
+    }
+
+    const awsRoleArn = process.env.CROWD_ROLE_ARN
+    if (!awsRoleArn) {
+      core.error('No CROWD_ROLE_ARN environment variable found!')
+      throw new Error('No CROWD_ROLE_ARN environment variable found!')
+    }
+
+    const awsAccessKeyId = process.env.AWS_ACCESS_KEY_ID
+    if (!awsAccessKeyId) {
+      core.error('No AWS_ACCESS_KEY_ID environment variable found!')
+      throw new Error('No AWS_ACCESS_KEY_ID environment variable found!')
+    }
+
+    const awsSecretAccessKey = process.env.AWS_SECRET_ACCESS_KEY
+    if (!awsSecretAccessKey) {
+      core.error('No AWS_SECRET_ACCESS_KEY environment variable found!')
+      throw new Error('No AWS_SECRET_ACCESS_KEY environment variable found!')
+    }
+
+    const awsRegion = process.env.AWS_REGION
+    if (!awsRegion) {
+      core.error('No AWS_REGION environment variable found!')
+      throw new Error('No AWS_REGION environment variable found!')
+    }
+
+    aws = {
+      eksClusterName,
+      awsRoleArn,
+      awsAccessKeyId,
+      awsSecretAccessKey,
+      awsRegion,
+    }
   }
 
   return {
     services,
     cloudEnvironment,
-    eksClusterName,
-    awsRoleArn,
-    awsAccessKeyId,
-    awsSecretAccessKey,
-    awsRegion,
+    aws,
+    oracle,
   }
 }
 
