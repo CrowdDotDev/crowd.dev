@@ -27,7 +27,8 @@
       }
     },
     "kafka": {
-      "brokers": "CROWD_KAFKA_BROKERS"
+      "brokers": "CROWD_KAFKA_BROKERS",
+      "extra": "CROWD_KAFKA_EXTRA"
     }
   },
   "s3": {

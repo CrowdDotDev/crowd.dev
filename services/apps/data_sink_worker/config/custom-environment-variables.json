@@ -16,7 +16,8 @@
       "secretAccessKey": "CROWD_SQS_AWS_SECRET_ACCESS_KEY"
     },
     "kafka": {
-      "brokers": "CROWD_KAFKA_BROKERS"
+      "brokers": "CROWD_KAFKA_BROKERS",
+      "extra": "CROWD_KAFKA_EXTRA"
     }
   },
   "sentiment": {
