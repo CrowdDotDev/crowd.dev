@@ -119,38 +119,44 @@ if (parameters.help || !parameters.file || !parameters.tenantId) {
 
     for (let i = 0; i < records.length; i++) {
       const record = records[i]
-      record['Domain Alias'] = parseDomains(record['Domain Alias'])
-
       const orgName = record['Account Name']
 
-      const segment = await findProjectGroupByName(qx, {
-        tenantId,
-        name: record['Project'],
-      })
-      const orgId = await findOrgId(qx, tenantId, record)
-      const row = {
-        tenantId: parameters.tenantId,
-        organizationId: orgId,
-        segmentId: segment?.id,
-        accountName: orgName,
-        parentAccount: record['Parent Account'],
-        project: record['Project'],
-        productName: record['Product Name'],
-        purchaseHistoryName: record['Purchase History Name'],
-        installDate: moment(record['Install Date'], 'MM/DD/YYYY').toDate(),
-        usageEndDate: moment(record['Usage End Date'], 'MM/DD/YYYY').toDate(),
-        status: record['Status'],
-        priceCurrency: record['Price Currency'],
-        price: parseInt(record['Price'], 10),
-        productFamily: record['Product Family'],
-        tier: record['Tier'],
-        accountDomain: record['Account Domain'],
-        domainAlias: record['Domain Alias'],
-      } as LfxMembership
+      // Exclude individual no account organizations from LF Members
+      if(!['Individual - No Account', 'Individual ? No  Account', 'individual with no account'].includes(orgName)) {
+        record['Domain Alias'] = parseDomains(record['Domain Alias'])
 
-      await insertLfxMembership(qx, row)
 
-      console.log('Inserted record:', i, orgName)
+        const segment = await findProjectGroupByName(qx, {
+          tenantId,
+          name: record['Project'],
+        })
+        const orgId = await findOrgId(qx, tenantId, record)
+        const row = {
+          tenantId: parameters.tenantId,
+          organizationId: orgId,
+          segmentId: segment?.id,
+          accountName: orgName,
+          parentAccount: record['Parent Account'],
+          project: record['Project'],
+          productName: record['Product Name'],
+          purchaseHistoryName: record['Purchase History Name'],
+          installDate: moment(record['Install Date'], 'MM/DD/YYYY').toDate(),
+          usageEndDate: moment(record['Usage End Date'], 'MM/DD/YYYY').toDate(),
+          status: record['Status'],
+          priceCurrency: record['Price Currency'],
+          price: parseInt(record['Price'], 10),
+          productFamily: record['Product Family'],
+          tier: record['Tier'],
+          accountDomain: record['Account Domain'],
+          domainAlias: record['Domain Alias'],
+        } as LfxMembership
+
+        await insertLfxMembership(qx, row)
+
+        console.log('Inserted record:', i, orgName)
+      } else {
+        console.log('Ignored Individual - No account:', i, orgName)
+      }
     }
 
     process.exit(0)
