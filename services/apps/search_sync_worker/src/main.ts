@@ -1,4 +1,4 @@
-import { OpenSearchService, InitService } from '@crowd/opensearch'
+import { OpenSearchService, InitService, getOpensearchClient } from '@crowd/opensearch'
 import { getDbConnection } from '@crowd/data-access-layer/src/database'
 import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
@@ -15,7 +15,8 @@ const MAX_CONCURRENT_PROCESSING = 5
 setImmediate(async () => {
   log.info('Starting search sync worker...')
 
-  const openSearchService = new OpenSearchService(log, OPENSEARCH_CONFIG())
+  const osClient = await getOpensearchClient(OPENSEARCH_CONFIG())
+  const openSearchService = new OpenSearchService(log, osClient)
 
   const redis = await getRedisClient(REDIS_CONFIG())
 

@@ -4,7 +4,7 @@ import { NativeConnection, Worker as TemporalWorker, bundleWorkflowCode } from '
 
 import { Config, Service } from '@crowd/archetype-standard'
 import { getDbConnection, DbStore } from '@crowd/database'
-import { OpenSearchService } from '@crowd/opensearch'
+import { getOpensearchClient, OpenSearchService } from '@crowd/opensearch'
 import { getDataConverter } from '@crowd/temporal'
 import { IS_DEV_ENV, IS_TEST_ENV } from '@crowd/common'
 import { IQueue, QueueFactory, QueueVendor } from '@crowd/queue'
@@ -198,12 +198,13 @@ export class ServiceWorker extends Service {
     }
 
     if (this.options.opensearch?.enabled) {
+      const osClient = await getOpensearchClient({
+        username: process.env['CROWD_OPENSEARCH_USERNAME'],
+        password: process.env['CROWD_OPENSEARCH_PASSWORD'],
+        node: process.env['CROWD_OPENSEARCH_NODE'],
+      })
       try {
-        this._opensearchService = new OpenSearchService(this.log, {
-          username: process.env['CROWD_OPENSEARCH_USERNAME'],
-          password: process.env['CROWD_OPENSEARCH_PASSWORD'],
-          node: process.env['CROWD_OPENSEARCH_NODE'],
-        })
+        this._opensearchService = new OpenSearchService(this.log, osClient)
       } catch (err) {
         throw new Error(err)
       }

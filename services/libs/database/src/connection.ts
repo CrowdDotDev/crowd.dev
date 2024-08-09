@@ -89,5 +89,10 @@ export const getDbConnection = async (
 
   await dbConnection[cacheKey].connect()
 
+  log.info(
+    { database: config.database, host: config.host, port: config.port },
+    'Connected to the database!',
+  )
+
   return dbConnection[cacheKey]
 }

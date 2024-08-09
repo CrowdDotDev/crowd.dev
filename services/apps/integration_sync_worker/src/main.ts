@@ -17,7 +17,7 @@ setImmediate(async () => {
 
   const dbConnection = await getDbConnection(DB_CONFIG(), MAX_CONCURRENT_PROCESSING)
 
-  const opensearchClient = getOpensearchClient(OPENSEARCH_CONFIG())
+  const opensearchClient = await getOpensearchClient(OPENSEARCH_CONFIG())
 
   const worker = new WorkerQueueReceiver(
     SERVICE_CONFIG().queuePriorityLevel,

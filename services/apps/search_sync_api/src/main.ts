@@ -5,7 +5,7 @@ import express from 'express'
 import { databaseMiddleware } from './middleware/database'
 import { errorMiddleware } from './middleware/error'
 import { loggingMiddleware } from './middleware/logging'
-import { InitService, OpenSearchService } from '@crowd/opensearch'
+import { getOpensearchClient, InitService, OpenSearchService } from '@crowd/opensearch'
 import memberRoutes from './routes/member'
 import activityRoutes from './routes/activity'
 import organizationRoutes from './routes/organization'
@@ -22,7 +22,8 @@ const config = SEARCH_SYNC_API_CONFIG()
 setImmediate(async () => {
   const app = express()
   const redis = await getRedisClient(REDIS_CONFIG(), true)
-  const opensearch = new OpenSearchService(log, OPENSEARCH_CONFIG())
+  const osClient = await getOpensearchClient(OPENSEARCH_CONFIG())
+  const opensearch = new OpenSearchService(log, osClient)
   const dbConnection = await getDbConnection(DB_CONFIG(), 5, 5000)
 
   app.use(telemetryExpressMiddleware('search_sync_api.request.duration'))

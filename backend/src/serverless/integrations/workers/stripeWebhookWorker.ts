@@ -20,7 +20,7 @@ export default async function stripeWebhookWorker(req) {
 
   try {
     event = stripe.webhooks.constructEvent(req.rawBody, sig, PLANS_CONFIG.stripWebhookSigningSecret)
-    console.log(event)
+    log.info({ event }, 'Stripe webhook event')
     // TODO:: process event here - we were updating it from nodejs-worker before, now it's orphaned
   } catch (err) {
     log.error(`Webhook Error: ${err.message}`)

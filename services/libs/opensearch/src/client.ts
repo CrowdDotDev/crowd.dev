@@ -1,10 +1,17 @@
 import { Client } from '@opensearch-project/opensearch'
 import { IOpenSearchConfig } from '@crowd/types'
+import { getServiceChildLogger } from '@crowd/logging'
 
-export const getOpensearchClient = (config: IOpenSearchConfig) => {
+const log = getServiceChildLogger('opensearch.connection')
+
+export const getOpensearchClient = async (config: IOpenSearchConfig): Promise<Client> => {
+  let client: Client | undefined
+
+  log.info({ config }, 'Connecting to OpenSearch!')
+
   if (config.node) {
     if (config.username) {
-      return new Client({
+      client = new Client({
         node: config.node,
         auth: {
           username: config.username,
@@ -19,10 +26,17 @@ export const getOpensearchClient = (config: IOpenSearchConfig) => {
         sniffInterval: 60000,
       })
     }
-    return new Client({
+    client = new Client({
       node: config.node,
     })
   }
 
-  throw new Error('Missing node url while initializing opensearch!')
+  if (!client) {
+    throw new Error('Missing node url while initializing opensearch!')
+  }
+
+  await client.ping()
+  log.info({ config }, 'Connected to OpenSearch!')
+
+  return client
 }

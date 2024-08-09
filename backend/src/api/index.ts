@@ -51,7 +51,7 @@ const server = http.createServer(app)
 setImmediate(async () => {
   const redis = await getRedisClient(REDIS_CONFIG, true)
 
-  const opensearch = getOpensearchClient(OPENSEARCH_CONFIG)
+  const opensearch = await getOpensearchClient(OPENSEARCH_CONFIG)
 
   const redisPubSubPair = await getRedisPubSubPair(REDIS_CONFIG)
   const userNamespace = await WebSockets.initialize(server)
