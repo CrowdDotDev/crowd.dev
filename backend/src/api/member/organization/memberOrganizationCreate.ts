@@ -21,7 +21,6 @@ export default async (req, res) => {
   const memberOrganizationsService = new MemberOrganizationsService(req)
 
   const payload = await memberOrganizationsService.create(
-    req.params.tenantId,
     req.params.memberId,
     req.body,
   )

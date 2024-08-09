@@ -1,7 +1,7 @@
 /* eslint-disable no-continue */
 
 import { LoggerBase } from '@crowd/logging'
-import {IMemberOrganization} from '@crowd/types'
+import {IMemberOrganization, IOrganization} from '@crowd/types'
 import { IServiceOptions } from '../IServiceOptions'
 import MemberOrganizationsRepository from "@/database/repositories/member/memberOrganizationsRepository";
 
@@ -14,17 +14,16 @@ export default class MemberOrganizationsService extends LoggerBase {
   }
 
   // Member organization list
-  async list(memberId: string): Promise<IMemberOrganization[]> {
+  async list(memberId: string): Promise<IOrganization[]> {
     return MemberOrganizationsRepository.list(memberId, this.options)
   }
 
   // Member organization creation
   async create(
-    tenantId: string,
     memberId: string,
     data: Partial<IMemberOrganization>,
-  ): Promise<IMemberOrganization[]> {
-    return MemberOrganizationsRepository.create(tenantId, memberId, data, this.options)
+  ): Promise<IOrganization[]> {
+    return MemberOrganizationsRepository.create(memberId, data, this.options)
   }
 
   // Update member organization
@@ -32,12 +31,12 @@ export default class MemberOrganizationsService extends LoggerBase {
     id: string,
     memberId: string,
     data: Partial<IMemberOrganization>,
-  ): Promise<IMemberOrganization[]> {
+  ): Promise<IOrganization[]> {
     return MemberOrganizationsRepository.update(id, memberId, data, this.options)
   }
 
   // Delete member organization
-  async delete(id: string, memberId: string): Promise<IMemberOrganization[]> {
+  async delete(id: string, memberId: string): Promise<IOrganization[]> {
     return MemberOrganizationsRepository.delete(id, memberId, this.options)
   }
 }
