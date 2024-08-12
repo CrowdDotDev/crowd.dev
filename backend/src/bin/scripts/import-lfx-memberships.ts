@@ -122,9 +122,14 @@ if (parameters.help || !parameters.file || !parameters.tenantId) {
       const orgName = record['Account Name']
 
       // Exclude individual no account organizations from LF Members
-      if(!['Individual - No Account', 'Individual ? No  Account', 'individual with no account'].includes(orgName)) {
+      if (
+        ![
+          'Individual - No Account',
+          'Individual ? No  Account',
+          'individual with no account',
+        ].includes(orgName)
+      ) {
         record['Domain Alias'] = parseDomains(record['Domain Alias'])
-
 
         const segment = await findProjectGroupByName(qx, {
           tenantId,
