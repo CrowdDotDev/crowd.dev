@@ -133,7 +133,7 @@ const props = defineProps<{
 const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void}>();
 
 const memberStore = useMemberStore();
-const { updateContributor } = useContributorStore();
+const { createContributorIdentities } = useContributorStore();
 
 const sending = ref<boolean>(false);
 
@@ -171,12 +171,7 @@ const platform = (platform: string) => CrowdIntegrations.getConfig(platform);
 
 const addIdentities = () => {
   sending.value = true;
-  updateContributor(props.contributor.id, {
-    identities: [
-      ...props.contributor.identities,
-      ...form,
-    ],
-  })
+  createContributorIdentities(props.contributor.id, form)
     .then(() => {
       Message.success('Identities successfully added');
       isModalOpen.value = false;

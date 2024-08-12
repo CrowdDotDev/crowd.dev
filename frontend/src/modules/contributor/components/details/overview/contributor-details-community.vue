@@ -30,7 +30,14 @@
           <p class="text-tiny text-secondary-300 mb-2">
             # of activities
           </p>
-          <p class="text-small text-gray-600">
+          <lf-loading
+            v-if="props.contributor.activitySycning?.state === MergeActionState.IN_PROGRESS"
+            :count="1"
+            height="1rem"
+            width="4rem"
+            class="rounded"
+          />
+          <p v-else class="text-small text-gray-600">
             {{ props.contributor.activityCount && formatNumber(props.contributor.activityCount) || '-' }}
           </p>
         </article>
@@ -57,6 +64,8 @@ import { formatNumber } from '@/utils/number';
 import LfContributorEngagementLevel from '@/modules/contributor/components/shared/contributor-engagement-level.vue';
 import LfContributorSentiment from '@/modules/contributor/components/shared/contributor-sentiment.vue';
 import { Contributor } from '@/modules/contributor/types/Contributor';
+import LfLoading from '@/ui-kit/loading/Loading.vue';
+import { MergeActionState } from '@/shared/modules/merge/types/MemberActions';
 
 const props = defineProps<{
   contributor: Contributor,

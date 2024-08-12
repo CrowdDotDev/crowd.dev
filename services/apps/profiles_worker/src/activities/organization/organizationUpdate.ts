@@ -3,6 +3,7 @@ import { TemporalWorkflowId } from '../../../../../libs/types/src'
 import { svc } from '../../main'
 import { findMemberIdsInOrganization } from '@crowd/data-access-layer/src/old/apps/profiles_worker/orgs'
 import { IOrganizationAffiliationUpdateInput } from '../../types/organization'
+import { SearchSyncApiClient } from '@crowd/opensearch'
 
 /*
 updateMemberAffiliations is a Temporal activity that updates all affiliations for
@@ -36,4 +37,12 @@ export async function updateOrganizationAffiliations(
   } catch (err) {
     throw new Error(err)
   }
+}
+
+export async function syncOrganization(organizationId: string): Promise<void> {
+  const syncApi = new SearchSyncApiClient({
+    baseUrl: process.env['CROWD_SEARCH_SYNC_API_URL'],
+  })
+
+  await syncApi.triggerOrganizationSync(organizationId)
 }

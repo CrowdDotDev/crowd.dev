@@ -15,10 +15,12 @@ import {
   MergeActionType,
   OrganizationIdentityType,
   SyncMode,
+  TemporalWorkflowId,
 } from '@crowd/types'
 import { randomUUID } from 'crypto'
 import lodash from 'lodash'
 import { findOrgAttributes, upsertOrgIdentities } from '@crowd/data-access-layer/src/organizations'
+import { WorkflowIdReusePolicy } from '@crowd/temporal'
 import getObjectWithoutKey from '@/utils/getObjectWithoutKey'
 import { IActiveOrganizationFilter } from '@/database/repositories/types/organizationTypes'
 import MemberOrganizationRepository from '@/database/repositories/memberOrganizationRepository'
@@ -310,9 +312,6 @@ export default class OrganizationService extends LoggerBase {
       // add primary and secondary to no merge so they don't get suggested again
       await OrganizationRepository.addNoMerge(organizationId, secondaryOrganization.id, repoOptions)
 
-      // trigger entity-merging-worker to move activities in the background
-      await SequelizeRepository.commitTransaction(tx)
-
       await MergeActionsRepository.setMergeAction(
         MergeActionType.ORG,
         organizationId,
@@ -322,6 +321,9 @@ export default class OrganizationService extends LoggerBase {
           step: MergeActionStep.UNMERGE_SYNC_DONE,
         },
       )
+
+      // trigger entity-merging-worker to move activities in the background
+      await SequelizeRepository.commitTransaction(tx)
 
       // responsible for moving organization's activities, syncing to opensearch afterwards, recalculating activity.organizationIds and notifying frontend via websockets
       await this.options.temporal.workflow.start('finishOrganizationUnmerging', {
@@ -909,20 +911,25 @@ export default class OrganizationService extends LoggerBase {
       )
 
       await SequelizeRepository.commitTransaction(tx)
-
-      if (syncToOpensearch) {
-        try {
-          const searchSyncService = new SearchSyncService(this.options)
-
-          await searchSyncService.triggerOrganizationSync(this.options.currentTenant.id, record.id)
-        } catch (emitErr) {
-          this.log.error(
-            emitErr,
-            { tenantId: this.options.currentTenant.id, organizationId: record.id },
-            'Error while emitting organization sync!',
-          )
-        }
-      }
+      await this.options.temporal.workflow.start('organizationUpdate', {
+        taskQueue: 'profiles',
+        workflowId: `${TemporalWorkflowId.ORGANIZATION_UPDATE}/${this.options.currentTenant.id}/${id}`,
+        workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+        retry: {
+          maximumAttempts: 10,
+        },
+        args: [
+          {
+            organization: {
+              id: record.id,
+            },
+            syncToOpensearch,
+          },
+        ],
+        searchAttributes: {
+          TenantId: [this.options.currentTenant.id],
+        },
+      })
 
       return record
     } catch (error) {
