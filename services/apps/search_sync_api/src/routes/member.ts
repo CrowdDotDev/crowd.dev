@@ -15,10 +15,10 @@ router.post(
       req.log,
     )
 
-    const { memberId } = req.body
+    const { memberId, withAggs } = req.body
     try {
       req.log.trace(`Calling memberSyncService.syncMembers for ${memberId}`)
-      await memberSyncService.syncMembers(memberId)
+      await memberSyncService.syncMembers(memberId, { withAggs })
       res.sendStatus(200)
     } catch (error) {
       req.log.error(error)

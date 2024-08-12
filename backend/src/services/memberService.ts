@@ -870,9 +870,6 @@ export default class MemberService extends LoggerBase {
       // add primary and secondary to no merge so they don't get suggested again
       await MemberRepository.addNoMerge(memberId, secondaryMember.id, repoOptions)
 
-      // trigger entity-merging-worker to move activities in the background
-      await SequelizeRepository.commitTransaction(tx)
-
       await MergeActionsRepository.setMergeAction(
         MergeActionType.MEMBER,
         member.id,
@@ -882,6 +879,9 @@ export default class MemberService extends LoggerBase {
           step: MergeActionStep.UNMERGE_SYNC_DONE,
         },
       )
+
+      // trigger entity-merging-worker to move activities in the background
+      await SequelizeRepository.commitTransaction(tx)
 
       // responsible for moving member's activities, syncing to opensearch afterwards, recalculating activity.organizationIds and notifying frontend via websockets
       await this.options.temporal.workflow.start('finishMemberUnmerging', {
@@ -1613,11 +1613,6 @@ export default class MemberService extends LoggerBase {
     } = {},
   ) {
     let transaction
-    const searchSyncService = new SearchSyncService(
-      this.options,
-      SERVICE === ServiceType.NODEJS_WORKER ? SyncMode.ASYNCHRONOUS : undefined,
-    )
-
     try {
       const repoOptions = await SequelizeRepository.createTransactionalRepositoryOptions(
         this.options,
@@ -1784,29 +1779,14 @@ export default class MemberService extends LoggerBase {
             member: {
               id,
             },
+            memberOrganizationIds: (data.organizations || []).map((o) => o.id),
+            syncToOpensearch,
           },
         ],
         searchAttributes: {
           TenantId: [this.options.currentTenant.id],
         },
       })
-
-      if (syncToOpensearch) {
-        try {
-          await searchSyncService.triggerMemberSync(this.options.currentTenant.id, record.id)
-          if (data.organizations) {
-            for (const org of data.organizations) {
-              await searchSyncService.triggerOrganizationSync(this.options.currentTenant.id, org.id)
-            }
-          }
-        } catch (emitErr) {
-          this.log.error(
-            emitErr,
-            { tenantId: this.options.currentTenant.id, memberId: record.id },
-            'Error while triggering member sync changes!',
-          )
-        }
-      }
 
       return record
     } catch (error) {
