@@ -1613,11 +1613,6 @@ export default class MemberService extends LoggerBase {
     } = {},
   ) {
     let transaction
-    const searchSyncService = new SearchSyncService(
-      this.options,
-      SERVICE === ServiceType.NODEJS_WORKER ? SyncMode.ASYNCHRONOUS : undefined,
-    )
-
     try {
       const repoOptions = await SequelizeRepository.createTransactionalRepositoryOptions(
         this.options,
@@ -1784,29 +1779,14 @@ export default class MemberService extends LoggerBase {
             member: {
               id,
             },
+            memberOrganizationIds: (data.organizations || []).map((o) => o.id),
+            syncToOpensearch,
           },
         ],
         searchAttributes: {
           TenantId: [this.options.currentTenant.id],
         },
       })
-
-      if (syncToOpensearch) {
-        try {
-          await searchSyncService.triggerMemberSync(this.options.currentTenant.id, record.id)
-          if (data.organizations) {
-            for (const org of data.organizations) {
-              await searchSyncService.triggerOrganizationSync(this.options.currentTenant.id, org.id)
-            }
-          }
-        } catch (emitErr) {
-          this.log.error(
-            emitErr,
-            { tenantId: this.options.currentTenant.id, memberId: record.id },
-            'Error while triggering member sync changes!',
-          )
-        }
-      }
 
       return record
     } catch (error) {
