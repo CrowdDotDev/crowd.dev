@@ -1180,6 +1180,9 @@ importers:
       '@crowd/data-access-layer':
         specifier: workspace:*
         version: link:../../libs/data-access-layer
+      '@crowd/opensearch':
+        specifier: workspace:*
+        version: link:../../libs/opensearch
       '@crowd/types':
         specifier: workspace:*
         version: link:../../libs/types

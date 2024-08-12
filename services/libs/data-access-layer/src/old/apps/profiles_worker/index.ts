@@ -1,10 +1,10 @@
 import _ from 'lodash'
 
 import { DbConnOrTx, DbStore } from '@crowd/database'
-import { IAffiliationsLastCheckedAt, IMemberId } from './types'
 import { ITenant } from '@crowd/types'
-import { pgpQx } from '../../../queryExecutor'
 import { findMemberAffiliations } from '../../../member_segment_affiliations'
+import { pgpQx } from '../../../queryExecutor'
+import { IAffiliationsLastCheckedAt, IMemberId } from './types'
 
 export async function runMemberAffiliationsUpdate(
   pgDb: DbStore,
@@ -94,12 +94,17 @@ export async function runMemberAffiliationsUpdate(
   }
 
   const qdbQx = pgpQx(qDb)
-  const fullCase = `
-      CASE
-        ${orgCases.map(condition).join('\n')}
-        ELSE ${nullableOrg(fallbackOrganizationId)}
-      END
-      `
+  let fullCase: string
+  if (orgCases.length > 0) {
+    fullCase = `
+            CASE
+              ${orgCases.map(condition).join('\n')}
+              ELSE ${nullableOrg(fallbackOrganizationId)}
+            END
+            `
+  } else {
+    fullCase = `${nullableOrg(fallbackOrganizationId)}::UUID`
+  }
 
   const query = `
       UPDATE activities
