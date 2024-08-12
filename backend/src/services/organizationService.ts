@@ -15,12 +15,12 @@ import {
   MergeActionType,
   OrganizationIdentityType,
   SyncMode,
-  TemporalWorkflowId,
+  // TemporalWorkflowId,
 } from '@crowd/types'
 import { randomUUID } from 'crypto'
 import lodash from 'lodash'
 import { findOrgAttributes, upsertOrgIdentities } from '@crowd/data-access-layer/src/organizations'
-import { WorkflowIdReusePolicy } from '@crowd/temporal'
+// import { WorkflowIdReusePolicy } from '@crowd/temporal'
 import getObjectWithoutKey from '@/utils/getObjectWithoutKey'
 import { IActiveOrganizationFilter } from '@/database/repositories/types/organizationTypes'
 import MemberOrganizationRepository from '@/database/repositories/memberOrganizationRepository'
@@ -911,6 +911,8 @@ export default class OrganizationService extends LoggerBase {
       )
 
       await SequelizeRepository.commitTransaction(tx)
+
+      /*
       await this.options.temporal.workflow.start('organizationUpdate', {
         taskQueue: 'profiles',
         workflowId: `${TemporalWorkflowId.ORGANIZATION_UPDATE}/${this.options.currentTenant.id}/${id}`,
@@ -930,6 +932,7 @@ export default class OrganizationService extends LoggerBase {
           TenantId: [this.options.currentTenant.id],
         },
       })
+      */
 
       return record
     } catch (error) {

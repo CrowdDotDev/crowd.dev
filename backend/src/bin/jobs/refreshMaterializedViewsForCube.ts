@@ -20,7 +20,7 @@ const job: CrowdJob = {
 
       const materializedViews = [
         'mv_members_cube',
-        'mv_activities_cube',
+        // 'mv_activities_cube',
         'mv_organizations_cube',
         'mv_segments_cube',
       ]
