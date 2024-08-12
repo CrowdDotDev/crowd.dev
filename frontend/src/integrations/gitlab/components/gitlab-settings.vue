@@ -4,14 +4,20 @@
       v-if="props.integration?.status === 'mapping'"
       class="text-gray-600 text-2xs flex items-center leading-5 font-medium"
     >
-      <i class="ri-git-repository-line text-base !text-gray-600 mr-1 h-4 flex items-center" />
-      Mapping repositories...
+      <i
+        class="ri-git-repository-line text-base !text-gray-600 mr-1 h-4 flex items-center"
+      />
+      Mapping repositories... {{ mappings.length }}
     </div>
     <div v-else class="flex items-center gap-1">
       <el-popover trigger="hover" placement="top" popper-class="!w-auto">
         <template #reference>
-          <div class="text-gray-600 text-2xs flex items-center leading-5 font-medium">
-            <i class="ri-git-repository-line text-base !text-gray-600 mr-1 h-4 flex items-center" />
+          <div
+            class="text-gray-600 text-2xs flex items-center leading-5 font-medium"
+          >
+            <i
+              class="ri-git-repository-line text-base !text-gray-600 mr-1 h-4 flex items-center"
+            />
             {{ pluralize("repository", Object.keys(mappings).length, true) }}
           </div>
         </template>
@@ -20,34 +26,44 @@
           GitLab repositories
         </p>
         <div class="-my-1 px-1 max-h-44 overflow-auto">
-          <article v-for="mapping of mappings" :key="mapping.url" class="py-2 flex items-center flex-nowrap">
-            <i class="ri-git-repository-line text-base mr-2 h-4 flex items-center" />
+          <article
+            v-for="mapping of mappings"
+            :key="mapping.url"
+            class="py-2 flex items-center flex-nowrap"
+          >
+            <i
+              class="ri-git-repository-line text-base mr-2 h-4 flex items-center"
+            />
             <a
               :href="mapping.url"
               target="_blank"
               rel="noopener noreferrer"
               class="text-xs leading-5 max-w-3xs truncate hover:underline"
             >
-              /{{ repoNameFromUrl(mapping.url) }}
+              /{{ repoNameFromUrl(mapping?.url) }}
             </a>
-            <div class="ri-arrow-right-line text-gray-400 text-base mx-2 h-4 flex items-center" />
+            <div
+              class="ri-arrow-right-line text-gray-400 text-base mx-2 h-4 flex items-center"
+            />
             <div class="text-xs leading-5 max-w-3xs truncate">
-              {{ mapping.segment.name }}
+              {{ mapping?.segment?.name }}
             </div>
           </article>
         </div>
       </el-popover>
 
-      <el-tooltip content="Only public repositories will be tracked." placement="top">
+      <el-tooltip
+        content="Only public repositories will be tracked."
+        placement="top"
+      >
         <i class="ri-information-line text-xs text-gray-600" />
       </el-tooltip>
-
-      <app-gitlab-settings-drawer
-        v-if="settingsDrawerOpen"
-        v-model="settingsDrawerOpen"
-        :integration="props.integration"
-      />
     </div>
+    <app-gitlab-settings-drawer
+      v-if="settingsDrawerOpen"
+      v-model="settingsDrawerOpen"
+      :integration="props.integration"
+    />
   </div>
 </template>
 
@@ -60,7 +76,7 @@ import AppGitlabSettingsDrawer from './gitlab-settings-drawer.vue';
 const props = defineProps({
   integration: {
     type: Object,
-    default: () => { },
+    default: () => {},
   },
 });
 

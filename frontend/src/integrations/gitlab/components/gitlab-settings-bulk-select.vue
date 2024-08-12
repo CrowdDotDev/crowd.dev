@@ -1,24 +1,20 @@
 <template>
-  <el-dialog
-    v-model="isModalVisible"
-    :title="$t('integrations.gitlab.settings.bulkSelect')"
-    width="500px"
-  >
+  <el-dialog v-model="isModalVisible" title="Bulk selection" width="500px">
     <div class="px-6">
       <article class="pb-3">
         <p class="text-sm font-medium text-black mb-1">
-          {{ $t('integrations.gitlab.settings.repositories') }}
+          Repositories
         </p>
         <el-select
           v-model="form.repositories"
-          :placeholder="$t('integrations.gitlab.settings.selectRepositories')"
+          placeholder="Select repositories"
           class="w-full"
           multiple
           filterable
         >
           <el-option
             value="all"
-            :label="$t('integrations.gitlab.settings.allRepositories')"
+            label="All repositories"
             @click="form.repositories = ['all']"
           />
           <el-option
@@ -26,17 +22,23 @@
             :key="repo.path_with_namespace"
             :value="repo.path_with_namespace"
             :label="repo.name"
-            @click="isAll ? form.repositories = form.repositories.filter(r => r !== 'all') : null"
+            @click="
+              isAll
+                ? (form.repositories = form.repositories.filter(
+                  (r) => r !== 'all',
+                ))
+                : null
+            "
           />
         </el-select>
       </article>
       <article class="pb-8">
         <p class="text-sm font-medium text-black mb-1">
-          {{ $t('integrations.gitlab.settings.mapWith') }}
+          Map with
         </p>
         <el-select
           v-model="form.segment"
-          :placeholder="$t('integrations.gitlab.settings.selectSegment')"
+          placeholder="Select segment"
           class="w-full"
           filterable
         >
@@ -52,10 +54,10 @@
     <template #footer>
       <div class="flex justify-end">
         <el-button @click="closeModal">
-          {{ $t('common.cancel') }}
+          Cancel
         </el-button>
         <el-button type="primary" :disabled="!isValid" @click="applyMapping">
-          {{ $t('integrations.gitlab.settings.mapRepositories') }}
+          Map repositories
           <span v-if="form.repositories.length > 0">
             ({{ isAll ? repositories.length : form.repositories.length }})
           </span>
@@ -65,7 +67,7 @@
   </el-dialog>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, reactive } from 'vue';
 
 const props = defineProps({
