@@ -153,23 +153,28 @@ export async function findOrgIdByDomain(
   tenantId: string,
   domains: string[],
 ): Promise<string | null> {
+  const domainIdentityTypes = [
+    OrganizationIdentityType.PRIMARY_DOMAIN,
+    OrganizationIdentityType.ALTERNATIVE_DOMAIN,
+  ]
   const result = await qx.selectOneOrNone(
     `
       SELECT "organizationId"
       FROM "organizationIdentities"
       WHERE "value" = ANY($(domains))
         AND "tenantId" = $(tenantId)
-        AND "type" IN ('${OrganizationIdentityType.PRIMARY_DOMAIN}', '${OrganizationIdentityType.ALTERNATIVE_DOMAIN}')
+        AND "type" = ANY($(domainIdentityTypes))
       LIMIT 1;
     `,
     {
       domains,
       tenantId,
+      domainIdentityTypes,
     },
   )
 
   if (result) {
-    return result.id
+    return result.organizationId
   }
 
   return null
