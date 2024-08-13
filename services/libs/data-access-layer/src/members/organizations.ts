@@ -12,9 +12,11 @@ export async function fetchMemberOrganizations(
       WHERE "memberId" = $(memberId)
       ORDER BY
           CASE
-              WHEN "dateEnd" IS NULL THEN 1
-              ELSE 0
-              END DESC,
+              WHEN "dateEnd" IS NULL AND "dateStart" IS NOT NULL THEN 1
+              WHEN "dateEnd" IS NOT NULL AND "dateStart" IS NOT NULL THEN 2
+              WHEN "dateEnd" IS NULL AND "dateStart" IS NULL THEN 3
+              ELSE 4
+              END ASC,
           "dateEnd" DESC,
           "dateStart" DESC
     `,
