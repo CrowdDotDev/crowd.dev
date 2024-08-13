@@ -70,7 +70,7 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { Contributor } from '@/modules/contributor/types/Contributor';
 import LfSvg from '@/shared/svg/svg.vue';
 import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
-import { Organization, OrganizationSource } from '@/modules/organization/types/Organization';
+import { Organization } from '@/modules/organization/types/Organization';
 import moment from 'moment';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
@@ -93,7 +93,7 @@ const props = defineProps<{
 const emit = defineEmits<{(e:'edit'): void}>();
 
 const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
-const { updateContributor } = useContributorStore();
+const { deleteContributorOrganization } = useContributorStore();
 const { trackEvent } = useProductTracking();
 
 const hovered = ref<boolean>(false);
@@ -128,29 +128,7 @@ const removeWorkHistory = () => {
       },
     });
 
-    const orgs = props.contributor.organizations.filter((o: Organization) => !(o.id === props.organization?.id
-        && o.memberOrganizations?.title === props.organization?.memberOrganizations?.title
-        && o.memberOrganizations?.dateStart === props.organization?.memberOrganizations?.dateStart
-        && o.memberOrganizations?.dateEnd === props.organization?.memberOrganizations?.dateEnd))
-      .map((o) => ({
-        id: o.id,
-        name: o.name,
-        ...o.memberOrganizations?.title && {
-          title: o.memberOrganizations?.title,
-        },
-        ...o.memberOrganizations?.dateStart && {
-          startDate: o.memberOrganizations?.dateStart,
-        },
-        ...o.memberOrganizations?.dateEnd && {
-          endDate: o.memberOrganizations?.dateEnd,
-        },
-        source: OrganizationSource.UI,
-      }));
-
-    updateContributor(props.contributor.id, {
-      organizationsReplace: true,
-      organizations: orgs,
-    })
+    deleteContributorOrganization(props.contributor.id, props.organization.memberOrganizations.id)
       .then(() => {
         Message.success('Work experience deleted successfully');
       })
