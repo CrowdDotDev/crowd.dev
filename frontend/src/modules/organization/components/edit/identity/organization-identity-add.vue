@@ -16,16 +16,15 @@
                 <lf-input
                   v-model="identity.value"
                   class="!rounded-r-none h-10 flex-grow"
-                  :placeholder="`${platform(identity.platform)?.placeholder || ''}...`"
+                  placeholder="..."
                   :invalid="$v.form[ii].value.$invalid && $v.form[ii].value.$dirty"
                   @blur="$v.form[ii].value.$touch()"
                 >
                   <template #prefix>
                     <div class="flex items-center flex-nowrap whitespace-nowrap">
                       <div class="min-w-5">
-                        <lf-icon v-if="identity.type === 'email'" name="mail-line" class="text-black" :size="20" />
                         <img
-                          v-else-if="platform(identity.platform)"
+                          v-if="platform(identity.platform)"
                           :src="platform(identity.platform)?.image"
                           class="h-5 w-5 object-contain"
                           :alt="identity.value"
@@ -38,11 +37,11 @@
                         />
                       </div>
                       <p
-                        v-if="identity.type !== 'email' && platform(identity.platform)?.urlPrefix"
+                        v-if="platform(identity.platform)?.orgUrlPrefix || platform(identity.platform)?.urlPrefix"
                         class="-mr-2 pl-2"
                         :class="identity.value?.length ? 'text-black' : 'text-gray-400'"
                       >
-                        {{ platform(identity.platform)?.urlPrefix }}
+                        {{ platform(identity.platform)?.orgUrlPrefix || platform(identity.platform)?.urlPrefix }}
                       </p>
                     </div>
                   </template>
@@ -71,7 +70,7 @@
               />
             </lf-field>
           </article>
-          <lf-contributor-details-identity-add-dropdown
+          <lf-organization-details-identity-add-dropdown
             placement="bottom-start"
             @add="form.push({
               ...defaultForm,
@@ -82,7 +81,7 @@
               <lf-icon name="add-line" />
               Add identity
             </lf-button>
-          </lf-contributor-details-identity-add-dropdown>
+          </lf-organization-details-identity-add-dropdown>
         </div>
       </div>
       <div class="py-4 px-6 border-t border-gray-100 flex items-center justify-end gap-4">
@@ -104,54 +103,54 @@
 
 <script setup lang="ts">
 import LfModal from '@/ui-kit/modal/Modal.vue';
-import {
-  computed, reactive, ref, h,
-} from 'vue';
-import { Contributor, ContributorIdentity } from '@/modules/contributor/types/Contributor';
+import { computed, reactive, ref } from 'vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfInput from '@/ui-kit/input/Input.vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import LfCheckbox from '@/ui-kit/checkbox/Checkbox.vue';
-import { useContributorStore } from '@/modules/contributor/store/contributor.store';
 import Message from '@/shared/message/message';
-import LfContributorDetailsIdentityAddDropdown
-  from '@/modules/contributor/components/details/identity/contributor-details-identity-add-dropdown.vue';
 import pluralize from 'pluralize';
-import { email, helpers, required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 import LfField from '@/ui-kit/field/Field.vue';
 import LfFieldMessages from '@/ui-kit/field-messages/FieldMessages.vue';
-import { useMemberStore } from '@/modules/member/store/pinia';
+import {
+  Organization,
+  OrganizationIdentity,
+  OrganizationIdentityType,
+} from '@/modules/organization/types/Organization';
+import { useOrganizationStore } from '@/modules/organization/store/pinia';
+import { Platform } from '@/shared/modules/platform/types/Platform';
+import LfOrganizationDetailsIdentityAddDropdown
+  from '@/modules/organization/components/details/identity/organization-details-identity-add-dropdown.vue';
+import { required } from '@vuelidate/validators';
 
 const props = defineProps<{
   modelValue: boolean,
-  identities: Partial<ContributorIdentity>[],
-  contributor: Contributor,
+  identities: Partial<OrganizationIdentity>[],
+  organization: Organization,
 }>();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void}>();
 
-const memberStore = useMemberStore();
-const { createContributorIdentities } = useContributorStore();
+const { updateOrganization } = useOrganizationStore();
 
 const sending = ref<boolean>(false);
 
-const defaultForm: ContributorIdentity = {
+const defaultForm: OrganizationIdentity = {
   value: '',
   verified: true,
-  platform: 'custom',
-  type: 'username',
+  platform: Platform.CUSTOM,
+  type: OrganizationIdentityType.USERNAME,
   sourceId: null,
 };
 
-const form = reactive<ContributorIdentity[]>(props.identities.map((i) => ({ ...defaultForm, ...i })));
+const form = reactive<OrganizationIdentity[]>(props.identities.map((i) => ({ ...defaultForm, ...i })));
 
 const rules = computed(() => ({
   form: form.map((item) => ({
     value: {
       required,
-      email: item.type === 'email' ? email : helpers.withParams({ type: 'undefined' }, () => true),
     },
   })),
 }));
@@ -171,43 +170,18 @@ const platform = (platform: string) => CrowdIntegrations.getConfig(platform);
 
 const addIdentities = () => {
   sending.value = true;
-  createContributorIdentities(props.contributor.id, form)
+  updateOrganization(props.organization.id, {
+    identities: [
+      ...props.organization.identities,
+      ...form,
+    ],
+  })
     .then(() => {
       Message.success('Identities successfully added');
       isModalOpen.value = false;
     })
-    .catch((error) => {
-      if (error.response.status === 409) {
-        isModalOpen.value = false;
-        Message.success(
-          h(
-            'div',
-            {
-              class: 'flex flex-col gap-2',
-            },
-            [
-              h(
-                'el-button',
-                {
-                  class: 'btn btn--xs btn--secondary !h-6 !w-fit',
-                  onClick: () => {
-                    const { memberId, grandParentId } = error.response.data;
-
-                    memberStore.addToMergeMember(memberId, grandParentId);
-                    Message.closeAll();
-                  },
-                },
-                'Merge profiles',
-              ),
-            ],
-          ),
-          {
-            title: 'Profile was not updated because the identity already exists in another profile, but you can merge the profiles.',
-          },
-        );
-      } else {
-        Message.error('Something went wrong while adding a new identity');
-      }
+    .catch(() => {
+      Message.error('Something went wrong while adding a new identity');
     })
     .finally(() => {
       sending.value = false;
@@ -217,6 +191,6 @@ const addIdentities = () => {
 
 <script lang="ts">
 export default {
-  name: 'LfContributorIdentityAdd',
+  name: 'LfOrganizationIdentityAdd',
 };
 </script>
