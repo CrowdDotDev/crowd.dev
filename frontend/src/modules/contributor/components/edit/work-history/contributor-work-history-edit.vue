@@ -115,7 +115,7 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfInput from '@/ui-kit/input/Input.vue';
 import LfCheckbox from '@/ui-kit/checkbox/Checkbox.vue';
 import { useContributorStore } from '@/modules/contributor/store/contributor.store';
-import { Organization, OrganizationSource } from '@/modules/organization/types/Organization';
+import { MemberOrganization, Organization, OrganizationSource } from '@/modules/organization/types/Organization';
 import LfField from '@/ui-kit/field/Field.vue';
 import LfOrganizationSelect from '@/modules/organization/components/shared/organization-select.vue';
 import moment from 'moment/moment';
@@ -136,7 +136,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void}>();
 
-const { updateContributor } = useContributorStore();
+const { createContributorOrganization, updateContributorOrganization } = useContributorStore();
 const { trackEvent } = useProductTracking();
 
 const isEdit = computed(() => !!props.organization);
@@ -181,14 +181,12 @@ const rules = {
 const $v = useVuelidate(rules, form);
 
 const updateWorkExperience = () => {
-  const data: Organization = {
-    ...(props.organization || {}),
-    ...(form.organization as Organization),
-    memberOrganizations: {
-      title: form.title,
-      dateStart: form.dateStart ? moment(form.dateStart).startOf('month').format('YYYY-MM-DDTHH:mm:ss.SSS[Z]') : undefined,
-      dateEnd: !form.currentlyWorking && form.dateEnd ? moment(form.dateEnd).startOf('month').format('YYYY-MM-DDTHH:mm:ss.SSS[Z]') : undefined,
-    },
+  const data: Partial<MemberOrganization> = {
+    organizationId: (props.organization || form.organization)?.id,
+    source: OrganizationSource.UI,
+    title: form.title,
+    dateStart: form.dateStart ? moment(form.dateStart).startOf('month').format('YYYY-MM-DDTHH:mm:ss.SSS[Z]') : undefined,
+    dateEnd: !form.currentlyWorking && form.dateEnd ? moment(form.dateEnd).startOf('month').format('YYYY-MM-DDTHH:mm:ss.SSS[Z]') : undefined,
   };
 
   if (isEdit.value) {
@@ -226,23 +224,9 @@ const updateWorkExperience = () => {
 
   sending.value = true;
 
-  updateContributor(props.contributor.id, {
-    organizationsReplace: true,
-    organizations: orgs.map((o) => ({
-      id: o.id,
-      name: o.name,
-      ...o.memberOrganizations?.title && {
-        title: o.memberOrganizations?.title,
-      },
-      ...o.memberOrganizations?.dateStart && {
-        startDate: o.memberOrganizations?.dateStart,
-      },
-      ...o.memberOrganizations?.dateEnd && {
-        endDate: o.memberOrganizations?.dateEnd,
-      },
-      source: OrganizationSource.UI,
-    })),
-  })
+  (isEdit.value
+    ? updateContributorOrganization(props.contributor.id, props.organization?.memberOrganizations?.id!, data)
+    : createContributorOrganization(props.contributor.id, data))
     .then(() => {
       Message.success(`Work experience ${isEdit.value ? 'updated' : 'added'} successfully`);
       isModalOpen.value = false;

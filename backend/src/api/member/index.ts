@@ -45,4 +45,5 @@ export default (app) => {
   app.patch(`/tenant/:tenantId/member`, safeWrap(require('./memberUpdateBulk').default))
 
   require('./identity').default(app)
+  require('./organization').default(app)
 }
