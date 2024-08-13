@@ -27,9 +27,11 @@ export async function organizationUpdate(
       input.afterMemberId,
     )
 
-    if (memberIds.length === 0 && input.syncToOpensearch) {
-      // sync organization
-      await syncOrganization(input.organization.id)
+    if (memberIds.length === 0) {
+      if (input.syncToOpensearch) {
+        // sync organization
+        await syncOrganization(input.organization.id)
+      }
       return
     }
 
