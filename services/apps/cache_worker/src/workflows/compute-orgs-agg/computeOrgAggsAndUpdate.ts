@@ -11,6 +11,8 @@ export async function computeOrgAggsAndUpdate(args: IProcessComputeOrgAggs): Pro
 
   if (!orgExists) {
     console.log(`organizationId ${orgId} does not exist!`)
+    // rm orgId from redis so that it's not processed again
+    await activity.dropOrgIdFromRedis(orgId)
     return
   }
 
