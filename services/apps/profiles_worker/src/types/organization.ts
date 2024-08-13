@@ -4,4 +4,5 @@ export interface IOrganizationAffiliationUpdateInput {
     id: string
   }
   syncToOpensearch?: boolean
+  afterMemberId?: string
 }
