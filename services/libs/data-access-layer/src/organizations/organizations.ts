@@ -74,33 +74,6 @@ export async function findOrgIdByDisplayName(
   return null
 }
 
-export async function findOrgIdByWebsite(
-  qx: QueryExecutor,
-  tenantId: string,
-  websites: string[],
-): Promise<string | null> {
-  const result = await qx.selectOneOrNone(
-    `
-      SELECT id
-      FROM organizations
-      WHERE "website" = ANY($(websites))
-        AND "tenantId" = $(tenantId)
-        AND "deletedAt" IS NULL
-      LIMIT 1;
-    `,
-    {
-      websites,
-      tenantId,
-    },
-  )
-
-  if (result) {
-    return result.id
-  }
-
-  return null
-}
-
 export async function findOrgBySourceId(
   qx: QueryExecutor,
   tenantId: string,
