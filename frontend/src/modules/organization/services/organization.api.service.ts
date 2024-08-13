@@ -48,4 +48,17 @@ export class OrganizationApiService {
     )
       .then(({ data }) => Promise.resolve(data));
   }
+
+  static create(data: Partial<Organization>, segments: string[]) {
+    const tenantId = AuthService.getTenantId();
+
+    return authAxios.post(
+      `/tenant/${tenantId}/organization`,
+      {
+        ...data,
+        segments,
+      },
+    )
+      .then(({ data }) => Promise.resolve(data));
+  }
 }
