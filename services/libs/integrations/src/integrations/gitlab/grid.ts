@@ -3,5 +3,20 @@ import { IActivityScoringGrid } from '@crowd/types'
 import { GitlabActivityType } from './types'
 
 export const Gitlab_GRID: Record<GitlabActivityType, IActivityScoringGrid> = {
-    // your code goes here
+  [GitlabActivityType.ISSUE]: {
+    score: 2,
+    isContribution: true,
+  },
+  [GitlabActivityType.MERGE_REQUEST]: {
+    score: 3,
+    isContribution: true,
+  },
+  [GitlabActivityType.COMMIT]: {
+    score: 1,
+    isContribution: true,
+  },
+  [GitlabActivityType.DISCUSSION]: {
+    score: 1,
+    isContribution: true,
+  },
 }
