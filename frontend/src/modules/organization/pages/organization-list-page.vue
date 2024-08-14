@@ -43,7 +43,7 @@
             <el-button
               v-if="hasPermission(LfPermission.organizationCreate)"
               class="btn btn--primary btn--md"
-              @click="onAddOrganization"
+              @click="organizationCreate = true"
             >
               Add organization
             </el-button>
@@ -80,21 +80,14 @@
     </div>
   </app-page-wrapper>
 
-  <app-lf-sub-projects-list-modal
-    v-if="isSubProjectSelectionOpen"
-    v-model="isSubProjectSelectionOpen"
-    title="Add organization"
-    @on-submit="onSubProjectSelection"
-  />
+  <lf-organization-add v-if="organizationCreate" v-model="organizationCreate" />
 </template>
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
-import { useRouter } from 'vue-router';
 import AppPageWrapper from '@/shared/layout/page-wrapper.vue';
 import AppOrganizationListTable from '@/modules/organization/components/list/organization-list-table.vue';
 import AppLfPageHeader from '@/modules/lf/layout/components/lf-page-header.vue';
-import AppLfSubProjectsListModal from '@/modules/lf/segments/components/lf-sub-projects-list-modal.vue';
 import LfSavedViews from '@/shared/modules/saved-views/components/SavedViews.vue';
 import LfFilter from '@/shared/modules/filters/components/Filter.vue';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
@@ -106,8 +99,7 @@ import { OrganizationService } from '@/modules/organization/organization-service
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
-
-const router = useRouter();
+import LfOrganizationAdd from '@/modules/organization/components/edit/organization-add.vue';
 
 const organizationStore = useOrganizationStore();
 const { filters, totalOrganizations, savedFilterBody } = storeToRefs(organizationStore);
@@ -117,6 +109,7 @@ const loading = ref(true);
 const tableLoading = ref(false);
 const organizationCount = ref(0);
 const isSubProjectSelectionOpen = ref(false);
+const organizationCreate = ref(false);
 
 const organizationFilter = ref<LfFilter | null>(null);
 const lsSegmentsStore = useLfSegmentsStore();
@@ -202,18 +195,4 @@ onMounted(async () => {
   fetchOrganizationsToMergeCount();
   (window as any).analytics.page('Organization');
 });
-
-const onAddOrganization = () => {
-  isSubProjectSelectionOpen.value = true;
-};
-
-const onSubProjectSelection = (subprojectId) => {
-  isSubProjectSelectionOpen.value = false;
-  router.push({
-    name: 'organizationCreate',
-    query: {
-      subprojectId,
-    },
-  });
-};
 </script>
