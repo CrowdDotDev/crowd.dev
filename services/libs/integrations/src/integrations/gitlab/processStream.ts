@@ -9,6 +9,10 @@ import {
   GitlabActivityType,
   GitlabApiResult,
   GitlabForkData,
+  GitlabCommitData,
+  GitlabIssueData,
+  GitlabMergeRequestData,
+  GitlabStarData,
 } from './types'
 import { getIssues } from './api/getIssues'
 import { getMergeRequests } from './api/getMergeRequests'
@@ -51,7 +55,8 @@ const handleRootStream: GitlabRootStreamHandler = async (ctx, data) => {
     const streamTypes = [
       GitlabStreamType.ISSUES,
       GitlabStreamType.MERGE_REQUESTS,
-      GitlabStreamType.COMMITS,
+      GitlabStreamType.STARS,
+      GitlabStreamType.FORKS,
     ]
 
     for (const streamType of streamTypes) {
@@ -65,29 +70,45 @@ const handleRootStream: GitlabRootStreamHandler = async (ctx, data) => {
 
 const handleIssuesStream: GitlabStreamHandler = async (ctx, api, data) => {
   const result = await getIssues(api, data.projectId, data.page, ctx.onboarding)
+  await handleApiResult(ctx, result, GitlabActivityType.ISSUE, data.projectId)
 }
 
 const handleMergeRequestsStream: GitlabStreamHandler = async (ctx, api, data) => {
   const result = await getMergeRequests(api, data.projectId, data.page, ctx.onboarding)
-}
-
-const handleCommitsStream: GitlabStreamHandler = async (ctx, api, data) => {
-  const result = await getCommits(api, data.projectId, data.page, ctx.onboarding)
+  await handleApiResult(ctx, result, GitlabActivityType.MERGE_REQUEST, data.projectId)
 }
 
 const handleStarsStream: GitlabStreamHandler = async (ctx, api, data) => {
   const result = await getStars(api, data.projectId, data.page, ctx.onboarding)
+  await handleApiResult(ctx, result, GitlabActivityType.STAR, data.projectId)
 }
 
 const handleForksStream: GitlabStreamHandler = async (ctx, api, data) => {
   const result = await getForks(api, data.projectId, data.page, ctx.onboarding)
+  await handleApiResult(ctx, result, GitlabActivityType.FORK, data.projectId)
+}
 
-  for (const fork of result.data) {
-    await ctx.processData<GitlabApiData<GitlabForkData>>({
-      data: fork,
-      user: fork.user,
-      type: GitlabActivityType.FORK,
-      projectId: data.projectId,
+const handleApiResult: GitlabProcessStreamResultHandler<GitlabActivityData<any>[]> = async (
+  ctx,
+  result,
+  activityType,
+  projectId,
+) => {
+  for (const item of result.data) {
+    await ctx.processData<GitlabApiData<typeof item.data>>({
+      data: {
+        data: item.data,
+        user: item.user,
+      },
+      type: activityType,
+      projectId,
+    })
+  }
+
+  if (result.nextPage) {
+    await ctx.publishStream<GitlabBasicStream>(`${activityType}:${projectId}:${result.nextPage}`, {
+      projectId,
+      page: result.nextPage,
     })
   }
 }
@@ -111,9 +132,6 @@ const handler: ProcessStreamHandler = async (ctx) => {
         break
       case GitlabStreamType.MERGE_REQUESTS:
         await handleMergeRequestsStream(ctx, api, data as GitlabBasicStream)
-        break
-      case GitlabStreamType.COMMITS:
-        await handleCommitsStream(ctx, api, data as GitlabBasicStream)
         break
       case GitlabStreamType.STARS:
         await handleStarsStream(ctx, api, data as GitlabBasicStream)

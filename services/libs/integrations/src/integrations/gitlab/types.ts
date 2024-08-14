@@ -1,4 +1,11 @@
-import { ProjectSchema, UserSchema, ProjectStarrerSchema } from '@gitbeaker/rest'
+import {
+  ProjectSchema,
+  UserSchema,
+  ProjectStarrerSchema,
+  CommitSchema,
+  IssueSchema,
+  MergeRequestSchema,
+} from '@gitbeaker/rest'
 
 export enum GitlabActivityType {
   ISSUE = 'issue',
@@ -17,6 +24,9 @@ export interface GitlabActivityData<T = any> {
 
 export type GitlabForkData = GitlabActivityData<ProjectSchema>
 export type GitlabStarData = GitlabActivityData<ProjectStarrerSchema>
+export type GitlabCommitData = GitlabActivityData<CommitSchema>
+export type GitlabIssueData = GitlabActivityData<IssueSchema>
+export type GitlabMergeRequestData = GitlabActivityData<MergeRequestSchema>
 
 export interface GitlabApiResult<T> {
   data: T
