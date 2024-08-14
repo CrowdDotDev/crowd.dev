@@ -32,6 +32,15 @@ export interface OrganizationIdentity {
     integrationId?: string;
 }
 
+export interface MemberOrganization {
+  id: string;
+  title: string;
+  organizationId?: string;
+  dateStart?: string;
+  dateEnd?: string;
+  source: OrganizationSource;
+}
+
 export interface Organization {
   attributes: Record<string, OrganizationAttribute>,
   activeOn: string[];
@@ -72,12 +81,7 @@ export interface Organization {
   updatedAt: string;
   updatedById: string;
   url: string;
-  memberOrganizations: {
-    title: string;
-    dateStart?: string;
-    dateEnd?: string;
-    source: OrganizationSource;
-  }
+  memberOrganizations: MemberOrganization
   lfxMembership?: {
     accountDomain: string;
     accountName: string;

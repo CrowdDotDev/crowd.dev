@@ -5,11 +5,14 @@ import { Contributor, ContributorIdentity } from '@/modules/contributor/types/Co
 import { ContributorIdentitiesApiService } from '@/modules/contributor/services/contributor.identities.api.service';
 import { MergeActionsService } from '@/shared/modules/merge/services/merge-actions.service';
 import { MergeAction } from '@/shared/modules/merge/types/MemberActions';
+import { MemberOrganization, Organization } from '@/modules/organization/types/Organization';
+import { ContributorOrganizationsApiService } from '@/modules/contributor/services/contributor.organizations.api.service';
 
 export default {
   getContributor(id: string): Promise<Contributor> {
     const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
     this.getContributorIdentities(id);
+    this.getContributorOrganizations(id);
 
     return ContributorApiService.find(id, [selectedProjectGroup.value?.id as string])
       .then((contributor) => {
@@ -68,5 +71,31 @@ export default {
   deleteContributorIdentity(memberId: string, id: string): Promise<ContributorIdentity[]> {
     return ContributorIdentitiesApiService.delete(memberId, id)
       .then(this.setIdentities);
+  },
+
+  /** IDENTITIES * */
+  setOrganizations(organizations: Organization[]) {
+    this.contributor = {
+      ...this.contributor,
+      organizations,
+    };
+    return Promise.resolve(organizations);
+  },
+  getContributorOrganizations(memberId: string) {
+    const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
+    return ContributorOrganizationsApiService.list(memberId, [selectedProjectGroup.value?.id as string])
+      .then(this.setOrganizations);
+  },
+  createContributorOrganization(memberId: string, organization: Partial<MemberOrganization>): Promise<Organization[]> {
+    return ContributorOrganizationsApiService.create(memberId, organization)
+      .then(this.setOrganizations);
+  },
+  updateContributorOrganization(memberId: string, id: string, organization: Partial<MemberOrganization>): Promise<Organization[]> {
+    return ContributorOrganizationsApiService.update(memberId, id, organization)
+      .then(this.setOrganizations);
+  },
+  deleteContributorOrganization(memberId: string, id: string): Promise<Organization[]> {
+    return ContributorOrganizationsApiService.delete(memberId, id)
+      .then(this.setOrganizations);
   },
 };
