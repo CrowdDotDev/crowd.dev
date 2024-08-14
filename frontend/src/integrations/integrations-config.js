@@ -150,6 +150,15 @@ class IntegrationsConfig {
       tnc,
     };
   }
+
+  get organizationIdentities() {
+    return {
+      github,
+      linkedin,
+      twitter,
+      crunchbase,
+    };
+  }
 }
 
 export const CrowdIntegrations = new IntegrationsConfig();

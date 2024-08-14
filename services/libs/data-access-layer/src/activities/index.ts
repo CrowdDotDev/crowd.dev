@@ -11,6 +11,8 @@ function groupByField(segmentType: SegmentType) {
       return 's."parentId"'
     case SegmentType.PROJECT_GROUP:
       return 's."grandparentId"'
+    case SegmentType.NO_SEGMENT:
+      return null
   }
 
   throw new Error(`Invalid segment type: ${segmentType}`)
@@ -21,11 +23,15 @@ export async function getOrgAggregates(
   organizationId: string,
   groupBy: SegmentType,
 ): Promise<IDbOrganizationAggregateData[]> {
+  const segmentColumn = groupByField(groupBy)
+  const segmentJoinClause = segmentColumn ? 'JOIN segments s ON s.id = a."segmentId"' : ''
+  const groupByColumns = segmentColumn ? '1, 2, 3' : '1, 3'
+
   return qx.select(
     `
       SELECT
           o."id" AS "organizationId",
-          ${groupByField(groupBy)} AS "segmentId",
+          ${segmentColumn} AS "segmentId",
           o."tenantId",
           COALESCE(MIN(a.timestamp), '1970-01-01') AS "joinedAt",
           MAX(a.timestamp) AS "lastActive",
@@ -35,9 +41,9 @@ export async function getOrgAggregates(
           COALESCE(ROUND(AVG(a.score)), 0) AS "avgContributorEngagement"
       FROM activities a
       JOIN organizations o ON o."id" = a."organizationId"
-      JOIN segments s ON s.id = a."segmentId"
+      ${segmentJoinClause}
       WHERE a."organizationId" = $(organizationId)
-      GROUP BY 1, 2, 3
+      GROUP BY ${groupByColumns}
     `,
     {
       organizationId,
