@@ -1,4 +1,5 @@
 import { continueAsNew, proxyActivities } from '@temporalio/workflow'
+import { svc } from '../../main'
 
 import * as activities from '../../activities'
 import { IOrganizationProfileSyncInput } from '../../types/organization'
@@ -45,6 +46,10 @@ export async function organizationUpdate(input: IOrganizationProfileSyncInput): 
     for (const memberId of memberIds) {
       await updateMemberAffiliations({ member: { id: memberId } })
     }
+
+    svc.log.info(`Continuing new with params:`, {
+      params: { ...input, afterMemberId: memberIds[memberIds.length - 1] },
+    })
 
     await continueAsNew<typeof organizationUpdate>({
       ...input,
