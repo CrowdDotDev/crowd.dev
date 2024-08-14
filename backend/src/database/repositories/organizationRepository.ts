@@ -1216,6 +1216,7 @@ class OrganizationRepository {
         offset: 0,
         segmentId,
         include: {
+          aggregates: true,
           attributes: true,
           lfxMemberships: true,
           identities: true,
@@ -1233,6 +1234,7 @@ class OrganizationRepository {
           limit: 1,
           offset: 0,
           include: {
+            aggregates: false,
             attributes: true,
             lfxMemberships: true,
             identities: true,
@@ -1681,6 +1683,7 @@ class OrganizationRepository {
         segments: false,
         attributes: false,
       } as {
+        aggregates: boolean
         identities?: boolean
         lfxMemberships?: boolean
         segments?: boolean
@@ -1693,10 +1696,10 @@ class OrganizationRepository {
 
     const qx = SequelizeRepository.getQueryExecutor(options, transaction)
 
-    const withAggregates = !!segmentId
-    let segment
-    if (withAggregates) {
-      segment = await new SegmentRepository(options).findById(segmentId)
+    const withAggregates = include.aggregates
+
+    if (segmentId) {
+      const segment = await new SegmentRepository(options).findById(segmentId)
 
       if (segment === null) {
         options.log.info('No segment found for organization')
@@ -1712,8 +1715,8 @@ class OrganizationRepository {
     const params = {
       limit,
       offset,
+      segmentId,
       tenantId: options.currentTenant.id,
-      segmentId: segment?.id,
     }
 
     const filterString = RawQueryParser.parseFilters(
@@ -1744,7 +1747,9 @@ class OrganizationRepository {
       FROM organizations o
       ${
         withAggregates
-          ? ` JOIN "organizationSegmentsAgg" osa ON osa."organizationId" = o.id AND osa."segmentId" = $(segmentId)`
+          ? ` JOIN "organizationSegmentsAgg" osa ON osa."organizationId" = o.id AND ${
+              segmentId ? `osa."segmentId" = $(segmentId)` : `osa."segmentId" IS NULL`
+            }`
           : ''
       }
       WHERE 1=1
