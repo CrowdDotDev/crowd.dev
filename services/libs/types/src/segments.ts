@@ -86,6 +86,7 @@ export enum SegmentType {
   PROJECT_GROUP = 'projectGroup',
   PROJECT = 'project',
   SUB_PROJECT = 'subproject',
+  NO_SEGMENT = 'noSegment',
 }
 
 export interface SegmentCriteria extends SearchCriteria {

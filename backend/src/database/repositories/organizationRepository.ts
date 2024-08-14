@@ -1,4 +1,8 @@
-import { optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
+import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
+import {
+  IFetchOrganizationMergeSuggestionArgs,
+  SimilarityScoreRange,
+} from '@/types/mergeSuggestionTypes'
 import {
   captureApiChange,
   organizationCreateAction,
@@ -30,6 +34,12 @@ import {
   upsertOrgAttributes,
 } from '@crowd/data-access-layer/src/organizations'
 import { findAttribute } from '@crowd/data-access-layer/src/organizations/attributesConfig'
+import { optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
+import {
+  findSegmentById,
+  isSegmentProject,
+  isSegmentProjectGroup,
+} from '@crowd/data-access-layer/src/segments'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import {
   FeatureFlag,
@@ -47,16 +57,6 @@ import {
 import lodash, { uniq } from 'lodash'
 import Sequelize, { QueryTypes } from 'sequelize'
 import validator from 'validator'
-import {
-  findSegmentById,
-  isSegmentProject,
-  isSegmentProjectGroup,
-} from '@crowd/data-access-layer/src/segments'
-import {
-  IFetchOrganizationMergeSuggestionArgs,
-  SimilarityScoreRange,
-} from '@/types/mergeSuggestionTypes'
-import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import AuditLogRepository from './auditLogRepository'
 import SegmentRepository from './segmentRepository'
@@ -1215,6 +1215,7 @@ class OrganizationRepository {
         offset: 0,
         segmentId,
         include: {
+          aggregates: true,
           attributes: true,
           lfxMemberships: true,
           identities: true,
@@ -1232,6 +1233,7 @@ class OrganizationRepository {
           limit: 1,
           offset: 0,
           include: {
+            aggregates: false,
             attributes: true,
             lfxMemberships: true,
             identities: true,
@@ -1587,6 +1589,7 @@ class OrganizationRepository {
         segments: false,
         attributes: false,
       } as {
+        aggregates: boolean
         identities?: boolean
         lfxMemberships?: boolean
         segments?: boolean
@@ -1599,7 +1602,7 @@ class OrganizationRepository {
 
     const qx = SequelizeRepository.getQueryExecutor(options, transaction)
 
-    const withAggregates = !!segmentId
+    const withAggregates = include.aggregates
     if (withAggregates) {
       const segment = (await findSegmentById(optionsQx(options), segmentId)) as any
 
@@ -1619,8 +1622,8 @@ class OrganizationRepository {
     const params = {
       limit,
       offset,
-      tenantId: options.currentTenant.id,
       segmentId,
+      tenantId: options.currentTenant.id,
     }
 
     const filterString = RawQueryParser.parseFilters(
@@ -1651,7 +1654,9 @@ class OrganizationRepository {
       FROM organizations o
       ${
         withAggregates
-          ? ` JOIN "organizationSegmentsAgg" osa ON osa."organizationId" = o.id AND osa."segmentId" = $(segmentId)`
+          ? ` JOIN "organizationSegmentsAgg" osa ON osa."organizationId" = o.id AND ${
+              segmentId ? `osa."segmentId" = $(segmentId)` : `osa."segmentId" IS NULL`
+            }`
           : ''
       }
       WHERE 1=1
