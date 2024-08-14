@@ -38,7 +38,7 @@ export async function recalculateActivityAffiliationsOfOrganizationSynchronous(
   organizationId: string,
   tenantId: string,
 ): Promise<void> {
-  await svc.temporal.workflow.execute('organizationUpdate', {
+  await svc.temporal.workflow.start('organizationUpdate', {
     taskQueue: 'profiles',
     workflowId: `${TemporalWorkflowId.ORGANIZATION_UPDATE}/${tenantId}/${organizationId}`,
     workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_ALLOW_DUPLICATE,
@@ -62,6 +62,10 @@ export async function recalculateActivityAffiliationsOfOrganizationSynchronous(
       TenantId: [tenantId],
     },
   })
+
+  await svc.temporal.workflow.result(
+    `${TemporalWorkflowId.ORGANIZATION_UPDATE}/${tenantId}/${organizationId}`,
+  )
 }
 
 export async function syncOrganization(organizationId: string): Promise<void> {
