@@ -24,7 +24,7 @@ export async function memberUpdate(input: MemberUpdateInput): Promise<void> {
       // sync all member organizations
       const organizationIds = input.memberOrganizationIds || []
       for (const orgId of organizationIds) {
-        await syncOrganization(orgId)
+        await syncOrganization(orgId, true)
       }
     }
   } catch (err) {

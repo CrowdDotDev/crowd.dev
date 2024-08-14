@@ -51,7 +51,11 @@ export async function recalculateActivityAffiliationsOfOrganizationSynchronous(
         organization: {
           id: organizationId,
         },
-        syncToOpensearch: true,
+        recalculateAffiliations: true,
+        syncOptions: {
+          doSync: false,
+          withAggs: false,
+        },
       },
     ],
     searchAttributes: {
