@@ -302,7 +302,7 @@ export class OrganizationSyncService {
 
   public async syncOrganizations(
     organizationIds: string[],
-    opts: { withAggs?: boolean } = {},
+    opts: { withAggs?: boolean } = { withAggs: true },
   ): Promise<IOrganizationSyncResult> {
     const syncOrgAggregates = async (organizationIds) => {
       let documentsIndexed = 0
