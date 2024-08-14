@@ -1716,7 +1716,7 @@ class OrganizationRepository {
       limit,
       offset,
       segmentId,
-      tenantId: options.currentTenant.id
+      tenantId: options.currentTenant.id,
     }
 
     const filterString = RawQueryParser.parseFilters(
