@@ -17,45 +17,41 @@ organizationUpdate can do the following:
   - Also sync organization aggregates to postgres (organizationSegmentsAgg table), if syncOptions.doSync is true AND syncOptions.withAggs is true.
 */
 export async function organizationUpdate(input: IOrganizationProfileSyncInput): Promise<void> {
-  try {
-    // End early if recalculateAffiliations is false, only do syncing if necessary.
-    if (!input.recalculateAffiliations) {
-      if (input.syncOptions?.doSync) {
-        await syncOrganization(input.organization.id, input.syncOptions?.withAggs)
-      }
-      return
+  // End early if recalculateAffiliations is false, only do syncing if necessary.
+  if (!input.recalculateAffiliations) {
+    if (input.syncOptions?.doSync) {
+      await syncOrganization(input.organization.id, input.syncOptions?.withAggs)
     }
-
-    const ORGANIZATION_MEMBER_AFFILIATIONS_UPDATED_PER_RUN = 500
-
-    const memberIds = await findMembersInOrganization(
-      input.organization.id,
-      ORGANIZATION_MEMBER_AFFILIATIONS_UPDATED_PER_RUN,
-      input.afterMemberId,
-    )
-
-    if (memberIds.length === 0) {
-      if (input.syncOptions?.doSync) {
-        // sync organization
-        await syncOrganization(input.organization.id, input.syncOptions?.withAggs)
-      }
-      return
-    }
-
-    for (const memberId of memberIds) {
-      await updateMemberAffiliations({ member: { id: memberId } })
-    }
-
-    console.log(`Continuing new with params:`)
-    console.log({
-      params: { ...input, afterMemberId: memberIds[memberIds.length - 1] },
-    })
-
-    await continueAsNew<typeof organizationUpdate>({
-      ...input,
-      afterMemberId: memberIds[memberIds.length - 1],
-    })
-  } catch (err) {
-    throw new Error(err)
+    return
   }
+
+  const ORGANIZATION_MEMBER_AFFILIATIONS_UPDATED_PER_RUN = 500
+
+  const memberIds = await findMembersInOrganization(
+    input.organization.id,
+    ORGANIZATION_MEMBER_AFFILIATIONS_UPDATED_PER_RUN,
+    input.afterMemberId,
+  )
+
+  if (memberIds.length === 0) {
+    if (input.syncOptions?.doSync) {
+      // sync organization
+      await syncOrganization(input.organization.id, input.syncOptions?.withAggs)
+    }
+    return
+  }
+
+  for (const memberId of memberIds) {
+    await updateMemberAffiliations({ member: { id: memberId } })
+  }
+
+  console.log(`Continuing new with params:`)
+  console.log({
+    params: { ...input, afterMemberId: memberIds[memberIds.length - 1] },
+  })
+
+  await continueAsNew<typeof organizationUpdate>({
+    ...input,
+    afterMemberId: memberIds[memberIds.length - 1],
+  })
 }
