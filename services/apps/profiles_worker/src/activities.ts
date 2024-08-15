@@ -1,8 +1,8 @@
 import { updateMemberAffiliations, syncMember } from './activities/member/memberUpdate'
 
 import {
-  updateOrganizationAffiliations,
   syncOrganization,
+  findMembersInOrganization,
 } from './activities/organization/organizationUpdate'
 
 import {
@@ -14,11 +14,11 @@ import {
 
 export {
   updateMemberAffiliations,
-  updateOrganizationAffiliations,
   getAffiliationsLastCheckedAtOfTenant,
   getMemberIdsForAffiliationUpdates,
   updateAffiliationsLastCheckedAtOfTenant,
   getAllTenants,
   syncMember,
   syncOrganization,
+  findMembersInOrganization,
 }
