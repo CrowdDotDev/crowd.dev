@@ -7,7 +7,7 @@ import {
   moveActivitiesToNewOrg,
 } from '@crowd/data-access-layer/src/old/apps/entity_merging_worker/orgs'
 import { SearchSyncApiClient } from '@crowd/opensearch'
-import { WorkflowIdReusePolicy } from '@temporalio/workflow'
+import { ChildWorkflowCancellationType, ParentClosePolicy, startChild } from '@temporalio/workflow'
 import {
   cleanupForOganization,
   deleteOrgAttributesByOrganizationId,
@@ -38,10 +38,11 @@ export async function recalculateActivityAffiliationsOfOrganizationSynchronous(
   organizationId: string,
   tenantId: string,
 ): Promise<void> {
-  await svc.temporal.workflow.start('organizationUpdate', {
+  await startChild('organizationUpdate', {
     taskQueue: 'profiles',
     workflowId: `${TemporalWorkflowId.ORGANIZATION_UPDATE}/${tenantId}/${organizationId}`,
-    workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_ALLOW_DUPLICATE,
+    cancellationType: ChildWorkflowCancellationType.ABANDON,
+    parentClosePolicy: ParentClosePolicy.PARENT_CLOSE_POLICY_ABANDON,
     retry: {
       maximumAttempts: 10,
     },
