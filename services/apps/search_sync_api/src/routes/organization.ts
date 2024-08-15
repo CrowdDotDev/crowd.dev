@@ -1,5 +1,5 @@
-import express from 'express'
 import { OrganizationSyncService } from '@crowd/opensearch'
+import express from 'express'
 import { ApiRequest } from '../middleware'
 import { asyncWrap } from '../middleware/error'
 
@@ -12,10 +12,12 @@ router.post(
   '/sync/organizations',
   asyncWrap(async (req: ApiRequest, res) => {
     const organizationSyncService = syncService(req)
-    const { organizationIds } = req.body
+    const { organizationIds, withAggs } = req.body
     try {
-      req.log.trace(`Calling organizationSyncService.syncOrganizations for ${organizationIds}`)
-      await organizationSyncService.syncOrganizations(organizationIds)
+      req.log.info(
+        `Calling organizationSyncService.syncOrganizations for ${organizationIds}, withAggs: ${withAggs}`,
+      )
+      await organizationSyncService.syncOrganizations(organizationIds, { withAggs })
       res.sendStatus(200)
     } catch (error) {
       req.log.error(error)

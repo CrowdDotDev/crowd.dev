@@ -1,48 +1,20 @@
-import { WorkflowIdReusePolicy } from '@temporalio/workflow'
-import { TemporalWorkflowId } from '../../../../../libs/types/src'
 import { svc } from '../../main'
 import { findMemberIdsInOrganization } from '@crowd/data-access-layer/src/old/apps/profiles_worker/orgs'
-import { IOrganizationAffiliationUpdateInput } from '../../types/organization'
 import { SearchSyncApiClient } from '@crowd/opensearch'
 
-/*
-updateMemberAffiliations is a Temporal activity that updates all affiliations for
-members in an organization.
-*/
-export async function updateOrganizationAffiliations(
-  input: IOrganizationAffiliationUpdateInput,
-): Promise<void> {
-  try {
-    const memberIds = await findMemberIdsInOrganization(svc.postgres.writer, input.organization.id)
-    for (const memberId of memberIds) {
-      await svc.temporal.workflow.execute('memberUpdate', {
-        taskQueue: 'profiles',
-        workflowId: `${TemporalWorkflowId.MEMBER_UPDATE}/${input.tenantId}/${memberId}`,
-        workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
-        retry: {
-          maximumAttempts: 10,
-        },
-        args: [
-          {
-            member: {
-              id: memberId,
-            },
-          },
-        ],
-        searchAttributes: {
-          TenantId: [input.tenantId],
-        },
-      })
-    }
-  } catch (err) {
-    throw new Error(err)
-  }
+export async function findMembersInOrganization(
+  organizationId: string,
+  limit: number,
+  afterMemberId: string,
+): Promise<string[]> {
+  // Implementation of this function is missing.
+  return findMemberIdsInOrganization(svc.postgres.writer, organizationId, limit, afterMemberId)
 }
 
-export async function syncOrganization(organizationId: string): Promise<void> {
+export async function syncOrganization(organizationId: string, withAggs: boolean): Promise<void> {
   const syncApi = new SearchSyncApiClient({
     baseUrl: process.env['CROWD_SEARCH_SYNC_API_URL'],
   })
 
-  await syncApi.triggerOrganizationSync(organizationId)
+  await syncApi.triggerOrganizationSync(organizationId, undefined, { withAggs })
 }

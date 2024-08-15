@@ -910,6 +910,7 @@ export default class OrganizationService extends LoggerBase {
       )
 
       await SequelizeRepository.commitTransaction(tx)
+
       await this.options.temporal.workflow.start('organizationUpdate', {
         taskQueue: 'profiles',
         workflowId: `${TemporalWorkflowId.ORGANIZATION_UPDATE}/${this.options.currentTenant.id}/${id}`,
@@ -922,7 +923,11 @@ export default class OrganizationService extends LoggerBase {
             organization: {
               id: record.id,
             },
-            syncToOpensearch,
+            recalculateAffiliations: false,
+            syncOptions: {
+              doSync: syncToOpensearch,
+              withAggs: false,
+            },
           },
         ],
         searchAttributes: {

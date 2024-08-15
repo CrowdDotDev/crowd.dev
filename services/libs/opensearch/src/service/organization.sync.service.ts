@@ -260,6 +260,7 @@ export class OrganizationSyncService {
         while (organizationIds.length > 0) {
           const { organizationsSynced, documentsIndexed } = await this.syncOrganizations(
             organizationIds,
+            { withAggs: true },
           )
 
           organizationCount += organizationsSynced
@@ -301,17 +302,10 @@ export class OrganizationSyncService {
     )
   }
 
-  /**
-   * Gets segment specific aggregates of an organization and syncs to opensearch
-   * Aggregate data is gathered for each segment in separate sql queries
-   * Queries are run in paralel with respect to CONCURRENT_DATABASE_QUERIES constant
-   * After all segment aggregates of an organization is gathered, we calculate the
-   * aggregates for parent segments and push it to syncStream.
-   * SyncStream sends documents to opensearch in bulk with respect to BULK_INDEX_DOCUMENT_BATCH_SIZE
-   * @param organizationIds organizationIds to be synced to opensearch
-   * @returns
-   */
-  public async syncOrganizations(organizationIds: string[]): Promise<IOrganizationSyncResult> {
+  public async syncOrganizations(
+    organizationIds: string[],
+    opts: { withAggs?: boolean } = { withAggs: true },
+  ): Promise<IOrganizationSyncResult> {
     const qx = repoQx(this.orgRepo)
 
     const syncOrgAggregates = async (organizationIds) => {
@@ -408,7 +402,13 @@ export class OrganizationSyncService {
       }
     }
 
-    const syncResults = await syncOrgAggregates(organizationIds)
+    const syncResults = opts.withAggs
+      ? await syncOrgAggregates(organizationIds)
+      : {
+          organizationsSynced: 0,
+          documentsIndexed: 0,
+          organizationIdsToIndex: organizationIds,
+        }
 
     const syncOrgsToOpensearchForMergeSuggestions = async (organizationIds) => {
       for (const orgId of organizationIds) {
