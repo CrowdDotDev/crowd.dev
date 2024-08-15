@@ -14,6 +14,9 @@ import { getMergeRequests } from './api/getMergeRequests'
 import { refreshToken } from './api/refreshToken'
 import { getStars } from './api/getStars'
 import { getForks } from './api/getForks'
+import { getUser } from './api/getUser'
+import { getIssueComments } from './api/getIssueComments'
+import { getMergeRequestComments } from './api/getMergeRequestComments'
 
 interface GitlabStreamHandler {
   (
@@ -66,10 +69,60 @@ const handleRootStream: GitlabRootStreamHandler = async (ctx, data) => {
 
 const handleIssuesStream: GitlabStreamHandler = async (ctx, api, data) => {
   const result = await getIssues({ api, projectId: data.projectId, page: data.page, ctx })
+
+  // issue opened
   await handleApiResult(
     ctx,
     result,
-    GitlabActivityType.ISSUE,
+    GitlabActivityType.ISSUE_OPENED,
+    data.projectId,
+    data.pathWithNamespace,
+  )
+
+  // issue closed
+  for (const item of result.data) {
+    if (item.data.closed_at) {
+      const user = await getUser(api, parseInt(item.data.closed_by))
+      await ctx.processData<GitlabApiData<typeof item.data>>({
+        data: {
+          data: item.data,
+          user,
+        },
+        type: GitlabActivityType.ISSUE_CLOSED,
+        projectId: data.projectId,
+        pathWithNamespace: data.pathWithNamespace,
+      })
+    }
+  }
+
+  // issue comments
+  for (const item of result.data) {
+    await ctx.publishStream<GitlabBasicStream>(
+      `${GitlabStreamType.ISSUE_COMMENTS}:${data.projectId}:${item.data.id}:firstPage`,
+      {
+        projectId: data.projectId,
+        pathWithNamespace: data.pathWithNamespace,
+        meta: {
+          issueId: item.data.id,
+        },
+        page: 1,
+      },
+    )
+  }
+}
+
+const handleIssueCommentsStream: GitlabStreamHandler = async (ctx, api, data) => {
+  const result = await getIssueComments({
+    api,
+    projectId: data.projectId,
+    issueId: data.meta.issueId as number,
+    page: data.page,
+    ctx,
+  })
+  await handleApiResult(
+    ctx,
+    result,
+    GitlabActivityType.ISSUE_COMMENT,
     data.projectId,
     data.pathWithNamespace,
   )
@@ -77,10 +130,72 @@ const handleIssuesStream: GitlabStreamHandler = async (ctx, api, data) => {
 
 const handleMergeRequestsStream: GitlabStreamHandler = async (ctx, api, data) => {
   const result = await getMergeRequests({ api, projectId: data.projectId, page: data.page, ctx })
+
+  // Opened
   await handleApiResult(
     ctx,
     result,
-    GitlabActivityType.MERGE_REQUEST,
+    GitlabActivityType.MERGE_REQUEST_OPENED,
+    data.projectId,
+    data.pathWithNamespace,
+  )
+
+  for (const item of result.data) {
+    // Merged
+    if (item.data.merged_at) {
+      const user = await getUser(api, item.data.merged_by.id)
+      await ctx.processData<GitlabApiData<typeof item.data>>({
+        data: {
+          data: item.data,
+          user,
+        },
+        type: GitlabActivityType.MERGE_REQUEST_CLOSED,
+        projectId: data.projectId,
+        pathWithNamespace: data.pathWithNamespace,
+      })
+    }
+
+    // Closed
+    if (item.data.closed_at) {
+      const user = await getUser(api, item.data.closed_by.id)
+      await ctx.processData<GitlabApiData<typeof item.data>>({
+        data: {
+          data: item.data,
+          user,
+        },
+        type: GitlabActivityType.MERGE_REQUEST_CLOSED,
+        projectId: data.projectId,
+        pathWithNamespace: data.pathWithNamespace,
+      })
+    }
+
+    // comments
+    await ctx.publishStream<GitlabBasicStream>(
+      `${GitlabStreamType.MERGE_REQUEST_COMMENTS}:${data.projectId}:${item.data.id}:firstPage`,
+      {
+        projectId: data.projectId,
+        pathWithNamespace: data.pathWithNamespace,
+        meta: {
+          mergeRequestId: item.data.id,
+        },
+        page: 1,
+      },
+    )
+  }
+}
+
+const handleMergeRequestCommentsStream: GitlabStreamHandler = async (ctx, api, data) => {
+  const result = await getMergeRequestComments({
+    api,
+    projectId: data.projectId,
+    mergeRequestId: data.meta.mergeRequestId as number,
+    page: data.page,
+    ctx,
+  })
+  await handleApiResult(
+    ctx,
+    result,
+    GitlabActivityType.MERGE_REQUEST_COMMENT,
     data.projectId,
     data.pathWithNamespace,
   )
@@ -153,8 +268,14 @@ const handler: ProcessStreamHandler = async (ctx) => {
       case GitlabStreamType.ISSUES:
         await handleIssuesStream(ctx, api, data as GitlabBasicStream)
         break
+      case GitlabStreamType.ISSUE_COMMENTS:
+        await handleIssueCommentsStream(ctx, api, data as GitlabBasicStream)
+        break
       case GitlabStreamType.MERGE_REQUESTS:
         await handleMergeRequestsStream(ctx, api, data as GitlabBasicStream)
+        break
+      case GitlabStreamType.MERGE_REQUEST_COMMENTS:
+        await handleMergeRequestCommentsStream(ctx, api, data as GitlabBasicStream)
         break
       case GitlabStreamType.STARS:
         await handleStarsStream(ctx, api, data as GitlabBasicStream)

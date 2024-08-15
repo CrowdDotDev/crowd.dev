@@ -9,6 +9,7 @@ import {
   IssueSchema,
   MergeRequestSchema,
   UserSchema,
+  IssueNoteSchema,
 } from '@gitbeaker/rest'
 import { generateSourceIdHash } from '../../helpers'
 
@@ -31,9 +32,8 @@ const parseUser = ({ data }: { data: UserSchema }): IMemberData => {
   }
 }
 
-const parseIssue = ({
+const parseIssueOpened = ({
   data,
-  projectId,
   user,
   pathWithNamespace,
 }: {
@@ -43,21 +43,72 @@ const parseIssue = ({
   pathWithNamespace: string
 }): IActivityData => {
   return {
-    type: GitlabActivityType.ISSUE,
+    type: GitlabActivityType.ISSUE_OPENED,
     member: user,
     timestamp: new Date(data.created_at).toISOString(),
     sourceId: data.id.toString(),
-    sourceParentId: projectId,
     url: data.web_url,
     title: data.title,
     body: data.description,
     channel: `https://gitlab.com/${pathWithNamespace}`,
-    score: Gitlab_GRID[GitlabActivityType.ISSUE].score,
-    isContribution: Gitlab_GRID[GitlabActivityType.ISSUE].isContribution,
+    score: Gitlab_GRID[GitlabActivityType.ISSUE_OPENED].score,
+    isContribution: Gitlab_GRID[GitlabActivityType.ISSUE_OPENED].isContribution,
   }
 }
 
-const parseMergeRequest = ({
+const parseIssueClosed = ({
+  data,
+  user,
+  pathWithNamespace,
+}: {
+  data: IssueSchema
+  projectId: string
+  user: IMemberData
+  pathWithNamespace: string
+}): IActivityData => {
+  return {
+    type: GitlabActivityType.ISSUE_CLOSED,
+    member: user,
+    timestamp: new Date(data.closed_at).toISOString(),
+    // GITLAB_ISSUE_CLOSED
+    sourceId: `gen-GLIC_${data.id}_${user.identities[0].value}_${new Date(
+      data.closed_at,
+    ).toISOString()}`,
+    sourceParentId: data.id.toString(),
+    url: data.web_url,
+    title: data.title,
+    body: data.description,
+    channel: `https://gitlab.com/${pathWithNamespace}`,
+    score: Gitlab_GRID[GitlabActivityType.ISSUE_CLOSED].score,
+    isContribution: Gitlab_GRID[GitlabActivityType.ISSUE_CLOSED].isContribution,
+  }
+}
+
+const parseIssueComment = ({
+  data,
+  user,
+  pathWithNamespace,
+}: {
+  data: IssueNoteSchema
+  projectId: string
+  user: IMemberData
+  pathWithNamespace: string
+}): IActivityData => {
+  return {
+    type: GitlabActivityType.ISSUE_COMMENT,
+    member: user,
+    timestamp: new Date(data.created_at).toISOString(),
+    // GITLAB_ISSUE_CLOSED
+    sourceId: data.id.toString(),
+    sourceParentId: data.noteable_id.toString(),
+    body: data.body,
+    channel: `https://gitlab.com/${pathWithNamespace}`,
+    score: Gitlab_GRID[GitlabActivityType.ISSUE_COMMENT].score,
+    isContribution: Gitlab_GRID[GitlabActivityType.ISSUE_COMMENT].isContribution,
+  }
+}
+
+const parseMergeRequestOpened = ({
   data,
   projectId,
   user,
@@ -69,7 +120,7 @@ const parseMergeRequest = ({
   pathWithNamespace: string
 }): IActivityData => {
   return {
-    type: GitlabActivityType.MERGE_REQUEST,
+    type: GitlabActivityType.MERGE_REQUEST_OPENED,
     member: user,
     timestamp: new Date(data.created_at).toISOString(),
     sourceId: data.id.toString(),
@@ -78,8 +129,8 @@ const parseMergeRequest = ({
     title: data.title,
     body: data.description,
     channel: `https://gitlab.com/${pathWithNamespace}`,
-    score: Gitlab_GRID[GitlabActivityType.MERGE_REQUEST].score,
-    isContribution: Gitlab_GRID[GitlabActivityType.MERGE_REQUEST].isContribution,
+    score: Gitlab_GRID[GitlabActivityType.MERGE_REQUEST_OPENED].score,
+    isContribution: Gitlab_GRID[GitlabActivityType.MERGE_REQUEST_OPENED].isContribution,
   }
 }
 
@@ -95,7 +146,7 @@ const parseCommit = ({
   pathWithNamespace: string
 }): IActivityData => {
   return {
-    type: GitlabActivityType.COMMIT,
+    type: GitlabActivityType.AUTHORED_COMMIT,
     member: user,
     timestamp: new Date(data.created_at).toISOString(),
     sourceId: data.id,
@@ -104,8 +155,8 @@ const parseCommit = ({
     title: data.title,
     body: data.message,
     channel: `https://gitlab.com/${pathWithNamespace}`,
-    score: Gitlab_GRID[GitlabActivityType.COMMIT].score,
-    isContribution: Gitlab_GRID[GitlabActivityType.COMMIT].isContribution,
+    score: Gitlab_GRID[GitlabActivityType.AUTHORED_COMMIT].score,
+    isContribution: Gitlab_GRID[GitlabActivityType.AUTHORED_COMMIT].isContribution,
   }
 }
 
@@ -121,7 +172,7 @@ const parseDiscussion = ({
   pathWithNamespace: string
 }): IActivityData => {
   return {
-    type: GitlabActivityType.DISCUSSION,
+    type: GitlabActivityType.DISCUSSION_STARTED,
     member,
     timestamp: new Date(data.created_at).toISOString(),
     sourceId: data.id,
@@ -130,8 +181,8 @@ const parseDiscussion = ({
     title: '',
     body: data.notes[0].body,
     channel: `https://gitlab.com/${pathWithNamespace}`,
-    score: Gitlab_GRID[GitlabActivityType.DISCUSSION].score,
-    isContribution: Gitlab_GRID[GitlabActivityType.DISCUSSION].isContribution,
+    score: Gitlab_GRID[GitlabActivityType.DISCUSSION_STARTED].score,
+    isContribution: Gitlab_GRID[GitlabActivityType.DISCUSSION_STARTED].isContribution,
   }
 }
 
@@ -185,24 +236,6 @@ const parseFork = ({
   }
 }
 
-const parseMember = ({ memberData }: { memberData: any }): IMemberData => {
-  return {
-    identities: [
-      {
-        platform: PlatformType.GITLAB,
-        value: memberData.username as string,
-        type: MemberIdentityType.USERNAME,
-        verified: true,
-      },
-    ],
-    attributes: {
-      name: memberData.name,
-      avatar: memberData.avatar_url,
-      url: memberData.web_url,
-    },
-  }
-}
-
 const handler: ProcessDataHandler = async (ctx) => {
   const apiData = ctx.data as GitlabApiData<any>
   const {
@@ -218,35 +251,35 @@ const handler: ProcessDataHandler = async (ctx) => {
     data: user,
   })
   switch (type) {
-    case GitlabActivityType.ISSUE:
-      activity = parseIssue({
+    case GitlabActivityType.ISSUE_OPENED:
+      activity = parseIssueOpened({
         data: data as IssueSchema,
         projectId,
         user: member,
         pathWithNamespace,
       })
       break
-    case GitlabActivityType.MERGE_REQUEST:
-      activity = parseMergeRequest({
+    case GitlabActivityType.ISSUE_CLOSED:
+      activity = parseIssueClosed({
+        data: data as IssueSchema,
+        projectId,
+        user: member,
+        pathWithNamespace,
+      })
+      break
+    case GitlabActivityType.ISSUE_COMMENT:
+      activity = parseIssueComment({
+        data: data as IssueNoteSchema,
+        projectId,
+        user: member,
+        pathWithNamespace,
+      })
+      break
+    case GitlabActivityType.MERGE_REQUEST_OPENED:
+      activity = parseMergeRequestOpened({
         data: data as MergeRequestSchema,
         projectId,
         user: member,
-        pathWithNamespace,
-      })
-      break
-    case GitlabActivityType.COMMIT:
-      activity = parseCommit({
-        data: data as CommitSchema,
-        projectId,
-        user: member,
-        pathWithNamespace,
-      })
-      break
-    case GitlabActivityType.DISCUSSION:
-      activity = parseDiscussion({
-        data,
-        projectId,
-        member,
         pathWithNamespace,
       })
       break

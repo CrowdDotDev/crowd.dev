@@ -1,33 +1,30 @@
-import { Gitlab, IssueSchema } from '@gitbeaker/rest'
-import { GitlabIssueData, GitlabApiResult } from '../types'
+import { Gitlab, IssueNoteSchema } from '@gitbeaker/rest'
+import { GitlabIssueCommentData, GitlabApiResult } from '../types'
 import { getUser } from './getUser'
 import { IProcessStreamContext } from '../../../types'
 
-export const getIssues = async ({
+export const getIssueComments = async ({
   api,
   projectId,
+  issueId,
   page,
   ctx,
 }: {
   api: InstanceType<typeof Gitlab>
   projectId: string
+  issueId: number
   page: number
   ctx: IProcessStreamContext
-}): Promise<GitlabApiResult<GitlabIssueData[]>> => {
+}): Promise<GitlabApiResult<GitlabIssueCommentData[]>> => {
   const perPage = 100
-  const since = ctx.onboarding
-    ? undefined
-    : new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
 
-  const response = await api.Issues.all({
-    projectId,
+  const response = await api.IssueNotes.all(projectId, issueId, {
+    showExpanded: true,
     page,
     perPage,
-    updatedAfter: since,
-    showExpanded: true,
   })
 
-  const issues = response.data as IssueSchema[]
+  const issues = response.data as IssueNoteSchema[]
 
   const users = await Promise.all(issues.map((issue) => getUser(api, issue.author.id)))
 

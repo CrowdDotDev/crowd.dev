@@ -19,12 +19,15 @@ export const getMergeRequests = async ({
     : new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
   const perPage = 100
 
-  const mergeRequests = (await api.MergeRequests.all({
+  const response = await api.MergeRequests.all({
     projectId,
     page,
     perPage,
     updatedAfter: since,
-  })) as MergeRequestSchema[]
+    showExpanded: true,
+  })
+
+  const mergeRequests = response.data as MergeRequestSchema[]
 
   const users = await Promise.all(mergeRequests.map((mr) => getUser(api, mr.author.id)))
 
@@ -33,6 +36,6 @@ export const getMergeRequests = async ({
       data: mr,
       user: users[index],
     })),
-    nextPage: mergeRequests.length === perPage ? page + 1 : null,
+    nextPage: response.paginationInfo.next,
   }
 }

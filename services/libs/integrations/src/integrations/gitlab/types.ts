@@ -4,29 +4,45 @@ import {
   ProjectStarrerSchema,
   CommitSchema,
   IssueSchema,
+  IssueNoteSchema,
   MergeRequestSchema,
+  MergeRequestNoteSchema,
 } from '@gitbeaker/rest'
 
 export enum GitlabActivityType {
-  ISSUE = 'issue',
-  MERGE_REQUEST = 'merge_request',
-  COMMIT = 'commit',
-  DISCUSSION = 'discussion',
-  STAR = 'star',
+  DISCUSSION_STARTED = 'discussion-started',
+  MERGE_REQUEST_OPENED = 'merge_request-opened',
+  MERGE_REQUEST_CLOSED = 'merge_request-closed',
+  MERGE_REQUEST_REVIEW_REQUESTED = 'merge_request-review-requested',
+  MERGE_REQUEST_REVIEWED = 'merge_request-reviewed',
+  MERGE_REQUEST_ASSIGNED = 'merge_request-assigned',
+  MERGE_REQUEST_MERGED = 'merge_request-merged',
+  ISSUE_OPENED = 'issues-opened',
+  ISSUE_CLOSED = 'issues-closed',
   FORK = 'fork',
+  STAR = 'star',
+  MERGE_REQUEST_COMMENT = 'merge_request-comment',
+  MERGE_REQUEST_REVIEW_THREAD_COMMENT = 'merge_request-review-thread-comment',
+  ISSUE_COMMENT = 'issue-comment',
+  DISCUSSION_COMMENT = 'discussion-comment',
+  AUTHORED_COMMIT = 'authored-commit',
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface GitlabActivityData<T = any> {
   data: T
   user: UserSchema
+  relatedUser?: UserSchema
+  relatedData?: Record<string, unknown>
 }
 
 export type GitlabForkData = GitlabActivityData<ProjectSchema>
 export type GitlabStarData = GitlabActivityData<ProjectStarrerSchema>
 export type GitlabCommitData = GitlabActivityData<CommitSchema>
 export type GitlabIssueData = GitlabActivityData<IssueSchema>
+export type GitlabIssueCommentData = GitlabActivityData<IssueNoteSchema>
 export type GitlabMergeRequestData = GitlabActivityData<MergeRequestSchema>
+export type GitlabMergeRequestCommentData = GitlabActivityData<MergeRequestNoteSchema>
 
 export interface GitlabApiResult<T> {
   data: T
@@ -43,7 +59,9 @@ export interface GitlabApiData<T> {
 export enum GitlabStreamType {
   ROOT = 'root',
   ISSUES = 'issues',
+  ISSUE_COMMENTS = 'issue_comments',
   MERGE_REQUESTS = 'merge_requests',
+  MERGE_REQUEST_COMMENTS = 'merge_request_comments',
   COMMITS = 'commits',
   DISCUSSIONS = 'discussions',
   STARS = 'stars',
@@ -61,6 +79,7 @@ export interface GitlabBasicStream {
   projectId: string
   pathWithNamespace: string
   page: number
+  meta?: Record<string, unknown>
 }
 
 export interface GitLabSettings {

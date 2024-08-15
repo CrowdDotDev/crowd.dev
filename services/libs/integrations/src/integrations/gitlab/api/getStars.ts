@@ -6,7 +6,6 @@ import { IProcessStreamContext } from '../../../types'
 export const getStars = async ({
   api,
   projectId,
-  page,
   ctx,
 }: {
   api: InstanceType<typeof Gitlab>

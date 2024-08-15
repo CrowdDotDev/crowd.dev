@@ -3,19 +3,59 @@ import { IActivityScoringGrid } from '@crowd/types'
 import { GitlabActivityType } from './types'
 
 export const Gitlab_GRID: Record<GitlabActivityType, IActivityScoringGrid> = {
-  [GitlabActivityType.ISSUE]: {
+  [GitlabActivityType.ISSUE_OPENED]: {
     score: 2,
     isContribution: true,
   },
-  [GitlabActivityType.MERGE_REQUEST]: {
+  [GitlabActivityType.ISSUE_CLOSED]: {
+    score: 2,
+    isContribution: true,
+  },
+  [GitlabActivityType.MERGE_REQUEST_CLOSED]: {
     score: 3,
     isContribution: true,
   },
-  [GitlabActivityType.COMMIT]: {
+  [GitlabActivityType.MERGE_REQUEST_OPENED]: {
+    score: 3,
+    isContribution: true,
+  },
+  [GitlabActivityType.MERGE_REQUEST_REVIEW_REQUESTED]: {
     score: 1,
     isContribution: true,
   },
-  [GitlabActivityType.DISCUSSION]: {
+  [GitlabActivityType.MERGE_REQUEST_REVIEWED]: {
+    score: 1,
+    isContribution: true,
+  },
+  [GitlabActivityType.MERGE_REQUEST_ASSIGNED]: {
+    score: 1,
+    isContribution: true,
+  },
+  [GitlabActivityType.MERGE_REQUEST_MERGED]: {
+    score: 3,
+    isContribution: true,
+  },
+  [GitlabActivityType.MERGE_REQUEST_COMMENT]: {
+    score: 1,
+    isContribution: true,
+  },
+  [GitlabActivityType.MERGE_REQUEST_REVIEW_THREAD_COMMENT]: {
+    score: 1,
+    isContribution: true,
+  },
+  [GitlabActivityType.ISSUE_COMMENT]: {
+    score: 1,
+    isContribution: true,
+  },
+  [GitlabActivityType.DISCUSSION_COMMENT]: {
+    score: 1,
+    isContribution: true,
+  },
+  [GitlabActivityType.AUTHORED_COMMIT]: {
+    score: 1,
+    isContribution: true,
+  },
+  [GitlabActivityType.DISCUSSION_STARTED]: {
     score: 1,
     isContribution: true,
   },
