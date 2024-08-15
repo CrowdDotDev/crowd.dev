@@ -7,7 +7,6 @@ import {
   moveActivitiesToNewOrg,
 } from '@crowd/data-access-layer/src/old/apps/entity_merging_worker/orgs'
 import { SearchSyncApiClient } from '@crowd/opensearch'
-import { ChildWorkflowCancellationType, ParentClosePolicy, startChild } from '@temporalio/workflow'
 import {
   cleanupForOganization,
   deleteOrgAttributesByOrganizationId,
