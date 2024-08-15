@@ -8,15 +8,9 @@ import {
   GitlabActivityData,
   GitlabActivityType,
   GitlabApiResult,
-  GitlabForkData,
-  GitlabCommitData,
-  GitlabIssueData,
-  GitlabMergeRequestData,
-  GitlabStarData,
 } from './types'
 import { getIssues } from './api/getIssues'
 import { getMergeRequests } from './api/getMergeRequests'
-import { getCommits } from './api/getCommits'
 import { refreshToken } from './api/refreshToken'
 import { getStars } from './api/getStars'
 import { getForks } from './api/getForks'
@@ -40,6 +34,7 @@ interface GitlabProcessStreamResultHandler<T> {
     result: GitlabApiResult<T>,
     activityType: GitlabActivityType,
     projectId: string,
+    pathWithNamespace: string,
   ): Promise<void>
 }
 
@@ -51,7 +46,7 @@ const handleRootStream: GitlabRootStreamHandler = async (ctx, data) => {
     await ctx.updateIntegrationRefreshToken(newTokens.refresh_token)
   }
 
-  for (const projectId of data.projectIds) {
+  for (const { id, path_with_namespace } of data.projects) {
     const streamTypes = [
       GitlabStreamType.ISSUES,
       GitlabStreamType.MERGE_REQUESTS,
@@ -60,8 +55,9 @@ const handleRootStream: GitlabRootStreamHandler = async (ctx, data) => {
     ]
 
     for (const streamType of streamTypes) {
-      await ctx.publishStream<GitlabBasicStream>(`${streamType}:${projectId}:firstPage`, {
-        projectId,
+      await ctx.publishStream<GitlabBasicStream>(`${streamType}:${id}:firstPage`, {
+        projectId: id,
+        pathWithNamespace: path_with_namespace,
         page: 1,
       })
     }
@@ -69,23 +65,47 @@ const handleRootStream: GitlabRootStreamHandler = async (ctx, data) => {
 }
 
 const handleIssuesStream: GitlabStreamHandler = async (ctx, api, data) => {
-  const result = await getIssues(api, data.projectId, data.page, ctx.onboarding)
-  await handleApiResult(ctx, result, GitlabActivityType.ISSUE, data.projectId)
+  const result = await getIssues({ api, projectId: data.projectId, page: data.page, ctx })
+  await handleApiResult(
+    ctx,
+    result,
+    GitlabActivityType.ISSUE,
+    data.projectId,
+    data.pathWithNamespace,
+  )
 }
 
 const handleMergeRequestsStream: GitlabStreamHandler = async (ctx, api, data) => {
-  const result = await getMergeRequests(api, data.projectId, data.page, ctx.onboarding)
-  await handleApiResult(ctx, result, GitlabActivityType.MERGE_REQUEST, data.projectId)
+  const result = await getMergeRequests({ api, projectId: data.projectId, page: data.page, ctx })
+  await handleApiResult(
+    ctx,
+    result,
+    GitlabActivityType.MERGE_REQUEST,
+    data.projectId,
+    data.pathWithNamespace,
+  )
 }
 
 const handleStarsStream: GitlabStreamHandler = async (ctx, api, data) => {
-  const result = await getStars(api, data.projectId, data.page, ctx.onboarding)
-  await handleApiResult(ctx, result, GitlabActivityType.STAR, data.projectId)
+  const result = await getStars({ api, projectId: data.projectId, page: data.page, ctx })
+  await handleApiResult(
+    ctx,
+    result,
+    GitlabActivityType.STAR,
+    data.projectId,
+    data.pathWithNamespace,
+  )
 }
 
 const handleForksStream: GitlabStreamHandler = async (ctx, api, data) => {
-  const result = await getForks(api, data.projectId, data.page, ctx.onboarding)
-  await handleApiResult(ctx, result, GitlabActivityType.FORK, data.projectId)
+  const result = await getForks({ api, projectId: data.projectId, ctx })
+  await handleApiResult(
+    ctx,
+    result,
+    GitlabActivityType.FORK,
+    data.projectId,
+    data.pathWithNamespace,
+  )
 }
 
 const handleApiResult: GitlabProcessStreamResultHandler<GitlabActivityData<any>[]> = async (
@@ -93,6 +113,7 @@ const handleApiResult: GitlabProcessStreamResultHandler<GitlabActivityData<any>[
   result,
   activityType,
   projectId,
+  pathWithNamespace,
 ) => {
   for (const item of result.data) {
     await ctx.processData<GitlabApiData<typeof item.data>>({
@@ -102,12 +123,14 @@ const handleApiResult: GitlabProcessStreamResultHandler<GitlabActivityData<any>[
       },
       type: activityType,
       projectId,
+      pathWithNamespace,
     })
   }
 
   if (result.nextPage) {
     await ctx.publishStream<GitlabBasicStream>(`${activityType}:${projectId}:${result.nextPage}`, {
       projectId,
+      pathWithNamespace,
       page: result.nextPage,
     })
   }

@@ -532,8 +532,8 @@ export class IntegrationService {
   }
 
   static async mapGitlabRepos(integrationId, mapping, segments) {
-    const response = await authAxios.post(
-      `/tenant/${AuthService.getTenant()}/integration/${integrationId}/gitlab/map`,
+    const response = await authAxios.put(
+      `/tenant/${AuthService.getTenantId()}/integration/${integrationId}/gitlab/repos`,
       { mapping, segments },
     );
     return response.data;

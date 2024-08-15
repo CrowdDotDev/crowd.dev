@@ -1,15 +1,23 @@
 import { Gitlab, MergeRequestSchema } from '@gitbeaker/rest'
 import { GitlabMergeRequestData, GitlabApiResult } from '../types'
 import { getUser } from './getUser'
+import { IProcessStreamContext } from '../../../types'
 
-export const getMergeRequests = async (
-  api: InstanceType<typeof Gitlab>,
-  projectId: string,
-  page: number,
-  onboarding: boolean,
-): Promise<GitlabApiResult<GitlabMergeRequestData[]>> => {
+export const getMergeRequests = async ({
+  api,
+  projectId,
+  page,
+  ctx,
+}: {
+  api: InstanceType<typeof Gitlab>
+  projectId: string
+  page: number
+  ctx: IProcessStreamContext
+}): Promise<GitlabApiResult<GitlabMergeRequestData[]>> => {
+  const since = ctx.onboarding
+    ? undefined
+    : new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
   const perPage = 100
-  const since = onboarding ? undefined : new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
 
   const mergeRequests = (await api.MergeRequests.all({
     projectId,

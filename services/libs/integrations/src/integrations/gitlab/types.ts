@@ -37,6 +37,7 @@ export interface GitlabApiData<T> {
   type: GitlabActivityType
   data: GitlabActivityData<T>
   projectId: string
+  pathWithNamespace: string
 }
 
 export enum GitlabStreamType {
@@ -50,11 +51,15 @@ export enum GitlabStreamType {
 }
 
 export interface GitlabRootStream {
-  projectIds: string[]
+  projects: {
+    id: string
+    path_with_namespace: string
+  }[]
 }
 
 export interface GitlabBasicStream {
   projectId: string
+  pathWithNamespace: string
   page: number
 }
 

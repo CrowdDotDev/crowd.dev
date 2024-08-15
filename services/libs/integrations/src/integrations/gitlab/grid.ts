@@ -19,4 +19,12 @@ export const Gitlab_GRID: Record<GitlabActivityType, IActivityScoringGrid> = {
     score: 1,
     isContribution: true,
   },
+  [GitlabActivityType.STAR]: {
+    score: 1,
+    isContribution: true,
+  },
+  [GitlabActivityType.FORK]: {
+    score: 1,
+    isContribution: true,
+  },
 }

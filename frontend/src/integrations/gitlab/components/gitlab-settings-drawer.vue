@@ -289,10 +289,11 @@ const connect = () => {
             },
           });
         })
-        .catch(() => {
+        .catch((e) => {
           Message.error(
             'There was an error mapping gitlab repos',
           );
+          console.error(e);
         });
     });
 };
