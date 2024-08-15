@@ -38,11 +38,10 @@ export async function recalculateActivityAffiliationsOfOrganizationSynchronous(
   organizationId: string,
   tenantId: string,
 ): Promise<void> {
-  await startChild('organizationUpdate', {
+  await svc.temporal.workflow.start('organizationUpdate', {
     taskQueue: 'profiles',
     workflowId: `${TemporalWorkflowId.ORGANIZATION_UPDATE}/${tenantId}/${organizationId}`,
-    cancellationType: ChildWorkflowCancellationType.ABANDON,
-    parentClosePolicy: ParentClosePolicy.PARENT_CLOSE_POLICY_ABANDON,
+    followRuns: true,
     retry: {
       maximumAttempts: 10,
     },
