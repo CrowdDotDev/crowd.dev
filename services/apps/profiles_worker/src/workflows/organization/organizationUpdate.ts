@@ -45,11 +45,6 @@ export async function organizationUpdate(input: IOrganizationProfileSyncInput): 
     await updateMemberAffiliations({ member: { id: memberId } })
   }
 
-  console.log(`Continuing new with params:`)
-  console.log({
-    params: { ...input, afterMemberId: memberIds[memberIds.length - 1] },
-  })
-
   await continueAsNew<typeof organizationUpdate>({
     ...input,
     afterMemberId: memberIds[memberIds.length - 1],
