@@ -6,6 +6,7 @@ import pg from 'pg'
  * exports all the models.
  */
 import { getServiceChildLogger, logExecutionTimeV2 } from '@crowd/logging'
+import { IS_CLOUD_ENV } from '@crowd/common'
 import { DB_CONFIG, SERVICE } from '../../conf'
 import * as configTypes from '../../conf/configTypes'
 
@@ -49,6 +50,7 @@ function models(
   databaseHostnameOverride = null,
   profileQueries = false,
 ) {
+  log.info('Initializing sequelize database connection!')
   const database = {} as any
 
   let readHost = SERVICE === configTypes.ServiceType.API ? DB_CONFIG.readHost : DB_CONFIG.writeHost
@@ -72,6 +74,7 @@ function models(
         connectionTimeoutMillis: 15000,
         query_timeout: queryTimeoutMilliseconds,
         idle_in_transaction_session_timeout: 20000,
+        ssl: IS_CLOUD_ENV ? { require: true, rejectUnauthorized: false } : false,
       },
       port: DB_CONFIG.port,
       replication: {
@@ -159,6 +162,11 @@ function models(
 
   database.sequelize = sequelize
   database.Sequelize = Sequelize
+
+  sequelize
+    .authenticate()
+    .then(() => log.info('Sequelize database connection has been established successfully!'))
+    .catch((err) => log.error(err, 'Database connection error!'))
 
   return database
 }

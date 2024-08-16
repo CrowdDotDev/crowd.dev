@@ -12,7 +12,7 @@ export enum TenantMode {
 }
 
 export interface AwsCredentials {
-  accountId: string
+  endpoint: string
   accessKeyId: string
   secretAccessKey: string
   region: string

@@ -37,7 +37,7 @@
     "integrationsAssetsBucket": "CROWD_S3_INTEGRATION_ASSETS_BUCKET",
     "microservicesAssetsBucket": "CROWD_S3_MICROSERVICES_ASSETS_BUCKET",
     "aws": {
-      "accountId": "CROWD_S3_AWS_ACCOUNT_ID",
+      "endpoint": "CROWD_S3_ENDPOINT",
       "accessKeyId": "CROWD_S3_AWS_ACCESS_KEY_ID",
       "secretAccessKey": "CROWD_S3_AWS_SECRET_ACCESS_KEY",
       "region": "CROWD_S3_AWS_REGION"
