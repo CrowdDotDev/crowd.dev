@@ -45,7 +45,7 @@ function getCredentials(): Credentials {
   }
 }
 
-function models(
+async function models(
   queryTimeoutMilliseconds: number,
   databaseHostnameOverride = null,
   profileQueries = false,
@@ -74,7 +74,7 @@ function models(
         connectionTimeoutMillis: 15000,
         query_timeout: queryTimeoutMilliseconds,
         idle_in_transaction_session_timeout: 20000,
-        ssl: IS_CLOUD_ENV ? { require: true, rejectUnauthorized: false } : false,
+        ssl: IS_CLOUD_ENV ? { rejectUnauthorized: false } : false,
       },
       port: DB_CONFIG.port,
       replication: {
@@ -87,7 +87,7 @@ function models(
       },
       pool: {
         max: SERVICE === configTypes.ServiceType.API ? 20 : 10,
-        min: 0,
+        min: 1,
         acquire: 50000,
         idle: 10000,
       },
@@ -163,10 +163,8 @@ function models(
   database.sequelize = sequelize
   database.Sequelize = Sequelize
 
-  sequelize
-    .authenticate()
-    .then(() => log.info('Sequelize database connection has been established successfully!'))
-    .catch((err) => log.error(err, 'Database connection error!'))
+  await sequelize.authenticate()
+  log.info('Sequelize database connection has been established successfully!')
 
   return database
 }

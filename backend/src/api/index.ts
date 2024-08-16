@@ -1,9 +1,11 @@
-import os from 'os'
 import { SERVICE } from '@crowd/common'
+import { getDbConnection } from '@crowd/data-access-layer/src/database'
 import { getUnleashClient } from '@crowd/feature-flags'
 import { getServiceLogger } from '@crowd/logging'
 import { getOpensearchClient } from '@crowd/opensearch'
 import { getRedisClient, getRedisPubSubPair, RedisPubSubReceiver } from '@crowd/redis'
+import { telemetryExpressMiddleware } from '@crowd/telemetry'
+import { getTemporalClient, Client as TemporalClient } from '@crowd/temporal'
 import { getServiceTracer } from '@crowd/tracing'
 import { ApiWebsocketMessage, Edition } from '@crowd/types'
 import bodyParser from 'body-parser'
@@ -12,10 +14,10 @@ import cors from 'cors'
 import express from 'express'
 import helmet from 'helmet'
 import * as http from 'http'
-import { getTemporalClient, Client as TemporalClient } from '@crowd/temporal'
-import { QueryTypes, Sequelize } from 'sequelize'
-import { telemetryExpressMiddleware } from '@crowd/telemetry'
-import { getDbConnection } from '@crowd/data-access-layer/src/database'
+import os from 'os'
+import { QueryTypes } from 'sequelize'
+import { productDatabaseMiddleware } from '@/middlewares/productDbMiddleware'
+import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 import {
   API_CONFIG,
   OPENSEARCH_CONFIG,
@@ -38,8 +40,6 @@ import setupSwaggerUI from './apiDocumentation'
 import { createRateLimiter } from './apiRateLimiter'
 import authSocial from './auth/authSocial'
 import WebSockets from './websockets'
-import { databaseInit } from '@/database/databaseConnection'
-import { productDatabaseMiddleware } from '@/middlewares/productDbMiddleware'
 
 const serviceLogger = getServiceLogger()
 getServiceTracer()
@@ -251,10 +251,10 @@ setImmediate(async () => {
   const webhookRoutes = express.Router()
   require('./webhooks').default(webhookRoutes)
 
-  const seq = (await databaseInit()).sequelize as Sequelize
-
   app.use('/health', async (req: any, res) => {
     try {
+      const seq = SequelizeRepository.getSequelize(req)
+
       const [osPingRes, redisPingRes, dbPingRes, temporalPingRes] = await Promise.all([
         // ping opensearch
         opensearch.ping().then((res) => res.body),
@@ -279,7 +279,7 @@ setImmediate(async () => {
         })
       }
     } catch (err) {
-      res.status(500).json({ error: err })
+      res.status(500).json({ error: err.message, stack: err.stack })
     }
   })
 
