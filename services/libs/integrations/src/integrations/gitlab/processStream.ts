@@ -103,7 +103,7 @@ const handleIssuesStream: GitlabStreamHandler = async (ctx, api, data) => {
         projectId: data.projectId,
         pathWithNamespace: data.pathWithNamespace,
         meta: {
-          issueId: item.data.id,
+          issueIId: item.data.iid,
         },
         page: 1,
       },
@@ -115,7 +115,7 @@ const handleIssueCommentsStream: GitlabStreamHandler = async (ctx, api, data) =>
   const result = await getIssueComments({
     api,
     projectId: data.projectId,
-    issueId: data.meta.issueId as number,
+    issueIId: data.meta.issueIId as number,
     page: data.page,
     ctx,
   })
@@ -176,7 +176,7 @@ const handleMergeRequestsStream: GitlabStreamHandler = async (ctx, api, data) =>
         projectId: data.projectId,
         pathWithNamespace: data.pathWithNamespace,
         meta: {
-          mergeRequestId: item.data.id,
+          mergeRequestIId: item.data.iid,
         },
         page: 1,
       },
@@ -188,7 +188,7 @@ const handleMergeRequestCommentsStream: GitlabStreamHandler = async (ctx, api, d
   const result = await getMergeRequestComments({
     api,
     projectId: data.projectId,
-    mergeRequestId: data.meta.mergeRequestId as number,
+    mergeRequestIId: data.meta.mergeRequestIId as number,
     page: data.page,
     ctx,
   })

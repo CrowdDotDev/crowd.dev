@@ -1,7 +1,7 @@
 import { ProcessDataHandler } from '../../types'
 import { GitlabActivityType, GitlabApiData } from './types'
 import { IActivityData, IMemberData, PlatformType, MemberIdentityType } from '@crowd/types'
-import { Gitlab_GRID } from './grid'
+import { GITLAB_GRID } from './grid'
 import {
   ProjectSchema,
   ProjectStarrerSchema,
@@ -51,8 +51,8 @@ const parseIssueOpened = ({
     title: data.title,
     body: data.description,
     channel: `https://gitlab.com/${pathWithNamespace}`,
-    score: Gitlab_GRID[GitlabActivityType.ISSUE_OPENED].score,
-    isContribution: Gitlab_GRID[GitlabActivityType.ISSUE_OPENED].isContribution,
+    score: GITLAB_GRID[GitlabActivityType.ISSUE_OPENED].score,
+    isContribution: GITLAB_GRID[GitlabActivityType.ISSUE_OPENED].isContribution,
   }
 }
 
@@ -79,8 +79,8 @@ const parseIssueClosed = ({
     title: data.title,
     body: data.description,
     channel: `https://gitlab.com/${pathWithNamespace}`,
-    score: Gitlab_GRID[GitlabActivityType.ISSUE_CLOSED].score,
-    isContribution: Gitlab_GRID[GitlabActivityType.ISSUE_CLOSED].isContribution,
+    score: GITLAB_GRID[GitlabActivityType.ISSUE_CLOSED].score,
+    isContribution: GITLAB_GRID[GitlabActivityType.ISSUE_CLOSED].isContribution,
   }
 }
 
@@ -103,14 +103,13 @@ const parseIssueComment = ({
     sourceParentId: data.noteable_id.toString(),
     body: data.body,
     channel: `https://gitlab.com/${pathWithNamespace}`,
-    score: Gitlab_GRID[GitlabActivityType.ISSUE_COMMENT].score,
-    isContribution: Gitlab_GRID[GitlabActivityType.ISSUE_COMMENT].isContribution,
+    score: GITLAB_GRID[GitlabActivityType.ISSUE_COMMENT].score,
+    isContribution: GITLAB_GRID[GitlabActivityType.ISSUE_COMMENT].isContribution,
   }
 }
 
 const parseMergeRequestOpened = ({
   data,
-  projectId,
   user,
   pathWithNamespace,
 }: {
@@ -124,13 +123,33 @@ const parseMergeRequestOpened = ({
     member: user,
     timestamp: new Date(data.created_at).toISOString(),
     sourceId: data.id.toString(),
-    sourceParentId: projectId,
     url: data.web_url,
     title: data.title,
     body: data.description,
     channel: `https://gitlab.com/${pathWithNamespace}`,
-    score: Gitlab_GRID[GitlabActivityType.MERGE_REQUEST_OPENED].score,
-    isContribution: Gitlab_GRID[GitlabActivityType.MERGE_REQUEST_OPENED].isContribution,
+    score: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_OPENED].score,
+    isContribution: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_OPENED].isContribution,
+  }
+}
+
+const parseMergeRequestClosed = ({
+  data,
+  user,
+  pathWithNamespace,
+}: {
+  data: MergeRequestSchema
+  projectId: string
+  user: IMemberData
+  pathWithNamespace: string
+}): IActivityData => {
+  return {
+    type: GitlabActivityType.MERGE_REQUEST_CLOSED,
+    member: user,
+    timestamp: new Date(data.closed_at).toISOString(),
+    sourceId: data.id.toString(),
+    channel: `https://gitlab.com/${pathWithNamespace}`,
+    score: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_CLOSED].score,
+    isContribution: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_CLOSED].isContribution,
   }
 }
 
@@ -155,8 +174,8 @@ const parseCommit = ({
     title: data.title,
     body: data.message,
     channel: `https://gitlab.com/${pathWithNamespace}`,
-    score: Gitlab_GRID[GitlabActivityType.AUTHORED_COMMIT].score,
-    isContribution: Gitlab_GRID[GitlabActivityType.AUTHORED_COMMIT].isContribution,
+    score: GITLAB_GRID[GitlabActivityType.AUTHORED_COMMIT].score,
+    isContribution: GITLAB_GRID[GitlabActivityType.AUTHORED_COMMIT].isContribution,
   }
 }
 
@@ -181,8 +200,8 @@ const parseDiscussion = ({
     title: '',
     body: data.notes[0].body,
     channel: `https://gitlab.com/${pathWithNamespace}`,
-    score: Gitlab_GRID[GitlabActivityType.DISCUSSION_STARTED].score,
-    isContribution: Gitlab_GRID[GitlabActivityType.DISCUSSION_STARTED].isContribution,
+    score: GITLAB_GRID[GitlabActivityType.DISCUSSION_STARTED].score,
+    isContribution: GITLAB_GRID[GitlabActivityType.DISCUSSION_STARTED].isContribution,
   }
 }
 
@@ -207,8 +226,8 @@ const parseStar = ({
       PlatformType.GITLAB,
     ),
     channel: `https://gitlab.com/${pathWithNamespace}`,
-    score: Gitlab_GRID[GitlabActivityType.STAR].score,
-    isContribution: Gitlab_GRID[GitlabActivityType.STAR].isContribution,
+    score: GITLAB_GRID[GitlabActivityType.STAR].score,
+    isContribution: GITLAB_GRID[GitlabActivityType.STAR].isContribution,
   }
 }
 
@@ -231,8 +250,8 @@ const parseFork = ({
     sourceParentId: projectId,
     url: data.web_url,
     channel: `https://gitlab.com/${pathWithNamespace}`,
-    score: Gitlab_GRID[GitlabActivityType.FORK].score,
-    isContribution: Gitlab_GRID[GitlabActivityType.FORK].isContribution,
+    score: GITLAB_GRID[GitlabActivityType.FORK].score,
+    isContribution: GITLAB_GRID[GitlabActivityType.FORK].isContribution,
   }
 }
 
@@ -277,6 +296,30 @@ const handler: ProcessDataHandler = async (ctx) => {
       break
     case GitlabActivityType.MERGE_REQUEST_OPENED:
       activity = parseMergeRequestOpened({
+        data: data as MergeRequestSchema,
+        projectId,
+        user: member,
+        pathWithNamespace,
+      })
+      break
+    case GitlabActivityType.MERGE_REQUEST_CLOSED:
+      activity = parseMergeRequestClosed({
+        data: data as MergeRequestSchema,
+        projectId,
+        user: member,
+        pathWithNamespace,
+      })
+      break
+    case GitlabActivityType.MERGE_REQUEST_COMMENT:
+      activity = parseMergeRequestComment({
+        data: data as MergeRequestNoteSchema,
+        projectId,
+        user: member,
+        pathWithNamespace,
+      })
+      break
+    case GitlabActivityType.MERGE_REQUEST_MERGED:
+      activity = parseMergeRequestMerged({
         data: data as MergeRequestSchema,
         projectId,
         user: member,

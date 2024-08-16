@@ -2,7 +2,7 @@
 import { IActivityScoringGrid } from '@crowd/types'
 import { GitlabActivityType } from './types'
 
-export const Gitlab_GRID: Record<GitlabActivityType, IActivityScoringGrid> = {
+export const GITLAB_GRID: Record<GitlabActivityType, IActivityScoringGrid> = {
   [GitlabActivityType.ISSUE_OPENED]: {
     score: 2,
     isContribution: true,

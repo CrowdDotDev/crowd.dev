@@ -6,19 +6,19 @@ import { IProcessStreamContext } from '../../../types'
 export const getMergeRequestComments = async ({
   api,
   projectId,
-  mergeRequestId,
+  mergeRequestIId,
   page,
   ctx,
 }: {
   api: InstanceType<typeof Gitlab>
   projectId: string
-  mergeRequestId: number
+  mergeRequestIId: number
   page: number
   ctx: IProcessStreamContext
 }): Promise<GitlabApiResult<GitlabMergeRequestCommentData[]>> => {
   const perPage = 100
 
-  const response = await api.MergeRequestNotes.all(projectId, mergeRequestId, {
+  const response = await api.MergeRequestNotes.all(projectId, mergeRequestIId, {
     showExpanded: true,
     page,
     perPage,
