@@ -20,10 +20,16 @@ export const getOpensearchClient = async (config: IOpenSearchConfig): Promise<Cl
         ssl: {
           rejectUnauthorized: false,
         },
-        maxRetries: 5,
-        requestTimeout: 60000,
+        maxRetries: 3,
+        requestTimeout: 30000,
         sniffOnStart: true,
-        sniffInterval: 60000,
+        sniffInterval: 30000,
+        sniffOnConnectionFault: true,
+        resurrectStrategy: 'ping',
+        pingTimeout: 3000,
+        suggestCompression: true,
+        compression: 'gzip',
+        name: 'opensearch-client',
       })
     } else {
       client = new Client({

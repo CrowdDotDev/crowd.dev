@@ -48,7 +48,7 @@ setImmediate(async () => {
     try {
       const [opensearchCheck, redisCheck, dbCheck] = await Promise.all([
         // ping opensearch
-        opensearch.client.ping().then((res) => res.body),
+        osClient.ping().then((res) => res.body),
         // ping redis,
         redis.ping().then((res) => res === 'PONG'),
         // ping database
