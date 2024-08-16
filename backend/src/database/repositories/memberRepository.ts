@@ -2460,6 +2460,7 @@ class MemberRepository {
           memberOrganizations: o,
         }))
 
+        // sort organizations
         MemberRepository.sortOrganizations(member.organizations)
       })
     }
