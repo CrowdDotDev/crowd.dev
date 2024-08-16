@@ -8,6 +8,7 @@
         class="!h-9"
       />
       <lf-filter-dropdown
+        v-if="filterList.length > 0"
         v-model="filterList"
         :config="props.config"
         :custom-config="props.customConfig || {}"

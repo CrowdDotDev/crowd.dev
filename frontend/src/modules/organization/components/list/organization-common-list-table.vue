@@ -26,10 +26,10 @@
           </lf-table-cell>
           <lf-table-cell>
             <div class="flex">
-              <el-popover placement="top-start">
+              <el-popover placement="top-start" :disabled="getSegments(org.segments).length === 0">
                 <template #reference>
                   <div class="border border-gray-300 h-6 px-2 rounded-md bg-white text-sm whitespace-nowrap">
-                    {{ org.segments.length }} project group{{ org.segments.length !== 1 ? 's' : '' }}
+                    {{ pluralize('project group', getSegments(org.segments).length, true) }}
                   </div>
                 </template>
 
@@ -38,9 +38,9 @@
                     Project groups
                   </div>
                   <div class="flex flex-wrap items-center gap-1">
-                    <div v-for="segmentId of org.segments" :key="segmentId">
+                    <div v-for="segment of getSegments(org.segments)" :key="segment.id">
                       <el-tag type="info" size="small">
-                        {{ getSegmentName(segmentId) }}
+                        {{ segment.name }}
                       </el-tag>
                     </div>
                   </div>
@@ -117,6 +117,7 @@ import { OrganizationService } from '@/modules/organization/organization-service
 import Message from '@/shared/message/message';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { i18n } from '@/i18n';
+import pluralize from 'pluralize';
 import { getSegmentName } from '../../../../utils/segments';
 
 const props = defineProps<{
@@ -178,6 +179,11 @@ const deleteOrganization = (organization: any) => {
       });
   });
 };
+
+const getSegments = (segments: string[]): {id: string, name: string}[] => segments.map((segment) => ({
+  id: segment,
+  name: getSegmentName(segment) || '',
+})).filter((s) => s.name.length > 0);
 </script>
 
 <script lang="ts">

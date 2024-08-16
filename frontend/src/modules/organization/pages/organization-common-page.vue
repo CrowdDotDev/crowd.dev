@@ -3,7 +3,7 @@
     <lf-filter
       ref="organizationFilter"
       v-model="filters"
-      :config="organizationFilters"
+      :config="{}"
       :search-config="organizationSearchFilter"
       :saved-views-config="commonOrganizationSavedViews"
       hash="organizations"
@@ -32,7 +32,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import LfFilter from '@/shared/modules/filters/components/Filter.vue';
-import { organizationFilters, organizationSearchFilter } from '@/modules/organization/config/filters/main';
+import { organizationSearchFilter } from '@/modules/organization/config/filters/main';
 import { commonOrganizationSavedViews } from '@/modules/organization/config/saved-views/main';
 import { FilterQuery } from '@/shared/modules/filters/types/FilterQuery';
 import AppOrganizationCommonListTable from '@/modules/organization/components/list/organization-common-list-table.vue';
@@ -54,10 +54,10 @@ const savedBody = ref({});
 
 const pagination = ref({
   page: 1,
-  perPage: 100,
+  perPage: 20,
 });
 
-const sorting = ref('activityCount_DESC');
+const sorting = ref('displayName_ASC');
 
 const organizations = ref<any[]>([]);
 const totalOrganizations = ref<number>(0);
@@ -67,9 +67,10 @@ const getOrganizations = (body?: any) => {
     ...savedBody.value,
     ...body,
   };
-  OrganizationService.query({
+  OrganizationService.organizationsList({
     ...savedBody.value,
     orderBy: sorting.value,
+    excludeSegments: true,
   })
     .then((data: Pagination<Organization>) => {
       organizations.value = data.rows;
@@ -95,7 +96,6 @@ const fetch = ({
     filter,
     offset: 0,
     limit: pagination.value.perPage,
-    distinct: true,
   });
 };
 

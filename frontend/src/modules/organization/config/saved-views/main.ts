@@ -37,12 +37,10 @@ export const commonOrganizationSavedViews: SavedViewsConfig = {
         order: 'descending',
       },
       settings: {
-        hasActivities: 'true',
       },
     },
   },
   settings: {
-    hasActivities,
   },
   defaultFilters: {
     render: organizationDefaultFilterRenderer,
