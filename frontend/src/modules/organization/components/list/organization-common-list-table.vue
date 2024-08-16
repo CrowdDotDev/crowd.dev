@@ -117,8 +117,8 @@ import { OrganizationService } from '@/modules/organization/organization-service
 import Message from '@/shared/message/message';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { i18n } from '@/i18n';
-import { getSegmentName } from '../../../../utils/segments';
 import pluralize from 'pluralize';
+import { getSegmentName } from '../../../../utils/segments';
 
 const props = defineProps<{
   sorting: string,
