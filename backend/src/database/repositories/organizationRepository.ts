@@ -1818,7 +1818,7 @@ class OrganizationRepository {
       const orgSegments = await fetchManyOrgSegments(qx, orgIds)
 
       rows.forEach((org) => {
-        org.segments = orgSegments.find((i) => i.organizationId === org.id)?.segments || []
+        org.segments = orgSegments.find((i) => i.organizationId === org.id)?.segments.filter(segment => segment !== null) || []
       })
     }
     if (include.attributes) {
