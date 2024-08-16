@@ -2459,6 +2459,8 @@ class MemberRepository {
           ...orgExtra.find((odn) => odn.id === o.organizationId),
           memberOrganizations: o,
         }))
+
+        MemberRepository.sortOrganizations(member.organizations)
       })
     }
     if (include.lfxMemberships) {
