@@ -1683,7 +1683,7 @@ class OrganizationRepository {
         segments: false,
         attributes: false,
       } as {
-        aggregates: boolean
+        aggregates?: boolean
         identities?: boolean
         lfxMemberships?: boolean
         segments?: boolean

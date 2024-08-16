@@ -1063,7 +1063,7 @@ export default class OrganizationService extends LoggerBase {
         limit,
         offset,
         segmentId: undefined,
-        fields: ['id', 'displayName', 'isTeamOrganization'],
+        fields: ['id', 'logo', 'displayName', 'isTeamOrganization'],
         include: { aggregates: false, identities: true, segments: true, lfxMemberships: true },
       },
       this.options,
