@@ -99,10 +99,16 @@ const defaultForm: OrganizationIdentity = {
   sourceId: null,
 };
 
-const form = reactive<OrganizationIdentity>({
+const value = {
   ...defaultForm,
   ...props.modelValue,
-});
+};
+
+if (value.platform === Platform.LINKEDIN) {
+  value.value = value.value.replace('company:', '');
+}
+
+const form = reactive<OrganizationIdentity>(value);
 
 const rules = {
   form: {
@@ -130,7 +136,10 @@ const platform = computed(() => CrowdIntegrations.getConfig(form.platform));
 const updateIdentity = () => {
   const identities = props.organization.identities.map((i: OrganizationIdentity) => {
     if (i.platform === props.modelValue?.platform && i.value === props.modelValue?.value) {
-      return form as OrganizationIdentity;
+      return {
+        ...form,
+        value: form.platform === Platform.LINKEDIN ? `company:${form.value}` : form.value,
+      } as OrganizationIdentity;
     }
     return i;
   });

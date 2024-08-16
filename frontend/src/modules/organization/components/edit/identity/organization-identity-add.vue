@@ -173,7 +173,10 @@ const addIdentities = () => {
   updateOrganization(props.organization.id, {
     identities: [
       ...props.organization.identities,
-      ...form,
+      ...form.map((i) => ({
+        ...i,
+        value: i.platform === Platform.LINKEDIN ? `company:${i.value}` : i.value,
+      })),
     ],
   })
     .then(() => {

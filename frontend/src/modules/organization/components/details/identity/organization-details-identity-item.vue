@@ -29,7 +29,7 @@
       <div class="flex items-center">
         <div class=" flex items-center">
           <p v-if="!props.identity.url" class="text-medium max-w-48 truncate">
-            {{ props.identity.value }}
+            {{ props.identity.handle ?? props.identity.value }}
           </p>
           <a
             v-else
@@ -39,7 +39,7 @@
             class="text-medium cursor-pointer !text-black underline decoration-dashed
              decoration-gray-400 underline-offset-4 hover:decoration-gray-900 max-w-48 truncate"
           >
-            {{ props.identity.value }}
+            {{ props.identity.handle ?? props.identity.value }}
           </a>
         </div>
         <lf-tooltip v-if="props.identity.verified" content="Verified identity">
@@ -173,11 +173,11 @@ const verifyIdentity = (verified: boolean) => {
   updateOrganization(props.organization.id, {
     identities,
   })
-    .catch(() => {
-      Message.error('Something went wrong while updating an identity');
-    })
     .then(() => {
       Message.success('Identity updated successfully');
+    })
+    .catch(() => {
+      Message.error('Something went wrong while updating an identity');
     });
 };
 

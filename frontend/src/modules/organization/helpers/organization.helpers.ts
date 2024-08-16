@@ -27,7 +27,7 @@ const useOrganizationHelpers = () => {
     })
     .map((i) => ({
       ...i,
-      value: CrowdIntegrations.getConfig(i.platform)?.organization?.identityHandle?.({
+      handle: CrowdIntegrations.getConfig(i.platform)?.organization?.identityHandle?.({
         identityHandle: i.value,
       }) || '',
       url: CrowdIntegrations.getConfig(i.platform)?.organization?.identityLink?.({
