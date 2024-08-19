@@ -116,7 +116,7 @@
               </div>
               <div class="w-1/2 flex items-center">
                 <app-form-item
-                  :validation="$v[project.id]"
+                  :validation="$v[project.web_url]"
                   :error-messages="{
                     required: 'This field is required',
                   }"
@@ -124,13 +124,13 @@
                   error-class="relative top-0"
                 >
                   <el-select
-                    v-model="form[project.id]"
+                    v-model="form[project.web_url]"
                     placeholder="Select sub-project"
                     class="w-full"
                     placement="bottom-end"
                     filterable
-                    @blur="$v[project.id].$touch"
-                    @change="$v[project.id].$touch"
+                    @blur="$v[project.web_url].$touch"
+                    @change="$v[project.web_url].$touch"
                   >
                     <el-option
                       v-for="subproject of subprojects"
@@ -141,11 +141,11 @@
                   </el-select>
                 </app-form-item>
                 <el-switch
-                  v-model="form[project.id]"
+                  v-model="form[project.web_url]"
                   class="ml-2"
                   active-color="#13ce66"
                   inactive-color="#ff4949"
-                  @change="toggleRepo(project.id)"
+                  @change="toggleRepo(project.web_url)"
                 />
               </div>
             </article>
@@ -245,12 +245,12 @@ const gitlabDetails = computed(() => CrowdIntegrations.getConfig('gitlab'));
 // Form
 const form = ref<Record<string, string>>(allProjects.value.reduce((a: Record<string, any>, b: any) => ({
   ...a,
-  [b.id]: props.integration.segmentId,
+  [b.web_url]: props.integration.segmentId,
 }), {}));
 
 const rules = computed(() => allProjects.value.reduce((a: Record<string, any>, b: any) => ({
   ...a,
-  [b.id]: {
+  [b.web_url]: {
     required,
   },
 }), {}));
@@ -316,13 +316,13 @@ onMounted(() => {
 const groupHasProjects = (group: any) => props.integration?.settings?.groupProjects?.[group.id]?.length > 0;
 
 // Toggle repo
-const toggleRepo = (projectId: string) => {
-  if (form.value[projectId]) {
-    form.value[projectId] = '';
+const toggleRepo = (projectUrl: string) => {
+  if (form.value[projectUrl]) {
+    form.value[projectUrl] = '';
   } else {
-    form.value[projectId] = props.integration.segmentId;
+    form.value[projectUrl] = props.integration.segmentId;
   }
-  $v.value[projectId].$touch();
+  $v.value[projectUrl].$touch();
 };
 </script>
 
