@@ -8,20 +8,29 @@ import { Member } from '@/modules/member/types/Member';
 
 const { buildFilterFromAttributes } = customAttributesService();
 
+let lastRequestId = 0;
+
 export default {
   fetchMembers(this: MemberState, { body = {}, reload = false } :{ body?: any, reload?: boolean }): Promise<Pagination<Member>> {
     const mappedBody = reload ? { ...this.savedFilterBody, ...body } : body;
     this.selectedMembers = [];
+    const currentRequestId = new Date().getTime();
+    lastRequestId = currentRequestId;
     return MemberService.listMembers(mappedBody)
       .then((data: Pagination<Member>) => {
-        this.members = data.rows;
-        this.totalMembers = data.count;
-        this.savedFilterBody = mappedBody;
-        return Promise.resolve(data);
+        if (lastRequestId === currentRequestId) {
+          this.members = data.rows;
+          this.totalMembers = data.count;
+          this.savedFilterBody = mappedBody;
+          return Promise.resolve(data);
+        }
+        return Promise.reject(data);
       })
       .catch((err) => {
-        this.members = [];
-        this.totalMembers = 0;
+        if (lastRequestId === currentRequestId) {
+          this.members = [];
+          this.totalMembers = 0;
+        }
         return Promise.reject(err);
       });
   },
