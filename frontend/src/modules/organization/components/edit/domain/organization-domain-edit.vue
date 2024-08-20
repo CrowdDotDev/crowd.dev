@@ -13,7 +13,6 @@
         <lf-input
           v-model="form.value"
           class="!rounded-r-none h-10 flex-grow"
-          :class="showVerified ? '!rounded-r-none' : ''"
           placeholder="Enter URL"
         >
           <template #prefix>
@@ -24,11 +23,6 @@
             </div>
           </template>
         </lf-input>
-        <label v-if="showVerified" class="border border-gray-200 h-10 py-2.5 px-3 border-l-0 cursor-pointer rounded-r-lg">
-          <lf-checkbox v-model="form.verified">
-            Verified
-          </lf-checkbox>
-        </label>
       </div>
     </div>
     <div class="py-4 px-6 border-t border-gray-100 flex items-center justify-end gap-4">
@@ -60,7 +54,6 @@ import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 import LfInput from '@/ui-kit/input/Input.vue';
-import LfCheckbox from '@/ui-kit/checkbox/Checkbox.vue';
 import Message from '@/shared/message/message';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import { Platform } from '@/shared/modules/platform/types/Platform';
@@ -99,7 +92,7 @@ const rules = {
 
 const $v = useVuelidate(rules, { form });
 
-const hasFormChanged = computed(() => form.value !== props.modelValue?.value || form.verified !== props.modelValue?.verified);
+const hasFormChanged = computed(() => form.value !== props.modelValue?.value);
 
 const isModalOpen = computed<boolean>({
   get: () => !!props.modelValue,
@@ -110,15 +103,17 @@ const isModalOpen = computed<boolean>({
   },
 });
 
-const showVerified = computed(() => props.modelValue?.type !== OrganizationIdentityType.PRIMARY_DOMAIN
-    || props.modelValue?.verified);
-
 const updateDomain = () => {
   const identities = props.organization.identities.map((i: OrganizationIdentity) => {
     if (i.type === props.modelValue?.type
         && i.platform === props.modelValue?.platform
         && i.value === props.modelValue?.value) {
-      return form as OrganizationIdentity;
+      return {
+        ...form,
+        verified: false,
+        integrationId: null,
+        sourceId: null,
+      };
     }
     return i;
   });

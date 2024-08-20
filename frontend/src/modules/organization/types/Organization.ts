@@ -29,7 +29,7 @@ export interface OrganizationIdentity {
     verified: boolean;
     sourceId?: string | null;
     tenantId?: string;
-    integrationId?: string;
+    integrationId?: string | null;
 }
 
 export interface MemberOrganization {
