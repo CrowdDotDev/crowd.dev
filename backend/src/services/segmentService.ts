@@ -254,6 +254,7 @@ export default class SegmentService extends LoggerBase {
         channel: '',
       },
       isContribution: false,
+      calculateSentiment: false,
     }
 
     const updated = await new SegmentRepository(this.options).update(segment.id, {
@@ -322,6 +323,7 @@ export default class SegmentService extends LoggerBase {
         channel: '',
       },
       isContribution: false,
+      calculateSentiment: false,
     }
 
     const updated = await new SegmentRepository(this.options).update(segment.id, {

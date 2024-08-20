@@ -39,3 +39,10 @@ export interface IActivityUpdateData {
   organizationId?: string
   platform?: PlatformType
 }
+
+export interface ISentimentActivityInput {
+  type: string
+  platform: string
+  title: string
+  body: string
+}
