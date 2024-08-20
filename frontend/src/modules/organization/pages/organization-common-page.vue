@@ -45,7 +45,7 @@ import { Pagination } from '@/shared/types/Pagination';
 import { Organization } from '@/modules/organization/types/Organization';
 import AppPagination from '@/shared/pagination/pagination.vue';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import pluralize, { plural } from 'pluralize';
+import pluralize from 'pluralize';
 
 const { listProjectGroups } = useLfSegmentsStore();
 

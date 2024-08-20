@@ -21,12 +21,12 @@
           v-for="(org, oi) of props.organizations"
           :key="org.id"
           class="table-row tr hover:bg-gray-100 transition h-16 max-h-16"
-          :to="{ name: 'organizationView', params: { id: org.id }, query: { projectGroup: '8e6ccf01-e7e6-4612-bbda-79b0aceb8a02' } }"
+          :to="{ name: 'organizationView', params: { id: org.id } }"
         >
           <lf-table-cell class="pl-3">
             <app-organization-name
               class="w-full"
-              :organization="{ ...org, lfxMembership: true }"
+              :organization="org"
             />
           </lf-table-cell>
           <lf-table-cell>

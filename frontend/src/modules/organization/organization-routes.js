@@ -29,9 +29,6 @@ export default [
     meta: {
       auth: true,
       title: 'Organizations',
-      segments: {
-        requireSelectedProjectGroup: true,
-      },
     },
     children: [
       {
@@ -41,6 +38,9 @@ export default [
         meta: {
           auth: true,
           eventKey: PageEventKey.ORGANIZATIONS,
+        },
+        segments: {
+          requireSelectedProjectGroup: true,
         },
         props: {
           module: 'organizations',
@@ -70,6 +70,9 @@ export default [
         meta: {
           auth: true,
           eventKey: PageEventKey.ORGANIZATIONS_MERGE_SUGGESTIONS,
+        },
+        segments: {
+          requireSelectedProjectGroup: true,
         },
         props: true,
         beforeEnter: [
