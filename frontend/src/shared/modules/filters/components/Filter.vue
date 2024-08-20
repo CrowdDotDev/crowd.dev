@@ -1,5 +1,5 @@
 <template>
-  <div :class="filterList.length > 0 ? 'mb-4' : ''">
+  <div :class="Object.keys(props.config).length > 0 ? 'mb-4' : ''">
     <div class="flex justify-end pb-4 gap-4">
       <lf-filter-search
         v-if="props.searchConfig"
@@ -8,7 +8,7 @@
         class="!h-9"
       />
       <lf-filter-dropdown
-        v-if="filterList.length > 0"
+        v-if="Object.keys(props.config).length > 0"
         v-model="filterList"
         :config="props.config"
         :custom-config="props.customConfig || {}"
