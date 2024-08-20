@@ -302,6 +302,25 @@ class OrganizationRepository {
     }
   }
 
+  static findLfxMembershipInFilters(filter: any): any {
+    if (!filter) return null
+  
+    if (filter.not?.lfxMembership) {
+      return filter.not.lfxMembership
+    }
+  
+    if (Array.isArray(filter.and)) {
+      for (const subFilter of filter.and) {
+        const result = OrganizationRepository.findLfxMembershipInFilters(subFilter)
+        if (result) {
+          return result
+        }
+      }
+    }
+  
+    return null
+  }
+
   static convertOrgAttributesForDisplay(attributes: IDbOrgAttribute[]) {
     return attributes.reduce((acc, a) => {
       if (!acc[a.name]) {
@@ -1698,6 +1717,22 @@ class OrganizationRepository {
 
     const withAggregates = include.aggregates
 
+    // look for lfxMembership filter
+    const lfxMembershipFilter = OrganizationRepository.findLfxMembershipInFilters(filter)
+    let lfxMembershipFilterWhereClause = ''
+
+    if (lfxMembershipFilter) {
+      const filterKey = Object.keys(lfxMembershipFilter)[0]
+      if (filterKey === 'eq') {
+        lfxMembershipFilterWhereClause = `AND EXISTS (SELECT 1 FROM "lfxMemberships" lm WHERE lm."organizationId" = o.id AND lm."tenantId" = $(tenantId))`
+      } else if (filterKey === 'ne') {
+        lfxMembershipFilterWhereClause = `AND NOT EXISTS (SELECT 1 FROM "lfxMemberships" lm WHERE lm."organizationId" = o.id AND lm."tenantId" = $(tenantId))`
+      }
+
+      // remove lfxMembership filter from obj since filterParser doesn't support it
+      filter.and = filter.and.filter((f) => !f.and?.some((subF) => subF.not?.lfxMembership))
+    }
+
     if (segmentId) {
       const segment = await new SegmentRepository(options).findById(segmentId)
 
@@ -1754,6 +1789,7 @@ class OrganizationRepository {
       }
       WHERE 1=1
         AND o."tenantId" = $(tenantId)
+        ${lfxMembershipFilterWhereClause}
         AND (${filterString})
     `
 
