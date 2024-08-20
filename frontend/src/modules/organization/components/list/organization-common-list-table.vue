@@ -1,79 +1,85 @@
 <template>
   <div>
-    <lf-table type="bordered" class="pb-12">
+    <lf-table class="pb-12">
       <thead>
         <tr>
-          <lf-table-head v-model="sort" property="displayName" :sticky="true">
-            ORGANIZATION
+          <lf-table-head v-model="sort" property="displayName" class="pl-3">
+            Organization
           </lf-table-head>
           <lf-table-head>
-            ASSOCIATED PROJECT GROUPS
+            Project groups
           </lf-table-head>
           <lf-table-head>
-            IDENTITIES
+            Identities
           </lf-table-head>
-          <lf-table-head :sticky="true" />
+          <lf-table-head />
         </tr>
       </thead>
 
       <tbody>
-        <tr v-for="(org, oi) of props.organizations" :key="org.id">
-          <lf-table-cell :sticky="true">
+        <router-link
+          v-for="(org, oi) of props.organizations"
+          :key="org.id"
+          class="table-row tr hover:bg-gray-100 transition h-16 max-h-16"
+          :to="{ name: 'organizationView', params: { id: org.id }, query: { projectGroup: '8e6ccf01-e7e6-4612-bbda-79b0aceb8a02' } }"
+        >
+          <lf-table-cell class="pl-3">
             <app-organization-name
               class="w-full"
-              :organization="org"
+              :organization="{ ...org, lfxMembership: true }"
             />
           </lf-table-cell>
           <lf-table-cell>
-            <div class="flex">
-              <el-popover placement="top-start" :disabled="getSegments(org.segments).length === 0">
+            <div class="flex py-0.5">
+              <el-popover v-if="getSegments(org.segments).length > 0" placement="top-start">
                 <template #reference>
-                  <div class="border border-gray-300 h-6 px-2 rounded-md bg-white text-sm whitespace-nowrap">
+                  <div class="border border-gray-200 h-6 px-1.5 rounded-md bg-white text-small gap-1 flex items-center whitespace-nowrap text-black">
+                    <lf-icon name="folders-line" :size="14" />
                     {{ pluralize('project group', getSegments(org.segments).length, true) }}
                   </div>
                 </template>
-
                 <div>
-                  <div class="mb-2 text-gray-400 text-2xs">
+                  <div class="mb-2.5 text-tiny font-semibold text-gray-400">
                     Project groups
                   </div>
-                  <div class="flex flex-wrap items-center gap-1">
-                    <div v-for="segment of getSegments(org.segments)" :key="segment.id">
-                      <el-tag type="info" size="small">
-                        {{ segment.name }}
-                      </el-tag>
+                  <div class="flex flex-col gap-4">
+                    <div
+                      v-for="segment in getSegments(org.segments)"
+                      :key="segment.id"
+                      class="flex items-center gap-2"
+                    >
+                      <lf-icon name="folder-line" :size="16" class="text-gray-400" />
+                      <span class="text-small text-black">{{ segment.name }}</span>
                     </div>
                   </div>
                 </div>
               </el-popover>
+              <div v-else>
+                -
+              </div>
             </div>
           </lf-table-cell>
           <lf-table-cell>
-            <div class="h-full flex items-center">
+            <div class="flex">
               <app-identities-horizontal-list-organizations
                 :organization="org"
                 :limit="5"
               />
             </div>
           </lf-table-cell>
-          <lf-table-cell :sticky="true" :style="{ 'z-index': props.organizations.length - oi + 2 }">
-            <div class="flex justify-end">
-              <lf-dropdown placement="bottom-end">
+          <lf-table-cell :style="{ 'z-index': props.organizations.length - oi + 2 }">
+            <div @click.stop.prevent>
+              <lf-dropdown placement="bottom-end" @click.stop.prevent>
                 <template #trigger>
-                  <lf-button type="secondary-ghost" :icon-only="true" size="small">
+                  <lf-button type="secondary-ghost-light" :icon-only="true" size="small" @click.prevent>
                     <i class="ri-more-fill !text-lg" />
                   </lf-button>
                 </template>
-                <lf-dropdown-item @click="isMergeDialogOpen = org">
-                  <i class="ri-link-m" />
-                  Merge organization
-                </lf-dropdown-item>
                 <lf-dropdown-item
-                  v-if="!org.isTeamOrganization"
                   @click="markAsTeamOrganization(org)"
                 >
                   <i class="ri-team-line" />
-                  Mark as team organization
+                  {{ org.isTeamOrganization ? 'Unmark' : 'Mark' }} as team organization
                 </lf-dropdown-item>
                 <lf-dropdown-separator />
                 <lf-dropdown-item type="danger" @click="deleteOrganization(org)">
@@ -83,7 +89,7 @@
               </lf-dropdown>
             </div>
           </lf-table-cell>
-        </tr>
+        </router-link>
       </tbody>
 
       <tfoot class="border-b border-gray-100" style="z-index: 0">
@@ -96,8 +102,6 @@
       <div class="absolute bottom-0 left-0 right-0 bg-white h-12" />
     </lf-table>
   </div>
-
-  <app-organization-merge-dialog v-model="isMergeDialogOpen" />
 </template>
 
 <script setup lang="ts">
@@ -111,14 +115,14 @@ import LfButton from '@/ui-kit/button/Button.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import LfDropdownSeparator from '@/ui-kit/dropdown/DropdownSeparator.vue';
 import LfTableCell from '@/ui-kit/table/TableCell.vue';
-import AppOrganizationMergeDialog from '@/modules/organization/components/organization-merge-dialog.vue';
-import { computed, ref } from 'vue';
+import { computed } from 'vue';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import Message from '@/shared/message/message';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { i18n } from '@/i18n';
 import pluralize from 'pluralize';
-import { getSegmentName } from '../../../../utils/segments';
+import { getSegmentName } from '@/utils/segments';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps<{
   sorting: string,
@@ -136,14 +140,12 @@ const sort = computed<string>({
   },
 });
 
-const isMergeDialogOpen = ref<any>(null);
-
 const markAsTeamOrganization = (organization: any) => {
   Message.info(null, {
     title: 'Organization is being updated',
   });
   OrganizationService.update(organization.id, {
-    isTeamOrganization: true,
+    isTeamOrganization: !organization.isTeamOrganization,
   }, organization.segments)
     .then(() => {
       Message.closeAll();
@@ -188,6 +190,12 @@ const getSegments = (segments: string[]): {id: string, name: string}[] => segmen
 
 <script lang="ts">
 export default {
-  name: 'AppOrganizationListTable',
+  name: 'AppOrganizationComonListTable',
 };
 </script>
+
+<style lang="scss">
+.table-row {
+  vertical-align: inherit;
+}
+</style>

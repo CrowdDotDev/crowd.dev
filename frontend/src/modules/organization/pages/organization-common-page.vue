@@ -7,8 +7,12 @@
       :search-config="organizationSearchFilter"
       :saved-views-config="commonOrganizationSavedViews"
       hash="organizations"
+      class="pb-1"
       @fetch="fetch($event)"
     />
+    <div class="pb-4 text-small text-gray-400">
+      {{ pluralize('organization', totalOrganizations, true) }}
+    </div>
     <app-organization-common-list-table
       v-model:sorting="sorting"
       :organizations="organizations"
@@ -41,6 +45,7 @@ import { Pagination } from '@/shared/types/Pagination';
 import { Organization } from '@/modules/organization/types/Organization';
 import AppPagination from '@/shared/pagination/pagination.vue';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import pluralize, { plural } from 'pluralize';
 
 const { listProjectGroups } = useLfSegmentsStore();
 
@@ -74,14 +79,25 @@ const getOrganizations = (body?: any) => {
   })
     .then((data: Pagination<Organization>) => {
       organizations.value = data.rows;
-      totalOrganizations.value = data.count;
     })
     .catch((err: Error) => {
       organizations.value = [];
-      totalOrganizations.value = 0;
     })
     .finally(() => {
       loading.value = false;
+    });
+};
+
+const getOrganizationsCount = () => {
+  OrganizationService.organizationsList({
+    excludeSegments: true,
+    limit: 1,
+  })
+    .then((data: Pagination<Organization>) => {
+      totalOrganizations.value = data.count;
+    })
+    .catch((err: Error) => {
+      totalOrganizations.value = 0;
     });
 };
 
@@ -115,6 +131,7 @@ onMounted(() => {
   listProjectGroups({
     reset: true,
   } as any);
+  getOrganizationsCount();
 });
 </script>
 

@@ -41,18 +41,18 @@
     }
 
     tbody {
-      tr:not(:last-child) {
-        @apply border-b border-gray-100;
+      tr, .tr {
+        &:not(:last-child) {
+          @apply border-b border-gray-100;
+        }
       }
 
-      tr {
-        td {
-          @apply py-4;
-        }
+      td {
+        @apply py-4;
+      }
 
-        td:not(:last-child) {
-          @apply pr-3;
-        }
+      td:not(:last-child) {
+        @apply pr-3;
       }
     }
 
@@ -65,13 +65,11 @@
     @apply border-t border-x border-gray-100 shadow-sm rounded-lg;
 
     table {
-      tr {
-        td, th {
-          @apply py-5 pr-5;
+      td, th {
+        @apply py-5 pr-5;
 
-          &:first-child {
-            @apply pl-5;
-          }
+        &:first-child {
+          @apply pl-5;
         }
       }
 

@@ -1,5 +1,5 @@
 <template>
-  <div class="mb-4">
+  <div :class="filterList.length > 0 ? 'mb-4' : ''">
     <div class="flex justify-end pb-4 gap-4">
       <lf-filter-search
         v-if="props.searchConfig"
