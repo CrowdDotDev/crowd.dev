@@ -169,7 +169,7 @@ const deleteOrganization = (organization: any) => {
     Message.info(null, {
       title: 'Organization is being deleted',
     });
-    OrganizationService.destroyAll([organization.id])
+    OrganizationService.destroyAll([organization.id], organization.segments)
       .then(() => {
         Message.closeAll();
         Message.success(i18n('entities.organization.destroy.success'));
