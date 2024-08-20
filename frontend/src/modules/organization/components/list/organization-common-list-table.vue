@@ -54,7 +54,7 @@
                   </div>
                 </div>
               </el-popover>
-              <div v-else>
+              <div v-else class="text-black">
                 -
               </div>
             </div>
@@ -94,7 +94,7 @@
 
       <tfoot class="border-b border-gray-100" style="z-index: 0">
         <tr>
-          <lf-table-cell :sticky="true" colspan="2" style="z-index: 0">
+          <lf-table-cell class="py-4" :sticky="true" colspan="2" style="z-index: 0">
             <slot name="pagination" />
           </lf-table-cell>
         </tr>

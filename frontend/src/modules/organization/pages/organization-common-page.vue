@@ -10,26 +10,36 @@
       class="pb-1"
       @fetch="fetch($event)"
     />
-    <div class="pb-4 text-small text-gray-400">
-      {{ pluralize('organization', totalOrganizations, true) }}
-    </div>
-    <app-organization-common-list-table
-      v-model:sorting="sorting"
-      :organizations="organizations"
-      @update:sorting="getOrganizations"
-      @reload="getOrganizations()"
+    <div
+      v-if="loading"
+      class="h-16 !relative !min-h-5 flex justify-center items-center"
     >
-      <template #pagination>
-        <app-pagination
-          :total="totalOrganizations"
-          :page-size="Number(pagination.perPage)"
-          :current-page="pagination.page || 1"
-          :hide-sorting="true"
-          @change-current-page="onPaginationChange({ page: $event })"
-          @change-page-size="onPaginationChange({ perPage: $event })"
-        />
-      </template>
-    </app-organization-common-list-table>
+      <div class="animate-spin w-fit">
+        <div class="custom-spinner" />
+      </div>
+    </div>
+    <div v-else>
+      <div class="pb-4 text-small text-gray-400">
+        {{ pluralize('organization', totalOrganizations, true) }}
+      </div>
+      <app-organization-common-list-table
+        v-model:sorting="sorting"
+        :organizations="organizations"
+        @update:sorting="getOrganizations"
+        @reload="getOrganizations()"
+      >
+        <template #pagination>
+          <app-pagination
+            :total="pagination.total"
+            :page-size="Number(pagination.perPage)"
+            :current-page="pagination.page || 1"
+            :hide-sorting="true"
+            @change-current-page="onPaginationChange({ page: $event })"
+            @change-page-size="onPaginationChange({ perPage: $event })"
+          />
+        </template>
+      </app-organization-common-list-table>
+    </div>
   </div>
 </template>
 
@@ -60,6 +70,7 @@ const savedBody = ref({});
 const pagination = ref({
   page: 1,
   perPage: 20,
+  total: 0,
 });
 
 const sorting = ref('displayName_ASC');
@@ -72,6 +83,7 @@ const getOrganizations = (body?: any) => {
     ...savedBody.value,
     ...body,
   };
+  loading.value = true;
   OrganizationService.organizationsList({
     ...savedBody.value,
     orderBy: sorting.value,
@@ -79,9 +91,11 @@ const getOrganizations = (body?: any) => {
   })
     .then((data: Pagination<Organization>) => {
       organizations.value = data.rows;
+      pagination.value.total = data.count;
     })
     .catch((err: Error) => {
       organizations.value = [];
+      pagination.value.total = 0;
     })
     .finally(() => {
       loading.value = false;
@@ -104,9 +118,6 @@ const getOrganizationsCount = () => {
 const fetch = ({
   filter, body,
 }: FilterQuery) => {
-  if (!loading.value) {
-    loading.value = true;
-  }
   getOrganizations({
     ...body,
     filter,
