@@ -104,7 +104,22 @@ const props = defineProps({
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
-const currentOrganizations = computed(() => props.member.organizations.filter((o) => !o.memberOrganizations?.dateEnd));
+const currentOrganizations = computed(() => {
+  const orgsWithNoEndDate = props.member.organizations
+    .filter((o) => o.memberOrganizations?.dateStart && !o.memberOrganizations?.dateEnd);
+
+  // If there are organizations with no endDate
+  if (orgsWithNoEndDate.length) {
+    // Sort by startDate descending and pick the most recent one
+    return [orgsWithNoEndDate.sort(
+      (firstOrg, secondaryOrg) => new Date(secondaryOrg.memberOrganizations?.dateStart) - new Date(firstOrg.memberOrganizations?.dateStart),
+    )[0]];
+  }
+
+  // If there are no organizations with only startDate, return all with startDate and endDate
+  return props.member.organizations.filter((o) => !o.memberOrganizations?.dateEnd);
+});
+
 const slicedOrganizations = computed(() => currentOrganizations.value.slice(0, 3));
 const remainingOrganizations = computed(() => currentOrganizations.value.slice(3));
 </script>
