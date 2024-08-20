@@ -1,6 +1,12 @@
 import { ProcessDataHandler } from '../../types'
 import { GitlabActivityType, GitlabApiData } from './types'
-import { IActivityData, IMemberData, PlatformType, MemberIdentityType } from '@crowd/types'
+import {
+  IActivityData,
+  IMemberData,
+  PlatformType,
+  MemberIdentityType,
+  MemberAttributeName,
+} from '@crowd/types'
 import { GITLAB_GRID } from './grid'
 import {
   ProjectSchema,
@@ -10,11 +16,13 @@ import {
   MergeRequestSchema,
   UserSchema,
   IssueNoteSchema,
+  DiscussionNoteSchema,
+  MergeRequestNoteSchema,
 } from '@gitbeaker/rest'
 import { generateSourceIdHash } from '../../helpers'
 
 const parseUser = ({ data }: { data: UserSchema }): IMemberData => {
-  return {
+  const member: IMemberData = {
     identities: [
       {
         platform: PlatformType.GITLAB,
@@ -25,11 +33,22 @@ const parseUser = ({ data }: { data: UserSchema }): IMemberData => {
     ],
     displayName: data.name,
     attributes: {
-      name: data.name,
-      avatar: data.avatar_url,
-      url: data.web_url,
+      [MemberAttributeName.URL]: {
+        [PlatformType.GITLAB]: data.web_url || '',
+      },
+      [MemberAttributeName.AVATAR_URL]: {
+        [PlatformType.GITLAB]: data.avatar_url || '',
+      },
     },
   }
+
+  if (data.bot) {
+    member.attributes[MemberAttributeName.IS_BOT] = {
+      [PlatformType.GITLAB]: true,
+    }
+  }
+
+  return member
 }
 
 const parseIssueOpened = ({
@@ -89,7 +108,7 @@ const parseIssueComment = ({
   user,
   pathWithNamespace,
 }: {
-  data: IssueNoteSchema
+  data: IssueNoteSchema | DiscussionNoteSchema
   projectId: string
   user: IMemberData
   pathWithNamespace: string
@@ -146,62 +165,62 @@ const parseMergeRequestClosed = ({
     type: GitlabActivityType.MERGE_REQUEST_CLOSED,
     member: user,
     timestamp: new Date(data.closed_at).toISOString(),
-    sourceId: data.id.toString(),
+    // GITLAB_MERGE_REQUEST_CLOSED
+    sourceId: `gen-GLMRC_${data.id}_${user.identities[0].value}_${new Date(
+      data.closed_at,
+    ).toISOString()}`,
+    sourceParentId: data.id.toString(),
     channel: `https://gitlab.com/${pathWithNamespace}`,
     score: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_CLOSED].score,
     isContribution: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_CLOSED].isContribution,
   }
 }
 
-const parseCommit = ({
+const parseMergeRequestMerged = ({
   data,
-  projectId,
   user,
   pathWithNamespace,
 }: {
-  data: CommitSchema
+  data: MergeRequestSchema
   projectId: string
   user: IMemberData
   pathWithNamespace: string
 }): IActivityData => {
   return {
-    type: GitlabActivityType.AUTHORED_COMMIT,
+    type: GitlabActivityType.MERGE_REQUEST_MERGED,
     member: user,
-    timestamp: new Date(data.created_at).toISOString(),
-    sourceId: data.id,
-    sourceParentId: projectId,
-    url: data.web_url,
-    title: data.title,
-    body: data.message,
+    timestamp: new Date(data.merged_at).toISOString(),
+    // GITLAB_MERGE_REQUEST_MERGED
+    sourceId: `gen-GLMRM_${data.id}_${user.identities[0].value}_${new Date(
+      data.merged_at,
+    ).toISOString()}`,
+    sourceParentId: data.id.toString(),
     channel: `https://gitlab.com/${pathWithNamespace}`,
-    score: GITLAB_GRID[GitlabActivityType.AUTHORED_COMMIT].score,
-    isContribution: GITLAB_GRID[GitlabActivityType.AUTHORED_COMMIT].isContribution,
+    score: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_MERGED].score,
+    isContribution: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_MERGED].isContribution,
   }
 }
 
-const parseDiscussion = ({
+const parseMergeRequestComment = ({
   data,
-  projectId,
-  member,
+  user,
   pathWithNamespace,
 }: {
-  data: any
+  data: MergeRequestNoteSchema | DiscussionNoteSchema
   projectId: string
-  member: IMemberData
+  user: IMemberData
   pathWithNamespace: string
 }): IActivityData => {
   return {
-    type: GitlabActivityType.DISCUSSION_STARTED,
-    member,
+    type: GitlabActivityType.MERGE_REQUEST_COMMENT,
+    member: user,
     timestamp: new Date(data.created_at).toISOString(),
-    sourceId: data.id,
-    sourceParentId: projectId,
-    url: data.web_url,
-    title: '',
-    body: data.notes[0].body,
+    body: data.body,
+    sourceId: data.id.toString(),
+    sourceParentId: data.noteable_id.toString(),
     channel: `https://gitlab.com/${pathWithNamespace}`,
-    score: GITLAB_GRID[GitlabActivityType.DISCUSSION_STARTED].score,
-    isContribution: GITLAB_GRID[GitlabActivityType.DISCUSSION_STARTED].isContribution,
+    score: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_COMMENT].score,
+    isContribution: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_COMMENT].isContribution,
   }
 }
 

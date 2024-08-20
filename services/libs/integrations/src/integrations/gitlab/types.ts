@@ -7,10 +7,10 @@ import {
   IssueNoteSchema,
   MergeRequestSchema,
   MergeRequestNoteSchema,
+  DiscussionNoteSchema,
 } from '@gitbeaker/rest'
 
 export enum GitlabActivityType {
-  DISCUSSION_STARTED = 'discussion-started',
   MERGE_REQUEST_OPENED = 'merge_request-opened',
   MERGE_REQUEST_CLOSED = 'merge_request-closed',
   MERGE_REQUEST_REVIEW_REQUESTED = 'merge_request-review-requested',
@@ -24,7 +24,6 @@ export enum GitlabActivityType {
   FORK = 'fork',
   STAR = 'star',
   ISSUE_COMMENT = 'issue-comment',
-  DISCUSSION_COMMENT = 'discussion-comment',
   AUTHORED_COMMIT = 'authored-commit',
 }
 
@@ -41,6 +40,7 @@ export type GitlabStarData = GitlabActivityData<ProjectStarrerSchema>
 export type GitlabCommitData = GitlabActivityData<CommitSchema>
 export type GitlabIssueData = GitlabActivityData<IssueSchema>
 export type GitlabIssueCommentData = GitlabActivityData<IssueNoteSchema>
+export type GitlabDisccusionCommentData = GitlabActivityData<DiscussionNoteSchema>
 export type GitlabMergeRequestData = GitlabActivityData<MergeRequestSchema>
 export type GitlabMergeRequestCommentData = GitlabActivityData<MergeRequestNoteSchema>
 
@@ -60,8 +60,10 @@ export enum GitlabStreamType {
   ROOT = 'root',
   ISSUES = 'issues',
   ISSUE_COMMENTS = 'issue_comments',
+  ISSUE_DISCUSSIONS = 'issue_discussions',
   MERGE_REQUESTS = 'merge_requests',
   MERGE_REQUEST_COMMENTS = 'merge_request_comments',
+  MERGE_REQUEST_DISCUSSIONS = 'merge_request_discussions',
   COMMITS = 'commits',
   DISCUSSIONS = 'discussions',
   STARS = 'stars',

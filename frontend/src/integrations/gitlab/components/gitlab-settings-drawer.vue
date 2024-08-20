@@ -230,11 +230,16 @@ const connectedUser = computed(() => props.integration?.settings?.user || null);
 // Connected groups
 const connectedGroups = computed(() => props.integration?.settings?.groups || []);
 
+const pathToFullURL = (path: string) => `https://gitlab.com/${path}`;
+
 // All projects (user projects + group projects)
 const allProjects = computed(() => {
   const userProjects = props.integration?.settings?.userProjects || [];
   const groupProjects = Object.values(props.integration?.settings?.groupProjects || {}).flat();
-  return [...userProjects, ...groupProjects];
+  return [...userProjects, ...groupProjects].map((project) => ({
+    ...project,
+    web_url: pathToFullURL(project.path_with_namespace),
+  }));
 });
 
 const filteredProjects = computed(() => allProjects.value.filter((p: any) => p.path_with_namespace.toLowerCase().includes(search.value.toLowerCase())));

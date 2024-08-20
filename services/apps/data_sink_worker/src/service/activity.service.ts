@@ -8,6 +8,7 @@ import {
 } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/activity.data'
 import ActivityRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/activity.repo'
 import GithubReposRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/githubRepos.repo'
+import GitlabReposRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/gitlabRepos.repo'
 import IntegrationRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/integration.repo'
 import MemberRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.repo'
 import SettingsRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/settings.repo'
@@ -476,6 +477,7 @@ export default class ActivityService extends LoggerBase {
           const txIntegrationRepo = new IntegrationRepository(txStore, this.log)
           const txMemberAffiliationService = new MemberAffiliationService(txStore, this.log)
           const txGithubReposRepo = new GithubReposRepository(txStore, this.log)
+          const txGitlabReposRepo = new GitlabReposRepository(txStore, this.log)
 
           segmentId = providedSegmentId
           if (!segmentId) {
@@ -484,10 +486,18 @@ export default class ActivityService extends LoggerBase {
               tenantId,
               activity.channel,
             )
-            segmentId =
-              platform === PlatformType.GITHUB && repoSegmentId
-                ? repoSegmentId
-                : dbIntegration.segmentId
+            const gitlabRepoSegmentId = await txGitlabReposRepo.findSegmentForRepo(
+              tenantId,
+              activity.channel,
+            )
+
+            if (platform === PlatformType.GITLAB && gitlabRepoSegmentId) {
+              segmentId = gitlabRepoSegmentId
+            } else if (platform === PlatformType.GITHUB && repoSegmentId) {
+              segmentId = repoSegmentId
+            } else {
+              segmentId = dbIntegration.segmentId
+            }
           }
 
           // find existing activity

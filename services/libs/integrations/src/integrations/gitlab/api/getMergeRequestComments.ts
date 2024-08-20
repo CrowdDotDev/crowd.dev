@@ -26,14 +26,16 @@ export const getMergeRequestComments = async ({
 
   const mergeRequestComments = response.data as MergeRequestNoteSchema[]
 
+  const filteredComments = mergeRequestComments.filter((comment) => comment.system === false)
+
   const users = await Promise.all(
-    mergeRequestComments.map((comment) => getUser(api, comment.author.id)),
+    filteredComments.map((comment) => getUser(api, comment.author.id)),
   )
 
-  ctx.log.info({ mergeRequestComments, users }, 'mergeRequestComments')
+  ctx.log.info({ filteredComments, users }, 'mergeRequestComments')
 
   return {
-    data: mergeRequestComments.map((comment, index) => ({
+    data: filteredComments.map((comment, index) => ({
       data: comment,
       user: users[index],
     })),

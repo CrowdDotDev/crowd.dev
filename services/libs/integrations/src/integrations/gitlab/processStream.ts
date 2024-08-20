@@ -17,6 +17,7 @@ import { getForks } from './api/getForks'
 import { getUser } from './api/getUser'
 import { getIssueComments } from './api/getIssueComments'
 import { getMergeRequestComments } from './api/getMergeRequestComments'
+import { getIssueDiscussions } from './api/getIssueDiscussions'
 
 interface GitlabStreamHandler {
   (
@@ -50,12 +51,14 @@ const handleRootStream: GitlabRootStreamHandler = async (ctx, data) => {
   }
 
   for (const { id, path_with_namespace } of data.projects) {
-    const streamTypes = [
-      GitlabStreamType.ISSUES,
-      GitlabStreamType.MERGE_REQUESTS,
-      GitlabStreamType.STARS,
-      GitlabStreamType.FORKS,
-    ]
+    const streamTypes = ctx.onboarding
+      ? [
+          GitlabStreamType.ISSUES,
+          GitlabStreamType.MERGE_REQUESTS,
+          GitlabStreamType.STARS,
+          GitlabStreamType.FORKS,
+        ]
+      : [GitlabStreamType.STARS, GitlabStreamType.FORKS]
 
     for (const streamType of streamTypes) {
       await ctx.publishStream<GitlabBasicStream>(`${streamType}:${id}:firstPage`, {
@@ -108,11 +111,40 @@ const handleIssuesStream: GitlabStreamHandler = async (ctx, api, data) => {
         page: 1,
       },
     )
+
+    await ctx.publishStream<GitlabBasicStream>(
+      `${GitlabStreamType.ISSUE_DISCUSSIONS}:${data.projectId}:${item.data.id}:firstPage`,
+      {
+        projectId: data.projectId,
+        pathWithNamespace: data.pathWithNamespace,
+        meta: {
+          issueIId: item.data.iid,
+        },
+        page: 1,
+      },
+    )
   }
 }
 
 const handleIssueCommentsStream: GitlabStreamHandler = async (ctx, api, data) => {
   const result = await getIssueComments({
+    api,
+    projectId: data.projectId,
+    issueIId: data.meta.issueIId as number,
+    page: data.page,
+    ctx,
+  })
+  await handleApiResult(
+    ctx,
+    result,
+    GitlabActivityType.ISSUE_COMMENT,
+    data.projectId,
+    data.pathWithNamespace,
+  )
+}
+
+const handleIssueDiscussionsStream: GitlabStreamHandler = async (ctx, api, data) => {
+  const result = await getIssueDiscussions({
     api,
     projectId: data.projectId,
     issueIId: data.meta.issueIId as number,
@@ -270,6 +302,9 @@ const handler: ProcessStreamHandler = async (ctx) => {
         break
       case GitlabStreamType.ISSUE_COMMENTS:
         await handleIssueCommentsStream(ctx, api, data as GitlabBasicStream)
+        break
+      case GitlabStreamType.ISSUE_DISCUSSIONS:
+        await handleIssueDiscussionsStream(ctx, api, data as GitlabBasicStream)
         break
       case GitlabStreamType.MERGE_REQUESTS:
         await handleMergeRequestsStream(ctx, api, data as GitlabBasicStream)

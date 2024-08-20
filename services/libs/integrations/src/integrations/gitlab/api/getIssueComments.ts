@@ -18,21 +18,24 @@ export const getIssueComments = async ({
 }): Promise<GitlabApiResult<GitlabIssueCommentData[]>> => {
   const perPage = 100
 
+  // top level notes
   const response = await api.IssueNotes.all(projectId, issueIId, {
     showExpanded: true,
     page,
     perPage,
   })
 
-  const issues = response.data as IssueNoteSchema[]
+  const notes = response.data as IssueNoteSchema[]
 
-  const users = await Promise.all(issues.map((issue) => getUser(api, issue.author.id)))
+  const filteredNotes = notes.filter((note) => note.system === false)
 
-  ctx.log.info({ issues, users }, 'issues')
+  const users = await Promise.all(filteredNotes.map((note) => getUser(api, note.author.id)))
+
+  ctx.log.info({ filteredNotes, users }, 'issue notes')
 
   return {
-    data: issues.map((issue, index) => ({
-      data: issue,
+    data: filteredNotes.map((note, index) => ({
+      data: note,
       user: users[index],
     })),
     nextPage: response.paginationInfo.next,
