@@ -137,9 +137,24 @@ export default class MemberService extends LoggerBase {
         }
 
         if (organizations.length > 0) {
-          // remove dups
-          const uniqOrganizations = uniqby(organizations, 'id')
-          await orgService.addToMember(tenantId, segmentId, id, uniqOrganizations)
+          const uniqOrgs = uniqby(organizations, 'id')
+          const orgService = new OrganizationService(txStore, this.log)
+
+          const orgsToAdd = await Promise.all(
+            uniqOrgs.map(async (org) => {
+              // Check if the org was already added to the member in the past
+              // and it doesn't contain dateStart or dateEnd
+              const existingMemberOrgs = await orgService.findMemberOrganizations(id, org.id)
+              const hasDates = existingMemberOrgs.some(
+                (existingOrg) => existingOrg.dateStart || existingOrg.dateEnd,
+              )
+              return hasDates ? null : org
+            }),
+          ).then((orgs) => orgs.filter(Boolean))
+
+          if (orgsToAdd.length > 0) {
+            await orgService.addToMember(tenantId, segmentId, id, orgsToAdd)
+          }
         }
 
         return {
@@ -304,11 +319,6 @@ export default class MemberService extends LoggerBase {
               source: data.source,
             })
           }
-
-          if (organizations.length > 0) {
-            await orgService.addToMember(tenantId, segmentId, id, organizations)
-            updated = true
-          }
         }
 
         const emailIdentities = data.identities.filter(
@@ -327,10 +337,25 @@ export default class MemberService extends LoggerBase {
         }
 
         if (organizations.length > 0) {
-          // remove dups
-          const uniqOrganizations = uniqby(organizations, 'id')
-          await orgService.addToMember(tenantId, segmentId, id, uniqOrganizations)
-          updated = true
+          const uniqOrgs = uniqby(organizations, 'id')
+          const orgService = new OrganizationService(txStore, this.log)
+
+          const orgsToAdd = await Promise.all(
+            uniqOrgs.map(async (org) => {
+              // Check if the org was already added to the member in the past
+              // and it doesn't contain dateStart or dateEnd
+              const existingMemberOrgs = await orgService.findMemberOrganizations(id, org.id)
+              const hasDates = existingMemberOrgs.some(
+                (existingOrg) => existingOrg.dateStart || existingOrg.dateEnd,
+              )
+              return hasDates ? null : org
+            }),
+          ).then((orgs) => orgs.filter(Boolean))
+
+          if (orgsToAdd.length > 0) {
+            await orgService.addToMember(tenantId, segmentId, id, orgsToAdd)
+            updated = true
+          }
         }
 
         return { updated, organizations }
