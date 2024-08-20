@@ -1,5 +1,5 @@
 <template>
-  <div v-if="member.organizations.length" class="flex flex-col gap-3">
+  <div v-if="member.organizations.length && currentOrganizations.length" class="flex flex-col gap-3">
     <router-link
       v-for="organization in slicedOrganizations"
       :key="organization.id"
