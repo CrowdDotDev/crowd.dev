@@ -304,11 +304,11 @@ class OrganizationRepository {
 
   static findLfxMembershipInFilters(filter: any): any {
     if (!filter) return null
-  
+
     if (filter.not?.lfxMembership) {
       return filter.not.lfxMembership
     }
-  
+
     if (Array.isArray(filter.and)) {
       for (const subFilter of filter.and) {
         const result = OrganizationRepository.findLfxMembershipInFilters(subFilter)
@@ -317,7 +317,7 @@ class OrganizationRepository {
         }
       }
     }
-  
+
     return null
   }
 
