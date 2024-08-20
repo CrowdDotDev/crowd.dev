@@ -22,7 +22,7 @@ export enum OrganizationIdentityType {
 }
 
 export interface OrganizationIdentity {
-    organizationId?: string;
+    organizationId?: string | null;
     platform: Platform;
     type: OrganizationIdentityType;
     value: string;

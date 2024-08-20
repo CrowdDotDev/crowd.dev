@@ -84,6 +84,9 @@ const update = (email: string, data: Partial<OrganizationIdentity>) => {
       return {
         ...i,
         ...data,
+        verified: false,
+        sourceId: null,
+        organizationId: null,
       };
     }
     return i;
