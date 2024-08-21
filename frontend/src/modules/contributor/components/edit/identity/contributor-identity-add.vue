@@ -1,5 +1,5 @@
 <template>
-  <lf-modal v-model="isModalOpen">
+  <lf-modal v-model="isModalOpen" class="!overflow-visible">
     <template #default="{ close }">
       <div class="px-6 pt-4 pb-10">
         <div class="flex items-center justify-between pb-6">
@@ -133,7 +133,7 @@ const props = defineProps<{
 const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void}>();
 
 const memberStore = useMemberStore();
-const { updateContributor } = useContributorStore();
+const { createContributorIdentities } = useContributorStore();
 
 const sending = ref<boolean>(false);
 
@@ -171,12 +171,7 @@ const platform = (platform: string) => CrowdIntegrations.getConfig(platform);
 
 const addIdentities = () => {
   sending.value = true;
-  updateContributor(props.contributor.id, {
-    identities: [
-      ...props.contributor.identities,
-      ...form,
-    ],
-  })
+  createContributorIdentities(props.contributor.id, form)
     .then(() => {
       Message.success('Identities successfully added');
       isModalOpen.value = false;

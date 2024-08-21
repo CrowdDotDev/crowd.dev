@@ -1,24 +1,37 @@
+import { SegmentType } from '@crowd/types'
 import { IMemberSegmentAggregates } from '../members/types'
 import { IDbOrganizationAggregateData } from '../organizations'
 import { QueryExecutor } from '../queryExecutor'
 
+function groupByField(segmentType: SegmentType) {
+  switch (segmentType) {
+    case SegmentType.SUB_PROJECT:
+      return 's.id'
+    case SegmentType.PROJECT:
+      return 's."parentId"'
+    case SegmentType.PROJECT_GROUP:
+      return 's."grandparentId"'
+    case SegmentType.NO_SEGMENT:
+      return null
+  }
+
+  throw new Error(`Invalid segment type: ${segmentType}`)
+}
+
 export async function getOrgAggregates(
   qx: QueryExecutor,
   organizationId: string,
+  groupBy: SegmentType,
 ): Promise<IDbOrganizationAggregateData[]> {
+  const segmentColumn = groupByField(groupBy)
+  const segmentJoinClause = segmentColumn ? 'JOIN segments s ON s.id = a."segmentId"' : ''
+  const groupByColumns = segmentColumn ? '1, 2, 3' : '1, 3'
+
   return qx.select(
     `
-      WITH
-        segments_with_children AS (
-          SELECT
-              UNNEST(ARRAY["id", "parentId", "grandparentId"]) AS segment_id,
-              s.id AS subproject
-          FROM segments s
-          WHERE type = 'subproject'
-        )
       SELECT
           o."id" AS "organizationId",
-          s.segment_id AS "segmentId",
+          ${segmentColumn} AS "segmentId",
           o."tenantId",
           COALESCE(MIN(a.timestamp), '1970-01-01') AS "joinedAt",
           MAX(a.timestamp) AS "lastActive",
@@ -28,9 +41,9 @@ export async function getOrgAggregates(
           COALESCE(ROUND(AVG(a.score)), 0) AS "avgContributorEngagement"
       FROM activities a
       JOIN organizations o ON o."id" = a."organizationId"
-      JOIN segments_with_children s ON s.subproject = a."segmentId"
+      ${segmentJoinClause}
       WHERE a."organizationId" = $(organizationId)
-      GROUP BY o."id", s.segment_id, o."tenantId"
+      GROUP BY ${groupByColumns}
     `,
     {
       organizationId,
@@ -41,20 +54,13 @@ export async function getOrgAggregates(
 export async function getMemberAggregates(
   qx: QueryExecutor,
   memberId: string,
+  groupBy: SegmentType,
 ): Promise<IMemberSegmentAggregates[]> {
   return qx.select(
     `
-      WITH
-          segments_with_children AS (
-            SELECT
-              UNNEST(ARRAY["id", "parentId", "grandparentId"]) AS segment_id,
-              s.id AS subproject
-            FROM segments s
-            WHERE type = 'subproject'
-          )
       SELECT
           m."id" AS "memberId",
-          s.segment_id AS "segmentId",
+          ${groupByField(groupBy)} AS "segmentId",
           m."tenantId",
           COUNT(DISTINCT a.id) AS "activityCount",
           MAX(a.timestamp) AS "lastActive",
@@ -63,9 +69,9 @@ export async function getMemberAggregates(
           ROUND(AVG((a.sentiment ->> 'sentiment')::NUMERIC(5, 2)), 2) AS "averageSentiment"
       FROM activities a
       JOIN members m ON m."id" = a."memberId"
-      JOIN segments_with_children s ON s.subproject = a."segmentId"
+      JOIN segments s ON s.id = a."segmentId"
       WHERE a."memberId" = $(memberId)
-      GROUP BY m."id", s.segment_id, m."tenantId"
+      GROUP BY 1, 2, 3
     `,
     {
       memberId,

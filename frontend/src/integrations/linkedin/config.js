@@ -25,6 +25,7 @@ export default {
   chartColor: '#2867B2',
   showProfileLink: true,
   urlPrefix: 'linkedin.com/in/',
+  orgUrlPrefix: 'linkedin.com/company/',
   activityDisplay: {
     showLinkToUrl: true,
   },

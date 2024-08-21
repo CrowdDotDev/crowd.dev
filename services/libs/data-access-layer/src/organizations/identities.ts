@@ -2,6 +2,7 @@ import { QueryExecutor } from '../queryExecutor'
 import { QueryOptions, QueryResult, queryTable } from '../utils'
 import { getOrgIdentities } from './organizations'
 import { IDbOrgIdentity, IDbOrgIdentityInsertInput, IDbOrgIdentityUpdateInput } from './types'
+import { OrganizationIdentityType } from '@crowd/types'
 
 export async function fetchOrgIdentities(
   qx: QueryExecutor,
@@ -145,6 +146,38 @@ export async function upsertOrgIdentities(
       })
     }
   }
+}
+
+export async function findOrgIdByDomain(
+  qx: QueryExecutor,
+  tenantId: string,
+  domains: string[],
+): Promise<string | null> {
+  const domainIdentityTypes = [
+    OrganizationIdentityType.PRIMARY_DOMAIN,
+    OrganizationIdentityType.ALTERNATIVE_DOMAIN,
+  ]
+  const result = await qx.selectOneOrNone(
+    `
+      SELECT "organizationId"
+      FROM "organizationIdentities"
+      WHERE "value" = ANY($(domains))
+        AND "tenantId" = $(tenantId)
+        AND "type" = ANY($(domainIdentityTypes))
+      LIMIT 1;
+    `,
+    {
+      domains,
+      tenantId,
+      domainIdentityTypes,
+    },
+  )
+
+  if (result) {
+    return result.organizationId
+  }
+
+  return null
 }
 
 export enum OrgIdentityField {

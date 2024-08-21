@@ -15,7 +15,6 @@ export default (app) => {
     `/tenant/:tenantId/organization/autocomplete`,
     safeWrap(require('./organizationAutocomplete').default),
   )
-  app.get(`/tenant/:tenantId/organization`, safeWrap(require('./organizationList').default))
   app.get(
     `/tenant/:tenantId/organization/active`,
     safeWrap(require('./organizationActiveList').default),
@@ -49,4 +48,7 @@ export default (app) => {
   )
 
   app.post(`/tenant/:tenantId/organization/id`, safeWrap(require('./organizationByIds').default))
+
+  // list organizations across all segments
+  app.post(`/tenant/:tenantId/organization/list`, safeWrap(require('./organizationList').default))
 }
