@@ -15,7 +15,11 @@ export const getStars = async ({
 }): Promise<GitlabApiResult<GitlabStarData[]>> => {
   const stars = (await api.Projects.allStarrers(projectId)) as ProjectStarrerSchema[]
 
-  const users = await Promise.all(stars.map((star) => getUser(api, star.user.id)))
+  const users = []
+  for (const star of stars) {
+    const user = await getUser(api, star.user.id, ctx)
+    users.push(user)
+  }
 
   ctx.log.info({ stars, users }, 'stars')
 

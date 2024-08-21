@@ -1311,66 +1311,64 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
     },
     [GitlabActivityType.MERGE_REQUEST_ASSIGNED]: {
       display: {
-        default: 'assigned pull request {self}',
-        short: 'assigned a pull request',
+        default: 'assigned merge request {self}',
+        short: 'assigned a merge request',
         channel: '{channel}',
         formatter: {
           channel: defaultGitlabChannelFormatter,
           self: (activity) => {
-            const prNumberAndTitle = `#${activity.url.split('/')[6]} ${activity.parent?.title}`
-            return `<a href="${activity.url}" style="max-width:150px" target="_blank">${prNumberAndTitle}</a> to <a href="/members/${activity.objectMemberId}" target="_blank">${activity.objectMember.displayName}</a>`
+            const prNumberAndTitle = `#${activity.sourceParentId} ${activity.parent?.title}`
+            return `<a href="${activity.parent.url}" style="max-width:150px" target="_blank">${prNumberAndTitle}</a> to <a href="/members/${activity.objectMemberId}" target="_blank">${activity.objectMember.displayName}</a>`
           },
         },
       },
       isContribution: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_ASSIGNED].isContribution,
     },
-    [GitlabActivityType.MERGE_REQUEST_REVIEWED]: {
+    [GitlabActivityType.MERGE_REQUEST_REVIEW_APPROVED]: {
       display: {
-        default: 'reviewed merge request {self}',
-        short: 'reviewed a merge request',
+        default: 'approved a merge request {self}',
+        short: 'approved a merge request',
         channel: '{channel}',
         formatter: {
           channel: defaultGitlabChannelFormatter,
           self: (activity) => {
-            const prNumberAndTitle = `#${activity.url.split('/')[6]} ${activity.parent?.title}`
-            return `<a href="${activity.url}" target="_blank">${prNumberAndTitle}</a>`
+            const prNumberAndTitle = `#${activity.sourceParentId} ${activity.parent?.title}`
+            return `<a href="${activity.parent.url}" style="max-width:150px" target="_blank">${prNumberAndTitle}</a> from <a href="/members/${activity.objectMemberId}" target="_blank">${activity.objectMember.displayName}</a>`
           },
         },
       },
-      isContribution: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_REVIEWED].isContribution,
+      isContribution: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_REVIEW_APPROVED].isContribution,
     },
-    [GitlabActivityType.MERGE_REQUEST_REVIEW_REQUESTED]: {
+    [GitlabActivityType.MERGE_REQUEST_REVIEW_CHANGES_REQUESTED]: {
       display: {
-        default: 'requested a review for pull request {self}',
-        short: 'requested a pull request review',
+        default: 'requested changes for a merge request {self}',
+        short: 'requested changes for a merge request',
         channel: '{channel}',
         formatter: {
           channel: defaultGitlabChannelFormatter,
           self: (activity) => {
-            const prNumberAndTitle = `#${activity.url.split('/')[6]} ${activity.parent?.title}`
-            return `<a href="${activity.url}" style="max-width:150px" target="_blank">${prNumberAndTitle}</a> from <a href="/members/${activity.objectMemberId}" target="_blank">${activity.objectMember.displayName}</a>`
-          },
-        },
-      },
-      isContribution: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_REVIEW_REQUESTED].isContribution,
-    },
-    [GitlabActivityType.MERGE_REQUEST_REVIEW_THREAD_COMMENT]: {
-      display: {
-        default: 'commented while reviewing merge request {self}',
-        short: 'commented on a pull request review',
-        channel: '{channel}',
-        formatter: {
-          channel: defaultGitlabChannelFormatter,
-          self: (activity) => {
-            const prNumberAndTitle = `#${activity.url.split('/')[6].split('#')[0]} ${
-              activity.parent?.title
-            }`
-            return `<a href="${activity.url}" style="max-width:150px" target="_blank">${prNumberAndTitle}</a>`
+            const prNumberAndTitle = `#${activity.sourceParentId} ${activity.parent?.title}`
+            return `<a href="${activity.parent.url}" style="max-width:150px" target="_blank">${prNumberAndTitle}</a> from <a href="/members/${activity.objectMemberId}" target="_blank">${activity.objectMember.displayName}</a>`
           },
         },
       },
       isContribution:
-        GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_REVIEW_THREAD_COMMENT].isContribution,
+        GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_REVIEW_CHANGES_REQUESTED].isContribution,
+    },
+    [GitlabActivityType.MERGE_REQUEST_REVIEW_REQUESTED]: {
+      display: {
+        default: 'requested a review for merge request {self}',
+        short: 'requested a merge request review',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultGitlabChannelFormatter,
+          self: (activity) => {
+            const prNumberAndTitle = `#${activity.sourceParentId} ${activity.parent?.title}`
+            return `<a href="${activity.parent.url}" style="max-width:150px" target="_blank">${prNumberAndTitle}</a> from <a href="/members/${activity.objectMemberId}" target="_blank">${activity.objectMember.displayName}</a>`
+          },
+        },
+      },
+      isContribution: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_REVIEW_REQUESTED].isContribution,
     },
     [GitActivityType.AUTHORED_COMMIT]: {
       display: {

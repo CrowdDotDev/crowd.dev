@@ -3,23 +3,23 @@ import { GitlabDisccusionCommentData, GitlabApiResult } from '../types'
 import { getUser } from './getUser'
 import { IProcessStreamContext } from '../../../types'
 
-export const getIssueDiscussions = async ({
+export const getMergeRequestDiscussions = async ({
   api,
   projectId,
-  issueIId,
+  mergeRequestIId,
   page,
   ctx,
 }: {
   api: InstanceType<typeof Gitlab>
   projectId: string
-  issueIId: number
+  mergeRequestIId: number
   page: number
   ctx: IProcessStreamContext
 }): Promise<GitlabApiResult<GitlabDisccusionCommentData[]>> => {
   const perPage = 100
 
   // discussions
-  const response = await api.IssueDiscussions.all(projectId, issueIId, {
+  const response = await api.MergeRequestDiscussions.all(projectId, mergeRequestIId, {
     showExpanded: true,
     page,
     perPage,
@@ -39,7 +39,7 @@ export const getIssueDiscussions = async ({
     }
   }
 
-  ctx.log.info({ filteredNotes, users }, 'issue discussions')
+  ctx.log.info({ filteredNotes, users }, 'merge request discussions')
 
   return {
     data: filteredNotes?.map((note, index) => ({

@@ -29,7 +29,11 @@ export const getIssues = async ({
 
   const issues = response.data as IssueSchema[]
 
-  const users = await Promise.all(issues.map((issue) => getUser(api, issue.author.id)))
+  const users = []
+  for (const issue of issues) {
+    const user = await getUser(api, issue.author.id, ctx)
+    users.push(user)
+  }
 
   ctx.log.info({ issues, users }, 'issues')
 

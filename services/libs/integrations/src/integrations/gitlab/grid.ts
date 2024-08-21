@@ -23,7 +23,11 @@ export const GITLAB_GRID: Record<GitlabActivityType, IActivityScoringGrid> = {
     score: 1,
     isContribution: true,
   },
-  [GitlabActivityType.MERGE_REQUEST_REVIEWED]: {
+  [GitlabActivityType.MERGE_REQUEST_REVIEW_APPROVED]: {
+    score: 1,
+    isContribution: true,
+  },
+  [GitlabActivityType.MERGE_REQUEST_REVIEW_CHANGES_REQUESTED]: {
     score: 1,
     isContribution: true,
   },
@@ -39,15 +43,7 @@ export const GITLAB_GRID: Record<GitlabActivityType, IActivityScoringGrid> = {
     score: 1,
     isContribution: true,
   },
-  [GitlabActivityType.MERGE_REQUEST_REVIEW_THREAD_COMMENT]: {
-    score: 1,
-    isContribution: true,
-  },
   [GitlabActivityType.ISSUE_COMMENT]: {
-    score: 1,
-    isContribution: true,
-  },
-  [GitlabActivityType.DISCUSSION_COMMENT]: {
     score: 1,
     isContribution: true,
   },
@@ -55,10 +51,7 @@ export const GITLAB_GRID: Record<GitlabActivityType, IActivityScoringGrid> = {
     score: 1,
     isContribution: true,
   },
-  [GitlabActivityType.DISCUSSION_STARTED]: {
-    score: 1,
-    isContribution: true,
-  },
+
   [GitlabActivityType.STAR]: {
     score: 1,
     isContribution: true,

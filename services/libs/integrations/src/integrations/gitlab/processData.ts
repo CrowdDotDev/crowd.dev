@@ -224,6 +224,101 @@ const parseMergeRequestComment = ({
   }
 }
 
+const parseMergeRequestApproved = ({
+  data,
+  user,
+  pathWithNamespace,
+}: {
+  data: DiscussionNoteSchema
+  projectId: string
+  user: IMemberData
+  pathWithNamespace: string
+}): IActivityData => {
+  return {
+    type: GitlabActivityType.MERGE_REQUEST_REVIEW_APPROVED,
+    member: user,
+    timestamp: new Date(data.created_at).toISOString(),
+    sourceId: data.id.toString(),
+    sourceParentId: data.noteable_id.toString(),
+    channel: `https://gitlab.com/${pathWithNamespace}`,
+    score: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_REVIEW_APPROVED].score,
+    isContribution: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_REVIEW_APPROVED].isContribution,
+  }
+}
+
+const parseMergeRequestChangesRequested = ({
+  data,
+  user,
+  pathWithNamespace,
+}: {
+  data: DiscussionNoteSchema
+  projectId: string
+  user: IMemberData
+  pathWithNamespace: string
+}): IActivityData => {
+  return {
+    type: GitlabActivityType.MERGE_REQUEST_REVIEW_CHANGES_REQUESTED,
+    member: user,
+    timestamp: new Date(data.created_at).toISOString(),
+    sourceId: data.id.toString(),
+    sourceParentId: data.noteable_id.toString(),
+    channel: `https://gitlab.com/${pathWithNamespace}`,
+    score: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_REVIEW_CHANGES_REQUESTED].score,
+    isContribution:
+      GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_REVIEW_CHANGES_REQUESTED].isContribution,
+  }
+}
+
+const parseMergeRequestReviewRequested = ({
+  data,
+  user,
+  relatedUser,
+  pathWithNamespace,
+}: {
+  data: DiscussionNoteSchema
+  projectId: string
+  user: IMemberData
+  relatedUser: IMemberData
+  pathWithNamespace: string
+}): IActivityData => {
+  return {
+    type: GitlabActivityType.MERGE_REQUEST_REVIEW_REQUESTED,
+    member: user,
+    objectMember: relatedUser,
+    timestamp: new Date(data.created_at).toISOString(),
+    sourceId: data.id.toString(),
+    sourceParentId: data.noteable_id.toString(),
+    channel: `https://gitlab.com/${pathWithNamespace}`,
+    score: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_REVIEW_REQUESTED].score,
+    isContribution: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_REVIEW_REQUESTED].isContribution,
+  }
+}
+
+const parseMergeRequestAssigned = ({
+  data,
+  user,
+  relatedUser,
+  pathWithNamespace,
+}: {
+  data: DiscussionNoteSchema
+  projectId: string
+  user: IMemberData
+  relatedUser: IMemberData
+  pathWithNamespace: string
+}): IActivityData => {
+  return {
+    type: GitlabActivityType.MERGE_REQUEST_ASSIGNED,
+    member: user,
+    objectMember: relatedUser,
+    timestamp: new Date(data.created_at).toISOString(),
+    sourceId: data.id.toString(),
+    sourceParentId: data.noteable_id.toString(),
+    channel: `https://gitlab.com/${pathWithNamespace}`,
+    score: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_ASSIGNED].score,
+    isContribution: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_ASSIGNED].isContribution,
+  }
+}
+
 const parseStar = ({
   data,
   user,
@@ -278,16 +373,24 @@ const handler: ProcessDataHandler = async (ctx) => {
   const apiData = ctx.data as GitlabApiData<any>
   const {
     type,
-    data: { data, user },
+    data: { data, user, relatedUser, relatedData },
     projectId,
     pathWithNamespace,
   } = apiData
 
   let activity: IActivityData
+  let relatedMember: IMemberData | undefined
 
   const member = parseUser({
     data: user,
   })
+
+  if (relatedUser) {
+    relatedMember = parseUser({
+      data: relatedUser,
+    })
+  }
+
   switch (type) {
     case GitlabActivityType.ISSUE_OPENED:
       activity = parseIssueOpened({
@@ -329,6 +432,14 @@ const handler: ProcessDataHandler = async (ctx) => {
         pathWithNamespace,
       })
       break
+    case GitlabActivityType.MERGE_REQUEST_MERGED:
+      activity = parseMergeRequestMerged({
+        data: data as MergeRequestSchema,
+        projectId,
+        user: member,
+        pathWithNamespace,
+      })
+      break
     case GitlabActivityType.MERGE_REQUEST_COMMENT:
       activity = parseMergeRequestComment({
         data: data as MergeRequestNoteSchema,
@@ -337,11 +448,37 @@ const handler: ProcessDataHandler = async (ctx) => {
         pathWithNamespace,
       })
       break
-    case GitlabActivityType.MERGE_REQUEST_MERGED:
-      activity = parseMergeRequestMerged({
-        data: data as MergeRequestSchema,
+    case GitlabActivityType.MERGE_REQUEST_REVIEW_APPROVED:
+      activity = parseMergeRequestApproved({
+        data: data as DiscussionNoteSchema,
         projectId,
         user: member,
+        pathWithNamespace,
+      })
+      break
+    case GitlabActivityType.MERGE_REQUEST_REVIEW_CHANGES_REQUESTED:
+      activity = parseMergeRequestChangesRequested({
+        data: data as DiscussionNoteSchema,
+        projectId,
+        user: member,
+        pathWithNamespace,
+      })
+      break
+    case GitlabActivityType.MERGE_REQUEST_REVIEW_REQUESTED:
+      activity = parseMergeRequestReviewRequested({
+        data: data as DiscussionNoteSchema,
+        projectId,
+        user: member,
+        relatedUser: relatedMember,
+        pathWithNamespace,
+      })
+      break
+    case GitlabActivityType.MERGE_REQUEST_ASSIGNED:
+      activity = parseMergeRequestAssigned({
+        data: data as DiscussionNoteSchema,
+        projectId,
+        user: member,
+        relatedUser: relatedMember,
         pathWithNamespace,
       })
       break

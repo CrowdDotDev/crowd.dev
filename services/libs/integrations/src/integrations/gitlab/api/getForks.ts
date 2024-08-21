@@ -20,7 +20,11 @@ export const getForks = async ({
     updatedAfter: since,
   })) as ProjectSchema[]
 
-  const users = await Promise.all(forks.map((fork) => getUser(api, fork.owner.id)))
+  const users = []
+  for (const fork of forks) {
+    const user = await getUser(api, fork.owner.id, ctx)
+    users.push(user)
+  }
 
   ctx.log.info({ forks, users }, 'forks')
 

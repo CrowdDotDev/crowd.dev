@@ -29,7 +29,11 @@ export const getMergeRequests = async ({
 
   const mergeRequests = response.data as MergeRequestSchema[]
 
-  const users = await Promise.all(mergeRequests.map((mr) => getUser(api, mr.author.id)))
+  const users = []
+  for (const mr of mergeRequests) {
+    const user = await getUser(api, mr.author.id, ctx)
+    users.push(user)
+  }
 
   return {
     data: mergeRequests.map((mr, index) => ({
