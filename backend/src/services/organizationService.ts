@@ -965,7 +965,7 @@ export default class OrganizationService extends LoggerBase {
 
       await SequelizeRepository.commitTransaction(transaction)
 
-      const searchSyncService = new SearchSyncService(this.options)
+      const searchSyncService = new SearchSyncService(this.options, SyncMode.ASYNCHRONOUS)
 
       for (const id of ids) {
         await searchSyncService.triggerRemoveOrganization(this.options.currentTenant.id, id)

@@ -18,6 +18,7 @@ import {
   upsertOrgAttributes,
   IDbOrgAttribute,
   markOrgAttributeDefault,
+  deleteOrgAttributesByOrganizationId,
 } from '@crowd/data-access-layer/src/organizations'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import {
@@ -38,7 +39,10 @@ import lodash, { uniq } from 'lodash'
 import Sequelize, { QueryTypes } from 'sequelize'
 import validator from 'validator'
 import { findManyLfxMemberships } from '@crowd/data-access-layer/src/lfx_memberships'
-import { fetchManyOrgSegments } from '@crowd/data-access-layer/src/organizations/segments'
+import {
+  cleanupForOganization,
+  fetchManyOrgSegments,
+} from '@crowd/data-access-layer/src/organizations/segments'
 import { OrganizationField, findOrgById } from '@crowd/data-access-layer/src/orgs'
 import { findAttribute } from '@crowd/data-access-layer/src/organizations/attributesConfig'
 import {
@@ -545,12 +549,7 @@ class OrganizationRepository {
     )
   }
 
-  static async destroy(
-    id,
-    options: IRepositoryOptions,
-    force = false,
-    destroyIfOnlyNoSegmentsLeft = true,
-  ) {
+  static async destroy(id, options: IRepositoryOptions, force = false) {
     const transaction = SequelizeRepository.getTransaction(options)
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
@@ -567,30 +566,21 @@ class OrganizationRepository {
       throw new Error404()
     }
 
-    if (destroyIfOnlyNoSegmentsLeft) {
-      await OrganizationRepository.excludeOrganizationsFromSegments([id], {
-        ...options,
-        transaction,
-      })
-      const org = await this.findById(id, options)
+    await OrganizationRepository.excludeOrganizationsFromAllSegments([id], {
+      ...options,
+      transaction,
+    })
 
-      if (org.segments.length === 0) {
-        await record.destroy({
-          transaction,
-          force,
-        })
-      }
-    } else {
-      await OrganizationRepository.excludeOrganizationsFromAllSegments([id], {
-        ...options,
-        transaction,
-      })
+    const qx = SequelizeRepository.getQueryExecutor(options)
 
-      await record.destroy({
-        transaction,
-        force,
-      })
-    }
+    await cleanupForOganization(qx, id)
+
+    await deleteOrgAttributesByOrganizationId(qx, id)
+
+    await record.destroy({
+      transaction,
+      force,
+    })
 
     await this._createAuditLog(AuditLogRepository.DELETE, record, record, options)
   }
