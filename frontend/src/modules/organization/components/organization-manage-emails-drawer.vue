@@ -38,6 +38,7 @@ import useOrganizationHelpers from '@/modules/organization/helpers/organization.
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import Message from '@/shared/message/message';
+import { Platform } from '@/shared/modules/platform/types/Platform';
 
 const props = defineProps<{
   modelValue: boolean,
@@ -87,6 +88,7 @@ const update = (email: string, data: Partial<OrganizationIdentity>) => {
         verified: false,
         sourceId: null,
         organizationId: null,
+        platform: Platform.CUSTOM,
       };
     }
     return i;

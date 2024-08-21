@@ -113,6 +113,7 @@ const updateDomain = () => {
         verified: false,
         integrationId: null,
         sourceId: null,
+        platform: 'custom',
       };
     }
     return i;

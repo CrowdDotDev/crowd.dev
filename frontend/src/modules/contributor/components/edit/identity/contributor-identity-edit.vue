@@ -131,6 +131,7 @@ const updateIdentity = () => {
     verified: false,
     integrationId: null,
     sourceId: null,
+    platform: form.type === 'email' ? 'custom' : form.platform,
   })
     .then(() => {
       Message.success('Identity updated successfully');

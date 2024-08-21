@@ -1,4 +1,4 @@
-import {IMemberIdentity, MemberIdentityType} from '@crowd/types'
+import { IMemberIdentity } from '@crowd/types'
 import {
   checkIdentityExistance,
   createMemberIdentity,
