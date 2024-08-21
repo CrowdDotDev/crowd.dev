@@ -338,14 +338,14 @@ export class MemberSyncService {
 
   public async syncMembers(
     memberId: string,
-    opts: { withAggs?: boolean } = {},
+    opts: { withAggs?: boolean } = { withAggs: true },
   ): Promise<IMemberSyncResult> {
     const syncMemberAggregates = async (memberId) => {
       let documentsIndexed = 0
       let memberData: IMemberSegmentAggregates[] = []
       try {
         const qx = repoQx(this.memberRepo)
-        for (const type of Object.values(SegmentType)) {
+        for (const type of Object.values(SegmentType).filter((t) => t !== SegmentType.NO_SEGMENT)) {
           memberData = memberData.concat(await getMemberAggregates(qx, memberId, type))
         }
       } catch (e) {
