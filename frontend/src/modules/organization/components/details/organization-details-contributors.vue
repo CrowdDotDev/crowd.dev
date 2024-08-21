@@ -221,6 +221,7 @@ const doGetMembersCount = () => {
       limit: 1,
       offset: 0,
       filter: orgFilter,
+      segments: selectedProjectGroup.value?.id ? [selectedProjectGroup.value?.id] : props.organization.segments,
     },
     true,
   )
@@ -241,6 +242,7 @@ const fetch = () => {
     offset: (pagination.value.page - 1) * pagination.value.perPage,
     limit: pagination.value.perPage,
     orderBy: sort.value,
+    segments: selectedProjectGroup.value?.id ? [selectedProjectGroup.value?.id] : props.organization.segments,
   })
     .then((data: Pagination<Member>) => {
       if (pagination.value.page > 1) {

@@ -282,7 +282,7 @@ const classFor = (path, exact = false, disabled = false) => {
   if (exact) {
     return {
       'pointer-events-none': disabled,
-      'is-active': route.path === path,
+      'is-active': route.path === path && !disabled,
     };
   }
 
@@ -291,7 +291,7 @@ const classFor = (path, exact = false, disabled = false) => {
 
   return {
     'pointer-events-none': disabled,
-    'is-active': active,
+    'is-active': active && !disabled,
   };
 };
 
