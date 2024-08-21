@@ -362,7 +362,7 @@ export class MemberSyncService {
 
   public async syncMembers(
     memberId: string,
-    opts: { withAggs?: boolean } = {},
+    opts: { withAggs?: boolean } = { withAggs: true },
   ): Promise<IMemberSyncResult> {
     const qx = repoQx(this.memberRepo)
 
