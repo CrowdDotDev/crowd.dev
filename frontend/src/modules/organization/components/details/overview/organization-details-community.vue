@@ -91,6 +91,9 @@ const doGetActivityCount = () => {
   console.log('fetching activity count');
   ActivityService.query(
     {
+      filter: {
+        organizationId: { in: [props.organization.id] }
+      },
       limit: 1,
       offset: 0,
       segments: selectedProjectGroup.value?.id ? [selectedProjectGroup.value?.id] : props.organization.segments,
