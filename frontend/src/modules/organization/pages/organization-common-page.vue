@@ -3,7 +3,7 @@
     <lf-filter
       ref="organizationFilter"
       v-model="filters"
-      :config="{}"
+      :config="organizationFilters"
       :search-config="organizationSearchFilter"
       :saved-views-config="commonOrganizationSavedViews"
       hash="organizations"
@@ -19,7 +19,7 @@
       </div>
     </div>
     <div v-else>
-      <div class="pb-4 text-small text-gray-400">
+      <div class="pb-4 text-small text-gray-400 -mt-4">
         {{ pluralize('organization', totalOrganizations, true) }}
       </div>
       <app-organization-common-list-table
@@ -46,7 +46,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import LfFilter from '@/shared/modules/filters/components/Filter.vue';
-import { organizationSearchFilter } from '@/modules/organization/config/filters/main';
+import { organizationFilters, organizationSearchFilter } from '@/modules/organization/config/filters/main';
 import { commonOrganizationSavedViews } from '@/modules/organization/config/saved-views/main';
 import { FilterQuery } from '@/shared/modules/filters/types/FilterQuery';
 import AppOrganizationCommonListTable from '@/modules/organization/components/list/organization-common-list-table.vue';
@@ -91,27 +91,14 @@ const getOrganizations = (body?: any) => {
   })
     .then((data: Pagination<Organization>) => {
       organizations.value = data.rows;
-      pagination.value.total = data.count;
-    })
-    .catch((err: Error) => {
-      organizations.value = [];
-      pagination.value.total = 0;
-    })
-    .finally(() => {
-      loading.value = false;
-    });
-};
-
-const getOrganizationsCount = () => {
-  OrganizationService.organizationsList({
-    excludeSegments: true,
-    limit: 1,
-  })
-    .then((data: Pagination<Organization>) => {
       totalOrganizations.value = data.count;
     })
     .catch((err: Error) => {
+      organizations.value = [];
       totalOrganizations.value = 0;
+    })
+    .finally(() => {
+      loading.value = false;
     });
 };
 
@@ -142,7 +129,6 @@ onMounted(() => {
   listProjectGroups({
     reset: true,
   } as any);
-  getOrganizationsCount();
 });
 </script>
 

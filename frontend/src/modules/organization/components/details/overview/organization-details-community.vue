@@ -18,14 +18,14 @@
             # of activities
           </p>
           <lf-loading
-            v-if="props.organization.activitySycning?.state === MergeActionState.IN_PROGRESS"
+            v-if="loadingActivityCount || props.organization.activitySycning?.state === MergeActionState.IN_PROGRESS"
             :count="1"
             height="1rem"
             width="4rem"
             class="rounded"
           />
           <p v-else class="text-small text-gray-600">
-            {{ props.organization.activityCount && formatNumber(props.organization.activityCount) || '-' }}
+            {{ activityCount && formatNumber(activityCount) || '-' }}
           </p>
         </article>
         <article class="px-4 h-full w-1/2 xl:w-1/3 xl:border-l border-gray-200">
@@ -52,6 +52,9 @@ import { onMounted, ref } from 'vue';
 import { MemberService } from '@/modules/member/member-service';
 import { MergeActionState } from '@/shared/modules/merge/types/MemberActions';
 import LfLoading from '@/ui-kit/loading/Loading.vue';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import { storeToRefs } from 'pinia';
+import { ActivityService } from '@/modules/activity/activity-service';
 
 const props = defineProps<{
   organization: Organization,
@@ -59,7 +62,11 @@ const props = defineProps<{
 
 const memberCount = ref<number>(0);
 const loadingMemberCount = ref<boolean>(true);
+const activityCount = ref<number>(0);
+const loadingActivityCount = ref<boolean>(true);
 const orgFilter = { organizations: { contains: [props.organization.id] } };
+
+const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
 
 const doGetMembersCount = () => {
   loadingMemberCount.value = true;
@@ -68,6 +75,7 @@ const doGetMembersCount = () => {
       limit: 1,
       offset: 0,
       filter: orgFilter,
+      segments: selectedProjectGroup.value?.id ? [selectedProjectGroup.value?.id] : props.organization.segments,
     },
     true,
   )
@@ -78,9 +86,33 @@ const doGetMembersCount = () => {
       loadingMemberCount.value = false;
     });
 };
+const doGetActivityCount = () => {
+  loadingActivityCount.value = true;
+  console.log('fetching activity count');
+  ActivityService.query(
+    {
+      limit: 1,
+      offset: 0,
+      segments: selectedProjectGroup.value?.id ? [selectedProjectGroup.value?.id] : props.organization.segments,
+    },
+    true,
+  )
+    .then((data) => {
+      console.log(data);
+      activityCount.value = data.count;
+    })
+    .finally(() => {
+      loadingActivityCount.value = false;
+    });
+};
+
+const loadData = () => {
+  doGetMembersCount();
+  doGetActivityCount();
+};
 
 onMounted(() => {
-  doGetMembersCount();
+  loadData();
 });
 </script>
 <script lang="ts">

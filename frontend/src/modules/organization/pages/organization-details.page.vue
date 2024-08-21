@@ -11,7 +11,7 @@
         @mouseout="hovered = false"
       >
         <div class="flex items-center flex-grow">
-          <lf-back :to="{ path: '/organizations' }" class="mr-2" @mouseover.stop @mouseout.stop>
+          <lf-back :to="{ path: hasSegments ? '/organizations' : '/admin' }" class="mr-2" @mouseover.stop @mouseout.stop>
             <lf-button type="secondary-ghost" :icon-only="true">
               <lf-icon name="arrow-left-s-line" />
             </lf-button>
@@ -102,7 +102,7 @@
 <script setup lang="ts">
 import LfTabs from '@/ui-kit/tabs/Tabs.vue';
 import LfTab from '@/ui-kit/tabs/Tab.vue';
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import LfBack from '@/ui-kit/back/Back.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
@@ -170,6 +170,8 @@ const handleTabChange = () => {
     scrollContainer.value.scrollTop = 0;
   }
 };
+
+const hasSegments = computed(() => selectedProjectGroup.value?.id);
 
 onMounted(() => {
   organization.value = null;
