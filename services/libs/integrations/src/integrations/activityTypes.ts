@@ -1146,7 +1146,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: true,
-      calculateSentiment: false,
+      calculateSentiment: true,
     },
     [GerritActivityType.PATCHSET_APPROVAL_CREATED]: {
       display: {
