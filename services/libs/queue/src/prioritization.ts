@@ -99,7 +99,7 @@ export class PrioritizedQueueEmitter {
       throw new Error(`Unknown priority level: ${priorityLevel}`)
     }
     const log = getServiceLogger()
-    log.info({ groupId, message }, '[DBGX] Sending message to queue!')
+    log.info({ groupId, message }, '[DBGX1] Sending message to queue!')
     return emitter.sendMessage(groupId, message, deduplicationId)
   }
 
