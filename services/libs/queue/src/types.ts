@@ -11,6 +11,10 @@ export interface IQueueConfig {
   name: string
 }
 
+export interface IQueueInitChannelConfig {
+  name: string
+}
+
 export type IQueueSendResult = RecordMetadata[] | SendMessageResult
 
 export type IQueueSendBulkResult = RecordMetadata[] | SendMessageBatchCommandOutput
@@ -32,8 +36,8 @@ export interface IQueueChannel {
 export interface IQueue {
   client: IQueueClient
   getClient(): IQueueClient
-  init(config: IQueueConfig): Promise<string>
-  getQueueConfig(queue: CrowdQueue): IQueueConfig
+  init(config: IQueueInitChannelConfig): Promise<string>
+  getQueueChannelConfig(queue: CrowdQueue): IQueueConfig
   start(
     processMessageFunction: IQueueProcessMessageHandler,
     maxConcurrentMessageProcessing: number,

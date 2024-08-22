@@ -62,6 +62,7 @@ export class PrioritizedQueueEmitter {
   public constructor(queue: IQueue, queueConf: IQueueConfig, parentLog: Logger) {
     for (const level of Object.values(QueuePriorityLevel)) {
       const config = { ...queueConf, name: `${queueConf.name}-${level}` }
+      parentLog.info({ conf: config }, `DBGX5 PRIORITIZED QUEUE EMITTER CONSTRUCTOR!`)
       this.emittersMap.set(level, new QueueEmitter(queue, config, parentLog))
     }
   }
@@ -74,7 +75,7 @@ export class PrioritizedQueueEmitter {
   }
 
   public async init(): Promise<void> {
-    await Promise.all(Array.from(this.emittersMap.values()).map((e) => e.queue.init(e.queueConf)))
+    await Promise.all(Array.from(this.emittersMap.values()).map((e) => e.init(e.queueConf)))
   }
 
   public async setMessageVisibilityTimeout(

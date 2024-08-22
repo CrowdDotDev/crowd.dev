@@ -1,6 +1,6 @@
-import { IQueueConfig } from '../../types'
+import { IQueueInitChannelConfig } from '../../types'
 
-export interface IKafkaConfig extends IQueueConfig {
+export interface IKafkaChannelConfig extends IQueueInitChannelConfig {
   partitionCount: number
 }
 

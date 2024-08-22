@@ -8,7 +8,7 @@ import {
   IQueueSendBulkResult,
   IQueueSendResult,
 } from '../../types'
-import { IKafkaConfig, IKafkaQueueStartOptions } from './types'
+import { IKafkaChannelConfig, IKafkaQueueStartOptions } from './types'
 import { Logger, LoggerBase } from '@crowd/logging'
 import { IQueueMessage, IQueueMessageBulk } from '@crowd/types'
 import { createHash } from 'crypto'
@@ -81,7 +81,7 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
     return this.client
   }
 
-  public async init(config: IKafkaConfig): Promise<string> {
+  public async init(config: IKafkaChannelConfig): Promise<string> {
     this.log.info({ config }, 'Initializing queue!')
 
     const admin = this.client.admin()
@@ -180,7 +180,7 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
   public async start(
     processMessage: IQueueProcessMessageHandler,
     maxConcurrentMessageProcessing,
-    queueConf: IKafkaConfig,
+    queueConf: IKafkaChannelConfig,
     options?: IKafkaQueueStartOptions,
   ): Promise<void> {
     const MAX_RETRY_FOR_CONNECTING_CONSUMER = 5
@@ -277,7 +277,7 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
     return message.offset.toString()
   }
 
-  public getQueueConfig(queue: CrowdQueue): IKafkaConfig {
+  public getQueueChannelConfig(queue: CrowdQueue): IKafkaChannelConfig {
     return configMap[queue]
   }
 }

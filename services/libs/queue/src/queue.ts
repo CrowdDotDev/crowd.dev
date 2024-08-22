@@ -1,7 +1,7 @@
 import { IS_PROD_ENV, IS_STAGING_ENV } from '@crowd/common'
 import { Logger, LoggerBase } from '@crowd/logging'
 import { IQueueMessage, IQueueMessageBulk } from '@crowd/types'
-import { IQueue, IQueueChannel, IQueueConfig } from './types'
+import { IQueue, IQueueChannel, IQueueConfig, IQueueInitChannelConfig } from './types'
 export abstract class QueueBase extends LoggerBase {
   private readonly channelName: string
   private channelUrl: string | undefined
@@ -55,12 +55,11 @@ export abstract class QueueBase extends LoggerBase {
     return queueSuffix
   }
 
-  public async init() {
-    const url = await this.queue.init({
-      ...this.queueConf,
+  public async init(config: IQueueInitChannelConfig): Promise<void> {
+    this.channelUrl = await this.queue.init({
+      ...config,
       name: this.getChannel().name,
     })
-    this.channelUrl = url
   }
 }
 
