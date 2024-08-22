@@ -134,9 +134,23 @@ export default class MemberService extends LoggerBase {
         }
 
         if (organizations.length > 0) {
-          // remove dups
-          const uniqOrganizations = uniqby(organizations, 'id')
-          await orgService.addToMember(tenantId, segmentId, id, uniqOrganizations)
+          const uniqOrgs = uniqby(organizations, 'id')
+          const orgService = new OrganizationService(txStore, this.log)
+
+          const orgsToAdd = (
+            await Promise.all(
+              uniqOrgs.map(async (org) => {
+                // Check if the org was already added to the member in the past, including deleted ones.
+                // If it was, we ignore this org to prevent from adding it again.
+                const existingMemberOrgs = await orgService.findMemberOrganizations(id, org.id)
+                return existingMemberOrgs.length > 0 ? null : org
+              }),
+            )
+          ).filter((org) => org !== null)
+
+          if (orgsToAdd.length > 0) {
+            await orgService.addToMember(tenantId, segmentId, id, orgsToAdd)
+          }
         }
 
         return {
@@ -301,11 +315,6 @@ export default class MemberService extends LoggerBase {
               source: data.source,
             })
           }
-
-          if (organizations.length > 0) {
-            await orgService.addToMember(tenantId, segmentId, id, organizations)
-            updated = true
-          }
         }
 
         const emailIdentities = data.identities.filter(
@@ -324,10 +333,24 @@ export default class MemberService extends LoggerBase {
         }
 
         if (organizations.length > 0) {
-          // remove dups
-          const uniqOrganizations = uniqby(organizations, 'id')
-          await orgService.addToMember(tenantId, segmentId, id, uniqOrganizations)
-          updated = true
+          const uniqOrgs = uniqby(organizations, 'id')
+          const orgService = new OrganizationService(txStore, this.log)
+
+          const orgsToAdd = (
+            await Promise.all(
+              uniqOrgs.map(async (org) => {
+                // Check if the org was already added to the member in the past, including deleted ones.
+                // If it was, we ignore this org to prevent from adding it again.
+                const existingMemberOrgs = await orgService.findMemberOrganizations(id, org.id)
+                return existingMemberOrgs.length > 0 ? null : org
+              }),
+            )
+          ).filter((org) => org !== null)
+
+          if (orgsToAdd.length > 0) {
+            await orgService.addToMember(tenantId, segmentId, id, orgsToAdd)
+            updated = true
+          }
         }
 
         return { updated, organizations }

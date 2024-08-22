@@ -1,5 +1,5 @@
 export * from './base'
 export * from './identities'
-export * from './roles'
+export * from './organizations'
 export * from './segments'
 export * from './others'

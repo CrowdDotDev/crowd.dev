@@ -85,12 +85,17 @@ export async function runMemberAffiliationsUpdate(db: DbStore, memberId: string)
     .head()
     .value()
 
-  const fullCase = `
-    CASE
-      ${orgCases.map(condition).join('\n')}
-      ELSE ${nullableOrg(fallbackOrganizationId)}
-    END::UUID
-  `
+  let fullCase: string
+  if (orgCases.length > 0) {
+    fullCase = `
+          CASE
+            ${orgCases.map(condition).join('\n')}
+            ELSE ${nullableOrg(fallbackOrganizationId)}
+          END::UUID
+        `
+  } else {
+    fullCase = `${nullableOrg(fallbackOrganizationId)}::UUID`
+  }
 
   await qx.result(
     `

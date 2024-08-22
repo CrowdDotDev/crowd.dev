@@ -27,7 +27,7 @@ const useOrganizationHelpers = () => {
     })
     .map((i) => ({
       ...i,
-      value: CrowdIntegrations.getConfig(i.platform)?.organization?.identityHandle?.({
+      handle: CrowdIntegrations.getConfig(i.platform)?.organization?.identityHandle?.({
         identityHandle: i.value,
       }) || '',
       url: CrowdIntegrations.getConfig(i.platform)?.organization?.identityLink?.({
@@ -68,7 +68,14 @@ const useOrganizationHelpers = () => {
     ...alternativeDomains(organization),
   ];
 
-  const website = (organization: Organization) => primaryDomains(organization)?.[0];
+  const website = (organization: Organization) => {
+    const primary = primaryDomains(organization);
+    const verified = primary.find((i) => i.verified);
+    if (verified) {
+      return verified;
+    }
+    return primary?.[0];
+  };
 
   const affiliatedProfiles = (organization: Organization) => organization.identities
     .filter((i) => OrganizationIdentityType.AFFILIATED_PROFILE === i.type);

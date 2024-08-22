@@ -43,7 +43,13 @@ watch(() => props.modelValue, (value) => {
   immediate: true,
 });
 
+let lastValue = '';
+
 const changeValue = debounce((search: string) => {
+  if (search.trim() === lastValue) {
+    return;
+  }
+  lastValue = search.trim();
   let key: FeatureEventKey | null = null;
   const { name: routeName, hash: routeHash } = router.currentRoute.value;
 
@@ -66,7 +72,7 @@ const changeValue = debounce((search: string) => {
     });
   }
 
-  emit('update:modelValue', search);
+  emit('update:modelValue', lastValue);
 }, 400);
 
 </script>

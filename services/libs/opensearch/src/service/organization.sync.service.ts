@@ -18,6 +18,7 @@ import {
   IOrganizationFullAggregatesOpensearch,
   OpenSearchIndex,
   OrganizationIdentityType,
+  SegmentType,
 } from '@crowd/types'
 import { IndexedEntityType } from '../repo/indexing.data'
 import { IndexingRepository } from '../repo/indexing.repo'
@@ -257,6 +258,7 @@ export class OrganizationSyncService {
         while (organizationIds.length > 0) {
           const { organizationsSynced, documentsIndexed } = await this.syncOrganizations(
             organizationIds,
+            { withAggs: true },
           )
 
           organizationCount += organizationsSynced
@@ -298,25 +300,20 @@ export class OrganizationSyncService {
     )
   }
 
-  /**
-   * Gets segment specific aggregates of an organization and syncs to opensearch
-   * Aggregate data is gathered for each segment in separate sql queries
-   * Queries are run in paralel with respect to CONCURRENT_DATABASE_QUERIES constant
-   * After all segment aggregates of an organization is gathered, we calculate the
-   * aggregates for parent segments and push it to syncStream.
-   * SyncStream sends documents to opensearch in bulk with respect to BULK_INDEX_DOCUMENT_BATCH_SIZE
-   * @param organizationIds organizationIds to be synced to opensearch
-   * @returns
-   */
-  public async syncOrganizations(organizationIds: string[]): Promise<IOrganizationSyncResult> {
+  public async syncOrganizations(
+    organizationIds: string[],
+    opts: { withAggs?: boolean } = { withAggs: true },
+  ): Promise<IOrganizationSyncResult> {
     const syncOrgAggregates = async (organizationIds) => {
       let documentsIndexed = 0
       const organizationIdsToIndex = []
       for (const organizationId of organizationIds) {
-        let orgData: IDbOrganizationAggregateData[]
+        let orgData: IDbOrganizationAggregateData[] = []
         try {
           const qx = repoQx(this.orgRepo)
-          orgData = await getOrgAggregates(qx, organizationId)
+          for (const type of Object.values(SegmentType)) {
+            orgData = orgData.concat(await getOrgAggregates(qx, organizationId, type))
+          }
         } catch (e) {
           this.log.error(e, 'Failed to get organization aggregates!')
           throw e
@@ -350,7 +347,13 @@ export class OrganizationSyncService {
       }
     }
 
-    const syncResults = await syncOrgAggregates(organizationIds)
+    const syncResults = opts.withAggs
+      ? await syncOrgAggregates(organizationIds)
+      : {
+          organizationsSynced: 0,
+          documentsIndexed: 0,
+          organizationIdsToIndex: organizationIds,
+        }
 
     const syncOrgsToOpensearchForMergeSuggestions = async (organizationIds) => {
       for (const orgId of organizationIds) {

@@ -40,6 +40,7 @@ import {
   EncryptionConfiguration,
   IOpenStatusApiConfig,
   GithubTokenConfiguration,
+  IRedditConfig,
 } from './configTypes'
 
 // TODO-kube
@@ -163,3 +164,5 @@ export const SEARCH_SYNC_API_CONFIG: ISearchSyncApiConfig =
 
 export const OPEN_STATUS_API_CONFIG: IOpenStatusApiConfig =
   config.get<IOpenStatusApiConfig>('openStatusApi')
+
+export const REDDIT_CONFIG: IRedditConfig = config.get<IRedditConfig>('reddit')

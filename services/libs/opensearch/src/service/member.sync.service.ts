@@ -9,6 +9,7 @@ import {
   IMemberOrganization,
   IMemberWithAggregatesForMergeSuggestions,
   MemberAttributeType,
+  SegmentType,
 } from '@crowd/types'
 import { IndexedEntityType } from '../repo/indexing.data'
 import { IndexingRepository } from '../repo/indexing.repo'
@@ -335,13 +336,18 @@ export class MemberSyncService {
     )
   }
 
-  public async syncMembers(memberId: string): Promise<IMemberSyncResult> {
+  public async syncMembers(
+    memberId: string,
+    opts: { withAggs?: boolean } = { withAggs: true },
+  ): Promise<IMemberSyncResult> {
     const syncMemberAggregates = async (memberId) => {
       let documentsIndexed = 0
-      let memberData: IMemberSegmentAggregates[]
+      let memberData: IMemberSegmentAggregates[] = []
       try {
         const qx = repoQx(this.memberRepo)
-        memberData = await getMemberAggregates(qx, memberId)
+        for (const type of Object.values(SegmentType).filter((t) => t !== SegmentType.NO_SEGMENT)) {
+          memberData = memberData.concat(await getMemberAggregates(qx, memberId, type))
+        }
       } catch (e) {
         this.log.error(e, 'Failed to get organization aggregates!')
         throw e
@@ -371,7 +377,12 @@ export class MemberSyncService {
       }
     }
 
-    const syncResults = await syncMemberAggregates(memberId)
+    const syncResults = opts.withAggs
+      ? await syncMemberAggregates(memberId)
+      : {
+          membersSynced: 0,
+          documentsIndexed: 0,
+        }
 
     const syncMembersToOpensearchForMergeSuggestions = async (memberId) => {
       const qx = repoQx(this.memberRepo)

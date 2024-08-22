@@ -120,7 +120,9 @@ export class WorkerQueueReceiver extends PrioritizedQueueReciever {
         case SearchSyncWorkerQueueMessageType.SYNC_MEMBER:
           if (data.memberId) {
             // await this.memberBatchProcessor.addToBatch(data.memberId)
-            await this.initMemberService().syncMembers(data.memberId)
+            await this.initMemberService().syncMembers(data.memberId, {
+              withAggs: data.withAggs ? data.withAggs : true,
+            })
           }
 
           break

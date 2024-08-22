@@ -1,4 +1,5 @@
 import { Platform } from '@/shared/modules/platform/types/Platform';
+import { MergeAction } from '@/shared/modules/merge/types/MemberActions';
 
 export interface OrganizationAttribute extends Record<string, any[]>{
   default: any;
@@ -26,9 +27,18 @@ export interface OrganizationIdentity {
     type: OrganizationIdentityType;
     value: string;
     verified: boolean;
-    sourceId?: string;
+    sourceId?: string | null;
     tenantId?: string;
     integrationId?: string;
+}
+
+export interface MemberOrganization {
+  id: string;
+  title: string;
+  organizationId?: string;
+  dateStart?: string;
+  dateEnd?: string;
+  source: OrganizationSource;
 }
 
 export interface Organization {
@@ -71,12 +81,7 @@ export interface Organization {
   updatedAt: string;
   updatedById: string;
   url: string;
-  memberOrganizations: {
-    title: string;
-    dateStart?: string;
-    dateEnd?: string;
-    source: OrganizationSource;
-  }
+  memberOrganizations: MemberOrganization
   lfxMembership?: {
     accountDomain: string;
     accountName: string;
@@ -99,4 +104,5 @@ export interface Organization {
     updatedAt: string;
     usageEndDate: string;
   }
+  activitySycning: MergeAction | null;
 }

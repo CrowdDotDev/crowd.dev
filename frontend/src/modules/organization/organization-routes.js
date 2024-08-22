@@ -50,18 +50,6 @@ export default [
         ],
       },
       {
-        name: 'organizationCreate',
-        path: '/organizations/new',
-        component: OrganizationFormPage,
-        meta: {
-          auth: true,
-          eventKey: PageEventKey.NEW_ORGANIZATION,
-        },
-        beforeEnter: [
-          PermissionGuard(LfPermission.organizationCreate),
-        ],
-      },
-      {
         name: 'organizationView',
         path: '/organizations/:id',
         component: OrganizationDetailsPage,

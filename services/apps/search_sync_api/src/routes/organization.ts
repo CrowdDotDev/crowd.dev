@@ -13,10 +13,12 @@ router.post(
       req.opensearch,
       req.log,
     )
-    const { organizationIds } = req.body
+    const { organizationIds, withAggs } = req.body
     try {
-      req.log.trace(`Calling organizationSyncService.syncOrganizations for ${organizationIds}`)
-      await organizationSyncService.syncOrganizations(organizationIds)
+      req.log.info(
+        `Calling organizationSyncService.syncOrganizations for ${organizationIds}, withAggs: ${withAggs}`,
+      )
+      await organizationSyncService.syncOrganizations(organizationIds, { withAggs })
       res.sendStatus(200)
     } catch (error) {
       req.log.error(error)

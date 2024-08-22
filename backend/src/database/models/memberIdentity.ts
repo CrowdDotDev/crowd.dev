@@ -2,17 +2,18 @@ import { DataTypes } from 'sequelize'
 
 export default (sequelize) => {
   const memberIdentity = sequelize.define('memberIdentity', {
-    memberId: {
+    id: {
       type: DataTypes.UUID,
       primaryKey: true,
     },
+    memberId: {
+      type: DataTypes.UUID,
+    },
     platform: {
       type: DataTypes.TEXT,
-      primaryKey: true,
     },
     value: {
       type: DataTypes.TEXT,
-      primaryKey: true,
     },
     type: {
       type: DataTypes.TEXT,

@@ -133,7 +133,7 @@ const fetchMembersToMergeCount = () => {
 };
 
 const loading = ref(true);
-const tableLoading = ref(false);
+const tableLoading = ref(true);
 
 const doGetMembersCount = () => {
   (
@@ -179,6 +179,7 @@ const fetch = ({
       orderBy,
     },
   }).finally(() => {
+    tableLoading.value = false;
     loading.value = false;
   });
 };
