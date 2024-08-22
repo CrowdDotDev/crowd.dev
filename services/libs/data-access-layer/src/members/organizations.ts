@@ -10,6 +10,7 @@ export async function fetchMemberOrganizations(
       SELECT "id", "organizationId", "dateStart", "dateEnd", "title", "memberId", "source"
       FROM "memberOrganizations"
       WHERE "memberId" = $(memberId)
+      AND "deletedAt" IS NULL
       ORDER BY
           CASE
               WHEN "dateEnd" IS NULL AND "dateStart" IS NOT NULL THEN 1

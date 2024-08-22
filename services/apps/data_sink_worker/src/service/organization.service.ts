@@ -6,6 +6,7 @@ import {
   addOrgToSyncRemote,
   addOrgsToMember,
   addOrgsToSegments,
+  findMemberOrganizations,
   findOrgAttributes,
   findOrgBySourceId,
   findOrgByVerifiedIdentity,
@@ -20,6 +21,7 @@ import {
 import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import {
+  IMemberOrganization,
   IOrganization,
   IOrganizationIdSource,
   OrganizationIdentityType,
@@ -166,6 +168,15 @@ export class OrganizationService extends LoggerBase {
     )
 
     await addOrgsToMember(qe, memberId, orgs)
+  }
+
+  public async findMemberOrganizations(
+    memberId: string,
+    organizationId: string,
+  ): Promise<IMemberOrganization[]> {
+    const qe = dbStoreQx(this.store)
+
+    return findMemberOrganizations(qe, memberId, organizationId)
   }
 
   public async processOrganizationEnrich(
