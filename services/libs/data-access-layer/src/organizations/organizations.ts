@@ -1,4 +1,4 @@
-import { IOrganizationIdSource, SyncStatus } from '@crowd/types'
+import { IMemberOrganization, IOrganizationIdSource, SyncStatus } from '@crowd/types'
 import { QueryExecutor } from '../queryExecutor'
 import { prepareSelectColumns } from '../utils'
 import {
@@ -11,8 +11,6 @@ import {
   IQueryNumberOfNewOrganizations,
   IQueryTimeseriesOfNewOrganizations,
 } from './types'
-import { generateUUIDv1 } from '@crowd/common'
-import { DbStore } from '@crowd/database'
 
 const ORG_SELECT_COLUMNS = [
   'id',
@@ -88,7 +86,7 @@ export async function findOrgBySourceId(
             select oi."organizationId"
             from "organizationIdentities" oi
             join "organizationSegments" os on oi."organizationId" = os."organizationId"
-            where 
+            where
                   oi.platform = $(platform)
                   and oi."sourceId" = $(sourceId)
                   and os."segmentId" =  $(segmentId)
@@ -97,7 +95,7 @@ export async function findOrgBySourceId(
         )
     select ${prepareSelectColumns(ORG_SELECT_COLUMNS, 'o')}
     from organizations o
-    where o."tenantId" = $(tenantId) 
+    where o."tenantId" = $(tenantId)
     and o.id in (select distinct "organizationId" from "organizationsWithSourceIdAndSegment");`,
     { tenantId, sourceId, segmentId, platform },
   )
@@ -132,7 +130,7 @@ export async function findOrgByVerifiedIdentity(
     with "organizationsWithIdentity" as (
               select oi."organizationId"
               from "organizationIdentities" oi
-              where 
+              where
                     oi."tenantId" = $(tenantId)
                     and oi.platform = $(platform)
                     and lower(oi.value) = lower($(value))
@@ -141,7 +139,7 @@ export async function findOrgByVerifiedIdentity(
           )
           select  ${prepareSelectColumns(ORG_SELECT_COLUMNS, 'o')}
           from organizations o
-          where o."tenantId" = $(tenantId) 
+          where o."tenantId" = $(tenantId)
           and o.id in (select distinct "organizationId" from "organizationsWithIdentity")
           limit 1;
     `,
@@ -197,7 +195,7 @@ export async function getOrgIdsToEnrich(
                                 max("lastActive")     as "lastActive"
                         from "organizationSegmentsAgg"
                         group by "organizationId")
-  select o.id as "organizationId", 
+  select o.id as "organizationId",
          o."tenantId"
   from organizations o
           inner join activity_data ad on ad."organizationId" = o.id
@@ -281,6 +279,24 @@ export async function addOrgsToMember(
   `
 
   await qe.selectNone(query, parameters)
+}
+
+export async function findMemberOrganizations(
+  qe: QueryExecutor,
+  memberId: string,
+  organizationId: string,
+): Promise<IMemberOrganization[]> {
+  return await qe.select(
+    `
+    select *
+    from "memberOrganizations"
+    where "memberId" = $(memberId) and "organizationId" = $(organizationId)
+    `,
+    {
+      memberId,
+      organizationId,
+    },
+  )
 }
 
 export async function addOrgToSyncRemote(
