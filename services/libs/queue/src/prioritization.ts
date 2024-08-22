@@ -45,6 +45,7 @@ export abstract class PrioritizedQueueReciever {
   }
 
   public async start(): Promise<void> {
+    this.log.info({ conf: this.levelReceiver.queueConf }, `DBGX5 PRIORITIZED QUEUE START() CALLED!`)
     await this.levelReceiver.start(this.levelReceiver.queueConf)
   }
 
