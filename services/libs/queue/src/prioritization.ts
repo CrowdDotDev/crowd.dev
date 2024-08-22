@@ -45,7 +45,7 @@ export abstract class PrioritizedQueueReciever {
   }
 
   public async start(): Promise<void> {
-    await this.levelReceiver.start(this.levelReceiver.queueConf)
+    await this.levelReceiver.start()
   }
 
   public stop(): void {
