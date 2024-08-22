@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "lib": ["es2017", "dom", "ES2021.String"],
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "sourceMap": true,
+    "target": "es2017",
+    "types": ["node", "jest"],
+    "baseUrl": "./src",
+    "paths": {
+      "@crowd/*": ["../../services/libs/*/dist"],
+      "@/*": ["./*"]
+    }
+  },
+  "include": [
+    "src",
+    "src/database/initializers/sample-data.json",
+    "src/database/initializers/suggested-tasks.json"
+  ],
+  "exclude": ["node_modules"]
+}
