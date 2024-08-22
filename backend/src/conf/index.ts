@@ -1,8 +1,8 @@
 import config from 'config'
 import { IRedisConfiguration } from '@crowd/redis'
 import { ISearchSyncApiConfig } from '@crowd/opensearch'
-import { IQueueEnvironment } from '@crowd/queue'
 import { IDatabaseConfig } from '@crowd/data-access-layer/src/database'
+import { IKafkaClientConfig } from '@crowd/queue/src/vendors/kafka/types'
 import {
   S3Configuration,
   DbConfiguration,
@@ -72,7 +72,7 @@ export const IS_CLOUD_ENV: boolean = IS_PROD_ENV || IS_STAGING_ENV
 export const ENCRYPTION_CONFIG: EncryptionConfiguration =
   config.get<EncryptionConfiguration>('encryption')
 
-export const QUEUE_CONFIG: IQueueEnvironment = config.get<IQueueEnvironment>('queue')
+export const QUEUE_CONFIG: IKafkaClientConfig = config.get<IKafkaClientConfig>('queue')
 
 export const REDIS_CONFIG: IRedisConfiguration = config.get<IRedisConfiguration>('redis')
 

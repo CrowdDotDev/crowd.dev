@@ -96,16 +96,6 @@ services:
     networks:
       - crowd-bridge
 
-  sqs:
-    build:
-      context: scaffold/sqs
-    restart: unless-stopped
-    ports:
-      - 9324:9324
-      - 9325:9325
-    networks:
-      - crowd-bridge
-
   nginx:
     image: nginx:1.24-alpine
     restart: unless-stopped

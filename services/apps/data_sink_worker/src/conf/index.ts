@@ -1,13 +1,13 @@
 import { SERVICE } from '@crowd/common'
 import { IDatabaseConfig } from '@crowd/data-access-layer/src/database'
 import { IUnleashConfig } from '@crowd/feature-flags'
+import { ISearchSyncApiConfig } from '@crowd/opensearch'
+import { IKafkaClientConfig } from '@crowd/queue/src/vendors/kafka/types'
 import { IRedisConfiguration } from '@crowd/redis'
 import { ISentimentClientConfig } from '@crowd/sentiment'
 import { ITemporalConfig } from '@crowd/temporal'
-import config from 'config'
-import { ISearchSyncApiConfig } from '@crowd/opensearch'
 import { QueuePriorityLevel } from '@crowd/types'
-import { IQueueEnvironment } from '@crowd/queue'
+import config from 'config'
 export interface ISlackAlertingConfig {
   url: string
 }
@@ -33,11 +33,11 @@ export const REDIS_CONFIG = (): IRedisConfiguration => {
   return redisConfig
 }
 
-let queueConfig: IQueueEnvironment
-export const QUEUE_CONFIG = (): IQueueEnvironment => {
+let queueConfig: IKafkaClientConfig
+export const QUEUE_CONFIG = (): IKafkaClientConfig => {
   if (queueConfig) return queueConfig
 
-  queueConfig = config.get<IQueueEnvironment>('queue')
+  queueConfig = config.get<IKafkaClientConfig>('queue')
   return queueConfig
 }
 

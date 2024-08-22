@@ -20,7 +20,7 @@
     "@crowd/types": "workspace:*",
     "@crowd/opensearch": "workspace:*",
     "@crowd/integrations": "workspace:*",
-    "@opensearch-project/opensearch": "^1.2.0",
+    "@opensearch-project/opensearch": "^2.11.0",
     "config": "^3.3.9",
     "tsx": "^4.7.1",
     "typescript": "^5.0.4"

@@ -29,12 +29,6 @@ export interface IQueueChannel {
   url?: string
 }
 
-export type IQueueEnvironment = {
-  vendor: QueueVendor
-} & {
-  [key in QueueVendor]: IQueueClientConfig
-}
-
 export interface IQueue {
   client: IQueueClient
   getClient(): IQueueClient

@@ -1,4 +1,4 @@
-import { getEnv } from '@crowd/common'
+import { getEnv, IS_DEV_ENV } from '@crowd/common'
 import AWS from 'aws-sdk'
 
 const awsS3Config = {
@@ -40,7 +40,9 @@ export async function uploadToS3(key: string, body: unknown): Promise<string> {
     const region = process.env['CROWD_S3_AWS_REGION']
     let url: string
 
-    if (endpoint && endpoint.indexOf('amazonaws.com') === -1) {
+    if (IS_DEV_ENV) {
+      url = `http://localhost:${process.env['CROWD_S3_PORT']}/${bucketName}/${key}`
+    } else if (endpoint && endpoint.indexOf('amazonaws.com') === -1) {
       // Custom endpoint (e.g., Oracle Cloud)
       url = `${endpoint}/${bucketName}/${key}`
     } else {

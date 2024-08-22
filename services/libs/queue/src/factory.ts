@@ -1,32 +1,25 @@
 /* eslint-disable no-case-declarations */
 
-import { Kafka } from 'kafkajs'
-import { IQueue, IQueueEnvironment, QueueVendor } from './types'
-import { KafkaQueueService } from './vendors/kafka/client'
 import { getServiceChildLogger } from '@crowd/logging'
+import { Kafka } from 'kafkajs'
+import { IQueue } from './types'
+import { KafkaQueueService } from './vendors/kafka/client'
 import { IKafkaClientConfig } from './vendors/kafka/types'
 
 export class QueueFactory {
-  static createQueueService(config: IQueueEnvironment): IQueue {
+  static createQueueService(config: IKafkaClientConfig): IQueue {
     const log = getServiceChildLogger('queue-service-factory')
 
-    log.info({ config }, 'Creating queue service...')
-
-    switch (config.vendor) {
-      case QueueVendor.KAFKA:
-        const kafkaConfig = config[config.vendor] as IKafkaClientConfig
-        const kafkaClient = new Kafka({
-          clientId: kafkaConfig.clientId,
-          brokers: kafkaConfig.brokers.split(','),
-          retry: {
-            initialRetryTime: 100,
-            retries: 8,
-          },
-          ...(kafkaConfig.extra ? JSON.parse(kafkaConfig.extra) : {}),
-        })
-        return new KafkaQueueService(kafkaClient, log)
-      default:
-        throw new Error('Unsupported queue type!')
-    }
+    log.info({ config }, 'Creating kafka queue service...')
+    const kafkaClient = new Kafka({
+      clientId: config.clientId,
+      brokers: config.brokers.split(','),
+      retry: {
+        initialRetryTime: 100,
+        retries: 8,
+      },
+      ...(config.extra ? JSON.parse(config.extra) : {}),
+    })
+    return new KafkaQueueService(kafkaClient, log)
   }
 }

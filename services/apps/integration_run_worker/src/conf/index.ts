@@ -2,7 +2,7 @@ import { SERVICE } from '@crowd/common'
 import { IDatabaseConfig } from '@crowd/data-access-layer/src/database'
 import { IUnleashConfig } from '@crowd/feature-flags'
 import { ISearchSyncApiConfig } from '@crowd/opensearch'
-import { IQueueEnvironment } from '@crowd/queue'
+import { IKafkaClientConfig } from '@crowd/queue/src/vendors/kafka/types'
 import { IRedisConfiguration } from '@crowd/redis'
 import { QueuePriorityLevel } from '@crowd/types'
 import config from 'config'
@@ -20,11 +20,11 @@ export interface ILokiDbConfig {
   token: string
 }
 
-let queueConfig: IQueueEnvironment
-export const QUEUE_CONFIG = (): IQueueEnvironment => {
+let queueConfig: IKafkaClientConfig
+export const QUEUE_CONFIG = (): IKafkaClientConfig => {
   if (queueConfig) return queueConfig
 
-  queueConfig = config.get<IQueueEnvironment>('queue')
+  queueConfig = config.get<IKafkaClientConfig>('queue')
   return queueConfig
 }
 

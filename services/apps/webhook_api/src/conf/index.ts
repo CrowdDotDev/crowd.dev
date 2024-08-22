@@ -1,9 +1,9 @@
-import { IDatabaseConfig } from '@crowd/data-access-layer/src/database'
-import config from 'config'
-import { IUnleashConfig } from '@crowd/feature-flags'
 import { SERVICE } from '@crowd/common'
+import { IDatabaseConfig } from '@crowd/data-access-layer/src/database'
+import { IUnleashConfig } from '@crowd/feature-flags'
+import { IKafkaClientConfig } from '@crowd/queue/src/vendors/kafka/types'
 import { IRedisConfiguration } from '@crowd/redis'
-import { IQueueEnvironment } from '../../../../libs/queue/src'
+import config from 'config'
 export interface IWebhookApiServiceConfig {
   port: number
 }
@@ -16,11 +16,11 @@ export const WEBHOOK_API_CONFIG = (): IWebhookApiServiceConfig => {
   return webhookApiConfig
 }
 
-let queueConfig: IQueueEnvironment
-export const QUEUE_CONFIG = (): IQueueEnvironment => {
+let queueConfig: IKafkaClientConfig
+export const QUEUE_CONFIG = (): IKafkaClientConfig => {
   if (queueConfig) return queueConfig
 
-  queueConfig = config.get<IQueueEnvironment>('queue')
+  queueConfig = config.get<IKafkaClientConfig>('queue')
   return queueConfig
 }
 
