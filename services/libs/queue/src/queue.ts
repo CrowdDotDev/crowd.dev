@@ -56,7 +56,10 @@ export abstract class QueueBase extends LoggerBase {
   }
 
   public async init() {
-    const url = await this.queue.init({ name: `${this.queueConf.name}${this.getQueueSuffix()}` })
+    const url = await this.queue.init({
+      ...this.queueConf,
+      name: `${this.queueConf.name}${this.getQueueSuffix()}`,
+    })
     this.channelUrl = url
   }
 }
