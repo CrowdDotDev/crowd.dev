@@ -50,7 +50,7 @@ export async function fetchGitlabGroupProjects(accessToken: string, groups: any[
     }))
   }
 
-  return groupProjects
+  return groupProjects as Record<number, any[]>
 }
 
 export async function fetchGitlabUserProjects(accessToken: string, userId: number) {

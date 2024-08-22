@@ -26,7 +26,11 @@
               v-if="connectedUser.avatar_url"
               class="h-5 w-5 rounded border border-gray-200 mr-2"
             >
-              <img :src="connectedUser.avatar_url" class="object-cover" :alt="connectedUser.name" />
+              <img
+                :src="connectedUser.avatar_url"
+                class="object-cover"
+                :alt="connectedUser.name"
+              />
             </div>
             <p class="text-xs font-medium leading-5">
               {{ connectedUser.name }} ({{ connectedUser.username }})
@@ -40,9 +44,16 @@
             Connected Groups
           </h6>
           <ul class="list-disc list-inside">
-            <li v-for="group in connectedGroups" :key="group.id" class="text-xs">
+            <li
+              v-for="group in connectedGroups"
+              :key="group.id"
+              class="text-xs"
+            >
               {{ group.name }}
-              <span v-if="!groupHasProjects(group)" class="text-gray-400">(No projects in this group)</span>
+              <span
+                v-if="!groupHasProjects(group)"
+                class="text-gray-400"
+              >(No projects in this group)</span>
             </li>
           </ul>
         </section>
@@ -54,7 +65,8 @@
               Repository mapping
             </h6>
             <p class="text-2xs leading-4.5 text-gray-500">
-              Select the subproject you want to map with each connected repository, or choose to ignore it from sync.
+              Select the subproject you want to map with each connected
+              repository, or choose to ignore it from sync.
             </p>
           </div>
           <div
@@ -182,10 +194,7 @@
 </template>
 
 <script lang="ts" setup>
-import {
-  computed, onMounted,
-  ref,
-} from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import Message from '@/shared/message/message';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { LfService } from '@/modules/lf/segments/lf-segments-service';
@@ -199,8 +208,8 @@ import { mapActions } from '@/shared/vuex/vuex.helpers';
 import { showIntegrationProgressNotification } from '@/modules/integration/helpers/integration-progress-notification';
 
 const props = defineProps<{
-  modelValue: boolean,
-  integration: any
+  modelValue: boolean;
+  integration: any;
 }>();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void }>();
@@ -228,14 +237,18 @@ const search = ref('');
 const connectedUser = computed(() => props.integration?.settings?.user || null);
 
 // Connected groups
-const connectedGroups = computed(() => props.integration?.settings?.groups || []);
+const connectedGroups = computed(
+  () => props.integration?.settings?.groups || [],
+);
 
 const pathToFullURL = (path: string) => `https://gitlab.com/${path}`;
 
 // All projects (user projects + group projects)
 const allProjects = computed(() => {
   const userProjects = props.integration?.settings?.userProjects || [];
-  const groupProjects = Object.values(props.integration?.settings?.groupProjects || {}).flat();
+  const groupProjects = Object.values(
+    props.integration?.settings?.groupProjects || {},
+  ).flat();
   return [...userProjects, ...groupProjects].map((project) => ({
     ...project,
     web_url: pathToFullURL(project.path_with_namespace),
@@ -248,17 +261,25 @@ const filteredProjects = computed(() => allProjects.value.filter((p: any) => p.p
 const gitlabDetails = computed(() => CrowdIntegrations.getConfig('gitlab'));
 
 // Form
-const form = ref<Record<string, string>>(allProjects.value.reduce((a: Record<string, any>, b: any) => ({
-  ...a,
-  [b.web_url]: props.integration.segmentId,
-}), {}));
+const form = ref<Record<string, string>>(
+  allProjects.value.reduce(
+    (a: Record<string, any>, b: any) => ({
+      ...a,
+      [b.web_url]: props.integration.segmentId,
+    }),
+    {},
+  ),
+);
 
-const rules = computed(() => allProjects.value.reduce((a: Record<string, any>, b: any) => ({
-  ...a,
-  [b.web_url]: {
-    required,
-  },
-}), {}));
+const rules = computed(() => allProjects.value.reduce(
+  (a: Record<string, any>, b: any) => ({
+    ...a,
+    [b.web_url]: {
+      required,
+    },
+  }),
+  {},
+));
 
 const $v = useVuelidate(rules, form);
 
@@ -271,46 +292,50 @@ const connect = () => {
     type: 'warning',
     title: 'Are you sure you want to proceed?',
     message:
-        'Repository mapping is not reversible. Once GitLab is connected, you won\'t be able to update these settings.\n\n'
-        + 'Reconnecting a different organization and/or repositories won\'t remove past activities. '
-        + 'In order to clean up existing data please reach out to our support team.',
+      "Repository mapping is not reversible. Once GitLab is connected, you won't be able to update these settings.\n\n"
+      + "Reconnecting a different organization and/or repositories won't remove past activities. "
+      + 'In order to clean up existing data please reach out to our support team.',
     confirmButtonText: 'Connect GitLab',
     cancelButtonText: 'Cancel',
     icon: 'ri-alert-fill',
-  } as any)
-    .then(() => {
-      IntegrationService.mapGitlabRepos(props.integration.id, data, [props.integration.segmentId])
-        .then(() => {
-          isDrawerVisible.value = false;
+  } as any).then(() => {
+    IntegrationService.mapGitlabRepos(
+      props.integration.id,
+      data,
+      allProjects.value.map((p) => p.id),
+      [props.integration.segmentId],
+    )
+      .then(() => {
+        isDrawerVisible.value = false;
 
-          doFetch([props.integration.segmentId]);
+        doFetch([props.integration.segmentId]);
 
-          showIntegrationProgressNotification('gitlab', props.integration.segmentId);
+        showIntegrationProgressNotification(
+          'gitlab',
+          props.integration.segmentId,
+        );
 
-          router.push({
-            name: 'integration',
-            params: {
-              id: props.integration.segmentId,
-            },
-          });
-        })
-        .catch((e) => {
-          Message.error(
-            'There was an error mapping gitlab repos',
-          );
-          console.error(e);
+        router.push({
+          name: 'integration',
+          params: {
+            id: props.integration.segmentId,
+          },
         });
-    });
+      })
+      .catch((e) => {
+        Message.error('There was an error mapping gitlab repos');
+        console.error(e);
+      });
+  });
 };
 
 // Fetching subprojects
 const subprojects = ref([]);
 
 const fetchSubProjects = () => {
-  LfService.findSegment(route.params.grandparentId)
-    .then((segment) => {
-      subprojects.value = segment.projects.map((p) => p.subprojects).flat();
-    });
+  LfService.findSegment(route.params.grandparentId).then((segment) => {
+    subprojects.value = segment.projects.map((p) => p.subprojects).flat();
+  });
 };
 
 onMounted(() => {

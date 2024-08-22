@@ -68,6 +68,8 @@ import {
   fetchGitlabGroupProjects,
   fetchAllGitlabGroups,
 } from '@/serverless/integrations/usecases/gitlab/getProjects'
+import { setupGitlabWebhooks } from '@/serverless/integrations/usecases/gitlab/setupWebhooks'
+import { removeGitlabWebhooks } from '@/serverless/integrations/usecases/gitlab/removeWebhooks'
 
 const discordToken = DISCORD_CONFIG.token || DISCORD_CONFIG.token2
 
@@ -185,9 +187,15 @@ export default class IntegrationService {
             throw new Error404()
           }
           // remove github remotes from git integration
-          if (integration.platform === PlatformType.GITHUB) {
+          if (
+            integration.platform === PlatformType.GITHUB ||
+            integration.platform === PlatformType.GITLAB
+          ) {
             let shouldUpdateGit: boolean
-            const mapping = await this.getGithubRepos(id)
+            const mapping =
+              integration.platform === PlatformType.GITHUB
+                ? await this.getGithubRepos(id)
+                : await this.getGitlabRepos(id)
             const repos: Record<string, string[]> = mapping.reduce((acc, { url, segment }) => {
               if (!acc[segment.id]) {
                 acc[segment.id] = []
@@ -224,6 +232,16 @@ export default class IntegrationService {
                   segmentOptions,
                 )
               }
+            }
+          }
+
+          if (integration.platform === PlatformType.GITLAB) {
+            if (integration.settings.webhooks) {
+              await removeGitlabWebhooks(
+                integration.token,
+                integration.settings.webhooks.map((hook) => hook.projectId),
+                integration.settings.webhooks.map((hook) => hook.hookId),
+              )
             }
           }
 
@@ -2209,13 +2227,29 @@ export default class IntegrationService {
     return integration
   }
 
-  async mapGitlabRepos(integrationId, mapping) {
+  async mapGitlabRepos(integrationId, mapping, projectIds) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     const txOptions = {
       ...this.options,
       transaction,
     }
+
+    const integration = await this.findById(integrationId)
+
+    const webhooks = await setupGitlabWebhooks(integration.token, projectIds)
+
+    // if any of webhooks has failed, throw an error
+    if (webhooks.some((w) => w.success === false)) {
+      this.options.log.error({ webhooks }, 'Failed to setup webhooks')
+      throw new Error('Failed to setup webhooks')
+    }
+
+    await IntegrationRepository.update(
+      integrationId,
+      { settings: { ...integration.settings, webhooks } },
+      txOptions,
+    )
 
     try {
       await GitlabReposRepository.updateMapping(integrationId, mapping, txOptions)

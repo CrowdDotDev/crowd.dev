@@ -1,7 +1,8 @@
-import { Gitlab, DiscussionSchema, DiscussionNoteSchema } from '@gitbeaker/rest'
+import { Gitlab, DiscussionSchema, DiscussionNoteSchema, OffsetPagination } from '@gitbeaker/rest'
 import { GitlabDisccusionCommentData, GitlabApiResult } from '../types'
 import { getUser } from './getUser'
 import { IProcessStreamContext } from '../../../types'
+import { RedisSemaphore } from '../utils/lock'
 
 export const getMergeRequestEvents = async ({
   api,
@@ -18,14 +19,29 @@ export const getMergeRequestEvents = async ({
 }): Promise<GitlabApiResult<GitlabDisccusionCommentData[]>> => {
   const perPage = 100
 
-  // discussions
-  const response = await api.MergeRequestDiscussions.all(projectId, mergeRequestIId, {
-    showExpanded: true,
-    page,
-    perPage,
+  const semaphore = new RedisSemaphore({
+    integrationId: ctx.integration.id,
+    apiCallType: 'getMergeRequestEvents',
+    maxConcurrent: 1,
+    cache: ctx.cache,
   })
 
-  const discussions = response.data as DiscussionSchema[]
+  let pagination: OffsetPagination | undefined
+  let discussions: DiscussionSchema[] = []
+
+  try {
+    await semaphore.acquire()
+    const response = await api.MergeRequestDiscussions.all(projectId, mergeRequestIId, {
+      showExpanded: true,
+      page,
+      perPage,
+    })
+
+    discussions = response.data as DiscussionSchema[]
+    pagination = response.paginationInfo
+  } finally {
+    await semaphore.release()
+  }
 
   const notes = discussions.flatMap((discussion) => discussion.notes) as DiscussionNoteSchema[]
 
@@ -46,6 +62,6 @@ export const getMergeRequestEvents = async ({
       data: note,
       user: users[index],
     })),
-    nextPage: response.paginationInfo.next,
+    nextPage: pagination.next,
   }
 }

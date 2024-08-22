@@ -11,7 +11,7 @@ import { GITLAB_GRID } from './grid'
 import {
   ProjectSchema,
   ProjectStarrerSchema,
-  CommitSchema,
+  ExpandedCommitSchema,
   IssueSchema,
   MergeRequestSchema,
   UserSchema,
@@ -21,7 +21,11 @@ import {
 } from '@gitbeaker/rest'
 import { generateSourceIdHash } from '../../helpers'
 
-const parseUser = ({ data }: { data: UserSchema }): IMemberData => {
+const parseUser = ({ data }: { data: UserSchema }): IMemberData | undefined => {
+  if (!data) {
+    return undefined
+  }
+
   const member: IMemberData = {
     identities: [
       {
@@ -30,6 +34,36 @@ const parseUser = ({ data }: { data: UserSchema }): IMemberData => {
         type: MemberIdentityType.USERNAME,
         verified: true,
       },
+      ...(data.public_email
+        ? [
+            {
+              platform: PlatformType.GITLAB,
+              value: data.public_email,
+              type: MemberIdentityType.EMAIL,
+              verified: true,
+            },
+          ]
+        : []),
+      ...(data.twitter
+        ? [
+            {
+              platform: PlatformType.TWITTER,
+              value: data.twitter,
+              type: MemberIdentityType.USERNAME,
+              verified: false,
+            },
+          ]
+        : []),
+      ...(data.linkedin
+        ? [
+            {
+              platform: PlatformType.LINKEDIN,
+              value: data.linkedin,
+              type: MemberIdentityType.USERNAME,
+              verified: false,
+            },
+          ]
+        : []),
     ],
     displayName: data.name,
     attributes: {
@@ -39,6 +73,18 @@ const parseUser = ({ data }: { data: UserSchema }): IMemberData => {
       [MemberAttributeName.AVATAR_URL]: {
         [PlatformType.GITLAB]: data.avatar_url || '',
       },
+      [MemberAttributeName.BIO]: {
+        [PlatformType.GITLAB]: data.bio || '',
+      },
+      [MemberAttributeName.LOCATION]: {
+        [PlatformType.GITLAB]: data.location || '',
+      },
+      [MemberAttributeName.WEBSITE_URL]: {
+        [PlatformType.GITLAB]: data.website_url || '',
+      },
+      [MemberAttributeName.JOB_TITLE]: {
+        [PlatformType.GITLAB]: data.job_title || '',
+      },
     },
   }
 
@@ -46,6 +92,28 @@ const parseUser = ({ data }: { data: UserSchema }): IMemberData => {
     member.attributes[MemberAttributeName.IS_BOT] = {
       [PlatformType.GITLAB]: true,
     }
+  }
+
+  return member
+}
+
+const parseUserFromCommit = ({ data }: { data: ExpandedCommitSchema }): IMemberData => {
+  const member: IMemberData = {
+    identities: [
+      {
+        platform: PlatformType.GITLAB,
+        value: data.author_email as string,
+        type: MemberIdentityType.USERNAME,
+        verified: false,
+      },
+      {
+        platform: PlatformType.GITLAB,
+        value: data.author_email as string,
+        type: MemberIdentityType.EMAIL,
+        verified: true,
+      },
+    ],
+    displayName: data.author_name,
   }
 
   return member
@@ -369,7 +437,42 @@ const parseFork = ({
   }
 }
 
+const parseAuthoredCommit = ({
+  data,
+  pathWithNamespace,
+  relatedData,
+}: {
+  data: ExpandedCommitSchema
+  projectId: string
+  pathWithNamespace: string
+  relatedData: {
+    mergeRequestId: number
+  }
+}): IActivityData => {
+  const user = parseUserFromCommit({ data })
+  return {
+    type: GitlabActivityType.AUTHORED_COMMIT,
+    member: user,
+    timestamp: new Date(data.authored_date).toISOString(),
+    sourceId: data.id,
+    sourceParentId: relatedData.mergeRequestId.toString(),
+    url: data.web_url,
+    title: data.title,
+    body: data.message,
+    channel: `https://gitlab.com/${pathWithNamespace}`,
+    score: GITLAB_GRID[GitlabActivityType.AUTHORED_COMMIT].score,
+    isContribution: GITLAB_GRID[GitlabActivityType.AUTHORED_COMMIT].isContribution,
+    attributes: {
+      insertions: data.stats.additions,
+      deletions: data.stats.deletions,
+      lines: data.stats.total,
+      isMerge: data.parent_ids.length > 0,
+    },
+  }
+}
+
 const handler: ProcessDataHandler = async (ctx) => {
+  //eslint-disable-next-line @typescript-eslint/no-explicit-any
   const apiData = ctx.data as GitlabApiData<any>
   const {
     type,
@@ -496,6 +599,16 @@ const handler: ProcessDataHandler = async (ctx) => {
         projectId,
         user: member,
         pathWithNamespace,
+      })
+      break
+    case GitlabActivityType.AUTHORED_COMMIT:
+      activity = parseAuthoredCommit({
+        data: data.data,
+        projectId,
+        pathWithNamespace,
+        relatedData: relatedData as {
+          mergeRequestId: number
+        },
       })
       break
     default:

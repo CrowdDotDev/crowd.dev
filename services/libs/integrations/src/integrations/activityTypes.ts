@@ -1333,7 +1333,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
           channel: defaultGitlabChannelFormatter,
           self: (activity) => {
             const prNumberAndTitle = `#${activity.sourceParentId} ${activity.parent?.title}`
-            return `<a href="${activity.parent.url}" style="max-width:150px" target="_blank">${prNumberAndTitle}</a> from <a href="/members/${activity.objectMemberId}" target="_blank">${activity.objectMember.displayName}</a>`
+            return `<a href="${activity.parent.url}" style="max-width:150px" target="_blank">${prNumberAndTitle}</a>`
           },
         },
       },
@@ -1348,7 +1348,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
           channel: defaultGitlabChannelFormatter,
           self: (activity) => {
             const prNumberAndTitle = `#${activity.sourceParentId} ${activity.parent?.title}`
-            return `<a href="${activity.parent.url}" style="max-width:150px" target="_blank">${prNumberAndTitle}</a> from <a href="/members/${activity.objectMemberId}" target="_blank">${activity.objectMember.displayName}</a>`
+            return `<a href="${activity.parent.url}" style="max-width:150px" target="_blank">${prNumberAndTitle}</a>`
           },
         },
       },

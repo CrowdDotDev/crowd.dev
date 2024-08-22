@@ -1,7 +1,8 @@
-import { Gitlab, IssueSchema } from '@gitbeaker/rest'
+import { Gitlab, IssueSchema, OffsetPagination } from '@gitbeaker/rest'
 import { GitlabIssueData, GitlabApiResult } from '../types'
 import { getUser } from './getUser'
 import { IProcessStreamContext } from '../../../types'
+import { RedisSemaphore } from '../utils/lock'
 
 export const getIssues = async ({
   api,
@@ -19,15 +20,30 @@ export const getIssues = async ({
     ? undefined
     : new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
 
-  const response = await api.Issues.all({
-    projectId,
-    page,
-    perPage,
-    updatedAfter: since,
-    showExpanded: true,
+  const semaphore = new RedisSemaphore({
+    integrationId: ctx.integration.id,
+    apiCallType: 'getIssues',
+    maxConcurrent: 1,
+    cache: ctx.cache,
   })
 
-  const issues = response.data as IssueSchema[]
+  let pagination: OffsetPagination
+  let issues: IssueSchema[]
+
+  try {
+    const response = await api.Issues.all({
+      projectId,
+      page,
+      perPage,
+      updatedAfter: since,
+      showExpanded: true,
+    })
+
+    issues = response.data as IssueSchema[]
+    pagination = response.paginationInfo
+  } finally {
+    await semaphore.release()
+  }
 
   const users = []
   for (const issue of issues) {
@@ -42,6 +58,6 @@ export const getIssues = async ({
       data: issue,
       user: users[index],
     })),
-    nextPage: response.paginationInfo.next,
+    nextPage: pagination.next,
   }
 }

@@ -3,6 +3,7 @@ import { GitlabForkData } from '../types'
 import { getUser } from './getUser'
 import { GitlabApiResult } from '../types'
 import { IProcessStreamContext } from '../../../types'
+import { RedisSemaphore } from '../utils/lock'
 
 export const getForks = async ({
   api,
@@ -16,9 +17,24 @@ export const getForks = async ({
   const since = ctx.onboarding
     ? undefined
     : new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
-  const forks = (await api.Projects.allForks(projectId, {
-    updatedAfter: since,
-  })) as ProjectSchema[]
+
+  const semaphore = new RedisSemaphore({
+    integrationId: ctx.integration.id,
+    apiCallType: 'getForks',
+    maxConcurrent: 1,
+    cache: ctx.cache,
+  })
+
+  let forks: ProjectSchema[] = []
+
+  try {
+    await semaphore.acquire()
+    forks = (await api.Projects.allForks(projectId, {
+      updatedAfter: since,
+    })) as ProjectSchema[]
+  } finally {
+    await semaphore.release()
+  }
 
   const users = []
   for (const fork of forks) {

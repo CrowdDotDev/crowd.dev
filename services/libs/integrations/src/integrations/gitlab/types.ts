@@ -2,7 +2,7 @@ import {
   ProjectSchema,
   UserSchema,
   ProjectStarrerSchema,
-  CommitSchema,
+  ExpandedCommitSchema,
   IssueSchema,
   IssueNoteSchema,
   MergeRequestSchema,
@@ -30,19 +30,19 @@ export enum GitlabActivityType {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface GitlabActivityData<T = any> {
   data: T
-  user: UserSchema
+  user?: UserSchema
   relatedUser?: UserSchema
   relatedData?: Record<string, unknown>
 }
 
 export type GitlabForkData = GitlabActivityData<ProjectSchema>
 export type GitlabStarData = GitlabActivityData<ProjectStarrerSchema>
-export type GitlabCommitData = GitlabActivityData<CommitSchema>
 export type GitlabIssueData = GitlabActivityData<IssueSchema>
 export type GitlabIssueCommentData = GitlabActivityData<IssueNoteSchema>
 export type GitlabDisccusionCommentData = GitlabActivityData<DiscussionNoteSchema>
 export type GitlabMergeRequestData = GitlabActivityData<MergeRequestSchema>
 export type GitlabMergeRequestCommentData = GitlabActivityData<MergeRequestNoteSchema>
+export type GitlabMergeRequestCommitData = GitlabActivityData<ExpandedCommitSchema>
 
 export interface GitlabApiResult<T> {
   data: T
@@ -63,6 +63,7 @@ export enum GitlabStreamType {
   MERGE_REQUESTS = 'merge_requests',
   MERGE_REQUEST_EVENTS = 'merge_request_events',
   MERGE_REQUEST_DISCUSSIONS = 'merge_request_discussions',
+  MERGE_REQUEST_COMMITS = 'merge_request_commits',
   COMMITS = 'commits',
   STARS = 'stars',
   FORKS = 'forks',

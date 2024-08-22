@@ -531,10 +531,10 @@ export class IntegrationService {
     return response.data;
   }
 
-  static async mapGitlabRepos(integrationId, mapping, segments) {
+  static async mapGitlabRepos(integrationId, mapping, projectIds, segments) {
     const response = await authAxios.put(
       `/tenant/${AuthService.getTenantId()}/integration/${integrationId}/gitlab/repos`,
-      { mapping, segments },
+      { mapping, projectIds, segments },
     );
     return response.data;
   }

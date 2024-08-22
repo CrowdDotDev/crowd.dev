@@ -69,18 +69,18 @@ export default async (req, res: Response) => {
 
   const callbackUrl = GITLAB_CONFIG.callbackUrl
 
-//   const state = {
-//     handle,
-//     tenantId: req.params.tenantId,
-//     redirectUrl: req.query.redirectUrl,
-//     callbackUrl,
-//     hashtags: req.query.hashtags ? req.query.hashtags : '',
-//     crowdToken: req.query.crowdToken,
-//     platform: PlatformType.GITLAB,
-//     userId: req.currentUser.id,
-//     codeVerifier,
-//     segmentIds: SequelizeRepository.getSegmentIds(req),
-//   }
+  //   const state = {
+  //     handle,
+  //     tenantId: req.params.tenantId,
+  //     redirectUrl: req.query.redirectUrl,
+  //     callbackUrl,
+  //     hashtags: req.query.hashtags ? req.query.hashtags : '',
+  //     crowdToken: req.query.crowdToken,
+  //     platform: PlatformType.GITLAB,
+  //     userId: req.currentUser.id,
+  //     codeVerifier,
+  //     segmentIds: SequelizeRepository.getSegmentIds(req),
+  //   }
 
   const gitlabState = {
     crowdToken: req.query.crowdToken,
@@ -88,7 +88,7 @@ export default async (req, res: Response) => {
     handle,
   }
 
-  const scopes = ['read_api', 'read_user', 'read_repository', 'profile', 'email']
+  const scopes = ['api', 'read_api', 'read_user', 'read_repository', 'profile', 'email']
 
   // Build the authorization URL
   const authUrl = createUrl('https://gitlab.com/oauth/authorize', {
