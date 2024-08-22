@@ -1,5 +1,5 @@
 import { groupBy } from '@crowd/common'
-import { Logger, getChildLogger } from '@crowd/logging'
+import { Logger, getChildLogger, getServiceLogger } from '@crowd/logging'
 import { IQueueMessage, QueuePriorityLevel } from '@crowd/types'
 import { QueueEmitter, QueueReceiver } from './queue'
 import { IQueue, IQueueConfig } from './types'
@@ -98,6 +98,8 @@ export class PrioritizedQueueEmitter {
     if (!emitter) {
       throw new Error(`Unknown priority level: ${priorityLevel}`)
     }
+    const log = getServiceLogger()
+    log.info({ groupId, message }, '[DBGX] Sending message to queue!')
     return emitter.sendMessage(groupId, message, deduplicationId)
   }
 

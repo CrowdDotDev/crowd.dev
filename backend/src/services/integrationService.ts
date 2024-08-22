@@ -1544,6 +1544,12 @@ export default class IntegrationService {
       'Sending HackerNews message to int-run-worker!',
     )
     const emitter = await getIntegrationRunWorkerEmitter()
+
+    this.options.log.info(
+      { tenantId: integration.tenantId },
+      'Got emmiter succesfully! Triggering integration run!',
+    )
+
     await emitter.triggerIntegrationRun(
       integration.tenantId,
       integration.platform,
