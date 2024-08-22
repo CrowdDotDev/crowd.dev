@@ -108,8 +108,9 @@ export async function deleteMemberOrganization(
 ): Promise<void> {
   return qx.result(
     `
-        DELETE FROM "memberOrganizations"
-        WHERE "memberId" = $(memberId) AND "id" = $(id);
+      UPDATE "memberOrganizations"
+      SET "deletedAt" = NOW()
+      WHERE "memberId" = $(memberId) AND "id" = $(id);
     `,
     {
       memberId,
