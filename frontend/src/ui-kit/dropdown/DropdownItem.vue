@@ -3,7 +3,10 @@
     class="c-dropdown__item"
     :class="[
       props.type && `c-dropdown__item--${type}`,
-      { 'is-disabled': props.disabled },
+      {
+        'is-disabled': props.disabled,
+        'is-selected': props.selected,
+      },
     ]"
     @click="handleClick"
   >
@@ -16,9 +19,11 @@ import { DropdownItemType } from '@/ui-kit/dropdown/types/DropdownItemType';
 
 const props = withDefaults(defineProps<{
   disabled?: boolean
+  selected?: boolean
   type?: DropdownItemType,
 }>(), {
   disabled: false,
+  selected: false,
   type: 'regular',
 });
 
