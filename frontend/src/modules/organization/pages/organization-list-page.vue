@@ -106,8 +106,7 @@ const { filters, totalOrganizations, savedFilterBody } = storeToRefs(organizatio
 const { fetchOrganizations } = organizationStore;
 
 const loading = ref(true);
-const tableLoading = ref(false);
-const organizationCount = ref(0);
+const tableLoading = ref(true);
 const isSubProjectSelectionOpen = ref(false);
 const organizationCreate = ref(false);
 
@@ -122,16 +121,6 @@ const pagination = ref({
   page: 1,
   perPage: 20,
 });
-
-const doGetOrganizationCount = () => {
-  (OrganizationService.query({
-    limit: 1,
-    offset: 0,
-  }) as Promise<any>)
-    .then(({ count }) => {
-      organizationCount.value = count;
-    });
-};
 
 const showLoading = (filter: any, body: any): boolean => {
   const saved: any = { ...savedFilterBody.value };
@@ -148,6 +137,8 @@ const showLoading = (filter: any, body: any): boolean => {
 const fetch = ({
   filter, orderBy, body,
 }: FilterQuery) => {
+  console.log('fetch', filter, orderBy, body);
+
   if (!loading.value) {
     loading.value = showLoading(filter, body);
   }
@@ -161,6 +152,7 @@ const fetch = ({
     },
   })
     .finally(() => {
+      tableLoading.value = false;
       loading.value = false;
     });
 };
@@ -191,7 +183,6 @@ const fetchOrganizationsToMergeCount = () => {
 };
 
 onMounted(async () => {
-  doGetOrganizationCount();
   fetchOrganizationsToMergeCount();
   (window as any).analytics.page('Organization');
 });

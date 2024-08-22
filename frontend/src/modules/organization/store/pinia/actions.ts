@@ -7,20 +7,32 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { MergeActionsService } from '@/shared/modules/merge/services/merge-actions.service';
 import { MergeAction } from '@/shared/modules/merge/types/MemberActions';
 
+let lastRequestId = 0;
+
 export default {
-  fetchOrganizations(this: OrganizationState, { body = {}, reload = false } :{ body?: any, reload?: boolean }): Promise<Pagination<Organization>> {
+  fetchOrganizations(this: OrganizationState, {
+    body = {},
+    reload = false,
+  }: { body?: any, reload?: boolean }): Promise<Pagination<Organization>> {
     const mappedBody = reload ? { ...this.savedFilterBody, ...body } : body;
     this.selectedOrganizations = [];
+    const currentRequestId = new Date().getTime();
+    lastRequestId = currentRequestId;
     return OrganizationService.query(mappedBody)
       .then((data: Pagination<Organization>) => {
-        this.organizations = data.rows;
-        this.totalOrganizations = data.count;
-        this.savedFilterBody = mappedBody;
-        return Promise.resolve(data);
+        if (lastRequestId === currentRequestId) {
+          this.organizations = data.rows;
+          this.totalOrganizations = data.count;
+          this.savedFilterBody = mappedBody;
+          return Promise.resolve(data);
+        }
+        return Promise.reject(data);
       })
       .catch((err: Error) => {
-        this.organizations = [];
-        this.totalOrganizations = 0;
+        if (lastRequestId === currentRequestId) {
+          this.organizations = [];
+          this.totalOrganizations = 0;
+        }
         return Promise.reject(err);
       });
   },
