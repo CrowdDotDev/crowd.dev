@@ -47,4 +47,5 @@ export default (app) => {
 
   require('./identity').default(app)
   require('./organization').default(app)
+  require('./affiliation').default(app)
 }
