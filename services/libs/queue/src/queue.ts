@@ -15,13 +15,7 @@ export abstract class QueueBase extends LoggerBase {
       queueName: queueConf.name,
     })
 
-    let env = ''
-    if (IS_STAGING_ENV) {
-      env = '-staging'
-    } else if (IS_PROD_ENV) {
-      env = '-production'
-    }
-    this.channelName = `${queueConf.name}${env}`
+    this.channelName = `${queueConf.name}${this.getQueueSuffix()}`
   }
 
   public isInitialized(): boolean {
@@ -51,8 +45,18 @@ export abstract class QueueBase extends LoggerBase {
     }
   }
 
+  private getQueueSuffix(): string {
+    let queueSuffix = ''
+    if (IS_STAGING_ENV) {
+      queueSuffix = '-staging'
+    } else if (IS_PROD_ENV) {
+      queueSuffix = '-production'
+    }
+    return queueSuffix
+  }
+
   public async init() {
-    const url = await this.queue.init(this.queueConf)
+    const url = await this.queue.init({ name: `${this.queueConf.name}${this.getQueueSuffix()}` })
     this.channelUrl = url
   }
 }
