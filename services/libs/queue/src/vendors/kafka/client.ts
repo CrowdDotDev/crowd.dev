@@ -81,7 +81,7 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
   }
 
   public async init(config: IKafkaConfig): Promise<string> {
-    this.log.trace({ config }, 'Initializing queue!')
+    this.log.info({ config }, 'Initializing queue!')
 
     const admin = this.client.admin()
     await admin.connect()
