@@ -1,8 +1,8 @@
+import { SendMessageBatchCommandOutput, SendMessageResult, SQSClient } from '@aws-sdk/client-sqs'
+import { IQueueMessage, IQueueMessageBulk } from '@crowd/types'
 import { Kafka, KafkaMessage, RecordMetadata } from 'kafkajs'
 import { IKafkaClientConfig } from './vendors/kafka/types'
-import { ISqsClientConfig, SqsMessage } from './vendors/sqs/types'
-import { IQueueMessage, IQueueMessageBulk } from '@crowd/types'
-import { SendMessageBatchCommandOutput, SendMessageResult, SQSClient } from '@aws-sdk/client-sqs'
+import { SqsMessage } from './vendors/sqs/types'
 
 export type IQueueClient = Kafka | SQSClient
 
@@ -15,7 +15,7 @@ export type IQueueSendResult = RecordMetadata[] | SendMessageResult
 
 export type IQueueSendBulkResult = RecordMetadata[] | SendMessageBatchCommandOutput
 
-export type IQueueClientConfig = IKafkaClientConfig | ISqsClientConfig
+export type IQueueClientConfig = IKafkaClientConfig
 
 export type IQueueReceiveResponse = KafkaMessage | SqsMessage
 

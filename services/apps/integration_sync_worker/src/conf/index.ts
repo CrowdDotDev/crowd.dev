@@ -1,5 +1,5 @@
 import { IDatabaseConfig } from '@crowd/data-access-layer/src/database'
-import { IKafkaClientConfig } from '@crowd/queue/src/vendors/kafka/types'
+import { IQueueClientConfig } from '@crowd/queue'
 import { IOpenSearchConfig, QueuePriorityLevel } from '@crowd/types'
 import config from 'config'
 
@@ -20,11 +20,11 @@ export const SERVICE_CONFIG = (): IServiceConfig => {
   return serviceConfig
 }
 
-let queueConfig: IKafkaClientConfig
-export const QUEUE_CONFIG = (): IKafkaClientConfig => {
+let queueConfig: IQueueClientConfig
+export const QUEUE_CONFIG = (): IQueueClientConfig => {
   if (queueConfig) return queueConfig
 
-  queueConfig = config.get<IKafkaClientConfig>('queue')
+  queueConfig = config.get<IQueueClientConfig>('queue')
   return queueConfig
 }
 

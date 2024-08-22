@@ -2,12 +2,11 @@
 
 import { getServiceChildLogger } from '@crowd/logging'
 import { Kafka } from 'kafkajs'
-import { IQueue } from './types'
+import { IQueue, IQueueClientConfig } from './types'
 import { KafkaQueueService } from './vendors/kafka/client'
-import { IKafkaClientConfig } from './vendors/kafka/types'
 
 export class QueueFactory {
-  static createQueueService(config: IKafkaClientConfig): IQueue {
+  static createQueueService(config: IQueueClientConfig): IQueue {
     const log = getServiceChildLogger('queue-service-factory')
 
     log.info({ config }, 'Creating kafka queue service...')
