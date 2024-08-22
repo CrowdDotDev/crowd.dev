@@ -1,13 +1,13 @@
 import path from 'path'
 
-import { NativeConnection, Worker as TemporalWorker, bundleWorkflowCode } from '@temporalio/worker'
+import { bundleWorkflowCode, NativeConnection, Worker as TemporalWorker } from '@temporalio/worker'
 
 import { Config, Service } from '@crowd/archetype-standard'
-import { getDbConnection, DbStore } from '@crowd/database'
-import { getOpensearchClient, OpenSearchService } from '@crowd/opensearch'
-import { getDataConverter } from '@crowd/temporal'
 import { IS_DEV_ENV, IS_TEST_ENV } from '@crowd/common'
-import { IQueue, QueueFactory, QueueVendor } from '@crowd/queue'
+import { DbStore, getDbConnection } from '@crowd/database'
+import { getOpensearchClient, OpenSearchService } from '@crowd/opensearch'
+import { IQueue, QueueFactory } from '@crowd/queue'
+import { getDataConverter } from '@crowd/temporal'
 
 // List all required environment variables, grouped per "component".
 // They are in addition to the ones required by the "standard" archetype.
@@ -213,18 +213,8 @@ export class ServiceWorker extends Service {
     if (this.options.queue?.enabled) {
       try {
         this._queueClient = QueueFactory.createQueueService({
-          vendor: process.env['CROWD_QUEUE_VENDOR'] as QueueVendor,
-          sqs: {
-            region: process.env['CROWD_SQS_AWS_REGION'],
-            host: process.env['CROWD_SQS_HOST'] ? process.env['CROWD_SQS_HOST'] : undefined,
-            port: process.env['CROWD_SQS_PORT'] ? Number(process.env['CROWD_SQS_PORT']) : undefined,
-            accessKeyId: process.env['CROWD_SQS_AWS_ACCESS_KEY_ID'],
-            secretAccessKey: process.env['CROWD_SQS_AWS_SECRET_ACCESS_KEY'],
-          },
-          kafka: {
-            brokers: process.env['CROWD_KAFKA_BROKERS'],
-            clientId: 'crowd-temporal-worker', //TODO:: make this configurable
-          },
+          brokers: process.env['CROWD_KAFKA_BROKERS'],
+          clientId: 'crowd-temporal-worker', //TODO:: make this configurable
         })
       } catch (err) {
         throw new Error(err)

@@ -6,7 +6,6 @@
   "integrationProcessing": {
     "maxRetries": 5
   },
-  "sqs": {},
   "s3": {},
   "db": {
     "dialect": "postgres",

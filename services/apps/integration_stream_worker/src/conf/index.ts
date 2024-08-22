@@ -1,7 +1,7 @@
 import { SERVICE } from '@crowd/common'
 import { IDatabaseConfig } from '@crowd/data-access-layer/src/database'
 import { IUnleashConfig } from '@crowd/feature-flags'
-import { IQueueEnvironment } from '@crowd/queue'
+import { IQueueClientConfig } from '@crowd/queue'
 import { IRedisConfiguration } from '@crowd/redis'
 import { QueuePriorityLevel } from '@crowd/types'
 import config from 'config'
@@ -24,11 +24,11 @@ export const WORKER_SETTINGS = (): IWorkerConfig => {
   return workerSettings
 }
 
-let queueConfig: IQueueEnvironment
-export const QUEUE_CONFIG = (): IQueueEnvironment => {
+let queueConfig: IQueueClientConfig
+export const QUEUE_CONFIG = (): IQueueClientConfig => {
   if (queueConfig) return queueConfig
 
-  queueConfig = config.get<IQueueEnvironment>('queue')
+  queueConfig = config.get<IQueueClientConfig>('queue')
   return queueConfig
 }
 
