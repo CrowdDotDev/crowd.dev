@@ -188,7 +188,7 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
     let retries = options?.retry || 0
 
     try {
-      await this.init(queueConf)
+      // await this.init(queueConf)
 
       this.started = true
       this.log.info({ topic: queueConf.name }, 'Starting listening to Kafka topic...')
