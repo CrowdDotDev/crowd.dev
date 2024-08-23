@@ -309,8 +309,8 @@ class OrganizationRepository {
   static findLfxMembershipInFilters(filter: any): any {
     if (!filter) return null
 
-    if (filter.not?.lfxMembership) {
-      return filter.not.lfxMembership
+    if (filter.lfxMembership) {
+      return filter.lfxMembership
     }
 
     if (Array.isArray(filter.and)) {
@@ -1715,14 +1715,14 @@ class OrganizationRepository {
 
     if (lfxMembershipFilter) {
       const filterKey = Object.keys(lfxMembershipFilter)[0]
-      if (filterKey === 'eq') {
+      if (filterKey === 'ne') {
         lfxMembershipFilterWhereClause = `AND EXISTS (SELECT 1 FROM "lfxMemberships" lm WHERE lm."organizationId" = o.id AND lm."tenantId" = $(tenantId))`
-      } else if (filterKey === 'ne') {
+      } else if (filterKey === 'eq') {
         lfxMembershipFilterWhereClause = `AND NOT EXISTS (SELECT 1 FROM "lfxMemberships" lm WHERE lm."organizationId" = o.id AND lm."tenantId" = $(tenantId))`
       }
 
       // remove lfxMembership filter from obj since filterParser doesn't support it
-      filter.and = filter.and.filter((f) => !f.and?.some((subF) => subF.not?.lfxMembership))
+      filter.and = filter.and.filter((f) => !f.and?.some((subF) => subF.lfxMembership))
     }
 
     if (segmentId) {
