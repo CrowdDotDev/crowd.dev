@@ -8,7 +8,7 @@ import {
   IQueueSendBulkResult,
   IQueueSendResult,
 } from '../../types'
-import { IKafkaConfig, IKafkaQueueStartOptions } from './types'
+import { IKafkaChannelConfig, IKafkaQueueStartOptions } from './types'
 import { Logger, LoggerBase } from '@crowd/logging'
 import { IQueueMessage, IQueueMessageBulk } from '@crowd/types'
 import { createHash } from 'crypto'
@@ -37,7 +37,6 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
     // send message to kafka
     const producer = this.client.producer()
     await producer.connect()
-    this.log.info({ channel, message, groupId }, '[DBGX3] Producing kafka message!')
     const result = await producer.send({
       topic: channel.name,
       messages: [
@@ -48,7 +47,7 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
       ],
     })
 
-    this.log.info({ message: message, topic: channel.name }, 'Message sent to Kafka topic!')
+    this.log.trace({ message: message, topic: channel.name }, 'Message sent to Kafka topic!')
 
     await producer.disconnect()
     return result
@@ -81,7 +80,7 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
     return this.client
   }
 
-  public async init(config: IKafkaConfig): Promise<string> {
+  public async init(config: IKafkaChannelConfig): Promise<string> {
     this.log.info({ config }, 'Initializing queue!')
 
     const admin = this.client.admin()
@@ -96,6 +95,12 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
               topic: config.name,
               numPartitions: config.partitionCount,
               replicationFactor: 1,
+              configEntries: [
+                {
+                  name: 'retention.ms',
+                  value: '604800000', // 7 days in milliseconds
+                },
+              ],
             },
           ],
           waitForLeaders: false,
@@ -180,7 +185,7 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
   public async start(
     processMessage: IQueueProcessMessageHandler,
     maxConcurrentMessageProcessing,
-    queueConf: IKafkaConfig,
+    queueConf: IKafkaChannelConfig,
     options?: IKafkaQueueStartOptions,
   ): Promise<void> {
     const MAX_RETRY_FOR_CONNECTING_CONSUMER = 5
@@ -188,8 +193,6 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
     let retries = options?.retry || 0
 
     try {
-      await this.init(queueConf)
-
       this.started = true
       this.log.info({ topic: queueConf.name }, 'Starting listening to Kafka topic...')
 
@@ -277,7 +280,7 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
     return message.offset.toString()
   }
 
-  public getQueueConfig(queue: CrowdQueue): IKafkaConfig {
+  public getQueueChannelConfig(queue: CrowdQueue): IKafkaChannelConfig {
     return configMap[queue]
   }
 }

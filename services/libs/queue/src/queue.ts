@@ -1,7 +1,7 @@
 import { IS_PROD_ENV, IS_STAGING_ENV } from '@crowd/common'
 import { Logger, LoggerBase } from '@crowd/logging'
 import { IQueueMessage, IQueueMessageBulk } from '@crowd/types'
-import { IQueue, IQueueChannel, IQueueConfig } from './types'
+import { IQueue, IQueueChannel, IQueueConfig, IQueueInitChannelConfig } from './types'
 export abstract class QueueBase extends LoggerBase {
   private readonly channelName: string
   private channelUrl: string | undefined
@@ -55,12 +55,11 @@ export abstract class QueueBase extends LoggerBase {
     return queueSuffix
   }
 
-  public async init() {
-    const url = await this.queue.init({
-      ...this.queueConf,
-      name: `${this.queueConf.name}${this.getQueueSuffix()}`,
+  public async init(config: IQueueInitChannelConfig): Promise<void> {
+    this.channelUrl = await this.queue.init({
+      ...config,
+      name: this.getChannel().name,
     })
-    this.channelUrl = url
   }
 }
 
@@ -78,11 +77,17 @@ export abstract class QueueReceiver extends QueueBase {
   }
 
   public async start(queueConf: IQueueConfig): Promise<void> {
-    await this.queue.start(this.processMessage, this.maxConcurrentMessageProcessing, queueConf, {
-      deleteMessageImmediately: this.deleteMessageImmediately,
-      visibilityTimeoutSeconds: this.visibilityTimeoutSeconds,
-      receiveMessageCount: this.receiveMessageCount,
-    })
+    await this.queue.init({ ...queueConf, name: this.getChannel().name })
+    await this.queue.start(
+      this.processMessage,
+      this.maxConcurrentMessageProcessing,
+      { ...queueConf, name: this.getChannel().name },
+      {
+        deleteMessageImmediately: this.deleteMessageImmediately,
+        visibilityTimeoutSeconds: this.visibilityTimeoutSeconds,
+        receiveMessageCount: this.receiveMessageCount,
+      },
+    )
   }
 
   public stop() {
@@ -110,10 +115,6 @@ export class QueueEmitter extends QueueBase {
     message: T,
     deduplicationId?: string,
   ): Promise<void> {
-    this.log.info(
-      { groupId, message, channel: this.getChannel() },
-      '[DBGX2] Sending message to queue!',
-    )
     await this.queue.send(this.getChannel(), message, groupId, {
       deduplicationId,
       config: this.queueConf,

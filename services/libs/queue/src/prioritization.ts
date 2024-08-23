@@ -1,5 +1,5 @@
 import { groupBy } from '@crowd/common'
-import { Logger, getChildLogger, getServiceLogger } from '@crowd/logging'
+import { Logger, getChildLogger } from '@crowd/logging'
 import { IQueueMessage, QueuePriorityLevel } from '@crowd/types'
 import { QueueEmitter, QueueReceiver } from './queue'
 import { IQueue, IQueueConfig } from './types'
@@ -73,7 +73,7 @@ export class PrioritizedQueueEmitter {
   }
 
   public async init(): Promise<void> {
-    await Promise.all(Array.from(this.emittersMap.values()).map((e) => e.queue.init(e.queueConf)))
+    await Promise.all(Array.from(this.emittersMap.values()).map((e) => e.init(e.queueConf)))
   }
 
   public async setMessageVisibilityTimeout(
@@ -98,8 +98,6 @@ export class PrioritizedQueueEmitter {
     if (!emitter) {
       throw new Error(`Unknown priority level: ${priorityLevel}`)
     }
-    const log = getServiceLogger()
-    log.info({ groupId, message }, '[DBGX1] Sending message to queue!')
     return emitter.sendMessage(groupId, message, deduplicationId)
   }
 

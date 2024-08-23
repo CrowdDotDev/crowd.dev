@@ -37,7 +37,7 @@ export class WorkerQueueReceiver extends PrioritizedQueueReciever {
     super(
       level,
       client,
-      client.getQueueConfig(CrowdQueue.INTEGRATION_RUN_WORKER),
+      client.getQueueChannelConfig(CrowdQueue.INTEGRATION_RUN_WORKER),
       maxConcurrentProcessing,
       parentLog,
     )
