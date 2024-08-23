@@ -381,7 +381,7 @@ export class SqsQueueService extends LoggerBase implements IQueue {
     return message.ReceiptHandle
   }
 
-  public getQueueConfig(queue: CrowdQueue): ISqsConfig {
+  public getQueueChannelConfig(queue: CrowdQueue): ISqsConfig {
     return configMap[queue]
   }
 }

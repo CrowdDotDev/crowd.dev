@@ -20,7 +20,7 @@ services:
       - 5435:5432
     networks:
       - crowd-bridge-test
-  
+
   kafka:
     image: bitnami/kafka:latest
     restart: unless-stopped
