@@ -77,7 +77,6 @@ export class ActivityService {
         },
       },
     );
-    console.log(response);
 
     return response.data;
   }
