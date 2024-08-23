@@ -37,7 +37,6 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
     // send message to kafka
     const producer = this.client.producer()
     await producer.connect()
-    this.log.info({ channel, message, groupId }, '[DBGX3] Producing kafka message!')
     const result = await producer.send({
       topic: channel.name,
       messages: [

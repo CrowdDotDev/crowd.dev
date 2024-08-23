@@ -115,10 +115,6 @@ export class QueueEmitter extends QueueBase {
     message: T,
     deduplicationId?: string,
   ): Promise<void> {
-    this.log.info(
-      { groupId, message, channel: this.getChannel() },
-      '[DBGX2] Sending message to queue!',
-    )
     await this.queue.send(this.getChannel(), message, groupId, {
       deduplicationId,
       config: this.queueConf,

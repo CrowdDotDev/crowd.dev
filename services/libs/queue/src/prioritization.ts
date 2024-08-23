@@ -45,7 +45,6 @@ export abstract class PrioritizedQueueReciever {
   }
 
   public async start(): Promise<void> {
-    this.log.info({ conf: this.levelReceiver.queueConf }, `DBGX5 PRIORITIZED QUEUE START() CALLED!`)
     await this.levelReceiver.start(this.levelReceiver.queueConf)
   }
 
@@ -62,7 +61,6 @@ export class PrioritizedQueueEmitter {
   public constructor(queue: IQueue, queueConf: IQueueConfig, parentLog: Logger) {
     for (const level of Object.values(QueuePriorityLevel)) {
       const config = { ...queueConf, name: `${queueConf.name}-${level}` }
-      parentLog.info({ conf: config }, `DBGX5 PRIORITIZED QUEUE EMITTER CONSTRUCTOR!`)
       this.emittersMap.set(level, new QueueEmitter(queue, config, parentLog))
     }
   }
@@ -100,8 +98,6 @@ export class PrioritizedQueueEmitter {
     if (!emitter) {
       throw new Error(`Unknown priority level: ${priorityLevel}`)
     }
-    const log = getServiceLogger()
-    log.info({ groupId, message }, '[DBGX1] Sending message to queue!')
     return emitter.sendMessage(groupId, message, deduplicationId)
   }
 
