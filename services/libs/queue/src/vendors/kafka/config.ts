@@ -1,27 +1,27 @@
 import { CrowdQueue } from '../../types'
-import { IKafkaConfig } from './types'
+import { IKafkaChannelConfig } from './types'
 
-export const INTEGRATION_RUN_WORKER_QUEUE_SETTINGS: IKafkaConfig = {
+export const INTEGRATION_RUN_WORKER_QUEUE_SETTINGS: IKafkaChannelConfig = {
   name: CrowdQueue.INTEGRATION_RUN_WORKER,
   partitionCount: 1,
 }
 
-export const INTEGRATION_STREAM_WORKER_QUEUE_SETTINGS: IKafkaConfig = {
+export const INTEGRATION_STREAM_WORKER_QUEUE_SETTINGS: IKafkaChannelConfig = {
   name: CrowdQueue.INTEGRATION_STREAM_WORKER,
   partitionCount: 1,
 }
 
-export const DATA_SINK_WORKER_QUEUE_SETTINGS: IKafkaConfig = {
+export const DATA_SINK_WORKER_QUEUE_SETTINGS: IKafkaChannelConfig = {
   name: CrowdQueue.DATA_SINK_WORKER,
   partitionCount: 1,
 }
 
-export const SEARCH_SYNC_WORKER_QUEUE_SETTINGS: IKafkaConfig = {
+export const SEARCH_SYNC_WORKER_QUEUE_SETTINGS: IKafkaChannelConfig = {
   name: CrowdQueue.SEARCH_SYNC_WORKER,
   partitionCount: 1,
 }
 
-export const INTEGRATION_SYNC_WORKER_QUEUE_SETTINGS: IKafkaConfig = {
+export const INTEGRATION_SYNC_WORKER_QUEUE_SETTINGS: IKafkaChannelConfig = {
   name: CrowdQueue.INTEGRATION_SYNC_WORKER,
   partitionCount: 1,
 }
