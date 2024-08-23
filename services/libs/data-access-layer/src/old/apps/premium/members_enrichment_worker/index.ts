@@ -270,7 +270,7 @@ export async function insertOrganization(
   const id = generateUUIDv4()
   await tx.none(
     `INSERT INTO organizations (id, "tenantId", "displayName", names, location, "createdAt", "updatedAt")
-     VALUES ($(id), $(tenantId), $(displayName), $(names), $(location), now(), now()) ON CONFLICT ("tenantId")`,
+     VALUES ($(id), $(tenantId), $(displayName), $(names), $(location), now(), now())`,
     {
       id,
       tenantId,
