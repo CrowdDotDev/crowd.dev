@@ -78,11 +78,16 @@ export abstract class QueueReceiver extends QueueBase {
 
   public async start(queueConf: IQueueConfig): Promise<void> {
     await this.queue.init({ ...queueConf, name: this.getChannel().name })
-    await this.queue.start(this.processMessage, this.maxConcurrentMessageProcessing, queueConf, {
-      deleteMessageImmediately: this.deleteMessageImmediately,
-      visibilityTimeoutSeconds: this.visibilityTimeoutSeconds,
-      receiveMessageCount: this.receiveMessageCount,
-    })
+    await this.queue.start(
+      this.processMessage,
+      this.maxConcurrentMessageProcessing,
+      { ...queueConf, name: this.getChannel().name },
+      {
+        deleteMessageImmediately: this.deleteMessageImmediately,
+        visibilityTimeoutSeconds: this.visibilityTimeoutSeconds,
+        receiveMessageCount: this.receiveMessageCount,
+      },
+    )
   }
 
   public stop() {
