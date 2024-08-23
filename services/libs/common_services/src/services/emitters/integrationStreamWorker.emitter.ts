@@ -20,7 +20,7 @@ export class IntegrationStreamWorkerEmitter extends QueuePriorityService {
   ) {
     super(
       CrowdQueue.INTEGRATION_STREAM_WORKER,
-      client.getQueueConfig(CrowdQueue.INTEGRATION_STREAM_WORKER),
+      client.getQueueChannelConfig(CrowdQueue.INTEGRATION_STREAM_WORKER),
       client,
       redis,
       priorityLevelCalculationContextLoader,

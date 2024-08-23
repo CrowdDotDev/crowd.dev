@@ -20,7 +20,7 @@ export class IntegrationSyncWorkerEmitter
   ) {
     super(
       CrowdQueue.INTEGRATION_SYNC_WORKER,
-      client.getQueueConfig(CrowdQueue.INTEGRATION_SYNC_WORKER),
+      client.getQueueChannelConfig(CrowdQueue.INTEGRATION_SYNC_WORKER),
       client,
       redis,
       priorityLevelCalculationContextLoader,

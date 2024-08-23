@@ -21,7 +21,7 @@ export class DataSinkWorkerEmitter extends QueuePriorityService {
   ) {
     super(
       CrowdQueue.DATA_SINK_WORKER,
-      queueClient.getQueueConfig(CrowdQueue.DATA_SINK_WORKER),
+      queueClient.getQueueChannelConfig(CrowdQueue.DATA_SINK_WORKER),
       queueClient,
       redis,
       priorityLevelCalculationContextLoader,

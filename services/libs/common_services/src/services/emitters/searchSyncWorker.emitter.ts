@@ -13,7 +13,7 @@ export class SearchSyncWorkerEmitter extends QueuePriorityService {
   ) {
     super(
       CrowdQueue.SEARCH_SYNC_WORKER,
-      client.getQueueConfig(CrowdQueue.SEARCH_SYNC_WORKER),
+      client.getQueueChannelConfig(CrowdQueue.SEARCH_SYNC_WORKER),
       client,
       redis,
       priorityLevelCalculationContextLoader,

@@ -19,7 +19,7 @@ export class IntegrationRunWorkerEmitter extends QueuePriorityService {
   ) {
     super(
       CrowdQueue.INTEGRATION_RUN_WORKER,
-      client.getQueueConfig(CrowdQueue.INTEGRATION_RUN_WORKER),
+      client.getQueueChannelConfig(CrowdQueue.INTEGRATION_RUN_WORKER),
       client,
       redis,
       priorityLevelCalculationContextLoader,
