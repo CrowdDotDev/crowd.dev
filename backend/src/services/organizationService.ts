@@ -174,6 +174,11 @@ export default class OrganizationService extends LoggerBase {
         )
       }
 
+      // clean up linkedin identity value
+      if (identity.platform === 'linkedin') {
+        identity.value = identity.value.split(':').pop()
+      }
+
       return {
         primary: {
           ...lodash.pick(organization, OrganizationService.ORGANIZATION_MERGE_FIELDS),
@@ -185,8 +190,7 @@ export default class OrganizationService extends LoggerBase {
         secondary: {
           id: randomUUID(),
           identities: secondaryIdentities,
-          displayName:
-            identity.platform === 'linkedin' ? identity.value.split(':').pop() : identity.value,
+          displayName: identity.value,
           attributes: {
             name: {
               default: identity.value,
