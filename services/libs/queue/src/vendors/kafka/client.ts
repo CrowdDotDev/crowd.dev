@@ -95,6 +95,12 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
               topic: config.name,
               numPartitions: config.partitionCount,
               replicationFactor: 1,
+              configEntries: [
+                {
+                  name: 'retention.ms',
+                  value: '604800000', // 7 days in milliseconds
+                },
+              ],
             },
           ],
           waitForLeaders: false,
