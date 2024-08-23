@@ -1,4 +1,9 @@
-import { IOrganizationIdSource, OrganizationIdentityType, SyncStatus } from '@crowd/types'
+import {
+  IMemberOrganization,
+  IOrganizationIdSource,
+  OrganizationIdentityType,
+  SyncStatus,
+} from '@crowd/types'
 import { QueryExecutor } from '../queryExecutor'
 import { prepareSelectColumns } from '../utils'
 import {
@@ -283,6 +288,24 @@ export async function addOrgsToMember(
   `
 
   await qe.selectNone(query, parameters)
+}
+
+export async function findMemberOrganizations(
+  qe: QueryExecutor,
+  memberId: string,
+  organizationId: string,
+): Promise<IMemberOrganization[]> {
+  return await qe.select(
+    `
+    select *
+    from "memberOrganizations"
+    where "memberId" = $(memberId) and "organizationId" = $(organizationId)
+    `,
+    {
+      memberId,
+      organizationId,
+    },
+  )
 }
 
 export async function addOrgToSyncRemote(

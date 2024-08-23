@@ -26,9 +26,10 @@ import {
 import isEqual from 'lodash.isequal'
 import mergeWith from 'lodash.mergewith'
 import { TEMPORAL_CONFIG } from '../conf'
-import { IActivityCreateData, IActivityUpdateData } from './activity.data'
+import { IActivityCreateData, IActivityUpdateData, ISentimentActivityInput } from './activity.data'
 import MemberService from './member.service'
 import MemberAffiliationService from './memberAffiliation.service'
+import { DEFAULT_ACTIVITY_TYPE_SETTINGS } from '@crowd/integrations'
 
 export default class ActivityService extends LoggerBase {
   private readonly conversationService: ConversationService
@@ -57,7 +58,12 @@ export default class ActivityService extends LoggerBase {
     try {
       this.log.debug('Creating an activity.')
 
-      const sentiment = await getSentiment(`${activity.body || ''} ${activity.title || ''}`.trim())
+      const sentiment = await this.getActivitySentiment({
+        body: activity.body,
+        title: activity.title,
+        type: activity.type,
+        platform: activity.platform,
+      })
 
       const id = await this.store.transactionally(async (txStore) => {
         const txRepo = new ActivityRepository(txStore, this.log)
@@ -261,7 +267,12 @@ export default class ActivityService extends LoggerBase {
 
     let sentiment: Promise<ISentimentAnalysisResult | undefined>
     if (calcSentiment) {
-      sentiment = getSentiment(`${body || ''} ${title || ''}`.trim())
+      sentiment = this.getActivitySentiment({
+        body: body,
+        title: title,
+        type: original.type,
+        platform: original.platform,
+      })
     } else {
       sentiment = Promise.resolve(undefined)
     }
@@ -967,5 +978,17 @@ export default class ActivityService extends LoggerBase {
       this.log.error(err, 'Error while processing an activity!')
       throw err
     }
+  }
+
+  public async getActivitySentiment(
+    activity: ISentimentActivityInput,
+  ): Promise<ISentimentAnalysisResult | undefined> {
+    const settings = DEFAULT_ACTIVITY_TYPE_SETTINGS[activity.platform]?.[activity.type]
+
+    if (settings && settings.calculateSentiment === true) {
+      return getSentiment(`${activity.body || ''} ${activity.title || ''}`.trim())
+    }
+
+    return null
   }
 }

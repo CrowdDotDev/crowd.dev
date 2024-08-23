@@ -269,13 +269,12 @@ export async function insertOrganization(
 ): Promise<string> {
   const id = generateUUIDv4()
   await tx.none(
-    `INSERT INTO organizations (id, "tenantId", "displayName", names, location, "createdAt", "updatedAt")
-     VALUES ($(id), $(tenantId), $(displayName), $(names), $(location), now(), now()) ON CONFLICT ("tenantId")`,
+    `INSERT INTO organizations (id, "tenantId", "displayName", location, "createdAt", "updatedAt")
+     VALUES ($(id), $(tenantId), $(displayName), $(location), now(), now())`,
     {
       id,
       tenantId,
       displayName: company,
-      names: [company],
       location,
     },
   )
