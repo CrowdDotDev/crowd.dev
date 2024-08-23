@@ -3,7 +3,7 @@
     <lf-filter
       ref="organizationFilter"
       v-model="filters"
-      :config="organizationFilters"
+      :config="organizationCommonFilters"
       :search-config="organizationSearchFilter"
       :saved-views-config="commonOrganizationSavedViews"
       hash="organizations"
@@ -46,7 +46,10 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import LfFilter from '@/shared/modules/filters/components/Filter.vue';
-import { organizationFilters, organizationSearchFilter } from '@/modules/organization/config/filters/main';
+import {
+  organizationCommonFilters,
+  organizationSearchFilter,
+} from '@/modules/organization/config/filters/main';
 import { commonOrganizationSavedViews } from '@/modules/organization/config/saved-views/main';
 import { FilterQuery } from '@/shared/modules/filters/types/FilterQuery';
 import AppOrganizationCommonListTable from '@/modules/organization/components/list/organization-common-list-table.vue';

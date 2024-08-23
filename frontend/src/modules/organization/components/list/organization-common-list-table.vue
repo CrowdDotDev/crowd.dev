@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div v-if="organizations.length">
     <lf-table class="pb-12">
       <thead>
         <tr>
@@ -102,6 +102,12 @@
       <div class="absolute bottom-0 left-0 right-0 bg-white h-12" />
     </lf-table>
   </div>
+  <app-empty-state-cta
+    v-else
+    icon="ri-community-line"
+    title="No organizations found"
+    description="We couldn't find any results that match your search criteria, please try a different query."
+  />
 </template>
 
 <script setup lang="ts">

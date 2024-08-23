@@ -44,6 +44,12 @@ export const organizationFilters: Record<string, FilterConfig> = {
   tags,
   type,
 };
+export const organizationCommonFilters: Record<string, FilterConfig> = {
+  projects,
+  enrichedOrganization,
+  // lfxMembership,
+  activeOn,
+};
 
 export const organizationSearchFilter: SearchFilterConfig = {
   placeholder: 'Search organizations',

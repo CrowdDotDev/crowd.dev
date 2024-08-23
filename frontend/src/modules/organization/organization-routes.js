@@ -57,6 +57,9 @@ export default [
           title: 'Organization',
           auth: true,
           eventKey: PageEventKey.ORGANIZATION_PROFILE,
+          segments: {
+            optionalSelectedProjectGroup: true,
+          },
         },
         props: true,
         beforeEnter: [
