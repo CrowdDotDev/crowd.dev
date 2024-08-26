@@ -32,7 +32,7 @@
         @edit="editIdentity = identity"
         @unmerge="unmerge(identity)"
       />
-      <div v-if="identities.length === 0" class="pt-2 flex flex-col items-center w-full">
+      <div v-if="identityList.length === 0" class="pt-2 flex flex-col items-center w-full">
         <lf-icon name="fingerprint-fill" :size="40" class="text-gray-300" />
         <p class="text-center pt-3 text-medium text-gray-400">
           No identities
