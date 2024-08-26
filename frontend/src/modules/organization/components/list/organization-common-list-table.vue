@@ -30,8 +30,8 @@
             />
           </lf-table-cell>
           <lf-table-cell>
-            <div class="flex py-0.5" @click.prevent>
-              <el-popover v-if="getSegments(org.segments).length > 0" placement="top-start" trigger="click" width="264px">
+            <div class="flex py-0.5">
+              <el-popover v-if="getSegments(org.segments).length > 0" placement="top-start" width="264px">
                 <template #reference>
                   <div class="border border-gray-200 h-6 px-1.5 rounded-md bg-white text-small gap-1 flex items-center whitespace-nowrap text-black">
                     <lf-icon name="folders-line" :size="14" />
