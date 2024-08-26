@@ -130,6 +130,7 @@ const onPaginationChange = (paginationData: any) => {
 
 onMounted(() => {
   listProjectGroups({
+    limit: null,
     reset: true,
   } as any);
 });

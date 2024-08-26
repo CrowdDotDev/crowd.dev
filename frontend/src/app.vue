@@ -69,7 +69,10 @@ export default {
     window.addEventListener('resize', this.handleResize);
     this.handleResize();
     this.init();
-    this.listProjectGroups();
+    this.listProjectGroups({
+      limit: null,
+      reset: true,
+    });
   },
 
   unmounted() {
