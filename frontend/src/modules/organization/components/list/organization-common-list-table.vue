@@ -30,19 +30,19 @@
             />
           </lf-table-cell>
           <lf-table-cell>
-            <div class="flex py-0.5">
-              <el-popover v-if="getSegments(org.segments).length > 0" placement="top-start">
+            <div class="flex py-0.5" @click.prevent>
+              <el-popover v-if="getSegments(org.segments).length > 0" placement="top-start" trigger="click" width="264px">
                 <template #reference>
                   <div class="border border-gray-200 h-6 px-1.5 rounded-md bg-white text-small gap-1 flex items-center whitespace-nowrap text-black">
                     <lf-icon name="folders-line" :size="14" />
                     {{ pluralize('project group', getSegments(org.segments).length, true) }}
                   </div>
                 </template>
-                <div class="max-h-72 overflow-auto">
+                <div class="max-h-72 overflow-auto pb-1">
                   <div class="mb-2.5 text-tiny font-semibold text-gray-400">
                     Project groups
                   </div>
-                  <div class="flex flex-col gap-4 w-60">
+                  <div class="flex flex-col gap-4 min-h-min ">
                     <div
                       v-for="segment in getSegments(org.segments)"
                       :key="segment.id"
