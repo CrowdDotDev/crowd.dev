@@ -17,8 +17,9 @@ export async function fetchAllGitlabGroups(accessToken: string) {
 
   return groups.map((group) => ({
     id: group.id,
-    name: group.name,
-    path: group.path,
+    name: group.name as string,
+    path: group.path as string,
+    avatarUrl: group.avatar_url as string,
   }))
 }
 
@@ -33,9 +34,9 @@ export async function fetchGitlabGroupProjects(accessToken: string, groups: any[
     while (hasMorePages) {
       const response = await axios.get(`https://gitlab.com/api/v4/groups/${group.id}/projects`, {
         headers: { Authorization: `Bearer ${accessToken}` },
-        params: { page, per_page: 100 },
+        params: { page, per_page: 100, archived: false },
       })
-      projects.push(...response.data)
+      projects.push(...response.data.filter(project => !project.fork))
       hasMorePages = response.headers['x-next-page'] !== ''
       page++
     }
@@ -47,6 +48,7 @@ export async function fetchGitlabGroupProjects(accessToken: string, groups: any[
       id: project.id,
       name: project.name,
       path_with_namespace: project.path_with_namespace,
+      enabled: false,
     }))
   }
 
@@ -61,9 +63,9 @@ export async function fetchGitlabUserProjects(accessToken: string, userId: numbe
   while (hasMorePages) {
     const response = await axios.get(`https://gitlab.com/api/v4/users/${userId}/projects`, {
       headers: { Authorization: `Bearer ${accessToken}` },
-      params: { page, per_page: 100 },
+      params: { page, per_page: 100, archived: false },
     })
-    projects.push(...response.data)
+    projects.push(...response.data.filter(project => !project.fork))
     hasMorePages = response.headers['x-next-page'] !== ''
     page++
   }
@@ -72,5 +74,6 @@ export async function fetchGitlabUserProjects(accessToken: string, userId: numbe
     id: project.id,
     name: project.name,
     path_with_namespace: project.path_with_namespace,
+    enabled: false,
   }))
 }

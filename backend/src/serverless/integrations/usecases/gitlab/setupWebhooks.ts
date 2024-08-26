@@ -1,5 +1,4 @@
 import axios from 'axios'
-import {timeout} from "@crowd/common"
 
 interface WebhookSetupResult {
   projectId: number
@@ -8,7 +7,7 @@ interface WebhookSetupResult {
   error?: string
 }
 
-const webhookUrl = 'https://webhook-test.com/f7eff8ec48e6bb6a35d46e4861a47e16'
+const webhookUrl = process.env.GITLAB_WEBHOOK_BASE_URL  || 'https://webhook-test.com/f7eff8ec48e6bb6a35d46e4861a47e16'
 
 export async function setupGitlabWebhooks(accessToken: string, projectIds: number[]): Promise<WebhookSetupResult[]> {
   const results: WebhookSetupResult[] = []
@@ -42,8 +41,6 @@ export async function setupGitlabWebhooks(accessToken: string, projectIds: numbe
     } catch (error) {
       results.push({ projectId, success: false, error: error.message })
     }
-
-    await timeout(1000)
   }
 
   return results

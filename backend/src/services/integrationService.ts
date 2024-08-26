@@ -2227,14 +2227,11 @@ export default class IntegrationService {
     return integration
   }
 
-  async mapGitlabRepos(integrationId, mapping, projectIds) {
-    const transaction = await SequelizeRepository.createTransaction(this.options)
-
-    const txOptions = {
-      ...this.options,
-      transaction,
-    }
-
+  async mapGitlabRepos(
+    integrationId: string,
+    mapping: Record<string, string>,
+    projectIds: number[],
+  ) {
     const integration = await this.findById(integrationId)
 
     const webhooks = await setupGitlabWebhooks(integration.token, projectIds)
@@ -2245,11 +2242,30 @@ export default class IntegrationService {
       throw new Error('Failed to setup webhooks')
     }
 
-    await IntegrationRepository.update(
-      integrationId,
-      { settings: { ...integration.settings, webhooks } },
-      txOptions,
-    )
+    const settings = integration.settings
+    const { groupProjects, userProjects } = settings
+    const allProjects = [
+      ...userProjects,
+      ...Object.values(groupProjects).flat(),
+    ]
+
+    allProjects.forEach((project) => {
+      const isInMapping = Object.keys(mapping).some((url) =>
+        url.includes(project.path_with_namespace)
+      )
+      project.enabled = isInMapping
+    })
+
+    // Keep the original structure of groupProjects and userProjects
+    settings.groupProjects = { ...groupProjects }
+    settings.userProjects = [...userProjects]
+
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+
+    const txOptions = {
+      ...this.options,
+      transaction,
+    }
 
     try {
       await GitlabReposRepository.updateMapping(integrationId, mapping, txOptions)
@@ -2308,7 +2324,7 @@ export default class IntegrationService {
 
       const integration = await IntegrationRepository.update(
         integrationId,
-        { status: 'in-progress' },
+        { settings: { ...settings, webhooks }, status: 'in-progress' },
         txOptions,
       )
 

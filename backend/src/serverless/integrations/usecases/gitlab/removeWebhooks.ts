@@ -1,5 +1,4 @@
 import axios from 'axios'
-import { timeout } from "@crowd/common"
 
 interface WebhookRemovalResult {
   projectId: number
@@ -29,8 +28,6 @@ export async function removeGitlabWebhooks(accessToken: string, projectIds: numb
       } catch (error) {
         results.push({ projectId, success: false, error: error.message })
       }
-
-      await timeout(1000)
     }
   }
 

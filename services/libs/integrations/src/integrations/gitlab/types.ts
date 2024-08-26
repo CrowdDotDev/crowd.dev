@@ -139,6 +139,7 @@ export interface GitLabSettings {
     id: number
     name: string
     path_with_namespace: string
+    enabled: boolean
   }>
   groupProjects: {
     [key: string]: Array<{
@@ -148,6 +149,7 @@ export interface GitLabSettings {
       id: number
       name: string
       path_with_namespace: string
+      enabled: boolean
     }>
   }
   updateMemberAttributes: boolean
