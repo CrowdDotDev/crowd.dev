@@ -116,7 +116,7 @@ const doGetActivityCount = () => {
       limit: 1,
       offset: 0,
       orderBy: 'timestamp_DESC',
-      segments: selectedProjectGroup.value?.id ? [selectedProjectGroup.value?.id] : props.organization.segments,
+      segments: selectedSegment.value ? [selectedSegment.value] : props.organization.segments,
     },
     true,
   )
