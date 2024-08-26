@@ -1874,6 +1874,7 @@ export default class IntegrationService {
         group: response?.data?.data?.group_id,
       }
     } catch (err) {
+      this.options.log.error('Error verifying groups.io group.', err)
       throw new Error400(this.options.language, 'errors.groupsio.invalidGroup')
     }
   }
