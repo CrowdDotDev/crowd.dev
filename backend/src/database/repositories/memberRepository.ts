@@ -1502,7 +1502,6 @@ class MemberRepository {
           ...include,
         },
       },
-      options,
     )
 
     if (count === 0) {
@@ -2091,10 +2090,6 @@ class MemberRepository {
           SELECT
             DISTINCT "memberId"
           FROM "memberIdentities" mi
-          join members m on m.id = mi."memberId"
-          where (verified and lower("value") like '%${search}%') or
-          lower(m."displayName") like '%${search}%'
-          GROUP BY 1
           where (verified and lower("value") like '%${search}%')
         )
       `

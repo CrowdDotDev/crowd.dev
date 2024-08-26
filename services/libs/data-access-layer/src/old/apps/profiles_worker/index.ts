@@ -89,10 +89,6 @@ export async function runMemberAffiliationsUpdate(
     .head()
     .value()
 
-  if (orgCases.length === 0) {
-    return
-  }
-
   const qdbQx = pgpQx(qDb)
   let fullCase: string
   if (orgCases.length > 0) {

@@ -1,4 +1,4 @@
-import { IMemberOrganization, IOrganizationIdSource, SyncStatus } from '@crowd/types'
+import { IOrganizationIdSource, SyncStatus } from '@crowd/types'
 import { QueryExecutor } from '../queryExecutor'
 import { prepareSelectColumns } from '../utils'
 import {
