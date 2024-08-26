@@ -1,5 +1,5 @@
 <template>
-  <lf-dropdown v-show="getSegments.length > 0" width="20rem" placement="bottom-end" @visibility="onVisibilityChange">
+  <lf-dropdown width="20rem" placement="bottom-end" @visibility="onVisibilityChange">
     <template #trigger="{ open }">
       <lf-button type="secondary-link">
         {{ selectedSegmentName }}
@@ -27,18 +27,20 @@
       </div>
     </template>
 
-    <lf-dropdown-separator />
-    <lf-dropdown-item
-      v-for="s in filteredSegments"
-      :key="s.id"
-      :selected="s.id === segment"
-      @click="segment = s.id"
-    >
-      {{ s.name }}
-    </lf-dropdown-item>
-    <div v-if="filteredSegments.length === 0" class="p-2 text-small text-gray-500 italic">
-      No matched project groups
-    </div>
+    <template v-if="getSegments.length > 0">
+      <lf-dropdown-separator />
+      <lf-dropdown-item
+        v-for="s in filteredSegments"
+        :key="s.id"
+        :selected="s.id === segment"
+        @click="segment = s.id"
+      >
+        {{ s.name }}
+      </lf-dropdown-item>
+      <div v-if="filteredSegments.length === 0" class="p-2 text-small text-gray-500 italic">
+        No matched project groups
+      </div>
+    </template>
   </lf-dropdown>
 </template>
 

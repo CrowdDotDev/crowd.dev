@@ -30,7 +30,7 @@
       >
         <template #pagination>
           <app-pagination
-            :total="pagination.total"
+            :total="totalOrganizations"
             :page-size="Number(pagination.perPage)"
             :current-page="pagination.page || 1"
             :hide-sorting="true"
