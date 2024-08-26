@@ -1,8 +1,3 @@
-import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
-import {
-  IFetchOrganizationMergeSuggestionArgs,
-  SimilarityScoreRange,
-} from '@/types/mergeSuggestionTypes'
 import {
   captureApiChange,
   organizationCreateAction,
@@ -57,6 +52,11 @@ import {
 import lodash, { uniq } from 'lodash'
 import Sequelize, { QueryTypes } from 'sequelize'
 import validator from 'validator'
+import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
+import {
+  IFetchOrganizationMergeSuggestionArgs,
+  SimilarityScoreRange,
+} from '@/types/mergeSuggestionTypes'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import AuditLogRepository from './auditLogRepository'
 import SegmentRepository from './segmentRepository'
@@ -1608,7 +1608,7 @@ class OrganizationRepository {
         segments: false,
         attributes: false,
       } as {
-        aggregates: boolean
+        aggregates?: boolean
         identities?: boolean
         lfxMemberships?: boolean
         segments?: boolean

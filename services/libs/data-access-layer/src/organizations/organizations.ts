@@ -1,4 +1,4 @@
-import { IOrganizationIdSource, SyncStatus } from '@crowd/types'
+import { IMemberOrganization, IOrganizationIdSource, SyncStatus } from '@crowd/types'
 import { QueryExecutor } from '../queryExecutor'
 import { prepareSelectColumns } from '../utils'
 import {
@@ -11,6 +11,8 @@ import {
   IQueryNumberOfNewOrganizations,
   IQueryTimeseriesOfNewOrganizations,
 } from './types'
+import { generateUUIDv1 } from '@crowd/common'
+import { DbStore } from '@crowd/database'
 
 const ORG_SELECT_COLUMNS = [
   'id',
