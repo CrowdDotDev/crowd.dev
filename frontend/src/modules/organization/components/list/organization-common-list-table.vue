@@ -38,11 +38,11 @@
                     {{ pluralize('project group', getSegments(org.segments).length, true) }}
                   </div>
                 </template>
-                <div>
+                <div class="max-h-72 overflow-auto">
                   <div class="mb-2.5 text-tiny font-semibold text-gray-400">
                     Project groups
                   </div>
-                  <div class="flex flex-col gap-4">
+                  <div class="flex flex-col gap-4 w-60">
                     <div
                       v-for="segment in getSegments(org.segments)"
                       :key="segment.id"

@@ -29,16 +29,18 @@
 
     <template v-if="getSegments.length > 0">
       <lf-dropdown-separator />
-      <lf-dropdown-item
-        v-for="s in filteredSegments"
-        :key="s.id"
-        :selected="s.id === segment"
-        @click="segment = s.id"
-      >
-        {{ s.name }}
-      </lf-dropdown-item>
-      <div v-if="filteredSegments.length === 0" class="p-2 text-small text-gray-500 italic">
-        No matched project groups
+      <div class="max-h-60 overflow-auto">
+        <lf-dropdown-item
+          v-for="s in filteredSegments"
+          :key="s.id"
+          :selected="s.id === segment"
+          @click="segment = s.id"
+        >
+          {{ s.name }}
+        </lf-dropdown-item>
+        <div v-if="filteredSegments.length === 0" class="p-2 text-small text-gray-500 italic">
+          No matched project groups
+        </div>
       </div>
     </template>
   </lf-dropdown>

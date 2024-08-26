@@ -76,7 +76,7 @@ const pagination = ref({
   total: 0,
 });
 
-const sorting = ref('displayName_ASC');
+const sorting = ref('activityCount_DESC');
 
 const organizations = ref<any[]>([]);
 const totalOrganizations = ref<number>(0);
