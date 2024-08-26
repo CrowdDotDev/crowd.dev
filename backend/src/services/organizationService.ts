@@ -969,7 +969,7 @@ export default class OrganizationService extends LoggerBase {
 
       await SequelizeRepository.commitTransaction(transaction)
 
-      const searchSyncService = new SearchSyncService(this.options)
+      const searchSyncService = new SearchSyncService(this.options, SyncMode.ASYNCHRONOUS)
 
       for (const id of ids) {
         await searchSyncService.triggerRemoveOrganization(this.options.currentTenant.id, id)
@@ -1067,8 +1067,8 @@ export default class OrganizationService extends LoggerBase {
         limit,
         offset,
         segmentId: undefined,
-        fields: ['id', 'displayName', 'isTeamOrganization'],
-        include: { aggregates: false, identities: true, segments: true, lfxMemberships: true },
+        fields: ['id', 'logo', 'displayName', 'isTeamOrganization'],
+        include: { aggregates: true, identities: true, segments: true, lfxMemberships: true },
       },
       this.options,
     )

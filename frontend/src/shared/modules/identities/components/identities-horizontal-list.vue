@@ -10,10 +10,10 @@
     <template #reference>
       <slot name="badge">
         <div
-          class="flex gap-3 items-center bg-white border border-gray-200
-        hover:bg-gray-50 rounded-full h-8 px-3 relative cursor-auto group whitespace-nowrap"
+          class="flex gap-1.5 items-center bg-white border border-gray-200
+        hover:bg-gray-50 rounded-md h-6 px-1.5 relative cursor-auto group whitespace-nowrap"
         >
-          <div class="text-xs text-gray-500 font-medium">
+          <div class="text-xs text-black">
             {{ pluralize("identity", parsedIdentities.identitiesLength, true) }}
           </div>
           <div

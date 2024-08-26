@@ -98,6 +98,7 @@ export interface Organization {
     project: string;
     purchaseHistoryName: string;
     segmentId: string;
+    segments: string[];
     status: string;
     tenantId: string;
     tier: string;
