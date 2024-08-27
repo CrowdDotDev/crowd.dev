@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { API_CONFIG } from '@/conf'
 
 interface WebhookSetupResult {
   projectId: number
@@ -7,7 +8,7 @@ interface WebhookSetupResult {
   error?: string
 }
 
-const webhookBase = process.env.GITLAB_WEBHOOK_BASE_URL  || 'https://5821-202-58-201-160.ngrok-free.app'
+const webhookBase = 'https://5821-202-58-201-160.ngrok-free.app' || `${API_CONFIG.url}/webhooks`
 
 const createWebhookUrl = (integrationId: string) => `${webhookBase}/gitlab/${integrationId}`
 
