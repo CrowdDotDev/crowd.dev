@@ -82,8 +82,14 @@
             </p>
           </template>
           <template v-else>
-            <div class="w-8 h-8 bg-gray-200 rounded-full" />
-            <div class="w-16 h-4 bg-gray-200" />
+            <lf-tooltip
+              content="This person's data is not shown because of the GDPR."
+              class="flex items-center gap-2"
+              placement="top-start"
+            >
+              <div class="w-8 h-8 bg-gray-200 rounded-full" />
+              <div class="w-16 h-4 bg-gray-200" />
+            </lf-tooltip>
           </template>
         </router-link>
         <div class="flex items-center gap-4">
@@ -111,7 +117,13 @@
               </div>
             </template>
           </app-identities-horizontal-list-members>
-          <div v-else class="h-6 w-21 rounded-md bg-gray-200" />
+          <lf-tooltip
+            v-else
+            placement="top-end"
+            content="This person's data is not shown because of the GDPR."
+          >
+            <div class="h-6 w-21 rounded-md bg-gray-200" />
+          </lf-tooltip>
         </div>
       </article>
     </div>

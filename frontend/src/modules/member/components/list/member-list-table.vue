@@ -137,10 +137,16 @@
                         <app-member-sentiment :member="scope.row" class="ml-1 mr-1" />
                         <app-member-badge :member="scope.row" />
                       </div>
-                      <div v-else class="flex items-center">
-                        <div class="h-8 w-8 bg-gray-200 rounded-full mr-3" />
-                        <div class="w-40 h-5 mb-1 bg-gray-200 rounded-md" />
-                      </div>
+                      <el-tooltip
+                        v-else
+                        placement="top"
+                        content="This person's data is not shown because of the GDPR."
+                      >
+                        <div class="flex items-center">
+                          <div class="h-8 w-8 bg-gray-200 rounded-full mr-3" />
+                          <div class="w-40 h-5 mb-1 bg-gray-200 rounded-md" />
+                        </div>
+                      </el-tooltip>
                     </div>
                   </router-link>
                 </template>
@@ -202,7 +208,13 @@
                     class="block"
                   >
                     <app-member-job-title v-if="!isMasked(scope.row)" :member="scope.row" />
-                    <div v-else class="w-40 h-5 mb-1 bg-gray-200 rounded-md" />
+                    <el-tooltip
+                      v-else
+                      placement="top"
+                      content="This person's data is not shown because of the GDPR."
+                    >
+                      <div class="w-40 h-5 mb-1 bg-gray-200 rounded-md" />
+                    </el-tooltip>
                   </router-link>
                 </template>
               </el-table-column>
@@ -234,7 +246,13 @@
                       :member="scope.row"
                       :limit="5"
                     />
-                    <div v-else class="w-40 h-5 mb-1 bg-gray-200 rounded-md" />
+                    <el-tooltip
+                      v-else
+                      placement="top"
+                      content="This person's data is not shown because of the GDPR."
+                    >
+                      <div class="w-40 h-5 mb-1 bg-gray-200 rounded-md" />
+                    </el-tooltip>
                   </router-link>
                 </template>
               </el-table-column>
@@ -254,7 +272,13 @@
                     class="block"
                   >
                     <app-member-list-emails v-if="!isMasked(scope.row)" :member="scope.row" />
-                    <div v-else class="w-40 h-5 mb-1 bg-gray-200 rounded-md" />
+                    <el-tooltip
+                      v-else
+                      placement="top"
+                      content="This person's data is not shown because of the GDPR."
+                    >
+                      <div class="w-40 h-5 mb-1 bg-gray-200 rounded-md" />
+                    </el-tooltip>
                   </router-link>
                 </template>
               </el-table-column>
@@ -334,7 +358,13 @@
                         :member="scope.row"
                       />
                     </div>
-                    <div v-else class="w-40 h-5 mb-1 bg-gray-200 rounded-md" />
+                    <el-tooltip
+                      v-else
+                      placement="top"
+                      content="This person's data is not shown because of the GDPR."
+                    >
+                      <div class="w-40 h-5 mb-1 bg-gray-200 rounded-md" />
+                    </el-tooltip>
                   </router-link>
                 </template>
               </el-table-column>
@@ -399,7 +429,13 @@
                       </div>
                       <span v-else class="text-gray-900">-</span>
                     </div>
-                    <div v-else class="w-40 h-5 mb-1 bg-gray-200 rounded-md" />
+                    <el-tooltip
+                      v-else
+                      placement="top"
+                      content="This person's data is not shown because of the GDPR."
+                    >
+                      <div class="w-40 h-5 mb-1 bg-gray-200 rounded-md" />
+                    </el-tooltip>
                   </router-link>
                 </template>
               </el-table-column>
@@ -514,7 +550,13 @@
                         </div>
                       </div>
                     </div>
-                    <div v-else class="w-40 h-5 mb-1 bg-gray-200 rounded-md" />
+                    <el-tooltip
+                      v-else
+                      placement="top"
+                      content="This person's data is not shown because of the GDPR."
+                    >
+                      <div class="w-40 h-5 mb-1 bg-gray-200 rounded-md" />
+                    </el-tooltip>
                   </router-link>
                 </template>
               </el-table-column>
@@ -575,7 +617,13 @@
                         </div>
                       </div>
                     </div>
-                    <div v-else class="w-40 h-5 mb-1 bg-gray-200 rounded-md" />
+                    <el-tooltip
+                      v-else
+                      placement="top"
+                      content="This person's data is not shown because of the GDPR."
+                    >
+                      <div class="w-40 h-5 mb-1 bg-gray-200 rounded-md" />
+                    </el-tooltip>
                   </router-link>
                 </template>
               </el-table-column>
@@ -636,7 +684,13 @@
                         </div>
                       </div>
                     </div>
-                    <div v-else class="w-40 h-5 mb-1 bg-gray-200 rounded-md" />
+                    <el-tooltip
+                      v-else
+                      placement="top"
+                      content="This person's data is not shown because of the GDPR."
+                    >
+                      <div class="w-40 h-5 mb-1 bg-gray-200 rounded-md" />
+                    </el-tooltip>
                   </router-link>
                 </template>
               </el-table-column>
