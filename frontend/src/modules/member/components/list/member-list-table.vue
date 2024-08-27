@@ -126,8 +126,9 @@
                     class="block"
                   >
                     <div class="flex items-center">
-                      <app-avatar :entity="scope.row" size="xs" class="mr-3" />
-                      <div class="inline-flex flex-wrap overflow-wrap items-center">
+                      <div v-if="!isMasked(scope.row)" class="inline-flex flex-wrap overflow-wrap items-center">
+                        <app-avatar :entity="scope.row" size="xs" class="mr-3" />
+
                         <span
                           class="font-medium text-sm text-gray-900 line-clamp-2 w-auto"
                           data-qa="members-name"
@@ -135,6 +136,10 @@
                         />
                         <app-member-sentiment :member="scope.row" class="ml-1 mr-1" />
                         <app-member-badge :member="scope.row" />
+                      </div>
+                      <div v-else class="flex items-center">
+                        <div class="h-8 w-8 bg-gray-200 rounded-full mr-3" />
+                        <div class="w-40 h-5 mb-1 bg-gray-200 rounded-md" />
                       </div>
                     </div>
                   </router-link>
@@ -196,7 +201,8 @@
                     }"
                     class="block"
                   >
-                    <app-member-job-title :member="scope.row" />
+                    <app-member-job-title v-if="!isMasked(scope.row)" :member="scope.row" />
+                    <div v-else class="w-40 h-5 mb-1 bg-gray-200 rounded-md" />
                   </router-link>
                 </template>
               </el-table-column>
@@ -224,9 +230,11 @@
                     class="block"
                   >
                     <app-identities-horizontal-list-members
+                      v-if="!isMasked(scope.row)"
                       :member="scope.row"
                       :limit="5"
                     />
+                    <div v-else class="w-40 h-5 mb-1 bg-gray-200 rounded-md" />
                   </router-link>
                 </template>
               </el-table-column>
@@ -245,7 +253,8 @@
                     }"
                     class="block"
                   >
-                    <app-member-list-emails :member="scope.row" />
+                    <app-member-list-emails v-if="!isMasked(scope.row)" :member="scope.row" />
+                    <div v-else class="w-40 h-5 mb-1 bg-gray-200 rounded-md" />
                   </router-link>
                 </template>
               </el-table-column>
@@ -319,10 +328,13 @@
                     }"
                     class="block !text-gray-500"
                   >
-                    <app-member-last-activity
-                      v-if="scope.row.lastActivity"
-                      :member="scope.row"
-                    />
+                    <div v-if="!isMasked(scope.row)">
+                      <app-member-last-activity
+                        v-if="scope.row.lastActivity"
+                        :member="scope.row"
+                      />
+                    </div>
+                    <div v-else class="w-40 h-5 mb-1 bg-gray-200 rounded-md" />
                   </router-link>
                 </template>
               </el-table-column>
@@ -378,13 +390,16 @@
                     }"
                     class="block"
                   >
-                    <div
-                      v-if="scope.row.attributes?.location?.default"
-                      class="text-gray-900 text-sm"
-                    >
-                      {{ scope.row.attributes.location.default }}
+                    <div v-if="!isMasked(scope.row)">
+                      <div
+                        v-if="scope.row.attributes?.location?.default"
+                        class="text-gray-900 text-sm"
+                      >
+                        {{ scope.row.attributes.location.default }}
+                      </div>
+                      <span v-else class="text-gray-900">-</span>
                     </div>
-                    <span v-else class="text-gray-900">-</span>
+                    <div v-else class="w-40 h-5 mb-1 bg-gray-200 rounded-md" />
                   </router-link>
                 </template>
               </el-table-column>
@@ -483,20 +498,23 @@
                     }"
                     class="block h-full"
                   >
-                    <div v-if="isEnrichEnabled">
-                      <div
-                        v-if="scope.row.attributes?.seniorityLevel?.default"
-                        class="text-gray-900 text-sm"
-                      >
-                        {{ scope.row.attributes.seniorityLevel.default }}
+                    <div v-if="!isMasked(scope.row)">
+                      <div v-if="isEnrichEnabled">
+                        <div
+                          v-if="scope.row.attributes?.seniorityLevel?.default"
+                          class="text-gray-900 text-sm"
+                        >
+                          {{ scope.row.attributes.seniorityLevel.default }}
+                        </div>
+                        <span v-else class="text-gray-900">-</span>
                       </div>
-                      <span v-else class="text-gray-900">-</span>
-                    </div>
-                    <div v-else class="flex items-center h-full w-full pl-3">
-                      <div class="blur-[6px] text-gray-900 select-none">
-                        Senior
+                      <div v-else class="flex items-center h-full w-full pl-3">
+                        <div class="blur-[6px] text-gray-900 select-none">
+                          Senior
+                        </div>
                       </div>
                     </div>
+                    <div v-else class="w-40 h-5 mb-1 bg-gray-200 rounded-md" />
                   </router-link>
                 </template>
               </el-table-column>
@@ -536,25 +554,28 @@
                     }"
                     class="block h-full"
                   >
-                    <div v-if="isEnrichEnabled">
-                      <app-shared-tag-list
-                        v-if="scope.row.attributes.programmingLanguages?.default?.length"
-                        :list="scope.row.attributes.programmingLanguages.default"
-                        :slice-size="5"
-                      >
-                        <template #itemSlot="{ item }">
-                          <span class="border border-gray-200 px-2 text-xs rounded-lg h-6 bg-white text-gray-900 inline-flex break-keep">
-                            {{ item }}
-                          </span>
-                        </template>
-                      </app-shared-tag-list>
-                      <span v-else class="text-gray-500">-</span>
-                    </div>
-                    <div v-else class="flex items-center h-full w-full pl-3">
-                      <div class="blur-[6px] text-gray-900 select-none">
-                        Javascript, Java
+                    <div v-if="!isMasked(scope.row)">
+                      <div v-if="isEnrichEnabled">
+                        <app-shared-tag-list
+                          v-if="scope.row.attributes.programmingLanguages?.default?.length"
+                          :list="scope.row.attributes.programmingLanguages.default"
+                          :slice-size="5"
+                        >
+                          <template #itemSlot="{ item }">
+                            <span class="border border-gray-200 px-2 text-xs rounded-lg h-6 bg-white text-gray-900 inline-flex break-keep">
+                              {{ item }}
+                            </span>
+                          </template>
+                        </app-shared-tag-list>
+                        <span v-else class="text-gray-500">-</span>
+                      </div>
+                      <div v-else class="flex items-center h-full w-full pl-3">
+                        <div class="blur-[6px] text-gray-900 select-none">
+                          Javascript, Java
+                        </div>
                       </div>
                     </div>
+                    <div v-else class="w-40 h-5 mb-1 bg-gray-200 rounded-md" />
                   </router-link>
                 </template>
               </el-table-column>
@@ -594,25 +615,28 @@
                     }"
                     class="block h-full"
                   >
-                    <div v-if="isEnrichEnabled">
-                      <app-shared-tag-list
-                        v-if="scope.row.attributes.skills?.default?.length"
-                        :list="scope.row.attributes.skills.default"
-                        :slice-size="5"
-                      >
-                        <template #itemSlot="{ item }">
-                          <span class="border border-gray-200 px-2 text-xs rounded-lg h-6 bg-white text-gray-900 inline-flex break-keep">
-                            {{ item }}
-                          </span>
-                        </template>
-                      </app-shared-tag-list>
-                      <span v-else class="text-gray-500">-</span>
-                    </div>
-                    <div v-else class="flex items-center h-full w-full pl-3">
-                      <div class="blur-[6px] text-gray-900 select-none">
-                        Web development
+                    <div v-if="!isMasked(scope.row)">
+                      <div v-if="isEnrichEnabled">
+                        <app-shared-tag-list
+                          v-if="scope.row.attributes.skills?.default?.length"
+                          :list="scope.row.attributes.skills.default"
+                          :slice-size="5"
+                        >
+                          <template #itemSlot="{ item }">
+                            <span class="border border-gray-200 px-2 text-xs rounded-lg h-6 bg-white text-gray-900 inline-flex break-keep">
+                              {{ item }}
+                            </span>
+                          </template>
+                        </app-shared-tag-list>
+                        <span v-else class="text-gray-500">-</span>
+                      </div>
+                      <div v-else class="flex items-center h-full w-full pl-3">
+                        <div class="blur-[6px] text-gray-900 select-none">
+                          Web development
+                        </div>
                       </div>
                     </div>
+                    <div v-else class="w-40 h-5 mb-1 bg-gray-200 rounded-md" />
                   </router-link>
                 </template>
               </el-table-column>
@@ -773,6 +797,7 @@ import usePermissions from '@/shared/modules/permissions/helpers/usePermissions'
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
 import AppMemberBadge from '../member-badge.vue';
 import AppMemberDropdownContent from '../member-dropdown-content.vue';
 import AppMemberReach from '../member-reach.vue';
@@ -845,6 +870,8 @@ const authStore = useAuthStore();
 const { tenant } = storeToRefs(authStore);
 
 const { hasPermission } = usePermissions();
+
+const { isMasked } = useContributorHelpers();
 
 const hasPermissions = computed(() => [LfPermission.memberEdit,
   LfPermission.memberDestroy,
