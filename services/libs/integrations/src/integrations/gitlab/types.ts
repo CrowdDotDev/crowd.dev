@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import {
   ProjectSchema,
   UserSchema,
@@ -27,6 +29,11 @@ export enum GitlabActivityType {
   AUTHORED_COMMIT = 'authored-commit',
 }
 
+export enum GitlabWebhookType {
+  ISSUE = 'issue',
+  ISSUE_COMMENT = 'issue_comment',
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface GitlabActivityData<T = any> {
   data: T
@@ -50,10 +57,11 @@ export interface GitlabApiResult<T> {
 }
 
 export interface GitlabApiData<T> {
-  type: GitlabActivityType
+  type: GitlabActivityType | GitlabWebhookType
   data: GitlabActivityData<T>
   projectId: string
   pathWithNamespace: string
+  isWebhook?: boolean
 }
 
 export enum GitlabStreamType {
@@ -81,6 +89,166 @@ export interface GitlabBasicStream {
   pathWithNamespace: string
   page: number
   meta?: Record<string, unknown>
+}
+interface GitlabWebhookBase {
+  object_kind: string
+  event_type: string
+  user: {
+    id: number
+    name: string
+    username: string
+    avatar_url: string
+    email: string
+  }
+  project: {
+    id: number
+    name: string
+    description: string
+    web_url: string
+    avatar_url: string | null
+    git_ssh_url: string
+    git_http_url: string
+    namespace: string
+    visibility_level: number
+    path_with_namespace: string
+    default_branch: string
+    ci_config_path: string
+    homepage: string
+    url: string
+    ssh_url: string
+    http_url: string
+  }
+  repository: {
+    name: string
+    url: string
+    description: string
+    homepage: string
+  }
+}
+
+export interface GitlabIssueWebhook extends GitlabWebhookBase {
+  object_kind: 'issue'
+  object_attributes: {
+    author_id: number
+    closed_at: string | null
+    confidential: boolean
+    created_at: string
+    description: string
+    discussion_locked: boolean | null
+    due_date: string | null
+    id: number
+    iid: number
+    last_edited_at: string | null
+    last_edited_by_id: number | null
+    milestone_id: number | null
+    moved_to_id: number | null
+    duplicated_to_id: number | null
+    project_id: number
+    relative_position: number | null
+    state_id: number
+    time_estimate: number
+    title: string
+    updated_at: string
+    updated_by_id: number | null
+    weight: number | null
+    health_status: string | null
+    type: string
+    url: string
+    total_time_spent: number
+    time_change: number
+    human_total_time_spent: string | null
+    human_time_change: string | null
+    human_time_estimate: string | null
+    assignee_ids: number[]
+    assignee_id: number | null
+    labels: string[]
+    state: string
+    severity: string
+    customer_relations_contacts: any[]
+    action: string
+  }
+  labels: string[]
+  changes: {
+    [key: string]: {
+      previous: any
+      current: any
+    }
+  }
+}
+
+export interface GitlabIssueCommentWebhook extends GitlabWebhookBase {
+  object_kind: 'note'
+  object_attributes: {
+    attachment: null
+    author_id: number
+    change_position: null
+    commit_id: null
+    created_at: string
+    discussion_id: string
+    id: number
+    line_code: null
+    note: string
+    noteable_id: number
+    noteable_type: string
+    original_position: null
+    position: null
+    project_id: number
+    resolved_at: null
+    resolved_by_id: null
+    resolved_by_push: null
+    st_diff: null
+    system: boolean
+    type: null
+    updated_at: string
+    updated_by_id: null
+    description: string
+    url: string
+    action: string
+  }
+  issue: {
+    author_id: number
+    closed_at: string | null
+    confidential: boolean
+    created_at: string
+    description: string
+    discussion_locked: boolean | null
+    due_date: string | null
+    id: number
+    iid: number
+    last_edited_at: string | null
+    last_edited_by_id: number | null
+    milestone_id: number | null
+    moved_to_id: number | null
+    duplicated_to_id: number | null
+    project_id: number
+    relative_position: number
+    state_id: number
+    time_estimate: number
+    title: string
+    updated_at: string
+    updated_by_id: number | null
+    weight: number | null
+    health_status: string | null
+    type: string
+    url: string
+    total_time_spent: number
+    time_change: number
+    human_total_time_spent: string | null
+    human_time_change: string | null
+    human_time_estimate: string | null
+    assignee_ids: number[]
+    assignee_id: number | null
+    labels: string[]
+    state: string
+    severity: string
+    customer_relations_contacts: any[]
+  }
+}
+
+export interface GitlabWebhook {
+  data: GitlabIssueWebhook | GitlabIssueCommentWebhook
+  date: string
+  headers: Record<string, string>
 }
 
 export interface GitLabSettings {

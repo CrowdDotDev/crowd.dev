@@ -1,5 +1,11 @@
-import { ProcessDataHandler } from '../../types'
-import { GitlabActivityType, GitlabApiData } from './types'
+import { ProcessDataHandler, IProcessDataContext } from '../../types'
+import {
+  GitlabActivityType,
+  GitlabApiData,
+  GitlabWebhookType,
+  GitlabIssueWebhook,
+  GitlabIssueCommentWebhook,
+} from './types'
 import {
   IActivityData,
   IMemberData,
@@ -163,8 +169,6 @@ const parseIssueClosed = ({
     ).toISOString()}`,
     sourceParentId: data.id.toString(),
     url: data.web_url,
-    title: data.title,
-    body: data.description,
     channel: `https://gitlab.com/${pathWithNamespace}`,
     score: GITLAB_GRID[GitlabActivityType.ISSUE_CLOSED].score,
     isContribution: GITLAB_GRID[GitlabActivityType.ISSUE_CLOSED].isContribution,
@@ -185,7 +189,6 @@ const parseIssueComment = ({
     type: GitlabActivityType.ISSUE_COMMENT,
     member: user,
     timestamp: new Date(data.created_at).toISOString(),
-    // GITLAB_ISSUE_CLOSED
     sourceId: data.id.toString(),
     sourceParentId: data.noteable_id.toString(),
     body: data.body,
@@ -471,6 +474,80 @@ const parseAuthoredCommit = ({
   }
 }
 
+const handleIssueWebhook = async ({
+  ctx,
+  data,
+  user,
+  pathWithNamespace,
+}: {
+  ctx: IProcessDataContext
+  data: GitlabIssueWebhook
+  projectId: string
+  user: IMemberData
+  pathWithNamespace: string
+}): Promise<void> => {
+  if (data.object_attributes.action === 'open' || data.object_attributes.action === 'update') {
+    const activity: IActivityData = {
+      type: GitlabActivityType.ISSUE_OPENED,
+      member: user,
+      timestamp: new Date(data.object_attributes.created_at).toISOString(),
+      sourceId: data.object_attributes.id.toString(),
+      url: data.object_attributes.url,
+      title: data.object_attributes.title,
+      body: data.object_attributes.description,
+      channel: `https://gitlab.com/${pathWithNamespace}`,
+      score: GITLAB_GRID[GitlabActivityType.ISSUE_OPENED].score,
+      isContribution: GITLAB_GRID[GitlabActivityType.ISSUE_OPENED].isContribution,
+    }
+
+    await ctx.publishActivity(activity)
+  } else if (data.object_attributes.action === 'close') {
+    const activity: IActivityData = {
+      type: GitlabActivityType.ISSUE_CLOSED,
+      member: user,
+      timestamp: new Date(data.object_attributes.closed_at).toISOString(),
+      // GITLAB_ISSUE_CLOSED
+      sourceId: `gen-GLIC_${data.object_attributes.id}_${user.identities[0].value}_${new Date(
+        data.object_attributes.closed_at,
+      ).toISOString()}`,
+      sourceParentId: data.object_attributes.id.toString(),
+      url: data.object_attributes.url,
+      channel: `https://gitlab.com/${pathWithNamespace}`,
+      score: GITLAB_GRID[GitlabActivityType.ISSUE_CLOSED].score,
+      isContribution: GITLAB_GRID[GitlabActivityType.ISSUE_CLOSED].isContribution,
+    }
+
+    await ctx.publishActivity(activity)
+  }
+}
+
+const handleIssueCommentWebhook = async ({
+  ctx,
+  data,
+  user,
+  pathWithNamespace,
+}: {
+  ctx: IProcessDataContext
+  data: GitlabIssueCommentWebhook
+  projectId: string
+  user: IMemberData
+  pathWithNamespace: string
+}): Promise<void> => {
+  const activity: IActivityData = {
+    type: GitlabActivityType.ISSUE_COMMENT,
+    member: user,
+    timestamp: new Date(data.object_attributes.created_at).toISOString(),
+    sourceId: data.object_attributes.id.toString(),
+    sourceParentId: data.object_attributes.noteable_id.toString(),
+    body: data.object_attributes.note,
+    channel: `https://gitlab.com/${pathWithNamespace}`,
+    score: GITLAB_GRID[GitlabActivityType.ISSUE_COMMENT].score,
+    isContribution: GITLAB_GRID[GitlabActivityType.ISSUE_COMMENT].isContribution,
+  }
+
+  await ctx.publishActivity(activity)
+}
+
 const handler: ProcessDataHandler = async (ctx) => {
   //eslint-disable-next-line @typescript-eslint/no-explicit-any
   const apiData = ctx.data as GitlabApiData<any>
@@ -479,6 +556,7 @@ const handler: ProcessDataHandler = async (ctx) => {
     data: { data, user, relatedUser, relatedData },
     projectId,
     pathWithNamespace,
+    isWebhook,
   } = apiData
 
   let activity: IActivityData
@@ -494,128 +572,150 @@ const handler: ProcessDataHandler = async (ctx) => {
     })
   }
 
-  switch (type) {
-    case GitlabActivityType.ISSUE_OPENED:
-      activity = parseIssueOpened({
-        data: data as IssueSchema,
-        projectId,
-        user: member,
-        pathWithNamespace,
-      })
-      break
-    case GitlabActivityType.ISSUE_CLOSED:
-      activity = parseIssueClosed({
-        data: data as IssueSchema,
-        projectId,
-        user: member,
-        pathWithNamespace,
-      })
-      break
-    case GitlabActivityType.ISSUE_COMMENT:
-      activity = parseIssueComment({
-        data: data as IssueNoteSchema,
-        projectId,
-        user: member,
-        pathWithNamespace,
-      })
-      break
-    case GitlabActivityType.MERGE_REQUEST_OPENED:
-      activity = parseMergeRequestOpened({
-        data: data as MergeRequestSchema,
-        projectId,
-        user: member,
-        pathWithNamespace,
-      })
-      break
-    case GitlabActivityType.MERGE_REQUEST_CLOSED:
-      activity = parseMergeRequestClosed({
-        data: data as MergeRequestSchema,
-        projectId,
-        user: member,
-        pathWithNamespace,
-      })
-      break
-    case GitlabActivityType.MERGE_REQUEST_MERGED:
-      activity = parseMergeRequestMerged({
-        data: data as MergeRequestSchema,
-        projectId,
-        user: member,
-        pathWithNamespace,
-      })
-      break
-    case GitlabActivityType.MERGE_REQUEST_COMMENT:
-      activity = parseMergeRequestComment({
-        data: data as MergeRequestNoteSchema,
-        projectId,
-        user: member,
-        pathWithNamespace,
-      })
-      break
-    case GitlabActivityType.MERGE_REQUEST_REVIEW_APPROVED:
-      activity = parseMergeRequestApproved({
-        data: data as DiscussionNoteSchema,
-        projectId,
-        user: member,
-        pathWithNamespace,
-      })
-      break
-    case GitlabActivityType.MERGE_REQUEST_REVIEW_CHANGES_REQUESTED:
-      activity = parseMergeRequestChangesRequested({
-        data: data as DiscussionNoteSchema,
-        projectId,
-        user: member,
-        pathWithNamespace,
-      })
-      break
-    case GitlabActivityType.MERGE_REQUEST_REVIEW_REQUESTED:
-      activity = parseMergeRequestReviewRequested({
-        data: data as DiscussionNoteSchema,
-        projectId,
-        user: member,
-        relatedUser: relatedMember,
-        pathWithNamespace,
-      })
-      break
-    case GitlabActivityType.MERGE_REQUEST_ASSIGNED:
-      activity = parseMergeRequestAssigned({
-        data: data as DiscussionNoteSchema,
-        projectId,
-        user: member,
-        relatedUser: relatedMember,
-        pathWithNamespace,
-      })
-      break
-    case GitlabActivityType.STAR:
-      activity = parseStar({
-        data: data as ProjectStarrerSchema,
-        projectId,
-        user: member,
-        pathWithNamespace,
-      })
-      break
-    case GitlabActivityType.FORK:
-      activity = parseFork({
-        data: data as ProjectSchema,
-        projectId,
-        user: member,
-        pathWithNamespace,
-      })
-      break
-    case GitlabActivityType.AUTHORED_COMMIT:
-      activity = parseAuthoredCommit({
-        data: data.data,
-        projectId,
-        pathWithNamespace,
-        relatedData: relatedData as {
-          mergeRequestId: number
-        },
-      })
-      break
-    default:
-      throw new Error(`Unsupported activity type: ${type}`)
+  if (!isWebhook) {
+    switch (type) {
+      case GitlabActivityType.ISSUE_OPENED:
+        activity = parseIssueOpened({
+          data: data as IssueSchema,
+          projectId,
+          user: member,
+          pathWithNamespace,
+        })
+        break
+      case GitlabActivityType.ISSUE_CLOSED:
+        activity = parseIssueClosed({
+          data: data as IssueSchema,
+          projectId,
+          user: member,
+          pathWithNamespace,
+        })
+        break
+      case GitlabActivityType.ISSUE_COMMENT:
+        activity = parseIssueComment({
+          data: data as IssueNoteSchema,
+          projectId,
+          user: member,
+          pathWithNamespace,
+        })
+        break
+      case GitlabActivityType.MERGE_REQUEST_OPENED:
+        activity = parseMergeRequestOpened({
+          data: data as MergeRequestSchema,
+          projectId,
+          user: member,
+          pathWithNamespace,
+        })
+        break
+      case GitlabActivityType.MERGE_REQUEST_CLOSED:
+        activity = parseMergeRequestClosed({
+          data: data as MergeRequestSchema,
+          projectId,
+          user: member,
+          pathWithNamespace,
+        })
+        break
+      case GitlabActivityType.MERGE_REQUEST_MERGED:
+        activity = parseMergeRequestMerged({
+          data: data as MergeRequestSchema,
+          projectId,
+          user: member,
+          pathWithNamespace,
+        })
+        break
+      case GitlabActivityType.MERGE_REQUEST_COMMENT:
+        activity = parseMergeRequestComment({
+          data: data as MergeRequestNoteSchema,
+          projectId,
+          user: member,
+          pathWithNamespace,
+        })
+        break
+      case GitlabActivityType.MERGE_REQUEST_REVIEW_APPROVED:
+        activity = parseMergeRequestApproved({
+          data: data as DiscussionNoteSchema,
+          projectId,
+          user: member,
+          pathWithNamespace,
+        })
+        break
+      case GitlabActivityType.MERGE_REQUEST_REVIEW_CHANGES_REQUESTED:
+        activity = parseMergeRequestChangesRequested({
+          data: data as DiscussionNoteSchema,
+          projectId,
+          user: member,
+          pathWithNamespace,
+        })
+        break
+      case GitlabActivityType.MERGE_REQUEST_REVIEW_REQUESTED:
+        activity = parseMergeRequestReviewRequested({
+          data: data as DiscussionNoteSchema,
+          projectId,
+          user: member,
+          relatedUser: relatedMember,
+          pathWithNamespace,
+        })
+        break
+      case GitlabActivityType.MERGE_REQUEST_ASSIGNED:
+        activity = parseMergeRequestAssigned({
+          data: data as DiscussionNoteSchema,
+          projectId,
+          user: member,
+          relatedUser: relatedMember,
+          pathWithNamespace,
+        })
+        break
+      case GitlabActivityType.STAR:
+        activity = parseStar({
+          data: data as ProjectStarrerSchema,
+          projectId,
+          user: member,
+          pathWithNamespace,
+        })
+        break
+      case GitlabActivityType.FORK:
+        activity = parseFork({
+          data: data as ProjectSchema,
+          projectId,
+          user: member,
+          pathWithNamespace,
+        })
+        break
+      case GitlabActivityType.AUTHORED_COMMIT:
+        activity = parseAuthoredCommit({
+          data: data.data,
+          projectId,
+          pathWithNamespace,
+          relatedData: relatedData as {
+            mergeRequestId: number
+          },
+        })
+        break
+      default:
+        throw new Error(`Unsupported activity type: ${type}`)
+    }
+    await ctx.publishActivity(activity)
+  } else {
+    switch (type) {
+      case GitlabWebhookType.ISSUE:
+        await handleIssueWebhook({
+          ctx,
+          data: data as GitlabIssueWebhook,
+          projectId,
+          user: member,
+          pathWithNamespace,
+        })
+        break
+      case GitlabWebhookType.ISSUE_COMMENT:
+        await handleIssueCommentWebhook({
+          ctx,
+          data: data as GitlabIssueCommentWebhook,
+          projectId,
+          user: member,
+          pathWithNamespace,
+        })
+        break
+    }
   }
-
-  await ctx.publishActivity(activity)
 }
 
 export default handler

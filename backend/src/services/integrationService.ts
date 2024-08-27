@@ -2234,7 +2234,7 @@ export default class IntegrationService {
   ) {
     const integration = await this.findById(integrationId)
 
-    const webhooks = await setupGitlabWebhooks(integration.token, projectIds)
+    const webhooks = await setupGitlabWebhooks(integration.token, projectIds, integrationId)
 
     // if any of webhooks has failed, throw an error
     if (webhooks.some((w) => w.success === false)) {

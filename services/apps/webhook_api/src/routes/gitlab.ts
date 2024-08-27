@@ -17,6 +17,7 @@ export const installGitlabRoutes = async (app: express.Express) => {
           integration.id,
           WebhookType.GITLAB,
           {
+            headers: req.headers,
             data: req.body,
             date: new Date().toISOString(),
           },

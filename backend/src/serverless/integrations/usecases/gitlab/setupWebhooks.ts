@@ -7,9 +7,11 @@ interface WebhookSetupResult {
   error?: string
 }
 
-const webhookUrl = process.env.GITLAB_WEBHOOK_BASE_URL  || 'https://webhook-test.com/f7eff8ec48e6bb6a35d46e4861a47e16'
+const webhookBase = process.env.GITLAB_WEBHOOK_BASE_URL  || 'https://5821-202-58-201-160.ngrok-free.app'
 
-export async function setupGitlabWebhooks(accessToken: string, projectIds: number[]): Promise<WebhookSetupResult[]> {
+const createWebhookUrl = (integrationId: string) => `${webhookBase}/gitlab/${integrationId}`
+
+export async function setupGitlabWebhooks(accessToken: string, projectIds: number[], integrationId: string): Promise<WebhookSetupResult[]> {
   const results: WebhookSetupResult[] = []
 
   for (const projectId of projectIds) {
@@ -17,7 +19,7 @@ export async function setupGitlabWebhooks(accessToken: string, projectIds: numbe
       const response = await axios.post(
         `https://gitlab.com/api/v4/projects/${projectId}/hooks`,
         {
-          url: webhookUrl,
+          url: createWebhookUrl(integrationId),
           push_events: false,
           issues_events: true,
           confidential_issues_events: true,
