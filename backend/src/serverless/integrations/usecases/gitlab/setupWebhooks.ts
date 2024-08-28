@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { API_CONFIG } from '@/conf'
+import { API_CONFIG, GITLAB_CONFIG } from '@/conf'
 
 interface WebhookSetupResult {
   projectId: number
@@ -8,7 +8,7 @@ interface WebhookSetupResult {
   error?: string
 }
 
-const webhookBase = 'https://5821-202-58-201-160.ngrok-free.app' || `${API_CONFIG.url}/webhooks`
+const webhookBase = 'https://19ae-202-58-201-160.ngrok-free.app' || `${API_CONFIG.url}/webhooks`
 
 const createWebhookUrl = (integrationId: string) => `${webhookBase}/gitlab/${integrationId}`
 
@@ -20,6 +20,7 @@ export async function setupGitlabWebhooks(accessToken: string, projectIds: numbe
       const response = await axios.post(
         `https://gitlab.com/api/v4/projects/${projectId}/hooks`,
         {
+          token: GITLAB_CONFIG.webhookToken,
           url: createWebhookUrl(integrationId),
           push_events: false,
           issues_events: true,

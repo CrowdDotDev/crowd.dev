@@ -5,6 +5,8 @@ import {
   GitlabWebhookType,
   GitlabIssueWebhook,
   GitlabIssueCommentWebhook,
+  GitlabMergeRequestWebhook,
+  GitlabMergeRequestCommentWebhook,
 } from './types'
 import {
   IActivityData,
@@ -474,7 +476,7 @@ const parseAuthoredCommit = ({
   }
 }
 
-const handleIssueWebhook = async ({
+const handleIssueOpenedOrUpdated = async ({
   ctx,
   data,
   user,
@@ -486,39 +488,50 @@ const handleIssueWebhook = async ({
   user: IMemberData
   pathWithNamespace: string
 }): Promise<void> => {
-  if (data.object_attributes.action === 'open' || data.object_attributes.action === 'update') {
-    const activity: IActivityData = {
-      type: GitlabActivityType.ISSUE_OPENED,
-      member: user,
-      timestamp: new Date(data.object_attributes.created_at).toISOString(),
-      sourceId: data.object_attributes.id.toString(),
-      url: data.object_attributes.url,
-      title: data.object_attributes.title,
-      body: data.object_attributes.description,
-      channel: `https://gitlab.com/${pathWithNamespace}`,
-      score: GITLAB_GRID[GitlabActivityType.ISSUE_OPENED].score,
-      isContribution: GITLAB_GRID[GitlabActivityType.ISSUE_OPENED].isContribution,
-    }
-
-    await ctx.publishActivity(activity)
-  } else if (data.object_attributes.action === 'close') {
-    const activity: IActivityData = {
-      type: GitlabActivityType.ISSUE_CLOSED,
-      member: user,
-      timestamp: new Date(data.object_attributes.closed_at).toISOString(),
-      // GITLAB_ISSUE_CLOSED
-      sourceId: `gen-GLIC_${data.object_attributes.id}_${user.identities[0].value}_${new Date(
-        data.object_attributes.closed_at,
-      ).toISOString()}`,
-      sourceParentId: data.object_attributes.id.toString(),
-      url: data.object_attributes.url,
-      channel: `https://gitlab.com/${pathWithNamespace}`,
-      score: GITLAB_GRID[GitlabActivityType.ISSUE_CLOSED].score,
-      isContribution: GITLAB_GRID[GitlabActivityType.ISSUE_CLOSED].isContribution,
-    }
-
-    await ctx.publishActivity(activity)
+  const activity: IActivityData = {
+    type: GitlabActivityType.ISSUE_OPENED,
+    member: user,
+    timestamp: new Date(data.object_attributes.created_at).toISOString(),
+    sourceId: data.object_attributes.id.toString(),
+    url: data.object_attributes.url,
+    title: data.object_attributes.title,
+    body: data.object_attributes.description,
+    channel: `https://gitlab.com/${pathWithNamespace}`,
+    score: GITLAB_GRID[GitlabActivityType.ISSUE_OPENED].score,
+    isContribution: GITLAB_GRID[GitlabActivityType.ISSUE_OPENED].isContribution,
   }
+
+  await ctx.publishActivity(activity)
+}
+
+const handleIssueClosed = async ({
+  ctx,
+  data,
+  user,
+  pathWithNamespace,
+}: {
+  ctx: IProcessDataContext
+  data: GitlabIssueWebhook
+  projectId: string
+  user: IMemberData
+  pathWithNamespace: string
+}): Promise<void> => {
+  const activity: IActivityData = {
+    type: GitlabActivityType.ISSUE_CLOSED,
+    member: user,
+    timestamp: new Date(data.object_attributes.closed_at).toISOString(),
+    // GITLAB_ISSUE_CLOSED
+    sourceId: `gen-GLIC_${data.object_attributes.id}_${user.identities[0].value}_${new Date(
+      data.object_attributes.closed_at,
+    ).toISOString()}`,
+    sourceParentId: data.object_attributes.id.toString(),
+    url: data.object_attributes.url,
+    channel: `https://gitlab.com/${pathWithNamespace}`,
+    score: GITLAB_GRID[GitlabActivityType.ISSUE_CLOSED].score,
+    isContribution: GITLAB_GRID[GitlabActivityType.ISSUE_CLOSED].isContribution,
+  }
+
+  await ctx.publishActivity(activity)
 }
 
 const handleIssueCommentWebhook = async ({
@@ -547,6 +560,118 @@ const handleIssueCommentWebhook = async ({
 
   await ctx.publishActivity(activity)
 }
+
+const handleMergeRequestOpened = async ({
+  ctx,
+  data,
+  user,
+  pathWithNamespace,
+}: {
+  ctx: IProcessDataContext
+  data: GitlabMergeRequestWebhook
+  projectId: string
+  user: IMemberData
+  pathWithNamespace: string
+}): Promise<void> => {
+  const activity: IActivityData = {
+    type: GitlabActivityType.MERGE_REQUEST_OPENED,
+    member: user,
+    timestamp: new Date(data.object_attributes.created_at).toISOString(),
+    sourceId: data.object_attributes.id.toString(),
+    url: data.object_attributes.url,
+    title: data.object_attributes.title,
+    body: data.object_attributes.description,
+    channel: `https://gitlab.com/${pathWithNamespace}`,
+    score: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_OPENED].score,
+    isContribution: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_OPENED].isContribution,
+  }
+
+  await ctx.publishActivity(activity)
+}
+
+const handleMergeRequestClosed = async ({
+  ctx,
+  data,
+  user,
+  pathWithNamespace,
+}: {
+  ctx: IProcessDataContext
+  data: GitlabMergeRequestWebhook
+  projectId: string
+  user: IMemberData
+  pathWithNamespace: string
+}): Promise<void> => {
+  const activity: IActivityData = {
+    type: GitlabActivityType.MERGE_REQUEST_CLOSED,
+    member: user,
+    timestamp: new Date(data.object_attributes.updated_at).toISOString(),
+    // GITLAB_MERGE_REQUEST_CLOSED
+    sourceId: `gen-GLMRC_${data.object_attributes.id}_${user.identities[0].value}_${new Date(
+      data.object_attributes.updated_at,
+    ).toISOString()}`,
+    sourceParentId: data.object_attributes.id.toString(),
+    channel: `https://gitlab.com/${pathWithNamespace}`,
+    score: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_CLOSED].score,
+    isContribution: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_CLOSED].isContribution,
+  }
+
+  await ctx.publishActivity(activity)
+}
+
+const handleMergeRequestMerged = async ({
+  ctx,
+  data,
+  user,
+  pathWithNamespace,
+}: {
+  ctx: IProcessDataContext
+  data: GitlabMergeRequestWebhook
+  projectId: string
+  user: IMemberData
+  pathWithNamespace: string
+}): Promise<void> => {
+  const activity: IActivityData = {
+    type: GitlabActivityType.MERGE_REQUEST_MERGED,
+    member: user,
+    timestamp: new Date(data.object_attributes.updated_at).toISOString(),
+    // GITLAB_MERGE_REQUEST_MERGED
+    sourceId: `gen-GLMRM_${data.object_attributes.id}_${user.identities[0].value}_${new Date(
+      data.object_attributes.updated_at,
+    ).toISOString()}`,
+    sourceParentId: data.object_attributes.id.toString(),
+    channel: `https://gitlab.com/${pathWithNamespace}`,
+    score: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_MERGED].score,
+    isContribution: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_MERGED].isContribution,
+  }
+
+  await ctx.publishActivity(activity)
+}
+
+// const handleMergeRequestReviewApproved = async ({
+//   ctx,
+//   data,
+//   user,
+//   pathWithNamespace,
+// }: {
+//   ctx: IProcessDataContext
+//   data: GitlabMergeRequestWebhook
+//   projectId: string
+//   user: IMemberData
+//   pathWithNamespace: string
+// }): Promise<void> => {
+//   const activity: IActivityData = {
+//     type: GitlabActivityType.MERGE_REQUEST_REVIEW_APPROVED,
+//     member: user,
+//     timestamp: new Date(data.object_attributes.updated_at).toISOString(),
+//     sourceId: data.id.toString(),
+//     sourceParentId: data.noteable_id.toString(),
+//     channel: `https://gitlab.com/${pathWithNamespace}`,
+//     score: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_REVIEW_APPROVED].score,
+//     isContribution: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_REVIEW_APPROVED].isContribution,
+//   }
+
+//   await ctx.publishActivity(activity)
+// }
 
 const handler: ProcessDataHandler = async (ctx) => {
   //eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -696,8 +821,17 @@ const handler: ProcessDataHandler = async (ctx) => {
     await ctx.publishActivity(activity)
   } else {
     switch (type) {
-      case GitlabWebhookType.ISSUE:
-        await handleIssueWebhook({
+      case GitlabWebhookType.ISSUE_OPENED_OR_UPDATED:
+        await handleIssueOpenedOrUpdated({
+          ctx,
+          data: data as GitlabIssueWebhook,
+          projectId,
+          user: member,
+          pathWithNamespace,
+        })
+        break
+      case GitlabWebhookType.ISSUE_CLOSED:
+        await handleIssueClosed({
           ctx,
           data: data as GitlabIssueWebhook,
           projectId,
@@ -709,6 +843,42 @@ const handler: ProcessDataHandler = async (ctx) => {
         await handleIssueCommentWebhook({
           ctx,
           data: data as GitlabIssueCommentWebhook,
+          projectId,
+          user: member,
+          pathWithNamespace,
+        })
+        break
+      case GitlabWebhookType.MERGE_REQUEST_OPENED:
+        await handleMergeRequestOpened({
+          ctx,
+          data: data as GitlabMergeRequestWebhook,
+          projectId,
+          user: member,
+          pathWithNamespace,
+        })
+        break
+      case GitlabWebhookType.MERGE_REQUEST_CLOSED:
+        await handleMergeRequestClosed({
+          ctx,
+          data: data as GitlabMergeRequestWebhook,
+          projectId,
+          user: member,
+          pathWithNamespace,
+        })
+        break
+      case GitlabWebhookType.MERGE_REQUEST_MERGED:
+        await handleMergeRequestMerged({
+          ctx,
+          data: data as GitlabMergeRequestWebhook,
+          projectId,
+          user: member,
+          pathWithNamespace,
+        })
+        break
+      case GitlabWebhookType.MERGE_REQUEST_REVIEW_APPROVED:
+        await handleMergeRequestReviewApproved({
+          ctx,
+          data: data as GitlabMergeRequestWebhook,
           projectId,
           user: member,
           pathWithNamespace,

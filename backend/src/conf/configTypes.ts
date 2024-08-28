@@ -269,4 +269,5 @@ export interface GitlabConfiguration {
   clientId: string
   clientSecret: string
   callbackUrl: string
+  webhookToken: string
 }

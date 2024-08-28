@@ -26,6 +26,9 @@ export const getUser = async (
   try {
     await semaphore.acquire()
     user = (await api.Users.show(userId)) as UserSchema
+  } catch (error) {
+    ctx.log.error(error, 'Failed to get user', userId)
+    throw error
   } finally {
     await semaphore.release()
   }

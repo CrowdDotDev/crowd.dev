@@ -88,7 +88,9 @@ const handleIssuesStream: GitlabStreamHandler = async (ctx, api, data) => {
   // issue closed
   for (const item of result.data) {
     if (item.data.closed_at) {
-      const user = await getUser(api, parseInt(item.data.closed_by as string), ctx)
+      ctx.log.info(item)
+      // @ts-expect-error closed_by might be a json
+      const user = await getUser(api, parseInt(item.data.closed_by) || item.data.closed_by.id, ctx)
       await ctx.processData<GitlabApiData<typeof item.data>>({
         data: {
           data: item.data,
