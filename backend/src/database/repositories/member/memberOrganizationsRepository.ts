@@ -73,7 +73,7 @@ class MemberOrganizationsRepository {
   ) {
     const qx = SequelizeRepository.getQueryExecutor(options)
 
-    // Hard delete any existing soft-deleted member organization to prevent conflict errors 
+    // Hard delete any existing soft-deleted member organization to prevent conflict errors
     // when adding a similar entry.
     await cleanSoftDeletedMemberOrganization(qx, memberId, data.organizationId, data)
 
@@ -92,7 +92,7 @@ class MemberOrganizationsRepository {
   ) {
     const qx = SequelizeRepository.getQueryExecutor(options)
 
-    // Hard delete any existing soft-deleted member organization to prevent conflict errors 
+    // Hard delete any existing soft-deleted member organization to prevent conflict errors
     // when updating a similar entry.
     await cleanSoftDeletedMemberOrganization(qx, memberId, data.organizationId, data)
 
