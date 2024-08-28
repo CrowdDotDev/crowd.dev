@@ -118,3 +118,29 @@ export async function deleteMemberOrganization(
     },
   )
 }
+
+export async function cleanSoftDeletedMemberOrganization(
+  qx: QueryExecutor,
+  memberId: string,
+  organizationId: string,
+  data: Partial<IMemberOrganization>,
+): Promise<void> {
+  return qx.result(
+    `
+      DELETE FROM "memberOrganizations"
+      WHERE "memberId" = $(memberId)
+        AND "organizationId" = $(organizationId)
+        AND "title" = $(title)
+        AND "dateStart" = $(dateStart)
+        AND "dateEnd" = $(dateEnd)
+        AND "deletedAt" IS NOT NULL;
+    `,
+    {
+      memberId,
+      organizationId,
+      title: data.title,
+      dateStart: data.dateStart,
+      dateEnd: data.dateEnd,
+    },
+  )
+}
