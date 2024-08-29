@@ -174,6 +174,11 @@ export default class OrganizationService extends LoggerBase {
         )
       }
 
+      // clean up linkedin identity value
+      if (identity.platform === 'linkedin') {
+        identity.value = identity.value.split(':').pop()
+      }
+
       return {
         primary: {
           ...lodash.pick(organization, OrganizationService.ORGANIZATION_MERGE_FIELDS),
@@ -185,8 +190,7 @@ export default class OrganizationService extends LoggerBase {
         secondary: {
           id: randomUUID(),
           identities: secondaryIdentities,
-          displayName:
-            identity.platform === 'linkedin' ? identity.value.split(':').pop() : identity.value,
+          displayName: identity.value,
           attributes: {
             name: {
               default: identity.value,
@@ -911,6 +915,7 @@ export default class OrganizationService extends LoggerBase {
       )
 
       await SequelizeRepository.commitTransaction(tx)
+
       await this.options.temporal.workflow.start('organizationUpdate', {
         taskQueue: 'profiles',
         workflowId: `${TemporalWorkflowId.ORGANIZATION_UPDATE}/${this.options.currentTenant.id}/${id}`,
@@ -923,7 +928,11 @@ export default class OrganizationService extends LoggerBase {
             organization: {
               id: record.id,
             },
-            syncToOpensearch,
+            recalculateAffiliations: false,
+            syncOptions: {
+              doSync: syncToOpensearch,
+              withAggs: false,
+            },
           },
         ],
         searchAttributes: {
@@ -960,7 +969,7 @@ export default class OrganizationService extends LoggerBase {
 
       await SequelizeRepository.commitTransaction(transaction)
 
-      const searchSyncService = new SearchSyncService(this.options)
+      const searchSyncService = new SearchSyncService(this.options, SyncMode.ASYNCHRONOUS)
 
       for (const id of ids) {
         await searchSyncService.triggerRemoveOrganization(this.options.currentTenant.id, id)
@@ -1043,7 +1052,23 @@ export default class OrganizationService extends LoggerBase {
           'tags',
           'logo',
         ],
-        include: { identities: true, lfxMemberships: true },
+        include: { aggregates: true, identities: true, lfxMemberships: true },
+      },
+      this.options,
+    )
+  }
+
+  async listOrganizationsAcrossAllSegments(args) {
+    const { filter, orderBy, limit, offset } = args
+    return OrganizationRepository.findAndCountAll(
+      {
+        filter,
+        orderBy,
+        limit,
+        offset,
+        segmentId: undefined,
+        fields: ['id', 'logo', 'displayName', 'isTeamOrganization'],
+        include: { aggregates: true, identities: true, segments: true, lfxMemberships: true },
       },
       this.options,
     )

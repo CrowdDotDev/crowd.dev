@@ -22,14 +22,23 @@ export enum OrganizationIdentityType {
 }
 
 export interface OrganizationIdentity {
-    organizationId?: string;
+    organizationId?: string | null;
     platform: Platform;
     type: OrganizationIdentityType;
     value: string;
     verified: boolean;
     sourceId?: string | null;
     tenantId?: string;
-    integrationId?: string;
+    integrationId?: string | null;
+}
+
+export interface MemberOrganization {
+  id: string;
+  title: string;
+  organizationId?: string;
+  dateStart?: string;
+  dateEnd?: string;
+  source: OrganizationSource;
 }
 
 export interface Organization {
@@ -72,12 +81,7 @@ export interface Organization {
   updatedAt: string;
   updatedById: string;
   url: string;
-  memberOrganizations: {
-    title: string;
-    dateStart?: string;
-    dateEnd?: string;
-    source: OrganizationSource;
-  }
+  memberOrganizations: MemberOrganization
   lfxMembership?: {
     accountDomain: string;
     accountName: string;
@@ -94,6 +98,7 @@ export interface Organization {
     project: string;
     purchaseHistoryName: string;
     segmentId: string;
+    segments: string[];
     status: string;
     tenantId: string;
     tier: string;

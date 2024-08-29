@@ -142,9 +142,20 @@ export class OrganizationService {
     body,
   ) {
     const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.post(
       `/tenant/${tenantId}/organization/query`,
+      body,
+    );
+
+    return response.data;
+  }
+
+  static async organizationsList(
+    body,
+  ) {
+    const tenantId = AuthService.getTenantId();
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/organization/list`,
       body,
     );
 

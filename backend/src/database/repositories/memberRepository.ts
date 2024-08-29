@@ -1555,7 +1555,7 @@ class MemberRepository {
         offset: 0,
         segmentId,
         include: {
-          memberOrganizations: true,
+          memberOrganizations: false,
           lfxMemberships: true,
           identities: false,
           segments: true,
@@ -2459,6 +2459,9 @@ class MemberRepository {
           ...orgExtra.find((odn) => odn.id === o.organizationId),
           memberOrganizations: o,
         }))
+
+        // sort organizations
+        MemberRepository.sortOrganizations(member.organizations)
       })
     }
     if (include.lfxMemberships) {

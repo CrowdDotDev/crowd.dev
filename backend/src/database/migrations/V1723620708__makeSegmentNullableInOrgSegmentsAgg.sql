@@ -1,0 +1,1 @@
+alter table "organizationSegmentsAgg" alter column "segmentId" drop not null;

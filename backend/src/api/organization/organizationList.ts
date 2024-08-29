@@ -1,11 +1,27 @@
-import Permissions from '../../security/permissions'
-import OrganizationService from '../../services/organizationService'
 import PermissionChecker from '../../services/user/permissionChecker'
+import Permissions from '../../security/permissions'
+import OrganizationService from '@/services/organizationService'
 
+/**
+ * POST /tenant/{tenantId}/organization/list
+ * @summary List organizations across all segments
+ * @tag Organizations
+ * @security Bearer
+ * @description List organizations across all segments. It accepts filters, sorting options and pagination.
+ * @pathParam {string} tenantId - Your workspace/tenant ID
+ * @bodyContent {OrganizationQuery} application/json
+ * @response 200 - Ok
+ * @responseContent {OrganizationList} 200.application/json
+ * @responseExample {OrganizationList} 200.application/json.Organization
+ * @response 401 - Unauthorized
+ * @response 404 - Not found
+ * @response 429 - Too many requests
+ */
 export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.organizationRead)
 
-  const payload = await new OrganizationService(req).findAndCountAll(req.query)
+  const orgService = new OrganizationService(req)
+  const payload = await orgService.listOrganizationsAcrossAllSegments(req.body)
 
   await req.responseHandler.success(req, res, payload)
 }

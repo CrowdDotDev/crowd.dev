@@ -1,4 +1,9 @@
-import { IOrganizationIdSource, OrganizationIdentityType, SyncStatus } from '@crowd/types'
+import {
+  IMemberOrganization,
+  IOrganizationIdSource,
+  OrganizationIdentityType,
+  SyncStatus,
+} from '@crowd/types'
 import { QueryExecutor } from '../queryExecutor'
 import { prepareSelectColumns } from '../utils'
 import {
@@ -58,33 +63,6 @@ export async function findOrgIdByDisplayName(
     `,
     {
       displayName: exact ? orgName : `%${orgName}%`,
-      tenantId,
-    },
-  )
-
-  if (result) {
-    return result.id
-  }
-
-  return null
-}
-
-export async function findOrgIdByWebsite(
-  qx: QueryExecutor,
-  tenantId: string,
-  websites: string[],
-): Promise<string | null> {
-  const result = await qx.selectOneOrNone(
-    `
-      SELECT id
-      FROM organizations
-      WHERE "website" = ANY($(websites))
-        AND "tenantId" = $(tenantId)
-        AND "deletedAt" IS NULL
-      LIMIT 1;
-    `,
-    {
-      websites,
       tenantId,
     },
   )
@@ -310,6 +288,24 @@ export async function addOrgsToMember(
   `
 
   await qe.selectNone(query, parameters)
+}
+
+export async function findMemberOrganizations(
+  qe: QueryExecutor,
+  memberId: string,
+  organizationId: string,
+): Promise<IMemberOrganization[]> {
+  return await qe.select(
+    `
+    select *
+    from "memberOrganizations"
+    where "memberId" = $(memberId) and "organizationId" = $(organizationId)
+    `,
+    {
+      memberId,
+      organizationId,
+    },
+  )
 }
 
 export async function addOrgToSyncRemote(

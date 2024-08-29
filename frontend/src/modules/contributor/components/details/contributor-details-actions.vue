@@ -3,7 +3,7 @@
     <lf-button-group>
       <!-- Merge suggestions -->
       <lf-button
-        v-if="mergeSuggestionsCount > 0 && hasPermission(LfPermission.mergeMembers)"
+        v-if="!isMasked(props.contributor) && mergeSuggestionsCount > 0 && hasPermission(LfPermission.mergeMembers)"
         type="secondary"
         @click="isMergeSuggestionsDialogOpen = true"
       >
@@ -14,18 +14,26 @@
       </lf-button>
 
       <!-- Merge -->
-      <lf-button v-else-if="hasPermission(LfPermission.mergeMembers)" type="secondary" @click="isMergeDialogOpen = props.contributor">
+      <lf-button
+        v-else-if="!isMasked(props.contributor) && hasPermission(LfPermission.mergeMembers)"
+        type="secondary"
+        @click="isMergeDialogOpen = props.contributor"
+      >
         <lf-icon name="p2p-line" />
         Merge profile
       </lf-button>
 
       <!-- Actions -->
-      <lf-dropdown v-if="hasPermission(LfPermission.memberEdit) || hasPermission(LfPermission.memberDestroy)" class="z-20" placement="bottom-end">
+      <lf-dropdown
+        v-if="!isMasked(props.contributor) && hasPermission(LfPermission.memberEdit) || hasPermission(LfPermission.memberDestroy)"
+        class="z-20"
+        placement="bottom-end"
+      >
         <template #trigger>
           <lf-button
             type="secondary"
             :icon-only="true"
-            :class="hasPermission(LfPermission.mergeMembers) ? '!rounded-l-none -ml-px' : ''"
+            :class="!isMasked(props.contributor) && hasPermission(LfPermission.mergeMembers) ? '!rounded-l-none -ml-px' : ''"
           >
             <lf-icon name="more-fill" />
           </lf-button>
@@ -77,6 +85,7 @@ import pluralize from 'pluralize';
 import LfContributorDropdown from '@/modules/contributor/components/shared/contributor-dropdown.vue';
 import { ContributorApiService } from '@/modules/contributor/services/contributor.api.service';
 import { Contributor } from '@/modules/contributor/types/Contributor';
+import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
 
 const props = defineProps<{
   contributor: Contributor,
@@ -85,6 +94,8 @@ const props = defineProps<{
 const emit = defineEmits<{(e: 'reload'): any}>();
 
 const { hasPermission } = usePermissions();
+
+const { isMasked } = useContributorHelpers();
 
 const isMergeSuggestionsDialogOpen = ref<boolean>(false);
 const isMergeDialogOpen = ref<Contributor | null>(null);

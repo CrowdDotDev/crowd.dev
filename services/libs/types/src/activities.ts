@@ -111,6 +111,7 @@ export type DefaultActivityTypes = {
     [key: string]: {
       display: ActivityTypeDisplayProperties
       isContribution: boolean
+      calculateSentiment: boolean
     }
   }
 }
@@ -120,6 +121,7 @@ export type CustomActivityTypes = {
     [key: string]: {
       display: ActivityTypeDisplayProperties
       isContribution: boolean
+      calculateSentiment: boolean
     }
   }
 }

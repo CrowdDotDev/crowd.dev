@@ -3,7 +3,13 @@
     <p class="flex items-center">
       <span class="max-w-42 inline-block truncate">{{ jobTitle }}</span><span v-if="organization && jobTitle">&nbsp;at</span>
     </p>
-    <lf-avatar :src="organization.logo" :name="organization.displayName" :size="18" class="!rounded border border-gray-200">
+    <lf-avatar
+      :src="organization.logo"
+      :name="organization.displayName"
+      :size="18"
+      class="!rounded border border-gray-200"
+      img-class="object-contain"
+    >
       <template #placeholder>
         <div class="w-full h-full bg-gray-50 flex items-center justify-center">
           <lf-icon name="community-line" :size="14" class="text-gray-400" />
@@ -34,21 +40,18 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';
 import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
-import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
 import { Contributor } from '@/modules/contributor/types/Contributor';
 
 const props = defineProps<{
   contributor: Contributor,
 }>();
 
-const { activeOrganization } = useContributorHelpers();
-
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
-const organization = computed(() => activeOrganization(props.contributor));
-const jobTitle = computed(() => props.contributor.attributes.jobTitle?.default
-    || organization.value?.memberOrganizations?.title);
+const organization = computed(() => props.contributor.organizations?.[0]);
+const jobTitle = computed(() => organization.value?.memberOrganizations?.title
+    || props.contributor.attributes.jobTitle?.default);
 </script>
 
 <script lang="ts">

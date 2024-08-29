@@ -125,6 +125,7 @@ export class SearchSyncApiClient {
   public async triggerOrganizationSync(
     organizationId: string,
     segmentIds?: string[],
+    opts: { withAggs?: boolean } = { withAggs: true },
   ): Promise<void> {
     if (!organizationId) {
       throw new Error('organizationId is required!')
@@ -133,6 +134,7 @@ export class SearchSyncApiClient {
     await this.searchSyncApi.post('/sync/organizations', {
       organizationIds: [organizationId],
       segmentIds,
+      ...opts,
     })
   }
 
