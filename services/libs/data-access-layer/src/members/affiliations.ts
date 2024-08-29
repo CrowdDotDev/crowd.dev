@@ -44,7 +44,12 @@ export async function deleteAllMemberAffiliations(qx: QueryExecutor, memberId: s
 export async function insertMultipleMemberAffiliations(
   qx: QueryExecutor,
   memberId: string,
-  data: any[],
+  data: {
+    segmentId: string
+    organizationId: string
+    dateStart: string | null
+    dateEnd: string | null
+  }[],
 ) {
   return qx.result(
     prepareBulkInsert(
