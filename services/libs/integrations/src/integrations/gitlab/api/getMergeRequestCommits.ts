@@ -2,6 +2,7 @@ import { Gitlab, CommitSchema, ExpandedCommitSchema, OffsetPagination } from '@g
 import { GitlabMergeRequestCommitData, GitlabApiResult } from '../types'
 import { IProcessStreamContext } from '../../../types'
 import { RedisSemaphore } from '../utils/lock'
+import { timeout } from '@crowd/common'
 
 export const getMergeRequestCommits = async ({
   api,
@@ -30,17 +31,22 @@ export const getMergeRequestCommits = async ({
   try {
     const response = await api.MergeRequests.allCommits(projectId, mergeRequestIId, {
       page,
-      perPage: 100,
+      perPage: 20,
       showExpanded: true,
     })
 
     const commits = response.data as CommitSchema[]
 
     for (const commit of commits) {
-      const extendedCommit = await api.Commits.show(projectId, commit.id, {
-        stats: true,
-      })
-      extendedCommits.push(extendedCommit as ExpandedCommitSchema)
+      try {
+        const extendedCommit = await api.Commits.show(projectId, commit.id, {
+          stats: true,
+        })
+        extendedCommits.push(extendedCommit as ExpandedCommitSchema)
+        await timeout(500)
+      } catch (error) {
+        ctx.log.error(`Failed to fetch extended commit for ${commit.id}: ${error}`)
+      }
     }
 
     pagination = response.paginationInfo

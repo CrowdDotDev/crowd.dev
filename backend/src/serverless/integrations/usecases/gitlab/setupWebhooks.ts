@@ -8,12 +8,16 @@ interface WebhookSetupResult {
   error?: string
 }
 
-const webhookBase = 'https://19ae-202-58-201-160.ngrok-free.app' || `${API_CONFIG.url}/webhooks`
+const webhookBase = 'https://177a-202-58-201-160.ngrok-free.app' || `${API_CONFIG.url}/webhooks`
 
 const createWebhookUrl = (integrationId: string) => `${webhookBase}/gitlab/${integrationId}`
 
 export async function setupGitlabWebhooks(accessToken: string, projectIds: number[], integrationId: string): Promise<WebhookSetupResult[]> {
   const results: WebhookSetupResult[] = []
+
+  if (!GITLAB_CONFIG.webhookToken) {
+    throw new Error('Gitlab webhook token is not set')
+  }
 
   for (const projectId of projectIds) {
     try {

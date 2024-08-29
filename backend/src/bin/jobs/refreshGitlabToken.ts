@@ -10,7 +10,7 @@ const log = getServiceChildLogger('refreshGitlabTokenCronJob')
 const job: CrowdJob = {
   name: 'Refresh Gitlab token',
   // every hour
-  cronTime: cronGenerator.every(1).hours(),
+  cronTime: cronGenerator.every(1).minutes(),
   onTrigger: async () => {
     log.info('Checking Gitlab tokens for refresh.')
     const dbOptions = await SequelizeRepository.getDefaultIRepositoryOptions()

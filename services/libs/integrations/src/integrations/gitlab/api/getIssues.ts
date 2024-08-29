@@ -15,7 +15,7 @@ export const getIssues = async ({
   page: number
   ctx: IProcessStreamContext
 }): Promise<GitlabApiResult<GitlabIssueData[]>> => {
-  const perPage = 100
+  const perPage = 20
   const since = ctx.onboarding
     ? undefined
     : new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()

@@ -1302,8 +1302,8 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         formatter: {
           channel: defaultGitlabChannelFormatter,
           self: (activity) => {
-            const prNumberAndTitle = `#${activity.url.split('/')[6]} ${activity.parent?.title}`
-            return `<a href="${activity.url}" target="_blank">${prNumberAndTitle}</a>`
+            const prNumberAndTitle = `#${activity.sourceParentId} ${activity.parent?.title}`
+            return `<a href="${activity.parent.url}" target="_blank">${prNumberAndTitle}</a>`
           },
         },
       },

@@ -17,7 +17,7 @@ export const getIssueDiscussions = async ({
   page: number
   ctx: IProcessStreamContext
 }): Promise<GitlabApiResult<GitlabDisccusionCommentData[]>> => {
-  const perPage = 100
+  const perPage = 20
 
   const semaphore = new RedisSemaphore({
     integrationId: ctx.integration.id,

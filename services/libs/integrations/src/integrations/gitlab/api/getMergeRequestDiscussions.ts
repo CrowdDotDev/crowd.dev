@@ -24,7 +24,7 @@ export const getMergeRequestDiscussions = async ({
     cache: ctx.cache,
   })
 
-  const perPage = 100
+  const perPage = 20
 
   // discussions
   let pagination: OffsetPagination

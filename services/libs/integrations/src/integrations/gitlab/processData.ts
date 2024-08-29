@@ -647,31 +647,32 @@ const handleMergeRequestMerged = async ({
   await ctx.publishActivity(activity)
 }
 
-// const handleMergeRequestReviewApproved = async ({
-//   ctx,
-//   data,
-//   user,
-//   pathWithNamespace,
-// }: {
-//   ctx: IProcessDataContext
-//   data: GitlabMergeRequestWebhook
-//   projectId: string
-//   user: IMemberData
-//   pathWithNamespace: string
-// }): Promise<void> => {
-//   const activity: IActivityData = {
-//     type: GitlabActivityType.MERGE_REQUEST_REVIEW_APPROVED,
-//     member: user,
-//     timestamp: new Date(data.object_attributes.updated_at).toISOString(),
-//     sourceId: data.id.toString(),
-//     sourceParentId: data.noteable_id.toString(),
-//     channel: `https://gitlab.com/${pathWithNamespace}`,
-//     score: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_REVIEW_APPROVED].score,
-//     isContribution: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_REVIEW_APPROVED].isContribution,
-//   }
+const handleMergeRequestCommentWebhook = async ({
+  ctx,
+  data,
+  user,
+  pathWithNamespace,
+}: {
+  ctx: IProcessDataContext
+  data: GitlabMergeRequestCommentWebhook
+  projectId: string
+  user: IMemberData
+  pathWithNamespace: string
+}): Promise<void> => {
+  const activity: IActivityData = {
+    type: GitlabActivityType.MERGE_REQUEST_COMMENT,
+    member: user,
+    timestamp: new Date(data.object_attributes.created_at).toISOString(),
+    body: data.object_attributes.note,
+    sourceId: data.object_attributes.id.toString(),
+    sourceParentId: data.object_attributes.noteable_id.toString(),
+    channel: `https://gitlab.com/${pathWithNamespace}`,
+    score: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_COMMENT].score,
+    isContribution: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_COMMENT].isContribution,
+  }
 
-//   await ctx.publishActivity(activity)
-// }
+  await ctx.publishActivity(activity)
+}
 
 const handler: ProcessDataHandler = async (ctx) => {
   //eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -875,15 +876,17 @@ const handler: ProcessDataHandler = async (ctx) => {
           pathWithNamespace,
         })
         break
-      case GitlabWebhookType.MERGE_REQUEST_REVIEW_APPROVED:
-        await handleMergeRequestReviewApproved({
+      case GitlabWebhookType.MERGE_REQUEST_COMMENT:
+        await handleMergeRequestCommentWebhook({
           ctx,
-          data: data as GitlabMergeRequestWebhook,
+          data: data as GitlabMergeRequestCommentWebhook,
           projectId,
           user: member,
           pathWithNamespace,
         })
         break
+      default:
+        throw new Error(`Unsupported Gitlab webhook type: ${type}`)
     }
   }
 }

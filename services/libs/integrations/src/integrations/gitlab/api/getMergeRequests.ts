@@ -18,7 +18,7 @@ export const getMergeRequests = async ({
   const since = ctx.onboarding
     ? undefined
     : new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
-  const perPage = 100
+  const perPage = 20
 
   const semaphore = new RedisSemaphore({
     integrationId: ctx.integration.id,

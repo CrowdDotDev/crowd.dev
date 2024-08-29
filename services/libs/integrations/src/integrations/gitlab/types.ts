@@ -37,10 +37,6 @@ export enum GitlabWebhookType {
   MERGE_REQUEST_CLOSED = 'merge_request-closed',
   MERGE_REQUEST_COMMENT = 'merge_request-comment',
   MERGE_REQUEST_MERGED = 'merge_request-merged',
-  MERGE_REQUEST_REVIEW_REQUESTED = 'merge_request-review-requested',
-  MERGE_REQUEST_REVIEW_APPROVED = 'merge_request-review-approved',
-  MERGE_REQUEST_REVIEW_CHANGES_REQUESTED = 'merge_request-review-changes-requested',
-  MERGE_REQUEST_ASSIGNED = 'merge_request-assigned',
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
