@@ -16,7 +16,7 @@ export const getClientILP = (): Sender => {
   const port = process.env['CROWD_QUESTDB_ILP_PORT']
   const username = process.env['CROWD_QUESTDB_ILP_USERNAME']
   const password = process.env['CROWD_QUESTDB_ILP_PASSWORD']
-  const autoflush = 'auto_flush=on;auto_flush_rows=250;auto_flush_interval=10000;'
+  const autoflush = 'auto_flush=on;auto_flush_rows=10000;auto_flush_interval=10000;'
 
   log.trace({ host, port }, 'Creating QuestDB client (ILP) instance!')
 

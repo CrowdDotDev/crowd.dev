@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS 'activities' (
   username VARCHAR,
   objectMemberId UUID,
   objectMemberUsername VARCHAR,
-  segmentId SYMBOL,
+  segmentId SYMBOL capacity 1024 CACHE,
   organizationId UUID,
 
   sentimentLabel VARCHAR,
@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS 'conversations' (
   updatedAt TIMESTAMP,
   deletedAt TIMESTAMP,
   tenantId SYMBOL,
-  segmentId SYMBOL,
+  segmentId SYMBOL capacity 1024 CACHE,
   createdById UUID,
   updatedById UUID
 ) TIMESTAMP (timestamp) PARTITION BY MONTH WAL;
