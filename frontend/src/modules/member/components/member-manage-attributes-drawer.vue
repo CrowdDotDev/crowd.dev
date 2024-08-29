@@ -105,17 +105,13 @@
 </template>
 
 <script setup>
-import { useStore } from 'vuex';
 import {
   ref,
-  defineEmits,
-  defineProps,
   computed,
 } from 'vue';
 import isEqual from 'lodash/isEqual';
 import cloneDeep from 'lodash/cloneDeep';
 import Message from '@/shared/message/message';
-import { MemberService } from '@/modules/member/member-service';
 import getAttributesModel from '@/shared/attributes/get-attributes-model';
 import getParsedAttributes from '@/shared/attributes/get-parsed-attributes';
 import { useMemberStore } from '@/modules/member/store/pinia';
@@ -123,10 +119,10 @@ import { storeToRefs } from 'pinia';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { useRoute } from 'vue-router';
+import { useContributorStore } from '@/modules/contributor/store/contributor.store';
 import AppMemberFormGlobalAttributes from './form/member-form-global-attributes.vue';
 import AppMemberFormAttributes from './form/member-form-attributes.vue';
 
-const store = useStore();
 const props = defineProps({
   modelValue: {
     type: Boolean,
@@ -144,6 +140,8 @@ const { trackEvent } = useProductTracking();
 
 const memberStore = useMemberStore();
 const { customAttributes } = storeToRefs(memberStore);
+
+const { updateContributorAttributes } = useContributorStore();
 
 const loading = ref(false);
 const isEditingAttributes = ref(false);
@@ -191,16 +189,21 @@ const handleSubmit = async () => {
     },
   });
 
-  const segments = props.member.segments.map((s) => s.id);
   const formattedAttributes = getParsedAttributes(
     computedAttributes.value,
     memberModel.value,
   );
 
-  await MemberService.update(props.member.id, {
-    attributes: formattedAttributes,
-  }, segments);
-  await store.dispatch('member/doFind', { id: props.member.id });
+  Object.keys(formattedAttributes).forEach((key) => {
+    if (!formattedAttributes[key]) {
+      delete formattedAttributes[key];
+    }
+  });
+
+  await updateContributorAttributes(props.member.id, {
+    ...props.member.attributes,
+    ...formattedAttributes,
+  });
   Message.success('Member attributes updated successfully');
   emit('update:modelValue', false);
 };

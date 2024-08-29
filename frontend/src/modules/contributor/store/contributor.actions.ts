@@ -7,12 +7,14 @@ import { MergeActionsService } from '@/shared/modules/merge/services/merge-actio
 import { MergeAction } from '@/shared/modules/merge/types/MemberActions';
 import { MemberOrganization, Organization } from '@/modules/organization/types/Organization';
 import { ContributorOrganizationsApiService } from '@/modules/contributor/services/contributor.organizations.api.service';
+import { ContributorAttributesApiService } from '@/modules/contributor/services/contributor.attributes.api.service';
 
 export default {
   getContributor(id: string): Promise<Contributor> {
     const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
     this.getContributorIdentities(id);
     this.getContributorOrganizations(id);
+    this.getContributorAttributes(id);
 
     return ContributorApiService.find(id, [selectedProjectGroup.value?.id as string])
       .then((contributor) => {
@@ -97,5 +99,23 @@ export default {
   deleteContributorOrganization(memberId: string, id: string): Promise<Organization[]> {
     return ContributorOrganizationsApiService.delete(memberId, id)
       .then(this.setOrganizations);
+  },
+
+  /** Attributes * */
+  setAttributes(attributes: any) {
+    this.contributor = {
+      ...this.contributor,
+      attributes,
+    };
+    return Promise.resolve(attributes);
+  },
+  getContributorAttributes(memberId: string) {
+    const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
+    return ContributorAttributesApiService.list(memberId, [selectedProjectGroup.value?.id as string])
+      .then(this.setAttributes);
+  },
+  updateContributorAttributes(memberId: string, attributes: any): Promise<Organization[]> {
+    return ContributorAttributesApiService.update(memberId, attributes)
+      .then(this.setAttributes);
   },
 };
