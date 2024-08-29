@@ -177,37 +177,37 @@ export default class ActivityService extends LoggerBase {
         }
       }
 
-      const activityToProcess: IQueryActivityResult = {
-        id: id,
-        type: activity.type,
-        sourceId: activity.sourceId,
-        platform: activity.platform,
-        score: activity.score,
-        isContribution: activity.isContribution,
-        sourceParentId: activity.sourceParentId,
-        attributes: activity.attributes,
-        channel: activity.channel,
-        body: activity.body,
-        title: activity.title,
-        url: activity.url,
-        username: activity.username,
-        objectMemberUsername: activity.objectMemberUsername,
-        memberId: activity.memberId,
-        timestamp: activity.timestamp.toISOString(),
-        tenantId: tenantId,
-        segmentId: segmentId,
-      }
+      // const activityToProcess: IQueryActivityResult = {
+      //   id: id,
+      //   type: activity.type,
+      //   sourceId: activity.sourceId,
+      //   platform: activity.platform,
+      //   score: activity.score,
+      //   isContribution: activity.isContribution,
+      //   sourceParentId: activity.sourceParentId,
+      //   attributes: activity.attributes,
+      //   channel: activity.channel,
+      //   body: activity.body,
+      //   title: activity.title,
+      //   url: activity.url,
+      //   username: activity.username,
+      //   objectMemberUsername: activity.objectMemberUsername,
+      //   memberId: activity.memberId,
+      //   timestamp: activity.timestamp.toISOString(),
+      //   tenantId: tenantId,
+      //   segmentId: segmentId,
+      // }
 
-      await this.conversationService.processActivity(tenantId, segmentId, activityToProcess)
+      // await this.conversationService.processActivity(tenantId, segmentId, activityToProcess)
 
-      if (fireSync) {
-        await this.searchSyncWorkerEmitter.triggerMemberSync(
-          tenantId,
-          activity.memberId,
-          onboarding,
-          segmentId,
-        )
-      }
+      // if (fireSync) {
+      //   await this.searchSyncWorkerEmitter.triggerMemberSync(
+      //     tenantId,
+      //     activity.memberId,
+      //     onboarding,
+      //     segmentId,
+      //   )
+      // }
 
       return id
     } catch (err) {
