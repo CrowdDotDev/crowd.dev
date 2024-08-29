@@ -1,4 +1,8 @@
-import { fetchMemberAffiliations } from '@crowd/data-access-layer/src/members/affiliations'
+import {
+  deleteAllMemberAffiliations,
+  fetchMemberAffiliations,
+  insertMultipleMemberAffiliations,
+} from '@crowd/data-access-layer/src/members/affiliations'
 import { IMemberAffiliation } from '@crowd/types'
 import { IRepositoryOptions } from '../IRepositoryOptions'
 import SequelizeRepository from '../sequelizeRepository'
@@ -22,10 +26,11 @@ class MemberAffiliationsRepository {
       const txOptions = { ...options, transaction }
       const qx = SequelizeRepository.getQueryExecutor(txOptions, transaction)
 
-      // Create member identities
-      // for (const identity of data) {
-      //   await createMemberIdentity(qx, tenantId, memberId, identity)
-      // }
+      // Delete all member affiliations
+      await deleteAllMemberAffiliations(qx, memberId)
+
+      //  Insert multiple member affiliations
+      await insertMultipleMemberAffiliations(qx, memberId, data)
 
       // List all member identities
       const list = await fetchMemberAffiliations(qx, memberId)

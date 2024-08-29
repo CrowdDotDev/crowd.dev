@@ -96,7 +96,7 @@
 <script setup lang="ts">
 import LfModal from '@/ui-kit/modal/Modal.vue';
 import { useContributorStore } from '@/modules/contributor/store/contributor.store';
-import { Contributor } from '@/modules/contributor/types/Contributor';
+import { Contributor, ContributorAffiliation } from '@/modules/contributor/types/Contributor';
 import { computed, onMounted, ref } from 'vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
@@ -113,7 +113,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void }>();
 
-const { updateContributor } = useContributorStore();
+const { updateContributorAffiliations } = useContributorStore();
 
 const isModalOpen = computed<boolean>({
   get() {
@@ -145,23 +145,21 @@ const submit = () => {
   if ($v.value.$invalid) {
     return;
   }
-  const data = {
-    affiliations: form.value.map((affiliation) => ({
-      memberId: props.contributor.id,
-      segmentId: affiliation.segmentId,
-      organizationId: affiliation.organization,
-      dateStart: affiliation.dateStart
-        ? moment(affiliation.dateStart).startOf('month').format('YYYY-MM-DDTHH:mm:ss.SSS[Z]')
-        : undefined,
-      dateEnd: !affiliation.currentlyAffiliated && affiliation.dateEnd
-        ? moment(affiliation.dateEnd).startOf('month').format('YYYY-MM-DDTHH:mm:ss.SSS[Z]')
-        : undefined,
-    })),
-  };
+  const affiliations: Partial<ContributorAffiliation>[] = form.value.map((affiliation) => ({
+    memberId: props.contributor.id,
+    segmentId: affiliation.segmentId,
+    organizationId: affiliation.organization,
+    dateStart: affiliation.dateStart
+      ? moment(affiliation.dateStart).startOf('month').format('YYYY-MM-DDTHH:mm:ss.SSS[Z]')
+      : undefined,
+    dateEnd: !affiliation.currentlyAffiliated && affiliation.dateEnd
+      ? moment(affiliation.dateEnd).startOf('month').format('YYYY-MM-DDTHH:mm:ss.SSS[Z]')
+      : undefined,
+  }));
 
   sending.value = true;
 
-  updateContributor(props.contributor.id, data)
+  updateContributorAffiliations(props.contributor.id, affiliations)
     .then(() => {
       Message.success('Activities affiliation updated successfully');
       isModalOpen.value = false;

@@ -10,6 +10,6 @@ export default (app) => {
   // Member Affiliation Create Multiple
   app.patch(
     `/tenant/:tenantId/member/:memberId/affiliation`,
-    safeWrap(require('./memberAffiliationCreateMultiple').default),
+    safeWrap(require('./memberAffiliationUpdateMultiple').default),
   )
 }
