@@ -22,25 +22,31 @@ class MemberAffiliationsRepository {
       const segmentIds = affiliations.map((a) => a.segmentId)
 
       // Fetch organizations
-      const organizations = await queryOrgs(qx, {
-        filter: {
-          [OrganizationField.ID]: {
-            in: orgIds,
+      let orgObject: Record<string, IOrganization> = {}
+      if (orgIds.length > 0) {
+        const organizations = await queryOrgs(qx, {
+          filter: {
+            [OrganizationField.ID]: {
+              in: orgIds,
+            },
           },
-        },
-        fields: [OrganizationField.ID, OrganizationField.DISPLAY_NAME, OrganizationField.LOGO],
-      })
-      const orgObject: Record<string, IOrganization> = organizations.reduce((acc, org) => {
-        acc[org.id] = org
-        return acc
-      }, {})
+          fields: [OrganizationField.ID, OrganizationField.DISPLAY_NAME, OrganizationField.LOGO],
+        })
+        orgObject = organizations.reduce((acc, org) => {
+          acc[org.id] = org
+          return acc
+        }, {})
+      }
 
       // Fetch organizations
-      const segments = await fetchManySegments(qx, segmentIds, 'id, "slug", "name", "parentName"')
-      const segmentsObject: Record<string, SegmentData> = segments.reduce((acc, seg) => {
-        acc[seg.id] = seg
-        return acc
-      }, {})
+      let segmentsObject: Record<string, SegmentData> = {}
+      if (segmentIds.length > 0) {
+        const segments = await fetchManySegments(qx, segmentIds, 'id, "slug", "name", "parentName"')
+        segmentsObject = segments.reduce((acc, seg) => {
+          acc[seg.id] = seg
+          return acc
+        }, {})
+      }
 
       // Map affiliations
       const list = affiliations.map((affiliation) => {
