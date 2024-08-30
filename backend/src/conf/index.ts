@@ -41,6 +41,7 @@ import {
   IOpenStatusApiConfig,
   GithubTokenConfiguration,
   GitlabConfiguration,
+  IRedditConfig,
 } from './configTypes'
 
 // TODO-kube
@@ -166,3 +167,5 @@ export const OPEN_STATUS_API_CONFIG: IOpenStatusApiConfig =
   config.get<IOpenStatusApiConfig>('openStatusApi')
 
 export const GITLAB_CONFIG: GitlabConfiguration = config.get<GitlabConfiguration>('gitlab')
+
+export const REDDIT_CONFIG: IRedditConfig = config.get<IRedditConfig>('reddit')

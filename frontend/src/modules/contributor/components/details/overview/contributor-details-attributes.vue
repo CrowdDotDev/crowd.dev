@@ -5,7 +5,7 @@
         Profile details
       </h6>
       <lf-button
-        v-if="hasPermission(LfPermission.memberEdit)"
+        v-if="!masked && hasPermission(LfPermission.memberEdit)"
         type="secondary"
         size="small"
         @click="edit = true"
@@ -14,7 +14,7 @@
         Edit attributes
       </lf-button>
     </div>
-    <div>
+    <div v-if="!masked">
       <!-- Biography -->
       <article v-if="bio?.default" class="border-b border-gray-100 flex py-4">
         <div class="w-5/12">
@@ -164,8 +164,12 @@
         </div>
       </article>
     </div>
+    <div v-if="masked">
+      <div v-for="i in 3" :key="i" class="h-8 mb-3 bg-gray-200 rounded-md" />
+    </div>
     <div
-      v-if="!bio?.default
+      v-if="!masked
+        && !bio?.default
         && !tags.length
         && reach?.total <= 0
         && !education?.default?.length
@@ -208,6 +212,7 @@ import LfContributorAttributeSource
 import LfContributorAttributeUrl
   from '@/modules/contributor/components/details/attributes/contributor-attribute-url.vue';
 import { Contributor } from '@/modules/contributor/types/Contributor';
+import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
 
 const props = defineProps<{
   contributor: Contributor,
@@ -219,6 +224,8 @@ const edit = ref<boolean>(false);
 
 const memberStore = useMemberStore();
 const { customAttributes } = storeToRefs(memberStore);
+
+const { isMasked } = useContributorHelpers();
 
 const bio = computed(() => props.contributor.attributes.bio);
 const reach = computed(() => props.contributor.reach);
@@ -256,6 +263,8 @@ const transformToLabel = (property: string) => {
   const label = property.replace(/([A-Z])/g, ' $1').toLowerCase();
   return label.charAt(0).toUpperCase() + label.slice(1);
 };
+
+const masked = computed(() => isMasked(props.contributor));
 </script>
 
 <script lang="ts">

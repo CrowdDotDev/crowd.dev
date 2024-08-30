@@ -83,46 +83,6 @@
         </lf-dropdown-item>
       </lf-tooltip>
 
-      <lf-dropdown-separator />
-
-      <!-- Verified -->
-      <lf-tooltip
-        v-if="props.identity.verified"
-        placement="top"
-        :disabled="!isVerifyDisabled"
-        class="!w-full"
-      >
-        <template #content>
-          Identities tracked from an Integrations<br> can’t be unverified
-        </template>
-        <lf-dropdown-item
-          v-if="props.identity.verified"
-          placement="top"
-          :disabled="isVerifyDisabled"
-          class="w-full"
-          @click="verifyIdentity(false)"
-        >
-          <lf-svg name="unverify" class="!h-4 !w-4 text-gray-600" />Unverify identity
-        </lf-dropdown-item>
-      </lf-tooltip>
-      <lf-tooltip
-        v-else
-        placement="top"
-        :disabled="!isVerifyDisabled"
-        class="!w-full"
-      >
-        <template #content>
-          Identities tracked from an Integrations<br> can’t be verified
-        </template>
-        <lf-dropdown-item
-          :disabled="isVerifyDisabled"
-          class="w-full"
-          @click="verifyIdentity(true)"
-        >
-          <lf-icon name="verified-badge-line" />Verify identity
-        </lf-dropdown-item>
-      </lf-tooltip>
-
       <!-- Unmerge -->
       <lf-dropdown-item @click="emit('unmerge')">
         <lf-icon name="link-unlink" />Unmerge identity
@@ -162,7 +122,6 @@ import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import LfDropdownSeparator from '@/ui-kit/dropdown/DropdownSeparator.vue';
 import Message from '@/shared/message/message';
 import { useContributorStore } from '@/modules/contributor/store/contributor.store';
-import LfSvg from '@/shared/svg/svg.vue';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import { computed, ref } from 'vue';
@@ -176,15 +135,11 @@ const emit = defineEmits<{(e: 'edit'): void, (e: 'unmerge'): void }>();
 
 const { hasPermission } = usePermissions();
 
-const { updateContributor } = useContributorStore();
+const { deleteContributorIdentity } = useContributorStore();
 
 const hovered = ref(false);
 
 const platform = (name: string) => CrowdIntegrations.getConfig(name);
-
-const isVerifyDisabled = computed(
-  () => !!props.identity.sourceId || ['integration', 'lfid'].includes(props.identity.platform),
-);
 
 const editingDisabled = computed(() => {
   if (['git'].includes(props.identity.platform)) {
@@ -195,35 +150,8 @@ const editingDisabled = computed(() => {
     : false;
 });
 
-const verifyIdentity = (verified: boolean) => {
-  const identities = props.contributor.identities.map((i: ContributorIdentity) => {
-    if (i.platform === props.identity?.platform && i.value === props.identity?.value) {
-      return {
-        ...i,
-        verified,
-      };
-    }
-    return i;
-  });
-
-  updateContributor(props.contributor.id, {
-    identities,
-  })
-    .catch(() => {
-      Message.error('Something went wrong while updating an identity');
-    })
-    .then(() => {
-      Message.success('Identity updated successfully');
-    });
-};
-
 const removeIdentity = () => {
-  const identities = props.contributor.identities
-    .filter((i: ContributorIdentity) => !(i.platform === props.identity?.platform && i.value === props.identity?.value));
-
-  updateContributor(props.contributor.id, {
-    identities,
-  })
+  deleteContributorIdentity(props.contributor.id, props.identity.id)
     .then(() => {
       Message.success('Identity deleted successfully');
     })

@@ -8,12 +8,12 @@ import { itemLabelRendererByType } from '@/shared/modules/filters/config/itemLab
 
 const location: BooleanFilterConfig = {
   id: 'lfxMembership',
-  label: 'Member',
-  iconClass: 'ri-star-line',
+  label: 'Linux Foundation member',
+  iconClass: 'ri-bookmark-3-line',
   type: FilterConfigType.BOOLEAN,
   options: {},
   itemLabelRenderer(value: BooleanFilterValue, options: BooleanFilterOptions): string {
-    return itemLabelRendererByType[FilterConfigType.BOOLEAN]('Member', value, options);
+    return itemLabelRendererByType[FilterConfigType.BOOLEAN]('Linux Foundation member', value, options);
   },
   apiFilterRenderer({ value }: BooleanFilterValue): any[] {
     const filter = {

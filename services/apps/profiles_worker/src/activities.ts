@@ -1,5 +1,10 @@
-import { updateMemberAffiliations } from './activities/member/memberUpdate'
-import { updateOrganizationAffiliations } from './activities/organization/organizationUpdate'
+import { updateMemberAffiliations, syncMember } from './activities/member/memberUpdate'
+
+import {
+  syncOrganization,
+  findMembersInOrganization,
+} from './activities/organization/organizationUpdate'
+
 import {
   getAffiliationsLastCheckedAtOfTenant,
   getMemberIdsForAffiliationUpdates,
@@ -9,9 +14,11 @@ import {
 
 export {
   updateMemberAffiliations,
-  updateOrganizationAffiliations,
   getAffiliationsLastCheckedAtOfTenant,
   getMemberIdsForAffiliationUpdates,
   updateAffiliationsLastCheckedAtOfTenant,
   getAllTenants,
+  syncMember,
+  syncOrganization,
+  findMembersInOrganization,
 }

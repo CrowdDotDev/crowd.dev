@@ -150,6 +150,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: GITHUB_GRID[GithubActivityType.DISCUSSION_STARTED].isContribution,
+      calculateSentiment: true,
     },
     [GithubActivityType.DISCUSSION_COMMENT]: {
       display: {
@@ -161,6 +162,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: GITHUB_GRID[GithubActivityType.DISCUSSION_COMMENT].isContribution,
+      calculateSentiment: true,
     },
     [GithubActivityType.FORK]: {
       display: {
@@ -172,6 +174,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: GITHUB_GRID.fork.isContribution,
+      calculateSentiment: false,
     },
     [GithubActivityType.ISSUE_CLOSED]: {
       display: {
@@ -183,6 +186,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: GITHUB_GRID[GithubActivityType.ISSUE_CLOSED].isContribution,
+      calculateSentiment: false,
     },
     [GithubActivityType.ISSUE_OPENED]: {
       display: {
@@ -194,6 +198,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: GITHUB_GRID[GithubActivityType.ISSUE_OPENED].isContribution,
+      calculateSentiment: true,
     },
     [GithubActivityType.ISSUE_COMMENT]: {
       display: {
@@ -205,6 +210,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: GITHUB_GRID[GithubActivityType.ISSUE_COMMENT].isContribution,
+      calculateSentiment: true,
     },
     [GithubActivityType.PULL_REQUEST_CLOSED]: {
       display: {
@@ -216,6 +222,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: GITHUB_GRID[GithubActivityType.PULL_REQUEST_CLOSED].isContribution,
+      calculateSentiment: false,
     },
     [GithubActivityType.PULL_REQUEST_OPENED]: {
       display: {
@@ -227,6 +234,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: GITHUB_GRID[GithubActivityType.PULL_REQUEST_OPENED].isContribution,
+      calculateSentiment: false,
     },
     [GithubActivityType.PULL_REQUEST_COMMENT]: {
       display: {
@@ -238,6 +246,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: GITHUB_GRID[GithubActivityType.PULL_REQUEST_COMMENT].isContribution,
+      calculateSentiment: true,
     },
     [GithubActivityType.STAR]: {
       display: {
@@ -249,6 +258,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: GITHUB_GRID[GithubActivityType.STAR].isContribution,
+      calculateSentiment: false,
     },
     [GithubActivityType.UNSTAR]: {
       display: {
@@ -260,6 +270,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: GITHUB_GRID[GithubActivityType.UNSTAR].isContribution,
+      calculateSentiment: false,
     },
     [GithubActivityType.PULL_REQUEST_MERGED]: {
       display: {
@@ -275,6 +286,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: GITHUB_GRID[GithubActivityType.PULL_REQUEST_MERGED].isContribution,
+      calculateSentiment: false,
     },
     [GithubActivityType.PULL_REQUEST_ASSIGNED]: {
       display: {
@@ -290,6 +302,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: GITHUB_GRID[GithubActivityType.PULL_REQUEST_ASSIGNED].isContribution,
+      calculateSentiment: false,
     },
     [GithubActivityType.PULL_REQUEST_REVIEWED]: {
       display: {
@@ -305,6 +318,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: GITHUB_GRID[GithubActivityType.PULL_REQUEST_REVIEWED].isContribution,
+      calculateSentiment: true,
     },
     [GithubActivityType.PULL_REQUEST_REVIEW_REQUESTED]: {
       display: {
@@ -320,6 +334,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: GITHUB_GRID[GithubActivityType.PULL_REQUEST_REVIEW_REQUESTED].isContribution,
+      calculateSentiment: false,
     },
     [GithubActivityType.PULL_REQUEST_REVIEW_THREAD_COMMENT]: {
       display: {
@@ -338,6 +353,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
       },
       isContribution:
         GITHUB_GRID[GithubActivityType.PULL_REQUEST_REVIEW_THREAD_COMMENT].isContribution,
+      calculateSentiment: true,
     },
     [GitActivityType.AUTHORED_COMMIT]: {
       display: {
@@ -350,6 +366,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: true,
+      calculateSentiment: false,
     },
     [GitActivityType.REVIEWED_COMMIT]: {
       display: {
@@ -362,6 +379,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: true,
+      calculateSentiment: false,
     },
     [GitActivityType.TESTED_COMMIT]: {
       display: {
@@ -374,6 +392,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: true,
+      calculateSentiment: false,
     },
     [GitActivityType.CO_AUTHORED_COMMIT]: {
       display: {
@@ -386,6 +405,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: true,
+      calculateSentiment: false,
     },
     [GitActivityType.INFORMED_COMMIT]: {
       display: {
@@ -398,6 +418,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: true,
+      calculateSentiment: false,
     },
     [GitActivityType.INFLUENCED_COMMIT]: {
       display: {
@@ -410,6 +431,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: true,
+      calculateSentiment: false,
     },
     [GitActivityType.APPROVED_COMMIT]: {
       display: {
@@ -422,6 +444,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: true,
+      calculateSentiment: false,
     },
     [GitActivityType.COMMITTED_COMMIT]: {
       display: {
@@ -434,6 +457,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: true,
+      calculateSentiment: false,
     },
     [GitActivityType.REPORTED_COMMIT]: {
       display: {
@@ -446,6 +470,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: true,
+      calculateSentiment: false,
     },
     [GitActivityType.RESOLVED_COMMIT]: {
       display: {
@@ -458,6 +483,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: true,
+      calculateSentiment: false,
     },
     [GitActivityType.SIGNED_OFF_COMMIT]: {
       display: {
@@ -470,6 +496,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: true,
+      calculateSentiment: false,
     },
   },
   [PlatformType.GIT]: {
@@ -484,6 +511,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: true,
+      calculateSentiment: false,
     },
     [GitActivityType.REVIEWED_COMMIT]: {
       display: {
@@ -496,6 +524,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: true,
+      calculateSentiment: false,
     },
     [GitActivityType.TESTED_COMMIT]: {
       display: {
@@ -508,6 +537,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: true,
+      calculateSentiment: false,
     },
     [GitActivityType.CO_AUTHORED_COMMIT]: {
       display: {
@@ -520,6 +550,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: true,
+      calculateSentiment: false,
     },
     [GitActivityType.INFORMED_COMMIT]: {
       display: {
@@ -532,6 +563,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: true,
+      calculateSentiment: false,
     },
     [GitActivityType.INFLUENCED_COMMIT]: {
       display: {
@@ -544,6 +576,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: true,
+      calculateSentiment: false,
     },
     [GitActivityType.APPROVED_COMMIT]: {
       display: {
@@ -556,6 +589,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: true,
+      calculateSentiment: false,
     },
     [GitActivityType.COMMITTED_COMMIT]: {
       display: {
@@ -568,6 +602,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: true,
+      calculateSentiment: false,
     },
     [GitActivityType.REPORTED_COMMIT]: {
       display: {
@@ -580,6 +615,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: true,
+      calculateSentiment: false,
     },
     [GitActivityType.RESOLVED_COMMIT]: {
       display: {
@@ -592,6 +628,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: true,
+      calculateSentiment: false,
     },
     [GitActivityType.SIGNED_OFF_COMMIT]: {
       display: {
@@ -604,6 +641,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: true,
+      calculateSentiment: false,
     },
   },
   [PlatformType.DEVTO]: {
@@ -616,6 +654,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
           '<a href="{attributes.articleUrl}" class="truncate max-w-2xs">{attributes.articleTitle}</a>',
       },
       isContribution: DEVTO_GRID[DevToActivityType.COMMENT].isContribution,
+      calculateSentiment: true,
     },
   },
   [PlatformType.DISCORD]: {
@@ -626,6 +665,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         channel: '',
       },
       isContribution: DISCORD_GRID[DiscordActivityType.JOINED_GUILD].isContribution,
+      calculateSentiment: false,
     },
     [DiscordActivityType.MESSAGE]: {
       display: {
@@ -635,6 +675,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         channel: '<span class="text-brand-500 truncate max-w-2xs">#{channel}</span>',
       },
       isContribution: DISCORD_GRID[DiscordActivityType.MESSAGE].isContribution,
+      calculateSentiment: true,
     },
     [DiscordActivityType.THREAD_STARTED]: {
       display: {
@@ -643,6 +684,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         channel: '',
       },
       isContribution: DISCORD_GRID[DiscordActivityType.THREAD_STARTED].isContribution,
+      calculateSentiment: true,
     },
     [DiscordActivityType.THREAD_MESSAGE]: {
       display: {
@@ -653,6 +695,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
           '<span class="text-brand-500 truncate max-w-2xs">thread #{channel}</span> -> <span class="text-brand-500">#{attributes.childChannel}</span>',
       },
       isContribution: DISCORD_GRID[DiscordActivityType.THREAD_MESSAGE].isContribution,
+      calculateSentiment: true,
     },
   },
   [PlatformType.HACKERNEWS]: {
@@ -672,6 +715,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: HACKERNEWS_GRID[HackerNewsActivityType.COMMENT].isContribution,
+      calculateSentiment: true,
     },
     [HackerNewsActivityType.POST]: {
       display: {
@@ -688,6 +732,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: HACKERNEWS_GRID[HackerNewsActivityType.POST].isContribution,
+      calculateSentiment: true,
     },
   },
   [PlatformType.LINKEDIN]: {
@@ -699,6 +744,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         channel: '<a href="{attributes.postUrl}" target="_blank">{attributes.postBody}</a>',
       },
       isContribution: LINKEDIN_GRID[LinkedinActivityType.COMMENT].isContribution,
+      calculateSentiment: true,
     },
     [LinkedinActivityType.REACTION]: {
       display: {
@@ -708,6 +754,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         channel: '<a href="{attributes.postUrl}" target="_blank">{attributes.postBody}</a>',
       },
       isContribution: LINKEDIN_GRID[LinkedinActivityType.REACTION].isContribution,
+      calculateSentiment: true,
     },
   },
   [PlatformType.REDDIT]: {
@@ -719,6 +766,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         channel: '<a href="https://reddit.com/r/{channel}" target="_blank">r/{channel}</a>',
       },
       isContribution: REDDIT_GRID[RedditActivityType.COMMENT].isContribution,
+      calculateSentiment: true,
     },
     [RedditActivityType.POST]: {
       display: {
@@ -728,6 +776,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         channel: '<a href="https://reddit.com/r/{channel}" target="_blank">r/{channel}</a>',
       },
       isContribution: REDDIT_GRID[RedditActivityType.POST].isContribution,
+      calculateSentiment: true,
     },
   },
   [PlatformType.SLACK]: {
@@ -746,6 +795,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: SLACK_GRID[SlackActivityType.JOINED_CHANNEL].isContribution,
+      calculateSentiment: false,
     },
     [SlackActivityType.MESSAGE]: {
       display: {
@@ -762,6 +812,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: SLACK_GRID[SlackActivityType.MESSAGE].isContribution,
+      calculateSentiment: true,
     },
   },
   [PlatformType.TWITTER]: {
@@ -772,6 +823,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         channel: '',
       },
       isContribution: TWITTER_GRID[TwitterActivityType.HASHTAG].isContribution,
+      calculateSentiment: true,
     },
     [TwitterActivityType.FOLLOW]: {
       display: {
@@ -780,6 +832,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         channel: '',
       },
       isContribution: TWITTER_GRID[TwitterActivityType.FOLLOW].isContribution,
+      calculateSentiment: false,
     },
     [TwitterActivityType.MENTION]: {
       display: {
@@ -788,6 +841,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         channel: '',
       },
       isContribution: TWITTER_GRID[TwitterActivityType.MENTION].isContribution,
+      calculateSentiment: true,
     },
   },
   [PlatformType.STACKOVERFLOW]: {
@@ -801,6 +855,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: STACKOVERFLOW_GRID[StackOverflowActivityType.QUESTION].isContribution,
+      calculateSentiment: true,
     },
     [StackOverflowActivityType.ANSWER]: {
       display: {
@@ -812,6 +867,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: STACKOVERFLOW_GRID[StackOverflowActivityType.ANSWER].isContribution,
+      calculateSentiment: true,
     },
   },
   [PlatformType.DISCOURSE]: {
@@ -825,6 +881,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: DISCOURSE_GRID[DiscourseActivityType.CREATE_TOPIC].isContribution,
+      calculateSentiment: true,
     },
     [DiscourseActivityType.MESSAGE_IN_TOPIC]: {
       display: {
@@ -836,6 +893,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: DISCOURSE_GRID[DiscourseActivityType.MESSAGE_IN_TOPIC].isContribution,
+      calculateSentiment: true,
     },
     [DiscourseActivityType.JOIN]: {
       display: {
@@ -844,6 +902,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         channel: '',
       },
       isContribution: DISCOURSE_GRID[DiscourseActivityType.JOIN].isContribution,
+      calculateSentiment: true,
     },
     [DiscourseActivityType.LIKE]: {
       display: {
@@ -856,6 +915,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: DISCOURSE_GRID[DiscourseActivityType.LIKE].isContribution,
+      calculateSentiment: true,
     },
   },
   [PlatformType.GROUPSIO]: {
@@ -866,6 +926,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         channel: '{channel}',
       },
       isContribution: Groupsio_GRID[GroupsioActivityType.MEMBER_JOIN].isContribution,
+      calculateSentiment: false,
     },
     [GroupsioActivityType.MESSAGE]: {
       display: {
@@ -874,6 +935,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         channel: '{channel}',
       },
       isContribution: Groupsio_GRID[GroupsioActivityType.MESSAGE].isContribution,
+      calculateSentiment: true,
     },
     [GroupsioActivityType.MEMBER_LEAVE]: {
       display: {
@@ -882,6 +944,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         channel: '{channel}',
       },
       isContribution: Groupsio_GRID[GroupsioActivityType.MEMBER_LEAVE].isContribution,
+      calculateSentiment: false,
     },
   },
   [PlatformType.CONFLUENCE]: {
@@ -899,6 +962,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: true,
+      calculateSentiment: true,
     },
     [ConfluenceActivityType.PAGE_UPDATED]: {
       display: {
@@ -914,6 +978,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: true,
+      calculateSentiment: true,
     },
     [ConfluenceActivityType.BLOGPOST_CREATED]: {
       display: {
@@ -929,6 +994,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: true,
+      calculateSentiment: true,
     },
     [ConfluenceActivityType.BLOGPOST_UPDATED]: {
       display: {
@@ -944,6 +1010,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: true,
+      calculateSentiment: true,
     },
     [ConfluenceActivityType.COMMENT_CREATED]: {
       display: {
@@ -959,6 +1026,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: false,
+      calculateSentiment: true,
     },
     [ConfluenceActivityType.ATTACHMENT_CREATED]: {
       display: {
@@ -974,6 +1042,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: true,
+      calculateSentiment: false,
     },
   },
   [PlatformType.GERRIT]: {
@@ -991,6 +1060,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: true,
+      calculateSentiment: false,
     },
     [GerritActivityType.CHANGESET_MERGED]: {
       display: {
@@ -1006,6 +1076,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: true,
+      calculateSentiment: false,
     },
     [GerritActivityType.CHANGESET_CLOSED]: {
       display: {
@@ -1021,6 +1092,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: true,
+      calculateSentiment: false,
     },
     [GerritActivityType.CHANGESET_ABANDONED]: {
       display: {
@@ -1036,6 +1108,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: true,
+      calculateSentiment: false,
     },
     [GerritActivityType.CHANGESET_COMMENT_CREATED]: {
       display: {
@@ -1051,6 +1124,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: true,
+      calculateSentiment: true,
     },
     [GerritActivityType.PATCHSET_CREATED]: {
       display: {
@@ -1066,6 +1140,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: true,
+      calculateSentiment: false,
     },
     [GerritActivityType.PATCHSET_COMMENT_CREATED]: {
       display: {
@@ -1081,6 +1156,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: true,
+      calculateSentiment: true,
     },
     [GerritActivityType.PATCHSET_APPROVAL_CREATED]: {
       display: {
@@ -1096,6 +1172,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: true,
+      calculateSentiment: false,
     },
   },
   [PlatformType.JIRA]: {
@@ -1113,6 +1190,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: true,
+      calculateSentiment: true,
     },
     [JiraActivityType.ISSUE_CLOSED]: {
       display: {
@@ -1128,6 +1206,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: true,
+      calculateSentiment: false,
     },
     [JiraActivityType.ISSUE_UPDATED]: {
       display: {
@@ -1143,6 +1222,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: true,
+      calculateSentiment: true,
     },
     [JiraActivityType.ISSUE_ASSIGNED]: {
       display: {
@@ -1158,6 +1238,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: true,
+      calculateSentiment: true,
     },
     [JiraActivityType.ISSUE_COMMENT_CREATED]: {
       display: {
@@ -1173,6 +1254,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: true,
+      calculateSentiment: true,
     },
     [JiraActivityType.ISSUE_COMMENT_UPDATED]: {
       display: {
@@ -1188,6 +1270,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: true,
+      calculateSentiment: true,
     },
     [JiraActivityType.ISSUE_ATTACHMENT_ADDED]: {
       display: {
@@ -1203,6 +1286,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: true,
+      calculateSentiment: false,
     },
   },
   [PlatformType.GITLAB]: {

@@ -1,4 +1,5 @@
 import { Organization } from '@/modules/organization/types/Organization';
+import { MergeAction } from '@/shared/modules/merge/types/MemberActions';
 
 export interface ContributorAttribute {
   default: string;
@@ -38,11 +39,13 @@ export interface ContributorTag {
 }
 
 export interface ContributorIdentity {
+  id: string;
   platform: string;
   type: string;
   value: string;
   verified: boolean;
   sourceId: string | null;
+  integrationId?: string | null;
   // Computed properties
   platforms?: string[];
   url?: string;
@@ -82,5 +85,6 @@ export interface Contributor {
     id: string;
     name: string;
     activityCount: string;
-  }[]
+  }[],
+  activitySycning: MergeAction | null;
 }

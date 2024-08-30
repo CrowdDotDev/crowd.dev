@@ -271,3 +271,8 @@ export interface GitlabConfiguration {
   callbackUrl: string
   webhookToken: string
 }
+
+export interface IRedditConfig {
+  clientId: string
+  clientSecret: string
+}

@@ -5,7 +5,7 @@
         Identities
       </h6>
       <lf-contributor-details-identity-add-dropdown
-        v-if="hasPermission(LfPermission.memberEdit)"
+        v-if="!masked && hasPermission(LfPermission.memberEdit)"
         placement="bottom-end"
         @add="addIdentity = true; addIdentityTemplate = $event"
       >
@@ -22,7 +22,7 @@
       </lf-contributor-details-identity-add-dropdown>
     </div>
 
-    <div class="flex flex-col gap-3">
+    <div v-if="!masked" class="flex flex-col gap-3">
       <lf-contributor-details-identity-item
         v-for="identity of identityList.slice(0, showMore ? identityList.length : 10)"
         :key="`${identity.platform}-${identity.value}`"
@@ -30,7 +30,7 @@
         :contributor="props.contributor"
         class="min-h-7"
         @edit="editIdentity = identity"
-        @unmerge="unmerge(identity)"
+        @unmerge="unmerge(identity.id)"
       />
 
       <div v-if="identities.length === 0" class="pt-2 flex flex-col items-center">
@@ -41,8 +41,16 @@
       </div>
     </div>
 
+    <div v-else>
+      <div
+        v-for="i in 3"
+        :key="i"
+        class="h-6 mb-2 bg-gray-200 rounded-md"
+      />
+    </div>
+
     <lf-button
-      v-if="identityList.length > 10"
+      v-if="!masked && identityList.length > 10"
       type="primary-link"
       size="medium"
       class="mt-6"
@@ -52,18 +60,18 @@
     </lf-button>
   </section>
   <lf-contributor-identity-add
-    v-if="addIdentity && addIdentityTemplate !== null"
+    v-if="!masked && addIdentity && addIdentityTemplate !== null"
     v-model="addIdentity"
     :identities="[addIdentityTemplate]"
     :contributor="props.contributor"
   />
   <lf-contributor-identity-edit
-    v-if="editIdentity !== null"
+    v-if="!masked && editIdentity !== null"
     v-model="editIdentity"
     :contributor="props.contributor"
   />
   <app-member-unmerge-dialog
-    v-if="isUnmergeDialogOpen"
+    v-if="!masked && isUnmergeDialogOpen"
     v-model="isUnmergeDialogOpen"
     :selected-identity="selectedIdentity"
   />
@@ -94,7 +102,7 @@ const props = defineProps<{
 
 const { hasPermission } = usePermissions();
 
-const { identities, emails } = useContributorHelpers();
+const { identities, emails, isMasked } = useContributorHelpers();
 
 const identityList = computed(() => [
   ...identities(props.contributor),
@@ -103,19 +111,21 @@ const identityList = computed(() => [
 
 const showMore = ref<boolean>(false);
 const isUnmergeDialogOpen = ref(null);
-const selectedIdentity = ref(null);
+const selectedIdentity = ref<string | null>(null);
 
 const addIdentity = ref<boolean>(false);
 const addIdentityTemplate = ref<Partial<ContributorIdentity> | null>(null);
 const editIdentity = ref<Partial<ContributorIdentity> | null>(null);
 // const platform = (name: string) => CrowdIntegrations.getConfig(name);
 
-const unmerge = (identity: ContributorIdentity) => {
-  if (identity) {
-    selectedIdentity.value = identity;
+const unmerge = (identityId: string) => {
+  if (identityId) {
+    selectedIdentity.value = identityId;
   }
   isUnmergeDialogOpen.value = props.contributor as any;
 };
+
+const masked = computed(() => isMasked(props.contributor));
 </script>
 
 <script lang="ts">

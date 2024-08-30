@@ -153,6 +153,15 @@ class IntegrationsConfig {
       gitlab,
     };
   }
+
+  get organizationIdentities() {
+    return {
+      github,
+      linkedin,
+      twitter,
+      crunchbase,
+    };
+  }
 }
 
 export const CrowdIntegrations = new IntegrationsConfig();

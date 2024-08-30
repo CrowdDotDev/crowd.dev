@@ -11,13 +11,16 @@ import {
   IUnmergePreviewResult,
   MemberRoleUnmergeStrategy,
   MergeActionState,
+  MergeActionStep,
   MergeActionType,
   OrganizationIdentityType,
   SyncMode,
+  TemporalWorkflowId,
 } from '@crowd/types'
 import { randomUUID } from 'crypto'
 import lodash from 'lodash'
 import { findOrgAttributes, upsertOrgIdentities } from '@crowd/data-access-layer/src/organizations'
+import { WorkflowIdReusePolicy } from '@crowd/temporal'
 import getObjectWithoutKey from '@/utils/getObjectWithoutKey'
 import { IActiveOrganizationFilter } from '@/database/repositories/types/organizationTypes'
 import MemberOrganizationRepository from '@/database/repositories/memberOrganizationRepository'
@@ -171,6 +174,11 @@ export default class OrganizationService extends LoggerBase {
         )
       }
 
+      // clean up linkedin identity value
+      if (identity.platform === 'linkedin') {
+        identity.value = identity.value.split(':').pop()
+      }
+
       return {
         primary: {
           ...lodash.pick(organization, OrganizationService.ORGANIZATION_MERGE_FIELDS),
@@ -182,8 +190,7 @@ export default class OrganizationService extends LoggerBase {
         secondary: {
           id: randomUUID(),
           identities: secondaryIdentities,
-          displayName:
-            identity.platform === 'linkedin' ? identity.value.split(':').pop() : identity.value,
+          displayName: identity.value,
           attributes: {
             name: {
               default: identity.value,
@@ -238,6 +245,15 @@ export default class OrganizationService extends LoggerBase {
       const secondaryOrganization = await OrganizationRepository.create(
         payload.secondary,
         repoOptions,
+      )
+
+      await MergeActionsRepository.add(
+        MergeActionType.ORG,
+        organizationId,
+        secondaryOrganization.id,
+        this.options,
+        MergeActionStep.UNMERGE_STARTED,
+        MergeActionState.IN_PROGRESS,
       )
 
       if (payload.mergeActionId) {
@@ -299,6 +315,16 @@ export default class OrganizationService extends LoggerBase {
 
       // add primary and secondary to no merge so they don't get suggested again
       await OrganizationRepository.addNoMerge(organizationId, secondaryOrganization.id, repoOptions)
+
+      await MergeActionsRepository.setMergeAction(
+        MergeActionType.ORG,
+        organizationId,
+        secondaryOrganization.id,
+        this.options,
+        {
+          step: MergeActionStep.UNMERGE_SYNC_DONE,
+        },
+      )
 
       // trigger entity-merging-worker to move activities in the background
       await SequelizeRepository.commitTransaction(tx)
@@ -421,6 +447,7 @@ export default class OrganizationService extends LoggerBase {
             // not using transaction here on purpose,
             // so this change is visible until we finish
             this.options,
+            MergeActionStep.MERGE_STARTED,
             MergeActionState.IN_PROGRESS,
             backup,
           )
@@ -559,12 +586,14 @@ export default class OrganizationService extends LoggerBase {
 
           this.log.info({ originalId, toMergeId }, '[Merge Organizations] - Transaction commited! ')
 
-          await MergeActionsRepository.setState(
+          await MergeActionsRepository.setMergeAction(
             MergeActionType.ORG,
             originalId,
             toMergeId,
-            MergeActionState.FINISHING,
             this.options,
+            {
+              step: MergeActionStep.MERGE_SYNC_DONE,
+            },
           )
 
           return { original, toMerge }
@@ -601,12 +630,14 @@ export default class OrganizationService extends LoggerBase {
         toMergeId,
       })
 
-      await MergeActionsRepository.setState(
+      await MergeActionsRepository.setMergeAction(
         MergeActionType.ORG,
         originalId,
         toMergeId,
-        MergeActionState.ERROR,
         this.options,
+        {
+          state: MergeActionState.ERROR,
+        },
       )
 
       if (tx) {
@@ -684,6 +715,7 @@ export default class OrganizationService extends LoggerBase {
   ) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
     const txOptions = { ...this.options, transaction }
+    const tenantId = this.options.currentTenant.id
 
     if (!data.identities) {
       data.identities = []
@@ -747,7 +779,7 @@ export default class OrganizationService extends LoggerBase {
           }
         }
 
-        await upsertOrgIdentities(qx, record.id, record.tenantId, data.identities)
+        await upsertOrgIdentities(qx, record.id, tenantId, data.identities)
       } else {
         record = await OrganizationRepository.create(data, txOptions)
         telemetryTrack(
@@ -884,19 +916,29 @@ export default class OrganizationService extends LoggerBase {
 
       await SequelizeRepository.commitTransaction(tx)
 
-      if (syncToOpensearch) {
-        try {
-          const searchSyncService = new SearchSyncService(this.options)
-
-          await searchSyncService.triggerOrganizationSync(this.options.currentTenant.id, record.id)
-        } catch (emitErr) {
-          this.log.error(
-            emitErr,
-            { tenantId: this.options.currentTenant.id, organizationId: record.id },
-            'Error while emitting organization sync!',
-          )
-        }
-      }
+      await this.options.temporal.workflow.start('organizationUpdate', {
+        taskQueue: 'profiles',
+        workflowId: `${TemporalWorkflowId.ORGANIZATION_UPDATE}/${this.options.currentTenant.id}/${id}`,
+        workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+        retry: {
+          maximumAttempts: 10,
+        },
+        args: [
+          {
+            organization: {
+              id: record.id,
+            },
+            recalculateAffiliations: false,
+            syncOptions: {
+              doSync: syncToOpensearch,
+              withAggs: false,
+            },
+          },
+        ],
+        searchAttributes: {
+          TenantId: [this.options.currentTenant.id],
+        },
+      })
 
       return record
     } catch (error) {
@@ -927,7 +969,7 @@ export default class OrganizationService extends LoggerBase {
 
       await SequelizeRepository.commitTransaction(transaction)
 
-      const searchSyncService = new SearchSyncService(this.options)
+      const searchSyncService = new SearchSyncService(this.options, SyncMode.ASYNCHRONOUS)
 
       for (const id of ids) {
         await searchSyncService.triggerRemoveOrganization(this.options.currentTenant.id, id)
@@ -1010,7 +1052,23 @@ export default class OrganizationService extends LoggerBase {
           'tags',
           'logo',
         ],
-        include: { identities: true, lfxMemberships: true },
+        include: { aggregates: true, identities: true, lfxMemberships: true },
+      },
+      this.options,
+    )
+  }
+
+  async listOrganizationsAcrossAllSegments(args) {
+    const { filter, orderBy, limit, offset } = args
+    return OrganizationRepository.findAndCountAll(
+      {
+        filter,
+        orderBy,
+        limit,
+        offset,
+        segmentId: undefined,
+        fields: ['id', 'logo', 'displayName', 'isTeamOrganization'],
+        include: { aggregates: true, identities: true, segments: true, lfxMemberships: true },
       },
       this.options,
     )

@@ -25,6 +25,7 @@ import {
   MemberRoleUnmergeStrategy,
   OrganizationIdentityType,
   IMemberRoleWithOrganization,
+  MergeActionStep,
 } from '@crowd/types'
 import { randomUUID } from 'crypto'
 import lodash from 'lodash'
@@ -76,6 +77,7 @@ import MemberOrganizationService from './memberOrganizationService'
 import { MergeActionsRepository } from '@/database/repositories/mergeActionsRepository'
 import MemberOrganizationRepository from '@/database/repositories/memberOrganizationRepository'
 import OrganizationRepository from '@/database/repositories/organizationRepository'
+import MemberIdentityRepository from '@/database/repositories/member/memberIdentityRepository'
 
 export default class MemberService extends LoggerBase {
   options: IServiceOptions
@@ -734,6 +736,17 @@ export default class MemberService extends LoggerBase {
 
       // create the secondary member
       const secondaryMember = await MemberRepository.create(payload.secondary, repoOptions)
+
+      // track merge action
+      await MergeActionsRepository.add(
+        MergeActionType.MEMBER,
+        member.id,
+        secondaryMember.id,
+        repoOptions,
+        MergeActionStep.UNMERGE_STARTED,
+        MergeActionState.IN_PROGRESS,
+      )
+
       // move affiliations
       if (payload.secondary.affiliations.length > 0) {
         await MemberRepository.moveSelectedAffiliationsBetweenMembers(
@@ -857,6 +870,16 @@ export default class MemberService extends LoggerBase {
       // add primary and secondary to no merge so they don't get suggested again
       await MemberRepository.addNoMerge(memberId, secondaryMember.id, repoOptions)
 
+      await MergeActionsRepository.setMergeAction(
+        MergeActionType.MEMBER,
+        member.id,
+        secondaryMember.id,
+        repoOptions,
+        {
+          step: MergeActionStep.UNMERGE_SYNC_DONE,
+        },
+      )
+
       // trigger entity-merging-worker to move activities in the background
       await SequelizeRepository.commitTransaction(tx)
 
@@ -896,11 +919,11 @@ export default class MemberService extends LoggerBase {
    * This will only return a preview, users will be able to edit the preview and confirm the payload
    * Unmerge will be done in /unmerge endpoint with the confirmed payload from the user.
    * @param memberId member for identity extraction/unmerge
-   * @param identity identity to be extracted/unmerged
+   * @param identityId identity to be extracted/unmerged
    */
   async unmergePreview(
     memberId: string,
-    identity: IMemberIdentity,
+    identityId: string,
   ): Promise<IUnmergePreviewResult<IMemberUnmergePreviewResult>> {
     const relationships = ['tags', 'notes', 'tasks', 'identities', 'affiliations']
 
@@ -937,14 +960,8 @@ export default class MemberService extends LoggerBase {
         tasks: tasks.map((t) => ({ id: t.taskId })),
       }
 
-      if (
-        !member.identities.some(
-          (i) =>
-            i.platform === identity.platform &&
-            i.type === identity.type &&
-            i.value === identity.value,
-        )
-      ) {
+      const identity = await MemberIdentityRepository.findById(memberId, identityId, this.options)
+      if (!identity) {
         throw new Error(`Member doesn't have the identity sent to be unmerged!`)
       }
 
@@ -1324,6 +1341,7 @@ export default class MemberService extends LoggerBase {
             originalId,
             toMergeId,
             this.options,
+            MergeActionStep.MERGE_STARTED,
             MergeActionState.IN_PROGRESS,
             backup,
           )
@@ -1400,6 +1418,16 @@ export default class MemberService extends LoggerBase {
           await SequelizeRepository.commitTransaction(tx)
           return { original, toMerge }
         }),
+      )
+
+      await MergeActionsRepository.setMergeAction(
+        MergeActionType.MEMBER,
+        originalId,
+        toMergeId,
+        this.options,
+        {
+          step: MergeActionStep.MERGE_SYNC_DONE,
+        },
       )
 
       await this.options.temporal.workflow.start('finishMemberMerging', {
@@ -1585,11 +1613,6 @@ export default class MemberService extends LoggerBase {
     } = {},
   ) {
     let transaction
-    const searchSyncService = new SearchSyncService(
-      this.options,
-      SERVICE === ServiceType.NODEJS_WORKER ? SyncMode.ASYNCHRONOUS : undefined,
-    )
-
     try {
       const repoOptions = await SequelizeRepository.createTransactionalRepositoryOptions(
         this.options,
@@ -1756,29 +1779,14 @@ export default class MemberService extends LoggerBase {
             member: {
               id,
             },
+            memberOrganizationIds: (data.organizations || []).map((o) => o.id),
+            syncToOpensearch,
           },
         ],
         searchAttributes: {
           TenantId: [this.options.currentTenant.id],
         },
       })
-
-      if (syncToOpensearch) {
-        try {
-          await searchSyncService.triggerMemberSync(this.options.currentTenant.id, record.id)
-          if (data.organizations) {
-            for (const org of data.organizations) {
-              await searchSyncService.triggerOrganizationSync(this.options.currentTenant.id, org.id)
-            }
-          }
-        } catch (emitErr) {
-          this.log.error(
-            emitErr,
-            { tenantId: this.options.currentTenant.id, memberId: record.id },
-            'Error while triggering member sync changes!',
-          )
-        }
-      }
 
       return record
     } catch (error) {
@@ -1857,10 +1865,15 @@ export default class MemberService extends LoggerBase {
     }
   }
 
-  async findById(id, segmentId?: string) {
-    return MemberRepository.findById(id, this.options, {
-      segmentId,
-    })
+  async findById(id, segmentId?: string, include: Record<string, string> = {}) {
+    return MemberRepository.findById(
+      id,
+      this.options,
+      {
+        segmentId,
+      },
+      include,
+    )
   }
 
   async findAllAutocomplete(data) {
@@ -1907,10 +1920,6 @@ export default class MemberService extends LoggerBase {
     ).rows.filter((setting) => setting.type !== MemberAttributeType.SPECIAL)
 
     const segmentId = (data.segments || [])[0]
-
-    if (!segmentId) {
-      throw new Error400(this.options.language, 'member.segmentsRequired')
-    }
 
     return MemberRepository.findAndCountAll(
       {

@@ -11,7 +11,7 @@
         @mouseout="hovered = false"
       >
         <div class="flex items-center flex-grow">
-          <lf-back :to="{ path: '/organizations' }" class="mr-2" @mouseover.stop @mouseout.stop>
+          <lf-back :to="{ path: hasSegments ? '/organizations' : '/admin' }" class="mr-2" @mouseover.stop @mouseout.stop>
             <lf-button type="secondary-ghost" :icon-only="true">
               <lf-icon name="arrow-left-s-line" />
             </lf-button>
@@ -19,7 +19,12 @@
           <lf-organization-details-header :organization="organization" />
         </div>
         <div class="flex items-center">
-          <lf-organization-last-enrichment :organization="organization" class="mr-4" />
+          <lf-organization-syncing-activities
+            v-if="organization.activitySycning?.state === MergeActionState.IN_PROGRESS"
+            :organization="organization"
+            class="mr-4"
+          />
+          <lf-organization-last-enrichment v-else :organization="organization" class="mr-4" />
           <div @mouseover.stop @mouseout.stop>
             <lf-organization-details-actions :organization="organization" @reload="fetchOrganization()" />
           </div>
@@ -60,7 +65,15 @@
                 People
               </lf-tab>
               <lf-tab v-model="tabs" name="activities">
-                Activities
+                <div class="flex items-center gap-1">
+                  Activities
+                  <lf-icon
+                    v-if="organization.activitySycning?.state === MergeActionState.ERROR"
+                    name="error-warning-line"
+                    :size="16"
+                    class="text-red-500"
+                  />
+                </div>
               </lf-tab>
             </lf-tabs>
           </div>
@@ -89,7 +102,7 @@
 <script setup lang="ts">
 import LfTabs from '@/ui-kit/tabs/Tabs.vue';
 import LfTab from '@/ui-kit/tabs/Tab.vue';
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import LfBack from '@/ui-kit/back/Back.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
@@ -112,6 +125,9 @@ import LfOrganizationDetailsEmails from '@/modules/organization/components/detai
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import LfOrganizationDetailsContributors
   from '@/modules/organization/components/details/organization-details-contributors.vue';
+import LfOrganizationSyncingActivities
+  from '@/modules/organization/components/shared/organization-syncing-activities.vue';
+import { MergeActionState } from '@/shared/modules/merge/types/MemberActions';
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
@@ -154,6 +170,8 @@ const handleTabChange = () => {
     scrollContainer.value.scrollTop = 0;
   }
 };
+
+const hasSegments = computed(() => selectedProjectGroup.value?.id);
 
 onMounted(() => {
   organization.value = null;

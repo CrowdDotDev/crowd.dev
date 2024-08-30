@@ -1,5 +1,9 @@
 <template>
-  <lf-dropdown-item v-if="props.contributor.identities.length > 1 && hasPermission(LfPermission.memberEdit)" @click="unmerge = props.contributor">
+  <lf-dropdown-item
+    v-if="!isMasked(props.contributor) && (props.contributor.identities || []).length > 1
+      && hasPermission(LfPermission.memberEdit)"
+    @click="unmerge = props.contributor"
+  >
     <lf-icon name="link-unlink" />
     Unmerge profile
   </lf-dropdown-item>
@@ -56,7 +60,7 @@ const route = useRoute();
 const router = useRouter();
 const { hasPermission } = usePermissions();
 const { trackEvent } = useProductTracking();
-const { isTeamMember, isBot } = useContributorHelpers();
+const { isTeamMember, isBot, isMasked } = useContributorHelpers();
 
 const unmerge = ref<Contributor | null>(null);
 

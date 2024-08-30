@@ -10,7 +10,7 @@
         </div>
 
         <div class="flex items-center">
-          <lf-input v-model="form.value" class="!rounded-r-none h-10 flex-grow" :placeholder="`${platform?.placeholder || ''}...`">
+          <lf-input v-model="form.value" class="h-10 flex-grow" :placeholder="`${platform?.placeholder || ''}...`">
             <template #prefix>
               <div class="flex items-center flex-nowrap whitespace-nowrap">
                 <div class="min-w-5">
@@ -38,11 +38,6 @@
               </div>
             </template>
           </lf-input>
-          <label class="border border-gray-200 h-10 py-2.5 px-3 border-l-0 cursor-pointer rounded-r-lg">
-            <lf-checkbox v-model="form.verified">
-              Verified
-            </lf-checkbox>
-          </label>
         </div>
       </div>
       <div class="py-4 px-6 border-t border-gray-100 flex items-center justify-end gap-4">
@@ -64,32 +59,36 @@
 
 <script setup lang="ts">
 import LfModal from '@/ui-kit/modal/Modal.vue';
-import { computed, reactive, ref } from 'vue';
+import {
+  computed, h, reactive, ref,
+} from 'vue';
 import { Contributor, ContributorIdentity } from '@/modules/contributor/types/Contributor';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfInput from '@/ui-kit/input/Input.vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
-import LfCheckbox from '@/ui-kit/checkbox/Checkbox.vue';
 import { useContributorStore } from '@/modules/contributor/store/contributor.store';
 import Message from '@/shared/message/message';
 import { email, required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
+import { useMemberStore } from '@/modules/member/store/pinia';
 
 const props = defineProps<{
-  modelValue: ContributorIdentity | null,
+  modelValue: ContributorIdentity,
   contributor: Contributor,
 }>();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: ContributorIdentity | null): void}>();
 
-const { updateContributor } = useContributorStore();
+const { updateContributorIdentity } = useContributorStore();
+const memberStore = useMemberStore();
 
 const sending = ref<boolean>(false);
 
 const defaultForm: ContributorIdentity = {
+  id: '',
   value: '',
-  verified: true,
+  verified: false,
   platform: 'custom',
   type: 'username',
   sourceId: null,
@@ -111,7 +110,7 @@ const rules = {
 
 const $v = useVuelidate(rules, { form });
 
-const hasFormChanged = computed(() => form.value !== props.modelValue?.value || form.verified !== props.modelValue?.verified);
+const hasFormChanged = computed(() => form.value !== props.modelValue?.value);
 
 const isModalOpen = computed<boolean>({
   get() {
@@ -125,24 +124,51 @@ const isModalOpen = computed<boolean>({
 const platform = computed(() => CrowdIntegrations.getConfig(form.platform));
 
 const updateIdentity = () => {
-  const identities = props.contributor.identities.map((i: ContributorIdentity) => {
-    if (i.platform === props.modelValue?.platform && i.value === props.modelValue?.value) {
-      return form as ContributorIdentity;
-    }
-    return i;
-  });
-
   sending.value = true;
 
-  updateContributor(props.contributor.id, {
-    identities,
+  updateContributorIdentity(props.contributor.id, props.modelValue.id, {
+    ...form,
+    verified: false,
+    integrationId: null,
+    sourceId: null,
+    platform: form.type === 'email' ? 'custom' : form.platform,
   })
     .then(() => {
       Message.success('Identity updated successfully');
       isModalOpen.value = false;
     })
-    .catch(() => {
-      Message.error('Something went wrong while editing an identity');
+    .catch((error) => {
+      if (error.response.status === 409) {
+        isModalOpen.value = false;
+        Message.success(
+          h(
+            'div',
+            {
+              class: 'flex flex-col gap-2',
+            },
+            [
+              h(
+                'el-button',
+                {
+                  class: 'btn btn--xs btn--secondary !h-6 !w-fit',
+                  onClick: () => {
+                    const { memberId, grandParentId } = error.response.data;
+
+                    memberStore.addToMergeMember(memberId, grandParentId);
+                    Message.closeAll();
+                  },
+                },
+                'Merge profiles',
+              ),
+            ],
+          ),
+          {
+            title: 'Profile was not updated because the identity already exists in another profile, but you can merge the profiles.',
+          },
+        );
+      } else {
+        Message.error('Something went wrong while editing an identity');
+      }
     })
     .finally(() => {
       sending.value = false;

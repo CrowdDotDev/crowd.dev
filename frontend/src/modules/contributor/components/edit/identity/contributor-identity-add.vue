@@ -1,5 +1,5 @@
 <template>
-  <lf-modal v-model="isModalOpen">
+  <lf-modal v-model="isModalOpen" class="!overflow-visible">
     <template #default="{ close }">
       <div class="px-6 pt-4 pb-10">
         <div class="flex items-center justify-between pb-6">
@@ -15,7 +15,7 @@
               <div class="flex items-center w-full">
                 <lf-input
                   v-model="identity.value"
-                  class="!rounded-r-none h-10 flex-grow"
+                  class="h-10 flex-grow"
                   :placeholder="`${platform(identity.platform)?.placeholder || ''}...`"
                   :invalid="$v.form[ii].value.$invalid && $v.form[ii].value.$dirty"
                   @blur="$v.form[ii].value.$touch()"
@@ -47,11 +47,6 @@
                     </div>
                   </template>
                 </lf-input>
-                <label class="border border-gray-200 h-10 py-2.5 px-3 border-l-0 cursor-pointer rounded-r-lg">
-                  <lf-checkbox v-model="identity.verified" class="!flex-nowrap">
-                    Verified
-                  </lf-checkbox>
-                </label>
                 <lf-button
                   v-if="form.length > 1"
                   class="ml-3"
@@ -112,7 +107,6 @@ import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfInput from '@/ui-kit/input/Input.vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
-import LfCheckbox from '@/ui-kit/checkbox/Checkbox.vue';
 import { useContributorStore } from '@/modules/contributor/store/contributor.store';
 import Message from '@/shared/message/message';
 import LfContributorDetailsIdentityAddDropdown
@@ -133,13 +127,14 @@ const props = defineProps<{
 const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void}>();
 
 const memberStore = useMemberStore();
-const { updateContributor } = useContributorStore();
+const { createContributorIdentities } = useContributorStore();
 
 const sending = ref<boolean>(false);
 
 const defaultForm: ContributorIdentity = {
+  id: '',
   value: '',
-  verified: true,
+  verified: false,
   platform: 'custom',
   type: 'username',
   sourceId: null,
@@ -171,12 +166,7 @@ const platform = (platform: string) => CrowdIntegrations.getConfig(platform);
 
 const addIdentities = () => {
   sending.value = true;
-  updateContributor(props.contributor.id, {
-    identities: [
-      ...props.contributor.identities,
-      ...form,
-    ],
-  })
+  createContributorIdentities(props.contributor.id, form)
     .then(() => {
       Message.success('Identities successfully added');
       isModalOpen.value = false;

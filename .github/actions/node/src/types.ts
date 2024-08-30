@@ -8,6 +8,8 @@ export enum CloudEnvironment {
   PRODUCTION = 'production',
   STAGING = 'staging',
   LF_PRODUCTION = 'lf-production',
+  LF_ORACLE_PRODUCTION = 'lf-oracle-production',
+  LF_ORACLE_STAGING = 'lf-oracle-staging',
   LF_STAGING = 'lf-staging',
 }
 
@@ -25,6 +27,24 @@ export interface IPushInput {
   dockerPassword: string
 }
 
+export interface IAwsDeployInput {
+  // aws credentials to use when deploying
+  eksClusterName: string
+  awsRoleArn: string
+  awsAccessKeyId: string
+  awsSecretAccessKey: string
+  awsRegion: string
+}
+
+export interface IOracleDeployInput {
+  cluster: string
+  user: string
+  tenant: string
+  region: string
+  fingerprint: string
+  key: string
+}
+
 export interface IDeployInput {
   // services to deploy
   services: string[]
@@ -32,12 +52,8 @@ export interface IDeployInput {
   // which cloud environment are we deploying to
   cloudEnvironment: CloudEnvironment
 
-  // aws credentials to use when deploying
-  eksClusterName: string
-  awsRoleArn: string
-  awsAccessKeyId: string
-  awsSecretAccessKey: string
-  awsRegion: string
+  aws?: IAwsDeployInput
+  oracle?: IOracleDeployInput
 }
 
 export interface IBuilderDefinition {

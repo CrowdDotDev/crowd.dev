@@ -70,35 +70,7 @@
           @click="emit('unmerge', props.email)"
         >
           <i class="ri-link-unlink" />
-          Unmerge identity
-        </lf-dropdown-item>
-      </el-tooltip>
-      <el-tooltip
-        v-if="!props.email.verified"
-        content="Identities tracked from Integrations can’t be verified"
-        placement="top-end"
-        :disabled="!isVerifyDisabled"
-      >
-        <lf-dropdown-item
-          :disabled="isVerifyDisabled"
-          @click="verify(true)"
-        >
-          <i class="ri-verified-badge-line" />
-          Verify email
-        </lf-dropdown-item>
-      </el-tooltip>
-      <el-tooltip
-        v-else
-        content="Identities tracked from Integrations can’t be unverified"
-        placement="top-end"
-        :disabled="!isVerifyDisabled"
-      >
-        <lf-dropdown-item
-          :disabled="isVerifyDisabled"
-          @click="verify(false)"
-        >
-          <app-svg name="unverify" class="!h-4 !w-4" />
-          Unverify email
+          Unmerge email
         </lf-dropdown-item>
       </el-tooltip>
       <lf-dropdown-separator />
@@ -119,8 +91,7 @@ import {
 } from '@/modules/organization/types/Organization';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import LfDropdownSeparator from '@/ui-kit/dropdown/DropdownSeparator.vue';
-import AppSvg from '@/shared/svg/svg.vue';
-import { computed, ref } from 'vue';
+import { ref } from 'vue';
 
 const emit = defineEmits<{(e: 'update', value: Partial<OrganizationIdentity>): void,
   (e: 'unmerge', value: Partial<OrganizationIdentity>): void,
@@ -141,15 +112,6 @@ const model = ref({
 
 const platformLabel = (platforms: string[]) => CrowdIntegrations.getPlatformsLabel(platforms);
 const isEnrichment = (platforms?: string[]) => (platforms || []).includes('enrichment');
-
-const isVerifyDisabled = computed(
-  () => !!props.email.sourceId || ['integration', 'lfid'].includes(props.email.platform),
-);
-const verify = (verified: boolean) => {
-  emit('update', {
-    verified,
-  });
-};
 
 const update = () => {
   emit('update', {

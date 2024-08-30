@@ -29,9 +29,6 @@ export default [
     meta: {
       auth: true,
       title: 'Organizations',
-      segments: {
-        requireSelectedProjectGroup: true,
-      },
     },
     children: [
       {
@@ -41,24 +38,15 @@ export default [
         meta: {
           auth: true,
           eventKey: PageEventKey.ORGANIZATIONS,
+          segments: {
+            requireSelectedProjectGroup: true,
+          },
         },
         props: {
           module: 'organizations',
         },
         beforeEnter: [
           PermissionGuard(LfPermission.organizationRead),
-        ],
-      },
-      {
-        name: 'organizationCreate',
-        path: '/organizations/new',
-        component: OrganizationFormPage,
-        meta: {
-          auth: true,
-          eventKey: PageEventKey.NEW_ORGANIZATION,
-        },
-        beforeEnter: [
-          PermissionGuard(LfPermission.organizationCreate),
         ],
       },
       {
@@ -69,6 +57,9 @@ export default [
           title: 'Organization',
           auth: true,
           eventKey: PageEventKey.ORGANIZATION_PROFILE,
+          segments: {
+            optionalSelectedProjectGroup: true,
+          },
         },
         props: true,
         beforeEnter: [
@@ -82,6 +73,9 @@ export default [
         meta: {
           auth: true,
           eventKey: PageEventKey.ORGANIZATIONS_MERGE_SUGGESTIONS,
+          segments: {
+            requireSelectedProjectGroup: true,
+          },
         },
         props: true,
         beforeEnter: [

@@ -12,13 +12,17 @@ export class SearchSyncApiClient {
     })
   }
 
-  public async triggerMemberSync(memberId: string): Promise<void> {
+  public async triggerMemberSync(
+    memberId: string,
+    opts: { withAggs?: boolean } = {},
+  ): Promise<void> {
     if (!memberId) {
       throw new Error('memberId is required!')
     }
 
     await this.searchSyncApi.post('/sync/members', {
       memberId,
+      ...opts,
     })
   }
 
@@ -121,6 +125,7 @@ export class SearchSyncApiClient {
   public async triggerOrganizationSync(
     organizationId: string,
     segmentIds?: string[],
+    opts: { withAggs?: boolean } = { withAggs: true },
   ): Promise<void> {
     if (!organizationId) {
       throw new Error('organizationId is required!')
@@ -129,6 +134,7 @@ export class SearchSyncApiClient {
     await this.searchSyncApi.post('/sync/organizations', {
       organizationIds: [organizationId],
       segmentIds,
+      ...opts,
     })
   }
 
