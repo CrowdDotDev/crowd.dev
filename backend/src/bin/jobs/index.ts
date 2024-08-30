@@ -6,6 +6,7 @@ import refreshSampleData from './refreshSampleData'
 import cleanUp from './cleanUp'
 import checkStuckIntegrationRuns from './checkStuckIntegrationRuns'
 import refreshGroupsioToken from './refreshGroupsioToken'
+import refreshGitlabToken from './refreshGitlabToken'
 
 const jobs: CrowdJob[] = [
   integrationTicks,
@@ -15,6 +16,7 @@ const jobs: CrowdJob[] = [
   cleanUp,
   checkStuckIntegrationRuns,
   refreshGroupsioToken,
+  refreshGitlabToken,
 ]
 
 export default jobs

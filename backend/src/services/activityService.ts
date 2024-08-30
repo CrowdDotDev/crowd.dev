@@ -591,6 +591,15 @@ export default class ActivityService extends LoggerBase {
         })
       }
 
+      // TODO:: Make a proper GDPR prevention
+      if (
+        data.member.identities &&
+        data.member.identities.length > 0 &&
+        data.member.identities.some((i) => i.value.toLowerCase() === 'lf_disabled@oesterle.dev')
+      ) {
+        return
+      }
+
       const resultId = await ActivityRepository.createResults(
         {
           type: IntegrationResultType.ACTIVITY,

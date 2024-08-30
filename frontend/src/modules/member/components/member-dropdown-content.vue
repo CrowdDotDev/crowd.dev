@@ -1,5 +1,5 @@
 <template>
-  <template v-if="identities.length > 1 && !props.hideUnmerge && hasPermission(LfPermission.memberEdit)">
+  <template v-if="!isMasked(props.member as Contributor) && identities.length > 1 && !props.hideUnmerge && hasPermission(LfPermission.memberEdit)">
     <button
       class="h-10 el-dropdown-menu__item w-full"
       type="button"
@@ -48,7 +48,7 @@
   </button>
 
   <button
-    v-if="!props.hideMerge && hasPermission(LfPermission.mergeMembers)"
+    v-if="!isMasked(props.member as Contributor) && !props.hideMerge && hasPermission(LfPermission.mergeMembers)"
     class="h-10 el-dropdown-menu__item w-full"
     :disabled="!hasPermission(LfPermission.mergeMembers)"
     type="button"
@@ -197,6 +197,8 @@ import usePermissions from '@/shared/modules/permissions/helpers/usePermissions'
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
+import { Contributor } from '@/modules/contributor/types/Contributor';
 import { Member } from '../types/Member';
 
 enum Actions {
@@ -224,6 +226,8 @@ const route = useRoute();
 const { doFind } = mapActions('member');
 
 const { trackEvent } = useProductTracking();
+
+const { isMasked } = useContributorHelpers();
 
 const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
 

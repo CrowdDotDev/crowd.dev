@@ -15,7 +15,7 @@
         </div>
       </div>
       <lf-tooltip
-        v-if="hasPermission(LfPermission.memberEdit)"
+        v-if="!masked && hasPermission(LfPermission.memberEdit)"
         content="Add work experience"
         content-class="-ml-5"
       >
@@ -30,7 +30,7 @@
       </lf-tooltip>
     </div>
 
-    <div class="flex flex-col gap-4">
+    <div v-if="!masked" class="flex flex-col gap-4">
       <lf-contributor-details-work-history-item
         v-for="org of orgs.slice(0, showMore ? orgs.length : 3)"
         :key="org.id"
@@ -46,8 +46,16 @@
       </div>
     </div>
 
+    <div v-else>
+      <div
+        v-for="i in 3"
+        :key="i"
+        class="h-6 mb-2 bg-gray-200 rounded-md"
+      />
+    </div>
+
     <lf-button
-      v-if="orgs.length > 3"
+      v-if="!masked && orgs.length > 3"
       type="primary-link"
       size="medium"
       class="mt-6"
@@ -58,7 +66,7 @@
   </section>
 
   <lf-contributor-edit-work-history
-    v-if="isEditModalOpen"
+    v-if="!masked && isEditModalOpen"
     v-model="isEditModalOpen"
     :organization="editOrganization"
     :contributor="props.contributor"
@@ -78,18 +86,22 @@ import LfContributorEditWorkHistory
 import { Organization } from '@/modules/organization/types/Organization';
 import LfContributorDetailsWorkHistoryItem
   from '@/modules/contributor/components/details/work-history/contributor-details-work-history-item.vue';
+import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
 
 const props = defineProps<{
   contributor: Contributor,
 }>();
 
 const { hasPermission } = usePermissions();
+const { isMasked } = useContributorHelpers();
 
 const showMore = ref<boolean>(false);
 const isEditModalOpen = ref<boolean>(false);
 const editOrganization = ref<Organization | null>(null);
 
 const orgs = computed(() => props.contributor.organizations);
+
+const masked = computed(() => isMasked(props.contributor));
 </script>
 
 <script lang="ts">

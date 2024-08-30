@@ -316,8 +316,8 @@ class OrganizationRepository {
   static findLfxMembershipInFilters(filter: any): any {
     if (!filter) return null
 
-    if (filter.not?.lfxMembership) {
-      return filter.not.lfxMembership
+    if (filter.lfxMembership) {
+      return filter.lfxMembership
     }
 
     if (Array.isArray(filter.and)) {
@@ -575,12 +575,7 @@ class OrganizationRepository {
     )
   }
 
-  static async destroy(
-    id,
-    options: IRepositoryOptions,
-    force = false,
-    destroyIfOnlyNoSegmentsLeft = true,
-  ) {
+  static async destroy(id, options: IRepositoryOptions, force = false) {
     const transaction = SequelizeRepository.getTransaction(options)
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
@@ -597,30 +592,21 @@ class OrganizationRepository {
       throw new Error404()
     }
 
-    if (destroyIfOnlyNoSegmentsLeft) {
-      await OrganizationRepository.excludeOrganizationsFromSegments([id], {
-        ...options,
-        transaction,
-      })
-      const org = await this.findById(id, options)
+    await OrganizationRepository.excludeOrganizationsFromAllSegments([id], {
+      ...options,
+      transaction,
+    })
 
-      if (org.segments.length === 0) {
-        await record.destroy({
-          transaction,
-          force,
-        })
-      }
-    } else {
-      await OrganizationRepository.excludeOrganizationsFromAllSegments([id], {
-        ...options,
-        transaction,
-      })
+    const qx = SequelizeRepository.getQueryExecutor(options)
 
-      await record.destroy({
-        transaction,
-        force,
-      })
-    }
+    await cleanupForOganization(qx, id)
+
+    await deleteOrgAttributesByOrganizationId(qx, id)
+
+    await record.destroy({
+      transaction,
+      force,
+    })
 
     await this._createAuditLog(AuditLogRepository.DELETE, record, record, options)
   }
@@ -1238,6 +1224,7 @@ class OrganizationRepository {
           attributes: true,
           lfxMemberships: true,
           identities: true,
+          segments: true,
         },
       },
       options,
@@ -1256,6 +1243,7 @@ class OrganizationRepository {
             attributes: true,
             lfxMemberships: true,
             identities: true,
+            segments: true,
           },
         },
         options,
@@ -1629,14 +1617,14 @@ class OrganizationRepository {
 
     if (lfxMembershipFilter) {
       const filterKey = Object.keys(lfxMembershipFilter)[0]
-      if (filterKey === 'eq') {
+      if (filterKey === 'ne') {
         lfxMembershipFilterWhereClause = `AND EXISTS (SELECT 1 FROM "lfxMemberships" lm WHERE lm."organizationId" = o.id AND lm."tenantId" = $(tenantId))`
-      } else if (filterKey === 'ne') {
+      } else if (filterKey === 'eq') {
         lfxMembershipFilterWhereClause = `AND NOT EXISTS (SELECT 1 FROM "lfxMemberships" lm WHERE lm."organizationId" = o.id AND lm."tenantId" = $(tenantId))`
       }
 
       // remove lfxMembership filter from obj since filterParser doesn't support it
-      filter.and = filter.and.filter((f) => !f.and?.some((subF) => subF.not?.lfxMembership))
+      filter.and = filter.and.filter((f) => !f.and?.some((subF) => subF.lfxMembership))
     }
     if (segmentId) {
       const segment = (await findSegmentById(optionsQx(options), segmentId)) as any
@@ -1761,7 +1749,10 @@ class OrganizationRepository {
       const orgSegments = await fetchManyOrgSegments(qx, orgIds)
 
       rows.forEach((org) => {
-        org.segments = orgSegments.find((i) => i.organizationId === org.id)?.segments || []
+        org.segments =
+          orgSegments
+            .find((i) => i.organizationId === org.id)
+            ?.segments.filter((segment) => segment !== null) || []
       })
     }
     if (include.attributes) {

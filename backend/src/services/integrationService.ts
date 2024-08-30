@@ -23,7 +23,14 @@ import { RedisCache } from '@crowd/redis'
 import { findMemberById, MemberField } from '@crowd/data-access-layer/src/members'
 import { encryptData } from '../utils/crypto'
 import { ILinkedInOrganization } from '../serverless/integrations/types/linkedinTypes'
-import { DISCORD_CONFIG, GITHUB_CONFIG, IS_TEST_ENV, KUBE_MODE, NANGO_CONFIG } from '../conf/index'
+import {
+  DISCORD_CONFIG,
+  GITHUB_CONFIG,
+  IS_TEST_ENV,
+  KUBE_MODE,
+  NANGO_CONFIG,
+  GITLAB_CONFIG,
+} from '../conf/index'
 import { IServiceOptions } from './IServiceOptions'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import IntegrationRepository from '../database/repositories/integrationRepository'
@@ -43,6 +50,7 @@ import {
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
 import TenantRepository from '../database/repositories/tenantRepository'
 import GithubReposRepository from '../database/repositories/githubReposRepository'
+import GitlabReposRepository from '@/database/repositories/gitlabReposRepository'
 import OrganizationService from './organizationService'
 import MemberSyncRemoteRepository from '@/database/repositories/memberSyncRemoteRepository'
 import OrganizationSyncRemoteRepository from '@/database/repositories/organizationSyncRemoteRepository'
@@ -55,6 +63,13 @@ import SearchSyncService from './searchSyncService'
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import IntegrationProgressRepository from '@/database/repositories/integrationProgressRepository'
 import { IntegrationProgress } from '@/serverless/integrations/types/regularTypes'
+import {
+  fetchGitlabUserProjects,
+  fetchGitlabGroupProjects,
+  fetchAllGitlabGroups,
+} from '@/serverless/integrations/usecases/gitlab/getProjects'
+import { setupGitlabWebhooks } from '@/serverless/integrations/usecases/gitlab/setupWebhooks'
+import { removeGitlabWebhooks } from '@/serverless/integrations/usecases/gitlab/removeWebhooks'
 
 const discordToken = DISCORD_CONFIG.token || DISCORD_CONFIG.token2
 
@@ -172,9 +187,15 @@ export default class IntegrationService {
             throw new Error404()
           }
           // remove github remotes from git integration
-          if (integration.platform === PlatformType.GITHUB) {
+          if (
+            integration.platform === PlatformType.GITHUB ||
+            integration.platform === PlatformType.GITLAB
+          ) {
             let shouldUpdateGit: boolean
-            const mapping = await this.getGithubRepos(id)
+            const mapping =
+              integration.platform === PlatformType.GITHUB
+                ? await this.getGithubRepos(id)
+                : await this.getGitlabRepos(id)
             const repos: Record<string, string[]> = mapping.reduce((acc, { url, segment }) => {
               if (!acc[segment.id]) {
                 acc[segment.id] = []
@@ -211,6 +232,16 @@ export default class IntegrationService {
                   segmentOptions,
                 )
               }
+            }
+          }
+
+          if (integration.platform === PlatformType.GITLAB) {
+            if (integration.settings.webhooks) {
+              await removeGitlabWebhooks(
+                integration.token,
+                integration.settings.webhooks.map((hook) => hook.projectId),
+                integration.settings.webhooks.map((hook) => hook.hookId),
+              )
             }
           }
 
@@ -2137,5 +2168,203 @@ export default class IntegrationService {
         this.options,
       )
     return Promise.all(integrationIds.map((id) => this.getIntegrationProgress(id)))
+  }
+
+  async gitlabConnect(code: string) {
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+    let integration
+
+    try {
+      // Exchange the code for access token and refresh token
+      const tokenResponse = await axios.post('https://gitlab.com/oauth/token', {
+        client_id: GITLAB_CONFIG.clientId,
+        client_secret: GITLAB_CONFIG.clientSecret,
+        code,
+        grant_type: 'authorization_code',
+        redirect_uri: GITLAB_CONFIG.callbackUrl,
+      })
+
+      const { access_token: accessToken, refresh_token: refreshToken } = tokenResponse.data
+
+      // Fetch user information to get the user ID
+      const userResponse = await axios.get('https://gitlab.com/api/v4/user', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      })
+
+      const userId = userResponse.data.id
+
+      // Fetch all groups
+      const groups = await fetchAllGitlabGroups(accessToken)
+
+      // Fetch projects in each group
+      const groupProjects = await fetchGitlabGroupProjects(accessToken, groups)
+
+      // Fetch projects for the current user
+      const userProjects = await fetchGitlabUserProjects(accessToken, userId)
+
+      integration = await this.createOrUpdate(
+        {
+          platform: PlatformType.GITLAB,
+          integrationIdentifier: userId.toString(),
+          token: accessToken,
+          refreshToken,
+          status: 'mapping',
+          settings: {
+            groups,
+            groupProjects,
+            userProjects,
+            user: userResponse.data,
+            updateMemberAttributes: true,
+          },
+        },
+        transaction,
+      )
+
+      await SequelizeRepository.commitTransaction(transaction)
+    } catch (err) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw err
+    }
+
+    return integration
+  }
+
+  async mapGitlabRepos(
+    integrationId: string,
+    mapping: Record<string, string>,
+    projectIds: number[],
+  ) {
+    const integration = await this.findById(integrationId)
+
+    const webhooks = await setupGitlabWebhooks(integration.token, projectIds, integrationId)
+
+    // if any of webhooks has failed, throw an error
+    if (webhooks.some((w) => w.success === false)) {
+      this.options.log.error({ webhooks }, 'Failed to setup webhooks')
+      throw new Error('Failed to setup webhooks')
+    }
+
+    const settings = integration.settings
+    const { groupProjects, userProjects } = settings
+    const allProjects = [
+      ...userProjects,
+      ...Object.values(groupProjects).flat(),
+    ]
+
+    allProjects.forEach((project) => {
+      const isInMapping = Object.keys(mapping).some((url) =>
+        url.includes(project.path_with_namespace)
+      )
+      project.enabled = isInMapping
+    })
+
+    // Keep the original structure of groupProjects and userProjects
+    settings.groupProjects = { ...groupProjects }
+    settings.userProjects = [...userProjects]
+
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+
+    const txOptions = {
+      ...this.options,
+      transaction,
+    }
+
+    try {
+      await GitlabReposRepository.updateMapping(integrationId, mapping, txOptions)
+
+      // add the repos to the git integration
+      if (EDITION === Edition.LFX) {
+        const repos: Record<string, string[]> = Object.entries(mapping).reduce(
+          (acc, [url, segmentId]) => {
+            if (!acc[segmentId as string]) {
+              acc[segmentId as string] = []
+            }
+            acc[segmentId as string].push(url)
+            return acc
+          },
+          {},
+        )
+
+        for (const [segmentId, urls] of Object.entries(repos)) {
+          let isGitintegrationConfigured
+          const segmentOptions: IRepositoryOptions = {
+            ...this.options,
+            currentSegments: [
+              {
+                ...this.options.currentSegments[0],
+                id: segmentId as string,
+              },
+            ],
+          }
+          try {
+            await IntegrationRepository.findByPlatform(PlatformType.GIT, segmentOptions)
+
+            isGitintegrationConfigured = true
+          } catch (err) {
+            isGitintegrationConfigured = false
+          }
+
+          if (isGitintegrationConfigured) {
+            const gitInfo = await this.gitGetRemotes(segmentOptions)
+            const gitRemotes = gitInfo[segmentId as string].remotes
+            await this.gitConnectOrUpdate(
+              {
+                remotes: Array.from(new Set([...gitRemotes, ...urls])),
+              },
+              segmentOptions,
+            )
+          } else {
+            await this.gitConnectOrUpdate(
+              {
+                remotes: urls,
+              },
+              segmentOptions,
+            )
+          }
+        }
+      }
+
+      const integration = await IntegrationRepository.update(
+        integrationId,
+        { settings: { ...settings, webhooks }, status: 'in-progress' },
+        txOptions,
+      )
+
+      this.options.log.info(
+        { tenantId: integration.tenantId },
+        'Sending GitLab message to int-run-worker!',
+      )
+      const emitter = await getIntegrationRunWorkerEmitter()
+      await emitter.triggerIntegrationRun(
+        integration.tenantId,
+        integration.platform,
+        integration.id,
+        true,
+      )
+
+      await SequelizeRepository.commitTransaction(transaction)
+    } catch (err) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw err
+    }
+  }
+
+  async getGitlabRepos(integrationId): Promise<any[]> {
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+
+    const txOptions = {
+      ...this.options,
+      transaction,
+    }
+
+    try {
+      const mapping = await GitlabReposRepository.getMapping(integrationId, txOptions)
+
+      await SequelizeRepository.commitTransaction(transaction)
+      return mapping
+    } catch (err) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw err
+    }
   }
 }

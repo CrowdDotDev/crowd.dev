@@ -521,7 +521,7 @@ export default class IntegrationStreamService extends LoggerBase {
         )
       },
       updateIntegrationSettings: async (settings) => {
-        await this.updateIntegrationSettings(streamId, settings)
+        await this.updateIntegrationSettings(streamInfo.runId, settings)
       },
       updateIntegrationToken: async (token: string) => {
         await this.updateIntegrationToken(streamId, token)

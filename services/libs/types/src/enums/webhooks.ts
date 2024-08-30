@@ -6,6 +6,7 @@ export enum WebhookState {
 
 export enum WebhookType {
   GITHUB = 'GITHUB',
+  GITLAB = 'GITLAB',
   DISCORD = 'DISCORD',
   DISCOURSE = 'DISCOURSE',
   GROUPSIO = 'GROUPSIO',

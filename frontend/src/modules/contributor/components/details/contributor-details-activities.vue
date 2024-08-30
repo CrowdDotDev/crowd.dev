@@ -20,6 +20,11 @@
       Please contact our support team.
     </p>
   </div>
+  <div v-else-if="masked">
+    <div class="flex items-center bg-yellow-50 p-2 mb-6 text-small rounded-md border border-yellow-300 text-yellow-600">
+      <lf-icon name="error-warning-line" class="mr-2" /> This person's activities are not shown because of the GDPR.
+    </div>
+  </div>
   <app-activity-timeline
     v-else
     :entity="props.contributor"
@@ -36,6 +41,8 @@ import AppActivityTimeline from '@/modules/activity/components/activity-timeline
 import { useRoute } from 'vue-router';
 import { MergeActionState } from '@/shared/modules/merge/types/MemberActions';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
+import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
+import { computed } from 'vue';
 
 const props = defineProps<{
   contributor: Contributor,
@@ -43,7 +50,11 @@ const props = defineProps<{
 
 const route = useRoute();
 
+const { isMasked } = useContributorHelpers();
+
 const { subProjectId } = route.query;
+
+const masked = computed(() => isMasked(props.contributor));
 </script>
 
 <script lang="ts">
