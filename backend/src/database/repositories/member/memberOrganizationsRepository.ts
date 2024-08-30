@@ -1,5 +1,6 @@
 import { IMemberOrganization, IOrganization } from '@crowd/types'
 import {
+  cleanSoftDeletedMemberOrganization,
   createMemberOrganization,
   deleteMemberOrganization,
   fetchMemberOrganizations,
@@ -72,6 +73,10 @@ class MemberOrganizationsRepository {
   ) {
     const qx = SequelizeRepository.getQueryExecutor(options)
 
+    // Hard delete any existing soft-deleted member organization to prevent conflict errors
+    // when adding a similar entry.
+    await cleanSoftDeletedMemberOrganization(qx, memberId, data.organizationId, data)
+
     // Create member organization
     await createMemberOrganization(qx, memberId, data)
 
@@ -86,6 +91,10 @@ class MemberOrganizationsRepository {
     options: IRepositoryOptions,
   ) {
     const qx = SequelizeRepository.getQueryExecutor(options)
+
+    // Hard delete any existing soft-deleted member organization to prevent conflict errors
+    // when updating a similar entry.
+    await cleanSoftDeletedMemberOrganization(qx, memberId, data.organizationId, data)
 
     // Update member organization
     await updateMemberOrganization(qx, memberId, id, data)
