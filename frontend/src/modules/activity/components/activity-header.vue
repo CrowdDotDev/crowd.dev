@@ -83,7 +83,7 @@ const { filters } = storeToRefs(activityStore);
 
 const segmentId = computed(() => {
   if (!filters.value.projects) {
-    return selectedProjectGroup.value.id;
+    return selectedProjectGroup.value?.id;
   }
 
   return filters.value.projects.value[0];

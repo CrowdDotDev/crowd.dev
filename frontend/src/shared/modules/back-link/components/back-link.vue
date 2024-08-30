@@ -31,8 +31,24 @@ const backLink = computed(() => {
 
 const previousRouteTitle = computed(() => router.resolve(window.history.state.back)?.meta?.title);
 
-const routeLocation = computed(() => (backLink.value ? {
-  path: backLink.value,
-} : props.defaultRoute));
+const routeLocation = computed(() => {
+  const fullUrl = backLink.value;
+
+  if (!fullUrl) {
+    return props.defaultRoute;
+  }
+
+  try {
+    const url = new URL(fullUrl, window.location.origin);
+
+    return {
+      path: url.pathname,
+      query: Object.fromEntries(url.searchParams.entries()),
+      hash: url.hash,
+    };
+  } catch (e) {
+    return props.defaultRoute;
+  }
+});
 
 </script>

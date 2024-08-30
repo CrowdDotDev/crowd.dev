@@ -26,6 +26,7 @@ import { useActivityStore } from '@/modules/activity/store/pinia';
 import { useActivityTypeStore } from '@/modules/activity/store/type';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import useSessionTracking from '@/shared/modules/monitoring/useSessionTracking';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
 export default {
   name: 'App',
@@ -37,10 +38,11 @@ export default {
   setup() {
     const authStore = useAuthStore();
     const { detachListeners } = useSessionTracking();
+    const { listProjectGroups } = useLfSegmentsStore();
     const { init } = authStore;
     const { tenant, loaded } = storeToRefs(authStore);
     return {
-      init, tenant, loaded, detachListeners,
+      init, tenant, loaded, detachListeners, listProjectGroups,
     };
   },
 
@@ -67,6 +69,10 @@ export default {
     window.addEventListener('resize', this.handleResize);
     this.handleResize();
     this.init();
+    this.listProjectGroups({
+      limit: null,
+      reset: true,
+    });
   },
 
   unmounted() {

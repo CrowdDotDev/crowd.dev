@@ -1921,10 +1921,6 @@ export default class MemberService extends LoggerBase {
 
     const segmentId = (data.segments || [])[0]
 
-    if (!segmentId) {
-      throw new Error400(this.options.language, 'member.segmentsRequired')
-    }
-
     return MemberRepository.findAndCountAll(
       {
         ...data,
@@ -1934,6 +1930,7 @@ export default class MemberService extends LoggerBase {
           memberOrganizations: true,
           lfxMemberships: true,
           identities: true,
+          attributes: true,
         },
         exportMode,
       },

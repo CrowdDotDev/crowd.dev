@@ -10,6 +10,7 @@ export async function fetchMemberOrganizations(
       SELECT "id", "organizationId", "dateStart", "dateEnd", "title", "memberId", "source"
       FROM "memberOrganizations"
       WHERE "memberId" = $(memberId)
+      AND "deletedAt" IS NULL
       ORDER BY
           CASE
               WHEN "dateEnd" IS NULL AND "dateStart" IS NOT NULL THEN 1
@@ -107,12 +108,39 @@ export async function deleteMemberOrganization(
 ): Promise<void> {
   return qx.result(
     `
-        DELETE FROM "memberOrganizations"
-        WHERE "memberId" = $(memberId) AND "id" = $(id);
+      UPDATE "memberOrganizations"
+      SET "deletedAt" = NOW()
+      WHERE "memberId" = $(memberId) AND "id" = $(id);
     `,
     {
       memberId,
       id,
+    },
+  )
+}
+
+export async function cleanSoftDeletedMemberOrganization(
+  qx: QueryExecutor,
+  memberId: string,
+  organizationId: string,
+  data: Partial<IMemberOrganization>,
+): Promise<void> {
+  return qx.result(
+    `
+      DELETE FROM "memberOrganizations"
+      WHERE "memberId" = $(memberId)
+        AND "organizationId" = $(organizationId)
+        AND "title" = $(title)
+        AND "dateStart" = $(dateStart)
+        AND "dateEnd" = $(dateEnd)
+        AND "deletedAt" IS NOT NULL;
+    `,
+    {
+      memberId,
+      organizationId,
+      title: data.title,
+      dateStart: data.dateStart,
+      dateEnd: data.dateEnd,
     },
   )
 }

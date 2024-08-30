@@ -110,7 +110,9 @@ export async function updateMemberIdentity(
               platform = $(platform),
               type = $(type),
               value = $(value),
-              verified = $(verified)
+              verified = $(verified),
+              "sourceId" = $(sourceId),
+              "integrationId" = $(integrationId)
           WHERE "memberId" = $(memberId) AND "id" = $(id);
       `,
     {
@@ -120,6 +122,8 @@ export async function updateMemberIdentity(
       type: data.type,
       value: data.value,
       verified: data.verified || false,
+      sourceId: data.sourceId || null,
+      integrationId: data.integrationId || null,
     },
   )
 }

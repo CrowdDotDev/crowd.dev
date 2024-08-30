@@ -10,7 +10,7 @@
         </div>
 
         <div class="flex items-center">
-          <lf-input v-model="form.value" class="!rounded-r-none h-10 flex-grow" placeholder="...">
+          <lf-input v-model="form.value" class="h-10 flex-grow" placeholder="...">
             <template #prefix>
               <div class="flex items-center flex-nowrap whitespace-nowrap">
                 <div class="min-w-5">
@@ -37,11 +37,6 @@
               </div>
             </template>
           </lf-input>
-          <label class="border border-gray-200 h-10 py-2.5 px-3 border-l-0 cursor-pointer rounded-r-lg">
-            <lf-checkbox v-model="form.verified">
-              Verified
-            </lf-checkbox>
-          </label>
         </div>
       </div>
       <div class="py-4 px-6 border-t border-gray-100 flex items-center justify-end gap-4">
@@ -68,7 +63,6 @@ import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfInput from '@/ui-kit/input/Input.vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
-import LfCheckbox from '@/ui-kit/checkbox/Checkbox.vue';
 import Message from '@/shared/message/message';
 import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
@@ -139,6 +133,9 @@ const updateIdentity = () => {
       return {
         ...form,
         value: form.platform === Platform.LINKEDIN ? `company:${form.value}` : form.value,
+        verified: false,
+        integrationId: null,
+        sourceId: null,
       } as OrganizationIdentity;
     }
     return i;

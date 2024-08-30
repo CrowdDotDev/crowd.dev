@@ -58,11 +58,10 @@ export class ActivityService {
   static async query(body, countOnly = false) {
     const tenantId = AuthService.getTenantId();
 
-    const segments = [
-      ...body?.segments ?? getSegmentsFromProjectGroup(getSelectedProjectGroup()),
-      getSelectedProjectGroup().id,
-    ];
-
+    // const segments = [
+    //   ...body?.segments ?? getSegmentsFromProjectGroup(getSelectedProjectGroup()),
+    //   getSelectedProjectGroup().id,
+    // ];
     // If tenant is less than a month old, use old query
     // Else use new query
     const response = await authAxios.post(
@@ -70,7 +69,7 @@ export class ActivityService {
       {
         ...body,
         countOnly,
-        segments,
+        segments: body.segments,
       },
       {
         headers: {

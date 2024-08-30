@@ -15,7 +15,7 @@
               <div class="flex items-center w-full">
                 <lf-input
                   v-model="identity.value"
-                  class="!rounded-r-none h-10 flex-grow"
+                  class="h-10 flex-grow"
                   placeholder="..."
                   :invalid="$v.form[ii].value.$invalid && $v.form[ii].value.$dirty"
                   @blur="$v.form[ii].value.$touch()"
@@ -46,11 +46,6 @@
                     </div>
                   </template>
                 </lf-input>
-                <label class="border border-gray-200 h-10 py-2.5 px-3 border-l-0 cursor-pointer rounded-r-lg">
-                  <lf-checkbox v-model="identity.verified" class="!flex-nowrap">
-                    Verified
-                  </lf-checkbox>
-                </label>
                 <lf-button
                   v-if="form.length > 1"
                   class="ml-3"
@@ -108,7 +103,6 @@ import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfInput from '@/ui-kit/input/Input.vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
-import LfCheckbox from '@/ui-kit/checkbox/Checkbox.vue';
 import Message from '@/shared/message/message';
 import pluralize from 'pluralize';
 import useVuelidate from '@vuelidate/core';
@@ -139,7 +133,7 @@ const sending = ref<boolean>(false);
 
 const defaultForm: OrganizationIdentity = {
   value: '',
-  verified: true,
+  verified: false,
   platform: Platform.CUSTOM,
   type: OrganizationIdentityType.USERNAME,
   sourceId: null,

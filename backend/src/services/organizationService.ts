@@ -174,6 +174,11 @@ export default class OrganizationService extends LoggerBase {
         )
       }
 
+      // clean up linkedin identity value
+      if (identity.platform === 'linkedin') {
+        identity.value = identity.value.split(':').pop()
+      }
+
       return {
         primary: {
           ...lodash.pick(organization, OrganizationService.ORGANIZATION_MERGE_FIELDS),
@@ -185,8 +190,7 @@ export default class OrganizationService extends LoggerBase {
         secondary: {
           id: randomUUID(),
           identities: secondaryIdentities,
-          displayName:
-            identity.platform === 'linkedin' ? identity.value.split(':').pop() : identity.value,
+          displayName: identity.value,
           attributes: {
             name: {
               default: identity.value,
@@ -965,7 +969,7 @@ export default class OrganizationService extends LoggerBase {
 
       await SequelizeRepository.commitTransaction(transaction)
 
-      const searchSyncService = new SearchSyncService(this.options)
+      const searchSyncService = new SearchSyncService(this.options, SyncMode.ASYNCHRONOUS)
 
       for (const id of ids) {
         await searchSyncService.triggerRemoveOrganization(this.options.currentTenant.id, id)
@@ -1063,8 +1067,8 @@ export default class OrganizationService extends LoggerBase {
         limit,
         offset,
         segmentId: undefined,
-        fields: ['id', 'displayName', 'isTeamOrganization'],
-        include: { aggregates: false, identities: true, segments: true, lfxMemberships: true },
+        fields: ['id', 'logo', 'displayName', 'isTeamOrganization'],
+        include: { aggregates: true, identities: true, segments: true, lfxMemberships: true },
       },
       this.options,
     )

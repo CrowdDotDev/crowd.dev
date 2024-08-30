@@ -50,6 +50,7 @@ export interface ContributorIdentity {
   value: string;
   verified: boolean;
   sourceId: string | null;
+  integrationId?: string | null;
   // Computed properties
   platforms?: string[];
   url?: string;

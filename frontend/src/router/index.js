@@ -101,14 +101,14 @@ export const createRouter = () => {
 
         // Redirect to project group landing pages if routes that require a selected project group
         // And no project group is selected
-        if (to.meta.segments?.requireSelectedProjectGroup) {
-          if (!selectedProjectGroup.value && !to.query.projectGroup) {
+        if (to.meta.segments?.requireSelectedProjectGroup || to.meta.segments?.optionalSelectedProjectGroup) {
+          if (!selectedProjectGroup.value && !to.query.projectGroup && !to.meta.segments?.optionalSelectedProjectGroup) {
             next('/project-groups');
             return;
           }
 
-          if (!to.query.projectGroup) {
-            next({ ...to, query: { ...to.query, projectGroup: selectedProjectGroup.value.id } });
+          if (!to.query.projectGroup && selectedProjectGroup.value?.id) {
+            next({ ...to, query: { ...to.query, projectGroup: selectedProjectGroup.value?.id } });
             return;
           }
 

@@ -22,14 +22,14 @@ export enum OrganizationIdentityType {
 }
 
 export interface OrganizationIdentity {
-    organizationId?: string;
+    organizationId?: string | null;
     platform: Platform;
     type: OrganizationIdentityType;
     value: string;
     verified: boolean;
     sourceId?: string | null;
     tenantId?: string;
-    integrationId?: string;
+    integrationId?: string | null;
 }
 
 export interface MemberOrganization {
@@ -98,6 +98,7 @@ export interface Organization {
     project: string;
     purchaseHistoryName: string;
     segmentId: string;
+    segments: string[];
     status: string;
     tenantId: string;
     tier: string;

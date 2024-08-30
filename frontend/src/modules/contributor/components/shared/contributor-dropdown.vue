@@ -1,6 +1,6 @@
 <template>
   <lf-dropdown-item
-    v-if="(props.contributor.identities || []).length > 1
+    v-if="!isMasked(props.contributor) && (props.contributor.identities || []).length > 1
       && hasPermission(LfPermission.memberEdit)"
     @click="unmerge = props.contributor"
   >
@@ -49,6 +49,7 @@ import AppMemberUnmergeDialog from '@/modules/member/components/member-unmerge-d
 import { ref } from 'vue';
 import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
 import { Contributor } from '@/modules/contributor/types/Contributor';
+import { useContributorStore } from '@/modules/contributor/store/contributor.store';
 
 const props = defineProps<{
   contributor: Contributor,
@@ -60,7 +61,8 @@ const route = useRoute();
 const router = useRouter();
 const { hasPermission } = usePermissions();
 const { trackEvent } = useProductTracking();
-const { isTeamMember, isBot } = useContributorHelpers();
+const { isTeamMember, isBot, isMasked } = useContributorHelpers();
+const { updateContributorAttributes } = useContributorStore();
 
 const unmerge = ref<Contributor | null>(null);
 
@@ -78,12 +80,10 @@ const markTeamMember = (teamMember: boolean) => {
     loadingMessage: 'Profile is being updated',
     successMessage: 'Profile updated successfully',
     errorMessage: 'Something went wrong',
-    actionFn: MemberService.update(props.contributor.id, {
-      attributes: {
-        ...props.contributor.attributes,
-        isTeamMember: {
-          default: teamMember,
-        },
+    actionFn: updateContributorAttributes(props.contributor.id, {
+      ...props.contributor.attributes,
+      isTeamMember: {
+        default: teamMember,
       },
     }),
   }).then(() => {
@@ -104,12 +104,10 @@ const markBot = (bot: boolean) => {
     loadingMessage: 'Profile is being updated',
     successMessage: 'Profile updated successfully',
     errorMessage: 'Something went wrong',
-    actionFn: MemberService.update(props.contributor.id, {
-      attributes: {
-        ...props.contributor.attributes,
-        isBot: {
-          default: bot,
-        },
+    actionFn: updateContributorAttributes(props.contributor.id, {
+      ...props.contributor.attributes,
+      isBot: {
+        default: bot,
       },
     }),
   }).then(() => {
