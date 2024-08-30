@@ -2,7 +2,6 @@ import { getServiceChildLogger } from '@crowd/logging'
 import { QueryExecutor } from '../queryExecutor'
 import { prepareBulkInsert } from '../utils'
 import { IMemberAbsoluteAggregates, IMemberSegmentAggregates } from './types'
-import { ISegment } from '../old/apps/cache_worker/types'
 
 const log = getServiceChildLogger('organizations/segments')
 
@@ -58,24 +57,6 @@ export async function fetchManyMemberSegments(
     `,
     {
       memberIds,
-    },
-  )
-}
-
-export async function fetchSegmentsByIds(
-  qe: QueryExecutor,
-  ids: string[],
-  fields = '*',
-): Promise<ISegment[]> {
-  const formattedIds = ids.join(', ')
-  return qe.select(
-    `SELECT ${fields}
-    FROM "segments"
-    WHERE id IN ($(ids))
-        `,
-    {
-      ids: formattedIds,
-      fields,
     },
   )
 }

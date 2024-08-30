@@ -308,25 +308,6 @@ export async function findMemberOrganizations(
   )
 }
 
-export async function findOrganizationsByIds(
-  qe: QueryExecutor,
-  ids: string[],
-  fields = '*',
-): Promise<IMemberOrganization[]> {
-  const formattedIds = ids.join(', ')
-  return await qe.select(
-    `
-    SELECT ${fields}
-    FROM "organizations"
-    WHERE id IN ($(ids))
-    `,
-    {
-      ids: formattedIds,
-      fields,
-    },
-  )
-}
-
 export async function addOrgToSyncRemote(
   qe: QueryExecutor,
   organizationId: string,

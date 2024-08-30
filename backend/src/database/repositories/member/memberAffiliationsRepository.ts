@@ -1,11 +1,11 @@
-import { fetchMemberAffiliations, fetchSegmentsByIds } from '@crowd/data-access-layer/src/members'
-import { IMemberAffiliation, IOrganization } from '@crowd/types'
-import { findOrganizationsByIds } from '@crowd/data-access-layer/src/organizations'
+import { IMemberAffiliation, IOrganization, SegmentData } from '@crowd/types'
 import {
   deleteMemberAffiliations,
+  fetchMemberAffiliations,
   insertMemberAffiliations,
 } from '@crowd/data-access-layer/src/member_segment_affiliations'
-import { ISegment } from '@crowd/data-access-layer/src/old/apps/cache_worker/types'
+import { OrganizationField, queryOrgs } from '@crowd/data-access-layer/src/orgs'
+import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
 import { IRepositoryOptions } from '../IRepositoryOptions'
 import SequelizeRepository from '../sequelizeRepository'
 
@@ -22,15 +22,22 @@ class MemberAffiliationsRepository {
       const segmentIds = affiliations.map((a) => a.segmentId)
 
       // Fetch organizations
-      const organizations = await findOrganizationsByIds(qx, orgIds, 'id, "displayName", "logo"')
+      const organizations = await queryOrgs(qx, {
+        filter: {
+          [OrganizationField.ID]: {
+            in: orgIds,
+          },
+        },
+        fields: [OrganizationField.ID, OrganizationField.DISPLAY_NAME, OrganizationField.LOGO],
+      })
       const orgObject: Record<string, IOrganization> = organizations.reduce((acc, org) => {
         acc[org.id] = org
         return acc
       }, {})
 
       // Fetch organizations
-      const segments = await fetchSegmentsByIds(qx, segmentIds, 'id, "slug", "name", "parentName"')
-      const segmentsObject: Record<string, ISegment> = segments.reduce((acc, seg) => {
+      const segments = await fetchManySegments(qx, segmentIds, 'id, "slug", "name", "parentName"')
+      const segmentsObject: Record<string, SegmentData> = segments.reduce((acc, seg) => {
         acc[seg.id] = seg
         return acc
       }, {})

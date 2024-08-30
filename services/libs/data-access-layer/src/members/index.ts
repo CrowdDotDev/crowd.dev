@@ -1,6 +1,5 @@
 export * from './base'
 export * from './identities'
 export * from './organizations'
-export * from './affiliations'
 export * from './segments'
 export * from './others'

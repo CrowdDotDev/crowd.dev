@@ -4,11 +4,8 @@ export interface ITenant {
 }
 
 export interface ISegment {
-  id: string
   segmentId: string
   slug: string
-  name: string
-  parentName: string
   parentSlug: string
   grandparentSlug: string
 }
