@@ -8,7 +8,7 @@ interface WebhookSetupResult {
   error?: string
 }
 
-const webhookBase = 'https://177a-202-58-201-160.ngrok-free.app' || `${API_CONFIG.url}/webhooks`
+const webhookBase = `${API_CONFIG.url}/webhooks`
 
 const createWebhookUrl = (integrationId: string) => `${webhookBase}/gitlab/${integrationId}`
 
