@@ -1598,12 +1598,7 @@ class MemberRepository {
     }
 
     const [data] = memberResponse.rows
-    const affiliations = await MemberRepository.getAffiliations(id, options)
-
-    return {
-      ...data,
-      affiliations,
-    }
+    return data
   }
 
   static getUsernameFromIdentities(identities: IMemberIdentity[]): IMemberUsername {
