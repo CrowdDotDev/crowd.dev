@@ -122,6 +122,7 @@ const parseUserFromCommit = ({ data }: { data: ExpandedCommitSchema }): IMemberD
       },
     ],
     displayName: data.author_name,
+    attributes: {},
   }
 
   return member
