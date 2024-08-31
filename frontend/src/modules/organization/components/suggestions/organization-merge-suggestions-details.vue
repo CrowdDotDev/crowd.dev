@@ -70,25 +70,21 @@
             }"
             target="_blank"
           >
-            <app-avatar
-              :entity="{
-                ...props.organization,
-                avatar: logo(props.organization),
-                displayName: displayName(props.organization)?.replace('@', ''),
-              }"
-              entity-name="organization"
+            <lf-avatar
+              :name="displayName(props.organization)?.replace('@', '')"
+              :src="logo(props.organization)"
+              :size="48"
               class="mr-4 mb-4"
+              img-class="!object-contain"
             />
           </router-link>
-          <app-avatar
+          <lf-avatar
             v-else
-            :entity="{
-              ...props.organization,
-              avatar: logo(props.organization),
-              displayName: displayName(props.organization)?.replace('@', ''),
-            }"
-            entity-name="organization"
+            :name="displayName(props.organization)?.replace('@', '')"
+            :src="logo(props.organization)"
+            :size="48"
             class="mr-4 mb-4"
+            img-class="!object-contain"
           />
         </div>
         <div>
@@ -314,7 +310,6 @@
 import {
   onMounted, ref,
 } from 'vue';
-import AppAvatar from '@/shared/avatar/avatar.vue';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
 import { withHttp } from '@/utils/string';
 import { formatDateToTimeAgo } from '@/utils/date';
@@ -326,6 +321,7 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import LfOrganizationLfMemberTag from '@/modules/organization/components/lf-member/organization-lf-member-tag.vue';
 import { getOrganizationWebsite } from '@/utils/organization';
 import useOrganizationHelpers from '@/modules/organization/helpers/organization.helpers';
+import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
 
 const props = defineProps({
   organization: {
