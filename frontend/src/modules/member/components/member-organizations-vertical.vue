@@ -63,7 +63,7 @@
           @click.stop
         >
           <div class="w-6 h-6 mr-2 rounded-md overflow-hidden outline outline-1 outline-gray-200 flex items-center justify-center">
-            <img v-if="organization.logo" :src="organization.logo" alt="Logo" />
+            <img v-if="organization.logo" :src="organization.logo" alt="Logo" class="w-full h-full" />
             <i v-else class="ri-community-line text-sm text-gray-300" />
           </div>
           <div class="max-w-full flex items-center gap-1">
