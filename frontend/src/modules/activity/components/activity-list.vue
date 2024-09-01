@@ -110,6 +110,15 @@ const { fetchActivities } = activityStore;
 
 const loading = ref(false);
 
+filters.value = {
+  search: '',
+  relation: 'and',
+  order: {
+    prop: 'timestamp',
+    order: 'descending',
+  },
+};
+
 const emptyState = computed(() => ({
   title: 'No activities found',
   description:

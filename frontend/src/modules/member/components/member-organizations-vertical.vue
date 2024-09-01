@@ -16,7 +16,7 @@
     >
       <div class="w-6 h-6 min-w-[24px] mr-2 rounded-md overflow-hidden outline outline-1 outline-gray-200 flex items-center justify-center">
         <div v-if="organization.logo">
-          <img :src="organization.logo" alt="Logo" class="w-full h-full"/>
+          <img :src="organization.logo" alt="Logo" class="w-full h-full" />
         </div>
         <i v-else class="ri-community-line text-sm text-gray-300" />
       </div>
