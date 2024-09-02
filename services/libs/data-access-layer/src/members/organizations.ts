@@ -129,7 +129,7 @@ export async function cleanSoftDeletedMemberOrganization(
       DELETE FROM "memberOrganizations"
       WHERE "memberId" = $(memberId)
         AND "organizationId" = $(organizationId)
-        AND COALESCE("title", '') = COALESCE($(title), '')
+        AND (("title" = $(title)) OR ("title" IS NULL AND $(title) IS NULL))
         AND (("dateStart" = $(dateStart)) OR ("dateStart" IS NULL AND $(dateStart) IS NULL))
         AND (("dateEnd" = $(dateEnd)) OR ("dateEnd" IS NULL AND $(dateEnd) IS NULL))
         AND "deletedAt" IS NOT NULL;
