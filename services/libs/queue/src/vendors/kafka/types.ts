@@ -1,7 +1,13 @@
+import { QueuePriorityLevel } from '@crowd/types'
 import { IQueueInitChannelConfig } from '../../types'
 
 export interface IKafkaChannelConfig extends IQueueInitChannelConfig {
-  partitionCount: number
+  partitions: {
+    [key in QueuePriorityLevel]?: number
+  } & {
+    default: number
+  }
+  replicationFactor: number
 }
 
 export interface IKafkaClientConfig {

@@ -7,6 +7,7 @@ import { IQueue, IQueueConfig } from './types'
 export abstract class PrioritizedQueueReciever {
   protected readonly log: Logger
   private readonly levelReceiver: QueueReceiver
+  private readonly level: QueuePriorityLevel
 
   public constructor(
     level: QueuePriorityLevel,
@@ -18,6 +19,7 @@ export abstract class PrioritizedQueueReciever {
     visibilityTimeoutSeconds?: number,
     receiveMessageCount?: number,
   ) {
+    this.level = level
     this.log = getChildLogger(this.constructor.name, parentLog, {
       queueName: queueConf.name,
     })
@@ -45,7 +47,7 @@ export abstract class PrioritizedQueueReciever {
   }
 
   public async start(): Promise<void> {
-    await this.levelReceiver.start(this.levelReceiver.queueConf)
+    await this.levelReceiver.start(this.levelReceiver.queueConf, this.level)
   }
 
   public stop(): void {
@@ -73,7 +75,9 @@ export class PrioritizedQueueEmitter {
   }
 
   public async init(): Promise<void> {
-    await Promise.all(Array.from(this.emittersMap.values()).map((e) => e.init(e.queueConf)))
+    for (const [level, emitter] of this.emittersMap.entries()) {
+      await emitter.init(emitter.queueConf, level)
+    }
   }
 
   public async setMessageVisibilityTimeout(

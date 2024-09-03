@@ -1,5 +1,5 @@
 import { SendMessageBatchCommandOutput, SendMessageResult, SQSClient } from '@aws-sdk/client-sqs'
-import { IQueueMessage, IQueueMessageBulk } from '@crowd/types'
+import { IQueueMessage, IQueueMessageBulk, QueuePriorityLevel } from '@crowd/types'
 import { Kafka, KafkaMessage, RecordMetadata } from 'kafkajs'
 import { IKafkaClientConfig } from './vendors/kafka/types'
 import { SqsMessage } from './vendors/sqs/types'
@@ -36,7 +36,7 @@ export interface IQueueChannel {
 export interface IQueue {
   client: IQueueClient
   getClient(): IQueueClient
-  init(config: IQueueInitChannelConfig): Promise<string>
+  init(config: IQueueInitChannelConfig, level?: QueuePriorityLevel): Promise<string>
   getQueueChannelConfig(queue: CrowdQueue): IQueueConfig
   start(
     processMessageFunction: IQueueProcessMessageHandler,

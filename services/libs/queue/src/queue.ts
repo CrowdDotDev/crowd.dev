@@ -1,6 +1,6 @@
 import { IS_PROD_ENV, IS_STAGING_ENV } from '@crowd/common'
 import { Logger, LoggerBase } from '@crowd/logging'
-import { IQueueMessage, IQueueMessageBulk } from '@crowd/types'
+import { IQueueMessage, IQueueMessageBulk, QueuePriorityLevel } from '@crowd/types'
 import { IQueue, IQueueChannel, IQueueConfig, IQueueInitChannelConfig } from './types'
 export abstract class QueueBase extends LoggerBase {
   private readonly channelName: string
@@ -55,11 +55,14 @@ export abstract class QueueBase extends LoggerBase {
     return queueSuffix
   }
 
-  public async init(config: IQueueInitChannelConfig): Promise<void> {
-    this.channelUrl = await this.queue.init({
-      ...config,
-      name: this.getChannel().name,
-    })
+  public async init(config: IQueueInitChannelConfig, level?: QueuePriorityLevel): Promise<void> {
+    this.channelUrl = await this.queue.init(
+      {
+        ...config,
+        name: this.getChannel().name,
+      },
+      level,
+    )
   }
 }
 
@@ -76,8 +79,8 @@ export abstract class QueueReceiver extends QueueBase {
     super(queue, queueConf, parentLog)
   }
 
-  public async start(queueConf: IQueueConfig): Promise<void> {
-    await this.queue.init({ ...queueConf, name: this.getChannel().name })
+  public async start(queueConf: IQueueConfig, level?: QueuePriorityLevel): Promise<void> {
+    await this.queue.init({ ...queueConf, name: this.getChannel().name }, level)
     await this.queue.start(
       this.processMessage,
       this.maxConcurrentMessageProcessing,
