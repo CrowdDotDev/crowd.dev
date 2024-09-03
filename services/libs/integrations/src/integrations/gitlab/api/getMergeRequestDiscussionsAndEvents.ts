@@ -4,7 +4,7 @@ import { getUser } from './getUser'
 import { IProcessStreamContext } from '../../../types'
 import { RedisSemaphore } from '../utils/lock'
 
-export const getMergeRequestDiscussions = async ({
+export const getMergeRequestDiscussionsAndEvents = async ({
   api,
   projectId,
   mergeRequestIId,
@@ -17,20 +17,20 @@ export const getMergeRequestDiscussions = async ({
   page: number
   ctx: IProcessStreamContext
 }): Promise<GitlabApiResult<GitlabDisccusionCommentData[]>> => {
+  const perPage = 20
+
   const semaphore = new RedisSemaphore({
     integrationId: ctx.integration.id,
-    apiCallType: 'getMergeRequestDiscussions',
+    apiCallType: 'getMergeRequestDiscussionsAndEvents',
     maxConcurrent: 1,
     cache: ctx.cache,
   })
 
-  const perPage = 20
-
-  // discussions
   let pagination: OffsetPagination
   let discussions: DiscussionSchema[]
 
   try {
+    await semaphore.acquire()
     const response = await api.MergeRequestDiscussions.all(projectId, mergeRequestIId, {
       showExpanded: true,
       page,
@@ -45,20 +45,18 @@ export const getMergeRequestDiscussions = async ({
 
   const notes = discussions.flatMap((discussion) => discussion.notes) as DiscussionNoteSchema[]
 
-  const filteredNotes = notes.filter((note) => note.system === false)
-
   const users = []
-  for (const note of filteredNotes) {
+  for (const note of notes) {
     if (note?.author?.id) {
       const user = await getUser(api, note.author.id, ctx)
       users.push(user)
     }
   }
 
-  ctx.log.info({ filteredNotes, users }, 'merge request discussions')
+  ctx.log.info({ notes, users }, 'merge request discussions and events')
 
   return {
-    data: filteredNotes?.map((note, index) => ({
+    data: notes.map((note, index) => ({
       data: note,
       user: users[index],
     })),

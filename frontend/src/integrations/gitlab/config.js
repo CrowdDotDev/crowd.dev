@@ -7,7 +7,7 @@ export default {
   borderColor: '#FCA326',
   description:
     'Connect GitLab to sync profile information, merge requests, issues, and more.',
-  image: '/images/integrations/gitlab.svg',
+  image: '/images/integrations/gitlab.png',
   connectComponent: GitLabConnect,
   url: ({ username }) => (username ? `https://gitlab.com/${username}` : null),
   chartColor: '#FC6D26',

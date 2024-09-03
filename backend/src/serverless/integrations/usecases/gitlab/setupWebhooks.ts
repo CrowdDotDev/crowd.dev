@@ -47,6 +47,7 @@ export async function setupGitlabWebhooks(accessToken: string, projectIds: numbe
         results.push({ projectId, success: false, error: `Unexpected response status: ${response.status}` })
       }
     } catch (error) {
+      console.log(error)
       results.push({ projectId, success: false, error: error.message })
     }
   }
