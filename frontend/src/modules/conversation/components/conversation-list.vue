@@ -79,6 +79,7 @@ import { useConversationStore } from '@/modules/conversation/store';
 import { storeToRefs } from 'pinia';
 import { conversationFilters, conversationSearchFilter } from '@/modules/conversation/config/filters/main';
 import AppLoadMore from '@/shared/button/load-more.vue';
+import moment from 'moment/moment';
 
 const conversationId = ref(null);
 
@@ -96,6 +97,20 @@ const {
 const { fetchConversation } = conversationStore;
 
 const loading = ref(false);
+
+filters.value = {
+  search: '',
+  relation: 'and',
+  order: {
+    prop: 'lastActive',
+    order: 'descending',
+  },
+  lastActivityDate: {
+    operator: 'gt',
+    value: moment().subtract(7, 'day').format('YYYY-MM-DD'),
+    include: true,
+  },
+};
 
 const sorterFilter = ref('recentActivity');
 

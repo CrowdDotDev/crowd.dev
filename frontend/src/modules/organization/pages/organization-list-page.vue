@@ -100,6 +100,7 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import LfOrganizationAdd from '@/modules/organization/components/edit/organization-add.vue';
+import allOrganizations from '@/modules/organization/config/saved-views/views/all-organizations';
 
 const organizationStore = useOrganizationStore();
 const { filters, totalOrganizations, savedFilterBody } = storeToRefs(organizationStore);
@@ -121,6 +122,8 @@ const pagination = ref({
   page: 1,
   perPage: 20,
 });
+
+filters.value = { ...allOrganizations.config };
 
 const showLoading = (filter: any, body: any): boolean => {
   const saved: any = { ...savedFilterBody.value };

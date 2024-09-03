@@ -1930,6 +1930,7 @@ export default class MemberService extends LoggerBase {
           memberOrganizations: true,
           lfxMemberships: true,
           identities: true,
+          attributes: true,
         },
         exportMode,
       },

@@ -56,7 +56,6 @@ export async function createMemberOrganization(
     `
         INSERT INTO "memberOrganizations"("memberId", "organizationId", "dateStart", "dateEnd", "title", "source", "createdAt", "updatedAt")
         VALUES($(memberId), $(organizationId), $(dateStart), $(dateEnd), $(title), $(source), $(date), $(date))
-        ON CONFLICT DO NOTHING;
     `,
     {
       memberId,
@@ -130,17 +129,15 @@ export async function cleanSoftDeletedMemberOrganization(
       DELETE FROM "memberOrganizations"
       WHERE "memberId" = $(memberId)
         AND "organizationId" = $(organizationId)
-        AND "title" = $(title)
-        AND "dateStart" = $(dateStart)
-        AND "dateEnd" = $(dateEnd)
+        AND (("dateStart" = $(dateStart)) OR ("dateStart" IS NULL AND $(dateStart) IS NULL))
+        AND (("dateEnd" = $(dateEnd)) OR ("dateEnd" IS NULL AND $(dateEnd) IS NULL))
         AND "deletedAt" IS NOT NULL;
     `,
     {
       memberId,
       organizationId,
-      title: data.title,
-      dateStart: data.dateStart,
-      dateEnd: data.dateEnd,
+      dateStart: data.dateStart ?? null,
+      dateEnd: data.dateEnd ?? null,
     },
   )
 }

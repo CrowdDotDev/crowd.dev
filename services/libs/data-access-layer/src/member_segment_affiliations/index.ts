@@ -2,6 +2,7 @@ import { v4 as uuid } from 'uuid'
 import { QueryExecutor } from '../queryExecutor'
 import { prepareBulkInsert } from '../utils'
 import { IManualAffiliationData } from '../old/apps/data_sink_worker/repo/memberAffiliation.data'
+import { IMemberAffiliation } from '@crowd/types'
 
 export async function deleteMemberAffiliations(qx: QueryExecutor, memberId: string) {
   await qx.result(
@@ -42,5 +43,26 @@ export async function insertMemberAffiliations(qx: QueryExecutor, memberId: stri
         dateEnd: item.dateEnd || null,
       })),
     ),
+  )
+}
+
+export async function fetchMemberAffiliations(
+  qx: QueryExecutor,
+  memberId: string,
+): Promise<IMemberAffiliation[]> {
+  return qx.select(
+    `
+        SELECT
+          id,
+          "dateStart",
+          "dateEnd",
+          "organizationId",
+          "segmentId"
+        FROM "memberSegmentAffiliations"
+        WHERE "memberId" = $(memberId)
+      `,
+    {
+      memberId,
+    },
   )
 }
