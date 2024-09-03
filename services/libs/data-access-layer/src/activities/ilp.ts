@@ -28,7 +28,11 @@ export async function insertActivities(activities: IDbActivityCreateData[]): Pro
         .booleanColumn('member_isTeamMember', activity.isTeamMemberActivity || false)
         .booleanColumn('member_isBot', activity.isBotActivity || false)
 
-      if (activity.platform === 'git' || activity.platform === 'github') {
+      if (
+        activity.platform === 'git' ||
+        activity.platform === 'github' ||
+        activity.platform === 'gitlab'
+      ) {
         if (activity.attributes['isMainBranch']) {
           row.booleanColumn('gitIsMainBranch', activity.attributes['isMainBranch'] as boolean)
         }
@@ -43,6 +47,14 @@ export async function insertActivities(activities: IDbActivityCreateData[]): Pro
 
         if (activity.attributes['deletions']) {
           row.intColumn('gitDeletions', activity.attributes['deletions'] as number)
+        }
+
+        if (activity.attributes['lines']) {
+          row.intColumn('gitLines', activity.attributes['lines'] as number)
+        }
+
+        if (activity.attributes['isMerge']) {
+          row.booleanColumn('gitIsMerge', activity.attributes['isMerge'] as boolean)
         }
       }
 
