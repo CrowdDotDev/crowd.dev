@@ -10,7 +10,7 @@ import {
 } from '../../types'
 import { IKafkaChannelConfig, IKafkaQueueStartOptions } from './types'
 import { Logger, LoggerBase } from '@crowd/logging'
-import { IQueueMessage, IQueueMessageBulk } from '@crowd/types'
+import { IQueueMessage, IQueueMessageBulk, QueuePriorityLevel } from '@crowd/types'
 import { createHash } from 'crypto'
 import { configMap } from './config'
 import { timeout } from '@crowd/common'
@@ -80,11 +80,21 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
     return this.client
   }
 
-  public async init(config: IKafkaChannelConfig): Promise<string> {
+  public async init(config: IKafkaChannelConfig, level?: QueuePriorityLevel): Promise<string> {
     this.log.info({ config }, 'Initializing queue!')
 
     const admin = this.client.admin()
     await admin.connect()
+
+    let partitionCount
+
+    if (level && config.partitions[level]) {
+      partitionCount = config.partitions[level]
+    } else if (config.partitions.default) {
+      partitionCount = config.partitions.default
+    } else {
+      partitionCount = 1
+    }
 
     try {
       const existingTopics = await admin.listTopics()
@@ -93,8 +103,8 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
           topics: [
             {
               topic: config.name,
-              numPartitions: config.partitionCount,
-              replicationFactor: 1,
+              numPartitions: partitionCount,
+              replicationFactor: config.replicationFactor || 1,
               configEntries: [
                 {
                   name: 'retention.ms',
@@ -105,7 +115,11 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
           ],
           waitForLeaders: false,
         })
-        this.log.info(`Topic "${config.name}" created with ${config.partitionCount} partitions.`)
+        this.log.info(
+          `Topic "${config.name}" created with ${partitionCount} partitions and ${
+            config.replicationFactor || 1
+          } replication factor.`,
+        )
       }
 
       await this.waitForTopicAvailability(admin, config.name)
@@ -128,11 +142,16 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
     delay = 1000,
   ): Promise<void> {
     for (let i = 0; i < retries; i++) {
-      const metadata = await admin.fetchTopicMetadata({ topics: [topic] })
-      if (metadata.topics.length > 0 && metadata.topics[0].partitions.length > 0) {
-        this.log.info(`Topic "${topic}" is now available.`)
-        return
+      try {
+        const metadata = await admin.fetchTopicMetadata({ topics: [topic] })
+        if (metadata.topics.length > 0 && metadata.topics[0].partitions.length > 0) {
+          this.log.info(`Topic "${topic}" is now available.`)
+          return
+        }
+      } catch (e) {
+        this.log.trace(`Error fetching metadata for topic "${topic}":`, e)
       }
+
       this.log.info(`Waiting for topic "${topic}" to become available... (${i + 1}/${retries})`)
       await new Promise((resolve) => setTimeout(resolve, delay))
     }
