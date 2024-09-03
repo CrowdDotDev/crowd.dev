@@ -110,4 +110,3 @@ export default class GitlabReposRepository {
     return result[0].has_repos
   }
 }
- 
