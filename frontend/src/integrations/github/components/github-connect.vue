@@ -1,11 +1,14 @@
 <template>
   <slot :connect="connect" :has-settings="false" :settings-component="GithubSettings" />
+  <lf-github-connect-modal
+    v-model="isModalOpen"
+    :integration="integration"
+  />
 </template>
 
 <script setup>
-import { computed } from 'vue';
-import config from '@/config';
-import ConfirmDialog from '@/shared/dialog/confirm-dialog';
+import { ref } from 'vue';
+import LfGithubConnectModal from '@/integrations/github/components/github-connect-modal.vue';
 import GithubSettings from './github-settings.vue';
 
 defineProps({
@@ -15,36 +18,10 @@ defineProps({
   },
 });
 
-// We have 3 GitHub apps: test, test-local and prod
-// Getting the proper URL from config file
-const githubConnectUrl = computed(() => config.gitHubInstallationUrl);
+const isModalOpen = ref(false);
+
 const connect = () => {
-  ConfirmDialog({
-    type: 'notification',
-    title:
-      'Are you the admin of your GitHub organization?',
-    titleClass: 'text-lg pt-2',
-    message:
-      `Only GitHub users with admin permissions are able to connect LFX's GitHub integration.
-      If you are an organization member, you will need an approval from the GitHub workspace admin. <a href="https://docs.crowd.dev/docs/github-integration" target="_blank">Read more</a>`,
-    icon: 'ri-information-line',
-    confirmButtonText: 'I\'m the GitHub organization admin',
-    cancelButtonText: 'Invite organization admin to this workspace',
-    verticalCancelButtonClass: 'hidden',
-    verticalConfirmButtonClass: 'btn btn--md btn--primary w-full !mb-2',
-    vertical: true,
-    distinguishCancelAndClose: true,
-    autofocus: false,
-    messageClass: 'text-xs !leading-5 !mt-1 text-gray-600',
-  }).then(() => {
-    window.open(githubConnectUrl.value, '_self');
-  }).catch((action) => {
-    if (action === 'cancel') {
-      router.push({
-        name: 'settings',
-      });
-    }
-  });
+  isModalOpen.value = true;
 };
 
 </script>
