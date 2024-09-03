@@ -28,9 +28,11 @@ export function getEarliestValidDate(oldDate: Date, newDate: Date): Date {
   if (moment(oldDate).subtract(5, 'days').unix() < 0) {
     return newDate
   }
+
   if (moment(newDate).unix() < 0) {
     return oldDate
   }
+
   return moment
     .min(moment.tz(oldDate, 'Europe/London'), moment.tz(newDate, 'Europe/London'))
     .toDate()
