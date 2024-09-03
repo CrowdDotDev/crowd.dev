@@ -1,4 +1,3 @@
-import { QueuePriorityLevel } from '@crowd/types'
 import { CrowdQueue } from '../../types'
 import { IKafkaChannelConfig } from './types'
 import {
