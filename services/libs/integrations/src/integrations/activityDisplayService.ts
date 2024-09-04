@@ -127,6 +127,7 @@ export class ActivityDisplayService {
 
       return this.interpolateVariables(displayOptions, activity, selectedDisplayVariants)
     } catch (error) {
+      console.log(error)
       log.debug(
         { error },
         'Error while getting display options, falling back to UNKNOWN_ACTIVITY_TYPE_DISPLAY.',

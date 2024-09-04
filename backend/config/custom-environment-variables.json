@@ -229,5 +229,11 @@
   },
   "openStatusApi": {
     "baseUrl": "CROWD_OPENSTATUS_URL"
+  },
+  "gitlab": {
+    "clientId": "CROWD_GITLAB_CLIENT_ID",
+    "clientSecret": "CROWD_GITLAB_CLIENT_SECRET",
+    "callbackUrl": "CROWD_GITLAB_CALLBACK_URL",
+    "webhookToken": "CROWD_GITLAB_WEBHOOK_TOKEN"
   }
 }

@@ -93,4 +93,18 @@ export class WebhooksRepository extends RepositoryBase<WebhooksRepository> {
 
     return result
   }
+
+  public async findIntegrationById(id: string): Promise<IDbIntegrationData | null> {
+    const result = await this.db().oneOrNone(
+      `
+      select * from integrations
+      where id = $(id) and "deletedAt" is null
+      `,
+      {
+        id,
+      },
+    )
+
+    return result
+  }
 }
