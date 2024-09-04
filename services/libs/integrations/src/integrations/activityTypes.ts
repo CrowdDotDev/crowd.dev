@@ -1300,6 +1300,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: GITLAB_GRID.fork.isContribution,
+      calculateSentiment: false,
     },
     [GitlabActivityType.ISSUE_CLOSED]: {
       display: {
@@ -1311,6 +1312,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: GITLAB_GRID[GitlabActivityType.ISSUE_CLOSED].isContribution,
+      calculateSentiment: false,
     },
     [GitlabActivityType.ISSUE_OPENED]: {
       display: {
@@ -1322,6 +1324,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: GITLAB_GRID[GitlabActivityType.ISSUE_OPENED].isContribution,
+      calculateSentiment: true,
     },
     [GitlabActivityType.ISSUE_COMMENT]: {
       display: {
@@ -1333,6 +1336,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: GITLAB_GRID[GitlabActivityType.ISSUE_COMMENT].isContribution,
+      calculateSentiment: true,
     },
     [GitlabActivityType.MERGE_REQUEST_CLOSED]: {
       display: {
@@ -1344,6 +1348,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_CLOSED].isContribution,
+      calculateSentiment: false,
     },
     [GitlabActivityType.MERGE_REQUEST_OPENED]: {
       display: {
@@ -1355,6 +1360,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_OPENED].isContribution,
+      calculateSentiment: true,
     },
     [GitlabActivityType.MERGE_REQUEST_COMMENT]: {
       display: {
@@ -1366,6 +1372,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_COMMENT].isContribution,
+      calculateSentiment: true,
     },
     [GitlabActivityType.STAR]: {
       display: {
@@ -1377,6 +1384,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: GITLAB_GRID[GitlabActivityType.STAR].isContribution,
+      calculateSentiment: false,
     },
     [GitlabActivityType.MERGE_REQUEST_MERGED]: {
       display: {
@@ -1392,6 +1400,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_MERGED].isContribution,
+      calculateSentiment: false,
     },
     [GitlabActivityType.MERGE_REQUEST_ASSIGNED]: {
       display: {
@@ -1407,6 +1416,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_ASSIGNED].isContribution,
+      calculateSentiment: false,
     },
     [GitlabActivityType.MERGE_REQUEST_REVIEW_APPROVED]: {
       display: {
@@ -1422,6 +1432,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_REVIEW_APPROVED].isContribution,
+      calculateSentiment: false,
     },
     [GitlabActivityType.MERGE_REQUEST_REVIEW_CHANGES_REQUESTED]: {
       display: {
@@ -1438,6 +1449,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
       },
       isContribution:
         GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_REVIEW_CHANGES_REQUESTED].isContribution,
+      calculateSentiment: false,
     },
     [GitlabActivityType.MERGE_REQUEST_REVIEW_REQUESTED]: {
       display: {
@@ -1453,6 +1465,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_REVIEW_REQUESTED].isContribution,
+      calculateSentiment: false,
     },
     [GitActivityType.AUTHORED_COMMIT]: {
       display: {
@@ -1465,6 +1478,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: true,
+      calculateSentiment: false,
     },
     [GitActivityType.REVIEWED_COMMIT]: {
       display: {
@@ -1477,6 +1491,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: true,
+      calculateSentiment: false,
     },
     [GitActivityType.TESTED_COMMIT]: {
       display: {
@@ -1489,6 +1504,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: true,
+      calculateSentiment: false,
     },
     [GitActivityType.CO_AUTHORED_COMMIT]: {
       display: {
@@ -1501,6 +1517,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: true,
+      calculateSentiment: false,
     },
     [GitActivityType.INFORMED_COMMIT]: {
       display: {
@@ -1513,6 +1530,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: true,
+      calculateSentiment: false,
     },
     [GitActivityType.INFLUENCED_COMMIT]: {
       display: {
@@ -1525,6 +1543,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: true,
+      calculateSentiment: false,
     },
     [GitActivityType.APPROVED_COMMIT]: {
       display: {
@@ -1537,6 +1556,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: true,
+      calculateSentiment: false,
     },
     [GitActivityType.COMMITTED_COMMIT]: {
       display: {
@@ -1549,6 +1569,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: true,
+      calculateSentiment: false,
     },
     [GitActivityType.REPORTED_COMMIT]: {
       display: {
@@ -1561,6 +1582,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: true,
+      calculateSentiment: false,
     },
     [GitActivityType.RESOLVED_COMMIT]: {
       display: {
@@ -1573,6 +1595,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: true,
+      calculateSentiment: false,
     },
     [GitActivityType.SIGNED_OFF_COMMIT]: {
       display: {
@@ -1585,6 +1608,7 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
         },
       },
       isContribution: true,
+      calculateSentiment: false,
     },
   },
 }
