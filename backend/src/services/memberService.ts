@@ -1022,10 +1022,10 @@ export default class MemberService extends LoggerBase {
                       for (const platformKey of platformKeysThatOnlyExistOnSecondaryBackup) {
                         // check current member still has this value for the attribute[key][platform], and primary backup didn't have this value
                         if (
-                          member.attributes[attributeKey][platformKey] ===
+                          member.attributes[attributeKey]?.[platformKey] ===
                             secondaryBackup.attributes[attributeKey][platformKey] &&
-                          primaryBackup.attributes[attributeKey][platformKey] !==
-                            member.attributes[attributeKey][platformKey]
+                          primaryBackup.attributes[attributeKey]?.[platformKey] !==
+                            member.attributes[attributeKey]?.[platformKey]
                         ) {
                           delete member.attributes[attributeKey][platformKey]
                         }
