@@ -93,4 +93,43 @@ export class WebhooksRepository extends RepositoryBase<WebhooksRepository> {
 
     return result
   }
+
+  public async addGithubInstallation(
+    installationId: string,
+    type: string,
+    login: string,
+    avatarUrl: string | null,
+    numRepos: number,
+  ): Promise<void> {
+    await this.db().none(
+      `
+      INSERT INTO "githubInstallations" ("installationId", "type", "login", "avatarUrl", "numRepos")
+      VALUES ($(installationId), $(type), $(login), $(avatarUrl), $(numRepos))
+      ON CONFLICT ("installationId") DO UPDATE
+      SET "type" = EXCLUDED."type",
+          "login" = EXCLUDED."login",
+          "avatarUrl" = EXCLUDED."avatarUrl",
+          "numRepos" = EXCLUDED."numRepos",
+          "updatedAt" = CURRENT_TIMESTAMP
+      `,
+      {
+        installationId,
+        type,
+        login,
+        avatarUrl,
+        numRepos,
+      },
+    )
+  }
+
+  public async deleteGithubInstallation(installationId: string): Promise<void> {
+    await this.db().none(
+      `
+      DELETE FROM "githubInstallations" WHERE "installationId" = $(installationId)
+      `,
+      {
+        installationId,
+      },
+    )
+  }
 }

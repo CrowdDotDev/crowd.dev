@@ -54,6 +54,7 @@
               </lf-avatar>
               <p class="text-small pl-2">
                 linuxfoundation
+                {{ JSON.stringify(installations) }}
               </p>
               <p class="text-small pl-2 text-gray-400">
                 {{ pluralize("repository", 6, true) }}
@@ -85,13 +86,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import LfModal from '@/ui-kit/modal/Modal.vue';
 import config from '@/config';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
 import pluralize from 'pluralize';
+import { IntegrationService } from '@/modules/integration/integration-service';
 
 const props = defineProps<{
   modelValue: boolean,
@@ -108,6 +110,16 @@ const isModalOpen = computed({
 // We have 3 GitHub apps: test, test-local and prod
 // Getting the proper URL from config file
 const openGithubInstallation = () => window.open(config.gitHubInstallationUrl, '_self');
+
+const installations = ref([]);
+
+onMounted(async () => {
+  try {
+    installations.value = await IntegrationService.getGithubInstallations();
+  } catch (error) {
+    console.error('Failed to fetch GitHub installations:', error);
+  }
+});
 
 </script>
 

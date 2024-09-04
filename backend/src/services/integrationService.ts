@@ -55,6 +55,7 @@ import SearchSyncService from './searchSyncService'
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import IntegrationProgressRepository from '@/database/repositories/integrationProgressRepository'
 import { IntegrationProgress } from '@/serverless/integrations/types/regularTypes'
+import GithubInstallationsRepository from '@/database/repositories/githubInstallationsRepository'
 
 const discordToken = DISCORD_CONFIG.token || DISCORD_CONFIG.token2
 
@@ -400,6 +401,40 @@ export default class IntegrationService {
     )
 
     return integration
+  }
+
+  async connectGithubInstallation(installId: string) {
+    const installToken = await IntegrationService.getInstallToken(installId)
+    const repos = await getInstalledRepositories(installToken)
+    const githubOwner = IntegrationService.extractOwner(repos, this.options)
+
+    let orgAvatar
+    try {
+      const response = await request('GET /users/{user}', {
+        user: githubOwner,
+      })
+      orgAvatar = response.data.avatar_url
+    } catch (err) {
+      this.options.log.warn(err, 'Error while fetching GitHub user!')
+    }
+
+    const integration = await this.createOrUpdateGithubIntegration(
+      {
+        platform: PlatformType.GITHUB,
+        token: installToken,
+        settings: { updateMemberAttributes: true, orgAvatar },
+        integrationIdentifier: installId,
+        status: 'mapping',
+      },
+      repos,
+    )
+
+    return integration
+
+  }
+
+  async getGithubInstallations() {
+    return GithubInstallationsRepository.getInstallations(this.options)
   }
 
   /**

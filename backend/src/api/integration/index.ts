@@ -189,6 +189,16 @@ export default (app) => {
     safeWrap(require('./helpers/jiraConnectOrUpdate').default),
   )
 
+  app.get(
+    '/tenant/:tenantId/github-installations',
+    safeWrap(require('./helpers/getGithubInstallations').default),
+  )
+
+  app.post(
+    '/tenant/:tenantId/github-connect-installation',
+    safeWrap(require('./helpers/githubConnectInstallation').default),
+  )
+
   if (TWITTER_CONFIG.clientId) {
     /**
      * Using the passport.authenticate this endpoint forces a
