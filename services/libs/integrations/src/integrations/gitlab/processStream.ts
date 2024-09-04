@@ -15,8 +15,6 @@ import { refreshToken } from './api/refreshToken'
 import { getStars } from './api/getStars'
 import { getForks } from './api/getForks'
 import { getUser } from './api/getUser'
-import { getMergeRequestEvents } from './api/getMergeRequestEvents'
-import { getMergeRequestDiscussions } from './api/getMergeRequestDiscussions'
 import { getIssueDiscussions } from './api/getIssueDiscussions'
 import { getMergeRequestDiscussionsAndEvents } from './api/getMergeRequestDiscussionsAndEvents'
 import { getUserByUsername } from './api/getUser'
@@ -386,6 +384,7 @@ const handleForksStream: GitlabStreamHandler = async (ctx, api, data) => {
   })
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const handleApiResult: GitlabProcessStreamResultHandler<GitlabActivityData<any>[]> = async ({
   ctx,
   result,
