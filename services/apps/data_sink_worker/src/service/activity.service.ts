@@ -12,6 +12,7 @@ import GitlabReposRepository from '@crowd/data-access-layer/src/old/apps/data_si
 import IntegrationRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/integration.repo'
 import MemberRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.repo'
 import SettingsRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/settings.repo'
+import RequestedForErasureMemberIdentitiesRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/requestedForErasureMemberIdentities.repo'
 import { Unleash } from '@crowd/feature-flags'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
@@ -454,6 +455,31 @@ export default class ActivityService extends LoggerBase {
               verified: true,
             },
           ],
+        }
+      }
+
+      const repo = new RequestedForErasureMemberIdentitiesRepository(this.store, this.log)
+
+      // check if member or object member have identities that were requested to be erased by the user
+      if (member && member.identities.length > 0) {
+        const erased = await repo.someIdentitiesWereErasedByUserRequest(member.identities)
+        if (erased) {
+          this.log.warn(
+            { memberIdentities: member.identities },
+            'Member has identities that were requested to be erased by the user! Skipping activity processing!',
+          )
+          return
+        }
+      }
+
+      if (objectMember && objectMember.identities.length > 0) {
+        const erased = await repo.someIdentitiesWereErasedByUserRequest(objectMember.identities)
+        if (erased) {
+          this.log.warn(
+            { objectMemberIdentities: objectMember.identities },
+            'Object member has identities that were requested to be erased by the user! Skipping activity processing!',
+          )
+          return
         }
       }
 
