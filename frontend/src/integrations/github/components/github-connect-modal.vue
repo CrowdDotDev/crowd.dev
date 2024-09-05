@@ -121,6 +121,14 @@ onMounted(async () => {
   }
 });
 
+const connectInstallation = async (installationId: string) => {
+  try {
+    await IntegrationService.githubConnectInstallation(installationId);
+  } catch (error) {
+    console.error('Failed to connect GitHub installation:', error);
+  }
+};
+
 </script>
 
 <script lang="ts">
