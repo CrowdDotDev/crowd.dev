@@ -460,14 +460,12 @@ export default class ActivityService extends LoggerBase {
 
       const repo = new RequestedForErasureMemberIdentitiesRepository(this.store, this.log)
 
-      // check if member and object member have identities that
-      // were requested to be erased by the user
+      // check if member or object member have identities that were requested to be erased by the user
       if (member && member.identities.length > 0) {
-        // Check db
         const erased = await repo.someIdentitiesWereErasedByUserRequest(member.identities)
         if (erased) {
           this.log.warn(
-            { member: member.identities },
+            { memberIdentities: member.identities },
             'Member has identities that were requested to be erased by the user! Skipping activity processing!',
           )
           return
@@ -475,11 +473,10 @@ export default class ActivityService extends LoggerBase {
       }
 
       if (objectMember && objectMember.identities.length > 0) {
-        // Check db
         const erased = await repo.someIdentitiesWereErasedByUserRequest(objectMember.identities)
         if (erased) {
           this.log.warn(
-            { objectMember: objectMember.identities },
+            { objectMemberIdentities: objectMember.identities },
             'Object member has identities that were requested to be erased by the user! Skipping activity processing!',
           )
           return
