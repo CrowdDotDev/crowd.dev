@@ -6,6 +6,7 @@ import {
   isDomainExcluded,
   singleOrDefault,
   getProperDisplayName,
+  getEarliestValidDate,
 } from '@crowd/common'
 import { LoggerBase } from '@crowd/logging'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
@@ -1486,20 +1487,7 @@ export default class MemberService extends LoggerBase {
    */
   static membersMerge(originalObject, toMergeObject) {
     return merge(originalObject, toMergeObject, {
-      joinedAt: (oldDate, newDate) => {
-        // If either the new or the old date are earlier than 1970
-        // it means they come from an activity without timestamp
-        // and we want to keep the other one
-        if (moment(oldDate).subtract(5, 'days').unix() < 0) {
-          return newDate
-        }
-        if (moment(newDate).unix() < 0) {
-          return oldDate
-        }
-        return moment
-          .min(moment.tz(oldDate, 'Europe/London'), moment.tz(newDate, 'Europe/London'))
-          .toDate()
-      },
+      joinedAt: (oldDate, newDate) => getEarliestValidDate(oldDate, newDate),
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       displayName: (oldValue, _newValue) => oldValue,
       reach: (oldReach, newReach) => MemberService.calculateReach(oldReach, newReach),
