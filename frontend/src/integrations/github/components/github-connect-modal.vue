@@ -62,8 +62,8 @@
                 Copy app installation link to clipboard
               </template>
               <template v-else>
-                <lf-icon name="checkbox-circle-fill" />
-                Copied!
+                <lf-icon name="checkbox-circle-fill" class="text-green-500" />
+                <span class="text-green-500">Copied to clipboard!</span>
               </template>
             </lf-button>
           </div>
@@ -84,12 +84,33 @@
             v-model="installationId"
             placeholder="Enter organization name..."
             class="w-full mb-4"
+            filterable
+            :filter-method="(query: string) => search = query"
+            no-data-text="Type to search"
+            clearable
+            :automatic-dropdown="false"
+            :popper-class="search.length ? '' : 'hidden'"
           >
+            <template v-if="selectedInstallation" #prefix>
+              <lf-avatar
+                :src="selectedInstallation.avatarUrl"
+                :name="selectedInstallation.login"
+                :size="18"
+                class="!rounded border border-gray-200 mr-1 mt-px"
+              >
+                <template #placeholder>
+                  <div class="w-full h-full bg-gray-50 flex items-center justify-center">
+                    <lf-icon name="community-line" :size="14" class="text-gray-400" />
+                  </div>
+                </template>
+              </lf-avatar>
+            </template>
             <el-option
-              v-for="i of installations"
+              v-for="i of filteredInstallations"
               :key="i.installationId"
               :value="i.installationId"
               :label="i.login"
+              class="!px-3"
             >
               <div class="flex items-center gap-2">
                 <lf-avatar :src="i.avatarUrl" :name="i.login" :size="18" class="!rounded border border-gray-200 mr-1 mt-px">
@@ -103,6 +124,7 @@
               </div>
             </el-option>
           </el-select>
+
           <lf-button class="w-full" :disabled="!installationId.length" @click="connectInstallation">
             Connect organization
           </lf-button>
@@ -142,11 +164,18 @@ const { doFetch } = mapActions('integration');
 const copied = ref(false);
 const installations = ref<GithubInstallation[]>([]);
 const installationId = ref<string>('');
+const search = ref<string>('');
 
 const isModalOpen = computed({
   get: () => props.modelValue,
   set: (value: boolean) => emit('update:modelValue', value),
 });
+
+const filteredInstallations = computed(() => (search.value.length
+  ? installations.value.filter((i) => i.login.toLowerCase().startsWith(search.value.toLowerCase()))
+  : []));
+
+const selectedInstallation = computed(() => installations.value.find((i) => i.installationId === installationId.value));
 
 const openGithubInstallation = () => window.open(config.gitHubInstallationUrl, '_self');
 
