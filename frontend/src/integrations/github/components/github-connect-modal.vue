@@ -1,5 +1,5 @@
 <template>
-  <lf-modal v-model="isModalOpen" width="35rem">
+  <lf-modal v-model="isModalOpen" width="40rem">
     <div class="p-6">
       <div class="flex justify-between">
         <!-- icon -->
@@ -18,68 +18,95 @@
           <lf-icon name="close-line" :size="24" />
         </lf-button>
       </div>
-      <section class="py-6">
-        <h6 class="pb-3">
-          Give access to GitHub organization repositories
+      <section class="pt-6 pb-8">
+        <h5 class="pb-2">
+          Connect your GitHub organization
+        </h5>
+        <p class="text-medium text-gray-600">
+          Choose the organization and repositories you want to connect with your project.
+        </p>
+      </section>
+      <section class="mb-7 border border-gray-200 rounded-lg p-5">
+        <h6 class="pb-2">
+          I'm the GitHub organization admin
         </h6>
         <p class="text-medium text-gray-600 pb-6">
-          Connecting a GitHub organization and repositories requires admin access.<br>
-          If you are an organization member, you need to request the installation of
-          <span class="font-semibold">Community Management App</span> from an organization admin.
+          As an admin member of the organization you want to connect,
+          you can give access to Community Management and select the repositories you want to track.
         </p>
-        <lf-button class="w-full" @click="openGithubInstallation">
-          I'm the GitHub organization admin
+        <lf-button type="primary" class="w-full" @click="openGithubInstallation">
+          Choose organization to connect
         </lf-button>
       </section>
-      <div class="flex justify-center items-center h-6">
-        <div class="border-b border-gray-200 flex-grow" />
-        <div class="text-medium font-semibold text-gray-400 bg-white px-4">
-          OR
-        </div>
-        <div class="border-b border-gray-200 flex-grow" />
-      </div>
-      <section class="py-6">
-        <h6 class="pb-4">
-          Connect one of the following GitHub organizations with Community Management access
-        </h6>
-        <div class="border border-gray-200 rounded-md">
-          <article v-for="i in 3" :key="i" class="px-4 py-3 border-b border-gray-200 last:border-0 flex justify-between items-center">
-            <div class="flex items-center">
-              <lf-avatar :src="''" :name="'linuxfoundation'" :size="24" class="!rounded border border-gray-200 mr-1 mt-px">
-                <template #placeholder>
-                  <div class="w-full h-full bg-gray-50 flex items-center justify-center">
-                    <lf-icon name="community-line" :size="16" class="text-gray-400" />
-                  </div>
-                </template>
-              </lf-avatar>
-              <p class="text-small pl-2">
-                linuxfoundation
-                {{ JSON.stringify(installations) }}
-              </p>
-              <p class="text-small pl-2 text-gray-400">
-                {{ pluralize("repository", 6, true) }}
-              </p>
-            </div>
-            <lf-button type="secondary" size="tiny">
-              Connect organization
+      <section class="border border-gray-200 rounded-lg p-5">
+        <article class="mb-8">
+          <h6 class="pb-2">
+            I'm not the admin of the GitHub organization
+          </h6>
+          <p class="text-medium text-gray-600">
+            Request the installation of Community Management App from an admin member.
+          </p>
+        </article>
+        <article class="flex mb-8">
+          <div class="min-w-8 w-8 h-8 flex items-center justify-center rounded-full bg-gray-200">
+            <h6>1</h6>
+          </div>
+          <div class="pl-3">
+            <p class="text-medium text-gray-600 pb-3">
+              Share the <span class="font-semibold">Community Management App</span> installation link
+              with an admin member of your GitHub organization.
+            </p>
+            <lf-button type="primary-link" size="small" @click="copy()">
+              <template v-if="!copied">
+                <lf-icon name="file-copy-line" />
+                Copy app installation link to clipboard
+              </template>
+              <template v-else>
+                <lf-icon name="checkbox-circle-fill" />
+                Copied!
+              </template>
             </lf-button>
-          </article>
-        </div>
-      </section>
-      <section class="py-4 px-6">
-        <p class="text-center text-small font-semibold pb-3">
-          Your organization is not showing in the list?
-        </p>
-        <p class="text-tiny text-gray-500 text-center pb-4">
-          Share the <span class="font-semibold">Community Management App</span> installation
-          link with an admin member of your GitHub organization.
-          Once the app is installed, you will be able to select the organization you want to connect.
-        </p>
-        <div class="flex justify-center">
-          <lf-button type="primary-link" size="small">
-            <lf-icon name="file-copy-line" />Copy app installation link to clipboard
+          </div>
+        </article>
+        <article class="flex mb-6">
+          <div class="min-w-8 w-8 h-8 flex items-center justify-center rounded-full bg-gray-200">
+            <h6>2</h6>
+          </div>
+          <div class="pl-3">
+            <p class="text-medium text-gray-600 pb-3">
+              Once the app is installed, you will be able to select the organization you want to connect.
+              Type the organization name in order to proceed.
+            </p>
+          </div>
+        </article>
+        <article>
+          <el-select
+            v-model="installationId"
+            placeholder="Enter organization name..."
+            class="w-full mb-4"
+          >
+            <el-option
+              v-for="i of installations"
+              :key="i.installationId"
+              :value="i.installationId"
+              :label="i.login"
+            >
+              <div class="flex items-center gap-2">
+                <lf-avatar :src="i.avatarUrl" :name="i.login" :size="18" class="!rounded border border-gray-200 mr-1 mt-px">
+                  <template #placeholder>
+                    <div class="w-full h-full bg-gray-50 flex items-center justify-center">
+                      <lf-icon name="community-line" :size="14" class="text-gray-400" />
+                    </div>
+                  </template>
+                </lf-avatar>
+                <p>{{ i.login }}</p>
+              </div>
+            </el-option>
+          </el-select>
+          <lf-button class="w-full" :disabled="!installationId.length" @click="connectInstallation">
+            Connect organization
           </lf-button>
-        </div>
+        </article>
       </section>
     </div>
   </lf-modal>
@@ -92,43 +119,69 @@ import config from '@/config';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
-import pluralize from 'pluralize';
 import { IntegrationService } from '@/modules/integration/integration-service';
+import { mapActions } from '@/shared/vuex/vuex.helpers';
+
+interface GithubInstallation {
+  id: string;
+  installationId: string;
+  type: string;
+  numRepos: number;
+  login: string;
+  avatarUrl: string;
+}
 
 const props = defineProps<{
   modelValue: boolean,
   integration: any,
 }>();
 
-const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void}>();
+const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void }>();
+
+const { doFetch } = mapActions('integration');
+const copied = ref(false);
+const installations = ref<GithubInstallation[]>([]);
+const installationId = ref<string>('');
 
 const isModalOpen = computed({
   get: () => props.modelValue,
   set: (value: boolean) => emit('update:modelValue', value),
 });
 
-// We have 3 GitHub apps: test, test-local and prod
-// Getting the proper URL from config file
 const openGithubInstallation = () => window.open(config.gitHubInstallationUrl, '_self');
 
-const installations = ref([]);
-
-onMounted(async () => {
-  try {
-    installations.value = await IntegrationService.getGithubInstallations();
-  } catch (error) {
-    console.error('Failed to fetch GitHub installations:', error);
-  }
-});
-
-const connectInstallation = async (installationId: string) => {
-  try {
-    await IntegrationService.githubConnectInstallation(installationId);
-  } catch (error) {
-    console.error('Failed to connect GitHub installation:', error);
+const copy = () => {
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(config.gitHubInstallationUrl);
+    copied.value = true;
+    setTimeout(() => {
+      copied.value = false;
+    }, 1000);
   }
 };
 
+const connectInstallation = () => {
+  if (!installationId.value) {
+    return;
+  }
+
+  IntegrationService.githubConnectInstallation(installationId.value)
+    .then(() => {
+      isModalOpen.value = false;
+      doFetch();
+    });
+};
+
+const getGithubInstallations = () => {
+  IntegrationService.getGithubInstallations()
+    .then((res: GithubInstallation[]) => {
+      installations.value = res;
+    });
+};
+
+onMounted(() => {
+  getGithubInstallations();
+});
 </script>
 
 <script lang="ts">

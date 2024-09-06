@@ -1,6 +1,7 @@
 <template>
   <slot :connect="connect" :has-settings="false" :settings-component="GithubSettings" />
   <lf-github-connect-modal
+    v-if="isModalOpen"
     v-model="isModalOpen"
     :integration="integration"
   />
