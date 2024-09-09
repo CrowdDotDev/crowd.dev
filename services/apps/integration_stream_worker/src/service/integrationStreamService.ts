@@ -521,7 +521,7 @@ export default class IntegrationStreamService extends LoggerBase {
         )
       },
       updateIntegrationSettings: async (settings) => {
-        await this.updateIntegrationSettings(streamInfo.runId, settings)
+        await this.updateIntegrationSettings(streamId, settings, streamInfo.runId)
       },
       updateIntegrationToken: async (token: string) => {
         await this.updateIntegrationToken(streamId, token)
@@ -608,7 +608,7 @@ export default class IntegrationStreamService extends LoggerBase {
     } catch (err) {
       if (runId) {
         await this.triggerRunError(
-          streamId,
+          runId,
           'run-stream-update-settings',
           'Error while updating settings!',
           undefined,
