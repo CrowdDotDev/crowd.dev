@@ -132,8 +132,8 @@ export async function linkActivitiesToConversations(
   }
 
   await Promise.all(
-    queries.map((query) => {
-      return svc.questdbSQL.query(query)
+    queries.map(async (query) => {
+      return await svc.questdbSQL.query(query)
     }),
   )
 }
