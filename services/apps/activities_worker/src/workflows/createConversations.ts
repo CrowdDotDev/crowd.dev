@@ -3,7 +3,7 @@ import { proxyActivities } from '@temporalio/workflow'
 import * as activities from '../activities/createConversations'
 
 const activity = proxyActivities<typeof activities>({
-  startToCloseTimeout: '2 minutes',
+  startToCloseTimeout: '5 minutes',
 })
 
 export async function createConversations(): Promise<void> {

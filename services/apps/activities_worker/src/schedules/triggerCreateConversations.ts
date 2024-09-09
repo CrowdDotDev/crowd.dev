@@ -9,7 +9,7 @@ export const scheduleCreateConversations = async () => {
       spec: {
         intervals: [
           {
-            every: '2 minutes',
+            every: '5 minutes',
           },
         ],
       },
