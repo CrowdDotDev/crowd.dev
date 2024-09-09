@@ -40,9 +40,13 @@ CREATE TABLE IF NOT EXISTS 'activities' (
 
   gitIsMainBranch BOOLEAN,
   gitIsIndirectFork BOOLEAN,
+  gitLines INT,
   gitInsertions INT,
-  gitDeletions INT
-) TIMESTAMP (timestamp) PARTITION BY MONTH WAL;
+  gitDeletions INT,
+  gitIsMerge BOOLEAN
+)
+  TIMESTAMP (timestamp) PARTITION BY MONTH WAL
+  DEDUP UPSERT KEYS(platform, sourceId, segmentId, timestamp);
 
 CREATE TABLE IF NOT EXISTS 'conversations' (
   id UUID,
@@ -57,4 +61,6 @@ CREATE TABLE IF NOT EXISTS 'conversations' (
   segmentId SYMBOL capacity 1024 CACHE,
   createdById UUID,
   updatedById UUID
-) TIMESTAMP (timestamp) PARTITION BY MONTH WAL;
+)
+  TIMESTAMP (timestamp) PARTITION BY MONTH WAL
+  DEDUP UPSERT KEYS(title, segmentId, timestamp);

@@ -50,16 +50,14 @@ export default class ActivityService extends LoggerBase {
   ) {
     super(parentLog)
 
-    this.conversationService = new ConversationService(pgStore, qdbStore, this.log)
+    this.conversationService = new ConversationService(pgStore, qdbStore.connection(), this.log)
   }
 
   public async create(
     tenantId: string,
     segmentId: string,
     activity: IActivityCreateData,
-    onboarding: boolean,
     memberInfo: { isBot: boolean; isTeamMember: boolean },
-    fireSync = true,
   ): Promise<string> {
     try {
       this.log.debug('Creating an activity.')
@@ -177,38 +175,6 @@ export default class ActivityService extends LoggerBase {
           throw err
         }
       }
-
-      // const activityToProcess: IQueryActivityResult = {
-      //   id: id,
-      //   type: activity.type,
-      //   sourceId: activity.sourceId,
-      //   platform: activity.platform,
-      //   score: activity.score,
-      //   isContribution: activity.isContribution,
-      //   sourceParentId: activity.sourceParentId,
-      //   attributes: activity.attributes,
-      //   channel: activity.channel,
-      //   body: activity.body,
-      //   title: activity.title,
-      //   url: activity.url,
-      //   username: activity.username,
-      //   objectMemberUsername: activity.objectMemberUsername,
-      //   memberId: activity.memberId,
-      //   timestamp: activity.timestamp.toISOString(),
-      //   tenantId: tenantId,
-      //   segmentId: segmentId,
-      // }
-
-      // await this.conversationService.processActivity(tenantId, segmentId, activityToProcess)
-
-      // if (fireSync) {
-      //   await this.searchSyncWorkerEmitter.triggerMemberSync(
-      //     tenantId,
-      //     activity.memberId,
-      //     onboarding,
-      //     segmentId,
-      //   )
-      // }
 
       return id
     } catch (err) {
@@ -1088,12 +1054,10 @@ export default class ActivityService extends LoggerBase {
                 url: activity.url,
                 organizationId,
               },
-              onboarding,
               {
                 isBot: memberIsBot ?? false,
                 isTeamMember: memberIsTeamMember ?? false,
               },
-              false,
             )
           }
         } finally {

@@ -9,7 +9,7 @@ import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
 import { getSqsClient } from '@crowd/sqs'
-import { getClientSQL } from '@crowd/questdb'
+import { getClientSQL, getClientILP } from '@crowd/questdb'
 import {
   DB_CONFIG,
   SQS_CONFIG,
@@ -25,6 +25,7 @@ import { Client as TemporalClient, getTemporalClient } from '@crowd/temporal'
 
 const tracer = getServiceTracer()
 const log = getServiceLogger()
+const ilp = getClientILP()
 
 const MAX_CONCURRENT_PROCESSING = 5
 
@@ -102,4 +103,14 @@ setImmediate(async () => {
     log.error({ err }, 'Failed to start queues!')
     process.exit(1)
   }
+})
+
+process.on('SIGTERM', async () => {
+  await ilp.flush()
+  await ilp.close()
+})
+
+process.on('SIGINT', async () => {
+  await ilp.flush()
+  await ilp.close()
 })

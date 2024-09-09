@@ -10,7 +10,7 @@ import {
   setConversationToActivity,
   updateConversation,
 } from '@crowd/data-access-layer'
-import { DbStore } from '@crowd/database'
+import { DbConnOrTx, DbStore } from '@crowd/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { PlatformType } from '@crowd/types'
 import { convert as convertHtmlToText } from 'html-to-text'
@@ -20,7 +20,7 @@ import { ConversationRepository } from '../repo/conversation.repo'
 export class ConversationService extends LoggerBase {
   constructor(
     private readonly pgStore: DbStore,
-    private readonly qdbStore: DbStore,
+    private readonly qdbStore: DbConnOrTx,
     parentLog: Logger,
   ) {
     super(parentLog)
@@ -31,9 +31,7 @@ export class ConversationService extends LoggerBase {
     segmentId: string,
     id: string,
   ): Promise<IDbConversation> {
-    const conversation = await getConversationById(this.qdbStore.connection(), id, tenantId, [
-      segmentId,
-    ])
+    const conversation = await getConversationById(this.qdbStore, id, tenantId, [segmentId])
 
     if (!conversation) {
       throw new Error(`Conversation ${id} does not exist!`)
@@ -49,7 +47,7 @@ export class ConversationService extends LoggerBase {
     isHtml = false,
   ): Promise<string> {
     if (!title && getCleanString(title).length === 0) {
-      const results = await queryConversations(this.qdbStore.connection(), {
+      const results = await queryConversations(this.qdbStore, {
         tenantId,
         segmentIds: [segmentId],
         countOnly: true,
@@ -88,7 +86,7 @@ export class ConversationService extends LoggerBase {
 
     // check generated slug already exists in tenant
     let slugExists = await doesConversationWithSlugExists(
-      this.qdbStore.connection(),
+      this.qdbStore,
       cleanedSlug,
       tenantId,
       segmentId,
@@ -103,7 +101,7 @@ export class ConversationService extends LoggerBase {
       while (slugExists) {
         const suffixedSlug = `${slugCopy}-${suffix}`
         slugExists = await doesConversationWithSlugExists(
-          this.qdbStore.connection(),
+          this.qdbStore,
           cleanedSlug,
           tenantId,
           segmentId,
@@ -130,7 +128,7 @@ export class ConversationService extends LoggerBase {
 
     let results: IQueryActivityResult[] = [activity]
     if (activity.parentId) {
-      results = await getActivitiesById(this.qdbStore.connection(), [activity.parentId])
+      results = await getActivitiesById(this.qdbStore, [activity.parentId])
       if (results.length !== 1) {
         throw new Error(`Parent activity ${activity.parentId} does not exist!`)
       }
@@ -141,7 +139,7 @@ export class ConversationService extends LoggerBase {
       const ids: string[] = []
       await processPaginated(
         async (page) => {
-          const results = await queryActivities(this.qdbStore.connection(), {
+          const results = await queryActivities(this.qdbStore, {
             filter: {
               and: [{ sourceParentId: { eq: activity.sourceId } }],
             },
@@ -178,7 +176,7 @@ export class ConversationService extends LoggerBase {
 
     const affectedIds: string[] = []
 
-    const qdbConn = this.qdbStore.connection()
+    const qdbConn = this.qdbStore
 
     await this.pgStore.transactionally(async (txStore) => {
       const txRepo = new ConversationRepository(txStore, this.log)
@@ -258,7 +256,7 @@ export class ConversationService extends LoggerBase {
         )
 
         // qdb
-        const conversationId = await insertConversation(this.qdbStore.connection(), {
+        const conversationId = await insertConversation(this.qdbStore, {
           tenantId,
           segmentId,
           activityParentId: parent.id,

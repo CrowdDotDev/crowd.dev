@@ -172,6 +172,8 @@ const ACTIVITY_UPDATABLE_COLUMNS: ActivityColumn[] = [
   'gitIsIndirectFork',
   'gitInsertions',
   'gitDeletions',
+  'gitLines',
+  'gitIsMerge',
 ]
 export async function updateActivity(
   conn: DbConnOrTx,
@@ -415,6 +417,8 @@ export type ActivityColumn =
   | 'gitIsIndirectFork'
   | 'gitInsertions'
   | 'gitDeletions'
+  | 'gitLines'
+  | 'gitIsMerge'
 
 export const DEFAULT_COLUMNS_TO_SELECT: ActivityColumn[] = [
   'id',
