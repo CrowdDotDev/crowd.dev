@@ -469,7 +469,7 @@ const parseAuthoredCommit = ({
     score: GITLAB_GRID[GitlabActivityType.AUTHORED_COMMIT].score,
     isContribution: GITLAB_GRID[GitlabActivityType.AUTHORED_COMMIT].isContribution,
     attributes: {
-      insertions: data.stats.additions,
+      additions: data.stats.additions,
       deletions: data.stats.deletions,
       lines: data.stats.total,
       isMerge: data.parent_ids.length > 0,

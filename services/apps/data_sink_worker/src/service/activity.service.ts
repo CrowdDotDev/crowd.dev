@@ -112,34 +112,39 @@ export default class ActivityService extends LoggerBase {
         })
 
         this.log.debug('Creating an activity in QuestDB!')
-        await insertActivities([
-          {
-            id,
-            timestamp: activity.timestamp.toISOString(),
-            platform: activity.platform,
-            type: activity.type,
-            isContribution: activity.isContribution,
-            score: activity.score,
-            sourceId: activity.sourceId,
-            sourceParentId: activity.sourceParentId,
-            memberId: activity.memberId,
-            tenantId: tenantId,
-            attributes: activity.attributes,
-            sentiment: sentiment,
-            title: activity.title,
-            body: escapeNullByte(activity.body),
-            channel: activity.channel,
-            url: activity.url,
-            username: activity.username,
-            objectMemberId: activity.objectMemberId,
-            objectMemberUsername: activity.objectMemberUsername,
-            segmentId: segmentId,
-            organizationId: activity.organizationId,
-            isBotActivity: memberInfo.isBot,
-            isTeamMemberActivity: memberInfo.isTeamMember,
-            importHash: activity.importHash,
-          },
-        ])
+        try {
+          await insertActivities([
+            {
+              id,
+              timestamp: activity.timestamp.toISOString(),
+              platform: activity.platform,
+              type: activity.type,
+              isContribution: activity.isContribution,
+              score: activity.score,
+              sourceId: activity.sourceId,
+              sourceParentId: activity.sourceParentId,
+              memberId: activity.memberId,
+              tenantId: tenantId,
+              attributes: activity.attributes,
+              sentiment: sentiment,
+              title: activity.title,
+              body: escapeNullByte(activity.body),
+              channel: activity.channel,
+              url: activity.url,
+              username: activity.username,
+              objectMemberId: activity.objectMemberId,
+              objectMemberUsername: activity.objectMemberUsername,
+              segmentId: segmentId,
+              organizationId: activity.organizationId,
+              isBotActivity: memberInfo.isBot,
+              isTeamMemberActivity: memberInfo.isTeamMember,
+              importHash: activity.importHash,
+            },
+          ])
+        } catch (error) {
+          this.log.error('Error creating activity in QuestDB:', error)
+          throw error
+        }
 
         return id
       })
