@@ -1581,6 +1581,7 @@ class MemberRepository {
             identities: true,
             segments: true,
             attributes: false,
+            ...include,
           },
         },
         options,
