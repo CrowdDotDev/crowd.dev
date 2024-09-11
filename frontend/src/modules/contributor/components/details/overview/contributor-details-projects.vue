@@ -11,7 +11,7 @@
     </div>
     <div>
       <article
-        v-for="project in projects.slice(0, showMore ? projects.length : 3)"
+        v-for="project in (projects || []).slice(0, showMore ? (projects || []).length : 3)"
         :key="project.id"
         class="border-b last:border-0 border-gray-100 px-5 py-4"
       >

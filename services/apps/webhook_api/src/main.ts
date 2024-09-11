@@ -10,6 +10,7 @@ import { sqsMiddleware } from './middleware/sqs'
 import { installGithubRoutes } from './routes/github'
 import { installGroupsIoRoutes } from './routes/groupsio'
 import { installDiscourseRoutes } from './routes/discourse'
+import { installGitlabRoutes } from './routes/gitlab'
 import cors from 'cors'
 import { telemetryExpressMiddleware } from '@crowd/telemetry'
 import { getUnleashClient } from '@crowd/feature-flags'
@@ -92,6 +93,7 @@ setImmediate(async () => {
   installGithubRoutes(app)
   installGroupsIoRoutes(app)
   installDiscourseRoutes(app)
+  installGitlabRoutes(app)
 
   app.use(errorMiddleware())
 

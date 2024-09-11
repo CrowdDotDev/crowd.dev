@@ -32,7 +32,7 @@
 
     <div v-if="!masked" class="flex flex-col gap-4">
       <lf-contributor-details-work-history-item
-        v-for="org of orgs.slice(0, showMore ? orgs.length : 3)"
+        v-for="org of (orgs || []).slice(0, showMore ? (orgs || []).length : 3)"
         :key="org.id"
         :contributor="props.contributor"
         :organization="org"

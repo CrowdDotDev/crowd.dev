@@ -44,6 +44,11 @@
     "isCommitDataEnabled": "CROWD_GITHUB_IS_COMMIT_DATA_ENABLED",
     "personalAccessTokens": "CROWD_GITHUB_PERSONAL_ACCESS_TOKENS"
   },
+  "gitlab": {
+    "clientId": "CROWD_GITLAB_CLIENT_ID",
+    "clientSecret": "CROWD_GITLAB_CLIENT_SECRET",
+    "webhookToken": "CROWD_GITLAB_WEBHOOK_TOKEN"
+  },
   "devto": {
     "apiKey": "CROWD_DEVTO_API_KEY"
   },

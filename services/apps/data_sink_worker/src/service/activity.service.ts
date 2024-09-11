@@ -8,9 +8,11 @@ import {
 } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/activity.data'
 import ActivityRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/activity.repo'
 import GithubReposRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/githubRepos.repo'
+import GitlabReposRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/gitlabRepos.repo'
 import IntegrationRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/integration.repo'
 import MemberRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.repo'
 import SettingsRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/settings.repo'
+import RequestedForErasureMemberIdentitiesRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/requestedForErasureMemberIdentities.repo'
 import { Unleash } from '@crowd/feature-flags'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
@@ -456,6 +458,31 @@ export default class ActivityService extends LoggerBase {
         }
       }
 
+      const repo = new RequestedForErasureMemberIdentitiesRepository(this.store, this.log)
+
+      // check if member or object member have identities that were requested to be erased by the user
+      if (member && member.identities.length > 0) {
+        const erased = await repo.someIdentitiesWereErasedByUserRequest(member.identities)
+        if (erased) {
+          this.log.warn(
+            { memberIdentities: member.identities },
+            'Member has identities that were requested to be erased by the user! Skipping activity processing!',
+          )
+          return
+        }
+      }
+
+      if (objectMember && objectMember.identities.length > 0) {
+        const erased = await repo.someIdentitiesWereErasedByUserRequest(objectMember.identities)
+        if (erased) {
+          this.log.warn(
+            { objectMemberIdentities: objectMember.identities },
+            'Object member has identities that were requested to be erased by the user! Skipping activity processing!',
+          )
+          return
+        }
+      }
+
       let memberId: string
       let objectMemberId: string | undefined
       let activityId: string
@@ -487,6 +514,7 @@ export default class ActivityService extends LoggerBase {
           const txIntegrationRepo = new IntegrationRepository(txStore, this.log)
           const txMemberAffiliationService = new MemberAffiliationService(txStore, this.log)
           const txGithubReposRepo = new GithubReposRepository(txStore, this.log)
+          const txGitlabReposRepo = new GitlabReposRepository(txStore, this.log)
 
           segmentId = providedSegmentId
           if (!segmentId) {
@@ -495,10 +523,18 @@ export default class ActivityService extends LoggerBase {
               tenantId,
               activity.channel,
             )
-            segmentId =
-              platform === PlatformType.GITHUB && repoSegmentId
-                ? repoSegmentId
-                : dbIntegration.segmentId
+            const gitlabRepoSegmentId = await txGitlabReposRepo.findSegmentForRepo(
+              tenantId,
+              activity.channel,
+            )
+
+            if (platform === PlatformType.GITLAB && gitlabRepoSegmentId) {
+              segmentId = gitlabRepoSegmentId
+            } else if (platform === PlatformType.GITHUB && repoSegmentId) {
+              segmentId = repoSegmentId
+            } else {
+              segmentId = dbIntegration.segmentId
+            }
           }
 
           // find existing activity

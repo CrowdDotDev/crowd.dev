@@ -6,6 +6,7 @@ import {
   isDomainExcluded,
   singleOrDefault,
   getProperDisplayName,
+  getEarliestValidDate,
 } from '@crowd/common'
 import { LoggerBase } from '@crowd/logging'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
@@ -978,183 +979,199 @@ export default class MemberService extends LoggerBase {
         const primaryBackup = mergeAction.unmergeBackup.primary as IMemberUnmergeBackup
         const secondaryBackup = mergeAction.unmergeBackup.secondary as IMemberUnmergeBackup
 
-        // construct primary member with best effort
-        for (const key of MemberService.MEMBER_MERGE_FIELDS) {
-          // delay relationships for later
-          if (!(key in relationships) && !(member.manuallyChangedFields || []).includes(key)) {
-            if (key === 'attributes') {
-              // 1) if both primary and secondary backup have the attribute, check any platform specific value came from merge, if current member has it, revert it
-              // 2) if primary backup doesn't have the attribute, and secondary backup does, check if current member has the same value, if yes revert it (it came through merge)
-              // 3) if primary backup has the attribute, and secondary doesn't, keep the current value
-              // 4) if both backups doesn't have the value, but current member does, keep the current value
-              // we only need to act on cases 1 and 2, because we don't need to change current member's attributes for other cases
-
-              // loop through current member attributes
-              for (const attributeKey of Object.keys(member.attributes)) {
-                if (!(member.manuallyChangedFields || []).some((f) => f === `attributes.${key}`)) {
-                  // both backups have the attribute
-                  if (
-                    primaryBackup.attributes[attributeKey] &&
-                    secondaryBackup.attributes[attributeKey]
-                  ) {
-                    // find platform key values that exist on secondary, but not on primary backup
-                    const platformKeysThatOnlyExistOnSecondaryBackup = Object.keys(
-                      secondaryBackup.attributes[attributeKey],
-                    ).filter(
-                      (key) =>
-                        primaryBackup.attributes[attributeKey][key] === null ||
-                        primaryBackup.attributes[attributeKey][key] === undefined ||
-                        primaryBackup.attributes[attributeKey][key] === '',
-                    )
-
-                    for (const platformKey of platformKeysThatOnlyExistOnSecondaryBackup) {
-                      // check current member still has this value for the attribute[key][platform], and primary backup didn't have this value
-                      if (
-                        member.attributes[attributeKey][platformKey] ===
-                          secondaryBackup.attributes[attributeKey][platformKey] &&
-                        primaryBackup.attributes[attributeKey][platformKey] !==
-                          member.attributes[attributeKey][platformKey]
-                      ) {
-                        delete member.attributes[attributeKey][platformKey]
-                      }
-                      if (Object.keys(member.attributes[attributeKey]).length === 0) {
-                        delete member.attributes[attributeKey]
-                      }
-                    }
-                  } else if (
-                    !primaryBackup.attributes[attributeKey] &&
-                    secondaryBackup.attributes[attributeKey]
-                  ) {
-                    // remove platform keys that has the same value with current member
-                    if (member.attributes[attributeKey]) {
-                      for (const platformKey of Object.keys(member.attributes[attributeKey])) {
-                        if (
-                          member.attributes[attributeKey][platformKey] ===
-                          secondaryBackup.attributes[attributeKey][platformKey]
-                        ) {
-                          delete member.attributes[attributeKey][platformKey]
-                        }
-                      }
-
-                      // check any platform keys remaining on current member, if not remove the attribute completely
-                      if (Object.keys(member.attributes[attributeKey]).length === 0) {
-                        delete member.attributes[attributeKey]
-                      }
-                    }
-                  }
-                }
-              }
-            } else if (key === 'reach') {
-              // only act on reach if current member has some data
-              for (const reachKey of Object.keys(member.reach)) {
-                if (
-                  reachKey !== 'total' &&
-                  secondaryBackup.reach[reachKey] === member.reach[reachKey]
-                ) {
-                  delete member.reach[reachKey]
-                }
-              }
-              // check if there are any keys other than total, if yes recalculate total, else set total to -1
-              if (Object.keys(member.reach).length > 1) {
-                delete member.reach.total
-                member.reach.total = lodash.sum(Object.values(member.reach))
-              } else {
-                member.reach.total = -1
-              }
-            } else if (key === 'contributions') {
-              // check secondary member has any contributions to extract from current member
-              if (member.contributions) {
-                member.contributions = member.contributions.filter(
-                  (c) => !(secondaryBackup.contributions || []).some((s) => s.id === c.id),
-                )
-              }
-            } else if (primaryBackup[key] !== member[key] && secondaryBackup[key] === member[key]) {
-              member[key] = null
-            }
-          }
-        }
-
-        // tags: Remove tags that exist in secondary backup, but not in primary backup
-        member.tags = member.tags.filter(
-          (tag) =>
-            !(
-              secondaryBackup.tags.some((t) => t.id === tag.id) &&
-              !primaryBackup.tags.some((t) => t.id === tag.id)
-            ),
-        )
-
-        // notes: Remove notes that exist in secondary backup, but not in primary backup
-        member.notes = member.notes.filter(
-          (note) =>
-            !(
-              secondaryBackup.notes.some((n) => n.id === note.id) &&
-              !primaryBackup.notes.some((n) => n.id === note.id)
-            ),
-        )
-
-        // tasks: Remove tasks that exist in secondary backup, but not in primary backup
-        member.tasks = member.tasks.filter(
-          (task) =>
-            !(
-              secondaryBackup.tasks.some((t) => t.id === task.id) &&
-              !primaryBackup.tasks.some((t) => t.id === task.id)
-            ),
-        )
-
-        // identities: Remove identities coming from secondary backup
-        member.identities = member.identities.filter(
+        const remainingIdentitiesInCurrentMember = member.identities.filter(
           (i) =>
             !secondaryBackup.identities.some(
               (s) => s.platform === i.platform && s.value === i.value && s.type === i.type,
             ),
         )
 
-        // affiliations: Remove affiliations coming from secondary backup
-        member.affiliations = member.affiliations.filter(
-          (a) => !secondaryBackup.affiliations.some((s) => s.id === a.id),
-        )
+        // Only unmerge when primary member still has some identities left after removing identities in the secondary backup
+        // if not fall back to identity extraction
+        if (remainingIdentitiesInCurrentMember.length > 0) {
+          // construct primary member with best effort
+          for (const key of MemberService.MEMBER_MERGE_FIELDS) {
+            // delay relationships for later
+            if (!(key in relationships) && !(member.manuallyChangedFields || []).includes(key)) {
+              if (key === 'attributes') {
+                // 1) if both primary and secondary backup have the attribute, check any platform specific value came from merge, if current member has it, revert it
+                // 2) if primary backup doesn't have the attribute, and secondary backup does, check if current member has the same value, if yes revert it (it came through merge)
+                // 3) if primary backup has the attribute, and secondary doesn't, keep the current value
+                // 4) if both backups doesn't have the value, but current member does, keep the current value
+                // we only need to act on cases 1 and 2, because we don't need to change current member's attributes for other cases
 
-        // member organizations
-        const unmergedRoles = MemberOrganizationService.unmergeRoles(
-          member.memberOrganizations,
-          primaryBackup.memberOrganizations,
-          secondaryBackup.memberOrganizations,
-          MemberRoleUnmergeStrategy.SAME_MEMBER,
-        )
-        member.memberOrganizations = unmergedRoles as IMemberRoleWithOrganization[]
+                // loop through current member attributes
+                for (const attributeKey of Object.keys(member.attributes)) {
+                  if (
+                    !(member.manuallyChangedFields || []).some((f) => f === `attributes.${key}`)
+                  ) {
+                    // both backups have the attribute
+                    if (
+                      primaryBackup.attributes[attributeKey] &&
+                      secondaryBackup.attributes[attributeKey]
+                    ) {
+                      // find platform key values that exist on secondary, but not on primary backup
+                      const platformKeysThatOnlyExistOnSecondaryBackup = Object.keys(
+                        secondaryBackup.attributes[attributeKey],
+                      ).filter(
+                        (key) =>
+                          primaryBackup.attributes[attributeKey][key] === null ||
+                          primaryBackup.attributes[attributeKey][key] === undefined ||
+                          primaryBackup.attributes[attributeKey][key] === '',
+                      )
 
-        // activity count
-        const secondaryActivityCount = await MemberRepository.getActivityCountOfMembersIdentities(
-          member.id,
-          secondaryBackup.identities,
-          this.options,
-        )
-        const primaryActivityCount = await MemberRepository.getActivityCountOfMembersIdentities(
-          member.id,
-          member.identities,
-          this.options,
-        )
+                      for (const platformKey of platformKeysThatOnlyExistOnSecondaryBackup) {
+                        // check current member still has this value for the attribute[key][platform], and primary backup didn't have this value
+                        if (
+                          member.attributes[attributeKey][platformKey] ===
+                            secondaryBackup.attributes[attributeKey][platformKey] &&
+                          primaryBackup.attributes[attributeKey][platformKey] !==
+                            member.attributes[attributeKey][platformKey]
+                        ) {
+                          delete member.attributes[attributeKey][platformKey]
+                        }
+                        if (Object.keys(member.attributes[attributeKey]).length === 0) {
+                          delete member.attributes[attributeKey]
+                        }
+                      }
+                    } else if (
+                      !primaryBackup.attributes[attributeKey] &&
+                      secondaryBackup.attributes[attributeKey]
+                    ) {
+                      // remove platform keys that has the same value with current member
+                      if (member.attributes[attributeKey]) {
+                        for (const platformKey of Object.keys(member.attributes[attributeKey])) {
+                          if (
+                            member.attributes[attributeKey][platformKey] ===
+                            secondaryBackup.attributes[attributeKey][platformKey]
+                          ) {
+                            delete member.attributes[attributeKey][platformKey]
+                          }
+                        }
 
-        return {
-          primary: {
-            ...lodash.pick(member, MemberService.MEMBER_MERGE_FIELDS),
-            identities: member.identities,
-            memberOrganizations: member.memberOrganizations,
-            organizations: OrganizationRepository.calculateRenderFriendlyOrganizations(
-              member.memberOrganizations,
-            ),
-            username: MemberRepository.getUsernameFromIdentities(member.identities),
-            activityCount: primaryActivityCount,
-            numberOfOpenSourceContributions: member.contributions?.length || 0,
-          },
-          secondary: {
-            ...secondaryBackup,
-            organizations: OrganizationRepository.calculateRenderFriendlyOrganizations(
-              secondaryBackup.memberOrganizations,
-            ),
-            activityCount: secondaryActivityCount,
-            numberOfOpenSourceContributions: secondaryBackup.contributions?.length || 0,
-          },
+                        // check any platform keys remaining on current member, if not remove the attribute completely
+                        if (Object.keys(member.attributes[attributeKey]).length === 0) {
+                          delete member.attributes[attributeKey]
+                        }
+                      }
+                    }
+                  }
+                }
+              } else if (key === 'reach') {
+                // only act on reach if current member has some data
+                for (const reachKey of Object.keys(member.reach)) {
+                  if (
+                    reachKey !== 'total' &&
+                    secondaryBackup.reach[reachKey] === member.reach[reachKey]
+                  ) {
+                    delete member.reach[reachKey]
+                  }
+                }
+                // check if there are any keys other than total, if yes recalculate total, else set total to -1
+                if (Object.keys(member.reach).length > 1) {
+                  delete member.reach.total
+                  member.reach.total = lodash.sum(Object.values(member.reach))
+                } else {
+                  member.reach.total = -1
+                }
+              } else if (key === 'contributions') {
+                // check secondary member has any contributions to extract from current member
+                if (member.contributions) {
+                  member.contributions = member.contributions.filter(
+                    (c) => !(secondaryBackup.contributions || []).some((s) => s.id === c.id),
+                  )
+                }
+              } else if (
+                primaryBackup[key] !== member[key] &&
+                secondaryBackup[key] === member[key]
+              ) {
+                member[key] = null
+              }
+            }
+          }
+
+          // tags: Remove tags that exist in secondary backup, but not in primary backup
+          member.tags = member.tags.filter(
+            (tag) =>
+              !(
+                secondaryBackup.tags.some((t) => t.id === tag.id) &&
+                !primaryBackup.tags.some((t) => t.id === tag.id)
+              ),
+          )
+
+          // notes: Remove notes that exist in secondary backup, but not in primary backup
+          member.notes = member.notes.filter(
+            (note) =>
+              !(
+                secondaryBackup.notes.some((n) => n.id === note.id) &&
+                !primaryBackup.notes.some((n) => n.id === note.id)
+              ),
+          )
+
+          // tasks: Remove tasks that exist in secondary backup, but not in primary backup
+          member.tasks = member.tasks.filter(
+            (task) =>
+              !(
+                secondaryBackup.tasks.some((t) => t.id === task.id) &&
+                !primaryBackup.tasks.some((t) => t.id === task.id)
+              ),
+          )
+
+          // identities: Remove identities coming from secondary backup
+          member.identities = member.identities.filter(
+            (i) =>
+              !secondaryBackup.identities.some(
+                (s) => s.platform === i.platform && s.value === i.value && s.type === i.type,
+              ),
+          )
+
+          // affiliations: Remove affiliations coming from secondary backup
+          member.affiliations = member.affiliations.filter(
+            (a) => !secondaryBackup.affiliations.some((s) => s.id === a.id),
+          )
+
+          // member organizations
+          const unmergedRoles = MemberOrganizationService.unmergeRoles(
+            member.memberOrganizations,
+            primaryBackup.memberOrganizations,
+            secondaryBackup.memberOrganizations,
+            MemberRoleUnmergeStrategy.SAME_MEMBER,
+          )
+          member.memberOrganizations = unmergedRoles as IMemberRoleWithOrganization[]
+
+          // activity count
+          const secondaryActivityCount = await MemberRepository.getActivityCountOfMembersIdentities(
+            member.id,
+            secondaryBackup.identities,
+            this.options,
+          )
+          const primaryActivityCount = await MemberRepository.getActivityCountOfMembersIdentities(
+            member.id,
+            member.identities,
+            this.options,
+          )
+
+          return {
+            primary: {
+              ...lodash.pick(member, MemberService.MEMBER_MERGE_FIELDS),
+              identities: member.identities,
+              memberOrganizations: member.memberOrganizations,
+              organizations: OrganizationRepository.calculateRenderFriendlyOrganizations(
+                member.memberOrganizations,
+              ),
+              username: MemberRepository.getUsernameFromIdentities(member.identities),
+              activityCount: primaryActivityCount,
+              numberOfOpenSourceContributions: member.contributions?.length || 0,
+            },
+            secondary: {
+              ...secondaryBackup,
+              organizations: OrganizationRepository.calculateRenderFriendlyOrganizations(
+                secondaryBackup.memberOrganizations,
+              ),
+              activityCount: secondaryActivityCount,
+              numberOfOpenSourceContributions: secondaryBackup.contributions?.length || 0,
+            },
+          }
         }
       }
 
@@ -1470,20 +1487,7 @@ export default class MemberService extends LoggerBase {
    */
   static membersMerge(originalObject, toMergeObject) {
     return merge(originalObject, toMergeObject, {
-      joinedAt: (oldDate, newDate) => {
-        // If either the new or the old date are earlier than 1970
-        // it means they come from an activity without timestamp
-        // and we want to keep the other one
-        if (moment(oldDate).subtract(5, 'days').unix() < 0) {
-          return newDate
-        }
-        if (moment(newDate).unix() < 0) {
-          return oldDate
-        }
-        return moment
-          .min(moment.tz(oldDate, 'Europe/London'), moment.tz(newDate, 'Europe/London'))
-          .toDate()
-      },
+      joinedAt: (oldDate, newDate) => getEarliestValidDate(oldDate, newDate),
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       displayName: (oldValue, _newValue) => oldValue,
       reach: (oldReach, newReach) => MemberService.calculateReach(oldReach, newReach),
