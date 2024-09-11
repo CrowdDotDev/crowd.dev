@@ -41,11 +41,8 @@
               :href="emailIdentity.link ?? undefined"
             >
               <span>{{ emailIdentity.handle }}</span>
-              <span v-if="emailIdentity.verified">
-                <el-tooltip placement="top" content="Verified identity">
-                  <i class="ri-verified-badge-fill text-primary-500" />
-                </el-tooltip>
-              </span></a>
+              <lf-verified-identity-badge v-if="emailIdentity.verified" />
+            </a>
           </div>
         </el-tooltip>
       </div>
@@ -106,11 +103,7 @@
               :href="domainIdentity.link ?? undefined"
             >
               <span>{{ domainIdentity.handle }}</span>
-              <span v-if="domainIdentity.verified">
-                <el-tooltip placement="top" content="Verified identity">
-                  <i class="ri-verified-badge-fill text-primary-500" />
-                </el-tooltip>
-              </span>
+              <lf-verified-identity-badge v-if="domainIdentity.verified" />
             </a>
           </div>
         </el-tooltip>
@@ -165,11 +158,8 @@
               :href="affiliatedProfileIdentity.link ?? undefined"
             >
               <span>{{ affiliatedProfileIdentity.handle }}</span>
-              <span v-if="affiliatedProfileIdentity.verified">
-                <el-tooltip placement="top" content="Verified identity">
-                  <i class="ri-verified-badge-fill text-primary-500" />
-                </el-tooltip>
-              </span></a>
+              <lf-verified-identity-badge v-if="affiliatedProfileIdentity.verified" />
+            </a>
           </div>
         </el-tooltip>
       </div>
@@ -253,6 +243,7 @@ import {
 } from 'vue';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import LfVerifiedIdentityBadge from '@/shared/modules/identities/components/verified-identity-badge.vue';
 
 const props = defineProps<{
   emails: {

@@ -44,13 +44,7 @@
             {{ props.identity.platform }}
           </p>
         </div>
-        <lf-tooltip v-if="props.identity.verified" content="Verified identity">
-          <lf-icon
-            name="verified-badge-line"
-            :size="16"
-            class="ml-1 text-primary-500"
-          />
-        </lf-tooltip>
+        <lf-verified-identity-badge v-if="props.identity.verified" />
       </div>
       <p v-if="props.identity.platforms && CrowdIntegrations.getPlatformsLabel(props.identity.platforms)" class="text-tiny text-gray-400 pt-1.5">
         Source: {{ CrowdIntegrations.getPlatformsLabel(props.identity.platforms) }}
@@ -125,6 +119,7 @@ import { useContributorStore } from '@/modules/contributor/store/contributor.sto
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import { computed, ref } from 'vue';
+import LfVerifiedIdentityBadge from '@/shared/modules/identities/components/verified-identity-badge.vue';
 
 const props = defineProps<{
   identity: ContributorIdentity,

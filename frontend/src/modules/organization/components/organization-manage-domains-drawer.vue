@@ -13,11 +13,7 @@
               <div class="flex-grow">
                 <p class="text-xs font-medium gap-1 flex items-center">
                   <span>{{ identity.value }}</span>
-                  <span v-if="identity.verified">
-                    <el-tooltip placement="top" content="Verified identity">
-                      <i class="ri-verified-badge-fill text-primary-500" />
-                    </el-tooltip>
-                  </span>
+                  <lf-verified-identity-badge v-if="identity.verified" />
                 </p>
                 <p class="mt-0.5 text-tiny text-gray-400">
                   Source: {{ platformLabel(identity.platforms) }}
@@ -111,6 +107,7 @@ import { MemberIdentity } from '@/modules/member/types/Member';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import LfDropdownSeparator from '@/ui-kit/dropdown/DropdownSeparator.vue';
 import AppSvg from '@/shared/svg/svg.vue';
+import LfVerifiedIdentityBadge from '@/shared/modules/identities/components/verified-identity-badge.vue';
 
 const props = defineProps<{
   modelValue: boolean,
