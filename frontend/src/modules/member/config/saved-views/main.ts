@@ -7,7 +7,6 @@ import toReview from './views/to-review';
 import bot from './settings/bot/config';
 import teamMember from './settings/teamMember/config';
 import organization from './settings/organization/config';
-import workHistory from './settings/workHistory/config';
 
 export const memberSavedViews: SavedViewsConfig = {
   defaultView: allMembers,
@@ -15,7 +14,6 @@ export const memberSavedViews: SavedViewsConfig = {
     teamMember,
     bot,
     organization,
-    workHistory,
   },
   defaultFilters: {
     render: memberDefaultFilterRenderer,

@@ -16,10 +16,9 @@ const unaffiliated: SavedView = {
       bot: 'exclude',
       teamMember: 'exclude',
       organization: 'exclude',
-      workHistory: 'exclude',
     },
-    enrichedMember: {
-      value: false,
+    unaffiliated: {
+      value: true,
     },
   },
 };
