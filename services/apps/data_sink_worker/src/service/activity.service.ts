@@ -388,6 +388,14 @@ export default class ActivityService extends LoggerBase {
       sourceId: activity.sourceId,
     })
 
+    const trace = (first: unknown, ...rest: unknown[]) => {
+      if (activity.trace) {
+        this.log.info(first, ...rest)
+      } else {
+        this.log.trace(first, ...rest)
+      }
+    }
+
     try {
       this.log.debug({ tenantId, integrationId, platform }, 'Processing activity.')
 
@@ -413,6 +421,7 @@ export default class ActivityService extends LoggerBase {
         }
 
         username = identity.value
+        trace('Found username for the member.', { username })
       }
 
       let member = activity.member
@@ -549,17 +558,18 @@ export default class ActivityService extends LoggerBase {
 
           if (dbActivity && dbActivity?.deletedAt) {
             // we found an existing activity but it's deleted - nothing to do here
-            this.log.trace(
-              { activityId: dbActivity.id },
-              'Found existing activity but it is deleted, nothing to do here.',
-            )
+            trace('Found existing activity but it is deleted, nothing to do here.', {
+              activityId: dbActivity.id,
+            })
             return
           }
 
           let createActivity = false
 
           if (dbActivity) {
-            this.log.trace({ activityId: dbActivity.id }, 'Found existing activity. Updating it.')
+            trace('Found existing activity. Updating it.', {
+              activityId: dbActivity.id,
+            })
             // process member data
 
             let dbMember = await txMemberRepo.findMemberByUsername(
@@ -570,7 +580,9 @@ export default class ActivityService extends LoggerBase {
             )
             if (dbMember) {
               // we found a member for the identity from the activity
-              this.log.trace({ memberId: dbMember.id }, 'Found existing member.')
+              trace('Found existing member.', {
+                memberId: dbMember.id,
+              })
 
               // lets check if it's a match from what we have in the database activity that we got through sourceId
               if (dbActivity.memberId !== dbMember.id) {
@@ -624,7 +636,7 @@ export default class ActivityService extends LoggerBase {
 
               memberId = dbMember.id
             } else {
-              this.log.trace(
+              trace(
                 'We did not find a member for the identity provided! Updating the one from db activity.',
               )
               // we did not find a member for the identity from the activity
@@ -678,10 +690,7 @@ export default class ActivityService extends LoggerBase {
 
                 if (dbObjectMember) {
                   // we found an existing object member for the identity from the activity
-                  this.log.trace(
-                    { objectMemberId: dbObjectMember.id },
-                    'Found existing object member.',
-                  )
+                  trace('Found existing object member.', { objectMemberId: dbObjectMember.id })
 
                   // lets check if it's a match from what we have in the database activity that we got through sourceId
                   if (dbActivity.objectMemberId !== dbObjectMember.id) {
@@ -735,7 +744,7 @@ export default class ActivityService extends LoggerBase {
 
                   objectMemberId = dbObjectMember.id
                 } else {
-                  this.log.trace(
+                  trace(
                     'We did not find a object member for the identity provided! Updating the one from db activity.',
                   )
                   // we did not find a member for the identity from the activity
@@ -814,7 +823,7 @@ export default class ActivityService extends LoggerBase {
 
             // release lock for member inside activity exists - this migth be redundant, but just in case
           } else {
-            this.log.trace('We did not find an existing activity. Creating a new one.')
+            trace('We did not find an existing activity. Creating a new one.')
             createActivity = true
 
             // we don't have the activity yet in the database
@@ -844,7 +853,7 @@ export default class ActivityService extends LoggerBase {
             }
 
             if (dbMember) {
-              this.log.trace({ memberId: dbMember.id }, 'Found existing member.')
+              trace({ memberId: dbMember.id }, 'Found existing member.')
               await txMemberService.update(
                 dbMember.id,
                 tenantId,
@@ -866,9 +875,7 @@ export default class ActivityService extends LoggerBase {
               )
               memberId = dbMember.id
             } else {
-              this.log.trace(
-                'We did not find a member for the identity provided! Creating a new one.',
-              )
+              trace('We did not find a member for the identity provided! Creating a new one.')
               memberId = await txMemberService.create(
                 tenantId,
                 onboarding,
@@ -900,10 +907,7 @@ export default class ActivityService extends LoggerBase {
                 objectMemberUsername,
               )
               if (dbObjectMember) {
-                this.log.trace(
-                  { objectMemberId: dbObjectMember.id },
-                  'Found existing object member.',
-                )
+                trace({ objectMemberId: dbObjectMember.id }, 'Found existing object member.')
                 await txMemberService.update(
                   dbObjectMember.id,
                   tenantId,
@@ -925,9 +929,7 @@ export default class ActivityService extends LoggerBase {
                 )
                 objectMemberId = dbObjectMember.id
               } else {
-                this.log.trace(
-                  'We did not find a member for the identity provided! Creating a new one.',
-                )
+                trace('We did not find a member for the identity provided! Creating a new one.')
                 objectMemberId = await txMemberService.create(
                   tenantId,
                   onboarding,

@@ -87,6 +87,8 @@ export interface IActivityData {
    * Mutually exclusive with objectMemberUsername field.
    */
   objectMember?: IMemberData
+
+  trace?: boolean
 }
 
 export interface IActivityScoringGrid {
