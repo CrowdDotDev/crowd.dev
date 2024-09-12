@@ -14,14 +14,14 @@ export const scheduleCreateConversations = async () => {
         ],
       },
       policies: {
-        overlap: ScheduleOverlapPolicy.BUFFER_ONE,
+        overlap: ScheduleOverlapPolicy.SKIP,
         catchupWindow: '1 minute',
       },
       action: {
         type: 'startWorkflow',
         workflowType: createConversations,
         taskQueue: 'activities',
-        workflowExecutionTimeout: '5 minutes',
+        workflowExecutionTimeout: '2 minutes',
       },
     })
   } catch (err) {
