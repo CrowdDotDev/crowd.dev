@@ -146,10 +146,10 @@ export class MemberSyncService {
       },
     }
 
-    const sort = [{ date_joinedAt: 'asc' }]
-    const include = ['date_joinedAt', 'uuid_memberId']
+    const sort = [{ _id: 'asc' }]
+    const include = ['uuid_memberId']
     const pageSize = 500
-    let lastJoinedAt: string
+    let lastId: string
 
     let results = (await this.openSearchService.search(
       OpenSearchIndex.MEMBERS,
@@ -159,7 +159,7 @@ export class MemberSyncService {
       sort,
       undefined,
       include,
-    )) as ISearchHit<{ date_joinedAt: string; uuid_memberId: string }>[]
+    )) as ISearchHit<{ uuid_memberId: string }>[]
 
     let processed = 0
     const idsToRemove: string[] = []
@@ -187,17 +187,16 @@ export class MemberSyncService {
       processed += results.length
       this.log.warn({ tenantId }, `Processed ${processed} members while cleaning up tenant!`)
 
-      // use last joinedAt to get the next page
-      lastJoinedAt = results[results.length - 1]._source.date_joinedAt
+      lastId = results[results.length - 1]._id
       results = (await this.openSearchService.search(
         OpenSearchIndex.MEMBERS,
         query,
         undefined,
         pageSize,
         sort,
-        lastJoinedAt,
+        lastId,
         include,
-      )) as ISearchHit<{ date_joinedAt: string; uuid_memberId: string }>[]
+      )) as ISearchHit<{ uuid_memberId: string }>[]
     }
 
     // Remove any remaining IDs that were not processed
@@ -222,10 +221,9 @@ export class MemberSyncService {
       },
     }
 
-    const sort = [{ date_joinedAt: 'asc' }]
-    const include = ['date_joinedAt']
+    const sort = [{ _id: 'asc' }]
     const pageSize = 10
-    let lastJoinedAt: string
+    let lastId: string
 
     let results = (await this.openSearchService.search(
       OpenSearchIndex.MEMBERS,
@@ -234,24 +232,23 @@ export class MemberSyncService {
       pageSize,
       sort,
       undefined,
-      include,
-    )) as ISearchHit<{ date_joinedAt: string }>[]
+      undefined,
+    )) as ISearchHit<object>[]
 
     while (results.length > 0) {
       const ids = results.map((r) => r._id)
       await this.openSearchService.bulkRemoveFromIndex(ids, OpenSearchIndex.MEMBERS)
 
-      // use last joinedAt to get the next page
-      lastJoinedAt = results[results.length - 1]._source.date_joinedAt
+      lastId = results[results.length - 1]._id
       results = (await this.openSearchService.search(
         OpenSearchIndex.MEMBERS,
         query,
         undefined,
         pageSize,
         sort,
-        lastJoinedAt,
-        include,
-      )) as ISearchHit<{ date_joinedAt: string }>[]
+        lastId,
+        undefined,
+      )) as ISearchHit<object>[]
     }
   }
 
