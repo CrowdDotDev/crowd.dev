@@ -4,12 +4,10 @@ const membersMerge: LogRenderingConfig = {
   label: 'Profiles unmerged',
   changes: (log) => {
     const primary = log.oldState?.primary;
-    const secondary = log.oldState?.secondary;
     const merged = log.newState?.primary;
     return {
       removals: merged ? [
         `${primary?.displayName}<span> ・ ID: ${primary?.id}</span>`,
-        `${secondary?.displayName}<span> ・ ID: ${secondary?.id}</span>`,
       ] : [],
       additions: merged ? [
         `${merged?.displayName || primary?.displayName}<span> ・ ID: ${merged?.id || primary?.id}</span>`,
