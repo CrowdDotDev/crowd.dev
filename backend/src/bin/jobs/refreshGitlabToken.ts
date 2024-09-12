@@ -51,7 +51,7 @@ const job: CrowdJob = {
         const newRefreshToken = response.data.refresh_token
 
         await dbOptions.database.integration.update(
-          { 
+          {
             token: newToken,
             refreshToken: newRefreshToken,
           },

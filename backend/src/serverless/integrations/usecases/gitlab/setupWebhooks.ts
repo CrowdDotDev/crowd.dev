@@ -12,7 +12,11 @@ const webhookBase = `${API_CONFIG.url}/webhooks`
 
 const createWebhookUrl = (integrationId: string) => `${webhookBase}/gitlab/${integrationId}`
 
-export async function setupGitlabWebhooks(accessToken: string, projectIds: number[], integrationId: string): Promise<WebhookSetupResult[]> {
+export async function setupGitlabWebhooks(
+  accessToken: string,
+  projectIds: number[],
+  integrationId: string,
+): Promise<WebhookSetupResult[]> {
   const results: WebhookSetupResult[] = []
 
   if (!GITLAB_CONFIG.webhookToken) {
@@ -38,13 +42,17 @@ export async function setupGitlabWebhooks(accessToken: string, projectIds: numbe
         },
         {
           headers: { Authorization: `Bearer ${accessToken}` },
-        }
+        },
       )
 
       if (response.status === 201) {
         results.push({ projectId, success: true, hookId: response.data.id })
       } else {
-        results.push({ projectId, success: false, error: `Unexpected response status: ${response.status}` })
+        results.push({
+          projectId,
+          success: false,
+          error: `Unexpected response status: ${response.status}`,
+        })
       }
     } catch (error) {
       results.push({ projectId, success: false, error: error.message })

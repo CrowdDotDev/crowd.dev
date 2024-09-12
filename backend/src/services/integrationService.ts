@@ -2246,14 +2246,11 @@ export default class IntegrationService {
 
     const settings = integration.settings
     const { groupProjects, userProjects } = settings
-    const allProjects = [
-      ...userProjects,
-      ...Object.values(groupProjects).flat(),
-    ]
+    const allProjects = [...userProjects, ...Object.values(groupProjects).flat()]
 
     allProjects.forEach((project) => {
       const isInMapping = Object.keys(mapping).some((url) =>
-        url.includes(project.path_with_namespace)
+        url.includes(project.path_with_namespace),
       )
       project.enabled = isInMapping
     })

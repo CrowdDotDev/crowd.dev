@@ -17,7 +17,10 @@ import {
 import { getUser } from './api/getUser'
 import { Gitlab, UserSchema } from '@gitbeaker/rest'
 import verifyGitlabWebhook from './utils/verifyWebhook'
-import { handleMergeRequestEventsStream, handleMergeRequestCommitsStream } from './processStream'
+import {
+  handleMergeRequestCommitsStream,
+  handleMergeRequestDiscussionsAndEvents,
+} from './processStream'
 import { timeout } from '@crowd/common'
 
 interface GitlabWebhookHandler {
@@ -147,9 +150,9 @@ const handleMergeRequestWebhook: GitlabWebhookHandler = async (ctx, api, payload
 
   await timeout(3000)
 
-  // get merge request events
+  // get merge request events and discussions
   await ctx.publishStream<GitlabBasicStream>(
-    `${GitlabStreamType.MERGE_REQUEST_EVENTS}:${data.project.id}:${data.object_attributes.id}:firstPage`,
+    `${GitlabStreamType.MERGE_REQUEST_DISCUSSIONS_AND_EVENTS}:${data.project.id}:${data.object_attributes.id}:firstPage`,
     {
       projectId: data.project.id.toString(),
       pathWithNamespace: data.project.path_with_namespace,
@@ -195,8 +198,8 @@ const handler: ProcessWebhookStreamHandler = async (ctx) => {
       ctx.stream.data as GitlabBasicStream,
     )
     return
-  } else if (identifier.startsWith(GitlabStreamType.MERGE_REQUEST_EVENTS)) {
-    await handleMergeRequestEventsStream(
+  } else if (identifier.startsWith(GitlabStreamType.MERGE_REQUEST_DISCUSSIONS_AND_EVENTS)) {
+    await handleMergeRequestDiscussionsAndEvents(
       ctx as IProcessStreamContext,
       api,
       ctx.stream.data as GitlabBasicStream,

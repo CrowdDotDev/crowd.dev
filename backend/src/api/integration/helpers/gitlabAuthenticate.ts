@@ -69,19 +69,6 @@ export default async (req, res: Response) => {
 
   const callbackUrl = GITLAB_CONFIG.callbackUrl
 
-  //   const state = {
-  //     handle,
-  //     tenantId: req.params.tenantId,
-  //     redirectUrl: req.query.redirectUrl,
-  //     callbackUrl,
-  //     hashtags: req.query.hashtags ? req.query.hashtags : '',
-  //     crowdToken: req.query.crowdToken,
-  //     platform: PlatformType.GITLAB,
-  //     userId: req.currentUser.id,
-  //     codeVerifier,
-  //     segmentIds: SequelizeRepository.getSegmentIds(req),
-  //   }
-
   const gitlabState = {
     crowdToken: req.query.crowdToken,
     tenantId: req.params.tenantId,

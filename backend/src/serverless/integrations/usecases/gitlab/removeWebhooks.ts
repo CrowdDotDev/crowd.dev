@@ -6,7 +6,11 @@ interface WebhookRemovalResult {
   error?: string
 }
 
-export async function removeGitlabWebhooks(accessToken: string, projectIds: number[], hookIds: number[]): Promise<WebhookRemovalResult[]> {
+export async function removeGitlabWebhooks(
+  accessToken: string,
+  projectIds: number[],
+  hookIds: number[],
+): Promise<WebhookRemovalResult[]> {
   const results: WebhookRemovalResult[] = []
 
   for (const projectId of projectIds) {
@@ -17,13 +21,17 @@ export async function removeGitlabWebhooks(accessToken: string, projectIds: numb
           `https://gitlab.com/api/v4/projects/${projectId}/hooks/${hookId}`,
           {
             headers: { Authorization: `Bearer ${accessToken}` },
-          }
+          },
         )
 
         if (deleteResponse.status === 204) {
           results.push({ projectId, success: true })
         } else {
-          results.push({ projectId, success: false, error: `Unexpected response status: ${deleteResponse.status}` })
+          results.push({
+            projectId,
+            success: false,
+            error: `Unexpected response status: ${deleteResponse.status}`,
+          })
         }
       } catch (error) {
         results.push({ projectId, success: false, error: error.message })

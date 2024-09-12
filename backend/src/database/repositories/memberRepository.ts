@@ -1987,12 +1987,14 @@ class MemberRepository {
         onlySubProjects: false,
         lfxMemberships: false,
         memberOrganizations: false,
+        attributes: true,
       } as {
         identities?: boolean
         segments?: boolean
         onlySubProjects?: boolean
         lfxMemberships?: boolean
         memberOrganizations?: boolean
+        attributes?: boolean
       },
       attributesSettings = [] as AttributeData[],
     },
@@ -2156,6 +2158,9 @@ class MemberRepository {
                     return false
                   }
                   if (!include.memberOrganizations && mappedField.name.includes('mo.')) {
+                    return false
+                  }
+                  if (!include.attributes && mappedField.name === 'm.attributes') {
                     return false
                   }
                   return true

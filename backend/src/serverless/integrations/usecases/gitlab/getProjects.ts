@@ -36,7 +36,7 @@ export async function fetchGitlabGroupProjects(accessToken: string, groups: any[
         headers: { Authorization: `Bearer ${accessToken}` },
         params: { page, per_page: 100, archived: false },
       })
-      projects.push(...response.data.filter(project => !project.fork))
+      projects.push(...response.data.filter((project) => !project.fork))
       hasMorePages = response.headers['x-next-page'] !== ''
       page++
     }
@@ -65,7 +65,7 @@ export async function fetchGitlabUserProjects(accessToken: string, userId: numbe
       headers: { Authorization: `Bearer ${accessToken}` },
       params: { page, per_page: 100, archived: false },
     })
-    projects.push(...response.data.filter(project => !project.fork))
+    projects.push(...response.data.filter((project) => !project.fork))
     hasMorePages = response.headers['x-next-page'] !== ''
     page++
   }

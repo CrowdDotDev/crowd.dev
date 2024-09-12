@@ -190,8 +190,11 @@ export default (app) => {
   )
 
   app.get('/gitlab/:tenantId/connect', safeWrap(require('./helpers/gitlabAuthenticate').default))
-  
-  app.get('/gitlab/:tenantId/callback', safeWrap(require('./helpers/gitlabAuthenticateCallback').default))
+
+  app.get(
+    '/gitlab/:tenantId/callback',
+    safeWrap(require('./helpers/gitlabAuthenticateCallback').default),
+  )
 
   app.put(
     `/tenant/:tenantId/integration/:id/gitlab/repos`,

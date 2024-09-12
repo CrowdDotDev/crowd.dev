@@ -4,7 +4,7 @@
     :style="{ '--lf-avatar-size': `${props.size / 16}rem` }"
     :data-initials="!!$slots.placeholder ? '' : initials"
   >
-    <lf-img v-if="props.src" :alt="props.name" :src="props.src" :class="imgClass" />
+    <lf-img v-if="props.src" :alt="props.name" :src="props.src" :class="imgClass" class="w-full h-full" />
     <slot v-if="$slots.placeholder" name="placeholder" />
     <slot v-if="$slots.default" />
     <div v-if="$slots.overlay" class="c-avatar__overlay">

@@ -42,13 +42,7 @@
             {{ props.identity.handle ?? props.identity.value }}
           </a>
         </div>
-        <lf-tooltip v-if="props.identity.verified" content="Verified identity">
-          <lf-icon
-            name="verified-badge-line"
-            :size="16"
-            class="ml-1 text-primary-500"
-          />
-        </lf-tooltip>
+        <lf-verified-identity-badge v-if="props.identity.verified" />
       </div>
     </div>
 
@@ -98,6 +92,7 @@ import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import { ref } from 'vue';
 import { Organization, OrganizationIdentity } from '@/modules/organization/types/Organization';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
+import LfVerifiedIdentityBadge from '@/shared/modules/identities/components/verified-identity-badge.vue';
 
 const props = defineProps<{
   identity: OrganizationIdentity,

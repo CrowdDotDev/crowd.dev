@@ -96,6 +96,7 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import LfContributorAdd from '@/modules/contributor/components/edit/contributor-add.vue';
+import allMembers from '@/modules/member/config/saved-views/views/all-members';
 import { memberFilters, memberSearchFilter } from '../config/filters/main';
 import { memberSavedViews, memberStaticViews } from '../config/saved-views/main';
 
@@ -122,6 +123,8 @@ const pagination = ref({
   page: 1,
   perPage: 20,
 });
+
+filters.value = { ...allMembers.config };
 
 const fetchMembersToMergeCount = () => {
   MemberService.fetchMergeSuggestions(0, 0, {

@@ -135,7 +135,7 @@
                       @change="$v[project.web_url].$touch"
                     >
                       <el-option
-                        v-for="subproject of subprojects"
+                        v-for="subproject in subprojects"
                         :key="subproject.id"
                         :value="subproject.id"
                         :label="subproject.name"
@@ -255,6 +255,7 @@ const allProjects = computed(() => {
   return projects;
 });
 
+// eslint-disable-next-line vue/max-len
 const filteredProjects = computed(() => allProjects.value.filter((p: any) => p.path_with_namespace.toLowerCase().includes(search.value.toLowerCase())));
 
 // Group filtered projects by owner
