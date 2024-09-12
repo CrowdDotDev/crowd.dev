@@ -169,6 +169,7 @@ const data = computed(() => {
   return series(props.resultSet);
 });
 
+
 const customChartOptions = computed(() => {
   const options = cloneDeep(props.chartOptions);
 

@@ -36,8 +36,8 @@
               v-loading="!cube"
               class="app-page-spinner !relative chart-loading"
             />
+            <lf-dashboard-chart :data="cube?.newMembers.timeseries" />
             <app-dashboard-widget-chart
-              v-else
               :data="cube?.newMembers.timeseries"
               :datasets="datasets('new people')"
             />
@@ -225,6 +225,8 @@ import { computed } from 'vue';
 import moment from 'moment';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { DashboardCubeData } from '@/modules/dashboard/types/DashboardCubeData';
+import LfChart from '@/ui-kit/chart/Chart.vue';
+import LfDashboardChart from '@/modules/dashboard/components/dashboard-chart.vue';
 
 const {
   cubeData, members, period, activeMembers, recentMembers,
