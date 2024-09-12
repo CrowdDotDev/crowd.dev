@@ -72,7 +72,8 @@ SELECT
 FROM activities parent
 JOIN activities_to_check_for_parentId child ON parent.sourceId = child.sourceParentId
 LEFT JOIN conversations conversation ON parent.conversationId = conversation.id
-ORDER BY child.createdAt ASC;
+ORDER BY child.createdAt ASC
+LIMIT 5000;
   `)
 
   // For all rows found, store the conversation created for the source parent ID.

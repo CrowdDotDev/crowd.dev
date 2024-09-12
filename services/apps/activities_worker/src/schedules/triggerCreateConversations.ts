@@ -9,7 +9,7 @@ export const scheduleCreateConversations = async () => {
       spec: {
         intervals: [
           {
-            every: '5 minutes',
+            every: '2 minutes',
           },
         ],
       },
@@ -21,7 +21,7 @@ export const scheduleCreateConversations = async () => {
         type: 'startWorkflow',
         workflowType: createConversations,
         taskQueue: 'activities',
-        workflowExecutionTimeout: '5 minutes',
+        workflowExecutionTimeout: '15 minutes',
       },
     })
   } catch (err) {
