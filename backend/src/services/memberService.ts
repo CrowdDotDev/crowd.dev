@@ -882,7 +882,10 @@ export default class MemberService extends LoggerBase {
 
           captureNewState({
             primary: payload.primary,
-            secondary: secondaryMember,
+            secondary: {
+              ...payload.secondary,
+              ...secondaryMember,
+            },
           })
 
           // update rest of the primary member fields
