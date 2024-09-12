@@ -461,7 +461,6 @@ export default class IntegrationService {
     )
 
     return integration
-
   }
 
   async getGithubInstallations() {
