@@ -181,7 +181,8 @@ const openGithubInstallation = () => window.open(config.gitHubInstallationUrl, '
 
 const copy = () => {
   if (navigator.clipboard) {
-    navigator.clipboard.writeText(config.gitHubInstallationUrl);
+    const urlWithState = `${config.gitHubInstallationUrl}?state=noconnect`;
+    navigator.clipboard.writeText(urlWithState);
     copied.value = true;
     setTimeout(() => {
       copied.value = false;
