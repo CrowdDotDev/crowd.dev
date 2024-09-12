@@ -21,7 +21,7 @@ export const scheduleCreateConversations = async () => {
         type: 'startWorkflow',
         workflowType: createConversations,
         taskQueue: 'activities',
-        workflowExecutionTimeout: '2 minutes',
+        workflowExecutionTimeout: '5 minutes',
       },
     })
   } catch (err) {
