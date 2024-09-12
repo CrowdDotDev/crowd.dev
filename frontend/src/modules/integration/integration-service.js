@@ -526,6 +526,7 @@ export class IntegrationService {
       `/tenant/${tenantId}/github-connect-installation`,
       {
         installId,
+        ...getSegments(),
       },
     );
 
