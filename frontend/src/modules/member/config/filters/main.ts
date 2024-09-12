@@ -1,5 +1,6 @@
 import { FilterConfig } from '@/shared/modules/filters/types/FilterConfig';
 import { SearchFilterConfig } from '@/shared/modules/filters/types/filterTypes/SearchFilterConfig';
+import unaffiliated from '@/modules/member/config/filters/unaffiliated/config';
 import noOfActivities from './noOfActivities/config';
 import noOfOSSContributions from './noOfOSSContributions/config';
 import activeOn from './activeOn/config';
@@ -34,6 +35,7 @@ export const memberFilters: Record<string, FilterConfig> = {
   reach,
   projects,
   tags,
+  unaffiliated,
 };
 
 export const memberSearchFilter: SearchFilterConfig = {
