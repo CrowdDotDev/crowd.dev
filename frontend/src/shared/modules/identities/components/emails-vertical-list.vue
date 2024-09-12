@@ -40,11 +40,7 @@
                   <i class="ri-shining-fill text-sm" :class="isEnrichment(identity.platforms) ? 'text-purple-400' : 'text-gray-300'" />
                 </el-tooltip>
               </div>
-              <div v-if="identity.verified" class="pl-1">
-                <el-tooltip placement="top" content="Verified identity">
-                  <i class="ri-verified-badge-fill text-primary-500" />
-                </el-tooltip>
-              </div>
+              <lf-verified-identity-badge v-if="identity.verified" />
             </div>
           </template>
         </div>
@@ -57,6 +53,7 @@
 import AppPlatform from '@/shared/modules/platform/components/platform.vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { computed } from 'vue';
+import LfVerifiedIdentityBadge from '@/shared/modules/identities/components/verified-identity-badge.vue';
 
 const props = defineProps<{
   emails: {

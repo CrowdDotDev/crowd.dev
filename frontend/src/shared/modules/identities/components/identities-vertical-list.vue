@@ -50,11 +50,7 @@
                     {{ handle }}
                   </component>
 
-                  <div v-if="verified" class="pl-1">
-                    <el-tooltip placement="top" content="Verified identity">
-                      <i class="ri-verified-badge-fill text-primary-500" />
-                    </el-tooltip>
-                  </div>
+                  <lf-verified-identity-badge v-if="verified" />
                 </div>
 
                 <span
@@ -90,6 +86,7 @@ import AppPlatform from '@/shared/modules/platform/components/platform.vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { computed, ref } from 'vue';
 import { Platform } from '@/shared/modules/platform/types/Platform';
+import LfVerifiedIdentityBadge from '@/shared/modules/identities/components/verified-identity-badge.vue';
 
 const props = defineProps<{
   identities: {
