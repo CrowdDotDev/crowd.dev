@@ -519,6 +519,30 @@ export class IntegrationService {
     return response.data;
   }
 
+  static async githubConnectInstallation(installId) {
+    const tenantId = AuthService.getTenantId();
+
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/github-connect-installation`,
+      {
+        installId,
+        ...getSegments(),
+      },
+    );
+
+    return response.data;
+  }
+
+  static async getGithubInstallations() {
+    const tenantId = AuthService.getTenantId();
+
+    const response = await authAxios.get(
+      `/tenant/${tenantId}/github-installations`,
+    );
+
+    return response.data;
+  }
+
   static async gitlabConnect(code, state) {
     const tenantId = AuthService.getTenantId();
     const response = await authAxios.get(`/gitlab/${tenantId}/callback`, {
