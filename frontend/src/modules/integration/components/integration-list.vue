@@ -137,6 +137,12 @@ onMounted(async () => {
       });
       showGitlabDialog.value = false;
     } else {
+      const state = params.get('state');
+
+      if (state === 'noconnect') {
+        return;
+      }
+
       showGithubDialog.value = true;
       await store.dispatch('integration/doGithubConnect', {
         code,
