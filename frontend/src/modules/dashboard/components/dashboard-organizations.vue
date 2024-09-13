@@ -35,10 +35,11 @@
               v-loading="!cube"
               class="app-page-spinner !relative chart-loading"
             />
-            <app-dashboard-widget-chart
+            <lf-chart
               v-else
-              :data="cube?.newOrganizations.timeseries"
-              :datasets="datasets('new organizations')"
+              :config="lfxCharts.dashboardAreaChart"
+              :data="[]"
+              :params="{ label: 'new organizations' }"
             />
           </div>
         </div>
@@ -127,10 +128,11 @@
               v-loading="!cube"
               class="app-page-spinner !relative chart-loading"
             />
-            <app-dashboard-widget-chart
+            <lf-chart
               v-else
-              :data="cube?.activeOrganizations.timeseries"
-              :datasets="datasets('active organizations')"
+              :config="lfxCharts.dashboardAreaChart"
+              :data="[]"
+              :params="{ label: 'active organizations' }"
             />
           </div>
         </div>
@@ -196,12 +198,13 @@ import AppDashboardOrganizationItem from '@/modules/dashboard/components/organiz
 import AppDashboardCount from '@/modules/dashboard/components/dashboard-count.vue';
 import AppDashboardEmptyState from '@/modules/dashboard/components/dashboard-empty-state.vue';
 import AppDashboardWidgetHeader from '@/modules/dashboard/components/dashboard-widget-header.vue';
-import AppDashboardWidgetChart from '@/modules/dashboard/components/dashboard-widget-chart.vue';
 import allOrganizations from '@/modules/organization/config/saved-views/views/all-organizations';
 import { filterQueryService } from '@/shared/modules/filters/services/filter-query.service';
 import { computed } from 'vue';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { DashboardCubeData } from '@/modules/dashboard/types/DashboardCubeData';
+import { lfxCharts } from '@/config/charts';
+import LfChart from '@/ui-kit/chart/Chart.vue';
 
 const {
   cubeData, organizations, period, activeOrganizations, recentOrganizations,
@@ -218,14 +221,6 @@ const periodRange = computed(() => [
     .utc()
     .format('YYYY-MM-DD'),
 ]);
-
-const datasets = (name: string) => [{
-  name,
-  borderColor: '#003778',
-  measure: 'Organizations.count',
-  granularity: 'day',
-}];
-
 </script>
 
 <script lang="ts">

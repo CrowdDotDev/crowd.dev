@@ -35,10 +35,11 @@
               v-loading="!cube"
               class="app-page-spinner h-16 !relative !min-h-5 chart-loading"
             />
-            <app-dashboard-widget-chart
+            <lf-chart
               v-else
-              :datasets="datasets"
-              :data="cube?.activity.timeseries"
+              :config="lfxCharts.dashboardAreaChart"
+              :data="[]"
+              :params="{ label: 'new activities' }"
             />
           </div>
         </div>
@@ -76,7 +77,6 @@
 <script lang="ts" setup>
 import AppDashboardActivityTypes from '@/modules/dashboard/components/activity/dashboard-activity-types.vue';
 import AppDashboardWidgetHeader from '@/modules/dashboard/components/dashboard-widget-header.vue';
-import AppDashboardWidgetChart from '@/modules/dashboard/components/dashboard-widget-chart.vue';
 import AppDashboardConversationList from '@/modules/dashboard/components/conversations/dashboard-conversation-list.vue';
 import AppDashboardActivityList from '@/modules/dashboard/components/activity/dashboard-activity-list.vue';
 import AppDashboardActivitySentiment from '@/modules/dashboard/components/activity/dashboard-activity-sentiment.vue';
@@ -85,6 +85,8 @@ import { filterQueryService } from '@/shared/modules/filters/services/filter-que
 import { computed, ref } from 'vue';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { DashboardCubeData } from '@/modules/dashboard/types/DashboardCubeData';
+import { lfxCharts } from '@/config/charts';
+import LfChart from '@/ui-kit/chart/Chart.vue';
 
 const {
   cubeData, activities,
@@ -93,13 +95,6 @@ const {
 const cube = computed<DashboardCubeData>(() => cubeData.value);
 
 const tab = ref('recentConversations');
-
-const datasets = [{
-  name: 'new activities',
-  borderColor: '#003778',
-  measure: 'Activities.count',
-  granularity: 'day',
-}];
 
 const allActivitiesFilter = ({
   search: '',

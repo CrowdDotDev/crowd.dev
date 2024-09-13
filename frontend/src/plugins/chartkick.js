@@ -53,11 +53,11 @@ Chart.register(
   Tooltip,
   SubTitle,
   Filler,
-  verticalTodayBlockPlugin,
-  verticalHoverLinePlugin,
-  updateTicksLabelsPositionPlugin,
-  backgroundChartPlugin,
-  annotationPlugin,
+  // verticalTodayBlockPlugin,
+  // verticalHoverLinePlugin,
+  // updateTicksLabelsPositionPlugin,
+  // backgroundChartPlugin,
+  // annotationPlugin,
   CustomLogarithmicScale,
 );
 

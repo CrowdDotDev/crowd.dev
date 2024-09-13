@@ -31,7 +31,7 @@ import {
   DAILY_GRANULARITY_FILTER,
   WEEKLY_GRANULARITY_FILTER,
   MONTHLY_GRANULARITY_FILTER,
-} from '@/modules/widget/widget-constants';
+} from '@/modules/dashboard/constants/period-constants';
 
 const emits = defineEmits(['onUpdate']);
 const props = defineProps({

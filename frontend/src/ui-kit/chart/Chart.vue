@@ -1,19 +1,18 @@
 <template>
-  <div>
-    <canvas ref="canvas" />
-  </div>
+  <canvas ref="canvas" />
 </template>
 
 <script lang="ts" setup>
 import {
-  Chart, ChartData, ChartOptions, ChartType,
+  Chart,
 } from 'chart.js';
-import { onMounted, ref, watch } from 'vue';
+import { onMounted, ref } from 'vue';
+import { ChartConfig } from '@/config/charts';
 
 const props = defineProps<{
-  type: ChartType,
-  data:(context: any) => ChartData,
-  options: (context: any) => ChartOptions,
+  config: ChartConfig,
+  data: any,
+  params: any,
 }>();
 
 const canvas = ref();
@@ -24,14 +23,9 @@ const renderChart = () => {
     return;
   }
   const ctx = canvas.value.getContext('2d');
-  const data = props.data(ctx);
-  const options = props.options(ctx);
+  const config = props.config(ctx, props.data, props.params);
 
-  chart.value = new Chart(ctx, {
-    type: props.type, // You can change this to any chart type (line, pie, etc.)
-    data,
-    options,
-  });
+  chart.value = new Chart(ctx, config);
 };
 
 onMounted(() => {

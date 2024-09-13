@@ -36,10 +36,11 @@
               v-loading="!cube"
               class="app-page-spinner !relative chart-loading"
             />
-            <lf-dashboard-chart :data="cube?.newMembers.timeseries" />
-            <app-dashboard-widget-chart
-              :data="cube?.newMembers.timeseries"
-              :datasets="datasets('new people')"
+            <lf-chart
+              v-else
+              :config="lfxCharts.dashboardAreaChart"
+              :data="[]"
+              :params="{ label: 'new people' }"
             />
           </div>
         </div>
@@ -142,10 +143,11 @@
               v-loading="!cube"
               class="app-page-spinner !relative chart-loading"
             />
-            <app-dashboard-widget-chart
+            <lf-chart
               v-else
-              :datasets="datasets('active members')"
-              :data="cube?.activeMembers.timeseries"
+              :config="lfxCharts.dashboardAreaChart"
+              :data="[]"
+              :params="{ label: 'active people' }"
             />
           </div>
         </div>
@@ -215,7 +217,6 @@
 import { formatDateToTimeAgo } from '@/utils/date';
 import AppDashboardEmptyState from '@/modules/dashboard/components/dashboard-empty-state.vue';
 import AppDashboardWidgetHeader from '@/modules/dashboard/components/dashboard-widget-header.vue';
-import AppDashboardWidgetChart from '@/modules/dashboard/components/dashboard-widget-chart.vue';
 import AppDashboardMemberItem from '@/modules/dashboard/components/member/dashboard-member-item.vue';
 import AppDashboardCount from '@/modules/dashboard/components/dashboard-count.vue';
 import { filterQueryService } from '@/shared/modules/filters/services/filter-query.service';
@@ -225,8 +226,8 @@ import { computed } from 'vue';
 import moment from 'moment';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { DashboardCubeData } from '@/modules/dashboard/types/DashboardCubeData';
+import { lfxCharts } from '@/config/charts';
 import LfChart from '@/ui-kit/chart/Chart.vue';
-import LfDashboardChart from '@/modules/dashboard/components/dashboard-chart.vue';
 
 const {
   cubeData, members, period, activeMembers, recentMembers,
@@ -243,12 +244,6 @@ const periodRange = computed(() => [
     .utc()
     .format('YYYY-MM-DD'),
 ]);
-const datasets = (name: string) => [{
-  name,
-  borderColor: '#003778',
-  measure: 'Members.count',
-  granularity: 'day',
-}];
 
 const getPlatformDetails = (platform: string) => CrowdIntegrations.getConfig(platform);
 
