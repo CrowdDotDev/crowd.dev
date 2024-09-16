@@ -1,7 +1,7 @@
 import moment from 'moment';
-import { externalTooltipHandler } from '@/modules/report/tooltip';
 import { formatTooltipTitle, parseTooltipBody, parseTooltipTitle } from '@/utils/reports';
 import { ChartConfig } from '@/config/charts';
+import { externalTooltipHandler } from '@/config/charts/helpers/tooltip';
 
 interface DashboardAreaChartData {
   value: number,

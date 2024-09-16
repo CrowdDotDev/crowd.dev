@@ -1,4 +1,9 @@
-import { Chart } from 'chart.js';
+import {
+  Chart, Filler, LinearScale,
+  LineController,
+  LineElement, PointElement, TimeScale, Tooltip,
+} from 'chart.js';
+import 'chartjs-adapter-moment';
 
 import { dashboardAreaChart } from './configs/dashboard.area.chart';
 
@@ -11,9 +16,24 @@ export const lfxCharts: Record<string, ChartConfig> = {
   dashboardAreaChart,
 };
 
-const lfxChartPlugins: Record<String, any> = {
+const lfxChartPlugins: Record<string, any> = {
   verticalTodayBlockPlugin,
   verticalHoverLinePlugin,
 };
 
-Chart.register(lfxChartPlugins);
+const chartjsPlugins: Record<string, any> = {
+  LineElement,
+  PointElement,
+  LineController,
+  LinearScale,
+  TimeScale,
+  Tooltip,
+  Filler,
+};
+
+Chart.register(
+  {
+    ...chartjsPlugins,
+    ...lfxChartPlugins,
+  },
+);

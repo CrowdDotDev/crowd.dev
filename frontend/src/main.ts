@@ -9,7 +9,6 @@ import VueLazyLoad from 'vue3-lazyload';
 import { createPinia } from 'pinia';
 import { createRouter } from '@/router';
 import { createStore } from '@/store';
-import plugins from '@/plugins';
 import modules from '@/modules';
 import config from '@/config';
 
@@ -67,8 +66,6 @@ i18nInit();
         app.component(name, components[name]);
       });
     });
-
-  Object.values(plugins).map((plugin) => app.use(plugin));
 
   app.use(store).use(router).mount('#app');
 

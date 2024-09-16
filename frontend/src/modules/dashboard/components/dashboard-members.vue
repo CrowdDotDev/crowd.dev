@@ -39,7 +39,7 @@
             <lf-chart
               v-else
               :config="lfxCharts.dashboardAreaChart"
-              :data="[]"
+              :data="data"
               :params="{ label: 'new people' }"
             />
           </div>
@@ -146,7 +146,7 @@
             <lf-chart
               v-else
               :config="lfxCharts.dashboardAreaChart"
-              :data="[]"
+              :data="data"
               :params="{ label: 'active people' }"
             />
           </div>
@@ -234,6 +234,17 @@ const {
 } = mapGetters('dashboard');
 
 const cube = computed<DashboardCubeData>(() => cubeData.value);
+
+const data = [
+  { label: '2024-09-09', value: 5 },
+  { label: '2024-09-10', value: 6 },
+  { label: '2024-09-11', value: 2 },
+  { label: '2024-09-12', value: 6 },
+  { label: '2024-09-13', value: 4 },
+  { label: '2024-09-14', value: 1 },
+  { label: '2024-09-15', value: 8 },
+  { label: '2024-09-16', value: 10 },
+];
 
 const periodRange = computed(() => [
   moment()
