@@ -1,5 +1,6 @@
 import { getServiceChildLogger } from '@crowd/logging'
 import cronGenerator from 'cron-time-generator'
+import { timeout } from '@crowd/common'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 import { CrowdJob } from '../../types/jobTypes'
 import IntegrationService from '../../services/integrationService'
@@ -9,7 +10,7 @@ const log = getServiceChildLogger('refreshGithubRepoSettings')
 const job: CrowdJob = {
   name: 'Refresh Github repo settings',
   // every day
-  cronTime: cronGenerator.every(1).days(),
+  cronTime: cronGenerator.every(1).minutes(),
   onTrigger: async () => {
     log.info('Updating Github repo settings.')
     const dbOptions = await SequelizeRepository.getDefaultIRepositoryOptions()
@@ -42,6 +43,8 @@ const job: CrowdJob = {
         log.error(
           `Error updating repo settings for Github integration ${integration.id}: ${err.message}`,
         )
+      } finally {
+        await timeout(1000)
       }
     }
 
