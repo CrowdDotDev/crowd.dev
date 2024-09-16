@@ -1,7 +1,6 @@
 import { getServiceChildLogger } from '@crowd/logging'
 import cronGenerator from 'cron-time-generator'
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
-import { timeout } from '@crowd/common'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 import { CrowdJob } from '../../types/jobTypes'
 import { GITLAB_CONFIG } from '@/conf'
@@ -11,7 +10,7 @@ const log = getServiceChildLogger('refreshGitlabTokenCronJob')
 const job: CrowdJob = {
   name: 'Refresh Gitlab token',
   // every hour
-  cronTime: cronGenerator.every(1).hours(),
+  cronTime: cronGenerator.every(1).minutes(),
   onTrigger: async () => {
     log.info('Checking Gitlab tokens for refresh.')
     const dbOptions = await SequelizeRepository.getDefaultIRepositoryOptions()
@@ -62,8 +61,6 @@ const job: CrowdJob = {
         log.info(`Successfully refreshed token for Gitlab integration: ${integration.id}`)
       } catch (err) {
         log.error(`Error refreshing token for Gitlab integration ${integration.id}: ${err.message}`)
-      } finally {
-        await timeout(1000)
       }
     }
   },

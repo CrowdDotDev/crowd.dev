@@ -11,7 +11,6 @@ import checkStuckIntegrationRuns from './checkStuckIntegrationRuns'
 import enrichOrganizations from './organizationEnricher'
 import refreshGroupsioToken from './refreshGroupsioToken'
 import refreshGitlabToken from './refreshGitlabToken'
-import refreshGithubRepoSettings from './refreshGithubRepoSettings'
 
 const jobs: CrowdJob[] = [
   integrationTicks,
@@ -26,7 +25,6 @@ const jobs: CrowdJob[] = [
   enrichOrganizations,
   refreshGroupsioToken,
   refreshGitlabToken,
-  refreshGithubRepoSettings,
 ]
 
 export default jobs
