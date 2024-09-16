@@ -15,8 +15,8 @@ import config from '@/config';
 import { init as i18nInit } from '@/i18n';
 
 import App from '@/app.vue';
-import { vueSanitizeOptions } from '@/plugins/sanitize';
-import marked from '@/plugins/marked';
+import { vueSanitizeOptions } from '@/shared/plugins/sanitize';
+import marked from '@/shared/plugins/marked';
 import { useLogRocket } from '@/utils/logRocket';
 import { initRUM } from '@/utils/datadog/rum';
 
