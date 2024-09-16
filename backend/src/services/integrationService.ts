@@ -540,7 +540,7 @@ export default class IntegrationService {
     return lodash.maxBy(Object.keys(owners), (owner) => owners[owner])
   }
 
-  async mapGithubRepos(integrationId, mapping) {
+  async mapGithubRepos(integrationId, mapping, fireOnboarding = true) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     const txOptions = {
@@ -603,23 +603,25 @@ export default class IntegrationService {
         }
       }
 
-      const integration = await IntegrationRepository.update(
-        integrationId,
-        { status: 'in-progress' },
-        txOptions,
-      )
+      if (fireOnboarding) {
+        const integration = await IntegrationRepository.update(
+          integrationId,
+          { status: 'in-progress' },
+          txOptions,
+        )
 
-      this.options.log.info(
-        { tenantId: integration.tenantId },
-        'Sending GitHub message to int-run-worker!',
-      )
-      const emitter = await getIntegrationRunWorkerEmitter()
-      await emitter.triggerIntegrationRun(
-        integration.tenantId,
-        integration.platform,
-        integration.id,
-        true,
-      )
+        this.options.log.info(
+          { tenantId: integration.tenantId },
+          'Sending GitHub message to int-run-worker!',
+        )
+        const emitter = await getIntegrationRunWorkerEmitter()
+        await emitter.triggerIntegrationRun(
+          integration.tenantId,
+          integration.platform,
+          integration.id,
+          true,
+        )
+      }
 
       await SequelizeRepository.commitTransaction(transaction)
     } catch (err) {
@@ -2397,5 +2399,74 @@ export default class IntegrationService {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw err
     }
+  }
+
+  async updateGithubIntegrationSettings(installId: string) {
+    this.options.log.info(`Updating GitHub integration settings for installId: ${installId}`)
+
+    // Find the integration by installId
+    const integration: any = await IntegrationRepository.findByIdentifier(
+      installId,
+      PlatformType.GITHUB,
+    )
+
+    if (!integration || integration.platform !== PlatformType.GITHUB) {
+      this.options.log.warn(`GitHub integration not found for installId: ${installId}`)
+      throw new Error404('GitHub integration not found')
+    }
+
+    this.options.log.info(`Found integration: ${integration.id}`)
+
+    // Get the install token
+    const installToken = await IntegrationService.getInstallToken(installId)
+    this.options.log.info(`Obtained install token for installId: ${installId}`)
+
+    // Fetch all installed repositories
+    const repos = await getInstalledRepositories(installToken)
+    this.options.log.info(`Fetched ${repos.length} installed repositories`)
+
+    // Update integration settings
+    const currentSettings = integration.settings || {}
+    const currentRepos = currentSettings.repos || []
+    const newRepos = repos.filter((repo) => !currentRepos.some((r) => r.url === repo.url))
+    this.options.log.info(`Found ${newRepos.length} new repositories`)
+
+    const updatedSettings = {
+      ...currentSettings,
+      repos: [...currentRepos, ...newRepos],
+    }
+
+    this.options = {
+      ...this.options,
+      currentSegments: [
+        {
+          id: integration.segmentId,
+        } as any,
+      ],
+    }
+
+    // Update the integration with new settings
+    await this.update(integration.id, { settings: updatedSettings })
+
+    this.options.log.info(`Updated integration settings for integration id: ${integration.id}`)
+
+    // Update GitHub repos mapping
+    const defaultSegmentId = integration.segmentId
+    const mapping = {}
+    for (const repo of newRepos) {
+      mapping[repo.url] = defaultSegmentId
+    }
+    if (Object.keys(mapping).length > 0) {
+      // false - not firing onboarding
+      await this.mapGithubRepos(integration.id, mapping, false)
+      this.options.log.info(`Updated GitHub repos mapping for integration id: ${integration.id}`)
+    } else {
+      this.options.log.info(`No new repos to map for integration id: ${integration.id}`)
+    }
+
+    this.options.log.info(
+      `Completed updating GitHub integration settings for installId: ${installId}`,
+    )
+    return integration
   }
 }
