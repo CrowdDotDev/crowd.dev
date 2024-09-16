@@ -10,7 +10,7 @@ const log = getServiceChildLogger('refreshGithubRepoSettings')
 const job: CrowdJob = {
   name: 'Refresh Github repo settings',
   // every day
-  cronTime: cronGenerator.every(1).minutes(),
+  cronTime: cronGenerator.every(1).days(),
   onTrigger: async () => {
     log.info('Updating Github repo settings.')
     const dbOptions = await SequelizeRepository.getDefaultIRepositoryOptions()
