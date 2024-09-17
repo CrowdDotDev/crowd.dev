@@ -7,7 +7,7 @@
     <template #content>
       <div class="-mt-4">
         <app-form-item
-          class="mb-4"
+          :class="[$v.member.$errors.length ? 'isError' : 'mb-4']"
           label="Contact"
           :validation="$v.member"
           :required="true"
@@ -50,6 +50,7 @@
 
         <app-form-item
           class="mb-4"
+          :class="[$v.datetime.$errors.length ? 'isError' : 'mb-4']"
           label="When"
           :validation="$v.datetime"
           :required="true"
@@ -72,6 +73,7 @@
 
         <app-form-item
           class="mb-4"
+          :class="[$v.activityType.$errors.length ? 'isError' : 'mb-4']"
           label="Activity type"
           :validation="$v.activityType"
           :required="true"
@@ -385,3 +387,9 @@ export default {
   name: 'AppActivityFormDrawer',
 };
 </script>
+
+<style scoped>
+.isError {
+  margin-bottom: 40px;
+}
+</style>
