@@ -264,13 +264,11 @@ import AppDialog from '@/shared/dialog/dialog.vue';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import AppMemberOrganizationList from '@/modules/member/components/suggestions/member-organizations-list.vue';
-import { mapActions } from '@/shared/vuex/vuex.helpers';
-import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import { storeToRefs } from 'pinia';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { useContributorStore } from '@/modules/contributor/store/contributor.store';
+import { useRouter } from 'vue-router';
 import AppMemberSuggestionsDetails from './suggestions/member-merge-suggestions-details.vue';
 
 const props = defineProps({
@@ -287,12 +285,12 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue']);
 
+const router = useRouter();
+
 const { trackEvent } = useProductTracking();
 
-const { doFind } = mapActions('member');
+const { getContributor } = useContributorStore();
 
-const lsSegmentsStore = useLfSegmentsStore();
-const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 const { getContributorMergeActions } = useContributorStore();
 
 const unmerging = ref(false);
@@ -369,16 +367,14 @@ const unmerge = () => {
           title: 'Profiles merging in progress',
         },
       );
-      doFind({
-        id: props.modelValue?.id,
-        segments: [selectedProjectGroup.value?.id],
-      }).then(() => {
-        router.replace({
-          params: {
-            id: props.modelValue?.id,
-          },
+      getContributor(props.modelValue?.id)
+        .then(() => {
+          router.replace({
+            params: {
+              id: props.modelValue?.id,
+            },
+          });
         });
-      });
       emit('update:modelValue', null);
     })
     .catch((error) => {
