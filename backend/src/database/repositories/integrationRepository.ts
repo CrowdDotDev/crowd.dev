@@ -532,7 +532,7 @@ class IntegrationRepository {
 
       const runQuery = `
         SELECT "integrationId", MAX("processedAt") AS "runProcessedAt"
-        FROM "integration.runs"
+        FROM integration.runs
         WHERE "integrationId" IN (:integrationIds)
         GROUP BY "integrationId"
       `
