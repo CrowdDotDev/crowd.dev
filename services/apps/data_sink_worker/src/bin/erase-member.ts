@@ -4,6 +4,7 @@ import { DB_CONFIG } from '../conf'
 import path from 'path'
 import fs from 'fs'
 import { generateUUIDv1 } from '@crowd/common'
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 const log = getServiceChildLogger('erase-member')
@@ -68,24 +69,23 @@ setImmediate(async () => {
         await store.transactionally(async (t) => {
           // mark identity for erasure
           await markIdentityForErasure(t, eIdentity.platform, eIdentity.type, eIdentity.value)
-
-          if (eIdentity.verified) {
-            if (!deletedMemberIds.includes(eIdentity.memberId)) {
+          if (!deletedMemberIds.includes(eIdentity.memberId)) {
+            if (eIdentity.verified) {
               // delete the member and everything around it
               await deleteMemberFromDb(t, eIdentity.memberId)
 
               // track so we don't delete the same member twice
               deletedMemberIds.push(eIdentity.memberId)
+            } else {
+              // just delete the identity
+              await deleteMemberIdentity(
+                t,
+                eIdentity.memberId,
+                eIdentity.platform,
+                eIdentity.type,
+                eIdentity.value,
+              )
             }
-          } else {
-            // just delete the identity
-            await deleteMemberIdentity(
-              t,
-              eIdentity.memberId,
-              eIdentity.platform,
-              eIdentity.type,
-              eIdentity.value,
-            )
           }
 
           throw new Error('Rollback transaction')
