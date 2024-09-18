@@ -19,7 +19,7 @@ export class RedisSemaphore {
     cache: ICache
     timeout?: number
   }) {
-    this.key = `gitlab-semaphore:${integrationId}:${apiCallType}`
+    this.key = `groupsio-semaphore:${integrationId}:${apiCallType}`
     this.maxConcurrent = maxConcurrent
     this.cache = cache
     this.timeout = timeout
