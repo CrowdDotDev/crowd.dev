@@ -73,7 +73,7 @@ setImmediate(async () => {
   const idParams = pairs.filter((p) => p.type === 'ids')
   const idsToDelete: string[] = []
   for (const param of idParams) {
-    idsToDelete.push(param.split(',').map((id) => id.trim()))
+    idsToDelete.push(param.value.split(',').map((id) => id.trim()))
   }
 
   const orgDataMap: Map<string, any[]> = new Map()
