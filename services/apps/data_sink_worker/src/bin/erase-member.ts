@@ -35,7 +35,7 @@ if (processArguments.length === 0 || processArguments.length % 2 !== 0) {
 }
 
 setImmediate(async () => {
-  const manualCheckFile = `manual_check_${new Date().toISOString().replace(/:/g, '-')}.txt`
+  const manualCheckFile = `manual_check_member_ids.txt`
   const dbConnection = await getDbConnection(DB_CONFIG())
   const store = new DbStore(log, dbConnection)
   const sqsClient = getSqsClient(SQS_CONFIG())
@@ -185,6 +185,8 @@ setImmediate(async () => {
       )
     }
   }
+
+  process.exit(0)
 })
 
 async function markIdentityForErasure(
