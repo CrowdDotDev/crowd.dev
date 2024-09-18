@@ -104,10 +104,9 @@ setImmediate(async () => {
       })
 
     if (results.length > 0) {
-      addLinesToFile(
-        manualCheckFile,
-        results.map((r) => r.id),
-      )
+      addLinesToFile(manualCheckFile, [
+        `name: ${nameIdentity.value}, member ids: [${results.map((r) => r.id).join(', ')}]`,
+      ])
       log.warn(
         `Found ${results.length} members with name: ${
           nameIdentity.value
