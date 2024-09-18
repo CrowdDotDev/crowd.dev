@@ -462,24 +462,50 @@ export default class ActivityService extends LoggerBase {
 
       // check if member or object member have identities that were requested to be erased by the user
       if (member && member.identities.length > 0) {
-        const erased = await repo.someIdentitiesWereErasedByUserRequest(member.identities)
-        if (erased) {
-          this.log.warn(
-            { memberIdentities: member.identities },
-            'Member has identities that were requested to be erased by the user! Skipping activity processing!',
-          )
-          return
+        const toErase = await repo.someIdentitiesWereErasedByUserRequest(member.identities)
+        if (toErase.length > 0) {
+          // prevent member/activity creation of one of the identities that are marked to be erased are verified
+          if (toErase.some((i) => i.verified)) {
+            this.log.warn(
+              { memberIdentities: member.identities },
+              'Member has identities that were requested to be erased by the user! Skipping activity processing!',
+            )
+            return
+          } else {
+            // we just remove the unverified identities that were marked to be erased and prevent them from being created
+            member.identities = member.identities.filter((i) => {
+              return (
+                !i.verified &&
+                toErase.some(
+                  (e) => e.type === i.type && e.value === i.value && e.platform === i.platform,
+                )
+              )
+            })
+          }
         }
       }
 
       if (objectMember && objectMember.identities.length > 0) {
-        const erased = await repo.someIdentitiesWereErasedByUserRequest(objectMember.identities)
-        if (erased) {
-          this.log.warn(
-            { objectMemberIdentities: objectMember.identities },
-            'Object member has identities that were requested to be erased by the user! Skipping activity processing!',
-          )
-          return
+        const toErase = await repo.someIdentitiesWereErasedByUserRequest(objectMember.identities)
+        if (toErase.length > 0) {
+          // prevent member/activity creation of one of the identities that are marked to be erased are verified
+          if (toErase.some((i) => i.verified)) {
+            this.log.warn(
+              { objectMemberIdentities: objectMember.identities },
+              'Object member has identities that were requested to be erased by the user! Skipping activity processing!',
+            )
+            return
+          } else {
+            // we just remove the unverified identities that were marked to be erased and prevent them from being created
+            objectMember.identities = objectMember.identities.filter((i) => {
+              return (
+                !i.verified &&
+                toErase.some(
+                  (e) => e.type === i.type && e.value === i.value && e.platform === i.platform,
+                )
+              )
+            })
+          }
         }
       }
 
