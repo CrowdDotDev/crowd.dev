@@ -19,45 +19,51 @@
       />
     </template>
 
-    <div v-if="isSearchVisible" class="border-b border-gray-100 px-2 pt-2 pb-1 w-full sticky top-0 bg-white">
+    <div v-if="isSearchVisible" class="border-b border-gray-100 px-1 w-full sticky top-0 bg-white">
       <el-input
         id="filterSearch"
         v-model="searchQuery"
         placeholder="Search..."
         class="filter-dropdown-search"
         :prefix-icon="SearchIcon"
+        clearable
         @input="onSearchProjects"
       />
     </div>
 
-    <div class="p-2">
-      <div v-if="loading" class="text-gray-400 px-3 h-10 flex items-center">
-        Loading
+    <div>
+      <div v-if="loading" class="text-gray-400 px-3 h-20 flex items-center justify-center">
+        <lf-icon name="loader-4-line" class="animate-spin text-gray-400" :size="16" />
+        <span class="text-tiny ml-1 text-gray-400">
+          Loading project groups...
+        </span>
       </div>
-      <div v-else-if="projectGroupsList.length" class="flex flex-col gap-1 overflow-auto">
+      <div v-else-if="projectGroupsList.length" class="flex flex-col gap-1 overflow-auto p-2">
         <div
           v-for="projectGroup of projectGroupsList"
           :key="projectGroup.id"
-          class="pr-8 pl-2 h-14 flex items-center hover:bg-gray-50 rounded cursor-pointer"
+          class="py-1.5 px-2 hover:bg-gray-50 rounded cursor-pointer"
           :class="{
             'bg-primary-50': projectGroup.id === selectedProjectGroup?.id,
           }"
           @click="onOptionClick(projectGroup)"
         >
-          <div class="flex gap-2 items-start truncate">
+          <div class="flex gap-0.5 items-start truncate">
             <div class="block truncate mr-2">
-              <div class="h-5 leading-5 text-xs text-gray-900 truncate">
+              <div class="text-small leading-5 text-gray-900 truncate">
                 {{ projectGroup.name }}
               </div>
-              <div class="h-5 leading-5 text-3xs text-gray-400">
+              <div class="text-tiny text-gray-400">
                 {{ pluralize('project', projectGroup.projects.length, true) }}
               </div>
             </div>
           </div>
         </div>
       </div>
-      <div v-else class="text-gray-400 px-3 h-10 flex items-center">
-        No project groups found
+      <div v-else class="text-gray-400 px-3 h-20 flex items-center justify-center">
+        <span class="text-tiny text-gray-400">
+          No project groups found
+        </span>
       </div>
     </div>
   </el-popover>
@@ -74,6 +80,7 @@ import pluralize from 'pluralize';
 import debounce from 'lodash/debounce';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const SearchIcon = h(
   'i', // type
@@ -83,13 +90,13 @@ const SearchIcon = h(
 
 const ArrowDownIcon = h(
   'i', // type
-  { class: 'ri-arrow-down-s-line' }, // props
+  { class: 'ri-arrow-down-s-line text-black' }, // props
   [],
 );
 
 const ArrowUpIcon = h(
   'i', // type
-  { class: 'ri-arrow-up-s-line' }, // props
+  { class: 'ri-arrow-up-s-line text-black' }, // props
   [],
 );
 
@@ -176,7 +183,7 @@ export default {
 
 <style lang="scss">
 .project-groups-select-popper.el-popper {
-    width: 255px;
+    max-width: 236px;
     max-height: 480px;
     overflow: auto;
     @apply p-0;
@@ -184,11 +191,11 @@ export default {
 
 .project-groups-select-input {
     @apply cursor-pointer relative w-full;
-    height: 36px !important;
+    height: 32px !important;
 
     .el-input__wrapper {
-      border-radius: 100px !important;
-      @apply h-9 px-4;
+      @apply rounded;
+      @apply h-8 px-3;
     }
 
     .el-input__inner {
