@@ -62,7 +62,11 @@ setImmediate(async () => {
     })
   }
 
-  log.info(`Erasing member based on input data: ${JSON.stringify(pairs)}...`)
+  log.info(
+    `Erasing member based on input data: [${pairs
+      .map((p) => `${p.type} "${p.value}"`)
+      .join(', ')}]`,
+  )
 
   const nameIdentity = pairs.find((p) => p.type === 'name')
 
@@ -96,9 +100,18 @@ setImmediate(async () => {
       try {
         await store.transactionally(async (t) => {
           // get organization id for a member to sync later
-          const orgData = await store
+          const orgResults = await store
             .connection()
-            .one(`select "tenantId", "organizationId" from members where id = $(memberId)`, {
+            .any(
+              `select distinct "tenantId", "organizationId" from activities where "memberId" = $(memberId)`,
+              {
+                memberId: eIdentity.memberId,
+              },
+            )
+
+          const memberData = await store
+            .connection()
+            .one(`select * from members where id = $(memberId)`, {
               memberId: eIdentity.memberId,
             })
 
@@ -107,6 +120,8 @@ setImmediate(async () => {
 
           if (!deletedMemberIds.includes(eIdentity.memberId)) {
             if (eIdentity.verified) {
+              log.info({ tenantId: memberData.tenantId }, 'CLEANUP ACTIVITIES...')
+
               // delete the member and everything around it
               await deleteMemberFromDb(t, eIdentity.memberId)
 
@@ -114,7 +129,7 @@ setImmediate(async () => {
               deletedMemberIds.push(eIdentity.memberId)
 
               await searchSyncWorkerEmitter.triggerRemoveMember(
-                orgData.tenantId,
+                memberData.tenantId,
                 eIdentity.memberId,
                 true,
               )
@@ -128,18 +143,20 @@ setImmediate(async () => {
                 eIdentity.value,
               )
               await searchSyncWorkerEmitter.triggerMemberSync(
-                orgData.tenantId,
+                memberData.tenantId,
                 eIdentity.memberId,
                 true,
               )
             }
 
-            if (orgData.organizationId) {
-              await searchSyncWorkerEmitter.triggerOrganizationSync(
-                orgData.tenantId,
-                orgData.organizationId,
-                true,
-              )
+            if (orgResults.length > 0) {
+              for (const orgResult of orgResults) {
+                await searchSyncWorkerEmitter.triggerOrganizationSync(
+                  orgResult.tenantId,
+                  orgResult.organizationId,
+                  true,
+                )
+              }
             }
           }
         })
