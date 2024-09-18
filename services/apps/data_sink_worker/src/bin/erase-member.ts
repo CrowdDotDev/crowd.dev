@@ -258,6 +258,9 @@ export async function deleteMemberFromDb(store: DbStore, memberId: string): Prom
     const memberIdColumns = tablesToDelete.get(table)
     log.warn(`Deleting member ${memberId} from table ${table} by columns ${memberIdColumns}...`)
 
+    if (memberIdColumns.length === 0) {
+      throw new Error(`No fk columns specified for table ${table}!`)
+    }
     const condition = memberIdColumns.map((c) => `"${c}" = $(memberId)`).join(' or ')
     result = await store
       .connection()
