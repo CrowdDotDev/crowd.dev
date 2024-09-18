@@ -167,11 +167,13 @@ setImmediate(async () => {
 
             if (orgResults.length > 0) {
               for (const orgResult of orgResults) {
-                await searchSyncWorkerEmitter.triggerOrganizationSync(
-                  orgResult.tenantId,
-                  orgResult.organizationId,
-                  true,
-                )
+                if (orgResult.organizationId) {
+                  await searchSyncWorkerEmitter.triggerOrganizationSync(
+                    orgResult.tenantId,
+                    orgResult.organizationId,
+                    true,
+                  )
+                }
               }
             }
           }
