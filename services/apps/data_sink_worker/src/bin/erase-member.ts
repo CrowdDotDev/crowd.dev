@@ -1,13 +1,24 @@
 import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { getServiceChildLogger } from '@crowd/logging'
-import { DB_CONFIG } from '../conf'
+import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG, UNLEASH_CONFIG } from '../conf'
 import path from 'path'
 import fs from 'fs'
 import { generateUUIDv1 } from '@crowd/common'
+import { getServiceTracer } from '@crowd/tracing'
+import { getSqsClient } from '@crowd/sqs'
+import {
+  PriorityLevelContextRepository,
+  QueuePriorityContextLoader,
+  SearchSyncWorkerEmitter,
+} from '@crowd/common_services'
+import { getRedisClient } from '@crowd/redis'
+import { getUnleashClient } from '@crowd/feature-flags'
+import { MemberIdentityType } from '@crowd/types'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 const log = getServiceChildLogger('erase-member')
+const tracer = getServiceTracer()
 
 const processArguments = process.argv.slice(2)
 
@@ -27,6 +38,21 @@ setImmediate(async () => {
   const manualCheckFile = `manual_check_${new Date().toISOString().replace(/:/g, '-')}.txt`
   const dbConnection = await getDbConnection(DB_CONFIG())
   const store = new DbStore(log, dbConnection)
+  const sqsClient = getSqsClient(SQS_CONFIG())
+  const redisClient = await getRedisClient(REDIS_CONFIG())
+  const unleash = await getUnleashClient(UNLEASH_CONFIG())
+  const priorityLevelRepo = new PriorityLevelContextRepository(new DbStore(log, dbConnection), log)
+  const loader: QueuePriorityContextLoader = (tenantId: string) =>
+    priorityLevelRepo.loadPriorityLevelContext(tenantId)
+
+  const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(
+    sqsClient,
+    redisClient,
+    tracer,
+    unleash,
+    loader,
+    log,
+  )
 
   const pairs = []
   for (let i = 0; i < processArguments.length; i += 2) {
@@ -46,9 +72,11 @@ setImmediate(async () => {
   for (const pair of pairs.filter((p) => p.type !== 'name')) {
     params[`value_${index}`] = pair.value
     if (pair.type === 'email') {
-      conditions.push(`(type = 'email' and lower(value) = lower($(value_${index})))`)
+      conditions.push(
+        `(type = '${MemberIdentityType.EMAIL}' and lower(value) = lower($(value_${index})))`,
+      )
     } else {
-      params[`platform_${index}`] = pair.type
+      params[`platform_${index}`] = (pair.type as string).toLowerCase()
       conditions.push(
         `(platform = $(platform_${index}) and lower(value) = lower($(value_${index})))`,
       )
@@ -67,8 +95,16 @@ setImmediate(async () => {
     for (const eIdentity of existingIdentities) {
       try {
         await store.transactionally(async (t) => {
+          // get organization id for a member to sync later
+          const orgData = await store
+            .connection()
+            .one(`select "tenantId", "organizationId" from members where id = $(memberId)`, {
+              memberId: eIdentity.memberId,
+            })
+
           // mark identity for erasure
           await markIdentityForErasure(t, eIdentity.platform, eIdentity.type, eIdentity.value)
+
           if (!deletedMemberIds.includes(eIdentity.memberId)) {
             if (eIdentity.verified) {
               // delete the member and everything around it
@@ -76,6 +112,12 @@ setImmediate(async () => {
 
               // track so we don't delete the same member twice
               deletedMemberIds.push(eIdentity.memberId)
+
+              await searchSyncWorkerEmitter.triggerRemoveMember(
+                orgData.tenantId,
+                eIdentity.memberId,
+                true,
+              )
             } else {
               // just delete the identity
               await deleteMemberIdentity(
@@ -85,10 +127,21 @@ setImmediate(async () => {
                 eIdentity.type,
                 eIdentity.value,
               )
+              await searchSyncWorkerEmitter.triggerMemberSync(
+                orgData.tenantId,
+                eIdentity.memberId,
+                true,
+              )
+            }
+
+            if (orgData.organizationId) {
+              await searchSyncWorkerEmitter.triggerOrganizationSync(
+                orgData.tenantId,
+                orgData.organizationId,
+                true,
+              )
             }
           }
-
-          throw new Error('Rollback transaction')
         })
       } catch (err) {
         log.error(err, { eIdentity }, 'Failed to erase member identity!')
@@ -110,7 +163,7 @@ setImmediate(async () => {
       log.warn(
         `Found ${results.length} members with name: ${
           nameIdentity.value
-        }! Manual check required for member ids: [${results.map((r) => r.id)}]!`,
+        }! Manual check required for member ids: [${results.map((r) => r.id).join(', ')}]!`,
       )
     }
   }
