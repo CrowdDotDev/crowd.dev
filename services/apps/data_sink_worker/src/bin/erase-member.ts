@@ -97,24 +97,39 @@ setImmediate(async () => {
     log.info(`Found ${existingIdentities.length} existing identities.`)
 
     const deletedMemberIds = []
+    const orgDataMap: Map<string, any[]> = new Map()
+    const memberDataMap: Map<string, any> = new Map()
+
     for (const eIdentity of existingIdentities) {
       try {
         await store.transactionally(async (t) => {
           // get organization id for a member to sync later
-          const orgResults = await store
-            .connection()
-            .any(
-              `select distinct "tenantId", "organizationId" from activities where "memberId" = $(memberId)`,
-              {
-                memberId: eIdentity.memberId,
-              },
-            )
+          let orgResults: any[]
+          if (orgDataMap.has(eIdentity.memberId)) {
+            orgResults = orgDataMap.get(eIdentity.memberId)
+          } else {
+            orgResults = await store
+              .connection()
+              .any(
+                `select distinct "tenantId", "organizationId" from activities where "memberId" = $(memberId)`,
+                {
+                  memberId: eIdentity.memberId,
+                },
+              )
+            orgDataMap.set(eIdentity.memberId, orgResults)
+          }
 
-          const memberData = await store
-            .connection()
-            .one(`select * from members where id = $(memberId)`, {
-              memberId: eIdentity.memberId,
-            })
+          let memberData: any
+          if (memberDataMap.has(eIdentity.memberId)) {
+            memberData = memberDataMap.get(eIdentity.memberId)
+          } else {
+            memberData = await store
+              .connection()
+              .one(`select * from members where id = $(memberId)`, {
+                memberId: eIdentity.memberId,
+              })
+            memberDataMap.set(eIdentity.memberId, memberData)
+          }
 
           // mark identity for erasure
           await markIdentityForErasure(t, eIdentity.platform, eIdentity.type, eIdentity.value)
