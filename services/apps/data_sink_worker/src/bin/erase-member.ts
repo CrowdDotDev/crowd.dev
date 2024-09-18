@@ -53,6 +53,7 @@ setImmediate(async () => {
     loader,
     log,
   )
+  await searchSyncWorkerEmitter.init()
 
   const pairs = []
   for (let i = 0; i < processArguments.length; i += 2) {
