@@ -70,116 +70,119 @@ setImmediate(async () => {
   )
 
   const nameIdentity = pairs.find((p) => p.type === 'name')
+  const otherIdentities = pairs.filter((p) => p.type !== 'name')
 
-  const conditions: string[] = []
-  const params: any = {}
-  let index = 0
-  for (const pair of pairs.filter((p) => p.type !== 'name')) {
-    params[`value_${index}`] = pair.value
-    if (pair.type === 'email') {
-      conditions.push(
-        `(type = '${MemberIdentityType.EMAIL}' and lower(value) = lower($(value_${index})))`,
-      )
-    } else {
-      params[`platform_${index}`] = (pair.type as string).toLowerCase()
-      conditions.push(
-        `(platform = $(platform_${index}) and lower(value) = lower($(value_${index})))`,
-      )
+  if (otherIdentities.length > 0) {
+    const conditions: string[] = []
+    const params: any = {}
+    let index = 0
+    for (const pair of otherIdentities) {
+      params[`value_${index}`] = pair.value
+      if (pair.type === 'email') {
+        conditions.push(
+          `(type = '${MemberIdentityType.EMAIL}' and lower(value) = lower($(value_${index})))`,
+        )
+      } else {
+        params[`platform_${index}`] = (pair.type as string).toLowerCase()
+        conditions.push(
+          `(platform = $(platform_${index}) and lower(value) = lower($(value_${index})))`,
+        )
+      }
+
+      index++
     }
 
-    index++
-  }
+    const query = `select * from "memberIdentities" where ${conditions.join(' or ')}`
+    const existingIdentities = await store.connection().any(query, params)
 
-  const query = `select * from "memberIdentities" where ${conditions.join(' or ')}`
-  const existingIdentities = await store.connection().any(query, params)
+    if (existingIdentities.length > 0) {
+      log.info(`Found ${existingIdentities.length} existing identities.`)
 
-  if (existingIdentities.length > 0) {
-    log.info(`Found ${existingIdentities.length} existing identities.`)
+      const deletedMemberIds = []
+      const orgDataMap: Map<string, any[]> = new Map()
+      const memberDataMap: Map<string, any> = new Map()
 
-    const deletedMemberIds = []
-    const orgDataMap: Map<string, any[]> = new Map()
-    const memberDataMap: Map<string, any> = new Map()
-
-    for (const eIdentity of existingIdentities) {
-      try {
-        await store.transactionally(async (t) => {
-          // get organization id for a member to sync later
-          let orgResults: any[]
-          if (orgDataMap.has(eIdentity.memberId)) {
-            orgResults = orgDataMap.get(eIdentity.memberId)
-          } else {
-            orgResults = await store
-              .connection()
-              .any(
-                `select distinct "tenantId", "organizationId" from activities where "memberId" = $(memberId)`,
-                {
-                  memberId: eIdentity.memberId,
-                },
-              )
-            orgDataMap.set(eIdentity.memberId, orgResults)
-          }
-
-          let memberData: any
-          if (memberDataMap.has(eIdentity.memberId)) {
-            memberData = memberDataMap.get(eIdentity.memberId)
-          } else {
-            memberData = await store
-              .connection()
-              .one(`select * from members where id = $(memberId)`, {
-                memberId: eIdentity.memberId,
-              })
-            memberDataMap.set(eIdentity.memberId, memberData)
-          }
-
-          // mark identity for erasure
-          await markIdentityForErasure(t, eIdentity.platform, eIdentity.type, eIdentity.value)
-
-          if (!deletedMemberIds.includes(eIdentity.memberId)) {
-            if (eIdentity.verified) {
-              log.info({ tenantId: memberData.tenantId }, 'CLEANUP ACTIVITIES...')
-
-              // delete the member and everything around it
-              await deleteMemberFromDb(t, eIdentity.memberId)
-
-              // track so we don't delete the same member twice
-              deletedMemberIds.push(eIdentity.memberId)
-
-              await searchSyncWorkerEmitter.triggerRemoveMember(
-                memberData.tenantId,
-                eIdentity.memberId,
-                true,
-              )
+      for (const eIdentity of existingIdentities) {
+        try {
+          await store.transactionally(async (t) => {
+            // get organization id for a member to sync later
+            let orgResults: any[]
+            if (orgDataMap.has(eIdentity.memberId)) {
+              orgResults = orgDataMap.get(eIdentity.memberId)
             } else {
-              // just delete the identity
-              await deleteMemberIdentity(
-                t,
-                eIdentity.memberId,
-                eIdentity.platform,
-                eIdentity.type,
-                eIdentity.value,
-              )
-              await searchSyncWorkerEmitter.triggerMemberSync(
-                memberData.tenantId,
-                eIdentity.memberId,
-                true,
-              )
+              orgResults = await store
+                .connection()
+                .any(
+                  `select distinct "tenantId", "organizationId" from activities where "memberId" = $(memberId)`,
+                  {
+                    memberId: eIdentity.memberId,
+                  },
+                )
+              orgDataMap.set(eIdentity.memberId, orgResults)
             }
 
-            if (orgResults.length > 0) {
-              for (const orgResult of orgResults) {
-                if (orgResult.organizationId) {
-                  await searchSyncWorkerEmitter.triggerOrganizationSync(
-                    orgResult.tenantId,
-                    orgResult.organizationId,
-                    true,
-                  )
+            let memberData: any
+            if (memberDataMap.has(eIdentity.memberId)) {
+              memberData = memberDataMap.get(eIdentity.memberId)
+            } else {
+              memberData = await store
+                .connection()
+                .one(`select * from members where id = $(memberId)`, {
+                  memberId: eIdentity.memberId,
+                })
+              memberDataMap.set(eIdentity.memberId, memberData)
+            }
+
+            // mark identity for erasure
+            await markIdentityForErasure(t, eIdentity.platform, eIdentity.type, eIdentity.value)
+
+            if (!deletedMemberIds.includes(eIdentity.memberId)) {
+              if (eIdentity.verified) {
+                log.info({ tenantId: memberData.tenantId }, 'CLEANUP ACTIVITIES...')
+
+                // delete the member and everything around it
+                await deleteMemberFromDb(t, eIdentity.memberId)
+
+                // track so we don't delete the same member twice
+                deletedMemberIds.push(eIdentity.memberId)
+
+                await searchSyncWorkerEmitter.triggerRemoveMember(
+                  memberData.tenantId,
+                  eIdentity.memberId,
+                  true,
+                )
+              } else {
+                // just delete the identity
+                await deleteMemberIdentity(
+                  t,
+                  eIdentity.memberId,
+                  eIdentity.platform,
+                  eIdentity.type,
+                  eIdentity.value,
+                )
+                await searchSyncWorkerEmitter.triggerMemberSync(
+                  memberData.tenantId,
+                  eIdentity.memberId,
+                  true,
+                )
+              }
+
+              if (orgResults.length > 0) {
+                for (const orgResult of orgResults) {
+                  if (orgResult.organizationId) {
+                    await searchSyncWorkerEmitter.triggerOrganizationSync(
+                      orgResult.tenantId,
+                      orgResult.organizationId,
+                      true,
+                    )
+                  }
                 }
               }
             }
-          }
-        })
-      } catch (err) {
-        log.error(err, { eIdentity }, 'Failed to erase member identity!')
+          })
+        } catch (err) {
+          log.error(err, { eIdentity }, 'Failed to erase member identity!')
+        }
       }
     }
   }
