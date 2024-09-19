@@ -4,7 +4,7 @@
       <!-- App menu -->
       <lf-menu />
 
-      <el-container class="bg-white rounded-tl-2xl">
+      <el-container class="bg-white">
         <el-main id="main-page-wrapper" class="relative">
           <app-lf-banners />
           <router-view />
