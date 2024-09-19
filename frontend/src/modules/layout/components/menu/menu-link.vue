@@ -16,7 +16,7 @@
       :class="{ 'is-disabled': props.disabled }"
     >
       <lf-icon :name="props.icon" :size="16" />
-      <span v-if="!props.isCollapsed">
+      <span class="transition" :class="!props.isCollapsed ? 'opacity-100' : 'opacity-0'">
         {{ props.title }}
       </span>
     </component>
