@@ -50,7 +50,8 @@ export async function buildFullOrgForMergeSuggestions(
 
 export class OrganizationSyncService {
   private log: Logger
-  private readonly orgRepo: OrganizationRepository
+  private readonly readOrgRepo: OrganizationRepository
+  private readonly writeOrgRepo: OrganizationRepository
   private readonly indexingRepo: IndexingRepository
 
   constructor(
@@ -61,8 +62,8 @@ export class OrganizationSyncService {
   ) {
     this.log = getChildLogger('organization-sync-service', parentLog)
 
-    const store = readStore || writeStore
-    this.orgRepo = new OrganizationRepository(store, this.log)
+    this.readOrgRepo = new OrganizationRepository(readStore || writeStore, this.log)
+    this.writeOrgRepo = new OrganizationRepository(writeStore, this.log)
     this.indexingRepo = new IndexingRepository(writeStore, this.log)
   }
 
@@ -148,7 +149,7 @@ export class OrganizationSyncService {
 
     while (results.length > 0) {
       // check every organization if they exists in the database and if not remove them from the index
-      const dbIds = await this.orgRepo.checkOrganizationsExists(
+      const dbIds = await this.readOrgRepo.checkOrganizationsExists(
         tenantId,
         results.map((r) => r._source.uuid_organizationId),
       )
@@ -249,7 +250,7 @@ export class OrganizationSyncService {
 
     await logExecutionTime(
       async () => {
-        let organizationIds = await this.orgRepo.getTenantOrganizationsForSync(
+        let organizationIds = await this.readOrgRepo.getTenantOrganizationsForSync(
           tenantId,
           batchSize,
           previousBatchIds,
@@ -283,7 +284,7 @@ export class OrganizationSyncService {
           )
 
           previousBatchIds = organizationIds
-          organizationIds = await this.orgRepo.getTenantOrganizationsForSync(
+          organizationIds = await this.readOrgRepo.getTenantOrganizationsForSync(
             tenantId,
             batchSize,
             previousBatchIds,
@@ -310,7 +311,7 @@ export class OrganizationSyncService {
       for (const organizationId of organizationIds) {
         let orgData: IDbOrganizationAggregateData[] = []
         try {
-          const qx = repoQx(this.orgRepo)
+          const qx = repoQx(this.readOrgRepo)
           for (const type of Object.values(SegmentType)) {
             orgData = orgData.concat(await getOrgAggregates(qx, organizationId, type))
           }
@@ -320,7 +321,7 @@ export class OrganizationSyncService {
         }
 
         try {
-          await this.orgRepo.transactionally(
+          await this.writeOrgRepo.transactionally(
             async (txRepo) => {
               const qx = repoQx(txRepo)
               await cleanupForOganization(qx, organizationId)
@@ -357,7 +358,7 @@ export class OrganizationSyncService {
 
     const syncOrgsToOpensearchForMergeSuggestions = async (organizationIds) => {
       for (const orgId of organizationIds) {
-        const qx = repoQx(this.orgRepo)
+        const qx = repoQx(this.readOrgRepo)
         const base = await findOrgById(qx, orgId, [
           OrganizationField.ID,
           OrganizationField.TENANT_ID,

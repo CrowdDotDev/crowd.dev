@@ -219,7 +219,7 @@ const fetchingPreview = ref(false);
 const preview = ref(null);
 const selectedIdentity = ref(null);
 
-const { getOrganizationMergeActions } = useOrganizationStore();
+const { getOrganizationMergeActions, fetchOrganization } = useOrganizationStore();
 
 const parseIdentityValues = (identity) => {
   const splittedIdentity = identity.value?.split(':');
@@ -325,6 +325,7 @@ const unmerge = () => {
           title: 'Organizations unmerging in progress',
         },
       );
+      fetchOrganization(props.modelValue?.id);
       emit('update:modelValue', null);
     })
     .catch(() => {
