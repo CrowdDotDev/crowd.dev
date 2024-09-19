@@ -91,6 +91,13 @@ export function memberMergeAction<T>(entityId: string, captureFn: CaptureFn<T>):
   return modifyEntityAction(ActionType.MEMBERS_MERGE, entityId, captureFn)
 }
 
+export function memberUnmergeAction<T>(
+  entityId: string,
+  captureFn: CaptureFn<T>,
+): BuildActionFn<T> {
+  return modifyEntityAction(ActionType.MEMBERS_UNMERGE, entityId, captureFn)
+}
+
 export function memberCreateAction<T>(
   entityId: string,
   captureFn: CaptureOneFn<T>,
@@ -145,6 +152,13 @@ export function organizationMergeAction<T>(
   captureFn: CaptureFn<T>,
 ): BuildActionFn<T> {
   return modifyEntityAction(ActionType.ORGANIZATIONS_MERGE, entityId, captureFn)
+}
+
+export function organizationUnmergeAction<T>(
+  entityId: string,
+  captureFn: CaptureFn<T>,
+): BuildActionFn<T> {
+  return modifyEntityAction(ActionType.ORGANIZATIONS_UNMERGE, entityId, captureFn)
 }
 
 export function memberEditAffiliationsAction<T>(
