@@ -474,13 +474,22 @@ export default class ActivityService extends LoggerBase {
           } else {
             // we just remove the unverified identities that were marked to be erased and prevent them from being created
             member.identities = member.identities.filter((i) => {
-              return (
-                !i.verified &&
-                toErase.some(
-                  (e) => e.type === i.type && e.value === i.value && e.platform === i.platform,
-                )
+              if (i.verified) return true
+
+              const maybeToErase = toErase.find(
+                (e) => e.type === i.type && e.value === i.value && e.platform === i.platform,
               )
+
+              if (maybeToErase) return false
+              return true
             })
+
+            if (member.identities.filter((i) => i.value).length === 0) {
+              this.log.warn(
+                'Member had at least one unverified identity removed as it was requested to be removed! Now there is no identities left - skipping processing!',
+              )
+              return
+            }
           }
         }
       }
@@ -498,13 +507,22 @@ export default class ActivityService extends LoggerBase {
           } else {
             // we just remove the unverified identities that were marked to be erased and prevent them from being created
             objectMember.identities = objectMember.identities.filter((i) => {
-              return (
-                !i.verified &&
-                toErase.some(
-                  (e) => e.type === i.type && e.value === i.value && e.platform === i.platform,
-                )
+              if (i.verified) return true
+
+              const maybeToErase = toErase.find(
+                (e) => e.type === i.type && e.value === i.value && e.platform === i.platform,
               )
+
+              if (maybeToErase) return false
+              return true
             })
+
+            if (objectMember.identities.filter((i) => i.value).length === 0) {
+              this.log.warn(
+                'Object member had at least one unverified identity removed as it was requested to be removed! Now there is no identities left - skipping processing!',
+              )
+              return
+            }
           }
         }
       }
