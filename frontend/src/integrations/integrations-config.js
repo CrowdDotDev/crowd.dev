@@ -105,16 +105,16 @@ class IntegrationsConfig {
 
   getPlatformsLabel(platforms) {
     return platforms
-      .filter((platform) => !['integration_or_enrichment'].includes(platform))
+      .filter((platform) => !['integration_or_enrichment', 'email', 'integration', 'unknown', 'delete'].includes(platform))
       .map((platform) => {
         if (platform === 'lfid') {
           return 'LFID';
         }
-        if (platform === 'integration') {
-          return 'Integration';
+        if (['enrichment', 'peopledatalabs'].includes(platform)) {
+          return '<span class="ri-sparkling-line mr-0.5" />Enrichment';
         }
-        if (platform === 'enrichment') {
-          return 'Enrichment';
+        if (platform === 'custom') {
+          return 'Manually added';
         }
         return this.getConfig(platform)?.name || platform;
       }).join(', ');
@@ -125,6 +125,7 @@ class IntegrationsConfig {
       cvent,
       lfx,
       tnc,
+      training_cert: tnc,
     };
   }
 

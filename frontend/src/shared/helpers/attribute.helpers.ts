@@ -26,5 +26,5 @@ export const getAttributeSourceName = (attribute: Record<string, string>): strin
     return 0; // If both match or both don't match the criteria, keep their order
   });
   const selectedSource = prioritySortedSources[0];
-  return CrowdIntegrations.getConfig(selectedSource)?.name ?? `${selectedSource.charAt(0).toUpperCase()}${selectedSource.substring(1)}`;
+  return CrowdIntegrations.getPlatformsLabel([selectedSource]);
 };

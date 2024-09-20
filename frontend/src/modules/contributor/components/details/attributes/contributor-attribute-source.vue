@@ -1,6 +1,6 @@
 <template>
   <p v-if="source" class="text-tiny text-gray-400">
-    Source: <span :class="source === 'Enrichment' ? 'text-purple-500' : ''">{{ source }}</span>
+    Source: <span v-html="$sanitize(source)" />
   </p>
 </template>
 

@@ -47,7 +47,7 @@
         <lf-verified-identity-badge v-if="props.identity.verified" />
       </div>
       <p v-if="props.identity.platforms && CrowdIntegrations.getPlatformsLabel(props.identity.platforms)" class="text-tiny text-gray-400 pt-1.5">
-        Source: {{ CrowdIntegrations.getPlatformsLabel(props.identity.platforms) }}
+        Source: <span v-html="$sanitize(CrowdIntegrations.getPlatformsLabel(props.identity.platforms))" />
       </p>
     </div>
 

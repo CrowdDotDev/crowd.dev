@@ -1,6 +1,6 @@
 <template>
   <p v-if="source" class="text-tiny text-gray-400">
-    Source: <span :class="source === 'Enrichment' ? 'text-purple-500' : ''">{{ source }}</span>
+    Source: <span v-html="$sanitize(source)" />
   </p>
 </template>
 
@@ -39,7 +39,7 @@ const source = computed(() => {
     return 0;
   });
   const selectedSource = prioritySortedSources[0];
-  return CrowdIntegrations.getConfig(selectedSource)?.name ?? `${selectedSource.charAt(0).toUpperCase()}${selectedSource.substring(1)}`;
+  return CrowdIntegrations.getPlatformsLabel([selectedSource]);
 });
 </script>
 
