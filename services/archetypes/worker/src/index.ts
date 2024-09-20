@@ -34,7 +34,6 @@ const envvars = {
   queue:
     IS_DEV_ENV || IS_TEST_ENV
       ? [
-          'CROWD_QUEUE_VENDOR',
           'CROWD_SQS_AWS_REGION',
           'CROWD_SQS_HOST',
           'CROWD_SQS_PORT',
@@ -47,7 +46,6 @@ const envvars = {
           'CROWD_SQS_AWS_ACCESS_KEY_ID',
           'CROWD_SQS_AWS_SECRET_ACCESS_KEY',
           'CROWD_KAFKA_BROKERS',
-          'CROWD_QUEUE_VENDOR',
         ],
 }
 
