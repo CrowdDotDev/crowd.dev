@@ -107,11 +107,8 @@ class IntegrationsConfig {
     return platforms
       .filter((platform) => !['integration_or_enrichment', 'email', 'integration', 'unknown', 'delete'].includes(platform))
       .map((platform) => {
-        if (platform === 'lfid') {
-          return 'LFID';
-        }
         if (['enrichment', 'peopledatalabs'].includes(platform)) {
-          return '<span class="ri-sparkling-line mr-0.5" />Enrichment';
+          return '<span class="ri-sparkling-line mr-0.5"></span> Enrichment';
         }
         if (platform === 'custom') {
           return 'Manually added';
@@ -124,6 +121,7 @@ class IntegrationsConfig {
     return {
       cvent,
       lfx,
+      lfid: lfx,
       tnc,
       training_cert: tnc,
     };

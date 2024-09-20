@@ -19,7 +19,7 @@ const source = computed(() => {
   }
   const defaultValue: string | undefined = props.values.default;
   let sources = Object.keys(props.values)
-    .filter((key) => !['default', 'custom'].includes(key) && props.values[key].some((value: any) => isEqual(value, defaultValue)));
+    .filter((key) => !['default'].includes(key) && props.values[key].some((value: any) => isEqual(value, defaultValue)));
   if (!props.values.default) {
     sources = Object.keys(props.values);
   }

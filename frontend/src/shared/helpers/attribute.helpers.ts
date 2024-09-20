@@ -3,7 +3,7 @@ import { isEqual } from 'lodash';
 
 export const getAttributeSources = (attribute: Record<string, string>): string[] => {
   const defaultValue: string | undefined = attribute.default;
-  return Object.keys(attribute).filter((key) => !['default', 'custom'].includes(key) && isEqual(attribute[key], defaultValue));
+  return Object.keys(attribute).filter((key) => !['default'].includes(key) && isEqual(attribute[key], defaultValue));
 };
 
 export const getAttributeSourceName = (attribute: Record<string, string>): string | null => {

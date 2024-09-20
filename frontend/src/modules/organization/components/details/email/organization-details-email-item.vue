@@ -32,7 +32,7 @@
           </lf-tooltip>
         </div>
 
-        <p v-if="platformLabel(props.email.platforms)" class="mt-1.5 text-tiny text-gray-400">
+        <p v-if="platformLabel(props.email.platforms).length > 0" class="mt-1.5 text-tiny text-gray-400">
           Source: <span v-html="$sanitize(platformLabel(props.email.platforms))" />
         </p>
       </div>

@@ -40,13 +40,20 @@
           >
             {{ props.identity.value }}
           </a>
-          <p v-if="!platform(props.identity.platform) && !props.identity.platforms" class="text-medium text-gray-400 ml-1">
-            {{ props.identity.platform }}
+          <p
+            v-if="!platform(props.identity.platform) && !props.identity.platforms
+              && CrowdIntegrations.getPlatformsLabel([props.identity.platform]).length > 0"
+            class="text-medium text-gray-400 ml-1"
+          >
+            <span v-html="$sanitize(CrowdIntegrations.getPlatformsLabel([props.identity.platform]))" />
           </p>
         </div>
         <lf-verified-identity-badge v-if="props.identity.verified" />
       </div>
-      <p v-if="props.identity.platforms && CrowdIntegrations.getPlatformsLabel(props.identity.platforms)" class="text-tiny text-gray-400 pt-1.5">
+      <p
+        v-if="props.identity.platforms && CrowdIntegrations.getPlatformsLabel(props.identity.platforms).length > 0"
+        class="text-tiny text-gray-400 pt-1.5"
+      >
         Source: <span v-html="$sanitize(CrowdIntegrations.getPlatformsLabel(props.identity.platforms))" />
       </p>
     </div>
