@@ -1788,6 +1788,8 @@ export default class MemberService extends LoggerBase {
             )
           }
 
+          this.options.log.info('member update', JSON.stringify(data))
+
           const record = await MemberRepository.update(id, data, repoOptions, {
             manualChange,
           })
