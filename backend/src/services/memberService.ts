@@ -1380,7 +1380,7 @@ export default class MemberService extends LoggerBase {
             },
           }
 
-          this.options.log.info('secondary member merge', JSON.stringify(backup.secondary))
+          this.options.log.info('secondary member merge', JSON.stringify(backup.secondary.affiliations))
 
           await MergeActionsRepository.add(
             MergeActionType.MEMBER,
@@ -1440,8 +1440,8 @@ export default class MemberService extends LoggerBase {
 
           captureNewState({ primary: toUpdate })
 
-          this.options.log.info('original member merge', JSON.stringify(original))
-          this.options.log.info('toUpdate member merge', JSON.stringify(toUpdate))
+          this.options.log.info('original member merge', JSON.stringify(original.affiliations))
+          this.options.log.info('toUpdate member merge', JSON.stringify(toUpdate.affiliations))
 
           await txService.update(originalId, toUpdate, {
             syncToOpensearch: false,
