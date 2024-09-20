@@ -92,8 +92,6 @@ class MemberSegmentAffiliationRepository extends RepositoryBase<
           return
         }
 
-        this.options.log.info('setForMember', JSON.stringify(data))
-
         await insertMemberAffiliations(qx, memberId, data)
       }),
     )
