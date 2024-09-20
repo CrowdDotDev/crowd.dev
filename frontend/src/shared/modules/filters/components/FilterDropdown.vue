@@ -7,7 +7,7 @@
       </lf-button>
     </template>
 
-    <div class="border-b border-gray-100 p-2">
+    <div v-if="options.length > 5" class="border-b border-gray-100 p-2">
       <el-input
         ref="queryInput"
         v-model="search"

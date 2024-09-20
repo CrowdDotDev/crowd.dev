@@ -26,6 +26,8 @@ import { GroupsioActivityType } from './groupsio/types'
 import { ConfluenceActivityType } from './confluence/types'
 import { GerritActivityType } from './gerrit/types'
 import { JiraActivityType } from './jira/types'
+import { GitlabActivityType } from './gitlab/types'
+import { GITLAB_GRID } from './gitlab/grid'
 
 export const UNKNOWN_ACTIVITY_TYPE_DISPLAY: ActivityTypeDisplayProperties = {
   default: 'Conducted an activity',
@@ -35,12 +37,20 @@ export const UNKNOWN_ACTIVITY_TYPE_DISPLAY: ActivityTypeDisplayProperties = {
 }
 
 const githubUrl = 'https://github.com'
+const gitlabUrl = 'https://gitlab.com'
 
 const defaultGithubChannelFormatter = (channel) => {
   const channelSplit = channel.split('/')
   const organization = channelSplit[3]
   const repo = channelSplit[4]
   return `<a href="${githubUrl}/${organization}/${repo}" target="_blank">/${repo}</a>`
+}
+
+const defaultGitlabChannelFormatter = (channel) => {
+  const channelSplit = channel.split('/')
+  const organization = channelSplit[3]
+  const repo = channelSplit[4]
+  return `<a href="${gitlabUrl}/${organization}/${repo}" target="_blank">/${repo}</a>`
 }
 
 const defaultGitChannelFormatter = (channel) => {
@@ -1273,6 +1283,328 @@ export const DEFAULT_ACTIVITY_TYPE_SETTINGS: DefaultActivityTypes = {
             const prNumberAndTitle = `#${activity.url.split('/')[6]} ${activity.parent?.title}`
             return `<a href="${activity.url}" target="_blank">${prNumberAndTitle}</a>`
           },
+        },
+      },
+      isContribution: true,
+      calculateSentiment: false,
+    },
+  },
+  [PlatformType.GITLAB]: {
+    [GitlabActivityType.FORK]: {
+      display: {
+        default: 'forked {channel}',
+        short: 'forked',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultGitlabChannelFormatter,
+        },
+      },
+      isContribution: GITLAB_GRID.fork.isContribution,
+      calculateSentiment: false,
+    },
+    [GitlabActivityType.ISSUE_CLOSED]: {
+      display: {
+        default: 'closed an issue in {channel}',
+        short: 'closed an issue',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultGitlabChannelFormatter,
+        },
+      },
+      isContribution: GITLAB_GRID[GitlabActivityType.ISSUE_CLOSED].isContribution,
+      calculateSentiment: false,
+    },
+    [GitlabActivityType.ISSUE_OPENED]: {
+      display: {
+        default: 'opened a new issue in {channel}',
+        short: 'opened an issue',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultGitlabChannelFormatter,
+        },
+      },
+      isContribution: GITLAB_GRID[GitlabActivityType.ISSUE_OPENED].isContribution,
+      calculateSentiment: true,
+    },
+    [GitlabActivityType.ISSUE_COMMENT]: {
+      display: {
+        default: 'commented on an issue in {channel}',
+        short: 'commented on an issue',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultGitlabChannelFormatter,
+        },
+      },
+      isContribution: GITLAB_GRID[GitlabActivityType.ISSUE_COMMENT].isContribution,
+      calculateSentiment: true,
+    },
+    [GitlabActivityType.MERGE_REQUEST_CLOSED]: {
+      display: {
+        default: 'closed a merge request in {channel}',
+        short: 'closed a merge request',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultGitlabChannelFormatter,
+        },
+      },
+      isContribution: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_CLOSED].isContribution,
+      calculateSentiment: false,
+    },
+    [GitlabActivityType.MERGE_REQUEST_OPENED]: {
+      display: {
+        default: 'opened a merge request in {channel}',
+        short: 'opened a merge request',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultGitlabChannelFormatter,
+        },
+      },
+      isContribution: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_OPENED].isContribution,
+      calculateSentiment: true,
+    },
+    [GitlabActivityType.MERGE_REQUEST_COMMENT]: {
+      display: {
+        default: 'commented on a merge request in {channel}',
+        short: 'commented on a merge request',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultGitlabChannelFormatter,
+        },
+      },
+      isContribution: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_COMMENT].isContribution,
+      calculateSentiment: true,
+    },
+    [GitlabActivityType.STAR]: {
+      display: {
+        default: 'starred {channel}',
+        short: 'starred',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultGitlabChannelFormatter,
+        },
+      },
+      isContribution: GITLAB_GRID[GitlabActivityType.STAR].isContribution,
+      calculateSentiment: false,
+    },
+    [GitlabActivityType.MERGE_REQUEST_MERGED]: {
+      display: {
+        default: 'merged merge request {self}',
+        short: 'merged a merge request',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultGitlabChannelFormatter,
+          self: (activity) => {
+            const prNumberAndTitle = `#${activity.sourceParentId} ${activity.parent?.title}`
+            return `<a href="${activity.parent.url}" target="_blank">${prNumberAndTitle}</a>`
+          },
+        },
+      },
+      isContribution: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_MERGED].isContribution,
+      calculateSentiment: false,
+    },
+    [GitlabActivityType.MERGE_REQUEST_ASSIGNED]: {
+      display: {
+        default: 'assigned merge request {self}',
+        short: 'assigned a merge request',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultGitlabChannelFormatter,
+          self: (activity) => {
+            const prNumberAndTitle = `#${activity.sourceParentId} ${activity.parent?.title}`
+            return `<a href="${activity.parent.url}" style="max-width:150px" target="_blank">${prNumberAndTitle}</a> to <a href="/members/${activity.objectMemberId}" target="_blank">${activity.objectMember.displayName}</a>`
+          },
+        },
+      },
+      isContribution: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_ASSIGNED].isContribution,
+      calculateSentiment: false,
+    },
+    [GitlabActivityType.MERGE_REQUEST_REVIEW_APPROVED]: {
+      display: {
+        default: 'approved a merge request {self}',
+        short: 'approved a merge request',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultGitlabChannelFormatter,
+          self: (activity) => {
+            const prNumberAndTitle = `#${activity.sourceParentId} ${activity.parent?.title}`
+            return `<a href="${activity.parent.url}" style="max-width:150px" target="_blank">${prNumberAndTitle}</a>`
+          },
+        },
+      },
+      isContribution: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_REVIEW_APPROVED].isContribution,
+      calculateSentiment: false,
+    },
+    [GitlabActivityType.MERGE_REQUEST_REVIEW_CHANGES_REQUESTED]: {
+      display: {
+        default: 'requested changes for a merge request {self}',
+        short: 'requested changes for a merge request',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultGitlabChannelFormatter,
+          self: (activity) => {
+            const prNumberAndTitle = `#${activity.sourceParentId} ${activity.parent?.title}`
+            return `<a href="${activity.parent.url}" style="max-width:150px" target="_blank">${prNumberAndTitle}</a>`
+          },
+        },
+      },
+      isContribution:
+        GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_REVIEW_CHANGES_REQUESTED].isContribution,
+      calculateSentiment: false,
+    },
+    [GitlabActivityType.MERGE_REQUEST_REVIEW_REQUESTED]: {
+      display: {
+        default: 'requested a review for merge request {self}',
+        short: 'requested a merge request review',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultGitlabChannelFormatter,
+          self: (activity) => {
+            const prNumberAndTitle = `#${activity.sourceParentId} ${activity.parent?.title}`
+            return `<a href="${activity.parent.url}" style="max-width:150px" target="_blank">${prNumberAndTitle}</a> from <a href="/members/${activity.objectMemberId}" target="_blank">${activity.objectMember.displayName}</a>`
+          },
+        },
+      },
+      isContribution: GITLAB_GRID[GitlabActivityType.MERGE_REQUEST_REVIEW_REQUESTED].isContribution,
+      calculateSentiment: false,
+    },
+    [GitActivityType.AUTHORED_COMMIT]: {
+      display: {
+        default: 'authored a commit in {channel}',
+        short: 'authored a commit',
+        author: 'authored by',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultGitlabChannelFormatter,
+        },
+      },
+      isContribution: true,
+      calculateSentiment: false,
+    },
+    [GitActivityType.REVIEWED_COMMIT]: {
+      display: {
+        default: 'reviewed a commit in {channel}',
+        short: 'reviewed a commit',
+        author: 'reviewed by',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultGitlabChannelFormatter,
+        },
+      },
+      isContribution: true,
+      calculateSentiment: false,
+    },
+    [GitActivityType.TESTED_COMMIT]: {
+      display: {
+        default: 'tested a commit in {channel}',
+        short: 'tested a commit',
+        author: 'tested by',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultGitlabChannelFormatter,
+        },
+      },
+      isContribution: true,
+      calculateSentiment: false,
+    },
+    [GitActivityType.CO_AUTHORED_COMMIT]: {
+      display: {
+        default: 'co-authored a commit in {channel}',
+        short: 'co-authored a commit',
+        author: 'co-authored by',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultGitlabChannelFormatter,
+        },
+      },
+      isContribution: true,
+      calculateSentiment: false,
+    },
+    [GitActivityType.INFORMED_COMMIT]: {
+      display: {
+        default: 'informed a commit in {channel}',
+        short: 'informed a commit',
+        author: 'informed by',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultGitlabChannelFormatter,
+        },
+      },
+      isContribution: true,
+      calculateSentiment: false,
+    },
+    [GitActivityType.INFLUENCED_COMMIT]: {
+      display: {
+        default: 'influenced a commit in {channel}',
+        short: 'influenced a commit',
+        author: 'influenced by',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultGitlabChannelFormatter,
+        },
+      },
+      isContribution: true,
+      calculateSentiment: false,
+    },
+    [GitActivityType.APPROVED_COMMIT]: {
+      display: {
+        default: 'approved a commit in {channel}',
+        short: 'approved a commit',
+        author: 'approved by',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultGitlabChannelFormatter,
+        },
+      },
+      isContribution: true,
+      calculateSentiment: false,
+    },
+    [GitActivityType.COMMITTED_COMMIT]: {
+      display: {
+        default: 'committed in {channel}',
+        short: 'committed',
+        author: 'committed by',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultGitlabChannelFormatter,
+        },
+      },
+      isContribution: true,
+      calculateSentiment: false,
+    },
+    [GitActivityType.REPORTED_COMMIT]: {
+      display: {
+        default: 'reported a commit in {channel}',
+        short: 'reported a commit',
+        author: 'reported by',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultGitlabChannelFormatter,
+        },
+      },
+      isContribution: true,
+      calculateSentiment: false,
+    },
+    [GitActivityType.RESOLVED_COMMIT]: {
+      display: {
+        default: 'resolved a commit in {channel}',
+        short: 'resolved a commit',
+        author: 'resolved by',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultGitlabChannelFormatter,
+        },
+      },
+      isContribution: true,
+      calculateSentiment: false,
+    },
+    [GitActivityType.SIGNED_OFF_COMMIT]: {
+      display: {
+        default: 'signed off a commit in {channel}',
+        short: 'signed off a commit',
+        author: 'signed off by',
+        channel: '{channel}',
+        formatter: {
+          channel: defaultGitlabChannelFormatter,
         },
       },
       isContribution: true,

@@ -81,7 +81,7 @@ const props = defineProps<{
 const emit = defineEmits<{(e: 'update:modelValue', value: boolean): any}>();
 
 const { avatar } = useContributorHelpers();
-const { updateContributor } = useContributorStore();
+const { updateContributorAttributes } = useContributorStore();
 
 const defaultAvatar = avatar(props.contributor);
 
@@ -100,14 +100,12 @@ const sending = ref<boolean>(false);
 
 const update = () => {
   sending.value = true;
-  updateContributor(props.contributor.id, {
-    attributes: {
-      ...props.contributor.attributes,
-      avatarUrl: {
-        ...props.contributor.attributes.avatarUrl,
-        default: form.profilePhoto,
-        custom: form.profilePhoto,
-      },
+  updateContributorAttributes(props.contributor.id, {
+    ...props.contributor.attributes,
+    avatarUrl: {
+      ...props.contributor.attributes.avatarUrl,
+      default: form.profilePhoto,
+      custom: form.profilePhoto,
     },
   })
     .then(() => {

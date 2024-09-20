@@ -6,6 +6,8 @@ import downgradeExpiredPlans from './downgradeExpiredPlans'
 import cleanUp from './cleanUp'
 import checkStuckIntegrationRuns from './checkStuckIntegrationRuns'
 import refreshGroupsioToken from './refreshGroupsioToken'
+import refreshGitlabToken from './refreshGitlabToken'
+import refreshGithubRepoSettings from './refreshGithubRepoSettings'
 
 const jobs: CrowdJob[] = [
   integrationTicks,
@@ -15,6 +17,8 @@ const jobs: CrowdJob[] = [
   cleanUp,
   checkStuckIntegrationRuns,
   refreshGroupsioToken,
+  refreshGitlabToken,
+  refreshGithubRepoSettings,
 ]
 
 export default jobs

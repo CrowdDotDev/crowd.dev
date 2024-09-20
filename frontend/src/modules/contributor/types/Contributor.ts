@@ -20,11 +20,16 @@ export interface ContributorContribution {
 }
 
 export interface ContributorAffiliation {
-  dateStart: string | null;
+  id: string;
   dateEnd: string | null;
-  organizationId: string;
-  memberId: string;
+  dateStart: string | null;
+  organizationId: string | null;
+  organizationLogo: string;
+  organizationName: string;
   segmentId: string;
+  segmentName: string;
+  segmentParentName: string;
+  segmentSlug: string;
 }
 
 export interface ContributorReach {
@@ -45,6 +50,7 @@ export interface ContributorIdentity {
   value: string;
   verified: boolean;
   sourceId: string | null;
+  integrationId?: string | null;
   // Computed properties
   platforms?: string[];
   url?: string;

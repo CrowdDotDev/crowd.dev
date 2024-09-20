@@ -335,14 +335,13 @@ const segments = computed(() => {
   if (!props.entity.segments) {
     return getSegmentsFromProjectGroup(selectedProjectGroup.value)?.map((s) => subprojects.value[s]) || [];
   }
-
   return props.entity.segments?.map((s) => {
     if (typeof s === 'string') {
       return subprojects.value[s];
     }
 
     return s;
-  }) || [];
+  }).filter((s) => !!s) || [];
 });
 
 const fetchActivities = async ({ reset } = { reset: false }) => {

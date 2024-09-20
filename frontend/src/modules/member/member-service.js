@@ -119,6 +119,7 @@ export class MemberService {
           include: {
             identities: true,
             memberOrganizations: true,
+            attributes: true,
           },
         },
       },

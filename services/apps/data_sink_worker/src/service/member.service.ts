@@ -11,6 +11,7 @@ import {
   isEmail,
   EDITION,
   getProperDisplayName,
+  getEarliestValidDate,
 } from '@crowd/common'
 import { DbStore } from '@crowd/data-access-layer/src/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
@@ -28,7 +29,6 @@ import {
 } from '@crowd/types'
 import mergeWith from 'lodash.mergewith'
 import isEqual from 'lodash.isequal'
-import moment from 'moment-timezone'
 import { IMemberCreateData, IMemberUpdateData } from './member.data'
 import MemberAttributeService from './memberAttribute.service'
 import IntegrationRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/integration.repo'
@@ -641,23 +641,8 @@ export default class MemberService extends LoggerBase {
     if (member.joinedAt) {
       const newDate = member.joinedAt
       const oldDate = new Date(dbMember.joinedAt)
-      // If either the new or the old date are earlier than 1970
-      // it means they come from an activity without timestamp
-      // and we want to keep the other one
-      if (moment(oldDate).subtract(5, 'days').unix() < 0) {
-        joinedAt = newDate.toISOString()
-      }
-      if (moment(newDate).unix() < 0) {
-        joinedAt = undefined
-      }
 
-      if (oldDate <= newDate) {
-        // we already have the oldest date in the db, so we don't need to update it
-        joinedAt = undefined
-      } else {
-        // we have a new date and it's older, so we need to update it
-        joinedAt = newDate.toISOString()
-      }
+      joinedAt = getEarliestValidDate(oldDate, newDate).toISOString()
     }
 
     let identitiesToCreate: IMemberIdentity[] | undefined

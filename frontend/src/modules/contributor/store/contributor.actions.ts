@@ -1,18 +1,22 @@
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';
 import { ContributorApiService } from '@/modules/contributor/services/contributor.api.service';
-import { Contributor, ContributorIdentity } from '@/modules/contributor/types/Contributor';
+import { Contributor, ContributorAffiliation, ContributorIdentity } from '@/modules/contributor/types/Contributor';
 import { ContributorIdentitiesApiService } from '@/modules/contributor/services/contributor.identities.api.service';
 import { MergeActionsService } from '@/shared/modules/merge/services/merge-actions.service';
 import { MergeAction } from '@/shared/modules/merge/types/MemberActions';
 import { MemberOrganization, Organization } from '@/modules/organization/types/Organization';
 import { ContributorOrganizationsApiService } from '@/modules/contributor/services/contributor.organizations.api.service';
+import { ContributorAffiliationsApiService } from '@/modules/contributor/services/contributor.affiliations.api.service';
+import { ContributorAttributesApiService } from '@/modules/contributor/services/contributor.attributes.api.service';
 
 export default {
   getContributor(id: string): Promise<Contributor> {
     const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
     this.getContributorIdentities(id);
     this.getContributorOrganizations(id);
+    this.getContributorAttributes(id);
+    this.getContributorAffiliations(id);
 
     return ContributorApiService.find(id, [selectedProjectGroup.value?.id as string])
       .then((contributor) => {
@@ -73,7 +77,7 @@ export default {
       .then(this.setIdentities);
   },
 
-  /** IDENTITIES * */
+  /** Organizations * */
   setOrganizations(organizations: Organization[]) {
     this.contributor = {
       ...this.contributor,
@@ -97,5 +101,42 @@ export default {
   deleteContributorOrganization(memberId: string, id: string): Promise<Organization[]> {
     return ContributorOrganizationsApiService.delete(memberId, id)
       .then(this.setOrganizations);
+  },
+
+  /** Affiliations * */
+  setAffiliations(affiliations: ContributorAffiliation[]) {
+    this.contributor = {
+      ...this.contributor,
+      affiliations,
+    };
+    return Promise.resolve(affiliations);
+  },
+  getContributorAffiliations(memberId: string) {
+    const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
+    return ContributorAffiliationsApiService.list(memberId, [selectedProjectGroup.value?.id as string])
+      .then(this.setAffiliations);
+  },
+
+  updateContributorAffiliations(memberId: string, affiliations: Partial<ContributorAffiliation>[]): Promise<ContributorAffiliation[]> {
+    return ContributorAffiliationsApiService.updateMultiple(memberId, affiliations)
+      .then(this.setAffiliations);
+  },
+
+  /** Attributes * */
+  setAttributes(attributes: any) {
+    this.contributor = {
+      ...this.contributor,
+      attributes,
+    };
+    return Promise.resolve(attributes);
+  },
+  getContributorAttributes(memberId: string) {
+    const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
+    return ContributorAttributesApiService.list(memberId, [selectedProjectGroup.value?.id as string])
+      .then(this.setAttributes);
+  },
+  updateContributorAttributes(memberId: string, attributes: any): Promise<Organization[]> {
+    return ContributorAttributesApiService.update(memberId, attributes)
+      .then(this.setAttributes);
   },
 };

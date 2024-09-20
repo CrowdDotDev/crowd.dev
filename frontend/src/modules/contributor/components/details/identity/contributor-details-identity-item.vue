@@ -44,13 +44,7 @@
             {{ props.identity.platform }}
           </p>
         </div>
-        <lf-tooltip v-if="props.identity.verified" content="Verified identity">
-          <lf-icon
-            name="verified-badge-line"
-            :size="16"
-            class="ml-1 text-primary-500"
-          />
-        </lf-tooltip>
+        <lf-verified-identity-badge v-if="props.identity.verified" />
       </div>
       <p v-if="props.identity.platforms && CrowdIntegrations.getPlatformsLabel(props.identity.platforms)" class="text-tiny text-gray-400 pt-1.5">
         Source: {{ CrowdIntegrations.getPlatformsLabel(props.identity.platforms) }}
@@ -80,46 +74,6 @@
           @click="emit('edit')"
         >
           <lf-icon name="pencil-line" />Edit identity
-        </lf-dropdown-item>
-      </lf-tooltip>
-
-      <lf-dropdown-separator />
-
-      <!-- Verified -->
-      <lf-tooltip
-        v-if="props.identity.verified"
-        placement="top"
-        :disabled="!isVerifyDisabled"
-        class="!w-full"
-      >
-        <template #content>
-          Identities tracked from an Integrations<br> can’t be unverified
-        </template>
-        <lf-dropdown-item
-          v-if="props.identity.verified"
-          placement="top"
-          :disabled="isVerifyDisabled"
-          class="w-full"
-          @click="verifyIdentity(false)"
-        >
-          <lf-svg name="unverify" class="!h-4 !w-4 text-gray-600" />Unverify identity
-        </lf-dropdown-item>
-      </lf-tooltip>
-      <lf-tooltip
-        v-else
-        placement="top"
-        :disabled="!isVerifyDisabled"
-        class="!w-full"
-      >
-        <template #content>
-          Identities tracked from an Integrations<br> can’t be verified
-        </template>
-        <lf-dropdown-item
-          :disabled="isVerifyDisabled"
-          class="w-full"
-          @click="verifyIdentity(true)"
-        >
-          <lf-icon name="verified-badge-line" />Verify identity
         </lf-dropdown-item>
       </lf-tooltip>
 
@@ -162,10 +116,10 @@ import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import LfDropdownSeparator from '@/ui-kit/dropdown/DropdownSeparator.vue';
 import Message from '@/shared/message/message';
 import { useContributorStore } from '@/modules/contributor/store/contributor.store';
-import LfSvg from '@/shared/svg/svg.vue';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import { computed, ref } from 'vue';
+import LfVerifiedIdentityBadge from '@/shared/modules/identities/components/verified-identity-badge.vue';
 
 const props = defineProps<{
   identity: ContributorIdentity,
@@ -176,15 +130,11 @@ const emit = defineEmits<{(e: 'edit'): void, (e: 'unmerge'): void }>();
 
 const { hasPermission } = usePermissions();
 
-const { updateContributorIdentity, deleteContributorIdentity } = useContributorStore();
+const { deleteContributorIdentity } = useContributorStore();
 
 const hovered = ref(false);
 
 const platform = (name: string) => CrowdIntegrations.getConfig(name);
-
-const isVerifyDisabled = computed(
-  () => !!props.identity.sourceId || ['integration', 'lfid'].includes(props.identity.platform),
-);
 
 const editingDisabled = computed(() => {
   if (['git'].includes(props.identity.platform)) {
@@ -194,19 +144,6 @@ const editingDisabled = computed(() => {
     ? props.contributor.activeOn?.includes(props.identity.platform)
     : false;
 });
-
-const verifyIdentity = (verified: boolean) => {
-  updateContributorIdentity(props.contributor.id, props.identity.id, {
-    ...props.identity,
-    verified,
-  })
-    .catch(() => {
-      Message.error('Something went wrong while updating an identity');
-    })
-    .then(() => {
-      Message.success('Identity updated successfully');
-    });
-};
 
 const removeIdentity = () => {
   deleteContributorIdentity(props.contributor.id, props.identity.id)

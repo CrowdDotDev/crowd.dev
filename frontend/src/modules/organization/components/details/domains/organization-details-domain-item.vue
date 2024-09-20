@@ -44,44 +44,6 @@
           <lf-icon name="pencil-line" />Edit domain
         </lf-dropdown-item>
 
-        <!-- Verified -->
-        <lf-tooltip
-          v-if="props.domain.verified"
-          placement="top"
-          :disabled="!isVerifyDisabled"
-          class="!w-full"
-        >
-          <template #content>
-            Domains tracked from an Integrations<br> can’t be unverified
-          </template>
-          <lf-dropdown-item
-            v-if="props.domain.verified"
-            placement="top"
-            :disabled="isVerifyDisabled"
-            class="w-full"
-            @click="verifyDomain(false)"
-          >
-            <lf-svg name="unverify" class="!h-4 !w-4 text-gray-600" />Unverify domain
-          </lf-dropdown-item>
-        </lf-tooltip>
-        <lf-tooltip
-          v-else-if="showVerified"
-          placement="top"
-          :disabled="!isVerifyDisabled"
-          class="!w-full"
-        >
-          <template #content>
-            Domains tracked from an Integrations<br> can’t be verified
-          </template>
-          <lf-dropdown-item
-            :disabled="isVerifyDisabled"
-            class="w-full"
-            @click="verifyDomain(true)"
-          >
-            <lf-icon name="verified-badge-line" />Verify domain
-          </lf-dropdown-item>
-        </lf-tooltip>
-
         <!-- Unmerge -->
         <lf-dropdown-item @click="emit('unmerge')">
           <lf-icon name="link-unlink" />Unmerge domain
@@ -119,8 +81,7 @@ import { CrowdIntegrations } from '@/integrations/integrations-config';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
-import LfSvg from '@/shared/svg/svg.vue';
-import { computed, ref } from 'vue';
+import { ref } from 'vue';
 import Message from '@/shared/message/message';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
@@ -139,37 +100,6 @@ const { hasPermission } = usePermissions();
 const { updateOrganization } = useOrganizationStore();
 
 const hovered = ref(false);
-
-const isVerifyDisabled = computed(
-  () => !!props.domain.sourceId || ['integration', 'lfid'].includes(props.domain.platform),
-);
-
-const showVerified = computed(() => props.domain.type !== OrganizationIdentityType.PRIMARY_DOMAIN
-    || !props.organization.identities.some((i) => i.verified && i.type === OrganizationIdentityType.PRIMARY_DOMAIN));
-
-const verifyDomain = (verified: boolean) => {
-  const identities = props.organization.identities.map((i: OrganizationIdentity) => {
-    if (i.platform === props.domain?.platform
-        && i.type === props.domain?.type
-        && i.value === props.domain?.value) {
-      return {
-        ...i,
-        verified,
-      };
-    }
-    return i;
-  });
-
-  updateOrganization(props.organization.id, {
-    identities,
-  })
-    .catch(() => {
-      Message.error('Something went wrong while updating an domain');
-    })
-    .then(() => {
-      Message.success('Domain updated successfully');
-    });
-};
 
 const removeDomain = () => {
   const identities = props.organization.identities

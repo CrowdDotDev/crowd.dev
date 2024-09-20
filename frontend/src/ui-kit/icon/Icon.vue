@@ -1,5 +1,5 @@
 <template>
-  <i :class="`ri-${props.name}`" :style="sizeStyle" class="flex items-center" />
+  <i :class="`ri-${props.name}`" :style="sizeStyle" class="flex items-center c-icon" />
 </template>
 
 <script lang="ts" setup>

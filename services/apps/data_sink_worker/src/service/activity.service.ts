@@ -8,9 +8,11 @@ import {
 } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/activity.data'
 import ActivityRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/activity.repo'
 import GithubReposRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/githubRepos.repo'
+import GitlabReposRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/gitlabRepos.repo'
 import IntegrationRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/integration.repo'
 import MemberRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.repo'
 import SettingsRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/settings.repo'
+import RequestedForErasureMemberIdentitiesRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/requestedForErasureMemberIdentities.repo'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
 import { ISentimentAnalysisResult, getSentiment } from '@crowd/sentiment'
@@ -420,7 +422,7 @@ export default class ActivityService extends LoggerBase {
               type: MemberIdentityType.USERNAME,
               verified: true,
             },
-          ],
+
         }
       }
 
@@ -453,6 +455,75 @@ export default class ActivityService extends LoggerBase {
         }
       }
 
+      const repo = new RequestedForErasureMemberIdentitiesRepository(this.store, this.log)
+
+      // check if member or object member have identities that were requested to be erased by the user
+      if (member && member.identities.length > 0) {
+        const toErase = await repo.someIdentitiesWereErasedByUserRequest(member.identities)
+        if (toErase.length > 0) {
+          // prevent member/activity creation of one of the identities that are marked to be erased are verified
+          if (toErase.some((i) => i.verified)) {
+            this.log.warn(
+              { memberIdentities: member.identities },
+              'Member has identities that were requested to be erased by the user! Skipping activity processing!',
+            )
+            return
+          } else {
+            // we just remove the unverified identities that were marked to be erased and prevent them from being created
+            member.identities = member.identities.filter((i) => {
+              if (i.verified) return true
+
+              const maybeToErase = toErase.find(
+                (e) => e.type === i.type && e.value === i.value && e.platform === i.platform,
+              )
+
+              if (maybeToErase) return false
+              return true
+            })
+
+            if (member.identities.filter((i) => i.value).length === 0) {
+              this.log.warn(
+                'Member had at least one unverified identity removed as it was requested to be removed! Now there is no identities left - skipping processing!',
+              )
+              return
+            }
+          }
+        }
+      }
+
+      if (objectMember && objectMember.identities.length > 0) {
+        const toErase = await repo.someIdentitiesWereErasedByUserRequest(objectMember.identities)
+        if (toErase.length > 0) {
+          // prevent member/activity creation of one of the identities that are marked to be erased are verified
+          if (toErase.some((i) => i.verified)) {
+            this.log.warn(
+              { objectMemberIdentities: objectMember.identities },
+              'Object member has identities that were requested to be erased by the user! Skipping activity processing!',
+            )
+            return
+          } else {
+            // we just remove the unverified identities that were marked to be erased and prevent them from being created
+            objectMember.identities = objectMember.identities.filter((i) => {
+              if (i.verified) return true
+
+              const maybeToErase = toErase.find(
+                (e) => e.type === i.type && e.value === i.value && e.platform === i.platform,
+              )
+
+              if (maybeToErase) return false
+              return true
+            })
+
+            if (objectMember.identities.filter((i) => i.value).length === 0) {
+              this.log.warn(
+                'Object member had at least one unverified identity removed as it was requested to be removed! Now there is no identities left - skipping processing!',
+              )
+              return
+            }
+          }
+        }
+      }
+
       let memberId: string
       let objectMemberId: string | undefined
       let activityId: string
@@ -480,6 +551,7 @@ export default class ActivityService extends LoggerBase {
           const txIntegrationRepo = new IntegrationRepository(txStore, this.log)
           const txMemberAffiliationService = new MemberAffiliationService(txStore, this.log)
           const txGithubReposRepo = new GithubReposRepository(txStore, this.log)
+          const txGitlabReposRepo = new GitlabReposRepository(txStore, this.log)
 
           segmentId = providedSegmentId
           if (!segmentId) {
@@ -488,10 +560,18 @@ export default class ActivityService extends LoggerBase {
               tenantId,
               activity.channel,
             )
-            segmentId =
-              platform === PlatformType.GITHUB && repoSegmentId
-                ? repoSegmentId
-                : dbIntegration.segmentId
+            const gitlabRepoSegmentId = await txGitlabReposRepo.findSegmentForRepo(
+              tenantId,
+              activity.channel,
+            )
+
+            if (platform === PlatformType.GITLAB && gitlabRepoSegmentId) {
+              segmentId = gitlabRepoSegmentId
+            } else if (platform === PlatformType.GITHUB && repoSegmentId) {
+              segmentId = repoSegmentId
+            } else {
+              segmentId = dbIntegration.segmentId
+            }
           }
 
           // find existing activity

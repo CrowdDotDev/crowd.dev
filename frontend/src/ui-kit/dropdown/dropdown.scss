@@ -61,6 +61,23 @@
         @apply bg-white;
       }
     }
+
+    // Disabled
+    &.is-selected{
+      @apply bg-primary-50 font-semibold justify-between;
+
+      &:after{
+        content: "\eb7b";
+        font-size: 1rem;
+        font-family: 'remixicon', serif !important;
+        font-style: normal;
+        @apply text-primary-500;
+      }
+
+      &:hover{
+        @apply bg-primary-50;
+      }
+    }
   }
 
 

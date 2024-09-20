@@ -21,7 +21,6 @@ const isActive = computed<boolean>(() => (route?.hash.substring(1) || props.mode
 const selectTab = () => {
   router?.push({
     hash: `#${props.name}`,
-    query: {},
   });
 };
 </script>

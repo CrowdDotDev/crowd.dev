@@ -1,6 +1,13 @@
 /* eslint-disable no-continue */
 
-import { Error400, isDomainExcluded, singleOrDefault, getProperDisplayName } from '@crowd/common'
+import {
+  SERVICE,
+  Error400,
+  isDomainExcluded,
+  singleOrDefault,
+  getProperDisplayName,
+  getEarliestValidDate,
+} from '@crowd/common'
 import { LoggerBase } from '@crowd/logging'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
 import {
@@ -24,7 +31,12 @@ import { randomUUID } from 'crypto'
 import lodash from 'lodash'
 import moment from 'moment-timezone'
 import validator from 'validator'
-import { captureApiChange, memberEditIdentitiesAction, memberMergeAction } from '@crowd/audit-logs'
+import {
+  captureApiChange,
+  memberEditIdentitiesAction,
+  memberMergeAction,
+  memberUnmergeAction,
+} from '@crowd/audit-logs'
 import {
   addMemberNotes,
   addMemberTags,
@@ -672,204 +684,226 @@ export default class MemberService extends LoggerBase {
     delete payload.secondary.organizations
 
     try {
-      const qx = SequelizeRepository.getQueryExecutor(this.options)
-      const member = await findMemberById(qx, memberId, [MemberField.ID, MemberField.DISPLAY_NAME])
-      const [memberTasks, memberTags, memberNotes] = await Promise.all([
-        (await findMemberTasks(qx, memberId)).map((t) => ({ id: t.taskId })),
-        (await findMemberTags(qx, memberId)).map((t) => ({ id: t.tagId })),
-        (await findMemberNotes(qx, memberId)).map((t) => ({ id: t.noteId })),
-      ])
+      const { member, secondaryMember } = await captureApiChange(
+        this.options,
+        memberUnmergeAction(memberId, async (captureOldState, captureNewState) => {
+          const qx = SequelizeRepository.getQueryExecutor(this.options)
+          const member = await findMemberById(qx, memberId, [
+            MemberField.ID,
+            MemberField.DISPLAY_NAME,
+          ])
+          const [memberTasks, memberTags, memberNotes] = await Promise.all([
+            (await findMemberTasks(qx, memberId)).map((t) => ({ id: t.taskId })),
+            (await findMemberTags(qx, memberId)).map((t) => ({ id: t.tagId })),
+            (await findMemberNotes(qx, memberId)).map((t) => ({ id: t.noteId })),
+          ])
 
-      const repoOptions: IRepositoryOptions =
-        await SequelizeRepository.createTransactionalRepositoryOptions(this.options)
-      tx = repoOptions.transaction
+          captureOldState({
+            primary: payload.primary,
+          })
 
-      const txqx = SequelizeRepository.getQueryExecutor(repoOptions, tx)
+          const repoOptions: IRepositoryOptions =
+            await SequelizeRepository.createTransactionalRepositoryOptions(this.options)
+          tx = repoOptions.transaction
 
-      // remove identities in secondary member from primary member
-      await MemberRepository.removeIdentitiesFromMember(
-        memberId,
-        payload.secondary.identities.filter(
-          (i) =>
-            i.verified === undefined || // backwards compatibility for old identity backups
-            i.verified === true ||
-            (i.verified === false &&
-              !payload.primary.identities.some(
-                (pi) =>
-                  pi.verified === false &&
-                  pi.platform === i.platform &&
-                  pi.value === i.value &&
-                  pi.type === i.type,
-              )),
-        ),
-        repoOptions,
-      )
+          const txqx = SequelizeRepository.getQueryExecutor(repoOptions, tx)
 
-      // we need to exclude identities in secondary that still exists in some other member
-      const identitiesToExclude = await MemberRepository.findAlreadyExistingIdentities(
-        payload.secondary.identities.filter((i) => i.verified),
-        repoOptions,
-      )
-
-      payload.secondary.identities = payload.secondary.identities.filter(
-        (i) =>
-          !identitiesToExclude.some(
-            (ie) =>
-              ie.platform === i.platform &&
-              ie.value === i.value &&
-              ie.type === i.type &&
-              ie.verified,
-          ),
-      )
-
-      // create the secondary member
-      const secondaryMember = await MemberRepository.create(payload.secondary, repoOptions)
-
-      // track merge action
-      await MergeActionsRepository.add(
-        MergeActionType.MEMBER,
-        member.id,
-        secondaryMember.id,
-        repoOptions,
-        MergeActionStep.UNMERGE_STARTED,
-        MergeActionState.IN_PROGRESS,
-      )
-
-      // move affiliations
-      if (payload.secondary.affiliations.length > 0) {
-        await MemberRepository.moveSelectedAffiliationsBetweenMembers(
-          memberId,
-          secondaryMember.id,
-          payload.secondary.affiliations.map((a) => a.id),
-          repoOptions,
-        )
-      }
-
-      // move tags
-      if (payload.secondary.tags.length > 0) {
-        await addMemberTags(
-          txqx,
-          secondaryMember.id,
-          payload.secondary.tags.map((t) => t.id),
-        )
-        // check if anything to delete in primary
-        const tagsToDelete = memberTags.filter(
-          (t) => !payload.primary.tags.some((pt) => pt.id === t.id),
-        )
-        if (tagsToDelete.length > 0) {
-          await removeMemberTags(
-            txqx,
+          // remove identities in secondary member from primary member
+          await MemberRepository.removeIdentitiesFromMember(
             memberId,
-            tagsToDelete.map((t) => t.id),
-          )
-        }
-      }
-
-      // move tasks
-      if (payload.secondary.tasks.length > 0) {
-        await addMemberTasks(
-          txqx,
-          secondaryMember.id,
-          payload.secondary.tasks.map((t) => t.id),
-        )
-        // check if anything to delete in primary
-        const tasksToDelete = memberTasks.filter(
-          (t) => !payload.primary.tasks.some((pt) => pt.id === t.id),
-        )
-        if (tasksToDelete.length > 0) {
-          await removeMemberTasks(
-            txqx,
-            memberId,
-            tasksToDelete.map((t) => t.id),
-          )
-        }
-      }
-
-      // move notes
-      if (payload.secondary.notes.length > 0) {
-        await addMemberNotes(
-          txqx,
-          secondaryMember.id,
-          payload.secondary.notes.map((n) => n.id),
-        )
-        // check if anything to delete in primary
-        const notesToDelete = memberNotes.filter(
-          (n) => !payload.primary.notes.some((pn) => pn.id === n.id),
-        )
-        if (notesToDelete.length > 0) {
-          await removeMemberNotes(
-            txqx,
-            memberId,
-            notesToDelete.map((n) => n.id),
-          )
-        }
-      }
-
-      // move memberOrganizations
-      if (payload.secondary.memberOrganizations.length > 0) {
-        const nonExistingOrganizationIds = await OrganizationRepository.findNonExistingIds(
-          payload.secondary.memberOrganizations.map((o) => o.organizationId),
-          repoOptions,
-        )
-        for (const role of payload.secondary.memberOrganizations.filter(
-          (r) => !nonExistingOrganizationIds.includes(r.organizationId),
-        )) {
-          await MemberOrganizationRepository.addMemberRole(
-            { ...role, memberId: secondaryMember.id },
+            payload.secondary.identities.filter(
+              (i) =>
+                i.verified === undefined || // backwards compatibility for old identity backups
+                i.verified === true ||
+                (i.verified === false &&
+                  !payload.primary.identities.some(
+                    (pi) =>
+                      pi.verified === false &&
+                      pi.platform === i.platform &&
+                      pi.value === i.value &&
+                      pi.type === i.type,
+                  )),
+            ),
             repoOptions,
           )
-        }
 
-        const memberOrganizations = await MemberOrganizationRepository.findMemberRoles(
-          member.id,
-          repoOptions,
-        )
-        // check if anything to delete in primary
-        const rolesToDelete = memberOrganizations.filter(
-          (r) =>
-            r.source !== 'ui' &&
-            !payload.primary.memberOrganizations.some(
-              (pr) =>
-                pr.organizationId === r.organizationId &&
-                pr.title === r.title &&
-                pr.dateStart === r.dateStart &&
-                pr.dateEnd === r.dateEnd,
-            ),
-        )
+          // we need to exclude identities in secondary that still exists in some other member
+          const identitiesToExclude = await MemberRepository.findAlreadyExistingIdentities(
+            payload.secondary.identities.filter((i) => i.verified),
+            repoOptions,
+          )
 
-        for (const role of rolesToDelete) {
-          await MemberOrganizationRepository.removeMemberRole(role, repoOptions)
-        }
-      }
+          payload.secondary.identities = payload.secondary.identities.filter(
+            (i) =>
+              !identitiesToExclude.some(
+                (ie) =>
+                  ie.platform === i.platform &&
+                  ie.value === i.value &&
+                  ie.type === i.type &&
+                  ie.verified,
+              ),
+          )
 
-      // delete relations from payload, since we already handled those
-      delete payload.primary.identities
-      delete payload.primary.username
-      delete payload.primary.memberOrganizations
-      delete payload.primary.organizations
-      delete payload.primary.tags
-      delete payload.primary.notes
-      delete payload.primary.tasks
-      delete payload.primary.affiliations
+          // create the secondary member
+          const secondaryMember = await MemberRepository.create(payload.secondary, repoOptions)
 
-      // update rest of the primary member fields
-      await MemberRepository.update(memberId, payload.primary, repoOptions)
+          // track merge action
+          await MergeActionsRepository.add(
+            MergeActionType.MEMBER,
+            member.id,
+            secondaryMember.id,
+            repoOptions,
+            MergeActionStep.UNMERGE_STARTED,
+            MergeActionState.IN_PROGRESS,
+          )
 
-      // add primary and secondary to no merge so they don't get suggested again
-      await MemberRepository.addNoMerge(memberId, secondaryMember.id, repoOptions)
+          // move affiliations
+          if (payload.secondary.affiliations.length > 0) {
+            await MemberRepository.moveSelectedAffiliationsBetweenMembers(
+              memberId,
+              secondaryMember.id,
+              payload.secondary.affiliations.map((a) => a.id),
+              repoOptions,
+            )
+          }
+
+          // move tags
+          if (payload.secondary.tags.length > 0) {
+            await addMemberTags(
+              txqx,
+              secondaryMember.id,
+              payload.secondary.tags.map((t) => t.id),
+            )
+            // check if anything to delete in primary
+            const tagsToDelete = memberTags.filter(
+              (t) => !payload.primary.tags.some((pt) => pt.id === t.id),
+            )
+            if (tagsToDelete.length > 0) {
+              await removeMemberTags(
+                txqx,
+                memberId,
+                tagsToDelete.map((t) => t.id),
+              )
+            }
+          }
+
+          // move tasks
+          if (payload.secondary.tasks.length > 0) {
+            await addMemberTasks(
+              txqx,
+              secondaryMember.id,
+              payload.secondary.tasks.map((t) => t.id),
+            )
+            // check if anything to delete in primary
+            const tasksToDelete = memberTasks.filter(
+              (t) => !payload.primary.tasks.some((pt) => pt.id === t.id),
+            )
+            if (tasksToDelete.length > 0) {
+              await removeMemberTasks(
+                txqx,
+                memberId,
+                tasksToDelete.map((t) => t.id),
+              )
+            }
+          }
+
+          // move notes
+          if (payload.secondary.notes.length > 0) {
+            await addMemberNotes(
+              txqx,
+              secondaryMember.id,
+              payload.secondary.notes.map((n) => n.id),
+            )
+            // check if anything to delete in primary
+            const notesToDelete = memberNotes.filter(
+              (n) => !payload.primary.notes.some((pn) => pn.id === n.id),
+            )
+            if (notesToDelete.length > 0) {
+              await removeMemberNotes(
+                txqx,
+                memberId,
+                notesToDelete.map((n) => n.id),
+              )
+            }
+          }
+
+          // move memberOrganizations
+          if (payload.secondary.memberOrganizations.length > 0) {
+            const nonExistingOrganizationIds = await OrganizationRepository.findNonExistingIds(
+              payload.secondary.memberOrganizations.map((o) => o.organizationId),
+              repoOptions,
+            )
+            for (const role of payload.secondary.memberOrganizations.filter(
+              (r) => !nonExistingOrganizationIds.includes(r.organizationId),
+            )) {
+              await MemberOrganizationRepository.addMemberRole(
+                { ...role, memberId: secondaryMember.id },
+                repoOptions,
+              )
+            }
+
+            const memberOrganizations = await MemberOrganizationRepository.findMemberRoles(
+              member.id,
+              repoOptions,
+            )
+            // check if anything to delete in primary
+            const rolesToDelete = memberOrganizations.filter(
+              (r) =>
+                r.source !== 'ui' &&
+                !payload.primary.memberOrganizations.some(
+                  (pr) =>
+                    pr.organizationId === r.organizationId &&
+                    pr.title === r.title &&
+                    pr.dateStart === r.dateStart &&
+                    pr.dateEnd === r.dateEnd,
+                ),
+            )
+
+            for (const role of rolesToDelete) {
+              await MemberOrganizationRepository.removeMemberRole(role, repoOptions)
+            }
+          }
+
+          // delete relations from payload, since we already handled those
+          delete payload.primary.identities
+          delete payload.primary.username
+          delete payload.primary.memberOrganizations
+          delete payload.primary.organizations
+          delete payload.primary.tags
+          delete payload.primary.notes
+          delete payload.primary.tasks
+          delete payload.primary.affiliations
+
+          captureNewState({
+            primary: payload.primary,
+            secondary: {
+              ...payload.secondary,
+              ...secondaryMember,
+            },
+          })
+
+          // update rest of the primary member fields
+          await MemberRepository.update(memberId, payload.primary, repoOptions)
+
+          // add primary and secondary to no merge so they don't get suggested again
+          await MemberRepository.addNoMerge(memberId, secondaryMember.id, repoOptions)
+
+          // trigger entity-merging-worker to move activities in the background
+          await SequelizeRepository.commitTransaction(tx)
+
+          return { member, secondaryMember }
+        }),
+      )
 
       await MergeActionsRepository.setMergeAction(
         MergeActionType.MEMBER,
         member.id,
         secondaryMember.id,
-        repoOptions,
+        this.options,
         {
           step: MergeActionStep.UNMERGE_SYNC_DONE,
         },
       )
-
-      // trigger entity-merging-worker to move activities in the background
-      await SequelizeRepository.commitTransaction(tx)
 
       // responsible for moving member's activities, syncing to opensearch afterwards, recalculating activity.organizationIds and notifying frontend via websockets
       await this.options.temporal.workflow.start('finishMemberUnmerging', {
@@ -966,183 +1000,199 @@ export default class MemberService extends LoggerBase {
         const primaryBackup = mergeAction.unmergeBackup.primary as IMemberUnmergeBackup
         const secondaryBackup = mergeAction.unmergeBackup.secondary as IMemberUnmergeBackup
 
-        // construct primary member with best effort
-        for (const key of MemberService.MEMBER_MERGE_FIELDS) {
-          // delay relationships for later
-          if (!(key in relationships) && !(member.manuallyChangedFields || []).includes(key)) {
-            if (key === 'attributes') {
-              // 1) if both primary and secondary backup have the attribute, check any platform specific value came from merge, if current member has it, revert it
-              // 2) if primary backup doesn't have the attribute, and secondary backup does, check if current member has the same value, if yes revert it (it came through merge)
-              // 3) if primary backup has the attribute, and secondary doesn't, keep the current value
-              // 4) if both backups doesn't have the value, but current member does, keep the current value
-              // we only need to act on cases 1 and 2, because we don't need to change current member's attributes for other cases
-
-              // loop through current member attributes
-              for (const attributeKey of Object.keys(member.attributes)) {
-                if (!(member.manuallyChangedFields || []).some((f) => f === `attributes.${key}`)) {
-                  // both backups have the attribute
-                  if (
-                    primaryBackup.attributes[attributeKey] &&
-                    secondaryBackup.attributes[attributeKey]
-                  ) {
-                    // find platform key values that exist on secondary, but not on primary backup
-                    const platformKeysThatOnlyExistOnSecondaryBackup = Object.keys(
-                      secondaryBackup.attributes[attributeKey],
-                    ).filter(
-                      (key) =>
-                        primaryBackup.attributes[attributeKey][key] === null ||
-                        primaryBackup.attributes[attributeKey][key] === undefined ||
-                        primaryBackup.attributes[attributeKey][key] === '',
-                    )
-
-                    for (const platformKey of platformKeysThatOnlyExistOnSecondaryBackup) {
-                      // check current member still has this value for the attribute[key][platform], and primary backup didn't have this value
-                      if (
-                        member.attributes[attributeKey][platformKey] ===
-                          secondaryBackup.attributes[attributeKey][platformKey] &&
-                        primaryBackup.attributes[attributeKey][platformKey] !==
-                          member.attributes[attributeKey][platformKey]
-                      ) {
-                        delete member.attributes[attributeKey][platformKey]
-                      }
-                      if (Object.keys(member.attributes[attributeKey]).length === 0) {
-                        delete member.attributes[attributeKey]
-                      }
-                    }
-                  } else if (
-                    !primaryBackup.attributes[attributeKey] &&
-                    secondaryBackup.attributes[attributeKey]
-                  ) {
-                    // remove platform keys that has the same value with current member
-                    if (member.attributes[attributeKey]) {
-                      for (const platformKey of Object.keys(member.attributes[attributeKey])) {
-                        if (
-                          member.attributes[attributeKey][platformKey] ===
-                          secondaryBackup.attributes[attributeKey][platformKey]
-                        ) {
-                          delete member.attributes[attributeKey][platformKey]
-                        }
-                      }
-
-                      // check any platform keys remaining on current member, if not remove the attribute completely
-                      if (Object.keys(member.attributes[attributeKey]).length === 0) {
-                        delete member.attributes[attributeKey]
-                      }
-                    }
-                  }
-                }
-              }
-            } else if (key === 'reach') {
-              // only act on reach if current member has some data
-              for (const reachKey of Object.keys(member.reach)) {
-                if (
-                  reachKey !== 'total' &&
-                  secondaryBackup.reach[reachKey] === member.reach[reachKey]
-                ) {
-                  delete member.reach[reachKey]
-                }
-              }
-              // check if there are any keys other than total, if yes recalculate total, else set total to -1
-              if (Object.keys(member.reach).length > 1) {
-                delete member.reach.total
-                member.reach.total = lodash.sum(Object.values(member.reach))
-              } else {
-                member.reach.total = -1
-              }
-            } else if (key === 'contributions') {
-              // check secondary member has any contributions to extract from current member
-              if (member.contributions) {
-                member.contributions = member.contributions.filter(
-                  (c) => !(secondaryBackup.contributions || []).some((s) => s.id === c.id),
-                )
-              }
-            } else if (primaryBackup[key] !== member[key] && secondaryBackup[key] === member[key]) {
-              member[key] = null
-            }
-          }
-        }
-
-        // tags: Remove tags that exist in secondary backup, but not in primary backup
-        member.tags = member.tags.filter(
-          (tag) =>
-            !(
-              secondaryBackup.tags.some((t) => t.id === tag.id) &&
-              !primaryBackup.tags.some((t) => t.id === tag.id)
-            ),
-        )
-
-        // notes: Remove notes that exist in secondary backup, but not in primary backup
-        member.notes = member.notes.filter(
-          (note) =>
-            !(
-              secondaryBackup.notes.some((n) => n.id === note.id) &&
-              !primaryBackup.notes.some((n) => n.id === note.id)
-            ),
-        )
-
-        // tasks: Remove tasks that exist in secondary backup, but not in primary backup
-        member.tasks = member.tasks.filter(
-          (task) =>
-            !(
-              secondaryBackup.tasks.some((t) => t.id === task.id) &&
-              !primaryBackup.tasks.some((t) => t.id === task.id)
-            ),
-        )
-
-        // identities: Remove identities coming from secondary backup
-        member.identities = member.identities.filter(
+        const remainingIdentitiesInCurrentMember = member.identities.filter(
           (i) =>
             !secondaryBackup.identities.some(
               (s) => s.platform === i.platform && s.value === i.value && s.type === i.type,
             ),
         )
 
-        // affiliations: Remove affiliations coming from secondary backup
-        member.affiliations = member.affiliations.filter(
-          (a) => !secondaryBackup.affiliations.some((s) => s.id === a.id),
-        )
+        // Only unmerge when primary member still has some identities left after removing identities in the secondary backup
+        // if not fall back to identity extraction
+        if (remainingIdentitiesInCurrentMember.length > 0) {
+          // construct primary member with best effort
+          for (const key of MemberService.MEMBER_MERGE_FIELDS) {
+            // delay relationships for later
+            if (!(key in relationships) && !(member.manuallyChangedFields || []).includes(key)) {
+              if (key === 'attributes') {
+                // 1) if both primary and secondary backup have the attribute, check any platform specific value came from merge, if current member has it, revert it
+                // 2) if primary backup doesn't have the attribute, and secondary backup does, check if current member has the same value, if yes revert it (it came through merge)
+                // 3) if primary backup has the attribute, and secondary doesn't, keep the current value
+                // 4) if both backups doesn't have the value, but current member does, keep the current value
+                // we only need to act on cases 1 and 2, because we don't need to change current member's attributes for other cases
 
-        // member organizations
-        const unmergedRoles = MemberOrganizationService.unmergeRoles(
-          member.memberOrganizations,
-          primaryBackup.memberOrganizations,
-          secondaryBackup.memberOrganizations,
-          MemberRoleUnmergeStrategy.SAME_MEMBER,
-        )
-        member.memberOrganizations = unmergedRoles as IMemberRoleWithOrganization[]
+                // loop through current member attributes
+                for (const attributeKey of Object.keys(member.attributes)) {
+                  if (
+                    !(member.manuallyChangedFields || []).some((f) => f === `attributes.${key}`)
+                  ) {
+                    // both backups have the attribute
+                    if (
+                      primaryBackup.attributes[attributeKey] &&
+                      secondaryBackup.attributes[attributeKey]
+                    ) {
+                      // find platform key values that exist on secondary, but not on primary backup
+                      const platformKeysThatOnlyExistOnSecondaryBackup = Object.keys(
+                        secondaryBackup.attributes[attributeKey],
+                      ).filter(
+                        (key) =>
+                          primaryBackup.attributes[attributeKey][key] === null ||
+                          primaryBackup.attributes[attributeKey][key] === undefined ||
+                          primaryBackup.attributes[attributeKey][key] === '',
+                      )
 
-        // activity count
-        const secondaryActivityCount = await MemberRepository.getActivityCountOfMembersIdentities(
-          member.id,
-          secondaryBackup.identities,
-          this.options,
-        )
-        const primaryActivityCount = await MemberRepository.getActivityCountOfMembersIdentities(
-          member.id,
-          member.identities,
-          this.options,
-        )
+                      for (const platformKey of platformKeysThatOnlyExistOnSecondaryBackup) {
+                        // check current member still has this value for the attribute[key][platform], and primary backup didn't have this value
+                        if (
+                          member.attributes[attributeKey][platformKey] ===
+                            secondaryBackup.attributes[attributeKey][platformKey] &&
+                          primaryBackup.attributes[attributeKey][platformKey] !==
+                            member.attributes[attributeKey][platformKey]
+                        ) {
+                          delete member.attributes[attributeKey][platformKey]
+                        }
+                        if (Object.keys(member.attributes[attributeKey]).length === 0) {
+                          delete member.attributes[attributeKey]
+                        }
+                      }
+                    } else if (
+                      !primaryBackup.attributes[attributeKey] &&
+                      secondaryBackup.attributes[attributeKey]
+                    ) {
+                      // remove platform keys that has the same value with current member
+                      if (member.attributes[attributeKey]) {
+                        for (const platformKey of Object.keys(member.attributes[attributeKey])) {
+                          if (
+                            member.attributes[attributeKey][platformKey] ===
+                            secondaryBackup.attributes[attributeKey][platformKey]
+                          ) {
+                            delete member.attributes[attributeKey][platformKey]
+                          }
+                        }
 
-        return {
-          primary: {
-            ...lodash.pick(member, MemberService.MEMBER_MERGE_FIELDS),
-            identities: member.identities,
-            memberOrganizations: member.memberOrganizations,
-            organizations: OrganizationRepository.calculateRenderFriendlyOrganizations(
-              member.memberOrganizations,
-            ),
-            username: MemberRepository.getUsernameFromIdentities(member.identities),
-            activityCount: primaryActivityCount,
-            numberOfOpenSourceContributions: member.contributions?.length || 0,
-          },
-          secondary: {
-            ...secondaryBackup,
-            organizations: OrganizationRepository.calculateRenderFriendlyOrganizations(
-              secondaryBackup.memberOrganizations,
-            ),
-            activityCount: secondaryActivityCount,
-            numberOfOpenSourceContributions: secondaryBackup.contributions?.length || 0,
-          },
+                        // check any platform keys remaining on current member, if not remove the attribute completely
+                        if (Object.keys(member.attributes[attributeKey]).length === 0) {
+                          delete member.attributes[attributeKey]
+                        }
+                      }
+                    }
+                  }
+                }
+              } else if (key === 'reach') {
+                // only act on reach if current member has some data
+                for (const reachKey of Object.keys(member.reach)) {
+                  if (
+                    reachKey !== 'total' &&
+                    secondaryBackup.reach[reachKey] === member.reach[reachKey]
+                  ) {
+                    delete member.reach[reachKey]
+                  }
+                }
+                // check if there are any keys other than total, if yes recalculate total, else set total to -1
+                if (Object.keys(member.reach).length > 1) {
+                  delete member.reach.total
+                  member.reach.total = lodash.sum(Object.values(member.reach))
+                } else {
+                  member.reach.total = -1
+                }
+              } else if (key === 'contributions') {
+                // check secondary member has any contributions to extract from current member
+                if (member.contributions) {
+                  member.contributions = member.contributions.filter(
+                    (c) => !(secondaryBackup.contributions || []).some((s) => s.id === c.id),
+                  )
+                }
+              } else if (
+                primaryBackup[key] !== member[key] &&
+                secondaryBackup[key] === member[key]
+              ) {
+                member[key] = null
+              }
+            }
+          }
+
+          // tags: Remove tags that exist in secondary backup, but not in primary backup
+          member.tags = member.tags.filter(
+            (tag) =>
+              !(
+                secondaryBackup.tags.some((t) => t.id === tag.id) &&
+                !primaryBackup.tags.some((t) => t.id === tag.id)
+              ),
+          )
+
+          // notes: Remove notes that exist in secondary backup, but not in primary backup
+          member.notes = member.notes.filter(
+            (note) =>
+              !(
+                secondaryBackup.notes.some((n) => n.id === note.id) &&
+                !primaryBackup.notes.some((n) => n.id === note.id)
+              ),
+          )
+
+          // tasks: Remove tasks that exist in secondary backup, but not in primary backup
+          member.tasks = member.tasks.filter(
+            (task) =>
+              !(
+                secondaryBackup.tasks.some((t) => t.id === task.id) &&
+                !primaryBackup.tasks.some((t) => t.id === task.id)
+              ),
+          )
+
+          // identities: Remove identities coming from secondary backup
+          member.identities = member.identities.filter(
+            (i) =>
+              !secondaryBackup.identities.some(
+                (s) => s.platform === i.platform && s.value === i.value && s.type === i.type,
+              ),
+          )
+
+          // affiliations: Remove affiliations coming from secondary backup
+          member.affiliations = member.affiliations.filter(
+            (a) => !secondaryBackup.affiliations.some((s) => s.id === a.id),
+          )
+
+          // member organizations
+          const unmergedRoles = MemberOrganizationService.unmergeRoles(
+            member.memberOrganizations,
+            primaryBackup.memberOrganizations,
+            secondaryBackup.memberOrganizations,
+            MemberRoleUnmergeStrategy.SAME_MEMBER,
+          )
+          member.memberOrganizations = unmergedRoles as IMemberRoleWithOrganization[]
+
+          // activity count
+          const secondaryActivityCount = await MemberRepository.getActivityCountOfMembersIdentities(
+            member.id,
+            secondaryBackup.identities,
+            this.options,
+          )
+          const primaryActivityCount = await MemberRepository.getActivityCountOfMembersIdentities(
+            member.id,
+            member.identities,
+            this.options,
+          )
+
+          return {
+            primary: {
+              ...lodash.pick(member, MemberService.MEMBER_MERGE_FIELDS),
+              identities: member.identities,
+              memberOrganizations: member.memberOrganizations,
+              organizations: OrganizationRepository.calculateRenderFriendlyOrganizations(
+                member.memberOrganizations,
+              ),
+              username: MemberRepository.getUsernameFromIdentities(member.identities),
+              activityCount: primaryActivityCount,
+              numberOfOpenSourceContributions: member.contributions?.length || 0,
+            },
+            secondary: {
+              ...secondaryBackup,
+              organizations: OrganizationRepository.calculateRenderFriendlyOrganizations(
+                secondaryBackup.memberOrganizations,
+              ),
+              activityCount: secondaryActivityCount,
+              numberOfOpenSourceContributions: secondaryBackup.contributions?.length || 0,
+            },
+          }
         }
       }
 
@@ -1458,20 +1508,7 @@ export default class MemberService extends LoggerBase {
    */
   static membersMerge(originalObject, toMergeObject) {
     return merge(originalObject, toMergeObject, {
-      joinedAt: (oldDate, newDate) => {
-        // If either the new or the old date are earlier than 1970
-        // it means they come from an activity without timestamp
-        // and we want to keep the other one
-        if (moment(oldDate).subtract(5, 'days').unix() < 0) {
-          return newDate
-        }
-        if (moment(newDate).unix() < 0) {
-          return oldDate
-        }
-        return moment
-          .min(moment.tz(oldDate, 'Europe/London'), moment.tz(newDate, 'Europe/London'))
-          .toDate()
-      },
+      joinedAt: (oldDate, newDate) => getEarliestValidDate(oldDate, newDate),
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       displayName: (oldValue, _newValue) => oldValue,
       reach: (oldReach, newReach) => MemberService.calculateReach(oldReach, newReach),
@@ -1909,10 +1946,6 @@ export default class MemberService extends LoggerBase {
 
     const segmentId = (data.segments || [])[0]
 
-    if (!segmentId) {
-      throw new Error400(this.options.language, 'member.segmentsRequired')
-    }
-
     return MemberRepository.findAndCountAll(
       {
         ...data,
@@ -1922,6 +1955,7 @@ export default class MemberService extends LoggerBase {
           memberOrganizations: true,
           lfxMemberships: true,
           identities: true,
+          attributes: true,
         },
         exportMode,
       },

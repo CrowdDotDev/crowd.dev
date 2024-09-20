@@ -16,7 +16,6 @@
                 <lf-input
                   v-model="domain.value"
                   class="h-10 flex-grow"
-                  :class="showVerified ? '!rounded-r-none' : ''"
                   placeholder="Enter URL"
                   :invalid="$v.form[di].value.$invalid && $v.form[di].value.$dirty"
                   @blur="$v.form[di].value.$touch()"
@@ -25,17 +24,6 @@
                     <lf-icon name="link" class="text-black" :size="20" />
                   </template>
                 </lf-input>
-                <label v-if="showVerified" class="border border-gray-200 h-10 py-2.5 px-3 border-l-0 cursor-pointer rounded-r-lg">
-                  <lf-checkbox
-                    v-model="domain.verified"
-                    :disabled="verifiedDisabled && !domain.verified"
-                    class="!flex-nowrap"
-                  >
-                    <span :class="verifiedDisabled && !domain.verified ? 'text-gray-400' : 'text-black'">
-                      Verified
-                    </span>
-                  </lf-checkbox>
-                </label>
                 <lf-button
                   v-if="form.length > 1"
                   class="ml-3"
@@ -90,7 +78,6 @@ import { computed, reactive, ref } from 'vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfInput from '@/ui-kit/input/Input.vue';
-import LfCheckbox from '@/ui-kit/checkbox/Checkbox.vue';
 import Message from '@/shared/message/message';
 import pluralize from 'pluralize';
 import { required } from '@vuelidate/validators';
@@ -149,11 +136,6 @@ const isModalOpen = computed<boolean>({
     emit('update:modelValue', value ? props.modelValue : null);
   },
 });
-
-const showVerified = computed(() => props.modelValue?.type !== OrganizationIdentityType.PRIMARY_DOMAIN
-      || !props.organization.identities.some((i) => i.verified && i.type === OrganizationIdentityType.PRIMARY_DOMAIN));
-
-const verifiedDisabled = computed(() => form.some((i) => i.verified && i.type === OrganizationIdentityType.PRIMARY_DOMAIN));
 
 const addDomains = () => {
   sending.value = true;

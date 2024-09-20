@@ -3,36 +3,53 @@
     <lf-filter
       ref="organizationFilter"
       v-model="filters"
-      :config="organizationFilters"
+      :config="organizationCommonFilters"
       :search-config="organizationSearchFilter"
       :saved-views-config="commonOrganizationSavedViews"
       hash="organizations"
+      class="pb-1"
       @fetch="fetch($event)"
     />
-    <app-organization-common-list-table
-      v-model:sorting="sorting"
-      :organizations="organizations"
-      @update:sorting="getOrganizations"
-      @reload="getOrganizations()"
+    <div
+      v-if="loading"
+      class="h-16 !relative !min-h-5 flex justify-center items-center"
     >
-      <template #pagination>
-        <app-pagination
-          :total="totalOrganizations"
-          :page-size="Number(pagination.perPage)"
-          :current-page="pagination.page || 1"
-          :hide-sorting="true"
-          @change-current-page="onPaginationChange({ page: $event })"
-          @change-page-size="onPaginationChange({ perPage: $event })"
-        />
-      </template>
-    </app-organization-common-list-table>
+      <div class="animate-spin w-fit">
+        <div class="custom-spinner" />
+      </div>
+    </div>
+    <div v-else>
+      <div class="pb-4 text-small text-gray-400 -mt-4">
+        {{ pluralize('organization', totalOrganizations, true) }}
+      </div>
+      <app-organization-common-list-table
+        v-model:sorting="sorting"
+        :organizations="organizations"
+        @update:sorting="getOrganizations"
+        @reload="getOrganizations()"
+      >
+        <template #pagination>
+          <app-pagination
+            :total="totalOrganizations"
+            :page-size="Number(pagination.perPage)"
+            :current-page="pagination.page || 1"
+            :hide-sorting="true"
+            @change-current-page="onPaginationChange({ page: $event })"
+            @change-page-size="onPaginationChange({ perPage: $event })"
+          />
+        </template>
+      </app-organization-common-list-table>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import LfFilter from '@/shared/modules/filters/components/Filter.vue';
-import { organizationFilters, organizationSearchFilter } from '@/modules/organization/config/filters/main';
+import {
+  organizationCommonFilters,
+  organizationSearchFilter,
+} from '@/modules/organization/config/filters/main';
 import { commonOrganizationSavedViews } from '@/modules/organization/config/saved-views/main';
 import { FilterQuery } from '@/shared/modules/filters/types/FilterQuery';
 import AppOrganizationCommonListTable from '@/modules/organization/components/list/organization-common-list-table.vue';
@@ -41,6 +58,7 @@ import { Pagination } from '@/shared/types/Pagination';
 import { Organization } from '@/modules/organization/types/Organization';
 import AppPagination from '@/shared/pagination/pagination.vue';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import pluralize from 'pluralize';
 
 const { listProjectGroups } = useLfSegmentsStore();
 
@@ -54,7 +72,8 @@ const savedBody = ref({});
 
 const pagination = ref({
   page: 1,
-  perPage: 100,
+  perPage: 20,
+  total: 0,
 });
 
 const sorting = ref('activityCount_DESC');
@@ -67,9 +86,11 @@ const getOrganizations = (body?: any) => {
     ...savedBody.value,
     ...body,
   };
-  OrganizationService.query({
+  loading.value = true;
+  OrganizationService.organizationsList({
     ...savedBody.value,
     orderBy: sorting.value,
+    excludeSegments: true,
   })
     .then((data: Pagination<Organization>) => {
       organizations.value = data.rows;
@@ -87,15 +108,11 @@ const getOrganizations = (body?: any) => {
 const fetch = ({
   filter, body,
 }: FilterQuery) => {
-  if (!loading.value) {
-    loading.value = true;
-  }
   getOrganizations({
     ...body,
     filter,
     offset: 0,
     limit: pagination.value.perPage,
-    distinct: true,
   });
 };
 
@@ -113,6 +130,7 @@ const onPaginationChange = (paginationData: any) => {
 
 onMounted(() => {
   listProjectGroups({
+    limit: null,
     reset: true,
   } as any);
 });

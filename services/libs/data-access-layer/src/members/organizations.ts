@@ -56,7 +56,6 @@ export async function createMemberOrganization(
     `
         INSERT INTO "memberOrganizations"("memberId", "organizationId", "dateStart", "dateEnd", "title", "source", "createdAt", "updatedAt")
         VALUES($(memberId), $(organizationId), $(dateStart), $(dateEnd), $(title), $(source), $(date), $(date))
-        ON CONFLICT DO NOTHING;
     `,
     {
       memberId,
@@ -115,6 +114,30 @@ export async function deleteMemberOrganization(
     {
       memberId,
       id,
+    },
+  )
+}
+
+export async function cleanSoftDeletedMemberOrganization(
+  qx: QueryExecutor,
+  memberId: string,
+  organizationId: string,
+  data: Partial<IMemberOrganization>,
+): Promise<void> {
+  return qx.result(
+    `
+      DELETE FROM "memberOrganizations"
+      WHERE "memberId" = $(memberId)
+        AND "organizationId" = $(organizationId)
+        AND (("dateStart" = $(dateStart)) OR ("dateStart" IS NULL AND $(dateStart) IS NULL))
+        AND (("dateEnd" = $(dateEnd)) OR ("dateEnd" IS NULL AND $(dateEnd) IS NULL))
+        AND "deletedAt" IS NOT NULL;
+    `,
+    {
+      memberId,
+      organizationId,
+      dateStart: data.dateStart ?? null,
+      dateEnd: data.dateEnd ?? null,
     },
   )
 }

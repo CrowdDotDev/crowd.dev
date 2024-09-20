@@ -42,6 +42,7 @@ import { Organization } from '@/modules/organization/types/Organization';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import AppOrganizationUnmergeDialog from '@/modules/organization/components/organization-unmerge-dialog.vue';
 import { ref } from 'vue';
+import { useOrganizationStore } from '@/modules/organization/store/pinia';
 
 const props = defineProps<{
   organization: Organization,
@@ -55,6 +56,8 @@ const { hasPermission } = usePermissions();
 const { trackEvent } = useProductTracking();
 
 const unmerge = ref<Organization | null>(null);
+
+const { fetchOrganization } = useOrganizationStore();
 
 const markTeamOrganization = (teamOrganization: boolean) => {
   trackEvent({
@@ -74,6 +77,7 @@ const markTeamOrganization = (teamOrganization: boolean) => {
       isTeamOrganization: teamOrganization,
     }, props.organization.segments),
   }).then(() => {
+    fetchOrganization(props.organization.id);
     emit('reload');
   });
 };

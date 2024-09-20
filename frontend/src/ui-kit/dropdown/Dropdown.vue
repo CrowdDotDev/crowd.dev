@@ -1,6 +1,6 @@
 <template>
   <div ref="dropdown" class="c-dropdown" @click.stop="toggleDropdown">
-    <slot name="trigger" />
+    <slot name="trigger" :open="isOpen" />
     <div
       class="c-dropdown__menu"
       :class="[`placement-${props.placement}`, { 'is-open': isOpen }]"
@@ -23,14 +23,17 @@ const props = withDefaults(defineProps<{
   width: 'auto',
 });
 
+const emit = defineEmits<{(e: 'visibility', value: boolean): void}>();
+
 const isOpen = ref(false);
 const dropdown = ref(null);
 
 const toggleDropdown = () => {
   isOpen.value = !isOpen.value;
+  emit('visibility', isOpen.value);
 };
 
-const handleClickOutside = (event) => {
+const handleClickOutside = (event: any) => {
   // Check if the click is inside the dropdown. If so, do nothing.
   if (dropdown.value && dropdown.value.contains(event.target)) {
     return;
@@ -39,6 +42,7 @@ const handleClickOutside = (event) => {
   // If the dropdown is open and the click is outside, close it.
   if (isOpen.value) {
     isOpen.value = false;
+    emit('visibility', false);
   }
 };
 

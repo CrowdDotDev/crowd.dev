@@ -7,8 +7,8 @@ import { filterLabel } from '@/modules/lf/utils/filters';
 
 const projects: ProjectsCustomFilterConfig = {
   id: 'projects',
-  label: 'Projects',
-  iconClass: 'ri-stack-line',
+  label: 'Project group',
+  iconClass: 'ri-folders-line',
   inBody: true,
   type: FilterConfigType.CUSTOM,
   component: ProjectsFilter,
@@ -36,7 +36,7 @@ const projects: ProjectsCustomFilterConfig = {
     const trimmedValueText = text.length > charLimit ? `${text.substring(0, charLimit - 3)}...` : text;
     const tooltip = trimmedValueText.length < text.length ? `data-tooltip="${text}"` : '';
 
-    return `<span ${tooltip}><b>Projects:</b>${trimmedValueText || '...'}</span>`;
+    return `<span ${tooltip}><b>Project group:</b>${trimmedValueText || '...'}</span>`;
   },
   apiFilterRenderer({ value }: ProjectsFilterValue): any[] {
     return [

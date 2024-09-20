@@ -36,16 +36,36 @@ const backLink = computed(() => {
   return window.history.state.back;
 });
 
-const routeLocation = computed<any>(() => (backLink.value ? {
-  path: backLink.value,
-} : {
-  ...props.to,
-  query: {
-    projectGroup: props.projectGroup ? selectedProjectGroup.value?.id : undefined,
-    ...(props.to.query || {}),
-  },
-}
-));
+const routeLocation = computed(() => {
+  const fullUrl = backLink.value;
+
+  if (!fullUrl) {
+    return {
+      ...props.to,
+      query: {
+        projectGroup: props.projectGroup ? selectedProjectGroup.value?.id : undefined,
+        ...(props.to.query || {}),
+      },
+    };
+  }
+
+  try {
+    const url = new URL(fullUrl, window.location.origin);
+    return {
+      path: url.pathname,
+      query: Object.fromEntries(url.searchParams.entries()),
+      hash: url.hash,
+    };
+  } catch (e) {
+    return {
+      ...props.to,
+      query: {
+        projectGroup: props.projectGroup ? selectedProjectGroup.value?.id : undefined,
+        ...(props.to.query || {}),
+      },
+    };
+  }
+});
 
 </script>
 

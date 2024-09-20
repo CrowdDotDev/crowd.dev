@@ -9,6 +9,10 @@ const options: SelectFilterOptionGroup[] = [
         value: 'contributors-merged',
       },
       {
+        label: 'Profiles unmerged',
+        value: 'contributors-unmerged',
+      },
+      {
         label: 'Profile identities updated',
         value: 'contributor-identities-updated',
       },
@@ -36,6 +40,10 @@ const options: SelectFilterOptionGroup[] = [
       {
         label: 'Organizations merged',
         value: 'organizations-merged',
+      },
+      {
+        label: 'Organizations unmerged',
+        value: 'organizations-unmerged',
       },
       {
         label: 'Organization identities updated',
