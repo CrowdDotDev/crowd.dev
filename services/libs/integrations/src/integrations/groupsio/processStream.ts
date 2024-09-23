@@ -182,11 +182,7 @@ const processGroupStream: ProcessStreamHandler = async (ctx) => {
 
       const topicUpdatedTS = new Date(topic.updated)
 
-      if (
-        (topicUpdatedTS.getDate() < lastGroupSyncTS.getDate() && !onboarding) ||
-        isLastPage
-        // !response?.next_page_token
-      ) {
+      if (topicUpdatedTS.getDate() < lastGroupSyncTS.getDate() && !onboarding) {
         reachedLastSync = true
         const latestLastGroupSyncTS = await getLatestGroupLastSyncFromCache(ctx, data.group)
         latestLastGroupSyncTS.setDate(latestLastGroupSyncTS.getDate() - 1)
