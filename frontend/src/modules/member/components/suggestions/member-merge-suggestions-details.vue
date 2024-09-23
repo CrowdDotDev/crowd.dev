@@ -66,8 +66,8 @@
               class="mb-3"
             />
             <el-tooltip
-              v-if="member.attributes?.avatarUrl?.default && getAttributeSourceName(member.attributes.avatarUrl)"
-              :content="`Source: ${getAttributeSourceName(member.attributes.avatarUrl)}`"
+              v-if="member.attributes?.avatarUrl?.default && getAttributeSourceName(member.attributes?.avatarUrl)"
+              :content="`Source: ${getAttributeSourceName(member.attributes?.avatarUrl)}`"
               placement="top"
               trigger="hover"
             >
@@ -111,21 +111,21 @@
         />
         <div class="flex items-center">
           <div
-            v-if="member.attributes.bio?.default"
+            v-if="member.attributes?.bio?.default"
             ref="bio"
             class="text-gray-600 leading-5 !text-xs merge-member-bio mt-2"
             :class="{ 'line-clamp-2': !more }"
-            v-html="$sanitize(member.attributes.bio.default)"
+            v-html="$sanitize(member.attributes?.bio.default)"
           />
           <div
-            v-else-if="compareMember?.attributes.bio?.default"
+            v-else-if="compareMember?.attributes?.bio?.default"
             ref="bio"
             class="text-transparent invisible leading-5 !text-xs merge-member-bio line-clamp-2 mt-2"
-            v-html="$sanitize(compareMember?.attributes.bio.default)"
+            v-html="$sanitize(compareMember?.attributes?.bio.default)"
           />
           <el-tooltip
-            v-if="!isPreview && member.attributes?.bio?.default && getAttributeSourceName(member.attributes.bio)"
-            :content="`Source: ${getAttributeSourceName(member.attributes.bio)}`"
+            v-if="!isPreview && member.attributes?.bio?.default && getAttributeSourceName(member.attributes?.bio)"
+            :content="`Source: ${getAttributeSourceName(member.attributes?.bio)}`"
             placement="top"
             trigger="hover"
           >
@@ -138,7 +138,7 @@
         <div
           v-if="displayShowMore"
           class="text-sm text-primary-500 mt-2 cursor-pointer"
-          :class="{ invisible: !member.attributes.bio?.default }"
+          :class="{ invisible: !member.attributes?.bio?.default }"
           @click.stop="more = !more"
         >
           Show {{ more ? 'less' : 'more' }}
@@ -157,8 +157,8 @@
         </article>
         <article
           v-if="
-            member.attributes.location?.default
-              || compareMember?.attributes.location?.default
+            member.attributes?.location?.default
+              || compareMember?.attributes?.location?.default
           "
           class="pb-4"
         >
@@ -167,8 +167,8 @@
               Location
             </p>
             <el-tooltip
-              v-if="!isPreview && member.attributes?.location?.default && getAttributeSourceName(member.attributes.location)"
-              :content="`Source: ${getAttributeSourceName(member.attributes.location)}`"
+              v-if="!isPreview && member.attributes?.location?.default && getAttributeSourceName(member.attributes?.location)"
+              :content="`Source: ${getAttributeSourceName(member.attributes?.location)}`"
               placement="top"
               trigger="hover"
             >
@@ -176,7 +176,7 @@
             </el-tooltip>
           </div>
           <p class="text-xs text-gray-900 whitespace-normal">
-            {{ member.attributes.location?.default || '-' }}
+            {{ member.attributes?.location?.default || '-' }}
           </p>
         </article>
         <article
@@ -194,8 +194,8 @@
         </article>
         <article
           v-if="
-            member.attributes.jobTitle?.default
-              || compareMember?.attributes.jobTitle?.default
+            member.attributes?.jobTitle?.default
+              || compareMember?.attributes?.jobTitle?.default
           "
           class="pb-4"
         >
@@ -204,8 +204,8 @@
               Title
             </p>
             <el-tooltip
-              v-if="!isPreview && member.attributes?.jobTitle?.default && getAttributeSourceName(member.attributes.jobTitle)"
-              :content="`Source: ${getAttributeSourceName(member.attributes.jobTitle)}`"
+              v-if="!isPreview && member.attributes?.jobTitle?.default && getAttributeSourceName(member.attributes?.jobTitle)"
+              :content="`Source: ${getAttributeSourceName(member.attributes?.jobTitle)}`"
               placement="top"
               trigger="hover"
             >
@@ -213,7 +213,7 @@
             </el-tooltip>
           </div>
           <p class="text-xs text-gray-900 whitespace-normal">
-            {{ member.attributes.jobTitle?.default || '-' }}
+            {{ member.attributes?.jobTitle?.default || '-' }}
           </p>
         </article>
         <article

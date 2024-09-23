@@ -26,6 +26,7 @@ export enum PlatformType {
   LFID = 'lfid',
   CVENT = 'cvent',
   TNC = 'tnc',
+  GITLAB = 'gitlab',
   OTHER = 'other',
 }
 

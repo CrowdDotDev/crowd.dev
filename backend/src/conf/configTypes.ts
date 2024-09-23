@@ -265,6 +265,13 @@ export interface IOpenStatusApiConfig {
   baseUrl: string
 }
 
+export interface GitlabConfiguration {
+  clientId: string
+  clientSecret: string
+  callbackUrl: string
+  webhookToken: string
+}
+
 export interface IRedditConfig {
   clientId: string
   clientSecret: string

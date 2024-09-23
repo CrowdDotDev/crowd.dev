@@ -1,3 +1,5 @@
+import moment from 'moment-timezone'
+
 export const timeout = async (delayMilliseconds: number): Promise<void> =>
   new Promise<void>((resolve) => {
     setTimeout(resolve, delayMilliseconds)
@@ -17,4 +19,21 @@ export const getSecondsTillEndOfMonth = () => {
 
   const diffInSeconds = (endOfMonth.getTime() - now.getTime()) / 1000
   return Math.round(diffInSeconds)
+}
+
+export function getEarliestValidDate(oldDate: Date, newDate: Date): Date {
+  // If either the new or the old date are earlier than 1970
+  // it means they come from an activity without timestamp
+  // and we want to keep the other one
+  if (moment(oldDate).subtract(5, 'days').unix() < 0) {
+    return newDate
+  }
+
+  if (moment(newDate).unix() < 0) {
+    return oldDate
+  }
+
+  return moment
+    .min(moment.tz(oldDate, 'Europe/London'), moment.tz(newDate, 'Europe/London'))
+    .toDate()
 }

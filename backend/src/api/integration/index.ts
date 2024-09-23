@@ -189,6 +189,32 @@ export default (app) => {
     safeWrap(require('./helpers/jiraConnectOrUpdate').default),
   )
 
+  app.get(
+    '/tenant/:tenantId/github-installations',
+    safeWrap(require('./helpers/getGithubInstallations').default),
+  )
+
+  app.post(
+    '/tenant/:tenantId/github-connect-installation',
+    safeWrap(require('./helpers/githubConnectInstallation').default),
+  )
+
+  app.get('/gitlab/:tenantId/connect', safeWrap(require('./helpers/gitlabAuthenticate').default))
+
+  app.get(
+    '/gitlab/:tenantId/callback',
+    safeWrap(require('./helpers/gitlabAuthenticateCallback').default),
+  )
+
+  app.put(
+    `/tenant/:tenantId/integration/:id/gitlab/repos`,
+    safeWrap(require('./helpers/gitlabMapRepos').default),
+  )
+  app.get(
+    `/tenant/:tenantId/integration/:id/gitlab/repos`,
+    safeWrap(require('./helpers/gitlabMapReposGet').default),
+  )
+
   if (TWITTER_CONFIG.clientId) {
     /**
      * Using the passport.authenticate this endpoint forces a

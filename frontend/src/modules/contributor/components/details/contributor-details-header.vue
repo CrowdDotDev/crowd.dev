@@ -61,7 +61,7 @@ const hasHeaderIdentities = computed(
 );
 
 const organization = computed(() => activeOrganization(props.contributor));
-const jobTitle = computed(() => props.contributor.attributes.jobTitle?.default
+const jobTitle = computed(() => props.contributor.attributes?.jobTitle?.default
     || organization.value?.memberOrganizations?.title);
 </script>
 

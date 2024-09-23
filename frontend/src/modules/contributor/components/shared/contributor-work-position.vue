@@ -51,7 +51,7 @@ const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 
 const organization = computed(() => props.contributor.organizations?.[0]);
 const jobTitle = computed(() => organization.value?.memberOrganizations?.title
-    || props.contributor.attributes.jobTitle?.default);
+    || props.contributor.attributes?.jobTitle?.default);
 </script>
 
 <script lang="ts">

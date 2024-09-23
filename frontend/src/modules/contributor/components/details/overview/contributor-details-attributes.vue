@@ -227,12 +227,12 @@ const { customAttributes } = storeToRefs(memberStore);
 
 const { isMasked } = useContributorHelpers();
 
-const bio = computed(() => props.contributor.attributes.bio);
+const bio = computed(() => props.contributor.attributes?.bio);
 const reach = computed(() => props.contributor.reach);
 const tags = computed(() => props.contributor.tags);
-const certifications = computed(() => props.contributor.attributes.certifications);
-const education = computed(() => props.contributor.attributes.education);
-const awards = computed(() => props.contributor.attributes.awards);
+const certifications = computed(() => props.contributor.attributes?.certifications);
+const education = computed(() => props.contributor.attributes?.education);
+const awards = computed(() => props.contributor.attributes?.awards);
 
 const attrInfo = computed<Record<string, any>>(() => customAttributes.value.reduce((info, attr) => ({
   ...info,

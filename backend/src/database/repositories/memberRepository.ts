@@ -1560,6 +1560,7 @@ class MemberRepository {
           identities: false,
           segments: true,
           onlySubProjects: true,
+          attributes: false,
           ...include,
         },
       },
@@ -1579,6 +1580,8 @@ class MemberRepository {
             lfxMemberships: true,
             identities: true,
             segments: true,
+            attributes: false,
+            ...include,
           },
         },
         options,
@@ -1596,12 +1599,7 @@ class MemberRepository {
     }
 
     const [data] = memberResponse.rows
-    const affiliations = await MemberRepository.getAffiliations(id, options)
-
-    return {
-      ...data,
-      affiliations,
-    }
+    return data
   }
 
   static getUsernameFromIdentities(identities: IMemberIdentity[]): IMemberUsername {
@@ -2238,12 +2236,14 @@ class MemberRepository {
         onlySubProjects: false,
         lfxMemberships: false,
         memberOrganizations: false,
+        attributes: true,
       } as {
         identities?: boolean
         segments?: boolean
         onlySubProjects?: boolean
         lfxMemberships?: boolean
         memberOrganizations?: boolean
+        attributes?: boolean
       },
       attributesSettings = [] as AttributeData[],
     },
@@ -2407,6 +2407,9 @@ class MemberRepository {
                     return false
                   }
                   if (!include.memberOrganizations && mappedField.name.includes('mo.')) {
+                    return false
+                  }
+                  if (!include.attributes && mappedField.name === 'm.attributes') {
                     return false
                   }
                   return true
