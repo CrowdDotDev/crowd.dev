@@ -60,25 +60,6 @@ jobs:
           image: ${{ needs.build-and-push.outputs.image }}
           cluster: ${{ env.CROWD_CLUSTER }}
 
-  deploy-nodejs-worker:
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        shell: bash
-
-    steps:
-      - name: Check out repository code
-        uses: actions/checkout@v2
-
-      - uses: ./.github/actions/deploy-service
-        with:
-          service: nodejs-worker
-          image: ${{ needs.build-and-push.outputs.image }}
-          cluster: ${{ env.CROWD_CLUSTER }}
-          prioritized: true
-          cloud_env: staging
-
   deploy-job-generator:
     needs: build-and-push
     runs-on: ubuntu-latest

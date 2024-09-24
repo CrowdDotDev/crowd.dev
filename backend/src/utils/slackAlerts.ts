@@ -1,7 +1,5 @@
 import axios from 'axios'
-import { IntegrationDataCheckerSettings } from '../serverless/microservices/nodejs/integration-data-checker/integrationDataCheckerTypes'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
-import { IntegrationDataCheckerSettingsType } from '../serverless/microservices/nodejs/integration-data-checker/integrationDataCheckerSettings'
 import { SLACK_ALERTING_CONFIG } from '../conf'
 
 export enum SlackAlertTypes {
@@ -14,7 +12,7 @@ export async function sendSlackAlert(
   integration: any,
   userContext: IRepositoryOptions,
   log,
-  settings: IntegrationDataCheckerSettings | {} = {},
+  settings: unknown | {} = {},
 ) {
   const blocks = getBlocks(alertType, integration, userContext, log, settings)
   const url = SLACK_ALERTING_CONFIG.url
@@ -61,13 +59,6 @@ function getBlocks(alertType, integration, userContext, log, settings) {
               {
                 type: 'mrkdwn',
                 text: `*Platform:*\n${integration.platform}`,
-              },
-              {
-                type: 'mrkdwn',
-                text:
-                  settings.type === IntegrationDataCheckerSettingsType.PLATFORM_SPECIFIC
-                    ? `*Activity type:*\n${settings.activityPlatformsAndType.type}`
-                    : ' ',
               },
               {
                 type: 'mrkdwn',

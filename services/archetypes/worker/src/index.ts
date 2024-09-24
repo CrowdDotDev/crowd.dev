@@ -1,13 +1,13 @@
 import path from 'path'
 
-import { NativeConnection, Worker as TemporalWorker, bundleWorkflowCode } from '@temporalio/worker'
+import { bundleWorkflowCode, NativeConnection, Worker as TemporalWorker } from '@temporalio/worker'
 
 import { Config, Service } from '@crowd/archetype-standard'
-import { getDbConnection, DbStore } from '@crowd/database'
-import { OpenSearchService } from '@crowd/opensearch'
-import { getDataConverter } from '@crowd/temporal'
 import { IS_DEV_ENV, IS_TEST_ENV } from '@crowd/common'
-import { SqsClient, getSqsClient } from '@crowd/sqs'
+import { DbStore, getDbConnection } from '@crowd/database'
+import { getOpensearchClient, OpenSearchService } from '@crowd/opensearch'
+import { IQueue, QueueFactory } from '@crowd/queue'
+import { getDataConverter } from '@crowd/temporal'
 
 // List all required environment variables, grouped per "component".
 // They are in addition to the ones required by the "standard" archetype.
@@ -30,13 +30,8 @@ const envvars = {
   opensearch:
     IS_DEV_ENV || IS_TEST_ENV
       ? ['CROWD_OPENSEARCH_NODE']
-      : [
-          'CROWD_OPENSEARCH_AWS_REGION',
-          'CROWD_OPENSEARCH_AWS_ACCESS_KEY_ID',
-          'CROWD_OPENSEARCH_AWS_SECRET_ACCESS_KEY',
-          'CROWD_OPENSEARCH_NODE',
-        ],
-  sqs:
+      : ['CROWD_OPENSEARCH_USERNAME', 'CROWD_OPENSEARCH_PASSWORD', 'CROWD_OPENSEARCH_NODE'],
+  queue:
     IS_DEV_ENV || IS_TEST_ENV
       ? [
           'CROWD_SQS_AWS_REGION',
@@ -44,8 +39,14 @@ const envvars = {
           'CROWD_SQS_PORT',
           'CROWD_SQS_AWS_ACCESS_KEY_ID',
           'CROWD_SQS_AWS_SECRET_ACCESS_KEY',
+          'CROWD_KAFKA_BROKERS',
         ]
-      : ['CROWD_SQS_AWS_REGION', 'CROWD_SQS_AWS_ACCESS_KEY_ID', 'CROWD_SQS_AWS_SECRET_ACCESS_KEY'],
+      : [
+          'CROWD_SQS_AWS_REGION',
+          'CROWD_SQS_AWS_ACCESS_KEY_ID',
+          'CROWD_SQS_AWS_SECRET_ACCESS_KEY',
+          'CROWD_KAFKA_BROKERS',
+        ],
 }
 
 /*
@@ -60,7 +61,7 @@ export interface Options {
   opensearch?: {
     enabled: boolean
   }
-  sqs?: {
+  queue?: {
     enabled: boolean
   }
 }
@@ -78,7 +79,7 @@ export class ServiceWorker extends Service {
 
   protected _opensearchService: OpenSearchService
 
-  protected _sqsClient: SqsClient
+  protected _queueClient: IQueue
 
   constructor(config: Config, opts: Options) {
     super(config)
@@ -105,12 +106,12 @@ export class ServiceWorker extends Service {
     return this._opensearchService
   }
 
-  get sqs(): SqsClient {
-    if (!this.options.sqs?.enabled) {
+  get queue(): IQueue {
+    if (!this.options.queue?.enabled) {
       return null
     }
 
-    return this._sqsClient
+    return this._queueClient
   }
 
   // We first need to ensure a standard service can be initialized given the config
@@ -150,9 +151,9 @@ export class ServiceWorker extends Service {
       })
     }
 
-    // Only validate Sqs related environment variables if enabled
-    if (this.options.sqs?.enabled) {
-      envvars.sqs.forEach((envvar) => {
+    // Only validate queue related environment variables if enabled
+    if (this.options.queue?.enabled) {
+      envvars.queue.forEach((envvar) => {
         if (!process.env[envvar]) {
           missing.push(envvar)
         }
@@ -195,26 +196,23 @@ export class ServiceWorker extends Service {
     }
 
     if (this.options.opensearch?.enabled) {
+      const osClient = await getOpensearchClient({
+        username: process.env['CROWD_OPENSEARCH_USERNAME'],
+        password: process.env['CROWD_OPENSEARCH_PASSWORD'],
+        node: process.env['CROWD_OPENSEARCH_NODE'],
+      })
       try {
-        this._opensearchService = new OpenSearchService(this.log, {
-          region: process.env['CROWD_OPENSEARCH_AWS_REGION'],
-          accessKeyId: process.env['CROWD_OPENSEARCH_AWS_ACCESS_KEY_ID'],
-          secretAccessKey: process.env['CROWD_OPENSEARCH_AWS_SECRET_ACCESS_KEY'],
-          node: process.env['CROWD_OPENSEARCH_NODE'],
-        })
+        this._opensearchService = new OpenSearchService(this.log, osClient)
       } catch (err) {
         throw new Error(err)
       }
     }
 
-    if (this.options.sqs?.enabled) {
+    if (this.options.queue?.enabled) {
       try {
-        this._sqsClient = getSqsClient({
-          region: process.env['CROWD_SQS_AWS_REGION'],
-          host: process.env['CROWD_SQS_HOST'] ? process.env['CROWD_SQS_HOST'] : undefined,
-          port: process.env['CROWD_SQS_PORT'] ? Number(process.env['CROWD_SQS_PORT']) : undefined,
-          accessKeyId: process.env['CROWD_SQS_AWS_ACCESS_KEY_ID'],
-          secretAccessKey: process.env['CROWD_SQS_AWS_SECRET_ACCESS_KEY'],
+        this._queueClient = QueueFactory.createQueueService({
+          brokers: process.env['CROWD_KAFKA_BROKERS'],
+          clientId: 'crowd-temporal-worker', //TODO:: make this configurable
         })
       } catch (err) {
         throw new Error(err)

@@ -23,7 +23,7 @@ services:
       - crowd-bridge
 
   db:
-    image: postgres:13.6-alpine
+    image: postgres:14-alpine
     restart: unless-stopped
     environment:
       - POSTGRES_PASSWORD=example
@@ -37,7 +37,7 @@ services:
       - crowd-bridge
 
   product:
-    image: postgres:13.6-alpine
+    image: postgres:14-alpine
     restart: unless-stopped
     environment:
       - POSTGRES_PASSWORD=example
@@ -96,16 +96,6 @@ services:
     networks:
       - crowd-bridge
 
-  sqs:
-    build:
-      context: scaffold/sqs
-    restart: unless-stopped
-    ports:
-      - 9324:9324
-      - 9325:9325
-    networks:
-      - crowd-bridge
-
   nginx:
     image: nginx:1.24-alpine
     restart: unless-stopped
@@ -152,20 +142,26 @@ services:
     networks:
       - crowd-bridge
 
-  # kafka:
-  #  image: bitnami/kafka:latest
-  #  restart: unless-stopped
-  #  environment:
-  #    - KAFKA_CFG_NODE_ID=0
-  #    - KAFKA_CFG_PROCESS_ROLES=controller,broker
-  #    - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
-  #    - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
-  #    - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@kafka:9093
-  #    - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
-  #  ports:
-  #    - '9092:9092'
-  #  networks:
-  #    - crowd-bridge
+  kafka:
+    image: bitnami/kafka:latest
+    restart: unless-stopped
+    environment:
+      - KAFKA_CFG_NODE_ID=0
+      - KAFKA_CFG_PROCESS_ROLES=controller,broker
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:9093,CONTROLLER://0.0.0.0:9094
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,CONTROLLER:PLAINTEXT
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@kafka:9094
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092,PLAINTEXT_HOST://127.0.0.1:9093
+      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=PLAINTEXT
+      - KAFKA_CFG_LOG_DIRS=/opt/bitnami/kafka/data
+      - KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+    ports:
+      - '9092:9092'
+      - '9093:9093'
+      - '9094:9094'
+    networks:
+      - crowd-bridge
 
   temporal:
     build:

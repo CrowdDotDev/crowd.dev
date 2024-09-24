@@ -2,6 +2,13 @@ export interface IQueueMessage {
   type: string
 }
 
+export interface IQueueMessageBulk<T> {
+  payload: T
+  groupId?: string
+  deduplicationId?: string
+  id?: string
+}
+
 export interface ISqsQueueReceiver {
   start(): Promise<void>
 

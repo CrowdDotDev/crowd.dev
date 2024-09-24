@@ -10,12 +10,9 @@
     "user": "CROWD_DB_USERNAME",
     "password": "CROWD_DB_PASSWORD"
   },
-  "sqs": {
-    "region": "CROWD_SQS_AWS_REGION",
-    "host": "CROWD_SQS_HOST",
-    "port": "CROWD_SQS_PORT",
-    "accessKeyId": "CROWD_SQS_AWS_ACCESS_KEY_ID",
-    "secretAccessKey": "CROWD_SQS_AWS_SECRET_ACCESS_KEY"
+  "queue": {
+    "brokers": "CROWD_KAFKA_BROKERS",
+    "extra": "CROWD_KAFKA_EXTRA"
   },
   "redis": {
     "username": "CROWD_REDIS_USERNAME",
@@ -25,9 +22,8 @@
   },
   "opensearch": {
     "node": "CROWD_OPENSEARCH_NODE",
-    "region": "CROWD_OPENSEARCH_AWS_REGION",
-    "accessKeyId": "CROWD_OPENSEARCH_AWS_ACCESS_KEY_ID",
-    "secretAccessKey": "CROWD_OPENSEARCH_AWS_SECRET_ACCESS_KEY"
+    "username": "CROWD_OPENSEARCH_USERNAME",
+    "password": "CROWD_OPENSEARCH_PASSWORD"
   },
   "nango": {
     "url": "CROWD_NANGO_URL",

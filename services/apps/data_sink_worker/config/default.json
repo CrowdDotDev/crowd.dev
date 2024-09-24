@@ -1,6 +1,6 @@
 {
   "db": {},
-  "sqs": {},
+  "queue": {},
   "redis": {},
   "unleash": {},
   "temporal": {

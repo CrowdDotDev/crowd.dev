@@ -14,7 +14,7 @@ import {
   getDataSinkWorkerEmitter,
   getIntegrationRunWorkerEmitter,
   getIntegrationStreamWorkerEmitter,
-} from '../../utils/serviceSQS'
+} from '../../utils/queueService'
 
 export class IntegrationTickProcessor extends LoggerBase {
   private tickTrackingMap: Map<IntegrationType, number> = new Map()
