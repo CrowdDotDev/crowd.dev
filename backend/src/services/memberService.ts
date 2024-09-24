@@ -499,7 +499,6 @@ export default class MemberService extends LoggerBase {
           {
             id: record.id,
             createdAt: record.createdAt,
-            sample: record.attributes.sample?.crowd,
             identities: record.identities,
           },
           this.options,
@@ -1787,7 +1786,6 @@ export default class MemberService extends LoggerBase {
 
           return record
         }),
-        !data.username,
       )
 
       await SequelizeRepository.commitTransaction(transaction)
