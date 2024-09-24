@@ -43,28 +43,5 @@ services:
     networks:
       - crowd-bridge
 
-  nodejs-worker:
-    image: crowddotdev/backend:1666904557.59dad54
-    command: 'npm run start:nodejs-worker'
-    env_file:
-      - backend.env
-    environment:
-      <<: *env-args
-      SERVICE: nodejs-worker
-    restart: always
-    networks:
-      - crowd-bridge
-
-  python-worker:
-    image: crowddotdev/python-worker:1666904597.59dad54
-    env_file:
-      - backend.env
-    environment:
-      <<: *env-args
-      SERVICE: python-worker
-    restart: always
-    networks:
-      - crowd-bridge
-
 networks:
   crowd-bridge:

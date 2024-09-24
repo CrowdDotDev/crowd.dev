@@ -53,7 +53,6 @@ export interface OpensearchQuery {
 
 export interface IOpenSearchConfig {
   node: string
-  region?: string
-  accessKeyId?: string
-  secretAccessKey?: string
+  username: string
+  password: string
 }

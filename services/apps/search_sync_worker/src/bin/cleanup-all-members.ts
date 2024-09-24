@@ -1,13 +1,19 @@
 import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { getServiceLogger } from '@crowd/logging'
-import { InitService, MemberSyncService, OpenSearchService } from '@crowd/opensearch'
+import {
+  getOpensearchClient,
+  InitService,
+  MemberSyncService,
+  OpenSearchService,
+} from '@crowd/opensearch'
 import { getRedisClient } from '@crowd/redis'
 import { DB_CONFIG, OPENSEARCH_CONFIG, REDIS_CONFIG } from '../conf'
 
 const log = getServiceLogger()
 
 setImmediate(async () => {
-  const openSearchService = new OpenSearchService(log, OPENSEARCH_CONFIG())
+  const osClient = await getOpensearchClient(OPENSEARCH_CONFIG())
+  const openSearchService = new OpenSearchService(log, osClient)
 
   const redis = await getRedisClient(REDIS_CONFIG(), true)
 

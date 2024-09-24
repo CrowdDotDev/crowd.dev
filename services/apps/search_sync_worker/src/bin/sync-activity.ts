@@ -1,4 +1,4 @@
-import { ActivitySyncService, OpenSearchService } from '@crowd/opensearch'
+import { ActivitySyncService, getOpensearchClient, OpenSearchService } from '@crowd/opensearch'
 import { DB_CONFIG, OPENSEARCH_CONFIG } from '../conf'
 import { ActivityRepository } from '@crowd/data-access-layer/src/old/apps/search_sync_worker/activity.repo'
 import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
@@ -16,7 +16,8 @@ if (processArguments.length !== 1) {
 const activityId = processArguments[0]
 
 setImmediate(async () => {
-  const openSearchService = new OpenSearchService(log, OPENSEARCH_CONFIG())
+  const osClient = await getOpensearchClient(OPENSEARCH_CONFIG())
+  const openSearchService = new OpenSearchService(log, osClient)
 
   const dbConnection = await getDbConnection(DB_CONFIG())
   const store = new DbStore(log, dbConnection)

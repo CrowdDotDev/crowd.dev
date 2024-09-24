@@ -2,8 +2,8 @@ import config from 'config'
 import { IRedisConfiguration } from '@crowd/redis'
 import { ISearchSyncApiConfig } from '@crowd/opensearch'
 import { IDatabaseConfig } from '@crowd/data-access-layer/src/database'
+import { IQueueClientConfig } from '@crowd/queue'
 import {
-  SQSConfiguration,
   S3Configuration,
   DbConfiguration,
   PlansConfiguration,
@@ -74,7 +74,7 @@ export const IS_CLOUD_ENV: boolean = IS_PROD_ENV || IS_STAGING_ENV
 export const ENCRYPTION_CONFIG: EncryptionConfiguration =
   config.get<EncryptionConfiguration>('encryption')
 
-export const SQS_CONFIG: SQSConfiguration = config.get<SQSConfiguration>('sqs')
+export const QUEUE_CONFIG: IQueueClientConfig = config.get<IQueueClientConfig>('queue')
 
 export const REDIS_CONFIG: IRedisConfiguration = config.get<IRedisConfiguration>('redis')
 

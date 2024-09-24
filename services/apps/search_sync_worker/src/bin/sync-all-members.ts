@@ -2,7 +2,7 @@ import { timeout } from '@crowd/common'
 import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { MemberRepository } from '@crowd/data-access-layer/src/old/apps/search_sync_worker/member.repo'
 import { getServiceLogger } from '@crowd/logging'
-import { MemberSyncService, OpenSearchService } from '@crowd/opensearch'
+import { getOpensearchClient, MemberSyncService, OpenSearchService } from '@crowd/opensearch'
 import { IndexedEntityType } from '@crowd/opensearch/src/repo/indexing.data'
 import { IndexingRepository } from '@crowd/opensearch/src/repo/indexing.repo'
 import { getRedisClient } from '@crowd/redis'
@@ -15,7 +15,8 @@ const processArguments = process.argv.slice(2)
 const MAX_CONCURRENT = 3
 
 setImmediate(async () => {
-  const openSearchService = new OpenSearchService(log, OPENSEARCH_CONFIG())
+  const osClient = await getOpensearchClient(OPENSEARCH_CONFIG())
+  const openSearchService = new OpenSearchService(log, osClient)
 
   const redis = await getRedisClient(REDIS_CONFIG(), true)
 

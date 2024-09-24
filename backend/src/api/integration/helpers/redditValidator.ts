@@ -81,6 +81,7 @@ export default async (req, res) => {
       )
       return req.responseHandler.error(req, res, new Error400(req.language))
     } catch (e) {
+      req.log.error('Error validating subreddit', e)
       track(
         'Reddit: subreddit input',
         {

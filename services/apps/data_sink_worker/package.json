@@ -31,7 +31,7 @@
     "@crowd/logging": "workspace:*",
     "@crowd/redis": "workspace:*",
     "@crowd/sentiment": "workspace:*",
-    "@crowd/sqs": "workspace:*",
+    "@crowd/queue": "workspace:*",
     "@crowd/tracing": "workspace:*",
     "@crowd/types": "workspace:*",
     "@crowd/feature-flags": "workspace:*",

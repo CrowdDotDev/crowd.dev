@@ -1,4 +1,4 @@
-import { ActivitySyncService, OpenSearchService } from '@crowd/opensearch'
+import { ActivitySyncService, getOpensearchClient, OpenSearchService } from '@crowd/opensearch'
 import { DB_CONFIG, OPENSEARCH_CONFIG } from '../conf'
 import { ActivityRepository } from '@crowd/data-access-layer/src/old/apps/search_sync_worker/activity.repo'
 import { timeout } from '@crowd/common'
@@ -14,7 +14,8 @@ const processArguments = process.argv.slice(2)
 const MAX_CONCURRENT = 3
 
 setImmediate(async () => {
-  const openSearchService = new OpenSearchService(log, OPENSEARCH_CONFIG())
+  const osClient = await getOpensearchClient(OPENSEARCH_CONFIG())
+  const openSearchService = new OpenSearchService(log, osClient)
 
   const dbConnection = await getDbConnection(DB_CONFIG())
   const store = new DbStore(log, dbConnection)

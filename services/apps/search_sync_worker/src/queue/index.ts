@@ -1,23 +1,18 @@
 import { BatchProcessor } from '@crowd/common'
 import { DbConnection, DbStore } from '@crowd/data-access-layer/src/database'
 import { Logger } from '@crowd/logging'
-import { RedisClient } from '@crowd/redis'
 import {
-  SEARCH_SYNC_WORKER_QUEUE_SETTINGS,
-  SqsClient,
-  SqsPrioritizedQueueReciever,
-} from '@crowd/sqs'
-import { Span, SpanStatusCode, Tracer } from '@crowd/tracing'
-import { IQueueMessage, QueuePriorityLevel, SearchSyncWorkerQueueMessageType } from '@crowd/types'
-import {
-  OpenSearchService,
   ActivitySyncService,
   MemberSyncService,
+  OpenSearchService,
   OrganizationSyncService,
 } from '@crowd/opensearch'
+import { CrowdQueue, IQueue, PrioritizedQueueReciever } from '@crowd/queue'
+import { RedisClient } from '@crowd/redis'
+import { IQueueMessage, QueuePriorityLevel, SearchSyncWorkerQueueMessageType } from '@crowd/types'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
+export class WorkerQueueReceiver extends PrioritizedQueueReciever {
   // private readonly memberBatchProcessor: BatchProcessor<string>
   private readonly activityBatchProcessor: BatchProcessor<string>
   // private readonly organizationBatchProcessor: BatchProcessor<string>
@@ -25,19 +20,17 @@ export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
   constructor(
     level: QueuePriorityLevel,
     private readonly redisClient: RedisClient,
-    client: SqsClient,
+    client: IQueue,
     private readonly dbConn: DbConnection,
     private readonly openSearchService: OpenSearchService,
-    tracer: Tracer,
     parentLog: Logger,
     maxConcurrentProcessing: number,
   ) {
     super(
       level,
       client,
-      SEARCH_SYNC_WORKER_QUEUE_SETTINGS,
+      client.getQueueChannelConfig(CrowdQueue.SEARCH_SYNC_WORKER),
       maxConcurrentProcessing,
-      tracer,
       parentLog,
       true,
       5 * 60,
@@ -116,136 +109,123 @@ export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
   }
 
   public override async processMessage<T extends IQueueMessage>(message: T): Promise<void> {
-    await this.tracer.startActiveSpan('ProcessMessage', async (span: Span) => {
-      try {
-        this.log.trace({ messageType: message.type }, 'Processing message!')
+    try {
+      this.log.trace({ messageType: message.type }, 'Processing message!')
 
-        const type = message.type as SearchSyncWorkerQueueMessageType
-        const data = message as any
+      const type = message.type as SearchSyncWorkerQueueMessageType
+      const data = message as any
 
-        switch (type) {
-          // members
-          case SearchSyncWorkerQueueMessageType.SYNC_MEMBER:
-            if (data.memberId) {
-              // await this.memberBatchProcessor.addToBatch(data.memberId)
-              await this.initMemberService().syncMembers(data.memberId, {
-                withAggs: data.withAggs ? data.withAggs : true,
+      switch (type) {
+        // members
+        case SearchSyncWorkerQueueMessageType.SYNC_MEMBER:
+          if (data.memberId) {
+            // await this.memberBatchProcessor.addToBatch(data.memberId)
+            await this.initMemberService().syncMembers(data.memberId, {
+              withAggs: data.withAggs ? data.withAggs : true,
+            })
+          }
+
+          break
+        // this one taks a while so we can't relly on it to be finished in time and the queue message might pop up again so we immediatelly return
+        case SearchSyncWorkerQueueMessageType.SYNC_TENANT_MEMBERS:
+          if (data.tenantId) {
+            this.initMemberService()
+              .syncTenantMembers(data.tenantId)
+              .catch((err) => this.log.error(err, 'Error while syncing tenant members!'))
+          }
+
+          break
+        case SearchSyncWorkerQueueMessageType.SYNC_ORGANIZATION_MEMBERS:
+          if (data.organizationId) {
+            this.initMemberService()
+              .syncOrganizationMembers(data.organizationId)
+              .catch((err) => this.log.error(err, 'Error while syncing organization members!'))
+          }
+
+          break
+        // this one taks a while so we can't relly on it to be finished in time and the queue message might pop up again so we immediatelly return
+        case SearchSyncWorkerQueueMessageType.CLEANUP_TENANT_MEMBERS:
+          if (data.tenantId) {
+            this.initMemberService()
+              .cleanupMemberIndex(data.tenantId)
+              .catch((err) => this.log.error(err, 'Error while cleaning up tenant members!'))
+          }
+
+          break
+        case SearchSyncWorkerQueueMessageType.REMOVE_MEMBER:
+          if (data.memberId) {
+            await this.initMemberService().removeMember(data.memberId)
+          }
+          break
+
+        // activities
+        case SearchSyncWorkerQueueMessageType.SYNC_ACTIVITY:
+          if (data.activityId) {
+            await this.activityBatchProcessor.addToBatch(data.activityId)
+          }
+          break
+        case SearchSyncWorkerQueueMessageType.SYNC_TENANT_ACTIVITIES:
+          if (data.tenantId) {
+            this.initActivityService()
+              .syncTenantActivities(data.tenantId)
+              .catch((err) => this.log.error(err, 'Error while syncing tenant activities!'))
+          }
+          break
+        case SearchSyncWorkerQueueMessageType.SYNC_ORGANIZATION_ACTIVITIES:
+          if (data.organizationId) {
+            this.initActivityService()
+              .syncOrganizationActivities(data.organizationId)
+              .catch((err) => this.log.error(err, 'Error while syncing organization activities!'))
+          }
+          break
+        case SearchSyncWorkerQueueMessageType.CLEANUP_TENANT_ACTIVITIES:
+          if (data.tenantId) {
+            this.initActivityService()
+              .cleanupActivityIndex(data.tenantId)
+              .catch((err) => this.log.error(err, 'Error while cleaning up tenant activities!'))
+          }
+          break
+        case SearchSyncWorkerQueueMessageType.REMOVE_ACTIVITY:
+          if (data.activityId) {
+            await this.initActivityService().removeActivity(data.activityId)
+          }
+          break
+
+        // organizations
+        case SearchSyncWorkerQueueMessageType.SYNC_ORGANIZATION:
+          if (data.organizationId) {
+            // await this.organizationBatchProcessor.addToBatch(data.organizationId)
+            await this.initOrganizationService().syncOrganizations([data.organizationId])
+          }
+          break
+        case SearchSyncWorkerQueueMessageType.SYNC_TENANT_ORGANIZATIONS:
+          if (data.tenantId) {
+            this.initOrganizationService()
+              .syncTenantOrganizations(data.tenantId)
+              .catch((err) => this.log.error(err, 'Error while syncing tenant organizations!'))
+          }
+          break
+        case SearchSyncWorkerQueueMessageType.CLEANUP_TENANT_ORGANIZATIONS:
+          if (data.tenantId) {
+            this.initOrganizationService()
+              .cleanupOrganizationIndex(data.tenantId)
+              .catch((err) => {
+                this.log.error(err, 'Error while cleaning up tenant organizations!')
               })
-            }
+          }
+          break
+        case SearchSyncWorkerQueueMessageType.REMOVE_ORGANIZATION:
+          if (data.organizationId) {
+            await this.initOrganizationService().removeOrganization(data.organizationId)
+          }
+          break
 
-            break
-          // this one taks a while so we can't relly on it to be finished in time and the queue message might pop up again so we immediatelly return
-          case SearchSyncWorkerQueueMessageType.SYNC_TENANT_MEMBERS:
-            if (data.tenantId) {
-              this.initMemberService()
-                .syncTenantMembers(data.tenantId)
-                .catch((err) => this.log.error(err, 'Error while syncing tenant members!'))
-            }
-
-            break
-          case SearchSyncWorkerQueueMessageType.SYNC_ORGANIZATION_MEMBERS:
-            if (data.organizationId) {
-              this.initMemberService()
-                .syncOrganizationMembers(data.organizationId)
-                .catch((err) => this.log.error(err, 'Error while syncing organization members!'))
-            }
-
-            break
-          // this one taks a while so we can't relly on it to be finished in time and the queue message might pop up again so we immediatelly return
-          case SearchSyncWorkerQueueMessageType.CLEANUP_TENANT_MEMBERS:
-            if (data.tenantId) {
-              this.initMemberService()
-                .cleanupMemberIndex(data.tenantId)
-                .catch((err) => this.log.error(err, 'Error while cleaning up tenant members!'))
-            }
-
-            break
-          case SearchSyncWorkerQueueMessageType.REMOVE_MEMBER:
-            if (data.memberId) {
-              await this.initMemberService().removeMember(data.memberId)
-            }
-            break
-
-          // activities
-          case SearchSyncWorkerQueueMessageType.SYNC_ACTIVITY:
-            if (data.activityId) {
-              await this.activityBatchProcessor.addToBatch(data.activityId)
-            }
-            break
-          case SearchSyncWorkerQueueMessageType.SYNC_TENANT_ACTIVITIES:
-            if (data.tenantId) {
-              this.initActivityService()
-                .syncTenantActivities(data.tenantId)
-                .catch((err) => this.log.error(err, 'Error while syncing tenant activities!'))
-            }
-            break
-          case SearchSyncWorkerQueueMessageType.SYNC_ORGANIZATION_ACTIVITIES:
-            if (data.organizationId) {
-              this.initActivityService()
-                .syncOrganizationActivities(data.organizationId)
-                .catch((err) => this.log.error(err, 'Error while syncing organization activities!'))
-            }
-            break
-          case SearchSyncWorkerQueueMessageType.CLEANUP_TENANT_ACTIVITIES:
-            if (data.tenantId) {
-              this.initActivityService()
-                .cleanupActivityIndex(data.tenantId)
-                .catch((err) => this.log.error(err, 'Error while cleaning up tenant activities!'))
-            }
-            break
-          case SearchSyncWorkerQueueMessageType.REMOVE_ACTIVITY:
-            if (data.activityId) {
-              await this.initActivityService().removeActivity(data.activityId)
-            }
-            break
-
-          // organizations
-          case SearchSyncWorkerQueueMessageType.SYNC_ORGANIZATION:
-            if (data.organizationId) {
-              // await this.organizationBatchProcessor.addToBatch(data.organizationId)
-              await this.initOrganizationService().syncOrganizations([data.organizationId])
-            }
-            break
-          case SearchSyncWorkerQueueMessageType.SYNC_TENANT_ORGANIZATIONS:
-            if (data.tenantId) {
-              this.initOrganizationService()
-                .syncTenantOrganizations(data.tenantId)
-                .catch((err) => this.log.error(err, 'Error while syncing tenant organizations!'))
-            }
-            break
-          case SearchSyncWorkerQueueMessageType.CLEANUP_TENANT_ORGANIZATIONS:
-            if (data.tenantId) {
-              this.initOrganizationService()
-                .cleanupOrganizationIndex(data.tenantId)
-                .catch((err) => {
-                  this.log.error(err, 'Error while cleaning up tenant organizations!')
-                })
-            }
-            break
-          case SearchSyncWorkerQueueMessageType.REMOVE_ORGANIZATION:
-            if (data.organizationId) {
-              await this.initOrganizationService().removeOrganization(data.organizationId)
-            }
-            break
-
-          default:
-            throw new Error(`Unknown message type: ${message.type}`)
-        }
-
-        span.setStatus({
-          code: SpanStatusCode.OK,
-        })
-      } catch (err) {
-        span.setStatus({
-          code: SpanStatusCode.ERROR,
-          message: err,
-        })
-
-        this.log.error(err, 'Error while processing message!')
-        throw err
-      } finally {
-        span.end()
+        default:
+          throw new Error(`Unknown message type: ${message.type}`)
       }
-    })
+    } catch (err) {
+      this.log.error(err, 'Error while processing message!')
+      throw err
+    }
   }
 }

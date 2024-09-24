@@ -16,7 +16,7 @@ import { DiscordWebsocketEvent, DiscordWebsocketPayload, WebhookType } from '../
 import {
   getIntegrationRunWorkerEmitter,
   getIntegrationStreamWorkerEmitter,
-} from '@/serverless/utils/serviceSQS'
+} from '@/serverless/utils/queueService'
 import { databaseInit } from '@/database/databaseConnection'
 
 const tracer = getServiceTracer()

@@ -1,5 +1,5 @@
 import { EDITION, escapeNullByte, isObjectEmpty, singleOrDefault } from '@crowd/common'
-import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/common_services'
+import { SearchSyncWorkerEmitter } from '@crowd/common_services'
 import { ConversationService } from '@crowd/conversations'
 import { DbStore, arePrimitivesDbEqual } from '@crowd/data-access-layer/src/database'
 import {
@@ -13,7 +13,6 @@ import IntegrationRepository from '@crowd/data-access-layer/src/old/apps/data_si
 import MemberRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.repo'
 import SettingsRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/settings.repo'
 import RequestedForErasureMemberIdentitiesRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/requestedForErasureMemberIdentities.repo'
-import { Unleash } from '@crowd/feature-flags'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
 import { ISentimentAnalysisResult, getSentiment } from '@crowd/sentiment'
@@ -38,10 +37,8 @@ export default class ActivityService extends LoggerBase {
 
   constructor(
     private readonly store: DbStore,
-    private readonly nodejsWorkerEmitter: NodejsWorkerEmitter,
     private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
     private readonly redisClient: RedisClient,
-    private readonly unleash: Unleash | undefined,
     private readonly temporal: TemporalClient,
     parentLog: Logger,
   ) {
@@ -539,19 +536,15 @@ export default class ActivityService extends LoggerBase {
           const txMemberRepo = new MemberRepository(txStore, this.log)
           const txMemberService = new MemberService(
             txStore,
-            this.nodejsWorkerEmitter,
             this.searchSyncWorkerEmitter,
-            this.unleash,
             this.temporal,
             this.redisClient,
             this.log,
           )
           const txActivityService = new ActivityService(
             txStore,
-            this.nodejsWorkerEmitter,
             this.searchSyncWorkerEmitter,
             this.redisClient,
-            this.unleash,
             this.temporal,
             this.log,
           )
