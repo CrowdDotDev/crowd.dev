@@ -3,7 +3,7 @@ import { Kafka, Producer as KafkaProducer } from 'kafkajs'
 
 import pgpromise from 'pg-promise'
 
-import { getClientSQL } from '@crowd/questdb'
+import { getClientILP, getClientSQL } from '@crowd/questdb'
 import { Unleash as UnleashClient, getUnleashClient } from '@crowd/feature-flags'
 import { IIntegrationDescriptor, INTEGRATION_SERVICES } from '@crowd/integrations'
 import { Logger, getServiceLogger } from '@crowd/logging'
@@ -278,6 +278,7 @@ export class Service {
     if (this.config.questdb?.enabled) {
       try {
         this._questdbSQL = await getClientSQL()
+        this._questdbILP = getClientILP()
       } catch (err) {
         throw new Error(err)
       }

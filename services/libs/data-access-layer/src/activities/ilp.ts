@@ -22,8 +22,16 @@ export async function insertActivities(activities: IDbActivityCreateData[]): Pro
         .symbol('segmentId', activity.segmentId)
         .symbol('platform', activity.platform)
         .stringColumn('id', id)
-        .timestampColumn('createdAt', now, 'ms')
-        .timestampColumn('updatedAt', now, 'ms')
+        .timestampColumn(
+          'createdAt',
+          activity.createdAt ? new Date(activity.createdAt).getTime() : now,
+          'ms',
+        )
+        .timestampColumn(
+          'updatedAt',
+          activity.updatedAt ? new Date(activity.updatedAt).getTime() : now,
+          'ms',
+        )
         .stringColumn('attributes', objectToBytes(activity.attributes))
         .booleanColumn('member_isTeamMember', activity.isTeamMemberActivity || false)
         .booleanColumn('member_isBot', activity.isBotActivity || false)

@@ -55,6 +55,8 @@ export interface IDbActivityCreateData {
   conversationId?: string
   createdById?: string
   updatedById?: string
+  createdAt?: string
+  updatedAt?: string
 }
 
 let insertActivityColumnSet: DbColumnSet
