@@ -252,7 +252,11 @@ export class MemberSyncService {
     }
   }
 
-  public async syncTenantMembers(tenantId: string, batchSize = 200): Promise<void> {
+  public async syncTenantMembers(
+    tenantId: string,
+    batchSize = 200,
+    opts: { withAggs?: boolean } = { withAggs: true },
+  ): Promise<void> {
     this.log.debug({ tenantId }, 'Syncing all tenant members!')
     let docCount = 0
     let memberCount = 0
@@ -263,7 +267,7 @@ export class MemberSyncService {
 
     while (memberIds.length > 0) {
       for (const memberId of memberIds) {
-        const { membersSynced, documentsIndexed } = await this.syncMembers(memberId)
+        const { membersSynced, documentsIndexed } = await this.syncMembers(memberId, opts)
 
         docCount += documentsIndexed
         memberCount += membersSynced

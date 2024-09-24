@@ -45,7 +45,7 @@ setImmediate(async () => {
     log.info(`Processing tenant ${i + 1}/${tenantIds.length}`)
     current += 1
     service
-      .syncTenantMembers(tenantId, 500)
+      .syncTenantMembers(tenantId, 500, { withAggs: false })
       .then(() => {
         current--
         log.info(`Processed tenant ${i + 1}/${tenantIds.length}`)
