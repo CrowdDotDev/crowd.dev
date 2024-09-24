@@ -422,7 +422,7 @@ export default class ActivityService extends LoggerBase {
               type: MemberIdentityType.USERNAME,
               verified: true,
             },
-          ]
+          ],
         }
       }
 

@@ -11,7 +11,6 @@ import { installDiscourseRoutes } from './routes/discourse'
 import { installGitlabRoutes } from './routes/gitlab'
 import cors from 'cors'
 import { telemetryExpressMiddleware } from '@crowd/telemetry'
-import { getUnleashClient } from '@crowd/feature-flags'
 import { getRedisClient } from '@crowd/redis'
 import {
   IntegrationStreamWorkerEmitter,

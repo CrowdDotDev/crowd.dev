@@ -1,7 +1,6 @@
 /* eslint-disable no-continue */
 
 import {
-  SERVICE,
   Error400,
   isDomainExcluded,
   singleOrDefault,
