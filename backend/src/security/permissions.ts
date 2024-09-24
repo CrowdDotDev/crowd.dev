@@ -1206,6 +1206,17 @@ class Permissions {
           TenantPlans.Scale,
         ],
       },
+      dataIssueCreate: {
+        id: 'dataIssueCreate',
+        allowedRoles: [roles.admin, roles.projectAdmin, roles.readonly],
+        allowedPlans: [
+          TenantPlans.Essential,
+          TenantPlans.Growth,
+          TenantPlans.EagleEye,
+          TenantPlans.Enterprise,
+          TenantPlans.Scale,
+        ],
+      },
     }
   }
 

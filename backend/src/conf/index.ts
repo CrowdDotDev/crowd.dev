@@ -42,6 +42,7 @@ import {
   GithubTokenConfiguration,
   GitlabConfiguration,
   IRedditConfig,
+  GithubIssueReporterConfiguration,
 } from './configTypes'
 
 // TODO-kube
@@ -113,6 +114,9 @@ export const GOOGLE_CONFIG: GoogleConfiguration = config.get<GoogleConfiguration
 export const DISCORD_CONFIG: DiscordConfiguration = config.get<DiscordConfiguration>('discord')
 
 export const GITHUB_CONFIG: GithubConfiguration = config.get<GithubConfiguration>('github')
+
+export const GITHUB_ISSUE_REPORTER_CONFIG: GithubIssueReporterConfiguration =
+  config.get<GithubIssueReporterConfiguration>('githubIssueReporter')
 
 export const SENDGRID_CONFIG: SendgridConfiguration = config.get<SendgridConfiguration>('sendgrid')
 

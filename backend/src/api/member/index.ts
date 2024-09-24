@@ -49,4 +49,9 @@ export default (app) => {
   require('./organization').default(app)
   require('./attributes').default(app)
   require('./affiliation').default(app)
+
+  app.post(
+    `/tenant/:tenantId/member/:id/data-issue`,
+    safeWrap(require('./memberDataIssueCreate').default),
+  )
 }
