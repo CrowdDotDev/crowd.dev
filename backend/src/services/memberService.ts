@@ -506,7 +506,6 @@ export default class MemberService extends LoggerBase {
           {
             id: record.id,
             createdAt: record.createdAt,
-            sample: record.attributes.sample?.crowd,
             identities: record.identities,
           },
           this.options,
@@ -641,7 +640,7 @@ export default class MemberService extends LoggerBase {
           if (username[platform].length === 0) {
             throw new Error400(this.options.language, 'activity.platformAndUsernameNotMatching')
           } else if (typeof username[platform] === 'string') {
-            usernames.push(...username[platform])
+            usernames.push(username[platform])
           } else if (typeof username[platform][0] === 'object') {
             usernames.push(...username[platform].map((u) => u.username))
           }
@@ -1794,7 +1793,6 @@ export default class MemberService extends LoggerBase {
 
           return record
         }),
-        !data.username,
       )
 
       await SequelizeRepository.commitTransaction(transaction)

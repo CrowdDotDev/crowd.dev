@@ -16,6 +16,7 @@ export interface AuditLogAction {
   oldState: object
   newState: object
   diff: object
+  error?: object
 }
 
 export enum EntityType {
@@ -75,7 +76,8 @@ export async function addAuditAction(
         "entityId",
         "oldState",
         "newState",
-        "diff"
+        "diff",
+        "error"
       )
       VALUES (
         $(userId),
@@ -87,7 +89,8 @@ export async function addAuditAction(
         $(entityId),
         $(oldState),
         $(newState),
-        $(diff)
+        $(diff),
+        $(error)
       )
     `,
     {
@@ -98,9 +101,10 @@ export async function addAuditAction(
       actionType: action.actionType,
       success: action.success,
       entityId: action.entityId,
-      oldState: action.success ? JSON.stringify(action.oldState) : '{}',
-      newState: action.success ? JSON.stringify(action.newState) : '{}',
-      diff: action.success ? JSON.stringify(action.diff) : '{}',
+      oldState: JSON.stringify(action.oldState),
+      newState: JSON.stringify(action.newState),
+      diff: JSON.stringify(action.diff),
+      error: action.error ? JSON.stringify(action.error) : null,
     },
   )
 }
