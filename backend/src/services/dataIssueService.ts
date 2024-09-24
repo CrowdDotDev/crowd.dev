@@ -50,11 +50,11 @@ export default class DataIssueService extends LoggerBase {
         OrganizationField.DISPLAY_NAME,
       ])
       entityName = organization.displayName
-      entityUrl = `${API_CONFIG.url}/organizations/${organization.id}`
+      entityUrl = `${API_CONFIG.frontendUrl}/organizations/${organization.id}`
     } else if (data.entity === DataIssueEntity.PERSON) {
       const member = await findMemberById(qx, entityId, [MemberField.ID, MemberField.DISPLAY_NAME])
       entityName = member.displayName
-      entityUrl = `${API_CONFIG.url}/members/${member.id}`
+      entityUrl = `${API_CONFIG.frontendUrl}/members/${member.id}`
     } else {
       throw new Error(`Unsupported data issue entity ${data.entity}!1`)
     }
