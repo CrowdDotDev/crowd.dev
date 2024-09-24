@@ -18,7 +18,6 @@ export const scheduleRefreshDashboardCacheDaily = async () => {
         type: 'startWorkflow',
         workflowType: spawnDashboardCacheRefreshForAllTenants,
         taskQueue: 'cache',
-        workflowExecutionTimeout: '5 minutes',
       },
     })
   } catch (err) {
