@@ -12,7 +12,11 @@ import {
   updateMemberIdentity,
 } from '@crowd/data-access-layer/src/members'
 import { Error409 } from '@crowd/common'
-import { captureApiChange, memberCreateIdentitiesAction, memberEditIdentitiesAction } from '@crowd/audit-logs'
+import {
+  captureApiChange,
+  memberCreateIdentitiesAction,
+  memberEditIdentitiesAction,
+} from '@crowd/audit-logs'
 import { IServiceOptions } from '../IServiceOptions'
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
@@ -178,10 +182,7 @@ export default class MemberIdentityService extends LoggerBase {
           const qx = SequelizeRepository.getQueryExecutor(repoOptions, tx)
 
           const incomingIdentities = data
-          const memberIdentities = (
-            await MemberRepository.getIdentities([id], repoOptions)
-          ).get(id)
-
+          const memberIdentities = (await MemberRepository.getIdentities([id], repoOptions)).get(id)
 
           captureOldState(lodash.sortBy(memberIdentities, [(i) => i.platform, (i) => i.type]))
           captureNewState(lodash.sortBy(incomingIdentities, [(i) => i.platform, (i) => i.type]))
