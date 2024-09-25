@@ -2,8 +2,21 @@
 
 import { LoggerBase } from '@crowd/logging'
 import { IMemberIdentity } from '@crowd/types'
+import lodash from 'lodash'
+import {
+  checkIdentityExistance,
+  createMemberIdentity,
+  deleteMemberIdentity,
+  fetchMemberIdentities,
+  findMemberIdentityById,
+  updateMemberIdentity,
+} from '@crowd/data-access-layer/src/members'
+import { Error409 } from '@crowd/common'
+import { captureApiChange, memberCreateIdentitiesAction, memberEditIdentitiesAction } from '@crowd/audit-logs'
 import { IServiceOptions } from '../IServiceOptions'
-import MemberIdentityRepository from '@/database/repositories/member/memberIdentityRepository'
+import SequelizeRepository from '@/database/repositories/sequelizeRepository'
+import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
+import MemberRepository from '@/database/repositories/memberRepository'
 
 export default class MemberIdentityService extends LoggerBase {
   options: IServiceOptions
@@ -15,7 +28,8 @@ export default class MemberIdentityService extends LoggerBase {
 
   // Member identity list
   async list(memberId: string): Promise<IMemberIdentity[]> {
-    return MemberIdentityRepository.list(memberId, this.options)
+    const qx = SequelizeRepository.getQueryExecutor(this.options)
+    return fetchMemberIdentities(qx, memberId)
   }
 
   // Member identity creation
@@ -24,7 +38,59 @@ export default class MemberIdentityService extends LoggerBase {
     memberId: string,
     data: Partial<IMemberIdentity>,
   ): Promise<IMemberIdentity[]> {
-    return MemberIdentityRepository.create(tenantId, memberId, data, this.options)
+    let tx
+
+    try {
+      const list = await captureApiChange(
+        this.options,
+        memberCreateIdentitiesAction(memberId, async (captureNewState) => {
+          const repoOptions: IRepositoryOptions =
+            await SequelizeRepository.createTransactionalRepositoryOptions(this.options)
+
+          tx = repoOptions.transaction
+
+          const qx = SequelizeRepository.getQueryExecutor(repoOptions, tx)
+
+          captureNewState(data)
+
+          // Check if identity already exists
+          const existingIdentities = await checkIdentityExistance(qx, data.value, data.platform)
+          if (existingIdentities.length > 0) {
+            throw new Error409(
+              this.options.language,
+              'errors.alreadyExists',
+              // @ts-ignore
+              JSON.stringify({
+                memberId: existingIdentities[0].memberId,
+              }),
+            )
+          }
+
+          // Create member identity
+          await createMemberIdentity(qx, tenantId, memberId, data)
+
+          // List all member identities
+          const list = await fetchMemberIdentities(qx, memberId)
+
+          await SequelizeRepository.commitTransaction(tx)
+
+          return list
+        }),
+      )
+
+      return list
+    } catch (error) {
+      if (tx) {
+        await SequelizeRepository.rollbackTransaction(tx)
+      }
+
+      throw error
+    }
+  }
+
+  async findById(memberId: string, id: string): Promise<IMemberIdentity> {
+    const qx = SequelizeRepository.getQueryExecutor(this.options)
+    return findMemberIdentityById(qx, memberId, id)
   }
 
   // Member multiple identity creation
@@ -33,7 +99,63 @@ export default class MemberIdentityService extends LoggerBase {
     memberId: string,
     data: Partial<IMemberIdentity>[],
   ): Promise<IMemberIdentity[]> {
-    return MemberIdentityRepository.createMultiple(tenantId, memberId, data, this.options)
+    let tx
+
+    try {
+      const list = await captureApiChange(
+        this.options,
+        memberCreateIdentitiesAction(memberId, async (captureNewState) => {
+          const repoOptions: IRepositoryOptions =
+            await SequelizeRepository.createTransactionalRepositoryOptions(this.options)
+
+          tx = repoOptions.transaction
+
+          const qx = SequelizeRepository.getQueryExecutor(repoOptions, tx)
+
+          captureNewState(data)
+
+          // Check if any of the identities already exist
+          for (const identity of data) {
+            const existingIdentities = await checkIdentityExistance(
+              qx,
+              identity.value,
+              identity.platform,
+            )
+
+            if (existingIdentities.length > 0) {
+              throw new Error409(
+                this.options.language,
+                'errors.alreadyExists',
+                // @ts-ignore
+                JSON.stringify({
+                  memberId: existingIdentities[0].memberId,
+                }),
+              )
+            }
+          }
+
+          // Create member identities
+          for (const identity of data) {
+            await createMemberIdentity(qx, tenantId, memberId, identity)
+          }
+
+          // List all member identities
+          const list = await fetchMemberIdentities(qx, memberId)
+
+          await SequelizeRepository.commitTransaction(tx)
+
+          return list
+        }),
+      )
+
+      return list
+    } catch (error) {
+      if (tx) {
+        await SequelizeRepository.rollbackTransaction(tx)
+      }
+
+      throw error
+    }
   }
 
   // Update member identity
@@ -42,11 +164,90 @@ export default class MemberIdentityService extends LoggerBase {
     memberId: string,
     data: Partial<IMemberIdentity>,
   ): Promise<IMemberIdentity[]> {
-    return MemberIdentityRepository.update(id, memberId, data, this.options)
+    let tx
+
+    try {
+      const list = await captureApiChange(
+        this.options,
+        memberEditIdentitiesAction(memberId, async (captureOldState, captureNewState) => {
+          const repoOptions: IRepositoryOptions =
+            await SequelizeRepository.createTransactionalRepositoryOptions(this.options)
+
+          tx = repoOptions.transaction
+
+          const qx = SequelizeRepository.getQueryExecutor(repoOptions, tx)
+
+          const incomingIdentities = data
+          const memberIdentities = (
+            await MemberRepository.getIdentities([id], repoOptions)
+          ).get(id)
+
+
+          captureOldState(lodash.sortBy(memberIdentities, [(i) => i.platform, (i) => i.type]))
+          captureNewState(lodash.sortBy(incomingIdentities, [(i) => i.platform, (i) => i.type]))
+
+          // Check if identity already exists
+          const existingIdentities = await checkIdentityExistance(qx, data.value, data.platform)
+          const filteredExistingIdentities = existingIdentities.filter((i) => i.id !== id)
+          if (filteredExistingIdentities.length > 0) {
+            throw new Error409(
+              this.options.language,
+              'errors.alreadyExists',
+              // @ts-ignore
+              JSON.stringify({
+                memberId: filteredExistingIdentities[0].memberId,
+              }),
+            )
+          }
+
+          // Update member identity with new data
+          await updateMemberIdentity(qx, memberId, id, data)
+
+          // List all member identities
+          const list = await fetchMemberIdentities(qx, memberId)
+
+          await SequelizeRepository.commitTransaction(tx)
+
+          return list
+        }),
+      )
+
+      return list
+    } catch (error) {
+      if (tx) {
+        await SequelizeRepository.rollbackTransaction(tx)
+      }
+
+      throw error
+    }
   }
 
   // Delete member identity
   async delete(id: string, memberId: string): Promise<IMemberIdentity[]> {
-    return MemberIdentityRepository.delete(id, memberId, this.options)
+    let tx
+
+    try {
+      const repoOptions: IRepositoryOptions =
+        await SequelizeRepository.createTransactionalRepositoryOptions(this.options)
+
+      tx = repoOptions.transaction
+
+      const qx = SequelizeRepository.getQueryExecutor(repoOptions, tx)
+
+      // Delete member identity
+      await deleteMemberIdentity(qx, memberId, id)
+
+      // List all member identities
+      const list = await fetchMemberIdentities(qx, memberId)
+
+      await SequelizeRepository.commitTransaction(tx)
+
+      return list
+    } catch (error) {
+      if (tx) {
+        await SequelizeRepository.rollbackTransaction(tx)
+      }
+      throw error
+    }
   }
 }

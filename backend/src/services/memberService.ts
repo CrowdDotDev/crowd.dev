@@ -42,6 +42,7 @@ import {
   addMemberTasks,
   fetchMemberIdentities,
   findMemberById,
+  findMemberIdentityById,
   findMemberNotes,
   findMemberTags,
   findMemberTasks,
@@ -79,7 +80,6 @@ import MemberOrganizationService from './memberOrganizationService'
 import { MergeActionsRepository } from '@/database/repositories/mergeActionsRepository'
 import MemberOrganizationRepository from '@/database/repositories/memberOrganizationRepository'
 import OrganizationRepository from '@/database/repositories/organizationRepository'
-import MemberIdentityRepository from '@/database/repositories/member/memberIdentityRepository'
 
 export default class MemberService extends LoggerBase {
   options: IServiceOptions
@@ -981,7 +981,7 @@ export default class MemberService extends LoggerBase {
         tasks: tasks.map((t) => ({ id: t.taskId })),
       }
 
-      const identity = await MemberIdentityRepository.findById(memberId, identityId, this.options)
+      const identity = await findMemberIdentityById(qx, memberId, identityId)
       if (!identity) {
         throw new Error(`Member doesn't have the identity sent to be unmerged!`)
       }
