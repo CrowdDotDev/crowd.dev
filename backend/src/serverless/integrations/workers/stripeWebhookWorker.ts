@@ -4,7 +4,6 @@ import { RedisPubSubEmitter, getRedisClient } from '@crowd/redis'
 import { ApiWebsocketMessage, TenantPlans } from '@crowd/types'
 import moment from 'moment'
 import { Stripe } from 'stripe'
-import { getNodejsWorkerEmitter } from '@/serverless/utils/serviceSQS'
 import { PLANS_CONFIG, REDIS_CONFIG } from '../../../conf'
 import SequelizeRepository from '../../../database/repositories/sequelizeRepository'
 
@@ -21,8 +20,8 @@ export default async function stripeWebhookWorker(req) {
 
   try {
     event = stripe.webhooks.constructEvent(req.rawBody, sig, PLANS_CONFIG.stripWebhookSigningSecret)
-    const emitter = await getNodejsWorkerEmitter()
-    await emitter.stripeWebhook(event)
+    log.info({ event }, 'Stripe webhook event')
+    // TODO:: process event here - we were updating it from nodejs-worker before, now it's orphaned
   } catch (err) {
     log.error(`Webhook Error: ${err.message}`)
     return {

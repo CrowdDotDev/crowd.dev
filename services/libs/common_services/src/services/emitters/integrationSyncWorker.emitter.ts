@@ -1,34 +1,28 @@
-import { UnleashClient } from '@crowd/feature-flags'
 import { Logger } from '@crowd/logging'
+import { CrowdQueue, IQueue } from '@crowd/queue'
 import { RedisClient } from '@crowd/redis'
-import { CrowdQueue, INTEGRATION_SYNC_WORKER_QUEUE_SETTINGS, SqsClient } from '@crowd/sqs'
-import { Tracer } from '@crowd/tracing'
-import { QueuePriorityContextLoader, QueuePriorityService } from '../priority.service'
 import {
   AutomationSyncTrigger,
   IIntegrationSyncWorkerEmitter,
   IntegrationSyncWorkerQueueMessageType,
 } from '@crowd/types'
+import { QueuePriorityContextLoader, QueuePriorityService } from '../priority.service'
 
 export class IntegrationSyncWorkerEmitter
   extends QueuePriorityService
   implements IIntegrationSyncWorkerEmitter
 {
   public constructor(
-    sqsClient: SqsClient,
+    client: IQueue,
     redis: RedisClient,
-    tracer: Tracer,
-    unleash: UnleashClient | undefined,
     priorityLevelCalculationContextLoader: QueuePriorityContextLoader,
     parentLog: Logger,
   ) {
     super(
       CrowdQueue.INTEGRATION_SYNC_WORKER,
-      INTEGRATION_SYNC_WORKER_QUEUE_SETTINGS,
-      sqsClient,
+      client.getQueueChannelConfig(CrowdQueue.INTEGRATION_SYNC_WORKER),
+      client,
       redis,
-      tracer,
-      unleash,
       priorityLevelCalculationContextLoader,
       parentLog,
     )

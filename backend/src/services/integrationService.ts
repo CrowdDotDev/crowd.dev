@@ -46,7 +46,7 @@ import { getOrganizations } from '../serverless/integrations/usecases/linkedin/g
 import {
   getIntegrationRunWorkerEmitter,
   getIntegrationSyncWorkerEmitter,
-} from '../serverless/utils/serviceSQS'
+} from '../serverless/utils/queueService'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
 import TenantRepository from '../database/repositories/tenantRepository'
 import GithubReposRepository from '../database/repositories/githubReposRepository'
@@ -1611,6 +1611,12 @@ export default class IntegrationService {
       'Sending HackerNews message to int-run-worker!',
     )
     const emitter = await getIntegrationRunWorkerEmitter()
+
+    this.options.log.info(
+      { tenantId: integration.tenantId },
+      'Got emmiter succesfully! Triggering integration run!',
+    )
+
     await emitter.triggerIntegrationRun(
       integration.tenantId,
       integration.platform,
@@ -1935,6 +1941,7 @@ export default class IntegrationService {
         group: response?.data?.data?.group_id,
       }
     } catch (err) {
+      this.options.log.error('Error verifying groups.io group.', err)
       throw new Error400(this.options.language, 'errors.groupsio.invalidGroup')
     }
   }

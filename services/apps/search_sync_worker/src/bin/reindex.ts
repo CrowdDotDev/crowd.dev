@@ -1,4 +1,4 @@
-import { OpenSearchService } from '@crowd/opensearch'
+import { getOpensearchClient, OpenSearchService } from '@crowd/opensearch'
 import { getServiceLogger } from '@crowd/logging'
 import { OPENSEARCH_CONFIG } from '../conf'
 
@@ -15,7 +15,8 @@ const sourceIndex = processArguments[0]
 const targetIndex = processArguments[1]
 
 setImmediate(async () => {
-  const openSearchService = new OpenSearchService(log, OPENSEARCH_CONFIG())
+  const osClient = await getOpensearchClient(OPENSEARCH_CONFIG())
+  const openSearchService = new OpenSearchService(log, osClient)
 
   const result = await openSearchService.reIndex(sourceIndex, targetIndex)
   console.log('ReIndex has been started...')

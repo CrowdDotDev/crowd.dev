@@ -1,7 +1,6 @@
 import { getServiceChildLogger } from '@crowd/logging'
 import { PlatformType } from '@crowd/types'
 import { EventWebhook, EventWebhookHeader } from '@sendgrid/eventwebhook'
-import { getNodejsWorkerEmitter } from '@/serverless/utils/serviceSQS'
 import { IS_PROD_ENV, SENDGRID_CONFIG } from '../../../conf'
 import SequelizeRepository from '../../../database/repositories/sequelizeRepository'
 import UserRepository from '../../../database/repositories/userRepository'
@@ -44,10 +43,9 @@ export default async function sendgridWebhookWorker(req) {
     }
   }
 
-  const emitter = await getNodejsWorkerEmitter()
   for (const event of events) {
     if (event.sg_template_id === SENDGRID_CONFIG.templateEagleEyeDigest) {
-      await emitter.sendgridWebhook(event)
+      // TODO:: orphaned after removing nodejs-worker, process sendgrid webhook here
     }
   }
 
