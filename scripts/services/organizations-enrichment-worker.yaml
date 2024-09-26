@@ -13,7 +13,7 @@ services:
       context: ../../
       dockerfile: ./scripts/services/docker/Dockerfile.organizations_enrichment_worker
     command: 'pnpm run start'
-    working_dir: /usr/crowd/app/services/apps/organizations_enrichment_worker
+    working_dir: /usr/crowd/app/services/apps/premium/organizations_enrichment_worker
     env_file:
       - ../../backend/.env.dist.local
       - ../../backend/.env.dist.composed

@@ -1,4 +1,4 @@
-import { OpenSearchService } from '@crowd/opensearch'
+import { getOpensearchClient, OpenSearchService } from '@crowd/opensearch'
 import { getServiceLogger } from '@crowd/logging'
 import { OPENSEARCH_CONFIG } from '../conf'
 
@@ -14,7 +14,8 @@ if (processArguments.length !== 1) {
 const index = processArguments[0]
 
 setImmediate(async () => {
-  const openSearchService = new OpenSearchService(log, OPENSEARCH_CONFIG())
+  const osClient = await getOpensearchClient(OPENSEARCH_CONFIG())
+  const openSearchService = new OpenSearchService(log, osClient)
 
   const result = await openSearchService.getDocumentCount(index)
   console.log(`Document count of ${index}:`, result)

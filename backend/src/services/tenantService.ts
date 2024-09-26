@@ -92,6 +92,10 @@ export default class TenantService {
       transaction,
     })
 
+    if (!tenant) {
+      this.options.log.error(`Tenant not found: ${tenantId}`)
+    }
+
     const tenantUser = await TenantUserRepository.findByTenantAndUser(
       tenant.id,
       this.options.currentUser.id,

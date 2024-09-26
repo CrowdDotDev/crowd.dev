@@ -5,7 +5,7 @@ import express from 'express'
 import { databaseMiddleware } from './middleware/database'
 import { errorMiddleware } from './middleware/error'
 import { loggingMiddleware } from './middleware/logging'
-import { InitService, OpenSearchService } from '@crowd/opensearch'
+import { getOpensearchClient, InitService, OpenSearchService } from '@crowd/opensearch'
 import memberRoutes from './routes/member'
 import organizationRoutes from './routes/organization'
 import { getDbConnection } from '@crowd/data-access-layer/src/database'
@@ -22,7 +22,8 @@ const config = SEARCH_SYNC_API_CONFIG()
 setImmediate(async () => {
   const app = express()
   const redis = await getRedisClient(REDIS_CONFIG(), true)
-  const opensearch = new OpenSearchService(log, OPENSEARCH_CONFIG())
+  const osClient = await getOpensearchClient(OPENSEARCH_CONFIG())
+  const opensearch = new OpenSearchService(log, osClient)
   const pgConnection = await getDbConnection(DB_CONFIG(), 5, 5000)
   const qdbConnection = await getClientSQL()
 
@@ -47,7 +48,7 @@ setImmediate(async () => {
     try {
       const [opensearchCheck, redisCheck, dbCheck] = await Promise.all([
         // ping opensearch
-        opensearch.client.ping().then((res) => res.body),
+        osClient.ping().then((res) => res.body),
         // ping redis,
         redis.ping().then((res) => res === 'PONG'),
         // ping database

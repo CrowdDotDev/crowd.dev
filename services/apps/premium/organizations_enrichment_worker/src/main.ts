@@ -22,7 +22,7 @@ const options: Options = {
   postgres: {
     enabled: true,
   },
-  sqs: {
+  queue: {
     enabled: true,
   },
 }

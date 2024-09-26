@@ -16,38 +16,42 @@ import {
   SegmentProjectGroupNestedData,
   SegmentProjectNestedData,
   SegmentType,
+  SyncStatus,
 } from '@crowd/types'
 import lodash, { chunk, uniq } from 'lodash'
 import moment from 'moment'
 import Sequelize, { QueryTypes } from 'sequelize'
 
 import {
+  Error400,
+  Error404,
+  Error409,
+  RawQueryParser,
+  dateEqualityChecker,
+  distinct,
+} from '@crowd/common'
+import { ActivityDisplayService } from '@crowd/integrations'
+import {
   captureApiChange,
   memberCreateAction,
   memberEditOrganizationsAction,
   memberEditProfileAction,
 } from '@crowd/audit-logs'
-import { dateEqualityChecker, Error400, Error404, Error409, RawQueryParser } from '@crowd/common'
-import {
-  countMembersWithActivities,
-  getActiveMembers,
-  getLastActivitiesForMembers,
-  getMemberAggregates,
-  setMemberDataToActivities,
-} from '@crowd/data-access-layer'
-import { findManyLfxMemberships } from '@crowd/data-access-layer/src/lfx_memberships'
 import {
   createMemberIdentity,
   deleteMemberIdentities,
-  deleteMemberIdentitiesByCombinations,
-  findAlreadyExistingVerifiedIdentities,
-  moveToNewMember,
   updateVerifiedFlag,
+  deleteMemberIdentitiesByCombinations,
+  moveToNewMember,
+  findAlreadyExistingVerifiedIdentities,
 } from '@crowd/data-access-layer/src/member_identities'
+import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
+import { findManyLfxMemberships } from '@crowd/data-access-layer/src/lfx_memberships'
 import { addMemberNoMerge, removeMemberToMerge } from '@crowd/data-access-layer/src/member_merge'
 import {
   fetchManyMemberIdentities,
   fetchManyMemberOrgs,
+  fetchManyMemberSegments,
   fetchMemberIdentities,
   fetchMemberOrganizations,
   findMemberById,
@@ -55,22 +59,15 @@ import {
   MemberField,
   queryMembersAdvanced,
 } from '@crowd/data-access-layer/src/members'
-import {
-  fetchAbsoluteMemberAggregates,
-  fetchManyMemberSegments,
-} from '@crowd/data-access-layer/src/members/segments'
-import { IDbMemberData } from '@crowd/data-access-layer/src/members/types'
-import { OrganizationField, queryOrgs } from '@crowd/data-access-layer/src/orgs'
 import { findTags } from '@crowd/data-access-layer/src/others'
+import { fetchAbsoluteMemberAggregates } from '@crowd/data-access-layer/src/members/segments'
+import { OrganizationField, queryOrgs } from '@crowd/data-access-layer/src/orgs'
+import { fetchManySegments, isSegmentProject, isSegmentProjectGroup } from '@crowd/data-access-layer/src/segments'
+import { IDbMemberData } from '@crowd/data-access-layer/src/members/types'
+import { countMembersWithActivities, getActiveMembers, getLastActivitiesForMembers, getMemberAggregates, setMemberDataToActivities } from '@crowd/data-access-layer'
 import { optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
-import {
-  fetchManySegments,
-  isSegmentProject,
-  isSegmentProjectGroup,
-} from '@crowd/data-access-layer/src/segments'
-import { ActivityDisplayService } from '@crowd/integrations'
-import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
-import { IFetchMemberMergeSuggestionArgs, SimilarityScoreRange } from '@/types/mergeSuggestionTypes'
+import { KUBE_MODE, SERVICE } from '@/conf'
+import { ServiceType } from '@/conf/configTypes'
 import isFeatureEnabled from '../../feature-flags/isFeatureEnabled'
 import { PlatformIdentities } from '../../serverless/integrations/types/messageTypes'
 import {
@@ -82,6 +79,7 @@ import { IRepositoryOptions } from './IRepositoryOptions'
 import AuditLogRepository from './auditLogRepository'
 import MemberAttributeSettingsRepository from './memberAttributeSettingsRepository'
 import MemberSegmentAffiliationRepository from './memberSegmentAffiliationRepository'
+import MemberSyncRemoteRepository from './memberSyncRemoteRepository'
 import OrganizationRepository from './organizationRepository'
 import SegmentRepository from './segmentRepository'
 import SequelizeRepository from './sequelizeRepository'
@@ -92,6 +90,7 @@ import {
   IMemberMergeSuggestion,
   mapUsernameToIdentities,
 } from './types/memberTypes'
+import { IFetchMemberMergeSuggestionArgs, SimilarityScoreRange } from '@/types/mergeSuggestionTypes'
 
 const { Op } = Sequelize
 
@@ -2512,6 +2511,244 @@ class MemberRepository {
         options,
       )
     }
+  }
+
+  static async _populateRelationsForRows(rows, attributesSettings, exportMode = false) {
+    if (!rows) {
+      return rows
+    }
+
+    // No need for lazyloading tags for integrations or microservices
+    if (
+      (KUBE_MODE && SERVICE === ServiceType.JOB_GENERATOR && !exportMode) ||
+      process.env.SERVICE === 'integrations' ||
+      process.env.SERVICE === 'microservices-nodejs'
+    ) {
+      return rows.map((record) => {
+        const plainRecord = record.get({ plain: true })
+        plainRecord.noMerge = plainRecord.noMergeIds ? plainRecord.noMergeIds.split(',') : []
+        plainRecord.toMerge = plainRecord.toMergeIds ? plainRecord.toMergeIds.split(',') : []
+
+        delete plainRecord.toMergeIds
+        delete plainRecord.noMergeIds
+        return plainRecord
+      })
+    }
+
+    return Promise.all(
+      rows.map(async (record) => {
+        const plainRecord = record.get({ plain: true })
+        plainRecord.noMerge = plainRecord.noMergeIds ? plainRecord.noMergeIds.split(',') : []
+        plainRecord.toMerge = plainRecord.toMergeIds ? plainRecord.toMergeIds.split(',') : []
+        plainRecord.lastActivity = plainRecord.lastActive
+          ? (
+              await record.getActivities({
+                order: [['timestamp', 'DESC']],
+                limit: 1,
+              })
+            )[0].get({ plain: true })
+          : null
+        delete plainRecord.toMergeIds
+        delete plainRecord.noMergeIds
+
+        plainRecord.activeOn = plainRecord.activeOn ?? []
+
+        for (const attribute of attributesSettings) {
+          if (Object.prototype.hasOwnProperty.call(plainRecord, attribute.name)) {
+            delete plainRecord[attribute.name]
+          }
+        }
+
+        for (const attributeName in plainRecord.attributes) {
+          if (!lodash.find(attributesSettings, { name: attributeName })) {
+            delete plainRecord.attributes[attributeName]
+          }
+        }
+
+        delete plainRecord.contributions
+
+        delete plainRecord.company
+        plainRecord.organizations = await record.getOrganizations({
+          joinTableAttributes: [],
+        })
+        plainRecord.tags = await record.getTags({
+          joinTableAttributes: [],
+        })
+
+        if (exportMode) {
+          plainRecord.notes = await record.getNotes({
+            joinTableAttributes: [],
+          })
+        }
+        return plainRecord
+      }),
+    )
+  }
+
+  /**
+   * Fill a record with the relations and files (if any)
+   * @param record Record to get relations and files for
+   * @param options IRepository options
+   * @param returnPlain If true: return object, otherwise  return model
+   * @returns The model/object with filled relations and files
+   */
+  static async _populateRelations(
+    record,
+    options: IRepositoryOptions,
+    {
+      returnPlain,
+      segmentId,
+      newIdentities,
+      withActivityAggregates,
+    }: {
+      returnPlain: boolean
+      segmentId: string
+      newIdentities: boolean
+      withActivityAggregates: boolean
+    },
+  ) {
+    if (!record) {
+      return record
+    }
+
+    let output
+
+    if (returnPlain) {
+      output = record.get({ plain: true })
+    } else {
+      output = record
+    }
+
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    if (withActivityAggregates) {
+      const activityAggregates = await MemberRepository.getActivityAggregates(
+        output.id,
+        options,
+        segmentId,
+      )
+
+      output.activeOn = activityAggregates?.activeOn || []
+      output.activityCount = activityAggregates?.activityCount || 0
+      output.activityTypes = activityAggregates?.activityTypes || []
+      output.activeDaysCount = activityAggregates?.activeDaysCount || 0
+      output.averageSentiment = activityAggregates?.averageSentiment || 0
+    }
+
+    output.lastActivity =
+      (
+        await record.getActivities({
+          order: [['timestamp', 'DESC']],
+          limit: 1,
+          transaction,
+        })
+      )[0]?.get({ plain: true }) ?? null
+
+    output.lastActive = output.lastActivity?.timestamp ?? null
+
+    output.numberOfOpenSourceContributions = output.contributions?.length ?? 0
+
+    output.tags = await record.getTags({
+      transaction,
+      order: [['createdAt', 'ASC']],
+      joinTableAttributes: [],
+    })
+
+    output.organizations = await record.getOrganizations({
+      transaction,
+      order: [['createdAt', 'ASC']],
+      joinTableAttributes: ['dateStart', 'dateEnd', 'title', 'source'],
+      through: {
+        where: {
+          deletedAt: null,
+        },
+      },
+    })
+    MemberRepository.sortOrganizations(output.organizations)
+
+    output.tasks = await record.getTasks({
+      transaction,
+      order: [['createdAt', 'ASC']],
+      joinTableAttributes: [],
+    })
+
+    output.notes = await record.getNotes({
+      transaction,
+      joinTableAttributes: [],
+    })
+
+    output.noMerge = (
+      await record.getNoMerge({
+        transaction,
+      })
+    ).map((i) => i.id)
+
+    output.toMerge = (
+      await record.getToMerge({
+        transaction,
+      })
+    ).map((i) => i.id)
+
+    const memberIdentities = (await this.getIdentities([record.id], options)).get(record.id)
+
+    if (newIdentities === true) {
+      output.identities = memberIdentities
+      output.verifiedEmails = distinct(
+        memberIdentities
+          .filter((i) => i.verified && i.type === MemberIdentityType.EMAIL)
+          .map((i) => i.value),
+      )
+      output.unverifiedEmails = distinct(
+        memberIdentities
+          .filter((i) => !i.verified && i.type === MemberIdentityType.EMAIL)
+          .map((i) => i.value),
+      )
+      output.verifiedUsernames = distinct(
+        memberIdentities
+          .filter((i) => i.verified && i.type === MemberIdentityType.USERNAME)
+          .map((i) => i.value),
+      )
+      output.unverifiedUsernames = distinct(
+        memberIdentities
+          .filter((i) => !i.verified && i.type === MemberIdentityType.USERNAME)
+          .map((i) => i.value),
+      )
+      output.identityPlatforms = distinct(
+        memberIdentities.filter((i) => i.verified).map((i) => i.platform),
+      )
+    } else {
+      output.username = {}
+
+      for (const identity of memberIdentities.filter(
+        (i) => i.type === MemberIdentityType.USERNAME,
+      )) {
+        if (output.username[identity.platform]) {
+          output.username[identity.platform].push(identity.value)
+        } else {
+          output.username[identity.platform] = [identity.value]
+        }
+      }
+
+      output.identities = Object.keys(output.username)
+    }
+
+    output.affiliations = await this.getAffiliations(record.id, options)
+
+    const manualSyncRemote = await new MemberSyncRemoteRepository(options).findMemberManualSync(
+      record.id,
+    )
+
+    for (const syncRemote of manualSyncRemote) {
+      if (output.attributes?.syncRemote) {
+        output.attributes.syncRemote[syncRemote.platform] = syncRemote.status === SyncStatus.ACTIVE
+      } else {
+        output.attributes.syncRemote = {
+          [syncRemote.platform]: syncRemote.status === SyncStatus.ACTIVE,
+        }
+      }
+    }
+
+    return output
   }
 
   static async updateMemberOrganizations(

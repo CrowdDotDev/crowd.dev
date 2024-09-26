@@ -1,6 +1,12 @@
+import { addSeconds } from '@crowd/common'
+import { DataSinkWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/common_services'
 import { DbStore } from '@crowd/data-access-layer/src/database'
+import { IResultData } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/dataSink.data'
+import DataSinkRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/dataSink.repo'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
+import telemetry from '@crowd/telemetry'
+import { Client as TemporalClient } from '@crowd/temporal'
 import {
   IActivityData,
   IMemberData,
@@ -9,21 +15,10 @@ import {
   IntegrationResultType,
   PlatformType,
 } from '@crowd/types'
-import DataSinkRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/dataSink.repo'
+import { WORKER_SETTINGS } from '../conf'
 import ActivityService from './activity.service'
 import MemberService from './member.service'
 import { OrganizationService } from './organization.service'
-import { Unleash } from '@crowd/feature-flags'
-import { Client as TemporalClient } from '@crowd/temporal'
-import { IResultData } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/dataSink.data'
-import { addSeconds } from '@crowd/common'
-import { WORKER_SETTINGS } from '../conf'
-import {
-  DataSinkWorkerEmitter,
-  NodejsWorkerEmitter,
-  SearchSyncWorkerEmitter,
-} from '@crowd/common_services'
-import telemetry from '@crowd/telemetry'
 
 export default class DataSinkService extends LoggerBase {
   private readonly repo: DataSinkRepository
@@ -31,11 +26,9 @@ export default class DataSinkService extends LoggerBase {
   constructor(
     private readonly pgStore: DbStore,
     private readonly qdbStore: DbStore,
-    private readonly nodejsWorkerEmitter: NodejsWorkerEmitter,
     private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
     private readonly dataSinkWorkerEmitter: DataSinkWorkerEmitter,
     private readonly redisClient: RedisClient,
-    private readonly unleash: Unleash | undefined,
     private readonly temporal: TemporalClient,
     parentLog: Logger,
   ) {
@@ -157,10 +150,8 @@ export default class DataSinkService extends LoggerBase {
               const service = new ActivityService(
                 this.pgStore,
                 this.qdbStore,
-                this.nodejsWorkerEmitter,
                 this.searchSyncWorkerEmitter,
                 this.redisClient,
-                this.unleash,
                 this.temporal,
                 this.log,
               )
@@ -182,9 +173,7 @@ export default class DataSinkService extends LoggerBase {
             case IntegrationResultType.MEMBER_ENRICH: {
               const service = new MemberService(
                 this.pgStore,
-                this.nodejsWorkerEmitter,
                 this.searchSyncWorkerEmitter,
-                this.unleash,
                 this.temporal,
                 this.redisClient,
                 this.log,
@@ -216,9 +205,7 @@ export default class DataSinkService extends LoggerBase {
             case IntegrationResultType.TWITTER_MEMBER_REACH: {
               const service = new MemberService(
                 this.pgStore,
-                this.nodejsWorkerEmitter,
                 this.searchSyncWorkerEmitter,
-                this.unleash,
                 this.temporal,
                 this.redisClient,
                 this.log,

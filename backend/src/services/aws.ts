@@ -1,84 +1,38 @@
 import { trimUtf8ToMaxByteLength } from '@crowd/common'
-import AWS, { SQS } from 'aws-sdk'
-import { COMPREHEND_CONFIG, IS_DEV_ENV, KUBE_MODE, S3_CONFIG } from '../conf'
+import AWS from 'aws-sdk'
+import { COMPREHEND_CONFIG, IS_DEV_ENV, S3_CONFIG } from '../conf'
 
 let s3Instance
 let lambdaInstance
 let notLocalLambdaInstance
-let stepFunctionsInstance
-let comprehendInstance
 
-// TODO-kube
-if (KUBE_MODE) {
-  if (S3_CONFIG.aws) {
-    const awsS3Config = {
-      accessKeyId: S3_CONFIG.aws.accessKeyId,
-      secretAccessKey: S3_CONFIG.aws.secretAccessKey,
-      region: S3_CONFIG.aws.region,
-    }
-
-    s3Instance = IS_DEV_ENV
-      ? new AWS.S3({
-          s3ForcePathStyle: true,
-          endpoint: `${S3_CONFIG.host}:${S3_CONFIG.port}`,
-          apiVersion: '2012-10-17',
-          ...awsS3Config,
-        })
-      : new AWS.S3({ apiVersion: '2012-10-17', ...awsS3Config })
-  }
-
-  comprehendInstance = COMPREHEND_CONFIG.aws.accessKeyId
-    ? new AWS.Comprehend({
-        accessKeyId: COMPREHEND_CONFIG.aws.accessKeyId,
-        secretAccessKey: COMPREHEND_CONFIG.aws.secretAccessKey,
-        region: COMPREHEND_CONFIG.aws.region,
+if (S3_CONFIG.aws) {
+  s3Instance = IS_DEV_ENV
+    ? new AWS.S3({
+        s3ForcePathStyle: true,
+        endpoint: `${S3_CONFIG.host}:${S3_CONFIG.port}`,
+        apiVersion: '2012-10-17',
+        accessKeyId: S3_CONFIG.aws.accessKeyId,
+        secretAccessKey: S3_CONFIG.aws.secretAccessKey,
+        region: S3_CONFIG.aws.region,
       })
-    : undefined
-} else {
-  if (process.env.SERVICE === 'default') {
-    AWS.config.update({
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-      region: 'eu-central-1',
-    })
-  }
-
-  s3Instance =
-    process.env.NODE_ENV === 'development'
-      ? new AWS.S3({
-          region: `eu-west-1`,
-          s3ForcePathStyle: true,
-          endpoint: `${process.env.LOCALSTACK_HOSTNAME}:${process.env.LOCALSTACK_PORT}`,
-          apiVersion: '2012-10-17',
-        })
-      : new AWS.S3({ apiVersion: '2012-10-17' })
-
-  lambdaInstance =
-    process.env.NODE_ENV === 'development'
-      ? new AWS.Lambda({
-          endpoint: `${process.env.LOCALSTACK_HOSTNAME}:${process.env.LOCALSTACK_PORT}`,
-        })
-      : new AWS.Lambda()
-
-  notLocalLambdaInstance = new AWS.Lambda()
-
-  stepFunctionsInstance =
-    process.env.NODE_ENV === 'development'
-      ? new AWS.StepFunctions({
-          endpoint: `${process.env.LOCALSTACK_HOSTNAME}:${process.env.LOCALSTACK_PORT}`,
-        })
-      : new AWS.StepFunctions()
-
-  comprehendInstance =
-    process.env.AWS_ACCESS_KEY_ID !== 'aws-key-id' &&
-    process.env.AWS_ACCESS_KEY_ID !== 'none' &&
-    process.env.AWS_SECRET_ACCESS_KEY !== 'aws-secret-access-key' &&
-    process.env.AWS_SECRET_ACCESS_KEY !== 'none' &&
-    process.env.AWS_ACCESS_KEY_ID !== undefined &&
-    process.env.AWS_SECRET_ACCESS_KEY !== undefined
-      ? new AWS.Comprehend()
-      : undefined
+    : new AWS.S3({
+        accessKeyId: S3_CONFIG.aws.accessKeyId,
+        secretAccessKey: S3_CONFIG.aws.secretAccessKey,
+        region: S3_CONFIG.aws.region,
+        endpoint: S3_CONFIG.aws.endpoint,
+        s3ForcePathStyle: true,
+        signatureVersion: 'v4',
+      })
 }
+
+const comprehendInstance = COMPREHEND_CONFIG.aws.accessKeyId
+  ? new AWS.Comprehend({
+      accessKeyId: COMPREHEND_CONFIG.aws.accessKeyId,
+      secretAccessKey: COMPREHEND_CONFIG.aws.secretAccessKey,
+      region: COMPREHEND_CONFIG.aws.region,
+    })
+  : undefined
 
 const ALLOWED_MAX_BYTE_LENGTH = 5000
 
@@ -149,22 +103,6 @@ export async function detectSentimentBatch(textArray) {
   return {}
 }
 
-export const getCurrentQueueSize = async (sqs: SQS, queue: string): Promise<number> => {
-  const result = await sqs
-    .getQueueAttributes({
-      QueueUrl: queue,
-      AttributeNames: ['ApproximateNumberOfMessages'],
-    })
-    .promise()
-
-  if (result.Attributes) {
-    return parseInt(result.Attributes.ApproximateNumberOfMessages, 10)
-  }
-
-  return null
-}
-
 export const s3 = s3Instance
 export const lambda = lambdaInstance
 export const notLocalLambda = notLocalLambdaInstance
-export const stepFunctions = stepFunctionsInstance

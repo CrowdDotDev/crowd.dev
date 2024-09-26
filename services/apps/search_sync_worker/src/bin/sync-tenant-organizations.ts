@@ -1,6 +1,6 @@
 import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { getServiceLogger } from '@crowd/logging'
-import { OpenSearchService, OrganizationSyncService } from '@crowd/opensearch'
+import { getOpensearchClient, OpenSearchService, OrganizationSyncService } from '@crowd/opensearch'
 import { DB_CONFIG, OPENSEARCH_CONFIG } from '../conf'
 import { getClientSQL } from '@crowd/questdb'
 
@@ -16,7 +16,8 @@ if (processArguments.length !== 1) {
 const tenantId = processArguments[0]
 
 setImmediate(async () => {
-  const openSearchService = new OpenSearchService(log, OPENSEARCH_CONFIG())
+  const osClient = await getOpensearchClient(OPENSEARCH_CONFIG())
+  const openSearchService = new OpenSearchService(log, osClient)
 
   const dbConnection = await getDbConnection(DB_CONFIG())
   const store = new DbStore(log, dbConnection)

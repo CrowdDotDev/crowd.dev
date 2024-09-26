@@ -277,15 +277,21 @@ const processPastGroupMembersStream: ProcessStreamHandler = async (ctx) => {
   const data = ctx.stream.data as GroupsioPastGroupMembersStreamMetadata
   const settings = ctx.integration.settings as GroupsioIntegrationSettings
 
-  const response = (await getPastGroupMembers(
-    data.group,
-    settings.token,
-    ctx,
-    data.page,
-  )) as ListPastMembers
+  let response: ListPastMembers
+  try {
+    response = await getPastGroupMembers(data.group, settings.token, ctx, data.page)
+  } catch (error) {
+    if (error.response.status === 400) {
+      // no access for this endpoint for this group, just ignoring
+      // we will go to activity logs
+      response = null
+    } else {
+      throw error
+    }
+  }
 
   // publish members
-  if (response.data !== null) {
+  if (response?.data !== null && response?.data !== undefined) {
     for (const pastMember of response.data) {
       // we don't process expired member events because these are
       // approvals that were not approved on time
@@ -319,7 +325,7 @@ const processPastGroupMembersStream: ProcessStreamHandler = async (ctx) => {
     // publish activity logs streams to get member_join for historic members
     // i.e past members
     await ctx.publishStream<GroupsioActivityLogsStreamMetadata>(
-      `${GroupsioStreamType.ACTIVITY_LOGS}:${data.group}-${response.next_page_token}`,
+      `${GroupsioStreamType.ACTIVITY_LOGS}:${data.group}`,
       {
         group: data.group,
         page: null,
@@ -340,7 +346,7 @@ const processGroupMembersStream: ProcessStreamHandler = async (ctx) => {
   )) as ListMembers
 
   // publish members
-  if (response.data !== null) {
+  if (response?.data !== null) {
     for (const member of response.data) {
       // caching member
       await cacheMember(ctx, member)

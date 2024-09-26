@@ -2,7 +2,7 @@ import { timeout } from '@crowd/common'
 import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { OrganizationRepository } from '@crowd/data-access-layer/src/old/apps/search_sync_worker/organization.repo'
 import { getServiceLogger } from '@crowd/logging'
-import { OpenSearchService, OrganizationSyncService } from '@crowd/opensearch'
+import { getOpensearchClient, OpenSearchService, OrganizationSyncService } from '@crowd/opensearch'
 import { IndexedEntityType } from '@crowd/opensearch/src/repo/indexing.data'
 import { getClientSQL } from '@crowd/questdb'
 import { IndexingRepository } from '@crowd/opensearch/src/repo/indexing.repo'
@@ -15,7 +15,8 @@ const processArguments = process.argv.slice(2)
 const MAX_CONCURRENT = 3
 
 setImmediate(async () => {
-  const openSearchService = new OpenSearchService(log, OPENSEARCH_CONFIG())
+  const osClient = await getOpensearchClient(OPENSEARCH_CONFIG())
+  const openSearchService = new OpenSearchService(log, osClient)
 
   const writeHost = await getDbConnection({
     host: process.env.CROWD_DB_WRITE_HOST,

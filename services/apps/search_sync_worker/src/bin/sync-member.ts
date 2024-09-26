@@ -1,7 +1,7 @@
 import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { MemberRepository } from '@crowd/data-access-layer/src/old/apps/search_sync_worker/member.repo'
 import { getServiceLogger } from '@crowd/logging'
-import { MemberSyncService, OpenSearchService } from '@crowd/opensearch'
+import { getOpensearchClient, MemberSyncService, OpenSearchService } from '@crowd/opensearch'
 import { getRedisClient } from '@crowd/redis'
 import { getClientSQL } from '@crowd/questdb'
 import { DB_CONFIG, OPENSEARCH_CONFIG, REDIS_CONFIG } from '../conf'
@@ -18,7 +18,8 @@ if (processArguments.length !== 1) {
 const memberId = processArguments[0]
 
 setImmediate(async () => {
-  const openSearchService = new OpenSearchService(log, OPENSEARCH_CONFIG())
+  const osClient = await getOpensearchClient(OPENSEARCH_CONFIG())
+  const openSearchService = new OpenSearchService(log, osClient)
 
   const redis = await getRedisClient(REDIS_CONFIG(), true)
 

@@ -13,7 +13,7 @@
     "@crowd/temporal": "workspace:*",
     "@crowd/common": "workspace:*",
     "@crowd/opensearch": "workspace:*",
-    "@crowd/sqs": "workspace:*",
+    "@crowd/queue": "workspace:*",
     "@temporalio/worker": "~1.11.1"
   },
   "devDependencies": {

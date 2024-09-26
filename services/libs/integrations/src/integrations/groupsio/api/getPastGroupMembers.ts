@@ -1,6 +1,7 @@
 import axios, { AxiosRequestConfig } from 'axios'
 import { IProcessStreamContext } from '../../../types'
 import { GroupName } from '../types'
+import { RedisSemaphore } from '../utils/lock'
 
 export const getPastGroupMembers = async (
   groupName: GroupName,
@@ -18,11 +19,21 @@ export const getPastGroupMembers = async (
     },
   }
 
+  const semaphore = new RedisSemaphore({
+    integrationId: ctx.integration.id,
+    apiCallType: 'getPastGroupMembers',
+    maxConcurrent: 1,
+    cache: ctx.cache,
+  })
+
   try {
+    await semaphore.acquire()
     const response = await axios(config)
     return response.data
   } catch (err) {
     ctx.log.error(err, { groupName }, 'Error fetching past members from group!')
     throw err
+  } finally {
+    await semaphore.release()
   }
 }

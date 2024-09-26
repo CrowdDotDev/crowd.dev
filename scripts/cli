@@ -757,12 +757,12 @@ while test $# -gt 0; do
         exit
         ;;
     start-e2e)
-        declare -a INGORED_SERVICES=("python-worker" "job-generator" "discord-ws" "data-sink-worker" "integration-run-worker" "integration-stream-worker")
+        declare -a INGORED_SERVICES=("job-generator" "discord-ws" "data-sink-worker" "integration-run-worker" "integration-stream-worker")
         start
         exit
         ;;
     start-be)
-        declare -a INGORED_SERVICES=("python-worker" "frontend" "discord-ws")
+        declare -a INGORED_SERVICES=("frontend" "discord-ws")
         start
         exit
         ;;

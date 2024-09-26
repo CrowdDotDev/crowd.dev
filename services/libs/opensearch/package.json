@@ -21,8 +21,7 @@
     "@crowd/redis": "workspace:*",
     "@crowd/types": "workspace:*",
     "@crowd/telemetry": "workspace:*",
-    "@crowd/data-access-layer": "workspace:*",
-    "@opensearch-project/opensearch": "^1.2.0",
+    "@opensearch-project/opensearch": "^2.11.0",
     "axios": "^1.6.0",
     "lodash.merge": "^4.6.2"
   }

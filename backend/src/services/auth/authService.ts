@@ -327,6 +327,10 @@ class AuthService {
     return new Promise((resolve, reject) => {
       jwt.verify(token, API_CONFIG.jwtSecret, (err, decoded) => {
         if (err) {
+          options.log.error(
+            `Error verifying token with secret: ${API_CONFIG.jwtSecret.substring(0, 5)}.....`,
+            err,
+          )
           reject(err)
           return
         }

@@ -1,5 +1,5 @@
 import { EDITION, escapeNullByte, isObjectEmpty, singleOrDefault } from '@crowd/common'
-import { NodejsWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/common_services'
+import { SearchSyncWorkerEmitter } from '@crowd/common_services'
 import { ConversationService } from '@crowd/conversations'
 import { IQueryActivityResult, insertActivities, updateActivity } from '@crowd/data-access-layer'
 import { DbStore, arePrimitivesDbEqual } from '@crowd/data-access-layer/src/database'
@@ -15,7 +15,6 @@ import { IDbMember } from '@crowd/data-access-layer/src/old/apps/data_sink_worke
 import MemberRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.repo'
 import SettingsRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/settings.repo'
 import RequestedForErasureMemberIdentitiesRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/requestedForErasureMemberIdentities.repo'
-import { Unleash } from '@crowd/feature-flags'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
 import { ISentimentAnalysisResult, getSentiment } from '@crowd/sentiment'
@@ -42,10 +41,8 @@ export default class ActivityService extends LoggerBase {
   constructor(
     private readonly pgStore: DbStore,
     private readonly qdbStore: DbStore,
-    private readonly nodejsWorkerEmitter: NodejsWorkerEmitter,
     private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
     private readonly redisClient: RedisClient,
-    private readonly unleash: Unleash | undefined,
     private readonly temporal: TemporalClient,
     parentLog: Logger,
   ) {
@@ -529,24 +526,68 @@ export default class ActivityService extends LoggerBase {
 
       // check if member or object member have identities that were requested to be erased by the user
       if (member && member.identities.length > 0) {
-        const erased = await repo.someIdentitiesWereErasedByUserRequest(member.identities)
-        if (erased) {
-          this.log.warn(
-            { memberIdentities: member.identities },
-            'Member has identities that were requested to be erased by the user! Skipping activity processing!',
-          )
-          return
+        const toErase = await repo.someIdentitiesWereErasedByUserRequest(member.identities)
+        if (toErase.length > 0) {
+          // prevent member/activity creation of one of the identities that are marked to be erased are verified
+          if (toErase.some((i) => i.verified)) {
+            this.log.warn(
+              { memberIdentities: member.identities },
+              'Member has identities that were requested to be erased by the user! Skipping activity processing!',
+            )
+            return
+          } else {
+            // we just remove the unverified identities that were marked to be erased and prevent them from being created
+            member.identities = member.identities.filter((i) => {
+              if (i.verified) return true
+
+              const maybeToErase = toErase.find(
+                (e) => e.type === i.type && e.value === i.value && e.platform === i.platform,
+              )
+
+              if (maybeToErase) return false
+              return true
+            })
+
+            if (member.identities.filter((i) => i.value).length === 0) {
+              this.log.warn(
+                'Member had at least one unverified identity removed as it was requested to be removed! Now there is no identities left - skipping processing!',
+              )
+              return
+            }
+          }
         }
       }
 
       if (objectMember && objectMember.identities.length > 0) {
-        const erased = await repo.someIdentitiesWereErasedByUserRequest(objectMember.identities)
-        if (erased) {
-          this.log.warn(
-            { objectMemberIdentities: objectMember.identities },
-            'Object member has identities that were requested to be erased by the user! Skipping activity processing!',
-          )
-          return
+        const toErase = await repo.someIdentitiesWereErasedByUserRequest(objectMember.identities)
+        if (toErase.length > 0) {
+          // prevent member/activity creation of one of the identities that are marked to be erased are verified
+          if (toErase.some((i) => i.verified)) {
+            this.log.warn(
+              { objectMemberIdentities: objectMember.identities },
+              'Object member has identities that were requested to be erased by the user! Skipping activity processing!',
+            )
+            return
+          } else {
+            // we just remove the unverified identities that were marked to be erased and prevent them from being created
+            objectMember.identities = objectMember.identities.filter((i) => {
+              if (i.verified) return true
+
+              const maybeToErase = toErase.find(
+                (e) => e.type === i.type && e.value === i.value && e.platform === i.platform,
+              )
+
+              if (maybeToErase) return false
+              return true
+            })
+
+            if (objectMember.identities.filter((i) => i.value).length === 0) {
+              this.log.warn(
+                'Object member had at least one unverified identity removed as it was requested to be removed! Now there is no identities left - skipping processing!',
+              )
+              return
+            }
+          }
         }
       }
 
@@ -589,9 +630,7 @@ export default class ActivityService extends LoggerBase {
           const txMemberRepo = new MemberRepository(txStore, this.log)
           const txMemberService = new MemberService(
             txStore,
-            this.nodejsWorkerEmitter,
             this.searchSyncWorkerEmitter,
-            this.unleash,
             this.temporal,
             this.redisClient,
             this.log,
@@ -599,10 +638,8 @@ export default class ActivityService extends LoggerBase {
           const txActivityService = new ActivityService(
             txStore,
             this.qdbStore,
-            this.nodejsWorkerEmitter,
             this.searchSyncWorkerEmitter,
             this.redisClient,
-            this.unleash,
             this.temporal,
             this.log,
           )

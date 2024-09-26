@@ -1,14 +1,12 @@
-import { OpenSearchService, InitService } from '@crowd/opensearch'
 import { getDbConnection } from '@crowd/data-access-layer/src/database'
-import { getServiceTracer } from '@crowd/tracing'
 import { getServiceLogger } from '@crowd/logging'
+import { InitService, OpenSearchService, getOpensearchClient } from '@crowd/opensearch'
+import { QueueFactory } from '@crowd/queue'
 import { getRedisClient } from '@crowd/redis'
-import { getSqsClient } from '@crowd/sqs'
-import { DB_CONFIG, OPENSEARCH_CONFIG, REDIS_CONFIG, SERVICE_CONFIG, SQS_CONFIG } from './conf'
+import { DB_CONFIG, OPENSEARCH_CONFIG, QUEUE_CONFIG, REDIS_CONFIG, SERVICE_CONFIG } from './conf'
 import { WorkerQueueReceiver } from './queue'
 import { getClientSQL } from '@crowd/questdb'
 
-const tracer = getServiceTracer()
 const log = getServiceLogger()
 
 const MAX_CONCURRENT_PROCESSING = 5
@@ -16,11 +14,12 @@ const MAX_CONCURRENT_PROCESSING = 5
 setImmediate(async () => {
   log.info('Starting search sync worker...')
 
-  const openSearchService = new OpenSearchService(log, OPENSEARCH_CONFIG())
+  const osClient = await getOpensearchClient(OPENSEARCH_CONFIG())
+  const openSearchService = new OpenSearchService(log, osClient)
 
   const redis = await getRedisClient(REDIS_CONFIG())
 
-  const sqsClient = getSqsClient(SQS_CONFIG())
+  const queueClient = QueueFactory.createQueueService(QUEUE_CONFIG())
 
   const dbConnection = await getDbConnection(DB_CONFIG(), MAX_CONCURRENT_PROCESSING)
   const qdbConnection = await getClientSQL()
@@ -28,11 +27,10 @@ setImmediate(async () => {
   const worker = new WorkerQueueReceiver(
     SERVICE_CONFIG().queuePriorityLevel,
     redis,
-    sqsClient,
+    queueClient,
     dbConnection,
     qdbConnection,
     openSearchService,
-    tracer,
     log,
     MAX_CONCURRENT_PROCESSING,
   )

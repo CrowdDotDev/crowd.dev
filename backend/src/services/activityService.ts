@@ -26,7 +26,6 @@ import {
 import { Blob } from 'buffer'
 import vader from 'crowd-sentiment'
 import { Transaction } from 'sequelize/types'
-import { getDataSinkWorkerEmitter } from '@/serverless/utils/serviceSQS'
 import OrganizationRepository from '@/database/repositories/organizationRepository'
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import { GITHUB_CONFIG, IS_DEV_ENV, IS_TEST_ENV, TEMPORAL_CONFIG } from '../conf'
@@ -46,6 +45,7 @@ import merge from './helpers/merge'
 import MemberAffiliationService from './memberAffiliationService'
 import SearchSyncService from './searchSyncService'
 import SegmentService from './segmentService'
+import { getDataSinkWorkerEmitter } from '@/serverless/utils/serviceSQS'
 
 const IS_GITHUB_COMMIT_DATA_ENABLED = GITHUB_CONFIG.isCommitDataEnabled === 'true'
 

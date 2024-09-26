@@ -1,4 +1,8 @@
-import { captureApiChange, organizationMergeAction } from '@crowd/audit-logs'
+import {
+  captureApiChange,
+  organizationMergeAction,
+  organizationUnmergeAction,
+} from '@crowd/audit-logs'
 import { Error400, websiteNormalizer } from '@crowd/common'
 import { hasLfxMembership } from '@crowd/data-access-layer/src/lfx_memberships'
 import { LoggerBase } from '@crowd/logging'
@@ -215,105 +219,129 @@ export default class OrganizationService extends LoggerBase {
     let tx
 
     try {
-      const organization = await OrganizationRepository.findById(organizationId, this.options)
-
-      const repoOptions: IRepositoryOptions =
-        await SequelizeRepository.createTransactionalRepositoryOptions(this.options)
-      tx = repoOptions.transaction
-
-      // remove identities in secondary organization from primary
-      await OrganizationRepository.removeIdentitiesFromOrganization(
-        organizationId,
-        payload.secondary.identities.filter(
-          (i) =>
-            i.verified === undefined || // backwards compatibility for old identity backups
-            i.verified === true ||
-            (i.verified === false &&
-              !payload.primary.identities.some(
-                (pi) =>
-                  pi.verified === false &&
-                  pi.platform === i.platform &&
-                  pi.value === i.value &&
-                  pi.type === i.type,
-              )),
-        ),
-        repoOptions,
-      )
-
-      // create the secondary org
-      const secondaryOrganization = await OrganizationRepository.create(
-        payload.secondary,
-        repoOptions,
-      )
-
-      await MergeActionsRepository.add(
-        MergeActionType.ORG,
-        organizationId,
-        secondaryOrganization.id,
+      const { organization, secondaryOrganization } = await captureApiChange(
         this.options,
-        MergeActionStep.UNMERGE_STARTED,
-        MergeActionState.IN_PROGRESS,
-      )
+        organizationUnmergeAction(organizationId, async (captureOldState, captureNewState) => {
+          const organization = await OrganizationRepository.findById(organizationId, this.options)
 
-      if (payload.mergeActionId) {
-        const mergeAction = await MergeActionsRepository.findById(
-          payload.mergeActionId,
-          this.options,
-        )
+          captureOldState({
+            primary: organization,
+          })
 
-        if (mergeAction.unmergeBackup.secondary.memberOrganizations.length > 0) {
-          for (const role of mergeAction.unmergeBackup.secondary.memberOrganizations) {
-            await MemberOrganizationRepository.addMemberRole(
-              { ...role, organizationId: secondaryOrganization.id },
-              repoOptions,
-            )
-          }
+          const repoOptions: IRepositoryOptions =
+            await SequelizeRepository.createTransactionalRepositoryOptions(this.options)
+          tx = repoOptions.transaction
 
-          const memberOrganizations = await MemberOrganizationRepository.findRolesInOrganization(
-            organization.id,
+          // remove identities in secondary organization from primary
+          await OrganizationRepository.removeIdentitiesFromOrganization(
+            organizationId,
+            payload.secondary.identities.filter(
+              (i) =>
+                i.verified === undefined || // backwards compatibility for old identity backups
+                i.verified === true ||
+                (i.verified === false &&
+                  !payload.primary.identities.some(
+                    (pi) =>
+                      pi.verified === false &&
+                      pi.platform === i.platform &&
+                      pi.value === i.value &&
+                      pi.type === i.type,
+                  )),
+            ),
             repoOptions,
           )
 
-          const primaryUnmergedRoles = await MemberOrganizationService.unmergeRoles(
-            memberOrganizations,
-            mergeAction.unmergeBackup.primary.memberOrganizations,
-            mergeAction.unmergeBackup.secondary.memberOrganizations,
-            MemberRoleUnmergeStrategy.SAME_ORGANIZATION,
+          // create the secondary org
+          const secondaryOrganization = await OrganizationRepository.create(
+            payload.secondary,
+            repoOptions,
           )
 
-          // check if anything to delete in primary
-          const rolesToDelete = memberOrganizations.filter(
-            (r) =>
-              r.source !== 'ui' &&
-              !primaryUnmergedRoles.some(
-                (pr) =>
-                  pr.memberId === r.memberId &&
-                  pr.title === r.title &&
-                  pr.dateStart === r.dateStart &&
-                  pr.dateEnd === r.dateEnd,
-              ),
+          await MergeActionsRepository.add(
+            MergeActionType.ORG,
+            organizationId,
+            secondaryOrganization.id,
+            this.options,
+            MergeActionStep.UNMERGE_STARTED,
+            MergeActionState.IN_PROGRESS,
           )
 
-          for (const role of rolesToDelete) {
-            await MemberOrganizationRepository.removeMemberRole(role, repoOptions)
+          if (payload.mergeActionId) {
+            const mergeAction = await MergeActionsRepository.findById(
+              payload.mergeActionId,
+              this.options,
+            )
+
+            if (mergeAction.unmergeBackup.secondary.memberOrganizations.length > 0) {
+              for (const role of mergeAction.unmergeBackup.secondary.memberOrganizations) {
+                await MemberOrganizationRepository.addMemberRole(
+                  { ...role, organizationId: secondaryOrganization.id },
+                  repoOptions,
+                )
+              }
+
+              const memberOrganizations =
+                await MemberOrganizationRepository.findRolesInOrganization(
+                  organization.id,
+                  repoOptions,
+                )
+
+              const primaryUnmergedRoles = await MemberOrganizationService.unmergeRoles(
+                memberOrganizations,
+                mergeAction.unmergeBackup.primary.memberOrganizations,
+                mergeAction.unmergeBackup.secondary.memberOrganizations,
+                MemberRoleUnmergeStrategy.SAME_ORGANIZATION,
+              )
+
+              // check if anything to delete in primary
+              const rolesToDelete = memberOrganizations.filter(
+                (r) =>
+                  r.source !== 'ui' &&
+                  !primaryUnmergedRoles.some(
+                    (pr) =>
+                      pr.memberId === r.memberId &&
+                      pr.title === r.title &&
+                      pr.dateStart === r.dateStart &&
+                      pr.dateEnd === r.dateEnd,
+                  ),
+              )
+
+              for (const role of rolesToDelete) {
+                await MemberOrganizationRepository.removeMemberRole(role, repoOptions)
+              }
+            }
           }
-        }
-      }
 
-      // delete identity related stuff, we already moved these
-      delete payload.primary.identities
+          // delete identity related stuff, we already moved these
+          delete payload.primary.identities
 
-      // update rest of the primary org fields
-      await OrganizationRepository.update(
-        organizationId,
-        payload.primary,
-        repoOptions,
-        false,
-        false,
+          captureNewState({
+            primary: payload.primary,
+            secondary: secondaryOrganization,
+          })
+
+          // update rest of the primary org fields
+          await OrganizationRepository.update(
+            organizationId,
+            payload.primary,
+            repoOptions,
+            false,
+            false,
+          )
+
+          // add primary and secondary to no merge so they don't get suggested again
+          await OrganizationRepository.addNoMerge(
+            organizationId,
+            secondaryOrganization.id,
+            repoOptions,
+          )
+
+          // trigger entity-merging-worker to move activities in the background
+          await SequelizeRepository.commitTransaction(tx)
+
+          return { organization, secondaryOrganization }
+        }),
       )
-
-      // add primary and secondary to no merge so they don't get suggested again
-      await OrganizationRepository.addNoMerge(organizationId, secondaryOrganization.id, repoOptions)
 
       await MergeActionsRepository.setMergeAction(
         MergeActionType.ORG,
@@ -324,9 +352,6 @@ export default class OrganizationService extends LoggerBase {
           step: MergeActionStep.UNMERGE_SYNC_DONE,
         },
       )
-
-      // trigger entity-merging-worker to move activities in the background
-      await SequelizeRepository.commitTransaction(tx)
 
       // responsible for moving organization's activities, syncing to opensearch afterwards, recalculating activity.organizationIds and notifying frontend via websockets
       await this.options.temporal.workflow.start('finishOrganizationUnmerging', {
