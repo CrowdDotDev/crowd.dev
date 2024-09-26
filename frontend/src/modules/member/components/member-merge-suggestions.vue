@@ -155,7 +155,6 @@ import Message from '@/shared/message/message';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
 import AppMemberMergeSuggestionsDetails from '@/modules/member/components/suggestions/member-merge-suggestions-details.vue';
-import { merge } from 'lodash';
 import { MemberService } from '../member-service';
 import { MemberPermissions } from '../member-permissions';
 
@@ -199,7 +198,7 @@ const clearMember = (member) => {
 const preview = computed(() => {
   const primaryMember = membersToMerge.value.members[primary.value];
   const secondaryMember = membersToMerge.value.members[(primary.value + 1) % 2];
-  const mergedMembers = merge({}, clearMember(secondaryMember), clearMember(primaryMember));
+  const mergedMembers = { ...clearMember(secondaryMember), ...clearMember(primaryMember) };
   Object.keys(mergedMembers?.username || {}).forEach((key) => {
     if (!primaryMember.username[key] || !secondaryMember.username[key]) {
       return;
