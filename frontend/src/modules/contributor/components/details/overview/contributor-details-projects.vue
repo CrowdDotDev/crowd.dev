@@ -2,7 +2,7 @@
   <lf-card v-bind="$attrs">
     <div class="px-5 py-4 flex justify-between items-center">
       <h6>Projects</h6>
-      <lf-tooltip content="Manage activities affiliation per project" placement="top-end">
+      <lf-tooltip v-if="hasPermission(LfPermission.memberEdit)" content="Manage activities affiliation per project" placement="top-end">
         <lf-button type="secondary" size="small" @click="isAffilationEditOpen = true">
           <lf-icon name="settings-4-line" />
           Activities affiliation
@@ -94,6 +94,8 @@ import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import moment from 'moment/moment';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 
 const props = defineProps<{
   contributor: Contributor,
@@ -106,6 +108,8 @@ const showMore = ref<boolean>(false);
 const isAffilationEditOpen = ref<boolean>(false);
 
 const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
+
+const { hasPermission } = usePermissions();
 
 const getAffiliations = (projectId: string) => (props.contributor.affiliations || []).filter((affiliation) => affiliation.segmentId === projectId)
   .reduce((obj: Record<string, ContributorAffiliation[]>, aff: ContributorAffiliation) => {

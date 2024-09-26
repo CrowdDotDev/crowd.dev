@@ -21,8 +21,8 @@
 
     <section class="px-6 pb-5">
       <article v-if="props.type" class="pb-8">
-        <div class="rounded-lg">
-          <div class="border-b border-gray-200 flex items-center">
+        <div class="border border-gray-200  rounded-lg">
+          <div class="flex items-center h-11 px-4">
             <div class="w-1/3">
               <p class="text-medium font-semibold">
                 Data type
@@ -34,7 +34,7 @@
               </p>
             </div>
           </div>
-          <div v-if="!!reportDataTypeDisplay[props.type]" class="flex items-center border-t border-gray-200">
+          <div v-if="!!reportDataTypeDisplay[props.type]" class="flex items-center border-t border-gray-200 px-4 h-11">
             <div class="w-1/3">
               <p class="text-medium font-semibold">
                 Attribute
@@ -178,7 +178,7 @@ const reset = () => {
   form.issue = 'incorrect';
   form.type = '';
   form.description = '';
-  $v.$reset();
+  $v.value.$reset();
 };
 
 const submit = () => {

@@ -139,4 +139,9 @@ export default {
     return ContributorAttributesApiService.update(memberId, attributes)
       .then(this.setAttributes);
   },
+
+  /** Report Data Modal * */
+  setReportDataModal(data: any) {
+    this.reportDataModal = data;
+  },
 };

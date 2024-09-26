@@ -14,6 +14,7 @@
     <div class="sm:block md:hidden lg:hidden xl:hidden">
       <app-resize-page />
     </div>
+    <lf-globals />
   </div>
 </template>
 
@@ -27,11 +28,13 @@ import { useActivityTypeStore } from '@/modules/activity/store/type';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import useSessionTracking from '@/shared/modules/monitoring/useSessionTracking';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import LfGlobals from '@/shared/components/globals.vue';
 
 export default {
   name: 'App',
 
   components: {
+    LfGlobals,
     AppResizePage,
   },
 

@@ -1,5 +1,6 @@
 import { ReportDataEntity } from '@/shared/modules/report-issue/constants/report-data-entity.enum';
 
+import { ReportDataType } from '@/shared/modules/report-issue/constants/report-data-type.enum';
 import person from './entity/person';
 import organization from './entity/organization';
 
@@ -12,7 +13,7 @@ import Domain from './type/type-domain.vue';
 
 export interface ReportDataConfig {
   url: (id: string) => string;
-  types: DataReportTypes[];
+  types: ReportDataType[];
 }
 
 export const reportDataConfig: Record<ReportDataEntity, ReportDataConfig> = {
@@ -20,13 +21,13 @@ export const reportDataConfig: Record<ReportDataEntity, ReportDataConfig> = {
   organization,
 };
 
-export const reportDataTypeDisplay: Record<DataReportTypes, any | null> = {
-  [DataReportTypes.PROFILE_DETAILS]: ProfileDetails,
-  [DataReportTypes.PROJECT]: null,
-  [DataReportTypes.PROJECT_AFFILIATION]: ProjectAffiliation,
-  [DataReportTypes.WORK_EXPERIENCE]: WorkExperience,
-  [DataReportTypes.IDENTITY]: Identity,
-  [DataReportTypes.ORGANIZATION_DETAILS]: OrganizationDetails,
-  [DataReportTypes.DOMAIN]: Domain,
-  [DataReportTypes.OTHER]: null,
+export const reportDataTypeDisplay: Record<ReportDataType, any | null> = {
+  [ReportDataType.PROFILE_DETAILS]: ProfileDetails,
+  [ReportDataType.PROJECT]: null,
+  [ReportDataType.PROJECT_AFFILIATION]: ProjectAffiliation,
+  [ReportDataType.WORK_EXPERIENCE]: WorkExperience,
+  [ReportDataType.IDENTITY]: Identity,
+  [ReportDataType.ORGANIZATION_DETAILS]: OrganizationDetails,
+  [ReportDataType.DOMAIN]: Domain,
+  [ReportDataType.OTHER]: null,
 };

@@ -3,9 +3,11 @@
     <lf-button-group>
       <!-- Merge suggestions -->
       <lf-button
-        v-if="hasRole(LfRole.admin)"
+        v-if="!hasPermission(LfPermission.mergeMembers)"
         type="secondary"
-        @click="isReportDataIssueModalOpen = true"
+        @click="setReportDataModal({
+          contributor: props.contributor,
+        })"
       >
         <lf-icon name="feedback-line" class="text-red-500" /> Report data issue
       </lf-button>
@@ -72,10 +74,6 @@
     v-if="isFindGithubDrawerOpen"
     v-model="isFindGithubDrawerOpen"
   />
-  <lf-report-data-issue-modal
-    v-model="isReportDataIssueModalOpen"
-    :contributor="props.contributor"
-  />
 </template>
 
 <script setup lang="ts">
@@ -97,8 +95,7 @@ import LfContributorDropdown from '@/modules/contributor/components/shared/contr
 import { ContributorApiService } from '@/modules/contributor/services/contributor.api.service';
 import { Contributor } from '@/modules/contributor/types/Contributor';
 import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
-import { LfRole } from '@/shared/modules/permissions/types/Roles';
-import LfReportDataIssueModal from '@/shared/modules/report-issue/component/report-data-issue-modal.vue';
+import { useSharedStore } from '@/shared/pinia/shared.store';
 
 const props = defineProps<{
   contributor: Contributor,
@@ -106,11 +103,11 @@ const props = defineProps<{
 
 const emit = defineEmits<{(e: 'reload'): any}>();
 
-const { hasPermission, hasRole } = usePermissions();
+const { hasPermission } = usePermissions();
 
 const { isMasked } = useContributorHelpers();
+const { setReportDataModal } = useSharedStore();
 
-const isReportDataIssueModalOpen = ref<boolean>(true);
 const isMergeSuggestionsDialogOpen = ref<boolean>(false);
 const isMergeDialogOpen = ref<Contributor | null>(null);
 const isFindGithubDrawerOpen = ref<Contributor | null>(null);

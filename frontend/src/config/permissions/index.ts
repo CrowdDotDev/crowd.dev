@@ -6,6 +6,6 @@ import projectAdmin from './projectAdmin';
 
 export const lfPermissions: Record<LfRole, Record<LfPermission, boolean>> = {
   readonly,
-  admin,
+  admin: readonly,
   projectAdmin,
 };
