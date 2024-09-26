@@ -175,19 +175,12 @@ export class MemberService {
     return response.data;
   }
 
-  static async listAutocomplete(query, limit) {
-    const params = {
-      query,
-      limit,
-    };
-
+  static async listAutocomplete(body) {
     const tenantId = AuthCurrentTenant.get();
 
-    const response = await authAxios.get(
+    const response = await authAxios.post(
       `/tenant/${tenantId}/member/autocomplete`,
-      {
-        params,
-      },
+      body,
     );
 
     return response.data;
