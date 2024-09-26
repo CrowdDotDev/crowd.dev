@@ -6,7 +6,7 @@ import pg from 'pg'
  * exports all the models.
  */
 import { getServiceChildLogger, logExecutionTimeV2 } from '@crowd/logging'
-import { IS_CLOUD_ENV } from '@crowd/common'
+import { IS_CLOUD_ENV, IS_DEV_ENV } from '@crowd/common'
 import { DB_CONFIG, SERVICE } from '../../conf'
 import * as configTypes from '../../conf/configTypes'
 
@@ -89,7 +89,7 @@ async function models(
         max: SERVICE === configTypes.ServiceType.API ? 20 : 10,
         min: 1,
         acquire: 50000,
-        idle: 10000,
+        idle: IS_CLOUD_ENV ? 10000: 1000,
       },
       logging: DB_CONFIG.logging
         ? (dbLog) =>
