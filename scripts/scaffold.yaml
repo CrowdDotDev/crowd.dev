@@ -40,6 +40,7 @@ services:
   product:
     image: postgres:14-alpine
     restart: unless-stopped
+    command: -c 'max_connections=300'
     environment:
       - POSTGRES_PASSWORD=example
       - POSTGRES_DB=product-db
