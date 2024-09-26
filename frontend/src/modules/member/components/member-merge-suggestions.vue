@@ -37,19 +37,32 @@
           <span class="ri-arrow-right-s-line text-lg ml-2" />
         </button>
       </div>
+
+      <!-- Add sorting functionality -->
+      <div class="flex items-center">
+        <div class="mr-4 cursor-pointer" @click="toggleSort('displayName')">
+          People
+          <i :class="['ri-arrow-down-s-line', getSortIconClass('displayName')]"></i>
+        </div>
+        <div class="cursor-pointer" @click="toggleSort('confidence')">
+          Confidence
+          <i :class="['ri-arrow-down-s-line', getSortIconClass('confidence')]"></i>
+        </div>
+      </div>
+
       <div class="flex items-center">
         <div
           v-if="!loading && membersToMerge.similarity"
           class="w-full flex items-center justify-center pr-2"
         >
           <div
-            class="flex text-sm"
-            :style="{
-              color: confidence.color,
-            }"
+            class="flex text-sm cursor-pointer"
+            :style="{ color: confidence.color }"
+            @click="toggleSort('confidence')"
           >
             <div class="pr-1" v-html="confidence.svg" />
             {{ Math.round(membersToMerge.similarity * 100) }}% confidence
+            <i :class="['ri-arrow-down-s-line ml-1', getSortIconClass('confidence')]"></i>
           </div>
         </div>
         <el-button
@@ -226,13 +239,35 @@ const confidence = computed(() => {
   };
 });
 
+const sortField = ref('confidence');
+const sortOrder = ref('desc');
+
+const toggleSort = (field) => {
+  if (sortField.value === field) {
+    sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc';
+  } else {
+    sortField.value = field;
+    sortOrder.value = 'desc';
+  }
+  fetch(0);
+};
+
+const getSortIconClass = (field) => {
+  if (sortField.value !== field) return 'text-gray-400';
+  return sortOrder.value === 'asc' ? 'text-gray-900 rotate-180' : 'text-gray-900';
+};
+
 const fetch = (page) => {
   if (page > -1) {
     offset.value = page;
   }
   loading.value = true;
 
-  MemberService.fetchMergeSuggestions(1, offset.value, props.query ?? {})
+  MemberService.fetchMergeSuggestions(1, offset.value, {
+    ...props.query,
+    sortBy: sortField.value,
+    sortOrder: sortOrder.value,
+  })
     .then((res) => {
       offset.value = +res.offset;
       count.value = res.count;
@@ -315,6 +350,26 @@ const mergeSuggestion = () => {
 onMounted(async () => {
   fetch(0);
 });
+
+return {
+  membersToMerge,
+  primary,
+  count,
+  offset,
+  loading,
+  clearMember,
+  preview,
+  confidence,
+  fetch,
+  ignoreSuggestion,
+  mergeSuggestion,
+  toggleSort,
+  getSortIconClass,
+  bioHeight,
+  sendingIgnore,
+  sendingMerge,
+  isEditLockedForSampleData,
+};
 </script>
 
 <script>
