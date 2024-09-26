@@ -30,7 +30,7 @@ export const getInsertConversationColumnSet = (instance: DbInstance): DbColumnSe
     ['id', 'title', 'slug', 'published', 'tenantId', 'segmentId', 'createdAt', 'updatedAt'],
     {
       table: {
-        table: 'old_conversations',
+        table: 'conversations',
       },
     },
   )

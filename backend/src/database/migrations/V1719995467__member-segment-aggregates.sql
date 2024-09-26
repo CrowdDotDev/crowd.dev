@@ -54,7 +54,7 @@ SELECT
     ARRAY_AGG(DISTINCT CONCAT(a.platform, ':', a.type)) FILTER (WHERE a.platform IS NOT NULL) AS "activityTypes",
     ARRAY_AGG(DISTINCT a.platform) FILTER (WHERE a.platform IS NOT NULL) AS "activeOn",
     ROUND(AVG((a.sentiment ->> 'sentiment')::NUMERIC(5, 2)), 2) AS "averageSentiment"
-FROM old_activities a
+FROM activities a
 JOIN members m ON m."id" = a."memberId"
 JOIN segments_with_children s ON s.subproject = a."segmentId"
 GROUP BY m."id", s.segment_id, m."tenantId"

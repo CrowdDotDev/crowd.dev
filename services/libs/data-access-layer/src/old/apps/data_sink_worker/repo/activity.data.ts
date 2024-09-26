@@ -94,7 +94,7 @@ export const getInsertActivityColumnSet = (instance: DbInstance): DbColumnSet =>
     ],
     {
       table: {
-        table: 'old_activities',
+        table: 'activities',
       },
     },
   )
@@ -158,7 +158,7 @@ export const getUpdateActivityColumnSet = (instance: DbInstance): DbColumnSet =>
     ],
     {
       table: {
-        table: 'old_activities',
+        table: 'activities',
       },
     },
   )
