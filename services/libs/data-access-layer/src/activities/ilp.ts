@@ -41,27 +41,29 @@ export async function insertActivities(activities: IDbActivityCreateData[]): Pro
         activity.platform === 'github' ||
         activity.platform === 'gitlab'
       ) {
-        if (activity.attributes['isMainBranch']) {
+        if (typeof activity.attributes['isMainBranch'] === 'boolean') {
           row.booleanColumn('gitIsMainBranch', activity.attributes['isMainBranch'] as boolean)
         }
 
-        if (activity.attributes['isIndirectFork']) {
+        if (typeof activity.attributes['isIndirectFork'] === 'boolean') {
           row.booleanColumn('gitIsIndirectFork', activity.attributes['isIndirectFork'] as boolean)
         }
 
-        if (activity.attributes['additions']) {
+        if (typeof activity.attributes['insertions'] === 'number') {
+          row.intColumn('gitInsertions', activity.attributes['insertions'] as number)
+        } else if (typeof activity.attributes['additions'] === 'number') {
           row.intColumn('gitInsertions', activity.attributes['additions'] as number)
         }
 
-        if (activity.attributes['deletions']) {
+        if (typeof activity.attributes['deletions'] === 'number') {
           row.intColumn('gitDeletions', activity.attributes['deletions'] as number)
         }
 
-        if (activity.attributes['lines']) {
+        if (typeof activity.attributes['lines'] === 'number') {
           row.intColumn('gitLines', activity.attributes['lines'] as number)
         }
 
-        if (activity.attributes['isMerge']) {
+        if (typeof activity.attributes['isMerge'] === 'boolean') {
           row.booleanColumn('gitIsMerge', activity.attributes['isMerge'] as boolean)
         }
       }
@@ -82,7 +84,7 @@ export async function insertActivities(activities: IDbActivityCreateData[]): Pro
         row.stringColumn('username', activity.username)
       }
 
-      if (activity.score) {
+      if (typeof activity.score === 'number') {
         row.intColumn('score', activity.score)
       }
 
@@ -143,23 +145,23 @@ export async function insertActivities(activities: IDbActivityCreateData[]): Pro
           row.stringColumn('sentimentLabel', activity.sentiment.label)
         }
 
-        if (activity.sentiment.sentiment) {
+        if (typeof activity.sentiment.sentiment === 'number') {
           row.intColumn('sentimentScore', activity.sentiment.sentiment)
         }
 
-        if (activity.sentiment.negative) {
+        if (typeof activity.sentiment.negative === 'number') {
           row.floatColumn('sentimentScoreNegative', activity.sentiment.negative)
         }
 
-        if (activity.sentiment.mixed) {
+        if (typeof activity.sentiment.mixed === 'number') {
           row.floatColumn('sentimentScoreMixed', activity.sentiment.mixed)
         }
 
-        if (activity.sentiment.positive) {
+        if (typeof activity.sentiment.positive === 'number') {
           row.floatColumn('sentimentScorePositive', activity.sentiment.positive)
         }
 
-        if (activity.sentiment.neutral) {
+        if (typeof activity.sentiment.neutral === 'number') {
           row.floatColumn('sentimentScoreNeutral', activity.sentiment.neutral)
         }
       }

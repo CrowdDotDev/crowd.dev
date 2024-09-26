@@ -57,6 +57,7 @@ export interface IDbActivityCreateData {
   updatedById?: string
   createdAt?: string
   updatedAt?: string
+  deletedAt?: string
 }
 
 let insertActivityColumnSet: DbColumnSet

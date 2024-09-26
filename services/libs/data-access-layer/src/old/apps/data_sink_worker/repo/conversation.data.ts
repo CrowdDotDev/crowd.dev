@@ -19,6 +19,9 @@ export interface IDbConversationCreateData {
   timestamp: Date | string
   createdById?: string
   updatedById?: string
+  createdAt?: string
+  updatedAt?: string
+  deletedAt?: string
 }
 
 export interface IDbConversationUpdateData {

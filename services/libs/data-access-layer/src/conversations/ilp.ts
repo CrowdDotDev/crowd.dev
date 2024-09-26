@@ -25,8 +25,20 @@ export async function insertConversations(
         .stringColumn('title', conversation.title)
         .stringColumn('slug', conversation.slug)
         .booleanColumn('published', conversation.published || false)
-        .timestampColumn('createdAt', now, 'ms')
-        .timestampColumn('updatedAt', now, 'ms')
+        .timestampColumn(
+          'createdAt',
+          conversation.createdAt ? new Date(conversation.createdAt).getTime() : now,
+          'ms',
+        )
+        .timestampColumn(
+          'updatedAt',
+          conversation.updatedAt ? new Date(conversation.updatedAt).getTime() : now,
+          'ms',
+        )
+
+      if (conversation.deletedAt) {
+        row.timestampColumn('deletedAt', new Date(conversation.updatedAt).getTime())
+      }
 
       if (conversation.createdById) {
         row.stringColumn('createdById', conversation.createdById)
