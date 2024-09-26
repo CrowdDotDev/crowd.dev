@@ -6,7 +6,7 @@ import pg from 'pg'
  * exports all the models.
  */
 import { getServiceChildLogger, logExecutionTimeV2 } from '@crowd/logging'
-import { IS_CLOUD_ENV, IS_DEV_ENV } from '@crowd/common'
+import { IS_CLOUD_ENV } from '@crowd/common'
 import { DB_CONFIG, SERVICE } from '../../conf'
 import * as configTypes from '../../conf/configTypes'
 
