@@ -3,6 +3,13 @@
     <lf-button-group>
       <!-- Merge suggestions -->
       <lf-button
+        v-if="hasRole(LfRole.admin)"
+        type="secondary"
+        @click="isReportDataIssueModalOpen = true"
+      >
+        <lf-icon name="feedback-line" class="text-red-500" /> Report data issue
+      </lf-button>
+      <lf-button
         v-if="!isMasked(props.contributor) && mergeSuggestionsCount > 0 && hasPermission(LfPermission.mergeMembers)"
         type="secondary"
         @click="isMergeSuggestionsDialogOpen = true"
@@ -65,6 +72,10 @@
     v-if="isFindGithubDrawerOpen"
     v-model="isFindGithubDrawerOpen"
   />
+  <lf-report-data-issue-modal
+    v-model="isReportDataIssueModalOpen"
+    :contributor="props.contributor"
+  />
 </template>
 
 <script setup lang="ts">
@@ -86,6 +97,8 @@ import LfContributorDropdown from '@/modules/contributor/components/shared/contr
 import { ContributorApiService } from '@/modules/contributor/services/contributor.api.service';
 import { Contributor } from '@/modules/contributor/types/Contributor';
 import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
+import { LfRole } from '@/shared/modules/permissions/types/Roles';
+import LfReportDataIssueModal from '@/shared/modules/report-issue/component/report-data-issue-modal.vue';
 
 const props = defineProps<{
   contributor: Contributor,
@@ -93,10 +106,11 @@ const props = defineProps<{
 
 const emit = defineEmits<{(e: 'reload'): any}>();
 
-const { hasPermission } = usePermissions();
+const { hasPermission, hasRole } = usePermissions();
 
 const { isMasked } = useContributorHelpers();
 
+const isReportDataIssueModalOpen = ref<boolean>(true);
 const isMergeSuggestionsDialogOpen = ref<boolean>(false);
 const isMergeDialogOpen = ref<Contributor | null>(null);
 const isFindGithubDrawerOpen = ref<Contributor | null>(null);
