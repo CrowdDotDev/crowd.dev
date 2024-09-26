@@ -34,7 +34,7 @@
               </p>
             </div>
           </div>
-          <div v-if="!!reportDataTypeDisplay[props.type]" class="flex items-center border-t border-gray-200 px-4 h-11">
+          <div v-if="!!reportDataTypeDisplay[props.type].display" class="flex items-center border-t border-gray-200 px-4 h-11">
             <div class="w-1/3">
               <p class="text-medium font-semibold">
                 Attribute
@@ -42,7 +42,7 @@
             </div>
             <div class="w-2/3">
               <component
-                :is="reportDataTypeDisplay[props.type]"
+                :is="reportDataTypeDisplay[props.type].display"
                 :attribute="props.attribute"
                 :entity="props.contributor || props.organization"
               />
@@ -105,7 +105,11 @@
       <lf-button type="secondary-ghost" @click="isModalOpen = false;reset()">
         Cancel
       </lf-button>
-      <lf-button :disabled="$v.$invalid" @click="submit()">
+      <lf-button
+        :disabled="$v.$invalid"
+        :loading="loading"
+        @click="submit()"
+      >
         Report issue
       </lf-button>
     </section>
@@ -129,6 +133,9 @@ import { ReportDataEntity } from '@/shared/modules/report-issue/constants/report
 import { ReportDataConfig, reportDataConfig, reportDataTypeDisplay } from '@/shared/modules/report-issue/config';
 import LfFieldMessages from '@/ui-kit/field-messages/FieldMessages.vue';
 import { ReportDataType } from '@/shared/modules/report-issue/constants/report-data-type.enum';
+import { AuthService } from '@/modules/auth/services/auth.service';
+import authAxios from '@/shared/axios/auth-axios';
+import Message from '@/shared/message/message';
 
 const props = defineProps<{
   modelValue: boolean,
@@ -139,6 +146,8 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void}>();
+
+const loading = ref<boolean>(false);
 
 const form = reactive({
   issue: 'incorrect',
@@ -172,6 +181,8 @@ const getType = computed(() => {
   return ReportDataEntity.ORGANIZATION;
 });
 
+const entity = computed(() => props.contributor || props.organization);
+
 const getConfig = computed<ReportDataConfig>(() => reportDataConfig[getType.value]);
 
 const reset = () => {
@@ -182,15 +193,34 @@ const reset = () => {
 };
 
 const submit = () => {
+  const typeDescription = props.type ? reportDataTypeDisplay[props.type].description(props.attribute, entity.value) : '';
+  const description = `${typeDescription.length ? `${typeDescription}\n\n` : ''}${form.description}`;
   const data = {
     profileUrl: window.location.href,
     dataIssue: form.issue,
     dataType: form.type,
-    description: form.description,
+    description,
   };
 
   console.log(data);
-  console.log(getConfig.value.url);
+  console.log(getConfig.value.url(entity.value.id));
+  const tenantId = AuthService.getTenantId();
+  loading.value = true;
+  return authAxios.post(
+    `/tenant/${tenantId}${getConfig.value.url(entity.value.id)}`,
+    data,
+  )
+    .then(() => {
+      isModalOpen.value = false;
+      reset();
+      Message.success('Data issue reported successfully');
+    })
+    .catch(() => {
+      Message.error('Something went wrong while reporting data issue');
+    })
+    .finally(() => {
+      loading.value = false;
+    });
 };
 </script>
 

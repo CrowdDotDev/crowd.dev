@@ -3,17 +3,22 @@ import { ReportDataEntity } from '@/shared/modules/report-issue/constants/report
 import { ReportDataType } from '@/shared/modules/report-issue/constants/report-data-type.enum';
 import person from './entity/person';
 import organization from './entity/organization';
-
-import ProfileDetails from './type/type-profile-details.vue';
-import ProjectAffiliation from './type/type-project-affiliation.vue';
-import WorkExperience from './type/type-work-experience.vue';
-import Identity from './type/type-identity.vue';
-import OrganizationDetails from './type/type-organization-details.vue';
-import Domain from './type/type-domain.vue';
+import profileDetails from './type/profile-details/profile-details';
+import projectAffiliation from './type/project-affiliation/project-affiliation';
+import project from './type/project/project';
+import workExperience from './type/work-experience/work-experience';
+import identity from './type/identity/identity';
+import organizationDetails from './type/organization-details/organization-details';
+import domain from './type/domain/domain';
+import other from './type/other/other';
 
 export interface ReportDataConfig {
   url: (id: string) => string;
   types: ReportDataType[];
+}
+export interface ReportDataTypeConfig {
+  description: (attribute: any, entity: any) => string;
+  display: any | null;
 }
 
 export const reportDataConfig: Record<ReportDataEntity, ReportDataConfig> = {
@@ -21,13 +26,13 @@ export const reportDataConfig: Record<ReportDataEntity, ReportDataConfig> = {
   organization,
 };
 
-export const reportDataTypeDisplay: Record<ReportDataType, any | null> = {
-  [ReportDataType.PROFILE_DETAILS]: ProfileDetails,
-  [ReportDataType.PROJECT]: null,
-  [ReportDataType.PROJECT_AFFILIATION]: ProjectAffiliation,
-  [ReportDataType.WORK_EXPERIENCE]: WorkExperience,
-  [ReportDataType.IDENTITY]: Identity,
-  [ReportDataType.ORGANIZATION_DETAILS]: OrganizationDetails,
-  [ReportDataType.DOMAIN]: Domain,
-  [ReportDataType.OTHER]: null,
+export const reportDataTypeDisplay: Record<ReportDataType, ReportDataTypeConfig> = {
+  [ReportDataType.PROFILE_DETAILS]: profileDetails,
+  [ReportDataType.PROJECT]: project,
+  [ReportDataType.PROJECT_AFFILIATION]: projectAffiliation,
+  [ReportDataType.WORK_EXPERIENCE]: workExperience,
+  [ReportDataType.IDENTITY]: identity,
+  [ReportDataType.ORGANIZATION_DETAILS]: organizationDetails,
+  [ReportDataType.DOMAIN]: domain,
+  [ReportDataType.OTHER]: other,
 };
