@@ -8,7 +8,7 @@
         >
           <span>Maintainer</span>
           <lf-icon name="git-repository-line" :size="14" class="text-gray-400" />
-          <span class="text-gray-400">4/6</span>
+          <span class="text-gray-400">6</span>
         </lf-badge>
       </template>
       <div class="p-1 flex flex-col gap-6">
@@ -18,13 +18,13 @@
           </p>
           <div class="flex flex-col gap-4">
             <article class="flex items-center justify-between">
-              <div class="flex items-center gap-1">
-                <lf-icon name="git-repository-line" :size="16" class="text-gray-500" />
+              <div class="flex items-center gap-2">
+                <img :src="getPlatform('github').image" alt="GitHub" class="w-4 h-4" />
                 <a
                   href="https://github.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  class="cursor-pointer text-small leading-5 underline decoration-dashed text-gray-500
+                  class="cursor-pointer text-small leading-5 underline decoration-dashed text-black
              decoration-gray-500 underline-offset-4 hover:decoration-gray-900 hover:!text-black inline truncate"
                   style="max-width: 18ch"
                 >
@@ -36,13 +36,13 @@
               </p>
             </article>
             <article class="flex items-center justify-between">
-              <div class="flex items-center gap-1">
-                <lf-icon name="git-repository-line" :size="16" class="text-gray-500" />
+              <div class="flex items-center gap-2">
+                <img :src="getPlatform('gitlab').image" alt="GitHub" class="w-4 h-4" />
                 <a
                   href="https://github.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  class="cursor-pointer text-small leading-5 underline decoration-dashed text-gray-500
+                  class="cursor-pointer text-small leading-5 underline decoration-dashed text-black
              decoration-gray-500 underline-offset-4 hover:decoration-gray-900 hover:!text-black inline truncate"
                   style="max-width: 18ch"
                 >
@@ -61,13 +61,13 @@
           </p>
           <div class="flex flex-col gap-4">
             <article class="flex items-center justify-between">
-              <div class="flex items-center gap-1">
-                <lf-icon name="git-repository-line" :size="16" class="text-gray-500" />
+              <div class="flex items-center gap-2">
+                <img :src="getPlatform('github').image" alt="GitHub" class="w-4 h-4" />
                 <a
                   href="https://github.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  class="cursor-pointer text-small leading-5 underline decoration-dashed text-gray-500
+                  class="cursor-pointer text-small leading-5 underline decoration-dashed text-black
              decoration-gray-500 underline-offset-4 hover:decoration-gray-900 hover:!text-black inline truncate"
                   style="max-width: 18ch"
                 >
@@ -101,6 +101,7 @@
 <script setup lang="ts">
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfBadge from '@/ui-kit/badge/Badge.vue';
+import { CrowdIntegrations } from '@/integrations/integrations-config';
 
 const props = defineProps<{
   project: any,
@@ -108,6 +109,8 @@ const props = defineProps<{
 
 const isMaintainer = props.project !== undefined;
 const isContributor = true;
+
+const getPlatform = (platform: string) => CrowdIntegrations.getConfig(platform);
 </script>
 
 <script lang="ts">
