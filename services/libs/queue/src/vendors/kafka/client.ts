@@ -247,7 +247,7 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
             this.isAvailable(maxConcurrentMessageProcessing) &&
             (!message || !message.value)
           ) {
-            this.log.debug({ message, topic }, 'Received empty message, skipping...')
+            this.log.warn({ message, topic }, 'Received empty message, skipping...')
           } else {
             this.log.debug('Processor is busy, skipping message...')
           }
