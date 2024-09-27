@@ -12,3 +12,10 @@ export interface IDataIssue {
   createdAt: Date
   updatedAt: Date
 }
+
+export interface IGithubIssueReporterConfiguration {
+  appId: string
+  privateKey: string
+  installationId: string
+  webhookSecret: string
+}

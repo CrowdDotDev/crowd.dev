@@ -10,7 +10,8 @@ create table public."dataIssues" (
     "createdAt" timestamp with time zone default now() not null,
     "updatedAt" timestamp with time zone default now() not null,
     "resolutionEmailSentAt" timestamp with time zone default null,
-    "resolutionEmailSentTo" timestamp with time zone default null,
+    "resolutionEmailSentTo" text null,
     primary key ("id"),
-    foreign key ("createdById") references users (id) on delete cascade
+    foreign key ("createdById") references users (id) on delete cascade,
+    unique ("githubIssueUrl")
 );

@@ -141,11 +141,6 @@ export interface GithubConfiguration {
   callbackUrl: string
 }
 
-export interface GithubIssueReporterConfiguration {
-  appId: string
-  privateKey: string
-  installationId: string
-}
 export interface SendgridConfiguration {
   key: string
   webhookSigningSecret: string

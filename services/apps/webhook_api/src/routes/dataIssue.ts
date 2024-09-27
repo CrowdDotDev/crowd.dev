@@ -1,13 +1,21 @@
 import { asyncWrap } from '../middleware/error'
+import verifyGithubWebhook from 'verify-github-webhook'
 import { Error400BadRequest } from '@crowd/common'
 import express from 'express'
+import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
+import {
+  findDataIssueByGithubUrl,
+  markDataIssueAsResolved,
+} from '@crowd/data-access-layer/src/data_issues'
+import { findUserById, UserField } from '@crowd/data-access-layer/src/users'
+import { GITHUB_ISSUE_REPORTER_CONFIG } from '../conf'
 
 const SIGNATURE_HEADER = 'x-hub-signature'
 const EVENT_HEADER = 'x-github-event'
 
-export const installGithubRoutes = async (app: express.Express) => {
+export const installDataIssueRoutes = async (app: express.Express) => {
   app.post(
-    '/github',
+    '/data-issue',
     asyncWrap(async (req, res) => {
       if (!req.headers[SIGNATURE_HEADER]) {
         throw new Error400BadRequest('Missing signature header!')
@@ -23,12 +31,41 @@ export const installGithubRoutes = async (app: express.Express) => {
       if (!data.installation?.id) {
         throw new Error400BadRequest('Missing installation id!')
       }
-      const identifier = data.installation.id.toString()
 
-      // check event - is it issue close?
-      // if issue close, find data issue by issue url in (dataIssues)
-      // if found send resolution email to dataIssue.createdById.email
-      // afterwards set dataIssue.resolutionEmailSentAt dataIssuel.resolutionEmailSentTo
+      if (
+        !verifyGithubWebhook(
+          signature,
+          JSON.stringify(data),
+          GITHUB_ISSUE_REPORTER_CONFIG().webhookSecret,
+        )
+      ) {
+        req.log.warn({ signature }, 'Github Issue Reporter Webhook signature verification failed!')
+        res.sendStatus(200)
+        return
+      }
+
+      if (event === 'issues' && data.action === 'closed') {
+        // find data issue by issue url in (dataIssues)
+        const qx = dbStoreQx(req.dbStore)
+        const dataIssue = await findDataIssueByGithubUrl(qx, data.issue.html_url)
+
+        if (!dataIssue || !dataIssue.createdById) {
+          res.sendStatus(200)
+          return
+        }
+
+        const user = await findUserById(qx, dataIssue.createdById, [UserField.ID, UserField.EMAIL])
+
+        if (!user) {
+          res.sendStatus(200)
+          return
+        }
+
+        // send resolution email to dataIssue.createdById.email
+        req.log.info({ email: user.email }, 'Resolution mail sent!')
+
+        await markDataIssueAsResolved(qx, dataIssue.id, { resolutionEmailSentTo: user.email })
+      }
     }),
   )
 }

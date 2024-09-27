@@ -1,7 +1,6 @@
 import { generateUUIDv4 } from '@crowd/common'
 import { QueryExecutor } from '../queryExecutor'
 import { IDataIssue } from '@crowd/types'
-import { QueryTypes } from 'sequelize'
 import { QueryResult, queryTableById } from '../utils'
 
 export interface IDbInsertDataIssuePayload {
@@ -12,6 +11,10 @@ export interface IDbInsertDataIssuePayload {
   description: string
   githubIssueUrl: string
   createdById: string
+}
+
+export interface IMarkDataIssueAsResolvedPayload {
+  resolutionEmailSentTo: string
 }
 
 export enum DataIssueField {
@@ -49,6 +52,44 @@ export async function createDataIssue(
   )
 
   return findDataIssueById(qx, id, Object.values(DataIssueField))
+}
+
+export async function markDataIssueAsResolved(
+  qx: QueryExecutor,
+  dataIssueId: string,
+  data: IMarkDataIssueAsResolvedPayload,
+): Promise<IDataIssue> {
+  const id = generateUUIDv4()
+  await qx.result(
+    `update "dataIssues" 
+     set
+        "resolutionEmailSentAt" = now(),
+        "resolutionEmailSentTo" = $(resolutionEmailSentTo)
+     where "id" = $(dataIssueId)`,
+    {
+      id,
+      resolutionEmailSentTo: data.resolutionEmailSentTo,
+      dataIssueId,
+    },
+  )
+
+  return findDataIssueById(qx, id, Object.values(DataIssueField))
+}
+
+export async function findDataIssueByGithubUrl(
+  qx: QueryExecutor,
+  githubUrl: string,
+): Promise<IDataIssue> {
+  const response = await qx.select(
+    `select * from "dataIssues" where "githubIssueUrl" = $(githubUrl)`,
+    {
+      githubUrl,
+    },
+  )
+  if (response.length > 0) {
+    return response[0]
+  }
+  return null
 }
 
 export async function findDataIssueById<T extends DataIssueField>(
