@@ -62,9 +62,19 @@ import {
 import { findTags } from '@crowd/data-access-layer/src/others'
 import { fetchAbsoluteMemberAggregates } from '@crowd/data-access-layer/src/members/segments'
 import { OrganizationField, queryOrgs } from '@crowd/data-access-layer/src/orgs'
-import { fetchManySegments, isSegmentProject, isSegmentProjectGroup } from '@crowd/data-access-layer/src/segments'
+import {
+  fetchManySegments,
+  isSegmentProject,
+  isSegmentProjectGroup,
+} from '@crowd/data-access-layer/src/segments'
 import { IDbMemberData } from '@crowd/data-access-layer/src/members/types'
-import { countMembersWithActivities, getActiveMembers, getLastActivitiesForMembers, getMemberAggregates, setMemberDataToActivities } from '@crowd/data-access-layer'
+import {
+  countMembersWithActivities,
+  getActiveMembers,
+  getLastActivitiesForMembers,
+  getMemberAggregates,
+  setMemberDataToActivities,
+} from '@crowd/data-access-layer'
 import { optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { KUBE_MODE, SERVICE } from '@/conf'
 import { ServiceType } from '@/conf/configTypes'

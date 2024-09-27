@@ -47,7 +47,7 @@ export async function createConversations(): Promise<Record<string, string>> {
     FROM activities child
     WHERE sourceParentId IS NOT NULL
     AND conversationId IS NULL
-    AND createdAt >= dateadd('d', -10, now())
+    AND createdAt >= dateadd('d', -1, now())
   )
 
 SELECT

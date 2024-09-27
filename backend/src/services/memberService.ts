@@ -1161,17 +1161,17 @@ export default class MemberService extends LoggerBase {
           )
           member.memberOrganizations = unmergedRoles as IMemberRoleWithOrganization[]
 
-        // activity count
-        const secondaryActivityCount = await getActivityCountOfMemberIdentities(
-          this.options.qdb,
-          member.id,
-          secondaryBackup.identities,
-        )
-        const primaryActivityCount = await getActivityCountOfMemberIdentities(
-          this.options.qdb,
-          member.id,
-          member.identities,
-        )
+          // activity count
+          const secondaryActivityCount = await getActivityCountOfMemberIdentities(
+            this.options.qdb,
+            member.id,
+            secondaryBackup.identities,
+          )
+          const primaryActivityCount = await getActivityCountOfMemberIdentities(
+            this.options.qdb,
+            member.id,
+            member.identities,
+          )
 
           return {
             primary: {
