@@ -9,12 +9,16 @@ export default function usePermissions() {
   // Auth store
   const authStore = useAuthStore();
   const {
-    roles, tenantUser,
+    roles,
+    tenantUser,
   } = storeToRefs(authStore);
 
   // Segment store
   const lsSegmentsStore = useLfSegmentsStore();
   const { adminProjectGroups } = storeToRefs(lsSegmentsStore);
+
+  const hasRole = (role: LfRole): boolean => roles.value.includes(role);
+
   const hasPermission = (permission: LfPermission): boolean => (roles.value || []).some((role) => lfPermissions[role][permission]);
 
   const hasAccessToProjectGroup = (segmentId: string) => {
@@ -37,6 +41,7 @@ export default function usePermissions() {
   };
 
   return {
+    hasRole,
     hasPermission,
     hasAccessToSegmentId,
     hasAccessToProjectGroup,

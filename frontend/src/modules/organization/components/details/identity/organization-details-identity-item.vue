@@ -29,7 +29,7 @@
       <div class="flex items-center">
         <div class=" flex items-center">
           <p v-if="!props.identity.url" class="text-medium max-w-48 truncate">
-            {{ props.identity.handle ?? props.identity.value }}
+            {{ props.identity.handle || props.identity.value }}
           </p>
           <a
             v-else
@@ -47,7 +47,7 @@
     </div>
 
     <!-- Dropdown -->
-    <lf-dropdown v-if="hovered && hasPermission(LfPermission.organizationEdit)" placement="bottom-end" width="232px">
+    <lf-dropdown v-if="hovered" placement="bottom-end" width="232px">
       <template #trigger>
         <lf-button type="secondary-ghost" size="small" :icon-only="true">
           <lf-icon name="more-fill" />
@@ -55,19 +55,36 @@
       </template>
       <!-- Edit identity -->
       <lf-dropdown-item
+        v-if="hasPermission(LfPermission.organizationEdit)"
         class="w-full"
         @click="emit('edit')"
       >
         <lf-icon name="pencil-line" />Edit identity
       </lf-dropdown-item>
+      <lf-dropdown-item
+        v-else
+        @click="setReportDataModal({
+          organization: props.organization,
+          type: ReportDataType.IDENTITY,
+          attribute: props.identity,
+        })"
+      >
+        <lf-icon name="feedback-line" class="!text-red-500" />Report issue
+      </lf-dropdown-item>
 
       <!-- Unmerge -->
-      <lf-dropdown-item @click="emit('unmerge')">
+      <lf-dropdown-item
+        v-if="hasPermission(LfPermission.organizationEdit)"
+        @click="emit('unmerge')"
+      >
         <lf-icon name="link-unlink" />Unmerge identity
       </lf-dropdown-item>
 
-      <lf-dropdown-separator />
+      <lf-dropdown-separator
+        v-if="hasPermission(LfPermission.organizationEdit)"
+      />
       <lf-dropdown-item
+        v-if="hasPermission(LfPermission.organizationEdit)"
         type="danger"
         class="w-full"
         @click="removeIdentity"
@@ -93,6 +110,8 @@ import { ref } from 'vue';
 import { Organization, OrganizationIdentity } from '@/modules/organization/types/Organization';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import LfVerifiedIdentityBadge from '@/shared/modules/identities/components/verified-identity-badge.vue';
+import { useSharedStore } from '@/shared/pinia/shared.store';
+import { ReportDataType } from '@/shared/modules/report-issue/constants/report-data-type.enum';
 
 const props = defineProps<{
   identity: OrganizationIdentity,
@@ -102,6 +121,7 @@ const props = defineProps<{
 const emit = defineEmits<{(e: 'edit'): void, (e: 'unmerge'): void }>();
 
 const { hasPermission } = usePermissions();
+const { setReportDataModal } = useSharedStore();
 
 const { updateOrganization } = useOrganizationStore();
 
