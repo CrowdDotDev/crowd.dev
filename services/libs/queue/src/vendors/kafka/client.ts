@@ -221,8 +221,8 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
 
       this.log.trace({ topic: queueConf.name }, 'Subscribed to topic! Starting the consmer...')
       await consumer.run({
-        eachMessage: async ({ message }: EachMessagePayload) => {
-          if (this.isAvailable(maxConcurrentMessageProcessing)) {
+        eachMessage: async ({ message, topic }: EachMessagePayload) => {
+          if (message && message.value && this.isAvailable(maxConcurrentMessageProcessing)) {
             const now = performance.now()
 
             this.log.trace(
@@ -243,6 +243,11 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
             } finally {
               this.removeJob()
             }
+          } else if (
+            this.isAvailable(maxConcurrentMessageProcessing) &&
+            (!message || !message.value)
+          ) {
+            this.log.warn({ message, topic }, 'Received empty message, skipping...')
           } else {
             this.log.debug('Processor is busy, skipping message...')
           }
