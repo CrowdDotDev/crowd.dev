@@ -105,13 +105,6 @@ export function memberCreateAction<T>(
   return createEntityAction(ActionType.MEMBERS_CREATE, entityId, captureFn)
 }
 
-export function memberCreateIdentitiesAction<T>(
-  entityId: string,
-  captureFn: CaptureOneFn<T>,
-): BuildActionFn<T> {
-  return createEntityAction(ActionType.MEMBERS_CREATE_IDENTITIES, entityId, captureFn)
-}
-
 export function organizationCreateAction<T>(
   entityId: string,
   captureFn: CaptureOneFn<T>,

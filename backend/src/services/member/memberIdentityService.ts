@@ -14,7 +14,6 @@ import {
 import { Error409 } from '@crowd/common'
 import {
   captureApiChange,
-  memberCreateIdentitiesAction,
   memberEditIdentitiesAction,
 } from '@crowd/audit-logs'
 import { IServiceOptions } from '../IServiceOptions'
@@ -47,7 +46,7 @@ export default class MemberIdentityService extends LoggerBase {
     try {
       const list = await captureApiChange(
         this.options,
-        memberCreateIdentitiesAction(memberId, async (captureNewState) => {
+        memberEditIdentitiesAction(memberId, async (captureNewState) => {
           const repoOptions: IRepositoryOptions =
             await SequelizeRepository.createTransactionalRepositoryOptions(this.options)
 
@@ -108,7 +107,7 @@ export default class MemberIdentityService extends LoggerBase {
     try {
       const list = await captureApiChange(
         this.options,
-        memberCreateIdentitiesAction(memberId, async (captureNewState) => {
+        memberEditIdentitiesAction(memberId, async (captureNewState) => {
           const repoOptions: IRepositoryOptions =
             await SequelizeRepository.createTransactionalRepositoryOptions(this.options)
 
