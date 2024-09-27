@@ -73,6 +73,9 @@ function models(
     {
       dialect: DB_CONFIG.dialect,
       dialectOptions: {
+        ssl: {
+          rejectUnauthorized: false,
+        },
         application_name: SERVICE,
         connectionTimeoutMillis: 15000,
         query_timeout: queryTimeoutMilliseconds,
