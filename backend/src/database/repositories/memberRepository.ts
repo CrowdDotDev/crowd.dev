@@ -1440,17 +1440,7 @@ class MemberRepository {
     const seq = SequelizeRepository.getSequelize(options)
 
     const query = `
-      select "memberId",
-             platform,
-             value,
-             type,
-             verified,
-             "sourceId",
-             "tenantId",
-             "integrationId",
-             "createdAt",
-             "updatedAt"
-      from "memberIdentities"
+      select * from "memberIdentities"
       where "memberId" in (:memberIds)
       order by "createdAt" asc;
     `
@@ -1463,15 +1453,16 @@ class MemberRepository {
       transaction,
     })
 
-    for (const id of memberIds) {
-      results.set(id, [])
+    for (const mId of memberIds) {
+      results.set(mId, [])
     }
 
     for (const res of data as any[]) {
-      const { memberId, platform, value, type, sourceId, integrationId, createdAt, verified } = res
+      const { id, memberId, platform, value, type, sourceId, integrationId, createdAt, verified } = res
       const identities = results.get(memberId)
 
       identities.push({
+        id,
         platform,
         value,
         type,

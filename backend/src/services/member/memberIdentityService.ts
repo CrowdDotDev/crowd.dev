@@ -12,10 +12,7 @@ import {
   updateMemberIdentity,
 } from '@crowd/data-access-layer/src/members'
 import { Error409 } from '@crowd/common'
-import {
-  captureApiChange,
-  memberEditIdentitiesAction,
-} from '@crowd/audit-logs'
+import { captureApiChange, memberEditIdentitiesAction } from '@crowd/audit-logs'
 import { IServiceOptions } from '../IServiceOptions'
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
@@ -46,15 +43,19 @@ export default class MemberIdentityService extends LoggerBase {
     try {
       const list = await captureApiChange(
         this.options,
-        memberEditIdentitiesAction(memberId, async (captureNewState) => {
+        memberEditIdentitiesAction(memberId, async (captureOldState, captureNewState) => {
           const repoOptions: IRepositoryOptions =
             await SequelizeRepository.createTransactionalRepositoryOptions(this.options)
+
+          const memberIdentities = (await MemberRepository.getIdentities([memberId], repoOptions))
+            .get(memberId)
+            .map((identity) => lodash.omit(identity, ['createdAt', 'integrationId']))
+
+          captureOldState(lodash.sortBy(memberIdentities, [(i) => i.platform, (i) => i.type]))
 
           tx = repoOptions.transaction
 
           const qx = SequelizeRepository.getQueryExecutor(repoOptions, tx)
-
-          captureNewState(data)
 
           // Check if identity already exists
           const existingIdentities = await checkIdentityExistance(qx, data.value, data.platform)
@@ -74,6 +75,8 @@ export default class MemberIdentityService extends LoggerBase {
 
           // List all member identities
           const list = await fetchMemberIdentities(qx, memberId)
+
+          captureNewState(lodash.sortBy(list, [(i) => i.platform, (i) => i.type]))
 
           await SequelizeRepository.commitTransaction(tx)
 
@@ -107,15 +110,19 @@ export default class MemberIdentityService extends LoggerBase {
     try {
       const list = await captureApiChange(
         this.options,
-        memberEditIdentitiesAction(memberId, async (captureNewState) => {
+        memberEditIdentitiesAction(memberId, async (captureOldState, captureNewState) => {
           const repoOptions: IRepositoryOptions =
             await SequelizeRepository.createTransactionalRepositoryOptions(this.options)
+
+            const memberIdentities = (await MemberRepository.getIdentities([memberId], repoOptions))
+            .get(memberId)
+            .map((identity) => lodash.omit(identity, ['createdAt', 'integrationId']))
+
+          captureOldState(lodash.sortBy(memberIdentities, [(i) => i.platform, (i) => i.type]))
 
           tx = repoOptions.transaction
 
           const qx = SequelizeRepository.getQueryExecutor(repoOptions, tx)
-
-          captureNewState(data)
 
           // Check if any of the identities already exist
           for (const identity of data) {
@@ -144,6 +151,8 @@ export default class MemberIdentityService extends LoggerBase {
 
           // List all member identities
           const list = await fetchMemberIdentities(qx, memberId)
+
+          captureNewState(lodash.sortBy(list, [(i) => i.platform, (i) => i.type]))
 
           await SequelizeRepository.commitTransaction(tx)
 
@@ -176,15 +185,15 @@ export default class MemberIdentityService extends LoggerBase {
           const repoOptions: IRepositoryOptions =
             await SequelizeRepository.createTransactionalRepositoryOptions(this.options)
 
+            const memberIdentities = (await MemberRepository.getIdentities([memberId], repoOptions))
+            .get(memberId)
+            .map((identity) => lodash.omit(identity, ['createdAt', 'integrationId']))
+
+          captureOldState(lodash.sortBy(memberIdentities, [(i) => i.platform, (i) => i.type]))
+
           tx = repoOptions.transaction
 
           const qx = SequelizeRepository.getQueryExecutor(repoOptions, tx)
-
-          const incomingIdentities = data
-          const memberIdentities = (await MemberRepository.getIdentities([id], repoOptions)).get(id)
-
-          captureOldState(lodash.sortBy(memberIdentities, [(i) => i.platform, (i) => i.type]))
-          captureNewState(lodash.sortBy(incomingIdentities, [(i) => i.platform, (i) => i.type]))
 
           // Check if identity already exists
           const existingIdentities = await checkIdentityExistance(qx, data.value, data.platform)
@@ -205,6 +214,8 @@ export default class MemberIdentityService extends LoggerBase {
 
           // List all member identities
           const list = await fetchMemberIdentities(qx, memberId)
+
+          captureNewState(lodash.sortBy(list, [(i) => i.platform, (i) => i.type]))
 
           await SequelizeRepository.commitTransaction(tx)
 
