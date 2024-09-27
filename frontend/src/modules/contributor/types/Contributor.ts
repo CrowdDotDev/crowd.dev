@@ -9,6 +9,18 @@ export interface ContributorAttribute {
   hubspot?: any;
 }
 
+export interface ContributorMaintainerRole {
+  id: string
+  dateEnd: string | null;
+  dateStart: string;
+  memberId: string;
+  repoType: string;
+  role: string;
+  segmentId: string;
+  segmentName: string;
+  url: string;
+}
+
 export interface ContributorContribution {
   firstCommitDate: string;
   id: number;
@@ -30,6 +42,7 @@ export interface ContributorAffiliation {
   segmentName: string;
   segmentParentName: string;
   segmentSlug: string;
+  maintainerRoles: ContributorMaintainerRole[];
 }
 
 export interface ContributorReach {
@@ -91,5 +104,6 @@ export interface Contributor {
     name: string;
     activityCount: string;
   }[],
+  maintainerRoles: ContributorMaintainerRole[];
   activitySycning: MergeAction | null;
 }

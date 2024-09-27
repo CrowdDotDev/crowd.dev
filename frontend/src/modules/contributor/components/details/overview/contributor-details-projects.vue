@@ -78,7 +78,7 @@
               </div>
             </lf-table-cell>
             <lf-table-cell>
-              <lf-contributor-details-projects-maintainer :project="project" />
+              <lf-contributor-details-projects-maintainer :maintainer-roles="getMaintainerRoles(Object.values(project.affiliations))" />
             </lf-table-cell>
             <lf-table-cell>
               <lf-dropdown placement="bottom-end" width="160px">
@@ -162,6 +162,8 @@ const projects = computed(() => props.contributor.segments.map((p) => ({
   ...p,
   affiliations: getAffiliations(p.id),
 })));
+
+const getMaintainerRoles = (affiliations: ContributorAffiliation[]) => affiliations.map((aff) => aff.maintainerRoles).flat();
 
 const viewActivity = (projectId: string) => {
   router.replace({

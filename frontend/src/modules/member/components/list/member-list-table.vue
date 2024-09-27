@@ -326,7 +326,7 @@
                     }"
                     class="block"
                   >
-                    <lf-contributor-details-projects-maintainer :project="null" />
+                    <lf-contributor-details-projects-maintainer :maintainer-roles="scope.row.maintainerRoles" />
                   </router-link>
                 </template>
               </el-table-column>
