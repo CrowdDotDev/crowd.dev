@@ -114,7 +114,7 @@ export default class MemberIdentityService extends LoggerBase {
           const repoOptions: IRepositoryOptions =
             await SequelizeRepository.createTransactionalRepositoryOptions(this.options)
 
-            const memberIdentities = (await MemberRepository.getIdentities([memberId], repoOptions))
+          const memberIdentities = (await MemberRepository.getIdentities([memberId], repoOptions))
             .get(memberId)
             .map((identity) => lodash.omit(identity, ['createdAt', 'integrationId']))
 
@@ -185,7 +185,7 @@ export default class MemberIdentityService extends LoggerBase {
           const repoOptions: IRepositoryOptions =
             await SequelizeRepository.createTransactionalRepositoryOptions(this.options)
 
-            const memberIdentities = (await MemberRepository.getIdentities([memberId], repoOptions))
+          const memberIdentities = (await MemberRepository.getIdentities([memberId], repoOptions))
             .get(memberId)
             .map((identity) => lodash.omit(identity, ['createdAt', 'integrationId']))
 

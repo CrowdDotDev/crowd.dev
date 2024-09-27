@@ -29,11 +29,7 @@ import { randomUUID } from 'crypto'
 import lodash from 'lodash'
 import moment from 'moment-timezone'
 import validator from 'validator'
-import {
-  captureApiChange,
-  memberMergeAction,
-  memberUnmergeAction,
-} from '@crowd/audit-logs'
+import { captureApiChange, memberMergeAction, memberUnmergeAction } from '@crowd/audit-logs'
 import {
   addMemberNotes,
   addMemberTags,

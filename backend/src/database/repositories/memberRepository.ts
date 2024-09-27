@@ -1458,7 +1458,8 @@ class MemberRepository {
     }
 
     for (const res of data as any[]) {
-      const { id, memberId, platform, value, type, sourceId, integrationId, createdAt, verified } = res
+      const { id, memberId, platform, value, type, sourceId, integrationId, createdAt, verified } =
+        res
       const identities = results.get(memberId)
 
       identities.push({
