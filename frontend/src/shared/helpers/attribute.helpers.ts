@@ -3,7 +3,7 @@ import { isEqual } from 'lodash';
 
 export const getAttributeSources = (attribute: Record<string, string>): string[] => {
   const defaultValue: string | undefined = attribute.default;
-  return Object.keys(attribute).filter((key) => !['default', 'custom'].includes(key) && isEqual(attribute[key], defaultValue));
+  return Object.keys(attribute).filter((key) => !['default'].includes(key) && isEqual(attribute[key], defaultValue));
 };
 
 export const getAttributeSourceName = (attribute: Record<string, string>): string | null => {
@@ -26,5 +26,5 @@ export const getAttributeSourceName = (attribute: Record<string, string>): strin
     return 0; // If both match or both don't match the criteria, keep their order
   });
   const selectedSource = prioritySortedSources[0];
-  return CrowdIntegrations.getConfig(selectedSource)?.name ?? `${selectedSource.charAt(0).toUpperCase()}${selectedSource.substring(1)}`;
+  return CrowdIntegrations.getPlatformsLabel([selectedSource]);
 };
