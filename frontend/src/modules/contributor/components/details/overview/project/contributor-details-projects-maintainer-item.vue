@@ -25,7 +25,7 @@
              decoration-gray-500 underline-offset-4 hover:decoration-gray-900 hover:!text-black inline truncate"
                 style="max-width: 18ch"
               >
-                {{ repo.name }}
+                {{ getName(repo.url) }}
               </a>
             </div>
             <p class="text-small text-gray-400">
@@ -50,7 +50,7 @@
              decoration-gray-500 underline-offset-4 hover:decoration-gray-900 hover:!text-black inline truncate"
                 style="max-width: 18ch"
               >
-                {{ repo.name }}
+                {{ getName(repo.url) }}
               </a>
             </div>
             <p class="text-small text-gray-400">
@@ -77,7 +77,9 @@ const props = defineProps<{
 const getPlatform = (platform: string) => CrowdIntegrations.getConfig(platform);
 
 const currentRepos = computed<ContributorMaintainerRole[]>(() => props.maintainerRoles.filter((role) => !role.dateEnd));
-const previousRepos = computed<ContributorMaintainerRole[]>(() => props.maintainerRoles.value.filter((role) => !!role.dateEnd));
+const previousRepos = computed<ContributorMaintainerRole[]>(() => props.maintainerRoles.filter((role) => !!role.dateEnd));
+
+const getName = (url: string) => url.split('/').pop();
 </script>
 
 <script lang="ts">

@@ -163,7 +163,7 @@ const projects = computed(() => props.contributor.segments.map((p) => ({
   affiliations: getAffiliations(p.id),
 })));
 
-const getMaintainerRoles = (affiliations: ContributorAffiliation[]) => affiliations.map((aff) => aff.maintainerRoles).flat();
+const getMaintainerRoles = (affiliations: ContributorAffiliation[][]) => affiliations.flat().map((aff) => aff.maintainerRoles).flat();
 
 const viewActivity = (projectId: string) => {
   router.replace({

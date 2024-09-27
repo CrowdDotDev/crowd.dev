@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-wrap gap-x-2 gap-y-1">
+  <div class="flex flex-wrap gap-x-2 gap-y-1 w-auto -mr-2">
     <lf-badge v-if="maintainer.length" type="secondary">
       Maintainer
     </lf-badge>

@@ -10,13 +10,27 @@
             <p class="text-tiny text-secondary-300">
               Role
             </p>
-            <el-tooltip placement="top">
-              <template #content>
-                Calculated based on the recency and importance<br> of a person's
-                activities in comparison<br> to the community.
+            <el-popover placement="top" width="20rem">
+              <template #reference>
+                <lf-icon name="question-line" :size="14" class="text-secondary-200 font-normal" />
               </template>
-              <lf-icon name="question-line" :size="14" class="text-secondary-200" />
-            </el-tooltip>
+              <div class="p-1">
+                <p class="text-small font-semibold mb-2 text-black">
+                  Maintainer
+                </p>
+                <p class="text-small text-gray-500 break-normal mb-5 text-left">
+                  Individual responsible for overseeing and managing code repositories by
+                  reviewing and merging pull requests, addressing issues, ensuring code quality, and guiding contributors.
+                </p>
+                <p class="text-small font-semibold mb-2 text-black">
+                  Contributor
+                </p>
+                <p class="text-small text-gray-500 break-normal text-left">
+                  Someone who has contributed to a project by making changes or additions to its code.
+                  Contributions require that code was successfully merged into a repository.
+                </p>
+              </div>
+            </el-popover>
           </div>
           <lf-contributor-details-maintainer :contributor="props.contributor" />
         </article>
