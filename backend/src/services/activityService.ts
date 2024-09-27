@@ -45,7 +45,7 @@ import merge from './helpers/merge'
 import MemberAffiliationService from './memberAffiliationService'
 import SearchSyncService from './searchSyncService'
 import SegmentService from './segmentService'
-import { getDataSinkWorkerEmitter } from '@/serverless/utils/serviceSQS'
+import { getDataSinkWorkerEmitter } from '@/serverless/utils/queueService'
 
 const IS_GITHUB_COMMIT_DATA_ENABLED = GITHUB_CONFIG.isCommitDataEnabled === 'true'
 
