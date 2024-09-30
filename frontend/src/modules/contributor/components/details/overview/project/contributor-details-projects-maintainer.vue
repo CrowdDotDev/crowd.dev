@@ -16,6 +16,9 @@
       <lf-icon name="git-repository-line" :size="14" class="text-gray-400" />
       <span class="text-gray-400">{{ contributor.length }}</span>
     </lf-contributor-details-projects-maintainer-item>
+    <div v-if="!maintainer.length && !contributor.length">
+      -
+    </div>
   </div>
 </template>
 
