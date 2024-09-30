@@ -30,10 +30,10 @@ CREATE TABLE IF NOT EXISTS 'activities' (
 
   sentimentLabel VARCHAR,
   sentimentScore INT,
-  sentimentScoreMixed FLOAT,
-  sentimentScoreNeutral FLOAT,
-  sentimentScoreNegative FLOAT,
-  sentimentScorePositive FLOAT,
+  sentimentScoreMixed DOUBLE,
+  sentimentScoreNeutral DOUBLE,
+  sentimentScoreNegative DOUBLE,
+  sentimentScorePositive DOUBLE,
 
   member_isBot BOOLEAN,
   member_isTeamMember BOOLEAN,
