@@ -69,7 +69,22 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
 
   private async getConsumer(groupId: string): Promise<Consumer> {
     if (!this.consumers.get(groupId)) {
-      const consumer = this.client.consumer({ groupId })
+      const consumer = this.client.consumer({
+        groupId,
+        sessionTimeout: 30000,
+        heartbeatInterval: 3000,
+      })
+      consumer.on(consumer.events.GROUP_JOIN, () => {
+        this.log.info('Consumer has joined the group')
+      })
+
+      consumer.on(consumer.events.REBALANCING, () => {
+        this.log.info('Consumer group is rebalancing')
+      })
+
+      consumer.on(consumer.events.DISCONNECT, () => {
+        this.log.info('Consumer has been disconnected')
+      })
       this.consumers.set(groupId, consumer)
       await consumer.connect()
     }

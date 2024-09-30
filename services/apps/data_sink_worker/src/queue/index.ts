@@ -84,7 +84,7 @@ export class WorkerQueueReceiver extends PrioritizedQueueReciever {
     } finally {
       const endTime = performance.now()
       const duration = endTime - startTime
-      this.log.debug({ msgType: message.type }, `Message processed in ${duration.toFixed(2)}ms!`)
+      this.log.info({ msgType: message.type }, `Message processed in ${duration.toFixed(2)}ms!`)
 
       if (this.timingMap.has(message.type)) {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -96,7 +96,7 @@ export class WorkerQueueReceiver extends PrioritizedQueueReciever {
 
       const data = this.timingMap.get(message.type)
 
-      this.log.debug(
+      this.log.info(
         { msgType: message.type },
         `Average processing time: ${data.time / data.count}ms!`,
       )

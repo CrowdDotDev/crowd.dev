@@ -1,4 +1,4 @@
-import { Error400, RawQueryParser } from '@crowd/common'
+import { Error400, groupBy, RawQueryParser } from '@crowd/common'
 import { DbConnOrTx } from '@crowd/database'
 import { ActivityDisplayService } from '@crowd/integrations'
 import { getServiceChildLogger } from '@crowd/logging'
@@ -21,6 +21,7 @@ import { fetchManySegments, findSegmentById, getSegmentActivityTypes } from '../
 import { QueryOptions, QueryResult, queryTable, queryTableById } from '../utils'
 import { getMemberAttributeSettings } from './attributeSettings'
 import { IDbMemberAttributeSetting, IDbMemberData } from './types'
+import { findMaintainerRoles } from '../maintainers'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -111,12 +112,14 @@ export async function queryMembersAdvanced(
       lfxMemberships: false,
       memberOrganizations: false,
       onlySubProjects: false,
+      maintainers: true,
     } as {
       identities?: boolean
       segments?: boolean
       lfxMemberships?: boolean
       memberOrganizations?: boolean
       onlySubProjects?: boolean
+      maintainers?: boolean
     },
     attributeSettings = [] as IDbMemberAttributeSetting[],
   },
@@ -376,6 +379,22 @@ export async function queryMembersAdvanced(
           }
         })
         .filter(Boolean)
+    })
+  }
+  if (include.maintainers) {
+    const maintainerRoles = await findMaintainerRoles(qx, memberIds)
+    const segmentIds = uniq(maintainerRoles.map((m) => m.segmentId))
+    const segmentsInfo = await fetchManySegments(qx, segmentIds)
+
+    const groupedMaintainers = groupBy(maintainerRoles, (m) => m.memberId)
+    rows.forEach((member) => {
+      member.maintainerRoles = (groupedMaintainers.get(member.id) || []).map((role) => {
+        const segmentInfo = segmentsInfo.find((s) => s.id === role.segmentId)
+        return {
+          ...role,
+          segmentName: segmentInfo?.name,
+        }
+      })
     })
   }
 

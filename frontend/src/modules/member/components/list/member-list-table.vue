@@ -283,6 +283,48 @@
                 </template>
               </el-table-column>
 
+              <!-- Emails -->
+              <el-table-column
+                label="Role"
+                width="300"
+              >
+                <template #header>
+                  <el-popover placement="top" width="20rem">
+                    <template #reference>
+                      <span class="underline decoration-dashed decoration-gray-400 underline-offset-4 cursor-pointer">Role</span>
+                    </template>
+                    <div class="p-1">
+                      <p class="text-small font-semibold mb-2 text-black">
+                        Maintainer
+                      </p>
+                      <p class="text-small text-gray-500 break-normal mb-5 text-left">
+                        Individual responsible for overseeing and managing code repositories by
+                        reviewing and merging pull requests, addressing issues, ensuring code quality, and guiding contributors.
+                      </p>
+                      <p class="text-small font-semibold mb-2 text-black">
+                        Contributor
+                      </p>
+                      <p class="text-small text-gray-500 break-normal text-left">
+                        Someone who has contributed to a project by making changes or additions to its code.
+                        Contributions require that code was successfully merged into a repository.
+                      </p>
+                    </div>
+                  </el-popover>
+                </template>
+                <template #default="scope">
+                  <router-link
+                    :to="{
+                      name: 'memberView',
+                      params: { id: scope.row.id },
+                      query: { projectGroup: selectedProjectGroup?.id },
+                    }"
+                    class="block"
+                  >
+                    <lf-contributor-details-projects-maintainer :maintainer-roles="scope.row.maintainerRoles" :show-projects="true" />
+                  </router-link>
+                </template>
+              </el-table-column>
+
               <!-- Engagement level -->
               <el-table-column
                 label="Engagement Level"
@@ -852,6 +894,8 @@ import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
+import LfContributorDetailsProjectsMaintainer
+  from '@/modules/contributor/components/details/overview/project/contributor-details-projects-maintainer.vue';
 import AppMemberBadge from '../member-badge.vue';
 import AppMemberDropdownContent from '../member-dropdown-content.vue';
 import AppMemberReach from '../member-reach.vue';
