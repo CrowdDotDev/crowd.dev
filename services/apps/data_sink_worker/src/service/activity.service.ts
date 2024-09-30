@@ -493,6 +493,10 @@ export default class ActivityService extends LoggerBase {
         }
       }
 
+      if (!member.attributes) {
+        member.attributes = {}
+      }
+
       let objectMemberUsername = activity.objectMemberUsername
       let objectMember = activity.objectMember
 
