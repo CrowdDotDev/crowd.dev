@@ -2,7 +2,6 @@
   <lf-card v-bind="$attrs">
     <div class="px-5 py-4 flex justify-between items-center">
       <h6>Projects</h6>
-      <lf-contributor-details-projects-sorting v-model:sorting="sorting" />
     </div>
     <div class="pb-3.5">
       <lf-table class="!overflow-visible">
