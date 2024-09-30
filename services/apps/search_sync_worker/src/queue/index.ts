@@ -1,11 +1,6 @@
-import { BatchProcessor } from '@crowd/common'
 import { DbConnection, DbStore } from '@crowd/data-access-layer/src/database'
 import { Logger } from '@crowd/logging'
-import {
-  MemberSyncService,
-  OpenSearchService,
-  OrganizationSyncService,
-} from '@crowd/opensearch'
+import { MemberSyncService, OpenSearchService, OrganizationSyncService } from '@crowd/opensearch'
 import { CrowdQueue, IQueue, PrioritizedQueueReciever } from '@crowd/queue'
 import { RedisClient } from '@crowd/redis'
 import { IQueueMessage, QueuePriorityLevel, SearchSyncWorkerQueueMessageType } from '@crowd/types'
@@ -136,34 +131,34 @@ export class WorkerQueueReceiver extends PrioritizedQueueReciever {
           }
           break
 
-          // organizations
-          case SearchSyncWorkerQueueMessageType.SYNC_ORGANIZATION:
-            if (data.organizationId) {
-              // await this.organizationBatchProcessor.addToBatch(data.organizationId)
-              await this.initOrganizationService().syncOrganizations([data.organizationId])
-            }
-            break
-          case SearchSyncWorkerQueueMessageType.SYNC_TENANT_ORGANIZATIONS:
-            if (data.tenantId) {
-              this.initOrganizationService()
-                .syncTenantOrganizations(data.tenantId)
-                .catch((err) => this.log.error(err, 'Error while syncing tenant organizations!'))
-            }
-            break
-          case SearchSyncWorkerQueueMessageType.CLEANUP_TENANT_ORGANIZATIONS:
-            if (data.tenantId) {
-              this.initOrganizationService()
-                .cleanupOrganizationIndex(data.tenantId)
-                .catch((err) => {
-                  this.log.error(err, 'Error while cleaning up tenant organizations!')
-                })
-            }
-            break
-          case SearchSyncWorkerQueueMessageType.REMOVE_ORGANIZATION:
-            if (data.organizationId) {
-              await this.initOrganizationService().removeOrganization(data.organizationId)
-            }
-            break
+        // organizations
+        case SearchSyncWorkerQueueMessageType.SYNC_ORGANIZATION:
+          if (data.organizationId) {
+            // await this.organizationBatchProcessor.addToBatch(data.organizationId)
+            await this.initOrganizationService().syncOrganizations([data.organizationId])
+          }
+          break
+        case SearchSyncWorkerQueueMessageType.SYNC_TENANT_ORGANIZATIONS:
+          if (data.tenantId) {
+            this.initOrganizationService()
+              .syncTenantOrganizations(data.tenantId)
+              .catch((err) => this.log.error(err, 'Error while syncing tenant organizations!'))
+          }
+          break
+        case SearchSyncWorkerQueueMessageType.CLEANUP_TENANT_ORGANIZATIONS:
+          if (data.tenantId) {
+            this.initOrganizationService()
+              .cleanupOrganizationIndex(data.tenantId)
+              .catch((err) => {
+                this.log.error(err, 'Error while cleaning up tenant organizations!')
+              })
+          }
+          break
+        case SearchSyncWorkerQueueMessageType.REMOVE_ORGANIZATION:
+          if (data.organizationId) {
+            await this.initOrganizationService().removeOrganization(data.organizationId)
+          }
+          break
 
         default:
           throw new Error(`Unknown message type: ${message.type}`)
