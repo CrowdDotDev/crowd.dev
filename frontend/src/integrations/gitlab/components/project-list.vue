@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div v-for="project in projects" :key="project.id" class="mb-4 flex items-center justify-between">
+    <div v-for="project in props.projects" :key="project.id" class="mb-4 flex items-center justify-between">
       <div class="flex items-center">
         <el-checkbox v-model="project.selected" @change="updateProject(project)">
           {{ project.name }}
@@ -14,7 +14,7 @@
           @change="updateProject(project)"
         >
           <el-option
-            v-for="segment in segments"
+            v-for="segment in props.segments"
             :key="segment.id"
             :label="segment.name"
             :value="segment.id"
@@ -29,8 +29,14 @@
 import { defineProps, defineEmits } from 'vue';
 
 const props = defineProps({
-  projects: Array,
-  segments: Array,
+  projects: {
+    type: Array,
+    default: () => [],
+  },
+  segments: {
+    type: Array,
+    default: () => [],
+  },
 });
 
 const emit = defineEmits(['update:project']);
