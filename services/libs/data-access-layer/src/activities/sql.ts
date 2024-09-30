@@ -592,7 +592,16 @@ export async function queryActivities(
       offset: arg.offset,
     }
   } else {
-    const columnString = columns.map((c) => `a."${c}"`).join(', ')
+    const columnString = columns
+      .map((c) => {
+        if (c === 'body') {
+          return `left(a."${c}", 1024)`
+        }
+
+        return `a."${c}"`
+      })
+      .join(', ')
+
     let query = `
       select  ${columnString}
       ${baseQuery}
