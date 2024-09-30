@@ -9,6 +9,7 @@
         'is-scroll-end': isScrolledToEnd,
       },
     ]"
+    v-bind="$attrs"
     @scroll="updateScrollPosition"
   >
     <div>
