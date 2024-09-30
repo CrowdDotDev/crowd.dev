@@ -91,12 +91,9 @@ class MemberAffiliationsRepository {
       //  Insert multiple member affiliations
       await insertMemberAffiliations(qx, memberId, data)
 
-      // List all member identities
-      const list = await fetchMemberAffiliations(qx, memberId)
-
       await SequelizeRepository.commitTransaction(transaction)
 
-      return list
+      return await this.list(memberId, options)
     } catch (err) {
       if (transaction) {
         await SequelizeRepository.rollbackTransaction(transaction)
