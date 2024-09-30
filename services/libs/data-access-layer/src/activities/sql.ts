@@ -595,7 +595,7 @@ export async function queryActivities(
     const columnString = columns
       .map((c) => {
         if (c === 'body') {
-          return `left(a."${c}", 512)`
+          return `left(a."${c}", 512) AS body`
         }
 
         return `a."${c}"`
