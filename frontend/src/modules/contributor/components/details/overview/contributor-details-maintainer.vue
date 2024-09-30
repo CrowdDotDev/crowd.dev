@@ -6,6 +6,9 @@
     <lf-badge v-if="contributorRoles.length" type="secondary">
       Contributor
     </lf-badge>
+    <div v-if="!maintainer.length && !contributorRoles.length">
+      -
+    </div>
   </div>
 </template>
 
