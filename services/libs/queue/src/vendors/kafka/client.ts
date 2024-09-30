@@ -69,7 +69,11 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
 
   private async getConsumer(groupId: string): Promise<Consumer> {
     if (!this.consumers.get(groupId)) {
-      const consumer = this.client.consumer({ groupId })
+      const consumer = this.client.consumer({
+        groupId,
+        sessionTimeout: 30000,
+        heartbeatInterval: 3000,
+      })
       this.consumers.set(groupId, consumer)
       await consumer.connect()
     }
