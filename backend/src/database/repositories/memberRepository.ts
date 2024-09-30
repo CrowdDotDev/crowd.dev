@@ -29,6 +29,7 @@ import {
   RawQueryParser,
   dateEqualityChecker,
   distinct,
+  groupBy,
 } from '@crowd/common'
 import { ActivityDisplayService } from '@crowd/integrations'
 import {
@@ -76,6 +77,7 @@ import {
   setMemberDataToActivities,
 } from '@crowd/data-access-layer'
 import { optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
+import { findMaintainerRoles } from '@crowd/data-access-layer/src/maintainers'
 import { KUBE_MODE, SERVICE } from '@/conf'
 import { ServiceType } from '@/conf/configTypes'
 import isFeatureEnabled from '../../feature-flags/isFeatureEnabled'
@@ -1508,6 +1510,7 @@ class MemberRepository {
           identities: false,
           segments: true,
           onlySubProjects: true,
+          maintainers: true,
           ...include,
         },
       },
@@ -1997,6 +2000,7 @@ class MemberRepository {
         lfxMemberships: false,
         memberOrganizations: false,
         attributes: true,
+        maintainers: true,
       } as {
         identities?: boolean
         segments?: boolean
@@ -2004,6 +2008,7 @@ class MemberRepository {
         lfxMemberships?: boolean
         memberOrganizations?: boolean
         attributes?: boolean
+        maintainers?: boolean
       },
       attributesSettings = [] as AttributeData[],
     },
@@ -2282,6 +2287,22 @@ class MemberRepository {
             }
           })
           .filter(Boolean)
+      })
+    }
+    if (include.maintainers) {
+      const maintainerRoles = await findMaintainerRoles(qx, memberIds)
+      const segmentIds = uniq(maintainerRoles.map((m) => m.segmentId))
+      const segmentsInfo = await fetchManySegments(qx, segmentIds)
+
+      const groupedMaintainers = groupBy(maintainerRoles, (m) => m.memberId)
+      rows.forEach((member) => {
+        member.maintainerRoles = (groupedMaintainers.get(member.id) || []).map((role) => {
+          const segmentInfo = segmentsInfo.find((s) => s.id === role.segmentId)
+          return {
+            ...role,
+            segmentName: segmentInfo?.name,
+          }
+        })
       })
     }
 
