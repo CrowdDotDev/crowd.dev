@@ -10,7 +10,7 @@
     </template>
     <div class="p-1 flex flex-col gap-6 max-h-80 overflow-auto">
       <section v-if="currentRepos.length > 0">
-        <p class="text-small font-semibold text-gray-400 pb-4">
+        <p v-if="!props.showProjects" class="text-small font-semibold text-gray-400 pb-4">
           Repositories
         </p>
         <div class="flex flex-col gap-6">
@@ -43,7 +43,7 @@
           </section>
         </div>
       </section>
-      <section v-if="previousRepos.length > 0">
+      <section v-if="previousRepos.length > 0 && !props.showProjects">
         <p class="text-small font-semibold text-gray-400 pb-4">
           Previously
         </p>
@@ -95,10 +95,15 @@ const props = defineProps<{
 
 const getPlatform = (platform: string) => CrowdIntegrations.getConfig(platform);
 
-const currentRepos = computed<ContributorMaintainerRole[]>(() => props.maintainerRoles.filter((role) => !role.dateEnd));
+const currentRepos = computed<ContributorMaintainerRole[]>(() => {
+  if (props.showProjects) {
+    return props.maintainerRoles;
+  }
+  return props.maintainerRoles.filter((role) => !role.dateEnd);
+});
 const previousRepos = computed<ContributorMaintainerRole[]>(() => props.maintainerRoles.filter((role) => !!role.dateEnd));
 
-const segmentIds = computed<string[]>(() => props.maintainerRoles.map((role) => role.segmentId));
+const segmentIds = computed<string[]>(() => [...new Set(props.maintainerRoles.map((role) => role.segmentId))]);
 
 const getRepoName = (url: string) => url.split('/').pop();
 const getSegmentName = (segmentId) => {
