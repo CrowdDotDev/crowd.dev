@@ -2530,7 +2530,6 @@ class MemberRepository {
           .filter(Boolean)
       })
     }
-    console.log('include.maintainers', include.maintainers)
     if (include.maintainers) {
       const maintainerRoles = await findMaintainerRoles(qx, memberIds)
       const segmentIds = uniq(maintainerRoles.map((m) => m.segmentId))

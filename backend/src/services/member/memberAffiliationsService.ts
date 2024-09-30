@@ -2,7 +2,7 @@
 
 import { LoggerBase } from '@crowd/logging'
 import { uniq } from 'lodash'
-import { IMemberAffiliation, IOrganization } from '@crowd/types'
+import { IMemberAffiliation } from '@crowd/types'
 import { findMaintainerRoles } from '@crowd/data-access-layer/src/maintainers'
 import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
 import { groupBy } from '@crowd/common'
