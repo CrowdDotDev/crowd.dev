@@ -42,6 +42,7 @@ export const getClientSQL = async (): Promise<pgpromise.IDatabase<unknown>> => {
     application_name: process.env.SERVICE || 'unknown-app',
     ssl: getEnv() !== 'local' ? true : false,
     idleTimeoutMillis: 120000,
+    max: 4,
   })
 
   return client
