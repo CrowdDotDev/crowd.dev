@@ -25,7 +25,7 @@
 <script setup lang="ts">
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { ContributorMaintainerRole } from '@/modules/contributor/types/Contributor';
-import { computed, ref } from 'vue';
+import { computed } from 'vue';
 import LfContributorDetailsProjectsMaintainerItem
   from '@/modules/contributor/components/details/overview/project/contributor-details-projects-maintainer-item.vue';
 
@@ -33,10 +33,8 @@ const props = defineProps<{
   maintainerRoles: ContributorMaintainerRole[],
 }>();
 
-const maintainerRoles = ref(props.maintainerRoles);
-
-const maintainer = computed<ContributorMaintainerRole[]>(() => maintainerRoles.value.filter((role) => role.role.includes('maintainer')));
-const contributor = computed<ContributorMaintainerRole[]>(() => maintainerRoles.value.filter((role) => role.role.includes('contributor')));
+const maintainer = computed<ContributorMaintainerRole[]>(() => (props.maintainerRoles || []).filter((role) => role.role.includes('maintainer')));
+const contributor = computed<ContributorMaintainerRole[]>(() => (props.maintainerRoles || []).filter((role) => role.role.includes('contributor')));
 </script>
 
 <script lang="ts">
