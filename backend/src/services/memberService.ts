@@ -962,6 +962,8 @@ export default class MemberService extends LoggerBase {
         MemberField.MANUALLY_CHANGED_FIELDS,
       ])
 
+      this.options.log.info("[0] Getting member information (identities, tags, notes, tasks, affiliations)... ")
+
       const [memberOrganizations, identities, tags, notes, tasks, affiliations] = await Promise.all(
         [
           MemberOrganizationRepository.findMemberRoles(memberId, this.options),
@@ -971,6 +973,10 @@ export default class MemberService extends LoggerBase {
           findMemberTasks(qx, memberId),
           findMemberAffiliations(qx, memberId),
         ],
+      )
+
+      this.options.log.info(
+        '[0] Done!',
       )
 
       const member = {
@@ -988,12 +994,16 @@ export default class MemberService extends LoggerBase {
         throw new Error(`Member doesn't have the identity sent to be unmerged!`)
       }
 
+      this.options.log.info('[1] Finding merge backup...')
+
       const mergeAction = await MergeActionsRepository.findMergeBackup(
         memberId,
         MergeActionType.MEMBER,
         identity,
         this.options,
       )
+
+      this.options.log.info('[1] Done!')
 
       if (mergeAction) {
         // mergeAction is found, unmerge preview will be generated
