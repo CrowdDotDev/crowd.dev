@@ -989,6 +989,7 @@ class MemberRepository {
 
         if (
           manualChange &&
+          data.attributes &&
           (data.attributes[MemberAttributeName.IS_BOT] ||
             data.attributes[MemberAttributeName.IS_TEAM_MEMBER])
         ) {
