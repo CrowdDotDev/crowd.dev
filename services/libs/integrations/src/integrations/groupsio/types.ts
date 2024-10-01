@@ -88,6 +88,8 @@ export interface GroupDetails {
   id: number
   name: string
   slug: string
+  // this is for the new auto imported groups
+  isNewGroup?: boolean
 }
 
 export interface ActivityLog {
