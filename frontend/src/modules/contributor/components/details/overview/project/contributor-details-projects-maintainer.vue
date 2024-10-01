@@ -3,7 +3,6 @@
     <lf-contributor-details-projects-maintainer-item
       v-if="maintainer.length"
       :maintainer-roles="maintainer"
-      :show-projects="props.showProjects"
     >
       <span>Maintainer</span>
       <lf-icon name="git-repository-line" :size="14" class="text-gray-400" />
@@ -12,7 +11,6 @@
     <lf-contributor-details-projects-maintainer-item
       v-if="contributor.length"
       :maintainer-roles="contributor"
-      :show-projects="props.showProjects"
     >
       <span>Contributor</span>
       <lf-icon name="git-repository-line" :size="14" class="text-gray-400" />
@@ -33,7 +31,6 @@ import LfContributorDetailsProjectsMaintainerItem
 
 const props = defineProps<{
   maintainerRoles: ContributorMaintainerRole[],
-  showProjects?: boolean,
 }>();
 
 const maintainer = computed<ContributorMaintainerRole[]>(() => (props.maintainerRoles || []).filter((role) => role.role.includes('maintainer')));
