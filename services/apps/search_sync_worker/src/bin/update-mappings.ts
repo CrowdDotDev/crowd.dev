@@ -11,6 +11,5 @@ setImmediate(async () => {
   await openSearchService.initialize()
   await openSearchService.setIndexMappings(OpenSearchIndex.MEMBERS)
   await openSearchService.setIndexMappings(OpenSearchIndex.ORGANIZATIONS)
-  await openSearchService.setIndexMappings(OpenSearchIndex.ACTIVITIES)
   process.exit(0)
 })

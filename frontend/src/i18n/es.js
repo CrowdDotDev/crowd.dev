@@ -257,10 +257,6 @@ const es = {
         'pull_request-comment': 'commented a pull request',
       },
     },
-
-    report: {
-      menu: 'Analytics',
-    },
   },
   auth: {
     tenants: 'Espacios de trabajo',

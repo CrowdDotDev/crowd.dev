@@ -33,8 +33,9 @@ const platform: MultiSelectFilterConfig = {
   },
   apiFilterRenderer({ value, include }: MultiSelectFilterValue): any[] {
     const filter = {
-      or: value.map((p) => ({ platform: p })),
+      platform: { in: value },
     };
+
     return [
       (include ? filter : { not: filter }),
     ];

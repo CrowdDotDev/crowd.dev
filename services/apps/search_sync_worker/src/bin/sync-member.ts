@@ -3,6 +3,7 @@ import { MemberRepository } from '@crowd/data-access-layer/src/old/apps/search_s
 import { getServiceLogger } from '@crowd/logging'
 import { getOpensearchClient, MemberSyncService, OpenSearchService } from '@crowd/opensearch'
 import { getRedisClient } from '@crowd/redis'
+import { getClientSQL } from '@crowd/questdb'
 import { DB_CONFIG, OPENSEARCH_CONFIG, REDIS_CONFIG } from '../conf'
 
 const log = getServiceLogger()
@@ -24,9 +25,11 @@ setImmediate(async () => {
 
   const dbConnection = await getDbConnection(DB_CONFIG())
   const store = new DbStore(log, dbConnection)
+  const qdbConn = await getClientSQL()
+  const qdbStore = new DbStore(log, qdbConn)
 
   const repo = new MemberRepository(store, log)
-  const service = new MemberSyncService(redis, store, openSearchService, log)
+  const service = new MemberSyncService(redis, store, qdbStore, openSearchService, log)
 
   const results = await repo.checkMembersExist([memberId])
 

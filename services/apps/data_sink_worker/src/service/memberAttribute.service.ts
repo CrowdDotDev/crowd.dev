@@ -1,23 +1,27 @@
-import MemberAttributeSettingsRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/memberAttributeSettings.repo'
+import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { DbStore } from '@crowd/data-access-layer/src/database'
 import { Logger, LoggerBase } from '@crowd/logging'
 import { MemberAttributeType } from '@crowd/types'
 import { RedisClient } from '@crowd/redis'
+import {
+  getMemberAttributeSettings,
+  getPlatformPriorityArray,
+} from '@crowd/data-access-layer/src/members/attributeSettings'
 
 export default class MemberAttributeService extends LoggerBase {
-  private readonly repo: MemberAttributeSettingsRepository
-
-  constructor(redis: RedisClient, store: DbStore, parentLog: Logger) {
+  constructor(
+    private readonly redis: RedisClient,
+    private readonly store: DbStore,
+    parentLog: Logger,
+  ) {
     super(parentLog)
-
-    this.repo = new MemberAttributeSettingsRepository(redis, store, parentLog)
   }
 
   public async setAttributesDefaultValues(
     tenantId: string,
     attributes: Record<string, unknown>,
   ): Promise<Record<string, unknown>> {
-    const priorities = await this.repo.getPlatformPriorityArray(tenantId)
+    const priorities = await getPlatformPriorityArray(dbStoreQx(this.store), tenantId)
     if (!priorities) {
       throw new Error(`No priorities set for tenant '${tenantId}'!`)
     }
@@ -65,7 +69,7 @@ export default class MemberAttributeService extends LoggerBase {
     tenantId: string,
     attributes: Record<string, unknown>,
   ): Promise<Record<string, unknown>> {
-    const settings = await this.repo.getMemberAttributeSettings(tenantId)
+    const settings = await getMemberAttributeSettings(dbStoreQx(this.store), this.redis, tenantId)
     const memberAttributeSettings = settings.reduce((acc, attribute) => {
       acc[attribute.name] = attribute
       return acc

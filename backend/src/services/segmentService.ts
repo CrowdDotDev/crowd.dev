@@ -9,12 +9,14 @@ import {
 } from '@crowd/types'
 import { Error400 } from '@crowd/common'
 import { LoggerBase } from '@crowd/logging'
+import {
+  buildSegmentActivityTypes,
+  isSegmentSubproject,
+} from '@crowd/data-access-layer/src/segments'
 import SegmentRepository from '../database/repositories/segmentRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
-import defaultReport from '../jsons/default-report.json'
 import { IServiceOptions } from './IServiceOptions'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
-import ReportRepository from '../database/repositories/reportRepository'
 import MemberRepository from '../database/repositories/memberRepository'
 
 interface UnnestedActivityTypes {
@@ -40,7 +42,7 @@ export default class SegmentService extends LoggerBase {
       await segmentRepository.update(id, data)
 
       // update relation fields of parent objects
-      if (!SegmentRepository.isSubproject(segment) && (data.name || data.slug)) {
+      if (!isSegmentSubproject(segment) && (data.name || data.slug)) {
         await segmentRepository.updateChildrenBulk(segment, { name: data.name, slug: data.slug })
       }
 
@@ -177,15 +179,6 @@ export default class SegmentService extends LoggerBase {
         grandparentId: grandparent.id,
       })
 
-      // create default report for the tenant
-      await ReportRepository.create(
-        {
-          name: defaultReport.name,
-          public: defaultReport.public,
-        },
-        { ...this.options, transaction, currentSegments: [subproject] },
-      )
-
       await SequelizeRepository.commitTransaction(transaction)
 
       return subproject
@@ -206,13 +199,13 @@ export default class SegmentService extends LoggerBase {
   async queryProjectGroups(search: SegmentCriteria) {
     const result = await new SegmentRepository(this.options).queryProjectGroups(search)
 
-    if (result.rows.length) {
-      const membersCountPerSegment = await MemberRepository.countMembersPerSegment(
-        this.options,
-        result.rows.map((s) => s.id),
-      )
-      this.setMembersCount(result.rows, SegmentLevel.PROJECT_GROUP, membersCountPerSegment)
-    }
+    // if (result.rows.length) {
+    //   const membersCountPerSegment = await MemberRepository.countMembersPerSegment(
+    //     this.options,
+    //     result.rows.map((s) => s.id),
+    //   )
+    //   this.setMembersCount(result.rows, SegmentLevel.PROJECT_GROUP, membersCountPerSegment)
+    // }
 
     return result
   }
@@ -397,7 +390,7 @@ export default class SegmentService extends LoggerBase {
       return { custom: {}, default: {} }
     }
     return subprojects.reduce((acc: any, subproject) => {
-      const activityTypes = SegmentRepository.buildActivityTypes(subproject)
+      const activityTypes = buildSegmentActivityTypes(subproject)
 
       return {
         custom: {

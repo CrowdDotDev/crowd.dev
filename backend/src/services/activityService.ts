@@ -1,20 +1,35 @@
-import { Error400 } from '@crowd/common'
+import { Error400, distinct, singleOrDefault } from '@crowd/common'
+import {
+  DEFAULT_COLUMNS_TO_SELECT,
+  addActivityToConversation,
+  deleteActivities,
+  insertActivities,
+  queryActivities,
+  updateActivity,
+} from '@crowd/data-access-layer'
+import {
+  MemberField,
+  findMemberById,
+  queryMembersAdvanced,
+} from '@crowd/data-access-layer/src/members'
+import { optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
+import { ActivityDisplayService } from '@crowd/integrations'
 import { LoggerBase, logExecutionTime } from '@crowd/logging'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
 import {
-  PlatformType,
-  TemporalWorkflowId,
-  SegmentData,
   IMemberIdentity,
   IntegrationResultType,
+  PlatformType,
+  SegmentData,
+  TemporalWorkflowId,
 } from '@crowd/types'
-import { findMemberById, MemberField } from '@crowd/data-access-layer/src/members'
 import { Blob } from 'buffer'
 import vader from 'crowd-sentiment'
 import { Transaction } from 'sequelize/types'
+import OrganizationRepository from '@/database/repositories/organizationRepository'
+import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import { GITHUB_CONFIG, IS_DEV_ENV, IS_TEST_ENV, TEMPORAL_CONFIG } from '../conf'
 import ActivityRepository from '../database/repositories/activityRepository'
-import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
 import MemberRepository from '../database/repositories/memberRepository'
 import SegmentRepository from '../database/repositories/segmentRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
@@ -26,7 +41,6 @@ import telemetryTrack from '../segment/telemetryTrack'
 import { IServiceOptions } from './IServiceOptions'
 import { detectSentiment, detectSentimentBatch } from './aws'
 import ConversationService from './conversationService'
-import ConversationSettingsService from './conversationSettingsService'
 import merge from './helpers/merge'
 import MemberAffiliationService from './memberAffiliationService'
 import SearchSyncService from './searchSyncService'
@@ -94,7 +108,11 @@ export default class ActivityService extends LoggerBase {
       // If a sourceParentId is sent, try to find it in our db
       if ('sourceParentId' in data && data.sourceParentId) {
         const parent = await ActivityRepository.findOne(
-          { sourceId: data.sourceParentId },
+          {
+            filter: {
+              and: [{ sourceId: { eq: data.sourceParentId } }],
+            },
+          },
           repositoryOptions,
         )
         if (parent) {
@@ -129,6 +147,7 @@ export default class ActivityService extends LoggerBase {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           organizationId: (oldValue, _newValue) => oldValue,
         })
+        await updateActivity(this.options.qdb, id, toUpdate)
         record = await ActivityRepository.update(id, toUpdate, repositoryOptions)
         if (data.parent) {
           await this.addToConversation(record.id, data.parent, transaction)
@@ -158,6 +177,7 @@ export default class ActivityService extends LoggerBase {
         )
 
         record = await ActivityRepository.create(data, repositoryOptions)
+        await insertActivities([{ ...data, id: record.id }])
 
         // Only track activity's platform and timestamp and memberId. It is completely annonymous.
         telemetryTrack(
@@ -178,13 +198,39 @@ export default class ActivityService extends LoggerBase {
           record = await this.addToConversation(record.id, data.parent, transaction)
         } else if ('sourceId' in data && data.sourceId) {
           // if it's not a child, it may be a parent of previously added activities
-          const children = await ActivityRepository.findAndCountAll(
-            { filter: { sourceParentId: data.sourceId } },
-            repositoryOptions,
+          const children = await queryActivities(
+            repositoryOptions.qdb,
+            {
+              tenantId: record.tenantId,
+              segmentIds: [record.segmentId],
+              filter: { and: [{ sourceParentId: { eq: data.sourceId } }] },
+            },
+            DEFAULT_COLUMNS_TO_SELECT,
           )
+
+          const memberIds = distinct(children.rows.map((c) => c.memberId))
+          if (memberIds.length > 0) {
+            const memberResults = await queryMembersAdvanced(
+              optionsQx(repositoryOptions),
+              repositoryOptions.redis,
+              repositoryOptions.currentTenant.id,
+              {
+                filter: { and: [{ id: { in: memberIds } }] },
+                limit: memberIds.length,
+              },
+            )
+
+            for (const activity of children.rows) {
+              const member = singleOrDefault(memberResults.rows, (m) => m.id === activity.memberId)
+              if (member) {
+                activity.member = member
+              }
+            }
+          }
 
           for (const child of children.rows) {
             // update children with newly created parentId
+            await updateActivity(this.options.qdb, child.id, { ...record, parentId: record.id })
             await ActivityRepository.update(child.id, { parent: record.id }, repositoryOptions)
 
             // manage conversations for each child
@@ -199,7 +245,6 @@ export default class ActivityService extends LoggerBase {
         await searchSyncService.triggerMemberSync(this.options.currentTenant.id, record.memberId, {
           withAggs: true,
         })
-        await searchSyncService.triggerActivitySync(this.options.currentTenant.id, record.id)
       }
 
       if (!existing && fireCrowdWebhooks) {
@@ -406,7 +451,6 @@ export default class ActivityService extends LoggerBase {
    */
 
   async addToConversation(id: string, parentId: string, transaction: Transaction) {
-    const searchSyncService = new SearchSyncService(this.options)
     const parent = await ActivityRepository.findById(parentId, { ...this.options, transaction })
     const child = await ActivityRepository.findById(id, { ...this.options, transaction })
     const conversationService = new ConversationService({
@@ -451,27 +495,16 @@ export default class ActivityService extends LoggerBase {
         { conversationId: conversation.id },
         { ...this.options, transaction },
       )
-      await searchSyncService.triggerActivitySync(this.options.currentTenant.id, parent.id)
+      await addActivityToConversation(this.options.qdb, parent.id, conversation.id)
     } else {
       // neither child nor parent is in a conversation, create one from parent
       const conversationTitle = await conversationService.generateTitle(
         parent.title || parent.body,
         ActivityService.hasHtmlActivities(parent.platform),
       )
-      const conversationSettings = await ConversationSettingsService.findOrCreateDefault(
-        this.options,
-      )
-      const channel = ConversationService.getChannelFromActivity(parent)
-
-      const published = ConversationService.shouldAutoPublishConversation(
-        conversationSettings,
-        parent.platform,
-        channel,
-      )
-
       conversation = await conversationService.create({
         title: conversationTitle,
-        published,
+        published: false,
         slug: await conversationService.generateSlug(conversationTitle),
         platform: parent.platform,
       })
@@ -480,7 +513,6 @@ export default class ActivityService extends LoggerBase {
         { conversationId: conversation.id },
         { ...this.options, transaction },
       )
-      await searchSyncService.triggerActivitySync(this.options.currentTenant.id, parentId)
       record = await ActivityRepository.update(
         id,
         { conversationId: conversation.id },
@@ -498,15 +530,15 @@ export default class ActivityService extends LoggerBase {
    * @returns The existing activity if it exists, false otherwise
    */
   async _activityExists(data, transaction) {
+    const options: IRepositoryOptions = { ...this.options, transaction }
     // An activity is unique by it's sourceId and tenantId
     const exists = await ActivityRepository.findOne(
       {
-        sourceId: data.sourceId,
+        filter: {
+          and: [{ sourceId: { eq: data.sourceId } }],
+        },
       },
-      {
-        ...this.options,
-        transaction,
-      },
+      options,
     )
     return exists || false
   }
@@ -618,7 +650,6 @@ export default class ActivityService extends LoggerBase {
 
       await SequelizeRepository.commitTransaction(transaction)
 
-      await searchSyncService.triggerActivitySync(this.options.currentTenant.id, record.id)
       await searchSyncService.triggerMemberSync(this.options.currentTenant.id, record.memberId, {
         withAggs: true,
       })
@@ -645,11 +676,10 @@ export default class ActivityService extends LoggerBase {
   }
 
   async destroyAll(ids) {
-    const searchSyncService = new SearchSyncService(this.options)
-
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
+      await deleteActivities(this.options.qdb, ids)
       for (const id of ids) {
         await ActivityRepository.destroy(id, {
           ...this.options,
@@ -661,10 +691,6 @@ export default class ActivityService extends LoggerBase {
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
       throw error
-    }
-
-    for (const id of ids) {
-      await searchSyncService.triggerRemoveActivity(this.options.currentTenant.id, id)
     }
   }
 
@@ -703,38 +729,119 @@ export default class ActivityService extends LoggerBase {
     )
   }
 
-  async findAllAutocomplete(search, limit) {
-    return ActivityRepository.findAllAutocomplete(search, limit, this.options)
-  }
-
-  async findAndCountAll(args) {
-    return ActivityRepository.findAndCountAll(args, this.options)
-  }
-
-  async queryV2(data) {
+  async query(data) {
     const filter = data.filter
     const orderBy = Array.isArray(data.orderBy) ? data.orderBy : [data.orderBy]
     const limit = data.limit
     const offset = data.offset
     const countOnly = data.countOnly ?? false
-    return ActivityRepository.findAndCountAllv2(
-      { filter, orderBy, limit, offset, countOnly },
-      this.options,
-    )
-  }
 
-  async query(data) {
-    const memberAttributeSettings = (
-      await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
-    ).rows
-    const advancedFilter = data.filter
-    const orderBy = data.orderBy
-    const limit = data.limit
-    const offset = data.offset
-    return ActivityRepository.findAndCountAll(
-      { advancedFilter, orderBy, limit, offset, attributesSettings: memberAttributeSettings },
-      this.options,
+    const tenantId = SequelizeRepository.getCurrentTenant(this.options).id
+    const segmentIds = SequelizeRepository.getSegmentIds(this.options)
+
+    const page = await queryActivities(
+      this.options.qdb,
+      {
+        tenantId,
+        segmentIds,
+        filter,
+        orderBy,
+        limit,
+        offset,
+        countOnly,
+      },
+      DEFAULT_COLUMNS_TO_SELECT,
     )
+
+    const parentIds: string[] = []
+    const memberIds: string[] = []
+    const organizationIds: string[] = []
+    for (const row of page.rows) {
+      ;(row as any).display = ActivityDisplayService.getDisplayOptions(
+        row,
+        SegmentRepository.getActivityTypes(this.options),
+      )
+
+      if (row.parentId && !parentIds.includes(row.parentId)) {
+        parentIds.push(row.parentId)
+      }
+
+      if (row.memberId && !memberIds.includes(row.memberId)) {
+        memberIds.push(row.memberId)
+      }
+
+      if (row.objectMemberId && !memberIds.includes(row.objectMemberId)) {
+        memberIds.push(row.objectMemberId)
+      }
+
+      if (row.organizationId && !organizationIds.includes(row.organizationId)) {
+        organizationIds.push(row.organizationId)
+      }
+    }
+
+    const promises = []
+    if (organizationIds.length > 0) {
+      promises.push(
+        OrganizationRepository.findAndCountAll(
+          {
+            filter: {
+              and: [{ id: { in: organizationIds } }],
+            },
+            limit: organizationIds.length,
+            include: { identities: true, lfxMemberships: true },
+          },
+          this.options,
+        ).then((organizations) => {
+          for (const row of page.rows.filter((r) => r.organizationId)) {
+            ;(row as any).organization = singleOrDefault(
+              organizations.rows,
+              (o) => o.id === row.organizationId,
+            )
+          }
+        }),
+      )
+    }
+    if (parentIds.length > 0) {
+      promises.push(
+        queryActivities(this.options.qdb, {
+          filter: {
+            and: [{ id: { in: parentIds } }],
+          },
+          tenantId,
+          segmentIds,
+          noLimit: true,
+        }).then((activities) => {
+          for (const row of page.rows.filter((r) => r.parentId)) {
+            ;(row as any).parent = singleOrDefault(activities.rows, (a) => a.id === row.parentId)
+          }
+        }),
+      )
+    }
+    if (memberIds.length > 0) {
+      promises.push(
+        queryMembersAdvanced(
+          optionsQx(this.options),
+          this.options.redis,
+          this.options.currentTenant.id,
+          {
+            filter: { and: [{ id: { in: memberIds } }] },
+            limit: memberIds.length,
+          },
+        ).then((members) => {
+          for (const row of page.rows) {
+            row.member = singleOrDefault(members.rows, (m) => m.id === row.memberId)
+
+            if (row.objectMemberId) {
+              row.objectMember = singleOrDefault(members.rows, (m) => m.id === row.objectMemberId)
+            }
+          }
+        }),
+      )
+    }
+
+    await Promise.all(promises)
+
+    return page
   }
 
   async import(data, importHash) {
@@ -754,10 +861,12 @@ export default class ActivityService extends LoggerBase {
     return this.upsert(dataToCreate)
   }
 
-  async _isImportHashExistent(importHash) {
-    const count = await ActivityRepository.count(
+  async _isImportHashExistent(importHash: string) {
+    const count = await ActivityRepository.findOne(
       {
-        importHash,
+        filter: {
+          and: [{ importHash: { eq: importHash } }],
+        },
       },
       this.options,
     )

@@ -1,6 +1,12 @@
 /* eslint-disable class-methods-use-this,@typescript-eslint/no-unused-vars */
 import { Sequelize } from 'sequelize'
 import { PageData, SearchCriteria } from '@crowd/types'
+import {
+  optionsQx,
+  QueryExecutor,
+  SequelizeQueryExecutor,
+  TransactionalSequelizeQueryExecutor,
+} from '@crowd/data-access-layer/src/queryExecutor'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import AuditLogRepository from './auditLogRepository'
 import SequelizeRepository from './sequelizeRepository'
@@ -31,6 +37,10 @@ export abstract class RepositoryBase<
 
   protected get seq(): Sequelize {
     return SequelizeRepository.getSequelize(this.options)
+  }
+
+  protected get queryExecutor(): QueryExecutor {
+    return optionsQx(this.options)
   }
 
   protected get database(): any {

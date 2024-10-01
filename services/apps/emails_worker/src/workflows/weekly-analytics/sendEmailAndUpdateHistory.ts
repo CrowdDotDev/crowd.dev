@@ -6,36 +6,32 @@ import * as activities from '../../activities'
 import { getChangeAndDirection } from '../../utils/analytics'
 import { InputAnalyticsWithSegments, InputAnalyticsWithTimes } from '../../types/analytics'
 
-// Configure timeouts and retry policies to fetch content from Cube.js.
+// Configure timeouts and retry policies to fetch content from the databases.
 const {
+  getTenantUsers,
+  getSegments,
   getTotalMembersThisWeek,
   getTotalMembersPreviousWeek,
-  getActiveMembersThisWeek,
-  getActiveMembersPreviousWeek,
   getNewMembersThisWeek,
   getNewMembersPreviousWeek,
   getTotalOrganizationsThisWeek,
   getTotalOrganizationsPreviousWeek,
-  getActiveOrganizationsThisWeek,
-  getActiveOrganizationsPreviousWeek,
   getNewOrganizationsThisWeek,
   getNewOrganizationsPreviousWeek,
+  updateEmailHistory,
+  getActiveTenantIntegrations,
   getTotalActivitiesThisWeek,
   getTotalActivitiesPreviousWeek,
   getNewActivitiesThisWeek,
   getNewActivitiesPreviousWeek,
-} = proxyActivities<typeof activities>({ startToCloseTimeout: '15 seconds' })
-
-// Configure timeouts and retry policies to fetch content from the database.
-const {
-  updateEmailHistory,
-  getTenantUsers,
-  getSegments,
-  getMostActiveMembers,
-  getMostActiveOrganizations,
+  getMostActiveMembersThisWeek,
+  getMostActiveOrganizationsThisWeek,
   getTopActivityTypes,
   getConversations,
-  getActiveTenantIntegrations,
+  getActiveMembersThisWeek,
+  getActiveMembersPreviousWeek,
+  getActiveOrganizationsThisWeek,
+  getActiveOrganizationsPreviousWeek,
 } = proxyActivities<typeof activities>({ startToCloseTimeout: '10 seconds' })
 
 // Configure timeouts and retry policies to actually send the email.
@@ -47,7 +43,7 @@ const { weeklySendEmail } = proxyActivities<typeof activities>({
 weeklySendEmailAndUpdateHistory is a Temporal workflow that:
   - [Activity]: Fetch the tenant's segments.
   - [Activity]: Ensure the tenant has an active integration.
-  - [Async Activities]: Fetch results from Cube.js and database.
+  - [Async Activities]: Fetch results from database.
   - [Activity]: Fetch the tenant's users to have email addresses to send the
     email to.
   - [Activity]: Actually send the email to the each user's email address using
@@ -105,9 +101,8 @@ export async function weeklySendEmailAndUpdateHistory(
     totalActivitiesPreviousWeek,
     newActivitiesThisWeek,
     newActivitiesPreviousWeek,
-
-    mostActiveMembers,
-    mostActiveOrganizations,
+    mostActiveMembersThisWeek,
+    mostActiveOrganizationsThisWeek,
     topActivityTypes,
     conversations,
   ] = await Promise.all([
@@ -127,9 +122,8 @@ export async function weeklySendEmailAndUpdateHistory(
     getTotalActivitiesPreviousWeek(withTimeAndSegmentIds),
     getNewActivitiesThisWeek(withTimeAndSegmentIds),
     getNewActivitiesPreviousWeek(withTimeAndSegmentIds),
-
-    getMostActiveMembers(withTimeAndSegments),
-    getMostActiveOrganizations(withTimeAndSegments),
+    getMostActiveMembersThisWeek(withTimeAndSegments),
+    getMostActiveOrganizationsThisWeek(withTimeAndSegments),
     getTopActivityTypes(withTimeAndSegments),
     getConversations(withTimeAndSegments),
   ])
@@ -151,7 +145,7 @@ export async function weeklySendEmailAndUpdateHistory(
         value: activeMembersThisWeek,
         ...getChangeAndDirection(activeMembersThisWeek, activeMembersPreviousWeek),
       },
-      mostActive: mostActiveMembers,
+      mostActive: mostActiveMembersThisWeek,
     },
     organizations: {
       total: {
@@ -166,7 +160,7 @@ export async function weeklySendEmailAndUpdateHistory(
         value: activeOrganizationsThisWeek,
         ...getChangeAndDirection(activeOrganizationsThisWeek, activeOrganizationsPreviousWeek),
       },
-      mostActive: mostActiveOrganizations,
+      mostActive: mostActiveOrganizationsThisWeek,
     },
     activities: {
       total: {

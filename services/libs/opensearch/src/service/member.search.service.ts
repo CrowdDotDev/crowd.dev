@@ -1,4 +1,4 @@
-import { DbStore } from '@crowd/database'
+import { DbConnection, DbStore } from '@crowd/database'
 import { Logger, getChildLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
 import {
@@ -24,6 +24,7 @@ export class MemberSearchService {
   constructor(
     redisClient: RedisClient,
     store: DbStore,
+    private readonly qdbstore: DbConnection,
     private readonly openSearchService: OpenSearchService,
     parentLog: Logger,
   ) {
@@ -184,25 +185,21 @@ export class MemberSearchService {
 
     const memberIds = translatedRows.map((r) => r.id)
     if (memberIds.length > 0) {
-      const lastActivities = await this.memberRepo.db().any(
+      const lastActivities = await this.qdbstore.query(
         `
-            SELECT
-                a.*
-            FROM (
-                VALUES
-                  ${memberIds.map((id) => `('${id}')`).join(',')}
-            ) m ("memberId")
-            JOIN activities a ON (a.id = (
-                SELECT id
-                FROM mv_activities_cube
-                WHERE "memberId" = m."memberId"::uuid
-                ORDER BY timestamp DESC
-                LIMIT 1
-            ))
-            WHERE a."tenantId" = $(tenantId);
+        WITH latest AS (
+          SELECT last(id) AS id, memberId FROM activities
+          WHERE deletedAt IS NULL
+          AND tenantId = $(tenantId)
+          AND memberId IN ($(memberIds:csv))
+          GROUP BY memberId
+        )
+        SELECT * FROM activities
+        INNER JOIN latest ON latest.id = activities.id;
         `,
         {
           tenantId,
+          memberIds,
         },
       )
 
