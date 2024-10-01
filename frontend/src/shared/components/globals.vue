@@ -1,7 +1,8 @@
 <template>
   <div>
     <lf-report-data-issue-modal
-      :model-value="reportDataModal !== null"
+      v-if="reportDataModal !== null"
+      :model-value="true"
       v-bind="reportDataModal"
       @update:model-value="reportDataModal = null"
     />

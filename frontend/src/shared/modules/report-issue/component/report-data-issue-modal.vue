@@ -119,7 +119,7 @@
 <script setup lang="ts">
 
 import LfModal from '@/ui-kit/modal/Modal.vue';
-import { computed, reactive } from 'vue';
+import { computed, reactive, ref } from 'vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { Contributor } from '@/modules/contributor/types/Contributor';
@@ -202,8 +202,6 @@ const submit = () => {
     description,
   };
 
-  console.log(data);
-  console.log(getConfig.value.url(entity.value.id));
   const tenantId = AuthService.getTenantId();
   loading.value = true;
   return authAxios.post(
@@ -213,7 +211,9 @@ const submit = () => {
     .then(() => {
       isModalOpen.value = false;
       reset();
-      Message.success('Data issue reported successfully');
+      Message.success('Thanks for reporting this data issue! Our team will address it as soon as possible and inform you once it is resolved.', {
+        title: 'Data issue reported successfully',
+      });
     })
     .catch(() => {
       Message.error('Something went wrong while reporting data issue');

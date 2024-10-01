@@ -71,7 +71,7 @@
               <div v-if="Object.keys(project.affiliations).length" class="flex items-center gap-1">
                 <lf-contributor-details-projects-affiliation :project="project" />
               </div>
-              <div v-else>
+              <div v-else-if="hasPermission(LfPermission.memberEdit)">
                 <lf-button type="primary-link" size="small" class="!text-primary-300 hover:!text-primary-600" @click="isAffilationEditOpen = true">
                   <lf-icon name="add-line" />Add affiliation
                 </lf-button>
@@ -90,8 +90,18 @@
                 <lf-dropdown-item @click="viewActivity(project.id)">
                   <lf-icon name="eye-line" />View activity
                 </lf-dropdown-item>
-                <lf-dropdown-item @click="isAffilationEditOpen = true">
+                <lf-dropdown-item v-if="hasPermission(LfPermission.memberEdit)" @click="isAffilationEditOpen = true">
                   <lf-icon name="pencil-line" />Edit affiliation
+                </lf-dropdown-item>
+                <lf-dropdown-item
+                  v-else
+                  @click="setReportDataModal({
+                    contributor: props.contributor,
+                    type: ReportDataType.PROJECT_AFFILIATION,
+                    attribute: project,
+                  })"
+                >
+                  <lf-icon name="feedback-line" class="!text-red-500" />Report issue
                 </lf-dropdown-item>
               </lf-dropdown>
             </lf-table-cell>
@@ -132,6 +142,10 @@ import LfContributorDetailsProjectsMaintainer
   from '@/modules/contributor/components/details/overview/project/contributor-details-projects-maintainer.vue';
 import LfContributorDetailsProjectsSorting
   from '@/modules/contributor/components/details/overview/project/contributor-details-projects-sorting.vue';
+import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
+import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import { ReportDataType } from '@/shared/modules/report-issue/constants/report-data-type.enum';
+import { useSharedStore } from '@/shared/pinia/shared.store';
 
 const props = defineProps<{
   contributor: Contributor,
@@ -139,6 +153,9 @@ const props = defineProps<{
 
 const router = useRouter();
 const route = useRoute();
+
+const { hasPermission } = usePermissions();
+const { setReportDataModal } = useSharedStore();
 
 const showMore = ref<boolean>(false);
 const sorting = ref<string>('name_ASC');

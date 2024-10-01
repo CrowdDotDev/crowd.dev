@@ -19,7 +19,7 @@
         />
       </lf-tooltip>
     </div>
-    <p class="text-medium pl-3">
+    <p class="text-medium pl-2">
       {{ props.attribute.value }}
     </p>
   </div>

@@ -13,7 +13,7 @@
         </div>
       </template>
     </lf-avatar>
-    <p class="text-medium pl-3">
+    <p class="text-medium pl-2">
       {{ displayName(props.attribute) }}
     </p>
   </div>
