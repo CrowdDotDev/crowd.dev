@@ -162,10 +162,6 @@ const fetch = ({
             },
           },
         ],
-        member: {
-          isTeamMember: { not: true },
-          isBot: { not: true },
-        },
       },
       limit,
       orderBy,

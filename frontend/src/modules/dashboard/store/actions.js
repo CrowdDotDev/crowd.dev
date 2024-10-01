@@ -25,8 +25,6 @@ export default {
       segments,
     });
     dispatch('getChartData');
-    dispatch('getConversations');
-    dispatch('getActivities');
     dispatch('getMembers');
     dispatch('getOrganizations');
   },
