@@ -104,7 +104,7 @@ const emit = defineEmits(['edit']);
 
 const activityStore = useActivityStore();
 const {
-  filters, activities, totalActivities, savedFilterBody, pagination,
+  filters, activities, totalActivities, savedFilterBody, limit, timestamp,
 } = storeToRefs(activityStore);
 const { fetchActivities } = activityStore;
 
@@ -125,25 +125,25 @@ const emptyState = computed(() => ({
         "We couldn't find any results that match your search criteria, please try a different query",
 }));
 
-const isLoadMoreVisible = computed(() => (
-  pagination.value.page
-      * pagination.value.perPage
-    < totalActivities.value
-));
+const isLoadMoreVisible = computed(() => true);
 
 const onLoadMore = () => {
   pagination.value.page += 1;
 
   fetch({
-    ...savedFilterBody.value,
-    offset: (pagination.value.page - 1) * pagination.value.perPage,
-    limit: pagination.value.perPage,
+    ...{
+      ...savedFilterBody.value,
+      timestamp: {
+        lte: activities.value[activities.value.length - 1].timestamp,
+      },
+    },
+    limit,
     append: true,
   });
 };
 
 const fetch = ({
-  filter, offset = 0, limit = 20, orderBy, body, append,
+  filter, limit = 20, orderBy, body, append,
 }) => {
   loading.value = true;
   fetchActivities({
@@ -151,12 +151,14 @@ const fetch = ({
       ...body,
       filter: {
         ...filter,
+        timestamp: {
+          lte: timestamp.value,
+        },
         member: {
           isTeamMember: { not: true },
           isBot: { not: true },
         },
       },
-      offset,
       limit,
       orderBy,
     },

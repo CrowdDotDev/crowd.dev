@@ -1,5 +1,6 @@
 import { ActivityState } from '@/modules/activity/store/pinia/state';
 import { ActivityService } from '@/modules/activity/activity-service';
+import moment from 'moment';
 
 export default {
   fetchActivities(this: ActivityState, { body = {}, reload = false, append = false }:
@@ -9,10 +10,7 @@ export default {
     // Clear activities
     if (!append) {
       this.activities = [];
-      this.pagination = {
-        page: 1,
-        perPage: 20,
-      };
+      this.timestamp = moment().toISOString();
     }
     return ActivityService.query(mappedBody)
       .then((data: any) => {

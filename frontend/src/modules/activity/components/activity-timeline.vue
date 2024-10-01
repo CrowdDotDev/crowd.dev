@@ -262,6 +262,7 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { getSegmentsFromProjectGroup } from '@/utils/segments';
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import LfActivityDisplay from '@/shared/modules/activity/components/activity-display.vue';
+import moment from 'moment';
 import { ActivityService } from '../activity-service';
 
 const SearchIcon = h(
@@ -310,7 +311,7 @@ const platform = ref(null);
 const query = ref('');
 const activities = ref([]);
 const limit = ref(20);
-const offset = ref(0);
+const timestamp = ref(moment().toISOString());
 const noMore = ref(false);
 const selectedSegment = ref(props.selectedSegment || null);
 
@@ -372,9 +373,13 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
     }
   }
 
+  filterToApply.timestamp = {
+    lte: timestamp.value,
+  };
+
   if (!isEqual(filter, filterToApply) || reset) {
     activities.value.length = 0;
-    offset.value = 0;
+    timestamp.value = moment().toISOString();
     noMore.value = false;
   }
 
@@ -388,7 +393,6 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
     filter: filterToApply,
     orderBy: 'timestamp_DESC',
     limit: limit.value,
-    offset: offset.value,
     segments: selectedSegment.value ? [selectedSegment.value] : segments.value.map((s) => s.id),
   });
 
@@ -398,7 +402,7 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
     noMore.value = true;
     activities.value.push(...data.rows);
   } else {
-    offset.value += limit.value;
+    timestamp.value = data.rows[data.rows.length - 1].timestamp;
     activities.value.push(...data.rows);
   }
 };
