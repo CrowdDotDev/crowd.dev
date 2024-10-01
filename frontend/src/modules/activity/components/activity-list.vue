@@ -133,9 +133,13 @@ const onLoadMore = () => {
   fetch({
     ...{
       ...savedFilterBody.value,
-      timestamp: {
-        lte: timestamp.value,
-      },
+      and: [
+        {
+          timestamp: {
+            lte: timestamp.value,
+          },
+        },
+      ],
     },
     limit,
     append: true,
@@ -151,9 +155,13 @@ const fetch = ({
       ...body,
       filter: {
         ...filter,
-        timestamp: {
-          lte: timestamp.value,
-        },
+        and: [
+          {
+            timestamp: {
+              lte: timestamp.value,
+            },
+          },
+        ],
         member: {
           isTeamMember: { not: true },
           isBot: { not: true },
