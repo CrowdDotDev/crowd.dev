@@ -141,7 +141,7 @@ const onLoadMore = () => {
         },
       ],
     },
-    limit,
+    limit: limit.value,
     append: true,
   });
 };

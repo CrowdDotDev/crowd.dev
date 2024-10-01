@@ -1,5 +1,6 @@
 import { ConversationState } from '@/modules/conversation/store/state';
 import { ConversationService } from '@/modules/conversation/conversation-service';
+import moment from 'moment';
 
 export default {
   fetchConversation(this: ConversationState, body: any, reload = false, append = false): Promise<any> {
@@ -7,10 +8,7 @@ export default {
 
     if (!append) {
       this.conversations = [];
-      this.pagination = {
-        page: 1,
-        perPage: 20,
-      };
+      this.timestamp = moment().toISOString();
     }
     return ConversationService.query(mappedBody)
       .then((data: any) => {

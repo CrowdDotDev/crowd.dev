@@ -6,10 +6,8 @@ export interface ConversationState {
   savedFilterBody: any,
   conversations: [],
   totalConversations: number
-  pagination: {
-    page: number,
-    perPage: number
-  }
+  limit: number,
+  timestamp: string,
 }
 
 export default () => ({
@@ -26,10 +24,8 @@ export default () => ({
       include: true,
     },
   } as Filter,
-  pagination: {
-    page: 1,
-    perPage: 20,
-  },
+  limit: 20,
+  timestamp: moment().toISOString(),
   savedFilterBody: {},
   conversations: [],
   totalConversations: 0,

@@ -33,7 +33,7 @@
 
       <div v-else>
         <div class="mb-4">
-          <app-pagination-sorter
+          <!-- <app-pagination-sorter
             v-model="sorterFilter"
             :page-size="Number(pagination.perPage)"
             :total="totalConversations"
@@ -42,7 +42,7 @@
             :sorter="false"
             module="conversation"
             position="top"
-          />
+          /> -->
         </div>
 
         <!-- Conversation item list -->
@@ -92,7 +92,7 @@ defineProps({
 
 const conversationStore = useConversationStore();
 const {
-  filters, conversations, totalConversations, savedFilterBody, pagination,
+  filters, conversations, totalConversations, savedFilterBody, limit, timestamp,
 } = storeToRefs(conversationStore);
 const { fetchConversation } = conversationStore;
 
@@ -120,42 +120,62 @@ const emptyState = computed(() => ({
         "We couldn't find any results that match your search criteria, please try a different query",
 }));
 
-const isLoadMoreVisible = computed(() => (
-  pagination.value.page
-      * pagination.value.perPage
-    < totalConversations.value
-));
+const isLoadMoreVisible = computed(() => true);
 
 const onLoadMore = () => {
-  pagination.value.page += 1;
+  timestamp.value = activities.value[activities.value.length - 1].timestamp;
 
   fetch({
-    ...savedFilterBody.value,
-    offset: (pagination.value.page - 1) * pagination.value.perPage,
-    limit: pagination.value.perPage,
+    ...{
+      ...savedFilterBody.value,
+      and: [
+        {
+          timestamp: {
+            lte: timestamp.value,
+          },
+        },
+      ],
+    },
+    limit: limit.value,
     append: true,
   });
 };
 
 const reload = () => {
-  pagination.value.page = 1;
+  timestamp.value = activities.value[activities.value.length - 1].timestamp;
 
   fetch({
-    ...savedFilterBody.value,
-    offset: (pagination.value.page - 1) * pagination.value.perPage,
-    limit: pagination.value.perPage,
+    ...{
+      ...savedFilterBody.value,
+      and: [
+        {
+          timestamp: {
+            lte: timestamp.value,
+          },
+        },
+      ],
+    },
+    limit: limit.value,
     append: false,
   });
 };
 
 const fetch = ({
-  filter, offset = 0, limit = 20, orderBy, body, append,
+  filter, limit = 20, orderBy, body, append,
 }) => {
   loading.value = true;
   fetchConversation({
     ...body,
-    filter,
-    offset,
+    filter: {
+      ...filter,
+      and: [
+        {
+          timestamp: {
+            lte: timestamp.value,
+          },
+        },
+      ],
+    },
     limit,
     orderBy,
   }, false, append)
