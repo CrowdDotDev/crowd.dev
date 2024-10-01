@@ -1210,17 +1210,20 @@ export default class MemberService extends LoggerBase {
         throw new Error(`Original member only has one identity, cannot extract it!`)
       }
 
-      const secondaryActivityCount = await getActivityCountOfMemberIdentities(
-        this.options.qdb,
-        member.id,
-        secondaryIdentities,
-      )
+      const secondaryActivityCount = 0
+      const primaryActivityCount = 0
 
-      const primaryActivityCount = await getActivityCountOfMemberIdentities(
-        this.options.qdb,
-        member.id,
-        primaryIdentities,
-      )
+      // const secondaryActivityCount = await getActivityCountOfMemberIdentities(
+      //   this.options.qdb,
+      //   member.id,
+      //   secondaryIdentities,
+      // )
+// 
+      // const primaryActivityCount = await getActivityCountOfMemberIdentities(
+      //   this.options.qdb,
+      //   member.id,
+      //   primaryIdentities,
+      // )
 
       const primaryMemberRoles = await MemberOrganizationRepository.findMemberRoles(
         member.id,
