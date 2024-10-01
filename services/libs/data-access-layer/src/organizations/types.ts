@@ -9,7 +9,7 @@ export interface IDbOrganization {
   id: string
   tenantId: string
   description?: string
-  displayName?: string
+  displayName: string
   logo?: string
   tags?: string[]
   employees?: number
@@ -66,7 +66,6 @@ export interface IDbOrganizationAggregateData {
   organizationId: string
   segmentId?: string
   tenantId: string
-
   joinedAt: string
   lastActive: string
   activeOn: string[]
@@ -113,4 +112,33 @@ export const ENRICHMENT_PLATFORM_PRIORITY = [
 export interface IEnrichableOrganizationData {
   organizationId: string
   tenantId: string
+}
+
+export interface IQueryNumberOfNewOrganizations {
+  tenantId: string
+  segmentIds?: string[]
+  after?: Date
+  before?: Date
+  platform?: string
+}
+
+export interface IQueryTimeseriesOfNewOrganizations {
+  tenantId: string
+  segmentIds?: string[]
+  after: Date
+  before: Date
+  platform?: string
+}
+
+export interface IQueryNumberOfActiveOrganizations {
+  tenantId: string
+  segmentIds?: string[]
+  after: Date
+  before: Date
+  platform?: string
+}
+
+export interface IActiveOrganizationsTimeseriesResult {
+  date: string
+  count: number
 }

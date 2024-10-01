@@ -161,12 +161,6 @@ export interface NetlifyConfiguration {
   siteDomain: string
 }
 
-export interface CubeJSConfiguration {
-  url: string
-  jwtSecret: string
-  jwtExpiry: string
-}
-
 export interface NangoConfiguration {
   url: string
   secretKey: string

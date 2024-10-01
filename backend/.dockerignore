@@ -3,6 +3,5 @@
 **/venv*
 **/.webpack
 **/.serverless
-**/.cubestore
 **/.idea
 **/.vscode

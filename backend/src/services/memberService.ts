@@ -47,13 +47,15 @@ import {
   findMemberTasks,
   insertMemberSegments,
   MemberField,
+  queryMembersAdvanced,
   removeMemberNotes,
   removeMemberTags,
   removeMemberTasks,
 } from '@crowd/data-access-layer/src/members'
 import { findMemberAffiliations } from '@crowd/data-access-layer/src/member_segment_affiliations'
+import { getActivityCountOfMemberIdentities } from '@crowd/data-access-layer'
 import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
-import { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
+import { QueryExecutor, optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { TEMPORAL_CONFIG } from '@/conf'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
 import ActivityRepository from '../database/repositories/activityRepository'
@@ -1160,15 +1162,15 @@ export default class MemberService extends LoggerBase {
           member.memberOrganizations = unmergedRoles as IMemberRoleWithOrganization[]
 
           // activity count
-          const secondaryActivityCount = await MemberRepository.getActivityCountOfMembersIdentities(
+          const secondaryActivityCount = await getActivityCountOfMemberIdentities(
+            this.options.qdb,
             member.id,
             secondaryBackup.identities,
-            this.options,
           )
-          const primaryActivityCount = await MemberRepository.getActivityCountOfMembersIdentities(
+          const primaryActivityCount = await getActivityCountOfMemberIdentities(
+            this.options.qdb,
             member.id,
             member.identities,
-            this.options,
           )
 
           return {
@@ -1208,16 +1210,16 @@ export default class MemberService extends LoggerBase {
         throw new Error(`Original member only has one identity, cannot extract it!`)
       }
 
-      const secondaryActivityCount = await MemberRepository.getActivityCountOfMembersIdentities(
+      const secondaryActivityCount = await getActivityCountOfMemberIdentities(
+        this.options.qdb,
         member.id,
         secondaryIdentities,
-        this.options,
       )
 
-      const primaryActivityCount = await MemberRepository.getActivityCountOfMembersIdentities(
+      const primaryActivityCount = await getActivityCountOfMemberIdentities(
+        this.options.qdb,
         member.id,
         primaryIdentities,
-        this.options,
       )
 
       const primaryMemberRoles = await MemberOrganizationRepository.findMemberRoles(
@@ -1889,7 +1891,7 @@ export default class MemberService extends LoggerBase {
     }
   }
 
-  async findById(id, segmentId?: string, include: Record<string, string> = {}) {
+  async findById(id, segmentId?: string, include: Record<string, boolean> = {}) {
     return MemberRepository.findById(
       id,
       this.options,
@@ -1901,7 +1903,10 @@ export default class MemberService extends LoggerBase {
   }
 
   async findAllAutocomplete(data) {
-    return MemberRepository.findAndCountAll(
+    return queryMembersAdvanced(
+      optionsQx(this.options),
+      this.options.redis,
+      this.options.currentTenant.id,
       {
         filter: data.filter,
         offset: data.offset,
@@ -1912,7 +1917,6 @@ export default class MemberService extends LoggerBase {
           segments: true,
         },
       },
-      this.options,
     )
   }
 
@@ -1945,7 +1949,14 @@ export default class MemberService extends LoggerBase {
 
     const segmentId = (data.segments || [])[0]
 
-    return MemberRepository.findAndCountAll(
+    if (!segmentId) {
+      throw new Error400(this.options.language, 'member.segmentsRequired')
+    }
+
+    return queryMembersAdvanced(
+      optionsQx(this.options),
+      this.options.redis,
+      this.options.currentTenant.id,
       {
         ...data,
         segmentId,
@@ -1955,10 +1966,10 @@ export default class MemberService extends LoggerBase {
           lfxMemberships: true,
           identities: true,
           attributes: true,
+          maintainers: true,
         },
         exportMode,
       },
-      this.options,
     )
   }
 

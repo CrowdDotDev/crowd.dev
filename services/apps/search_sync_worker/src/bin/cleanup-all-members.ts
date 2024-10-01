@@ -8,6 +8,7 @@ import {
 } from '@crowd/opensearch'
 import { getRedisClient } from '@crowd/redis'
 import { DB_CONFIG, OPENSEARCH_CONFIG, REDIS_CONFIG } from '../conf'
+import { getClientSQL } from '@crowd/questdb'
 
 const log = getServiceLogger()
 
@@ -19,8 +20,10 @@ setImmediate(async () => {
 
   const dbConnection = await getDbConnection(DB_CONFIG())
   const store = new DbStore(log, dbConnection)
+  const qdbConn = await getClientSQL()
+  const qdbStore = new DbStore(log, qdbConn)
 
-  const service = new MemberSyncService(redis, store, openSearchService, log)
+  const service = new MemberSyncService(redis, store, qdbStore, openSearchService, log)
 
   const pageSize = 100
   let results = await service.getAllIndexedTenantIds(pageSize)

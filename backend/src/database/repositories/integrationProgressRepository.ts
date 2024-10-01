@@ -69,87 +69,79 @@ class IntegrationProgressRepository {
     repos: Repos,
     options: IRepositoryOptions,
   ): Promise<GitHubStats> {
-    const transaction = options.transaction
-    const seq = SequelizeRepository.getSequelize(options)
-
     const starsQuery = `
-      SELECT COUNT(DISTINCT "sourceId") 
+      SELECT COUNT_DISTINCT("sourceId") AS count
       FROM activities 
-      WHERE "tenantId" = :tenantId
+      WHERE "tenantId" = $(tenantId)
       AND platform = 'github' 
       AND type = 'star'
       AND "deletedAt" IS NULL
-      AND channel IN (:remotes)
+      AND channel IN ($(remotes:csv))
     `
 
     const unstarsQuery = `
-      SELECT COUNT(DISTINCT "sourceId") 
+      SELECT COUNT_DISTINCT("sourceId") AS count
       FROM activities 
-      WHERE "tenantId" = :tenantId
+      WHERE "tenantId" = $(tenantId)
       AND platform = 'github' 
       AND type = 'unstar'
       AND "deletedAt" IS NULL
-      AND channel IN (:remotes)
+      AND channel IN ($(remotes:csv))
     `
 
     const forksQuery = `
-      SELECT COUNT(DISTINCT "sourceId") 
+      SELECT COUNT_DISTINCT("sourceId") AS count
       FROM activities 
-      WHERE "tenantId" = :tenantId
+      WHERE "tenantId" = $(tenantId)
       AND platform = 'github' 
       AND type = 'fork'
       AND "deletedAt" IS NULL
-      AND attributes -> 'isIndirectFork' IS NULL
-      AND channel IN (:remotes)
+      AND "gitIsIndirectFork" != TRUE
+      AND channel IN ($(remotes:csv))
     `
 
     const issuesOpenedQuery = `
-      SELECT COUNT(DISTINCT "sourceId") 
+      SELECT COUNT_DISTINCT("sourceId") AS count
       FROM activities 
-      WHERE "tenantId" = :tenantId
+      WHERE "tenantId" = $(tenantId)
       AND platform = 'github' 
       AND type = 'issues-opened'
       AND "deletedAt" IS NULL
-      AND channel IN (:remotes)
+      AND channel IN ($(remotes:csv))
     `
 
     const prOpenedQuery = `
-      SELECT COUNT(DISTINCT "sourceId") 
+      SELECT COUNT_DISTINCT("sourceId") AS count
       FROM activities 
-      WHERE "tenantId" = :tenantId
+      WHERE "tenantId" = $(tenantId)
       AND platform = 'github' 
       AND type = 'pull_request-opened'
       AND "deletedAt" IS NULL
-      AND channel IN (:remotes)
+      AND channel IN ($(remotes:csv))
     `
 
     const remotes = repos.map((r) => r.url)
 
     const promises: Promise<any[]>[] = [
-      seq.query(starsQuery, {
-        replacements: { tenantId, remotes },
-        type: QueryTypes.SELECT,
-        transaction,
+      options.qdb.query(starsQuery, {
+        tenantId,
+        remotes,
       }),
-      seq.query(unstarsQuery, {
-        replacements: { tenantId, remotes },
-        type: QueryTypes.SELECT,
-        transaction,
+      options.qdb.query(unstarsQuery, {
+        tenantId,
+        remotes,
       }),
-      seq.query(forksQuery, {
-        replacements: { tenantId, remotes },
-        type: QueryTypes.SELECT,
-        transaction,
+      options.qdb.query(forksQuery, {
+        tenantId,
+        remotes,
       }),
-      seq.query(issuesOpenedQuery, {
-        replacements: { tenantId, remotes },
-        type: QueryTypes.SELECT,
-        transaction,
+      options.qdb.query(issuesOpenedQuery, {
+        tenantId,
+        remotes,
       }),
-      seq.query(prOpenedQuery, {
-        replacements: { tenantId, remotes },
-        type: QueryTypes.SELECT,
-        transaction,
+      options.qdb.query(prOpenedQuery, {
+        tenantId,
+        remotes,
       }),
     ]
 

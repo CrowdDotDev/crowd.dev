@@ -204,7 +204,6 @@ export default class OrganizationService extends LoggerBase {
           activityCount: secondaryActivityCount,
           memberCount: secondaryMemberCount,
           isTeamOrganization: false,
-          searchSyncedAt: null,
         },
       }
     } catch (err) {

@@ -72,9 +72,6 @@ importers:
       '@aws-sdk/util-format-url':
         specifier: ^3.226.0
         version: 3.535.0
-      '@crowd/alerting':
-        specifier: workspace:*
-        version: link:../services/libs/alerting
       '@crowd/audit-logs':
         specifier: workspace:*
         version: link:../services/libs/audit-logs
@@ -84,9 +81,6 @@ importers:
       '@crowd/common_services':
         specifier: workspace:*
         version: link:../services/libs/common_services
-      '@crowd/cubejs':
-        specifier: workspace:*
-        version: link:../services/libs/cubejs
       '@crowd/data-access-layer':
         specifier: workspace:*
         version: link:../services/libs/data-access-layer
@@ -102,6 +96,9 @@ importers:
       '@crowd/opensearch':
         specifier: workspace:*
         version: link:../services/libs/opensearch
+      '@crowd/questdb':
+        specifier: workspace:*
+        version: link:../services/libs/questdb
       '@crowd/queue':
         specifier: workspace:*
         version: link:../services/libs/queue
@@ -120,9 +117,6 @@ importers:
       '@crowd/types':
         specifier: workspace:*
         version: link:../services/libs/types
-      '@cubejs-client/core':
-        specifier: ^0.30.4
-        version: 0.30.74(encoding@0.1.13)
       '@google-cloud/storage':
         specifier: 5.3.0
         version: 5.3.0(encoding@0.1.13)
@@ -312,6 +306,9 @@ importers:
       pg:
         specifier: ^8.7.3
         version: 8.11.5
+      pg-promise:
+        specifier: ^11.4.3
+        version: 11.6.0
       pm2:
         specifier: ^5.2.0
         version: 5.3.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
@@ -479,6 +476,49 @@ importers:
         specifier: ^2.8.8
         version: 2.8.8
 
+  services/apps/activities_worker:
+    dependencies:
+      '@crowd/archetype-standard':
+        specifier: workspace:*
+        version: link:../../archetypes/standard
+      '@crowd/archetype-worker':
+        specifier: workspace:*
+        version: link:../../archetypes/worker
+      '@crowd/common':
+        specifier: workspace:*
+        version: link:../../libs/common
+      '@crowd/conversations':
+        specifier: workspace:*
+        version: link:../../libs/conversations
+      '@crowd/data-access-layer':
+        specifier: workspace:*
+        version: link:../../libs/data-access-layer
+      '@crowd/types':
+        specifier: workspace:*
+        version: link:../../libs/types
+      '@temporalio/activity':
+        specifier: ~1.11.1
+        version: 1.11.1
+      '@temporalio/client':
+        specifier: ~1.11.1
+        version: 1.11.1
+      '@temporalio/workflow':
+        specifier: ~1.11.1
+        version: 1.11.1
+      tsx:
+        specifier: ^4.7.1
+        version: 4.7.3
+      typescript:
+        specifier: ^5.2.2
+        version: 5.4.5
+    devDependencies:
+      '@types/node':
+        specifier: ^20.8.2
+        version: 20.12.7
+      nodemon:
+        specifier: ^3.0.1
+        version: 3.1.0
+
   services/apps/automations_worker:
     dependencies:
       '@crowd/archetype-standard':
@@ -506,8 +546,8 @@ importers:
         specifier: workspace:*
         version: link:../../libs/types
       '@temporalio/workflow':
-        specifier: ~1.8.6
-        version: 1.8.6
+        specifier: ~1.11.1
+        version: 1.11.1
       html-to-mrkdwn-ts:
         specifier: ^1.1.0
         version: 1.1.0
@@ -545,9 +585,6 @@ importers:
       '@crowd/archetype-worker':
         specifier: workspace:*
         version: link:../../archetypes/worker
-      '@crowd/cubejs':
-        specifier: workspace:*
-        version: link:../../libs/cubejs
       '@crowd/data-access-layer':
         specifier: workspace:*
         version: link:../../libs/data-access-layer
@@ -567,11 +604,11 @@ importers:
         specifier: workspace:*
         version: link:../../libs/types
       '@temporalio/client':
-        specifier: ~1.8.6
-        version: 1.8.6
+        specifier: ~1.11.1
+        version: 1.11.1
       '@temporalio/workflow':
-        specifier: ~1.8.6
-        version: 1.8.6
+        specifier: ~1.11.1
+        version: 1.11.1
       moment:
         specifier: ~2.29.4
         version: 2.29.4
@@ -615,6 +652,9 @@ importers:
       '@crowd/opensearch':
         specifier: workspace:*
         version: link:../../libs/opensearch
+      '@crowd/questdb':
+        specifier: workspace:*
+        version: link:../../libs/questdb
       '@crowd/queue':
         specifier: workspace:*
         version: link:../../libs/queue
@@ -679,9 +719,6 @@ importers:
       '@crowd/common':
         specifier: workspace:*
         version: link:../../libs/common
-      '@crowd/cubejs':
-        specifier: workspace:*
-        version: link:../../libs/cubejs
       '@crowd/data-access-layer':
         specifier: workspace:*
         version: link:../../libs/data-access-layer
@@ -695,11 +732,11 @@ importers:
         specifier: ~7.7.0
         version: 7.7.0
       '@temporalio/client':
-        specifier: ~1.8.6
-        version: 1.8.6
+        specifier: ~1.11.1
+        version: 1.11.1
       '@temporalio/workflow':
-        specifier: ~1.8.6
-        version: 1.8.6
+        specifier: ~1.11.1
+        version: 1.11.1
       axios:
         specifier: ~1.5.1
         version: 1.5.1
@@ -753,8 +790,8 @@ importers:
         specifier: workspace:*
         version: link:../../libs/types
       '@temporalio/workflow':
-        specifier: ~1.8.6
-        version: 1.8.6
+        specifier: ~1.11.1
+        version: 1.11.1
       tsx:
         specifier: ^4.7.1
         version: 4.7.3
@@ -811,8 +848,8 @@ importers:
         specifier: ~8.1.0
         version: 8.1.3
       '@temporalio/workflow':
-        specifier: ~1.8.6
-        version: 1.8.6
+        specifier: ~1.11.1
+        version: 1.11.1
       aws-sdk:
         specifier: 2.814.0
         version: 2.814.0
@@ -1031,11 +1068,11 @@ importers:
         specifier: workspace:*
         version: link:../../libs/types
       '@temporalio/client':
-        specifier: ~1.8.6
-        version: 1.8.6
+        specifier: ~1.11.1
+        version: 1.11.1
       '@temporalio/workflow':
-        specifier: ~1.8.6
-        version: 1.8.6
+        specifier: ~1.11.1
+        version: 1.11.1
       axios:
         specifier: ^1.6.8
         version: 1.6.8
@@ -1086,11 +1123,11 @@ importers:
         specifier: workspace:*
         version: link:../../../libs/types
       '@temporalio/client':
-        specifier: ~1.8.6
-        version: 1.8.6
+        specifier: ~1.11.1
+        version: 1.11.1
       '@temporalio/workflow':
-        specifier: ~1.8.6
-        version: 1.8.6
+        specifier: ~1.11.1
+        version: 1.11.1
       auth0:
         specifier: ^4.3.1
         version: 4.3.1
@@ -1150,11 +1187,11 @@ importers:
         specifier: workspace:*
         version: link:../../../libs/types
       '@temporalio/client':
-        specifier: ~1.8.6
-        version: 1.8.6
+        specifier: ~1.11.1
+        version: 1.11.1
       '@temporalio/workflow':
-        specifier: ~1.8.6
-        version: 1.8.6
+        specifier: ~1.11.1
+        version: 1.11.1
       peopledatalabs:
         specifier: ~6.1.5
         version: 6.1.5
@@ -1196,11 +1233,11 @@ importers:
         specifier: workspace:*
         version: link:../../libs/types
       '@temporalio/client':
-        specifier: ~1.8.6
-        version: 1.8.6
+        specifier: ~1.11.1
+        version: 1.11.1
       '@temporalio/workflow':
-        specifier: ~1.8.6
-        version: 1.8.6
+        specifier: ~1.11.1
+        version: 1.11.1
       tsx:
         specifier: ^4.7.1
         version: 4.7.3
@@ -1226,9 +1263,6 @@ importers:
       '@crowd/archetype-worker':
         specifier: workspace:*
         version: link:../../archetypes/worker
-      '@crowd/cubejs':
-        specifier: workspace:*
-        version: link:../../libs/cubejs
       '@crowd/data-access-layer':
         specifier: workspace:*
         version: link:../../libs/data-access-layer
@@ -1245,8 +1279,8 @@ importers:
         specifier: workspace:*
         version: link:../../libs/types
       '@temporalio/workflow':
-        specifier: ~1.8.6
-        version: 1.8.6
+        specifier: ~1.11.1
+        version: 1.11.1
       axios:
         specifier: ^1.6.8
         version: 1.6.8
@@ -1281,6 +1315,9 @@ importers:
       '@crowd/opensearch':
         specifier: workspace:*
         version: link:../../libs/opensearch
+      '@crowd/questdb':
+        specifier: workspace:*
+        version: link:../../libs/questdb
       '@crowd/redis':
         specifier: workspace:*
         version: link:../../libs/redis
@@ -1333,6 +1370,9 @@ importers:
       '@crowd/opensearch':
         specifier: workspace:*
         version: link:../../libs/opensearch
+      '@crowd/questdb':
+        specifier: workspace:*
+        version: link:../../libs/questdb
       '@crowd/queue':
         specifier: workspace:*
         version: link:../../libs/queue
@@ -1396,8 +1436,8 @@ importers:
         specifier: workspace:*
         version: link:../../archetypes/worker
       '@temporalio/workflow':
-        specifier: ~1.8.6
-        version: 1.8.6
+        specifier: ~1.11.1
+        version: 1.11.1
       tsx:
         specifier: ^4.7.1
         version: 4.7.3
@@ -1421,8 +1461,8 @@ importers:
         specifier: workspace:*
         version: link:../../libs/temporal
       '@temporalio/proto':
-        specifier: ~1.8.6
-        version: 1.8.6
+        specifier: ~1.11.1
+        version: 1.11.1
       cors:
         specifier: ~2.8.5
         version: 2.8.5
@@ -1531,6 +1571,12 @@ importers:
 
   services/archetypes/standard:
     dependencies:
+      '@crowd/common':
+        specifier: workspace:*
+        version: link:../../libs/common
+      '@crowd/database':
+        specifier: workspace:*
+        version: link:../../libs/database
       '@crowd/feature-flags':
         specifier: workspace:*
         version: link:../../libs/feature-flags
@@ -1540,6 +1586,9 @@ importers:
       '@crowd/logging':
         specifier: workspace:*
         version: link:../../libs/logging
+      '@crowd/questdb':
+        specifier: workspace:*
+        version: link:../../libs/questdb
       '@crowd/redis':
         specifier: workspace:*
         version: link:../../libs/redis
@@ -1549,9 +1598,15 @@ importers:
       '@crowd/tracing':
         specifier: workspace:*
         version: link:../../libs/tracing
+      '@questdb/nodejs-client':
+        specifier: ~3.0.0
+        version: 3.0.0
       kafkajs:
         specifier: ~2.2.4
         version: 2.2.4
+      pg-promise:
+        specifier: ^11.4.3
+        version: 11.6.0
     devDependencies:
       '@types/config':
         specifier: ^3.3.1
@@ -1584,8 +1639,8 @@ importers:
         specifier: workspace:*
         version: link:../../libs/temporal
       '@temporalio/worker':
-        specifier: ~1.8.6
-        version: 1.8.6
+        specifier: ~1.11.1
+        version: 1.11.1
     devDependencies:
       '@types/config':
         specifier: ^3.3.1
@@ -1595,22 +1650,6 @@ importers:
         version: 20.12.7
       typescript:
         specifier: ^5.2.2
-        version: 5.4.5
-
-  services/libs/alerting:
-    dependencies:
-      '@crowd/logging':
-        specifier: workspace:*
-        version: link:../logging
-      axios:
-        specifier: ^1.4.0
-        version: 1.6.8
-    devDependencies:
-      '@types/node':
-        specifier: ^20.3.1
-        version: 20.12.7
-      typescript:
-        specifier: ^5.1.3
         version: 5.4.5
 
   services/libs/audit-logs:
@@ -1693,6 +1732,9 @@ importers:
       '@crowd/common':
         specifier: workspace:*
         version: link:../common
+      '@crowd/data-access-layer':
+        specifier: workspace:*
+        version: link:../data-access-layer
       '@crowd/database':
         specifier: workspace:*
         version: link:../database
@@ -1716,31 +1758,6 @@ importers:
         specifier: ^5.0.4
         version: 5.4.5
 
-  services/libs/cubejs:
-    dependencies:
-      '@crowd/common':
-        specifier: workspace:*
-        version: link:../common
-      '@crowd/logging':
-        specifier: workspace:*
-        version: link:../logging
-      '@cubejs-client/core':
-        specifier: ~0.34.9
-        version: 0.34.60(encoding@0.1.13)
-      jsonwebtoken:
-        specifier: ~9.0.2
-        version: 9.0.2
-      moment:
-        specifier: ~2.29.4
-        version: 2.29.4
-    devDependencies:
-      '@types/node':
-        specifier: ^18.16.3
-        version: 18.19.31
-      typescript:
-        specifier: ^5.0.4
-        version: 5.4.5
-
   services/libs/data-access-layer:
     dependencies:
       '@crowd/common':
@@ -1755,6 +1772,9 @@ importers:
       '@crowd/logging':
         specifier: workspace:*
         version: link:../logging
+      '@crowd/questdb':
+        specifier: workspace:*
+        version: link:../questdb
       '@crowd/redis':
         specifier: workspace:*
         version: link:../redis
@@ -1764,6 +1784,12 @@ importers:
       '@crowd/types':
         specifier: workspace:*
         version: link:../types
+      '@questdb/nodejs-client':
+        specifier: ~3.0.0
+        version: 3.0.0
+      html-to-text:
+        specifier: ~9.0.5
+        version: 9.0.5
       lodash:
         specifier: ^4.17.21
         version: 4.17.21
@@ -1773,6 +1799,9 @@ importers:
       lodash.merge:
         specifier: ^4.6.2
         version: 4.6.2
+      moment:
+        specifier: ~2.29.4
+        version: 2.29.4
       pg-promise:
         specifier: ^11.4.3
         version: 11.6.0
@@ -1969,6 +1998,28 @@ importers:
         specifier: ^5.0.4
         version: 5.4.5
 
+  services/libs/questdb:
+    dependencies:
+      '@crowd/common':
+        specifier: workspace:*
+        version: link:../common
+      '@crowd/logging':
+        specifier: workspace:*
+        version: link:../logging
+      '@questdb/nodejs-client':
+        specifier: ~3.0.0
+        version: 3.0.0
+      pg-promise:
+        specifier: ^11.4.3
+        version: 11.6.0
+    devDependencies:
+      '@types/node':
+        specifier: ^18.16.3
+        version: 18.19.31
+      typescript:
+        specifier: ^5.0.4
+        version: 5.4.5
+
   services/libs/queue:
     dependencies:
       '@aws-sdk/client-sqs':
@@ -2063,14 +2114,14 @@ importers:
         specifier: workspace:*
         version: link:../logging
       '@temporalio/client':
-        specifier: ~1.8.6
-        version: 1.8.6
+        specifier: ~1.11.1
+        version: 1.11.1
       '@temporalio/common':
-        specifier: ^1.8.6
-        version: 1.9.3
+        specifier: ~1.11.1
+        version: 1.11.1
       '@temporalio/proto':
-        specifier: ~1.8.6
-        version: 1.8.6
+        specifier: ~1.11.1
+        version: 1.11.1
     devDependencies:
       '@types/node':
         specifier: ^18.16.3
@@ -3038,12 +3089,6 @@ packages:
     resolution: {integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==}
     engines: {node: '>=12'}
 
-  '@cubejs-client/core@0.30.74':
-    resolution: {integrity: sha512-InZa/nKw1ldzvRui0nuZvLGrtYZOmGmIa1gCrCU4i9wAR7pQjlTL2nK+kZ6XLZ5MsuZGWgi3LZNNRkz1wNeiwA==}
-
-  '@cubejs-client/core@0.34.60':
-    resolution: {integrity: sha512-0goUcqG7gREEP2LQ6uIGdFVQ5ojhRqRnbE9PqxfQsEsdSQcJnWU8h0BU82va5Ik7tdRzs+GrN0pbp8s1Ki4egA==}
-
   '@datadog/native-appsec@7.1.1':
     resolution: {integrity: sha512-1XVrCY4g1ArN79SQANMtiIkaxKSPfgdAGv0VAM4Pz+NQuxKfl+2xQPXjQPm87LI1KQIO6MU6qzv3sUUSesb9lA==}
     engines: {node: '>=14'}
@@ -3296,12 +3341,17 @@ packages:
     resolution: {integrity: sha512-xP58G7wDQ4TCmN/cMUHh00DS7SRDv/+lC+xFLrTkMIN8h55X5NhZMLYbvy7dSELP15qlI6hPhNCRWVMtZMwqLA==}
     engines: {node: '>=12.10.0'}
 
-  '@grpc/grpc-js@1.7.3':
-    resolution: {integrity: sha512-H9l79u4kJ2PVSxUNA08HMYAnUBLj9v6KjYQ7SQ71hOZcEXhShE/y5iQCesP8+6/Ik/7i2O0a10bPquIcYfufog==}
-    engines: {node: ^8.13.0 || >=10.10.0}
+  '@grpc/grpc-js@1.11.3':
+    resolution: {integrity: sha512-i9UraDzFHMR+Iz/MhFLljT+fCpgxZ3O6CxwGJ8YuNYHJItIHUzKJpW2LvoFZNnGPwqc9iWy9RAucxV0JoR9aUQ==}
+    engines: {node: '>=12.10.0'}
 
   '@grpc/proto-loader@0.7.12':
     resolution: {integrity: sha512-DCVwMxqYzpUCiDMl7hQ384FqP4T3DbNpXU8pt681l3UWCip1WUiD5JrkImUwCB9a7f2cq4CUTmi5r/xIMRPY1Q==}
+    engines: {node: '>=6'}
+    hasBin: true
+
+  '@grpc/proto-loader@0.7.13':
+    resolution: {integrity: sha512-AiXO/bfe9bmxBjxxtYxFAXGZvMaN5s8kO+jBHAJCON8rJoB5YS/D6X7ZNc6XQkuHNmyl4CYaMI1fJ/Gn27RGGw==}
     engines: {node: '>=6'}
     hasBin: true
 
@@ -3429,6 +3479,24 @@ packages:
 
   '@jsdevtools/ono@7.1.3':
     resolution: {integrity: sha512-4JQNk+3mVzK3xh2rqd6RB4J46qUR19azEHBneZyTZM+c456qOrbbM/5xcR8huNCCcbVt7+UmizG6GuUvPvKUYg==}
+
+  '@jsonjoy.com/base64@1.1.2':
+    resolution: {integrity: sha512-q6XAnWQDIMA3+FTiOYajoYqySkO+JSat0ytXGSuRdq9uXE7o92gzuQwQM14xaCRlBLGq3v5miDGC4vkVTn54xA==}
+    engines: {node: '>=10.0'}
+    peerDependencies:
+      tslib: '2'
+
+  '@jsonjoy.com/json-pack@1.1.0':
+    resolution: {integrity: sha512-zlQONA+msXPPwHWZMKFVS78ewFczIll5lXiVPwFPCZUsrOKdxc2AvxU1HoNBmMRhqDZUR9HkC3UOm+6pME6Xsg==}
+    engines: {node: '>=10.0'}
+    peerDependencies:
+      tslib: '2'
+
+  '@jsonjoy.com/util@1.3.0':
+    resolution: {integrity: sha512-Cebt4Vk7k1xHy87kHY7KSPLT77A7Ev7IfOblyLZhtYEhrdQ6fX4EoLq3xOQ3O/DRMEh2ok5nyC180E+ABS8Wmw==}
+    engines: {node: '>=10.0'}
+    peerDependencies:
+      tslib: '2'
 
   '@nodelib/fs.scandir@2.1.5':
     resolution: {integrity: sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==}
@@ -3875,6 +3943,9 @@ packages:
   '@protobufjs/utf8@1.1.0':
     resolution: {integrity: sha512-Vvn3zZrhQZkkBE8LSuW3em98c0FwgO4nxzv6OdSxPKJIEKY2bGbHn+mhGIPerzI4twdxaP8/0+06HBpwf345Lw==}
 
+  '@questdb/nodejs-client@3.0.0':
+    resolution: {integrity: sha512-lBKd732rRpS/pqyWgCJFVXi9N1YoWDAUZzp6BngBVxH92As/NDXigZmCYKQVKpAEGYx14606CH5AoJ23qf3oqA==}
+
   '@readme/better-ajv-errors@1.6.0':
     resolution: {integrity: sha512-9gO9rld84Jgu13kcbKRU+WHseNhaVt76wYMeRDGsUGYxwJtI3RmEJ9LY9dZCYQGI8eUZLuxb5qDja0nqklpFjQ==}
     engines: {node: '>=14'}
@@ -4296,33 +4367,27 @@ packages:
     resolution: {integrity: sha512-XIB2XbzHTN6ieIjfIMV9hlVcfPU26s2vafYWQcZHWXHOxiaRZYEDKEwdl129Zyg50+foYV2jCgtrqSA6qNuNSA==}
     engines: {node: '>=6'}
 
-  '@temporalio/activity@1.8.6':
-    resolution: {integrity: sha512-xTPIWIR1mL51Ub45nWpix+ATzJz/8ZAp0cCp3qw+xnKD8pwd4z9L0b30lr3co5kaPlWhSesdhypQ7VwWEf7ZHA==}
+  '@temporalio/activity@1.11.1':
+    resolution: {integrity: sha512-3nfkYBvWzHeAd/0a7M4GdfrUcDs6dA6L5bvGRJQYxNZ0h1X7Shd/FXQ5Yvfqz2LAa4NKlgZ4qcjfnUiulJkVyA==}
 
-  '@temporalio/client@1.8.6':
-    resolution: {integrity: sha512-lcDy9YeNrHU1thGpfsvxxHOLj8VKEbEthkAWQfyZghvvjQ3K7NHS7qRzYfB9ZbYnaus+ZiodSqnKTyqW9gsJ6A==}
+  '@temporalio/client@1.11.1':
+    resolution: {integrity: sha512-1cEh6y7gB1bV/dZbSLL8TsEWM9/glj4j46V8sOS1B3ykoK2+5KaBvkUBKeS/SVH8puqo1zaWbaYEWD8kajg6/g==}
 
-  '@temporalio/common@1.8.6':
-    resolution: {integrity: sha512-7Cu1ymGkgklJM5xoYgJbppM/K/Dmq6Lb9bQnJiSvp8sb/RxXz6DQbiWypl9iDmaocUyFzDDaB/brA6abIq9xOQ==}
+  '@temporalio/common@1.11.1':
+    resolution: {integrity: sha512-8fQwmYHMakSbqMX26FNfiLwBwVwsMNbGmVfGaFOqy72QZuUiXxgmImXQhK6ir1ieeH8bLyY5laAosB4W6VPBAA==}
 
-  '@temporalio/common@1.9.3':
-    resolution: {integrity: sha512-o6aAiqyIyu8b1bUOeY4nu04ZMwLAPR66Vtc8W/xYs7WM874wNhZlm8XWspqnmflI3W7td4y3Y50AHRi/BUNxRg==}
+  '@temporalio/core-bridge@1.11.1':
+    resolution: {integrity: sha512-zgBHPdzQqOHyetVR12k4L1vrGlrwFFsMZ1iNaSJoaf8M4C5whYlzv13nUvXThZkaN06/xQCop6L02XkmhxkzYA==}
 
-  '@temporalio/core-bridge@1.8.6':
-    resolution: {integrity: sha512-YkoG03qG7gqBWOupuhK1kt9A//ossKW2lOY9T22ZOTv2JfVZNgQPm0N0Kcusw0s4YULdiSGlLjalvRo4YTDoyQ==}
+  '@temporalio/proto@1.11.1':
+    resolution: {integrity: sha512-qTNSsU88IOJbv6lhWyW0qAHAYg4euEW/NNPgAp5ohfPkqaw+/j51QABO9E6m/KQwMZ6x43z2JjQRS37aC6Psiw==}
 
-  '@temporalio/proto@1.8.6':
-    resolution: {integrity: sha512-32ADOGSGBRinikP/XRTmyPXlIRaWjg5oAn64zj5NJRESrQy6ifpXb8bYVoPK01K9NIvcCL8FewCCWRKxxNvKZg==}
+  '@temporalio/worker@1.11.1':
+    resolution: {integrity: sha512-PiYbPLUH0UIakVtcZzJ4064Z3bOYrk+pOL8w8YxBlE85IQKQG6tVm9yrqd/XpC9lk0JOJhdw6KLcm64kDRrryw==}
+    engines: {node: '>= 16.0.0'}
 
-  '@temporalio/proto@1.9.3':
-    resolution: {integrity: sha512-YOeelTGdz8zLX8LUlXlERvd/VTaCPmV9xN/JEUQoxsyc7YpOB2wVwdrXS7Al/2b1jOTYRm00vbn3rljRV9W5dA==}
-
-  '@temporalio/worker@1.8.6':
-    resolution: {integrity: sha512-1T7TTkJwFJxrtAjRzHWpEoMlSrFw4b45aPx5oD8gpJCzkytHtjYjFLyPIuNOiFwsTzOJzffKnl2YIGinnn8emA==}
-    engines: {node: '>= 14.18.0'}
-
-  '@temporalio/workflow@1.8.6':
-    resolution: {integrity: sha512-ltVIqjNyJ3HvkhdA8RvcID6ylKZK8Fggw4mOSNnpPXkhGiCxA0oXuidaZK+MW9lTJzbm5EDiOvt3YctchCWK0Q==}
+  '@temporalio/workflow@1.11.1':
+    resolution: {integrity: sha512-aTfoHPc6O/7UioOSe+PHmpzLZveG2qn0VI/snlclPFs8VO8r5hcbXb5jYeuzCi26mm7Z+Dxmf2hCK77tJlPeKg==}
 
   '@tootallnate/once@2.0.0':
     resolution: {integrity: sha512-XCuKFP5PS55gnMVu3dty8KPatLqUoy/ZYzDzAGCQ8JNFCkLXzmI7vNHCR+XpbZaMWQK/vQubr7PkYq8g470J/A==}
@@ -5452,9 +5517,6 @@ packages:
 
   core-js-compat@3.37.0:
     resolution: {integrity: sha512-vYq4L+T8aS5UuFg4UwDhc7YNRWVeVZwltad9C/jV3R2LgVOpS9BDr7l/WL6BN0dbV3k1XejPTHqqEzJgsa0frA==}
-
-  core-js@3.37.0:
-    resolution: {integrity: sha512-fu5vHevQ8ZG4og+LXug8ulUtVxjOcEYvifJr7L5Bfq9GOztVqsKd9/59hUk2ZSbCrS3BqUr3EpaYGIYzq7g3Ug==}
 
   core-util-is@1.0.3:
     resolution: {integrity: sha512-ZQBvi1DcpJ4GDqanjucZ2Hj3wEO5pZDS89BWbkcrvdxksJorwUDDZamX9ldFkp9aw2lmBDLgkObEA4DWNJ9FYQ==}
@@ -6633,6 +6695,10 @@ packages:
   humanize-ms@1.2.1:
     resolution: {integrity: sha512-Fl70vYtsAFb/C06PTS9dZBo7ihau+Tu/DNCk/OyHhea07S+aeMWpFFkUaXRa8fI+ScZbEI8dfSxwY7gxZ9SAVQ==}
 
+  hyperdyperid@1.2.0:
+    resolution: {integrity: sha512-Y93lCzHYgGWdrJ66yIktxiaGULYc6oGiABxhcO5AufBeOyoIdZF7bIfLaOrbM0iGIOXQQgxxRrFEnb+Y6w1n4A==}
+    engines: {node: '>=10.18'}
+
   iconv-lite@0.4.24:
     resolution: {integrity: sha512-v3MXnZAcvnywkTUEZomIActle7RXXeedOR31wwl7VlyoXO4Qi9arvSenNQWne1TcRwhCL1HwLI21bEqdpj8/rA==}
     engines: {node: '>=0.10.0'}
@@ -6934,6 +7000,10 @@ packages:
 
   isexe@2.0.0:
     resolution: {integrity: sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw==}
+
+  isexe@3.1.1:
+    resolution: {integrity: sha512-LpB/54B+/2J5hqQ7imZHfdU31OlgQqx7ZicVlkm9kzg9/w8GKLEcFfJl/t7DCEDueOyBAD6zCCwTO6Fzs0NoEQ==}
+    engines: {node: '>=16'}
 
   isomorphic-form-data@2.0.0:
     resolution: {integrity: sha512-TYgVnXWeESVmQSg4GLVbalmQ+B4NPi/H4eWxqALKj63KsUrcu301YDjBqaOw3h+cbak7Na4Xyps3BiptHtxTfg==}
@@ -7467,8 +7537,8 @@ packages:
     resolution: {integrity: sha512-nOBDrc/wgpkd3X/JOhMqYR+/eLqlfLP4oQfoBA6QExIxEl+GU01oyEkwWyueyO8110pUKijtiHGhEmYoOn88oQ==}
     engines: {node: '>=4'}
 
-  memfs@3.5.3:
-    resolution: {integrity: sha512-UERzLsxzllchadvbPs5aolHh65ISpKpM+ccLbOJ8/vvpBKmAWf+la7dXFy7Mr0ySHbdHrFv5kGFCUHHe6GFEmw==}
+  memfs@4.11.1:
+    resolution: {integrity: sha512-LZcMTBAgqUUKNXZagcZxvXXfgF1bHX7Y7nQ0QyEiNbRJgE29GhgPd8Yna1VQcLlPiHt/5RFJMWYN9Uv/VPNvjQ==}
     engines: {node: '>= 4.0.0'}
 
   memoizee@0.4.15:
@@ -8345,12 +8415,8 @@ packages:
   proto-list@1.2.4:
     resolution: {integrity: sha512-vtK/94akxsTMhe0/cbfpR+syPuszcuwhqVjJq26CuNDgFGj682oRBXOP5MJpv2r7JtE8MsiepGIqvvOTBwn2vA==}
 
-  proto3-json-serializer@1.1.1:
-    resolution: {integrity: sha512-AwAuY4g9nxx0u52DnSMkqqgyLHaW/XaPLtaAo3y/ZCfeaQB/g4YDH4kb8Wc/mWzWvu0YjOznVnfn373MVZZrgw==}
-    engines: {node: '>=12.0.0'}
-
-  proto3-json-serializer@2.0.1:
-    resolution: {integrity: sha512-8awBvjO+FwkMd6gNoGFZyqkHZXCFd54CIYTb6De7dPaufGJ2XNW+QUNqbMr8MaAocMdb+KpsD4rxEOaTBDCffA==}
+  proto3-json-serializer@2.0.2:
+    resolution: {integrity: sha512-SAzp/O4Yh02jGdRc+uIrGoe87dkN/XtwxfZ4ZyafJHymd79ozp5VG5nyZ7ygqPM5+cpLDjjGnYFUkngonyDPOQ==}
     engines: {node: '>=14.0.0'}
 
   protobufjs@7.2.6:
@@ -8420,9 +8486,6 @@ packages:
 
   railroad-diagrams@1.0.0:
     resolution: {integrity: sha512-cz93DjNeLY0idrCNOH6PviZGRN9GJhsdm9hpn1YCS879fj4W+x5IFJhhkRZcwVgMmFF7R82UA/7Oh+R8lLZg6A==}
-
-  ramda@0.27.2:
-    resolution: {integrity: sha512-SbiLPU40JuJniHexQSAgad32hfwd+DRUdwF2PlVuI5RZD0/vahUco7R8vD86J/tcEKKF9vZrUVwgtmGCqlCKyA==}
 
   randexp@0.4.6:
     resolution: {integrity: sha512-80WNmd9DA0tmZrw9qQa62GPPWfuXJknrmVmLcxvq4uZBdYqb1wYoKTmnlGUchvVWe0XiLupYkBoXVOxz3C8DYQ==}
@@ -9157,6 +9220,12 @@ packages:
   thenify@3.3.1:
     resolution: {integrity: sha512-RVZSIV5IG10Hk3enotrhvz0T9em6cyHBLkH/YAZuKqd8hRkKhSfCGIcP2KUY0EPxndzANBmNllzWPwak+bheSw==}
 
+  thingies@1.21.0:
+    resolution: {integrity: sha512-hsqsJsFMsV+aD4s3CWKk85ep/3I9XzYV/IXaSouJMYIoDlgyi11cBhsqYe9/geRfB0YIikBQg6raRaM+nIMP9g==}
+    engines: {node: '>=10.18'}
+    peerDependencies:
+      tslib: ^2
+
   thriftrw@3.11.4:
     resolution: {integrity: sha512-UcuBd3eanB3T10nXWRRMwfwoaC6VMk7qe3/5YIWP2Jtw+EbHqJ0p1/K3x8ixiR5dozKSSfcg1W+0e33G1Di3XA==}
     engines: {node: '>= 0.10.x'}
@@ -9217,6 +9286,12 @@ packages:
 
   tr46@0.0.3:
     resolution: {integrity: sha512-N3WMsuqV66lT30CrXNbEjx4GEwlow3v6rr4mCcv6prnfwhS01rkgyFdjPNBYd9br7LpXV1+Emh01fHnq2Gdgrw==}
+
+  tree-dump@1.0.2:
+    resolution: {integrity: sha512-dpev9ABuLWdEubk+cIaI9cHwRNNDjkBBLXTwI4UCUFdQ5xXKqNXoK4FEciw/vxf+NQ7Cb7sGUyeUtORvHIdRXQ==}
+    engines: {node: '>=10.0'}
+    peerDependencies:
+      tslib: '2'
 
   ts-api-utils@1.3.0:
     resolution: {integrity: sha512-UQMIo7pb8WRomKR1/+MFVLTroIvDVtMX3K6OUir8ynLyzB8Jeriont2bTAtmNPa1ekAgN7YPDyf6V+ygrdU+eQ==}
@@ -9472,9 +9547,6 @@ packages:
     resolution: {integrity: sha512-NjFKA0DidqPa5ciFcSrXnAltTtzz84ogy+NebPvfEgAck0+TNg4UJ4IN+fB7zRZfbgUf0syOo9MDxFkDSMuFaQ==}
     engines: {node: '>=4'}
 
-  url-search-params-polyfill@7.0.1:
-    resolution: {integrity: sha512-bAw7L2E+jn9XHG5P9zrPnHdO0yJub4U+yXJOdpcpkr7OBd9T8oll4lUos0iSGRcDvfZoLUKfx9a6aNmIhJ4+mQ==}
-
   url@0.10.3:
     resolution: {integrity: sha512-hzSUW2q06EqL1gKM/a+obYHLIO6ct2hwPuviqTTOcfFVc61UbfJ2Q32+uGL/HCPxKqrdGB5QUwIe7UqlDgwsOQ==}
 
@@ -9585,6 +9657,11 @@ packages:
   which@2.0.2:
     resolution: {integrity: sha512-BLI3Tl1TW3Pvl70l3yq3Y64i+awpwXqsGBYWkkqMtnbXgrMD+yj7rhW0kuEDxzJaYXGjEW5ogapKNMEKNMjibA==}
     engines: {node: '>= 8'}
+    hasBin: true
+
+  which@4.0.0:
+    resolution: {integrity: sha512-GlaYyEb07DPxYCKhKzplCWBJtvxZcZMrL+4UkrTSJHHPyZU4mYYTv3qaOe77H7EODLSSopAUFAc6W8U4yqvscg==}
+    engines: {node: ^16.13.0 || >=18.0.0}
     hasBin: true
 
   wide-align@1.1.5:
@@ -11400,29 +11477,6 @@ snapshots:
     dependencies:
       '@jridgewell/trace-mapping': 0.3.9
 
-  '@cubejs-client/core@0.30.74(encoding@0.1.13)':
-    dependencies:
-      core-js: 3.37.0
-      cross-fetch: 3.1.8(encoding@0.1.13)
-      dayjs: 1.11.11
-      ramda: 0.27.2
-      url-search-params-polyfill: 7.0.1
-      uuid: 8.3.2
-    transitivePeerDependencies:
-      - encoding
-
-  '@cubejs-client/core@0.34.60(encoding@0.1.13)':
-    dependencies:
-      '@babel/runtime': 7.24.4
-      core-js: 3.37.0
-      cross-fetch: 3.1.8(encoding@0.1.13)
-      dayjs: 1.11.11
-      ramda: 0.27.2
-      url-search-params-polyfill: 7.0.1
-      uuid: 8.3.2
-    transitivePeerDependencies:
-      - encoding
-
   '@datadog/native-appsec@7.1.1':
     dependencies:
       node-gyp-build: 3.9.0
@@ -11669,12 +11723,19 @@ snapshots:
       '@grpc/proto-loader': 0.7.12
       '@js-sdsl/ordered-map': 4.4.2
 
-  '@grpc/grpc-js@1.7.3':
+  '@grpc/grpc-js@1.11.3':
     dependencies:
-      '@grpc/proto-loader': 0.7.12
-      '@types/node': 20.12.7
+      '@grpc/proto-loader': 0.7.13
+      '@js-sdsl/ordered-map': 4.4.2
 
   '@grpc/proto-loader@0.7.12':
+    dependencies:
+      lodash.camelcase: 4.3.0
+      long: 5.2.3
+      protobufjs: 7.2.6
+      yargs: 17.7.2
+
+  '@grpc/proto-loader@0.7.13':
     dependencies:
       lodash.camelcase: 4.3.0
       long: 5.2.3
@@ -11906,6 +11967,22 @@ snapshots:
   '@js-sdsl/ordered-map@4.4.2': {}
 
   '@jsdevtools/ono@7.1.3': {}
+
+  '@jsonjoy.com/base64@1.1.2(tslib@2.6.2)':
+    dependencies:
+      tslib: 2.6.2
+
+  '@jsonjoy.com/json-pack@1.1.0(tslib@2.6.2)':
+    dependencies:
+      '@jsonjoy.com/base64': 1.1.2(tslib@2.6.2)
+      '@jsonjoy.com/util': 1.3.0(tslib@2.6.2)
+      hyperdyperid: 1.2.0
+      thingies: 1.21.0(tslib@2.6.2)
+      tslib: 2.6.2
+
+  '@jsonjoy.com/util@1.3.0(tslib@2.6.2)':
+    dependencies:
+      tslib: 2.6.2
 
   '@nodelib/fs.scandir@2.1.5':
     dependencies:
@@ -12586,6 +12663,8 @@ snapshots:
 
   '@protobufjs/utf8@1.1.0': {}
 
+  '@questdb/nodejs-client@3.0.0': {}
+
   '@readme/better-ajv-errors@1.6.0(ajv@8.12.0)':
     dependencies:
       '@babel/code-frame': 7.24.2
@@ -13166,71 +13245,55 @@ snapshots:
     dependencies:
       defer-to-connect: 1.1.3
 
-  '@temporalio/activity@1.8.6':
+  '@temporalio/activity@1.11.1':
     dependencies:
-      '@temporalio/common': 1.8.6
+      '@temporalio/common': 1.11.1
       abort-controller: 3.0.0
 
-  '@temporalio/client@1.8.6':
+  '@temporalio/client@1.11.1':
     dependencies:
-      '@grpc/grpc-js': 1.7.3
-      '@temporalio/common': 1.8.6
-      '@temporalio/proto': 1.8.6
+      '@grpc/grpc-js': 1.11.3
+      '@temporalio/common': 1.11.1
+      '@temporalio/proto': 1.11.1
       abort-controller: 3.0.0
       long: 5.2.3
-      uuid: 8.3.2
+      uuid: 9.0.1
 
-  '@temporalio/common@1.8.6':
+  '@temporalio/common@1.11.1':
     dependencies:
-      '@opentelemetry/api': 1.6.0
-      '@temporalio/proto': 1.8.6
+      '@temporalio/proto': 1.11.1
       long: 5.2.3
       ms: 3.0.0-canary.1
-      proto3-json-serializer: 1.1.1
-      protobufjs: 7.2.6
+      proto3-json-serializer: 2.0.2
 
-  '@temporalio/common@1.9.3':
+  '@temporalio/core-bridge@1.11.1':
     dependencies:
-      '@temporalio/proto': 1.9.3
-      long: 5.2.3
-      ms: 3.0.0-canary.1
-      proto3-json-serializer: 2.0.1
-
-  '@temporalio/core-bridge@1.8.6':
-    dependencies:
-      '@opentelemetry/api': 1.6.0
-      '@temporalio/common': 1.8.6
+      '@temporalio/common': 1.11.1
       arg: 5.0.2
       cargo-cp-artifact: 0.1.8
-      which: 2.0.2
+      which: 4.0.0
 
-  '@temporalio/proto@1.8.6':
+  '@temporalio/proto@1.11.1':
     dependencies:
       long: 5.2.3
       protobufjs: 7.2.6
 
-  '@temporalio/proto@1.9.3':
+  '@temporalio/worker@1.11.1':
     dependencies:
-      long: 5.2.3
-      protobufjs: 7.2.6
-
-  '@temporalio/worker@1.8.6':
-    dependencies:
-      '@opentelemetry/api': 1.6.0
       '@swc/core': 1.4.17
-      '@temporalio/activity': 1.8.6
-      '@temporalio/client': 1.8.6
-      '@temporalio/common': 1.8.6
-      '@temporalio/core-bridge': 1.8.6
-      '@temporalio/proto': 1.8.6
-      '@temporalio/workflow': 1.8.6
+      '@temporalio/activity': 1.11.1
+      '@temporalio/client': 1.11.1
+      '@temporalio/common': 1.11.1
+      '@temporalio/core-bridge': 1.11.1
+      '@temporalio/proto': 1.11.1
+      '@temporalio/workflow': 1.11.1
       abort-controller: 3.0.0
-      cargo-cp-artifact: 0.1.8
       heap-js: 2.5.0
-      memfs: 3.5.3
+      memfs: 4.11.1
       rxjs: 7.8.1
       source-map: 0.7.4
       source-map-loader: 4.0.2(webpack@5.91.0(@swc/core@1.4.17))
+      supports-color: 8.1.1
       swc-loader: 0.2.6(@swc/core@1.4.17)(webpack@5.91.0(@swc/core@1.4.17))
       unionfs: 4.5.4
       webpack: 5.91.0(@swc/core@1.4.17)
@@ -13240,10 +13303,10 @@ snapshots:
       - uglify-js
       - webpack-cli
 
-  '@temporalio/workflow@1.8.6':
+  '@temporalio/workflow@1.11.1':
     dependencies:
-      '@temporalio/common': 1.8.6
-      '@temporalio/proto': 1.8.6
+      '@temporalio/common': 1.11.1
+      '@temporalio/proto': 1.11.1
 
   '@tootallnate/once@2.0.0': {}
 
@@ -14605,8 +14668,6 @@ snapshots:
   core-js-compat@3.37.0:
     dependencies:
       browserslist: 4.23.0
-
-  core-js@3.37.0: {}
 
   core-util-is@1.0.3: {}
 
@@ -16115,6 +16176,8 @@ snapshots:
     dependencies:
       ms: 2.1.3
 
+  hyperdyperid@1.2.0: {}
+
   iconv-lite@0.4.24:
     dependencies:
       safer-buffer: 2.1.2
@@ -16362,6 +16425,8 @@ snapshots:
       punycode: 2.3.1
 
   isexe@2.0.0: {}
+
+  isexe@3.1.1: {}
 
   isomorphic-form-data@2.0.0:
     dependencies:
@@ -17130,9 +17195,12 @@ snapshots:
     dependencies:
       mimic-fn: 1.2.0
 
-  memfs@3.5.3:
+  memfs@4.11.1:
     dependencies:
-      fs-monkey: 1.0.5
+      '@jsonjoy.com/json-pack': 1.1.0(tslib@2.6.2)
+      '@jsonjoy.com/util': 1.3.0(tslib@2.6.2)
+      tree-dump: 1.0.2(tslib@2.6.2)
+      tslib: 2.6.2
 
   memoizee@0.4.15:
     dependencies:
@@ -18099,11 +18167,7 @@ snapshots:
 
   proto-list@1.2.4: {}
 
-  proto3-json-serializer@1.1.1:
-    dependencies:
-      protobufjs: 7.2.6
-
-  proto3-json-serializer@2.0.1:
+  proto3-json-serializer@2.0.2:
     dependencies:
       protobufjs: 7.2.6
 
@@ -18186,8 +18250,6 @@ snapshots:
   queue-microtask@1.2.3: {}
 
   railroad-diagrams@1.0.0: {}
-
-  ramda@0.27.2: {}
 
   randexp@0.4.6:
     dependencies:
@@ -19064,6 +19126,10 @@ snapshots:
     dependencies:
       any-promise: 1.3.0
 
+  thingies@1.21.0(tslib@2.6.2):
+    dependencies:
+      tslib: 2.6.2
+
   thriftrw@3.11.4:
     dependencies:
       bufrw: 1.4.0
@@ -19115,6 +19181,10 @@ snapshots:
       nopt: 1.0.10
 
   tr46@0.0.3: {}
+
+  tree-dump@1.0.2(tslib@2.6.2):
+    dependencies:
+      tslib: 2.6.2
 
   ts-api-utils@1.3.0(typescript@5.4.5):
     dependencies:
@@ -19411,8 +19481,6 @@ snapshots:
     dependencies:
       prepend-http: 2.0.0
 
-  url-search-params-polyfill@7.0.1: {}
-
   url@0.10.3:
     dependencies:
       punycode: 1.3.2
@@ -19543,6 +19611,10 @@ snapshots:
   which@2.0.2:
     dependencies:
       isexe: 2.0.0
+
+  which@4.0.0:
+    dependencies:
+      isexe: 3.1.1
 
   wide-align@1.1.5:
     dependencies:

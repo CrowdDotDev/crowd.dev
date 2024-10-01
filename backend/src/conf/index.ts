@@ -19,7 +19,6 @@ import {
   SendgridConfiguration,
   NetlifyConfiguration,
   TenantMode,
-  CubeJSConfiguration,
   ComprehendConfiguration,
   ClearbitConfiguration,
   NangoConfiguration,
@@ -121,8 +120,6 @@ export const GITHUB_ISSUE_REPORTER_CONFIG: IGithubIssueReporterConfiguration =
 export const SENDGRID_CONFIG: SendgridConfiguration = config.get<SendgridConfiguration>('sendgrid')
 
 export const NETLIFY_CONFIG: NetlifyConfiguration = config.get<NetlifyConfiguration>('netlify')
-
-export const CUBEJS_CONFIG: CubeJSConfiguration = config.get<CubeJSConfiguration>('cubejs')
 
 export const NANGO_CONFIG: NangoConfiguration = config.get<NangoConfiguration>('nango')
 
