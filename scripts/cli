@@ -778,7 +778,7 @@ while test $# -gt 0; do
         exit
         ;;
     clean-start-dev)
-        INGORED_SERVICES=("python-worker" "job-generator" "discord-ws" "webhook-api" "profiles-worker" "organizations-enrichment-worker" "merge-suggestions-worker" "members-enrichment-worker" "exports-worker" "emails-worker" "entity-merging-worker" "automations-worker")
+        # INGORED_SERVICES=("python-worker" "job-generator" "discord-ws" "webhook-api" "profiles-worker" "organizations-enrichment-worker" "merge-suggestions-worker" "members-enrichment-worker" "exports-worker" "emails-worker" "entity-merging-worker" "automations-worker")
         CLEAN_START=1
         DEV=1
         start
