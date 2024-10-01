@@ -53,7 +53,7 @@ import {
   removeMemberTasks,
 } from '@crowd/data-access-layer/src/members'
 import { findMemberAffiliations } from '@crowd/data-access-layer/src/member_segment_affiliations'
-import { getActivityCountOfMemberIdentities } from '@crowd/data-access-layer'
+// import { getActivityCountOfMemberIdentities } from '@crowd/data-access-layer'
 import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
 import { QueryExecutor, optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { TEMPORAL_CONFIG } from '@/conf'
