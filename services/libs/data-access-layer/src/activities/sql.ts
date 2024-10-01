@@ -472,7 +472,7 @@ export async function queryActivities(
   if (!(arg.noLimit === true)) {
     arg.limit = arg.limit || 20
   }
-  arg.offset = arg.offset || 0
+  // arg.offset = arg.offset || 0
   arg.countOnly = arg.countOnly || false
 
   if (arg.filter.member) {
@@ -542,8 +542,8 @@ export async function queryActivities(
   const params: any = {
     tenantId: arg.tenantId,
     segmentIds: arg.segmentIds,
-    lowerLimit: arg.offset,
-    upperLimit: arg.offset + arg.limit - 1,
+    // lowerLimit: arg.offset,
+    // upperLimit: arg.offset + arg.limit - 1,
   }
   let filterString = RawQueryParser.parseFilters(
     arg.filter,
@@ -589,7 +589,7 @@ export async function queryActivities(
       rows: [],
       count: Number(countResults),
       limit: arg.limit,
-      offset: arg.offset,
+      // offset: arg.offset,
     }
   } else {
     const columnString = columns
@@ -674,7 +674,7 @@ export async function queryActivities(
     count: Number(count),
     rows: results,
     limit: arg.limit,
-    offset: arg.offset,
+    // offset: arg.offset,
   }
 }
 
