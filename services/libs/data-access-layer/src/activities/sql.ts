@@ -613,7 +613,7 @@ export async function queryActivities(
     `
 
     if (arg.limit > 0 && params.upperLimit > 0) {
-      query += ` limit $(lowerLimit)`
+      query += ` limit $(upperLimit)`
     }
 
     query += ';'
