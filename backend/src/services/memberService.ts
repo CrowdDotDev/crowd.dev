@@ -962,7 +962,9 @@ export default class MemberService extends LoggerBase {
         MemberField.MANUALLY_CHANGED_FIELDS,
       ])
 
-      this.options.log.info("[0] Getting member information (identities, tags, notes, tasks, affiliations)... ")
+      this.options.log.info(
+        '[0] Getting member information (identities, tags, notes, tasks, affiliations)... ',
+      )
 
       const [memberOrganizations, identities, tags, notes, tasks, affiliations] = await Promise.all(
         [
@@ -975,9 +977,7 @@ export default class MemberService extends LoggerBase {
         ],
       )
 
-      this.options.log.info(
-        '[0] Done!',
-      )
+      this.options.log.info('[0] Done!')
 
       const member = {
         ...memberById,
@@ -1171,17 +1171,19 @@ export default class MemberService extends LoggerBase {
           )
           member.memberOrganizations = unmergedRoles as IMemberRoleWithOrganization[]
 
+          const secondaryActivityCount = 0
+          const primaryActivityCount = 0
           // activity count
-          const secondaryActivityCount = await getActivityCountOfMemberIdentities(
-            this.options.qdb,
-            member.id,
-            secondaryBackup.identities,
-          )
-          const primaryActivityCount = await getActivityCountOfMemberIdentities(
-            this.options.qdb,
-            member.id,
-            member.identities,
-          )
+          // const secondaryActivityCount = await getActivityCountOfMemberIdentities(
+          //   this.options.qdb,
+          //   member.id,
+          //   secondaryBackup.identities,
+          // )
+          // const primaryActivityCount = await getActivityCountOfMemberIdentities(
+          //   this.options.qdb,
+          //   member.id,
+          //   member.identities,
+          // )
 
           return {
             primary: {
@@ -1228,7 +1230,7 @@ export default class MemberService extends LoggerBase {
       //   member.id,
       //   secondaryIdentities,
       // )
-// 
+      //
       // const primaryActivityCount = await getActivityCountOfMemberIdentities(
       //   this.options.qdb,
       //   member.id,
