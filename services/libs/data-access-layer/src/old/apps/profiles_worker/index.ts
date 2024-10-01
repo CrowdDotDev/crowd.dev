@@ -1,13 +1,17 @@
 import _ from 'lodash'
 
-import { DbStore } from '@crowd/database'
-import { IAffiliationsLastCheckedAt, IMemberId } from './types'
+import { DbConnOrTx, DbStore } from '@crowd/database'
 import { ITenant } from '@crowd/types'
-import { pgpQx } from '../../../queryExecutor'
 import { findMemberAffiliations } from '../../../member_segment_affiliations'
+import { pgpQx } from '../../../queryExecutor'
+import { IAffiliationsLastCheckedAt, IMemberId } from './types'
 
-export async function runMemberAffiliationsUpdate(db: DbStore, memberId: string) {
-  const qx = pgpQx(db.connection())
+export async function runMemberAffiliationsUpdate(
+  pgDb: DbStore,
+  qDb: DbConnOrTx,
+  memberId: string,
+) {
+  const qx = pgpQx(pgDb.connection())
   const tsBetween = (start: string, end: string) => {
     return `timestamp BETWEEN '${start}' AND '${end}'`
   }
@@ -85,20 +89,20 @@ export async function runMemberAffiliationsUpdate(db: DbStore, memberId: string)
     .head()
     .value()
 
+  const qdbQx = pgpQx(qDb)
   let fullCase: string
   if (orgCases.length > 0) {
     fullCase = `
-          CASE
-            ${orgCases.map(condition).join('\n')}
-            ELSE ${nullableOrg(fallbackOrganizationId)}
-          END::UUID
-        `
+            CASE
+              ${orgCases.map(condition).join('\n')}
+              ELSE ${nullableOrg(fallbackOrganizationId)}
+            END
+            `
   } else {
     fullCase = `${nullableOrg(fallbackOrganizationId)}::UUID`
   }
 
-  await qx.result(
-    `
+  const query = `
       UPDATE activities
       SET "organizationId" = ${fullCase}
       WHERE "memberId" = $(memberId)
@@ -106,9 +110,9 @@ export async function runMemberAffiliationsUpdate(db: DbStore, memberId: string)
           ${fullCase},
           '00000000-0000-0000-0000-000000000000'
         )
-    `,
-    { memberId },
-  )
+    `
+
+  await qdbQx.result(query, { memberId })
 }
 
 export async function getAffiliationsLastCheckedAt(db: DbStore, tenantId: string) {

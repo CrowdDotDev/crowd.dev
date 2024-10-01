@@ -200,8 +200,12 @@
           "github": "Creator of Pied Piper data comperssion algorithm",
           "custom": "Founder & CEO of Pied Piper"
         },
-        "jobTitle": { "custom": "Founder & CEO" },
-        "location": { "github": "Silicon Valley" },
+        "jobTitle": {
+          "custom": "Founder & CEO"
+        },
+        "location": {
+          "github": "Silicon Valley"
+        },
         "avatarUrl": {
           "custom": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/richard-small.jpg"
         },
@@ -280,14 +284,25 @@
             "location": "Menlo Park"
           },
           "employees": 20,
-          "revenueRange": { "min": 0, "max": 1 },
-          "linkedin": { "handle": "company/pied-piper" },
-          "crunchbase": { "handle": "company/pied-piper" }
+          "revenueRange": {
+            "min": 0,
+            "max": 1
+          },
+          "linkedin": {
+            "handle": "company/pied-piper"
+          },
+          "crunchbase": {
+            "handle": "company/pied-piper"
+          }
         }
       ],
       "email": "richard@piedpiper.io",
       "score": 8,
-      "reach": { "twitter": 2016, "github": 157, "total": 2173 },
+      "reach": {
+        "twitter": 2016,
+        "github": 157,
+        "total": 2173
+      },
       "tags": ["entrepreneur", "tech leader", "innovator", "compression expert", "startups"],
       "notes": [
         "Has a tendency to overthink things",
@@ -385,8 +400,12 @@
           "github": "Coding is not for me",
           "custom": "Ex-CEO of Aviato, creator of startup incubator"
         },
-        "jobTitle": { "custom": "Board Member at Pied Piper" },
-        "location": { "github": "Silicon Valley" },
+        "jobTitle": {
+          "custom": "Board Member at Pied Piper"
+        },
+        "location": {
+          "github": "Silicon Valley"
+        },
         "avatarUrl": {
           "custom": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/erlich-small.jpg"
         },
@@ -474,14 +493,25 @@
             "location": "Menlo Park"
           },
           "employees": 1,
-          "revenueRange": { "min": 0, "max": 20 },
-          "linkedin": { "handle": "company/erlichincubator" },
-          "crunchbase": { "handle": "company/erlichincubator" }
+          "revenueRange": {
+            "min": 0,
+            "max": 20
+          },
+          "linkedin": {
+            "handle": "company/erlichincubator"
+          },
+          "crunchbase": {
+            "handle": "company/erlichincubator"
+          }
         }
       ],
       "email": "erlich@piedpiper.io",
       "score": 7,
-      "reach": { "twitter": 711, "github": 1, "total": 712 },
+      "reach": {
+        "twitter": 711,
+        "github": 1,
+        "total": 712
+      },
       "notes": ["Can be difficult to work with", "Strong personality", "Likes to take risks"],
       "openSourceContributions": [
         {
@@ -528,8 +558,12 @@
           "github": "Co-head Dreamer of the Hooli XYZ project",
           "custom": "Executive at the Hooli XYZ project"
         },
-        "jobTitle": { "custom": "Co-head Dreamer" },
-        "location": { "github": "Silicon Valley" },
+        "jobTitle": {
+          "custom": "Co-head Dreamer"
+        },
+        "location": {
+          "github": "Silicon Valley"
+        },
         "avatarUrl": {
           "custom": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/big-head-small.jpg"
         },
@@ -613,14 +647,25 @@
             "location": "Menlo Park"
           },
           "employees": 4000,
-          "revenueRange": { "min": 100, "max": 500 },
-          "linkedin": { "handle": "company/hooli" },
-          "crunchbase": { "handle": "company/hooli" }
+          "revenueRange": {
+            "min": 100,
+            "max": 500
+          },
+          "linkedin": {
+            "handle": "company/hooli"
+          },
+          "crunchbase": {
+            "handle": "company/hooli"
+          }
         }
       ],
       "email": "bighead@hooli.xyz",
       "score": 5,
-      "reach": { "twitter": 401, "github": 5, "total": 406 },
+      "reach": {
+        "twitter": 401,
+        "github": 5,
+        "total": 406
+      },
       "notes": [
         "Big Head is a dreamer, with great ideas but often lacks the follow-through to execute them",
         "He is a loyal friend and willing to help those in need, even at his own expense"
@@ -856,8 +901,12 @@
           "github": "Investor",
           "custom": "Founder & Investor at Raviga Capital"
         },
-        "jobTitle": { "custom": "Founder & Investor" },
-        "location": { "github": "Silicon Valley" },
+        "jobTitle": {
+          "custom": "Founder & Investor"
+        },
+        "location": {
+          "github": "Silicon Valley"
+        },
         "avatarUrl": {
           "custom": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/peter-small.jpg"
         },
@@ -938,14 +987,25 @@
             "location": "Menlo Park"
           },
           "employees": 3,
-          "revenueRange": { "min": 5, "max": 20 },
-          "linkedin": { "handle": "company/raviga-capital" },
-          "crunchbase": { "handle": "company/raviga-capital" }
+          "revenueRange": {
+            "min": 5,
+            "max": 20
+          },
+          "linkedin": {
+            "handle": "company/raviga-capital"
+          },
+          "crunchbase": {
+            "handle": "company/raviga-capital"
+          }
         }
       ],
       "email": "peter@raviga.vc",
       "score": 3,
-      "reach": { "twitter": 3000, "github": 7, "total": 3007 },
+      "reach": {
+        "twitter": 3000,
+        "github": 7,
+        "total": 3007
+      },
       "tags": [
         "VC investor",
         "startups",
@@ -1016,8 +1076,12 @@
           "github": "Investing in companies with superior technology",
           "custom": "VC at Raviga Capital"
         },
-        "jobTitle": { "custom": "VC" },
-        "location": { "github": "Silicon Valley" },
+        "jobTitle": {
+          "custom": "VC"
+        },
+        "location": {
+          "github": "Silicon Valley"
+        },
         "avatarUrl": {
           "custom": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/monica-small.jpg"
         },
@@ -1098,14 +1162,25 @@
             "location": "Menlo Park"
           },
           "employees": 3,
-          "revenueRange": { "min": 5, "max": 20 },
-          "linkedin": { "handle": "company/raviga-capital" },
-          "crunchbase": { "handle": "company/raviga-capital" }
+          "revenueRange": {
+            "min": 5,
+            "max": 20
+          },
+          "linkedin": {
+            "handle": "company/raviga-capital"
+          },
+          "crunchbase": {
+            "handle": "company/raviga-capital"
+          }
         }
       ],
       "email": "monica@raviga.vc",
       "score": 6,
-      "reach": { "twitter": 1417, "github": 3, "total": 1420 },
+      "reach": {
+        "twitter": 1417,
+        "github": 3,
+        "total": 1420
+      },
       "tags": ["VC", "investor", "Raviga Capital"],
       "notes": [
         "Monica is an expert in venture capital investing",
@@ -1653,8 +1728,12 @@
           "github": "VC and Partner at Raviga Capital",
           "custom": "VC and Partner at Raviga Capital"
         },
-        "jobTitle": { "custom": "VC" },
-        "location": { "github": "Silicon Valley" },
+        "jobTitle": {
+          "custom": "VC"
+        },
+        "location": {
+          "github": "Silicon Valley"
+        },
         "avatarUrl": {
           "custom": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/laurie.jpg"
         },
@@ -1742,14 +1821,25 @@
             "location": "Menlo Park"
           },
           "employees": 3,
-          "revenueRange": { "min": 5, "max": 20 },
-          "linkedin": { "handle": "company/raviga-capital" },
-          "crunchbase": { "handle": "company/raviga-capital" }
+          "revenueRange": {
+            "min": 5,
+            "max": 20
+          },
+          "linkedin": {
+            "handle": "company/raviga-capital"
+          },
+          "crunchbase": {
+            "handle": "company/raviga-capital"
+          }
         }
       ],
       "email": "laurie@raviga.vc",
       "score": 6,
-      "reach": { "twitter": 714, "github": 4, "total": 718 },
+      "reach": {
+        "twitter": 714,
+        "github": 4,
+        "total": 718
+      },
       "tags": [
         "venture capitalist",
         "business strategist",
@@ -1823,8 +1913,12 @@
           "github": "The billionaire, ROI = Radio on Internet",
           "custom": "Investor in Pied Piper, CEO at 3 Commas. Member of the three-comma club."
         },
-        "jobTitle": { "custom": "CEO" },
-        "location": { "github": "Silicon Valley" },
+        "jobTitle": {
+          "custom": "CEO"
+        },
+        "location": {
+          "github": "Silicon Valley"
+        },
         "avatarUrl": {
           "custom": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/russ.jpg"
         },
@@ -1919,14 +2013,25 @@
             "location": "Menlo Park"
           },
           "employees": 20,
-          "revenueRange": { "min": 1, "max": 20 },
-          "linkedin": { "handle": "company/3-commas" },
-          "crunchbase": { "handle": "company/3-commas" }
+          "revenueRange": {
+            "min": 1,
+            "max": 20
+          },
+          "linkedin": {
+            "handle": "company/3-commas"
+          },
+          "crunchbase": {
+            "handle": "company/3-commas"
+          }
         }
       ],
       "email": "me@russhanneman.com",
       "score": 4,
-      "reach": { "twitter": 618, "github": 3, "total": 621 },
+      "reach": {
+        "twitter": 618,
+        "github": 3,
+        "total": 621
+      },
       "tags": ["Tequila", "Billionaire", "Entrepreneur", "Investor"],
       "notes": [
         "Member of the three-comma club",
@@ -1987,8 +2092,12 @@
           "github": "Head of development at Hooli",
           "custom": "Head of development at Hooli"
         },
-        "jobTitle": { "custom": "Head of development" },
-        "location": { "github": "Silicon Valley" },
+        "jobTitle": {
+          "custom": "Head of development"
+        },
+        "location": {
+          "github": "Silicon Valley"
+        },
         "avatarUrl": {
           "custom": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/jack-barker-best.jpg"
         },
@@ -2076,14 +2185,25 @@
             "location": "Menlo Park"
           },
           "employees": 4000,
-          "revenueRange": { "min": 100, "max": 500 },
-          "linkedin": { "handle": "company/hooli" },
-          "crunchbase": { "handle": "company/hooli" }
+          "revenueRange": {
+            "min": 100,
+            "max": 500
+          },
+          "linkedin": {
+            "handle": "company/hooli"
+          },
+          "crunchbase": {
+            "handle": "company/hooli"
+          }
         }
       ],
       "email": "barker@hooli.xyz",
       "score": 3,
-      "reach": { "twitter": 819, "github": 11, "total": 830 },
+      "reach": {
+        "twitter": 819,
+        "github": 11,
+        "total": 830
+      },
       "tags": ["Entrepreneur", "Product Manager", "Senior Executive"],
       "notes": [
         "Impressive background in software engineering and product development",

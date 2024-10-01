@@ -64,7 +64,7 @@
           class="panel-card pb-6 flex flex-col"
         >
           <div
-            class="min-h-32 h-32 flex items-center justify-center mb-6"
+            class="min-h-32 h-32 flex items-center justify-center mb-6 px-6"
             style="background: linear-gradient(180deg, #FFFFFF 0%, #FAFAFA 100%), #FFFFFF;"
           >
             <img

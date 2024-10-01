@@ -1,6 +1,7 @@
 import { DbConnection, DbTransaction } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { IPlatforms } from './types'
+import { getNewActivityPlatforms } from '../../../activities'
 
 class ActivityRepository {
   constructor(
@@ -14,19 +15,10 @@ class ActivityRepository {
   ): Promise<string[]> {
     let result: IPlatforms
     try {
-      result = await this.connection.oneOrNone(
-        `
-      select 
-        array_agg(distinct a.platform) as platforms 
-      from mv_activities_cube a
-      where a."segmentId" in ($(leafSegmentIds:csv))
-        and a."createdAt" > $(dashboardLastRefreshedAt)
-      `,
-        {
-          leafSegmentIds,
-          dashboardLastRefreshedAt,
-        },
-      )
+      result = await getNewActivityPlatforms(this.connection, {
+        segmentIds: leafSegmentIds,
+        after: new Date(Date.parse(dashboardLastRefreshedAt)),
+      })
     } catch (err) {
       this.log.error('Error while getting all tenants', err)
 

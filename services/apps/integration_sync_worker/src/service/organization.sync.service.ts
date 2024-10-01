@@ -218,7 +218,7 @@ export class OrganizationSyncService extends LoggerBase {
 
     const organizationsIdsSyncedToReturn = []
 
-    let filteredOrganizations
+    let filteredOrganizations: { id: string }[]
     let offset
 
     try {

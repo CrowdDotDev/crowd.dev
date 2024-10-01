@@ -1,24 +1,25 @@
+import { distinct } from '@crowd/common'
 import { getOrgAggregates } from '@crowd/data-access-layer/src/activities'
+import { findOrgNoMergeIds } from '@crowd/data-access-layer/src/org_merge'
 import {
   IDbOrganizationAggregateData,
   cleanupForOganization,
   insertOrganizationSegments,
 } from '@crowd/data-access-layer/src/organizations'
-import { OrganizationField, findOrgById } from '@crowd/data-access-layer/src/orgs'
-import { repoQx, QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
-import { fetchOrgIdentities } from '@crowd/data-access-layer/src/organizations/identities'
 import { findOrgAttributes } from '@crowd/data-access-layer/src/organizations/attributes'
-import { findOrgNoMergeIds } from '@crowd/data-access-layer/src/org_merge'
+import { fetchOrgIdentities } from '@crowd/data-access-layer/src/organizations/identities'
 import { fetchTotalActivityCount } from '@crowd/data-access-layer/src/organizations/segments'
+import { OrganizationField, findOrgById } from '@crowd/data-access-layer/src/orgs'
+import { QueryExecutor, repoQx } from '@crowd/data-access-layer/src/queryExecutor'
+import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
 import { DbStore } from '@crowd/database'
-import { Logger, getChildLogger, logExecutionTime } from '@crowd/logging'
+import { Logger, getChildLogger, logExecutionTime, logExecutionTimeV2 } from '@crowd/logging'
 import {
   IOrganizationBaseForMergeSuggestions,
-  IOrganizationOpensearch,
   IOrganizationFullAggregatesOpensearch,
+  IOrganizationOpensearch,
   OpenSearchIndex,
   OrganizationIdentityType,
-  SegmentType,
 } from '@crowd/types'
 import { IndexedEntityType } from '../repo/indexing.data'
 import { IndexingRepository } from '../repo/indexing.repo'
@@ -55,6 +56,7 @@ export class OrganizationSyncService {
   private readonly indexingRepo: IndexingRepository
 
   constructor(
+    private readonly qdbStore: DbStore,
     writeStore: DbStore,
     private readonly openSearchService: OpenSearchService,
     parentLog: Logger,
@@ -305,39 +307,92 @@ export class OrganizationSyncService {
     organizationIds: string[],
     opts: { withAggs?: boolean } = { withAggs: true },
   ): Promise<IOrganizationSyncResult> {
+    const qx = repoQx(this.readOrgRepo)
+
     const syncOrgAggregates = async (organizationIds) => {
       let documentsIndexed = 0
       const organizationIdsToIndex = []
       for (const organizationId of organizationIds) {
         let orgData: IDbOrganizationAggregateData[] = []
         try {
-          const qx = repoQx(this.readOrgRepo)
-          for (const type of Object.values(SegmentType)) {
-            orgData = orgData.concat(await getOrgAggregates(qx, organizationId, type))
+          orgData = await logExecutionTimeV2(
+            async () => getOrgAggregates(this.qdbStore.connection(), organizationId),
+            this.log,
+            'getOrgAggregates',
+          )
+
+          if (orgData.length > 0) {
+            // get segment data to aggregate for projects and project groups
+            const subprojectSegmentIds = orgData.map((o) => o.segmentId)
+            const segmentData = await fetchManySegments(qx, subprojectSegmentIds)
+
+            if (segmentData.find((s) => s.type !== 'subproject')) {
+              throw new Error('Only subprojects should be set to activities.segmentId!')
+            }
+
+            // aggregate data for projects
+            const projectSegmentIds = distinct(segmentData.map((s) => s.parentId))
+            for (const projectSegmentId of projectSegmentIds) {
+              const subprojects = segmentData.filter((s) => s.parentId === projectSegmentId)
+              const filtered: IDbOrganizationAggregateData[] = []
+              for (const subproject of subprojects) {
+                filtered.push(...orgData.filter((m) => m.segmentId === subproject.id))
+              }
+
+              const aggregated = OrganizationSyncService.aggregateData(projectSegmentId, filtered)
+              orgData.push(aggregated)
+            }
+
+            // aggregate data for project groups
+            const projectGroupSegmentIds = distinct(segmentData.map((s) => s.grandparentId))
+            for (const projectGroupSegmentId of projectGroupSegmentIds) {
+              const subprojects = segmentData.filter(
+                (s) => s.grandparentId === projectGroupSegmentId,
+              )
+              const filtered: IDbOrganizationAggregateData[] = []
+              for (const subproject of subprojects) {
+                filtered.push(...orgData.filter((m) => m.segmentId === subproject.id))
+              }
+
+              const aggregated = OrganizationSyncService.aggregateData(
+                projectGroupSegmentId,
+                filtered,
+              )
+              orgData.push(aggregated)
+            }
           }
         } catch (e) {
           this.log.error(e, 'Failed to get organization aggregates!')
           throw e
         }
 
-        try {
-          await this.writeOrgRepo.transactionally(
-            async (txRepo) => {
-              const qx = repoQx(txRepo)
-              await cleanupForOganization(qx, organizationId)
+        if (orgData.length > 0) {
+          try {
+            await logExecutionTimeV2(
+              async () =>
+                this.writeOrgRepo.transactionally(
+                  async (txRepo) => {
+                    const qx = repoQx(txRepo)
+                    await cleanupForOganization(qx, organizationId)
+                    await insertOrganizationSegments(qx, orgData)
+                  },
+                  undefined,
+                  true,
+                ),
+              this.log,
+              'insertOrganizationSegments',
+            )
 
-              if (orgData.length > 0) {
-                await insertOrganizationSegments(qx, orgData)
-              }
-            },
-            undefined,
-            true,
-          )
-          organizationIdsToIndex.push(organizationId)
-          documentsIndexed += orgData.length
-        } catch (e) {
-          this.log.error(e, 'Failed to insert organization aggregates!')
-          throw e
+            organizationIdsToIndex.push(organizationId)
+            documentsIndexed += orgData.length
+            this.log.info(
+              { organizationId, total: documentsIndexed },
+              `Synced ${orgData.length} org aggregates!`,
+            )
+          } catch (e) {
+            this.log.error(e, 'Failed to insert organization aggregates!')
+            throw e
+          }
         }
       }
 
@@ -370,10 +425,58 @@ export class OrganizationSyncService {
         const prefixed = OrganizationSyncService.prefixData(data)
         await this.openSearchService.index(orgId, OpenSearchIndex.ORGANIZATIONS, prefixed)
       }
+
+      return {
+        organizationsSynced: organizationIds.length,
+      }
     }
-    await syncOrgsToOpensearchForMergeSuggestions(syncResults.organizationIdsToIndex)
+    await logExecutionTimeV2(
+      async () => syncOrgsToOpensearchForMergeSuggestions(syncResults.organizationIdsToIndex),
+      this.log,
+      'syncOrgsToOpensearchForMergeSuggestions',
+    )
 
     return syncResults
+  }
+
+  private static aggregateData(
+    segmentId: string,
+    input: IDbOrganizationAggregateData[],
+  ): IDbOrganizationAggregateData {
+    let joinedAt = input[0].joinedAt
+    let lastActive = input[0].lastActive
+    let activeOn: string[] = []
+    let activityCount = 0
+    let memberCount = 0
+    let avgContributorEngagement = 0
+
+    for (const data of input) {
+      activeOn = distinct(activeOn.concat(data.activeOn))
+      activityCount += data.activityCount
+      memberCount += data.memberCount
+      avgContributorEngagement += data.avgContributorEngagement
+
+      if (new Date(joinedAt) > new Date(data.joinedAt)) {
+        joinedAt = data.joinedAt
+      }
+
+      if (new Date(lastActive) < new Date(data.lastActive)) {
+        lastActive = data.lastActive
+      }
+    }
+
+    return {
+      organizationId: input[0].organizationId,
+      tenantId: input[0].tenantId,
+      segmentId,
+
+      joinedAt,
+      lastActive,
+      activeOn,
+      activityCount,
+      memberCount,
+      avgContributorEngagement: Math.round(avgContributorEngagement / input.length),
+    }
   }
 
   public static async prefixData(

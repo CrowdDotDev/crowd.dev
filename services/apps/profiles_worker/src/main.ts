@@ -1,5 +1,5 @@
 import { Config } from '@crowd/archetype-standard'
-import { ServiceWorker, Options } from '@crowd/archetype-worker'
+import { Options, ServiceWorker } from '@crowd/archetype-worker'
 import { scheduleRecalculateAffiliationsOfNewRolesForEachTenant } from './schedules/triggerRecalculateAffiliationsOfNewRolesForEachTenant'
 
 const config: Config = {
@@ -7,6 +7,9 @@ const config: Config = {
     enabled: false,
   },
   temporal: {
+    enabled: true,
+  },
+  questdb: {
     enabled: true,
   },
   redis: {
