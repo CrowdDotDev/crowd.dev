@@ -544,6 +544,7 @@ export async function queryActivities(
     segmentIds: arg.segmentIds,
     // lowerLimit: arg.offset,
     // upperLimit: arg.offset + arg.limit - 1,
+    upperLimit: arg.limit,
   }
   let filterString = RawQueryParser.parseFilters(
     arg.filter,
@@ -611,12 +612,8 @@ export async function queryActivities(
       order by ${orderByString}
     `
 
-    if (arg.limit > 0) {
+    if (arg.limit > 0 && params.upperLimit > 0) {
       query += ` limit $(lowerLimit)`
-
-      if (params.upperLimit) {
-        query += `, $(upperLimit)`
-      }
     }
 
     query += ';'
