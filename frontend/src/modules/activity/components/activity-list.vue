@@ -34,7 +34,7 @@
       <div v-else>
         <!-- Sorter -->
         <div class="mb-4">
-          <app-pagination-sorter
+          <!-- <app-pagination-sorter
             v-model="sorterFilter"
             :page-size="Number(pagination.perPage)"
             :total="totalActivities"
@@ -43,7 +43,7 @@
             :sorter="false"
             module="activity"
             position="top"
-          />
+          /> -->
         </div>
 
         <!-- Activity item list -->
@@ -128,13 +128,13 @@ const emptyState = computed(() => ({
 const isLoadMoreVisible = computed(() => true);
 
 const onLoadMore = () => {
-  pagination.value.page += 1;
+  timestamp.value = activities.value[activities.value.length - 1].timestamp;
 
   fetch({
     ...{
       ...savedFilterBody.value,
       timestamp: {
-        lte: activities.value[activities.value.length - 1].timestamp,
+        lte: timestamp.value,
       },
     },
     limit,
