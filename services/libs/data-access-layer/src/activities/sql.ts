@@ -618,6 +618,8 @@ export async function queryActivities(
 
     query += ';'
 
+    console.log('QuestDB activity query', query)
+
     const [results, countResults] = await Promise.all([
       qdbConn.any(query, params),
       qdbConn.query(countQuery, params),
