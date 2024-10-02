@@ -1,6 +1,8 @@
 # LFX Community Management (formerly crowd.dev)
 ## Background
-This project was formerly known as crowd.dev, a startup that was acquired by the Linux Foundation in April 2024. Since then, crowd.dev has been renamed "LFX Community Mangement".
+This project was formerly known as crowd.dev, a startup founded by Joan Reyero and Jonathan Reimer.
+
+crowd.dev was acquired by the Linux Foundation in April 2024. Since then, crowd.dev has been renamed to "LFX Community Mangement".
 
 ## About this project
 Community Management is a Customer Data Platform (CDP) that collects and stores customer data from various sources in a single database for data unification, identity resolution, analysis, and activation. By utilizing this tool, the Linux Foundation can effectively identify key contributors and organizations, facilitating more efficient community support.
