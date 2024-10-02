@@ -8,7 +8,7 @@ export default {
 
     if (!append) {
       this.conversations = [];
-      this.createdAt = moment().toISOString();
+      this.lastActive = moment().toISOString();
     }
     return ConversationService.query(mappedBody)
       .then((data: any) => {

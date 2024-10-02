@@ -92,7 +92,7 @@ defineProps({
 
 const conversationStore = useConversationStore();
 const {
-  filters, conversations, totalConversations, savedFilterBody, limit, createdAt,
+  filters, conversations, totalConversations, savedFilterBody, limit, lastActive,
 } = storeToRefs(conversationStore);
 const { fetchConversation } = conversationStore;
 
@@ -123,38 +123,70 @@ const emptyState = computed(() => ({
 const isLoadMoreVisible = computed(() => conversations.value.length < totalConversations.value);
 
 const onLoadMore = () => {
-  createdAt.value = conversations.value[conversations.value.length - 1].createdAt;
+  lastActive.value = conversations.value[conversations.value.length - 1].lastActive;
+
+  if (savedFilterBody.value.and) {
+    savedFilterBody.value.and = savedFilterBody.value.and.reduce((acc, filter) => {
+      const newFilter = { ...filter };
+
+      if (newFilter.lastActive) {
+        newFilter.lastActive = {
+          ...newFilter.lastActive,
+          lte: lastActive.value,
+        };
+      }
+
+      acc.push(newFilter);
+
+      return acc;
+    }, []);
+  } else {
+    savedFilterBody.value.and = [
+      {
+        lastActive: {
+          lte: lastActive.value,
+        },
+      },
+    ];
+  }
 
   fetch({
-    ...{
-      ...savedFilterBody.value,
-      and: [
-        {
-          createdAt: {
-            lte: createdAt.value,
-          },
-        },
-      ],
-    },
+    ...savedFilterBody.value,
     limit: limit.value,
     append: true,
   });
 };
 
 const reload = () => {
-  createdAt.value = conversations.value[conversations.value.length - 1].createdAt;
+  lastActive.value = conversations.value[conversations.value.length - 1].lastActive;
+
+  if (savedFilterBody.value.and) {
+    savedFilterBody.value.and = savedFilterBody.value.and.reduce((acc, filter) => {
+      const newFilter = { ...filter };
+
+      if (newFilter.lastActive) {
+        newFilter.lastActive = {
+          ...newFilter.lastActive,
+          lte: lastActive.value,
+        };
+      }
+
+      acc.push(newFilter);
+
+      return acc;
+    }, []);
+  } else {
+    savedFilterBody.value.and = [
+      {
+        lastActive: {
+          lte: lastActive.value,
+        },
+      },
+    ];
+  }
 
   fetch({
-    ...{
-      ...savedFilterBody.value,
-      and: [
-        {
-          createdAt: {
-            lte: createdAt.value,
-          },
-        },
-      ],
-    },
+    ...savedFilterBody.value,
     limit: limit.value,
     append: false,
   });
@@ -164,18 +196,37 @@ const fetch = ({
   filter, limit = 20, orderBy, body, append,
 }) => {
   loading.value = true;
+
+  const payloadFilter = { ...filter };
+
+  if (payloadFilter.and) {
+    payloadFilter.and = payloadFilter.and.reduce((acc, filter) => {
+      const newFilter = { ...filter };
+
+      if (newFilter.lastActive) {
+        newFilter.lastActive = {
+          ...newFilter.lastActive,
+          lte: lastActive.value,
+        };
+      }
+
+      acc.push(newFilter);
+
+      return acc;
+    }, []);
+  } else {
+    payloadFilter.and = [
+      {
+        lastActive: {
+          lte: lastActive.value,
+        },
+      },
+    ];
+  }
+
   fetchConversation({
     ...body,
-    filter: {
-      ...filter,
-      and: [
-        {
-          createdAt: {
-            lte: createdAt.value,
-          },
-        },
-      ],
-    },
+    filter: payloadFilter,
     limit,
     orderBy,
   }, false, append)

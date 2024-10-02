@@ -366,6 +366,7 @@ const CONVERSATION_QUERY_FILTER_COLUMN_MAP: Map<string, string> = new Map([
   ['platform', 'a.platform'],
   ['channel', 'a.channel'],
   ['lastActive', 'a."lastActive"'],
+  ['createdAt', 'c."createdAt"'],
   ['activityCount', 'a."activityCount"'],
 ])
 
