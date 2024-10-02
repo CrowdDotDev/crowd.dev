@@ -170,7 +170,7 @@ const fetch = ({
   const payloadFilter = { ...filter };
 
   if (payloadFilter.and) {
-    payloadFilter.value.and = payloadFilter.value.and.reduce((acc, filter) => {
+    payloadFilter.and = payloadFilter.and.reduce((acc, filter) => {
       const newFilter = { ...filter };
 
       if (newFilter.timestamp) {

@@ -373,9 +373,11 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
     }
   }
 
-  filterToApply.timestamp = {
-    lte: timestamp.value,
-  };
+  filterToApply.and = [{
+    timestamp: {
+      lte: timestamp.value,
+    },
+  }];
 
   if (!isEqual(filter, filterToApply) || reset) {
     activities.value.length = 0;
