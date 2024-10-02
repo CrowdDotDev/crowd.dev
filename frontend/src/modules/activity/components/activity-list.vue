@@ -136,8 +136,8 @@ const onLoadMore = () => {
 
       if (newFilter.timestamp) {
         newFilter.timestamp = {
-          lte: timestamp.value,
           ...newFilter.timestamp,
+          lte: timestamp.value,
         };
       }
 
@@ -175,8 +175,8 @@ const fetch = ({
 
       if (newFilter.timestamp) {
         newFilter.timestamp = {
-          lte: timestamp.value,
           ...newFilter.timestamp,
+          lte: timestamp.value,
         };
       }
 
