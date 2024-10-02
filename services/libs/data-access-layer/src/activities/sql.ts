@@ -365,7 +365,7 @@ const ACTIVITY_QUERY_FILTER_COLUMN_MAP: Map<string, string> = new Map([
   ['isTeamMember', 'a."member_isTeamMember"'],
   ['isBot', 'a."member_isBot"'],
   ['platform', 'a.platform'],
-  ['type', 'a.type'],
+  ['type', 'a."type"'],
   ['channel', 'a.channel'],
   ['timestamp', 'a.timestamp'],
   ['memberId', 'a."memberId"'],
@@ -690,7 +690,7 @@ export async function findTopActivityTypes(
     FROM activities a
     WHERE a."tenantId" = $(tenantId)
     AND a."timestamp" BETWEEN $(after) AND $(before)
-    GROUP BY a.type, a.platform
+    GROUP BY a."type", a.platform
     ORDER BY COUNT(*) DESC
     LIMIT $(limit);
   `
