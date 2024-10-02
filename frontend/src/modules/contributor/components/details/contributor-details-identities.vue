@@ -16,7 +16,7 @@
             :icon-only="true"
             class="my-1"
           >
-            <lf-icon name="add-fill" />
+            <lf-icon-old name="add-fill" />
           </lf-button>
         </lf-tooltip>
       </lf-contributor-details-identity-add-dropdown>
@@ -34,7 +34,7 @@
       />
 
       <div v-if="identities.length === 0" class="pt-2 flex flex-col items-center">
-        <lf-icon name="fingerprint-fill" :size="40" class="text-gray-300" />
+        <lf-icon-old name="fingerprint-fill" :size="40" class="text-gray-300" />
         <p class="text-center pt-3 text-medium text-gray-400">
           No identities
         </p>
@@ -79,7 +79,7 @@
 
 <script setup lang="ts">
 import LfButton from '@/ui-kit/button/Button.vue';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import { Contributor, ContributorIdentity } from '@/modules/contributor/types/Contributor';
 import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
 import { computed, ref } from 'vue';

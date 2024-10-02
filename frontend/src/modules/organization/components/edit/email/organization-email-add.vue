@@ -5,7 +5,7 @@
         <div class="flex items-center justify-between pb-6">
           <h5>Add emails</h5>
           <lf-button type="secondary-ghost-light" :icon-only="true" @click="close">
-            <lf-icon name="close-line" />
+            <lf-icon-old name="close-line" />
           </lf-button>
         </div>
 
@@ -22,7 +22,7 @@
                 >
                   <template #prefix>
                     <div class="min-w-5">
-                      <lf-icon name="mail-line" class="text-black" :size="20" />
+                      <lf-icon-old name="mail-line" class="text-black" :size="20" />
                     </div>
                   </template>
                 </lf-input>
@@ -33,7 +33,7 @@
                   :icon-only="true"
                   @click="form.splice(ii, 1)"
                 >
-                  <lf-icon name="delete-bin-6-line" />
+                  <lf-icon-old name="delete-bin-6-line" />
                 </lf-button>
               </div>
               <lf-field-messages
@@ -47,7 +47,7 @@
           </article>
 
           <lf-button type="primary-link" size="small" @click="form.push({ ...defaultForm })">
-            <lf-icon name="add-line" />
+            <lf-icon-old name="add-line" />
             Add email
           </lf-button>
         </div>
@@ -73,7 +73,7 @@
 import LfModal from '@/ui-kit/modal/Modal.vue';
 import { computed, reactive, ref } from 'vue';
 import LfButton from '@/ui-kit/button/Button.vue';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import LfInput from '@/ui-kit/input/Input.vue';
 import Message from '@/shared/message/message';
 import pluralize from 'pluralize';

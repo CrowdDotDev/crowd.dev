@@ -51,7 +51,7 @@
         class="bg-gray-500 w-6 h-8 rounded-l flex items-center justify-center cursor-pointer"
         @click="toggleMenu()"
       >
-        <lf-icon
+        <lf-icon-old
           :name="`arrow-${isCollapsed ? 'right' : 'left'}-double-fill`"
           :size="20"
           class="text-white"
@@ -94,7 +94,7 @@ import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import LfMenuLink from '@/modules/layout/components/menu/menu-link.vue';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 
 const store = useStore();
 

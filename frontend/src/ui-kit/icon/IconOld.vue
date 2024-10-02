@@ -1,5 +1,5 @@
 <template>
-  <i :class="`fa-${props.name}`" :style="sizeStyle" class="flex items-center c-icon" />
+  <i :class="`ri-${props.name}`" :style="sizeStyle" class="flex items-center c-icon" />
 </template>
 
 <script lang="ts" setup>
@@ -23,6 +23,6 @@ const sizeStyle = computed(() => {
 
 <script lang="ts">
 export default {
-  name: 'LfIcon',
+  name: 'LfIconOld',
 };
 </script>
