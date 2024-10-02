@@ -126,20 +126,11 @@ const onLoadMore = () => {
   lastActive.value = conversations.value[conversations.value.length - 1].lastActive;
 
   if (savedFilterBody.value.and) {
-    savedFilterBody.value.and = savedFilterBody.value.and.reduce((acc, filter) => {
-      const newFilter = { ...filter };
-
-      if (newFilter.lastActive) {
-        newFilter.lastActive = {
-          ...newFilter.lastActive,
-          lte: lastActive.value,
-        };
-      }
-
-      acc.push(newFilter);
-
-      return acc;
-    }, []);
+    savedFilterBody.value.and.push({
+      lastActive: {
+        lte: lastActive.value,
+      },
+    });
   } else {
     savedFilterBody.value.and = [
       {
@@ -161,20 +152,11 @@ const reload = () => {
   lastActive.value = conversations.value[conversations.value.length - 1].lastActive;
 
   if (savedFilterBody.value.and) {
-    savedFilterBody.value.and = savedFilterBody.value.and.reduce((acc, filter) => {
-      const newFilter = { ...filter };
-
-      if (newFilter.lastActive) {
-        newFilter.lastActive = {
-          ...newFilter.lastActive,
-          lte: lastActive.value,
-        };
-      }
-
-      acc.push(newFilter);
-
-      return acc;
-    }, []);
+    savedFilterBody.value.and.push({
+      lastActive: {
+        lte: lastActive.value,
+      },
+    });
   } else {
     savedFilterBody.value.and = [
       {
@@ -200,20 +182,11 @@ const fetch = ({
   const payloadFilter = { ...filter };
 
   if (payloadFilter.and) {
-    payloadFilter.and = payloadFilter.and.reduce((acc, filter) => {
-      const newFilter = { ...filter };
-
-      if (newFilter.lastActive) {
-        newFilter.lastActive = {
-          ...newFilter.lastActive,
-          lte: lastActive.value,
-        };
-      }
-
-      acc.push(newFilter);
-
-      return acc;
-    }, []);
+    payloadFilter.and.push({
+      lastActive: {
+        lte: lastActive.value,
+      },
+    });
   } else {
     payloadFilter.and = [
       {
