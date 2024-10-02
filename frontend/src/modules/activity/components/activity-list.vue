@@ -131,11 +131,20 @@ const onLoadMore = () => {
   timestamp.value = activities.value[activities.value.length - 1].timestamp;
 
   if (savedFilterBody.value.and) {
-    savedFilterBody.value.and.push({
-      timestamp: {
-        lte: timestamp.value,
-      },
-    });
+    savedFilterBody.value.and = savedFilterBody.value.and.reduce((acc, filter) => {
+      const newFilter = { ...filter };
+
+      if (newFilter.timestamp) {
+        newFilter.timestamp = {
+          lte: timestamp.value,
+          ...newFilter.timestamp,
+        };
+      }
+
+      acc.push(newFilter);
+
+      return acc;
+    }, []);
   } else {
     savedFilterBody.value.and = [
       {
@@ -161,11 +170,20 @@ const fetch = ({
   const payloadFilter = { ...filter };
 
   if (payloadFilter.and) {
-    payloadFilter.and.push({
-      timestamp: {
-        lte: timestamp.value,
-      },
-    });
+    payloadFilter.value.and = payloadFilter.value.and.reduce((acc, filter) => {
+      const newFilter = { ...filter };
+
+      if (newFilter.timestamp) {
+        newFilter.timestamp = {
+          lte: timestamp.value,
+          ...newFilter.timestamp,
+        };
+      }
+
+      acc.push(newFilter);
+
+      return acc;
+    }, []);
   } else {
     payloadFilter.and = [
       {
