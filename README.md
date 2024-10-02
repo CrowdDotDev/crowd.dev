@@ -3,7 +3,7 @@
 This project was formerly known as crowd.dev, a startup that was acquired by the Linux Foundation in April 2024. Since then, crowd.dev has been renamed "LFX Community Mangement".
 
 ## About this project
-Community Management is a Customer Data Platform(CDP) tool that collects and stores customer data from across the communities in a single database for data unification, identity resolution, analysis, and activation. By utilizing this tool, the Linux Foundation can effectively identify key contributors and organizations, facilitating more efficient community support.
+Community Management is a Customer Data Platform (CDP) that collects and stores customer data from various sources in a single database for data unification, identity resolution, analysis, and activation. By utilizing this tool, the Linux Foundation can effectively identify key contributors and organizations, facilitating more efficient community support.
 
 Key features:
 * It consolidates developers' touchpoints with a company or brand.
