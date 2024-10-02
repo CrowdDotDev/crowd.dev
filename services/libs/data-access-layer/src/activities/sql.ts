@@ -869,12 +869,12 @@ export async function getOrgAggregates(
     organizationId,
     segmentId: r.segmentId,
     tenantId: r.tenantId,
-    memberCount: r.memberCount,
-    activityCount: r.activityCount,
+    memberCount: parseInt(r.memberCount),
+    activityCount: parseInt(r.activityCount),
     activeOn: r.activeOn.split(':'),
     lastActive: r.lastActive,
     joinedAt: r.joinedAt,
-    avgContributorEngagement: r.avgContributorEngagement,
+    avgContributorEngagement: parseInt(r.avgContributorEngagement),
   }))
 }
 
@@ -964,10 +964,10 @@ export async function getMemberAggregates(
       segmentId: result.segmentId,
       tenantId: result.tenantId,
       // --
-      activityCount: result.activityCount,
+      activityCount: parseInt(result.activityCount),
       lastActive: result.lastActive,
       activeDaysCount: result.activeDaysCount,
-      averageSentiment: result.averageSentiment,
+      averageSentiment: parseFloat(result.averageSentiment),
       activeOn: result.activeOn.split(':'),
       activityTypes: result.activityTypes.split('|'),
     }
