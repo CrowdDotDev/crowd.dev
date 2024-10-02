@@ -279,27 +279,27 @@ export default class ActivityService extends LoggerBase {
             throw error
           }
 
-          await updateActivity(this.qdbStore.connection(), id, {
-            tenantId: tenantId,
-            segmentId: segmentId,
-            type: toUpdate.type || original.type,
-            isContribution: toUpdate.isContribution || original.isContribution,
-            score: toUpdate.score || original.score,
-            sourceId: toUpdate.sourceId || original.sourceId,
-            sourceParentId: toUpdate.sourceParentId || original.sourceParentId,
-            memberId: toUpdate.memberId || original.memberId,
-            username: toUpdate.username || original.username,
-            sentiment: toUpdate.sentiment || original.sentiment,
-            attributes: toUpdate.attributes || original.attributes,
-            body: escapeNullByte(toUpdate.body || original.body),
-            title: escapeNullByte(toUpdate.title || original.title),
-            channel: toUpdate.channel || original.channel,
-            url: toUpdate.url || original.url,
-            organizationId: toUpdate.organizationId || original.organizationId,
-            platform: toUpdate.platform || (original.platform as PlatformType),
-            isBotActivity: memberInfo.isBot,
-            isTeamMemberActivity: memberInfo.isTeamMember,
-          })
+          // await updateActivity(this.qdbStore.connection(), id, {
+          //   tenantId: tenantId,
+          //   segmentId: segmentId,
+          //   type: toUpdate.type || original.type,
+          //   isContribution: toUpdate.isContribution || original.isContribution,
+          //   score: toUpdate.score || original.score,
+          //   sourceId: toUpdate.sourceId || original.sourceId,
+          //   sourceParentId: toUpdate.sourceParentId || original.sourceParentId,
+          //   memberId: toUpdate.memberId || original.memberId,
+          //   username: toUpdate.username || original.username,
+          //   sentiment: toUpdate.sentiment || original.sentiment,
+          //   attributes: toUpdate.attributes || original.attributes,
+          //   body: escapeNullByte(toUpdate.body || original.body),
+          //   title: escapeNullByte(toUpdate.title || original.title),
+          //   channel: toUpdate.channel || original.channel,
+          //   url: toUpdate.url || original.url,
+          //   organizationId: toUpdate.organizationId || original.organizationId,
+          //   platform: toUpdate.platform || (original.platform as PlatformType),
+          //   isBotActivity: memberInfo.isBot,
+          //   isTeamMemberActivity: memberInfo.isTeamMember,
+          // })
 
           return true
         } else {
