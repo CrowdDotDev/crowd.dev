@@ -441,7 +441,9 @@ export async function queryConversations(
            "conversationId"
     from activities
     where "deletedAt" is null and
-          "conversationId" is not null
+          "conversationId" is not null and
+          "tenantId" = $(tenantId) and
+          "segmentId" in ($(segmentIds:csv))
     group by "conversationId"
   )
   select <columns_to_select>
