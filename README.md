@@ -16,6 +16,7 @@ Key features:
 Better data helps us better support our community members.
 
 ## Getting started
+⚠️ The following documentation needs to be updated.
 
 ### Cloud version
 
@@ -64,9 +65,8 @@ For more information on development, you can <a href="https://docs.crowd.dev/doc
 
 ## Contribution
 
-There are many ways you can contribute to crowd.dev! Here are a few options:
+There are many ways you can contribut. Here are a few options:
 
-- Star this repo
 - Create issues every time you feel something is missing or goes wrong
 - Upvote issues with 👍 reaction so we know what's the demand for a particular issue to prioritize it within the roadmap
 
