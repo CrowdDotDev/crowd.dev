@@ -880,45 +880,80 @@ export async function getOrgAggregates(
 export async function getMemberAggregates(
   qdbConn: DbConnOrTx,
   memberId: string,
-  segmentIds?: string[],
 ): Promise<IMemberSegmentAggregates[]> {
   const results = await qdbConn.any(
     `
-    with relevant_activities as (select id, platform, type, timestamp, "sentimentScore", "memberId", "segmentId", "tenantId"
-                                from activities
-                                where "memberId" = $(memberId)
-                                  ${
-                                    segmentIds && segmentIds.length > 0
-                                      ? `and "segmentId" in ($(segmentIds:csv))`
-                                      : ''
-                                  }
-                                  and "deletedAt" is null),
-        activity_types as (select distinct "memberId", "segmentId", type, platform
-                            from relevant_activities
-                            where platform is not null
-                              and type is not null),
-        distinct_platforms as (select distinct "memberId", "segmentId", platform from relevant_activities),
-        average_sentiment as (select "memberId", "segmentId", avg("sentimentScore") as "averageSentiment"
-                              from relevant_activities
-                              where "sentimentScore" is not null)
-    select a."memberId",
-           a."segmentId",
-           a."tenantId",
-           count_distinct(a.id)                             as "activityCount",
-           max(a.timestamp)                                 as "lastActive",
-           string_agg(p.platform, ':')                      as "activeOn",
-           string_agg(concat(t.platform, ':', t.type), '|') as "activityTypes",
-           count_distinct(date_trunc('day', a.timestamp))   as "activeDaysCount",
-           s."averageSentiment"
-    from relevant_activities a
-            inner join activity_types t on a."memberId" = t."memberId" and a."segmentId" = t."segmentId"
-            inner join distinct_platforms p on a."memberId" = p."memberId" and a."segmentId" = p."segmentId"
-            left join average_sentiment s on a."memberId" = s."memberId" and a."segmentId" = s."segmentId"
-    group by a."memberId", a."segmentId", a."tenantId", s."averageSentiment";
+    WITH
+      platforms AS (
+        SELECT
+          DISTINCT
+          a."memberId",
+          a."segmentId",
+          a.platform
+        FROM activities a
+        WHERE a."memberId" = $(memberId)
+      ),
+      activity_types AS (
+        SELECT
+          DISTINCT
+          a."memberId",
+          a."segmentId",
+          a.platform,
+          a.type
+        FROM activities a
+        WHERE a."memberId" = $(memberId)
+      ),
+      platforms_agg AS (
+        SELECT
+          p."memberId",
+          p."segmentId",
+          STRING_AGG(p.platform, ':') AS "activeOn"
+        FROM platforms p
+        GROUP BY 1, 2
+      ),
+      activity_types_agg AS (
+        SELECT
+          at."memberId",
+          at."segmentId",
+          STRING_AGG(concat(at.platform, ':', at.type), '|') as "activityTypes"
+        FROM activity_types at
+        GROUP BY 1, 2
+      ),
+      activites_agg AS (
+        SELECT
+          a."memberId",
+          a."tenantId",
+          a."segmentId",
+          count_distinct(a.id)              AS "activityCount",
+          max(a.timestamp)                  AS "lastActive",
+          count_distinct(date_trunc('day', a.timestamp))   AS "activeDaysCount",
+          avg(a.sentimentScore)             AS "averageSentiment"
+        FROM activities a
+        WHERE a."memberId" = $(memberId)
+          AND a."deletedAt" IS NULL
+        GROUP BY a."memberId", a."tenantId", a."segmentId"
+      )
+    SELECT
+      a."memberId",
+      a."tenantId",
+      a."segmentId",
+
+      a.activityCount,
+      a.lastActive,
+      a.activeDaysCount,
+      a.averageSentiment,
+      '' AS "activeOn",
+      '' AS "activityTypes"
+      -- p.activeOn,
+      -- at.activityTypes
+    FROM activites_agg a
+
+    -- JOIN platforms_agg p ON p.memberId = a.memberId AND p.segmentId = a.segmentId
+    -- JOIN activity_types_agg at ON at.memberId = a.memberId AND at.segmentId = a.segmentId
+    ;
     `,
     {
       memberId,
-      segmentIds,
     },
   )
 
@@ -927,12 +962,13 @@ export async function getMemberAggregates(
       memberId: result.memberId,
       segmentId: result.segmentId,
       tenantId: result.tenantId,
+      // --
       activityCount: result.activityCount,
       lastActive: result.lastActive,
+      activeDaysCount: result.activeDaysCount,
+      averageSentiment: result.averageSentiment,
       activeOn: result.activeOn.split(':'),
       activityTypes: result.activityTypes.split('|'),
-      averageSentiment: result.averageSentiment,
-      activeDaysCount: result.activeDaysCount,
     }
   })
 }
