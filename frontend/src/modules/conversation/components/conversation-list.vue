@@ -92,7 +92,7 @@ defineProps({
 
 const conversationStore = useConversationStore();
 const {
-  filters, conversations, totalConversations, savedFilterBody, limit, timestamp,
+  filters, conversations, totalConversations, savedFilterBody, limit, createdAt,
 } = storeToRefs(conversationStore);
 const { fetchConversation } = conversationStore;
 
@@ -112,7 +112,7 @@ filters.value = {
   },
 };
 
-const sorterFilter = ref('recentActivity');
+// const sorterFilter = ref('recentActivity');
 
 const emptyState = computed(() => ({
   title: 'No conversations found',
@@ -120,18 +120,18 @@ const emptyState = computed(() => ({
         "We couldn't find any results that match your search criteria, please try a different query",
 }));
 
-const isLoadMoreVisible = computed(() => true);
+const isLoadMoreVisible = computed(() => conversations.value.length < totalConversations.value);
 
 const onLoadMore = () => {
-  timestamp.value = activities.value[activities.value.length - 1].timestamp;
+  createdAt.value = conversations.value[conversations.value.length - 1].createdAt;
 
   fetch({
     ...{
       ...savedFilterBody.value,
       and: [
         {
-          timestamp: {
-            lte: timestamp.value,
+          createdAt: {
+            lte: createdAt.value,
           },
         },
       ],
@@ -142,15 +142,15 @@ const onLoadMore = () => {
 };
 
 const reload = () => {
-  timestamp.value = activities.value[activities.value.length - 1].timestamp;
+  createdAt.value = conversations.value[conversations.value.length - 1].createdAt;
 
   fetch({
     ...{
       ...savedFilterBody.value,
       and: [
         {
-          timestamp: {
-            lte: timestamp.value,
+          createdAt: {
+            lte: createdAt.value,
           },
         },
       ],
