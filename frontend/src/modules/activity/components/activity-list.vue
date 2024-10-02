@@ -82,14 +82,14 @@ import {
 } from 'vue';
 import AppActivityItem from '@/modules/activity/components/activity-item.vue';
 import AppConversationDrawer from '@/modules/conversation/components/conversation-drawer.vue';
-import AppPaginationSorter from '@/shared/pagination/pagination-sorter.vue';
+// import AppPaginationSorter from '@/shared/pagination/pagination-sorter.vue';
 import LfFilter from '@/shared/modules/filters/components/Filter.vue';
 import { useActivityStore } from '@/modules/activity/store/pinia';
 import { storeToRefs } from 'pinia';
 import { activityFilters, activitySearchFilter } from '@/modules/activity/config/filters/main';
 import AppLoadMore from '@/shared/button/load-more.vue';
 
-const sorterFilter = ref('trending');
+// const sorterFilter = ref('trending');
 const conversationId = ref(null);
 
 defineProps({
@@ -125,22 +125,29 @@ const emptyState = computed(() => ({
         "We couldn't find any results that match your search criteria, please try a different query",
 }));
 
-const isLoadMoreVisible = computed(() => true);
+const isLoadMoreVisible = computed(() => activities.value.length < totalActivities.value);
 
 const onLoadMore = () => {
   timestamp.value = activities.value[activities.value.length - 1].timestamp;
 
-  fetch({
-    ...{
-      ...savedFilterBody.value,
-      and: [
-        {
-          timestamp: {
-            lte: timestamp.value,
-          },
+  if (savedFilterBody.value.and) {
+    savedFilterBody.value.and.push({
+      timestamp: {
+        lte: timestamp.value,
+      },
+    });
+  } else {
+    savedFilterBody.value.and = [
+      {
+        timestamp: {
+          lte: timestamp.value,
         },
-      ],
-    },
+      },
+    ];
+  }
+
+  fetch({
+    ...savedFilterBody.value,
     limit: limit.value,
     append: true,
   });
@@ -150,19 +157,29 @@ const fetch = ({
   filter, limit = 20, orderBy, body, append,
 }) => {
   loading.value = true;
+
+  const payloadFilter = { ...filter };
+
+  if (payloadFilter.and) {
+    payloadFilter.and.push({
+      timestamp: {
+        lte: timestamp.value,
+      },
+    });
+  } else {
+    payloadFilter.and = [
+      {
+        timestamp: {
+          lte: timestamp.value,
+        },
+      },
+    ];
+  }
+
   fetchActivities({
     body: {
       ...body,
-      filter: {
-        ...filter,
-        and: [
-          {
-            timestamp: {
-              lte: timestamp.value,
-            },
-          },
-        ],
-      },
+      filter: payloadFilter,
       limit,
       orderBy,
     },

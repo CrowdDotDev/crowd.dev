@@ -13,7 +13,7 @@ import {
   queryMembersAdvanced,
 } from '@crowd/data-access-layer/src/members'
 import { optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
-// import { ActivityDisplayService } from '@crowd/integrations'
+import { ActivityDisplayService } from '@crowd/integrations'
 import { LoggerBase, logExecutionTime } from '@crowd/logging'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
 import {
@@ -26,7 +26,7 @@ import {
 import { Blob } from 'buffer'
 import vader from 'crowd-sentiment'
 import { Transaction } from 'sequelize/types'
-// import OrganizationRepository from '@/database/repositories/organizationRepository'
+import OrganizationRepository from '@/database/repositories/organizationRepository'
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import { GITHUB_CONFIG, IS_DEV_ENV, IS_TEST_ENV, TEMPORAL_CONFIG } from '../conf'
 import ActivityRepository from '../database/repositories/activityRepository'
@@ -754,53 +754,53 @@ export default class ActivityService extends LoggerBase {
     )
 
     // const parentIds: string[] = []
-    // const memberIds: string[] = []
-    // const organizationIds: string[] = []
-    // for (const row of page.rows) {
-    //   ;(row as any).display = ActivityDisplayService.getDisplayOptions(
-    //     row,
-    //     SegmentRepository.getActivityTypes(this.options),
-    //   )
+    const memberIds: string[] = []
+    const organizationIds: string[] = []
+    for (const row of page.rows) {
+      ;(row as any).display = ActivityDisplayService.getDisplayOptions(
+        row,
+        SegmentRepository.getActivityTypes(this.options),
+      )
 
-    //   if (row.parentId && !parentIds.includes(row.parentId)) {
-    //     parentIds.push(row.parentId)
-    //   }
+      // if (row.parentId && !parentIds.includes(row.parentId)) {
+      //   parentIds.push(row.parentId)
+      // }
 
-    //   if (row.memberId && !memberIds.includes(row.memberId)) {
-    //     memberIds.push(row.memberId)
-    //   }
+      if (row.memberId && !memberIds.includes(row.memberId)) {
+        memberIds.push(row.memberId)
+      }
 
-    //   if (row.objectMemberId && !memberIds.includes(row.objectMemberId)) {
-    //     memberIds.push(row.objectMemberId)
-    //   }
+      if (row.objectMemberId && !memberIds.includes(row.objectMemberId)) {
+        memberIds.push(row.objectMemberId)
+      }
 
-    //   if (row.organizationId && !organizationIds.includes(row.organizationId)) {
-    //     organizationIds.push(row.organizationId)
-    //   }
-    // }
+      if (row.organizationId && !organizationIds.includes(row.organizationId)) {
+        organizationIds.push(row.organizationId)
+      }
+    }
 
-    // const promises = []
-    // if (organizationIds.length > 0) {
-    //   promises.push(
-    //     OrganizationRepository.findAndCountAll(
-    //       {
-    //         filter: {
-    //           and: [{ id: { in: organizationIds } }],
-    //         },
-    //         limit: organizationIds.length,
-    //         include: { identities: true, lfxMemberships: true },
-    //       },
-    //       this.options,
-    //     ).then((organizations) => {
-    //       for (const row of page.rows.filter((r) => r.organizationId)) {
-    //         ;(row as any).organization = singleOrDefault(
-    //           organizations.rows,
-    //           (o) => o.id === row.organizationId,
-    //         )
-    //       }
-    //     }),
-    //   )
-    // }
+    const promises = []
+    if (organizationIds.length > 0) {
+      promises.push(
+        OrganizationRepository.findAndCountAll(
+          {
+            filter: {
+              and: [{ id: { in: organizationIds } }],
+            },
+            limit: organizationIds.length,
+            include: { identities: true, lfxMemberships: true },
+          },
+          this.options,
+        ).then((organizations) => {
+          for (const row of page.rows.filter((r) => r.organizationId)) {
+            ;(row as any).organization = singleOrDefault(
+              organizations.rows,
+              (o) => o.id === row.organizationId,
+            )
+          }
+        }),
+      )
+    }
     // if (parentIds.length > 0) {
     //   promises.push(
     //     queryActivities(this.options.qdb, {
@@ -817,29 +817,29 @@ export default class ActivityService extends LoggerBase {
     //     }),
     //   )
     // }
-    // if (memberIds.length > 0) {
-    //   promises.push(
-    //     queryMembersAdvanced(
-    //       optionsQx(this.options),
-    //       this.options.redis,
-    //       this.options.currentTenant.id,
-    //       {
-    //         filter: { and: [{ id: { in: memberIds } }] },
-    //         limit: memberIds.length,
-    //       },
-    //     ).then((members) => {
-    //       for (const row of page.rows) {
-    //         row.member = singleOrDefault(members.rows, (m) => m.id === row.memberId)
+    if (memberIds.length > 0) {
+      promises.push(
+        queryMembersAdvanced(
+          optionsQx(this.options),
+          this.options.redis,
+          this.options.currentTenant.id,
+          {
+            filter: { and: [{ id: { in: memberIds } }] },
+            limit: memberIds.length,
+          },
+        ).then((members) => {
+          for (const row of page.rows) {
+            row.member = singleOrDefault(members.rows, (m) => m.id === row.memberId)
 
-    //         if (row.objectMemberId) {
-    //           row.objectMember = singleOrDefault(members.rows, (m) => m.id === row.objectMemberId)
-    //         }
-    //       }
-    //     }),
-    //   )
-    // }
+            if (row.objectMemberId) {
+              row.objectMember = singleOrDefault(members.rows, (m) => m.id === row.objectMemberId)
+            }
+          }
+        }),
+      )
+    }
 
-    // await Promise.all(promises)
+    await Promise.all(promises)
 
     return page
   }

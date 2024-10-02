@@ -16,7 +16,9 @@ export default {
       .then((data: any) => {
         // If append is true, join new activities with the existent ones
         if (append) {
-          this.activities = this.activities.concat(...data.rows);
+          const filteredRows = data.rows.filter((row: any) => !this.activities.some((activity: any) => activity.id === row.id));
+
+          this.activities = this.activities.concat(...filteredRows);
         } else {
           this.activities = data.rows;
         }
