@@ -17,6 +17,7 @@ export interface IDbActivity {
   objectMemberId?: string
   objectMemberUsername?: string
   attributes: Record<string, unknown>
+  importHash?: string
   body?: string
   title?: string
   channel?: string
