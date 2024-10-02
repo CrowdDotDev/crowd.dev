@@ -837,7 +837,8 @@ export async function getOrgAggregates(
         MIN(a."lastActive") AS "lastActive",
         MIN(a."joinedAt") AS "joinedAt",
         MIN(a."avgContributorEngagement") AS "avgContributorEngagement",
-        STRING_AGG(p.platform, ':') AS "activeOn"
+        '' AS "activeOn"
+        -- STRING_AGG(p.platform, ':') AS "activeOn"
         -- </option1>
 
         -- -- <option2>
@@ -850,7 +851,7 @@ export async function getOrgAggregates(
       FROM activites_agg a
 
       -- <option1>
-      JOIN platforms p ON p."organizationId" = a."organizationId" AND p."segmentId" = a."segmentId"
+      -- JOIN platforms p ON p."organizationId" = a."organizationId" AND p."segmentId" = a."segmentId"
       GROUP BY a."organizationId", a."tenantId", a."segmentId"
       -- </option1>
 
