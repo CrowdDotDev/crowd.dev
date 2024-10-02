@@ -4,7 +4,6 @@ import allMembers from './views/all-members';
 import unaffiliated from './views/unaffiliated';
 import toReview from './views/to-review';
 
-import bot from './settings/bot/config';
 import teamMember from './settings/teamMember/config';
 import organization from './settings/organization/config';
 
@@ -12,7 +11,6 @@ export const memberSavedViews: SavedViewsConfig = {
   defaultView: allMembers,
   settings: {
     teamMember,
-    bot,
     organization,
   },
   defaultFilters: {

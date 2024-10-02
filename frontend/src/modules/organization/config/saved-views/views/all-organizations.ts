@@ -13,8 +13,7 @@ const allOrganizations: SavedView = {
       order: 'descending',
     },
     settings: {
-      teamOrganization: 'exclude',
-      hasActivities: 'true',
+      teamOrganization: 'include',
     },
   },
 };
