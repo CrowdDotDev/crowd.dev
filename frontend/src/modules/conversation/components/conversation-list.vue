@@ -170,8 +170,8 @@ const fetch = ({
       ...filter,
       and: [
         {
-          timestamp: {
-            lte: timestamp.value,
+          createdAt: {
+            lte: createdAt.value,
           },
         },
       ],
