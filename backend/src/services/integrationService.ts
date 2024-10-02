@@ -1953,7 +1953,7 @@ export default class IntegrationService {
     }
   }
 
-  async groupsioGetUserSubscriptions(cookie: string) {
+  async groupsioGetUserSubscriptions({ cookie }: { cookie: string }) {
     try {
       const subscriptions = await getUserSubscriptions(cookie)
       return subscriptions

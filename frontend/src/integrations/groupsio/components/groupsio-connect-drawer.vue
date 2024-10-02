@@ -18,18 +18,14 @@
           Authentication
         </p>
         <div class="text-2xs text-gray-500 leading-normal mb-1">
-          Connect a Groups.io account. You must be a group owner to authenticate.
+          Connect a Groups.io account. You must be a group owner to
+          authenticate.
         </div>
       </div>
-      <el-form
-        label-position="top"
-        class="form"
-        @submit.prevent
-      >
+      <el-form label-position="top" class="form" @submit.prevent>
         <app-form-item
           v-if="!isAPIConnectionValid"
-          class="
-          mb-6"
+          class="mb-6"
           :validation="$v.email"
           label="Email"
           :required="true"
@@ -55,11 +51,7 @@
         >
           <el-input ref="focus" v-model="form.password" @blur="onBlurPassword()">
             <template #suffix>
-              <div
-                v-if="isValidating"
-                v-loading="isValidating"
-                class="flex items-center justify-center w-6 h-6"
-              />
+              <div v-if="isValidating" v-loading="isValidating" class="flex items-center justify-center w-6 h-6" />
             </template>
           </el-input>
         </app-form-item>
@@ -71,11 +63,7 @@
         >
           <el-input ref="focus" v-model="form.twoFactorCode" @blur="onBlurTwoFactorCode()">
             <template #suffix>
-              <div
-                v-if="isValidating"
-                v-loading="isValidating"
-                class="flex items-center justify-center w-6 h-6"
-              />
+              <div v-if="isValidating" v-loading="isValidating" class="flex items-center justify-center w-6 h-6" />
             </template>
           </el-input>
         </app-form-item>
@@ -104,10 +92,12 @@
       <el-divider />
       <div class="w-full flex flex-col mb-6">
         <p class="text-[16px] font-semibold">
-          Connect groups
+          Track Groups
         </p>
         <div class="text-2xs text-gray-500 leading-normal mb-1">
-          Select which groups you want to track. All topics avaliable in each group will be monitored. <a
+          Select which groups you want to track. All topics avaliable in each
+          group will be monitored.
+          <a
             href="https://docs.linuxfoundation.org/lfx/community-management/integrations/groups.io"
             target="_blank"
             rel="noopener noreferrer"
@@ -115,36 +105,34 @@
           >Read more</a>
         </div>
       </div>
-      <el-form
-        class="flex flex-col"
-        label-position="top"
-        @submit.prevent
-      >
-        <div>
-          <app-array-input
-            v-for="(_, ii) of form.groups"
-            :key="ii"
-            v-model="form.groups[ii].slug"
-            placeholder="crowd-test"
-            :validation-function="validateGroup"
-            :disabled="!isAPIConnectionValid"
-          >
-            <template #after>
-              <el-button
-                class="btn btn-link btn-link--md btn-link--primary w-10 h-10"
-                :disabled="!isAPIConnectionValid"
-                @click="removeGroup(ii)"
-              >
-                <i class="ri-delete-bin-line text-lg" />
-              </el-button>
-            </template>
-          </app-array-input>
 
-          <el-button class="btn btn-link btn-link--primary" :disabled="!isAPIConnectionValid" @click="addGroup()">
-            + Add group name
-          </el-button>
+      <div v-for="(group, index) in Object.entries(userSubscriptions)" :key="index" class="mb-4 text-sm">
+        <div class="flex justify-between items-center mb-2">
+          <div class="flex items-center">
+            <p>
+              {{ group[0] }}
+            </p>
+          </div>
+          <div class="flex items-center">
+            <el-switch />
+            <span class="ml-2 text-sm">All Subgroups</span>
+            <el-tooltip content="Select all subgroups for this main group" placement="top">
+              <i class="ri-information-line ml-1 text-gray-400 cursor-help" />
+            </el-tooltip>
+          </div>
         </div>
-      </el-form>
+        <el-divider />
+        <div class="ml-6">
+          <div class="flex items-center gap-2">
+            <el-checkbox class="mr-4" />
+            <p>{{ group[1].mainGroup.group_name }}</p>
+          </div>
+          <div v-for="subGroup in group[1].subGroups" :key="subGroup.group_name" class="flex items-center mt-2 gap-2">
+            <el-checkbox class="mr-4" />
+            <p>{{ subGroup.group_name }}</p>
+          </div>
+        </div>
+      </div>
     </template>
 
     <template #footer>
@@ -171,22 +159,20 @@ import {
   ref, reactive, onMounted, computed,
 } from 'vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
-import {
-  required, email,
-} from '@vuelidate/validators';
+import { required, email } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 import AppDrawer from '@/shared/drawer/drawer.vue';
-import {
-  mapActions,
-} from '@/shared/vuex/vuex.helpers';
+import { mapActions } from '@/shared/vuex/vuex.helpers';
 import AppFormItem from '@/shared/form/form-item.vue';
 import formChangeDetector from '@/shared/form/form-change';
 // import elementChangeDetector from '@/shared/form/element-change';
 import { IntegrationService } from '@/modules/integration/integration-service';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
-import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import {
+  EventType,
+  FeatureEventKey,
+} from '@/shared/modules/monitoring/types/event';
 import { Platform } from '@/shared/modules/platform/types/Platform';
-import AppArrayInput from './groupsio-array-input.vue';
 
 const { doGroupsioConnect } = mapActions('integration');
 
@@ -205,9 +191,11 @@ const form = reactive({
   email: '',
   password: '',
   twoFactorCode: '',
-  groups: [{
-    slug: '',
-  }],
+  groups: [
+    {
+      slug: '',
+    },
+  ],
   groupsValidationState: [null],
 });
 
@@ -221,13 +209,25 @@ const accountVerificationFailed = ref(false);
 const cookie = ref('');
 const cookieExpiry = ref('');
 const loading = ref(false);
+const isLoadingSubscriptions = ref(false);
+const userSubscriptions = ref([]);
 
 const cantConnect = computed(() => {
   if (props.integration?.settings?.email) {
-    return $v.value.$invalid || !hasFormChanged.value || loading.value || form.groups.includes('');
+    return (
+      $v.value.$invalid
+      || !hasFormChanged.value
+      || loading.value
+      || form.groups.includes('')
+    );
   }
-  return $v.value.$invalid
-      || !hasFormChanged.value || loading.value || !isAPIConnectionValid.value || form.groups.length === 0;
+  return (
+    $v.value.$invalid
+    || !hasFormChanged.value
+    || loading.value
+    || !isAPIConnectionValid.value
+    || form.groups.length === 0
+  );
 });
 
 const rules = computed(() => {
@@ -259,16 +259,59 @@ const validateAccount = async () => {
   isVerifyingAccount.value = true;
   accountVerificationFailed.value = false;
   try {
-    const response = await IntegrationService.groupsioGetToken(form.email, form.password, form.twoFactorCode);
+    const response = await IntegrationService.groupsioGetToken(
+      form.email,
+      form.password,
+      form.twoFactorCode,
+    );
     const { groupsioCookie, groupsioCookieExpiry } = response;
     cookie.value = groupsioCookie;
     cookieExpiry.value = groupsioCookieExpiry;
     isAPIConnectionValid.value = true;
+    getUserSubscriptions();
   } catch (e) {
     isAPIConnectionValid.value = false;
     accountVerificationFailed.value = true;
   }
   isVerifyingAccount.value = false;
+};
+
+const getGroupsHierarchy = (groups) => {
+  const hierarchy = {};
+
+  groups.forEach((group) => {
+    const [mainGroupSlug, subGroupSlug] = group.group_name.split('+');
+
+    if (!hierarchy[mainGroupSlug]) {
+      hierarchy[mainGroupSlug] = {
+        mainGroup: null,
+        subGroups: [],
+      };
+    }
+
+    if (subGroupSlug) {
+      hierarchy[mainGroupSlug].subGroups.push(group);
+    } else {
+      hierarchy[mainGroupSlug].mainGroup = group;
+    }
+  });
+
+  return hierarchy;
+};
+
+const getUserSubscriptions = async () => {
+  isLoadingSubscriptions.value = true;
+  try {
+    const response = await IntegrationService.groupsioGetUserSubscriptions(
+      cookie.value,
+    );
+    userSubscriptions.value = getGroupsHierarchy(response);
+  } catch (error) {
+    console.error('Error fetching user subscriptions:', error);
+    // You might want to handle the error here, e.g., show an error message to the user
+  } finally {
+    isLoadingSubscriptions.value = false;
+  }
 };
 
 const reverifyAccount = () => {
@@ -341,7 +384,9 @@ const handleCancel = () => {
     form.email = props.integration?.settings?.email;
     form.password = '';
     form.twoFactorCode = '';
-    form.groups = props?.integration?.settings?.groups ? [...props.integration.settings.groups] : [{}];
+    form.groups = props?.integration?.settings?.groups
+      ? [...props.integration.settings.groups]
+      : [{}];
     form.groupsValidationState = new Array(form.groups.length).fill(true);
     cookie.value = props.integration?.settings?.token;
     isAPIConnectionValid.value = true;
@@ -378,7 +423,9 @@ const connect = async () => {
   })
     .then(() => {
       trackEvent({
-        key: isUpdate ? FeatureEventKey.EDIT_INTEGRATION_SETTINGS : FeatureEventKey.CONNECT_INTEGRATION,
+        key: isUpdate
+          ? FeatureEventKey.EDIT_INTEGRATION_SETTINGS
+          : FeatureEventKey.CONNECT_INTEGRATION,
         type: EventType.FEATURE,
         properties: {
           platform: Platform.GROUPS_IO,
@@ -393,7 +440,6 @@ const connect = async () => {
 
   formSnapshot();
 };
-
 </script>
 
 <script>
