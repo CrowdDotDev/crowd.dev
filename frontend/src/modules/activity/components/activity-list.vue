@@ -88,6 +88,7 @@ import { useActivityStore } from '@/modules/activity/store/pinia';
 import { storeToRefs } from 'pinia';
 import { activityFilters, activitySearchFilter } from '@/modules/activity/config/filters/main';
 import AppLoadMore from '@/shared/button/load-more.vue';
+import moment from 'moment/moment';
 
 // const sorterFilter = ref('trending');
 const conversationId = ref(null);
@@ -163,7 +164,7 @@ const onLoadMore = () => {
 };
 
 const fetch = ({
-  filter, limit = 100, orderBy, body, append,
+  filter, limit = 10, orderBy, body, append,
 }) => {
   loading.value = true;
 
@@ -175,6 +176,12 @@ const fetch = ({
   payloadFilter.and.push({
     timestamp: {
       lte: timestamp.value,
+    },
+  });
+
+  payloadFilter.and.push({
+    timestamp: {
+      gte: moment(timestamp.value).subtract(7, 'day').toISOString(),
     },
   });
 
