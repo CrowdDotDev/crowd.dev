@@ -183,12 +183,6 @@ const fetch = ({
     },
   });
 
-  payloadFilter.and.push({
-    timestamp: {
-      gte: moment(timestamp.value).subtract(7, 'day').toISOString(),
-    },
-  });
-
   fetchActivities({
     body: {
       ...body,
