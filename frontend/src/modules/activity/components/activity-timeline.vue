@@ -309,7 +309,7 @@ const loading = ref(true);
 const platform = ref(null);
 const query = ref('');
 const activities = ref([]);
-const limit = ref(100);
+const limit = ref(10);
 const timestamp = ref(moment().toISOString());
 const noMore = ref(false);
 const selectedSegment = ref(props.selectedSegment || null);
@@ -373,6 +373,10 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
   filterToApply.and = [{
     timestamp: {
       lte: timestamp.value,
+    },
+  }, {
+    timestamp: {
+      gte: moment(timestamp.value).subtract(7, 'day').toISOString(),
     },
   }];
 
