@@ -56,12 +56,12 @@
 
     <div class="dashboard-tabs">
       <el-tabs v-model="tab">
-        <el-tab-pane
+        <!-- <el-tab-pane
           label="Recent conversations"
           name="recentConversations"
         >
           <app-dashboard-conversation-list />
-        </el-tab-pane>
+        </el-tab-pane> -->
         <el-tab-pane
           label="Recent activities"
           name="recentActivities"
@@ -89,7 +89,7 @@ const {
   chartData, activities,
 } = mapGetters('dashboard');
 
-const tab = ref('recentConversations');
+const tab = ref('recentActivities');
 
 const datasets = [{
   name: 'new activities',
