@@ -28,7 +28,7 @@ export default {
     dispatch('getMembers');
     dispatch('getOrganizations');
     dispatch('getActivities');
-    dispatch('getConversations');
+    // dispatch('getConversations');
   },
   // Fetch chart data
   getChartData({ state }) {
