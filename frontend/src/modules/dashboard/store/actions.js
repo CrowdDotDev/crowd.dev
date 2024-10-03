@@ -70,6 +70,10 @@ export default {
                   period.granularity,
                 )
                 .toISOString(),
+            },
+          },
+          {
+            lastActive: {
               lte: moment()
                 .utc()
                 .toISOString(),
@@ -107,6 +111,7 @@ export default {
       limit: 1,
       offset: 0,
       segments: segments.childSegments,
+      countOnly: true,
     })
       .then(({ count }) => {
         state.conversations.total = count;
@@ -196,7 +201,7 @@ export default {
       limit: 1,
       offset: 0,
       segments: segments.childSegments,
-    })
+    }, true)
       .then(({ count }) => {
         state.activities.total = count;
         return Promise.resolve(count);
