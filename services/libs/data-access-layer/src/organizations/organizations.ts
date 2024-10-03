@@ -422,7 +422,7 @@ export async function getNumberOfActiveOrganizations(
     FROM activities
     WHERE "tenantId" = $(tenantId)
     AND "organizationId" IS NOT NULL
-    AND "createdAt" BETWEEN $(after) AND $(before)
+    AND timestamp BETWEEN $(after) AND $(before)
     AND "deletedAt" IS NULL`
 
   if (arg.platform) {
@@ -456,6 +456,7 @@ export async function getTimeseriesOfActiveOrganizations(
     WHERE tenantId = $(tenantId)
     AND "organizationId" IS NOT NULL
     AND timestamp BETWEEN $(after) AND $(before)
+    AND deletedAt IS NULL;
   `
 
   if (arg.segmentIds) {
