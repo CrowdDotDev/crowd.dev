@@ -141,6 +141,10 @@ export default {
                   period.granularity,
                 )
                 .toISOString(),
+            },
+          },
+          {
+            timestamp: {
               lte: moment()
                 .utc()
                 .toISOString(),

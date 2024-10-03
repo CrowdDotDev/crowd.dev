@@ -128,7 +128,7 @@ const emptyState = computed(() => ({
 const isLoadMoreVisible = computed(() => activities.value.length < totalActivities.value);
 
 const onLoadMore = () => {
-  timestamp.value = activities.value[activities.value.length - 1].timestamp;
+  timestamp.value = activities.value.at(-1).timestamp;
 
   if (savedFilterBody.value.and) {
     savedFilterBody.value.and = savedFilterBody.value.and.reduce((acc, filter) => {
@@ -163,36 +163,20 @@ const onLoadMore = () => {
 };
 
 const fetch = ({
-  filter, limit = 20, orderBy, body, append,
+  filter, limit = 100, orderBy, body, append,
 }) => {
   loading.value = true;
 
   const payloadFilter = { ...filter };
-
-  if (payloadFilter.and) {
-    payloadFilter.and = payloadFilter.and.reduce((acc, filter) => {
-      const newFilter = { ...filter };
-
-      if (newFilter.timestamp) {
-        newFilter.timestamp = {
-          ...newFilter.timestamp,
-          lte: timestamp.value,
-        };
-      }
-
-      acc.push(newFilter);
-
-      return acc;
-    }, []);
-  } else {
-    payloadFilter.and = [
-      {
-        timestamp: {
-          lte: timestamp.value,
-        },
-      },
-    ];
+  if (!payloadFilter.and) {
+    payloadFilter.and = [];
   }
+
+  payloadFilter.and.push({
+    timestamp: {
+      lte: timestamp.value,
+    },
+  });
 
   fetchActivities({
     body: {

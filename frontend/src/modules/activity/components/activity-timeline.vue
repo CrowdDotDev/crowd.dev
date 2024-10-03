@@ -237,7 +237,6 @@
 </template>
 
 <script setup>
-import isEqual from 'lodash/isEqual';
 import { useStore } from 'vuex';
 import {
   computed,
@@ -310,12 +309,10 @@ const loading = ref(true);
 const platform = ref(null);
 const query = ref('');
 const activities = ref([]);
-const limit = ref(20);
+const limit = ref(100);
 const timestamp = ref(moment().toISOString());
 const noMore = ref(false);
 const selectedSegment = ref(props.selectedSegment || null);
-
-let filter = {};
 
 const isMemberEntity = computed(() => props.entityType === 'member');
 
@@ -379,7 +376,7 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
     },
   }];
 
-  if (!isEqual(filter, filterToApply) || reset) {
+  if (reset) {
     activities.value.length = 0;
     timestamp.value = moment().toISOString();
     noMore.value = false;
@@ -398,15 +395,15 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
     segments: selectedSegment.value ? [selectedSegment.value] : segments.value.map((s) => s.id),
   });
 
-  filter = { ...filterToApply };
   loading.value = false;
   if (data.rows.length < limit.value) {
     noMore.value = true;
-    activities.value.push(...data.rows);
-  } else {
-    timestamp.value = data.rows[data.rows.length - 1].timestamp;
-    activities.value.push(...data.rows);
   }
+  const activityIds = activities.value.map((a) => a.id);
+  const rows = data.rows.filter((a) => !activityIds.includes(a.id));
+  activities.value = [...activities.value, ...rows];
+
+  timestamp.value = moment(data.rows.at(-1).timestamp).toISOString();
 };
 
 const reloadActivities = async () => {
