@@ -6,31 +6,31 @@ const options: SelectFilterOptionGroup[] = [
     options: [
       {
         label: 'Profiles merged',
-        value: 'contributors-merged',
+        value: 'members-merge',
       },
       {
         label: 'Profiles unmerged',
-        value: 'contributors-unmerged',
+        value: 'members-unmerge',
       },
       {
         label: 'Profile identities updated',
-        value: 'contributor-identities-updated',
+        value: 'members-edit-identities',
       },
       {
         label: 'Profile work experience updated',
-        value: 'contributor-work-experience-updated',
+        value: 'members-edit-organizations',
       },
       {
         label: 'Profile affiliation updated',
-        value: 'contributor-affiliation-updated',
+        value: 'members-edit-manual-affiliation',
       },
       {
         label: 'Profile updated',
-        value: 'contributor-profile-updated',
+        value: 'members-edit-profile',
       },
       {
         label: 'Profile created',
-        value: 'contributor-created',
+        value: 'members-create',
       },
     ],
   },
@@ -47,15 +47,15 @@ const options: SelectFilterOptionGroup[] = [
       },
       {
         label: 'Organization identities updated',
-        value: 'organization-identities-updated',
+        value: 'organizations-edit-identities',
       },
       {
         label: 'Organization profile updated',
-        value: 'organization-profile-updated',
+        value: 'organizations-edit-profile',
       },
       {
         label: 'Organization created',
-        value: 'organization-created',
+        value: 'organizations-create',
       },
     ],
   },
@@ -64,11 +64,11 @@ const options: SelectFilterOptionGroup[] = [
     options: [
       {
         label: 'Integration connected',
-        value: 'integration-connected',
+        value: 'integrations-connect',
       },
       {
         label: 'Integration re-connected',
-        value: 'integration-re-connected',
+        value: 'integrations-reconnect',
       },
     ],
   },

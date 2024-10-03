@@ -106,6 +106,7 @@ export async function addAuditAction(
 }
 
 export async function queryAuditLogs(qx: QueryExecutor, { limit, offset, filter }) {
+  let actionType: string[] = undefined
   let where = ''
 
   if (filter?.entityId) {
@@ -120,6 +121,12 @@ export async function queryAuditLogs(qx: QueryExecutor, { limit, offset, filter 
       return []
     }
     where += ` AND a."userId" = $(userId)`
+  }
+
+  if (filter?.actionType || filter?.not?.actionType) {
+    const condition = filter.not ? 'NOT IN' : 'IN'
+    where += ` AND a."actionType" ${condition} ($(actionType:csv))`
+    actionType = filter.not ? filter.not.actionType.in : filter.actionType.in
   }
 
   const result = await qx.select(
@@ -144,6 +151,7 @@ export async function queryAuditLogs(qx: QueryExecutor, { limit, offset, filter 
       offset,
       userId: filter?.userId,
       entityId: filter?.entityId,
+      actionType,
     },
   )
 
