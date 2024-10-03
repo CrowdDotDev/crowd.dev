@@ -198,9 +198,6 @@ class MemberRepository {
 
     await MemberRepository.includeMemberToSegments(record.id, options)
 
-    await record.setActivities(data.activities || [], {
-      transaction,
-    })
     await record.setTags(data.tags || [], {
       transaction,
     })
@@ -1007,12 +1004,6 @@ class MemberRepository {
       }),
       !manualChange, // no need to track for audit if it's not a manual change
     )
-
-    if (data.activities) {
-      await record.setActivities(data.activities || [], {
-        transaction,
-      })
-    }
 
     if (data.tags) {
       await record.setTags(data.tags || [], {
