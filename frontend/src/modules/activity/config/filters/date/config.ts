@@ -18,16 +18,13 @@ const date: SelectFilterConfig = {
   itemLabelRenderer(value: SelectFilterValue, options: SelectFilterOptions, data: any): string {
     return itemLabelRendererByType[FilterConfigType.SELECT]('Date', value, options, data);
   },
-  // apiFilterRenderer({ value, include }: SelectFilterValue): any[] {
-  //   const filter = {
-  //     timestamp: { gte: value },
-  //   };
-  //   return [
-  //     (include ? filter : { not: filter }),
-  //   ];
-  // },
-  apiFilterRenderer(): any[] {
-    return [];
+  apiFilterRenderer({ value, include }: SelectFilterValue): any[] {
+    const filter = {
+      timestamp: { gte: value },
+    };
+    return [
+      (include ? filter : { not: filter }),
+    ];
   },
 };
 

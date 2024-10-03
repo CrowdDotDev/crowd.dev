@@ -118,6 +118,10 @@ filters.value = {
     prop: 'timestamp',
     order: 'descending',
   },
+  date: {
+    include: true,
+    value: moment().utc().subtract(6, 'day').format('YYYY-MM-DD'),
+  },
 };
 
 const emptyState = computed(() => ({
