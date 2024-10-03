@@ -128,12 +128,6 @@ class TaskRepository {
       })
     }
 
-    if (data.activities) {
-      await record.setActivities(data.activities, {
-        transaction,
-      })
-    }
-
     if (data.assignees) {
       await record.setAssignees(data.assignees, {
         transaction,
