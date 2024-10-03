@@ -809,7 +809,7 @@ export async function getOrgAggregates(
           SELECT
             p."organizationId",
             p."segmentId",
-            STRING_AGG(p.platform, ':') AS "activeOn"
+            string_distinct_agg(p.platform, ':') AS "activeOn"
           FROM platforms p
         ),
         activites_agg AS (
@@ -837,8 +837,7 @@ export async function getOrgAggregates(
         MIN(a."lastActive") AS "lastActive",
         MIN(a."joinedAt") AS "joinedAt",
         MIN(a."avgContributorEngagement") AS "avgContributorEngagement",
-        '' AS "activeOn"
-        -- STRING_AGG(p.platform, ':') AS "activeOn"
+        string_distinct_agg(p.platform, ':') AS "activeOn"
         -- </option1>
 
         -- -- <option2>
@@ -851,7 +850,7 @@ export async function getOrgAggregates(
       FROM activites_agg a
 
       -- <option1>
-      -- JOIN platforms p ON p."organizationId" = a."organizationId" AND p."segmentId" = a."segmentId"
+      JOIN platforms p ON p."organizationId" = a."organizationId" AND p."segmentId" = a."segmentId"
       GROUP BY a."organizationId", a."tenantId", a."segmentId"
       -- </option1>
 
@@ -908,7 +907,7 @@ export async function getMemberAggregates(
         SELECT
           p."memberId",
           p."segmentId",
-          STRING_AGG(p.platform, ':') AS "activeOn"
+          string_distinct_agg(p.platform, ':') AS "activeOn"
         FROM platforms p
         GROUP BY 1, 2
       ),
@@ -916,7 +915,7 @@ export async function getMemberAggregates(
         SELECT
           at."memberId",
           at."segmentId",
-          STRING_AGG(concat(at.platform, ':', at.type), '|') as "activityTypes"
+          string_distinct_agg(concat(at.platform, ':', at.type), '|') as "activityTypes"
         FROM activity_types at
         GROUP BY 1, 2
       ),
