@@ -376,7 +376,7 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
     },
   }, {
     timestamp: {
-      gte: moment(timestamp.value).subtract(7, 'day').toISOString(),
+      gte: moment(timestamp.value).subtract(1, 'month').toISOString(),
     },
   }];
 
@@ -400,11 +400,12 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
   });
 
   loading.value = false;
-  if (data.rows.length < limit.value) {
-    noMore.value = true;
-  }
+
   const activityIds = activities.value.map((a) => a.id);
   const rows = data.rows.filter((a) => !activityIds.includes(a.id));
+  if (rows.length === 0) {
+    noMore.value = true;
+  }
   activities.value = [...activities.value, ...rows];
 
   timestamp.value = moment(data.rows.at(-1).timestamp).toISOString();

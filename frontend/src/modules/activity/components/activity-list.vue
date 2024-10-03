@@ -118,6 +118,10 @@ filters.value = {
     prop: 'timestamp',
     order: 'descending',
   },
+  date: {
+    include: true,
+    value: moment().utc().subtract(6, 'day').format('YYYY-MM-DD'),
+  },
 };
 
 const emptyState = computed(() => ({
@@ -176,12 +180,6 @@ const fetch = ({
   payloadFilter.and.push({
     timestamp: {
       lte: timestamp.value,
-    },
-  });
-
-  payloadFilter.and.push({
-    timestamp: {
-      gte: moment(timestamp.value).subtract(7, 'day').toISOString(),
     },
   });
 
