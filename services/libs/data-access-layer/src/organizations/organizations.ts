@@ -456,7 +456,7 @@ export async function getTimeseriesOfActiveOrganizations(
     WHERE tenantId = $(tenantId)
     AND "organizationId" IS NOT NULL
     AND timestamp BETWEEN $(after) AND $(before)
-    AND deletedAt IS NULL;
+    AND deletedAt IS NULL
   `
 
   if (arg.segmentIds) {
