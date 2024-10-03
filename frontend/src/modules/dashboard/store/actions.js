@@ -27,6 +27,8 @@ export default {
     dispatch('getChartData');
     dispatch('getMembers');
     dispatch('getOrganizations');
+    dispatch('getActivities');
+    dispatch('getConversations');
   },
   // Fetch chart data
   getChartData({ state }) {
@@ -47,7 +49,7 @@ export default {
   // fetch conversations data
   async getConversations({ dispatch }) {
     dispatch('getRecentConversations');
-    // dispatch('getConversationCount');
+    dispatch('getConversationCount');
   },
   // Fetch recent conversations
   async getRecentConversations({ commit, state }) {
@@ -67,6 +69,9 @@ export default {
                   period.value - 1,
                   period.granularity,
                 )
+                .toISOString(),
+              lte: moment()
+                .utc()
                 .toISOString(),
             },
           },
@@ -122,7 +127,6 @@ export default {
     state.activities.loading = true;
 
     const { platform, period, segments } = state.filters;
-
     return ActivityService.query({
       filter: {
         ...DEFAULT_ACTIVITY_FILTERS,
@@ -136,6 +140,9 @@ export default {
                   period.value - 1,
                   period.granularity,
                 )
+                .toISOString(),
+              lte: moment()
+                .utc()
                 .toISOString(),
             },
           },
