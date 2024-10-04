@@ -77,7 +77,7 @@
 import AppDashboardActivityTypes from '@/modules/dashboard/components/activity/dashboard-activity-types.vue';
 import AppDashboardWidgetHeader from '@/modules/dashboard/components/dashboard-widget-header.vue';
 import AppDashboardWidgetChart from '@/modules/dashboard/components/dashboard-widget-chart.vue';
-import AppDashboardConversationList from '@/modules/dashboard/components/conversations/dashboard-conversation-list.vue';
+// import AppDashboardConversationList from '@/modules/dashboard/components/conversations/dashboard-conversation-list.vue';
 import AppDashboardActivityList from '@/modules/dashboard/components/activity/dashboard-activity-list.vue';
 import AppDashboardActivitySentiment from '@/modules/dashboard/components/activity/dashboard-activity-sentiment.vue';
 import AppDashboardCount from '@/modules/dashboard/components/dashboard-count.vue';
