@@ -32,7 +32,7 @@ export async function runMemberAffiliationsUpdate(
     return `WHEN ${when.join(' AND ')} THEN ${then}`
   }
 
-  const nullableOrg = (orgId: string) => (orgId ? `'${orgId}'` : 'NULL')
+  const nullableOrg = (orgId: string) => (orgId ? `cast('${orgId}' as uuid)` : 'NULL')
 
   const manualAffiliations = await findMemberAffiliations(qx, memberId)
 
@@ -99,16 +99,16 @@ export async function runMemberAffiliationsUpdate(
             END
             `
   } else {
-    fullCase = `${nullableOrg(fallbackOrganizationId)}::UUID`
+    fullCase = `${nullableOrg(fallbackOrganizationId)}`
   }
 
   const query = `
       UPDATE activities
       SET "organizationId" = ${fullCase}
       WHERE "memberId" = $(memberId)
-        AND COALESCE("organizationId", '00000000-0000-0000-0000-000000000000') != COALESCE(
+        AND COALESCE("organizationId", cast('00000000-0000-0000-0000-000000000000' as uuid)) != COALESCE(
           ${fullCase},
-          '00000000-0000-0000-0000-000000000000'
+          cast('00000000-0000-0000-0000-000000000000' as uuid)
         )
     `
 

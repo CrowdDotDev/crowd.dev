@@ -88,6 +88,7 @@ import { useActivityStore } from '@/modules/activity/store/pinia';
 import { storeToRefs } from 'pinia';
 import { activityFilters, activitySearchFilter } from '@/modules/activity/config/filters/main';
 import AppLoadMore from '@/shared/button/load-more.vue';
+import moment from 'moment/moment';
 
 // const sorterFilter = ref('trending');
 const conversationId = ref(null);
@@ -117,6 +118,10 @@ filters.value = {
     prop: 'timestamp',
     order: 'descending',
   },
+  date: {
+    include: true,
+    value: moment().utc().subtract(6, 'day').format('YYYY-MM-DD'),
+  },
 };
 
 const emptyState = computed(() => ({
@@ -128,7 +133,7 @@ const emptyState = computed(() => ({
 const isLoadMoreVisible = computed(() => activities.value.length < totalActivities.value);
 
 const onLoadMore = () => {
-  timestamp.value = activities.value[activities.value.length - 1].timestamp;
+  timestamp.value = activities.value.at(-1).timestamp;
 
   if (savedFilterBody.value.and) {
     savedFilterBody.value.and = savedFilterBody.value.and.reduce((acc, filter) => {
@@ -163,36 +168,20 @@ const onLoadMore = () => {
 };
 
 const fetch = ({
-  filter, limit = 20, orderBy, body, append,
+  filter, limit = 10, orderBy, body, append,
 }) => {
   loading.value = true;
 
   const payloadFilter = { ...filter };
-
-  if (payloadFilter.and) {
-    payloadFilter.and = payloadFilter.and.reduce((acc, filter) => {
-      const newFilter = { ...filter };
-
-      if (newFilter.timestamp) {
-        newFilter.timestamp = {
-          ...newFilter.timestamp,
-          lte: timestamp.value,
-        };
-      }
-
-      acc.push(newFilter);
-
-      return acc;
-    }, []);
-  } else {
-    payloadFilter.and = [
-      {
-        timestamp: {
-          lte: timestamp.value,
-        },
-      },
-    ];
+  if (!payloadFilter.and) {
+    payloadFilter.and = [];
   }
+
+  payloadFilter.and.push({
+    timestamp: {
+      lte: timestamp.value,
+    },
+  });
 
   fetchActivities({
     body: {

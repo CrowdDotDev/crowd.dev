@@ -39,7 +39,7 @@ export async function getNumberOfNewMembers(
   db: DbStore,
   arg: IQueryNumberOfNewMembers,
 ): Promise<number> {
-  let query = 'SELECT DISTINCT COUNT(id) FROM members m'
+  let query = 'SELECT DISTINCT COUNT(m.id) FROM members m'
 
   if (arg.segmentIds) {
     query += ' INNER JOIN "memberSegmentsAgg" msa on msa."memberId" = m.id'

@@ -8,13 +8,14 @@ export default {
 
     if (!append) {
       this.conversations = [];
-      this.timestamp = moment().toISOString();
+      this.lastActive = moment().toISOString();
     }
     return ConversationService.query(mappedBody)
       .then((data: any) => {
         // If append is true, join new activities with the existent ones
         if (append) {
-          this.conversations = this.conversations.concat(...data.rows);
+          const filteredRows = data.rows.filter((row: any) => !this.conversations.some((conversation: any) => conversation.id === row.id));
+          this.conversations = this.conversations.concat(...filteredRows);
         } else {
           this.conversations = data.rows;
         }

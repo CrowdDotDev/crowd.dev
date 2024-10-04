@@ -7,7 +7,7 @@ export interface ConversationState {
   conversations: [],
   totalConversations: number
   limit: number,
-  timestamp: string,
+  lastActive: string,
 }
 
 export default () => ({
@@ -25,7 +25,7 @@ export default () => ({
     },
   } as Filter,
   limit: 20,
-  timestamp: moment().toISOString(),
+  lastActive: moment().toISOString(),
   savedFilterBody: {},
   conversations: [],
   totalConversations: 0,

@@ -366,6 +366,7 @@ const CONVERSATION_QUERY_FILTER_COLUMN_MAP: Map<string, string> = new Map([
   ['platform', 'a.platform'],
   ['channel', 'a.channel'],
   ['lastActive', 'a."lastActive"'],
+  ['createdAt', 'c."createdAt"'],
   ['activityCount', 'a."activityCount"'],
 ])
 
@@ -431,27 +432,75 @@ export async function queryConversations(
     filterString = '1=1'
   }
 
-  const baseQuery = `
-  with activity_data as (
-    select count_distinct(id) as "activityCount",
-           count_distinct("memberId") as "memberCount",
-           max(timestamp) as "lastActive",
-           max(channel) as channel,
-           max(platform) as platform,
-           "conversationId"
-    from activities
-    where "deletedAt" is null and
-          "conversationId" is not null
-    group by "conversationId"
-  )
-  select <columns_to_select>
-  from conversations c 
-  inner join activity_data a on a."conversationId" = c.id
-  where c."deletedAt" is null and 
-        c."tenantId" = $(tenantId) and
-        c."segmentId" in ($(segmentIds:csv)) and
-        ${filterString}
-  `
+  let baseQuery: string
+
+  if (filterString.includes(`a."lastActive"`) && filterString.includes('blablabla')) {
+    const queryFilter = RawQueryParser.parseFilters(
+      arg.filter,
+      new Map([['lastActive', 'a."timestamp"']]), // remap lastActive to timestamp here
+      [],
+      params,
+      {
+        pgPromiseFormat: true,
+        keepOnly: ['lastActive'], // and keep only lastActive filter
+      },
+    )
+
+    baseQuery = `
+      with filtered_conversation_ids as (
+        select distinct "conversationId"
+        from activities a
+        where a."deletedAt" is null and
+              a."tenantId" = $(tenantId) and
+              a."segmentId" in ($(segmentIds:csv)) and
+              ${queryFilter}
+      ), activity_data as (
+      select count_distinct(a.id) as "activityCount",
+             count_distinct(a."memberId") as "memberCount",
+             max(a.timestamp) as "lastActive",
+             max(a.channel) as channel,
+             max(a.platform) as platform,
+             a."conversationId"
+      from activities a
+      inner join filtered_conversation_ids cid on cid."conversationId" = a."conversationId"
+      where a."deletedAt" is null
+      group by "conversationId"
+    )
+    select <columns_to_select>
+    from conversations c 
+    inner join activity_data a on a."conversationId" = c.id
+    where c."deletedAt" is null and 
+          c."tenantId" = $(tenantId) and
+          c."segmentId" in ($(segmentIds:csv)) and
+          ${filterString}
+    `
+  }
+
+  if (!baseQuery) {
+    baseQuery = `
+    with activity_data as (
+      select count_distinct(id) as "activityCount",
+             count_distinct("memberId") as "memberCount",
+             max(timestamp) as "lastActive",
+             first(channel) as channel,
+             first(platform) as platform,
+             "conversationId"
+      from activities
+      where "deletedAt" is null and
+            "conversationId" is not null and
+            "tenantId" = $(tenantId) and
+            "segmentId" in ($(segmentIds:csv))
+      group by "conversationId"
+    )
+    select <columns_to_select>
+    from conversations c 
+    inner join activity_data a on a."conversationId" = c.id
+    where c."deletedAt" is null and 
+          c."tenantId" = $(tenantId) and
+          c."segmentId" in ($(segmentIds:csv)) and
+          ${filterString}
+    `
+  }
 
   const countQuery = baseQuery.replace('<columns_to_select>', 'count_distinct(c.id) as count')
 
@@ -495,6 +544,7 @@ export async function queryConversations(
 
     query += ';'
 
+    // console.log('conversation query', query)
     const [results, countResults] = await Promise.all([
       qdbConn.any(query, params),
       qdbConn.one(countQuery, params),

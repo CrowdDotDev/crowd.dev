@@ -31,7 +31,7 @@
           <div>
             <app-dashboard-members class="mb-8" />
             <app-dashboard-organizations class="mb-8" />
-            <!-- <app-dashboard-activities class="mb-8" /> -->
+            <app-dashboard-activities class="mb-8" />
           </div>
         </div>
       </div>

@@ -33,20 +33,20 @@
             label="Activities"
             name="activity"
           />
-          <el-tab-pane
+          <!-- <el-tab-pane
             label="Conversations"
             name="conversation"
-          />
+          /> -->
         </el-tabs>
       </div>
       <app-activity-list
         v-if="activeView === 'activity'"
         @edit="edit($event)"
       />
-      <app-conversation-list
+      <!-- <app-conversation-list
         v-else-if="activeView === 'conversation'"
         :items-as-cards="true"
-      />
+      /> -->
     </div>
   </app-page-wrapper>
   <app-activity-type-list-drawer
