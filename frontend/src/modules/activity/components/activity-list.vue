@@ -168,7 +168,7 @@ const onLoadMore = () => {
 };
 
 const fetch = ({
-  filter, limit = 10, orderBy, body, append,
+  filter, limit = 100, orderBy, body, append,
 }) => {
   loading.value = true;
 
