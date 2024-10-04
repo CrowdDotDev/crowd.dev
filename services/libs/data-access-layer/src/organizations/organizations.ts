@@ -476,7 +476,7 @@ export async function getTimeseriesOfActiveOrganizations(
     query += ` AND "platform" = $(platform)`
   }
 
-  query += ' SAMPLE BY 1d ALIGN TO CALENDAR ORDER BY timestamp DESC;'
+  query += ' SAMPLE BY 1d ALIGN TO CALENDAR ORDER BY timestamp ASC;'
 
   const rows = await db.connection().query(query, {
     tenantId: arg.tenantId,
