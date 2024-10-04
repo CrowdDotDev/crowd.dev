@@ -37,9 +37,9 @@
               class="app-page-spinner !relative chart-loading"
             />
             <lf-chart
-              v-else
+              v-else-if="cube?.newMembers.timeseries?.length"
               :config="lfxCharts.dashboardAreaChart"
-              :data="data"
+              :data="mapData(cube?.newMembers.timeseries)"
               :params="{ label: 'new people' }"
             />
           </div>
@@ -144,9 +144,9 @@
               class="app-page-spinner !relative chart-loading"
             />
             <lf-chart
-              v-else
+              v-else-if="cube?.activeMembers.timeseries?.length"
               :config="lfxCharts.dashboardAreaChart"
-              :data="data"
+              :data="mapData(cube?.activeMembers.timeseries)"
               :params="{ label: 'active people' }"
             />
           </div>
@@ -235,16 +235,10 @@ const {
 
 const cube = computed<DashboardCubeData>(() => cubeData.value);
 
-const data = [
-  { label: '2024-09-09', value: 5 },
-  { label: '2024-09-10', value: 6 },
-  { label: '2024-09-11', value: 2 },
-  { label: '2024-09-12', value: 6 },
-  { label: '2024-09-13', value: 4 },
-  { label: '2024-09-14', value: 1 },
-  { label: '2024-09-15', value: 8 },
-  { label: '2024-09-16', value: 10 },
-];
+const mapData = (data: any[]) => data.map((item) => ({
+  label: item.date,
+  value: item.count,
+}));
 
 const periodRange = computed(() => [
   moment()

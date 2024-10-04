@@ -23,18 +23,18 @@ export default {
       platform,
       segments,
     });
-    dispatch('getCubeData');
+    dispatch('getDashboardData');
     dispatch('getConversations');
     dispatch('getActivities');
     dispatch('getMembers');
     dispatch('getOrganizations');
   },
   // Fetch cube data
-  getCubeData({ state }) {
+  getDashboardData({ state }) {
     state.cubeData = null;
     const { platform, period, segments } = state.filters;
     const [segment] = segments.segments;
-    return DashboardApiService.fetchCubeData({
+    return DashboardApiService.fetchDashboardData({
       period: period.label,
       platform: platform !== 'all' ? platform : undefined,
       segment,

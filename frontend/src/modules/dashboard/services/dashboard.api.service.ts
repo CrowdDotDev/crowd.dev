@@ -2,7 +2,7 @@ import authAxios from '@/shared/axios/auth-axios';
 import { AuthService } from '@/modules/auth/services/auth.service';
 
 export class DashboardApiService {
-  static async fetchCubeData({ period, platform, segment }) {
+  static async fetchDashboardData({ period, platform, segment }) {
     const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.get(

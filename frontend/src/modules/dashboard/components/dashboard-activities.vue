@@ -36,9 +36,9 @@
               class="app-page-spinner h-16 !relative !min-h-5 chart-loading"
             />
             <lf-chart
-              v-else
+              v-else-if="cube?.activity.timeseries?.length"
               :config="lfxCharts.dashboardAreaChart"
-              :data="[]"
+              :data="mapData(cube?.activity.timeseries)"
               :params="{ label: 'new activities' }"
             />
           </div>
@@ -93,6 +93,11 @@ const {
 } = mapGetters('dashboard');
 
 const cube = computed<DashboardCubeData>(() => cubeData.value);
+
+const mapData = (data: any[]) => data.map((item) => ({
+  label: item.date,
+  value: item.count,
+}));
 
 const tab = ref('recentConversations');
 
