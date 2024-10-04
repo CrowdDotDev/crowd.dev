@@ -397,18 +397,18 @@ export async function getNumberOfNewOrganizations(
   arg: IQueryNumberOfNewOrganizations,
 ): Promise<number> {
   let query = `
-    SELECT COUNT(distinct id)
-    FROM "organizationSegmentsAgg"
-    JOIN organizations o on "organizationId" = o.id
-    WHERE "tenantId" = $(tenantId)
+    SELECT COUNT(distinct osa."organizationId")
+    FROM "organizationSegmentsAgg" osa
+    JOIN organizations o on osa."organizationId" = o.id
+    WHERE osa."tenantId" = $(tenantId)
     AND o."createdAt" BETWEEN $(after) AND $(before)
   `
   if (arg.segmentIds) {
-    query += ` AND "segmentId" IN ($(segmentIds:csv))`
+    query += ` AND osa."segmentId" IN ($(segmentIds:csv))`
   }
 
   if (arg.platform) {
-    query += ` AND $(platform) = ANY("activeOn")`
+    query += ` AND $(platform) = ANY(osa."activeOn")`
   }
 
   const rows: { count: number }[] = await db.connection().query(query, {
