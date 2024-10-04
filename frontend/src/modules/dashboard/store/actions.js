@@ -89,7 +89,7 @@ export default {
         ],
       },
       orderBy: 'lastActive_DESC',
-      limit: 5,
+      limit: 20,
       offset: 0,
       segments: segments.childSegments,
     })
