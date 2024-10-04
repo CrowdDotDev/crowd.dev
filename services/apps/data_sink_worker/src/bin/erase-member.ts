@@ -65,6 +65,8 @@ setImmediate(async () => {
     idsToDelete.push(...param.value.split(',').map((id) => id.trim()))
   }
 
+  log.info('idsToDelete', idsToDelete)
+
   const orgDataMap: Map<string, any[]> = new Map()
   const memberDataMap: Map<string, any> = new Map()
 
