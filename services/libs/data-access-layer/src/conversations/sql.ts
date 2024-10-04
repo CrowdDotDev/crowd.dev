@@ -482,8 +482,8 @@ export async function queryConversations(
       select count_distinct(id) as "activityCount",
              count_distinct("memberId") as "memberCount",
              max(timestamp) as "lastActive",
-             max(channel) as channel,
-             max(platform) as platform,
+             first(channel) as channel,
+             first(platform) as platform,
              "conversationId"
       from activities
       where "deletedAt" is null and
