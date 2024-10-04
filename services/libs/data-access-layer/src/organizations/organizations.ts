@@ -396,18 +396,27 @@ export async function getNumberOfNewOrganizations(
   db: DbStore,
   arg: IQueryNumberOfNewOrganizations,
 ): Promise<number> {
-  const query = `
-    SELECT DISTINCT COUNT(id)
-    FROM organizations
+  let query = `
+    SELECT COUNT(distinct id)
+    FROM "organizationSegmentsAgg"
+    JOIN organizations o on "organizationId" = o.id
     WHERE "tenantId" = $(tenantId)
-    AND "createdAt" BETWEEN $(after) AND $(before)
-    AND "deletedAt" IS NULL;
+    AND o."createdAt" BETWEEN $(after) AND $(before);
   `
+  if (arg.segmentIds) {
+    query += ` AND "segmentId" IN ($(segmentIds:csv))`
+  }
+
+  if (arg.platform) {
+    query += ` AND $(platform) = ANY("activeOn")`
+  }
 
   const rows: { count: number }[] = await db.connection().query(query, {
     tenantId: arg.tenantId,
     after: arg.after,
     before: arg.before,
+    segmentIds: arg.segmentIds,
+    platform: arg.platform,
   })
 
   return Number(rows[0].count) || 0
