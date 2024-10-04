@@ -458,8 +458,8 @@ export async function queryConversations(
       select count_distinct(a.id) as "activityCount",
              count_distinct(a."memberId") as "memberCount",
              max(a.timestamp) as "lastActive",
-             max(a.channel) as channel,
-             max(a.platform) as platform,
+             first(a.channel) as channel,
+             first(a.platform) as platform,
              a."conversationId"
       from activities a
       inner join filtered_conversation_ids cid on cid."conversationId" = a."conversationId"

@@ -56,12 +56,12 @@
 
     <div class="dashboard-tabs">
       <el-tabs v-model="tab">
-        <!-- <el-tab-pane
+        <el-tab-pane
           label="Recent conversations"
           name="recentConversations"
         >
           <app-dashboard-conversation-list />
-        </el-tab-pane> -->
+        </el-tab-pane>
         <el-tab-pane
           label="Recent activities"
           name="recentActivities"
@@ -77,7 +77,7 @@
 import AppDashboardActivityTypes from '@/modules/dashboard/components/activity/dashboard-activity-types.vue';
 import AppDashboardWidgetHeader from '@/modules/dashboard/components/dashboard-widget-header.vue';
 import AppDashboardWidgetChart from '@/modules/dashboard/components/dashboard-widget-chart.vue';
-// import AppDashboardConversationList from '@/modules/dashboard/components/conversations/dashboard-conversation-list.vue';
+import AppDashboardConversationList from '@/modules/dashboard/components/conversations/dashboard-conversation-list.vue';
 import AppDashboardActivityList from '@/modules/dashboard/components/activity/dashboard-activity-list.vue';
 import AppDashboardActivitySentiment from '@/modules/dashboard/components/activity/dashboard-activity-sentiment.vue';
 import AppDashboardCount from '@/modules/dashboard/components/dashboard-count.vue';
@@ -89,7 +89,7 @@ const {
   chartData, activities,
 } = mapGetters('dashboard');
 
-const tab = ref('recentActivities');
+const tab = ref('recentConversations');
 
 const datasets = [{
   name: 'new activities',
