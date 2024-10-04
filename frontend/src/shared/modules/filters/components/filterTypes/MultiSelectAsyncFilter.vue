@@ -26,6 +26,7 @@
           :value="option"
         >
           <div
+            v-if="config.id !== 'tags'"
             class="h-4 el-checkbox filter-checkbox"
             :class="{ 'is-checked': props.modelValue.value.includes(option.value) }"
           >
@@ -113,7 +114,24 @@ watch(() => props.modelValue.value, (value?: string[]) => {
   }
 }, { immediate: true });
 
-watch(() => data.value.selected, (value) => {
+watch(() => data.value.selected, (value, oldValue) => {
+  if (props.config.id === 'tags') {
+    filteredOptions.value = filteredOptions.value.filter((option) => !value.map((v: any) => v.value).includes(option.value));
+
+    const removedOption: any = oldValue?.find((option: any) => !value.includes(option));
+
+    if (removedOption && !filteredOptions.value.some((option) => option.value === removedOption.value)) {
+      const position = oldValue.findIndex((option: any) => option.value === removedOption.value);
+
+      if (position >= 0) {
+        filteredOptions.value.splice(position, 0, {
+          label: removedOption.label,
+          value: removedOption.value,
+        });
+      }
+    }
+  }
+
   emit('update:modelValue', {
     ...props.modelValue,
     value: value.map((v) => v.value),
@@ -127,7 +145,15 @@ const searchOptions = (query: string) => {
   loading.value = true;
   props.remoteMethod(query)
     .then((options) => {
-      filteredOptions.value = options;
+      if (props.config.id === 'tags') {
+        const mappedOptions = options.map((option) => ({
+          label: option.label,
+          value: option.value,
+        }));
+        filteredOptions.value = mappedOptions;
+      } else {
+        filteredOptions.value = options;
+      }
     })
     .finally(() => {
       loading.value = false;
