@@ -505,6 +505,10 @@ export default class ConversationService extends LoggerBase {
       countOnly,
     })
 
+    if (results.count === 0 || results.rows.length === 0) {
+      return results
+    }
+
     // Filter activities to have happened in the last month. If the activities
     // worker failed to create a conversation for activities, this gives a buffer
     // of a month to search for activities.
