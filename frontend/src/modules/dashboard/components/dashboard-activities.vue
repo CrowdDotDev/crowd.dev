@@ -91,7 +91,6 @@ const {
   chartData, activities,
 } = mapGetters('dashboard');
 
-
 const mapData = (data: any[]) => data.map((item) => ({
   label: item.date,
   value: item.count,
