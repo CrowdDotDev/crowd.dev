@@ -89,7 +89,7 @@ const {
   chartData, activities,
 } = mapGetters('dashboard');
 
-const tab = ref('recentActivities');
+const tab = ref('recentConversations');
 
 const datasets = [{
   name: 'new activities',
