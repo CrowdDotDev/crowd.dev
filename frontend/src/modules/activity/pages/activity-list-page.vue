@@ -83,7 +83,7 @@ import AppActivityTypeListDrawer from '@/modules/activity/components/type/activi
 import AppActivityFormDrawer from '@/modules/activity/components/activity-form-drawer.vue';
 import AppActivityTypeFormModal from '@/modules/activity/components/type/activity-type-form-modal.vue';
 import AppActivityList from '@/modules/activity/components/activity-list.vue';
-import AppConversationList from '@/modules/conversation/components/conversation-list.vue';
+// import AppConversationList from '@/modules/conversation/components/conversation-list.vue';
 import AppLfPageHeader from '@/modules/lf/layout/components/lf-page-header.vue';
 import AppLfSubProjectsListModal from '@/modules/lf/segments/components/lf-sub-projects-list-modal.vue';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';

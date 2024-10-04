@@ -42,11 +42,7 @@ export async function getNumberOfNewMembers(
   let query = 'SELECT DISTINCT COUNT(m.id) FROM members m'
 
   if (arg.segmentIds) {
-    query += ' INNER JOIN "memberSegments" ms on ms."memberId" = m.id'
-  }
-
-  if (arg.platform) {
-    query += ' INNER JOIN "memberIdentities" mi ON mi."memberId" = m.id'
+    query += ' INNER JOIN "memberSegmentsAgg" msa on msa."memberId" = m.id'
   }
 
   query += ` WHERE m."tenantId" = $(tenantId)
@@ -57,11 +53,11 @@ export async function getNumberOfNewMembers(
     AND m."deletedAt" IS NULL`
 
   if (arg.segmentIds) {
-    query += ' AND ms."segmentId" IN ($(segmentIds:csv))'
+    query += ' AND msa."segmentId" IN ($(segmentIds:csv))'
   }
 
   if (arg.platform) {
-    query += ' AND mi.platform = $(platform)'
+    query += ' AND $(platform) = ANY(msa."activeOn")'
   }
 
   query += ';'
