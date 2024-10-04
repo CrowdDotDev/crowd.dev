@@ -45,6 +45,7 @@ const spacing = {
   58: '14.5rem',
   60: '15rem',
   64: '16rem',
+  65: '16.25rem',
   68: '17rem',
   70: '17.5rem',
   72: '18rem',
@@ -297,6 +298,7 @@ module.exports = {
       DEFAULT: '1px',
       0: '0px',
       2: '2px',
+      3: '3px',
       4: '4px',
       8: '8px'
     },

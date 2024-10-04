@@ -29,7 +29,7 @@
       <div class="flex items-center">
         <div class=" flex items-center">
           <p v-if="!props.identity.url" class="text-medium max-w-48 truncate">
-            {{ props.identity.handle ?? props.identity.value }}
+            {{ props.identity.handle || props.identity.value }}
           </p>
           <a
             v-else

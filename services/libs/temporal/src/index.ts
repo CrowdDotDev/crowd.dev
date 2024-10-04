@@ -50,6 +50,17 @@ export const getTemporalClient = async (cfg: ITemporalConfig): Promise<Client> =
     dataConverter: await getDataConverter(),
   })
 
+  log.info(
+    {
+      serverUrl: cfg.serverUrl,
+      namespace: cfg.namespace,
+      identity: cfg.identity,
+      certificate: cfg.certificate ? 'yes' : 'no',
+      privateKey: cfg.privateKey ? 'yes' : 'no',
+    },
+    'Connected to temporal!',
+  )
+
   return client
 }
 

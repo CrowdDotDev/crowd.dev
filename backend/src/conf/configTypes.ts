@@ -2,7 +2,6 @@ import { ITemporalConfig } from '@crowd/temporal'
 
 export enum ServiceType {
   API = 'api',
-  NODEJS_WORKER = 'nodejs-worker',
   JOB_GENERATOR = 'job-generator',
 }
 
@@ -13,20 +12,10 @@ export enum TenantMode {
 }
 
 export interface AwsCredentials {
-  accountId: string
+  endpoint: string
   accessKeyId: string
   secretAccessKey: string
   region: string
-}
-
-export interface SQSConfiguration {
-  host?: string
-  port?: number
-  nodejsWorkerQueue: string
-  nodejsWorkerPriorityQueue: string
-  integrationRunWorkerQueue: string
-  pythonWorkerQueue: string
-  aws: AwsCredentials
 }
 
 export interface S3Configuration {
@@ -54,8 +43,6 @@ export interface DbConfiguration {
   password?: string
   apiUsername?: string
   apiPassword?: string
-  nodejsWorkerUsername?: string
-  nodejsWorkerPassword?: string
   jobGeneratorUsername?: string
   jobGeneratorPassword?: string
 
@@ -174,12 +161,6 @@ export interface NetlifyConfiguration {
   siteDomain: string
 }
 
-export interface CubeJSConfiguration {
-  url: string
-  jwtSecret: string
-  jwtExpiry: string
-}
-
 export interface NangoConfiguration {
   url: string
   secretKey: string
@@ -240,9 +221,8 @@ export interface WeeklyEmailsConfiguration {
 
 export interface IOpenSearchConfig {
   node: string
-  region?: string
-  accessKeyId?: string
-  secretAccessKey?: string
+  username: string
+  password: string
 }
 
 export interface CrowdAnalyticsConfiguration {

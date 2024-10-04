@@ -1,4 +1,3 @@
-export * from './activity.sync.service'
 export * from './member.search.service'
 export * from './member.sync.service'
 export * from './opensearch.service'

@@ -7,10 +7,12 @@ import membersEditManualAffiliation from './members-edit-manual-affiliation';
 import membersEditOrganizations from './members-edit-organizations';
 import membersEditProfile from './members-edit-profile';
 import membersMerge from './members-merge';
+import membersUnmerge from './members-unmerge';
 import organizationsCreate from './organizations-create';
 import organizationsEditIdentities from './organizations-edit-identities';
 import organizationsEditProfile from './organizations-edit-profile';
 import organizationsMerge from './organizations-merge';
+import organizationsUnmerge from './organizations-unmerge';
 
 export interface LogRenderingConfig {
   label: string;
@@ -39,10 +41,12 @@ export const logRenderingConfig: Record<ActionType, LogRenderingConfig> = {
   [ActionType.MEMBERS_EDIT_ORGANIZATIONS]: membersEditOrganizations,
   [ActionType.MEMBERS_EDIT_PROFILE]: membersEditProfile,
   [ActionType.MEMBERS_MERGE]: membersMerge,
+  [ActionType.MEMBERS_UNMERGE]: membersUnmerge,
 
   // Organizations
   [ActionType.ORGANIZATIONS_CREATE]: organizationsCreate,
   [ActionType.ORGANIZATIONS_EDIT_IDENTITIES]: organizationsEditIdentities,
   [ActionType.ORGANIZATIONS_EDIT_PROFILE]: organizationsEditProfile,
   [ActionType.ORGANIZATIONS_MERGE]: organizationsMerge,
+  [ActionType.ORGANIZATIONS_UNMERGE]: organizationsUnmerge,
 };

@@ -5,5 +5,5 @@
   "unleash": {},
   "redis": {},
   "db": {},
-  "sqs": {}
+  "queue": {}
 }

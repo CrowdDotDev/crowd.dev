@@ -1,7 +1,9 @@
-import { Tracer } from '@crowd/tracing'
-import { Logger } from '@crowd/logging'
+import { DataSinkWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/common_services'
 import { DbConnection, DbStore } from '@crowd/data-access-layer/src/database'
-import { DATA_SINK_WORKER_QUEUE_SETTINGS, SqsClient, SqsPrioritizedQueueReciever } from '@crowd/sqs'
+import { Logger } from '@crowd/logging'
+import { CrowdQueue, IQueue, PrioritizedQueueReciever } from '@crowd/queue'
+import { RedisClient } from '@crowd/redis'
+import { Client as TemporalClient } from '@crowd/temporal'
 import {
   CreateAndProcessActivityResultQueueMessage,
   DataSinkWorkerQueueMessageType,
@@ -9,39 +11,28 @@ import {
   ProcessIntegrationResultQueueMessage,
   QueuePriorityLevel,
 } from '@crowd/types'
-import DataSinkService from '../service/dataSink.service'
-import { RedisClient } from '@crowd/redis'
-import { Unleash } from '@crowd/feature-flags'
-import { Client as TemporalClient } from '@crowd/temporal'
-import {
-  DataSinkWorkerEmitter,
-  NodejsWorkerEmitter,
-  SearchSyncWorkerEmitter,
-} from '@crowd/common_services'
 import { performance } from 'perf_hooks'
+import DataSinkService from '../service/dataSink.service'
 
-export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
+export class WorkerQueueReceiver extends PrioritizedQueueReciever {
   private readonly timingMap = new Map<string, { count: number; time: number }>()
 
   constructor(
     level: QueuePriorityLevel,
-    client: SqsClient,
-    private readonly dbConn: DbConnection,
-    private readonly nodejsWorkerEmitter: NodejsWorkerEmitter,
+    client: IQueue,
+    private readonly pgConn: DbConnection,
+    private readonly qdbConn: DbConnection,
     private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
     private readonly dataSinkWorkerEmitter: DataSinkWorkerEmitter,
     private readonly redisClient: RedisClient,
-    private readonly unleash: Unleash | undefined,
     private readonly temporal: TemporalClient,
-    tracer: Tracer,
     parentLog: Logger,
   ) {
     super(
       level,
       client,
-      DATA_SINK_WORKER_QUEUE_SETTINGS,
+      client.getQueueChannelConfig(CrowdQueue.DATA_SINK_WORKER),
       20,
-      tracer,
       parentLog,
       undefined,
       undefined,
@@ -56,12 +47,11 @@ export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
       this.log.trace({ messageType: message.type }, 'Processing message!')
 
       const service = new DataSinkService(
-        new DbStore(this.log, this.dbConn, undefined, false),
-        this.nodejsWorkerEmitter,
+        new DbStore(this.log, this.pgConn, undefined, false),
+        new DbStore(this.log, this.qdbConn, undefined, false),
         this.searchSyncWorkerEmitter,
         this.dataSinkWorkerEmitter,
         this.redisClient,
-        this.unleash,
         this.temporal,
         this.log,
       )
@@ -94,7 +84,7 @@ export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
     } finally {
       const endTime = performance.now()
       const duration = endTime - startTime
-      this.log.debug({ msgType: message.type }, `Message processed in ${duration.toFixed(2)}ms!`)
+      this.log.info({ msgType: message.type }, `Message processed in ${duration.toFixed(2)}ms!`)
 
       if (this.timingMap.has(message.type)) {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -106,7 +96,7 @@ export class WorkerQueueReceiver extends SqsPrioritizedQueueReciever {
 
       const data = this.timingMap.get(message.type)
 
-      this.log.debug(
+      this.log.info(
         { msgType: message.type },
         `Average processing time: ${data.time / data.count}ms!`,
       )

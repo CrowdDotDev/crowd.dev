@@ -9,7 +9,7 @@ a given member.
 */
 export async function updateMemberAffiliations(input: MemberUpdateInput): Promise<void> {
   try {
-    await runMemberAffiliationsUpdate(svc.postgres.writer, input.member.id)
+    await runMemberAffiliationsUpdate(svc.postgres.writer, svc.questdbSQL, input.member.id)
   } catch (err) {
     throw new Error(err)
   }

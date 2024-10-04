@@ -1,0 +1,10 @@
+CREATE TABLE IF NOT EXISTS "githubInstallations" (
+    "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    "installationId" VARCHAR(255) NOT NULL UNIQUE,
+    "type" VARCHAR(255) NOT NULL,
+    "numRepos" INTEGER NOT NULL,
+    "login" VARCHAR(255) NOT NULL,
+    "avatarUrl" TEXT,
+    "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);

@@ -2,7 +2,7 @@ version: '3.1'
 
 services:
   db-test:
-    image: postgres:13.6-alpine
+    image: postgres:14-alpine
     environment:
       POSTGRES_PASSWORD: example
       POSTGRES_DB: crowd-web
@@ -11,12 +11,34 @@ services:
     networks:
       - crowd-bridge-test
 
-  sqs:
-    build:
-      context: ../scripts/scaffold/sqs
+  product-db-test:
+    image: postgres:14-alpine
+    environment:
+      POSTGRES_PASSWORD: example
+      POSTGRES_DB: product-db
     ports:
-      - 9325:9324
-      - 9326:9325
+      - 5435:5432
+    networks:
+      - crowd-bridge-test
+
+  kafka:
+    image: bitnami/kafka:latest
+    restart: unless-stopped
+    environment:
+      - KAFKA_CFG_NODE_ID=0
+      - KAFKA_CFG_PROCESS_ROLES=controller,broker
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://0.0.0.0:9097,PLAINTEXT_HOST://0.0.0.0:9098,CONTROLLER://0.0.0.0:9099
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,CONTROLLER:PLAINTEXT
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@kafka:9094
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092,PLAINTEXT_HOST://127.0.0.1:9098
+      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=PLAINTEXT
+      - KAFKA_CFG_LOG_DIRS=/opt/bitnami/kafka/data
+      - KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+    ports:
+      - '9097:9092'
+      - '9098:9093'
+      - '9099:9094'
     networks:
       - crowd-bridge-test
 

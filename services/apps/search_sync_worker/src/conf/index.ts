@@ -1,14 +1,13 @@
 import { IDatabaseConfig } from '@crowd/data-access-layer/src/database'
+import { IQueueClientConfig } from '@crowd/queue'
 import { IRedisConfiguration } from '@crowd/redis'
-import { ISqsClientConfig } from '@crowd/sqs'
 import { QueuePriorityLevel } from '@crowd/types'
 import config from 'config'
 
 export interface IOpenSearchConfig {
   node: string
-  region?: string
-  accessKeyId?: string
-  secretAccessKey?: string
+  username: string
+  password: string
 }
 
 export interface IServiceConfig {
@@ -31,12 +30,12 @@ export const OPENSEARCH_CONFIG = (): IOpenSearchConfig => {
   return openSearchConfig
 }
 
-let sqsConfig: ISqsClientConfig
-export const SQS_CONFIG = (): ISqsClientConfig => {
-  if (sqsConfig) return sqsConfig
+let queueConfig: IQueueClientConfig
+export const QUEUE_CONFIG = (): IQueueClientConfig => {
+  if (queueConfig) return queueConfig
 
-  sqsConfig = config.get<ISqsClientConfig>('sqs')
-  return sqsConfig
+  queueConfig = config.get<IQueueClientConfig>('queue')
+  return queueConfig
 }
 
 let dbConfig: IDatabaseConfig

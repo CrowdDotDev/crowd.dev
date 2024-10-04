@@ -2,20 +2,24 @@
   position:relative;
 
   &:before{
-    content: attr(data-tooltip);
-    position:absolute;
-
-    bottom: calc(100% + 0.75rem);
-    left:50%;
-    transform:translateX(-50%);
-
-    width: max-content;
-    max-width: 20rem;
-    display: block;
-    @apply bg-gray-900 text-white rounded-md text-2xs font-medium leading-5 py-0.5 px-1.5 opacity-0 transition invisible;
+    @apply invisible opacity-0 transition;
   }
 
   &:hover:before {
     @apply opacity-100 visible;
   }
+}
+
+[data-tooltip]:before, .el-popper.is-dark{
+  content: attr(data-tooltip);
+  position:absolute;
+
+  bottom: calc(100% + 0.75rem);
+  left:50%;
+  transform:translateX(-50%);
+
+  width: max-content;
+  max-width: 20rem;
+  display: block;
+  @apply bg-gray-900 text-white rounded-md text-2xs font-medium leading-5 py-0.5 px-1.5;
 }

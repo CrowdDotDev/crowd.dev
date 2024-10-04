@@ -105,8 +105,6 @@
     "eslint-plugin-vue": "^9.10.0",
     "mini-css-extract-plugin": "^2.7.5",
     "postcss": "^8.4.21",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
     "rollup-plugin-visualizer": "^5.9.2",
     "sass": "^1.60.0",
     "storybook": "^7.6.10",

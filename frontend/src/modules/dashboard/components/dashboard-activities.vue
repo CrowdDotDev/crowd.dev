@@ -24,21 +24,21 @@
               New activities
             </h6>
             <app-dashboard-count
-              :loading="!cube"
-              :current-total="cube?.activity.total"
-              :previous-total="cube?.activity.previousPeriodTotal"
+              :loading="!chartData"
+              :current-total="chartData?.activity.total"
+              :previous-total="chartData?.activity.previousPeriodTotal"
             />
           </div>
           <div class="w-7/12">
             <div
-              v-if="!cube"
-              v-loading="!cube"
+              v-if="!chartData"
+              v-loading="!chartData"
               class="app-page-spinner h-16 !relative !min-h-5 chart-loading"
             />
             <lf-chart
-              v-else-if="cube?.activity.timeseries?.length"
+              v-else-if="chartData?.activity.timeseries?.length"
               :config="lfxCharts.dashboardAreaChart"
-              :data="mapData(cube?.activity.timeseries)"
+              :data="mapData(chartData?.activity.timeseries)"
               :params="{ label: 'new activities' }"
             />
           </div>
@@ -82,17 +82,15 @@ import AppDashboardActivityList from '@/modules/dashboard/components/activity/da
 import AppDashboardActivitySentiment from '@/modules/dashboard/components/activity/dashboard-activity-sentiment.vue';
 import AppDashboardCount from '@/modules/dashboard/components/dashboard-count.vue';
 import { filterQueryService } from '@/shared/modules/filters/services/filter-query.service';
-import { computed, ref } from 'vue';
+import { ref } from 'vue';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
-import { DashboardCubeData } from '@/modules/dashboard/types/DashboardCubeData';
 import { lfxCharts } from '@/config/charts';
 import LfChart from '@/ui-kit/chart/Chart.vue';
 
 const {
-  cubeData, activities,
+  chartData, activities,
 } = mapGetters('dashboard');
 
-const cube = computed<DashboardCubeData>(() => cubeData.value);
 
 const mapData = (data: any[]) => data.map((item) => ({
   label: item.date,

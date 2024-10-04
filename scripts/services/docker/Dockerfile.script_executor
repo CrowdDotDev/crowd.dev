@@ -4,6 +4,6 @@ RUN corepack enable
 
 WORKDIR /usr/crowd/app
 
-RUN git clone https://github.com/CrowdDotDev/crowd.dev.git && cd crowd.dev && pnpm i --frozen-lockfile
+RUN apk add --no-cache nano git python3 py3-pip make build-base && rm -rf /var/cache/apk/* && git clone https://github.com/CrowdDotDev/crowd.dev.git && cd crowd.dev && pnpm i --frozen-lockfile
 
 WORKDIR /usr/crowd/app/crowd.dev

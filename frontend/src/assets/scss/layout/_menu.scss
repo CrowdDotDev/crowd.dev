@@ -1,0 +1,32 @@
+.l-menu{
+  @apply border-r border-gray-200 bg-white py-4 flex flex-col transition-all;
+
+  &__link{
+    @apply w-65 flex flex-nowrap items-center border-l-3 h-9 px-5 border-transparent text-gray-900 text-medium;
+
+    .c-icon{
+      @apply text-gray-400 mr-3 font-normal;
+    }
+
+    &:hover:not(.is-disabled, .is-active){
+      @apply text-gray-900 #{!important};
+      @apply bg-gray-50;
+    }
+
+    &.is-active{
+      @apply bg-primary-50 border-primary-500 font-bold text-gray-900 #{!important};
+
+      .c-icon{
+        @apply text-black;
+      }
+    }
+
+    &.is-disabled{
+      @apply text-gray-400 cursor-not-allowed #{!important};
+
+      .c-icon{
+        @apply text-gray-300 #{!important};
+      }
+    }
+  }
+}

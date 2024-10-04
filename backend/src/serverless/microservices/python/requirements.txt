@@ -1,3 +1,0 @@
--e ./crowd-backend
--e ./crowd-members-score
-python-json-logger

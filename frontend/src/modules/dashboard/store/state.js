@@ -9,7 +9,7 @@ export default () => ({
       childSegments: [],
     },
   },
-  cubeData: null,
+  chartData: null,
   conversations: {
     loading: false,
     recent: [],

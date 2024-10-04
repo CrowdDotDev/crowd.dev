@@ -24,22 +24,22 @@
               New people
             </h6>
             <app-dashboard-count
-              :loading="!cube"
-              :current-total="cube?.newMembers.total"
-              :previous-total="cube?.newMembers.previousPeriodTotal"
+              :loading="!chartData"
+              :current-total="chartData?.newMembers.total"
+              :previous-total="chartData?.newMembers.previousPeriodTotal"
             />
           </div>
           <div class="w-7/12">
             <!-- Chart -->
             <div
-              v-if="!cube"
-              v-loading="!cube"
+              v-if="!chartData"
+              v-loading="!chartData"
               class="app-page-spinner !relative chart-loading"
             />
             <lf-chart
-              v-else-if="cube?.newMembers.timeseries?.length"
+              v-else-if="chartData?.newMembers.timeseries?.length"
               :config="lfxCharts.dashboardAreaChart"
-              :data="mapData(cube?.newMembers.timeseries)"
+              :data="mapData(chartData?.newMembers.timeseries)"
               :params="{ label: 'new people' }"
             />
           </div>
@@ -131,22 +131,22 @@
 
             <!-- info -->
             <app-dashboard-count
-              :loading="!cube"
-              :current-total="cube?.activeMembers.total"
-              :previous-total="cube?.activeMembers.previousPeriodTotal"
+              :loading="!chartData"
+              :current-total="chartData?.activeMembers.total"
+              :previous-total="chartData?.activeMembers.previousPeriodTotal"
             />
           </div>
           <div class="w-7/12 h-21">
             <!-- Chart -->
             <div
-              v-if="!cube"
-              v-loading="!cube"
+              v-if="!chartData"
+              v-loading="!chartData"
               class="app-page-spinner !relative chart-loading"
             />
             <lf-chart
-              v-else-if="cube?.activeMembers.timeseries?.length"
+              v-else-if="chartData?.activeMembers.timeseries?.length"
               :config="lfxCharts.dashboardAreaChart"
-              :data="mapData(cube?.activeMembers.timeseries)"
+              :data="mapData(chartData?.activeMembers.timeseries)"
               :params="{ label: 'active people' }"
             />
           </div>
@@ -214,6 +214,8 @@
 </template>
 
 <script lang="ts" setup>
+import { computed } from 'vue';
+import moment from 'moment';
 import { formatDateToTimeAgo } from '@/utils/date';
 import AppDashboardEmptyState from '@/modules/dashboard/components/dashboard-empty-state.vue';
 import AppDashboardWidgetHeader from '@/modules/dashboard/components/dashboard-widget-header.vue';
@@ -222,18 +224,13 @@ import AppDashboardCount from '@/modules/dashboard/components/dashboard-count.vu
 import { filterQueryService } from '@/shared/modules/filters/services/filter-query.service';
 import allMembers from '@/modules/member/config/saved-views/views/all-members';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
-import { computed } from 'vue';
-import moment from 'moment';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
-import { DashboardCubeData } from '@/modules/dashboard/types/DashboardCubeData';
 import { lfxCharts } from '@/config/charts';
 import LfChart from '@/ui-kit/chart/Chart.vue';
 
 const {
-  cubeData, members, period, activeMembers, recentMembers,
+  chartData, members, period, activeMembers, recentMembers,
 } = mapGetters('dashboard');
-
-const cube = computed<DashboardCubeData>(() => cubeData.value);
 
 const mapData = (data: any[]) => data.map((item) => ({
   label: item.date,

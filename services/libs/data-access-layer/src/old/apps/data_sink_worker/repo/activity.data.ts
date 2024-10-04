@@ -17,6 +17,7 @@ export interface IDbActivity {
   objectMemberId?: string
   objectMemberUsername?: string
   attributes: Record<string, unknown>
+  importHash?: string
   body?: string
   title?: string
   channel?: string
@@ -27,6 +28,7 @@ export interface IDbActivity {
 }
 
 export interface IDbActivityCreateData {
+  id?: string
   type: string
   timestamp: string
   platform: string
@@ -34,11 +36,13 @@ export interface IDbActivityCreateData {
   score: number
   sourceId: string
   sourceParentId?: string
+  importHash?: string
   parentId?: string
   tenantId: string
+  segmentId?: string
   memberId: string
   username: string
-  sentiment: ISentimentAnalysisResult
+  sentiment?: ISentimentAnalysisResult
   attributes: Record<string, unknown>
   body?: string
   title?: string
@@ -47,6 +51,14 @@ export interface IDbActivityCreateData {
   organizationId?: string
   objectMemberId?: string
   objectMemberUsername?: string
+  isTeamMemberActivity?: boolean
+  isBotActivity?: boolean
+  conversationId?: string
+  createdById?: string
+  updatedById?: string
+  createdAt?: string
+  updatedAt?: string
+  deletedAt?: string
 }
 
 let insertActivityColumnSet: DbColumnSet
@@ -95,20 +107,27 @@ export interface IDbActivityUpdateData {
   type: string
   isContribution: boolean
   score: number
+  parentId?: string
   sourceId: string
   sourceParentId?: string
+  tenantId?: string
+  segmentId?: string
   memberId: string
   username: string
   objectMemberId?: string
   objectMemberUsername?: string
-  sentiment: ISentimentAnalysisResult
+  sentiment?: ISentimentAnalysisResult
   attributes?: Record<string, unknown>
   body?: string
   title?: string
   channel?: string
   url?: string
   organizationId?: string
+  conversationId?: string
   platform?: PlatformType
+  isTeamMemberActivity?: boolean
+  isBotActivity?: boolean
+  updatedById?: string
 }
 
 let updateActivityColumnSet: DbColumnSet

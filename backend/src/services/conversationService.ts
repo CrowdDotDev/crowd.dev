@@ -1,9 +1,22 @@
-import { getCleanString, Error403 } from '@crowd/common'
+import { Error403, distinct, getCleanString, single, singleOrDefault } from '@crowd/common'
+import {
+  DEFAULT_COLUMNS_TO_SELECT,
+  IQueryActivityResult,
+  deleteConversations,
+  insertConversation,
+  queryActivities,
+  queryConversations,
+  queryMembersAdvanced,
+} from '@crowd/data-access-layer'
+import { optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
+import { ActivityDisplayService } from '@crowd/integrations'
 import { LoggerBase } from '@crowd/logging'
-import { PlatformType } from '@crowd/types'
+import { PageData, PlatformType } from '@crowd/types'
 import emoji from 'emoji-dictionary'
 import { convert as convertHtmlToText } from 'html-to-text'
 import fetch from 'node-fetch'
+import SegmentRepository from '@/database/repositories/segmentRepository'
+import OrganizationRepository from '@/database/repositories/organizationRepository'
 import { S3_CONFIG } from '../conf/index'
 import ConversationRepository from '../database/repositories/conversationRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
@@ -33,6 +46,21 @@ export default class ConversationService extends LoggerBase {
       const record = await ConversationRepository.create(data, {
         ...this.options,
         transaction,
+      })
+
+      const currentSegment = SequelizeRepository.getStrictlySingleActiveSegment(this.options)
+      const currentUser = SequelizeRepository.getCurrentUser(this.options)
+
+      await insertConversation(this.options.qdb, {
+        id: record.id,
+        tenantId: this.options.currentTenant.id,
+        segmentId: currentSegment.id,
+        title: data.title,
+        published: data.published,
+        slug: data.slug,
+        timestamp: new Date(Date.now()),
+        createdById: currentUser.id,
+        updatedById: currentUser.id,
       })
 
       telemetryTrack(
@@ -124,17 +152,6 @@ export default class ConversationService extends LoggerBase {
         await ConversationSettingsService.updateCustomDomainNetlify(data.customUrl)
       }
 
-      if (
-        data.autoPublish &&
-        data.autoPublish.status &&
-        ConversationSettingsService.isAutoPublishUpdated(
-          data.autoPublish,
-          conversationSettings.autoPublish,
-        )
-      ) {
-        await this.autoPublishPastConversations(data.autoPublish)
-      }
-
       conversationSettings = await ConversationSettingsService.save(
         {
           enabled: data.enabled,
@@ -220,60 +237,6 @@ export default class ConversationService extends LoggerBase {
     }
 
     return channel
-  }
-
-  /**
-   * Will return true if:
-   * - conversationSettings.autoPublish.status === 'all'
-   * - conversationSettings.autoPublish.status === 'custom' and channel & platform exist within autoPublish.channelsByPlatform
-   *
-   * else returns false
-   *
-   * @param conversationSettings
-   * @param platform
-   * @param channel
-   *
-   * @returns shouldAutoPublish
-   */
-  static shouldAutoPublishConversation(conversationSettings, platform, channel) {
-    let shouldAutoPublish = false
-
-    if (!conversationSettings.autoPublish) {
-      return shouldAutoPublish
-    }
-
-    if (conversationSettings.autoPublish.status === 'all') {
-      shouldAutoPublish = true
-    } else if (conversationSettings.autoPublish.status === 'custom') {
-      shouldAutoPublish =
-        conversationSettings.autoPublish.channelsByPlatform[platform] &&
-        conversationSettings.autoPublish.channelsByPlatform[platform].includes(channel)
-    }
-    return shouldAutoPublish
-  }
-
-  async autoPublishPastConversations(dataAutoPublish) {
-    const conversations = await ConversationRepository.findAndCountAll(
-      {
-        filter: {
-          published: false,
-        },
-        lazyLoad: ['activities'],
-      },
-      this.options,
-    )
-
-    for (const conversation of conversations.rows) {
-      if (
-        ConversationService.shouldAutoPublishConversation(
-          { autoPublish: dataAutoPublish },
-          conversation.platform,
-          conversation.channel,
-        )
-      ) {
-        await this.update(conversation.id, { published: true })
-      }
-    }
   }
 
   /**
@@ -372,6 +335,7 @@ export default class ConversationService extends LoggerBase {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
+      await deleteConversations(this.options.qdb, ids)
       for (const id of ids) {
         await ConversationRepository.destroy(id, {
           ...this.options,
@@ -390,20 +354,212 @@ export default class ConversationService extends LoggerBase {
     return ConversationRepository.findById(id, this.options)
   }
 
-  async findAndCountAll(args) {
-    return ConversationRepository.findAndCountAll(args, this.options)
+  async findAndCountAll(data) {
+    const filter = data.filter
+    const orderBy = Array.isArray(data.orderBy) ? data.orderBy : [data.orderBy]
+    const limit = data.limit
+    const offset = data.offset
+    const countOnly = data.countOnly ?? false
+
+    const tenantId = SequelizeRepository.getCurrentTenant(this.options).id
+    const segmentIds = SequelizeRepository.getSegmentIds(this.options)
+
+    const page = await queryConversations(this.options.qdb, {
+      tenantId,
+      segmentIds,
+      filter,
+      orderBy,
+      limit,
+      offset,
+      countOnly,
+    })
+
+    const conversationIds = page.rows.map((r) => r.id)
+    const activities = await queryActivities(this.options.qdb, {
+      filter: {
+        and: [{ conversationId: { in: conversationIds } }],
+      },
+      tenantId,
+      segmentIds,
+      noLimit: true,
+    })
+    const memberIds = distinct(activities.rows.map((a) => a.memberId))
+    const organizationIds = distinct(
+      activities.rows.filter((a) => a.organizationId).map((a) => a.organizationId),
+    )
+
+    const promises = []
+    if (memberIds.length > 0) {
+      promises.push(
+        queryMembersAdvanced(
+          optionsQx(this.options),
+          this.options.redis,
+          this.options.currentTenant.id,
+          {
+            filter: {
+              and: [{ id: { in: memberIds } }],
+            },
+            limit: memberIds.length,
+          },
+        ).then((members) => {
+          for (const row of activities.rows) {
+            ;(row as any).member = singleOrDefault(members.rows, (m) => m.id === row.memberId)
+            if (row.objectMemberId) {
+              ;(row as any).objectMember = singleOrDefault(
+                members.rows,
+                (m) => m.id === row.objectMemberId,
+              )
+            }
+          }
+        }),
+      )
+    }
+
+    if (organizationIds.length > 0) {
+      promises.push(
+        OrganizationRepository.findAndCountAll(
+          {
+            filter: {
+              and: [{ id: { in: organizationIds } }],
+            },
+            limit: organizationIds.length,
+          },
+          this.options,
+        ).then((organizations) => {
+          for (const row of activities.rows.filter((r) => r.organizationId)) {
+            ;(row as any).organization = singleOrDefault(
+              organizations.rows,
+              (o) => o.id === row.organizationId,
+            )
+          }
+        }),
+      )
+    }
+
+    await Promise.all(promises)
+
+    for (const conversation of page.rows as any[]) {
+      // find the first one
+      const firstActivity = single(
+        activities.rows,
+        (a) => a.conversationId === conversation.id && a.parentId === null,
+      )
+
+      const remainingActivities = activities.rows
+        .filter((a) => a.conversationId === conversation.id && a.parentId !== null)
+        .sort(
+          (a, b) =>
+            // from oldest to newest
+            new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+        )
+
+      conversation.activities = [firstActivity, ...remainingActivities]
+      for (const activity of conversation.activities) {
+        activity.display = ActivityDisplayService.getDisplayOptions(
+          activity,
+          SegmentRepository.getActivityTypes(this.options),
+        )
+      }
+
+      conversation.conversationStarter = conversation.activities[0] ?? null
+
+      if (conversation.platform && conversation.platform === PlatformType.GITHUB) {
+        conversation.channel = ConversationRepository.extractGitHubRepoPath(conversation.channel)
+      }
+    }
+
+    return page
+  }
+
+  async count(filter: any) {
+    const tenantId = SequelizeRepository.getCurrentTenant(this.options).id
+    const segmentIds = SequelizeRepository.getSegmentIds(this.options)
+
+    const results = await queryConversations(this.options.qdb, {
+      tenantId,
+      segmentIds,
+      filter,
+      countOnly: true,
+    })
+
+    return results.count
   }
 
   async query(data) {
-    const advancedFilter = data.filter
-    const orderBy = data.orderBy
+    const filter = data.filter
+    const orderBy = Array.isArray(data.orderBy) ? data.orderBy : [data.orderBy]
     const limit = data.limit
     const offset = data.offset
-    const lazyLoad = ['activities']
-    return ConversationRepository.findAndCountAll(
-      { advancedFilter, orderBy, limit, offset, lazyLoad },
-      this.options,
-    )
+    const countOnly = data.countOnly ?? false
+
+    const tenantId = SequelizeRepository.getCurrentTenant(this.options).id
+    const segmentIds = SequelizeRepository.getSegmentIds(this.options)
+
+    const results = await queryConversations(this.options.qdb, {
+      tenantId,
+      segmentIds,
+      filter,
+      orderBy,
+      limit,
+      offset,
+      countOnly,
+    })
+
+    const conversationIds = results.rows.map((r) => r.id)
+    const activities = (await queryActivities(
+      this.options.qdb,
+      {
+        filter: {
+          and: [{ conversationId: { in: conversationIds } }],
+        },
+        tenantId,
+        segmentIds,
+        noLimit: true,
+      },
+      DEFAULT_COLUMNS_TO_SELECT,
+    )) as PageData<IQueryActivityResult>
+
+    const memberIds = distinct(activities.rows.map((a) => a.memberId))
+    if (memberIds.length > 0) {
+      const memberResults = await queryMembersAdvanced(
+        optionsQx(this.options),
+        this.options.redis,
+        this.options.currentTenant.id,
+        { filter: { and: [{ id: { in: memberIds } }] }, limit: memberIds.length },
+      )
+
+      for (const activity of activities.rows) {
+        ;(activity as any).member = singleOrDefault(
+          memberResults.rows,
+          (m) => m.id === activity.memberId,
+        )
+      }
+    }
+
+    for (const activity of activities.rows) {
+      ;(activity as any).display = ActivityDisplayService.getDisplayOptions(
+        activity,
+        SegmentRepository.getActivityTypes(this.options),
+      )
+    }
+
+    for (const conversation of results.rows) {
+      const data = conversation as any
+      data.activities = activities.rows
+        .filter((a) => a.conversationId === conversation.id)
+        .sort(
+          (a, b) =>
+            // from oldest to newest
+            new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+        )
+
+      // TODO questdb: This should not be needed. Front-end must be updated to
+      // only get activities array.
+      data.conversationStarter = data.activities[0]
+      data.lastReplies = data.activities.slice(1)
+    }
+
+    return results
   }
 
   /**
@@ -414,7 +570,16 @@ export default class ConversationService extends LoggerBase {
    */
   async generateTitle(title: string, isHtml: boolean = false): Promise<string> {
     if (!title || getCleanString(title) === '') {
-      return `conversation-${await ConversationRepository.count({}, this.options)}`
+      const currentTenant = SequelizeRepository.getCurrentTenant(this.options)
+      const segmentIds = SequelizeRepository.getSegmentIds(this.options)
+
+      const results = await queryConversations(this.options.qdb, {
+        tenantId: currentTenant.id,
+        segmentIds,
+        countOnly: true,
+      })
+
+      return `conversation-${results.count}`
     }
 
     if (isHtml) {
@@ -440,6 +605,7 @@ export default class ConversationService extends LoggerBase {
         true,
       )
 
+      await deleteConversations(this.options.qdb, ids)
       await SequelizeRepository.commitTransaction(transaction)
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
@@ -473,23 +639,17 @@ export default class ConversationService extends LoggerBase {
     cleanedSlug = cleanedSlug.replace(/-$/gi, '')
 
     // check generated slug already exists in tenant
-    let checkSlug = await ConversationRepository.findAndCountAll(
-      { filter: { slug: cleanedSlug } },
-      this.options,
-    )
+    let checkSlugCount = await this.count({ and: [{ slug: cleanedSlug }] })
 
     // generated slug already exists in the tenant, start adding suffixes and re-check
-    if (checkSlug.count > 0) {
+    if (checkSlugCount > 0) {
       let suffix = 1
 
       const slugCopy = cleanedSlug
 
-      while (checkSlug.count > 0) {
+      while (checkSlugCount > 0) {
         const suffixedSlug = `${slugCopy}-${suffix}`
-        checkSlug = await ConversationRepository.findAndCountAll(
-          { filter: { slug: suffixedSlug } },
-          this.options,
-        )
+        checkSlugCount = await this.count({ and: [{ slug: suffixedSlug }] })
         suffix += 1
         cleanedSlug = suffixedSlug
       }

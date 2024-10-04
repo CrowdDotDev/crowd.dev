@@ -60,9 +60,9 @@
       </lf-dropdown>
     </div>
 
-    <div class="pl-7">
+    <div v-if="platformLabel(props.domain.platforms).length" class="pl-7">
       <p class="text-tiny text-gray-400">
-        Source: {{ platformLabel(props.domain.platforms) }}
+        Source: <span v-html="$sanitize(platformLabel(props.domain.platforms))" />
       </p>
     </div>
   </article>

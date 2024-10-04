@@ -1,9 +1,9 @@
-import { Hash } from '@aws-sdk/hash-node'
+import { S3RequestPresigner } from '@aws-sdk/s3-request-presigner'
 import { parseUrl } from '@aws-sdk/url-parser'
 import { formatUrl } from '@aws-sdk/util-format-url'
-import { HttpRequest } from '@aws-sdk/protocol-http'
-import { S3RequestPresigner } from '@aws-sdk/s3-request-presigner'
 
+import { Hash } from '@aws-sdk/hash-node'
+import { HttpRequest } from '@aws-sdk/protocol-http'
 import { ResultS3Upload } from '../types/s3'
 
 /*
@@ -24,7 +24,17 @@ export async function getPresignedUrl(input: ResultS3Upload): Promise<ResultS3Up
       sha256: Hash.bind(null, 'sha256'),
     })
 
-    presignedUrl = formatUrl(await presigner.presign(new HttpRequest(awsS3ObjectUrl)))
+    const httpRequest = new HttpRequest({
+      ...awsS3ObjectUrl,
+      method: 'GET',
+    })
+
+    if (process.env['CROWD_S3_ENDPOINT']) {
+      // Ensure the correct endpoint is used
+      httpRequest.hostname = new URL(process.env['CROWD_S3_ENDPOINT']).hostname
+    }
+
+    presignedUrl = formatUrl(await presigner.presign(httpRequest, { expiresIn: 3600 }))
   } catch (err) {
     throw new Error(err)
   }

@@ -1,3 +1,4 @@
+import { IMemberSegmentAggregates } from '@crowd/data-access-layer/src/members/types'
 import { MemberIdentityType } from '@crowd/types'
 
 export interface IDbMemberIdentityData {
@@ -66,7 +67,6 @@ export interface IDbMemberContributionData {
 export interface IDbMemberSyncData {
   id: string
   tenantId: string
-  segmentId: string
   grandParentSegment: boolean
   displayName: string | null
   attributes: unknown | null
@@ -77,14 +77,6 @@ export interface IDbMemberSyncData {
   manuallyCreated: boolean
   reach: unknown | null
   numberOfOpenSourceContributions: number
-
-  // member activity data
-  activeOn: string[]
-  activityCount: number
-  activityTypes: string[]
-  activeDaysCount: number
-  lastActive: string
-  averageSentiment: number | null
 
   contributions: IDbMemberContributionData[]
   affiliations: IDbMemberAffiliationData[]
@@ -101,13 +93,14 @@ export interface IMemberSegmentMatrixItem {
   segmentId: string
   processed: boolean
   data: IDbMemberSyncData
+  aggregates: IMemberSegmentAggregates
 }
 
 export interface IMemberSegmentMatrix {
   [key: string]: IMemberSegmentMatrixItem[]
 }
 
-export interface IMemberSegment {
+export interface IMemberIdData {
   memberId: string
-  segmentId: string
+  manuallyCreated: boolean
 }

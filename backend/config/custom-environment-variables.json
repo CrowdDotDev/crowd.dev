@@ -13,19 +13,9 @@
     "host": "CROWD_REDIS_HOST",
     "port": "CROWD_REDIS_PORT"
   },
-  "sqs": {
-    "host": "CROWD_SQS_HOST",
-    "port": "CROWD_SQS_PORT",
-    "nodejsWorkerQueue": "CROWD_SQS_NODEJS_WORKER_QUEUE",
-    "nodejsWorkerPriorityQueue": "CROWD_SQS_NODEJS_WORKER_PRIORITY_QUEUE",
-    "integrationRunWorkerQueue": "CROWD_SQS_INTEGRATION_RUN_WORKER_QUEUE",
-    "pythonWorkerQueue": "CROWD_SQS_PYTHON_WORKER_QUEUE",
-    "aws": {
-      "accountId": "CROWD_SQS_AWS_ACCOUNT_ID",
-      "accessKeyId": "CROWD_SQS_AWS_ACCESS_KEY_ID",
-      "secretAccessKey": "CROWD_SQS_AWS_SECRET_ACCESS_KEY",
-      "region": "CROWD_SQS_AWS_REGION"
-    }
+  "queue": {
+    "brokers": "CROWD_KAFKA_BROKERS",
+    "extra": "CROWD_KAFKA_EXTRA"
   },
   "s3": {
     "host": "CROWD_S3_HOST",
@@ -33,7 +23,7 @@
     "integrationsAssetsBucket": "CROWD_S3_INTEGRATION_ASSETS_BUCKET",
     "microservicesAssetsBucket": "CROWD_S3_MICROSERVICES_ASSETS_BUCKET",
     "aws": {
-      "accountId": "CROWD_S3_AWS_ACCOUNT_ID",
+      "endpoint": "CROWD_S3_ENDPOINT",
       "accessKeyId": "CROWD_S3_AWS_ACCESS_KEY_ID",
       "secretAccessKey": "CROWD_S3_AWS_SECRET_ACCESS_KEY",
       "region": "CROWD_S3_AWS_REGION"
@@ -47,8 +37,6 @@
     "password": "CROWD_DB_PASSWORD",
     "apiUsername": "CROWD_DB_API_USERNAME",
     "apiPassword": "CROWD_DB_API_PASSWORD",
-    "nodejsWorkerUsername": "CROWD_DB_NODEJS_WORKER_USERNAME",
-    "nodejsWorkerPassword": "CROWD_DB_NODEJS_WORKER_PASSWORD",
     "jobGeneratorUsername": "CROWD_DB_JOB_GENERATOR_USERNAME",
     "jobGeneratorPassword": "CROWD_DB_JOB_GENERATOR_PASSWORD",
     "database": "CROWD_DB_DATABASE",
@@ -60,11 +48,6 @@
     "user": "PRODUCT_DB_USERNAME",
     "password": "PRODUCT_DB_PASSWORD",
     "database": "PRODUCT_DB_DATABASE"
-  },
-  "cubejs": {
-    "url": "CROWD_CUBEJS_URL",
-    "jwtSecret": "CROWD_CUBEJS_JWT_SECRET",
-    "jwtExpiry": "CROWD_CUBEJS_JWT_EXPIRY"
   },
   "segment": {
     "writeKey": "CROWD_SEGMENT_WRITE_KEY"
@@ -196,9 +179,8 @@
   },
   "opensearch": {
     "node": "CROWD_OPENSEARCH_NODE",
-    "region": "CROWD_OPENSEARCH_AWS_REGION",
-    "accessKeyId": "CROWD_OPENSEARCH_AWS_ACCESS_KEY_ID",
-    "secretAccessKey": "CROWD_OPENSEARCH_AWS_SECRET_ACCESS_KEY"
+    "username": "CROWD_OPENSEARCH_USERNAME",
+    "password": "CROWD_OPENSEARCH_PASSWORD"
   },
   "auth0": {
     "clientId": "CROWD_AUTH0_CLIENT_ID",

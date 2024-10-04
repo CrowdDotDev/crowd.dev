@@ -60,7 +60,6 @@ const job: CrowdJob = {
   onTrigger: async () => {
     const database = await databaseInit(1000 * 60 * 15, true)
     const log = getServiceChildLogger('RefreshMVJob')
-
     await refreshMaterializedView('member_segments_mv', database, log)
     await refreshMaterializedView('organization_segments_mv', database, log)
   },

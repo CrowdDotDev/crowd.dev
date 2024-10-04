@@ -14,7 +14,7 @@
   "dependencies": {
     "@crowd/archetype-standard": "workspace:*",
     "@crowd/temporal": "workspace:*",
-    "@temporalio/proto": "~1.8.6",
+    "@temporalio/proto": "~1.11.1",
     "cors": "~2.8.5",
     "express": "~4.18.2",
     "tsx": "^4.7.1",

@@ -3,7 +3,7 @@ import { SearchSyncApiClient } from '@crowd/opensearch'
 import { FeatureFlag, SyncMode } from '@crowd/types'
 import { SearchSyncWorkerEmitter } from '@crowd/common_services'
 import { getSearchSyncApiClient } from '../utils/apiClients'
-import { getSearchSyncWorkerEmitter } from '@/serverless/utils/serviceSQS'
+import { getSearchSyncWorkerEmitter } from '@/serverless/utils/queueService'
 import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
 import { IS_TEST_ENV } from '@/conf'
 import { IServiceOptions } from './IServiceOptions'
@@ -112,63 +112,6 @@ export default class SearchSyncService extends LoggerBase {
 
     if (client instanceof SearchSyncApiClient || client instanceof SearchSyncWorkerEmitter) {
       await client.triggerMemberCleanup(tenantId)
-    } else {
-      throw new Error('Unexpected search client type!')
-    }
-  }
-
-  async triggerActivitySync(tenantId: string, activityId: string) {
-    const client = await this.getSearchSyncClient()
-
-    if (client instanceof SearchSyncApiClient) {
-      await this.logExecutionTime(
-        () => client.triggerActivitySync(activityId),
-        `triggerActivitySync: tenant:${tenantId}, activity:${activityId}`,
-      )
-    } else if (client instanceof SearchSyncWorkerEmitter) {
-      await client.triggerActivitySync(tenantId, activityId, false)
-    } else {
-      throw new Error('Unexpected search client type!')
-    }
-  }
-
-  async triggerTenantActivitiesSync(tenantId: string) {
-    const client = await this.getSearchSyncClient()
-
-    if (client instanceof SearchSyncApiClient || client instanceof SearchSyncWorkerEmitter) {
-      await client.triggerTenantActivitiesSync(tenantId)
-    } else {
-      throw new Error('Unexpected search client type!')
-    }
-  }
-
-  async triggerOrganizationActivitiesSync(tenantId: string, organizationId: string) {
-    const client = await this.getSearchSyncClient()
-
-    if (client instanceof SearchSyncApiClient || client instanceof SearchSyncWorkerEmitter) {
-      await client.triggerOrganizationActivitiesSync(tenantId, organizationId, false)
-    } else {
-      throw new Error('Unexpected search client type!')
-    }
-  }
-
-  async triggerRemoveActivity(tenantId: string, activityId: string) {
-    const client = await this.getSearchSyncClient()
-
-    if (client instanceof SearchSyncApiClient) {
-      await client.triggerRemoveActivity(activityId)
-    } else if (client instanceof SearchSyncWorkerEmitter) {
-      await client.triggerRemoveActivity(tenantId, activityId, false)
-    } else {
-      throw new Error('Unexpected search client type!')
-    }
-  }
-
-  async triggerActivityCleanup(tenantId: string) {
-    const client = await this.getSearchSyncClient()
-
-    if (client instanceof SearchSyncApiClient || client instanceof SearchSyncWorkerEmitter) {
-      await client.triggerActivityCleanup(tenantId)
     } else {
       throw new Error('Unexpected search client type!')
     }
