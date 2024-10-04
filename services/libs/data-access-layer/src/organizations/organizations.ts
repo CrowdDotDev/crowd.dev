@@ -401,7 +401,7 @@ export async function getNumberOfNewOrganizations(
     FROM "organizationSegmentsAgg"
     JOIN organizations o on "organizationId" = o.id
     WHERE "tenantId" = $(tenantId)
-    AND o."createdAt" BETWEEN $(after) AND $(before);
+    AND o."createdAt" BETWEEN $(after) AND $(before)
   `
   if (arg.segmentIds) {
     query += ` AND "segmentId" IN ($(segmentIds:csv))`
