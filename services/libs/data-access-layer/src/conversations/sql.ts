@@ -478,12 +478,27 @@ export async function queryConversations(
 
   if (!baseQuery) {
     baseQuery = `
-    select count_distinct(conversationId) from activities 
-    where "deletedAt" is null and
-          "conversationId" is not null and
+    with activity_data as (
+      select count_distinct(id) as "activityCount",
+             count_distinct("memberId") as "memberCount",
+             max(timestamp) as "lastActive",
+             first(channel) as channel,
+             first(platform) as platform,
+             "conversationId"
+      from activities
+      where "deletedAt" is null and
+            "conversationId" is not null and
             "tenantId" = $(tenantId) and
-            "segmentId" in ($(segmentIds:csv)) and
-            ${filterString}
+            "segmentId" in ($(segmentIds:csv))
+      group by "conversationId"
+    )
+    select <columns_to_select>
+    from conversations c 
+    inner join activity_data a on a."conversationId" = c.id
+    where c."deletedAt" is null and 
+          c."tenantId" = $(tenantId) and
+          c."segmentId" in ($(segmentIds:csv)) and
+          ${filterString}
     `
   }
 
