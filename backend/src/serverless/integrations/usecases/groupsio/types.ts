@@ -21,6 +21,11 @@ export interface GroupDetails {
   id: number
   slug: string
   name: string
+  groupAddedOn?: Date
+  autoImports?: {
+    mainGroup: string
+    isAllowed: boolean
+  }[]
 }
 
 export type GroupName = string

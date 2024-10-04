@@ -37,7 +37,12 @@
           <!-- <div class="text-2xs text-gray-500 leading-normal mb-1">
             Hostname of your community instance in Discourse.
           </div> -->
-          <el-input ref="focus" v-model="form.email" type="email" @blur="onBlurEmail()" />
+          <el-input
+            ref="focus"
+            v-model="form.email"
+            type="email"
+            @blur="onBlurEmail()"
+          />
         </app-form-item>
         <app-form-item
           v-if="!isAPIConnectionValid"
@@ -49,9 +54,17 @@
             required: 'This field is required',
           }"
         >
-          <el-input ref="focus" v-model="form.password" @blur="onBlurPassword()">
+          <el-input
+            ref="focus"
+            v-model="form.password"
+            @blur="onBlurPassword()"
+          >
             <template #suffix>
-              <div v-if="isValidating" v-loading="isValidating" class="flex items-center justify-center w-6 h-6" />
+              <div
+                v-if="isValidating"
+                v-loading="isValidating"
+                class="flex items-center justify-center w-6 h-6"
+              />
             </template>
           </el-input>
         </app-form-item>
@@ -61,9 +74,17 @@
           :validation="$v.twoFactorCode"
           label="2FA Code (optional)"
         >
-          <el-input ref="focus" v-model="form.twoFactorCode" @blur="onBlurTwoFactorCode()">
+          <el-input
+            ref="focus"
+            v-model="form.twoFactorCode"
+            @blur="onBlurTwoFactorCode()"
+          >
             <template #suffix>
-              <div v-if="isValidating" v-loading="isValidating" class="flex items-center justify-center w-6 h-6" />
+              <div
+                v-if="isValidating"
+                v-loading="isValidating"
+                class="flex items-center justify-center w-6 h-6"
+              />
             </template>
           </el-input>
         </app-form-item>
@@ -79,7 +100,11 @@
             Verify Account
           </el-button>
 
-          <el-button v-if="isAPIConnectionValid" class="btn btn--secondary btn--md" @click="reverifyAccount()">
+          <el-button
+            v-if="isAPIConnectionValid"
+            class="btn btn--secondary btn--md"
+            @click="reverifyAccount()"
+          >
             Reverify Account
           </el-button>
 
@@ -89,8 +114,7 @@
           </div>
         </div>
       </el-form>
-      <el-divider />
-      <div class="w-full flex flex-col mb-6">
+      <div class="w-full flex flex-col mb-6 mt-4">
         <p class="text-[16px] font-semibold">
           Track Groups
         </p>
@@ -106,30 +130,56 @@
         </div>
       </div>
 
-      <div v-for="(group, index) in Object.entries(userSubscriptions)" :key="index" class="mb-4 text-sm">
-        <div class="flex justify-between items-center mb-2">
+      <div
+        v-for="(group, index) in Object.entries(userSubscriptions)"
+        :key="index"
+        class="mb-4 text-sm w-full"
+      >
+        <div
+          class="flex justify-between items-center mb-2 bg-gray-50 py-2 px-4 border-b border-t border-gray-200 w-full"
+        >
           <div class="flex items-center">
             <p>
               {{ group[0] }}
             </p>
           </div>
           <div class="flex items-center">
-            <el-switch />
-            <span class="ml-2 text-sm">All Subgroups</span>
-            <el-tooltip content="Select all subgroups for this main group" placement="top">
+            <el-switch
+              v-model="group[1].allSubgroupsSelected"
+              @change="toggleAllSubgroups(group[1])"
+            />
+            <span class="ml-2 text-sm">Select All</span>
+            <el-tooltip
+              content="Select all groups for this main group"
+              placement="top"
+            >
               <i class="ri-information-line ml-1 text-gray-400 cursor-help" />
             </el-tooltip>
           </div>
         </div>
-        <el-divider />
         <div class="ml-6">
           <div class="flex items-center gap-2">
-            <el-checkbox class="mr-4" />
+            <el-checkbox
+              v-model="group[1].mainGroup.selected"
+              class="mr-4"
+              @change="updateSelectedGroups"
+            />
             <p>{{ group[1].mainGroup.group_name }}</p>
           </div>
-          <div v-for="subGroup in group[1].subGroups" :key="subGroup.group_name" class="flex items-center mt-2 gap-2">
-            <el-checkbox class="mr-4" />
-            <p>{{ subGroup.group_name }}</p>
+          <div
+            v-for="subGroup in group[1].subGroups"
+            :key="subGroup.group_name"
+            class="flex items-center mt-2 gap-2"
+          >
+            <el-checkbox
+              v-model="subGroup.selected"
+              class="mr-4"
+              @change="updateSelectedGroups"
+            />
+            <p>
+              {{ subGroup.group_name }}
+              <span class="text-gray-400 text-xs">Subgroup</span>
+            </p>
           </div>
         </div>
       </div>
@@ -137,13 +187,17 @@
 
     <template #footer>
       <div style="flex: auto">
-        <el-button class="btn btn--md btn--secondary mr-3" :disabled="loading" @click="handleCancel">
+        <el-button
+          class="btn btn--md btn--secondary mr-3"
+          :disabled="loading"
+          @click="handleCancel"
+        >
           Cancel
         </el-button>
         <el-button
           type="primary"
           class="btn btn--md btn--primary"
-          :disabled="cantConnect"
+          :disabled="cantConnect || !hasSelectedGroups"
           :loading="loading"
           @click="connect()"
         >
@@ -230,6 +284,11 @@ const cantConnect = computed(() => {
   );
 });
 
+const hasSelectedGroups = computed(() => Object.values(userSubscriptions.value).some(
+  (group) => group.mainGroup.selected
+      || group.subGroups.some((subGroup) => subGroup.selected),
+));
+
 const rules = computed(() => {
   if (!props.integration?.settings?.email) {
     return {
@@ -286,13 +345,14 @@ const getGroupsHierarchy = (groups) => {
       hierarchy[mainGroupSlug] = {
         mainGroup: null,
         subGroups: [],
+        allSubgroupsSelected: false,
       };
     }
 
     if (subGroupSlug) {
-      hierarchy[mainGroupSlug].subGroups.push(group);
+      hierarchy[mainGroupSlug].subGroups.push({ ...group, selected: false });
     } else {
-      hierarchy[mainGroupSlug].mainGroup = group;
+      hierarchy[mainGroupSlug].mainGroup = { ...group, selected: false };
     }
   });
 
@@ -308,7 +368,6 @@ const getUserSubscriptions = async () => {
     userSubscriptions.value = getGroupsHierarchy(response);
   } catch (error) {
     console.error('Error fetching user subscriptions:', error);
-    // You might want to handle the error here, e.g., show an error message to the user
   } finally {
     isLoadingSubscriptions.value = false;
   }
@@ -388,7 +447,7 @@ const handleCancel = () => {
       ? [...props.integration.settings.groups]
       : [{}];
     form.groupsValidationState = new Array(form.groups.length).fill(true);
-    cookie.value = props.integration?.settings?.token;
+    cookie.value = props?.integration?.settings?.token;
     isAPIConnectionValid.value = true;
     isVerifyingAccount.value = false;
     accountVerificationFailed.value = false;
@@ -412,13 +471,45 @@ const connect = async () => {
   loading.value = true;
 
   const isUpdate = !!props.integration.settings?.email;
+  const selectedGroups = Object.values(userSubscriptions.value).flatMap(
+    (group) => {
+      const selected = [];
+      if (group.mainGroup.selected) {
+        selected.push({
+          id: group.mainGroup.id,
+          slug: group.mainGroup.group_name,
+          name: group.mainGroup.nice_group_name,
+          groupAddedOn: new Date(),
+        });
+      }
+      selected.push(
+        ...group.subGroups
+          .filter((subGroup) => subGroup.selected)
+          .map((subGroup) => ({
+            id: subGroup.id,
+            slug: subGroup.group_name,
+            name: subGroup.nice_group_name,
+            groupAddedOn: new Date(),
+          })),
+      );
+      return selected;
+    },
+  );
+
+  const autoImports = Object.entries(userSubscriptions.value)
+    .filter(([_, object]) => object.allSubgroupsSelected)
+    .map(([group]) => ({
+      mainGroup: group,
+      isAllowed: true,
+    }));
 
   doGroupsioConnect({
     email: form.email,
     token: cookie.value,
     tokenExpiry: cookieExpiry.value,
     password: form.password,
-    groups: form.groups,
+    groups: selectedGroups,
+    autoImports,
     isUpdate,
   })
     .then(() => {
@@ -439,6 +530,21 @@ const connect = async () => {
     });
 
   formSnapshot();
+};
+
+const toggleAllSubgroups = (group) => {
+  group.mainGroup.selected = group.allSubgroupsSelected;
+  group.subGroups.forEach((subGroup) => {
+    subGroup.selected = group.allSubgroupsSelected;
+  });
+  updateSelectedGroups();
+};
+
+const updateSelectedGroups = () => {
+  Object.values(userSubscriptions.value).forEach((group) => {
+    group.allSubgroupsSelected = group.mainGroup.selected
+      && group.subGroups.every((subGroup) => subGroup.selected);
+  });
 };
 </script>
 
