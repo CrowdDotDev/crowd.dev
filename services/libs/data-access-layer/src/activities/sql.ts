@@ -1065,7 +1065,7 @@ export async function countOrganizationsWithActivities(
   arg: IQueryNumberOfActiveOrganizationsParameters,
 ): Promise<{ count: number; segmentId: string; date?: string }[]> {
   let query = `
-    SELECT COUNT(id) AS count, "segmentId", "timestamp" AS date
+    SELECT COUNT_DISTINCT("organizationId") AS count, "timestamp" AS date
     FROM activities
     WHERE "deletedAt" IS NULL
     AND "tenantId" = $(tenantId)
@@ -1088,7 +1088,7 @@ export async function countOrganizationsWithActivities(
     query += ' SAMPLE BY 1d FILL(0) ALIGN TO CALENDAR'
   }
 
-  query += ' GROUP BY "segmentId", timestamp ORDER BY "date" DESC;'
+  query += ' ORDER BY "date" ASC;'
 
   return await qdbConn.any(query, {
     tenantId: arg.tenantId,
