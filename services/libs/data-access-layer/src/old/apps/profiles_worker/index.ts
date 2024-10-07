@@ -26,6 +26,10 @@ export async function runMemberAffiliationsUpdate(
   }
 
   const tsBetweenOrOpenEnd = (start: string, end: string) => {
+    if (!start) {
+      return 'TRUE'
+    }
+
     if (end) {
       return tsBetween(start, end)
     }
@@ -72,6 +76,9 @@ export async function runMemberAffiliationsUpdate(
             return false
           }
 
+          if (!row.dateStart) {
+            return true
+          }
           if (row.dateEnd) {
             return activity.timestamp >= row.dateStart && activity.timestamp <= row.dateEnd
           }
@@ -88,6 +95,9 @@ export async function runMemberAffiliationsUpdate(
       .map((row) => ({
         when: [tsBetweenOrOpenEnd(row.dateStart, row.dateEnd)],
         matches: (activity) => {
+          if (!row.dateStart) {
+            return true
+          }
           if (row.dateEnd) {
             return activity.timestamp >= row.dateStart && activity.timestamp <= row.dateEnd
           }

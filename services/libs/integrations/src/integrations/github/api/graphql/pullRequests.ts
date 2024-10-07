@@ -5,7 +5,7 @@ import BaseQuery from './baseQuery'
 class PullRequestsQuery extends BaseQuery {
   repo: Repo
 
-  constructor(repo: Repo, githubToken: string, perPage = 20) {
+  constructor(repo: Repo, githubToken: string, perPage = 5) {
     const pullRequestsQuery = `{
             repository(owner: "${repo.owner}", name: "${repo.name}") {
               pullRequests(last: ${perPage}, \${beforeCursor}) {
