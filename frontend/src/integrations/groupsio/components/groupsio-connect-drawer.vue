@@ -304,14 +304,6 @@ const rules = computed(() => {
   return {};
 });
 
-const addGroup = () => {
-  form.groups.push({});
-};
-
-const removeGroup = (index) => {
-  form.groups.splice(index, 1);
-};
-
 const $v = useVuelidate(rules, form, { $stopPropagation: true });
 
 const validateAccount = async () => {
@@ -375,15 +367,6 @@ const getUserSubscriptions = async () => {
 
 const reverifyAccount = () => {
   isAPIConnectionValid.value = false;
-};
-
-const validateGroup = async (groupName) => {
-  try {
-    await IntegrationService.groupsioVerifyGroup(groupName, cookie.value);
-    return true;
-  } catch (e) {
-    return false;
-  }
 };
 
 const onBlurEmail = () => {
@@ -533,8 +516,10 @@ const connect = async () => {
 };
 
 const toggleAllSubgroups = (group) => {
+  // eslint-disable-next-line no-param-reassign
   group.mainGroup.selected = group.allSubgroupsSelected;
   group.subGroups.forEach((subGroup) => {
+    // eslint-disable-next-line no-param-reassign
     subGroup.selected = group.allSubgroupsSelected;
   });
   updateSelectedGroups();
@@ -542,6 +527,7 @@ const toggleAllSubgroups = (group) => {
 
 const updateSelectedGroups = () => {
   Object.values(userSubscriptions.value).forEach((group) => {
+    // eslint-disable-next-line no-param-reassign
     group.allSubgroupsSelected = group.mainGroup.selected
       && group.subGroups.every((subGroup) => subGroup.selected);
   });
