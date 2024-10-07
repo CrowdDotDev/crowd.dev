@@ -20,9 +20,9 @@
       Please contact our support team.
     </p>
   </div>
-  <div v-else-if="masked">
+  <div v-else-if="!masked">
     <div class="flex items-center bg-yellow-50 p-2 mb-6 text-small rounded-md border border-yellow-300 text-yellow-600">
-      <lf-icon-old name="error-warning-line" class="mr-2" /> This person's activities are not shown because of the GDPR.
+      <lf-icon name="circle-exclamation" type="regular" class="mr-2" /> This person's activities are not shown because of the GDPR.
     </div>
   </div>
   <app-activity-timeline
@@ -43,6 +43,7 @@ import { MergeActionState } from '@/shared/modules/merge/types/MemberActions';
 import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
 import { computed } from 'vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps<{
   contributor: Contributor,

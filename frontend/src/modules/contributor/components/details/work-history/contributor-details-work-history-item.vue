@@ -49,7 +49,7 @@
       <lf-dropdown v-if="hovered" placement="bottom-end" width="14.5rem">
         <template #trigger>
           <lf-button type="secondary-ghost" size="small" :icon-only="true">
-            <lf-icon-old name="more-fill" />
+            <lf-icon name="ellipsis" />
           </lf-button>
         </template>
 
@@ -84,6 +84,7 @@ import Message from '@/shared/message/message';
 import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps<{
   organization: Organization,

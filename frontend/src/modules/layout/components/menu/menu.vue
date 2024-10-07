@@ -5,7 +5,7 @@
   >
     <lf-menu-link
       title="All project groups"
-      icon="folders-line"
+      icon="folders"
       :is-collapsed="isCollapsed"
       :to="{ path: '/project-groups' }"
     />
@@ -17,14 +17,14 @@
     </div>
     <lf-menu-link
       title="Overview"
-      icon="home-5-line"
+      icon="gauge-high"
       :is-collapsed="isCollapsed"
       :to="{ path: '/', query: { projectGroup: selectedProjectGroup?.id } }"
       :disabled="!selectedProjectGroup"
     />
     <lf-menu-link
       title="People"
-      icon="group-2-line"
+      icon="user-group-simple"
       :is-collapsed="isCollapsed"
       :to="{ path: '/people', query: { projectGroup: selectedProjectGroup?.id } }"
       :disabled="!selectedProjectGroup"
@@ -32,7 +32,7 @@
     />
     <lf-menu-link
       title="Organizations"
-      icon="community-line"
+      icon="building"
       :is-collapsed="isCollapsed"
       :to="{ path: '/organizations', query: { projectGroup: selectedProjectGroup?.id } }"
       :disabled="!selectedProjectGroup"
@@ -40,7 +40,7 @@
     />
     <lf-menu-link
       title="Activities"
-      icon="radar-line"
+      icon="monitor-waveform"
       :is-collapsed="isCollapsed"
       :to="{ path: '/activities', query: { projectGroup: selectedProjectGroup?.id } }"
       :disabled="!selectedProjectGroup"
@@ -51,8 +51,8 @@
         class="bg-gray-500 w-6 h-8 rounded-l flex items-center justify-center cursor-pointer"
         @click="toggleMenu()"
       >
-        <lf-icon-old
-          :name="`arrow-${isCollapsed ? 'right' : 'left'}-double-fill`"
+        <lf-icon
+          :name="`chevrons-${isCollapsed ? 'right' : 'left'}`"
           :size="20"
           class="text-white"
         />
@@ -61,7 +61,7 @@
     <lf-menu-link
       v-if="hasPermission(LfPermission.eagleEyeRead)"
       title="Community Lens"
-      icon="eye-2-line"
+      icon="eye"
       :is-collapsed="isCollapsed"
       :to="{ path: '/community-lens' }"
     />
@@ -71,7 +71,7 @@
     <lf-menu-link
       v-if="hasPermission(LfPermission.projectGroupCreate) || hasPermission(LfPermission.projectGroupEdit)"
       title="Admin panel"
-      icon="settings-3-line"
+      icon="gear"
       :is-collapsed="isCollapsed"
       :to="{ path: '/admin' }"
     />
@@ -95,6 +95,7 @@ import usePermissions from '@/shared/modules/permissions/helpers/usePermissions'
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import LfMenuLink from '@/modules/layout/components/menu/menu-link.vue';
 import LfIconOld from '@/ui-kit/icon/IconOld.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const store = useStore();
 

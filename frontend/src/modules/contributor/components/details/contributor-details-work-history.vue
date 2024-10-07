@@ -10,7 +10,7 @@
             <template #content>
               Work experiences are mostly obtained<br> via enrichment but can also be added <br>manually.
             </template>
-            <lf-icon-old name="question-line" :size="16" class="text-gray-400" />
+            <lf-icon name="circle-question" :size="16" class="text-gray-400" />
           </lf-tooltip>
         </div>
       </div>
@@ -25,7 +25,7 @@
           :icon-only="true"
           @click="isEditModalOpen = true; editOrganization = null"
         >
-          <lf-icon-old name="add-fill" />
+          <lf-icon name="plus" />
         </lf-button>
       </lf-tooltip>
     </div>
@@ -87,6 +87,7 @@ import { Organization } from '@/modules/organization/types/Organization';
 import LfContributorDetailsWorkHistoryItem
   from '@/modules/contributor/components/details/work-history/contributor-details-work-history-item.vue';
 import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps<{
   contributor: Contributor,

@@ -14,7 +14,7 @@ import OrganizationsFilter from './OrganizationsFilter.vue';
 const organizations: CustomFilterConfig = {
   id: 'organizations',
   label: 'Organization',
-  iconClass: 'ri-community-line',
+  iconClass: 'fa-light fa-building',
   type: FilterConfigType.CUSTOM,
   component: OrganizationsFilter,
   options: {

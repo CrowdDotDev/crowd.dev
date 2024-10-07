@@ -15,7 +15,7 @@
       active-class="is-active"
       :class="{ 'is-disabled': props.disabled }"
     >
-      <lf-icon-old :name="props.icon" :size="16" />
+      <lf-icon :name="props.icon" :size="16" />
       <span class="transition" :class="!props.isCollapsed ? 'opacity-100' : 'opacity-0'">
         {{ props.title }}
       </span>
@@ -24,7 +24,7 @@
 </template>
 
 <script setup lang="ts">
-import LfIconOld from '@/ui-kit/icon/IconOld.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps<{
   isCollapsed: boolean;

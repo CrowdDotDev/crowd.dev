@@ -10,7 +10,7 @@ import { apiFilterRendererByType } from '@/shared/modules/filters/config/apiFilt
 const lastActivityDate: DateFilterConfig = {
   id: 'lastActivityDate',
   label: 'Last activity date',
-  iconClass: 'ri-calendar-event-line',
+  iconClass: 'fa-light fa-calendar',
   type: FilterConfigType.DATE,
   options: {},
   itemLabelRenderer(value: DateFilterValue, options: DateFilterOptions): string {
