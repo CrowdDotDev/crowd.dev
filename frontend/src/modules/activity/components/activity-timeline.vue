@@ -406,7 +406,7 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
   if (rows.length === 0) {
     noMore.value = true;
   }
-  activities.value = [...activities.value, ...rows];
+  activities.value = reset ? rows : [...activities.value, ...rows];
 
   timestamp.value = moment(data.rows.at(-1).timestamp).toISOString();
 };
@@ -419,7 +419,7 @@ const reloadActivities = async () => {
 const platformDetails = (p) => CrowdIntegrations.getConfig(p);
 
 const debouncedQueryChange = debounce(async () => {
-  await fetchActivities();
+  await fetchActivities({ reset: true });
 }, 300);
 
 const getPlatformDetails = (p) => CrowdIntegrations.getConfig(p);
@@ -432,7 +432,7 @@ watch(query, (newValue, oldValue) => {
 
 watch(platform, async (newValue, oldValue) => {
   if (newValue !== oldValue) {
-    await fetchActivities();
+    await fetchActivities({ reset: true });
   }
 });
 
