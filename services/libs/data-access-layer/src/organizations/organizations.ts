@@ -397,7 +397,7 @@ export async function getNumberOfNewOrganizations(
   arg: IQueryNumberOfNewOrganizations,
 ): Promise<number> {
   let query = `
-    SELECT COUNT(distinct osa."organizationId")
+    SELECT COUNT(distinct osa."organizationId") as count
     FROM "organizationSegmentsAgg" osa
     JOIN organizations o on osa."organizationId" = o.id
     WHERE osa."tenantId" = $(tenantId)
@@ -427,7 +427,7 @@ export async function getNumberOfActiveOrganizations(
   arg: IQueryNumberOfActiveOrganizations,
 ): Promise<number> {
   let query = `
-    SELECT COUNT_DISTINCT("organizationId")
+    SELECT COUNT_DISTINCT("organizationId") as count
     FROM activities
     WHERE "tenantId" = $(tenantId)
     AND "organizationId" IS NOT NULL
