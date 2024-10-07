@@ -27,7 +27,12 @@
 
 <img src="https://github.com/CrowdDotDev/crowd.dev/assets/22342669/845fc5b0-aba7-40fe-950e-85ef567cec65" alt="UI Home screen">
 
-
+![hacktoberfest](https://img.shields.io/badge/hacktoberfest-2023-purple)
+![If Useful](https://img.shields.io/badge/star-If_Useful-darkpink)
+![Contributors ](https://img.shields.io/badge/Contributors-welcome-darkpink)
+![Pull Request ](https://img.shields.io/badge/pull_request-23_Open-yellow)
+![Contributors](https://img.shields.io/badge/contributors-31-green)
+![license](https://img.shields.io/badge/license-GPL_3.0-green)
 ## Table of Contents
 - [About crowd.dev](#about-crowddev)
 - [Features](#features)
