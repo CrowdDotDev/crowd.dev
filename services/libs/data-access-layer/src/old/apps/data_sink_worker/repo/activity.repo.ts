@@ -35,6 +35,7 @@ export default class ActivityRepository extends RepositoryBase<ActivityRepositor
             "objectMemberId",
             "objectMemberUsername",
             attributes,
+            "importHash",
             body,
             title,
             channel,
@@ -92,6 +93,7 @@ export default class ActivityRepository extends RepositoryBase<ActivityRepositor
               "objectMemberId",
               "objectMemberUsername",
               attributes,
+              "importHash",
               body,
               title,
               channel,
@@ -168,6 +170,8 @@ export default class ActivityRepository extends RepositoryBase<ActivityRepositor
     segmentId: string,
     data: IDbActivityCreateData,
   ): Promise<string> {
+    this.log.debug('Creating an activity in PostgreSQL!')
+
     const id = generateUUIDv1()
     const ts = new Date()
     const prepared = RepositoryBase.prepare(

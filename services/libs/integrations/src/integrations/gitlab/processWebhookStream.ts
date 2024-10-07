@@ -18,8 +18,8 @@ import { getUser } from './api/getUser'
 import { Gitlab, UserSchema } from '@gitbeaker/rest'
 import verifyGitlabWebhook from './utils/verifyWebhook'
 import {
-  handleMergeRequestDiscussionsAndEvents,
   handleMergeRequestCommitsStream,
+  handleMergeRequestDiscussionsAndEvents,
 } from './processStream'
 import { timeout } from '@crowd/common'
 

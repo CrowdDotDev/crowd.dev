@@ -1,5 +1,4 @@
 export enum QuickstartGuideType {
-  VIEW_REPORT = 'view-report',
   INVITE_COLLEAGUES = 'invite-colleagues',
   CONNECT_FIRST_INTEGRATION = 'connect-first-integration',
   EXPLORE_CONTACTS = 'explore-contacts',
@@ -33,15 +32,6 @@ const connectFirstIntegrationGuide: QuickstartGuide = {
   learnMoreLink: 'https://docs.crowd.dev/docs/getting-started/integrations',
   buttonLink: '/integrations',
   buttonText: 'Connect integrations',
-  completed: false,
-}
-
-const viewReportGuide: QuickstartGuide = {
-  title: 'Look into reports',
-  body: 'Check our specially crafted default reports and dig into the inner workings of your community.',
-  learnMoreLink: 'https://docs.crowd.dev/docs/guides/reports',
-  buttonLink: '/reports',
-  buttonText: 'Explore reports',
   completed: false,
 }
 
@@ -86,6 +76,5 @@ export const DEFAULT_GUIDES = {
   [QuickstartGuideType.INVITE_COLLEAGUES]: inviteColleaguesGuide,
   [QuickstartGuideType.EXPLORE_CONTACTS]: exploreContacts,
   [QuickstartGuideType.EXPLORE_ORGANIZATIONS]: exploreOrganizations,
-  [QuickstartGuideType.VIEW_REPORT]: viewReportGuide,
   [QuickstartGuideType.CREATE_AUTOMATIONS]: createAutomations,
 }

@@ -1,18 +1,18 @@
-import {
-  IMemberOrganization,
-  IOrganizationIdSource,
-  OrganizationIdentityType,
-  SyncStatus,
-} from '@crowd/types'
+import { IMemberOrganization, IOrganizationIdSource, SyncStatus } from '@crowd/types'
 import { QueryExecutor } from '../queryExecutor'
 import { prepareSelectColumns } from '../utils'
 import {
+  IActiveOrganizationsTimeseriesResult,
   IDbOrgIdentity,
   IDbOrganization,
   IDbOrganizationInput,
   IEnrichableOrganizationData,
+  IQueryNumberOfActiveOrganizations,
+  IQueryNumberOfNewOrganizations,
+  IQueryTimeseriesOfNewOrganizations,
 } from './types'
 import { generateUUIDv1 } from '@crowd/common'
+import { DbStore } from '@crowd/database'
 
 const ORG_SELECT_COLUMNS = [
   'id',
@@ -88,7 +88,7 @@ export async function findOrgBySourceId(
             select oi."organizationId"
             from "organizationIdentities" oi
             join "organizationSegments" os on oi."organizationId" = os."organizationId"
-            where 
+            where
                   oi.platform = $(platform)
                   and oi."sourceId" = $(sourceId)
                   and os."segmentId" =  $(segmentId)
@@ -97,7 +97,7 @@ export async function findOrgBySourceId(
         )
     select ${prepareSelectColumns(ORG_SELECT_COLUMNS, 'o')}
     from organizations o
-    where o."tenantId" = $(tenantId) 
+    where o."tenantId" = $(tenantId)
     and o.id in (select distinct "organizationId" from "organizationsWithSourceIdAndSegment");`,
     { tenantId, sourceId, segmentId, platform },
   )
@@ -132,7 +132,7 @@ export async function findOrgByVerifiedIdentity(
     with "organizationsWithIdentity" as (
               select oi."organizationId"
               from "organizationIdentities" oi
-              where 
+              where
                     oi."tenantId" = $(tenantId)
                     and oi.platform = $(platform)
                     and lower(oi.value) = lower($(value))
@@ -141,7 +141,7 @@ export async function findOrgByVerifiedIdentity(
           )
           select  ${prepareSelectColumns(ORG_SELECT_COLUMNS, 'o')}
           from organizations o
-          where o."tenantId" = $(tenantId) 
+          where o."tenantId" = $(tenantId)
           and o.id in (select distinct "organizationId" from "organizationsWithIdentity")
           limit 1;
     `,
@@ -193,21 +193,14 @@ export async function getOrgIdsToEnrich(
 
   const query = `
   with activity_data as (select "organizationId",
-                                count(id)      as "activityCount",
-                                max(timestamp) as "lastActive"
-                        from activities
-                        where "deletedAt" is null
-                        group by "organizationId"),
-        identities as (select "organizationId", platform, type, value, verified 
-                        from "organizationIdentities"
-                        where type = '${OrganizationIdentityType.PRIMARY_DOMAIN}'
-                              and verified = true
+                                sum("activityCount")  as "activityCount",
+                                max("lastActive")     as "lastActive"
+                        from "organizationSegmentsAgg"
                         group by "organizationId")
-  select o.id as "organizationId", 
+  select o.id as "organizationId",
          o."tenantId"
   from organizations o
           inner join activity_data ad on ad."organizationId" = o.id
-          inner join identities i on i."organizationId" = o.id
   where ${conditions.join(' and ')}
   order by ad."activityCount" desc
   limit ${perPage} offset ${(page - 1) * perPage};
@@ -397,4 +390,99 @@ export async function updateOrganization(
     updatedAt,
     oneMinuteAgo,
   })
+}
+
+export async function getNumberOfNewOrganizations(
+  db: DbStore,
+  arg: IQueryNumberOfNewOrganizations,
+): Promise<number> {
+  const query = `
+    SELECT DISTINCT COUNT(id)
+    FROM organizations
+    WHERE "tenantId" = $(tenantId)
+    AND "createdAt" BETWEEN $(after) AND $(before)
+    AND "deletedAt" IS NULL;
+  `
+
+  const rows: { count: number }[] = await db.connection().query(query, {
+    tenantId: arg.tenantId,
+    after: arg.after,
+    before: arg.before,
+  })
+
+  return Number(rows[0].count) || 0
+}
+
+export async function getNumberOfActiveOrganizations(
+  db: DbStore,
+  arg: IQueryNumberOfActiveOrganizations,
+): Promise<number> {
+  let query = `
+    SELECT COUNT_DISTINCT("organizationId")
+    FROM activities
+    WHERE "tenantId" = $(tenantId)
+    AND "organizationId" IS NOT NULL
+    AND "createdAt" BETWEEN $(after) AND $(before)
+    AND "deletedAt" IS NULL`
+
+  if (arg.platform) {
+    query += ` AND "platform" = $(platform)`
+  }
+
+  if (arg.segmentIds) {
+    query += ` AND "segmentId" IN ($(segmentIds:csv))`
+  }
+
+  query += ';'
+
+  const rows: { count: number }[] = await db.connection().query(query, {
+    tenantId: arg.tenantId,
+    segmentIds: arg.segmentIds,
+    after: arg.after,
+    before: arg.before,
+    platform: arg.platform,
+  })
+
+  return Number(rows[0].count) || 0
+}
+
+export async function getTimeseriesOfActiveOrganizations(
+  db: DbStore,
+  arg: IQueryTimeseriesOfNewOrganizations,
+): Promise<IActiveOrganizationsTimeseriesResult[]> {
+  let query = `
+    SELECT COUNT_DISTINCT("organizationId") AS count, timestamp
+    FROM activities
+    WHERE tenantId = $(tenantId)
+    AND "organizationId" IS NOT NULL
+    AND timestamp BETWEEN $(after) AND $(before)
+  `
+
+  if (arg.segmentIds) {
+    query += ` AND "segmentId" IN ($(segmentIds:csv))`
+  }
+
+  if (arg.platform) {
+    query += ` AND "platform" = $(platform)`
+  }
+
+  query += ' SAMPLE BY 1d ALIGN TO CALENDAR ORDER BY timestamp DESC;'
+
+  const rows = await db.connection().query(query, {
+    tenantId: arg.tenantId,
+    segmentIds: arg.segmentIds,
+    after: arg.after,
+    before: arg.before,
+    platform: arg.platform,
+  })
+
+  const results: IActiveOrganizationsTimeseriesResult[] = []
+  rows.forEach((row) => {
+    results.push({
+      date: row.timestamp,
+      count: Number(row.count),
+    })
+  })
+
+  return results
 }

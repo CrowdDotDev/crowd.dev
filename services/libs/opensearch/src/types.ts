@@ -1,6 +1,5 @@
 export enum OpenSearchIndex {
   MEMBERS = 'members',
-  ACTIVITIES = 'activities',
   ORGANIZATIONS = 'organizations',
 }
 
@@ -8,7 +7,6 @@ export enum OpenSearchIndex {
 // for eg: members_v1, activities_v1, etc.
 export const IndexVersions = new Map<OpenSearchIndex, number>()
 IndexVersions.set(OpenSearchIndex.MEMBERS, 4)
-IndexVersions.set(OpenSearchIndex.ACTIVITIES, 4)
 IndexVersions.set(OpenSearchIndex.ORGANIZATIONS, 4)
 
 const prefixedMapping = {
@@ -597,12 +595,10 @@ const prefixedSettings = {
 
 export const OPENSEARCH_INDEX_SETTINGS: Record<OpenSearchIndex, unknown> = {
   [OpenSearchIndex.MEMBERS]: prefixedSettings,
-  [OpenSearchIndex.ACTIVITIES]: prefixedSettings,
   [OpenSearchIndex.ORGANIZATIONS]: prefixedSettings,
 }
 
 export const OPENSEARCH_INDEX_MAPPINGS: Record<OpenSearchIndex, unknown> = {
   [OpenSearchIndex.MEMBERS]: prefixedMapping,
-  [OpenSearchIndex.ACTIVITIES]: prefixedMapping,
   [OpenSearchIndex.ORGANIZATIONS]: prefixedMapping,
 }

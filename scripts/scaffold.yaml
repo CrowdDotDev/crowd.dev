@@ -1,27 +1,6 @@
 version: '3.1'
 
 services:
-  cubejs:
-    build:
-      context: ../services/libs/cubejs/src/app
-    restart: unless-stopped
-    ports:
-      - '4000:4000'
-      - '3001:3000'
-    environment:
-      - CUBEJS_DEV_MODE=true
-      - CUBEJS_DB_HOST=db
-      - CUBEJS_DB_PORT=5432
-      - CUBEJS_DB_NAME=crowd-web
-      - CUBEJS_DB_USER=postgres
-      - CUBEJS_DB_PASS=example
-      - CUBEJS_DB_TYPE=postgres
-      - CUBEJS_API_SECRET=137ea167812145c6d77452a58d7dd29b
-      - CUBEJS_EXTERNAL_DEFAULT=true
-      - CUBEJS_SCHEDULED_REFRESH_DEFAULT=true
-    networks:
-      - crowd-bridge
-
   db:
     image: postgres:14-alpine
     restart: unless-stopped
@@ -34,6 +13,22 @@ services:
     volumes:
       - pgdata-dev:/var/lib/postgresql/data
     shm_size: 1gb
+    networks:
+      - crowd-bridge
+
+  questdb:
+    image: questdb/questdb:8.1.1
+    restart: unless-stopped
+    ports:
+      - 8812:8812
+      - 9001:9000
+      - 9003:9003
+      - 9009:9009
+    environment:
+      - QDB_PG_NET_CONNECTION_TIMEOUT=0
+      - RUN_AS_ROOT=true
+    volumes:
+      - questdb-dev:/var/lib/questdb
     networks:
       - crowd-bridge
 
@@ -181,6 +176,7 @@ networks:
 
 volumes:
   pgdata-dev:
+  questdb-dev:
   pgdata-product-dev:
   opensearch-dev:
   s3-dev:

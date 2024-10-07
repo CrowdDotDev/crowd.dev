@@ -1,5 +1,6 @@
 import { Organization } from '@/modules/organization/types/Organization';
 import { Platform } from '@/shared/modules/platform/types/Platform';
+import { ContributorMaintainerRole } from '@/modules/contributor/types/Contributor';
 
 export interface MemberAttribute {
   default: string;
@@ -70,5 +71,6 @@ export interface Member {
   segments: {
     id: string;
     name: string;
-  }[]
+  }[],
+  maintainerRoles: ContributorMaintainerRole[];
 }

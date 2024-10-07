@@ -18,6 +18,7 @@ export interface IActivityCreateData {
   channel?: string
   url?: string
   organizationId?: string
+  importHash?: string
 }
 
 export interface IActivityUpdateData {

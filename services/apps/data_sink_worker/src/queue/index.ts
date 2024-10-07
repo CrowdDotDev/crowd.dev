@@ -20,7 +20,8 @@ export class WorkerQueueReceiver extends PrioritizedQueueReciever {
   constructor(
     level: QueuePriorityLevel,
     client: IQueue,
-    private readonly dbConn: DbConnection,
+    private readonly pgConn: DbConnection,
+    private readonly qdbConn: DbConnection,
     private readonly searchSyncWorkerEmitter: SearchSyncWorkerEmitter,
     private readonly dataSinkWorkerEmitter: DataSinkWorkerEmitter,
     private readonly redisClient: RedisClient,
@@ -46,7 +47,8 @@ export class WorkerQueueReceiver extends PrioritizedQueueReciever {
       this.log.trace({ messageType: message.type }, 'Processing message!')
 
       const service = new DataSinkService(
-        new DbStore(this.log, this.dbConn, undefined, false),
+        new DbStore(this.log, this.pgConn, undefined, false),
+        new DbStore(this.log, this.qdbConn, undefined, false),
         this.searchSyncWorkerEmitter,
         this.dataSinkWorkerEmitter,
         this.redisClient,
@@ -82,7 +84,7 @@ export class WorkerQueueReceiver extends PrioritizedQueueReciever {
     } finally {
       const endTime = performance.now()
       const duration = endTime - startTime
-      this.log.debug({ msgType: message.type }, `Message processed in ${duration.toFixed(2)}ms!`)
+      this.log.info({ msgType: message.type }, `Message processed in ${duration.toFixed(2)}ms!`)
 
       if (this.timingMap.has(message.type)) {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -94,7 +96,7 @@ export class WorkerQueueReceiver extends PrioritizedQueueReciever {
 
       const data = this.timingMap.get(message.type)
 
-      this.log.debug(
+      this.log.info(
         { msgType: message.type },
         `Average processing time: ${data.time / data.count}ms!`,
       )
