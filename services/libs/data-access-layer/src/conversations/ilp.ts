@@ -30,11 +30,7 @@ export async function insertConversations(
           conversation.createdAt ? new Date(conversation.createdAt).getTime() : now,
           'ms',
         )
-        .timestampColumn(
-          'updatedAt',
-          conversation.updatedAt ? new Date(conversation.updatedAt).getTime() : now,
-          'ms',
-        )
+        .timestampColumn('updatedAt', now, 'ms')
 
       if (conversation.deletedAt) {
         row.timestampColumn('deletedAt', new Date(conversation.updatedAt).getTime())

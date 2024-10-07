@@ -39,10 +39,10 @@ import {
 } from './types'
 
 import merge from 'lodash.merge'
-import { IPlatforms } from '../old/apps/cache_worker/types'
-import { checkUpdateRowCount } from '../utils'
-import { IDbOrganizationAggregateData } from '../organizations'
 import { IMemberSegmentAggregates } from '../members/types'
+import { IPlatforms } from '../old/apps/cache_worker/types'
+import { IDbOrganizationAggregateData } from '../organizations'
+import { checkUpdateRowCount } from '../utils'
 
 const s3Url = `https://${
   process.env['CROWD_S3_MICROSERVICES_ASSETS_BUCKET']
@@ -455,6 +455,17 @@ export const DEFAULT_COLUMNS_TO_SELECT: ActivityColumn[] = [
   'url',
 ]
 
+export const ALL_COLUMNS_TO_SELECT: ActivityColumn[] = DEFAULT_COLUMNS_TO_SELECT.concat([
+  'member_isBot',
+  'member_isTeamMember',
+  'gitIsMainBranch',
+  'gitIsIndirectFork',
+  'gitLines',
+  'gitInsertions',
+  'gitDeletions',
+  'gitIsMerge',
+])
+
 export async function queryActivities(
   qdbConn: DbConnOrTx,
   arg: IQueryActivitiesParameters,
@@ -632,45 +643,7 @@ export async function queryActivities(
     count = countResults[0] ? countResults[0].count : 0
   }
 
-  const results: any[] = []
-
-  for (const a of activities) {
-    const sentiment: IActivitySentiment | null =
-      a.sentimentLabel &&
-      a.sentimentScore &&
-      a.sentimentScoreMixed &&
-      a.sentimentScoreNeutral &&
-      a.sentimentScoreNegative &&
-      a.sentimentScorePositive
-        ? {
-            label: a.sentimentLabel,
-            sentiment: a.sentimentScore,
-            mixed: a.sentimentScoreMixed,
-            neutral: a.sentimentScoreNeutral,
-            negative: a.sentimentScoreNegative,
-            positive: a.sentimentScorePositive,
-          }
-        : null
-
-    const data: any = {}
-    for (const column of columns) {
-      if (column.startsWith('sentiment')) {
-        continue
-      }
-
-      if (column === 'attributes') {
-        data[column] = JSON.parse(a[column])
-      } else {
-        data[column] = a[column]
-      }
-    }
-
-    if (sentiment) {
-      data.sentiment = sentiment
-    }
-
-    results.push(data)
-  }
+  const results: any[] = activities.map((a) => mapActivityRowToResult(a, columns))
 
   return {
     count: Number(count),
@@ -678,6 +651,44 @@ export async function queryActivities(
     limit: arg.limit,
     offset: arg.offset,
   }
+}
+
+export function mapActivityRowToResult(a: any, columns: string[]): any {
+  const sentiment: IActivitySentiment | null =
+    a.sentimentLabel &&
+    a.sentimentScore &&
+    a.sentimentScoreMixed &&
+    a.sentimentScoreNeutral &&
+    a.sentimentScoreNegative &&
+    a.sentimentScorePositive
+      ? {
+          label: a.sentimentLabel,
+          sentiment: a.sentimentScore,
+          mixed: a.sentimentScoreMixed,
+          neutral: a.sentimentScoreNeutral,
+          negative: a.sentimentScoreNegative,
+          positive: a.sentimentScorePositive,
+        }
+      : null
+
+  const data: any = {}
+  for (const column of columns) {
+    if (column.startsWith('sentiment')) {
+      continue
+    }
+
+    if (column === 'attributes') {
+      data[column] = JSON.parse(a[column])
+    } else {
+      data[column] = a[column]
+    }
+  }
+
+  if (sentiment) {
+    data.sentiment = sentiment
+  }
+
+  return data
 }
 
 export async function findTopActivityTypes(
