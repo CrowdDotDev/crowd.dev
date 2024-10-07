@@ -5,7 +5,7 @@
       `c-radio--${props.size}`,
     ]"
   >
-    <input v-model="checked" type="radio" :value="props.value" :disabled="props.disabled">
+    <input v-model="checked" type="radio" :value="props.value" :disabled="props.disabled" :name="props.name">
     <span class="flex flex-col">
       <slot />
     </span>
@@ -20,10 +20,12 @@ const props = withDefaults(defineProps<{
   size?: RadioSize,
   modelValue: string,
   value?: string,
+  name?: string,
   disabled?: boolean,
 }>(), {
   size: 'medium',
   value: '',
+  name: '',
   disabled: false,
 });
 

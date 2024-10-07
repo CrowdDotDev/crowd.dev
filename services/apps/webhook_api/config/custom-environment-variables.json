@@ -19,5 +19,11 @@
     "password": "CROWD_REDIS_PASSWORD",
     "host": "CROWD_REDIS_HOST",
     "port": "CROWD_REDIS_PORT"
+  },
+  "githubIssueReporter": {
+    "appId": "CROWD_GITHUB_ISSUE_REPORTER_APP_ID",
+    "privateKey": "CROWD_GITHUB_ISSUE_REPORTER_PRIVATE_KEY",
+    "installationId": "CROWD_GITHUB_ISSUE_REPORTER_INSTALLATION_ID",
+    "webhookSecret": "CROWD_GITHUB_ISSUE_REPORTER_WEBHOOK_SECRET"
   }
 }
