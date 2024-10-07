@@ -4,8 +4,11 @@ import { getClientILP } from '@crowd/questdb'
 import { IDbActivityCreateData } from '../old/apps/data_sink_worker/repo/activity.data'
 
 import { Sender } from '@questdb/nodejs-client'
+import { getServiceChildLogger } from '@crowd/logging'
 
 const ilp: Sender = getClientILP()
+
+const log = getServiceChildLogger('data-access-layer/activities/ilp.ts')
 
 export async function insertActivities(activities: IDbActivityCreateData[]): Promise<string[]> {
   const ids: string[] = []
@@ -16,17 +19,22 @@ export async function insertActivities(activities: IDbActivityCreateData[]): Pro
       const id = activity.id || generateUUIDv4()
       ids.push(id)
 
+      let createdAt
+      if (activity.createdAt) {
+        const res = new Date(activity.createdAt)
+        log.info({ createdAt: res }, 'insertActivities.createdAt')
+        createdAt = res.getTime()
+      } else {
+        createdAt = now
+      }
+
       const row = ilp
         .table('activities')
         .symbol('tenantId', activity.tenantId)
         .symbol('segmentId', activity.segmentId)
         .symbol('platform', activity.platform)
         .stringColumn('id', id)
-        .timestampColumn(
-          'createdAt',
-          activity.createdAt ? new Date(activity.createdAt).getTime() : now,
-          'ms',
-        )
+        .timestampColumn('createdAt', createdAt, 'ms')
         .timestampColumn('updatedAt', now, 'ms')
         .stringColumn('attributes', objectToBytes(activity.attributes))
         .booleanColumn('member_isTeamMember', activity.isTeamMemberActivity || false)
@@ -170,7 +178,16 @@ export async function insertActivities(activities: IDbActivityCreateData[]): Pro
         row.stringColumn('updatedById', activity.updatedById)
       }
 
-      await row.at(activity.timestamp ? new Date(activity.timestamp).getTime() : now, 'ms')
+      let timestamp
+      if (activity.timestamp) {
+        const res = new Date(activity.timestamp)
+        log.info({ timestamp: res }, 'insertActivities.timestamp')
+        timestamp = res.getTime()
+      } else {
+        timestamp = now
+      }
+
+      await row.at(timestamp, 'ms')
     }
   }
 

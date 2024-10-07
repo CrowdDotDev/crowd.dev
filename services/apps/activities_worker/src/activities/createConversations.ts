@@ -130,7 +130,7 @@ LIMIT 5000;
   let conversationsCreated = 0
   const toCreate = Object.values(conversationsToCreate)
   if (toCreate.length > 0) {
-    for (const batch of partition(toCreate, 100)) {
+    for (const batch of partition(toCreate, 1)) {
       try {
         const results = await insertConversations(batch)
         conversationsCreated += results.length
@@ -163,6 +163,8 @@ LIMIT 5000;
           throw new Error('Parent activity ID not found!')
         }
       }
+      // TODO: uros remove - test
+      delete mapped.sentiment
 
       toUpdate.push({
         ...mapped,
