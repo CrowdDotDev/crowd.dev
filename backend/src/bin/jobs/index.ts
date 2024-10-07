@@ -9,13 +9,13 @@ import refreshGithubRepoSettings from './refreshGithubRepoSettings'
 import autoImportGroups from './autoImportGroupsioGroups'
 
 const jobs: CrowdJob[] = [
-  // integrationTicks,
-  // refreshMaterializedViews,
-  // cleanUp,
-  // checkStuckIntegrationRuns,
-  // refreshGroupsioToken,
-  // refreshGitlabToken,
-  // refreshGithubRepoSettings,
+  integrationTicks,
+  refreshMaterializedViews,
+  cleanUp,
+  checkStuckIntegrationRuns,
+  refreshGroupsioToken,
+  refreshGitlabToken,
+  refreshGithubRepoSettings,
   autoImportGroups,
 ]
 

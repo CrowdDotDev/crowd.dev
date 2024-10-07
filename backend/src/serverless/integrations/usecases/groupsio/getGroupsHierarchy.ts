@@ -16,13 +16,13 @@ interface GroupHierarchy {
 export const getGroupsHierarchy = (groups: GroupsArray): GroupHierarchy => {
   const hierarchy: GroupHierarchy = {}
 
-  groups.forEach(group => {
+  groups.forEach((group) => {
     const [mainGroupSlug, subGroupSlug] = group.slug.split('+')
 
     if (!hierarchy[mainGroupSlug]) {
       hierarchy[mainGroupSlug] = {
         mainGroup: null,
-        subGroups: []
+        subGroups: [],
       }
     }
 

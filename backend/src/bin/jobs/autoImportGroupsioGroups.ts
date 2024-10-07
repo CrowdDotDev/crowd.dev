@@ -28,7 +28,7 @@ interface SetttingsObj {
 const job: CrowdJob = {
   name: 'Auto Import Groups IO Groups',
   // every 2 days
-  cronTime: cronGenerator.every(1).minutes(),
+  cronTime: cronGenerator.every(2).days(),
   onTrigger: async () => {
     log.info('Checking for new groups to auto import.')
     const dbOptions = await SequelizeRepository.getDefaultIRepositoryOptions()
@@ -53,7 +53,8 @@ const job: CrowdJob = {
           if (autoImport.isAllowed) {
             const newGroups = allGroups.filter(
               (group) =>
-                !existingGroupIds.has(group.id) && group.group_name.startsWith(autoImport.mainGroup),
+                !existingGroupIds.has(group.id) &&
+                group.group_name.startsWith(autoImport.mainGroup),
             )
 
             for (const newGroup of newGroups) {

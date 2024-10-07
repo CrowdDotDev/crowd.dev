@@ -49,7 +49,7 @@ export const getUserSubscriptions = async (cookie: string): Promise<Subscription
     const url = 'https://groups.io/api/v1/getsubs'
     const params = {
       limit: 100,
-      ...(nextPageToken ? { page_token: nextPageToken } : {})
+      ...(nextPageToken ? { page_token: nextPageToken } : {}),
     }
 
     try {
