@@ -150,10 +150,10 @@
             />
             <span class="ml-2 text-sm">Select All</span>
             <el-tooltip
-              content="Select all groups for this main group"
+              content="This applies to all current and future group/subgroups"
               placement="top"
             >
-              <i class="ri-information-line ml-1 text-gray-400 cursor-help" />
+              <i class="ri-question-line ml-1 text-gray-400 cursor-help" />
             </el-tooltip>
           </div>
         </div>
@@ -489,7 +489,7 @@ const connect = async () => {
             id: subGroup.id,
             slug: subGroup.group_name,
             name: subGroup.nice_group_name,
-            groupAddedOn: new Date(),
+            groupAddedOn: new Date().toUTCString(),
           })),
       );
       return selected;

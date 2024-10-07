@@ -6,15 +6,17 @@ import checkStuckIntegrationRuns from './checkStuckIntegrationRuns'
 import refreshGroupsioToken from './refreshGroupsioToken'
 import refreshGitlabToken from './refreshGitlabToken'
 import refreshGithubRepoSettings from './refreshGithubRepoSettings'
+import autoImportGroups from './autoImportGroupsioGroups'
 
 const jobs: CrowdJob[] = [
-  integrationTicks,
-  refreshMaterializedViews,
-  cleanUp,
-  checkStuckIntegrationRuns,
-  refreshGroupsioToken,
-  refreshGitlabToken,
-  refreshGithubRepoSettings,
+  // integrationTicks,
+  // refreshMaterializedViews,
+  // cleanUp,
+  // checkStuckIntegrationRuns,
+  // refreshGroupsioToken,
+  // refreshGitlabToken,
+  // refreshGithubRepoSettings,
+  autoImportGroups,
 ]
 
 export default jobs

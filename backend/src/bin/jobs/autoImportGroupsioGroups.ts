@@ -13,7 +13,7 @@ interface SetttingsObj {
     id: number
     name: string
     slug: string
-    groupAddedOn?: Date
+    groupAddedOn?: string
   }>
   autoImports?: {
     mainGroup: string
@@ -27,8 +27,8 @@ interface SetttingsObj {
 
 const job: CrowdJob = {
   name: 'Auto Import Groups IO Groups',
-  // every day
-  cronTime: cronGenerator.every(1).days(),
+  // every 2 days
+  cronTime: cronGenerator.every(1).minutes(),
   onTrigger: async () => {
     log.info('Checking for new groups to auto import.')
     const dbOptions = await SequelizeRepository.getDefaultIRepositoryOptions()
@@ -40,10 +40,13 @@ const job: CrowdJob = {
         `,
     )
 
+    log.info(`Found ${integrations[0].length} integrations to check for auto imports.`)
+
     for (const integration of integrations[0]) {
       const settings = integration.settings as SetttingsObj
       if (settings.autoImports) {
         const allGroups = await getUserSubscriptions(settings.token)
+        log.info(`Found ${allGroups.length} available groups in users's account.`)
         const existingGroupIds = new Set(settings.groups.map((group) => group.id))
 
         for (const autoImport of settings.autoImports) {
@@ -54,11 +57,12 @@ const job: CrowdJob = {
             )
 
             for (const newGroup of newGroups) {
+              log.info(`Adding new group ${newGroup.nice_group_name} to auto-import.`)
               settings.groups.push({
                 id: newGroup.id,
                 name: newGroup.nice_group_name,
                 slug: newGroup.group_name,
-                groupAddedOn: new Date(),
+                groupAddedOn: new Date().toUTCString(),
               })
             }
 
@@ -66,6 +70,8 @@ const job: CrowdJob = {
               log.info(
                 `Added ${newGroups.length} new groups for auto-import in integration ${integration.id}`,
               )
+            } else {
+              log.info(`No new groups found for auto-import in integration ${integration.id}.`)
             }
           }
         }

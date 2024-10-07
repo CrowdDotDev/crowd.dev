@@ -1840,6 +1840,7 @@ export default class IntegrationService {
             tokenExpiry: integrationData.tokenExpiry,
             password: encryptedPassword,
             groups: integrationData.groups,
+            autoImports: integrationData.autoImports,
             updateMemberAttributes: true,
           },
           status: 'in-progress',

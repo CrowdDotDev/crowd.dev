@@ -4,6 +4,10 @@ export interface GroupsioIntegrationData {
   tokenExpiry: string
   password: string
   groups: GroupDetails[]
+  autoImports?: {
+    mainGroup: string
+    isAllowed: boolean
+  }[]
 }
 
 export interface GroupsioGetToken {
@@ -22,10 +26,6 @@ export interface GroupDetails {
   slug: string
   name: string
   groupAddedOn?: Date
-  autoImports?: {
-    mainGroup: string
-    isAllowed: boolean
-  }[]
 }
 
 export type GroupName = string
