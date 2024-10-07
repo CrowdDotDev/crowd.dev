@@ -1,6 +1,7 @@
 import config from 'config'
 import { IRedisConfiguration } from '@crowd/redis'
 import { ISearchSyncApiConfig } from '@crowd/opensearch'
+import { IGithubIssueReporterConfiguration } from '@crowd/types'
 import { IDatabaseConfig } from '@crowd/data-access-layer/src/database'
 import { IQueueClientConfig } from '@crowd/queue'
 import {
@@ -112,6 +113,9 @@ export const GOOGLE_CONFIG: GoogleConfiguration = config.get<GoogleConfiguration
 export const DISCORD_CONFIG: DiscordConfiguration = config.get<DiscordConfiguration>('discord')
 
 export const GITHUB_CONFIG: GithubConfiguration = config.get<GithubConfiguration>('github')
+
+export const GITHUB_ISSUE_REPORTER_CONFIG: IGithubIssueReporterConfiguration =
+  config.get<IGithubIssueReporterConfiguration>('githubIssueReporter')
 
 export const SENDGRID_CONFIG: SendgridConfiguration = config.get<SendgridConfiguration>('sendgrid')
 

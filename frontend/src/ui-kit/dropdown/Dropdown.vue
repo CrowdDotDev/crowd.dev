@@ -1,5 +1,5 @@
 <template>
-  <div ref="dropdown" class="c-dropdown" @click.stop="toggleDropdown">
+  <div ref="dropdown" class="c-dropdown h-min" @click.stop="toggleDropdown">
     <slot name="trigger" :open="isOpen" />
     <div
       class="c-dropdown__menu"

@@ -27,7 +27,7 @@
       </div>
       <lf-dropdown
         v-if="props.domain.type !== OrganizationIdentityType.AFFILIATED_PROFILE
-          && hovered && hasPermission(LfPermission.memberEdit)"
+          && hovered"
         placement="bottom-end"
         width="232px"
       >
@@ -38,19 +38,36 @@
         </template>
 
         <lf-dropdown-item
+          v-if="hasPermission(LfPermission.memberEdit)"
           class="w-full"
           @click="emit('edit')"
         >
           <lf-icon name="pencil-line" />Edit domain
         </lf-dropdown-item>
+        <lf-dropdown-item
+          v-else
+          @click="setReportDataModal({
+            organization: props.organization,
+            type: ReportDataType.DOMAIN,
+            attribute: props.domain,
+          })"
+        >
+          <lf-icon name="feedback-line" class="!text-red-500" />Report issue
+        </lf-dropdown-item>
 
         <!-- Unmerge -->
-        <lf-dropdown-item @click="emit('unmerge')">
+        <lf-dropdown-item
+          v-if="hasPermission(LfPermission.memberEdit)"
+          @click="emit('unmerge')"
+        >
           <lf-icon name="link-unlink" />Unmerge domain
         </lf-dropdown-item>
 
-        <lf-dropdown-separator />
+        <lf-dropdown-separator
+          v-if="hasPermission(LfPermission.memberEdit)"
+        />
         <lf-dropdown-item
+          v-if="hasPermission(LfPermission.memberEdit)"
           type="danger"
           class="w-full"
           @click="removeDomain()"
@@ -87,6 +104,8 @@ import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import LfDropdownSeparator from '@/ui-kit/dropdown/DropdownSeparator.vue';
+import { ReportDataType } from '@/shared/modules/report-issue/constants/report-data-type.enum';
+import { useSharedStore } from '@/shared/pinia/shared.store';
 
 const props = defineProps<{
   domain: OrganizationIdentity,
@@ -97,6 +116,7 @@ const emit = defineEmits<{(e: 'edit'): void, (e: 'unmerge'): void, }>();
 const platformLabel = (platforms: string[]) => CrowdIntegrations.getPlatformsLabel(platforms);
 
 const { hasPermission } = usePermissions();
+const { setReportDataModal } = useSharedStore();
 const { updateOrganization } = useOrganizationStore();
 
 const hovered = ref(false);

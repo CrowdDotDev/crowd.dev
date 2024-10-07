@@ -19,9 +19,9 @@
     --lf-input-border: var(--lf-input-invalid-border)
   }
 
-  input{
+  input, textarea{
     color: var(--lf-input-color);
-    @apply text-sm leading-6 font-normal p-2 outline-none appearance-none flex-grow block w-full transition-all bg-transparent;
+    @apply text-sm leading-6 font-normal p-2 outline-none appearance-none flex-grow block w-full transition-all bg-transparent resize-none;
 
     &::placeholder, &:-ms-input-placeholder, &::-ms-input-placeholder {
       color: var(--lf-input-placeholder-color);
