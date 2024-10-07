@@ -114,13 +114,13 @@
           </div>
         </div>
       </el-form>
-      <div class="w-full flex flex-col mb-6 mt-4">
+      <div class="w-full flex flex-col mb-6 mt-4" :class="{ 'opacity-50': !isAPIConnectionValid }">
         <p class="text-[16px] font-semibold">
           Track Groups
         </p>
         <div class="text-2xs text-gray-500 leading-normal mb-1">
-          Select which groups you want to track. All topics avaliable in each
-          group will be monitored.
+          Select which groups and/or subgroups you want to track. All topics
+          available in each group will be monitored.
           <a
             href="https://docs.linuxfoundation.org/lfx/community-management/integrations/groups.io"
             target="_blank"
@@ -367,6 +367,14 @@ const getUserSubscriptions = async () => {
 
 const reverifyAccount = () => {
   isAPIConnectionValid.value = false;
+  // clear data
+  cookie.value = '';
+  cookieExpiry.value = '';
+  form.email = '';
+  form.password = '';
+  form.twoFactorCode = '';
+  userSubscriptions.value = [];
+  $v.value.$reset();
 };
 
 const onBlurEmail = () => {
