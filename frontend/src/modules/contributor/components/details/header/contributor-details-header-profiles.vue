@@ -17,7 +17,7 @@
             <p class="!text-white">
               {{ platformData(platform)?.name }} profile
             </p>
-            <lf-icon name="external-link-line" :size="14" class="text-gray-400" />
+            <lf-icon-old name="external-link-line" :size="14" class="text-gray-400" />
           </a>
         </template>
         <a
@@ -29,7 +29,7 @@
           class="flex items-center gap-1"
           @click="idents.length > 1 ? $event.preventDefault() : null"
         >
-          <lf-icon
+          <lf-icon-old
             :name="platformData(platform)?.icon"
             :size="20"
             :style="{ color: platformData(platform)?.brandColor }"
@@ -64,7 +64,7 @@ opacity-0 invisible transition group-hover:visible group-hover:opacity-100 z-30 
               {{ identity.value }}
             </p>
           </div>
-          <lf-icon v-if="identity.url" name="external-link-line" :size="16" class="text-gray-300" />
+          <lf-icon-old v-if="identity.url" name="external-link-line" :size="16" class="text-gray-300" />
         </a>
       </div>
     </div>
@@ -74,7 +74,7 @@ opacity-0 invisible transition group-hover:visible group-hover:opacity-100 z-30 
 <script setup lang="ts">
 import { computed } from 'vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
 import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
 import { contributorDetailsHeaderProfilePlatforms } from '@/modules/contributor/config/details-header-profile-platforms';

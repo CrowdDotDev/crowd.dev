@@ -120,9 +120,8 @@
                   class="text-2xs text-gray-600 font-medium flex items-center"
                   target="_blank"
                   rel="noopener noreferrer"
-                ><i
-                   class="ri-lg ri-external-link-line mr-1"
-                 />
+                >
+                  <lf-icon name="arrow-up-right-from-square" class="mr-1" :size="14" />
                   <span class="block">Open on {{ platform?.name || 'platform' }}</span></a>
               </div>
             </template>
@@ -146,10 +145,12 @@ import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import LfActivityDisplay from '@/shared/modules/activity/components/activity-display.vue';
 import { Platform } from '@/shared/modules/platform/types/Platform';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 export default {
   name: 'AppDashboardActivityItem',
   components: {
+    LfIcon,
     AppMemberDisplayName,
     AppActivityContent,
     AppLoading,

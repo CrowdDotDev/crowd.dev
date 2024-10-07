@@ -43,7 +43,7 @@
         <el-button
           class="btn btn-link btn-link--md btn-link--primary btn--full"
         >
-          <i class="ri-external-link-line" />
+          <lf-icon name="arrow-up-right-from-square" :size="14" />
           <span>Settings</span>
         </el-button>
       </router-link>
@@ -67,6 +67,7 @@ import usePermissions from '@/shared/modules/permissions/helpers/usePermissions'
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import { LfRole } from '@/shared/modules/permissions/types/Roles';
 import AppDashboardProjectGroupDrawer from './dashboard-project-group-drawer.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);

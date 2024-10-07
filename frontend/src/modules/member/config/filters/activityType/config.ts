@@ -11,7 +11,7 @@ import { itemLabelRendererByType } from '@/shared/modules/filters/config/itemLab
 const activityType: CustomFilterConfig = {
   id: 'activityType',
   label: 'Activity type',
-  iconClass: 'ri-radar-line',
+  iconClass: 'fa-light fa-list-timeline',
   type: FilterConfigType.CUSTOM,
   component: ActivityTypeFilter,
   options: {

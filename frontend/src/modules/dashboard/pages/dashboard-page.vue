@@ -17,7 +17,7 @@
               }"
             />
             <div class=" text-sm flex items-center gap-2">
-              <i class="text-gray-500 ri-time-line text-base" />
+              <lf-icon name="circle-info" :size="16" class="text-gray-500" />
               <span class="text-gray-500">Data on this page is refreshed every 15 min.</span>
             </div>
           </div>
@@ -60,6 +60,7 @@ import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import LfDashboardIntegrations from '@/modules/dashboard/components/dashboard-integrations.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const authStore = useAuthStore();
 const { tenant } = storeToRefs(authStore);

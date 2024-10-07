@@ -119,7 +119,7 @@
         </el-collapse>
 
         <!-- Load more button -->
-        <div v-if="isLoadMoreVisible" class="flex grow justify-center mt-8">
+        <div v-if="!isLoadMoreVisible" class="flex grow justify-center mt-8">
           <div
             v-if="loading"
             v-loading="loading"
@@ -130,14 +130,15 @@
             class="btn btn-link btn-link--primary"
             @click="onLoadMore"
           >
-            <i class="ri-arrow-down-line" /><span class="text-xs">Load more</span>
+            <lf-icon name="arrow-down" :size="14" />
+            <span class="text-xs">Load more</span>
           </el-button>
         </div>
       </div>
       <app-empty-state
         v-else
         class="mt-4"
-        icon="ri-stack-line"
+        icon="fa-light fa-layer-group"
         description="No projects found"
       />
     </template>
@@ -155,6 +156,7 @@ import {
   EventType,
   FeatureEventKey,
 } from '@/shared/modules/monitoring/types/event';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const emit = defineEmits(['update:isVisible']);
 const props = defineProps({

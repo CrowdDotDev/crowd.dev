@@ -8,7 +8,7 @@
     @input="changeValue($event)"
   >
     <template #prefix>
-      <i class="ri-search-line text-gray-400" />
+      <lf-icon name="magnifying-glass" class="text-gray-400" :size="16" />
     </template>
     <template v-if="$slots.append" #append>
       <slot name="append" />
@@ -24,6 +24,7 @@ import { debounce } from 'lodash';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { useRouter } from 'vue-router';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps<{
   modelValue: string,

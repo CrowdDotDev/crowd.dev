@@ -12,7 +12,7 @@
             </p>
             <el-popover placement="top" width="20rem">
               <template #reference>
-                <lf-icon name="question-line" :size="14" class="text-secondary-200 font-normal" />
+                <lf-icon-old name="question-line" :size="14" class="text-secondary-200 font-normal" />
               </template>
               <div class="p-1">
                 <p class="text-small font-semibold mb-2 text-black">
@@ -44,7 +44,7 @@
                 Calculated based on the recency and importance<br> of a person's
                 activities in comparison<br> to the community.
               </template>
-              <lf-icon name="question-line" :size="14" class="text-secondary-200" />
+              <lf-icon-old name="question-line" :size="14" class="text-secondary-200" />
             </el-tooltip>
           </div>
           <lf-contributor-engagement-level :contributor="props.contributor" />
@@ -87,7 +87,7 @@
 <script setup lang="ts">
 import LfCard from '@/ui-kit/card/Card.vue';
 import moment from 'moment';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import { formatNumber } from '@/utils/number';
 import LfContributorEngagementLevel from '@/modules/contributor/components/shared/contributor-engagement-level.vue';
 import LfContributorSentiment from '@/modules/contributor/components/shared/contributor-sentiment.vue';

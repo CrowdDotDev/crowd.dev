@@ -25,7 +25,7 @@
             </span>
             {{ sorters[sort] }}
           </p>
-          <lf-icon name="arrow-down-s-line" :size="16" />
+          <lf-icon-old name="arrow-down-s-line" :size="16" />
         </div>
       </template>
 
@@ -37,7 +37,7 @@
         @click="onSortChange(key)"
       >
         <span>{{ label }}</span>
-        <lf-icon
+        <lf-icon-old
           v-if="sort === key"
           name="check-line"
           :size="16"
@@ -109,7 +109,7 @@
             <template #badge>
               <div>
                 <div class="h-6 flex items-center px-2 border border-gray-200 rounded-md gap-1.5 whitespace-nowrap">
-                  <lf-icon name="fingerprint-line" :size="16" />
+                  <lf-icon-old name="fingerprint-line" :size="16" />
                   <p class="text-small text-gray-600 whitespace-nowrap">
                     {{ pluralize('identity', identities(contributor).length, true) }}
                   </p>
@@ -129,7 +129,7 @@
     </div>
     <div v-if="!loading && !contributors.length">
       <div class="flex justify-center pb-8">
-        <lf-icon name="group-2-line" :size="80" class="text-gray-200" />
+        <lf-icon-old name="group-2-line" :size="80" class="text-gray-200" />
       </div>
       <h5 class="text-center text-h5">
         No people found
@@ -171,7 +171,7 @@ import { Filter } from '@/shared/modules/filters/types/FilterConfig';
 import { Pagination } from '@/shared/types/Pagination';
 import { Member } from '@/modules/member/types/Member';
 import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';

@@ -25,7 +25,7 @@
 
       <app-dashboard-empty-state
         v-if="recentConversations.length === 0"
-        icon-class="ri-question-answer-line"
+        icon-class="messages"
         class="pt-20 pb-17"
       >
         No conversations during this period

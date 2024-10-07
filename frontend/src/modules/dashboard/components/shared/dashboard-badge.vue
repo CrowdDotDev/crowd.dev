@@ -3,13 +3,17 @@
     class="py-0.5 px-1.5 rounded text-xs leading-5 font-medium flex"
     :class="[typeClass]"
   >
-    <i
+    <lf-icon
       v-if="type === 'success'"
-      class="ri-arrow-up-line text-base text-green-700 mr-1 flex items-center"
+      name="arrow-up"
+      :size="16"
+      class="text-green-700"
     />
-    <i
+    <lf-icon
       v-else-if="type === 'danger'"
-      class="ri-arrow-down-line text-base text-red-700 mr-1 flex items-center"
+      name="arrow-down"
+      :size="16"
+      class="text-red-700"
     />
     <slot />
   </div>
@@ -17,6 +21,7 @@
 
 <script setup>
 import { defineProps, computed } from 'vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps({
   type: {

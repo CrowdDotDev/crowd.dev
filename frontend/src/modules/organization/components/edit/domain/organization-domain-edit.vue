@@ -5,7 +5,7 @@
         Update {{ modelValue?.type?.replace('-', ' ') }}
       </h5>
       <lf-button type="secondary-ghost-light" :icon-only="true" @click="isModalOpen = false">
-        <lf-icon name="close-line" />
+        <lf-icon-old name="close-line" />
       </lf-button>
     </div>
     <div class="pt-2 pb-10 px-6 w-full">
@@ -18,7 +18,7 @@
           <template #prefix>
             <div class="flex items-center flex-nowrap whitespace-nowrap">
               <div class="min-w-5">
-                <lf-icon name="link" class="text-black" :size="20" />
+                <lf-icon-old name="link" class="text-black" :size="20" />
               </div>
             </div>
           </template>
@@ -50,7 +50,7 @@ import {
 import { computed, reactive, ref } from 'vue';
 import LfModal from '@/ui-kit/modal/Modal.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 import LfInput from '@/ui-kit/input/Input.vue';

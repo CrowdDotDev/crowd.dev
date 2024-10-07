@@ -2,7 +2,7 @@
   <el-popover v-model:visible="open" :placement="$attrs.placement || 'bottom-end'" size="large" width="20rem" popper-class="!p-0" trigger="click">
     <template #reference>
       <lf-button type="secondary">
-        <lf-icon name="filter-3-line" />
+        <lf-icon-old name="filter-3-line" />
         Filters
       </lf-button>
     </template>
@@ -70,7 +70,7 @@ import {
 import { FilterConfig } from '@/shared/modules/filters/types/FilterConfig';
 import { FeatureFlag } from '@/utils/featureFlag';
 import LfButton from '@/ui-kit/button/Button.vue';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 
 const props = defineProps<{
   config: Record<string, FilterConfig>,

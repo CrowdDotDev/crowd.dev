@@ -1,0 +1,8 @@
+.c-icon {
+  font-size: calc(var(--lf-icon-size) * 0.8);
+  height: var(--lf-icon-size);
+  width: var(--lf-icon-size);
+  @apply flex items-center justify-center
+}
+
+

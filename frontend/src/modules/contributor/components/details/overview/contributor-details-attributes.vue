@@ -10,7 +10,7 @@
         size="small"
         @click="edit = true"
       >
-        <lf-icon name="pencil-line" />
+        <lf-icon-old name="pencil-line" />
         Edit attributes
       </lf-button>
     </div>
@@ -178,7 +178,7 @@
         && Object.keys(attributes).length === 0"
       class="pt-2 flex flex-col items-center w-full"
     >
-      <lf-icon name="list-view" :size="80" class="text-gray-300" />
+      <lf-icon-old name="list-view" :size="80" class="text-gray-300" />
       <p class="text-center pt-3 text-medium text-gray-400">
         No profile details yet
       </p>
@@ -193,7 +193,7 @@
 
 <script setup lang="ts">
 import LfButton from '@/ui-kit/button/Button.vue';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import AppMemberManageAttributesDrawer from '@/modules/member/components/member-manage-attributes-drawer.vue';
 import { computed, ref } from 'vue';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';

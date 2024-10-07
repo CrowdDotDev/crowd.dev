@@ -45,9 +45,7 @@
   }
 
   [class^="ri-"], .c-icon{
-    height: var(--lf-btn-icon);
-    width: var(--lf-btn-icon);
-    font-size: var(--lf-btn-icon);
+    --lf-icon-size: var(--lf-btn-icon);
     @apply flex items-center justify-center font-normal;
   }
 

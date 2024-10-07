@@ -14,7 +14,7 @@
       </span>
     </template>
 
-    <lf-icon
+    <lf-icon-old
       name="verified-badge-line"
       :size="16"
       class="ml-1 text-primary-500"
@@ -23,5 +23,5 @@
 </template>
 
 <script setup lang="ts">
-import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 </script>

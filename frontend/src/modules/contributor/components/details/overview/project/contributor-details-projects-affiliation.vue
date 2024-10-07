@@ -34,7 +34,7 @@
           >
             <template #placeholder>
               <div class="w-full h-full bg-gray-50 flex items-center justify-center">
-                <lf-icon name="community-line" :size="12" class="text-gray-400" />
+                <lf-icon-old name="community-line" :size="12" class="text-gray-400" />
               </div>
             </template>
           </lf-avatar>
@@ -85,7 +85,7 @@
               >
                 <template #placeholder>
                   <div class="w-full h-full bg-gray-50 flex items-center justify-center">
-                    <lf-icon name="community-line" :size="12" class="text-gray-400" />
+                    <lf-icon-old name="community-line" :size="12" class="text-gray-400" />
                   </div>
                 </template>
               </lf-avatar>
@@ -104,7 +104,7 @@
 </template>
 
 <script setup lang="ts">
-import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import { ContributorAffiliation } from '@/modules/contributor/types/Contributor';
 import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
 import { storeToRefs } from 'pinia';

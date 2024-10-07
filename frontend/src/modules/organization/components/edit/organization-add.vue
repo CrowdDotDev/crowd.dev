@@ -4,7 +4,7 @@
     <section class="py-4 pr-4 pl-6 flex justify-between items-center">
       <h5>Add organization</h5>
       <lf-button type="secondary-ghost-light" :icon-only="true" @click="isModalOpen = false">
-        <lf-icon name="close-line" />
+        <lf-icon-old name="close-line" />
       </lf-button>
     </section>
 
@@ -97,7 +97,7 @@
 import LfModal from '@/ui-kit/modal/Modal.vue';
 import { computed, reactive, ref } from 'vue';
 import LfButton from '@/ui-kit/button/Button.vue';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import AppLfSubProjectsListDropdown from '@/modules/lf/segments/components/lf-sub-projects-list-dropdown.vue';
 import LfInput from '@/ui-kit/input/Input.vue';
 import LfField from '@/ui-kit/field/Field.vue';

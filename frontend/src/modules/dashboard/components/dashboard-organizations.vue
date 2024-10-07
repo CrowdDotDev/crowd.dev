@@ -66,7 +66,7 @@
             />
             <app-dashboard-empty-state
               v-if="recentOrganizations.length === 0"
-              icon-class="ri-community-line"
+              icon="building"
               class="pt-6 pb-5"
             >
               No new organizations during this period
@@ -157,7 +157,7 @@
             />
             <app-dashboard-empty-state
               v-if="activeOrganizations.length === 0"
-              icon-class="ri-community-line"
+              icon="building"
               class="pt-6 pb-5"
             >
               No active organizations during this period
