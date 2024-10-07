@@ -21,7 +21,7 @@
 
       <app-dashboard-empty-state
         v-if="recentActivities.length === 0"
-        icon-class="ri-list-check-2"
+        icon="monitor-waveform"
         class="pt-17 pb-17"
       >
         No activities during this period

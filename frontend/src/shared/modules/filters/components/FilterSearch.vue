@@ -8,7 +8,7 @@
     @input="changeValue($event)"
   >
     <template #prefix>
-      <lf-icon name="magnifying-glass" class="text-gray-400" :size="16"/>
+      <lf-icon name="magnifying-glass" class="text-gray-400" :size="16" />
     </template>
     <template v-if="$slots.append" #append>
       <slot name="append" />

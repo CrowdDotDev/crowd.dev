@@ -94,7 +94,6 @@ import { useOrganizationStore } from '@/modules/organization/store/pinia';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import LfMenuLink from '@/modules/layout/components/menu/menu-link.vue';
-import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const store = useStore();

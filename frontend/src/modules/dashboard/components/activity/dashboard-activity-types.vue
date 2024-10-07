@@ -48,9 +48,7 @@
       v-if="!activityData.length || activityData.length === 0"
       class="flex items-center justify-center pt-6 pb-5"
     >
-      <div
-        class="ri-list-check-2 text-3xl text-gray-300 mr-4 h-10 flex items-center"
-      />
+      <lf-icon name="list-ul" class="text-gray-300 mr-4" :size="40" />
       <p
         class="text-xs leading-5 text-center italic text-gray-400"
       >
@@ -69,6 +67,7 @@ import { storeToRefs } from 'pinia';
 import AppLoading from '@/shared/loading/loading-placeholder.vue';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const { chartData } = mapGetters('dashboard');
 

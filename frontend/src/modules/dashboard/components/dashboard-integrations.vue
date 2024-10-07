@@ -10,7 +10,7 @@
             Connecting integrations...
           </h6>
         </div>
-        <div v-if="progressError" class="px-4 text-xs text-gray-500 my-2">
+        <div v-if="!progressError" class="px-4 text-xs text-gray-500 my-2">
           <i class="ri-alert-line text-yellow-600" /> Error loading progress
         </div>
         <section
