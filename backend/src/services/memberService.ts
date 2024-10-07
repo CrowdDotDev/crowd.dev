@@ -53,7 +53,7 @@ import {
   removeMemberTasks,
 } from '@crowd/data-access-layer/src/members'
 import { findMemberAffiliations } from '@crowd/data-access-layer/src/member_segment_affiliations'
-import { getActivityCountOfMemberIdentities } from '@crowd/data-access-layer'
+// import { getActivityCountOfMemberIdentities } from '@crowd/data-access-layer'
 import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
 import { QueryExecutor, optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { TEMPORAL_CONFIG } from '@/conf'
@@ -1161,17 +1161,19 @@ export default class MemberService extends LoggerBase {
           )
           member.memberOrganizations = unmergedRoles as IMemberRoleWithOrganization[]
 
+          const secondaryActivityCount = 0
+          const primaryActivityCount = 0
           // activity count
-          const secondaryActivityCount = await getActivityCountOfMemberIdentities(
-            this.options.qdb,
-            member.id,
-            secondaryBackup.identities,
-          )
-          const primaryActivityCount = await getActivityCountOfMemberIdentities(
-            this.options.qdb,
-            member.id,
-            member.identities,
-          )
+          // const secondaryActivityCount = await getActivityCountOfMemberIdentities(
+          //   this.options.qdb,
+          //   member.id,
+          //   secondaryBackup.identities,
+          // )
+          // const primaryActivityCount = await getActivityCountOfMemberIdentities(
+          //   this.options.qdb,
+          //   member.id,
+          //   member.identities,
+          // )
 
           return {
             primary: {
@@ -1210,17 +1212,20 @@ export default class MemberService extends LoggerBase {
         throw new Error(`Original member only has one identity, cannot extract it!`)
       }
 
-      const secondaryActivityCount = await getActivityCountOfMemberIdentities(
-        this.options.qdb,
-        member.id,
-        secondaryIdentities,
-      )
+      const secondaryActivityCount = 0
+      const primaryActivityCount = 0
 
-      const primaryActivityCount = await getActivityCountOfMemberIdentities(
-        this.options.qdb,
-        member.id,
-        primaryIdentities,
-      )
+      // const secondaryActivityCount = await getActivityCountOfMemberIdentities(
+      //   this.options.qdb,
+      //   member.id,
+      //   secondaryIdentities,
+      // )
+      //
+      // const primaryActivityCount = await getActivityCountOfMemberIdentities(
+      //   this.options.qdb,
+      //   member.id,
+      //   primaryIdentities,
+      // )
 
       const primaryMemberRoles = await MemberOrganizationRepository.findMemberRoles(
         member.id,
