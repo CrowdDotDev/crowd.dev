@@ -2347,6 +2347,7 @@ class MemberRepository {
               },
             ],
           },
+          orderBy: ['timestamp_DESC'],
           tenantId: options.currentTenant.id,
           limit: 1,
         },
@@ -2354,7 +2355,7 @@ class MemberRepository {
       )) as PageData<IQueryActivityResult>
 
       rows.forEach((r) => {
-        r.lastActivity = lastActivities.rows.find((a) => (a as any).memberId === r.id)
+        r.lastActivity = lastActivities.rows.find((a) => a.memberId === r.id)
         if (r.lastActivity) {
           r.lastActivity.display = ActivityDisplayService.getDisplayOptions(
             r.lastActivity,
