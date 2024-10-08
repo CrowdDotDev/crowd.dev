@@ -376,11 +376,11 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
         lte: props.entity?.lastActive ?? timestamp.value,
       },
     },
-    ...(props.entity?.lastActive ? {
+    ...(props.entity?.lastActive ? [{
       timestamp: {
         gte: moment(props.entity?.lastActive).subtract(1, 'month').toISOString(),
       },
-    } : {}),
+    }] : []),
   ];
 
   if (reset) {
