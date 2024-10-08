@@ -130,7 +130,7 @@ LIMIT 5000;
   let conversationsCreated = 0
   const toCreate = Object.values(conversationsToCreate)
   if (toCreate.length > 0) {
-    for (const batch of partition(toCreate, 1)) {
+    for (const batch of partition(toCreate, 100)) {
       try {
         const results = await insertConversations(batch)
         conversationsCreated += results.length
@@ -173,7 +173,7 @@ LIMIT 5000;
   }
 
   if (toUpdate.length > 0) {
-    for (const batch of partition(toUpdate, 1)) {
+    for (const batch of partition(toUpdate, 100)) {
       try {
         const results = await insertActivities(batch, true)
         activitiesAddedToConversations += results.length
