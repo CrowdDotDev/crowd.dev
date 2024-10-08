@@ -6,8 +6,8 @@ import {
   insertConversations,
   mapActivityRowToResult,
 } from '@crowd/data-access-layer'
+import { DbConnOrTx } from '@crowd/data-access-layer/src/database'
 import { IDbConversationCreateData } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/conversation.data'
-
 import { svc } from '../main'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -20,28 +20,37 @@ export interface ICreateConversationsResult {
 }
 
 export async function createConversations(): Promise<ICreateConversationsResult> {
-  // Find all activities, and their parent activities
-  const query = `
-  WITH
-  activities_to_check_for_parentId AS (
-    SELECT *
-    FROM activities child
-    WHERE deletedAt IS NULL 
-    AND sourceParentId IS NOT NULL
-    AND conversationId IS NULL
-    AND createdAt >= dateadd('M', -1, now())
-  )
-SELECT
-  conversation.id AS conversationId,
-  ${ALL_COLUMNS_TO_SELECT.map((c) => `parent.${c} as parent_${c}`).join(', \n')},
-  ${ALL_COLUMNS_TO_SELECT.map((c) => `child.${c} as child_${c}`).join(', \n')}
-FROM activities parent
-JOIN activities_to_check_for_parentId child ON parent.sourceId = child.sourceParentId
-LEFT JOIN conversations conversation ON parent.conversationId = conversation.id
-ORDER BY child.createdAt ASC
-LIMIT 5000;
-  `
-  const rows: any[] = await svc.questdbSQL.query(query)
+  // find the timestamp of the oldest activity so we can limit the query
+  const minTimestamp = await getMinActivityTimestamp(svc.questdbSQL)
+  if (!minTimestamp) {
+    return {
+      conversationsCreated: 0,
+      activitiesAddedToConversations: 0,
+    }
+  }
+
+  const limit = new Date(minTimestamp)
+
+  let current = new Date()
+
+  const results = []
+  while (limit < current) {
+    // fetch results for a timeframe of one week
+    // Find all activities, and their parent activities
+    const currentResults = await getRows(svc.questdbSQL, current)
+    if (currentResults.length > 0) {
+      results.push(...currentResults)
+
+      if (results.length >= 1000) {
+        svc.log.info('Reached 1000 results...')
+        break
+      }
+    }
+
+    current = subtractOneWeek(current)
+  }
+
+  svc.log.info(`Found ${results.length} activities to process...`)
 
   // For all rows found, store the conversation created for the source parent ID.
   const conversationsToCreate: Record<string, IDbConversationCreateData> = {}
@@ -60,7 +69,7 @@ LIMIT 5000;
     }
   }
 
-  for (const row of rows) {
+  for (const row of results) {
     // map parent and child activities to objects
     const parent: any = {}
     const child: any = {}
@@ -188,4 +197,59 @@ LIMIT 5000;
     conversationsCreated,
     activitiesAddedToConversations,
   }
+}
+
+function subtractOneWeek(date: Date): Date {
+  const newDate = new Date(date)
+  newDate.setDate(date.getDate() - 7)
+  return newDate
+}
+
+async function getRows(qdbConn: DbConnOrTx, current: Date): Promise<any[]> {
+  const query = `
+  WITH
+  activities_to_check_for_parentId AS (
+    SELECT *
+    FROM activities child
+    WHERE deletedAt IS NULL 
+    AND sourceParentId IS NOT NULL
+    AND conversationId IS NULL
+    AND timestamp > dateadd('w', -1, $(limit))
+    AND timestamp <= $(limit)
+  )
+SELECT
+  conversation.id AS conversationId,
+  ${ALL_COLUMNS_TO_SELECT.map((c) => `parent.${c} as parent_${c}`).join(', \n')},
+  ${ALL_COLUMNS_TO_SELECT.map((c) => `child.${c} as child_${c}`).join(', \n')}
+FROM activities parent
+JOIN activities_to_check_for_parentId child ON parent.sourceId = child.sourceParentId
+LEFT JOIN conversations conversation ON parent.conversationId = conversation.id
+ORDER BY child.createdAt ASC
+LIMIT 1000;
+  `
+
+  const results = await qdbConn.query(query, {
+    limit: current,
+  })
+
+  return results
+}
+
+async function getMinActivityTimestamp(qdbConn: DbConnOrTx): Promise<string | null> {
+  const query = `
+  select min(timestamp) as minTimestamp
+  from activities
+  where 
+    deletedAt is null and
+    sourceParentId is not null and
+    conversationId is null;
+  `
+
+  const result = await qdbConn.oneOrNone(query)
+
+  if (!result) {
+    return null
+  }
+
+  return result.minTimestamp
 }
