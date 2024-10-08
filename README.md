@@ -1,7 +1,7 @@
 
 <!-- BODY -->
 
-# LFX Community Management (formerly known as crowd.dev) 
+# LFX Community Management (fka crowd.dev) 
 ## Background story
 This project was launched as part of the startup crowd.dev. crowd.dev was acquired by the Linux Foundation in April 2024. Since then, crowd.dev is part of the [LFX platform](https://lfx.linuxfoundation.org/).
 
