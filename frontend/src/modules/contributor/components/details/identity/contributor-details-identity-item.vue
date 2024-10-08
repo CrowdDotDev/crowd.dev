@@ -85,8 +85,15 @@
         </lf-dropdown-item>
       </lf-tooltip>
 
+      <!-- Unmerge -->
       <lf-dropdown-item
-        v-else
+        v-if="hasPermission(LfPermission.memberEdit)"
+        @click="emit('unmerge')"
+      >
+        <lf-icon name="link-unlink" />Unmerge identity
+      </lf-dropdown-item>
+
+      <lf-dropdown-item
         @click="setReportDataModal({
           contributor: props.contributor,
           type: ReportDataType.IDENTITY,
@@ -94,14 +101,6 @@
         })"
       >
         <lf-icon name="feedback-line" class="!text-red-500" />Report issue
-      </lf-dropdown-item>
-
-      <!-- Unmerge -->
-      <lf-dropdown-item
-        v-if="hasPermission(LfPermission.memberEdit)"
-        @click="emit('unmerge')"
-      >
-        <lf-icon name="link-unlink" />Unmerge identity
       </lf-dropdown-item>
 
       <template

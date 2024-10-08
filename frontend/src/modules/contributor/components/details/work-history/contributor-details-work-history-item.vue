@@ -57,7 +57,6 @@
           <lf-icon name="pencil-line" />Edit work experience
         </lf-dropdown-item>
         <lf-dropdown-item
-          v-else
           @click="setReportDataModal({
             contributor: props.contributor,
             type: ReportDataType.WORK_EXPERIENCE,
