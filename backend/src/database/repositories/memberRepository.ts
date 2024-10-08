@@ -1531,7 +1531,6 @@ class MemberRepository {
             ...include,
           },
         },
-        options,
       )
 
       if (memberResponse.count === 0) {
