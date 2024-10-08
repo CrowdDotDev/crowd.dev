@@ -370,15 +370,18 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
     }
   }
 
-  filterToApply.and = [{
-    timestamp: {
-      lte: timestamp.value,
+  filterToApply.and = [
+    {
+      timestamp: {
+        lte: timestamp.value,
+      },
     },
-  }, {
-    timestamp: {
-      gte: moment(timestamp.value).subtract(1, 'month').toISOString(),
-    },
-  }];
+    // {
+    //   timestamp: {
+    //     gte: moment(timestamp.value).subtract(1, 'month').toISOString(),
+    //   },
+    // }
+  ];
 
   if (reset) {
     activities.value.length = 0;
