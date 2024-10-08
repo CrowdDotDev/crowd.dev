@@ -2348,7 +2348,7 @@ class MemberRepository {
             ],
           },
           tenantId: options.currentTenant.id,
-          noLimit: true,
+          limit: 1,
         },
         DEFAULT_COLUMNS_TO_SELECT,
       )) as PageData<IQueryActivityResult>
