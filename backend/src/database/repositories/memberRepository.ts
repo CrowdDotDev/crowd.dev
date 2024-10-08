@@ -1513,7 +1513,10 @@ class MemberRepository {
     if (memberResponse.count === 0) {
       // try it again without segment information (no aggregates)
       // for members without activities
-      memberResponse = await MemberRepository.findAndCountAll(
+      memberResponse = await queryMembersAdvanced(
+        optionsQx(options),
+        options.redis,
+        options.currentTenant.id,
         {
           filter: { id: { eq: id } },
           limit: 1,
