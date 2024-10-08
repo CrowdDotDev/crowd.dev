@@ -71,12 +71,9 @@ import {
 import { IDbMemberData } from '@crowd/data-access-layer/src/members/types'
 import {
   countMembersWithActivities,
-  DEFAULT_COLUMNS_TO_SELECT,
   getActiveMembers,
   getLastActivitiesForMembers,
   getMemberAggregates,
-  IQueryActivityResult,
-  queryActivities,
   setMemberDataToActivities,
 } from '@crowd/data-access-layer'
 import { optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
@@ -2337,25 +2334,10 @@ class MemberRepository {
     })
 
     if (memberIds.length > 0) {
-      const lastActivities = (await queryActivities(
-        options.qdb,
-        {
-          filter: {
-            and: [
-              {
-                memberId: { in: memberIds },
-              },
-            ],
-          },
-          orderBy: ['timestamp_DESC'],
-          tenantId: options.currentTenant.id,
-          limit: 1,
-        },
-        DEFAULT_COLUMNS_TO_SELECT,
-      )) as PageData<IQueryActivityResult>
+      const lastActivities = await getLastActivitiesForMembers(options.qdb, memberIds)
 
       rows.forEach((r) => {
-        r.lastActivity = lastActivities.rows.find((a) => a.memberId === r.id)
+        r.lastActivity = lastActivities.find((a) => a.memberId === r.id)
         if (r.lastActivity) {
           r.lastActivity.display = ActivityDisplayService.getDisplayOptions(
             r.lastActivity,
@@ -2364,7 +2346,6 @@ class MemberRepository {
           )
         }
       })
-    }
 
     return { rows, count, limit, offset }
   }
