@@ -71,9 +71,12 @@ import {
 import { IDbMemberData } from '@crowd/data-access-layer/src/members/types'
 import {
   countMembersWithActivities,
+  DEFAULT_COLUMNS_TO_SELECT,
   getActiveMembers,
   getLastActivitiesForMembers,
   getMemberAggregates,
+  IQueryActivityResult,
+  queryActivities,
   setMemberDataToActivities,
 } from '@crowd/data-access-layer'
 import { optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
@@ -2334,34 +2337,25 @@ class MemberRepository {
     })
 
     if (memberIds.length > 0) {
-      const seq = SequelizeRepository.getSequelize(options)
-      const lastActivities = await seq.query(
-        `
-              SELECT
-                  a.*
-              FROM (
-                  VALUES
-                    ${memberIds.map((id) => `('${id}')`).join(',')}
-              ) m ("memberId")
-              JOIN activities a ON (a.id = (
-                  SELECT id
-                  FROM mv_activities_cube
-                  WHERE "memberId" = m."memberId"::uuid
-                  ORDER BY timestamp DESC
-                  LIMIT 1
-              ))
-              WHERE a."tenantId" = :tenantId
-          `,
+      const lastActivities = (await queryActivities(
+        options.qdb,
         {
-          replacements: {
-            tenantId: options.currentTenant.id,
+          filter: {
+            and: [
+              {
+                memberId: { in: memberIds },
+              },
+            ],
           },
-          type: QueryTypes.SELECT,
+          orderBy: ['timestamp_DESC'],
+          tenantId: options.currentTenant.id,
+          limit: 1,
         },
-      )
+        DEFAULT_COLUMNS_TO_SELECT,
+      )) as PageData<IQueryActivityResult>
 
       rows.forEach((r) => {
-        r.lastActivity = lastActivities.find((a) => (a as any).memberId === r.id)
+        r.lastActivity = lastActivities.rows.find((a) => a.memberId === r.id)
         if (r.lastActivity) {
           r.lastActivity.display = ActivityDisplayService.getDisplayOptions(
             r.lastActivity,
