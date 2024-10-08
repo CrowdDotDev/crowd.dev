@@ -2151,10 +2151,9 @@ class MemberRepository {
       SELECT
         ${fields}
       FROM members m
-      ${
-        withAggregates
-          ? ` JOIN "memberSegmentsAgg" msa ON msa."memberId" = m.id AND msa."segmentId" = $(segmentId)`
-          : ''
+      ${withAggregates
+        ? ` JOIN "memberSegmentsAgg" msa ON msa."memberId" = m.id AND msa."segmentId" = $(segmentId)`
+        : ''
       }
       LEFT JOIN member_orgs mo ON mo."memberId" = m.id
       ${searchJoin}
@@ -2176,36 +2175,36 @@ class MemberRepository {
       qx.select(
         `
           ${createQuery(
-            (function prepareFields(fields) {
-              return `${fields
-                .map((f) => {
-                  const mappedField = MemberRepository.QUERY_FILTER_COLUMN_MAP.get(f)
-                  if (!mappedField) {
-                    throw new Error400(options.language, `Invalid field: ${f}`)
-                  }
+          (function prepareFields(fields) {
+            return `${fields
+              .map((f) => {
+                const mappedField = MemberRepository.QUERY_FILTER_COLUMN_MAP.get(f)
+                if (!mappedField) {
+                  throw new Error400(options.language, `Invalid field: ${f}`)
+                }
 
-                  return {
-                    alias: f,
-                    ...mappedField,
-                  }
-                })
-                .filter((mappedField) => mappedField.queryable !== false)
-                .filter((mappedField) => {
-                  if (!withAggregates && mappedField.name.includes('msa.')) {
-                    return false
-                  }
-                  if (!include.memberOrganizations && mappedField.name.includes('mo.')) {
-                    return false
-                  }
-                  if (!include.attributes && mappedField.name === 'm.attributes') {
-                    return false
-                  }
-                  return true
-                })
-                .map((mappedField) => `${mappedField.name} AS "${mappedField.alias}"`)
-                .join(',\n')}`
-            })(fields),
-          )}
+                return {
+                  alias: f,
+                  ...mappedField,
+                }
+              })
+              .filter((mappedField) => mappedField.queryable !== false)
+              .filter((mappedField) => {
+                if (!withAggregates && mappedField.name.includes('msa.')) {
+                  return false
+                }
+                if (!include.memberOrganizations && mappedField.name.includes('mo.')) {
+                  return false
+                }
+                if (!include.attributes && mappedField.name === 'm.attributes') {
+                  return false
+                }
+                return true
+              })
+              .map((mappedField) => `${mappedField.name} AS "${mappedField.alias}"`)
+              .join(',\n')}`
+          })(fields),
+        )}
           ORDER BY ${order} NULLS LAST
           LIMIT $(limit)
           OFFSET $(offset)
@@ -2233,13 +2232,13 @@ class MemberRepository {
       )
       const orgExtra = orgIds.length
         ? await queryOrgs(qx, {
-            filter: {
-              [OrganizationField.ID]: {
-                in: orgIds,
-              },
+          filter: {
+            [OrganizationField.ID]: {
+              in: orgIds,
             },
-            fields: [OrganizationField.ID, OrganizationField.DISPLAY_NAME, OrganizationField.LOGO],
-          })
+          },
+          fields: [OrganizationField.ID, OrganizationField.DISPLAY_NAME, OrganizationField.LOGO],
+        })
         : []
 
       rows.forEach((member) => {
@@ -2347,7 +2346,8 @@ class MemberRepository {
         }
       })
 
-    return { rows, count, limit, offset }
+      return { rows, count, limit, offset }
+    }
   }
 
   /**
