@@ -10,7 +10,7 @@ import { FilterStringOperator } from '@/shared/modules/filters/config/constants/
 const entityId: StringFilterConfig = {
   id: 'entityId',
   label: 'Entity Id',
-  iconClass: 'ri-shapes-line',
+  iconClass: 'shapes',
   type: FilterConfigType.STRING,
   options: {
     fixedOperator: FilterStringOperator.EQ,

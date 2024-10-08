@@ -53,7 +53,7 @@
       >
         <lf-icon
           :name="`chevrons-${isCollapsed ? 'right' : 'left'}`"
-          :size="20"
+          :size="16"
           class="text-white"
         />
       </div>

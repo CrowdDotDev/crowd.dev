@@ -10,7 +10,7 @@ import options from './options';
 const engagementLevel: MultiSelectFilterConfig = {
   id: 'engagementLevel',
   label: 'Engagement level',
-  iconClass: 'fa-light fa-signal-bars',
+  iconClass: 'signal-bars',
   type: FilterConfigType.MULTISELECT,
   options: {
     options,

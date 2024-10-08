@@ -30,7 +30,7 @@
                   :disabled="form.include.length === 1"
                   @click="removeInclude(ii)"
                 >
-                  <i class="ri-delete-bin-line text-lg" />
+                  <lf-icon name="trash-can" :size="20" />
                 </el-button>
               </template>
             </app-eagle-eye-settings-include>
@@ -68,7 +68,7 @@
                 class="btn btn-link btn-link--md btn-link--primary w-10 h-10"
                 @click="removeExclude(ei)"
               >
-                <i class="ri-delete-bin-line text-lg" />
+                <lf-icon name="trash-can" :size="20" />
               </el-button>
             </article>
             <div class="flex">
@@ -135,9 +135,7 @@
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <i
-                  class="ri-question-line text-lg text-gray-400 font-normal"
-                />
+                <lf-icon name="circle-question" :size="20" class="text-gray-400" />
               </a>
             </el-tooltip>
           </div>
@@ -207,6 +205,7 @@ import AppFormItem from '@/shared/form/form-item.vue';
 import formChangeDetector from '@/shared/form/form-change';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps({
   modelValue: {

@@ -10,7 +10,7 @@ import { apiFilterRendererByType } from '@/shared/modules/filters/config/apiFilt
 const joinedDate: DateFilterConfig = {
   id: 'joinedDate',
   label: 'Joined date',
-  iconClass: 'fa-light fa-calendar',
+  iconClass: 'calendar',
   type: FilterConfigType.DATE,
   options: {},
   itemLabelRenderer(value: DateFilterValue, options: DateFilterOptions): string {

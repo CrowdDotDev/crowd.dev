@@ -15,7 +15,7 @@ const valueParser = (value) => value / 100;
 const annualEmployeeGrowthRate: NumberFilterConfig = {
   id: 'annualEmployeeGrowthRate',
   label: 'Annual Employee Growth Rate',
-  iconClass: 'ri-arrow-up-circle-line',
+  iconClass: 'circle-arrow-up-right',
   type: FilterConfigType.NUMBER,
   options: {
     suffix: '%',

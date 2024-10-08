@@ -10,7 +10,7 @@ import { apiFilterRendererByType } from '@/shared/modules/filters/config/apiFilt
 const reach: NumberFilterConfig = {
   id: 'reach',
   label: 'Reach',
-  iconClass: 'fa-light fa-bullhorn',
+  iconClass: 'bullhorn',
   type: FilterConfigType.NUMBER,
   options: {},
   itemLabelRenderer(value: NumberFilterValue, options: NumberFilterOptions): string {

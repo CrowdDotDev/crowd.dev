@@ -10,7 +10,7 @@ import { apiFilterRendererByType } from '@/shared/modules/filters/config/apiFilt
 const jobTitle: StringFilterConfig = {
   id: 'jobTitle',
   label: 'Job title',
-  iconClass: 'fa-light fa-suitcase',
+  iconClass: 'suitcase',
   type: FilterConfigType.STRING,
   options: {},
   itemLabelRenderer(value: StringFilterValue, options: StringFilterOptions): string {

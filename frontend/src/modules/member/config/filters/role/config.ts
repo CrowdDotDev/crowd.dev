@@ -10,7 +10,7 @@ import options from './options';
 const role: MultiSelectFilterConfig = {
   id: 'role',
   label: 'Role',
-  iconClass: 'fa-light fa-id-card',
+  iconClass: 'id-card',
   type: FilterConfigType.MULTISELECT,
   options: {
     options,

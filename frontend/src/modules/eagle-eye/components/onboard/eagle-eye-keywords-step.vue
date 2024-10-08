@@ -34,7 +34,7 @@
           :disabled="keywords.length === 1"
           @click="deleteKeyword(index)"
         >
-          <i class="ri-delete-bin-line text-lg" />
+          <lf-icon name="trash-can" :size="20" />
         </el-button>
       </div>
     </el-form>
@@ -58,6 +58,7 @@
 <script setup>
 import { defineEmits, computed, defineProps } from 'vue';
 import EagleEyeFooter from '@/modules/eagle-eye/components/onboard/eagle-eye-footer.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const emit = defineEmits([
   'update:modelValue',

@@ -2,7 +2,7 @@
   <div
     class="flex flex-col items-center justify-center pt-20 pb-10"
   >
-    <i class="empty-list-icon mb-8" :class="icon" />
+    <lf-icon :name="icon" class="text-gray-200" :size="160" />
 
     <h5>{{ title }}</h5>
     <div
@@ -36,6 +36,7 @@
 
 <script setup>
 import { defineProps, defineEmits } from 'vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const emit = defineEmits(['ctaClick', 'secondaryClick']);
 defineProps({
