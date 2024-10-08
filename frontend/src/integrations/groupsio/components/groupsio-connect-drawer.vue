@@ -477,7 +477,7 @@ const connect = async () => {
             id: subGroup.id,
             slug: subGroup.group_name,
             name: subGroup.nice_group_name,
-            groupAddedOn: new Date().toUTCString(),
+            groupAddedOn: new Date(),
           })),
       );
       return selected;

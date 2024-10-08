@@ -13,7 +13,7 @@ interface SetttingsObj {
     id: number
     name: string
     slug: string
-    groupAddedOn?: string
+    groupAddedOn?: Date
   }>
   autoImports?: {
     mainGroup: string
@@ -63,7 +63,7 @@ const job: CrowdJob = {
                 id: newGroup.id,
                 name: newGroup.nice_group_name,
                 slug: newGroup.group_name,
-                groupAddedOn: new Date().toUTCString(),
+                groupAddedOn: new Date(),
               })
             }
 
