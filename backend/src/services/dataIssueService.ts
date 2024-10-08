@@ -64,7 +64,7 @@ export default class DataIssueService extends LoggerBase {
 
     const appToken = await DataIssueService.getGitHubAppToken(
       GITHUB_ISSUE_REPORTER_CONFIG.appId,
-      GITHUB_ISSUE_REPORTER_CONFIG.privateKey,
+      Buffer.from(GITHUB_ISSUE_REPORTER_CONFIG.privateKey, 'base64').toString('utf8'),
       GITHUB_ISSUE_REPORTER_CONFIG.installationId,
     )
 
