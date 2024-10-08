@@ -1945,7 +1945,7 @@ class MemberRepository {
         }
       }
 
-      const lastActivities = await getLastActivitiesForMembers(options.qdb, memberIds, options.currentTenant.id)
+      const lastActivities = await getLastActivitiesForMembers(options.qdb, memberIds, options.currentTenant.id, segments)
 
       for (const row of translatedRows) {
         const r = row as any
@@ -2333,7 +2333,7 @@ class MemberRepository {
     })
 
     if (memberIds.length > 0) {
-      const lastActivities = await getLastActivitiesForMembers(options.qdb, memberIds, options.currentTenant.id)
+      const lastActivities = await getLastActivitiesForMembers(options.qdb, memberIds, options.currentTenant.id, [segmentId])
 
       rows.forEach((r) => {
         r.lastActivity = lastActivities.find((a) => a.memberId === r.id)
@@ -2345,9 +2345,9 @@ class MemberRepository {
           )
         }
       })
-
-      return { rows, count, limit, offset }
     }
+
+    return { rows, count, limit, offset }
   }
 
   /**
