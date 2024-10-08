@@ -52,7 +52,7 @@ export async function insertConversations(
       let timestamp
       if (conversation.timestamp) {
         const res = new Date(conversation.timestamp)
-        log.info({ timestamp: res }, 'insertConversations.timestamp')
+        // log.info({ timestamp: res }, 'insertConversations.timestamp')
         timestamp = res.getTime()
       } else {
         timestamp = now

@@ -22,7 +22,7 @@ export async function insertActivities(activities: IDbActivityCreateData[]): Pro
       let createdAt
       if (activity.createdAt) {
         const res = new Date(activity.createdAt)
-        log.info({ createdAt: res }, 'insertActivities.createdAt')
+        // log.info({ createdAt: res }, 'insertActivities.createdAt')
         createdAt = res.getTime()
       } else {
         createdAt = now
@@ -181,7 +181,7 @@ export async function insertActivities(activities: IDbActivityCreateData[]): Pro
       let timestamp
       if (activity.timestamp) {
         const res = new Date(activity.timestamp)
-        log.info({ timestamp: res }, 'insertActivities.timestamp')
+        // log.info({ timestamp: res }, 'insertActivities.timestamp')
         timestamp = res.getTime()
       } else {
         timestamp = now

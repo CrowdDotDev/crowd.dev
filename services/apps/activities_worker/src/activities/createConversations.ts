@@ -163,8 +163,6 @@ LIMIT 5000;
           throw new Error('Parent activity ID not found!')
         }
       }
-      // TODO: uros remove - test
-      delete mapped.sentiment
 
       toUpdate.push({
         ...mapped,
