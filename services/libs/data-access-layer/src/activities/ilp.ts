@@ -4,13 +4,13 @@ import { getClientILP } from '@crowd/questdb'
 import { IDbActivityCreateData } from '../old/apps/data_sink_worker/repo/activity.data'
 
 import { Sender } from '@questdb/nodejs-client'
-import { getServiceChildLogger } from '@crowd/logging'
 
 const ilp: Sender = getClientILP()
 
-const log = getServiceChildLogger('data-access-layer/activities/ilp.ts')
-
-export async function insertActivities(activities: IDbActivityCreateData[]): Promise<string[]> {
+export async function insertActivities(
+  activities: IDbActivityCreateData[],
+  update = false,
+): Promise<string[]> {
   const ids: string[] = []
   const now = Date.now()
 
@@ -28,6 +28,14 @@ export async function insertActivities(activities: IDbActivityCreateData[]): Pro
         createdAt = now
       }
 
+      let updatedAt
+      if (update || !activity.updatedAt) {
+        updatedAt = now
+      } else {
+        const res = new Date(activity.updatedAt)
+        updatedAt = res.getTime()
+      }
+
       const row = ilp
         .table('activities')
         .symbol('tenantId', activity.tenantId)
@@ -35,7 +43,7 @@ export async function insertActivities(activities: IDbActivityCreateData[]): Pro
         .symbol('platform', activity.platform)
         .stringColumn('id', id)
         .timestampColumn('createdAt', createdAt, 'ms')
-        .timestampColumn('updatedAt', now, 'ms')
+        .timestampColumn('updatedAt', updatedAt, 'ms')
         .stringColumn('attributes', objectToBytes(activity.attributes))
         .booleanColumn('member_isTeamMember', activity.isTeamMemberActivity || false)
         .booleanColumn('member_isBot', activity.isBotActivity || false)

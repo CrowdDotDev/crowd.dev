@@ -175,7 +175,7 @@ LIMIT 5000;
   if (toUpdate.length > 0) {
     for (const batch of partition(toUpdate, 1)) {
       try {
-        const results = await insertActivities(batch)
+        const results = await insertActivities(batch, true)
         activitiesAddedToConversations += results.length
       } catch (err) {
         svc.log.error(err, 'Error linking activities to conversations')

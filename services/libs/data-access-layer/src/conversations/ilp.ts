@@ -11,6 +11,7 @@ const log = getServiceChildLogger('data-access-layer/conversations/ilp.ts')
 const ilp: Sender = getClientILP()
 export async function insertConversations(
   conversations: IDbConversationCreateData[],
+  update = false,
 ): Promise<string[]> {
   const ids: string[] = []
   const now = Date.now()
@@ -19,6 +20,14 @@ export async function insertConversations(
     for (const conversation of conversations) {
       const id = conversation.id || generateUUIDv4()
       ids.push(id)
+
+      let updatedAt
+      if (update || !conversation.updatedAt) {
+        updatedAt = now
+      } else {
+        const res = new Date(conversation.updatedAt)
+        updatedAt = res.getTime()
+      }
 
       const row = ilp
         .table('conversations')
@@ -33,7 +42,7 @@ export async function insertConversations(
           conversation.createdAt ? new Date(conversation.createdAt).getTime() : now,
           'ms',
         )
-        .timestampColumn('updatedAt', now, 'ms')
+        .timestampColumn('updatedAt', updatedAt, 'ms')
 
       if (conversation.deletedAt) {
         const res = new Date(conversation.updatedAt)
