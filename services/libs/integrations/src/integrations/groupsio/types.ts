@@ -88,6 +88,7 @@ export interface GroupDetails {
   id: number
   name: string
   slug: string
+  groupAddedOn: string
 }
 
 export interface ActivityLog {

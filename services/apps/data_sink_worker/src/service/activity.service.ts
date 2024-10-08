@@ -1,7 +1,7 @@
 import { EDITION, escapeNullByte, isObjectEmpty, singleOrDefault } from '@crowd/common'
 import { SearchSyncWorkerEmitter } from '@crowd/common_services'
 import { ConversationService } from '@crowd/conversations'
-import { IQueryActivityResult, insertActivities, updateActivity } from '@crowd/data-access-layer'
+import { IQueryActivityResult, insertActivities } from '@crowd/data-access-layer'
 import { DbStore, arePrimitivesDbEqual } from '@crowd/data-access-layer/src/database'
 import {
   IDbActivity,
