@@ -141,17 +141,22 @@
             </p>
           </div>
           <div class="flex items-center">
-            <el-switch
-              v-model="group[1].allSubgroupsSelected"
-              @change="toggleAllSubgroups(group[1])"
-            />
-            <span class="ml-2 text-sm">Select All</span>
             <el-tooltip
               content="This applies to all current and future group/subgroups"
               placement="top"
+              effect="dark"
             >
-              <i class="ri-question-line ml-1 text-gray-400 cursor-help" />
+              <template #content>
+                <div class="text-center">
+                  This applies to all current and future group/subgroups
+                </div>
+              </template>
+              <el-switch
+                v-model="group[1].allSubgroupsSelected"
+                @change="toggleAllSubgroups(group[1])"
+              />
             </el-tooltip>
+            <span class="ml-2 text-sm">Select All</span>
           </div>
         </div>
         <div class="ml-6">
