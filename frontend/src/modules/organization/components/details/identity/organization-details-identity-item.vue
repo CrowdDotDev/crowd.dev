@@ -61,16 +61,6 @@
       >
         <lf-icon name="pencil-line" />Edit identity
       </lf-dropdown-item>
-      <lf-dropdown-item
-        v-else
-        @click="setReportDataModal({
-          organization: props.organization,
-          type: ReportDataType.IDENTITY,
-          attribute: props.identity,
-        })"
-      >
-        <lf-icon name="feedback-line" class="!text-red-500" />Report issue
-      </lf-dropdown-item>
 
       <!-- Unmerge -->
       <lf-dropdown-item
@@ -78,6 +68,16 @@
         @click="emit('unmerge')"
       >
         <lf-icon name="link-unlink" />Unmerge identity
+      </lf-dropdown-item>
+
+      <lf-dropdown-item
+        @click="setReportDataModal({
+          organization: props.organization,
+          type: ReportDataType.IDENTITY,
+          attribute: props.identity,
+        })"
+      >
+        <lf-icon name="feedback-line" class="!text-red-500" />Report issue
       </lf-dropdown-item>
 
       <lf-dropdown-separator

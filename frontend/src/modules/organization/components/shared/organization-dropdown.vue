@@ -13,6 +13,15 @@
     <lf-icon name="team-line" />
     {{ props.organization.isTeamOrganization ? 'Unmark' : 'Mark' }} as team organization
   </lf-dropdown-item>
+
+  <lf-dropdown-item
+    v-if="hasPermission(LfPermission.organizationEdit)"
+    @click="setReportDataModal({
+      contributor: props.contributor,
+    })"
+  >
+    <lf-icon name="feedback-line" class="!text-red-500" />Report issue
+  </lf-dropdown-item>
   <template v-if="hasPermission(LfPermission.organizationDestroy)">
     <lf-dropdown-separator />
     <lf-dropdown-item type="danger" @click="deleteOrganization()">
@@ -43,6 +52,7 @@ import { OrganizationService } from '@/modules/organization/organization-service
 import AppOrganizationUnmergeDialog from '@/modules/organization/components/organization-unmerge-dialog.vue';
 import { ref } from 'vue';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
+import { useSharedStore } from '@/shared/pinia/shared.store';
 
 const props = defineProps<{
   organization: Organization,
@@ -54,6 +64,7 @@ const route = useRoute();
 const router = useRouter();
 const { hasPermission } = usePermissions();
 const { trackEvent } = useProductTracking();
+const { setReportDataModal } = useSharedStore();
 
 const unmerge = ref<Organization | null>(null);
 

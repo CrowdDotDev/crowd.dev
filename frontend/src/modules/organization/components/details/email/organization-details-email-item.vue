@@ -53,8 +53,15 @@
       >
         <lf-icon name="pencil-line" />Edit email
       </lf-dropdown-item>
+      <!-- Unmerge -->
       <lf-dropdown-item
-        v-else
+        v-if="hasPermission(LfPermission.organizationEdit)"
+        @click="emit('unmerge')"
+      >
+        <lf-icon name="link-unlink" />Unmerge email
+      </lf-dropdown-item>
+
+      <lf-dropdown-item
         @click="setReportDataModal({
           contributor: props.contributor,
           type: ReportDataType.WORK_EXPERIENCE,
@@ -62,13 +69,6 @@
         })"
       >
         <lf-icon name="feedback-line" class="!text-red-500" />Report issue
-      </lf-dropdown-item>
-      <!-- Unmerge -->
-      <lf-dropdown-item
-        v-if="hasPermission(LfPermission.organizationEdit)"
-        @click="emit('unmerge')"
-      >
-        <lf-icon name="link-unlink" />Unmerge email
       </lf-dropdown-item>
 
       <lf-dropdown-separator
