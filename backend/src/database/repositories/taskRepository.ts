@@ -492,7 +492,12 @@ class TaskRepository {
     const activityIds = results.map((r) => (r as any).activityId)
     if (activityIds.length > 0) {
       const segmentIds = SequelizeRepository.getSegmentIds(options)
-      output.activities = await getActivitiesById(options.qdb, activityIds, options.currentTenant.id, segmentIds)
+      output.activities = await getActivitiesById(
+        options.qdb,
+        activityIds,
+        options.currentTenant.id,
+        segmentIds,
+      )
     } else {
       output.activities = []
     }
