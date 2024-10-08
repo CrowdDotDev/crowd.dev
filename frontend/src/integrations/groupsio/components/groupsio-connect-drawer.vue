@@ -34,9 +34,6 @@
             url: 'Enter valid email',
           }"
         >
-          <!-- <div class="text-2xs text-gray-500 leading-normal mb-1">
-            Hostname of your community instance in Discourse.
-          </div> -->
           <el-input
             ref="focus"
             v-model="form.email"
@@ -162,7 +159,7 @@
             <el-checkbox
               v-model="group[1].mainGroup.selected"
               class="mr-4"
-              @change="updateSelectedGroups"
+              @change="updateSelectedGroups(group[1])"
             />
             <p>{{ group[1].mainGroup.group_name }}</p>
           </div>
@@ -174,7 +171,7 @@
             <el-checkbox
               v-model="subGroup.selected"
               class="mr-4"
-              @change="updateSelectedGroups"
+              @change="updateSelectedGroups(group[1])"
             />
             <p>
               {{ subGroup.group_name }}
@@ -219,7 +216,6 @@ import AppDrawer from '@/shared/drawer/drawer.vue';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
 import AppFormItem from '@/shared/form/form-item.vue';
 import formChangeDetector from '@/shared/form/form-change';
-// import elementChangeDetector from '@/shared/form/element-change';
 import { IntegrationService } from '@/modules/integration/integration-service';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import {
@@ -444,6 +440,7 @@ const handleCancel = () => {
     accountVerificationFailed.value = false;
     $v.value.$reset();
   }
+  userSubscriptions.value = [];
 };
 
 onMounted(() => {
@@ -524,21 +521,23 @@ const connect = async () => {
 };
 
 const toggleAllSubgroups = (group) => {
-  // eslint-disable-next-line no-param-reassign
-  group.mainGroup.selected = group.allSubgroupsSelected;
-  group.subGroups.forEach((subGroup) => {
+  if (group.allSubgroupsSelected) {
     // eslint-disable-next-line no-param-reassign
-    subGroup.selected = group.allSubgroupsSelected;
-  });
-  updateSelectedGroups();
+    group.mainGroup.selected = true;
+    group.subGroups.forEach((subGroup) => {
+      // eslint-disable-next-line no-param-reassign
+      subGroup.selected = true;
+    });
+  }
+  // If toggle is turned off, we don't change the state of subgroups
 };
 
-const updateSelectedGroups = () => {
-  Object.values(userSubscriptions.value).forEach((group) => {
+const updateSelectedGroups = (group) => {
+  const allSelected = group.mainGroup.selected && group.subGroups.every((subGroup) => subGroup.selected);
+  if (!allSelected) {
     // eslint-disable-next-line no-param-reassign
-    group.allSubgroupsSelected = group.mainGroup.selected
-      && group.subGroups.every((subGroup) => subGroup.selected);
-  });
+    group.allSubgroupsSelected = false;
+  }
 };
 </script>
 
