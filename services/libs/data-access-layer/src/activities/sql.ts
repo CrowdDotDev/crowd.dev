@@ -460,10 +460,6 @@ export async function queryActivities(
   arg: IQueryActivitiesParameters,
   columns: ActivityColumn[] = DEFAULT_COLUMNS_TO_SELECT,
 ): Promise<PageData<IQueryActivityResult | any>> {
-  if (arg.tenantId === undefined || arg.segmentIds === undefined || arg.segmentIds.length === 0) {
-    throw new Error('tenantId and segmentIds are required to query activities!')
-  }
-
   // set defaults
   arg.filter = arg.filter || {}
   arg.orderBy =
