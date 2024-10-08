@@ -94,7 +94,6 @@
                   <lf-icon name="pencil-line" />Edit affiliation
                 </lf-dropdown-item>
                 <lf-dropdown-item
-                  v-else
                   @click="setReportDataModal({
                     contributor: props.contributor,
                     type: ReportDataType.PROJECT_AFFILIATION,
