@@ -51,6 +51,7 @@ const s3Url = `https://${
 export async function getActivitiesById(
   conn: DbConnOrTx,
   ids: string[],
+  tenantId: string,
 ): Promise<IQueryActivityResult[]> {
   if (ids.length === 0) {
     return []
@@ -59,6 +60,7 @@ export async function getActivitiesById(
   const data = await queryActivities(conn, {
     filter: { and: [{ id: { in: ids } }] },
     limit: ids.length,
+    tenantId,
   })
 
   return data.rows
@@ -460,6 +462,10 @@ export async function queryActivities(
   arg: IQueryActivitiesParameters,
   columns: ActivityColumn[] = DEFAULT_COLUMNS_TO_SELECT,
 ): Promise<PageData<IQueryActivityResult | any>> {
+  if (arg.tenantId === undefined || arg.segmentIds === undefined || arg.segmentIds.length === 0) {
+    throw new Error('tenantId and segmentIds are required to query activities!')
+  }
+
   // set defaults
   arg.filter = arg.filter || {}
   arg.orderBy =
@@ -1392,6 +1398,7 @@ export async function getNewActivityPlatforms(
 export async function getLastActivitiesForMembers(
   qdbConn: DbConnOrTx,
   memberIds: string[],
+  tenantId: string,
 ): Promise<IQueryActivityResult[]> {
   const query = `
   select id from activities where "deletedAt" is null and "memberId" in ($(memberIds:csv))
@@ -1406,5 +1413,6 @@ export async function getLastActivitiesForMembers(
   return getActivitiesById(
     qdbConn,
     results.map((r) => r.id),
+    tenantId,
   )
 }

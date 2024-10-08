@@ -403,7 +403,7 @@ export async function queryMembersAdvanced(
   })
 
   if (memberIds.length > 0 && qdbConn) {
-    const lastActivities = await getLastActivitiesForMembers(qdbConn, memberIds)
+    const lastActivities = await getLastActivitiesForMembers(qdbConn, memberIds, tenantId)
     rows.forEach((r) => {
       r.lastActivity = lastActivities.find((a) => (a as any).memberId === r.id)
       if (r.lastActivity) {
