@@ -185,6 +185,11 @@ export default (app) => {
   )
 
   app.post(
+    '/tenant/:tenantId/groupsio-get-user-subscriptions',
+    safeWrap(require('./helpers/groupsioGetUserSubscriptions').default),
+  )
+
+  app.post(
     '/tenant/:tenantId/jira-connect',
     safeWrap(require('./helpers/jiraConnectOrUpdate').default),
   )
