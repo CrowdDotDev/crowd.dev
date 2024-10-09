@@ -27,11 +27,11 @@
               {{ segment.name }}
             </p>
           </div>
-          <article v-for="integration of segment.integrations" :key="`${segment.id}:${integration.platform}`" class="pb-4 flex w-full">
-            <div class="w-4 !min-w-4 mr-2 basis-4">
-              <img :alt="integration.platform" :src="CrowdIntegrations.getConfig(integration.platform)?.image" class="w-4 h-4 min-w-4">
+          <article v-for="integration of segment.integrations" :key="`${segment.id}:${integration.platform}`" class="pb-4 flex w-full items-start">
+            <div class="integration-icon-wrapper">
+              <img :alt="integration.platform" :src="CrowdIntegrations.getConfig(integration.platform)?.image" class="integration-icon">
             </div>
-            <div class="-mt-px flex-grow">
+            <div class="integration-progress-wrapper">
               <app-integration-progress-bar :progress="integration" />
             </div>
           </article>
@@ -89,3 +89,23 @@ export default {
   name: 'LfDashboardIntegrations',
 };
 </script>
+
+<style scoped>
+.integration-icon-wrapper {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  margin-right: 8px;
+}
+
+.integration-icon {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.integration-progress-wrapper {
+  flex-grow: 1;
+  min-width: 0;
+}
+</style>
