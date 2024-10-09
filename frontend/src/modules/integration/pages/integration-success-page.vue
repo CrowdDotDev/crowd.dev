@@ -25,13 +25,20 @@
         </div>
       </div>
     </section>
-    <section>
-      <h4 class="text-center pb-6">
+    <section class="flex flex-col items-center">
+      <h4 class="text-center pb-10">
         LFX CM successfully installed
       </h4>
-      <p class="text-medium">
-        You have successfully connected LFX CM app with your GitHub repository.
+      <p class="text-medium text-center pb-10 max-w-148">
+        To finalize the process of connecting this GitHub organization to LFX Community Management,
+        each repository must be mapped to its corresponding sub-project.
       </p>
+      <div class="bg-primary-50 border border-primary-100 flex items-center px-3 py-1.5 rounded-md">
+        <lf-icon name="information-line" :size="20" class="text-primary-800" />
+        <p class="ml-2 text-small text-primary-800">
+          You must have a LF account and permissions to access Community Management in order to complete this final step.
+        </p>
+      </div>
     </section>
   </div>
 </template>
