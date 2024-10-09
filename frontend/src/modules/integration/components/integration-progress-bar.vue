@@ -1,8 +1,8 @@
 <template>
   <div v-if="props.progress && props.progress.reportStatus !== 'calculating'" class="flex flex-col justify-center w-full h-full">
-    <div v-if="!props.barOnly" class="progress-message-wrapper">
-      <p class="progress-message">
-        <span class="progress-message-text">
+    <div v-if="!props.barOnly" class="flex justify-between items-start">
+      <p class="text-2xs text-gray-500 leading-4 pr-4 flex-grow min-w-0">
+        <span class="block overflow-hidden text-ellipsis whitespace-nowrap">
           <span v-if="inProgress?.message" v-html="inProgress?.message" />
           <span v-else>Processing still in progress. Please wait for data stream updates.</span>
         </span>
@@ -57,27 +57,3 @@ export default {
   name: 'AppIntegrationProgressBar',
 };
 </script>
-
-<style scoped>
-.progress-message-wrapper {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-}
-
-.progress-message {
-  font-size: 10px;
-  color: #6B7280;
-  line-height: 16px;
-  padding-right: 16px;
-  flex-grow: 1;
-  min-width: 0;
-}
-
-.progress-message-text {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-</style>

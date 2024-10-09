@@ -28,10 +28,10 @@
             </p>
           </div>
           <article v-for="integration of segment.integrations" :key="`${segment.id}:${integration.platform}`" class="pb-4 flex w-full items-start">
-            <div class="integration-icon-wrapper">
-              <img :alt="integration.platform" :src="CrowdIntegrations.getConfig(integration.platform)?.image" class="integration-icon">
+            <div class="w-4 h-4 flex-shrink-0 mr-2">
+              <img :alt="integration.platform" :src="CrowdIntegrations.getConfig(integration.platform)?.image" class="w-full h-full object-contain">
             </div>
-            <div class="integration-progress-wrapper">
+            <div class="flex-grow min-w-0">
               <app-integration-progress-bar :progress="integration" />
             </div>
           </article>
