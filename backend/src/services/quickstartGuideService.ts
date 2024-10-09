@@ -9,7 +9,6 @@ import {
 } from '../types/quickstartGuideTypes'
 import IntegrationRepository from '../database/repositories/integrationRepository'
 import TenantUserRepository from '../database/repositories/tenantUserRepository'
-import ReportRepository from '../database/repositories/reportRepository'
 import AutomationRepository from '../database/repositories/automationRepository'
 import SettingsRepository from '@/database/repositories/settingsRepository'
 
@@ -39,13 +38,6 @@ export default class QuickstartGuideService extends LoggerBase {
   async find(): Promise<QuickstartGuideMap> {
     const guides: QuickstartGuideMap = JSON.parse(JSON.stringify(DEFAULT_GUIDES))
 
-    if (QuickstartGuideType.VIEW_REPORT in guides) {
-      const viewedReports = await ReportRepository.findAndCountAll(
-        { advancedFilter: { viewedBy: { contains: [this.options.currentUser.id] } } },
-        this.options,
-      )
-      guides[QuickstartGuideType.VIEW_REPORT].completed = viewedReports.count > 0
-    }
     if (QuickstartGuideType.INVITE_COLLEAGUES in guides) {
       const allTenantUsers = await TenantUserRepository.findByTenant(
         this.options.currentTenant.id,

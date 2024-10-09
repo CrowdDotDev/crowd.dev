@@ -6,11 +6,6 @@ export default (app) => {
   app.put(`/tenant/:tenantId/activity/:id`, safeWrap(require('./activityUpdate').default))
   app.post(`/tenant/:tenantId/activity/import`, safeWrap(require('./activityImport').default))
   app.delete(`/tenant/:tenantId/activity`, safeWrap(require('./activityDestroy').default))
-  app.get(
-    `/tenant/:tenantId/activity/autocomplete`,
-    safeWrap(require('./activityAutocomplete').default),
-  )
-  app.get(`/tenant/:tenantId/activity`, safeWrap(require('./activityList').default))
   app.get(`/tenant/:tenantId/activity/type`, safeWrap(require('./activityTypes').default))
   app.get(`/tenant/:tenantId/activity/channel`, safeWrap(require('./activityChannels').default))
   // app.get(`/tenant/:tenantId/activity/:id`, safeWrap(require('./activityFind').default))

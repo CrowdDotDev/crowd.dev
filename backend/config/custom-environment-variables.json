@@ -49,11 +49,6 @@
     "password": "PRODUCT_DB_PASSWORD",
     "database": "PRODUCT_DB_DATABASE"
   },
-  "cubejs": {
-    "url": "CROWD_CUBEJS_URL",
-    "jwtSecret": "CROWD_CUBEJS_JWT_SECRET",
-    "jwtExpiry": "CROWD_CUBEJS_JWT_EXPIRY"
-  },
   "segment": {
     "writeKey": "CROWD_SEGMENT_WRITE_KEY"
   },
@@ -129,6 +124,11 @@
     "privateKey": "CROWD_GITHUB_PRIVATE_KEY",
     "webhookSecret": "CROWD_GITHUB_WEBHOOK_SECRET",
     "isCommitDataEnabled": "CROWD_GITHUB_IS_COMMIT_DATA_ENABLED"
+  },
+  "githubIssueReporter": {
+    "appId": "CROWD_GITHUB_ISSUE_REPORTER_APP_ID",
+    "privateKey": "CROWD_GITHUB_ISSUE_REPORTER_PRIVATE_KEY",
+    "installationId": "CROWD_GITHUB_ISSUE_REPORTER_INSTALLATION_ID"
   },
   "stackexchange": {
     "key": "CROWD_STACKEXCHANGE_KEY"

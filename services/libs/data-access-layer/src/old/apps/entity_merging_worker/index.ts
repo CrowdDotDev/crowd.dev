@@ -1,6 +1,7 @@
-import { DbStore } from '@crowd/database'
+import { DbConnOrTx, DbStore } from '@crowd/database'
 import { IActivityIdentity, IMemberIdentity, MergeActionState, MergeActionStep } from '@crowd/types'
 import { ISegmentIds } from './types'
+import { updateActivities } from '../../../activities/update'
 
 export async function deleteMemberSegments(db: DbStore, memberId: string) {
   return db.connection().query(
@@ -35,19 +36,19 @@ export async function findMemberById(db: DbStore, primaryId: string, tenantId: s
 }
 
 export async function moveActivitiesToNewMember(
-  db: DbStore,
+  qdb: DbConnOrTx,
   primaryId: string,
   secondaryId: string,
   tenantId: string,
 ) {
-  await db.connection().query(
-    `
-      UPDATE activities
-      SET "memberId" = $1
-      WHERE "memberId" = $2
-        AND "tenantId" = $3;
-    `,
-    [primaryId, secondaryId, tenantId],
+  await updateActivities(
+    qdb,
+    async () => ({ memberId: primaryId }),
+    `"memberId" = $(memberId) AND "tenantId" = $(tenantId)`,
+    {
+      memberId: secondaryId,
+      tenantId,
+    },
   )
 }
 

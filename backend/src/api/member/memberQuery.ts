@@ -22,7 +22,6 @@ export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.memberRead)
 
   const memberService = new MemberService(req)
-
   const payload = await memberService.query(req.body)
 
   if (req.body.filter && Object.keys(req.body.filter).length > 0) {

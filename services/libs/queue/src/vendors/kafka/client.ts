@@ -69,7 +69,22 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
 
   private async getConsumer(groupId: string): Promise<Consumer> {
     if (!this.consumers.get(groupId)) {
-      const consumer = this.client.consumer({ groupId })
+      const consumer = this.client.consumer({
+        groupId,
+        sessionTimeout: 30000,
+        heartbeatInterval: 3000,
+      })
+      consumer.on(consumer.events.GROUP_JOIN, () => {
+        this.log.info('Consumer has joined the group')
+      })
+
+      consumer.on(consumer.events.REBALANCING, () => {
+        this.log.info('Consumer group is rebalancing')
+      })
+
+      consumer.on(consumer.events.DISCONNECT, () => {
+        this.log.info('Consumer has been disconnected')
+      })
       this.consumers.set(groupId, consumer)
       await consumer.connect()
     }
@@ -221,8 +236,8 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
 
       this.log.trace({ topic: queueConf.name }, 'Subscribed to topic! Starting the consmer...')
       await consumer.run({
-        eachMessage: async ({ message }: EachMessagePayload) => {
-          if (this.isAvailable(maxConcurrentMessageProcessing)) {
+        eachMessage: async ({ message, topic }: EachMessagePayload) => {
+          if (message && message.value && this.isAvailable(maxConcurrentMessageProcessing)) {
             const now = performance.now()
 
             this.log.trace(
@@ -243,6 +258,11 @@ export class KafkaQueueService extends LoggerBase implements IQueue {
             } finally {
               this.removeJob()
             }
+          } else if (
+            this.isAvailable(maxConcurrentMessageProcessing) &&
+            (!message || !message.value)
+          ) {
+            this.log.warn({ message, topic }, 'Received empty message, skipping...')
           } else {
             this.log.debug('Processor is busy, skipping message...')
           }

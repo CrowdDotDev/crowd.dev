@@ -7,7 +7,6 @@ import { errorMiddleware } from './middleware/error'
 import { loggingMiddleware } from './middleware/logging'
 import { getOpensearchClient, InitService, OpenSearchService } from '@crowd/opensearch'
 import memberRoutes from './routes/member'
-import activityRoutes from './routes/activity'
 import organizationRoutes from './routes/organization'
 import { getDbConnection } from '@crowd/data-access-layer/src/database'
 import { opensearchMiddleware } from './middleware/opensearch'
@@ -15,6 +14,7 @@ import { getRedisClient } from '@crowd/redis'
 import { redisMiddleware } from './middleware/redis'
 import { DB_CONFIG, OPENSEARCH_CONFIG, REDIS_CONFIG, SEARCH_SYNC_API_CONFIG } from './conf'
 import { ApiRequest } from './middleware'
+import { getClientSQL } from '@crowd/questdb'
 
 const log = getServiceLogger()
 const config = SEARCH_SYNC_API_CONFIG()
@@ -24,7 +24,8 @@ setImmediate(async () => {
   const redis = await getRedisClient(REDIS_CONFIG(), true)
   const osClient = await getOpensearchClient(OPENSEARCH_CONFIG())
   const opensearch = new OpenSearchService(log, osClient)
-  const dbConnection = await getDbConnection(DB_CONFIG(), 5, 5000)
+  const pgConnection = await getDbConnection(DB_CONFIG(), 5, 5000)
+  const qdbConnection = await getClientSQL()
 
   app.use(telemetryExpressMiddleware('search_sync_api.request.duration'))
   app.use(cors({ origin: true }))
@@ -32,7 +33,7 @@ setImmediate(async () => {
   app.use(express.urlencoded({ extended: true, limit: '5mb' }))
   app.use(loggingMiddleware(log))
   app.use(redisMiddleware(redis))
-  app.use(databaseMiddleware(dbConnection))
+  app.use(databaseMiddleware(pgConnection, qdbConnection))
   app.use(opensearchMiddleware(opensearch))
 
   // init opensearch service
@@ -41,7 +42,6 @@ setImmediate(async () => {
 
   // add routes
   app.use(memberRoutes)
-  app.use(activityRoutes)
   app.use(organizationRoutes)
 
   app.use('/health', async (req: ApiRequest, res) => {
@@ -52,7 +52,13 @@ setImmediate(async () => {
         // ping redis,
         redis.ping().then((res) => res === 'PONG'),
         // ping database
-        req.dbStore
+        req.pgStore
+          .connection()
+          .any('select 1')
+          .then((rows) => rows.length === 1),
+
+        // ping database
+        req.qdbStore
           .connection()
           .any('select 1')
           .then((rows) => rows.length === 1),

@@ -14,7 +14,7 @@
     "@crowd/common": "workspace:*",
     "@crowd/opensearch": "workspace:*",
     "@crowd/queue": "workspace:*",
-    "@temporalio/worker": "~1.8.6"
+    "@temporalio/worker": "~1.11.1"
   },
   "devDependencies": {
     "@types/config": "^3.3.1",

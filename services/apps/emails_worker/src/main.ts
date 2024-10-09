@@ -1,18 +1,15 @@
 import sendgrid from '@sendgrid/mail'
 
 import { Config } from '@crowd/archetype-standard'
-import { ServiceWorker, Options } from '@crowd/archetype-worker'
+import { Options, ServiceWorker } from '@crowd/archetype-worker'
 
-import { scheduleEmailEagleEyeDigest, scheduleEmailAnalyticsWeekly } from './schedules'
+import { scheduleEmailAnalyticsWeekly, scheduleEmailEagleEyeDigest } from './schedules'
 
 const config: Config = {
   envvars: [
     'CROWD_API_FRONTEND_URL',
     'CROWD_EAGLE_EYE_URL',
     'CROWD_EAGLE_EYE_API_KEY',
-    'CROWD_CUBEJS_URL',
-    'CROWD_CUBEJS_JWT_SECRET',
-    'CROWD_CUBEJS_JWT_EXPIRY',
     'CROWD_SENDGRID_KEY',
     'CROWD_SENDGRID_TEMPLATE_EAGLE_EYE_DIGEST',
     'CROWD_SENDGRID_TEMPLATE_WEEKLY_ANALYTICS',
@@ -24,6 +21,9 @@ const config: Config = {
     enabled: false,
   },
   temporal: {
+    enabled: true,
+  },
+  questdb: {
     enabled: true,
   },
   redis: {

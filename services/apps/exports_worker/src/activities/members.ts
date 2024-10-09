@@ -9,7 +9,13 @@ import { uploadToS3 } from '../utils/s3'
 import { ResultS3Upload } from '../types/s3'
 import { fetchMemberAttributeSettings } from '@crowd/data-access-layer/src/old/apps/exports_worker'
 
-const search = new MemberSearchService(svc.redis, svc.postgres.reader, svc.opensearch, svc.log)
+const search = new MemberSearchService(
+  svc.redis,
+  svc.postgres.reader,
+  svc.questdbSQL,
+  svc.opensearch,
+  svc.log,
+)
 
 /*
 buildAndUploadMembersCSV is a Temporal activity that fetches members based on the

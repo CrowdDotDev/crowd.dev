@@ -1,10 +1,9 @@
-import Axios from 'axios'
-import lodash from 'lodash'
 import { LoggerBase, getServiceChildLogger } from '@crowd/logging'
+import Axios from 'axios'
 import { NETLIFY_CONFIG } from '../conf/index'
-import { IServiceOptions } from './IServiceOptions'
 import ConversationSettingsRepository from '../database/repositories/conversationSettingsRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
+import { IServiceOptions } from './IServiceOptions'
 
 const DEFAULT_CONVERSATION_SETTINGS = {}
 
@@ -55,19 +54,5 @@ export default class ConversationSettingsService extends LoggerBase {
       log.error(error, 'Error updating custom netflify domain!')
       throw new Error(error.message)
     }
-  }
-
-  static isAutoPublishUpdated(dataAutoPublish, currentAutoPublish) {
-    if (currentAutoPublish && dataAutoPublish.status === currentAutoPublish.status) {
-      if (dataAutoPublish.status === 'all' || dataAutoPublish.status === 'disabled') {
-        return false
-      }
-      // dataAutoPublish.status === 'custom'
-      return !lodash.isEqual(
-        dataAutoPublish.channelsByPlatform,
-        currentAutoPublish.channelsByPlatform,
-      )
-    }
-    return true
   }
 }

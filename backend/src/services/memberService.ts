@@ -41,13 +41,15 @@ import {
   findMemberTasks,
   insertMemberSegments,
   MemberField,
+  queryMembersAdvanced,
   removeMemberNotes,
   removeMemberTags,
   removeMemberTasks,
 } from '@crowd/data-access-layer/src/members'
 import { findMemberAffiliations } from '@crowd/data-access-layer/src/member_segment_affiliations'
+// import { getActivityCountOfMemberIdentities } from '@crowd/data-access-layer'
 import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
-import { QueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
+import { QueryExecutor, optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { TEMPORAL_CONFIG } from '@/conf'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
 import ActivityRepository from '../database/repositories/activityRepository'
@@ -953,6 +955,10 @@ export default class MemberService extends LoggerBase {
         MemberField.MANUALLY_CHANGED_FIELDS,
       ])
 
+      this.options.log.info(
+        '[0] Getting member information (identities, tags, notes, tasks, affiliations)... ',
+      )
+
       const [memberOrganizations, identities, tags, notes, tasks, affiliations] = await Promise.all(
         [
           MemberOrganizationRepository.findMemberRoles(memberId, this.options),
@@ -963,6 +969,8 @@ export default class MemberService extends LoggerBase {
           findMemberAffiliations(qx, memberId),
         ],
       )
+
+      this.options.log.info('[0] Done!')
 
       const member = {
         ...memberById,
@@ -979,12 +987,16 @@ export default class MemberService extends LoggerBase {
         throw new Error(`Member doesn't have the identity sent to be unmerged!`)
       }
 
+      this.options.log.info('[1] Finding merge backup...')
+
       const mergeAction = await MergeActionsRepository.findMergeBackup(
         memberId,
         MergeActionType.MEMBER,
         identity,
         this.options,
       )
+
+      this.options.log.info('[1] Done!')
 
       if (mergeAction) {
         // mergeAction is found, unmerge preview will be generated
@@ -1152,17 +1164,19 @@ export default class MemberService extends LoggerBase {
           )
           member.memberOrganizations = unmergedRoles as IMemberRoleWithOrganization[]
 
+          const secondaryActivityCount = 0
+          const primaryActivityCount = 0
           // activity count
-          const secondaryActivityCount = await MemberRepository.getActivityCountOfMembersIdentities(
-            member.id,
-            secondaryBackup.identities,
-            this.options,
-          )
-          const primaryActivityCount = await MemberRepository.getActivityCountOfMembersIdentities(
-            member.id,
-            member.identities,
-            this.options,
-          )
+          // const secondaryActivityCount = await getActivityCountOfMemberIdentities(
+          //   this.options.qdb,
+          //   member.id,
+          //   secondaryBackup.identities,
+          // )
+          // const primaryActivityCount = await getActivityCountOfMemberIdentities(
+          //   this.options.qdb,
+          //   member.id,
+          //   member.identities,
+          // )
 
           return {
             primary: {
@@ -1201,17 +1215,20 @@ export default class MemberService extends LoggerBase {
         throw new Error(`Original member only has one identity, cannot extract it!`)
       }
 
-      const secondaryActivityCount = await MemberRepository.getActivityCountOfMembersIdentities(
-        member.id,
-        secondaryIdentities,
-        this.options,
-      )
+      const secondaryActivityCount = 0
+      const primaryActivityCount = 0
 
-      const primaryActivityCount = await MemberRepository.getActivityCountOfMembersIdentities(
-        member.id,
-        primaryIdentities,
-        this.options,
-      )
+      // const secondaryActivityCount = await getActivityCountOfMemberIdentities(
+      //   this.options.qdb,
+      //   member.id,
+      //   secondaryIdentities,
+      // )
+      //
+      // const primaryActivityCount = await getActivityCountOfMemberIdentities(
+      //   this.options.qdb,
+      //   member.id,
+      //   primaryIdentities,
+      // )
 
       const primaryMemberRoles = await MemberOrganizationRepository.findMemberRoles(
         member.id,
@@ -1762,7 +1779,7 @@ export default class MemberService extends LoggerBase {
     }
   }
 
-  async findById(id, segmentId?: string, include: Record<string, string> = {}) {
+  async findById(id, segmentId?: string, include: Record<string, boolean> = {}) {
     return MemberRepository.findById(
       id,
       this.options,
@@ -1774,7 +1791,10 @@ export default class MemberService extends LoggerBase {
   }
 
   async findAllAutocomplete(data) {
-    return MemberRepository.findAndCountAll(
+    return queryMembersAdvanced(
+      optionsQx(this.options),
+      this.options.redis,
+      this.options.currentTenant.id,
       {
         filter: data.filter,
         offset: data.offset,
@@ -1785,7 +1805,6 @@ export default class MemberService extends LoggerBase {
           segments: true,
         },
       },
-      this.options,
     )
   }
 
@@ -1818,7 +1837,14 @@ export default class MemberService extends LoggerBase {
 
     const segmentId = (data.segments || [])[0]
 
-    return MemberRepository.findAndCountAll(
+    if (!segmentId) {
+      throw new Error400(this.options.language, 'member.segmentsRequired')
+    }
+
+    return queryMembersAdvanced(
+      optionsQx(this.options),
+      this.options.redis,
+      this.options.currentTenant.id,
       {
         ...data,
         segmentId,
@@ -1828,10 +1854,10 @@ export default class MemberService extends LoggerBase {
           lfxMemberships: true,
           identities: true,
           attributes: true,
+          maintainers: true,
         },
         exportMode,
       },
-      this.options,
     )
   }
 

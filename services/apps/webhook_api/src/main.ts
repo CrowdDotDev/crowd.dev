@@ -20,6 +20,7 @@ import {
 import { QueueFactory } from '../../../libs/queue/src'
 import { emittersMiddleware } from './middleware/emitters'
 import { queueMiddleware } from './middleware/queue'
+import { installDataIssueRoutes } from './routes/dataIssue'
 
 const log = getServiceLogger()
 const config = WEBHOOK_API_CONFIG()
@@ -87,6 +88,7 @@ setImmediate(async () => {
   installGroupsIoRoutes(app)
   installDiscourseRoutes(app)
   installGitlabRoutes(app)
+  installDataIssueRoutes(app)
 
   app.use(errorMiddleware())
 

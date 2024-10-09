@@ -2,6 +2,7 @@ import sanitizeHtml from 'sanitize-html'
 import lodash from 'lodash'
 import Sequelize from 'sequelize'
 import { Error404 } from '@crowd/common'
+import { getActivitiesById } from '@crowd/data-access-layer'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
@@ -40,9 +41,6 @@ class TaskRepository {
     )
 
     await record.setMembers(data.members || [], {
-      transaction,
-    })
-    await record.setActivities(data.activities || [], {
       transaction,
     })
 
@@ -126,12 +124,6 @@ class TaskRepository {
 
     if (data.members) {
       await record.setMembers(data.members, {
-        transaction,
-      })
-    }
-
-    if (data.activities) {
-      await record.setActivities(data.activities, {
         transaction,
       })
     }
@@ -478,16 +470,37 @@ class TaskRepository {
     const output = record.get({ plain: true })
 
     const transaction = SequelizeRepository.getTransaction(options)
+    const seq = SequelizeRepository.getSequelize(options)
 
     output.members = await record.getMembers({
       transaction,
       joinTableAttributes: [],
     })
 
-    output.activities = await record.getActivities({
-      transaction,
-      joinTableAttributes: [],
-    })
+    const results = await seq.query(
+      `
+      select distinct "activityId" from "activityTasks" where "taskId" = :taskId
+    `,
+      {
+        replacements: {
+          taskId: record.id,
+        },
+        type: Sequelize.QueryTypes.SELECT,
+        transaction,
+      },
+    )
+    const activityIds = results.map((r) => (r as any).activityId)
+    if (activityIds.length > 0) {
+      const segmentIds = SequelizeRepository.getSegmentIds(options)
+      output.activities = await getActivitiesById(
+        options.qdb,
+        activityIds,
+        options.currentTenant.id,
+        segmentIds,
+      )
+    } else {
+      output.activities = []
+    }
 
     output.assignees = (
       await record.getAssignees({

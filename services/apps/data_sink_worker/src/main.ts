@@ -11,8 +11,10 @@ import { getRedisClient } from '@crowd/redis'
 import { Client as TemporalClient, getTemporalClient } from '@crowd/temporal'
 import { DB_CONFIG, QUEUE_CONFIG, REDIS_CONFIG, TEMPORAL_CONFIG, WORKER_SETTINGS } from './conf'
 import { WorkerQueueReceiver } from './queue'
+import { getClientILP, getClientSQL } from '@crowd/questdb'
 
 const log = getServiceLogger()
+const ilp = getClientILP()
 
 const MAX_CONCURRENT_PROCESSING = 5
 
@@ -28,6 +30,7 @@ setImmediate(async () => {
   const queueClient = QueueFactory.createQueueService(QUEUE_CONFIG())
 
   const dbConnection = await getDbConnection(DB_CONFIG(), MAX_CONCURRENT_PROCESSING)
+  const qdbConnection = await getClientSQL()
 
   const redisClient = await getRedisClient(REDIS_CONFIG())
 
@@ -43,6 +46,7 @@ setImmediate(async () => {
     WORKER_SETTINGS().queuePriorityLevel,
     queueClient,
     dbConnection,
+    qdbConnection,
     searchSyncWorkerEmitter,
     dataWorkerEmitter,
     redisClient,
@@ -59,4 +63,14 @@ setImmediate(async () => {
     log.error({ err }, 'Failed to start queues!')
     process.exit(1)
   }
+})
+
+process.on('SIGTERM', async () => {
+  await ilp.flush()
+  await ilp.close()
+})
+
+process.on('SIGINT', async () => {
+  await ilp.flush()
+  await ilp.close()
 })
