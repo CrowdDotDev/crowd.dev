@@ -51,6 +51,8 @@ const s3Url = `https://${
 export async function getActivitiesById(
   conn: DbConnOrTx,
   ids: string[],
+  tenantId: string,
+  segmentIds: string[],
 ): Promise<IQueryActivityResult[]> {
   if (ids.length === 0) {
     return []
@@ -59,6 +61,8 @@ export async function getActivitiesById(
   const data = await queryActivities(conn, {
     filter: { and: [{ id: { in: ids } }] },
     limit: ids.length,
+    tenantId,
+    segmentIds,
   })
 
   return data.rows
@@ -1396,6 +1400,8 @@ export async function getNewActivityPlatforms(
 export async function getLastActivitiesForMembers(
   qdbConn: DbConnOrTx,
   memberIds: string[],
+  tenantId: string,
+  segmentIds?: string[],
 ): Promise<IQueryActivityResult[]> {
   const query = `
   select id from activities where "deletedAt" is null and "memberId" in ($(memberIds:csv))
@@ -1410,5 +1416,7 @@ export async function getLastActivitiesForMembers(
   return getActivitiesById(
     qdbConn,
     results.map((r) => r.id),
+    tenantId,
+    segmentIds,
   )
 }
