@@ -1,1 +1,1 @@
-DROP INDEX IF EXISTS "auditLogAction_actionType";
+drop index if exists "auditLogAction_actionType";
