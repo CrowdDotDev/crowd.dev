@@ -373,14 +373,14 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
   filterToApply.and = [
     {
       timestamp: {
-        lte: timestamp.value,
+        lte: props.entity?.lastActive ?? timestamp.value,
       },
     },
-    // {
-    //   timestamp: {
-    //     gte: moment(timestamp.value).subtract(1, 'month').toISOString(),
-    //   },
-    // }
+    ...(props.entity?.lastActive ? [{
+      timestamp: {
+        gte: moment(props.entity?.lastActive).subtract(1, 'month').toISOString(),
+      },
+    }] : []),
   ];
 
   if (reset) {
