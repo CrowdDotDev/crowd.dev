@@ -1,0 +1,1 @@
+DROP INDEX IF EXISTS "auditLogAction_actionType";
