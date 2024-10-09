@@ -238,6 +238,7 @@
                     :to="{
                       name: 'memberView',
                       params: { id: scope.row.id },
+                      query: { projectGroup: selectedProjectGroup?.id },
                     }"
                     class="block"
                   >
@@ -245,6 +246,7 @@
                       v-if="!isMasked(scope.row)"
                       :member="scope.row"
                       :limit="5"
+                      :project-group-id="selectedProjectGroup?.id"
                     />
                     <el-tooltip
                       v-else

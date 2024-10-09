@@ -1,33 +1,52 @@
 <template>
-  <app-identities-horizontal-list
-    :identities="identities.getIdentities()"
-    :limit="limit"
-    :as-svg="asSvg"
-    v-bind="$attrs"
-  >
-    <template v-if="$slots.badge" #badge>
-      <slot name="badge" />
+  <div class="flex flex-wrap gap-2">
+    <template v-for="identity in limitedIdentities" :key="identity.id">
+      <a
+        v-if="identity.url"
+        :href="getIdentityUrl(identity.url)"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="text-medium cursor-pointer !text-black underline decoration-dashed
+         decoration-gray-400 underline-offset-4 hover:decoration-gray-900 max-w-48 truncate"
+      >
+        {{ identity.value }}
+      </a>
+      <span v-else class="text-medium max-w-48 truncate">
+        {{ identity.value }}
+      </span>
     </template>
-  </app-identities-horizontal-list>
+    <span v-if="member.identities.length > limit" class="text-medium text-gray-400">
+      +{{ member.identities.length - limit }}
+    </span>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { defineProps, computed } from 'vue';
-import useMemberIdentities from '@/shared/modules/identities/config/useMemberIdentities';
-import memberOrder from '@/shared/modules/identities/config/identitiesOrder/member';
-import { Member } from '@/modules/member/types/Member';
-import AppIdentitiesHorizontalList from '@/shared/modules/identities/components/identities-horizontal-list.vue';
 
-const props = defineProps<{
-  member: Member;
-  limit?: number;
-  asSvg?: boolean;
-}>();
+const props = defineProps({
+  member: {
+    type: Object,
+    required: true,
+  },
+  limit: {
+    type: Number,
+    default: 5,
+  },
+  projectGroupId: {
+    type: String,
+    default: '',
+  },
+});
 
-const identities = computed(() => useMemberIdentities({
-  member: props.member,
-  order: memberOrder.list,
-}));
+const limitedIdentities = computed(() => props.member.identities.slice(0, props.limit));
+
+const getIdentityUrl = (url) => {
+  if (!url || !props.projectGroupId) return url;
+  const identityUrl = new URL(url);
+  identityUrl.searchParams.append('projectGroup', props.projectGroupId);
+  return identityUrl.toString();
+};
 </script>
 
 <script lang="ts">
