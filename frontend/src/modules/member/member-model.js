@@ -48,7 +48,15 @@ const fields = {
     'organizations',
     'Organizations',
   ),
-  joinedAt: new DateTimeField('joinedAt', 'Joined date'),
+  joinedAt: new DateTimeField('joinedAt', 'Joined date', {
+    filterable: true,
+    formatter: (value) => {
+      if (!value || new Date(value).getFullYear() <= 1970) {
+        return '-';
+      }
+      return moment(value).format('YYYY-MM-DD');
+    },
+  }),
   bio: new StringField('bio', label('bio')),
   location: new StringField(
     'location',
