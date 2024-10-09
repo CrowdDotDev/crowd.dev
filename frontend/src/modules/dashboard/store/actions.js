@@ -24,24 +24,24 @@ export default {
       platform,
       segments,
     });
-    dispatch('getCubeData');
-    dispatch('getConversations');
-    dispatch('getActivities');
+    dispatch('getChartData');
     dispatch('getMembers');
     dispatch('getOrganizations');
+    dispatch('getActivities');
+    dispatch('getConversations');
   },
-  // Fetch cube data
-  getCubeData({ state }) {
-    state.cubeData = null;
+  // Fetch chart data
+  getChartData({ state }) {
+    state.chartData = null;
     const { platform, period, segments } = state.filters;
     const [segment] = segments.segments;
-    return DashboardApiService.fetchCubeData({
+    return DashboardApiService.fetchChartData({
       period: period.label,
       platform: platform !== 'all' ? platform : undefined,
       segment,
     })
       .then((data) => {
-        state.cubeData = data;
+        state.chartData = data;
         return Promise.resolve(data);
       });
   },
@@ -49,7 +49,7 @@ export default {
   // fetch conversations data
   async getConversations({ dispatch }) {
     dispatch('getRecentConversations');
-    // dispatch('getConversationCount');
+    dispatch('getConversationCount');
   },
   // Fetch recent conversations
   async getRecentConversations({ commit, state }) {
@@ -72,6 +72,13 @@ export default {
                 .toISOString(),
             },
           },
+          {
+            lastActive: {
+              lte: moment()
+                .utc()
+                .toISOString(),
+            },
+          },
           ...(platform !== 'all'
             ? [
               {
@@ -82,7 +89,7 @@ export default {
         ],
       },
       orderBy: 'lastActive_DESC',
-      limit: 5,
+      limit: 20,
       offset: 0,
       segments: segments.childSegments,
     })
@@ -104,6 +111,7 @@ export default {
       limit: 1,
       offset: 0,
       segments: segments.childSegments,
+      countOnly: true,
     })
       .then(({ count }) => {
         state.conversations.total = count;
@@ -124,7 +132,6 @@ export default {
     state.activities.loading = true;
 
     const { platform, period, segments } = state.filters;
-
     return ActivityService.query({
       filter: {
         ...DEFAULT_ACTIVITY_FILTERS,
@@ -138,6 +145,13 @@ export default {
                   period.value - 1,
                   period.granularity,
                 )
+                .toISOString(),
+            },
+          },
+          {
+            timestamp: {
+              lte: moment()
+                .utc()
                 .toISOString(),
             },
           },
@@ -187,7 +201,7 @@ export default {
       limit: 1,
       offset: 0,
       segments: segments.childSegments,
-    })
+    }, true)
       .then(({ count }) => {
         state.activities.total = count;
         return Promise.resolve(count);

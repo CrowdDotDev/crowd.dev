@@ -16,10 +16,9 @@ import { hasLfxMembership } from '@crowd/data-access-layer/src/lfx_memberships'
 import { prefixLength } from '../utils'
 import OrganizationSimilarityCalculator from '../organizationSimilarityCalculator'
 import { QueryExecutor, pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
-
-import { queryOrgs, OrganizationField, findOrgById } from '@crowd/data-access-layer/src/orgs'
 import { buildFullOrgForMergeSuggestions } from '@crowd/opensearch'
 import { fetchOrgIdentities, findOrgAttributes } from '@crowd/data-access-layer/src/organizations'
+import { OrganizationField, findOrgById, queryOrgs } from '@crowd/data-access-layer'
 
 export async function getOrganizations(
   tenantId: string,

@@ -237,7 +237,6 @@
 </template>
 
 <script setup>
-import isEqual from 'lodash/isEqual';
 import { useStore } from 'vuex';
 import {
   computed,
@@ -262,6 +261,7 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { getSegmentsFromProjectGroup } from '@/utils/segments';
 import { Platform } from '@/shared/modules/platform/types/Platform';
 import LfActivityDisplay from '@/shared/modules/activity/components/activity-display.vue';
+import moment from 'moment';
 import { ActivityService } from '../activity-service';
 
 const SearchIcon = h(
@@ -309,12 +309,10 @@ const loading = ref(true);
 const platform = ref(null);
 const query = ref('');
 const activities = ref([]);
-const limit = ref(20);
-const offset = ref(0);
+const limit = ref(50);
+const timestamp = ref(moment().toISOString());
 const noMore = ref(false);
 const selectedSegment = ref(props.selectedSegment || null);
-
-let filter = {};
 
 const isMemberEntity = computed(() => props.entityType === 'member');
 
@@ -372,9 +370,22 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
     }
   }
 
-  if (!isEqual(filter, filterToApply) || reset) {
+  filterToApply.and = [
+    {
+      timestamp: {
+        lte: props.entity?.lastActive ?? timestamp.value,
+      },
+    },
+    ...(props.entity?.lastActive ? [{
+      timestamp: {
+        gte: moment(props.entity?.lastActive).subtract(1, 'month').toISOString(),
+      },
+    }] : []),
+  ];
+
+  if (reset) {
     activities.value.length = 0;
-    offset.value = 0;
+    timestamp.value = moment().toISOString();
     noMore.value = false;
   }
 
@@ -388,19 +399,19 @@ const fetchActivities = async ({ reset } = { reset: false }) => {
     filter: filterToApply,
     orderBy: 'timestamp_DESC',
     limit: limit.value,
-    offset: offset.value,
     segments: selectedSegment.value ? [selectedSegment.value] : segments.value.map((s) => s.id),
   });
 
-  filter = { ...filterToApply };
   loading.value = false;
-  if (data.rows.length < limit.value) {
+
+  const activityIds = activities.value.map((a) => a.id);
+  const rows = data.rows.filter((a) => !activityIds.includes(a.id));
+  if (rows.length === 0) {
     noMore.value = true;
-    activities.value.push(...data.rows);
-  } else {
-    offset.value += limit.value;
-    activities.value.push(...data.rows);
   }
+  activities.value = reset ? rows : [...activities.value, ...rows];
+
+  timestamp.value = moment(data.rows.at(-1).timestamp).toISOString();
 };
 
 const reloadActivities = async () => {
@@ -411,7 +422,7 @@ const reloadActivities = async () => {
 const platformDetails = (p) => CrowdIntegrations.getConfig(p);
 
 const debouncedQueryChange = debounce(async () => {
-  await fetchActivities();
+  await fetchActivities({ reset: true });
 }, 300);
 
 const getPlatformDetails = (p) => CrowdIntegrations.getConfig(p);
@@ -424,7 +435,7 @@ watch(query, (newValue, oldValue) => {
 
 watch(platform, async (newValue, oldValue) => {
   if (newValue !== oldValue) {
-    await fetchActivities();
+    await fetchActivities({ reset: true });
   }
 });
 

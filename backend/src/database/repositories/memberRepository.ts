@@ -5,6 +5,7 @@ import {
   IMemberIdentity,
   IMemberOrganization,
   IMemberUsername,
+  MemberAttributeName,
   MemberAttributeType,
   MemberIdentityType,
   OpenSearchIndex,
@@ -28,6 +29,7 @@ import {
   RawQueryParser,
   dateEqualityChecker,
   distinct,
+  groupBy,
 } from '@crowd/common'
 import { ActivityDisplayService } from '@crowd/integrations'
 import {
@@ -56,11 +58,26 @@ import {
   findMemberById,
   findMemberTags,
   MemberField,
+  queryMembersAdvanced,
 } from '@crowd/data-access-layer/src/members'
 import { findTags } from '@crowd/data-access-layer/src/others'
 import { fetchAbsoluteMemberAggregates } from '@crowd/data-access-layer/src/members/segments'
 import { OrganizationField, queryOrgs } from '@crowd/data-access-layer/src/orgs'
-import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
+import {
+  fetchManySegments,
+  isSegmentProject,
+  isSegmentProjectGroup,
+} from '@crowd/data-access-layer/src/segments'
+import { IDbMemberData } from '@crowd/data-access-layer/src/members/types'
+import {
+  countMembersWithActivities,
+  getActiveMembers,
+  getLastActivitiesForMembers,
+  getMemberAggregates,
+  setMemberDataToActivities,
+} from '@crowd/data-access-layer'
+import { optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
+import { findMaintainerRoles } from '@crowd/data-access-layer/src/maintainers'
 import { KUBE_MODE, SERVICE } from '@/conf'
 import { ServiceType } from '@/conf/configTypes'
 import isFeatureEnabled from '../../feature-flags/isFeatureEnabled'
@@ -181,9 +198,6 @@ class MemberRepository {
 
     await MemberRepository.includeMemberToSegments(record.id, options)
 
-    await record.setActivities(data.activities || [], {
-      transaction,
-    })
     await record.setTags(data.tags || [], {
       transaction,
     })
@@ -825,7 +839,7 @@ class MemberRepository {
       throw new Error('Invalid number of records found!')
     }
 
-    return records[0]
+    return records[0] as IDbMemberData
   }
 
   static MEMBER_UPDATE_COLUMNS = [
@@ -970,16 +984,26 @@ class MemberRepository {
           transaction,
         })
 
+        if (
+          manualChange &&
+          data.attributes &&
+          (data.attributes[MemberAttributeName.IS_BOT] ||
+            data.attributes[MemberAttributeName.IS_TEAM_MEMBER])
+        ) {
+          await setMemberDataToActivities(options.qdb, record.id, {
+            isBot: data.attributes[MemberAttributeName.IS_BOT]
+              ? data.attributes[MemberAttributeName.IS_BOT].default
+              : false,
+            isTeamMember: data.attributes[MemberAttributeName.IS_TEAM_MEMBER]
+              ? data.attributes[MemberAttributeName.IS_TEAM_MEMBER].default
+              : false,
+          })
+        }
+
         return record
       }),
       !manualChange, // no need to track for audit if it's not a manual change
     )
-
-    if (data.activities) {
-      await record.setActivities(data.activities || [], {
-        transaction,
-      })
-    }
 
     if (data.tags) {
       await record.setTags(data.tags || [], {
@@ -1305,31 +1329,16 @@ class MemberRepository {
     const seq = SequelizeRepository.getSequelize(options)
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
-    const replacements: Record<string, unknown> = {
-      memberId,
-      tenantId: currentTenant.id,
-    }
-
     if (segmentId) {
       // we load data for a specific segment (can be leaf, parent or grand parent id)
-
       const member = (
-        await this.findAndCountAll(
-          {
-            filter: { and: [{ id: { eq: memberId } }] },
-            limit: 1,
-            offset: 0,
-            fields: [
-              'activityCount',
-              'activityTypes',
-              'activeOn',
-              'averageSentiment',
-              'lastActive',
-            ],
-            segmentId,
-          },
-          options,
-        )
+        await queryMembersAdvanced(optionsQx(options), options.redis, options.currentTenant.id, {
+          filter: { and: [{ id: { eq: memberId } }] },
+          limit: 1,
+          offset: 0,
+          fields: ['activityCount', 'activityTypes', 'activeOn', 'averageSentiment', 'lastActive'],
+          segmentId,
+        })
       ).rows[0]
 
       return {
@@ -1344,45 +1353,28 @@ class MemberRepository {
       }
     }
 
-    // query for all leaf segment ids
-    const extraCTEs = `
-    leaf_segment_ids AS (
-      select id
-      from segments
-      where "tenantId" = :tenantId and "parentSlug" is not null and "grandparentSlug" is not null
-    )
-    `
-    const query = `
-      with ${extraCTEs}
-        SELECT
-        a."memberId",
-        a."segmentId",
-        count(a.id)::integer AS "activityCount",
-        max(a.timestamp) AS "lastActive",
-        array_agg(DISTINCT concat(a.platform, ':', a.type)) FILTER (WHERE a.platform IS NOT NULL) AS "activityTypes",
-        array_agg(DISTINCT a.platform) FILTER (WHERE a.platform IS NOT NULL) AS "activeOn",
-        count(DISTINCT a."timestamp"::date)::integer AS "activeDaysCount",
-        round(avg(
-            CASE WHEN (a.sentiment ->> 'sentiment'::text) IS NOT NULL THEN
-                (a.sentiment ->> 'sentiment'::text)::double precision
-            ELSE
-                NULL::double precision
-            END
-        )::numeric, 2):: float AS "averageSentiment"
-        FROM activities a
-        join leaf_segment_ids lfs on a."segmentId" = lfs.id
-        WHERE a."memberId" = :memberId
-        and a."tenantId" = :tenantId
-        GROUP BY a."memberId", a."segmentId"
-    `
+    const segmentIds = (
+      await seq.query(
+        `
+      select id from segments where "tenantId" = :tenantId and "parentSlug" is not null and "grandparentSlug" is not null
+    `,
+        {
+          replacements: {
+            tenantId: currentTenant.id,
+          },
+          type: QueryTypes.SELECT,
+          transaction,
+        },
+      )
+    ).map((r: any) => r.id)
 
-    const data: ActivityAggregates[] = await seq.query(query, {
-      replacements,
-      type: QueryTypes.SELECT,
-      transaction,
-    })
+    const results = await getMemberAggregates(options.qdb, memberId, segmentIds)
 
-    return data?.[0] || null
+    if (results.length > 0) {
+      return results[0]
+    }
+
+    return null
   }
 
   static async setAffiliations(
@@ -1477,58 +1469,6 @@ class MemberRepository {
     return results
   }
 
-  static async getActivityCountOfMembersIdentities(
-    memberId: string,
-    identities: IMemberIdentity[],
-    options: IRepositoryOptions,
-  ): Promise<number> {
-    const seq = SequelizeRepository.getSequelize(options)
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    if (identities.length === 0) {
-      throw new Error(`No identities sent!`)
-    }
-
-    let query = `
-    SELECT count(*) as count
-        FROM "mv_activities_cube"
-        WHERE "memberId" = :memberId`
-
-    const replacements = {
-      memberId,
-    }
-
-    const replacementKey = (key: string, index: number) => `${key}${index}`
-
-    const conditions: string[] = []
-
-    for (
-      let i = 0;
-      i < identities.filter((i) => i.type === MemberIdentityType.USERNAME).length;
-      i++
-    ) {
-      const platformKey = replacementKey('platform', i)
-      const usernameKey = replacementKey('username', i)
-
-      conditions.push(`(platform = :${platformKey} and username = :${usernameKey})`)
-
-      replacements[platformKey] = identities[i].platform
-      replacements[usernameKey] = identities[i].value
-    }
-
-    if (conditions.length > 0) {
-      query = `${query} and (${conditions.join(' or ')})`
-    }
-
-    const result = await seq.query(query, {
-      replacements,
-      type: QueryTypes.SELECT,
-      transaction,
-    })
-
-    return (result[0] as any).count as number
-  }
-
   static async findById(
     id,
     options: IRepositoryOptions,
@@ -1537,10 +1477,13 @@ class MemberRepository {
     }: {
       segmentId?: string
     } = {},
-    include: Record<string, string> = {},
+    include: Record<string, boolean> = {},
   ) {
     let memberResponse = null
-    memberResponse = await MemberRepository.findAndCountAll(
+    memberResponse = await queryMembersAdvanced(
+      optionsQx(options),
+      options.redis,
+      options.currentTenant.id,
       {
         filter: { id: { eq: id } },
         limit: 1,
@@ -1552,17 +1495,20 @@ class MemberRepository {
           identities: false,
           segments: true,
           onlySubProjects: true,
+          maintainers: true,
           attributes: false,
           ...include,
         },
       },
-      options,
     )
 
     if (memberResponse.count === 0) {
       // try it again without segment information (no aggregates)
       // for members without activities
-      memberResponse = await MemberRepository.findAndCountAll(
+      memberResponse = await queryMembersAdvanced(
+        optionsQx(options),
+        options.redis,
+        options.currentTenant.id,
         {
           filter: { id: { eq: id } },
           limit: 1,
@@ -1572,11 +1518,11 @@ class MemberRepository {
             lfxMemberships: true,
             identities: true,
             segments: true,
+            maintainers: true,
             attributes: false,
             ...include,
           },
         },
-        options,
       )
 
       if (memberResponse.count === 0) {
@@ -1661,172 +1607,60 @@ class MemberRepository {
   ): Promise<PageData<IActiveMemberData>> {
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
-    const segmentsEnabled = await isFeatureEnabled(FeatureFlag.SEGMENTS, options)
+    if (segments.length !== 1) {
+      throw new Error400(
+        `This operation can have exactly one segment. Found ${segments.length} segments.`,
+      )
+    }
+    const originalSegment = segments[0]
 
-    let originalSegment
+    const segmentRepository = new SegmentRepository(options)
 
-    if (segmentsEnabled) {
-      if (segments.length !== 1) {
-        throw new Error400(
-          `This operation can have exactly one segment. Found ${segments.length} segments.`,
-        )
+    const segment = await segmentRepository.findById(originalSegment)
+
+    if (segment === null) {
+      return {
+        rows: [],
+        count: 0,
+        limit,
+        offset,
       }
-      originalSegment = segments[0]
+    }
 
-      const segmentRepository = new SegmentRepository(options)
-
-      const segment = await segmentRepository.findById(originalSegment)
-
-      if (segment === null) {
-        return {
-          rows: [],
-          count: 0,
-          limit,
-          offset,
-        }
-      }
-
-      if (SegmentRepository.isProjectGroup(segment)) {
-        segments = (segment as SegmentProjectGroupNestedData).projects.reduce((acc, p) => {
-          acc.push(...p.subprojects.map((sp) => sp.id))
-          return acc
-        }, [])
-      } else if (SegmentRepository.isProject(segment)) {
-        segments = (segment as SegmentProjectNestedData).subprojects.map((sp) => sp.id)
-      } else {
-        segments = [originalSegment]
-      }
+    if (isSegmentProjectGroup(segment)) {
+      segments = (segment as SegmentProjectGroupNestedData).projects.reduce((acc, p) => {
+        acc.push(...p.subprojects.map((sp) => sp.id))
+        return acc
+      }, [])
+    } else if (isSegmentProject(segment)) {
+      segments = (segment as SegmentProjectNestedData).subprojects.map((sp) => sp.id)
     } else {
-      originalSegment = (await new SegmentRepository(options).getDefaultSegment()).id
+      segments = [originalSegment]
     }
 
-    const activityPageSize = 10000
-    let activityOffset = 0
-
-    const activityQuery = {
-      query: {
-        bool: {
-          must: [
-            {
-              range: {
-                date_timestamp: {
-                  gte: filter.activityTimestampFrom,
-                  lte: filter.activityTimestampTo,
-                },
-              },
-            },
-            {
-              term: {
-                uuid_tenantId: tenant.id,
-              },
-            },
-          ],
-        },
-      },
-      aggs: {
-        group_by_member: {
-          terms: {
-            field: 'uuid_memberId',
-            size: 10000000,
-          },
-          aggs: {
-            activity_count: {
-              value_count: {
-                field: 'uuid_id',
-              },
-            },
-            active_days_count: {
-              cardinality: {
-                field: 'date_timestamp',
-                script: {
-                  source: "doc['date_timestamp'].value.toInstant().toEpochMilli()/86400000",
-                },
-              },
-            },
-            active_members_bucket_sort: {
-              bucket_sort: {
-                sort: [{ activity_count: { order: 'desc' } }],
-                size: activityPageSize,
-                from: activityOffset,
-              },
-            },
-          },
-        },
-      },
-      size: 0,
-    } as any
-
-    if (filter.platforms) {
-      const subQueries = filter.platforms.map((p) => ({ match_phrase: { keyword_platform: p } }))
-
-      activityQuery.query.bool.must.push({
-        bool: {
-          should: subQueries,
-        },
-      })
-    }
-
-    if (filter.activityIsContribution === true) {
-      activityQuery.query.bool.must.push({
-        term: {
-          bool_isContribution: true,
-        },
-      })
-    }
-
-    if (segmentsEnabled) {
-      const subQueries = segments.map((s) => ({ term: { uuid_segmentId: s } }))
-
-      activityQuery.query.bool.must.push({
-        bool: {
-          should: subQueries,
-        },
-      })
-    }
-
-    const direction = orderBy.split('_')[1].toLowerCase() === 'desc' ? 'desc' : 'asc'
-    if (orderBy.startsWith('activityCount')) {
-      activityQuery.aggs.group_by_member.aggs.active_members_bucket_sort.bucket_sort.sort = [
-        { activity_count: { order: direction } },
-      ]
-    } else if (orderBy.startsWith('activeDaysCount')) {
-      activityQuery.aggs.group_by_member.aggs.active_members_bucket_sort.bucket_sort.sort = [
-        { active_days_count: { order: direction } },
-      ]
-    } else {
-      throw new Error(`Invalid order by: ${orderBy}`)
-    }
+    const activeMemberResults = await getActiveMembers(options.qdb, {
+      timestampFrom: new Date(Date.parse(filter.activityTimestampFrom)).toISOString(),
+      timestampTo: new Date(Date.parse(filter.activityTimestampTo)).toISOString(),
+      isContribution: filter.activityIsContribution === true ? true : undefined,
+      platforms: filter.platforms ? filter.platforms : undefined,
+      segmentIds: segments,
+      tenantId: tenant.id,
+      limit: 10000,
+      offset: 0,
+      orderBy: orderBy.startsWith('activityCount') ? 'activityCount' : 'activeDaysCount',
+      orderByDirection: orderBy.split('_')[1].toLowerCase() === 'desc' ? 'desc' : 'asc',
+    })
 
     const memberIds = []
-    let memberMap = {}
-    let activities
+    const memberMap = {}
 
-    do {
-      activities = await options.opensearch.search({
-        index: OpenSearchIndex.ACTIVITIES,
-        body: activityQuery,
-      })
-
-      memberIds.push(...activities.body.aggregations.group_by_member.buckets.map((b) => b.key))
-
-      memberMap = {
-        ...memberMap,
-        ...activities.body.aggregations.group_by_member.buckets.reduce((acc, b) => {
-          acc[b.key] = {
-            activityCount: b.activity_count,
-            activeDaysCount: b.active_days_count,
-          }
-
-          return acc
-        }, {}),
+    for (const res of activeMemberResults) {
+      memberIds.push(res.memberId)
+      memberMap[res.memberId] = {
+        activityCount: res.activityCount,
+        activeDaysCount: res.activeDaysCount,
       }
-
-      activityOffset += activityPageSize
-
-      // update page
-      activityQuery.aggs.group_by_member.aggs.active_members_bucket_sort.bucket_sort.from =
-        activityOffset
-    } while (activities.body.aggregations.group_by_member.buckets.length === activityPageSize)
+    }
 
     if (memberIds.length === 0) {
       return {
@@ -1932,33 +1766,11 @@ class MemberRepository {
     }
   }
 
-  public static MEMBER_QUERY_FILTER_COLUMN_MAP: Map<string, string> = new Map([
-    ['isOrganization', "coalesce((m.attributes -> 'isOrganization' -> 'default')::boolean, false)"],
-    ['isTeamMember', "coalesce((m.attributes -> 'isTeamMember' -> 'default')::boolean, false)"],
-    ['isBot', "coalesce((m.attributes -> 'isBot' -> 'default')::boolean, false)"],
-    ['activeOn', 'aggs."activeOn"'],
-    ['activityCount', 'aggs."activityCount"'],
-    ['activityTypes', 'aggs."activityTypes"'],
-    ['activeDaysCount', 'aggs."activeDaysCount"'],
-    ['lastActive', 'aggs."lastActive"'],
-    ['averageSentiment', 'aggs."averageSentiment"'],
-    ['identities', 'aggs.identities'],
-    ['reach', "(m.reach -> 'total')::integer"],
-    ['numberOfOpenSourceContributions', 'coalesce(jsonb_array_length(m.contributions), 0)'],
-
-    ['id', 'm.id'],
-    ['displayName', 'm."displayName"'],
-    ['tenantId', 'm."tenantId"'],
-    ['score', 'm.score'],
-    ['lastEnriched', 'm."lastEnriched"'],
-    ['joinedAt', 'm."joinedAt"'],
-    ['importHash', 'm."importHash"'],
-    ['createdAt', 'm."createdAt"'],
-    ['updatedAt', 'm."updatedAt"'],
-  ])
-
   static async countMembersPerSegment(options: IRepositoryOptions, segmentIds: string[]) {
-    const countResults = await MemberRepository.countMembers(options, segmentIds)
+    const countResults = await countMembersWithActivities(options.qdb, {
+      tenantId: options.currentTenant.id,
+      segmentIds,
+    })
     return countResults.reduce((acc, curr: any) => {
       acc[curr.segmentId] = parseInt(curr.totalCount, 10)
       return acc
@@ -2127,30 +1939,11 @@ class MemberRepository {
         }
       }
 
-      const seq = SequelizeRepository.getSequelize(options)
-      const lastActivities = await seq.query(
-        `
-            SELECT
-                a.*
-            FROM (
-                VALUES
-                  ${memberIds.map((id) => `('${id}')`).join(',')}
-            ) m ("memberId")
-            JOIN activities a ON (a.id = (
-                SELECT id
-                FROM mv_activities_cube
-                WHERE "memberId" = m."memberId"::uuid
-                ORDER BY timestamp DESC
-                LIMIT 1
-            ))
-            WHERE a."tenantId" = :tenantId
-        `,
-        {
-          replacements: {
-            tenantId: tenant.id,
-          },
-          type: QueryTypes.SELECT,
-        },
+      const lastActivities = await getLastActivitiesForMembers(
+        options.qdb,
+        memberIds,
+        options.currentTenant.id,
+        segments,
       )
 
       for (const row of translatedRows) {
@@ -2229,6 +2022,7 @@ class MemberRepository {
         lfxMemberships: false,
         memberOrganizations: false,
         attributes: true,
+        maintainers: true,
       } as {
         identities?: boolean
         segments?: boolean
@@ -2236,6 +2030,7 @@ class MemberRepository {
         lfxMemberships?: boolean
         memberOrganizations?: boolean
         attributes?: boolean
+        maintainers?: boolean
       },
       attributesSettings = [] as AttributeData[],
     },
@@ -2516,40 +2311,37 @@ class MemberRepository {
           .filter(Boolean)
       })
     }
+    if (include.maintainers) {
+      const maintainerRoles = await findMaintainerRoles(qx, memberIds)
+      const segmentIds = uniq(maintainerRoles.map((m) => m.segmentId))
+      const segmentsInfo = await fetchManySegments(qx, segmentIds)
+
+      const groupedMaintainers = groupBy(maintainerRoles, (m) => m.memberId)
+      rows.forEach((member) => {
+        member.maintainerRoles = (groupedMaintainers.get(member.id) || []).map((role) => {
+          const segmentInfo = segmentsInfo.find((s) => s.id === role.segmentId)
+          return {
+            ...role,
+            segmentName: segmentInfo?.name,
+          }
+        })
+      })
+    }
 
     rows.forEach((row) => {
       row.tags = []
     })
 
     if (memberIds.length > 0) {
-      const seq = SequelizeRepository.getSequelize(options)
-      const lastActivities = await seq.query(
-        `
-              SELECT
-                  a.*
-              FROM (
-                  VALUES
-                    ${memberIds.map((id) => `('${id}')`).join(',')}
-              ) m ("memberId")
-              JOIN activities a ON (a.id = (
-                  SELECT id
-                  FROM mv_activities_cube
-                  WHERE "memberId" = m."memberId"::uuid
-                  ORDER BY timestamp DESC
-                  LIMIT 1
-              ))
-              WHERE a."tenantId" = :tenantId
-          `,
-        {
-          replacements: {
-            tenantId: options.currentTenant.id,
-          },
-          type: QueryTypes.SELECT,
-        },
+      const lastActivities = await getLastActivitiesForMembers(
+        options.qdb,
+        memberIds,
+        options.currentTenant.id,
+        [segmentId],
       )
 
       rows.forEach((r) => {
-        r.lastActivity = lastActivities.find((a) => (a as any).memberId === r.id)
+        r.lastActivity = lastActivities.find((a) => a.memberId === r.id)
         if (r.lastActivity) {
           r.lastActivity.display = ActivityDisplayService.getDisplayOptions(
             r.lastActivity,

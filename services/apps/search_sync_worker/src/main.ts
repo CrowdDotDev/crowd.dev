@@ -5,6 +5,7 @@ import { QueueFactory } from '@crowd/queue'
 import { getRedisClient } from '@crowd/redis'
 import { DB_CONFIG, OPENSEARCH_CONFIG, QUEUE_CONFIG, REDIS_CONFIG, SERVICE_CONFIG } from './conf'
 import { WorkerQueueReceiver } from './queue'
+import { getClientSQL } from '@crowd/questdb'
 
 const log = getServiceLogger()
 
@@ -21,12 +22,14 @@ setImmediate(async () => {
   const queueClient = QueueFactory.createQueueService(QUEUE_CONFIG())
 
   const dbConnection = await getDbConnection(DB_CONFIG(), MAX_CONCURRENT_PROCESSING)
+  const qdbConnection = await getClientSQL()
 
   const worker = new WorkerQueueReceiver(
     SERVICE_CONFIG().queuePriorityLevel,
     redis,
     queueClient,
     dbConnection,
+    qdbConnection,
     openSearchService,
     log,
     MAX_CONCURRENT_PROCESSING,

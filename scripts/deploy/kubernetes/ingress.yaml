@@ -29,13 +29,6 @@ spec:
                 name: search-engine-svc
                 port:
                   number: 7700
-          - path: /cjs/?(.*)
-            pathType: Prefix
-            backend:
-              service:
-                name: cubejs-svc
-                port:
-                  number: 4000
           - path: /api/?(.*)
             pathType: Prefix
             backend:

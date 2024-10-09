@@ -1,7 +1,7 @@
 import { getServiceChildLogger } from '@crowd/logging'
 import pgPromise from 'pg-promise'
 import { DbConnection, DbInstance, IDatabaseConfig } from './types'
-import { IS_CLOUD_ENV } from '@crowd/common'
+import { IS_CLOUD_ENV, IS_DEV_ENV } from '@crowd/common'
 
 const log = getServiceChildLogger('database.connection')
 
@@ -81,18 +81,11 @@ export const getDbConnection = async (
           rejectUnauthorized: false,
         }
       : false,
-    max: maxPoolSize || 20,
+    max: maxPoolSize || (IS_DEV_ENV ? 5 : 20),
     idleTimeoutMillis: idleTimeoutMillis !== undefined ? idleTimeoutMillis : 10000,
     // query_timeout: 30000,
     application_name: process.env.SERVICE || 'unknown-app',
   })
-
-  await dbConnection[cacheKey].connect()
-
-  log.info(
-    { database: config.database, host: config.host, port: config.port },
-    'Connected to the database!',
-  )
 
   return dbConnection[cacheKey]
 }

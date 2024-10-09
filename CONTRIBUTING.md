@@ -35,7 +35,7 @@ Any contributions you make are **greatly appreciated**. ❤️
   </tr>
   <tr>
     <td>
-      Bug in Core Features (Home, Members, Organizations, Activities, Reports)
+      Bug in Core Features (Home, Members, Organizations, Activities)
     </td>
     <td>
       <a href="https://github.com/calcom/cal.com/issues?q=is:issue+is:open+sort:updated-desc+label:%22High+priority%22">

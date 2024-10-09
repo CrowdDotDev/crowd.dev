@@ -436,7 +436,7 @@ export class IntegrationService {
     return response.data.isWebhooksReceived;
   }
 
-  static async groupsioConnect(email, token, tokenExpiry, password, groups) {
+  static async groupsioConnect(email, token, tokenExpiry, password, groups, autoImports) {
     const tenantId = AuthService.getTenantId();
 
     const response = await authAxios.post(
@@ -447,6 +447,7 @@ export class IntegrationService {
         tokenExpiry,
         password,
         groups,
+        autoImports,
         ...getSegments(),
       },
     );
@@ -477,6 +478,20 @@ export class IntegrationService {
       `/tenant/${tenantId}/groupsio-verify-group`,
       {
         groupName,
+        cookie,
+        ...getSegments(),
+      },
+    );
+
+    return response.data;
+  }
+
+  static async groupsioGetUserSubscriptions(cookie) {
+    const tenantId = AuthService.getTenantId();
+
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/groupsio-get-user-subscriptions`,
+      {
         cookie,
         ...getSegments(),
       },
