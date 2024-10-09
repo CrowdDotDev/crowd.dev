@@ -1,24 +1,25 @@
 <template>
   <div
-    class="min-h-88 py-12 flex items-center justify-center"
+    class="py-4 flex items-center justify-center"
   >
-    <div class="text-center">
-      <i class="text-gray-200 text-5xl" :class="icon" />
-      <div class="text-gray-600 text-sm font-semibold">
+    <div class="flex flex-col items-center">
+      <lf-icon :name="icon" :size="64" class="text-gray-200" />
+      <p class="text-gray-600 text-small font-semibold text-center">
         No data found
-      </div>
-      <div
+      </p>
+      <p
         v-if="withDescription"
-        class="text-gray-400 text-2xs font-semibold"
+        class="text-gray-400 text-tiny font-semibold leading-5 text-center"
       >
         Try to select a different time period
-      </div>
+      </p>
     </div>
   </div>
 </template>
 
 <script setup>
 import { defineProps, computed } from 'vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps({
   type: {
@@ -33,9 +34,9 @@ const props = defineProps({
 
 const icon = computed(() => {
   if (props.type === 'chart') {
-    return 'ri-bar-chart-fill';
+    return 'bar-chart-fill';
   }
 
-  return 'ri-list-unordered';
+  return 'list-unordered';
 });
 </script>

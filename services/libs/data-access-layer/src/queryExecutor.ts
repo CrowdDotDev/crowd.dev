@@ -14,7 +14,7 @@ export interface QueryExecutor {
   tx<T>(fn: (tx: QueryExecutor) => Promise<T>): Promise<T>
 }
 
-function formatQuery(query, params?) {
+export function formatQuery(query: string, params?: object): string {
   return pgp.as.format(query, params)
 }
 

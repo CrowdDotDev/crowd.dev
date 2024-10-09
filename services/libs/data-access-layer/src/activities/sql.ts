@@ -51,6 +51,8 @@ const s3Url = `https://${
 export async function getActivitiesById(
   conn: DbConnOrTx,
   ids: string[],
+  tenantId: string,
+  segmentIds: string[],
 ): Promise<IQueryActivityResult[]> {
   if (ids.length === 0) {
     return []
@@ -59,6 +61,8 @@ export async function getActivitiesById(
   const data = await queryActivities(conn, {
     filter: { and: [{ id: { in: ids } }] },
     limit: ids.length,
+    tenantId,
+    segmentIds,
   })
 
   return data.rows
@@ -365,7 +369,7 @@ const ACTIVITY_QUERY_FILTER_COLUMN_MAP: Map<string, string> = new Map([
   ['isTeamMember', 'a."member_isTeamMember"'],
   ['isBot', 'a."member_isBot"'],
   ['platform', 'a.platform'],
-  ['type', 'a.type'],
+  ['type', 'a."type"'],
   ['channel', 'a.channel'],
   ['timestamp', 'a.timestamp'],
   ['memberId', 'a."memberId"'],
@@ -621,6 +625,8 @@ export async function queryActivities(
 
     query += ';'
 
+    console.log('QuestDB activity query', query)
+
     const [results, countResults] = await Promise.all([
       qdbConn.any(query, params),
       qdbConn.query(countQuery, params),
@@ -691,7 +697,7 @@ export async function findTopActivityTypes(
     FROM activities a
     WHERE a."tenantId" = $(tenantId)
     AND a."timestamp" BETWEEN $(after) AND $(before)
-    GROUP BY a.type, a.platform
+    GROUP BY a."type", a.platform
     ORDER BY COUNT(*) DESC
     LIMIT $(limit);
   `
@@ -807,7 +813,7 @@ export async function getOrgAggregates(
           SELECT
             p."organizationId",
             p."segmentId",
-            STRING_AGG(p.platform, ':') AS "activeOn"
+            string_distinct_agg(p.platform, ':') AS "activeOn"
           FROM platforms p
         ),
         activites_agg AS (
@@ -835,7 +841,7 @@ export async function getOrgAggregates(
         MIN(a."lastActive") AS "lastActive",
         MIN(a."joinedAt") AS "joinedAt",
         MIN(a."avgContributorEngagement") AS "avgContributorEngagement",
-        STRING_AGG(p.platform, ':') AS "activeOn"
+        string_distinct_agg(p.platform, ':') AS "activeOn"
         -- </option1>
 
         -- -- <option2>
@@ -866,57 +872,92 @@ export async function getOrgAggregates(
     organizationId,
     segmentId: r.segmentId,
     tenantId: r.tenantId,
-    memberCount: r.memberCount,
-    activityCount: r.activityCount,
+    memberCount: parseInt(r.memberCount),
+    activityCount: parseInt(r.activityCount),
     activeOn: r.activeOn.split(':'),
     lastActive: r.lastActive,
     joinedAt: r.joinedAt,
-    avgContributorEngagement: r.avgContributorEngagement,
+    avgContributorEngagement: parseInt(r.avgContributorEngagement),
   }))
 }
 
 export async function getMemberAggregates(
   qdbConn: DbConnOrTx,
   memberId: string,
-  segmentIds?: string[],
 ): Promise<IMemberSegmentAggregates[]> {
   const results = await qdbConn.any(
     `
-    with relevant_activities as (select id, platform, type, timestamp, "sentimentScore", "memberId", "segmentId", "tenantId"
-                                from activities
-                                where "memberId" = $(memberId)
-                                  ${
-                                    segmentIds && segmentIds.length > 0
-                                      ? `and "segmentId" in ($(segmentIds:csv))`
-                                      : ''
-                                  }
-                                  and "deletedAt" is null),
-        activity_types as (select distinct "memberId", "segmentId", type, platform
-                            from relevant_activities
-                            where platform is not null
-                              and type is not null),
-        distinct_platforms as (select distinct "memberId", "segmentId", platform from relevant_activities),
-        average_sentiment as (select "memberId", "segmentId", avg("sentimentScore") as "averageSentiment"
-                              from relevant_activities
-                              where "sentimentScore" is not null)
-    select a."memberId",
-           a."segmentId",
-           a."tenantId",
-           count_distinct(a.id)                             as "activityCount",
-           max(a.timestamp)                                 as "lastActive",
-           string_agg(p.platform, ':')                      as "activeOn",
-           string_agg(concat(t.platform, ':', t.type), '|') as "activityTypes",
-           count_distinct(date_trunc('day', a.timestamp))   as "activeDaysCount",
-           s."averageSentiment"
-    from relevant_activities a
-            inner join activity_types t on a."memberId" = t."memberId" and a."segmentId" = t."segmentId"
-            inner join distinct_platforms p on a."memberId" = p."memberId" and a."segmentId" = p."segmentId"
-            left join average_sentiment s on a."memberId" = s."memberId" and a."segmentId" = s."segmentId"
-    group by a."memberId", a."segmentId", a."tenantId", s."averageSentiment";
+    WITH
+      platforms AS (
+        SELECT
+          DISTINCT
+          a."memberId",
+          a."segmentId",
+          a.platform
+        FROM activities a
+        WHERE a."memberId" = $(memberId)
+      ),
+      activity_types AS (
+        SELECT
+          DISTINCT
+          a."memberId",
+          a."segmentId",
+          a.platform,
+          a.type
+        FROM activities a
+        WHERE a."memberId" = $(memberId)
+      ),
+      platforms_agg AS (
+        SELECT
+          p."memberId",
+          p."segmentId",
+          string_distinct_agg(p.platform, ':') AS "activeOn"
+        FROM platforms p
+        GROUP BY 1, 2
+      ),
+      activity_types_agg AS (
+        SELECT
+          at."memberId",
+          at."segmentId",
+          string_distinct_agg(concat(at.platform, ':', at.type), '|') as "activityTypes"
+        FROM activity_types at
+        GROUP BY 1, 2
+      ),
+      activites_agg AS (
+        SELECT
+          a."memberId",
+          a."tenantId",
+          a."segmentId",
+          count_distinct(a.id)              AS "activityCount",
+          max(a.timestamp)                  AS "lastActive",
+          count_distinct(date_trunc('day', a.timestamp))   AS "activeDaysCount",
+          avg(a.sentimentScore)             AS "averageSentiment"
+        FROM activities a
+        WHERE a."memberId" = $(memberId)
+          AND a."deletedAt" IS NULL
+        GROUP BY a."memberId", a."tenantId", a."segmentId"
+      )
+    SELECT
+      a."memberId",
+      a."tenantId",
+      a."segmentId",
+
+      a.activityCount,
+      a.lastActive,
+      a.activeDaysCount,
+      a.averageSentiment,
+      '' AS "activeOn",
+      '' AS "activityTypes"
+      -- p.activeOn,
+      -- at.activityTypes
+    FROM activites_agg a
+
+    -- JOIN platforms_agg p ON p.memberId = a.memberId AND p.segmentId = a.segmentId
+    -- JOIN activity_types_agg at ON at.memberId = a.memberId AND at.segmentId = a.segmentId
+    ;
     `,
     {
       memberId,
-      segmentIds,
     },
   )
 
@@ -925,12 +966,13 @@ export async function getMemberAggregates(
       memberId: result.memberId,
       segmentId: result.segmentId,
       tenantId: result.tenantId,
-      activityCount: result.activityCount,
+      // --
+      activityCount: parseInt(result.activityCount),
       lastActive: result.lastActive,
+      activeDaysCount: result.activeDaysCount,
+      averageSentiment: parseFloat(result.averageSentiment),
       activeOn: result.activeOn.split(':'),
       activityTypes: result.activityTypes.split('|'),
-      averageSentiment: result.averageSentiment,
-      activeDaysCount: result.activeDaysCount,
     }
   })
 }
@@ -983,7 +1025,7 @@ export async function countMembersWithActivities(
   arg: IQueryNumberOfActiveMembersParameters,
 ): Promise<{ count: number; segmentId: string; date?: string }[]> {
   let query = `
-    SELECT COUNT(id) AS count, "segmentId", "timestamp" AS date
+    SELECT COUNT(id) AS count, "timestamp" AS date
     FROM activities
     WHERE "deletedAt" IS NULL
     AND "tenantId" = $(tenantId)
@@ -1010,8 +1052,7 @@ export async function countMembersWithActivities(
     query += ' SAMPLE BY 1d FILL(0) ALIGN TO CALENDAR'
   }
 
-  query += ' GROUP BY "segmentId", date'
-  query += ' ORDER BY "date" DESC;'
+  query += ' ORDER BY "date" ASC;'
 
   return await qdbConn.any(query, {
     tenantId: arg.tenantId,
@@ -1028,7 +1069,7 @@ export async function countOrganizationsWithActivities(
   arg: IQueryNumberOfActiveOrganizationsParameters,
 ): Promise<{ count: number; segmentId: string; date?: string }[]> {
   let query = `
-    SELECT COUNT(id) AS count, "segmentId", "timestamp" AS date
+    SELECT COUNT_DISTINCT("organizationId") AS count, "timestamp" AS date
     FROM activities
     WHERE "deletedAt" IS NULL
     AND "tenantId" = $(tenantId)
@@ -1051,7 +1092,7 @@ export async function countOrganizationsWithActivities(
     query += ' SAMPLE BY 1d FILL(0) ALIGN TO CALENDAR'
   }
 
-  query += ' GROUP BY "segmentId", timestamp ORDER BY "date" DESC;'
+  query += ' ORDER BY "date" ASC;'
 
   return await qdbConn.any(query, {
     tenantId: arg.tenantId,
@@ -1087,7 +1128,7 @@ export async function activitiesTimeseries(
 
   query += `
     SAMPLE BY 1d FILL(0) ALIGN TO CALENDAR
-    ORDER BY "date" DESC;
+    ORDER BY "date" ASC;
   `
 
   const rows: IActivityTimeseriesResult[] = await qdbConn.query(query, {
@@ -1359,6 +1400,8 @@ export async function getNewActivityPlatforms(
 export async function getLastActivitiesForMembers(
   qdbConn: DbConnOrTx,
   memberIds: string[],
+  tenantId: string,
+  segmentIds?: string[],
 ): Promise<IQueryActivityResult[]> {
   const query = `
   select id from activities where "deletedAt" is null and "memberId" in ($(memberIds:csv))
@@ -1373,5 +1416,7 @@ export async function getLastActivitiesForMembers(
   return getActivitiesById(
     qdbConn,
     results.map((r) => r.id),
+    tenantId,
+    segmentIds,
   )
 }

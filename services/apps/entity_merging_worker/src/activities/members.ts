@@ -37,7 +37,7 @@ export async function moveActivitiesBetweenMembers(
   if (!memberExists) {
     return
   }
-  await moveActivitiesToNewMember(svc.postgres.writer, primaryId, secondaryId, tenantId)
+  await moveActivitiesToNewMember(svc.questdbSQL, primaryId, secondaryId, tenantId)
 }
 
 export async function moveActivitiesWithIdentityToAnotherMember(

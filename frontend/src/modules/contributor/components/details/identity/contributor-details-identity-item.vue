@@ -59,7 +59,7 @@
     </div>
 
     <!-- Dropdown -->
-    <lf-dropdown v-if="hovered && hasPermission(LfPermission.memberEdit)" placement="bottom-end" width="232px">
+    <lf-dropdown v-if="hovered" placement="bottom-end" width="232px">
       <template #trigger>
         <lf-button type="secondary-ghost" size="small" :icon-only="true">
           <lf-icon name="more-fill" />
@@ -67,6 +67,7 @@
       </template>
       <!-- Edit identity -->
       <lf-tooltip
+        v-if="hasPermission(LfPermission.memberEdit)"
         placement="top"
         :disabled="!editingDisabled"
         class="!w-full"
@@ -85,29 +86,46 @@
       </lf-tooltip>
 
       <!-- Unmerge -->
-      <lf-dropdown-item @click="emit('unmerge')">
+      <lf-dropdown-item
+        v-if="hasPermission(LfPermission.memberEdit)"
+        @click="emit('unmerge')"
+      >
         <lf-icon name="link-unlink" />Unmerge identity
       </lf-dropdown-item>
 
-      <lf-dropdown-separator />
-      <lf-tooltip
-        placement="top"
-        :disabled="!editingDisabled"
-        class="!w-full"
+      <lf-dropdown-item
+        @click="setReportDataModal({
+          contributor: props.contributor,
+          type: ReportDataType.IDENTITY,
+          attribute: props.identity,
+        })"
       >
-        <template #content>
-          Identity can't be deleted because the <br>contributor is active on
-          {{ platform(props.identity.platform)?.name || props.identity.platform }}
-        </template>
-        <lf-dropdown-item
-          type="danger"
-          :disabled="editingDisabled"
-          class="w-full"
-          @click="removeIdentity"
+        <lf-icon name="feedback-line" class="!text-red-500" />Report issue
+      </lf-dropdown-item>
+
+      <template
+        v-if="hasPermission(LfPermission.memberEdit)"
+      >
+        <lf-dropdown-separator />
+        <lf-tooltip
+          placement="top"
+          :disabled="!editingDisabled"
+          class="!w-full"
         >
-          <lf-icon name="delete-bin-6-line" />Delete identity
-        </lf-dropdown-item>
-      </lf-tooltip>
+          <template #content>
+            Identity can't be deleted because the <br>contributor is active on
+            {{ platform(props.identity.platform)?.name || props.identity.platform }}
+          </template>
+          <lf-dropdown-item
+            type="danger"
+            :disabled="editingDisabled"
+            class="w-full"
+            @click="removeIdentity"
+          >
+            <lf-icon name="delete-bin-6-line" />Delete identity
+          </lf-dropdown-item>
+        </lf-tooltip>
+      </template>
     </lf-dropdown>
   </article>
 </template>
@@ -127,6 +145,8 @@ import usePermissions from '@/shared/modules/permissions/helpers/usePermissions'
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import { computed, ref } from 'vue';
 import LfVerifiedIdentityBadge from '@/shared/modules/identities/components/verified-identity-badge.vue';
+import { ReportDataType } from '@/shared/modules/report-issue/constants/report-data-type.enum';
+import { useSharedStore } from '@/shared/pinia/shared.store';
 
 const props = defineProps<{
   identity: ContributorIdentity,
@@ -136,6 +156,7 @@ const props = defineProps<{
 const emit = defineEmits<{(e: 'edit'): void, (e: 'unmerge'): void }>();
 
 const { hasPermission } = usePermissions();
+const { setReportDataModal } = useSharedStore();
 
 const { deleteContributorIdentity } = useContributorStore();
 

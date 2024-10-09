@@ -198,9 +198,6 @@ class MemberRepository {
 
     await MemberRepository.includeMemberToSegments(record.id, options)
 
-    await record.setActivities(data.activities || [], {
-      transaction,
-    })
     await record.setTags(data.tags || [], {
       transaction,
     })
@@ -989,6 +986,7 @@ class MemberRepository {
 
         if (
           manualChange &&
+          data.attributes &&
           (data.attributes[MemberAttributeName.IS_BOT] ||
             data.attributes[MemberAttributeName.IS_TEAM_MEMBER])
         ) {
@@ -1006,12 +1004,6 @@ class MemberRepository {
       }),
       !manualChange, // no need to track for audit if it's not a manual change
     )
-
-    if (data.activities) {
-      await record.setActivities(data.activities || [], {
-        transaction,
-      })
-    }
 
     if (data.tags) {
       await record.setTags(data.tags || [], {
@@ -1440,17 +1432,7 @@ class MemberRepository {
     const seq = SequelizeRepository.getSequelize(options)
 
     const query = `
-      select "memberId",
-             platform,
-             value,
-             type,
-             verified,
-             "sourceId",
-             "tenantId",
-             "integrationId",
-             "createdAt",
-             "updatedAt"
-      from "memberIdentities"
+      select * from "memberIdentities"
       where "memberId" in (:memberIds)
       order by "createdAt" asc;
     `
@@ -1463,15 +1445,17 @@ class MemberRepository {
       transaction,
     })
 
-    for (const id of memberIds) {
-      results.set(id, [])
+    for (const mId of memberIds) {
+      results.set(mId, [])
     }
 
     for (const res of data as any[]) {
-      const { memberId, platform, value, type, sourceId, integrationId, createdAt, verified } = res
+      const { id, memberId, platform, value, type, sourceId, integrationId, createdAt, verified } =
+        res
       const identities = results.get(memberId)
 
       identities.push({
+        id,
         platform,
         value,
         type,
@@ -1521,7 +1505,10 @@ class MemberRepository {
     if (memberResponse.count === 0) {
       // try it again without segment information (no aggregates)
       // for members without activities
-      memberResponse = await MemberRepository.findAndCountAll(
+      memberResponse = await queryMembersAdvanced(
+        optionsQx(options),
+        options.redis,
+        options.currentTenant.id,
         {
           filter: { id: { eq: id } },
           limit: 1,
@@ -1536,7 +1523,6 @@ class MemberRepository {
             ...include,
           },
         },
-        options,
       )
 
       if (memberResponse.count === 0) {
@@ -1953,7 +1939,12 @@ class MemberRepository {
         }
       }
 
-      const lastActivities = await getLastActivitiesForMembers(options.qdb, memberIds)
+      const lastActivities = await getLastActivitiesForMembers(
+        options.qdb,
+        memberIds,
+        options.currentTenant.id,
+        segments,
+      )
 
       for (const row of translatedRows) {
         const r = row as any
@@ -2342,34 +2333,15 @@ class MemberRepository {
     })
 
     if (memberIds.length > 0) {
-      const seq = SequelizeRepository.getSequelize(options)
-      const lastActivities = await seq.query(
-        `
-              SELECT
-                  a.*
-              FROM (
-                  VALUES
-                    ${memberIds.map((id) => `('${id}')`).join(',')}
-              ) m ("memberId")
-              JOIN activities a ON (a.id = (
-                  SELECT id
-                  FROM mv_activities_cube
-                  WHERE "memberId" = m."memberId"::uuid
-                  ORDER BY timestamp DESC
-                  LIMIT 1
-              ))
-              WHERE a."tenantId" = :tenantId
-          `,
-        {
-          replacements: {
-            tenantId: options.currentTenant.id,
-          },
-          type: QueryTypes.SELECT,
-        },
+      const lastActivities = await getLastActivitiesForMembers(
+        options.qdb,
+        memberIds,
+        options.currentTenant.id,
+        [segmentId],
       )
 
       rows.forEach((r) => {
-        r.lastActivity = lastActivities.find((a) => (a as any).memberId === r.id)
+        r.lastActivity = lastActivities.find((a) => a.memberId === r.id)
         if (r.lastActivity) {
           r.lastActivity.display = ActivityDisplayService.getDisplayOptions(
             r.lastActivity,

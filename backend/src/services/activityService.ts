@@ -753,7 +753,7 @@ export default class ActivityService extends LoggerBase {
       DEFAULT_COLUMNS_TO_SELECT,
     )
 
-    const parentIds: string[] = []
+    // const parentIds: string[] = []
     const memberIds: string[] = []
     const organizationIds: string[] = []
     for (const row of page.rows) {
@@ -762,9 +762,9 @@ export default class ActivityService extends LoggerBase {
         SegmentRepository.getActivityTypes(this.options),
       )
 
-      if (row.parentId && !parentIds.includes(row.parentId)) {
-        parentIds.push(row.parentId)
-      }
+      // if (row.parentId && !parentIds.includes(row.parentId)) {
+      //   parentIds.push(row.parentId)
+      // }
 
       if (row.memberId && !memberIds.includes(row.memberId)) {
         memberIds.push(row.memberId)
@@ -801,22 +801,22 @@ export default class ActivityService extends LoggerBase {
         }),
       )
     }
-    if (parentIds.length > 0) {
-      promises.push(
-        queryActivities(this.options.qdb, {
-          filter: {
-            and: [{ id: { in: parentIds } }],
-          },
-          tenantId,
-          segmentIds,
-          noLimit: true,
-        }).then((activities) => {
-          for (const row of page.rows.filter((r) => r.parentId)) {
-            ;(row as any).parent = singleOrDefault(activities.rows, (a) => a.id === row.parentId)
-          }
-        }),
-      )
-    }
+    // if (parentIds.length > 0) {
+    //   promises.push(
+    //     queryActivities(this.options.qdb, {
+    //       filter: {
+    //         and: [{ id: { in: parentIds } }],
+    //       },
+    //       tenantId,
+    //       segmentIds,
+    //       noLimit: true,
+    //     }).then((activities) => {
+    //       for (const row of page.rows.filter((r) => r.parentId)) {
+    //         ;(row as any).parent = singleOrDefault(activities.rows, (a) => a.id === row.parentId)
+    //       }
+    //     }),
+    //   )
+    // }
     if (memberIds.length > 0) {
       promises.push(
         queryMembersAdvanced(

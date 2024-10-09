@@ -1,16 +1,18 @@
 <template>
-  <app-widget-area
-    v-if="props.data"
-    class="chart"
-    :datasets="props.datasets"
-    :chart-data="props.data"
-    :chart-options="
-      chartOptions('area', dashboardChartOptions)
-    "
-    granularity="day"
-  />
-  <div v-else class="text-center py-11 text-xs text-gray-400 italic">
-    No data
+  <div c>
+    <app-widget-area
+      v-if="props.data"
+      class="chart"
+      :datasets="props.datasets"
+      :chart-data="props.data"
+      :chart-options="
+        chartOptions('area', dashboardChartOptions)
+      "
+      granularity="day"
+    />
+    <div v-else class="text-center py-11 text-xs text-gray-400 italic">
+      No data
+    </div>
   </div>
 </template>
 

@@ -3,7 +3,6 @@
 import {
   Error400,
   isDomainExcluded,
-  singleOrDefault,
   getProperDisplayName,
   getEarliestValidDate,
 } from '@crowd/common'
@@ -30,18 +29,14 @@ import { randomUUID } from 'crypto'
 import lodash from 'lodash'
 import moment from 'moment-timezone'
 import validator from 'validator'
-import {
-  captureApiChange,
-  memberEditIdentitiesAction,
-  memberMergeAction,
-  memberUnmergeAction,
-} from '@crowd/audit-logs'
+import { captureApiChange, memberMergeAction, memberUnmergeAction } from '@crowd/audit-logs'
 import {
   addMemberNotes,
   addMemberTags,
   addMemberTasks,
   fetchMemberIdentities,
   findMemberById,
+  findMemberIdentityById,
   findMemberNotes,
   findMemberTags,
   findMemberTasks,
@@ -81,7 +76,6 @@ import MemberOrganizationService from './memberOrganizationService'
 import { MergeActionsRepository } from '@/database/repositories/mergeActionsRepository'
 import MemberOrganizationRepository from '@/database/repositories/memberOrganizationRepository'
 import OrganizationRepository from '@/database/repositories/organizationRepository'
-import MemberIdentityRepository from '@/database/repositories/member/memberIdentityRepository'
 
 export default class MemberService extends LoggerBase {
   options: IServiceOptions
@@ -501,7 +495,6 @@ export default class MemberService extends LoggerBase {
           {
             id: record.id,
             createdAt: record.createdAt,
-            sample: record.attributes.sample?.crowd,
             identities: record.identities,
           },
           this.options,
@@ -962,6 +955,10 @@ export default class MemberService extends LoggerBase {
         MemberField.MANUALLY_CHANGED_FIELDS,
       ])
 
+      this.options.log.info(
+        '[0] Getting member information (identities, tags, notes, tasks, affiliations)... ',
+      )
+
       const [memberOrganizations, identities, tags, notes, tasks, affiliations] = await Promise.all(
         [
           MemberOrganizationRepository.findMemberRoles(memberId, this.options),
@@ -973,6 +970,8 @@ export default class MemberService extends LoggerBase {
         ],
       )
 
+      this.options.log.info('[0] Done!')
+
       const member = {
         ...memberById,
         memberOrganizations,
@@ -983,10 +982,12 @@ export default class MemberService extends LoggerBase {
         tasks: tasks.map((t) => ({ id: t.taskId })),
       }
 
-      const identity = await MemberIdentityRepository.findById(memberId, identityId, this.options)
+      const identity = await findMemberIdentityById(qx, memberId, identityId)
       if (!identity) {
         throw new Error(`Member doesn't have the identity sent to be unmerged!`)
       }
+
+      this.options.log.info('[1] Finding merge backup...')
 
       const mergeAction = await MergeActionsRepository.findMergeBackup(
         memberId,
@@ -994,6 +995,8 @@ export default class MemberService extends LoggerBase {
         identity,
         this.options,
       )
+
+      this.options.log.info('[1] Done!')
 
       if (mergeAction) {
         // mergeAction is found, unmerge preview will be generated
@@ -1673,129 +1676,9 @@ export default class MemberService extends LoggerBase {
         )
       }
 
-      const record = await captureApiChange(
-        repoOptions,
-        memberEditIdentitiesAction(id, async (captureOldState, captureNewState) => {
-          if (data.identities) {
-            const incomingIdentities = data.identities as IMemberIdentity[]
-            const existingIdentities = (
-              await MemberRepository.getIdentities([id], repoOptions)
-            ).get(id)
-
-            captureOldState(lodash.sortBy(existingIdentities, [(i) => i.platform, (i) => i.type]))
-            captureNewState(lodash.sortBy(incomingIdentities, [(i) => i.platform, (i) => i.type]))
-
-            const toCreate: IMemberIdentity[] = []
-            const toUpdate: IMemberIdentity[] = []
-            const toDelete: IMemberIdentity[] = []
-
-            for (const inc of incomingIdentities) {
-              const existing = singleOrDefault(
-                existingIdentities,
-                (i) => i.platform === inc.platform && i.type === inc.type && i.value === inc.value,
-              )
-
-              if (existing) {
-                if (existing.verified !== inc.verified) {
-                  toUpdate.push(inc)
-                }
-              } else {
-                toCreate.push(inc)
-              }
-            }
-
-            for (const i of existingIdentities) {
-              const inc = singleOrDefault(
-                incomingIdentities,
-                (inc) =>
-                  i.platform === inc.platform && i.type === inc.type && i.value === inc.value,
-              )
-
-              if (!inc) {
-                toDelete.push(i)
-              }
-            }
-
-            data.identitiesToCreate = toCreate
-            data.identitiesToUpdate = toUpdate
-            data.identitiesToDelete = toDelete
-          } else if (data.username) {
-            // need to filter out existing identities from the payload
-            const existingIdentities = (await MemberRepository.getIdentities([id], repoOptions))
-              .get(id)
-              .filter((i) => i.type === MemberIdentityType.USERNAME)
-
-            captureOldState(
-              existingIdentities.reduce((acc, i) => {
-                if (!acc[i.platform]) {
-                  acc[i.platform] = []
-                }
-                acc[i.platform].push(i.value)
-                acc[i.platform] = lodash.uniq(acc[i.platform])
-                acc[i.platform] = lodash.sortBy(acc[i.platform])
-                return acc
-              }, {}),
-            )
-
-            data.username = mapUsernameToIdentities(data.username, data.platform)
-
-            for (const identity of existingIdentities) {
-              if (identity.platform in data.username) {
-                // new username has this platform - we need to check if it also has the username
-                let found = false
-                for (const newIdentity of data.username[identity.platform]) {
-                  if (newIdentity.username === identity.value) {
-                    found = true
-                    break
-                  }
-                }
-
-                if (found) {
-                  // remove from data.username
-                  data.username[identity.platform] = data.username[identity.platform].filter(
-                    (i) => i.username !== identity.value,
-                  )
-                } else {
-                  data.username[identity.platform].push({ ...identity, delete: true })
-                }
-              } else {
-                // new username doesn't have this platform - we can delete the existing identity
-                data.username[identity.platform] = [{ ...identity, delete: true }]
-              }
-            }
-
-            captureNewState(
-              Object.entries(data.username).reduce((acc, value: any) => {
-                const [platform, usernames] = value
-                if (!acc[platform]) {
-                  acc[platform] = []
-                }
-
-                if (Array.isArray(usernames)) {
-                  for (const identity of usernames) {
-                    if (!identity.delete) {
-                      acc[platform].push(identity.username)
-                    }
-                  }
-                } else if (!usernames.delete) {
-                  acc[platform].push(usernames.username)
-                }
-
-                acc[platform] = lodash.uniq(acc[platform])
-                acc[platform] = lodash.sortBy(acc[platform])
-                return acc
-              }, {}),
-            )
-          }
-
-          const record = await MemberRepository.update(id, data, repoOptions, {
-            manualChange,
-          })
-
-          return record
-        }),
-        !data.username,
-      )
+      const record = await MemberRepository.update(id, data, repoOptions, {
+        manualChange,
+      })
 
       await SequelizeRepository.commitTransaction(transaction)
       await this.options.temporal.workflow.start('memberUpdate', {
