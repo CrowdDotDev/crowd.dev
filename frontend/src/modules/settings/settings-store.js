@@ -2,7 +2,6 @@ import { SettingsService } from '@/modules/settings/settings-service';
 import Errors from '@/shared/error/errors';
 import { router } from '@/router';
 import Message from '@/shared/message/message';
-import { i18n } from '@/i18n';
 import { AuthService } from '@/modules/auth/services/auth.service';
 
 export default {
@@ -53,7 +52,6 @@ export default {
     async doInit({ commit, rootGetters }) {
       if (
         !AuthService.getToken()
-        || !AuthService.getTenantId()
       ) {
         return;
       }
@@ -79,9 +77,7 @@ export default {
 
         const secondsForReload = 3;
 
-        Message.success(
-          i18n('settings.save.success', secondsForReload),
-        );
+        Message.success(`Settings successfully saved. The page will reload in ${secondsForReload} seconds for changes to take effect.`);
 
         /**
          * Theme change happens at boot time.

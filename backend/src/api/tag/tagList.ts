@@ -3,12 +3,11 @@ import TagService from '../../services/tagService'
 import PermissionChecker from '../../services/user/permissionChecker'
 
 /**
- * GET /tenant/{tenantId}/tag
+ * GET /tag
  * @summary List tags
  * @tag Tags
  * @security Bearer
  * @description Get a list of tags with filtering, sorting and offsetting.
- * @pathParam {string} tenantId - Your workspace/tenant ID
  * @queryParam {string} [filter[name]] - Filter by the name of the tag.
  * @queryParam {string} [filter[createdAtRange]] - Created at lower bound. If you want a range, send this parameter twice with [min] and [max]. If you send it once it will be interpreted as a lower bound.
  * @queryParam {TagSort} [orderBy] - Sort the results. Default timestamp_DESC.

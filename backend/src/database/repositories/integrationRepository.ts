@@ -16,12 +16,8 @@ import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
 
 import { IRepositoryOptions } from './IRepositoryOptions'
 import AuditLogRepository from './auditLogRepository'
-import AutomationExecutionRepository from './automationExecutionRepository'
-import AutomationRepository from './automationRepository'
 import QueryParser from './filters/queryParser'
 import { QueryOutput } from './filters/queryTypes'
-import MemberSyncRemoteRepository from './memberSyncRemoteRepository'
-import OrganizationSyncRemoteRepository from './organizationSyncRemoteRepository'
 import SequelizeRepository from './sequelizeRepository'
 
 const { Op } = Sequelize
@@ -171,30 +167,6 @@ class IntegrationRepository {
         transaction,
       },
     )
-
-    // delete syncRemote rows coming from integration
-    await new MemberSyncRemoteRepository({ ...options, transaction }).destroyAllIntegration([
-      record.id,
-    ])
-    await new OrganizationSyncRemoteRepository({ ...options, transaction }).destroyAllIntegration([
-      record.id,
-    ])
-
-    // destroy existing automations for outgoing integrations
-    const syncAutomationIds = (
-      await new AutomationRepository({ ...options, transaction }).findSyncAutomations(
-        currentTenant.id,
-        record.platform,
-      )
-    ).map((a) => a.id)
-
-    if (syncAutomationIds.length > 0) {
-      await new AutomationExecutionRepository({ ...options, transaction }).destroyAllAutomation(
-        syncAutomationIds,
-      )
-    }
-
-    await new AutomationRepository({ ...options, transaction }).destroyAll(syncAutomationIds)
 
     await this._createAuditLog(AuditLogRepository.DELETE, record, record, options)
   }
@@ -414,10 +386,10 @@ class IntegrationRepository {
    * @returns {Promise<Object>} The result containing the rows of integrations and metadata about the query.
    */
   static async findGlobalIntegrations(
-    tenantId: string,
     { platform = null, status = ['done'], query = '', limit = 20, offset = 0 },
     options: IRepositoryOptions,
   ) {
+    const tenantId = options.currentTenant.id
     const qx = SequelizeRepository.getQueryExecutor(options)
     if (status.includes('not-connected')) {
       const rows = await fetchGlobalNotConnectedIntegrations(
@@ -441,17 +413,13 @@ class IntegrationRepository {
    * Retrieves the count of global integrations statuses for a specified tenant and platform.
    * This method aggregates the count of different integration statuses including a 'not-connected' status.
    *
-   * @param {string} tenantId - The unique identifier for the tenant.
    * @param {Object} param1 - The optional parameters.
    * @param {string|null} [param1.platform=null] - The platform to filter the integrations. Default is null.
    * @param {IRepositoryOptions} options - The options for the repository operations.
    * @return {Promise<Array<Object>>} A promise that resolves to an array of objects containing the statuses and their counts.
    */
-  static async findGlobalIntegrationsStatusCount(
-    tenantId: string,
-    { platform = null },
-    options: IRepositoryOptions,
-  ) {
+  static async findGlobalIntegrationsStatusCount({ platform = null }, options: IRepositoryOptions) {
+    const tenantId = options.currentTenant.id
     const qx = SequelizeRepository.getQueryExecutor(options)
     const [result] = await fetchGlobalNotConnectedIntegrationsCount(qx, tenantId, platform, '')
     const rows = await fetchGlobalIntegrationsStatusCount(qx, tenantId, platform)

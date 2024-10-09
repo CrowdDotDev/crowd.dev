@@ -1,3 +1,5 @@
+import { getDefaultTenantId } from '@crowd/common'
+
 import AuthService from '../../services/auth/authService'
 
 export default async (req, res) => {
@@ -8,7 +10,7 @@ export default async (req, res) => {
     req.body.email,
     req.body.password,
     req.body.invitationToken,
-    req.body.tenantId,
+    getDefaultTenantId(),
     req.body.firstName,
     req.body.lastName,
     req.body.acceptedTermsAndPrivacy,

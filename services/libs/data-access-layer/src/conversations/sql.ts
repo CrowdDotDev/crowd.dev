@@ -1,7 +1,7 @@
 import { convert as convertHtmlToText } from 'html-to-text'
 import merge from 'lodash.merge'
 
-import { RawQueryParser, generateUUIDv4, getEnv } from '@crowd/common'
+import { RawQueryParser, generateUUIDv4, getDefaultTenantId, getEnv } from '@crowd/common'
 import { DbConnOrTx } from '@crowd/database'
 import { ActivityDisplayService } from '@crowd/integrations'
 import { ActivityDisplayVariant, PageData, PlatformType } from '@crowd/types'
@@ -334,7 +334,6 @@ export async function setConversationToActivity(
 export async function doesConversationWithSlugExists(
   conn: DbConnOrTx,
   slug: string,
-  tenantId: string,
   segmentId: string,
 ): Promise<boolean> {
   const results = await conn.any(
@@ -342,13 +341,11 @@ export async function doesConversationWithSlugExists(
     select id
     from conversations
     where
-      "tenantId" = $(tenantId) and
       "segmentId" = $(segmentId) and
       slug = $(slug) and
       "deletedAt" is null
   `,
     {
-      tenantId,
       segmentId,
       slug,
     },
@@ -377,6 +374,11 @@ export async function queryConversations(
   qdbConn: DbConnOrTx,
   arg: IQueryConversationsParameters,
 ): Promise<PageData<IQueryConversationResult>> {
+  if (arg.tenantId === undefined) {
+    // fall back to default tenant
+    arg.tenantId = getDefaultTenantId()
+  }
+
   if (arg.tenantId === undefined || arg.segmentIds === undefined || arg.segmentIds.length === 0) {
     throw new Error('tenantId and segmentIds are required to query conversations!')
   }

@@ -2,7 +2,7 @@
   <div
     v-for="group in props.groups"
     :key="group.label"
-    class="c-timeline"
+    :class="['c-timeline', group.items.length > 1 ? '' : 'c-single-item']"
     @mouseover="emit('onGroupHover', group)"
     @mouseleave="emit('onGroupHover', null)"
   >

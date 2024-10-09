@@ -3,8 +3,7 @@
     class="flex items-center flex-grow"
   >
     <div @mouseover.stop @mouseout.stop>
-      <lf-contributor-details-header-profile-photo v-if="!isMasked(props.contributor)" :contributor="props.contributor" />
-      <div v-else class="h-12 w-12 rounded-full bg-gray-200" />
+      <lf-contributor-details-header-profile-photo :contributor="props.contributor" />
     </div>
 
     <div class="pl-3 w-full">
@@ -22,10 +21,10 @@
         <div @mouseover.stop @mouseout.stop>
           <lf-contributor-work-position :contributor="props.contributor" />
         </div>
-        <p v-if="!isMasked(props.contributor) && hasHeaderIdentities && (jobTitle || organization)" class="text-small text-gray-400">
+        <p v-if="hasHeaderIdentities && (jobTitle || organization)" class="text-small text-gray-400">
           •
         </p>
-        <div v-if="!isMasked(props.contributor)" @mouseover.stop @mouseout.stop>
+        <div @mouseover.stop @mouseout.stop>
           <lf-contributor-details-header-profiles
             :contributor="props.contributor"
           />
@@ -53,7 +52,7 @@ const props = defineProps<{
 }>();
 
 const {
-  isBot, isTeamMember, activeOrganization, isMasked,
+  isBot, isTeamMember, activeOrganization,
 } = useContributorHelpers();
 
 const hasHeaderIdentities = computed(

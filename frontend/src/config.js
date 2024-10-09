@@ -31,10 +31,6 @@ const defaultConfig = {
   env: import.meta.env.VUE_APP_ENV,
   hotjarKey: import.meta.env.VUE_APP_HOTJAR_KEY,
   nangoUrl: import.meta.env.VUE_APP_NANGO_URL,
-  unleash: {
-    apiKey: import.meta.env.VUE_APP_UNLEASH_API_KEY,
-    url: import.meta.env.VUE_APP_UNLEASH_URL,
-  },
   formbricks: {
     url: import.meta.env.VUE_APP_FORMBRICKS_URL,
     environmentId: import.meta.env.VUE_APP_FORMBRICKS_ENVIRONMENT_ID,
@@ -50,10 +46,6 @@ const defaultConfig = {
         .VUE_APP_STRIPE_EAGLE_EYE_PLAN_PAYMENT_LINK || '',
     customerPortalLink:
       import.meta.env.VUE_APP_STRIPE_CUSTOMER_PORTAL_LINK || '',
-  },
-  sampleTenant: {
-    id: import.meta.env.VUE_APP_SAMPLE_TENANT_ID,
-    token: import.meta.env.VUE_APP_SAMPLE_TENANT_TOKEN,
   },
   auth0: {
     domain: import.meta.env.VUE_APP_AUTH0_DOMAIN,
@@ -101,10 +93,6 @@ const composedConfig = {
   nangoUrl: 'CROWD_VUE_APP_NANGO_URL',
   typeformId: 'CROWD_VUE_APP_TYPEFORM_ID',
   typeformTitle: 'CROWD_VUE_APP_TYPEFORM_TITLE',
-  unleash: {
-    apiKey: 'CROWD_VUE_APP_UNLEASH_API_KEY',
-    url: 'CROWD_VUE_APP_UNLEASH_URL',
-  },
   formbricks: {
     url: 'CROWD_VUE_APP_FORMBRICKS_URL',
     environmentId: 'CROWD_VUE_APP_FORMBRICKS_ENVIRONMENT_ID',
@@ -119,10 +107,6 @@ const composedConfig = {
       || '',
     customerPortalLink:
       'CROWD_VUE_APP_STRIPE_CUSTOMER_PORTAL_LINK' || '',
-  },
-  sampleTenant: {
-    id: 'CROWD_VUE_APP_SAMPLE_TENANT_ID',
-    token: 'CROWD_VUE_APP_SAMPLE_TENANT_TOKEN',
   },
   auth0: {
     domain: 'CROWD_VUE_APP_AUTH0_DOMAIN',

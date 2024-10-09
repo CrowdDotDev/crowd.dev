@@ -2,7 +2,7 @@
 import merge from 'lodash.merge'
 import moment from 'moment'
 
-import { RawQueryParser, getEnv } from '@crowd/common'
+import { RawQueryParser, getDefaultTenantId, getEnv } from '@crowd/common'
 import { DbConnOrTx } from '@crowd/database'
 import { ActivityDisplayService, GithubActivityType } from '@crowd/integrations'
 import { getServiceChildLogger } from '@crowd/logging'
@@ -394,11 +394,16 @@ export async function queryActivities(
   arg: IQueryActivitiesParameters,
   columns: ActivityColumn[] = DEFAULT_COLUMNS_TO_SELECT,
 ): Promise<PageData<IQueryActivityResult | any>> {
+  if (arg.tenantId === undefined) {
+    // fall back to default tenant
+    arg.tenantId = getDefaultTenantId()
+  }
+
   if (arg.tenantId === undefined || arg.segmentIds === undefined || arg.segmentIds.length === 0) {
     throw new Error('tenantId and segmentIds are required to query activities!')
   }
 
-  // set defaults
+  // set defaultstenant
   arg.filter = arg.filter || {}
   arg.orderBy =
     arg.orderBy && arg.orderBy.length > 0 ? arg.orderBy.filter((o) => o.trim().length > 0) : []
@@ -555,7 +560,7 @@ export async function queryActivities(
 
     query += ';'
 
-    logger.info('QuestDB activity query', query)
+    logger.debug('QuestDB activity query', query)
 
     const [results, countResults] = await Promise.all([
       qdbConn.any(query, params),
@@ -1001,8 +1006,7 @@ export async function activitiesTimeseries(
   let query = `
     SELECT COUNT_DISTINCT(id) AS count, "timestamp" AS date
     FROM activities
-    WHERE "tenantId" = $(tenantId)
-    AND "deletedAt" IS NULL
+    WHERE "deletedAt" IS NULL
   `
 
   if (arg.segmentIds) {
@@ -1023,7 +1027,6 @@ export async function activitiesTimeseries(
   `
 
   const rows: ITimeseriesDatapoint[] = await qdbConn.query(query, {
-    tenantId: arg.tenantId,
     segmentIds: arg.segmentIds,
     platform: arg.platform,
     after: arg.after,
@@ -1044,8 +1047,7 @@ export async function activitiesBySentiment(
   let query = `
     SELECT COUNT_DISTINCT(id) AS count, sentimentLabel
     FROM activities
-    WHERE "tenantId" = $(tenantId)
-    AND "deletedAt" IS NULL
+    WHERE "deletedAt" IS NULL
     AND "sentimentLabel" IS NOT NULL
   `
 
@@ -1064,7 +1066,6 @@ export async function activitiesBySentiment(
   query += ` GROUP BY sentimentLabel;`
 
   const rows: IActivityBySentimentMoodResult[] = await qdbConn.query(query, {
-    tenantId: arg.tenantId,
     segmentIds: arg.segmentIds,
     platform: arg.platform,
     after: arg.after,
@@ -1085,8 +1086,7 @@ export async function activitiesByTypeAndPlatform(
   let query = `
     SELECT COUNT_DISTINCT(id) AS count, platform, type
     FROM activities
-    WHERE "tenantId" = $(tenantId)
-    AND "deletedAt" IS NULL
+    WHERE "deletedAt" IS NULL
   `
 
   if (arg.segmentIds) {
@@ -1104,7 +1104,6 @@ export async function activitiesByTypeAndPlatform(
   query += ` GROUP BY platform, type ORDER BY count DESC;`
 
   const rows: IActivityByTypeAndPlatformResult[] = await qdbConn.query(query, {
-    tenantId: arg.tenantId,
     segmentIds: arg.segmentIds,
     platform: arg.platform,
     after: arg.after,

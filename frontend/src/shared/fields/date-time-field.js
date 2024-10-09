@@ -1,7 +1,6 @@
 import * as yup from 'yup';
 import moment from 'moment';
 import GenericField from '@/shared/fields/generic-field';
-import { i18n } from '@/i18n';
 
 export default class DateTimeField extends GenericField {
   constructor(name, label, config = {}) {
@@ -48,10 +47,7 @@ export default class DateTimeField extends GenericField {
     if (this.required) {
       output.push({
         required: true,
-        message: i18n('validation.mixed.required').replace(
-          '{path}',
-          this.label,
-        ),
+        message: 'This field is required',
       });
     }
 
@@ -77,7 +73,7 @@ export default class DateTimeField extends GenericField {
       .label(this.label)
       .test(
         'is-date',
-        i18n('validation.mixed.default'),
+        '{path} is invalid',
         (value) => {
           if (!value) {
             return true;

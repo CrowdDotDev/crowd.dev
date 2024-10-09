@@ -1,11 +1,10 @@
 import LogRocket from 'logrocket';
 import config from '@/config';
-import { FEATURE_FLAGS, FeatureFlag } from '@/utils/featureFlag';
 import { User } from '@/modules/user/types/User';
 
 const APP_ID = 'nm6fil/crowddev';
 
-const isLogRocketEnabled: () => void = () => config.env === 'production' && FeatureFlag.unleash?.isEnabled(FEATURE_FLAGS.logRocket);
+const isLogRocketEnabled: () => void = () => config.env === 'production';
 
 const init = () => {
   if (isLogRocketEnabled()) {

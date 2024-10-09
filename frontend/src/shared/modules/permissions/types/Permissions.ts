@@ -79,20 +79,6 @@ export enum LfPermission {
   eagleEyeEdit = 'eagleEyeEdit',
   eagleEyeActionCreate = 'eagleEyeActionCreate',
 
-  // Automations
-  automationImport = 'automationImport',
-  automationCreate = 'automationCreate',
-  automationEdit = 'automationEdit',
-  automationDestroy = 'automationDestroy',
-  automationRead = 'automationRead',
-  automationCustomize = 'automationCustomize',
-  automationAutocomplete = 'automationAutocomplete',
-
-  // Notes
-  noteCreate = 'noteCreate',
-  noteEdit = 'noteEdit',
-  noteDestroy = 'noteDestroy',
-
   // Project groups
   projectGroupCreate = 'projectGroupCreate',
   projectGroupEdit = 'projectGroupEdit',

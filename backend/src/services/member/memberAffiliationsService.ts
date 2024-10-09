@@ -50,10 +50,10 @@ export default class MemberAffiliationsService extends LoggerBase {
 
   // Member multiple identity creation
   async upsertMultiple(
-    tenantId: string,
     memberId: string,
     data: Partial<IMemberAffiliation>[],
   ): Promise<IMemberAffiliation[]> {
+    const tenantId = SequelizeRepository.getCurrentTenant(this.options).id
     return MemberAffiliationsRepository.upsertMultiple(tenantId, memberId, data, this.options)
   }
 }

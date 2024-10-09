@@ -4,12 +4,11 @@ import ActivityService from '../../services/activityService'
 import PermissionChecker from '../../services/user/permissionChecker'
 
 /**
- * POST /tenant/{tenantId}/activity
+ * POST /activity
  * @summary Create or update an activity
  * @tag Activities
  * @security Bearer
  * @description Create or update an activity. Existence is checked by sourceId and tenantId
- * @pathParam {string} tenantId - Your workspace/tenant ID
  * @bodyContent {ActivityUpsertInput} application/json
  * @response 200 - Ok
  * @responseContent {Activity} 200.application/json

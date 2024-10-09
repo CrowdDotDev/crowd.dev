@@ -18,9 +18,7 @@
     "aws": {}
   },
   "clearbit": {},
-  "netlify": {},
   "sendgrid": {},
-  "plans": {},
   "twitter": {
     "maxRetrospectInSeconds": 7380,
     "limitResetFrequencyDays": 30
@@ -40,28 +38,19 @@
   "organizationEnrichment": {},
   "eagleEye": {},
   "githubToken": {},
-  "unleash": {
-    "db": {}
-  },
   "slackAlerting": {
     "url": ""
-  },
-  "sampleData": {
-    "tenantId": ""
-  },
-  "weeklyEmails": {
-    "enabled": "true"
   },
   "auth0": {},
   "sso": {},
   "crowdAnalytics": {
     "isEnabled": "false"
   },
-  "temporal": {
-    "automationsTaskQueue": "automations"
-  },
+  "temporal": {},
   "searchSyncApi": {},
   "encryption": {},
   "openStatusApi": {},
-  "gitlab": {}
+  "gitlab": {},
+  "jiraIssueReporter": {},
+  "snowflake": {}
 }

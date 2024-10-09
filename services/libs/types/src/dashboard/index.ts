@@ -10,7 +10,6 @@ export interface IActivityByTypeAndPlatformResult {
 }
 
 export interface IQueryTimeseriesParams {
-  tenantId: string
   segmentIds?: string[]
   startDate: Date
   endDate: Date

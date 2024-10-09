@@ -1,5 +1,4 @@
 import moment from 'moment';
-import { i18n, init as i18nInit } from '@/i18n';
 import { GenericModel } from '@/shared/model/generic-model';
 import DateTimeField from '@/shared/fields/date-time-field';
 import StringField from '@/shared/fields/string-field';
@@ -10,18 +9,12 @@ import StringArrayField from '@/shared/fields/string-array-field';
 import GenericField from '@/shared/fields/generic-field';
 import MemberEngagementLevelField from './member-engagement-level-field';
 
-function label(name) {
-  return i18n(`entities.member.fields.${name}`);
-}
-
-i18nInit();
-
 const fields = {
-  tags: TagField.relationToMany('tags', label('tags'), {
+  tags: TagField.relationToMany('tags', 'Tags', {
     filterable: true,
   }),
-  jobTitle: new StringField('jobTitle', label('jobTitle')),
-  username: new JsonField('username', label('username'), {
+  jobTitle: new StringField('jobTitle', 'Job title'),
+  username: new JsonField('username', 'Username', {
     nonEmpty: true,
     nonEmptyValues: true,
     requiredUnless: 'email',
@@ -29,11 +22,11 @@ const fields = {
   }),
   attributes: new JsonField(
     'attributes',
-    label('attributes'),
+    'attributes',
   ),
   identities: new JsonField(
     'identities',
-    label('identities'),
+    'Identities',
   ),
   name: new StringField(
     'name',
@@ -43,7 +36,7 @@ const fields = {
     'displayName',
     'Full name',
   ),
-  info: new JsonField('info', label('info')),
+  info: new JsonField('info', 'Custom Attributes'),
   emails: new StringArrayField('emails', 'Emails'),
   organizations: OrganizationField.relationToMany(
     'organizations',
@@ -58,7 +51,7 @@ const fields = {
       return moment(value).format('YYYY-MM-DD');
     },
   }),
-  bio: new StringField('bio', label('bio')),
+  bio: new StringField('bio', 'Bio'),
   location: new StringField(
     'location',
     'Location',

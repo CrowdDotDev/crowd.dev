@@ -53,7 +53,6 @@ import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch
 import {
   ALL_PLATFORM_TYPES,
   ActivityDisplayVariant,
-  FeatureFlag,
   IMemberIdentity,
   IMemberOrganization,
   IMemberUsername,
@@ -68,14 +67,12 @@ import {
   SegmentProjectGroupNestedData,
   SegmentProjectNestedData,
   SegmentType,
-  SyncStatus,
 } from '@crowd/types'
 
 import { KUBE_MODE, SERVICE } from '@/conf'
 import { ServiceType } from '@/conf/configTypes'
 import { IFetchMemberMergeSuggestionArgs, SimilarityScoreRange } from '@/types/mergeSuggestionTypes'
 
-import isFeatureEnabled from '../../feature-flags/isFeatureEnabled'
 import { PlatformIdentities } from '../../serverless/integrations/types/messageTypes'
 import {
   MemberSegmentAffiliation,
@@ -87,7 +84,6 @@ import { IRepositoryOptions } from './IRepositoryOptions'
 import AuditLogRepository from './auditLogRepository'
 import MemberAttributeSettingsRepository from './memberAttributeSettingsRepository'
 import MemberSegmentAffiliationRepository from './memberSegmentAffiliationRepository'
-import MemberSyncRemoteRepository from './memberSyncRemoteRepository'
 import OrganizationRepository from './organizationRepository'
 import SegmentRepository from './segmentRepository'
 import SequelizeRepository from './sequelizeRepository'
@@ -198,14 +194,6 @@ class MemberRepository {
 
     await MemberRepository.updateMemberOrganizations(record, data.organizations, true, options)
 
-    await record.setTasks(data.tasks || [], {
-      transaction,
-    })
-
-    await record.setNotes(data.notes || [], {
-      transaction,
-    })
-
     await record.setNoMerge(data.noMerge || [], {
       transaction,
     })
@@ -267,26 +255,6 @@ class MemberRepository {
       type: QueryTypes.DELETE,
       transaction,
     })
-  }
-
-  static async findSampleDataMemberIds(options: IRepositoryOptions) {
-    const transaction = SequelizeRepository.getTransaction(options)
-    const currentTenant = SequelizeRepository.getCurrentTenant(options)
-    const sampleMemberIds = await options.database.sequelize.query(
-      `select m.id from members m
-      where (m.attributes->'sample'->'default')::boolean is true
-      and m."tenantId" = :tenantId;
-    `,
-      {
-        replacements: {
-          tenantId: currentTenant.id,
-        },
-        type: QueryTypes.SELECT,
-        transaction,
-      },
-    )
-
-    return sampleMemberIds.map((i) => i.id)
   }
 
   static async countMemberMergeSuggestions(
@@ -1001,18 +969,6 @@ class MemberRepository {
 
     if (data.tags) {
       await record.setTags(data.tags || [], {
-        transaction,
-      })
-    }
-
-    if (data.tasks) {
-      await record.setTasks(data.tasks || [], {
-        transaction,
-      })
-    }
-
-    if (data.notes) {
-      await record.setNotes(data.notes || [], {
         transaction,
       })
     }
@@ -1782,8 +1738,6 @@ class MemberRepository {
   ): Promise<PageData<any>> {
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
-    const segmentsEnabled = await isFeatureEnabled(FeatureFlag.SEGMENTS, options)
-
     const segment = segments[0]
 
     const translator = FieldTranslatorFactory.getTranslator(
@@ -1813,7 +1767,7 @@ class MemberRepository {
       },
     })
 
-    if (segmentsEnabled && segment) {
+    if (segment) {
       // add segment filter
       parsed.query.bool.must.push({
         term: {
@@ -2579,11 +2533,6 @@ class MemberRepository {
           joinTableAttributes: [],
         })
 
-        if (exportMode) {
-          plainRecord.notes = await record.getNotes({
-            joinTableAttributes: [],
-          })
-        }
         return plainRecord
       }),
     )
@@ -2670,17 +2619,6 @@ class MemberRepository {
     })
     MemberRepository.sortOrganizations(output.organizations)
 
-    output.tasks = await record.getTasks({
-      transaction,
-      order: [['createdAt', 'ASC']],
-      joinTableAttributes: [],
-    })
-
-    output.notes = await record.getNotes({
-      transaction,
-      joinTableAttributes: [],
-    })
-
     output.noMerge = (
       await record.getNoMerge({
         transaction,
@@ -2737,20 +2675,6 @@ class MemberRepository {
     }
 
     output.affiliations = await this.getAffiliations(record.id, options)
-
-    const manualSyncRemote = await new MemberSyncRemoteRepository(options).findMemberManualSync(
-      record.id,
-    )
-
-    for (const syncRemote of manualSyncRemote) {
-      if (output.attributes?.syncRemote) {
-        output.attributes.syncRemote[syncRemote.platform] = syncRemote.status === SyncStatus.ACTIVE
-      } else {
-        output.attributes.syncRemote = {
-          [syncRemote.platform]: syncRemote.status === SyncStatus.ACTIVE,
-        }
-      }
-    }
 
     return output
   }
@@ -3102,82 +3026,6 @@ class MemberRepository {
         return 1
       }
       return a.name > b.name ? 1 : -1
-    })
-  }
-
-  static async moveNotesBetweenMembers(
-    fromMemberId: string,
-    toMemberId: string,
-    options: IRepositoryOptions,
-  ): Promise<void> {
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    const seq = SequelizeRepository.getSequelize(options)
-
-    const params: any = {
-      fromMemberId,
-      toMemberId,
-    }
-
-    const deleteQuery = `
-      delete from "memberNotes" using "memberNotes" as mn2
-      where "memberNotes"."memberId" = :fromMemberId
-      and "memberNotes"."noteId" = mn2."noteId"
-      and mn2."memberId" = :toMemberId;
-    `
-
-    await seq.query(deleteQuery, {
-      replacements: params,
-      type: QueryTypes.DELETE,
-      transaction,
-    })
-
-    const updateQuery = `
-      update "memberNotes" set "memberId" = :toMemberId where "memberId" = :fromMemberId;
-    `
-
-    await seq.query(updateQuery, {
-      replacements: params,
-      type: QueryTypes.UPDATE,
-      transaction,
-    })
-  }
-
-  static async moveTasksBetweenMembers(
-    fromMemberId: string,
-    toMemberId: string,
-    options: IRepositoryOptions,
-  ): Promise<void> {
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    const seq = SequelizeRepository.getSequelize(options)
-
-    const params: any = {
-      fromMemberId,
-      toMemberId,
-    }
-
-    const deleteQuery = `
-      delete from "memberTasks" using "memberTasks" as mt2
-      where "memberTasks"."memberId" = :fromMemberId
-      and "memberTasks"."taskId" = mt2."taskId"
-      and mt2."memberId" = :toMemberId;
-    `
-
-    await seq.query(deleteQuery, {
-      replacements: params,
-      type: QueryTypes.DELETE,
-      transaction,
-    })
-
-    const updateQuery = `
-      update "memberTasks" set "memberId" = :toMemberId where "memberId" = :fromMemberId;
-    `
-
-    await seq.query(updateQuery, {
-      replacements: params,
-      type: QueryTypes.UPDATE,
-      transaction,
     })
   }
 

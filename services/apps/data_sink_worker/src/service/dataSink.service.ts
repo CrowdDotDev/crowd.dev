@@ -1,4 +1,4 @@
-import { addSeconds } from '@crowd/common'
+import { addSeconds, generateUUIDv1 } from '@crowd/common'
 import { DataSinkWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/common_services'
 import { DbStore } from '@crowd/data-access-layer/src/database'
 import { IResultData } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/dataSink.data'
@@ -19,6 +19,7 @@ import {
 import { WORKER_SETTINGS } from '../conf'
 
 import ActivityService from './activity.service'
+import { UnrepeatableError } from './common'
 import MemberService from './member.service'
 import { OrganizationService } from './organization.service'
 
@@ -41,25 +42,37 @@ export default class DataSinkService extends LoggerBase {
 
   private async triggerResultError(
     resultInfo: IResultData,
+    isCreated: boolean,
     location: string,
     message: string,
     metadata?: unknown,
     error?: Error,
   ): Promise<void> {
-    await this.repo.markResultError(resultInfo.id, {
+    const errorData = {
       location,
       message,
       metadata,
       errorMessage: error?.message,
       errorStack: error?.stack,
       errorString: error ? JSON.stringify(error) : undefined,
-    })
+    }
 
-    if (resultInfo.retries + 1 <= WORKER_SETTINGS().maxStreamRetries) {
+    if (
+      !(error instanceof UnrepeatableError) &&
+      resultInfo.retries + 1 <= WORKER_SETTINGS().maxStreamRetries
+    ) {
       // delay for #retries * 2 minutes
       const until = addSeconds(new Date(), (resultInfo.retries + 1) * 2 * 60)
       this.log.warn({ until: until.toISOString() }, 'Retrying result!')
-      await this.repo.delayResult(resultInfo.id, until)
+
+      await this.repo.delayResult(
+        resultInfo.id,
+        until,
+        errorData,
+        isCreated ? undefined : resultInfo,
+      )
+    } else {
+      await this.repo.markResultError(resultInfo.id, errorData, isCreated ? undefined : resultInfo)
     }
   }
 
@@ -92,30 +105,57 @@ export default class DataSinkService extends LoggerBase {
     }
   }
 
-  public async createAndProcessActivityResult(
+  public async processActivityInMemoryResult(
     tenantId: string,
     segmentId: string,
     integrationId: string,
     data: IActivityData,
   ): Promise<void> {
-    this.log.debug({ tenantId, segmentId }, 'Creating and processing activity result.')
+    this.log.info({ tenantId, segmentId }, 'Processing in memory activity result.')
 
-    const resultId = await this.repo.createResult(tenantId, integrationId, {
+    const payload = {
       type: IntegrationResultType.ACTIVITY,
       data,
       segmentId,
-    })
+    }
 
-    await this.processResult(resultId)
+    let integration
+
+    if (integrationId) {
+      integration = await this.repo.getIntegrationInfo(integrationId)
+    }
+
+    const id = generateUUIDv1()
+    const result: IResultData = {
+      id,
+      tenantId,
+      integrationId,
+      data: payload,
+      state: IntegrationResultState.PENDING,
+      runId: null,
+      streamId: null,
+      webhookId: null,
+      platform: integration ? integration.platform : null,
+      retries: 0,
+      delayedUntil: null,
+      onboarding: false,
+    }
+
+    await this.processResult(id, result)
   }
 
-  public async processResult(resultId: string): Promise<boolean> {
+  public async processResult(resultId: string, result?: IResultData): Promise<boolean> {
     this.log.debug({ resultId }, 'Processing result.')
 
-    const resultInfo = await this.repo.getResultInfo(resultId)
+    let resultInfo = result
+
+    if (!resultInfo) {
+      resultInfo = await this.repo.getResultInfo(resultId)
+    }
 
     if (!resultInfo) {
       telemetry.increment('data_sync_worker.result_not_found', 1)
+      this.log.info(`Result not found by id "${resultId}". Skipping...`)
       return false
     }
 
@@ -128,16 +168,16 @@ export default class DataSinkService extends LoggerBase {
       platform: resultInfo.platform,
     })
 
-    if (resultInfo.state !== IntegrationResultState.PENDING) {
-      this.log.warn({ actualState: resultInfo.state }, 'Result is not pending.')
-      if (resultInfo.state === IntegrationResultState.PROCESSED) {
-        this.log.warn('Result has already been processed. Skipping...')
-        return false
-      }
+    // if (resultInfo.state !== IntegrationResultState.PENDING) {
+    //   this.log.warn({ actualState: resultInfo.state }, 'Result is not pending.')
+    //   if (resultInfo.state === IntegrationResultState.PROCESSED) {
+    //     this.log.warn('Result has already been processed. Skipping...')
+    //     return false
+    //   }
 
-      await this.repo.resetResults([resultId])
-      return false
-    }
+    //   await this.repo.resetResults([resultId])
+    //   return false
+    // }
 
     // this.log.debug('Marking result as in progress.')
     // await this.repo.markResultInProgress(resultId)
@@ -232,13 +272,18 @@ export default class DataSinkService extends LoggerBase {
           type: data.type,
         },
       )
-      await this.repo.deleteResult(resultId)
+
+      if (!result) {
+        await this.repo.deleteResult(resultId)
+      }
+
       return true
     } catch (err) {
       this.log.error(err, 'Error processing result.')
       try {
         await this.triggerResultError(
           resultInfo,
+          result === undefined,
           'process-result',
           'Error processing result.',
           undefined,

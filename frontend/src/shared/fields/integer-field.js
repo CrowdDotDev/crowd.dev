@@ -1,7 +1,6 @@
 import * as yup from 'yup';
 import isInteger from 'lodash/isInteger';
 import GenericField from '@/shared/fields/generic-field';
-import { i18n } from '@/i18n';
 
 export default class IntegerField extends GenericField {
   constructor(name, label, config = {}) {
@@ -73,12 +72,7 @@ export default class IntegerField extends GenericField {
       }
 
       callback(
-        new Error(
-          i18n('validation.number.integer').replace(
-            '{path}',
-            this.label,
-          ),
-        ),
+        new Error(`${this.label} must be an integer`),
       );
     };
 
@@ -90,10 +84,7 @@ export default class IntegerField extends GenericField {
       output.push({
         type: 'number',
         required: Boolean(this.required),
-        message: i18n('validation.mixed.required').replace(
-          '{path}',
-          this.label,
-        ),
+        message: 'This field is required',
       });
     }
 
@@ -101,9 +92,7 @@ export default class IntegerField extends GenericField {
       output.push({
         type: 'number',
         min: this.min,
-        message: i18n('validation.number.min')
-          .replace('{path}', this.label)
-          .replace('{min}', this.min),
+        message: `${this.label} must be greater than or equal to ${this.min}`,
       });
     }
 
@@ -111,9 +100,7 @@ export default class IntegerField extends GenericField {
       output.push({
         type: 'number',
         max: this.max,
-        message: i18n('validation.number.max')
-          .replace('{path}', this.label)
-          .replace('{max}', this.max),
+        message: `${this.label} must be less than or equal to ${this.max}`,
       });
     }
 

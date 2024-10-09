@@ -439,7 +439,7 @@
                       @mouseover="() => onColumnHeaderMouseOver('industry')"
                       @mouseleave="closeEnrichmentPopover"
                     >
-                      <el-tooltip content="Source: Enrichment" placement="top" trigger="hover" :disabled="!isEnrichEnabled">
+                      <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
                         <lf-svg name="source" class="h-3 w-3" />
                       </el-tooltip>
                       <div class="ml-2 text-purple-800">
@@ -461,7 +461,6 @@
                       class="block h-full"
                     >
                       <div
-                        v-if="isEnrichEnabled"
                         class="text-sm h-full flex items-center"
                       >
                         <span v-if="scope.row.industry" class="text-gray-900">
@@ -470,11 +469,6 @@
                           }}
                         </span>
                         <span v-else class="text-gray-500">-</span>
-                      </div>
-                      <div v-else class="flex items-center h-full w-full pl-3">
-                        <div class="blur-[6px] text-gray-900 select-none">
-                          Software
-                        </div>
                       </div>
                     </router-link>
                   </template>
@@ -493,7 +487,7 @@
                       @mouseover="() => onColumnHeaderMouseOver('size')"
                       @mouseleave="closeEnrichmentPopover"
                     >
-                      <el-tooltip content="Source: Enrichment" placement="top" trigger="hover" :disabled="!isEnrichEnabled">
+                      <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
                         <lf-svg name="source" class="h-3 w-3" />
                       </el-tooltip>
                       <div class="ml-2 text-purple-800">
@@ -515,7 +509,6 @@
                       class="block h-full"
                     >
                       <div
-                        v-if="isEnrichEnabled"
                         class="text-sm h-full flex items-center"
                       >
                         <span v-if="scope.row.size || scope.row.employees" class="text-gray-900">
@@ -524,11 +517,6 @@
                           }}
                         </span>
                         <span v-else class="text-gray-500">-</span>
-                      </div>
-                      <div v-else class="flex items-center h-full w-full pl-3">
-                        <div class="blur-[6px] text-gray-900 select-none">
-                          11-50
-                        </div>
                       </div>
                     </router-link>
                   </template>
@@ -547,7 +535,7 @@
                       @mouseover="() => onColumnHeaderMouseOver('revenueRange')"
                       @mouseleave="closeEnrichmentPopover"
                     >
-                      <el-tooltip content="Source: Enrichment" placement="top" trigger="hover" :disabled="!isEnrichEnabled">
+                      <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
                         <lf-svg name="source" class="h-3 w-3" />
                       </el-tooltip>
                       <div class="ml-2 text-purple-800">
@@ -569,7 +557,6 @@
                       class="block h-full"
                     >
                       <div
-                        v-if="isEnrichEnabled"
                         class="text-sm h-full flex items-center"
                       >
                         <span v-if="scope.row.revenueRange" class="text-gray-900">
@@ -578,11 +565,6 @@
                           }}
                         </span>
                         <span v-else class="text-gray-500">-</span>
-                      </div>
-                      <div v-else class="flex items-center h-full w-full pl-3">
-                        <div class="blur-[6px] text-gray-900 select-none">
-                          $1M-$10M
-                        </div>
                       </div>
                     </router-link>
                   </template>
@@ -603,7 +585,7 @@
                       @mouseleave="closeEnrichmentPopover"
                     >
                       <div class="flex items-center">
-                        <el-tooltip content="Source: Enrichment" placement="top" trigger="hover" :disabled="!isEnrichEnabled">
+                        <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
                           <lf-svg name="source" class="h-3 w-3" />
                         </el-tooltip>
                         <div class="ml-2 text-purple-800">
@@ -626,8 +608,6 @@
                       class="block h-full"
                     >
                       <div
-
-                        v-if="isEnrichEnabled"
                         class="text-sm h-full flex items-center"
                       >
                         <span v-if="scope.row.founded" class="text-gray-900">
@@ -636,11 +616,6 @@
                           }}
                         </span>
                         <span v-else class="text-gray-500">-</span>
-                      </div>
-                      <div v-else class="flex items-center h-full w-full pl-3">
-                        <div class="blur-[6px] text-gray-900 select-none">
-                          2021
-                        </div>
                       </div>
                     </router-link>
                   </template>
@@ -659,7 +634,7 @@
                       @mouseover="() => onColumnHeaderMouseOver('employeeGrowthRate')"
                       @mouseleave="closeEnrichmentPopover"
                     >
-                      <el-tooltip content="Source: Enrichment" placement="top" trigger="hover" :disabled="!isEnrichEnabled">
+                      <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
                         <lf-svg name="source" class="h-3 w-3" />
                       </el-tooltip>
                       <div class="ml-2 text-purple-800">
@@ -677,7 +652,6 @@
                       class="block h-full"
                     >
                       <div
-                        v-if="isEnrichEnabled"
                         class="text-sm h-full flex items-center"
                       >
                         <span v-if="scope.row.employeeGrowthRate?.['12_month']" class="text-gray-900">
@@ -686,11 +660,6 @@
                           }}
                         </span>
                         <span v-else class="text-gray-500">-</span>
-                      </div>
-                      <div v-else class="flex items-center h-full w-full pl-3">
-                        <div class="blur-[6px] text-gray-900 select-none">
-                          10.25%
-                        </div>
                       </div>
                     </router-link>
                   </template>
@@ -709,7 +678,7 @@
                       @mouseover="() => onColumnHeaderMouseOver('tags')"
                       @mouseleave="closeEnrichmentPopover"
                     >
-                      <el-tooltip content="Source: Enrichment" placement="top" trigger="hover" :disabled="!isEnrichEnabled">
+                      <el-tooltip content="Source: Enrichment" placement="top" trigger="hover">
                         <lf-svg name="source" class="h-3 w-3" />
                       </el-tooltip>
                       <div class="ml-2 text-purple-800">
@@ -726,7 +695,7 @@
                       }"
                       class="block h-full"
                     >
-                      <div v-if="isEnrichEnabled">
+                      <div>
                         <app-shared-tag-list
                           v-if="scope.row.tags?.length"
                           :list="scope.row.tags"
@@ -739,11 +708,6 @@
                           </template>
                         </app-shared-tag-list>
                         <span v-else class="text-gray-500">-</span>
-                      </div>
-                      <div v-else class="flex items-center h-full w-full pl-3">
-                        <div class="blur-[6px] text-gray-900 select-none">
-                          Software
-                        </div>
                       </div>
                     </router-link>
                   </template>
@@ -834,20 +798,6 @@
       </div>
     </el-popover>
 
-    <!-- Enrichment popover -->
-    <el-popover
-      v-if="!isEnrichEnabled"
-      placement="top"
-      popper-class="!p-0 !mb-[-12px] !w-60"
-      :virtual-ref="enrichmentRefs[selectedEnrichmentAttribute]"
-      trigger="hover"
-      :visible="showEnrichmentPopover"
-      virtual-triggering
-      @hide="onHide"
-    >
-      <lf-enrichment-sneak-peak-content id="popover-content" type="organization" @mouseleave="closeEnrichmentPopover" />
-    </el-popover>
-
     <app-organization-merge-dialog v-model="isMergeDialogOpen" />
   </div>
 </template>
@@ -860,22 +810,19 @@ import {
   onUnmounted,
 } from 'vue';
 import { useRouter } from 'vue-router';
+import { ClickOutside as vClickOutside } from 'element-plus';
+import { storeToRefs } from 'pinia';
 import { formatDateToTimeAgo } from '@/utils/date';
 import { formatNumberToCompact } from '@/utils/number';
 import { withHttp, toSentenceCase } from '@/utils/string';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
-import { storeToRefs } from 'pinia';
 import AppOrganizationMergeDialog from '@/modules/organization/components/organization-merge-dialog.vue';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import employeeGrowthRate from '@/modules/organization/config/enrichment/employeeGrowthRate';
 import revenueRange from '@/modules/organization/config/enrichment/revenueRange';
 import AppSharedTagList from '@/shared/tag/tag-list.vue';
-import { ClickOutside as vClickOutside } from 'element-plus';
 import LfSvg from '@/shared/svg/svg.vue';
-import LfEnrichmentSneakPeakContent from '@/shared/modules/enrichment/components/enrichment-sneak-peak-content.vue';
-import Plans from '@/security/plans';
 import AppIdentitiesHorizontalListOrganizations from '@/shared/modules/identities/components/identities-horizontal-list-organizations.vue';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import LfDefaultFilters from '@/shared/modules/default-filters/components/default-filters.vue';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
@@ -946,11 +893,6 @@ const selectedActionOrganization = ref(null);
 const showEnrichmentPopover = ref(false);
 const enrichmentRefs = ref({});
 const selectedEnrichmentAttribute = ref(null);
-
-const authStore = useAuthStore();
-const { tenant } = storeToRefs(authStore);
-
-const isEnrichEnabled = computed(() => tenant.value?.plan !== Plans.values.essential);
 
 const pagination = computed({
   get() {

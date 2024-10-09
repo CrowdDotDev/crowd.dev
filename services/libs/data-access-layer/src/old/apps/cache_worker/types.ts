@@ -1,8 +1,3 @@
-export interface ITenant {
-  tenantId: string
-  plan: string
-}
-
 export interface ISegment {
   segmentId: string
   slug: string

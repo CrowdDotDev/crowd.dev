@@ -8,10 +8,8 @@ export class ConversationService {
       segments,
     };
 
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.delete(
-      `/tenant/${tenantId}/conversation`,
+      '/conversation',
       { params },
     );
 
@@ -19,10 +17,8 @@ export class ConversationService {
   }
 
   static async find(id, segments) {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.get(
-      `/tenant/${tenantId}/conversation/${id}`,
+      `/conversation/${id}`,
       {
         params: {
           segments,
@@ -34,10 +30,8 @@ export class ConversationService {
   }
 
   static async query(body) {
-    const tenantId = AuthService.getTenantId();
-
     const response = await authAxios.post(
-      `/tenant/${tenantId}/conversation/query`,
+      '/conversation/query',
       body,
     );
 

@@ -1,10 +1,9 @@
 import { SearchSyncWorkerEmitter } from '@crowd/common_services'
 import { LoggerBase, logExecutionTimeV2 } from '@crowd/logging'
 import { SearchSyncApiClient } from '@crowd/opensearch'
-import { FeatureFlag, SyncMode } from '@crowd/types'
+import { SyncMode } from '@crowd/types'
 
 import { IS_TEST_ENV } from '@/conf'
-import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
 import { getSearchSyncWorkerEmitter } from '@/serverless/utils/queueService'
 
 import { getSearchSyncApiClient } from '../utils/apiClients'
@@ -18,7 +17,7 @@ export default class SearchSyncService extends LoggerBase {
 
   mode: SyncMode
 
-  constructor(options: IServiceOptions, mode: SyncMode = SyncMode.USE_FEATURE_FLAG) {
+  constructor(options: IServiceOptions, mode: SyncMode = SyncMode.ASYNCHRONOUS) {
     super(options.log)
     this.options = options
     this.mode = mode
@@ -35,14 +34,6 @@ export default class SearchSyncService extends LoggerBase {
     }
 
     if (this.mode === SyncMode.ASYNCHRONOUS) {
-      return getSearchSyncWorkerEmitter()
-    }
-
-    if (this.mode === SyncMode.USE_FEATURE_FLAG) {
-      if (await isFeatureEnabled(FeatureFlag.SYNCHRONOUS_OPENSEARCH_UPDATES, this.options)) {
-        return getSearchSyncApiClient()
-      }
-
       return getSearchSyncWorkerEmitter()
     }
 
