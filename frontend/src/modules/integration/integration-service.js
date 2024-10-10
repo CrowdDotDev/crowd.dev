@@ -553,6 +553,9 @@ export class IntegrationService {
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/github-installations`,
+      {
+        params: getSegments(),
+      },
     );
 
     return response.data;
