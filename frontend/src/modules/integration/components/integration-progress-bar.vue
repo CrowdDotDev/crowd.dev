@@ -1,9 +1,11 @@
 <template>
   <div v-if="props.progress && props.progress.reportStatus !== 'calculating'" class="flex flex-col justify-center w-full h-full">
-    <div v-if="!props.barOnly" class="flex justify-between items-center">
-      <p class="text-2xs text-gray-500 leading-4 pr-4">
-        <span v-if="inProgress?.message" v-html="inProgress?.message" />
-        <span v-else>Processing still in progress. Please wait for data stream updates.</span>
+    <div v-if="!props.barOnly" class="flex justify-between items-start">
+      <p class="text-2xs text-gray-500 leading-4 pr-4 flex-grow min-w-0">
+        <span class="block overflow-hidden text-ellipsis whitespace-nowrap">
+          <span v-if="inProgress?.message" v-html="inProgress?.message" />
+          <span v-else>Processing still in progress. Please wait for data stream updates.</span>
+        </span>
       </p>
 
       <el-popover :width="280" placement="top-end">
