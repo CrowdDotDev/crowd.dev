@@ -1,6 +1,6 @@
 import { EDITION, escapeNullByte, isObjectEmpty, singleOrDefault } from '@crowd/common'
 import { SearchSyncWorkerEmitter } from '@crowd/common_services'
-import { IQueryActivityResult, insertActivities } from '@crowd/data-access-layer'
+import { insertActivities } from '@crowd/data-access-layer'
 import { DbStore, arePrimitivesDbEqual } from '@crowd/data-access-layer/src/database'
 import {
   IDbActivity,
@@ -304,27 +304,27 @@ export default class ActivityService extends LoggerBase {
       })
 
       if (updated) {
-        const activityToProcess: IQueryActivityResult = {
-          id: id,
-          tenantId: tenantId,
-          segmentId: segmentId,
-          type: toUpdate.type || original.type,
-          isContribution: toUpdate.isContribution || original.isContribution,
-          score: toUpdate.score || original.score,
-          sourceId: toUpdate.sourceId || original.sourceId,
-          sourceParentId: toUpdate.sourceParentId || original.sourceParentId,
-          memberId: toUpdate.memberId || original.memberId,
-          username: toUpdate.username || original.username,
-          sentiment: toUpdate.sentiment || original.sentiment,
-          attributes: toUpdate.attributes || original.attributes,
-          body: escapeNullByte(toUpdate.body || original.body),
-          title: escapeNullByte(toUpdate.title || original.title),
-          channel: toUpdate.channel || original.channel,
-          url: toUpdate.url || original.url,
-          organizationId: toUpdate.organizationId || original.organizationId,
-          platform: toUpdate.platform || (original.platform as PlatformType),
-          timestamp: original.timestamp,
-        }
+        // const activityToProcess: IQueryActivityResult = {
+        //   id: id,
+        //   tenantId: tenantId,
+        //   segmentId: segmentId,
+        //   type: toUpdate.type || original.type,
+        //   isContribution: toUpdate.isContribution || original.isContribution,
+        //   score: toUpdate.score || original.score,
+        //   sourceId: toUpdate.sourceId || original.sourceId,
+        //   sourceParentId: toUpdate.sourceParentId || original.sourceParentId,
+        //   memberId: toUpdate.memberId || original.memberId,
+        //   username: toUpdate.username || original.username,
+        //   sentiment: toUpdate.sentiment || original.sentiment,
+        //   attributes: toUpdate.attributes || original.attributes,
+        //   body: escapeNullByte(toUpdate.body || original.body),
+        //   title: escapeNullByte(toUpdate.title || original.title),
+        //   channel: toUpdate.channel || original.channel,
+        //   url: toUpdate.url || original.url,
+        //   organizationId: toUpdate.organizationId || original.organizationId,
+        //   platform: toUpdate.platform || (original.platform as PlatformType),
+        //   timestamp: original.timestamp,
+        // }
 
         if (fireSync) {
           await this.searchSyncWorkerEmitter.triggerMemberSync(

@@ -1325,10 +1325,6 @@ class MemberRepository {
     options: IRepositoryOptions,
     segmentId?: string,
   ): Promise<ActivityAggregates> {
-    const transaction = SequelizeRepository.getTransaction(options)
-    const seq = SequelizeRepository.getSequelize(options)
-    const currentTenant = SequelizeRepository.getCurrentTenant(options)
-
     if (segmentId) {
       // we load data for a specific segment (can be leaf, parent or grand parent id)
       const member = (
@@ -1353,22 +1349,7 @@ class MemberRepository {
       }
     }
 
-    const segmentIds = (
-      await seq.query(
-        `
-      select id from segments where "tenantId" = :tenantId and "parentSlug" is not null and "grandparentSlug" is not null
-    `,
-        {
-          replacements: {
-            tenantId: currentTenant.id,
-          },
-          type: QueryTypes.SELECT,
-          transaction,
-        },
-      )
-    ).map((r: any) => r.id)
-
-    const results = await getMemberAggregates(options.qdb, memberId, segmentIds)
+    const results = await getMemberAggregates(options.qdb, memberId)
 
     if (results.length > 0) {
       return results[0]
@@ -1496,7 +1477,6 @@ class MemberRepository {
           segments: true,
           onlySubProjects: true,
           maintainers: true,
-          attributes: false,
           ...include,
         },
       },
