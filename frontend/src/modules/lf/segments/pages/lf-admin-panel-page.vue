@@ -53,7 +53,6 @@ import AppLfAuditLogsPage from '@/modules/lf/segments/pages/lf-audit-logs-page.v
 import LfDevmode from '@/modules/lf/segments/components/dev/devmode.vue';
 import { LfRole } from '@/shared/modules/permissions/types/Roles';
 import AppOrganizationCommonPage from '@/modules/organization/pages/organization-common-page.vue';
-// import AppOrganizationCommonPage from '@/modules/organization/pages/organization-common-page.vue';
 
 const route = useRoute();
 const router = useRouter();
