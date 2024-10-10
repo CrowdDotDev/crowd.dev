@@ -29,7 +29,7 @@ import AppLfRadioCascader from '@/modules/lf/segments/components/filter/lf-radio
 
 const SearchIcon = h(
   'i', // type
-  { class: 'ri-search-line' }, // props
+  { class: 'fa-light fa-magnifying-glass c-icon' }, // props
 );
 
 const emit = defineEmits(['update:options', 'onChange', 'onSearchChange']);

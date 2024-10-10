@@ -84,19 +84,19 @@ import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 
 const SearchIcon = h(
   'i', // type
-  { class: 'ri-search-line' }, // props
+  { class: 'fa-light fa-magnifying-glass c-icon' }, // props
   [],
 );
 
 const ArrowDownIcon = h(
   'i', // type
-  { class: 'ri-arrow-down-s-line text-black' }, // props
+  { class: 'fa-light fa-chevron-down c-icon' }, // props
   [],
 );
 
 const ArrowUpIcon = h(
   'i', // type
-  { class: 'ri-arrow-up-s-line text-black' }, // props
+  { class: 'fa-light fa-chevron-up c-icon' }, // props
   [],
 );
 

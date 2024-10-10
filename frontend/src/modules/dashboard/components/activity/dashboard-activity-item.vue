@@ -68,10 +68,7 @@
                   />
                 </el-tooltip>
               </div>
-              <i
-                v-else
-                class="ri-radar-line text-base text-gray-400"
-              />
+              <lf-icon v-else name="fingerprint" :size="16" class="text-gray-400" />
               <app-activity-header
                 :activity="activity"
                 class="flex text-2xs leading-4 pl-2"

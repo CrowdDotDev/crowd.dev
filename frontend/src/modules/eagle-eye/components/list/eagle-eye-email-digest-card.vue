@@ -48,7 +48,7 @@
       class="btn btn-link btn-link--primary !h-8 !w-8"
       @click="isEmailDigestDrawerOpen = true"
     >
-      <i class="ri-sound-module-line text-base" />
+      <lf-icon name="gear" :size="16" />
     </el-button>
   </div>
 

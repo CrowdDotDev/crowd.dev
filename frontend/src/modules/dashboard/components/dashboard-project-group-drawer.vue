@@ -36,9 +36,11 @@
                 class="flex flex-grow items-center justify-between gap-2 px-6"
               >
                 <div class="flex items-center gap-4">
-                  <i
+                  <lf-icon
                     v-if="project.subprojects.length"
-                    class="ri-arrow-down-s-line text-black text-lg"
+                    name="chevron-down"
+                    :size="20"
+                    class="text-black"
                     :class="{
                       'rotate-180': openedProject === project.name,
                     }"
@@ -96,13 +98,19 @@
                             : 'black'
                         "
                       />
-                      <i
+                      <lf-icon
                         v-if="status === 'no-data'"
-                        class="ri-alert-fill absolute right-0 top-0 text-2xs leading-3 text-yellow-500"
+                        name="triangle-exclamation"
+                        :size="12"
+                        type="solid"
+                        class="absolute right-0 top-0 leading-3 text-yellow-500"
                       />
-                      <i
+                      <lf-icon
                         v-else-if="status === 'error'"
-                        class="ri-error-warning-fill absolute right-0 top-0 text-2xs leading-3 text-red-600"
+                        name="circle-exclamation"
+                        :size="12"
+                        type="solid"
+                        class="absolute right-0 top-0 leading-3 text-red-600"
                       />
                     </div>
                   </div>

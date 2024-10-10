@@ -109,7 +109,7 @@
                   content="Organizations whose people engaged in at least one activity during the selected time period."
                   popper-class="max-w-[260px]"
                 >
-                  <i class="ri-information-line text-sm ml-1 font-normal" />
+                  <lf-icon name="circle-info" :size="14" class="ml-1" />
                 </el-tooltip>
               </h6>
             </div>
@@ -201,6 +201,7 @@ import allOrganizations from '@/modules/organization/config/saved-views/views/al
 import { filterQueryService } from '@/shared/modules/filters/services/filter-query.service';
 import { computed } from 'vue';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const {
   chartData, organizations, period, activeOrganizations, recentOrganizations,

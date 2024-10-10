@@ -14,9 +14,11 @@
         :command="() => editActivity(organization.id)"
       >
         <span class="text-xs">{{ organization.displayName }}</span>
-        <i
+        <lf-icon
           v-if="organization.id === activity.organizationId"
-          class="ri-check-line !text-primary-600"
+          name="check"
+          :size="16"
+          class="!text-primary-600"
         />
       </el-dropdown-item>
       <el-dropdown-item
@@ -27,9 +29,11 @@
         :command="() => editActivity(null)"
       >
         <span class="text-xs">Individual / No affiliation</span>
-        <i
+        <lf-icon
           v-if="!activity.organizationId"
-          class="ri-check-line !text-primary-600"
+          name="check"
+          :size="16"
+          class="!text-primary-600"
         />
       </el-dropdown-item>
     </div>
@@ -43,6 +47,7 @@ import { ActivityService } from '@/modules/activity/activity-service';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { useRoute } from 'vue-router';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const emit = defineEmits(['onUpdate']);
 const props = defineProps({

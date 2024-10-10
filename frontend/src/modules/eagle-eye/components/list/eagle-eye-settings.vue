@@ -105,9 +105,7 @@
             <div
               class="w-5 h-5 rounded-md bg-gray-900 flex items-center justify-center"
             >
-              <i
-                class="ri-lightbulb-flash-line text-sm text-white"
-              />
+              <lf-icon name="lightbulb" :size="14" class="text-white" />
             </div>
             <span class="text-xs text-gray-900">{{
               aiRepliesEnabled ? 'Activated' : 'Deactivated'

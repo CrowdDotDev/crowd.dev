@@ -31,7 +31,7 @@
           :src="getPlatformDetails(platform)?.image"
           :alt="getPlatformDetails(platform)?.name"
         />
-        <i v-else class="ri-radar-line text-base text-gray-400 mr-3" />
+        <lf-icon v-else name="fingerprint" :size="16" class="text-gray-400 mr-3" />
         <p v-if="typeNames?.[platform]?.[type]?.display" class="text-xs leading-5 activity-type">
           {{ typeNames?.[platform]?.[type]?.display?.short }}
         </p>

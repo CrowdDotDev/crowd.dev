@@ -120,7 +120,7 @@ const removeWorkHistory = () => {
     message: "Are you sure you want to proceed? You can't undo this action",
     confirmButtonText: 'Confirm',
     cancelButtonText: 'Cancel',
-    icon: 'ri-delete-bin-line',
+    icon: 'fa-light fa-trash-can',
   }).then(() => {
     trackEvent({
       key: FeatureEventKey.DELETE_WORK_EXPERIENCE,

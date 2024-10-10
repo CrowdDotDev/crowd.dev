@@ -145,9 +145,7 @@
             <div
               class="w-6 h-6 rounded-md bg-gray-900 flex items-center justify-center"
             >
-              <i
-                class="ri-lightbulb-flash-line text-md text-white"
-              />
+              <lf-icon name="lightbulb" :size="14" class="text-white" />
             </div>
             <el-switch
               v-model="form.aiReplies"
