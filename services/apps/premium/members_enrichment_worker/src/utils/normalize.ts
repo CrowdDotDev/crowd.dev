@@ -11,13 +11,13 @@ import {
   MemberIdentityType,
 } from '@crowd/types'
 import {
-  EnrichmentAPIContribution,
-  EnrichmentAPISkills,
-  EnrichmentAPIMember,
-  EnrichmentAPIWorkExperience,
-  EnrichmentAPIEducation,
-  EnrichmentAPICertification,
-} from '@crowd/types/src/premium'
+  IEnrichmentAPIContributionProgAI,
+  IEnrichmentAPISkillsProgAI,
+  IEnrichmentDataProgAI,
+  IEnrichmentAPIWorkExperienceProgAI,
+  IEnrichmentAPIEducationProgAI,
+  IEnrichmentAPICertificationProgAI,
+} from '../sources/progai/types'
 import { DbTransaction } from '@crowd/data-access-layer/src/database'
 import { updateMember } from '@crowd/data-access-layer/src/old/apps/premium/members_enrichment_worker'
 import {
@@ -67,7 +67,7 @@ const attributeSettings = {
   [MemberEnrichmentAttributeName.WORK_EXPERIENCES]: {
     fields: ['work_experiences'],
     type: MemberAttributeType.SPECIAL,
-    fn: (workExperiences: EnrichmentAPIWorkExperience[]) =>
+    fn: (workExperiences: IEnrichmentAPIWorkExperienceProgAI[]) =>
       workExperiences.map((workExperience) => {
         const { title, company, location, startDate, endDate } = workExperience
         return {
@@ -82,7 +82,7 @@ const attributeSettings = {
   [MemberEnrichmentAttributeName.EDUCATION]: {
     fields: ['educations'],
     type: MemberAttributeType.SPECIAL,
-    fn: (educations: EnrichmentAPIEducation[]) =>
+    fn: (educations: IEnrichmentAPIEducationProgAI[]) =>
       educations.map((education) => {
         const { campus, major, specialization, startDate, endDate } = education
         return {
@@ -101,7 +101,7 @@ const attributeSettings = {
   [MemberEnrichmentAttributeName.CERTIFICATIONS]: {
     fields: ['certifications'],
     type: MemberAttributeType.SPECIAL,
-    fn: (certifications: EnrichmentAPICertification[]) =>
+    fn: (certifications: IEnrichmentAPICertificationProgAI[]) =>
       certifications.map((certification) => {
         const { title, description } = certification
         return {
@@ -115,7 +115,7 @@ const attributeSettings = {
 export const normalize = async (
   tx: DbTransaction,
   member: IMember,
-  enriched: EnrichmentAPIMember,
+  enriched: IEnrichmentDataProgAI,
 ): Promise<IMember> => {
   try {
     member = await fillPlatformData(tx, member, enriched)
@@ -148,7 +148,7 @@ export const normalize = async (
 const fillPlatformData = async (
   tx: DbTransaction,
   member: IMember,
-  enriched: EnrichmentAPIMember,
+  enriched: IEnrichmentDataProgAI,
 ): Promise<IMember> => {
   if (ENRICH_EMAIL_IDENTITIES) {
     if (enriched.emails && Array.isArray(enriched.emails)) {
@@ -176,7 +176,7 @@ const fillPlatformData = async (
   }
 
   member.contributions = enriched.oss_contributions?.map(
-    (contribution: EnrichmentAPIContribution) => ({
+    (contribution: IEnrichmentAPIContributionProgAI) => ({
       id: contribution.id,
       topics: contribution.topics,
       summary: contribution.summary,
@@ -319,7 +319,7 @@ const fillPlatformData = async (
 const fillAttributes = async (
   tx: DbTransaction,
   member: IMember,
-  enriched: EnrichmentAPIMember,
+  enriched: IEnrichmentDataProgAI,
 ): Promise<IMember> => {
   // Check if 'member.attributes' property exists
   if (!member.attributes) {
@@ -374,7 +374,7 @@ const fillAttributes = async (
 const fillSkills = async (
   tx: DbTransaction,
   member: IMember,
-  enriched: EnrichmentAPIMember,
+  enriched: IEnrichmentDataProgAI,
 ): Promise<IMember> => {
   // Check if 'enriched.skills' properties exists
   if (enriched.skills) {
@@ -387,7 +387,7 @@ const fillSkills = async (
       // Use 'lodash.orderBy' to sort the skills by weight in descending order
       ...lodash
         .orderBy(enriched.skills || [], ['weight'], ['desc'])
-        .map((s: EnrichmentAPISkills) => s.skill),
+        .map((s: IEnrichmentAPISkillsProgAI) => s.skill),
     ])
 
     try {

@@ -23,7 +23,7 @@ import {
   updateOrgIdentity,
 } from '@crowd/data-access-layer/src/old/apps/premium/members_enrichment_worker'
 import { svc } from '../main'
-import { EnrichingMember } from '../types/enrichment'
+import { EnrichingMember } from '../types'
 import { normalize } from '../utils/normalize'
 
 /*

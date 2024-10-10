@@ -21,6 +21,7 @@
     "@crowd/types": "workspace:*",
     "@crowd/redis": "workspace:*",
     "@crowd/integrations": "workspace:*",
+    "@crowd/logging": "workspace:*",
     "@temporalio/client": "~1.11.1",
     "@temporalio/workflow": "~1.11.1",
     "auth0": "^4.3.1",

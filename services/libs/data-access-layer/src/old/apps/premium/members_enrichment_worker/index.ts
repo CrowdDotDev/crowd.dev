@@ -1,13 +1,15 @@
 import { generateUUIDv4 } from '@crowd/common'
-import { DbStore, DbTransaction } from '@crowd/database'
+import { DbConnection, DbConnOrTx, DbStore, DbTransaction } from '@crowd/database'
 import {
   IAttributes,
   IMember,
   IMemberIdentity,
   IOrganizationIdentity,
+  MemberEnrichmentSource,
   MemberIdentityType,
   OrganizationSource,
 } from '@crowd/types'
+import { IMemberEnrichmentCache } from '@crowd/types/src/premium'
 
 export async function fetchMembersForEnrichment(
   db: DbStore,
@@ -425,4 +427,38 @@ export async function updateMemberAttributes(
     WHERE id = $2 AND "tenantId" = $3;`,
     [attributes, memberId, tenantId],
   )
+}
+
+export async function insertMemberEnrichmentCacheDb<T>(
+  tx: DbConnOrTx,
+  data: T,
+  memberId: string,
+  source: MemberEnrichmentSource,
+) {
+  return tx.query(
+    `INSERT INTO "memberEnrichmentCache" ("memberId", "data", "createdAt", "updatedAt", "source")
+      VALUES ($1, $2, NOW(), NOW(), $3)
+      ON CONFLICT ("memberId", "source") DO UPDATE
+      SET data = EXCLUDED.data, "updatedAt" = NOW();`,
+    [memberId, JSON.stringify(data), source],
+  )
+}
+
+export async function findMemberEnrichmentCacheDb(
+  tx: DbConnOrTx,
+  memberId: string,
+  source: MemberEnrichmentSource,
+): Promise<IMemberEnrichmentCache> {
+  const result = await tx.oneOrNone(
+    `
+    select *
+    from "memberEnrichmentCache"
+    where 
+      source = $(source)
+      and "memberId" = $(memberId);
+    `,
+    { source, memberId },
+  )
+
+  return result ?? null
 }

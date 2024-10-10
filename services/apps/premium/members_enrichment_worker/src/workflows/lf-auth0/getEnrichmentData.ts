@@ -6,7 +6,7 @@ const { refreshToken, getEnrichmentLFAuth0 } = proxyActivities<typeof activities
   startToCloseTimeout: '10 seconds',
 })
 
-import { IGetEnrichmentDataArgs } from '../../types/lfid-enrichment'
+import { IGetEnrichmentDataArgs } from '../../sources/lfid/types'
 import { IMember, MemberIdentityType } from '@crowd/types'
 
 export async function getEnrichmentData(args: IGetEnrichmentDataArgs): Promise<void> {

@@ -21,10 +21,10 @@ class MemberEnrichmentCacheRepository {
     if (data && Object.keys(data).length > 0) {
       const transaction = SequelizeRepository.getTransaction(options)
       await options.database.sequelize.query(
-        `INSERT INTO "memberEnrichmentCache" ("createdAt", "updatedAt", "memberId", "data")
+        `INSERT INTO "memberEnrichmentCache" ("createdAt", "updatedAt", "memberId", "data", "source")
           VALUES
-              (now(), now(), :memberId, :data)
-          ON CONFLICT ("memberId") DO UPDATE
+              (now(), now(), :memberId, :data, :source)
+          ON CONFLICT ("memberId", "source") DO UPDATE
           SET data = :data, "updatedAt" = now()
         `,
         {
