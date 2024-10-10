@@ -272,7 +272,7 @@ export default class EnrichmentServiceProgAI extends LoggerBase implements IEnri
 
       // Set 'member.attributes.url.github' to be equal to a string concatenated with the 'github_handle' property
       normalized.attributes.url.github =
-        normalized.attributes.url.github || `https://github.com/${enriched.github_handle}`
+        normalized.attributes.url.github || `https://github.com/${data.github_handle}`
     }
 
     if (data.linkedin_url) {
