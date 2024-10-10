@@ -2,7 +2,6 @@
   <lf-card v-bind="$attrs">
     <div class="px-5 py-4 flex justify-between items-center">
       <h6>Projects</h6>
-      <lf-contributor-details-projects-sorting v-model:sorting="sorting" />
     </div>
     <div class="pb-3.5">
       <lf-table class="!overflow-visible">
@@ -139,8 +138,6 @@ import LfContributorDetailsProjectsAffiliation
   from '@/modules/contributor/components/details/overview/project/contributor-details-projects-affiliation.vue';
 import LfContributorDetailsProjectsMaintainer
   from '@/modules/contributor/components/details/overview/project/contributor-details-projects-maintainer.vue';
-import LfContributorDetailsProjectsSorting
-  from '@/modules/contributor/components/details/overview/project/contributor-details-projects-sorting.vue';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import { ReportDataType } from '@/shared/modules/report-issue/constants/report-data-type.enum';
@@ -157,7 +154,6 @@ const { hasPermission } = usePermissions();
 const { setReportDataModal } = useSharedStore();
 
 const showMore = ref<boolean>(false);
-const sorting = ref<string>('name_ASC');
 const isAffilationEditOpen = ref<boolean>(false);
 
 const getAffiliations = (projectId: string) => (props.contributor.affiliations || []).filter((affiliation) => affiliation.segmentId === projectId)
