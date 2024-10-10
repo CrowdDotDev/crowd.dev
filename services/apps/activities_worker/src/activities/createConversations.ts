@@ -87,7 +87,7 @@ export async function createConversations(): Promise<ICreateConversationsResult>
     row.child = child
 
     // check first if parent activity already has a conversation created
-    if (!row.conversationId) {
+    if (!row.parent.conversationId) {
       // check if we already prepared the conversation
       let conversationId: string
       if (!conversationsToCreate[row.parent.sourceId]) {
@@ -129,9 +129,9 @@ export async function createConversations(): Promise<ICreateConversationsResult>
       // link it with the child activity
       linkActivityAndConversation(row.child, conversationId)
     } else if (!row.child.conversationId) {
-      conversationToParentActivity[row.conversationId] = row.parent.id
+      conversationToParentActivity[row.parent.conversationId] = row.parent.id
       // link conversation of the parent activity with the child activity
-      linkActivityAndConversation(row.child, row.conversationId)
+      linkActivityAndConversation(row.child, row.parent.conversationId)
     }
   }
 
@@ -218,13 +218,12 @@ async function getRows(qdbConn: DbConnOrTx, current: Date): Promise<any[]> {
     AND timestamp <= $(limit)
   )
 SELECT
-  conversation.id AS conversationId,
   ${ALL_COLUMNS_TO_SELECT.map((c) => `parent.${c} as parent_${c}`).join(', \n')},
   ${ALL_COLUMNS_TO_SELECT.map((c) => `child.${c} as child_${c}`).join(', \n')}
 FROM activities parent
 JOIN activities_to_check_for_parentId child ON parent.sourceId = child.sourceParentId
-LEFT JOIN conversations conversation ON parent.conversationId = conversation.id
-ORDER BY child.createdAt ASC
+-- WHERE parent.timestamp > dateadd('y', -1, $(limit))
+ORDER BY child.timestamp ASC
 LIMIT 1000;
   `
 
@@ -237,7 +236,7 @@ LIMIT 1000;
 
 async function getMinActivityTimestamp(qdbConn: DbConnOrTx): Promise<string | null> {
   const query = `
-  select min(timestamp) as minTimestamp
+  select first(timestamp) as minTimestamp
   from activities
   where 
     deletedAt is null and
