@@ -24,10 +24,10 @@ export default {
       segments,
     });
     dispatch('getChartData');
+    dispatch('getConversations');
+    dispatch('getActivities');
     dispatch('getMembers');
     dispatch('getOrganizations');
-    dispatch('getActivities');
-    dispatch('getConversations');
   },
   // Fetch chart data
   getChartData({ state }) {
