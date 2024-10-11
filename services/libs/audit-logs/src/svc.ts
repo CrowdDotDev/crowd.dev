@@ -20,6 +20,7 @@ async function captureChange(
   options: AuditLogRequestOptions,
   action: AuditLogAction,
   skipAuditLog: boolean,
+  error?: Error,
 ): Promise<void> {
   if (skipAuditLog) {
     return
@@ -29,6 +30,14 @@ async function captureChange(
     // we ignore empty diffs but only if the action was successful
     // because when the action fails, the diff will be empty, but we need to log it
     return
+  }
+
+  if (error) {
+    // log only error name and message
+    action.error = {
+      name: error.name,
+      message: error.message,
+    }
   }
 
   const db = await getDbConnection({
@@ -50,7 +59,12 @@ export async function captureApiChange<T>(
 
   const buildActionResult = await buildActionFn()
   try {
-    await captureChange(auditOptions, buildActionResult.auditLog, skipAuditLog)
+    await captureChange(
+      auditOptions,
+      buildActionResult.auditLog,
+      skipAuditLog,
+      buildActionResult.error,
+    )
   } catch (error) {
     throw new Error(`Error capturing change: ${error.message}`)
   }

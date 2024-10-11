@@ -396,18 +396,27 @@ export async function getNumberOfNewOrganizations(
   db: DbStore,
   arg: IQueryNumberOfNewOrganizations,
 ): Promise<number> {
-  const query = `
-    SELECT DISTINCT COUNT(id)
-    FROM organizations
-    WHERE "tenantId" = $(tenantId)
-    AND "createdAt" BETWEEN $(after) AND $(before)
-    AND "deletedAt" IS NULL;
+  let query = `
+    SELECT COUNT(distinct osa."organizationId") as count
+    FROM "organizationSegmentsAgg" osa
+    JOIN organizations o on osa."organizationId" = o.id
+    WHERE osa."tenantId" = $(tenantId)
+    AND o."createdAt" BETWEEN $(after) AND $(before)
   `
+  if (arg.segmentIds) {
+    query += ` AND osa."segmentId" IN ($(segmentIds:csv))`
+  }
+
+  if (arg.platform) {
+    query += ` AND $(platform) = ANY(osa."activeOn")`
+  }
 
   const rows: { count: number }[] = await db.connection().query(query, {
     tenantId: arg.tenantId,
     after: arg.after,
     before: arg.before,
+    segmentIds: arg.segmentIds,
+    platform: arg.platform,
   })
 
   return Number(rows[0].count) || 0
@@ -418,11 +427,11 @@ export async function getNumberOfActiveOrganizations(
   arg: IQueryNumberOfActiveOrganizations,
 ): Promise<number> {
   let query = `
-    SELECT COUNT_DISTINCT("organizationId")
+    SELECT COUNT_DISTINCT("organizationId") as count
     FROM activities
     WHERE "tenantId" = $(tenantId)
     AND "organizationId" IS NOT NULL
-    AND "createdAt" BETWEEN $(after) AND $(before)
+    AND timestamp BETWEEN $(after) AND $(before)
     AND "deletedAt" IS NULL`
 
   if (arg.platform) {
@@ -456,6 +465,7 @@ export async function getTimeseriesOfActiveOrganizations(
     WHERE tenantId = $(tenantId)
     AND "organizationId" IS NOT NULL
     AND timestamp BETWEEN $(after) AND $(before)
+    AND deletedAt IS NULL
   `
 
   if (arg.segmentIds) {
@@ -466,7 +476,7 @@ export async function getTimeseriesOfActiveOrganizations(
     query += ` AND "platform" = $(platform)`
   }
 
-  query += ' SAMPLE BY 1d ALIGN TO CALENDAR ORDER BY timestamp DESC;'
+  query += ' SAMPLE BY 1d ALIGN TO CALENDAR ORDER BY timestamp ASC;'
 
   const rows = await db.connection().query(query, {
     tenantId: arg.tenantId,

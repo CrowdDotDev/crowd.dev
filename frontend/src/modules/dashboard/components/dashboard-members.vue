@@ -136,7 +136,7 @@
               :previous-total="chartData?.activeMembers.previousPeriodTotal"
             />
           </div>
-          <div class="w-7/12 h-21">
+          <div class="w-7/12">
             <!-- Chart -->
             <div
               v-if="!chartData"
