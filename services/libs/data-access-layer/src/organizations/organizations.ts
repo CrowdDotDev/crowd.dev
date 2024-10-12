@@ -113,6 +113,7 @@ export async function findOrgById(
     `
     select  ${prepareSelectColumns(ORG_SELECT_COLUMNS, 'o')}
     from organizations o
+    WHERE o.id = $(organizationId)
     `,
     {
       organizationId,
