@@ -140,7 +140,7 @@ services:
       - crowd-bridge
 
   kafka:
-    image: bitnami/kafka:latest
+    image: bitnami/kafka:3.8.0-debian-12-r6
     restart: unless-stopped
     environment:
       - KAFKA_CFG_NODE_ID=0
@@ -158,6 +158,19 @@ services:
       - '9092:9092'
       - '9093:9093'
       - '9094:9094'
+    networks:
+      - crowd-bridge
+
+  kafka-connect:
+    build:
+      context: scaffold/kafka-connect
+    entrypoint:
+      - connect-standalone
+      - /etc/kafka-connect/worker-local.properties
+      - /etc/kafka-connect/console-local-sink.properties
+      - /etc/kafka-connect/questdb-local-sink.properties
+    volumes:
+      - kafka-connect-dev:/storage
     networks:
       - crowd-bridge
 
@@ -182,3 +195,5 @@ volumes:
   opensearch-dev:
   s3-dev:
   redis-dev:
+  kafka-connect-dev:
+
