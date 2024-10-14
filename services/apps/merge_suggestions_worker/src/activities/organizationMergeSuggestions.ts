@@ -242,9 +242,6 @@ export async function getOrganizationMergeSuggestions(
     query: {
       bool: identitiesPartialQuery,
     },
-    collapse: {
-      field: 'uuid_organizationId',
-    },
     _source: [
       'uuid_organizationId',
       'uuid_tenantId',

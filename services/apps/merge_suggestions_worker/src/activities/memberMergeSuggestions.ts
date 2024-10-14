@@ -165,9 +165,6 @@ export async function getMemberMergeSuggestions(
     query: {
       bool: identitiesPartialQuery,
     },
-    collapse: {
-      field: 'uuid_memberId',
-    },
     _source: [
       'uuid_memberId',
       'keyword_displayName',
