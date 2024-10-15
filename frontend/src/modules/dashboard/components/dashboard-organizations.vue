@@ -23,22 +23,23 @@
               New organizations
             </h6>
             <app-dashboard-count
-              :loading="!cube"
-              :current-total="cube?.newOrganizations.total"
-              :previous-total="cube?.newOrganizations.previousPeriodTotal"
+              :loading="!chartData"
+              :current-total="chartData?.newOrganizations.total"
+              :previous-total="chartData?.newOrganizations.previousPeriodTotal"
             />
           </div>
           <div class="w-7/12">
             <!-- Chart -->
             <div
-              v-if="!cube"
-              v-loading="!cube"
+              v-if="!chartData"
+              v-loading="!chartData"
               class="app-page-spinner !relative chart-loading"
             />
-            <app-dashboard-widget-chart
-              v-else
-              :data="cube?.newOrganizations.timeseries"
-              :datasets="datasets('new organizations')"
+            <lf-chart
+              v-else-if="chartData?.newOrganizations.timeseries?.length"
+              :config="lfxCharts.dashboardAreaChart"
+              :data="mapData(chartData?.newOrganizations.timeseries)"
+              :params="{ label: 'new organizations' }"
             />
           </div>
         </div>
@@ -115,22 +116,23 @@
             </div>
             <!-- info -->
             <app-dashboard-count
-              :loading="!cube"
-              :current-total="cube?.activeOrganizations.total"
-              :previous-total="cube?.activeOrganizations.previousPeriodTotal"
+              :loading="!chartData"
+              :current-total="chartData?.activeOrganizations.total"
+              :previous-total="chartData?.activeOrganizations.previousPeriodTotal"
             />
           </div>
           <div class="w-7/12">
             <!-- Chart -->
             <div
-              v-if="!cube"
-              v-loading="!cube"
+              v-if="!chartData"
+              v-loading="!chartData"
               class="app-page-spinner !relative chart-loading"
             />
-            <app-dashboard-widget-chart
-              v-else
-              :data="cube?.activeOrganizations.timeseries"
-              :datasets="datasets('active organizations')"
+            <lf-chart
+              v-else-if="chartData?.activeOrganizations.timeseries?.length"
+              :config="lfxCharts.dashboardAreaChart"
+              :data="mapData(chartData?.activeOrganizations.timeseries)"
+              :params="{ label: 'active organizations' }"
             />
           </div>
         </div>
@@ -196,18 +198,21 @@ import AppDashboardOrganizationItem from '@/modules/dashboard/components/organiz
 import AppDashboardCount from '@/modules/dashboard/components/dashboard-count.vue';
 import AppDashboardEmptyState from '@/modules/dashboard/components/dashboard-empty-state.vue';
 import AppDashboardWidgetHeader from '@/modules/dashboard/components/dashboard-widget-header.vue';
-import AppDashboardWidgetChart from '@/modules/dashboard/components/dashboard-widget-chart.vue';
 import allOrganizations from '@/modules/organization/config/saved-views/views/all-organizations';
 import { filterQueryService } from '@/shared/modules/filters/services/filter-query.service';
 import { computed } from 'vue';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
-import { DashboardCubeData } from '@/modules/dashboard/types/DashboardCubeData';
+import { lfxCharts } from '@/config/charts';
+import LfChart from '@/ui-kit/chart/Chart.vue';
 
 const {
-  cubeData, organizations, period, activeOrganizations, recentOrganizations,
+  chartData, organizations, period, activeOrganizations, recentOrganizations,
 } = mapGetters('dashboard');
 
-const cube = computed<DashboardCubeData>(() => cubeData.value);
+const mapData = (data: any[]) => data.map((item) => ({
+  label: item.date,
+  value: item.count,
+}));
 
 const periodRange = computed(() => [
   moment()
@@ -218,14 +223,6 @@ const periodRange = computed(() => [
     .utc()
     .format('YYYY-MM-DD'),
 ]);
-
-const datasets = (name: string) => [{
-  name,
-  borderColor: '#003778',
-  measure: 'Organizations.count',
-  granularity: 'day',
-}];
-
 </script>
 
 <script lang="ts">

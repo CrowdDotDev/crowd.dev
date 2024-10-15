@@ -1,0 +1,1 @@
+drop index if exists "auditLogAction_actionType";

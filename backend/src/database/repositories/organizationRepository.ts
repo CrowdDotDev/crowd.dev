@@ -6,26 +6,42 @@ import {
 } from '@crowd/audit-logs'
 import { Error400, Error404, Error409, PageData, RawQueryParser } from '@crowd/common'
 import {
+  countMembersWithActivities,
+  getActiveOrganizations,
+  queryActivities,
+} from '@crowd/data-access-layer'
+import { findManyLfxMemberships } from '@crowd/data-access-layer/src/lfx_memberships'
+import {
   addOrgIdentity,
+  cleanupForOganization,
   cleanUpOrgIdentities,
-  fetchOrgIdentities,
+  deleteOrgAttributesByOrganizationId,
   fetchManyOrgIdentities,
-  updateOrgIdentityVerifiedFlag,
-  findOrgAttributes,
-  queryOrgIdentities,
-  OrgIdentityField,
+  fetchManyOrgSegments,
+  fetchOrgIdentities,
   findManyOrgAttributes,
-  upsertOrgAttributes,
+  findOrgAttributes,
+  findOrgById,
+  IDbOrganization,
   IDbOrgAttribute,
   markOrgAttributeDefault,
-  deleteOrgAttributesByOrganizationId,
+  OrgIdentityField,
+  queryOrgIdentities,
+  updateOrgIdentityVerifiedFlag,
+  upsertOrgAttributes,
 } from '@crowd/data-access-layer/src/organizations'
+import { findAttribute } from '@crowd/data-access-layer/src/organizations/attributesConfig'
+import { optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
+import {
+  findSegmentById,
+  isSegmentProject,
+  isSegmentProjectGroup,
+} from '@crowd/data-access-layer/src/segments'
 import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
 import {
   FeatureFlag,
   IMemberRenderFriendlyRole,
   IMemberRoleWithOrganization,
-  IOrganization,
   IOrganizationIdentity,
   MergeActionState,
   MergeActionType,
@@ -38,18 +54,11 @@ import {
 import lodash, { uniq } from 'lodash'
 import Sequelize, { QueryTypes } from 'sequelize'
 import validator from 'validator'
-import { findManyLfxMemberships } from '@crowd/data-access-layer/src/lfx_memberships'
-import {
-  cleanupForOganization,
-  fetchManyOrgSegments,
-} from '@crowd/data-access-layer/src/organizations/segments'
-import { OrganizationField, findOrgById } from '@crowd/data-access-layer/src/orgs'
-import { findAttribute } from '@crowd/data-access-layer/src/organizations/attributesConfig'
+import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
 import {
   IFetchOrganizationMergeSuggestionArgs,
   SimilarityScoreRange,
 } from '@/types/mergeSuggestionTypes'
-import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import AuditLogRepository from './auditLogRepository'
 import SegmentRepository from './segmentRepository'
@@ -1166,7 +1175,7 @@ class OrganizationRepository {
   static async findByVerifiedIdentities(
     identities: IOrganizationIdentity[],
     options: IRepositoryOptions,
-  ): Promise<IOrganization | null> {
+  ): Promise<IDbOrganization | null> {
     const transaction = SequelizeRepository.getTransaction(options)
     const qx = SequelizeRepository.getQueryExecutor(options, transaction)
 
@@ -1198,19 +1207,7 @@ class OrganizationRepository {
       (a, b) => b.identities.length - a.identities.length,
     )[0].organizationId
 
-    const result = await findOrgById(qx, orgIdWithMostIdentities, [
-      OrganizationField.ID,
-      OrganizationField.DESCRIPTION,
-      OrganizationField.LOGO,
-      OrganizationField.TAGS,
-      OrganizationField.EMPLOYEES,
-      OrganizationField.LOCATION,
-      OrganizationField.TYPE,
-      OrganizationField.SIZE,
-      OrganizationField.HEADLINE,
-      OrganizationField.INDUSTRY,
-      OrganizationField.FOUNDED,
-    ])
+    const result = await findOrgById(qx, orgIdWithMostIdentities)
 
     return result
   }
@@ -1444,7 +1441,11 @@ class OrganizationRepository {
   ): Promise<PageData<IActiveOrganizationData>> {
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
-    const segmentsEnabled = await isFeatureEnabled(FeatureFlag.SEGMENTS, options)
+    if (segments.length !== 1) {
+      throw new Error400(
+        `This operation can have exactly one segment. Found ${segments.length} segments.`,
+      )
+    }
 
     if (segments.length !== 1) {
       throw new Error400(
@@ -1467,136 +1468,39 @@ class OrganizationRepository {
       }
     }
 
-    if (SegmentRepository.isProjectGroup(segment)) {
+    if (isSegmentProjectGroup(segment)) {
       segments = (segment as SegmentProjectGroupNestedData).projects.reduce((acc, p) => {
         acc.push(...p.subprojects.map((sp) => sp.id))
         return acc
       }, [])
-    } else if (SegmentRepository.isProject(segment)) {
+    } else if (isSegmentProject(segment)) {
       segments = (segment as SegmentProjectNestedData).subprojects.map((sp) => sp.id)
     } else {
       segments = [originalSegment]
     }
 
-    const activityPageSize = 10000
-    let activityOffset = 0
-
-    const activityQuery = {
-      query: {
-        bool: {
-          must: [
-            {
-              range: {
-                date_timestamp: {
-                  gte: filter.activityTimestampFrom,
-                  lte: filter.activityTimestampTo,
-                },
-              },
-            },
-            {
-              term: {
-                uuid_tenantId: tenant.id,
-              },
-            },
-          ],
-        },
-      },
-      aggs: {
-        group_by_organization: {
-          terms: {
-            field: 'uuid_organizationId',
-            size: 10000000,
-          },
-          aggs: {
-            activity_count: {
-              value_count: {
-                field: 'uuid_id',
-              },
-            },
-            active_days_count: {
-              cardinality: {
-                field: 'date_timestamp',
-                script: {
-                  source: "doc['date_timestamp'].value.toInstant().toEpochMilli()/86400000",
-                },
-              },
-            },
-            active_organizations_bucket_sort: {
-              bucket_sort: {
-                sort: [{ activity_count: { order: 'desc' } }],
-                size: activityPageSize,
-                from: activityOffset,
-              },
-            },
-          },
-        },
-      },
-      size: 0,
-    } as any
-
-    if (filter.platforms) {
-      const subQueries = filter.platforms.map((p) => ({ match_phrase: { keyword_platform: p } }))
-
-      activityQuery.query.bool.must.push({
-        bool: {
-          should: subQueries,
-        },
-      })
-    }
-
-    if (segmentsEnabled) {
-      const subQueries = segments.map((s) => ({ term: { uuid_segmentId: s } }))
-
-      activityQuery.query.bool.must.push({
-        bool: {
-          should: subQueries,
-        },
-      })
-    }
-
-    const direction = orderBy.split('_')[1].toLowerCase() === 'desc' ? 'desc' : 'asc'
-    if (orderBy.startsWith('activityCount')) {
-      activityQuery.aggs.group_by_organization.aggs.active_organizations_bucket_sort.bucket_sort.sort =
-        [{ activity_count: { order: direction } }]
-    } else if (orderBy.startsWith('activeDaysCount')) {
-      activityQuery.aggs.group_by_organization.aggs.active_organizations_bucket_sort.bucket_sort.sort =
-        [{ active_days_count: { order: direction } }]
-    } else {
-      throw new Error(`Invalid order by: ${orderBy}`)
-    }
+    const activeOrgsResults = await getActiveOrganizations(options.qdb, {
+      timestampFrom: new Date(Date.parse(filter.activityTimestampFrom)),
+      timestampTo: new Date(Date.parse(filter.activityTimestampTo)),
+      tenantId: tenant.id,
+      platforms: filter.platforms ? filter.platforms : undefined,
+      segmentIds: segments,
+      offset: 0,
+      limit: 10000,
+      orderByDirection: orderBy.split('_')[1].toLowerCase() === 'desc' ? 'desc' : 'asc',
+      orderBy: orderBy.startsWith('activityCount') ? 'activityCount' : 'activeDaysCount',
+    })
 
     const organizationIds = []
-    let organizationMap = {}
-    let activities
+    const organizationMap = {}
 
-    do {
-      activities = await options.opensearch.search({
-        index: OpenSearchIndex.ACTIVITIES,
-        body: activityQuery,
-      })
-
-      organizationIds.push(
-        ...activities.body.aggregations.group_by_organization.buckets.map((b) => b.key),
-      )
-
-      organizationMap = {
-        ...organizationMap,
-        ...activities.body.aggregations.group_by_organization.buckets.reduce((acc, b) => {
-          acc[b.key] = {
-            activityCount: b.activity_count,
-            activeDaysCount: b.active_days_count,
-          }
-
-          return acc
-        }, {}),
+    for (const res of activeOrgsResults) {
+      organizationIds.push(res.organizationId)
+      organizationMap[res.organizationId] = {
+        activityCount: res.activityCount,
+        activeDaysCount: res.activeDaysCount,
       }
-
-      activityOffset += activityPageSize
-
-      // update page
-      activityQuery.aggs.group_by_organization.aggs.active_organizations_bucket_sort.bucket_sort.from =
-        activityOffset
-    } while (activities.body.aggregations.group_by_organization.buckets.length === activityPageSize)
+    }
 
     if (organizationIds.length === 0) {
       return {
@@ -1724,9 +1628,8 @@ class OrganizationRepository {
       // remove lfxMembership filter from obj since filterParser doesn't support it
       filter.and = filter.and.filter((f) => !f.and?.some((subF) => subF.lfxMembership))
     }
-
     if (segmentId) {
-      const segment = await new SegmentRepository(options).findById(segmentId)
+      const segment = (await findSegmentById(optionsQx(options), segmentId)) as any
 
       if (segment === null) {
         options.log.info('No segment found for organization')
@@ -1737,6 +1640,8 @@ class OrganizationRepository {
           offset,
         }
       }
+
+      segmentId = segment.id
     }
 
     const params = {
@@ -1967,24 +1872,24 @@ class OrganizationRepository {
     platform: string,
     options: IRepositoryOptions,
   ): Promise<number> {
-    const seq = SequelizeRepository.getSequelize(options)
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    const query = `
-    SELECT count(*) as count
-        FROM "mv_activities_cube"
-        WHERE "organizationId" = :organizationId AND platform = :platform`
-
-    const result = await seq.query(query, {
-      replacements: {
-        organizationId,
-        platform,
+    const result = await queryActivities(options.qdb, {
+      countOnly: true,
+      tenantId: options.currentTenant.id,
+      filter: {
+        and: [
+          {
+            organizationId: {
+              eq: organizationId,
+            },
+            platform: {
+              eq: platform,
+            },
+          },
+        ],
       },
-      type: QueryTypes.SELECT,
-      transaction,
     })
 
-    return (result[0] as any).count as number
+    return result.count
   }
 
   static async getMemberCountInPlatform(
@@ -1992,23 +1897,18 @@ class OrganizationRepository {
     platform: string,
     options: IRepositoryOptions,
   ): Promise<number> {
-    const seq = SequelizeRepository.getSequelize(options)
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    const query = `
-    select count(distinct  "memberId") from mv_activities_cube
-    where "organizationId" = :organizationId AND platform = :platform`
-
-    const result = await seq.query(query, {
-      replacements: {
-        organizationId,
-        platform,
-      },
-      type: QueryTypes.SELECT,
-      transaction,
+    const rows = await countMembersWithActivities(options.qdb, {
+      tenantId: options.currentTenant.id,
+      organizationId,
+      platform,
     })
 
-    return (result[0] as any).count as number
+    let count = 0
+    rows.forEach((row) => {
+      count += Number(row.count)
+    })
+
+    return count
   }
 
   static async removeIdentitiesFromOrganization(

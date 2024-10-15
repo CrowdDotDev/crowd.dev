@@ -1,26 +1,46 @@
 import { Client } from '@opensearch-project/opensearch'
-import { AwsSigv4Signer } from '@opensearch-project/opensearch/aws'
 import { IOpenSearchConfig } from '@crowd/types'
+import { getServiceChildLogger } from '@crowd/logging'
 
-export const getOpensearchClient = (config: IOpenSearchConfig) => {
+const log = getServiceChildLogger('opensearch.connection')
+
+export const getOpensearchClient = async (config: IOpenSearchConfig): Promise<Client> => {
+  let client: Client | undefined
+
+  log.info({ config }, 'Connecting to OpenSearch!')
+
   if (config.node) {
-    if (config.region && config.accessKeyId && config.secretAccessKey) {
-      return new Client({
+    if (config.username) {
+      client = new Client({
         node: config.node,
-        ...AwsSigv4Signer({
-          region: config.region,
-          service: 'es',
-          getCredentials: async () => ({
-            accessKeyId: config.accessKeyId,
-            secretAccessKey: config.secretAccessKey,
-          }),
-        }),
+        auth: {
+          username: config.username,
+          password: config.password,
+        },
+        ssl: {
+          rejectUnauthorized: false,
+        },
+        maxRetries: 3,
+        requestTimeout: 30000,
+        resurrectStrategy: 'ping',
+        pingTimeout: 3000,
+        suggestCompression: true,
+        compression: 'gzip',
+        name: 'opensearch-client',
+      })
+    } else {
+      client = new Client({
+        node: config.node,
       })
     }
-    return new Client({
-      node: config.node,
-    })
   }
 
-  throw new Error('Missing node url while initializing opensearch!')
+  if (!client) {
+    throw new Error('Missing node url while initializing opensearch!')
+  }
+
+  await client.ping()
+  log.info({ config }, 'Connected to OpenSearch!')
+
+  return client
 }

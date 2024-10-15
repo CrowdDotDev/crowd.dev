@@ -19,7 +19,6 @@ export default (app) => {
     `/tenant/:tenantId/member/autocomplete`,
     safeWrap(require('./memberAutocomplete').default),
   )
-  app.get(`/tenant/:tenantId/member`, safeWrap(require('./memberList').default))
   app.get(`/tenant/:tenantId/member/active`, safeWrap(require('./memberActiveList').default))
   app.get(`/tenant/:tenantId/member/:id`, safeWrap(require('./memberFind').default))
   app.get(
@@ -49,4 +48,9 @@ export default (app) => {
   require('./organization').default(app)
   require('./attributes').default(app)
   require('./affiliation').default(app)
+
+  app.post(
+    `/tenant/:tenantId/member/:id/data-issue`,
+    safeWrap(require('./memberDataIssueCreate').default),
+  )
 }

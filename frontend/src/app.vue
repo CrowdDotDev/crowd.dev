@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <div class="sm:hidden md:block lg:block xl:block">
-      <lfx-header-v2 id="lfx-header" product="Community Management" />
+      <lfx-header-v2 v-if="!$route.meta.hideLfxHeader" id="lfx-header" product="Community Management" />
       <router-view v-slot="{ Component }">
         <transition>
           <component :is="Component" v-if="Component" />
@@ -14,6 +14,7 @@
     <div class="sm:block md:hidden lg:hidden xl:hidden">
       <app-resize-page />
     </div>
+    <lf-globals />
   </div>
 </template>
 
@@ -27,11 +28,13 @@ import { useActivityTypeStore } from '@/modules/activity/store/type';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import useSessionTracking from '@/shared/modules/monitoring/useSessionTracking';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import LfGlobals from '@/shared/components/globals.vue';
 
 export default {
   name: 'App',
 
   components: {
+    LfGlobals,
     AppResizePage,
   },
 
@@ -68,11 +71,18 @@ export default {
 
     window.addEventListener('resize', this.handleResize);
     this.handleResize();
-    this.init();
+    const queryParameters = new URLSearchParams(window.location.search);
+    if (queryParameters.get('state') === 'noconnect' && window.location.pathname.includes('/integration')) {
+      return;
+    }
     this.listProjectGroups({
       limit: null,
       reset: true,
     });
+    if (['/auth/callback'].includes(window.location.pathname)) {
+      return;
+    }
+    this.init();
   },
 
   unmounted() {

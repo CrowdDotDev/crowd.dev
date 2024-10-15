@@ -1,51 +1,26 @@
+import { IS_DEV_ENV } from '@crowd/common'
+import { Logger, LoggerBase } from '@crowd/logging'
+import telemetry from '@crowd/telemetry'
+import { Client } from '@opensearch-project/opensearch'
 import {
   IndexVersions,
   OPENSEARCH_INDEX_MAPPINGS,
   OPENSEARCH_INDEX_SETTINGS,
   OpenSearchIndex,
 } from '../types'
-import { IS_DEV_ENV } from '@crowd/common'
-import { Logger, LoggerBase } from '@crowd/logging'
-import { Client } from '@opensearch-project/opensearch'
 import { IIndexRequest, ISearchHit } from './opensearch.data'
-import { AwsSigv4Signer } from '@opensearch-project/opensearch/aws'
-import { IOpenSearchConfig } from '@crowd/types'
-import telemetry from '@crowd/telemetry'
 
 export class OpenSearchService extends LoggerBase {
-  public readonly client: Client
   private readonly indexVersionMap: Map<OpenSearchIndex, string> = new Map()
-  private readonly config: IOpenSearchConfig
 
-  constructor(parentLog: Logger, config: IOpenSearchConfig) {
+  constructor(parentLog: Logger, public readonly client: Client) {
     super(parentLog)
-    this.config = config
 
     const indexNames = Object.values(OpenSearchIndex)
     indexNames.forEach((name) => {
       const version = IndexVersions.get(name)
       this.indexVersionMap.set(name, `${name}_v${version}`)
     })
-
-    if (this.config.region) {
-      this.client = new Client({
-        node: this.config.node,
-        ...AwsSigv4Signer({
-          region: this.config.region,
-          service: 'es',
-          getCredentials: async () => {
-            return {
-              accessKeyId: this.config.accessKeyId,
-              secretAccessKey: this.config.secretAccessKey,
-            }
-          },
-        }),
-      })
-    } else {
-      this.client = new Client({
-        node: this.config.node,
-      })
-    }
   }
 
   private async doesIndexExist(indexName: string): Promise<boolean> {
@@ -271,7 +246,6 @@ export class OpenSearchService extends LoggerBase {
       },
     })
     await this.ensureIndexAndAliasExists(OpenSearchIndex.MEMBERS)
-    await this.ensureIndexAndAliasExists(OpenSearchIndex.ACTIVITIES)
     await this.ensureIndexAndAliasExists(OpenSearchIndex.ORGANIZATIONS)
   }
 

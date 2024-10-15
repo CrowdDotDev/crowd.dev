@@ -24,22 +24,23 @@
               New people
             </h6>
             <app-dashboard-count
-              :loading="!cube"
-              :current-total="cube?.newMembers.total"
-              :previous-total="cube?.newMembers.previousPeriodTotal"
+              :loading="!chartData"
+              :current-total="chartData?.newMembers.total"
+              :previous-total="chartData?.newMembers.previousPeriodTotal"
             />
           </div>
           <div class="w-7/12">
             <!-- Chart -->
             <div
-              v-if="!cube"
-              v-loading="!cube"
+              v-if="!chartData"
+              v-loading="!chartData"
               class="app-page-spinner !relative chart-loading"
             />
-            <app-dashboard-widget-chart
-              v-else
-              :data="cube?.newMembers.timeseries"
-              :datasets="datasets('new people')"
+            <lf-chart
+              v-else-if="chartData?.newMembers.timeseries?.length"
+              :config="lfxCharts.dashboardAreaChart"
+              :data="mapData(chartData?.newMembers.timeseries)"
+              :params="{ label: 'new people' }"
             />
           </div>
         </div>
@@ -130,22 +131,23 @@
 
             <!-- info -->
             <app-dashboard-count
-              :loading="!cube"
-              :current-total="cube?.activeMembers.total"
-              :previous-total="cube?.activeMembers.previousPeriodTotal"
+              :loading="!chartData"
+              :current-total="chartData?.activeMembers.total"
+              :previous-total="chartData?.activeMembers.previousPeriodTotal"
             />
           </div>
-          <div class="w-7/12 h-21">
+          <div class="w-7/12">
             <!-- Chart -->
             <div
-              v-if="!cube"
-              v-loading="!cube"
+              v-if="!chartData"
+              v-loading="!chartData"
               class="app-page-spinner !relative chart-loading"
             />
-            <app-dashboard-widget-chart
-              v-else
-              :datasets="datasets('active members')"
-              :data="cube?.activeMembers.timeseries"
+            <lf-chart
+              v-else-if="chartData?.activeMembers.timeseries?.length"
+              :config="lfxCharts.dashboardAreaChart"
+              :data="mapData(chartData?.activeMembers.timeseries)"
+              :params="{ label: 'active people' }"
             />
           </div>
         </div>
@@ -212,25 +214,28 @@
 </template>
 
 <script lang="ts" setup>
+import { computed } from 'vue';
+import moment from 'moment';
 import { formatDateToTimeAgo } from '@/utils/date';
 import AppDashboardEmptyState from '@/modules/dashboard/components/dashboard-empty-state.vue';
 import AppDashboardWidgetHeader from '@/modules/dashboard/components/dashboard-widget-header.vue';
-import AppDashboardWidgetChart from '@/modules/dashboard/components/dashboard-widget-chart.vue';
 import AppDashboardMemberItem from '@/modules/dashboard/components/member/dashboard-member-item.vue';
 import AppDashboardCount from '@/modules/dashboard/components/dashboard-count.vue';
 import { filterQueryService } from '@/shared/modules/filters/services/filter-query.service';
 import allMembers from '@/modules/member/config/saved-views/views/all-members';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
-import { computed } from 'vue';
-import moment from 'moment';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
-import { DashboardCubeData } from '@/modules/dashboard/types/DashboardCubeData';
+import { lfxCharts } from '@/config/charts';
+import LfChart from '@/ui-kit/chart/Chart.vue';
 
 const {
-  cubeData, members, period, activeMembers, recentMembers,
+  chartData, members, period, activeMembers, recentMembers,
 } = mapGetters('dashboard');
 
-const cube = computed<DashboardCubeData>(() => cubeData.value);
+const mapData = (data: any[]) => data.map((item) => ({
+  label: item.date,
+  value: item.count,
+}));
 
 const periodRange = computed(() => [
   moment()
@@ -241,12 +246,6 @@ const periodRange = computed(() => [
     .utc()
     .format('YYYY-MM-DD'),
 ]);
-const datasets = (name: string) => [{
-  name,
-  borderColor: '#003778',
-  measure: 'Members.count',
-  granularity: 'day',
-}];
 
 const getPlatformDetails = (platform: string) => CrowdIntegrations.getConfig(platform);
 

@@ -2,8 +2,9 @@ import { timeout } from '@crowd/common'
 import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { OrganizationRepository } from '@crowd/data-access-layer/src/old/apps/search_sync_worker/organization.repo'
 import { getServiceLogger } from '@crowd/logging'
-import { OpenSearchService, OrganizationSyncService } from '@crowd/opensearch'
+import { getOpensearchClient, OpenSearchService, OrganizationSyncService } from '@crowd/opensearch'
 import { IndexedEntityType } from '@crowd/opensearch/src/repo/indexing.data'
+import { getClientSQL } from '@crowd/questdb'
 import { IndexingRepository } from '@crowd/opensearch/src/repo/indexing.repo'
 import { OPENSEARCH_CONFIG } from '../conf'
 
@@ -14,7 +15,8 @@ const processArguments = process.argv.slice(2)
 const MAX_CONCURRENT = 3
 
 setImmediate(async () => {
-  const openSearchService = new OpenSearchService(log, OPENSEARCH_CONFIG())
+  const osClient = await getOpensearchClient(OPENSEARCH_CONFIG())
+  const openSearchService = new OpenSearchService(log, osClient)
 
   const writeHost = await getDbConnection({
     host: process.env.CROWD_DB_WRITE_HOST,
@@ -34,6 +36,9 @@ setImmediate(async () => {
     password: process.env.CROWD_DB_PASSWORD,
   })
 
+  const qdbConn = await getClientSQL()
+  const qdbStore = new DbStore(log, qdbConn)
+
   if (processArguments.includes('--clean')) {
     const indexingRepo = new IndexingRepository(writeStore, log)
     await indexingRepo.deleteIndexedEntities(IndexedEntityType.ORGANIZATION)
@@ -44,7 +49,13 @@ setImmediate(async () => {
 
   const tenantIds = await repo.getTenantIds()
 
-  const service = new OrganizationSyncService(writeStore, openSearchService, log, readStore)
+  const service = new OrganizationSyncService(
+    qdbStore,
+    writeStore,
+    openSearchService,
+    log,
+    readStore,
+  )
 
   let current = 0
   for (let i = 0; i < tenantIds.length; i++) {

@@ -1,4 +1,4 @@
-import { SEVEN_DAYS_PERIOD_FILTER } from '@/modules/widget/widget-constants';
+import { SEVEN_DAYS_PERIOD_FILTER } from '@/modules/dashboard/constants/period-constants';
 
 export default () => ({
   filters: {
@@ -9,7 +9,7 @@ export default () => ({
       childSegments: [],
     },
   },
-  cubeData: null,
+  chartData: null,
   conversations: {
     loading: false,
     recent: [],

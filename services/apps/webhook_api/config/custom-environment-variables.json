@@ -6,12 +6,9 @@
     "user": "CROWD_DB_USERNAME",
     "password": "CROWD_DB_PASSWORD"
   },
-  "sqs": {
-    "region": "CROWD_SQS_AWS_REGION",
-    "host": "CROWD_SQS_HOST",
-    "port": "CROWD_SQS_PORT",
-    "accessKeyId": "CROWD_SQS_AWS_ACCESS_KEY_ID",
-    "secretAccessKey": "CROWD_SQS_AWS_SECRET_ACCESS_KEY"
+  "queue": {
+    "brokers": "CROWD_KAFKA_BROKERS",
+    "extra": "CROWD_KAFKA_EXTRA"
   },
   "unleash": {
     "url": "CROWD_UNLEASH_URL",
@@ -22,5 +19,11 @@
     "password": "CROWD_REDIS_PASSWORD",
     "host": "CROWD_REDIS_HOST",
     "port": "CROWD_REDIS_PORT"
+  },
+  "githubIssueReporter": {
+    "appId": "CROWD_GITHUB_ISSUE_REPORTER_APP_ID",
+    "privateKey": "CROWD_GITHUB_ISSUE_REPORTER_PRIVATE_KEY",
+    "installationId": "CROWD_GITHUB_ISSUE_REPORTER_INSTALLATION_ID",
+    "webhookSecret": "CROWD_GITHUB_ISSUE_REPORTER_WEBHOOK_SECRET"
   }
 }

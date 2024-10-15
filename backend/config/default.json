@@ -6,14 +6,12 @@
   "integrationProcessing": {
     "maxRetries": 5
   },
-  "sqs": {},
   "s3": {},
   "db": {
     "dialect": "postgres",
     "logging": false,
     "transactions": false
   },
-  "cubejs": {},
   "searchEngine": {},
   "segment": {},
   "comprehend": {

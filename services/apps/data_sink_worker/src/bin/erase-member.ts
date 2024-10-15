@@ -1,24 +1,21 @@
 import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { getServiceChildLogger } from '@crowd/logging'
-import { DB_CONFIG, REDIS_CONFIG, SQS_CONFIG, UNLEASH_CONFIG } from '../conf'
+import { DB_CONFIG, REDIS_CONFIG, QUEUE_CONFIG } from '../conf'
 import path from 'path'
 import fs from 'fs'
 import { generateUUIDv1 } from '@crowd/common'
-import { getServiceTracer } from '@crowd/tracing'
-import { getSqsClient } from '@crowd/sqs'
+import { QueueFactory } from '@crowd/queue'
 import {
   PriorityLevelContextRepository,
   QueuePriorityContextLoader,
   SearchSyncWorkerEmitter,
 } from '@crowd/common_services'
 import { getRedisClient } from '@crowd/redis'
-import { getUnleashClient } from '@crowd/feature-flags'
 import { MemberIdentityType } from '@crowd/types'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 const log = getServiceChildLogger('erase-member')
-const tracer = getServiceTracer()
 
 const processArguments = process.argv.slice(2)
 
@@ -39,21 +36,13 @@ setImmediate(async () => {
   const manualCheckFile = `manual_check_member_ids.txt`
   const dbConnection = await getDbConnection(DB_CONFIG())
   const store = new DbStore(log, dbConnection)
-  const sqsClient = getSqsClient(SQS_CONFIG())
+  const queueClient = QueueFactory.createQueueService(QUEUE_CONFIG())
   const redisClient = await getRedisClient(REDIS_CONFIG())
-  const unleash = await getUnleashClient(UNLEASH_CONFIG())
   const priorityLevelRepo = new PriorityLevelContextRepository(new DbStore(log, dbConnection), log)
   const loader: QueuePriorityContextLoader = (tenantId: string) =>
     priorityLevelRepo.loadPriorityLevelContext(tenantId)
 
-  const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(
-    sqsClient,
-    redisClient,
-    tracer,
-    unleash,
-    loader,
-    log,
-  )
+  const searchSyncWorkerEmitter = new SearchSyncWorkerEmitter(queueClient, redisClient, loader, log)
   await searchSyncWorkerEmitter.init()
 
   const pairs = []

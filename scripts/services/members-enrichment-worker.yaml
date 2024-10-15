@@ -13,7 +13,7 @@ services:
       context: ../../
       dockerfile: ./scripts/services/docker/Dockerfile.members_enrichment_worker
     command: 'pnpm run start'
-    working_dir: /usr/crowd/app/services/apps/members_enrichment_worker
+    working_dir: /usr/crowd/app/services/apps/premium/members_enrichment_worker
     env_file:
       - ../../backend/.env.dist.local
       - ../../backend/.env.dist.composed
@@ -43,10 +43,8 @@ services:
     networks:
       - crowd-bridge
     volumes:
-      - ../../services/libs/alerting/src:/usr/crowd/app/services/libs/alerting/src
       - ../../services/libs/common/src:/usr/crowd/app/services/libs/common/src
       - ../../services/libs/conversations/src:/usr/crowd/app/services/libs/conversations/src
-      - ../../services/libs/cubejs/src:/usr/crowd/app/services/libs/cubejs/src
       - ../../services/libs/database/src:/usr/crowd/app/services/libs/database/src
       - ../../services/libs/integrations/src:/usr/crowd/app/services/libs/integrations/src
       - ../../services/libs/ioc/src:/usr/crowd/app/services/libs/ioc/src

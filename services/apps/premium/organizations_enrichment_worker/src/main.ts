@@ -10,6 +10,9 @@ const config: Config = {
   temporal: {
     enabled: true,
   },
+  questdb: {
+    enabled: false,
+  },
   redis: {
     enabled: true,
   },
@@ -19,7 +22,7 @@ const options: Options = {
   postgres: {
     enabled: true,
   },
-  sqs: {
+  queue: {
     enabled: true,
   },
 }

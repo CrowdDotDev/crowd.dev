@@ -40,3 +40,21 @@ export const logExecutionTimeV2 = async <T>(
     throw e
   }
 }
+
+export const timer = (log: Logger, name: string) => {
+  const start = performance.now()
+  let isEnded = false
+  return {
+    end: function () {
+      if (isEnded) {
+        return
+      }
+      isEnded = true
+
+      const end = performance.now()
+      const duration = end - start
+      const durationInSeconds = duration / 1000
+      log.info(`Process ${name} took ${durationInSeconds.toFixed(2)} seconds!`)
+    },
+  }
+}
