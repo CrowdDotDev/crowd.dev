@@ -22,7 +22,7 @@
       </lf-contributor-details-identity-add-dropdown>
     </div>
 
-    <div v-if="!masked" class="flex flex-col gap-3">
+    <div v-if="!masked && identityList.length > 0" class="flex flex-col gap-3">
       <lf-contributor-details-identity-item
         v-for="identity of identityList.slice(0, showMore ? identityList.length : 10)"
         :key="`${identity.platform}-${identity.value}`"
@@ -32,13 +32,13 @@
         @edit="editIdentity = identity"
         @unmerge="unmerge(identity.id)"
       />
+    </div>
 
-      <div v-if="identities.length === 0" class="pt-2 flex flex-col items-center">
-        <lf-icon name="fingerprint-fill" :size="40" class="text-gray-300" />
-        <p class="text-center pt-3 text-medium text-gray-400">
-          No identities
-        </p>
-      </div>
+    <div v-else-if="!masked" class="pt-2 flex flex-col items-center">
+      <lf-icon name="fingerprint-fill" :size="40" class="text-gray-300" />
+      <p class="text-center pt-3 text-medium text-gray-400">
+        No identities
+      </p>
     </div>
 
     <div v-else>
