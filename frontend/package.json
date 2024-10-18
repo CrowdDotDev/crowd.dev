@@ -45,8 +45,6 @@
     "axios": "^1.6.8",
     "chart.js": "^3.9.1",
     "chartjs-adapter-moment": "^1.0.1",
-    "chartjs-plugin-annotation": "^2.2.1",
-    "chartkick": "^5.0.1",
     "dayjs": "^1.11.12",
     "element-plus": "^2.3.1",
     "eslint-import-resolver-alias": "^1.1.2",

@@ -27,10 +27,8 @@ export async function moveActivitiesBetweenOrgs(
   primaryId: string,
   secondaryId: string,
   tenantId: string,
-): Promise<boolean> {
-  const result = await moveActivitiesToNewOrg(svc.questdbSQL.$dc, primaryId, secondaryId, tenantId)
-
-  return result.rowCount > 0
+): Promise<void> {
+  await moveActivitiesToNewOrg(svc.questdbSQL, primaryId, secondaryId, tenantId)
 }
 
 export async function recalculateActivityAffiliationsOfOrganizationSynchronous(

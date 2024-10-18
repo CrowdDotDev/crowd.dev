@@ -637,7 +637,7 @@ export default {
     async doGroupsioConnect(
       { commit },
       {
-        email, token, tokenExpiry, password, groups, isUpdate,
+        email, token, tokenExpiry, password, groups, isUpdate, autoImports,
       },
     ) {
       console.log('doGroupsioConnect', email, token, groups, isUpdate);
@@ -651,6 +651,7 @@ export default {
           tokenExpiry,
           password,
           groups,
+          autoImports,
         );
 
         commit('CREATE_SUCCESS', integration);

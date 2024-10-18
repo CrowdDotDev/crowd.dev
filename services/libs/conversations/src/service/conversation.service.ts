@@ -128,7 +128,7 @@ export class ConversationService extends LoggerBase {
 
     let results: IQueryActivityResult[] = [activity]
     if (activity.parentId) {
-      results = await getActivitiesById(this.qdbStore, [activity.parentId])
+      results = await getActivitiesById(this.qdbStore, [activity.parentId], tenantId, [segmentId])
       if (results.length !== 1) {
         throw new Error(`Parent activity ${activity.parentId} does not exist!`)
       }

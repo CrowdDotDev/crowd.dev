@@ -35,10 +35,11 @@
               v-loading="!chartData"
               class="app-page-spinner h-16 !relative !min-h-5 chart-loading"
             />
-            <app-dashboard-widget-chart
-              v-else
-              :datasets="datasets"
-              :data="chartData?.activity.timeseries"
+            <lf-chart
+              v-else-if="chartData?.activity.timeseries?.length"
+              :config="lfxCharts.dashboardAreaChart"
+              :data="mapData(chartData?.activity.timeseries)"
+              :params="{ label: 'new activities' }"
             />
           </div>
         </div>
@@ -76,7 +77,6 @@
 <script lang="ts" setup>
 import AppDashboardActivityTypes from '@/modules/dashboard/components/activity/dashboard-activity-types.vue';
 import AppDashboardWidgetHeader from '@/modules/dashboard/components/dashboard-widget-header.vue';
-import AppDashboardWidgetChart from '@/modules/dashboard/components/dashboard-widget-chart.vue';
 import AppDashboardConversationList from '@/modules/dashboard/components/conversations/dashboard-conversation-list.vue';
 import AppDashboardActivityList from '@/modules/dashboard/components/activity/dashboard-activity-list.vue';
 import AppDashboardActivitySentiment from '@/modules/dashboard/components/activity/dashboard-activity-sentiment.vue';
@@ -84,19 +84,19 @@ import AppDashboardCount from '@/modules/dashboard/components/dashboard-count.vu
 import { filterQueryService } from '@/shared/modules/filters/services/filter-query.service';
 import { ref } from 'vue';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import { lfxCharts } from '@/config/charts';
+import LfChart from '@/ui-kit/chart/Chart.vue';
 
 const {
   chartData, activities,
 } = mapGetters('dashboard');
 
-const tab = ref('recentConversations');
+const mapData = (data: any[]) => data.map((item) => ({
+  label: item.date,
+  value: item.count,
+}));
 
-const datasets = [{
-  name: 'new activities',
-  borderColor: '#003778',
-  measure: 'Activities.count',
-  granularity: 'day',
-}];
+const tab = ref('recentConversations');
 
 const allActivitiesFilter = ({
   search: '',
