@@ -1,13 +1,10 @@
 import { getMembers } from './activities/getMembers'
 import {
-  enrichMemberUsingGitHubHandle,
-  enrichMemberUsingEmailAddress,
-} from './activities/getEnrichmentData'
-import {
-  normalizeEnrichedMember,
-  updateMergeSuggestions,
-  updateOrganizations,
-} from './activities/normalizeEnrichedMember'
+  getEnrichmentData,
+  normalizeEnrichmentData,
+  findMemberEnrichmentCache,
+  insertMemberEnrichmentCache,
+} from './activities/enrichment'
 import {
   syncMembersToOpensearch,
   syncOrganizationsToOpensearch,
@@ -31,11 +28,10 @@ import {
 
 export {
   getMembers,
-  enrichMemberUsingGitHubHandle,
-  enrichMemberUsingEmailAddress,
-  normalizeEnrichedMember,
-  updateMergeSuggestions,
-  updateOrganizations,
+  getEnrichmentData,
+  normalizeEnrichmentData,
+  findMemberEnrichmentCache,
+  insertMemberEnrichmentCache,
   syncMembersToOpensearch,
   syncOrganizationsToOpensearch,
   refreshToken,

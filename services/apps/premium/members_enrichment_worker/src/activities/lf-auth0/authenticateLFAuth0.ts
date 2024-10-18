@@ -1,7 +1,7 @@
 import { AuthenticationClient } from 'auth0'
 import { svc } from '../../main'
 import { RedisCache } from '@crowd/redis'
-import { ITokenWithExpiration } from '../../types/lfid-enrichment'
+import { ITokenWithExpiration } from '../../sources/lfid/types'
 
 export async function refreshToken(): Promise<string> {
   const redisCache = new RedisCache(`lfx-auth0`, svc.redis, svc.log)

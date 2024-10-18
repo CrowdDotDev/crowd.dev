@@ -1,9 +1,9 @@
 import { DbTransaction } from '@crowd/database'
-import { EnrichmentAPIMember } from '@crowd/types/src/premium'
+import { IEnrichmentDataProgAI } from '@crowd/types/src/premium'
 import { generateUUIDv4 } from '@crowd/common'
 import { upsertMemberIdentity } from '../../../../member_identities'
 import { PgPromiseQueryExecutor } from '../../../../queryExecutor'
-import { MemberIdentityType } from '@crowd/types'
+import { MemberEnrichmentSource, MemberIdentityType } from '@crowd/types'
 
 export async function insertMemberIdentity(
   tx: DbTransaction,
@@ -22,20 +22,6 @@ export async function insertMemberIdentity(
     type,
     verified,
   })
-}
-
-export async function insertMemberEnrichmentCache(
-  tx: DbTransaction,
-  data: EnrichmentAPIMember,
-  memberId: string,
-) {
-  return tx.query(
-    `INSERT INTO "memberEnrichmentCache" ("memberId", "data", "createdAt", "updatedAt")
-      VALUES ($1, $2, NOW(), NOW())
-      ON CONFLICT ("memberId") DO UPDATE
-      SET data = EXCLUDED.data, "updatedAt" = NOW();`,
-    [memberId, JSON.stringify(data)],
-  )
 }
 
 export async function setMemberAttributeSettings(

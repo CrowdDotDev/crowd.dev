@@ -1,4 +1,4 @@
-export interface EnrichmentAPIContribution {
+export interface IEnrichmentAPIContributionProgAI {
   project_name: string
   github_url: string
   first_commit_date: string
@@ -9,12 +9,12 @@ export interface EnrichmentAPIContribution {
   topics: string[]
 }
 
-export interface EnrichmentAPISkills {
+export interface IEnrichmentAPISkillsProgAI {
   skill: string
   weight: number
 }
 
-export interface EnrichmentAPIWorkExperience {
+export interface IEnrichmentAPIWorkExperienceProgAI {
   company: string
   companyLinkedInUrl: string
   companyUrl: string
@@ -31,7 +31,7 @@ export interface EnrichmentAPIWorkExperience {
   title: string
 }
 
-export interface EnrichmentAPIEducation {
+export interface IEnrichmentAPIEducationProgAI {
   campus: string
   campusUuid: string
   current: number
@@ -42,12 +42,12 @@ export interface EnrichmentAPIEducation {
   startDate: string
 }
 
-export interface EnrichmentAPICertification {
+export interface IEnrichmentAPICertificationProgAI {
   description: string
   title: string
 }
 
-export interface EnrichmentAPIMember {
+export interface IEnrichmentDataProgAI {
   id: number
   profile_pic_url?: string
   full_name?: string
@@ -66,21 +66,21 @@ export interface EnrichmentAPIMember {
   country?: string
   country_id?: number
   company?: string
-  skills?: EnrichmentAPISkills[]
+  skills?: IEnrichmentAPISkillsProgAI[]
   programming_languages?: string[]
   languages?: string[]
   years_of_experience?: number
   bio?: string
-  oss_contributions?: EnrichmentAPIContribution[]
-  work_experiences?: EnrichmentAPIWorkExperience[]
-  educations?: EnrichmentAPIEducation[]
+  oss_contributions?: IEnrichmentAPIContributionProgAI[]
+  work_experiences?: IEnrichmentAPIWorkExperienceProgAI[]
+  educations?: IEnrichmentAPIEducationProgAI[]
   awards?: string[]
-  certifications?: EnrichmentAPICertification[]
+  certifications?: IEnrichmentAPICertificationProgAI[]
   expertise?: string[]
 }
 
-export interface EnrichmentAPIResponse {
-  profile: EnrichmentAPIMember
+export interface IEnrichmentDataProgAIResponse {
+  profile: IEnrichmentDataProgAI
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   error?: any
 }

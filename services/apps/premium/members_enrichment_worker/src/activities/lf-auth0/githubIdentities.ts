@@ -7,7 +7,7 @@ import {
 } from '@crowd/data-access-layer/src/old/apps/premium/members_enrichment_worker'
 import { GithubAPIResource, GithubTokenRotator } from '@crowd/integrations'
 import { RedisCache } from '@crowd/redis'
-import { IGithubUser } from '../../types/lfid-enrichment'
+import { IGithubUser } from '../../sources/lfid/types'
 
 export async function getGithubIdentitiesWithoutSourceId(
   limit: number,

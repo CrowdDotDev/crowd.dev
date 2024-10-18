@@ -13,7 +13,7 @@ const { getLFIDEnrichableMembers } = proxyActivities<typeof activities>({
 })
 
 import { enrichMemberWithLFAuth0 } from '../lf-auth0/enrichMemberWithLFAuth0'
-import { IGetMembersForLFIDEnrichmentArgs } from '../../types/lfid-enrichment'
+import { IGetMembersForLFIDEnrichmentArgs } from '../../sources/lfid/types'
 import { IMember } from '@crowd/types'
 
 export async function getMembersForLFIDEnrichment(
