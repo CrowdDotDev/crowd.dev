@@ -505,12 +505,33 @@ export default class ConversationService extends LoggerBase {
       countOnly,
     })
 
+    if (results.count === 0 || results.rows.length === 0) {
+      return results
+    }
+
+    // Filter activities to have happened in the last month. If the activities
+    // worker failed to create a conversation for activities, this gives a buffer
+    // of a month to search for activities.
+    const since = new Date(results.rows[results.rows.length - 1].createdAt)
+    since.setMonth(since.getMonth() - 1)
+
     const conversationIds = results.rows.map((r) => r.id)
     const activities = (await queryActivities(
       this.options.qdb,
       {
         filter: {
-          and: [{ conversationId: { in: conversationIds } }],
+          and: [
+            {
+              conversationId: {
+                in: conversationIds,
+              },
+            },
+            {
+              timestamp: {
+                gte: since,
+              },
+            },
+          ],
         },
         tenantId,
         segmentIds,

@@ -128,12 +128,6 @@ class TaskRepository {
       })
     }
 
-    if (data.activities) {
-      await record.setActivities(data.activities, {
-        transaction,
-      })
-    }
-
     if (data.assignees) {
       await record.setAssignees(data.assignees, {
         transaction,
@@ -497,7 +491,13 @@ class TaskRepository {
     )
     const activityIds = results.map((r) => (r as any).activityId)
     if (activityIds.length > 0) {
-      output.activities = await getActivitiesById(options.qdb, activityIds)
+      const segmentIds = SequelizeRepository.getSegmentIds(options)
+      output.activities = await getActivitiesById(
+        options.qdb,
+        activityIds,
+        options.currentTenant.id,
+        segmentIds,
+      )
     } else {
       output.activities = []
     }

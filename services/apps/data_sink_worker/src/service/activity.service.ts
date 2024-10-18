@@ -1,7 +1,6 @@
 import { EDITION, escapeNullByte, isObjectEmpty, singleOrDefault } from '@crowd/common'
 import { SearchSyncWorkerEmitter } from '@crowd/common_services'
-import { ConversationService } from '@crowd/conversations'
-import { IQueryActivityResult, insertActivities, updateActivity } from '@crowd/data-access-layer'
+import { insertActivities } from '@crowd/data-access-layer'
 import { DbStore, arePrimitivesDbEqual } from '@crowd/data-access-layer/src/database'
 import {
   IDbActivity,
@@ -13,8 +12,9 @@ import GitlabReposRepository from '@crowd/data-access-layer/src/old/apps/data_si
 import IntegrationRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/integration.repo'
 import { IDbMember } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.data'
 import MemberRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/member.repo'
-import SettingsRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/settings.repo'
 import RequestedForErasureMemberIdentitiesRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/requestedForErasureMemberIdentities.repo'
+import SettingsRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/settings.repo'
+import { DEFAULT_ACTIVITY_TYPE_SETTINGS } from '@crowd/integrations'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
 import { ISentimentAnalysisResult, getSentiment } from '@crowd/sentiment'
@@ -33,11 +33,8 @@ import { TEMPORAL_CONFIG } from '../conf'
 import { IActivityCreateData, IActivityUpdateData, ISentimentActivityInput } from './activity.data'
 import MemberService from './member.service'
 import MemberAffiliationService from './memberAffiliation.service'
-import { DEFAULT_ACTIVITY_TYPE_SETTINGS } from '@crowd/integrations'
 
 export default class ActivityService extends LoggerBase {
-  private readonly conversationService: ConversationService
-
   constructor(
     private readonly pgStore: DbStore,
     private readonly qdbStore: DbStore,
@@ -47,8 +44,6 @@ export default class ActivityService extends LoggerBase {
     parentLog: Logger,
   ) {
     super(parentLog)
-
-    this.conversationService = new ConversationService(pgStore, qdbStore.connection(), this.log)
   }
 
   public async create(
@@ -309,29 +304,27 @@ export default class ActivityService extends LoggerBase {
       })
 
       if (updated) {
-        const activityToProcess: IQueryActivityResult = {
-          id: id,
-          tenantId: tenantId,
-          segmentId: segmentId,
-          type: toUpdate.type || original.type,
-          isContribution: toUpdate.isContribution || original.isContribution,
-          score: toUpdate.score || original.score,
-          sourceId: toUpdate.sourceId || original.sourceId,
-          sourceParentId: toUpdate.sourceParentId || original.sourceParentId,
-          memberId: toUpdate.memberId || original.memberId,
-          username: toUpdate.username || original.username,
-          sentiment: toUpdate.sentiment || original.sentiment,
-          attributes: toUpdate.attributes || original.attributes,
-          body: escapeNullByte(toUpdate.body || original.body),
-          title: escapeNullByte(toUpdate.title || original.title),
-          channel: toUpdate.channel || original.channel,
-          url: toUpdate.url || original.url,
-          organizationId: toUpdate.organizationId || original.organizationId,
-          platform: toUpdate.platform || (original.platform as PlatformType),
-          timestamp: original.timestamp,
-        }
-
-        await this.conversationService.processActivity(tenantId, segmentId, activityToProcess)
+        // const activityToProcess: IQueryActivityResult = {
+        //   id: id,
+        //   tenantId: tenantId,
+        //   segmentId: segmentId,
+        //   type: toUpdate.type || original.type,
+        //   isContribution: toUpdate.isContribution || original.isContribution,
+        //   score: toUpdate.score || original.score,
+        //   sourceId: toUpdate.sourceId || original.sourceId,
+        //   sourceParentId: toUpdate.sourceParentId || original.sourceParentId,
+        //   memberId: toUpdate.memberId || original.memberId,
+        //   username: toUpdate.username || original.username,
+        //   sentiment: toUpdate.sentiment || original.sentiment,
+        //   attributes: toUpdate.attributes || original.attributes,
+        //   body: escapeNullByte(toUpdate.body || original.body),
+        //   title: escapeNullByte(toUpdate.title || original.title),
+        //   channel: toUpdate.channel || original.channel,
+        //   url: toUpdate.url || original.url,
+        //   organizationId: toUpdate.organizationId || original.organizationId,
+        //   platform: toUpdate.platform || (original.platform as PlatformType),
+        //   timestamp: original.timestamp,
+        // }
 
         if (fireSync) {
           await this.searchSyncWorkerEmitter.triggerMemberSync(

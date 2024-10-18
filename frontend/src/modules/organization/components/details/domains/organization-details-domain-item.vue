@@ -44,16 +44,6 @@
         >
           <lf-icon name="pencil-line" />Edit domain
         </lf-dropdown-item>
-        <lf-dropdown-item
-          v-else
-          @click="setReportDataModal({
-            organization: props.organization,
-            type: ReportDataType.DOMAIN,
-            attribute: props.domain,
-          })"
-        >
-          <lf-icon name="feedback-line" class="!text-red-500" />Report issue
-        </lf-dropdown-item>
 
         <!-- Unmerge -->
         <lf-dropdown-item
@@ -61,6 +51,16 @@
           @click="emit('unmerge')"
         >
           <lf-icon name="link-unlink" />Unmerge domain
+        </lf-dropdown-item>
+
+        <lf-dropdown-item
+          @click="setReportDataModal({
+            organization: props.organization,
+            type: ReportDataType.DOMAIN,
+            attribute: props.domain,
+          })"
+        >
+          <lf-icon name="feedback-line" class="!text-red-500" />Report issue
         </lf-dropdown-item>
 
         <lf-dropdown-separator

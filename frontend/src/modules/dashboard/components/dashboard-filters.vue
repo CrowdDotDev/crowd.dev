@@ -76,9 +76,9 @@ import AppLfProjectFilterButton from '@/modules/lf/segments/components/filter/lf
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';
 import { getSegmentsFromProjectGroup } from '@/utils/segments';
-import AppWidgetPeriod from '@/modules/widget/components/shared/widget-period.vue';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import AppWidgetPeriod from '@/modules/dashboard/components/widget/widget-period.vue';
 
 export default {
   name: 'AppDashboardFilters',

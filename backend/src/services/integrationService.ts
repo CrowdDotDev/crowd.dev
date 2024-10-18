@@ -71,6 +71,7 @@ import {
 } from '@/serverless/integrations/usecases/gitlab/getProjects'
 import { setupGitlabWebhooks } from '@/serverless/integrations/usecases/gitlab/setupWebhooks'
 import { removeGitlabWebhooks } from '@/serverless/integrations/usecases/gitlab/removeWebhooks'
+import { getUserSubscriptions } from '@/serverless/integrations/usecases/groupsio/getUserSubscriptions'
 
 const discordToken = DISCORD_CONFIG.token || DISCORD_CONFIG.token2
 
@@ -1828,20 +1829,6 @@ export default class IntegrationService {
     // user should update them every time thety change something
 
     try {
-      for (const group of integrationData.groups) {
-        const config: AxiosRequestConfig = {
-          method: 'get',
-          url: `https://groups.io/api/v1/getgroup?group_name=${encodeURIComponent(group.slug)}`,
-          headers: {
-            'Content-Type': 'application/json',
-            Cookie: integrationData.token,
-          },
-        }
-
-        const response = await axios(config)
-        group.id = response.data.id
-        group.name = response.data.nice_group_name
-      }
       this.options.log.info('Creating Groups.io integration!')
       const encryptedPassword = encryptData(integrationData.password)
       integration = await this.createOrUpdate(
@@ -1853,6 +1840,7 @@ export default class IntegrationService {
             tokenExpiry: integrationData.tokenExpiry,
             password: encryptedPassword,
             groups: integrationData.groups,
+            autoImports: integrationData.autoImports,
             updateMemberAttributes: true,
           },
           status: 'in-progress',
@@ -1880,6 +1868,12 @@ export default class IntegrationService {
 
     return integration
   }
+
+  // we need to get all user groups and subgroups he has access to
+  // groups all sub groups based on a group name
+  // also we would need to autoimport new groups and add them to settings - either cron job or during incremental sync
+
+  // we might need to change settings structure of already existing integrations
 
   async groupsioGetToken(data: GroupsioGetToken) {
     const config: AxiosRequestConfig = {
@@ -1943,6 +1937,16 @@ export default class IntegrationService {
     } catch (err) {
       this.options.log.error('Error verifying groups.io group.', err)
       throw new Error400(this.options.language, 'errors.groupsio.invalidGroup')
+    }
+  }
+
+  async groupsioGetUserSubscriptions({ cookie }: { cookie: string }) {
+    try {
+      const subscriptions = await getUserSubscriptions(cookie)
+      return subscriptions
+    } catch (error) {
+      this.options.log.error('Error fetching groups.io user subscriptions:', error)
+      throw new Error400(this.options.language, 'errors.groupsio.fetchSubscriptionsFailed')
     }
   }
 

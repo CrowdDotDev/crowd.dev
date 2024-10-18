@@ -187,6 +187,7 @@ export async function getNewOrganizationsTimeseries(
       timestampFrom: params.startDate,
       timestampTo: params.endDate,
       platform: params.platform,
+      groupBy: 'day',
     })
 
     const mapped: Record<string, INewOrganizationsTimeseriesResult> = {}
