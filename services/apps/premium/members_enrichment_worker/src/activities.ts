@@ -6,11 +6,6 @@ import {
   insertMemberEnrichmentCache,
 } from './activities/enrichment'
 import {
-  normalizeEnrichedMember,
-  updateMergeSuggestions,
-  updateOrganizations,
-} from './activities/normalizeEnrichedMember'
-import {
   syncMembersToOpensearch,
   syncOrganizationsToOpensearch,
 } from './activities/syncEnrichedData'
@@ -35,11 +30,8 @@ export {
   getMembers,
   getEnrichmentData,
   normalizeEnrichmentData,
-  normalizeEnrichedMember,
   findMemberEnrichmentCache,
   insertMemberEnrichmentCache,
-  updateMergeSuggestions,
-  updateOrganizations,
   syncMembersToOpensearch,
   syncOrganizationsToOpensearch,
   refreshToken,
