@@ -1,6 +1,8 @@
+import { EventWebhook, EventWebhookHeader } from '@sendgrid/eventwebhook'
+
 import { getServiceChildLogger } from '@crowd/logging'
 import { PlatformType } from '@crowd/types'
-import { EventWebhook, EventWebhookHeader } from '@sendgrid/eventwebhook'
+
 import { IS_PROD_ENV, SENDGRID_CONFIG } from '../../../conf'
 import SequelizeRepository from '../../../database/repositories/sequelizeRepository'
 import UserRepository from '../../../database/repositories/userRepository'

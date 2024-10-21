@@ -1,4 +1,5 @@
 import { CustomViewPlacement } from '@crowd/types'
+
 import { memberCustomViews } from './member'
 import { organizationCustomViews } from './organization'
 

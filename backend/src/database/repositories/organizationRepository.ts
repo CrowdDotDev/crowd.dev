@@ -1,3 +1,7 @@
+import lodash, { uniq } from 'lodash'
+import Sequelize, { QueryTypes } from 'sequelize'
+import validator from 'validator'
+
 import {
   captureApiChange,
   organizationCreateAction,
@@ -12,9 +16,12 @@ import {
 } from '@crowd/data-access-layer'
 import { findManyLfxMemberships } from '@crowd/data-access-layer/src/lfx_memberships'
 import {
+  IDbOrgAttribute,
+  IDbOrganization,
+  OrgIdentityField,
   addOrgIdentity,
-  cleanupForOganization,
   cleanUpOrgIdentities,
+  cleanupForOganization,
   deleteOrgAttributesByOrganizationId,
   fetchManyOrgIdentities,
   fetchManyOrgSegments,
@@ -22,10 +29,7 @@ import {
   findManyOrgAttributes,
   findOrgAttributes,
   findOrgById,
-  IDbOrganization,
-  IDbOrgAttribute,
   markOrgAttributeDefault,
-  OrgIdentityField,
   queryOrgIdentities,
   updateOrgIdentityVerifiedFlag,
   upsertOrgAttributes,
@@ -51,14 +55,13 @@ import {
   SegmentProjectGroupNestedData,
   SegmentProjectNestedData,
 } from '@crowd/types'
-import lodash, { uniq } from 'lodash'
-import Sequelize, { QueryTypes } from 'sequelize'
-import validator from 'validator'
+
 import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
 import {
   IFetchOrganizationMergeSuggestionArgs,
   SimilarityScoreRange,
 } from '@/types/mergeSuggestionTypes'
+
 import { IRepositoryOptions } from './IRepositoryOptions'
 import AuditLogRepository from './auditLogRepository'
 import SegmentRepository from './segmentRepository'

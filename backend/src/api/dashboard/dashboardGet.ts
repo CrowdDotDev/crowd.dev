@@ -1,4 +1,5 @@
 import DashboardService from '@/services/dashboardService'
+
 import Permissions from '../../security/permissions'
 import PermissionChecker from '../../services/user/permissionChecker'
 

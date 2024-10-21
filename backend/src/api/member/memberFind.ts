@@ -1,8 +1,9 @@
 import { FeatureFlag } from '@crowd/types'
+
+import isFeatureEnabled from '../../feature-flags/isFeatureEnabled'
 import Permissions from '../../security/permissions'
 import MemberService from '../../services/memberService'
 import PermissionChecker from '../../services/user/permissionChecker'
-import isFeatureEnabled from '../../feature-flags/isFeatureEnabled'
 
 /**
  * GET /tenant/{tenantId}/member/{id}

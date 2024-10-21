@@ -1,5 +1,6 @@
 import { singleOrDefault } from '@crowd/common'
 import { MemberAttributeType } from '@crowd/types'
+
 import { JsonColumnInfo, Operator, ParsedJsonColumn } from './queryTypes'
 
 export default class RawQueryParser {

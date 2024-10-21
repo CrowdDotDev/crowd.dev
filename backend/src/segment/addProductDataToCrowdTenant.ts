@@ -1,9 +1,11 @@
 import axios from 'axios'
+
 import { getServiceChildLogger } from '@crowd/logging'
+
 import { CROWD_ANALYTICS_CONFIG } from '../conf'
-import UserRepository from '../database/repositories/userRepository'
-import TenantRepository from '../database/repositories/tenantRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
+import TenantRepository from '../database/repositories/tenantRepository'
+import UserRepository from '../database/repositories/userRepository'
 
 const IS_CROWD_ANALYTICS_ENABLED = CROWD_ANALYTICS_CONFIG.isEnabled === 'true'
 const CROWD_ANALYTICS_TENANT_ID = CROWD_ANALYTICS_CONFIG.tenantId

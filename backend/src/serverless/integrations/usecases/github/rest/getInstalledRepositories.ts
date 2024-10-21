@@ -1,7 +1,9 @@
-import { getServiceChildLogger } from '@crowd/logging'
 import axios, { AxiosRequestConfig } from 'axios'
-import { Repos } from '../../../types/regularTypes'
+
+import { getServiceChildLogger } from '@crowd/logging'
+
 import { GITHUB_CONFIG } from '../../../../../conf'
+import { Repos } from '../../../types/regularTypes'
 
 const IS_GITHUB_COMMIT_DATA_ENABLED = GITHUB_CONFIG.isCommitDataEnabled === 'true'
 

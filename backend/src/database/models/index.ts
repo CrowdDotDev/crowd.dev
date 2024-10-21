@@ -1,12 +1,14 @@
-import Sequelize, { DataTypes } from 'sequelize'
 import pg from 'pg'
+import Sequelize, { DataTypes } from 'sequelize'
+
+import { IS_CLOUD_ENV } from '@crowd/common'
 
 /**
  * This module creates the Sequelize to the database and
  * exports all the models.
  */
 import { getServiceChildLogger, logExecutionTimeV2 } from '@crowd/logging'
-import { IS_CLOUD_ENV } from '@crowd/common'
+
 import { DB_CONFIG, SERVICE } from '../../conf'
 import * as configTypes from '../../conf/configTypes'
 

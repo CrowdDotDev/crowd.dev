@@ -1,7 +1,7 @@
-import { getOrganizationArticles } from '../devto/getOrganizationArticles'
 import { getArticleComments } from '../devto/getArticleComments'
-import { getUserArticles } from '../devto/getUserArticles'
+import { getOrganizationArticles } from '../devto/getOrganizationArticles'
 import { getUserById } from '../devto/getUser'
+import { getUserArticles } from '../devto/getUserArticles'
 
 function expectDefinedNumber(val: any) {
   expect(val).toBeDefined()

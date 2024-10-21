@@ -1,10 +1,12 @@
-import { RedisCache } from '@crowd/redis'
 import axios from 'axios'
-import PermissionChecker from '../../../services/user/permissionChecker'
-import Permissions from '../../../security/permissions'
-import IntegrationService from '../../../services/integrationService'
+
+import { RedisCache } from '@crowd/redis'
+
 import { API_CONFIG, TWITTER_CONFIG } from '../../../conf'
 import SegmentRepository from '../../../database/repositories/segmentRepository'
+import Permissions from '../../../security/permissions'
+import IntegrationService from '../../../services/integrationService'
+import PermissionChecker from '../../../services/user/permissionChecker'
 
 const errorURL = `${API_CONFIG.frontendUrl}/integrations?twitter-error=true`
 

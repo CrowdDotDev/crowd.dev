@@ -1,9 +1,11 @@
 import { LoggerBase } from '@crowd/logging'
-import { TemporalWorkflowId } from '@crowd/types'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
-import { IServiceOptions } from './IServiceOptions'
-import MemberSegmentAffiliationRepository from '../database/repositories/memberSegmentAffiliationRepository'
+import { TemporalWorkflowId } from '@crowd/types'
+
 import MemberRepository from '../database/repositories/memberRepository'
+import MemberSegmentAffiliationRepository from '../database/repositories/memberSegmentAffiliationRepository'
+
+import { IServiceOptions } from './IServiceOptions'
 
 export default class MemberAffiliationService extends LoggerBase {
   options: IServiceOptions

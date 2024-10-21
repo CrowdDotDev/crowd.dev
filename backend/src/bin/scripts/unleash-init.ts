@@ -1,7 +1,9 @@
+import Sequelize, { QueryTypes } from 'sequelize'
+
 import { generateUUIDv1 } from '@crowd/common'
 import { getServiceLogger } from '@crowd/logging'
 import { FeatureFlag, PLAN_LIMITS, TenantPlans } from '@crowd/types'
-import Sequelize, { QueryTypes } from 'sequelize'
+
 import { UNLEASH_CONFIG } from '../../conf'
 import { UnleashContextField } from '../../types/unleashContext'
 

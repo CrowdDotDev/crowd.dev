@@ -1,4 +1,5 @@
 import { MemberAttributeType } from '@crowd/types'
+
 import { AttributeData } from '../../attributes/attribute'
 
 export interface MemberAttributeSettingsCreateData {
