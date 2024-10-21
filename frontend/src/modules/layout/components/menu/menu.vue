@@ -65,6 +65,14 @@
       :is-collapsed="isCollapsed"
       :to="{ path: '/community-lens' }"
     />
+    <lf-menu-link
+      v-if="hasPermission(LfPermission.dataQualityRead)"
+      title="Data Quality Assistant"
+      icon="settings-3-line"
+      :is-collapsed="isCollapsed"
+      :disabled="!selectedProjectGroup"
+      :to="{ path: '/data-quality-assistant' }"
+    />
     <template
       v-if="hasPermission(LfPermission.projectGroupCreate) || hasPermission(LfPermission.projectGroupEdit)"
     >

@@ -104,4 +104,8 @@ export enum LfPermission {
   // Custom views
   customViewsCreate = 'customViewsCreate',
   customViewsTenantManage = 'customViewsTenantManage',
+
+  // Custom views
+  dataQualityRead = 'dataQualityRead',
+  dataQualityEdit = 'dataQualityEdit',
 }

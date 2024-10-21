@@ -75,6 +75,8 @@ const admin: Record<LfPermission, boolean> = {
   [LfPermission.mergeOrganizations]: true,
   [LfPermission.customViewsCreate]: true,
   [LfPermission.customViewsTenantManage]: true,
+  [LfPermission.dataQualityRead]: true,
+  [LfPermission.dataQualityEdit]: true,
 };
 
 export default admin;
