@@ -6,11 +6,11 @@ import {
   IMemberOrganization,
   MemberEnrichmentSource,
 } from '@crowd/types'
-import { IEnrichmentDataProgAI } from './sources/progai/types'
+import { IMemberEnrichmentDataProgAI } from './sources/progai/types'
 
 export interface EnrichingMember {
   member: IMember
-  enrichment?: IEnrichmentDataProgAI
+  enrichment?: IMemberEnrichmentDataProgAI
 }
 
 export interface IEnrichmentSourceInput {
@@ -19,15 +19,17 @@ export interface IEnrichmentSourceInput {
   email?: IMemberIdentity
 }
 
-export type IEnrichmentData = IEnrichmentDataProgAI
+export type IMemberEnrichmentData = IMemberEnrichmentDataProgAI
 
 export interface IEnrichmentService {
   source: MemberEnrichmentSource
-  getData(input: IEnrichmentSourceInput): Promise<IEnrichmentData>
-  normalize(data: IEnrichmentData): IEnrichmentDataNormalized
+  cacheObsoleteAfterSeconds: number
+  // should either return the data or null if it's a miss
+  getData(input: IEnrichmentSourceInput): Promise<IMemberEnrichmentData>
+  normalize(data: IMemberEnrichmentData): IMemberEnrichmentDataNormalized
 }
 
-export interface IEnrichmentDataNormalized {
+export interface IMemberEnrichmentDataNormalized {
   identities?: IMemberIdentity[]
   contributions?: IMemberContribution[]
   attributes?: IAttributes

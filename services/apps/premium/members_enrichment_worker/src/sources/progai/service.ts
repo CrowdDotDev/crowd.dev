@@ -1,14 +1,18 @@
 import axios from 'axios'
 import lodash from 'lodash'
-import { IEnrichmentDataNormalized, IEnrichmentService, IEnrichmentSourceInput } from '../../types'
+import {
+  IMemberEnrichmentDataNormalized,
+  IEnrichmentService,
+  IEnrichmentSourceInput,
+} from '../../types'
 import {
   IEnrichmentAPICertificationProgAI,
   IEnrichmentAPIContributionProgAI,
   IEnrichmentAPIEducationProgAI,
   IEnrichmentAPISkillsProgAI,
   IEnrichmentAPIWorkExperienceProgAI,
-  IEnrichmentDataProgAI,
-  IEnrichmentDataProgAIResponse,
+  IMemberEnrichmentDataProgAI,
+  IMemberEnrichmentDataProgAIResponse,
 } from './types'
 import {
   MemberAttributeName,
@@ -22,6 +26,9 @@ import { Logger, LoggerBase } from '@crowd/logging'
 
 export default class EnrichmentServiceProgAI extends LoggerBase implements IEnrichmentService {
   public source: MemberEnrichmentSource = MemberEnrichmentSource.PROGAI
+
+  // bust cache after 90 days
+  public cacheObsoleteAfterSeconds = 60 * 60 * 24 * 90
 
   public attributeSettings = {
     [MemberAttributeName.AVATAR_URL]: {
@@ -115,8 +122,8 @@ export default class EnrichmentServiceProgAI extends LoggerBase implements IEnri
     super(log)
   }
 
-  async getData(input: IEnrichmentSourceInput): Promise<IEnrichmentDataProgAI> {
-    let enriched: IEnrichmentDataProgAI = null
+  async getData(input: IEnrichmentSourceInput): Promise<IMemberEnrichmentDataProgAI> {
+    let enriched: IMemberEnrichmentDataProgAI = null
 
     // get data logic
     if (input.github) {
@@ -140,8 +147,8 @@ export default class EnrichmentServiceProgAI extends LoggerBase implements IEnri
     return enriched
   }
 
-  normalize(data: IEnrichmentDataProgAI): IEnrichmentDataNormalized {
-    let normalized: IEnrichmentDataNormalized = {}
+  normalize(data: IMemberEnrichmentDataProgAI): IMemberEnrichmentDataNormalized {
+    let normalized: IMemberEnrichmentDataNormalized = {}
     normalized = this.fillPlatformData(data, normalized)
     normalized = this.fillAttributes(data, normalized)
     normalized = this.fillSkills(data, normalized)
@@ -150,9 +157,9 @@ export default class EnrichmentServiceProgAI extends LoggerBase implements IEnri
   }
 
   private fillSkills(
-    data: IEnrichmentDataProgAI,
-    normalized: IEnrichmentDataNormalized,
-  ): IEnrichmentDataNormalized {
+    data: IMemberEnrichmentDataProgAI,
+    normalized: IMemberEnrichmentDataNormalized,
+  ): IMemberEnrichmentDataNormalized {
     if (!normalized.attributes) {
       normalized.attributes = {}
     }
@@ -175,9 +182,9 @@ export default class EnrichmentServiceProgAI extends LoggerBase implements IEnri
   }
 
   private fillAttributes(
-    data: IEnrichmentDataProgAI,
-    normalized: IEnrichmentDataNormalized,
-  ): IEnrichmentDataNormalized {
+    data: IMemberEnrichmentDataProgAI,
+    normalized: IMemberEnrichmentDataNormalized,
+  ): IMemberEnrichmentDataNormalized {
     if (!normalized.attributes) {
       normalized.attributes = {}
     }
@@ -215,9 +222,9 @@ export default class EnrichmentServiceProgAI extends LoggerBase implements IEnri
   }
 
   private fillPlatformData(
-    data: IEnrichmentDataProgAI,
-    normalized: IEnrichmentDataNormalized,
-  ): IEnrichmentDataNormalized {
+    data: IMemberEnrichmentDataProgAI,
+    normalized: IMemberEnrichmentDataNormalized,
+  ): IMemberEnrichmentDataNormalized {
     if (!normalized.identities) {
       normalized.identities = []
     }
@@ -308,18 +315,18 @@ export default class EnrichmentServiceProgAI extends LoggerBase implements IEnri
     return normalized
   }
 
-  async getDataUsingGitHubHandle(githubUsername: string): Promise<IEnrichmentDataProgAI> {
-    let response: IEnrichmentDataProgAIResponse
+  async getDataUsingGitHubHandle(githubUsername: string): Promise<IMemberEnrichmentDataProgAI> {
+    let response: IMemberEnrichmentDataProgAIResponse
 
     try {
-      const url = `${process.env['CROWD_ENRICHMENT_URL']}/get_profile`
+      const url = `${process.env['CROWD_ENRICHMENT_PROGAI_URL']}/get_profile`
       const config = {
         method: 'get',
         url,
         params: {
           github_handle: githubUsername,
           with_emails: true,
-          api_key: process.env['CROWD_ENRICHMENT_API_KEY'],
+          api_key: process.env['CROWD_ENRICHMENT_PROGAI_API_KEY'],
         },
         headers: {},
       }
@@ -332,7 +339,7 @@ export default class EnrichmentServiceProgAI extends LoggerBase implements IEnri
     return response.profile
   }
 
-  async getDataUsingEmailAddress(email: string): Promise<IEnrichmentDataProgAI> {
+  async getDataUsingEmailAddress(email: string): Promise<IMemberEnrichmentDataProgAI> {
     try {
       const url = `${process.env['CROWD_ENRICHMENT_PROGAI_URL']}/get_profile`
       const config = {

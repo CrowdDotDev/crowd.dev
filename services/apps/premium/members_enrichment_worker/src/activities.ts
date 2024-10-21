@@ -4,6 +4,8 @@ import {
   normalizeEnrichmentData,
   findMemberEnrichmentCache,
   insertMemberEnrichmentCache,
+  isCacheObsolete,
+  touchMemberEnrichmentCacheUpdatedAt,
 } from './activities/enrichment'
 import {
   syncMembersToOpensearch,
@@ -44,4 +46,6 @@ export {
   getIdentitiesExistInOtherMembers,
   updateMemberWithEnrichmentData,
   mergeMembers,
+  isCacheObsolete,
+  touchMemberEnrichmentCacheUpdatedAt,
 }

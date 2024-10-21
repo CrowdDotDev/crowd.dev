@@ -24,7 +24,7 @@ getMembersToEnrich is a Temporal workflow that:
     to run and not be cancelled even if this one is.
 */
 export async function getMembersToEnrich(): Promise<void> {
-  const members = await getMembers(ALSO_USE_EMAIL_IDENTITIES_FOR_ENRICHMENT)
+  const members = await getMembers()
 
   await Promise.all(
     members.map((member) => {

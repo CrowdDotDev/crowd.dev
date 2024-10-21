@@ -1,9 +1,8 @@
 import { DbTransaction } from '@crowd/database'
-import { IEnrichmentDataProgAI } from '@crowd/types/src/premium'
 import { generateUUIDv4 } from '@crowd/common'
 import { upsertMemberIdentity } from '../../../../member_identities'
 import { PgPromiseQueryExecutor } from '../../../../queryExecutor'
-import { MemberEnrichmentSource, MemberIdentityType } from '@crowd/types'
+import { MemberIdentityType } from '@crowd/types'
 
 export async function insertMemberIdentity(
   tx: DbTransaction,

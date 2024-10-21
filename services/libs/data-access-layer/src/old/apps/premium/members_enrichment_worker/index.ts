@@ -1,5 +1,5 @@
 import { generateUUIDv4 } from '@crowd/common'
-import { DbConnection, DbConnOrTx, DbStore, DbTransaction } from '@crowd/database'
+import { DbConnOrTx, DbStore, DbTransaction } from '@crowd/database'
 import {
   IAttributes,
   IMember,
@@ -11,16 +11,7 @@ import {
 } from '@crowd/types'
 import { IMemberEnrichmentCache } from '@crowd/types/src/premium'
 
-export async function fetchMembersForEnrichment(
-  db: DbStore,
-  alsoUseEmailIdentitiesForEnrichment: boolean,
-): Promise<IMember[]> {
-  let identityFilter = ` AND mi.platform = 'github' `
-
-  if (alsoUseEmailIdentitiesForEnrichment) {
-    identityFilter = ` AND ( mi.platform = 'github' or mi.type = '${MemberIdentityType.EMAIL}' )`
-  }
-
+export async function fetchMembersForEnrichment(db: DbStore): Promise<IMember[]> {
   return db.connection().query(
     `SELECT
          members."id",
@@ -38,13 +29,9 @@ export async function fetchMembersForEnrichment(
         )) as identities
      FROM members
               INNER JOIN tenants ON tenants.id = members."tenantId"
-              INNER JOIN "memberIdentities" mi ON mi."memberId" = members.id and mi.type = '${MemberIdentityType.USERNAME}'
-     WHERE tenants.plan IN ('Scale', 'Enterprise')
-       AND (
-         members."lastEnriched" < NOW() - INTERVAL '90 days'
-             OR members."lastEnriched" IS NULL
-         )
-       ${identityFilter}
+              INNER JOIN "memberIdentities" mi ON mi."memberId" = members.id
+     WHERE 
+       ( mi.verified AND (mi.platform = 'github' or mi.type = '${MemberIdentityType.EMAIL}') )
        AND tenants."deletedAt" IS NULL
        AND members."deletedAt" IS NULL
      GROUP BY members.id
@@ -441,6 +428,19 @@ export async function insertMemberEnrichmentCacheDb<T>(
       ON CONFLICT ("memberId", "source") DO UPDATE
       SET data = EXCLUDED.data, "updatedAt" = NOW();`,
     [memberId, JSON.stringify(data), source],
+  )
+}
+
+export async function touchMemberEnrichmentCacheUpdatedAtDb(
+  tx: DbConnOrTx,
+  memberId: string,
+  source: MemberEnrichmentSource,
+) {
+  return tx.query(
+    `UPDATE "memberEnrichmentCache"
+      SET "updatedAt" = NOW()
+      WHERE "memberId" = $1 and source = $2;`,
+    [memberId, source],
   )
 }
 

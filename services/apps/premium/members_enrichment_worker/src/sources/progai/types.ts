@@ -47,7 +47,7 @@ export interface IEnrichmentAPICertificationProgAI {
   title: string
 }
 
-export interface IEnrichmentDataProgAI {
+export interface IMemberEnrichmentDataProgAI {
   id: number
   profile_pic_url?: string
   full_name?: string
@@ -79,8 +79,8 @@ export interface IEnrichmentDataProgAI {
   expertise?: string[]
 }
 
-export interface IEnrichmentDataProgAIResponse {
-  profile: IEnrichmentDataProgAI
+export interface IMemberEnrichmentDataProgAIResponse {
+  profile: IMemberEnrichmentDataProgAI
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   error?: any
 }
