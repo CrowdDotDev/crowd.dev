@@ -1,5 +1,6 @@
-import { ICache } from '@crowd/types'
 import axios from 'axios'
+
+import { ICache } from '@crowd/types'
 import { RateLimitError } from '@crowd/types'
 
 interface TokenInfo {
@@ -23,7 +24,10 @@ export enum GithubAPIResource {
 
 export class GithubTokenRotator {
   static CACHE_KEY = 'integration-cache:github-token-rotator:tokens'
-  constructor(private cache: ICache, private tokens: string[]) {
+  constructor(
+    private cache: ICache,
+    private tokens: string[],
+  ) {
     this.cache = cache
     this.tokens = tokens ? [...new Set(tokens)] : []
     if (this.tokens.length > 0) {

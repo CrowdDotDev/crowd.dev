@@ -1,4 +1,5 @@
 import { getChildLogger } from '@crowd/logging'
+
 import { svc } from '../main'
 import { AutomationService } from '../services/automation.service'
 

@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import merge from 'lodash.merge'
 
+import { RawQueryParser, getEnv } from '@crowd/common'
 import { DbConnOrTx } from '@crowd/database'
+import { ActivityDisplayService } from '@crowd/integrations'
 import {
   ActivityDisplayVariant,
   IMemberIdentity,
@@ -9,12 +12,15 @@ import {
   PlatformType,
 } from '@crowd/types'
 
-import { RawQueryParser, getEnv } from '@crowd/common'
-import { ActivityDisplayService } from '@crowd/integrations'
+import { IMemberSegmentAggregates } from '../members/types'
+import { IPlatforms } from '../old/apps/cache_worker/types'
 import {
   IDbActivityCreateData,
   IDbActivityUpdateData,
 } from '../old/apps/data_sink_worker/repo/activity.data'
+import { IDbOrganizationAggregateData } from '../organizations'
+import { checkUpdateRowCount } from '../utils'
+
 import {
   ActivityType,
   IActiveMemberData,
@@ -37,12 +43,6 @@ import {
   IQueryNumberOfActiveOrganizationsParameters,
   IQueryTopActivitiesParameters,
 } from './types'
-
-import merge from 'lodash.merge'
-import { IMemberSegmentAggregates } from '../members/types'
-import { IPlatforms } from '../old/apps/cache_worker/types'
-import { IDbOrganizationAggregateData } from '../organizations'
-import { checkUpdateRowCount } from '../utils'
 
 const s3Url = `https://${
   process.env['CROWD_S3_MICROSERVICES_ASSETS_BUCKET']

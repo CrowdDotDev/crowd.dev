@@ -1,5 +1,6 @@
 import { Config } from '@crowd/archetype-standard'
-import { ServiceWorker, Options } from '@crowd/archetype-worker'
+import { Options, ServiceWorker } from '@crowd/archetype-worker'
+
 import { scheduleOrganizationsEnrichment } from './schedules'
 
 const config: Config = {

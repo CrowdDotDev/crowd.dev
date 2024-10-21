@@ -1,12 +1,13 @@
 import {
+  ChildWorkflowCancellationType,
+  ParentClosePolicy,
   proxyActivities,
   startChild,
-  ParentClosePolicy,
-  ChildWorkflowCancellationType,
   workflowInfo,
 } from '@temporalio/workflow'
 
 import * as activities from '../../activities/weekly-analytics/getNextEmails'
+
 import { weeklySendEmailAndUpdateHistory } from './sendEmailAndUpdateHistory'
 
 // Configure timeouts and retry policies to fetch emails to send.

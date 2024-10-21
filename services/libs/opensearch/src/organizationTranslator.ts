@@ -1,5 +1,4 @@
 /* eslint-disable class-methods-use-this */
-
 import FieldTranslator from './fieldTranslator'
 import { OrganizationsOpensearch } from './models/organizations'
 

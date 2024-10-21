@@ -1,23 +1,25 @@
 // processStream.ts content
+import { generateUUIDv4 } from '@crowd/common'
+
 import { ProcessStreamHandler } from '../../types'
+
+import { getDiscourseCategories } from './api/getCategories'
+import { getDiscoursePostsByIds } from './api/getPostsByIds'
+import { getDiscoursePostsFromTopic } from './api/getPostsFromTopic'
+import { getDiscourseTopics } from './api/getTopics'
+import { getDiscourseUserByUsername } from './api/getUser'
 import {
-  DiscourseStreamType,
   DiscourseConnectionParams,
-  DiscourseTopicsInput,
-  DiscourseTopicsFromCategoryStreamData,
-  DiscoursePostsFromTopicStreamData,
-  DiscoursePostsInput,
+  DiscourseDataType,
   DiscoursePostsByIdsInput,
   DiscoursePostsByIdsStreamData,
+  DiscoursePostsFromTopicStreamData,
+  DiscoursePostsInput,
   DiscoursePublishPostData,
-  DiscourseDataType,
+  DiscourseStreamType,
+  DiscourseTopicsFromCategoryStreamData,
+  DiscourseTopicsInput,
 } from './types'
-import { getDiscourseCategories } from './api/getCategories'
-import { getDiscourseTopics } from './api/getTopics'
-import { getDiscoursePostsFromTopic } from './api/getPostsFromTopic'
-import { getDiscoursePostsByIds } from './api/getPostsByIds'
-import { getDiscourseUserByUsername } from './api/getUser'
-import { generateUUIDv4 } from '@crowd/common'
 
 const BOT_USERNAMES = ['system', 'discobot']
 

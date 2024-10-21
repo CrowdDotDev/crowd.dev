@@ -1,10 +1,12 @@
 /* eslint-disable  @typescript-eslint/no-explicit-any */
 import { graphql } from '@octokit/graphql'
 import { GraphQlQueryResponseData } from '@octokit/graphql/dist-types/types'
-import { GraphQlQueryResponse } from '@crowd/types'
-import { RateLimitError, IConcurrentRequestLimiter } from '@crowd/types'
-import { GithubTokenRotator } from '../../tokenRotator'
+
 import { getServiceChildLogger } from '@crowd/logging'
+import { GraphQlQueryResponse } from '@crowd/types'
+import { IConcurrentRequestLimiter, RateLimitError } from '@crowd/types'
+
+import { GithubTokenRotator } from '../../tokenRotator'
 
 const logger = getServiceChildLogger('integrations:github:api:graphql:baseQuery')
 

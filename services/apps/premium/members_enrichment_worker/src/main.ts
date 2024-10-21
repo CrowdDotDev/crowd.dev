@@ -1,8 +1,8 @@
 import { Config } from '@crowd/archetype-standard'
 import { Options, ServiceWorker } from '@crowd/archetype-worker'
+import { Edition } from '@crowd/types'
 
 import { scheduleMembersEnrichment, scheduleMembersLFIDEnrichment } from './schedules'
-import { Edition } from '@crowd/types'
 
 const config: Config = {
   producer: {

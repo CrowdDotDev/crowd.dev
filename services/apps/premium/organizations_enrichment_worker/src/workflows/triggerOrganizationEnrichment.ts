@@ -4,6 +4,7 @@ import {
   proxyActivities,
   startChild,
 } from '@temporalio/workflow'
+
 import * as enrichmentActivities from '../activities/enrichment'
 import { enrichOrganization } from '../workflows'
 

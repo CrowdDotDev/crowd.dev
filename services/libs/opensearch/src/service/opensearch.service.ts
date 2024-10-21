@@ -1,19 +1,25 @@
+import { Client } from '@opensearch-project/opensearch'
+
 import { IS_DEV_ENV } from '@crowd/common'
 import { Logger, LoggerBase } from '@crowd/logging'
 import telemetry from '@crowd/telemetry'
-import { Client } from '@opensearch-project/opensearch'
+
 import {
   IndexVersions,
   OPENSEARCH_INDEX_MAPPINGS,
   OPENSEARCH_INDEX_SETTINGS,
   OpenSearchIndex,
 } from '../types'
+
 import { IIndexRequest, ISearchHit } from './opensearch.data'
 
 export class OpenSearchService extends LoggerBase {
   private readonly indexVersionMap: Map<OpenSearchIndex, string> = new Map()
 
-  constructor(parentLog: Logger, public readonly client: Client) {
+  constructor(
+    parentLog: Logger,
+    public readonly client: Client,
+  ) {
     super(parentLog)
 
     const indexNames = Object.values(OpenSearchIndex)

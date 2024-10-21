@@ -1,9 +1,12 @@
 import axios from 'axios'
+
 import { timeout } from '@crowd/common'
-import { DiscordApiChannel, DiscordGetChannelsInput, DiscordGetMessagesInput } from '../types'
-import getMessages from './getMessages'
+
 import { IProcessStreamContext } from '../../../types'
+import { DiscordApiChannel, DiscordGetChannelsInput, DiscordGetMessagesInput } from '../types'
+
 import { handleDiscordError } from './errorHandler'
+import getMessages from './getMessages'
 import { retryWrapper } from './handleRateLimit'
 
 /**

@@ -1,7 +1,9 @@
+import { createClient } from 'redis'
+
 import { IS_DEV_ENV, IS_TEST_ENV, timeout } from '@crowd/common'
 import { getServiceChildLogger } from '@crowd/logging'
-import { IRedisConfiguration, RedisClient, IRedisPubSubPair } from './types'
-import { createClient } from 'redis'
+
+import { IRedisConfiguration, IRedisPubSubPair, RedisClient } from './types'
 
 const log = getServiceChildLogger('redis')
 

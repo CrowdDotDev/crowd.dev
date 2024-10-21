@@ -1,7 +1,7 @@
+import pgpromise from 'pg-promise'
+
 import { getEnv } from '@crowd/common'
 import { getServiceChildLogger } from '@crowd/logging'
-
-import pgpromise from 'pg-promise'
 
 const log = getServiceChildLogger('questdb.sql.connection')
 

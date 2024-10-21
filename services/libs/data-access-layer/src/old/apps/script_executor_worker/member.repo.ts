@@ -1,7 +1,8 @@
 import { DbConnection, DbTransaction } from '@crowd/database'
 import { Logger } from '@crowd/logging'
-import { IFindMemberIdentitiesGroupedByPlatformResult, ISimilarMember } from './types'
 import { IMember } from '@crowd/types'
+
+import { IFindMemberIdentitiesGroupedByPlatformResult, ISimilarMember } from './types'
 
 class MemberRepository {
   constructor(

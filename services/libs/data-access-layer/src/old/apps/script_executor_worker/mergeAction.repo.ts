@@ -1,6 +1,7 @@
 import { DbConnection, DbTransaction } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { IMergeAction } from '@crowd/types'
+
 import { IFindMemberMergeActionReplacement } from './types'
 
 class MergeActionRepository {

@@ -1,5 +1,5 @@
-import { ICache, IRateLimiter, RateLimitError, IConcurrentRequestLimiter } from '@crowd/types'
 import { timeout } from '@crowd/common'
+import { ICache, IConcurrentRequestLimiter, IRateLimiter, RateLimitError } from '@crowd/types'
 
 export class RateLimiter implements IRateLimiter {
   constructor(

@@ -1,11 +1,10 @@
+import { NativeConnection, Worker as TemporalWorker, bundleWorkflowCode } from '@temporalio/worker'
 import path from 'path'
-
-import { bundleWorkflowCode, NativeConnection, Worker as TemporalWorker } from '@temporalio/worker'
 
 import { Config, Service } from '@crowd/archetype-standard'
 import { IS_DEV_ENV, IS_TEST_ENV } from '@crowd/common'
 import { DbStore, getDbConnection } from '@crowd/database'
-import { getOpensearchClient, OpenSearchService } from '@crowd/opensearch'
+import { OpenSearchService, getOpensearchClient } from '@crowd/opensearch'
 import { IQueue, QueueFactory } from '@crowd/queue'
 import { getDataConverter } from '@crowd/temporal'
 

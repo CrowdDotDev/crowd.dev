@@ -7,6 +7,7 @@ import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { getServiceLogger } from '@crowd/logging'
 import { QueueFactory } from '@crowd/queue'
 import { getRedisClient } from '@crowd/redis'
+
 import { DB_CONFIG, QUEUE_CONFIG, REDIS_CONFIG } from '../conf'
 
 const BATCH_SIZE = 100

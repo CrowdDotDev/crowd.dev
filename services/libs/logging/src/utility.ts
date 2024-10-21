@@ -1,5 +1,6 @@
-import { Logger } from './types'
 import { performance } from 'perf_hooks'
+
+import { Logger } from './types'
 
 export const logExecutionTime = async <T>(
   process: () => Promise<T>,

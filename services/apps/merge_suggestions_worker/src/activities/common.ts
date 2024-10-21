@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { performance } from 'perf_hooks'
+import { BedrockRuntimeClient, InvokeModelCommand } from '@aws-sdk/client-bedrock-runtime'
 import axios from 'axios'
+import { performance } from 'perf_hooks'
+
 import { ITenant } from '@crowd/data-access-layer/src/old/apps/merge_suggestions_worker//types'
-import { svc } from '../main'
-import TenantRepository from '@crowd/data-access-layer/src/old/apps/merge_suggestions_worker/tenant.repo'
 import LLMSuggestionVerdictsRepository from '@crowd/data-access-layer/src/old/apps/merge_suggestions_worker/llmSuggestionVerdicts.repo'
+import TenantRepository from '@crowd/data-access-layer/src/old/apps/merge_suggestions_worker/tenant.repo'
 import { isFeatureEnabled } from '@crowd/feature-flags'
 import {
   FeatureFlag,
@@ -12,7 +13,8 @@ import {
   ILLMConsumableOrganization,
   ILLMSuggestionVerdict,
 } from '@crowd/types'
-import { BedrockRuntimeClient, InvokeModelCommand } from '@aws-sdk/client-bedrock-runtime'
+
+import { svc } from '../main'
 import { ILLMResult } from '../types'
 
 export async function getAllTenants(): Promise<ITenant[]> {

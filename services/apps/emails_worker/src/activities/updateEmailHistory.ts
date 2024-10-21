@@ -1,7 +1,7 @@
+import { updateRecurringEmailsHistory } from '@crowd/data-access-layer/src/old/apps/emails_worker/emails'
+
 import { svc } from '../main'
 import { UserTenantWithEmailSent } from '../types/user'
-
-import { updateRecurringEmailsHistory } from '@crowd/data-access-layer/src/old/apps/emails_worker/emails'
 
 /*
 updateEmailHistory is a Temporal activity that inserts a new row in the database

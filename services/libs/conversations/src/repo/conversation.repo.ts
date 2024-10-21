@@ -1,5 +1,6 @@
 import { DbColumnSet, DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
+
 import { getInsertConversationColumnSet } from './conversation.data'
 
 export class ConversationRepository extends RepositoryBase<ConversationRepository> {

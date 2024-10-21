@@ -1,6 +1,6 @@
 import * as proto from '@temporalio/proto'
 
-import { Payload, JSONPayload } from '../types/payload'
+import { JSONPayload, Payload } from '../types/payload'
 
 /**
  * Helper function to convert a valid proto JSON to a payload object.

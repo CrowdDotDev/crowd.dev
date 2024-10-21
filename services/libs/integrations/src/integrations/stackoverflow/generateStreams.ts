@@ -1,9 +1,10 @@
 import { GenerateStreamsHandler } from '../../types'
+
 import {
   IStackOverflowIntegrationSettings,
-  StackOverflowRootStream,
   IStackOverflowKeywordStreamData,
   IStackOverflowTagStreamData,
+  StackOverflowRootStream,
 } from './types'
 
 const handler: GenerateStreamsHandler = async (ctx) => {

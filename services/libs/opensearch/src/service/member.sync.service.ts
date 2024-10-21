@@ -27,10 +27,12 @@ import {
   IMemberWithAggregatesForMergeSuggestions,
   MemberAttributeType,
 } from '@crowd/types'
+
 import { IndexedEntityType } from '../repo/indexing.data'
 import { IndexingRepository } from '../repo/indexing.repo'
 import { MemberRepository } from '../repo/member.repo'
 import { OpenSearchIndex } from '../types'
+
 import { IMemberSyncResult } from './member.sync.data'
 import { IPagedSearchResponse, ISearchHit } from './opensearch.data'
 import { OpenSearchService } from './opensearch.service'

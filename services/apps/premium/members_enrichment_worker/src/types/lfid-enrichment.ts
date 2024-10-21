@@ -1,4 +1,5 @@
 import { GetUsers200ResponseOneOfInner } from 'auth0'
+
 export interface ITokenWithExpiration {
   token: string
   expirationInSeconds: number

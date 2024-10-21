@@ -1,33 +1,36 @@
-import { ProcessDataHandler, IProcessDataContext } from '../../types'
 import {
-  GitlabActivityType,
-  GitlabApiData,
-  GitlabWebhookType,
-  GitlabIssueWebhook,
-  GitlabIssueCommentWebhook,
-  GitlabMergeRequestWebhook,
-  GitlabMergeRequestCommentWebhook,
-} from './types'
+  DiscussionNoteSchema,
+  ExpandedCommitSchema,
+  IssueNoteSchema,
+  IssueSchema,
+  MergeRequestNoteSchema,
+  MergeRequestSchema,
+  ProjectSchema,
+  ProjectStarrerSchema,
+  UserSchema,
+} from '@gitbeaker/rest'
+
 import {
   IActivityData,
   IMemberData,
-  PlatformType,
-  MemberIdentityType,
   MemberAttributeName,
+  MemberIdentityType,
+  PlatformType,
 } from '@crowd/types'
+
+import { generateSourceIdHash } from '../../helpers'
+import { IProcessDataContext, ProcessDataHandler } from '../../types'
+
 import { GITLAB_GRID } from './grid'
 import {
-  ProjectSchema,
-  ProjectStarrerSchema,
-  ExpandedCommitSchema,
-  IssueSchema,
-  MergeRequestSchema,
-  UserSchema,
-  IssueNoteSchema,
-  DiscussionNoteSchema,
-  MergeRequestNoteSchema,
-} from '@gitbeaker/rest'
-import { generateSourceIdHash } from '../../helpers'
+  GitlabActivityType,
+  GitlabApiData,
+  GitlabIssueCommentWebhook,
+  GitlabIssueWebhook,
+  GitlabMergeRequestCommentWebhook,
+  GitlabMergeRequestWebhook,
+  GitlabWebhookType,
+} from './types'
 
 const parseUser = ({ data }: { data: UserSchema }): IMemberData | undefined => {
   if (!data) {

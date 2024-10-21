@@ -7,12 +7,13 @@ import {
 import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
 import DataSinkRepository from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/dataSink.repo'
 import { getServiceLogger } from '@crowd/logging'
+import { getClientSQL } from '@crowd/questdb'
 import { QueueFactory } from '@crowd/queue'
 import { getRedisClient } from '@crowd/redis'
 import { Client as TemporalClient, getTemporalClient } from '@crowd/temporal'
+
 import { DB_CONFIG, QUEUE_CONFIG, REDIS_CONFIG, TEMPORAL_CONFIG } from '../conf'
 import DataSinkService from '../service/dataSink.service'
-import { getClientSQL } from '@crowd/questdb'
 
 const log = getServiceLogger()
 

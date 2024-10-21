@@ -1,5 +1,6 @@
 import { Config } from '@crowd/archetype-standard'
-import { ServiceWorker, Options } from '@crowd/archetype-worker'
+import { Options, ServiceWorker } from '@crowd/archetype-worker'
+
 import { scheduleComputeOrgAggsDaily } from './schedules'
 import { scheduleRefreshDashboardCacheDaily } from './schedules/refreshDashboardCacheDaily'
 

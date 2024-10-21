@@ -1,6 +1,8 @@
-import { getServiceChildLogger } from '@crowd/logging'
-import { ISentimentClientConfig } from './types'
 import { ComprehendClient } from '@aws-sdk/client-comprehend'
+
+import { getServiceChildLogger } from '@crowd/logging'
+
+import { ISentimentClientConfig } from './types'
 
 const log = getServiceChildLogger('sentiment.client')
 

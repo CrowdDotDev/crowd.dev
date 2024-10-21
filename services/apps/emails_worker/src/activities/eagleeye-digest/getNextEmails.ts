@@ -1,6 +1,7 @@
+import * as eagleeye from '@crowd/data-access-layer/src/old/apps/emails_worker/eagleeye'
+
 import { svc } from '../../main'
 import { UserTenant } from '../../types/user'
-import * as eagleeye from '@crowd/data-access-layer/src/old/apps/emails_worker/eagleeye'
 
 /*
 eagleeyeGetNextEmails is a Temporal activity that fetches all users along their

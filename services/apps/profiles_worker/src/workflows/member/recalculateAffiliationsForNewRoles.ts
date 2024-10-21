@@ -1,16 +1,17 @@
 import {
   ChildWorkflowCancellationType,
   ParentClosePolicy,
+  continueAsNew,
   executeChild,
   proxyActivities,
-  continueAsNew,
 } from '@temporalio/workflow'
 
-import { memberUpdate } from './memberUpdate'
+import { TemporalWorkflowId } from '@crowd/types'
 
 import * as activities from '../../activities'
-import { TemporalWorkflowId } from '@crowd/types'
 import { IRecalculateAffiliationsForNewRolesInput } from '../../types/member'
+
+import { memberUpdate } from './memberUpdate'
 
 const {
   getAffiliationsLastCheckedAtOfTenant,
