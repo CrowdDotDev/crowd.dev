@@ -1,4 +1,3 @@
-import { IMemberOrganization, IOrganization } from '@crowd/types'
 import {
   cleanSoftDeletedMemberOrganization,
   createMemberOrganization,
@@ -7,8 +6,10 @@ import {
   updateMemberOrganization,
 } from '@crowd/data-access-layer/src/members'
 import { OrganizationField, queryOrgs } from '@crowd/data-access-layer/src/orgs'
-import SequelizeRepository from '../sequelizeRepository'
+import { IMemberOrganization, IOrganization } from '@crowd/types'
+
 import { IRepositoryOptions } from '../IRepositoryOptions'
+import SequelizeRepository from '../sequelizeRepository'
 
 class MemberOrganizationsRepository {
   static async list(memberId: string, options: IRepositoryOptions) {

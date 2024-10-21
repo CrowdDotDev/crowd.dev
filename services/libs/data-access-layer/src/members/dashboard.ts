@@ -1,6 +1,7 @@
 import { getEnv } from '@crowd/common'
 import { DbStore } from '@crowd/database'
 import { IMember } from '@crowd/types'
+
 import { IQueryNumberOfNewMembers, IQueryTimeseriesOfNewMembers } from './types'
 
 const s3Url = `https://${
@@ -9,7 +10,7 @@ const s3Url = `https://${
 
 export async function getMemberById(db: DbStore, id: string): Promise<IMember> {
   const query = `
-    SELECT 
+    SELECT
       "id", "tenantId",
       "attributes", "displayName",
       "score",

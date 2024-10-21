@@ -1,26 +1,29 @@
-import { ProcessStreamHandler, IProcessStreamContext } from '../../types'
-import {
-  DiscordStreamType,
-  DiscordRootStreamData,
-  IDiscordPlatformSettings,
-  DiscordApiChannel,
-  DiscordMemberStreamData,
-  IDiscordAPIData,
-  DiscordApiMessage,
-  DiscordApiDataMessage,
-  IDiscordIntegrationSettings,
-  DiscordChannelStreamData,
-  DiscordAPIDataType,
-} from './types'
-import getChannels from './api/getChannels'
-import { getChannel } from './api/getChannel'
-import getThreads from './api/getThreads'
-import getMembers from './api/getMembers'
-import { ChannelType } from './externalTypes'
+import axios from 'axios'
+
 import { timeout } from '@crowd/common'
 import { RateLimitError } from '@crowd/types'
+
+import { IProcessStreamContext, ProcessStreamHandler } from '../../types'
+
+import { getChannel } from './api/getChannel'
+import getChannels from './api/getChannels'
+import getMembers from './api/getMembers'
 import getMessages from './api/getMessages'
-import axios from 'axios'
+import getThreads from './api/getThreads'
+import { ChannelType } from './externalTypes'
+import {
+  DiscordAPIDataType,
+  DiscordApiChannel,
+  DiscordApiDataMessage,
+  DiscordApiMessage,
+  DiscordChannelStreamData,
+  DiscordMemberStreamData,
+  DiscordRootStreamData,
+  DiscordStreamType,
+  IDiscordAPIData,
+  IDiscordIntegrationSettings,
+  IDiscordPlatformSettings,
+} from './types'
 
 const MAX_RETROSPECT_SECONDS = 86400 // 24 hours
 

@@ -1,8 +1,8 @@
 import { IAttributes } from './attributes'
 import { MemberAttributeOpensearch, MemberAttributeType, MemberIdentityType } from './enums/members'
+import { PlatformType } from './enums/platforms'
 import { IMemberOrganization, IOrganization, IOrganizationOpensearch } from './organizations'
 import { ITagOpensearch } from './tags'
-import { PlatformType } from './enums/platforms'
 
 export interface IMemberAttribute {
   type: MemberAttributeType

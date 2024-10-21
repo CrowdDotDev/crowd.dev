@@ -1,3 +1,6 @@
+import Sequelize, { QueryTypes } from 'sequelize'
+
+import { Error404 } from '@crowd/common'
 import {
   AutomationState,
   AutomationSyncTrigger,
@@ -6,9 +9,9 @@ import {
   PLAN_LIMITS,
   PageData,
 } from '@crowd/types'
-import Sequelize, { QueryTypes } from 'sequelize'
-import { Error404 } from '@crowd/common'
+
 import { AutomationCriteria } from '../../types/automationTypes'
+
 import { IRepositoryOptions } from './IRepositoryOptions'
 import AuditLogRepository from './auditLogRepository'
 import { RepositoryBase } from './repositoryBase'

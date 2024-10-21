@@ -1,6 +1,8 @@
 import axios from 'axios'
-import { DiscordApiMessage, DiscordParsedReponse, DiscordGetMessagesInput } from '../types'
+
 import { IProcessStreamContext } from '../../../types'
+import { DiscordApiMessage, DiscordGetMessagesInput, DiscordParsedReponse } from '../types'
+
 import { handleDiscordError } from './errorHandler'
 import { retryWrapper } from './handleRateLimit'
 

@@ -2,6 +2,18 @@ import moment from 'moment'
 
 import { distinct, groupBy } from '@crowd/common'
 import {
+  addMemberToMerge,
+  deleteMemberOrg,
+  findExistingMember,
+  findMemberOrgs,
+  findOrganizationByVerifiedIdentity,
+  findOrganizationIdentities,
+  insertOrgIdentity,
+  insertOrganization,
+  insertWorkExperience,
+  updateOrgIdentity,
+} from '@crowd/data-access-layer/src/old/apps/premium/members_enrichment_worker'
+import {
   IMember,
   IOrganizationIdentity,
   MemberIdentityType,
@@ -10,18 +22,6 @@ import {
   PlatformType,
 } from '@crowd/types'
 
-import {
-  addMemberToMerge,
-  deleteMemberOrg,
-  findExistingMember,
-  findMemberOrgs,
-  insertOrgIdentity,
-  insertWorkExperience,
-  insertOrganization,
-  findOrganizationByVerifiedIdentity,
-  findOrganizationIdentities,
-  updateOrgIdentity,
-} from '@crowd/data-access-layer/src/old/apps/premium/members_enrichment_worker'
 import { svc } from '../main'
 import { EnrichingMember } from '../types/enrichment'
 import { normalize } from '../utils/normalize'

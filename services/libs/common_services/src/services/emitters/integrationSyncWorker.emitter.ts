@@ -6,6 +6,7 @@ import {
   IIntegrationSyncWorkerEmitter,
   IntegrationSyncWorkerQueueMessageType,
 } from '@crowd/types'
+
 import { QueuePriorityContextLoader, QueuePriorityService } from '../priority.service'
 
 export class IntegrationSyncWorkerEmitter

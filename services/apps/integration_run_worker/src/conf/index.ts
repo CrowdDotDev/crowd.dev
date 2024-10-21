@@ -1,3 +1,5 @@
+import config from 'config'
+
 import { SERVICE } from '@crowd/common'
 import { IDatabaseConfig } from '@crowd/data-access-layer/src/database'
 import { IUnleashConfig } from '@crowd/feature-flags'
@@ -5,7 +7,6 @@ import { ISearchSyncApiConfig } from '@crowd/opensearch'
 import { IQueueClientConfig } from '@crowd/queue'
 import { IRedisConfiguration } from '@crowd/redis'
 import { QueuePriorityLevel } from '@crowd/types'
-import config from 'config'
 
 export interface INangoConfig {
   url: string

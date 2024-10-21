@@ -1,5 +1,6 @@
-import { getClientSQL } from '@crowd/questdb'
 import { getServiceLogger } from '@crowd/logging'
+import { getClientSQL } from '@crowd/questdb'
+
 import { databaseInit } from '../database/databaseConnection'
 
 const log = getServiceLogger()

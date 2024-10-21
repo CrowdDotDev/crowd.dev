@@ -1,5 +1,6 @@
-import { getServiceLogger } from '@crowd/logging'
 import ddTrace from 'dd-trace'
+
+import { getServiceLogger } from '@crowd/logging'
 
 const logger = getServiceLogger()
 

@@ -1,26 +1,29 @@
 // processData.ts content
-import { ProcessDataHandler } from '../../types'
+import he from 'he'
+import sanitizeHtml from 'sanitize-html'
+
 import {
-  DiscoursePublishPostData,
-  DiscoursePublishUserWebhookData,
-  DiscoursePublishNotificationWebhookData,
-  DiscourseUserResponse,
-  DiscourseConnectionParams,
-  DiscourseActivityType,
-  DiscoursePublishData,
-  DiscourseDataType,
-  FullUser,
-} from './types'
-import {
-  PlatformType,
+  IActivityData,
   IMemberData,
   MemberAttributeName,
-  IActivityData,
   MemberIdentityType,
+  PlatformType,
 } from '@crowd/types'
-import sanitizeHtml from 'sanitize-html'
-import he from 'he'
+
+import { ProcessDataHandler } from '../../types'
+
 import { DISCOURSE_GRID } from './grid'
+import {
+  DiscourseActivityType,
+  DiscourseConnectionParams,
+  DiscourseDataType,
+  DiscoursePublishData,
+  DiscoursePublishNotificationWebhookData,
+  DiscoursePublishPostData,
+  DiscoursePublishUserWebhookData,
+  DiscourseUserResponse,
+  FullUser,
+} from './types'
 
 const parseUserIntoMember = (user: DiscourseUserResponse, forumHostname: string): IMemberData => {
   const member: IMemberData = {

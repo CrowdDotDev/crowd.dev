@@ -1,18 +1,17 @@
 /* eslint-disable no-console */
+
 /* eslint-disable import/no-extraneous-dependencies */
-
-import { timeout } from '@crowd/common'
-import { detailedDiff } from 'deep-object-diff'
-
+import axios from 'axios'
 import commandLineArgs from 'command-line-args'
 import commandLineUsage from 'command-line-usage'
-
+import { detailedDiff } from 'deep-object-diff'
 import * as fs from 'fs'
 import path from 'path'
 import { QueryTypes } from 'sequelize'
-import axios from 'axios'
 
+import { timeout } from '@crowd/common'
 import { MemberIdentityType } from '@crowd/types'
+
 import { databaseInit } from '@/database/databaseConnection'
 
 const banner = fs.readFileSync(path.join(__dirname, 'banner.txt'), 'utf8')

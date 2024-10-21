@@ -1,9 +1,10 @@
 /* eslint-disable no-continue */
-
 import { LoggerBase } from '@crowd/logging'
 import { IMemberOrganization, IOrganization } from '@crowd/types'
-import { IServiceOptions } from '../IServiceOptions'
+
 import MemberOrganizationsRepository from '@/database/repositories/member/memberOrganizationsRepository'
+
+import { IServiceOptions } from '../IServiceOptions'
 
 export default class MemberOrganizationsService extends LoggerBase {
   options: IServiceOptions

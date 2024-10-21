@@ -1,4 +1,5 @@
 import { IActivityScoringGrid } from '@crowd/types'
+
 import { TwitterActivityType } from './types'
 
 export const TWITTER_GRID: Record<TwitterActivityType, IActivityScoringGrid> = {

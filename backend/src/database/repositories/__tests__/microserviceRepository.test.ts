@@ -1,6 +1,7 @@
 import { Error404 } from '@crowd/common'
-import MicroserviceRepository from '../microserviceRepository'
+
 import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
+import MicroserviceRepository from '../microserviceRepository'
 
 const db = null
 

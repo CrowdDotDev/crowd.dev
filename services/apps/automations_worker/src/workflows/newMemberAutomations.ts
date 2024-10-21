@@ -4,8 +4,10 @@ import {
   proxyActivities,
   workflowInfo,
 } from '@temporalio/workflow'
-import * as activities from '../activities/newMemberAutomations'
+
 import { IProcessNewMemberAutomationArgs, ITriggerMemberAutomationArgs } from '@crowd/types'
+
+import * as activities from '../activities/newMemberAutomations'
 
 const activity = proxyActivities<typeof activities>({ startToCloseTimeout: '1 minute' })
 

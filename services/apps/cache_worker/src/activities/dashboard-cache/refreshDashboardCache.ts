@@ -1,16 +1,3 @@
-import { svc } from '../../main'
-import {
-  IGraphQueryParams,
-  IDashboardData,
-  INewMembersTimeseriesResult,
-  INewOrganizationsTimeseriesResult,
-} from '../../types'
-import { ISegment } from '@crowd/data-access-layer/src/old/apps/cache_worker/types'
-import SegmentRepository from '@crowd/data-access-layer/src/old/apps/cache_worker/segment.repo'
-import { RedisCache } from '@crowd/redis'
-import { DashboardTimeframe } from '@crowd/types'
-import IntegrationRepository from '@crowd/data-access-layer/src/old/apps/cache_worker/integration.repo'
-import ActivityRepository from '@crowd/data-access-layer/src/old/apps/cache_worker/activity.repo'
 import {
   IActiveMembersTimeseriesResult,
   IActivityBySentimentMoodResult,
@@ -26,12 +13,26 @@ import {
   queryActivities,
 } from '@crowd/data-access-layer'
 import { DbStore } from '@crowd/data-access-layer/src/database'
+import ActivityRepository from '@crowd/data-access-layer/src/old/apps/cache_worker/activity.repo'
+import IntegrationRepository from '@crowd/data-access-layer/src/old/apps/cache_worker/integration.repo'
+import SegmentRepository from '@crowd/data-access-layer/src/old/apps/cache_worker/segment.repo'
+import { ISegment } from '@crowd/data-access-layer/src/old/apps/cache_worker/types'
 import {
+  IActiveOrganizationsTimeseriesResult,
   getNumberOfActiveOrganizations,
   getNumberOfNewOrganizations,
   getTimeseriesOfActiveOrganizations,
-  IActiveOrganizationsTimeseriesResult,
 } from '@crowd/data-access-layer/src/organizations'
+import { RedisCache } from '@crowd/redis'
+import { DashboardTimeframe } from '@crowd/types'
+
+import { svc } from '../../main'
+import {
+  IDashboardData,
+  IGraphQueryParams,
+  INewMembersTimeseriesResult,
+  INewOrganizationsTimeseriesResult,
+} from '../../types'
 
 const qdb = new DbStore(svc.log, svc.questdbSQL)
 

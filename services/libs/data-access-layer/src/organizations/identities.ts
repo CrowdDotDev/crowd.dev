@@ -1,8 +1,10 @@
+import { OrganizationIdentityType } from '@crowd/types'
+
 import { QueryExecutor } from '../queryExecutor'
 import { QueryOptions, QueryResult, queryTable } from '../utils'
+
 import { getOrgIdentities } from './organizations'
 import { IDbOrgIdentity, IDbOrgIdentityInsertInput, IDbOrgIdentityUpdateInput } from './types'
-import { OrganizationIdentityType } from '@crowd/types'
 
 export async function fetchOrgIdentities(
   qx: QueryExecutor,

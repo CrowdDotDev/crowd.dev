@@ -1,4 +1,5 @@
 import CustomViewService from '@/services/customViewService'
+
 import Permissions from '../../security/permissions'
 import PermissionChecker from '../../services/user/permissionChecker'
 

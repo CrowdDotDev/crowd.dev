@@ -1,5 +1,7 @@
-import { trimUtf8ToMaxByteLength } from '@crowd/common'
 import AWS from 'aws-sdk'
+
+import { trimUtf8ToMaxByteLength } from '@crowd/common'
+
 import { COMPREHEND_CONFIG, IS_DEV_ENV, S3_CONFIG } from '../conf'
 
 let s3Instance

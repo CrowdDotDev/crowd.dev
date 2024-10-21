@@ -1,10 +1,12 @@
-import { isFeatureEnabled } from '@crowd/feature-flags'
 import { DbStore } from '@crowd/database'
+import { isFeatureEnabled } from '@crowd/feature-flags'
 import { Logger, getChildLogger } from '@crowd/logging'
 import { FeatureFlag, OpenSearchIndex } from '@crowd/types'
-import { OpenSearchService } from './opensearch.service'
+
 import { FieldTranslatorFactory } from '../fieldTranslatorFactory'
 import { OpensearchQueryParser } from '../opensearchQueryParser'
+
+import { OpenSearchService } from './opensearch.service'
 
 export class OrganizationSearchService {
   private log: Logger

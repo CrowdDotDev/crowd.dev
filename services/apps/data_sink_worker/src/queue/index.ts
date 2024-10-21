@@ -1,3 +1,5 @@
+import { performance } from 'perf_hooks'
+
 import { DataSinkWorkerEmitter, SearchSyncWorkerEmitter } from '@crowd/common_services'
 import { DbConnection, DbStore } from '@crowd/data-access-layer/src/database'
 import { Logger } from '@crowd/logging'
@@ -11,7 +13,7 @@ import {
   ProcessIntegrationResultQueueMessage,
   QueuePriorityLevel,
 } from '@crowd/types'
-import { performance } from 'perf_hooks'
+
 import DataSinkService from '../service/dataSink.service'
 
 export class WorkerQueueReceiver extends PrioritizedQueueReciever {

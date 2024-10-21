@@ -1,7 +1,8 @@
-import validator from 'validator'
-import { generateUUIDv4 as uuid } from '@crowd/common'
 import Sequelize from 'sequelize'
 import { Col } from 'sequelize/types/utils'
+import validator from 'validator'
+
+import { generateUUIDv4 as uuid } from '@crowd/common'
 
 /**
  * Utilities to use on Sequelize queries.

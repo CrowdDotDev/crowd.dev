@@ -1,8 +1,10 @@
-import { ActivityTypeSettings, SegmentData, SegmentRawData } from '@crowd/types'
-import { QueryExecutor } from '../queryExecutor'
-import cloneDeep from 'lodash.clonedeep'
-import { DEFAULT_ACTIVITY_TYPE_SETTINGS } from '@crowd/integrations'
 import lodash from 'lodash'
+import cloneDeep from 'lodash.clonedeep'
+
+import { DEFAULT_ACTIVITY_TYPE_SETTINGS } from '@crowd/integrations'
+import { ActivityTypeSettings, SegmentData, SegmentRawData } from '@crowd/types'
+
+import { QueryExecutor } from '../queryExecutor'
 
 export async function findProjectGroupByName(
   qx: QueryExecutor,

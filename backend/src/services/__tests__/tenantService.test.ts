@@ -1,5 +1,6 @@
 import { getRedisClient } from '@crowd/redis'
 import { MemberAttributeName, TenantPlans } from '@crowd/types'
+
 import { REDIS_CONFIG } from '../../conf'
 import SequelizeTestUtils from '../../database/utils/sequelizeTestUtils'
 import { IServiceOptions } from '../IServiceOptions'

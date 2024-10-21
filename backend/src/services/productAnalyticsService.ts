@@ -1,10 +1,11 @@
-import { LoggerBase } from '@crowd/logging'
-import { PgPromiseQueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
 import {
+  createEvent,
   createSession,
   updateSession,
-  createEvent,
 } from '@crowd/data-access-layer/src/productAnalytics'
+import { PgPromiseQueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
+import { LoggerBase } from '@crowd/logging'
+
 import { IServiceOptions } from './IServiceOptions'
 
 export default class ProductAnalyticsService extends LoggerBase {

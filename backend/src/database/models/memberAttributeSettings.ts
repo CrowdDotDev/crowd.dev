@@ -1,5 +1,6 @@
-import { MemberAttributeType } from '@crowd/types'
 import { DataTypes } from 'sequelize'
+
+import { MemberAttributeType } from '@crowd/types'
 
 export default (sequelize) => {
   const memberAttributeSettings = sequelize.define(

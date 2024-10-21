@@ -1,13 +1,14 @@
 import {
+  ChildWorkflowCancellationType,
+  ParentClosePolicy,
   proxyActivities,
   startChild,
-  ParentClosePolicy,
-  ChildWorkflowCancellationType,
 } from '@temporalio/workflow'
 
 import * as activities from '../activities/getMembers'
-import { enrichMember } from './enrichMember'
 import { ALSO_USE_EMAIL_IDENTITIES_FOR_ENRICHMENT } from '../utils/config'
+
+import { enrichMember } from './enrichMember'
 
 // Configure timeouts and retry policies to retrieve members to enrich from the
 // database.

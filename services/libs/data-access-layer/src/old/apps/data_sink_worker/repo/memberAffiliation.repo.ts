@@ -1,5 +1,6 @@
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
+
 import { IManualAffiliationData, IWorkExperienceData } from './memberAffiliation.data'
 
 export default class MemberAffiliationRepository extends RepositoryBase<MemberAffiliationRepository> {

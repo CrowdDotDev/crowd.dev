@@ -9,6 +9,7 @@ import {
   ProcessWebhookStreamQueueMessage,
   QueuePriorityLevel,
 } from '@crowd/types'
+
 import { QueuePriorityContextLoader, QueuePriorityService } from '../priority.service'
 
 export class IntegrationStreamWorkerEmitter extends QueuePriorityService {

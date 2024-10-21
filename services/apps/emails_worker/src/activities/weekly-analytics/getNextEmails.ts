@@ -1,10 +1,9 @@
 import moment from 'moment'
 
-import { svc } from '../../main'
-
-import { AnalyticsWithTimes, InputAnalytics } from '../../types/analytics'
-
 import { dbWeeklyGetNextEmails } from '@crowd/data-access-layer/src/old/apps/emails_worker/tenants'
+
+import { svc } from '../../main'
+import { AnalyticsWithTimes, InputAnalytics } from '../../types/analytics'
 
 /*
 calculateTimes is a Temporal activity that calculates the time of the current

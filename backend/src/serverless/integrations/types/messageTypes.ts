@@ -1,4 +1,5 @@
 import { MemberIdentityType, PlatformType } from '@crowd/types'
+
 import { State } from './regularTypes'
 
 export type IntegrationsMessage = {

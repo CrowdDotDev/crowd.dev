@@ -1,9 +1,11 @@
 import { LoggerBase } from '@crowd/logging'
 import { IMemberOrganization, MemberRoleUnmergeStrategy } from '@crowd/types'
-import { IServiceOptions } from './IServiceOptions'
+
 import MemberOrganizationRepository, {
   EntityField,
 } from '../database/repositories/memberOrganizationRepository'
+
+import { IServiceOptions } from './IServiceOptions'
 
 interface IMergeStrat {
   entityIdField: EntityField

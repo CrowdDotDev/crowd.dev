@@ -1,6 +1,8 @@
 import { AuthenticationClient } from 'auth0'
-import { svc } from '../../main'
+
 import { RedisCache } from '@crowd/redis'
+
+import { svc } from '../../main'
 import { ITokenWithExpiration } from '../../types/lfid-enrichment'
 
 export async function refreshToken(): Promise<string> {

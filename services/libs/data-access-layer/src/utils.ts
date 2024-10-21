@@ -1,7 +1,9 @@
 import pgp from 'pg-promise'
+
+import { RawQueryParser } from '@crowd/common'
+
 import { QueryFilter } from './query'
 import { QueryExecutor } from './queryExecutor'
-import { RawQueryParser } from '@crowd/common'
 
 export function prepareBulkInsert(
   table: string,

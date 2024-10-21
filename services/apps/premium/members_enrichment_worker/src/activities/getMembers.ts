@@ -1,8 +1,8 @@
-import { IMember, FeatureFlag } from '@crowd/types'
+import { fetchMembersForEnrichment } from '@crowd/data-access-layer/src/old/apps/premium/members_enrichment_worker'
 import { isFeatureEnabled } from '@crowd/feature-flags'
+import { FeatureFlag, IMember } from '@crowd/types'
 
 import { svc } from '../main'
-import { fetchMembersForEnrichment } from '@crowd/data-access-layer/src/old/apps/premium/members_enrichment_worker'
 
 /*
 getMembers is a Temporal activity that retrieves all members available for

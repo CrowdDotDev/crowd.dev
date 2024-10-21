@@ -1,6 +1,7 @@
+import MemberOrganizationsService from '@/services/member/memberOrganizationsService'
+
 import Permissions from '../../../security/permissions'
 import PermissionChecker from '../../../services/user/permissionChecker'
-import MemberOrganizationsService from '@/services/member/memberOrganizationsService'
 
 /**
  * GET /tenant/{tenantId}/member/:memberId/organization

@@ -1,3 +1,8 @@
+import lodash, { uniq } from 'lodash'
+import sanitizeHtml from 'sanitize-html'
+import Sequelize, { QueryTypes } from 'sequelize'
+
+import { Error400, Error404, RawQueryParser } from '@crowd/common'
 import {
   IQueryActivitiesParameters,
   deleteActivities,
@@ -5,22 +10,20 @@ import {
   queryActivities,
   updateActivity,
 } from '@crowd/data-access-layer'
-import sanitizeHtml from 'sanitize-html'
-import lodash, { uniq } from 'lodash'
-import Sequelize, { QueryTypes } from 'sequelize'
-import { ActivityDisplayService } from '@crowd/integrations'
-import { Error400, Error404, RawQueryParser } from '@crowd/common'
-import { IIntegrationResult, IntegrationResultState } from '@crowd/types'
 import { findManyLfxMemberships } from '@crowd/data-access-layer/src/lfx_memberships'
-import SequelizeRepository from './sequelizeRepository'
-import AuditLogRepository from './auditLogRepository'
-import { IRepositoryOptions } from './IRepositoryOptions'
-import SegmentRepository from './segmentRepository'
-import { QueryOutput } from './filters/queryTypes'
-import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
-import QueryParser from './filters/queryParser'
+import { ActivityDisplayService } from '@crowd/integrations'
+import { IIntegrationResult, IntegrationResultState } from '@crowd/types'
+
 import { AttributeData } from '../attributes/attribute'
+import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
+
+import { IRepositoryOptions } from './IRepositoryOptions'
+import AuditLogRepository from './auditLogRepository'
+import QueryParser from './filters/queryParser'
+import { QueryOutput } from './filters/queryTypes'
 import MemberRepository from './memberRepository'
+import SegmentRepository from './segmentRepository'
+import SequelizeRepository from './sequelizeRepository'
 
 const { Op } = Sequelize
 

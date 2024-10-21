@@ -1,5 +1,6 @@
-import { RedisClient } from '@crowd/redis'
 import { NextFunction, Request, RequestHandler, Response } from 'express'
+
+import { RedisClient } from '@crowd/redis'
 
 export interface IRedisRequest {
   redisClient: RedisClient

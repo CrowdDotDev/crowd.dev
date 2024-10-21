@@ -2,7 +2,6 @@ import { IS_DEV_ENV, IS_STAGING_ENV, IS_TEST_ENV, groupBy } from '@crowd/common'
 import { Logger, getChildLogger } from '@crowd/logging'
 import { CrowdQueue, IQueue, IQueueConfig, PrioritizedQueueEmitter } from '@crowd/queue'
 import { RedisCache, RedisClient } from '@crowd/redis'
-
 import { IQueueMessage, IQueuePriorityCalculationContext, QueuePriorityLevel } from '@crowd/types'
 
 export type QueuePriorityContextLoader = (

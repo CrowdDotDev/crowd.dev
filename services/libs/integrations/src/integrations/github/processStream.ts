@@ -1,14 +1,17 @@
 /* eslint-disable  @typescript-eslint/no-explicit-any */
 // processStream.ts content
-import { singleOrDefault, timeout } from '@crowd/common'
-import { GraphQlQueryResponse, IConcurrentRequestLimiter } from '@crowd/types'
 import { createAppAuth } from '@octokit/auth-app'
 import { AuthInterface } from '@octokit/auth-app/dist-types/types'
+
+import { singleOrDefault, timeout } from '@crowd/common'
+import { GraphQlQueryResponse, IConcurrentRequestLimiter } from '@crowd/types'
+
 import {
   IProcessStreamContext,
-  ProcessStreamHandler,
   IProcessWebhookStreamContext,
+  ProcessStreamHandler,
 } from '../../types'
+
 import DiscussionCommentsQuery from './api/graphql/discussionComments'
 import DiscussionsQuery from './api/graphql/discussions'
 import ForksQuery from './api/graphql/forks'
@@ -25,11 +28,13 @@ import PullRequestReviewThreadCommentsQuery from './api/graphql/pullRequestRevie
 import PullRequestReviewThreadsQuery from './api/graphql/pullRequestReviewThreads'
 import PullRequestsQuery from './api/graphql/pullRequests'
 import StargazersQuery from './api/graphql/stargazers'
+import { GithubTokenRotator } from './tokenRotator'
 import {
   GithubActivitySubType,
   GithubActivityType,
   GithubApiData,
   GithubBasicStream,
+  GithubBotMember,
   GithubIntegrationSettings,
   GithubPlatformSettings,
   GithubPrepareMemberOutput,
@@ -37,12 +42,10 @@ import {
   GithubPullRequestEvents,
   GithubRootStream,
   GithubStreamType,
+  INDIRECT_FORK,
   Repo,
   Repos,
-  INDIRECT_FORK,
-  GithubBotMember,
 } from './types'
-import { GithubTokenRotator } from './tokenRotator'
 
 const IS_TEST_ENV: boolean = process.env.NODE_ENV === 'test'
 

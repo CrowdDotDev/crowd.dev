@@ -1,11 +1,13 @@
 import { Error404 } from '@crowd/common'
 import { RedisCache } from '@crowd/redis'
 import { FeatureFlagRedisKey } from '@crowd/types'
+
+import AutomationRepository from '@/database/repositories/automationRepository'
+
 import Permissions from '../../security/permissions'
 import identifyTenant from '../../segment/identifyTenant'
 import TenantService from '../../services/tenantService'
 import PermissionChecker from '../../services/user/permissionChecker'
-import AutomationRepository from '@/database/repositories/automationRepository'
 
 export default async (req, res) => {
   req.currentTenant = { id: req.params.tenantId }

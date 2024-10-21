@@ -1,5 +1,7 @@
 import { QueryTypes } from 'sequelize'
+
 import { generateUUIDv1 } from '@crowd/common'
+
 import {
   DbIncomingWebhookInsertData,
   ErrorWebhook,
@@ -8,6 +10,7 @@ import {
   WebhookState,
   WebhookType,
 } from '../../types/webhooks'
+
 import { IRepositoryOptions } from './IRepositoryOptions'
 import { RepositoryBase } from './repositoryBase'
 

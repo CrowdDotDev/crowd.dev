@@ -1,8 +1,9 @@
 import { GenerateStreamsHandler } from '../../types'
+
 import {
+  HackerNewsInitialStreamMetadata,
   HackerNewsIntegrationSettings,
   HackerNewsStreamType,
-  HackerNewsInitialStreamMetadata,
 } from './types'
 
 const handler: GenerateStreamsHandler = async (ctx) => {

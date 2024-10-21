@@ -1,9 +1,10 @@
-import { ISegment, ITenant } from '@crowd/data-access-layer/src/old/apps/cache_worker/types'
-import { svc } from '../main'
-import TenantRepository from '@crowd/data-access-layer/src/old/apps/cache_worker/tenant.repo'
 import SegmentRepository from '@crowd/data-access-layer/src/old/apps/cache_worker/segment.repo'
+import TenantRepository from '@crowd/data-access-layer/src/old/apps/cache_worker/tenant.repo'
+import { ISegment, ITenant } from '@crowd/data-access-layer/src/old/apps/cache_worker/types'
 import { isFeatureEnabled } from '@crowd/feature-flags'
 import { FeatureFlag } from '@crowd/types'
+
+import { svc } from '../main'
 
 export async function getAllTenants(): Promise<ITenant[]> {
   const tenantRepository = new TenantRepository(svc.postgres.writer.connection(), svc.log)

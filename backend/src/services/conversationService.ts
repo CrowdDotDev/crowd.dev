@@ -1,3 +1,7 @@
+import emoji from 'emoji-dictionary'
+import { convert as convertHtmlToText } from 'html-to-text'
+import fetch from 'node-fetch'
+
 import { Error403, distinct, getCleanString, single, singleOrDefault } from '@crowd/common'
 import {
   DEFAULT_COLUMNS_TO_SELECT,
@@ -12,15 +16,15 @@ import { optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { ActivityDisplayService } from '@crowd/integrations'
 import { LoggerBase } from '@crowd/logging'
 import { PageData, PlatformType } from '@crowd/types'
-import emoji from 'emoji-dictionary'
-import { convert as convertHtmlToText } from 'html-to-text'
-import fetch from 'node-fetch'
-import SegmentRepository from '@/database/repositories/segmentRepository'
+
 import OrganizationRepository from '@/database/repositories/organizationRepository'
+import SegmentRepository from '@/database/repositories/segmentRepository'
+
 import { S3_CONFIG } from '../conf/index'
 import ConversationRepository from '../database/repositories/conversationRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import telemetryTrack from '../segment/telemetryTrack'
+
 import { IServiceOptions } from './IServiceOptions'
 import { s3 } from './aws'
 import ConversationSettingsService from './conversationSettingsService'

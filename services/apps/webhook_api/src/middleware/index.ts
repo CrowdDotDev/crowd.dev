@@ -1,8 +1,9 @@
 import { Request } from 'express'
-import { ILoggingRequest } from './logging'
+
 import { IDatabaseRequest } from './database'
-import { IQueueRequest } from './queue'
 import { IEmittersRequest } from './emitters'
+import { ILoggingRequest } from './logging'
+import { IQueueRequest } from './queue'
 
 export interface ApiRequest
   extends Request,

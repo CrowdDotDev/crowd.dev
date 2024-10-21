@@ -1,7 +1,9 @@
-import { Logger, LoggerBase } from '@crowd/logging'
 import { Client } from '@opensearch-project/opensearch'
-import { ISearchHit } from './opensearch.data'
+
+import { Logger, LoggerBase } from '@crowd/logging'
 import { OpenSearchIndex } from '@crowd/types'
+
+import { ISearchHit } from './opensearch.data'
 
 export class OpenSearchService extends LoggerBase {
   public readonly client: Client

@@ -1,8 +1,8 @@
-import PermissionChecker from '../../services/user/permissionChecker'
 import Permissions from '../../security/permissions'
-import AutomationService from '../../services/automationService'
-import track from '../../segment/track'
 import identifyTenant from '../../segment/identifyTenant'
+import track from '../../segment/track'
+import AutomationService from '../../services/automationService'
+import PermissionChecker from '../../services/user/permissionChecker'
 
 /**
  * DELETE /tenant/{tenantId}/automation/{automationId}

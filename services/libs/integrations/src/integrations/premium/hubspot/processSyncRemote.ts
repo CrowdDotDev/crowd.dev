@@ -1,9 +1,4 @@
-import {
-  IGenerateStreamsContext,
-  IIntegrationProcessRemoteSyncContext,
-  ProcessIntegrationSyncHandler,
-} from '../../../types'
-import { HubspotEntity, IHubspotIntegrationSettings } from './types'
+import { RequestThrottler } from '@crowd/common'
 import {
   AutomationSyncTrigger,
   Entity,
@@ -11,16 +6,23 @@ import {
   IMember,
   IOrganization,
 } from '@crowd/types'
-import { HubspotFieldMapperFactory } from './field-mapper/mapperFactory'
-import { HubspotMemberFieldMapper } from './field-mapper/memberFieldMapper'
-import { RequestThrottler } from '@crowd/common'
+
+import {
+  IGenerateStreamsContext,
+  IIntegrationProcessRemoteSyncContext,
+  ProcessIntegrationSyncHandler,
+} from '../../../types'
+
+import { addContactsToList } from './api/addContactsToList'
 import { batchCreateMembers } from './api/batchCreateMembers'
-import { batchUpdateMembers } from './api/batchUpdateMembers'
-import { HubspotOrganizationFieldMapper } from './field-mapper/organizationFieldMapper'
 import { batchCreateOrganizations } from './api/batchCreateOrganizations'
+import { batchUpdateMembers } from './api/batchUpdateMembers'
 import { batchUpdateOrganizations } from './api/batchUpdateOrganizations'
 import { IBatchOperationResult } from './api/types'
-import { addContactsToList } from './api/addContactsToList'
+import { HubspotFieldMapperFactory } from './field-mapper/mapperFactory'
+import { HubspotMemberFieldMapper } from './field-mapper/memberFieldMapper'
+import { HubspotOrganizationFieldMapper } from './field-mapper/organizationFieldMapper'
+import { HubspotEntity, IHubspotIntegrationSettings } from './types'
 
 const handler: ProcessIntegrationSyncHandler = async <T>(
   toCreate: T[],

@@ -1,8 +1,9 @@
+import { distinct, singleOrDefault } from '@crowd/common'
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { IIntegrationResult, IntegrationResultState } from '@crowd/types'
+
 import { IDelayedResults, IFailedResultData, IResultData } from './dataSink.data'
-import { distinct, singleOrDefault } from '@crowd/common'
 
 export default class DataSinkRepository extends RepositoryBase<DataSinkRepository> {
   constructor(dbStore: DbStore, parentLog: Logger) {

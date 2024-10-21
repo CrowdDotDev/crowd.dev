@@ -1,6 +1,7 @@
 import { Error404 } from '@crowd/common'
-import TagRepository from '../tagRepository'
+
 import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
+import TagRepository from '../tagRepository'
 
 const db = null
 

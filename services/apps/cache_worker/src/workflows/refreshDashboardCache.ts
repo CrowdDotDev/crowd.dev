@@ -1,11 +1,11 @@
 import { proxyActivities } from '@temporalio/workflow'
+import moment from 'moment'
 
 import { IProcessRefreshDashboardCacheArgs } from '@crowd/types'
-import * as activities from '../activities/dashboard-cache/refreshDashboardCache'
 
-import { IDashboardData, ITimeframe } from '../types'
-import moment from 'moment'
+import * as activities from '../activities/dashboard-cache/refreshDashboardCache'
 import { DashboardTimeframe } from '../enums'
+import { IDashboardData, ITimeframe } from '../types'
 
 const activity = proxyActivities<typeof activities>({
   startToCloseTimeout: '3 minute',

@@ -1,21 +1,23 @@
-import { ProcessStreamHandler, IProcessStreamContext } from '../../types'
-import {
-  RedditStreamType,
-  IRedditSubredditStreamData,
-  RedditPostsResponse,
-  IRedditCommentStreamData,
-  IRedditMoreCommentsStreamData,
-  RedditCommentsResponse,
-  RedditComment,
-  RedditMoreChildren,
-  RedditMoreCommentsResponse,
-  IRedditPublishData,
-  RedditActivityType,
-} from './types'
-import getPosts from './api/getPosts'
+import { partition } from '@crowd/common'
+
+import { IProcessStreamContext, ProcessStreamHandler } from '../../types'
+
 import getComments from './api/getComments'
 import getMoreComments from './api/getMoreComments'
-import { partition } from '@crowd/common'
+import getPosts from './api/getPosts'
+import {
+  IRedditCommentStreamData,
+  IRedditMoreCommentsStreamData,
+  IRedditPublishData,
+  IRedditSubredditStreamData,
+  RedditActivityType,
+  RedditComment,
+  RedditCommentsResponse,
+  RedditMoreChildren,
+  RedditMoreCommentsResponse,
+  RedditPostsResponse,
+  RedditStreamType,
+} from './types'
 
 async function recursiveCommentParser(
   kind: string,

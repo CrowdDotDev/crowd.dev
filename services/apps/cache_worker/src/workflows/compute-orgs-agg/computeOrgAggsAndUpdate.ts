@@ -1,6 +1,7 @@
-import { IProcessComputeOrgAggs } from '../../types'
-import * as activities from '../../activities/computeAggs/organization'
 import { proxyActivities } from '@temporalio/workflow'
+
+import * as activities from '../../activities/computeAggs/organization'
+import { IProcessComputeOrgAggs } from '../../types'
 
 const activity = proxyActivities<typeof activities>({ startToCloseTimeout: '1 minute' })
 
