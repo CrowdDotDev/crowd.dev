@@ -179,12 +179,12 @@ setImmediate(async () => {
   app.use(
     bodyParser.json({
       limit: '5mb',
-      verify(req, res, buf) {
-        const url = (<any>req).originalUrl
+      verify(req: any, res, buf) {
+        const url = req.originalUrl
         if (url.startsWith('/webhooks/stripe') || url.startsWith('/webhooks/sendgrid')) {
           // Stripe and sendgrid webhooks needs the body raw
           // for verifying the webhook with signing secret
-          ;(<any>req).rawBody = buf.toString()
+          req.rawBody = buf.toString()
         }
       },
     }),

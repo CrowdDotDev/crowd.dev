@@ -63,7 +63,7 @@ async function models(
 
   const credentials = getCredentials()
 
-  const sequelize = new (<any>Sequelize)(
+  const sequelize = new (Sequelize as any)(
     DB_CONFIG.database,
     credentials.username,
     credentials.password,

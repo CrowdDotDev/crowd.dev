@@ -311,7 +311,7 @@ const constaintConfiguration = {
 let seq: any
 
 setImmediate(async () => {
-  seq = new (<any>Sequelize)(
+  seq = new (Sequelize as any)(
     UNLEASH_CONFIG.db.database,
     UNLEASH_CONFIG.db.username,
     UNLEASH_CONFIG.db.password,
