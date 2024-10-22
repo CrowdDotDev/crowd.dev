@@ -36,3 +36,7 @@ export interface IMemberEnrichmentDataNormalized {
   memberOrganizations?: IMemberOrganization[]
   displayName?: string
 }
+
+export interface IGetMembersForEnrichmentArgs {
+  afterId: string
+}

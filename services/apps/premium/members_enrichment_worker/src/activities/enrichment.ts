@@ -12,6 +12,7 @@ import {
   findMemberEnrichmentCacheDb,
   insertMemberEnrichmentCacheDb,
   touchMemberEnrichmentCacheUpdatedAtDb,
+  updateMemberEnrichmentCacheDb,
 } from '@crowd/data-access-layer/src/old/apps/premium/members_enrichment_worker'
 import { IMemberEnrichmentCache } from '@crowd/types/src/premium'
 
@@ -56,6 +57,14 @@ export async function insertMemberEnrichmentCache(
   data: unknown,
 ): Promise<void> {
   await insertMemberEnrichmentCacheDb(svc.postgres.writer.connection(), data, memberId, source)
+}
+
+export async function updateMemberEnrichmentCache(
+  source: MemberEnrichmentSource,
+  memberId: string,
+  data: unknown,
+): Promise<void> {
+  await updateMemberEnrichmentCacheDb(svc.postgres.writer.connection(), data, memberId, source)
 }
 
 export async function touchMemberEnrichmentCacheUpdatedAt(

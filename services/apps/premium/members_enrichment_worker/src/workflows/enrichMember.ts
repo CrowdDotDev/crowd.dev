@@ -10,19 +10,23 @@ const {
   findMemberEnrichmentCache,
   insertMemberEnrichmentCache,
   touchMemberEnrichmentCacheUpdatedAt,
+  updateMemberEnrichmentCache,
   isCacheObsolete,
 } = proxyActivities<typeof activities>({
   startToCloseTimeout: '10 seconds',
 })
 
-export async function enrichMember(input: IMember): Promise<void> {
-  const sources = [MemberEnrichmentSource.PROGAI]
+export async function enrichMember(
+  input: IMember,
+  sources: MemberEnrichmentSource[],
+): Promise<void> {
   let changeInEnrichmentSourceData = false
 
   for (const source of sources) {
-    // find if there's already a raw data
+    // find if there's already saved enrichment data in source
     const cache = await findMemberEnrichmentCache(source, input.id)
 
+    // cache is obsolete when it's not found or cache.updatedAt is older than cacheObsoleteAfterSeconds
     if (await isCacheObsolete(source, cache)) {
       const data = await getEnrichmentData(source, {
         github: input.identities.find(
@@ -40,17 +44,18 @@ export async function enrichMember(input: IMember): Promise<void> {
         ),
       })
 
-      if (data) {
-        if (sourceHasDifferentDataComparedToCache(cache, data)) {
-          await insertMemberEnrichmentCache(source, input.id, data)
+      if (!cache) {
+        await insertMemberEnrichmentCache(source, input.id, data)
+        if (data) {
           changeInEnrichmentSourceData = true
-        } else {
-          // data is same as cache, only update cache.updatedAt
-          await touchMemberEnrichmentCacheUpdatedAt(source, input.id)
         }
+      } else if (sourceHasDifferentDataComparedToCache(cache, data)) {
+        await updateMemberEnrichmentCache(source, input.id, data)
+        changeInEnrichmentSourceData = true
+      } else {
+        // data is same as cache, only update cache.updatedAt
+        await touchMemberEnrichmentCacheUpdatedAt(source, input.id)
       }
-    } else {
-      console.log('Cache is not obsolete yet!!!')
     }
   }
 

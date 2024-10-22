@@ -1,13 +1,15 @@
 import {
   proxyActivities,
-  startChild,
   ParentClosePolicy,
   ChildWorkflowCancellationType,
+  executeChild,
+  continueAsNew,
 } from '@temporalio/workflow'
 
 import * as activities from '../activities/getMembers'
 import { enrichMember } from './enrichMember'
-import { ALSO_USE_EMAIL_IDENTITIES_FOR_ENRICHMENT } from '../utils/config'
+import { IGetMembersForEnrichmentArgs } from '../types'
+import { MemberEnrichmentSource } from '@crowd/types'
 
 // Configure timeouts and retry policies to retrieve members to enrich from the
 // database.
@@ -23,12 +25,16 @@ getMembersToEnrich is a Temporal workflow that:
     completely "detached" from the parent workflow, meaning they will continue
     to run and not be cancelled even if this one is.
 */
-export async function getMembersToEnrich(): Promise<void> {
-  const members = await getMembers()
+export async function getMembersToEnrich(args: IGetMembersForEnrichmentArgs): Promise<void> {
+  const MEMBER_ENRICHMENT_PER_RUN = 20
+  const afterId = args?.afterId || null
+  const sources = [MemberEnrichmentSource.PROGAI]
+
+  const members = await getMembers(MEMBER_ENRICHMENT_PER_RUN, sources, afterId)
 
   await Promise.all(
     members.map((member) => {
-      return startChild(enrichMember, {
+      return executeChild(enrichMember, {
         workflowId: 'member-enrichment/' + member.tenantId + '/' + member.id,
         cancellationType: ChildWorkflowCancellationType.ABANDON,
         parentClosePolicy: ParentClosePolicy.PARENT_CLOSE_POLICY_ABANDON,
@@ -39,7 +45,7 @@ export async function getMembersToEnrich(): Promise<void> {
           initialInterval: 2 * 1000,
           maximumInterval: 30 * 1000,
         },
-        args: [member],
+        args: [member, sources],
         searchAttributes: {
           TenantId: [member.tenantId],
         },
@@ -47,5 +53,7 @@ export async function getMembersToEnrich(): Promise<void> {
     }),
   )
 
-  return
+  // await continueAsNew<typeof getMembersToEnrich>({
+  //   afterId: members[members.length - 1].id,
+  // })
 }

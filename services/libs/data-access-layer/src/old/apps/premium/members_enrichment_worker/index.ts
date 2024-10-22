@@ -3,6 +3,7 @@ import { DbConnOrTx, DbStore, DbTransaction } from '@crowd/database'
 import {
   IAttributes,
   IMember,
+  IMemberEnrichmentSourceQueryInput,
   IMemberIdentity,
   IOrganizationIdentity,
   MemberEnrichmentSource,
@@ -11,7 +12,28 @@ import {
 } from '@crowd/types'
 import { IMemberEnrichmentCache } from '@crowd/types/src/premium'
 
-export async function fetchMembersForEnrichment(db: DbStore): Promise<IMember[]> {
+export async function fetchMembersForEnrichment(
+  db: DbStore,
+  limit: number,
+  sourceInputs: IMemberEnrichmentSourceQueryInput[],
+  afterId: string,
+): Promise<IMember[]> {
+  const idFilter = afterId ? ' and members.id < $2 ' : ''
+
+  const sourceInnerQuery = []
+
+  sourceInputs.forEach((input) => {
+    sourceInnerQuery.push(
+      `
+      ( NOT EXISTS (
+          SELECT 1 FROM "memberEnrichmentCache" mec
+          WHERE mec."memberId" = members.id
+          AND mec.source = '${input.source}'
+          AND EXTRACT(EPOCH FROM (now() - mec."updatedAt")) < ${input.cacheObsoleteAfterSeconds})
+      )`,
+    )
+  })
+
   return db.connection().query(
     `SELECT
          members."id",
@@ -34,8 +56,12 @@ export async function fetchMembersForEnrichment(db: DbStore): Promise<IMember[]>
        ( mi.verified AND (mi.platform = 'github' or mi.type = '${MemberIdentityType.EMAIL}') )
        AND tenants."deletedAt" IS NULL
        AND members."deletedAt" IS NULL
+       AND ${sourceInnerQuery.join(' OR ')}
+       ${idFilter}
      GROUP BY members.id
-         LIMIT 50;`,
+     ORDER BY members.id desc
+         LIMIT $1;`,
+    [limit, afterId],
   )
 }
 
@@ -424,9 +450,23 @@ export async function insertMemberEnrichmentCacheDb<T>(
 ) {
   return tx.query(
     `INSERT INTO "memberEnrichmentCache" ("memberId", "data", "createdAt", "updatedAt", "source")
-      VALUES ($1, $2, NOW(), NOW(), $3)
-      ON CONFLICT ("memberId", "source") DO UPDATE
-      SET data = EXCLUDED.data, "updatedAt" = NOW();`,
+      VALUES ($1, $2, NOW(), NOW(), $3);`,
+    [memberId, JSON.stringify(data), source],
+  )
+}
+
+export async function updateMemberEnrichmentCacheDb<T>(
+  tx: DbConnOrTx,
+  data: T,
+  memberId: string,
+  source: MemberEnrichmentSource,
+) {
+  return tx.query(
+    `UPDATE "memberEnrichmentCache"
+      SET
+        "updatedAt" = NOW(),
+        "data" = $2
+      WHERE "memberId" = $1 and source = $3;`,
     [memberId, JSON.stringify(data), source],
   )
 }
