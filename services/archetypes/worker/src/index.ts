@@ -30,22 +30,7 @@ const envvars = {
     IS_DEV_ENV || IS_TEST_ENV || IS_STAGING_ENV
       ? ['CROWD_OPENSEARCH_NODE']
       : ['CROWD_OPENSEARCH_USERNAME', 'CROWD_OPENSEARCH_PASSWORD', 'CROWD_OPENSEARCH_NODE'],
-  queue:
-    IS_DEV_ENV || IS_TEST_ENV
-      ? [
-          'CROWD_SQS_AWS_REGION',
-          'CROWD_SQS_HOST',
-          'CROWD_SQS_PORT',
-          'CROWD_SQS_AWS_ACCESS_KEY_ID',
-          'CROWD_SQS_AWS_SECRET_ACCESS_KEY',
-          'CROWD_KAFKA_BROKERS',
-        ]
-      : [
-          'CROWD_SQS_AWS_REGION',
-          'CROWD_SQS_AWS_ACCESS_KEY_ID',
-          'CROWD_SQS_AWS_SECRET_ACCESS_KEY',
-          'CROWD_KAFKA_BROKERS',
-        ],
+  queue: ['CROWD_KAFKA_BROKERS'],
 }
 
 /*
@@ -211,7 +196,7 @@ export class ServiceWorker extends Service {
       try {
         this._queueClient = QueueFactory.createQueueService({
           brokers: process.env['CROWD_KAFKA_BROKERS'],
-          clientId: 'crowd-temporal-worker', //TODO:: make this configurable
+          clientId: process.env['SERVICE'], //TODO:: make this configurable
         })
       } catch (err) {
         throw new Error(err)
