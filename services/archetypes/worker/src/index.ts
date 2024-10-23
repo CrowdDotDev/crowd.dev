@@ -2,7 +2,7 @@ import { NativeConnection, Worker as TemporalWorker, bundleWorkflowCode } from '
 import path from 'path'
 
 import { Config, Service } from '@crowd/archetype-standard'
-import { IS_DEV_ENV, IS_TEST_ENV } from '@crowd/common'
+import { IS_DEV_ENV, IS_STAGING_ENV, IS_TEST_ENV } from '@crowd/common'
 import { DbStore, getDbConnection } from '@crowd/database'
 import { OpenSearchService, getOpensearchClient } from '@crowd/opensearch'
 import { IQueue, QueueFactory } from '@crowd/queue'
@@ -27,7 +27,7 @@ const envvars = {
     'CROWD_DB_DATABASE',
   ],
   opensearch:
-    IS_DEV_ENV || IS_TEST_ENV
+    IS_DEV_ENV || IS_TEST_ENV || IS_STAGING_ENV
       ? ['CROWD_OPENSEARCH_NODE']
       : ['CROWD_OPENSEARCH_USERNAME', 'CROWD_OPENSEARCH_PASSWORD', 'CROWD_OPENSEARCH_NODE'],
   queue:
