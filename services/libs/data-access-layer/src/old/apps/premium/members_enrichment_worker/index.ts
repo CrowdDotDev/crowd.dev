@@ -12,11 +12,17 @@ import {
 export async function fetchMembersForEnrichment(
   db: DbStore,
   alsoUseEmailIdentitiesForEnrichment: boolean,
+  memberIds?: string[],
 ): Promise<IMember[]> {
   let identityFilter = ` AND mi.platform = 'github' `
+  let memberIdFilter = ``
 
   if (alsoUseEmailIdentitiesForEnrichment) {
     identityFilter = ` AND ( mi.platform = 'github' or mi.type = '${MemberIdentityType.EMAIL}' )`
+  }
+
+  if (memberIds && memberIds.length > 0) {
+    memberIdFilter = ` AND members.id in ($(memberIds:csv))`
   }
 
   return db.connection().query(
@@ -43,10 +49,12 @@ export async function fetchMembersForEnrichment(
              OR members."lastEnriched" IS NULL
          )
        ${identityFilter}
+       ${memberIdFilter}
        AND tenants."deletedAt" IS NULL
        AND members."deletedAt" IS NULL
      GROUP BY members.id
-         LIMIT 50;`,
+         LIMIT 100;`,
+    { memberIds },
   )
 }
 

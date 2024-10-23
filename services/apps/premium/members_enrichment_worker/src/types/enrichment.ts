@@ -5,3 +5,7 @@ export interface EnrichingMember {
   member: IMember
   enrichment?: EnrichmentAPIMember
 }
+
+export interface IGetMembersForEnrichmentArgs {
+  memberIds?: string[]
+}
