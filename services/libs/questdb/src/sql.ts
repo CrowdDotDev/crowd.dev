@@ -1,6 +1,6 @@
 import pgpromise from 'pg-promise'
 
-import { getEnv } from '@crowd/common'
+import { getEnv, IS_PROD_ENV } from '@crowd/common'
 import { getServiceChildLogger } from '@crowd/logging'
 
 const log = getServiceChildLogger('questdb.sql.connection')
@@ -40,7 +40,7 @@ export const getClientSQL = async (): Promise<pgpromise.IDatabase<unknown>> => {
     password: process.env['CROWD_QUESTDB_SQL_PASSWORD'],
     database: process.env['CROWD_QUESTDB_SQL_DATABASE'],
     application_name: process.env.SERVICE || 'unknown-app',
-    ssl: getEnv() !== 'local' ? true : false,
+    ssl: IS_PROD_ENV ? true : false,
     idleTimeoutMillis: 120000,
     max: 4,
   })
