@@ -153,23 +153,23 @@ export async function fetchMembersWithTooManyEmails(
 ): Promise<IMember[]> {
   return qx.select(
     `
-            SELECT
-                mi."memberId",
-                m."displayName",
-                m."attributes",
-                m.id,
-                COUNT(*) AS "identityCount",
-                msa."activityCount"
-            FROM "memberIdentities" mi
-                     JOIN "members" m ON mi."memberId" = m.id
-                     LEFT JOIN "memberSegmentsAgg" msa ON m.id = msa."memberId" AND msa."segmentId" = '${segmentId}'
-            WHERE m."tenantId" = '${tenantId}'
-              AND mi.verified = true
-              AND mi.type = 'email'
-            GROUP BY mi."memberId", m."displayName", m."attributes", m.id, msa."activityCount"
-            HAVING COUNT(*) > ${threshold}
-            ORDER BY msa."activityCount" DESC
-            LIMIT ${limit} OFFSET ${offset};
+        SELECT
+            mi."memberId",
+            m."displayName",
+            m."attributes",
+            m.id,
+            COUNT(DISTINCT mi.value) AS "identityCount",
+            msa."activityCount"
+        FROM "memberIdentities" mi
+                 JOIN "members" m ON mi."memberId" = m.id
+                 LEFT JOIN "memberSegmentsAgg" msa ON m.id = msa."memberId" AND msa."segmentId" = '${segmentId}'
+        WHERE m."tenantId" = '${tenantId}'
+          AND mi.verified = true
+          AND mi.type = 'email'
+        GROUP BY mi."memberId", m."displayName", m."attributes", m.id, msa."activityCount"
+        HAVING COUNT(DISTINCT mi.value) > ${threshold}
+        ORDER BY msa."activityCount" DESC
+        LIMIT ${limit} OFFSET ${offset};
         `,
     {
       threshold,
