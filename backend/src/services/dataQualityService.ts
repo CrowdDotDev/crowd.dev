@@ -50,6 +50,24 @@ export default class DataQualityService extends LoggerBase {
         segmentId,
       )
     }
+    if (params.type === IDataQualityType.TOO_MANY_EMAILS) {
+      return DataQualityRepository.findMembersWithTooManyEmails(
+        this.options,
+        tenantId,
+        params.limit || 10,
+        params.offset || 0,
+        segmentId,
+      )
+    }
+    if (params.type === IDataQualityType.INCOMPLETE_WORK_EXPERIENCE) {
+      return DataQualityRepository.findMembersWithIncompleteWorkExperience(
+        this.options,
+        tenantId,
+        params.limit || 10,
+        params.offset || 0,
+        segmentId,
+      )
+    }
     return []
   }
 

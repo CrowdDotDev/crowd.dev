@@ -1,7 +1,7 @@
 import {
   fetchMembersWithTooManyIdentities,
   fetchMembersWithTooManyIdentitiesPerPlatform,
-  fetchMembersWithoutWorkExperience,
+  fetchMembersWithoutWorkExperience, fetchMembersWithTooManyEmails, fetchMembersWithIncompleteWorkExperience,
 } from '@crowd/data-access-layer/src/data-quality'
 
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
@@ -72,6 +72,28 @@ class DataQualityRepository {
   ) {
     const qx = SequelizeRepository.getQueryExecutor(options)
     return fetchMembersWithTooManyIdentitiesPerPlatform(qx, 1, tenantId, limit, offset, segmentId)
+  }
+
+  static async findMembersWithTooManyEmails(
+    options: IRepositoryOptions,
+    tenantId: string,
+    limit: number,
+    offset: number,
+    segmentId: string,
+  ) {
+    const qx = SequelizeRepository.getQueryExecutor(options)
+    return fetchMembersWithTooManyEmails(qx, 3, tenantId, limit, offset, segmentId)
+  }
+
+  static async findMembersWithIncompleteWorkExperience(
+    options: IRepositoryOptions,
+    tenantId: string,
+    limit: number,
+    offset: number,
+    segmentId: string,
+  ) {
+    const qx = SequelizeRepository.getQueryExecutor(options)
+    return fetchMembersWithIncompleteWorkExperience(qx, tenantId, limit, offset, segmentId)
   }
 }
 

@@ -1,16 +1,19 @@
 <template>
   <div>
-    <div v-if="props.types.length > 1" class="pt-4 gap-2 flex flex-col pb-4">
-      <lf-radio
-        v-for="type of props.types"
-        :key="type"
-        v-model="selectedType"
-        :value="type"
-        name="issueType"
-      >
-        {{ dataIssueTypes[type].label }}
-      </lf-radio>
-    </div>
+    <!--    <div v-if="props.type.length > 1" class="py-4 flex">-->
+    <!--      <div class="border border-gray-200 rounded-lg p-0.5 flex gap-1 mb-6 flex-wrap">-->
+    <!--        <lf-button-->
+    <!--          v-for="type of props.type"-->
+    <!--          :key="type"-->
+    <!--          type="secondary-ghost"-->
+    <!--          :class="selectedType === type ? '!font-semibold !bg-gray-200' : '!font-normal'"-->
+    <!--          size="tiny"-->
+    <!--          @click="selectedType = type"-->
+    <!--        >-->
+    <!--          {{ dataIssueTypes[type].label }}-->
+    <!--        </lf-button>-->
+    <!--      </div>-->
+    <!--    </div>-->
     <div v-if="loading && offset === 0" class="flex justify-center py-20">
       <lf-spinner />
     </div>
@@ -19,7 +22,7 @@
         v-for="(member) of members"
         :key="member.id"
         :member="member"
-        :type="selectedType"
+        :type="props.type"
       />
       <div v-if="members.length < total" class="pt-4">
         <lf-button type="primary-ghost" size="small" :loading="loading" @click="loadMore()">
@@ -46,14 +49,12 @@ import { onMounted, ref, watch } from 'vue';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import { DataIssueType } from '@/modules/data-quality/types/DataIssueType';
-import LfRadio from '@/ui-kit/radio/Radio.vue';
 import { DataQualityApiService } from '@/modules/data-quality/services/data-quality.api.service';
 import LfDataQualityMemberIssuesItem
   from '@/modules/data-quality/components/member/data-quality-member-issues-item.vue';
-import { dataIssueTypes } from '../../config/data-issue-types';
 
 const props = defineProps<{
-  types: DataIssueType[]
+  type: DataIssueType
 }>();
 
 const loading = ref(true);
@@ -62,12 +63,13 @@ const offset = ref(0);
 const total = ref(0);
 const members = ref<any[]>([]);
 
-const selectedType = ref<string>(props.types?.[0] || '');
-
 const loadDataIssues = () => {
   loading.value = true;
+  if (offset.value === 0) {
+    members.value = [];
+  }
   DataQualityApiService.findMemberIssues({
-    type: selectedType.value,
+    type: props.type,
     limit: limit.value,
     offset: offset.value,
   }, [])
@@ -93,7 +95,8 @@ const loadMore = () => {
   loadDataIssues();
 };
 
-watch(selectedType, () => {
+watch(() => props.type, () => {
+  console.log(props.type);
   offset.value = 0;
   loadDataIssues();
 });

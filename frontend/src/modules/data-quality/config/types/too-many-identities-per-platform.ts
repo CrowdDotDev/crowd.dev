@@ -6,7 +6,7 @@ const tooManyIdentitiesPerPlatform: DataIssueTypeConfig = {
   badgeType: 'warning',
   badgeText: () => 'More than 1 verified identity per platform',
   description: (member: any) => {
-    const platforms = member.platforms.split(',');
+    const platforms = (member.platforms || []).split(',');
     return `This profile has more than 1 verified identity on 
   ${CrowdIntegrations.getPlatformsLabel(platforms)}, please review them if they are all necessary.`;
   },

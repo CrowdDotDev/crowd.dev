@@ -1,4 +1,5 @@
 import { IMember } from '@crowd/types'
+
 import { QueryExecutor } from '../queryExecutor'
 
 /**
@@ -134,6 +135,77 @@ export async function fetchMembersWithTooManyIdentitiesPerPlatform(
     `,
     {
       treshold,
+      tenantId,
+      limit,
+      offset,
+      segmentId,
+    },
+  )
+}
+
+export async function fetchMembersWithTooManyEmails(
+  qx: QueryExecutor,
+  threshold = 3,
+  tenantId: string,
+  limit: number,
+  offset: number,
+  segmentId: string,
+): Promise<IMember[]> {
+  return qx.select(
+    `
+            SELECT
+                mi."memberId",
+                m."displayName",
+                m."attributes",
+                m.id,
+                COUNT(*) AS "identityCount",
+                msa."activityCount"
+            FROM "memberIdentities" mi
+                     JOIN "members" m ON mi."memberId" = m.id
+                     LEFT JOIN "memberSegmentsAgg" msa ON m.id = msa."memberId" AND msa."segmentId" = '${segmentId}'
+            WHERE m."tenantId" = '${tenantId}'
+              AND mi.verified = true
+              AND mi.type = 'email'
+            GROUP BY mi."memberId", m."displayName", m."attributes", m.id, msa."activityCount"
+            HAVING COUNT(*) > ${threshold}
+            ORDER BY msa."activityCount" DESC
+            LIMIT ${limit} OFFSET ${offset};
+        `,
+    {
+      threshold,
+      tenantId,
+      limit,
+      offset,
+      segmentId,
+    },
+  )
+}
+
+export async function fetchMembersWithIncompleteWorkExperience(
+  qx: QueryExecutor,
+  tenantId: string,
+  limit: number,
+  offset: number,
+  segmentId: string,
+): Promise<IMember[]> {
+  return qx.select(
+    `
+          SELECT
+              m.id,
+              m."displayName",
+              m."attributes",
+              msa."activityCount",
+              COUNT(mo.id) AS "organizationsCount"
+          FROM "members" m
+                   JOIN "memberOrganizations" mo ON m.id = mo."memberId"
+                   LEFT JOIN "memberSegmentsAgg" msa ON m.id = msa."memberId" AND msa."segmentId" = '${segmentId}'
+          WHERE m."tenantId" = '${tenantId}'
+            AND (mo."title" IS NULL OR mo."title" = '' OR mo."dateStart" IS NULL)
+          GROUP BY m.id, msa."activityCount"
+          ORDER BY msa."activityCount" DESC
+          LIMIT ${limit} OFFSET ${offset};
+      `,
+    {
       tenantId,
       limit,
       offset,
