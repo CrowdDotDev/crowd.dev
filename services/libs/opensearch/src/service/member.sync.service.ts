@@ -467,6 +467,11 @@ export class MemberSyncService {
         MemberField.DISPLAY_NAME,
         MemberField.ATTRIBUTES,
       ])
+
+      if (!base) {
+        return
+      }
+
       const attributes = await this.memberRepo.getTenantMemberAttributes(base.tenantId)
       const data = await buildFullMemberForMergeSuggestions(qx, base)
       const prefixed = MemberSyncService.prefixData(data, attributes)
