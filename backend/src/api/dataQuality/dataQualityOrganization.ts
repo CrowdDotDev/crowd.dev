@@ -34,11 +34,7 @@ export default async (req, res) => {
     }
   }
 
-  const payload = await new DataQualityService(req).findOrganizationIssues(
-    req.params.tenantId,
-    req.query,
-    segmentId,
-  )
+  const payload = await new DataQualityService(req).findOrganizationIssues()
 
   await req.responseHandler.success(req, res, payload)
 }
