@@ -74,12 +74,12 @@ import telemetryTrack from '../segment/telemetryTrack'
 
 import { IServiceOptions } from './IServiceOptions'
 import merge from './helpers/merge'
+import MemberAffiliationService from './memberAffiliationService'
 import MemberAttributeSettingsService from './memberAttributeSettingsService'
 import MemberOrganizationService from './memberOrganizationService'
 import OrganizationService from './organizationService'
 import SearchSyncService from './searchSyncService'
 import SettingsService from './settingsService'
-import MemberAffiliationService from './memberAffiliationService'
 
 export default class MemberService extends LoggerBase {
   options: IServiceOptions
@@ -1685,7 +1685,12 @@ export default class MemberService extends LoggerBase {
       })
 
       await SequelizeRepository.commitTransaction(transaction)
-      await MemberAffiliationService.startAffiliationRecalculation(id, (data.organizations || []).map((o) => o.id), this.options, syncToOpensearch)
+      await MemberAffiliationService.startAffiliationRecalculation(
+        id,
+        (data.organizations || []).map((o) => o.id),
+        this.options,
+        syncToOpensearch,
+      )
 
       return record
     } catch (error) {

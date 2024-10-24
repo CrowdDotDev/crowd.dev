@@ -55,26 +55,31 @@ export default class MemberAffiliationService extends LoggerBase {
     return null
   }
 
-  static async startAffiliationRecalculation(memberId: string, organizationIds: string[], options: IServiceOptions, syncToOpensearch = false): Promise<void> {
-      await options.temporal.workflow.start('memberUpdate', {
-        taskQueue: 'profiles',
-        workflowId: `${TemporalWorkflowId.MEMBER_UPDATE}/${options.currentTenant.id}/${memberId}`,
-        workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
-        retry: {
-          maximumAttempts: 10,
-        },
-        args: [
-          {
-            member: {
-              id: memberId,
-            },
-            memberOrganizationIds: organizationIds,
-            syncToOpensearch,
+  static async startAffiliationRecalculation(
+    memberId: string,
+    organizationIds: string[],
+    options: IServiceOptions,
+    syncToOpensearch = false,
+  ): Promise<void> {
+    await options.temporal.workflow.start('memberUpdate', {
+      taskQueue: 'profiles',
+      workflowId: `${TemporalWorkflowId.MEMBER_UPDATE}/${options.currentTenant.id}/${memberId}`,
+      workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+      retry: {
+        maximumAttempts: 10,
+      },
+      args: [
+        {
+          member: {
+            id: memberId,
           },
-        ],
-        searchAttributes: {
-          TenantId: [options.currentTenant.id],
+          memberOrganizationIds: organizationIds,
+          syncToOpensearch,
         },
-      })
-   }
+      ],
+      searchAttributes: {
+        TenantId: [options.currentTenant.id],
+      },
+    })
+  }
 }

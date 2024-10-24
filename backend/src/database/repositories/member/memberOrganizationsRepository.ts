@@ -14,7 +14,10 @@ import SequelizeRepository from '../sequelizeRepository'
 type IOrganizationSummary = Pick<IOrganization, 'id' | 'displayName' | 'logo'>
 
 class MemberOrganizationsRepository {
-  static async list(memberId: string, options: IRepositoryOptions): Promise<IRenderFriendlyMemberOrganization[]> {
+  static async list(
+    memberId: string,
+    options: IRepositoryOptions,
+  ): Promise<IRenderFriendlyMemberOrganization[]> {
     const transaction = await SequelizeRepository.createTransaction(options)
     try {
       const txOptions = { ...options, transaction }
@@ -115,7 +118,6 @@ class MemberOrganizationsRepository {
     // List all member organizations
     return this.list(memberId, options)
   }
-
 }
 
 export default MemberOrganizationsRepository
