@@ -79,6 +79,7 @@ import MemberOrganizationService from './memberOrganizationService'
 import OrganizationService from './organizationService'
 import SearchSyncService from './searchSyncService'
 import SettingsService from './settingsService'
+import MemberAffiliationService from './memberAffiliationService'
 
 export default class MemberService extends LoggerBase {
   options: IServiceOptions
@@ -1684,26 +1685,7 @@ export default class MemberService extends LoggerBase {
       })
 
       await SequelizeRepository.commitTransaction(transaction)
-      await this.options.temporal.workflow.start('memberUpdate', {
-        taskQueue: 'profiles',
-        workflowId: `${TemporalWorkflowId.MEMBER_UPDATE}/${this.options.currentTenant.id}/${id}`,
-        workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
-        retry: {
-          maximumAttempts: 10,
-        },
-        args: [
-          {
-            member: {
-              id,
-            },
-            memberOrganizationIds: (data.organizations || []).map((o) => o.id),
-            syncToOpensearch,
-          },
-        ],
-        searchAttributes: {
-          TenantId: [this.options.currentTenant.id],
-        },
-      })
+      await MemberAffiliationService.startAffiliationRecalculation(id, (data.organizations || []).map((o) => o.id), this.options, syncToOpensearch)
 
       return record
     } catch (error) {
