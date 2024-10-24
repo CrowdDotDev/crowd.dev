@@ -1,23 +1,27 @@
 <template>
-  <app-page-wrapper size="full-width">
+  <app-page-wrapper>
     <div>
       <!-- Header -->
       <div class="mb-6">
-        <app-lf-page-header text-class="text-tiny text-secondary-400 mb-1" />
-        <h4 class="font-semibold">
-          Data Quality Assistant
-        </h4>
-      </div>
+        <div class="flex justify-between items-center">
+          <div>
+            <app-lf-page-header text-class="text-tiny text-secondary-400 mb-1" />
+            <h4 class="font-semibold">
+              Data Quality Assistant
+            </h4>
+          </div>
 
-      <!-- Tabs -->
-      <lf-tabs v-model="tab" class="mb-6">
-        <lf-tab v-model="tab" name="member">
-          People
-        </lf-tab>
-        <lf-tab v-model="tab" name="organization">
-          Organizations
-        </lf-tab>
-      </lf-tabs>
+          <!-- Tabs -->
+          <lf-tabs v-model="tab">
+            <lf-tab v-model="tab" name="member">
+              People
+            </lf-tab>
+            <lf-tab v-model="tab" name="organization">
+              Organizations
+            </lf-tab>
+          </lf-tabs>
+        </div>
+      </div>
 
       <!-- Content -->
       <div>
