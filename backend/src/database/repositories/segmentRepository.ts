@@ -367,27 +367,6 @@ class SegmentRepository extends RepositoryBase<
     }, {})
   }
 
-  async getChildrenOfProjects(segment: SegmentData) {
-    const records = await this.options.database.sequelize.query(
-      `
-                select * from segments s
-                where s."parentSlug" = :slug
-                  AND s."grandparentSlug" = :parentSlug
-                and s."tenantId" = :tenantId;
-            `,
-      {
-        replacements: {
-          slug: segment.slug,
-          parentSlug: segment.parentSlug,
-          tenantId: this.options.currentTenant.id,
-        },
-        type: QueryTypes.SELECT,
-      },
-    )
-
-    return records
-  }
-
   async findBySlug(slug: string, level: SegmentLevel) {
     const transaction = this.transaction
 
