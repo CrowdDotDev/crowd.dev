@@ -161,31 +161,6 @@ export interface IQueryActiveOrganizationsParameters {
   offset: number
 }
 
-export interface IQueryNumberOfActiveOrganizationsParameters {
-  tenantId: string
-  segmentIds?: string[]
-  timestampFrom?: Date
-  timestampTo?: Date
-  platform?: string
-  groupBy?: undefined | 'day'
-}
-
-export interface IActivityTimeseriesResult {
-  date: string
-  count: number
-}
-
-export interface IActivityBySentimentMoodResult {
-  sentimentLabel: string
-  count: number
-}
-
-export interface IActivityByTypeAndPlatformResult {
-  type: string
-  platform: string
-  count: number
-}
-
 export interface INewActivityPlatforms {
   segmentIds: string[]
   after: Date
