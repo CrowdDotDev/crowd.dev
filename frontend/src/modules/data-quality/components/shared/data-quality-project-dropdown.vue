@@ -20,16 +20,18 @@
       </lf-input>
     </div>
 
-    <lf-dropdown-item
-      v-for="group of options"
-      :key="group.id"
-      :selected="projectGroup === group.id"
-      @click="projectGroup = group.id"
-    >
-      {{ group.name }}
-    </lf-dropdown-item>
-    <div v-if="options.length === 0" class="text-gray-400 px-3 h-16 flex items-center justify-center">
-      <span class="text-tiny text-gray-400"> No project groups found </span>
+    <div class="w-full max-h-60 overflow-auto">
+      <lf-dropdown-item
+        v-for="group of options"
+        :key="group.id"
+        :selected="projectGroup === group.id"
+        @click="changeOption(group.id)"
+      >
+        {{ group.name }}
+      </lf-dropdown-item>
+      <div v-if="options.length === 0" class="text-gray-400 px-3 h-16 flex items-center justify-center">
+        <span class="text-tiny text-gray-400"> No project groups found </span>
+      </div>
     </div>
   </lf-dropdown>
 </template>
@@ -44,10 +46,14 @@ import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { getSegmentName } from '@/utils/segments';
 import LfInput from '@/ui-kit/input/Input.vue';
+import { useRoute, useRouter } from 'vue-router';
 
 const props = defineProps<{
   modelValue: string;
 }>();
+
+const router = useRouter();
+const route = useRoute();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: string): void}>();
 
@@ -61,6 +67,18 @@ const projectGroup = computed({
 });
 
 const options = computed(() => projectGroups.value.list.filter((group) => group.name.toLowerCase().includes(search.value.toLowerCase())));
+
+const changeOption = (group: string) => {
+  projectGroup.value = group;
+  search.value = '';
+  router.push({
+    ...route,
+    query: {
+      ...route.query,
+      projectGroup: group,
+    },
+  });
+};
 </script>
 
 <script lang="ts">

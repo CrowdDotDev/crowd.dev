@@ -13,10 +13,10 @@
 
           <!-- Tabs -->
           <lf-tabs v-model="tab">
-            <lf-tab v-model="tab" name="member">
+            <lf-tab v-model="tab" name="member" preserve-query>
               People
             </lf-tab>
-            <lf-tab v-model="tab" name="organization">
+            <lf-tab v-model="tab" name="organization" preserve-query>
               Organizations
             </lf-tab>
           </lf-tabs>

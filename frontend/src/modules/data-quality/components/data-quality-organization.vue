@@ -5,10 +5,14 @@
         v-model="tab"
         :types="[]"
       />
+      <lf-data-quality-project-dropdown v-model="projectGroup" />
     </div>
     <div class="border-b border-gray-200 w-full mb-1" />
     <div>
-      <lf-data-quality-organization-merge-suggestions v-if="tab === 'merge-suggestions'" />
+      <lf-data-quality-organization-merge-suggestions
+        v-if="tab === 'merge-suggestions'"
+        :project-group="projectGroup"
+      />
     </div>
   </div>
 </template>
@@ -18,8 +22,13 @@ import { ref } from 'vue';
 import LfDataQualityOrganizationMergeSuggestions
   from '@/modules/data-quality/components/organization/data-quality-organization-merge-suggestions.vue';
 import LfDataQualityTypeDropdown from '@/modules/data-quality/components/shared/data-quality-type-dropdown.vue';
+import LfDataQualityProjectDropdown from '@/modules/data-quality/components/shared/data-quality-project-dropdown.vue';
+import { useRoute } from 'vue-router';
+
+const route = useRoute();
 
 const tab = ref('merge-suggestions');
+const projectGroup = ref(route.query.projectGroup as string);
 </script>
 
 <script lang="ts">
