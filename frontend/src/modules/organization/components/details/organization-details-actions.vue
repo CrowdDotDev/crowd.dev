@@ -2,7 +2,6 @@
   <div class="flex">
     <lf-button-group>
       <lf-button
-        v-if="!hasPermission(LfPermission.organizationEdit)"
         type="secondary"
         @click="setReportDataModal({
           organization: props.organization,
