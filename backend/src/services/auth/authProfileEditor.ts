@@ -1,6 +1,7 @@
 import assert from 'assert'
-import UserRepository from '../../database/repositories/userRepository'
+
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
+import UserRepository from '../../database/repositories/userRepository'
 import { IServiceOptions } from '../IServiceOptions'
 
 export default class AuthProfileEditor {

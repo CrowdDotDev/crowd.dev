@@ -1,4 +1,5 @@
 import { Error403 } from '@crowd/common'
+
 import ProductAnalyticsService from '@/services/productAnalyticsService'
 
 export default async (req, res) => {

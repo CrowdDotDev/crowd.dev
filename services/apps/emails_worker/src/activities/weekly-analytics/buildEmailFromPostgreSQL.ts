@@ -1,17 +1,15 @@
+import { getNumberOfNewMembers } from '@crowd/data-access-layer'
+import {
+  fetchActiveIntegrations,
+  fetchSegments,
+  fetchTenantUsers,
+} from '@crowd/data-access-layer/src/old/apps/emails_worker/tenants'
+import { getNumberOfNewOrganizations } from '@crowd/data-access-layer/src/organizations'
 import { SegmentRawData } from '@crowd/types'
 
 import { svc } from '../../main'
-
-import { UserTenant } from '../../types/user'
 import { InputAnalyticsWithSegments, InputAnalyticsWithTimes } from '../../types/analytics'
-
-import {
-  fetchSegments,
-  fetchTenantUsers,
-  fetchActiveIntegrations,
-} from '@crowd/data-access-layer/src/old/apps/emails_worker/tenants'
-import { getNumberOfNewMembers } from '@crowd/data-access-layer'
-import { getNumberOfNewOrganizations } from '@crowd/data-access-layer/src/organizations'
+import { UserTenant } from '../../types/user'
 
 const db = svc.postgres.reader
 

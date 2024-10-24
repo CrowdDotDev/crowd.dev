@@ -1,5 +1,8 @@
 export abstract class HttpStatusError extends Error {
-  constructor(message: string, public readonly status: number) {
+  constructor(
+    message: string,
+    public readonly status: number,
+  ) {
     super(message)
     Object.setPrototypeOf(this, HttpStatusError.prototype)
   }

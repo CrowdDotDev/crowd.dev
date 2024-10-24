@@ -1,7 +1,7 @@
-import Permissions from '../../../security/permissions'
-import PermissionChecker from '../../../services/user/permissionChecker'
 import IncomingWebhookRepository from '../../../database/repositories/incomingWebhookRepository'
 import SequelizeRepository from '../../../database/repositories/sequelizeRepository'
+import Permissions from '../../../security/permissions'
+import PermissionChecker from '../../../services/user/permissionChecker'
 
 export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.tenantEdit)

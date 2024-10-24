@@ -1,6 +1,8 @@
 import { LoggerBase } from '@crowd/logging'
+
 import track from '../segment/track'
 import { Event } from '../types/eventTrackingTypes'
+
 import { IServiceOptions } from './IServiceOptions'
 
 export default class EventTrackingService extends LoggerBase {

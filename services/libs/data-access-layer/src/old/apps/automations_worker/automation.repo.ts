@@ -1,5 +1,6 @@
-import { Logger } from '@crowd/logging'
+import { generateUUIDv1 } from '@crowd/common'
 import { DbColumnSet, DbStore, RepositoryBase } from '@crowd/database'
+import { Logger } from '@crowd/logging'
 import {
   AutomationExecutionState,
   AutomationSettings,
@@ -8,7 +9,6 @@ import {
   AutomationTrigger,
   AutomationType,
 } from '@crowd/types'
-import { generateUUIDv1 } from '@crowd/common'
 
 export interface IRelevantAutomationData {
   id: string

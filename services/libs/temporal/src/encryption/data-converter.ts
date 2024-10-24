@@ -1,4 +1,5 @@
 import { DataConverter } from '@temporalio/common'
+
 import { EncryptionCodec } from './encryption-codec'
 
 let dataConverterPromise: Promise<DataConverter>

@@ -1,20 +1,22 @@
-import { getServiceLogger } from '@crowd/logging'
 import cors from 'cors'
-import { telemetryExpressMiddleware } from '@crowd/telemetry'
 import express from 'express'
+
+import { getDbConnection } from '@crowd/data-access-layer/src/database'
+import { getServiceLogger } from '@crowd/logging'
+import { InitService, OpenSearchService, getOpensearchClient } from '@crowd/opensearch'
+import { getClientSQL } from '@crowd/questdb'
+import { getRedisClient } from '@crowd/redis'
+import { telemetryExpressMiddleware } from '@crowd/telemetry'
+
+import { DB_CONFIG, OPENSEARCH_CONFIG, REDIS_CONFIG, SEARCH_SYNC_API_CONFIG } from './conf'
+import { ApiRequest } from './middleware'
 import { databaseMiddleware } from './middleware/database'
 import { errorMiddleware } from './middleware/error'
 import { loggingMiddleware } from './middleware/logging'
-import { getOpensearchClient, InitService, OpenSearchService } from '@crowd/opensearch'
+import { opensearchMiddleware } from './middleware/opensearch'
+import { redisMiddleware } from './middleware/redis'
 import memberRoutes from './routes/member'
 import organizationRoutes from './routes/organization'
-import { getDbConnection } from '@crowd/data-access-layer/src/database'
-import { opensearchMiddleware } from './middleware/opensearch'
-import { getRedisClient } from '@crowd/redis'
-import { redisMiddleware } from './middleware/redis'
-import { DB_CONFIG, OPENSEARCH_CONFIG, REDIS_CONFIG, SEARCH_SYNC_API_CONFIG } from './conf'
-import { ApiRequest } from './middleware'
-import { getClientSQL } from '@crowd/questdb'
 
 const log = getServiceLogger()
 const config = SEARCH_SYNC_API_CONFIG()

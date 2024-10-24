@@ -1,6 +1,8 @@
 import config from 'config'
+
 import { IDatabaseConfig } from '@crowd/data-access-layer/src/database'
 import { IRedisConfiguration } from '@crowd/redis'
+
 export interface IOpenSearchConfig {
   node: string
   username: string

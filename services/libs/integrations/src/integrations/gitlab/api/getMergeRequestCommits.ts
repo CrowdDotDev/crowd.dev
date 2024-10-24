@@ -1,8 +1,10 @@
-import { Gitlab, CommitSchema, ExpandedCommitSchema, OffsetPagination } from '@gitbeaker/rest'
-import { GitlabMergeRequestCommitData, GitlabApiResult } from '../types'
-import { IProcessStreamContext } from '../../../types'
-import { RedisSemaphore } from '../utils/lock'
+import { CommitSchema, ExpandedCommitSchema, Gitlab, OffsetPagination } from '@gitbeaker/rest'
+
 import { timeout } from '@crowd/common'
+
+import { IProcessStreamContext } from '../../../types'
+import { GitlabApiResult, GitlabMergeRequestCommitData } from '../types'
+import { RedisSemaphore } from '../utils/lock'
 
 export const getMergeRequestCommits = async ({
   api,

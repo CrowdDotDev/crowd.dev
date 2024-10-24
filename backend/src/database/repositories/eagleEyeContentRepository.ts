@@ -1,12 +1,14 @@
 import lodash from 'lodash'
 import { Op } from 'sequelize'
-import { EagleEyeContent } from '@crowd/types'
+
 import { Error404 } from '@crowd/common'
-import SequelizeRepository from './sequelizeRepository'
+import { EagleEyeContent } from '@crowd/types'
+
 import { IRepositoryOptions } from './IRepositoryOptions'
+import EagleEyeActionRepository from './eagleEyeActionRepository'
 import QueryParser from './filters/queryParser'
 import { QueryOutput } from './filters/queryTypes'
-import EagleEyeActionRepository from './eagleEyeActionRepository'
+import SequelizeRepository from './sequelizeRepository'
 
 export default class EagleEyeContentRepository {
   static async create(

@@ -1,8 +1,11 @@
-import { LoggerBase, getServiceChildLogger } from '@crowd/logging'
 import Axios from 'axios'
+
+import { LoggerBase, getServiceChildLogger } from '@crowd/logging'
+
 import { NETLIFY_CONFIG } from '../conf/index'
 import ConversationSettingsRepository from '../database/repositories/conversationSettingsRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
+
 import { IServiceOptions } from './IServiceOptions'
 
 const DEFAULT_CONVERSATION_SETTINGS = {}

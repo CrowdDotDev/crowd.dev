@@ -1,12 +1,13 @@
 import { DbConnection, DbTransaction } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import {
-  IMemberMergeSuggestion,
-  SuggestionType,
-  MemberMergeSuggestionTable,
-  LLMSuggestionVerdictType,
   ILLMConsumableMemberDbResult,
+  IMemberMergeSuggestion,
+  LLMSuggestionVerdictType,
+  MemberMergeSuggestionTable,
+  SuggestionType,
 } from '@crowd/types'
+
 import {
   IFindRawMemberMergeSuggestionsReplacement,
   IMemberId,
@@ -14,7 +15,7 @@ import {
   IMemberNoMerge,
   IRawMemberMergeSuggestionResult,
 } from './types'
-import { removeDuplicateSuggestions, chunkArray } from './utils'
+import { chunkArray, removeDuplicateSuggestions } from './utils'
 
 class MemberMergeSuggestionsRepository {
   constructor(

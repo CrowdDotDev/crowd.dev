@@ -1,19 +1,20 @@
-import { NANGO_CONFIG } from '../conf'
-import { Entity, HubspotSettings, IOrganization, IOrganizationSyncRemoteData } from '@crowd/types'
 import { singleOrDefault } from '@crowd/common'
 import { DbStore } from '@crowd/data-access-layer/src/database'
-import { Logger, LoggerBase } from '@crowd/logging'
+import { AutomationRepository } from '@crowd/data-access-layer/src/old/apps/integration_sync_worker/automation.repo'
+import { AutomationExecutionRepository } from '@crowd/data-access-layer/src/old/apps/integration_sync_worker/automationExecution.repo'
+import { IDbIntegration } from '@crowd/data-access-layer/src/old/apps/integration_sync_worker/integration.data'
 import { IntegrationRepository } from '@crowd/data-access-layer/src/old/apps/integration_sync_worker/integration.repo'
+import { OrganizationRepository } from '@crowd/data-access-layer/src/old/apps/integration_sync_worker/organization.repo'
 import {
   IBatchCreateOrganizationsResult,
   IBatchUpdateOrganizationsResult,
   IIntegrationProcessRemoteSyncContext,
   INTEGRATION_SERVICES,
 } from '@crowd/integrations'
-import { OrganizationRepository } from '@crowd/data-access-layer/src/old/apps/integration_sync_worker/organization.repo'
-import { IDbIntegration } from '@crowd/data-access-layer/src/old/apps/integration_sync_worker/integration.data'
-import { AutomationRepository } from '@crowd/data-access-layer/src/old/apps/integration_sync_worker/automation.repo'
-import { AutomationExecutionRepository } from '@crowd/data-access-layer/src/old/apps/integration_sync_worker/automationExecution.repo'
+import { Logger, LoggerBase } from '@crowd/logging'
+import { Entity, HubspotSettings, IOrganization, IOrganizationSyncRemoteData } from '@crowd/types'
+
+import { NANGO_CONFIG } from '../conf'
 
 export class OrganizationSyncService extends LoggerBase {
   private readonly organizationRepo: OrganizationRepository

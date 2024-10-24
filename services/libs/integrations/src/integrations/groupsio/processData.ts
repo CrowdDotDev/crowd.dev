@@ -1,18 +1,21 @@
 // processData.ts content
+import sanitizeHtml from 'sanitize-html'
+
+import { IActivityData, IMemberData, MemberIdentityType, PlatformType } from '@crowd/types'
+
 import { ProcessDataHandler } from '../../types'
-import { Groupsio_GRID } from './grid'
 import { roundToNearestMinute } from '../utils'
+
+import { Groupsio_GRID } from './grid'
 import {
-  GroupsioPublishData,
-  GroupsioPublishDataType,
-  GroupsioMessageData,
-  MemberInfo,
+  GroupsioActivityType,
   GroupsioMemberJoinData,
   GroupsioMemberLeftData,
-  GroupsioActivityType,
+  GroupsioMessageData,
+  GroupsioPublishData,
+  GroupsioPublishDataType,
+  MemberInfo,
 } from './types'
-import { IActivityData, IMemberData, MemberIdentityType, PlatformType } from '@crowd/types'
-import sanitizeHtml from 'sanitize-html'
 
 const processMemberJoin: ProcessDataHandler = async (ctx) => {
   const metaData = ctx.data as GroupsioPublishData<GroupsioMemberJoinData>

@@ -1,21 +1,24 @@
+import merge from 'lodash.merge'
+
 import { DbConnection, DbStore } from '@crowd/database'
+import { isFeatureEnabled } from '@crowd/feature-flags'
+import { ActivityDisplayService, DEFAULT_ACTIVITY_TYPE_SETTINGS } from '@crowd/integrations'
 import { Logger, getChildLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
 import {
   ActivityDisplayVariant,
   FeatureFlag,
+  IMemberAttributeData,
   OpenSearchIndex,
   PageData,
-  IMemberAttributeData,
   SegmentRawData,
 } from '@crowd/types'
-import { isFeatureEnabled } from '@crowd/feature-flags'
-import { OpenSearchService } from './opensearch.service'
-import { MemberRepository } from '../repo/member.repo'
+
 import { FieldTranslatorFactory } from '../fieldTranslatorFactory'
 import { OpensearchQueryParser } from '../opensearchQueryParser'
-import { ActivityDisplayService, DEFAULT_ACTIVITY_TYPE_SETTINGS } from '@crowd/integrations'
-import merge from 'lodash.merge'
+import { MemberRepository } from '../repo/member.repo'
+
+import { OpenSearchService } from './opensearch.service'
 
 export class MemberSearchService {
   private log: Logger

@@ -1,7 +1,9 @@
-import BunyanFormat from 'bunyan-format'
 import * as Bunyan from 'bunyan'
-import { Logger } from './types'
+import BunyanFormat from 'bunyan-format'
+
 import { IS_DEV_ENV, IS_TEST_ENV, LOG_LEVEL, SERVICE } from '@crowd/common'
+
+import { Logger } from './types'
 
 const PRETTY_FORMAT = new BunyanFormat({
   outputMode: 'short',

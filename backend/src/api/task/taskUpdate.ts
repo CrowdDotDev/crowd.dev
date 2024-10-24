@@ -1,7 +1,7 @@
 import Permissions from '../../security/permissions'
+import track from '../../segment/track'
 import TaskService from '../../services/taskService'
 import PermissionChecker from '../../services/user/permissionChecker'
-import track from '../../segment/track'
 
 /**
  * PUT /tenant/{tenantId}/task/{id}

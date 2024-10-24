@@ -1,6 +1,8 @@
+import { QueryTypes } from 'sequelize'
+
 import { generateUUIDv1 as uuid } from '@crowd/common'
 import { IMemberSyncRemoteData, SyncStatus } from '@crowd/types'
-import { QueryTypes } from 'sequelize'
+
 import { IRepositoryOptions } from './IRepositoryOptions'
 import { RepositoryBase } from './repositoryBase'
 import SequelizeRepository from './sequelizeRepository'

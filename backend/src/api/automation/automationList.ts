@@ -1,4 +1,5 @@
 import { AutomationState, AutomationTrigger, AutomationType } from '@crowd/types'
+
 import Permissions from '../../security/permissions'
 import AutomationService from '../../services/automationService'
 import PermissionChecker from '../../services/user/permissionChecker'

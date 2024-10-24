@@ -1,4 +1,5 @@
 import { FeatureFlag } from '@crowd/types'
+
 import { safeWrap } from '../../middlewares/errorMiddleware'
 import { featureFlagMiddleware } from '../../middlewares/featureFlagMiddleware'
 

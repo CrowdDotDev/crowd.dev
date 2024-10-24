@@ -1,11 +1,10 @@
+import { NativeConnection, Worker as TemporalWorker, bundleWorkflowCode } from '@temporalio/worker'
 import path from 'path'
 
-import { bundleWorkflowCode, NativeConnection, Worker as TemporalWorker } from '@temporalio/worker'
-
 import { Config, Service } from '@crowd/archetype-standard'
-import { IS_DEV_ENV, IS_TEST_ENV } from '@crowd/common'
+import { IS_DEV_ENV, IS_STAGING_ENV, IS_TEST_ENV } from '@crowd/common'
 import { DbStore, getDbConnection } from '@crowd/database'
-import { getOpensearchClient, OpenSearchService } from '@crowd/opensearch'
+import { OpenSearchService, getOpensearchClient } from '@crowd/opensearch'
 import { IQueue, QueueFactory } from '@crowd/queue'
 import { getDataConverter } from '@crowd/temporal'
 
@@ -28,25 +27,10 @@ const envvars = {
     'CROWD_DB_DATABASE',
   ],
   opensearch:
-    IS_DEV_ENV || IS_TEST_ENV
+    IS_DEV_ENV || IS_TEST_ENV || IS_STAGING_ENV
       ? ['CROWD_OPENSEARCH_NODE']
       : ['CROWD_OPENSEARCH_USERNAME', 'CROWD_OPENSEARCH_PASSWORD', 'CROWD_OPENSEARCH_NODE'],
-  queue:
-    IS_DEV_ENV || IS_TEST_ENV
-      ? [
-          'CROWD_SQS_AWS_REGION',
-          'CROWD_SQS_HOST',
-          'CROWD_SQS_PORT',
-          'CROWD_SQS_AWS_ACCESS_KEY_ID',
-          'CROWD_SQS_AWS_SECRET_ACCESS_KEY',
-          'CROWD_KAFKA_BROKERS',
-        ]
-      : [
-          'CROWD_SQS_AWS_REGION',
-          'CROWD_SQS_AWS_ACCESS_KEY_ID',
-          'CROWD_SQS_AWS_SECRET_ACCESS_KEY',
-          'CROWD_KAFKA_BROKERS',
-        ],
+  queue: ['CROWD_KAFKA_BROKERS'],
 }
 
 /*
@@ -212,7 +196,7 @@ export class ServiceWorker extends Service {
       try {
         this._queueClient = QueueFactory.createQueueService({
           brokers: process.env['CROWD_KAFKA_BROKERS'],
-          clientId: 'crowd-temporal-worker', //TODO:: make this configurable
+          clientId: process.env['SERVICE'], //TODO:: make this configurable
         })
       } catch (err) {
         throw new Error(err)

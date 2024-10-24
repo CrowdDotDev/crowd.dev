@@ -1,16 +1,20 @@
 import lodash from 'lodash'
+
 import { LoggerBase } from '@crowd/logging'
-import { IServiceOptions } from './IServiceOptions'
+
+import SettingsRepository from '@/database/repositories/settingsRepository'
+
+import AutomationRepository from '../database/repositories/automationRepository'
+import IntegrationRepository from '../database/repositories/integrationRepository'
+import TenantUserRepository from '../database/repositories/tenantUserRepository'
 import {
   DEFAULT_GUIDES,
   QuickstartGuideMap,
   QuickstartGuideSettings,
   QuickstartGuideType,
 } from '../types/quickstartGuideTypes'
-import IntegrationRepository from '../database/repositories/integrationRepository'
-import TenantUserRepository from '../database/repositories/tenantUserRepository'
-import AutomationRepository from '../database/repositories/automationRepository'
-import SettingsRepository from '@/database/repositories/settingsRepository'
+
+import { IServiceOptions } from './IServiceOptions'
 
 export default class QuickstartGuideService extends LoggerBase {
   options: IServiceOptions

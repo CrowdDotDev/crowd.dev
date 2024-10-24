@@ -1,10 +1,9 @@
+import { proxyActivities } from '@temporalio/workflow'
 import moment from 'moment'
 
-import { proxyActivities } from '@temporalio/workflow'
-
 import * as activities from '../../activities'
-import { getChangeAndDirection } from '../../utils/analytics'
 import { InputAnalyticsWithSegments, InputAnalyticsWithTimes } from '../../types/analytics'
+import { getChangeAndDirection } from '../../utils/analytics'
 
 // Configure timeouts and retry policies to fetch content from the databases.
 const {

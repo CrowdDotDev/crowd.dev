@@ -6,6 +6,7 @@ import {
   OrganizationMergeSuggestionTable,
   SuggestionType,
 } from '@crowd/types'
+
 import {
   IFindRawOrganizationMergeSuggestionsReplacement,
   IOrganizationId,
@@ -13,7 +14,7 @@ import {
   IOrganizationNoMerge,
   IRawOrganizationMergeSuggestionResult,
 } from './types'
-import { removeDuplicateSuggestions, chunkArray } from './utils'
+import { chunkArray, removeDuplicateSuggestions } from './utils'
 
 class OrganizationMergeSuggestionsRepository {
   constructor(

@@ -1,11 +1,12 @@
 import { getDbConnection } from '@crowd/data-access-layer/src/database'
 import { getServiceLogger } from '@crowd/logging'
 import { InitService, OpenSearchService, getOpensearchClient } from '@crowd/opensearch'
+import { getClientSQL } from '@crowd/questdb'
 import { QueueFactory } from '@crowd/queue'
 import { getRedisClient } from '@crowd/redis'
+
 import { DB_CONFIG, OPENSEARCH_CONFIG, QUEUE_CONFIG, REDIS_CONFIG, SERVICE_CONFIG } from './conf'
 import { WorkerQueueReceiver } from './queue'
-import { getClientSQL } from '@crowd/questdb'
 
 const log = getServiceLogger()
 

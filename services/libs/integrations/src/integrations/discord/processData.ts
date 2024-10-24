@@ -1,18 +1,20 @@
-import { ProcessDataHandler, IProcessDataContext } from '../../types'
-import {
-  IDiscordAPIData,
-  DiscordApiMember,
-  DiscordApiDataMessage,
-  DiscordApiUser,
-  DiscordActivityType,
-  DiscordAPIDataType,
-} from './types'
-import { DISCORD_GRID } from './grid'
+import { generateUUIDv1 } from '@crowd/common'
 import { IActivityData, MemberIdentityType } from '@crowd/types'
 import { PlatformType } from '@crowd/types'
 import { MemberAttributeName } from '@crowd/types'
-import { generateUUIDv1 } from '@crowd/common'
+
+import { IProcessDataContext, ProcessDataHandler } from '../../types'
+
 import { MessageType } from './externalTypes'
+import { DISCORD_GRID } from './grid'
+import {
+  DiscordAPIDataType,
+  DiscordActivityType,
+  DiscordApiDataMessage,
+  DiscordApiMember,
+  DiscordApiUser,
+  IDiscordAPIData,
+} from './types'
 
 /**
  * Parse mentions

@@ -1,4 +1,5 @@
 import { IMemberOrganization } from '@crowd/types'
+
 import { QueryExecutor } from '../queryExecutor'
 
 export async function fetchMemberOrganizations(

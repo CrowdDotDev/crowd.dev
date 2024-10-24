@@ -1,5 +1,7 @@
 import passport from 'passport'
+
 import { getServiceChildLogger } from '@crowd/logging'
+
 import { API_CONFIG, GITHUB_CONFIG, GOOGLE_CONFIG } from '../../conf'
 import AuthService from '../../services/auth/authService'
 

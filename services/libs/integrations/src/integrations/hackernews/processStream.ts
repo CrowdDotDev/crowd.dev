@@ -1,12 +1,13 @@
 import { ProcessStreamHandler } from '../../types'
+
+import getPost from './api/getPost'
+import getPostsByKeywords from './api/getPostsByKeywords'
 import {
-  HackerNewsStreamType,
   HackerNewsInitialStreamMetadata,
   HackerNewsMainStreamMetadata,
   HackerNewsPublishData,
+  HackerNewsStreamType,
 } from './types'
-import getPostsByKeywords from './api/getPostsByKeywords'
-import getPost from './api/getPost'
 
 const processInitialStream: ProcessStreamHandler = async (ctx) => {
   const metadata = ctx.stream.data as HackerNewsInitialStreamMetadata

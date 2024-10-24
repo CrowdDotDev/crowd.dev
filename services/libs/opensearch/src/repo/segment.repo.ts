@@ -1,5 +1,6 @@
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
+
 import { IDbSegmentInfo } from './segment.data'
 
 export class SegmentRepository extends RepositoryBase<SegmentRepository> {

@@ -1,10 +1,11 @@
 import { IIntegrationDescriptor } from '../../../types'
+
 import generateStreams from './generateStreams'
-import processStream from './processStream'
-import processData from './processData'
-import startSyncRemote from './startSyncRemote'
-import processSyncRemote from './processSyncRemote'
 import { HUBSPOT_MEMBER_ATTRIBUTES } from './memberAttributes'
+import processData from './processData'
+import processStream from './processStream'
+import processSyncRemote from './processSyncRemote'
+import startSyncRemote from './startSyncRemote'
 
 const descriptor: IIntegrationDescriptor = {
   type: 'hubspot',

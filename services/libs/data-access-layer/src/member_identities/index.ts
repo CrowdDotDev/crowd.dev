@@ -1,4 +1,5 @@
 import { IMemberIdentity, MemberIdentityType } from '@crowd/types'
+
 import { QueryExecutor } from '../queryExecutor'
 import { prepareBulkInsert } from '../utils'
 

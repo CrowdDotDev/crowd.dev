@@ -1,6 +1,8 @@
 import { getServiceChildLogger } from '@crowd/logging'
+
 import { QueryExecutor } from '../queryExecutor'
 import { prepareBulkInsert } from '../utils'
+
 import { IMemberAbsoluteAggregates, IMemberSegmentAggregates } from './types'
 
 const log = getServiceChildLogger('organizations/segments')

@@ -1,4 +1,5 @@
 import { DataTypes } from 'sequelize'
+
 import { CustomViewVisibility } from '@crowd/types'
 
 export default (sequelize) => {

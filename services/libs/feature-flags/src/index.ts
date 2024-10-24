@@ -1,8 +1,9 @@
+import { Context, Unleash } from 'unleash-client'
+
 import { EDITION } from '@crowd/common'
 import { getServiceChildLogger } from '@crowd/logging'
 import { RedisCache, RedisClient } from '@crowd/redis'
 import { Edition, FeatureFlag } from '@crowd/types'
-import { Context, Unleash } from 'unleash-client'
 
 export interface IUnleashConfig {
   url: string

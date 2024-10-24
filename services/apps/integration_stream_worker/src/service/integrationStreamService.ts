@@ -1,12 +1,20 @@
 import { addSeconds, singleOrDefault } from '@crowd/common'
+import {
+  DataSinkWorkerEmitter,
+  IntegrationRunWorkerEmitter,
+  IntegrationStreamWorkerEmitter,
+} from '@crowd/common_services'
 import { DbConnection, DbStore, DbTransaction } from '@crowd/data-access-layer/src/database'
+import IncomingWebhookRepository from '@crowd/data-access-layer/src/old/apps/integration_stream_worker/incomingWebhook.repo'
+import { IStreamData } from '@crowd/data-access-layer/src/old/apps/integration_stream_worker/integrationStream.data'
+import IntegrationStreamRepository from '@crowd/data-access-layer/src/old/apps/integration_stream_worker/integrationStream.repo'
 import {
   INTEGRATION_SERVICES,
   IProcessStreamContext,
   IProcessWebhookStreamContext,
 } from '@crowd/integrations'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
-import { RedisCache, RedisClient, RateLimiter, ConcurrentRequestLimiter } from '@crowd/redis'
+import { ConcurrentRequestLimiter, RateLimiter, RedisCache, RedisClient } from '@crowd/redis'
 import {
   IntegrationRunState,
   IntegrationState,
@@ -14,15 +22,9 @@ import {
   RateLimitError,
   WebhookType,
 } from '@crowd/types'
+
 import { NANGO_CONFIG, PLATFORM_CONFIG, WORKER_SETTINGS } from '../conf'
-import IntegrationStreamRepository from '@crowd/data-access-layer/src/old/apps/integration_stream_worker/integrationStream.repo'
-import { IStreamData } from '@crowd/data-access-layer/src/old/apps/integration_stream_worker/integrationStream.data'
-import IncomingWebhookRepository from '@crowd/data-access-layer/src/old/apps/integration_stream_worker/incomingWebhook.repo'
-import {
-  DataSinkWorkerEmitter,
-  IntegrationRunWorkerEmitter,
-  IntegrationStreamWorkerEmitter,
-} from '@crowd/common_services'
+
 import IntegrationDataService from './integrationDataService'
 
 export default class IntegrationStreamService extends LoggerBase {

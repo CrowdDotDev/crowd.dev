@@ -1,8 +1,10 @@
 import { Gitlab, ProjectStarrerSchema } from '@gitbeaker/rest'
-import { GitlabStarData, GitlabApiResult } from '../types'
-import { getUser } from './getUser'
+
 import { IProcessStreamContext } from '../../../types'
+import { GitlabApiResult, GitlabStarData } from '../types'
 import { RedisSemaphore } from '../utils/lock'
+
+import { getUser } from './getUser'
 
 export const getStars = async ({
   api,

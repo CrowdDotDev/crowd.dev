@@ -1,9 +1,11 @@
 /* eslint-disable no-continue */
-
 import { LoggerBase } from '@crowd/logging'
 import { IMemberOrganization, IOrganization } from '@crowd/types'
-import { IServiceOptions } from '../IServiceOptions'
+
 import MemberOrganizationsRepository from '@/database/repositories/member/memberOrganizationsRepository'
+
+import { IServiceOptions } from '../IServiceOptions'
+import MemberAffiliationService from '../memberAffiliationService'
 
 export default class MemberOrganizationsService extends LoggerBase {
   options: IServiceOptions
@@ -20,7 +22,17 @@ export default class MemberOrganizationsService extends LoggerBase {
 
   // Member organization creation
   async create(memberId: string, data: Partial<IMemberOrganization>): Promise<IOrganization[]> {
-    return MemberOrganizationsRepository.create(memberId, data, this.options)
+    const memberOrganizations = await MemberOrganizationsRepository.create(
+      memberId,
+      data,
+      this.options,
+    )
+    await MemberAffiliationService.startAffiliationRecalculation(
+      memberId,
+      [data.organizationId],
+      this.options,
+    )
+    return memberOrganizations
   }
 
   // Update member organization
@@ -29,11 +41,39 @@ export default class MemberOrganizationsService extends LoggerBase {
     memberId: string,
     data: Partial<IMemberOrganization>,
   ): Promise<IOrganization[]> {
-    return MemberOrganizationsRepository.update(id, memberId, data, this.options)
+    const memberOrganizations = await MemberOrganizationsRepository.update(
+      id,
+      memberId,
+      data,
+      this.options,
+    )
+    await MemberAffiliationService.startAffiliationRecalculation(
+      memberId,
+      [data.organizationId],
+      this.options,
+    )
+    return memberOrganizations
   }
 
   // Delete member organization
   async delete(id: string, memberId: string): Promise<IOrganization[]> {
-    return MemberOrganizationsRepository.delete(id, memberId, this.options)
+    const existingMemberOrganizations = await MemberOrganizationsRepository.list(
+      memberId,
+      this.options,
+    )
+    const memberOrganizationToBeDeleted = existingMemberOrganizations.find(
+      (mo) => mo.memberOrganizations.id === id,
+    )
+    const remainingMemberOrganizations = await MemberOrganizationsRepository.delete(
+      id,
+      memberId,
+      this.options,
+    )
+    await MemberAffiliationService.startAffiliationRecalculation(
+      memberId,
+      [memberOrganizationToBeDeleted.memberOrganizations.organizationId],
+      this.options,
+    )
+    return remainingMemberOrganizations
   }
 }

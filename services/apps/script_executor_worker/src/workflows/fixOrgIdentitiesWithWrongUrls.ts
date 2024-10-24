@@ -1,7 +1,7 @@
 import { continueAsNew, proxyActivities } from '@temporalio/workflow'
 
-import * as activities from '../activities/fix-organization-identities-with-wrong-urls'
 import * as commonActivities from '../activities/common'
+import * as activities from '../activities/fix-organization-identities-with-wrong-urls'
 import { IFixOrgIdentitiesWithWrongUrlsArgs } from '../types'
 
 const activity = proxyActivities<typeof activities>({

@@ -1,5 +1,7 @@
-import { getServiceChildLogger } from '@crowd/logging'
 import { graphql } from '@octokit/graphql'
+
+import { getServiceChildLogger } from '@crowd/logging'
+
 import BaseQuery from './baseQuery'
 
 const logger = getServiceChildLogger('github.getOrganization')
