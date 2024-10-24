@@ -11,7 +11,7 @@
         {{ dataIssueTypes[type].label }}
       </lf-radio>
     </div>
-    <div v-if="loading" class="flex justify-center py-20">
+    <div v-if="loading && offset === 0" class="flex justify-center py-20">
       <lf-spinner />
     </div>
     <div v-else-if="members.length > 0">
