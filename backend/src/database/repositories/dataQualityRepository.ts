@@ -1,10 +1,12 @@
 import {
-  fetchMembersWithoutWorkExperience,
   fetchMembersWithTooManyIdentities,
   fetchMembersWithTooManyIdentitiesPerPlatform,
+  fetchMembersWithoutWorkExperience,
 } from '@crowd/data-access-layer/src/data-quality'
-import { IRepositoryOptions } from './IRepositoryOptions'
+
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
+
+import { IRepositoryOptions } from './IRepositoryOptions'
 
 class DataQualityRepository {
   /**
@@ -28,6 +30,17 @@ class DataQualityRepository {
     return fetchMembersWithoutWorkExperience(qx, tenantId, limit, offset, segmentId)
   }
 
+  /**
+   * Finds and returns members with too many identities.
+   * Executes a query to fetch members who exceed a certain number of identities.
+   *
+   * @param {IRepositoryOptions} options - Repository options for querying the database.
+   * @param {string} tenantId - Identifier of the tenant whose members are being queried.
+   * @param {number} limit - The maximum number of members to retrieve.
+   * @param {number} offset - The number of members to skip before starting to collect the result set.
+   * @param {string} segmentId - Identifier of the segment to filter members.
+   * @return {Promise<Array>} A promise that resolves to an array of members with too many identities.
+   */
   static async findMembersWithTooManyIdentities(
     options: IRepositoryOptions,
     tenantId: string,
@@ -39,6 +52,17 @@ class DataQualityRepository {
     return fetchMembersWithTooManyIdentities(qx, 15, tenantId, limit, offset, segmentId)
   }
 
+  /**
+   * Finds members with too many identities per platform.
+   *
+   * @param {IRepositoryOptions} options - The repository options for database connection and other configurations.
+   * @param {string} tenantId - The ID of the tenant to filter members by.
+   * @param {number} limit - The maximum number of members to return.
+   * @param {number} offset - The number of members to skip before starting to collect the result set.
+   * @param {string} segmentId - The ID of the segment to filter members by.
+   *
+   * @return {Promise<Array>} A promise that resolves to an array of members with too many identities per platform.
+   */
   static async findMembersWithTooManyIdentitiesPerPlatform(
     options: IRepositoryOptions,
     tenantId: string,

@@ -32,7 +32,7 @@
       />
       <lf-data-quality-member-issues
         v-else-if="tab === 'identities'"
-        :types="[DataIssueType.MORE_THAN_10_IDENTITIES, DataIssueType.MORE_THAN_1_IDENTITY_PER_PLATFORM]"
+        :types="[DataIssueType.TOO_MANY_IDENTITIES, DataIssueType.TOO_MANY_IDENTITIES_PER_PLATFORM]"
       />
       <lf-data-quality-member-issues
         v-else-if="tab === 'work-history'"

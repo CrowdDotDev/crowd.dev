@@ -39,6 +39,17 @@ export async function fetchMembersWithoutWorkExperience(
   )
 }
 
+/**
+ * Fetches members with a number of identities that exceed a specified threshold.
+ *
+ * @param {QueryExecutor} qx - The query executor to perform database operations.
+ * @param {number} [treshold=15] - The threshold for the number of identities a member must exceed to be included in the results.
+ * @param {string} tenantId - The ID of the tenant whose members are being queried.
+ * @param {number} limit - The maximum number of members to return.
+ * @param {number} offset - The number of members to skip before starting to collect the result set.
+ * @param {string} segmentId - The ID of the segment within which the activity count is considered.
+ * @return {Promise<IMember[]>} A promise that resolves to an array of members who have more identities than the specified threshold.
+ */
 export async function fetchMembersWithTooManyIdentities(
   qx: QueryExecutor,
   treshold = 15,
@@ -75,6 +86,17 @@ export async function fetchMembersWithTooManyIdentities(
   )
 }
 
+/**
+ * Fetches members with a number of verified identities per platform exceeding a specified threshold for a given tenant.
+ *
+ * @param {QueryExecutor} qx - The query executor to run the database queries.
+ * @param {number} [treshold=1] - The minimum number of verified identities per platform to filter members by. Defaults to 1.
+ * @param {string} tenantId - The ID of the tenant to filter members.
+ * @param {number} limit - The maximum number of records to return.
+ * @param {number} offset - The number of records to skip.
+ * @param {string} segmentId - The segment ID to fetch the member activity count.
+ * @return {Promise<IMember[]>} A promise that resolves to an array of members matching the criteria.
+ */
 export async function fetchMembersWithTooManyIdentitiesPerPlatform(
   qx: QueryExecutor,
   treshold = 1,

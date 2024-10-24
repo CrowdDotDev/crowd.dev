@@ -1,8 +1,10 @@
 /* eslint-disable no-continue */
 import { LoggerBase } from '@crowd/logging'
-import { IServiceOptions } from './IServiceOptions'
-import { IDataQualityParams, IDataQualityType } from '@/types/data-quality/data-quality-filters'
+
 import DataQualityRepository from '@/database/repositories/dataQualityRepository'
+import { IDataQualityParams, IDataQualityType } from '@/types/data-quality/data-quality-filters'
+
+import { IServiceOptions } from './IServiceOptions'
 
 export default class DataQualityService extends LoggerBase {
   options: IServiceOptions
@@ -12,6 +14,14 @@ export default class DataQualityService extends LoggerBase {
     this.options = options
   }
 
+  /**
+   * Finds member issues based on the specified data quality parameters and segment ID.
+   *
+   * @param {string} tenantId - The ID of the tenant.
+   * @param {IDataQualityParams} params - The parameters for data quality filtering.
+   * @param {string} segmentId - The ID of the segment to filter the members.
+   * @return {Promise<Array>} A promise that resolves to an array of members with issues.
+   */
   async findMemberIssues(tenantId: string, params: IDataQualityParams, segmentId: string) {
     if (params.type === IDataQualityType.NO_WORK_EXPERIENCE) {
       return DataQualityRepository.findMembersWithNoWorkExperience(
@@ -22,7 +32,7 @@ export default class DataQualityService extends LoggerBase {
         segmentId,
       )
     }
-    if (params.type === IDataQualityType.MORE_THAN_10_IDENTITIES) {
+    if (params.type === IDataQualityType.TOO_MANY_IDENTITIES) {
       return DataQualityRepository.findMembersWithTooManyIdentities(
         this.options,
         tenantId,
@@ -31,7 +41,7 @@ export default class DataQualityService extends LoggerBase {
         segmentId,
       )
     }
-    if (params.type === IDataQualityType.MORE_THAN_1_IDENTITY_PER_PLATFORM) {
+    if (params.type === IDataQualityType.TOO_MANY_IDENTITIES_PER_PLATFORM) {
       return DataQualityRepository.findMembersWithTooManyIdentitiesPerPlatform(
         this.options,
         tenantId,
@@ -43,6 +53,7 @@ export default class DataQualityService extends LoggerBase {
     return []
   }
 
+  // TODO: Implement this method when there are checks available
   // eslint-disable-next-line class-methods-use-this
   async findOrganizationIssues() {
     return Promise.resolve([])

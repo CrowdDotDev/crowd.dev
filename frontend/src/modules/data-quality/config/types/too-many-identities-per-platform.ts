@@ -1,8 +1,8 @@
 import { DataIssueTypeConfig } from '@/modules/data-quality/config/data-issue-types';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 
-const moreThan1IdentityPerPlatform: DataIssueTypeConfig = {
-  label: 'More than 1 identity per platform',
+const tooManyIdentitiesPerPlatform: DataIssueTypeConfig = {
+  label: 'More than 1 verified identity per platform',
   badgeType: 'warning',
   badgeText: () => 'More than 1 verified identity per platform',
   description: (member: any) => {
@@ -12,4 +12,4 @@ const moreThan1IdentityPerPlatform: DataIssueTypeConfig = {
   },
 };
 
-export default moreThan1IdentityPerPlatform;
+export default tooManyIdentitiesPerPlatform;

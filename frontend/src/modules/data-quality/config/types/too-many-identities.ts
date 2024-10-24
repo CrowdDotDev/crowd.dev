@@ -1,10 +1,10 @@
 import { DataIssueTypeConfig } from '@/modules/data-quality/config/data-issue-types';
 
-const moreThan10Identities: DataIssueTypeConfig = {
-  label: 'More than 10 identities',
+const tooManyIdentities: DataIssueTypeConfig = {
+  label: 'More than 15 identities',
   badgeType: 'warning',
-  badgeText: () => 'More than 10 identities',
+  badgeText: () => 'More than 15 identities',
   description: (member: any) => `This profile has ${member.identityCount} identities, please review them if they are all necessary.`,
 };
 
-export default moreThan10Identities;
+export default tooManyIdentities;

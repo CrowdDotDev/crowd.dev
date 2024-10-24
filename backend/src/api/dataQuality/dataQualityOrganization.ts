@@ -1,8 +1,10 @@
 import { FeatureFlag } from '@crowd/types'
+
+import DataQualityService from '@/services/dataQualityService'
+
+import isFeatureEnabled from '../../feature-flags/isFeatureEnabled'
 import Permissions from '../../security/permissions'
 import PermissionChecker from '../../services/user/permissionChecker'
-import isFeatureEnabled from '../../feature-flags/isFeatureEnabled'
-import DataQualityService from '@/services/dataQualityService'
 
 /**
  * GET /tenant/{tenantId}/data-quality/organization
