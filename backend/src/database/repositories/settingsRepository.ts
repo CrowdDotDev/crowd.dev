@@ -1,8 +1,10 @@
 import _get from 'lodash/get'
-import SequelizeRepository from './sequelizeRepository'
-import AuditLogRepository from './auditLogRepository'
-import { IRepositoryOptions } from './IRepositoryOptions'
+
 import SegmentService from '../../services/segmentService'
+
+import { IRepositoryOptions } from './IRepositoryOptions'
+import AuditLogRepository from './auditLogRepository'
+import SequelizeRepository from './sequelizeRepository'
 
 export default class SettingsRepository {
   static async findOrCreateDefault(defaults, options: IRepositoryOptions) {

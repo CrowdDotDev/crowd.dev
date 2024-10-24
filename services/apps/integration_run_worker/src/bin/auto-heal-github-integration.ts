@@ -1,3 +1,5 @@
+import axios from 'axios'
+
 import {
   IntegrationRunWorkerEmitter,
   PriorityLevelContextRepository,
@@ -15,7 +17,7 @@ import { getServiceLogger } from '@crowd/logging'
 import { QueueFactory } from '@crowd/queue'
 import { getRedisClient } from '@crowd/redis'
 import { IntegrationState } from '@crowd/types'
-import axios from 'axios'
+
 import { DB_CONFIG, LOKI_DB_CONFIG, QUEUE_CONFIG, REDIS_CONFIG } from '../conf'
 
 const query = (integrationId: string) => {

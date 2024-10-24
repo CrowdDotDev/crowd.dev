@@ -1,13 +1,17 @@
 import { CronJob } from 'cron'
-import { getServiceLogger } from '@crowd/logging'
-import { SpanStatusCode, getServiceTracer } from '@crowd/tracing'
 import fs from 'fs'
 import path from 'path'
-import { Sequelize, QueryTypes } from 'sequelize'
-import { getRedisClient, RedisClient } from '@crowd/redis'
-import jobs from './jobs'
+import { QueryTypes, Sequelize } from 'sequelize'
+
+import { getServiceLogger } from '@crowd/logging'
+import { RedisClient, getRedisClient } from '@crowd/redis'
+import { SpanStatusCode, getServiceTracer } from '@crowd/tracing'
+
 import { databaseInit } from '@/database/databaseConnection'
+
 import { REDIS_CONFIG } from '../conf'
+
+import jobs from './jobs'
 
 const tracer = getServiceTracer()
 const log = getServiceLogger()

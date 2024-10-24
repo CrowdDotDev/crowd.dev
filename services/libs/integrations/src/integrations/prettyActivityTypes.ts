@@ -1,4 +1,5 @@
 import { PlatformType } from '@crowd/types'
+
 import { GithubActivityType } from './github/types'
 import { HackerNewsActivityType } from './hackernews/types'
 import { RedditActivityType } from './reddit/types'

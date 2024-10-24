@@ -1,9 +1,12 @@
 import axios, { AxiosRequestConfig } from 'axios'
-import { getNangoToken } from '../../nango'
-import { IProcessStreamContext } from '../../../types'
-import { PlatformType } from '@crowd/types'
-import { RedditGetPostsInput, RedditPostsResponse, REDDIT_MAX_RETROSPECT_IN_HOURS } from '../types'
+
 import { timeout } from '@crowd/common'
+import { PlatformType } from '@crowd/types'
+
+import { IProcessStreamContext } from '../../../types'
+import { getNangoToken } from '../../nango'
+import { REDDIT_MAX_RETROSPECT_IN_HOURS, RedditGetPostsInput, RedditPostsResponse } from '../types'
+
 import { handleRedditError } from './errorHandler'
 
 /**

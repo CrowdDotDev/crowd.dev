@@ -1,3 +1,7 @@
+import lodash from 'lodash'
+import { QueryTypes } from 'sequelize'
+import { v4 as uuid } from 'uuid'
+
 import { Error404 } from '@crowd/common'
 import {
   buildSegmentActivityTypes,
@@ -20,12 +24,11 @@ import {
   SegmentUpdateChildrenPartialData,
   SegmentUpdateData,
 } from '@crowd/types'
-import lodash from 'lodash'
-import { QueryTypes } from 'sequelize'
-import { v4 as uuid } from 'uuid'
+
 import removeFieldsFromObject from '../../utils/getObjectWithoutKey'
-import IntegrationRepository from './integrationRepository'
+
 import { IRepositoryOptions } from './IRepositoryOptions'
+import IntegrationRepository from './integrationRepository'
 import { RepositoryBase } from './repositoryBase'
 import SequelizeRepository from './sequelizeRepository'
 
@@ -362,27 +365,6 @@ class SegmentRepository extends RepositoryBase<
       acc[r.platform] = r.channels
       return acc
     }, {})
-  }
-
-  async getChildrenOfProjects(segment: SegmentData) {
-    const records = await this.options.database.sequelize.query(
-      `
-                select * from segments s
-                where s."parentSlug" = :slug
-                  AND s."grandparentSlug" = :parentSlug
-                and s."tenantId" = :tenantId;
-            `,
-      {
-        replacements: {
-          slug: segment.slug,
-          parentSlug: segment.parentSlug,
-          tenantId: this.options.currentTenant.id,
-        },
-        type: QueryTypes.SELECT,
-      },
-    )
-
-    return records
   }
 
   async findBySlug(slug: string, level: SegmentLevel) {

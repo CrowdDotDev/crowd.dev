@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-
 import { SegmentRawData } from '@crowd/types'
+
 import { IDbMember } from '../old/apps/data_sink_worker/repo/member.data'
 
 export interface IQueryActivityResult {

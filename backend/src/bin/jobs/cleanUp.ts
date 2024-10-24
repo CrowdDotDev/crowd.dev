@@ -1,9 +1,10 @@
 import { getServiceChildLogger } from '@crowd/logging'
+
+import AuditLogRepository from '../../database/repositories/auditLogRepository'
 import IncomingWebhookRepository from '../../database/repositories/incomingWebhookRepository'
 import IntegrationRunRepository from '../../database/repositories/integrationRunRepository'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 import { CrowdJob } from '../../types/jobTypes'
-import AuditLogRepository from '../../database/repositories/auditLogRepository'
 
 const MAX_MONTHS_TO_KEEP = 3
 

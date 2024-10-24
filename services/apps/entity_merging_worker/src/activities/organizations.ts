@@ -1,17 +1,18 @@
-import { RedisPubSubEmitter } from '@crowd/redis'
-import { svc } from '../main'
-import { ApiWebsocketMessage, TemporalWorkflowId } from '@crowd/types'
 import {
   deleteOrganizationById,
   deleteOrganizationSegments,
   moveActivitiesToNewOrg,
 } from '@crowd/data-access-layer/src/old/apps/entity_merging_worker/orgs'
-import { SearchSyncApiClient } from '@crowd/opensearch'
 import {
   cleanupForOganization,
   deleteOrgAttributesByOrganizationId,
 } from '@crowd/data-access-layer/src/organizations'
 import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
+import { SearchSyncApiClient } from '@crowd/opensearch'
+import { RedisPubSubEmitter } from '@crowd/redis'
+import { ApiWebsocketMessage, TemporalWorkflowId } from '@crowd/types'
+
+import { svc } from '../main'
 
 export async function deleteOrganization(organizationId: string): Promise<void> {
   await deleteOrganizationSegments(svc.postgres.writer, organizationId)

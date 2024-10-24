@@ -1,10 +1,13 @@
 import axios from 'axios'
+
 import { Error400 } from '@crowd/common'
 import { RedisCache, RedisClient } from '@crowd/redis'
-import Permissions from '../../../security/permissions'
-import PermissionChecker from '../../../services/user/permissionChecker'
-import track from '../../../segment/track'
+
 import { REDDIT_CONFIG } from '@/conf'
+
+import Permissions from '../../../security/permissions'
+import track from '../../../segment/track'
+import PermissionChecker from '../../../services/user/permissionChecker'
 
 const getRedditToken = async (redis: RedisClient, logger: any) => {
   const cache = new RedisCache('reddit-global-access-token', redis, logger)

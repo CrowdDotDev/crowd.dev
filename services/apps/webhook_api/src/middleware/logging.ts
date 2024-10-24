@@ -1,6 +1,7 @@
-import { Logger, getChildLogger } from '@crowd/logging'
 import bunyanMiddleware from 'bunyan-middleware'
 import { RequestHandler } from 'express'
+
+import { Logger, getChildLogger } from '@crowd/logging'
 
 export interface ILoggingRequest {
   log: Logger

@@ -1,5 +1,5 @@
 /* eslint @typescript-eslint/no-unused-vars: 0 */
-
+import { Error400 } from '@crowd/common'
 import {
   DEVTO_MEMBER_ATTRIBUTES,
   DISCORD_MEMBER_ATTRIBUTES,
@@ -7,13 +7,13 @@ import {
   SLACK_MEMBER_ATTRIBUTES,
   TWITTER_MEMBER_ATTRIBUTES,
 } from '@crowd/integrations'
-import { Error400 } from '@crowd/common'
+import { getServiceLogger } from '@crowd/logging'
+import { RedisCache, getRedisClient } from '@crowd/redis'
+import { MemberAttributeType } from '@crowd/types'
+
+import { REDIS_CONFIG } from '../../conf'
 import SequelizeTestUtils from '../../database/utils/sequelizeTestUtils'
 import MemberAttributeSettingsService from '../memberAttributeSettingsService'
-import { MemberAttributeType } from '@crowd/types'
-import { RedisCache, getRedisClient } from '@crowd/redis'
-import { REDIS_CONFIG } from '../../conf'
-import { getServiceLogger } from '@crowd/logging'
 
 const log = getServiceLogger()
 

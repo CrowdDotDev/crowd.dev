@@ -1,4 +1,5 @@
 import lodash from 'lodash'
+
 import Permissions from '../../security/permissions'
 import track from '../../segment/track'
 import MemberService from '../../services/memberService'

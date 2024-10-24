@@ -1,7 +1,10 @@
 import { uniq } from 'lodash'
+
 import { getServiceChildLogger } from '@crowd/logging'
+
 import { QueryExecutor } from '../queryExecutor'
 import { prepareBulkInsert } from '../utils'
+
 import { IDbOrgAttribute, IDbOrgAttributeInput } from './types'
 
 const log = getServiceChildLogger('organizations/attributes')

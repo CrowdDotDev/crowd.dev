@@ -1,9 +1,10 @@
+import { generateUUIDv1 } from '@crowd/common'
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
-import { IDbIntegrationData } from './webhooks.data'
 import { WebhookState, WebhookType } from '@crowd/types'
-import { generateUUIDv1 } from '@crowd/common'
 import { PlatformType } from '@crowd/types'
+
+import { IDbIntegrationData } from './webhooks.data'
 
 export class WebhooksRepository extends RepositoryBase<WebhooksRepository> {
   public constructor(dbStore: DbStore, parentLog: Logger) {

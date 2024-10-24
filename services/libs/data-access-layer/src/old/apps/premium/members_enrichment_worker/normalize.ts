@@ -1,8 +1,9 @@
-import { DbTransaction } from '@crowd/database'
 import { generateUUIDv4 } from '@crowd/common'
+import { DbTransaction } from '@crowd/database'
+import { MemberIdentityType } from '@crowd/types'
+
 import { upsertMemberIdentity } from '../../../../member_identities'
 import { PgPromiseQueryExecutor } from '../../../../queryExecutor'
-import { MemberIdentityType } from '@crowd/types'
 
 export async function insertMemberIdentity(
   tx: DbTransaction,

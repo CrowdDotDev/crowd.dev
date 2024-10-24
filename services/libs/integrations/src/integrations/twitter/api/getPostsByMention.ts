@@ -1,12 +1,14 @@
 import axios, { AxiosRequestConfig } from 'axios'
+
+import { IProcessStreamContext } from '../../../types'
 import {
   TwitterGetPostsByMentionInput,
   TwitterGetPostsOutput,
   TwitterParsedPosts,
   TwitterPlatformSettings,
 } from '../types'
+
 import { handleTwitterError } from './errorHandler'
-import { IProcessStreamContext } from '../../../types'
 
 /**
  * Get paginated posts by mention

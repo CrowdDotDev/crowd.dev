@@ -1,5 +1,6 @@
-import { DbConnection, DbStore } from '@crowd/data-access-layer/src/database'
 import { NextFunction, Request, RequestHandler, Response } from 'express'
+
+import { DbConnection, DbStore } from '@crowd/data-access-layer/src/database'
 
 export interface IDatabaseRequest {
   dbStore: DbStore

@@ -1,25 +1,28 @@
-import { ProcessStreamHandler, IProcessStreamContext } from '../../types'
 import { Gitlab } from '@gitbeaker/rest'
+
+import { timeout } from '@crowd/common'
+
+import { IProcessStreamContext, ProcessStreamHandler } from '../../types'
+
+import { getForks } from './api/getForks'
+import { getIssueDiscussions } from './api/getIssueDiscussions'
+import { getIssues } from './api/getIssues'
+import { getMergeRequestCommits } from './api/getMergeRequestCommits'
+import { getMergeRequestDiscussionsAndEvents } from './api/getMergeRequestDiscussionsAndEvents'
+import { getMergeRequests } from './api/getMergeRequests'
+import { getStars } from './api/getStars'
+import { getUser } from './api/getUser'
+import { getUserByUsername } from './api/getUser'
+import { refreshToken } from './api/refreshToken'
 import {
-  GitlabStreamType,
-  GitlabBasicStream,
-  GitlabRootStream,
-  GitlabApiData,
   GitlabActivityData,
   GitlabActivityType,
+  GitlabApiData,
   GitlabApiResult,
+  GitlabBasicStream,
+  GitlabRootStream,
+  GitlabStreamType,
 } from './types'
-import { getIssues } from './api/getIssues'
-import { getMergeRequests } from './api/getMergeRequests'
-import { refreshToken } from './api/refreshToken'
-import { getStars } from './api/getStars'
-import { getForks } from './api/getForks'
-import { getUser } from './api/getUser'
-import { getIssueDiscussions } from './api/getIssueDiscussions'
-import { getMergeRequestDiscussionsAndEvents } from './api/getMergeRequestDiscussionsAndEvents'
-import { getUserByUsername } from './api/getUser'
-import { getMergeRequestCommits } from './api/getMergeRequestCommits'
-import { timeout } from '@crowd/common'
 
 interface GitlabStreamHandler {
   (

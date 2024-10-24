@@ -1,5 +1,15 @@
 import { singleOrDefault } from '@crowd/common'
+import {
+  IntegrationRunWorkerEmitter,
+  IntegrationStreamWorkerEmitter,
+  IntegrationSyncWorkerEmitter,
+  SearchSyncWorkerEmitter,
+} from '@crowd/common_services'
 import { DbStore } from '@crowd/data-access-layer/src/database'
+import { AutomationRepository } from '@crowd/data-access-layer/src/old/apps/integration_run_worker/automation.repo'
+import IntegrationRunRepository from '@crowd/data-access-layer/src/old/apps/integration_run_worker/integrationRun.repo'
+import MemberAttributeSettingsRepository from '@crowd/data-access-layer/src/old/apps/integration_run_worker/memberAttributeSettings.repo'
+import SampleDataRepository from '@crowd/data-access-layer/src/old/apps/integration_run_worker/sampleData.repo'
 import {
   IGenerateStreamsContext,
   IIntegrationStartRemoteSyncContext,
@@ -8,17 +18,8 @@ import {
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { ApiPubSubEmitter, RedisCache, RedisClient } from '@crowd/redis'
 import { IntegrationRunState, IntegrationStreamState } from '@crowd/types'
+
 import { NANGO_CONFIG, PLATFORM_CONFIG, WORKER_CONFIG } from '../conf'
-import IntegrationRunRepository from '@crowd/data-access-layer/src/old/apps/integration_run_worker/integrationRun.repo'
-import MemberAttributeSettingsRepository from '@crowd/data-access-layer/src/old/apps/integration_run_worker/memberAttributeSettings.repo'
-import SampleDataRepository from '@crowd/data-access-layer/src/old/apps/integration_run_worker/sampleData.repo'
-import { AutomationRepository } from '@crowd/data-access-layer/src/old/apps/integration_run_worker/automation.repo'
-import {
-  IntegrationRunWorkerEmitter,
-  IntegrationStreamWorkerEmitter,
-  IntegrationSyncWorkerEmitter,
-  SearchSyncWorkerEmitter,
-} from '@crowd/common_services'
 
 export default class IntegrationRunService extends LoggerBase {
   private readonly repo: IntegrationRunRepository

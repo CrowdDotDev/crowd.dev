@@ -1,36 +1,19 @@
 /* eslint-disable no-continue */
-
-import {
-  Error400,
-  isDomainExcluded,
-  getProperDisplayName,
-  getEarliestValidDate,
-} from '@crowd/common'
-import { LoggerBase } from '@crowd/logging'
-import { WorkflowIdReusePolicy } from '@crowd/temporal'
-import {
-  IMemberIdentity,
-  IMemberUnmergeBackup,
-  IMemberUnmergePreviewResult,
-  IOrganization,
-  IUnmergePreviewResult,
-  MemberAttributeType,
-  MemberIdentityType,
-  MergeActionState,
-  MergeActionType,
-  SyncMode,
-  TemporalWorkflowId,
-  MemberRoleUnmergeStrategy,
-  OrganizationIdentityType,
-  IMemberRoleWithOrganization,
-  MergeActionStep,
-} from '@crowd/types'
 import { randomUUID } from 'crypto'
 import lodash from 'lodash'
 import moment from 'moment-timezone'
 import validator from 'validator'
+
 import { captureApiChange, memberMergeAction, memberUnmergeAction } from '@crowd/audit-logs'
 import {
+  Error400,
+  getEarliestValidDate,
+  getProperDisplayName,
+  isDomainExcluded,
+} from '@crowd/common'
+import { findMemberAffiliations } from '@crowd/data-access-layer/src/member_segment_affiliations'
+import {
+  MemberField,
   addMemberNotes,
   addMemberTags,
   addMemberTasks,
@@ -41,17 +24,40 @@ import {
   findMemberTags,
   findMemberTasks,
   insertMemberSegments,
-  MemberField,
   queryMembersAdvanced,
   removeMemberNotes,
   removeMemberTags,
   removeMemberTasks,
 } from '@crowd/data-access-layer/src/members'
-import { findMemberAffiliations } from '@crowd/data-access-layer/src/member_segment_affiliations'
+import { QueryExecutor, optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
 // import { getActivityCountOfMemberIdentities } from '@crowd/data-access-layer'
 import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
-import { QueryExecutor, optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
+import { LoggerBase } from '@crowd/logging'
+import { WorkflowIdReusePolicy } from '@crowd/temporal'
+import {
+  IMemberIdentity,
+  IMemberRoleWithOrganization,
+  IMemberUnmergeBackup,
+  IMemberUnmergePreviewResult,
+  IOrganization,
+  IUnmergePreviewResult,
+  MemberAttributeType,
+  MemberIdentityType,
+  MemberRoleUnmergeStrategy,
+  MergeActionState,
+  MergeActionStep,
+  MergeActionType,
+  OrganizationIdentityType,
+  SyncMode,
+  TemporalWorkflowId,
+} from '@crowd/types'
+
 import { TEMPORAL_CONFIG } from '@/conf'
+import MemberOrganizationRepository from '@/database/repositories/memberOrganizationRepository'
+import { MergeActionsRepository } from '@/database/repositories/mergeActionsRepository'
+import OrganizationRepository from '@/database/repositories/organizationRepository'
+
+import { GITHUB_TOKEN_CONFIG } from '../conf'
 import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
 import ActivityRepository from '../database/repositories/activityRepository'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
@@ -65,17 +71,15 @@ import {
   mapUsernameToIdentities,
 } from '../database/repositories/types/memberTypes'
 import telemetryTrack from '../segment/telemetryTrack'
+
 import { IServiceOptions } from './IServiceOptions'
 import merge from './helpers/merge'
+import MemberAffiliationService from './memberAffiliationService'
 import MemberAttributeSettingsService from './memberAttributeSettingsService'
+import MemberOrganizationService from './memberOrganizationService'
 import OrganizationService from './organizationService'
 import SearchSyncService from './searchSyncService'
 import SettingsService from './settingsService'
-import { GITHUB_TOKEN_CONFIG } from '../conf'
-import MemberOrganizationService from './memberOrganizationService'
-import { MergeActionsRepository } from '@/database/repositories/mergeActionsRepository'
-import MemberOrganizationRepository from '@/database/repositories/memberOrganizationRepository'
-import OrganizationRepository from '@/database/repositories/organizationRepository'
 
 export default class MemberService extends LoggerBase {
   options: IServiceOptions
@@ -1681,26 +1685,12 @@ export default class MemberService extends LoggerBase {
       })
 
       await SequelizeRepository.commitTransaction(transaction)
-      await this.options.temporal.workflow.start('memberUpdate', {
-        taskQueue: 'profiles',
-        workflowId: `${TemporalWorkflowId.MEMBER_UPDATE}/${this.options.currentTenant.id}/${id}`,
-        workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
-        retry: {
-          maximumAttempts: 10,
-        },
-        args: [
-          {
-            member: {
-              id,
-            },
-            memberOrganizationIds: (data.organizations || []).map((o) => o.id),
-            syncToOpensearch,
-          },
-        ],
-        searchAttributes: {
-          TenantId: [this.options.currentTenant.id],
-        },
-      })
+      await MemberAffiliationService.startAffiliationRecalculation(
+        id,
+        (data.organizations || []).map((o) => o.id),
+        this.options,
+        syncToOpensearch,
+      )
 
       return record
     } catch (error) {

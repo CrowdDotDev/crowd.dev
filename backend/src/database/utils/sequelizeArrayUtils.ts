@@ -1,4 +1,5 @@
 import Sequelize, { DataTypes } from 'sequelize'
+
 import { DB_CONFIG } from '../../conf'
 
 export default class SequelizeArrayUtils {

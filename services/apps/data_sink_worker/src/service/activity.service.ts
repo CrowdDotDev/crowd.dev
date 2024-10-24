@@ -1,3 +1,6 @@
+import isEqual from 'lodash.isequal'
+import mergeWith from 'lodash.mergewith'
+
 import { EDITION, escapeNullByte, isObjectEmpty, singleOrDefault } from '@crowd/common'
 import { SearchSyncWorkerEmitter } from '@crowd/common_services'
 import { insertActivities } from '@crowd/data-access-layer'
@@ -27,9 +30,9 @@ import {
   PlatformType,
   TemporalWorkflowId,
 } from '@crowd/types'
-import isEqual from 'lodash.isequal'
-import mergeWith from 'lodash.mergewith'
+
 import { TEMPORAL_CONFIG } from '../conf'
+
 import { IActivityCreateData, IActivityUpdateData, ISentimentActivityInput } from './activity.data'
 import MemberService from './member.service'
 import MemberAffiliationService from './memberAffiliation.service'

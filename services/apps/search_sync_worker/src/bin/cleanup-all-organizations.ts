@@ -1,13 +1,14 @@
 import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { getServiceLogger } from '@crowd/logging'
 import {
-  getOpensearchClient,
   InitService,
   OpenSearchService,
   OrganizationSyncService,
+  getOpensearchClient,
 } from '@crowd/opensearch'
-import { DB_CONFIG, OPENSEARCH_CONFIG } from '../conf'
 import { getClientSQL } from '@crowd/questdb'
+
+import { DB_CONFIG, OPENSEARCH_CONFIG } from '../conf'
 
 const log = getServiceLogger()
 

@@ -1,9 +1,10 @@
+import { Sender } from '@questdb/nodejs-client'
+
 import { generateUUIDv4 } from '@crowd/common'
 import { getClientILP } from '@crowd/questdb'
+import telemetry from '@crowd/telemetry'
 
 import { IDbActivityCreateData } from '../old/apps/data_sink_worker/repo/activity.data'
-
-import { Sender } from '@questdb/nodejs-client'
 
 const ilp: Sender = getClientILP()
 
@@ -196,6 +197,7 @@ export async function insertActivities(
       }
 
       await row.at(timestamp, 'ms')
+      telemetry.increment('questdb.insert_activity', 1)
     }
   }
 

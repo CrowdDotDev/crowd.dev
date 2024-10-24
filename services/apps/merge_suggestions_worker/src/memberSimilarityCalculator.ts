@@ -2,13 +2,14 @@ import { get as getLevenshteinDistance } from 'fast-levenshtein'
 
 import {
   IMemberIdentity,
+  IMemberOpensearch,
   IMemberOrganization,
+  IMemberOrganizationOpensearch,
   IMemberWithAggregatesForMergeSuggestions,
   MemberAttributeName,
   MemberIdentityType,
-  IMemberOrganizationOpensearch,
-  IMemberOpensearch,
 } from '@crowd/types'
+
 import { MemberAttributeOpensearch } from './enums'
 
 class MemberSimilarityCalculator {

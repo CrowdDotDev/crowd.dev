@@ -1,10 +1,13 @@
 import lodash from 'lodash'
-import validator from 'validator'
-import { generateUUIDv4 as uuid } from '@crowd/common'
 import Sequelize from 'sequelize'
+import validator from 'validator'
+
+import { generateUUIDv4 as uuid } from '@crowd/common'
+
 import { IRepositoryOptions } from '../IRepositoryOptions'
 import SequelizeRepository from '../sequelizeRepository'
-import { QueryInput, ManyToManyType } from './queryTypes'
+
+import { ManyToManyType, QueryInput } from './queryTypes'
 
 const { Op } = Sequelize
 

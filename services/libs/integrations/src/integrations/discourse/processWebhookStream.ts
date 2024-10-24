@@ -1,18 +1,19 @@
-import { ProcessWebhookStreamHandler, IProcessStreamContext } from '../../types'
+import { IProcessStreamContext, ProcessWebhookStreamHandler } from '../../types'
+
+import { getDiscourseUserByUsername } from './api/getUser'
+import { usernameIsBot } from './processStream'
 import {
+  DiscourseConnectionParams,
+  DiscourseDataType,
+  DiscoursePublishNotificationWebhookData,
+  DiscoursePublishPostData,
+  DiscoursePublishUserWebhookData,
+  DiscourseWebhookNotification,
+  DiscourseWebhookPost,
   DiscourseWebhookStreamData,
   DiscourseWebhookType,
-  DiscourseWebhookPost,
   DiscourseWebhookUser,
-  DiscourseWebhookNotification,
-  DiscourseConnectionParams,
-  DiscoursePublishPostData,
-  DiscourseDataType,
-  DiscoursePublishUserWebhookData,
-  DiscoursePublishNotificationWebhookData,
 } from './types'
-import { usernameIsBot } from './processStream'
-import { getDiscourseUserByUsername } from './api/getUser'
 
 const processPostCreatedWebhook: ProcessWebhookStreamHandler = async (ctx) => {
   const { data } = ctx.stream.data as DiscourseWebhookStreamData

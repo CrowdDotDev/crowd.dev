@@ -1,27 +1,30 @@
+import { Gitlab, UserSchema } from '@gitbeaker/rest'
+
+import { timeout } from '@crowd/common'
+
 import {
+  IProcessStreamContext,
   IProcessWebhookStreamContext,
   ProcessWebhookStreamHandler,
-  IProcessStreamContext,
 } from '../../types'
-import {
-  GitlabApiData,
-  GitlabWebhook,
-  GitlabIssueWebhook,
-  GitlabIssueCommentWebhook,
-  GitlabWebhookType,
-  GitlabMergeRequestWebhook,
-  GitlabMergeRequestCommentWebhook,
-  GitlabStreamType,
-  GitlabBasicStream,
-} from './types'
+
 import { getUser } from './api/getUser'
-import { Gitlab, UserSchema } from '@gitbeaker/rest'
-import verifyGitlabWebhook from './utils/verifyWebhook'
 import {
   handleMergeRequestCommitsStream,
   handleMergeRequestDiscussionsAndEvents,
 } from './processStream'
-import { timeout } from '@crowd/common'
+import {
+  GitlabApiData,
+  GitlabBasicStream,
+  GitlabIssueCommentWebhook,
+  GitlabIssueWebhook,
+  GitlabMergeRequestCommentWebhook,
+  GitlabMergeRequestWebhook,
+  GitlabStreamType,
+  GitlabWebhook,
+  GitlabWebhookType,
+} from './types'
+import verifyGitlabWebhook from './utils/verifyWebhook'
 
 interface GitlabWebhookHandler {
   (

@@ -1,4 +1,5 @@
 import { QueuePriorityLevel } from '@crowd/types'
+
 import { IQueueInitChannelConfig } from '../../types'
 
 export interface IKafkaChannelConfig extends IQueueInitChannelConfig {

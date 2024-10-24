@@ -3,14 +3,13 @@ import {
   ParentClosePolicy,
   ChildWorkflowCancellationType,
   executeChild,
-  continueAsNew,
+  // continueAsNew,
 } from '@temporalio/workflow'
 
 import * as activities from '../activities/getMembers'
 import { enrichMember } from './enrichMember'
 import { IGetMembersForEnrichmentArgs } from '../types'
 import { MemberEnrichmentSource } from '@crowd/types'
-import { IS_DEV_ENV } from '@crowd/common'
 
 // Configure timeouts and retry policies to retrieve members to enrich from the
 // database.

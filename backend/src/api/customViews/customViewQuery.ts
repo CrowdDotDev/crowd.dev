@@ -1,7 +1,7 @@
 import Permissions from '../../security/permissions'
+import track from '../../segment/track'
 import CustomViewService from '../../services/customViewService'
 import PermissionChecker from '../../services/user/permissionChecker'
-import track from '../../segment/track'
 
 /**
  * GET /tenant/{tenantId}/customview/query

@@ -2,11 +2,13 @@ import { generateUUIDv1 } from '@crowd/common'
 import { DbColumnSet, DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { IMemberIdentity, MemberIdentityType, SyncStatus } from '@crowd/types'
+
 import {
   deleteManyMemberIdentities,
   insertManyMemberIdentities,
 } from '../../../../member_identities'
 import { PgPromiseQueryExecutor } from '../../../../queryExecutor'
+
 import {
   IDbMember,
   IDbMemberCreateData,

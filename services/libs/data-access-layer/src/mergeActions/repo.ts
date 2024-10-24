@@ -1,6 +1,8 @@
 import validator from 'validator'
-import { QueryExecutor } from '../queryExecutor'
+
 import { IMergeAction } from '@crowd/types'
+
+import { QueryExecutor } from '../queryExecutor'
 
 export async function queryMergeActions(
   qx: QueryExecutor,

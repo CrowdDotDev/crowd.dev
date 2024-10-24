@@ -1,13 +1,6 @@
 // import { membersScore } from './../database/utils/keys/microserviceTypes'
 import lodash from 'lodash'
 import moment from 'moment'
-import { LoggerBase } from '@crowd/logging'
-import {
-  MemberAttributeName,
-  MemberAttributeType,
-  MemberAttributes,
-  PlatformType,
-} from '@crowd/types'
 import {
   CROWD_MEMBER_ATTRIBUTES,
   DEVTO_MEMBER_ATTRIBUTES,
@@ -16,18 +9,27 @@ import {
   LINKEDIN_MEMBER_ATTRIBUTES,
   TWITTER_MEMBER_ATTRIBUTES,
 } from '@crowd/integrations'
+import { LoggerBase } from '@crowd/logging'
+import {
+  MemberAttributeName,
+  MemberAttributeType,
+  MemberAttributes,
+  PlatformType,
+} from '@crowd/types'
+
+import { API_CONFIG } from '../conf'
+import MemberRepository from '../database/repositories/memberRepository'
+import SequelizeRepository from '../database/repositories/sequelizeRepository'
+
 import { IServiceOptions } from './IServiceOptions'
 import ActivityService from './activityService'
-import MemberService from './memberService'
-import TenantService from './tenantService'
-import MemberAttributeSettingsService from './memberAttributeSettingsService'
-import OrganizationService from './organizationService'
 import ConversationService from './conversationService'
-import MemberRepository from '../database/repositories/memberRepository'
+import MemberAttributeSettingsService from './memberAttributeSettingsService'
+import MemberService from './memberService'
 import NoteService from './noteService'
+import OrganizationService from './organizationService'
 import TagService from './tagService'
-import { API_CONFIG } from '../conf'
-import SequelizeRepository from '../database/repositories/sequelizeRepository'
+import TenantService from './tenantService'
 
 export default class SampleDataService extends LoggerBase {
   options: IServiceOptions

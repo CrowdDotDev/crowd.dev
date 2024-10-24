@@ -11,6 +11,7 @@ import { getServiceLogger } from '@crowd/logging'
 import { QueueFactory } from '@crowd/queue'
 import { getRedisClient } from '@crowd/redis'
 import { Client as TemporalClient, getTemporalClient } from '@crowd/temporal'
+
 import { DB_CONFIG, QUEUE_CONFIG, REDIS_CONFIG, TEMPORAL_CONFIG } from '../conf'
 import MemberService from '../service/member.service'
 import { OrganizationService } from '../service/organization.service'

@@ -2,6 +2,7 @@ import { Logger } from '@crowd/logging'
 import { CrowdQueue, IQueue } from '@crowd/queue'
 import { RedisClient } from '@crowd/redis'
 import { SearchSyncWorkerQueueMessageType } from '@crowd/types'
+
 import { QueuePriorityContextLoader, QueuePriorityService } from '../priority.service'
 
 export class SearchSyncWorkerEmitter extends QueuePriorityService {

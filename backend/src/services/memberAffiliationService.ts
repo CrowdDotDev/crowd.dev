@@ -1,9 +1,11 @@
 import { LoggerBase } from '@crowd/logging'
-import { TemporalWorkflowId } from '@crowd/types'
 import { WorkflowIdReusePolicy } from '@crowd/temporal'
-import { IServiceOptions } from './IServiceOptions'
-import MemberSegmentAffiliationRepository from '../database/repositories/memberSegmentAffiliationRepository'
+import { TemporalWorkflowId } from '@crowd/types'
+
 import MemberRepository from '../database/repositories/memberRepository'
+import MemberSegmentAffiliationRepository from '../database/repositories/memberSegmentAffiliationRepository'
+
+import { IServiceOptions } from './IServiceOptions'
 
 export default class MemberAffiliationService extends LoggerBase {
   options: IServiceOptions
@@ -53,10 +55,15 @@ export default class MemberAffiliationService extends LoggerBase {
     return null
   }
 
-  async updateAffiliation(memberId: string) {
-    await this.options.temporal.workflow.start('memberUpdate', {
+  static async startAffiliationRecalculation(
+    memberId: string,
+    organizationIds: string[],
+    options: IServiceOptions,
+    syncToOpensearch = false,
+  ): Promise<void> {
+    await options.temporal.workflow.start('memberUpdate', {
       taskQueue: 'profiles',
-      workflowId: `${TemporalWorkflowId.MEMBER_UPDATE}/${this.options.currentTenant.id}/${memberId}`,
+      workflowId: `${TemporalWorkflowId.MEMBER_UPDATE}/${options.currentTenant.id}/${memberId}`,
       workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
       retry: {
         maximumAttempts: 10,
@@ -66,10 +73,12 @@ export default class MemberAffiliationService extends LoggerBase {
           member: {
             id: memberId,
           },
+          memberOrganizationIds: organizationIds,
+          syncToOpensearch,
         },
       ],
       searchAttributes: {
-        TenantId: [this.options.currentTenant.id],
+        TenantId: [options.currentTenant.id],
       },
     })
   }

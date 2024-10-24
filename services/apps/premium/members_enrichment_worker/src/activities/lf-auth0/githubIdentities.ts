@@ -1,6 +1,3 @@
-import { IMemberIdentity } from '@crowd/types'
-
-import { svc } from '../../main'
 import {
   getGithubIdentitiesWithoutSourceId as getGithubIdentities,
   updateIdentitySourceId as updateSourceId,
@@ -8,6 +5,9 @@ import {
 import { GithubAPIResource, GithubTokenRotator } from '@crowd/integrations'
 import { RedisCache } from '@crowd/redis'
 import { IGithubUser } from '../../sources/lfid/types'
+import { IMemberIdentity } from '@crowd/types'
+
+import { svc } from '../../main'
 
 export async function getGithubIdentitiesWithoutSourceId(
   limit: number,

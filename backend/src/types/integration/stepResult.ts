@@ -1,4 +1,5 @@
 import { Logger } from '@crowd/logging'
+
 import { IRepositoryOptions } from '../../database/repositories/IRepositoryOptions'
 import { IServiceOptions } from '../../services/IServiceOptions'
 

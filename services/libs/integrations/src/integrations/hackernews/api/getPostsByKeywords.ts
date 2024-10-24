@@ -1,11 +1,13 @@
 import axios from 'axios'
+
 import { timeout } from '@crowd/common'
+
+import { IProcessStreamContext } from '../../../types'
 import {
   HackerNewsKeywordSearchInput,
   HackerNewsSearchResponseRaw,
   HackerNewsSearchResult,
 } from '../types'
-import { IProcessStreamContext } from '../../../types'
 
 async function getPostsByKeyword(
   input: HackerNewsKeywordSearchInput,
