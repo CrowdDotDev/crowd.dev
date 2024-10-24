@@ -15,6 +15,7 @@
     "@crowd/questdb": "workspace:*",
     "@crowd/redis": "workspace:*",
     "@crowd/sentiment": "workspace:*",
+    "@crowd/telemetry": "workspace:*",
     "@crowd/types": "workspace:*",
     "@questdb/nodejs-client": "~3.0.0",
     "html-to-text": "~9.0.5",
