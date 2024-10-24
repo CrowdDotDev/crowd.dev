@@ -41,7 +41,7 @@ export async function fetchMembersWithoutWorkExperience(
 
 export async function fetchMembersWithTooManyIdentities(
   qx: QueryExecutor,
-  treshold = 10,
+  treshold = 15,
   tenantId: string,
   limit: number,
   offset: number,
@@ -92,7 +92,7 @@ export async function fetchMembersWithTooManyIdentitiesPerPlatform(
                 COUNT(*) AS "identityCount"
             FROM "memberIdentities" mi
                      JOIN "members" m ON mi."memberId" = m.id
-            WHERE m."tenantId" = '${tenantId}' AND mi.type = 'username'
+            WHERE m."tenantId" = '${tenantId}' AND mi.type = 'username' AND mi.verified = true
             GROUP BY mi."memberId", mi.platform
             HAVING COUNT(*) > ${treshold}
         )

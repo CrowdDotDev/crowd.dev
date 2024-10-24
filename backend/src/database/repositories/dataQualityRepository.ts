@@ -36,7 +36,7 @@ class DataQualityRepository {
     segmentId: string,
   ) {
     const qx = SequelizeRepository.getQueryExecutor(options)
-    return fetchMembersWithTooManyIdentities(qx, 10, tenantId, limit, offset, segmentId)
+    return fetchMembersWithTooManyIdentities(qx, 15, tenantId, limit, offset, segmentId)
   }
 
   static async findMembersWithTooManyIdentitiesPerPlatform(
