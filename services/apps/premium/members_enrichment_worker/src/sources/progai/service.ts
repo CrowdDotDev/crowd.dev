@@ -25,10 +25,20 @@ import {
 } from '@crowd/types'
 import { Logger, LoggerBase } from '@crowd/logging'
 import { normalizeAttributes, normalizeSocialIdentity } from '../../utils/common'
+import { IMemberEnrichmentSourceEnrichableBy } from '@crowd/types/src/premium'
 
 export default class EnrichmentServiceProgAI extends LoggerBase implements IEnrichmentService {
   public source: MemberEnrichmentSource = MemberEnrichmentSource.PROGAI
   public platform = `enrichment-${this.source}`
+  public enrichableBy: IMemberEnrichmentSourceEnrichableBy[] = [
+    {
+      type: MemberIdentityType.USERNAME,
+      platform: PlatformType.GITHUB,
+    },
+    {
+      type: MemberIdentityType.EMAIL,
+    },
+  ]
 
   // bust cache after 90 days
   public cacheObsoleteAfterSeconds = 60 * 60 * 24 * 90
@@ -124,20 +134,12 @@ export default class EnrichmentServiceProgAI extends LoggerBase implements IEnri
 
     // get data logic
     if (input.github) {
-      try {
-        enriched = await this.getDataUsingGitHubHandle(input.github.value)
-      } catch (err) {
-        throw new Error(err)
-      }
+      enriched = await this.getDataUsingGitHubHandle(input.github.value)
     }
 
     if (this.alsoUseEmailIdentitiesForEnrichment) {
       if (!enriched && input.email) {
-        try {
-          enriched = await this.getDataUsingEmailAddress(input.email.value)
-        } catch (err) {
-          throw new Error(err)
-        }
+        enriched = await this.getDataUsingEmailAddress(input.email.value)
       }
     }
 

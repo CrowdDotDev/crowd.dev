@@ -20,10 +20,16 @@ import {
   IMemberEnrichmentDataClearbit,
 } from './types'
 import { normalizeAttributes, normalizeSocialIdentity } from '../../utils/common'
+import { IMemberEnrichmentSourceEnrichableBy } from '@crowd/types/src/premium'
 
 export default class EnrichmentServiceClearbit extends LoggerBase implements IEnrichmentService {
   public source: MemberEnrichmentSource = MemberEnrichmentSource.CLEARBIT
   public platform = `enrichment-${this.source}`
+  public enrichableBy: IMemberEnrichmentSourceEnrichableBy[] = [
+    {
+      type: MemberIdentityType.EMAIL,
+    },
+  ]
 
   // bust cache after 120 days
   public cacheObsoleteAfterSeconds = 60 * 60 * 24 * 120

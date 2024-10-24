@@ -71,8 +71,10 @@ export async function enrichMember(
     for (const source of sources) {
       // find if there's already saved enrichment data in source
       const cache = await findMemberEnrichmentCache(source, input.id)
-      const normalized = await normalizeEnrichmentData(source, cache.data)
-      toBeSquashed[source] = normalized
+      if (cache && cache.data) {
+        const normalized = await normalizeEnrichmentData(source, cache.data)
+        toBeSquashed[source] = normalized
+      }
     }
 
     // TODO:: Implement data squasher using LLM & actual member entity enrichment logic

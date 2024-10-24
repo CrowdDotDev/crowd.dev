@@ -29,7 +29,7 @@ getMembersToEnrich is a Temporal workflow that:
 export async function getMembersToEnrich(args: IGetMembersForEnrichmentArgs): Promise<void> {
   const MEMBER_ENRICHMENT_PER_RUN = 300
   const afterId = args?.afterId || null
-  const sources = [MemberEnrichmentSource.CLEARBIT]
+  const sources = [MemberEnrichmentSource.PROGAI, MemberEnrichmentSource.CLEARBIT]
 
   const members = await getMembers(MEMBER_ENRICHMENT_PER_RUN, sources, afterId)
 

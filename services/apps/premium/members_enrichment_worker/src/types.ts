@@ -3,8 +3,6 @@ import {
   IMember,
   IMemberContribution,
   IMemberIdentity,
-  IMemberOrganization,
-  MemberAttributeType,
   MemberAttributeName,
   MemberEnrichmentSource,
   PlatformType,
@@ -13,6 +11,7 @@ import {
 } from '@crowd/types'
 import { IMemberEnrichmentDataProgAI } from './sources/progai/types'
 import { IMemberEnrichmentDataClearbit } from './sources/clearbit/types'
+import { IMemberEnrichmentSourceEnrichableBy } from '@crowd/types/src/premium'
 
 export interface EnrichingMember {
   member: IMember
@@ -31,6 +30,10 @@ export interface IEnrichmentService {
   source: MemberEnrichmentSource
   cacheObsoleteAfterSeconds: number
   isEnrichableBySource(input: IEnrichmentSourceInput): boolean
+
+  // what kind of identities can this source use as input
+  enrichableBy: IMemberEnrichmentSourceEnrichableBy[]
+
   // should either return the data or null if it's a miss
   getData(input: IEnrichmentSourceInput): Promise<IMemberEnrichmentData>
   normalize(data: IMemberEnrichmentData): IMemberEnrichmentDataNormalized
