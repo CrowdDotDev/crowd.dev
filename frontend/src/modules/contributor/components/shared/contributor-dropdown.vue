@@ -19,14 +19,6 @@
     <lf-icon name="robot-line" />
     {{ isBot(props.contributor) ? 'Unmark' : 'Mark' }} as bot
   </lf-dropdown-item>
-  <lf-dropdown-item
-    v-if="hasPermission(LfPermission.memberEdit)"
-    @click="setReportDataModal({
-      contributor: props.contributor,
-    })"
-  >
-    <lf-icon name="feedback-line" class="!text-red-500" />Report issue
-  </lf-dropdown-item>
   <template v-if="hasPermission(LfPermission.memberDestroy)">
     <lf-dropdown-separator />
     <lf-dropdown-item type="danger" @click="deleteContributor()">
@@ -58,7 +50,6 @@ import { ref } from 'vue';
 import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
 import { Contributor } from '@/modules/contributor/types/Contributor';
 import { useContributorStore } from '@/modules/contributor/store/contributor.store';
-import { useSharedStore } from '@/shared/pinia/shared.store';
 
 const props = defineProps<{
   contributor: Contributor,
@@ -72,8 +63,6 @@ const { hasPermission } = usePermissions();
 const { trackEvent } = useProductTracking();
 const { isTeamMember, isBot, isMasked } = useContributorHelpers();
 const { updateContributorAttributes } = useContributorStore();
-
-const { setReportDataModal } = useSharedStore();
 
 const unmerge = ref<Contributor | null>(null);
 

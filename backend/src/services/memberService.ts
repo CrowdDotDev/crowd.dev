@@ -74,6 +74,7 @@ import telemetryTrack from '../segment/telemetryTrack'
 
 import { IServiceOptions } from './IServiceOptions'
 import merge from './helpers/merge'
+import MemberAffiliationService from './memberAffiliationService'
 import MemberAttributeSettingsService from './memberAttributeSettingsService'
 import MemberOrganizationService from './memberOrganizationService'
 import OrganizationService from './organizationService'
@@ -1684,26 +1685,12 @@ export default class MemberService extends LoggerBase {
       })
 
       await SequelizeRepository.commitTransaction(transaction)
-      await this.options.temporal.workflow.start('memberUpdate', {
-        taskQueue: 'profiles',
-        workflowId: `${TemporalWorkflowId.MEMBER_UPDATE}/${this.options.currentTenant.id}/${id}`,
-        workflowIdReusePolicy: WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
-        retry: {
-          maximumAttempts: 10,
-        },
-        args: [
-          {
-            member: {
-              id,
-            },
-            memberOrganizationIds: (data.organizations || []).map((o) => o.id),
-            syncToOpensearch,
-          },
-        ],
-        searchAttributes: {
-          TenantId: [this.options.currentTenant.id],
-        },
-      })
+      await MemberAffiliationService.startAffiliationRecalculation(
+        id,
+        (data.organizations || []).map((o) => o.id),
+        this.options,
+        syncToOpensearch,
+      )
 
       return record
     } catch (error) {

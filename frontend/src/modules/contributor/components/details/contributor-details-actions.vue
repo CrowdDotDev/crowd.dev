@@ -3,7 +3,6 @@
     <lf-button-group>
       <!-- Merge suggestions -->
       <lf-button
-        v-if="!hasPermission(LfPermission.mergeMembers)"
         type="secondary"
         @click="setReportDataModal({
           contributor: props.contributor,
