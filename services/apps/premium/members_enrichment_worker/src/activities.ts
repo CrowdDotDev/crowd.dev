@@ -1,7 +1,13 @@
 import {
-  enrichMemberUsingEmailAddress,
-  enrichMemberUsingGitHubHandle,
-} from './activities/getEnrichmentData'
+  findMemberEnrichmentCache,
+  getEnrichmentData,
+  insertMemberEnrichmentCache,
+  isCacheObsolete,
+  isEnrichableBySource,
+  normalizeEnrichmentData,
+  touchMemberEnrichmentCacheUpdatedAt,
+  updateMemberEnrichmentCache,
+} from './activities/enrichment'
 import { getMembers } from './activities/getMembers'
 import { refreshToken } from './activities/lf-auth0/authenticateLFAuth0'
 import {
@@ -18,22 +24,16 @@ import {
   updateIdentitySourceId,
 } from './activities/lf-auth0/githubIdentities'
 import {
-  normalizeEnrichedMember,
-  updateMergeSuggestions,
-  updateOrganizations,
-} from './activities/normalizeEnrichedMember'
-import {
   syncMembersToOpensearch,
   syncOrganizationsToOpensearch,
 } from './activities/syncEnrichedData'
 
 export {
   getMembers,
-  enrichMemberUsingGitHubHandle,
-  enrichMemberUsingEmailAddress,
-  normalizeEnrichedMember,
-  updateMergeSuggestions,
-  updateOrganizations,
+  getEnrichmentData,
+  normalizeEnrichmentData,
+  findMemberEnrichmentCache,
+  insertMemberEnrichmentCache,
   syncMembersToOpensearch,
   syncOrganizationsToOpensearch,
   refreshToken,
@@ -46,4 +46,8 @@ export {
   getIdentitiesExistInOtherMembers,
   updateMemberWithEnrichmentData,
   mergeMembers,
+  isCacheObsolete,
+  touchMemberEnrichmentCacheUpdatedAt,
+  updateMemberEnrichmentCache,
+  isEnrichableBySource,
 }

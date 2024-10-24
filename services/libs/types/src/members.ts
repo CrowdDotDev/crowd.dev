@@ -131,7 +131,7 @@ export interface IMemberContribution {
   url: string
   topics: string[]
   summary: string
-  numberCommits: 81
+  numberCommits: number
   lastCommitDate: string
   firstCommitDate: string
 }

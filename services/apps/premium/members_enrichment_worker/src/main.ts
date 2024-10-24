@@ -5,6 +5,11 @@ import { Edition } from '@crowd/types'
 import { scheduleMembersEnrichment, scheduleMembersLFIDEnrichment } from './schedules'
 
 const config: Config = {
+  envvars: [
+    'CROWD_ENRICHMENT_PROGAI_URL',
+    'CROWD_ENRICHMENT_PROGAI_API_KEY',
+    'CROWD_ENRICHMENT_CLEARBIT_API_KEY',
+  ],
   producer: {
     enabled: false,
   },

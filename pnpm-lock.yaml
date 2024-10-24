@@ -1119,6 +1119,9 @@ importers:
       '@crowd/integrations':
         specifier: workspace:*
         version: link:../../../libs/integrations
+      '@crowd/logging':
+        specifier: workspace:*
+        version: link:../../../libs/logging
       '@crowd/opensearch':
         specifier: workspace:*
         version: link:../../../libs/opensearch

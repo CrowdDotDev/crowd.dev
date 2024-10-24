@@ -1,7 +1,6 @@
 // import { membersScore } from './../database/utils/keys/microserviceTypes'
 import lodash from 'lodash'
 import moment from 'moment'
-
 import {
   CROWD_MEMBER_ATTRIBUTES,
   DEVTO_MEMBER_ATTRIBUTES,
@@ -14,8 +13,7 @@ import { LoggerBase } from '@crowd/logging'
 import {
   MemberAttributeName,
   MemberAttributeType,
-  MemberEnrichmentAttributeName,
-  MemberEnrichmentAttributes,
+  MemberAttributes,
   PlatformType,
 } from '@crowd/types'
 
@@ -74,73 +72,71 @@ export default class SampleDataService extends LoggerBase {
 
         const MemberEnrichmentAttributeSettings = [
           {
-            name: MemberEnrichmentAttributeName.SKILLS,
-            label: MemberEnrichmentAttributes[MemberEnrichmentAttributeName.SKILLS].label,
+            name: MemberAttributeName.SKILLS,
+            label: MemberAttributes[MemberAttributeName.SKILLS].label,
             type: MemberAttributeType.MULTI_SELECT,
             canDelete: false,
             show: true,
           },
           {
-            name: MemberEnrichmentAttributeName.LANGUAGES,
-            label: MemberEnrichmentAttributes[MemberEnrichmentAttributeName.LANGUAGES].label,
+            name: MemberAttributeName.LANGUAGES,
+            label: MemberAttributes[MemberAttributeName.LANGUAGES].label,
             type: MemberAttributeType.MULTI_SELECT,
             canDelete: false,
             show: true,
           },
           {
-            name: MemberEnrichmentAttributeName.PROGRAMMING_LANGUAGES,
-            label:
-              MemberEnrichmentAttributes[MemberEnrichmentAttributeName.PROGRAMMING_LANGUAGES].label,
+            name: MemberAttributeName.PROGRAMMING_LANGUAGES,
+            label: MemberAttributes[MemberAttributeName.PROGRAMMING_LANGUAGES].label,
             type: MemberAttributeType.MULTI_SELECT,
             canDelete: false,
             show: true,
           },
           {
-            name: MemberEnrichmentAttributeName.AWARDS,
-            label: MemberEnrichmentAttributes[MemberEnrichmentAttributeName.AWARDS].label,
+            name: MemberAttributeName.AWARDS,
+            label: MemberAttributes[MemberAttributeName.AWARDS].label,
             type: MemberAttributeType.SPECIAL,
             canDelete: false,
             show: true,
           },
           {
-            name: MemberEnrichmentAttributeName.SENIORITY_LEVEL,
-            label: MemberEnrichmentAttributes[MemberEnrichmentAttributeName.SENIORITY_LEVEL].label,
+            name: MemberAttributeName.SENIORITY_LEVEL,
+            label: MemberAttributes[MemberAttributeName.SENIORITY_LEVEL].label,
             type: MemberAttributeType.STRING,
             canDelete: false,
             show: true,
           },
           {
-            name: MemberEnrichmentAttributeName.EXPERTISE,
-            label: MemberEnrichmentAttributes[MemberEnrichmentAttributeName.EXPERTISE].label,
+            name: MemberAttributeName.EXPERTISE,
+            label: MemberAttributes[MemberAttributeName.EXPERTISE].label,
             type: MemberAttributeType.MULTI_SELECT,
             canDelete: false,
             show: true,
           },
           {
-            name: MemberEnrichmentAttributeName.COUNTRY,
-            label: MemberEnrichmentAttributes[MemberEnrichmentAttributeName.COUNTRY].label,
+            name: MemberAttributeName.COUNTRY,
+            label: MemberAttributes[MemberAttributeName.COUNTRY].label,
             type: MemberAttributeType.STRING,
             canDelete: false,
             show: true,
           },
           {
-            name: MemberEnrichmentAttributeName.YEARS_OF_EXPERIENCE,
-            label:
-              MemberEnrichmentAttributes[MemberEnrichmentAttributeName.YEARS_OF_EXPERIENCE].label,
+            name: MemberAttributeName.YEARS_OF_EXPERIENCE,
+            label: MemberAttributes[MemberAttributeName.YEARS_OF_EXPERIENCE].label,
             type: MemberAttributeType.NUMBER,
             canDelete: false,
             show: true,
           },
           {
-            name: MemberEnrichmentAttributeName.EDUCATION,
-            label: MemberEnrichmentAttributes[MemberEnrichmentAttributeName.EDUCATION].label,
+            name: MemberAttributeName.EDUCATION,
+            label: MemberAttributes[MemberAttributeName.EDUCATION].label,
             type: MemberAttributeType.SPECIAL,
             canDelete: false,
             show: true,
           },
           {
-            name: MemberEnrichmentAttributeName.WORK_EXPERIENCES,
-            label: MemberEnrichmentAttributes[MemberEnrichmentAttributeName.WORK_EXPERIENCES].label,
+            name: MemberAttributeName.WORK_EXPERIENCES,
+            label: MemberAttributes[MemberAttributeName.WORK_EXPERIENCES].label,
             type: MemberAttributeType.SPECIAL,
             canDelete: false,
             show: true,
