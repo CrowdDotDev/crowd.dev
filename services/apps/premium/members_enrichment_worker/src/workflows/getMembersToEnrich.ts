@@ -10,6 +10,7 @@ import * as activities from '../activities/getMembers'
 import { enrichMember } from './enrichMember'
 import { IGetMembersForEnrichmentArgs } from '../types'
 import { MemberEnrichmentSource } from '@crowd/types'
+import { IS_DEV_ENV } from '@crowd/common'
 
 // Configure timeouts and retry policies to retrieve members to enrich from the
 // database.
@@ -26,9 +27,9 @@ getMembersToEnrich is a Temporal workflow that:
     to run and not be cancelled even if this one is.
 */
 export async function getMembersToEnrich(args: IGetMembersForEnrichmentArgs): Promise<void> {
-  const MEMBER_ENRICHMENT_PER_RUN = 20
+  const MEMBER_ENRICHMENT_PER_RUN = 300
   const afterId = args?.afterId || null
-  const sources = [MemberEnrichmentSource.PROGAI]
+  const sources = [MemberEnrichmentSource.CLEARBIT]
 
   const members = await getMembers(MEMBER_ENRICHMENT_PER_RUN, sources, afterId)
 
@@ -53,7 +54,11 @@ export async function getMembersToEnrich(args: IGetMembersForEnrichmentArgs): Pr
     }),
   )
 
-  // await continueAsNew<typeof getMembersToEnrich>({
-  //   afterId: members[members.length - 1].id,
-  // })
+  /*
+  if (!IS_DEV_ENV) {
+    await continueAsNew<typeof getMembersToEnrich>({
+      afterId: members[members.length - 1].id,
+    })
+  }
+  */
 }

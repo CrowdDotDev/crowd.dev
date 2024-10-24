@@ -1,5 +1,6 @@
 export enum MemberEnrichmentSource {
   PROGAI = 'progai',
+  CLEARBIT = 'clearbit',
 }
 
 export interface IMemberEnrichmentSourceQueryInput {

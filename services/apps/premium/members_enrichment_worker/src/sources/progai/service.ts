@@ -4,6 +4,7 @@ import {
   IMemberEnrichmentDataNormalized,
   IEnrichmentService,
   IEnrichmentSourceInput,
+  IMemberEnrichmentAttributeSettings,
 } from '../../types'
 import {
   IEnrichmentAPICertificationProgAI,
@@ -16,60 +17,53 @@ import {
 } from './types'
 import {
   MemberAttributeName,
-  MemberAttributeType,
-  MemberEnrichmentAttributeName,
   MemberEnrichmentSource,
   MemberIdentityType,
+  OrganizationIdentityType,
+  OrganizationSource,
   PlatformType,
 } from '@crowd/types'
 import { Logger, LoggerBase } from '@crowd/logging'
+import { normalizeAttributes, normalizeSocialIdentity } from '../../utils/common'
 
 export default class EnrichmentServiceProgAI extends LoggerBase implements IEnrichmentService {
   public source: MemberEnrichmentSource = MemberEnrichmentSource.PROGAI
+  public platform = `enrichment-${this.source}`
 
   // bust cache after 90 days
   public cacheObsoleteAfterSeconds = 60 * 60 * 24 * 90
 
-  public attributeSettings = {
+  public attributeSettings: IMemberEnrichmentAttributeSettings = {
     [MemberAttributeName.AVATAR_URL]: {
       fields: ['profile_pic_url'],
-      default: true,
     },
     [MemberAttributeName.LOCATION]: {
       fields: ['location'],
-      default: true,
     },
     [MemberAttributeName.BIO]: {
       fields: ['title', 'work_experiences[0].title'],
     },
-    [MemberEnrichmentAttributeName.SENIORITY_LEVEL]: {
+    [MemberAttributeName.SENIORITY_LEVEL]: {
       fields: ['seniority_level'],
-      type: MemberAttributeType.STRING,
     },
-    [MemberEnrichmentAttributeName.COUNTRY]: {
+    [MemberAttributeName.COUNTRY]: {
       fields: ['country'],
-      type: MemberAttributeType.STRING,
     },
-    [MemberEnrichmentAttributeName.PROGRAMMING_LANGUAGES]: {
+    [MemberAttributeName.PROGRAMMING_LANGUAGES]: {
       fields: ['programming_languages'],
-      type: MemberAttributeType.MULTI_SELECT,
     },
-    [MemberEnrichmentAttributeName.LANGUAGES]: {
+    [MemberAttributeName.LANGUAGES]: {
       fields: ['languages'],
-      type: MemberAttributeType.MULTI_SELECT,
     },
-    [MemberEnrichmentAttributeName.YEARS_OF_EXPERIENCE]: {
+    [MemberAttributeName.YEARS_OF_EXPERIENCE]: {
       fields: ['years_of_experience'],
-      type: MemberAttributeType.NUMBER,
     },
-    [MemberEnrichmentAttributeName.EXPERTISE]: {
+    [MemberAttributeName.EXPERTISE]: {
       fields: ['expertise'],
-      type: MemberAttributeType.MULTI_SELECT,
     },
-    [MemberEnrichmentAttributeName.WORK_EXPERIENCES]: {
+    [MemberAttributeName.WORK_EXPERIENCES]: {
       fields: ['work_experiences'],
-      type: MemberAttributeType.SPECIAL,
-      fn: (workExperiences: IEnrichmentAPIWorkExperienceProgAI[]) =>
+      transform: (workExperiences: IEnrichmentAPIWorkExperienceProgAI[]) =>
         workExperiences.map((workExperience) => {
           const { title, company, location, startDate, endDate } = workExperience
           return {
@@ -81,10 +75,9 @@ export default class EnrichmentServiceProgAI extends LoggerBase implements IEnri
           }
         }),
     },
-    [MemberEnrichmentAttributeName.EDUCATION]: {
+    [MemberAttributeName.EDUCATION]: {
       fields: ['educations'],
-      type: MemberAttributeType.SPECIAL,
-      fn: (educations: IEnrichmentAPIEducationProgAI[]) =>
+      transform: (educations: IEnrichmentAPIEducationProgAI[]) =>
         educations.map((education) => {
           const { campus, major, specialization, startDate, endDate } = education
           return {
@@ -96,14 +89,12 @@ export default class EnrichmentServiceProgAI extends LoggerBase implements IEnri
           }
         }),
     },
-    [MemberEnrichmentAttributeName.AWARDS]: {
+    [MemberAttributeName.AWARDS]: {
       fields: ['awards'],
-      type: MemberAttributeType.SPECIAL,
     },
-    [MemberEnrichmentAttributeName.CERTIFICATIONS]: {
+    [MemberAttributeName.CERTIFICATIONS]: {
       fields: ['certifications'],
-      type: MemberAttributeType.SPECIAL,
-      fn: (certifications: IEnrichmentAPICertificationProgAI[]) =>
+      transform: (certifications: IEnrichmentAPICertificationProgAI[]) =>
         certifications.map((certification) => {
           const { title, description } = certification
           return {
@@ -120,6 +111,12 @@ export default class EnrichmentServiceProgAI extends LoggerBase implements IEnri
     private readonly enrichEmailIdentities: boolean,
   ) {
     super(log)
+  }
+
+  isEnrichableBySource(input: IEnrichmentSourceInput): boolean {
+    const enrichableUsingGithubHandle = !!input.github?.value
+    const enrichableUsingEmail = this.alsoUseEmailIdentitiesForEnrichment && !!input.email?.value
+    return enrichableUsingGithubHandle || enrichableUsingEmail
   }
 
   async getData(input: IEnrichmentSourceInput): Promise<IMemberEnrichmentDataProgAI> {
@@ -148,10 +145,16 @@ export default class EnrichmentServiceProgAI extends LoggerBase implements IEnri
   }
 
   normalize(data: IMemberEnrichmentDataProgAI): IMemberEnrichmentDataNormalized {
-    let normalized: IMemberEnrichmentDataNormalized = {}
+    let normalized: IMemberEnrichmentDataNormalized = {
+      identities: [],
+      attributes: {},
+      contributions: [],
+      memberOrganizations: [],
+    }
     normalized = this.fillPlatformData(data, normalized)
-    normalized = this.fillAttributes(data, normalized)
+    normalized = normalizeAttributes(data, normalized, this.attributeSettings, this.platform)
     normalized = this.fillSkills(data, normalized)
+    normalized = this.normalizeEmployment(data, normalized)
 
     return normalized
   }
@@ -169,53 +172,13 @@ export default class EnrichmentServiceProgAI extends LoggerBase implements IEnri
         normalized.attributes.skills = {}
       }
 
-      // Assign unique and ordered skills to 'member.attributes[MemberEnrichmentAttributeName.SKILLS].enrichment'
-      normalized.attributes[MemberEnrichmentAttributeName.SKILLS].enrichment = lodash.uniq([
+      // Assign unique and ordered skills to 'member.attributes[MemberAttributeName.SKILLS].enrichment'
+      normalized.attributes[MemberAttributeName.SKILLS].enrichment = lodash.uniq([
         // Use 'lodash.orderBy' to sort the skills by weight in descending order
         ...lodash
           .orderBy(data.skills || [], ['weight'], ['desc'])
           .map((s: IEnrichmentAPISkillsProgAI) => s.skill),
       ])
-    }
-
-    return normalized
-  }
-
-  private fillAttributes(
-    data: IMemberEnrichmentDataProgAI,
-    normalized: IMemberEnrichmentDataNormalized,
-  ): IMemberEnrichmentDataNormalized {
-    if (!normalized.attributes) {
-      normalized.attributes = {}
-    }
-
-    // eslint-disable-next-line guard-for-in
-    for (const attributeName in this.attributeSettings) {
-      const attribute = this.attributeSettings[attributeName]
-
-      let value = null
-
-      for (const field of attribute.fields) {
-        if (value) {
-          break
-        }
-        // Get value from 'enriched' object using the defined mapping and 'lodash.get'
-        value = lodash.get(data, field)
-      }
-
-      if (value) {
-        // Check if 'member.attributes[attributeName]' exists, and if it does not, initialize it as an empty object
-        if (!normalized.attributes[attributeName]) {
-          normalized.attributes[attributeName] = {}
-        }
-
-        // Check if 'attribute.fn' exists, otherwise set it the identity function
-        const fn = attribute.fn || ((value) => value)
-        value = fn(value)
-
-        // Assign 'value' to 'member.attributes[attributeName].enrichment'
-        normalized.attributes[attributeName].enrichment = value
-      }
     }
 
     return normalized
@@ -244,7 +207,7 @@ export default class EnrichmentServiceProgAI extends LoggerBase implements IEnri
             normalized.identities.push({
               value: email,
               type: MemberIdentityType.EMAIL,
-              platform: 'enrichment',
+              platform: this.platform,
               verified: false,
             })
           }
@@ -265,51 +228,80 @@ export default class EnrichmentServiceProgAI extends LoggerBase implements IEnri
     )
 
     if (data.github_handle) {
-      // Set 'member.username.github' to be equal to 'enriched.github_handle' (if it is not already set)
-      normalized.identities.push({
-        value: data.github_handle,
-        type: MemberIdentityType.USERNAME,
-        platform: PlatformType.GITHUB,
-        verified: false,
-      })
-      if (!normalized.attributes.url) {
-        // If it does not exist, initialize it as an empty object
-        normalized.attributes.url = {}
-      }
-
-      // Set 'member.attributes.url.github' to be equal to a string concatenated with the 'github_handle' property
-      normalized.attributes.url.github =
-        normalized.attributes.url.github || `https://github.com/${data.github_handle}`
+      normalized = normalizeSocialIdentity(
+        {
+          handle: data.github_handle,
+          platform: PlatformType.GITHUB,
+        },
+        MemberIdentityType.USERNAME,
+        true,
+        normalized,
+      )
     }
 
     if (data.linkedin_url) {
       const linkedinHandle = data.linkedin_url.split('/').pop()
-      normalized.identities.push({
-        value: linkedinHandle,
-        type: MemberIdentityType.USERNAME,
-        platform: PlatformType.LINKEDIN,
-        verified: false,
-      })
-
-      if (!normalized.attributes.url) {
-        normalized.attributes.url = {}
-      }
-
-      normalized.attributes.url.linkedin = normalized.attributes.url.linkedin || data.linkedin_url
+      normalized = normalizeSocialIdentity(
+        {
+          handle: linkedinHandle,
+          platform: PlatformType.LINKEDIN,
+        },
+        MemberIdentityType.USERNAME,
+        true,
+        normalized,
+      )
     }
 
     if (data.twitter_handle) {
-      normalized.identities.push({
-        value: data.twitter_handle,
-        type: MemberIdentityType.USERNAME,
-        platform: PlatformType.TWITTER,
-        verified: false,
-      })
-      if (!normalized.attributes.url) {
-        normalized.attributes.url = {}
+      normalized = normalizeSocialIdentity(
+        {
+          handle: data.twitter_handle,
+          platform: PlatformType.TWITTER,
+        },
+        MemberIdentityType.USERNAME,
+        true,
+        normalized,
+      )
+    }
+
+    return normalized
+  }
+
+  private normalizeEmployment(
+    data: IMemberEnrichmentDataProgAI,
+    normalized: IMemberEnrichmentDataNormalized,
+  ): IMemberEnrichmentDataNormalized {
+    if (data.work_experiences) {
+      for (const workExperience of data.work_experiences) {
+        const identities = []
+
+        if (workExperience.companyUrl) {
+          identities.push({
+            platform: PlatformType.LINKEDIN,
+            value: workExperience.companyUrl,
+            type: OrganizationIdentityType.PRIMARY_DOMAIN,
+            verified: true,
+          })
+        }
+
+        if (workExperience.companyLinkedInUrl) {
+          identities.push({
+            platform: PlatformType.LINKEDIN,
+            value: `company:${workExperience.companyLinkedInUrl.split('/').pop()}`,
+            type: OrganizationIdentityType.USERNAME,
+            verified: true,
+          })
+        }
+
+        normalized.memberOrganizations.push({
+          name: workExperience.company,
+          source: OrganizationSource.ENRICHMENT_PROGAI,
+          identities,
+          title: workExperience.title,
+          startDate: workExperience.startDate,
+          endDate: workExperience.endDate,
+        })
       }
-      normalized.attributes.url.twitter =
-        normalized.attributes.url.twitter || `https://twitter.com/${data.twitter_handle}`
     }
 
     return normalized

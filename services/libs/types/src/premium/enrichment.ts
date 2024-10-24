@@ -1,9 +1,9 @@
 import { MemberEnrichmentSource } from '../enums'
 
-export interface IMemberEnrichmentCache {
+export interface IMemberEnrichmentCache<T> {
   createdAt: string
   updatedAt: string
   memberId: string
-  data: unknown
+  data: T
   source: MemberEnrichmentSource
 }

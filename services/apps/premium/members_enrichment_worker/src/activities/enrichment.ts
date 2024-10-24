@@ -1,5 +1,3 @@
-import axios from 'axios'
-
 import { MemberEnrichmentSource } from '@crowd/types'
 import {
   IMemberEnrichmentData,
@@ -15,6 +13,14 @@ import {
   updateMemberEnrichmentCacheDb,
 } from '@crowd/data-access-layer/src/old/apps/premium/members_enrichment_worker'
 import { IMemberEnrichmentCache } from '@crowd/types/src/premium'
+
+export async function isEnrichableBySource(
+  source: MemberEnrichmentSource,
+  input: IEnrichmentSourceInput,
+): Promise<boolean> {
+  const service = EnrichmentSourceServiceFactory.getEnrichmentSourceService(source, svc.log)
+  return service.isEnrichableBySource(input)
+}
 
 export async function getEnrichmentData(
   source: MemberEnrichmentSource,
@@ -34,7 +40,7 @@ export async function normalizeEnrichmentData(
 
 export async function isCacheObsolete(
   source: MemberEnrichmentSource,
-  cache: IMemberEnrichmentCache,
+  cache: IMemberEnrichmentCache<IMemberEnrichmentData>,
 ): Promise<boolean> {
   const service = EnrichmentSourceServiceFactory.getEnrichmentSourceService(source, svc.log)
   return (
@@ -47,7 +53,7 @@ export async function isCacheObsolete(
 export async function findMemberEnrichmentCache(
   source: MemberEnrichmentSource,
   memberId: string,
-): Promise<IMemberEnrichmentCache> {
+): Promise<IMemberEnrichmentCache<IMemberEnrichmentData>> {
   return findMemberEnrichmentCacheDb(svc.postgres.reader.connection(), memberId, source)
 }
 
