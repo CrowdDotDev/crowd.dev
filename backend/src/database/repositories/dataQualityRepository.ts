@@ -1,7 +1,9 @@
 import {
+  fetchMembersWithIncompleteWorkExperience,
+  fetchMembersWithTooManyEmails,
   fetchMembersWithTooManyIdentities,
   fetchMembersWithTooManyIdentitiesPerPlatform,
-  fetchMembersWithoutWorkExperience, fetchMembersWithTooManyEmails, fetchMembersWithIncompleteWorkExperience,
+  fetchMembersWithoutWorkExperience,
 } from '@crowd/data-access-layer/src/data-quality'
 
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
@@ -74,6 +76,16 @@ class DataQualityRepository {
     return fetchMembersWithTooManyIdentitiesPerPlatform(qx, 1, tenantId, limit, offset, segmentId)
   }
 
+  /**
+   * Finds members who have too many emails within a given tenant and segment.
+   *
+   * @param {IRepositoryOptions} options - The repository options containing configuration and context for the query.
+   * @param {string} tenantId - The identifier for the tenant where members are queried.
+   * @param {number} limit - The maximum number of members to return.
+   * @param {number} offset - The starting point for pagination.
+   * @param {string} segmentId - The identifier for the segment to filter members.
+   * @return {Promise<Array>} - A promise that resolves to an array of members who have too many emails.
+   */
   static async findMembersWithTooManyEmails(
     options: IRepositoryOptions,
     tenantId: string,
@@ -85,6 +97,16 @@ class DataQualityRepository {
     return fetchMembersWithTooManyEmails(qx, 3, tenantId, limit, offset, segmentId)
   }
 
+  /**
+   * Find members with incomplete work experience.
+   *
+   * @param {IRepositoryOptions} options - The repository options.
+   * @param {string} tenantId - The tenant ID to filter members.
+   * @param {number} limit - The maximum number of members to return.
+   * @param {number} offset - The number of members to skip before starting to collect the result set.
+   * @param {string} segmentId - The segment ID to filter members.
+   * @return {Promise<Array>} A promise that resolves to an array of members with incomplete work experience.
+   */
   static async findMembersWithIncompleteWorkExperience(
     options: IRepositoryOptions,
     tenantId: string,

@@ -143,6 +143,17 @@ export async function fetchMembersWithTooManyIdentitiesPerPlatform(
   )
 }
 
+/**
+ * Fetches members who have more than a specified number of verified email addresses.
+ *
+ * @param {QueryExecutor} qx - The query executor to run database queries.
+ * @param {number} [threshold=3] - The threshold number of email addresses a member must exceed to be included.
+ * @param {string} tenantId - The ID of the tenant to which the members belong.
+ * @param {number} limit - The maximum number of members to retrieve.
+ * @param {number} offset - The number of members to skip before starting to collect the result set.
+ * @param {string} segmentId - The ID of the segment to which the members belong.
+ * @return {Promise<IMember[]>} - A promise that resolves to an array of members who have more than the specified number of verified email addresses.
+ */
 export async function fetchMembersWithTooManyEmails(
   qx: QueryExecutor,
   threshold = 3,
@@ -181,6 +192,17 @@ export async function fetchMembersWithTooManyEmails(
   )
 }
 
+/**
+ * Fetch members with incomplete work experience within a specified tenant and segment.
+ *
+ * @param {QueryExecutor} qx - The query executor instance used to perform database operations.
+ * @param {string} tenantId - The ID of the tenant to filter members by.
+ * @param {number} limit - The maximum number of members to retrieve.
+ * @param {number} offset - The starting point in the list of members to retrieve.
+ * @param {string} segmentId - The ID of the segment to filter members by.
+ *
+ * @return {Promise<IMember[]>} A promise that resolves to an array of members with incomplete work experience.
+ */
 export async function fetchMembersWithIncompleteWorkExperience(
   qx: QueryExecutor,
   tenantId: string,

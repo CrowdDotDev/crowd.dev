@@ -2,9 +2,9 @@ import { DataIssueTypeConfig } from '@/modules/data-quality/config/data-issue-ty
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 
 const tooManyIdentitiesPerPlatform: DataIssueTypeConfig = {
-  label: 'More than 1 verified identity per platform',
+  label: 'More than 1 identity per platform',
   badgeType: 'warning',
-  badgeText: () => 'More than 1 verified identity per platform',
+  badgeText: () => 'More than 1 identity per platform',
   description: (member: any) => {
     const platforms = (member.platforms || []).split(',');
     return `This profile has more than 1 verified identity on 

@@ -15,58 +15,29 @@ export default class DataQualityService extends LoggerBase {
   }
 
   /**
-   * Finds member issues based on the specified data quality parameters and segment ID.
+   * Finds issues related to member data quality based on the specified type.
    *
-   * @param {string} tenantId - The ID of the tenant.
-   * @param {IDataQualityParams} params - The parameters for data quality filtering.
-   * @param {string} segmentId - The ID of the segment to filter the members.
-   * @return {Promise<Array>} A promise that resolves to an array of members with issues.
+   * @param {string} tenantId - The ID of the tenant for whom to find member issues.
+   * @param {IDataQualityParams} params - The parameters for finding member issues, including the type of issue, limit, and offset.
+   * @param {string} segmentId - The ID of the segment where the members belong.
+   * @return {Promise<Array>} A promise that resolves to an array of members with the specified data quality issues.
    */
   async findMemberIssues(tenantId: string, params: IDataQualityParams, segmentId: string) {
-    if (params.type === IDataQualityType.NO_WORK_EXPERIENCE) {
-      return DataQualityRepository.findMembersWithNoWorkExperience(
-        this.options,
-        tenantId,
-        params.limit || 10,
-        params.offset || 0,
-        segmentId,
-      )
+    const methodMap = {
+      [IDataQualityType.NO_WORK_EXPERIENCE]: DataQualityRepository.findMembersWithNoWorkExperience,
+      [IDataQualityType.TOO_MANY_IDENTITIES]:
+        DataQualityRepository.findMembersWithTooManyIdentities,
+      [IDataQualityType.TOO_MANY_IDENTITIES_PER_PLATFORM]:
+        DataQualityRepository.findMembersWithTooManyIdentitiesPerPlatform,
+      [IDataQualityType.TOO_MANY_EMAILS]: DataQualityRepository.findMembersWithTooManyEmails,
+      [IDataQualityType.INCOMPLETE_WORK_EXPERIENCE]:
+        DataQualityRepository.findMembersWithIncompleteWorkExperience,
     }
-    if (params.type === IDataQualityType.TOO_MANY_IDENTITIES) {
-      return DataQualityRepository.findMembersWithTooManyIdentities(
-        this.options,
-        tenantId,
-        params.limit || 10,
-        params.offset || 0,
-        segmentId,
-      )
-    }
-    if (params.type === IDataQualityType.TOO_MANY_IDENTITIES_PER_PLATFORM) {
-      return DataQualityRepository.findMembersWithTooManyIdentitiesPerPlatform(
-        this.options,
-        tenantId,
-        params.limit || 10,
-        params.offset || 0,
-        segmentId,
-      )
-    }
-    if (params.type === IDataQualityType.TOO_MANY_EMAILS) {
-      return DataQualityRepository.findMembersWithTooManyEmails(
-        this.options,
-        tenantId,
-        params.limit || 10,
-        params.offset || 0,
-        segmentId,
-      )
-    }
-    if (params.type === IDataQualityType.INCOMPLETE_WORK_EXPERIENCE) {
-      return DataQualityRepository.findMembersWithIncompleteWorkExperience(
-        this.options,
-        tenantId,
-        params.limit || 10,
-        params.offset || 0,
-        segmentId,
-      )
+
+    const method = methodMap[params.type]
+
+    if (method) {
+      return method(this.options, tenantId, params.limit || 10, params.offset || 0, segmentId)
     }
     return []
   }

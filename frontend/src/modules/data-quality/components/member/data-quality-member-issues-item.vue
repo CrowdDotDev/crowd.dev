@@ -14,18 +14,7 @@
           {{ config.badgeText(props.member) }}
         </lf-badge>
       </div>
-      <router-link
-        :to="{
-          name: 'memberView',
-          params: { id: props.member.id },
-          query: { projectGroup: selectedProjectGroup?.id },
-        }"
-        target="_blank"
-      >
-        <lf-button type="secondary" size="small" @click="isModalOpen = true; detailsOffset = si">
-          <lf-icon name="external-link-line" />Review profile
-        </lf-button>
-      </router-link>
+      <slot name="action" />
     </div>
     <p class="text-small mt-2 text-gray-500" v-html="$sanitize(config.description(props.member))" />
   </article>
@@ -38,10 +27,6 @@ import useContributorHelpers from '@/modules/contributor/helpers/contributor.hel
 import LfBadge from '@/ui-kit/badge/Badge.vue';
 import { computed } from 'vue';
 import { DataIssueTypeConfig, dataIssueTypes } from '@/modules/data-quality/config/data-issue-types';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
-import LfButton from '@/ui-kit/button/Button.vue';
-import { storeToRefs } from 'pinia';
-import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
 const props = defineProps<{
   member: Contributor,
@@ -49,7 +34,6 @@ const props = defineProps<{
 }>();
 
 const { avatar } = useContributorHelpers();
-const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
 
 const config = computed<DataIssueTypeConfig>(() => dataIssueTypes[props.type]);
 </script>

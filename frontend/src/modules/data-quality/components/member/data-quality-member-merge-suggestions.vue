@@ -45,13 +45,17 @@
 
 <script lang="ts" setup>
 import { MemberService } from '@/modules/member/member-service';
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import LfDataQualityMemberMergeSuggestionsItem
   from '@/modules/data-quality/components/member/data-quality-member-merge-suggestions-item.vue';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 import AppMemberMergeSuggestionsDialog from '@/modules/member/components/member-merge-suggestions-dialog.vue';
+
+const props = defineProps<{
+  projectGroup: string,
+}>();
 
 const loading = ref(true);
 const limit = ref(20);
@@ -67,6 +71,7 @@ const loadMergeSuggestions = () => {
   MemberService.fetchMergeSuggestions(limit.value, offset.value, {
     orderBy: ['activityCount_DESC'],
     detail: false,
+    segments: [props.projectGroup],
   })
     .then((res) => {
       total.value = +res.count;
@@ -86,6 +91,11 @@ const loadMore = () => {
   offset.value = mergeSuggestions.value.length;
   loadMergeSuggestions();
 };
+
+watch(() => props.projectGroup, () => {
+  offset.value = 0;
+  loadMergeSuggestions();
+});
 
 onMounted(() => {
   loadMergeSuggestions();
