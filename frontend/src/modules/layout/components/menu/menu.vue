@@ -45,6 +45,14 @@
       :to="{ path: '/activities', query: { projectGroup: selectedProjectGroup?.id } }"
       :disabled="!selectedProjectGroup"
     />
+    <!--    <lf-menu-link-->
+    <!--        v-if="hasPermission(LfPermission.dataQualityRead)"-->
+    <!--        title="Data Quality Assistant"-->
+    <!--        icon="settings-3-line"-->
+    <!--        :is-collapsed="isCollapsed"-->
+    <!--        :disabled="!selectedProjectGroup"-->
+    <!--        :to="{ path: '/data-quality-assistant' }"-->
+    <!--    />-->
     <div class="flex-grow" />
     <div class="flex justify-end pb-8">
       <div

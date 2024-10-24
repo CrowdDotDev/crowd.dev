@@ -11,6 +11,7 @@ import automation from '@/modules/automation/automation-module';
 import organization from '@/modules/organization/organization-module';
 
 import lf from '@/modules/lf/lf-modules';
+import dataQuality from '@/modules/data-quality/data-quality.module';
 import eagleEye from '@/modules/eagle-eye/eagle-eye-module';
 
 const modules: Record<string, any> = {
@@ -27,6 +28,7 @@ const modules: Record<string, any> = {
   eagleEye,
   organization,
   lf,
+  dataQuality,
 };
 
 export default modules;

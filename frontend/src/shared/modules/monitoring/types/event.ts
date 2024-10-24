@@ -35,6 +35,7 @@ export enum PageEventKey {
   MEMBERS_MERGE_SUGGESTIONS = 'Contributors merge suggestions',
   MANAGE_PROJECTS = 'Manage projects',
   INTEGRATIONS = 'Integrations',
+  DATA_QUALITY_ASSISTANT = 'Data Quality Assistant',
 }
 
 export enum FeatureEventKey {

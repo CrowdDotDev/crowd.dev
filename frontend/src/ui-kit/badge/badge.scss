@@ -29,6 +29,18 @@
     --lf-badge-text: var(--lf-badge-tertiary-text);
   }
 
+  &--danger{
+    --lf-badge-background: var(--lf-badge-danger-background);
+    --lf-badge-border: var(--lf-badge-danger-border);
+    --lf-badge-text: var(--lf-badge-danger-text);
+  }
+
+  &--warning{
+    --lf-badge-background: var(--lf-badge-warning-background);
+    --lf-badge-border: var(--lf-badge-warning-border);
+    --lf-badge-text: var(--lf-badge-warning-text);
+  }
+
   /* Badge sizes */
   &--small{
     --lf-badge-font-size: var(--lf-badge-small-font-size);

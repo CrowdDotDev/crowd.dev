@@ -34,4 +34,14 @@
   --lf-badge-tertiary-background: var(--lf-color-gray-100);
   --lf-badge-tertiary-border: var(--lf-color-gray-200);
   --lf-badge-tertiary-text: var(--lf-color-gray-900);
+
+  /* Danger */
+  --lf-badge-danger-background: var(--lf-color-red-100);
+  --lf-badge-danger-border: var(--lf-color-red-200);
+  --lf-badge-danger-text: var(--lf-color-red-800);
+
+  /* Warning */
+  --lf-badge-warning-background: var(--lf-color-yellow-100);
+  --lf-badge-warning-border: var(--lf-color-yellow-200);
+  --lf-badge-warning-text: var(--lf-color-yellow-800);
 }
