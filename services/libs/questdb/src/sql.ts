@@ -22,6 +22,7 @@ export const getClientSQL = async (): Promise<pgpromise.IDatabase<unknown>> => {
     async error(err: any, e: pgpromise.IEventContext): Promise<void> {
       if (e.cn) {
         telemetry.increment('questdb.connection_error', 1)
+        telemetry.flush()
         log.fatal(err, { cn: e.cn }, 'QuestDB connection error. Stopping process')
         // logs don't have flush:
         await new Promise((resolve) => setTimeout(resolve, 100))

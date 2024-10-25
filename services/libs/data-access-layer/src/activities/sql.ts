@@ -6,7 +6,10 @@ import { DbConnOrTx } from '@crowd/database'
 import { ActivityDisplayService } from '@crowd/integrations'
 import {
   ActivityDisplayVariant,
+  IActivityBySentimentMoodResult,
+  IActivityByTypeAndPlatformResult,
   IMemberIdentity,
+  ITimeseriesDatapoint,
   MemberIdentityType,
   PageData,
   PlatformType,
@@ -25,10 +28,7 @@ import {
   ActivityType,
   IActiveMemberData,
   IActiveOrganizationData,
-  IActivityBySentimentMoodResult,
-  IActivityByTypeAndPlatformResult,
   IActivitySentiment,
-  IActivityTimeseriesResult,
   IMemberSegment,
   INewActivityPlatforms,
   INumberOfActivitiesPerMember,
@@ -40,7 +40,6 @@ import {
   IQueryDistinctParameters,
   IQueryGroupedActivitiesParameters,
   IQueryNumberOfActiveMembersParameters,
-  IQueryNumberOfActiveOrganizationsParameters,
   IQueryTopActivitiesParameters,
 } from './types'
 
@@ -1075,49 +1074,10 @@ export async function countMembersWithActivities(
   })
 }
 
-export async function countOrganizationsWithActivities(
-  qdbConn: DbConnOrTx,
-  arg: IQueryNumberOfActiveOrganizationsParameters,
-): Promise<{ count: number; segmentId: string; date?: string }[]> {
-  let query = `
-    SELECT COUNT_DISTINCT("organizationId") AS count, "timestamp" AS date
-    FROM activities
-    WHERE "deletedAt" IS NULL
-    AND "tenantId" = $(tenantId)
-    AND "organizationId" IS NOT NULL
-  `
-
-  if (arg.segmentIds) {
-    query += ' AND "segmentId" IN ($(segmentIds:csv))'
-  }
-
-  if (arg.platform) {
-    query += ' AND platform = $(platform)'
-  }
-
-  if (arg.timestampFrom && arg.timestampTo) {
-    query += ' AND timestamp BETWEEN $(after) AND $(before)'
-  }
-
-  if (arg.groupBy === 'day') {
-    query += ' SAMPLE BY 1d FILL(0) ALIGN TO CALENDAR'
-  }
-
-  query += ' ORDER BY "date" ASC;'
-
-  return await qdbConn.any(query, {
-    tenantId: arg.tenantId,
-    segmentIds: arg.segmentIds,
-    after: arg.timestampFrom,
-    before: arg.timestampTo,
-    platform: arg.platform,
-  })
-}
-
 export async function activitiesTimeseries(
   qdbConn: DbConnOrTx,
   arg: IQueryGroupedActivitiesParameters,
-): Promise<IActivityTimeseriesResult[]> {
+): Promise<ITimeseriesDatapoint[]> {
   let query = `
     SELECT COUNT_DISTINCT(id) AS count, "timestamp" AS date
     FROM activities
@@ -1142,7 +1102,7 @@ export async function activitiesTimeseries(
     ORDER BY "date" ASC;
   `
 
-  const rows: IActivityTimeseriesResult[] = await qdbConn.query(query, {
+  const rows: ITimeseriesDatapoint[] = await qdbConn.query(query, {
     tenantId: arg.tenantId,
     segmentIds: arg.segmentIds,
     platform: arg.platform,
