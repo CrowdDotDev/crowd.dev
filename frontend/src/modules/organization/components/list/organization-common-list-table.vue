@@ -34,7 +34,7 @@
               <el-popover v-if="getSegments(org.segments).length > 0" placement="top-start" width="264px">
                 <template #reference>
                   <div class="border border-gray-200 h-6 px-1.5 rounded-md bg-white text-small gap-1 flex items-center whitespace-nowrap text-black">
-                    <lf-icon name="folders-line" :size="14" />
+                    <lf-icon-old name="folders-line" :size="14" />
                     {{ pluralize('project group', getSegments(org.segments).length, true) }}
                   </div>
                 </template>
@@ -48,7 +48,7 @@
                       :key="segment.id"
                       class="flex items-center gap-2"
                     >
-                      <lf-icon name="folder-line" :size="16" class="text-gray-400" />
+                      <lf-icon-old name="folder-line" :size="16" class="text-gray-400" />
                       <span class="text-small text-black">{{ segment.name }}</span>
                     </div>
                   </div>
@@ -128,7 +128,7 @@ import ConfirmDialog from '@/shared/dialog/confirm-dialog';
 import { i18n } from '@/i18n';
 import pluralize from 'pluralize';
 import { getSegmentName } from '@/utils/segments';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 
 const props = defineProps<{
   sorting: string,

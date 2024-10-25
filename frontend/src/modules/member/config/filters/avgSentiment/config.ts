@@ -10,7 +10,7 @@ import options from './options';
 const avgSentiment: MultiSelectFilterConfig = {
   id: 'avgSentiment',
   label: 'Avg. sentiment',
-  iconClass: 'ri-speed-up-line',
+  iconClass: 'gauge-high',
   type: FilterConfigType.MULTISELECT,
   options: {
     options,

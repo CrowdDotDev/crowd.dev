@@ -66,14 +66,14 @@ const showEmptyState = computed(
 const emptyStateContent = computed(() => {
   if (activeView.value.id === 'feed') {
     return {
-      icon: 'ri-search-eye-line',
+      icon: 'eyes fa-regular',
       title: 'No results found',
       description: 'Try to refine your feed settings',
     };
   }
 
   return {
-    icon: 'ri-bookmark-line',
+    icon: 'book-bookmark',
     title: 'No bookmarks yet',
     description: 'Bookmarked results will appear here',
   };
