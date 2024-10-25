@@ -64,7 +64,7 @@ export async function enrichMember(
   }
 
   if (changeInEnrichmentSourceData) {
-    console.log('Member enrichment data has been updated, use squasher again!')
+    // Member enrichment data has been updated, use squasher again!
     const toBeSquashed = {}
     for (const source of sources) {
       // find if there's already saved enrichment data in source
