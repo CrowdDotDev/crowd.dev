@@ -46,21 +46,20 @@ export async function enrichMember(
             i.type === MemberIdentityType.USERNAME,
         ),
       }
-      if (await isEnrichableBySource(source, enrichmentInput)) {
-        const data = await getEnrichmentData(source, enrichmentInput)
 
-        if (!cache) {
-          await insertMemberEnrichmentCache(source, input.id, data)
-          if (data) {
-            changeInEnrichmentSourceData = true
-          }
-        } else if (sourceHasDifferentDataComparedToCache(cache, data)) {
-          await updateMemberEnrichmentCache(source, input.id, data)
+      const data = await getEnrichmentData(source, enrichmentInput)
+
+      if (!cache) {
+        await insertMemberEnrichmentCache(source, input.id, data)
+        if (data) {
           changeInEnrichmentSourceData = true
-        } else {
-          // data is same as cache, only update cache.updatedAt
-          await touchMemberEnrichmentCacheUpdatedAt(source, input.id)
         }
+      } else if (sourceHasDifferentDataComparedToCache(cache, data)) {
+        await updateMemberEnrichmentCache(source, input.id, data)
+        changeInEnrichmentSourceData = true
+      } else {
+        // data is same as cache, only update cache.updatedAt
+        await touchMemberEnrichmentCacheUpdatedAt(source, input.id)
       }
     }
   }

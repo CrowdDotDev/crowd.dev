@@ -19,20 +19,16 @@ const { getMembers } = proxyActivities<typeof activities>({
   startToCloseTimeout: '10 seconds',
 })
 
-/*
-getMembersToEnrich is a Temporal workflow that:
-  - [Activity]: Get a set of available members to enrich.
-  - [Child Workflow]: Enrich, update, and sync everything related to the member
-    and their organizations in the database and OpenSearch. Child workflows are
-    completely "detached" from the parent workflow, meaning they will continue
-    to run and not be cancelled even if this one is.
-*/
 export async function getMembersToEnrich(args: IGetMembersForEnrichmentArgs): Promise<void> {
   const MEMBER_ENRICHMENT_PER_RUN = 300
   const afterId = args?.afterId || null
   const sources = [MemberEnrichmentSource.PROGAI, MemberEnrichmentSource.CLEARBIT]
 
   const members = await getMembers(MEMBER_ENRICHMENT_PER_RUN, sources, afterId)
+
+  if (members.length === 0) {
+    return
+  }
 
   await Promise.all(
     members.map((member) => {

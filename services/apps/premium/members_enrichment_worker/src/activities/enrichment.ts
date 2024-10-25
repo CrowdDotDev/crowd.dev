@@ -19,7 +19,6 @@ export async function isEnrichableBySource(
   input: IEnrichmentSourceInput,
 ): Promise<boolean> {
   const service = EnrichmentSourceServiceFactory.getEnrichmentSourceService(source, svc.log)
-  // TODO: after enrichableBy this function became redundant. Use enrichableBy field to calculate this instead.
   return service.isEnrichableBySource(input)
 }
 
@@ -28,7 +27,10 @@ export async function getEnrichmentData(
   input: IEnrichmentSourceInput,
 ): Promise<IMemberEnrichmentData | null> {
   const service = EnrichmentSourceServiceFactory.getEnrichmentSourceService(source, svc.log)
-  return service.getData(input)
+  if (service.isEnrichableBySource(input)) {
+    return service.getData(input)
+  }
+  return null
 }
 
 export async function normalizeEnrichmentData(

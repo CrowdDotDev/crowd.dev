@@ -84,11 +84,3 @@ export interface IMemberEnrichmentDataProgAIResponse {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   error?: any
 }
-
-export interface EnrichmentCache {
-  memberId: string
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  data: any
-  createdAt: string
-  updatedAt: string
-}

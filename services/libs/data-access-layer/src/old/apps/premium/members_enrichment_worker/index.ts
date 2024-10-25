@@ -475,10 +475,11 @@ export async function insertMemberEnrichmentCacheDb<T>(
   memberId: string,
   source: MemberEnrichmentSource,
 ) {
+  const dataSanitized = data ? JSON.stringify(data) : null
   return tx.query(
     `INSERT INTO "memberEnrichmentCache" ("memberId", "data", "createdAt", "updatedAt", "source")
       VALUES ($1, $2, NOW(), NOW(), $3);`,
-    [memberId, JSON.stringify(data), source],
+    [memberId, dataSanitized, source],
   )
 }
 
@@ -488,13 +489,14 @@ export async function updateMemberEnrichmentCacheDb<T>(
   memberId: string,
   source: MemberEnrichmentSource,
 ) {
+  const dataSanitized = data ? JSON.stringify(data) : null
   return tx.query(
     `UPDATE "memberEnrichmentCache"
       SET
         "updatedAt" = NOW(),
         "data" = $2
       WHERE "memberId" = $1 and source = $3;`,
-    [memberId, JSON.stringify(data), source],
+    [memberId, dataSanitized, source],
   )
 }
 
