@@ -58,3 +58,5 @@ export * from './service'
 export * from './productAnalytics'
 
 export * from './dataIssues'
+
+export * from './premium'

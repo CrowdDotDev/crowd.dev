@@ -1,12 +1,13 @@
-import { IMemberEnrichmentCache } from '@crowd/types/src/premium'
 import lodash from 'lodash'
+
+import { IMemberEnrichmentCache, MemberIdentityType, PlatformType } from '@crowd/types'
+
 import {
   IMemberEnrichmentAttributeSettings,
   IMemberEnrichmentData,
   IMemberEnrichmentDataNormalized,
   IMemberEnrichmentSocialData,
 } from '../types'
-import { MemberEnrichmentSource, MemberIdentityType, PlatformType } from '@crowd/types'
 
 export function sourceHasDifferentDataComparedToCache(
   cache: IMemberEnrichmentCache<IMemberEnrichmentData>,

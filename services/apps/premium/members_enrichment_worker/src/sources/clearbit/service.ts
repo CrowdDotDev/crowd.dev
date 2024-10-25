@@ -1,12 +1,8 @@
 import axios from 'axios'
+
 import { Logger, LoggerBase } from '@crowd/logging'
 import {
-  IEnrichmentService,
-  IEnrichmentSourceInput,
-  IMemberEnrichmentAttributeSettings,
-  IMemberEnrichmentDataNormalized,
-} from '../../types'
-import {
+  IMemberEnrichmentSourceEnrichableBy,
   MemberAttributeName,
   MemberEnrichmentSource,
   MemberIdentityType,
@@ -14,13 +10,20 @@ import {
   OrganizationSource,
   PlatformType,
 } from '@crowd/types'
+
+import {
+  IEnrichmentService,
+  IEnrichmentSourceInput,
+  IMemberEnrichmentAttributeSettings,
+  IMemberEnrichmentDataNormalized,
+} from '../../types'
+import { normalizeAttributes, normalizeSocialIdentity } from '../../utils/common'
+
 import {
   IMemberEnrichmentClearbitAPIErrorResponse,
   IMemberEnrichmentClearbitAPIResponse,
   IMemberEnrichmentDataClearbit,
 } from './types'
-import { normalizeAttributes, normalizeSocialIdentity } from '../../utils/common'
-import { IMemberEnrichmentSourceEnrichableBy } from '@crowd/types/src/premium'
 
 export default class EnrichmentServiceClearbit extends LoggerBase implements IEnrichmentService {
   public source: MemberEnrichmentSource = MemberEnrichmentSource.CLEARBIT

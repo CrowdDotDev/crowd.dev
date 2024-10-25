@@ -1,9 +1,8 @@
-import { IMember, MemberEnrichmentSource } from '@crowd/types'
-
-import { svc } from '../main'
 import { fetchMembersForEnrichment } from '@crowd/data-access-layer/src/old/apps/premium/members_enrichment_worker'
+import { IMember, IMemberEnrichmentSourceQueryInput, MemberEnrichmentSource } from '@crowd/types'
+
 import { EnrichmentSourceServiceFactory } from '../factory'
-import { IMemberEnrichmentSourceQueryInput } from '@crowd/types/src/premium'
+import { svc } from '../main'
 
 /*
 getMembers is a Temporal activity that retrieves all members available for

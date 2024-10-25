@@ -3,17 +3,15 @@ import { DbConnOrTx, DbStore, DbTransaction } from '@crowd/database'
 import {
   IAttributes,
   IMember,
+  IMemberEnrichmentCache,
+  IMemberEnrichmentSourceEnrichableBy,
+  IMemberEnrichmentSourceQueryInput,
   IMemberIdentity,
   IOrganizationIdentity,
   MemberEnrichmentSource,
   MemberIdentityType,
   OrganizationSource,
 } from '@crowd/types'
-import {
-  IMemberEnrichmentCache,
-  IMemberEnrichmentSourceEnrichableBy,
-  IMemberEnrichmentSourceQueryInput,
-} from '@crowd/types/src/premium'
 
 export async function fetchMembersForEnrichment(
   db: DbStore,

@@ -1,11 +1,25 @@
 import axios from 'axios'
 import lodash from 'lodash'
+
+import { Logger, LoggerBase } from '@crowd/logging'
 import {
-  IMemberEnrichmentDataNormalized,
+  IMemberEnrichmentSourceEnrichableBy,
+  MemberAttributeName,
+  MemberEnrichmentSource,
+  MemberIdentityType,
+  OrganizationIdentityType,
+  OrganizationSource,
+  PlatformType,
+} from '@crowd/types'
+
+import {
   IEnrichmentService,
   IEnrichmentSourceInput,
   IMemberEnrichmentAttributeSettings,
+  IMemberEnrichmentDataNormalized,
 } from '../../types'
+import { normalizeAttributes, normalizeSocialIdentity } from '../../utils/common'
+
 import {
   IEnrichmentAPICertificationProgAI,
   IEnrichmentAPIContributionProgAI,
@@ -15,17 +29,6 @@ import {
   IMemberEnrichmentDataProgAI,
   IMemberEnrichmentDataProgAIResponse,
 } from './types'
-import {
-  MemberAttributeName,
-  MemberEnrichmentSource,
-  MemberIdentityType,
-  OrganizationIdentityType,
-  OrganizationSource,
-  PlatformType,
-} from '@crowd/types'
-import { Logger, LoggerBase } from '@crowd/logging'
-import { normalizeAttributes, normalizeSocialIdentity } from '../../utils/common'
-import { IMemberEnrichmentSourceEnrichableBy } from '@crowd/types/src/premium'
 
 export default class EnrichmentServiceProgAI extends LoggerBase implements IEnrichmentService {
   public source: MemberEnrichmentSource = MemberEnrichmentSource.PROGAI

@@ -1,6 +1,7 @@
 import {
   IAttributes,
   IMemberContribution,
+  IMemberEnrichmentSourceEnrichableBy,
   IMemberIdentity,
   IOrganizationIdentity,
   MemberAttributeName,
@@ -8,7 +9,6 @@ import {
   OrganizationSource,
   PlatformType,
 } from '@crowd/types'
-import { IMemberEnrichmentSourceEnrichableBy } from '@crowd/types/src/premium'
 
 import { IMemberEnrichmentDataClearbit } from './sources/clearbit/types'
 import { IMemberEnrichmentDataProgAI } from './sources/progai/types'
@@ -30,7 +30,7 @@ export interface IEnrichmentService {
   enrichableBy: IMemberEnrichmentSourceEnrichableBy[]
 
   // should either return the data or null if it's a miss
-  getData(input: IEnrichmentSourceInput): Promise<IMemberEnrichmentData>
+  getData(input: IEnrichmentSourceInput): Promise<IMemberEnrichmentData | null>
   normalize(data: IMemberEnrichmentData): IMemberEnrichmentDataNormalized
 }
 

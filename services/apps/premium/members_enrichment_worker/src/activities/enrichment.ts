@@ -1,18 +1,18 @@
-import { MemberEnrichmentSource } from '@crowd/types'
-import {
-  IMemberEnrichmentData,
-  IMemberEnrichmentDataNormalized,
-  IEnrichmentSourceInput,
-} from '../types'
-import { EnrichmentSourceServiceFactory } from '../factory'
-import { svc } from '../main'
 import {
   findMemberEnrichmentCacheDb,
   insertMemberEnrichmentCacheDb,
   touchMemberEnrichmentCacheUpdatedAtDb,
   updateMemberEnrichmentCacheDb,
 } from '@crowd/data-access-layer/src/old/apps/premium/members_enrichment_worker'
-import { IMemberEnrichmentCache } from '@crowd/types/src/premium'
+import { IMemberEnrichmentCache, MemberEnrichmentSource } from '@crowd/types'
+
+import { EnrichmentSourceServiceFactory } from '../factory'
+import { svc } from '../main'
+import {
+  IEnrichmentSourceInput,
+  IMemberEnrichmentData,
+  IMemberEnrichmentDataNormalized,
+} from '../types'
 
 export async function isEnrichableBySource(
   source: MemberEnrichmentSource,
