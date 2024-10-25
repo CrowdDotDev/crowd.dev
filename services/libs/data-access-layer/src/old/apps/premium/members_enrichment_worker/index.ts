@@ -83,7 +83,7 @@ export async function fetchMembersForEnrichment(
        ( mi.verified AND (${identityFilterArray.join(' OR ')}) )
        AND tenants."deletedAt" IS NULL
        AND members."deletedAt" IS NULL
-       AND ${sourceInnerQueryItems.join(' OR ')}
+       AND (${sourceInnerQueryItems.join(' OR ')})
        ${idFilter}
      GROUP BY members.id
      ORDER BY members.id desc
