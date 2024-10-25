@@ -7,7 +7,7 @@ import { RedisCache } from '@crowd/redis'
 import { IMemberIdentity } from '@crowd/types'
 
 import { svc } from '../../main'
-import { IGithubUser } from '../../types/lfid-enrichment'
+import { IGithubUser } from '../../sources/lfid/types'
 
 export async function getGithubIdentitiesWithoutSourceId(
   limit: number,

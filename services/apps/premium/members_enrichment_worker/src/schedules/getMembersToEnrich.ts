@@ -8,12 +8,12 @@ import { getMembersForLFIDEnrichment, getMembersToEnrich } from '../workflows'
 export const scheduleMembersEnrichment = async () => {
   try {
     await svc.temporal.schedule.create({
-      scheduleId: 'members-enrichment',
+      scheduleId: 'members-enrichment-multiple-sources',
       spec: {
-        cronExpressions: IS_DEV_ENV || IS_TEST_ENV ? ['*/2 * * * *'] : ['*/30 * * * *'],
+        cronExpressions: ['0 6 * * *'],
       },
       policies: {
-        overlap: ScheduleOverlapPolicy.BUFFER_ONE,
+        overlap: ScheduleOverlapPolicy.SKIP,
         catchupWindow: '1 minute',
       },
       action: {
@@ -21,6 +21,11 @@ export const scheduleMembersEnrichment = async () => {
         workflowType: getMembersToEnrich,
         taskQueue: 'members-enrichment',
         workflowExecutionTimeout: '5 minutes',
+        args: [
+          {
+            afterId: null,
+          },
+        ],
       },
     })
   } catch (err) {
