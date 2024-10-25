@@ -23,11 +23,12 @@ export async function fetchMembersWithoutWorkExperience(
     `
         SELECT m.id, m."displayName", m.attributes, msa."activityCount"
         FROM members m
-                 LEFT JOIN "memberOrganizations" mo ON m.id = mo."memberId"
+                 LEFT JOIN "memberOrganizations" mo ON m.id = mo."memberId" AND mo."deletedAt" IS NULL
                  INNER JOIN "memberSegmentsAgg" msa ON m.id = msa."memberId" AND msa."segmentId" = '${segmentId}'
         WHERE mo."memberId" IS NULL
           AND m."tenantId" = '${tenantId}'
           AND m."deletedAt" IS NULL
+          AND COALESCE((m.attributes -> 'isBot' ->> 'default')::BOOLEAN, FALSE) = FALSE
         ORDER BY msa."activityCount" DESC
         LIMIT ${limit} OFFSET ${offset};
     `,
@@ -72,6 +73,7 @@ export async function fetchMembersWithTooManyIdentities(
                  JOIN "members" m ON mi."memberId" = m.id
                  INNER JOIN "memberSegmentsAgg" msa ON m.id = msa."memberId" AND msa."segmentId" = '${segmentId}'
         WHERE m."tenantId" = '${tenantId}'
+            AND COALESCE((m.attributes -> 'isBot' ->> 'default')::BOOLEAN, FALSE) = FALSE
         GROUP BY mi."memberId", m."displayName", m."attributes", m.id, msa."activityCount"
         HAVING COUNT(*) > ${threshold}
         ORDER BY msa."activityCount" DESC
@@ -117,6 +119,7 @@ export async function fetchMembersWithTooManyIdentitiesPerPlatform(
             WHERE mi."tenantId" = '${tenantId}'
               AND mi.type = 'username'
               AND mi.verified = true
+              AND mi.platform IN ('linkedin', 'github', 'twitter', 'lfx', 'slack', 'cvent', 'tnc', 'groupsio')
             GROUP BY mi."memberId", mi.platform
             HAVING COUNT(*) > ${threshold}
         ),
@@ -139,6 +142,7 @@ export async function fetchMembersWithTooManyIdentitiesPerPlatform(
         INNER JOIN "memberSegmentsAgg" msa ON m.id = msa."memberId"
         WHERE m."tenantId" = '${tenantId}' 
           AND msa."segmentId" = '${segmentId}'
+          AND COALESCE((m.attributes -> 'isBot' ->> 'default')::BOOLEAN, FALSE) = FALSE
         ORDER BY msa."activityCount" DESC
         LIMIT ${limit} OFFSET ${offset};
     `,
@@ -186,6 +190,7 @@ export async function fetchMembersWithTooManyEmails(
         WHERE m."tenantId" = '${tenantId}'
           AND mi.verified = true
           AND mi.type = 'email'
+          AND COALESCE((m.attributes -> 'isBot' ->> 'default')::BOOLEAN, FALSE) = FALSE
         GROUP BY mi."memberId", m."displayName", m."attributes", m.id, msa."activityCount"
         HAVING COUNT(DISTINCT mi.value) > ${threshold}
         ORDER BY msa."activityCount" DESC
@@ -228,11 +233,12 @@ export async function fetchMembersWithIncompleteWorkExperience(
               msa."activityCount",
               COUNT(mo.id) AS "organizationsCount"
           FROM "members" m
-                   JOIN "memberOrganizations" mo ON m.id = mo."memberId"
+                   JOIN "memberOrganizations" mo ON m.id = mo."memberId" AND mo."deletedAt" IS NULL
                    INNER JOIN "memberSegmentsAgg" msa ON m.id = msa."memberId" AND msa."segmentId" = '${segmentId}'
           WHERE m."tenantId" = '${tenantId}'
             AND (mo."title" IS NULL OR mo."title" = '' OR mo."dateStart" IS NULL)
-          GROUP BY m."displayName", m."attributes", m.id, msa."activityCount"
+            AND COALESCE((m.attributes -> 'isBot' ->> 'default')::BOOLEAN, FALSE) = FALSE
+          GROUP BY m.id, msa."activityCount"
           ORDER BY msa."activityCount" DESC
           LIMIT ${limit} OFFSET ${offset};
       `,
