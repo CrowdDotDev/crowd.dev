@@ -114,22 +114,31 @@ export async function fetchMembersWithTooManyIdentitiesPerPlatform(
                 mi.platform,
                 COUNT(*) AS "identityCount"
             FROM "memberIdentities" mi
-                     JOIN "members" m ON mi."memberId" = m.id
-            WHERE m."tenantId" = '${tenantId}' AND mi.type = 'username' AND mi.verified = true
+            WHERE mi."tenantId" = '${tenantId}'
+              AND mi.type = 'username'
+              AND mi.verified = true
             GROUP BY mi."memberId", mi.platform
             HAVING COUNT(*) > ${threshold}
+        ),
+        aggregated_platforms AS (
+            SELECT
+                p."memberId",
+                STRING_AGG(p.platform, ',') AS platforms
+            FROM platform_identities p
+            GROUP BY p."memberId"
         )
         SELECT
             p."memberId",
             m."displayName",
             m."attributes",
             m.id,
-            STRING_AGG(p.platform, ',') AS platforms,
+            platforms,
             msa."activityCount"
-        FROM platform_identities p
-                 JOIN "members" m ON p."memberId" = m.id
-                 INNER JOIN "memberSegmentsAgg" msa ON m.id = msa."memberId" AND msa."segmentId" = '${segmentId}'
-        GROUP BY p."memberId", m."displayName", m."attributes", m.id, msa."activityCount"
+        FROM aggregated_platforms p
+        JOIN "members" m ON p."memberId" = m.id
+        INNER JOIN "memberSegmentsAgg" msa ON m.id = msa."memberId"
+        WHERE m."tenantId" = '${tenantId}' 
+          AND msa."segmentId" = '${segmentId}'
         ORDER BY msa."activityCount" DESC
         LIMIT ${limit} OFFSET ${offset};
     `,
