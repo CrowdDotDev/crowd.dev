@@ -21,6 +21,11 @@ export const scheduleMembersEnrichment = async () => {
         workflowType: getMembersToEnrich,
         taskQueue: 'members-enrichment',
         workflowExecutionTimeout: '5 minutes',
+        args: [
+          {
+            afterId: null,
+          },
+        ],
       },
     })
   } catch (err) {

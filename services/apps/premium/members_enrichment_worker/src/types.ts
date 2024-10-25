@@ -52,7 +52,7 @@ export interface IMemberEnrichmentDataNormalizedOrganization {
 }
 
 export interface IGetMembersForEnrichmentArgs {
-  afterId: string
+  afterId?: string
 }
 
 export interface IMemberEnrichmentSocialData {
