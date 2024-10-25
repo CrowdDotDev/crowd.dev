@@ -8,7 +8,7 @@
           contributor: props.contributor,
         })"
       >
-        <lf-icon name="feedback-line" class="text-red-500" /> Report data issue
+        <lf-icon-old name="feedback-line" class="text-red-500" /> Report data issue
       </lf-button>
       <lf-button
         v-if="!isMasked(props.contributor) && mergeSuggestionsCount > 0 && hasPermission(LfPermission.mergeMembers)"

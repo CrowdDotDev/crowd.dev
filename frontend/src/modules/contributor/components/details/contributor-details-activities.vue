@@ -20,7 +20,7 @@
       Please contact our support team.
     </p>
   </div>
-  <div v-else-if="!masked">
+  <div v-else-if="masked">
     <div class="flex items-center bg-yellow-50 p-2 mb-6 text-small rounded-md border border-yellow-300 text-yellow-600">
       <lf-icon name="circle-exclamation" type="regular" class="mr-2" /> This person's activities are not shown because of the GDPR.
     </div>
