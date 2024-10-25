@@ -13,7 +13,6 @@ const {
   touchMemberEnrichmentCacheUpdatedAt,
   updateMemberEnrichmentCache,
   isCacheObsolete,
-  isEnrichableBySource,
   normalizeEnrichmentData,
 } = proxyActivities<typeof activities>({
   startToCloseTimeout: '10 seconds',
