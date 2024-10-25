@@ -3,8 +3,8 @@ import { proxyActivities } from '@temporalio/workflow'
 import { IMember, MemberEnrichmentSource, MemberIdentityType, PlatformType } from '@crowd/types'
 
 import * as activities from '../activities'
-import { sourceHasDifferentDataComparedToCache } from '../utils/common'
 import { IEnrichmentSourceInput } from '../types'
+import { sourceHasDifferentDataComparedToCache } from '../utils/common'
 
 const {
   getEnrichmentData,

@@ -1,15 +1,17 @@
 import {
-  proxyActivities,
-  ParentClosePolicy,
   ChildWorkflowCancellationType,
+  ParentClosePolicy,
+  continueAsNew,
   executeChild,
-  // continueAsNew,
+  proxyActivities,
 } from '@temporalio/workflow'
 
-import * as activities from '../activities/getMembers'
-import { enrichMember } from './enrichMember'
-import { IGetMembersForEnrichmentArgs } from '../types'
 import { MemberEnrichmentSource } from '@crowd/types'
+
+import * as activities from '../activities/getMembers'
+import { IGetMembersForEnrichmentArgs } from '../types'
+
+import { enrichMember } from './enrichMember'
 
 // Configure timeouts and retry policies to retrieve members to enrich from the
 // database.
@@ -53,11 +55,7 @@ export async function getMembersToEnrich(args: IGetMembersForEnrichmentArgs): Pr
     }),
   )
 
-  /*
-  if (!IS_DEV_ENV) {
-    await continueAsNew<typeof getMembersToEnrich>({
-      afterId: members[members.length - 1].id,
-    })
-  }
-  */
+  await continueAsNew<typeof getMembersToEnrich>({
+    afterId: members[members.length - 1].id,
+  })
 }

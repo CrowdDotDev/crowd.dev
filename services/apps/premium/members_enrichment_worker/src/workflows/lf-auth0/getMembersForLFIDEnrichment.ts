@@ -5,10 +5,12 @@ import {
   executeChild,
   proxyActivities,
 } from '@temporalio/workflow'
+
 import { IMember } from '@crowd/types'
+
 import * as activities from '../../activities'
-import { enrichMemberWithLFAuth0 } from '../lf-auth0/enrichMemberWithLFAuth0'
 import { IGetMembersForLFIDEnrichmentArgs } from '../../sources/lfid/types'
+import { enrichMemberWithLFAuth0 } from '../lf-auth0/enrichMemberWithLFAuth0'
 
 const { getLFIDEnrichableMembers } = proxyActivities<typeof activities>({
   startToCloseTimeout: '10 seconds',

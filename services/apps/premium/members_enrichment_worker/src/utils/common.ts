@@ -48,7 +48,7 @@ export function normalizeSocialIdentity(
   return normalized
 }
 
-export function getSocialUrl(data: IMemberEnrichmentSocialData): string {
+export function getSocialUrl(data: IMemberEnrichmentSocialData): string | null {
   switch (data.platform) {
     case PlatformType.GITHUB:
       return `https://github.com/${data.handle}`

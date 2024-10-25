@@ -4,13 +4,6 @@ import { IMember, IMemberEnrichmentSourceQueryInput, MemberEnrichmentSource } fr
 import { EnrichmentSourceServiceFactory } from '../factory'
 import { svc } from '../main'
 
-/*
-getMembers is a Temporal activity that retrieves all members available for
-enrichment. Member must have one of GitHub username or email address, must not
-have been enriched in the past 90 days, and must be part of tenant with a plan
-allowing this feature. We limit to 50 members per workflow to not overload
-external APIs.
-*/
 export async function getMembers(
   limit: number,
   sources: MemberEnrichmentSource[],
@@ -25,12 +18,8 @@ export async function getMembers(
       enrichableBy: srv.enrichableBy,
     }
   })
-  try {
-    const db = svc.postgres.reader
-    rows = await fetchMembersForEnrichment(db, limit, sourceInputs, afterId)
-  } catch (err) {
-    throw new Error(err)
-  }
+  const db = svc.postgres.reader
+  rows = await fetchMembersForEnrichment(db, limit, sourceInputs, afterId)
 
   return rows
 }

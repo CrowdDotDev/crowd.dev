@@ -63,7 +63,7 @@ export default class EnrichmentServiceClearbit extends LoggerBase implements IEn
     return !!input.email?.value
   }
 
-  async getData(input: IEnrichmentSourceInput): Promise<IMemberEnrichmentDataClearbit> {
+  async getData(input: IEnrichmentSourceInput): Promise<IMemberEnrichmentDataClearbit | null> {
     const enriched: IMemberEnrichmentDataClearbit = await this.getDataUsingEmail(input.email.value)
     return enriched
   }
@@ -90,10 +90,12 @@ export default class EnrichmentServiceClearbit extends LoggerBase implements IEn
       response = (await axios(config)).data
     } catch (err) {
       if (axios.isAxiosError(err)) {
-        console.log(`Axios error occurred: ${err.response?.status} - ${err.response?.statusText}`)
-        throw new Error(`Request failed with status: ${err.response?.status}`)
+        this.log.warn(
+          `Axios error occurred while getting clearbit data: ${err.response?.status} - ${err.response?.statusText}`,
+        )
+        throw new Error(`Clearbit enrichment request failed with status: ${err.response?.status}`)
       } else {
-        console.log(`Unexpected error: ${err}`)
+        this.log.error(`Unexpected error while getting clearbit data: ${err}`)
         throw new Error('An unexpected error occurred')
       }
     }

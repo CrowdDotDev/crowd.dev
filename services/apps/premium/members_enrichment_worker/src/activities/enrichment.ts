@@ -26,7 +26,7 @@ export async function isEnrichableBySource(
 export async function getEnrichmentData(
   source: MemberEnrichmentSource,
   input: IEnrichmentSourceInput,
-): Promise<IMemberEnrichmentData> {
+): Promise<IMemberEnrichmentData | null> {
   const service = EnrichmentSourceServiceFactory.getEnrichmentSourceService(source, svc.log)
   return service.getData(input)
 }
@@ -46,8 +46,7 @@ export async function isCacheObsolete(
   const service = EnrichmentSourceServiceFactory.getEnrichmentSourceService(source, svc.log)
   return (
     !cache ||
-    new Date().getTime() - new Date(cache.updatedAt).getTime() >
-      1000 * service.cacheObsoleteAfterSeconds
+    Date.now() - new Date(cache.updatedAt).getTime() > 1000 * service.cacheObsoleteAfterSeconds
   )
 }
 
@@ -61,7 +60,7 @@ export async function findMemberEnrichmentCache(
 export async function insertMemberEnrichmentCache(
   source: MemberEnrichmentSource,
   memberId: string,
-  data: unknown,
+  data: IMemberEnrichmentData,
 ): Promise<void> {
   await insertMemberEnrichmentCacheDb(svc.postgres.writer.connection(), data, memberId, source)
 }
@@ -69,7 +68,7 @@ export async function insertMemberEnrichmentCache(
 export async function updateMemberEnrichmentCache(
   source: MemberEnrichmentSource,
   memberId: string,
-  data: unknown,
+  data: IMemberEnrichmentData,
 ): Promise<void> {
   await updateMemberEnrichmentCacheDb(svc.postgres.writer.connection(), data, memberId, source)
 }
