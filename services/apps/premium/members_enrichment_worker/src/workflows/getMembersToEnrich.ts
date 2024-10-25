@@ -20,7 +20,7 @@ const { getMembers } = proxyActivities<typeof activities>({
 })
 
 export async function getMembersToEnrich(args: IGetMembersForEnrichmentArgs): Promise<void> {
-  const MEMBER_ENRICHMENT_PER_RUN = 300
+  const MEMBER_ENRICHMENT_PER_RUN = 100
   const afterId = args?.afterId || null
   const sources = [MemberEnrichmentSource.PROGAI, MemberEnrichmentSource.CLEARBIT]
 
