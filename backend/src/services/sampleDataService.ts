@@ -1,6 +1,7 @@
 // import { membersScore } from './../database/utils/keys/microserviceTypes'
 import lodash from 'lodash'
 import moment from 'moment'
+
 import {
   CROWD_MEMBER_ATTRIBUTES,
   DEVTO_MEMBER_ATTRIBUTES,
