@@ -79,8 +79,8 @@ export interface IMemberTwitterClearbit {
   bio: string
   followers: number
   following: number
-  statuses: string
-  favorites: string
+  statuses: number
+  favorites: number
   location: string
   site: string
   avatar: string

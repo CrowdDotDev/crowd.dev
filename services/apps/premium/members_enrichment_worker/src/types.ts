@@ -1,22 +1,17 @@
 import {
   IAttributes,
-  IMember,
   IMemberContribution,
   IMemberIdentity,
+  IOrganizationIdentity,
   MemberAttributeName,
   MemberEnrichmentSource,
-  PlatformType,
-  IOrganizationIdentity,
   OrganizationSource,
+  PlatformType,
 } from '@crowd/types'
-import { IMemberEnrichmentDataProgAI } from './sources/progai/types'
-import { IMemberEnrichmentDataClearbit } from './sources/clearbit/types'
 import { IMemberEnrichmentSourceEnrichableBy } from '@crowd/types/src/premium'
 
-export interface EnrichingMember {
-  member: IMember
-  enrichment?: IMemberEnrichmentDataProgAI
-}
+import { IMemberEnrichmentDataClearbit } from './sources/clearbit/types'
+import { IMemberEnrichmentDataProgAI } from './sources/progai/types'
 
 export interface IEnrichmentSourceInput {
   github?: IMemberIdentity
