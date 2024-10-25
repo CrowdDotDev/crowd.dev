@@ -1,3 +1,4 @@
+import EventEmitter from 'events'
 import { Context, Unleash } from 'unleash-client'
 
 import { EDITION } from '@crowd/common'
@@ -30,8 +31,7 @@ export const getUnleashClient = async (cfg: IUnleashConfig): Promise<Unleash | u
       Authorization: cfg.apiKey,
     },
   })
-
-  unleash.on('error', (err) => {
+  ;(unleash as unknown as EventEmitter).on('error', (err) => {
     log.error(err, 'Unleash client error! Feature flags might not work correctly!')
   })
 
@@ -45,7 +45,7 @@ export const getUnleashClient = async (cfg: IUnleashConfig): Promise<Unleash | u
   }, 60 * 1000)
 
   await new Promise<void>((resolve) => {
-    unleash.on('ready', () => {
+    ;(unleash as unknown as EventEmitter).on('ready', () => {
       clearInterval(interval)
       log.info('Unleash client is ready!')
       isReady = true

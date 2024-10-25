@@ -1,3 +1,5 @@
+import EventEmitter from 'events'
+
 import { generateUUIDv1 } from '@crowd/common'
 import { Logger, LoggerBase } from '@crowd/logging'
 
@@ -38,8 +40,7 @@ export class RedisPubSubReceiver extends RedisPubSubBase implements IRedisPubSub
     parentLog: Logger,
   ) {
     super(scope, parentLog)
-
-    receiver.on('error', (err) => {
+    ;(receiver as unknown as EventEmitter).on('error', (err) => {
       this.log.error({ err }, 'Redis sub client error!')
       errorHandler(err)
     })
@@ -94,8 +95,7 @@ export class RedisPubSubEmitter extends RedisPubSubBase implements IRedisPubSubE
     parentLog: Logger,
   ) {
     super(scope, parentLog)
-
-    sender.on('error', (err) => {
+    ;(sender as unknown as EventEmitter).on('error', (err) => {
       this.log.error({ err }, 'Redis pub client error!')
       errorHandler(err)
     })

@@ -13,18 +13,18 @@
   },
   "dependencies": {
     "@crowd/common": "workspace:*",
+    "@crowd/data-access-layer": "workspace:*",
+    "@crowd/logging": "workspace:*",
     "@crowd/opensearch": "workspace:*",
     "@crowd/questdb": "workspace:*",
-    "@crowd/data-access-layer": "workspace:*",
     "@crowd/redis": "workspace:*",
-    "@crowd/logging": "workspace:*",
     "@crowd/telemetry": "workspace:*",
     "bunyan-middleware": "^1.0.2",
     "config": "^3.3.9",
     "cors": "^2.8.5",
     "express": "^4.18.2",
     "tsx": "^4.7.1",
-    "typescript": "^5.0.4"
+    "typescript": "^5.6.3"
   },
   "devDependencies": {
     "@types/config": "^3.3.0",

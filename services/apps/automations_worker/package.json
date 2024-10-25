@@ -16,9 +16,9 @@
     "@crowd/archetype-worker": "workspace:*",
     "@crowd/common": "workspace:*",
     "@crowd/data-access-layer": "workspace:*",
-    "@crowd/redis": "workspace:*",
     "@crowd/integrations": "workspace:*",
     "@crowd/logging": "workspace:*",
+    "@crowd/redis": "workspace:*",
     "@crowd/types": "workspace:*",
     "@temporalio/workflow": "~1.11.1",
     "html-to-mrkdwn-ts": "^1.1.0",
@@ -26,7 +26,7 @@
     "lodash.merge": "^4.6.2",
     "superagent": "^8.1.2",
     "tsx": "^4.7.1",
-    "typescript": "^5.2.2"
+    "typescript": "^5.6.3"
   },
   "devDependencies": {
     "@types/node": "^20.8.2",
