@@ -24,7 +24,7 @@ export async function fetchMembersWithoutWorkExperience(
         SELECT m.id, m."displayName", m.attributes, msa."activityCount"
         FROM members m
                  LEFT JOIN "memberOrganizations" mo ON m.id = mo."memberId"
-                 LEFT JOIN "memberSegmentsAgg" msa ON m.id = msa."memberId" AND msa."segmentId" = '${segmentId}'
+                 INNER JOIN "memberSegmentsAgg" msa ON m.id = msa."memberId" AND msa."segmentId" = '${segmentId}'
         WHERE mo."memberId" IS NULL
           AND m."tenantId" = '${tenantId}'
           AND m."deletedAt" IS NULL
@@ -44,7 +44,7 @@ export async function fetchMembersWithoutWorkExperience(
  * Fetches members with a number of identities that exceed a specified threshold.
  *
  * @param {QueryExecutor} qx - The query executor to perform database operations.
- * @param {number} [treshold=15] - The threshold for the number of identities a member must exceed to be included in the results.
+ * @param {number} [threshold=15] - The threshold for the number of identities a member must exceed to be included in the results.
  * @param {string} tenantId - The ID of the tenant whose members are being queried.
  * @param {number} limit - The maximum number of members to return.
  * @param {number} offset - The number of members to skip before starting to collect the result set.
@@ -53,7 +53,7 @@ export async function fetchMembersWithoutWorkExperience(
  */
 export async function fetchMembersWithTooManyIdentities(
   qx: QueryExecutor,
-  treshold = 15,
+  threshold = 15,
   tenantId: string,
   limit: number,
   offset: number,
@@ -70,15 +70,15 @@ export async function fetchMembersWithTooManyIdentities(
             msa."activityCount"
         FROM "memberIdentities" mi
                  JOIN "members" m ON mi."memberId" = m.id
-                 LEFT JOIN "memberSegmentsAgg" msa ON m.id = msa."memberId" AND msa."segmentId" = '${segmentId}'
+                 INNER JOIN "memberSegmentsAgg" msa ON m.id = msa."memberId" AND msa."segmentId" = '${segmentId}'
         WHERE m."tenantId" = '${tenantId}'
         GROUP BY mi."memberId", m."displayName", m."attributes", m.id, msa."activityCount"
-        HAVING COUNT(*) > ${treshold}
+        HAVING COUNT(*) > ${threshold}
         ORDER BY msa."activityCount" DESC
         LIMIT ${limit} OFFSET ${offset};
     `,
     {
-      treshold,
+      threshold,
       tenantId,
       limit,
       offset,
@@ -91,7 +91,7 @@ export async function fetchMembersWithTooManyIdentities(
  * Fetches members with a number of verified identities per platform exceeding a specified threshold for a given tenant.
  *
  * @param {QueryExecutor} qx - The query executor to run the database queries.
- * @param {number} [treshold=1] - The minimum number of verified identities per platform to filter members by. Defaults to 1.
+ * @param {number} [threshold=1] - The minimum number of verified identities per platform to filter members by. Defaults to 1.
  * @param {string} tenantId - The ID of the tenant to filter members.
  * @param {number} limit - The maximum number of records to return.
  * @param {number} offset - The number of records to skip.
@@ -100,7 +100,7 @@ export async function fetchMembersWithTooManyIdentities(
  */
 export async function fetchMembersWithTooManyIdentitiesPerPlatform(
   qx: QueryExecutor,
-  treshold = 1,
+  threshold = 1,
   tenantId: string,
   limit: number,
   offset: number,
@@ -117,7 +117,7 @@ export async function fetchMembersWithTooManyIdentitiesPerPlatform(
                      JOIN "members" m ON mi."memberId" = m.id
             WHERE m."tenantId" = '${tenantId}' AND mi.type = 'username' AND mi.verified = true
             GROUP BY mi."memberId", mi.platform
-            HAVING COUNT(*) > ${treshold}
+            HAVING COUNT(*) > ${threshold}
         )
         SELECT
             p."memberId",
@@ -128,13 +128,13 @@ export async function fetchMembersWithTooManyIdentitiesPerPlatform(
             msa."activityCount"
         FROM platform_identities p
                  JOIN "members" m ON p."memberId" = m.id
-                 LEFT JOIN "memberSegmentsAgg" msa ON m.id = msa."memberId" AND msa."segmentId" = '${segmentId}'
+                 INNER JOIN "memberSegmentsAgg" msa ON m.id = msa."memberId" AND msa."segmentId" = '${segmentId}'
         GROUP BY p."memberId", m."displayName", m."attributes", m.id, msa."activityCount"
         ORDER BY msa."activityCount" DESC
         LIMIT ${limit} OFFSET ${offset};
     `,
     {
-      treshold,
+      threshold,
       tenantId,
       limit,
       offset,
@@ -173,7 +173,7 @@ export async function fetchMembersWithTooManyEmails(
             msa."activityCount"
         FROM "memberIdentities" mi
                  JOIN "members" m ON mi."memberId" = m.id
-                 LEFT JOIN "memberSegmentsAgg" msa ON m.id = msa."memberId" AND msa."segmentId" = '${segmentId}'
+                 INNER JOIN "memberSegmentsAgg" msa ON m.id = msa."memberId" AND msa."segmentId" = '${segmentId}'
         WHERE m."tenantId" = '${tenantId}'
           AND mi.verified = true
           AND mi.type = 'email'
@@ -220,7 +220,7 @@ export async function fetchMembersWithIncompleteWorkExperience(
               COUNT(mo.id) AS "organizationsCount"
           FROM "members" m
                    JOIN "memberOrganizations" mo ON m.id = mo."memberId"
-                   LEFT JOIN "memberSegmentsAgg" msa ON m.id = msa."memberId" AND msa."segmentId" = '${segmentId}'
+                   INNER JOIN "memberSegmentsAgg" msa ON m.id = msa."memberId" AND msa."segmentId" = '${segmentId}'
           WHERE m."tenantId" = '${tenantId}'
             AND (mo."title" IS NULL OR mo."title" = '' OR mo."dateStart" IS NULL)
           GROUP BY m.id, msa."activityCount"
