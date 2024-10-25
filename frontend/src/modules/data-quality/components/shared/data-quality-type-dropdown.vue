@@ -2,7 +2,7 @@
   <lf-dropdown width="19rem">
     <template #trigger>
       <lf-button type="secondary">
-        <lf-icon name="stack-line" />
+        <lf-icon-old name="stack-line" />
         <div class="truncate" style="max-width: 40ch;">
           <span>Issue type: </span>
           <span v-if="selectedType === 'merge-suggestions'">Merge suggestions</span>
@@ -32,7 +32,7 @@
 <script lang="ts" setup>
 import LfButton from '@/ui-kit/button/Button.vue';
 import { computed } from 'vue';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import { dataIssueTypes } from '@/modules/data-quality/config/data-issue-types';

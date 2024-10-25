@@ -11,7 +11,7 @@
       >
         <template #action>
           <lf-button type="secondary" size="small" @click="isModalOpen = true; detailsOffset = si">
-            <lf-icon name="eye-line" />View merge suggestion
+            <lf-icon-old name="eye-line" />View merge suggestion
           </lf-button>
         </template>
       </lf-data-quality-member-merge-suggestions-item>
@@ -50,7 +50,7 @@ import LfDataQualityMemberMergeSuggestionsItem
   from '@/modules/data-quality/components/member/data-quality-member-merge-suggestions-item.vue';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import AppMemberMergeSuggestionsDialog from '@/modules/member/components/member-merge-suggestions-dialog.vue';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';

@@ -11,7 +11,7 @@
       >
         <template #action>
           <lf-button type="secondary" size="small" @click="isModalOpen = true; detailsOffset = si">
-            <lf-icon name="eye-line" />View merge suggestion
+            <lf-icon-old name="eye-line" />View merge suggestion
           </lf-button>
         </template>
       </lf-data-quality-organization-merge-suggestions-item>
@@ -44,7 +44,7 @@
 import { onMounted, ref } from 'vue';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import { OrganizationService } from '@/modules/organization/organization-service';
 import LfDataQualityOrganizationMergeSuggestionsItem
   from '@/modules/data-quality/components/organization/data-quality-organization-merge-suggestions-item.vue';

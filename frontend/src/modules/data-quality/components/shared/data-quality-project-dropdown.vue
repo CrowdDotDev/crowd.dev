@@ -2,7 +2,7 @@
   <lf-dropdown>
     <template #trigger>
       <lf-button type="secondary">
-        <lf-icon name="stack-line" />
+        <lf-icon-old name="stack-line" />
         <div class="truncate" style="max-width: 28ch;">
           {{ getSegmentName(projectGroup) || 'Select project group' }}
         </div>
@@ -15,7 +15,7 @@
         class=" !border-0 !rounded-none shadow-none"
       >
         <template #prefix>
-          <lf-icon name="search-line" />
+          <lf-icon-old name="search-line" />
         </template>
       </lf-input>
     </div>
@@ -39,7 +39,7 @@
 <script lang="ts" setup>
 import LfButton from '@/ui-kit/button/Button.vue';
 import { computed, ref } from 'vue';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import { storeToRefs } from 'pinia';

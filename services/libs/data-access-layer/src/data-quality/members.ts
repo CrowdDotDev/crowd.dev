@@ -232,7 +232,7 @@ export async function fetchMembersWithIncompleteWorkExperience(
                    INNER JOIN "memberSegmentsAgg" msa ON m.id = msa."memberId" AND msa."segmentId" = '${segmentId}'
           WHERE m."tenantId" = '${tenantId}'
             AND (mo."title" IS NULL OR mo."title" = '' OR mo."dateStart" IS NULL)
-          GROUP BY m.id, msa."activityCount"
+          GROUP BY m."displayName", m."attributes", m.id, msa."activityCount"
           ORDER BY msa."activityCount" DESC
           LIMIT ${limit} OFFSET ${offset};
       `,

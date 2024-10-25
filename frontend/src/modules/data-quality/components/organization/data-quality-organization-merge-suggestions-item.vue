@@ -3,7 +3,7 @@
     <div class="flex items-center gap-2">
       <template v-for="(organization, mi) of props.suggestion.organizations" :key="organization.id">
         <div v-if="mi > 0">
-          <lf-icon name="subtract-line" :size="24" class="text-gray-400" />
+          <lf-icon-old name="subtract-line" :size="24" class="text-gray-400" />
         </div>
         <div class="flex items-center gap-3">
           <lf-avatar
@@ -13,7 +13,7 @@
           >
             <template #placeholder>
               <div class="w-full h-full bg-gray-50 flex items-center justify-center">
-                <lf-icon name="community-line" :size="16" class="text-gray-400" />
+                <lf-icon-old name="community-line" :size="16" class="text-gray-400" />
               </div>
             </template>
           </lf-avatar>
@@ -33,7 +33,7 @@
 
 <script lang="ts" setup>
 import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import LfBadge from '@/ui-kit/badge/Badge.vue';
 
 const props = defineProps<{

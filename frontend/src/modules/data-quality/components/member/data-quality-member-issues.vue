@@ -20,7 +20,7 @@
             target="_blank"
           >
             <lf-button type="secondary" size="small">
-              <lf-icon name="external-link-line" />Review profile
+              <lf-icon-old name="external-link-line" />Review profile
             </lf-button>
           </router-link>
         </template>
@@ -53,7 +53,7 @@ import { DataIssueType } from '@/modules/data-quality/types/DataIssueType';
 import { DataQualityApiService } from '@/modules/data-quality/services/data-quality.api.service';
 import LfDataQualityMemberIssuesItem
   from '@/modules/data-quality/components/member/data-quality-member-issues-item.vue';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 
 const props = defineProps<{
   type: DataIssueType,
