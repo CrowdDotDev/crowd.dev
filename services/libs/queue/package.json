@@ -9,14 +9,14 @@
   },
   "devDependencies": {
     "@types/node": "^18.16.3",
-    "typescript": "^5.0.4"
+    "typescript": "^5.6.3"
   },
   "dependencies": {
+    "@aws-sdk/client-sqs": "^3.332.0",
     "@crowd/common": "workspace:*",
     "@crowd/logging": "workspace:*",
     "@crowd/tracing": "workspace:*",
     "@crowd/types": "workspace:*",
-    "kafkajs": "^2.2.4",
-    "@aws-sdk/client-sqs": "^3.332.0"
+    "kafkajs": "^2.2.4"
   }
 }
