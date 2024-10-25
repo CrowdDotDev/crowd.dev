@@ -7,7 +7,7 @@
           organization: props.organization,
         })"
       >
-        <lf-icon name="feedback-line" class="text-red-500" /> Report data issue
+        <lf-icon-old name="feedback-line" class="text-red-500" /> Report data issue
       </lf-button>
       <template v-if="hasSegments">
         <!-- Merge suggestions -->
