@@ -27,7 +27,7 @@ const searchInput = ref();
 
 const SearchIcon = h(
   'i', // type
-  { class: 'ri-search-line' }, // props
+  { class: 'fa-light fa-magnifying-glass' }, // props
   [],
 );
 

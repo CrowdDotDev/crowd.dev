@@ -9,7 +9,7 @@ import { TagService } from '@/modules/tag/tag-service';
 const tags: MultiSelectAsyncFilterConfig = {
   id: 'tags',
   label: 'Tags',
-  iconClass: 'ri-bookmark-line',
+  iconClass: 'tags',
   type: FilterConfigType.MULTISELECT_ASYNC,
   options: {
     remoteMethod: (query) => TagService.listAutocomplete({

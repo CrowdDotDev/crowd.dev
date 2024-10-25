@@ -11,7 +11,7 @@
           size="small"
           :icon-only="true"
         >
-          <lf-icon name="more-fill" />
+          <lf-icon name="ellipsis" />
         </lf-button>
       </template>
 
@@ -19,7 +19,7 @@
         v-if="hasPermission(LfPermission.noteEdit)"
         @click="emit('edit')"
       >
-        <lf-icon name="pencil-line" />Edit note
+        <lf-icon name="pen" />Edit note
       </lf-dropdown-item>
       <template v-if="hasPermission(LfPermission.noteDestroy)">
         <lf-dropdown-separator />
@@ -27,7 +27,7 @@
           type="danger"
           @click="doDestroyWithConfirm"
         >
-          <lf-icon name="delete-bin-6-line" />Delete note
+          <lf-icon name="trash-can" />Delete note
         </lf-dropdown-item>
       </template>
     </lf-dropdown>
@@ -43,11 +43,11 @@ import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import LfButton from '@/ui-kit/button/Button.vue';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
 import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import LfDropdownSeparator from '@/ui-kit/dropdown/DropdownSeparator.vue';
 import { Note } from '@/modules/notes/types/Note';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps<{
   note: Note
@@ -60,7 +60,7 @@ const { hasPermission } = usePermissions();
 
 const doDestroyWithConfirm = () => {
   ConfirmDialog({
-    icon: 'ri-delete-bin-line',
+    icon: 'fa-light fa-trash-can c-icon',
     type: 'danger',
     title: 'Delete note',
     message:

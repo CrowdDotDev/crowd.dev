@@ -1,31 +1,28 @@
 <template>
-  <i :class="`fa-${props.name} fa-${props.type}`" :style="sizeStyle" class="c-icon" />
+  <i :class="`ri-${props.name}`" :style="sizeStyle" class="flex items-center c-icon" />
 </template>
 
 <script lang="ts" setup>
 import { computed } from 'vue';
 
-const props = withDefaults(defineProps<{
+const props = defineProps<{
   name: string,
-  type?: string,
   size?: number,
-}>(), {
-  type: 'light',
-  size: undefined,
-});
+}>();
 
 const sizeStyle = computed(() => {
   if (!props.size) {
     return undefined;
   }
   return {
-    '--lf-icon-size': `${(props.size / 16)}rem`,
+    fontSize: `${props.size / 16}rem`,
+    height: `${props.size / 16}rem`,
   };
 });
 </script>
 
 <script lang="ts">
 export default {
-  name: 'LfIcon',
+  name: 'LfIconOld',
 };
 </script>

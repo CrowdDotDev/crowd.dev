@@ -80,7 +80,7 @@
             </app-dashboard-member-item>
             <app-dashboard-empty-state
               v-if="recentMembers.length === 0"
-              icon-class="ri-group-2-line"
+              icon="user-group-simple"
               class="pt-6 pb-5"
             >
               No new people during this period
@@ -114,19 +114,23 @@
       <section class="px-5 w-1/2">
         <div class="flex">
           <div class="w-5/12">
-            <div class="inline-flex items-center gap-2 mb-1">
+            <div class="inline-flex items-center mb-1">
               <h6
                 class="text-sm leading-5 font-semibold"
               >
                 Active people
-                <el-tooltip
-                  placement="top"
-                  content="People for whom at least one activity was tracked in the selected time period."
-                  popper-class="max-w-[260px]"
-                >
-                  <i class="ri-information-line text-sm ml-1 font-normal" />
-                </el-tooltip>
               </h6>
+              <el-tooltip
+                placement="top"
+                content="People for whom at least one activity was tracked in the selected time period."
+                popper-class="max-w-[260px]"
+              >
+                <lf-icon
+                  name="circle-info"
+                  class="ml-1"
+                  :size="13"
+                />
+              </el-tooltip>
             </div>
 
             <!-- info -->
@@ -181,7 +185,7 @@
             </app-dashboard-member-item>
             <app-dashboard-empty-state
               v-if="activeMembers.length === 0"
-              icon-class="ri-group-2-line"
+              icon="user-group-simple"
               class="pt-6 pb-5"
             >
               No active people during this period
@@ -227,6 +231,7 @@ import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { lfxCharts } from '@/config/charts';
 import LfChart from '@/ui-kit/chart/Chart.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const {
   chartData, members, period, activeMembers, recentMembers,

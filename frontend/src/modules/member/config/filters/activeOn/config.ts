@@ -11,7 +11,7 @@ import { itemLabelRendererByType } from '@/shared/modules/filters/config/itemLab
 const activeOn: MultiSelectFilterConfig = {
   id: 'activeOn',
   label: 'Active on',
-  iconClass: 'ri-apps-2-line',
+  iconClass: 'grid-round-2',
   type: FilterConfigType.MULTISELECT,
   options: {
     options: [

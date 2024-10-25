@@ -8,7 +8,7 @@
       :key="ri"
       class="pb-2 flex items-center text-sm"
     >
-      <i class="ri-subtract-line text-base text-red-500 mr-2" />
+      <lf-icon name="minus" :size="16" class="text-red-500 mr-2" />
       <p class="c-changes" v-html="$sanitize(remove)" />
     </article>
     <article
@@ -16,7 +16,7 @@
       :key="ai"
       class="pb-2 flex items-center text-sm"
     >
-      <i class="ri-add-line text-base text-green-500 mr-2" />
+      <lf-icon name="plus" :size="16" class="text-green-500 mr-2" />
       <p class="c-changes" v-html="$sanitize(add)" />
     </article>
     <article
@@ -24,7 +24,7 @@
       :key="ci"
       class="pb-2 flex items-center text-sm"
     >
-      <i class="ri-loop-left-line text-base text-primary-500 mr-2" />
+      <lf-icon name="arrows-rotate-reverse" :size="16" class="text-primary-500 mr-2" />
       <p class="c-changes" v-html="$sanitize(change)" />
     </article>
   </section>
@@ -34,6 +34,7 @@
 import { AuditLog } from '@/modules/lf/segments/types/AuditLog';
 import { computed, onMounted, ref } from 'vue';
 import { logRenderingConfig } from '@/modules/lf/config/audit-logs/log-rendering';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps<{
   log: AuditLog

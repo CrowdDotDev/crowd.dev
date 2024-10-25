@@ -4,25 +4,25 @@
       && hasPermission(LfPermission.memberEdit)"
     @click="unmerge = props.contributor"
   >
-    <lf-icon name="link-unlink" />
+    <lf-icon-old name="link-unlink" />
     Unmerge profile
   </lf-dropdown-item>
   <lf-dropdown-item v-if="hasPermission(LfPermission.memberEdit)" :disabled="!!props.contributor.username?.github" @click="emit('findGithub')">
-    <lf-icon name="github-fill" />
+    <lf-icon-old name="github-fill" />
     Find GitHub
   </lf-dropdown-item>
   <lf-dropdown-item v-if="hasPermission(LfPermission.memberEdit)" @click="markTeamMember(!isTeamMember(props.contributor))">
-    <lf-icon name="team-line" />
+    <lf-icon-old name="team-line" />
     {{ isTeamMember(props.contributor) ? 'Unmark' : 'Mark' }} as team member
   </lf-dropdown-item>
   <lf-dropdown-item v-if="hasPermission(LfPermission.memberEdit)" @click="markBot(!isBot(props.contributor))">
-    <lf-icon name="robot-line" />
+    <lf-icon-old name="robot-line" />
     {{ isBot(props.contributor) ? 'Unmark' : 'Mark' }} as bot
   </lf-dropdown-item>
   <template v-if="hasPermission(LfPermission.memberDestroy)">
     <lf-dropdown-separator />
     <lf-dropdown-item type="danger" @click="deleteContributor()">
-      <lf-icon name="delete-bin-6-line" />
+      <lf-icon-old name="delete-bin-6-line" />
       Delete profile
     </lf-dropdown-item>
   </template>
@@ -34,7 +34,7 @@
 </template>
 
 <script setup lang="ts">
-import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import LfDropdownSeparator from '@/ui-kit/dropdown/DropdownSeparator.vue';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
@@ -122,7 +122,7 @@ const deleteContributor = () => {
     message: "Are you sure you want to proceed? You can't undo this action",
     confirmButtonText: 'Confirm',
     cancelButtonText: 'Cancel',
-    icon: 'ri-delete-bin-line',
+    icon: 'fa-light fa-trash-can',
   }).then(() => {
     trackEvent({
       key: FeatureEventKey.DELETE_MEMBER,

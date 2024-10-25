@@ -10,7 +10,7 @@
         type="button"
         @click.prevent.stop
       >
-        <i class="text-xl ri-more-fill" />
+        <lf-icon name="ellipsis" :size="24" />
       </button>
       <template #dropdown>
         <el-dropdown-item
@@ -18,9 +18,7 @@
           class="h-10 mb-1"
           :command="editProjectGroup"
         >
-          <i
-            class="ri-pencil-line text-base mr-2"
-          />
+          <lf-icon name="pen" :size="16" class="mr-2" />
           <span class="text-xs">Edit project group</span>
         </el-dropdown-item>
         <el-dropdown-item
@@ -28,9 +26,8 @@
           class="h-10 mb-1"
           :command="addProject"
         >
-          <i
-            class="ri-add-line text-base mr-2"
-          /><span class="text-xs">Add project</span>
+          <lf-icon name="plus" :size="16" class="mr-2" />
+          <span class="text-xs">Add project</span>
         </el-dropdown-item>
         <el-divider
           v-if="(hasPermission(LfPermission.projectGroupEdit) && hasAccessToSegmentId(id))
@@ -41,9 +38,8 @@
           class="h-10"
           :command="() => updateSelectedProjectGroup(id)"
         >
-          <i
-            class="ri-external-link-line text-base mr-2"
-          /><span
+          <lf-icon name="arrow-up-right-from-square" :size="16" class="mr-2" />
+          <span
             class="text-xs"
           >View projects</span>
         </el-dropdown-item>
@@ -56,6 +52,7 @@
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const emit = defineEmits(['onEditProjectGroup', 'onAddProject']);
 

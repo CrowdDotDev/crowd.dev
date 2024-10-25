@@ -12,7 +12,7 @@
             size="small"
             :icon-only="true"
           >
-            <lf-icon name="add-fill" />
+            <lf-icon-old name="add-fill" />
           </lf-button>
         </lf-tooltip>
       </lf-organization-details-domains-add-dropdown>
@@ -35,7 +35,7 @@
     </div>
 
     <div v-if="!domains(props.organization).length" class="pt-2 flex flex-col items-center w-full">
-      <lf-icon name="link" :size="40" class="text-gray-300" />
+      <lf-icon-old name="link" :size="40" class="text-gray-300" />
       <p class="text-center pt-3 text-medium text-gray-400">
         No domains
       </p>
@@ -57,7 +57,7 @@
 
 <script setup lang="ts">
 import LfButton from '@/ui-kit/button/Button.vue';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import { ref } from 'vue';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';

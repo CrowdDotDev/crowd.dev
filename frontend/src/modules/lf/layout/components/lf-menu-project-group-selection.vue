@@ -33,7 +33,7 @@
 
     <div>
       <div v-if="loading" class="text-gray-400 px-3 h-20 flex items-center justify-center">
-        <lf-icon name="loader-4-line" class="animate-spin text-gray-400" :size="16" />
+        <lf-icon-old name="loader-4-line" class="animate-spin text-gray-400" :size="16" />
         <span class="text-tiny ml-1 text-gray-400">
           Loading project groups...
         </span>
@@ -80,23 +80,23 @@ import pluralize from 'pluralize';
 import debounce from 'lodash/debounce';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 
 const SearchIcon = h(
   'i', // type
-  { class: 'ri-search-line' }, // props
+  { class: 'fa-light fa-magnifying-glass c-icon' }, // props
   [],
 );
 
 const ArrowDownIcon = h(
   'i', // type
-  { class: 'ri-arrow-down-s-line text-black' }, // props
+  { class: 'fa-light fa-chevron-down c-icon' }, // props
   [],
 );
 
 const ArrowUpIcon = h(
   'i', // type
-  { class: 'ri-arrow-up-s-line text-black' }, // props
+  { class: 'fa-light fa-chevron-up c-icon' }, // props
   [],
 );
 

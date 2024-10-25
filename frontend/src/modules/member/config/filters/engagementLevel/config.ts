@@ -10,7 +10,7 @@ import options from './options';
 const engagementLevel: MultiSelectFilterConfig = {
   id: 'engagementLevel',
   label: 'Engagement level',
-  iconClass: 'ri-user-voice-line',
+  iconClass: 'signal-bars',
   type: FilterConfigType.MULTISELECT,
   options: {
     options,

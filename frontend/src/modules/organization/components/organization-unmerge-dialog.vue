@@ -117,7 +117,7 @@
                                 :alt="platformDetails(i.platform)?.value"
                                 :src="platformDetails(i.platform)?.image"
                               />
-                              <lf-icon
+                              <lf-icon-old
                                 v-else
                                 name="fingerprint-fill"
                                 :size="20"
@@ -165,7 +165,7 @@
                       :alt="platformDetails(i.platform)?.value"
                       :src="platformDetails(i.platform)?.image"
                     />
-                    <lf-icon
+                    <lf-icon-old
                       v-else
                       name="fingerprint-fill"
                       :size="20"
@@ -195,7 +195,7 @@ import AppOrganizationMergeSuggestionsDetails
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import { Platform } from '@/shared/modules/platform/types/Platform';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import { useOrganizationStore } from '@/modules/organization/store/pinia';
 
 const props = defineProps({
