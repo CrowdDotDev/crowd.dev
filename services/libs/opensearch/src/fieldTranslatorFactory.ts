@@ -1,6 +1,7 @@
 import { IMemberAttribute, OpenSearchIndex } from '@crowd/types'
-import MemberTranslator from './memberTranslator'
+
 import FieldTranslator from './fieldTranslator'
+import MemberTranslator from './memberTranslator'
 import OrganizationTranslator from './organizationTranslator'
 
 export class FieldTranslatorFactory {

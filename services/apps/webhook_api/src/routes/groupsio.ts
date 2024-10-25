@@ -1,8 +1,10 @@
-import { asyncWrap } from '../middleware/error'
-import { WebhooksRepository } from '@crowd/data-access-layer/src/old/apps/webhook_api/webhooks.repo'
-import { Error400BadRequest } from '@crowd/common'
-import { WebhookType } from '@crowd/types'
 import express from 'express'
+
+import { Error400BadRequest } from '@crowd/common'
+import { WebhooksRepository } from '@crowd/data-access-layer/src/old/apps/webhook_api/webhooks.repo'
+import { WebhookType } from '@crowd/types'
+
+import { asyncWrap } from '../middleware/error'
 
 export const installGroupsIoRoutes = async (app: express.Express) => {
   app.post(

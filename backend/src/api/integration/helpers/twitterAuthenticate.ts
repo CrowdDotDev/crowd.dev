@@ -1,12 +1,14 @@
 import crypto from 'crypto'
-import { PlatformType } from '@crowd/types'
 import { Response } from 'express'
-import { RedisCache } from '@crowd/redis'
+
 import { generateUUIDv4 as uuid } from '@crowd/common'
+import { RedisCache } from '@crowd/redis'
+import { PlatformType } from '@crowd/types'
+
 import { TWITTER_CONFIG } from '../../../conf'
+import SequelizeRepository from '../../../database/repositories/sequelizeRepository'
 import Permissions from '../../../security/permissions'
 import PermissionChecker from '../../../services/user/permissionChecker'
-import SequelizeRepository from '../../../database/repositories/sequelizeRepository'
 
 /// credits to lucia-auth library for these functions
 

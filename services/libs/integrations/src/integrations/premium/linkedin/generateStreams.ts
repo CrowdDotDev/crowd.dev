@@ -1,4 +1,5 @@
 import { GenerateStreamsHandler } from '../../../types'
+
 import { ILinkedInOrganization } from './api/types'
 import { ILinkedInRootOrganizationStream, LinkedinStreamType } from './types'
 

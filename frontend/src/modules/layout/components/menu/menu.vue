@@ -65,16 +65,19 @@
       :is-collapsed="isCollapsed"
       :to="{ path: '/community-lens' }"
     />
-    <div class="px-3 py-4">
-      <div class="border-b border-gray-200" />
-    </div>
-    <lf-menu-link
+    <template
       v-if="hasPermission(LfPermission.projectGroupCreate) || hasPermission(LfPermission.projectGroupEdit)"
-      title="Admin panel"
-      icon="gear"
-      :is-collapsed="isCollapsed"
-      :to="{ path: '/admin' }"
-    />
+    >
+      <div class="px-3 py-4">
+        <div class="border-b border-gray-200" />
+      </div>
+      <lf-menu-link
+        title="Admin panel"
+        icon="gear"
+        :is-collapsed="isCollapsed"
+        :to="{ path: '/admin' }"
+      />
+    </template>
   </aside>
 </template>
 

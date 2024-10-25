@@ -1,10 +1,13 @@
-import { Error400, Error404, getCleanString } from '@crowd/common'
-import { Edition, TenantPlans } from '@crowd/types'
 import lodash from 'lodash'
 import Sequelize, { QueryTypes } from 'sequelize'
+
+import { Error400, Error404, getCleanString } from '@crowd/common'
+import { Edition, TenantPlans } from '@crowd/types'
+
 import { API_CONFIG } from '../../conf'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
 import { isUserInTenant } from '../utils/userTenantUtils'
+
 import { IRepositoryOptions } from './IRepositoryOptions'
 import AuditLogRepository from './auditLogRepository'
 import SequelizeRepository from './sequelizeRepository'

@@ -1,6 +1,14 @@
 <template>
   <div class="flex">
     <lf-button-group>
+      <lf-button
+        type="secondary"
+        @click="setReportDataModal({
+          organization: props.organization,
+        })"
+      >
+        <lf-icon name="feedback-line" class="text-red-500" /> Report data issue
+      </lf-button>
       <template v-if="hasSegments">
         <!-- Merge suggestions -->
         <lf-button
@@ -77,6 +85,7 @@ import pluralize from 'pluralize';
 import { Contributor } from '@/modules/contributor/types/Contributor';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';
+import { useSharedStore } from '@/shared/pinia/shared.store';
 
 const props = defineProps<{
   organization: Organization,
@@ -85,6 +94,7 @@ const props = defineProps<{
 const emit = defineEmits<{(e: 'reload'): any}>();
 
 const { hasPermission } = usePermissions();
+const { setReportDataModal } = useSharedStore();
 const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
 
 const isMergeSuggestionsDialogOpen = ref<boolean>(false);

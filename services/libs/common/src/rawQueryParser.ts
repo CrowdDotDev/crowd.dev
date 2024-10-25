@@ -1,11 +1,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { MemberAttributeType } from '@crowd/types'
 import { JsonColumnInfo, Operator, ParsedJsonColumn } from '@crowd/types'
+
 import { singleOrDefault } from './array'
 
 // ph for placeholder
 function ph(field: string, { pgPromiseFormat }: { pgPromiseFormat: boolean }): string {
   return pgPromiseFormat ? `$(${field})` : `:${field}`
+}
+
+export interface IRawQueryParserOptions {
+  pgPromiseFormat: boolean
+  keepOnly?: string[]
 }
 
 export class RawQueryParser {
@@ -14,10 +20,9 @@ export class RawQueryParser {
     columnMap: Map<string, string>,
     jsonColumnInfos: JsonColumnInfo[],
     params: any,
-    options: {
-      pgPromiseFormat: boolean
-    } = {
+    options: IRawQueryParserOptions = {
       pgPromiseFormat: false,
+      keepOnly: [],
     },
   ): string {
     const keys = Object.keys(filters)
@@ -64,7 +69,14 @@ export class RawQueryParser {
           if (column.match(/^[a-zA-Z0-9_]+$/)) {
             column = `"${column}"`
           }
-          results.push(this.parseColumnCondition(key, column, filters[key], params, options))
+
+          if (
+            options.keepOnly === undefined ||
+            options.keepOnly.length === 0 ||
+            options.keepOnly.includes(key)
+          ) {
+            results.push(this.parseColumnCondition(key, column, filters[key], params, options))
+          }
         }
       }
     }
@@ -76,9 +88,7 @@ export class RawQueryParser {
     property: ParsedJsonColumn,
     filters: any,
     params: any,
-    options: {
-      pgPromiseFormat: boolean
-    },
+    options: IRawQueryParserOptions,
   ): string {
     const parts = property.parts.slice(1)
 
@@ -197,9 +207,7 @@ export class RawQueryParser {
     column: string,
     filters: any,
     params: any,
-    options: {
-      pgPromiseFormat: boolean
-    },
+    options: IRawQueryParserOptions,
   ): string {
     const conditionKeys = Object.keys(filters)
     if (conditionKeys.length !== 1) {

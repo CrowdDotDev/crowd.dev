@@ -1,5 +1,6 @@
-import { IQueue } from '@crowd/queue'
 import { NextFunction, Request, RequestHandler, Response } from 'express'
+
+import { IQueue } from '@crowd/queue'
 
 export interface IQueueRequest {
   queue: IQueue

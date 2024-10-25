@@ -1,7 +1,8 @@
-import TenantRepository from '../tenantRepository'
-import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
-import Plans from '../../../security/plans'
 import { TenantPlans } from '@crowd/types'
+
+import Plans from '../../../security/plans'
+import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
+import TenantRepository from '../tenantRepository'
 
 const db = null
 

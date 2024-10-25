@@ -1,7 +1,8 @@
 import { getServiceChildLogger } from '@crowd/logging'
+
 import { DbTransaction, ITableName, TableLockLevel } from './types'
-import { escapeTableName } from './utility'
 import { RowLockStrength } from './types'
+import { escapeTableName } from './utility'
 
 const log = getServiceChildLogger('database.locking')
 

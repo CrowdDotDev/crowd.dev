@@ -13,6 +13,7 @@
     <lf-icon-old name="team-line" />
     {{ props.organization.isTeamOrganization ? 'Unmark' : 'Mark' }} as team organization
   </lf-dropdown-item>
+
   <template v-if="hasPermission(LfPermission.organizationDestroy)">
     <lf-dropdown-separator />
     <lf-dropdown-item type="danger" @click="deleteOrganization()">

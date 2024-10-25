@@ -1,3 +1,5 @@
+import { Client } from '@opensearch-project/opensearch'
+
 import { DbConnection, DbStore } from '@crowd/data-access-layer/src/database'
 import { Logger } from '@crowd/logging'
 import { CrowdQueue, IQueue, PrioritizedQueueReciever } from '@crowd/queue'
@@ -7,7 +9,7 @@ import {
   IntegrationSyncWorkerQueueMessageType,
   QueuePriorityLevel,
 } from '@crowd/types'
-import { Client } from '@opensearch-project/opensearch'
+
 import { MemberSyncService } from '../service/member.sync.service'
 import { OpenSearchService } from '../service/opensearch.service'
 import { OrganizationSyncService } from '../service/organization.sync.service'

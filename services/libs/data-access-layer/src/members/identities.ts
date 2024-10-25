@@ -1,4 +1,5 @@
 import { IMemberIdentity } from '@crowd/types'
+
 import { QueryExecutor } from '../queryExecutor'
 
 export async function fetchMemberIdentities(

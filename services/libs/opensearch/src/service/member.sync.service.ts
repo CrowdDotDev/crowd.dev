@@ -27,10 +27,12 @@ import {
   IMemberWithAggregatesForMergeSuggestions,
   MemberAttributeType,
 } from '@crowd/types'
+
 import { IndexedEntityType } from '../repo/indexing.data'
 import { IndexingRepository } from '../repo/indexing.repo'
 import { MemberRepository } from '../repo/member.repo'
 import { OpenSearchIndex } from '../types'
+
 import { IMemberSyncResult } from './member.sync.data'
 import { IPagedSearchResponse, ISearchHit } from './opensearch.data'
 import { OpenSearchService } from './opensearch.service'
@@ -465,6 +467,11 @@ export class MemberSyncService {
         MemberField.DISPLAY_NAME,
         MemberField.ATTRIBUTES,
       ])
+
+      if (!base) {
+        return
+      }
+
       const attributes = await this.memberRepo.getTenantMemberAttributes(base.tenantId)
       const data = await buildFullMemberForMergeSuggestions(qx, base)
       const prefixed = MemberSyncService.prefixData(data, attributes)

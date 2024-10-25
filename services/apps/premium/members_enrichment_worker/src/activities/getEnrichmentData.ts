@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-import { EnrichmentAPIResponse, EnrichmentAPIMember } from '@crowd/types/src/premium'
+import { EnrichmentAPIMember, EnrichmentAPIResponse } from '@crowd/types/src/premium'
 
 /*
 enrichMemberUsingGitHubHandle is a Temporal activity that fetches enrichment data

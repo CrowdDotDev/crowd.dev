@@ -1,4 +1,5 @@
 import { FeatureFlag } from '@crowd/types'
+
 import { safeWrap } from '../../middlewares/errorMiddleware'
 import { featureFlagMiddleware } from '../../middlewares/featureFlagMiddleware'
 
@@ -48,4 +49,9 @@ export default (app) => {
   require('./organization').default(app)
   require('./attributes').default(app)
   require('./affiliation').default(app)
+
+  app.post(
+    `/tenant/:tenantId/member/:id/data-issue`,
+    safeWrap(require('./memberDataIssueCreate').default),
+  )
 }

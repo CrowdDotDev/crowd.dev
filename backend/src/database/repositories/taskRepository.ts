@@ -1,14 +1,17 @@
-import sanitizeHtml from 'sanitize-html'
 import lodash from 'lodash'
+import sanitizeHtml from 'sanitize-html'
 import Sequelize from 'sequelize'
+
 import { Error404 } from '@crowd/common'
 import { getActivitiesById } from '@crowd/data-access-layer'
-import SequelizeRepository from './sequelizeRepository'
-import AuditLogRepository from './auditLogRepository'
+
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
+
 import { IRepositoryOptions } from './IRepositoryOptions'
+import AuditLogRepository from './auditLogRepository'
 import QueryParser from './filters/queryParser'
 import { QueryOutput } from './filters/queryTypes'
+import SequelizeRepository from './sequelizeRepository'
 
 const { Op } = Sequelize
 
@@ -124,12 +127,6 @@ class TaskRepository {
 
     if (data.members) {
       await record.setMembers(data.members, {
-        transaction,
-      })
-    }
-
-    if (data.activities) {
-      await record.setActivities(data.activities, {
         transaction,
       })
     }
@@ -497,7 +494,13 @@ class TaskRepository {
     )
     const activityIds = results.map((r) => (r as any).activityId)
     if (activityIds.length > 0) {
-      output.activities = await getActivitiesById(options.qdb, activityIds)
+      const segmentIds = SequelizeRepository.getSegmentIds(options)
+      output.activities = await getActivitiesById(
+        options.qdb,
+        activityIds,
+        options.currentTenant.id,
+        segmentIds,
+      )
     } else {
       output.activities = []
     }

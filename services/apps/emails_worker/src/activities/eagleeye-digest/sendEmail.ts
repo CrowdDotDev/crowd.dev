@@ -1,7 +1,8 @@
-import moment from 'moment'
 import sendgrid, { MailDataRequired } from '@sendgrid/mail'
+import moment from 'moment'
 
-import { EmailToSend, EmailSent } from '../../types/email'
+import { EmailSent, EmailToSend } from '../../types/email'
+
 /*
 eagleeyeSendEmail is a Temporal activity that sends an EagleEye digest email to
 a user's email address using the SendGrid API.

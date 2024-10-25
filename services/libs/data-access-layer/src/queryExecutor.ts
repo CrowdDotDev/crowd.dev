@@ -1,6 +1,7 @@
-import { DbConnection, DbConnOrTx, DbStore, DbTransaction, RepositoryBase } from '@crowd/database'
 import pgp from 'pg-promise'
 import { QueryTypes, Sequelize, Transaction } from 'sequelize'
+
+import { DbConnOrTx, DbConnection, DbStore, DbTransaction, RepositoryBase } from '@crowd/database'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -14,7 +15,7 @@ export interface QueryExecutor {
   tx<T>(fn: (tx: QueryExecutor) => Promise<T>): Promise<T>
 }
 
-function formatQuery(query, params?) {
+export function formatQuery(query: string, params?: object): string {
   return pgp.as.format(query, params)
 }
 
@@ -86,7 +87,10 @@ export class SequelizeQueryExecutor implements QueryExecutor {
 }
 
 export class TransactionalSequelizeQueryExecutor extends SequelizeQueryExecutor {
-  constructor(sequelize: Sequelize, private readonly transaction: Transaction) {
+  constructor(
+    sequelize: Sequelize,
+    private readonly transaction: Transaction,
+  ) {
     super(sequelize)
   }
 

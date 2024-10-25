@@ -1,4 +1,5 @@
 import OrganizationService from '@/services/organizationService'
+
 import Permissions from '../../security/permissions'
 import track from '../../segment/track'
 import PermissionChecker from '../../services/user/permissionChecker'

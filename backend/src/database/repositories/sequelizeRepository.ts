@@ -1,17 +1,19 @@
 import lodash from 'lodash'
 import { Sequelize, UniqueConstraintError } from 'sequelize'
-import { getServiceLogger } from '@crowd/logging'
-import { getRedisClient } from '@crowd/redis'
-import { Unleash, getUnleashClient } from '@crowd/feature-flags'
-import { Edition, SegmentData } from '@crowd/types'
-import { SERVICE, Error400 } from '@crowd/common'
-import { Client as TemporalClient, getTemporalClient } from '@crowd/temporal'
+
+import { Error400, SERVICE } from '@crowd/common'
+import { DbConnection, getDbConnection } from '@crowd/data-access-layer/src/database'
 import {
   QueryExecutor,
   SequelizeQueryExecutor,
   TransactionalSequelizeQueryExecutor,
 } from '@crowd/data-access-layer/src/queryExecutor'
-import { DbConnection, getDbConnection } from '@crowd/data-access-layer/src/database'
+import { Unleash, getUnleashClient } from '@crowd/feature-flags'
+import { getServiceLogger } from '@crowd/logging'
+import { getRedisClient } from '@crowd/redis'
+import { Client as TemporalClient, getTemporalClient } from '@crowd/temporal'
+import { Edition, SegmentData } from '@crowd/types'
+
 import {
   API_CONFIG,
   IS_TEST_ENV,
@@ -20,9 +22,10 @@ import {
   TEMPORAL_CONFIG,
   UNLEASH_CONFIG,
 } from '../../conf'
-import { databaseInit } from '../databaseConnection'
-import { IRepositoryOptions } from './IRepositoryOptions'
 import { IServiceOptions } from '../../services/IServiceOptions'
+import { databaseInit } from '../databaseConnection'
+
+import { IRepositoryOptions } from './IRepositoryOptions'
 
 /**
  * Abstracts some basic Sequelize operations.

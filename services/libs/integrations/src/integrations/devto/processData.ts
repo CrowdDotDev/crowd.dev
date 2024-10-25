@@ -1,6 +1,5 @@
-import { IProcessDataContext, ProcessDataHandler } from '../../types'
-import { IDevToArticle } from './api/articles'
-import { IDevToComment } from './api/comments'
+import sanitizeHtml from 'sanitize-html'
+
 import {
   IActivityData,
   IMemberData,
@@ -8,9 +7,13 @@ import {
   MemberIdentityType,
   PlatformType,
 } from '@crowd/types'
-import sanitizeHtml from 'sanitize-html'
-import { DevToActivityType, IDevToArticleData } from './types'
+
+import { IProcessDataContext, ProcessDataHandler } from '../../types'
+
+import { IDevToArticle } from './api/articles'
+import { IDevToComment } from './api/comments'
 import { DEVTO_GRID } from './grid'
+import { DevToActivityType, IDevToArticleData } from './types'
 
 const getMember = (comment: IDevToComment): IMemberData => {
   const member: IMemberData = {
@@ -30,9 +33,8 @@ const getMember = (comment: IDevToComment): IMemberData => {
   }
 
   if (comment.user.twitter_username) {
-    member.attributes[MemberAttributeName.URL][
-      PlatformType.TWITTER
-    ] = `https://twitter.com/${comment.user.twitter_username}`
+    member.attributes[MemberAttributeName.URL][PlatformType.TWITTER] =
+      `https://twitter.com/${comment.user.twitter_username}`
 
     member.identities.push({
       platform: PlatformType.TWITTER,
@@ -46,9 +48,8 @@ const getMember = (comment: IDevToComment): IMemberData => {
     member.attributes[MemberAttributeName.NAME] = {
       [PlatformType.GITHUB]: comment.user.name,
     }
-    member.attributes[MemberAttributeName.URL][
-      PlatformType.GITHUB
-    ] = `https://github.com/${comment.user.github_username}`
+    member.attributes[MemberAttributeName.URL][PlatformType.GITHUB] =
+      `https://github.com/${comment.user.github_username}`
 
     member.identities.push({
       platform: PlatformType.GITHUB,

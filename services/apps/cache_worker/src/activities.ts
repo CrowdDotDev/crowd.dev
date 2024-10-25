@@ -1,38 +1,32 @@
 import {
-  getAllTenants,
-  getAllSegments,
-  getProjectLeafSegments,
-  getProjectGroupLeafSegments,
-  isSegmentsEnabled,
-} from './activities/getTenantSegmentInfo'
-
-import {
-  getDashboardCacheLastRefreshedAt,
-  getDefaultSegment,
-  getNewMembersNumber,
-  getNewMembersTimeseries,
-  getActiveMembersNumber,
-  getActiveMembersTimeseries,
-  getNewOrganizationsNumber,
-  getNewOrganizationsTimeseries,
-  getActiveOrganizationsNumber,
-  getActiveOrganizationsTimeseries,
-  getActivitiesNumber,
-  getActivitiesTimeseries,
-  getActivitiesBySentiment,
-  getActivitiesByType,
-  saveToCache,
-  getActivePlatforms,
-  findNewActivityPlatforms,
-  updateMemberMergeSuggestionsLastGeneratedAt,
-} from './activities/dashboard-cache/refreshDashboardCache'
-
-import {
-  getOrgIdsFromRedis,
-  dropOrgIdFromRedis,
   checkOrganizationExists,
+  dropOrgIdFromRedis,
+  getOrgIdsFromRedis,
   syncOrganization,
 } from './activities/computeAggs/organization'
+import {
+  findNewActivityPlatforms,
+  getActiveMembersTimeseries,
+  getActiveOrganizationsTimeseries,
+  getActivePlatforms,
+  getActivitiesBySentiment,
+  getActivitiesByType,
+  getActivitiesNumber,
+  getActivitiesTimeseries,
+  getDashboardCacheLastRefreshedAt,
+  getDefaultSegment,
+  getNewMembersTimeseries,
+  getNewOrganizationsTimeseries,
+  saveToCache,
+  updateMemberMergeSuggestionsLastGeneratedAt,
+} from './activities/dashboard-cache/refreshDashboardCache'
+import {
+  getAllSegments,
+  getAllTenants,
+  getProjectGroupLeafSegments,
+  getProjectLeafSegments,
+  isSegmentsEnabled,
+} from './activities/getTenantSegmentInfo'
 
 export {
   getAllTenants,
@@ -41,13 +35,9 @@ export {
   getProjectGroupLeafSegments,
   getDashboardCacheLastRefreshedAt,
   getDefaultSegment,
-  getNewMembersNumber,
   getNewMembersTimeseries,
-  getActiveMembersNumber,
   getActiveMembersTimeseries,
-  getNewOrganizationsNumber,
   getNewOrganizationsTimeseries,
-  getActiveOrganizationsNumber,
   getActiveOrganizationsTimeseries,
   getActivitiesNumber,
   getActivitiesTimeseries,

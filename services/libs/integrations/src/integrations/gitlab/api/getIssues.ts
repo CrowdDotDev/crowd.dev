@@ -1,8 +1,10 @@
 import { Gitlab, IssueSchema, OffsetPagination } from '@gitbeaker/rest'
-import { GitlabIssueData, GitlabApiResult } from '../types'
-import { getUser } from './getUser'
+
 import { IProcessStreamContext } from '../../../types'
+import { GitlabApiResult, GitlabIssueData } from '../types'
 import { RedisSemaphore } from '../utils/lock'
+
+import { getUser } from './getUser'
 
 export const getIssues = async ({
   api,

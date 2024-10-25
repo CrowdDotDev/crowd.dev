@@ -1,4 +1,5 @@
 import { TenantPlans } from '@crowd/types'
+
 import Roles from './roles'
 import Storage from './storage'
 
@@ -1059,6 +1060,17 @@ class Permissions {
       },
       mergeActionRead: {
         id: 'mergeActionRead',
+        allowedRoles: [roles.admin, roles.projectAdmin, roles.readonly],
+        allowedPlans: [
+          TenantPlans.Essential,
+          TenantPlans.Growth,
+          TenantPlans.EagleEye,
+          TenantPlans.Enterprise,
+          TenantPlans.Scale,
+        ],
+      },
+      dataIssueCreate: {
+        id: 'dataIssueCreate',
         allowedRoles: [roles.admin, roles.projectAdmin, roles.readonly],
         allowedPlans: [
           TenantPlans.Essential,

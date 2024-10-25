@@ -1,5 +1,5 @@
 import { Config } from '@crowd/archetype-standard'
-import { ServiceWorker, Options } from '@crowd/archetype-worker'
+import { Options, ServiceWorker } from '@crowd/archetype-worker'
 
 const config: Config = {
   envvars: ['CROWD_API_SERVICE_URL', 'CROWD_API_SERVICE_USER_TOKEN'],

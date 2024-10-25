@@ -1,8 +1,7 @@
 import { continueAsNew, proxyActivities } from '@temporalio/workflow'
 
-import * as activities from '../activities/merge-members-with-similar-identities'
 import * as commonActivities from '../activities/common'
-
+import * as activities from '../activities/merge-members-with-similar-identities'
 import { IFindAndMergeMembersWithSameIdentitiesDifferentCapitalizationInPlatformArgs } from '../types'
 
 const activity = proxyActivities<typeof activities>({

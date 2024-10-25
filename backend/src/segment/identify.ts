@@ -1,5 +1,6 @@
 import { Edition } from '@crowd/types'
-import { SEGMENT_CONFIG, API_CONFIG } from '../conf'
+
+import { API_CONFIG, SEGMENT_CONFIG } from '../conf'
 
 export default function identify(user) {
   const Analytics = require('analytics-node')

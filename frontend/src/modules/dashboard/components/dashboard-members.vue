@@ -36,10 +36,11 @@
               v-loading="!chartData"
               class="app-page-spinner !relative chart-loading"
             />
-            <app-dashboard-widget-chart
-              v-else
-              :data="chartData?.newMembers.timeseries"
-              :datasets="datasets('new people')"
+            <lf-chart
+              v-else-if="chartData?.newMembers.timeseries?.length"
+              :config="lfxCharts.dashboardAreaChart"
+              :data="mapData(chartData?.newMembers.timeseries)"
+              :params="{ label: 'new people' }"
             />
           </div>
         </div>
@@ -139,17 +140,18 @@
               :previous-total="chartData?.activeMembers.previousPeriodTotal"
             />
           </div>
-          <div class="w-7/12 h-21">
+          <div class="w-7/12">
             <!-- Chart -->
             <div
               v-if="!chartData"
               v-loading="!chartData"
               class="app-page-spinner !relative chart-loading"
             />
-            <app-dashboard-widget-chart
-              v-else
-              :datasets="datasets('active members')"
-              :data="chartData?.activeMembers.timeseries"
+            <lf-chart
+              v-else-if="chartData?.activeMembers.timeseries?.length"
+              :config="lfxCharts.dashboardAreaChart"
+              :data="mapData(chartData?.activeMembers.timeseries)"
+              :params="{ label: 'active people' }"
             />
           </div>
         </div>
@@ -221,18 +223,24 @@ import moment from 'moment';
 import { formatDateToTimeAgo } from '@/utils/date';
 import AppDashboardEmptyState from '@/modules/dashboard/components/dashboard-empty-state.vue';
 import AppDashboardWidgetHeader from '@/modules/dashboard/components/dashboard-widget-header.vue';
-import AppDashboardWidgetChart from '@/modules/dashboard/components/dashboard-widget-chart.vue';
 import AppDashboardMemberItem from '@/modules/dashboard/components/member/dashboard-member-item.vue';
 import AppDashboardCount from '@/modules/dashboard/components/dashboard-count.vue';
 import { filterQueryService } from '@/shared/modules/filters/services/filter-query.service';
 import allMembers from '@/modules/member/config/saved-views/views/all-members';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import { lfxCharts } from '@/config/charts';
+import LfChart from '@/ui-kit/chart/Chart.vue';
 import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const {
   chartData, members, period, activeMembers, recentMembers,
 } = mapGetters('dashboard');
+
+const mapData = (data: any[]) => data.map((item) => ({
+  label: item.date,
+  value: item.count,
+}));
 
 const periodRange = computed(() => [
   moment()
@@ -243,12 +251,6 @@ const periodRange = computed(() => [
     .utc()
     .format('YYYY-MM-DD'),
 ]);
-const datasets = (name: string) => [{
-  name,
-  borderColor: '#003778',
-  measure: 'Members.count',
-  granularity: 'day',
-}];
 
 const getPlatformDetails = (platform: string) => CrowdIntegrations.getConfig(platform);
 

@@ -1,6 +1,8 @@
-import { LoggerBase } from '@crowd/logging'
 import lodash from 'lodash'
 import moment from 'moment'
+
+import { Error400 } from '@crowd/common'
+import { LoggerBase } from '@crowd/logging'
 import {
   EagleEyeEmailDigestFrequency,
   EagleEyeEmailDigestSettings,
@@ -9,10 +11,11 @@ import {
   EagleEyePublishedDates,
   EagleEyeSettings,
 } from '@crowd/types'
-import { Error400 } from '@crowd/common'
+
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import TenantUserRepository from '../database/repositories/tenantUserRepository'
 import track from '../segment/track'
+
 import { IServiceOptions } from './IServiceOptions'
 
 /* eslint-disable no-case-declarations */

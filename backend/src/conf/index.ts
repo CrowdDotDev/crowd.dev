@@ -1,46 +1,49 @@
 import config from 'config'
-import { IRedisConfiguration } from '@crowd/redis'
-import { ISearchSyncApiConfig } from '@crowd/opensearch'
+
 import { IDatabaseConfig } from '@crowd/data-access-layer/src/database'
+import { ISearchSyncApiConfig } from '@crowd/opensearch'
 import { IQueueClientConfig } from '@crowd/queue'
+import { IRedisConfiguration } from '@crowd/redis'
+import { IGithubIssueReporterConfiguration } from '@crowd/types'
+
 import {
-  S3Configuration,
-  DbConfiguration,
-  PlansConfiguration,
-  TwitterConfiguration,
   ApiConfiguration,
-  SlackConfiguration,
-  GoogleConfiguration,
-  DiscordConfiguration,
-  ServiceType,
-  SegmentConfiguration,
-  GithubConfiguration,
-  SendgridConfiguration,
-  NetlifyConfiguration,
-  TenantMode,
-  ComprehendConfiguration,
-  ClearbitConfiguration,
-  NangoConfiguration,
-  EnrichmentConfiguration,
-  EagleEyeConfiguration,
-  UnleashConfiguration,
-  StackExchangeConfiguration,
-  SlackAlertingConfiguration,
-  SampleDataConfiguration,
-  IntegrationProcessingConfiguration,
-  SlackNotifierConfiguration,
-  OrganizationEnrichmentConfiguration,
-  IOpenSearchConfig,
   Auth0Configuration,
-  SSOConfiguration,
-  WeeklyEmailsConfiguration,
+  ClearbitConfiguration,
+  ComprehendConfiguration,
   CrowdAnalyticsConfiguration,
-  IBackendTemporalConfig,
+  DbConfiguration,
+  DiscordConfiguration,
+  EagleEyeConfiguration,
   EncryptionConfiguration,
-  IOpenStatusApiConfig,
+  EnrichmentConfiguration,
+  GithubConfiguration,
   GithubTokenConfiguration,
   GitlabConfiguration,
+  GoogleConfiguration,
+  IBackendTemporalConfig,
+  IOpenSearchConfig,
+  IOpenStatusApiConfig,
   IRedditConfig,
+  IntegrationProcessingConfiguration,
+  NangoConfiguration,
+  NetlifyConfiguration,
+  OrganizationEnrichmentConfiguration,
+  PlansConfiguration,
+  S3Configuration,
+  SSOConfiguration,
+  SampleDataConfiguration,
+  SegmentConfiguration,
+  SendgridConfiguration,
+  ServiceType,
+  SlackAlertingConfiguration,
+  SlackConfiguration,
+  SlackNotifierConfiguration,
+  StackExchangeConfiguration,
+  TenantMode,
+  TwitterConfiguration,
+  UnleashConfiguration,
+  WeeklyEmailsConfiguration,
 } from './configTypes'
 
 // TODO-kube
@@ -112,6 +115,9 @@ export const GOOGLE_CONFIG: GoogleConfiguration = config.get<GoogleConfiguration
 export const DISCORD_CONFIG: DiscordConfiguration = config.get<DiscordConfiguration>('discord')
 
 export const GITHUB_CONFIG: GithubConfiguration = config.get<GithubConfiguration>('github')
+
+export const GITHUB_ISSUE_REPORTER_CONFIG: IGithubIssueReporterConfiguration =
+  config.get<IGithubIssueReporterConfiguration>('githubIssueReporter')
 
 export const SENDGRID_CONFIG: SendgridConfiguration = config.get<SendgridConfiguration>('sendgrid')
 

@@ -1,7 +1,8 @@
-import { i18n, Error403 } from '@crowd/common'
+import { Error403, i18n } from '@crowd/common'
+
+import Permissions from '../../security/permissions'
 import track from '../../segment/track'
 import SampleDataService from '../../services/sampleDataService'
-import Permissions from '../../security/permissions'
 import PermissionChecker from '../../services/user/permissionChecker'
 
 export default async (req, res) => {

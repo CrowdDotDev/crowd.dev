@@ -1,15 +1,13 @@
 /* eslint-disable no-promise-executor-return */
 import { createAppAuth } from '@octokit/auth-app'
 import { request } from '@octokit/request'
-import moment from 'moment'
-import lodash from 'lodash'
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
-import { PlatformType, Edition } from '@crowd/types'
-import { Error400, Error404, Error542, EDITION } from '@crowd/common'
+import lodash from 'lodash'
+import moment from 'moment'
+
+import { EDITION, Error400, Error404, Error542 } from '@crowd/common'
+import { MemberField, findMemberById } from '@crowd/data-access-layer/src/members'
 import {
-  getHubspotLists,
-  getHubspotProperties,
-  getHubspotTokenInfo,
   HubspotEndpoint,
   HubspotEntity,
   HubspotFieldMapperFactory,
@@ -18,59 +16,66 @@ import {
   IHubspotProperty,
   IHubspotTokenInfo,
   IProcessStreamContext,
+  getHubspotLists,
+  getHubspotProperties,
+  getHubspotTokenInfo,
 } from '@crowd/integrations'
 import { RedisCache } from '@crowd/redis'
-import { findMemberById, MemberField } from '@crowd/data-access-layer/src/members'
-import { encryptData } from '../utils/crypto'
-import { ILinkedInOrganization } from '../serverless/integrations/types/linkedinTypes'
-import {
-  DISCORD_CONFIG,
-  GITHUB_CONFIG,
-  IS_TEST_ENV,
-  KUBE_MODE,
-  NANGO_CONFIG,
-  GITLAB_CONFIG,
-} from '../conf/index'
-import { IServiceOptions } from './IServiceOptions'
-import SequelizeRepository from '../database/repositories/sequelizeRepository'
-import IntegrationRepository from '../database/repositories/integrationRepository'
-import track from '../segment/track'
-import { getInstalledRepositories } from '../serverless/integrations/usecases/github/rest/getInstalledRepositories'
-import {
-  getGitHubRemoteStats,
-  GitHubStats,
-} from '../serverless/integrations/usecases/github/rest/getRemoteStats'
-import telemetryTrack from '../segment/telemetryTrack'
-import getToken from '../serverless/integrations/usecases/nango/getToken'
-import { getOrganizations } from '../serverless/integrations/usecases/linkedin/getOrganizations'
-import {
-  getIntegrationRunWorkerEmitter,
-  getIntegrationSyncWorkerEmitter,
-} from '../serverless/utils/queueService'
-import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
-import TenantRepository from '../database/repositories/tenantRepository'
-import GithubReposRepository from '../database/repositories/githubReposRepository'
+import { Edition, PlatformType } from '@crowd/types'
+
+import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
+import GithubInstallationsRepository from '@/database/repositories/githubInstallationsRepository'
 import GitlabReposRepository from '@/database/repositories/gitlabReposRepository'
-import OrganizationService from './organizationService'
+import IntegrationProgressRepository from '@/database/repositories/integrationProgressRepository'
 import MemberSyncRemoteRepository from '@/database/repositories/memberSyncRemoteRepository'
 import OrganizationSyncRemoteRepository from '@/database/repositories/organizationSyncRemoteRepository'
+import { IntegrationProgress } from '@/serverless/integrations/types/regularTypes'
+import {
+  fetchAllGitlabGroups,
+  fetchGitlabGroupProjects,
+  fetchGitlabUserProjects,
+} from '@/serverless/integrations/usecases/gitlab/getProjects'
+import { removeGitlabWebhooks } from '@/serverless/integrations/usecases/gitlab/removeWebhooks'
+import { setupGitlabWebhooks } from '@/serverless/integrations/usecases/gitlab/setupWebhooks'
+import { getUserSubscriptions } from '@/serverless/integrations/usecases/groupsio/getUserSubscriptions'
 import {
   GroupsioGetToken,
   GroupsioIntegrationData,
   GroupsioVerifyGroup,
 } from '@/serverless/integrations/usecases/groupsio/types'
-import SearchSyncService from './searchSyncService'
-import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
-import IntegrationProgressRepository from '@/database/repositories/integrationProgressRepository'
-import { IntegrationProgress } from '@/serverless/integrations/types/regularTypes'
-import GithubInstallationsRepository from '@/database/repositories/githubInstallationsRepository'
+
 import {
-  fetchGitlabUserProjects,
-  fetchGitlabGroupProjects,
-  fetchAllGitlabGroups,
-} from '@/serverless/integrations/usecases/gitlab/getProjects'
-import { setupGitlabWebhooks } from '@/serverless/integrations/usecases/gitlab/setupWebhooks'
-import { removeGitlabWebhooks } from '@/serverless/integrations/usecases/gitlab/removeWebhooks'
+  DISCORD_CONFIG,
+  GITHUB_CONFIG,
+  GITLAB_CONFIG,
+  IS_TEST_ENV,
+  KUBE_MODE,
+  NANGO_CONFIG,
+} from '../conf/index'
+import GithubReposRepository from '../database/repositories/githubReposRepository'
+import IntegrationRepository from '../database/repositories/integrationRepository'
+import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
+import SequelizeRepository from '../database/repositories/sequelizeRepository'
+import TenantRepository from '../database/repositories/tenantRepository'
+import telemetryTrack from '../segment/telemetryTrack'
+import track from '../segment/track'
+import { ILinkedInOrganization } from '../serverless/integrations/types/linkedinTypes'
+import { getInstalledRepositories } from '../serverless/integrations/usecases/github/rest/getInstalledRepositories'
+import {
+  GitHubStats,
+  getGitHubRemoteStats,
+} from '../serverless/integrations/usecases/github/rest/getRemoteStats'
+import { getOrganizations } from '../serverless/integrations/usecases/linkedin/getOrganizations'
+import getToken from '../serverless/integrations/usecases/nango/getToken'
+import {
+  getIntegrationRunWorkerEmitter,
+  getIntegrationSyncWorkerEmitter,
+} from '../serverless/utils/queueService'
+import { encryptData } from '../utils/crypto'
+
+import { IServiceOptions } from './IServiceOptions'
+import OrganizationService from './organizationService'
+import SearchSyncService from './searchSyncService'
 
 const discordToken = DISCORD_CONFIG.token || DISCORD_CONFIG.token2
 
@@ -1828,20 +1833,6 @@ export default class IntegrationService {
     // user should update them every time thety change something
 
     try {
-      for (const group of integrationData.groups) {
-        const config: AxiosRequestConfig = {
-          method: 'get',
-          url: `https://groups.io/api/v1/getgroup?group_name=${encodeURIComponent(group.slug)}`,
-          headers: {
-            'Content-Type': 'application/json',
-            Cookie: integrationData.token,
-          },
-        }
-
-        const response = await axios(config)
-        group.id = response.data.id
-        group.name = response.data.nice_group_name
-      }
       this.options.log.info('Creating Groups.io integration!')
       const encryptedPassword = encryptData(integrationData.password)
       integration = await this.createOrUpdate(
@@ -1853,6 +1844,7 @@ export default class IntegrationService {
             tokenExpiry: integrationData.tokenExpiry,
             password: encryptedPassword,
             groups: integrationData.groups,
+            autoImports: integrationData.autoImports,
             updateMemberAttributes: true,
           },
           status: 'in-progress',
@@ -1880,6 +1872,12 @@ export default class IntegrationService {
 
     return integration
   }
+
+  // we need to get all user groups and subgroups he has access to
+  // groups all sub groups based on a group name
+  // also we would need to autoimport new groups and add them to settings - either cron job or during incremental sync
+
+  // we might need to change settings structure of already existing integrations
 
   async groupsioGetToken(data: GroupsioGetToken) {
     const config: AxiosRequestConfig = {
@@ -1943,6 +1941,16 @@ export default class IntegrationService {
     } catch (err) {
       this.options.log.error('Error verifying groups.io group.', err)
       throw new Error400(this.options.language, 'errors.groupsio.invalidGroup')
+    }
+  }
+
+  async groupsioGetUserSubscriptions({ cookie }: { cookie: string }) {
+    try {
+      const subscriptions = await getUserSubscriptions(cookie)
+      return subscriptions
+    } catch (error) {
+      this.options.log.error('Error fetching groups.io user subscriptions:', error)
+      throw new Error400(this.options.language, 'errors.groupsio.fetchSubscriptionsFailed')
     }
   }
 

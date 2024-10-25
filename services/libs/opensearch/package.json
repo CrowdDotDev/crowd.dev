@@ -9,18 +9,18 @@
   },
   "devDependencies": {
     "@types/node": "^18.16.3",
-    "typescript": "^5.0.4"
+    "typescript": "^5.6.3"
   },
   "dependencies": {
-    "@crowd/database": "workspace:*",
-    "@crowd/data-access-layer": "workspace:*",
     "@crowd/common": "workspace:*",
+    "@crowd/data-access-layer": "workspace:*",
+    "@crowd/database": "workspace:*",
     "@crowd/feature-flags": "workspace:*",
     "@crowd/integrations": "workspace:*",
     "@crowd/logging": "workspace:*",
     "@crowd/redis": "workspace:*",
-    "@crowd/types": "workspace:*",
     "@crowd/telemetry": "workspace:*",
+    "@crowd/types": "workspace:*",
     "@opensearch-project/opensearch": "^2.11.0",
     "axios": "^1.6.0",
     "lodash.merge": "^4.6.2"

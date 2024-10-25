@@ -1,4 +1,6 @@
-import { DbStore } from '@crowd/database'
+import { DbConnOrTx, DbStore } from '@crowd/database'
+
+import { updateActivities } from '../../../activities/update'
 
 export async function deleteOrganizationSegments(db: DbStore, organizationId: string) {
   await db.connection().query(
@@ -30,24 +32,22 @@ export async function deleteOrganizationById(db: DbStore, organizationId: string
 }
 
 export async function moveActivitiesToNewOrg(
-  db: DbStore,
+  qdb: DbConnOrTx,
   primaryId: string,
   secondaryId: string,
   tenantId: string,
 ) {
-  return db.connection().result(
+  await updateActivities(
+    qdb,
+    async () => ({ organizationId: primaryId }),
     `
-      UPDATE "activities"
-      SET "organizationId" = $1
-      WHERE id IN (
-        SELECT id
-        FROM "activities"
-        WHERE "tenantId" = $3
-          AND "organizationId" = $2
-        LIMIT 5000
-      )
+      "organizationId" = $(organizationId) AND "tenantId" = $(tenantId)
+      LIMIT 5000
     `,
-    [primaryId, secondaryId, tenantId],
+    {
+      organizationId: secondaryId,
+      tenantId,
+    },
   )
 }
 

@@ -1,17 +1,18 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-
 import {
   IMemberAttribute,
   IMemberData,
+  ITagOpensearch,
   MemberAttributeName,
   MemberAttributeType,
-  PlatformType,
-  ITagOpensearch,
-  OrganizationSource,
   MemberIdentityType,
   OrganizationIdentityType,
+  OrganizationSource,
+  PlatformType,
 } from '@crowd/types'
+
 import { HubspotPropertyType, IFieldProperty, IHubspotContact } from '../types'
+
 import { HubspotFieldMapper } from './hubspotFieldMapper'
 import { HubspotOrganizationFieldMapper } from './organizationFieldMapper'
 import { serializeDate } from './utils/serialization'

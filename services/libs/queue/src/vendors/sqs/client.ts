@@ -1,11 +1,4 @@
 import {
-  CrowdQueue,
-  IQueue,
-  IQueueChannel,
-  IQueueProcessMessageHandler,
-  IQueueSendResult,
-} from '../../types'
-import {
   ChangeMessageVisibilityCommand,
   ChangeMessageVisibilityCommandOutput,
   ChangeMessageVisibilityRequest,
@@ -21,6 +14,20 @@ import {
   SendMessageCommand,
   SendMessageRequest,
 } from '@aws-sdk/client-sqs'
+
+import { IS_DEV_ENV, IS_STAGING_ENV, generateUUIDv1, timeout } from '@crowd/common'
+import { Logger, LoggerBase } from '@crowd/logging'
+import { IQueueMessage, IQueueMessageBulk } from '@crowd/types'
+
+import {
+  CrowdQueue,
+  IQueue,
+  IQueueChannel,
+  IQueueProcessMessageHandler,
+  IQueueSendResult,
+} from '../../types'
+
+import { configMap } from './config'
 import {
   ISqsConfig,
   ISqsQueueDeleteOptions,
@@ -32,16 +39,15 @@ import {
   SqsMessage,
   SqsQueueType,
 } from './types'
-import { Logger, LoggerBase } from '@crowd/logging'
-import { IQueueMessage, IQueueMessageBulk } from '@crowd/types'
-import { configMap } from './config'
-import { generateUUIDv1, IS_DEV_ENV, IS_STAGING_ENV, timeout } from '@crowd/common'
 
 export class SqsQueueService extends LoggerBase implements IQueue {
   private processingMessages: number
   private started: boolean
 
-  public constructor(public readonly client: SqsClient, parentLog: Logger) {
+  public constructor(
+    public readonly client: SqsClient,
+    parentLog: Logger,
+  ) {
     super(parentLog, {
       service: 'sqs-queue',
     })

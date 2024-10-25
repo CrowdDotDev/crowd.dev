@@ -1,4 +1,5 @@
 import { randomUUID } from 'crypto'
+
 import { DbConnection, DbTransaction } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { ILLMSuggestionVerdict } from '@crowd/types'

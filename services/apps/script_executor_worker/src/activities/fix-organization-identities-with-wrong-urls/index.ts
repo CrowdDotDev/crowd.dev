@@ -1,8 +1,9 @@
-import OrganizationRepo from '@crowd/data-access-layer/src/old/apps/script_executor_worker/organization.repo'
 import { hasLfxMembership } from '@crowd/data-access-layer/src/lfx_memberships'
-import { svc } from '../../main'
-import { IOrganizationIdentity } from '@crowd/types'
+import OrganizationRepo from '@crowd/data-access-layer/src/old/apps/script_executor_worker/organization.repo'
 import { pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
+import { IOrganizationIdentity } from '@crowd/types'
+
+import { svc } from '../../main'
 
 export async function getOrgIdentitiesWithInvalidUrls(
   tenantId: string,

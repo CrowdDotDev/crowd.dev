@@ -3,6 +3,14 @@
     <lf-button-group>
       <!-- Merge suggestions -->
       <lf-button
+        type="secondary"
+        @click="setReportDataModal({
+          contributor: props.contributor,
+        })"
+      >
+        <lf-icon name="feedback-line" class="text-red-500" /> Report data issue
+      </lf-button>
+      <lf-button
         v-if="!isMasked(props.contributor) && mergeSuggestionsCount > 0 && hasPermission(LfPermission.mergeMembers)"
         type="secondary"
         @click="isMergeSuggestionsDialogOpen = true"
@@ -86,6 +94,7 @@ import LfContributorDropdown from '@/modules/contributor/components/shared/contr
 import { ContributorApiService } from '@/modules/contributor/services/contributor.api.service';
 import { Contributor } from '@/modules/contributor/types/Contributor';
 import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
+import { useSharedStore } from '@/shared/pinia/shared.store';
 
 const props = defineProps<{
   contributor: Contributor,
@@ -96,6 +105,7 @@ const emit = defineEmits<{(e: 'reload'): any}>();
 const { hasPermission } = usePermissions();
 
 const { isMasked } = useContributorHelpers();
+const { setReportDataModal } = useSharedStore();
 
 const isMergeSuggestionsDialogOpen = ref<boolean>(false);
 const isMergeDialogOpen = ref<Contributor | null>(null);

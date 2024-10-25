@@ -1,7 +1,9 @@
 /* eslint-disable  @typescript-eslint/no-explicit-any */
 import { graphql } from '@octokit/graphql'
-import BaseQuery from './baseQuery'
+
 import { GithubTokenRotator } from '../../tokenRotator'
+
+import BaseQuery from './baseQuery'
 import { Limiter } from './baseQuery'
 
 /**

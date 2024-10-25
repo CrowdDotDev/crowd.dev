@@ -1,9 +1,12 @@
-import { getNangoToken } from './../../../nango'
 import axios, { AxiosRequestConfig } from 'axios'
-import { ILinkedInPostComment, IPaginatedResponse } from './types'
-import { IGenerateStreamsContext, IProcessStreamContext } from '../../../../types'
+
 import { PlatformType } from '@crowd/types'
+
+import { IGenerateStreamsContext, IProcessStreamContext } from '../../../../types'
+
+import { getNangoToken } from './../../../nango'
 import { handleLinkedinError } from './handleError'
+import { ILinkedInPostComment, IPaginatedResponse } from './types'
 
 export const getCommentComments = async (
   nangoId: string,

@@ -1,10 +1,10 @@
-import { proxyActivities, continueAsNew } from '@temporalio/workflow'
+import { continueAsNew, proxyActivities } from '@temporalio/workflow'
 
-import * as memberActivities from '../activities/memberMergeSuggestions'
-import * as commonActivities from '../activities/common'
-
-import { ILLMResult, IProcessMergeMemberSuggestionsWithLLM } from '../types'
 import { LLMSuggestionVerdictType } from '@crowd/types'
+
+import * as commonActivities from '../activities/common'
+import * as memberActivities from '../activities/memberMergeSuggestions'
+import { ILLMResult, IProcessMergeMemberSuggestionsWithLLM } from '../types'
 import { removeEmailLikeIdentitiesFromMember } from '../utils'
 
 const memberActivitiesProxy = proxyActivities<typeof memberActivities>({

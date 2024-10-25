@@ -1,6 +1,8 @@
 import axios from 'axios'
-import { IDevToUser } from './user'
+
 import { timeout } from '@crowd/common'
+
+import { IDevToUser } from './user'
 
 export interface IDevtoCommentUser {
   user_id: number

@@ -1,7 +1,9 @@
-import { getServiceChildLogger } from '@crowd/logging'
 import pgPromise from 'pg-promise'
-import { DbConnection, DbInstance, IDatabaseConfig } from './types'
+
 import { IS_CLOUD_ENV, IS_DEV_ENV } from '@crowd/common'
+import { getServiceChildLogger } from '@crowd/logging'
+
+import { DbConnection, DbInstance, IDatabaseConfig } from './types'
 
 const log = getServiceChildLogger('database.connection')
 

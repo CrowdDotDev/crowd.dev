@@ -1,23 +1,5 @@
 import lodash from 'lodash'
 
-import {
-  MemberAttributeType,
-  MemberEnrichmentAttributes,
-  MemberAttributes,
-  MemberAttributeName,
-  MemberEnrichmentAttributeName,
-  PlatformType,
-  IMember,
-  MemberIdentityType,
-} from '@crowd/types'
-import {
-  EnrichmentAPIContribution,
-  EnrichmentAPISkills,
-  EnrichmentAPIMember,
-  EnrichmentAPIWorkExperience,
-  EnrichmentAPIEducation,
-  EnrichmentAPICertification,
-} from '@crowd/types/src/premium'
 import { DbTransaction } from '@crowd/data-access-layer/src/database'
 import { updateMember } from '@crowd/data-access-layer/src/old/apps/premium/members_enrichment_worker'
 import {
@@ -26,6 +8,25 @@ import {
   insertMemberIdentity,
   setMemberAttributeSettings,
 } from '@crowd/data-access-layer/src/old/apps/premium/members_enrichment_worker/normalize'
+import {
+  IMember,
+  MemberAttributeName,
+  MemberAttributeType,
+  MemberAttributes,
+  MemberEnrichmentAttributeName,
+  MemberEnrichmentAttributes,
+  MemberIdentityType,
+  PlatformType,
+} from '@crowd/types'
+import {
+  EnrichmentAPICertification,
+  EnrichmentAPIContribution,
+  EnrichmentAPIEducation,
+  EnrichmentAPIMember,
+  EnrichmentAPISkills,
+  EnrichmentAPIWorkExperience,
+} from '@crowd/types/src/premium'
+
 import { ENRICH_EMAIL_IDENTITIES } from './config'
 
 const attributeSettings = {

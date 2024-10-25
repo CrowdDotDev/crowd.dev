@@ -1,5 +1,7 @@
 import { IMemberAttribute } from '@crowd/types'
+
 import { HubspotEntity } from '../types'
+
 import { HubspotFieldMapper } from './hubspotFieldMapper'
 import { HubspotMemberFieldMapper } from './memberFieldMapper'
 import { HubspotOrganizationFieldMapper } from './organizationFieldMapper'

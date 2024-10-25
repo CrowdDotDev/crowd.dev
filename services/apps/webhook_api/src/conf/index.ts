@@ -1,9 +1,12 @@
+import config from 'config'
+
 import { SERVICE } from '@crowd/common'
 import { IDatabaseConfig } from '@crowd/data-access-layer/src/database'
 import { IUnleashConfig } from '@crowd/feature-flags'
 import { IQueueClientConfig } from '@crowd/queue'
 import { IRedisConfiguration } from '@crowd/redis'
-import config from 'config'
+import { IGithubIssueReporterConfiguration } from '@crowd/types'
+
 export interface IWebhookApiServiceConfig {
   port: number
 }
@@ -47,4 +50,12 @@ export const REDIS_CONFIG = (): IRedisConfiguration => {
 
   redisConfig = config.get<IRedisConfiguration>('redis')
   return redisConfig
+}
+
+let githubIssueReporterConfig: IGithubIssueReporterConfiguration
+export const GITHUB_ISSUE_REPORTER_CONFIG = (): IGithubIssueReporterConfiguration => {
+  if (githubIssueReporterConfig) return githubIssueReporterConfig
+
+  githubIssueReporterConfig = config.get<IGithubIssueReporterConfiguration>('githubIssueReporter')
+  return githubIssueReporterConfig
 }

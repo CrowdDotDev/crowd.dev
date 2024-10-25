@@ -1,7 +1,8 @@
 import { proxyActivities } from '@temporalio/workflow'
 
-import * as activities from '../activities'
 import { IMemberIdentity, MergeActionState, MergeActionStep } from '@crowd/types'
+
+import * as activities from '../activities'
 
 const {
   deleteMember,
@@ -96,10 +97,7 @@ export async function finishOrganizationMerging(
     step: MergeActionStep.MERGE_ASYNC_STARTED,
   })
 
-  let movedSomething = true
-  do {
-    movedSomething = await moveActivitiesBetweenOrgs(primaryId, secondaryId, tenantId)
-  } while (movedSomething)
+  await moveActivitiesBetweenOrgs(primaryId, secondaryId, tenantId)
 
   await syncOrganization(primaryId)
   await deleteOrganization(secondaryId)

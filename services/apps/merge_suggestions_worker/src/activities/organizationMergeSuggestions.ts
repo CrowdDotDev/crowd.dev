@@ -1,24 +1,24 @@
+import { OrganizationField, findOrgById, queryOrgs } from '@crowd/data-access-layer'
+import { hasLfxMembership } from '@crowd/data-access-layer/src/lfx_memberships'
+import OrganizationMergeSuggestionsRepository from '@crowd/data-access-layer/src/old/apps/merge_suggestions_worker/organizationMergeSuggestions.repo'
+import { fetchOrgIdentities, findOrgAttributes } from '@crowd/data-access-layer/src/organizations'
+import { QueryExecutor, pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
+import { buildFullOrgForMergeSuggestions } from '@crowd/opensearch'
 import {
   ILLMConsumableOrganization,
   IOrganizationBaseForMergeSuggestions,
-  IOrganizationOpensearch,
   IOrganizationFullAggregatesOpensearch,
   IOrganizationMergeSuggestion,
+  IOrganizationOpensearch,
   OpenSearchIndex,
   OrganizationIdentityType,
   OrganizationMergeSuggestionTable,
 } from '@crowd/types'
-import { svc } from '../main'
 
-import { ISimilarityFilter, ISimilarOrganizationOpensearchResult } from '../types'
-import OrganizationMergeSuggestionsRepository from '@crowd/data-access-layer/src/old/apps/merge_suggestions_worker/organizationMergeSuggestions.repo'
-import { hasLfxMembership } from '@crowd/data-access-layer/src/lfx_memberships'
-import { prefixLength } from '../utils'
+import { svc } from '../main'
 import OrganizationSimilarityCalculator from '../organizationSimilarityCalculator'
-import { QueryExecutor, pgpQx } from '@crowd/data-access-layer/src/queryExecutor'
-import { buildFullOrgForMergeSuggestions } from '@crowd/opensearch'
-import { fetchOrgIdentities, findOrgAttributes } from '@crowd/data-access-layer/src/organizations'
-import { OrganizationField, findOrgById, queryOrgs } from '@crowd/data-access-layer'
+import { ISimilarOrganizationOpensearchResult, ISimilarityFilter } from '../types'
+import { prefixLength } from '../utils'
 
 export async function getOrganizations(
   tenantId: string,
@@ -241,9 +241,6 @@ export async function getOrganizationMergeSuggestions(
   const similarOrganizationsQueryBody = {
     query: {
       bool: identitiesPartialQuery,
-    },
-    collapse: {
-      field: 'uuid_organizationId',
     },
     _source: [
       'uuid_organizationId',

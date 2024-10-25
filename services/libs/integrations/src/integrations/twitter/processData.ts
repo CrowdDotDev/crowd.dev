@@ -1,14 +1,16 @@
-import { ProcessDataHandler } from '../../types'
-import { TwitterPublishData, TwitterStreamType, TwitterActivityType } from './types'
 import {
   IActivityData,
   IMemberData,
-  PlatformType,
-  MemberAttributeName,
   IntegrationResultType,
+  MemberAttributeName,
   MemberIdentityType,
+  PlatformType,
 } from '@crowd/types'
+
+import { ProcessDataHandler } from '../../types'
+
 import { TWITTER_GRID } from './grid'
+import { TwitterActivityType, TwitterPublishData, TwitterStreamType } from './types'
 
 const processTweetsWithMentions: ProcessDataHandler = async (ctx) => {
   const metadata = ctx.data as TwitterPublishData

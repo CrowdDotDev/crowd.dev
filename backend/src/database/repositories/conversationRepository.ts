@@ -1,23 +1,25 @@
-import { distinct, Error404 } from '@crowd/common'
+import lodash from 'lodash'
+
+import { Error404, distinct } from '@crowd/common'
 import {
   DEFAULT_COLUMNS_TO_SELECT,
+  IQueryActivityResult,
   deleteConversations,
   getConversationById,
   insertConversation,
-  IQueryActivityResult,
   queryActivities,
   queryMembersAdvanced,
   updateConversation,
 } from '@crowd/data-access-layer'
 import { IDbConversation } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/repo/conversation.data'
 import { optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
-import { PageData, PlatformType } from '@crowd/types'
-import lodash from 'lodash'
 import { ActivityDisplayService } from '@crowd/integrations'
+import { PageData, PlatformType } from '@crowd/types'
+
 import { IRepositoryOptions } from './IRepositoryOptions'
 import AuditLogRepository from './auditLogRepository'
-import SequelizeRepository from './sequelizeRepository'
 import SegmentRepository from './segmentRepository'
+import SequelizeRepository from './sequelizeRepository'
 
 class ConversationRepository {
   static async create(data, options: IRepositoryOptions) {

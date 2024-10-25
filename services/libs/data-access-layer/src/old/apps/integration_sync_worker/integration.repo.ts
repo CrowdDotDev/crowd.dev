@@ -1,5 +1,6 @@
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
+
 import { IDbIntegration } from './integration.data'
 
 export class IntegrationRepository extends RepositoryBase<IntegrationRepository> {

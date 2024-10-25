@@ -1,24 +1,26 @@
-import { NANGO_CONFIG, SERVICE_CONFIG } from '../conf'
-import { MemberRepository } from '@crowd/data-access-layer/src/old/apps/integration_sync_worker/member.repo'
-import { Entity, HubspotSettings, IMember, OpenSearchIndex } from '@crowd/types'
 import { singleOrDefault } from '@crowd/common'
 import { DbStore } from '@crowd/data-access-layer/src/database'
-import { Logger, LoggerBase } from '@crowd/logging'
-import { Edition } from '@crowd/types'
-import { ISearchHit } from './opensearch.data'
-import { OpenSearchService } from './opensearch.service'
+import { AutomationRepository } from '@crowd/data-access-layer/src/old/apps/integration_sync_worker/automation.repo'
+import { AutomationExecutionRepository } from '@crowd/data-access-layer/src/old/apps/integration_sync_worker/automationExecution.repo'
+import { IDbIntegration } from '@crowd/data-access-layer/src/old/apps/integration_sync_worker/integration.data'
 import { IntegrationRepository } from '@crowd/data-access-layer/src/old/apps/integration_sync_worker/integration.repo'
-import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
+import { MemberRepository } from '@crowd/data-access-layer/src/old/apps/integration_sync_worker/member.repo'
 import {
   IBatchCreateMembersResult,
   IBatchUpdateMembersResult,
   IIntegrationProcessRemoteSyncContext,
   INTEGRATION_SERVICES,
 } from '@crowd/integrations'
-import { IDbIntegration } from '@crowd/data-access-layer/src/old/apps/integration_sync_worker/integration.data'
-import { AutomationRepository } from '@crowd/data-access-layer/src/old/apps/integration_sync_worker/automation.repo'
-import { AutomationExecutionRepository } from '@crowd/data-access-layer/src/old/apps/integration_sync_worker/automationExecution.repo'
+import { Logger, LoggerBase } from '@crowd/logging'
+import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
+import { Entity, HubspotSettings, IMember, OpenSearchIndex } from '@crowd/types'
+import { Edition } from '@crowd/types'
+
+import { NANGO_CONFIG, SERVICE_CONFIG } from '../conf'
 import { automationNotFound, integrationNotFound } from '../errors'
+
+import { ISearchHit } from './opensearch.data'
+import { OpenSearchService } from './opensearch.service'
 
 export class MemberSyncService extends LoggerBase {
   private readonly memberRepo: MemberRepository

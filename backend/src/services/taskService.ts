@@ -1,9 +1,11 @@
 import { Error400 } from '@crowd/common'
-import SequelizeRepository from '../database/repositories/sequelizeRepository'
-import { IServiceOptions } from './IServiceOptions'
-import TaskRepository from '../database/repositories/taskRepository'
+
 import MemberRepository from '../database/repositories/memberRepository'
+import SequelizeRepository from '../database/repositories/sequelizeRepository'
+import TaskRepository from '../database/repositories/taskRepository'
 import UserRepository from '../database/repositories/userRepository'
+
+import { IServiceOptions } from './IServiceOptions'
 
 export default class TaskService {
   options: IServiceOptions

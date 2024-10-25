@@ -1,5 +1,5 @@
-import { i18n, i18nExists } from '../i18n'
 import { IS_PROD_ENV } from '../env'
+import { i18n, i18nExists } from '../i18n'
 
 export default class Error403 extends Error {
   code: number

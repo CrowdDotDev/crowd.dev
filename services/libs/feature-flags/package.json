@@ -9,13 +9,13 @@
   },
   "devDependencies": {
     "@types/node": "^18.16.3",
-    "typescript": "^5.0.4"
+    "typescript": "^5.6.3"
   },
   "dependencies": {
     "@crowd/common": "workspace:*",
     "@crowd/logging": "workspace:*",
-    "@crowd/types": "workspace:*",
     "@crowd/redis": "workspace:*",
+    "@crowd/types": "workspace:*",
     "unleash-client": "^3.18.1"
   }
 }

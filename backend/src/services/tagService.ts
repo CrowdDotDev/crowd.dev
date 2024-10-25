@@ -1,8 +1,10 @@
 import { Error400 } from '@crowd/common'
-import SequelizeRepository from '../database/repositories/sequelizeRepository'
-import { IServiceOptions } from './IServiceOptions'
-import TagRepository from '../database/repositories/tagRepository'
+
 import MemberRepository from '../database/repositories/memberRepository'
+import SequelizeRepository from '../database/repositories/sequelizeRepository'
+import TagRepository from '../database/repositories/tagRepository'
+
+import { IServiceOptions } from './IServiceOptions'
 
 export default class TagService {
   options: IServiceOptions

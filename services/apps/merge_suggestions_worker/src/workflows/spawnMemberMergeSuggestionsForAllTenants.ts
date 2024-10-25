@@ -1,12 +1,13 @@
 import {
+  ChildWorkflowCancellationType,
+  ParentClosePolicy,
   proxyActivities,
   startChild,
-  ParentClosePolicy,
-  ChildWorkflowCancellationType,
   workflowInfo,
 } from '@temporalio/workflow'
 
 import * as activities from '../activities/common'
+
 import { generateMemberMergeSuggestions } from './generateMemberMergeSuggestions'
 
 const activity = proxyActivities<typeof activities>({ startToCloseTimeout: '1 minute' })

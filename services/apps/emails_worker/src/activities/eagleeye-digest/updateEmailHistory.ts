@@ -1,7 +1,8 @@
+import * as eagleeye from '@crowd/data-access-layer/src/old/apps/emails_worker/eagleeye'
+
 import { svc } from '../../main'
 import { UserTenantWithEmailSent } from '../../types/user'
 import { nextEmailAt } from '../../utils/date'
-import * as eagleeye from '@crowd/data-access-layer/src/old/apps/emails_worker/eagleeye'
 
 /*
 eagleeyeUpdateNextEmailAt is a Temporal activity that updates when the next daily

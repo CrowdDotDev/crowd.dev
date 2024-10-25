@@ -1,6 +1,7 @@
+import MemberIdentityService from '@/services/member/memberIdentityService'
+
 import Permissions from '../../../security/permissions'
 import PermissionChecker from '../../../services/user/permissionChecker'
-import MemberIdentityService from '@/services/member/memberIdentityService'
 
 /**
  * PUT /tenant/{tenantId}/member/:memberId/identity

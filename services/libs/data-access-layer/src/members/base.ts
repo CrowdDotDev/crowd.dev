@@ -1,27 +1,31 @@
-import { Error400, groupBy, RawQueryParser } from '@crowd/common'
+import { uniq } from 'lodash'
+
+import { Error400, RawQueryParser, groupBy } from '@crowd/common'
 import { DbConnOrTx } from '@crowd/database'
 import { ActivityDisplayService } from '@crowd/integrations'
 import { getServiceChildLogger } from '@crowd/logging'
 import { RedisClient } from '@crowd/redis'
 import {
-  ActivityDisplayVariant,
   ALL_PLATFORM_TYPES,
+  ActivityDisplayVariant,
   MemberAttributeType,
   MemberIdentityType,
   PageData,
   SegmentType,
 } from '@crowd/types'
-import { uniq } from 'lodash'
-import { fetchManyMemberIdentities, fetchManyMemberOrgs, fetchManyMemberSegments } from '.'
+
 import { getLastActivitiesForMembers } from '../activities'
 import { findManyLfxMemberships } from '../lfx_memberships'
+import { findMaintainerRoles } from '../maintainers'
 import { OrganizationField, queryOrgs } from '../orgs'
 import { QueryExecutor } from '../queryExecutor'
 import { fetchManySegments, findSegmentById, getSegmentActivityTypes } from '../segments'
 import { QueryOptions, QueryResult, queryTable, queryTableById } from '../utils'
+
 import { getMemberAttributeSettings } from './attributeSettings'
 import { IDbMemberAttributeSetting, IDbMemberData } from './types'
-import { findMaintainerRoles } from '../maintainers'
+
+import { fetchManyMemberIdentities, fetchManyMemberOrgs, fetchManyMemberSegments } from '.'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -403,7 +407,9 @@ export async function queryMembersAdvanced(
   })
 
   if (memberIds.length > 0 && qdbConn) {
-    const lastActivities = await getLastActivitiesForMembers(qdbConn, memberIds)
+    const lastActivities = await getLastActivitiesForMembers(qdbConn, memberIds, tenantId, [
+      segmentId,
+    ])
     rows.forEach((r) => {
       r.lastActivity = lastActivities.find((a) => (a as any).memberId === r.id)
       if (r.lastActivity) {

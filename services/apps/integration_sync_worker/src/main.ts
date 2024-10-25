@@ -2,6 +2,7 @@ import { getDbConnection } from '@crowd/data-access-layer/src/database'
 import { getServiceLogger } from '@crowd/logging'
 import { getOpensearchClient } from '@crowd/opensearch'
 import { QueueFactory } from '@crowd/queue'
+
 import { DB_CONFIG, OPENSEARCH_CONFIG, QUEUE_CONFIG, SERVICE_CONFIG } from './conf'
 import { WorkerQueueReceiver } from './queue'
 

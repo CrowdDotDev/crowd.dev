@@ -1,5 +1,6 @@
 import { OpensearchField } from '@crowd/types'
 import { OpensearchFieldType } from '@crowd/types'
+
 import OpensearchModelBase from './base'
 
 export class MembersOpensearch extends OpensearchModelBase {

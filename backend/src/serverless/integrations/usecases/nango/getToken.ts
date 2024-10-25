@@ -1,5 +1,7 @@
 import axios from 'axios'
+
 import { Logger } from '@crowd/logging'
+
 import { NANGO_CONFIG } from '../../../../conf'
 
 async function getToken(connectionId: string, providerConfigKey: string, logger: Logger) {

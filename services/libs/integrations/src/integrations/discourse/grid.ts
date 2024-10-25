@@ -1,4 +1,5 @@
 import { IActivityScoringGrid } from '@crowd/types'
+
 import { DiscourseActivityType } from './types'
 
 export const DISCOURSE_GRID: Record<DiscourseActivityType, IActivityScoringGrid> = {

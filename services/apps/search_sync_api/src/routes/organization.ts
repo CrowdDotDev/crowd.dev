@@ -1,5 +1,7 @@
-import { OrganizationSyncService } from '@crowd/opensearch'
 import express from 'express'
+
+import { OrganizationSyncService } from '@crowd/opensearch'
+
 import { ApiRequest } from '../middleware'
 import { asyncWrap } from '../middleware/error'
 

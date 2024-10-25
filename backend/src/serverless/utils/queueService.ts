@@ -9,8 +9,10 @@ import {
 import { getServiceChildLogger } from '@crowd/logging'
 import { IQueue, QueueFactory } from '@crowd/queue'
 import { RedisClient, getRedisClient } from '@crowd/redis'
-import SequelizeRepository from '@/database/repositories/sequelizeRepository'
+
 import { PriorityLevelContextRepository } from '@/database/repositories/priorityLevelContextRepository'
+import SequelizeRepository from '@/database/repositories/sequelizeRepository'
+
 import { QUEUE_CONFIG, REDIS_CONFIG } from '../../conf'
 
 const log = getServiceChildLogger('service.queue')
