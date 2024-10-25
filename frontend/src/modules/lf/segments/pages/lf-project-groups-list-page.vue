@@ -37,7 +37,7 @@
       <app-empty-state-cta
         v-if="!pagination.total"
         class="mt-20"
-        icon="ri-folder-5-line"
+        icon="folders"
         title="No project groups yet"
         :description="`${!hasPermission(LfPermission.projectGroupCreate)
           ? 'Ask an administrator to c' : 'C'}reate your first project group and start integrating your projects`"
@@ -52,7 +52,7 @@
 
       <app-empty-state-cta
         v-else-if="!pagination.count"
-        icon="ri-folder-5-line"
+        icon="folders"
         title="No project groups found"
         description="We couldn't find any results that match your search criteria, please try a different query"
       />
@@ -74,7 +74,7 @@
               alt="Project group logo"
               class="h-12 w-auto"
             />
-            <i v-else class="ri-image-line text-4xl text-gray-200" />
+            <lf-icon v-else name="image" :size="48" class="text-gray-200" />
           </div>
 
           <div class="px-6">
@@ -131,6 +131,7 @@ import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import { LfRole } from '@/shared/modules/permissions/types/Roles';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const router = useRouter();
 const route = useRoute();

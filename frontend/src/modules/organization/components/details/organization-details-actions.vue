@@ -24,7 +24,7 @@
 
         <!-- Merge -->
         <lf-button v-else-if="hasPermission(LfPermission.mergeOrganizations)" type="secondary" @click="isMergeDialogOpen = props.organization">
-          <lf-icon name="exchange-2-line" />
+          <lf-icon-old name="exchange-2-line" />
           Merge organization
         </lf-button>
       </template>
@@ -41,7 +41,7 @@
             :icon-only="true"
             :class="hasSegments && hasPermission(LfPermission.mergeOrganizations) ? '!rounded-l-none -ml-px' : ''"
           >
-            <lf-icon name="more-fill" />
+            <lf-icon-old name="more-fill" />
           </lf-button>
         </template>
 
@@ -68,7 +68,7 @@
 </template>
 
 <script setup lang="ts">
-import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfButtonGroup from '@/ui-kit/button/ButtonGroup.vue';
 import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';

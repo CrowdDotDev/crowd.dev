@@ -8,7 +8,7 @@ import { itemLabelRendererByType } from '@/shared/modules/filters/config/itemLab
 const unaffiliated: BooleanFilterConfig = {
   id: 'unaffiliated',
   label: 'Unaffiliated profile',
-  iconClass: 'ri-id-card-line',
+  iconClass: 'id-card',
   type: FilterConfigType.BOOLEAN,
   options: {},
   itemLabelRenderer(value: BooleanFilterValue, options: BooleanFilterOptions): string {

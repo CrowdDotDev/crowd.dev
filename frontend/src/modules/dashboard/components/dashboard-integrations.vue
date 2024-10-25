@@ -10,8 +10,9 @@
             Connecting integrations...
           </h6>
         </div>
-        <div v-if="progressError" class="px-4 text-xs text-gray-500 my-2">
-          <i class="ri-alert-line text-yellow-600" /> Error loading progress
+        <div v-if="progressError" class="px-4 text-xs text-gray-500 my-2 flex items-center">
+          <lf-icon name="triangle-exclamation" type="solid" class="text-yellow-600 mr-1" />
+          Error loading progress
         </div>
         <section
           v-for="(segment, si) of getSegmentList(progress)"
@@ -51,6 +52,7 @@ import { IntegrationProgress } from '@/modules/integration/types/IntegrationProg
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 interface SegmentIntegrations {
   id: string;

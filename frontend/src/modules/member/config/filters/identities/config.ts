@@ -11,7 +11,7 @@ import { apiFilterRendererByType } from '@/shared/modules/filters/config/apiFilt
 const identities: MultiSelectFilterConfig = {
   id: 'identities',
   label: 'Identities',
-  iconClass: 'ri-fingerprint-line',
+  iconClass: 'fingerprint',
   type: FilterConfigType.MULTISELECT,
   options: {
     options: [

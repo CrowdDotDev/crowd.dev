@@ -1,6 +1,5 @@
 export const pageContent = {
   eagleEye: {
-    icon: 'ri-search-eye-line',
     headerTitle: 'Community Lens',
     title: 'Locate & engage with the right content',
     mainContent:
@@ -10,7 +9,7 @@ export const pageContent = {
     imageClass: '',
     featuresList: [
       {
-        icon: 'ri-eye-2-line',
+        icon: 'eye',
         title:
             'Keep an Eagle Eye view on relevant content & posts to grow',
         content:
@@ -18,7 +17,7 @@ export const pageContent = {
             + 'is focused on helping you engage with relevant content outside of your community to help grow it further.',
       },
       {
-        icon: 'ri-apps-2-line',
+        icon: 'grid-round-2',
         title:
             'Identify and engage with content across platforms',
         content:
@@ -26,7 +25,7 @@ export const pageContent = {
             + 'content to enage with accross platforms like HackerNews and Dev to connect you with like-minded people.',
       },
       {
-        icon: 'ri-character-recognition-line',
+        icon: 'magnifying-glass-waveform',
         title:
             'Search powered by Natural Language Processing',
         content:

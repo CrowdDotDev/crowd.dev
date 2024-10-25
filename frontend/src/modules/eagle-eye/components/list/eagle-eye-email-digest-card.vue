@@ -4,7 +4,7 @@
     class="bg-primary-25 rounded-lg p-5 shadow"
   >
     <div class="flex items-center gap-2">
-      <i class="ri-mail-open-line text-lg text-gray-900" />
+      <lf-icon name="envelope-open" :size="20" class="text-gray-900" />
       <span class="text-gray-900 font-semibold text-sm">Email Digest</span>
     </div>
 
@@ -27,7 +27,7 @@
     class="bg-white rounded-lg shadow px-3 py-2 flex justify-between items-center"
   >
     <div class="flex items-center gap-3">
-      <i class="ri-mail-open-line text-lg text-gray-900" />
+      <lf-icon name="envelope-open" :size="20" class="text-gray-900" />
       <div class="flex flex-col">
         <span class="text-gray-900 font-medium text-xs">Email Digest</span>
         <span
@@ -48,7 +48,7 @@
       class="btn btn-link btn-link--primary !h-8 !w-8"
       @click="isEmailDigestDrawerOpen = true"
     >
-      <i class="ri-sound-module-line text-base" />
+      <lf-icon name="gear" :size="16" />
     </el-button>
   </div>
 
@@ -64,6 +64,7 @@ import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const authStore = useAuthStore();
 const { user, tenant } = storeToRefs(authStore);

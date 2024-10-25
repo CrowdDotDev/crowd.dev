@@ -13,7 +13,7 @@ import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 const member: MultiSelectAsyncFilterConfig = {
   id: 'member',
   label: 'Person',
-  iconClass: 'ri-account-circle-line',
+  iconClass: 'circle-user',
   type: FilterConfigType.MULTISELECT_ASYNC,
   options: {
     remoteMethod: (query) => {

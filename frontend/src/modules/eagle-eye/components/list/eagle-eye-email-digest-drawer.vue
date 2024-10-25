@@ -5,9 +5,7 @@
     size="600px"
   >
     <template #beforeTitle>
-      <i
-        class="ri-mail-open-line text-xl h-6 text-gray-900 flex items-center mr-3"
-      />
+      <lf-icon name="envelope-open" :size="24" class="text-gray-900  mr-3" />
     </template>
     <template #content>
       <div class="pb-8">
@@ -132,9 +130,7 @@
               class="bg-yellow-50 border border-yellow-100 rounded-md py-2.5 px-3 flex items-center justify-between mb-4"
             >
               <div class="flex items-center">
-                <i
-                  class="text-base ri-alert-fill text-yellow-500 mr-2"
-                />
+                <lf-icon name="triangle-exclamation" type="solid" :size="16" class="text-yellow-500 mr-2" />
                 <p class="text-2xs leading-5">
                   Current feed settings don’t match the
                   digest results
@@ -255,6 +251,7 @@ import formChangeDetector from '@/shared/form/form-change';
 import elementChangeDetector from '@/shared/form/element-change';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps({
   modelValue: {

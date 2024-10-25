@@ -24,8 +24,8 @@
     <div v-else-if="executions.length > 0">
       <article v-for="execution of executions" :key="execution.id" class="border-b border-gray-200 py-3 flex items-center">
         <div class="w-20">
-          <span v-if="execution.state === 'success'" class="ri-checkbox-circle-line text-lg text-green-600" />
-          <span v-else class="ri-close-circle-line text-lg text-red-500" />
+          <lf-icon v-if="execution.state === 'success'" name="circle-check" :size="20" class="text-green-600" />
+          <lf-icon v-else name="circle-xmark" :size="20" class="text-red-500" />
         </div>
         <div class="flex-grow">
           {{ formatDate(execution.executedAt) }}
@@ -39,7 +39,7 @@
     </div>
     <app-empty-state
       v-else
-      icon="ri-folder-3-line"
+      icon="folder"
       description="There are no execution logs yet"
     />
     <app-dialog
@@ -64,6 +64,7 @@ import { AutomationService } from '@/modules/automation/automation-service';
 import moment from 'moment';
 import AppDialog from '@/shared/dialog/dialog.vue';
 import AppAutomationExecution from '@/modules/automation/components/executions/automation-execution.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps({
   automation: {

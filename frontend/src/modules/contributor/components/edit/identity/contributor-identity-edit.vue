@@ -5,7 +5,7 @@
         <div class="flex items-center justify-between pb-6">
           <h5>Edit identity</h5>
           <lf-button type="secondary-ghost-light" :icon-only="true" @click="close">
-            <lf-icon name="close-line" />
+            <lf-icon-old name="close-line" />
           </lf-button>
         </div>
 
@@ -14,14 +14,14 @@
             <template #prefix>
               <div class="flex items-center flex-nowrap whitespace-nowrap">
                 <div class="min-w-5">
-                  <lf-icon v-if="form.type === 'email'" name="mail-line" class="text-black" :size="20" />
+                  <lf-icon-old v-if="form.type === 'email'" name="mail-line" class="text-black" :size="20" />
                   <img
                     v-else-if="platform"
                     :src="platform?.image"
                     class="h-5 w-5 object-contain"
                     :alt="form.value"
                   />
-                  <lf-icon
+                  <lf-icon-old
                     v-else
                     name="fingerprint-fill"
                     :size="20"
@@ -64,7 +64,7 @@ import {
 } from 'vue';
 import { Contributor, ContributorIdentity } from '@/modules/contributor/types/Contributor';
 import LfButton from '@/ui-kit/button/Button.vue';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import LfInput from '@/ui-kit/input/Input.vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import { useContributorStore } from '@/modules/contributor/store/contributor.store';

@@ -9,7 +9,7 @@ import {
 const user: SelectAsyncFilterConfig = {
   id: 'user',
   label: 'User',
-  iconClass: 'ri-account-circle-line',
+  iconClass: 'circle-user',
   type: FilterConfigType.SELECT_ASYNC,
   options: {
     hideIncludeSwitch: true,

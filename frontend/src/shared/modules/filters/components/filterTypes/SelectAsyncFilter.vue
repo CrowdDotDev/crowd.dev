@@ -10,7 +10,7 @@
         @update:model-value="searchOptions"
       >
         <template #prefix>
-          <i class="ri-search-line" />
+          <lf-icon name="search" :size="16" />
         </template>
         <template #suffix>
           <i v-if="search.length > 0" class="ri-close-line text-base cursor-pointer" @click="search = ''" />
@@ -60,6 +60,7 @@ import {
   SelectAsyncFilterValue,
 } from '@/shared/modules/filters/types/filterTypes/SelectAsyncFilterConfig';
 import { SelectFilterValue } from '@/shared/modules/filters/types/filterTypes/SelectFilterConfig';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps<{
   modelValue: SelectAsyncFilterValue,
