@@ -1,7 +1,6 @@
-import { EventEmitter } from 'events'
 import { RedisClientType, RedisDefaultModules } from 'redis'
 
-export type RedisClient = RedisClientType<RedisDefaultModules> & EventEmitter
+export type RedisClient = RedisClientType<RedisDefaultModules>
 
 export interface IRedisPubSubPair {
   pubClient: RedisClient
