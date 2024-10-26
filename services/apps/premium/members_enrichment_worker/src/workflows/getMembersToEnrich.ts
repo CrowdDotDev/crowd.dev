@@ -34,8 +34,8 @@ export async function getMembersToEnrich(args: IGetMembersForEnrichmentArgs): Pr
     members.map((member) => {
       return executeChild(enrichMember, {
         workflowId: 'member-enrichment/' + member.tenantId + '/' + member.id,
-        cancellationType: ChildWorkflowCancellationType.ABANDON,
-        parentClosePolicy: ParentClosePolicy.PARENT_CLOSE_POLICY_ABANDON,
+        cancellationType: ChildWorkflowCancellationType.WAIT_CANCELLATION_COMPLETED,
+        parentClosePolicy: ParentClosePolicy.PARENT_CLOSE_POLICY_REQUEST_CANCEL,
         workflowExecutionTimeout: '15 minutes',
         retry: {
           backoffCoefficient: 2,
