@@ -10,7 +10,7 @@
         },
       }"
     >
-      <i class="ri-arrow-left-s-line mr-2" />
+      <lf-icon name="chevron-left" :size="12" class="mr-2" />
       <span>Project groups</span>
     </router-link>
     <div class="text-sm text-primary-500 pb-2">
@@ -47,7 +47,7 @@
       <app-empty-state-cta
         v-if="!pagination.total"
         class="mt-20"
-        icon="ri-stack-line"
+        icon="layer-group"
         title="No projects yet"
         :description="`${!(hasPermission(LfPermission.projectCreate) && hasAccessToSegmentId(route.params.id))
           ? 'Ask an administrator to a' : 'A'}dd your first project and start collecting data from your community`"
@@ -57,7 +57,7 @@
 
       <app-empty-state-cta
         v-else-if="!pagination.count"
-        icon="ri-stack-line"
+        icon="layer-group"
         title="No projects found"
         description="We couldn't find any results that match your search criteria, please try a different query"
       />
@@ -138,6 +138,7 @@ import usePermissions from '@/shared/modules/permissions/helpers/usePermissions'
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const route = useRoute();
 const lsSegmentsStore = useLfSegmentsStore();

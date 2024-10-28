@@ -6,10 +6,10 @@
       </h4>
       <lf-button type="secondary-ghost" size="small" @click="copy">
         <template v-if="!copied">
-          <i class="ri-file-copy-line" /> Copy
+          <lf-icon name="copy" />Copy
         </template>
         <template v-else>
-          <i class="ri-checkbox-circle-fill" />Copied!
+          <lf-icon name="circle-check" type="solid" />Copied!
         </template>
       </lf-button>
     </div>
@@ -23,6 +23,7 @@ import { AuditLog } from '@/modules/lf/segments/types/AuditLog';
 import { ref } from 'vue';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps<{
   log: AuditLog

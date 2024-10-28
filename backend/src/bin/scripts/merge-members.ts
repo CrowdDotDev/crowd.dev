@@ -2,8 +2,10 @@ import commandLineArgs from 'command-line-args'
 import commandLineUsage from 'command-line-usage'
 import * as fs from 'fs'
 import path from 'path'
-import { getServiceLogger } from '@crowd/logging'
+
 import { MemberField, findMemberById } from '@crowd/data-access-layer/src/members'
+import { getServiceLogger } from '@crowd/logging'
+
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 import MemberService from '../../services/memberService'
 

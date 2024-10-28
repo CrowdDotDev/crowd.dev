@@ -6,7 +6,7 @@
           Activities affiliation
         </h5>
         <lf-button type="secondary-ghost-light" :icon-only="true" @click="isModalOpen = false">
-          <lf-icon name="close-line" />
+          <lf-icon-old name="close-line" />
         </lf-button>
       </div>
       <p class="text-gray-500 text-medium">
@@ -60,7 +60,7 @@
                         :icon-only="true"
                         @click="form.splice(ai, 1)"
                       >
-                        <lf-icon name="delete-bin-6-line" />
+                        <lf-icon-old name="delete-bin-6-line" />
                       </lf-button>
                     </lf-contributor-edit-affilations-item>
                   </template>
@@ -73,7 +73,7 @@
                   class="mt-1"
                   @click="addAffiliation(subproject.id)"
                 >
-                  <lf-icon name="add-line" />
+                  <lf-icon-old name="add-line" />
                   Add affiliation
                 </lf-button>
               </div>
@@ -99,7 +99,7 @@ import { useContributorStore } from '@/modules/contributor/store/contributor.sto
 import { Contributor, ContributorAffiliation } from '@/modules/contributor/types/Contributor';
 import { computed, onMounted, ref } from 'vue';
 import LfButton from '@/ui-kit/button/Button.vue';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import LfContributorEditAffilationsItem
 , { AffilationForm } from '@/modules/contributor/components/edit/affilations/contributor-affilations-edit-item.vue';
 import useVuelidate from '@vuelidate/core';

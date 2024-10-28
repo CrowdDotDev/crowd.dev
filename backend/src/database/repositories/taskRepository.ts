@@ -1,14 +1,17 @@
-import sanitizeHtml from 'sanitize-html'
 import lodash from 'lodash'
+import sanitizeHtml from 'sanitize-html'
 import Sequelize from 'sequelize'
+
 import { Error404 } from '@crowd/common'
 import { getActivitiesById } from '@crowd/data-access-layer'
-import SequelizeRepository from './sequelizeRepository'
-import AuditLogRepository from './auditLogRepository'
+
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
+
 import { IRepositoryOptions } from './IRepositoryOptions'
+import AuditLogRepository from './auditLogRepository'
 import QueryParser from './filters/queryParser'
 import { QueryOutput } from './filters/queryTypes'
+import SequelizeRepository from './sequelizeRepository'
 
 const { Op } = Sequelize
 

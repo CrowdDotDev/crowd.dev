@@ -1,9 +1,11 @@
-import { getServiceChildLogger } from '@crowd/logging'
 import cronGenerator from 'cron-time-generator'
+
 import { timeout } from '@crowd/common'
+import { getServiceChildLogger } from '@crowd/logging'
+
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
-import { CrowdJob } from '../../types/jobTypes'
 import IntegrationService from '../../services/integrationService'
+import { CrowdJob } from '../../types/jobTypes'
 
 const log = getServiceChildLogger('refreshGithubRepoSettings')
 

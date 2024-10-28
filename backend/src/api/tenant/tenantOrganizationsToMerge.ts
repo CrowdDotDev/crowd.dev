@@ -1,7 +1,8 @@
 import { Error403 } from '@crowd/common'
+
+import Permissions from '../../security/permissions'
 import TenantService from '../../services/tenantService'
 import PermissionChecker from '../../services/user/permissionChecker'
-import Permissions from '../../security/permissions'
 
 export default async (req, res) => {
   if (!req.currentUser || !req.currentUser.id) {

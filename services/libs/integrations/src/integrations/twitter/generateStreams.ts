@@ -1,13 +1,15 @@
+import axios from 'axios'
+
 import { GenerateStreamsHandler } from '../../types'
 import { IGenerateStreamsContext } from '../../types'
-import axios from 'axios'
+
 import {
-  TwitterPlatformSettings,
+  TwitterHashtagStreamData,
   TwitterIntegrationsSettings,
   TwitterMentionsStreamData,
-  TwitterHashtagStreamData,
-  TwitterStreamType,
+  TwitterPlatformSettings,
   TwitterReachStreamData,
+  TwitterStreamType,
 } from './types'
 
 const CHECK_REACH_EVERY_IN_SECONDS = 24 * 60 * 60

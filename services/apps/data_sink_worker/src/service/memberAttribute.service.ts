@@ -1,12 +1,12 @@
-import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { DbStore } from '@crowd/data-access-layer/src/database'
-import { Logger, LoggerBase } from '@crowd/logging'
-import { MemberAttributeType } from '@crowd/types'
-import { RedisClient } from '@crowd/redis'
 import {
   getMemberAttributeSettings,
   getPlatformPriorityArray,
 } from '@crowd/data-access-layer/src/members/attributeSettings'
+import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
+import { Logger, LoggerBase } from '@crowd/logging'
+import { RedisClient } from '@crowd/redis'
+import { MemberAttributeType } from '@crowd/types'
 
 export default class MemberAttributeService extends LoggerBase {
   constructor(

@@ -1,15 +1,18 @@
-import { IGenerateStreamsContext, IProcessStreamContext } from '../../../../types'
-import { HubspotAssociationType, HubspotEndpoint, IHubspotContact, IHubspotObject } from '../types'
 import axios, { AxiosRequestConfig } from 'axios'
-import { getNangoToken } from './../../../nango'
-import { PlatformType } from '@crowd/types'
-import { IPaginatedResponse } from './types'
+
 import { RequestThrottler } from '@crowd/common'
+import { PlatformType } from '@crowd/types'
+
+import { IGenerateStreamsContext, IProcessStreamContext } from '../../../../types'
 import { HubspotMemberFieldMapper } from '../field-mapper/memberFieldMapper'
 import { HubspotOrganizationFieldMapper } from '../field-mapper/organizationFieldMapper'
-import { getContactAssociations } from './contactAssociations'
-import { getCompanyById } from './companyById'
+import { HubspotAssociationType, HubspotEndpoint, IHubspotContact, IHubspotObject } from '../types'
+
+import { getNangoToken } from './../../../nango'
 import { HUBSPOT_API_PAGE_SIZE } from './common'
+import { getCompanyById } from './companyById'
+import { getContactAssociations } from './contactAssociations'
+import { IPaginatedResponse } from './types'
 
 export const getContacts = async (
   nangoId: string,

@@ -1,14 +1,16 @@
-import { asyncWrap } from '../middleware/error'
-import verifyGithubWebhook from 'verify-github-webhook'
-import { Error400BadRequest } from '@crowd/common'
 import express from 'express'
-import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
+import verifyGithubWebhook from 'verify-github-webhook'
+
+import { Error400BadRequest } from '@crowd/common'
 import {
   findDataIssueByGithubUrl,
   markDataIssueAsResolved,
 } from '@crowd/data-access-layer/src/data_issues'
-import { findUserById, UserField } from '@crowd/data-access-layer/src/users'
+import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
+import { UserField, findUserById } from '@crowd/data-access-layer/src/users'
+
 import { GITHUB_ISSUE_REPORTER_CONFIG } from '../conf'
+import { asyncWrap } from '../middleware/error'
 
 const SIGNATURE_HEADER = 'x-hub-signature'
 const EVENT_HEADER = 'x-github-event'

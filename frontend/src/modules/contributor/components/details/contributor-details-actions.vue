@@ -3,13 +3,12 @@
     <lf-button-group>
       <!-- Merge suggestions -->
       <lf-button
-        v-if="!hasPermission(LfPermission.mergeMembers)"
         type="secondary"
         @click="setReportDataModal({
           contributor: props.contributor,
         })"
       >
-        <lf-icon name="feedback-line" class="text-red-500" /> Report data issue
+        <lf-icon-old name="feedback-line" class="text-red-500" /> Report data issue
       </lf-button>
       <lf-button
         v-if="!isMasked(props.contributor) && mergeSuggestionsCount > 0 && hasPermission(LfPermission.mergeMembers)"
@@ -28,7 +27,7 @@
         type="secondary"
         @click="isMergeDialogOpen = props.contributor"
       >
-        <lf-icon name="p2p-line" />
+        <lf-icon-old name="p2p-line" />
         Merge profile
       </lf-button>
 
@@ -44,7 +43,7 @@
             :icon-only="true"
             :class="!isMasked(props.contributor) && hasPermission(LfPermission.mergeMembers) ? '!rounded-l-none -ml-px' : ''"
           >
-            <lf-icon name="more-fill" />
+            <lf-icon-old name="more-fill" />
           </lf-button>
         </template>
 
@@ -77,7 +76,7 @@
 </template>
 
 <script setup lang="ts">
-import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfButtonGroup from '@/ui-kit/button/ButtonGroup.vue';
 import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';

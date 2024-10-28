@@ -1,5 +1,6 @@
 import { GenerateStreamsHandler } from '../../types'
-import { ISlackIntegrationSettings, SlackStreamType, ISlackRootStreamData } from './types'
+
+import { ISlackIntegrationSettings, ISlackRootStreamData, SlackStreamType } from './types'
 
 const handler: GenerateStreamsHandler = async (ctx) => {
   const settings = ctx.integration.settings as ISlackIntegrationSettings

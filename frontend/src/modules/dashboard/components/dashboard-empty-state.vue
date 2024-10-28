@@ -1,9 +1,10 @@
 <template>
   <div class="flex items-center justify-center">
-    <div
-      v-if="props.iconClass"
-      class="text-3xl text-gray-300 mr-4 h-10 flex items-center"
-      :class="props.iconClass"
+    <lf-icon
+      v-if="props.icon"
+      :name="props.icon"
+      class="text-gray-300 mr-4"
+      :size="40"
     />
     <p
       class="text-xs leading-5 text-center italic text-gray-400"
@@ -15,9 +16,10 @@
 
 <script setup>
 import { defineProps } from 'vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps({
-  iconClass: {
+  icon: {
     type: String,
     required: false,
     default: '',

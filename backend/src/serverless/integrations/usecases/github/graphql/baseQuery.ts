@@ -1,8 +1,9 @@
 import { graphql } from '@octokit/graphql'
 import { GraphQlQueryResponseData } from '@octokit/graphql/dist-types/types'
 import moment from 'moment'
-import { GraphQlQueryResponse } from '../../../types/messageTypes'
+
 import { RateLimitError } from '../../../../../types/integration/rateLimitError'
+import { GraphQlQueryResponse } from '../../../types/messageTypes'
 
 class BaseQuery {
   static BASE_URL = 'https://api.github.com/graphql'

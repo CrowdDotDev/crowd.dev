@@ -1,5 +1,5 @@
-import { Config } from '@crowd/archetype-standard'
 import { Options, ServiceConsumer } from '@crowd/archetype-consumer'
+import { Config } from '@crowd/archetype-standard'
 
 const config: Config = {
   producer: {

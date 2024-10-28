@@ -1,7 +1,8 @@
 /* eslint-disable no-case-declarations */
+import { Kafka } from 'kafkajs'
 
 import { getServiceChildLogger } from '@crowd/logging'
-import { Kafka } from 'kafkajs'
+
 import { IQueue, IQueueClientConfig } from './types'
 import { KafkaQueueService } from './vendors/kafka/client'
 

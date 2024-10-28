@@ -13,7 +13,7 @@
     </div>
     <div class="pl-3">
       <div class="flex items-center whitespace-nowrap">
-        <span class="ri-check-line text-lg text-green-1000 mr-2" />
+        <lf-icon name="check" :size="20" class="text-green-1000 mr-2" />
         <span class="text-green-1000 text-sm font-medium">App installed</span>
       </div>
     </div>
@@ -21,7 +21,10 @@
 </template>
 
 <script>
+import LfIcon from '@/ui-kit/icon/Icon.vue';
+
 export default {
   name: 'AppAutomationSlackAction',
+  components: { LfIcon },
 };
 </script>

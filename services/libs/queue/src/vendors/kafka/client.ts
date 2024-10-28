@@ -1,5 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+import { createHash } from 'crypto'
 import { Admin, Consumer, EachMessagePayload, Kafka, KafkaMessage } from 'kafkajs'
+
+import { timeout } from '@crowd/common'
+import { Logger, LoggerBase } from '@crowd/logging'
+import { IQueueMessage, IQueueMessageBulk, QueuePriorityLevel } from '@crowd/types'
+
 import {
   CrowdQueue,
   IQueue,
@@ -8,19 +14,19 @@ import {
   IQueueSendBulkResult,
   IQueueSendResult,
 } from '../../types'
-import { IKafkaChannelConfig, IKafkaQueueStartOptions } from './types'
-import { Logger, LoggerBase } from '@crowd/logging'
-import { IQueueMessage, IQueueMessageBulk, QueuePriorityLevel } from '@crowd/types'
-import { createHash } from 'crypto'
+
 import { configMap } from './config'
-import { timeout } from '@crowd/common'
+import { IKafkaChannelConfig, IKafkaQueueStartOptions } from './types'
 
 export class KafkaQueueService extends LoggerBase implements IQueue {
   private consumers: Map<string, Consumer>
   private processingMessages: number
   private started: boolean
 
-  public constructor(public readonly client: Kafka, parentLog: Logger) {
+  public constructor(
+    public readonly client: Kafka,
+    parentLog: Logger,
+  ) {
     super(parentLog, {
       service: 'kafka-queue',
     })

@@ -17,7 +17,7 @@
         />
       </lf-tooltip>
       <lf-tooltip v-else content="Custom identity" placement="top-start">
-        <lf-icon
+        <lf-icon-old
           name="fingerprint-fill"
           :size="20"
           class="text-gray-600"
@@ -50,7 +50,7 @@
     <lf-dropdown v-if="hovered" placement="bottom-end" width="232px">
       <template #trigger>
         <lf-button type="secondary-ghost" size="small" :icon-only="true">
-          <lf-icon name="more-fill" />
+          <lf-icon-old name="more-fill" />
         </lf-button>
       </template>
       <!-- Edit identity -->
@@ -59,7 +59,7 @@
         class="w-full"
         @click="emit('edit')"
       >
-        <lf-icon name="pencil-line" />Edit identity
+        <lf-icon-old name="pencil-line" />Edit identity
       </lf-dropdown-item>
 
       <!-- Unmerge -->
@@ -67,7 +67,7 @@
         v-if="hasPermission(LfPermission.organizationEdit)"
         @click="emit('unmerge')"
       >
-        <lf-icon name="link-unlink" />Unmerge identity
+        <lf-icon-old name="link-unlink" />Unmerge identity
       </lf-dropdown-item>
 
       <lf-dropdown-item
@@ -89,14 +89,14 @@
         class="w-full"
         @click="removeIdentity"
       >
-        <lf-icon name="delete-bin-6-line" />Delete identity
+        <lf-icon-old name="delete-bin-6-line" />Delete identity
       </lf-dropdown-item>
     </lf-dropdown>
   </article>
 </template>
 
 <script setup lang="ts">
-import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';
 import LfButton from '@/ui-kit/button/Button.vue';

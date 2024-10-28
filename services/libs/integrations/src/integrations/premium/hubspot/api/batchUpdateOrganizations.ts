@@ -1,10 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { IGenerateStreamsContext, IProcessStreamContext } from '../../../../types'
 import axios, { AxiosRequestConfig } from 'axios'
-import { getNangoToken } from './../../../nango'
-import { IOrganization, PlatformType } from '@crowd/types'
+
 import { RequestThrottler } from '@crowd/common'
+import { IOrganization, PlatformType } from '@crowd/types'
+
+import { IGenerateStreamsContext, IProcessStreamContext } from '../../../../types'
 import { HubspotOrganizationFieldMapper } from '../field-mapper/organizationFieldMapper'
+
+import { getNangoToken } from './../../../nango'
 import { IBatchUpdateOrganizationsResult } from './types'
 
 export const batchUpdateOrganizations = async (

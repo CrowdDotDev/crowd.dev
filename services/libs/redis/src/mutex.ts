@@ -1,6 +1,7 @@
 import { TimeoutError, timeout } from '@crowd/common'
-import { RedisClient } from './types'
 import { generateUUIDv4 } from '@crowd/common'
+
+import { RedisClient } from './types'
 
 export const acquireLock = async (
   client: RedisClient,

@@ -1,6 +1,8 @@
-import { svc } from '../../main'
 import MemberRepository from '@crowd/data-access-layer/src/old/apps/script_executor_worker/member.repo'
 import { ISimilarMember } from '@crowd/data-access-layer/src/old/apps/script_executor_worker/types'
+
+import { svc } from '../../main'
+
 export async function findMembersWithSameVerifiedEmailsInDifferentPlatforms(
   tenantId: string,
   limit: number,

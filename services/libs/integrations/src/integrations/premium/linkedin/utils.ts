@@ -1,6 +1,7 @@
-import { IMemberData, MemberIdentityType, PlatformType } from '@crowd/types'
-import { LinkedInAuthorType } from './api/types'
 import { single } from '@crowd/common'
+import { IMemberData, MemberIdentityType, PlatformType } from '@crowd/types'
+
+import { LinkedInAuthorType } from './api/types'
 
 export const isLinkedInOrganization = (urn: string): boolean =>
   urn.startsWith('urn:li:organization:') ||

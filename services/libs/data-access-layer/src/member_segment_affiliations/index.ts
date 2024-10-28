@@ -1,8 +1,10 @@
 import { v4 as uuid } from 'uuid'
+
+import { IMemberAffiliation } from '@crowd/types'
+
+import { IManualAffiliationData } from '../old/apps/data_sink_worker/repo/memberAffiliation.data'
 import { QueryExecutor } from '../queryExecutor'
 import { prepareBulkInsert } from '../utils'
-import { IManualAffiliationData } from '../old/apps/data_sink_worker/repo/memberAffiliation.data'
-import { IMemberAffiliation } from '@crowd/types'
 
 export async function deleteMemberAffiliations(qx: QueryExecutor, memberId: string) {
   await qx.result(

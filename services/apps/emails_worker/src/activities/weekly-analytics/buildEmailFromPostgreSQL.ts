@@ -1,17 +1,14 @@
+import { getNumberOfNewMembers } from '@crowd/data-access-layer'
+import {
+  fetchActiveIntegrations,
+  fetchSegments,
+  fetchTenantUsers,
+} from '@crowd/data-access-layer/src/old/apps/emails_worker/tenants'
 import { SegmentRawData } from '@crowd/types'
 
 import { svc } from '../../main'
-
-import { UserTenant } from '../../types/user'
 import { InputAnalyticsWithSegments, InputAnalyticsWithTimes } from '../../types/analytics'
-
-import {
-  fetchSegments,
-  fetchTenantUsers,
-  fetchActiveIntegrations,
-} from '@crowd/data-access-layer/src/old/apps/emails_worker/tenants'
-import { getNumberOfNewMembers } from '@crowd/data-access-layer'
-import { getNumberOfNewOrganizations } from '@crowd/data-access-layer/src/organizations'
+import { UserTenant } from '../../types/user'
 
 const db = svc.postgres.reader
 
@@ -149,21 +146,9 @@ totalOrganizationsThisWeek is a Temporal activity that returns the number of
 organizations for a tenant as of the current week.
 */
 export async function getTotalOrganizationsThisWeek(
-  input: InputAnalyticsWithTimes,
+  input: InputAnalyticsWithTimes, // eslint-disable-line @typescript-eslint/no-unused-vars
 ): Promise<number> {
-  let result: number
-
-  try {
-    result = await getNumberOfNewOrganizations(db, {
-      tenantId: input.tenantId,
-      after: new Date(Date.parse(input.unixEpoch)),
-      before: new Date(Date.parse(input.dateTimeEndThisWeek)),
-    })
-  } catch (err) {
-    throw new Error(err)
-  }
-
-  return result
+  return 0
 }
 
 /*
@@ -171,41 +156,19 @@ totalOrganizationsPreviousWeek is a Temporal activity that returns the number of
 organizations for a tenant as of the past week.
 */
 export async function getTotalOrganizationsPreviousWeek(
-  input: InputAnalyticsWithTimes,
+  input: InputAnalyticsWithTimes, // eslint-disable-line @typescript-eslint/no-unused-vars
 ): Promise<number> {
-  let result: number
-
-  try {
-    result = await getNumberOfNewOrganizations(db, {
-      tenantId: input.tenantId,
-      after: new Date(Date.parse(input.unixEpoch)),
-      before: new Date(Date.parse(input.dateTimeEndPreviousWeek)),
-    })
-  } catch (err) {
-    throw new Error(err)
-  }
-
-  return result
+  return 0
 }
 
 /*
 newOrganizationsThisWeek is a Temporal activity that returns the number of new
 organizations for a tenant of the current.
 */
-export async function getNewOrganizationsThisWeek(input: InputAnalyticsWithTimes): Promise<number> {
-  let result: number
-
-  try {
-    result = await getNumberOfNewOrganizations(db, {
-      tenantId: input.tenantId,
-      after: new Date(Date.parse(input.dateTimeStartThisWeek)),
-      before: new Date(Date.parse(input.dateTimeEndThisWeek)),
-    })
-  } catch (err) {
-    throw new Error(err)
-  }
-
-  return result
+export async function getNewOrganizationsThisWeek(
+  input: InputAnalyticsWithTimes, // eslint-disable-line @typescript-eslint/no-unused-vars
+): Promise<number> {
+  return 0
 }
 
 /*
@@ -213,19 +176,7 @@ newOrganizationsPreviousWeek is a Temporal activity that returns the number of n
 organizations for a tenant of the past.
 */
 export async function getNewOrganizationsPreviousWeek(
-  input: InputAnalyticsWithTimes,
+  input: InputAnalyticsWithTimes, // eslint-disable-line @typescript-eslint/no-unused-vars
 ): Promise<number> {
-  let result: number
-
-  try {
-    result = await getNumberOfNewOrganizations(db, {
-      tenantId: input.tenantId,
-      after: new Date(Date.parse(input.dateTimeStartPreviousWeek)),
-      before: new Date(Date.parse(input.dateTimeEndPreviousWeek)),
-    })
-  } catch (err) {
-    throw new Error(err)
-  }
-
-  return result
+  return 0
 }

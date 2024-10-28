@@ -10,7 +10,7 @@ import options from './options';
 const sentiment: MultiSelectFilterConfig = {
   id: 'sentiment',
   label: 'Sentiment',
-  iconClass: 'ri-speed-up-line',
+  iconClass: 'gauge-high',
   type: FilterConfigType.MULTISELECT,
   options: {
     options,

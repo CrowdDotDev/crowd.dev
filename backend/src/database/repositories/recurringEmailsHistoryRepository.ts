@@ -1,9 +1,12 @@
-import { generateUUIDv1 as uuid } from '@crowd/common'
 import { QueryTypes } from 'sequelize'
+
+import { generateUUIDv1 as uuid } from '@crowd/common'
+
 import {
-  RecurringEmailsHistoryData,
   RecurringEmailType,
+  RecurringEmailsHistoryData,
 } from '../../types/recurringEmailsHistoryTypes'
+
 import { IRepositoryOptions } from './IRepositoryOptions'
 import { RepositoryBase } from './repositoryBase'
 

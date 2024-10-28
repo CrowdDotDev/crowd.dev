@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-
 import { SegmentRawData } from '@crowd/types'
+
 import { IDbMember } from '../old/apps/data_sink_worker/repo/member.data'
 
 export interface IQueryActivityResult {
@@ -159,31 +159,6 @@ export interface IQueryActiveOrganizationsParameters {
   orderByDirection: 'asc' | 'desc'
   limit: number
   offset: number
-}
-
-export interface IQueryNumberOfActiveOrganizationsParameters {
-  tenantId: string
-  segmentIds?: string[]
-  timestampFrom?: Date
-  timestampTo?: Date
-  platform?: string
-  groupBy?: undefined | 'day'
-}
-
-export interface IActivityTimeseriesResult {
-  date: string
-  count: number
-}
-
-export interface IActivityBySentimentMoodResult {
-  sentimentLabel: string
-  count: number
-}
-
-export interface IActivityByTypeAndPlatformResult {
-  type: string
-  platform: string
-  count: number
 }
 
 export interface INewActivityPlatforms {

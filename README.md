@@ -18,12 +18,6 @@ Key features:
 ## Getting started
 ⚠️ This documentation is outdated and needs to be reviewed.
 
-### Cloud version
-
-Our <a href="https://app.crowd.dev/">cloud version</a> is a fast, easy, and free way to get started with crowd.dev.
-
-### Self-hosted version
-
 To get started with self-hosting, take a look at our [self-hosting docs](https://docs.crowd.dev/docs/getting-started-with-self-hosting).
 
 #### Deployment with Kubernetes
@@ -82,5 +76,4 @@ All contributions are highly appreciated. 🙏
 
 ## License
 
-Distributed under the Apache 2.0 License. See `LICENSE` for more information.
-
+Distributed under the Apache 2.0 License.

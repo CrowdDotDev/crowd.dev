@@ -1,6 +1,7 @@
+import { PlatformType } from '@crowd/types'
+
 import SequelizeTestUtils from '../../database/utils/sequelizeTestUtils'
 import IntegrationService from '../integrationService'
-import { PlatformType } from '@crowd/types'
 
 const db = null
 

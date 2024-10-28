@@ -1,8 +1,10 @@
-import { ActivityTypeSettings, SegmentData, SegmentRawData } from '@crowd/types'
-import { QueryExecutor } from '../queryExecutor'
-import cloneDeep from 'lodash.clonedeep'
-import { DEFAULT_ACTIVITY_TYPE_SETTINGS } from '@crowd/integrations'
 import lodash from 'lodash'
+import cloneDeep from 'lodash.clonedeep'
+
+import { DEFAULT_ACTIVITY_TYPE_SETTINGS } from '@crowd/integrations'
+import { ActivityTypeSettings, SegmentData, SegmentRawData } from '@crowd/types'
+
+import { QueryExecutor } from '../queryExecutor'
 
 export async function findProjectGroupByName(
   qx: QueryExecutor,
@@ -75,7 +77,7 @@ export async function findSegmentById(
 
     record.projects = projects
   } else if (isSegmentProject(record)) {
-    const children = await getSegmentChildrenOfProjectGroups(qx, record)
+    const children = await getSegmentChildrenOfProjects(qx, record)
     record.subprojects = children
   }
 
@@ -96,6 +98,27 @@ export async function getSegmentChildrenOfProjectGroups(
     `,
     {
       slug: segment.slug,
+      tenantId: segment.tenantId,
+    },
+  )
+
+  return records
+}
+
+export async function getSegmentChildrenOfProjects(
+  qx: QueryExecutor,
+  segment: SegmentData,
+): Promise<SegmentRawData[]> {
+  const records = await qx.select(
+    `
+    select * from segments s
+      where s."parentSlug" = $(slug)
+        AND s."grandparentSlug" = $(parentSlug)
+      and s."tenantId" = $(tenantId);
+    `,
+    {
+      slug: segment.slug,
+      parentSlug: segment.parentSlug,
       tenantId: segment.tenantId,
     },
   )

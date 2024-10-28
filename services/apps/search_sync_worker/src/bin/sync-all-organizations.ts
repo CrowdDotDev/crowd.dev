@@ -2,10 +2,11 @@ import { timeout } from '@crowd/common'
 import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
 import { OrganizationRepository } from '@crowd/data-access-layer/src/old/apps/search_sync_worker/organization.repo'
 import { getServiceLogger } from '@crowd/logging'
-import { getOpensearchClient, OpenSearchService, OrganizationSyncService } from '@crowd/opensearch'
+import { OpenSearchService, OrganizationSyncService, getOpensearchClient } from '@crowd/opensearch'
 import { IndexedEntityType } from '@crowd/opensearch/src/repo/indexing.data'
-import { getClientSQL } from '@crowd/questdb'
 import { IndexingRepository } from '@crowd/opensearch/src/repo/indexing.repo'
+import { getClientSQL } from '@crowd/questdb'
+
 import { OPENSEARCH_CONFIG } from '../conf'
 
 const log = getServiceLogger()

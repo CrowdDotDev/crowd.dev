@@ -1,12 +1,15 @@
-import { IGenerateStreamsContext, IProcessStreamContext } from '../../../../types'
-import { IHubspotContact, IHubspotObject } from '../types'
 import axios, { AxiosRequestConfig } from 'axios'
-import { getNangoToken } from './../../../nango'
-import { PlatformType } from '@crowd/types'
-import { IPaginatedResponse } from './types'
+
 import { RequestThrottler } from '@crowd/common'
+import { PlatformType } from '@crowd/types'
+
+import { IGenerateStreamsContext, IProcessStreamContext } from '../../../../types'
 import { HubspotOrganizationFieldMapper } from '../field-mapper/organizationFieldMapper'
+import { IHubspotContact, IHubspotObject } from '../types'
+
+import { getNangoToken } from './../../../nango'
 import { HUBSPOT_API_PAGE_SIZE } from './common'
+import { IPaginatedResponse } from './types'
 
 export const getCompanies = async (
   nangoId: string,

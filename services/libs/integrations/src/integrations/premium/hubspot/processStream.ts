@@ -1,4 +1,12 @@
+import { RequestThrottler } from '@crowd/common'
+
 import { ProcessStreamHandler } from '../../../types'
+
+import { getAllCompanies } from './api/companies'
+import { getAllContacts } from './api/contacts'
+import { HubspotFieldMapperFactory } from './field-mapper/mapperFactory'
+import { HubspotMemberFieldMapper } from './field-mapper/memberFieldMapper'
+import { HubspotOrganizationFieldMapper } from './field-mapper/organizationFieldMapper'
 import {
   HubspotEntity,
   HubspotStream,
@@ -7,12 +15,6 @@ import {
   IHubspotIntegrationSettings,
   IHubspotObject,
 } from './types'
-import { getAllContacts } from './api/contacts'
-import { HubspotFieldMapperFactory } from './field-mapper/mapperFactory'
-import { HubspotMemberFieldMapper } from './field-mapper/memberFieldMapper'
-import { HubspotOrganizationFieldMapper } from './field-mapper/organizationFieldMapper'
-import { getAllCompanies } from './api/companies'
-import { RequestThrottler } from '@crowd/common'
 
 const processRootStream: ProcessStreamHandler = async (ctx) => {
   const throttler = new RequestThrottler(99, 11000, ctx.log)

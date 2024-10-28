@@ -1,5 +1,6 @@
-import { ICache } from '@crowd/types'
 import { Logger, LoggerBase } from '@crowd/logging'
+import { ICache } from '@crowd/types'
+
 import { RedisClient } from './types'
 
 export class RedisCache extends LoggerBase implements ICache {

@@ -1,5 +1,6 @@
-import { getEnv, IS_DEV_ENV } from '@crowd/common'
 import AWS from 'aws-sdk'
+
+import { IS_DEV_ENV, getEnv } from '@crowd/common'
 
 const awsS3Config = {
   accessKeyId: process.env['CROWD_S3_AWS_ACCESS_KEY_ID'],

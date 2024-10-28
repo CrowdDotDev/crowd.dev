@@ -10,7 +10,7 @@ import options from './options';
 const date: SelectFilterConfig = {
   id: 'date',
   label: 'Date',
-  iconClass: 'ri-calendar-event-line',
+  iconClass: 'calendar',
   type: FilterConfigType.SELECT,
   options: {
     options,

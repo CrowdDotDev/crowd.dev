@@ -1,8 +1,9 @@
 import { continueAsNew, proxyActivities } from '@temporalio/workflow'
-import { IFindAndSaveGithubIdentitySourceIdsArgs } from '../../types/lfid-enrichment'
+
+import { IMemberIdentity } from '@crowd/types'
 
 import * as activities from '../../activities'
-import { IMemberIdentity } from '@crowd/types'
+import { IFindAndSaveGithubIdentitySourceIdsArgs } from '../../sources/lfid/types'
 
 const {
   getGithubIdentitiesWithoutSourceId,

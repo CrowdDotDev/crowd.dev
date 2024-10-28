@@ -1,13 +1,13 @@
 import { proxyActivities } from '@temporalio/workflow'
 
+import { IMember, MemberIdentityType } from '@crowd/types'
+
 import * as activities from '../../activities'
+import { IGetEnrichmentDataArgs } from '../../sources/lfid/types'
 
 const { refreshToken, getEnrichmentLFAuth0 } = proxyActivities<typeof activities>({
   startToCloseTimeout: '10 seconds',
 })
-
-import { IGetEnrichmentDataArgs } from '../../types/lfid-enrichment'
-import { IMember, MemberIdentityType } from '@crowd/types'
 
 export async function getEnrichmentData(args: IGetEnrichmentDataArgs): Promise<void> {
   const token = await refreshToken()

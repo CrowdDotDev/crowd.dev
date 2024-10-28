@@ -150,6 +150,7 @@
     "@babel/core": "^7.21.8",
     "@babel/preset-env": "^7.21.5",
     "@babel/preset-typescript": "^7.21.5",
+    "@trivago/prettier-plugin-sort-imports": "^4.3.0",
     "@types/bunyan": "^1.8.8",
     "@types/bunyan-format": "^0.2.5",
     "@types/config": "^3.3.0",
@@ -174,11 +175,12 @@
     "jest": "^29.5.0",
     "node-mocks-http": "1.9.0",
     "nodemon": "2.0.4",
-    "prettier": "^2.5.1",
+    "prettier": "^3.3.3",
     "rdme": "^7.2.0",
     "supertest": "^6.2.2",
     "ts-jest": "^29.1.0",
     "tsx": "^4.7.1",
-    "typescript": "^5.2.2"
-  }
+    "typescript": "^5.6.3"
+  },
+  "packageManager": "pnpm@9.11.0+sha512.0a203ffaed5a3f63242cd064c8fb5892366c103e328079318f78062f24ea8c9d50bc6a47aa3567cabefd824d170e78fa2745ed1f16b132e16436146b7688f19b"
 }

@@ -10,7 +10,7 @@ import { itemLabelRendererByType } from '@/shared/modules/filters/config/itemLab
 const platform: MultiSelectFilterConfig = {
   id: 'platform',
   label: 'Platform',
-  iconClass: 'ri-apps-2-line',
+  iconClass: 'grid-round-2',
   type: FilterConfigType.MULTISELECT,
   options: {
     options: [

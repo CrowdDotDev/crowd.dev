@@ -1,6 +1,6 @@
 import sendgrid, { MailDataRequired } from '@sendgrid/mail'
 
-import { EmailToSend, EmailSent } from '../../types/email'
+import { EmailSent, EmailToSend } from '../../types/email'
 
 /*
 weeklySendEmail is a Temporal activity that sends an email to a user's email address

@@ -1,6 +1,7 @@
+import { AxiosError, AxiosRequestConfig } from 'axios'
+
 import { Logger } from '@crowd/logging'
 import { RateLimitError } from '@crowd/types'
-import { AxiosError, AxiosRequestConfig } from 'axios'
 
 export const handleLinkedinError = (
   err: AxiosError,

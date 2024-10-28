@@ -1,9 +1,11 @@
-import { ManagementClient, GetUsers200ResponseOneOfInner } from 'auth0'
-import { svc } from '../../main'
-import { RedisCache, acquireLock, releaseLock } from '@crowd/redis'
+import { GetUsers200ResponseOneOfInner, ManagementClient } from 'auth0'
 import { randomUUID } from 'crypto'
+
+import { RedisCache, acquireLock, releaseLock } from '@crowd/redis'
 import { IMember, MemberIdentityType, PlatformType } from '@crowd/types'
-import { IGetEnrichmentDataResponse } from '../../types/lfid-enrichment'
+
+import { svc } from '../../main'
+import { IGetEnrichmentDataResponse } from '../../sources/lfid/types'
 
 // We'll keep the remaining rate limits in redisCache(lfx-auth0)
 // This key will keep the results from the last request:

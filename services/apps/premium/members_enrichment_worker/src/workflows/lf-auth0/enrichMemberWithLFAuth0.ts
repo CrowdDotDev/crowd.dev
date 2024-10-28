@@ -1,8 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { IMember, MemberAttributeName, MemberIdentityType, PlatformType } from '@crowd/types'
 import { proxyActivities } from '@temporalio/workflow'
+
+import { IMember, MemberAttributeName, MemberIdentityType, PlatformType } from '@crowd/types'
+
 import * as activities from '../../activities'
-import { ILFIDEnrichmentGithubProfile } from '../../types/lfid-enrichment'
+import { ILFIDEnrichmentGithubProfile } from '../../sources/lfid/types'
 
 const {
   refreshToken,

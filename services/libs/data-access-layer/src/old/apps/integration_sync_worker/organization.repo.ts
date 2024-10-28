@@ -7,6 +7,7 @@ import {
   JsonColumnInfo,
   SyncStatus,
 } from '@crowd/types'
+
 import { IOrganizationIdWithAttributes } from './organization.data'
 
 export class OrganizationRepository extends RepositoryBase<OrganizationRepository> {

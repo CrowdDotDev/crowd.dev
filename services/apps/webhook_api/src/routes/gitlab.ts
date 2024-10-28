@@ -1,7 +1,9 @@
-import { asyncWrap } from '../middleware/error'
+import express from 'express'
+
 import { WebhooksRepository } from '@crowd/data-access-layer/src/old/apps/webhook_api/webhooks.repo'
 import { WebhookType } from '@crowd/types'
-import express from 'express'
+
+import { asyncWrap } from '../middleware/error'
 
 export const installGitlabRoutes = async (app: express.Express) => {
   app.post(

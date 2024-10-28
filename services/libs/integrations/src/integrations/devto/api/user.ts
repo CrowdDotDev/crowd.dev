@@ -1,5 +1,6 @@
-import { timeout } from '@crowd/common'
 import axios from 'axios'
+
+import { timeout } from '@crowd/common'
 
 export interface IDevToUser {
   id: number

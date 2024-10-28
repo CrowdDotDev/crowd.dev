@@ -1,4 +1,5 @@
 import { Repo } from '../../../types/regularTypes'
+
 import BaseQuery from './baseQuery'
 
 /* eslint class-methods-use-this: 0 */

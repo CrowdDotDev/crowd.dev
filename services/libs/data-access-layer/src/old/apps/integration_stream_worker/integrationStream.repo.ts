@@ -7,6 +7,7 @@ import {
   IntegrationStreamState,
   WebhookState,
 } from '@crowd/types'
+
 import { IWebhookData } from './incomingWebhook.data'
 import {
   IInsertableWebhookStream,

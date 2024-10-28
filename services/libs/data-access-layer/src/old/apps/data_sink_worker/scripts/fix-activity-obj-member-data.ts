@@ -1,7 +1,7 @@
 import { DbConnection } from '@crowd/database'
+import { MemberIdentityType } from '@crowd/types'
 
 import { IDbActivity } from '../repo/activity.data'
-import { MemberIdentityType } from '@crowd/types'
 
 export async function getTenantIds(db: DbConnection): Promise<string[]> {
   const results = await db.any(`select id from tenants`)

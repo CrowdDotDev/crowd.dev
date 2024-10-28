@@ -10,7 +10,7 @@ import { apiFilterRendererByType } from '@/shared/modules/filters/config/apiFilt
 const industry: StringFilterConfig = {
   id: 'industry',
   label: 'Industry',
-  iconClass: 'ri-briefcase-2-line',
+  iconClass: 'buildings',
   type: FilterConfigType.STRING,
   options: {},
   itemLabelRenderer(value: StringFilterValue, options: StringFilterOptions): string {

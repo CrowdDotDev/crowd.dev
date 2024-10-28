@@ -1,6 +1,7 @@
-import { svc } from '../../main'
 import { findMemberIdsInOrganization } from '@crowd/data-access-layer/src/old/apps/profiles_worker/orgs'
 import { SearchSyncApiClient } from '@crowd/opensearch'
+
+import { svc } from '../../main'
 
 export async function findMembersInOrganization(
   organizationId: string,

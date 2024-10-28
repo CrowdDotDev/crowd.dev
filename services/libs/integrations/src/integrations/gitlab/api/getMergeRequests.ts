@@ -1,8 +1,10 @@
 import { Gitlab, MergeRequestSchema, OffsetPagination } from '@gitbeaker/rest'
-import { GitlabMergeRequestData, GitlabApiResult } from '../types'
-import { getUser } from './getUser'
+
 import { IProcessStreamContext } from '../../../types'
+import { GitlabApiResult, GitlabMergeRequestData } from '../types'
 import { RedisSemaphore } from '../utils/lock'
+
+import { getUser } from './getUser'
 
 export const getMergeRequests = async ({
   api,

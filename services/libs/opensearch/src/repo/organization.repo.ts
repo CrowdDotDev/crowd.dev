@@ -1,5 +1,6 @@
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
+
 import { IndexedEntityType } from './indexing.data'
 
 export class OrganizationRepository extends RepositoryBase<OrganizationRepository> {

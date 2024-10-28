@@ -1,5 +1,6 @@
+import { Client, Connection } from '@temporalio/client'
+
 import { getServiceChildLogger } from '@crowd/logging'
-import { Connection, Client } from '@temporalio/client'
 
 import { getDataConverter } from './encryption/data-converter'
 import { EncryptionCodec } from './encryption/encryption-codec'

@@ -33,7 +33,7 @@
                 class="append-icon"
                 @click="copyToClipboard('tenantId')"
               >
-                <i class="ri-file-copy-line" />
+                <lf-icon name="copy" :size="16" class="!text-large" />
               </el-button>
             </el-tooltip>
           </template>
@@ -56,7 +56,7 @@
                 class="append-icon"
                 @click="onShowToken"
               >
-                <i class="ri-eye-line" />
+                <lf-icon name="eye" :size="16" class="!text-large" />
               </el-button>
             </el-tooltip>
             <el-tooltip
@@ -65,7 +65,7 @@
               placement="top"
             >
               <el-button @click="copyToClipboard('token')">
-                <i class="ri-file-copy-line" />
+                <lf-icon name="copy" :size="16" class="!text-large" />
               </el-button>
             </el-tooltip>
           </template>
@@ -81,6 +81,7 @@ import { AuthService } from '@/modules/auth/services/auth.service';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
 import Message from '@/shared/message/message';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const inputRef = ref();
 const showToken = ref(false);

@@ -1,13 +1,13 @@
 import { DbConnection, getDbConnection } from '@crowd/data-access-layer/src/database'
-import { getServiceLogger } from '@crowd/logging'
-import { DB_CONFIG } from '../conf'
-
 import {
   getFilteredActivities,
-  updateActivity,
   getMemberIdentityFromUsername,
   getTenantIds,
+  updateActivity,
 } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/scripts/fix-activity-obj-member-data'
+import { getServiceLogger } from '@crowd/logging'
+
+import { DB_CONFIG } from '../conf'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 

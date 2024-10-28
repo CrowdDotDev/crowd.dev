@@ -1,4 +1,5 @@
 import { IActivityScoringGrid } from '@crowd/types'
+
 import { StackOverflowActivityType } from './types'
 
 export const STACKOVERFLOW_GRID: Record<StackOverflowActivityType, IActivityScoringGrid> = {

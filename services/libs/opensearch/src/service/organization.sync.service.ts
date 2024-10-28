@@ -21,9 +21,11 @@ import {
   OpenSearchIndex,
   OrganizationIdentityType,
 } from '@crowd/types'
+
 import { IndexedEntityType } from '../repo/indexing.data'
 import { IndexingRepository } from '../repo/indexing.repo'
 import { OrganizationRepository } from '../repo/organization.repo'
+
 import { IPagedSearchResponse, ISearchHit } from './opensearch.data'
 import { OpenSearchService } from './opensearch.service'
 import { IOrganizationSyncResult } from './organization.sync.data'

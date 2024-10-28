@@ -6,7 +6,7 @@
   >
     <div class="mt-0.5">
       <lf-tooltip v-if="props.identity.type === 'email'" content="Email" placement="top-start">
-        <lf-icon name="mail-line" :size="20" />
+        <lf-icon-old name="mail-line" :size="20" />
       </lf-tooltip>
       <lf-tooltip v-else-if="platform(props.identity.platform)" placement="top-start" :content="platform(props.identity.platform).name">
         <img
@@ -16,7 +16,7 @@
         />
       </lf-tooltip>
       <lf-tooltip v-else content="Custom identity" placement="top-start">
-        <lf-icon
+        <lf-icon-old
           name="fingerprint-fill"
           :size="20"
           class="text-gray-600"
@@ -62,7 +62,7 @@
     <lf-dropdown v-if="hovered" placement="bottom-end" width="232px">
       <template #trigger>
         <lf-button type="secondary-ghost" size="small" :icon-only="true">
-          <lf-icon name="more-fill" />
+          <lf-icon-old name="more-fill" />
         </lf-button>
       </template>
       <!-- Edit identity -->
@@ -81,7 +81,7 @@
           class="w-full"
           @click="emit('edit')"
         >
-          <lf-icon name="pencil-line" />Edit identity
+          <lf-icon-old name="pencil-line" />Edit identity
         </lf-dropdown-item>
       </lf-tooltip>
 
@@ -90,7 +90,7 @@
         v-if="hasPermission(LfPermission.memberEdit)"
         @click="emit('unmerge')"
       >
-        <lf-icon name="link-unlink" />Unmerge identity
+        <lf-icon-old name="link-unlink" />Unmerge identity
       </lf-dropdown-item>
 
       <lf-dropdown-item
@@ -100,7 +100,7 @@
           attribute: props.identity,
         })"
       >
-        <lf-icon name="feedback-line" class="!text-red-500" />Report issue
+        <lf-icon-old name="feedback-line" class="!text-red-500" />Report issue
       </lf-dropdown-item>
 
       <template
@@ -122,7 +122,7 @@
             class="w-full"
             @click="removeIdentity"
           >
-            <lf-icon name="delete-bin-6-line" />Delete identity
+            <lf-icon-old name="delete-bin-6-line" />Delete identity
           </lf-dropdown-item>
         </lf-tooltip>
       </template>
@@ -131,7 +131,7 @@
 </template>
 
 <script setup lang="ts">
-import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import { Contributor, ContributorIdentity } from '@/modules/contributor/types/Contributor';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import LfTooltip from '@/ui-kit/tooltip/Tooltip.vue';

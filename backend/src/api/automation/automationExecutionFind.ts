@@ -1,6 +1,6 @@
-import PermissionChecker from '../../services/user/permissionChecker'
 import Permissions from '../../security/permissions'
 import AutomationExecutionService from '../../services/automationExecutionService'
+import PermissionChecker from '../../services/user/permissionChecker'
 
 /**
  * GET /tenant/{tenantId}/automation/{automationId}/executions

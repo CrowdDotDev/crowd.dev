@@ -9,13 +9,12 @@
         "
         class="flex items-center"
       >
-        <i
-          :class="
-            props.execution.state === 'success'
-              ? 'ri-checkbox-circle-line'
-              : 'ri-close-circle-line'
-          "
-          class="mr-1 text-lg"
+        <lf-icon
+          :name="props.execution.state === 'success'
+            ? 'circle-line'
+            : 'circle-xmark'"
+          :size="20"
+          class="mr-1"
         />
         <span class="font-medium text-sm">{{
           props.execution.state === 'success'
@@ -36,7 +35,7 @@
       class="rounded-md bg-yellow-50 border border-yellow-100 flex items-center justify-between py-3 px-4 mt-6"
     >
       <div class="flex items-center">
-        <span class="ri-alert-fill text-yellow-500 text-base mr-3" />
+        <lf-icon name="triangle-exclamation" type="solid" :size="16" class="text-yellow-500 mr-3" />
         <span class="text-xs leading-5 text-gray-900">Please make sure you have the LFX notifier app installed in your Slack workspace.</span>
       </div>
       <el-button
@@ -84,6 +83,7 @@ import config from '@/config';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
 import { AuthService } from '@/modules/auth/services/auth.service';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps({
   execution: {

@@ -58,7 +58,7 @@
       </article>
 
       <div v-if="Object.keys(visibleAttributes).length === 0" class="pt-2 flex flex-col items-center w-full">
-        <lf-icon name="list-view" :size="80" class="text-gray-300" />
+        <lf-icon-old name="list-view" :size="80" class="text-gray-300" />
         <p class="text-center pt-3 text-medium text-gray-400">
           No organization details yet
         </p>
@@ -78,7 +78,7 @@ import LfOrganizationAttributeArray
   from '@/modules/organization/components/details/overview/attributes/organization-attribute-array.vue';
 import LfOrganizationAttributeJson
   from '@/modules/organization/components/details/overview/attributes/organization-attribute-json.vue';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import LfOrganizationAttributeSource
   from '@/modules/organization/components/details/overview/attributes/organization-attribute-source.vue';
 import useOrganizationHelpers from '@/modules/organization/helpers/organization.helpers';
