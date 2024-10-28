@@ -1,121 +1,86 @@
 import { proxyActivities } from '@temporalio/workflow'
 
-import { IMember, MemberIdentityType, PlatformType } from '@crowd/types'
-import { EnrichmentAPIMember } from '@crowd/types/src/premium'
+import { IMember, MemberEnrichmentSource, MemberIdentityType, PlatformType } from '@crowd/types'
 
 import * as activities from '../activities'
-import { EnrichingMember } from '../types/enrichment'
-import { ALSO_USE_EMAIL_IDENTITIES_FOR_ENRICHMENT } from '../utils/config'
+import { IEnrichmentSourceInput } from '../types'
+import { sourceHasDifferentDataComparedToCache } from '../utils/common'
 
-// Configure timeouts and retry policies to enrich members via third-party
-// services.
-const { enrichMemberUsingGitHubHandle, enrichMemberUsingEmailAddress } = proxyActivities<
-  typeof activities
->({ startToCloseTimeout: '10 seconds' })
+const {
+  getEnrichmentData,
+  findMemberEnrichmentCache,
+  insertMemberEnrichmentCache,
+  touchMemberEnrichmentCacheUpdatedAt,
+  updateMemberEnrichmentCache,
+  isCacheObsolete,
+  normalizeEnrichmentData,
+} = proxyActivities<typeof activities>({
+  startToCloseTimeout: '10 seconds',
+  retry: {
+    initialInterval: '5s',
+    backoffCoefficient: 2.0,
+    maximumInterval: '30s',
+    maximumAttempts: 4,
+  },
+})
 
-// Configure timeouts and retry policies to update member, attributes, merge
-// suggestions and related organizations in the database.
-const { normalizeEnrichedMember, updateMergeSuggestions, updateOrganizations } = proxyActivities<
-  typeof activities
->({ startToCloseTimeout: '10 seconds' })
+export async function enrichMember(
+  input: IMember,
+  sources: MemberEnrichmentSource[],
+): Promise<void> {
+  let changeInEnrichmentSourceData = false
 
-// Configure timeouts and retry policies to sync enriched data to OpenSearch.
-const { syncMembersToOpensearch, syncOrganizationsToOpensearch } = proxyActivities<
-  typeof activities
->({ startToCloseTimeout: '10 seconds' })
+  for (const source of sources) {
+    // find if there's already saved enrichment data in source
+    const cache = await findMemberEnrichmentCache(source, input.id)
 
-/*
-enrichMember is a Temporal workflow that:
-  - [Activity]: Fetch enriching data from a third-party provider using either the
-    member's GitHub username or email address.
-  - [Activity]: Normalize and update member in the database given the enriched
-    data received.
-  - [Activity]: Update member's merge suggestions in the database.
-  - [Activity]: Update member's related organizations in the database.
-  - [Activity]: Sync newly enriched member from database to OpenSearch.
-  - [Activity]: Sync newly enriched organization(s) from database to OpenSearch.
-*/
-export async function enrichMember(input: IMember): Promise<EnrichingMember> {
-  let enriched: EnrichmentAPIMember = null
+    // cache is obsolete when it's not found or cache.updatedAt is older than cacheObsoleteAfterSeconds
+    if (await isCacheObsolete(source, cache)) {
+      const enrichmentInput: IEnrichmentSourceInput = {
+        github: input.identities.find(
+          (i) =>
+            i.verified &&
+            i.platform === PlatformType.GITHUB &&
+            i.type === MemberIdentityType.USERNAME,
+        ),
+        email: input.identities.find((i) => i.verified && i.type === MemberIdentityType.EMAIL),
+        linkedin: input.identities.find(
+          (i) =>
+            i.verified &&
+            i.platform === PlatformType.LINKEDIN &&
+            i.type === MemberIdentityType.USERNAME,
+        ),
+      }
 
-  // Enrich using GitHub if possible.
-  const githubUsernames = input.identities.filter(
-    (i) =>
-      i.verified && i.platform === PlatformType.GITHUB && i.type === MemberIdentityType.USERNAME,
-  )
+      const data = await getEnrichmentData(source, enrichmentInput)
 
-  if (githubUsernames.length > 0) {
-    try {
-      enriched = await enrichMemberUsingGitHubHandle(githubUsernames[0].value)
-    } catch (err) {
-      throw new Error(err)
-    }
-  }
-
-  if (ALSO_USE_EMAIL_IDENTITIES_FOR_ENRICHMENT) {
-    // Otherwise try with email address.
-    const emails = input.identities.filter((i) => i.verified && i.type === MemberIdentityType.EMAIL)
-    if (!enriched && emails.length) {
-      try {
-        enriched = await enrichMemberUsingEmailAddress(emails[0].value)
-      } catch (err) {
-        throw new Error(err)
+      if (!cache) {
+        await insertMemberEnrichmentCache(source, input.id, data)
+        if (data) {
+          changeInEnrichmentSourceData = true
+        }
+      } else if (sourceHasDifferentDataComparedToCache(cache, data)) {
+        await updateMemberEnrichmentCache(source, input.id, data)
+        changeInEnrichmentSourceData = true
+      } else {
+        // data is same as cache, only update cache.updatedAt
+        await touchMemberEnrichmentCacheUpdatedAt(source, input.id)
       }
     }
   }
 
-  // No need to continue if no data has been enriched.
-  if (!enriched) {
-    return {
-      member: input,
-      enrichment: null,
+  if (changeInEnrichmentSourceData) {
+    // Member enrichment data has been updated, use squasher again!
+    const toBeSquashed = {}
+    for (const source of sources) {
+      // find if there's already saved enrichment data in source
+      const cache = await findMemberEnrichmentCache(source, input.id)
+      if (cache && cache.data) {
+        const normalized = await normalizeEnrichmentData(source, cache.data)
+        toBeSquashed[source] = normalized
+      }
     }
-  }
 
-  try {
-    await normalizeEnrichedMember({
-      member: input,
-      enrichment: enriched,
-    })
-  } catch (err) {
-    throw new Error(err)
-  }
-
-  try {
-    await updateMergeSuggestions({
-      member: input,
-      enrichment: enriched,
-    })
-  } catch (err) {
-    throw new Error(err)
-  }
-
-  let organizations: string[]
-  try {
-    organizations = await updateOrganizations({
-      member: input,
-      enrichment: enriched,
-    })
-  } catch (err) {
-    throw new Error(err)
-  }
-
-  try {
-    await syncMembersToOpensearch(input.id)
-  } catch (err) {
-    throw new Error(err)
-  }
-
-  if (organizations.length > 0) {
-    try {
-      await syncOrganizationsToOpensearch(organizations)
-    } catch (err) {
-      throw new Error(err)
-    }
-  }
-
-  return {
-    member: input,
-    enrichment: enriched,
+    // TODO:: Implement data squasher using LLM & actual member entity enrichment logic
   }
 }

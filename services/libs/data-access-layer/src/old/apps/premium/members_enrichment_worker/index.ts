@@ -1,23 +1,65 @@
-import { generateUUIDv4 } from '@crowd/common'
-import { DbStore, DbTransaction } from '@crowd/database'
+import { generateUUIDv4, redactNullByte } from '@crowd/common'
+import { DbConnOrTx, DbStore, DbTransaction } from '@crowd/database'
 import {
   IAttributes,
   IMember,
+  IMemberEnrichmentCache,
+  IMemberEnrichmentSourceEnrichableBy,
+  IMemberEnrichmentSourceQueryInput,
   IMemberIdentity,
   IOrganizationIdentity,
+  MemberEnrichmentSource,
   MemberIdentityType,
   OrganizationSource,
 } from '@crowd/types'
 
 export async function fetchMembersForEnrichment(
   db: DbStore,
-  alsoUseEmailIdentitiesForEnrichment: boolean,
+  limit: number,
+  sourceInputs: IMemberEnrichmentSourceQueryInput[],
+  afterId: string,
 ): Promise<IMember[]> {
-  let identityFilter = ` AND mi.platform = 'github' `
+  const idFilter = afterId ? ' and members.id < $2 ' : ''
 
-  if (alsoUseEmailIdentitiesForEnrichment) {
-    identityFilter = ` AND ( mi.platform = 'github' or mi.type = '${MemberIdentityType.EMAIL}' )`
-  }
+  const sourceInnerQueryItems = []
+  const enrichableByHashMap = {}
+  const distinctEnrichableByConditions: IMemberEnrichmentSourceEnrichableBy[] = []
+
+  sourceInputs.forEach((input) => {
+    sourceInnerQueryItems.push(
+      `
+      ( NOT EXISTS (
+          SELECT 1 FROM "memberEnrichmentCache" mec
+          WHERE mec."memberId" = members.id
+          AND mec.source = '${input.source}'
+          AND EXTRACT(EPOCH FROM (now() - mec."updatedAt")) < ${input.cacheObsoleteAfterSeconds})
+      )`,
+    )
+
+    input.enrichableBy.forEach((enrichableBy) => {
+      const key = `${enrichableBy.type}-${enrichableBy.platform}`
+      if (!enrichableByHashMap[key]) {
+        enrichableByHashMap[key] = true
+        distinctEnrichableByConditions.push(enrichableBy)
+      }
+    })
+  })
+
+  const identityFilterArray = []
+
+  distinctEnrichableByConditions.forEach((enrichableBy) => {
+    if (!enrichableBy.platform && enrichableBy.type === MemberIdentityType.USERNAME) {
+      throw new Error(
+        'Platform must be provided for username identity types. Searching in all platforms for the username type is not allowed.',
+      )
+    } else if (!enrichableBy.platform && enrichableBy.type === MemberIdentityType.EMAIL) {
+      identityFilterArray.push(`(mi.type = '${MemberIdentityType.EMAIL}')`)
+    } else {
+      identityFilterArray.push(
+        `(mi.platform = '${enrichableBy.platform}') AND (mi.type = '${enrichableBy.type}')`,
+      )
+    }
+  })
 
   return db.connection().query(
     `SELECT
@@ -36,17 +78,17 @@ export async function fetchMembersForEnrichment(
         )) as identities
      FROM members
               INNER JOIN tenants ON tenants.id = members."tenantId"
-              INNER JOIN "memberIdentities" mi ON mi."memberId" = members.id and mi.type = '${MemberIdentityType.USERNAME}'
-     WHERE tenants.plan IN ('Scale', 'Enterprise')
-       AND (
-         members."lastEnriched" < NOW() - INTERVAL '90 days'
-             OR members."lastEnriched" IS NULL
-         )
-       ${identityFilter}
+              INNER JOIN "memberIdentities" mi ON mi."memberId" = members.id
+     WHERE 
+       ( mi.verified AND (${identityFilterArray.join(' OR ')}) )
        AND tenants."deletedAt" IS NULL
        AND members."deletedAt" IS NULL
+       AND (${sourceInnerQueryItems.join(' OR ')})
+       ${idFilter}
      GROUP BY members.id
-         LIMIT 50;`,
+     ORDER BY members.id desc
+         LIMIT $1;`,
+    [limit, afterId],
   )
 }
 
@@ -425,4 +467,67 @@ export async function updateMemberAttributes(
     WHERE id = $2 AND "tenantId" = $3;`,
     [attributes, memberId, tenantId],
   )
+}
+
+export async function insertMemberEnrichmentCacheDb<T>(
+  tx: DbConnOrTx,
+  data: T,
+  memberId: string,
+  source: MemberEnrichmentSource,
+) {
+  const dataSanitized = data ? redactNullByte(JSON.stringify(data)) : null
+  return tx.query(
+    `INSERT INTO "memberEnrichmentCache" ("memberId", "data", "createdAt", "updatedAt", "source")
+      VALUES ($1, $2, NOW(), NOW(), $3);`,
+    [memberId, dataSanitized, source],
+  )
+}
+
+export async function updateMemberEnrichmentCacheDb<T>(
+  tx: DbConnOrTx,
+  data: T,
+  memberId: string,
+  source: MemberEnrichmentSource,
+) {
+  const dataSanitized = data ? redactNullByte(JSON.stringify(data)) : null
+  return tx.query(
+    `UPDATE "memberEnrichmentCache"
+      SET
+        "updatedAt" = NOW(),
+        "data" = $2
+      WHERE "memberId" = $1 and source = $3;`,
+    [memberId, dataSanitized, source],
+  )
+}
+
+export async function touchMemberEnrichmentCacheUpdatedAtDb(
+  tx: DbConnOrTx,
+  memberId: string,
+  source: MemberEnrichmentSource,
+) {
+  return tx.query(
+    `UPDATE "memberEnrichmentCache"
+      SET "updatedAt" = NOW()
+      WHERE "memberId" = $1 and source = $2;`,
+    [memberId, source],
+  )
+}
+
+export async function findMemberEnrichmentCacheDb<T>(
+  tx: DbConnOrTx,
+  memberId: string,
+  source: MemberEnrichmentSource,
+): Promise<IMemberEnrichmentCache<T>> {
+  const result = await tx.oneOrNone(
+    `
+    select *
+    from "memberEnrichmentCache"
+    where 
+      source = $(source)
+      and "memberId" = $(memberId);
+    `,
+    { source, memberId },
+  )
+
+  return result ?? null
 }

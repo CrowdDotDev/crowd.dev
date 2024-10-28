@@ -9,7 +9,7 @@ import {
 import { IMember } from '@crowd/types'
 
 import * as activities from '../../activities'
-import { IGetMembersForLFIDEnrichmentArgs } from '../../types/lfid-enrichment'
+import { IGetMembersForLFIDEnrichmentArgs } from '../../sources/lfid/types'
 import { enrichMemberWithLFAuth0 } from '../lf-auth0/enrichMemberWithLFAuth0'
 
 const { getLFIDEnrichableMembers } = proxyActivities<typeof activities>({
