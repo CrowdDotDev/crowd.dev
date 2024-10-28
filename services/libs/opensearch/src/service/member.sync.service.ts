@@ -323,6 +323,10 @@ export class MemberSyncService {
         lastId,
       )
 
+      if (memberIdData.length === 0) {
+        return []
+      }
+
       const membersWithActivities = await filterMembersWithActivities(
         this.qdbStore.connection(),
         memberIdData.map((m) => m.memberId),
