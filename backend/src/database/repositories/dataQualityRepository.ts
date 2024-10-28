@@ -1,10 +1,11 @@
 import {
+  fetchMembersWithConflictingWorkExperiences,
   fetchMembersWithMissingInfoOnWorkExperience,
   fetchMembersWithMissingPeriodOnWorkExperience,
   fetchMembersWithTooManyEmails,
   fetchMembersWithTooManyIdentities,
   fetchMembersWithTooManyIdentitiesPerPlatform,
-  fetchMembersWithoutWorkExperience, fetchMembersWithConflictingWorkExperiences,
+  fetchMembersWithoutWorkExperience,
 } from '@crowd/data-access-layer/src/data-quality'
 
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
@@ -139,7 +140,6 @@ class DataQualityRepository {
     const qx = SequelizeRepository.getQueryExecutor(options)
     return fetchMembersWithMissingPeriodOnWorkExperience(qx, tenantId, limit, offset, segmentId)
   }
-
 
   /**
    * Finds members with conflicting work experience based on specified options.
