@@ -391,6 +391,10 @@ export async function queryConversations(
   const parsedOrderBys = []
 
   for (const orderByPart of arg.orderBy) {
+    if (orderByPart.trim().length === 0) {
+      continue
+    }
+
     const orderByParts = orderByPart.split('_')
     const direction = orderByParts[1].toLowerCase()
     switch (orderByParts[0]) {
