@@ -4,7 +4,7 @@
       <lf-button type="secondary">
         <lf-icon-old name="stack-line" />
         <div class="truncate" style="max-width: 28ch;">
-          {{ getSegmentName(projectGroup) || 'Select project group' }}
+          {{ getProjectName }}
         </div>
       </lf-button>
     </template>
@@ -20,18 +20,15 @@
       </lf-input>
     </div>
 
-    <div class="w-full max-h-60 overflow-auto">
+    <div class="w-full max-h-60 overflow-auto gap-1 flex flex-col">
       <lf-dropdown-item
         v-for="group of options"
         :key="group.id"
-        :selected="projectGroup === group.id"
+        :selected="project === group.id"
         @click="changeOption(group.id)"
       >
         {{ group.name }}
       </lf-dropdown-item>
-      <div v-if="options.length === 0" class="text-gray-400 px-3 h-16 flex items-center justify-center">
-        <span class="text-tiny text-gray-400"> No project groups found </span>
-      </div>
     </div>
   </lf-dropdown>
 </template>
@@ -44,41 +41,44 @@ import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import { getSegmentName } from '@/utils/segments';
 import LfInput from '@/ui-kit/input/Input.vue';
-import { useRoute, useRouter } from 'vue-router';
 
 const props = defineProps<{
   modelValue: string;
 }>();
 
-const router = useRouter();
-const route = useRoute();
-
 const emit = defineEmits<{(e: 'update:modelValue', value: string): void}>();
 
-const { projectGroups } = storeToRefs(useLfSegmentsStore());
+const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
 
 const search = ref('');
 
-const projectGroup = computed({
+const project = computed({
   get: () => props.modelValue,
   set: (value: string) => emit('update:modelValue', value),
 });
 
-const options = computed(() => projectGroups.value.list.filter((group) => group.name.toLowerCase().includes(search.value.toLowerCase())));
+const options = computed(
+  () => ([
+    {
+      id: selectedProjectGroup.value?.id,
+      name: 'All projects',
+    },
+    ...(selectedProjectGroup.value?.projects || []).filter((group) => group.name.toLowerCase().includes(search.value.toLowerCase())),
+  ]),
+);
 
 const changeOption = (group: string) => {
-  projectGroup.value = group;
+  project.value = group;
   search.value = '';
-  router.push({
-    ...route,
-    query: {
-      ...route.query,
-      projectGroup: group,
-    },
-  });
 };
+
+const getProjectName = computed(() => {
+  if (project.value === selectedProjectGroup.value?.id) {
+    return 'All projects';
+  }
+  return selectedProjectGroup.value?.projects.find((group) => group.id === project.value)?.name;
+});
 </script>
 
 <script lang="ts">

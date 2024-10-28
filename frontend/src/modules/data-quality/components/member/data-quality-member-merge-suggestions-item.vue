@@ -1,9 +1,9 @@
 <template>
   <article class="border-b border-gray-100 py-5 flex items-center justify-between">
-    <div class="flex items-center gap-2">
+    <div class="flex items-center gap-4">
       <template v-for="(member, mi) of props.suggestion.members" :key="member.id">
         <div v-if="mi > 0">
-          <lf-icon-old name="subtract-line" :size="24" class="text-gray-400" />
+          <lf-icon-old name="arrow-left-line" :size="16" class="text-gray-400" />
         </div>
         <div class="flex items-center gap-3">
           <lf-avatar
@@ -11,15 +11,17 @@
             :name="member.displayName"
             :size="32"
           />
-          <p class="text-medium font-semibold">
+          <p class="text-small font-semibold">
             {{ member.displayName }}
           </p>
         </div>
       </template>
-      <lf-badge type="primary" size="small">
-        <span class="font-semibold mr-1">Merge suggestion</span>
-        <span>{{ Math.round(props.suggestion.similarity * 100) }}% confidence</span>
-      </lf-badge>
+      <div class="flex gap-2">
+        <lf-badge type="primary" size="small" class="!font-semibold">
+          Merge suggestion
+        </lf-badge>
+        <app-member-merge-similarity :similarity="+props.suggestion.similarity" percentage-only />
+      </div>
     </div>
     <slot name="action" />
   </article>
@@ -29,6 +31,7 @@
 import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
 import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import LfBadge from '@/ui-kit/badge/Badge.vue';
+import AppMemberMergeSimilarity from '@/modules/member/components/suggestions/member-merge-similarity.vue';
 
 const props = defineProps<{
   suggestion: any,

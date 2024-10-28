@@ -10,9 +10,12 @@
         :suggestion="suggestion"
       >
         <template #action>
-          <lf-button type="secondary" size="small" @click="isModalOpen = true; detailsOffset = si">
-            <lf-icon-old name="eye-line" />View merge suggestion
-          </lf-button>
+          <div class="flex gap-3">
+            <lf-button type="secondary" size="small" @click="isModalOpen = true; detailsOffset = si">
+              <lf-icon-old name="eye-line" />View suggestion
+            </lf-button>
+            <lf-member-merge-suggestion-dropdown :suggestion="suggestion" @reload="reload()" />
+          </div>
         </template>
       </lf-data-quality-member-merge-suggestions-item>
       <div v-if="mergeSuggestions.length < total" class="pt-4">
@@ -55,6 +58,8 @@ import AppMemberMergeSuggestionsDialog from '@/modules/member/components/member-
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { getSegmentsFromProjectGroup } from '@/utils/segments';
+import LfMemberMergeSuggestionDropdown
+  from '@/modules/member/components/suggestions/member-merge-suggestion-dropdown.vue';
 
 const props = defineProps<{
   projectGroup: string,
@@ -99,6 +104,11 @@ const loadMergeSuggestions = () => {
 
 const loadMore = () => {
   offset.value = mergeSuggestions.value.length;
+  loadMergeSuggestions();
+};
+
+const reload = () => {
+  offset.value = 0;
   loadMergeSuggestions();
 };
 

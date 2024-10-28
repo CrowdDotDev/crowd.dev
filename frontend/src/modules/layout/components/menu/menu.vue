@@ -45,14 +45,18 @@
       :to="{ path: '/activities', query: { projectGroup: selectedProjectGroup?.id } }"
       :disabled="!selectedProjectGroup"
     />
-    <!--    <lf-menu-link-->
-    <!--        v-if="hasPermission(LfPermission.dataQualityRead)"-->
-    <!--        title="Data Quality Assistant"-->
-    <!--        icon="settings-3-line"-->
-    <!--        :is-collapsed="isCollapsed"-->
-    <!--        :disabled="!selectedProjectGroup"-->
-    <!--        :to="{ path: '/data-quality-assistant' }"-->
-    <!--    />-->
+    <div class="px-3 py-2 opacity-0">
+      <div class="border-b border-gray-200" />
+    </div>
+    <lf-menu-link
+      v-if="hasPermission(LfPermission.dataQualityRead)"
+      class=" !opacity-0"
+      title="Data Quality Assistant"
+      icon="message-exclamation"
+      :is-collapsed="isCollapsed"
+      :disabled="!selectedProjectGroup"
+      :to="{ path: '/data-quality-assistant' }"
+    />
     <div class="flex-grow" />
     <div class="flex justify-end pb-8">
       <div
@@ -76,7 +80,7 @@
     <template
       v-if="hasPermission(LfPermission.projectGroupCreate) || hasPermission(LfPermission.projectGroupEdit)"
     >
-      <div class="px-3 py-4">
+      <div class="px-3 py-2">
         <div class="border-b border-gray-200" />
       </div>
       <lf-menu-link

@@ -1,46 +1,67 @@
 <template>
-  <lf-dropdown width="19rem">
+  <lf-dropdown width="21.25rem">
     <template #trigger>
       <lf-button type="secondary">
-        <lf-icon-old name="stack-line" />
+        <lf-icon name="message-exclamation" :size="16" />
         <div class="truncate" style="max-width: 40ch;">
           <span>Issue type: </span>
-          <span v-if="selectedType === 'merge-suggestions'">Merge suggestions</span>
-          <span v-else>{{ dataIssueTypes[selectedType]?.label || 'Select issue type' }}</span>
+          <span v-if="selectedType === 'merge-suggestions'" class="font-normal">Merge suggestions</span>
+          <span v-else class="font-normal">{{ dataIssueTypes[selectedType]?.label || 'Select issue type' }}</span>
         </div>
       </lf-button>
     </template>
+    <div class="flex flex-col gap-2">
+      <lf-dropdown-item
+        :selected="selectedType === 'merge-suggestions'"
+        class="!text-small"
+        @click="selectedType = 'merge-suggestions'"
+      >
+        Merge suggestions
+      </lf-dropdown-item>
+      <section
+        v-for="(section, si) in props.config"
+        :key="si"
+        class="border-t border-gray-100 -mx-2 px-2"
+      >
+        <p class="text-small text-gray-400 font-semibold p-2 leading-5">
+          {{ section.label }}
+        </p>
+        <div class="flex flex-col gap-1">
+          <lf-dropdown-item
+            v-for="(type, ti) in section.types"
+            :key="ti"
+            :selected="selectedType === type"
+            class="!text-small"
+            @click="selectedType = type"
+          >
+            {{ dataIssueTypes[type]?.label }}
+          </lf-dropdown-item>
+        </div>
+      </section>
+    </div>
 
-    <lf-dropdown-item
-      :selected="selectedType === 'merge-suggestions'"
-      @click="selectedType = 'merge-suggestions'"
-    >
-      Merge suggestions
-    </lf-dropdown-item>
-
-    <lf-dropdown-item
-      v-for="type in props.types"
-      :key="type"
-      :selected="selectedType === type"
-      @click="selectedType = type"
-    >
-      {{ dataIssueTypes[type]?.label }}
-    </lf-dropdown-item>
+    <!--    <lf-dropdown-item-->
+    <!--      v-for="type in props.types"-->
+    <!--      :key="type"-->
+    <!--      :selected="selectedType === type"-->
+    <!--      @click="selectedType = type"-->
+    <!--    >-->
+    <!--      {{ dataIssueTypes[type]?.label }}-->
+    <!--    </lf-dropdown-item>-->
   </lf-dropdown>
 </template>
 
 <script lang="ts" setup>
 import LfButton from '@/ui-kit/button/Button.vue';
 import { computed } from 'vue';
-import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
 import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
-import { dataIssueTypes } from '@/modules/data-quality/config/data-issue-types';
-import { DataIssueType } from '@/modules/data-quality/types/DataIssueType';
+import { DataIssueTypeMenu, dataIssueTypes } from '@/modules/data-quality/config/data-issue-types';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps<{
   modelValue: string;
-  types: DataIssueType[]
+  config: DataIssueTypeMenu[]
 }>();
 
 const emit = defineEmits<{(e: 'update:modelValue', value: string): void}>();

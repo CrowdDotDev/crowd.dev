@@ -1,17 +1,11 @@
 <template>
   <div>
-    <div class="flex gap-3 mb-6">
+    <div class="flex gap-4 mb-6">
+      <lf-data-quality-project-dropdown v-model="projectGroup" />
       <lf-data-quality-type-dropdown
         v-model="tab"
-        :types="[
-          DataIssueType.TOO_MANY_IDENTITIES,
-          DataIssueType.TOO_MANY_IDENTITIES_PER_PLATFORM,
-          DataIssueType.TOO_MANY_EMAILS,
-          DataIssueType.NO_WORK_EXPERIENCE,
-          DataIssueType.INCOMPLETE_WORK_EXPERIENCE,
-        ]"
+        :config="memberDataIssueTypeMenu"
       />
-      <lf-data-quality-project-dropdown v-model="projectGroup" />
     </div>
     <div class="border-b border-gray-200 w-full mb-1" />
     <div>
@@ -36,7 +30,7 @@ import LfDataQualityMemberIssues from '@/modules/data-quality/components/member/
 import LfDataQualityTypeDropdown from '@/modules/data-quality/components/shared/data-quality-type-dropdown.vue';
 import LfDataQualityProjectDropdown from '@/modules/data-quality/components/shared/data-quality-project-dropdown.vue';
 import { useRoute } from 'vue-router';
-import { DataIssueType } from '@/modules/data-quality/types/DataIssueType';
+import { memberDataIssueTypeMenu } from '@/modules/data-quality/config/data-issue-types';
 
 const route = useRoute();
 

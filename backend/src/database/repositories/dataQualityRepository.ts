@@ -1,9 +1,10 @@
 import {
-  fetchMembersWithIncompleteWorkExperience,
+  fetchMembersWithMissingInfoOnWorkExperience,
+  fetchMembersWithMissingPeriodOnWorkExperience,
   fetchMembersWithTooManyEmails,
   fetchMembersWithTooManyIdentities,
   fetchMembersWithTooManyIdentitiesPerPlatform,
-  fetchMembersWithoutWorkExperience,
+  fetchMembersWithoutWorkExperience, fetchMembersWithConflictingWorkExperiences,
 } from '@crowd/data-access-layer/src/data-quality'
 
 import SequelizeRepository from '@/database/repositories/sequelizeRepository'
@@ -98,16 +99,16 @@ class DataQualityRepository {
   }
 
   /**
-   * Find members with incomplete work experience.
+   * Finds members with missing information on work experience.
    *
-   * @param {IRepositoryOptions} options - The repository options.
-   * @param {string} tenantId - The tenant ID to filter members.
-   * @param {number} limit - The maximum number of members to return.
-   * @param {number} offset - The number of members to skip before starting to collect the result set.
-   * @param {string} segmentId - The segment ID to filter members.
-   * @return {Promise<Array>} A promise that resolves to an array of members with incomplete work experience.
+   * @param {IRepositoryOptions} options - The repository options to be used.
+   * @param {string} tenantId - The unique identifier of the tenant.
+   * @param {number} limit - The maximum number of records to fetch.
+   * @param {number} offset - The number of records to skip.
+   * @param {string} segmentId - The segment identifier to be used for filtering.
+   * @return {Promise<Array>} A promise that resolves to an array of members with missing work experience information.
    */
-  static async findMembersWithIncompleteWorkExperience(
+  static async findMembersWithMissingInfoOnWorkExperience(
     options: IRepositoryOptions,
     tenantId: string,
     limit: number,
@@ -115,7 +116,50 @@ class DataQualityRepository {
     segmentId: string,
   ) {
     const qx = SequelizeRepository.getQueryExecutor(options)
-    return fetchMembersWithIncompleteWorkExperience(qx, tenantId, limit, offset, segmentId)
+    return fetchMembersWithMissingInfoOnWorkExperience(qx, tenantId, limit, offset, segmentId)
+  }
+
+  /**
+   * Fetches members whose work experience period is missing.
+   *
+   * @param {IRepositoryOptions} options - The repository options for database access.
+   * @param {string} tenantId - The ID of the tenant to find members for.
+   * @param {number} limit - The maximum number of members to return.
+   * @param {number} offset - The offset to start fetching members from.
+   * @param {string} segmentId - The ID of the segment to filter members.
+   * @return {Promise<Member[]>} A promise that resolves to an array of members with missing work experience periods.
+   */
+  static async findMembersWithMissingPeriodOnWorkExperience(
+    options: IRepositoryOptions,
+    tenantId: string,
+    limit: number,
+    offset: number,
+    segmentId: string,
+  ) {
+    const qx = SequelizeRepository.getQueryExecutor(options)
+    return fetchMembersWithMissingPeriodOnWorkExperience(qx, tenantId, limit, offset, segmentId)
+  }
+
+
+  /**
+   * Finds members with conflicting work experience based on specified options.
+   *
+   * @param {IRepositoryOptions} options - The repository options for database query execution.
+   * @param {string} tenantId - The ID of the tenant to filter members.
+   * @param {number} limit - The maximum number of records to fetch.
+   * @param {number} offset - The number of records to skip for pagination.
+   * @param {string} segmentId - The ID of the segment to filter members.
+   * @return {Promise<Array>} - A promise that resolves to an array of members with conflicting work experiences.
+   */
+  static async findMembersWithConflictingWorkExperience(
+    options: IRepositoryOptions,
+    tenantId: string,
+    limit: number,
+    offset: number,
+    segmentId: string,
+  ) {
+    const qx = SequelizeRepository.getQueryExecutor(options)
+    return fetchMembersWithConflictingWorkExperiences(qx, tenantId, limit, offset, segmentId)
   }
 }
 

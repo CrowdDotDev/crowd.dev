@@ -1,11 +1,11 @@
 <template>
   <div>
-    <div class="flex gap-3 mb-6">
+    <div class="flex gap-4 mb-6">
+      <lf-data-quality-project-dropdown v-model="projectGroup" />
       <lf-data-quality-type-dropdown
         v-model="tab"
-        :types="[]"
+        :config="[]"
       />
-      <lf-data-quality-project-dropdown v-model="projectGroup" />
     </div>
     <div class="border-b border-gray-200 w-full mb-1" />
     <div>

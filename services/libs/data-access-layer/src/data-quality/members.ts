@@ -21,17 +21,17 @@ export async function fetchMembersWithoutWorkExperience(
 ): Promise<IMember[]> {
   return qx.select(
     `
-        SELECT m.id, m."displayName", m.attributes, msa."activityCount"
-        FROM members m
-                 LEFT JOIN "memberOrganizations" mo ON m.id = mo."memberId" AND mo."deletedAt" IS NULL
-                 INNER JOIN "memberSegmentsAgg" msa ON m.id = msa."memberId" AND msa."segmentId" = '${segmentId}'
-        WHERE mo."memberId" IS NULL
-          AND m."tenantId" = '${tenantId}'
-          AND m."deletedAt" IS NULL
-          AND COALESCE((m.attributes -> 'isBot' ->> 'default')::BOOLEAN, FALSE) = FALSE
-        ORDER BY msa."activityCount" DESC
-        LIMIT ${limit} OFFSET ${offset};
-    `,
+            SELECT m.id, m."displayName", m.attributes, msa."activityCount"
+            FROM members m
+                     LEFT JOIN "memberOrganizations" mo ON m.id = mo."memberId" AND mo."deletedAt" IS NULL
+                     INNER JOIN "memberSegmentsAgg" msa ON m.id = msa."memberId" AND msa."segmentId" = '${segmentId}'
+            WHERE mo."memberId" IS NULL
+              AND m."tenantId" = '${tenantId}'
+              AND m."deletedAt" IS NULL
+              AND COALESCE((m.attributes -> 'isBot' ->> 'default')::BOOLEAN, FALSE) = FALSE
+            ORDER BY msa."activityCount" DESC
+            LIMIT ${limit} OFFSET ${offset};
+        `,
     {
       segmentId,
       tenantId,
@@ -62,23 +62,23 @@ export async function fetchMembersWithTooManyIdentities(
 ): Promise<IMember[]> {
   return qx.select(
     `
-        SELECT
-            mi."memberId",
-            m."displayName",
-            m."attributes",
-            m.id,
-            COUNT(*) AS "identityCount",
-            msa."activityCount"
-        FROM "memberIdentities" mi
-                 JOIN "members" m ON mi."memberId" = m.id
-                 INNER JOIN "memberSegmentsAgg" msa ON m.id = msa."memberId" AND msa."segmentId" = '${segmentId}'
-        WHERE m."tenantId" = '${tenantId}'
-            AND COALESCE((m.attributes -> 'isBot' ->> 'default')::BOOLEAN, FALSE) = FALSE
-        GROUP BY mi."memberId", m."displayName", m."attributes", m.id, msa."activityCount"
-        HAVING COUNT(*) > ${threshold}
-        ORDER BY msa."activityCount" DESC
-        LIMIT ${limit} OFFSET ${offset};
-    `,
+            SELECT
+                mi."memberId",
+                m."displayName",
+                m."attributes",
+                m.id,
+                COUNT(*) AS "identityCount",
+                msa."activityCount"
+            FROM "memberIdentities" mi
+                     JOIN "members" m ON mi."memberId" = m.id
+                     INNER JOIN "memberSegmentsAgg" msa ON m.id = msa."memberId" AND msa."segmentId" = '${segmentId}'
+            WHERE m."tenantId" = '${tenantId}'
+              AND COALESCE((m.attributes -> 'isBot' ->> 'default')::BOOLEAN, FALSE) = FALSE
+            GROUP BY mi."memberId", m."displayName", m."attributes", m.id, msa."activityCount"
+            HAVING COUNT(*) > ${threshold}
+            ORDER BY msa."activityCount" DESC
+            LIMIT ${limit} OFFSET ${offset};
+        `,
     {
       threshold,
       tenantId,
@@ -110,42 +110,42 @@ export async function fetchMembersWithTooManyIdentitiesPerPlatform(
 ): Promise<IMember[]> {
   return qx.select(
     `
-        WITH platform_identities AS (
-            SELECT
-                mi."memberId",
-                mi.platform,
-                COUNT(*) AS "identityCount"
-            FROM "memberIdentities" mi
-            WHERE mi."tenantId" = '${tenantId}'
-              AND mi.type = 'username'
-              AND mi.verified = true
-              AND mi.platform IN ('linkedin', 'github', 'twitter', 'lfx', 'slack', 'cvent', 'tnc', 'groupsio')
-            GROUP BY mi."memberId", mi.platform
-            HAVING COUNT(*) > ${threshold}
-        ),
-        aggregated_platforms AS (
+            WITH platform_identities AS (
+                SELECT
+                    mi."memberId",
+                    mi.platform,
+                    COUNT(*) AS "identityCount"
+                FROM "memberIdentities" mi
+                WHERE mi."tenantId" = '${tenantId}'
+                  AND mi.type = 'username'
+                  AND mi.verified = true
+                  AND mi.platform IN ('linkedin', 'github', 'twitter', 'lfx', 'slack', 'cvent', 'tnc', 'groupsio')
+                GROUP BY mi."memberId", mi.platform
+                HAVING COUNT(*) > ${threshold}
+            ),
+                 aggregated_platforms AS (
+                     SELECT
+                         p."memberId",
+                         STRING_AGG(p.platform, ',') AS platforms
+                     FROM platform_identities p
+                     GROUP BY p."memberId"
+                 )
             SELECT
                 p."memberId",
-                STRING_AGG(p.platform, ',') AS platforms
-            FROM platform_identities p
-            GROUP BY p."memberId"
-        )
-        SELECT
-            p."memberId",
-            m."displayName",
-            m."attributes",
-            m.id,
-            platforms,
-            msa."activityCount"
-        FROM aggregated_platforms p
-        JOIN "members" m ON p."memberId" = m.id
-        INNER JOIN "memberSegmentsAgg" msa ON m.id = msa."memberId"
-        WHERE m."tenantId" = '${tenantId}' 
-          AND msa."segmentId" = '${segmentId}'
-          AND COALESCE((m.attributes -> 'isBot' ->> 'default')::BOOLEAN, FALSE) = FALSE
-        ORDER BY msa."activityCount" DESC
-        LIMIT ${limit} OFFSET ${offset};
-    `,
+                m."displayName",
+                m."attributes",
+                m.id,
+                platforms,
+                msa."activityCount"
+            FROM aggregated_platforms p
+                     JOIN "members" m ON p."memberId" = m.id
+                     INNER JOIN "memberSegmentsAgg" msa ON m.id = msa."memberId"
+            WHERE m."tenantId" = '${tenantId}'
+              AND msa."segmentId" = '${segmentId}'
+              AND COALESCE((m.attributes -> 'isBot' ->> 'default')::BOOLEAN, FALSE) = FALSE
+            ORDER BY msa."activityCount" DESC
+            LIMIT ${limit} OFFSET ${offset};
+        `,
     {
       threshold,
       tenantId,
@@ -207,17 +207,17 @@ export async function fetchMembersWithTooManyEmails(
 }
 
 /**
- * Fetch members with incomplete work experience within a specified tenant and segment.
+ * Fetches members with missing information on work experience.
  *
  * @param {QueryExecutor} qx - The query executor instance used to perform database operations.
  * @param {string} tenantId - The ID of the tenant to filter members by.
  * @param {number} limit - The maximum number of members to retrieve.
  * @param {number} offset - The starting point in the list of members to retrieve.
  * @param {string} segmentId - The ID of the segment to filter members by.
- *
- * @return {Promise<IMember[]>} A promise that resolves to an array of members with incomplete work experience.
+ * @return {Promise<IMember[]>} A promise that resolves to an array of members
+ * with missing period information on their work experience.
  */
-export async function fetchMembersWithIncompleteWorkExperience(
+export async function fetchMembersWithMissingInfoOnWorkExperience(
   qx: QueryExecutor,
   tenantId: string,
   limit: number,
@@ -236,11 +236,94 @@ export async function fetchMembersWithIncompleteWorkExperience(
                    JOIN "memberOrganizations" mo ON m.id = mo."memberId" AND mo."deletedAt" IS NULL
                    INNER JOIN "memberSegmentsAgg" msa ON m.id = msa."memberId" AND msa."segmentId" = '${segmentId}'
           WHERE m."tenantId" = '${tenantId}'
-            AND (mo."title" IS NULL OR mo."title" = '' OR mo."dateStart" IS NULL)
+            AND (mo."title" IS NULL OR mo."title"='')
             AND COALESCE((m.attributes -> 'isBot' ->> 'default')::BOOLEAN, FALSE) = FALSE
           GROUP BY m.id, msa."activityCount"
           ORDER BY msa."activityCount" DESC
           LIMIT ${limit} OFFSET ${offset};
+      `,
+    {
+      tenantId,
+      limit,
+      offset,
+      segmentId,
+    },
+  )
+}
+
+/**
+ * Fetches members with missing information on work experience.
+ *
+ * @param {QueryExecutor} qx - The query executor instance used to perform database operations.
+ * @param {string} tenantId - The ID of the tenant to filter members by.
+ * @param {number} limit - The maximum number of members to retrieve.
+ * @param {number} offset - The starting point in the list of members to retrieve.
+ * @param {string} segmentId - The ID of the segment to filter members by.
+ * @return {Promise<IMember[]>} A promise that resolves to an array of members
+ * with missing period information on their work experience.
+ */
+export async function fetchMembersWithMissingPeriodOnWorkExperience(
+  qx: QueryExecutor,
+  tenantId: string,
+  limit: number,
+  offset: number,
+  segmentId: string,
+): Promise<IMember[]> {
+  return qx.select(
+    `
+          SELECT
+              m.id,
+              m."displayName",
+              m."attributes",
+              msa."activityCount",
+              COUNT(mo.id) AS "organizationsCount"
+          FROM "members" m
+                   JOIN "memberOrganizations" mo ON m.id = mo."memberId" AND mo."deletedAt" IS NULL
+                   INNER JOIN "memberSegmentsAgg" msa ON m.id = msa."memberId" AND msa."segmentId" = '${segmentId}'
+          WHERE m."tenantId" = '${tenantId}'
+            AND (mo."dateStart" IS NULL)
+            AND COALESCE((m.attributes -> 'isBot' ->> 'default')::BOOLEAN, FALSE) = FALSE
+          GROUP BY m.id, msa."activityCount"
+          ORDER BY msa."activityCount" DESC
+          LIMIT ${limit} OFFSET ${offset};
+      `,
+    {
+      tenantId,
+      limit,
+      offset,
+      segmentId,
+    },
+  )
+}
+
+export async function fetchMembersWithConflictingWorkExperiences(
+  qx: QueryExecutor,
+  tenantId: string,
+  limit: number,
+  offset: number,
+  segmentId: string,
+): Promise<IMember[]> {
+  return qx.select(
+    `
+        SELECT
+            m.id,
+            m."displayName",
+            m."attributes",
+            msa."activityCount",
+            COUNT(mo1.id) AS "organizationsCount"
+        FROM "members" m
+                 JOIN "memberOrganizations" mo1 ON m.id = mo1."memberId" AND mo1."deletedAt" IS NULL
+                 INNER JOIN "memberSegmentsAgg" msa ON m.id = msa."memberId" AND msa."segmentId" = '${segmentId}'
+                 JOIN "memberOrganizations" mo2 ON mo1."memberId" = mo2."memberId"
+            AND mo1."organizationId" = mo2."organizationId"
+            AND mo1.id != mo2.id
+            AND mo1."dateStart" <= COALESCE(mo2."dateEnd", 'infinity'::timestamp)
+            AND COALESCE(mo1."dateEnd", 'infinity'::timestamp) >= mo2."dateStart"
+        WHERE m."tenantId" = '${tenantId}'
+          AND COALESCE((m.attributes -> 'isBot' ->> 'default')::BOOLEAN, FALSE) = FALSE
+        GROUP BY m.id, msa."activityCount"
+        ORDER BY msa."activityCount" DESC
+        LIMIT ${limit} OFFSET ${offset};
       `,
     {
       tenantId,

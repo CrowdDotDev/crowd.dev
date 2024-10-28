@@ -1,22 +1,27 @@
 <template>
   <article class="border-b border-gray-100 py-5">
     <div class="flex justify-between items-center">
-      <div class="flex items-center gap-3">
+      <div class="flex items-center">
         <lf-avatar
           :src="avatar(props.member)"
           :name="props.member.displayName"
           :size="32"
         />
-        <p class="text-medium font-semibold">
-          {{ props.member.displayName }}
-        </p>
+        <div class="pl-3 pr-4">
+          <p class="text-medium font-semibold mb-0.5">
+            {{ props.member.displayName }}
+          </p>
+          <p class="text-tiny text-gray-500">
+            {{ props.member.activityCount }} {{ pluralize('activity', +props.member.activityCount) }}
+          </p>
+        </div>
         <lf-badge size="small" :type="config.badgeType" class="!font-semibold">
           {{ config.badgeText(props.member) }}
         </lf-badge>
       </div>
       <slot name="action" />
     </div>
-    <p class="text-small mt-2 text-gray-500" v-html="$sanitize(config.description(props.member))" />
+    <p v-if="description?.length" class="text-small mt-2 text-gray-500" v-html="$sanitize(description)" />
   </article>
 </template>
 
@@ -27,6 +32,7 @@ import useContributorHelpers from '@/modules/contributor/helpers/contributor.hel
 import LfBadge from '@/ui-kit/badge/Badge.vue';
 import { computed } from 'vue';
 import { DataIssueTypeConfig, dataIssueTypes } from '@/modules/data-quality/config/data-issue-types';
+import pluralize from 'pluralize';
 
 const props = defineProps<{
   member: Contributor,
@@ -36,6 +42,8 @@ const props = defineProps<{
 const { avatar } = useContributorHelpers();
 
 const config = computed<DataIssueTypeConfig>(() => dataIssueTypes[props.type]);
+
+const description = computed<(member: Contributor) => string>(() => config.value.description(props.member));
 </script>
 
 <script lang="ts">

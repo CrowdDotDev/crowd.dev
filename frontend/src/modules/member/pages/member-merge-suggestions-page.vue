@@ -98,26 +98,7 @@
                 <lf-button size="small" type="primary-ghost" @click="openDetails(si)">
                   View suggestion
                 </lf-button>
-                <lf-dropdown placement="bottom-end" width="15rem">
-                  <template #trigger>
-                    <lf-button
-                      size="small"
-                      type="secondary-ghost-light"
-                      :loading="sending === `${suggestion.members[0].id}:${suggestion.members[1].id}`"
-                      :icon-only="true"
-                    >
-                      <i class="ri-more-fill" />
-                    </lf-button>
-                  </template>
-
-                  <lf-dropdown-item @click="merge(suggestion)">
-                    <i class="ri-shuffle-line" /> Merge suggestion
-                  </lf-dropdown-item>
-
-                  <lf-dropdown-item @click="ignore(suggestion)">
-                    <i class="ri-close-circle-line" />Ignore suggestion
-                  </lf-dropdown-item>
-                </lf-dropdown>
+                <lf-member-merge-suggestion-dropdown :suggestion="suggestion" @reload="reload()" />
               </div>
             </td>
           </tr>
@@ -163,16 +144,14 @@ import LfButton from '@/ui-kit/button/Button.vue';
 import AppMemberMergeSimilarity from '@/modules/member/components/suggestions/member-merge-similarity.vue';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import LfDropdown from '@/ui-kit/dropdown/Dropdown.vue';
-import LfDropdownItem from '@/ui-kit/dropdown/DropdownItem.vue';
 import AppMemberMergeSuggestionsDialog from '@/modules/member/components/member-merge-suggestions-dialog.vue';
-import useMemberMergeMessage from '@/shared/modules/merge/config/useMemberMergeMessage';
-import Message from '@/shared/message/message';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import AppMergeSuggestionsFilters from '@/modules/member/components/suggestions/merge-suggestions-filters.vue';
 import LfTableHead from '@/ui-kit/table/TableHead.vue';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import LfMemberMergeSuggestionDropdown
+  from '@/modules/member/components/suggestions/member-merge-suggestion-dropdown.vue';
 
 const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
 
@@ -261,71 +240,6 @@ const reload = () => {
 const loadMore = () => {
   page.value += 1;
   loadMergeSuggestions();
-};
-
-const sending = ref<string>('');
-
-const merge = (suggestion: any) => {
-  if (sending.value.length) {
-    return;
-  }
-
-  trackEvent({
-    key: FeatureEventKey.MERGE_MEMBER_MERGE_SUGGESTION,
-    type: EventType.FEATURE,
-    properties: {
-      similarity: suggestion.similarity,
-    },
-  });
-
-  const primaryMember = suggestion.members[0];
-  const secondaryMember = suggestion.members[1];
-  sending.value = `${primaryMember.id}:${secondaryMember.id}`;
-
-  const { loadingMessage } = useMemberMergeMessage;
-
-  loadingMessage();
-
-  MemberService.merge(primaryMember, secondaryMember)
-    .then(() => {
-      Message.closeAll();
-      Message.info(
-        "We're finalizing profiles merging. We will let you know once the process is completed.",
-        {
-          title: 'Profiles merging in progress',
-        },
-      );
-    })
-    .finally(() => {
-      reload();
-      sending.value = '';
-    });
-};
-
-const ignore = (suggestion: any) => {
-  if (sending.value.length) {
-    return;
-  }
-
-  trackEvent({
-    key: FeatureEventKey.IGNORE_MEMBER_MERGE_SUGGESTION,
-    type: EventType.FEATURE,
-    properties: {
-      similarity: suggestion.similarity,
-    },
-  });
-
-  const primaryMember = suggestion.members[0];
-  const secondaryMember = suggestion.members[1];
-  sending.value = `${primaryMember.id}:${secondaryMember.id}`;
-  MemberService.addToNoMerge(...suggestion.members)
-    .then(() => {
-      Message.success('Merging suggestion ignored successfully');
-      reload();
-    })
-    .finally(() => {
-      sending.value = '';
-    });
 };
 
 onMounted(() => {

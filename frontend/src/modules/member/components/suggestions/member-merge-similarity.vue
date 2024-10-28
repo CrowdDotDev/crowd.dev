@@ -1,41 +1,42 @@
 <template>
   <div class="flex items-center gap-1" :class="style.color">
-    <lf-svg :name="style.svg" class="h-5 w-5" />
-    <p class="text-xs leading-5 whitespace-nowrap">
-      {{ percentage }}% confidence
+    <lf-icon :name="style.icon" :size="16" type="solid" />
+    <p class="text-small leading-4 whitespace-nowrap">
+      {{ percentage }}%<span v-if="!props.percentageOnly"> confidence</span>
     </p>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import LfSvg from '@/shared/svg/svg.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps<{
-  similarity: number
+  similarity: number,
+  percentageOnly?: boolean
 }>();
 
 const percentage = computed(() => Math.ceil(props.similarity * 100));
 
 const style = computed<{
   color: string,
-  svg: string
+  icon: string
 }>(() => {
   if (props.similarity >= 0.9) {
     return {
       color: 'text-green-600',
-      svg: 'similarity-high',
+      icon: 'signal-bars-strong',
     };
   }
   if (props.similarity >= 0.7) {
     return {
       color: 'text-primary-500',
-      svg: 'similarity-medium',
+      icon: 'signal-bars-good',
     };
   }
   return {
     color: 'text-yellow-600',
-    svg: 'similarity-low',
+    icon: 'signal-bars-fair',
   };
 });
 </script>

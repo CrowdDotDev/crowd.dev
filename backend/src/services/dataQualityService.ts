@@ -30,8 +30,12 @@ export default class DataQualityService extends LoggerBase {
       [IDataQualityType.TOO_MANY_IDENTITIES_PER_PLATFORM]:
         DataQualityRepository.findMembersWithTooManyIdentitiesPerPlatform,
       [IDataQualityType.TOO_MANY_EMAILS]: DataQualityRepository.findMembersWithTooManyEmails,
-      [IDataQualityType.INCOMPLETE_WORK_EXPERIENCE]:
-        DataQualityRepository.findMembersWithIncompleteWorkExperience,
+      [IDataQualityType.WORK_EXPERIENCE_MISSING_INFO]:
+        DataQualityRepository.findMembersWithMissingInfoOnWorkExperience,
+      [IDataQualityType.WORK_EXPERIENCE_MISSING_PERIOD]:
+        DataQualityRepository.findMembersWithMissingPeriodOnWorkExperience,
+      [IDataQualityType.CONFLICTING_WORK_EXPERIENCE]:
+        DataQualityRepository.findMembersWithConflictingWorkExperience,
     }
 
     const method = methodMap[params.type]

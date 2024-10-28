@@ -4,7 +4,7 @@ const tooManyEmails: DataIssueTypeConfig = {
   label: 'More than 3 verified emails',
   badgeType: 'warning',
   badgeText: () => 'More than 3 verified emails',
-  description: (member: any) => `This profile has ${member.identityCount} verified emails, please review them if they are all necessary.`,
+  description: () => null,
 };
 
 export default tooManyEmails;
