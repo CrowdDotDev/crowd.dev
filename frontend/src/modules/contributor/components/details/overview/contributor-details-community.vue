@@ -2,7 +2,8 @@
   <section>
     <lf-card class="!bg-gradient-to-b from-primary-25 to-white px-5 pt-5 pb-6">
       <h6 class="text-h6 mb-4">
-        {{ segmentName ? `${segmentName} Community snapshot` : 'Community snapshot' }}
+        <div v-if="segmentName" class="text-secondary-300 text-tiny mb-1">{{ segmentName }}</div>
+        Community snapshot
       </h6>
       <div class="flex flex-wrap gap-y-4 -mx-4 overflow-hidden">
         <article class="px-4 h-full flex-grow w-1/2 xl:w-auto border-r border-gray-200 -mr-px">
@@ -97,13 +98,14 @@ import { MergeActionState } from '@/shared/modules/merge/types/MemberActions';
 import LfContributorDetailsMaintainer
   from '@/modules/contributor/components/details/overview/contributor-details-maintainer.vue';
 import { computed } from 'vue';
+import { getSegmentName } from '@/utils/segments';
 
 const props = defineProps<{
   contributor: Contributor,
 }>();
 
 const segmentName = computed(() => {
-  return props.contributor.segments?.[0]?.name || '';
+  return props.contributor.segments?.[0] ? getSegmentName(props.contributor.segments[0]) : '';
 });
 </script>
 <script lang="ts">
