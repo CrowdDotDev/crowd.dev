@@ -16,6 +16,12 @@ const {
   normalizeEnrichmentData,
 } = proxyActivities<typeof activities>({
   startToCloseTimeout: '10 seconds',
+  retry: {
+    initialInterval: '5s',
+    backoffCoefficient: 2.0,
+    maximumInterval: '30s',
+    maximumAttempts: 4,
+  },
 })
 
 export async function enrichMember(

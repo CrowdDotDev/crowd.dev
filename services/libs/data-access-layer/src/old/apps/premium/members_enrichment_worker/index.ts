@@ -1,4 +1,4 @@
-import { generateUUIDv4 } from '@crowd/common'
+import { generateUUIDv4, redactNullByte } from '@crowd/common'
 import { DbConnOrTx, DbStore, DbTransaction } from '@crowd/database'
 import {
   IAttributes,
@@ -475,7 +475,7 @@ export async function insertMemberEnrichmentCacheDb<T>(
   memberId: string,
   source: MemberEnrichmentSource,
 ) {
-  const dataSanitized = data ? JSON.stringify(data) : null
+  const dataSanitized = data ? redactNullByte(JSON.stringify(data)) : null
   return tx.query(
     `INSERT INTO "memberEnrichmentCache" ("memberId", "data", "createdAt", "updatedAt", "source")
       VALUES ($1, $2, NOW(), NOW(), $3);`,
@@ -489,7 +489,7 @@ export async function updateMemberEnrichmentCacheDb<T>(
   memberId: string,
   source: MemberEnrichmentSource,
 ) {
-  const dataSanitized = data ? JSON.stringify(data) : null
+  const dataSanitized = data ? redactNullByte(JSON.stringify(data)) : null
   return tx.query(
     `UPDATE "memberEnrichmentCache"
       SET

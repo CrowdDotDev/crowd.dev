@@ -23,7 +23,11 @@ export type IMemberEnrichmentData = IMemberEnrichmentDataProgAI | IMemberEnrichm
 
 export interface IEnrichmentService {
   source: MemberEnrichmentSource
+
+  // cache rows with older updatedAt than this will be considered obsolete and will be re-enriched
   cacheObsoleteAfterSeconds: number
+
+  // can the source enrich using this input
   isEnrichableBySource(input: IEnrichmentSourceInput): boolean
 
   // what kind of identities can this source use as input
