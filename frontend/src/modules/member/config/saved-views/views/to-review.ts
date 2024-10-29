@@ -13,8 +13,7 @@ const toReview: SavedView = {
       order: 'descending',
     },
     settings: {
-      bot: 'exclude',
-      teamMember: 'exclude',
+      teamMember: 'include',
       organization: 'exclude',
     },
     reviewed: {
