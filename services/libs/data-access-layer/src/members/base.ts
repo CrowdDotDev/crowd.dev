@@ -88,7 +88,7 @@ const QUERY_FILTER_COLUMN_MAP: Map<string, { name: string; queryable?: boolean }
   ['averageSentiment', { name: 'coalesce(msa."averageSentiment", 0)::decimal' }],
   ['activityTypes', { name: 'coalesce(msa."activityTypes", \'{}\'::text[])' }],
   ['activeOn', { name: 'coalesce(msa."activeOn", \'{}\'::text[])' }],
-  ['activityCount', { name: 'coalesce(msa."activityCount", 0)::integer' }],
+  ['activityCount', { name: 'coalesce(msa."activityCount", 0)::bigint' }],
 
   // others
   ['organizations', { name: 'mo."organizationId"', queryable: false }],
@@ -288,7 +288,7 @@ export async function queryMembersAdvanced(
           LIMIT $(limit)
           OFFSET $(offset)
         `
-  log.info({query, countQuery, params}, 'member advanced query')
+  // log.info({query, countQuery, params}, 'member advanced query')
   const results = await Promise.all([qx.select(query, params), qx.selectOne(countQuery, params)])
   
   const rows = results[0]
