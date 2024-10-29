@@ -22,12 +22,12 @@
           </p>
         </div>
       </template>
-      <lf-badge type="primary" size="small">
+      <div class="flex gap-2">
         <lf-badge type="primary" size="small" class="!font-semibold">
           Merge suggestion
         </lf-badge>
         <app-member-merge-similarity :similarity="+props.suggestion.similarity" percentage-only />
-      </lf-badge>
+      </div>
     </div>
     <slot name="action" />
   </article>
