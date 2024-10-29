@@ -11,9 +11,14 @@
             :name="member.displayName"
             :size="32"
           />
-          <p class="text-small font-semibold">
-            {{ member.displayName }}
-          </p>
+          <div class="pl-3 pr-4">
+            <p class="text-medium font-semibold mb-0.5">
+              {{ member.displayName }}
+            </p>
+            <p class="text-tiny text-gray-500">
+              {{ member.activityCount }} {{ pluralize('activity', +member.activityCount) }}
+            </p>
+          </div>
         </div>
       </template>
       <div class="flex gap-2">
@@ -32,6 +37,7 @@ import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
 import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import LfBadge from '@/ui-kit/badge/Badge.vue';
 import AppMemberMergeSimilarity from '@/modules/member/components/suggestions/member-merge-similarity.vue';
+import pluralize from 'pluralize';
 
 const props = defineProps<{
   suggestion: any,

@@ -420,12 +420,16 @@ class MemberRepository {
             mtm.similarity,
             mtm."activityEstimate",
             m."displayName" as "primaryDisplayName",
+            msa."activityCount" as "primaryActivityCount",
             m.attributes->'avatarUrl'->>'default' as "primaryAvatarUrl",
             m2."displayName" as "toMergeDisplayName",
+            msa2."activityCount" as "toActivityCount",
             m2.attributes->'avatarUrl'->>'default' as "toMergeAvatarUrl"
         FROM "memberToMerge" mtm
         JOIN member_segments_mv ms ON ms."memberId" = mtm."memberId"
         JOIN member_segments_mv ms2 ON ms2."memberId" = mtm."toMergeId"
+        JOIN "memberSegmentsAgg" msa ON ms."memberId" = msa."memberId" AND ms."segmentId" = '${segmentIds[0]}'
+        JOIN "memberSegmentsAgg" msa2 ON ms2."memberId" = msa2."memberId" AND ms2."segmentId" = '${segmentIds[0]}'
         join members m on m.id = mtm."memberId"
         join members m2 on m2.id = mtm."toMergeId"
         WHERE ms."segmentId" IN (:segmentIds) and ms2."segmentId" IN (:segmentIds)
@@ -534,11 +538,13 @@ class MemberRepository {
             {
               id: i.id,
               displayName: i.primaryDisplayName,
+              activityCount: i.primaryActivityCount,
               avatarUrl: i.primaryAvatarUrl,
             },
             {
               id: i.toMergeId,
               displayName: i.toMergeDisplayName,
+              activityCount: i.toActivityCount,
               avatarUrl: i.toMergeAvatarUrl,
             },
           ],
