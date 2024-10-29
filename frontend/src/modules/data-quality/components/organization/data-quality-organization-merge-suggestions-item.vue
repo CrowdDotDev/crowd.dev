@@ -1,9 +1,9 @@
 <template>
   <article class="border-b border-gray-100 py-5 flex items-center justify-between">
-    <div class="flex items-center gap-2">
+    <div class="flex items-center gap-4">
       <template v-for="(organization, mi) of props.suggestion.organizations" :key="organization.id">
         <div v-if="mi > 0">
-          <lf-icon-old name="subtract-line" :size="24" class="text-gray-400" />
+          <lf-icon-old name="arrow-left-line" :size="16" class="text-gray-400" />
         </div>
         <div class="flex items-center gap-3">
           <lf-avatar
@@ -23,8 +23,10 @@
         </div>
       </template>
       <lf-badge type="primary" size="small">
-        <span class="font-semibold mr-1">Merge suggestion</span>
-        <span>{{ Math.round(props.suggestion.similarity * 100) }}% confidence</span>
+        <lf-badge type="primary" size="small" class="!font-semibold">
+          Merge suggestion
+        </lf-badge>
+        <app-member-merge-similarity :similarity="+props.suggestion.similarity" percentage-only />
       </lf-badge>
     </div>
     <slot name="action" />
@@ -35,6 +37,7 @@
 import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
 import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import LfBadge from '@/ui-kit/badge/Badge.vue';
+import AppMemberMergeSimilarity from '@/modules/member/components/suggestions/member-merge-similarity.vue';
 
 const props = defineProps<{
   suggestion: any,

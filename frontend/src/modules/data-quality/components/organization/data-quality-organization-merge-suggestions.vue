@@ -50,7 +50,6 @@ import LfDataQualityOrganizationMergeSuggestionsItem
   from '@/modules/data-quality/components/organization/data-quality-organization-merge-suggestions-item.vue';
 import AppOrganizationMergeSuggestionsDialog
   from '@/modules/organization/components/organization-merge-suggestions-dialog.vue';
-import { getSegmentsFromProjectGroup } from '@/utils/segments';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
@@ -67,16 +66,25 @@ const mergeSuggestions = ref<any[]>([]);
 const isModalOpen = ref<boolean>(false);
 const detailsOffset = ref<number>(0);
 
-const { projectGroups } = storeToRefs(useLfSegmentsStore());
+const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
 
 const loadMergeSuggestions = () => {
   loading.value = true;
-  const projectGroup = projectGroups.value.list.find((g) => g.id === props.projectGroup);
-  console.log(projectGroup);
-  const segments = [
-    ...getSegmentsFromProjectGroup(projectGroup),
-    props.projectGroup,
-  ];
+  const segments: string[] = selectedProjectGroup.value?.id === props.projectGroup
+    ? [
+      selectedProjectGroup.value?.id,
+      ...selectedProjectGroup.value.projects.map((p) => [
+        ...p.subprojects.map((sp) => sp.id),
+      ]).flat(),
+    ]
+    : [
+      props.projectGroup,
+      ...selectedProjectGroup.value.projects
+        .filter((p) => p.id === props.projectGroup)
+        .map((p) => [
+          ...p.subprojects.map((sp) => sp.id),
+        ]).flat(),
+    ];
   OrganizationService.fetchMergeSuggestions(limit.value, offset.value, {
     detail: false,
     segments,

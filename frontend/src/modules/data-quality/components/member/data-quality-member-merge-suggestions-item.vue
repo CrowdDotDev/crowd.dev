@@ -12,7 +12,7 @@
             :size="32"
           />
           <div>
-            <p class="text-medium font-semibold mb-0.5">
+            <p class="text-medium font-semibold">
               {{ member.displayName }}
             </p>
             <!--            <p class="text-tiny text-gray-500">-->
@@ -37,7 +37,6 @@ import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
 import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import LfBadge from '@/ui-kit/badge/Badge.vue';
 import AppMemberMergeSimilarity from '@/modules/member/components/suggestions/member-merge-similarity.vue';
-import pluralize from 'pluralize';
 
 const props = defineProps<{
   suggestion: any,
