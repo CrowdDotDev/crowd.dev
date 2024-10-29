@@ -290,7 +290,7 @@ export async function queryMembersAdvanced(
         `
 
   const results = await Promise.all([qx.select(query, params), qx.selectOne(countQuery, params)])
-
+  log.info({query, countQuery, params}, 'member advanced query')
   const rows = results[0]
   const count = parseInt(results[1].count, 10)
 
