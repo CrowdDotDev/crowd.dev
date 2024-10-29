@@ -288,9 +288,9 @@ export async function queryMembersAdvanced(
           LIMIT $(limit)
           OFFSET $(offset)
         `
-
-  const results = await Promise.all([qx.select(query, params), qx.selectOne(countQuery, params)])
   log.info({query, countQuery, params}, 'member advanced query')
+  const results = await Promise.all([qx.select(query, params), qx.selectOne(countQuery, params)])
+  
   const rows = results[0]
   const count = parseInt(results[1].count, 10)
 
