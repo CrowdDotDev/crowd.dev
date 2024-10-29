@@ -235,7 +235,7 @@ export async function queryMembersAdvanced(
       FROM members m
       ${
         withAggregates
-          ? ` LEFT JOIN "memberSegmentsAgg" msa ON msa."memberId" = m.id AND msa."segmentId" = $(segmentId)`
+          ? ` INNER JOIN "memberSegmentsAgg" msa ON msa."memberId" = m.id AND msa."segmentId" = $(segmentId)`
           : ''
       }
       LEFT JOIN member_orgs mo ON mo."memberId" = m.id
