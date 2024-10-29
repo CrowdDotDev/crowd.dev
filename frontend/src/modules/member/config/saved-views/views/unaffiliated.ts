@@ -13,6 +13,7 @@ const unaffiliated: SavedView = {
       order: 'descending',
     },
     settings: {
+      bot: 'exclude',
       teamMember: 'include',
       organization: 'exclude',
     },
