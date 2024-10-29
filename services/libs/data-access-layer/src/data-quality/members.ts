@@ -310,18 +310,19 @@ export async function fetchMembersWithConflictingWorkExperiences(
             m."displayName",
             m."attributes",
             msa."activityCount",
-            COUNT(mo1.id) AS "organizationsCount"
+            COUNT(DISTINCT mo1.id) AS "organizationsCount"
         FROM "members" m
-                JOIN "memberOrganizations" mo1 ON m.id = mo1."memberId" AND mo1."deletedAt" IS NULL
-                INNER JOIN "memberSegmentsAgg" msa ON m.id = msa."memberId" AND msa."segmentId" = '${segmentId}'
-                JOIN "memberOrganizations" mo2 ON mo1."memberId" = mo2."memberId" AND mo1."deletedAt" IS NULL
-                AND mo1.id != mo2.id
-                AND (
-                   (mo1."dateStart" < COALESCE(mo2."dateEnd", 'infinity'::timestamp)
-                       AND COALESCE(mo1."dateEnd", 'infinity'::timestamp) > mo2."dateStart") OR
-                   (mo2."dateStart" < COALESCE(mo1."dateEnd", 'infinity'::timestamp)
-                       AND COALESCE(mo2."dateEnd", 'infinity'::timestamp) > mo1."dateStart")
-               )
+                 JOIN "memberOrganizations" mo1 ON m.id = mo1."memberId" AND mo1."deletedAt" IS NULL
+                 INNER JOIN "memberSegmentsAgg" msa ON m.id = msa."memberId" AND msa."segmentId" = '${segmentId}'
+                 LEFT JOIN "memberOrganizations" mo2 ON mo1."memberId" = mo2."memberId"
+            AND mo1."deletedAt" IS NULL
+            AND mo1.id != mo2.id
+            AND (
+                (mo1."dateStart" < COALESCE(mo2."dateEnd", 'infinity'::timestamp)
+                    AND COALESCE(mo1."dateEnd", 'infinity'::timestamp) > mo2."dateStart") OR
+                (mo2."dateStart" < COALESCE(mo1."dateEnd", 'infinity'::timestamp)
+                    AND COALESCE(mo2."dateEnd", 'infinity'::timestamp) > mo1."dateStart")
+            )
         WHERE m."tenantId" = '${tenantId}'
         GROUP BY m.id, msa."activityCount"
         ORDER BY msa."activityCount" DESC
