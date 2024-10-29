@@ -67,7 +67,7 @@ export async function fetchMembersWithTooManyIdentities(
                 m."displayName",
                 m."attributes",
                 m.id,
-                COUNT(*) AS "identityCount",
+                COUNT(DISTINCT CASE WHEN mi."type" = 'email' THEN mi."value"::text ELSE mi.id::text END) AS "identityCount",
                 msa."activityCount"
             FROM "memberIdentities" mi
                      JOIN "members" m ON mi."memberId" = m.id
@@ -75,7 +75,7 @@ export async function fetchMembersWithTooManyIdentities(
             WHERE m."tenantId" = '${tenantId}'
               AND COALESCE((m.attributes -> 'isBot' ->> 'default')::BOOLEAN, FALSE) = FALSE
             GROUP BY mi."memberId", m."displayName", m."attributes", m.id, msa."activityCount"
-            HAVING COUNT(*) > ${threshold}
+            HAVING COUNT(DISTINCT CASE WHEN mi."type" = 'email' THEN mi."value"::text ELSE mi.id::text END) > ${threshold}
             ORDER BY msa."activityCount" DESC
             LIMIT ${limit} OFFSET ${offset};
         `,
@@ -317,10 +317,10 @@ export async function fetchMembersWithConflictingWorkExperiences(
                 JOIN "memberOrganizations" mo2 ON mo1."memberId" = mo2."memberId"
                 AND mo1.id != mo2.id
                 AND (
-                   (mo1."dateStart" <= COALESCE(mo2."dateEnd", 'infinity'::timestamp)
-                       AND COALESCE(mo1."dateEnd", 'infinity'::timestamp) >= mo2."dateStart") OR
-                   (mo2."dateStart" <= COALESCE(mo1."dateEnd", 'infinity'::timestamp)
-                       AND COALESCE(mo2."dateEnd", 'infinity'::timestamp) >= mo1."dateStart")
+                   (mo1."dateStart" < COALESCE(mo2."dateEnd", 'infinity'::timestamp)
+                       AND COALESCE(mo1."dateEnd", 'infinity'::timestamp) > mo2."dateStart") OR
+                   (mo2."dateStart" < COALESCE(mo1."dateEnd", 'infinity'::timestamp)
+                       AND COALESCE(mo2."dateEnd", 'infinity'::timestamp) > mo1."dateStart")
                )
         WHERE m."tenantId" = '${tenantId}'
         GROUP BY m.id, msa."activityCount"
