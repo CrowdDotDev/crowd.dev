@@ -40,7 +40,8 @@
     v-model="isModalOpen"
     :offset="detailsOffset"
     :query="{
-      orderBy: ['activityCount_DESC'],
+      orderBy: ['similarity_DESC', 'activityCount_DESC'],
+      segments: segments,
     }"
     @reload="offset = 0; loadMergeSuggestions()"
   />
@@ -48,7 +49,9 @@
 
 <script lang="ts" setup>
 import { MemberService } from '@/modules/member/member-service';
-import { onMounted, ref, watch } from 'vue';
+import {
+  computed, onMounted, ref, watch,
+} from 'vue';
 import LfDataQualityMemberMergeSuggestionsItem
   from '@/modules/data-quality/components/member/data-quality-member-merge-suggestions-item.vue';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
@@ -75,28 +78,29 @@ const detailsOffset = ref<number>(0);
 
 const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
 
-const loadMergeSuggestions = () => {
-  loading.value = true;
-  const segments: string[] = selectedProjectGroup.value?.id === props.projectGroup
-    ? [
-      selectedProjectGroup.value?.id,
-      ...selectedProjectGroup.value.projects.map((p) => [
+const segments = computed(() => (selectedProjectGroup.value?.id === props.projectGroup
+  ? [
+    selectedProjectGroup.value?.id,
+    ...selectedProjectGroup.value.projects.map((p) => [
+      ...p.subprojects.map((sp) => sp.id),
+    ]).flat(),
+  ]
+  : [
+    props.projectGroup,
+    ...selectedProjectGroup.value.projects
+      .filter((p) => p.id === props.projectGroup)
+      .map((p) => [
         ...p.subprojects.map((sp) => sp.id),
       ]).flat(),
-    ]
-    : [
-      props.projectGroup,
-      ...selectedProjectGroup.value.projects
-        .filter((p) => p.id === props.projectGroup)
-        .map((p) => [
-          ...p.subprojects.map((sp) => sp.id),
-        ]).flat(),
-    ];
+  ]));
+
+const loadMergeSuggestions = () => {
+  loading.value = true;
 
   MemberService.fetchMergeSuggestions(limit.value, offset.value, {
-    orderBy: ['activityCount_DESC'],
     detail: false,
-    segments,
+    orderBy: ['similarity_DESC', 'activityCount_DESC'],
+    segments: segments.value,
   })
     .then((res) => {
       total.value = +res.count;

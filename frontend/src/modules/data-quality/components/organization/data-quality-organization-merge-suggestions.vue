@@ -36,12 +36,16 @@
   <app-organization-merge-suggestions-dialog
     v-model="isModalOpen"
     :offset="detailsOffset"
+    :query="{
+      orderBy: ['similarity_DESC', 'activityCount_DESC'],
+      segments: segments,
+    }"
     @reload="offset = 0; loadMergeSuggestions()"
   />
 </template>
 
 <script lang="ts" setup>
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import LfSpinner from '@/ui-kit/spinner/Spinner.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfIconOld from '@/ui-kit/icon/IconOld.vue';
@@ -68,26 +72,28 @@ const detailsOffset = ref<number>(0);
 
 const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
 
-const loadMergeSuggestions = () => {
-  loading.value = true;
-  const segments: string[] = selectedProjectGroup.value?.id === props.projectGroup
-    ? [
-      selectedProjectGroup.value?.id,
-      ...selectedProjectGroup.value.projects.map((p) => [
+const segments = computed(() => (selectedProjectGroup.value?.id === props.projectGroup
+  ? [
+    selectedProjectGroup.value?.id,
+    ...selectedProjectGroup.value.projects.map((p) => [
+      ...p.subprojects.map((sp) => sp.id),
+    ]).flat(),
+  ]
+  : [
+    props.projectGroup,
+    ...selectedProjectGroup.value.projects
+      .filter((p) => p.id === props.projectGroup)
+      .map((p) => [
         ...p.subprojects.map((sp) => sp.id),
       ]).flat(),
-    ]
-    : [
-      props.projectGroup,
-      ...selectedProjectGroup.value.projects
-        .filter((p) => p.id === props.projectGroup)
-        .map((p) => [
-          ...p.subprojects.map((sp) => sp.id),
-        ]).flat(),
-    ];
+  ]));
+
+const loadMergeSuggestions = () => {
+  loading.value = true;
   OrganizationService.fetchMergeSuggestions(limit.value, offset.value, {
     detail: false,
-    segments,
+    segments: segments.value,
+    orderBy: ['similarity_DESC', 'activityCount_DESC'],
   })
     .then((res) => {
       total.value = +res.count;

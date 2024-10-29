@@ -12,7 +12,7 @@
             {{ props.member.displayName }}
           </p>
           <p class="text-tiny text-gray-500">
-            {{ props.member.activityCount }} {{ pluralize('activity', +props.member.activityCount) }}
+            {{ formatNumber(props.member.activityCount) }} {{ pluralize('activity', +props.member.activityCount) }}
           </p>
         </div>
         <lf-badge size="small" :type="config.badgeType" class="!font-semibold">
@@ -33,6 +33,7 @@ import LfBadge from '@/ui-kit/badge/Badge.vue';
 import { computed } from 'vue';
 import { DataIssueTypeConfig, dataIssueTypes } from '@/modules/data-quality/config/data-issue-types';
 import pluralize from 'pluralize';
+import { formatNumber } from '@/utils/number';
 
 const props = defineProps<{
   member: Contributor,
