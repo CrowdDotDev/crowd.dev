@@ -11,13 +11,13 @@
             :name="member.displayName"
             :size="32"
           />
-          <div class="pl-3 pr-4">
+          <div>
             <p class="text-medium font-semibold mb-0.5">
               {{ member.displayName }}
             </p>
-            <p class="text-tiny text-gray-500">
-              {{ member.activityCount }} {{ pluralize('activity', +member.activityCount) }}
-            </p>
+            <!--            <p class="text-tiny text-gray-500">-->
+            <!--              {{ member.activityCount }} {{ pluralize('activity', +member.activityCount) }}-->
+            <!--            </p>-->
           </div>
         </div>
       </template>
