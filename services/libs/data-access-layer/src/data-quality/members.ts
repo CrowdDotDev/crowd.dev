@@ -314,7 +314,7 @@ export async function fetchMembersWithConflictingWorkExperiences(
         FROM "members" m
                 JOIN "memberOrganizations" mo1 ON m.id = mo1."memberId" AND mo1."deletedAt" IS NULL
                 INNER JOIN "memberSegmentsAgg" msa ON m.id = msa."memberId" AND msa."segmentId" = '${segmentId}'
-                JOIN "memberOrganizations" mo2 ON mo1."memberId" = mo2."memberId"
+                JOIN "memberOrganizations" mo2 ON mo1."memberId" = mo2."memberId" AND mo1."deletedAt" IS NULL
                 AND mo1.id != mo2.id
                 AND (
                    (mo1."dateStart" < COALESCE(mo2."dateEnd", 'infinity'::timestamp)
