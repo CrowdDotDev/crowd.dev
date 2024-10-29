@@ -1682,7 +1682,7 @@ class OrganizationRepository {
       FROM organizations o
       ${
         withAggregates
-          ? ` LEFT JOIN "organizationSegmentsAgg" osa ON osa."organizationId" = o.id AND ${
+          ? ` INNER JOIN "organizationSegmentsAgg" osa ON osa."organizationId" = o.id AND ${
               segmentId ? `osa."segmentId" = $(segmentId)` : `osa."segmentId" IS NULL`
             }`
           : ''
