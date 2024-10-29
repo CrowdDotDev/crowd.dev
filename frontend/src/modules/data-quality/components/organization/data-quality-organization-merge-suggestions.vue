@@ -72,6 +72,7 @@ const { projectGroups } = storeToRefs(useLfSegmentsStore());
 const loadMergeSuggestions = () => {
   loading.value = true;
   const projectGroup = projectGroups.value.list.find((g) => g.id === props.projectGroup);
+  console.log(projectGroup);
   const segments = [
     ...getSegmentsFromProjectGroup(projectGroup),
     props.projectGroup,

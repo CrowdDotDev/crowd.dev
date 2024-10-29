@@ -57,7 +57,6 @@ import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import AppMemberMergeSuggestionsDialog from '@/modules/member/components/member-merge-suggestions-dialog.vue';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
-import { getSegmentsFromProjectGroup } from '@/utils/segments';
 import LfMemberMergeSuggestionDropdown
   from '@/modules/member/components/suggestions/member-merge-suggestion-dropdown.vue';
 
@@ -74,15 +73,26 @@ const mergeSuggestions = ref<any[]>([]);
 const isModalOpen = ref<boolean>(false);
 const detailsOffset = ref<number>(0);
 
-const { projectGroups } = storeToRefs(useLfSegmentsStore());
+const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
 
 const loadMergeSuggestions = () => {
   loading.value = true;
-  const projectGroup = projectGroups.value.list.find((g) => g.id === props.projectGroup);
-  const segments = [
-    ...getSegmentsFromProjectGroup(projectGroup),
-    props.projectGroup,
-  ];
+  const segments: string[] = selectedProjectGroup.value?.id === props.projectGroup
+    ? [
+      selectedProjectGroup.value?.id,
+      ...selectedProjectGroup.value.projects.map((p) => [
+        ...p.subprojects.map((sp) => sp.id),
+      ]).flat(),
+    ]
+    : [
+      props.projectGroup,
+      ...selectedProjectGroup.value.projects
+        .filter((p) => p.id === props.projectGroup)
+        .map((p) => [
+          ...p.subprojects.map((sp) => sp.id),
+        ]).flat(),
+    ];
+
   MemberService.fetchMergeSuggestions(limit.value, offset.value, {
     orderBy: ['activityCount_DESC'],
     detail: false,

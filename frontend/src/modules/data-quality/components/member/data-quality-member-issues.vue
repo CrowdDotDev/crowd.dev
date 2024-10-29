@@ -15,7 +15,7 @@
             :to="{
               name: 'memberView',
               params: { id: member.id },
-              query: { projectGroup: props.projectGroup },
+              query: { projectGroup: selectedProjectGroup?.id },
             }"
             target="_blank"
           >
@@ -54,6 +54,8 @@ import { DataQualityApiService } from '@/modules/data-quality/services/data-qual
 import LfDataQualityMemberIssuesItem
   from '@/modules/data-quality/components/member/data-quality-member-issues-item.vue';
 import LfIconOld from '@/ui-kit/icon/IconOld.vue';
+import { storeToRefs } from 'pinia';
+import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 
 const props = defineProps<{
   type: DataIssueType,
@@ -65,6 +67,8 @@ const limit = ref(20);
 const offset = ref(0);
 const total = ref(0);
 const members = ref<any[]>([]);
+
+const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
 
 const loadDataIssues = () => {
   loading.value = true;
