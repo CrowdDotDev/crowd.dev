@@ -323,6 +323,7 @@ export async function fetchMembersWithConflictingWorkExperiences(
                        AND COALESCE(mo2."dateEnd", 'infinity'::timestamp) > mo1."dateStart")
                )
         WHERE m."tenantId" = '${tenantId}'
+          AND COALESCE((m.attributes -> 'isBot' ->> 'default')::BOOLEAN, FALSE) = FALSE
         GROUP BY m.id, msa."activityCount"
         ORDER BY msa."activityCount" DESC
         LIMIT ${limit} OFFSET ${offset};

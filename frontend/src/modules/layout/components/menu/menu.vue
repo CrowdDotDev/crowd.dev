@@ -50,12 +50,11 @@
     </div>
     <lf-menu-link
       v-if="hasPermission(LfPermission.dataQualityRead)"
-      class=" !opacity-0"
       title="Data Quality Assistant"
       icon="message-exclamation"
       :is-collapsed="isCollapsed"
+      :to="{ path: '/data-quality-assistant', query: { projectGroup: selectedProjectGroup?.id } }"
       :disabled="!selectedProjectGroup"
-      :to="{ path: '/data-quality-assistant' }"
     />
     <div class="flex-grow" />
     <div class="flex justify-end pb-8">
