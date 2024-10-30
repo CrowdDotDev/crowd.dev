@@ -30,8 +30,6 @@
     </div>
     <slot name="action" />
   </article>
-
-  <pre class="hidden">{{ JSON.stringify(props.suggestion, null, 2) }}</pre>
 </template>
 
 <script lang="ts" setup>

@@ -43,6 +43,7 @@
     :offset="detailsOffset"
     :query="{
       orderBy: ['similarity_DESC', 'activityCount_DESC'],
+      filter: { similarity: ['high'] },
       segments: segments,
     }"
     @reload="offset = 0; loadMergeSuggestions()"
@@ -98,6 +99,7 @@ const loadMergeSuggestions = () => {
   OrganizationService.fetchMergeSuggestions(limit.value, offset.value, {
     detail: false,
     segments: segments.value,
+    filter: { similarity: ['high'] },
     orderBy: ['similarity_DESC', 'activityCount_DESC'],
   })
     .then((res) => {

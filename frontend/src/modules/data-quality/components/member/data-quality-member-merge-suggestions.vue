@@ -1,6 +1,5 @@
 <template>
   <div>
-    <pre class="hidden">{{ JSON.stringify(mergeSuggestions, null, 2) }}</pre>
     <div v-if="loading && offset === 0" class="flex justify-center py-20">
       <lf-spinner />
     </div>
@@ -47,6 +46,7 @@
     :offset="detailsOffset"
     :query="{
       orderBy: ['similarity_DESC', 'activityCount_DESC'],
+      filter: { similarity: ['high'] },
       segments: segments,
     }"
     @reload="offset = 0; loadMergeSuggestions()"
@@ -105,22 +105,17 @@ const loadMergeSuggestions = () => {
 
   MemberService.fetchMergeSuggestions(limit.value, offset.value, {
     detail: false,
+    filter: { similarity: ['high'] },
     orderBy: ['similarity_DESC', 'activityCount_DESC'],
     segments: segments.value,
   })
     .then((res) => {
-      console.log(res);
       total.value = +res.count;
-      console.log('rows', res.rows);
-      console.log('before set', mergeSuggestions.value);
       if (+res.offset > 0) {
-        console.log('join');
         mergeSuggestions.value = [...mergeSuggestions.value, ...res.rows];
       } else {
-        console.log('set');
         mergeSuggestions.value = res.rows;
       }
-      console.log('after set', mergeSuggestions.value);
     })
     .finally(() => {
       loading.value = false;
