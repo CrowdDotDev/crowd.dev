@@ -1,7 +1,6 @@
 import {
   IAttributes,
   IMemberContribution,
-  IMemberEnrichmentSourceEnrichableBy,
   IMemberIdentity,
   IOrganizationIdentity,
   MemberAttributeName,
@@ -12,14 +11,21 @@ import {
 
 import { IMemberEnrichmentDataClearbit } from './sources/clearbit/types'
 import { IMemberEnrichmentDataProgAI } from './sources/progai/types'
+import { IMemberEnrichmentDataSerp } from './sources/serp/types'
 
 export interface IEnrichmentSourceInput {
   github?: IMemberIdentity
   linkedin?: IMemberIdentity
   email?: IMemberIdentity
+  website?: string
+  location?: string
+  displayName?: string
 }
 
-export type IMemberEnrichmentData = IMemberEnrichmentDataProgAI | IMemberEnrichmentDataClearbit
+export type IMemberEnrichmentData =
+  | IMemberEnrichmentDataProgAI
+  | IMemberEnrichmentDataClearbit
+  | IMemberEnrichmentDataSerp
 
 export interface IEnrichmentService {
   source: MemberEnrichmentSource
@@ -30,8 +36,8 @@ export interface IEnrichmentService {
   // can the source enrich using this input
   isEnrichableBySource(input: IEnrichmentSourceInput): boolean
 
-  // what kind of identities can this source use as input
-  enrichableBy: IMemberEnrichmentSourceEnrichableBy[]
+  // what kind of custom sql should this source use as input
+  enrichableBySql: string
 
   // should either return the data or null if it's a miss
   getData(input: IEnrichmentSourceInput): Promise<IMemberEnrichmentData | null>

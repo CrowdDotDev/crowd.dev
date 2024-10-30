@@ -2,9 +2,8 @@ import { generateUUIDv4, redactNullByte } from '@crowd/common'
 import { DbConnOrTx, DbStore, DbTransaction } from '@crowd/database'
 import {
   IAttributes,
-  IMember,
+  IEnrichableMember,
   IMemberEnrichmentCache,
-  IMemberEnrichmentSourceEnrichableBy,
   IMemberEnrichmentSourceQueryInput,
   IMemberIdentity,
   IOrganizationIdentity,
@@ -18,12 +17,11 @@ export async function fetchMembersForEnrichment(
   limit: number,
   sourceInputs: IMemberEnrichmentSourceQueryInput[],
   afterId: string,
-): Promise<IMember[]> {
+): Promise<IEnrichableMember[]> {
   const idFilter = afterId ? ' and members.id < $2 ' : ''
 
   const sourceInnerQueryItems = []
-  const enrichableByHashMap = {}
-  const distinctEnrichableByConditions: IMemberEnrichmentSourceEnrichableBy[] = []
+  const enrichableBySqlConditions = []
 
   sourceInputs.forEach((input) => {
     sourceInnerQueryItems.push(
@@ -36,40 +34,22 @@ export async function fetchMembersForEnrichment(
       )`,
     )
 
-    input.enrichableBy.forEach((enrichableBy) => {
-      const key = `${enrichableBy.type}-${enrichableBy.platform}`
-      if (!enrichableByHashMap[key]) {
-        enrichableByHashMap[key] = true
-        distinctEnrichableByConditions.push(enrichableBy)
-      }
-    })
+    enrichableBySqlConditions.push(`(${input.enrichableBySql})`)
   })
 
-  const identityFilterArray = []
+  let enrichableBySqlJoined = ''
 
-  distinctEnrichableByConditions.forEach((enrichableBy) => {
-    if (!enrichableBy.platform && enrichableBy.type === MemberIdentityType.USERNAME) {
-      throw new Error(
-        'Platform must be provided for username identity types. Searching in all platforms for the username type is not allowed.',
-      )
-    } else if (!enrichableBy.platform && enrichableBy.type === MemberIdentityType.EMAIL) {
-      identityFilterArray.push(`(mi.type = '${MemberIdentityType.EMAIL}')`)
-    } else {
-      identityFilterArray.push(
-        `(mi.platform = '${enrichableBy.platform}') AND (mi.type = '${enrichableBy.type}')`,
-      )
-    }
-  })
+  if (enrichableBySqlConditions.length > 0) {
+    enrichableBySqlJoined = `(${enrichableBySqlConditions.join(' OR ')}) `
+  }
 
   return db.connection().query(
     `SELECT
          members."id",
-         members."displayName",
-         members."attributes",
-         members."contributions",
-         members."score",
-         members."reach",
          members."tenantId",
+         members."displayName",
+         members.attributes->'location'->>'default' as location,
+         members.attributes->'websiteUrl'->>'default' as website,
          json_agg(json_build_object(
           'platform', mi.platform,
           'value', mi.value,
@@ -80,7 +60,7 @@ export async function fetchMembersForEnrichment(
               INNER JOIN tenants ON tenants.id = members."tenantId"
               INNER JOIN "memberIdentities" mi ON mi."memberId" = members.id
      WHERE 
-       ( mi.verified AND (${identityFilterArray.join(' OR ')}) )
+       ${enrichableBySqlJoined}
        AND tenants."deletedAt" IS NULL
        AND members."deletedAt" IS NULL
        AND (${sourceInnerQueryItems.join(' OR ')})
