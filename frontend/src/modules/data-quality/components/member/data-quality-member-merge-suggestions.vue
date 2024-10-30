@@ -111,10 +111,11 @@ const loadMergeSuggestions = () => {
   })
     .then((res) => {
       total.value = +res.count;
+      const rows = res.rows.filter((s: any) => s.similarity > 0);
       if (+res.offset > 0) {
-        mergeSuggestions.value = [...mergeSuggestions.value, ...res.rows];
+        mergeSuggestions.value = [...mergeSuggestions.value, ...rows];
       } else {
-        mergeSuggestions.value = res.rows;
+        mergeSuggestions.value = rows;
       }
     })
     .finally(() => {
