@@ -7,7 +7,7 @@
           <div>
             <app-lf-page-header text-class="text-tiny text-secondary-400 mb-1" />
             <h4 class="font-semibold">
-              Data Quality Assistant
+              Data Quality Copilot
             </h4>
           </div>
 

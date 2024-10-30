@@ -75,8 +75,8 @@ const projectAdmin: Record<LfPermission, boolean> = {
   [LfPermission.mergeOrganizations]: true,
   [LfPermission.customViewsCreate]: true,
   [LfPermission.customViewsTenantManage]: true,
-  [LfPermission.dataQualityRead]: true,
-  [LfPermission.dataQualityEdit]: true,
+  [LfPermission.dataQualityRead]: false,
+  [LfPermission.dataQualityEdit]: false,
 };
 
 export default projectAdmin;

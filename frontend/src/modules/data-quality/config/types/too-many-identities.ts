@@ -1,9 +1,9 @@
 import { DataIssueTypeConfig } from '@/modules/data-quality/config/data-issue-types';
 
 const tooManyIdentities: DataIssueTypeConfig = {
-  label: 'More than 20 identities',
+  label: 'More than 30 identities',
   badgeType: 'danger',
-  badgeText: () => 'More than 20 identities',
+  badgeText: () => 'More than 30 identities',
   description: () => null,
 };
 

@@ -12,7 +12,7 @@ export default [
     component: Layout,
     meta: {
       auth: true,
-      title: 'Data Quality Assistant',
+      title: 'Data Quality Copilot',
       segments: {
         requireSelectedProjectGroup: true,
       },
