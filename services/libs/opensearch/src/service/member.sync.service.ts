@@ -474,7 +474,14 @@ export class MemberSyncService {
     }
     await syncMembersToOpensearchForMergeSuggestions(memberId)
 
-    return syncResults
+    if (syncResults) {
+      return syncResults
+    }
+
+    return {
+      membersSynced: 0,
+      documentsIndexed: 0,
+    }
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
