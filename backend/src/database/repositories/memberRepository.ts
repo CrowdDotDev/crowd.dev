@@ -534,11 +534,13 @@ class MemberRepository {
             {
               id: i.id,
               displayName: i.primaryDisplayName,
+              activityCount: i.primaryActivityCount,
               avatarUrl: i.primaryAvatarUrl,
             },
             {
               id: i.toMergeId,
               displayName: i.toMergeDisplayName,
+              activityCount: i.toActivityCount,
               avatarUrl: i.toMergeAvatarUrl,
             },
           ],

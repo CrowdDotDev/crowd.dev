@@ -243,6 +243,7 @@ setImmediate(async () => {
   require('./customViews').default(routes)
   require('./dashboard').default(routes)
   require('./mergeAction').default(routes)
+  require('./dataQuality').default(routes)
   // Loads the Tenant if the :tenantId param is passed
   routes.param('tenantId', tenantMiddleware)
   routes.param('tenantId', segmentMiddleware)
