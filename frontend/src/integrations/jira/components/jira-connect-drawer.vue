@@ -69,7 +69,6 @@ import {
 import { CrowdIntegrations } from '@/integrations/integrations-config';
 import formChangeDetector from '@/shared/form/form-change';
 import { mapActions } from '@/shared/vuex/vuex.helpers';
-import AppArrayInput from '@/shared/form/array-input.vue';
 
 import { required } from '@vuelidate/validators';
 import AppDrawer from '@/shared/drawer/drawer.vue';
@@ -103,7 +102,6 @@ const rules = {
   },
 };
 
-const isValidating = ref(false);
 const isVerificationEnabled = ref(false);
 const isAPIConnectionValid = ref(false);
 
@@ -132,14 +130,6 @@ onMounted(() => {
   }
   formSnapshot();
 });
-
-const addProject = () => {
-  form.projects.push('');
-};
-
-const removeProject = (index) => {
-  form.projects.splice(index, 1);
-};
 
 const cancel = () => {
   isVisible.value = false;
