@@ -17,7 +17,7 @@
               </div>
             </template>
           </lf-avatar>
-          <p class="text-medium font-semibold truncate" style="width: 30ch">
+          <p class="text-medium font-semibold truncate" style="max-width: 30ch">
             {{ organization.displayName }}
           </p>
         </div>

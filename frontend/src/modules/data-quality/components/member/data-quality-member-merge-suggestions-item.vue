@@ -12,7 +12,7 @@
             :size="32"
           />
           <div>
-            <p class="text-medium font-semibold truncate" style="width: 30ch">
+            <p class="text-medium font-semibold truncate" style="max-width: 30ch">
               {{ member.displayName }}
             </p>
             <!--            <p class="text-tiny text-gray-500">-->
@@ -30,6 +30,8 @@
     </div>
     <slot name="action" />
   </article>
+
+  <pre class="hidden">{{ JSON.stringify(props.suggestion, null, 2) }}</pre>
 </template>
 
 <script lang="ts" setup>

@@ -8,7 +8,7 @@
           :size="32"
         />
         <div class="pl-3 pr-4">
-          <p class="text-medium font-semibold mb-0.5 truncate" style="width: 30ch">
+          <p class="text-medium font-semibold mb-0.5 truncate" style="max-width: 30ch">
             {{ props.member.displayName }}
           </p>
           <p class="text-tiny text-gray-500">

@@ -1,5 +1,6 @@
 <template>
   <div>
+    <pre class="hidden">{{ JSON.stringify(mergeSuggestions, null, 2) }}</pre>
     <div v-if="loading && offset === 0" class="flex justify-center py-20">
       <lf-spinner />
     </div>
