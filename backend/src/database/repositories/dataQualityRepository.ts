@@ -53,7 +53,7 @@ class DataQualityRepository {
     segmentId: string,
   ) {
     const qx = SequelizeRepository.getQueryExecutor(options)
-    return fetchMembersWithTooManyIdentities(qx, 15, tenantId, limit, offset, segmentId)
+    return fetchMembersWithTooManyIdentities(qx, 20, tenantId, limit, offset, segmentId)
   }
 
   /**
@@ -96,7 +96,7 @@ class DataQualityRepository {
     segmentId: string,
   ) {
     const qx = SequelizeRepository.getQueryExecutor(options)
-    return fetchMembersWithTooManyEmails(qx, 3, tenantId, limit, offset, segmentId)
+    return fetchMembersWithTooManyEmails(qx, 5, tenantId, limit, offset, segmentId)
   }
 
   /**

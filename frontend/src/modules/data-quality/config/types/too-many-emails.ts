@@ -1,9 +1,9 @@
 import { DataIssueTypeConfig } from '@/modules/data-quality/config/data-issue-types';
 
 const tooManyEmails: DataIssueTypeConfig = {
-  label: 'More than 3 verified emails',
+  label: 'More than 5 verified emails',
   badgeType: 'warning',
-  badgeText: () => 'More than 3 verified emails',
+  badgeText: () => 'More than 5 verified emails',
   description: () => null,
 };
 
