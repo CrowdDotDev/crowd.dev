@@ -45,7 +45,7 @@
       :to="{ path: '/activities', query: { projectGroup: selectedProjectGroup?.id } }"
       :disabled="!selectedProjectGroup"
     />
-    <div class="px-3 py-2 opacity-0">
+    <div class="px-3 py-2">
       <div class="border-b border-gray-200" />
     </div>
     <lf-menu-link
