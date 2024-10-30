@@ -1,10 +1,11 @@
-import { IAttributes, IMemberIdentity } from '@crowd/types'
 import {
   getIdentitiesExistInOtherMembers as getIdentitiesExistInOthers,
   updateMemberAttributes,
 } from '@crowd/data-access-layer/src/old/apps/premium/members_enrichment_worker'
-import { svc } from '../../main'
 import { insertMemberIdentity } from '@crowd/data-access-layer/src/old/apps/premium/members_enrichment_worker/normalize'
+import { IAttributes, IMemberIdentity } from '@crowd/types'
+
+import { svc } from '../../main'
 
 export async function getIdentitiesExistInOtherMembers(
   tenantId: string,

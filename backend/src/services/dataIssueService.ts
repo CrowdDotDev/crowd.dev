@@ -1,16 +1,19 @@
+import { createAppAuth } from '@octokit/auth-app'
+import { InstallationAccessTokenData } from '@octokit/auth-app/dist-types/types'
 import { Octokit } from '@octokit/core'
 import { request } from '@octokit/request'
-import { createAppAuth } from '@octokit/auth-app'
-import { LoggerBase } from '@crowd/logging'
-import { PgPromiseQueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
+
 import { createDataIssue } from '@crowd/data-access-layer/src/data_issues'
-import { findOrgById, OrganizationField } from '@crowd/data-access-layer/src/orgs'
-import { findMemberById, MemberField } from '@crowd/data-access-layer/src/members'
+import { MemberField, findMemberById } from '@crowd/data-access-layer/src/members'
+import { OrganizationField, findOrgById } from '@crowd/data-access-layer/src/orgs'
+import { PgPromiseQueryExecutor } from '@crowd/data-access-layer/src/queryExecutor'
+import { LoggerBase } from '@crowd/logging'
 import { DataIssueEntity } from '@crowd/types'
-import { InstallationAccessTokenData } from '@octokit/auth-app/dist-types/types'
-import { IServiceOptions } from './IServiceOptions'
-import SequelizeRepository from '@/database/repositories/sequelizeRepository'
+
 import { GITHUB_ISSUE_REPORTER_CONFIG } from '@/conf'
+import SequelizeRepository from '@/database/repositories/sequelizeRepository'
+
+import { IServiceOptions } from './IServiceOptions'
 
 export interface IDataIssueCreatePayload {
   entity: DataIssueEntity

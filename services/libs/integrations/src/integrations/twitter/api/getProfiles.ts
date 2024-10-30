@@ -1,7 +1,9 @@
 import axios, { AxiosRequestConfig } from 'axios'
-import { TwitterGetFollowersOutput, TwitterGetProfilesByUsernameInput } from '../types'
-import { handleTwitterError } from './errorHandler'
+
 import { IProcessStreamContext } from '../../../types'
+import { TwitterGetFollowersOutput, TwitterGetProfilesByUsernameInput } from '../types'
+
+import { handleTwitterError } from './errorHandler'
 
 /**
  * Get profiles by username

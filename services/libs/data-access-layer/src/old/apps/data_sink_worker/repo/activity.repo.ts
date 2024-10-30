@@ -1,6 +1,7 @@
 import { generateUUIDv1 } from '@crowd/common'
 import { DbColumnSet, DbStore, RepositoryBase, eqOrNull } from '@crowd/database'
 import { Logger } from '@crowd/logging'
+
 import {
   IDbActivity,
   IDbActivityCreateData,

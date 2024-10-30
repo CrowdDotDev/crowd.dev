@@ -1,4 +1,5 @@
 import { SuperfaceClient } from '@superfaceai/one-sdk'
+
 import { SocialResponse } from '../../types/superfaceTypes'
 import { cleanSuperfaceError } from '../cleanError'
 

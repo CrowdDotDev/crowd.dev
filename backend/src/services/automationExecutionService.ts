@@ -1,15 +1,18 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+
 /* eslint-disable class-methods-use-this */
 import { PageData } from '@crowd/types'
-import { ServiceBase } from './serviceBase'
+
+import AutomationExecutionRepository from '../database/repositories/automationExecutionRepository'
+import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import {
   AutomationExecution,
   AutomationExecutionCriteria,
   CreateAutomationExecutionRequest,
 } from '../types/automationTypes'
+
 import { IServiceOptions } from './IServiceOptions'
-import SequelizeRepository from '../database/repositories/sequelizeRepository'
-import AutomationExecutionRepository from '../database/repositories/automationExecutionRepository'
+import { ServiceBase } from './serviceBase'
 
 export default class AutomationExecutionService extends ServiceBase<
   AutomationExecution,

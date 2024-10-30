@@ -1,5 +1,7 @@
 import Sequelize from 'sequelize'
+
 import { generateUUIDv4 as uuid } from '@crowd/common'
+
 import SequelizeTestUtils from '../../../utils/sequelizeTestUtils'
 import QueryParser from '../queryParser'
 

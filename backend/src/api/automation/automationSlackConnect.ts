@@ -1,7 +1,8 @@
 import passport from 'passport'
+
 import Permissions from '../../security/permissions'
-import PermissionChecker from '../../services/user/permissionChecker'
 import { getSlackNotifierStrategy } from '../../services/auth/passportStrategies/slackStrategy'
+import PermissionChecker from '../../services/user/permissionChecker'
 
 export default async (req, res, next) => {
   new PermissionChecker(req).validateHas(Permissions.values.automationCreate)

@@ -1,3 +1,7 @@
+import lodash, { uniq } from 'lodash'
+import Sequelize, { QueryTypes } from 'sequelize'
+import validator from 'validator'
+
 import {
   captureApiChange,
   organizationCreateAction,
@@ -12,9 +16,12 @@ import {
 } from '@crowd/data-access-layer'
 import { findManyLfxMemberships } from '@crowd/data-access-layer/src/lfx_memberships'
 import {
+  IDbOrgAttribute,
+  IDbOrganization,
+  OrgIdentityField,
   addOrgIdentity,
-  cleanupForOganization,
   cleanUpOrgIdentities,
+  cleanupForOganization,
   deleteOrgAttributesByOrganizationId,
   fetchManyOrgIdentities,
   fetchManyOrgSegments,
@@ -22,10 +29,7 @@ import {
   findManyOrgAttributes,
   findOrgAttributes,
   findOrgById,
-  IDbOrganization,
-  IDbOrgAttribute,
   markOrgAttributeDefault,
-  OrgIdentityField,
   queryOrgIdentities,
   updateOrgIdentityVerifiedFlag,
   upsertOrgAttributes,
@@ -51,14 +55,13 @@ import {
   SegmentProjectGroupNestedData,
   SegmentProjectNestedData,
 } from '@crowd/types'
-import lodash, { uniq } from 'lodash'
-import Sequelize, { QueryTypes } from 'sequelize'
-import validator from 'validator'
+
 import isFeatureEnabled from '@/feature-flags/isFeatureEnabled'
 import {
   IFetchOrganizationMergeSuggestionArgs,
   SimilarityScoreRange,
 } from '@/types/mergeSuggestionTypes'
+
 import { IRepositoryOptions } from './IRepositoryOptions'
 import AuditLogRepository from './auditLogRepository'
 import SegmentRepository from './segmentRepository'
@@ -101,12 +104,12 @@ class OrganizationRepository {
     ['revenueRangeMax', `(o."revenueRange"->>'max')::integer`],
 
     // aggregated fields
-    ['activityCount', 'osa."activityCount"'],
-    ['memberCount', 'osa."memberCount"'],
-    ['activeOn', 'osa."activeOn"'],
+    ['activityCount', 'coalesce(osa."activityCount", 0)::integer'],
+    ['memberCount', 'coalesce(osa."memberCount", 0)::integer'],
+    ['activeOn', 'coalesce(osa."activeOn", \'{}\'::text[])'],
     ['joinedAt', 'osa."joinedAt"'],
     ['lastActive', 'osa."lastActive"'],
-    ['avgContributorEngagement', 'osa."avgContributorEngagement"'],
+    ['avgContributorEngagement', 'coalesce(osa."avgContributorEngagement", 0)::integer'],
 
     // org fields for display
     ['logo', 'o."logo"'],
@@ -1679,7 +1682,7 @@ class OrganizationRepository {
       FROM organizations o
       ${
         withAggregates
-          ? ` JOIN "organizationSegmentsAgg" osa ON osa."organizationId" = o.id AND ${
+          ? ` INNER JOIN "organizationSegmentsAgg" osa ON osa."organizationId" = o.id AND ${
               segmentId ? `osa."segmentId" = $(segmentId)` : `osa."segmentId" IS NULL`
             }`
           : ''
@@ -1690,9 +1693,7 @@ class OrganizationRepository {
         AND (${filterString})
     `
 
-    const results = await Promise.all([
-      qx.select(
-        `
+    const query = `
           ${createQuery(
             (function prepareFields(fields) {
               return fields
@@ -1701,26 +1702,25 @@ class OrganizationRepository {
                   if (!mappedField) {
                     throw new Error400(options.language, `Invalid field: ${f}`)
                   }
-
-                  return mappedField
+                  return `${mappedField} as "${f}"`
                 })
                 .filter((f) => {
                   if (withAggregates) {
                     return true
                   }
-                  return !f.startsWith('osa.')
+                  return !f.includes('osa.')
                 })
                 .join(',\n')
             })(fields),
           )}
-          ORDER BY ${order}
+          ORDER BY ${order} NULLS LAST
           LIMIT $(limit)
           OFFSET $(offset)
-        `,
-        params,
-      ),
-      qx.selectOne(createQuery('COUNT(*)'), params),
-    ])
+        `
+
+    const countQuery = createQuery('COUNT(*)')
+
+    const results = await Promise.all([qx.select(query, params), qx.selectOne(countQuery, params)])
 
     const rows = results[0]
     const count = parseInt(results[1].count, 10)

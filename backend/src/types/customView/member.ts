@@ -1,4 +1,4 @@
-import { ICustomView, CustomViewPlacement, CustomViewVisibility } from '@crowd/types'
+import { CustomViewPlacement, CustomViewVisibility, ICustomView } from '@crowd/types'
 
 const newAndActive: ICustomView = {
   name: 'New and active',

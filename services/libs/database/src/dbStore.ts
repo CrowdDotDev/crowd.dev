@@ -1,4 +1,5 @@
 import { Logger, LoggerBase, logError } from '@crowd/logging'
+
 import { getDbInstance } from './connection'
 import { lockTable, lockTableRow } from './locking'
 import {
@@ -37,14 +38,14 @@ export class DbStore extends LoggerBase {
   public connection(): DbConnOrTx {
     this.checkValid()
     return this.isTransaction()
-      ? <DbTransaction>this.dbTransaction
-      : <DbConnection>this.dbConnection
+      ? (this.dbTransaction as DbTransaction)
+      : (this.dbConnection as DbConnection)
   }
 
   public transaction(): DbTransaction {
     this.checkValid()
     if (this.isTransaction()) {
-      return <DbTransaction>this.dbTransaction
+      return this.dbTransaction as DbTransaction
     }
 
     throw logError(this.log, new Error('Store is not in transaction!'))

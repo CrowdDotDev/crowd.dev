@@ -1,3 +1,5 @@
+import config from 'config'
+
 import { SERVICE } from '@crowd/common'
 import { IDatabaseConfig } from '@crowd/data-access-layer/src/database'
 import { IUnleashConfig } from '@crowd/feature-flags'
@@ -7,7 +9,7 @@ import { IRedisConfiguration } from '@crowd/redis'
 import { ISentimentClientConfig } from '@crowd/sentiment'
 import { ITemporalConfig } from '@crowd/temporal'
 import { QueuePriorityLevel } from '@crowd/types'
-import config from 'config'
+
 export interface ISlackAlertingConfig {
   url: string
 }

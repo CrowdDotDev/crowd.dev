@@ -1,7 +1,7 @@
+import { DbStore } from '@crowd/data-access-layer/src/database'
 import { MemberSyncService, OrganizationSyncService } from '@crowd/opensearch'
 
 import { svc } from '../main'
-import { DbStore } from '@crowd/data-access-layer/src/database'
 
 const syncMembers = new MemberSyncService(
   svc.redis,

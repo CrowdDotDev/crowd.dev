@@ -15,7 +15,7 @@
           }"
           @click="doChangeActiveView(view.id)"
         >
-          <i class="icon" :class="icons[view.id]" />
+          <lf-icon :name="icons[view.id]" :size="20" />
           <span class="text">{{ view.label }}</span>
         </div>
       </div>
@@ -38,10 +38,11 @@ import {
   mapActions,
   mapGetters,
 } from '@/shared/vuex/vuex.helpers';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const icons = {
-  feed: 'ri-eye-2-line',
-  bookmarked: 'ri-bookmark-line',
+  feed: 'eye',
+  bookmarked: 'book-bookmark',
 };
 
 const store = useStore();
@@ -89,8 +90,8 @@ const sorterOptions = computed(() => {
 .eagle-eye-view-btn {
   @apply flex items-center gap-2 px-3 rounded-lg h-8;
 
-  .icon {
-    @apply text-gray-400 text-lg;
+  .c-icon {
+    @apply text-gray-400;
   }
 
   .text {
@@ -100,7 +101,7 @@ const sorterOptions = computed(() => {
   &:hover {
     @apply bg-gray-200 cursor-pointer;
 
-    .icon,
+    .c-icon,
     .text {
       @apply text-gray-900;
     }
@@ -109,7 +110,7 @@ const sorterOptions = computed(() => {
   &.selected {
     @apply bg-primary-50;
 
-    .icon {
+    .c-icon {
       @apply text-primary-500;
     }
 

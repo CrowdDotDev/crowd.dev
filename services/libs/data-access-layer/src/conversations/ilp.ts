@@ -1,10 +1,10 @@
 import { Sender } from '@questdb/nodejs-client'
 
 import { generateUUIDv4 } from '@crowd/common'
+import { getServiceChildLogger } from '@crowd/logging'
 import { getClientILP } from '@crowd/questdb'
 
 import { IDbConversationCreateData } from '../old/apps/data_sink_worker/repo/conversation.data'
-import { getServiceChildLogger } from '@crowd/logging'
 
 const log = getServiceChildLogger('data-access-layer/conversations/ilp.ts')
 

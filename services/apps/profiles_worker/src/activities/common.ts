@@ -1,12 +1,13 @@
-import { ITenant } from '@crowd/types'
-import { svc } from '../main'
 import {
   getAffiliationsLastCheckedAt,
   getAllMemberIdsPaginated,
+  getAllTenants as getAllTenantsFromDAL,
   getMemberIdsWithRecentRoleChanges,
   updateAffiliationsLastCheckedAt,
-  getAllTenants as getAllTenantsFromDAL,
 } from '@crowd/data-access-layer/src/old/apps/profiles_worker'
+import { ITenant } from '@crowd/types'
+
+import { svc } from '../main'
 
 export async function getAffiliationsLastCheckedAtOfTenant(tenantId: string): Promise<string> {
   return getAffiliationsLastCheckedAt(svc.postgres.writer, tenantId)

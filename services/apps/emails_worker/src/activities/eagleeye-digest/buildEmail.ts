@@ -1,14 +1,13 @@
-import moment from 'moment'
 import axios, { AxiosResponse } from 'axios'
+import moment from 'moment'
 
+import * as eagleeye from '@crowd/data-access-layer/src/old/apps/emails_worker/eagleeye'
 import { EagleEyePostWithActions, EagleEyeRawPost } from '@crowd/types'
 
 import { svc } from '../../main'
 import { Content } from '../../types/email'
 import { UserTenant } from '../../types/user'
 import { switchDate } from '../../utils/date'
-
-import * as eagleeye from '@crowd/data-access-layer/src/old/apps/emails_worker/eagleeye'
 
 /*
 eagleeyeFetchFromEagleEye is a Temporal activity that fetches the content to push

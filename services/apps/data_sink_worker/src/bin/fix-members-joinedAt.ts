@@ -1,19 +1,19 @@
-import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
-import { getServiceLogger } from '@crowd/logging'
-import { DB_CONFIG, QUEUE_CONFIG, REDIS_CONFIG } from '../conf'
-
 import {
   PriorityLevelContextRepository,
   QueuePriorityContextLoader,
   SearchSyncWorkerEmitter,
 } from '@crowd/common_services'
+import { DbStore, getDbConnection } from '@crowd/data-access-layer/src/database'
 import {
   getMemberRecentActivity,
   getMembersWithJoinedAtUnixEpoch,
   updateMemberJoinedAt,
 } from '@crowd/data-access-layer/src/old/apps/data_sink_worker/scripts/fix-members-joinedAt'
+import { getServiceLogger } from '@crowd/logging'
 import { QueueFactory } from '@crowd/queue'
 import { getRedisClient } from '@crowd/redis'
+
+import { DB_CONFIG, QUEUE_CONFIG, REDIS_CONFIG } from '../conf'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 

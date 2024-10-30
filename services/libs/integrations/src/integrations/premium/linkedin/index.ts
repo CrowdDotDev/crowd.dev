@@ -1,8 +1,9 @@
 import { IIntegrationDescriptor } from '../../../types'
-import { LINKEDIN_MEMBER_ATTRIBUTES } from './memberAttributes'
+
 import generateStreams from './generateStreams'
-import processStream from './processStream'
+import { LINKEDIN_MEMBER_ATTRIBUTES } from './memberAttributes'
 import processData from './processData'
+import processStream from './processStream'
 
 const descriptor: IIntegrationDescriptor = {
   type: 'linkedin',

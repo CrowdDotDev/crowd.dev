@@ -29,7 +29,10 @@ import {
 } from '@crowd/types'
 
 export class OrganizationService extends LoggerBase {
-  constructor(private readonly store: DbStore, parentLog: Logger) {
+  constructor(
+    private readonly store: DbStore,
+    parentLog: Logger,
+  ) {
     super(parentLog)
   }
 

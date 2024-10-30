@@ -1,3 +1,6 @@
+import { randomUUID } from 'crypto'
+import lodash from 'lodash'
+
 import {
   captureApiChange,
   organizationMergeAction,
@@ -5,7 +8,9 @@ import {
 } from '@crowd/audit-logs'
 import { Error400, websiteNormalizer } from '@crowd/common'
 import { hasLfxMembership } from '@crowd/data-access-layer/src/lfx_memberships'
+import { findOrgAttributes, upsertOrgIdentities } from '@crowd/data-access-layer/src/organizations'
 import { LoggerBase } from '@crowd/logging'
+import { WorkflowIdReusePolicy } from '@crowd/temporal'
 import {
   IOrganization,
   IOrganizationIdentity,
@@ -21,19 +26,18 @@ import {
   SyncMode,
   TemporalWorkflowId,
 } from '@crowd/types'
-import { randomUUID } from 'crypto'
-import lodash from 'lodash'
-import { findOrgAttributes, upsertOrgIdentities } from '@crowd/data-access-layer/src/organizations'
-import { WorkflowIdReusePolicy } from '@crowd/temporal'
-import getObjectWithoutKey from '@/utils/getObjectWithoutKey'
-import { IActiveOrganizationFilter } from '@/database/repositories/types/organizationTypes'
-import MemberOrganizationRepository from '@/database/repositories/memberOrganizationRepository'
+
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
+import MemberOrganizationRepository from '@/database/repositories/memberOrganizationRepository'
+import { IActiveOrganizationFilter } from '@/database/repositories/types/organizationTypes'
+import getObjectWithoutKey from '@/utils/getObjectWithoutKey'
+
 import MemberRepository from '../database/repositories/memberRepository'
 import { MergeActionsRepository } from '../database/repositories/mergeActionsRepository'
 import OrganizationRepository from '../database/repositories/organizationRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import telemetryTrack from '../segment/telemetryTrack'
+
 import { IServiceOptions } from './IServiceOptions'
 import merge from './helpers/merge'
 import {

@@ -1,7 +1,9 @@
 import { DbConnection, DbTransaction } from '@crowd/database'
 import { Logger } from '@crowd/logging'
-import { IPlatforms } from './types'
+
 import { getNewActivityPlatforms } from '../../../activities'
+
+import { IPlatforms } from './types'
 
 class ActivityRepository {
   constructor(

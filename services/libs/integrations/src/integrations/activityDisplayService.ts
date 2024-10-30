@@ -1,16 +1,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import cloneDeep from 'lodash.clonedeep'
+import merge from 'lodash.merge'
 
+import { getServiceChildLogger } from '@crowd/logging'
 import {
   ActivityDisplayVariant,
   ActivityTypeDisplayProperties,
   ActivityTypeSettings,
   PlatformType,
 } from '@crowd/types'
+
 import { UNKNOWN_ACTIVITY_TYPE_DISPLAY } from './activityTypes'
 import { DiscordActivityType } from './discord/types'
-import merge from 'lodash.merge'
-import cloneDeep from 'lodash.clonedeep'
-import { getServiceChildLogger } from '@crowd/logging'
 
 const log = getServiceChildLogger('ActivityDisplayService')
 

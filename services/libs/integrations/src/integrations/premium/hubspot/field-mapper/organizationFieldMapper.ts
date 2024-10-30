@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-
 import {
   IOrganization,
   OrganizationIdentityType,
   OrganizationSource,
   PlatformType,
 } from '@crowd/types'
+
 import { HubspotPropertyType, IFieldProperty, IHubspotObject } from '../types'
+
 import { HubspotFieldMapper } from './hubspotFieldMapper'
 import { serializeArray } from './utils/serialization'
 

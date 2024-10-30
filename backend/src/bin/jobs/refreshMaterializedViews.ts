@@ -1,7 +1,10 @@
 import { QueryTypes } from 'sequelize'
+
 import { Logger, getChildLogger, getServiceChildLogger, logExecutionTimeV2 } from '@crowd/logging'
-import { CrowdJob } from '../../types/jobTypes'
+
 import { databaseInit } from '@/database/databaseConnection'
+
+import { CrowdJob } from '../../types/jobTypes'
 
 export const refreshMaterializedView = async (
   view: string,

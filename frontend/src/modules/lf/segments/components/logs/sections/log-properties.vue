@@ -7,11 +7,11 @@
       </div>
       <div class="w-7/12 text-sm leading-24">
         <div v-if="props.log.success" class="flex items-center">
-          <i class="ri-checkbox-circle-fill flex items-center text-base text-green-500 mr-1" />
+          <lf-icon name="circle-check" type="solid" :size="16" class="text-green-500 mr-1" />
           Success
         </div>
         <div v-else class="flex items-center">
-          <i class="ri-close-circle-fill flex items-center text-base text-red-500 mr-1" />
+          <lf-icon name="circle-xmark" type="solid" :size="16" class="text-red-500 mr-1" />
           Error
         </div>
       </div>
@@ -99,6 +99,7 @@
 import { ActionType, AuditLog } from '@/modules/lf/segments/types/AuditLog';
 import moment from 'moment/moment';
 import { computed } from 'vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { logRenderingConfig } from '../../../../config/audit-logs/log-rendering';
 
 const props = defineProps<{

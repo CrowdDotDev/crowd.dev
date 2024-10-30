@@ -1,15 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-
 import {
-  ProjectSchema,
-  UserSchema,
-  ProjectStarrerSchema,
-  ExpandedCommitSchema,
-  IssueSchema,
-  IssueNoteSchema,
-  MergeRequestSchema,
-  MergeRequestNoteSchema,
   DiscussionNoteSchema,
+  ExpandedCommitSchema,
+  IssueNoteSchema,
+  IssueSchema,
+  MergeRequestNoteSchema,
+  MergeRequestSchema,
+  ProjectSchema,
+  ProjectStarrerSchema,
+  UserSchema,
 } from '@gitbeaker/rest'
 
 export enum GitlabActivityType {

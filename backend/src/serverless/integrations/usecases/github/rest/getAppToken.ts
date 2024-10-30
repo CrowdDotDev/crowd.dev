@@ -1,5 +1,6 @@
-import { getServiceChildLogger } from '@crowd/logging'
 import axios, { AxiosRequestConfig } from 'axios'
+
+import { getServiceChildLogger } from '@crowd/logging'
 
 const log = getServiceChildLogger('getAppToken')
 

@@ -4,7 +4,7 @@
       <div class="flex justify-between">
         <!-- icon -->
         <div class="bg-primary-50 h-10 w-10 flex justify-center items-center rounded-full">
-          <lf-icon name="git-repository-private-line" :size="24" class="text-primary-500" />
+          <lf-icon-old name="git-repository-private-line" :size="24" class="text-primary-500" />
         </div>
 
         <!-- close button -->
@@ -15,7 +15,7 @@
           class="-mt-2 -mr-2"
           @click="isModalOpen = false"
         >
-          <lf-icon name="close-line" :size="24" />
+          <lf-icon-old name="close-line" :size="24" />
         </lf-button>
       </div>
       <section class="pt-6 pb-8">
@@ -58,11 +58,11 @@
             </p>
             <lf-button type="primary-link" size="small" @click="copy()">
               <template v-if="!copied">
-                <lf-icon name="file-copy-line" />
+                <lf-icon-old name="file-copy-line" />
                 Copy app installation link to clipboard
               </template>
               <template v-else>
-                <lf-icon name="checkbox-circle-fill" class="text-green-500" />
+                <lf-icon-old name="checkbox-circle-fill" class="text-green-500" />
                 <span class="text-green-500">Copied to clipboard!</span>
               </template>
             </lf-button>
@@ -100,7 +100,7 @@
               >
                 <template #placeholder>
                   <div class="w-full h-full bg-gray-50 flex items-center justify-center">
-                    <lf-icon name="community-line" :size="14" class="text-gray-400" />
+                    <lf-icon-old name="community-line" :size="14" class="text-gray-400" />
                   </div>
                 </template>
               </lf-avatar>
@@ -116,7 +116,7 @@
                 <lf-avatar :src="i.avatarUrl" :name="i.login" :size="18" class="!rounded border border-gray-200 mr-1 mt-px">
                   <template #placeholder>
                     <div class="w-full h-full bg-gray-50 flex items-center justify-center">
-                      <lf-icon name="community-line" :size="14" class="text-gray-400" />
+                      <lf-icon-old name="community-line" :size="14" class="text-gray-400" />
                     </div>
                   </template>
                 </lf-avatar>
@@ -138,7 +138,7 @@
 import { computed, onMounted, ref } from 'vue';
 import LfModal from '@/ui-kit/modal/Modal.vue';
 import config from '@/config';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
 import LfAvatar from '@/ui-kit/avatar/Avatar.vue';
 import { IntegrationService } from '@/modules/integration/integration-service';

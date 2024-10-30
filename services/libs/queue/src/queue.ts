@@ -1,7 +1,9 @@
 import { IS_PROD_ENV, IS_STAGING_ENV } from '@crowd/common'
 import { Logger, LoggerBase } from '@crowd/logging'
 import { IQueueMessage, IQueueMessageBulk, QueuePriorityLevel } from '@crowd/types'
+
 import { IQueue, IQueueChannel, IQueueConfig, IQueueInitChannelConfig } from './types'
+
 export abstract class QueueBase extends LoggerBase {
   private readonly channelName: string
   private channelUrl: string | undefined

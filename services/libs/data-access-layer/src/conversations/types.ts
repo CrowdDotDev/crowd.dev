@@ -1,4 +1,5 @@
 import { SegmentRawData } from '@crowd/types'
+
 import { IQueryActivityResult } from '../activities'
 
 export interface IQueryConversationsWithActivitiesParameters {

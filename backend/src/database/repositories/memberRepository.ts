@@ -1,6 +1,66 @@
+import lodash, { chunk, uniq } from 'lodash'
+import moment from 'moment'
+import Sequelize, { QueryTypes } from 'sequelize'
+
 import {
-  ActivityDisplayVariant,
+  captureApiChange,
+  memberCreateAction,
+  memberEditOrganizationsAction,
+  memberEditProfileAction,
+} from '@crowd/audit-logs'
+import {
+  Error400,
+  Error404,
+  Error409,
+  RawQueryParser,
+  dateEqualityChecker,
+  distinct,
+  groupBy,
+} from '@crowd/common'
+import {
+  countMembersWithActivities,
+  getActiveMembers,
+  getLastActivitiesForMembers,
+  getMemberAggregates,
+  setMemberDataToActivities,
+} from '@crowd/data-access-layer'
+import { findManyLfxMemberships } from '@crowd/data-access-layer/src/lfx_memberships'
+import { findMaintainerRoles } from '@crowd/data-access-layer/src/maintainers'
+import {
+  createMemberIdentity,
+  deleteMemberIdentities,
+  deleteMemberIdentitiesByCombinations,
+  findAlreadyExistingVerifiedIdentities,
+  moveToNewMember,
+  updateVerifiedFlag,
+} from '@crowd/data-access-layer/src/member_identities'
+import { addMemberNoMerge, removeMemberToMerge } from '@crowd/data-access-layer/src/member_merge'
+import {
+  MemberField,
+  fetchManyMemberIdentities,
+  fetchManyMemberOrgs,
+  fetchManyMemberSegments,
+  fetchMemberIdentities,
+  fetchMemberOrganizations,
+  findMemberById,
+  findMemberTags,
+  queryMembersAdvanced,
+} from '@crowd/data-access-layer/src/members'
+import { fetchAbsoluteMemberAggregates } from '@crowd/data-access-layer/src/members/segments'
+import { IDbMemberData } from '@crowd/data-access-layer/src/members/types'
+import { OrganizationField, queryOrgs } from '@crowd/data-access-layer/src/orgs'
+import { findTags } from '@crowd/data-access-layer/src/others'
+import { optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
+import {
+  fetchManySegments,
+  isSegmentProject,
+  isSegmentProjectGroup,
+} from '@crowd/data-access-layer/src/segments'
+import { ActivityDisplayService } from '@crowd/integrations'
+import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
+import {
   ALL_PLATFORM_TYPES,
+  ActivityDisplayVariant,
   FeatureFlag,
   IMemberIdentity,
   IMemberOrganization,
@@ -18,68 +78,11 @@ import {
   SegmentType,
   SyncStatus,
 } from '@crowd/types'
-import lodash, { chunk, uniq } from 'lodash'
-import moment from 'moment'
-import Sequelize, { QueryTypes } from 'sequelize'
 
-import {
-  Error400,
-  Error404,
-  Error409,
-  RawQueryParser,
-  dateEqualityChecker,
-  distinct,
-  groupBy,
-} from '@crowd/common'
-import { ActivityDisplayService } from '@crowd/integrations'
-import {
-  captureApiChange,
-  memberCreateAction,
-  memberEditOrganizationsAction,
-  memberEditProfileAction,
-} from '@crowd/audit-logs'
-import {
-  createMemberIdentity,
-  deleteMemberIdentities,
-  updateVerifiedFlag,
-  deleteMemberIdentitiesByCombinations,
-  moveToNewMember,
-  findAlreadyExistingVerifiedIdentities,
-} from '@crowd/data-access-layer/src/member_identities'
-import { FieldTranslatorFactory, OpensearchQueryParser } from '@crowd/opensearch'
-import { findManyLfxMemberships } from '@crowd/data-access-layer/src/lfx_memberships'
-import { addMemberNoMerge, removeMemberToMerge } from '@crowd/data-access-layer/src/member_merge'
-import {
-  fetchManyMemberIdentities,
-  fetchManyMemberOrgs,
-  fetchManyMemberSegments,
-  fetchMemberIdentities,
-  fetchMemberOrganizations,
-  findMemberById,
-  findMemberTags,
-  MemberField,
-  queryMembersAdvanced,
-} from '@crowd/data-access-layer/src/members'
-import { findTags } from '@crowd/data-access-layer/src/others'
-import { fetchAbsoluteMemberAggregates } from '@crowd/data-access-layer/src/members/segments'
-import { OrganizationField, queryOrgs } from '@crowd/data-access-layer/src/orgs'
-import {
-  fetchManySegments,
-  isSegmentProject,
-  isSegmentProjectGroup,
-} from '@crowd/data-access-layer/src/segments'
-import { IDbMemberData } from '@crowd/data-access-layer/src/members/types'
-import {
-  countMembersWithActivities,
-  getActiveMembers,
-  getLastActivitiesForMembers,
-  getMemberAggregates,
-  setMemberDataToActivities,
-} from '@crowd/data-access-layer'
-import { optionsQx } from '@crowd/data-access-layer/src/queryExecutor'
-import { findMaintainerRoles } from '@crowd/data-access-layer/src/maintainers'
 import { KUBE_MODE, SERVICE } from '@/conf'
 import { ServiceType } from '@/conf/configTypes'
+import { IFetchMemberMergeSuggestionArgs, SimilarityScoreRange } from '@/types/mergeSuggestionTypes'
+
 import isFeatureEnabled from '../../feature-flags/isFeatureEnabled'
 import { PlatformIdentities } from '../../serverless/integrations/types/messageTypes'
 import {
@@ -87,6 +90,7 @@ import {
   MemberSegmentAffiliationJoined,
 } from '../../types/memberSegmentAffiliationTypes'
 import { AttributeData } from '../attributes/attribute'
+
 import { IRepositoryOptions } from './IRepositoryOptions'
 import AuditLogRepository from './auditLogRepository'
 import MemberAttributeSettingsRepository from './memberAttributeSettingsRepository'
@@ -102,7 +106,6 @@ import {
   IMemberMergeSuggestion,
   mapUsernameToIdentities,
 } from './types/memberTypes'
-import { IFetchMemberMergeSuggestionArgs, SimilarityScoreRange } from '@/types/mergeSuggestionTypes'
 
 const { Op } = Sequelize
 
@@ -425,7 +428,7 @@ class MemberRepository {
         JOIN member_segments_mv ms2 ON ms2."memberId" = mtm."toMergeId"
         join members m on m.id = mtm."memberId"
         join members m2 on m2.id = mtm."toMergeId"
-        WHERE ms."segmentId" IN (:segmentIds) and ms2."segmentId" IN (:segmentIds)
+        WHERE ms."segmentId" IN (:segmentIds) and ms2."segmentId" IN (:segmentIds) AND mtm.similarity IS NOT NULL
           ${memberFilter}
           ${similarityFilter}
           ${displayNameFilter}
@@ -531,11 +534,13 @@ class MemberRepository {
             {
               id: i.id,
               displayName: i.primaryDisplayName,
+              activityCount: i.primaryActivityCount,
               avatarUrl: i.primaryAvatarUrl,
             },
             {
               id: i.toMergeId,
               displayName: i.toMergeDisplayName,
+              activityCount: i.toActivityCount,
               avatarUrl: i.toMergeAvatarUrl,
             },
           ],
@@ -1499,7 +1504,6 @@ class MemberRepository {
             identities: true,
             segments: true,
             maintainers: true,
-            attributes: false,
             ...include,
           },
         },

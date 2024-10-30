@@ -10,6 +10,7 @@ import {
   ProcessIntegrationResultQueueMessage,
   QueuePriorityLevel,
 } from '@crowd/types'
+
 import { QueuePriorityContextLoader, QueuePriorityService } from '../priority.service'
 
 export class DataSinkWorkerEmitter extends QueuePriorityService {

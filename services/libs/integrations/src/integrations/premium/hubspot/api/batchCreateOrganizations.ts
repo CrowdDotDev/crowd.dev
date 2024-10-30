@@ -1,9 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import axios, { AxiosRequestConfig } from 'axios'
+
 import { RequestThrottler } from '@crowd/common'
 import { IOrganization, OrganizationIdentityType, PlatformType } from '@crowd/types'
-import axios, { AxiosRequestConfig } from 'axios'
+
 import { IGenerateStreamsContext, IProcessStreamContext } from '../../../../types'
 import { HubspotOrganizationFieldMapper } from '../field-mapper/organizationFieldMapper'
+
 import { getNangoToken } from './../../../nango'
 import { IBatchCreateOrganizationsResult } from './types'
 import { getOrganizationDomain } from './utils/getOrganizationDomain'

@@ -1,13 +1,16 @@
 import axios, { AxiosRequestConfig } from 'axios'
+
 import { timeout } from '@crowd/common'
+
+import { IProcessStreamContext } from '../../../types'
 import {
+  ISlackPlatformSettings,
   SlackGetMessagesInThreadsInput,
   SlackMessages,
   SlackParsedResponse,
-  ISlackPlatformSettings,
 } from '../types'
+
 import { handleSlackError } from './errorHandler'
-import { IProcessStreamContext } from '../../../types'
 
 async function getMessagesInThreads(
   input: SlackGetMessagesInThreadsInput,

@@ -1,9 +1,12 @@
-import { getNangoToken } from './../../../nango'
 import axios, { AxiosRequestConfig } from 'axios'
-import { ILinkedInOrganization } from './types'
-import { IGenerateStreamsContext, IProcessStreamContext } from '../../../../types'
+
 import { PlatformType } from '@crowd/types'
+
+import { IGenerateStreamsContext, IProcessStreamContext } from '../../../../types'
+
+import { getNangoToken } from './../../../nango'
 import { handleLinkedinError } from './handleError'
+import { ILinkedInOrganization } from './types'
 
 export const getOrganization = async (
   nangoId: string,

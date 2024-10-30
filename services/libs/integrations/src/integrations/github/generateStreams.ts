@@ -1,11 +1,12 @@
 import { GenerateStreamsHandler } from '../../types'
+
 import {
+  GithubBasicStream,
   GithubIntegrationSettings,
-  GithubRootStream,
-  GithubStreamType,
   GithubManualIntegrationSettings,
   GithubManualStreamType,
-  GithubBasicStream,
+  GithubRootStream,
+  GithubStreamType,
 } from './types'
 
 const streamToManualStreamMap: Map<GithubStreamType, GithubManualStreamType> = new Map([

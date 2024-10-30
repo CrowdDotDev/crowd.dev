@@ -1,6 +1,6 @@
 /* eslint-disable class-methods-use-this */
-
 import { IMemberAttribute, MemberAttributeType } from '@crowd/types'
+
 import FieldTranslator from './fieldTranslator'
 import { MembersOpensearch } from './models/members'
 

@@ -1,10 +1,10 @@
-import { proxyActivities, continueAsNew } from '@temporalio/workflow'
+import { continueAsNew, proxyActivities } from '@temporalio/workflow'
 
-import * as organizationActivities from '../activities/organizationMergeSuggestions'
-import * as commonActivities from '../activities/common'
-
-import { ILLMResult, IProcessMergeOrganizationSuggestionsWithLLM } from '../types'
 import { LLMSuggestionVerdictType } from '@crowd/types'
+
+import * as commonActivities from '../activities/common'
+import * as organizationActivities from '../activities/organizationMergeSuggestions'
+import { ILLMResult, IProcessMergeOrganizationSuggestionsWithLLM } from '../types'
 
 const organizationActivitiesProxy = proxyActivities<typeof organizationActivities>({
   startToCloseTimeout: '1 minute',
@@ -44,9 +44,8 @@ export async function mergeOrganizationsWithLLM(
   }
 
   for (const suggestion of suggestions) {
-    const organizations = await organizationActivitiesProxy.getOrganizationsForLLMConsumption(
-      suggestion,
-    )
+    const organizations =
+      await organizationActivitiesProxy.getOrganizationsForLLMConsumption(suggestion)
 
     if (organizations.length !== 2) {
       console.log(

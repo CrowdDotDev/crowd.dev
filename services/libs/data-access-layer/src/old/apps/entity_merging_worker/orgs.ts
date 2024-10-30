@@ -1,4 +1,5 @@
 import { DbConnOrTx, DbStore } from '@crowd/database'
+
 import { updateActivities } from '../../../activities/update'
 
 export async function deleteOrganizationSegments(db: DbStore, organizationId: string) {

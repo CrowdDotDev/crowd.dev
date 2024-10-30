@@ -1,7 +1,7 @@
+import { Sender } from '@questdb/nodejs-client'
+
 import { getEnv } from '@crowd/common'
 import { getServiceChildLogger } from '@crowd/logging'
-
-import { Sender } from '@questdb/nodejs-client'
 
 const log = getServiceChildLogger('questdb.ilp.connection')
 

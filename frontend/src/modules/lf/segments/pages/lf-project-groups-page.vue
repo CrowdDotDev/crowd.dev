@@ -26,7 +26,7 @@
       <app-empty-state-cta
         v-if="!pagination.total"
         class="mt-20"
-        icon="ri-folder-5-line"
+        icon="folders"
         title="No project groups yet"
         :description="`${!hasPermission(LfPermission.projectGroupCreate)
           ? 'Ask an administrator to c' : 'C'}reate your first project group and start integrating your projects`"
@@ -36,7 +36,7 @@
 
       <app-empty-state-cta
         v-else-if="!pagination.count"
-        icon="ri-folder-5-line"
+        icon="folders"
         title="No project groups found"
         description="We couldn't find any results that match your search criteria, please try a different query"
       />

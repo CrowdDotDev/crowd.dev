@@ -7,6 +7,7 @@
 // https://opentelemetry.io/blog/2022/troubleshooting-nodejs/#enable-before-require
 import { IS_TEST_ENV } from '@crowd/common'
 import { getServiceTracer } from '@crowd/tracing'
+
 if (!IS_TEST_ENV) {
   getServiceTracer()
 }

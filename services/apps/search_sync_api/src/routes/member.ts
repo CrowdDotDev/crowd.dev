@@ -1,5 +1,7 @@
 import express from 'express'
+
 import { MemberSyncService } from '@crowd/opensearch'
+
 import { ApiRequest } from '../middleware'
 import { asyncWrap } from '../middleware/error'
 

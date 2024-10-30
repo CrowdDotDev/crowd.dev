@@ -13,7 +13,7 @@ import { OrganizationField, findOrgById } from '@crowd/data-access-layer/src/org
 import { QueryExecutor, repoQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { fetchManySegments } from '@crowd/data-access-layer/src/segments'
 import { DbStore } from '@crowd/database'
-import { Logger, getChildLogger, logExecutionTime, logExecutionTimeV2 } from '@crowd/logging'
+import { Logger, getChildLogger, logExecutionTime } from '@crowd/logging'
 import {
   IOrganizationBaseForMergeSuggestions,
   IOrganizationFullAggregatesOpensearch,
@@ -21,9 +21,11 @@ import {
   OpenSearchIndex,
   OrganizationIdentityType,
 } from '@crowd/types'
+
 import { IndexedEntityType } from '../repo/indexing.data'
 import { IndexingRepository } from '../repo/indexing.repo'
 import { OrganizationRepository } from '../repo/organization.repo'
+
 import { IPagedSearchResponse, ISearchHit } from './opensearch.data'
 import { OpenSearchService } from './opensearch.service'
 import { IOrganizationSyncResult } from './organization.sync.data'
@@ -315,11 +317,7 @@ export class OrganizationSyncService {
       for (const organizationId of organizationIds) {
         let orgData: IDbOrganizationAggregateData[] = []
         try {
-          orgData = await logExecutionTimeV2(
-            async () => getOrgAggregates(this.qdbStore.connection(), organizationId),
-            this.log,
-            'getOrgAggregates',
-          )
+          orgData = await getOrgAggregates(this.qdbStore.connection(), organizationId)
 
           if (orgData.length > 0) {
             // get segment data to aggregate for projects and project groups
@@ -368,19 +366,14 @@ export class OrganizationSyncService {
 
         if (orgData.length > 0) {
           try {
-            await logExecutionTimeV2(
-              async () =>
-                this.writeOrgRepo.transactionally(
-                  async (txRepo) => {
-                    const qx = repoQx(txRepo)
-                    await cleanupForOganization(qx, organizationId)
-                    await insertOrganizationSegments(qx, orgData)
-                  },
-                  undefined,
-                  true,
-                ),
-              this.log,
-              'insertOrganizationSegments',
+            await this.writeOrgRepo.transactionally(
+              async (txRepo) => {
+                const qx = repoQx(txRepo)
+                await cleanupForOganization(qx, organizationId)
+                await insertOrganizationSegments(qx, orgData)
+              },
+              undefined,
+              true,
             )
 
             organizationIdsToIndex.push(organizationId)
@@ -430,11 +423,7 @@ export class OrganizationSyncService {
         organizationsSynced: organizationIds.length,
       }
     }
-    await logExecutionTimeV2(
-      async () => syncOrgsToOpensearchForMergeSuggestions(syncResults.organizationIdsToIndex),
-      this.log,
-      'syncOrgsToOpensearchForMergeSuggestions',
-    )
+    await syncOrgsToOpensearchForMergeSuggestions(syncResults.organizationIdsToIndex)
 
     return syncResults
   }

@@ -1,4 +1,5 @@
 import { SearchSyncApiClient } from '@crowd/opensearch'
+
 import { SEARCH_SYNC_API_CONFIG } from '../conf'
 
 const config = SEARCH_SYNC_API_CONFIG

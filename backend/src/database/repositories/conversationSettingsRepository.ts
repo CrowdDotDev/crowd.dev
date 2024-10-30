@@ -1,6 +1,6 @@
-import SequelizeRepository from './sequelizeRepository'
-import AuditLogRepository from './auditLogRepository'
 import { IRepositoryOptions } from './IRepositoryOptions'
+import AuditLogRepository from './auditLogRepository'
+import SequelizeRepository from './sequelizeRepository'
 
 export default class ConversationSettingsRepository {
   static async findOrCreateDefault(defaults, options: IRepositoryOptions) {

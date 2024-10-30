@@ -1,5 +1,6 @@
-import { OpenSearchService } from '@crowd/opensearch'
 import { NextFunction, Request, RequestHandler, Response } from 'express'
+
+import { OpenSearchService } from '@crowd/opensearch'
 
 export interface IOpenSearchRequest {
   opensearch: OpenSearchService

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { OpenSearchIndex, OpensearchQuery, OpensearchQueryCriteria, Operator } from '@crowd/types'
 
 import FieldTranslator from './fieldTranslator'
-import { OpenSearchIndex, Operator, OpensearchQuery, OpensearchQueryCriteria } from '@crowd/types'
 
 export class OpensearchQueryParser {
   static parse(

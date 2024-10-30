@@ -14,6 +14,7 @@ import { getServiceLogger } from '@crowd/logging'
 import { QueueFactory } from '@crowd/queue'
 import { getRedisClient } from '@crowd/redis'
 import { IntegrationState } from '@crowd/types'
+
 import { DB_CONFIG, QUEUE_CONFIG, REDIS_CONFIG } from '../conf'
 
 const mapStreamTypeToEnum = (stream: string): GithubManualStreamType => {

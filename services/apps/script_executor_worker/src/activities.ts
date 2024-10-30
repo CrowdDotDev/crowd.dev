@@ -1,29 +1,26 @@
 import {
-  findMembersWithSameVerifiedEmailsInDifferentPlatforms,
-  findMembersWithSamePlatformIdentitiesDifferentCapitalization,
-} from './activities/merge-members-with-similar-identities'
-
-import {
-  findMemberMergeActions,
-  findMemberIdentitiesGroupedByPlatform,
-  findMemberById,
-} from './activities/dissect-member'
-
-import {
-  getOrgIdentitiesWithInvalidUrls,
-  findOrganizationIdentity,
-  updateOrganizationIdentity,
-  deleteOrganizationIdentity,
-  isLfxMember,
-} from './activities/fix-organization-identities-with-wrong-urls'
-
-import {
   mergeMembers,
+  mergeOrganizations,
   unmergeMembers,
   unmergeMembersPreview,
-  mergeOrganizations,
   waitForTemporalWorkflowExecutionFinish,
 } from './activities/common'
+import {
+  findMemberById,
+  findMemberIdentitiesGroupedByPlatform,
+  findMemberMergeActions,
+} from './activities/dissect-member'
+import {
+  deleteOrganizationIdentity,
+  findOrganizationIdentity,
+  getOrgIdentitiesWithInvalidUrls,
+  isLfxMember,
+  updateOrganizationIdentity,
+} from './activities/fix-organization-identities-with-wrong-urls'
+import {
+  findMembersWithSamePlatformIdentitiesDifferentCapitalization,
+  findMembersWithSameVerifiedEmailsInDifferentPlatforms,
+} from './activities/merge-members-with-similar-identities'
 
 export {
   findMembersWithSameVerifiedEmailsInDifferentPlatforms,

@@ -56,10 +56,6 @@
                     :src="platform.image"
                   />
                 </el-tooltip>
-                <i
-                  v-else
-                  class="ri-radar-line text-base text-gray-400"
-                />
               </div>
               <div class="flex-grow">
                 <app-activity-header

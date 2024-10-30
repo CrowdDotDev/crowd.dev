@@ -1,8 +1,11 @@
 /* eslint-disable  @typescript-eslint/no-explicit-any */
-import { getServiceChildLogger } from '@crowd/logging'
 import { graphql } from '@octokit/graphql'
-import BaseQuery from './baseQuery'
+
+import { getServiceChildLogger } from '@crowd/logging'
+
 import { GithubTokenRotator } from '../../tokenRotator'
+
+import BaseQuery from './baseQuery'
 import { Limiter } from './baseQuery'
 
 const logger = getServiceChildLogger('github.getOrganization')

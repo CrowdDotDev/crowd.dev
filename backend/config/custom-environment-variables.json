@@ -147,8 +147,8 @@
     "secretKey": "CROWD_NANGO_SECRET_KEY"
   },
   "enrichment": {
-    "url": "CROWD_ENRICHMENT_URL",
-    "apiKey": "CROWD_ENRICHMENT_API_KEY"
+    "url": "CROWD_ENRICHMENT_PROGAI_URL",
+    "apiKey": "CROWD_ENRICHMENT_PROGAI_API_KEY"
   },
   "organizationEnrichment": {
     "apiKey": "CROWD_ORGANIZATION_ENRICHMENT_API_KEY"

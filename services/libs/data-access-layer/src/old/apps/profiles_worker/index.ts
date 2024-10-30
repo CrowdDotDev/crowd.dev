@@ -1,14 +1,16 @@
 import _ from 'lodash'
+import QueryStream from 'pg-query-stream'
 
 import { DbConnOrTx, DbStore } from '@crowd/database'
-import { ITenant } from '@crowd/types'
 import { getServiceChildLogger } from '@crowd/logging'
-import QueryStream from 'pg-query-stream'
+import { ITenant } from '@crowd/types'
+
+import { insertActivities } from '../../../activities'
 import { findMemberAffiliations } from '../../../member_segment_affiliations'
 import { formatQuery, pgpQx } from '../../../queryExecutor'
-import { IAffiliationsLastCheckedAt, IMemberId } from './types'
-import { insertActivities } from '../../../activities'
 import { IDbActivityCreateData } from '../data_sink_worker/repo/activity.data'
+
+import { IAffiliationsLastCheckedAt, IMemberId } from './types'
 
 const logger = getServiceChildLogger('profiles_worker')
 

@@ -25,7 +25,7 @@
           target="_blank"
           rel="noopener noreferrer"
         >
-          <lf-icon name="link" :size="16" class="text-gray-400" />
+          <lf-icon-old name="link" :size="16" class="text-gray-400" />
           <div class="text-gray-500 text-small truncate hover:text-primary-500" style="max-width: 20ch">
             {{ websiteCom.value }}
           </div>
@@ -42,7 +42,7 @@
 <script setup lang="ts">
 import LfBadge from '@/ui-kit/badge/Badge.vue';
 import { Organization } from '@/modules/organization/types/Organization';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import useOrganizationHelpers from '@/modules/organization/helpers/organization.helpers';
 import LfOrganizationMembership from '@/modules/organization/components/shared/organization-membership.vue';
 import { withHttp } from '@/utils/string';

@@ -8,6 +8,7 @@ import {
   StartIntegrationRunQueueMessage,
   StreamProcessedQueueMessage,
 } from '@crowd/types'
+
 import { QueuePriorityContextLoader, QueuePriorityService } from '../priority.service'
 
 export class IntegrationRunWorkerEmitter extends QueuePriorityService {

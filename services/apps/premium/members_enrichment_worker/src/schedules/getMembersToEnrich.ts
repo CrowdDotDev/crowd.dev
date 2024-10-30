@@ -1,25 +1,35 @@
 import { ScheduleAlreadyRunning, ScheduleOverlapPolicy } from '@temporalio/client'
 
+import { IS_DEV_ENV, IS_TEST_ENV } from '@crowd/common'
+
 import { svc } from '../main'
 import { getMembersForLFIDEnrichment, getMembersToEnrich } from '../workflows'
-import { IS_DEV_ENV, IS_TEST_ENV } from '@crowd/common'
 
 export const scheduleMembersEnrichment = async () => {
   try {
     await svc.temporal.schedule.create({
-      scheduleId: 'members-enrichment',
+      scheduleId: 'members-enrichment-multiple-sources',
       spec: {
-        cronExpressions: IS_DEV_ENV || IS_TEST_ENV ? ['*/2 * * * *'] : ['*/30 * * * *'],
+        cronExpressions: ['0 6 * * *'],
       },
       policies: {
-        overlap: ScheduleOverlapPolicy.BUFFER_ONE,
+        overlap: ScheduleOverlapPolicy.SKIP,
         catchupWindow: '1 minute',
       },
       action: {
         type: 'startWorkflow',
         workflowType: getMembersToEnrich,
         taskQueue: 'members-enrichment',
-        workflowExecutionTimeout: '5 minutes',
+        retry: {
+          initialInterval: '15 seconds',
+          backoffCoefficient: 2,
+          maximumAttempts: 3,
+        },
+        args: [
+          {
+            afterId: null,
+          },
+        ],
       },
     })
   } catch (err) {

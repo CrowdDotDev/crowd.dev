@@ -1,4 +1,5 @@
 import axios from 'axios'
+
 export interface ISearchSyncApiConfig {
   baseUrl: string
 }

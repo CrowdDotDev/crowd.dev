@@ -1,7 +1,9 @@
 import { Error400 } from '@crowd/common'
+
 import UserRepository from '../../database/repositories/userRepository'
-import UserCreator from './userCreator'
 import { IServiceOptions } from '../IServiceOptions'
+
+import UserCreator from './userCreator'
 
 /**
  * Flags if should send invitation emails for imported users.

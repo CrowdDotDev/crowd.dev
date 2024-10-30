@@ -1,18 +1,21 @@
 import lodash from 'lodash'
 import Sequelize, { QueryTypes } from 'sequelize'
-import { IntegrationRunState, PlatformType } from '@crowd/types'
-import { Error404 } from '@crowd/common'
+
 import { captureApiChange, integrationConnectAction } from '@crowd/audit-logs'
-import SequelizeRepository from './sequelizeRepository'
-import AuditLogRepository from './auditLogRepository'
+import { Error404 } from '@crowd/common'
+import { IntegrationRunState, PlatformType } from '@crowd/types'
+
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
+
 import { IRepositoryOptions } from './IRepositoryOptions'
+import AuditLogRepository from './auditLogRepository'
+import AutomationExecutionRepository from './automationExecutionRepository'
+import AutomationRepository from './automationRepository'
 import QueryParser from './filters/queryParser'
 import { QueryOutput } from './filters/queryTypes'
-import AutomationRepository from './automationRepository'
-import AutomationExecutionRepository from './automationExecutionRepository'
 import MemberSyncRemoteRepository from './memberSyncRemoteRepository'
 import OrganizationSyncRemoteRepository from './organizationSyncRemoteRepository'
+import SequelizeRepository from './sequelizeRepository'
 
 const { Op } = Sequelize
 const log: boolean = false

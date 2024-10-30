@@ -14,16 +14,16 @@
   "dependencies": {
     "@crowd/common": "workspace:*",
     "@crowd/data-access-layer": "workspace:*",
+    "@crowd/integrations": "workspace:*",
     "@crowd/logging": "workspace:*",
+    "@crowd/opensearch": "workspace:*",
     "@crowd/queue": "workspace:*",
     "@crowd/tracing": "workspace:*",
     "@crowd/types": "workspace:*",
-    "@crowd/opensearch": "workspace:*",
-    "@crowd/integrations": "workspace:*",
     "@opensearch-project/opensearch": "^2.11.0",
     "config": "^3.3.9",
     "tsx": "^4.7.1",
-    "typescript": "^5.0.4"
+    "typescript": "^5.6.3"
   },
   "devDependencies": {
     "@types/config": "^3.3.0",

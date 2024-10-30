@@ -14,7 +14,7 @@ import OrganizationsFilter from './OrganizationsFilter.vue';
 const organizations: CustomFilterConfig = {
   id: 'organizations',
   label: 'Organization',
-  iconClass: 'ri-community-line',
+  iconClass: 'building',
   type: FilterConfigType.CUSTOM,
   component: OrganizationsFilter,
   options: {
@@ -35,7 +35,7 @@ const organizations: CustomFilterConfig = {
             <span class="flex items-center justify-center w-6 h-6 p-1 mr-3 border rounded-md ">
             ${organization.logo
           ? `<img src="${organization.logo}" class="w-4 h-4 min-w-[16px]" alt="${organization.displayName}" />`
-          : '<i v-else class="flex items-center justify-center w-4 h-4 text-gray-300 ri-community-line" />'}
+          : '<i v-else class="flex items-center justify-center w-4 h-4 text-gray-300 fa-light fa-building c-icon" />'}
             </span>`,
       }))),
     remotePopulateItems: (ids: string[]) => OrganizationService.query({

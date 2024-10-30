@@ -1,8 +1,8 @@
 /* eslint-disable no-continue */
-
-import { LoggerBase } from '@crowd/logging'
-import { IMemberIdentity } from '@crowd/types'
 import lodash from 'lodash'
+
+import { captureApiChange, memberEditIdentitiesAction } from '@crowd/audit-logs'
+import { Error409 } from '@crowd/common'
 import {
   checkIdentityExistance,
   createMemberIdentity,
@@ -11,12 +11,14 @@ import {
   findMemberIdentityById,
   updateMemberIdentity,
 } from '@crowd/data-access-layer/src/members'
-import { Error409 } from '@crowd/common'
-import { captureApiChange, memberEditIdentitiesAction } from '@crowd/audit-logs'
-import { IServiceOptions } from '../IServiceOptions'
-import SequelizeRepository from '@/database/repositories/sequelizeRepository'
+import { LoggerBase } from '@crowd/logging'
+import { IMemberIdentity } from '@crowd/types'
+
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
 import MemberRepository from '@/database/repositories/memberRepository'
+import SequelizeRepository from '@/database/repositories/sequelizeRepository'
+
+import { IServiceOptions } from '../IServiceOptions'
 
 export default class MemberIdentityService extends LoggerBase {
   options: IServiceOptions

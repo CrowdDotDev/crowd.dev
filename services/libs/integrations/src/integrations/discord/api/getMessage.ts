@@ -1,6 +1,8 @@
 import axios, { AxiosRequestConfig } from 'axios'
-import { handleDiscordError } from './errorHandler'
+
 import { IProcessStreamContext } from '../../../types'
+
+import { handleDiscordError } from './errorHandler'
 import { retryWrapper } from './handleRateLimit'
 
 export const getMessage = async (

@@ -1,6 +1,8 @@
 /* eslint-disable  @typescript-eslint/no-explicit-any */
-import { getServiceChildLogger } from '@crowd/logging'
 import axios, { AxiosRequestConfig } from 'axios'
+
+import { getServiceChildLogger } from '@crowd/logging'
+
 import { Repos } from '../../types'
 
 const log = getServiceChildLogger('getInstalledRepositories')

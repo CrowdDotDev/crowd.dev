@@ -12,8 +12,10 @@ import {
   OrganizationSource,
   PlatformType,
 } from '@crowd/types'
+
 import { generateSourceIdHash } from '../../helpers'
 import { IProcessDataContext, ProcessDataHandler } from '../../types'
+
 import { GITHUB_GRID } from './grid'
 import {
   GithubActivitySubType,

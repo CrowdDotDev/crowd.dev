@@ -18,7 +18,7 @@
         :class="member.tags.length > 0 ? 'ml-2' : ''"
         @click.prevent.stop="$emit('edit')"
       >
-        <i class="ri-pencil-line !mr-1 text-sm" />
+        <lf-icon name="pen" :size="14" class="!mr-1" />
         <span>{{ member.tags.length ? 'Edit' : 'Add' }} tags</span>
       </el-button>
     </div>
@@ -28,9 +28,11 @@
 <script>
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { storeToRefs } from 'pinia';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 export default {
   name: 'AppTags',
+  components: { LfIcon },
   props: {
     member: {
       type: Object,

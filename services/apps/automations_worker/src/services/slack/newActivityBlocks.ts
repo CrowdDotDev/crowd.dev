@@ -1,5 +1,7 @@
 import htmlToMrkdwn from 'html-to-mrkdwn-ts'
+
 import { integrationLabel, integrationProfileUrl } from '@crowd/types'
+
 import { FRONTEND_URL } from '../../main'
 
 const defaultAvatarUrl =

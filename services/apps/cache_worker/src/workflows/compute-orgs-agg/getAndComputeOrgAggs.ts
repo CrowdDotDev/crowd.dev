@@ -1,13 +1,14 @@
 import {
-  proxyActivities,
-  ParentClosePolicy,
   ChildWorkflowCancellationType,
-  workflowInfo,
-  executeChild,
+  ParentClosePolicy,
   continueAsNew,
+  executeChild,
+  proxyActivities,
+  workflowInfo,
 } from '@temporalio/workflow'
 
 import * as activities from '../../activities/computeAggs/organization'
+
 import { computeOrgAggsAndUpdate } from './computeOrgAggsAndUpdate'
 
 const activity = proxyActivities<typeof activities>({ startToCloseTimeout: '1 minute' })

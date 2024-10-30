@@ -1,7 +1,9 @@
 import { getServiceChildLogger } from '@crowd/logging'
 import { Edition } from '@crowd/types'
+
 import { API_CONFIG, IS_TEST_ENV, SEGMENT_CONFIG } from '../conf'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
+
 import { CROWD_ANALYTICS_PLATORM_NAME } from './addProductDataToCrowdTenant'
 import getTenatUser from './trackHelper'
 

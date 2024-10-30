@@ -87,7 +87,7 @@
               }"
             >
               <el-button class="btn btn--secondary">
-                <i class="ri-stack-line" />
+                <lf-icon name="layer-group" :size="16" />
                 <span>Manage projects</span>
               </el-button>
             </router-link>
@@ -121,6 +121,7 @@ import statusOptions from '@/modules/lf/config/status';
 import AppLfProjectGroupsDropdown from '@/modules/lf/segments/components/lf-project-groups-dropdown.vue';
 import AppTags from '@/shared/tags/tags.vue';
 import { computed } from 'vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const emit = defineEmits(['onEditProjectGroup', 'onAddProject']);
 

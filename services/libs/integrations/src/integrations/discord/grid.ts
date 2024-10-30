@@ -1,4 +1,5 @@
 import { IActivityScoringGrid } from '@crowd/types'
+
 import { DiscordActivityType } from './types'
 
 export const DISCORD_GRID: Record<DiscordActivityType, IActivityScoringGrid> = {

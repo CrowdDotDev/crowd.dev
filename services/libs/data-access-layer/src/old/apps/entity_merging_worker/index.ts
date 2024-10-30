@@ -1,7 +1,9 @@
 import { DbConnOrTx, DbStore } from '@crowd/database'
 import { IActivityIdentity, IMemberIdentity, MergeActionState, MergeActionStep } from '@crowd/types'
-import { ISegmentIds } from './types'
+
 import { updateActivities } from '../../../activities/update'
+
+import { ISegmentIds } from './types'
 
 export async function deleteMemberSegments(db: DbStore, memberId: string) {
   return db.connection().query(

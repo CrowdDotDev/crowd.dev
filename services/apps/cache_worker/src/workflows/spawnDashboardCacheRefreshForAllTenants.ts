@@ -1,15 +1,17 @@
 import {
+  ChildWorkflowCancellationType,
+  ParentClosePolicy,
+  executeChild,
   proxyActivities,
   startChild,
-  ParentClosePolicy,
-  ChildWorkflowCancellationType,
   workflowInfo,
-  executeChild,
 } from '@temporalio/workflow'
 
-import * as activities from '../activities/getTenantSegmentInfo'
-import { refreshDashboardCache } from './refreshDashboardCache'
 import { ISegment } from '@crowd/data-access-layer/src/old/apps/cache_worker/types'
+
+import * as activities from '../activities/getTenantSegmentInfo'
+
+import { refreshDashboardCache } from './refreshDashboardCache'
 
 const activity = proxyActivities<typeof activities>({ startToCloseTimeout: '1 minute' })
 

@@ -56,10 +56,7 @@
           @mouseleave="hoveredSentiment = ''"
           @click="handleSentimentClick(type)"
         >
-          <i
-            class="text-lg mr-2 flex items-center h-5"
-            :class="valuesByType[type].emoji"
-          />
+          <lf-icon :name="valuesByType[type].emoji" :size="20" class="mr-2" />
           <p
             class="text-sm font-medium capitalize pr-2"
           >
@@ -82,6 +79,7 @@ import AppLoading from '@/shared/loading/loading-placeholder.vue';
 import { useRouter } from 'vue-router';
 import { filterQueryService } from '@/shared/modules/filters/services/filter-query.service';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const router = useRouter();
 
@@ -112,15 +110,15 @@ const hoveredSentiment = ref('');
 const valuesByType: Record<string, { class: string, emoji: string }> = {
   positive: {
     class: 'bg-green-500',
-    emoji: 'ri-emotion-happy-line text-green-500',
+    emoji: 'face-grin text-green-500',
   },
   negative: {
     class: 'bg-red-500',
-    emoji: 'ri-emotion-unhappy-line text-red-500',
+    emoji: 'face-frown-open text-red-500',
   },
   neutral: {
     class: 'bg-gray-300',
-    emoji: 'ri-emotion-normal-line text-gray-400',
+    emoji: 'face-meh text-gray-400',
   },
 };
 

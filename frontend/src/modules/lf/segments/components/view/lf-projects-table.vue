@@ -64,13 +64,20 @@
                     :color="integration.platform === 'github' && integration?.type === 'mapped' ? 'gray' : 'black'"
                   />
 
-                  <i
+                  <lf-icon
                     v-if="integration.status === 'no-data'"
-                    class="ri-alert-fill absolute right-0 top-0 text-2xs leading-3 text-yellow-500"
+                    name="triangle-exclamation"
+                    type="solid"
+                    :size="12"
+                    class="absolute right-0 top-0 leading-3 text-yellow-500"
                   />
-                  <i
+
+                  <lf-icon
                     v-else-if="integration.status === 'error'"
-                    class="ri-error-warning-fill absolute right-0 top-0 text-2xs leading-3 text-red-600"
+                    name="circle-exclamation"
+                    type="solid"
+                    :size="12"
+                    class="absolute right-0 top-0 leading-3 text-red-600"
                   />
                   <div
                     v-else-if="integration.status === 'in-progress'"
@@ -106,9 +113,9 @@
                       integration
                     </h6>
                   </app-integration-progress>
-                  <div v-if="progressError" class="text-xs text-gray-500">
-                    <i class="ri-alert-line text-yellow-600" /> Error loading
-                    progress
+                  <div v-if="progressError" class="text-xs text-gray-500 flex items-center">
+                    <lf-icon name="triangle-exclamation" type="light" :size="13" class="text-yellow-600" />
+                    Error loading progress
                   </div>
                 </template>
               </div>
@@ -243,6 +250,7 @@ import AppIntegrationProgress from '@/modules/integration/components/integration
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
 import { CrowdIntegrations } from '@/integrations/integrations-config';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const route = useRoute();
 

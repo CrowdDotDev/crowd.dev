@@ -61,6 +61,13 @@ export interface IMemberOrganization {
   displayName?: string
 }
 
+export interface IRenderFriendlyMemberOrganization {
+  id: string
+  displayName?: string
+  logo?: string
+  memberOrganizations: IMemberOrganization
+}
+
 export interface IMemberRoleWithOrganization extends IMemberOrganization {
   organizationName: string
   organizationLogo: string

@@ -33,7 +33,7 @@
     </div>
     <div v-if="notesCount === 0" class="pt-14">
       <div class="flex justify-center pb-4">
-        <lf-icon name="draft-line" :size="80" class="text-gray-300" />
+        <lf-icon-old name="draft-line" :size="80" class="text-gray-300" />
       </div>
       <p class="text-medium text-gray-400 text-center">
         No notes yet
@@ -50,7 +50,7 @@ import { NoteService } from '@/modules/notes/note-service';
 import LfNoteEditor from '@/modules/notes/components/note-editor.vue';
 import LfNoteItem from '@/modules/notes/components/note-item.vue';
 import LfButton from '@/ui-kit/button/Button.vue';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import { Contributor } from '@/modules/contributor/types/Contributor';
 
 const props = defineProps<{

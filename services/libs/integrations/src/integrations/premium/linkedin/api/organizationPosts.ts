@@ -1,8 +1,11 @@
 import axios, { AxiosRequestConfig } from 'axios'
+
+import { PlatformType } from '@crowd/types'
+
 import { IGenerateStreamsContext, IProcessStreamContext } from '../../../../types'
+
 import { getNangoToken } from './../../../nango'
 import { handleLinkedinError } from './handleError'
-import { PlatformType } from '@crowd/types'
 import { ILinkedInOrganizationPost, IPaginatedResponse } from './types'
 
 export const getOrganizationPosts = async (

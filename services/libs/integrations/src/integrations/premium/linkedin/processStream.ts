@@ -1,5 +1,7 @@
 import { IntegrationStreamType } from '@crowd/types'
+
 import { IProcessStreamContext, ProcessStreamHandler } from '../../../types'
+
 import { getCommentComments } from './api/commentComments'
 import { getMember } from './api/member'
 import { getOrganization } from './api/organization'

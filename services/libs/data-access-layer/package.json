@@ -15,6 +15,7 @@
     "@crowd/questdb": "workspace:*",
     "@crowd/redis": "workspace:*",
     "@crowd/sentiment": "workspace:*",
+    "@crowd/telemetry": "workspace:*",
     "@crowd/types": "workspace:*",
     "@questdb/nodejs-client": "~3.0.0",
     "html-to-text": "~9.0.5",
@@ -30,6 +31,6 @@
   "devDependencies": {
     "@types/node": "^18.16.3",
     "sequelize": "6.21.2",
-    "typescript": "^5.0.4"
+    "typescript": "^5.6.3"
   }
 }

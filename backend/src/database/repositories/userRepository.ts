@@ -1,13 +1,16 @@
 import crypto from 'crypto'
-import Sequelize from 'sequelize'
 import lodash from 'lodash'
+import Sequelize from 'sequelize'
+
 import { Error404 } from '@crowd/common'
-import SequelizeRepository from './sequelizeRepository'
-import AuditLogRepository from './auditLogRepository'
+
+import SequelizeArrayUtils from '../utils/sequelizeArrayUtils'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
 import { isUserInTenant } from '../utils/userTenantUtils'
+
 import { IRepositoryOptions } from './IRepositoryOptions'
-import SequelizeArrayUtils from '../utils/sequelizeArrayUtils'
+import AuditLogRepository from './auditLogRepository'
+import SequelizeRepository from './sequelizeRepository'
 
 const { Op } = Sequelize
 

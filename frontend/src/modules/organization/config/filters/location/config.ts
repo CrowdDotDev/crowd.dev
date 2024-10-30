@@ -10,7 +10,7 @@ import { apiFilterRendererByType } from '@/shared/modules/filters/config/apiFilt
 const location: StringFilterConfig = {
   id: 'location',
   label: 'Location',
-  iconClass: 'ri-map-pin-2-line',
+  iconClass: 'location-dot',
   type: FilterConfigType.STRING,
   options: {},
   itemLabelRenderer(value: StringFilterValue, options: StringFilterOptions): string {

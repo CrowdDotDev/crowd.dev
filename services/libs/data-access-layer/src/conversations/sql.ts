@@ -1,9 +1,11 @@
 import { convert as convertHtmlToText } from 'html-to-text'
 import merge from 'lodash.merge'
+
 import { RawQueryParser, generateUUIDv4, getEnv } from '@crowd/common'
 import { DbConnOrTx } from '@crowd/database'
 import { ActivityDisplayService } from '@crowd/integrations'
 import { ActivityDisplayVariant, PageData, PlatformType } from '@crowd/types'
+
 import { IQueryActivityResult, queryActivities } from '../activities'
 import {
   IDbConversation,
@@ -11,6 +13,7 @@ import {
   IDbConversationUpdateData,
 } from '../old/apps/data_sink_worker/repo/conversation.data'
 import { checkUpdateRowCount } from '../utils'
+
 import {
   IConversationWithActivities,
   IQueryConversationResult,

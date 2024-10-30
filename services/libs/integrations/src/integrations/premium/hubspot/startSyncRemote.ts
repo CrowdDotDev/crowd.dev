@@ -1,6 +1,8 @@
-import { StartIntegrationSyncHandler } from '../../../types'
-import { HubspotEntity, IHubspotIntegrationSettings } from './types'
 import { AutomationState, AutomationSyncTrigger } from '@crowd/types'
+
+import { StartIntegrationSyncHandler } from '../../../types'
+
+import { HubspotEntity, IHubspotIntegrationSettings } from './types'
 
 const handler: StartIntegrationSyncHandler = async (ctx) => {
   const settings = ctx.integration.settings as IHubspotIntegrationSettings

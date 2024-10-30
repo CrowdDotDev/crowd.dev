@@ -1,45 +1,41 @@
-import { updateEmailHistory } from './activities/updateEmailHistory'
-
-import { eagleeyeGetNextEmails } from './activities/eagleeye-digest/getNextEmails'
-import { eagleeyeSendEmail } from './activities/eagleeye-digest/sendEmail'
-import { eagleeyeUpdateNextEmailAt } from './activities/eagleeye-digest/updateEmailHistory'
 import {
   eagleeyeBuildEmailContent,
   eagleeyeFetchFromDatabase,
   eagleeyeFetchFromEagleEye,
 } from './activities/eagleeye-digest/buildEmail'
-
-import { weeklyGetNextEmails, calculateTimes } from './activities/weekly-analytics/getNextEmails'
-import { weeklySendEmail } from './activities/weekly-analytics/sendEmail'
-
+import { eagleeyeGetNextEmails } from './activities/eagleeye-digest/getNextEmails'
+import { eagleeyeSendEmail } from './activities/eagleeye-digest/sendEmail'
+import { eagleeyeUpdateNextEmailAt } from './activities/eagleeye-digest/updateEmailHistory'
+import { updateEmailHistory } from './activities/updateEmailHistory'
 import {
-  getTenantUsers,
-  getSegments,
   getActiveTenantIntegrations,
-  getTotalMembersThisWeek,
-  getTotalMembersPreviousWeek,
-  getNewMembersThisWeek,
   getNewMembersPreviousWeek,
-  getTotalOrganizationsThisWeek,
-  getTotalOrganizationsPreviousWeek,
-  getNewOrganizationsThisWeek,
+  getNewMembersThisWeek,
   getNewOrganizationsPreviousWeek,
+  getNewOrganizationsThisWeek,
+  getSegments,
+  getTenantUsers,
+  getTotalMembersPreviousWeek,
+  getTotalMembersThisWeek,
+  getTotalOrganizationsPreviousWeek,
+  getTotalOrganizationsThisWeek,
 } from './activities/weekly-analytics/buildEmailFromPostgreSQL'
-
 import {
-  getTotalActivitiesThisWeek,
-  getTotalActivitiesPreviousWeek,
-  getNewActivitiesThisWeek,
-  getNewActivitiesPreviousWeek,
+  getActiveMembersPreviousWeek,
+  getActiveMembersThisWeek,
+  getActiveOrganizationsPreviousWeek,
+  getActiveOrganizationsThisWeek,
+  getConversations,
   getMostActiveMembersThisWeek,
   getMostActiveOrganizationsThisWeek,
+  getNewActivitiesPreviousWeek,
+  getNewActivitiesThisWeek,
   getTopActivityTypes,
-  getConversations,
-  getActiveMembersThisWeek,
-  getActiveMembersPreviousWeek,
-  getActiveOrganizationsThisWeek,
-  getActiveOrganizationsPreviousWeek,
+  getTotalActivitiesPreviousWeek,
+  getTotalActivitiesThisWeek,
 } from './activities/weekly-analytics/buildEmailFromQuestDB'
+import { calculateTimes, weeklyGetNextEmails } from './activities/weekly-analytics/getNextEmails'
+import { weeklySendEmail } from './activities/weekly-analytics/sendEmail'
 
 export {
   updateEmailHistory,

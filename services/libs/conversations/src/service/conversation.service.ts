@@ -1,3 +1,5 @@
+import { convert as convertHtmlToText } from 'html-to-text'
+
 import { distinct, getCleanString, processPaginated } from '@crowd/common'
 import {
   IQueryActivityResult,
@@ -13,7 +15,7 @@ import {
 import { DbConnOrTx, DbStore } from '@crowd/database'
 import { Logger, LoggerBase, getChildLogger } from '@crowd/logging'
 import { PlatformType } from '@crowd/types'
-import { convert as convertHtmlToText } from 'html-to-text'
+
 import { IDbConversation } from '../repo/conversation.data'
 import { ConversationRepository } from '../repo/conversation.repo'
 

@@ -1,8 +1,9 @@
-import { IAttributes } from '@crowd/types'
 import { Error404 } from '@crowd/common'
 import { fetchMemberAttributes, updateMemberAttributes } from '@crowd/data-access-layer/src/members'
-import SequelizeRepository from '../sequelizeRepository'
+import { IAttributes } from '@crowd/types'
+
 import { IRepositoryOptions } from '../IRepositoryOptions'
+import SequelizeRepository from '../sequelizeRepository'
 
 class MemberAttributesRepository {
   static async list(memberId: string, options: IRepositoryOptions) {

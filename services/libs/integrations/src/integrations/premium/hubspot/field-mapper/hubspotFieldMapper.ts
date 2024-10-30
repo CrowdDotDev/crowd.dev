@@ -1,4 +1,5 @@
 import { IMemberAttribute } from '@crowd/types'
+
 import {
   HubspotEntity,
   HubspotPropertyType,

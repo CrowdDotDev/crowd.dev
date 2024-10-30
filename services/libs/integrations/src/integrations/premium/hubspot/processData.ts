@@ -1,8 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { ProcessDataHandler } from '../../../types'
-import { HubspotEntity, HubspotStream, IHubspotData, IHubspotIntegrationSettings } from './types'
 import { IntegrationResultType } from '@crowd/types'
+
+import { ProcessDataHandler } from '../../../types'
+
 import { HubspotFieldMapperFactory } from './field-mapper/mapperFactory'
+import { HubspotEntity, HubspotStream, IHubspotData, IHubspotIntegrationSettings } from './types'
 
 const processContact: ProcessDataHandler = async (ctx) => {
   const data = ctx.data as IHubspotData

@@ -2,7 +2,7 @@
   <el-popover v-model:visible="open" :placement="$attrs.placement || 'bottom-end'" size="large" width="20rem" popper-class="!p-0" trigger="click">
     <template #reference>
       <lf-button type="secondary">
-        <lf-icon name="filter-3-line" />
+        <lf-icon name="bars-filter" />
         Filters
       </lf-button>
     </template>
@@ -16,7 +16,7 @@
         data-qa="filter-list-search"
       >
         <template #prefix>
-          <i class="ri-search-line" />
+          <lf-icon name="search" :size="16" />
         </template>
       </el-input>
     </div>
@@ -29,7 +29,7 @@
         data-qa="filter-list-item"
         @click="add(key)"
       >
-        <span><i :class="iconClass" class="text-base text-gray-400 mr-3" />{{ label }}</span>
+        <span class="flex items-center"><lf-icon :name="iconClass" :size="16" class="text-gray-400 mr-3" />{{ label }}</span>
         <i :class="isSelected(key) ? 'opacity-100' : 'opacity-0'" class="ri-check-line !text-gray-400 !mr-0 ml-1" />
       </article>
 

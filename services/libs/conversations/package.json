@@ -9,8 +9,8 @@
   },
   "dependencies": {
     "@crowd/common": "workspace:*",
-    "@crowd/database": "workspace:*",
     "@crowd/data-access-layer": "workspace:*",
+    "@crowd/database": "workspace:*",
     "@crowd/logging": "workspace:*",
     "@crowd/types": "workspace:*",
     "html-to-text": "^9.0.5"
@@ -18,6 +18,6 @@
   "devDependencies": {
     "@types/html-to-text": "^9.0.0",
     "@types/node": "^18.16.3",
-    "typescript": "^5.0.4"
+    "typescript": "^5.6.3"
   }
 }

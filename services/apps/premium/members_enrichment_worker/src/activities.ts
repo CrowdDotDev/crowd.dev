@@ -1,41 +1,39 @@
+import {
+  findMemberEnrichmentCache,
+  getEnrichmentData,
+  insertMemberEnrichmentCache,
+  isCacheObsolete,
+  isEnrichableBySource,
+  normalizeEnrichmentData,
+  touchMemberEnrichmentCacheUpdatedAt,
+  updateMemberEnrichmentCache,
+} from './activities/enrichment'
 import { getMembers } from './activities/getMembers'
+import { refreshToken } from './activities/lf-auth0/authenticateLFAuth0'
 import {
-  enrichMemberUsingGitHubHandle,
-  enrichMemberUsingEmailAddress,
-} from './activities/getEnrichmentData'
+  getIdentitiesExistInOtherMembers,
+  mergeMembers,
+  updateMemberWithEnrichmentData,
+} from './activities/lf-auth0/enrichLFAuth0'
+import { getEnrichmentLFAuth0 } from './activities/lf-auth0/getEnrichmentLFAuth0'
+import { getLFIDEnrichableMembers } from './activities/lf-auth0/getLFIDEnrichableMembers'
 import {
-  normalizeEnrichedMember,
-  updateMergeSuggestions,
-  updateOrganizations,
-} from './activities/normalizeEnrichedMember'
+  checkTokens,
+  findGithubSourceId,
+  getGithubIdentitiesWithoutSourceId,
+  updateIdentitySourceId,
+} from './activities/lf-auth0/githubIdentities'
 import {
   syncMembersToOpensearch,
   syncOrganizationsToOpensearch,
 } from './activities/syncEnrichedData'
 
-import { refreshToken } from './activities/lf-auth0/authenticateLFAuth0'
-import { getEnrichmentLFAuth0 } from './activities/lf-auth0/getEnrichmentLFAuth0'
-import { getLFIDEnrichableMembers } from './activities/lf-auth0/getLFIDEnrichableMembers'
-import {
-  getGithubIdentitiesWithoutSourceId,
-  checkTokens,
-  findGithubSourceId,
-  updateIdentitySourceId,
-} from './activities/lf-auth0/githubIdentities'
-
-import {
-  getIdentitiesExistInOtherMembers,
-  updateMemberWithEnrichmentData,
-  mergeMembers,
-} from './activities/lf-auth0/enrichLFAuth0'
-
 export {
   getMembers,
-  enrichMemberUsingGitHubHandle,
-  enrichMemberUsingEmailAddress,
-  normalizeEnrichedMember,
-  updateMergeSuggestions,
-  updateOrganizations,
+  getEnrichmentData,
+  normalizeEnrichmentData,
+  findMemberEnrichmentCache,
+  insertMemberEnrichmentCache,
   syncMembersToOpensearch,
   syncOrganizationsToOpensearch,
   refreshToken,
@@ -48,4 +46,8 @@ export {
   getIdentitiesExistInOtherMembers,
   updateMemberWithEnrichmentData,
   mergeMembers,
+  isCacheObsolete,
+  touchMemberEnrichmentCacheUpdatedAt,
+  updateMemberEnrichmentCache,
+  isEnrichableBySource,
 }

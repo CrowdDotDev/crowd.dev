@@ -1,5 +1,6 @@
 import trim from 'lodash/trim'
 import { QueryTypes } from 'sequelize'
+
 import { IRepositoryOptions } from './IRepositoryOptions'
 import SequelizeRepository from './sequelizeRepository'
 

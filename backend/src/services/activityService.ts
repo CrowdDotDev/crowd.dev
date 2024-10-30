@@ -1,3 +1,7 @@
+import { Blob } from 'buffer'
+import vader from 'crowd-sentiment'
+import { Transaction } from 'sequelize/types'
+
 import { Error400, distinct, singleOrDefault } from '@crowd/common'
 import {
   DEFAULT_COLUMNS_TO_SELECT,
@@ -23,11 +27,11 @@ import {
   SegmentData,
   TemporalWorkflowId,
 } from '@crowd/types'
-import { Blob } from 'buffer'
-import vader from 'crowd-sentiment'
-import { Transaction } from 'sequelize/types'
-import OrganizationRepository from '@/database/repositories/organizationRepository'
+
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
+import OrganizationRepository from '@/database/repositories/organizationRepository'
+import { getDataSinkWorkerEmitter } from '@/serverless/utils/queueService'
+
 import { GITHUB_CONFIG, IS_DEV_ENV, IS_TEST_ENV, TEMPORAL_CONFIG } from '../conf'
 import ActivityRepository from '../database/repositories/activityRepository'
 import MemberRepository from '../database/repositories/memberRepository'
@@ -38,6 +42,7 @@ import {
   mapUsernameToIdentities,
 } from '../database/repositories/types/memberTypes'
 import telemetryTrack from '../segment/telemetryTrack'
+
 import { IServiceOptions } from './IServiceOptions'
 import { detectSentiment, detectSentimentBatch } from './aws'
 import ConversationService from './conversationService'
@@ -45,7 +50,6 @@ import merge from './helpers/merge'
 import MemberAffiliationService from './memberAffiliationService'
 import SearchSyncService from './searchSyncService'
 import SegmentService from './segmentService'
-import { getDataSinkWorkerEmitter } from '@/serverless/utils/queueService'
 
 const IS_GITHUB_COMMIT_DATA_ENABLED = GITHUB_CONFIG.isCommitDataEnabled === 'true'
 

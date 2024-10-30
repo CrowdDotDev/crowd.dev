@@ -16,6 +16,7 @@ import {
   StartIntegrationRunQueueMessage,
   StreamProcessedQueueMessage,
 } from '@crowd/types'
+
 import IntegrationRunService from '../service/integrationRunService'
 
 /* eslint-disable no-case-declarations */

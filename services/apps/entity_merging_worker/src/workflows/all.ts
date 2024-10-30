@@ -1,7 +1,8 @@
 import { proxyActivities } from '@temporalio/workflow'
 
-import * as activities from '../activities'
 import { IMemberIdentity, MergeActionState, MergeActionStep } from '@crowd/types'
+
+import * as activities from '../activities'
 
 const {
   deleteMember,

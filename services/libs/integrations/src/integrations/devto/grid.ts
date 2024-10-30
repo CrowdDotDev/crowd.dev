@@ -1,4 +1,5 @@
 import { IActivityScoringGrid } from '@crowd/types'
+
 import { DevToActivityType } from './types'
 
 export const DEVTO_GRID: Record<DevToActivityType, IActivityScoringGrid> = {

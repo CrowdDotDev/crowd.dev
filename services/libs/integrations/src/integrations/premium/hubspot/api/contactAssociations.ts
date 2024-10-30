@@ -1,9 +1,11 @@
 import axios, { AxiosRequestConfig } from 'axios'
-import { PlatformType } from '@crowd/types'
-import { getNangoToken } from '../../../nango'
-import { IGenerateStreamsContext, IProcessStreamContext } from '../../../../types'
-import { HubspotAssociationType, HubspotEndpoint, IHubspotAssociation } from '../types'
+
 import { RequestThrottler } from '@crowd/common'
+import { PlatformType } from '@crowd/types'
+
+import { IGenerateStreamsContext, IProcessStreamContext } from '../../../../types'
+import { getNangoToken } from '../../../nango'
+import { HubspotAssociationType, HubspotEndpoint, IHubspotAssociation } from '../types'
 
 export const getContactAssociations = async (
   nangoId: string,

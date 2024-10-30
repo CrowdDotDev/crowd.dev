@@ -8,7 +8,7 @@
       },
     }"
   >
-    <i class="ri-arrow-left-s-line mr-2" />
+    <lf-icon name="chevron-left" :size="16" class="mr-2" />
     <span>Manage Projects</span>
   </router-link>
   <div v-if="!loading" class="text-sm mb-2">
@@ -20,6 +20,7 @@
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
 import { onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const lsSegmentsStore = useLfSegmentsStore();
 const { findSubProject } = lsSegmentsStore;

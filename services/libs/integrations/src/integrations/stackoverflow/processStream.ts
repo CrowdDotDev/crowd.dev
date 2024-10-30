@@ -1,19 +1,21 @@
-import { ProcessStreamHandler, IProcessStreamContext } from '../../types'
-import {
-  StackOverflowRootStream,
-  IStackOverflowTagStreamData,
-  IStackOverflowKeywordStreamData,
-  IStackOverflowAnswerStreamData,
-  StackOverflowQuestionsResponse,
-  StackOverflowAnswerResponse,
-  StackOverflowUser,
-  IStackOverflowPublishData,
-} from './types'
+import { generateUUIDv4 } from '@crowd/common'
+
+import { IProcessStreamContext, ProcessStreamHandler } from '../../types'
+
+import getAnswers from './api/getAnswers'
 import getQuestionsByTags from './api/getQuestions'
 import getQuestionsByKeyword from './api/getQuestionsByKeywords'
-import getAnswers from './api/getAnswers'
 import getUser from './api/getUser'
-import { generateUUIDv4 } from '@crowd/common'
+import {
+  IStackOverflowAnswerStreamData,
+  IStackOverflowKeywordStreamData,
+  IStackOverflowPublishData,
+  IStackOverflowTagStreamData,
+  StackOverflowAnswerResponse,
+  StackOverflowQuestionsResponse,
+  StackOverflowRootStream,
+  StackOverflowUser,
+} from './types'
 
 const getStackOverflowUser = async (
   ctx: IProcessStreamContext,

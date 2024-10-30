@@ -1,6 +1,7 @@
 import { DbStore, RepositoryBase } from '@crowd/database'
 import { Logger } from '@crowd/logging'
 import { IntegrationRunState, IntegrationStreamState } from '@crowd/types'
+
 import {
   IGenerateStreamsData,
   IPendingDelayedRun,

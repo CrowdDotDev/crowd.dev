@@ -2,7 +2,6 @@ import {
   detectNewActivityAutomations,
   triggerActivityAutomationExecution,
 } from './activities/newActivityAutomations'
-
 import {
   detectNewMemberAutomations,
   triggerMemberAutomationExecution,

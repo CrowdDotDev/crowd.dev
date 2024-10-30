@@ -38,8 +38,8 @@
         <template #default="{ row }">
           <div class="flex py-4">
             <div class="pr-2 min-w-6">
-              <i v-if="row.success" class="ri-checkbox-circle-fill flex items-center text-base text-green-500 mr-1" />
-              <i v-else class="ri-close-circle-fill flex items-center text-base text-red-500 mr-1" />
+              <lf-icon v-if="row.success" type="solid" name="circle-check" :size="16" class="text-green-500 mr-1" />
+              <lf-icon v-else type="solid" name="circle-exclamation" :size="16" class="text-red-500 mr-1" />
             </div>
             <div>
               <div class="text-sm font-semibold text-black mb-1 leading-5">
@@ -106,7 +106,7 @@
 
   <div v-if="pagination.total >= (pagination.page * pagination.perPage)" class="pt-6 pb-6 flex justify-center">
     <lf-button type="secondary-ghost" @click="loadMore">
-      <i class="ri-arrow-down-line" />Load more
+      <lf-icon name="arrow-down" /> Load more
     </lf-button>
   </div>
 
@@ -128,6 +128,7 @@ import moment from 'moment';
 import { LfService } from '@/modules/lf/segments/lf-segments-service';
 import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 import { logRenderingConfig } from '../../config/audit-logs/log-rendering';
 
 const loading = ref<boolean>(false);

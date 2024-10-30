@@ -67,7 +67,7 @@
             />
             <app-dashboard-empty-state
               v-if="recentOrganizations.length === 0"
-              icon-class="ri-community-line"
+              icon="building"
               class="pt-6 pb-5"
             >
               No new organizations during this period
@@ -110,7 +110,7 @@
                   content="Organizations whose people engaged in at least one activity during the selected time period."
                   popper-class="max-w-[260px]"
                 >
-                  <i class="ri-information-line text-sm ml-1 font-normal" />
+                  <lf-icon name="circle-info" :size="14" class="ml-1" />
                 </el-tooltip>
               </h6>
             </div>
@@ -159,7 +159,7 @@
             />
             <app-dashboard-empty-state
               v-if="activeOrganizations.length === 0"
-              icon-class="ri-community-line"
+              icon="building"
               class="pt-6 pb-5"
             >
               No active organizations during this period
@@ -204,6 +204,7 @@ import { computed } from 'vue';
 import { mapGetters } from '@/shared/vuex/vuex.helpers';
 import { lfxCharts } from '@/config/charts';
 import LfChart from '@/ui-kit/chart/Chart.vue';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const {
   chartData, organizations, period, activeOrganizations, recentOrganizations,

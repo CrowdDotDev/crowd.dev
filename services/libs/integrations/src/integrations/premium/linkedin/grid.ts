@@ -1,4 +1,5 @@
 import { IActivityScoringGrid } from '@crowd/types'
+
 import { LinkedinActivityType } from './types'
 
 export const LINKEDIN_GRID: Record<LinkedinActivityType, IActivityScoringGrid> = {

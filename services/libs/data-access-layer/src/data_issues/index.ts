@@ -1,6 +1,7 @@
 import { generateUUIDv4 } from '@crowd/common'
-import { QueryExecutor } from '../queryExecutor'
 import { IDataIssue } from '@crowd/types'
+
+import { QueryExecutor } from '../queryExecutor'
 import { QueryResult, queryTableById } from '../utils'
 
 export interface IDbInsertDataIssuePayload {

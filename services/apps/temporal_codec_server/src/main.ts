@@ -1,8 +1,8 @@
-import express from 'express'
 import cors from 'cors'
+import express from 'express'
 
-import { EncryptionCodec } from '@crowd/temporal'
 import { Config, Service } from '@crowd/archetype-standard'
+import { EncryptionCodec } from '@crowd/temporal'
 
 import { Body } from './types/payload'
 import { fromJSON, toJSON } from './utils/payload'

@@ -1,6 +1,8 @@
 import axios, { AxiosRequestConfig } from 'axios'
+
 import { Logger } from '@crowd/logging'
 import { RateLimitError } from '@crowd/types'
+
 import type { DiscourseConnectionParams } from '../../types/discourseTypes'
 import { DiscourseUserResponse, DisourseUserByUsernameInput } from '../../types/discourseTypes'
 

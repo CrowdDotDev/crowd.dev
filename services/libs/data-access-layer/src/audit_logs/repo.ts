@@ -1,5 +1,7 @@
 import validator from 'validator'
+
 import { DbConnection } from '@crowd/database'
+
 import { QueryExecutor } from '../queryExecutor'
 
 export interface AuditLogRequestOptions {

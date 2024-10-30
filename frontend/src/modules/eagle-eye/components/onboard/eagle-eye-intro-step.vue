@@ -12,10 +12,7 @@
       :key="index"
       class="flex items-center"
     >
-      <i
-        class="text-primary-500 text-lg"
-        :class="feature.icon"
-      />
+      <lf-icon :name="feature.icon" class="text-primary-500" :size="20" />
       <div class="ml-4 text-xs">
         {{ feature.title }}
       </div>
@@ -34,7 +31,7 @@
     target="_blank"
     rel="noopener noreferrer"
     class="btn btn--secondary btn--full btn--md mt-5 hover:!text-gray-600"
-  ><i class="ri-book-open-line" /><span>Read more</span></a>
+  ><lf-icon name="book-open" :size="16" /><span>Read more</span></a>
 </template>
 
 <script setup>
@@ -42,6 +39,7 @@ import { defineEmits } from 'vue';
 import { pageContent } from '@/modules/layout/layout-page-content';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const emit = defineEmits(['onStepChange']);
 

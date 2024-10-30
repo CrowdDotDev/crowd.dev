@@ -1,21 +1,22 @@
-import { IMember, IOrganization, PageData } from '@crowd/types'
-import { svc } from '../../main'
-import { InputAnalyticsWithSegments, InputAnalyticsWithTimes } from '../../types/analytics'
 import {
-  IQueryActivityResult,
-  findTopActivityTypes,
-  queryActivities,
   ActivityType,
-  findConversationsWithActivities,
   IConversationWithActivities,
+  INumberOfActivitiesPerMember,
+  INumberOfActivitiesPerOrganization,
+  IQueryActivityResult,
+  findConversationsWithActivities,
+  findTopActivityTypes,
+  getMemberById,
   getMostActiveMembers,
   getMostActiveOrganizations,
-  INumberOfActivitiesPerOrganization,
-  INumberOfActivitiesPerMember,
-  getMemberById,
+  queryActivities,
 } from '@crowd/data-access-layer'
-import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
 import { findOrgById } from '@crowd/data-access-layer/src/organizations'
+import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
+import { IMember, IOrganization, PageData } from '@crowd/types'
+
+import { svc } from '../../main'
+import { InputAnalyticsWithSegments, InputAnalyticsWithTimes } from '../../types/analytics'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 

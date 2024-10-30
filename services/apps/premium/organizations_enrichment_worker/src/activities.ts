@@ -1,8 +1,8 @@
 import {
-  syncToOpensearch,
-  getOrganizationsToEnrich,
-  tryEnrichOrganization,
   getMaxEnrichedOrganizationsPerExecution,
+  getOrganizationsToEnrich,
+  syncToOpensearch,
+  tryEnrichOrganization,
 } from './activities/enrichment'
 
 export {

@@ -15,6 +15,7 @@ import {
   ProcessWebhookStreamQueueMessage,
   QueuePriorityLevel,
 } from '@crowd/types'
+
 import IntegrationStreamService from '../service/integrationStreamService'
 
 export class WorkerQueueReceiver extends PrioritizedQueueReciever {

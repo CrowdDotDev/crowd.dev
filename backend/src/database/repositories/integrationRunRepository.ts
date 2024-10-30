@@ -1,11 +1,14 @@
 import { QueryTypes } from 'sequelize'
+
 import { generateUUIDv1 } from '@crowd/common'
 import { IntegrationRunState } from '@crowd/types'
-import { IntegrationRun, DbIntegrationRunCreateData } from '../../types/integrationRunTypes'
+
+import { INTEGRATION_PROCESSING_CONFIG } from '../../conf'
+import { DbIntegrationRunCreateData, IntegrationRun } from '../../types/integrationRunTypes'
 import { IntegrationStreamState } from '../../types/integrationStreamTypes'
+
 import { IRepositoryOptions } from './IRepositoryOptions'
 import { RepositoryBase } from './repositoryBase'
-import { INTEGRATION_PROCESSING_CONFIG } from '../../conf'
 
 export default class IntegrationRunRepository extends RepositoryBase<
   IntegrationRun,

@@ -1,6 +1,8 @@
-import { getServiceChildLogger } from '@crowd/logging'
 import fs from 'fs'
 import path from 'path'
+
+import { getServiceChildLogger } from '@crowd/logging'
+
 import { IIntegrationDescriptor } from '../types'
 
 const log = getServiceChildLogger('integrations')

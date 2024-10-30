@@ -1,8 +1,10 @@
 import axios, { AxiosRequestConfig } from 'axios'
-import { PlatformType } from '@crowd/types'
-import { getNangoToken } from '../../../nango'
-import { IGenerateStreamsContext, IProcessStreamContext } from '../../../../types'
+
 import { RequestThrottler } from '@crowd/common'
+import { PlatformType } from '@crowd/types'
+
+import { IGenerateStreamsContext, IProcessStreamContext } from '../../../../types'
+import { getNangoToken } from '../../../nango'
 
 export const addContactsToList = async (
   nangoId: string,

@@ -15,12 +15,13 @@
     "@crowd/archetype-standard": "workspace:*",
     "@crowd/archetype-worker": "workspace:*",
     "@crowd/common": "workspace:*",
-    "@crowd/feature-flags": "workspace:*",
-    "@crowd/opensearch": "workspace:*",
     "@crowd/data-access-layer": "workspace:*",
-    "@crowd/types": "workspace:*",
-    "@crowd/redis": "workspace:*",
+    "@crowd/feature-flags": "workspace:*",
     "@crowd/integrations": "workspace:*",
+    "@crowd/opensearch": "workspace:*",
+    "@crowd/redis": "workspace:*",
+    "@crowd/logging": "workspace:*",
+    "@crowd/types": "workspace:*",
     "@temporalio/client": "~1.11.1",
     "@temporalio/workflow": "~1.11.1",
     "auth0": "^4.3.1",
@@ -28,7 +29,7 @@
     "lodash": "~4.17.21",
     "moment": "~2.29.4",
     "tsx": "^4.7.1",
-    "typescript": "^5.2.2"
+    "typescript": "^5.6.3"
   },
   "devDependencies": {
     "@types/node": "^20.8.2",

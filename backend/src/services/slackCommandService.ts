@@ -1,8 +1,10 @@
 /* eslint-disable no-case-declarations */
-import { validateUUID as uuidValidate } from '@crowd/common'
-import { TenantPlans } from '@crowd/types'
 import moment from 'moment'
 import { Divider, Message, Section, SlackMessageDto } from 'slack-block-builder'
+
+import { validateUUID as uuidValidate } from '@crowd/common'
+import { TenantPlans } from '@crowd/types'
+
 import { IS_DEV_ENV, IS_PROD_ENV, IS_STAGING_ENV } from '../conf'
 import TenantRepository from '../database/repositories/tenantRepository'
 import {
@@ -12,6 +14,7 @@ import {
   SlackCommandParameterType,
   SlackParameterParseResult,
 } from '../types/slackTypes'
+
 import { IServiceOptions } from './IServiceOptions'
 
 export default class SlackCommandService {

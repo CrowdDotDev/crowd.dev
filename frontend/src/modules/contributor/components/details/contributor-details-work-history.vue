@@ -10,7 +10,7 @@
             <template #content>
               Work experiences are mostly obtained<br> via enrichment but can also be added <br>manually.
             </template>
-            <lf-icon name="question-line" :size="16" class="text-gray-400" />
+            <lf-icon name="circle-question" :size="16" class="text-gray-400" />
           </lf-tooltip>
         </div>
       </div>
@@ -25,7 +25,7 @@
           :icon-only="true"
           @click="isEditModalOpen = true; editOrganization = null"
         >
-          <lf-icon name="add-fill" />
+          <lf-icon name="plus" />
         </lf-button>
       </lf-tooltip>
     </div>
@@ -39,7 +39,7 @@
         @edit="isEditModalOpen = true; editOrganization = org"
       />
       <div v-if="orgs.length === 0" class="pt-2 flex flex-col items-center">
-        <lf-icon name="survey-line" :size="40" class="text-gray-300" />
+        <lf-icon-old name="survey-line" :size="40" class="text-gray-300" />
         <p class="text-center pt-3 text-medium text-gray-400">
           No work experiences
         </p>
@@ -75,7 +75,7 @@
 
 <script setup lang="ts">
 import LfButton from '@/ui-kit/button/Button.vue';
-import LfIcon from '@/ui-kit/icon/Icon.vue';
+import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import { computed, ref } from 'vue';
 import usePermissions from '@/shared/modules/permissions/helpers/usePermissions';
 import { LfPermission } from '@/shared/modules/permissions/types/Permissions';
@@ -87,6 +87,7 @@ import { Organization } from '@/modules/organization/types/Organization';
 import LfContributorDetailsWorkHistoryItem
   from '@/modules/contributor/components/details/work-history/contributor-details-work-history-item.vue';
 import useContributorHelpers from '@/modules/contributor/helpers/contributor.helpers';
+import LfIcon from '@/ui-kit/icon/Icon.vue';
 
 const props = defineProps<{
   contributor: Contributor,

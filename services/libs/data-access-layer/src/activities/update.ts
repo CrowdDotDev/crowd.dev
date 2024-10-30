@@ -1,9 +1,12 @@
-import { IDbActivityCreateData } from '../old/apps/data_sink_worker/repo/activity.data'
 import QueryStream from 'pg-query-stream'
-import { formatQuery } from '../queryExecutor'
-import { insertActivities } from './ilp'
-import { getServiceChildLogger, timer } from '@crowd/logging'
+
 import { DbConnOrTx } from '@crowd/database'
+import { getServiceChildLogger, timer } from '@crowd/logging'
+
+import { IDbActivityCreateData } from '../old/apps/data_sink_worker/repo/activity.data'
+import { formatQuery } from '../queryExecutor'
+
+import { insertActivities } from './ilp'
 
 const logger = getServiceChildLogger('activities.update')
 

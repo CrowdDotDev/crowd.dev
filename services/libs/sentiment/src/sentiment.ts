@@ -1,7 +1,9 @@
 //import { getServiceChildLogger } from '@crowd/logging'
 import vader from 'crowd-sentiment'
-import { ISentimentAnalysisResult } from './types'
+
 import { trimUtf8ToMaxByteLength } from '@crowd/common'
+
+import { ISentimentAnalysisResult } from './types'
 
 //const log = getServiceChildLogger('sentiment')
 

@@ -1,24 +1,25 @@
+import { WorkflowIdReusePolicy } from '@temporalio/workflow'
+
+import { cleanupMemberAggregates } from '@crowd/data-access-layer/src/members/segments'
+import {
+  cleanupMember,
+  deleteMemberSegments,
+  findMemberById,
+  getIdentitiesWithActivity,
+  moveActivitiesToNewMember,
+  moveIdentityActivitiesToNewMember,
+} from '@crowd/data-access-layer/src/old/apps/entity_merging_worker'
+import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
+import { SearchSyncApiClient } from '@crowd/opensearch'
+import { RedisPubSubEmitter } from '@crowd/redis'
 import {
   ApiWebsocketMessage,
   IMemberIdentity,
   MemberIdentityType,
   TemporalWorkflowId,
 } from '@crowd/types'
-import { svc } from '../main'
-import { WorkflowIdReusePolicy } from '@temporalio/workflow'
-import { SearchSyncApiClient } from '@crowd/opensearch'
-import { RedisPubSubEmitter } from '@crowd/redis'
 
-import {
-  deleteMemberSegments,
-  cleanupMember,
-  findMemberById,
-  moveActivitiesToNewMember,
-  moveIdentityActivitiesToNewMember,
-  getIdentitiesWithActivity,
-} from '@crowd/data-access-layer/src/old/apps/entity_merging_worker'
-import { cleanupMemberAggregates } from '@crowd/data-access-layer/src/members/segments'
-import { dbStoreQx } from '@crowd/data-access-layer/src/queryExecutor'
+import { svc } from '../main'
 
 export async function deleteMember(memberId: string): Promise<void> {
   await deleteMemberSegments(svc.postgres.writer, memberId)

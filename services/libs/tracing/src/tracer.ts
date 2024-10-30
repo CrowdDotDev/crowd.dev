@@ -1,23 +1,21 @@
 import opentelemetry, { Tracer } from '@opentelemetry/api'
-import { NodeSDK } from '@opentelemetry/sdk-node'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-grpc'
-import { Resource, ResourceAttributes } from '@opentelemetry/resources'
-import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
-
+import { AwsInstrumentation } from '@opentelemetry/instrumentation-aws-sdk'
+import { BunyanInstrumentation } from '@opentelemetry/instrumentation-bunyan'
+import { ExpressInstrumentation } from '@opentelemetry/instrumentation-express'
+import { HttpInstrumentation } from '@opentelemetry/instrumentation-http'
+import { PgInstrumentation } from '@opentelemetry/instrumentation-pg'
+import { RedisInstrumentation } from '@opentelemetry/instrumentation-redis-4'
 import {
   awsEc2Detector,
   awsEcsDetector,
   awsEksDetector,
 } from '@opentelemetry/resource-detector-aws'
-
-import { BunyanInstrumentation } from '@opentelemetry/instrumentation-bunyan'
-import { HttpInstrumentation } from '@opentelemetry/instrumentation-http'
-import { ExpressInstrumentation } from '@opentelemetry/instrumentation-express'
-import { AwsInstrumentation } from '@opentelemetry/instrumentation-aws-sdk'
+import { Resource, ResourceAttributes } from '@opentelemetry/resources'
+import { NodeSDK } from '@opentelemetry/sdk-node'
+import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
 import { KafkaJsInstrumentation } from 'opentelemetry-instrumentation-kafkajs'
-import { RedisInstrumentation } from '@opentelemetry/instrumentation-redis-4'
 import { SequelizeInstrumentation } from 'opentelemetry-instrumentation-sequelize'
-import { PgInstrumentation } from '@opentelemetry/instrumentation-pg'
 
 let sdk: NodeSDK | undefined
 let isInitialized = false

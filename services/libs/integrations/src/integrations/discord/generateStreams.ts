@@ -1,5 +1,6 @@
 import { GenerateStreamsHandler } from '../../types'
-import { IDiscordIntegrationSettings, DiscordStreamType, DiscordRootStreamData } from './types'
+
+import { DiscordRootStreamData, DiscordStreamType, IDiscordIntegrationSettings } from './types'
 
 const handler: GenerateStreamsHandler = async (ctx) => {
   const settings = ctx.integration.settings as IDiscordIntegrationSettings

@@ -1,10 +1,13 @@
-import { IGenerateStreamsContext, IProcessStreamContext } from '../../../../types'
-import { IHubspotObject } from '../types'
 import axios, { AxiosRequestConfig } from 'axios'
-import { getNangoToken } from './../../../nango'
-import { PlatformType } from '@crowd/types'
+
 import { RequestThrottler } from '@crowd/common'
+import { PlatformType } from '@crowd/types'
+
+import { IGenerateStreamsContext, IProcessStreamContext } from '../../../../types'
 import { HubspotMemberFieldMapper } from '../field-mapper/memberFieldMapper'
+import { IHubspotObject } from '../types'
+
+import { getNangoToken } from './../../../nango'
 
 export const getContactById = async (
   nangoId: string,
