@@ -8,7 +8,7 @@ import {
 import { EnrichmentSourceServiceFactory } from '../factory'
 import { svc } from '../main'
 
-export async function getMembers(
+export async function getEnrichableMembers(
   limit: number,
   sources: MemberEnrichmentSource[],
   afterId: string,

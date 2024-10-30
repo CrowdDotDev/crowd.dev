@@ -36,7 +36,9 @@ export interface IEnrichmentService {
   // can the source enrich using this input
   isEnrichableBySource(input: IEnrichmentSourceInput): boolean
 
-  // what kind of custom sql should this source use as input
+  // SQL filter to get enrichable members for a source
+  // members table is available as "members" alias
+  // memberIdentities table is available as "mi" alias
   enrichableBySql: string
 
   // should either return the data or null if it's a miss

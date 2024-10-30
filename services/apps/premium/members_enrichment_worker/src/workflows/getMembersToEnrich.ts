@@ -13,9 +13,7 @@ import { IGetMembersForEnrichmentArgs } from '../types'
 
 import { enrichMember } from './enrichMember'
 
-// Configure timeouts and retry policies to retrieve members to enrich from the
-// database.
-const { getMembers } = proxyActivities<typeof activities>({
+const { getEnrichableMembers } = proxyActivities<typeof activities>({
   startToCloseTimeout: '10 seconds',
 })
 
@@ -28,7 +26,7 @@ export async function getMembersToEnrich(args: IGetMembersForEnrichmentArgs): Pr
     MemberEnrichmentSource.SERP,
   ]
 
-  const members = await getMembers(MEMBER_ENRICHMENT_PER_RUN, sources, afterId)
+  const members = await getEnrichableMembers(MEMBER_ENRICHMENT_PER_RUN, sources, afterId)
 
   if (members.length === 0) {
     return

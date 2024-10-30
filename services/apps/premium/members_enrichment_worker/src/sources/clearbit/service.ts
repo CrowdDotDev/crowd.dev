@@ -55,7 +55,7 @@ export default class EnrichmentServiceClearbit extends LoggerBase implements IEn
   }
 
   isEnrichableBySource(input: IEnrichmentSourceInput): boolean {
-    return !!input.email?.value
+    return !!input.email?.value && input.email?.verified
   }
 
   async getData(input: IEnrichmentSourceInput): Promise<IMemberEnrichmentDataClearbit | null> {

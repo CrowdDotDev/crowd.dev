@@ -8,7 +8,7 @@ import {
   touchMemberEnrichmentCacheUpdatedAt,
   updateMemberEnrichmentCache,
 } from './activities/enrichment'
-import { getMembers } from './activities/getMembers'
+import { getEnrichableMembers } from './activities/getMembers'
 import { refreshToken } from './activities/lf-auth0/authenticateLFAuth0'
 import {
   getIdentitiesExistInOtherMembers,
@@ -29,7 +29,7 @@ import {
 } from './activities/syncEnrichedData'
 
 export {
-  getMembers,
+  getEnrichableMembers,
   getEnrichmentData,
   normalizeEnrichmentData,
   findMemberEnrichmentCache,

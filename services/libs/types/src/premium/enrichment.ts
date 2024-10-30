@@ -12,7 +12,7 @@ export interface IMemberEnrichmentCache<T> {
 export interface IMemberEnrichmentSourceQueryInput {
   source: MemberEnrichmentSource
   cacheObsoleteAfterSeconds: number
-  enrichableBySql
+  enrichableBySql: string
 }
 
 export interface IEnrichableMember {

@@ -45,27 +45,23 @@ export default class EnrichmentServiceSerpApi extends LoggerBase implements IEnr
     let enriched: IMemberEnrichmentDataSerp = null
 
     if (input.displayName && input.location && input.website) {
-      enriched = await this.queryWithWebsite(input.displayName, input.location, input.website)
+      enriched = await this.querySerpApi(input.displayName, input.location, input.website)
     }
 
-    if (!enriched && input.displayName && input.location && input.github) {
-      enriched = await this.queryWithGithubIdentity(
-        input.displayName,
-        input.location,
-        input.github.value,
-      )
+    if (!enriched && input.displayName && input.location && input.github && input.github.value) {
+      enriched = await this.querySerpApi(input.displayName, input.location, input.github.value)
     }
 
-    if (!enriched && input.displayName && input.location && input.email) {
-      enriched = await this.queryWithEmail(input.displayName, input.location, input.email.value)
+    if (!enriched && input.displayName && input.location && input.email && input.email.value) {
+      enriched = await this.querySerpApi(input.displayName, input.location, input.email.value)
     }
     return enriched
   }
 
-  private async queryWithWebsite(
+  private async querySerpApi(
     displayName: string,
     location: string,
-    website: string,
+    identifier: string,
   ): Promise<IMemberEnrichmentDataSerp> {
     const url = `https://serpapi.com/search.json`
 
@@ -74,79 +70,7 @@ export default class EnrichmentServiceSerpApi extends LoggerBase implements IEnr
       url,
       params: {
         api_key: process.env['CROWD_SERP_API_KEY'],
-        q: `"${displayName}" ${location} "${website}" site:linkedin.com/in`,
-        num: 3,
-        engine: 'google',
-      },
-    }
-
-    const response: IMemberEnrichmentSerpApiResponse = (await axios(config)).data
-
-    if (response.search_information.total_results > 0) {
-      if (
-        response.organic_results.length > 0 &&
-        response.organic_results[0].link &&
-        !response.search_information.spelling_fix &&
-        !response.search_information.spelling_fix_type
-      ) {
-        return {
-          linkedinUrl: response.organic_results[0].link,
-        }
-      }
-    }
-
-    return null
-  }
-
-  private async queryWithGithubIdentity(
-    displayName: string,
-    location: string,
-    githubIdentity: string,
-  ): Promise<IMemberEnrichmentDataSerp> {
-    const url = `https://serpapi.com/search.json`
-
-    const config = {
-      method: 'get',
-      url,
-      params: {
-        api_key: process.env['CROWD_SERP_API_KEY'],
-        q: `"${displayName}" ${location} "${githubIdentity}" site:linkedin.com/in`,
-        num: 3,
-        engine: 'google',
-      },
-    }
-
-    const response: IMemberEnrichmentSerpApiResponse = (await axios(config)).data
-
-    if (response.search_information.total_results > 0) {
-      if (
-        response.organic_results.length > 0 &&
-        response.organic_results[0].link &&
-        !response.search_information.spelling_fix &&
-        !response.search_information.spelling_fix_type
-      ) {
-        return {
-          linkedinUrl: response.organic_results[0].link,
-        }
-      }
-    }
-
-    return null
-  }
-
-  private async queryWithEmail(
-    displayName: string,
-    location: string,
-    email: string,
-  ): Promise<IMemberEnrichmentDataSerp> {
-    const url = `https://serpapi.com/search.json`
-
-    const config = {
-      method: 'get',
-      url,
-      params: {
-        api_key: process.env['CROWD_SERP_API_KEY'],
-        q: `"${displayName}" ${location} "${email}" site:linkedin.com/in`,
+        q: `"${displayName}" ${location} "${identifier}" site:linkedin.com/in`,
         num: 3,
         engine: 'google',
       },

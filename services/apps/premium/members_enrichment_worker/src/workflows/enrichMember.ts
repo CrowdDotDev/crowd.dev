@@ -55,9 +55,9 @@ export async function enrichMember(
             i.platform === PlatformType.LINKEDIN &&
             i.type === MemberIdentityType.USERNAME,
         ),
-        displayName: input.displayName,
-        website: input.website,
-        location: input.location,
+        displayName: input.displayName || undefined,
+        website: input.website || undefined,
+        location: input.location || undefined,
       }
 
       const data = await getEnrichmentData(source, enrichmentInput)
