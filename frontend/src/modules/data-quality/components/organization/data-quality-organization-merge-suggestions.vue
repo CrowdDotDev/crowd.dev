@@ -5,7 +5,7 @@
     </div>
     <div v-else-if="mergeSuggestions.length > 0">
       <lf-data-quality-organization-merge-suggestions-item
-        v-for="(suggestion, si) in mergeSuggestions"
+        v-for="(suggestion, si) of mergeSuggestions"
         :key="suggestion.id"
         :suggestion="suggestion"
       >
@@ -16,8 +16,13 @@
         </template>
       </lf-data-quality-organization-merge-suggestions-item>
       <div v-if="mergeSuggestions.length < total" class="pt-4">
-        <lf-button type="primary-ghost" size="small" :loading="loading" @click="loadMore()">
-          <i class="ri-arrow-down-line" />Load more
+        <lf-button
+          type="primary-ghost"
+          loading-text="Loading suggestions..."
+          :loading="loading"
+          @click="loadMore()"
+        >
+          Load more
         </lf-button>
       </div>
     </div>

@@ -12,7 +12,7 @@
             :size="32"
           />
           <div>
-            <p class="text-medium font-semibold">
+            <p class="text-medium font-semibold truncate" style="width: 30ch">
               {{ member.displayName }}
             </p>
             <!--            <p class="text-tiny text-gray-500">-->

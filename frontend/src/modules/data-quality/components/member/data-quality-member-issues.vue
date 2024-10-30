@@ -18,6 +18,7 @@
               query: { projectGroup: selectedProjectGroup?.id },
             }"
             target="_blank"
+            @click="trackReviewProfile(member.id)"
           >
             <lf-button type="secondary" size="small">
               <lf-icon-old name="external-link-line" />Review profile
@@ -26,8 +27,13 @@
         </template>
       </lf-data-quality-member-issues-item>
       <div v-if="members.length < total" class="pt-4">
-        <lf-button type="primary-ghost" size="small" :loading="loading" @click="loadMore()">
-          <i class="ri-arrow-down-line" />Load more
+        <lf-button
+          type="primary-ghost"
+          loading-text="Loading issues..."
+          :loading="loading"
+          @click="loadMore()"
+        >
+          Load more
         </lf-button>
       </div>
     </div>
@@ -56,6 +62,8 @@ import LfDataQualityMemberIssuesItem
 import LfIconOld from '@/ui-kit/icon/IconOld.vue';
 import { storeToRefs } from 'pinia';
 import { useLfSegmentsStore } from '@/modules/lf/segments/store';
+import { EventType, FeatureEventKey } from '@/shared/modules/monitoring/types/event';
+import useProductTracking from '@/shared/modules/monitoring/useProductTracking';
 
 const props = defineProps<{
   type: DataIssueType,
@@ -69,6 +77,7 @@ const total = ref(0);
 const members = ref<any[]>([]);
 
 const { selectedProjectGroup } = storeToRefs(useLfSegmentsStore());
+const { trackEvent } = useProductTracking();
 
 const loadDataIssues = () => {
   loading.value = true;
@@ -100,6 +109,18 @@ const loadDataIssues = () => {
 const loadMore = () => {
   offset.value = members.value.length;
   loadDataIssues();
+};
+
+const trackReviewProfile = (memberId: string) => {
+  trackEvent({
+    key: FeatureEventKey.COPILOT_REVIEW_PROFILE,
+    type: EventType.FEATURE,
+    properties: {
+      issueType: props.type,
+      memberId,
+      projectGroup: selectedProjectGroup.value?.id,
+    },
+  });
 };
 
 watch(() => props.type, () => {

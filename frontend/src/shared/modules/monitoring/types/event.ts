@@ -35,7 +35,7 @@ export enum PageEventKey {
   MEMBERS_MERGE_SUGGESTIONS = 'Contributors merge suggestions',
   MANAGE_PROJECTS = 'Manage projects',
   INTEGRATIONS = 'Integrations',
-  DATA_QUALITY_ASSISTANT = 'Data Quality Assistant',
+  DATA_QUALITY_ASSISTANT = 'Data Quality Copilot',
 }
 
 export enum FeatureEventKey {
@@ -134,4 +134,5 @@ export enum FeatureEventKey {
   COPY_AUDIT_LOG_JSON = 'Copy audit log JSON',
   SELECT_PROJECT_GROUP = 'Select project group',
   FILTER_DASHBOARD = 'Filter dashboard',
+  COPILOT_REVIEW_PROFILE = 'Copilot review profile',
 }
