@@ -111,13 +111,16 @@ const loadMergeSuggestions = () => {
     .then((res) => {
       console.log(res);
       total.value = +res.count;
-      const rows = res.rows.filter((s: any) => s.similarity > 0);
+      console.log('rows', res.rows);
+      console.log('before set', mergeSuggestions.value);
       if (+res.offset > 0) {
-        mergeSuggestions.value = [...mergeSuggestions.value, ...rows];
+        console.log('join');
+        mergeSuggestions.value = [...mergeSuggestions.value, ...res.rows];
       } else {
-        mergeSuggestions.value = rows;
+        console.log('set');
+        mergeSuggestions.value = res.rows;
       }
-      console.log(mergeSuggestions);
+      console.log('after set', mergeSuggestions.value);
     })
     .finally(() => {
       loading.value = false;
