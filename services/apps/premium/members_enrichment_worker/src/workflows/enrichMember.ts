@@ -20,7 +20,7 @@ const {
   isCacheObsolete,
   normalizeEnrichmentData,
 } = proxyActivities<typeof activities>({
-  startToCloseTimeout: '10 seconds',
+  startToCloseTimeout: '20 seconds',
   retry: {
     initialInterval: '5s',
     backoffCoefficient: 2.0,
