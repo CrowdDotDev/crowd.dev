@@ -36,6 +36,8 @@ export default class EnrichmentServiceSerpApi extends LoggerBase implements IEnr
     const displayNameSplit = input.displayName?.split(' ')
     return (
       displayNameSplit?.length > 1 &&
+      input.activityCount &&
+      input.activityCount > this.enrichMembersWithActivityMoreThan &&
       !!input.location &&
       ((!!input.email && input.email.verified) ||
         (!!input.github && input.github.verified) ||

@@ -22,4 +22,5 @@ export interface IEnrichableMember {
   location: string
   website: string
   identities: IMemberIdentity[]
+  activityCount: number
 }
