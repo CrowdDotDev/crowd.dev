@@ -39,6 +39,7 @@ export interface IEnrichmentService {
   // SQL filter to get enrichable members for a source
   // members table is available as "members" alias
   // memberIdentities table is available as "mi" alias
+  // activity count is available in "activitySummary" alias, "activitySummary".total_count field
   enrichableBySql: string
 
   // should either return the data or null if it's a miss

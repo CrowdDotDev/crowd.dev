@@ -14,8 +14,10 @@ import { IMemberEnrichmentDataSerp, IMemberEnrichmentSerpApiResponse } from './t
 export default class EnrichmentServiceSerpApi extends LoggerBase implements IEnrichmentService {
   public source: MemberEnrichmentSource = MemberEnrichmentSource.SERP
   public platform = `enrichment-${this.source}`
+  public enrichMembersWithActivityMoreThan = 10
 
   public enrichableBySql = `
+  ("activitySummary".total_count > ${this.enrichMembersWithActivityMoreThan}) AND
   (members."displayName" like '% %') AND 
   (members.attributes->'location'->>'default' is not null and members.attributes->'location'->>'default' <> '') AND
   ((members.attributes->'websiteUrl'->>'default' is not null and members.attributes->'websiteUrl'->>'default' <> '') OR 
@@ -23,8 +25,8 @@ export default class EnrichmentServiceSerpApi extends LoggerBase implements IEnr
    (mi.verified AND mi.type = 'email')
   )`
 
-  // bust cache after 60 days
-  public cacheObsoleteAfterSeconds = 60 * 60 * 24 * 60
+  // bust cache after 120 days
+  public cacheObsoleteAfterSeconds = 60 * 60 * 24 * 120
 
   constructor(public readonly log: Logger) {
     super(log)

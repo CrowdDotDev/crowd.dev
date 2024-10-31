@@ -44,7 +44,20 @@ export async function fetchMembersForEnrichment(
   }
 
   return db.connection().query(
-    `SELECT
+    `
+    WITH "activitySummary" AS (
+        SELECT
+            msa."memberId",
+            sum(msa."activityCount") AS total_count
+        FROM "memberSegmentsAgg" msa
+        WHERE msa."segmentId" IN (
+            SELECT id
+            FROM segments
+            WHERE "grandparentId" IS NOT NULL AND "parentId" IS NOT NULL
+        )
+        group by msa."memberId"
+    )
+    SELECT
          members."id",
          members."tenantId",
          members."displayName",
@@ -59,6 +72,7 @@ export async function fetchMembersForEnrichment(
      FROM members
               INNER JOIN tenants ON tenants.id = members."tenantId"
               INNER JOIN "memberIdentities" mi ON mi."memberId" = members.id
+              INNER JOIN "activitySummary" on "activitySummary"."memberId" = members.id
      WHERE 
        ${enrichableBySqlJoined}
        AND tenants."deletedAt" IS NULL
