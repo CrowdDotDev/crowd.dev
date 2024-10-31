@@ -65,13 +65,11 @@ export default class EnrichmentServiceSerpApi extends LoggerBase implements IEnr
     location: string,
     identifier: string,
   ): Promise<IMemberEnrichmentDataSerp> {
-    const url = `https://serpapi.com/search.json`
-
     const config = {
       method: 'get',
-      url,
+      url: process.env['CROWD_ENRICHMENT_SERP_API_URL'],
       params: {
-        api_key: process.env['CROWD_SERP_API_KEY'],
+        api_key: process.env['CROWD_ENRICHMENT_SERP_API_KEY'],
         q: `"${displayName}" ${location} "${identifier}" site:linkedin.com/in`,
         num: 3,
         engine: 'google',
