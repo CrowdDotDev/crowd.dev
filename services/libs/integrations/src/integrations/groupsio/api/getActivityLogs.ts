@@ -1,5 +1,7 @@
 import axios, { AxiosRequestConfig } from 'axios'
 
+import { RateLimitError } from '@crowd/types'
+
 import { IProcessStreamContext } from '../../../types'
 import { GroupName } from '../types'
 import { RedisSemaphore } from '../utils/lock'
@@ -33,6 +35,9 @@ export const getActivityLogs = async (
     const response = await axios(config)
     return response.data
   } catch (err) {
+    if (err?.message?.includes('429') || err?.response?.status === 429) {
+      throw new RateLimitError(60 * 5, 'Rate limit when fetching activity logs from group!')
+    }
     ctx.log.error(err, { groupName }, 'Error fetching activity logs from group!')
     throw err
   } finally {
