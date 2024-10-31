@@ -428,7 +428,7 @@ class MemberRepository {
         JOIN member_segments_mv ms2 ON ms2."memberId" = mtm."toMergeId"
         join members m on m.id = mtm."memberId"
         join members m2 on m2.id = mtm."toMergeId"
-        WHERE ms."segmentId" IN (:segmentIds) and ms2."segmentId" IN (:segmentIds)
+        WHERE ms."segmentId" IN (:segmentIds) and ms2."segmentId" IN (:segmentIds) AND mtm.similarity IS NOT NULL
           ${memberFilter}
           ${similarityFilter}
           ${displayNameFilter}
@@ -534,11 +534,13 @@ class MemberRepository {
             {
               id: i.id,
               displayName: i.primaryDisplayName,
+              activityCount: i.primaryActivityCount,
               avatarUrl: i.primaryAvatarUrl,
             },
             {
               id: i.toMergeId,
               displayName: i.toMergeDisplayName,
+              activityCount: i.toActivityCount,
               avatarUrl: i.toMergeAvatarUrl,
             },
           ],

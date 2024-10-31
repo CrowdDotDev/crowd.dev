@@ -466,7 +466,8 @@ const handler: ProcessWebhookStreamHandler = async (ctx) => {
         await parseWebhookPullRequestReviewComment(data, ctx)
         break
       default:
-        await ctx.abortWithError(`Unknown Github webhook event: ${event}`)
+        ctx.log.debug({ event }, 'Unknown Github webhook event!')
+        return
     }
   }
 }

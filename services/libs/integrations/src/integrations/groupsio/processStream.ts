@@ -255,7 +255,7 @@ const processTopicStream: ProcessStreamHandler = async (ctx) => {
         group_id: message.group_id,
       } as MemberInfoMinimal
 
-      ctx.log.warn(
+      ctx.log.debug(
         { userId, messageId: message.id },
         'Member not found in cache, using anonymous member!',
       )
