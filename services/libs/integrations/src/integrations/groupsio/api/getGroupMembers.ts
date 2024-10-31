@@ -1,9 +1,10 @@
 import axios, { AxiosRequestConfig } from 'axios'
 
+import { RateLimitError } from '@crowd/types'
+
 import { IProcessStreamContext } from '../../../types'
 import { GroupName } from '../types'
 import { RedisSemaphore } from '../utils/lock'
-import { RateLimitError } from '@crowd/types'
 
 export const getGroupMembers = async (
   groupName: GroupName,
@@ -33,11 +34,8 @@ export const getGroupMembers = async (
     const response = await axios(config)
     return response.data
   } catch (err) {
-     if (err?.message?.includes('429') || err?.response?.status === 429) {
-      throw new RateLimitError(
-        60 * 5,
-        'Rate limit when fetching members from group!',
-      )
+    if (err?.message?.includes('429') || err?.response?.status === 429) {
+      throw new RateLimitError(60 * 5, 'Rate limit when fetching members from group!')
     }
     ctx.log.error(err, { groupName }, 'Error fetching members from group!')
     throw err

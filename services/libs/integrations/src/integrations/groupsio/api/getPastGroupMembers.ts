@@ -1,9 +1,10 @@
 import axios, { AxiosRequestConfig } from 'axios'
 
+import { RateLimitError } from '@crowd/types'
+
 import { IProcessStreamContext } from '../../../types'
 import { GroupName } from '../types'
 import { RedisSemaphore } from '../utils/lock'
-import { RateLimitError } from '@crowd/types'
 
 export const getPastGroupMembers = async (
   groupName: GroupName,
@@ -34,10 +35,7 @@ export const getPastGroupMembers = async (
     return response.data
   } catch (err) {
     if (err?.message?.includes('429') || err?.response?.status === 429) {
-      throw new RateLimitError(
-        60 * 5,
-        'Rate limit when fetching past members from group!',
-      )
+      throw new RateLimitError(60 * 5, 'Rate limit when fetching past members from group!')
     }
     ctx.log.error(err, { groupName }, 'Error fetching past members from group!')
     throw err
