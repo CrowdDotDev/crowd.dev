@@ -1,4 +1,5 @@
-import { MemberEnrichmentSource, MemberIdentityType, PlatformType } from '../enums'
+import { MemberEnrichmentSource } from '../enums'
+import { IMemberIdentity } from '../members'
 
 export interface IMemberEnrichmentCache<T> {
   createdAt: string
@@ -8,13 +9,17 @@ export interface IMemberEnrichmentCache<T> {
   source: MemberEnrichmentSource
 }
 
-export interface IMemberEnrichmentSourceEnrichableBy {
-  platform?: PlatformType
-  type: MemberIdentityType
-}
-
 export interface IMemberEnrichmentSourceQueryInput {
   source: MemberEnrichmentSource
   cacheObsoleteAfterSeconds: number
-  enrichableBy: IMemberEnrichmentSourceEnrichableBy[]
+  enrichableBySql: string
+}
+
+export interface IEnrichableMember {
+  id: string
+  tenantId: string
+  displayName: string
+  location: string
+  website: string
+  identities: IMemberIdentity[]
 }

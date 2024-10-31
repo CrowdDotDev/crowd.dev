@@ -1,6 +1,11 @@
 import { proxyActivities } from '@temporalio/workflow'
 
-import { IMember, MemberEnrichmentSource, MemberIdentityType, PlatformType } from '@crowd/types'
+import {
+  IEnrichableMember,
+  MemberEnrichmentSource,
+  MemberIdentityType,
+  PlatformType,
+} from '@crowd/types'
 
 import * as activities from '../activities'
 import { IEnrichmentSourceInput } from '../types'
@@ -15,7 +20,7 @@ const {
   isCacheObsolete,
   normalizeEnrichmentData,
 } = proxyActivities<typeof activities>({
-  startToCloseTimeout: '10 seconds',
+  startToCloseTimeout: '20 seconds',
   retry: {
     initialInterval: '5s',
     backoffCoefficient: 2.0,
@@ -25,7 +30,7 @@ const {
 })
 
 export async function enrichMember(
-  input: IMember,
+  input: IEnrichableMember,
   sources: MemberEnrichmentSource[],
 ): Promise<void> {
   let changeInEnrichmentSourceData = false
@@ -50,6 +55,9 @@ export async function enrichMember(
             i.platform === PlatformType.LINKEDIN &&
             i.type === MemberIdentityType.USERNAME,
         ),
+        displayName: input.displayName || undefined,
+        website: input.website || undefined,
+        location: input.location || undefined,
       }
 
       const data = await getEnrichmentData(source, enrichmentInput)

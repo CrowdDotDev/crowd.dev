@@ -1,21 +1,25 @@
 import { fetchMembersForEnrichment } from '@crowd/data-access-layer/src/old/apps/premium/members_enrichment_worker'
-import { IMember, IMemberEnrichmentSourceQueryInput, MemberEnrichmentSource } from '@crowd/types'
+import {
+  IEnrichableMember,
+  IMemberEnrichmentSourceQueryInput,
+  MemberEnrichmentSource,
+} from '@crowd/types'
 
 import { EnrichmentSourceServiceFactory } from '../factory'
 import { svc } from '../main'
 
-export async function getMembers(
+export async function getEnrichableMembers(
   limit: number,
   sources: MemberEnrichmentSource[],
   afterId: string,
-): Promise<IMember[]> {
-  let rows: IMember[] = []
+): Promise<IEnrichableMember[]> {
+  let rows: IEnrichableMember[] = []
   const sourceInputs: IMemberEnrichmentSourceQueryInput[] = sources.map((s) => {
     const srv = EnrichmentSourceServiceFactory.getEnrichmentSourceService(s, svc.log)
     return {
       source: s,
       cacheObsoleteAfterSeconds: srv.cacheObsoleteAfterSeconds,
-      enrichableBy: srv.enrichableBy,
+      enrichableBySql: srv.enrichableBySql,
     }
   })
   const db = svc.postgres.reader

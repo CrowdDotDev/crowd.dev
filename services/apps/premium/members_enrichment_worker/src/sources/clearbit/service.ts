@@ -2,7 +2,6 @@ import axios from 'axios'
 
 import { Logger, LoggerBase } from '@crowd/logging'
 import {
-  IMemberEnrichmentSourceEnrichableBy,
   MemberAttributeName,
   MemberEnrichmentSource,
   MemberIdentityType,
@@ -28,11 +27,7 @@ import {
 export default class EnrichmentServiceClearbit extends LoggerBase implements IEnrichmentService {
   public source: MemberEnrichmentSource = MemberEnrichmentSource.CLEARBIT
   public platform = `enrichment-${this.source}`
-  public enrichableBy: IMemberEnrichmentSourceEnrichableBy[] = [
-    {
-      type: MemberIdentityType.EMAIL,
-    },
-  ]
+  public enrichableBySql = `mi.type = 'email' and mi.verified`
 
   // bust cache after 120 days
   public cacheObsoleteAfterSeconds = 60 * 60 * 24 * 120
@@ -60,7 +55,7 @@ export default class EnrichmentServiceClearbit extends LoggerBase implements IEn
   }
 
   isEnrichableBySource(input: IEnrichmentSourceInput): boolean {
-    return !!input.email?.value
+    return !!input.email?.value && input.email?.verified
   }
 
   async getData(input: IEnrichmentSourceInput): Promise<IMemberEnrichmentDataClearbit | null> {

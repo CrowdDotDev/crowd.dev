@@ -3,7 +3,6 @@ import lodash from 'lodash'
 
 import { Logger, LoggerBase } from '@crowd/logging'
 import {
-  IMemberEnrichmentSourceEnrichableBy,
   MemberAttributeName,
   MemberEnrichmentSource,
   MemberIdentityType,
@@ -33,15 +32,8 @@ import {
 export default class EnrichmentServiceProgAI extends LoggerBase implements IEnrichmentService {
   public source: MemberEnrichmentSource = MemberEnrichmentSource.PROGAI
   public platform = `enrichment-${this.source}`
-  public enrichableBy: IMemberEnrichmentSourceEnrichableBy[] = [
-    {
-      type: MemberIdentityType.USERNAME,
-      platform: PlatformType.GITHUB,
-    },
-    {
-      type: MemberIdentityType.EMAIL,
-    },
-  ]
+
+  enrichableBySql = `mi.verified and ((mi.type = 'username' AND mi.platform = 'github') OR (mi.type = 'email'))`
 
   // bust cache after 90 days
   public cacheObsoleteAfterSeconds = 60 * 60 * 24 * 90

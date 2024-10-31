@@ -10,6 +10,8 @@ const config: Config = {
     'CROWD_ENRICHMENT_PROGAI_API_KEY',
     'CROWD_ENRICHMENT_CLEARBIT_URL',
     'CROWD_ENRICHMENT_CLEARBIT_API_KEY',
+    'CROWD_ENRICHMENT_SERP_API_URL',
+    'CROWD_ENRICHMENT_SERP_API_KEY',
   ],
   producer: {
     enabled: false,
