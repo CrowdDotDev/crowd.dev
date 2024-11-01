@@ -20,6 +20,7 @@ export interface IEnrichmentSourceInput {
   website?: string
   location?: string
   displayName?: string
+  activityCount?: number
 }
 
 export type IMemberEnrichmentData =

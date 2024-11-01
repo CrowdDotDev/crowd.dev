@@ -68,7 +68,8 @@ export async function fetchMembersForEnrichment(
           'value', mi.value,
           'type', mi.type,
           'verified', mi.verified
-        )) as identities
+        )) as identities,
+        MAX("activitySummary".total_count) as "activityCount"
      FROM members
               INNER JOIN tenants ON tenants.id = members."tenantId"
               INNER JOIN "memberIdentities" mi ON mi."memberId" = members.id

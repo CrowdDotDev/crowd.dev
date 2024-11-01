@@ -58,6 +58,7 @@ export async function enrichMember(
         displayName: input.displayName || undefined,
         website: input.website || undefined,
         location: input.location || undefined,
+        activityCount: input.activityCount || 0,
       }
 
       const data = await getEnrichmentData(source, enrichmentInput)
