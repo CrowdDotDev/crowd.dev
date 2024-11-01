@@ -17,6 +17,7 @@ export default class EnrichmentServiceSerpApi extends LoggerBase implements IEnr
   public enrichMembersWithActivityMoreThan = 10
 
   public enrichableBySql = `
+  ("activitySummary".total_count > ${this.enrichMembersWithActivityMoreThan}) AND
   (members."displayName" like '% %') AND 
   (members.attributes->'location'->>'default' is not null and members.attributes->'location'->>'default' <> '') AND
   ((members.attributes->'websiteUrl'->>'default' is not null and members.attributes->'websiteUrl'->>'default' <> '') OR 
@@ -35,8 +36,8 @@ export default class EnrichmentServiceSerpApi extends LoggerBase implements IEnr
     const displayNameSplit = input.displayName?.split(' ')
     return (
       displayNameSplit?.length > 1 &&
-      // input.activityCount &&
-      // input.activityCount > this.enrichMembersWithActivityMoreThan &&
+      input.activityCount &&
+      input.activityCount > this.enrichMembersWithActivityMoreThan &&
       !!input.location &&
       ((!!input.email && input.email.verified) ||
         (!!input.github && input.github.verified) ||
