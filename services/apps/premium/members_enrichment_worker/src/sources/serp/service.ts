@@ -9,7 +9,11 @@ import {
   IMemberEnrichmentDataNormalized,
 } from '../../types'
 
-import { IMemberEnrichmentDataSerp, IMemberEnrichmentSerpApiResponse } from './types'
+import {
+  IMemberEnrichmentDataSerp,
+  IMemberEnrichmentSerpApiResponse,
+  ISerpApiAccountUsageData,
+} from './types'
 
 export default class EnrichmentServiceSerpApi extends LoggerBase implements IEnrichmentService {
   public source: MemberEnrichmentSource = MemberEnrichmentSource.SERP
@@ -43,6 +47,20 @@ export default class EnrichmentServiceSerpApi extends LoggerBase implements IEnr
         (!!input.github && input.github.verified) ||
         !!input.website)
     )
+  }
+
+  async hasRemainingCredits(): Promise<boolean> {
+    const config = {
+      method: 'get',
+      url: `https://serpapi.com/account`,
+      params: {
+        api_key: process.env['CROWD_ENRICHMENT_SERP_API_KEY'],
+      },
+    }
+
+    const response: ISerpApiAccountUsageData = (await axios(config)).data
+
+    return response.total_searches_left > 0
   }
 
   async getData(input: IEnrichmentSourceInput): Promise<IMemberEnrichmentDataSerp | null> {

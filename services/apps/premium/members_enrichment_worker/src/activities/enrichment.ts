@@ -4,6 +4,7 @@ import {
   touchMemberEnrichmentCacheUpdatedAtDb,
   updateMemberEnrichmentCacheDb,
 } from '@crowd/data-access-layer/src/old/apps/premium/members_enrichment_worker'
+import { RedisCache } from '@crowd/redis'
 import { IMemberEnrichmentCache, MemberEnrichmentSource } from '@crowd/types'
 
 import { EnrichmentSourceServiceFactory } from '../factory'
@@ -27,7 +28,7 @@ export async function getEnrichmentData(
   input: IEnrichmentSourceInput,
 ): Promise<IMemberEnrichmentData | null> {
   const service = EnrichmentSourceServiceFactory.getEnrichmentSourceService(source, svc.log)
-  if (service.isEnrichableBySource(input)) {
+  if (service.isEnrichableBySource(input) && (await hasRemainingCredits(source))) {
     return service.getData(input)
   }
   return null
@@ -50,6 +51,41 @@ export async function isCacheObsolete(
     !cache ||
     Date.now() - new Date(cache.updatedAt).getTime() > 1000 * service.cacheObsoleteAfterSeconds
   )
+}
+
+export async function setHasRemainingCredits(
+  source: MemberEnrichmentSource,
+  hasCredits: boolean,
+): Promise<void> {
+  const redisCache = new RedisCache(`enrichment-${source}`, svc.redis, svc.log)
+  if (hasCredits) {
+    await redisCache.set('hasRemainingCredits', 'true', 60)
+  } else {
+    await redisCache.set('hasRemainingCredits', 'false', 60)
+  }
+}
+
+export async function getHasRemainingCredits(source: MemberEnrichmentSource): Promise<boolean> {
+  const redisCache = new RedisCache(`enrichment-${source}`, svc.redis, svc.log)
+  return (await redisCache.get('hasRemainingCredits')) === 'true'
+}
+
+export async function hasRemainingCreditsExists(source: MemberEnrichmentSource): Promise<boolean> {
+  const redisCache = new RedisCache(`enrichment-${source}`, svc.redis, svc.log)
+  return await redisCache.exists('hasRemainingCredits')
+}
+
+export async function hasRemainingCredits(source: MemberEnrichmentSource): Promise<boolean> {
+  const service = EnrichmentSourceServiceFactory.getEnrichmentSourceService(source, svc.log)
+
+  if (await hasRemainingCreditsExists(source)) {
+    return getHasRemainingCredits(source)
+  }
+
+  const hasCredits = await service.hasRemainingCredits()
+
+  await setHasRemainingCredits(source, hasCredits)
+  return hasCredits
 }
 
 export async function findMemberEnrichmentCache(

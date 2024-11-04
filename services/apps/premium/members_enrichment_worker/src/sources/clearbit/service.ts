@@ -27,7 +27,9 @@ import {
 export default class EnrichmentServiceClearbit extends LoggerBase implements IEnrichmentService {
   public source: MemberEnrichmentSource = MemberEnrichmentSource.CLEARBIT
   public platform = `enrichment-${this.source}`
-  public enrichableBySql = `mi.type = 'email' and mi.verified`
+  public enrichMembersWithActivityMoreThan = 10
+
+  public enrichableBySql = `"activitySummary".total_count > ${this.enrichMembersWithActivityMoreThan} AND mi.type = 'email' and mi.verified`
 
   // bust cache after 120 days
   public cacheObsoleteAfterSeconds = 60 * 60 * 24 * 120
@@ -61,6 +63,10 @@ export default class EnrichmentServiceClearbit extends LoggerBase implements IEn
   async getData(input: IEnrichmentSourceInput): Promise<IMemberEnrichmentDataClearbit | null> {
     const enriched: IMemberEnrichmentDataClearbit = await this.getDataUsingEmail(input.email.value)
     return enriched
+  }
+
+  async hasRemainingCredits(): Promise<boolean> {
+    return true
   }
 
   private async getDataUsingEmail(email: string): Promise<IMemberEnrichmentDataClearbit> {

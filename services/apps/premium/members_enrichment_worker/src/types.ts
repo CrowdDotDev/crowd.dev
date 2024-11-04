@@ -37,6 +37,10 @@ export interface IEnrichmentService {
   // can the source enrich using this input
   isEnrichableBySource(input: IEnrichmentSourceInput): boolean
 
+  // does the source have credits to enrich members, if returned false the source will be skipped
+  // response will be saved to redis for 60 seconds and will be used for subsequent calls
+  hasRemainingCredits(): Promise<boolean>
+
   // SQL filter to get enrichable members for a source
   // members table is available as "members" alias
   // memberIdentities table is available as "mi" alias
