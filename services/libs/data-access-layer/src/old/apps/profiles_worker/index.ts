@@ -149,7 +149,7 @@ export async function runMemberAffiliationsUpdate(
       }
 
       activity.organizationId = condition.orgId
-      await insertActivities([activity])
+      await insertActivities([activity], true)
       return
     }
   }

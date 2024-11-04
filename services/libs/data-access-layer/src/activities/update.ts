@@ -41,12 +41,15 @@ export async function updateActivities(
   return streamActivities(
     qdb,
     async (activity) => {
-      await insertActivities([
-        {
-          ...activity,
-          ...(await mapActivity(activity)),
-        },
-      ])
+      await insertActivities(
+        [
+          {
+            ...activity,
+            ...(await mapActivity(activity)),
+          },
+        ],
+        true,
+      )
     },
     where,
     params,
