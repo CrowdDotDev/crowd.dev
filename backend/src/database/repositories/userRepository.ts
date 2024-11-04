@@ -410,6 +410,15 @@ export default class UserRepository {
         whereAnd.push(SequelizeFilterUtils.ilikeIncludes('user', 'email', filter.email))
       }
 
+      if (filter.query) {
+        whereAnd.push({
+          [Op.or]: [
+            SequelizeFilterUtils.ilikeIncludes('user', 'fullName', filter.query),
+            SequelizeFilterUtils.ilikeIncludes('user', 'email', filter.query),
+          ],
+        })
+      }
+
       if (filter.role) {
         const innerWhereAnd: Array<any> = []
 
