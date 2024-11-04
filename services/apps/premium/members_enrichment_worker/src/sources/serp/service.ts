@@ -14,7 +14,7 @@ import { IMemberEnrichmentDataSerp, IMemberEnrichmentSerpApiResponse } from './t
 export default class EnrichmentServiceSerpApi extends LoggerBase implements IEnrichmentService {
   public source: MemberEnrichmentSource = MemberEnrichmentSource.SERP
   public platform = `enrichment-${this.source}`
-  public enrichMembersWithActivityMoreThan = 100
+  public enrichMembersWithActivityMoreThan = 500
 
   public enrichableBySql = `
   ("activitySummary".total_count > ${this.enrichMembersWithActivityMoreThan}) AND
