@@ -42,11 +42,11 @@ export const logExecutionTimeV2 = async <T>(
   }
 }
 
-export const timer = (log: Logger, name: string) => {
+export const timer = (log: Logger, name?: string) => {
   const start = performance.now()
   let isEnded = false
   return {
-    end: function () {
+    end: function (overrideName?: string) {
       if (isEnded) {
         return
       }
@@ -55,7 +55,7 @@ export const timer = (log: Logger, name: string) => {
       const end = performance.now()
       const duration = end - start
       const durationInSeconds = duration / 1000
-      log.info(`Process ${name} took ${durationInSeconds.toFixed(2)} seconds!`)
+      log.info(`Process ${overrideName ?? name} took ${durationInSeconds.toFixed(2)} seconds!`)
     },
   }
 }

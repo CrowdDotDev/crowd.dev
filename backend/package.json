@@ -41,7 +41,8 @@
     "script:cache-dashboard": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true tsx src/bin/scripts/cache-dashboard.ts",
     "script:purge-tenants-and-data": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true tsx src/bin/scripts/purge-tenants-and-data.ts",
     "script:import-lfx-memberships": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true tsx src/bin/scripts/import-lfx-memberships.ts",
-    "script:fix-missing-org-displayName": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true tsx src/bin/scripts/fix-missing-org-displayName.ts"
+    "script:fix-missing-org-displayName": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true tsx src/bin/scripts/fix-missing-org-displayName.ts",
+    "script:syncActivities": "SERVICE=script TS_NODE_TRANSPILE_ONLY=true tsx src/bin/scripts/syncActivities.ts"
   },
   "dependencies": {
     "@aws-sdk/client-comprehend": "^3.159.0",

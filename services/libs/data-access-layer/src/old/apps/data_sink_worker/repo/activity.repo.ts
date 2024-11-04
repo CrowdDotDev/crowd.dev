@@ -188,6 +188,27 @@ export default class ActivityRepository extends RepositoryBase<ActivityRepositor
     return id
   }
 
+  public async existsWithId(id: string): Promise<boolean> {
+    const result = await this.db().oneOrNone('select 1 from activities where id = $(id)', { id })
+    return result !== null
+  }
+
+  public async rawUpdate(id: string, data: IDbActivityUpdateData): Promise<void> {
+    const prepared = RepositoryBase.prepare(
+      { ...data, updatedAt: new Date() },
+      this.updateActivityColumnSet,
+    )
+    const query = this.dbInstance.helpers.update(prepared, this.updateActivityColumnSet)
+    const condition = this.format('where id = $(id)', { id })
+    await this.db().none(`${query} ${condition}`)
+  }
+
+  public async rawInsert(data: IDbActivityCreateData): Promise<void> {
+    const prepared = RepositoryBase.prepare(data, this.insertActivityColumnSet)
+    const query = this.dbInstance.helpers.insert(prepared, this.insertActivityColumnSet)
+    await this.db().none(query)
+  }
+
   public async update(
     id: string,
     tenantId: string,
