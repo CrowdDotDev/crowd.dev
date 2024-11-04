@@ -91,6 +91,7 @@
           />
           <lf-organization-details-activities
             v-else-if="tabs === 'activities'"
+            ref="activities"
             :organization="organization"
           />
         </div>
@@ -135,7 +136,8 @@ const { selectedProjectGroup } = storeToRefs(lsSegmentsStore);
 const route = useRoute();
 
 const tabs = ref('overview');
-const contributors = ref('overview');
+const contributors = ref(null);
+const activities = ref(null);
 const scrollContainer = ref(null);
 
 const { id } = route.params;
@@ -161,6 +163,8 @@ const controlScroll = (e: any) => {
   if (e.target.scrollTop + e.target.clientHeight >= e.target.scrollHeight - 10) {
     if (tabs.value === 'people') {
       contributors.value.loadMore();
+    } else if (tabs.value === 'activities') {
+      activities.value.loadMore();
     }
   }
 };

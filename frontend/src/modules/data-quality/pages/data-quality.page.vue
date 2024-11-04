@@ -1,5 +1,5 @@
 <template>
-  <app-page-wrapper>
+  <app-page-wrapper class="!pb-0">
     <div>
       <!-- Header -->
       <div class="mb-6">
