@@ -1013,19 +1013,19 @@ export default class OrganizationService extends LoggerBase {
   }
 
   async findAllAutocomplete(data) {
-    const segmentId = data.segments && data.segments.length > 0 ? data.segments[0] : undefined
-
-    const res = await OrganizationRepository.findAndCountAll(
+    const { filter, orderBy, limit, offset, segments } = data
+    return OrganizationRepository.findAndCountAll(
       {
-        ...data,
-        segmentId,
-        include: {
-          segments: true,
-        },
+        filter,
+        orderBy,
+        limit,
+        offset,
+        segmentId: segments.length > 0 ? segments[0] : undefined,
+        fields: ['id', 'segmentId', 'displayName', 'memberCount', 'activityCount', 'logo'],
+        include: { aggregates: true, identities: false, lfxMemberships: true },
       },
       this.options,
     )
-    return res
   }
 
   async findAndCountAll(args) {

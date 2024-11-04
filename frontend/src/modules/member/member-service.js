@@ -140,7 +140,7 @@ export class MemberService {
         },
       } : {},
       offset: 0,
-      orderBy: 'displayName_ASC',
+      orderBy: 'activityCount_DESC',
       limit,
       ...(segments && {
         segments,
