@@ -384,6 +384,7 @@ export default class UserRepository {
         as: 'tenants',
         where: {
           tenantId: currentTenant.id,
+          status: 'active',
         },
       })
     }

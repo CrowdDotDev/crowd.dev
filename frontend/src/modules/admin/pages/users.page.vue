@@ -16,9 +16,9 @@
           <tr v-for="user of users" :key="user.id">
             <td>
               <div class="flex items-center gap-3">
-                <lf-avatar :name="user.fullName" :size="32" />
+                <lf-avatar :name="nameDisplay(user)" :size="32" />
                 <p class="text-medium font-semibold">
-                  {{ user.fullName }}
+                  {{ nameDisplay(user) }}
                 </p>
               </div>
             </td>
@@ -96,10 +96,10 @@ const fetchUsers = () => {
         users.value = res.rows;
       }
 
-      if (res.rows.length > 0) {
-        total.value = res.count;
-      } else {
+      if (res.rows.length < limit.value) {
         total.value = users.value.length;
+      } else {
+        total.value = res.count;
       }
     })
     .finally(() => {
@@ -131,6 +131,13 @@ const roleDisplay = (roles: string[]) => {
     return 'Read-only';
   }
   return role;
+};
+
+const nameDisplay = (user: UserModel) => {
+  if ((user.fullName || '').length > 0) {
+    return user.fullName;
+  }
+  return user.email.split('@')[0];
 };
 
 onMounted(() => {
