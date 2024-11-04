@@ -50,17 +50,22 @@ export default class EnrichmentServiceSerpApi extends LoggerBase implements IEnr
   }
 
   async hasRemainingCredits(): Promise<boolean> {
-    const config = {
-      method: 'get',
-      url: `https://serpapi.com/account`,
-      params: {
-        api_key: process.env['CROWD_ENRICHMENT_SERP_API_KEY'],
-      },
+    try {
+      const config = {
+        method: 'get',
+        url: `https://serpapi.com/account`,
+        params: {
+          api_key: process.env['CROWD_ENRICHMENT_SERP_API_KEY'],
+        },
+      }
+
+      const response: ISerpApiAccountUsageData = (await axios(config)).data
+
+      return response.total_searches_left > 0
+    } catch (error) {
+      this.log.error('Error while checking serpapi account usage', error)
+      return false
     }
-
-    const response: ISerpApiAccountUsageData = (await axios(config)).data
-
-    return response.total_searches_left > 0
   }
 
   async getData(input: IEnrichmentSourceInput): Promise<IMemberEnrichmentDataSerp | null> {
