@@ -536,7 +536,7 @@ export async function findMemberEnrichmentCacheForAllSourcesDb<T>(
   tx: DbConnOrTx,
   memberId: string,
 ): Promise<IMemberEnrichmentCache<T>[]> {
-  const result = await tx.many(
+  const result = await tx.manyOrNone(
     `
     select *
     from "memberEnrichmentCache"

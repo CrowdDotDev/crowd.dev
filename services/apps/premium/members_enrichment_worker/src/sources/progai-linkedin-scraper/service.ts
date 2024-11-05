@@ -12,23 +12,19 @@ import {
 } from '../../types'
 import { IMemberEnrichmentDataProgAI, IMemberEnrichmentDataProgAIResponse } from '../progai/types'
 
-export default class EnrichmentServiceProgaiLinkedinScraper
+export default class EnrichmentServiceProgAILinkedinScraper
   extends LoggerBase
   implements IEnrichmentService
 {
   public source: MemberEnrichmentSource = MemberEnrichmentSource.PROGAI_LINKEDIN_SCRAPER
   public platform = `enrichment-${this.source}`
-  public enrichMembersWithActivityMoreThan = 10
 
   public alsoFindInputsInSourceCaches: MemberEnrichmentSource[] = [
     MemberEnrichmentSource.CLEARBIT,
     MemberEnrichmentSource.SERP,
   ]
 
-  public enrichableBySql = `
-  ("activitySummary".total_count > ${this.enrichMembersWithActivityMoreThan}) AND
-    (mi.verified AND mi.type = 'username' and mi.platform = 'linkedin') 
-  )`
+  public enrichableBySql = `(mi.verified AND mi.type = 'username' and mi.platform = 'linkedin')`
 
   // bust cache after 120 days
   public cacheObsoleteAfterSeconds = 60 * 60 * 24 * 120
