@@ -21,6 +21,7 @@ import {
   getHubspotTokenInfo,
 } from '@crowd/integrations'
 import { RedisCache } from '@crowd/redis'
+import { GithubSnowflakeClient, SnowflakeClient } from '@crowd/snowflake'
 import { Edition, PlatformType } from '@crowd/types'
 
 import { IRepositoryOptions } from '@/database/repositories/IRepositoryOptions'
@@ -51,6 +52,7 @@ import {
   IS_TEST_ENV,
   KUBE_MODE,
   NANGO_CONFIG,
+  SNOWFLAKE_CONFIG,
 } from '../conf/index'
 import GithubReposRepository from '../database/repositories/githubReposRepository'
 import IntegrationRepository from '../database/repositories/integrationRepository'
@@ -2483,5 +2485,19 @@ export default class IntegrationService {
       `Completed updating GitHub integration settings for installId: ${installId}`,
     )
     return integration
+  }
+
+  public async getGithubRepositories(org: string) {
+    const client = new SnowflakeClient({
+      privateKeyString: SNOWFLAKE_CONFIG.privateKey,
+      account: SNOWFLAKE_CONFIG.account,
+      username: SNOWFLAKE_CONFIG.username,
+      database: SNOWFLAKE_CONFIG.database,
+      warehouse: SNOWFLAKE_CONFIG.warehouse,
+      maxConnections: 1,
+    })
+    this.options.log.info(`Getting GitHub repositories for org: ${org}`)
+    const githubClient = new GithubSnowflakeClient(client)
+    return githubClient.getOrgRepositories({ org, perPage: 10000 })
   }
 }

@@ -256,3 +256,11 @@ export interface IRedditConfig {
   clientId: string
   clientSecret: string
 }
+
+export interface SnowflakeConfiguration {
+  privateKey: string
+  account: string
+  username: string
+  database: string
+  warehouse: string
+}
