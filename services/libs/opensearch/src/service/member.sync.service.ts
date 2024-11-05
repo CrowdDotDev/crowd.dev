@@ -317,7 +317,7 @@ export class MemberSyncService {
     const now = new Date()
 
     const loadNextPage = async (lastId?: string): Promise<string[]> => {
-      this.log.info('Loading next page of organization members!', { organizationId, lastId, reqId })
+      this.log.info('Loading next page of organization members!', { organizationId, lastId })
       const memberIdData = await logExecutionTimeV2(
         () => this.memberRepo.getOrganizationMembersForSync(organizationId, batchSize, lastId),
         this.log,
