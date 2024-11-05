@@ -14,6 +14,7 @@ import { IMemberEnrichmentDataProgAI } from './sources/progai/types'
 import { IMemberEnrichmentDataSerp } from './sources/serp/types'
 
 export interface IEnrichmentSourceInput {
+  memberId: string
   github?: IMemberIdentity
   linkedin?: IMemberIdentity
   email?: IMemberIdentity
@@ -25,6 +26,7 @@ export interface IEnrichmentSourceInput {
 
 export type IMemberEnrichmentData =
   | IMemberEnrichmentDataProgAI
+  | IMemberEnrichmentDataProgAI[]
   | IMemberEnrichmentDataClearbit
   | IMemberEnrichmentDataSerp
 
@@ -35,7 +37,7 @@ export interface IEnrichmentService {
   cacheObsoleteAfterSeconds: number
 
   // can the source enrich using this input
-  isEnrichableBySource(input: IEnrichmentSourceInput): boolean
+  isEnrichableBySource(input: IEnrichmentSourceInput): Promise<boolean>
 
   // does the source have credits to enrich members, if returned false the source will be skipped
   // response will be saved to redis for 60 seconds and will be used for subsequent calls
@@ -49,7 +51,9 @@ export interface IEnrichmentService {
 
   // should either return the data or null if it's a miss
   getData(input: IEnrichmentSourceInput): Promise<IMemberEnrichmentData | null>
-  normalize(data: IMemberEnrichmentData): IMemberEnrichmentDataNormalized
+  normalize(
+    data: IMemberEnrichmentData,
+  ): IMemberEnrichmentDataNormalized | IMemberEnrichmentDataNormalized[]
 }
 
 export interface IMemberEnrichmentDataNormalized {

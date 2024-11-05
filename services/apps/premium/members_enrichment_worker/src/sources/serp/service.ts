@@ -36,7 +36,7 @@ export default class EnrichmentServiceSerpApi extends LoggerBase implements IEnr
     super(log)
   }
 
-  isEnrichableBySource(input: IEnrichmentSourceInput): boolean {
+  async isEnrichableBySource(input: IEnrichmentSourceInput): Promise<boolean> {
     const displayNameSplit = input.displayName?.split(' ')
     return (
       displayNameSplit?.length > 1 &&
@@ -126,7 +126,7 @@ export default class EnrichmentServiceSerpApi extends LoggerBase implements IEnr
           platform: PlatformType.LINKEDIN,
           type: MemberIdentityType.USERNAME,
           verified: false,
-          value: this.normalizeLinkedUrl(data.linkedinUrl),
+          value: this.normalizeLinkedUrl(data.linkedinUrl).split('/').pop(),
         },
       ],
     }

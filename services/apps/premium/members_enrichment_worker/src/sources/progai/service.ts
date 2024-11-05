@@ -118,7 +118,7 @@ export default class EnrichmentServiceProgAI extends LoggerBase implements IEnri
     super(log)
   }
 
-  isEnrichableBySource(input: IEnrichmentSourceInput): boolean {
+  async isEnrichableBySource(input: IEnrichmentSourceInput): Promise<boolean> {
     const enrichableUsingGithubHandle = !!input.github?.value
     const enrichableUsingEmail = this.alsoUseEmailIdentitiesForEnrichment && !!input.email?.value
     return enrichableUsingGithubHandle || enrichableUsingEmail
