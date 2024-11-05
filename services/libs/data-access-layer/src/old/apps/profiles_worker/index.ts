@@ -40,7 +40,7 @@ export async function runMemberAffiliationsUpdate(
 
   type Condition = {
     when: string[]
-    orgId: string | null
+    orgId: string
     matches: (activity: IDbActivityCreateData) => boolean
   }
 
