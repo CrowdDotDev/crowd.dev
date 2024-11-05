@@ -68,7 +68,7 @@ export async function runMemberAffiliationsUpdate(
   )
 
   // Filter valid organizations (non-soft-deleted)
-  const validMemberOrganizations = allMemberOrganizations.filter(org => !org.deletedAt)
+  const validMemberOrganizations = allMemberOrganizations.filter((org) => !org.deletedAt)
 
   // Get all deleted organizationIds to explicitly unaffiliate their activities
   const deletedOrganizationIds = _.uniq(
