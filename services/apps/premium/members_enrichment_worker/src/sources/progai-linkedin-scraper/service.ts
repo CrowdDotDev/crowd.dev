@@ -1,13 +1,19 @@
 import axios from 'axios'
 
 import { Logger, LoggerBase } from '@crowd/logging'
-import { IMemberIdentity, MemberEnrichmentSource, PlatformType } from '@crowd/types'
+import {
+  IMemberEnrichmentCache,
+  IMemberIdentity,
+  MemberEnrichmentSource,
+  PlatformType,
+} from '@crowd/types'
 
 import { findMemberEnrichmentCacheForAllSources } from '../../activities/enrichment'
 import { EnrichmentSourceServiceFactory } from '../../factory'
 import {
   IEnrichmentService,
   IEnrichmentSourceInput,
+  IMemberEnrichmentData,
   IMemberEnrichmentDataNormalized,
 } from '../../types'
 import { IMemberEnrichmentDataProgAI, IMemberEnrichmentDataProgAIResponse } from '../progai/types'
@@ -22,6 +28,7 @@ export default class EnrichmentServiceProgAILinkedinScraper
   public platform = `enrichment-${this.source}`
 
   public alsoFindInputsInSourceCaches: MemberEnrichmentSource[] = [
+    MemberEnrichmentSource.PROGAI,
     MemberEnrichmentSource.CLEARBIT,
     MemberEnrichmentSource.SERP,
   ]
@@ -67,6 +74,7 @@ export default class EnrichmentServiceProgAILinkedinScraper
 
   private async findConsumableLinkedinIdentities(
     input: IEnrichmentSourceInput,
+    caches: IMemberEnrichmentCache<IMemberEnrichmentData>[],
   ): Promise<
     (IMemberIdentity & { repeatedTimesInDifferentSources: number; isFromVerifiedSource: boolean })[]
   > {
@@ -74,7 +82,6 @@ export default class EnrichmentServiceProgAILinkedinScraper
       repeatedTimesInDifferentSources: number
       isFromVerifiedSource: boolean
     })[] = []
-    const caches = await findMemberEnrichmentCacheForAllSources(input.memberId)
     const linkedinUrlHashmap = new Map<string, number>()
 
     for (const cache of caches) {
@@ -127,11 +134,23 @@ export default class EnrichmentServiceProgAILinkedinScraper
     input: IEnrichmentSourceInput,
   ): Promise<IMemberEnrichmentDataProgAILinkedinScraper[] | null> {
     const profiles: IMemberEnrichmentDataProgAILinkedinScraper[] = []
-    const consumableIdentities = await this.findConsumableLinkedinIdentities(input)
+    const caches = await findMemberEnrichmentCacheForAllSources(input.memberId)
+
+    const consumableIdentities = await this.findConsumableLinkedinIdentities(input, caches)
 
     for (const identity of consumableIdentities) {
       const data = await this.getDataUsingLinkedinHandle(identity.value)
       if (data) {
+        const existingProgaiCache = caches.find((c) => c.source === MemberEnrichmentSource.PROGAI)
+        // we don't want to reinforce the cache with the same data, only save to cache
+        // if a new profile is returned from progai
+        if (
+          existingProgaiCache &&
+          existingProgaiCache.data &&
+          (existingProgaiCache.data as IMemberEnrichmentDataProgAI).id == data.id
+        ) {
+          continue
+        }
         profiles.push({
           ...data,
           metadata: {
