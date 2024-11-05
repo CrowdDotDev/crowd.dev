@@ -43,7 +43,7 @@ export async function getEnrichmentData(
 export async function normalizeEnrichmentData(
   source: MemberEnrichmentSource,
   data: IMemberEnrichmentData,
-): Promise<IMemberEnrichmentDataNormalized> {
+): Promise<IMemberEnrichmentDataNormalized | IMemberEnrichmentDataNormalized[]> {
   const service = EnrichmentSourceServiceFactory.getEnrichmentSourceService(source, svc.log)
   return service.normalize(data)
 }
