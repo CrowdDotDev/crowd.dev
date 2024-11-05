@@ -72,9 +72,7 @@ export async function runMemberAffiliationsUpdate(
 
   // Get all deleted organizationIds to explicitly unaffiliate their activities
   const deletedOrganizationIds = _.uniq(
-    allMemberOrganizations
-      .filter((org) => org.deletedAt)
-      .map((org) => org.organizationId)
+    allMemberOrganizations.filter((org) => org.deletedAt).map((org) => org.organizationId),
   )
 
   const orgCases: Condition[] = [
