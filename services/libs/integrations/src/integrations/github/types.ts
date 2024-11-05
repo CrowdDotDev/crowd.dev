@@ -159,15 +159,11 @@ export interface GithubBasicStream {
 }
 
 export interface GithubPlatformSettings {
-  appId: string
-  clientId: string
-  clientSecret: string
   privateKey: string
-  webhookSecret: string
-  isCommitDataEnabled: string
-  globalLimit?: number
-  callbackUrl: string
-  personalAccessTokens: string
+  account: string
+  username: string
+  database: string
+  warehouse: string
 }
 
 export interface GithubIntegrationSettings {
